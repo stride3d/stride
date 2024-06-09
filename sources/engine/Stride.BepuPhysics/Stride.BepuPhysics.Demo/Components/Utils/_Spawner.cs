@@ -1,4 +1,7 @@
-﻿using System.Linq;
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+using System.Linq;
 using Stride.BepuPhysics.Components;
 using Stride.Core.Mathematics;
 using Stride.Engine;
@@ -27,7 +30,7 @@ namespace Stride.BepuPhysics.Demo.Components.Utils
 
             Entity.AddChild(entity);
 
-            if (entity.Get<ContainerComponent>() is BodyComponent body)
+            if (entity.Get<CollidableComponent>() is BodyComponent body)
             {
                 body.SimulationIndex = SimulationIndex;
                 body?.ApplyImpulse(Impulse, ImpulsePos);

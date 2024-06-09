@@ -1,4 +1,7 @@
-﻿using System;
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Stride.BepuPhysics.Components;
@@ -68,16 +71,16 @@ namespace Stride.BepuPhysics.Demo.Components.Car
             if (CarBody == null || Wheels.Count == 0)
                 throw new Exception("CarComponent : must contains at least one body & one wheel");
 
-            var bodyContainer = CarBody.Get<BodyComponent>();
+            var bodyCollidable = CarBody.Get<BodyComponent>();
 
             foreach (var wheel in Wheels)
             {
-                var wheelContainer = wheel.Get<BodyComponent>();
+                var wheelCollidable = wheel.Get<BodyComponent>();
                 var WheelComponent = wheel.Get<WheelComponent>() ?? new();
 
                 var polscc = new PointOnLineServoConstraintComponent();
-                polscc.A = bodyContainer;
-                polscc.B = wheelContainer;
+                polscc.A = bodyCollidable;
+                polscc.B = wheelCollidable;
 
                 polscc.LocalOffsetA = wheel.Transform.GetWorldPos() - CarBody.Transform.GetWorldPos();
                 polscc.LocalOffsetB = new();
@@ -86,8 +89,8 @@ namespace Stride.BepuPhysics.Demo.Components.Car
                 wheel.Add(polscc);
 
                 var lascc = new LinearAxisServoConstraintComponent();
-                lascc.A = bodyContainer;
-                lascc.B = wheelContainer;
+                lascc.A = bodyCollidable;
+                lascc.B = wheelCollidable;
 
                 lascc.LocalOffsetA = wheel.Transform.GetWorldPos() - CarBody.Transform.GetWorldPos();
                 lascc.LocalOffsetB = new();
@@ -99,8 +102,8 @@ namespace Stride.BepuPhysics.Demo.Components.Car
                 wheel.Add(lascc);
 
                 var ahcc = new AngularHingeConstraintComponent();
-                ahcc.A = bodyContainer;
-                ahcc.B = wheelContainer;
+                ahcc.A = bodyCollidable;
+                ahcc.B = wheelCollidable;
 
                 ahcc.LocalHingeAxisA = Vector3.UnitZ;
                 ahcc.LocalHingeAxisB = Vector3.UnitY;
@@ -109,11 +112,11 @@ namespace Stride.BepuPhysics.Demo.Components.Car
 
             //foreach (var wheel in DriveWheels.Union(BreakWheels))
             //{
-            //    var wheelContainer = wheel.Get<BodyComponent>();
+            //    var wheelCollidable = wheel.Get<BodyComponent>();
 
             //    var aamcc = new AngularAxisMotorConstraintComponent();
-            //    aamcc.Bodies.Add(wheelContainer);
-            //    aamcc.Bodies.Add(bodyContainer);
+            //    aamcc.Bodies.Add(wheelCollidable);
+            //    aamcc.Bodies.Add(bodyCollidable);
 
             //    aamcc.LocalAxisA = Vector3.UnitY;
             //    aamcc.MotorDamping = 50;

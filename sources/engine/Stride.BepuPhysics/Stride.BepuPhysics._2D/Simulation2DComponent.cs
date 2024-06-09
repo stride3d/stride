@@ -1,4 +1,7 @@
-﻿using Stride.BepuPhysics.Components;
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+using Stride.BepuPhysics.Components;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 
@@ -22,7 +25,7 @@ namespace Stride.BepuPhysics._2D
             for (int i = 0; i < BepuSimulation.Simulation.Bodies.ActiveSet.Count; i++)
             {
                 var handle = BepuSimulation.Simulation.Bodies.ActiveSet.IndexToHandle[i];
-                var body = BepuSimulation.GetContainer(handle);
+                var body = BepuSimulation.GetComponent(handle);
 
                 if (body is not Body2DComponent)
                     continue;

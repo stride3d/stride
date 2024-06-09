@@ -1,3 +1,6 @@
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 using System.Runtime.CompilerServices;
 using BepuPhysics.Collidables;
 
@@ -59,10 +62,7 @@ public static class CollisionMaskExtension
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool AllowTest(this CollisionMask collisionMask, CollidableReference collidable, BepuSimulation sim)
     {
-        var result = sim.GetContainer(collidable);
-#warning softHack, we should really create a IContainer for them
-        if (result == null)
-            return true;
-        return collisionMask.Collide(result.CollisionMask);
+        var component = sim.GetComponent(collidable);
+        return collisionMask.Collide(component.CollisionMask);
     }
 }

@@ -26,7 +26,7 @@ Hierarchy:
                         Speed: 20.0
                     c49649f7c41f42ee571f479a236cc7d1: !Stride.BepuPhysics.Demo.Components.SceneDescriptionComponent,Stride.BepuPhysics.Demo
                         Id: 6ff686e3-426e-4b7d-a2ab-0ed41327399a
-                        Description: 'SimIndex : 0. Sample usages of convex colliders & mesh containers.'
+                        Description: 'SimIndex : 0. Sample usages of convex colliders & mesh collidable.'
                     4082eead088a8122a68e86af53d3eb11: !TransformComponent
                         Id: 534dcfc4-b033-4dc4-8ca6-aa1787f24f04
                         Position: {X: 0.0, Y: 0.0, Z: 0.0}
@@ -86,7 +86,7 @@ Hierarchy:
                             ZAxis: 0
         -   Entity:
                 Id: 653a8a5f-3a25-494f-9335-b38f1d853f59
-                Name: BridgeMeshContainer
+                Name: BridgeMeshCollidable
                 Components:
                     66cac410afc07a16ebb76822d8064ccb: !TransformComponent
                         Id: 54515d4f-6db5-42f7-84e7-9b1023ee5e67
@@ -169,7 +169,7 @@ Hierarchy:
                         Intensity: 0.2
         -   Entity:
                 Id: bc2ec41b-e7cd-49b4-b447-705e2d840f59
-                Name: CarMeshContainer
+                Name: CarMeshCollidable
                 Components:
                     fa564e5e1414da68022c2e0e89cc0edd: !TransformComponent
                         Id: f424efd2-8a25-41c5-8fa7-917fc2fe8671
@@ -214,9 +214,9 @@ Hierarchy:
                 Components:
                     f346da7436b9be9f812464bf9743acbe: !TransformComponent
                         Id: f7225640-729f-4c2b-8183-b6cac491f034
-                        Position: {X: 0.0, Y: 10.0, Z: 0.0}
+                        Position: {X: 0.0, Y: 37.832348, Z: 1.1933765}
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
-                        Scale: {X: 0.1, Y: 0.1, Z: 0.1}
+                        Scale: {X: 0.3, Y: 0.3, Z: 0.3}
                         Children: {}
                     2574f4e09c77ec7a64bcf8d80a33ca40: !ModelComponent
                         Id: b2952cdd-63cd-4693-bb13-9d16fdcdd596
@@ -232,7 +232,6 @@ Hierarchy:
                                     Mass: 1.0
                                     PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
                                     RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
-                                    Scale: {X: 0.1, Y: 0.1, Z: 0.1}
                                     Hull: efc10e7c-7d44-4b96-9cf2-716337903373:Models/ColliderHull
                         ContactEventHandler: null
                         SimulationIndex: 0
@@ -269,7 +268,7 @@ Hierarchy:
                             c7e5954a32fc50377c413bbd91784fac: ref!! daae391d-82fd-4c12-8ebb-e610f51495cb
         -   Entity:
                 Id: ebf4c5b5-32de-47a3-8acb-4cb55cb42ea6
-                Name: HexMeshContainer
+                Name: HexMeshCollidable
                 Components:
                     66cac410afc07a16ebb76822d8064ccb: !TransformComponent
                         Id: daae391d-82fd-4c12-8ebb-e610f51495cb
@@ -331,7 +330,7 @@ Hierarchy:
                 Components:
                     191a9580bfac05d33d042a46b9b519ac: !TransformComponent
                         Id: 51902bbd-169e-47cf-8e7e-53663874a113
-                        Position: {X: 0.0, Y: 20.0, Z: 50.0}
+                        Position: {X: 0.0, Y: 8.915733, Z: 50.0}
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}

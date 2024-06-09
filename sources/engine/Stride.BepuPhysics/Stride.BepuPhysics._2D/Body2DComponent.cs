@@ -1,4 +1,7 @@
-﻿using BepuPhysics;
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+using BepuPhysics;
 using BepuPhysics.Collidables;
 using Stride.Core;
 using Stride.Core.Mathematics;
@@ -33,9 +36,9 @@ namespace Stride.BepuPhysics
             }
         }
 
-        protected override void AttachInner(RigidPose containerPose, BodyInertia shapeInertia, TypedIndex shapeIndex)
+        protected override void AttachInner(RigidPose pose, BodyInertia shapeInertia, TypedIndex shapeIndex)
         {
-            base.AttachInner(containerPose, shapeInertia, shapeIndex);
+            base.AttachInner(pose, shapeInertia, shapeIndex);
 #warning what about a body that become kinematic after some time ?
             if (!Kinematic)
                 RotationLock = new Vector3(0, 0, 1);

@@ -1,11 +1,13 @@
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 using BepuPhysics;
 using BepuPhysics.Collidables;
 using Stride.BepuPhysics.DebugRender.Components;
 using Stride.BepuPhysics.DebugRender.Effects;
 using Stride.BepuPhysics.DebugRender.Effects.RenderFeatures;
 using Stride.BepuPhysics.Definitions;
-using Stride.BepuPhysics.Definitions.Colliders;
-using Stride.BepuPhysics.Systems;
+using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Core.Mathematics;
 using Stride.Engine;
@@ -15,11 +17,6 @@ using Stride.Graphics;
 using Stride.Input;
 using Stride.Rendering;
 using cMesh = BepuPhysics.Collidables.Mesh;
-using static Stride.Rendering.Shadows.LightDirectionalShadowMapRenderer;
-using SharpFont;
-using System.ComponentModel;
-using static Stride.BepuPhysics.Systems.ShapeCacheSystem;
-using Silk.NET.OpenGL;
 
 namespace Stride.BepuPhysics.DebugRender.Processors
 {
@@ -46,12 +43,12 @@ namespace Stride.BepuPhysics.DebugRender.Processors
 
         protected override void OnSystemAdd()
         {
-            ServicesHelper.LoadBepuServices(Services);
-            _game = Services.GetService<IGame>();
-            _sceneSystem = Services.GetService<SceneSystem>();
-            _input = Services.GetService<InputManager>();
+            ServicesHelper.LoadBepuServices(Services, out var config, out _, out _);
+            _game = Services.GetSafeServiceAs<IGame>();
+            _sceneSystem = Services.GetSafeServiceAs<SceneSystem>();
+            _input = Services.GetSafeServiceAs<InputManager>();
 #warning Sim0
-            _sim = Services.GetService<BepuConfiguration>().BepuSimulations[0];
+            _sim = config.BepuSimulations[0];
 
             if (_sceneSystem.GraphicsCompositor.RenderFeatures.OfType<SinglePassWireframeRenderFeature>().FirstOrDefault() is { } wireframeFeature)
             {
@@ -116,7 +113,7 @@ namespace Stride.BepuPhysics.DebugRender.Processors
                         var data = Buffers[i2];
                         wireframes[i2] = WireFrameRenderObject.New(_game.GraphicsDevice, data.Indices, data.Vertices);
                         wireframes[i2].Color = Color.Red;
-                        Matrix.Transformation(in Vector3.One, in Quaternion.Identity, in Vector3.Zero, out wireframes[i2].ContainerBaseMatrix);
+                        Matrix.Transformation(in Vector3.One, in Quaternion.Identity, in Vector3.Zero, out wireframes[i2].CollidableBaseMatrix);
                         Matrix.Transformation(in Vector3.One, ref bodyRot, ref bodyPos, out wireframes[i2].WorldMatrix);
                         _visibilityGroup.RenderObjects.Add(wireframes[i2]);
                     }

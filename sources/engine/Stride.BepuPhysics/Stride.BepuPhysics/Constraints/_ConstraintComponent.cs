@@ -1,4 +1,7 @@
-﻿using BepuPhysics.Constraints;
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+using BepuPhysics.Constraints;
 using Stride.BepuPhysics.Systems;
 using Stride.Core;
 
@@ -8,10 +11,7 @@ public abstract class ConstraintComponent<T> : ConstraintComponentBase where T :
 {
     internal T BepuConstraint;
 
-    /// <summary>
-    /// ContainerData is the bridge to Bepu.
-    /// Set through the processor when it calls <see cref="CreateProcessorData"/>.
-    /// </summary>
+    /// <summary> Bridge with Bepu, set through the processor when it calls <see cref="CreateProcessorData"/>. </summary>
     [DataMemberIgnore]
     internal ConstraintData<T>? ConstraintData { get; set; }
 

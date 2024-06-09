@@ -1,10 +1,12 @@
-﻿namespace Stride.BepuPhysics.Definitions;
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+namespace Stride.BepuPhysics.Definitions;
 
 public struct BasicMeshBuffers
 {
-    #warning maybe get rid of this ?
-    public VertexPosition3[] Vertices = Array.Empty<VertexPosition3>();
-    public int[] Indices = Array.Empty<int>();
+    public VertexPosition3[] Vertices = [];
+    public int[] Indices = [];
 
     public BasicMeshBuffers()
     {

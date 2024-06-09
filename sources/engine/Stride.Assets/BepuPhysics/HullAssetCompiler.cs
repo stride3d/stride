@@ -270,23 +270,16 @@ namespace Stride.Assets.BepuPhysics
                                 Core.Utilities.Swap(ref indices[t], ref indices[t + 2]);
                             }
 
-                            hullsList.Add(new DecomposedHulls.Hull
-                            {
-                                Points = pointsV3,
-                                Indices = indices,
-                            });
+                            hullsList.Add(new DecomposedHulls.Hull(pointsV3, indices));
                         }
 
                         convexHullMesh.Dispose();
 
-                        commandContext.Logger.Info("For a total of " + vertexCountHull + " vertexes");
+                        commandContext.Logger.Info("For a total of " + vertexCountHull + " vertices");
                     }
                 }
 
-                var runtimeShape = new DecomposedHulls()
-                {
-                    Hulls = Parameters.ConvexHulls.Select(x => x.ToArray()).ToArray(),
-                };
+                var runtimeShape = new DecomposedHulls(Parameters.ConvexHulls.Select(x => new DecomposedHulls.DecomposedMesh(x.ToArray())).ToArray());
                 assetManager.Save(Url, runtimeShape);
                 Parameters.ConvexHulls = null;
 

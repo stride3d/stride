@@ -1,4 +1,7 @@
-﻿using NVector3 = System.Numerics.Vector3;
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+using NVector3 = System.Numerics.Vector3;
 using SVector3 = Stride.Core.Mathematics.Vector3;
 
 namespace Stride.BepuPhysics;
@@ -6,7 +9,7 @@ namespace Stride.BepuPhysics;
 /// <summary>
 /// Information returned by the different simulation test methods in <see cref="Stride.BepuPhysics.BepuSimulation"/>
 /// </summary>
-public readonly record struct HitInfo(SVector3 Point, SVector3 Normal, float Distance, ContainerComponent Container) : IComparable<HitInfo>
+public readonly record struct HitInfo(SVector3 Point, SVector3 Normal, float Distance, CollidableComponent Collidable) : IComparable<HitInfo>
 {
     /// <summary> The position where the intersection occured </summary>
     public SVector3 Point { get; init; } = Point;
@@ -17,10 +20,10 @@ public readonly record struct HitInfo(SVector3 Point, SVector3 Normal, float Dis
     /// <summary> The distance along the ray where the hit occured </summary>
     public float Distance { get; init; } = Distance;
 
-    /// <summary> The container hit </summary>
-    public ContainerComponent Container { get; init; } = Container;
+    /// <summary> The collidable hit </summary>
+    public CollidableComponent Collidable { get; init; } = Collidable;
 
-    public HitInfo(NVector3 point, NVector3 normal, float distance, ContainerComponent container) : this(point.ToStride(), normal.ToStride(), distance, container) { }
+    public HitInfo(NVector3 point, NVector3 normal, float distance, CollidableComponent collidable) : this(point.ToStride(), normal.ToStride(), distance, collidable) { }
 
     public int CompareTo(HitInfo other)
     {

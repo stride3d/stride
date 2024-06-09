@@ -8,10 +8,10 @@ namespace Stride.BepuPhysics;
 /// <summary>
 /// Information about an overlap test
 /// </summary>
-/// <param name="Container">Container the test shape overlaps with</param>
+/// <param name="Collidable">The object the test shape overlaps with</param>
 /// <param name="PenetrationDirection">Direction the test shape as to move towards for it to exit out of this particular manifold</param>
 /// <param name="PenetrationLength">Distance the test shape as to move towards for it to exit out of this particular manifold</param>
-public readonly record struct OverlapInfo(ContainerComponent Container, Vector3 PenetrationDirection, float PenetrationLength);
+public readonly record struct OverlapInfo(CollidableComponent Collidable, Vector3 PenetrationDirection, float PenetrationLength);
 
 /// <summary>
 /// Unmanaged low level information about an overlap test

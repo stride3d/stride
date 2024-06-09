@@ -1,3 +1,6 @@
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 using BepuPhysics;
 using BepuPhysics.Collidables;
 using BepuPhysics.CollisionDetection;
@@ -36,16 +39,16 @@ public class CharacterComponent : BodyComponent, ISimulationUpdate, IContactEven
     /// Order is not guaranteed and may change at any moment
     /// </summary>
     [DataMemberIgnore]
-    public List<(ContainerComponent Source, Contact Contact)> Contacts { get; } = new();
+    public List<(CollidableComponent Source, Contact Contact)> Contacts { get; } = new();
 
     public CharacterComponent()
     {
         InterpolationMode = InterpolationMode.Interpolated;
     }
 
-    protected override void AttachInner(NRigidPose containerPose, BodyInertia shapeInertia, TypedIndex shapeIndex)
+    protected override void AttachInner(NRigidPose pose, BodyInertia shapeInertia, TypedIndex shapeIndex)
     {
-        base.AttachInner(containerPose, shapeInertia, shapeIndex);
+        base.AttachInner(pose, shapeInertia, shapeIndex);
 
         FrictionCoefficient = 0f;
         BodyInertia = new BodyInertia { InverseMass = 1f };
@@ -106,22 +109,27 @@ public class CharacterComponent : BodyComponent, ISimulationUpdate, IContactEven
         }
     }
 
-    bool IContactEventHandler.NoContactResponse => false;
+    bool IContactEventHandler.NoContactResponse => NoContactResponse;
+    void IContactEventHandler.OnStartedTouching<TManifold>(CollidableReference eventSource, CollidableReference other, ref TManifold contactManifold, int contactIndex, BepuSimulation bepuSimulation) => OnStartedTouching(eventSource, other, ref contactManifold, contactIndex, bepuSimulation);
+    void IContactEventHandler.OnStoppedTouching<TManifold>(CollidableReference eventSource, CollidableReference other, ref TManifold contactManifold, int contactIndex, BepuSimulation bepuSimulation) => OnStoppedTouching(eventSource, other, ref contactManifold, contactIndex, bepuSimulation);
 
-    void IContactEventHandler.OnStartedTouching<TManifold>(CollidableReference eventSource, CollidableReference other, ref TManifold contactManifold, int contactIndex, BepuSimulation bepuSimulation)
+
+    protected bool NoContactResponse => false;
+
+    protected void OnStartedTouching<TManifold>(CollidableReference eventSource, CollidableReference other, ref TManifold contactManifold, int contactIndex, BepuSimulation bepuSimulation) where TManifold : unmanaged, IContactManifold<TManifold>
     {
-        var otherContainer = bepuSimulation.GetContainer(other);
+        var otherCollidable = bepuSimulation.GetComponent(other);
         contactManifold.GetContact(contactIndex, out var contact);
         contact.Offset = contact.Offset + Entity.Transform.WorldMatrix.TranslationVector.ToNumeric() + CenterOfMass.ToNumeric();
-        Contacts.Add((otherContainer, contact));
+        Contacts.Add((otherCollidable, contact));
     }
 
-    void IContactEventHandler.OnStoppedTouching<TManifold>(CollidableReference eventSource, CollidableReference other, ref TManifold contactManifold, int contactIndex, BepuSimulation bepuSimulation)
+    protected void OnStoppedTouching<TManifold>(CollidableReference eventSource, CollidableReference other, ref TManifold contactManifold, int contactIndex, BepuSimulation bepuSimulation) where TManifold : unmanaged, IContactManifold<TManifold>
     {
-        var otherContainer = bepuSimulation.GetContainer(other);
+        var otherCollidable = bepuSimulation.GetComponent(other);
         for (int i = Contacts.Count - 1; i >= 0; i--)
         {
-            if (Contacts[i].Source == otherContainer)
+            if (Contacts[i].Source == otherCollidable)
                 Contacts.SwapRemoveAt(i);
         }
     }

@@ -1,3 +1,6 @@
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 using BepuPhysics;
 using BepuPhysics.Collidables;
 using BepuUtilities.Memory;
@@ -8,10 +11,9 @@ using Stride.Core.Mathematics;
 namespace Stride.BepuPhysics.Definitions.Colliders;
 
 [DataContract]
-public class EmptyCollider : ICollider
+public sealed class EmptyCollider : ICollider
 {
-    private ContainerComponent? _container;
-    ContainerComponent? ICollider.Container { get => _container; set => _container = value; }
+    CollidableComponent? ICollider.Component { get; set; }
 
     [DataMemberIgnore]
     public Action OnEditCallBack { get; set; } = () => { };
@@ -28,7 +30,7 @@ public class EmptyCollider : ICollider
     {
     }
 
-    void ICollider.GetLocalTransforms(ContainerComponent container, Span<ShapeTransform> transforms)
+    void ICollider.GetLocalTransforms(CollidableComponent collidable, Span<ShapeTransform> transforms)
     {
         transforms[0].PositionLocal = Vector3.Zero;
         transforms[0].RotationLocal = Quaternion.Identity;

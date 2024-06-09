@@ -1,4 +1,7 @@
-﻿using Stride.BepuPhysics.Constraints;
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+using Stride.BepuPhysics.Constraints;
 using Stride.BepuPhysics.Definitions;
 using Stride.Core.Annotations;
 using Stride.Engine;
@@ -16,16 +19,15 @@ public class ConstraintProcessor : EntityProcessor<ConstraintComponentBase>
 
     protected override void OnSystemAdd()
     {
-        ServicesHelper.LoadBepuServices(Services);
-        _bepuConfiguration = Services.GetService<BepuConfiguration>();
+        ServicesHelper.LoadBepuServices(Services, out _bepuConfiguration, out _, out _);
     }
 
-    protected override void OnEntityComponentAdding(Entity entity, [NotNull] ConstraintComponentBase component, [NotNull] ConstraintComponentBase data)
+    protected override void OnEntityComponentAdding(Entity entity, ConstraintComponentBase component, ConstraintComponentBase data)
     {
         base.OnEntityComponentAdding(entity, component, data);
         component.CreateProcessorData(_bepuConfiguration).RebuildConstraint();
     }
-    protected override void OnEntityComponentRemoved(Entity entity, [NotNull] ConstraintComponentBase component, [NotNull] ConstraintComponentBase data)
+    protected override void OnEntityComponentRemoved(Entity entity, ConstraintComponentBase component, ConstraintComponentBase data)
     {
         base.OnEntityComponentRemoved(entity, component, data);
         component.UntypedConstraintData?.DestroyConstraint();

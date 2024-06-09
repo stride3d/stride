@@ -1,4 +1,6 @@
-﻿using BepuPhysics;
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 using BepuPhysics.Collidables;
 using BepuUtilities.Memory;
 using Stride.BepuPhysics.Systems;
@@ -21,7 +23,7 @@ public abstract class ColliderBase
         set
         {
             _mass = value;
-            Container?.TryUpdateContainer();
+            Component?.TryUpdateFeatures();
         }
     }
 
@@ -35,7 +37,7 @@ public abstract class ColliderBase
         set
         {
             _positionLocal = value;
-            Container?.TryUpdateContainer();
+            Component?.TryUpdateFeatures();
         }
     }
 
@@ -48,12 +50,13 @@ public abstract class ColliderBase
         set
         {
             _rotationLocal = value;
-            Container?.TryUpdateContainer();
+            Component?.TryUpdateFeatures();
         }
     }
 
     [DataMemberIgnore]
-    public ContainerComponent? Container { get; internal set; }
+    public CollidableComponent? Component { get; internal set; }
 
     internal abstract void AddToCompoundBuilder(ShapeCacheSystem shape, BufferPool pool, ref CompoundBuilder builder, NRigidPose localPose);
+    internal abstract void OnDetach(BufferPool pool);
 }

@@ -1,4 +1,7 @@
-﻿using BepuPhysics.Collidables;
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+using BepuPhysics.Collidables;
 using BepuPhysics;
 using BepuUtilities.Memory;
 using Stride.Core.Annotations;
@@ -11,15 +14,15 @@ using Stride.BepuPhysics.Systems;
 namespace Stride.BepuPhysics.Definitions.Colliders;
 
 [DataContract]
-public class MeshCollider : ICollider
+public sealed class MeshCollider : ICollider
 {
     private float _mass = 1f;
     private bool _closed = true;
     private Model _model = null!; // We have a 'required' guard making sure it is assigned
 
-    private ContainerComponent? _container;
+    private CollidableComponent? _component;
     private ShapeCacheSystem.Cache? _cache;
-    ContainerComponent? ICollider.Container { get => _container; set => _container = value; }
+    CollidableComponent? ICollider.Component { get => _component; set => _component = value; }
 
     [MemberRequired(ReportAs = MemberRequiredReportType.Error)]
     public required Model Model
@@ -68,28 +71,28 @@ public class MeshCollider : ICollider
 
     public MeshCollider()
     {
-        OnEditCallBack = () => _container?.TryUpdateContainer();
+        OnEditCallBack = () => _component?.TryUpdateFeatures();
     }
 
-    public void GetLocalTransforms(ContainerComponent container, Span<ShapeTransform> transforms)
+    public void GetLocalTransforms(CollidableComponent collidable, Span<ShapeTransform> transforms)
     {
         transforms[0].PositionLocal = Vector3.Zero;
         transforms[0].RotationLocal = Quaternion.Identity;
-        transforms[0].Scale = ComputeMeshScale(container);
+        transforms[0].Scale = ComputeMeshScale(collidable);
     }
 
-    public static Vector3 ComputeMeshScale(ContainerComponent container)
+    public static Vector3 ComputeMeshScale(CollidableComponent collidable)
     {
-        container.Entity.Transform.UpdateWorldMatrix();
-        return ShapeCacheSystem.GetClosestToDecomposableScale(container.Entity.Transform.WorldMatrix);
+        collidable.Entity.Transform.UpdateWorldMatrix();
+        return ShapeCacheSystem.GetClosestToDecomposableScale(collidable.Entity.Transform.WorldMatrix);
     }
 
     bool ICollider.TryAttach(Shapes shapes, BufferPool pool, ShapeCacheSystem shapeCache, out TypedIndex index, out Vector3 centerOfMass, out BodyInertia inertia)
     {
-        Debug.Assert(_container is not null);
+        Debug.Assert(_component is not null);
 
         shapeCache.GetModelCache(Model, out _cache);
-        var mesh = _cache.GetBepuMesh(ComputeMeshScale(_container));
+        var mesh = _cache.GetBepuMesh(ComputeMeshScale(_component));
 
         index = shapes.Add(mesh);
         inertia = Closed ? mesh.ComputeClosedInertia(Mass) : mesh.ComputeOpenInertia(Mass);

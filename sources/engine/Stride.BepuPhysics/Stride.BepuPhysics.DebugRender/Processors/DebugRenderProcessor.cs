@@ -1,9 +1,13 @@
-﻿using Stride.BepuPhysics.DebugRender.Components;
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+using Stride.BepuPhysics.DebugRender.Components;
 using Stride.BepuPhysics.DebugRender.Effects;
 using Stride.BepuPhysics.DebugRender.Effects.RenderFeatures;
 using Stride.BepuPhysics.Definitions;
 using Stride.BepuPhysics.Definitions.Colliders;
 using Stride.BepuPhysics.Systems;
+using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Core.Mathematics;
 using Stride.Engine;
@@ -23,7 +27,7 @@ namespace Stride.BepuPhysics.DebugRender.Processors
         private InputManager _input = null!;
         private SinglePassWireframeRenderFeature _wireframeRenderFeature = null!;
         private VisibilityGroup _visibilityGroup = null!;
-        private Dictionary<ContainerComponent, (WireFrameRenderObject[] Wireframes, object? cache)> _wireFrameRenderObject = new();
+        private Dictionary<CollidableComponent, (WireFrameRenderObject[] Wireframes, object? cache)> _wireFrameRenderObject = new();
 
         private bool _alwaysOn = false;
         private bool _isOn = false;
@@ -35,11 +39,10 @@ namespace Stride.BepuPhysics.DebugRender.Processors
 
         protected override void OnSystemAdd()
         {
-            ServicesHelper.LoadBepuServices(Services);
-            _game = Services.GetService<IGame>();
-            _sceneSystem = Services.GetService<SceneSystem>();
-            _shapeCacheSystem = Services.GetService<ShapeCacheSystem>();
-            _input = Services.GetService<InputManager>();
+            ServicesHelper.LoadBepuServices(Services, out _, out _shapeCacheSystem, out _);
+            _game = Services.GetSafeServiceAs<IGame>();
+            _sceneSystem = Services.GetSafeServiceAs<SceneSystem>();
+            _input = Services.GetSafeServiceAs<InputManager>();
 
             if (_sceneSystem.GraphicsCompositor.RenderFeatures.OfType<SinglePassWireframeRenderFeature>().FirstOrDefault() is { } wireframeFeature)
             {
@@ -68,20 +71,20 @@ namespace Stride.BepuPhysics.DebugRender.Processors
             bool shouldBeOn = _alwaysOn || _input.IsKeyDown(Keys.F10);
             if (_isOn != shouldBeOn) // Changed state
             {
-                if (_sceneSystem.SceneInstance.GetProcessor<ContainerProcessor>() is { } proc)
+                if (_sceneSystem.SceneInstance.GetProcessor<CollidableProcessor>() is { } proc)
                 {
                     if (shouldBeOn)
                     {
                         _isOn = true;
-                        proc.OnPostAdd += StartTrackingContainer;
-                        proc.OnPreRemove += ClearTrackingForContainer;
+                        proc.OnPostAdd += StartTrackingCollidable;
+                        proc.OnPreRemove += ClearTrackingForCollidable;
                         StartTracking(proc);
                     }
                     else
                     {
                         _isOn = false;
-                        proc.OnPostAdd -= StartTrackingContainer;
-                        proc.OnPreRemove -= ClearTrackingForContainer;
+                        proc.OnPostAdd -= StartTrackingCollidable;
+                        proc.OnPreRemove -= ClearTrackingForCollidable;
                         Clear();
                     }
                 }
@@ -94,18 +97,18 @@ namespace Stride.BepuPhysics.DebugRender.Processors
 
             if (_isOn) // Update gizmos transform
             {
-                foreach (var (container, (wireframes, cache)) in _wireFrameRenderObject)
+                foreach (var (collidable, (wireframes, cache)) in _wireFrameRenderObject)
                 {
                     Matrix matrix;
                     switch (Mode)
                     {
                         case SynchronizationMode.Physics:
-                            if (container.Pose is { } pose)
+                            if (collidable.Pose is { } pose)
                             {
                                 var worldPosition = pose.Position.ToStride();
                                 var worldRotation = pose.Orientation.ToStride();
                                 var scale = Vector3.One;
-                                worldPosition -= Vector3.Transform(container.CenterOfMass, worldRotation);
+                                worldPosition -= Vector3.Transform(collidable.CenterOfMass, worldRotation);
                                 Matrix.Transformation(ref scale, ref worldRotation, ref worldPosition, out matrix);
                             }
                             else
@@ -116,7 +119,7 @@ namespace Stride.BepuPhysics.DebugRender.Processors
                         case SynchronizationMode.Entity:
                             // We don't need to call UpdateWorldMatrix before reading WorldMatrix as we're running after the TransformProcessor operated,
                             // and we don't expect or care if other processors affect the transform afterwards
-                            container.Entity.Transform.WorldMatrix.Decompose(out _, out matrix, out var translation);
+                            collidable.Entity.Transform.WorldMatrix.Decompose(out _, out matrix, out var translation);
                             matrix.TranslationVector = translation;
                             break;
                         default:
@@ -125,8 +128,8 @@ namespace Stride.BepuPhysics.DebugRender.Processors
 
                     foreach (var wireframe in wireframes)
                     {
-                        wireframe.WorldMatrix = wireframe.ContainerBaseMatrix * matrix;
-                        wireframe.Color = GetCurrentColor(container);
+                        wireframe.WorldMatrix = wireframe.CollidableBaseMatrix * matrix;
+                        wireframe.Color = GetCurrentColor(collidable);
                     }
                 }
             }
@@ -135,25 +138,25 @@ namespace Stride.BepuPhysics.DebugRender.Processors
                 _alwaysOn = !_alwaysOn;
         }
 
-        private void StartTracking(ContainerProcessor proc)
+        private void StartTracking(CollidableProcessor proc)
         {
             var shapeAndOffsets = new List<BasicMeshBuffers>();
-            for (var containers = proc.ComponentDataEnumerator; containers.MoveNext();)
+            for (var collidables = proc.ComponentDataEnumerator; collidables.MoveNext();)
             {
-                StartTrackingContainer(containers.Current.Key, shapeAndOffsets);
+                StartTrackingCollidable(collidables.Current.Key, shapeAndOffsets);
             }
         }
 
-        private void StartTrackingContainer(ContainerComponent container) => StartTrackingContainer(container, new());
+        private void StartTrackingCollidable(CollidableComponent collidable) => StartTrackingCollidable(collidable, new());
 
-        private void StartTrackingContainer(ContainerComponent container, List<BasicMeshBuffers> shapeData)
+        private void StartTrackingCollidable(CollidableComponent collidable, List<BasicMeshBuffers> shapeData)
         {
             shapeData.Clear();
 
-            container.Collider.AppendModel(shapeData, _shapeCacheSystem, out var cache);
+            collidable.Collider.AppendModel(shapeData, _shapeCacheSystem, out var cache);
 
-            Span<ShapeTransform> transforms = stackalloc ShapeTransform[container.Collider.Transforms];
-            container.Collider.GetLocalTransforms(container, transforms);
+            Span<ShapeTransform> transforms = stackalloc ShapeTransform[collidable.Collider.Transforms];
+            collidable.Collider.GetLocalTransforms(collidable, transforms);
 
             WireFrameRenderObject[] wireframes = new WireFrameRenderObject[transforms.Length];
             for (int i = 0; i < shapeData.Count; i++)
@@ -161,12 +164,12 @@ namespace Stride.BepuPhysics.DebugRender.Processors
                 var data = shapeData[i];
 
                 var wireframe = WireFrameRenderObject.New(_game.GraphicsDevice, data.Indices, data.Vertices);
-                wireframe.Color = GetCurrentColor(container);
-                Matrix.Transformation(ref transforms[i].Scale, ref transforms[i].RotationLocal, ref transforms[i].PositionLocal, out wireframe.ContainerBaseMatrix);
+                wireframe.Color = GetCurrentColor(collidable);
+                Matrix.Transformation(ref transforms[i].Scale, ref transforms[i].RotationLocal, ref transforms[i].PositionLocal, out wireframe.CollidableBaseMatrix);
                 wireframes[i] = wireframe;
                 _visibilityGroup.RenderObjects.Add(wireframe);
             }
-            _wireFrameRenderObject.Add(container, (wireframes, cache)); // We have to store the cache alongside it to ensure it doesn't get discarded for future calls to GetModelCache with the same model
+            _wireFrameRenderObject.Add(collidable, (wireframes, cache)); // We have to store the cache alongside it to ensure it doesn't get discarded for future calls to GetModelCache with the same model
         }
         static int Vector3ToRGBA(Vector3 rgb, byte a = 255)
         {
@@ -186,9 +189,9 @@ namespace Stride.BepuPhysics.DebugRender.Processors
 
             return rgba;
         }
-        private void ClearTrackingForContainer(ContainerComponent container)
+        private void ClearTrackingForCollidable(CollidableComponent collidable)
         {
-            if (_wireFrameRenderObject.Remove(container, out var wfros))
+            if (_wireFrameRenderObject.Remove(collidable, out var wfros))
             {
                 foreach (var wireframe in wfros.Wireframes)
                 {
@@ -200,7 +203,7 @@ namespace Stride.BepuPhysics.DebugRender.Processors
 
         private void Clear()
         {
-            foreach (var (container, (wireframes, cache)) in _wireFrameRenderObject)
+            foreach (var (_, (wireframes, _)) in _wireFrameRenderObject)
             {
                 foreach (var wireframe in wireframes)
                 {
@@ -220,28 +223,28 @@ namespace Stride.BepuPhysics.DebugRender.Processors
             Entity
         }
 
-        private Color GetCurrentColor(ContainerComponent container)
+        private Color GetCurrentColor(CollidableComponent collidable)
         {
             var color = new Vector3(0, 0, 0);
             byte a = 255;
 
-            if (container.Collider is MeshCollider)
+            if (collidable.Collider is MeshCollider)
             {
                 //color += new Vector3(0, 0, 0);
             }
-            else if (container.Collider is CompoundCollider cc)
+            else if (collidable.Collider is CompoundCollider cc)
             {
                 if (cc.IsBig)
                     color += new Vector3(1f, 0, 0);
                 else
                     color += new Vector3(0.5f, 0, 0);
             }
-            else if (container.Collider is EmptyCollider)
+            else if (collidable.Collider is EmptyCollider)
             {
                 a = 128;
             }
 
-            if (container is Body2DComponent)
+            if (collidable is Body2DComponent)
             {
                 color += new Vector3(0, 1, 0);
             }
@@ -250,14 +253,14 @@ namespace Stride.BepuPhysics.DebugRender.Processors
                 //color += new Vector3(0, 0, 0);
             }
 
-            if (container is BodyComponent bodyC)
+            if (collidable is BodyComponent bodyC)
             {
                 color += new Vector3(0, 0, 1);
 
                 if (!bodyC.Awake)
                     color /= 3f;
             }
-            else if (container is StaticComponent staticC)
+            else if (collidable is StaticComponent staticC)
             {
                 //color += new Vector3(0, 0, 0);
                 color /= 9f;

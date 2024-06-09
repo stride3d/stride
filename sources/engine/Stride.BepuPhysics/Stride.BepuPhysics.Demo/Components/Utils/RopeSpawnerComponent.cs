@@ -1,4 +1,7 @@
-﻿using System;
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Stride.BepuPhysics.Constraints;
@@ -44,7 +47,7 @@ namespace Stride.BepuPhysics.Demo.Components.Utils
             dir.Normalize();
 
             var len = seg.Length() / RopePartSize;
-            var bodiesContainers = new List<BodyComponent>();
+            var bodies = new List<BodyComponent>();
 
             for (var i = 0; i < len; i++)
             {
@@ -53,26 +56,26 @@ namespace Stride.BepuPhysics.Demo.Components.Utils
                 entity.Transform.Rotation = Quaternion.LookRotation(dir, Vector3.UnitY);
                 var body = entity.Get<BodyComponent>();
                 body.SimulationIndex = SimulationIndex;
-                
-                bodiesContainers.Add(body);
+
+                bodies.Add(body);
                 entity.SetParent(Entity);
             }
 
-            for (int i = 1; i < bodiesContainers.Count; i++)
+            for (int i = 1; i < bodies.Count; i++)
             {
-                var bds = new[] { bodiesContainers[i - 1], bodiesContainers[i] };
+                var bds = new[] { bodies[i - 1], bodies[i] };
                 var bs = new BallSocketConstraintComponent();
                 var sl = new SwingLimitConstraintComponent();
 
-                bs.A = bodiesContainers[i - 1];
-                bs.B = bodiesContainers[i];
+                bs.A = bodies[i - 1];
+                bs.B = bodies[i];
                 bs.LocalOffsetA = Vector3.UnitZ * RopePartSize / 2f;
                 bs.LocalOffsetB = -bs.LocalOffsetA;
                 bs.SpringFrequency = 120;
                 bs.SpringDampingRatio = 1;
 
-                sl.A = bodiesContainers[i - 1];
-                sl.B = bodiesContainers[i];
+                sl.A = bodies[i - 1];
+                sl.B = bodies[i];
                 sl.AxisLocalA = Vector3.UnitZ;
                 sl.AxisLocalB = Vector3.UnitZ;
                 sl.SpringFrequency = 120;
@@ -85,13 +88,13 @@ namespace Stride.BepuPhysics.Demo.Components.Utils
 
             var bs1 = new BallSocketConstraintComponent();
             bs1.A = A;
-            bs1.B = bodiesContainers.First();
+            bs1.B = bodies.First();
             bs1.LocalOffsetA = APos;
             bs1.LocalOffsetB = -(Vector3.UnitZ * RopePartSize) / 2f;
 
             var bs2 = new BallSocketConstraintComponent();
             bs2.A = B;
-            bs2.B = bodiesContainers.Last();
+            bs2.B = bodies.Last();
             bs2.LocalOffsetA = BPos;
             bs2.LocalOffsetB = Vector3.UnitZ * RopePartSize / 2f;
 

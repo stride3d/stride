@@ -1,3 +1,6 @@
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 using System.Diagnostics;
 using BepuPhysics;
 using BepuPhysics.Collidables;
@@ -10,7 +13,7 @@ using NRigidPose = BepuPhysics.RigidPose;
 namespace Stride.BepuPhysics;
 
 [ComponentCategory("Bepu")]
-public class BodyComponent : ContainerComponent
+public class BodyComponent : CollidableComponent
 {
     private bool _kinematic = false;
     private bool _gravity = true;
@@ -18,6 +21,7 @@ public class BodyComponent : ContainerComponent
     private float _sleepThreshold = 0.01f;
     private byte _minimumTimestepCountUnderThreshold = 32;
     private InterpolationMode _interpolationMode = InterpolationMode.None;
+    private BodyInertia _nativeIntertia;
 
     /// <summary> Can be null when it isn't part of a simulation yet/anymore </summary>
     [DataMemberIgnore]
@@ -40,7 +44,7 @@ public class BodyComponent : ContainerComponent
             _kinematic = value;
             if (BodyReference is { } bRef)
             {
-#warning maybe setting bRef.LocalInertia is enough instead of getting and applying description ... ?
+#warning Norbo: maybe setting bRef.LocalInertia is enough instead of getting and applying description ... ?
                 bRef.GetDescription(out var description);
                 description.LocalInertia = Kinematic ? new BodyInertia() : _nativeIntertia;
                 bRef.ApplyDescription(description);
@@ -74,7 +78,7 @@ public class BodyComponent : ContainerComponent
             _sleepThreshold = value;
             if (BodyReference is { } bRef)
             {
-#warning maybe setting bRef.Activity.SleepThreshold is enough instead of getting and applying description ... ?
+#warning Norbo: maybe setting bRef.Activity.SleepThreshold is enough instead of getting and applying description ... ?
                 bRef.GetDescription(out var description);
                 description.Activity.SleepThreshold = value;
                 bRef.ApplyDescription(description);
@@ -92,7 +96,7 @@ public class BodyComponent : ContainerComponent
             _minimumTimestepCountUnderThreshold = value;
             if (BodyReference is { } bRef)
             {
-#warning maybe setting bRef.Activity.MinimumTimestepsUnderThreshold is enough instead of getting and applying description ... ?
+#warning Norbo: maybe setting bRef.Activity.MinimumTimestepsUnderThreshold is enough instead of getting and applying description ... ?
                 bRef.GetDescription(out var description);
                 description.Activity.MinimumTimestepCountUnderThreshold = value;
                 bRef.ApplyDescription(description);
@@ -241,8 +245,7 @@ public class BodyComponent : ContainerComponent
     protected override ref MaterialProperties MaterialProperties => ref Simulation!.CollidableMaterials[BodyReference!.Value];
     protected internal override NRigidPose? Pose => BodyReference?.Pose;
 
-    private BodyInertia _nativeIntertia;
-    protected override void AttachInner(NRigidPose containerPose, BodyInertia shapeInertia, TypedIndex shapeIndex)
+    protected override void AttachInner(NRigidPose pose, BodyInertia shapeInertia, TypedIndex shapeIndex)
     {
         Debug.Assert(Simulation is not null);
 
@@ -250,10 +253,11 @@ public class BodyComponent : ContainerComponent
         if (Kinematic)
             shapeInertia = new BodyInertia();
 
-        var bDescription = BodyDescription.CreateDynamic(containerPose, shapeInertia, shapeIndex, new(SleepThreshold, MinimumTimestepCountUnderThreshold));
+        var bDescription = BodyDescription.CreateDynamic(pose, shapeInertia, shapeIndex, new(SleepThreshold, MinimumTimestepCountUnderThreshold));
 
         if (BodyReference is { } bRef)
         {
+#warning Norbo: maybe setting bRef.Velocity is enough instead of getting and applying description ... ?
             bRef.GetDescription(out var previousDesc);
             bDescription.Velocity = previousDesc.Velocity; //Keep velocity when updating
             bRef.ApplyDescription(bDescription);
@@ -274,7 +278,7 @@ public class BodyComponent : ContainerComponent
         if (InterpolationMode != InterpolationMode.None)
             Simulation.UnregisterInterpolated(this);
 
-        Parent = FindParentContainer(this, Simulation);
+        Parent = FindParentBody(this, Simulation);
         SetParentForChildren(this, Entity.Transform, Simulation);
     }
 
@@ -318,19 +322,19 @@ public class BodyComponent : ContainerComponent
     {
         foreach (var child in root.Children)
         {
-            if (child.Entity.Get<BodyComponent>() is { } container && ReferenceEquals(simulation, container.Simulation))
-                container.Parent = parent;
+            if (child.Entity.Get<BodyComponent>() is { } body && ReferenceEquals(simulation, body.Simulation))
+                body.Parent = parent;
             else
                 SetParentForChildren(parent, child, simulation);
         }
     }
 
-    private static BodyComponent? FindParentContainer(BodyComponent component, BepuSimulation simulation)
+    private static BodyComponent? FindParentBody(BodyComponent component, BepuSimulation simulation)
     {
         for (var parent = component.Entity.Transform.Parent; parent != null; parent = parent.Parent)
         {
-            if (parent.Entity.Get<BodyComponent>() is { } container && ReferenceEquals(simulation, container.Simulation))
-                return container;
+            if (parent.Entity.Get<BodyComponent>() is { } body && ReferenceEquals(simulation, body.Simulation))
+                return body;
         }
 
         return null;

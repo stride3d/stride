@@ -1,3 +1,6 @@
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 using System.Runtime.InteropServices;
 using DotRecast.Detour;
 using DotRecast.Recast;
@@ -33,7 +36,7 @@ public class RecastMeshProcessor : GameSystemBase
     private readonly SceneSystem _sceneSystem;
     private readonly InputManager _input;
     private readonly ShapeCacheSystem _shapeCache;
-    private ContainerProcessor _containerProcessor;
+    private CollidableProcessor _containerProcessor;
 
     private DtNavMesh? _navMesh;
     private Task<DtNavMesh>? _runningRebuild;
@@ -61,7 +64,7 @@ public class RecastMeshProcessor : GameSystemBase
 
     public override void Update(GameTime time)
     {
-        _containerProcessor ??= _sceneSystem.SceneInstance.Processors.Get<ContainerProcessor>();
+        _containerProcessor ??= _sceneSystem.SceneInstance.Processors.Get<CollidableProcessor>();
 
         if (_runningRebuild?.Status == TaskStatus.RanToCompletion)
         {
@@ -86,19 +89,19 @@ public class RecastMeshProcessor : GameSystemBase
         var asyncInput = new AsyncInput();
         for (var e = _containerProcessor.ComponentDataEnumerator; e.MoveNext();)
         {
-            var container = e.Current.Value;
+            var collidable = e.Current.Value;
 
 #warning should we really ignore all bodies ?
-            if (container is BodyComponent)
+            if (collidable is BodyComponent)
                 continue;
 
             // No need to store cache, nav mesh recompute should be rare enough were it would waste more memory than necessary
-            container.Collider.AppendModel(asyncInput.shapeData, _shapeCache, out object? cache);
-            var shapeCount = container.Collider.Transforms;
+            collidable.Collider.AppendModel(asyncInput.shapeData, _shapeCache, out object? cache);
+            var shapeCount = collidable.Collider.Transforms;
             for (int i = shapeCount - 1; i >= 0; i--)
                 asyncInput.transformsOut.Add(default);
-            container.Collider.GetLocalTransforms(container, CollectionsMarshal.AsSpan(asyncInput.transformsOut)[^shapeCount..]);
-            asyncInput.matrices.Add((container.Entity.Transform.WorldMatrix, shapeCount));
+            collidable.Collider.GetLocalTransforms(collidable, CollectionsMarshal.AsSpan(asyncInput.transformsOut)[^shapeCount..]);
+            asyncInput.matrices.Add((collidable.Entity.Transform.WorldMatrix, shapeCount));
         }
 
         _stopwatch.Stop();
@@ -141,10 +144,10 @@ public class RecastMeshProcessor : GameSystemBase
 
         var verts = new List<VertexPosition3>();
         var indices = new List<int>();
-        for (int containerI = 0, shapeI = 0; containerI < input.matrices.Count; containerI++)
+        for (int collidableI = 0, shapeI = 0; collidableI < input.matrices.Count; collidableI++)
         {
-            var (containerMatrix, shapeCount) = input.matrices[containerI];
-            containerMatrix.Decompose(out _, out Matrix worldMatrix, out var translation);
+            var (collidableMatrix, shapeCount) = input.matrices[collidableI];
+            collidableMatrix.Decompose(out _, out Matrix worldMatrix, out var translation);
             worldMatrix.TranslationVector = translation;
 
             for (int j = 0; j < shapeCount; j++, shapeI++)

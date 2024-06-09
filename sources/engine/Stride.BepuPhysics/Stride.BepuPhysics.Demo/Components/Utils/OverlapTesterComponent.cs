@@ -1,4 +1,7 @@
-﻿using BepuPhysics.Collidables;
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+using BepuPhysics.Collidables;
 using Stride.BepuPhysics.Definitions;
 using Stride.Core.Mathematics;
 using Stride.Engine;

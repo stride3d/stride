@@ -1,4 +1,7 @@
-﻿using BepuPhysics;
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+using BepuPhysics;
 using BepuPhysics.Collidables;
 using BepuUtilities.Memory;
 using Stride.BepuPhysics.Systems;
@@ -19,7 +22,7 @@ public sealed class BoxCollider : ColliderBase
         set
         {
             _size = value;
-            Container?.TryUpdateContainer();
+            Component?.TryUpdateFeatures();
         }
     }
 
@@ -27,4 +30,6 @@ public sealed class BoxCollider : ColliderBase
     {
         builder.Add(new Box(Size.X, Size.Y, Size.Z), localPose, Mass);
     }
+
+    internal override void OnDetach(BufferPool pool) { }
 }

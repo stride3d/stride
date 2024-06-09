@@ -1,4 +1,7 @@
-﻿using Stride.BepuPhysics.Systems;
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+using Stride.BepuPhysics.Systems;
 using Stride.Core;
 using Stride.Engine.Design;
 using Stride.Games;
@@ -7,37 +10,42 @@ namespace Stride.BepuPhysics.Definitions;
 
 internal static class ServicesHelper
 {
-    public static void LoadBepuServices(IServiceRegistry services)
+    public static void LoadBepuServices(IServiceRegistry services, out BepuConfiguration configOut, out ShapeCacheSystem shapeCacheOut, out PhysicsGameSystem systemOut)
     {
-        var bepuConfig = services.GetService<BepuConfiguration>();
-        if (bepuConfig == null)
+        var config = services.GetService<BepuConfiguration>();
+        if (config == null)
         {
-            var gameSettings = services.GetService<IGameSettingsService>();
-            if (gameSettings != null)
-                bepuConfig = gameSettings.Settings.Configurations.Get<BepuConfiguration>();
+            var settings = services.GetService<IGameSettingsService>();
+            if (settings != null)
+                config = settings.Settings.Configurations.Get<BepuConfiguration>();
             else
-                bepuConfig = new();
+                config = new();
 
-            if (bepuConfig.BepuSimulations.Count == 0)
+            if (config.BepuSimulations.Count == 0)
             {
-                bepuConfig.BepuSimulations.Add(new BepuSimulation());
+                config.BepuSimulations.Add(new BepuSimulation());
             }
-            services.AddService(bepuConfig);
+            services.AddService(config);
         }
 
-        var bepuShapeCacheSys = services.GetService<ShapeCacheSystem>();
-        if (bepuShapeCacheSys == null)
-        {
-            services.AddService(new ShapeCacheSystem(services));
-        }
+        configOut = config;
 
-        var gameSystems = services.GetService<IGameSystemCollection>();
-        if (gameSystems != null)
+        var shapeCache = services.GetService<ShapeCacheSystem>();
+        if (shapeCache == null)
+            services.AddService(shapeCache = new(services));
+
+        shapeCacheOut = shapeCache;
+
+        var systems = services.GetSafeServiceAs<IGameSystemCollection>();
+        PhysicsGameSystem? physicsGameSystem = null;
+        foreach (var system in systems)
         {
-            if (!gameSystems.Any(e => e is PhysicsGameSystem))
-            {
-                gameSystems.Add(new PhysicsGameSystem(services));
-            }
+            if (system is PhysicsGameSystem pgs)
+                physicsGameSystem = pgs;
         }
+        if (physicsGameSystem == null)
+            systems.Add(physicsGameSystem = new PhysicsGameSystem(services));
+
+        systemOut = physicsGameSystem;
     }
 }

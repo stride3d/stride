@@ -1,4 +1,7 @@
-﻿using BepuPhysics;
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+using BepuPhysics;
 using BepuPhysics.Collidables;
 using BepuUtilities.Memory;
 using Stride.BepuPhysics.Systems;
@@ -19,7 +22,7 @@ public sealed class CapsuleCollider : ColliderBase
         set
         {
             _radius = value;
-            Container?.TryUpdateContainer();
+            Component?.TryUpdateFeatures();
         }
     }
 
@@ -29,7 +32,7 @@ public sealed class CapsuleCollider : ColliderBase
         set
         {
             _length = value;
-            Container?.TryUpdateContainer();
+            Component?.TryUpdateFeatures();
         }
     }
 
@@ -37,4 +40,6 @@ public sealed class CapsuleCollider : ColliderBase
     {
         builder.Add(new Capsule(Radius, Length), localPose, Mass);
     }
+
+    internal override void OnDetach(BufferPool pool) { }
 }

@@ -1,4 +1,4 @@
-﻿using Stride.BepuPhysics.Definitions;
+using Stride.BepuPhysics.Definitions;
 using Stride.BepuPhysics.Navigation.Components;
 using Stride.Core;
 using Stride.Core.Mathematics;
@@ -22,7 +22,7 @@ public class RecastPhysicsNavigationProcessor : EntityProcessor<RecastPhysicsNav
 
 	protected override void OnSystemAdd()
 	{
-		ServicesHelper.LoadBepuServices(Services);
+		ServicesHelper.LoadBepuServices(Services, out _, out _, out _);
 		_recastMeshProcessor = Services.GetService<RecastMeshProcessor>();
 		if (_recastMeshProcessor is null)
 		{

@@ -37,7 +37,6 @@ Hierarchy:
                                     PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
                                     RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                                     Hull: efc10e7c-7d44-4b96-9cf2-716337903373:Models/ColliderHull
-                                    Scale: {X: 0.3, Y: 0.3, Z: 0.3}
                         ContactEventHandler: null
                         SimulationIndex: 0
                         SpringFrequency: 30.0
@@ -89,10 +88,9 @@ Hierarchy:
                             Colliders:
                                 c71f9dbf5524da007063cced260080eb: !Stride.BepuPhysics.Definitions.Colliders.ConvexHullCollider,Stride.BepuPhysics
                                     Mass: 1.0
-                                    PositionLocal: {X: 0.0, Y: 15.0, Z: 0.0}
+                                    PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
                                     RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                                     Hull: efc10e7c-7d44-4b96-9cf2-716337903373:Models/ColliderHull
-                                    Scale: {X: 0.3, Y: 0.3, Z: 0.3}
                         ContactEventHandler: null
                         SimulationIndex: 0
                         SpringFrequency: 30.0
@@ -430,10 +428,9 @@ Hierarchy:
                             Colliders:
                                 41b0cd17a0dd10d448e8f5b812b6d95f: !Stride.BepuPhysics.Definitions.Colliders.ConvexHullCollider,Stride.BepuPhysics
                                     Mass: 1.0
-                                    PositionLocal: {X: 0.0, Y: 15.0, Z: 0.0}
+                                    PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
                                     RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                                     Hull: efc10e7c-7d44-4b96-9cf2-716337903373:Models/ColliderHull
-                                    Scale: {X: 0.3, Y: 0.3, Z: 0.3}
                         ContactEventHandler: null
                         SimulationIndex: 0
                         SpringFrequency: 30.0

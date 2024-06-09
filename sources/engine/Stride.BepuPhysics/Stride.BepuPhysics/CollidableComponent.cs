@@ -1,3 +1,6 @@
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 using System.Diagnostics;
 using BepuPhysics;
 using BepuPhysics.Collidables;
@@ -15,8 +18,8 @@ using NRigidPose = BepuPhysics.RigidPose;
 namespace Stride.BepuPhysics;
 
 [DataContract(Inherited = true)]
-[DefaultEntityComponentProcessor(typeof(ContainerProcessor), ExecutionMode = ExecutionMode.Runtime)]
-public abstract class ContainerComponent : EntityComponent
+[DefaultEntityComponentProcessor(typeof(CollidableProcessor), ExecutionMode = ExecutionMode.Runtime)]
+public abstract class CollidableComponent : EntityComponent
 {
     private int _simulationIndex = 0;
     private float _springFrequency = 30;
@@ -36,7 +39,7 @@ public abstract class ContainerComponent : EntityComponent
     public BepuSimulation? Simulation { get; private set; }
 
     [DataMemberIgnore]
-    internal ContainerProcessor? Processor { get; set; }
+    internal CollidableProcessor? Processor { get; set; }
 
     [DataMemberIgnore]
     protected TypedIndex ShapeIndex { get; private set; }
@@ -53,15 +56,15 @@ public abstract class ContainerComponent : EntityComponent
         }
         set
         {
-            if (value.Container != null && ReferenceEquals(value.Container, this) == false)
+            if (value.Component != null && ReferenceEquals(value.Component, this) == false)
             {
-                throw new InvalidOperationException($"Container {value} is already assigned to {value.Container}, they cannot be shared");
+                throw new InvalidOperationException($"{value} is already assigned to {value.Component}, it cannot be shared with {this}");
             }
 
-            _collider.Container = null;
+            _collider.Component = null;
             _collider = value;
-            _collider.Container = this;
-            TryUpdateContainer();
+            _collider.Component = this;
+            TryUpdateFeatures();
         }
     }
 
@@ -166,13 +169,13 @@ public abstract class ContainerComponent : EntityComponent
     [DataMemberIgnore]
     public Vector3 CenterOfMass { get; private set; }
 
-    public ContainerComponent()
+    public CollidableComponent()
     {
         _collider = new CompoundCollider();
-        _collider.Container = this;
+        _collider.Component = this;
     }
 
-    internal void TryUpdateContainer()
+    internal void TryUpdateFeatures()
     {
         if (Simulation is not null)
             ReAttach(Simulation);
@@ -196,10 +199,10 @@ public abstract class ContainerComponent : EntityComponent
         Simulation = onSimulation;
 
         Entity.Transform.UpdateWorldMatrix();
-        Entity.Transform.WorldMatrix.Decompose(out _, out Quaternion containerWorldRotation, out Vector3 containerWorldTranslation);
-        var containerPose = new NRigidPose((containerWorldTranslation + containerWorldRotation * CenterOfMass).ToNumeric(), containerWorldRotation.ToNumeric());
+        Entity.Transform.WorldMatrix.Decompose(out _, out Quaternion collidableWorldRotation, out Vector3 collidableWorldTranslation);
+        var pose = new NRigidPose((collidableWorldTranslation + collidableWorldRotation * CenterOfMass).ToNumeric(), collidableWorldRotation.ToNumeric());
 
-        AttachInner(containerPose, shapeInertia, ShapeIndex);
+        AttachInner(pose, shapeInertia, ShapeIndex);
 
         if (ContactEventHandler != null && !IsContactHandlerRegistered())
             RegisterContactHandler();
@@ -257,14 +260,14 @@ public abstract class ContainerComponent : EntityComponent
     protected internal abstract NRigidPose? Pose { get; }
 
     /// <summary>
-    /// Called every time the container is added to a simulation
+    /// Called every time this is added to a simulation
     /// </summary>
     /// <remarks>
     /// May occur when certain larger changes are made to the object, <see cref="Simulation"/> is the one this object is being added to
     /// </remarks>
-    protected abstract void AttachInner(NRigidPose containerPose, BodyInertia shapeInertia, TypedIndex shapeIndex);
+    protected abstract void AttachInner(NRigidPose pose, BodyInertia shapeInertia, TypedIndex shapeIndex);
     /// <summary>
-    /// Called every time the container is removed from the simulation
+    /// Called every time this is removed from the simulation
     /// </summary>
     /// <remarks>
     /// May occur right before <see cref="AttachInner"/> when certain larger changes are made to the object, <see cref="Simulation"/> is the one this object was on prior to detaching

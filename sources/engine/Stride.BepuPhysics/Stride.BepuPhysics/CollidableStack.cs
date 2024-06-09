@@ -9,6 +9,6 @@ namespace Stride.BepuPhysics;
 /// <summary>
 /// Unmanaged low level information about an overlap test
 /// </summary>
-/// <param name="Reference">Container the test shape overlaps with</param>
-/// <param name="Versioning">Stores the version the container was sampled on to conditionally skip containers that were removed or otherwise changed while the iteration ran</param>
+/// <param name="Reference">Collidable the test shape overlaps with</param>
+/// <param name="Versioning">Stores the version the collidable was sampled on to conditionally skip collidables that were removed or otherwise changed while the iteration ran</param>
 public readonly record struct CollidableStack(CollidableReference Reference, uint Versioning);

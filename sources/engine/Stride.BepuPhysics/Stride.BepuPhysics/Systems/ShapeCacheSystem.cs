@@ -1,3 +1,6 @@
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 using System.Runtime.InteropServices;
 using BepuPhysics.Collidables;
 using Stride.BepuPhysics.Definitions;
@@ -16,7 +19,7 @@ using Mesh = BepuPhysics.Collidables.Mesh;
 
 namespace Stride.BepuPhysics.Systems;
 
-internal class ShapeCacheSystem
+internal class ShapeCacheSystem : IDisposable
 {
     internal readonly BasicMeshBuffers _boxShapeData;
     internal readonly BasicMeshBuffers _cylinderShapeData;
@@ -37,6 +40,11 @@ internal class ShapeCacheSystem
         _boxShapeData = new() { Vertices = box.Vertices.Select(x => new VertexPosition3(x.Position)).ToArray(), Indices = box.Indices };
         _cylinderShapeData = new() { Vertices = cylinder.Vertices.Select(x => new VertexPosition3(x.Position)).ToArray(), Indices = cylinder.Indices };
         _sphereShapeData = new() { Vertices = sphere.Vertices.Select(x => new VertexPosition3(x.Position)).ToArray(), Indices = sphere.Indices };
+    }
+
+    public void Dispose()
+    {
+        _sharedPool.Clear();
     }
 
     /// <summary>
@@ -69,7 +77,6 @@ internal class ShapeCacheSystem
         }
     }
 
-#warning that's slow, we could consider build a dictionary<float LenRadRatio, BodyShapeData>.
     internal BasicMeshBuffers BuildCapsule(CapsuleCollider cap)
     {
         var capGeo = GeometricPrimitive.Capsule.New(cap.Length, cap.Radius, 8);
@@ -77,12 +84,12 @@ internal class ShapeCacheSystem
     }
     internal BasicMeshBuffers BuildTriangle(TriangleCollider tri)
     {
-        return new() { Vertices = new VertexPosition3[] { new(tri.A), new(tri.B), new(tri.C) }, Indices = new[]{0, 1, 2} };
+        return new() { Vertices = [new(tri.A), new(tri.B), new(tri.C)], Indices = [0, 1, 2] };
     }
 
     public BasicMeshBuffers BorrowHull(ConvexHullCollider convex)
     {
-        if (convex.Hull == null)
+        if (convex.Hull == null!) // Can be null in editor if the user hasn't specified a reference yet
         {
             return new();
         }
@@ -101,11 +108,11 @@ internal class ShapeCacheSystem
     {
         int vertexCount = 0;
         int indexCount = 0;
-        for (int mesh = 0; mesh < hullDesc.Hulls.Length; mesh++)
+        for (int mesh = 0; mesh < hullDesc.Meshes.Length; mesh++)
         {
-            for (var hull = 0; hull < hullDesc.Hulls[mesh].Length; hull++)
+            for (var hull = 0; hull < hullDesc.Meshes[mesh].Hulls.Length; hull++)
             {
-                var hullClass = hullDesc.Hulls[mesh][hull];
+                var hullClass = hullDesc.Meshes[mesh].Hulls[hull];
                 vertexCount += hullClass.Points.Length;
                 indexCount += hullClass.Indices.Length;
             }
@@ -117,11 +124,11 @@ internal class ShapeCacheSystem
         int vertexWriteHead = 0;
         int indexWriteHead = 0;
 
-        for (int mesh = 0; mesh < hullDesc.Hulls.Length; mesh++)
+        for (int mesh = 0; mesh < hullDesc.Meshes.Length; mesh++)
         {
-            for (var hull = 0; hull < hullDesc.Hulls[mesh].Length; hull++)
+            for (var hull = 0; hull < hullDesc.Meshes[mesh].Hulls.Length; hull++)
             {
-                var hullClass = hullDesc.Hulls[mesh][hull];
+                var hullClass = hullDesc.Meshes[mesh].Hulls[hull];
 
                 int vertMappingStart = vertexWriteHead;
                 for (int i = 0; i < hullClass.Points.Length; i++)
@@ -132,27 +139,6 @@ internal class ShapeCacheSystem
             }
         }
     }
-
-    //internal void ClearShape(ContainerComponent component)
-    //{
-    //    if (component is ContainerComponentWithMesh withMesh)
-    //    {
-    //        if (withMesh.Model != null)
-    //        {
-    //            _modelsShapeData.Remove(withMesh.Model);
-    //        }
-    //    }
-    //    else if (component is ContainerComponentWithColliders withColliders)
-    //    {
-    //        foreach (var collider in withColliders.Colliders)
-    //        {
-    //            if (collider is ConvexHullCollider con && con.Hull != null)
-    //            {
-    //                _hullShapeData.Remove(con.Hull);
-    //            }
-    //        }
-    //    }
-    //}
 
     internal static IEnumerable<(Stride.Rendering.Mesh mesh, byte[] verticesBytes, byte[] indicesBytes)> ExtractMeshes(Model model, IServiceRegistry services)
     {

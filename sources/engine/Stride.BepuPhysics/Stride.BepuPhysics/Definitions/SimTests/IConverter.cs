@@ -10,16 +10,16 @@ public interface IConverter<TFrom, TTo>
     bool TryConvert(TFrom from, out TTo to);
 }
 
-public readonly record struct ManagedConverter(BepuSimulation BepuSimulation) : IConverter<OverlapInfoStack, OverlapInfo>, IConverter<CollidableStack, ContainerComponent>, IConverter<HitInfoStack, HitInfo>
+public readonly record struct ManagedConverter(BepuSimulation BepuSimulation) : IConverter<OverlapInfoStack, OverlapInfo>, IConverter<CollidableStack, CollidableComponent>, IConverter<HitInfoStack, HitInfo>
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool TryConvert(OverlapInfoStack from, out OverlapInfo to)
     {
-        var container = BepuSimulation.GetContainer(from.CollidableStack.Reference);
-        // 'container' can be null when the object the Reference points to was removed from the simulation between when the physics test ran and this execution
-        if (container != null! && container.Versioning == from.CollidableStack.Versioning)
+        var collidable = BepuSimulation.GetComponent(from.CollidableStack.Reference);
+        // 'collidable' can be null when the object the Reference points to was removed from the simulation between when the physics test ran and this execution
+        if (collidable != null! && collidable.Versioning == from.CollidableStack.Versioning)
         {
-            to = new(container, from.PenetrationDirection, from.PenetrationLength);
+            to = new(collidable, from.PenetrationDirection, from.PenetrationLength);
             return true;
         }
 
@@ -28,9 +28,9 @@ public readonly record struct ManagedConverter(BepuSimulation BepuSimulation) : 
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool TryConvert(CollidableStack from, out ContainerComponent to)
+    public bool TryConvert(CollidableStack from, out CollidableComponent to)
     {
-        to = BepuSimulation.GetContainer(from.Reference);
+        to = BepuSimulation.GetComponent(from.Reference);
         // 'to' can be null when the object the Reference points to was removed from the simulation between when the physics test ran and this execution
         return to != null! && to.Versioning == from.Versioning;
     }
@@ -38,11 +38,11 @@ public readonly record struct ManagedConverter(BepuSimulation BepuSimulation) : 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool TryConvert(HitInfoStack from, out HitInfo to)
     {
-        var container = BepuSimulation.GetContainer(from.Collidable.Reference);
-        // 'container' can be null when the object the Reference points to was removed from the simulation between when the physics test ran and this execution
-        if (container != null! && container.Versioning == from.Collidable.Versioning)
+        var collidable = BepuSimulation.GetComponent(from.Collidable.Reference);
+        // 'collidable' can be null when the object the Reference points to was removed from the simulation between when the physics test ran and this execution
+        if (collidable != null! && collidable.Versioning == from.Collidable.Versioning)
         {
-            to = new(from.Point, from.Normal, from.Distance, container);
+            to = new(from.Point, from.Normal, from.Distance, collidable);
             return true;
         }
 

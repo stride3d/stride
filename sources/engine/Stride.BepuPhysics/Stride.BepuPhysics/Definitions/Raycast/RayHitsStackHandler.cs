@@ -1,4 +1,7 @@
-﻿using System.Diagnostics;
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using BepuPhysics;
@@ -95,10 +98,10 @@ internal unsafe struct RayHitsStackHandler(HitInfoStack* Ptr, int Length, BepuSi
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    static HitInfoStack GenerateHitInfo(in RayData ray, Vector3 normal, float t, CollidableReference collidable, BepuSimulation sim) => new(new(collidable, sim.GetContainer(collidable).Versioning), (ray.Origin + ray.Direction * t).ToStride(), normal.ToStride(), t);
+    static HitInfoStack GenerateHitInfo(in RayData ray, Vector3 normal, float t, CollidableReference collidable, BepuSimulation sim) => new(new(collidable, sim.GetComponent(collidable).Versioning), (ray.Origin + ray.Direction * t).ToStride(), normal.ToStride(), t);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    static HitInfoStack GenerateHitInfo(Vector3 location, Vector3 normal, float t, CollidableReference collidable, BepuSimulation sim) => new(new(collidable, sim.GetContainer(collidable).Versioning), location.ToStride(), normal.ToStride(), t);
+    static HitInfoStack GenerateHitInfo(Vector3 location, Vector3 normal, float t, CollidableReference collidable, BepuSimulation sim) => new(new(collidable, sim.GetComponent(collidable).Versioning), location.ToStride(), normal.ToStride(), t);
 
     public void OnHitAtZeroT(ref float maximumT, CollidableReference collidable)
     {

@@ -1,4 +1,6 @@
-﻿using BepuPhysics;
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 using BepuPhysics.Collidables;
 using BepuUtilities.Memory;
 using Stride.BepuPhysics.Systems;
@@ -21,7 +23,7 @@ public sealed class TriangleCollider : ColliderBase
         set
         {
             _a = value;
-            Container?.TryUpdateContainer();
+            Component?.TryUpdateFeatures();
         }
     }
 
@@ -31,7 +33,7 @@ public sealed class TriangleCollider : ColliderBase
         set
         {
             _b = value;
-            Container?.TryUpdateContainer();
+            Component?.TryUpdateFeatures();
         }
     }
 
@@ -41,7 +43,7 @@ public sealed class TriangleCollider : ColliderBase
         set
         {
             _c = value;
-            Container?.TryUpdateContainer();
+            Component?.TryUpdateFeatures();
         }
     }
 
@@ -49,4 +51,6 @@ public sealed class TriangleCollider : ColliderBase
     {
         builder.Add(new Triangle(A.ToNumeric(), B.ToNumeric(), C.ToNumeric()), localPose, Mass);
     }
+
+    internal override void OnDetach(BufferPool pool){ }
 }

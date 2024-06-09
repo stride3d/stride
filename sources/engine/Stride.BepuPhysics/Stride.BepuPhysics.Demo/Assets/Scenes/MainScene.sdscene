@@ -33,7 +33,7 @@ Hierarchy:
                         Scene9: bef30700-cda8-4d43-b804-3da6717bea2c:Scenes/9.Demo
                         ShiftScene0: e8b85b3b-0b26-4d4a-9989-af7f952e4446:Scenes/S0.2D
                         ShiftScene1: 34252014-babe-47a9-b3b1-996ebdaff389:Scenes/S1.PhysicsTest
-                        ShiftScene2: 92f65f18-5844-4533-92b0-c39b27b3e2ce:Scenes/S2.Softs
+                        ShiftScene2: null
                         ShiftScene3: null
                         ShiftScene4: null
                         ShiftScene5: null

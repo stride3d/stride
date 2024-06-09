@@ -1,4 +1,7 @@
-﻿using System.Diagnostics;
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+using System.Diagnostics;
 using BepuPhysics;
 using BepuPhysics.Constraints;
 using Stride.BepuPhysics.Constraints;
@@ -28,9 +31,9 @@ internal sealed class ConstraintData<T> : ConstraintDataBase where T : unmanaged
         if (!_constraintComponent.Enabled)
             return;
 
-        foreach (var container in _constraintComponent.Bodies)
+        foreach (var body in _constraintComponent.Bodies)
         {
-            if (container is null || container.BodyReference.HasValue == false)
+            if (body is null || body.BodyReference.HasValue == false)
                 return; // need to wait for a body to be attached or instanced
         }
 
@@ -38,19 +41,24 @@ internal sealed class ConstraintData<T> : ConstraintDataBase where T : unmanaged
         Span<BodyHandle> bodies = stackalloc BodyHandle[_constraintComponent.Bodies.Length];
         int count = 0;
 
-        _bepuSimulation = _bepuConfig.BepuSimulations[simIndex];
+        var newSimulation = _bepuConfig.BepuSimulations[simIndex];
 
         foreach (var component in _constraintComponent.Bodies)
         {
             Debug.Assert(component is not null);
             Debug.Assert(component.BodyReference.HasValue);
 
-#warning maybe send a warning, like the missing camera notification in the engine, instead of exception at runtime
-            if (ReferenceEquals(component.Simulation, _bepuSimulation) == false)
-                throw new Exception("A constraint between object with different SimulationIndex is not possible");
+            if (ReferenceEquals(component.Simulation, newSimulation) == false)
+            {
+                string otherSimulation = component.Simulation == null ? "null" : _bepuConfig.BepuSimulations.IndexOf(component.Simulation).ToString();
+                Logger.Warning($"A constraint between object with different SimulationIndex is not possible ({this} @ #{simIndex} -> {component} @ #{otherSimulation})");
+                return;
+            }
 
             bodies[count++] = component.BodyReference.Value.Handle;
         }
+
+        _bepuSimulation = newSimulation;
 
         Span<BodyHandle> validBodies = bodies[..count];
 
