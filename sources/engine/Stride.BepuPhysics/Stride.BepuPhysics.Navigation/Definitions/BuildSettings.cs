@@ -1,49 +1,61 @@
-﻿using DotRecast.Recast;
+using DotRecast.Recast;
 using Stride.Core;
 
 namespace Stride.BepuPhysics.Navigation.Definitions;
 [DataContract("DotRecastBuildSettings")]
 public class BuildSettings
 {
-	public float cellSize = 0.3f;
+    public float cellSize = 0.3f;
 
-	public float cellHeight = 0.2f;
+    public float cellHeight = 0.2f;
 
-	public float agentHeight = 2f;
+    public float agentHeight = 2f;
 
-	public float agentRadius = 0.6f;
+    public float agentRadius = 0.6f;
 
-	public float agentMaxClimb = 0.9f;
+    public float agentMaxClimb = 0.9f;
 
-	public float agentMaxSlope = 45f;
+    public float agentMaxSlope = 45f;
 
-	public float agentMaxAcceleration = 8f;
+    public float agentMaxAcceleration = 8f;
 
-	public float agentMaxSpeed = 3.5f;
+    //public float agentMaxSpeed = 3.5f;
 
-	public int minRegionSize = 8;
+    public int minRegionSize = 8;
 
-	public int mergedRegionSize = 20;
+    public int mergedRegionSize = 20;
 
-	public int partitioning = RcPartitionType.WATERSHED.Value;
+    public RcPartition PartitionType
+    {
+        get
+        {
+            return RcPartitionType.OfValue(partitioning);
+        }
+        set
+        {
+            partitioning = (int)value;
+        }
+    }
+    [DataMemberIgnore]
+    public int partitioning = RcPartitionType.WATERSHED.Value;
 
-	public bool filterLowHangingObstacles = true;
+    public bool filterLowHangingObstacles = true;
 
-	public bool filterLedgeSpans = true;
+    public bool filterLedgeSpans = true;
 
-	public bool filterWalkableLowHeightSpans = true;
+    public bool filterWalkableLowHeightSpans = true;
 
-	public float edgeMaxLen = 12f;
+    public float edgeMaxLen = 12f;
 
-	public float edgeMaxError = 1.3f;
+    public float edgeMaxError = 1.3f;
 
-	public int vertsPerPoly = 6;
+    public int vertsPerPoly = 6;
 
-	public float detailSampleDist = 6f;
+    public float detailSampleDist = 6f;
 
-	public float detailSampleMaxError = 1f;
+    public float detailSampleMaxError = 1f;
 
-	public bool tiled;
+    public bool tiled;
 
-	public int tileSize = 32;
+    public int tileSize = 32;
 }
