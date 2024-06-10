@@ -11,13 +11,7 @@ namespace Stride.Engine.Splines.Models.Mesh
     [Display("Box")]
     public class SplineMeshBox : SplineMesh
     {
-        /// <summary>
-        /// Generate geometry for endings
-        /// </summary>
-        public bool CloseEnd;
 
-        private VertexPositionNormalTexture[] vertices;
-        private int[] indices;
         private readonly Vector3[] normals = new Vector3[4]
         {
             -Vector3.UnitY, //Down Vector3(0,1,0)
@@ -28,7 +22,7 @@ namespace Stride.Engine.Splines.Models.Mesh
 
         protected override GeometricMeshData<VertexPositionNormalTexture> CreatePrimitiveMeshData()
         {
-            var splinePointCount = bezierPoints.Length;
+            var splinePointCount = BezierPoints.Length;
             var vertexCount = splinePointCount * 4 * 2; // 4 sides * 2 per corner
             var indicesCount = (splinePointCount - 1) * 24;
             if (Loop)
@@ -36,7 +30,7 @@ namespace Stride.Engine.Splines.Models.Mesh
                 vertexCount += 4;
                 indicesCount += 24;
             }
-            else if (CloseEnd)
+            else if (CloseEnds)
             {
                 vertexCount += 8;
                 indicesCount += 12;
@@ -53,8 +47,8 @@ namespace Stride.Engine.Splines.Models.Mesh
 
             for (int i = 0; i < splinePointCount - 1; i++)
             {
-                var startPoint = bezierPoints[i];
-                var targetPoint = bezierPoints[i + 1];
+                var startPoint = BezierPoints[i];
+                var targetPoint = BezierPoints[i + 1];
                 var forward = (targetPoint.Position - startPoint.Position);
                 forward.Normalize();
                 var right = Vector3.Cross(forward, Vector3.UnitY) * halfWidth;
@@ -75,7 +69,7 @@ namespace Stride.Engine.Splines.Models.Mesh
                     // Loop over each side in following order: Bottom, Right, Top, Left
                     for (int side = 0; side < sides.Length; side++)
                     {
-                        CreateVertex(verticesIndex + 0, startPoint.Position + sides[side], normals[side], new Vector2(0, 0));
+                        CreateVertex(verticesIndex, startPoint.Position + sides[side], normals[side], new Vector2(0, 0));
                         CreateVertex(verticesIndex + 1, startPoint.Position + sides[(side + 1) % 4], normals[side], new Vector2(1, 0));
                         verticesIndex += 2;
                     }
@@ -83,13 +77,13 @@ namespace Stride.Engine.Splines.Models.Mesh
 
                 if (i == splinePointCount - 2 && Loop) //If Loop is enabled, then the target node is the first node in the entire spline
                 {
-                    splineDistance += Vector3.Distance(startPoint.Position, bezierPoints[0].Position);
+                    splineDistance += Vector3.Distance(startPoint.Position, BezierPoints[0].Position);
                     textureY = splineDistance / UvScale.Y;
 
                     for (int side = 0; side < sides.Length; side++)
                     {
-                        CreateVertex(verticesIndex + 0, vertices[side * 2 + 0].Position, normals[side], new Vector2(0, textureY));
-                        CreateVertex(verticesIndex + 1, vertices[side * 2 + 1].Position, normals[side], new Vector2(1, textureY));
+                        CreateVertex(verticesIndex, vertices[side].Position, normals[side], new Vector2(0, textureY));
+                        CreateVertex(verticesIndex + 1, vertices[(side + 1) % 4].Position, normals[side], new Vector2(1, textureY));
                         verticesIndex += 2;
                     }
                 }
@@ -99,7 +93,7 @@ namespace Stride.Engine.Splines.Models.Mesh
                     textureY = splineDistance / UvScale.Y;
                     for (int side = 0; side < sides.Length; side++)
                     {
-                        CreateVertex(verticesIndex + 0, targetPoint.Position + sides[side + 0], normals[side], new Vector2(0, textureY));
+                        CreateVertex(verticesIndex, targetPoint.Position + sides[side], normals[side], new Vector2(0, textureY));
                         CreateVertex(verticesIndex + 1, targetPoint.Position + sides[(side + 1) % 4], normals[side], new Vector2(1, textureY));
                         verticesIndex += 2;
                     }
@@ -148,16 +142,17 @@ namespace Stride.Engine.Splines.Models.Mesh
                 triangleIndex += 8;
 
                 // If this was the last loop, we do 1 additional check for Closing of the sides or looping the geometry
-                if (i == splinePointCount - 2 && !Loop && CloseEnd)
+                if (i == splinePointCount - 2 && !Loop && CloseEnds)
                 {
                     var backIndex = verticesIndex;
+                    
                     //Front face vertices
                     CreateVertex(verticesIndex + 0, vertices[0].Position, -Vector3.UnitZ, new Vector2(0, 0));
                     CreateVertex(verticesIndex + 1, vertices[1].Position, -Vector3.UnitZ, new Vector2(1, 0));
                     CreateVertex(verticesIndex + 2, vertices[4].Position, -Vector3.UnitZ, new Vector2(0, 1));
                     CreateVertex(verticesIndex + 3, vertices[5].Position, -Vector3.UnitZ, new Vector2(1, 1));
 
-                    ////Back face vertices            
+                    //Back face vertices            
                     CreateVertex(verticesIndex + 4, vertices[backIndex - 8].Position, Vector3.UnitZ, new Vector2(0, 0));
                     CreateVertex(verticesIndex + 5, vertices[backIndex - 7].Position, Vector3.UnitZ, new Vector2(1, 0));
                     CreateVertex(verticesIndex + 6, vertices[backIndex - 4].Position, Vector3.UnitZ, new Vector2(0, 1));
@@ -189,11 +184,6 @@ namespace Stride.Engine.Splines.Models.Mesh
 
             // Create the primitive object for further processing by the base class
             return new GeometricMeshData<VertexPositionNormalTexture>(vertices, indices, isLeftHanded: false);
-        }
-
-        private void CreateVertex(int verticesIndex, Vector3 position, Vector3 normal, Vector2 texture)
-        {
-            vertices[verticesIndex] = new VertexPositionNormalTexture(position, normal, texture);
         }
     }
 }

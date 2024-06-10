@@ -108,7 +108,7 @@ namespace Stride.Engine.Splines.Processors
 
                 //Create a model and generate its mesh
                 var model = new Model();
-                splineMeshComponent.SplineMesh.bezierPoints = splineBezierPoints.ToArray();
+                splineMeshComponent.SplineMesh.BezierPoints = splineBezierPoints.ToArray();
                 splineMeshComponent.SplineMesh.Loop = splineMeshComponent.SplineComponent.Loop;
                 splineMeshComponent.SplineMesh.Generate(Services, model);
 

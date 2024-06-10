@@ -27,7 +27,7 @@ namespace Stride.Engine.Splines.Models.Mesh
 
         protected override GeometricMeshData<VertexPositionNormalTexture> CreatePrimitiveMeshData()
         {
-            int splinePointCount = bezierPoints.Length;
+            int splinePointCount = BezierPoints.Length;
             int vertexCount = splinePointCount * Sides;
             int indicesCount = (splinePointCount - 1) * Sides * 6;
 
@@ -51,8 +51,8 @@ namespace Stride.Engine.Splines.Models.Mesh
 
             for (int i = 0; i < splinePointCount; i++)
             {
-                var point = bezierPoints[i];
-                var nextPoint = bezierPoints[(i + 1) % splinePointCount];
+                var point = BezierPoints[i];
+                var nextPoint = BezierPoints[(i + 1) % splinePointCount];
                 Vector3 direction = (nextPoint.Position - point.Position);
                 direction.Normalize();
 
@@ -74,7 +74,7 @@ namespace Stride.Engine.Splines.Models.Mesh
 
                 if (i < splinePointCount - 1)
                 {
-                    splineDistance += Vector3.Distance(point.Position, bezierPoints[i + 1].Position);
+                    splineDistance += Vector3.Distance(point.Position, BezierPoints[i + 1].Position);
                 }
             }
 

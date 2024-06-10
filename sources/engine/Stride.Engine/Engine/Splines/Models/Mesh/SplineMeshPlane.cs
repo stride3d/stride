@@ -13,7 +13,7 @@ namespace Stride.Engine.Splines.Models.Mesh
     {
         protected override GeometricMeshData<VertexPositionNormalTexture> CreatePrimitiveMeshData()
         {
-            var splinePointCount = bezierPoints.Length;
+            var splinePointCount = BezierPoints.Length;
             var vertexCount = splinePointCount * 2;
             var indexCount = (splinePointCount - 1) * 6;
             if (Loop)
@@ -32,8 +32,8 @@ namespace Stride.Engine.Splines.Models.Mesh
 
             for (int i = 0; i < splinePointCount - 1; i++)
             {
-                var startPoint = bezierPoints[i];
-                var targetPoint = bezierPoints[i + 1];
+                var startPoint = BezierPoints[i];
+                var targetPoint = BezierPoints[i + 1];
                 var forward = (targetPoint.Position - startPoint.Position);
                 forward.Normalize();
                 var left = Vector3.Cross(forward, Vector3.UnitY) * halfWidth;
@@ -51,7 +51,7 @@ namespace Stride.Engine.Splines.Models.Mesh
                 
                 if (i == splinePointCount - 2 && Loop) //If Loop is enabled, then the target node is the first node in the entire spline
                 {
-                    splineDistance += Vector3.Distance(startPoint.Position, bezierPoints[0].Position);
+                    splineDistance += Vector3.Distance(startPoint.Position, BezierPoints[0].Position);
                     textureY = splineDistance / UvScale.Y;
                     vertices[verticesIndex] = new VertexPositionNormalTexture(vertices[0].Position, normal, new Vector2(0, textureY));
                     vertices[verticesIndex + 1] = new VertexPositionNormalTexture(vertices[1].Position, normal, new Vector2(1, textureY));

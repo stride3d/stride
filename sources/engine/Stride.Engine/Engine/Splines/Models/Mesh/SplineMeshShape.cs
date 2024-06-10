@@ -31,7 +31,7 @@ namespace Stride.Engine.Splines.Models.Mesh
                 shapePoints = RetrieveShapePoints();
             }
 
-            var splinePointCount = bezierPoints.Length;
+            var splinePointCount = BezierPoints.Length;
             var shapePointsCount = shapePoints.Length;
 
             var totalVertexCount = 4 * (shapePointsCount - 1) * (splinePointCount - 1);
@@ -49,8 +49,8 @@ namespace Stride.Engine.Splines.Models.Mesh
 
             for (int i = 0; i < splinePointCount - 1; i++)
             {
-                var startPoint = bezierPoints[i];
-                var targetPoint = bezierPoints[i + 1];
+                var startPoint = BezierPoints[i];
+                var targetPoint = BezierPoints[i + 1];
                 var splineForward = targetPoint.Position - startPoint.Position;
 
                 splineForward.Normalize();
