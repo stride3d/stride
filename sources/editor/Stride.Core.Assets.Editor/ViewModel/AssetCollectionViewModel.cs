@@ -1128,7 +1128,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
         /// <summary>
         /// Load asset filters from InternalSettings
         /// </summary>
-        public void LoadAssetFilters()
+        private void LoadAssetFilters()
         {
             //flip order of filters to stay consistent
             StoredListData.Reverse();
@@ -1145,7 +1145,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
         /// <summary>
         /// Save primitive data types out from all current filters to InternalSettings
         /// </summary>
-        public void SaveAssetFilters()
+        private void SaveAssetFilters()
         {
             // Make list of AssetFilterViewModelData of just the primitives we save between editor instances
             List<AssetFilterViewModelData> listData = new List<AssetFilterViewModelData>();
