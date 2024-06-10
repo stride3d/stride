@@ -1125,19 +1125,26 @@ namespace Stride.Core.Assets.Editor.ViewModel
             UpdateCommands();
         }
 
-        // Load asset filters from InternalSettings
+        /// <summary>
+        /// Load asset filters from InternalSettings
+        /// </summary>
         public void LoadAssetFilters()
         {
+            //flip order of filters to stay consistent
+            StoredListData.Reverse();
             foreach (var filterDataObj in StoredListData)
             {
                 AssetFilterViewModel NewAssetFilter = new AssetFilterViewModel(this, filterDataObj.category, filterDataObj.Filter, filterDataObj.DisplayName);
                 NewAssetFilter.IsActive = filterDataObj.IsActive;
                 currentAssetFilters.Insert(0, NewAssetFilter);
             }
+            // save out in case editor is immediately closed
             SaveAssetFilters();
         }
 
-        //Save primitive data types out from all current filters to InternalSettings
+        /// <summary>
+        /// Save primitive data types out from all current filters to InternalSettings
+        /// </summary>
         public void SaveAssetFilters()
         {
             // Make list of AssetFilterViewModelData of just the primitives we save between editor instances
