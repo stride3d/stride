@@ -9,10 +9,8 @@ using DotRecast.Recast.Toolset;
 using DotRecast.Recast.Toolset.Builder;
 using DotRecast.Core.Numerics;
 using Stride.BepuPhysics.Definitions;
-using Stride.Core.Annotations;
 using Stride.Engine;
 using Stride.Games;
-using Stride.Input;
 using Stride.Core.Mathematics;
 using Stride.BepuPhysics.Systems;
 using Stride.Core;
@@ -22,6 +20,7 @@ using Stride.BepuPhysics.Navigation.Definitions;
 using Stride.Engine.Design;
 
 namespace Stride.BepuPhysics.Navigation.Processors;
+
 public class RecastMeshProcessor : GameSystemBase
 {
     public TimeSpan LastShapeCacheTime { get; private set; }
@@ -33,38 +32,30 @@ public class RecastMeshProcessor : GameSystemBase
 
     private readonly Stopwatch _stopwatch = new();
     private readonly SceneSystem _sceneSystem;
-    private readonly InputManager _input;
     private readonly ShapeCacheSystem _shapeCache;
-    private CollidableProcessor _containerProcessor;
 
     private DtNavMesh? _navMesh;
     private Task<DtNavMesh>? _runningRebuild;
 
     private CancellationTokenSource _rebuildingTask = new();
-    private RecastNavigationConfiguration _navSettings = new();
+    private RecastNavigationConfiguration _navSettings;
 
-    private DtNavMeshQuery _dtNavMeshQuery;
-
-    public RecastMeshProcessor([NotNull] IServiceRegistry registry) : base(registry)
+    public RecastMeshProcessor(IServiceRegistry registry) : base(registry)
     {
         UpdateOrder = 20000;
         Enabled = true; //enabled by default
 
         registry.AddService(this);
 
-        _sceneSystem = registry.GetService<SceneSystem>();
-        _input = registry.GetService<InputManager>();
-        _shapeCache = registry.GetService<ShapeCacheSystem>();
+        _sceneSystem = registry.GetSafeServiceAs<SceneSystem>();
+        _shapeCache = registry.GetSafeServiceAs<ShapeCacheSystem>();
 
-        var gameSettings = registry.GetService<IGameSettingsService>();
-        _navSettings = gameSettings.Settings.Configurations.Get<RecastNavigationConfiguration>();
-        _navSettings ??= new();
+        var gameSettings = registry.GetSafeServiceAs<IGameSettingsService>();
+        _navSettings = gameSettings.Settings.Configurations.Get<RecastNavigationConfiguration>() ?? new();
     }
 
     public override void Update(GameTime time)
     {
-        _containerProcessor ??= _sceneSystem.SceneInstance.Processors.Get<CollidableProcessor>();
-
         if (_runningRebuild?.Status == TaskStatus.RanToCompletion)
         {
             _navMesh = _runningRebuild.Result;
@@ -74,6 +65,7 @@ public class RecastMeshProcessor : GameSystemBase
 
     public Task RebuildNavMesh()
     {
+        #warning Right now nothing no systems calls for a rebuild of the navmesh, users have to explicitly do it from their side, not the best ...
         // The goal of this method is to do the strict minimum here on the main thread, gathering data for the async thread to do the rest on its own
 
         // Cancel any ongoing rebuild
@@ -86,7 +78,8 @@ public class RecastMeshProcessor : GameSystemBase
         // There are a couple of avenues we could go down into to fix this but none of them are easy
         // Something we'll have to investigate later.
         var asyncInput = new AsyncInput();
-        for (var e = _containerProcessor.ComponentDataEnumerator; e.MoveNext();)
+        var containerProcessor = _sceneSystem.SceneInstance.Processors.Get<CollidableProcessor>();
+        for (var e = containerProcessor.ComponentDataEnumerator; e.MoveNext();)
         {
             var collidable = e.Current.Value;
 
@@ -95,12 +88,12 @@ public class RecastMeshProcessor : GameSystemBase
                 continue;
 
             // No need to store cache, nav mesh recompute should be rare enough were it would waste more memory than necessary
-            collidable.Collider.AppendModel(asyncInput.shapeData, _shapeCache, out object? cache);
-            var shapeCount = collidable.Collider.Transforms;
+            collidable.Collider.AppendModel(asyncInput.ShapeData, _shapeCache, out object? cache);
+            int shapeCount = collidable.Collider.Transforms;
             for (int i = shapeCount - 1; i >= 0; i--)
-                asyncInput.transformsOut.Add(default);
-            collidable.Collider.GetLocalTransforms(collidable, CollectionsMarshal.AsSpan(asyncInput.transformsOut)[^shapeCount..]);
-            asyncInput.matrices.Add((collidable.Entity.Transform.WorldMatrix, shapeCount));
+                asyncInput.TransformsOut.Add(default);
+            collidable.Collider.GetLocalTransforms(collidable, CollectionsMarshal.AsSpan(asyncInput.TransformsOut)[^shapeCount..]);
+            asyncInput.Matrices.Add((collidable.Entity.Transform.WorldMatrix, shapeCount));
         }
 
         _stopwatch.Stop();
@@ -137,25 +130,25 @@ public class RecastMeshProcessor : GameSystemBase
         return task;
     }
 
-    private static DtNavMesh CreateNavMesh(RcNavMeshBuildSettings _navSettings, AsyncInput input, int threads, CancellationToken cancelToken)
+    private static DtNavMesh CreateNavMesh(RcNavMeshBuildSettings navSettings, AsyncInput input, int threads, CancellationToken cancelToken)
     {
         // /!\ THIS IS NOT RUNNING ON THE MAIN THREAD /!\
 
         var verts = new List<VertexPosition3>();
         var indices = new List<int>();
-        for (int collidableI = 0, shapeI = 0; collidableI < input.matrices.Count; collidableI++)
+        for (int collidableI = 0, shapeI = 0; collidableI < input.Matrices.Count; collidableI++)
         {
-            var (collidableMatrix, shapeCount) = input.matrices[collidableI];
+            var (collidableMatrix, shapeCount) = input.Matrices[collidableI];
             collidableMatrix.Decompose(out _, out Matrix worldMatrix, out var translation);
             worldMatrix.TranslationVector = translation;
 
             for (int j = 0; j < shapeCount; j++, shapeI++)
             {
-                var transform = input.transformsOut[shapeI];
+                var transform = input.TransformsOut[shapeI];
                 Matrix.Transformation(ref transform.Scale, ref transform.RotationLocal, ref transform.PositionLocal, out var localMatrix);
                 var finalMatrix = localMatrix * worldMatrix;
 
-                var shape = input.shapeData[shapeI];
+                var shape = input.ShapeData[shapeI];
                 verts.EnsureCapacity(verts.Count + shape.Vertices.Length);
                 indices.EnsureCapacity(indices.Count + shape.Indices.Length);
 
@@ -192,29 +185,29 @@ public class RecastMeshProcessor : GameSystemBase
 
         cancelToken.ThrowIfCancellationRequested();
 
-        RcPartition partitionType = RcPartitionType.OfValue(_navSettings.partitioning);
+        RcPartition partitionType = RcPartitionType.OfValue(navSettings.partitioning);
         RcConfig cfg = new(
             useTiles: true,
-            _navSettings.tileSize,
-            _navSettings.tileSize,
-            RcConfig.CalcBorder(_navSettings.agentRadius, _navSettings.cellSize),
+            navSettings.tileSize,
+            navSettings.tileSize,
+            RcConfig.CalcBorder(navSettings.agentRadius, navSettings.cellSize),
             partitionType,
-            _navSettings.cellSize,
-            _navSettings.cellHeight,
-            _navSettings.agentMaxSlope,
-            _navSettings.agentHeight,
-            _navSettings.agentRadius,
-            _navSettings.agentMaxClimb,
-            (_navSettings.minRegionSize * _navSettings.minRegionSize) * _navSettings.cellSize * _navSettings.cellSize,
-            (_navSettings.mergedRegionSize * _navSettings.mergedRegionSize) * _navSettings.cellSize * _navSettings.cellSize,
-            _navSettings.edgeMaxLen,
-            _navSettings.edgeMaxError,
-            _navSettings.vertsPerPoly,
-            _navSettings.detailSampleDist,
-            _navSettings.detailSampleMaxError,
-            _navSettings.filterLowHangingObstacles,
-            _navSettings.filterLedgeSpans,
-            _navSettings.filterWalkableLowHeightSpans,
+            navSettings.cellSize,
+            navSettings.cellHeight,
+            navSettings.agentMaxSlope,
+            navSettings.agentHeight,
+            navSettings.agentRadius,
+            navSettings.agentMaxClimb,
+            (navSettings.minRegionSize * navSettings.minRegionSize) * navSettings.cellSize * navSettings.cellSize,
+            (navSettings.mergedRegionSize * navSettings.mergedRegionSize) * navSettings.cellSize * navSettings.cellSize,
+            navSettings.edgeMaxLen,
+            navSettings.edgeMaxError,
+            navSettings.vertsPerPoly,
+            navSettings.detailSampleDist,
+            navSettings.detailSampleMaxError,
+            navSettings.filterLowHangingObstacles,
+            navSettings.filterLedgeSpans,
+            navSettings.filterWalkableLowHeightSpans,
             SampleAreaModifications.SAMPLE_AREAMOD_WALKABLE,
             buildMeshDetail: true);
 
@@ -223,7 +216,7 @@ public class RecastMeshProcessor : GameSystemBase
         List<DtMeshData> dtMeshes = [];
         foreach (RcBuilderResult result in new RcBuilder().BuildTiles(geom, cfg, true, false, threads, cancellation: cancelToken))
         {
-            DtNavMeshCreateParams navMeshCreateParams = DemoNavMeshBuilder.GetNavMeshCreateParams(geom, _navSettings.cellSize, _navSettings.cellHeight, _navSettings.agentHeight, _navSettings.agentRadius, _navSettings.agentMaxClimb, result);
+            DtNavMeshCreateParams navMeshCreateParams = DemoNavMeshBuilder.GetNavMeshCreateParams(geom, navSettings.cellSize, navSettings.cellHeight, navSettings.agentHeight, navSettings.agentRadius, navSettings.agentMaxClimb, result);
             navMeshCreateParams.tileX = result.TileX;
             navMeshCreateParams.tileZ = result.TileZ;
             DtMeshData dtMeshData = DtNavMeshBuilder.CreateNavMeshData(navMeshCreateParams);
@@ -239,11 +232,11 @@ public class RecastMeshProcessor : GameSystemBase
 
         DtNavMeshParams option = default;
         option.orig = geom.GetMeshBoundsMin();
-        option.tileWidth = _navSettings.tileSize * _navSettings.cellSize;
-        option.tileHeight = _navSettings.tileSize * _navSettings.cellSize;
-        option.maxTiles = GetMaxTiles(geom, _navSettings.cellSize, _navSettings.tileSize);
-        option.maxPolys = GetMaxPolysPerTile(geom, _navSettings.cellSize, _navSettings.tileSize);
-        DtNavMesh navMesh = new(option, _navSettings.vertsPerPoly);
+        option.tileWidth = navSettings.tileSize * navSettings.cellSize;
+        option.tileHeight = navSettings.tileSize * navSettings.cellSize;
+        option.maxTiles = GetMaxTiles(geom, navSettings.cellSize, navSettings.tileSize);
+        option.maxPolys = GetMaxPolysPerTile(geom, navSettings.cellSize, navSettings.tileSize);
+        DtNavMesh navMesh = new(option, navSettings.vertsPerPoly);
         foreach (DtMeshData dtMeshData1 in dtMeshes)
         {
             navMesh.AddTile(dtMeshData1, 0, 0L);
@@ -279,13 +272,13 @@ public class RecastMeshProcessor : GameSystemBase
         if (_navMesh is null) return false;
 
         var queryFilter = new DtQueryDefaultFilter();
-        _dtNavMeshQuery = new DtNavMeshQuery(_navMesh);
+        var dtNavMeshQuery = new DtNavMeshQuery(_navMesh);
 
-        _dtNavMeshQuery.FindNearestPoly(start.ToDotRecastVector(), _polyPickExt, queryFilter, out var startRef, out var _, out var _);
+        dtNavMeshQuery.FindNearestPoly(start.ToDotRecastVector(), _polyPickExt, queryFilter, out long startRef, out _, out _);
 
-        _dtNavMeshQuery.FindNearestPoly(end.ToDotRecastVector(), _polyPickExt, queryFilter, out var endRef, out var _, out var _);
+        dtNavMeshQuery.FindNearestPoly(end.ToDotRecastVector(), _polyPickExt, queryFilter, out long endRef, out _, out _);
         // find the nearest point on the navmesh to the start and end points
-        var result = FindFollowPath(_dtNavMeshQuery, startRef, endRef, start.ToDotRecastVector(), end.ToDotRecastVector(), queryFilter, true, ref polys, ref smoothPath);
+        var result = FindFollowPath(dtNavMeshQuery, startRef, endRef, start.ToDotRecastVector(), end.ToDotRecastVector(), queryFilter, true, ref polys, ref smoothPath);
 
         return result.Succeeded();
     }
@@ -299,7 +292,7 @@ public class RecastMeshProcessor : GameSystemBase
         for (int i = 0; i < _navMesh.GetMaxTiles(); i++)
         {
             var tile = _navMesh.GetTile(i);
-            if (tile != null && tile.data != null)
+            if (tile?.data != null)
             {
                 for (int j = 0; j < tile.data.verts.Length; j += 3)
                 {
@@ -319,14 +312,11 @@ public class RecastMeshProcessor : GameSystemBase
     {
         if (startRef == 0 || endRef == 0)
         {
-            polys?.Clear();
-            smoothPath?.Clear();
+            polys.Clear();
+            smoothPath.Clear();
 
             return DtStatus.DT_FAILURE;
         }
-
-        polys ??= [];
-        smoothPath ??= [];
 
         polys.Clear();
         smoothPath.Clear();
@@ -340,8 +330,8 @@ public class RecastMeshProcessor : GameSystemBase
         navQuery.ClosestPointOnPoly(startRef, startPt, out var iterPos, out _);
         navQuery.ClosestPointOnPoly(polys[polys.Count - 1], endPt, out var targetPos, out _);
 
-        float STEP_SIZE = 0.5f;
-        float SLOP = 0.01f;
+        const float STEP_SIZE = 0.5f;
+        const float SLOP = 0.01f;
 
         smoothPath.Clear();
         smoothPath.Add(iterPos.ToStrideVector());
@@ -454,9 +444,8 @@ public class RecastMeshProcessor : GameSystemBase
 
     class AsyncInput
     {
-        public List<BasicMeshBuffers> shapeData = [];
-        public List<ShapeTransform> transformsOut = [];
-        public List<(Matrix entity, int count)> matrices = [];
+        public readonly List<BasicMeshBuffers> ShapeData = [];
+        public readonly List<ShapeTransform> TransformsOut = [];
+        public readonly List<(Matrix entity, int count)> Matrices = [];
     }
-
 }

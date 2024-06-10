@@ -8,29 +8,34 @@ using Stride.Games;
 using System.Collections.Concurrent;
 
 namespace Stride.BepuPhysics.Navigation.Processors;
-public class RecastNavigationProcessor : EntityProcessor<RecastNavigationComponent>
+
+public sealed class RecastNavigationProcessor : EntityProcessor<RecastNavigationComponent>
 {
-    private RecastMeshProcessor? _recastMeshProcessor;
+    private RecastMeshProcessor _recastMeshProcessor;
     private readonly List<RecastNavigationComponent> _components = new();
-    public readonly ConcurrentQueue<RecastNavigationComponent> TryGetPathQueue = new();
+    private readonly ConcurrentQueue<RecastNavigationComponent> _tryGetPathQueue = new();
 
     public RecastNavigationProcessor()
     {
         //run after the RecastMeshProcessor
         Order = 20001;
+        _recastMeshProcessor = null!; // Initialized below
     }
 
     protected override void OnSystemAdd()
     {
         ServicesHelper.LoadBepuServices(Services, out _, out _, out _);
-        _recastMeshProcessor = Services.GetService<RecastMeshProcessor>();
-        if(_recastMeshProcessor is null)
+        if (Services.GetService<RecastMeshProcessor>() is { } recastMeshProcessor)
+        {
+            _recastMeshProcessor = recastMeshProcessor;
+        }
+        else
         {
             // add the RecastMeshProcessor if it doesn't exist
             _recastMeshProcessor = new RecastMeshProcessor(Services);
             // add to the Scenes processors
             var sceneSystem = Services.GetSafeServiceAs<SceneSystem>();
-            sceneSystem.Game.GameSystems.Add(_recastMeshProcessor);
+            sceneSystem.Game!.GameSystems.Add(_recastMeshProcessor);
         }
     }
 
@@ -50,9 +55,9 @@ public class RecastNavigationProcessor : EntityProcessor<RecastNavigationCompone
 
         for(int i = 0; i < 10; i++)
         {
-            if (TryGetPathQueue.IsEmpty) break;
+            if (_tryGetPathQueue.IsEmpty) break;
 
-            if (TryGetPathQueue.TryDequeue(out var pathfinding))
+            if (_tryGetPathQueue.TryDequeue(out var pathfinding))
             {
                 // cannot use dispatcher here because of the TryFindPath method.
                 SetNewPath(pathfinding);
@@ -61,17 +66,18 @@ public class RecastNavigationProcessor : EntityProcessor<RecastNavigationCompone
 
         Dispatcher.For(0, _components.Count, i =>
         {
-            if (_components[i].ShouldMove)
+            var component = _components[i];
+            if (component.ShouldMove)
             {
-                Move(_components[i], deltaTime);
-                Rotate(_components[i]);
+                Move(component, deltaTime);
+                Rotate(component);
             }
 
-            if (_components[i].SetNewPath && !_components[i].InSetPathQueue)
+            if (component.SetNewPath && !component.InSetPathQueue)
             {
-                TryGetPathQueue.Enqueue(_components[i]);
-                _components[i].InSetPathQueue = true;
-                _components[i].SetNewPath = false;
+                _tryGetPathQueue.Enqueue(component);
+                component.InSetPathQueue = true;
+                component.SetNewPath = false;
             }
         });
     }
@@ -119,7 +125,7 @@ public class RecastNavigationProcessor : EntityProcessor<RecastNavigationCompone
         pathfinder.Entity.Transform.Position = position;
     }
 
-    public void Rotate(RecastNavigationComponent pathfinder)
+    private void Rotate(RecastNavigationComponent pathfinder)
     {
         if (pathfinder.Path.Count == 0)
         {

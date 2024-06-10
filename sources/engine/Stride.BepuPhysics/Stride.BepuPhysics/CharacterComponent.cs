@@ -59,6 +59,7 @@ public class CharacterComponent : BodyComponent, ISimulationUpdate, IContactEven
 
     public void Move(Vector3 direction)
     {
+        // Note that this method should be thread safe, see usage in RecastPhysicsNavigationProcessor
         Velocity = direction * Speed;
     }
 
