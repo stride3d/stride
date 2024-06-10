@@ -2,7 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #if STRIDE_PLATFORM_ANDROID
 using Android.Widget;
-using Stride.Graphics.SDL;
+using Stride.Starter;
 
 namespace Stride.Games
 {
@@ -11,18 +11,28 @@ namespace Stride.Games
     /// </summary>
     public partial class GameContextAndroid : GameContextSDL
     {
+        private readonly StrideActivity strideActivity;
+        private PopupWindow editTextPopupWindow;
+
+        internal bool RecreateEditTextPopupWindow { get; set; } = true;
+
         /// <inheritDoc/>
-        public GameContextAndroid(Window control, RelativeLayout editTextLayout)
+        public GameContextAndroid(Stride.Graphics.SDL.Window control, StrideActivity strideActivity)
             : base(control)
         {
-            EditTextLayout = editTextLayout;
+            this.strideActivity = strideActivity;
             ContextType = AppContextType.Android;
         }
 
-        /// <summary>
-        /// The layout used to add the <see cref="EditText"/>s.
-        /// </summary>
-        public readonly RelativeLayout EditTextLayout;
+        internal PopupWindow CreateEditTextPopup(EditText editText)
+        {
+            editTextPopupWindow = strideActivity.CreateEditTextPopup(editText);
+            return editTextPopupWindow;
+        }
+
+        internal void ShowEditTextPopup() => strideActivity.ShowEditTextPopup(editTextPopupWindow);
+
+        internal void HideEditTextPopup() => strideActivity.HideEditTextPopup(editTextPopupWindow);
     }
 }
 #endif

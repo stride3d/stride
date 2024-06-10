@@ -347,7 +347,9 @@ namespace Stride.Core.Yaml.Schemas
             if (type == null)
                 throw new ArgumentNullException("type");
 
-            mapTypeToShortTag.TryAdd(type, tag);
+            if (!mapTypeToShortTag.ContainsKey(type))
+                mapTypeToShortTag.Add(type, tag);
+
             if (isDefault)
             {
                 mapShortTagToType[tag] = type;
