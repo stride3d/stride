@@ -186,6 +186,8 @@ namespace Stride.Core
         {
 #if STRIDE_PLATFORM_ANDROID
             return GetApplicationExecutableDirectory();
+#elif STRIDE_PLATFORM_DESKTOP
+            return Path.GetDirectoryName(AppContext.BaseDirectory);
 #else
             return Path.GetDirectoryName(typeof(PlatformFolders).Assembly.Location);
 #endif

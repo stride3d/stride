@@ -4,7 +4,6 @@
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <StrideAssemblyProcessorOptions>$(StrideAssemblyProcessorDefaultOptions)</StrideAssemblyProcessorOptions>
     <TargetFramework>$(StrideXplatEditorTargetFramework)</TargetFramework>
-    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
   </PropertyGroup>
   <ItemGroup>
@@ -13,9 +12,8 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\tools\Stride.Importer.Assimp\Stride.Importer.Assimp.csproj" />
     <ProjectReference Include="..\..\tools\Stride.Importer.Common\Stride.Importer.Common.csproj" />
-    <ProjectReference Include="..\..\tools\Stride.Importer.FBX\Stride.Importer.FBX.vcxproj" PrivateAssets="All" />
+    <ProjectReference Include="..\..\tools\Stride.Importer.3D\Stride.Importer.3D.csproj" />
     <ProjectReference Include="..\Stride.Assets\Stride.Assets.csproj" />
   </ItemGroup>
   <ItemGroup>
@@ -32,16 +30,12 @@
     <ItemGroup>
       <!-- Needed by .NET Core runtime to be able to load C++/CLI assemblies -->
       <BuildOutputInPackage Include="$(OutputPath)ijwhost.dll" Condition="Exists('$(OutputPath)ijwhost.dll')" />
-      <BuildOutputInPackage Include="$(OutputPath)Stride.Importer.Assimp.dll" />
-      <BuildOutputInPackage Include="$(OutputPath)Stride.Importer.FBX.dll" />
-      <BuildOutputInPackage Include="$(OutputPath)Stride.Importer.FBX.ssdeps" />
       <BuildOutputInPackage Include="$(OutputPath)Stride.Importer.Common.dll" />
     </ItemGroup>
   </Target>
 
   <Target Name="_StrideIncludeNativeLibs">
     <ItemGroup>
-      <TfmSpecificPackageFile Include="$(OutputPath)runtimes\win-x64\native\libfbxsdk.dll" PackagePath="runtimes\win-x64\native\libfbxsdk.dll" />
     </ItemGroup>
   </Target>
 </Project>

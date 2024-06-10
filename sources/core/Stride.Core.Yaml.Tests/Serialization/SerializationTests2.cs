@@ -560,29 +560,12 @@ c: true
             public int Value { get; set; }
 
             /// <summary>
-            /// Gets or sets the basic list.
-            /// </summary>
-            /// <value>The basic list.</value>
-            public IList BasicList { get; set; }
-
-            /// <summary>
-            /// For this property, the deserializer is instantiating
-            /// automatically a default List&lt;string&gtl instance.
-            /// </summary>
-            public IList<string> StringList { get; set; }
-
-            /// <summary>
             /// For this property, the deserializer is using the actual
             /// value of the list stored in this instance instead of 
             /// creating a new List&lt;T&gtl instance.
             /// </summary>
             public List<string> StringListByContent { get; }
 
-            /// <summary>
-            /// Gets or sets the basic map.
-            /// </summary>
-            /// <value>The basic map.</value>
-            public IDictionary BasicMap { get; set; }
 
             /// <summary>
             /// Idem as for <see cref="StringList"/> but for dictionary.
@@ -619,18 +602,9 @@ c: true
             var text = @"!MyCustomClassWithSpecialMembers
 Name: Yes
 Value: 0
-BasicList:
-  - 1
-  - 2
-StringList:
-  - 1
-  - 2
 StringListByContent:
   - 3
   - 4
-BasicMap:
-  a: 1
-  b: 2
 StringMap:
   c: yes
   d: 3

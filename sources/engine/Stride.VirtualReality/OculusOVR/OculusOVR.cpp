@@ -463,6 +463,15 @@ extern "C" {
 	{
 		ovr_GetAudioDeviceOutGuidStr(deviceString);
 	}
+
+	DLL_EXPORT_API void xnOvrSetLeftVibration(xnOvrSession* session, float frequency, float amplitude) 
+	{
+		ovr_SetControllerVibration(session->Session, ovrControllerType_LTouch, frequency, amplitude);
+	}
+	DLL_EXPORT_API void xnOvrSetRightVibration(xnOvrSession* session, float frequency, float amplitude) 
+	{
+		ovr_SetControllerVibration(session->Session, ovrControllerType_RTouch, frequency, amplitude);
+	}
 }
 
 #else
@@ -587,6 +596,14 @@ extern "C" {
 	DLL_EXPORT_API void xnOvrSetQuadLayerParams(void* layer, float* position, float* orientation, float* size, npBool headLocked)
 	{
 	}
+
+	DLL_EXPORT_API void xnOvrSetLeftVibration(void* session, float frequency, float amplitude)
+	{
+	}
+	DLL_EXPORT_API void xnOvrSetRightVibration(void* session, float frequency, float amplitude)
+	{
+	}
+
 }
 
 #endif

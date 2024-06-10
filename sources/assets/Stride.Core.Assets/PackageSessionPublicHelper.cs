@@ -117,7 +117,7 @@ namespace Stride.Core.Assets
                 .GetField("CurrentHost", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
             if (currentHostField != null)
             {
-                currentHostField.SetValue(null, Path.Combine(new DirectoryInfo(dotNetSdkPath).Parent.Parent.FullName, RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "dotnet.exe" : "dotnet"));
+                currentHostField.SetValue(null, Path.Combine(new DirectoryInfo(dotNetSdkPath).Parent.Parent.FullName, OperatingSystem.IsWindows() ? "dotnet.exe" : "dotnet"));
             }
         }
 

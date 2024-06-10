@@ -1,11 +1,12 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using System;
-using System.Collections.Generic;
+
 using Stride.Core.Assets.Editor.Quantum.NodePresenters;
 using Stride.Core;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels;
 using Stride.Engine;
+using Stride.Core.Assets.Editor.Services;
+using Stride.Core.Assets.Editor.ViewModel;
 
 namespace Stride.Assets.Presentation.NodePresenters.Updaters
 {
@@ -13,25 +14,28 @@ namespace Stride.Assets.Presentation.NodePresenters.Updaters
     {
         protected override void UpdateNode(IAssetNodePresenter node)
         {
-            var entity = node.Root.Value as Entity;
-            if (node.Asset?.Editor == null || entity == null)
+            if (node.Root.Value is not Entity entity || node.Asset is null || !TryGetEditor(node.Asset, out var editor))
                 return;
 
             var partId = new AbsoluteId(node.Asset.Id, entity.Id);
-            var viewModel = (EntityHierarchyElementViewModel)((EntityHierarchyEditorViewModel)node.Asset.Editor).FindPartViewModel(partId);
+            var viewModel = editor.FindPartViewModel(partId) as EntityHierarchyElementViewModel;
             viewModel?.UpdateNodePresenter(node);
         }
 
         protected override void FinalizeTree(IAssetNodePresenter root)
         {
-            var entity = root.Value as Entity;
-            if (root.Asset?.Editor == null || entity == null)
+            if (root.Value is not Entity entity || root.Asset is null || !TryGetEditor(root.Asset, out var editor))
                 return;
 
             var partId = new AbsoluteId(root.Asset.Id, entity.Id);
-            var viewModel = (EntityHierarchyElementViewModel)((EntityHierarchyEditorViewModel)root.Asset.Editor).FindPartViewModel(partId);
+            var viewModel = editor.FindPartViewModel(partId) as EntityHierarchyElementViewModel;
             viewModel?.FinalizeNodePresenterTree(root);
             base.FinalizeTree(root);
+        }
+
+        private static bool TryGetEditor(AssetViewModel asset, out EntityHierarchyEditorViewModel editor)
+        {
+            return asset.ServiceProvider.Get<IAssetEditorsManager>().TryGetAssetEditor(asset, out editor);
         }
     }
 }

@@ -9,27 +9,27 @@ using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Annotations;
 using Stride.Assets.Presentation.ViewModel;
-using Stride.Assets.Scripts;
+using Stride.Core.Assets.Editor.Annotations;
 
 namespace Stride.Assets.Presentation.AssetEditors.ScriptEditor
 {
     /// <summary>
     /// View model for the script editor (using Roslyn & AvalonEdit and RoslynPad).
     /// </summary>
-    [AssetEditorViewModel(typeof(ScriptSourceFileAsset), typeof(ScriptEditorView))]
+    [AssetEditorViewModel<ScriptSourceFileAssetViewModel>]
     public class ScriptEditorViewModel : AssetEditorViewModel
     {
-        public ScriptEditorViewModel([NotNull] ScriptSourceFileAssetViewModel script, AvalonEditTextContainer sourceTextContainer)
+        public ScriptEditorViewModel([NotNull] ScriptSourceFileAssetViewModel script)
             : base(script)
         {
             Code = StrideAssetsViewModel.Instance.Code;
-            SourceTextContainer = sourceTextContainer;
+            SourceTextContainer = script.TextContainer;
         }
 
         /// <summary>
         /// The asset being edited.
         /// </summary>
-        public new ScriptSourceFileAssetViewModel Asset => (ScriptSourceFileAssetViewModel)base.Asset;
+        public override ScriptSourceFileAssetViewModel Asset => (ScriptSourceFileAssetViewModel)base.Asset;
 
         /// <summary>
         /// The code view model that manages roslyn states.
@@ -95,7 +95,7 @@ namespace Stride.Assets.Presentation.AssetEditors.ScriptEditor
                     DocumentClosed?.Invoke(this, EventArgs.Empty);
 
                     // Document is closing, we assume we have been asked before to save
-                    ServiceProvider.Get<IEditorDialogService>().AssetEditorsManager.CloseAssetEditorWindow(Asset, false);
+                    ServiceProvider.Get<IAssetEditorsManager>().CloseAssetEditorWindow(Asset, false);
                 });
             }
         }

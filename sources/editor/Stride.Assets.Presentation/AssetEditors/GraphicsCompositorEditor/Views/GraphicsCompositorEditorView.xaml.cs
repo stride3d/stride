@@ -1,21 +1,21 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Threading.Tasks;
-using System.Windows;
 using System.Windows.Input;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Assets.Presentation.AssetEditors.GraphicsCompositorEditor.ViewModels;
-using Stride.Assets.Presentation.ViewModel;
+using Stride.Core.Assets.Editor.Annotations;
 
 namespace Stride.Assets.Presentation.AssetEditors.GraphicsCompositorEditor.Views
 {
     /// <summary>
     /// Interaction logic for GraphicsCompositorEditorView.xaml
     /// </summary>
+    [AssetEditorView<GraphicsCompositorEditorViewModel>]
     public partial class GraphicsCompositorEditorView : IEditorView
     {
-        private readonly TaskCompletionSource<bool> editorInitializationNotifier = new TaskCompletionSource<bool>();
+        private readonly TaskCompletionSource editorInitializationNotifier = new();
 
         public GraphicsCompositorEditorView()
         {
@@ -28,21 +28,23 @@ namespace Stride.Assets.Presentation.AssetEditors.GraphicsCompositorEditor.Views
         public Task EditorInitialization => editorInitializationNotifier.Task;
 
         public GraphicsCompositorGraph Graph { get; set; }
+
         /// <inheritdoc/>
-        public async Task<IAssetEditorViewModel> InitializeEditor(AssetViewModel asset)
+        public async Task<bool> InitializeEditor(IAssetEditorViewModel editor)
         {
-            var graphicsCompositor = (GraphicsCompositorViewModel)asset;
+            var graphicsEditor = (GraphicsCompositorEditorViewModel)editor;
 
-            var editor = new GraphicsCompositorEditorViewModel(graphicsCompositor);
-            Graph = new GraphicsCompositorGraph(editor.Blocks, editor.SelectedSharedRenderers, editor.SelectedRendererLinks);
-            // Don't set the actual Editor property until the editor object is fully initialized - we don't want data bindings to access uninitialized properties
-            var result = await editor.Initialize();
-            editorInitializationNotifier.SetResult(result);
-            if (result)
-                return editor;
+            Graph = new GraphicsCompositorGraph(graphicsEditor.Blocks, graphicsEditor.SelectedSharedRenderers, graphicsEditor.SelectedRendererLinks);
 
-            editor.Destroy();
-            return null;
+            if (!await graphicsEditor.Initialize())
+            {
+                editor.Destroy();
+                editorInitializationNotifier.SetResult();
+                return false;
+            }
+
+            editorInitializationNotifier.SetResult();
+            return true;
         }
 
         private void ZoomControl_MouseUp(object sender, MouseButtonEventArgs e)

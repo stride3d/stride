@@ -30,7 +30,6 @@ namespace Stride.Core.Assets.Editor.ViewModel
         protected EditorViewModel(IViewModelServiceProvider serviceProvider, MostRecentlyUsedFileCollection mru, string editorName, string editorVersionMajor)
             : base(serviceProvider)
         {
-            AssetsPlugin.RegisterPlugin(typeof(AssetsEditorPlugin));
             serviceProvider.Get<IEditorDialogService>();
 
             ClearMRUCommand = new AnonymousCommand(serviceProvider, () => ClearRecentFiles());
