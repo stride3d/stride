@@ -40,5 +40,9 @@
       <BuildOutputInPackage Include="$(OutputPath)Microsoft.Extensions.Primitives.dll" />
       <BuildOutputInPackage Include="$(OutputPath)Stride.NuGetResolver*.dll" />
     </ItemGroup>
+    <ItemGroup Condition=" '$(TargetFramework)' == '$(StrideXplatEditorTargetFramework)' ">
+      <!-- Needed by NuGet.Packaging in cross platform builds (see https://github.com/stride3d/stride/issues/2232) -->
+      <BuildOutputInPackage Include="$(OutputPath)System.Security.Cryptography.Pkcs.dll" />
+    </ItemGroup>
   </Target>
 </Project>
