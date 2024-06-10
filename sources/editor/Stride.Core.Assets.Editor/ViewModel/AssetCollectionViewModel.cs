@@ -190,7 +190,6 @@ namespace Stride.Core.Assets.Editor.ViewModel
         private readonly List<AssetFilterViewModel> typeFilters = new List<AssetFilterViewModel>();
         private readonly Dictionary<FilterCategory, bool> availableFilterCategories;
         private readonly ObservableList<AssetFilterViewModel> availableAssetFilters = new ObservableList<AssetFilterViewModel>();
-        //potential load point
         private readonly ObservableSet<AssetFilterViewModel> currentAssetFilters = new ObservableSet<AssetFilterViewModel>();
         private string assetFilterPattern;
         private Func<AssetViewModel, bool> customFilter;
