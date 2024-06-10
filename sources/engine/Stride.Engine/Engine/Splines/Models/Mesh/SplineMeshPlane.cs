@@ -56,8 +56,8 @@ namespace Stride.Engine.Splines.Models.Mesh
                 verticesIndex += 2;
 
                 // Create indices
-                var indiceIndex = i * 6;
-                SetIndices(indices, triangleIndex, indiceIndex);
+                var indicesIndex = i * 6;
+                SetIndices(indices, triangleIndex, indicesIndex);
                 triangleIndex += 2;
 
                 // If this was the last loop, we do 1 additional check for closing if spline is Loop

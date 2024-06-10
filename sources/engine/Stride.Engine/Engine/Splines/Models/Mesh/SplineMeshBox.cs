@@ -25,15 +25,16 @@ namespace Stride.Engine.Splines.Models.Mesh
             var splinePointCount = BezierPoints.Length;
             var vertexCount = splinePointCount * 4 * 2; // 4 sides * 2 per corner
             var indicesCount = (splinePointCount - 1) * 24;
+            
             if (Loop)
             {
                 vertexCount += 4;
                 indicesCount += 24;
             }
-            else if (CloseEnds)
+            else if (CloseEnds && !Loop)
             {
-                vertexCount += 8;
-                indicesCount += 12;
+                vertexCount += 8; // Additional vertices for the start and end caps
+                indicesCount += 12; // Additional triangles for the caps
             }
 
             vertices = new VertexPositionNormalTexture[vertexCount];

@@ -31,5 +31,12 @@ namespace Stride.Engine.Splines.Models.Mesh
         {
             vertices[verticesIndex] = new VertexPositionNormalTexture(position, normal, texture);
         }
+        
+        protected Vector3 CalculateRadialNormal(Vector3 vertexPosition, Vector3 centerPosition)
+        {
+            Vector3 radialVector = vertexPosition - centerPosition;
+            radialVector.Normalize();
+            return radialVector;
+        }
     }
 }
