@@ -36,12 +36,10 @@ public class STRDIAG001InvalidDataContract : DiagnosticAnalyzer
     {
         var dataContractAttribute = WellKnownReferences.DataContractAttribute(context.Compilation);
 
-
         if (dataContractAttribute is null)
             return;
 
         context.RegisterSymbolAction(symbolContext => AnalyzeSymbol(symbolContext, dataContractAttribute), SymbolKind.NamedType);
-        
     }
 
     private static void AnalyzeSymbol(SymbolAnalysisContext context, INamedTypeSymbol dataContractAttribute)

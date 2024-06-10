@@ -268,7 +268,7 @@ namespace Stride.Core.Assets.Quantum
             {
                 var visitor = new AssetGraphVisitorBase(Definition);
                 // If we're in scenario where rootNode is an object node and index is not empty, we might already have the node in the dictionary so let's check this in Visiting
-                visitor.Visiting += (node, path) => { if (!nodesToReset.ContainsKey(node)) nodesToReset.Add(node, NodeIndex.Empty); };
+                visitor.Visiting += (node, path) => { nodesToReset.TryAdd(node, NodeIndex.Empty); };
                 visitor.Visit(rootNode);
             }
             // Then we reconcile (recursively) with the base.

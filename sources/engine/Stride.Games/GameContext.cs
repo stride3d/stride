@@ -78,7 +78,7 @@ namespace Stride.Games
         internal PixelFormat RequestedDepthStencilFormat;
 
         /// <summary>
-        /// THe requested graphics profiles.
+        /// The requested graphics profiles.
         /// </summary>
         internal GraphicsProfile[] RequestedGraphicsProfile;
 

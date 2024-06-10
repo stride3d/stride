@@ -28,7 +28,7 @@ public class STRDIAG001_Test
         string sourceCode = "using Stride.Core; [DataContract] file class FileScopeClass { }";
         TestHelper.ExpectDiagnosticsError(sourceCode, STRDIAG001InvalidDataContract.DiagnosticId);
     }
-    [Fact(Skip = "file scoped classes won't compile")]
+    [Fact]
     public void No_Error_On_file_scope_Class_without_DataContract()
     {
         string sourceCode = "using Stride.Core; file class FileScopeClass { }";

@@ -136,7 +136,7 @@ namespace Stride.Rendering
             {
                 if (value == null)
                 {
-                    throw new ArgumentNullException("value");
+                    throw new ArgumentNullException("value", $"{nameof(currentRenderers)} can not be null");
                 }
                 currentRenderers[index] = value;
             }

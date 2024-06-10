@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2015 SharpYaml - Alexandre Mutel
+// Copyright (c) 2015 SharpYaml - Alexandre Mutel
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -347,9 +347,7 @@ namespace Stride.Core.Yaml.Schemas
             if (type == null)
                 throw new ArgumentNullException("type");
 
-            if (!mapTypeToShortTag.ContainsKey(type))
-                mapTypeToShortTag.Add(type, tag);
-
+            mapTypeToShortTag.TryAdd(type, tag);
             if (isDefault)
             {
                 mapShortTagToType[tag] = type;

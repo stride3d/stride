@@ -232,12 +232,15 @@ namespace Stride.Assets.Presentation.AssetEditors
 
                 var needProjectReload = string.Equals(trackedAssembly.Project.FilePath, changedFile, StringComparison.OrdinalIgnoreCase);
 
+                var directoryName = Path.GetDirectoryName(trackedAssembly.Project.FilePath) + Path.DirectorySeparatorChar;
+                var changedFileDirectoryName = Path.GetDirectoryName(changedFile) + Path.DirectorySeparatorChar;
+
                 // Also check for .cs file changes (DefaultItems auto import *.cs, with some excludes such as obj subfolder)
                 // TODO: Check actual unevaluated .csproj to get the auto includes/excludes?
                 if (needProjectReload == false
                     && ((e.ChangeType == FileEventChangeType.Deleted || e.ChangeType == FileEventChangeType.Renamed || e.ChangeType == FileEventChangeType.Created)
                     && Path.GetExtension(changedFile)?.ToLowerInvariant() == ".cs"
-                    && changedFile.StartsWith(Path.GetDirectoryName(trackedAssembly.Project.FilePath), StringComparison.OrdinalIgnoreCase)))
+                    && changedFileDirectoryName.StartsWith(directoryName, StringComparison.OrdinalIgnoreCase)))
                 {
                     needProjectReload = true;
                 }
@@ -379,7 +382,7 @@ namespace Stride.Assets.Presentation.AssetEditors
                 var host = await RoslynHost;
                 msbuildWorkspace = MSBuildWorkspace.Create(ImmutableDictionary<string, string>.Empty, host.HostServices);
             }
-            await msbuildWorkspace.OpenSolutionAsync(session.SolutionPath.ToWindowsPath());
+            await msbuildWorkspace.OpenSolutionAsync(session.SolutionPath.ToOSPath());
 
             // Try up to 10 times (1 second)
             const int retryCount = 10;
@@ -388,7 +391,7 @@ namespace Stride.Assets.Presentation.AssetEditors
                 try
                 {
 
-                    var project = msbuildWorkspace.CurrentSolution.Projects.FirstOrDefault(x => x.FilePath == projectPath.ToWindowsPath());
+                    var project = msbuildWorkspace.CurrentSolution.Projects.FirstOrDefault(x => x.FilePath == projectPath.ToOSPath());
                     if (msbuildWorkspace.Diagnostics.Count > 0)
                     {
                         // There was an issue compiling the project

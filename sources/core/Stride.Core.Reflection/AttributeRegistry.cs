@@ -15,12 +15,12 @@ namespace Stride.Core.Reflection
     /// </summary>
     public class AttributeRegistry : IAttributeRegistry
     {
-        private readonly object lockObject = new object();
-        private readonly Dictionary<MemberInfoKey, List<Attribute>> cachedAttributes = new Dictionary<MemberInfoKey, List<Attribute>>();
-        private readonly Dictionary<MemberInfo, List<Attribute>> registeredAttributes = new Dictionary<MemberInfo, List<Attribute>>();
+        private readonly object lockObject = new();
+        private readonly Dictionary<MemberInfoKey, List<Attribute>> cachedAttributes = [];
+        private readonly Dictionary<MemberInfo, List<Attribute>> registeredAttributes = [];
 
         // TODO: move this in a different location
-        public Action<ObjectDescriptor, List<IMemberDescriptor>> PrepareMembersCallback { get; set; }
+        public Action<ObjectDescriptor, List<IMemberDescriptor>>? PrepareMembersCallback { get; set; }
 
         /// <summary>
         /// Gets the attributes associated with the specified member.
@@ -36,9 +36,9 @@ namespace Stride.Core.Reflection
             List<Attribute> attributes;
             lock (lockObject)
             {
-                if (cachedAttributes.TryGetValue(key, out attributes))
+                if (cachedAttributes.TryGetValue(key, out var cacheAttributes))
                 {
-                    return attributes;
+                    return cacheAttributes;
                 }
 
                 // Else retrieve all default attributes
@@ -46,8 +46,7 @@ namespace Stride.Core.Reflection
                 IEnumerable<Attribute> attributesToCache = defaultAttributes;
 
                 // And add registered attributes
-                List<Attribute> registered;
-                if (registeredAttributes.TryGetValue(memberInfo, out registered))
+                if (registeredAttributes.TryGetValue(memberInfo, out var registered))
                 {
                     // Remove "real" attributes overridden by manually registered attributes
                     attributesToCache = registered.Concat(defaultAttributes.Where(x => GetUsage(x).AllowMultiple || registered.All(y => y.GetType() != x.GetType())));
@@ -71,10 +70,9 @@ namespace Stride.Core.Reflection
         {
             lock (lockObject)
             {
-                List<Attribute> attributes;
-                if (!registeredAttributes.TryGetValue(memberInfo, out attributes))
+                if (!registeredAttributes.TryGetValue(memberInfo, out var attributes))
                 {
-                    attributes = new List<Attribute>();
+                    attributes = [];
                     registeredAttributes.Add(memberInfo, attributes);
                 }
                 // Insert it in the first position to ensure it will override same attributes from base classes when using First
@@ -85,20 +83,20 @@ namespace Stride.Core.Reflection
             }
         }
 
-        private static AttributeUsageAttribute GetUsage(Attribute attribute)
+        private static AttributeUsageAttribute? GetUsage(Attribute attribute)
         {
             return Attribute.GetCustomAttribute(attribute.GetType(), typeof(AttributeUsageAttribute)) as AttributeUsageAttribute;
         }
 
-        private struct MemberInfoKey : IEquatable<MemberInfoKey>
+        private readonly struct MemberInfoKey : IEquatable<MemberInfoKey>
         {
             private readonly MemberInfo memberInfo;
 
             private readonly bool inherit;
 
-            public MemberInfoKey([NotNull] MemberInfo memberInfo, bool inherit)
+            public MemberInfoKey(MemberInfo memberInfo, bool inherit)
             {
-                if (memberInfo == null) throw new ArgumentNullException(nameof(memberInfo));
+                ArgumentNullException.ThrowIfNull(memberInfo);
                 this.memberInfo = memberInfo;
                 this.inherit = inherit;
             }
@@ -108,10 +106,10 @@ namespace Stride.Core.Reflection
                 return memberInfo.Equals(other.memberInfo) && inherit.Equals(other.inherit);
             }
 
-            public override bool Equals(object obj)
+            public override bool Equals(object? obj)
             {
                 if (ReferenceEquals(null, obj)) return false;
-                return obj is MemberInfoKey && Equals((MemberInfoKey) obj);
+                return obj is MemberInfoKey key && Equals(key);
             }
 
             public override int GetHashCode()
