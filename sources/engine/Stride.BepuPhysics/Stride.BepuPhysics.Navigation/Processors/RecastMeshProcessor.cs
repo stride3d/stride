@@ -24,13 +24,12 @@ using Stride.Engine.Design;
 namespace Stride.BepuPhysics.Navigation.Processors;
 public class RecastMeshProcessor : GameSystemBase
 {
-
     public TimeSpan LastShapeCacheTime { get; private set; }
 
     public const int MaxPolys = 256;
     public const int MaxSmooth = 2048;
 
-    private readonly RcVec3f polyPickExt = new(2, 4, 2);
+    private readonly RcVec3f _polyPickExt = new(2, 4, 2);
 
     private readonly Stopwatch _stopwatch = new();
     private readonly SceneSystem _sceneSystem;
@@ -110,27 +109,27 @@ public class RecastMeshProcessor : GameSystemBase
 
         var settingsCopy = new RcNavMeshBuildSettings
         {
-            cellSize = _navSettings.BuildSettings.cellSize,
-            cellHeight = _navSettings.BuildSettings.cellHeight,
-            agentHeight = _navSettings.BuildSettings.agentHeight,
-            agentRadius = _navSettings.BuildSettings.agentRadius,
-            agentMaxClimb = _navSettings.BuildSettings.agentMaxClimb,
-            agentMaxSlope = _navSettings.BuildSettings.agentMaxSlope,
-            agentMaxAcceleration = _navSettings.BuildSettings.agentMaxAcceleration,
+            cellSize = _navSettings.BuildSettings.CellSize,
+            cellHeight = _navSettings.BuildSettings.CellHeight,
+            agentHeight = _navSettings.BuildSettings.AgentHeight,
+            agentRadius = _navSettings.BuildSettings.AgentRadius,
+            agentMaxClimb = _navSettings.BuildSettings.AgentMaxClimb,
+            agentMaxSlope = _navSettings.BuildSettings.AgentMaxSlope,
+            agentMaxAcceleration = _navSettings.BuildSettings.AgentMaxAcceleration,
             //agentMaxSpeed = _navSettings.BuildSettings.agentMaxSpeed,
-            minRegionSize = _navSettings.BuildSettings.minRegionSize,
-            mergedRegionSize = _navSettings.BuildSettings.mergedRegionSize,
-            partitioning = _navSettings.BuildSettings.partitioning,
-            filterLowHangingObstacles = _navSettings.BuildSettings.filterLowHangingObstacles,
-            filterLedgeSpans = _navSettings.BuildSettings.filterLedgeSpans,
-            filterWalkableLowHeightSpans = _navSettings.BuildSettings.filterWalkableLowHeightSpans,
-            edgeMaxLen = _navSettings.BuildSettings.edgeMaxLen,
-            edgeMaxError = _navSettings.BuildSettings.edgeMaxError,
-            vertsPerPoly = _navSettings.BuildSettings.vertsPerPoly,
-            detailSampleDist = _navSettings.BuildSettings.detailSampleDist,
-            detailSampleMaxError = _navSettings.BuildSettings.detailSampleMaxError,
-            tiled = _navSettings.BuildSettings.tiled,
-            tileSize = _navSettings.BuildSettings.tileSize,
+            minRegionSize = _navSettings.BuildSettings.MinRegionSize,
+            mergedRegionSize = _navSettings.BuildSettings.MergedRegionSize,
+            partitioning = _navSettings.BuildSettings.Partitioning,
+            filterLowHangingObstacles = _navSettings.BuildSettings.FilterLowHangingObstacles,
+            filterLedgeSpans = _navSettings.BuildSettings.FilterLedgeSpans,
+            filterWalkableLowHeightSpans = _navSettings.BuildSettings.FilterWalkableLowHeightSpans,
+            edgeMaxLen = _navSettings.BuildSettings.EdgeMaxLen,
+            edgeMaxError = _navSettings.BuildSettings.EdgeMaxError,
+            vertsPerPoly = _navSettings.BuildSettings.VertsPerPoly,
+            detailSampleDist = _navSettings.BuildSettings.DetailSampleDist,
+            detailSampleMaxError = _navSettings.BuildSettings.DetailSampleMaxError,
+            tiled = _navSettings.BuildSettings.Tiled,
+            tileSize = _navSettings.BuildSettings.TileSize,
         };
         var token = _rebuildingTask.Token;
         var task = Task.Run(() => _navMesh = CreateNavMesh(settingsCopy, asyncInput, _navSettings.UsableThreadCount, token), token);
@@ -282,9 +281,9 @@ public class RecastMeshProcessor : GameSystemBase
         var queryFilter = new DtQueryDefaultFilter();
         _dtNavMeshQuery = new DtNavMeshQuery(_navMesh);
 
-        _dtNavMeshQuery.FindNearestPoly(start.ToDotRecastVector(), polyPickExt, queryFilter, out var startRef, out var _, out var _);
+        _dtNavMeshQuery.FindNearestPoly(start.ToDotRecastVector(), _polyPickExt, queryFilter, out var startRef, out var _, out var _);
 
-        _dtNavMeshQuery.FindNearestPoly(end.ToDotRecastVector(), polyPickExt, queryFilter, out var endRef, out var _, out var _);
+        _dtNavMeshQuery.FindNearestPoly(end.ToDotRecastVector(), _polyPickExt, queryFilter, out var endRef, out var _, out var _);
         // find the nearest point on the navmesh to the start and end points
         var result = FindFollowPath(_dtNavMeshQuery, startRef, endRef, start.ToDotRecastVector(), end.ToDotRecastVector(), queryFilter, true, ref polys, ref smoothPath);
 

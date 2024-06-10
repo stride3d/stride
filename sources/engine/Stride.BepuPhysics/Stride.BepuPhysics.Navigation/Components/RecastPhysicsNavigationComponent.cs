@@ -16,41 +16,44 @@ namespace Stride.BepuPhysics.Navigation.Components;
 [DefaultEntityComponentProcessor(typeof(RecastPhysicsNavigationProcessor), ExecutionMode = ExecutionMode.Runtime)]
 public class RecastPhysicsNavigationComponent : EntityComponent
 {
+    public float Speed { get; set; } = 5.0f;
 
-	public float Speed { get; set; } = 5.0f;
-	public CharacterComponent PhysicsComponent { get; set; }
+    public CharacterComponent? PhysicsComponent { get; set; }
 
-	/// <summary>
-	/// True if a new path needs to be calculated, can be manually changed to force a new path to be calculated.
-	/// </summary>
-	[DataMemberIgnore]
-	public bool ShouldMove
-	{
-		get => _shouldMove;
-		set
-		{
-			_shouldMove = value;
-			if(!value)
-			{
-				PhysicsComponent?.Move(Vector3.Zero);
-			}
-		}
-	}
-	private bool _shouldMove;
+    /// <summary>
+    /// True if a new path needs to be calculated, can be manually changed to force a new path to be calculated.
+    /// </summary>
+    [DataMemberIgnore]
+    public bool ShouldMove
+    {
+        get => _shouldMove;
+        set
+        {
+            _shouldMove = value;
+            if(!value)
+            {
+                PhysicsComponent?.Move(Vector3.Zero);
+            }
+        }
+    }
 
-	[DataMemberIgnore]
-	public bool SetNewPath { get; set; } = true;
-	[DataMemberIgnore]
-	public bool InSetPathQueue { get; set; }
+    private bool _shouldMove;
 
-	/// <summary>
-	/// The target position for the agent to move to. will trigger IsDirty to be set to true.
-	/// </summary>
-	[DataMemberIgnore]
-	public Vector3 Target;
+    [DataMemberIgnore]
+    public bool SetNewPath { get; set; } = true;
 
-	[DataMemberIgnore]
-	public List<Vector3> Path = new();
-	[DataMemberIgnore]
-	public List<long> Polys = new();
+    [DataMemberIgnore]
+    public bool InSetPathQueue { get; set; }
+
+    /// <summary>
+    /// The target position for the agent to move to. will trigger IsDirty to be set to true.
+    /// </summary>
+    [DataMemberIgnore]
+    public Vector3 Target;
+
+    [DataMemberIgnore]
+    public List<Vector3> Path = new();
+
+    [DataMemberIgnore]
+    public List<long> Polys = new();
 }

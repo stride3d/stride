@@ -14,8 +14,8 @@ internal class StrideGeomProvider : IInputGeomProvider
     /// <summary> Object does not expect this array to mutate </summary>
     public readonly int[] Faces;
 
-    private readonly RcVec3f _bmin;
-    private readonly RcVec3f _bmax;
+    private readonly RcVec3f _bMin;
+    private readonly RcVec3f _bMax;
 
     private readonly List<RcConvexVolume> _convexVolumes = new List<RcConvexVolume>();
     private readonly List<RcOffMeshConnection> _offMeshConnections = new List<RcOffMeshConnection>();
@@ -28,12 +28,12 @@ internal class StrideGeomProvider : IInputGeomProvider
     {
         Vertices = vertices;
         Faces = faces;
-        _bmin = RcVecUtils.Create(Vertices);
-        _bmax = RcVecUtils.Create(Vertices);
+        _bMin = RcVecUtils.Create(Vertices);
+        _bMax = RcVecUtils.Create(Vertices);
         for (int i = 1; i < vertices.Length / 3; i++)
         {
-            _bmin = RcVecUtils.Min(_bmin, Vertices, i * 3);
-            _bmax = RcVecUtils.Max(_bmax, Vertices, i * 3);
+            _bMin = RcVecUtils.Min(_bMin, Vertices, i * 3);
+            _bMax = RcVecUtils.Max(_bMax, Vertices, i * 3);
         }
 
         _mesh = new RcTriMesh(Vertices, Faces);
@@ -46,12 +46,12 @@ internal class StrideGeomProvider : IInputGeomProvider
 
     public RcVec3f GetMeshBoundsMin()
     {
-        return _bmin;
+        return _bMin;
     }
 
     public RcVec3f GetMeshBoundsMax()
     {
-        return _bmax;
+        return _bMax;
     }
 
     public IList<RcConvexVolume> ConvexVolumes()
@@ -87,7 +87,7 @@ internal class StrideGeomProvider : IInputGeomProvider
     {
         tmin = 1.0f;
 
-        if (!RcIntersections.IsectSegAABB(src, dst, _bmin, _bmax, out var btmin, out var btmax)) // This ray-box intersection could be accelerated through SIMD
+        if (!RcIntersections.IsectSegAABB(src, dst, _bMin, _bMax, out var btmin, out var btmax)) // This ray-box intersection could be accelerated through SIMD
         {
             return false; // Exit if this ray doesn't intersect with the bounding box
         }

@@ -14,27 +14,29 @@ namespace Stride.BepuPhysics.Navigation.Components;
 [DefaultEntityComponentProcessor(typeof(RecastNavigationProcessor), ExecutionMode = ExecutionMode.Runtime)]
 public class RecastNavigationComponent : EntityComponent
 {
+    public float Speed { get; set; } = 5.0f;
 
-	public float Speed { get; set; } = 5.0f;
+    /// <summary>
+    /// True if a new path needs to be calculated, can be manually changed to force a new path to be calculated.
+    /// </summary>
+    [DataMemberIgnore]
+    public bool ShouldMove { get; set; } = true;
 
-	/// <summary>
-	/// True if a new path needs to be calculated, can be manually changed to force a new path to be calculated.
-	/// </summary>
-	[DataMemberIgnore]
-	public bool ShouldMove { get; set; } = true;
-	[DataMemberIgnore]
-	public bool SetNewPath { get; set; } = true;
-	[DataMemberIgnore]
-	public bool InSetPathQueue { get; set; }
+    [DataMemberIgnore]
+    public bool SetNewPath { get; set; } = true;
 
-	/// <summary>
-	/// The target position for the agent to move to. will trigger IsDirty to be set to true.
-	/// </summary>
-	[DataMemberIgnore]
-	public Vector3 Target;
+    [DataMemberIgnore]
+    public bool InSetPathQueue { get; set; }
 
-	[DataMemberIgnore]
-	public List<Vector3> Path = new();
-	[DataMemberIgnore]
-	public List<long> Polys = new();
+    /// <summary>
+    /// The target position for the agent to move to. will trigger IsDirty to be set to true.
+    /// </summary>
+    [DataMemberIgnore]
+    public Vector3 Target;
+
+    [DataMemberIgnore]
+    public List<Vector3> Path = new();
+
+    [DataMemberIgnore]
+    public List<long> Polys = new();
 }

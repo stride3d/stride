@@ -8,57 +8,58 @@ namespace Stride.BepuPhysics.Navigation.Definitions;
 [DataContract("DotRecastBuildSettings")]
 public class BuildSettings
 {
-    public float cellSize = 0.3f;
+    public float CellSize = 0.3f;
 
-    public float cellHeight = 0.2f;
+    public float CellHeight = 0.2f;
 
-    public float agentHeight = 2f;
+    public float AgentHeight = 2f;
 
-    public float agentRadius = 0.6f;
+    public float AgentRadius = 0.6f;
 
-    public float agentMaxClimb = 0.9f;
+    public float AgentMaxClimb = 0.9f;
 
-    public float agentMaxSlope = 45f;
+    public float AgentMaxSlope = 45f;
 
-    public float agentMaxAcceleration = 8f;
+    public float AgentMaxAcceleration = 8f;
 
-    //public float agentMaxSpeed = 3.5f;
+    //public float AgentMaxSpeed = 3.5f;
 
-    public int minRegionSize = 8;
+    public int MinRegionSize = 8;
 
-    public int mergedRegionSize = 20;
+    public int MergedRegionSize = 20;
 
     public RcPartition PartitionType
     {
         get
         {
-            return RcPartitionType.OfValue(partitioning);
+            return RcPartitionType.OfValue(Partitioning);
         }
         set
         {
-            partitioning = (int)value;
+            Partitioning = (int)value;
         }
     }
+
     [DataMemberIgnore]
-    public int partitioning = RcPartitionType.WATERSHED.Value;
+    public int Partitioning = RcPartitionType.WATERSHED.Value;
 
-    public bool filterLowHangingObstacles = true;
+    public bool FilterLowHangingObstacles = true;
 
-    public bool filterLedgeSpans = true;
+    public bool FilterLedgeSpans = true;
 
-    public bool filterWalkableLowHeightSpans = true;
+    public bool FilterWalkableLowHeightSpans = true;
 
-    public float edgeMaxLen = 12f;
+    public float EdgeMaxLen = 12f;
 
-    public float edgeMaxError = 1.3f;
+    public float EdgeMaxError = 1.3f;
 
-    public int vertsPerPoly = 6;
+    public int VertsPerPoly = 6;
 
-    public float detailSampleDist = 6f;
+    public float DetailSampleDist = 6f;
 
-    public float detailSampleMaxError = 1f;
+    public float DetailSampleMaxError = 1f;
 
-    public bool tiled;
+    public bool Tiled;
 
-    public int tileSize = 32;
+    public int TileSize = 32;
 }
