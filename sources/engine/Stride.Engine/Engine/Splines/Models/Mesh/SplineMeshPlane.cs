@@ -48,22 +48,12 @@ namespace Stride.Engine.Splines.Models.Mesh
                     vertices[verticesIndex + 1] = new VertexPositionNormalTexture(startPoint.Position + right, normal, new Vector2(1, 0));
                     verticesIndex += 2;
                 }
-                
-                if (i == splinePointCount - 2 && Loop) //If Loop is enabled, then the target node is the first node in the entire spline
-                {
-                    splineDistance += Vector3.Distance(startPoint.Position, BezierPoints[0].Position);
-                    textureY = splineDistance / UvScale.Y;
-                    vertices[verticesIndex] = new VertexPositionNormalTexture(vertices[0].Position, normal, new Vector2(0, textureY));
-                    vertices[verticesIndex + 1] = new VertexPositionNormalTexture(vertices[1].Position, normal, new Vector2(1, textureY));
-                }
-                else
-                {
-                    splineDistance += targetPoint.DistanceToPreviousPoint;
-                    textureY = splineDistance / UvScale.Y;
-                    vertices[verticesIndex] = new VertexPositionNormalTexture(targetPoint.Position + left, normal, new Vector2(0, textureY));
-                    vertices[verticesIndex + 1] = new VertexPositionNormalTexture(targetPoint.Position + right, normal, new Vector2(1, textureY));
-                    verticesIndex += 2;
-                }
+
+                splineDistance += targetPoint.DistanceToPreviousPoint;
+                textureY = splineDistance / UvScale.Y;
+                vertices[verticesIndex] = new VertexPositionNormalTexture(targetPoint.Position + left, normal, new Vector2(0, textureY));
+                vertices[verticesIndex + 1] = new VertexPositionNormalTexture(targetPoint.Position + right, normal, new Vector2(1, textureY));
+                verticesIndex += 2;
 
                 // Create indices
                 var indiceIndex = i * 6;
@@ -73,7 +63,15 @@ namespace Stride.Engine.Splines.Models.Mesh
                 // If this was the last loop, we do 1 additional check for closing if spline is Loop
                 if (i == splinePointCount - 2 && Loop)
                 {
-                    SetIndices(indices, triangleIndex, indiceIndex + 6);
+                    // Create vertices for closing the loop
+                    splineDistance += Vector3.Distance(targetPoint.Position, BezierPoints[0].Position);
+                    textureY = splineDistance / UvScale.Y;
+                    vertices[verticesIndex] = new VertexPositionNormalTexture(BezierPoints[0].Position + left, normal, new Vector2(0, textureY));
+                    vertices[verticesIndex + 1] = new VertexPositionNormalTexture(BezierPoints[0].Position + right, normal, new Vector2(1, textureY));
+
+                    // Create indices for closing the loop
+                    var loopIndicesIndex = (splinePointCount - 1) * 6;
+                    SetIndices(indices, triangleIndex, loopIndicesIndex);
                 }
             }
 
