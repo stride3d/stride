@@ -106,10 +106,7 @@
     <None Include="Templates\Core\**" />
     <None Include="Templates\Assets\**" />
   </ItemGroup>
-  <ItemGroup>
-    <None Remove="Resources\Gizmos\SplineGizmo.png" />
-  </ItemGroup>
-  
+    
   <Import Project="$(StrideSdkTargets)" />
   <PropertyGroup>
     <TargetsForTfmSpecificBuildOutput>_StrideIncludeExtraAssemblies;$(TargetsForTfmSpecificBuildOutput)</TargetsForTfmSpecificBuildOutput>
