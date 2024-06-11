@@ -30,7 +30,7 @@ public sealed class LinearAxisMotorConstraintComponent : TwoBodyConstraintCompon
         set
         {
             BepuConstraint.LocalOffsetA = value.ToNumeric();
-            ConstraintData?.TryUpdateDescription();
+            TryUpdateDescription();
         }
     }
 
@@ -43,7 +43,7 @@ public sealed class LinearAxisMotorConstraintComponent : TwoBodyConstraintCompon
         set
         {
             BepuConstraint.LocalOffsetB = value.ToNumeric();
-            ConstraintData?.TryUpdateDescription();
+            TryUpdateDescription();
         }
     }
 
@@ -56,7 +56,7 @@ public sealed class LinearAxisMotorConstraintComponent : TwoBodyConstraintCompon
         set
         {
             BepuConstraint.LocalAxis = value.ToNumeric();
-            ConstraintData?.TryUpdateDescription();
+            TryUpdateDescription();
         }
     }
 
@@ -69,7 +69,7 @@ public sealed class LinearAxisMotorConstraintComponent : TwoBodyConstraintCompon
         set
         {
             BepuConstraint.TargetVelocity = value;
-            ConstraintData?.TryUpdateDescription();
+            TryUpdateDescription();
         }
     }
 
@@ -82,7 +82,7 @@ public sealed class LinearAxisMotorConstraintComponent : TwoBodyConstraintCompon
         set
         {
             BepuConstraint.Settings.Damping = value;
-            ConstraintData?.TryUpdateDescription();
+            TryUpdateDescription();
         }
     }
 
@@ -95,7 +95,7 @@ public sealed class LinearAxisMotorConstraintComponent : TwoBodyConstraintCompon
         set
         {
             BepuConstraint.Settings.MaximumForce = value;
-            ConstraintData?.TryUpdateDescription();
+            TryUpdateDescription();
         }
     }
 }

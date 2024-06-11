@@ -30,7 +30,7 @@ public sealed class OneBodyAngularMotorConstraintComponent : OneBodyConstraintCo
         set
         {
             BepuConstraint.TargetVelocity = value.ToNumeric();
-            ConstraintData?.TryUpdateDescription();
+            TryUpdateDescription();
         }
     }
 
@@ -43,7 +43,7 @@ public sealed class OneBodyAngularMotorConstraintComponent : OneBodyConstraintCo
         set
         {
             BepuConstraint.Settings.Damping = value;
-            ConstraintData?.TryUpdateDescription();
+            TryUpdateDescription();
         }
     }
 
@@ -56,7 +56,7 @@ public sealed class OneBodyAngularMotorConstraintComponent : OneBodyConstraintCo
         set
         {
             BepuConstraint.Settings.MaximumForce = value;
-            ConstraintData?.TryUpdateDescription();
+            TryUpdateDescription();
         }
     }
 }

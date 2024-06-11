@@ -27,7 +27,7 @@ public sealed class WeldConstraintComponent : TwoBodyConstraintComponent<Weld>
         set
         {
             BepuConstraint.LocalOffset = value.ToNumeric();
-            ConstraintData?.TryUpdateDescription();
+            TryUpdateDescription();
         }
     }
 
@@ -40,7 +40,7 @@ public sealed class WeldConstraintComponent : TwoBodyConstraintComponent<Weld>
         set
         {
             BepuConstraint.LocalOrientation = value.ToNumeric();
-            ConstraintData?.TryUpdateDescription();
+            TryUpdateDescription();
         }
     }
 
@@ -53,7 +53,7 @@ public sealed class WeldConstraintComponent : TwoBodyConstraintComponent<Weld>
         set
         {
             BepuConstraint.SpringSettings.Frequency = value;
-            ConstraintData?.TryUpdateDescription();
+            TryUpdateDescription();
         }
     }
 
@@ -66,7 +66,7 @@ public sealed class WeldConstraintComponent : TwoBodyConstraintComponent<Weld>
         set
         {
             BepuConstraint.SpringSettings.DampingRatio = value;
-            ConstraintData?.TryUpdateDescription();
+            TryUpdateDescription();
         }
     }
 }

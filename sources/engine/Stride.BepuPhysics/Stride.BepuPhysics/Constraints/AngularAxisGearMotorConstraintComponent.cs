@@ -27,7 +27,7 @@ public sealed class AngularAxisGearMotorConstraintComponent : TwoBodyConstraintC
         set
         {
             BepuConstraint.LocalAxisA = value.ToNumeric();
-            ConstraintData?.TryUpdateDescription();
+            TryUpdateDescription();
         }
     }
 
@@ -40,7 +40,7 @@ public sealed class AngularAxisGearMotorConstraintComponent : TwoBodyConstraintC
         set
         {
             BepuConstraint.VelocityScale = value;
-            ConstraintData?.TryUpdateDescription();
+            TryUpdateDescription();
         }
     }
 
@@ -53,7 +53,7 @@ public sealed class AngularAxisGearMotorConstraintComponent : TwoBodyConstraintC
         set
         {
             BepuConstraint.Settings.Damping = value;
-            ConstraintData?.TryUpdateDescription();
+            TryUpdateDescription();
         }
     }
 
@@ -66,7 +66,7 @@ public sealed class AngularAxisGearMotorConstraintComponent : TwoBodyConstraintC
         set
         {
             BepuConstraint.Settings.MaximumForce = value;
-            ConstraintData?.TryUpdateDescription();
+            TryUpdateDescription();
         }
     }
 }

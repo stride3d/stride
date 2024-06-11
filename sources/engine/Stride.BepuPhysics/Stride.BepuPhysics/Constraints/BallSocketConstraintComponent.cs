@@ -27,7 +27,7 @@ public sealed class BallSocketConstraintComponent : TwoBodyConstraintComponent<B
         set
         {
             BepuConstraint.LocalOffsetA = value.ToNumeric();
-            ConstraintData?.TryUpdateDescription();
+            TryUpdateDescription();
         }
     }
 
@@ -40,7 +40,7 @@ public sealed class BallSocketConstraintComponent : TwoBodyConstraintComponent<B
         set
         {
             BepuConstraint.LocalOffsetB = value.ToNumeric();
-            ConstraintData?.TryUpdateDescription();
+            TryUpdateDescription();
         }
     }
 
@@ -53,7 +53,7 @@ public sealed class BallSocketConstraintComponent : TwoBodyConstraintComponent<B
         set
         {
             BepuConstraint.SpringSettings.Frequency = value;
-            ConstraintData?.TryUpdateDescription();
+            TryUpdateDescription();
         }
     }
 
@@ -66,7 +66,7 @@ public sealed class BallSocketConstraintComponent : TwoBodyConstraintComponent<B
         set
         {
             BepuConstraint.SpringSettings.DampingRatio = value;
-            ConstraintData?.TryUpdateDescription();
+            TryUpdateDescription();
         }
     }
 }

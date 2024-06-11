@@ -3,6 +3,7 @@
 
 using Stride.BepuPhysics.Systems;
 using Stride.Core;
+using Stride.Core.Diagnostics;
 using Stride.Engine;
 using Stride.Engine.Design;
 
@@ -12,8 +13,10 @@ namespace Stride.BepuPhysics.Constraints;
 [DefaultEntityComponentProcessor(typeof(ConstraintProcessor), ExecutionMode = ExecutionMode.Runtime)]
 [ComponentCategory("Bepu - Constraint")]
 [AllowMultipleComponents]
-public abstract class ConstraintComponentBase : SyncScript
+public abstract class ConstraintComponentBase : EntityComponent
 {
+    protected static Logger Logger = GlobalLogger.GetLogger(nameof(ConstraintComponentBase));
+
     private bool _enabled = true;
     private readonly BodyComponent?[] _bodies;
 
@@ -26,7 +29,7 @@ public abstract class ConstraintComponentBase : SyncScript
         set
         {
             _enabled = value;
-            UntypedConstraintData?.RebuildConstraint();
+            TryReattachConstraint();
         }
     }
 
@@ -40,19 +43,33 @@ public abstract class ConstraintComponentBase : SyncScript
         set
         {
             _bodies[i] = value;
-            UntypedConstraintData?.RebuildConstraint();
+            BodiesChanged();
         }
     }
 
-    public override void Update()
+    /// <summary>
+    /// Whether this constraint is in a valid state and actively constraining its targets.
+    /// </summary>
+    /// <remarks> May not be attached if it is not in a scene, when not <see cref="Enabled"/>, when any of its target is null, not in a scene or in a different simulation </remarks>
+    public abstract bool Attached { get; }
+
+    protected abstract void BodiesChanged();
+
+    internal abstract void Activate(BepuConfiguration bepuConfig);
+
+    internal abstract void Deactivate();
+
+    internal abstract ConstraintState TryReattachConstraint();
+
+    internal abstract void DetachConstraint();
+
+    public enum ConstraintState
     {
-        if (UntypedConstraintData?.Exist == false)
-            UntypedConstraintData.RebuildConstraint();
+        ConstraintNotInScene,
+        ConstraintDisabled,
+        BodyNotInScene,
+        BodyNull,
+        SimulationMismatch,
+        FullyOperational,
     }
-
-    internal abstract void RemoveDataRef();
-
-    internal abstract ConstraintDataBase? UntypedConstraintData { get; }
-
-    internal abstract ConstraintDataBase CreateProcessorData(BepuConfiguration bepuConfiguration);
 }

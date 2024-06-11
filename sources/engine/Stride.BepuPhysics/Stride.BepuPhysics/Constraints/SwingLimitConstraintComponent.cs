@@ -27,7 +27,7 @@ public sealed class SwingLimitConstraintComponent : TwoBodyConstraintComponent<S
         set
         {
             BepuConstraint.AxisLocalA = value.ToNumeric();
-            ConstraintData?.TryUpdateDescription();
+            TryUpdateDescription();
         }
     }
 
@@ -40,7 +40,7 @@ public sealed class SwingLimitConstraintComponent : TwoBodyConstraintComponent<S
         set
         {
             BepuConstraint.AxisLocalB = value.ToNumeric();
-            ConstraintData?.TryUpdateDescription();
+            TryUpdateDescription();
         }
     }
 
@@ -50,7 +50,7 @@ public sealed class SwingLimitConstraintComponent : TwoBodyConstraintComponent<S
         set
         {
             BepuConstraint.MinimumDot = value;
-            ConstraintData?.TryUpdateDescription();
+            TryUpdateDescription();
         }
     }
 
@@ -60,7 +60,7 @@ public sealed class SwingLimitConstraintComponent : TwoBodyConstraintComponent<S
         set
         {
             MinimumDot = (float)Math.Cos(value);
-            ConstraintData?.TryUpdateDescription();
+            TryUpdateDescription();
         }
     }
 
@@ -73,7 +73,7 @@ public sealed class SwingLimitConstraintComponent : TwoBodyConstraintComponent<S
         set
         {
             BepuConstraint.SpringSettings.Frequency = value;
-            ConstraintData?.TryUpdateDescription();
+            TryUpdateDescription();
         }
     }
 
@@ -86,7 +86,7 @@ public sealed class SwingLimitConstraintComponent : TwoBodyConstraintComponent<S
         set
         {
             BepuConstraint.SpringSettings.DampingRatio = value;
-            ConstraintData?.TryUpdateDescription();
+            TryUpdateDescription();
         }
     }
 }

@@ -27,7 +27,7 @@ public sealed class AngularAxisMotorConstraintComponent : TwoBodyConstraintCompo
         set
         {
             BepuConstraint.LocalAxisA = value.ToNumeric();
-            ConstraintData?.TryUpdateDescription();
+            TryUpdateDescription();
         }
     }
 
@@ -40,7 +40,7 @@ public sealed class AngularAxisMotorConstraintComponent : TwoBodyConstraintCompo
         set
         {
             BepuConstraint.TargetVelocity = value;
-            ConstraintData?.TryUpdateDescription();
+            TryUpdateDescription();
         }
     }
 
@@ -53,7 +53,7 @@ public sealed class AngularAxisMotorConstraintComponent : TwoBodyConstraintCompo
         set
         {
             BepuConstraint.Settings.Damping = value;
-            ConstraintData?.TryUpdateDescription();
+            TryUpdateDescription();
         }
     }
 
@@ -66,7 +66,7 @@ public sealed class AngularAxisMotorConstraintComponent : TwoBodyConstraintCompo
         set
         {
             BepuConstraint.Settings.MaximumForce = value;
-            ConstraintData?.TryUpdateDescription();
+            TryUpdateDescription();
         }
     }
 }

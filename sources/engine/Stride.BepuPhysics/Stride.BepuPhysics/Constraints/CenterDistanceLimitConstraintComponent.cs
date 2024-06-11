@@ -22,7 +22,7 @@ public sealed class CenterDistanceLimitConstraintComponent : TwoBodyConstraintCo
         set
         {
             BepuConstraint.MinimumDistance = value;
-            ConstraintData?.TryUpdateDescription();
+            TryUpdateDescription();
         }
     }
 
@@ -32,7 +32,7 @@ public sealed class CenterDistanceLimitConstraintComponent : TwoBodyConstraintCo
         set
         {
             BepuConstraint.MaximumDistance = value;
-            ConstraintData?.TryUpdateDescription();
+            TryUpdateDescription();
         }
     }
 
@@ -45,7 +45,7 @@ public sealed class CenterDistanceLimitConstraintComponent : TwoBodyConstraintCo
         set
         {
             BepuConstraint.SpringSettings.Frequency = value;
-            ConstraintData?.TryUpdateDescription();
+            TryUpdateDescription();
         }
     }
 
@@ -58,7 +58,7 @@ public sealed class CenterDistanceLimitConstraintComponent : TwoBodyConstraintCo
         set
         {
             BepuConstraint.SpringSettings.DampingRatio = value;
-            ConstraintData?.TryUpdateDescription();
+            TryUpdateDescription();
         }
     }
 }

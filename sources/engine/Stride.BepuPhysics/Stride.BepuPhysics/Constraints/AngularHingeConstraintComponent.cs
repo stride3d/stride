@@ -27,7 +27,7 @@ public sealed class AngularHingeConstraintComponent : TwoBodyConstraintComponent
         set
         {
             BepuConstraint.LocalHingeAxisA = value.ToNumeric();
-            ConstraintData?.TryUpdateDescription();
+            TryUpdateDescription();
         }
     }
 
@@ -40,7 +40,7 @@ public sealed class AngularHingeConstraintComponent : TwoBodyConstraintComponent
         set
         {
             BepuConstraint.LocalHingeAxisB = value.ToNumeric();
-            ConstraintData?.TryUpdateDescription();
+            TryUpdateDescription();
         }
     }
 
@@ -53,7 +53,7 @@ public sealed class AngularHingeConstraintComponent : TwoBodyConstraintComponent
         set
         {
             BepuConstraint.SpringSettings.Frequency = value;
-            ConstraintData?.TryUpdateDescription();
+            TryUpdateDescription();
         }
     }
 
@@ -66,7 +66,7 @@ public sealed class AngularHingeConstraintComponent : TwoBodyConstraintComponent
         set
         {
             BepuConstraint.SpringSettings.DampingRatio = value;
-            ConstraintData?.TryUpdateDescription();
+            TryUpdateDescription();
         }
     }
 }

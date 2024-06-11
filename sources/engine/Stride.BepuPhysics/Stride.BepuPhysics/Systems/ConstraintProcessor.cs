@@ -3,7 +3,6 @@
 
 using Stride.BepuPhysics.Constraints;
 using Stride.BepuPhysics.Definitions;
-using Stride.Core.Annotations;
 using Stride.Engine;
 
 namespace Stride.BepuPhysics.Systems;
@@ -25,12 +24,11 @@ public class ConstraintProcessor : EntityProcessor<ConstraintComponentBase>
     protected override void OnEntityComponentAdding(Entity entity, ConstraintComponentBase component, ConstraintComponentBase data)
     {
         base.OnEntityComponentAdding(entity, component, data);
-        component.CreateProcessorData(_bepuConfiguration).RebuildConstraint();
+        component.Activate(_bepuConfiguration);
     }
     protected override void OnEntityComponentRemoved(Entity entity, ConstraintComponentBase component, ConstraintComponentBase data)
     {
         base.OnEntityComponentRemoved(entity, component, data);
-        component.UntypedConstraintData?.DestroyConstraint();
-        component.RemoveDataRef();
+        component.Deactivate();
     }
 }

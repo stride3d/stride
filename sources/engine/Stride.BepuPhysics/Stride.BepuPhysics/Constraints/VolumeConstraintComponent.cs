@@ -22,7 +22,7 @@ public sealed class VolumeConstraintComponent : FourBodyConstraintComponent<Volu
         set
         {
             BepuConstraint.TargetScaledVolume = value;
-            ConstraintData?.TryUpdateDescription();
+            TryUpdateDescription();
         }
     }
 
@@ -35,7 +35,7 @@ public sealed class VolumeConstraintComponent : FourBodyConstraintComponent<Volu
         set
         {
             BepuConstraint.SpringSettings.Frequency = value;
-            ConstraintData?.TryUpdateDescription();
+            TryUpdateDescription();
         }
     }
 
@@ -48,7 +48,7 @@ public sealed class VolumeConstraintComponent : FourBodyConstraintComponent<Volu
         set
         {
             BepuConstraint.SpringSettings.DampingRatio = value;
-            ConstraintData?.TryUpdateDescription();
+            TryUpdateDescription();
         }
     }
 }

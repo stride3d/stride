@@ -27,7 +27,7 @@ public sealed class TwistServoConstraintComponent : TwoBodyConstraintComponent<T
         set
         {
             BepuConstraint.LocalBasisA = value.ToNumeric();
-            ConstraintData?.TryUpdateDescription();
+            TryUpdateDescription();
         }
     }
 
@@ -40,7 +40,7 @@ public sealed class TwistServoConstraintComponent : TwoBodyConstraintComponent<T
         set
         {
             BepuConstraint.LocalBasisB = value.ToNumeric();
-            ConstraintData?.TryUpdateDescription();
+            TryUpdateDescription();
         }
     }
 
@@ -50,7 +50,7 @@ public sealed class TwistServoConstraintComponent : TwoBodyConstraintComponent<T
         set
         {
             BepuConstraint.TargetAngle = value;
-            ConstraintData?.TryUpdateDescription();
+            TryUpdateDescription();
         }
     }
 
@@ -63,7 +63,7 @@ public sealed class TwistServoConstraintComponent : TwoBodyConstraintComponent<T
         set
         {
             BepuConstraint.SpringSettings.Frequency = value;
-            ConstraintData?.TryUpdateDescription();
+            TryUpdateDescription();
         }
     }
 
@@ -76,7 +76,7 @@ public sealed class TwistServoConstraintComponent : TwoBodyConstraintComponent<T
         set
         {
             BepuConstraint.SpringSettings.DampingRatio = value;
-            ConstraintData?.TryUpdateDescription();
+            TryUpdateDescription();
         }
     }
 
@@ -89,7 +89,7 @@ public sealed class TwistServoConstraintComponent : TwoBodyConstraintComponent<T
         set
         {
             BepuConstraint.ServoSettings.MaximumSpeed = value;
-            ConstraintData?.TryUpdateDescription();
+            TryUpdateDescription();
         }
     }
 
@@ -102,7 +102,7 @@ public sealed class TwistServoConstraintComponent : TwoBodyConstraintComponent<T
         set
         {
             BepuConstraint.ServoSettings.BaseSpeed = value;
-            ConstraintData?.TryUpdateDescription();
+            TryUpdateDescription();
         }
     }
 
@@ -115,7 +115,7 @@ public sealed class TwistServoConstraintComponent : TwoBodyConstraintComponent<T
         set
         {
             BepuConstraint.ServoSettings.MaximumForce = value;
-            ConstraintData?.TryUpdateDescription();
+            TryUpdateDescription();
         }
     }
 }

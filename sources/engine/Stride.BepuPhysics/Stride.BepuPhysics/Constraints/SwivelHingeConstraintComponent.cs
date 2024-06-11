@@ -27,7 +27,7 @@ public sealed class SwivelHingeConstraintComponent : TwoBodyConstraintComponent<
         set
         {
             BepuConstraint.LocalOffsetA = value.ToNumeric();
-            ConstraintData?.TryUpdateDescription();
+            TryUpdateDescription();
         }
     }
 
@@ -40,7 +40,7 @@ public sealed class SwivelHingeConstraintComponent : TwoBodyConstraintComponent<
         set
         {
             BepuConstraint.LocalSwivelAxisA = value.ToNumeric();
-            ConstraintData?.TryUpdateDescription();
+            TryUpdateDescription();
         }
     }
 
@@ -53,7 +53,7 @@ public sealed class SwivelHingeConstraintComponent : TwoBodyConstraintComponent<
         set
         {
             BepuConstraint.LocalOffsetB = value.ToNumeric();
-            ConstraintData?.TryUpdateDescription();
+            TryUpdateDescription();
         }
     }
 
@@ -66,7 +66,7 @@ public sealed class SwivelHingeConstraintComponent : TwoBodyConstraintComponent<
         set
         {
             BepuConstraint.LocalHingeAxisB = value.ToNumeric();
-            ConstraintData?.TryUpdateDescription();
+            TryUpdateDescription();
         }
     }
 
@@ -79,7 +79,7 @@ public sealed class SwivelHingeConstraintComponent : TwoBodyConstraintComponent<
         set
         {
             BepuConstraint.SpringSettings.Frequency = value;
-            ConstraintData?.TryUpdateDescription();
+            TryUpdateDescription();
         }
     }
 
@@ -92,7 +92,7 @@ public sealed class SwivelHingeConstraintComponent : TwoBodyConstraintComponent<
         set
         {
             BepuConstraint.SpringSettings.DampingRatio = value;
-            ConstraintData?.TryUpdateDescription();
+            TryUpdateDescription();
         }
     }
 }

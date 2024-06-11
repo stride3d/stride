@@ -27,7 +27,7 @@ public sealed class AngularMotorConstraintComponent : TwoBodyConstraintComponent
         set
         {
             BepuConstraint.TargetVelocityLocalA = value.ToNumeric();
-            ConstraintData?.TryUpdateDescription();
+            TryUpdateDescription();
         }
     }
 
@@ -40,7 +40,7 @@ public sealed class AngularMotorConstraintComponent : TwoBodyConstraintComponent
         set
         {
             BepuConstraint.Settings.Damping = value;
-            ConstraintData?.TryUpdateDescription();
+            TryUpdateDescription();
         }
     }
 
@@ -53,7 +53,7 @@ public sealed class AngularMotorConstraintComponent : TwoBodyConstraintComponent
         set
         {
             BepuConstraint.Settings.MaximumForce = value;
-            ConstraintData?.TryUpdateDescription();
+            TryUpdateDescription();
         }
     }
 }

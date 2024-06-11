@@ -4,6 +4,7 @@
 using System.Diagnostics;
 using BepuPhysics;
 using BepuPhysics.Collidables;
+using Stride.BepuPhysics.Constraints;
 using Stride.BepuPhysics.Definitions;
 using Stride.Core;
 using Stride.Core.Mathematics;
@@ -32,6 +33,12 @@ public class BodyComponent : CollidableComponent
 
     [DataMemberIgnore]
     internal NRigidPose PreviousPose, CurrentPose; //Sets by AfterSimulationUpdate()
+
+    /// <summary>
+    /// Constraints that currently references this body, may not be attached if they are not in a valid state
+    /// </summary>
+    [DataMemberIgnore]
+    internal List<ConstraintComponentBase>? BoundConstraints;
 
     public bool Kinematic
     {
@@ -227,6 +234,11 @@ public class BodyComponent : CollidableComponent
         }
     }
 
+    /// <summary>
+    /// The constraints targeting this body, some of those may not be <see cref="ConstraintComponentBase.Attached"/>
+    /// </summary>
+    public IReadOnlyList<ConstraintComponentBase> Constraints => BoundConstraints ?? (IReadOnlyList<ConstraintComponentBase>)Array.Empty<ConstraintComponentBase>();
+
     public void ApplyImpulse(Vector3 impulse, Vector3 impulseOffset)
     {
         BodyReference?.ApplyImpulse(impulse.ToNumeric(), impulseOffset.ToNumeric());
@@ -269,7 +281,7 @@ public class BodyComponent : CollidableComponent
             BodyReference.Value.Collidable.Continuity = ContinuousDetection;
 
             while (Simulation.Bodies.Count <= bHandle.Value) // There may be more than one add if soft physics inserted a couple of bodies
-                Simulation.Bodies.Add(null); 
+                Simulation.Bodies.Add(null);
             Simulation.Bodies[bHandle.Value] = this;
 
             Simulation.CollidableMaterials.Allocate(bHandle) = new();
@@ -280,12 +292,24 @@ public class BodyComponent : CollidableComponent
 
         Parent = FindParentBody(this, Simulation);
         SetParentForChildren(this, Entity.Transform, Simulation);
+
+        if (BoundConstraints is not null)
+        {
+            foreach (var constraint in BoundConstraints)
+                constraint.TryReattachConstraint();
+        }
     }
 
     protected override void DetachInner()
     {
         Debug.Assert(BodyReference is not null);
         Debug.Assert(Simulation is not null);
+
+        if (BoundConstraints is not null)
+        {
+            foreach (var constraint in BoundConstraints)
+                constraint.DetachConstraint();
+        }
 
         Simulation.Simulation.Bodies.Remove(BodyReference.Value.Handle);
         Simulation.Bodies[BodyReference.Value.Handle.Value] = null;

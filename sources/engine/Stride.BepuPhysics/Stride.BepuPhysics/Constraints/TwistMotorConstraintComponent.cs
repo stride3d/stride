@@ -27,7 +27,7 @@ public sealed class TwistMotorConstraintComponent : TwoBodyConstraintComponent<T
         set
         {
             BepuConstraint.LocalAxisA = value.ToNumeric();
-            ConstraintData?.TryUpdateDescription();
+            TryUpdateDescription();
         }
     }
 
@@ -40,7 +40,7 @@ public sealed class TwistMotorConstraintComponent : TwoBodyConstraintComponent<T
         set
         {
             BepuConstraint.LocalAxisB = value.ToNumeric();
-            ConstraintData?.TryUpdateDescription();
+            TryUpdateDescription();
         }
     }
 
@@ -50,7 +50,7 @@ public sealed class TwistMotorConstraintComponent : TwoBodyConstraintComponent<T
         set
         {
             BepuConstraint.TargetVelocity = value;
-            ConstraintData?.TryUpdateDescription();
+            TryUpdateDescription();
         }
     }
 
@@ -63,7 +63,7 @@ public sealed class TwistMotorConstraintComponent : TwoBodyConstraintComponent<T
         set
         {
             BepuConstraint.Settings.Damping = value;
-            ConstraintData?.TryUpdateDescription();
+            TryUpdateDescription();
         }
     }
 
@@ -76,7 +76,7 @@ public sealed class TwistMotorConstraintComponent : TwoBodyConstraintComponent<T
         set
         {
             BepuConstraint.Settings.MaximumForce = value;
-            ConstraintData?.TryUpdateDescription();
+            TryUpdateDescription();
         }
     }
 }

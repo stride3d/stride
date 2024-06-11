@@ -31,7 +31,7 @@ public sealed class LinearAxisServoConstraintComponent : TwoBodyConstraintCompon
         set
         {
             BepuConstraint.LocalOffsetA = value.ToNumeric();
-            ConstraintData?.TryUpdateDescription();
+            TryUpdateDescription();
         }
     }
 
@@ -44,7 +44,7 @@ public sealed class LinearAxisServoConstraintComponent : TwoBodyConstraintCompon
         set
         {
             BepuConstraint.LocalOffsetB = value.ToNumeric();
-            ConstraintData?.TryUpdateDescription();
+            TryUpdateDescription();
         }
     }
 
@@ -57,7 +57,7 @@ public sealed class LinearAxisServoConstraintComponent : TwoBodyConstraintCompon
         set
         {
             BepuConstraint.LocalPlaneNormal = value.ToNumeric();
-            ConstraintData?.TryUpdateDescription();
+            TryUpdateDescription();
         }
     }
 
@@ -70,7 +70,7 @@ public sealed class LinearAxisServoConstraintComponent : TwoBodyConstraintCompon
         set
         {
             BepuConstraint.TargetOffset = value;
-            ConstraintData?.TryUpdateDescription();
+            TryUpdateDescription();
         }
     }
 
@@ -83,7 +83,7 @@ public sealed class LinearAxisServoConstraintComponent : TwoBodyConstraintCompon
         set
         {
             BepuConstraint.ServoSettings.MaximumSpeed = value;
-            ConstraintData?.TryUpdateDescription();
+            TryUpdateDescription();
         }
     }
 
@@ -96,7 +96,7 @@ public sealed class LinearAxisServoConstraintComponent : TwoBodyConstraintCompon
         set
         {
             BepuConstraint.ServoSettings.BaseSpeed = value;
-            ConstraintData?.TryUpdateDescription();
+            TryUpdateDescription();
         }
     }
 
@@ -109,7 +109,7 @@ public sealed class LinearAxisServoConstraintComponent : TwoBodyConstraintCompon
         set
         {
             BepuConstraint.ServoSettings.MaximumForce = value;
-            ConstraintData?.TryUpdateDescription();
+            TryUpdateDescription();
         }
     }
 
@@ -122,7 +122,7 @@ public sealed class LinearAxisServoConstraintComponent : TwoBodyConstraintCompon
         set
         {
             BepuConstraint.SpringSettings.Frequency = value;
-            ConstraintData?.TryUpdateDescription();
+            TryUpdateDescription();
         }
     }
 
@@ -135,7 +135,7 @@ public sealed class LinearAxisServoConstraintComponent : TwoBodyConstraintCompon
         set
         {
             BepuConstraint.SpringSettings.DampingRatio = value;
-            ConstraintData?.TryUpdateDescription();
+            TryUpdateDescription();
         }
     }
 }

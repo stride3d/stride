@@ -27,7 +27,7 @@ public sealed class TwistLimitConstraintComponent : TwoBodyConstraintComponent<T
         set
         {
             BepuConstraint.LocalBasisA = value.ToNumeric();
-            ConstraintData?.TryUpdateDescription();
+            TryUpdateDescription();
         }
     }
 
@@ -40,7 +40,7 @@ public sealed class TwistLimitConstraintComponent : TwoBodyConstraintComponent<T
         set
         {
             BepuConstraint.LocalBasisB = value.ToNumeric();
-            ConstraintData?.TryUpdateDescription();
+            TryUpdateDescription();
         }
     }
 
@@ -50,7 +50,7 @@ public sealed class TwistLimitConstraintComponent : TwoBodyConstraintComponent<T
         set
         {
             BepuConstraint.MinimumAngle = value;
-            ConstraintData?.TryUpdateDescription();
+            TryUpdateDescription();
         }
     }
 
@@ -60,7 +60,7 @@ public sealed class TwistLimitConstraintComponent : TwoBodyConstraintComponent<T
         set
         {
             BepuConstraint.MaximumAngle = value;
-            ConstraintData?.TryUpdateDescription();
+            TryUpdateDescription();
         }
     }
 
@@ -73,7 +73,7 @@ public sealed class TwistLimitConstraintComponent : TwoBodyConstraintComponent<T
         set
         {
             BepuConstraint.SpringSettings.Frequency = value;
-            ConstraintData?.TryUpdateDescription();
+            TryUpdateDescription();
         }
     }
 
@@ -86,7 +86,7 @@ public sealed class TwistLimitConstraintComponent : TwoBodyConstraintComponent<T
         set
         {
             BepuConstraint.SpringSettings.DampingRatio = value;
-            ConstraintData?.TryUpdateDescription();
+            TryUpdateDescription();
         }
     }
 }

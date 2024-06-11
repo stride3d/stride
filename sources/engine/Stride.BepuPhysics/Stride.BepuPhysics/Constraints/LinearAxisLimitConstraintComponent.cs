@@ -30,7 +30,7 @@ public sealed class LinearAxisLimitConstraintComponent : TwoBodyConstraintCompon
         set
         {
             BepuConstraint.LocalOffsetA = value.ToNumeric();
-            ConstraintData?.TryUpdateDescription();
+            TryUpdateDescription();
         }
     }
 
@@ -43,7 +43,7 @@ public sealed class LinearAxisLimitConstraintComponent : TwoBodyConstraintCompon
         set
         {
             BepuConstraint.LocalOffsetB = value.ToNumeric();
-            ConstraintData?.TryUpdateDescription();
+            TryUpdateDescription();
         }
     }
 
@@ -56,7 +56,7 @@ public sealed class LinearAxisLimitConstraintComponent : TwoBodyConstraintCompon
         set
         {
             BepuConstraint.LocalAxis = value.ToNumeric();
-            ConstraintData?.TryUpdateDescription();
+            TryUpdateDescription();
         }
     }
 
@@ -69,7 +69,7 @@ public sealed class LinearAxisLimitConstraintComponent : TwoBodyConstraintCompon
         set
         {
             BepuConstraint.MinimumOffset = value;
-            ConstraintData?.TryUpdateDescription();
+            TryUpdateDescription();
         }
     }
 
@@ -82,7 +82,7 @@ public sealed class LinearAxisLimitConstraintComponent : TwoBodyConstraintCompon
         set
         {
             BepuConstraint.MaximumOffset = value;
-            ConstraintData?.TryUpdateDescription();
+            TryUpdateDescription();
         }
     }
 
@@ -95,7 +95,7 @@ public sealed class LinearAxisLimitConstraintComponent : TwoBodyConstraintCompon
         set
         {
             BepuConstraint.SpringSettings.Frequency = value;
-            ConstraintData?.TryUpdateDescription();
+            TryUpdateDescription();
         }
     }
 
@@ -108,7 +108,7 @@ public sealed class LinearAxisLimitConstraintComponent : TwoBodyConstraintCompon
         set
         {
             BepuConstraint.SpringSettings.DampingRatio = value;
-            ConstraintData?.TryUpdateDescription();
+            TryUpdateDescription();
         }
     }
 }

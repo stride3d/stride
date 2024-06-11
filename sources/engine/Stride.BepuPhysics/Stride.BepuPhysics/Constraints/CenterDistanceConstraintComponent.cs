@@ -25,7 +25,7 @@ public sealed class CenterDistanceConstraintComponent : TwoBodyConstraintCompone
         set
         {
             BepuConstraint.TargetDistance = value;
-            ConstraintData?.TryUpdateDescription();
+            TryUpdateDescription();
         }
     }
 
@@ -38,7 +38,7 @@ public sealed class CenterDistanceConstraintComponent : TwoBodyConstraintCompone
         set
         {
             BepuConstraint.SpringSettings.Frequency = value;
-            ConstraintData?.TryUpdateDescription();
+            TryUpdateDescription();
         }
     }
 
@@ -51,7 +51,7 @@ public sealed class CenterDistanceConstraintComponent : TwoBodyConstraintCompone
         set
         {
             BepuConstraint.SpringSettings.DampingRatio = value;
-            ConstraintData?.TryUpdateDescription();
+            TryUpdateDescription();
         }
     }
 

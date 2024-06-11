@@ -27,7 +27,7 @@ public sealed class AngularSwivelHingeConstraintComponent : TwoBodyConstraintCom
         set
         {
             BepuConstraint.LocalSwivelAxisA = value.ToNumeric();
-            ConstraintData?.TryUpdateDescription();
+            TryUpdateDescription();
         }
     }
 
@@ -40,7 +40,7 @@ public sealed class AngularSwivelHingeConstraintComponent : TwoBodyConstraintCom
         set
         {
             BepuConstraint.LocalHingeAxisB = value.ToNumeric();
-            ConstraintData?.TryUpdateDescription();
+            TryUpdateDescription();
         }
     }
 
@@ -53,7 +53,7 @@ public sealed class AngularSwivelHingeConstraintComponent : TwoBodyConstraintCom
         set
         {
             BepuConstraint.SpringSettings.Frequency = value;
-            ConstraintData?.TryUpdateDescription();
+            TryUpdateDescription();
         }
     }
 
@@ -66,7 +66,7 @@ public sealed class AngularSwivelHingeConstraintComponent : TwoBodyConstraintCom
         set
         {
             BepuConstraint.SpringSettings.DampingRatio = value;
-            ConstraintData?.TryUpdateDescription();
+            TryUpdateDescription();
         }
     }
 }

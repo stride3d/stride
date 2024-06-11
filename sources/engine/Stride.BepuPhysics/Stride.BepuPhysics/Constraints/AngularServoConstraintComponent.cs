@@ -31,7 +31,7 @@ public sealed class AngularServoConstraintComponent : TwoBodyConstraintComponent
         set
         {
             BepuConstraint.TargetRelativeRotationLocalA = value.ToNumeric();
-            ConstraintData?.TryUpdateDescription();
+            TryUpdateDescription();
         }
     }
 
@@ -44,7 +44,7 @@ public sealed class AngularServoConstraintComponent : TwoBodyConstraintComponent
         set
         {
             BepuConstraint.SpringSettings.Frequency = value;
-            ConstraintData?.TryUpdateDescription();
+            TryUpdateDescription();
         }
     }
 
@@ -57,7 +57,7 @@ public sealed class AngularServoConstraintComponent : TwoBodyConstraintComponent
         set
         {
             BepuConstraint.SpringSettings.DampingRatio = value;
-            ConstraintData?.TryUpdateDescription();
+            TryUpdateDescription();
         }
     }
 
@@ -70,7 +70,7 @@ public sealed class AngularServoConstraintComponent : TwoBodyConstraintComponent
         set
         {
             BepuConstraint.ServoSettings.MaximumSpeed = value;
-            ConstraintData?.TryUpdateDescription();
+            TryUpdateDescription();
         }
     }
 
@@ -83,7 +83,7 @@ public sealed class AngularServoConstraintComponent : TwoBodyConstraintComponent
         set
         {
             BepuConstraint.ServoSettings.BaseSpeed = value;
-            ConstraintData?.TryUpdateDescription();
+            TryUpdateDescription();
         }
     }
 
@@ -96,7 +96,7 @@ public sealed class AngularServoConstraintComponent : TwoBodyConstraintComponent
         set
         {
             BepuConstraint.ServoSettings.MaximumForce = value;
-            ConstraintData?.TryUpdateDescription();
+            TryUpdateDescription();
         }
     }
 }
