@@ -196,6 +196,8 @@ namespace Stride.Engine.Splines.Processors
                 else
                 {
                     traverser.isMoving = false;
+                    traverser.targetSplineNodeIndex += (indexIncrement * -1); //Inverse the increment
+                    traverser.targetSplineNode = component.SplineComponent.Spline.SplineNodes[traverser.targetSplineNodeIndex];
                     traverser.SplineEndReached(traverser.targetSplineNode);
                 }
             }
