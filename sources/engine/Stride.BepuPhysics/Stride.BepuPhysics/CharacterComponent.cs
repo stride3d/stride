@@ -48,12 +48,10 @@ public class CharacterComponent : BodyComponent, ISimulationUpdate, IContactEven
 
     protected override void AttachInner(NRigidPose pose, BodyInertia shapeInertia, TypedIndex shapeIndex)
     {
+        #warning Norbo: validate whether we can remove the setter for BodyInertia below by feeding it in place of shapeIntertia here ?
         base.AttachInner(pose, shapeInertia, shapeIndex);
-
         FrictionCoefficient = 0f;
         BodyInertia = new BodyInertia { InverseMass = 1f };
-        if (Entity.Get<DebugInfo>() is null)
-            Entity.Add(new DebugInfo(this));
         ContactEventHandler = this;
     }
 
@@ -132,24 +130,6 @@ public class CharacterComponent : BodyComponent, ISimulationUpdate, IContactEven
         {
             if (Contacts[i].Source == otherCollidable)
                 Contacts.SwapRemoveAt(i);
-        }
-    }
-
-    class DebugInfo : SyncScript
-    {
-        readonly CharacterComponent _character;
-        public DebugInfo(CharacterComponent character)
-        {
-            _character = character;
-        }
-
-        public override void Update()
-        {
-            DebugText.Print($"Mouse delta : {Input.MouseDelta}", new Int2(50, 950));
-            DebugText.Print($"Velocity : {_character.Velocity}", new Int2(50, 975));
-            DebugText.Print($"Orientation : {_character.Orientation}", new Int2(50, 1000));
-            DebugText.Print($"IsGrounded : {_character.IsGrounded}", new Int2(50, 1025));
-            DebugText.Print($"ContactPoints count : {_character.Contacts.Count}", new Int2(50, 1050));
         }
     }
 }
