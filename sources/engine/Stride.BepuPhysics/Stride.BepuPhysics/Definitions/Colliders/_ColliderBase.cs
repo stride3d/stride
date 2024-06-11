@@ -17,6 +17,9 @@ public abstract class ColliderBase
     private Vector3 _positionLocal = Vector3.Zero;
     private Quaternion _rotationLocal = Quaternion.Identity;
 
+    /// <remarks>
+    /// Changing this value will reset some of the internal physics state of this body
+    /// </remarks>
     public float Mass
     {
         get => _mass;
@@ -30,6 +33,9 @@ public abstract class ColliderBase
     /// <summary>
     /// Local position of this collider relative to its parent
     /// </summary>
+    /// <remarks>
+    /// Changing this value will reset some of the internal physics state of this body
+    /// </remarks>
     [DataAlias("LinearOffset")]
     public Vector3 PositionLocal
     {
@@ -44,6 +50,9 @@ public abstract class ColliderBase
     /// <summary>
     /// Local rotation of this collider relative to its parent
     /// </summary>
+    /// <remarks>
+    /// Changing this value will reset some of the internal physics state of this body
+    /// </remarks>
     public Quaternion RotationLocal
     {
         get => _rotationLocal;

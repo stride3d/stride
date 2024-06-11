@@ -23,6 +23,9 @@ public sealed class ConvexHullCollider : ColliderBase
     /// <summary> Holds onto the cached shape as long as it is assigned </summary>
     private CachedConvexHulls? _cache = null;
 
+    /// <remarks>
+    /// Changing this value will reset some of the internal physics state of this body
+    /// </remarks>
     [MemberRequired(ReportAs = MemberRequiredReportType.Error)]
     public required DecomposedHulls Hull
     {

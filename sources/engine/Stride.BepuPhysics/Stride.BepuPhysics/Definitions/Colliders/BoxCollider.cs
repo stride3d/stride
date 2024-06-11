@@ -16,6 +16,9 @@ public sealed class BoxCollider : ColliderBase
 {
     private Vector3 _size = new(1, 1, 1);
 
+    /// <remarks>
+    /// Changing this value while its body is in the scene will re-create its internal body, reseting some of its runtime state
+    /// </remarks>
     public Vector3 Size
     {
         get => _size;

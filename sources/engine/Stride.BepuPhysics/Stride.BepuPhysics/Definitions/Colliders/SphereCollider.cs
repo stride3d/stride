@@ -15,6 +15,9 @@ public sealed class SphereCollider : ColliderBase
 {
     private float _radius = 0.5f;
 
+    /// <remarks>
+    /// Changing this value will reset some of the internal physics state of this body
+    /// </remarks>
     public float Radius
     {
         get => _radius;

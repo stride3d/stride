@@ -17,6 +17,9 @@ public sealed class TriangleCollider : ColliderBase
     private Vector3 _b = new(1, 1, 1);
     private Vector3 _c = new(1, 1, 1);
 
+    /// <remarks>
+    /// Changing this value will reset some of the internal physics state of this body
+    /// </remarks>
     public Vector3 A
     {
         get => _a;
@@ -27,6 +30,9 @@ public sealed class TriangleCollider : ColliderBase
         }
     }
 
+    /// <remarks>
+    /// Changing this value will reset some of the internal physics state of this body
+    /// </remarks>
     public Vector3 B
     {
         get => _b;
@@ -37,6 +43,9 @@ public sealed class TriangleCollider : ColliderBase
         }
     }
 
+    /// <remarks>
+    /// Changing this value will reset some of the internal physics state of this body
+    /// </remarks>
     public Vector3 C
     {
         get => _c;

@@ -16,6 +16,9 @@ public sealed class CapsuleCollider : ColliderBase
     private float _radius = 0.35f;
     private float _length = 0.5f;
 
+    /// <remarks>
+    /// Changing this value will reset some of the internal physics state of this body
+    /// </remarks>
     public float Radius
     {
         get => _radius;
@@ -26,6 +29,9 @@ public sealed class CapsuleCollider : ColliderBase
         }
     }
 
+    /// <remarks>
+    /// Changing this value will reset some of the internal physics state of this body
+    /// </remarks>
     public float Length
     {
         get => _length;
