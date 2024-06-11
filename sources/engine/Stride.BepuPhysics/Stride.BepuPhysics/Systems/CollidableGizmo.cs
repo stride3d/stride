@@ -197,7 +197,7 @@ public sealed class CollidableGizmo : IEntityGizmo
             _models.Add((model, matrix));
         }
 
-        Update(); // Ensure positions are up to date
+        Update(); // Ensure positions are up-to-date
         _component.Collider.OnEditCallBack += OnEditCallBack;
     }
 

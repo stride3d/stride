@@ -26,7 +26,7 @@ public abstract class ColliderBase
         set
         {
             _mass = value;
-            Component?.TryUpdateFeatures();
+            Component?.OnEditCallBack();
         }
     }
 
@@ -43,7 +43,7 @@ public abstract class ColliderBase
         set
         {
             _positionLocal = value;
-            Component?.TryUpdateFeatures();
+            Component?.OnEditCallBack();
         }
     }
 
@@ -59,12 +59,12 @@ public abstract class ColliderBase
         set
         {
             _rotationLocal = value;
-            Component?.TryUpdateFeatures();
+            Component?.OnEditCallBack();
         }
     }
 
     [DataMemberIgnore]
-    public CollidableComponent? Component { get; internal set; }
+    public CompoundCollider? Component { get; internal set; }
 
     internal abstract void AddToCompoundBuilder(ShapeCacheSystem shape, BufferPool pool, ref CompoundBuilder builder, NRigidPose localPose);
     internal abstract void OnDetach(BufferPool pool);

@@ -26,7 +26,7 @@ public sealed class TriangleCollider : ColliderBase
         set
         {
             _a = value;
-            Component?.TryUpdateFeatures();
+            Component?.OnEditCallBack();
         }
     }
 
@@ -39,7 +39,7 @@ public sealed class TriangleCollider : ColliderBase
         set
         {
             _b = value;
-            Component?.TryUpdateFeatures();
+            Component?.OnEditCallBack();
         }
     }
 
@@ -52,7 +52,7 @@ public sealed class TriangleCollider : ColliderBase
         set
         {
             _c = value;
-            Component?.TryUpdateFeatures();
+            Component?.OnEditCallBack();
         }
     }
 

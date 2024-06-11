@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Diagnostics;
 using BepuPhysics;
 using BepuPhysics.Collidables;
 using BepuUtilities.Memory;
@@ -17,7 +18,7 @@ public sealed class BoxCollider : ColliderBase
     private Vector3 _size = new(1, 1, 1);
 
     /// <remarks>
-    /// Changing this value while its body is in the scene will re-create its internal body, reseting some of its runtime state
+    /// Changing this value will reset some of the internal physics state of this body
     /// </remarks>
     public Vector3 Size
     {
@@ -25,7 +26,7 @@ public sealed class BoxCollider : ColliderBase
         set
         {
             _size = value;
-            Component?.TryUpdateFeatures();
+            Component?.OnEditCallBack();
         }
     }
 

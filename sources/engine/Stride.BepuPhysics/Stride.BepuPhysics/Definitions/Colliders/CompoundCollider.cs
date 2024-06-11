@@ -79,7 +79,6 @@ public sealed class CompoundCollider : ICollider
 
                 var compoundChildLocalPose = new NRigidPose(localTranslation.ToNumeric(), localRotation.ToNumeric());
                 collider.AddToCompoundBuilder(shapeCache, pool, ref compoundBuilder, compoundChildLocalPose);
-                collider.Component = _component;
             }
 
             Buffer<CompoundChild> compoundChildren;
