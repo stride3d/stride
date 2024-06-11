@@ -47,6 +47,9 @@ public abstract class CollidableComponent : EntityComponent
     [DataMemberIgnore]
     internal uint Versioning { get; private set; }
 
+    /// <remarks>
+    /// Changing this value will reset some of the internal physics state of this body
+    /// </remarks>
     [MemberRequired, Display(Expand = ExpandRule.Always)]
     public required ICollider Collider
     {
@@ -93,10 +96,11 @@ public abstract class CollidableComponent : EntityComponent
         }
         set
         {
-            Detach();
             _simulationIndex = value;
             if (Processor is not null)
                 ReAttach(Processor.BepuConfiguration.BepuSimulations[_simulationIndex]);
+            else
+                Detach();
         }
     }
 
@@ -177,6 +181,7 @@ public abstract class CollidableComponent : EntityComponent
 
     internal void TryUpdateFeatures()
     {
+        #warning Norbo: Some of the callsites for this method may not require a full reconstruction of the body ? Something we should validate
         if (Simulation is not null)
             ReAttach(Simulation);
     }
