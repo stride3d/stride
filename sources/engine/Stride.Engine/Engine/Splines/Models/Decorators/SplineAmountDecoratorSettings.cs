@@ -15,6 +15,6 @@ public class SplineAmountDecoratorSettings : SplineDecoratorSettings
     /// <userdoc>
     /// The fixed amount of decorations to be instantiated on a spline
     /// </userdoc>
-    [Display(40, "Distance")]
+    [Display(40, "Amount")]
     public int Amount { get; set; } = 4;
 }

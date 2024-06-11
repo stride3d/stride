@@ -116,7 +116,7 @@ public class SplineRenderer
         private static void CreateSplineNodeMesh(string description, GraphicsDevice graphicsDevice, Vector3 splineNodeWorldPosition, Entity splineEntity, Entity splineMeshEntity,
             SplineRenderSettings renderSettings)
         {
-            var sphereMeshDraw = GeometricPrimitive.Sphere.New(graphicsDevice, 0.15f, 8).ToMeshDraw();
+            var sphereMeshDraw = GeometricPrimitive.Sphere.New(graphicsDevice, 0.1f, 6).ToMeshDraw();
             var splineNodeMaterial = renderSettings.NodesMaterial ?? renderSettings.NodesMaterial ?? renderSettings.SegmentsMaterial;
             var splineNodeEntity = new Entity($"SplineNode_{description}")
             {
