@@ -303,7 +303,7 @@ namespace FreeImageAPI
 		/// <param name="flags">Flags to enable or disable plugin-features.</param>
 		/// <returns>Handle to a FreeImage bitmap.</returns>
 		[DllImport(FreeImageLibrary, CharSet = CharSet.Auto, EntryPoint = "FreeImage_Load")]
-		public static extern FIBITMAP Load(FREE_IMAGE_FORMAT fif, string filename, FREE_IMAGE_LOAD_FLAGS flags);
+		private static extern FIBITMAP LoadNU(FREE_IMAGE_FORMAT fif, string filename, FREE_IMAGE_LOAD_FLAGS flags);
 
 		/// <summary>
 		/// Decodes a bitmap, allocates memory for it and returns it as a FIBITMAP.
@@ -315,6 +315,11 @@ namespace FreeImageAPI
 		/// <returns>Handle to a FreeImage bitmap.</returns>
 		[DllImport(FreeImageLibrary, CharSet = CharSet.Unicode, EntryPoint = "FreeImage_LoadU")]
 		private static extern FIBITMAP LoadU(FREE_IMAGE_FORMAT fif, string filename, FREE_IMAGE_LOAD_FLAGS flags);
+
+		public static FIBITMAP Load(FREE_IMAGE_FORMAT fif, string filename, FREE_IMAGE_LOAD_FLAGS flags)
+		{
+			return OperatingSystem.IsWindows() ? LoadU(fif, filename, flags) : LoadNU(fif, filename, flags);
+		}
 
 		/// <summary>
 		/// Loads a bitmap from an arbitrary source.
@@ -335,8 +340,8 @@ namespace FreeImageAPI
 		/// <param name="filename">Name of the file to save to.</param>
 		/// <param name="flags">Flags to enable or disable plugin-features.</param>
 		/// <returns>Returns true on success, false on failure.</returns>
-		[DllImport(FreeImageLibrary, CharSet = CharSet.Unicode, EntryPoint = "FreeImage_SaveU")]
-		public static extern bool Save(FREE_IMAGE_FORMAT fif, FIBITMAP dib, string filename, FREE_IMAGE_SAVE_FLAGS flags);
+		[DllImport(FreeImageLibrary, CharSet = CharSet.Auto, EntryPoint = "FreeImage_Save")]
+		private static extern bool SaveNU(FREE_IMAGE_FORMAT fif, FIBITMAP dib, string filename, FREE_IMAGE_SAVE_FLAGS flags);
 
 		/// <summary>
 		/// Saves a previosly loaded FIBITMAP to a file.
@@ -349,6 +354,11 @@ namespace FreeImageAPI
 		/// <returns>Returns true on success, false on failure.</returns>
 		[DllImport(FreeImageLibrary, CharSet = CharSet.Unicode, EntryPoint = "FreeImage_SaveU")]
 		private static extern bool SaveU(FREE_IMAGE_FORMAT fif, FIBITMAP dib, string filename, FREE_IMAGE_SAVE_FLAGS flags);
+		
+		public static bool Save(FREE_IMAGE_FORMAT fif, FIBITMAP dib, string filename, FREE_IMAGE_SAVE_FLAGS flags)
+		{
+			return OperatingSystem.IsWindows() ? SaveU(fif, dib, filename, flags) : SaveNU(fif, dib, filename, flags);
+		}
 
 		/// <summary>
 		/// Saves a bitmap to an arbitrary source.
@@ -597,7 +607,7 @@ namespace FreeImageAPI
 		/// <param name="filename">The filename or -extension.</param>
 		/// <returns>The <see cref="FREE_IMAGE_FORMAT"/> of the plugin.</returns>
 		[DllImport(FreeImageLibrary, CharSet = CharSet.Auto, EntryPoint = "FreeImage_GetFIFFromFilename")]
-		public static extern FREE_IMAGE_FORMAT GetFIFFromFilename(string filename);
+		private static extern FREE_IMAGE_FORMAT GetFIFFromFilenameNU(string filename);
 
 		/// <summary>
 		/// This function takes a filename or a file-extension and returns the plugin that can
@@ -607,7 +617,12 @@ namespace FreeImageAPI
 		/// <param name="filename">The filename or -extension.</param>
 		/// <returns>The <see cref="FREE_IMAGE_FORMAT"/> of the plugin.</returns>
 		[DllImport(FreeImageLibrary, CharSet = CharSet.Unicode, EntryPoint = "FreeImage_GetFIFFromFilenameU")]
-		public static extern FREE_IMAGE_FORMAT GetFIFFromFilenameU(string filename);
+		private static extern FREE_IMAGE_FORMAT GetFIFFromFilenameU(string filename);
+
+		public static FREE_IMAGE_FORMAT GetFIFFromFilename(string filename)
+		{
+			return OperatingSystem.IsWindows() ? GetFIFFromFilenameU(filename) : GetFIFFromFilenameNU(filename);
+		}
 
 		/// <summary>
 		/// Checks if a plugin can load bitmaps.
@@ -786,7 +801,7 @@ namespace FreeImageAPI
 		/// <param name="size">Reserved parameter - use 0.</param>
 		/// <returns>Type of the bitmap.</returns>
 		[DllImport(FreeImageLibrary, CharSet = CharSet.Auto, EntryPoint = "FreeImage_GetFileType")]
-		public static extern FREE_IMAGE_FORMAT GetFileType(string filename, int size);
+		private static extern FREE_IMAGE_FORMAT GetFileTypeNU(string filename, int size);
 
 
 		/// <summary>
@@ -797,7 +812,12 @@ namespace FreeImageAPI
 		/// <param name="size">Reserved parameter - use 0.</param>
 		/// <returns>Type of the bitmap.</returns>
 		[DllImport(FreeImageLibrary, CharSet = CharSet.Unicode, EntryPoint = "FreeImage_GetFileTypeU")]
-		public static extern FREE_IMAGE_FORMAT GetFileTypeU(string filename, int size);
+		private static extern FREE_IMAGE_FORMAT GetFileTypeU(string filename, int size);
+
+		public static FREE_IMAGE_FORMAT GetFileType(string filename, int size)
+		{
+			return OperatingSystem.IsWindows() ? GetFIFFromFilenameU(filename) : GetFIFFromFilenameNU(filename);
+		}
 
 		/// <summary>
 		/// Uses the <see cref="FreeImageIO"/> structure as described in the topic bitmap management functions
