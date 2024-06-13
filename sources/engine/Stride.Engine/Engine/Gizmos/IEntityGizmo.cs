@@ -25,11 +25,20 @@ namespace Stride.Engine.Gizmos
         void Update();
 
         /// <summary>
-        /// Render group used for scene picking, set your model to use this render group when you want mouse selection to work on your models
+        /// Render group used for scene picking, set your model to use this render group when you want mouse selection to work on your models while still being depth tested
         /// </summary>
         /// <remarks>
         /// Your <see cref="IGizmo.HandlesComponentId"/> takes care of confirming to the engine that the picked component is yours
         /// </remarks>
         public const RenderGroup PickingRenderGroup = RenderGroup.Group0;
+
+
+        /// <summary>
+        /// Render group used for scene picking, set your model to use this render group when you want mouse selection to work on your models while being drawn above other objects
+        /// </summary>
+        /// <remarks>
+        /// Your <see cref="IGizmo.HandlesComponentId"/> takes care of confirming to the engine that the picked component is yours
+        /// </remarks>
+        public const RenderGroup PickingForegroundRenderGroup = RenderGroup.Group4;
     }
 }
