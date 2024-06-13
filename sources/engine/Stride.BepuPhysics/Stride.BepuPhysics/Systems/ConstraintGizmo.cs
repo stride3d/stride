@@ -43,12 +43,15 @@ public class ConstraintGizmo : IEntityGizmo
                 PrepareForFirstDraw();
 
             _enabled = value;
-            if (_sharedData is not null)
+            if (_sharedData is not null && value == false)
             {
-                foreach (var model in _models)
+                foreach (var component in _models)
                 {
-                    model.Enabled = _enabled;
+                    component.Enabled = false;
+                    _sharedData.Pool.Enqueue(component);
                 }
+
+                _models.Clear();
             }
         }
     }
@@ -191,7 +194,7 @@ public class ConstraintGizmo : IEntityGizmo
 
     public void Update()
     {
-        if (_sharedData is null)
+        if (_sharedData is null || _enabled == false)
             return;
 
         foreach (var component in _models)
