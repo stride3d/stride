@@ -21,6 +21,8 @@ namespace Stride.BepuPhysics;
 [DefaultEntityComponentProcessor(typeof(CollidableProcessor), ExecutionMode = ExecutionMode.Runtime)]
 public abstract class CollidableComponent : EntityComponent
 {
+    private static uint VersioningCounter;
+
     private int _simulationIndex = 0;
     private float _springFrequency = 30;
     private float _springDampingRatio = 3;
@@ -33,13 +35,13 @@ public abstract class CollidableComponent : EntityComponent
     private ICollider _collider;
     private IContactEventHandler? _trigger;
 
-    private static uint VersioningCounter;
-
     [DataMemberIgnore]
     public BepuSimulation? Simulation { get; private set; }
 
     [DataMemberIgnore]
     internal CollidableProcessor? Processor { get; set; }
+
+    internal Action<CollidableComponent>? OnFeaturesUpdated;
 
     [DataMemberIgnore]
     protected TypedIndex ShapeIndex { get; private set; }
@@ -184,6 +186,8 @@ public abstract class CollidableComponent : EntityComponent
         #warning Norbo: Some of the callsites for this method may not require a full reconstruction of the body ? Something we should validate
         if (Simulation is not null)
             ReAttach(Simulation);
+
+        OnFeaturesUpdated?.Invoke(this);
     }
 
     internal void ReAttach(BepuSimulation onSimulation)

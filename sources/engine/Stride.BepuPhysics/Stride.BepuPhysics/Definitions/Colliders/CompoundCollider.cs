@@ -22,9 +22,6 @@ public sealed class CompoundCollider : ICollider
     public IList<ColliderBase> Colliders => _colliders;
 
     [DataMemberIgnore]
-    public Action OnEditCallBack { get; set; }
-
-    [DataMemberIgnore]
     public int Transforms => _colliders.Count;
 
     [DataMemberIgnore]
@@ -35,7 +32,6 @@ public sealed class CompoundCollider : ICollider
 
     public CompoundCollider()
     {
-        OnEditCallBack = () => _component?.TryUpdateFeatures();
         _colliders = new() { Owner = this };
     }
 

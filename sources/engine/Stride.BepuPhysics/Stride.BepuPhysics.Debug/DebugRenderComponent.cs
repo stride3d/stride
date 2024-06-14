@@ -21,12 +21,12 @@ public class DebugRenderComponent : SyncScript
     [DataMember]
     public bool Visible
     {
-        get => _processor?.Enabled ?? _state;
+        get => _processor?.Visible ?? _state;
         set
         {
             _state = value;
             if (_processor is not null)
-                _processor.Enabled = value;
+                _processor.Visible = value;
         }
     }
 

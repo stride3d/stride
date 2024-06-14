@@ -25,7 +25,7 @@ public sealed class CylinderCollider : ColliderBase
         set
         {
             _radius = value;
-            Component?.OnEditCallBack();
+            TryUpdateFeatures();
         }
     }
 
@@ -38,7 +38,7 @@ public sealed class CylinderCollider : ColliderBase
         set
         {
             _length = value;
-            Component?.OnEditCallBack();
+            TryUpdateFeatures();
         }
     }
 

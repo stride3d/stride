@@ -41,7 +41,7 @@ public class DebugRenderProcessor : EntityProcessor<DebugRenderComponent>
             _visible = value;
             if (_sceneSystem.SceneInstance.GetProcessor<CollidableProcessor>() is { } proc)
             {
-                if (Enabled)
+                if (_visible)
                 {
                     proc.OnPostAdd += StartTrackingCollidable;
                     proc.OnPreRemove += ClearTrackingForCollidable;
@@ -150,6 +150,8 @@ public class DebugRenderProcessor : EntityProcessor<DebugRenderComponent>
     {
         shapeData.Clear();
 
+        collidable.OnFeaturesUpdated += CollidableUpdate;
+
         collidable.Collider.AppendModel(shapeData, _shapeCacheSystem, out var cache);
 
         Span<ShapeTransform> transforms = stackalloc ShapeTransform[collidable.Collider.Transforms];
@@ -167,6 +169,12 @@ public class DebugRenderProcessor : EntityProcessor<DebugRenderComponent>
             _visibilityGroup.RenderObjects.Add(wireframe);
         }
         _wireFrameRenderObject.Add(collidable, (wireframes, cache)); // We have to store the cache alongside it to ensure it doesn't get discarded for future calls to GetModelCache with the same model
+    }
+
+    void CollidableUpdate(CollidableComponent collidable)
+    {
+        ClearTrackingForCollidable(collidable);
+        StartTrackingCollidable(collidable);
     }
 
     static int Vector3ToRGBA(Vector3 rgb, byte a = 255)
@@ -190,6 +198,8 @@ public class DebugRenderProcessor : EntityProcessor<DebugRenderComponent>
 
     private void ClearTrackingForCollidable(CollidableComponent collidable)
     {
+        collidable.OnFeaturesUpdated -= CollidableUpdate;
+
         if (_wireFrameRenderObject.Remove(collidable, out var wfros))
         {
             foreach (var wireframe in wfros.Wireframes)
@@ -202,8 +212,9 @@ public class DebugRenderProcessor : EntityProcessor<DebugRenderComponent>
 
     private void Clear()
     {
-        foreach (var (_, (wireframes, _)) in _wireFrameRenderObject)
+        foreach (var (collidable, (wireframes, _)) in _wireFrameRenderObject)
         {
+            collidable.OnFeaturesUpdated -= CollidableUpdate;
             foreach (var wireframe in wireframes)
             {
                 wireframe.Dispose();

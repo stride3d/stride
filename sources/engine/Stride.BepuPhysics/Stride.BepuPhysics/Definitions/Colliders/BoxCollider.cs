@@ -26,7 +26,7 @@ public sealed class BoxCollider : ColliderBase
         set
         {
             _size = value;
-            Component?.OnEditCallBack();
+            TryUpdateFeatures();
         }
     }
 

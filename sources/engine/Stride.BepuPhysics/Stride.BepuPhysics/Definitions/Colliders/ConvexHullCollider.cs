@@ -36,7 +36,7 @@ public sealed class ConvexHullCollider : ColliderBase
         set
         {
             _hull = value;
-            Component?.OnEditCallBack();
+            TryUpdateFeatures();
         }
     }
 

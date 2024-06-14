@@ -11,7 +11,6 @@ namespace Stride.BepuPhysics.Definitions.Colliders;
 
 public interface ICollider
 {
-    public Action OnEditCallBack { get; set; }
     internal CollidableComponent? Component { get; set; }
 
     public int Transforms { get; }

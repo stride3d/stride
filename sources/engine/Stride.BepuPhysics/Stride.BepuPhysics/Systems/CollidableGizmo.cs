@@ -198,10 +198,10 @@ public sealed class CollidableGizmo : IEntityGizmo
         }
 
         Update(); // Ensure positions are up-to-date
-        _component.Collider.OnEditCallBack += OnEditCallBack;
+        _component.OnFeaturesUpdated += OnFeaturesUpdated;
     }
 
-    void OnEditCallBack()
+    void OnFeaturesUpdated(CollidableComponent _)
     {
         Dispose();
         _latent = true;
@@ -212,7 +212,7 @@ public sealed class CollidableGizmo : IEntityGizmo
         if (_models is null)
             return;
 
-        _component.Collider.OnEditCallBack = (_component.Collider.OnEditCallBack - OnEditCallBack)!;
+        _component.OnFeaturesUpdated = (_component.OnFeaturesUpdated - OnFeaturesUpdated)!;
         foreach ((ModelComponent comp, _) in _models)
         {
             comp.Entity.Scene = null;

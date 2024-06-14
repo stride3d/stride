@@ -20,20 +20,25 @@ internal sealed class ListOfColliders : IList<ColliderBase>, IReadOnlyList<Colli
     /// <inheritdoc/>
     public bool IsReadOnly => false;
 
+    void TryUpdateFeature()
+    {
+        ((ICollider)Owner).Component?.TryUpdateFeatures();
+    }
+
     /// <inheritdoc/>
     public void Add(ColliderBase item)
     {
-        item.Component = Owner;
+        item.Container = Owner;
         _innerList.Add(item);
-        Owner.OnEditCallBack();
+        TryUpdateFeature();
     }
 
     /// <inheritdoc/>
     public void Insert(int index, ColliderBase item)
     {
-        item.Component = Owner;
+        item.Container = Owner;
         _innerList.Insert(index, item);
-        Owner.OnEditCallBack();
+        TryUpdateFeature();
     }
 
     /// <inheritdoc/>
@@ -41,8 +46,8 @@ internal sealed class ListOfColliders : IList<ColliderBase>, IReadOnlyList<Colli
     {
         if (_innerList.Remove(item))
         {
-            item.Component = null;
-            Owner.OnEditCallBack();
+            item.Container = null;
+            TryUpdateFeature();
             return true;
         }
 
@@ -52,18 +57,18 @@ internal sealed class ListOfColliders : IList<ColliderBase>, IReadOnlyList<Colli
     /// <inheritdoc/>
     public void RemoveAt(int index)
     {
-        _innerList[index].Component = null;
+        _innerList[index].Container = null;
         _innerList.RemoveAt(index);
-        Owner.OnEditCallBack();
+        TryUpdateFeature();
     }
 
     /// <inheritdoc/>
     public void Clear()
     {
         foreach (var item in this)
-            item.Component = null;
+            item.Container = null;
         _innerList.Clear();
-        Owner.OnEditCallBack();
+        TryUpdateFeature();
     }
 
     /// <inheritdoc/>
@@ -84,10 +89,10 @@ internal sealed class ListOfColliders : IList<ColliderBase>, IReadOnlyList<Colli
         }
         set
         {
-            value.Component = Owner; // Doing this one first just in case it throws
-            _innerList[index].Component = null;
+            value.Container = Owner; // Doing this one first just in case it throws
+            _innerList[index].Container = null;
             _innerList[index] = value;
-            Owner.OnEditCallBack();
+            TryUpdateFeature();
         }
     }
 
