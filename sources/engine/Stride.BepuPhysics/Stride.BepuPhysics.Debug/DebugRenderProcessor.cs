@@ -14,20 +14,63 @@ using Stride.Rendering;
 
 namespace Stride.BepuPhysics.Debug;
 
-public class DebugRenderProcessor : GameSystem
+public class DebugRenderProcessor : EntityProcessor<DebugRenderComponent>
 {
     public SynchronizationMode Mode { get; set; } = SynchronizationMode.Physics; // Setting it to Physics by default to show when there is a large discrepancy between the entity and physics
 
-    private readonly IGame _game;
-    private readonly SceneSystem _sceneSystem;
-    private readonly ShapeCacheSystem _shapeCacheSystem;
-    private readonly VisibilityGroup _visibilityGroup;
+    private bool _visible;
+    private IGame _game = null!;
+    private SceneSystem _sceneSystem = null!;
+    private ShapeCacheSystem _shapeCacheSystem = null!;
+    private VisibilityGroup _visibilityGroup = null!;
     private readonly Dictionary<CollidableComponent, (WireFrameRenderObject[] Wireframes, object? cache)> _wireFrameRenderObject = new();
 
-    public DebugRenderProcessor(IServiceRegistry registry) : base(registry)
+    public DebugRenderProcessor()
+    {
+        Order = SystemsOrderHelper.ORDER_OF_DEBUG_P;
+    }
+
+    public bool Visible
+    {
+        get => _visible;
+        set
+        {
+            if (_visible == value)
+                return;
+
+            _visible = value;
+            if (_sceneSystem.SceneInstance.GetProcessor<CollidableProcessor>() is { } proc)
+            {
+                if (Enabled)
+                {
+                    proc.OnPostAdd += StartTrackingCollidable;
+                    proc.OnPreRemove += ClearTrackingForCollidable;
+                    StartTracking(proc);
+                }
+                else
+                {
+                    proc.OnPostAdd -= StartTrackingCollidable;
+                    proc.OnPreRemove -= ClearTrackingForCollidable;
+                    Clear();
+                }
+            }
+            else
+            {
+                Clear();
+            }
+        }
+    }
+
+    protected override void OnEntityComponentAdding(Entity entity, DebugRenderComponent component, DebugRenderComponent data)
+    {
+        base.OnEntityComponentAdding(entity, component, data);
+        component._processor = this;
+        Visible = component.Visible;
+    }
+
+    protected override void OnSystemAdd()
     {
         SinglePassWireframeRenderFeature wireframeRenderFeature;
-        DrawOrder = SystemsOrderHelper.ORDER_OF_DEBUG_P;
 
         ServicesHelper.LoadBepuServices(Services, out _, out _shapeCacheSystem, out _);
         _game = Services.GetSafeServiceAs<IGame>();
@@ -44,73 +87,50 @@ public class DebugRenderProcessor : GameSystem
         }
 
         _visibilityGroup = _sceneSystem.SceneInstance.VisibilityGroups.First();
-
-        EnabledChanged += OnEnabledChanged;
     }
 
-    void OnEnabledChanged(object? sender, EventArgs e)
+    protected override void OnSystemRemove()
     {
-        if (_sceneSystem.SceneInstance.GetProcessor<CollidableProcessor>() is { } proc)
-        {
-            if (Enabled)
-            {
-                proc.OnPostAdd += StartTrackingCollidable;
-                proc.OnPreRemove += ClearTrackingForCollidable;
-                StartTracking(proc);
-            }
-            else
-            {
-                proc.OnPostAdd -= StartTrackingCollidable;
-                proc.OnPreRemove -= ClearTrackingForCollidable;
-                Clear();
-            }
-        }
-        else
-        {
-            Clear();
-        }
+        Clear();
     }
 
-    public override void Draw(GameTime gameTime)
+    public override void Draw(RenderContext context)
     {
-        base.Draw(gameTime);
+        base.Draw(context);
 
-        if (Enabled) // Update gizmos transform
+        foreach (var (collidable, (wireframes, cache)) in _wireFrameRenderObject)
         {
-            foreach (var (collidable, (wireframes, cache)) in _wireFrameRenderObject)
+            Matrix matrix;
+            switch (Mode)
             {
-                Matrix matrix;
-                switch (Mode)
-                {
-                    case SynchronizationMode.Physics:
-                        if (collidable.Pose is { } pose)
-                        {
-                            var worldPosition = pose.Position.ToStride();
-                            var worldRotation = pose.Orientation.ToStride();
-                            var scale = Vector3.One;
-                            worldPosition -= Vector3.Transform(collidable.CenterOfMass, worldRotation);
-                            Matrix.Transformation(ref scale, ref worldRotation, ref worldPosition, out matrix);
-                        }
-                        else
-                        {
-                            return;
-                        }
-                        break;
-                    case SynchronizationMode.Entity:
-                        // We don't need to call UpdateWorldMatrix before reading WorldMatrix as we're running after the TransformProcessor operated,
-                        // and we don't expect or care if other processors affect the transform afterwards
-                        collidable.Entity.Transform.WorldMatrix.Decompose(out _, out matrix, out var translation);
-                        matrix.TranslationVector = translation;
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException(nameof(Mode));
-                }
+                case SynchronizationMode.Physics:
+                    if (collidable.Pose is { } pose)
+                    {
+                        var worldPosition = pose.Position.ToStride();
+                        var worldRotation = pose.Orientation.ToStride();
+                        var scale = Vector3.One;
+                        worldPosition -= Vector3.Transform(collidable.CenterOfMass, worldRotation);
+                        Matrix.Transformation(ref scale, ref worldRotation, ref worldPosition, out matrix);
+                    }
+                    else
+                    {
+                        continue;
+                    }
+                    break;
+                case SynchronizationMode.Entity:
+                    // We don't need to call UpdateWorldMatrix before reading WorldMatrix as we're running after the TransformProcessor operated,
+                    // and we don't expect or care if other processors affect the transform afterwards
+                    collidable.Entity.Transform.WorldMatrix.Decompose(out _, out matrix, out var translation);
+                    matrix.TranslationVector = translation;
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(Mode));
+            }
 
-                foreach (var wireframe in wireframes)
-                {
-                    wireframe.WorldMatrix = wireframe.CollidableBaseMatrix * matrix;
-                    wireframe.Color = GetCurrentColor(collidable);
-                }
+            foreach (var wireframe in wireframes)
+            {
+                wireframe.WorldMatrix = wireframe.CollidableBaseMatrix * matrix;
+                wireframe.Color = GetCurrentColor(collidable);
             }
         }
     }
@@ -193,15 +213,6 @@ public class DebugRenderProcessor : GameSystem
         _wireFrameRenderObject.Clear();
     }
 
-    public enum SynchronizationMode
-    {
-        /// <summary> Read from the physics engine, ignore any changes made to the entity </summary>
-        /// <remarks> Ensures that users can see when their entities/shapes are not synchronized with physics </remarks>
-        Physics,
-        /// <summary> Read from the entity, showing any changes that affected it after physics </summary>
-        Entity
-    }
-
     private Color GetCurrentColor(CollidableComponent collidable)
     {
         var color = new Vector3(0, 0, 0);
@@ -246,5 +257,14 @@ public class DebugRenderProcessor : GameSystem
         }
 
         return Color.FromRgba(Vector3ToRGBA(color, a)); //R : Mesh, G : 2D, B : body. Total : awake => 100% else 33% | Static => 11%
+    }
+
+    public enum SynchronizationMode
+    {
+        /// <summary> Read from the physics engine, ignore any changes made to the entity </summary>
+        /// <remarks> Ensures that users can see when their entities/shapes are not synchronized with physics </remarks>
+        Physics,
+        /// <summary> Read from the entity, showing any changes that affected it after physics </summary>
+        Entity
     }
 }

@@ -3,21 +3,23 @@
 
 using Stride.Core;
 using Stride.Engine;
+using Stride.Engine.Design;
 using Stride.Input;
 
 namespace Stride.BepuPhysics.Debug;
 
 [DataContract]
+[DefaultEntityComponentProcessor(typeof(DebugRenderProcessor), ExecutionMode = ExecutionMode.Runtime)]
 [ComponentCategory("Bepu - Debug")]
 public class DebugRenderComponent : SyncScript
 {
-    DebugRenderProcessor? _processor;
+    internal DebugRenderProcessor? _processor;
     bool _state = true;
 
     public Keys Key { get; set; } = Keys.F11;
 
     [DataMember]
-    public bool Render
+    public bool Visible
     {
         get => _processor?.Enabled ?? _state;
         set
@@ -28,27 +30,11 @@ public class DebugRenderComponent : SyncScript
         }
     }
 
-    public override void Start()
-    {
-        base.Start();
-        if (Services.GetService<DebugRenderProcessor>() is { } processor)
-        {
-            _processor = processor;
-        }
-        else
-        {
-            _processor = new DebugRenderProcessor(Services);
-            Services.AddService(_processor);
-        }
-
-        _processor.Enabled = _state;
-    }
-
     public override void Update()
     {
         if (Input.IsKeyPressed(Key))
         {
-            Render = !Render;
+            Visible = !Visible;
         }
     }
 }
