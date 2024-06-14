@@ -18,6 +18,7 @@ public class DebugRenderProcessor : EntityProcessor<DebugRenderComponent>
 {
     public SynchronizationMode Mode { get; set; } = SynchronizationMode.Physics; // Setting it to Physics by default to show when there is a large discrepancy between the entity and physics
 
+    private bool _latent;
     private bool _visible;
     private IGame _game = null!;
     private SceneSystem _sceneSystem = null!;
@@ -35,12 +36,12 @@ public class DebugRenderProcessor : EntityProcessor<DebugRenderComponent>
         get => _visible;
         set
         {
-            if (_visible == value)
-                return;
-
-            _visible = value;
             if (_sceneSystem.SceneInstance.GetProcessor<CollidableProcessor>() is { } proc)
             {
+                if (_visible == value)
+                    return;
+
+                _visible = value;
                 if (_visible)
                 {
                     proc.OnPostAdd += StartTrackingCollidable;
@@ -56,6 +57,7 @@ public class DebugRenderProcessor : EntityProcessor<DebugRenderComponent>
             }
             else
             {
+                _visible = false;
                 Clear();
             }
         }
@@ -64,8 +66,12 @@ public class DebugRenderProcessor : EntityProcessor<DebugRenderComponent>
     protected override void OnEntityComponentAdding(Entity entity, DebugRenderComponent component, DebugRenderComponent data)
     {
         base.OnEntityComponentAdding(entity, component, data);
+        if (_sceneSystem.SceneInstance.GetProcessor<CollidableProcessor>() is not null)
+            Visible = component.Visible;
+        else if (component.Visible)
+            _latent = true;
+
         component._processor = this;
-        Visible = component.Visible;
     }
 
     protected override void OnSystemAdd()
@@ -96,6 +102,13 @@ public class DebugRenderProcessor : EntityProcessor<DebugRenderComponent>
 
     public override void Draw(RenderContext context)
     {
+        if (_latent)
+        {
+            Visible = true;
+            if (Visible)
+                _latent = false;
+        }
+
         base.Draw(context);
 
         foreach (var (collidable, (wireframes, cache)) in _wireFrameRenderObject)
