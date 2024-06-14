@@ -109,7 +109,7 @@ Hierarchy:
                             YAxis: 0
                             ZAxis: 0
                         Kinematic: false
-                        IgnoreGlobalGravity: false
+                        Gravity: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
                         InterpolationMode: None
@@ -164,7 +164,7 @@ Hierarchy:
                             YAxis: 0
                             ZAxis: 0
                         Kinematic: false
-                        IgnoreGlobalGravity: false
+                        Gravity: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
                         InterpolationMode: None
@@ -185,7 +185,7 @@ Hierarchy:
                         Type: !LightDirectional
                             Color: !ColorRgbProvider
                                 Value: {R: 1.0, G: 1.0, B: 1.0}
-                            Shadow: !LightDirectionalShadowMap
+                            Shadow:
                                 Enabled: true
                                 Filter: !LightShadowMapFilterTypePcf
                                     FilterSize: Filter5x5
@@ -228,7 +228,7 @@ Hierarchy:
                             YAxis: 0
                             ZAxis: 0
                         Kinematic: false
-                        IgnoreGlobalGravity: false
+                        Gravity: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
                         InterpolationMode: None
@@ -277,7 +277,7 @@ Hierarchy:
                             YAxis: 0
                             ZAxis: 0
                         Kinematic: false
-                        IgnoreGlobalGravity: false
+                        Gravity: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
                         InterpolationMode: None
@@ -315,7 +315,7 @@ Hierarchy:
                             YAxis: 0
                             ZAxis: 0
                         Kinematic: false
-                        IgnoreGlobalGravity: false
+                        Gravity: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
                         InterpolationMode: None
@@ -356,7 +356,7 @@ Hierarchy:
                             YAxis: 0
                             ZAxis: 0
                         Kinematic: false
-                        IgnoreGlobalGravity: false
+                        Gravity: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
                         InterpolationMode: None
@@ -429,7 +429,7 @@ Hierarchy:
                             YAxis: 0
                             ZAxis: 0
                         Kinematic: false
-                        IgnoreGlobalGravity: false
+                        Gravity: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
                         InterpolationMode: None
@@ -472,7 +472,7 @@ Hierarchy:
                             YAxis: 0
                             ZAxis: 0
                         Kinematic: false
-                        IgnoreGlobalGravity: false
+                        Gravity: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
                         InterpolationMode: None
@@ -548,7 +548,7 @@ Hierarchy:
                             YAxis: 0
                             ZAxis: 0
                         Kinematic: false
-                        IgnoreGlobalGravity: false
+                        Gravity: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
                         InterpolationMode: None
@@ -608,7 +608,7 @@ Hierarchy:
                             YAxis: 0
                             ZAxis: 0
                         Kinematic: false
-                        IgnoreGlobalGravity: false
+                        Gravity: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
                         InterpolationMode: None
@@ -654,9 +654,10 @@ Hierarchy:
                         Id: 8679aa9b-1aa9-479e-be27-01ed703bfb58
                         Camera: ref!! 12cd454b-7e0a-4fdc-930f-91d88692dfa2
                         SimIndex: 0
-                    22b1fb53fb58e8989ce0fccfedd55654: !Stride.BepuPhysics.DebugRender.Components.DebugRenderComponent,Stride.BepuPhysics.DebugRender
-                        Id: 6dd2aa84-acaa-45eb-9ba0-061fa0273132
-                        AlwaysRender: true
+                    77ef64187e277b75062cb8d71ded09cf: !Stride.BepuPhysics.Debug.DebugRenderComponent,Stride.BepuPhysics.Debug
+                        Id: e927dc6b-05f6-4f1a-8fce-4b3c64273cfa
+                        Key: F11
+                        Render: true
         -   Entity:
                 Id: 90d1dd74-2e69-441c-9314-fe409de4d535
                 Name: TestEntityTree
@@ -718,7 +719,7 @@ Hierarchy:
                             YAxis: 0
                             ZAxis: 0
                         Kinematic: false
-                        IgnoreGlobalGravity: false
+                        Gravity: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
                         InterpolationMode: None
@@ -785,7 +786,7 @@ Hierarchy:
                             YAxis: 0
                             ZAxis: 0
                         Kinematic: false
-                        IgnoreGlobalGravity: false
+                        Gravity: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
                         InterpolationMode: None
@@ -838,7 +839,7 @@ Hierarchy:
                             YAxis: 0
                             ZAxis: 0
                         Kinematic: false
-                        IgnoreGlobalGravity: false
+                        Gravity: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
                         InterpolationMode: None
@@ -877,7 +878,7 @@ Hierarchy:
                             YAxis: 0
                             ZAxis: 0
                         Kinematic: false
-                        IgnoreGlobalGravity: false
+                        Gravity: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
                         InterpolationMode: None
@@ -948,7 +949,7 @@ Hierarchy:
                             YAxis: 0
                             ZAxis: 0
                         Kinematic: false
-                        IgnoreGlobalGravity: false
+                        Gravity: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
                         InterpolationMode: None
@@ -986,7 +987,7 @@ Hierarchy:
                             YAxis: 0
                             ZAxis: 0
                         Kinematic: false
-                        IgnoreGlobalGravity: false
+                        Gravity: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
                         InterpolationMode: None
@@ -1033,7 +1034,7 @@ Hierarchy:
                             YAxis: 0
                             ZAxis: 0
                         Kinematic: false
-                        IgnoreGlobalGravity: false
+                        Gravity: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
                         InterpolationMode: None
@@ -1071,7 +1072,7 @@ Hierarchy:
                             YAxis: 0
                             ZAxis: 0
                         Kinematic: false
-                        IgnoreGlobalGravity: false
+                        Gravity: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
                         InterpolationMode: None
@@ -1111,7 +1112,7 @@ Hierarchy:
                             YAxis: 0
                             ZAxis: 0
                         Kinematic: true
-                        IgnoreGlobalGravity: false
+                        Gravity: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
                         InterpolationMode: None
@@ -1177,7 +1178,7 @@ Hierarchy:
                             YAxis: 0
                             ZAxis: 0
                         Kinematic: false
-                        IgnoreGlobalGravity: false
+                        Gravity: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
                         InterpolationMode: None
@@ -1237,7 +1238,7 @@ Hierarchy:
                             YAxis: 0
                             ZAxis: 0
                         Kinematic: false
-                        IgnoreGlobalGravity: false
+                        Gravity: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
                         InterpolationMode: None

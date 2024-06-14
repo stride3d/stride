@@ -336,7 +336,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.BepuPhysics", "..\so
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.BepuPhysics._2D", "..\sources\engine\Stride.BepuPhysics\Stride.BepuPhysics._2D\Stride.BepuPhysics._2D.csproj", "{A8B00252-A78E-43F2-8677-57A63CCF1ABA}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.BepuPhysics.DebugRender", "..\sources\engine\Stride.BepuPhysics\Stride.BepuPhysics.DebugRender\Stride.BepuPhysics.DebugRender.csproj", "{7715D094-DF59-4D91-BC9A-9A5118039ECB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.BepuPhysics.Debug", "..\sources\engine\Stride.BepuPhysics\Stride.BepuPhysics.Debug\Stride.BepuPhysics.Debug.csproj", "{7715D094-DF59-4D91-BC9A-9A5118039ECB}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.BepuPhysics.Demo", "..\sources\engine\Stride.BepuPhysics\Stride.BepuPhysics.Demo\Stride.BepuPhysics.Demo.csproj", "{E56FFD91-590E-442A-910B-CC88C92AE553}"
 EndProject
