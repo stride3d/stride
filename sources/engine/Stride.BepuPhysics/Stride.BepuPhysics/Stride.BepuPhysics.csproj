@@ -24,7 +24,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Stride.Engine\Stride.Engine.csproj" />
-    <ProjectReference Include="..\..\Stride.Physics\Stride.Physics.csproj" />
   </ItemGroup>
 
   <ItemGroup>
