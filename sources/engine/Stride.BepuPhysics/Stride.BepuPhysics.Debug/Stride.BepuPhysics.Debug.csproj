@@ -1,6 +1,7 @@
-<Project Sdk="Microsoft.NET.Sdk">
+<Project>
   <PropertyGroup>
     <StrideRuntime>true</StrideRuntime>
+    <RootNamespace>Stride.BepuPhysics.Debug</RootNamespace>
   </PropertyGroup>
   <Import Project="..\..\..\targets\Stride.props" />
 
@@ -9,9 +10,8 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Nullable>enable</Nullable>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
-    <StrideAssemblyProcessorOptions>--serialization --parameter-key</StrideAssemblyProcessorOptions>
     <StrideBuildTags>*</StrideBuildTags>
-    <StrideCodeAnalysis>true</StrideCodeAnalysis>
+    <StridePackAssets>true</StridePackAssets>
   </PropertyGroup>
 
   <ItemGroup>
@@ -27,9 +27,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="Effects\SinglePassWireframeShader.sdsl">
-      <Generator>StrideShaderKeyGenerator</Generator>
-    </None>
+    <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
+
   <Import Project="$(StrideSdkTargets)" />
 </Project>

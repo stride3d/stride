@@ -4,7 +4,7 @@
 using System.Reflection;
 using Stride.Core.Reflection;
 
-namespace Stride.BepuPhysics.DebugRender
+namespace Stride.BepuPhysics.Debug
 {
     internal class Module
     {

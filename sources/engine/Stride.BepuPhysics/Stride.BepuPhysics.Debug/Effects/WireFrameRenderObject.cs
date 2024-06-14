@@ -7,7 +7,7 @@ using Stride.Graphics;
 using Stride.Rendering;
 using Buffer = Stride.Graphics.Buffer;
 
-namespace Stride.BepuPhysics.DebugRender.Effects
+namespace Stride.BepuPhysics.Debug.Effects
 {
     public class WireFrameRenderObject : RenderObject, IDisposable
     {
