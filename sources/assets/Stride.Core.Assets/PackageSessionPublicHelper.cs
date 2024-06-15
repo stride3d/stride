@@ -17,7 +17,10 @@ namespace Stride.Core.Assets
     public static class PackageSessionPublicHelper
     {
 
-        public const byte NetMajorVersion = 8; //or NET_MAJOR_VERSION
+        /// <summary>
+        /// The current major .NET version that Stride will use.
+        /// </summary>
+        public const byte NetMajorVersion = 8;
 
         private static readonly string[] s_msBuildAssemblies =
         {
