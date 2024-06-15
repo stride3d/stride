@@ -24,7 +24,7 @@
 using System;
 using System.Globalization;
 using System.Windows.Forms;
-#if !STRIDE_GRAPHICS_API_OPENGL && !STRIDE_GRAPHICS_API_VULKAN && !STRIDE_GRAPHICS_API_NULL
+#if !STRIDE_GRAPHICS_API_OPENGL && !STRIDE_GRAPHICS_API_VULKAN
 using SharpDX.Win32;
 #endif
 using System.Runtime.InteropServices;

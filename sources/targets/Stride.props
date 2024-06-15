@@ -48,11 +48,7 @@
   <PropertyGroup Condition=" '$(StrideGraphicsApi)' == 'Direct3D12' ">
     <StrideGraphicsApiDefines>STRIDE_GRAPHICS_API_DIRECT3D;STRIDE_GRAPHICS_API_DIRECT3D12</StrideGraphicsApiDefines>
   </PropertyGroup>
-
-  <PropertyGroup Condition=" '$(StrideGraphicsApi)' == 'Null' ">
-    <StrideGraphicsApiDefines>STRIDE_GRAPHICS_API_NULL</StrideGraphicsApiDefines>
-  </PropertyGroup>
-
+  
   <PropertyGroup Condition=" '$(StrideGraphicsApi)' == 'OpenGL' ">
     <StrideGraphicsApiDefines>STRIDE_GRAPHICS_API_OPENGL;STRIDE_GRAPHICS_API_OPENGLCORE</StrideGraphicsApiDefines>
   </PropertyGroup>

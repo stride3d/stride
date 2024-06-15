@@ -115,8 +115,6 @@ namespace Stride.Graphics.Regression
             return TestPlatform.Android;
 #elif STRIDE_PLATFORM_IOS
             return TestPlatform.Ios;
-#elif STRIDE_GRAPHICS_API_NULL
-            return TestPlatform.None;
 #elif STRIDE_GRAPHICS_API_DIRECT3D
             return TestPlatform.WindowsDx;
 #elif STRIDE_GRAPHICS_API_OPENGLES
