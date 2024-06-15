@@ -9,7 +9,10 @@ using Xunit;
 using Stride.Core;
 using Stride.Core.Collections;
 using Stride.Engine.Design;
+using Stride.Engine.FlexibleProcessing;
 using Stride.Engine.Processors;
+using Stride.Games;
+using Stride.Rendering;
 
 namespace Stride.Engine.Tests
 {
@@ -450,6 +453,112 @@ namespace Stride.Engine.Tests
             Assert.True(addChildCheck);
             Assert.True(removeChildCheck);
             Assert.True(prevRootAsChildCheck);
+        }
+
+        [Fact]
+        public void TestFlexibleProcessor()
+        {
+            var registry = new ServiceRegistry();
+            var entityManager = new CustomEntityManager(registry);
+
+            var compTest = new CompTest();
+            var entity = new Entity();
+
+            entityManager.Add(entity);
+
+            entity.Add(compTest);
+            Assert.True(compTest.Added);
+            Assert.True(compTest.Proc.SystemAddedRan);
+
+            entityManager.Update(new());
+            Assert.True(compTest.Updated);
+
+            entity.Remove(compTest);
+            Assert.True(compTest.Removed);
+            Assert.True(compTest.Proc.SystemRemovedRan);
+
+            // Try again with an entity with a pre-existing comp
+            compTest = new CompTest();
+            entity = new Entity();
+            entity.Add(compTest);
+
+            entityManager.Add(entity);
+
+            Assert.True(compTest.Added);
+            Assert.True(compTest.Proc.SystemAddedRan);
+
+            entityManager.Draw(null);
+            Assert.True(compTest.Drawn);
+
+            // and removing the entity itself instead of removing the component
+            entityManager.Remove(entity);
+            Assert.True(compTest.Removed);
+            Assert.True(compTest.Proc.SystemRemovedRan);
+
+
+            compTest.Proc.SystemUpdated = false;
+            entityManager.Update(new());
+            Assert.False(compTest.Proc.SystemUpdated);
+
+            compTest.Proc.SystemDrawn = false;
+            entityManager.Draw(null);
+            Assert.False(compTest.Proc.SystemDrawn);
+        }
+    }
+
+
+    public class CompTest : EntityComponent, IComponent<CompTest.ProcTest, CompTest>
+    {
+        public bool Added, Updated, Drawn, Removed;
+        public ProcTest Proc;
+
+        public class ProcTest : IComponent<ProcTest, CompTest>.IProcessor, IUpdateProcessor, IDrawProcessor
+        {
+            public int Order => 10;
+
+            public List<CompTest> Instances = new();
+            public bool SystemAddedRan, SystemRemovedRan, SystemUpdated, SystemDrawn;
+
+            public void OnComponentAdded(CompTest item)
+            {
+                Instances.Add(item);
+                item.Added = true;
+                item.Proc = this;
+            }
+
+            public void OnComponentRemoved(CompTest item)
+            {
+                item.Removed = true;
+                Instances.Remove(item);
+            }
+
+            public void Update(GameTime gTime)
+            {
+                SystemUpdated = true;
+                foreach (var instance in Instances)
+                {
+                    instance.Updated = true;
+                }
+            }
+
+            public void Draw(RenderContext context)
+            {
+                SystemDrawn = true;
+                foreach (var instance in Instances)
+                {
+                    instance.Drawn = true;
+                }
+            }
+
+            public void SystemAdded(IServiceRegistry registry)
+            {
+                SystemAddedRan = true;
+            }
+
+            public void SystemRemoved()
+            {
+                SystemRemovedRan = true;
+            }
         }
     }
 
