@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using Stride.Core;
 using Stride.Core.Diagnostics;
 using Stride.Games;
@@ -75,27 +76,23 @@ namespace Stride.Engine.FlexibleProcessing
 
             foreach (var procIndex in processorsIndex)
             {
-                var pData = processors[procIndex];
-                pData.ComponentCount++;
+                ref var pDataRef = ref CollectionsMarshal.AsSpan(processors)[procIndex];
+                pDataRef.ComponentCount++;
 
-                if (pData.Instance == null) // if the processor hasn't been created yet or was previously removed
+                var instance = pDataRef.Instance;
+                if (instance == null) // if the processor hasn't been created yet or was previously removed
                 {
-                    pData.Instance = (IProcessorBase)Activator.CreateInstance(pData.Type)!;
-                    if (pData.Instance is IUpdateProcessor update)
-                        processorsToUpdate.Add(new(update.Order, pData.Type), new(update, new ProfilingKey(GameProfilingKeys.GameUpdate, GetType().Name)));
-                    if (pData.Instance is IDrawProcessor draw)
-                        processorsToDraw.Add(new(draw.Order, pData.Type), new(draw, new ProfilingKey(GameProfilingKeys.GameDraw, GetType().Name)));
+                    pDataRef.Instance = instance = (IProcessorBase)Activator.CreateInstance(pDataRef.Type)!;
+                    if (instance is IUpdateProcessor update)
+                        processorsToUpdate.Add(new(update.Order, pDataRef.Type), new(update, new ProfilingKey(GameProfilingKeys.GameUpdate, GetType().Name)));
+                    if (instance is IDrawProcessor draw)
+                        processorsToDraw.Add(new(draw.Order, pDataRef.Type), new(draw, new ProfilingKey(GameProfilingKeys.GameDraw, GetType().Name)));
 
-                    processors[procIndex] = pData; // Set beforehand just in case SystemAdded adds a component
-                    pData.Instance!.SystemAdded(registry);
-                    pData = processors[procIndex]; // Refresh local for the same reason
-                }
-                else
-                {
-                    processors[procIndex] = pData;
+                    instance.SystemAdded(registry);
+                    // Don't read or write to pDataRef from here on since SystemAdded may have mutated processors' backing array
                 }
 
-                pData.Instance!.OnComponentAdded(component);
+                instance.OnComponentAdded(component);
             }
         }
 
@@ -106,17 +103,16 @@ namespace Stride.Engine.FlexibleProcessing
 
             foreach (var procIndex in compTypeToProcessorIndices[component.GetType()])
             {
-                var pData = processors[procIndex];
-                pData.ComponentCount--;
-                processors[procIndex] = pData;
-                pData.Instance!.OnComponentRemoved(component);
+                ref var pDataRef = ref CollectionsMarshal.AsSpan(processors)[procIndex];
+                pDataRef.ComponentCount--;
+                pDataRef.Instance!.OnComponentRemoved(component);
 
-                if (pData.ComponentCount == 0 && processors[procIndex].ComponentCount == 0) // Double check in case OnEntityComponentRemoved added a component
+                // Refresh reference as OnComponentRemoved may have mutated processors' backing array
+                pDataRef = ref CollectionsMarshal.AsSpan(processors)[procIndex];
+                if (pDataRef.ComponentCount == 0)
                 {
-                    var system = pData.Instance!;
-                    pData.Instance = null;
-                    processors[procIndex] = pData;
-                    system.SystemRemoved();
+                    var system = pDataRef.Instance!;
+                    pDataRef.Instance = null;
                     if (system is IUpdateProcessor update)
                     {
                         for (int i = 0; i < processorsToUpdate.Count; i++)
@@ -142,6 +138,8 @@ namespace Stride.Engine.FlexibleProcessing
                             }
                         }
                     }
+
+                    system.SystemRemoved();
                 }
             }
         }
