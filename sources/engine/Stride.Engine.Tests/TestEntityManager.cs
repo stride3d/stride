@@ -504,9 +504,26 @@ namespace Stride.Engine.Tests
             entityManager.Draw(null);
             Assert.False(compTest.Proc.SystemDrawn);
         }
+
+        [Fact]
+        public void TestFlexibleProcessorNestedEntry()
+        {
+            var registry = new ServiceRegistry();
+            var entityManager = new CustomEntityManager(registry);
+            registry.AddService(entityManager);
+
+            var compTest = new CompTestNested();
+            var entity = new Entity{ compTest };
+
+            entityManager.Add(entity);
+            entityManager.Remove(entity);
+
+            Assert.Equal(4, compTest.Proc.Instances.Count);
+        }
     }
 
 
+    [AllowMultipleComponents]
     public class CompTest : EntityComponent, IComponent<CompTest.ProcTest, CompTest>
     {
         public bool Added, Updated, Drawn, Removed;
@@ -558,6 +575,53 @@ namespace Stride.Engine.Tests
             public void SystemRemoved()
             {
                 SystemRemovedRan = true;
+            }
+        }
+    }
+
+
+    public class CompTestNested : EntityComponent, IComponent<CompTestNested.ProcTest, CompTestNested>
+    {
+        public ProcTest Proc;
+
+        public class ProcTest : IComponent<ProcTest, CompTestNested>.IProcessor
+        {
+            public int Order => 10;
+
+            public List<CompTestNested> Instances = new();
+            private bool didAdd, didRemove;
+            private CustomEntityManager entityManager;
+
+            public void OnComponentAdded(CompTestNested item)
+            {
+                Instances.Add(item);
+                if (didAdd == false)
+                {
+                    didAdd = true;
+                    entityManager.Add(new Entity{ new CompTestNested() });
+                }
+
+                item.Proc = this;
+            }
+
+            public void OnComponentRemoved(CompTestNested item)
+            {
+                if (didRemove == false)
+                {
+                    didRemove = true;
+                    entityManager.Add(new Entity{ new CompTestNested() });
+                }
+            }
+
+            public void SystemAdded(IServiceRegistry registryParam)
+            {
+                entityManager = registryParam.GetSafeServiceAs<CustomEntityManager>();
+                entityManager.Add(new Entity{ new CompTestNested() });
+            }
+
+            public void SystemRemoved()
+            {
+                entityManager.Add(new Entity{ new CompTestNested() }); // This call will create a new instance of this processor type and add the new entity to that new instance
             }
         }
     }
