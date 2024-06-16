@@ -42,7 +42,7 @@ namespace Stride.Engine.FlexibleProcessing
 
         public void IntroduceComponent(EntityComponent _component)
         {
-            if (_component is IMarkedComponent component == false)
+            if (_component is not IMarkedComponent component)
                 return;
 
             var componentType = component.GetType();
@@ -101,7 +101,7 @@ namespace Stride.Engine.FlexibleProcessing
 
         public void RemoveComponent(EntityComponent _component)
         {
-            if (_component is IMarkedComponent component == false)
+            if (_component is not IMarkedComponent component)
                 return;
 
             foreach (var procIndex in compTypeToProcessorIndices[component.GetType()])
