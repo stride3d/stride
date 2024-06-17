@@ -20,7 +20,7 @@ namespace Stride.Core.Assets
         /// <summary>
         /// The current major .NET version that Stride will use.
         /// </summary>
-        public const byte NetMajorVersion = 8;
+        public static int NetMajorVersion => Environment.Version.Major;
 
         private static readonly string[] s_msBuildAssemblies =
         {
