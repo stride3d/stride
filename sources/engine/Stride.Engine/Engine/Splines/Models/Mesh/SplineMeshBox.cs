@@ -11,7 +11,6 @@ namespace Stride.Engine.Splines.Models.Mesh
     [Display("Box")]
     public class SplineMeshBox : SplineMesh
     {
-
         private readonly Vector3[] normals = new Vector3[4]
         {
             -Vector3.UnitY, //Down Vector3(0,1,0)
@@ -25,7 +24,7 @@ namespace Stride.Engine.Splines.Models.Mesh
             var splinePointCount = BezierPoints.Length;
             var vertexCount = splinePointCount * 4 * 2; // 4 sides * 2 per corner
             var indicesCount = (splinePointCount - 1) * 24;
-            
+
             if (Loop)
             {
                 vertexCount += 4;
@@ -141,50 +140,56 @@ namespace Stride.Engine.Splines.Models.Mesh
                 indices[indiceIndex + 23] = 14 + triangleIndex;
 
                 triangleIndex += 8;
+            }
 
-                // If this was the last loop, we do 1 additional check for Closing of the sides or looping the geometry
-                if (i == splinePointCount - 2 && !Loop && CloseEnds)
-                {
-                    var backIndex = verticesIndex;
-                    
-                    //Front face vertices
-                    CreateVertex(verticesIndex + 0, vertices[0].Position, -Vector3.UnitZ, new Vector2(0, 0));
-                    CreateVertex(verticesIndex + 1, vertices[1].Position, -Vector3.UnitZ, new Vector2(1, 0));
-                    CreateVertex(verticesIndex + 2, vertices[4].Position, -Vector3.UnitZ, new Vector2(0, 1));
-                    CreateVertex(verticesIndex + 3, vertices[5].Position, -Vector3.UnitZ, new Vector2(1, 1));
-
-                    //Back face vertices            
-                    CreateVertex(verticesIndex + 4, vertices[backIndex - 8].Position, Vector3.UnitZ, new Vector2(0, 0));
-                    CreateVertex(verticesIndex + 5, vertices[backIndex - 7].Position, Vector3.UnitZ, new Vector2(1, 0));
-                    CreateVertex(verticesIndex + 6, vertices[backIndex - 4].Position, Vector3.UnitZ, new Vector2(0, 1));
-                    CreateVertex(verticesIndex + 7, vertices[backIndex - 3].Position, Vector3.UnitZ, new Vector2(1, 1));
-
-                    var closeIndicesIndex = indicesCount - 12;
-                    var vertexCountIndex = vertexCount - 8;
-                    //Front
-                    indices[closeIndicesIndex + 0] = vertexCountIndex + 0;
-                    indices[closeIndicesIndex + 1] = vertexCountIndex + 3;
-                    indices[closeIndicesIndex + 2] = vertexCountIndex + 1;
-
-                    indices[closeIndicesIndex + 3] = vertexCountIndex + 1;
-                    indices[closeIndicesIndex + 4] = vertexCountIndex + 3;
-                    indices[closeIndicesIndex + 5] = vertexCountIndex + 2;
-                    closeIndicesIndex += 6;
-
-                    //Back
-                    var closeVerticesIndex = vertexCount - 4;
-                    indices[closeIndicesIndex + 0] = closeVerticesIndex + 0;
-                    indices[closeIndicesIndex + 1] = closeVerticesIndex + 1;
-                    indices[closeIndicesIndex + 2] = closeVerticesIndex + 3;
-
-                    indices[closeIndicesIndex + 3] = closeVerticesIndex + 1;
-                    indices[closeIndicesIndex + 4] = closeVerticesIndex + 2;
-                    indices[closeIndicesIndex + 5] = closeVerticesIndex + 3;
-                }
+            // If this was the last loop, we do 1 additional check for Closing of the sides or looping the geometry
+            if (!Loop && CloseEnds)
+            {
+                CloseBoxEnds(verticesIndex, indicesCount, vertexCount);
             }
 
             // Create the primitive object for further processing by the base class
             return new GeometricMeshData<VertexPositionNormalTexture>(vertices, indices, isLeftHanded: false);
+        }
+
+        private void CloseBoxEnds(int verticesIndex, int indicesCount, int vertexCount)
+        {
+            var backIndex = verticesIndex;
+
+            //Front face vertices
+            CreateVertex(verticesIndex + 0, vertices[0].Position, -Vector3.UnitZ, new Vector2(0, 0));
+            CreateVertex(verticesIndex + 1, vertices[1].Position, -Vector3.UnitZ, new Vector2(1, 0));
+            CreateVertex(verticesIndex + 2, vertices[4].Position, -Vector3.UnitZ, new Vector2(0, 1));
+            CreateVertex(verticesIndex + 3, vertices[5].Position, -Vector3.UnitZ, new Vector2(1, 1));
+
+            //Back face vertices            
+            CreateVertex(verticesIndex + 4, vertices[backIndex - 8].Position, Vector3.UnitZ, new Vector2(0, 0));
+            CreateVertex(verticesIndex + 5, vertices[backIndex - 7].Position, Vector3.UnitZ, new Vector2(1, 0));
+            CreateVertex(verticesIndex + 6, vertices[backIndex - 4].Position, Vector3.UnitZ, new Vector2(0, 1));
+            CreateVertex(verticesIndex + 7, vertices[backIndex - 3].Position, Vector3.UnitZ, new Vector2(1, 1));
+
+            var closeIndicesIndex = indicesCount - 12;
+            var vertexCountIndex = vertexCount - 8;
+            
+            //Front
+            indices[closeIndicesIndex + 0] = vertexCountIndex + 0;
+            indices[closeIndicesIndex + 1] = vertexCountIndex + 3;
+            indices[closeIndicesIndex + 2] = vertexCountIndex + 1;
+
+            indices[closeIndicesIndex + 3] = vertexCountIndex + 1;
+            indices[closeIndicesIndex + 4] = vertexCountIndex + 3;
+            indices[closeIndicesIndex + 5] = vertexCountIndex + 2;
+            closeIndicesIndex += 6;
+
+            //Back
+            var closeVerticesIndex = vertexCount - 4;
+            indices[closeIndicesIndex + 0] = closeVerticesIndex + 0;
+            indices[closeIndicesIndex + 1] = closeVerticesIndex + 1;
+            indices[closeIndicesIndex + 2] = closeVerticesIndex + 3;
+
+            indices[closeIndicesIndex + 3] = closeVerticesIndex + 1;
+            indices[closeIndicesIndex + 4] = closeVerticesIndex + 2;
+            indices[closeIndicesIndex + 5] = closeVerticesIndex + 3;
         }
     }
 }

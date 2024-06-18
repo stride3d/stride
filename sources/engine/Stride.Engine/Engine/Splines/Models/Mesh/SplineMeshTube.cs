@@ -24,10 +24,10 @@ namespace Stride.Engine.Splines.Models.Mesh
 
         protected override GeometricMeshData<VertexPositionNormalTexture> CreatePrimitiveMeshData()
         {
-            bool isHollow = Radius.X > 0;
-            int splinePointCount = BezierPoints.Length;
-            int vertexCount = isHollow ? splinePointCount * Sides * 2 : splinePointCount * Sides;
-            int indicesCount = isHollow ? (splinePointCount - 1) * Sides * 12 : (splinePointCount - 1) * Sides * 6;
+            var isHollow = Radius.X > 0;
+            var splinePointCount = BezierPoints.Length;
+            var vertexCount = isHollow ? splinePointCount * Sides * 2 : splinePointCount * Sides;
+            var indicesCount = isHollow ? (splinePointCount - 1) * Sides * 12 : (splinePointCount - 1) * Sides * 6;
             
             if (Loop)
             {
@@ -44,43 +44,43 @@ namespace Stride.Engine.Splines.Models.Mesh
 
             var verticesIndex = 0;
             var indicesIndex = 0;
-            float splineDistance = 0.0f;
+            var splineDistance = 0.0f;
 
             for (int i = 0; i < splinePointCount; i++)
             {
                 var point = BezierPoints[i];
                 var nextPoint = BezierPoints[(i + 1) % splinePointCount];
-                Vector3 direction = (nextPoint.Position - point.Position);
+                var direction = (nextPoint.Position - point.Position);
                 direction.Normalize();
 
-                float textureY = splineDistance / UvScale.Y;
+                var textureY = splineDistance / UvScale.Y;
 
                 // Generate vertices around the spline point
                 for (int side = 0; side < Sides; side++)
                 {
-                    float angle = side * MathUtil.TwoPi / Sides;
-                    float cosAngle = (float)Math.Cos(angle);
-                    float sinAngle = (float)Math.Sin(angle);
+                    var angle = side * MathUtil.TwoPi / Sides;
+                    var cosAngle = (float)Math.Cos(angle);
+                    var sinAngle = (float)Math.Sin(angle);
 
                     Vector3 perpendicular = new Vector3(-direction.Z, 0, direction.X); // Perpendicular vector on the XZ plane
 
                     if (isHollow)
                     {
                         // Outer vertices
-                        Vector3 outerVertexPosition = point.Position + perpendicular * cosAngle * Radius.Y + Vector3.UnitY * Scale.Y * sinAngle * Radius.Y;
-                        Vector3 outerNormal = CalculateNormal(outerVertexPosition, point.Position);
+                        var outerVertexPosition = point.Position + perpendicular * cosAngle * Radius.Y + Vector3.UnitY * Scale.Y * sinAngle * Radius.Y;
+                        var outerNormal = CalculateNormal(outerVertexPosition, point.Position);
                         CreateVertex(verticesIndex++, outerVertexPosition, outerNormal, new Vector2((float)side / Sides, textureY));
 
                         // Inner vertices
-                        Vector3 innerVertexPosition = point.Position + perpendicular * cosAngle * Radius.X + Vector3.UnitY * Scale.Y * sinAngle * Radius.X;
-                        Vector3 innerNormal = CalculateNormal(innerVertexPosition, point.Position);
+                        var innerVertexPosition = point.Position + perpendicular * cosAngle * Radius.X + Vector3.UnitY * Scale.Y * sinAngle * Radius.X;
+                        var innerNormal = CalculateNormal(innerVertexPosition, point.Position);
                         CreateVertex(verticesIndex++, innerVertexPosition, -innerNormal, new Vector2((float)side / Sides, textureY));
                     }
                     else
                     {
                         // Single radius (solid cylinder)
-                        Vector3 sideVertexPosition = point.Position + perpendicular * cosAngle * Radius.Y + Vector3.UnitY * Scale.Y * sinAngle * Radius.Y;
-                        Vector3 normal = CalculateNormal(sideVertexPosition, point.Position);
+                        var sideVertexPosition = point.Position + perpendicular * cosAngle * Radius.Y + Vector3.UnitY * Scale.Y * sinAngle * Radius.Y;
+                        var normal = CalculateNormal(sideVertexPosition, point.Position);
                         CreateVertex(verticesIndex++, sideVertexPosition, normal, new Vector2((float)side / Sides, textureY));
                     }
                 }
@@ -98,15 +98,15 @@ namespace Stride.Engine.Splines.Models.Mesh
                 {
                     if (isHollow)
                     {
-                        int currentOuter = i * Sides * 2 + side * 2;
-                        int nextOuter = (side + 1) % Sides * 2 + i * Sides * 2;
-                        int currentNextOuter = (i + 1) * Sides * 2 + side * 2;
-                        int nextNextOuter = (i + 1) * Sides * 2 + (side + 1) % Sides * 2;
-
-                        int currentInner = currentOuter + 1;
-                        int nextInner = nextOuter + 1;
-                        int currentNextInner = currentNextOuter + 1;
-                        int nextNextInner = nextNextOuter + 1;
+                        var currentOuter = i * Sides * 2 + side * 2;
+                        var nextOuter = (side + 1) % Sides * 2 + i * Sides * 2;
+                        var currentNextOuter = (i + 1) * Sides * 2 + side * 2;
+                        var nextNextOuter = (i + 1) * Sides * 2 + (side + 1) % Sides * 2;
+                        
+                        var currentInner = currentOuter + 1;
+                        var nextInner = nextOuter + 1;
+                        var currentNextInner = currentNextOuter + 1;
+                        var nextNextInner = nextNextOuter + 1;
 
                         // Outer side
                         indices[indicesIndex++] = currentOuter;
@@ -127,10 +127,10 @@ namespace Stride.Engine.Splines.Models.Mesh
                     }
                     else
                     {
-                        int current = i * Sides + side;
-                        int next = (side + 1) % Sides + i * Sides;
-                        int currentNext = (i + 1) * Sides + side;
-                        int nextNext = (i + 1) * Sides + (side + 1) % Sides;
+                        var current = i * Sides + side;
+                        var next = (side + 1) % Sides + i * Sides;
+                        var currentNext = (i + 1) * Sides + side;
+                        var nextNext = (i + 1) * Sides + (side + 1) % Sides;
 
                         indices[indicesIndex++] = current;
                         indices[indicesIndex++] = nextNext;

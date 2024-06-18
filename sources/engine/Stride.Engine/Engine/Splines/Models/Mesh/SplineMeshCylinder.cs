@@ -24,9 +24,9 @@ namespace Stride.Engine.Splines.Models.Mesh
 
         protected override GeometricMeshData<VertexPositionNormalTexture> CreatePrimitiveMeshData()
         {
-            int splinePointCount = BezierPoints.Length;
-            int vertexCount = splinePointCount * Sides;
-            int indicesCount = (splinePointCount - 1) * Sides * 6;
+            var splinePointCount = BezierPoints.Length;
+            var vertexCount = splinePointCount * Sides;
+            var indicesCount = (splinePointCount - 1) * Sides * 6;
 
             if (Loop)
             {
@@ -43,7 +43,7 @@ namespace Stride.Engine.Splines.Models.Mesh
 
             var verticesIndex = 0;
             var indicesIndex = 0;
-            float splineDistance = 0.0f;
+            var splineDistance = 0.0f;
 
             for (int i = 0; i < splinePointCount; i++)
             {
@@ -57,13 +57,13 @@ namespace Stride.Engine.Splines.Models.Mesh
                 // Generate vertices around the spline point
                 for (int side = 0; side < Sides; side++)
                 {
-                    float angle = side * MathUtil.TwoPi / Sides;
-                    float x = (float)Math.Cos(angle) * Radius;
-                    float z = (float)Math.Sin(angle) * Radius;
+                    var angle = side * MathUtil.TwoPi / Sides;
+                    var x = (float)Math.Cos(angle) * Radius;
+                    var z = (float)Math.Sin(angle) * Radius;
 
                     Vector3 perpendicular = new Vector3(-direction.Z, 0, direction.X); // Perpendicular vector on the XZ plane
                     Vector3 sideVertexPosition = point.Position + perpendicular * x + Vector3.UnitY * Scale.Y * z;
-                    Vector3 normal = CalculateNormal(sideVertexPosition, point.Position);
+                    Vector3 normal = CalculateRadialNormal(sideVertexPosition, point.Position);
 
                     CreateVertex(verticesIndex++, sideVertexPosition, normal, new Vector2((float)side / Sides, textureY));
                 }
@@ -79,10 +79,10 @@ namespace Stride.Engine.Splines.Models.Mesh
             {
                 for (int side = 0; side < Sides; side++)
                 {
-                    int current = i * Sides + side;
-                    int next = (side + 1) % Sides + i * Sides;
-                    int currentNext = (i + 1) * Sides + side;
-                    int nextNext = (i + 1) * Sides + (side + 1) % Sides;
+                    var current = i * Sides + side;
+                    var next = (side + 1) % Sides + i * Sides;
+                    var currentNext = (i + 1) * Sides + side;
+                    var nextNext = (i + 1) * Sides + (side + 1) % Sides;
 
                     indices[indicesIndex++] = current;
                     indices[indicesIndex++] = nextNext;
@@ -97,68 +97,59 @@ namespace Stride.Engine.Splines.Models.Mesh
             // Close the cylinder ends 
             if (CloseEnds && !Loop)
             {
-                CloseCylinderEnds(Sides, splinePointCount, vertices, indices, ref indicesIndex);
+                CloseCylinderEnds(Sides, splinePointCount, ref indicesIndex);
             }
 
             return new GeometricMeshData<VertexPositionNormalTexture>(vertices, indices, isLeftHanded: true);
         }
 
-        private Vector3 CalculateNormal(Vector3 vertexPosition, Vector3 centerPosition)
+        private void CloseCylinderEnds(int sides, int splinePointCount, ref int indicesIndex)
         {
-            Vector3 radialVector = vertexPosition - centerPosition;
-            radialVector.Normalize();
-            return radialVector;
-        }
+            int capVertexCount = sides + 1; // +1 for the center vertex of the cap
+            int newVertexCount = vertices.Length + 2 * capVertexCount; // Add space for start and end cap vertices
 
-        private void CloseCylinderEnds(int sides, int splinePointCount, VertexPositionNormalTexture[] vertices, int[] indices, ref int indicesIndex)
-        {
-            // int startCapVertexOffset = vertices.Length - 2 * sides;
-            // int endCapVertexOffset = vertices.Length - sides;
-            //
-            // Vector3 startCenter = BezierPoints[0].Position;
-            // Vector3 endCenter = BezierPoints[splinePointCount - 1].Position;
-            //
-            // // Generate vertices for the caps
-            // for (int side = 0; side < sides; side++)
-            // {
-            //     float angle = side * MathUtil.TwoPi / sides;
-            //     float x = (float)Math.Cos(angle) * Scale.X / 2;
-            //     float z = (float)Math.Sin(angle) * Scale.X / 2;
-            //
-            //     // Start cap vertices
-            //     Vector3 startCapPosition = startCenter + new Vector3(x, 0, z);
-            //     Vector3 startNormal = -Vector3.UnitY; // Normal pointing inward for the cap
-            //     vertices[startCapVertexOffset + side] = new VertexPositionNormalTexture(startCapPosition, startNormal, new Vector2((float)side / sides, 0));
-            //
-            //     // End cap vertices
-            //     Vector3 endCapPosition = endCenter + new Vector3(x, 0, z);
-            //     Vector3 endNormal = Vector3.UnitY; // Normal pointing outward for the cap
-            //     vertices[endCapVertexOffset + side] = new VertexPositionNormalTexture(endCapPosition, endNormal, new Vector2((float)side / sides, 1));
-            // }
-            //
-            // // Generate indices for the start cap
-            // int startCenterVertexIndex = startCapVertexOffset + sides;
-            // vertices[startCenterVertexIndex] = new VertexPositionNormalTexture(startCenter, -Vector3.UnitY, new Vector2(0.5f, 0.5f));
-            // for (int side = 0; side < sides; side++)
-            // {
-            //     int nextSide = (side + 1) % sides;
-            //
-            //     indices[indicesIndex++] = startCenterVertexIndex; // Center vertex of the start cap
-            //     indices[indicesIndex++] = startCapVertexOffset + nextSide;
-            //     indices[indicesIndex++] = startCapVertexOffset + side;
-            // }
-            //
-            // // Generate indices for the end cap
-            // int endCenterVertexIndex = endCapVertexOffset + sides;
-            // vertices[endCenterVertexIndex] = new VertexPositionNormalTexture(endCenter, Vector3.UnitY, new Vector2(0.5f, 0.5f));
-            // for (int side = 0; side < sides; side++)
-            // {
-            //     int nextSide = (side + 1) % sides;
-            //
-            //     indices[indicesIndex++] = endCenterVertexIndex; // Center vertex of the end cap
-            //     indices[indicesIndex++] = endCapVertexOffset + side;
-            //     indices[indicesIndex++] = endCapVertexOffset + nextSide;
-            // }
+            if (vertices.Length != newVertexCount)
+            {
+                Array.Resize(ref vertices, newVertexCount);
+            }
+
+            // Generate vertices for the start cap
+            int startCapCenterIndex = splinePointCount * sides; // Center vertex index for the start cap
+            Vector3 startCapCenter = BezierPoints[0].Position;
+            CreateVertex(startCapCenterIndex, startCapCenter, Vector3.UnitY, new Vector2(0.5f, 0.5f));
+
+            for (int side = 0; side < sides; side++)
+            {
+                vertices[startCapCenterIndex + 1 + side] = vertices[side]; // Copy the first ring of vertices
+            }
+
+            // Generate indices for the start cap
+            for (int side = 0; side < sides; side++)
+            {
+                int nextSide = (side + 1) % sides;
+                indices[indicesIndex++] = startCapCenterIndex;
+                indices[indicesIndex++] = startCapCenterIndex + 1 + nextSide;
+                indices[indicesIndex++] = startCapCenterIndex + 1 + side;
+            }
+
+            // Generate vertices for the end cap
+            int endCapCenterIndex = startCapCenterIndex + capVertexCount; // Center vertex index for the end cap
+            Vector3 endCapCenter = BezierPoints[splinePointCount - 1].Position;
+            CreateVertex(endCapCenterIndex, endCapCenter, -Vector3.UnitY, new Vector2(0.5f, 0.5f));
+
+            for (int side = 0; side < sides; side++)
+            {
+                vertices[endCapCenterIndex + 1 + side] = vertices[(splinePointCount - 1) * sides + side]; // Copy the last ring of vertices
+            }
+
+            // Generate indices for the end cap
+            for (int side = 0; side < sides; side++)
+            {
+                int nextSide = (side + 1) % sides;
+                indices[indicesIndex++] = endCapCenterIndex;
+                indices[indicesIndex++] = endCapCenterIndex + 1 + side;
+                indices[indicesIndex++] = endCapCenterIndex + 1 + nextSide;
+            }
         }
     }
 }
