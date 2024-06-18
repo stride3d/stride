@@ -63,9 +63,6 @@ namespace Stride.Importer.ThreeD
 
         private readonly Silk.NET.Assimp.Assimp assimp = Silk.NET.Assimp.Assimp.GetApi();
 
-        public bool AllowUnsignedBlendIndices { get; set; }
-
-
         private string vfsInputFilename;
         private string vfsOutputFilename;
         private string vfsInputPath;
@@ -717,34 +714,18 @@ namespace Stride.Importer.ThreeD
             }
 
             var blendIndicesOffset = vertexStride;
-            var controlPointIndices16 = (AllowUnsignedBlendIndices && totalClusterCount > 256) || (!AllowUnsignedBlendIndices && totalClusterCount > 128);
+            var controlPointIndices16 = totalClusterCount > 256;
             if (vertexIndexToBoneIdWeight.Count > 0)
             {
                 if (controlPointIndices16)
                 {
-                    if (AllowUnsignedBlendIndices)
-                    {
-                        vertexElements.Add(new VertexElement("BLENDINDICES", 0, PixelFormat.R16G16B16A16_UInt, vertexStride));
-                        vertexStride += sizeof(ushort) * 4;
-                    }
-                    else
-                    {
-                        vertexElements.Add(new VertexElement("BLENDINDICES", 0, PixelFormat.R16G16B16A16_SInt, vertexStride));
-                        vertexStride += sizeof(short) * 4;
-                    }
+                    vertexElements.Add(new VertexElement("BLENDINDICES", 0, PixelFormat.R16G16B16A16_UInt, vertexStride));
+                    vertexStride += sizeof(ushort) * 4;
                 }
                 else
                 {
-                    if (AllowUnsignedBlendIndices)
-                    {
-                        vertexElements.Add(new VertexElement("BLENDINDICES", 0, PixelFormat.R8G8B8A8_UInt, vertexStride));
-                        vertexStride += sizeof(byte) * 4;
-                    }
-                    else
-                    {
-                        vertexElements.Add(new VertexElement("BLENDINDICES", 0, PixelFormat.R8G8B8A8_SInt, vertexStride));
-                        vertexStride += sizeof(sbyte) * 4;
-                    }
+                    vertexElements.Add(new VertexElement("BLENDINDICES", 0, PixelFormat.R8G8B8A8_UInt, vertexStride));
+                    vertexStride += sizeof(byte) * 4;
                 }
             }
 
@@ -821,17 +802,11 @@ namespace Stride.Importer.ThreeD
                         {
                             if (controlPointIndices16)
                             {
-                                if (AllowUnsignedBlendIndices)
-                                    ((ushort*)(vbPointer + blendIndicesOffset))[bone] = (ushort)vertexIndexToBoneIdWeight[(int)i][bone].Item1;
-                                else
-                                    ((short*)(vbPointer + blendIndicesOffset))[bone] = vertexIndexToBoneIdWeight[(int)i][bone].Item1;
+                                ((ushort*)(vbPointer + blendIndicesOffset))[bone] = (ushort)vertexIndexToBoneIdWeight[(int)i][bone].Item1;
                             }
                             else
                             {
-                                if (AllowUnsignedBlendIndices)
-                                    (vbPointer + blendIndicesOffset)[bone] = (byte)vertexIndexToBoneIdWeight[(int)i][bone].Item1;
-                                else
-                                    ((sbyte*)(vbPointer + blendIndicesOffset))[bone] = (sbyte)vertexIndexToBoneIdWeight[(int)i][bone].Item1;
+                                (vbPointer + blendIndicesOffset)[bone] = (byte)vertexIndexToBoneIdWeight[(int)i][bone].Item1;
                             }
 
                             ((float*)(vbPointer + blendWeightOffset))[bone] = vertexIndexToBoneIdWeight[(int)i][bone].Item2;
