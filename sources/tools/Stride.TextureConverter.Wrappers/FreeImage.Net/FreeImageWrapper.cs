@@ -4198,7 +4198,7 @@ namespace FreeImageAPI
 
 		/// <summary>
 		/// This function rotates a 1-, 8-bit greyscale or a 24-, 32-bit color image by means of 3 shears.
-		/// 1-bit images rotation is limited to integer multiple of 90�.
+		/// 1-bit images rotation is limited to integer multiple of 90°.
 		/// <c>null</c> is returned for other values.
 		/// </summary>
 		/// <param name="dib">Handle to a FreeImage bitmap.</param>
@@ -4211,7 +4211,7 @@ namespace FreeImageAPI
 
 		/// <summary>
 		/// This function rotates a 1-, 8-bit greyscale or a 24-, 32-bit color image by means of 3 shears.
-		/// 1-bit images rotation is limited to integer multiple of 90�.
+		/// 1-bit images rotation is limited to integer multiple of 90°.
 		/// <c>null</c> is returned for other values.
 		/// </summary>
 		/// <typeparam name="T">The type of the color to use as background.</typeparam>
