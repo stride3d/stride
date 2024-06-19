@@ -13,6 +13,7 @@ using Stride.Core.Diagnostics;
 using Stride.Core.ReferenceCounting;
 using Stride.Core.Reflection;
 using Stride.Engine.Design;
+using Stride.Engine.FlexibleProcessing;
 using Stride.Games;
 using Stride.Rendering;
 
@@ -43,6 +44,8 @@ namespace Stride.Engine
         private readonly List<EntityProcessor> currentDependentProcessors;
         private readonly HashSet<TypeInfo> componentTypes;
         private int addEntityLevel = 0;
+
+        private readonly ProcessorManager flexibleProcessors;
 
         /// <summary>
         /// Occurs when an entity is added.
@@ -87,6 +90,8 @@ namespace Stride.Engine
             MapComponentTypeToProcessors = new Dictionary<TypeInfo, EntityProcessorCollectionPerComponentType>();
 
             currentDependentProcessors = new List<EntityProcessor>(10);
+
+            flexibleProcessors = new ProcessorManager(registry);
         }
 
         /// <summary>
@@ -120,6 +125,8 @@ namespace Stride.Engine
                     }
                 }
             }
+
+            flexibleProcessors.Update(gameTime);
         }
 
         /// <summary>
@@ -198,6 +205,8 @@ namespace Stride.Engine
                     }
                 }
             }
+
+            flexibleProcessors.Draw(context);
         }
 
         /// <summary>
@@ -436,12 +445,14 @@ namespace Stride.Engine
             if (oldComponent != null)
             {
                 CheckEntityComponentWithProcessors(entity, oldComponent, true, currentDependentProcessors);
+                flexibleProcessors.RemoveComponent(oldComponent);
             }
 
             // Add new component to processors
             if (newComponent != null)
             {
                 CheckEntityComponentWithProcessors(entity, newComponent, false, currentDependentProcessors);
+                flexibleProcessors.IntroduceComponent(newComponent);
             }
 
             // Update all dependencies
@@ -492,6 +503,11 @@ namespace Stride.Engine
                 {
                     CollectNewProcessorsByComponentType(component.GetType().GetTypeInfo());
                 }
+
+                if (forceRemove)
+                    flexibleProcessors.RemoveComponent(component);
+                else
+                    flexibleProcessors.IntroduceComponent(component);
             }
         }
 
