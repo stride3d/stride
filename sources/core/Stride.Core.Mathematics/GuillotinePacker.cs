@@ -8,7 +8,7 @@ namespace Stride.Core.Mathematics
 {
     /// <summary>
     /// Implementation of a "Guillotine" packer.
-    /// More information at https://en.wikipedia.org/wiki/Guillotine_cutting.
+    /// More information at https://github.com/juj/RectangleBinPack/blob/master/RectangleBinPack.pdf.
     /// </summary>
     public class GuillotinePacker
     {
