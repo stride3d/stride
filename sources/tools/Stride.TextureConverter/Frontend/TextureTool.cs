@@ -39,7 +39,6 @@ namespace Stride.TextureConverter
             var type = typeof(TextureTool);
             NativeLibraryHelper.PreloadLibrary("DxtWrapper", type);
             NativeLibraryHelper.PreloadLibrary("PVRTexLib", type);
-            NativeLibraryHelper.PreloadLibrary("PvrttWrapper", type);
             NativeLibraryHelper.PreloadLibrary("freeimage", type);
             //TODO: needs to explain why FreeImageNET is loaded as a dll instead of directly referencing the C# project (this does not affect the compilation process on Linux).
             if (OperatingSystem.IsWindows())
