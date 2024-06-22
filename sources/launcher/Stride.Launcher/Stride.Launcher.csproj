@@ -73,7 +73,7 @@
     <Resource Include="Resources\twitch.png" />
     <Resource Include="Resources\facebook_24.png" />
     <Resource Include="Resources\reddit_24.png" />
-    <Resource Include="Resources\twitter_bird_24.png" />
+    <Resource Include="Resources\twitter_24.png" />
     <Resource Include="Resources\opencollective-24.png" />
     <Resource Include="Resources\github.png" />
     <Resource Include="Resources\issues.png" />
