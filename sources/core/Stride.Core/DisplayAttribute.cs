@@ -82,7 +82,7 @@ namespace Stride.Core
         /// Gets the hue of a color that is used in the UI.
         /// </summary>
         /// <remarks>If not null, this value must be in the range [0, 360].</remarks>
-        public float? CustomHue { get; set; }
+        public float CustomHue { get; set; } = -1f;
 
         /// <summary>
         /// Gets or sets whether to expand the control representing the associated object in the UI.
