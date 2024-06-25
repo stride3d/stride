@@ -4,7 +4,7 @@ namespace Stride.TextureConverter.PvrttWrapper;
 
 internal enum ECompressorQuality
 {
-    PVRTCFastest = 0,
+    PVRTCFastest = -9,
 	PVRTCFast,			
 	PVRTCLow,
 	PVRTCNormal,
@@ -14,19 +14,19 @@ internal enum ECompressorQuality
 	PVRTCBest,
 	NumPVRTCModes,
 
-	ETCFast = 0,
+	ETCFast,
 	ETCNormal,
 	ETCSlow,
 	NumETCModes,
 
-	ASTCVeryFast = 0,
+	ASTCVeryFast,
 	ASTCFast,
 	ASTCMedium,
 	ASTCThorough,
 	ASTCExhaustive,
 	NumASTCModes,
     
-	BASISULowest = 0,
+	BASISULowest,
 	BASISULow,
 	BASISUNormal,
 	BASISUHigh,

@@ -17,18 +17,14 @@ public class Constant
 /// </summary>
 internal class PVRTextureUtilities
 {
-    #region Bindings
     [DllImport("PVRTexLib", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-    private static extern bool pvrttTranscodeWithNoConversion(IntPtr texture, PixelType ptFormat, EPVRTVariableType eChannelType, EPVRTColourSpace eColourspace, ECompressorQuality eQuality, bool bDoDither);
-
-    [DllImport("PVRTexLib", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-    private static extern bool PVRTexLib_TranscodeTexture(IntPtr texture, ulong ptFormat, EPVRTVariableType eChannelType, EPVRTColourSpace eColourspace, ECompressorQuality eQuality, bool bDoDither);
+    private static extern bool PVRTexLib_TranscodeTexture(IntPtr texture, ref PVRTTranscoderOptions options);
 
     [DllImport("PVRTexLib", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
     private static extern bool PVRTexLib_CopyTextureChannels(IntPtr sTexture, IntPtr sTextureSource, uint uiNumChannelCopies, out EChannelName eChannels, out EChannelName eChannelsSource);
 
     [DllImport("PVRTexLib", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-    private static extern bool PVRTexLib_ResizeTexture(IntPtr sTexture, out uint u32NewWidth, out uint u32NewHeight, out uint u32NewDepth, EResizeMode eResizeMode);
+    private static extern bool PVRTexLib_ResizeTexture(IntPtr sTexture, uint u32NewWidth, uint u32NewHeight, uint u32NewDepth, EResizeMode eResizeMode);
 
     [DllImport("PVRTexLib", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
     private static extern bool PVRTexLib_FlipTexture(IntPtr sTexture, EPVRTAxis eFlipDirection);
@@ -38,8 +34,6 @@ internal class PVRTextureUtilities
 
     [DllImport("PVRTexLib", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
     private static extern bool PVRTexLib_PreMultiplyAlpha(IntPtr sTexture);
-
-    #endregion
 
     /// <summary>
     /// Copies a specified channel from one texture to a specified channel in another texture.
@@ -55,14 +49,11 @@ internal class PVRTextureUtilities
         return PVRTexLib_CopyTextureChannels(sTexture.texture, sTextureSource.texture, uiNumChannelCopies, out eChannels, out eChannelsSource);
     }
 
-    public static bool Transcode(PVRTexture sTexture, PixelType ptFormat, EPVRTVariableType eChannelType, EPVRTColourSpace eColourspace, ECompressorQuality eQuality = ECompressorQuality.PVRTCNormal, bool bDoDither = false)
+    public static unsafe bool Transcode(PVRTexture sTexture, ulong ptFormat, EPVRTVariableType eChannelType, EPVRTColourSpace eColourspace, ECompressorQuality eQuality = ECompressorQuality.ETCNormal, bool bDoDither = false, float maxRange = 1f)
     {
-        return pvrttTranscodeWithNoConversion(sTexture.texture, ptFormat, eChannelType, eColourspace, eQuality, bDoDither);
-    }
-
-    public static bool Transcode(PVRTexture sTexture, ulong ptFormat, EPVRTVariableType eChannelType, EPVRTColourSpace eColourspace, ECompressorQuality eQuality = ECompressorQuality.PVRTCNormal, bool bDoDither = false)
-    {
-        return PVRTexLib_TranscodeTexture(sTexture.texture, ptFormat, eChannelType, eColourspace, eQuality, bDoDither);
+        PVRTTranscoderOptions options = new((uint)sizeof(PVRTTranscoderOptions), ptFormat, eColourspace, eQuality, bDoDither, maxRange );
+        options.channelType[0] = options.channelType[1] = options.channelType[2] = options.channelType[3] = eChannelType;
+        return PVRTexLib_TranscodeTexture(sTexture.texture, ref options);
     }
 
     /// <summary>
@@ -76,7 +67,7 @@ internal class PVRTextureUtilities
     /// <returns></returns>
     public static bool Resize(PVRTexture sTexture, uint u32NewWidth, uint u32NewHeight, uint u32NewDepth, EResizeMode eResizeMode)
     {
-        return PVRTexLib_ResizeTexture(sTexture.texture, out u32NewWidth, out u32NewHeight, out u32NewDepth, eResizeMode);
+        return PVRTexLib_ResizeTexture(sTexture.texture, u32NewWidth, u32NewHeight, u32NewDepth, eResizeMode);
     }
 
     /// <summary>

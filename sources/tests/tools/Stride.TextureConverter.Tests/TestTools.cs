@@ -67,15 +67,6 @@ namespace Stride.TextureConverter.Tests
                 {"ExportMinMipMapTest_4_Texture3D_WMipMaps_ATC_RGBA_Explicit.sd", "b59b422af672e22f16d435f55b68203cf0121874"},
                 {"ExportMinMipMapTest_16_TextureCube_WMipMaps_RGBA8888.sd", "1d3640be224834c1f84a84fa24340519d56f2291"},
 
-
-                // AtitcTexLibrary
-                {"CompressTest_ATC_RGBA_Explicit_TextureCube_WMipMaps_RGBA8888.sd", "38d7745886f590f9fe40425f8b86a2fc7d0dbb18"},
-                {"CompressTest_ATC_RGBA_Interpolated_TextureArray_WMipMaps_RGBA8888.sd", "205e81fe258bc93bb8f06af1742d1d2c507e91bd"},
-                {"CompressTest_ATC_RGBA_Explicit_Texture3D_WMipMap_RGBA8888.sd", "db42523c04e32205ed0fa92397f965172147c2c4"},
-                {"DecompressTest_Texture3D_WMipMaps_ATC_RGBA_Explicit.sd", "c8df38d68f24bb1d937596b2371a6344e9c52b7d"},
-                {"DecompressTest_TextureArray_WMipMaps_ATC_RGBA_Explicit.sd", "3d0eed304b118e2abf040b6fc64147caa3353613"},
-                {"DecompressTest_TextureCube_WMipMaps_ATC_RGBA_Explicit.sd", "227932d9ae0d026c15324c194848e8428a03a09b"},
-
                 // DxtTexLib
                 {"DecompressTest_TextureArray_WMipMaps_BC3.dds", "54e100f9fb5982a8e51984911918e2f663d21805"},
                 {"DecompressTest_TextureCube_WMipMaps_BC3.dds", "78a23f5778fd66113bb1e71971e3708cbb8531b5"},

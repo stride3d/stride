@@ -140,7 +140,7 @@ internal class PVRTextureHeader : IDisposable
         if (format == EPVRTPixelFormat.RGBG8888)
             return Stride.Graphics.PixelFormat.R8G8B8A8_UNorm;
         
-        throw new TextureToolsException("Unknown format by PowerVC Texture Tool.");
+        return Stride.Graphics.PixelFormat.None;
     }
 
     public int GetAlphaDepth()

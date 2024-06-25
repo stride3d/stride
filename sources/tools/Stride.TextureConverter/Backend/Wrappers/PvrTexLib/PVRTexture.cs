@@ -24,7 +24,7 @@ internal class PVRTexture : IDisposable
     [DllImport("PVRTexLib", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
     private static extern IntPtr PVRTexLib_CreateTextureFromData(IntPtr pTexture);
 
-    [DllImport("PVRTexLib.dll", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+    [DllImport("PVRTexLib", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
     private static extern IntPtr PVRTexLib_CreateTextureFromFile(string filePath);
 
     [DllImport("PVRTexLib", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]

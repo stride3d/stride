@@ -73,7 +73,7 @@ namespace Stride.TextureConverter.TexLibraries
         {
             switch (request.Type)
             {
-                    // Loading only file with a .pvr extension
+                // Loading only file with a .pvr extension
                 case RequestType.Loading:
                     LoadingRequest loader = (LoadingRequest)request;
                     return loader.Mode == LoadingRequest.LoadingMode.FilePath && (Path.GetExtension(loader.FilePath).Equals(".pvr") || Path.GetExtension(loader.FilePath).Equals(".ktx"));
@@ -284,8 +284,8 @@ namespace Stride.TextureConverter.TexLibraries
                     break;
 
                 default:
-                    Log.Error("FITexLib (FreeImage) can't handle this request: " + request.Type);
-                    throw new TextureToolsException("FITexLib (FreeImage) can't handle this request: " + request.Type);
+                    Log.Error("PvrTexLib (PVR Texture Tool) can't handle this request: " + request.Type);
+                    throw new TextureToolsException("PvrTexLib (PVR Texture Tool) can't handle this request: " + request.Type);
             }
         }
 
@@ -583,7 +583,7 @@ namespace Stride.TextureConverter.TexLibraries
         {
             Log.Verbose("Decompressing texture ...");
 
-            if (!PVRTextureUtilities.Transcode(libraryData.Texture, PixelType.Standard8PixelType, libraryData.Header.GetChannelType(), libraryData.Header.GetColourSpace(), ECompressorQuality.PVRTCNormal, true))
+            if (!PVRTextureUtilities.Transcode(libraryData.Texture, (ulong)EPVRTPixelFormat.RGBG8888, libraryData.Header.GetChannelType(), libraryData.Header.GetColourSpace(), ECompressorQuality.ETCNormal, true))
             {
                 Log.Error("Decompression failed!");
                 throw new TextureToolsException("Decompression failed!");
@@ -609,24 +609,14 @@ namespace Stride.TextureConverter.TexLibraries
         private void GenerateMipMaps(TexImage image, PvrTextureLibraryData libraryData, MipMapsGenerationRequest request)
         {
             Log.Verbose("Generating Mipmaps ... ");
-
-            EResizeMode filter;
-            switch (request.Filter)
+            
+            var filter = request.Filter switch
             {
-                case Filter.MipMapGeneration.Linear:
-                    filter = EResizeMode.Linear;
-                    break;
-                case Filter.MipMapGeneration.Cubic:
-                    filter = EResizeMode.Cubic;
-                    break;
-                case Filter.MipMapGeneration.Nearest:
-                    filter = EResizeMode.Nearest;
-                    break;
-                default:
-                    filter = EResizeMode.Cubic;
-                    break;
-            }
-
+                Filter.MipMapGeneration.Linear => EResizeMode.Linear,
+                Filter.MipMapGeneration.Cubic => EResizeMode.Cubic,
+                Filter.MipMapGeneration.Nearest => EResizeMode.Nearest,
+                _ => EResizeMode.Cubic,
+            };
             libraryData.Texture.GenerateMIPMaps(filter);
 
             UpdateImage(image, libraryData);
