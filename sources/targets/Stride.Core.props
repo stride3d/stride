@@ -8,7 +8,7 @@
   <!-- Setup StridePlatform according to current TargetFramework -->
   <PropertyGroup>
     <StrideFramework>net8.0</StrideFramework>
-    <StrideFrameworkWindows>net8.0-windows7.0</StrideFrameworkWindows>
+    <StrideFrameworkWindows>net8.0-windows</StrideFrameworkWindows>
     <StrideFrameworkAndroid>net8.0-android</StrideFrameworkAndroid>
     <StrideFrameworkiOS>net8.0-ios</StrideFrameworkiOS>
     <StrideFrameworkUWP>uap10.0.16299</StrideFrameworkUWP>
@@ -61,7 +61,7 @@
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
     <!-- Add net8.0 no matter what (needed for references) -->
     <StrideRuntimeTargetFrameworks>net8.0</StrideRuntimeTargetFrameworks>
-    <StrideRuntimeTargetFrameworks Condition="$(_StridePlatforms.Contains(';Windows;')) And '$(StrideExplicitWindowsRuntime)' == 'true'">$(StrideRuntimeTargetFrameworks);net8.0-windows7.0</StrideRuntimeTargetFrameworks>
+    <StrideRuntimeTargetFrameworks Condition="$(_StridePlatforms.Contains(';Windows;')) And '$(StrideExplicitWindowsRuntime)' == 'true'">$(StrideRuntimeTargetFrameworks);net8.0-windows</StrideRuntimeTargetFrameworks>
     <StrideRuntimeTargetFrameworks Condition="$(_StridePlatforms.Contains(';UWP;'))">$(StrideRuntimeTargetFrameworks);uap10.0.16299</StrideRuntimeTargetFrameworks>
     <StrideRuntimeTargetFrameworks Condition="$(_StridePlatforms.Contains(';Android;'))">$(StrideRuntimeTargetFrameworks);net8.0-android</StrideRuntimeTargetFrameworks>
     <StrideRuntimeTargetFrameworks Condition="$(_StridePlatforms.Contains(';iOS;'))">$(StrideRuntimeTargetFrameworks);net8.0-ios</StrideRuntimeTargetFrameworks>

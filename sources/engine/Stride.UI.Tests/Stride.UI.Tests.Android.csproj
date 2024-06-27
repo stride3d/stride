@@ -24,7 +24,6 @@
     <JavaOptions />
     <StrideBuildTags>*</StrideBuildTags>
     <StridePlatform>Android</StridePlatform>
-    <StrideBuildProfile>Android</StrideBuildProfile>
     <StridePackageGuid>{b18707e8-1d26-49fc-9911-3834506d8149}</StridePackageGuid>
     <!-- Force msbuild to check to rebuild this assembly instead of letting VS IDE guess -->
     <DisableFastUpToDateCheck>true</DisableFastUpToDateCheck>
