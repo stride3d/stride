@@ -841,11 +841,6 @@ msgctxt "About"
 msgid "See the list"
 msgstr "查看列表"
 
-#: ../editor/Stride.GameStudio/View/AboutPage.xaml:64
-msgctxt "About"
-msgid "Privacy policy"
-msgstr "隐私策略"
-
 #: ../editor/Stride.GameStudio/View/AboutPage.xaml:73
 msgctxt "About"
 msgid "Close"

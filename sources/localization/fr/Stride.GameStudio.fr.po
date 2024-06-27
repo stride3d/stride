@@ -859,11 +859,6 @@ msgctxt "About"
 msgid "See the list"
 msgstr "Voir la liste"
 
-#: ../editor/Stride.GameStudio/View/AboutPage.xaml:64
-msgctxt "About"
-msgid "Privacy policy"
-msgstr "Politique de confidentialité"
-
 #: ../editor/Stride.GameStudio/View/AboutPage.xaml:73
 msgctxt "About"
 msgid "Close"
