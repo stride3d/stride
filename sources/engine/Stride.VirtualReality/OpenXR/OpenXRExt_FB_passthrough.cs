@@ -36,7 +36,7 @@ namespace Stride.VirtualReality
 
             bool TryGetProcAddress(string n, out nint fptr)
             {
-                PfnVoidFunction function = default;
+                PfnVoidFunction function;
                 var result = xr.GetInstanceProcAddr(instance, n, ref function);
                 if (result.Success())
                 {
