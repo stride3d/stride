@@ -117,16 +117,18 @@ namespace Stride.Graphics.GeometricPrimitives
             /// <exception cref="System.ArgumentOutOfRangeException">tessellation;tessellation parameter out of range</exception>
             public static GeometricMeshData<VertexPositionNormalTexture> New(float majorRadius = 0.5f, float minorRadius = 0.16666f, int tessellation = 32, float uScale = 1.0f, float vScale = 1.0f, bool toLeftHanded = false)
             {
-                var vertices = new List<VertexPositionNormalTexture>();
-                var indices = new List<int>();
-
-                if (tessellation < 3)
-                    tessellation = 3;
+                tessellation = Math.Max(3, tessellation);
 
                 int stride = tessellation + 1;
 
+                Span<VertexPositionNormalTexture> vertices = stackalloc VertexPositionNormalTexture[stride * stride];
+                Span<int> indices = stackalloc int[tessellation * tessellation * 6];
+                
+                var indexerIndices   = 0;
+                var indexerVertices  = 0;
+                
                 var texFactor = new Vector2(uScale, vScale);
-
+                
                 // First we loop around the main ring of the torus.
                 for (int i = 0; i <= tessellation; i++)
                 {
@@ -154,19 +156,19 @@ namespace Stride.Graphics.GeometricPrimitives
                         Vector3.TransformCoordinate(ref position, ref transform, out position);
                         Vector3.TransformNormal(ref normal, ref transform, out normal);
 
-                        vertices.Add(new VertexPositionNormalTexture(position, normal, textureCoordinate * texFactor));
+                        vertices[indexerVertices++] = (new VertexPositionNormalTexture(position, normal, textureCoordinate * texFactor));
 
                         // And create indices for two triangles.
                         int nextI = (i + 1) % stride;
                         int nextJ = (j + 1) % stride;
 
-                        indices.Add(i * stride + j);
-                        indices.Add(i * stride + nextJ);
-                        indices.Add(nextI * stride + j);
-
-                        indices.Add(i * stride + nextJ);
-                        indices.Add(nextI * stride + nextJ);
-                        indices.Add(nextI * stride + j);
+                        indices[indexerIndices++] = i * stride + j;
+                        indices[indexerIndices++] = i * stride + nextJ;
+                        indices[indexerIndices++] = nextI * stride + j;
+                        
+                        indices[indexerIndices++] = i * stride + nextJ;
+                        indices[indexerIndices++] = nextI * stride + nextJ;
+                        indices[indexerIndices++] = nextI * stride + j;
                     }
                 }
 
