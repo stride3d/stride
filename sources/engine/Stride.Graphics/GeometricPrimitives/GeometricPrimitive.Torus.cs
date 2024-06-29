@@ -121,8 +121,8 @@ namespace Stride.Graphics.GeometricPrimitives
 
                 int stride = tessellation + 1;
 
-                Span<VertexPositionNormalTexture> vertices = stackalloc VertexPositionNormalTexture[stride * stride];
-                Span<int> indices = stackalloc int[tessellation * tessellation * 6];
+                VertexPositionNormalTexture[] vertices = new VertexPositionNormalTexture[stride * stride];
+                int[] indices = new int[tessellation * tessellation * 6];
                 
                 var indexerIndices   = 0;
                 var indexerVertices  = 0;
@@ -173,7 +173,7 @@ namespace Stride.Graphics.GeometricPrimitives
                 }
 
                 // Create the primitive object.
-                return new GeometricMeshData<VertexPositionNormalTexture>(vertices.ToArray(), indices.ToArray(), toLeftHanded) { Name = "Torus" };
+                return new GeometricMeshData<VertexPositionNormalTexture>(vertices, indices, toLeftHanded) { Name = "Torus" };
             }
         }
     }
