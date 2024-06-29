@@ -117,12 +117,12 @@ namespace Stride.Graphics.GeometricPrimitives
             /// <exception cref="System.ArgumentOutOfRangeException">tessellation;tessellation parameter out of range</exception>
             public static GeometricMeshData<VertexPositionNormalTexture> New(float majorRadius = 0.5f, float minorRadius = 0.16666f, int tessellation = 32, float uScale = 1.0f, float vScale = 1.0f, bool toLeftHanded = false)
             {
-                tessellation = Math.Max(3, tessellation);
+                if ( tessellation < 3 ) tessellation = 3;
 
                 int stride = tessellation + 1;
 
-                VertexPositionNormalTexture[] vertices = new VertexPositionNormalTexture[stride * stride];
-                int[] indices = new int[tessellation * tessellation * 6];
+                var vertices = new VertexPositionNormalTexture[stride * stride];
+                var indices  = new int[tessellation * tessellation * 6];
                 
                 var indexerIndices   = 0;
                 var indexerVertices  = 0;
