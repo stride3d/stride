@@ -219,7 +219,7 @@
     <!--<PackAssets ProjectFile="$(MSBuildProjectFile)" IntermediatePackagePath="$(IntermediateOutputPath)\stride">
       <Output TaskParameter="GeneratedItems" ItemName="None"/>
     </PackAssets>-->
-    <Exec Command="&quot;$(StrideCompileAssetCommand)&quot; --pack --package-file=&quot;$(MSBuildProjectFullPath)&quot; --build-path=&quot;$(ProjectDir)$(BaseIntermediateOutputPath)stride\pack&quot;" ConsoleToMsBuild="true">
+    <Exec Command="dotnet &quot;$(StrideCompileAssetCommand)&quot; --pack --package-file=&quot;$(MSBuildProjectFullPath)&quot; --build-path=&quot;$(ProjectDir)$(BaseIntermediateOutputPath)stride\pack&quot;" ConsoleToMsBuild="true">
       <Output TaskParameter="ConsoleOutput" ItemName="PackAssetsLine" />
     </Exec>
     <ItemGroup>
@@ -235,7 +235,7 @@
   </Target>
 
   <Target Name="StrideAssetUpdateGeneratedFiles" Condition="'$(StrideCompilerSkipBuild)' != 'true'">
-    <Exec Command="&quot;$(StrideCompileAssetCommand)&quot; --updated-generated-files --package-file=&quot;$(MSBuildProjectFullPath)&quot;"/>
+    <Exec Command="dotnet &quot;$(StrideCompileAssetCommand)&quot; --updated-generated-files --package-file=&quot;$(MSBuildProjectFullPath)&quot;"/>
   </Target>
 
   <!-- 
