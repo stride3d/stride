@@ -151,8 +151,7 @@ namespace Stride.Rendering.LightProbes
             }
 
             // Generate light probe structure
-            var tetra = new BowyerWatsonTetrahedralization();
-            var tetraResult = tetra.Compute(lightProbePositions);
+            var tetraResult = BowyerWatsonTetrahedralization.Compute(lightProbePositions);
 
             var matrices = new Vector4[tetraResult.Tetrahedra.Count * 3];
             var probeIndices = new Int4[tetraResult.Tetrahedra.Count];
