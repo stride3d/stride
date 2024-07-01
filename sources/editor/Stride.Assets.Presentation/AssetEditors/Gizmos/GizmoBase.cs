@@ -2,9 +2,11 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using Stride.Core;
 using Stride.Editor.EditorGame.Game;
 using Stride.Engine;
+using Stride.Engine.Gizmos;
 using Stride.Games;
 using Stride.Graphics;
 using Stride.Input;
@@ -136,8 +138,9 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
             }
         }
 
-        public virtual bool IsUnderMouse(int pickedComponentId)
+        public virtual bool HandlesComponentId(OpaqueComponentId pickedComponentId, [MaybeNullWhen(false)] out Entity selection)
         {
+            selection = null;
             return false;
         }
 

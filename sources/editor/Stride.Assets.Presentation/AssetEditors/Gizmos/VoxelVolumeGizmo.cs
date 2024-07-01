@@ -4,6 +4,7 @@ using System;
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Engine;
+using Stride.Engine.Gizmos;
 using Stride.Graphics;
 using Stride.Rendering;
 using Stride.Rendering.Lights;

@@ -10,6 +10,9 @@ using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game;
 using Stride.Assets.Presentation.AssetEditors.GameEditor.Game;
 using Stride.Engine;
 using Stride.Extensions;
+using Stride.Engine.Gizmos;
+using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Stride.Assets.Presentation.AssetEditors.Gizmos
 {
@@ -46,7 +49,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
 
         private IEditorGameCameraService camera;
 
-        public void InitializeContentEntity(Entity contentEntity)
+        protected EntityGizmo(Entity contentEntity)
         {
             if (contentEntity == null) throw new ArgumentNullException(nameof(contentEntity));
             if (ContentEntity != null) throw new InvalidOperationException("InitializeContentEntity has already been invoked.");
@@ -106,15 +109,16 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
             }
         }
 
-        public override bool IsUnderMouse(int pickedComponentId)
+        public override bool HandlesComponentId(OpaqueComponentId pickedComponentId, [MaybeNullWhen(false)] out Entity selection)
         {
-            return componentsIds.Contains(pickedComponentId);
+            selection = this.ContentEntity;
+            return pickedComponentId.Match(componentsIds);
         }
     }
 
     public abstract class EntityGizmo<TComponent> : EntityGizmo where TComponent : EntityComponent
     {
-        protected EntityGizmo(EntityComponent component)
+        protected EntityGizmo(EntityComponent component) : base(component.Entity)
         {
             Component = (TComponent)component;
         }

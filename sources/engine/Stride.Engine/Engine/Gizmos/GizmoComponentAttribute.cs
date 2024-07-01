@@ -5,7 +5,7 @@ using System;
 using Stride.Core;
 using Stride.Engine;
 
-namespace Stride.Assets.Presentation.AssetEditors.Gizmos
+namespace Stride.Engine.Gizmos
 {
     /// <summary>
     /// Specifies for which component the associated gizmo class is.
@@ -34,6 +34,9 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
         /// Gets or sets whether this gizmo is a main gizmo. An entity will display only one of its main gizmo, corresponding to the component
         /// that has the highest priority set in its <see cref="DisplayAttribute"/>.
         /// </summary>
+        /// <remarks>
+        /// Main gizmos will be entirely disposed instead of disabled if disabled in the gizmo settings
+        /// </remarks>
         public bool IsMainGizmo { get; set; }
     }
 }

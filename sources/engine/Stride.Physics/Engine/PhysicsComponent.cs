@@ -11,6 +11,7 @@ using Stride.Core.Diagnostics;
 using Stride.Core.Mathematics;
 using Stride.Core.MicroThreading;
 using Stride.Engine.Design;
+using Stride.Engine.Gizmos;
 using Stride.Physics;
 using Stride.Physics.Engine;
 using Stride.Rendering;
@@ -425,7 +426,7 @@ namespace Stride.Engine
         [DataMemberIgnore]
         public Entity DebugEntity { get; set; }
 
-        public void AddDebugEntity(Scene scene, RenderGroup renderGroup = RenderGroup.Group0, bool alwaysAddOffset = false)
+        public void AddDebugEntity(Scene scene, RenderGroup renderGroup = IEntityGizmo.PickingRenderGroup, bool alwaysAddOffset = false)
         {
             if (DebugEntity != null) return;
 
