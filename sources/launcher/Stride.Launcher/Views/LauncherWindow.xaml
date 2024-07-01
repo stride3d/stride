@@ -29,10 +29,10 @@
       <BitmapImage x:Key="ImageShowcase" UriSource="pack://application:,,,/Stride.Launcher;component/Resources/showcase.png"/>
       <BitmapImage x:Key="ImageRoadmap" UriSource="pack://application:,,,/Stride.Launcher;component/Resources/roadmap.png"/>
       <BitmapImage x:Key="ImageSurvey" UriSource="pack://application:,,,/Stride.Launcher;component/Resources/survey.png"/>
-      <BitmapImage x:Key="ImageTwitter" UriSource="pack://application:,,,/Stride.Launcher;component/Resources/twitter_bird_24.png"/>
+      <BitmapImage x:Key="ImageXTwitter" UriSource="pack://application:,,,/Stride.Launcher;component/Resources/xtwitter_24.png"/>
       <BitmapImage x:Key="ImageFacebook" UriSource="pack://application:,,,/Stride.Launcher;component/Resources/facebook_24.png"/>
       <BitmapImage x:Key="ImageReddit" UriSource="pack://application:,,,/Stride.Launcher;component/Resources/reddit_24.png"/>
-      <BitmapImage x:Key="ImageOpenCollective" UriSource="pack://application:,,,/Stride.Launcher;component/Resources/opencollective-24.png"/>
+      <BitmapImage x:Key="ImageOpenCollective" UriSource="pack://application:,,,/Stride.Launcher;component/Resources/opencollective_24.png"/>
       
       <BitmapImage x:Key="ImageDownload" UriSource="pack://application:,,,/Stride.Launcher;component/Resources/download-26-dark.png"/>
       <BitmapImage x:Key="ImageUpdate" UriSource="pack://application:,,,/Stride.Launcher;component/Resources/update.png"/>
@@ -299,10 +299,10 @@
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" DockPanel.Dock="Bottom" Margin="10">
                   <Button Style="{StaticResource TransparentButtonStyle}" HorizontalAlignment="Left"
                         Command="{Binding OpenUrlCommand}" 
-                        CommandParameter="{x:Static r:Urls.Twitter}" SnapsToDevicePixels="True" Margin="2"
+                        CommandParameter="{x:Static r:Urls.XTwitter}" SnapsToDevicePixels="True" Margin="2"
                         ToolTipService.IsEnabled="False"
                         ToolTip="{Binding CommandParameter, RelativeSource={RelativeSource Self}, Converter={sskk:FormatString}, ConverterParameter={x:Static r:Strings.ToolTipOpenLink}}"
-                        Content="{sskk:Image {StaticResource ImageTwitter}, 24, 24, HighQuality}">
+                        Content="{sskk:Image {StaticResource ImageXTwitter}, 24, 24, HighQuality}">
                     <i:Interaction.Behaviors>
                       <sskk:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding CurrentToolTip}"
                                                      DefaultValue="{x:Static r:Strings.ToolTipDefault}"/>
