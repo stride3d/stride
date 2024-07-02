@@ -42,26 +42,24 @@ namespace Stride.Core.Design.Tests
         }
 
         [Fact]
-       // [Fact(Skip = "fix Half.ToString() and update converter accordingly (to match other converters)")]
         public void TestHalf()
         {
             TestConversionMultipleCultures(new Half(5.6f));
         }
 
         [Fact]
-        //[Fact(Skip = "fix Half2.ToString() and update converter accordingly (to match other converters)")]
         public void TestHalf2()
         {
             TestConversionMultipleCultures(new Half2(new Half(5.12f), new Half(2)));
         }
 
-        [Fact(Skip = "fix Half3.ToString() and update converter accordingly (to match other converters)")]
+        [Fact]
         public void TestHalf3()
         {
             TestConversionMultipleCultures(new Half3(new Half(5.12f), new Half(2), new Half(-17.54f)));
         }
 
-        [Fact(Skip = "fix Half4.ToString() and update converter accordingly (to match other converters)")]
+        [Fact]
         public void TestHalf4()
         {
             TestConversionMultipleCultures(new Half4(new Half(5.12f), new Half(2), new Half(-17.54f), new Half(-5)));
@@ -111,7 +109,6 @@ namespace Stride.Core.Design.Tests
             Assert.NotNull(converter);
             Assert.True(converter.CanConvertTo(typeof(string)));
             var value = converter.ConvertTo(testValue, typeof(string));
-            var val2 = testValue.ToString();
             Assert.Equal(testValue.ToString(), value);
             Assert.True(converter.CanConvertFrom(typeof(string)));
             var result = converter.ConvertFrom(value);
