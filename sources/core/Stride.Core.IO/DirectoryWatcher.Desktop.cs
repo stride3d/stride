@@ -135,7 +135,7 @@ namespace Stride.Core.IO
 
             if (path != null && Directory.Exists(path))
             {
-                info = new DirectoryInfo(path.ToLowerInvariant());
+                info = new DirectoryInfo(OperatingSystem.IsLinux() ? path :  path.ToLowerInvariant());
             }
             else
             {
@@ -326,7 +326,7 @@ namespace Stride.Core.IO
         {
             public DirectoryWatcherItem(DirectoryInfo path)
             {
-                Path = path.FullName.ToLowerInvariant();
+                Path = OperatingSystem.IsLinux() ? path.FullName : path.FullName.ToLowerInvariant();
             }
 
             public DirectoryWatcherItem Parent;
