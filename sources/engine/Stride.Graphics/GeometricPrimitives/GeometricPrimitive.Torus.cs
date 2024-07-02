@@ -121,8 +121,11 @@ namespace Stride.Graphics.GeometricPrimitives
 
                 int stride = tessellation + 1;
 
-                var vertices  = new VertexPositionNormalTexture[stride * stride];
-                var indices   = new int[6 * tessellation * tessellation];
+                int num = stride++;
+
+                var vertices = new VertexPositionNormalTexture[num * num];
+                var indices  = new int[6 * num * num];
+
                 var texFactor = new Vector2(uScale, vScale);
 
                 var verticesIndexer = 0;
