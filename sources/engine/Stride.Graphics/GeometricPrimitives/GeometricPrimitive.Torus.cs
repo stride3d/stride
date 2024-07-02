@@ -117,18 +117,21 @@ namespace Stride.Graphics.GeometricPrimitives
             /// <exception cref="System.ArgumentOutOfRangeException">tessellation;tessellation parameter out of range</exception>
             public static GeometricMeshData<VertexPositionNormalTexture> New(float majorRadius = 0.5f, float minorRadius = 0.16666f, int tessellation = 32, float uScale = 1.0f, float vScale = 1.0f, bool toLeftHanded = false)
             {
-                var vertices = new List<VertexPositionNormalTexture>();
-                var indices = new List<int>();
-
-                if (tessellation < 3)
-                    tessellation = 3;
+                if (tessellation < 3) tessellation = 3;
 
                 int stride = tessellation + 1;
+                
+
+                var vertices = new VertexPositionNormalTexture[stride * stride];
+                var indices  = new int[6 * stride * stride];
 
                 var texFactor = new Vector2(uScale, vScale);
 
+                var verticesIndexer = 0;
+                var indicesIndexer  = 0;
+
                 // First we loop around the main ring of the torus.
-                for (int i = 0; i <= tessellation; i++)
+                for (int i = 0 ; i <= tessellation ; i++)
                 {
                     float u = (float)i / tessellation;
 
@@ -139,40 +142,41 @@ namespace Stride.Graphics.GeometricPrimitives
                     var transform = Matrix.Translation(majorRadius, 0, 0) * Matrix.RotationY(outerAngle);
 
                     // Now we loop along the other axis, around the side of the tube.
-                    for (int j = 0; j <= tessellation; j++)
+                    for (int j = 0 ; j <= tessellation ; j++)
                     {
                         float v = 1 - (float)j / tessellation;
 
                         float innerAngle = j * MathUtil.TwoPi / tessellation + MathUtil.Pi;
-                        float dx = MathF.Cos(innerAngle), dy = MathF.Sin(innerAngle);
+                        float dx         = MathF.Cos(innerAngle), dy = MathF.Sin(innerAngle);
 
                         // Create a vertex.
-                        var normal = new Vector3(dx, dy, 0);
-                        var position = normal * minorRadius;
+                        var normal            = new Vector3(dx, dy, 0);
+                        var position          = normal * minorRadius;
                         var textureCoordinate = new Vector2(u, v);
 
                         Vector3.TransformCoordinate(ref position, ref transform, out position);
                         Vector3.TransformNormal(ref normal, ref transform, out normal);
 
-                        vertices.Add(new VertexPositionNormalTexture(position, normal, textureCoordinate * texFactor));
+                        vertices[verticesIndexer++] = new VertexPositionNormalTexture(position, normal, textureCoordinate * texFactor);
 
                         // And create indices for two triangles.
                         int nextI = (i + 1) % stride;
                         int nextJ = (j + 1) % stride;
 
-                        indices.Add(i * stride + j);
-                        indices.Add(i * stride + nextJ);
-                        indices.Add(nextI * stride + j);
+                        indices[indicesIndexer++] = i     * stride + j;
+                        indices[indicesIndexer++] = i     * stride + nextJ;
+                        indices[indicesIndexer++] = nextI * stride + j;
 
-                        indices.Add(i * stride + nextJ);
-                        indices.Add(nextI * stride + nextJ);
-                        indices.Add(nextI * stride + j);
+                        indices[indicesIndexer++] = i     * stride + nextJ;
+                        indices[indicesIndexer++] = nextI * stride + nextJ;
+                        indices[indicesIndexer++] = nextI * stride + j;
                     }
                 }
 
                 // Create the primitive object.
-                return new GeometricMeshData<VertexPositionNormalTexture>(vertices.ToArray(), indices.ToArray(), toLeftHanded) { Name = "Torus" };
+                return new GeometricMeshData<VertexPositionNormalTexture>(vertices, indices, toLeftHanded) { Name = "Torus" };
             }
         }
     }
+
 }
