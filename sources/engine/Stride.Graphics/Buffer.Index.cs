@@ -41,7 +41,7 @@ namespace Stride.Graphics
             /// <returns>A index buffer</returns>
             public static Buffer New(GraphicsDevice device, int size, GraphicsResourceUsage usage = GraphicsResourceUsage.Default)
             {
-                return Buffer.New(device, size, BufferFlags.IndexBuffer, usage);
+                return Buffer.New(device, size, BufferFlags.IndexBuffer | BufferFlags.RawBuffer, usage);
             }
 
             /// <summary>
@@ -53,7 +53,7 @@ namespace Stride.Graphics
             /// <returns>A index buffer</returns>
             public static Buffer<T> New<T>(GraphicsDevice device, GraphicsResourceUsage usage = GraphicsResourceUsage.Default) where T : unmanaged
             {
-                return Buffer.New<T>(device, 1, BufferFlags.IndexBuffer, usage);
+                return Buffer.New<T>(device, 1, BufferFlags.IndexBuffer | BufferFlags.RawBuffer, usage);
             }
 
             /// <summary>
@@ -66,7 +66,7 @@ namespace Stride.Graphics
             /// <returns>A index buffer</returns>
             public static Buffer<T> New<T>(GraphicsDevice device, ref T value, GraphicsResourceUsage usage = GraphicsResourceUsage.Immutable) where T : unmanaged
             {
-                return Buffer.New(device, ref value, BufferFlags.IndexBuffer, usage);
+                return Buffer.New(device, ref value, BufferFlags.IndexBuffer | BufferFlags.RawBuffer, usage);
             }
 
             /// <summary>
@@ -79,7 +79,7 @@ namespace Stride.Graphics
             /// <returns>A index buffer</returns>
             public static Buffer<T> New<T>(GraphicsDevice device, T[] value, GraphicsResourceUsage usage = GraphicsResourceUsage.Immutable) where T : unmanaged
             {
-                return Buffer.New(device, value, BufferFlags.IndexBuffer, usage);
+                return Buffer.New(device, value, BufferFlags.IndexBuffer | BufferFlags.RawBuffer, usage);
             }
 
             /// <summary>
@@ -92,7 +92,7 @@ namespace Stride.Graphics
             /// <returns>A index buffer</returns>
             public static Buffer New(GraphicsDevice device, byte[] value, bool is32BitIndex, GraphicsResourceUsage usage = GraphicsResourceUsage.Immutable)
             {
-                return Buffer.New(device, value, is32BitIndex ? 4 : 2, BufferFlags.IndexBuffer, PixelFormat.None, usage);
+                return Buffer.New(device, value, is32BitIndex ? 4 : 2, BufferFlags.IndexBuffer | BufferFlags.RawBuffer, PixelFormat.None, usage);
             }
 
             /// <summary>
@@ -104,7 +104,7 @@ namespace Stride.Graphics
             /// <returns>A index buffer</returns>
             public static Buffer New(GraphicsDevice device, DataPointer value, GraphicsResourceUsage usage = GraphicsResourceUsage.Immutable)
             {
-                return Buffer.New(device, value, 0, BufferFlags.IndexBuffer, usage);
+                return Buffer.New(device, value, 0, BufferFlags.IndexBuffer | BufferFlags.RawBuffer, usage);
             }
         }
     }

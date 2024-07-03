@@ -160,7 +160,7 @@ namespace Stride.Rendering.ProceduralModels
                 meshDraw.IndexBuffer = new IndexBufferBinding(Buffer.Index.New(graphicsDevice, indicesShort).RecreateWith(indicesShort), false, indices.Length);
                 if (needsTempDevice)
                 {
-                    var indexData = BufferData.New(BufferFlags.IndexBuffer, indicesShort);
+                    var indexData = BufferData.New(BufferFlags.IndexBuffer | BufferFlags.RawBuffer, indicesShort);
                     meshDraw.IndexBuffer = new IndexBufferBinding(indexData.ToSerializableVersion(), false, indices.Length);
                 }
             }
@@ -174,15 +174,15 @@ namespace Stride.Rendering.ProceduralModels
                 meshDraw.IndexBuffer = new IndexBufferBinding(Buffer.Index.New(graphicsDevice, indices).RecreateWith(indices), true, indices.Length);
                 if (needsTempDevice)
                 {
-                    var indexData = BufferData.New(BufferFlags.IndexBuffer, indices);
+                    var indexData = BufferData.New(BufferFlags.IndexBuffer | BufferFlags.RawBuffer, indices);
                     meshDraw.IndexBuffer = new IndexBufferBinding(indexData.ToSerializableVersion(), true, indices.Length);
                 }
             }
 
-            meshDraw.VertexBuffers = new[] { new VertexBufferBinding(Buffer.New(graphicsDevice, vertexBuffer, BufferFlags.VertexBuffer).RecreateWith(vertexBuffer), layout, data.Vertices.Length) };
+            meshDraw.VertexBuffers = new[] { new VertexBufferBinding(Buffer.New(graphicsDevice, vertexBuffer, BufferFlags.VertexBuffer | BufferFlags.RawBuffer).RecreateWith(vertexBuffer), layout, data.Vertices.Length) };
             if (needsTempDevice)
             {
-                var vertexData = BufferData.New(BufferFlags.VertexBuffer, vertexBuffer);
+                var vertexData = BufferData.New(BufferFlags.VertexBuffer | BufferFlags.RawBuffer, vertexBuffer);
                 meshDraw.VertexBuffers = new[] { new VertexBufferBinding(vertexData.ToSerializableVersion(), layout, data.Vertices.Length) };
             }
 
