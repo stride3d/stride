@@ -57,6 +57,10 @@ namespace Stride.Core.Tests
             {
             }
 
+            public D()
+            {
+            }
+
             class Serializer : ContentSerializerBase<D>
             {
                 public override void Serialize(ContentSerializerContext context, SerializationStream stream, D obj)
@@ -284,7 +288,12 @@ namespace Stride.Core.Tests
             Assert.Equal(0, ((IReferencable)c1ChildCopy).ReferenceCount);
         }
 
-        [Fact(Skip = "Need check")]
+        /// <summary>
+        /// TODO: Test itself seems a bit counter intuitive
+        ///  Verify - don't serializable classes need to have an empty constructor? D class shows no empty constructor 
+        ///  therefore couldn't properly serialize. A bit confused by this test. (Ask in PR)
+        /// </summary>
+        [Fact]
         public void LifetimeNoSimpleConstructor()
         {
             var c1 = new C { I = 18 };
