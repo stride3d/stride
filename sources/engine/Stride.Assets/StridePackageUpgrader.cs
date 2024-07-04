@@ -95,7 +95,7 @@ namespace Stride.Assets
                 if (assetFile.Deleted)
                     continue;
 
-                var context = new AssetMigrationContext(dependentPackage, assetFile.ToReference(), assetFile.FilePath.ToWindowsPath(), log);
+                var context = new AssetMigrationContext(dependentPackage, assetFile.ToReference(), assetFile.FilePath.ToOSPath(), log);
                 AssetMigration.MigrateAssetIfNeeded(context, assetFile, dependencyName, maxVersion);
             }
         }
@@ -143,7 +143,7 @@ namespace Stride.Assets
             {
                 try
                 {
-                    var project = VSProjectHelper.LoadProject(projectFullPath.ToWindowsPath());
+                    var project = VSProjectHelper.LoadProject(projectFullPath.ToOSPath());
                     var isProjectDirty = false;
                     
                     List<Microsoft.Build.Evaluation.ProjectItem> packageReferences = new();

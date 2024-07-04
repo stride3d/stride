@@ -45,7 +45,7 @@ namespace Stride.LauncherApp.ViewModels
         public override bool CanDelete => isDevRedirect;
 
         /// <inheritdoc/>
-        public override string InstallPath => path.ToWindowsPath();
+        public override string InstallPath => path.ToOSPath();
 
 
         // This property is not used because a dev verison cannot be downloaded.

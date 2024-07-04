@@ -245,7 +245,7 @@ namespace Stride.Assets.Presentation.ViewModel
                 var dialogResult = projectViewModel.Session.Dialogs.BlockingMessageBox(
                     string.Format(
                         Tr._p("Message", "The following source files in the {0} project have been deleted externally, but have unsaved changes in Game Studio. Do you want to delete these files?\r\n\r\n{1}"),
-                       Path.GetFileName(project.FilePath), string.Join("\r\n", dirtyAssetsToDelete.Select(x => x.AssetItem.FullPath.ToWindowsPath()))),
+                       Path.GetFileName(project.FilePath), string.Join("\r\n", dirtyAssetsToDelete.Select(x => x.AssetItem.FullPath.ToOSPath()))),
                     MessageBoxButton.OKCancel);
                 if (dialogResult == MessageBoxResult.Cancel)
                     return false;

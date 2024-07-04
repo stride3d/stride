@@ -109,7 +109,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewMode
         private async Task CaptureCubemap()
         {
             var filepath = await ServiceProvider.Get<IDialogService>().SaveFilePickerAsync(
-                editor.Session.SolutionPath?.GetFullDirectory().ToWindowsPath(),
+                editor.Session.SolutionPath?.GetFullDirectory().ToOSPath(),
                 [new FilePickerFilter("DDS texture") { Patterns = ["*.dds"] }],
                 "dds");
             if (filepath is not null)
