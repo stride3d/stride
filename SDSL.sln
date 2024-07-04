@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{9967EA99-9716-43A9-B6BA-E5975F08250D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stride.Shaders.Parsing", "src\Stride.Shaders.Parsing\Stride.Shaders.Parsing.csproj", "{66A8722A-4CE8-422D-9467-7B2C8FCB4734}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stride.Shaders.Parsing.Experiments", "src\Stride.Shaders.Parsing.Experiments\Stride.Shaders.Parsing.Experiments.csproj", "{92AE8C5F-4A4F-4A97-9561-86315D09F910}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{66A8722A-4CE8-422D-9467-7B2C8FCB4734}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{66A8722A-4CE8-422D-9467-7B2C8FCB4734}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{66A8722A-4CE8-422D-9467-7B2C8FCB4734}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{66A8722A-4CE8-422D-9467-7B2C8FCB4734}.Release|Any CPU.Build.0 = Release|Any CPU
+		{92AE8C5F-4A4F-4A97-9561-86315D09F910}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{92AE8C5F-4A4F-4A97-9561-86315D09F910}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{92AE8C5F-4A4F-4A97-9561-86315D09F910}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{92AE8C5F-4A4F-4A97-9561-86315D09F910}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{66A8722A-4CE8-422D-9467-7B2C8FCB4734} = {9967EA99-9716-43A9-B6BA-E5975F08250D}
+		{92AE8C5F-4A4F-4A97-9561-86315D09F910} = {9967EA99-9716-43A9-B6BA-E5975F08250D}
+	EndGlobalSection
+EndGlobal

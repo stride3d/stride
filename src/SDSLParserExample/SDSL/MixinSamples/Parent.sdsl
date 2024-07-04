@@ -1,4 +1,0 @@
-shader Parent
-{
-    stream float a;
-}

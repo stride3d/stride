@@ -1,0 +1,4 @@
+#ifdef cond
+machin
+#endif
+machin2
