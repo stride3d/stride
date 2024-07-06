@@ -322,7 +322,7 @@ namespace Stride.Assets.Presentation.Templates
             if (!await updateTemplate.PrepareForRun(updateParameters) || !updateTemplate.Run(updateParameters))
             {
                 // Remove the created project
-                var path = Path.GetDirectoryName(parameters.Session.SolutionPath.ToWindowsPath());
+                var path = Path.GetDirectoryName(parameters.Session.SolutionPath.ToOSPath());
                 try
                 {
                     Directory.Delete(path ?? "", true);
