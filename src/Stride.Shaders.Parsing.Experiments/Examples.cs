@@ -47,16 +47,7 @@ public static class Examples
         unsafe
         {
             var code = new SpirvTranslator(words.AsMemory());
-            Console.WriteLine(code.Translate(Backend.Glsl));
-        }
-    }
-    public static void UseSpirvCrossWhile()
-    {        
-        unsafe
-        {
-            var code = new SpirvTranslator(words.AsMemory());
-            while (true)
-                code.TranslateWithoutReturn(Backend.Glsl);
+            Console.WriteLine(code.Translate(Backend.Hlsl));
         }
     }
 
