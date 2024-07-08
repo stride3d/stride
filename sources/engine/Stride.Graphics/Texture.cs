@@ -1264,7 +1264,7 @@ namespace Stride.Graphics
                     mipCount = this.MipLevels;
                     break;
                 case ViewType.Single:
-                    arrayOrDepthCount = 1;
+                    arrayOrDepthCount = ViewDimension == TextureDimension.Texture3D ? CalculateMipSize(Depth, mipIndex) : 1;
                     mipCount = 1;
                     break;
                 case ViewType.MipBand:
