@@ -47,7 +47,7 @@ static async Task MainAsync()
                             provider =>
                             {
                                 var loggerFactory = provider.GetService<ILoggerFactory>();
-                                var logger = loggerFactory.CreateLogger<Foo>();
+                                var logger = loggerFactory!.CreateLogger<Foo>();
 
                                 logger.LogInformation("Configuring");
 
@@ -142,7 +142,7 @@ static async Task MainAsync()
                             baseConfig.Add(config.Key, config.Value);
                         }
 
-                        logger.LogInformation("Base Config: {@Config}", baseConfig);
+                        logger!.LogInformation("Base Config: {@Config}", baseConfig);
 
                         var scopedConfig = new JObject();
                         foreach (var config in configuration.AsEnumerable())
@@ -150,7 +150,7 @@ static async Task MainAsync()
                             scopedConfig.Add(config.Key, config.Value);
                         }
 
-                        logger.LogInformation("Scoped Config: {@Config}", scopedConfig);
+                        logger!.LogInformation("Scoped Config: {@Config}", scopedConfig);
                     }
                 )
     ).ConfigureAwait(false);

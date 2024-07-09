@@ -40,6 +40,7 @@ float4 PSMain(PSInput input) : SV_TARGET
         // var content = Encoding.ASCII.GetBytes(Code);
         unsafe
         {
+            
             Guid id = IDxcCompiler.Guid;
             Guid libId = IDxcCompiler3.Guid;
             SilkMarshal.ThrowHResult(dxc.CreateInstance(&id, out ComPtr<IDxcCompiler3> compiler));
