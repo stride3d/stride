@@ -7,6 +7,7 @@
 
   <ItemGroup>
     <PackageReference Include="Silk.NET.Direct3D.Compilers" Version="2.21.0" />
+    <PackageReference Include="Silk.NET.Direct3D11" Version="2.21.0" />
     <PackageReference Include="Silk.NET.Direct3D12" Version="2.21.0" />
     <PackageReference Include="Silk.NET.SPIRV.Cross" Version="2.21.0" />
   </ItemGroup>

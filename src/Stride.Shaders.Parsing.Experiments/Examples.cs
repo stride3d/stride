@@ -54,70 +54,7 @@ public static class Examples
     public static void CompileHLSL()
     {
 
-        // var d3d = D3DCompiler.GetApi();
-
-        // var dxc = DXC.GetApi();
-        // unsafe
-        // {
-        //     IDxcCompilerArgs* a = null;
-        //     IDxcOperationResult* operationResult = null;
-        //     var cid = IDxcCompiler.Guid;
-        //     SilkMarshal.ThrowHResult(
-        //         dxc.CreateInstance(ref cid, out ComPtr<IDxcCompiler> compiler)
-        //     );
-        //     var x = 0;
-        // }
-
-        var utf_content = @"
-struct PSInput
-{
-    float4 position : SV_POSITION;
-    float4 color : COLOR;
-};
-
-PSInput VSMain(float4 position : POSITION, float4 color : COLOR)
-{
-    PSInput result;
-
-    result.position = position;
-    result.color = color;
-
-    return result;
-}
-
-float4 PSMain(PSInput input) : SV_TARGET
-{
-    return input.color;
-}
-
-";
-
-
-
-        var content = Encoding.ASCII.GetBytes(utf_content);
-        unsafe
-        {
-            D3DCompiler d3d = D3DCompiler.GetApi();
-            ID3D10Blob* shader;
-            ID3D10Blob* errorMsgs;
-            int res = 0;
-            fixed (byte* pContent = content)
-            {
-                res = d3d.Compile(
-                        pSrcData: pContent,
-                        SrcDataSize: (nuint)content.Length,
-                        pSourceName: "triangle",
-                        pDefines: null,
-                        pInclude: null,
-                        pEntrypoint: "VSMain",
-                        pTarget: "vs_6_0",
-                        Flags1: 0,
-                        Flags2: 0,
-                        ppCode: &shader,
-                        ppErrorMsgs: &errorMsgs);
-            }
-            Console.WriteLine(Encoding.ASCII.GetString(errorMsgs->Buffer));
-            SilkMarshal.ThrowHResult(res);
-        }
+        var dxc = new DXCompiler();
+        dxc.Compile();
     }
 }

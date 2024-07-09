@@ -39,3 +39,4 @@ public record struct SpirvTranslator(ReadOnlyMemory<uint> Words)
         return translatedCode ?? throw new Exception("Could not translate code");
     }
 }
+
