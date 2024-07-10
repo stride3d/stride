@@ -5,23 +5,28 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{9967EA99-9716-43A9-B6BA-E5975F08250D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stride.Shaders.Parsing", "src\Stride.Shaders.Parsing\Stride.Shaders.Parsing.csproj", "{66A8722A-4CE8-422D-9467-7B2C8FCB4734}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Shaders.Parsing", "src\Stride.Shaders.Parsing\Stride.Shaders.Parsing.csproj", "{66A8722A-4CE8-422D-9467-7B2C8FCB4734}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stride.Shaders.Parsing.Experiments", "src\Stride.Shaders.Parsing.Experiments\Stride.Shaders.Parsing.Experiments.csproj", "{92AE8C5F-4A4F-4A97-9561-86315D09F910}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Shaders.Parsing.Experiments", "src\Stride.Shaders.Parsing.Experiments\Stride.Shaders.Parsing.Experiments.csproj", "{92AE8C5F-4A4F-4A97-9561-86315D09F910}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stride.Shaders.LSP", "src\Stride.Shaders.LSP\Stride.Shaders.LSP.csproj", "{DA4DEF22-680A-4763-8016-5E62A7BEA975}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Shaders.LSP", "src\Stride.Shaders.LSP\Stride.Shaders.LSP.csproj", "{DA4DEF22-680A-4763-8016-5E62A7BEA975}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stride.Shaders.Compilers", "src\Stride.Shaders.Compilers\Stride.Shaders.Compilers.csproj", "{EBDE1FC9-EDB9-417D-B0B7-B1DC1855404D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Shaders.Compilers", "src\Stride.Shaders.Compilers\Stride.Shaders.Compilers.csproj", "{EBDE1FC9-EDB9-417D-B0B7-B1DC1855404D}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stride.Shaders.LSP.Test", "src\Stride.Shaders.LSP.Test\Stride.Shaders.LSP.Test.csproj", "{55190824-293F-49AA-B068-95F69E949055}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SoftTouch.Spirv", "SoftTouch.Spirv", "{5BBFE662-7CE8-45F2-A0A9-F17F6D7758C9}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{54A7F69B-8687-4302-A545-77024C017E0B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SoftTouch.Spirv", "src\SoftTouch.Spirv\src\SoftTouch.Spirv\SoftTouch.Spirv.csproj", "{FF203D61-F0DB-41A4-8AE8-2A0AC8AB0B0E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SoftTouch.Spirv.Core", "src\SoftTouch.Spirv\src\SoftTouch.Spirv.Core\SoftTouch.Spirv.Core.csproj", "{A23537C0-1B9E-45FB-B4E3-4B7B40443220}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
-	EndGlobalSection
-	GlobalSection(SolutionProperties) = preSolution
-		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{66A8722A-4CE8-422D-9467-7B2C8FCB4734}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -44,6 +49,17 @@ Global
 		{55190824-293F-49AA-B068-95F69E949055}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{55190824-293F-49AA-B068-95F69E949055}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{55190824-293F-49AA-B068-95F69E949055}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FF203D61-F0DB-41A4-8AE8-2A0AC8AB0B0E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FF203D61-F0DB-41A4-8AE8-2A0AC8AB0B0E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FF203D61-F0DB-41A4-8AE8-2A0AC8AB0B0E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FF203D61-F0DB-41A4-8AE8-2A0AC8AB0B0E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A23537C0-1B9E-45FB-B4E3-4B7B40443220}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A23537C0-1B9E-45FB-B4E3-4B7B40443220}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A23537C0-1B9E-45FB-B4E3-4B7B40443220}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A23537C0-1B9E-45FB-B4E3-4B7B40443220}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{66A8722A-4CE8-422D-9467-7B2C8FCB4734} = {9967EA99-9716-43A9-B6BA-E5975F08250D}
@@ -51,5 +67,9 @@ Global
 		{DA4DEF22-680A-4763-8016-5E62A7BEA975} = {9967EA99-9716-43A9-B6BA-E5975F08250D}
 		{EBDE1FC9-EDB9-417D-B0B7-B1DC1855404D} = {9967EA99-9716-43A9-B6BA-E5975F08250D}
 		{55190824-293F-49AA-B068-95F69E949055} = {9967EA99-9716-43A9-B6BA-E5975F08250D}
+		{5BBFE662-7CE8-45F2-A0A9-F17F6D7758C9} = {9967EA99-9716-43A9-B6BA-E5975F08250D}
+		{54A7F69B-8687-4302-A545-77024C017E0B} = {5BBFE662-7CE8-45F2-A0A9-F17F6D7758C9}
+		{FF203D61-F0DB-41A4-8AE8-2A0AC8AB0B0E} = {54A7F69B-8687-4302-A545-77024C017E0B}
+		{A23537C0-1B9E-45FB-B4E3-4B7B40443220} = {54A7F69B-8687-4302-A545-77024C017E0B}
 	EndGlobalSection
 EndGlobal
