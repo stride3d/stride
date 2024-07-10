@@ -54,7 +54,7 @@ public static class Examples
     public static void CompileHLSL()
     {
 
-        var dxc = new DXCompiler();
+        var dxc = new DXCompiler(DXCompiler.sampleCode);
         dxc.Compile();
     }
     public static void CompileOldHLSL()
@@ -62,5 +62,11 @@ public static class Examples
 
         var fxc = new FXCompiler();
         fxc.Compile();
+    }
+    public static void SpvOpt()
+    {
+
+        // var spvopt = new SpirvOptimpizer();
+        // spvopt.Optimize(words);
     }
 }
