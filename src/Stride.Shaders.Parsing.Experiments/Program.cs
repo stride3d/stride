@@ -12,4 +12,4 @@ Console.WriteLine("Hello world");
 Console.WriteLine(Directory.GetCurrentDirectory());
 
 
-// Examples.CompileHLSL();
+Examples.CompileOldHLSL();

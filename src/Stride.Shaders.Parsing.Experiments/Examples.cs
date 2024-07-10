@@ -57,4 +57,10 @@ public static class Examples
         var dxc = new DXCompiler();
         dxc.Compile();
     }
+    public static void CompileOldHLSL()
+    {
+
+        var fxc = new FXCompiler();
+        fxc.Compile();
+    }
 }

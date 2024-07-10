@@ -42,10 +42,11 @@ float4 PSMain(PSInput input) : SV_TARGET
         {
             
             Guid id = IDxcCompiler.Guid;
-            Guid libId = IDxcCompiler3.Guid;
-            SilkMarshal.ThrowHResult(dxc.CreateInstance(&id, out ComPtr<IDxcCompiler3> compiler));
+            Guid libId = IDxcUtils.Guid;
+            var guid = IDxcUtils.Guid;
+            var utils = dxc.CreateInstance<IDxcUtils>(ref guid);
             SilkMarshal.ThrowHResult(dxc.CreateInstance(&libId, out ComPtr<IDxcLibrary> library));
-            Console.WriteLine($"{(nint)compiler.GetAddressOf()} - {(nint)library.GetAddressOf()}");
+            // Console.WriteLine($"{(nint)compiler.GetAddressOf()} - {(nint)library.GetAddressOf()}");
             IDxcBlobEncoding* sourceBlob = null;
             fixed (char* ptr = Code.AsSpan())
                 SilkMarshal.ThrowHResult(library.Get().CreateBlobWithEncodingFromPinned(ptr, (uint)Code.Length, 0, &sourceBlob));
