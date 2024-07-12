@@ -34,12 +34,12 @@ internal struct RayHitsCollectionHandler : IRayHitHandler, ISweepHitHandler
 
     public void OnRayHit(in RayData ray, ref float maximumT, float t, Vector3 normal, CollidableReference collidable, int childIndex)
     {
-        _collection.Add(new(ray.Origin + ray.Direction * t, normal, t, _sim.GetComponent(collidable)));
+        _collection.Add(new(ray.Origin + ray.Direction * t, normal, t, _sim.GetComponent(collidable), childIndex));
     }
 
     public void OnHit(ref float maximumT, float t, Vector3 hitLocation, Vector3 hitNormal, CollidableReference collidable)
     {
-        _collection.Add(new(hitLocation, hitNormal, t, _sim.GetComponent(collidable)));
+        _collection.Add(new(hitLocation, hitNormal, t, _sim.GetComponent(collidable), -1));
     }
 
     public void OnHitAtZeroT(ref float maximumT, CollidableReference collidable)

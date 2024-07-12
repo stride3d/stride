@@ -42,7 +42,7 @@ public readonly record struct ManagedConverter(BepuSimulation BepuSimulation) : 
         // 'collidable' can be null when the object the Reference points to was removed from the simulation between when the physics test ran and this execution
         if (collidable != null! && collidable.Versioning == from.Collidable.Versioning)
         {
-            to = new(from.Point, from.Normal, from.Distance, collidable);
+            to = new(from.Point, from.Normal, from.Distance, collidable, from.ChildIndex);
             return true;
         }
 

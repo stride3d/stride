@@ -33,13 +33,13 @@ internal struct RayClosestHitHandler : IRayHitHandler, ISweepHitHandler
 
     public void OnRayHit(in RayData ray, ref float maximumT, float t, Vector3 normal, CollidableReference collidable, int childIndex)
     {
-        HitInformation = new(ray.Origin + ray.Direction * t, normal, t, _sim.GetComponent(collidable));
+        HitInformation = new(ray.Origin + ray.Direction * t, normal, t, _sim.GetComponent(collidable), childIndex);
         maximumT = t;
     }
 
     public void OnHit(ref float maximumT, float t, Vector3 hitLocation, Vector3 hitNormal, CollidableReference collidable)
     {
-        HitInformation = new(hitLocation, hitNormal, t, _sim.GetComponent(collidable));
+        HitInformation = new(hitLocation, hitNormal, t, _sim.GetComponent(collidable), -1);
         maximumT = t;
     }
 

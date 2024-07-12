@@ -9,7 +9,7 @@ namespace Stride.BepuPhysics;
 /// <summary>
 /// Information returned by the different simulation test methods in <see cref="Stride.BepuPhysics.BepuSimulation"/>
 /// </summary>
-public readonly record struct HitInfo(SVector3 Point, SVector3 Normal, float Distance, CollidableComponent Collidable) : IComparable<HitInfo>
+public readonly record struct HitInfo(SVector3 Point, SVector3 Normal, float Distance, CollidableComponent Collidable, int ChildIndex) : IComparable<HitInfo>
 {
     /// <summary> The position where the intersection occured </summary>
     public SVector3 Point { get; init; } = Point;
@@ -23,7 +23,10 @@ public readonly record struct HitInfo(SVector3 Point, SVector3 Normal, float Dis
     /// <summary> The collidable hit </summary>
     public CollidableComponent Collidable { get; init; } = Collidable;
 
-    public HitInfo(NVector3 point, NVector3 normal, float distance, CollidableComponent collidable) : this(point.ToStride(), normal.ToStride(), distance, collidable) { }
+    /// <summary> The specific child hit if the <see cref="Collidable"/>'s <see cref="CollidableComponent.Collider"/> is a <see cref="Definitions.Colliders.CompoundCollider"/> </summary>
+    public int ChildIndex { get; init; } = ChildIndex;
+
+    public HitInfo(NVector3 point, NVector3 normal, float distance, CollidableComponent collidable, int childIndex) : this(point.ToStride(), normal.ToStride(), distance, collidable, childIndex) { }
 
     public int CompareTo(HitInfo other)
     {
@@ -34,4 +37,4 @@ public readonly record struct HitInfo(SVector3 Point, SVector3 Normal, float Dis
 /// <summary>
 /// Structure used through the different simulation test methods in <see cref="Stride.BepuPhysics.BepuSimulation"/>
 /// </summary>
-public readonly record struct HitInfoStack(CollidableStack Collidable, SVector3 Point, SVector3 Normal, float Distance);
+public readonly record struct HitInfoStack(CollidableStack Collidable, SVector3 Point, SVector3 Normal, float Distance, int ChildIndex);

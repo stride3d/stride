@@ -35,7 +35,7 @@ internal unsafe struct RayHitsStackHandler(HitInfoStack* Ptr, int Length, BepuSi
                 indexOfMax = Head;
             }
 
-            Ptr[Head++] = GenerateHitInfo((ray.Origin + ray.Direction * t), normal, t, collidable, sim);
+            Ptr[Head++] = GenerateHitInfo((ray.Origin + ray.Direction * t), normal, t, collidable, sim, childIndex);
 
             if (Head == Length) // Once the array is filled up, ignore all hits that occur further away than the furthest hit in the array
                 maximumT = storedMax;
@@ -44,7 +44,7 @@ internal unsafe struct RayHitsStackHandler(HitInfoStack* Ptr, int Length, BepuSi
         {
             Debug.Assert(t > storedMax, "maximumT should have prevented this hit from being returned, if this is hit it means that we need to change the above into an 'else if (distance < StoredMax)'");
 
-            Ptr[indexOfMax] = GenerateHitInfo((ray.Origin + ray.Direction * t), normal, t, collidable, sim);
+            Ptr[indexOfMax] = GenerateHitInfo((ray.Origin + ray.Direction * t), normal, t, collidable, sim, childIndex);
 
             // Re-scan to find the new max now that the last one was replaced
             storedMax = float.NegativeInfinity;
@@ -71,7 +71,7 @@ internal unsafe struct RayHitsStackHandler(HitInfoStack* Ptr, int Length, BepuSi
                 indexOfMax = Head;
             }
 
-            Ptr[Head++] = GenerateHitInfo(hitLocation, normal, t, collidable, sim);
+            Ptr[Head++] = GenerateHitInfo(hitLocation, normal, t, collidable, sim, -1);
 
             if (Head == Length) // Once the array is filled up, ignore all hits that occur further away than the furthest hit in the array
                 maximumT = storedMax;
@@ -80,7 +80,7 @@ internal unsafe struct RayHitsStackHandler(HitInfoStack* Ptr, int Length, BepuSi
         {
             Debug.Assert(t > storedMax, "maximumT should have prevented this hit from being returned, if this is hit it means that we need to change the above into an 'else if (distance < StoredMax)'");
 
-            Ptr[indexOfMax] = GenerateHitInfo(hitLocation, normal, t, collidable, sim);
+            Ptr[indexOfMax] = GenerateHitInfo(hitLocation, normal, t, collidable, sim, -1);
 
             // Re-scan to find the new max now that the last one was replaced
             storedMax = float.NegativeInfinity;
@@ -98,10 +98,7 @@ internal unsafe struct RayHitsStackHandler(HitInfoStack* Ptr, int Length, BepuSi
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    static HitInfoStack GenerateHitInfo(in RayData ray, Vector3 normal, float t, CollidableReference collidable, BepuSimulation sim) => new(new(collidable, sim.GetComponent(collidable).Versioning), (ray.Origin + ray.Direction * t).ToStride(), normal.ToStride(), t);
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    static HitInfoStack GenerateHitInfo(Vector3 location, Vector3 normal, float t, CollidableReference collidable, BepuSimulation sim) => new(new(collidable, sim.GetComponent(collidable).Versioning), location.ToStride(), normal.ToStride(), t);
+    static HitInfoStack GenerateHitInfo(Vector3 location, Vector3 normal, float t, CollidableReference collidable, BepuSimulation sim, int childIndex) => new(new(collidable, sim.GetComponent(collidable).Versioning), location.ToStride(), normal.ToStride(), t, childIndex);
 
     public void OnHitAtZeroT(ref float maximumT, CollidableReference collidable)
     {
