@@ -9,6 +9,8 @@ namespace Stride.Editor.CrashReport;
 
 public partial class CrashReportForm : Form
 {
+    public const string PrivacyPolicyUrl = "https://stride3d.net/legal/privacy-policy";
+
     private readonly CrashReportData currentData;
     private int initialHeight;
     private bool expanded;
@@ -66,6 +68,26 @@ public partial class CrashReportForm : Form
     private void ButtonViewLog_Click(object sender, EventArgs e)
     {
         Expanded = !Expanded;
+    }
+
+    private void LinkPrivacyPolicy_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+    {
+        try
+        {
+            //Open URL in user's default browser when clicked
+            Process process = new Process();
+            process.StartInfo.FileName = PrivacyPolicyUrl;
+            process.StartInfo.UseShellExecute = true;
+            process.Start();
+        }
+        // FIXME: catch only specific exceptions?
+        catch (Exception)
+        {
+            var error = "An error occurred while opening the browser. You can access the privacy policy at the following url:"
+                + Environment.NewLine + Environment.NewLine + PrivacyPolicyUrl;
+
+            MessageBox.Show(error, @"Stride", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
     }
 
     private void TextBoxText_Changed(object sender, EventArgs e)
