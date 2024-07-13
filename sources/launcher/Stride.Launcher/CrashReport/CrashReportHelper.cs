@@ -8,7 +8,6 @@ using Stride.Core.Extensions;
 using Stride.Core.Windows;
 using System.Runtime.InteropServices;
 using Stride.Editor.CrashReport;
-using Modern.Forms;
 
 namespace Stride.LauncherApp.CrashReport
 {
@@ -64,7 +63,7 @@ namespace Stride.LauncherApp.CrashReport
             }
 
             var reporter = new CrashReportForm(crashReport);
-            reporter.Run();
+            reporter.ShowDialog();
         }
 
         private record CrashReportArgs(Exception Exception, Dispatcher Dispatcher);

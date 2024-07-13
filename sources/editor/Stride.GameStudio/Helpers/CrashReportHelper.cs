@@ -21,7 +21,6 @@ using Stride.Graphics;
 using DialogResult = System.Windows.Forms.DialogResult;
 using Stride.GameStudio.AssetsEditors;
 using Stride.Core.Assets.Editor.Services;
-using Modern.Forms;
 
 namespace Stride.GameStudio.Helpers
 {
@@ -164,7 +163,7 @@ namespace Stride.GameStudio.Helpers
             }
 
             var reporter = new CrashReportForm(crashReport);
-            reporter.Run();
+            reporter.ShowDialog();
         }
 
         private static void ExpandAction(TransactionViewModel actionItem, StringBuilder sb, int increment)

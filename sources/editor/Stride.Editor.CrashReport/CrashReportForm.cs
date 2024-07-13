@@ -1,9 +1,10 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+using System.Diagnostics;
 using System.Drawing;
 using System;
 using System.IO;
-using Modern.Forms;
+using System.Windows.Forms;
 
 namespace Stride.Editor.CrashReport;
 
@@ -21,10 +22,6 @@ public partial class CrashReportForm : Form
         InitializeComponent();
         textBoxLog.Text = crashReport.ToString();
     }
-    public void Run()
-    {
-        Application.Run(this);
-    }
 
     public bool Expanded { get { return expanded; } set { expanded = value; RefreshSize(); } }
 
@@ -32,12 +29,12 @@ public partial class CrashReportForm : Form
     {
         if (!Expanded)
         {
-            Size = new Size(Size.Width, textBoxLog.Top);
+            ClientSize = new Size(ClientSize.Width, textBoxLog.Top);
             buttonViewLog.Text = @"View report";
         }
         else
         {
-            Size = new Size(Size.Width, initialHeight);
+            ClientSize = new Size(ClientSize.Width, initialHeight);
             buttonViewLog.Text = @"Hide report";
         }
     }
@@ -49,7 +46,7 @@ public partial class CrashReportForm : Form
 
     private void CrashReportForm_Load(object sender, EventArgs e)
     {
-        initialHeight = Size.Height;
+        initialHeight = ClientSize.Height;
         Expanded = false;
     }
 
@@ -60,8 +57,7 @@ public partial class CrashReportForm : Form
             CrashReporter.OpenGithub();
         }
         catch{
-            var mb = new MessageBoxForm("Error", "Failed to open browser");
-            mb.Show();
+            MessageBox.Show("Failed to open browser","Error");
         }
     }
 
@@ -98,14 +94,14 @@ public partial class CrashReportForm : Form
     private async void copyReportBtn_Click(object sender, EventArgs e)
     {
         RefreshReport();
-        await Clipboard.SetTextAsync(currentData.ToString());
+        Clipboard.SetText(currentData.ToString());
     }
     private async void SaveReport_Click(object sender, EventArgs e)
     {
         RefreshReport();
 
         var fileDialog = new SaveFileDialog();
-        var result = await fileDialog.ShowDialog(this);
+        var result = fileDialog.ShowDialog(this);
         if (result == DialogResult.OK && fileDialog.FileName != null)
         {
             await File.WriteAllTextAsync(fileDialog.FileName, currentData.ToString());
