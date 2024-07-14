@@ -19,6 +19,7 @@
             Text=""
             ShowLineNumbers="True"
             FontFamily="Cascadia Code,Consolas,Menlo,Monospace"
+            TextChanged="Recompile"
         />
         <AvaloniaEdit:TextEditor 
             x:Name="OutputEditor"

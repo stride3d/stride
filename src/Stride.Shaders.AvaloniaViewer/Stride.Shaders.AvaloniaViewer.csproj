@@ -17,9 +17,14 @@
 		<!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
 		<PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" Version="11.0.10" />
 		<PackageReference Include="AvaloniaEdit.TextMate" Version="11.0.6" />
+		<PackageReference Include="Silk.NET.Shaderc" Version="2.21.0" />
 		<PackageReference Include="TextMateSharp" Version="1.0.58" />
 		<PackageReference Include="TextMateSharp.Grammars" Version="1.0.58" />
 
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\Stride.Shaders.Compilers\Stride.Shaders.Compilers.csproj" />
 	</ItemGroup>
 
 	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
