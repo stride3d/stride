@@ -3,6 +3,8 @@ using Silk.NET.Core.Native;
 using Silk.NET.Direct3D.Compilers;
 using Silk.NET.Shaderc;
 using Silk.NET.SPIRV.Cross;
+using SoftTouch.Spirv.Core;
+using SoftTouch.Spirv.Core.Buffers;
 
 namespace Stride.Shaders.Compilers;
 
@@ -61,8 +63,8 @@ public static class SpirvOptimizer
             {
                 var bytes = shaderc.ResultGetBytes(compResult);
                 var length = shaderc.ResultGetLength(compResult);
-                var res = new uint[length];
-                new Span<uint>((uint*)bytes, (int)length/4).CopyTo(res.AsSpan());
+                var byteArray = new Span<byte>(bytes, (int)length);
+                var res = MemoryMarshal.Cast<byte, uint>(byteArray).ToArray();
                 SilkMarshal.Free((nint)bytes);
                 return new SpirvTranslator(res.AsMemory()).Translate(to);
             }

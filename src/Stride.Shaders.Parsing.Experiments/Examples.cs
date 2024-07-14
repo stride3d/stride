@@ -1,6 +1,7 @@
 using System.Text;
 using Silk.NET.Core.Native;
 using Silk.NET.Direct3D.Compilers;
+using Silk.NET.Shaderc;
 using Silk.NET.SPIRV.Cross;
 using Stride.Shaders.Compilers;
 
@@ -50,10 +51,15 @@ public static class Examples
             Console.WriteLine(code.Translate(Backend.Hlsl));
         }
     }
+    public static void TranslateHLSL()
+    {
+        
+        Console.WriteLine(SpirvOptimizer.CompileAssembly(DXCompiler.sampleCode,"PSMain", SourceLanguage.Hlsl, OptimizationLevel.Zero));
+        Console.WriteLine(SpirvOptimizer.Translate(DXCompiler.sampleCode,"PSMain", SourceLanguage.Hlsl, Backend.Hlsl));
+    }
 
     public static void CompileHLSL()
     {
-
         var dxc = new DXCompiler(DXCompiler.sampleCode);
         dxc.Compile();
     }
