@@ -12,6 +12,7 @@
       ColumnDefinitions="*,*"
       RowDefinitions="*">
         <AvaloniaEdit:TextEditor 
+            x:Name="ShaderEditor"
             HorizontalAlignment="Stretch"
             Grid.Row="0" 
             Grid.Column="0"
@@ -20,12 +21,14 @@
             FontFamily="Cascadia Code,Consolas,Menlo,Monospace"
         />
         <AvaloniaEdit:TextEditor 
+            x:Name="OutputEditor"
             HorizontalAlignment="Stretch"
             Grid.Row="0" 
             Grid.Column="1"
             Text="other"
             ShowLineNumbers="True"
             FontFamily="Cascadia Code,Consolas,Menlo,Monospace"
+            
         />
     </Grid>
 </Window>
