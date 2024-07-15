@@ -2,9 +2,7 @@
 Id: bdc10dde-cc94-45e6-88ee-bd5fe156f982
 SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
-FontSource: !SystemFontProvider
-    FontName: Arial
-    Style: Regular
+FontSource: !SystemFontProvider {}
 FontType: !OfflineRasterizedSpriteFontType
     Size: 40.0
     CharacterSet: null
