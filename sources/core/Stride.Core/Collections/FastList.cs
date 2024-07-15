@@ -13,11 +13,13 @@ using Stride.Core.Serialization.Serializers;
 namespace Stride.Core.Collections
 {
     /// <summary>
-    /// Similar to <see cref="List{T}"/>, with direct access to underlying array.
+    /// <para>Similar to <see cref="List{T}"/>, with direct access to underlying array.</para>
+    /// <para>It is recommended to use Spans instead: <see href="https://github.com/stride3d/stride/discussions/2298#discussioncomment-9779439"/></para>
     /// </summary>
     /// <typeparam name="T">The type of elements in the list.</typeparam>
     [DataSerializer(typeof(ListAllSerializer<,>), Mode = DataSerializerGenericMode.TypeAndGenericArguments)]
     [DebuggerDisplay("Count = {" + nameof(Count) + "}")]
+    [Obsolete(".NET Lists can be faster in the latest .NET versions.")]
     public class FastList<T> : IList<T>, IReadOnlyList<T>, ICollection<T>, IEnumerable<T>, IEnumerable
     {
         // Fields
@@ -27,6 +29,7 @@ namespace Stride.Core.Collections
         /// Gets the items.
         /// </summary>
         [DataMemberIgnore]
+        [Obsolete("Its best to use a List<T> instead of FastList<T> and iterate through the list as a Span for peak performance.")]
         public T[] Items { get; private set; }
 
         private int size;

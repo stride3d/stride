@@ -65,7 +65,7 @@ namespace Stride.LauncherApp
         [NotNull]
         internal static NugetStore InitializeNugetStore()
         {
-            var thisExeDirectory = new UFile(Assembly.GetEntryAssembly().Location).GetFullDirectory().ToWindowsPath();
+            var thisExeDirectory = new UFile(Assembly.GetEntryAssembly().Location).GetFullDirectory().ToOSPath();
             var store = new NugetStore(thisExeDirectory);
             return store;
         }
@@ -195,7 +195,7 @@ namespace Stride.LauncherApp
             try
             {
                 // Kill all running processes
-                var path = new UFile(Assembly.GetEntryAssembly().Location).GetFullDirectory().ToWindowsPath();
+                var path = new UFile(Assembly.GetEntryAssembly().Location).GetFullDirectory().ToOSPath();
                 if (!UninstallHelper.CloseProcessesInPath(DisplayMessage, "Stride", path))
                     return LauncherErrorCode.UninstallCancelled; // User cancelled
 

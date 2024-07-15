@@ -173,6 +173,14 @@ namespace Stride.Assets.Presentation
         private void CheckEffectLogAsset(PackageViewModel package)
         {
             var newEffectLogViewModel = package.Assets.FirstOrDefault(x => x.Name == EffectLogAsset.DefaultFile) as EffectLogViewModel;
+            if (newEffectLogViewModel is null && session.CurrentProject is not null)
+            {
+                // Check if the EffectLog asset exists in any of the active project's referenced local projects
+                var projectDependencies = session.CurrentProject.PackageContainer.FlattenedDependencies.Where(x => x.Type == DependencyType.Project).ToList();
+                var localPackageDependencies = session.LocalPackages.Where(pkgViewModel => projectDependencies.Any(projDep => projDep.Package == pkgViewModel.Package));
+                var localPackagesAssets = localPackageDependencies.SelectMany(x => x.Assets);
+                newEffectLogViewModel = localPackagesAssets.FirstOrDefault(x => x.Name == EffectLogAsset.DefaultFile) as EffectLogViewModel;
+            }
             var newEffectLogText = newEffectLogViewModel?.Text;
 
             if (newEffectLogText != effectLogText // Asset changed?

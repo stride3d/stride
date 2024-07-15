@@ -155,7 +155,12 @@ namespace Stride.Core
 #if STRIDE_PLATFORM_ANDROID
             return PlatformAndroid.Context.PackageCodePath;
 #elif STRIDE_PLATFORM_DESKTOP || STRIDE_PLATFORM_MONO_MOBILE
-            return Assembly.GetEntryAssembly()?.Location;
+            var appPath = Assembly.GetEntryAssembly()?.Location;
+            if (string.IsNullOrEmpty(appPath))
+            {
+                appPath = Environment.ProcessPath;
+            }
+            return appPath;
 #else
             return null;
 #endif
