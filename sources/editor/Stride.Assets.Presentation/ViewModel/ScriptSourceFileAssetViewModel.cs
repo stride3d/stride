@@ -196,7 +196,7 @@ namespace Stride.Assets.Presentation.ViewModel
             Dispatcher.Invoke(() =>
             {
                 // Update source file location with latest FullPath (in case it changed)
-                workspace.UpdateFilePath(DocumentId?.Result, FullPath.ToWindowsPath());
+                workspace.UpdateFilePath(DocumentId?.Result, FullPath.ToOSPath());
 
                 // TODO: This doesn't take into account the case where you move and then undo,
                 //  to fix this case the file would need to check for modifications after it has been moved
@@ -243,7 +243,7 @@ namespace Stride.Assets.Presentation.ViewModel
             AssetItem.UpdateSourceFolders();
 
             // Capture full path before going in a Task (might be renamed in between)
-            var fullPath = AssetItem.FullPath.ToWindowsPath();
+            var fullPath = AssetItem.FullPath.ToOSPath();
 
             DocumentId = Task.Run(async () =>
             {
@@ -252,7 +252,7 @@ namespace Stride.Assets.Presentation.ViewModel
                 workspace = await strideAssets.Code.Workspace;
 
                 AssetItem.UpdateSourceFolders();
-                var sourceProject = ((SolutionProject)AssetItem.Package.Container).FullPath.ToWindowsPath();
+                var sourceProject = ((SolutionProject)AssetItem.Package.Container).FullPath.ToOSPath();
                 if (sourceProject == null)
                     throw new InvalidOperationException($"Could not find project associated to asset [{AssetItem}]");
 

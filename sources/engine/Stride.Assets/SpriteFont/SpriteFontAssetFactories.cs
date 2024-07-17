@@ -11,7 +11,7 @@ namespace Stride.Assets.SpriteFont
         {
             return new SpriteFontAsset
             {
-                FontSource = new SystemFontProvider("Arial"),
+                FontSource = new SystemFontProvider(),
                 FontType = new OfflineRasterizedSpriteFontType()
                 {
                     CharacterRegions = { new CharacterRegion(' ', (char)127) }                 
@@ -31,7 +31,7 @@ namespace Stride.Assets.SpriteFont
         {
             return new SpriteFontAsset
             {
-                FontSource = new SystemFontProvider("Arial"),
+                FontSource = new SystemFontProvider(),
                 FontType = new RuntimeRasterizedSpriteFontType(),
             };
         }
@@ -48,7 +48,7 @@ namespace Stride.Assets.SpriteFont
         {
             return new SpriteFontAsset
             {
-                FontSource = new SystemFontProvider("Arial"),
+                FontSource = new SystemFontProvider(),
                 FontType = new SignedDistanceFieldSpriteFontType()
                 {
                     CharacterRegions = { new CharacterRegion(' ', (char)127) }

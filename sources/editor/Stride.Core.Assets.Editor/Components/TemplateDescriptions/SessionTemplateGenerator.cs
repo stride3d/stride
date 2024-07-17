@@ -120,7 +120,7 @@ Cache/
         protected void WriteGitIgnore(SessionTemplateGeneratorParameters parameters)
         {
             var fileName = UFile.Combine(parameters.OutputDirectory, ".gitignore");
-            File.WriteAllText(fileName.ToWindowsPath(), GitIgnore);
+            File.WriteAllText(fileName.ToOSPath(), GitIgnore);
         }
 
         private void EnsureGraphs(SessionTemplateGeneratorParameters parameters)

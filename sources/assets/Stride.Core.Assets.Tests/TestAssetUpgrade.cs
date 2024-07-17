@@ -136,7 +136,7 @@ namespace Stride.Core.Assets.Tests
             AssetFileSerializer.Save(outputFilePath, asset, null);
 
             var logger = new LoggerResult();
-            var context = new AssetMigrationContext(null, loadingFilePath.ToReference(), loadingFilePath.FilePath.ToWindowsPath(), logger);
+            var context = new AssetMigrationContext(null, loadingFilePath.ToReference(), loadingFilePath.FilePath.ToOSPath(), logger);
             Assert.Equal(AssetMigration.MigrateAssetIfNeeded(context, loadingFilePath, "TestPackage"), needMigration);
 
             if (needMigration)

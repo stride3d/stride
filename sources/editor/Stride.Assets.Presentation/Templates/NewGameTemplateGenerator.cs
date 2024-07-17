@@ -332,13 +332,13 @@ namespace Stride.Assets.Presentation.Templates
             try
             {
                 var resources = UPath.Combine(package.RootDirectory, (UDirectory)"Resources");
-                Directory.CreateDirectory(resources.ToWindowsPath());
+                Directory.CreateDirectory(resources.ToOSPath());
 
                 // TODO: Hardcoded due to the fact that part of the template is in another folder in dev build
                 // We might want to extend TemplateFolder to support those cases
                 var dataDirectory = ProjectTemplateGeneratorHelper.GetTemplateDataDirectory(parameters.Description);
-                var skyboxFullPath = UPath.Combine(dataDirectory, skyboxFilename).ToWindowsPath();
-                File.Copy(skyboxFullPath, UPath.Combine(resources, skyboxFilename).ToWindowsPath(), true);
+                var skyboxFullPath = UPath.Combine(dataDirectory, skyboxFilename).ToOSPath();
+                File.Copy(skyboxFullPath, UPath.Combine(resources, skyboxFilename).ToOSPath(), true);
             }
             catch (Exception ex)
             {

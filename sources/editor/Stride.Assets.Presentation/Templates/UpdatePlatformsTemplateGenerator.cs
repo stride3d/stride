@@ -116,7 +116,7 @@ namespace Stride.Assets.Presentation.Templates
             var templateGameLibrary = PrepareTemplate(parameters, "ProjectLibrary.Game/ProjectLibrary.Game.ttproj", PlatformType.Shared, null, null, ProjectType.Library);
             var options = ProjectTemplateGeneratorHelper.GetOptions(parameters);
             var newGameTargetFrameworks = templateGameLibrary.GeneratePart(@"..\Common.TargetFrameworks.targets.t4", logger, options);
-            PatchGameProject(newGameTargetFrameworks, gameProject.FullPath.ToWindowsPath());
+            PatchGameProject(newGameTargetFrameworks, gameProject.FullPath.ToOSPath());
 
             // Generate missing platforms
             bool forceGenerating = parameters.GetTag(ForcePlatformRegenerationKey);
