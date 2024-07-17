@@ -105,91 +105,106 @@ namespace Stride.Graphics.Tests
             RunGameTest(new LightingTests { AmbientLight = false, TestName = nameof(SceneNoLighting) });
         }
 
-        [Fact]
+        [Fact(Skip = "Only run when working on graphic related changes and tests, otherwise results are results are not deterministic and inconsistent between hardware. " +
+            "TODO: Remove this skip when we get teamcity agent functional again.")]
         public void SceneAmbientLight()
         {
             RunGameTest(new LightingTests { TestName = nameof(SceneAmbientLight) });
         }
 
-        [Fact]
+        [Fact(Skip = "Only run when working on graphic related changes and tests, otherwise results are results are not deterministic and inconsistent between hardware. " +
+            "TODO: Remove this skip when we get teamcity agent functional again.")]
         public void ScenePointLight()
         {
             RunGameTest(new LightingTests { PointLight = true, TestName = nameof(ScenePointLight) });
         }
 
-        [Fact]
+        [Fact(Skip = "Only run when working on graphic related changes and tests, otherwise results are results are not deterministic and inconsistent between hardware. " +
+            "TODO: Remove this skip when we get teamcity agent functional again.")]
         public void ScenePointLightShadowCubeMap()
         {
             RunGameTest(new LightingTests { PointLightShadowCubeMap = true, TestName = nameof(ScenePointLightShadowCubeMap) });
         }
 
-        [Fact]
+        [Fact(Skip = "Only run when working on graphic related changes and tests, otherwise results are results are not deterministic and inconsistent between hardware. " +
+            "TODO: Remove this skip when we get teamcity agent functional again.")]
         public void ScenePointLightShadowParaboloid()
         {
             RunGameTest(new LightingTests { PointLightShadowParaboloid = true, TestName = nameof(ScenePointLightShadowParaboloid) });
         }
 
-        [Fact]
+        [Fact(Skip = "Only run when working on graphic related changes and tests, otherwise results are results are not deterministic and inconsistent between hardware. " +
+            "TODO: Remove this skip when we get teamcity agent functional again.")]
         public void SceneSpotLight()
         {
             RunGameTest(new LightingTests { SpotLight = true, TestName = nameof(SceneSpotLight) });
         }
 
-        [Fact]
+        [Fact(Skip = "Only run when working on graphic related changes and tests, otherwise results are results are not deterministic and inconsistent between hardware. " +
+            "TODO: Remove this skip when we get teamcity agent functional again.")]
         public void SceneSpotLightShadow()
         {
             RunGameTest(new LightingTests { SpotLightShadow = true, TestName = nameof(SceneSpotLightShadow) });
         }
 
-        [Fact]
+        [Fact(Skip = "Only run when working on graphic related changes and tests, otherwise results are results are not deterministic and inconsistent between hardware. " +
+            "TODO: Remove this skip when we get teamcity agent functional again.")]
         public void SceneDirectionalLight()
         {
             RunGameTest(new LightingTests { DirectionalLight = true, TestName = nameof(SceneDirectionalLight) });
         }
 
-        [Fact]
+        [Fact(Skip = "Only run when working on graphic related changes and tests, otherwise results are results are not deterministic and inconsistent between hardware. " +
+            "TODO: Remove this skip when we get teamcity agent functional again.")]
         public void SceneDirectionalLightShadowOneCascade()
         {
             RunGameTest(new LightingTests { DirectionalLightShadowOneCascade = true, TestName = nameof(SceneDirectionalLightShadowOneCascade) });
         }
 
-        [Fact]
+        [Fact(Skip = "Only run when working on graphic related changes and tests, otherwise results are results are not deterministic and inconsistent between hardware. " +
+            "TODO: Remove this skip when we get teamcity agent functional again.")]
         public void SceneTwoDirectionalLightShadowOneCascade()
         {
             RunGameTest(new LightingTests { DirectionalLightShadowOneCascade = true, DirectionalLightShadowOneCascade2 = true, TestName = nameof(SceneTwoDirectionalLightShadowOneCascade) });
         }
 
-        [Fact]
+        [Fact(Skip = "Only run when working on graphic related changes and tests, otherwise results are results are not deterministic and inconsistent between hardware. " +
+            "TODO: Remove this skip when we get teamcity agent functional again.")]
         public void SceneDirectionalLightShadowOneFourCascade()
         {
             RunGameTest(new LightingTests { DirectionalLightShadowOneCascade = true, DirectionalLightShadowFourCascades = true, TestName = nameof(SceneDirectionalLightShadowOneFourCascade) });
         }
 
-        [Fact]
+        [Fact(Skip = "Only run when working on graphic related changes and tests, otherwise results are results are not deterministic and inconsistent between hardware. " +
+            "TODO: Remove this skip when we get teamcity agent functional again.")]
         public void SceneDirectionalLightShadowOneCascadePCF()
         {
             RunGameTest(new LightingTests { DirectionalLightShadowOneCascadePCF = true, TestName = nameof(SceneDirectionalLightShadowOneCascadePCF) });
         }
 
-        [Fact]
+        [Fact(Skip = "Only run when working on graphic related changes and tests, otherwise results are results are not deterministic and inconsistent between hardware. " +
+            "TODO: Remove this skip when we get teamcity agent functional again.")]
         public void SceneDirectionalLightShadowFourCascades()
         {
             RunGameTest(new LightingTests { DirectionalLightShadowFourCascades = true, TestName = nameof(SceneDirectionalLightShadowFourCascades) });
         }
 
-        [Fact]
+        [Fact(Skip = "Only run when working on graphic related changes and tests, otherwise results are results are not deterministic and inconsistent between hardware. " +
+            "TODO: Remove this skip when we get teamcity agent functional again.")]
         public void SceneSkybox()
         {
             RunGameTest(new LightingTests { Skybox = true, TestName = nameof(SceneSkybox) });
         }
 
-        [Fact]
+        [Fact(Skip = "Only run when working on graphic related changes and tests, otherwise results are results are not deterministic and inconsistent between hardware. " +
+            "TODO: Remove this skip when we get teamcity agent functional again.")]
         public void SceneSkyboxRotated()
         {
             RunGameTest(new LightingTests { SkyboxRotated = true, TestName = nameof(SceneSkyboxRotated) });
         }
 
-        [Fact]
+        [Fact(Skip = "Only run when working on graphic related changes and tests, otherwise results are results are not deterministic and inconsistent between hardware. " +
+            "TODO: Remove this skip when we get teamcity agent functional again.")]
         public void SceneSkyboxMultiple()
         {
             RunGameTest(new LightingTests { Skybox = true, SkyboxRotated = true, TestName = nameof(SceneSkyboxMultiple) });
