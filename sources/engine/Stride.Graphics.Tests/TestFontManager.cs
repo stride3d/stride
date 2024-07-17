@@ -48,7 +48,7 @@ namespace Stride.Graphics.Tests
             fontManager.Dispose();
         }
 
-        //it seems that the various font variables are always fluctuating, difficult to get a real good idea of what the numbers should be compared here
+        //Note: it seems that the various font variables are always fluctuating, difficult to get a real good idea of what the numbers should be compared here
         //glyphs fluctuate on load so it never stays consistent, check should be a simple verificaition that the baseline, width and height have been updated
         [Fact]
         public void TestGetFontInfo()

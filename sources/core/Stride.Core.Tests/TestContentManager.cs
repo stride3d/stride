@@ -290,8 +290,6 @@ namespace Stride.Core.Tests
 
         /// <summary>
         /// TODO: Test itself seems a bit counter intuitive
-        ///  Verify - don't serializable classes need to have an empty constructor? D class shows no empty constructor 
-        ///  therefore couldn't properly serialize. A bit confused by this test. (Ask in PR)
         /// </summary>
         [Fact]
         public void LifetimeNoSimpleConstructor()

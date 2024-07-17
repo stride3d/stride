@@ -21,7 +21,7 @@ namespace Stride.Engine.Tests
         [StructLayout(LayoutKind.Explicit)] public struct ExplicitLayoutObjRef { [FieldOffset(0)] public object Ref; }
 
         
-        [Fact] //Failed on Autolayout returns true. Why was this false originally?
+        [Fact]
         public unsafe void TestGCHandleAlloc()
         {
             static bool CanPin<T>()

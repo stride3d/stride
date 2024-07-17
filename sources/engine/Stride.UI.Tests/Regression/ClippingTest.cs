@@ -253,7 +253,8 @@ namespace Stride.UI.Tests.Regression
             element3.ClipToBounds = true;
         }
 
-        [Fact]
+        [Fact(Skip = "Only run when working on graphic related changes and tests, otherwise results are results are not deterministic and inconsistent between hardware. " +
+            "TODO: Remove this skip when we get teamcity agent functional again.")]
         public void RunClippingTest()
         {
             RunGameTest(new ClippingTest());

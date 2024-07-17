@@ -13,7 +13,7 @@ namespace Stride.Engine.Tests
 {
     public class GameWindowTest : GameTestBase
     {
-        [Theory(Skip = "Investigate, looks like many issues located in GameTestBase related to SendImage that seems to relate to this failure")]
+        [Theory (Skip = "Investigate, looks like many issues located in GameTestBase related to SendImage that seems to relate to this failure. See other graphics related tests")]
         [InlineData(AppContextType.Desktop)]
         [InlineData(AppContextType.DesktopSDL)]
         public void RenderToWindow(AppContextType contextType)
