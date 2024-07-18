@@ -48,8 +48,8 @@ namespace Stride.Graphics.Tests
             fontManager.Dispose();
         }
 
-        //Note: it seems that the various font variables are always fluctuating, difficult to get a real good idea of what the numbers should be compared here
-        //glyphs fluctuate on load so it never stays consistent, check should be a simple verificaition that the baseline, width and height have been updated
+        //Note: Test may fail due to some issues with SharpFont.
+        //Updated TestGetFontInfo to now properly check if various Font Info is properly loaded
         [Fact]
         public void TestGetFontInfo()
         {
@@ -63,19 +63,10 @@ namespace Stride.Graphics.Tests
             float height = 0f;
 
             fontManager.GetFontInfo("Risaltyp_024", FontStyle.Regular, out lineSpacing, out baseLine, out width, out height);
-            //old tests
-            //Assert.Equal(4444f / 4096f, lineSpacing);
-            //Assert.Equal(3233f / 4096f, baseLine);
-            //Assert.Equal(3657f / 4096f, width);
-            //Assert.Equal(4075f / 4096f, height);
-
-            //Face height is always zero, therefore the line spacing will be calculated to be 0
-            Assert.Equal(0, lineSpacing);
-            //baseline, width and height will always be different values so instead simply check if outputs is updated from zero
-            Assert.NotEqual(0f, baseLine);
-            Assert.NotEqual(0f, width);
-            Assert.NotEqual(0f, height);
-
+            Assert.Equal(4444f / 4096f, lineSpacing);
+            Assert.Equal(3233f / 4096f, baseLine);
+            Assert.Equal(3657f / 4096f, width);
+            Assert.Equal(4075f / 4096f, height);
 
             fontManager.Dispose();
         }
