@@ -120,8 +120,7 @@ namespace Stride.Engine.Tests
             }).TakeScreenshot();
         }
 
-        [Fact(Skip = "Only run when working on graphic related changes and tests, otherwise results are results are not deterministic and inconsistent between hardware. " +
-            "TODO: Remove this skip when we get teamcity agent functional again.")]
+        [Fact]
         public void RunTestGame()
         {
             RunGameTest(new AnimatedModelTests());

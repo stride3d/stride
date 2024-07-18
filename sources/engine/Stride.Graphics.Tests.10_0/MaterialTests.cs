@@ -89,8 +89,7 @@ namespace Stride.Graphics.Tests
         #endregion
 
         #region Test Diffuse ComputeTextureColor with various parameters
-        [Fact(Skip = "Only run when working on graphic related changes and tests, otherwise results are results are not deterministic and inconsistent between hardware. " +
-            "TODO: Remove this skip when we get teamcity agent functional again.")]
+        [Fact]
         public void MaterialDiffuseTexture()
         {
             RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Base/MaterialDiffuseTexture")) { TestName = nameof(MaterialDiffuseTexture) });
@@ -104,32 +103,28 @@ namespace Stride.Graphics.Tests
         }
 
         // Test texcoord offsets
-        [Fact(Skip = "Only run when working on graphic related changes and tests, otherwise results are results are not deterministic and inconsistent between hardware. " +
-            "TODO: Remove this skip when we get teamcity agent functional again.")]
+        [Fact]
         public void MaterialDiffuseTextureOffset()
         {
             RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Base/MaterialDiffuseTextureOffset")) { TestName = nameof(MaterialDiffuseTextureOffset) });
         }
 
         // Test texcoord scaling
-        [Fact(Skip = "Only run when working on graphic related changes and tests, otherwise results are results are not deterministic and inconsistent between hardware. " +
-            "TODO: Remove this skip when we get teamcity agent functional again.")]
+        [Fact]
         public void MaterialDiffuseTextureScaled()
         {
             RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Base/MaterialDiffuseTextureScaled")) { TestName = nameof(MaterialDiffuseTextureScaled) });
         }
 
         // Test texcoord1
-        [Fact(Skip = "Only run when working on graphic related changes and tests, otherwise results are results are not deterministic and inconsistent between hardware. " +
-            "TODO: Remove this skip when we get teamcity agent functional again.")]
+        [Fact]
         public void MaterialDiffuseTextureCoord1()
         {
             RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Base/MaterialDiffuseTextureCoord1")) { TestName = nameof(MaterialDiffuseTextureCoord1) });
         }
 
         // Test uv address modes
-        [Fact(Skip = "Only run when working on graphic related changes and tests, otherwise results are results are not deterministic and inconsistent between hardware. " +
-            "TODO: Remove this skip when we get teamcity agent functional again.")]
+        [Fact]
         public void MaterialDiffuseTextureClampMirror()
         {
             RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Base/MaterialDiffuseTextureClampMirror")) { TestName = nameof(MaterialDiffuseTextureClampMirror) });
@@ -137,15 +132,13 @@ namespace Stride.Graphics.Tests
         #endregion
 
         #region Test diffuse binary operators
-        [Fact(Skip = "Only run when working on graphic related changes and tests, otherwise results are results are not deterministic and inconsistent between hardware. " +
-            "TODO: Remove this skip when we get teamcity agent functional again.")]
+        [Fact]
         public void MaterialBinaryOperatorMultiply()
         {
             RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/BinaryOperators/MaterialBinaryOperatorMultiply")) { TestName = nameof(MaterialBinaryOperatorMultiply) });
         }
 
-        [Fact(Skip = "Only run when working on graphic related changes and tests, otherwise results are results are not deterministic and inconsistent between hardware. " +
-            "TODO: Remove this skip when we get teamcity agent functional again.")]
+        [Fact]
         public void MaterialBinaryOperatorAdd()
         {
             RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/BinaryOperators/MaterialBinaryOperatorAdd")) { TestName = nameof(MaterialBinaryOperatorAdd) });
@@ -161,43 +154,37 @@ namespace Stride.Graphics.Tests
         #endregion
 
         #region Test material features (specular, metalness, cavity, normal map, emissive)
-        [Fact(Skip = "Only run when working on graphic related changes and tests, otherwise results are results are not deterministic and inconsistent between hardware. " +
-            "TODO: Remove this skip when we get teamcity agent functional again.")]
+        [Fact]
         public void MaterialMetalness()
         {
             RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Features/MaterialMetalness")) { TestName = nameof(MaterialMetalness) });
         }
 
-        [Fact(Skip = "Only run when working on graphic related changes and tests, otherwise results are results are not deterministic and inconsistent between hardware. " +
-            "TODO: Remove this skip when we get teamcity agent functional again.")]
+        [Fact]
         public void MaterialSpecular()
         {
             RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Features/MaterialSpecular")) { TestName = nameof(MaterialSpecular) });
         }
 
-        [Fact(Skip = "Only run when working on graphic related changes and tests, otherwise results are results are not deterministic and inconsistent between hardware. " +
-            "TODO: Remove this skip when we get teamcity agent functional again.")]
+        [Fact]
         public void MaterialNormalMap()
         {
             RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Features/MaterialNormalMap")) { TestName = nameof(MaterialNormalMap) });
         }
 
-        [Fact(Skip = "Only run when working on graphic related changes and tests, otherwise results are results are not deterministic and inconsistent between hardware. " +
-            "TODO: Remove this skip when we get teamcity agent functional again.")]
+        [Fact]
         public void MaterialNormalMapCompressed()
         {
             RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Features/MaterialNormalMapCompressed")) { TestName = nameof(MaterialNormalMapCompressed) });
         }
 
-        [Fact(Skip = "Only run when working on graphic related changes and tests, otherwise results are results are not deterministic and inconsistent between hardware. " +
-            "TODO: Remove this skip when we get teamcity agent functional again.")]
+        [Fact]
         public void MaterialEmissive()
         {
             RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Features/MaterialEmissive")) { TestName = nameof(MaterialEmissive) });
         }
 
-        [Fact(Skip = "Only run when working on graphic related changes and tests, otherwise results are results are not deterministic and inconsistent between hardware. " +
-            "TODO: Remove this skip when we get teamcity agent functional again.")]
+        [Fact]
         public void MaterialCavity()
         {
             RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Features/MaterialCavity")) { TestName = nameof(MaterialCavity) });
@@ -206,8 +193,7 @@ namespace Stride.Graphics.Tests
 
         #region Test layers with different shading models
         // Layers (A, B and C are shading models; first character is root parent, and next characters are its child)
-        [Fact(Skip = "Only run when working on graphic related changes and tests, otherwise results are results are not deterministic and inconsistent between hardware. " +
-            "TODO: Remove this skip when we get teamcity agent functional again.")]
+        [Fact]
         public void MaterialLayerAAA()
         {
             RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Layers/MaterialLayerAAA")) { TestName = nameof(MaterialLayerAAA) });
@@ -219,15 +205,13 @@ namespace Stride.Graphics.Tests
             RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Layers/MaterialLayerABB")) { TestName = nameof(MaterialLayerABB) });
         }
 
-        [Fact(Skip = "Only run when working on graphic related changes and tests, otherwise results are results are not deterministic and inconsistent between hardware. " +
-            "TODO: Remove this skip when we get teamcity agent functional again.")]
+        [Fact]
         public void MaterialLayerABA()
         {
             RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Layers/MaterialLayerABA")) { TestName = nameof(MaterialLayerABA) });
         }
 
-        [Fact(Skip = "Only run when working on graphic related changes and tests, otherwise results are results are not deterministic and inconsistent between hardware. " +
-            "TODO: Remove this skip when we get teamcity agent functional again.")]
+        [Fact]
         public void MaterialLayerABC()
         {
             RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Layers/MaterialLayerABC")) { TestName = nameof(MaterialLayerABC) });
@@ -239,8 +223,7 @@ namespace Stride.Graphics.Tests
             RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Layers/MaterialLayerBAA")) { TestName = nameof(MaterialLayerBAA) });
         }
 
-        [Fact(Skip = "Only run when working on graphic related changes and tests, otherwise results are results are not deterministic and inconsistent between hardware. " +
-            "TODO: Remove this skip when we get teamcity agent functional again.")]
+        [Fact]
         public void MaterialLayerBBB()
         {
             RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Layers/MaterialLayerBBB")) { TestName = nameof(MaterialLayerBBB) });
