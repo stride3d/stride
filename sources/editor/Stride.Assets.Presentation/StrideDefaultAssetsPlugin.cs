@@ -93,7 +93,7 @@ namespace Stride.Assets.Presentation
         {
             // Load templates
             // Currently hardcoded, this will need to change with plugin system
-            foreach (var packageInfo in new[] { new { Name = "stride.assets.presentation", Version = StrideVersion.NuGetVersion }, new { Name = "stride.spritestudio.offline", Version = StrideVersion.NuGetVersion }, new { Name = "stride.samples.templates", Version = Stride.Samples.Templates.ThisPackageVersion.Current } })
+            foreach (var packageInfo in new[] { new { Name = "Stride.Assets.Presentation", Version = StrideVersion.NuGetVersion }, new { Name = "Stride.SpriteStudio.Offline", Version = StrideVersion.NuGetVersion }, new { Name = "Stride.Samples.Templates", Version = Stride.Samples.Templates.ThisPackageVersion.Current } })
             {
                 var logger = new LoggerResult();
                 var packageFile = PackageStore.Instance.GetPackageFileName(packageInfo.Name, new PackageVersionRange(new PackageVersion(packageInfo.Version)));
