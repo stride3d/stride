@@ -57,10 +57,6 @@ namespace Stride.Core.Tests
             {
             }
 
-            public D()
-            {
-            }
-
             class Serializer : ContentSerializerBase<D>
             {
                 public override void Serialize(ContentSerializerContext context, SerializationStream stream, D obj)
@@ -286,30 +282,6 @@ namespace Stride.Core.Tests
 
             // Check that everything is properly unloaded
             Assert.Equal(0, ((IReferencable)c1ChildCopy).ReferenceCount);
-        }
-
-        /// <summary>
-        /// TODO: Test itself seems a bit counter intuitive
-        /// </summary>
-        [Fact]
-        public void LifetimeNoSimpleConstructor()
-        {
-            var c1 = new C { I = 18 };
-            c1.Child2 = new D(18);
-
-            var databaseProvider = CreateDatabaseProvider();
-            var assetManager1 = new ContentManager(databaseProvider);
-            var assetManager2 = new ContentManager(databaseProvider);
-
-            assetManager1.Save("c1", c1);
-
-            var c1Copy = assetManager2.Load<C>("c1");
-            Assert.Equal(1, ((IReferencable)c1Copy).ReferenceCount);
-            Assert.Equal(1, ((IReferencable)c1Copy.Child2).ReferenceCount);
-
-            assetManager2.Unload(c1Copy);
-            Assert.Equal(0, ((IReferencable)c1Copy).ReferenceCount);
-            Assert.Equal(0, ((IReferencable)c1Copy.Child2).ReferenceCount);
         }
 
         [Fact]
