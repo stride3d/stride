@@ -43,7 +43,7 @@ partial class CrashReportForm
         // openGithubBtn
         // 
         this.openGithubBtn.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-        this.openGithubBtn.Location = new System.Drawing.Point(472, 175);
+        this.openGithubBtn.Location = new System.Drawing.Point(440, 100);
         this.openGithubBtn.Name = "openGithubBtn";
         this.openGithubBtn.Size = new System.Drawing.Size(100, 37);
         this.openGithubBtn.TabIndex = 3;
@@ -54,7 +54,7 @@ partial class CrashReportForm
         // saveReportFileBtn
         // 
         this.saveReportFileBtn.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-        this.saveReportFileBtn.Location = new System.Drawing.Point(225, 180);
+        this.saveReportFileBtn.Location = new System.Drawing.Point(118, 100);
         this.saveReportFileBtn.DialogResult = System.Windows.Forms.DialogResult.Cancel;
         this.saveReportFileBtn.Name = "saveReportFileBtn";
         this.saveReportFileBtn.Size = new System.Drawing.Size(100, 23);
@@ -68,7 +68,7 @@ partial class CrashReportForm
         this.textBoxLog.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
         | System.Windows.Forms.AnchorStyles.Left) 
         | System.Windows.Forms.AnchorStyles.Right)));
-        this.textBoxLog.Location = new System.Drawing.Point(12, 358);
+        this.textBoxLog.Location = new System.Drawing.Point(12, 186);
         this.textBoxLog.Multiline = true;
         this.textBoxLog.Name = "textBoxLog";
         this.textBoxLog.ReadOnly = true;
@@ -87,7 +87,7 @@ partial class CrashReportForm
         // 
         // buttonViewLog
         // 
-        this.buttonViewLog.Location = new System.Drawing.Point(13, 322);
+        this.buttonViewLog.Location = new System.Drawing.Point(13, 150);
         this.buttonViewLog.Name = "buttonViewLog";
         this.buttonViewLog.Size = new System.Drawing.Size(75, 23);
         this.buttonViewLog.TabIndex = 5;
@@ -108,7 +108,7 @@ partial class CrashReportForm
         // 
         // button1
         // 
-        this.copyReportBtn.Location = new System.Drawing.Point(119, 180);
+        this.copyReportBtn.Location = new System.Drawing.Point(12, 100);
         this.copyReportBtn.Name = "copyReportBtn";
         this.copyReportBtn.Size = new System.Drawing.Size(100, 23);
         this.copyReportBtn.TabIndex = 6;
@@ -121,7 +121,7 @@ partial class CrashReportForm
         this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
         this.AcceptButton = this.openGithubBtn;
         this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-        this.ClientSize = new System.Drawing.Size(559, 532);
+        this.ClientSize = new System.Drawing.Size(559, 360);
         this.CancelButton = this.saveReportFileBtn;
         this.Controls.Add(this.copyReportBtn);
         this.Controls.Add(this.labelMainContent);
