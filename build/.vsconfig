@@ -32,6 +32,7 @@
     "Microsoft.VisualStudio.Component.VC.CoreIde",
     "Microsoft.VisualStudio.Component.Windows10SDK",
     "Microsoft.VisualStudio.Component.VC.Tools.x86.x64",
+    "Microsoft.VisualStudio.Component.VC.Tools.ARM64",
     "Microsoft.VisualStudio.Component.Graphics.Tools",
     "Microsoft.VisualStudio.Component.VC.DiagnosticTools",
     "Microsoft.VisualStudio.Component.Windows10SDK.19041",

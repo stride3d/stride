@@ -29,7 +29,7 @@ namespace Stride.Core.Windows
             }
             body.AppendLine($"Current Directory: {Environment.CurrentDirectory}");
             body.AppendLine($"Command Line Args: {string.Join(" ", GetCommandLineArgs())}");
-            body.AppendLine($"OS Version: {Environment.OSVersion} ({(Environment.Is64BitOperatingSystem ? "x64" : "x86")})");
+            body.AppendLine($"OS Version: {Environment.OSVersion} ({(Environment.Is64BitOperatingSystem ? "64 bit" : "32 bit")})");
             body.AppendLine($"Processor Count: {Environment.ProcessorCount}");
             body.AppendLine("Video configuration:");
             WriteVideoConfig(body);

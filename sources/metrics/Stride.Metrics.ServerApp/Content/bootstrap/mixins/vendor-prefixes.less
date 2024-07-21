@@ -1,7 +1,9 @@
+// stylelint-disable indentation, property-no-vendor-prefix, selector-no-vendor-prefix
+
 // Vendor Prefixes
 //
 // All vendor mixins are deprecated as of v3.2.0 due to the introduction of
-// Autoprefixer in our Gruntfile. They will be removed in v4.
+// Autoprefixer in our Gruntfile. They have been removed in v4.
 
 // - Animations
 // - Backface visibility
@@ -54,7 +56,7 @@
 // Prevent browsers from flickering when using CSS 3D transforms.
 // Default value is `visible`, but can be changed to `hidden`
 
-.backface-visibility(@visibility){
+.backface-visibility(@visibility) {
   -webkit-backface-visibility: @visibility;
      -moz-backface-visibility: @visibility;
           backface-visibility: @visibility;
@@ -89,12 +91,12 @@
 
 // Optional hyphenation
 .hyphens(@mode: auto) {
-  word-wrap: break-word;
   -webkit-hyphens: @mode;
      -moz-hyphens: @mode;
       -ms-hyphens: @mode; // IE10+
        -o-hyphens: @mode;
           hyphens: @mode;
+  word-wrap: break-word;
 }
 
 // Placeholder text

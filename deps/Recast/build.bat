@@ -18,6 +18,12 @@ cd "%output%"
 msbuild "%recast_source%\Detour.vcxproj" /p:Platform="x86";Configuration="Release"
 msbuild "%recast_source%\Recast.vcxproj" /p:Platform="x86";Configuration="Release"
 
+REM build arm64 projects
+call "%ProgramFiles%\Microsoft Visual Studio\2022\Community\VC\Auxillary\vcvarsall.bat" arm64
+cd "%output%"
+msbuild "%recast_source%\Detour.vcxproj" /p:Platform="arm64";Configuration="Release"
+msbuild "%recast_source%\Recast.vcxproj" /p:Platform="arm64";Configuration="Release"
+
 REM copy include files (some additional include files are needed for post-processing)
 rmdir /Q /S "%output%include"
 mkdir "%output%include\"

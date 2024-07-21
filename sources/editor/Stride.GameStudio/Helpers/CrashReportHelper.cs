@@ -155,7 +155,7 @@ namespace Stride.GameStudio.Helpers
             crashReport["CurrentDirectory"] = Environment.CurrentDirectory;
             crashReport["CommandArgs"] = string.Join(" ", AppHelper.GetCommandLineArgs());
             var osVersion = CrashReportUtils.GetOsVersionAndCaption();
-            crashReport["OsVersion"] = $"{osVersion.Key} {osVersion.Value} {(Environment.Is64BitOperatingSystem ? "x64" : "x86")}";
+            crashReport["OsVersion"] = $"{osVersion.Key} {osVersion.Value} {(Environment.Is64BitOperatingSystem ? "64 bit" : "32 bit")}";
             crashReport["ProcessorCount"] = Environment.ProcessorCount.ToString();
             crashReport["Exception"] = exceptionMessage;
             var videoConfig = AppHelper.GetVideoConfig();

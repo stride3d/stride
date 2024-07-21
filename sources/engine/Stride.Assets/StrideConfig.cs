@@ -58,20 +58,23 @@ namespace Stride.Assets
             var solutionPlatforms = new List<SolutionPlatform>();
 
             // Windows
-            var windowsPlatform = new SolutionPlatform()
+            foreach (var cpu in new[] { "x64", "arm64" })
             {
-                Name = PlatformType.Windows.ToString(),
-                IsAvailable = true,
-                TargetFramework = "net8.0-windows",
-                RuntimeIdentifier = "win-x64",
-                Type = PlatformType.Windows
-            };
-            solutionPlatforms.Add(windowsPlatform);
+                var windowsPlatform = new SolutionPlatform()
+                {
+                    Name = nameof(PlatformType.Windows),
+                    IsAvailable = true,
+                    TargetFramework = "net8.0-windows",
+                    RuntimeIdentifier = $"win-{cpu}",
+                    Type = PlatformType.Windows
+                };
+                solutionPlatforms.Add(windowsPlatform);
+            }
 
             // Universal Windows Platform (UWP)
             var uwpPlatform = new SolutionPlatform()
             {
-                Name = PlatformType.UWP.ToString(),
+                Name = nameof(PlatformType.UWP),
                 Type = PlatformType.UWP,
                 TargetFramework = "uap10.0.16299",
                 Templates =
@@ -97,7 +100,7 @@ namespace Stride.Assets
             uwpPlatform.Configurations["Testing"].Properties.Add("<UseDotNetNativeToolchain>true</UseDotNetNativeToolchain>");
             uwpPlatform.Configurations["AppStore"].Properties.Add("<UseDotNetNativeToolchain>true</UseDotNetNativeToolchain>");
 
-            foreach (var cpu in new[] { "x86", "x64", "ARM" })
+            foreach (var cpu in new[] { "x86", "x64", "ARM", "ARM64" })
             {
                 var uwpPlatformCpu = new SolutionPlatformPart(uwpPlatform.Name + "-" + cpu)
                 {
@@ -119,7 +122,7 @@ namespace Stride.Assets
             // Linux
             var linuxPlatform = new SolutionPlatform()
             {
-                Name = PlatformType.Linux.ToString(),
+                Name = nameof(PlatformType.Linux),
                 IsAvailable = true,
                 TargetFramework = "net8.0",
                 RuntimeIdentifier = "linux-x64",
@@ -130,7 +133,7 @@ namespace Stride.Assets
             // macOS
             var macOSPlatform = new SolutionPlatform()
             {
-                Name = PlatformType.macOS.ToString(),
+                Name = nameof(PlatformType.macOS),
                 IsAvailable = true,
                 TargetFramework = "net8.0",
                 RuntimeIdentifier = "osx-x64",
@@ -141,7 +144,7 @@ namespace Stride.Assets
             // Android
             var androidPlatform = new SolutionPlatform()
             {
-                Name = PlatformType.Android.ToString(),
+                Name = nameof(PlatformType.Android),
                 Type = PlatformType.Android,
                 TargetFramework = "net8.0-android",
                 IsAvailable = IsVSComponentAvailableAnyVersion(XamarinAndroidComponents)
@@ -167,7 +170,7 @@ namespace Stride.Assets
             // iOS: iPhone
             var iphonePlatform = new SolutionPlatform()
             {
-                Name = PlatformType.iOS.ToString(),
+                Name = nameof(PlatformType.iOS),
                 SolutionName = "iPhone", // For iOS, we need to use iPhone as a solution name
                 Type = PlatformType.iOS,
                 TargetFramework = "net8.0-ios",
@@ -237,7 +240,7 @@ namespace Stride.Assets
         {
             if (!OperatingSystem.IsWindows()) 
                 return false;
-            if (vsVersionToComponent == null) { throw new ArgumentNullException("vsVersionToComponent"); }
+            if (vsVersionToComponent == null) { throw new ArgumentNullException(nameof(vsVersionToComponent)); }
 
             foreach (var pair in vsVersionToComponent)
             {

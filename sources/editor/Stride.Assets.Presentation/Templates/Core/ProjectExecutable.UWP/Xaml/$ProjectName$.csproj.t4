@@ -4,7 +4,7 @@
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
+    <Platform Condition=" '$(Platform)' == '' ">arm64</Platform>
     <ProjectGuid>{<#= ProjectGuid.ToString().ToUpperInvariant() #>}</ProjectGuid>
     <OutputType>AppContainerExe</OutputType>
     <RestoreProjectStyle>PackageReference</RestoreProjectStyle>
