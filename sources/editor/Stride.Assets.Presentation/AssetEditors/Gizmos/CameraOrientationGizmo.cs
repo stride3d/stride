@@ -120,9 +120,15 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
             cameraComponent.ViewMatrix = view;
         }
 
-        public override bool IsUnderMouse(int pickedComponentId)
+        public override bool HandlesComponentId(OpaqueComponentId pickedComponentId, out Entity selection)
         {
-            return IsUnderMouse();
+            if (IsUnderMouse())
+            {
+                selection = this.cameraComponent.Entity;
+                return true;
+            }
+            selection = null;
+            return false;
         }
 
         public bool IsUnderMouse()

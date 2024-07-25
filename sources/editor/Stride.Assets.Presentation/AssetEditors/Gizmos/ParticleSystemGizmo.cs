@@ -4,6 +4,7 @@ using Stride.Core.Mathematics;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game;
 using Stride.Assets.Presentation.DebugShapes;
 using Stride.Engine;
+using Stride.Engine.Gizmos;
 using Stride.Particles.Components;
 using Stride.Particles.DebugDraw;
 
