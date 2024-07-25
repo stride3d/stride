@@ -118,5 +118,66 @@ namespace Stride.UI.Panels
                 element.DependencyProperties.Get(RowPropertyKey),
                 element.DependencyProperties.Get(LayerPropertyKey));
         }
+
+        /// <summary>
+        /// Gives Property Key lookup based on  <see cref="PropertyKey"/>
+        /// </summary>
+        /// <param name="propertykey">The property key from which to extract the default value</param>
+        /// <returns>The default value for propertykey(This would also be the minimum value on the grid.)</returns>
+        public static PropertyKey<int> GetPropKey(string propKeyName)
+        {
+            switch (propKeyName)
+            {
+                case "LayerSpanPropertyKey":
+                    return GridBase.LayerSpanPropertyKey;
+                case "LayerPropertyKey":
+                    return GridBase.LayerPropertyKey;
+                case "ColumnSpanPropertyKey":
+                    return GridBase.ColumnSpanPropertyKey;
+                case "ColumnPropertyKey":
+                    return GridBase.ColumnPropertyKey;
+                case "RowSpanPropertyKey":
+                    return GridBase.RowSpanPropertyKey;
+                case "RowPropertyKey":
+                    return GridBase.RowPropertyKey;
+                default:
+                    return null;
+            }
+        }
+
+        /// <summary>
+        /// Gives default value based on  <see cref="PropertyKey"/>
+        /// </summary>
+        /// <param name="propertykey">The property key from which to extract the default value</param>
+        /// <returns>The default value for propertykey(This would also be the minimum value on the grid.)</returns>
+        public static int GetBaseValue(PropertyKey propertykey)
+        {
+            switch (propertykey.Name)
+            {
+                case "LayerSpanPropertyKey":
+                    return 1;
+                case "LayerPropertyKey":
+                    return 0;
+                case "ColumnSpanPropertyKey":
+                    return 1;
+                case "ColumnPropertyKey":
+                    return 0;
+                case "RowSpanPropertyKey":
+                    return 1;
+                case "RowPropertyKey":
+                    return 0;
+                default:
+                    return 0;
+            }
+        }
+
+        public static object CustomOverride(UIElement element, PropertyKey property)
+        {
+            element.DependencyProperties.Set(GridBase.GetPropKey(property.Name), GridBase.GetBaseValue(property));
+
+            //SetDependencyPropertyValue(element, GetPropKey(property.Name), GridBase.GetBaseValue(property));
+
+            return element;
+        }
     }
 }

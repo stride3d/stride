@@ -12,7 +12,20 @@ using Stride.Core.Reflection;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Quantum;
 using Stride.Assets.Presentation.ViewModel;
+using Stride.Assets.Presentation.AssetEditors.AssetCompositeGameEditor.ViewModels;
+using Stride.Assets.Presentation.AssetEditors.GameEditor.ViewModels;
+using Stride.Assets.Presentation.Quantum;
+using Stride.Core.Assets.Analysis;
+using Stride.Core.Assets.Editor.Components.Properties;
+using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Assets.Quantum;
+using Stride.Core.Presentation.Commands;
+using Stride.Core.Presentation.Quantum;
+using Stride.Assets.UI;
 using Stride.UI;
+using System;
+using Stride.UI.Panels;
+using Stride.Assets.Presentation.AssetEditors.UIEditor.ViewModels;
 
 namespace Stride.Assets.Presentation.NodePresenters.Updaters
 {
@@ -67,6 +80,7 @@ namespace Stride.Assets.Presentation.NodePresenters.Updaters
                 int? order;
                 GetDisplayData(property, out displayName, out categoryName, out order);
                 var propertyNodeparent = node.GetCategory(categoryName) ?? node;
+                //area of note: maybe check if on grid property here?
                 var propNode = CreateDependencyPropertyNode(propertyNodeparent, node, property, order ?? startOrder++);
                 propNode.DisplayName = parent.GetType().Name + "." + displayName;
                 propNode.ChangeParent(node.GetCategory(categoryName) ?? node);
@@ -141,9 +155,41 @@ namespace Stride.Assets.Presentation.NodePresenters.Updaters
             var propertyContainerNode = ((IObjectNode)accessor.Node)[nameof(UIElement.DependencyProperties)].Target;
 
             var undoRedoService = propertyNodeParent.Asset.ServiceProvider.Get<IUndoRedoService>();
+
+            //pass in delegate in case our Node is of the Grid properties 
+            Func<bool> checkHasBase = null;
+            Func<object> customOverride = null;
+            UIElement elementNode = null;
+            if (property.OwnerType.Name == "GridBase")
+            {
+                //default values are found under property.DefaultValueMetadata.defaultValue, function would simply use this as default
+                //checkHasBase
+                bool HasBaseLocal() => true;
+                checkHasBase = HasBaseLocal;
+
+                //property.OwnerType is GridBase?
+                //accessor.Node is the button or UIElement
+
+                //retrieving doesnt full return?
+                //elementNode = accessor.Node.Retrieve();
+                //property.OwnerType.
+                if (accessor.Node.Retrieve() is UIElement element)
+                {
+                    elementNode = element;
+                    //UIElementViewModel
+                    customOverride = () => GridBase.CustomOverride(element, property); //SetDependencyPropertyValue(element, GridBase.GetPropKey(property.Name), GridBase.GetBaseValue(property)); //
+                }
+                //PropertyKey<int> ExtractedPropKey = (PropertyKey<int>);
+                //customOverride = () => GridBase.CustomOverride(elementNode, property);
+
+                checkHasBase = HasBaseLocal;
+            }
+
+
             var virtualNode = node.Factory.CreateVirtualNodePresenter(propertyNodeParent, property.Name, propertyType, order,
-                () => Getter(propertyContainerNode, propertyIndex),
-                o => Setter(undoRedoService, propertyContainerNode, propertyIndex, o));
+            () => Getter(propertyContainerNode, propertyIndex),
+            o => Setter(undoRedoService, propertyContainerNode, propertyIndex, o), 
+                checkHasBase, null, null, customOverride, elementNode);
 
             return virtualNode;
         }

@@ -18,10 +18,10 @@ namespace Stride.Core.Assets.Editor.Quantum.NodePresenters
         }
 
         [NotNull]
-        public AssetVirtualNodePresenter CreateVirtualNodePresenter([NotNull] INodePresenter parent, string name, Type type, int? order, [NotNull] Func<object> getter, Action<object> setter = null, Func<bool> hasBase = null, Func<bool> isInerited = null, Func<bool> isOverridden = null)
+        public AssetVirtualNodePresenter CreateVirtualNodePresenter([NotNull] INodePresenter parent, string name, Type type, int? order, [NotNull] Func<object> getter, Action<object> setter = null, Func<bool> hasBase = null, Func<bool> isInerited = null, Func<bool> isOverridden = null, Func<object> customOverride = null, object test = null)
         {
             if (parent == null) throw new ArgumentNullException(nameof(parent));
-            var node = new AssetVirtualNodePresenter(this, parent.PropertyProvider, parent, name, type, order, getter, setter, hasBase, isInerited, isOverridden);
+            var node = new AssetVirtualNodePresenter(this, parent.PropertyProvider, parent, name, type, order, getter, setter, hasBase, isInerited, isOverridden, customOverride, test);
             node.ChangeParent(parent);
             RunUpdaters(node);
             FinalizeTree(node.Root);
