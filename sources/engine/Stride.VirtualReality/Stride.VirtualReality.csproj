@@ -23,8 +23,8 @@
           <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </StrideNativeLib>
         <StrideNativeLib Include="..\..\..\deps\OpenXR\openxr_loader.dll">
-          <Link>runtimes\win-x64\native\%(RecursiveDir)%(Filename)%(Extension)</Link>
-          <RelativePath>runtimes\win-x64\native\%(RecursiveDir)%(Filename)%(Extension)</RelativePath>
+          <Link>runtimes\win-arm64\native\%(RecursiveDir)%(Filename)%(Extension)</Link>
+          <RelativePath>runtimes\win-arm64\native\%(RecursiveDir)%(Filename)%(Extension)</RelativePath>
           <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </StrideNativeLib>
       </ItemGroup>

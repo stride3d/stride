@@ -54,7 +54,7 @@ namespace Stride.LauncherApp.CrashReport
                 ["UserMessage"] = "",
                 ["CurrentDirectory"] = Environment.CurrentDirectory,
                 ["CommandArgs"] = string.Join(" ", AppHelper.GetCommandLineArgs()),
-                ["OsVersion"] = $"{Environment.OSVersion} {(Environment.Is64BitOperatingSystem ? "x64" : "x86")}",
+                ["OsVersion"] = $"{Environment.OSVersion} {(Environment.Is64BitOperatingSystem ? "64 bit" : "32 bit")}",
                 ["ProcessorCount"] = Environment.ProcessorCount.ToString(),
                 ["Exception"] = exceptionMessage
             };

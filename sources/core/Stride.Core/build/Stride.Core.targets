@@ -2,16 +2,21 @@
   <!-- Check if Visual C++ Runtime 2019 is properly installed -->
   <Target Name="_StrideCheckVisualCRuntime2019" Condition="'$(MSBuildRuntimeType)' == 'Full'">
     <ItemGroup>
-      <_StrideVisualCRuntime2019 Include="Visual C++ Redistributable for Visual Studio 2019 x86">
+      <!--<_StrideVisualCRuntime2019 Include="Visual C++ Redistributable for Visual Studio 2019 x86">
         <Version>$([MSBuild]::GetRegistryValueFromView('HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\DevDiv\VC\Servicing\14.0\RuntimeMinimum', 'Version', null, RegistryView.Registry32))</Version>
         <ExpectedVersion>14.22.27821</ExpectedVersion>
         <DownloadUrl>https://download.visualstudio.microsoft.com/download/pr/0c1cfec3-e028-4996-8bb7-0c751ba41e32/1abed1573f36075bfdfc538a2af00d37/vc_redist.x86.exe</DownloadUrl>
+      </_StrideVisualCRuntime2019>-->
+      <_StrideVisualCRuntime2019 Include="Visual C++ Redistributable for Visual Studio 2019 arm64">
+        <Version>$([MSBuild]::GetRegistryValueFromView('HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\DevDiv\VC\Servicing\14.0\RuntimeDebug_arm64', 'Version', null, RegistryView.Registry64))</Version>
+        <ExpectedVersion>14.38.33130</ExpectedVersion>
+        <DownloadUrl>https://download.visualstudio.microsoft.com/download/pr/cc0046d4-e7b4-45a1-bd46-b1c079191224/9c4042a4c2e6d1f661f4c58cf4d129e9/vc_redist.x64.exe</DownloadUrl>
       </_StrideVisualCRuntime2019>
-      <_StrideVisualCRuntime2019 Include="Visual C++ Redistributable for Visual Studio 2019 x64">
+      <!--<_StrideVisualCRuntime2019 Include="Visual C++ Redistributable for Visual Studio 2019 x64">
         <Version>$([MSBuild]::GetRegistryValueFromView('HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\DevDiv\VC\Servicing\14.0\RuntimeMinimum', 'Version', null, RegistryView.Registry64))</Version>
         <ExpectedVersion>14.22.27821</ExpectedVersion>
         <DownloadUrl>https://download.visualstudio.microsoft.com/download/pr/cc0046d4-e7b4-45a1-bd46-b1c079191224/9c4042a4c2e6d1f661f4c58cf4d129e9/vc_redist.x64.exe</DownloadUrl>
-      </_StrideVisualCRuntime2019>
+      </_StrideVisualCRuntime2019>-->
 
       <_StrideVisualCRuntime2019NotInstalled Include="@(_StrideVisualCRuntime2019)" Condition="'%(_StrideVisualCRuntime2019.Version)' == '' Or $([System.Version]::Parse('%(Version)').CompareTo($([System.Version]::Parse('%(_StrideVisualCRuntime2019.ExpectedVersion)')))) &lt; 0" />
     </ItemGroup>
@@ -182,6 +187,7 @@
       <StrideCPU Condition="'$(Platform)' == 'x86'">x86</StrideCPU>
       <StrideCPU Condition="'$(Platform)' == 'x64'">x64</StrideCPU>
       <StrideCPU Condition="'$(Platform)' == 'ARM'">ARM</StrideCPU>
+      <StrideCPU Condition="'$(Platform)' == 'ARM64'">ARM64</StrideCPU>
     </PropertyGroup>
     <ItemGroup>
       <Content Include="@(_StrideDependencyNativeLib)" Condition="$([System.String]::Copy('%(_StrideDependencyNativeLib.Link)').StartsWith('$(StrideCPU)'))">

@@ -44,6 +44,23 @@ configure_windows_x64_shared() {
     --prefix="${BASEDIR}/build/windows/x64"
 }
 
+configure_windows_arm64_shared() {
+  "${BASEDIR}/configure" \
+    --toolchain=msvc \
+    --arch=arm64 \
+    --enable-asm \
+    --enable-shared \
+    --enable-version3 \
+    --enable-w32threads \
+    --enable-yasm \
+    --disable-debug \
+    --disable-doc \
+    --disable-programs \
+    --disable-static \
+    --target-os=win64 \
+    --prefix="${BASEDIR}/build/windows/arm64"
+}
+
 configure_windows_x86_shared() {
   "${BASEDIR}/configure" \
     --toolchain=msvc \
@@ -99,6 +116,25 @@ configure_windows_x64_exe() {
     --prefix="${BASEDIR}/build/windows/x64"
 }
 
+configure_windows_arm64_exe() {
+  "${BASEDIR}/configure" \
+    --toolchain=msvc \
+    --arch=arm64 \
+    --enable-asm \
+    --enable-static \
+    --enable-version3 \
+    --enable-w32threads \
+    --enable-yasm \
+    --disable-debug \
+    --disable-doc \
+    --disable-ffplay \
+    --disable-ffprobe \
+    --disable-ffserver \
+    --disable-shared \
+    --target-os=win64 \
+    --prefix="${BASEDIR}/build/windows/arm64"
+}
+
 install() {
   make -j${NUMBER_OF_CORES} && make install
 }
@@ -110,6 +146,21 @@ build_windows_x64_shared() {
   
   # Configure ffmpeg (can be skipped if already done)
   configure_windows_x64_shared
+  # Make sure any previous build doesn't pollute the current one (can be skipped if configure didn't change since last time)
+  clean
+  # Build FFmpeg and copy binaries+include files into the installation folder (defined by --prefix in the configure command)
+  install
+  
+  popd
+}
+
+build_windows_arm64_shared() {
+  oot="${BASEDIR}/build/windows/arm64/oot/ffmpeg"
+  mkdir -p "$oot"
+  pushd "$oot"
+  
+  # Configure ffmpeg (can be skipped if already done)
+  configure_windows_arm64_shared
   # Make sure any previous build doesn't pollute the current one (can be skipped if configure didn't change since last time)
   clean
   # Build FFmpeg and copy binaries+include files into the installation folder (defined by --prefix in the configure command)
@@ -148,6 +199,21 @@ build_windows_x64_exe() {
   popd
 }
 
+build_windows_arm64_exe() {
+  oot="${BASEDIR}/build/windows/arm64/oot/ffmpeg"
+  mkdir -p "$oot"
+  pushd "$oot"
+  
+  # Configure ffmpeg (can be skipped if already done)
+  configure_windows_arm64_exe
+  # Make sure any previous build doesn't pollute the current one (can be skipped if configure didn't change since last time)
+  clean
+  # Build FFmpeg and copy binaries+include files into the installation folder (defined by --prefix in the configure command)
+  install
+  
+  popd
+}
+
 build_windows_x86_exe() {
   oot="${BASEDIR}/build/windows/x86/oot/ffmpeg"
   mkdir -p "$oot"
@@ -168,6 +234,8 @@ NUMBER_OF_CORES=$(nproc)
 
 # Uncomment a line to run that configuration
 #build_windows_x64_shared
-build_windows_x86_shared
+#build_windows_x86_shared
+build_windows_arm64_shared
 #build_windows_x64_exe
 #build_windows_x86_exe
+#build_windows_arm64_exe

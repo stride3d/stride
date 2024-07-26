@@ -80,9 +80,9 @@ namespace Stride.Games.Testing
                 screenshotEvent.Set();
             });
 
-            var runTask = Task.Run(() => socketMessageLayer.MessageLoop());
+            _ = Task.Run(() => socketMessageLayer.MessageLoop());
 
-            var cmd = platform == PlatformType.Windows ? Path.Combine(Environment.CurrentDirectory, gamePath, "Bin\\Windows\\Debug\\win-x64", gameName + ".Windows.exe") : "";
+            var cmd = platform == PlatformType.Windows ? Path.Combine(Environment.CurrentDirectory, gamePath, "Bin\\Windows\\Debug\\win-arm64", gameName + ".Windows.exe") : "";
 
             socketMessageLayer.Send(new TestRegistrationRequest
             {

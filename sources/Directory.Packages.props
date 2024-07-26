@@ -36,7 +36,7 @@
   </ItemGroup>
   <!-- Other dependencies -->
   <ItemGroup>
-    <PackageVersion Include="Microsoft.AspNet.WebApi.Client" Version="5.2.7" />
+    <PackageVersion Include="Microsoft.AspNet.WebApi.Client" Version="6.0.0" />
     <PackageVersion Include="Microsoft.Build" Version="17.0.0" />
     <PackageVersion Include="Microsoft.Build.Locator" Version="1.6.10" />
     <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="17.0.0" />

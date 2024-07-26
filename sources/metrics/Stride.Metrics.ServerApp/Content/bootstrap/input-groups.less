@@ -1,3 +1,5 @@
+// stylelint-disable selector-no-qualifying-type
+
 //
 // Input groups
 // --------------------------------------------------
@@ -12,8 +14,8 @@
   // Undo padding and float of grid classes
   &[class*="col-"] {
     float: none;
-    padding-left: 0;
     padding-right: 0;
+    padding-left: 0;
   }
 
   .form-control {
@@ -29,6 +31,10 @@
 
     width: 100%;
     margin-bottom: 0;
+
+    &:focus {
+      z-index: 3;
+    }
   }
 }
 
@@ -73,24 +79,24 @@
 .input-group-addon {
   padding: @padding-base-vertical @padding-base-horizontal;
   font-size: @font-size-base;
-  font-weight: normal;
+  font-weight: 400;
   line-height: 1;
   color: @input-color;
   text-align: center;
   background-color: @input-group-addon-bg;
   border: 1px solid @input-group-addon-border-color;
-  border-radius: @border-radius-base;
+  border-radius: @input-border-radius;
 
   // Sizing
   &.input-sm {
     padding: @padding-small-vertical @padding-small-horizontal;
     font-size: @font-size-small;
-    border-radius: @border-radius-small;
+    border-radius: @input-border-radius-small;
   }
   &.input-lg {
     padding: @padding-large-vertical @padding-large-horizontal;
     font-size: @font-size-large;
-    border-radius: @border-radius-large;
+    border-radius: @input-border-radius-large;
   }
 
   // Nuke default margins from checkboxes and radios to vertically center within.
@@ -160,6 +166,7 @@
   &:last-child {
     > .btn,
     > .btn-group {
+      z-index: 2;
       margin-left: -1px;
     }
   }
