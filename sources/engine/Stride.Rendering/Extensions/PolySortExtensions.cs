@@ -80,7 +80,7 @@ namespace Stride.Extensions
                     newIndexBufferPointer += polyIndicesSize;
                 }
             }
-            meshData.IndexBuffer = new IndexBufferBinding(new BufferData(BufferFlags.IndexBuffer, newIndexBufferData).ToSerializableVersion(), oldIndexBuffer.Is32Bit, oldIndexBuffer.Count);
+            meshData.IndexBuffer = new IndexBufferBinding(new BufferData(BufferFlags.IndexBuffer | BufferFlags.RawBuffer, newIndexBufferData).ToSerializableVersion(), oldIndexBuffer.Is32Bit, oldIndexBuffer.Count);
         }
     }
 }

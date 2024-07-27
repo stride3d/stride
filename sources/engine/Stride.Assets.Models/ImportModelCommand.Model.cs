@@ -282,7 +282,7 @@ namespace Stride.Assets.Models
 
             var vbMap = new Dictionary<VertexBufferBinding, VertexBufferBinding>();
             var sizeVertexBuffer = uniqueVB.Select(x => x.Buffer.GetSerializationData().Content.Length).Sum();
-            var vertexBuffer = new BufferData(BufferFlags.VertexBuffer, new byte[sizeVertexBuffer]);
+            var vertexBuffer = new BufferData(BufferFlags.VertexBuffer | BufferFlags.RawBuffer, new byte[sizeVertexBuffer]);
             var vertexBufferSerializable = vertexBuffer.ToSerializableVersion();
 
             var vertexBufferNextIndex = 0;
@@ -312,7 +312,7 @@ namespace Stride.Assets.Models
 
             if (uniqueIB.Count > 0)
             {
-                var indexBuffer = new BufferData(BufferFlags.IndexBuffer, new byte[sizeIndexBuffer]);
+                var indexBuffer = new BufferData(BufferFlags.IndexBuffer | BufferFlags.RawBuffer, new byte[sizeIndexBuffer]);
                 var indexBufferSerializable = indexBuffer.ToSerializableVersion();
                 var indexBufferNextIndex = 0;
 

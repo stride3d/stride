@@ -123,7 +123,7 @@ namespace Stride.Extensions
                 }
             }
 
-            vertexBufferBinding = new VertexBufferBinding(new BufferData(BufferFlags.VertexBuffer, newBufferData).ToSerializableVersion(), vertexDeclaration, vertexBufferBinding.Count);
+            vertexBufferBinding = new VertexBufferBinding(new BufferData(BufferFlags.VertexBuffer | BufferFlags.RawBuffer, newBufferData).ToSerializableVersion(), vertexDeclaration, vertexBufferBinding.Count);
         }
 
         private struct VertexElementConvertInfo

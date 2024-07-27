@@ -131,7 +131,7 @@ namespace Stride.Extensions
                         }
 
                         newMeshDrawData.VertexBuffers[vbIndex] = new VertexBufferBinding(
-                            new BufferData(BufferFlags.VertexBuffer, newVertexBuffer).ToSerializableVersion(),
+                            new BufferData(BufferFlags.VertexBuffer | BufferFlags.RawBuffer, newVertexBuffer).ToSerializableVersion(),
                             meshDrawData.VertexBuffers[vbIndex].Declaration,
                             splitInfo.UsedIndices.Count);
                     }
@@ -159,7 +159,7 @@ namespace Stride.Extensions
                     }
 
                     newMeshDrawData.IndexBuffer = new IndexBufferBinding(
-                        new BufferData(BufferFlags.IndexBuffer, newIndexBuffer).ToSerializableVersion(),
+                        new BufferData(BufferFlags.IndexBuffer | BufferFlags.RawBuffer, newIndexBuffer).ToSerializableVersion(),
                         false,
                         triangleCount * 3);
 

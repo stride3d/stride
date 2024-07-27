@@ -263,8 +263,8 @@ namespace Stride.Assets.Models
                         MaterialIndex = matIndex
                     };
 
-                    var vertexBuffer = new BufferData(BufferFlags.VertexBuffer, new byte[vertexArray.Length]);
-                    var indexBuffer = new BufferData(BufferFlags.IndexBuffer, new byte[indexArray.Length]);
+                    var vertexBuffer = new BufferData(BufferFlags.VertexBuffer | BufferFlags.RawBuffer, new byte[vertexArray.Length]);
+                    var indexBuffer = new BufferData(BufferFlags.IndexBuffer | BufferFlags.RawBuffer, new byte[indexArray.Length]);
 
                     var vertexBufferSerializable = vertexBuffer.ToSerializableVersion();
                     var indexBufferSerializable = indexBuffer.ToSerializableVersion();
