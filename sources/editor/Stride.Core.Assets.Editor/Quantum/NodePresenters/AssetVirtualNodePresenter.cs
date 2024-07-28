@@ -16,10 +16,11 @@ namespace Stride.Core.Assets.Editor.Quantum.NodePresenters
         private readonly Func<bool> hasBase;
         private readonly Func<bool> isInerited;
         private readonly Func<bool> isOverridden;
-        private readonly Func<object> customOverride;
-        object test;
 
-        public AssetVirtualNodePresenter([NotNull] INodePresenterFactoryInternal factory, IPropertyProviderViewModel propertyProvider, [NotNull] INodePresenter parent, string name, Type type, int? order, [NotNull] Func<object> getter, Action<object> setter, Func<bool> hasBase = null, Func<bool> isInerited = null, Func<bool> isOverridden = null, Func<object> customOverride = null, object test = null)
+        //Custom Delegate for reset override, when AssociatedNode null
+        private readonly Func<object, object> customOverride;
+
+        public AssetVirtualNodePresenter([NotNull] INodePresenterFactoryInternal factory, IPropertyProviderViewModel propertyProvider, [NotNull] INodePresenter parent, string name, Type type, int? order, [NotNull] Func<object> getter, Action<object> setter, Func<bool> hasBase = null, Func<bool> isInerited = null, Func<bool> isOverridden = null, Func<object, object> customOverride = null)
             : base(factory, propertyProvider, parent, name, type, order, getter, setter)
         {
             this.hasBase = hasBase;
@@ -27,7 +28,6 @@ namespace Stride.Core.Assets.Editor.Quantum.NodePresenters
             this.isOverridden = isOverridden;
             //custom override for our grid properties
             this.customOverride = customOverride;
-            this.test = test;
         }
 
         public override void Dispose()
@@ -71,21 +71,15 @@ namespace Stride.Core.Assets.Editor.Quantum.NodePresenters
         public void ResetOverride()
         {
             // TODO: for now we cannot reset override if we don't have an AssociatedNode. We could provide a delegate via the constructor for custom reset.
-            if(AssociatedNode.Node != null)
-            {
-                //previous behavior
-                var memberNode = AssociatedNode.Node as IAssetMemberNode;
-                memberNode?.ResetOverrideRecursively();
+           var memberNode = AssociatedNode.Node as IAssetMemberNode;
+           memberNode?.ResetOverrideRecursively();
 
-                var objectNode = AssociatedNode.Node as IAssetObjectNode;
-                objectNode?.ResetOverrideRecursively(AssociatedNode.Index);
-            } else
-            {
-                //use our custom ResetOverride passed in as a delegate (would it be better simply as an obj?)
-                var objectTest = customOverride();
-                //resetoverrideresursively? objectTest?.ResetOverrideResursively();
-            }
-            
+           var objectNode = AssociatedNode.Node as IAssetObjectNode;
+           objectNode?.ResetOverrideRecursively(AssociatedNode.Index);
+
+            //use our custom ResetOverride passed in constructor as a delegate
+            if (customOverride != null)
+                customOverride(this);
         }
 
         private bool IsAssociatedNodeInherited()

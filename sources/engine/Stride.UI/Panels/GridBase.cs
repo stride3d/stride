@@ -170,14 +170,5 @@ namespace Stride.UI.Panels
                     return 0;
             }
         }
-
-        public static object CustomOverride(UIElement element, PropertyKey property)
-        {
-            element.DependencyProperties.Set(GridBase.GetPropKey(property.Name), GridBase.GetBaseValue(property));
-
-            //SetDependencyPropertyValue(element, GetPropKey(property.Name), GridBase.GetBaseValue(property));
-
-            return element;
-        }
     }
 }

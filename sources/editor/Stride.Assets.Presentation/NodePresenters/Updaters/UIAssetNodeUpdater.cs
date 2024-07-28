@@ -12,20 +12,9 @@ using Stride.Core.Reflection;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Quantum;
 using Stride.Assets.Presentation.ViewModel;
-using Stride.Assets.Presentation.AssetEditors.AssetCompositeGameEditor.ViewModels;
-using Stride.Assets.Presentation.AssetEditors.GameEditor.ViewModels;
-using Stride.Assets.Presentation.Quantum;
-using Stride.Core.Assets.Analysis;
-using Stride.Core.Assets.Editor.Components.Properties;
-using Stride.Core.Assets.Editor.ViewModel;
-using Stride.Core.Assets.Quantum;
-using Stride.Core.Presentation.Commands;
-using Stride.Core.Presentation.Quantum;
-using Stride.Assets.UI;
 using Stride.UI;
 using System;
 using Stride.UI.Panels;
-using Stride.Assets.Presentation.AssetEditors.UIEditor.ViewModels;
 
 namespace Stride.Assets.Presentation.NodePresenters.Updaters
 {
@@ -155,43 +144,43 @@ namespace Stride.Assets.Presentation.NodePresenters.Updaters
             var propertyContainerNode = ((IObjectNode)accessor.Node)[nameof(UIElement.DependencyProperties)].Target;
 
             var undoRedoService = propertyNodeParent.Asset.ServiceProvider.Get<IUndoRedoService>();
-
+            
             //pass in delegate in case our Node is of the Grid properties 
             Func<bool> checkHasBase = null;
-            Func<object> customOverride = null;
+            Func<object, object> customOverride = null;
             UIElement elementNode = null;
-            if (property.OwnerType.Name == "GridBase")
+            if (property.OwnerType.Name == "GridBase" && accessor.Node.Retrieve() is UIElement element)
             {
-                //default values are found under property.DefaultValueMetadata.defaultValue, function would simply use this as default
-                //checkHasBase
-                bool HasBaseLocal() => true;
-                checkHasBase = HasBaseLocal;
-
-                //property.OwnerType is GridBase?
-                //accessor.Node is the button or UIElement
-
-                //retrieving doesnt full return?
-                //elementNode = accessor.Node.Retrieve();
-                //property.OwnerType.
-                if (accessor.Node.Retrieve() is UIElement element)
-                {
-                    elementNode = element;
-                    //UIElementViewModel
-                    customOverride = () => GridBase.CustomOverride(element, property); //SetDependencyPropertyValue(element, GridBase.GetPropKey(property.Name), GridBase.GetBaseValue(property)); //
-                }
-                //PropertyKey<int> ExtractedPropKey = (PropertyKey<int>);
-                //customOverride = () => GridBase.CustomOverride(elementNode, property);
-
-                checkHasBase = HasBaseLocal;
+                elementNode = element;
+                customOverride = (input) => CustomOverride(element, property, input); //SetDependencyPropertyValue(element, GridBase.GetPropKey(property.Name), GridBase.GetBaseValue(property)); //
+                checkHasBase = () => CustomHasBase(element, property);
             }
 
-
+            //create virtual node
             var virtualNode = node.Factory.CreateVirtualNodePresenter(propertyNodeParent, property.Name, propertyType, order,
-            () => Getter(propertyContainerNode, propertyIndex),
-            o => Setter(undoRedoService, propertyContainerNode, propertyIndex, o), 
-                checkHasBase, null, null, customOverride, elementNode);
+             () => Getter(propertyContainerNode, propertyIndex),
+             o => Setter(undoRedoService, propertyContainerNode, propertyIndex, o),
+                checkHasBase, null, null, customOverride);
 
             return virtualNode;
+        }
+
+        //temp place for custom override delegate, TODO: Find better place for this
+        public static object CustomOverride(UIElement element, PropertyKey property, object Node)
+        {
+            //new default value to set the Node to
+            int newValue = GridBase.GetBaseValue(property);
+            var assetVirtualNodePresenter = Node as AssetVirtualNodePresenter;
+            assetVirtualNodePresenter.UpdateValue(newValue);
+
+            return element;
+        }
+
+        //temp place for custom hasBase delegate, TODO: Find better place for this
+        // can only enable override for property if the current value isnt the base value
+        public static bool CustomHasBase(UIElement element, PropertyKey property)
+        {
+            return (int) element.DependencyProperties.Get(property) != GridBase.GetBaseValue(property);
         }
 
         /// <summary>

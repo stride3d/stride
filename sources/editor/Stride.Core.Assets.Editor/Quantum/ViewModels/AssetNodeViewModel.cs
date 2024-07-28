@@ -36,7 +36,6 @@ namespace Stride.Core.Assets.Editor.Quantum.ViewModels
             base.Destroy();
         }
 
-        //
         public bool HasBase => NodePresenters.All(x => x.HasBase);
 
         public bool IsInherited => NodePresenters.All(x => x.IsInherited);
