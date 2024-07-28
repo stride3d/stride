@@ -3,7 +3,7 @@
 #if STRIDE_GRAPHICS_API_DIRECT3D11
 
 using System;
-using SharpDX.Direct3D11;
+using Silk.NET.Direct3D11;
 using Stride.Graphics;
 using CommandList = Stride.Graphics.CommandList;
 
@@ -15,12 +15,11 @@ namespace Stride.VirtualReality
         internal IntPtr OverlayPtr;
         private readonly Texture[] textures;
 
-        public OculusOverlay(IntPtr ovrSession, GraphicsDevice device, int width, int height, int mipLevels, int sampleCount)
+        public unsafe OculusOverlay(IntPtr ovrSession, GraphicsDevice device, int width, int height, int mipLevels, int sampleCount)
         {
-            int textureCount;
             this.ovrSession = ovrSession;
 
-            OverlayPtr = OculusOvr.CreateQuadLayerTexturesDx(ovrSession, device.NativeDevice.NativePointer, out textureCount, width, height, mipLevels, sampleCount);
+            OverlayPtr = OculusOvr.CreateQuadLayerTexturesDx(ovrSession, (IntPtr) device.NativeDevice, out var textureCount, width, height, mipLevels, sampleCount);
             if (OverlayPtr == IntPtr.Zero)
             {
                 throw new Exception(OculusOvr.GetError());
@@ -36,7 +35,7 @@ namespace Stride.VirtualReality
                 }
 
                 textures[i] = new Texture(device);
-                textures[i].InitializeFromImpl(new Texture2D(ptr), false);
+                textures[i].InitializeFromImpl((ID3D11Texture2D*) ptr, isSrgb: false);
             }
         }
 

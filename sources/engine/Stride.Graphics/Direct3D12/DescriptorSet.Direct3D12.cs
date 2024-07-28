@@ -1,14 +1,14 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 #if STRIDE_GRAPHICS_API_DIRECT3D12
+
 using System;
-using SharpDX;
-using SharpDX.Direct3D12;
-using Stride.Shaders;
+using Silk.NET.Direct3D12;
 
 namespace Stride.Graphics
 {
-    public partial struct DescriptorSet
+    public readonly unsafe partial struct DescriptorSet
     {
         internal readonly GraphicsDevice Device;
         internal readonly int[] BindingOffsets;
@@ -17,13 +17,14 @@ namespace Stride.Graphics
         internal readonly CpuDescriptorHandle SrvStart;
         internal readonly CpuDescriptorHandle SamplerStart;
 
-        public bool IsValid => Description != null;
+        public readonly bool IsValid => Description != null;
 
         private DescriptorSet(GraphicsDevice graphicsDevice, DescriptorPool pool, DescriptorSetLayout desc)
         {
-            if (pool.SrvOffset + desc.SrvCount > pool.SrvCount || pool.SamplerOffset + desc.SamplerCount > pool.SamplerCount)
+            if (pool.SrvOffset + desc.SrvCount > pool.SrvCount ||
+                pool.SamplerOffset + desc.SamplerCount > pool.SamplerCount)
             {
-                // Eearly exit if OOM, IsValid should return false (TODO: different mechanism?)
+                // Early exit if OOM, IsValid should return false (TODO: different mechanism?)
                 Device = null;
                 BindingOffsets = null;
                 Description = null;
@@ -37,8 +38,17 @@ namespace Stride.Graphics
             Description = desc;
 
             // Store start CpuDescriptorHandle
-            SrvStart = desc.SrvCount > 0 ? (pool.SrvStart + graphicsDevice.SrvHandleIncrementSize * pool.SrvOffset) : new CpuDescriptorHandle();
-            SamplerStart = desc.SamplerCount > 0 ? (pool.SamplerStart + graphicsDevice.SamplerHandleIncrementSize * pool.SamplerOffset) : new CpuDescriptorHandle();
+            var startHandle = desc.SrvCount > 0
+                ? pool.SrvStart.Ptr + (nuint) (graphicsDevice.SrvHandleIncrementSize * pool.SrvOffset)
+                : 0;
+
+            SrvStart = new CpuDescriptorHandle(startHandle);
+
+            startHandle = desc.SamplerCount > 0
+                ? pool.SamplerStart.Ptr + (nuint) (graphicsDevice.SamplerHandleIncrementSize * pool.SamplerOffset)
+                : 0;
+
+            SamplerStart = new CpuDescriptorHandle(startHandle);
 
             // Allocation is done, bump offsets
             // TODO D3D12 thread safety?
@@ -53,18 +63,13 @@ namespace Stride.Graphics
         /// <param name="value">The descriptor.</param>
         public void SetValue(int slot, object value)
         {
-            var srv = value as GraphicsResource;
-            if (srv != null)
+            if (value is GraphicsResource srv)
             {
                 SetShaderResourceView(slot, srv);
             }
-            else
+            else if (value is SamplerState sampler)
             {
-                var sampler = value as SamplerState;
-                if (sampler != null)
-                {
-                    SetSamplerState(slot, sampler);
-                }
+                SetSamplerState(slot, sampler);
             }
         }
 
@@ -75,9 +80,12 @@ namespace Stride.Graphics
         /// <param name="shaderResourceView">The shader resource view.</param>
         public void SetShaderResourceView(int slot, GraphicsResource shaderResourceView)
         {
-            if (shaderResourceView.NativeShaderResourceView.Ptr == PointerSize.Zero)
+            if (shaderResourceView.NativeShaderResourceView.Ptr == 0)
                 return;
-            Device.NativeDevice.CopyDescriptorsSimple(1, SrvStart + BindingOffsets[slot], shaderResourceView.NativeShaderResourceView, DescriptorHeapType.ConstantBufferViewShaderResourceViewUnorderedAccessView);
+
+            var destDescriptorRangeStart = new CpuDescriptorHandle(SrvStart.Ptr + (nuint) BindingOffsets[slot]);
+            Device.NativeDevice->CopyDescriptorsSimple(NumDescriptors: 1, destDescriptorRangeStart,
+                                                       shaderResourceView.NativeShaderResourceView, DescriptorHeapType.CbvSrvUav);
         }
 
         /// <summary>
@@ -93,7 +101,9 @@ namespace Stride.Graphics
             if (bindingSlot == -1)
                 return;
 
-            Device.NativeDevice.CopyDescriptorsSimple(1, SamplerStart + BindingOffsets[slot], samplerState.NativeSampler, DescriptorHeapType.Sampler);
+            var destDescriptorRangeStart = new CpuDescriptorHandle(SamplerStart.Ptr + (nuint) bindingSlot);
+            Device.NativeDevice->CopyDescriptorsSimple(NumDescriptors: 1, destDescriptorRangeStart,
+                                                       samplerState.NativeSampler, DescriptorHeapType.Sampler);
         }
 
         /// <summary>
@@ -105,12 +115,18 @@ namespace Stride.Graphics
         /// <param name="size">The constant buffer view size.</param>
         public void SetConstantBuffer(int slot, Buffer buffer, int offset, int size)
         {
-            var constantBufferDataPlacementAlignment = Device.ConstantBufferDataPlacementAlignment;
-            Device.NativeDevice.CreateConstantBufferView(new ConstantBufferViewDescription
+            var constantBufferDataPlacementAlignment = D3D12.ConstantBufferDataPlacementAlignment;
+
+            var cbufferViewDesc = new ConstantBufferViewDesc
             {
-                BufferLocation = buffer.GPUVirtualAddress + offset,
-                SizeInBytes = (size + constantBufferDataPlacementAlignment) / constantBufferDataPlacementAlignment * constantBufferDataPlacementAlignment, // CB size needs to be 256-byte aligned
-            }, SrvStart + BindingOffsets[slot]);
+                BufferLocation = buffer.GPUVirtualAddress + (ulong) offset,
+
+                // CB size needs to be 256-byte aligned
+                SizeInBytes = (uint) ((size + constantBufferDataPlacementAlignment) / constantBufferDataPlacementAlignment * constantBufferDataPlacementAlignment)
+            };
+
+            var destDescriptorHandle = new CpuDescriptorHandle(SrvStart.Ptr + (nuint) BindingOffsets[slot]);
+            Device.NativeDevice->CreateConstantBufferView(cbufferViewDesc, destDescriptorHandle);
         }
 
         /// <summary>
@@ -120,10 +136,14 @@ namespace Stride.Graphics
         /// <param name="unorderedAccessView">The unordered access view.</param>
         public void SetUnorderedAccessView(int slot, GraphicsResource unorderedAccessView)
         {
-            if (unorderedAccessView.NativeUnorderedAccessView.Ptr == PointerSize.Zero)
+            if (unorderedAccessView.NativeUnorderedAccessView.Ptr == 0)
                 throw new ArgumentException($"Resource \'{unorderedAccessView}\' has missing Unordered Access View.");
-            Device.NativeDevice.CopyDescriptorsSimple(1, SrvStart + BindingOffsets[slot], unorderedAccessView.NativeUnorderedAccessView, DescriptorHeapType.ConstantBufferViewShaderResourceViewUnorderedAccessView);
+
+            var destDescriptorRangeStart = new CpuDescriptorHandle(SrvStart.Ptr + (nuint) BindingOffsets[slot]);
+            Device.NativeDevice->CopyDescriptorsSimple(NumDescriptors: 1, destDescriptorRangeStart,
+                                                       unorderedAccessView.NativeUnorderedAccessView, DescriptorHeapType.CbvSrvUav);
         }
     }
 }
+
 #endif
