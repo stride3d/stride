@@ -71,11 +71,11 @@ namespace Stride.Core.Assets.Editor.Quantum.NodePresenters
         public void ResetOverride()
         {
             // TODO: for now we cannot reset override if we don't have an AssociatedNode. We could provide a delegate via the constructor for custom reset.
-           var memberNode = AssociatedNode.Node as IAssetMemberNode;
-           memberNode?.ResetOverrideRecursively();
+            var memberNode = AssociatedNode.Node as IAssetMemberNode;
+            memberNode?.ResetOverrideRecursively();
 
-           var objectNode = AssociatedNode.Node as IAssetObjectNode;
-           objectNode?.ResetOverrideRecursively(AssociatedNode.Index);
+            var objectNode = AssociatedNode.Node as IAssetObjectNode;
+            objectNode?.ResetOverrideRecursively(AssociatedNode.Index);
 
             //use our custom ResetOverride passed in constructor as a delegate
             if (customOverride != null)

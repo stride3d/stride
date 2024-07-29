@@ -197,7 +197,7 @@ namespace Stride.Assets.Presentation.NodePresenters.Updaters
         // can only enable override for property if the current value isnt the base value
         public static bool CustomHasBaseGrid(UIElement element, PropertyKey property)
         {
-            return (int) element.DependencyProperties.Get(property) != GridBase.GetBaseValue(property);
+            return (int)element.DependencyProperties.Get(property) != GridBase.GetBaseValue(property);
         }
 
         /// <summary>
