@@ -151,11 +151,17 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
         /// </summary>
         public GizmoTransformationAxes TransformationAxes { get; protected set; }
 
-        public override bool IsUnderMouse(int pickedComponentId)
+        public override bool HandlesComponentId(OpaqueComponentId pickedComponentId, out Entity selection)
         {
-            return IsUnderMouse();
+            if (IsUnderMouse())
+            {
+                selection = GizmoRootEntity;
+                return true;
+            }
+            selection = null;
+            return false;
         }
-        
+
         public bool IsUnderMouse()
         {
             return TransformationAxes != GizmoTransformationAxes.None;
