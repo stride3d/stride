@@ -15,6 +15,7 @@ using Stride.Assets.Presentation.ViewModel;
 using Stride.UI;
 using System;
 using Stride.UI.Panels;
+using static Stride.Rendering.ParameterCollection;
 
 namespace Stride.Assets.Presentation.NodePresenters.Updaters
 {
@@ -69,7 +70,6 @@ namespace Stride.Assets.Presentation.NodePresenters.Updaters
                 int? order;
                 GetDisplayData(property, out displayName, out categoryName, out order);
                 var propertyNodeparent = node.GetCategory(categoryName) ?? node;
-                //area of note: maybe check if on grid property here?
                 var propNode = CreateDependencyPropertyNode(propertyNodeparent, node, property, order ?? startOrder++);
                 propNode.DisplayName = parent.GetType().Name + "." + displayName;
                 propNode.ChangeParent(node.GetCategory(categoryName) ?? node);
@@ -144,17 +144,11 @@ namespace Stride.Assets.Presentation.NodePresenters.Updaters
             var propertyContainerNode = ((IObjectNode)accessor.Node)[nameof(UIElement.DependencyProperties)].Target;
 
             var undoRedoService = propertyNodeParent.Asset.ServiceProvider.Get<IUndoRedoService>();
-            
-            //pass in delegate in case our Node is of the Grid properties 
+
+            //pass in delegate in the case of VirtualNodePresenters not having proper AssociatedNodes
             Func<bool> checkHasBase = null;
             Func<object, object> customOverride = null;
-            UIElement elementNode = null;
-            if (property.OwnerType.Name == "GridBase" && accessor.Node.Retrieve() is UIElement element)
-            {
-                elementNode = element;
-                customOverride = (input) => CustomOverride(element, property, input); //SetDependencyPropertyValue(element, GridBase.GetPropKey(property.Name), GridBase.GetBaseValue(property)); //
-                checkHasBase = () => CustomHasBase(element, property);
-            }
+            UIElement elementNode = SetVirtualNodeDelegates(ref checkHasBase, ref customOverride, property, accessor);
 
             //create virtual node
             var virtualNode = node.Factory.CreateVirtualNodePresenter(propertyNodeParent, property.Name, propertyType, order,
@@ -165,8 +159,31 @@ namespace Stride.Assets.Presentation.NodePresenters.Updaters
             return virtualNode;
         }
 
-        //temp place for custom override delegate, TODO: Find better place for this
-        public static object CustomOverride(UIElement element, PropertyKey property, object Node)
+        /// <summary>
+        /// Some virutal nodes dont have a specific AssociatedNode that is applicable. 
+        /// Instead delegates are passed in the constructor to allow for custom reset behaviors.
+        /// 
+        /// </summary>
+        /// <param name="property">Current Property Key Object</param>
+        /// <param name="accessor">Current Node's Accessor Object</param>
+        /// <param name="checkHasBase">Custom Delegate for if there is base value for ResetOverride in the AssetVirtualNodePresenter</param>
+        /// <param name="customOverride">Custom Delegate for ResetOverride behavior in the AssetVirtualNodePresenter</param>
+        /// <returns></returns>
+        public UIElement SetVirtualNodeDelegates(ref Func<bool> checkHasBase, ref Func<object, object> customOverride, PropertyKey property, NodeAccessor accessor)
+        {
+            UIElement elementNode = null;
+            //TODO: Maybe more optimal ways to verify this property is part of the Universal Grid Properties
+            if (property.OwnerType.Name == "GridBase" && accessor.Node.Retrieve() is UIElement element)
+            {
+                elementNode = element;
+                customOverride = (input) => CustomResetOverrideGrid(element, property, input);
+                checkHasBase = () => CustomHasBaseGrid(element, property);
+            }
+            return elementNode;
+        }
+
+        //temp place for custom override delegate used on the grid properties, TODO: Find better place for this
+        public static object CustomResetOverrideGrid(UIElement element, PropertyKey property, object Node)
         {
             //new default value to set the Node to
             int newValue = GridBase.GetBaseValue(property);
@@ -176,9 +193,9 @@ namespace Stride.Assets.Presentation.NodePresenters.Updaters
             return element;
         }
 
-        //temp place for custom hasBase delegate, TODO: Find better place for this
+        //temp place for custom hasBase delegate used on the grid properties, TODO: Find better place for this
         // can only enable override for property if the current value isnt the base value
-        public static bool CustomHasBase(UIElement element, PropertyKey property)
+        public static bool CustomHasBaseGrid(UIElement element, PropertyKey property)
         {
             return (int) element.DependencyProperties.Get(property) != GridBase.GetBaseValue(property);
         }
