@@ -66,7 +66,7 @@ file static class ModuleInitializer
 {code}    }}
 }}
 ";
-        // context.AddSource("ModuleInitializer.cs", outputClass);
+        context.AddSource("ModuleInitializer.cs", outputClass);
     }
 
     public record OrderedModuleInitializerMethod(int Order, string InvocationString);
