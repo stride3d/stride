@@ -225,11 +225,6 @@ namespace Stride.Core.AssemblyProcessor
                     processors.Add(new AssemblyScanProcessor());
                 }
 
-                if (ModuleInitializer)
-                {
-                    // processors.Add(new ModuleInitializerProcessor());
-                }
-
                 processors.Add(new InitLocalsProcessor());
                 processors.Add(new DispatcherProcessor());
 
