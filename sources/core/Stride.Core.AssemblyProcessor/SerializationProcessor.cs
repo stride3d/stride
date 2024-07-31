@@ -375,7 +375,7 @@ namespace Stride.Core.AssemblyProcessor
 
             // Obtain the static constructor of <Module> and the return instruction
             Instruction returnInstruction;
-            var moduleConstructor = ModuleInitializerProcessor.OpenModuleConstructor(assembly, out returnInstruction);
+            var moduleConstructor = assembly.OpenModuleConstructor(out returnInstruction);
 
             // Get the IL processor of the module constructor
             var ilProcessor = moduleConstructor.Body.GetILProcessor();
