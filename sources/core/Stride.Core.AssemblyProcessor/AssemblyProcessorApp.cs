@@ -194,12 +194,6 @@ namespace Stride.Core.AssemblyProcessor
 
                 var processors = new List<IAssemblyDefinitionProcessor>();
 
-                // We are no longer using it so we are deactivating it for now to avoid processing
-                //if (AutoNotifyProperty)
-                //{
-                //    processors.Add(new NotifyPropertyProcessor());
-                //}
-
                 processors.Add(new AddReferenceProcessor(ReferencesToAdd));
 
                 if (ParameterKey)
