@@ -78,10 +78,11 @@ namespace Stride.Assets.SpriteFont
             if (OperatingSystem.IsLinux())
             {
                 var fontPath = GetFontPathLinux(result);
-                if (fontPath == null && FontName != GetDefaultFontName())
+                var defaultFont = GetDefaultFontName();
+                if (fontPath == null && FontName != defaultFont)
                 {
-                    result?.Warning($"Cannot find font family '{FontName}'. Loading default font '{GetDefaultFontName()}' instead");
-                    FontName = GetDefaultFontName();
+                    result?.Warning($"Cannot find font family '{FontName}'. Loading default font '{defaultFont}' instead");
+                    FontName = defaultFont;
                     fontPath = GetFontPathLinux(result);
                 }
                 return fontPath;
@@ -109,7 +110,7 @@ namespace Stride.Assets.SpriteFont
                     return file;
                 }
             }
-            result?.Error($"Cannot find style '{Style}' for font family '{FontName}'. Make sure it is installed on this machine.");
+            result?.Warning($"Cannot find style '{Style}' for font family '{FontName}'. Make sure it is installed on this machine.");
             return null;
         }
 
