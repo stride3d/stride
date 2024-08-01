@@ -48,7 +48,21 @@ namespace Stride.Core.AssemblyProcessor
             var moduleInitializerAttribute = strideCoreModule.GetType("Stride.Core.ModuleInitializerAttribute");
             var ctorMethod = moduleInitializerAttribute.GetConstructors().Single(x => !x.IsStatic && !x.HasParameters);
             mainPrepareMethod.CustomAttributes.Add(new CustomAttribute(assembly.MainModule.ImportReference(ctorMethod)));
+           
+            // Obtain the static constructor of <Module>
+            Instruction returnInstruction;
+            var moduleConstructor = assembly.OpenModuleConstructor(out returnInstruction);
 
+            // Get the IL processor of the module constructor
+            var ilProcessor = moduleConstructor.Body.GetILProcessor();
+
+            // Create the call to the specified method
+            var methodReference = assembly.MainModule.ImportReference(mainPrepareMethod);
+
+            var callMethodInstruction = ilProcessor.Create(OpCodes.Call, methodReference);
+
+            // Insert the call at the beginning of the method body
+            ilProcessor.InsertBefore(moduleConstructor.Body.Instructions.Last(), callMethodInstruction);
             return mainPrepareMethod;
         }
 
