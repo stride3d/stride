@@ -225,7 +225,6 @@ namespace Stride.Core.AssemblyProcessor
                     processors.Add(new AssemblyScanProcessor());
                 }
 
-                processors.Add(new InitLocalsProcessor());
                 processors.Add(new DispatcherProcessor());
 
                 // Check if there is already a AssemblyProcessedAttribute (in which case we can skip processing, it has already been done).
