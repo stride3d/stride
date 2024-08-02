@@ -154,9 +154,7 @@
 </value>
   </data>
   <data name="labelMainContent.Text" xml:space="preserve">
-    <value>Unfortunately, Game Studio has crashed. Please help us improve Stride by sending information about this crash.
-
-If you'd like to allow us to ask some questions about the crash, please enter your email (optional, we will never send you an email for any other reason)</value>
+    <value>Unfortunately, Game Studio has crashed. Please help us improve Stride by sending information about this crash through Github Issues.</value>
   </data>
   <data name="$this.Icon" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
