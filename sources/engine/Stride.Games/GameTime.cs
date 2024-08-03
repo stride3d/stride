@@ -119,7 +119,7 @@ namespace Stride.Games
         }
 
 
-        internal void Update(TimeSpan totalGameTime, TimeSpan elapsedGameTime, bool incrementFrameCount)
+        public void Update(TimeSpan totalGameTime, TimeSpan elapsedGameTime, bool incrementFrameCount)
         {
             Total = totalGameTime;
             Elapsed = elapsedGameTime;
@@ -145,7 +145,7 @@ namespace Stride.Games
             }
         }
 
-        internal void Reset(TimeSpan totalGameTime)
+        public void Reset(TimeSpan totalGameTime)
         {
             Update(totalGameTime, TimeSpan.Zero, false);
             accumulatedElapsedTime = TimeSpan.Zero;

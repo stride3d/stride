@@ -27,7 +27,7 @@ using Stride.Core;
 
 namespace Stride.Games
 {
-    internal class GamePlatformDesktop : GamePlatform
+    public class GamePlatformDesktop : GamePlatform
     {
         public GamePlatformDesktop(GameBase game) : base(game)
         {
@@ -51,7 +51,7 @@ namespace Stride.Games
             }
         }
 
-        internal override GameWindow GetSupportedGameWindow(AppContextType type)
+        public override GameWindow GetSupportedGameWindow(AppContextType type)
         {
             switch (type)
             {

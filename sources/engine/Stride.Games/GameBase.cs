@@ -59,7 +59,7 @@ namespace Stride.Games
 
         private bool isMouseVisible;
 
-        internal object TickLock = new object();
+        public object TickLock = new object();
 
         #endregion
 
@@ -68,7 +68,7 @@ namespace Stride.Games
         /// <summary>
         /// Initializes a new instance of the <see cref="GameBase" /> class.
         /// </summary>
-        protected GameBase()
+        protected GameBase(GamePlatform platform = null)
         {
             // Internals
             Log = GlobalLogger.GetLogger(GetType().GetTypeInfo().Name);
@@ -96,7 +96,7 @@ namespace Stride.Games
             Services.AddService<IGameSystemCollection>(GameSystems);
 
             // Create Platform
-            gamePlatform = GamePlatform.Create(this);
+            gamePlatform = platform ?? GamePlatform.Create(this);
             gamePlatform.Activated += GamePlatform_Activated;
             gamePlatform.Deactivated += GamePlatform_Deactivated;
             gamePlatform.Exiting += GamePlatform_Exiting;
@@ -216,7 +216,7 @@ namespace Stride.Games
         /// Gets or sets a value indicating whether this instance should force exactly one update step per one draw step
         /// </summary>
         /// <value><c>true</c> if this instance forces one update step per one draw step; otherwise, <c>false</c>.</value>
-        protected internal bool ForceOneUpdatePerDraw { get; set; }
+        protected bool ForceOneUpdatePerDraw { get; set; }
 
         /// <summary>
         /// When <see cref="IsFixedTimeStep"/> is set, is it allowed to render frames between two steps when we have time to do so.
@@ -340,7 +340,7 @@ namespace Stride.Games
             forceElapsedTimeToZero = true;
         }
 
-        internal void InitializeBeforeRun()
+        public void InitializeBeforeRun()
         {
             try
             {
@@ -371,7 +371,7 @@ namespace Stride.Games
                     // Bind Graphics Context enabling initialize to use GL API eg. SetData to texture ...etc
                     BeginDraw();
 
-                    LoadContentInternal();
+                    LoadContentDefault();
 
                     IsRunning = true;
 
@@ -848,7 +848,7 @@ namespace Stride.Games
             GameSystems.Initialize();
         }
 
-        internal virtual void LoadContentInternal()
+        public virtual void LoadContentDefault()
         {
             GameSystems.LoadContent();
         }
@@ -978,7 +978,7 @@ namespace Stride.Games
 
             if (GameSystems.State != GameSystemState.ContentLoaded)
             {
-                LoadContentInternal();
+                LoadContentDefault();
             }
         }
 

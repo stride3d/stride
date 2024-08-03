@@ -7,7 +7,7 @@ using Stride.Core.Serialization.Contents;
 
 namespace Stride.Graphics
 {
-    internal class ImageSerializer : ContentSerializerBase<Image>
+    public class ImageSerializer : ContentSerializerBase<Image>
     {
         public override void Serialize(ContentSerializerContext context, SerializationStream stream, Image textureData)
         {

@@ -453,9 +453,9 @@ namespace Stride.Engine
             return Task.FromResult(true);
         }
 
-        internal override void LoadContentInternal()
+        public override void LoadContentDefault()
         {
-            base.LoadContentInternal();
+            base.LoadContentDefault();
             Script.AddTask(LoadContent);
         }
         protected virtual LogListener GetLogListener()

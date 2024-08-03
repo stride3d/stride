@@ -203,7 +203,7 @@ namespace Stride.Games
         /// Allow the GraphicsDeviceManager to set the actual window state after applying the device changes.
         /// </summary>
         /// <param name="isReallyFullscreen"></param>
-        internal void SetIsReallyFullscreen(bool isReallyFullscreen)
+        public void SetIsReallyFullscreen(bool isReallyFullscreen)
         {
             isFullscreen = isReallyFullscreen;
         }
@@ -225,19 +225,19 @@ namespace Stride.Games
 
         #region Methods
 
-        protected internal abstract void Initialize(GameContext gameContext);
+        public abstract void Initialize(GameContext gameContext);
 
-        internal bool Exiting;
+        public bool Exiting;
 
-        internal Action InitCallback;
+        public Action InitCallback;
 
-        internal Action RunCallback;
+        public Action RunCallback;
 
-        internal Action ExitCallback;
+        public Action ExitCallback;
         
         private bool isFullscreen;
 
-        internal abstract void Run();
+        public abstract void Run();
 
         /// <summary>
         /// Sets the size of the client area and triggers the <see cref="ClientSizeChanged"/> event.
@@ -253,7 +253,7 @@ namespace Stride.Games
         /// Only used internally by the device managers when they adapt the window size to the backbuffer size.
         /// Resizes the window, without sending the resized event.
         /// </summary>
-        internal abstract void Resize(int width, int height);
+        public abstract void Resize(int width, int height);
 
         public virtual IMessageLoop CreateUserManagedMessageLoop()
         {
@@ -261,9 +261,9 @@ namespace Stride.Games
             throw new PlatformNotSupportedException();
         }
 
-        internal IServiceRegistry Services { get; set; }
+        public IServiceRegistry Services { get; set; }
 
-        protected internal abstract void SetSupportedOrientations(DisplayOrientation orientations);
+        public abstract void SetSupportedOrientations(DisplayOrientation orientations);
 
         protected void OnActivated(object source, EventArgs e)
         {
@@ -319,12 +319,12 @@ namespace Stride.Games
 
         #endregion
 
-        internal void OnPause()
+        public void OnPause()
         {
             OnDeactivated(this, EventArgs.Empty);
         }
 
-        internal void OnResume()
+        public void OnResume()
         {
             OnActivated(this, EventArgs.Empty);
         }
@@ -332,7 +332,7 @@ namespace Stride.Games
 
     public abstract class GameWindow<TK> : GameWindow
     {
-        protected internal sealed override void Initialize(GameContext gameContext)
+        public sealed override void Initialize(GameContext gameContext)
         {
             var context = gameContext as GameContext<TK>;
             if (context != null)
@@ -346,7 +346,7 @@ namespace Stride.Games
             }
         }
 
-        internal GameContext<TK> GameContext;
+        public GameContext<TK> GameContext;
 
         protected abstract void Initialize(GameContext<TK> context);
     }
