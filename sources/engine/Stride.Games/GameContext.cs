@@ -61,27 +61,27 @@ namespace Stride.Games
         /// <summary>
         /// The requested width.
         /// </summary>
-        internal int RequestedWidth;
+        public int RequestedWidth;
 
         /// <summary>
         /// The requested height.
         /// </summary>
-        internal int RequestedHeight;
+        public int RequestedHeight;
 
         /// <summary>
         /// The requested back buffer format.
         /// </summary>
-        internal PixelFormat RequestedBackBufferFormat;
+        public PixelFormat RequestedBackBufferFormat;
 
         /// <summary>
         /// The requested depth stencil format.
         /// </summary>
-        internal PixelFormat RequestedDepthStencilFormat;
+        public PixelFormat RequestedDepthStencilFormat;
 
         /// <summary>
         /// The requested graphics profiles.
         /// </summary>
-        internal GraphicsProfile[] RequestedGraphicsProfile;
+        public GraphicsProfile[] RequestedGraphicsProfile;
 
         /// <summary>
         /// The device creation flags that will be used to create the <see cref="GraphicsDevice"/>.
@@ -98,7 +98,7 @@ namespace Stride.Games
         /// Product name of game.
         /// TODO: Provide proper access title through code and game studio
         /// </summary>
-        internal static string ProductName
+        public static string ProductName
         {
             get
             {

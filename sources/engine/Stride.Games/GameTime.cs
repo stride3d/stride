@@ -118,8 +118,13 @@ namespace Stride.Games
             set => factor = value > 0 ? value : 0;
         }
 
-
-        internal void Update(TimeSpan totalGameTime, TimeSpan elapsedGameTime, bool incrementFrameCount)
+        /// <summary>
+        /// Updated total GameTime, Elapsed GameTime and increments the frame count if set to true. 
+        /// </summary>
+        /// <param name="totalGameTime"></param>
+        /// <param name="elapsedGameTime"></param>
+        /// <param name="incrementFrameCount"></param>
+        public void Update(TimeSpan totalGameTime, TimeSpan elapsedGameTime, bool incrementFrameCount)
         {
             Total = totalGameTime;
             Elapsed = elapsedGameTime;
@@ -145,7 +150,11 @@ namespace Stride.Games
             }
         }
 
-        internal void Reset(TimeSpan totalGameTime)
+        /// <summary>
+        /// Resets GameTime, does not increment frame count.
+        /// </summary>
+        /// <param name="totalGameTime"></param>
+        public void Reset(TimeSpan totalGameTime)
         {
             Update(totalGameTime, TimeSpan.Zero, false);
             accumulatedElapsedTime = TimeSpan.Zero;
