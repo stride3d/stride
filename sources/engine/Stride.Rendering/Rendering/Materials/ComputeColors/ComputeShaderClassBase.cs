@@ -140,6 +140,10 @@ namespace Stride.Rendering.Materials.ComputeColors
                     {
                         mixinGenerics.Add(((ComputeColorStringParameter)generic).Value);
                     }
+                    else if (generic is ComputeColorParameterBool paramBool)
+                    {
+                        mixinGenerics.Add(paramBool.Value ? "true" : "false");
+                    }
                     else
                     {
                         throw new Exception("[Material] Unknown node type: " + generic.GetType());
