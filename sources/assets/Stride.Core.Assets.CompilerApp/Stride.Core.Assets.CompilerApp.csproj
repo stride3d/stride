@@ -6,7 +6,7 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
-    <TargetFramework>$(StrideXplatEditorTargetFramework)</TargetFramework>
+    <TargetFrameworks>$(StrideXplatEditorTargetFramework);$(StrideEditorTargetFramework)</TargetFrameworks>
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
     <StrideAssemblyProcessorOptions>--auto-module-initializer --serialization</StrideAssemblyProcessorOptions>
   </PropertyGroup>
