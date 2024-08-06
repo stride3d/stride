@@ -6,7 +6,7 @@
 
 using System;
 
-namespace Stride.Core
+namespace Stride.Core.UnsafeExtensions
 {
     /// <summary>
     ///   Wraps a pointer to <typeparamref name="T"/> so it can be used as a generic type parameter.
