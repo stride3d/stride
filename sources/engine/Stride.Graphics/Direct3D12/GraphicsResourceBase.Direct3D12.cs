@@ -8,6 +8,7 @@ using System.Diagnostics;
 using Silk.NET.Core.Native;
 using Silk.NET.Direct3D12;
 using Stride.Core;
+using Stride.Core.UnsafeExtensions;
 
 namespace Stride.Graphics
 {
