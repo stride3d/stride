@@ -7,13 +7,15 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Runtime.CompilerServices;
 using Silk.NET.Core.Native;
 using Silk.NET.Direct3D11;
 using Silk.NET.Direct3D.Compilers;
 using Stride.Core.Diagnostics;
 using Stride.Core.Storage;
 using Stride.Graphics;
+
+using static Stride.Core.UnsafeExtensions.StringMarshal;
+using static Stride.Core.UnsafeExtensions.UnsafeUtilities;
 
 namespace Stride.Shaders.Compiler.Direct3D
 {

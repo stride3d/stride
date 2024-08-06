@@ -1,0 +1,305 @@
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+// Contains code from TerraFX Framework, Copyright (c) Tanner Gooding and Contributors
+// Licensed under the MIT License (MIT).
+
+using System;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+
+using DotNetUnsafe = System.Runtime.CompilerServices.Unsafe;
+
+namespace Stride.Core.UnsafeExtensions
+{
+    /// <summary>
+    ///   Provides a set of methods to supplement or replace <see cref="System.Runtime.CompilerServices.Unsafe"/> and
+    ///   <see cref="MemoryMarshal"/>.
+    /// </summary>
+    public static unsafe class UnsafeUtilities
+    {
+        /// <inheritdoc cref="DotNetUnsafe.As{T}(object)"/>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [return: NotNullIfNotNull("o")]
+        public static T As<T>(this object o)
+            where T : class
+        {
+            Debug.Assert(o is null or T);
+
+            return DotNetUnsafe.As<T>(o);
+        }
+
+        /// <inheritdoc cref="DotNetUnsafe.As{TFrom, TTo}(ref TFrom)"/>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ref TTo As<TFrom, TTo>(ref TFrom source) => ref DotNetUnsafe.As<TFrom, TTo>(ref source);
+
+        /// <inheritdoc cref="DotNetUnsafe.As{TFrom, TTo}(ref TFrom)"/>
+        /// <param name="span">The span to reinterpret.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Span<TTo> As<TFrom, TTo>(this Span<TFrom> span)
+            where TFrom : unmanaged
+            where TTo : unmanaged
+        {
+            Debug.Assert(SizeOf<TFrom>() == SizeOf<TTo>());
+
+            return CreateSpan(ref As<TFrom, TTo>(ref span.GetReference()), span.Length);
+        }
+
+        /// <inheritdoc cref="DotNetUnsafe.As{TFrom, TTo}(ref TFrom)"/>
+        /// <param name="span">The span to reinterpret.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ReadOnlySpan<TTo> As<TFrom, TTo>(this ReadOnlySpan<TFrom> span)
+            where TFrom : unmanaged
+            where TTo : unmanaged
+        {
+            Debug.Assert(SizeOf<TFrom>() == SizeOf<TTo>());
+
+            return CreateReadOnlySpan(in AsReadonly<TFrom, TTo>(in span.GetReference()), span.Length);
+        }
+
+        /// <inheritdoc cref="DotNetUnsafe.AsPointer{T}(ref T)"/>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static T* AsPointer<T>(ref T value) where T : unmanaged
+            => (T*) DotNetUnsafe.AsPointer(ref value);
+
+        /// <inheritdoc cref="DotNetUnsafe.As{TFrom, TTo}(ref TFrom)"/>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ref readonly TTo AsReadonly<TFrom, TTo>(in TFrom source)
+            => ref DotNetUnsafe.As<TFrom, TTo>(ref AsRef(in source));
+
+        /// <inheritdoc cref="DotNetUnsafe.AsPointer{T}(ref T)"/>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static T* AsReadonlyPointer<T>(in T value) where T : unmanaged
+            => AsPointer(ref AsRef(in value));
+
+        /// <summary>
+        ///   Reinterprets the given native integer as a reference.
+        /// </summary>
+        /// <typeparam name="T">The type of the reference.</typeparam>
+        /// <param name="source">The native integer to reinterpret.</param>
+        /// <returns>A reference to a value of type <typeparamref name="T"/>.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ref T AsRef<T>(nint source) => ref DotNetUnsafe.AsRef<T>((void*) source);
+
+        /// <summary>
+        ///   Reinterprets the given native unsigned integer as a reference.
+        /// </summary>
+        /// <typeparam name="T">The type of the reference.</typeparam>
+        /// <param name="source">The native unsigned integer to reinterpret.</param>
+        /// <returns>A reference to a value of type <typeparamref name="T"/>.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ref T AsRef<T>(nuint source) => ref DotNetUnsafe.AsRef<T>((void*) source);
+
+        /// <inheritdoc cref="DotNetUnsafe.AsRef{T}(in T)"/>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ref T AsRef<T>(in T source) => ref DotNetUnsafe.AsRef(in source);
+
+        /// <inheritdoc cref="DotNetUnsafe.AsRef{T}(in T)"/>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ref TTo AsRef<TFrom, TTo>(in TFrom source)
+        {
+            ref var mutable = ref AsRef(in source);
+            return ref As<TFrom, TTo>(ref mutable);
+        }
+
+        /// <inheritdoc cref="DotNetUnsafe.AsRef{T}(void*)"/>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ref T AsRef<T>(void* source) => ref DotNetUnsafe.AsRef<T>(source);
+
+        /// <summary>
+        ///   Reinterprets the read-only span as a writeable span.
+        /// </summary>
+        /// <typeparam name="T">The type of items in <paramref name="span"/>.</typeparam>
+        /// <param name="span">The read-only span to reinterpret.</param>
+        /// <returns>A writeable span that points to the same items as <paramref name="span"/>.</returns>
+        public static Span<T> AsSpan<T>(this ReadOnlySpan<T> span)
+            => MemoryMarshal.CreateSpan(ref AsRef(in span.GetReference()), span.Length);
+
+        /// <inheritdoc cref="MemoryMarshal.Cast{TFrom, TTo}(Span{TFrom})"/>
+        public static Span<TTo> Cast<TFrom, TTo>(this Span<TFrom> span)
+            where TFrom : struct
+            where TTo : struct
+        {
+            return MemoryMarshal.Cast<TFrom, TTo>(span);
+        }
+
+        /// <inheritdoc cref="MemoryMarshal.Cast{TFrom, TTo}(ReadOnlySpan{TFrom})"/>
+        public static ReadOnlySpan<TTo> Cast<TFrom, TTo>(this ReadOnlySpan<TFrom> span)
+            where TFrom : struct
+            where TTo : struct
+        {
+            return MemoryMarshal.Cast<TFrom, TTo>(span);
+        }
+
+        /// <inheritdoc cref="DotNetUnsafe.CopyBlock(ref byte, ref byte, uint)"/>
+        public static void CopyBlock<TDestination, TSource>(ref TDestination destination, in TSource source, uint byteCount)
+        {
+            DotNetUnsafe.CopyBlock(destination: ref As<TDestination, byte>(ref destination),
+                                   source: ref AsRef<TSource, byte>(in source),
+                                   byteCount);
+        }
+
+        /// <inheritdoc cref="DotNetUnsafe.CopyBlockUnaligned(ref byte, ref byte, uint)"/>
+        public static void CopyBlockUnaligned<TDestination, TSource>(ref TDestination destination, ref TSource source, uint byteCount)
+        {
+            DotNetUnsafe.CopyBlockUnaligned(destination: ref As<TDestination, byte>(ref destination),
+                                            source: ref As<TSource, byte>(ref source),
+                                            byteCount);
+        }
+
+        /// <inheritdoc cref="MemoryMarshal.CreateSpan{T}(ref T, int)"/>
+        public static Span<T> CreateSpan<T>(ref T reference, int length) => MemoryMarshal.CreateSpan(ref reference, length);
+
+        /// <inheritdoc cref="MemoryMarshal.CreateReadOnlySpan{T}(ref T, int)"/>
+        public static ReadOnlySpan<T> CreateReadOnlySpan<T>(in T reference, int length)
+            => MemoryMarshal.CreateReadOnlySpan(ref AsRef(in reference), length);
+
+        /// <summary>
+        ///   Returns a pointer to the element of the span at index zero.
+        /// </summary>
+        /// <typeparam name="T">The type of items in <paramref name="span"/>.</typeparam>
+        /// <param name="span">The span from which the pointer is retrieved.</param>
+        /// <returns>A pointer to the item at index zero of <paramref name="span"/>.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static T* GetPointer<T>(this Span<T> span) where T : unmanaged
+            => AsPointer(ref span.GetReference());
+
+        /// <summary>
+        ///   Returns a pointer to the element of the span at index zero.
+        /// </summary>
+        /// <typeparam name="T">The type of items in <paramref name="span"/>.</typeparam>
+        /// <param name="span">The span from which the pointer is retrieved.</param>
+        /// <returns>A pointer to the item at index zero of <paramref name="span"/>.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static T* GetPointer<T>(this ReadOnlySpan<T> span) where T : unmanaged
+            => AsPointer(ref AsRef(in span.GetReference()));
+
+        /// <inheritdoc cref="MemoryMarshal.GetArrayDataReference{T}(T[])"/>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ref T GetReference<T>(this T[] array)
+            => ref MemoryMarshal.GetArrayDataReference(array);
+
+        /// <inheritdoc cref="MemoryMarshal.GetArrayDataReference{T}(T[])"/>
+        /// <summary>
+        ///   Returns a reference to the element at the specified <paramref name="index"/> of <paramref name="array"/>.
+        ///   If the array is empty, returns a reference to where that element would have been stored.
+        ///   Such a reference may be used for pinning but must never be dereferenced.
+        /// </summary>
+        /// <param name="index">The index of the element of <paramref name="array"/> for which to take a reference.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ref T GetReference<T>(this T[] array, int index)
+            => ref DotNetUnsafe.Add(ref array.GetReference(), index);
+
+        /// <inheritdoc cref="MemoryMarshal.GetArrayDataReference{T}(T[])"/>
+        /// <summary>
+        ///   Returns a reference to the element at the specified <paramref name="index"/> of <paramref name="array"/>.
+        ///   If the array is empty, returns a reference to where that element would have been stored.
+        ///   Such a reference may be used for pinning but must never be dereferenced.
+        /// </summary>
+        /// <param name="index">The index of the element of <paramref name="array"/> for which to take a reference.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ref T GetReference<T>(this T[] array, nuint index) => ref DotNetUnsafe.Add(ref array.GetReference(), index);
+
+        /// <inheritdoc cref="MemoryMarshal.GetReference{T}(Span{T})"/>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ref T GetReference<T>(this Span<T> span)
+            => ref MemoryMarshal.GetReference(span);
+
+        /// <inheritdoc cref="MemoryMarshal.GetReference{T}(Span{T})"/>
+        /// <summary>
+        ///   Returns a reference to the element at the specified <paramref name="index"/> of <paramref name="span"/>.
+        ///   If the span is empty, returns a reference to the location where that element would have been stored.
+        ///   Such a reference may or may not be null. It can be used for pinning but must never be dereferenced.
+        /// </summary>
+        /// <param name="index">The index of the element of <paramref name="span"/> for which to take a reference.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ref T GetReference<T>(this Span<T> span, int index)
+            => ref DotNetUnsafe.Add(ref MemoryMarshal.GetReference(span), index);
+
+        /// <inheritdoc cref="MemoryMarshal.GetReference{T}(Span{T})"/>
+        /// <summary>
+        ///   Returns a reference to the element at the specified <paramref name="index"/> of <paramref name="span"/>.
+        ///   If the span is empty, returns a reference to the location where that element would have been stored.
+        ///   Such a reference may or may not be null. It can be used for pinning but must never be dereferenced.
+        /// </summary>
+        /// <param name="index">The index of the element of <paramref name="span"/> for which to take a reference.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ref T GetReference<T>(this Span<T> span, nuint index)
+            => ref DotNetUnsafe.Add(ref MemoryMarshal.GetReference(span), index);
+
+        /// <inheritdoc cref="MemoryMarshal.GetReference{T}(ReadOnlySpan{T})"/>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ref readonly T GetReference<T>(this ReadOnlySpan<T> span)
+            => ref MemoryMarshal.GetReference(span);
+
+        /// <inheritdoc cref="MemoryMarshal.GetReference{T}(ReadOnlySpan{T})"/>
+        /// <summary>
+        ///   Returns a reference to the element at the specified <paramref name="index"/> of <paramref name="span"/>.
+        ///   If the span is empty, returns a reference to the location where that element would have been stored.
+        ///   Such a reference may or may not be null. It can be used for pinning but must never be dereferenced.
+        /// </summary>
+        /// <param name="index">The index of the element of <paramref name="span"/> for which to take a reference.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ref readonly T GetReference<T>(this ReadOnlySpan<T> span, int index)
+            => ref DotNetUnsafe.Add(ref MemoryMarshal.GetReference(span), index);
+
+        /// <inheritdoc cref="MemoryMarshal.GetReference{T}(ReadOnlySpan{T})"/>
+        /// <summary>
+        ///   Returns a reference to the element at the specified <paramref name="index"/> of <paramref name="span"/>.
+        ///   If the span is empty, returns a reference to the location where that element would have been stored.
+        ///   Such a reference may or may not be null. It can be used for pinning but must never be dereferenced.
+        /// </summary>
+        /// <param name="index">The index of the element of <paramref name="span"/> for which to take a reference.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ref readonly T GetReference<T>(this ReadOnlySpan<T> span, nuint index)
+            => ref DotNetUnsafe.Add(ref MemoryMarshal.GetReference(span), index);
+
+        /// <summary>
+        ///   Determines if a given reference to a value of type <typeparamref name="T"/> is not a null reference.
+        /// </summary>
+        /// <typeparam name="T">The type of the reference.</typeparam>
+        /// <param name="source">The reference to check.</param>
+        /// <returns>
+        ///   <see langword="true"/> if <paramref name="source"/> is not a null reference;
+        ///   otherwise, <see langword="false"/>.
+        /// </returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool IsNotNullRef<T>(in T source) => !IsNullRef(in source);
+
+        /// <inheritdoc cref="DotNetUnsafe.IsNullRef{T}(ref T)"/>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool IsNullRef<T>(in T source) => DotNetUnsafe.IsNullRef(ref AsRef(in source));
+
+        /// <inheritdoc cref="DotNetUnsafe.NullRef{T}"/>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ref T NullRef<T>() => ref DotNetUnsafe.NullRef<T>();
+
+        /// <inheritdoc cref="DotNetUnsafe.ReadUnaligned{T}(void*)"/>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static T ReadUnaligned<T>(void* source) where T : unmanaged
+            => DotNetUnsafe.ReadUnaligned<T>(source);
+
+        /// <inheritdoc cref="DotNetUnsafe.ReadUnaligned{T}(void*)"/>
+        /// <param name="offset">The offset in bytes from the location pointed to by <paramref name="source"/>.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static T ReadUnaligned<T>(void* source, nuint offset) where T : unmanaged
+            => DotNetUnsafe.ReadUnaligned<T>((void*) ((nuint) source + offset));
+
+        /// <inheritdoc cref="DotNetUnsafe.SizeOf{T}"/>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static uint SizeOf<T>() => unchecked((uint) DotNetUnsafe.SizeOf<T>());
+
+        /// <inheritdoc cref="DotNetUnsafe.WriteUnaligned{T}(void*, T)"/>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void WriteUnaligned<T>(void* destination, T value) where T : unmanaged
+            => DotNetUnsafe.WriteUnaligned(destination, value);
+
+        /// <inheritdoc cref="DotNetUnsafe.WriteUnaligned{T}(void*, T)"/>
+        /// <param name="offset">The offset in bytes from the location pointed to by <paramref name="destination"/>.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void WriteUnaligned<T>(void* destination, nuint offset, T value) where T : unmanaged
+            => DotNetUnsafe.WriteUnaligned((void*) ((nuint) destination + offset), value);
+    }
+}

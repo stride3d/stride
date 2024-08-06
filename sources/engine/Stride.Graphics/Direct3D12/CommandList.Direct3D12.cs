@@ -11,6 +11,7 @@ using Silk.NET.Maths;
 using Silk.NET.DXGI;
 using Silk.NET.Direct3D12;
 using Stride.Core;
+using Stride.Core.UnsafeExtensions;
 using Stride.Core.Mathematics;
 
 namespace Stride.Graphics
