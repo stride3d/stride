@@ -38,6 +38,7 @@ namespace Stride.Rendering.Materials
             }
 
             PendingPixelLayerContext = new MaterialBlendLayerPerStageContext();
+            CustomShaderContext = new MaterialBlendLayerPerStageContext();
         }
 
         public MaterialGeneratorContext Context { get; }
@@ -47,6 +48,8 @@ namespace Stride.Rendering.Materials
         public IComputeScalar BlendMap { get; }
 
         public Dictionary<MaterialShaderStage, MaterialBlendLayerPerStageContext> ContextPerStage { get; }
+
+        public MaterialBlendLayerPerStageContext CustomShaderContext { get; }
 
         public List<MaterialBlendLayerContext> Children { get; }
 
@@ -171,6 +174,11 @@ namespace Stride.Rendering.Materials
         {
             var stageContext = GetContextPerStage(stage);
             return stageContext.ComputeShaderSource();
+        }
+
+        public ShaderSource ComputeCustomShaderSource()
+        {
+            return CustomShaderContext.ComputeShaderSource();
         }
     }
 }
