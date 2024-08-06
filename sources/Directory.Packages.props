@@ -20,16 +20,16 @@
     <PackageVersion Include="SharpDX.MediaFoundation" Version="4.2.0" />
     <PackageVersion Include="SharpDX.RawInput" Version="4.2.0" />
     <PackageVersion Include="SharpDX.XInput" Version="4.2.0" />
-    <PackageVersion Include="Silk.NET.Direct3D11" Version="2.20.0" />
-    <PackageVersion Include="Silk.NET.Direct3D12" Version="2.20.0" />
-    <PackageVersion Include="Silk.NET.Direct3D.Compilers" Version="2.20.0" />
-    <PackageVersion Include="Silk.NET.OpenGL" Version="2.20.0" />
-    <PackageVersion Include="Silk.NET.OpenGLES" Version="2.20.0" />
-    <PackageVersion Include="Silk.NET.OpenGLES.Extensions.EXT" Version="2.20.0" />
-    <PackageVersion Include="Silk.NET.OpenXR" Version="2.20.0" />
-    <PackageVersion Include="Silk.NET.OpenXR.Extensions.FB" Version="2.20.0" />
-    <PackageVersion Include="Silk.NET.Sdl" Version="2.20.0" />
-    <PackageVersion Include="Silk.NET.Windowing.Sdl" Version="2.19.0" />
+    <PackageVersion Include="Silk.NET.Direct3D11" Version="2.21.0" />
+    <PackageVersion Include="Silk.NET.Direct3D12" Version="2.21.0" />
+    <PackageVersion Include="Silk.NET.Direct3D.Compilers" Version="2.21.0" />
+    <PackageVersion Include="Silk.NET.OpenGL" Version="2.21.0" />
+    <PackageVersion Include="Silk.NET.OpenGLES" Version="2.21.0" />
+    <PackageVersion Include="Silk.NET.OpenGLES.Extensions.EXT" Version="2.21.0" />
+    <PackageVersion Include="Silk.NET.OpenXR" Version="2.21.0" />
+    <PackageVersion Include="Silk.NET.OpenXR.Extensions.FB" Version="2.21.0" />
+    <PackageVersion Include="Silk.NET.Sdl" Version="2.21.0" />
+    <PackageVersion Include="Silk.NET.Windowing.Sdl" Version="2.21.0" />
     <PackageVersion Include="Stride.SharpFont" Version="1.0.0" />
     <PackageVersion Include="System.Drawing.Common" Version="8.0.1" />
     <PackageVersion Include="System.Memory" Version="4.5.5" />
@@ -58,7 +58,7 @@
     <PackageVersion Include="NuGet.PackageManagement" Version="6.8.0" />
     <PackageVersion Include="NuGet.Protocol" Version="6.8.0" />
     <PackageVersion Include="NuGet.Resolver" Version="6.8.0" />
-    <PackageVersion Include="Silk.NET.Assimp" Version="2.20.0" />
+    <PackageVersion Include="Silk.NET.Assimp" Version="2.21.0" />
     <PackageVersion Include="Stride.GNU.Getopt" Version="2.0.0" />
     <PackageVersion Include="Stride.GNU.Gettext" Version="2.0.0" />
     <PackageVersion Include="Stride.Mono.TextTemplating" Version="2.1.0-preview-0009-g0d0b6db3ca" />
