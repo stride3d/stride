@@ -10,6 +10,7 @@ using Silk.NET.Core.Native;
 using Silk.NET.Direct3D12;
 using Silk.NET.DXGI;
 using Stride.Core;
+using Stride.Core.UnsafeExtensions;
 using Stride.Core.Collections;
 using Stride.Core.Threading;
 
