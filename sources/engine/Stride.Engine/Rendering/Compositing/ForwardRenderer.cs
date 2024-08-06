@@ -114,7 +114,7 @@ namespace Stride.Rendering.Compositing
         /// </summary>
         /// <remarks>
         /// This is needed by some effects such as particles soft edges.
-        /// 
+        ///
         /// On recent platforms that can bind depth buffer as read-only (<see cref="GraphicsDeviceFeatures.HasDepthAsReadOnlyRT"/>), depth buffer will be used as is. Otherwise, a copy will be generated.
         /// </remarks>
         [DefaultValue(true)]
@@ -795,7 +795,8 @@ namespace Stride.Rendering.Compositing
                 }
             }
 
-            context.CommandList.SetRenderTargets(null, context.CommandList.RenderTargetCount, context.CommandList.RenderTargets);
+            context.CommandList.SetRenderTargets(depthStencilView: null,
+                                                 context.CommandList.RenderTargetCount, context.CommandList.RenderTargets);
 
             var depthStencilROCached = context.Resolver.GetDepthStencilAsRenderTarget(depthStencil, this.depthStencilROCached);
             if (depthStencilROCached != this.depthStencilROCached)

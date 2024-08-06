@@ -107,7 +107,7 @@ namespace Stride.Graphics
                 if (result.IsFailure)
                     return false;
 
-                return hwOptions.ComputeShadersPlusRawAndStructuredBuffersViaShader4X != 0;
+                return hwOptions.ComputeShadersPlusRawAndStructuredBuffersViaShader4X;
             }
 
             /// <summary>
@@ -123,7 +123,7 @@ namespace Stride.Graphics
                 if (result.IsFailure)
                     return false;
 
-                return doubles.DoublePrecisionFloatShaderOps != 0;
+                return doubles.DoublePrecisionFloatShaderOps;
             }
 
             /// <summary>
@@ -142,8 +142,8 @@ namespace Stride.Graphics
                 }
                 else
                 {
-                    supportsConcurrentResources = featureDataThreading.DriverConcurrentCreates != 0;
-                    supportsCommandLists = featureDataThreading.DriverCommandLists != 0;
+                    supportsConcurrentResources = featureDataThreading.DriverConcurrentCreates;
+                    supportsCommandLists = featureDataThreading.DriverCommandLists;
                 }
             }
 

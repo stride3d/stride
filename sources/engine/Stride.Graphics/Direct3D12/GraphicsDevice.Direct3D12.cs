@@ -312,20 +312,20 @@ namespace Stride.Graphics
 
                     if (result.IsSuccess && infoQueue is not null)
                     {
-                        var disabledMessages = stackalloc Silk.NET.Direct3D12.MessageID[]
+                        var disabledMessages = stackalloc MessageID[]
                         {
                             // This happens when render target or depth stencil clear value is different
                             // than the provided ones during resource allocation.
-                            Silk.NET.Direct3D12.MessageID.CleardepthstencilviewMismatchingclearvalue,
-                            Silk.NET.Direct3D12.MessageID.ClearrendertargetviewMismatchingclearvalue,
+                            MessageID.CleardepthstencilviewMismatchingclearvalue,
+                            MessageID.ClearrendertargetviewMismatchingclearvalue,
 
                             // This occurs when there are uninitialized descriptors in a descriptor table,
                             // even when a shader does not access the missing descriptors.
-                            Silk.NET.Direct3D12.MessageID.InvalidDescriptorHandle,
+                            MessageID.InvalidDescriptorHandle,
 
                             // These happen when capturing with VS diagnostics
-                            Silk.NET.Direct3D12.MessageID.MapInvalidNullrange,
-                            Silk.NET.Direct3D12.MessageID.UnmapInvalidNullrange
+                            MessageID.MapInvalidNullrange,
+                            MessageID.UnmapInvalidNullrange
                         };
 
                         // Disable irrelevant debug layer warnings
