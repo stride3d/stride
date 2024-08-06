@@ -56,30 +56,16 @@ namespace Stride.Shaders.Compiler.Direct3D
                 case 3: shaderFlags |= D3DCOMPILE_OPTIMIZATION_LEVEL3; break;
             }
 
-            var shaderBytes = Encoding.ASCII.GetBytes(shaderSource);
-            var shaderModelBytes = Encoding.ASCII.GetBytes(shaderModel);
+            var shaderBytes = shaderSource.GetAsciiSpan();
 
             ID3D10Blob* byteCode = null;
             ID3D10Blob* compileErrors = null;
-
-            // Compile using D3DCompiler
-            var d3dCompiler = D3DCompiler.GetApi();
-
-            HResult result = d3dCompiler.Compile(in shaderBytes[0], (nuint) shaderBytes.Length, pSourceName: nameof(shaderSource),
-                                                 pDefines: null, pInclude: null, entryPoint, shaderModel, shaderFlags, effectFlags,
-                                                 ref byteCode, ref compileErrors);
-
             var byteCodeResult = new ShaderBytecodeResult();
 
-            if (result.IsFailure || byteCode == null)
-            {
-                // Log compilation errors
-                if (compileErrors is not null)
-                {
-                    byteCodeResult.Error(GetTextFromBlob(compileErrors));
-                }
-            }
-            else
+            HResult result = Compile(shaderSource, entryPoint, shaderModel, shaderFlags, effectFlags,
+                                     &byteCode, &compileErrors, byteCodeResult);
+
+            if (result.IsSuccess && byteCode != null)
             {
                 // TODO: Make this optional
                 byteCodeResult.DisassembleText = Disassemble(byteCode);
@@ -107,14 +93,52 @@ namespace Stride.Shaders.Compiler.Direct3D
             return byteCodeResult;
 
             /// <summary>
+            ///   Compiles shader source code to bytecode for the specified shader model.
+            /// </summary>
+            static HResult Compile(string shaderSource, string entryPoint, string shaderModel,
+                                   uint shaderFlags, uint effectFlags,
+                                   ID3D10Blob** bytecode, ID3D10Blob** errorMessages,
+                                   ShaderBytecodeResult bytecodeResult)
+            {
+                HResult result;
+
+                var d3dCompiler = D3DCompiler.GetApi();
+
+                var shaderSourceSpan = shaderSource.GetUtf8Span();
+
+                fixed (sbyte* pShaderSource = shaderSourceSpan)
+                fixed (sbyte* pEntryPoint = entryPoint.GetUtf8Span())
+                fixed (sbyte* pShaderModel = shaderModel.GetUtf8Span())
+                fixed (sbyte* pShaderSourceName = nameof(shaderSource).GetUtf8Span())
+                {
+                    result = d3dCompiler.Compile(pShaderSource, (nuint) shaderSourceSpan.Length, (byte*) pShaderSourceName,
+                                                 pDefines: null, pInclude: null, (byte*) pEntryPoint, (byte*) pShaderModel, shaderFlags, effectFlags,
+                                                 bytecode, errorMessages);
+                }
+
+                if (result.IsFailure || bytecode == null)
+                {
+                    // Log compilation errors
+                    if (errorMessages is not null)
+                    {
+                        bytecodeResult.Error(GetTextFromBlob(*errorMessages));
+                    }
+                }
+
+                return result;
+            }
+
+            /// <summary>
             ///   Disassembles a blob of shader bytecode to its textual equivalent in HLSL code.
             /// </summary>
             string Disassemble(ID3D10Blob* byteCode)
             {
                 ID3D10Blob* disassembly = null;
 
+                var d3dCompiler = D3DCompiler.GetApi();
+
                 d3dCompiler.Disassemble(byteCode->GetBufferPointer(), byteCode->GetBufferSize(), Flags: 0,
-                                        szComments: in Unsafe.NullRef<byte>(), ref disassembly);
+                                        szComments: in NullRef<byte>(), ref disassembly);
 
                 string shaderDisassembly = GetTextFromBlob(disassembly);
                 Free(disassembly);
@@ -130,8 +154,10 @@ namespace Stride.Shaders.Compiler.Direct3D
 
                 const uint StripDebugAndReflection = (uint) (CompilerStripFlags.ReflectionData | CompilerStripFlags.DebugInfo);
 
-                HResult result = d3dCompiler.StripShader(byteCode->GetBufferPointer(), byteCode->GetBufferSize(), StripDebugAndReflection, ref strippedByteCode);
+                var d3dCompiler = D3DCompiler.GetApi();
 
+                HResult result = d3dCompiler.StripShader(byteCode->GetBufferPointer(), byteCode->GetBufferSize(),
+                                                         StripDebugAndReflection, ref strippedByteCode);
                 if (result.IsFailure)
                     return null;
 
@@ -144,8 +170,8 @@ namespace Stride.Shaders.Compiler.Direct3D
             static string GetTextFromBlob(ID3D10Blob* blob)
             {
                 return blob != null
-                    ? SilkMarshal.PtrToString((nint) blob->GetBufferPointer())
-                    : string.Empty;
+                    ? blob->Buffer.As<byte, sbyte>().GetString()
+                    : null;
             }
 
             /// <summary>
