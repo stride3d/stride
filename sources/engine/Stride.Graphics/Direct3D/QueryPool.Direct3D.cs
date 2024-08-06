@@ -7,7 +7,7 @@ using System;
 using Silk.NET.Core.Native;
 using Silk.NET.Direct3D11;
 
-using QueryPtr = Stride.Core.Pointer<Silk.NET.Direct3D11.ID3D11Query>;
+using QueryPtr = Stride.Core.UnsafeExtensions.Pointer<Silk.NET.Direct3D11.ID3D11Query>;
 
 namespace Stride.Graphics
 {
