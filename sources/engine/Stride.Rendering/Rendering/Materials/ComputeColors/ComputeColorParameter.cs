@@ -42,6 +42,16 @@ namespace Stride.Rendering.Materials.ComputeColors
         }
     }
 
+    [DataContract("ComputeColorParameterBool")]
+    public class ComputeColorParameterBool : ComputeColorParameterValue<bool>
+    {
+        public ComputeColorParameterBool()
+            : base()
+        {
+            Value = false;
+        }
+    }
+
     [DataContract("ComputeColorParameterFloat")]
     public class ComputeColorParameterFloat : ComputeColorParameterValue<float>
     {

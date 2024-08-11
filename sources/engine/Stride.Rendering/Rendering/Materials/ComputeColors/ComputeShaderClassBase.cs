@@ -105,40 +105,43 @@ namespace Stride.Rendering.Materials.ComputeColors
                 foreach (var genericKey in Generics.Keys)
                 {
                     var generic = Generics[genericKey];
-                    if (generic is ComputeColorParameterTexture)
+                    if (generic is ComputeColorParameterTexture paramTexture)
                     {
-                        var textureParameter = (ComputeColorParameterTexture)generic;
-                        var textureKey = context.GetTextureKey(textureParameter.Texture, baseKeys);
+                        var textureKey = context.GetTextureKey(paramTexture.Texture, baseKeys);
                         mixinGenerics.Add(textureKey.ToString());
                     }
-                    else if (generic is ComputeColorParameterSampler)
+                    else if (generic is ComputeColorParameterSampler paramSampler)
                     {
-                        var pk = context.GetSamplerKey((ComputeColorParameterSampler)generic);
+                        var pk = context.GetSamplerKey(paramSampler);
                         mixinGenerics.Add(pk.ToString());
                     }
-                    else if (generic is ComputeColorParameterFloat)
+                    else if (generic is ComputeColorParameterFloat paramFloat)
                     {
-                        mixinGenerics.Add(((ComputeColorParameterFloat)generic).Value.ToString(CultureInfo.InvariantCulture));
+                        mixinGenerics.Add(paramFloat.Value.ToString(CultureInfo.InvariantCulture));
                     }
-                    else if (generic is ComputeColorParameterInt)
+                    else if (generic is ComputeColorParameterInt paramInt)
                     {
-                        mixinGenerics.Add(((ComputeColorParameterInt)generic).Value.ToString(CultureInfo.InvariantCulture));
+                        mixinGenerics.Add(paramInt.Value.ToString(CultureInfo.InvariantCulture));
                     }
-                    else if (generic is ComputeColorParameterFloat2)
+                    else if (generic is ComputeColorParameterFloat2 paramFloat2)
                     {
-                        mixinGenerics.Add(MaterialUtility.GetAsShaderString(((ComputeColorParameterFloat2)generic).Value));
+                        mixinGenerics.Add(MaterialUtility.GetAsShaderString(paramFloat2.Value));
                     }
-                    else if (generic is ComputeColorParameterFloat3)
+                    else if (generic is ComputeColorParameterFloat3 paramFloat3)
                     {
-                        mixinGenerics.Add(MaterialUtility.GetAsShaderString(((ComputeColorParameterFloat3)generic).Value));
+                        mixinGenerics.Add(MaterialUtility.GetAsShaderString(paramFloat3.Value));
                     }
-                    else if (generic is ComputeColorParameterFloat4)
+                    else if (generic is ComputeColorParameterFloat4 paramFloat4)
                     {
-                        mixinGenerics.Add(MaterialUtility.GetAsShaderString(((ComputeColorParameterFloat4)generic).Value));
+                        mixinGenerics.Add(MaterialUtility.GetAsShaderString(paramFloat4.Value));
                     }
-                    else if (generic is ComputeColorStringParameter)
+                    else if (generic is ComputeColorStringParameter paramString)
                     {
-                        mixinGenerics.Add(((ComputeColorStringParameter)generic).Value);
+                        mixinGenerics.Add(paramString.Value);
+                    }
+                    else if (generic is ComputeColorParameterBool paramBool)
+                    {
+                        mixinGenerics.Add(paramBool.Value ? "true" : "false");
                     }
                     else
                     {
