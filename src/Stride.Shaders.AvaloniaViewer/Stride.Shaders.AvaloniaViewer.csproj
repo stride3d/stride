@@ -27,7 +27,11 @@
 	  <ProjectReference Include="..\Stride.Shaders.Compilers\Stride.Shaders.Compilers.csproj" />
 	</ItemGroup>
 
-	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
+	<Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="'$(OS)' == 'Windows'">
 	  <Exec Command="copy /Y &quot;$(ProjectDir)\..\sdsl-language-support\syntaxes\sdsl.tmLanguage.json&quot; &quot;$(OutDir)&quot;" />
+	</Target>
+
+	<Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="'$(OS)' == 'Unix'">
+		<Exec Command="cp '$(ProjectDir)/../sdsl-language-support/syntaxes/sdsl.tmLanguage.json' '$(OutDir)'" />
 	</Target>
 </Project>
