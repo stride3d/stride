@@ -645,6 +645,12 @@ namespace Stride.Engine
             //this is mostly required for the game studio gizmos
             if (Simulation.DisableSimulation)
             {
+                //Give warning if character doesnt have collider shapes
+                if(this is CharacterComponent && ColliderShapes.Count == 0)
+                {
+                    logger.Warning($"Entity {this} has no physical shapes attatched CharacterComponent.");
+                }
+
                 return;
             }
 

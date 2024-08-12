@@ -3,6 +3,7 @@
 
 using System;
 using System.ComponentModel;
+using System.Diagnostics;
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Engine;
@@ -26,7 +27,10 @@ namespace Stride.Physics
         {
             if (KinematicCharacter == null)
             {
-                throw new InvalidOperationException("Attempted to call a Physics function that is avaliable only when the Entity has been already added to the Scene.");
+                StackFrame frame = new StackTrace(true).GetFrame(1); //for capturing tracing info
+                logger.Error($"Component:[{this}] attempted to call a Physics function that is available only when the Entity has been already added to the Scene. " +
+                    $"This may be due to a {this} without any physical shapes.\nLocation: {frame.GetFileName()} at Line Number: {frame.GetFileLineNumber()} from Method: {frame.GetMethod().Name} ");
+                return;
             }
             BulletSharp.Math.Vector3 bV3 = jumpDirection;
             KinematicCharacter.Jump(ref bV3);
@@ -39,7 +43,10 @@ namespace Stride.Physics
         {
             if (KinematicCharacter == null)
             {
-                throw new InvalidOperationException("Attempted to call a Physics function that is avaliable only when the Entity has been already added to the Scene.");
+                StackFrame frame = new StackTrace(true).GetFrame(1); //for capturing tracing info
+                logger.Error($"Component:[{this}] attempted to call a Physics function that is available only when the Entity has been already added to the Scene. " +
+                    $"This may be due to a {this} without any physical shapes.\nLocation: {frame.GetFileName()} at Line Number: {frame.GetFileLineNumber()} from Method: {frame.GetMethod().Name} ");
+                return;
             }
             KinematicCharacter.Jump();
         }
@@ -209,7 +216,10 @@ namespace Stride.Physics
         {
             if (KinematicCharacter == null)
             {
-                throw new InvalidOperationException("Attempted to call a Physics function that is avaliable only when the Entity has been already added to the Scene.");
+                StackFrame frame = new StackTrace(true).GetFrame(1); //for capturing tracing info
+                logger.Error($"Component:[{this}] attempted to call a Physics function that is available only when the Entity has been already added to the Scene. " +
+                    $"This may be due to a {this} without any physical shapes.\nLocation: {frame.GetFileName()} at Line Number: {frame.GetFileLineNumber()} from Method: {frame.GetMethod().Name} ");
+                return;
             }
 
             //we assume that the user wants to teleport in world/entity space
@@ -230,7 +240,10 @@ namespace Stride.Physics
         {
             if (KinematicCharacter == null)
             {
-                throw new InvalidOperationException("Attempted to call a Physics function that is avaliable only when the Entity has been already added to the Scene.");
+                StackFrame frame = new StackTrace(true).GetFrame(1); //for capturing tracing info
+                logger.Error($"Component:[{this}] attempted to call a Physics function that is available only when the Entity has been already added to the Scene. " +
+                    $"This may be due to a {this} without any physical shapes.\nLocation: {frame.GetFileName()} at Line Number: {frame.GetFileLineNumber()} from Method: {frame.GetMethod().Name} ");
+                return;
             }
 
             KinematicCharacter.SetWalkDirection(movement);
@@ -246,7 +259,12 @@ namespace Stride.Physics
         {
             if (KinematicCharacter == null)
             {
-                throw new InvalidOperationException("Attempted to call a Physics function that is available only when the Entity has been already added to the Scene.");
+                //What was nice about the exception is users can see where this function was called to help trace
+                StackFrame frame = new StackTrace(true).GetFrame(1); //for capturing tracing info
+                logger.Error($"Component:[{this}] attempted to call a Physics function that is available only when the Entity has been already added to the Scene. " +
+                    $"This may be due to a {this} without any physical shapes.\nLocation: {frame.GetFileName()} at Line Number: {frame.GetFileLineNumber()} from Method: {frame.GetMethod().Name} ");
+                return;
+                //throw new InvalidOperationException("Attempted to call a Physics function that is available only when the Entity has been already added to the Scene.");
             }
 
             KinematicCharacter.SetWalkDirection(velocity * Simulation.FixedTimeStep);
@@ -262,6 +280,7 @@ namespace Stride.Physics
         [DataMemberIgnore]
         internal BulletSharp.KinematicCharacterController KinematicCharacter;
 
+        //called after collider shapes are attached to character comp?
         protected override void OnAttach()
         {
             NativeCollisionObject = new BulletSharp.PairCachingGhostObject
