@@ -264,7 +264,6 @@ namespace Stride.Physics
                 logger.Error($"Component:[{this}] attempted to call a Physics function that is available only when the Entity has been already added to the Scene. " +
                     $"This may be due to a {this} without any physical shapes.\nLocation: {frame.GetFileName()} at Line Number: {frame.GetFileLineNumber()} from Method: {frame.GetMethod().Name} ");
                 return;
-                //throw new InvalidOperationException("Attempted to call a Physics function that is available only when the Entity has been already added to the Scene.");
             }
 
             KinematicCharacter.SetWalkDirection(velocity * Simulation.FixedTimeStep);
