@@ -35,11 +35,17 @@ public static class SpanExtensions
     }
     public static ReadOnlySpan<char> TrimEnd(this ReadOnlySpan<char> span)
     {
+        for(int i = span.Length - 1; i >= 0; i++)
+            if(!char.IsWhiteSpace(span[i]))
+                return span[..i];
         return span;
     }
-    public static ReadOnlyMemory<char> TrimEnd(this ReadOnlyMemory<char> span)
+    public static ReadOnlyMemory<char> TrimEnd(this ReadOnlyMemory<char> memory)
     {
-        return span;
+        for(int i = memory.Length - 1; i >= 0; i++)
+            if(!char.IsWhiteSpace(memory.Span[i]))
+                return memory[..i];
+        return memory;
     }
     public static ReadOnlySpan<char> TrimStart(this ReadOnlySpan<char> span)
     {
