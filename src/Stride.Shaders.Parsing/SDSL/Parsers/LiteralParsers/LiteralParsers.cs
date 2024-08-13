@@ -1,4 +1,3 @@
-using System.Collections.Frozen;
 using Stride.Shaders.Parsing.SDSL.AST;
 
 namespace Stride.Shaders.Parsing.SDSL;

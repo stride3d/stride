@@ -2,17 +2,6 @@ using CommunityToolkit.HighPerformance;
 
 namespace Stride.Shaders.Parsing.SDSL;
 
-public class ReadOnlyMemoryCharComparer : IEqualityComparer<ReadOnlyMemory<char>>
-{
-    public static ReadOnlyMemoryCharComparer Instance { get; } = new();
-
-    public bool Equals(ReadOnlyMemory<char> x, ReadOnlyMemory<char> y) =>
-        x.Span.Equals(y.Span, StringComparison.OrdinalIgnoreCase);
-
-    public int GetHashCode(ReadOnlyMemory<char> obj) =>
-        string.GetHashCode(obj.Span, StringComparison.OrdinalIgnoreCase);
-}
-
 
 public static class Reserved
 {

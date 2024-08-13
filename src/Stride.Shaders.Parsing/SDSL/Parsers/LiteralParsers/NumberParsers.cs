@@ -40,13 +40,21 @@ public struct IntegerParser : IParser<IntegerLiteral>
             var numPos = scanner.Position;
             if (suffix.Match(ref scanner, null!, out Suffix suf))
             {
+#if NETSTANDARD2_0
+                node = new(suf, long.Parse(scanner.Span[position..numPos].ToString()), scanner.GetLocation(position, scanner.Position));
+#else
                 node = new(suf, long.Parse(scanner.Span[position..numPos]), scanner.GetLocation(position, scanner.Position));
+#endif
                 return true;
             }
             else
             {
                 var memory = scanner.Memory[position..scanner.Position];
+#if NETSTANDARD2_0
+                node = new(new(32, false, true), long.Parse(memory.Span.ToString()), new(scanner.Memory, position..scanner.Position));
+#else
                 node = new(new(32, false, true), long.Parse(memory.Span), new(scanner.Memory, position..scanner.Position));
+#endif
                 return true;
             }
         }
@@ -73,7 +81,11 @@ public struct FloatParser : IParser<FloatLiteral>
             while (Terminals.Digit(ref scanner, advance: true)) ;
 
             if (suffix.Match(ref scanner, result, out Suffix s))
+#if NETSTANDARD2_0
+                node = new FloatLiteral(s, double.Parse(scanner.Span[position..scanner.Position].ToString()), new(scanner.Memory, position..scanner.Position));
+#else
                 node = new FloatLiteral(s, double.Parse(scanner.Span[position..scanner.Position]), new(scanner.Memory, position..scanner.Position));
+#endif
             return true;
         }
         else if (Terminals.Digit(ref scanner, 1.., advance: true))
@@ -94,7 +106,11 @@ public struct FloatParser : IParser<FloatLiteral>
                     break;
                 else
                     len += 1;
-            node = new FloatLiteral(s, double.Parse(scanner.Span[position..(position+len)]), new(scanner.Memory, position..scanner.Position));
+#if NETSTANDARD2_0
+            node = new FloatLiteral(s, double.Parse(scanner.Span[position..(position+len)].ToString()), new(scanner.Memory, position..scanner.Position));
+#else
+            node = new FloatLiteral(s, double.Parse(scanner.Span[position..(position + len)]), new(scanner.Memory, position..scanner.Position));
+#endif
 
             return true;
         }
@@ -108,7 +124,11 @@ public struct FloatParser : IParser<FloatLiteral>
                     if (!suffix.Match(ref scanner, result, out s))
                         s = new(32, true, true);
             }
+#if NETSTANDARD2_0
+            node = new FloatLiteral(s, double.Parse(scanner.Span[position..scanner.Position].ToString()), new(scanner.Memory, position..scanner.Position));
+#else
             node = new FloatLiteral(s, double.Parse(scanner.Span[position..scanner.Position]), new(scanner.Memory, position..scanner.Position));
+#endif
             return true;
         }
         else return CommonParsers.Exit(ref scanner, result, out node, position, orError);

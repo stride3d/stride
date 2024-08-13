@@ -17,7 +17,11 @@ public abstract class NumberLiteral(TextLocation info) : ScalarLiteral(info)
 
 }
 public abstract class NumberLiteral<T>(Suffix suffix, T value, TextLocation info) : NumberLiteral(info)
+#if NET8_0_OR_GREATER
     where T : struct, INumber<T>
+#else
+    where T : struct
+#endif
 {
     public Suffix Suffix { get; set; } = suffix;
     public T Value { get; set; } = value;
