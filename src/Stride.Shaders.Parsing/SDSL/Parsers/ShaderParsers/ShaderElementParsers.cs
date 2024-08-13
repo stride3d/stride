@@ -23,7 +23,9 @@ public record struct ShaderElementParsers : IParser<ShaderElement>
         {
             bool isStaged = false;
             bool isStreamed = false;
-            var tmpPos = position;
+            bool hasAttributes = ShaderAttributeListParser.AttributeList(ref scanner, result, out var attributes, orError);
+            var tmpPos = scanner.Position;
+            
             if (Terminals.Literal("stage", ref scanner, advance: true) && CommonParsers.Spaces1(ref scanner, result, out _))
             {
                 isStaged = true;
@@ -39,12 +41,16 @@ public record struct ShaderElementParsers : IParser<ShaderElement>
             {
                 member.IsStream = isStreamed;
                 member.IsStaged = isStaged;
+                if(hasAttributes)
+                    member.Attributes = attributes.Attributes;
                 parsed = member;
                 return true;
             }
             else if (Method(ref scanner, result, out var method))
             {
                 method.IsStaged = isStaged;
+                if(hasAttributes)
+                    member.Attributes = attributes.Attributes;
                 parsed = method;
                 return true;
             }

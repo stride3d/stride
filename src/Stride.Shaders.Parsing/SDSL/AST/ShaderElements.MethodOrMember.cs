@@ -4,6 +4,7 @@ namespace Stride.Shaders.Parsing.SDSL.AST;
 public abstract class MethodOrMember(TextLocation info, bool isStaged = false) : ShaderElement(info)
 {
     public bool IsStaged { get; set; } = isStaged;
+    public List<ShaderAttribute> Attributes { get; set; } = [];
 }
 
 
@@ -17,7 +18,7 @@ public sealed class ShaderMember(TypeName type, Identifier name, Expression? ini
 
     public override string ToString()
     {
-        return $"{Type} {Name}";
+        return $"[{string.Join(" ", Attributes.Select(x => x.ToString()))}]\n{Type} {Name}";
     }
 }
 

@@ -2,6 +2,7 @@ namespace MyNamespace.SoftTouch.Hello;
     
 shader Parent
 {
+    [Layout(1, 2)]
     stream int a;
 }
 

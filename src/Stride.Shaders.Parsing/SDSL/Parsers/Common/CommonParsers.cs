@@ -194,9 +194,8 @@ public static class CommonParsers
                 }
                 else if(nodes.Count >= minimum)
                     return true;
-                else Exit(ref scanner, result, out nodes, position, orError);
+                else return Exit(ref scanner, result, out nodes, position, orError);
             }
-            else Exit(ref scanner, result, out nodes, position, orError);
         }
         if (nodes.Count >= minimum)
             return true;

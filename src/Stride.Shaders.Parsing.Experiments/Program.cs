@@ -13,4 +13,5 @@ Console.WriteLine(Directory.GetCurrentDirectory());
 
 
 // Examples.SpvOpt();
-Examples.TranslateHLSL();
+// Examples.TranslateHLSL();
+Examples.ParseSDSL();

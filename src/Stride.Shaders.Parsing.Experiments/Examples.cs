@@ -4,6 +4,7 @@ using Silk.NET.Direct3D.Compilers;
 using Silk.NET.Shaderc;
 using Silk.NET.SPIRV.Cross;
 using Stride.Shaders.Compilers;
+using Stride.Shaders.Parsing.SDSL;
 
 namespace Stride.Shaders.Experiments;
 
@@ -74,5 +75,18 @@ public static class Examples
 
         // var spvopt = new SpirvOptimpizer();
         // spvopt.Optimize(words);
+    }
+
+    public static void ParseSDSL()
+    {
+        var text = File.ReadAllText(@"C:\Users\youness_kafia\Documents\dotnetProjs\SDSL\assets\SDSL\Commented.sdsl");
+        var parsed = SDSLParser.Parse(text);
+        Console.WriteLine(parsed.AST);
+        if(parsed.Errors.Count > 0)
+        {
+            Console.ForegroundColor = ConsoleColor.Red;
+            foreach (var e in parsed.Errors)
+                Console.WriteLine(e);
+        }
     }
 }
