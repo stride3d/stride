@@ -11,7 +11,7 @@ public class ShaderCompose(Identifier name, ShaderMixin mixin, TextLocation info
 {
     public Identifier Name { get; } = name;
     public ShaderMixin Mixin { get; } = mixin;
-    public override string ToString() => $"compose {Name} {Mixin};";
+    public override string ToString() => $"compose {Mixin} {Name};";
 }
 
 public sealed class ShaderMember(TypeName type, Identifier name, Expression? initialValue, TextLocation location, bool isStaged = false, bool isStream = false, Identifier? semantic = null) : MethodOrMember(location, isStaged)

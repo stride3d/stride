@@ -58,9 +58,11 @@ public class ShaderMixin(Identifier name, TextLocation info) : Node(info)
     public Identifier Name { get; set; } = name;
     public ShaderExpressionList? Generics { get; set; }
     public override string ToString()
-    {
-        return $"{Name}<{Generics}>";
-    }
+        => Generics switch
+        {
+            null => Name.Name,
+            _ => $"{Name}<{Generics}>"
+        };
 }
 
 public abstract class ShaderMixinValue(TextLocation info) : Node(info);
