@@ -54,11 +54,21 @@ public record struct ShaderElementParsers : IParser<ShaderElement>
                 parsed = method;
                 return true;
             }
+            else if(Compose(ref scanner, result, out var compose))
+            {
+                compose.IsStaged = isStaged;
+                if(hasAttributes)
+                    compose.Attributes = attributes.Attributes;
+                parsed = compose;
+                return true;
+            }
             else return CommonParsers.Exit(ref scanner, result, out parsed, position);
         }
         
     }
-
+    public static bool Compose<TScanner>(ref TScanner scanner, ParseResult result, out ShaderCompose parsed, in ParseError? orError = null)
+        where TScanner : struct, IScanner
+        => new CompositionParser().Match(ref scanner, result, out parsed, in orError);
     public static bool Struct<TScanner>(ref TScanner scanner, ParseResult result, out ShaderStruct parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
         => new ShaderStructParser().Match(ref scanner, result, out parsed, in orError);

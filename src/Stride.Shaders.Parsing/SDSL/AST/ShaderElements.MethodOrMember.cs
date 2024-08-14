@@ -7,6 +7,12 @@ public abstract class MethodOrMember(TextLocation info, bool isStaged = false) :
     public List<ShaderAttribute> Attributes { get; set; } = [];
 }
 
+public class ShaderCompose(Identifier name, ShaderMixin mixin, TextLocation info) : MethodOrMember(info)
+{
+    public Identifier Name { get; } = name;
+    public ShaderMixin Mixin { get; } = mixin;
+    public override string ToString() => $"compose {Name} {Mixin};";
+}
 
 public sealed class ShaderMember(TypeName type, Identifier name, Expression? initialValue, TextLocation location, bool isStaged = false, bool isStream = false, Identifier? semantic = null) : MethodOrMember(location, isStaged)
 {

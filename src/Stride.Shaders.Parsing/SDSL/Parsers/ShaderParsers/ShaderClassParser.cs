@@ -137,6 +137,7 @@ public record struct ShaderMixinParser : IParser<ShaderMixin>
         if (LiteralsParser.Identifier(ref scanner, result, out var identifier))
         {
             parsed = new ShaderMixin(identifier, scanner.GetLocation(..));
+            var tmpPos = scanner.Position;
             CommonParsers.Spaces0(ref scanner, result, out _);
             if (Terminals.Char('<', ref scanner, advance: true))
             {
@@ -148,7 +149,10 @@ public record struct ShaderMixinParser : IParser<ShaderMixin>
                 return true;
             }
             else
+            {
+                scanner.Position = tmpPos;
                 return true;
+            }
         }
         return CommonParsers.Exit(ref scanner, result, out parsed, position, orError);
     }

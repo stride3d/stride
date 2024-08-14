@@ -6,8 +6,16 @@ shader Parent
     stream int a;
 }
 
+shader Other
+{
+    stream int b;
+}
+
 shader MyShader : Parent<machin, 2.0, float4(2,3,4,5), MyShader.Sampler1, 3f16>
 {
+
+    compose Other otherShader;
+
     void MyMethod()
     {
         int a = 0;
