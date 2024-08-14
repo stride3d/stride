@@ -7,9 +7,12 @@ namespace Stride.Shaders.Parsing.SDSL.Analysis;
 
 public enum SymbolKind
 {
+    Constant,
+    ConstantGeneric,
+    Composition,
+    Method,
     Variable,
-    Method
 }
 
 
-public record struct Symbol(Identifier Name, SymbolType Type, SymbolKind Kind);
+public record struct Symbol(string Name, SymbolType Type, SymbolKind Kind);
