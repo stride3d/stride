@@ -288,7 +288,7 @@ public class BodyComponent : CollidableComponent
         }
 
         if (InterpolationMode != InterpolationMode.None)
-            Simulation.UnregisterInterpolated(this);
+            Simulation.RegisterInterpolated(this);
 
         Parent = FindParentBody(this, Simulation);
         SetParentForChildren(this, Entity.Transform, Simulation);
