@@ -9,8 +9,8 @@
 
 .media,
 .media-body {
-  zoom: 1;
   overflow: hidden;
+  zoom: 1;
 }
 
 .media-body {
@@ -19,6 +19,11 @@
 
 .media-object {
   display: block;
+
+  // Fix collapse in webkit from max-width: 100% and display: table-cell.
+  &.img-thumbnail {
+    max-width: none;
+  }
 }
 
 .media-right,
