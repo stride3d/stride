@@ -173,9 +173,9 @@ namespace Stride.Rendering.Materials
         public CullMode CullMode { get; set; }
 
         /// <summary>
-        /// The test used to figure out whether the material should be drawn when beind other models
+        /// The test used to figure out whether the material should be drawn when behind other models
         /// </summary>
-        /// <userdoc>The test used to figure out whether the material should be drawn when beind other models</userdoc>
+        /// <userdoc>The test used to figure out whether the material should be drawn when behind other models</userdoc>
         [Display("Depth Function", "Misc")]
         [DataMember(135)]
         [DefaultValue(CompareFunction.Less)]
