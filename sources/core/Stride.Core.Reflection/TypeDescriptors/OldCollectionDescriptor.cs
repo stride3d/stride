@@ -15,18 +15,18 @@ namespace Stride.Core.Reflection
     [Obsolete("This class is kept for compatibility, shouldn't be used in new feathers")]
     public class OldCollectionDescriptor : CollectionDescriptor
     {
-        private static readonly object[] EmptyObjects = new object[0];
-        private static readonly List<string> ListOfMembersToRemove = new List<string> { "Capacity", "Count", "IsReadOnly", "IsFixedSize", "IsSynchronized", "SyncRoot", "Comparer" };
+        private static readonly object[] EmptyObjects = [];
+        private static readonly List<string> ListOfMembersToRemove = ["Capacity", "Count", "IsReadOnly", "IsFixedSize", "IsSynchronized", "SyncRoot", "Comparer"];
 
-        private readonly Func<object, bool> IsReadOnlyFunction;
-        private readonly Func<object, int> GetCollectionCountFunction;
-        private readonly Func<object, int, object> GetIndexedItem;
-        private readonly Action<object, int, object> SetIndexedItem;
-        private readonly Action<object, object> CollectionAddFunction;
-        private readonly Action<object, int, object> CollectionInsertFunction;
-        private readonly Action<object, int> CollectionRemoveAtFunction;
-        private readonly Action<object, object> CollectionRemoveFunction;
-        private readonly Action<object> CollectionClearFunction;
+        private readonly Func<object, bool> isReadOnlyMethod;
+        private readonly Func<object, int> getCollectionCountMethod;
+        private readonly Func<object, int, object> getIndexedItemMethod;
+        private readonly Action<object, int, object> setIndexedItemMethod;
+        private readonly Action<object, object> addMethod;
+        private readonly Action<object, int, object> insertMethod;
+        private readonly Action<object, int> removeAtMethod;
+        private readonly Action<object, object> removeMethod;
+        private readonly Action<object> clearMethod;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="CollectionDescriptor" /> class.
@@ -43,71 +43,71 @@ namespace Stride.Core.Reflection
             // implements IList
             if (typeof(IList).IsAssignableFrom(type))
             {
-                CollectionAddFunction = (obj, value) => ((IList)obj).Add(value);
-                CollectionClearFunction = obj => ((IList)obj).Clear();
-                CollectionInsertFunction = (obj, index, value) => ((IList)obj).Insert(index, value);
-                CollectionRemoveAtFunction = (obj, index) => ((IList)obj).RemoveAt(index);
-                GetCollectionCountFunction = o => ((IList)o).Count;
-                GetIndexedItem = (obj, index) => ((IList)obj)[index];
-                SetIndexedItem = (obj, index, value) => ((IList)obj)[index] = value;
-                IsReadOnlyFunction = obj => ((IList)obj).IsReadOnly;
+                addMethod = (obj, value) => ((IList)obj).Add(value);
+                clearMethod = obj => ((IList)obj).Clear();
+                insertMethod = (obj, index, value) => ((IList)obj).Insert(index, value);
+                removeAtMethod = (obj, index) => ((IList)obj).RemoveAt(index);
+                getCollectionCountMethod = o => ((IList)o).Count;
+                getIndexedItemMethod = (obj, index) => ((IList)obj)[index];
+                setIndexedItemMethod = (obj, index, value) => ((IList)obj)[index] = value;
+                isReadOnlyMethod = obj => ((IList)obj).IsReadOnly;
                 HasIndexerAccessors = true;
                 IsList = true;
             }
             else if (type.GetInterface(typeof(ICollection<>)) is Type itype)// implements ICollection<T>
             {
-                var add = itype.GetMethod(nameof(ICollection<object>.Add), new[] { ElementType });
-                CollectionAddFunction = (obj, value) => add.Invoke(obj, new[] { value });
-                var remove = itype.GetMethod(nameof(ICollection<object>.Remove), new[] { ElementType });
-                CollectionRemoveFunction = (obj, value) => remove.Invoke(obj, new[] { value });
+                var add = itype.GetMethod(nameof(ICollection<object>.Add), [ElementType]);
+                addMethod = (obj, value) => add.Invoke(obj, [value]);
+                var remove = itype.GetMethod(nameof(ICollection<object>.Remove), [ElementType]);
+                removeMethod = (obj, value) => remove.Invoke(obj, [value]);
                 if (typeof(IDictionary).IsAssignableFrom(type))
                 {
-                    CollectionClearFunction = obj => ((IDictionary)obj).Clear();
-                    GetCollectionCountFunction = o => ((IDictionary)o).Count;
-                    IsReadOnlyFunction = obj => ((IDictionary)obj).IsReadOnly;
+                    clearMethod = obj => ((IDictionary)obj).Clear();
+                    getCollectionCountMethod = o => ((IDictionary)o).Count;
+                    isReadOnlyMethod = obj => ((IDictionary)obj).IsReadOnly;
                 }
                 else
                 {
                     var clear = itype.GetMethod(nameof(ICollection<object>.Clear), Type.EmptyTypes);
-                    CollectionClearFunction = obj => clear.Invoke(obj, EmptyObjects);
+                    clearMethod = obj => clear.Invoke(obj, EmptyObjects);
                     var countMethod = itype.GetProperty(nameof(ICollection<object>.Count)).GetGetMethod();
-                    GetCollectionCountFunction = o => (int)countMethod.Invoke(o, null);
+                    getCollectionCountMethod = o => (int)countMethod.Invoke(o, null);
                     var isReadOnly = itype.GetProperty(nameof(ICollection<object>.IsReadOnly)).GetGetMethod();
-                    IsReadOnlyFunction = obj => (bool)isReadOnly.Invoke(obj, null);
+                    isReadOnlyMethod = obj => (bool)isReadOnly.Invoke(obj, null);
                 }
                 // implements IList<T>
                 itype = type.GetInterface(typeof(IList<>));
                 if (itype != null)
                 {
-                    var insert = itype.GetMethod(nameof(IList<object>.Insert), new[] { typeof(int), ElementType });
-                    CollectionInsertFunction = (obj, index, value) => insert.Invoke(obj, new[] { index, value });
-                    var removeAt = itype.GetMethod(nameof(IList<object>.RemoveAt), new[] { typeof(int) });
-                    CollectionRemoveAtFunction = (obj, index) => removeAt.Invoke(obj, new object[] { index });
-                    var getItem = itype.GetMethod("get_Item", new[] { typeof(int) });
-                    GetIndexedItem = (obj, index) => getItem.Invoke(obj, new object[] { index });
-                    var setItem = itype.GetMethod("set_Item", new[] { typeof(int), ElementType });
-                    SetIndexedItem = (obj, index, value) => setItem.Invoke(obj, new[] { index, value });
+                    var insert = itype.GetMethod(nameof(IList<object>.Insert), [typeof(int), ElementType]);
+                    insertMethod = (obj, index, value) => insert.Invoke(obj, [index, value]);
+                    var removeAt = itype.GetMethod(nameof(IList<object>.RemoveAt), [typeof(int)]);
+                    removeAtMethod = (obj, index) => removeAt.Invoke(obj, [index]);
+                    var getItem = itype.GetMethod("get_Item", [typeof(int)]);
+                    getIndexedItemMethod = (obj, index) => getItem.Invoke(obj, [index]);
+                    var setItem = itype.GetMethod("set_Item", [typeof(int), ElementType]);
+                    setIndexedItemMethod = (obj, index, value) => setItem.Invoke(obj, [index, value]);
                     HasIndexerAccessors = true;
                     IsList = true;
                 }
                 else
                 {
                     // Attempt to retrieve IList<> accessors from ICollection.
-                    var insert = type.GetMethod(nameof(IList<object>.Insert), new[] { typeof(int), ElementType });
+                    var insert = type.GetMethod(nameof(IList<object>.Insert), [typeof(int), ElementType]);
                     if (insert != null)
-                        CollectionInsertFunction = (obj, index, value) => insert.Invoke(obj, new[] { index, value });
+                        insertMethod = (obj, index, value) => insert.Invoke(obj, [index, value]);
 
-                    var removeAt = type.GetMethod(nameof(IList<object>.RemoveAt), new[] { typeof(int) });
+                    var removeAt = type.GetMethod(nameof(IList<object>.RemoveAt), [typeof(int)]);
                     if (removeAt != null)
-                        CollectionRemoveAtFunction = (obj, index) => removeAt.Invoke(obj, new object[] { index });
+                        removeAtMethod = (obj, index) => removeAt.Invoke(obj, [index]);
 
-                    var getItem = type.GetMethod("get_Item", new[] { typeof(int) });
+                    var getItem = type.GetMethod("get_Item", [typeof(int)]);
                     if (getItem != null)
-                        GetIndexedItem = (obj, index) => getItem.Invoke(obj, new object[] { index });
+                        getIndexedItemMethod = (obj, index) => getItem.Invoke(obj, [index]);
 
-                    var setItem = type.GetMethod("set_Item", new[] { typeof(int), ElementType });
+                    var setItem = type.GetMethod("set_Item", [typeof(int), ElementType]);
                     if (setItem != null)
-                        SetIndexedItem = (obj, index, value) => setItem.Invoke(obj, new[] { index, value });
+                        setIndexedItemMethod = (obj, index, value) => setItem.Invoke(obj, [index, value]);
 
                     HasIndexerAccessors = getItem != null && setItem != null;
                 }
@@ -117,10 +117,10 @@ namespace Stride.Core.Reflection
                 throw new ArgumentException($"Type [{(type)}] is not supported as a modifiable collection");
             }
 
-            HasAdd = CollectionAddFunction != null;
-            HasRemove = CollectionRemoveFunction != null;
-            HasInsert = CollectionInsertFunction != null;
-            HasRemoveAt = CollectionRemoveAtFunction != null;
+            HasAdd = addMethod != null;
+            HasRemove = removeMethod != null;
+            HasInsert = insertMethod != null;
+            HasRemoveAt = removeAtMethod != null;
         }
 
         public override void Initialize(IComparer<object> keyComparer)
@@ -144,8 +144,8 @@ namespace Stride.Core.Reflection
         /// <param name="index">The index.</param>
         public override object GetValue(object list, object index)
         {
-            if (list == null) throw new ArgumentNullException(nameof(list));
-            if (!(index is int)) throw new ArgumentException("The index must be an int.");
+            ArgumentNullException.ThrowIfNull(list);
+            if (index is not int) throw new ArgumentException("The index must be an int.");
             return GetValue(list, (int)index);
         }
 
@@ -156,21 +156,21 @@ namespace Stride.Core.Reflection
         /// <param name="index">The index.</param>
         public override object GetValue(object list, int index)
         {
-            if (list == null) throw new ArgumentNullException(nameof(list));
-            return GetIndexedItem(list, index);
+            ArgumentNullException.ThrowIfNull(list);
+            return getIndexedItemMethod(list, index);
         }
 
-        public override void SetValue(object list, object index, object value)
+        public override void SetValue(object list, object index, object? value)
         {
-            if (list == null) throw new ArgumentNullException(nameof(list));
-            if (!(index is int)) throw new ArgumentException("The index must be an int.");
+            ArgumentNullException.ThrowIfNull(list);
+            if (index is not int) throw new ArgumentException("The index must be an int.");
             SetValue(list, (int)index, value);
         }
 
-        public void SetValue(object list, int index, object value)
+        public void SetValue(object list, int index, object? value)
         {
-            if (list == null) throw new ArgumentNullException(nameof(list));
-            SetIndexedItem(list, index, value);
+            ArgumentNullException.ThrowIfNull(list);
+            setIndexedItemMethod(list, index, value);
         }
 
         /// <summary>
@@ -179,7 +179,7 @@ namespace Stride.Core.Reflection
         /// <param name="collection">The collection.</param>
         public override void Clear(object collection)
         {
-            CollectionClearFunction(collection);
+            clearMethod(collection);
         }
 
         /// <summary>
@@ -187,9 +187,9 @@ namespace Stride.Core.Reflection
         /// </summary>
         /// <param name="collection">The collection.</param>
         /// <param name="value">The value to add to this collection.</param>
-        public override void Add(object collection, object value)
+        public override void Add(object collection, object? value)
         {
-            CollectionAddFunction(collection, value);
+            addMethod(collection, value);
         }
 
         /// <summary>
@@ -198,9 +198,9 @@ namespace Stride.Core.Reflection
         /// <param name="collection">The collection.</param>
         /// <param name="index">The index of the insertion.</param>
         /// <param name="value">The value to insert to this collection.</param>
-        public override void Insert(object collection, int index, object value)
+        public override void Insert(object collection, int index, object? value)
         {
-            CollectionInsertFunction(collection, index, value);
+            insertMethod(collection, index, value);
         }
 
         /// <summary>
@@ -210,7 +210,7 @@ namespace Stride.Core.Reflection
         /// <param name="index">The index of the item to remove from this collection.</param>
         public override void RemoveAt(object collection, int index)
         {
-            CollectionRemoveAtFunction(collection, index);
+            removeAtMethod(collection, index);
         }
 
         /// <summary>
@@ -218,9 +218,9 @@ namespace Stride.Core.Reflection
         /// </summary>
         /// <param name="collection">The collection.</param>
         /// <param name="item"></param>
-        public override void Remove(object collection, object item)
+        public override void Remove(object collection, object? item)
         {
-            CollectionRemoveFunction(collection, item);
+            removeMethod(collection, item);
         }
 
         /// <summary>
@@ -230,7 +230,7 @@ namespace Stride.Core.Reflection
         /// <returns><c>true</c> if the specified collection is read only; otherwise, <c>false</c>.</returns>
         public override bool IsReadOnly(object collection)
         {
-            return collection == null || IsReadOnlyFunction == null || IsReadOnlyFunction(collection);
+            return collection == null || isReadOnlyMethod == null || isReadOnlyMethod(collection);
         }
 
         /// <summary>
@@ -240,7 +240,7 @@ namespace Stride.Core.Reflection
         /// <returns>The number of elements of a collection, -1 if it cannot determine the number of elements.</returns>
         public override int GetCollectionCount(object collection)
         {
-            return collection == null || GetCollectionCountFunction == null ? -1 : GetCollectionCountFunction(collection);
+            return collection == null || getCollectionCountMethod == null ? -1 : getCollectionCountMethod(collection);
         }
 
         protected override bool PrepareMember(MemberDescriptorBase member, MemberInfo metadataClassMemberInfo)
