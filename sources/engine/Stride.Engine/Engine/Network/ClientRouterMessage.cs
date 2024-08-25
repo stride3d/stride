@@ -4,7 +4,7 @@ namespace Stride.Engine.Network
 {
     /// <summary>
     /// Message exchanged between client and router.
-    /// Note: shouldn't collide with <see cref="RouterMessage"/>.
+    /// Note: shouldn't collide with <see cref="Stride.ConnectionRouter.RouterMessage"/>.
     /// </summary>
     public enum ClientRouterMessage : ushort
     {
