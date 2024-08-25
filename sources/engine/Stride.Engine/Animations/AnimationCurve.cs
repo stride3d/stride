@@ -66,7 +66,7 @@ namespace Stride.Animations
         }
 
         /// <summary>
-        /// Shifts all animation keys by the specified time, adding it to all <see cref="KeyFrameData{T}.Time". />
+        /// Shifts all animation keys by the specified time, adding it to all <see cref="KeyFrameData{T}.Time" />
         /// </summary>
         /// <param name="shiftTimeSpan">The time span by which the keys should be shifted</param>
         public virtual void ShiftKeys(CompressedTimeSpan shiftTimeSpan) { }
