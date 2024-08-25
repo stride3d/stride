@@ -895,7 +895,7 @@ namespace Stride.Core.Mathematics
         }
 
         /// <summary>
-        /// Determines whether there is an intersection between a <see cref="Stride.Core.Mathematics.Ray"/> and a <see cref="Stride.Core.Mathematics.Plane"/>.
+        /// Determines whether there is an intersection between a <see cref="Stride.Core.Mathematics.Ray"/> and a <see cref="Stride.Core.Mathematics.BoundingBox"/>.
         /// </summary>
         /// <param name="ray">The ray to test.</param>
         /// <param name="box">The box to test.</param>
