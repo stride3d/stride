@@ -24,7 +24,7 @@ namespace Stride.Engine
     /// Use the <see cref="Sounds"/> dictionary to associate or dissociate a <see cref="SoundBase"/> to the emitter component.
     /// Each SoundBase associated to the emitter component can be controlled (played, paused, stopped, ...) independently for the others.
     /// Once attached to the emitter component, a SoundBase is controlled using a <see cref="AudioEmitterSoundController"/>.
-    /// To get the AudioEmitterSoundController associated to a SoundBase use the readonly <see cref="AudioEmitterComponent.Item(string)"/> indexer.
+    /// To get the AudioEmitterSoundController associated to a SoundBase use the readonly <see cref="AudioEmitterComponent.this[string]"/> indexer.
     /// </para>
     /// </remarks>
     [Display("Audio emitter", Expand = ExpandRule.Once)]
@@ -128,7 +128,7 @@ namespace Stride.Engine
 
         /// <summary>
         /// Attach a <see cref="SoundBase"/> to this emitter component.
-        /// Once attached a <see cref="AudioEmitterSoundController"/> can be queried using readonly <see cref="AudioEmitterComponent.Item(string)"/> indexer to control the attached SoundBase.
+        /// Once attached a <see cref="AudioEmitterSoundController"/> can be queried using readonly <see cref="AudioEmitterComponent.this[string]"/> indexer to control the attached SoundBase.
         /// </summary>
         /// <param name="sound">The SoundBase to attach</param>
         /// <exception cref="ArgumentNullException">The provided <paramref name="sound"/> is null.</exception>
