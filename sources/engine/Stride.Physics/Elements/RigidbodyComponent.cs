@@ -119,8 +119,8 @@ namespace Stride.Physics
 
                 if (InternalRigidBody == null)
                 {
-                    //When setting ColliderShape, setup could have been previously skipped when PhysicsComponent is created using GetOrCreate
-                    OnAttach();
+                    //When setting ColliderShape, setup could have been previously skipped (eg when PhysicsComponent is created using GetOrCreate)
+                    ReAttach();
                     return;
                 }
 
@@ -353,6 +353,7 @@ namespace Stride.Physics
 
         protected override void OnDetach()
         {
+
             MotionState.Dispose();
             MotionState.Clear();
 
