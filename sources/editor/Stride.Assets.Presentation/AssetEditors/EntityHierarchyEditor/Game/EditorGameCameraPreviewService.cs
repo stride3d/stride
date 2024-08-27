@@ -76,23 +76,18 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
             borderPipelineState.State.PrimitiveType = PrimitiveType.LineStrip;
             borderPipelineState.State.RasterizerState = RasterizerStates.CullNone;
 
-            unsafe
+            var borderVertices = new[]
             {
-                var borderVertices = new[]
-                {
-                    new VertexPositionTexture(new Vector3(0.0f, 0.0f, 0.0f), Vector2.Zero),
-                    new VertexPositionTexture(new Vector3(0.0f, 1.0f, 0.0f), Vector2.Zero),
-                    new VertexPositionTexture(new Vector3(1.0f, 1.0f, 0.0f), Vector2.Zero),
-                    new VertexPositionTexture(new Vector3(1.0f, 0.0f, 0.0f), Vector2.Zero),
-                    new VertexPositionTexture(new Vector3(0.0f, 0.0f, 0.0f), Vector2.Zero),
-                    new VertexPositionTexture(new Vector3(0.0f, 1.0f, 0.0f), Vector2.Zero), // extra vertex so that left-top corner is not missing (likely due to rasterization rule)
-                };
-                fixed (VertexPositionTexture* borderVerticesPtr = borderVertices)
-                    borderVertexBuffer = Graphics.Buffer.Vertex.New(game.GraphicsDevice, new DataPointer(borderVerticesPtr, VertexPositionTexture.Size * borderVertices.Length));
-            }
+                new VertexPositionTexture(new Vector3(0.0f, 0.0f, 0.0f), Vector2.Zero),
+                new VertexPositionTexture(new Vector3(0.0f, 1.0f, 0.0f), Vector2.Zero),
+                new VertexPositionTexture(new Vector3(1.0f, 1.0f, 0.0f), Vector2.Zero),
+                new VertexPositionTexture(new Vector3(1.0f, 0.0f, 0.0f), Vector2.Zero),
+                new VertexPositionTexture(new Vector3(0.0f, 0.0f, 0.0f), Vector2.Zero),
+                new VertexPositionTexture(new Vector3(0.0f, 1.0f, 0.0f), Vector2.Zero), // extra vertex so that left-top corner is not missing (likely due to rasterization rule)
+            };
+            borderVertexBuffer = Graphics.Buffer.Vertex.New(game.GraphicsDevice, borderVertices);
 
-            var editorTopLevel = game.EditorSceneSystem.GraphicsCompositor.Game as EditorTopLevelCompositor;
-            if (editorTopLevel != null)
+            if (game.EditorSceneSystem.GraphicsCompositor.Game is EditorTopLevelCompositor editorTopLevel)
             {
                 // Display it as incrust
                 editorTopLevel.PostGizmoCompositors.Add(renderIncrustRenderer = new RenderIncrustRenderer(this));

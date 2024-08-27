@@ -1,5 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+using System;
 using System.Collections.Generic;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Analysis;
@@ -98,7 +100,7 @@ namespace Stride.Assets.Presentation.Thumbnails
                 }
             }
 
-            protected override void CustomizeThumbnail(Image image)
+            protected override unsafe void CustomizeThumbnail(Image image)
             {
                 base.CustomizeThumbnail(image);
 
@@ -130,7 +132,7 @@ namespace Stride.Assets.Presentation.Thumbnails
                     thumbnailBuilderHelper.GraphicsDevice.ColorSpace = oldColorSpace;
 
                     // Read back result to image
-                    thumbnailBuilderHelper.RenderTarget.GetData(thumbnailBuilderHelper.GraphicsContext.CommandList, thumbnailBuilderHelper.RenderTargetStaging, new DataPointer(image.PixelBuffer[0].DataPointer, image.PixelBuffer[0].BufferStride));
+                    thumbnailBuilderHelper.RenderTarget.GetData(thumbnailBuilderHelper.GraphicsContext.CommandList, thumbnailBuilderHelper.RenderTargetStaging, new Span<byte>((void*)image.PixelBuffer[0].DataPointer, image.PixelBuffer[0].BufferStride));
                     image.Description.Format = thumbnailBuilderHelper.RenderTarget.Format; // In case channels are swapped
                 }
             }
