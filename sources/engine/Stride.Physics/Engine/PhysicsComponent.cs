@@ -332,7 +332,7 @@ namespace Stride.Engine
 
 
         private Dictionary<PhysicsComponent, CollisionState> ignoreCollisionBuffer;
-        
+
 
         #region Ignore or Private/Internal
 
@@ -467,9 +467,9 @@ namespace Stride.Engine
             {
                 derivedTransformation = BoneWorldMatrix;
             }
-            
+
             derivedTransformation.Decompose(out Vector3 scale, out Matrix rotation, out Vector3 translation);
-            
+
             var translationMatrix = Matrix.Translation(translation);
             Matrix.Multiply(ref rotation, ref translationMatrix, out derivedTransformation);
 
@@ -571,7 +571,7 @@ namespace Stride.Engine
         public void UpdatePhysicsTransformation(bool forceUpdateTransform = true)
         {
             DerivePhysicsTransformation(out var transform, forceUpdateTransform);
-            
+
             //finally copy back to bullet
             PhysicsWorldTransform = transform;
 
@@ -603,10 +603,10 @@ namespace Stride.Engine
             CanScaleShape = true;
             foreach (var desc in ColliderShapes)
             {
-                if(desc is ColliderShapeAssetDesc)
+                if (desc is ColliderShapeAssetDesc)
                     CanScaleShape = false;
             }
-            
+
             var services = Entity?.EntityManager?.Services;
             if (ColliderShapes.Count == 1) //single shape case
             {
@@ -670,9 +670,9 @@ namespace Stride.Engine
 
             OnAttach();
 
-            if(ignoreCollisionBuffer != null && NativeCollisionObject != null)
+            if (ignoreCollisionBuffer != null && NativeCollisionObject != null)
             {
-                foreach(var kvp in ignoreCollisionBuffer)
+                foreach (var kvp in ignoreCollisionBuffer)
                 {
                     IgnoreCollisionWith(kvp.Key, kvp.Value);
                 }
@@ -781,9 +781,9 @@ namespace Stride.Engine
         public void IgnoreCollisionWith(PhysicsComponent other, CollisionState state)
         {
             var otherNative = other.NativeCollisionObject;
-            if(NativeCollisionObject == null || other.NativeCollisionObject == null)
+            if (NativeCollisionObject == null || other.NativeCollisionObject == null)
             {
-                if(ignoreCollisionBuffer != null || other.ignoreCollisionBuffer == null)
+                if (ignoreCollisionBuffer != null || other.ignoreCollisionBuffer == null)
                 {
                     ignoreCollisionBuffer ??= [];
                     ignoreCollisionBuffer[other] = state;
@@ -794,52 +794,52 @@ namespace Stride.Engine
                 }
                 return;
             }
-            
-            switch(state)
+
+            switch (state)
             {
                 // Note that we're calling 'SetIgnoreCollisionCheck' on both objects as bullet doesn't
                 // do it itself ; One of the object in the pair will report that it doesn't ignore
                 // collision with the other even though you set the other as ignoring the former.
                 case CollisionState.Ignore:
-                {
-                    // Bullet uses an array per collision object to store all of the objects to ignore,
-                    // when calling this method it adds the referenced object without checking for duplicates,
-                    // so if a user where to call 'Ignore' of this function on this object n-times he'll have to call it
-                    // that same amount of time to re-detect them instead of just once.
-                    // We're calling false here to remove a previous ignore if there was any and re-ignoring
-                    // to force it to have only a single instance.
-                    otherNative.SetIgnoreCollisionCheck(NativeCollisionObject, false);
-                    NativeCollisionObject.SetIgnoreCollisionCheck(otherNative, false);
-                    otherNative.SetIgnoreCollisionCheck(NativeCollisionObject, true);
-                    NativeCollisionObject.SetIgnoreCollisionCheck(otherNative, true);
-                    break;
-                }
+                    {
+                        // Bullet uses an array per collision object to store all of the objects to ignore,
+                        // when calling this method it adds the referenced object without checking for duplicates,
+                        // so if a user where to call 'Ignore' of this function on this object n-times he'll have to call it
+                        // that same amount of time to re-detect them instead of just once.
+                        // We're calling false here to remove a previous ignore if there was any and re-ignoring
+                        // to force it to have only a single instance.
+                        otherNative.SetIgnoreCollisionCheck(NativeCollisionObject, false);
+                        NativeCollisionObject.SetIgnoreCollisionCheck(otherNative, false);
+                        otherNative.SetIgnoreCollisionCheck(NativeCollisionObject, true);
+                        NativeCollisionObject.SetIgnoreCollisionCheck(otherNative, true);
+                        break;
+                    }
                 case CollisionState.Detect:
-                {
-                    otherNative.SetIgnoreCollisionCheck(NativeCollisionObject, false);
-                    NativeCollisionObject.SetIgnoreCollisionCheck(otherNative, false);
-                    break;
-                }
+                    {
+                        otherNative.SetIgnoreCollisionCheck(NativeCollisionObject, false);
+                        NativeCollisionObject.SetIgnoreCollisionCheck(otherNative, false);
+                        break;
+                    }
             }
         }
 
         public bool IsIgnoringCollisionWith(PhysicsComponent other)
         {
-            if(ignoreCollisionBuffer != null)
+            if (ignoreCollisionBuffer != null)
             {
                 return ignoreCollisionBuffer.TryGetValue(other, out var state) && state == CollisionState.Ignore;
             }
-            else if(other.ignoreCollisionBuffer != null)
+            else if (other.ignoreCollisionBuffer != null)
             {
                 return other.IsIgnoringCollisionWith(this);
             }
-            else if(other.NativeCollisionObject == null || NativeCollisionObject == null)
+            else if (other.NativeCollisionObject == null || NativeCollisionObject == null)
             {
                 return false;
             }
             else
             {
-                return ! NativeCollisionObject.CheckCollideWith(other.NativeCollisionObject);
+                return !NativeCollisionObject.CheckCollideWith(other.NativeCollisionObject);
             }
         }
 

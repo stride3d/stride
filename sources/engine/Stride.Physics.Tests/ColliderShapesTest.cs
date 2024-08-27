@@ -264,7 +264,7 @@ namespace Stride.Physics.Tests
 
                 var simulation = game.SceneSystem.SceneInstance.RootScene.Entities.First(ent => ent.Name == "Simulation").Get<StaticColliderComponent>().Simulation;
                 var cube = game.SceneSystem.SceneInstance.RootScene.Entities.First(ent => ent.Name == "CubePrefab1");
-                
+
                 var body = cube.GetOrCreate<RigidbodyComponent>();
 
                 //verify values not properly set up
