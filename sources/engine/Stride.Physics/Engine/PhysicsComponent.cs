@@ -701,6 +701,9 @@ namespace Stride.Engine
             }
         }
 
+        /// <summary>
+        /// Called whenever an entity with this component is added to scene.
+        /// </summary>
         protected virtual void OnAttach()
         {
             //set pre-set post deserialization properties

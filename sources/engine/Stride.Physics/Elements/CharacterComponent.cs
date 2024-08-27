@@ -279,7 +279,6 @@ namespace Stride.Physics
         [DataMemberIgnore]
         internal BulletSharp.KinematicCharacterController KinematicCharacter;
 
-        //called after collider shapes are attached to character comp?
         protected override void OnAttach()
         {
             NativeCollisionObject = new BulletSharp.PairCachingGhostObject
