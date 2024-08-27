@@ -27,9 +27,7 @@ namespace Stride.Physics
         {
             if (KinematicCharacter == null)
             {
-                StackFrame frame = new StackTrace(true).GetFrame(1); //for capturing tracing info
-                logger.Error($"Component:[{this}] attempted to call a Physics function that is available only when the Entity has been already added to the Scene. " +
-                    $"This may be due to a {this} without any physical shapes.\nLocation: {frame.GetFileName()} at Line Number: {frame.GetFileLineNumber()} from Method: {frame.GetMethod().Name} ");
+                LogPhysicsFunctionError();
                 return;
             }
             BulletSharp.Math.Vector3 bV3 = jumpDirection;
@@ -43,9 +41,7 @@ namespace Stride.Physics
         {
             if (KinematicCharacter == null)
             {
-                StackFrame frame = new StackTrace(true).GetFrame(1); //for capturing tracing info
-                logger.Error($"Component:[{this}] attempted to call a Physics function that is available only when the Entity has been already added to the Scene. " +
-                    $"This may be due to a {this} without any physical shapes.\nLocation: {frame.GetFileName()} at Line Number: {frame.GetFileLineNumber()} from Method: {frame.GetMethod().Name} ");
+                LogPhysicsFunctionError();
                 return;
             }
             KinematicCharacter.Jump();
@@ -216,9 +212,7 @@ namespace Stride.Physics
         {
             if (KinematicCharacter == null)
             {
-                StackFrame frame = new StackTrace(true).GetFrame(1); //for capturing tracing info
-                logger.Error($"Component:[{this}] attempted to call a Physics function that is available only when the Entity has been already added to the Scene. " +
-                    $"This may be due to a {this} without any physical shapes.\nLocation: {frame.GetFileName()} at Line Number: {frame.GetFileLineNumber()} from Method: {frame.GetMethod().Name} ");
+                LogPhysicsFunctionError();
                 return;
             }
 
@@ -240,9 +234,7 @@ namespace Stride.Physics
         {
             if (KinematicCharacter == null)
             {
-                StackFrame frame = new StackTrace(true).GetFrame(1); //for capturing tracing info
-                logger.Error($"Component:[{this}] attempted to call a Physics function that is available only when the Entity has been already added to the Scene. " +
-                    $"This may be due to a {this} without any physical shapes.\nLocation: {frame.GetFileName()} at Line Number: {frame.GetFileLineNumber()} from Method: {frame.GetMethod().Name} ");
+                LogPhysicsFunctionError();
                 return;
             }
 
@@ -259,10 +251,7 @@ namespace Stride.Physics
         {
             if (KinematicCharacter == null)
             {
-                //What was nice about the exception is users can see where this function was called to help trace
-                StackFrame frame = new StackTrace(true).GetFrame(1); //for capturing tracing info
-                logger.Error($"Component:[{this}] attempted to call a Physics function that is available only when the Entity has been already added to the Scene. " +
-                    $"This may be due to a {this} without any physical shapes.\nLocation: {frame.GetFileName()} at Line Number: {frame.GetFileLineNumber()} from Method: {frame.GetMethod().Name} ");
+                LogPhysicsFunctionError();
                 return;
             }
 
@@ -321,6 +310,17 @@ namespace Stride.Physics
             KinematicCharacter = null;
 
             base.OnDetach();
+        }
+
+        /// <summary>
+        /// Run specific error when physics functions are called on components that do not have proper setup.
+        /// Captures good tracing info for debugging purposes.
+        /// </summary>
+        private void LogPhysicsFunctionError()
+        {
+            StackFrame frame = new StackTrace(true).GetFrame(2);
+            logger.Error($"Component:[{this}] attempted to call a Physics function that is available only when the Entity has been already added to the Scene. " +
+                $"This may be due to a {this} without any physical shapes.\nLocation: {frame.GetFileName()} at Line Number: {frame.GetFileLineNumber()} from Method: {frame.GetMethod().Name} ");
         }
     }
 }
