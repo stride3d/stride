@@ -642,27 +642,22 @@ namespace Stride.Engine
         {
             Data = data;
 
+            if (ColliderShapes.Count == 0 && ColliderShape == null)
+            {
+                logger.Error($"Entity {{Entity.Name}} has a PhysicsComponent without any collider shape.");
+                return; //no shape no purpose
+            }
+
             //this is mostly required for the game studio gizmos
             if (Simulation.DisableSimulation)
             {
-                //Give warning if CharacterComponent doesnt have collider shapes
-                if(this is CharacterComponent && ColliderShapes.Count == 0 && ColliderShape == null)
-                {
-                    logger.Warning($"Entity {this} has no physical shapes attatched to CharacterComponent.");
-                }
-
                 return;
             }
 
             //this is not optimal as UpdateWorldMatrix will end up being called twice this frame.. but we need to ensure that we have valid data.
             Entity.Transform.UpdateWorldMatrix();
 
-            if (ColliderShapes.Count == 0 && ColliderShape == null)
-            {
-                logger.Error($"Entity {Entity.Name} has a PhysicsComponent without any collider shape.");
-                return; //no shape no purpose
-            }
-            else if (ColliderShape == null)
+            if (ColliderShape == null)
             {
                 ComposeShape();
                 if (ColliderShape == null)
