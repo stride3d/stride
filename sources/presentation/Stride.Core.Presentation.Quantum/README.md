@@ -1,17 +1,17 @@
-# Stride.Core.Presentation
+# Stride.Core.Presentation.Quantum
 
-This project is the base project for the view models in an application that uses the MVVM pattern.
+This project adds capabilities to the `Stride.Core.Quantum` library to allow its use in a MVVM context.
 
 ## Depencencies
 
 * It can only references *Core* libraries.
 * It should be platform-agnostic as well as UI-agnostic.
   In other words, no dependencies on platform (e.g. Windows), or UI library (e.g. Avalonia, WPF) are allowed.
-* It will likely only reference `Stride.Core.Design`.
+* It will likely only reference `Stride.Core.Quantum` and `Stride.Core.Presentation`.
 
 ## Implementations
 
-`ViewModelBase` is here as well as interfaces for services (but usually not their implementation).
+`NodeViewModel` is here as well as interfaces for presenters (but usually not their implementation).
 
 ## Notes
 
