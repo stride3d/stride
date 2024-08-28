@@ -642,6 +642,12 @@ namespace Stride.Engine
         {
             Data = data;
 
+            if (ColliderShapes.Count == 0 && ColliderShape == null)
+            {
+                logger.Error($"Entity {{Entity.Name}} has a PhysicsComponent without any collider shape.");
+                return; //no shape no purpose
+            }
+
             //this is mostly required for the game studio gizmos
             if (Simulation.DisableSimulation)
             {
@@ -651,12 +657,7 @@ namespace Stride.Engine
             //this is not optimal as UpdateWorldMatrix will end up being called twice this frame.. but we need to ensure that we have valid data.
             Entity.Transform.UpdateWorldMatrix();
 
-            if (ColliderShapes.Count == 0 && ColliderShape == null)
-            {
-                logger.Error($"Entity {Entity.Name} has a PhysicsComponent without any collider shape.");
-                return; //no shape no purpose
-            }
-            else if (ColliderShape == null)
+            if (ColliderShape == null)
             {
                 ComposeShape();
                 if (ColliderShape == null)
@@ -700,6 +701,9 @@ namespace Stride.Engine
             }
         }
 
+        /// <summary>
+        /// Called whenever an entity with this component is added to scene.
+        /// </summary>
         protected virtual void OnAttach()
         {
             //set pre-set post deserialization properties

@@ -3,6 +3,7 @@
 
 using System;
 using System.ComponentModel;
+using System.Diagnostics;
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Engine;
@@ -26,7 +27,8 @@ namespace Stride.Physics
         {
             if (KinematicCharacter == null)
             {
-                throw new InvalidOperationException("Attempted to call a Physics function that is avaliable only when the Entity has been already added to the Scene.");
+                LogPhysicsFunctionError();
+                return;
             }
             BulletSharp.Math.Vector3 bV3 = jumpDirection;
             KinematicCharacter.Jump(ref bV3);
@@ -39,7 +41,8 @@ namespace Stride.Physics
         {
             if (KinematicCharacter == null)
             {
-                throw new InvalidOperationException("Attempted to call a Physics function that is avaliable only when the Entity has been already added to the Scene.");
+                LogPhysicsFunctionError();
+                return;
             }
             KinematicCharacter.Jump();
         }
@@ -209,7 +212,8 @@ namespace Stride.Physics
         {
             if (KinematicCharacter == null)
             {
-                throw new InvalidOperationException("Attempted to call a Physics function that is avaliable only when the Entity has been already added to the Scene.");
+                LogPhysicsFunctionError();
+                return;
             }
 
             //we assume that the user wants to teleport in world/entity space
@@ -230,7 +234,8 @@ namespace Stride.Physics
         {
             if (KinematicCharacter == null)
             {
-                throw new InvalidOperationException("Attempted to call a Physics function that is avaliable only when the Entity has been already added to the Scene.");
+                LogPhysicsFunctionError();
+                return;
             }
 
             KinematicCharacter.SetWalkDirection(movement);
@@ -246,7 +251,8 @@ namespace Stride.Physics
         {
             if (KinematicCharacter == null)
             {
-                throw new InvalidOperationException("Attempted to call a Physics function that is available only when the Entity has been already added to the Scene.");
+                LogPhysicsFunctionError();
+                return;
             }
 
             KinematicCharacter.SetWalkDirection(velocity * Simulation.FixedTimeStep);
@@ -304,6 +310,17 @@ namespace Stride.Physics
             KinematicCharacter = null;
 
             base.OnDetach();
+        }
+
+        /// <summary>
+        /// Run specific error when physics functions are called on components that do not have proper setup.
+        /// Captures good tracing info for debugging purposes.
+        /// </summary>
+        private void LogPhysicsFunctionError()
+        {
+            StackFrame frame = new StackTrace(true).GetFrame(2);
+            logger.Error($"Component:[{this}] attempted to call a Physics function that is available only when the Entity has been already added to the Scene. " +
+                $"This may be due to a {this} without any physical shapes.\nLocation: {frame.GetFileName()} at Line Number: {frame.GetFileLineNumber()} from Method: {frame.GetMethod().Name} ");
         }
     }
 }
