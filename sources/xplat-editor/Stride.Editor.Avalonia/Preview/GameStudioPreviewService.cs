@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Runtime.InteropServices;
 using Stride.Assets;
 using Stride.Core;
 using Stride.Core.Assets;
@@ -65,7 +66,10 @@ public class GameStudioPreviewService : IAssetPreviewService, IPreviewBuilder
         previewCompileContext.CompilationContext = typeof(PreviewCompilationContext);
 
         previewGameThread = new Thread(SafeAction.Wrap(StrideUIThread)) { IsBackground = true, Name = "PreviewGame Thread" };
-        previewGameThread.SetApartmentState(ApartmentState.STA);
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            previewGameThread.SetApartmentState(ApartmentState.STA);
+        }
         previewGameThread.Start();
 
         // Wait for the window handle to be generated on the proper thread
