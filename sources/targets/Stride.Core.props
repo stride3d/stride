@@ -8,7 +8,7 @@
   <!-- Setup StridePlatform according to current TargetFramework -->
   <PropertyGroup>
     <StrideFramework>net8.0</StrideFramework>
-    <StrideFrameworkWindows>net8.0-windows7.0</StrideFrameworkWindows>
+    <StrideFrameworkWindows>net8.0-windows</StrideFrameworkWindows>
     <StrideFrameworkAndroid>net8.0-android</StrideFrameworkAndroid>
     <StrideFrameworkiOS>net8.0-ios</StrideFrameworkiOS>
     <StrideFrameworkUWP>uap10.0.16299</StrideFrameworkUWP>
@@ -41,7 +41,7 @@
     Settings StridePlatform specific
   -->
   <PropertyGroup>
-    <StridePlatformDefines>STRIDE_PLATFORM_DESKTOP;STRIDE_PLATFORM_WINDOWS;STRIDE_PLATFORM_WINDOWS_DESKTOP</StridePlatformDefines>
+    <StridePlatformDefines>STRIDE_PLATFORM_DESKTOP</StridePlatformDefines>
 
     <!-- Note: ideally we would split using ItemGroup but then PropertyGroup are not properly evaluated if they contain ItemGroup (unless using Targets) -->
     <StridePlatforms Condition="'$(StridePlatforms)' == ''">Windows</StridePlatforms>
@@ -61,7 +61,7 @@
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
     <!-- Add net8.0 no matter what (needed for references) -->
     <StrideRuntimeTargetFrameworks>net8.0</StrideRuntimeTargetFrameworks>
-    <StrideRuntimeTargetFrameworks Condition="$(_StridePlatforms.Contains(';Windows;')) And '$(StrideExplicitWindowsRuntime)' == 'true'">$(StrideRuntimeTargetFrameworks);net8.0-windows7.0</StrideRuntimeTargetFrameworks>
+    <StrideRuntimeTargetFrameworks Condition="$(_StridePlatforms.Contains(';Windows;')) And '$(StrideExplicitWindowsRuntime)' == 'true'">$(StrideRuntimeTargetFrameworks);net8.0-windows</StrideRuntimeTargetFrameworks>
     <StrideRuntimeTargetFrameworks Condition="$(_StridePlatforms.Contains(';UWP;'))">$(StrideRuntimeTargetFrameworks);uap10.0.16299</StrideRuntimeTargetFrameworks>
     <StrideRuntimeTargetFrameworks Condition="$(_StridePlatforms.Contains(';Android;'))">$(StrideRuntimeTargetFrameworks);net8.0-android</StrideRuntimeTargetFrameworks>
     <StrideRuntimeTargetFrameworks Condition="$(_StridePlatforms.Contains(';iOS;'))">$(StrideRuntimeTargetFrameworks);net8.0-ios</StrideRuntimeTargetFrameworks>
@@ -146,7 +146,7 @@
 
   <PropertyGroup Condition=" '$(TargetFramework)' == '$(StrideFrameworkUWP)' ">
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
-    <StridePlatformDefines>STRIDE_PLATFORM_WINDOWS;STRIDE_PLATFORM_UWP</StridePlatformDefines>
+    <StridePlatformDefines>STRIDE_PLATFORM_UWP</StridePlatformDefines>
     <ExtrasUwpMetaPackageVersion>6.2.12</ExtrasUwpMetaPackageVersion>
     <TargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</TargetPlatformVersion>
     <TargetPlatformMinVersion>10.0.16299.0</TargetPlatformMinVersion>
