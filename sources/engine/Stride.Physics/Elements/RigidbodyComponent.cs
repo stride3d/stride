@@ -89,7 +89,7 @@ namespace Stride.Physics
                 {
                     return;
                 }
-
+                    
 
                 var inertia = ColliderShape.InternalShape.CalculateLocalInertia(value);
                 InternalRigidBody.SetMassProps(value, inertia);
@@ -205,7 +205,7 @@ namespace Stride.Physics
                 {
                     return;
                 }
-
+                    
 
                 if (value)
                 {
