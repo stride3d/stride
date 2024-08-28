@@ -51,8 +51,8 @@ public sealed class StrideEditorPlugin : AssetsEditorPlugin
         var builderService = new GameStudioBuilderService((SessionViewModel)session, settingsProvider, buildDirectory);
         session.ServiceProvider.RegisterService(builderService);
 
-        var thumbnailService = new GameStudioThumbnailService((SessionViewModel)session, settingsProvider, builderService);
-        session.ServiceProvider.RegisterService(thumbnailService);
+        //var thumbnailService = new GameStudioThumbnailService((SessionViewModel)session, settingsProvider, builderService);
+        //session.ServiceProvider.RegisterService(thumbnailService);
     }
 
     public override void RegisterAssetPreviewViewModelTypes(IDictionary<Type, Type> assetPreviewViewModelTypes)
