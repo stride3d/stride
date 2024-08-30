@@ -6,7 +6,7 @@ using Stride.Core.Assets.Compiler;
 using Stride.Core.BuildEngine;
 using Stride.Core.IO;
 using Stride.Assets.SpriteFont;
-using Stride.Editor.Wpf.Resources;
+using Stride.Editor.Resources;
 using Stride.Editor.Thumbnails;
 using Stride.Graphics;
 

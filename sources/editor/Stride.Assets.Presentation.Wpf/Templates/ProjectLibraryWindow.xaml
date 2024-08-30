@@ -4,7 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:templates="clr-namespace:Stride.Assets.Presentation.Templates"
-        xmlns:strings="clr-namespace:Stride.Assets.Presentation.Wpf.Resources.Strings"
+        xmlns:strings="clr-namespace:Stride.Assets.Presentation.Resources.Strings"
         xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
         mc:Ignorable="d"
         Title="{sd:Localize New code library}" SizeToContent="Height" Width="480"

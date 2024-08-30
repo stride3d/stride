@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using Stride.Core.Assets;
-using Stride.Core.Assets.Editor.Wpf.Resources.Strings;
+using Stride.Core.Assets.Editor.Resources.Strings;
 using Stride.Core.Assets.Templates;
 using Stride.Core;
 using Stride.Core.Reflection;

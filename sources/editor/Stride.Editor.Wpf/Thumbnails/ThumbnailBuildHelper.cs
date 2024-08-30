@@ -4,7 +4,7 @@ using System;
 using System.Threading;
 using Stride.Core.Diagnostics;
 using Stride.Core.Mathematics;
-using Stride.Editor.Wpf.Resources;
+using Stride.Editor.Resources;
 using Stride.Graphics;
 
 namespace Stride.Editor.Thumbnails

@@ -10,7 +10,7 @@ using Stride.Core.Assets.Compiler;
 using Stride.Core.Diagnostics;
 using Stride.Core.Mathematics;
 using Stride.Core.Storage;
-using Stride.Editor.Wpf.Resources;
+using Stride.Editor.Resources;
 using Stride.Graphics;
 
 namespace Stride.Editor.Thumbnails

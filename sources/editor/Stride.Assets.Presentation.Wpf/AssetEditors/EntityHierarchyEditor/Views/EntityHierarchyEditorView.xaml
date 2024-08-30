@@ -5,7 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
              xmlns:p="clr-namespace:Stride.Assets.Presentation"
-             xmlns:strings="clr-namespace:Stride.Assets.Presentation.Wpf.Resources.Strings"
+             xmlns:strings="clr-namespace:Stride.Assets.Presentation.Resources.Strings"
              xmlns:pvc="clr-namespace:Stride.Assets.Presentation.ValueConverters"
              xmlns:assetEditors="clr-namespace:Stride.Assets.Presentation.AssetEditors"
              xmlns:gameEditor="clr-namespace:Stride.Assets.Presentation.AssetEditors.GameEditor"

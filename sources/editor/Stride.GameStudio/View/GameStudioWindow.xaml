@@ -5,7 +5,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
         xmlns:strings="clr-namespace:Stride.GameStudio.Resources.Strings"
-        xmlns:stringsEd="clr-namespace:Stride.Core.Assets.Editor.Wpf.Resources.Strings;assembly=Stride.Core.Assets.Editor.Wpf"
+        xmlns:stringsEd="clr-namespace:Stride.Core.Assets.Editor.Resources.Strings;assembly=Stride.Core.Assets.Editor.Wpf"
         xmlns:gl="clr-namespace:Stride.GameStudio.Layout.Behaviors"
         xmlns:gh="clr-namespace:Stride.GameStudio.Helpers"
         xmlns:vm="clr-namespace:Stride.GameStudio.ViewModels"

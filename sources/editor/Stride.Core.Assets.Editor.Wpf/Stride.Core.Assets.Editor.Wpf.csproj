@@ -8,6 +8,7 @@
     <StrideLocalized>true</StrideLocalized>
     <UseWPF>true</UseWPF>
     <EnableDefaultPageItems>false</EnableDefaultPageItems>
+    <RootNamespace>Stride.Core.Assets.Editor</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Dirkster.AvalonDock" />

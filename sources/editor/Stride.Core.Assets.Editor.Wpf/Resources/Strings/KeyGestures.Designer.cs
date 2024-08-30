@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Stride.Core.Assets.Editor.Wpf.Resources.Strings {
+namespace Stride.Core.Assets.Editor.Resources.Strings {
     using System;
     
     
@@ -39,7 +39,7 @@ namespace Stride.Core.Assets.Editor.Wpf.Resources.Strings {
         public static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Stride.Core.Assets.Editor.Wpf.Resources.Strings.KeyGestures", typeof(KeyGestures).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Stride.Core.Assets.Editor.Resources.Strings.KeyGestures", typeof(KeyGestures).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;

@@ -2,7 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
-using Stride.Assets.Presentation.Wpf.AssetEditors.Gizmos;
+using Stride.Assets.Presentation.AssetEditors.Gizmos;
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Editor.EditorGame.Game;

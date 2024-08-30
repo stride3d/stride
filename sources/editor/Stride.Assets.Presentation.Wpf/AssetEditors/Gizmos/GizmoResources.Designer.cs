@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Stride.Assets.Presentation.Wpf.AssetEditors.Gizmos {
+namespace Stride.Assets.Presentation.AssetEditors.Gizmos {
     using System;
     
     
@@ -39,7 +39,7 @@ namespace Stride.Assets.Presentation.Wpf.AssetEditors.Gizmos {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Stride.Assets.Presentation.Wpf.AssetEditors.Gizmos.GizmoResources", typeof(GizmoResources).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Stride.Assets.Presentation.AssetEditors.Gizmos.GizmoResources", typeof(GizmoResources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;

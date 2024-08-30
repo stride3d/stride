@@ -10,6 +10,7 @@
     <RestorePackages>true</RestorePackages>
     <UseWPF>true</UseWPF>
     <EnableDefaultPageItems>false</EnableDefaultPageItems>
+    <RootNamespace>Stride.Core.Presentation.Graph</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Stride.GraphX.WPF.Controls" />

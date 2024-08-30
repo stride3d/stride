@@ -17,7 +17,7 @@ using Stride.Core.IO;
 using Stride.Core.Serialization.Contents;
 using Stride.Core.Storage;
 using Stride.Assets.Effect;
-using Stride.Editor.Wpf.Resources;
+using Stride.Editor.Resources;
 
 namespace Stride.Editor.Thumbnails
 {

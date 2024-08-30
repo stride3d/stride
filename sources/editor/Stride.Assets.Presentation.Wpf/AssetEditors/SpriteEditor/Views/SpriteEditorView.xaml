@@ -9,7 +9,7 @@
        xmlns:cmd="clr-namespace:Stride.Core.Presentation.Commands;assembly=Stride.Core.Presentation"
        xmlns:valueConverters="clr-namespace:Stride.Assets.Presentation.ValueConverters"
        xmlns:sprite="clr-namespace:Stride.Assets.Sprite;assembly=Stride.Assets"
-       xmlns:strings="clr-namespace:Stride.Assets.Presentation.Wpf.Resources.Strings"
+       xmlns:strings="clr-namespace:Stride.Assets.Presentation.Resources.Strings"
        xmlns:view="clr-namespace:Stride.Assets.Presentation.AssetEditors.SpriteEditor.Views"
        xmlns:sevm="clr-namespace:Stride.Assets.Presentation.AssetEditors.SpriteEditor.ViewModels"
        mc:Ignorable="d" 

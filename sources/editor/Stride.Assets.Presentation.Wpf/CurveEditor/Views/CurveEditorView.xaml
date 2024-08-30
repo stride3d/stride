@@ -8,7 +8,7 @@
              xmlns:behaviors="clr-namespace:Stride.Assets.Presentation.View.Behaviors"
              xmlns:behaviors1="clr-namespace:Stride.Assets.Presentation.CurveEditor.Views.Behaviors"
              xmlns:cmd="clr-namespace:Stride.Core.Presentation.Commands;assembly=Stride.Core.Presentation"
-             xmlns:strings="clr-namespace:Stride.Assets.Presentation.Wpf.Resources.Strings"
+             xmlns:strings="clr-namespace:Stride.Assets.Presentation.Resources.Strings"
              xmlns:viewModels="clr-namespace:Stride.Assets.Presentation.CurveEditor.ViewModels"
              mc:Ignorable="d"
              d:DesignHeight="300" d:DesignWidth="300" d:DataContext="{d:DesignInstance viewModels:CurveEditorViewModel}">

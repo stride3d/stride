@@ -166,7 +166,7 @@ namespace Stride.Assets.Presentation.CurveEditor.ViewModels
             var controlPointCount = controlPoints.Count;
             if (controlPointCount == 0)
             {
-                drawingContext.DrawTexts(new[] { clippingRect.GetCenterLocation() }, Color.LightGray, new[] { $"{Wpf.Resources.Strings.KeyGestures.GestureAddPoint} to add a keyframe" },
+                drawingContext.DrawTexts(new[] { clippingRect.GetCenterLocation() }, Color.LightGray, new[] { $"{Resources.Strings.KeyGestures.GestureAddPoint} to add a keyframe" },
                     XAxis.FontFamily, XAxis.FontSize * 2, FontWeights.Bold, HorizontalAlignment.Center, VerticalAlignment.Center);
 
                 return;

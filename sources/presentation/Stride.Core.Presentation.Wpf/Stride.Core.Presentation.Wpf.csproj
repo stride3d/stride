@@ -11,6 +11,7 @@
     <RestorePackages>true</RestorePackages>
     <UseWPF>true</UseWPF>
     <EnableDefaultPageItems>false</EnableDefaultPageItems>
+    <RootNamespace>Stride.Core.Presentation</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
