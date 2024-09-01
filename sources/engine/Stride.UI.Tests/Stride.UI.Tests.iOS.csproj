@@ -14,7 +14,6 @@
     <AssemblyName>StrideUITests</AssemblyName>
     <StrideBuildTags>*</StrideBuildTags>
     <StridePlatform>iOS</StridePlatform>
-    <StrideBuildProfile>iOS</StrideBuildProfile>
     <StridePackageGuid>{b18707e8-1d26-49fc-9911-3834506d8149}</StridePackageGuid>
     <!-- Force msbuild to check to rebuild this assembly instead of letting VS IDE guess -->
     <DisableFastUpToDateCheck>true</DisableFastUpToDateCheck>

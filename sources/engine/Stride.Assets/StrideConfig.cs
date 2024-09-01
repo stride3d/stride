@@ -84,7 +84,6 @@ namespace Stride.Assets
                 IncludeInSolution = false,
             };
 
-            uwpPlatform.DefineConstants.Add("STRIDE_PLATFORM_WINDOWS");
             uwpPlatform.DefineConstants.Add("STRIDE_PLATFORM_UWP");
             uwpPlatform.Configurations.Add(new SolutionConfiguration("Testing"));
             uwpPlatform.Configurations.Add(new SolutionConfiguration("AppStore"));
