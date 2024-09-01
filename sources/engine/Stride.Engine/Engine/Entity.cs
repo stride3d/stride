@@ -17,7 +17,9 @@ using Stride.Core.Serialization.Contents;
 namespace Stride.Engine
 {
     /// <summary>
-    /// Game entity. It usually aggregates multiple EntityComponent
+    /// Represents a game entity that typically aggregates multiple <see cref="EntityComponent"/> instances.
+    /// For more information about entities, see <see href="https://doc.stride3d.net/latest/en/manual/game-studio/add-entities.html">Adding entities</see>
+    /// and <see href="https://doc.stride3d.net/latest/en/manual/game-studio/manage-entities.html">Managing entities</see>.
     /// </summary>
     //[ContentSerializer(typeof(EntityContentSerializer))]
     //[ContentSerializer(typeof(DataContentSerializer<Entity>))]
