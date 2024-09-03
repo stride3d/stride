@@ -300,6 +300,61 @@ namespace Stride.Physics
             Simulation.AddCharacter(this, (CollisionFilterGroupFlags)CollisionGroup, CanCollideWith);
         }
 
+        /// <summary>
+        /// Reconstruct of character controller to avoid UAF crash related to disposed ref to native object
+        /// 
+        /// - NativeCollisionObject shows old refs
+        /// - Therefore KinematicCharacter also holds old refs
+        /// 
+        /// - Tests show nativeCollisionObject being remade does not cause the read while use exception, its just kinematic character
+        /// </summary>
+        public override void ComposeShape()
+        {
+            //Disposing of ColliderShape should happen before we remove NativeCollisionObject and KinematicCharacter from Simulation
+            base.ComposeShape();
+
+            //make PairCachingGhostObject valid, therefore make new instance of it and/or kinematic character controller
+            //keep references valid
+            if (NativeCollisionObject != null && KinematicCharacter != null)
+            {
+                //very mediocre workaround to avoid the nullref when we remove character
+                Simulation simRef = Simulation;
+
+                //remove references in discreteDynamicsWorld
+                Simulation.RemoveCharacter(this);
+                Simulation = simRef;
+
+                /*NativeCollisionObject.Dispose();
+                NativeCollisionObject = null;
+                NativeCollisionObject = new BulletSharp.PairCachingGhostObject
+                {
+                    CollisionShape = ColliderShape.InternalShape,
+                    UserObject = this,
+                };
+
+                NativeCollisionObject.CollisionFlags |= BulletSharp.CollisionFlags.CharacterObject;
+
+                if (ColliderShape.NeedsCustomCollisionCallback)
+                {
+                    NativeCollisionObject.CollisionFlags |= BulletSharp.CollisionFlags.CustomMaterialCallback;
+                }
+
+                NativeCollisionObject.ContactProcessingThreshold = !Simulation.CanCcd ? 1e18f : 1e30f;*/
+
+                //destroy and deref KinematicCharacter then reconstruct it
+                KinematicCharacter.Dispose();
+                KinematicCharacter = null;
+                BulletSharp.Math.Vector3 unitY = new BulletSharp.Math.Vector3(0f, 1f, 0f);
+                //Make new KinematicCharacter
+                KinematicCharacter = new BulletSharp.KinematicCharacterController((BulletSharp.PairCachingGhostObject)NativeCollisionObject, (BulletSharp.ConvexShape)ColliderShape.InternalShape, StepHeight, ref unitY);
+
+                //now we can add these references BACK in discreteDynamicsWorld.
+                Simulation.AddCharacter(this, (CollisionFilterGroupFlags)CollisionGroup, CanCollideWith);
+            }
+
+            
+        }
+
         protected override void OnDetach()
         {
             if (KinematicCharacter == null) return;
