@@ -43,7 +43,6 @@ var needSigning = true;
     <RootNamespace><#= Properties.Namespace #></RootNamespace>
     <StrideBuildTags>*</StrideBuildTags>
     <StridePlatform><#= curPlatform #></StridePlatform>
-    <StrideBuildProfile>$(StridePlatform)</StrideBuildProfile>
     <StrideGraphicsApi Condition="'$(StrideGraphicsApi)' == ''"><#= curPlatform.GetDefaultGraphicsPlatform() #></StrideGraphicsApi>
     <StrideOutputFolder>Tests\$(StrideGraphicsApi)\$(AssemblyName)</StrideOutputFolder>
     <!-- Force msbuild to check to rebuild this assembly instead of letting VS IDE guess -->
