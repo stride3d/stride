@@ -312,7 +312,7 @@ namespace Stride.Physics
 
             //make PairCachingGhostObject references in KinematicCharacter valid, therefore make new instance of kinematic character controller with updated NativeCollisionObject
             //keep references valid
-            if (NativeCollisionObject != null && KinematicCharacter != null)
+            if (KinematicCharacter != null)
             {
                 //very mediocre workaround to avoid the nullref when we remove character
                 Simulation simRef = Simulation;
