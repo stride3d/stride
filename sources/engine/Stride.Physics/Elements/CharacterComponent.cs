@@ -301,19 +301,16 @@ namespace Stride.Physics
         }
 
         /// <summary>
-        /// Reconstruct of character controller to avoid UAF crash related to disposed ref to native object
-        /// 
-        /// - NativeCollisionObject shows old refs
-        /// - Therefore KinematicCharacter also holds old refs
-        /// 
-        /// - Tests show nativeCollisionObject being remade does not cause the read while use exception, its just kinematic character
+        /// Reconstruct of character controller to avoid possible UAF issues
+        /// Context: On ColliderShape changes, when ComposeShape is ran to rebuild ColliderShape properties Disposing the old ColliderShape can cause UAF
+        /// issues inside KinematicCharacter and inside Simulation discreteDynamicWorld due to old disposed references to the native object.
         /// </summary>
         public override void ComposeShape()
         {
             //Disposing of ColliderShape should happen before we remove NativeCollisionObject and KinematicCharacter from Simulation
             base.ComposeShape();
 
-            //make PairCachingGhostObject valid, therefore make new instance of it and/or kinematic character controller
+            //make PairCachingGhostObject references in KinematicCharacter valid, therefore make new instance of kinematic character controller with updated NativeCollisionObject
             //keep references valid
             if (NativeCollisionObject != null && KinematicCharacter != null)
             {
@@ -324,35 +321,31 @@ namespace Stride.Physics
                 Simulation.RemoveCharacter(this);
                 Simulation = simRef;
 
-                /*NativeCollisionObject.Dispose();
-                NativeCollisionObject = null;
-                NativeCollisionObject = new BulletSharp.PairCachingGhostObject
-                {
-                    CollisionShape = ColliderShape.InternalShape,
-                    UserObject = this,
-                };
-
-                NativeCollisionObject.CollisionFlags |= BulletSharp.CollisionFlags.CharacterObject;
-
-                if (ColliderShape.NeedsCustomCollisionCallback)
-                {
-                    NativeCollisionObject.CollisionFlags |= BulletSharp.CollisionFlags.CustomMaterialCallback;
-                }
-
-                NativeCollisionObject.ContactProcessingThreshold = !Simulation.CanCcd ? 1e18f : 1e30f;*/
-
                 //destroy and deref KinematicCharacter then reconstruct it
+                BulletSharp.KinematicCharacterController kinematicCharacterProperties = KinematicCharacter;
                 KinematicCharacter.Dispose();
                 KinematicCharacter = null;
                 BulletSharp.Math.Vector3 unitY = new BulletSharp.Math.Vector3(0f, 1f, 0f);
                 //Make new KinematicCharacter
                 KinematicCharacter = new BulletSharp.KinematicCharacterController((BulletSharp.PairCachingGhostObject)NativeCollisionObject, (BulletSharp.ConvexShape)ColliderShape.InternalShape, StepHeight, ref unitY);
+                OverrideKinematicCharacterValues(kinematicCharacterProperties);
 
-                //now we can add these references BACK in discreteDynamicsWorld.
+                //now we can add these references BACK in Simulation's discreteDynamicsWorld
                 Simulation.AddCharacter(this, (CollisionFilterGroupFlags)CollisionGroup, CanCollideWith);
             }
+        }
 
-            
+        /// <summary>
+        /// When we reconstruct our KinematicCharacter, we would want to preserve some physics properties. Try to have the
+        /// physics of the object try to match as close as possible.
+        /// </summary>
+        /// <param name="oldController"></param>
+        private void OverrideKinematicCharacterValues(BulletSharp.KinematicCharacterController oldController)
+        {
+            KinematicCharacter.FallSpeed = oldController.FallSpeed;
+            KinematicCharacter.Gravity = oldController.Gravity;
+            KinematicCharacter.JumpSpeed = oldController.JumpSpeed;
+            KinematicCharacter.LinearVelocity = oldController.LinearVelocity;
         }
 
         protected override void OnDetach()
