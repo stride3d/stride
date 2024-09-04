@@ -302,7 +302,7 @@ namespace Stride.Physics
 
         /// <summary>
         /// Reconstruct of character controller to avoid possible UAF issues
-        /// Context: On ColliderShape changes, when ComposeShape is ran to rebuild ColliderShape properties Disposing the old ColliderShape can cause UAF
+        /// Context: On ColliderShape changes, when ComposeShape is ran to rebuild ColliderShape properties, disposing the old ColliderShape can cause UAF
         /// issues inside KinematicCharacter and inside Simulation discreteDynamicWorld due to old disposed references to the native object.
         /// </summary>
         public override void ComposeShape()
@@ -310,8 +310,8 @@ namespace Stride.Physics
             //Disposing of ColliderShape should happen before we remove NativeCollisionObject and KinematicCharacter from Simulation
             base.ComposeShape();
 
-            //make PairCachingGhostObject references in KinematicCharacter valid, therefore make new instance of kinematic character controller with updated NativeCollisionObject
-            //keep references valid
+            //make PairCachingGhostObject references in KinematicCharacter valid, therefore make new instance of kinematic character controller with  
+            //updated NativeCollisionObject keep references valid
             if (KinematicCharacter != null)
             {
                 //very mediocre workaround to avoid the nullref when we remove character
