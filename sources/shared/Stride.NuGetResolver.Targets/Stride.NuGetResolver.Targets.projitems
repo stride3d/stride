@@ -18,13 +18,13 @@
     <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.config;.exe</AllowedOutputExtensionsInPackageBuildOutputFolder>
     <UseWPF Condition="'$(StrideNuGetResolverUI)' == 'true'">true</UseWPF>
   </PropertyGroup>
-  <PropertyGroup>
-  </PropertyGroup>
   <Target Name="NuGetResolverModuleInitializerGenerate" BeforeTargets="BeforeCompile;CoreCompile" DependsOnTargets="PrepareForBuild">
     <PropertyGroup>
       <NuGetResolverModuleInitializerFile>$(IntermediateOutputPath)$(MSBuildProjectName).NuGetResolverEntryPoint$(DefaultLanguageSourceExtension)</NuGetResolverModuleInitializerFile>
+      <NuGetResolverTargetFramework>$(TargetFramework)</NuGetResolverTargetFramework>
+      <NuGetResolverTargetFramework Condition="'$(TargetPlatformVersion)' != '' and !$(TargetFramework.EndsWith(TargetPlatformVersion))">$(TargetFramework)$(TargetPlatformVersion)</NuGetResolverTargetFramework>
     </PropertyGroup>
-    <WriteLinesToFile File="$(NuGetResolverModuleInitializerFile)" Overwrite="true" Lines="$([System.IO.File]::ReadAllText('$(MSBuildThisFileDirectory)NuGetResolverModuleInitializer.cs')&#xD;&#xA;                              .Replace('STRIDE_NUGET_RESOLVER_TARGET_FRAMEWORK','&quot;$(TargetFramework)&quot;')&#xD;&#xA;                              .Replace('STRIDE_NUGET_RESOLVER_PACKAGE_NAME','&quot;$(PackageId)&quot;')&#xD;&#xA;                              .Replace('STRIDE_NUGET_RESOLVER_PACKAGE_VERSION','&quot;$(PackageVersion)&quot;'))" />
+    <WriteLinesToFile File="$(NuGetResolverModuleInitializerFile)" Overwrite="true" Lines="$([System.IO.File]::ReadAllText('$(MSBuildThisFileDirectory)NuGetResolverModuleInitializer.cs')&#xD;&#xA;                              .Replace('STRIDE_NUGET_RESOLVER_TARGET_FRAMEWORK','&quot;$(NuGetResolverTargetFramework)&quot;')&#xD;&#xA;                              .Replace('STRIDE_NUGET_RESOLVER_PACKAGE_NAME','&quot;$(PackageId)&quot;')&#xD;&#xA;                              .Replace('STRIDE_NUGET_RESOLVER_PACKAGE_VERSION','&quot;$(PackageVersion)&quot;'))" />
     <ItemGroup>
       <FileWrites Include="$(NuGetResolverModuleInitializerFile)" />
       <Compile Include="$(NuGetResolverModuleInitializerFile)" />
