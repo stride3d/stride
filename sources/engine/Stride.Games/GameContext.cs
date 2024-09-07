@@ -24,6 +24,7 @@
 
 using System;
 using System.Reflection;
+using Stride.Core;
 using Stride.Graphics;
 
 namespace Stride.Games
@@ -122,8 +123,7 @@ namespace Stride.Games
 #if STRIDE_PLATFORM_UWP
                 return string.Empty;
 #else
-                var assembly = Assembly.GetEntryAssembly();
-                return assembly?.Location;
+                return PlatformFolders.ApplicationExecutablePath ?? string.Empty;
 #endif
             }
         }

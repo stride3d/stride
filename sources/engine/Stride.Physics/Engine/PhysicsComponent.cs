@@ -642,6 +642,12 @@ namespace Stride.Engine
         {
             Data = data;
 
+            if (ColliderShapes.Count == 0 && ColliderShape == null)
+            {
+                logger.Error($"Entity {{Entity.Name}} has a PhysicsComponent without any collider shape.");
+                return; //no shape no purpose
+            }
+
             //this is mostly required for the game studio gizmos
             if (Simulation.DisableSimulation)
             {
@@ -651,12 +657,7 @@ namespace Stride.Engine
             //this is not optimal as UpdateWorldMatrix will end up being called twice this frame.. but we need to ensure that we have valid data.
             Entity.Transform.UpdateWorldMatrix();
 
-            if (ColliderShapes.Count == 0 && ColliderShape == null)
-            {
-                logger.Error($"Entity {Entity.Name} has a PhysicsComponent without any collider shape.");
-                return; //no shape no purpose
-            }
-            else if (ColliderShape == null)
+            if (ColliderShape == null)
             {
                 ComposeShape();
                 if (ColliderShape == null)
@@ -673,6 +674,32 @@ namespace Stride.Engine
             if(ignoreCollisionBuffer != null && NativeCollisionObject != null)
             {
                 foreach(var kvp in ignoreCollisionBuffer)
+                {
+                    IgnoreCollisionWith(kvp.Key, kvp.Value);
+                }
+                ignoreCollisionBuffer = null;
+            }
+        }
+
+        /// <summary>
+        /// Ran when properties of Components may not be fully setup and need to be reintegrated (eg GetOrCreate<RigidbodyComponent> and adding collidershapes)
+        /// </summary>
+        internal void ReAttach()
+        {
+            //TODO: Could consider fully detaching and then rebuilding, but ideally this would cause null refs on Rigidbody OnDetach calls
+            //Shouldnt call detach, because at this point the user has added new components and this runs as a check to rebuild as needed.
+            //Entire wipes to rebuild causes loss in the data that the user has just added (and is slower)
+
+            Entity.Transform.UpdateWorldMatrix();
+
+            BoneIndex = -1;
+
+            OnAttach();
+
+            //ensure ignore collisions
+            if (ignoreCollisionBuffer != null && NativeCollisionObject != null)
+            {
+                foreach (var kvp in ignoreCollisionBuffer)
                 {
                     IgnoreCollisionWith(kvp.Key, kvp.Value);
                 }
@@ -700,6 +727,9 @@ namespace Stride.Engine
             }
         }
 
+        /// <summary>
+        /// Called whenever an entity with this component is added to scene.
+        /// </summary>
         protected virtual void OnAttach()
         {
             //set pre-set post deserialization properties

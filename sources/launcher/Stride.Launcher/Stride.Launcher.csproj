@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net8.0-windows7.0</TargetFramework>
+    <TargetFramework>net8.0-windows</TargetFramework>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
@@ -70,11 +70,11 @@
     <Resource Include="Resources\discord.png" />
     <Resource Include="Resources\showcase.png" />
     <Resource Include="Resources\Robot.jpg" />
-    <Resource Include="Resources\twitch.png" />
+    <Resource Include="Resources\twitch_24.png" />
     <Resource Include="Resources\facebook_24.png" />
     <Resource Include="Resources\reddit_24.png" />
-    <Resource Include="Resources\twitter_bird_24.png" />
-    <Resource Include="Resources\opencollective-24.png" />
+    <Resource Include="Resources\xtwitter_24.png" />
+    <Resource Include="Resources\opencollective_24.png" />
     <Resource Include="Resources\github.png" />
     <Resource Include="Resources\issues.png" />
     <Resource Include="Resources\Launcher.ico" />
@@ -119,6 +119,11 @@
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>Strings.resx</DependentUpon>
+    </Compile>
+    <Compile Update="Resources\Urls.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Urls.resx</DependentUpon>
     </Compile>
   </ItemGroup>
   <Import Project="..\..\editor\Stride.PrivacyPolicy\Stride.PrivacyPolicy.projitems" Label="Shared" Condition="Exists('..\..\editor\Stride.PrivacyPolicy\Stride.PrivacyPolicy.projitems')" />

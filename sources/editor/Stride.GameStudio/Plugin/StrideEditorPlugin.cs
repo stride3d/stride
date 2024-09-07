@@ -37,7 +37,7 @@ namespace Stride.GameStudio.Plugin
                 if (package != null)
                 {
                     // In package, we override editor build directory to be per-project and be shared with game build directory
-                    buildDirectory = $"{package.PackagePath.GetFullDirectory().ToWindowsPath()}\\obj\\stride\\assetbuild\\data";
+                    buildDirectory = new UFile($"{package.PackagePath.GetFullDirectory()}\\obj\\stride\\assetbuild\\data").ToOSPath();
                 }
 
                 // Attempt to create the directory to ensure it is valid.

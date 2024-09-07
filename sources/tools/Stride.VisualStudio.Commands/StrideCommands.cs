@@ -113,7 +113,7 @@ namespace Stride.VisualStudio.Commands
             {
                 foreach (var assetFolder in package.AssetFolders)
                 {
-                    var fullPath = assetFolder.Path.ToWindowsPath();
+                    var fullPath = assetFolder.Path.ToOSPath();
                     if (Directory.Exists(fullPath))
                     {
                         assetsPaths.Add(fullPath);

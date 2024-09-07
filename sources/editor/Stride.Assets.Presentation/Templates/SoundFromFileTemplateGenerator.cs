@@ -46,7 +46,7 @@ namespace Stride.Assets.Presentation.Templates
                 {
                     using (var media = new FFmpegMedia())
                     {
-                        media.Open(soundAsset.Source.ToWindowsPath());
+                        media.Open(soundAsset.Source.ToOSPath());
                         var audioStreams = media.Streams.OfType<AudioStream>().ToList();
                         foreach (var audioTrack in audioStreams)
                         {

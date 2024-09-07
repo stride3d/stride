@@ -92,6 +92,7 @@ namespace Stride.Core.Assets.Editor.Components.Properties
 
         internal bool HasExecutables { get; set; }
 
+        [DataMember]
         [MemberCollection(ReadOnly = true)]
         [Category]
         [NonIdentifiableCollectionItems]

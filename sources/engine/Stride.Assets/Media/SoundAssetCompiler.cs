@@ -53,7 +53,7 @@ namespace Stride.Assets.Media
                 {
                     var channels = Parameters.Spatialized ? 1 : 2;
                     var commandLine = "  -hide_banner -loglevel error" + // hide most log output
-                                      $" -i \"{assetSource.ToWindowsPath()}\"" + // input file
+                                      $" -i \"{assetSource.ToOSPath()}\"" + // input file
                                       $" -f f32le -acodec pcm_f32le -ac {channels} -ar {Parameters.SampleRate}" + // codec
                                       $" -map 0:{Parameters.Index}" + // stream index
                                       $" -y \"{tempFile}\""; // output file (always overwrite)
