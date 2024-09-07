@@ -732,17 +732,9 @@ public sealed class BepuSimulation : IDisposable
             // We may be able to get away with just a Lerp instead of Slerp, not sure if it needs to be normalized though at which point it may not be that much faster
             var interpolatedRotation = System.Numerics.Quaternion.Slerp(body.PreviousPose.Orientation, body.CurrentPose.Orientation, interpolationFactor).ToStride();
 
-            var entityTransform = body.Entity.Transform;
-            if (entityTransform.Parent is { } parent)
-            {
-                parent.WorldMatrix.Decompose(out Vector3 _, out Quaternion parentEntityRotation, out Vector3 parentEntityPosition);
-                var iRotation = Quaternion.Invert(parentEntityRotation);
-                interpolatedPosition = Vector3.Transform(interpolatedPosition - parentEntityPosition, iRotation);
-                interpolatedRotation = interpolatedRotation * iRotation;
-            }
-
-            entityTransform.Rotation = interpolatedRotation;
-            entityTransform.Position = interpolatedPosition - Vector3.Transform(body.CenterOfMass, interpolatedRotation);
+            body.WorldToLocal(ref interpolatedPosition, ref interpolatedRotation);
+            body.Entity.Transform.Position = interpolatedPosition;
+            body.Entity.Transform.Rotation = interpolatedRotation;
         }
     }
 

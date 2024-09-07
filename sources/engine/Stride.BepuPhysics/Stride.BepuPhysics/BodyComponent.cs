@@ -178,6 +178,14 @@ public class BodyComponent : CollidableComponent
         }
     }
 
+    /// <summary>
+    /// Teleports this object to a new world position.
+    /// </summary>
+    /// <remarks>
+    /// Using this property to move objects around is not recommended,
+    /// as it disregards any collider that may overlap with the body at this new position,
+    /// you should make sure the area is clear to ensure this object does not become stuck in the scenery.
+    /// </remarks>
     [DataMemberIgnore]
     public Vector3 Position
     {
@@ -185,10 +193,23 @@ public class BodyComponent : CollidableComponent
         set
         {
             if (BodyReference is { } bodyRef)
-                bodyRef.Pose.Position = value.ToNumeric();
+                bodyRef.Pose.Position = PreviousPose.Position = value.ToNumeric();
+
+            Quaternion dummy = default;
+            WorldToLocal(ref value, ref dummy);
+            Entity.Transform.Position = value;
+
         }
     }
 
+    /// <summary>
+    /// Teleports this object to a new world rotation.
+    /// </summary>
+    /// <remarks>
+    /// Using this property to move objects around is not recommended,
+    /// as it disregards any collider that may overlap with the body at this new orientation,
+    /// you should make sure the area is clear to ensure this object does not become stuck in the scenery.
+    /// </remarks>
     [DataMemberIgnore]
     public Quaternion Orientation
     {
@@ -196,7 +217,11 @@ public class BodyComponent : CollidableComponent
         set
         {
             if (BodyReference is { } bodyRef)
-                bodyRef.Pose.Orientation = value.ToNumeric();
+                bodyRef.Pose.Orientation = PreviousPose.Orientation = value.ToNumeric();
+
+            Vector3 dummy = default;
+            WorldToLocal(ref dummy, ref value);
+            Entity.Transform.Rotation = value;
         }
     }
 
@@ -316,7 +341,7 @@ public class BodyComponent : CollidableComponent
         if (InterpolationMode != InterpolationMode.None)
             Simulation.UnregisterInterpolated(this);
 
-        if (Parent is { } parent) // Make sure that children we leave behind can count on their grand-parent to take care of them
+        if (Parent is { } parent) // Make sure that children we leave behind can count on their grandparent to take care of them
             SetParentForChildren(parent, Entity.Transform, Simulation);
         Parent = null;
 
@@ -340,6 +365,23 @@ public class BodyComponent : CollidableComponent
         if (Simulation is not null && BodyReference is { } bRef)
             return Simulation.ContactEvents.IsListener(bRef.Handle);
         return false;
+    }
+
+    /// <summary>
+    /// A special variant taking the center of mass into consideration
+    /// </summary>
+    internal void WorldToLocal(ref Vector3 worldPos, ref Quaternion worldRot)
+    {
+        var entityTransform = Entity.Transform;
+        if (entityTransform.Parent is { } parent)
+        {
+            parent.WorldMatrix.Decompose(out Vector3 _, out Quaternion parentEntityRotation, out Vector3 parentEntityPosition);
+            var iRotation = Quaternion.Invert(parentEntityRotation);
+            worldPos = Vector3.Transform(worldPos - parentEntityPosition, iRotation);
+            worldRot *= iRotation;
+        }
+
+        worldPos -= Vector3.Transform(CenterOfMass, worldRot);
     }
 
     private static void SetParentForChildren(BodyComponent parent, TransformComponent root, BepuSimulation simulation)
