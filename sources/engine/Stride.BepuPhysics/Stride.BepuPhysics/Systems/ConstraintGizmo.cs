@@ -162,7 +162,7 @@ public class ConstraintGizmo : IEntityGizmo
                         _selected ? _sharedData.MaterialOnSelect : _sharedData.Material,
                         shape,
                     },
-                    RenderGroup = IEntityGizmo.PickingForegroundRenderGroup,
+                    RenderGroup = IEntityGizmo.PickingRenderGroup,
                     Enabled = _selected || _enabled
                 })
             };
