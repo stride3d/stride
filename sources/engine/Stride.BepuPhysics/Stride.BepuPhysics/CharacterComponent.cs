@@ -21,19 +21,17 @@ public class CharacterComponent : BodyComponent, ISimulationUpdate, IContactEven
 {
     private bool _tryJump;
 
-    /// <summary>
-    /// Movement speed
-    /// </summary>
+    /// <summary> Base speed applied when moving, measured in units per second </summary>
     public float Speed { get; set; } = 10f;
-    /// <summary>
-    /// Jump force
-    /// </summary>
+
+    /// <summary> Force of the impulse applied when calling <see cref="TryJump"/> </summary>
     public float JumpSpeed { get; set; } = 10f;
 
     [DataMemberIgnore]
     public Vector3 Velocity { get; set; }
+
     [DataMemberIgnore]
-    public bool IsGrounded { get; private set; }
+    public bool IsGrounded { get; protected set; }
 
     /// <summary>
     /// Order is not guaranteed and may change at any moment
@@ -46,6 +44,7 @@ public class CharacterComponent : BodyComponent, ISimulationUpdate, IContactEven
         InterpolationMode = InterpolationMode.Interpolated;
     }
 
+    /// <inheritdoc cref="BodyComponent.AttachInner"/>
     protected override void AttachInner(NRigidPose pose, BodyInertia shapeInertia, TypedIndex shapeIndex)
     {
         #warning Norbo: validate whether we can remove the setter for BodyInertia below by feeding it in place of shapeIntertia here ?
@@ -55,21 +54,32 @@ public class CharacterComponent : BodyComponent, ISimulationUpdate, IContactEven
         ContactEventHandler = this;
     }
 
-    public void Move(Vector3 direction)
+    /// <summary>
+    /// Sets the velocity based on <paramref name="direction"/> and <see cref="Speed"/>
+    /// </summary>
+    /// <remarks>
+    /// <paramref name="direction"/> does not have to be normalized;
+    /// if the vector passed in has a length of 2, the character will go twice as fast
+    /// </remarks>
+    public virtual void Move(Vector3 direction)
     {
         // Note that this method should be thread safe, see usage in RecastPhysicsNavigationProcessor
         Velocity = direction * Speed;
     }
 
     /// <summary>
-    /// Will jump if grounded
+    /// Try to perform a jump on the next physics tick, will fail when not grounded
     /// </summary>
-    public void TryJump()
+    public virtual void TryJump()
     {
         _tryJump = true;
     }
 
-    public void SimulationUpdate(float simTimeStep)
+    /// <summary>
+    /// This is called internally right before the physics simulation does a tick
+    /// </summary>
+    /// <param name="simTimeStep">The amount of time in seconds since the last simulation</param>
+    public virtual void SimulationUpdate(float simTimeStep)
     {
         Awake = true; // Keep this body active
 
@@ -82,30 +92,50 @@ public class CharacterComponent : BodyComponent, ISimulationUpdate, IContactEven
             _tryJump = false;
         }
     }
-    public void AfterSimulationUpdate(float simTimeStep)
+
+    /// <summary>
+    /// This is called internally right after the physics simulation does a tick
+    /// </summary>
+    /// <param name="simTimeStep">The amount of time in seconds since the last simulation</param>
+    public virtual void AfterSimulationUpdate(float simTimeStep)
     {
-        CheckGrounded(); // Checking for grounded after simulation ran to compute contacts as soon as possible after they are received
-        // If there is no input from the player and we are grounded, ignore gravity to prevent sliding down the slope we might be on
-        // Do not ignore if there is any input to ensure we stick to the surface as much as possible while moving down the slope
+        IsGrounded = GroundTest(-Simulation!.PoseGravity.ToNumeric()); // Checking for grounded after simulation ran to compute contacts as soon as possible after they are received
+        // If there is no input from the player, and we are grounded, ignore gravity to prevent sliding down the slope we might be on
+        // Do not ignore if there is any input to ensure we stick to the surface as much as possible while moving down a slope
         Gravity = !IsGrounded || Velocity.Length() > 0f;
     }
-    private void CheckGrounded()
+
+    /// <summary>
+    /// Returns whether this body is in contact with the ground.
+    /// </summary>
+    /// <remarks>
+    /// Goes through the list of <see cref="Contacts"/> to do so
+    /// </remarks>
+    /// <param name="groundNormal"> Which direction a surface has to be in to be considered as ground </param>
+    /// <param name="threshold">
+    /// How close to this direction a supporting contact
+    /// has to be for it to be considered as ground.
+    /// In the [-1,1] range, where -1 would return true for any given surface we are in contact with,
+    /// 0 would return true for a surface that is at most 90 degrees away from <paramref name="groundNormal"/>,
+    /// and 1 would return true only when a surface matches <paramref name="groundNormal"/> exactly.
+    /// </param>
+    protected bool GroundTest(NVector3 groundNormal, float threshold = 0f)
     {
         IsGrounded = false;
         if (Simulation == null || Contacts.Count == 0)
-            return;
+            return false;
 
-        var gravity = Simulation.PoseGravity.ToNumeric();
         foreach (var contact in Contacts)
         {
             var contactNormal = contact.Contact.Normal;
 
-            if (NVector3.Dot(gravity, contactNormal) < 0) // If the body is supported by a contact whose surface is against gravity
+            if (NVector3.Dot(groundNormal, contactNormal) >= threshold) // If the body is supported by a contact whose surface is against gravity
             {
-                IsGrounded = true;
-                return;
+                return true;
             }
         }
+
+        return false;
     }
 
     bool IContactEventHandler.NoContactResponse => NoContactResponse;
@@ -115,7 +145,7 @@ public class CharacterComponent : BodyComponent, ISimulationUpdate, IContactEven
 
     protected bool NoContactResponse => false;
 
-    protected void OnStartedTouching<TManifold>(CollidableReference eventSource, CollidableReference other, ref TManifold contactManifold, int contactIndex, BepuSimulation bepuSimulation) where TManifold : unmanaged, IContactManifold<TManifold>
+    protected virtual void OnStartedTouching<TManifold>(CollidableReference eventSource, CollidableReference other, ref TManifold contactManifold, int contactIndex, BepuSimulation bepuSimulation) where TManifold : unmanaged, IContactManifold<TManifold>
     {
         var otherCollidable = bepuSimulation.GetComponent(other);
         contactManifold.GetContact(contactIndex, out var contact);
@@ -123,7 +153,7 @@ public class CharacterComponent : BodyComponent, ISimulationUpdate, IContactEven
         Contacts.Add((otherCollidable, contact));
     }
 
-    protected void OnStoppedTouching<TManifold>(CollidableReference eventSource, CollidableReference other, ref TManifold contactManifold, int contactIndex, BepuSimulation bepuSimulation) where TManifold : unmanaged, IContactManifold<TManifold>
+    protected virtual void OnStoppedTouching<TManifold>(CollidableReference eventSource, CollidableReference other, ref TManifold contactManifold, int contactIndex, BepuSimulation bepuSimulation) where TManifold : unmanaged, IContactManifold<TManifold>
     {
         var otherCollidable = bepuSimulation.GetComponent(other);
         for (int i = Contacts.Count - 1; i >= 0; i--)

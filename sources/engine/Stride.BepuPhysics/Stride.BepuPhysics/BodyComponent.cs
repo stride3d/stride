@@ -282,6 +282,7 @@ public class BodyComponent : CollidableComponent
     protected override ref MaterialProperties MaterialProperties => ref Simulation!.CollidableMaterials[BodyReference!.Value];
     protected internal override NRigidPose? Pose => BodyReference?.Pose;
 
+    /// <inheritdoc cref="CollidableComponent.AttachInner"/>
     protected override void AttachInner(NRigidPose pose, BodyInertia shapeInertia, TypedIndex shapeIndex)
     {
         Debug.Assert(Simulation is not null);
@@ -325,6 +326,7 @@ public class BodyComponent : CollidableComponent
         }
     }
 
+    /// <inheritdoc cref="CollidableComponent.DetachInner"/>
     protected override void DetachInner()
     {
         Debug.Assert(BodyReference is not null);
