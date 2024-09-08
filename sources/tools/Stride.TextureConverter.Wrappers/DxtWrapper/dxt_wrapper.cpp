@@ -109,6 +109,11 @@ HRESULT dxtLoadTGAFile( const char* szFile, DirectX::TexMetadata* metadata, Dire
 	return result;
 }
 
+HRESULT dxtLoadWICFile(LPCWSTR szFile, int flags, DirectX::TexMetadata* metadata, DirectX::ScratchImage& image)
+{
+	return DirectX::LoadFromWICFile(szFile, flags, metadata, image);
+}
+
 HRESULT dxtSaveToDDSFile( const DirectX::Image& image, DirectX::DDS_FLAGS flags, const char* szFile )
 {
 	const wchar_t* filePath = narrowToWideString(szFile);
