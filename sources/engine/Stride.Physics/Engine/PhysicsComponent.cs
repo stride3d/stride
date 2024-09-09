@@ -368,6 +368,9 @@ namespace Stride.Engine
         protected ColliderShape colliderShape;
 
         [DataMemberIgnore]
+        protected bool attachInProgress = false;
+
+        [DataMemberIgnore]
         public virtual ColliderShape ColliderShape
         {
             get
@@ -644,16 +647,19 @@ namespace Stride.Engine
         internal void Attach(PhysicsProcessor.AssociatedData data)
         {
             Data = data;
+            attachInProgress = true;
 
             if (ColliderShapes.Count == 0 && ColliderShape == null)
             {
                 logger.Error($"Entity {{Entity.Name}} has a PhysicsComponent without any collider shape.");
+                attachInProgress = false;
                 return; //no shape no purpose
             }
 
             //this is mostly required for the game studio gizmos
             if (Simulation.DisableSimulation)
             {
+                attachInProgress = false;
                 return;
             }
 
@@ -666,6 +672,7 @@ namespace Stride.Engine
                 if (ColliderShape == null)
                 {
                     logger.Error($"Entity {Entity.Name}'s PhysicsComponent failed to compose its collider shape.");
+                    attachInProgress = false;
                     return; //no shape no purpose
                 }
             }
@@ -682,6 +689,8 @@ namespace Stride.Engine
                 }
                 ignoreCollisionBuffer = null;
             }
+
+            attachInProgress = false;
         }
 
         /// <summary>
