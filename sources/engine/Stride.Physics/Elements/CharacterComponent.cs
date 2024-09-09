@@ -300,6 +300,54 @@ namespace Stride.Physics
             Simulation.AddCharacter(this, (CollisionFilterGroupFlags)CollisionGroup, CanCollideWith);
         }
 
+        /// <summary>
+        /// Reconstruct of character controller to avoid possible UAF issues
+        /// Context: On ColliderShape changes, when ComposeShape is ran to rebuild ColliderShape properties, disposing the old ColliderShape can cause UAF
+        /// issues inside KinematicCharacter and inside Simulation discreteDynamicWorld due to old disposed references to the native object.
+        /// </summary>
+        public override void ComposeShape()
+        {
+            //Disposing of ColliderShape should happen before we remove NativeCollisionObject and KinematicCharacter from Simulation
+            base.ComposeShape();
+
+            //make PairCachingGhostObject references in KinematicCharacter valid, therefore make new instance of kinematic character controller with  
+            //updated NativeCollisionObject keep references valid
+            if (KinematicCharacter != null)
+            {
+                //very mediocre workaround to avoid the nullref when we remove character
+                Simulation simRef = Simulation;
+
+                //remove references in discreteDynamicsWorld
+                Simulation.RemoveCharacter(this);
+                Simulation = simRef;
+
+                //destroy and deref KinematicCharacter then reconstruct it
+                BulletSharp.KinematicCharacterController kinematicCharacterProperties = KinematicCharacter;
+                KinematicCharacter.Dispose();
+                KinematicCharacter = null;
+                BulletSharp.Math.Vector3 unitY = new BulletSharp.Math.Vector3(0f, 1f, 0f);
+                //Make new KinematicCharacter
+                KinematicCharacter = new BulletSharp.KinematicCharacterController((BulletSharp.PairCachingGhostObject)NativeCollisionObject, (BulletSharp.ConvexShape)ColliderShape.InternalShape, StepHeight, ref unitY);
+                OverrideKinematicCharacterValues(kinematicCharacterProperties);
+
+                //now we can add these references BACK in Simulation's discreteDynamicsWorld
+                Simulation.AddCharacter(this, (CollisionFilterGroupFlags)CollisionGroup, CanCollideWith);
+            }
+        }
+
+        /// <summary>
+        /// When we reconstruct our KinematicCharacter, we would want to preserve some physics properties. Try to have the
+        /// physics of the object try to match as close as possible.
+        /// </summary>
+        /// <param name="oldController"></param>
+        private void OverrideKinematicCharacterValues(BulletSharp.KinematicCharacterController oldController)
+        {
+            KinematicCharacter.FallSpeed = oldController.FallSpeed;
+            KinematicCharacter.Gravity = oldController.Gravity;
+            KinematicCharacter.JumpSpeed = oldController.JumpSpeed;
+            KinematicCharacter.LinearVelocity = oldController.LinearVelocity;
+        }
+
         protected override void OnDetach()
         {
             if (KinematicCharacter == null) return;
