@@ -869,14 +869,19 @@ namespace Stride.Importer.ThreeD
             }
         }
 
-       
+
         private unsafe void ExtractEmbededTexture(Scene* scene, string importFieName)
         {
             string dir = Path.GetDirectoryName(importFieName);
             for (uint i = 0; i < scene->MNumTextures; ++i)
             {
-                var texture=scene->MTextures[i];
-                string fullName = Path.Combine(dir, Path.GetFileName(texture->MFilename));
+                var texture = scene->MTextures[i];
+                if (!Material.Materials.TryGetTextureFileName(texture, out var texFileName, out var errorMessage))
+                {
+                    Logger.Error(errorMessage);
+                    continue;
+                }
+                string fullName = Path.Combine(dir, texFileName);
                 CreateTextureFile(texture, fullName);
             }
         }
@@ -903,7 +908,7 @@ namespace Stride.Importer.ThreeD
             {
                 var lMaterial = scene->MMaterials[i];
                 var materialName = materialNames[(IntPtr)lMaterial];
-                materials.Add(materialName, ProcessMeshMaterial(lMaterial));
+                materials.Add(materialName, ProcessMeshMaterial(scene, lMaterial));
             }
             return materials;
         }
@@ -923,7 +928,7 @@ namespace Stride.Importer.ThreeD
             GenerateUniqueNames(materialNames, baseNames, i => (IntPtr)scene->MMaterials[i]);
         }
 
-        private unsafe MaterialAsset ProcessMeshMaterial(Silk.NET.Assimp.Material* pMaterial)
+        private unsafe MaterialAsset ProcessMeshMaterial(Scene* scene, Silk.NET.Assimp.Material* pMaterial)
         {
             var finalMaterial = new MaterialAsset();
 
@@ -955,16 +960,16 @@ namespace Stride.Importer.ThreeD
             if (hasDiffColor == false)
                 SetMaterialColorFlag(pMaterial, Assimp.MatkeyBaseColor, ref hasDiffColor, ref diffColor, true);
 
-            BuildLayeredSurface(pMaterial, hasDiffColor, false, diffColor.ToStrideColor(), 0.0f, TextureType.Diffuse, finalMaterial);
-            BuildLayeredSurface(pMaterial, hasSpecColor, false, specColor.ToStrideColor(), 0.0f, TextureType.Specular, finalMaterial);
-            BuildLayeredSurface(pMaterial, false, false, dummyColor.ToStrideColor(), 0.0f, TextureType.Normals, finalMaterial);
-            BuildLayeredSurface(pMaterial, false, false, dummyColor.ToStrideColor(), 0.0f, TextureType.Displacement, finalMaterial);
-            BuildLayeredSurface(pMaterial, hasAmbientColor, false, ambientColor.ToStrideColor(), 0.0f, TextureType.Ambient, finalMaterial);
-            BuildLayeredSurface(pMaterial, false, hasOpacity, dummyColor.ToStrideColor(), opacity, TextureType.Opacity, finalMaterial);
-            BuildLayeredSurface(pMaterial, false, hasSpecPower, dummyColor.ToStrideColor(), specPower, TextureType.Shininess, finalMaterial);
-            BuildLayeredSurface(pMaterial, hasEmissiveColor, false, emissiveColor.ToStrideColor(), 0.0f, TextureType.Emissive, finalMaterial);
-            BuildLayeredSurface(pMaterial, false, false, dummyColor.ToStrideColor(), 0.0f, TextureType.Height, finalMaterial);
-            BuildLayeredSurface(pMaterial, hasReflectiveColor, false, reflectiveColor.ToStrideColor(), 0.0f, TextureType.Reflection, finalMaterial);
+            BuildLayeredSurface(scene, pMaterial, hasDiffColor, false, diffColor.ToStrideColor(), 0.0f, TextureType.Diffuse, finalMaterial);
+            BuildLayeredSurface(scene, pMaterial, hasSpecColor, false, specColor.ToStrideColor(), 0.0f, TextureType.Specular, finalMaterial);
+            BuildLayeredSurface(scene, pMaterial, false, false, dummyColor.ToStrideColor(), 0.0f, TextureType.Normals, finalMaterial);
+            BuildLayeredSurface(scene, pMaterial, false, false, dummyColor.ToStrideColor(), 0.0f, TextureType.Displacement, finalMaterial);
+            BuildLayeredSurface(scene, pMaterial, hasAmbientColor, false, ambientColor.ToStrideColor(), 0.0f, TextureType.Ambient, finalMaterial);
+            BuildLayeredSurface(scene, pMaterial, false, hasOpacity, dummyColor.ToStrideColor(), opacity, TextureType.Opacity, finalMaterial);
+            BuildLayeredSurface(scene, pMaterial, false, hasSpecPower, dummyColor.ToStrideColor(), specPower, TextureType.Shininess, finalMaterial);
+            BuildLayeredSurface(scene, pMaterial, hasEmissiveColor, false, emissiveColor.ToStrideColor(), 0.0f, TextureType.Emissive, finalMaterial);
+            BuildLayeredSurface(scene, pMaterial, false, false, dummyColor.ToStrideColor(), 0.0f, TextureType.Height, finalMaterial);
+            BuildLayeredSurface(scene, pMaterial, hasReflectiveColor, false, reflectiveColor.ToStrideColor(), 0.0f, TextureType.Reflection, finalMaterial);
 
             return finalMaterial;
         }
@@ -989,7 +994,7 @@ namespace Stride.Importer.ThreeD
             return diffColor != System.Numerics.Vector4.Zero;
         }
 
-        private unsafe void BuildLayeredSurface(Silk.NET.Assimp.Material* pMat, bool hasBaseColor, bool hasBaseValue, Color4 baseColor, float baseValue, TextureType textureType, MaterialAsset finalMaterial)
+        private unsafe void BuildLayeredSurface(Scene* scene, Silk.NET.Assimp.Material* pMat, bool hasBaseColor, bool hasBaseValue, Color4 baseColor, float baseValue, TextureType textureType, MaterialAsset finalMaterial)
         {
             var nbTextures = assimp.GetMaterialTextureCount(pMat, textureType);
 
@@ -1008,7 +1013,7 @@ namespace Stride.Importer.ThreeD
             }
             else
             {
-                computeColorNode = GenerateOneTextureTypeLayers(pMat, textureType, textureCount, finalMaterial);
+                computeColorNode = GenerateOneTextureTypeLayers(scene, pMat, textureType, textureCount, finalMaterial);
             }
 
             if (computeColorNode == null)
@@ -1020,7 +1025,7 @@ namespace Stride.Importer.ThreeD
             {
                 if (assimp.GetMaterialTextureCount(pMat, TextureType.Lightmap) > 0)
                 {
-                    var lightMap = GenerateOneTextureTypeLayers(pMat, TextureType.Lightmap, textureCount, finalMaterial);
+                    var lightMap = GenerateOneTextureTypeLayers(scene, pMat, TextureType.Lightmap, textureCount, finalMaterial);
                     if (lightMap != null)
                         computeColorNode = new ComputeBinaryColor(computeColorNode, lightMap, BinaryOperator.Add);
                 }
@@ -1085,9 +1090,9 @@ namespace Stride.Importer.ThreeD
             }
         }
 
-        private unsafe IComputeColor GenerateOneTextureTypeLayers(Silk.NET.Assimp.Material* pMat, TextureType textureType, int textureCount, MaterialAsset finalMaterial)
+        private unsafe IComputeColor GenerateOneTextureTypeLayers(Scene* scene, Silk.NET.Assimp.Material* pMat, TextureType textureType, int textureCount, MaterialAsset finalMaterial)
         {
-            var stack = Material.Materials.ConvertAssimpStackCppToCs(assimp, pMat, textureType, Logger);
+            var stack = Material.Materials.ConvertAssimpStackCppToCs(assimp, scene, pMat, textureType, Logger);
 
             var compositionFathers = new Stack<IComputeColor>();
 
@@ -1345,7 +1350,12 @@ namespace Stride.Importer.ThreeD
 
                         if (assimp.GetMaterialTexture(lMaterial, textureType, j, ref path, ref mapping, ref uvIndex, ref blend, ref textureOp, ref mapMode, ref flags) == Return.Success)
                         {
-                            var relFileName = Path.GetFileName(path.AsString);
+                            if (!Material.Materials.TryGetTextureFileName(path.AsString, scene, out var texFileName, out var errorMessage))
+                            {
+                                Logger.Error(errorMessage);
+                                break;
+                            }
+                            var relFileName = texFileName;
                             var fileNameToUse = Path.Combine(vfsInputPath, relFileName);
                             textureNames.Add(fileNameToUse);
                             break;
