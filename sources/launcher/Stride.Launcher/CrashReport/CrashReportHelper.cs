@@ -27,7 +27,12 @@ namespace Stride.LauncherApp.CrashReport
             terminating = true;
 
             var englishCulture = new CultureInfo("en-US");
-            var crashLogThread = new Thread(CrashReport) { CurrentUICulture = englishCulture, CurrentCulture = englishCulture };
+            var crashLogThread = new Thread(CrashReport)
+            {
+                CurrentUICulture = englishCulture,
+                CurrentCulture = englishCulture
+            };
+            crashLogThread.SetApartmentState(ApartmentState.STA);
             crashLogThread.Start(new CrashReportArgs(exception, dispatcher));
             crashLogThread.Join();
         }
