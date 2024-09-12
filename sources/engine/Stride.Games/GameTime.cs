@@ -119,11 +119,8 @@ namespace Stride.Games
         }
 
         /// <summary>
-        /// Updated total GameTime, Elapsed GameTime and increments the frame count if set to true. 
+        /// Set <see cref="Total" /> and <see cref="Elapsed" /> to the properties provided, also increments frame count if <paramref name="incrementFrameCount" /> is true
         /// </summary>
-        /// <param name="totalGameTime"></param>
-        /// <param name="elapsedGameTime"></param>
-        /// <param name="incrementFrameCount"></param>
         public void Update(TimeSpan totalGameTime, TimeSpan elapsedGameTime, bool incrementFrameCount)
         {
             Total = totalGameTime;
@@ -151,9 +148,8 @@ namespace Stride.Games
         }
 
         /// <summary>
-        /// Resets GameTime, does not increment frame count.
+        /// Set <see cref="Total" /> to <paramref name="totalGameTime" /> and reset every other properties to their initial value.
         /// </summary>
-        /// <param name="totalGameTime"></param>
         public void Reset(TimeSpan totalGameTime)
         {
             Update(totalGameTime, TimeSpan.Zero, false);
