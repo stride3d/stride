@@ -7,14 +7,37 @@ using System.ComponentModel;
 using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Core.Collections;
+using Stride.Core.Diagnostics;
 using Stride.Core.Serialization;
 using Stride.Core.Serialization.Contents;
-using Stride.Core.Diagnostics;
 using Stride.Engine;
 using Stride.Graphics;
 
 namespace Stride.Rendering.Compositing
 {
+    /// <summary>
+    /// The <c>GraphicsCompositor</c> class organizes how scenes are rendered in the Stride engine, providing extensive customization of the rendering pipeline.
+    /// </summary>
+    /// <remarks>
+    /// This class handles the initialization and destruction of the render system, manages the cameras used in the composition, and controls the render stages and features.
+    /// It provides entry points for the game compositor, a single view compositor, and a compositor used by the scene editor.
+    /// <para>
+    /// Key features of the <c>GraphicsCompositor</c> include:
+    /// </para>
+    /// <list type="bullet">
+    ///   <item><description>Using one or multiple cameras</description></item>
+    ///   <item><description>Filtering entities</description></item>
+    ///   <item><description>Rendering to one or more render textures with different viewports</description></item>
+    ///   <item><description>Setting HDR or LDR rendering</description></item>
+    ///   <item><description>Applying post effects to a render target</description></item>
+    ///   <item><description>Clearing a render target or only the depth buffer</description></item>
+    ///   <item><description>Editable in the Game Studio and at runtime from scripts</description></item>
+    /// </list>
+    /// <para>
+    /// For more information, see the
+    /// <see href="https://doc.stride3d.net/latest/en/manual/graphics/graphics-compositor/index.html">Graphics Compositor</see> documentation.
+    /// </para>
+    /// </remarks>
     [DataSerializerGlobal(typeof(ReferenceSerializer<GraphicsCompositor>), Profile = "Content")]
     [ReferenceSerializer, ContentSerializer(typeof(DataContentSerializerWithReuse<GraphicsCompositor>))]
     [DataContract]
