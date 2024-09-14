@@ -24,8 +24,8 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Stride.Engine\Stride.Engine.csproj" />
-    <PackageReference Include="SharpDX.MediaFoundation" Condition="'$(TargetFramework)' == '$(StrideFramework)' Or '$(TargetFramework)' == '$(StrideFrameworkUWP)'" />
-    <PackageReference Include="SharpDX.Direct3D11" Condition="'$(TargetFramework)' == '$(StrideFramework)' Or '$(TargetFramework)' == '$(StrideFrameworkUWP)'" />
+    <PackageReference Include="SharpDX.MediaFoundation" Condition="'$(TargetFramework)' == '$(StrideFramework)'" />
+    <PackageReference Include="SharpDX.Direct3D11" Condition="'$(TargetFramework)' == '$(StrideFramework)'" />
     <PackageReference Include="SharpDX.Direct3D12" Condition="'$(TargetFramework)' == '$(StrideFramework)'" />
   </ItemGroup>
   <Choose>

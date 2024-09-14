@@ -44,9 +44,9 @@
     <ProjectReference Include="..\Stride.Shaders\Stride.Shaders.csproj" />
     <ProjectReference Include="..\Stride\Stride.csproj" />
     <PackageReference Include="System.Memory" />
-    <PackageReference Include="SharpDX.Direct3D11" Condition="'$(TargetFramework)' == '$(StrideFramework)' Or '$(TargetFramework)' == '$(StrideFrameworkUWP)'" />
+    <PackageReference Include="SharpDX.Direct3D11" Condition="'$(TargetFramework)' == '$(StrideFramework)'" />
     <PackageReference Include="SharpDX.Direct3D12" Condition="'$(TargetFramework)' == '$(StrideFramework)'" />
-    <PackageReference Include="SharpDX.D3DCompiler" Condition="'$(TargetFramework)' == '$(StrideFramework)' Or '$(TargetFramework)' == '$(StrideFrameworkUWP)'" />
+    <PackageReference Include="SharpDX.D3DCompiler" Condition="'$(TargetFramework)' == '$(StrideFramework)'" />
     <PackageReference Include="Vortice.Vulkan" Condition="'$(TargetFramework)' == '$(StrideFramework)'" />
     <PackageReference Include="Silk.NET.OpenGL" Condition="'$(TargetFramework)' == '$(StrideFramework)'" />
     <PackageReference Include="Silk.NET.OpenGLES" />

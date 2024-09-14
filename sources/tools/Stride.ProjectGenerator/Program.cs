@@ -571,7 +571,6 @@ namespace Stride.ProjectGenerator
 
                 case PlatformType.Linux:
                 case PlatformType.macOS:
-                case PlatformType.UWP:
                     configurations.Add("Any CPU", "Any CPU");
                     needDeploy = true;
                     break;

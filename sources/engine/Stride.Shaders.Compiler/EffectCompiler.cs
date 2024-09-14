@@ -204,8 +204,6 @@ namespace Stride.Shaders.Compiler
 #if STRIDE_PLATFORM_DESKTOP
                 case GraphicsPlatform.Direct3D11:
                 case GraphicsPlatform.Direct3D12:
-                    if (Platform.Type != PlatformType.Windows && Platform.Type != PlatformType.UWP)
-                        throw new NotSupportedException();
                     compiler = new Direct3D.ShaderCompiler();
                     break;
 #endif

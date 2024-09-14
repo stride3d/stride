@@ -8,7 +8,7 @@ namespace Stride.Graphics
 {
     public static partial class GraphicsAdapterFactory
     {
-#if STRIDE_PLATFORM_UWP || DIRECTX11_1
+#if DIRECTX11_1
         internal static Factory2 NativeFactory;
 #else
         internal static Factory1 NativeFactory;
@@ -24,9 +24,6 @@ namespace Stride.Graphics
 #if DIRECTX11_1
             using (var factory = new Factory1())
             NativeFactory = factory.QueryInterface<Factory2>();
-#elif STRIDE_PLATFORM_UWP
-            // Maybe this will become default code for everybody if we switch to DX 11.1/11.2 SharpDX dll?
-            NativeFactory = new Factory2();
 #else
             NativeFactory = new Factory1();
 #endif

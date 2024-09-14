@@ -5,7 +5,7 @@
   </PropertyGroup>
   <Import Project="..\..\targets\Stride.props" />
   <PropertyGroup>
-    <StridePlatformFilter>Windows;Android;iOS;Linux;macOS;UWP</StridePlatformFilter>
+    <StridePlatformFilter>Windows;Android;iOS;Linux;macOS</StridePlatformFilter>
     <DefineConstants>$(DefineConstants);XAMCORE_2_0</DefineConstants>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <StridePlatformDependent>true</StridePlatformDependent>

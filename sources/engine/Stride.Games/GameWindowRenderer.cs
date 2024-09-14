@@ -218,17 +218,7 @@ namespace Stride.Games
                 presentationParameters.PresentationInterval = PresentInterval.Immediate;
                 presentationParameters.OutputColorSpace = preferredOutputColorSpace;
 
-#if STRIDE_GRAPHICS_API_DIRECT3D11 && STRIDE_PLATFORM_UWP
-                if (Game.Context is GameContextUWPCoreWindow context && context.IsWindowsMixedReality)
-                {
-                    Presenter = new WindowsMixedRealityGraphicsPresenter(GraphicsDevice, presentationParameters);
-                }
-                else
-#endif
-                {
-                    Presenter = new SwapChainGraphicsPresenter(GraphicsDevice, presentationParameters);
-                }
-
+                Presenter = new SwapChainGraphicsPresenter(GraphicsDevice, presentationParameters);
                 isBackBufferToResize = false;
                 isColorSpaceToChange = false;
             }
