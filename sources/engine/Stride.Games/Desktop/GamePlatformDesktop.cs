@@ -29,7 +29,7 @@ namespace Stride.Games
 {
     public class GamePlatformDesktop : GamePlatform
     {
-        public GamePlatformDesktop(GameBase game) : base(game)
+        public GamePlatformDesktop() : base()
         {
             IsBlockingRun = true;
 #if (STRIDE_UI_WINFORMS || STRIDE_UI_WPF)

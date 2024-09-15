@@ -34,31 +34,42 @@ namespace Stride.Games
     {
         private bool hasExitRan = false;
 
-        protected readonly GameBase game;
+        protected GameBase game;
 
-        protected readonly IServiceRegistry Services;
+        protected IServiceRegistry Services;
 
         protected GameWindow gameWindow;
 
         public string FullName { get; protected set; } = string.Empty;
 
-        protected GamePlatform(GameBase game)
+        /// <summary>
+        /// <see cref="GamePlatform"/> should be configured by calling <see cref="ConfigurePlatform"/> before being used.
+        /// </summary>
+        protected GamePlatform()
         {
-            this.game = game;
+        }
+
+        /// <summary>
+        /// This is called by the game to configure the platform within the <see cref="GameBase"/> constructor.
+        /// </summary>
+        /// <param name="gameBase"></param>
+        public virtual void ConfigurePlatform(GameBase gameBase)
+        {
+            game = gameBase;
             Services = game.Services;
         }
 
-        public static GamePlatform Create(GameBase game)
+        public static GamePlatform Create()
         {
 #if STRIDE_PLATFORM_UWP
-            return new GamePlatformUWP(game);
+            return new GamePlatformUWP();
 #elif STRIDE_PLATFORM_ANDROID
-            return new GamePlatformAndroid(game);
+            return new GamePlatformAndroid();
 #elif STRIDE_PLATFORM_IOS
-            return new GamePlatformiOS(game);
+            return new GamePlatformiOS();
 #else
             // Here we cover all Desktop variants: OpenTK, SDL, Winforms,...
-            return new GamePlatformDesktop(game);
+            return new GamePlatformDesktop();
 #endif
         }
 

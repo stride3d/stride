@@ -132,7 +132,10 @@ namespace Stride.Games
             Services.AddService<IGameSystemCollection>(GameSystems);
 
             // Create Platform
-            gamePlatform = platform ?? GamePlatform.Create(this);
+            gamePlatform = platform ?? GamePlatform.Create();
+
+            // Configure platform to contain the game reference as needed.
+            gamePlatform.ConfigurePlatform(this);
             gamePlatform.Activated += GamePlatform_Activated;
             gamePlatform.Deactivated += GamePlatform_Deactivated;
             gamePlatform.Exiting += GamePlatform_Exiting;
