@@ -41,7 +41,7 @@ namespace Stride.Games
     {
         #region Fields
 
-        private readonly GamePlatform gamePlatform;
+        protected GamePlatform gamePlatform;
         private IGraphicsDeviceService graphicsDeviceService;
         protected IGraphicsDeviceManager graphicsDeviceManager;
         private ResumeManager resumeManager;
@@ -64,6 +64,42 @@ namespace Stride.Games
         #endregion
 
         #region Constructors and Destructors
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="GameBase" /> class.
+        /// </summary>
+        public GameBase()
+        {
+            // Internals
+            Log = GlobalLogger.GetLogger(GetType().GetTypeInfo().Name);
+            UpdateTime = new GameTime();
+            DrawTime = new GameTime();
+            autoTickTimer = new TimerTick();
+            IsFixedTimeStep = false;
+            maximumElapsedTime = TimeSpan.FromMilliseconds(500.0);
+            TargetElapsedTime = TimeSpan.FromTicks(TimeSpan.TicksPerSecond / 60); // target elapsed time is by default 60Hz
+
+            TreatNotFocusedLikeMinimized = true;
+            WindowMinimumUpdateRate = new ThreadThrottler(TimeSpan.FromSeconds(0d));
+            MinimizedMinimumUpdateRate = new ThreadThrottler(15); // by default 15 updates per second while minimized
+
+            isMouseVisible = true;
+
+            // Externals
+            Services = new ServiceRegistry();
+
+            // Database file provider
+            Services.AddService<IDatabaseFileProviderService>(new DatabaseFileProviderService(null));
+
+            LaunchParameters = new LaunchParameters();
+            GameSystems = new GameSystemCollection(Services);
+            Services.AddService<IGameSystemCollection>(GameSystems);
+
+            // Setup registry
+            Services.AddService<IGame>(this);
+
+            IsActive = true;
+        }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="GameBase" /> class.
@@ -197,7 +233,7 @@ namespace Stride.Games
         /// Gets a value indicating whether this instance is active.
         /// </summary>
         /// <value><c>true</c> if this instance is active; otherwise, <c>false</c>.</value>
-        public bool IsActive { get; private set; }
+        public bool IsActive { get; protected set; }
 
         /// <summary>
         /// Gets a value indicating whether this instance is exiting.
