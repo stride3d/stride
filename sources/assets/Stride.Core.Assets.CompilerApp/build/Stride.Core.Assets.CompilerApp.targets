@@ -125,6 +125,7 @@
   <Target Name="_StridePrepareAssetCompiler">
     <PropertyGroup>
       <!-- First try NuGet layout, then git checkout -->
+      <StrideCompileAssetCommand Condition="'$(StrideCompileAssetCommand)' == '' And Exists('$(MSBuildThisFileDirectory)..\lib\net8.0-windows7.0\') And $(TargetFramework.Contains('-windows'))">$(MSBuildThisFileDirectory)..\lib\net8.0-windows7.0\Stride.Core.Assets.CompilerApp.dll</StrideCompileAssetCommand>
       <StrideCompileAssetCommand Condition="'$(StrideCompileAssetCommand)' == '' And Exists('$(MSBuildThisFileDirectory)..\lib\net8.0\')">$(MSBuildThisFileDirectory)..\lib\net8.0\Stride.Core.Assets.CompilerApp.dll</StrideCompileAssetCommand>
       <StrideCompileAssetCommand Condition="'$(StrideCompileAssetCommand)' == '' And Exists('$(MSBuildThisFileDirectory)..\Stride.Core.Assets.CompilerApp.csproj')">$(MSBuildThisFileDirectory)..\bin\$(Configuration)\net8.0\Stride.Core.Assets.CompilerApp.dll</StrideCompileAssetCommand>
     </PropertyGroup>

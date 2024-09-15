@@ -178,7 +178,7 @@ namespace Stride.VisualStudio.Commands
             {
                 // Try both net8.0 and net472
                 var success = false;
-                foreach (var folder in new[] { "net8.0-windows7.0", "net472" })
+                foreach (var folder in new[] { "net8.0-windows", "net472" })
                 {
                     var logger = new Logger();
                     var solutionRoot = Path.GetDirectoryName(solution);
