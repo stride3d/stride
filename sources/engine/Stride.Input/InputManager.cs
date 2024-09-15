@@ -670,7 +670,10 @@ namespace Stride.Input
 
             // Add window specific input source
             var windowInputSource = InputSourceFactory.NewWindowInputSource(context);
-            Sources.Add(windowInputSource);
+            if (windowInputSource != null)
+            {
+                Sources.Add(windowInputSource);
+            }
 
             // Add platform specific input sources
             switch (context.ContextType)
@@ -702,6 +705,8 @@ namespace Stride.Input
                         Sources.Add(new InputSourceWindowsRawInput(gameContextWinforms.Control));
 #endif
 #endif
+                    break;
+                case AppContextType.Custom: // if the context is custom, we can't create an input source and assume the user will provide one.
                     break;
                 default:
                     throw new InvalidOperationException("GameContext type is not supported by the InputManager");
