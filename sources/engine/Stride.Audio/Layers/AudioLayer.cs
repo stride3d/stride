@@ -19,7 +19,12 @@ public class AudioLayer
 
     public static void Init()
     {
-        al = new OpenALProvider();
+        if(OperatingSystem.IsLinux() || OperatingSystem.IsMacOS() || OperatingSystem.IsIOS())
+            al = new OpenALProvider();
+        if(OperatingSystem.IsAndroid())
+            al = new OpenSLESProvider();
+        if(OperatingSystem.IsWindows())
+            al = new XAudio2Provider();
     }
 
     public static Device? Create(string deviceName, DeviceFlags flags)
