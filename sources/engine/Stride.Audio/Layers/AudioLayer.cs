@@ -23,8 +23,8 @@ public class AudioLayer
             al = new OpenALProvider();
         if(OperatingSystem.IsAndroid())
             al = new OpenSLESProvider();
-        if(OperatingSystem.IsWindows())
-            al = new XAudio2Provider();
+        // if(OperatingSystem.IsWindows())
+        //     al = new XAudio2Provider();
     }
 
     public static Device? Create(string deviceName, DeviceFlags flags)
