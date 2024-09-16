@@ -34,6 +34,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Silk.NET.OpenAL" />
+    <PackageReference Include="Silk.NET.XAudio" />
   </ItemGroup>
   <Import Project="$(StrideSdkTargets)" />
 </Project>

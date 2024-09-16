@@ -2,7 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 namespace Stride.Audio;
 
-public struct AudioBuffer : IInitializable
+public partial class AudioBuffer : IInitializable
 {
     public short[] Pcm { get; internal set; }
     public int Size { get; internal set; }
