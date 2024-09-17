@@ -203,7 +203,7 @@ namespace Stride.Games
         /// Allow the GraphicsDeviceManager to set the actual window state after applying the device changes.
         /// </summary>
         /// <param name="isReallyFullscreen"></param>
-        public void SetIsReallyFullscreen(bool isReallyFullscreen)
+        internal void SetIsReallyFullscreen(bool isReallyFullscreen)
         {
             isFullscreen = isReallyFullscreen;
         }
@@ -211,6 +211,15 @@ namespace Stride.Games
         #endregion
 
         #region Public Methods and Operators
+
+        /// <summary>
+        /// Logic to set the window to fullscreen or windowed mode without the border.
+        /// </summary>
+        /// <param name="borderlessFullScreen"></param>
+        public virtual void SetBorderlessWindowFullScreen(bool borderlessFullScreen)
+        {
+            FullscreenIsBorderlessWindow = borderlessFullScreen;
+        }
 
         public abstract void BeginScreenDeviceChange(bool willBeFullScreen);
 
