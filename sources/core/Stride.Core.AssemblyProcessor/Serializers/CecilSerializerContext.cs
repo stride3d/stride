@@ -195,12 +195,17 @@ namespace Stride.Core.AssemblyProcessor.Serializers
         {
             // Process base type (for complex serializers)
             // If it's a closed type and there is a serializer, we'll serialize parent
-            SerializableTypeInfo parentSerializableTypeInfo;
-            var parentType = ResolveGenericsVisitor.Process(type, type.Resolve().BaseType);
-            if (!parentType.ContainsGenericParameter() && (parentSerializableTypeInfo = GenerateSerializer(parentType, false, profile)) != null &&
-                parentSerializableTypeInfo.SerializerType != null)
+            for (var baseType = type; (baseType = ResolveGenericsVisitor.Process(baseType, baseType.Resolve().BaseType)) != null;)
             {
-                serializableTypeInfo.ComplexSerializerProcessParentType = true;
+                if (baseType.ContainsGenericParameter())
+                    continue;
+
+                var parentSerializableTypeInfo = GenerateSerializer(baseType, false, profile);
+                if (parentSerializableTypeInfo?.SerializerType != null)
+                {
+                    serializableTypeInfo.ComplexSerializerProcessParentType = baseType;
+                    break;
+                }
             }
 
             // Process members
@@ -580,9 +585,9 @@ namespace Stride.Core.AssemblyProcessor.Serializers
             public bool ComplexSerializer;
 
             /// <summary>
-            /// True if it's a complex serializer and its base class should be serialized too.
+            /// Not null if it's a complex serializer and its base class should be serialized too.
             /// </summary>
-            public bool ComplexSerializerProcessParentType;
+            public TypeReference ComplexSerializerProcessParentType;
 
             public SerializableTypeInfo(TypeReference serializerType, bool local, DataSerializerGenericMode mode = DataSerializerGenericMode.None)
             {
