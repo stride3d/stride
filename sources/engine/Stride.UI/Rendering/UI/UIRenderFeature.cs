@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Stride.Core;
 using Stride.Core.Diagnostics;
 using Stride.Core.Mathematics;
@@ -19,9 +20,6 @@ namespace Stride.Rendering.UI
     {
         private IGame game;
         private UISystem uiSystem;
-        private InputManager input;
-        private IGraphicsDeviceService graphicsDeviceService;
-        private UIInputSystem uiInput;
         
         private RendererManager rendererManager;
 
@@ -36,13 +34,7 @@ namespace Stride.Rendering.UI
         private readonly List<UIElementState> uiElementStates = new List<UIElementState>();
 
         public override Type SupportedRenderObjectType => typeof(RenderUIElement);
-
-        /// <summary>
-        /// Represents the UI-element thats currently under the mouse cursor.
-        /// Only elements with CanBeHitByUser == true are taken into account.
-        /// Last processed element_state / ?UIComponent? with a valid element will be used.
-        /// </summary>
-        public UIElement UIElementUnderMouseCursor { get; private set; }
+        
 
         public UIRenderFeature()
         {
@@ -55,18 +47,15 @@ namespace Stride.Rendering.UI
 
             Name = "UIComponentRenderer";
             game = RenderSystem.Services.GetService<IGame>();
-            input = RenderSystem.Services.GetService<InputManager>();
             uiSystem = RenderSystem.Services.GetService<UISystem>();
-            graphicsDeviceService = RenderSystem.Services.GetSafeServiceAs<IGraphicsDeviceService>();
 
             if (uiSystem == null)
             {
-                var gameSytems = RenderSystem.Services.GetSafeServiceAs<IGameSystemCollection>();
+                var gameSystems = RenderSystem.Services.GetSafeServiceAs<IGameSystemCollection>();
+                
                 uiSystem = new UISystem(RenderSystem.Services);
                 RenderSystem.Services.AddService(uiSystem);
-                gameSytems.Add(uiSystem);
-
-                uiInput = new UIInputSystem(this, input, game);
+                gameSystems.Add(uiSystem);
             }
 
             rendererManager = new RendererManager(new DefaultRenderersFactory(RenderSystem.Services));
@@ -160,7 +149,13 @@ namespace Stride.Rendering.UI
             }
             
             // Handle input.
-            UIElementUnderMouseCursor = uiInput?.Pick(drawTime);
+            //UIElementUnderMouseCursor = uiInput?.Pick(drawTime);
+            
+            uiSystem.RenderObjects.Clear();
+            uiSystem.RenderObjects.UnionWith(RenderObjects.OfType<RenderUIElement>());
+
+            var cam = context.RenderContext.Tags.Get(CameraComponentRendererExtensions.Current);
+            uiSystem.Cameras.Add(cam);
             
 
             // render the UI elements of all the entities

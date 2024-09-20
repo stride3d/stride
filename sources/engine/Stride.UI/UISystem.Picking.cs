@@ -3,6 +3,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using Stride.Core;
 using Stride.Core.Diagnostics;
 using Stride.Core.Mathematics;
 using Stride.Engine;
@@ -14,7 +16,7 @@ using Stride.Rendering.UI;
 
 namespace Stride.UI
 {
-    public class UIInputSystem 
+    public partial class UISystem
     {
         // object to avoid allocation at each element leave event
         private readonly HashSet<UIElement> newlySelectedElementParents = new HashSet<UIElement>();
@@ -22,67 +24,65 @@ namespace Stride.UI
         private readonly Dictionary<RenderUIElement, UIElementInputState> inputStates = new Dictionary<RenderUIElement, UIElementInputState>();
         private readonly List<RenderUIElement> oldRenderObjects = new List<RenderUIElement>();
 
-        private RenderContext renderContext;
-        
-        // Temp...
-        private UIRenderFeature uiRenderFeature;
-        private InputManager input;
-        private IGame game;
+        public HashSet<RenderUIElement> RenderObjects { get; } = new HashSet<RenderUIElement>();
 
-        public UIInputSystem(UIRenderFeature renderFeature, InputManager input, IGame game)
-        {
-            uiRenderFeature = renderFeature;
-            this.input = input;
-            this.game = game;
+        public HashSet<CameraComponent> Cameras { get; set; } = new HashSet<CameraComponent>();
+        
+        /// <summary>
+        /// Represents the UI-element thats currently under the mouse cursor.
+        /// Only elements with CanBeHitByUser == true are taken into account.
+        /// Last processed element_state / ?UIComponent? with a valid element will be used.
+        /// </summary>
+        public UIElement UIElementUnderMouseCursor { get; internal set; }
 
-            renderContext = RenderContext.GetShared(game.Services);
-        }
-        
-        
-        public UIElement Pick( GameTime drawTime)
+        private partial UIElement Pick( GameTime drawTime)
         {
-            UpdateStates();
-            
+            if (renderContext == null)
+                return null;
+
             UIElement elementUnderMouseCursor = null;
             
-            // Prepare content required for Picking and MouseOver events
-            PickingPrepare();
-
-            // TODO: Not sure if this would support VR. If it doesn't, look at ForwardRenderer.DrawCore for how to (potentially). 
-            var viewport = renderContext.ViewportState.Viewport0;
-            
-            foreach (var renderObject in uiRenderFeature.RenderObjects)
+            foreach (CameraComponent cameraComponent in Cameras)
             {
-                if (renderObject is not RenderUIElement renderUIElement)
-                    continue;
-                
-                UIElement loopedElementUnderMouseCursor = null;
-                
-                // Check if the current UI component is being picked based on the current ViewParameters (used to draw this element)
-                using (Profiler.Begin(UIProfilerKeys.TouchEventsUpdate))
-                {
-                    PickingUpdate(renderUIElement, viewport, ref inputStates[renderUIElement].WorldViewProjectionMatrix, drawTime, ref loopedElementUnderMouseCursor);
-                    
-                    // only update result element, when this one has a value
-                    if (loopedElementUnderMouseCursor != null)
-                        elementUnderMouseCursor = loopedElementUnderMouseCursor;
-                }
-            }
+                UpdateStates(cameraComponent);
+            
+                // Prepare content required for Picking and MouseOver events
+                PickingPrepare();
 
+                // TODO: Not sure if this would support VR. If it doesn't, look at ForwardRenderer.DrawCore for how to (potentially). 
+                var viewport = renderContext.ViewportState.Viewport0;
+            
+                foreach (var renderUIElement in RenderObjects)
+                {
+                
+                    UIElement loopedElementUnderMouseCursor = null;
+                
+                    // Check if the current UI component is being picked based on the current ViewParameters (used to draw this element)
+                    using (Profiler.Begin(UIProfilerKeys.TouchEventsUpdate))
+                    {
+                        PickingUpdate(renderUIElement, viewport, ref inputStates[renderUIElement].WorldViewProjectionMatrix, drawTime, ref loopedElementUnderMouseCursor);
+                    
+                        // only update result element, when this one has a value
+                        if (loopedElementUnderMouseCursor != null)
+                            elementUnderMouseCursor = loopedElementUnderMouseCursor;
+                    }
+                }
+
+            }
+            
+            
             PickingClear();
 
             return elementUnderMouseCursor;
         }
         
-        private void UpdateStates()
+        private void UpdateStates(CameraComponent cameraComponent)
         {
             var renderTarget = renderContext.GraphicsDevice.Presenter.BackBuffer;
             
             oldRenderObjects.AddRange(inputStates.Keys);
-            foreach (RenderObject renderObject in uiRenderFeature.RenderObjects)
+            foreach (RenderUIElement renderUIElement in RenderObjects)
             {
-                if (renderObject is not RenderUIElement renderUIElement)
-                    continue;
                 
                 // Create a state for the render object if it doesn't have one already.
                 if (!inputStates.TryGetValue(renderUIElement, out var state))
@@ -107,7 +107,7 @@ namespace Stride.UI
                 }
                 else
                 {
-                    var cameraComponent = renderContext.Tags.Get(CameraComponentRendererExtensions.Current);
+                    //var cameraComponent = renderContext.Tags.Get(CameraComponentRendererExtensions.Current);
                     if (cameraComponent != null)
                         state.Update(renderUIElement, cameraComponent);
                 }
@@ -191,12 +191,11 @@ namespace Stride.UI
         /// <returns></returns>
         private Ray GetWorldRay(ref Viewport viewport, Vector2 screenPos, ref Matrix worldViewProj)
         {
-            var graphicsDevice = game?.GraphicsDevice;
-            if (graphicsDevice == null)
+            if (GraphicsDevice == null)
                 return new Ray(new Vector3(float.NegativeInfinity), new Vector3(0, 1, 0));
 
-            screenPos.X *= graphicsDevice.Presenter.BackBuffer.Width;
-            screenPos.Y *= graphicsDevice.Presenter.BackBuffer.Height;
+            screenPos.X *= GraphicsDevice.Presenter.BackBuffer.Width;
+            screenPos.Y *= GraphicsDevice.Presenter.BackBuffer.Height;
 
             var unprojectedNear = viewport.Unproject(new Vector3(screenPos, 0.0f), ref worldViewProj);
 

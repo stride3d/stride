@@ -273,7 +273,7 @@ namespace Stride.Assets.Presentation.AssetEditors.UIEditor.Game
             DoHighlightAdorner(elementId);
         }
 
-        private ICollection<UIInputSystem.HitTestResult> GetAdornerVisualsAtPosition(ref Vector3 worldPosition)
+        private ICollection<UISystem.HitTestResult> GetAdornerVisualsAtPosition(ref Vector3 worldPosition)
         {
             var uiComponent = Controller.GetEntityByName(UIEditorController.AdornerEntityName).Get<UIComponent>();
             if (Math.Abs(worldPosition.X) > uiComponent.Resolution.X * 0.5f ||
@@ -286,7 +286,7 @@ namespace Stride.Assets.Presentation.AssetEditors.UIEditor.Game
 
             var ray = new Ray(new Vector3(worldPosition.X, worldPosition.Y, uiComponent.Resolution.Z + 1), -Vector3.UnitZ);
             var worldViewProj = Matrix.Identity; // All the calculation is done in UI space
-            return UIInputSystem.GetElementsAtPosition(rootElement, ref ray, ref worldViewProj);
+            return UISystem.GetElementsAtPosition(rootElement, ref ray, ref worldViewProj);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
