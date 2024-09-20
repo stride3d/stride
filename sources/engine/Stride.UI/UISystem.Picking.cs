@@ -25,8 +25,6 @@ namespace Stride.UI
         private readonly List<RenderUIElement> oldRenderObjects = new List<RenderUIElement>();
 
         public HashSet<RenderUIElement> RenderObjects { get; } = new HashSet<RenderUIElement>();
-
-        public HashSet<CameraComponent> Cameras { get; set; } = new HashSet<CameraComponent>();
         
         /// <summary>
         /// Represents the UI-element thats currently under the mouse cursor.
@@ -37,14 +35,14 @@ namespace Stride.UI
 
         private partial UIElement Pick( GameTime drawTime)
         {
-            if (renderContext == null)
+            if (renderContext == null || sceneSystem == null || sceneSystem.GraphicsCompositor == null)
                 return null;
 
             UIElement elementUnderMouseCursor = null;
             
-            foreach (CameraComponent cameraComponent in Cameras)
+            foreach (var cameraSlot in sceneSystem.GraphicsCompositor.Cameras)
             {
-                UpdateStates(cameraComponent);
+                UpdateStates(cameraSlot.Camera);
             
                 // Prepare content required for Picking and MouseOver events
                 PickingPrepare();
@@ -67,9 +65,7 @@ namespace Stride.UI
                             elementUnderMouseCursor = loopedElementUnderMouseCursor;
                     }
                 }
-
             }
-            
             
             PickingClear();
 

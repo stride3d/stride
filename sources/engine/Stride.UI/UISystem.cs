@@ -7,6 +7,7 @@ using System.Collections.Specialized;
 using System.Linq;
 using Stride.Core;
 using Stride.Core.Collections;
+using Stride.Engine;
 using Stride.Games;
 using Stride.Graphics;
 using Stride.Input;
@@ -31,6 +32,7 @@ namespace Stride.UI
 
         private InputManager input;
         private RenderContext renderContext;
+        private SceneSystem sceneSystem;
      
         public UISystem(IServiceRegistry registry)
             : base(registry)
@@ -43,6 +45,7 @@ namespace Stride.UI
             base.Initialize();
 
             input = Services.GetService<InputManager>();
+            sceneSystem = Services.GetService<SceneSystem>();
 
             Enabled = true;
             Visible = false;

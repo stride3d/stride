@@ -153,9 +153,6 @@ namespace Stride.Rendering.UI
             
             uiSystem.RenderObjects.Clear();
             uiSystem.RenderObjects.UnionWith(RenderObjects.OfType<RenderUIElement>());
-
-            var cam = context.RenderContext.Tags.Get(CameraComponentRendererExtensions.Current);
-            uiSystem.Cameras.Add(cam);
             
 
             // render the UI elements of all the entities
