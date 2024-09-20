@@ -21,7 +21,7 @@ namespace Stride.Rendering.UI
         private UISystem uiSystem;
         private InputManager input;
         private IGraphicsDeviceService graphicsDeviceService;
-        private UIInputPicking picking;
+        private UIInputSystem uiInput;
         
         private RendererManager rendererManager;
 
@@ -66,7 +66,7 @@ namespace Stride.Rendering.UI
                 RenderSystem.Services.AddService(uiSystem);
                 gameSytems.Add(uiSystem);
 
-                picking = new UIInputPicking(this, input, game);
+                uiInput = new UIInputSystem(this, input, game);
             }
 
             rendererManager = new RendererManager(new DefaultRenderersFactory(RenderSystem.Services));
@@ -160,7 +160,7 @@ namespace Stride.Rendering.UI
             }
             
             // Handle input.
-            UIElementUnderMouseCursor = picking?.Pick(drawTime);
+            UIElementUnderMouseCursor = uiInput?.Pick(drawTime);
             
 
             // render the UI elements of all the entities

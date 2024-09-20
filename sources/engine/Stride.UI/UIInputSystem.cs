@@ -9,11 +9,12 @@ using Stride.Engine;
 using Stride.Games;
 using Stride.Graphics;
 using Stride.Input;
-using Stride.UI;
+using Stride.Rendering;
+using Stride.Rendering.UI;
 
-namespace Stride.Rendering.UI
+namespace Stride.UI
 {
-    public class UIInputPicking 
+    public class UIInputSystem 
     {
         // object to avoid allocation at each element leave event
         private readonly HashSet<UIElement> newlySelectedElementParents = new HashSet<UIElement>();
@@ -28,7 +29,7 @@ namespace Stride.Rendering.UI
         private InputManager input;
         private IGame game;
 
-        public UIInputPicking(UIRenderFeature renderFeature, InputManager input, IGame game)
+        public UIInputSystem(UIRenderFeature renderFeature, InputManager input, IGame game)
         {
             uiRenderFeature = renderFeature;
             this.input = input;
