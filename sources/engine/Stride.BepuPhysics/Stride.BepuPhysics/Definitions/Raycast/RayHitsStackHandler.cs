@@ -17,13 +17,10 @@ internal unsafe struct RayHitsStackHandler(HitInfoStack* Ptr, int Length, BepuSi
     private int indexOfMax;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool AllowTest(CollidableReference collidable) => collisionMask.AllowTest(collidable, sim);
+    public bool AllowTest(CollidableReference collidable) => sim.ShouldPerformPhysicsTest(collisionMask, collidable);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool AllowTest(CollidableReference collidable, int childIndex)
-    {
-        return true;
-    }
+    public bool AllowTest(CollidableReference collidable, int childIndex) => true;
 
     public void OnRayHit(in RayData ray, ref float maximumT, float t, Vector3 normal, CollidableReference collidable, int childIndex)
     {

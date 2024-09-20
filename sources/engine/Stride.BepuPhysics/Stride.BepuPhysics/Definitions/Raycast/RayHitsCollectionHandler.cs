@@ -9,37 +9,22 @@ using BepuPhysics.Trees;
 
 namespace Stride.BepuPhysics.Definitions.Raycast;
 
-internal struct RayHitsCollectionHandler : IRayHitHandler, ISweepHitHandler
+internal struct RayHitsCollectionHandler(BepuSimulation sim, ICollection<HitInfo> collection, CollisionMask collisionMask) : IRayHitHandler, ISweepHitHandler
 {
-    private readonly ICollection<HitInfo> _collection;
-    private readonly BepuSimulation _sim;
-
-    public CollisionMask CollisionMask { get; set; }
-
-    public RayHitsCollectionHandler(BepuSimulation sim, ICollection<HitInfo> collection, CollisionMask collisionMask)
-    {
-        _collection = collection;
-        CollisionMask = collisionMask;
-        _sim = sim;
-    }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool AllowTest(CollidableReference collidable) => sim.ShouldPerformPhysicsTest(collisionMask, collidable);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool AllowTest(CollidableReference collidable) => CollisionMask.AllowTest(collidable, _sim);
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool AllowTest(CollidableReference collidable, int childIndex)
-    {
-        return true;
-    }
+    public bool AllowTest(CollidableReference collidable, int childIndex) => true;
 
     public void OnRayHit(in RayData ray, ref float maximumT, float t, Vector3 normal, CollidableReference collidable, int childIndex)
     {
-        _collection.Add(new(ray.Origin + ray.Direction * t, normal, t, _sim.GetComponent(collidable), childIndex));
+        collection.Add(new(ray.Origin + ray.Direction * t, normal, t, sim.GetComponent(collidable), childIndex));
     }
 
     public void OnHit(ref float maximumT, float t, Vector3 hitLocation, Vector3 hitNormal, CollidableReference collidable)
     {
-        _collection.Add(new(hitLocation, hitNormal, t, _sim.GetComponent(collidable), -1));
+        collection.Add(new(hitLocation, hitNormal, t, sim.GetComponent(collidable), -1));
     }
 
     public void OnHitAtZeroT(ref float maximumT, CollidableReference collidable)

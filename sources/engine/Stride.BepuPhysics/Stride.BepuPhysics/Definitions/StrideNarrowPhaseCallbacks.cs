@@ -9,12 +9,8 @@ using Stride.BepuPhysics.Definitions.Contacts;
 
 namespace Stride.BepuPhysics.Definitions;
 
-public unsafe struct StrideNarrowPhaseCallbacks : INarrowPhaseCallbacks
+internal struct StrideNarrowPhaseCallbacks(BepuSimulation Simulation, ContactEventsManager contactEvents, CollidableProperty<MaterialProperties> collidableMaterials) : INarrowPhaseCallbacks
 {
-    internal CollidableProperty<MaterialProperties> CollidableMaterials { get; set; }
-
-    internal ContactEventsManager ContactEvents { get; set; }
-
     public void Initialize(Simulation simulation)
     {
     }
@@ -28,10 +24,25 @@ public unsafe struct StrideNarrowPhaseCallbacks : INarrowPhaseCallbacks
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool AllowContactGeneration(int workerIndex, CollidablePair pair, int childIndexA, int childIndexB)
     {
-        var matA = CollidableMaterials[pair.A];
-        var matB = CollidableMaterials[pair.B];
+        const int DEFAULT_DISTANCE = 1;
 
-        return MaterialProperties.AllowContactGeneration(matA, matB);
+        var matA = collidableMaterials[pair.A];
+        var matB = collidableMaterials[pair.B];
+
+        if (Simulation.CollisionMatrix.Get(matA.Layer, matB.Layer) == false)
+            return false;
+
+        if (matA.FilterByDistance.Id == matB.FilterByDistance.Id && matA.FilterByDistance.Id != 0)
+        {
+            var differenceX = matA.FilterByDistance.XAxis - matB.FilterByDistance.XAxis;
+            var differenceY = matA.FilterByDistance.YAxis - matB.FilterByDistance.YAxis;
+            var differenceZ = matA.FilterByDistance.ZAxis - matB.FilterByDistance.ZAxis;
+
+            if ((!(differenceX < -DEFAULT_DISTANCE || differenceX > DEFAULT_DISTANCE)) && (!(differenceY < -DEFAULT_DISTANCE || differenceY > DEFAULT_DISTANCE)) && (!(differenceZ < -DEFAULT_DISTANCE || differenceY > DEFAULT_DISTANCE)))
+                return false;
+        }
+
+        return true;
     }
 
 
@@ -39,12 +50,12 @@ public unsafe struct StrideNarrowPhaseCallbacks : INarrowPhaseCallbacks
     public unsafe bool ConfigureContactManifold<TManifold>(int workerIndex, CollidablePair pair, ref TManifold manifold, out PairMaterialProperties pairMaterial) where TManifold : unmanaged, IContactManifold<TManifold>
     {
         //For the purposes of this demo, we'll use multiplicative blending for the friction and choose spring properties according to which collidable has a higher maximum recovery velocity.
-        var a = CollidableMaterials[pair.A];
-        var b = CollidableMaterials[pair.B];
+        var a = collidableMaterials[pair.A];
+        var b = collidableMaterials[pair.B];
         pairMaterial.FrictionCoefficient = a.FrictionCoefficient * b.FrictionCoefficient;
         pairMaterial.MaximumRecoveryVelocity = MathF.Max(a.MaximumRecoveryVelocity, b.MaximumRecoveryVelocity);
         pairMaterial.SpringSettings = pairMaterial.MaximumRecoveryVelocity == a.MaximumRecoveryVelocity ? a.SpringSettings : b.SpringSettings;
-        ContactEvents.HandleManifold(workerIndex, pair, ref manifold);
+        contactEvents.HandleManifold(workerIndex, pair, ref manifold);
 
         if (a.IsTrigger || b.IsTrigger)
         {

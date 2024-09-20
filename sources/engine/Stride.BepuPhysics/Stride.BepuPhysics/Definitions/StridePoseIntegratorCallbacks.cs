@@ -9,15 +9,13 @@ using BepuUtilities;
 
 namespace Stride.BepuPhysics.Definitions;
 
-internal struct StridePoseIntegratorCallbacks : IPoseIntegratorCallbacks
+internal struct StridePoseIntegratorCallbacks(CollidableProperty<MaterialProperties> CollidableMaterials) : IPoseIntegratorCallbacks
 {
     private Bodies _bodies = null!;
 
     private Vector3Wide _gravityWideDt = default;
     private Vector<float> _linearDampingDt = default;
     private Vector<float> _angularDampingDt = default;
-
-    internal required CollidableProperty<MaterialProperties> CollidableMaterials { get; set; }
 
     public bool UsePerBodyAttributes { get; set; } = true;
 
@@ -43,7 +41,7 @@ internal struct StridePoseIntegratorCallbacks : IPoseIntegratorCallbacks
     /// <summary>
     /// Gets whether the integrator should use substepping for unconstrained bodies when using a substepping solver.
     /// If true, unconstrained bodies will be integrated with the same number of substeps as the constrained bodies in the solver.
-    /// If false, unconstrained bodies use a single step of length equal to the dt provided to Simulation.Timestep. 
+    /// If false, unconstrained bodies use a single step of length equal to the dt provided to Simulation.Timestep.
     /// </summary>
     public readonly bool AllowSubstepsForUnconstrainedBodies => false;
 
@@ -55,11 +53,6 @@ internal struct StridePoseIntegratorCallbacks : IPoseIntegratorCallbacks
     /// </summary>
     public readonly bool IntegrateVelocityForKinematics => false;
 
-
-    public StridePoseIntegratorCallbacks()
-    {
-    }
-
     public void Initialize(Simulation simulation)
     {
         _bodies = simulation.Bodies;
@@ -69,7 +62,7 @@ internal struct StridePoseIntegratorCallbacks : IPoseIntegratorCallbacks
     /// Callback invoked ahead of dispatches that may call into <see cref="IntegrateVelocity"/>.
     /// It may be called more than once with different values over a frame. For example, when performing bounding box prediction, velocity is integrated with a full frame time step duration.
     /// During substepped solves, integration is split into substepCount steps, each with fullFrameDuration / substepCount duration.
-    /// The final integration pass for unconstrained bodies may be either fullFrameDuration or fullFrameDuration / substepCount, depending on the value of AllowSubstepsForUnconstrainedBodies. 
+    /// The final integration pass for unconstrained bodies may be either fullFrameDuration or fullFrameDuration / substepCount, depending on the value of AllowSubstepsForUnconstrainedBodies.
     /// </summary>
     /// <param name="dt">Current integration time step duration.</param>
     /// <remarks>This is typically used for precomputing anything expensive that will be used across velocity integration.</remarks>

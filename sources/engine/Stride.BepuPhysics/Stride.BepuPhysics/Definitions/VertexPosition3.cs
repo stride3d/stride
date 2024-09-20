@@ -16,7 +16,7 @@ public interface IVertexStructure : IVertex
 /// Describes a custom vertex format structure that only contains a Vector3 position.
 /// </summary>
 [StructLayout(LayoutKind.Sequential, Pack = 4)]
-public struct VertexPosition3 : IEquatable<VertexPosition3>, IVertexStructure
+internal struct VertexPosition3 : IEquatable<VertexPosition3>, IVertexStructure
 {
     /// <summary>
     /// Initializes a new <see cref="VertexPositionTexture"/> instance.

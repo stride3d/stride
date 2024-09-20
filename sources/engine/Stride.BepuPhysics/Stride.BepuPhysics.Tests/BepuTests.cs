@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Linq;
 using Stride.BepuPhysics.Constraints;
+using Stride.BepuPhysics.Definitions;
 using Stride.BepuPhysics.Definitions.Colliders;
 using Xunit;
 using Stride.Engine;
@@ -11,6 +12,63 @@ namespace Stride.BepuPhysics.Tests
 {
     public class BepuTests : GameTestBase
     {
+        [Fact]
+        public static void MatrixTest()
+        {
+            // Some initial expectation as to how the layers are laid out in memory
+            Assert.Equal(0, CollisionMatrix.LayersToIndex(CollisionLayer.Layer0, CollisionLayer.Layer0));
+            Assert.Equal(1, CollisionMatrix.LayersToIndex(CollisionLayer.Layer1, CollisionLayer.Layer0));
+            Assert.Equal(1, CollisionMatrix.LayersToIndex(CollisionLayer.Layer0, CollisionLayer.Layer1));
+            Assert.Equal(32, CollisionMatrix.LayersToIndex(CollisionLayer.Layer1, CollisionLayer.Layer1));
+
+            // Ensure that all combinations have exactly one bit associated to them
+            int previous = 0;
+            for (CollisionLayer l = 0; l <= CollisionLayer.Layer31; l++)
+            {
+                for (CollisionLayer l2 = l; l2 <= CollisionLayer.Layer31; l2++)
+                {
+                    int index = CollisionMatrix.LayersToIndex(l, l2);
+                    Assert.InRange(index, 0, CollisionMatrix.DataBits-1);
+                    Assert.Equal(previous, index);
+                    previous++;
+                }
+            }
+
+            // Ensure iterating reads from the same bits as single shot sample
+            for (int otherLayer = 0, head = CollisionMatrix.LayersToIndex(0, CollisionLayer.Layer31);
+                  otherLayer <= (int)CollisionLayer.Layer31;
+                  head += (otherLayer >= (int)CollisionLayer.Layer31 ? 1 : 31 - otherLayer), otherLayer++)
+            {
+                Assert.Equal(CollisionMatrix.LayersToIndex((CollisionLayer)otherLayer, CollisionLayer.Layer31), head);
+            }
+
+            // Test that basic writes lead to expected outcome
+            CollisionMatrix collisions = default;
+            collisions.Set(CollisionLayer.Layer1, CollisionLayer.Layer8, true);
+            collisions.Set(CollisionLayer.Layer7, CollisionLayer.Layer17, true);
+            collisions.Set(CollisionLayer.Layer1, CollisionLayer.Layer0, true);
+            collisions.Set(CollisionLayer.Layer2, CollisionLayer.Layer31, true);
+            collisions.Set(CollisionLayer.Layer31, CollisionLayer.Layer31, true);
+            collisions.Set(CollisionLayer.Layer3, CollisionLayer.Layer8, true);
+
+            Assert.Equal(CollisionMask.Layer31 | CollisionMask.Layer2, collisions.Get(CollisionLayer.Layer31));
+            Assert.Equal(CollisionMask.Layer8, collisions.Get(CollisionLayer.Layer3));
+            Assert.Equal(CollisionMask.Layer1 | CollisionMask.Layer3, collisions.Get(CollisionLayer.Layer8));
+            Assert.Equal(CollisionMask.Layer8 | CollisionMask.Layer0, collisions.Get(CollisionLayer.Layer1));
+            Assert.Equal(CollisionMask.Layer7, collisions.Get(CollisionLayer.Layer17));
+            Assert.Equal(CollisionMask.Layer17, collisions.Get(CollisionLayer.Layer7));
+            Assert.Equal(CollisionMask.Layer31, collisions.Get(CollisionLayer.Layer2));
+
+            collisions.Set(CollisionLayer.Layer1, CollisionLayer.Layer8, false);
+            collisions.Set(CollisionLayer.Layer7, CollisionLayer.Layer17, false);
+            collisions.Set(CollisionLayer.Layer1, CollisionLayer.Layer0, false);
+            collisions.Set(CollisionLayer.Layer2, CollisionLayer.Layer31, false);
+            collisions.Set(CollisionLayer.Layer31, CollisionLayer.Layer31, false);
+            collisions.Set(CollisionLayer.Layer3, CollisionLayer.Layer8, false);
+
+            Assert.Equal(new CollisionMatrix(), collisions);
+        }
+
         [Fact]
         public static void ConstraintsTest()
         {

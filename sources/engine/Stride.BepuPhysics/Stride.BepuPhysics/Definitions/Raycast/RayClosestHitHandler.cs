@@ -9,21 +9,12 @@ using BepuPhysics.Trees;
 
 namespace Stride.BepuPhysics.Definitions.Raycast;
 
-internal struct RayClosestHitHandler : IRayHitHandler, ISweepHitHandler
+internal struct RayClosestHitHandler(BepuSimulation sim, CollisionMask collisionMask) : IRayHitHandler, ISweepHitHandler
 {
-    private readonly BepuSimulation _sim;
-
-    public CollisionMask CollisionMask { get; set; }
     public HitInfo? HitInformation { get; set; }
 
-    public RayClosestHitHandler(BepuSimulation sim, CollisionMask collisionMask)
-    {
-        CollisionMask = collisionMask;
-        _sim = sim;
-    }
-
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool AllowTest(CollidableReference collidable) => CollisionMask.AllowTest(collidable, _sim);
+    public bool AllowTest(CollidableReference collidable) => sim.ShouldPerformPhysicsTest(collisionMask, collidable);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool AllowTest(CollidableReference collidable, int childIndex)
@@ -33,13 +24,13 @@ internal struct RayClosestHitHandler : IRayHitHandler, ISweepHitHandler
 
     public void OnRayHit(in RayData ray, ref float maximumT, float t, Vector3 normal, CollidableReference collidable, int childIndex)
     {
-        HitInformation = new(ray.Origin + ray.Direction * t, normal, t, _sim.GetComponent(collidable), childIndex);
+        HitInformation = new(ray.Origin + ray.Direction * t, normal, t, sim.GetComponent(collidable), childIndex);
         maximumT = t;
     }
 
     public void OnHit(ref float maximumT, float t, Vector3 hitLocation, Vector3 hitNormal, CollidableReference collidable)
     {
-        HitInformation = new(hitLocation, hitNormal, t, _sim.GetComponent(collidable), -1);
+        HitInformation = new(hitLocation, hitNormal, t, sim.GetComponent(collidable), -1);
         maximumT = t;
     }
 

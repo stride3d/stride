@@ -79,10 +79,10 @@ namespace Stride.BepuPhysics.Demo.Components.Camera
                 dir.Normalize();
 
 
-                if (_simulationConfig.BepuSimulations[0].RayCast(raycastStart, dir, len, out HitInfo hitResult, (CollisionMask)252)) //collider group == All layers except 0 & 1 : 252 = (1111 1100)
+                if (_simulationConfig.BepuSimulations[0].RayCast(raycastStart, dir, len, out HitInfo hitResult, CollisionMask.Everything & ~(CollisionMask.Layer0 | CollisionMask.Layer1))) //All layers except 0 & 1
                 {
                     // If we hit something along the way, calculate the distance
-                    var hitDistance = Vector3.Distance(raycastStart, hitResult.Point); 
+                    var hitDistance = Vector3.Distance(raycastStart, hitResult.Point);
                     #warning maybe change HitInfo.Point to stride vector instead of numeric.
 
                     if (hitDistance >= MinimumCameraDistance)

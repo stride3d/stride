@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.ComponentModel;
 using System.Diagnostics;
 using BepuPhysics;
 using BepuPhysics.Collidables;
@@ -29,7 +30,7 @@ public abstract class CollidableComponent : EntityComponent
     private float _frictionCoefficient = 1f;
     private float _maximumRecoveryVelocity = 1000;
 
-    private CollisionMask _collisionMask = CollisionMask.Layer0;
+    private CollisionLayer _collisionLayer = CollisionLayer.Layer0;
     private FilterByDistance _filterByDistance;
 
     private ICollider _collider;
@@ -152,12 +153,14 @@ public abstract class CollidableComponent : EntityComponent
         }
     }
 
-    public CollisionMask CollisionMask
+    [DefaultValue(CollisionLayer.Layer0)]
+    [DataAlias("CollisionMask")]
+    public CollisionLayer CollisionLayer
     {
-        get => _collisionMask;
+        get => _collisionLayer;
         set
         {
-            _collisionMask = value;
+            _collisionLayer = value;
             TryUpdateMaterialProperties();
         }
     }
@@ -260,7 +263,7 @@ public abstract class CollidableComponent : EntityComponent
         mat.MaximumRecoveryVelocity = MaximumRecoveryVelocity;
         mat.IsTrigger = ContactEventHandler != null && ContactEventHandler.NoContactResponse;
 
-        mat.ColliderCollisionMask = CollisionMask;
+        mat.Layer = CollisionLayer;
         mat.FilterByDistance = FilterByDistance;
 
 #warning this is still kind of a mess, what should we do here ?

@@ -1,68 +1,73 @@
-// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
-// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-
-using System.Runtime.CompilerServices;
-using BepuPhysics.Collidables;
+﻿// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+//  Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 namespace Stride.BepuPhysics;
-//Table of truth. If the number in the table is present on X/Y (inside '()') collision occur except if result is "0".
-//! indicate no collision
-//                  1111 1111 (255)     0000 0001 (1  )      0000 0011 (3  )        0000 0101 (5  )     0000 0000 (0)
-//1111 1111 (255)      255                  1                    3                      5                   0!
-//0000 0001 (1  )       1                   1                    1                      1                   0!
-//0000 0011 (3  )       3                   1                    3                      1!                  0!
-//0000 0101 (5  )       5                   1                    1!                     5                   0!
-//0000 1001 (9  )       9                   1                    1!                     1!                  0!
-//0000 1010 (10 )       10                  0!                   2!                     0!                  0!
 
 /// <summary>
-/// Collision occurs when mask 'a' contains all the layers set in 'b' or 'b' contains all the layers of 'a'.
+/// Represents a collection of layers, any layer set in this value would be colliding.
 /// </summary>
 [Flags]
-public enum CollisionMask : ushort
+public enum CollisionMask : uint
 {
-    /// <summary> No contact generated nor collisions reported between any object and this one </summary>
-    NoCollision = 0b0000_0000__0000_0000,
-    Layer0      = 0b0000_0000__0000_0001,
-    Layer1      = 0b0000_0000__0000_0010,
-    Layer2      = 0b0000_0000__0000_0100,
-    Layer3      = 0b0000_0000__0000_1000,
-    Layer4      = 0b0000_0000__0001_0000,
-    Layer5      = 0b0000_0000__0010_0000,
-    Layer6      = 0b0000_0000__0100_0000,
-    Layer7      = 0b0000_0000__1000_0000,
-    Layer8      = 0b0000_0001__0000_0000,
-    Layer9      = 0b0000_0010__0000_0000,
-    Layer10     = 0b0000_0100__0000_0000,
-    Layer11     = 0b0000_1000__0000_0000,
-    Layer12     = 0b0001_0000__0000_0000,
-    Layer13     = 0b0010_0000__0000_0000,
-    Layer14     = 0b0100_0000__0000_0000,
-    Layer15     = 0b1000_0000__0000_0000,
-    /// <summary> Collisions will occur between this one and any other colliders unless they have their mask set to <see cref="NoCollision"/> </summary>
-    Everything  = 0b1111_1111__1111_1111,
+    None = 0,
+    Layer0 = 1u << 0,
+    Layer1 = 1u << 1,
+    Layer2 = 1u << 2,
+    Layer3 = 1u << 3,
+    Layer4 = 1u << 4,
+    Layer5 = 1u << 5,
+    Layer6 = 1u << 6,
+    Layer7 = 1u << 7,
+    Layer8 = 1u << 8,
+    Layer9 = 1u << 9,
+    Layer10 = 1u << 10,
+    Layer11 = 1u << 11,
+    Layer12 = 1u << 12,
+    Layer13 = 1u << 13,
+    Layer14 = 1u << 14,
+    Layer15 = 1u << 15,
+    Layer16 = 1u << 16,
+    Layer17 = 1u << 17,
+    Layer18 = 1u << 18,
+    Layer19 = 1u << 19,
+    Layer20 = 1u << 20,
+    Layer21 = 1u << 21,
+    Layer22 = 1u << 22,
+    Layer23 = 1u << 23,
+    Layer24 = 1u << 24,
+    Layer25 = 1u << 25,
+    Layer26 = 1u << 26,
+    Layer27 = 1u << 27,
+    Layer28 = 1u << 28,
+    Layer29 = 1u << 29,
+    Layer30 = 1u << 30,
+    Layer31 = 1u << 31,
+    Everything = 0b1111_1111_1111_1111_1111_1111_1111_1111,
 }
 
-public static class CollisionMaskExtension
+public static class CollisionLayersExtension
 {
     /// <summary>
-    /// Collision occurs when 'a' contains all the layers set in 'b' or 'b' contains all the layers of 'a'.
+    /// Returns whether <see cref="layer"/> can be found in <see cref="mask"/>
     /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool Collide(this CollisionMask a, CollisionMask b)
+    public static bool IsSet(this CollisionMask mask, CollisionLayer layer)
     {
-        CollisionMask and = a & b;
-        return and != 0 && (and == a || and == b);
+        return ((int)mask & (1 << (int)layer)) != 0;
     }
 
     /// <summary>
-    /// Whether a test with this mask against this collidable should be performed or ignored
+    /// Returns whether <see cref="layer"/> can be found in <see cref="mask"/>
     /// </summary>
-    /// <returns>True when it should be performed, false when it should be ignored</returns>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool AllowTest(this CollisionMask collisionMask, CollidableReference collidable, BepuSimulation sim)
+    public static bool IsSetIn(this CollisionLayer layer, CollisionMask mask)
     {
-        var component = sim.GetComponent(collidable);
-        return collisionMask.Collide(component.CollisionMask);
+        return mask.IsSet(layer);
+    }
+
+    /// <summary>
+    /// Returns a new <see cref="CollisionMask"/> where <see cref="layer"/> is set
+    /// </summary>
+    public static CollisionMask ToMask(this CollisionLayer layer)
+    {
+        return (CollisionMask)(1 << (int)layer);
     }
 }

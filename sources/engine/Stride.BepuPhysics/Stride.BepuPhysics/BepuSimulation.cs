@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.ComponentModel;
 using BepuPhysics.Collidables;
 using BepuPhysics.CollisionDetection;
 using BepuPhysics;
@@ -47,6 +48,9 @@ public sealed class BepuSimulation : IDisposable
 
     internal List<BodyComponent?> Bodies { get; } = new();
     internal List<StaticComponent?> Statics { get; } = new();
+
+    [DataMemberIgnore]
+    public CollisionMatrix CollisionMatrix { get; } = CollisionMatrix.All;
 
     /// <summary>
     /// Get the bepu Simulation /!\
@@ -204,6 +208,39 @@ public sealed class BepuSimulation : IDisposable
         }
     }
 
+    [DefaultValue(CollisionMask.Everything)] public CollisionMask Layer0 { get => CollisionMatrix.Get(CollisionLayer.Layer0); set => CollisionMatrix.Set(CollisionLayer.Layer0, value); }
+    [DefaultValue(CollisionMask.Everything)] public CollisionMask Layer1 { get => CollisionMatrix.Get(CollisionLayer.Layer1); set => CollisionMatrix.Set(CollisionLayer.Layer1, value); }
+    [DefaultValue(CollisionMask.Everything)] public CollisionMask Layer2 { get => CollisionMatrix.Get(CollisionLayer.Layer2); set => CollisionMatrix.Set(CollisionLayer.Layer2, value); }
+    [DefaultValue(CollisionMask.Everything)] public CollisionMask Layer3 { get => CollisionMatrix.Get(CollisionLayer.Layer3); set => CollisionMatrix.Set(CollisionLayer.Layer3, value); }
+    [DefaultValue(CollisionMask.Everything)] public CollisionMask Layer4 { get => CollisionMatrix.Get(CollisionLayer.Layer4); set => CollisionMatrix.Set(CollisionLayer.Layer4, value); }
+    [DefaultValue(CollisionMask.Everything)] public CollisionMask Layer5 { get => CollisionMatrix.Get(CollisionLayer.Layer5); set => CollisionMatrix.Set(CollisionLayer.Layer5, value); }
+    [DefaultValue(CollisionMask.Everything)] public CollisionMask Layer6 { get => CollisionMatrix.Get(CollisionLayer.Layer6); set => CollisionMatrix.Set(CollisionLayer.Layer6, value); }
+    [DefaultValue(CollisionMask.Everything)] public CollisionMask Layer7 { get => CollisionMatrix.Get(CollisionLayer.Layer7); set => CollisionMatrix.Set(CollisionLayer.Layer7, value); }
+    [DefaultValue(CollisionMask.Everything)] public CollisionMask Layer8 { get => CollisionMatrix.Get(CollisionLayer.Layer8); set => CollisionMatrix.Set(CollisionLayer.Layer8, value); }
+    [DefaultValue(CollisionMask.Everything)] public CollisionMask Layer9 { get => CollisionMatrix.Get(CollisionLayer.Layer9); set => CollisionMatrix.Set(CollisionLayer.Layer9, value); }
+    [DefaultValue(CollisionMask.Everything)] public CollisionMask Layer10 { get => CollisionMatrix.Get(CollisionLayer.Layer10); set => CollisionMatrix.Set(CollisionLayer.Layer10, value); }
+    [DefaultValue(CollisionMask.Everything)] public CollisionMask Layer11 { get => CollisionMatrix.Get(CollisionLayer.Layer11); set => CollisionMatrix.Set(CollisionLayer.Layer11, value); }
+    [DefaultValue(CollisionMask.Everything)] public CollisionMask Layer12 { get => CollisionMatrix.Get(CollisionLayer.Layer12); set => CollisionMatrix.Set(CollisionLayer.Layer12, value); }
+    [DefaultValue(CollisionMask.Everything)] public CollisionMask Layer13 { get => CollisionMatrix.Get(CollisionLayer.Layer13); set => CollisionMatrix.Set(CollisionLayer.Layer13, value); }
+    [DefaultValue(CollisionMask.Everything)] public CollisionMask Layer14 { get => CollisionMatrix.Get(CollisionLayer.Layer14); set => CollisionMatrix.Set(CollisionLayer.Layer14, value); }
+    [DefaultValue(CollisionMask.Everything)] public CollisionMask Layer15 { get => CollisionMatrix.Get(CollisionLayer.Layer15); set => CollisionMatrix.Set(CollisionLayer.Layer15, value); }
+    [DefaultValue(CollisionMask.Everything)] public CollisionMask Layer16 { get => CollisionMatrix.Get(CollisionLayer.Layer16); set => CollisionMatrix.Set(CollisionLayer.Layer16, value); }
+    [DefaultValue(CollisionMask.Everything)] public CollisionMask Layer17 { get => CollisionMatrix.Get(CollisionLayer.Layer17); set => CollisionMatrix.Set(CollisionLayer.Layer17, value); }
+    [DefaultValue(CollisionMask.Everything)] public CollisionMask Layer18 { get => CollisionMatrix.Get(CollisionLayer.Layer18); set => CollisionMatrix.Set(CollisionLayer.Layer18, value); }
+    [DefaultValue(CollisionMask.Everything)] public CollisionMask Layer19 { get => CollisionMatrix.Get(CollisionLayer.Layer19); set => CollisionMatrix.Set(CollisionLayer.Layer19, value); }
+    [DefaultValue(CollisionMask.Everything)] public CollisionMask Layer20 { get => CollisionMatrix.Get(CollisionLayer.Layer20); set => CollisionMatrix.Set(CollisionLayer.Layer20, value); }
+    [DefaultValue(CollisionMask.Everything)] public CollisionMask Layer21 { get => CollisionMatrix.Get(CollisionLayer.Layer21); set => CollisionMatrix.Set(CollisionLayer.Layer21, value); }
+    [DefaultValue(CollisionMask.Everything)] public CollisionMask Layer22 { get => CollisionMatrix.Get(CollisionLayer.Layer22); set => CollisionMatrix.Set(CollisionLayer.Layer22, value); }
+    [DefaultValue(CollisionMask.Everything)] public CollisionMask Layer23 { get => CollisionMatrix.Get(CollisionLayer.Layer23); set => CollisionMatrix.Set(CollisionLayer.Layer23, value); }
+    [DefaultValue(CollisionMask.Everything)] public CollisionMask Layer24 { get => CollisionMatrix.Get(CollisionLayer.Layer24); set => CollisionMatrix.Set(CollisionLayer.Layer24, value); }
+    [DefaultValue(CollisionMask.Everything)] public CollisionMask Layer25 { get => CollisionMatrix.Get(CollisionLayer.Layer25); set => CollisionMatrix.Set(CollisionLayer.Layer25, value); }
+    [DefaultValue(CollisionMask.Everything)] public CollisionMask Layer26 { get => CollisionMatrix.Get(CollisionLayer.Layer26); set => CollisionMatrix.Set(CollisionLayer.Layer26, value); }
+    [DefaultValue(CollisionMask.Everything)] public CollisionMask Layer27 { get => CollisionMatrix.Get(CollisionLayer.Layer27); set => CollisionMatrix.Set(CollisionLayer.Layer27, value); }
+    [DefaultValue(CollisionMask.Everything)] public CollisionMask Layer28 { get => CollisionMatrix.Get(CollisionLayer.Layer28); set => CollisionMatrix.Set(CollisionLayer.Layer28, value); }
+    [DefaultValue(CollisionMask.Everything)] public CollisionMask Layer29 { get => CollisionMatrix.Get(CollisionLayer.Layer29); set => CollisionMatrix.Set(CollisionLayer.Layer29, value); }
+    [DefaultValue(CollisionMask.Everything)] public CollisionMask Layer30 { get => CollisionMatrix.Get(CollisionLayer.Layer30); set => CollisionMatrix.Set(CollisionLayer.Layer30, value); }
+    [DefaultValue(CollisionMask.Everything)] public CollisionMask Layer31 { get => CollisionMatrix.Get(CollisionLayer.Layer31); set => CollisionMatrix.Set(CollisionLayer.Layer31, value); }
+
     public BepuSimulation()
     {
         var targetThreadCount = Math.Max(1, Environment.ProcessorCount > 4 ? Environment.ProcessorCount - 2 : Environment.ProcessorCount - 1);
@@ -213,8 +250,8 @@ public sealed class BepuSimulation : IDisposable
         BufferPool = new BufferPool();
         ContactEvents = new ContactEventsManager(_threadDispatcher, BufferPool);
 
-        var strideNarrowPhaseCallbacks = new StrideNarrowPhaseCallbacks() { CollidableMaterials = CollidableMaterials, ContactEvents = ContactEvents };
-        var stridePoseIntegratorCallbacks = new StridePoseIntegratorCallbacks() { CollidableMaterials = CollidableMaterials };
+        var strideNarrowPhaseCallbacks = new StrideNarrowPhaseCallbacks(this, ContactEvents, CollidableMaterials);
+        var stridePoseIntegratorCallbacks = new StridePoseIntegratorCallbacks(CollidableMaterials);
         var solveDescription = new SolveDescription(1, 1);
 
         Simulation = Simulation.Create(BufferPool, strideNarrowPhaseCallbacks, stridePoseIntegratorCallbacks, solveDescription);
@@ -251,6 +288,17 @@ public sealed class BepuSimulation : IDisposable
         var statics = Statics[handle.Value];
         Debug.Assert(statics is not null, "Handle is invalid, Bepu's array indexing strategy might have changed under us");
         return statics;
+    }
+
+    /// <summary>
+    /// Whether a physics test with <paramref name="mask"/> against <paramref name="collidable"/> should be performed or entirely ignored
+    /// </summary>
+    /// <returns>True when it should be performed, false when it should be ignored</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool ShouldPerformPhysicsTest(CollisionMask mask, CollidableReference collidable)
+    {
+        var component = GetComponent(collidable);
+        return mask.IsSet(component.CollisionLayer);
     }
 
     /// <summary>
@@ -487,7 +535,7 @@ public sealed class BepuSimulation : IDisposable
         public bool AllowCollisionTesting(int pairId, int childA, int childB)
         {
             var matA = CollidableMaterials[References[pairId]];
-            return CollisionMask.Collide(matA.ColliderCollisionMask);
+            return CollisionMask.IsSet(matA.Layer);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

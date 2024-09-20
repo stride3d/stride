@@ -3,7 +3,7 @@
 
 namespace Stride.BepuPhysics.Definitions;
 
-public struct BasicMeshBuffers
+internal struct BasicMeshBuffers
 {
     public VertexPosition3[] Vertices = [];
     public int[] Indices = [];
