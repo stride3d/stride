@@ -18,6 +18,12 @@ namespace Stride.Rendering.UI
         // object to avoid allocation at each element leave event
         private readonly HashSet<UIElement> newlySelectedElementParents = new HashSet<UIElement>();
         private readonly List<PointerEvent> compactedPointerEvents = new List<PointerEvent>();
+        private readonly Dictionary<RenderUIElement, UIElementInputState> inputStates = new Dictionary<RenderUIElement, UIElementInputState>();
+        private readonly List<RenderUIElement> oldRenderObjects = new List<RenderUIElement>();
+
+        private RenderContext renderContext;
+        
+        // Temp...
         private UIRenderFeature uiRenderFeature;
         private InputManager input;
         private IGame game;
@@ -27,25 +33,32 @@ namespace Stride.Rendering.UI
             uiRenderFeature = renderFeature;
             this.input = input;
             this.game = game;
+
+            renderContext = RenderContext.GetShared(game.Services);
         }
         
-
+        
         public UIElement Pick(RenderDrawContext context, GameTime drawTime)
         {
+            UpdateStates(context);
+            
             UIElement elementUnderMouseCursor = null;
             
             // Prepare content required for Picking and MouseOver events
             PickingPrepare();
 
             
-            foreach (var uiElementState in uiRenderFeature.uiElementStates)
+            foreach (var renderObject in uiRenderFeature.RenderObjects)
             {
+                if (renderObject is not RenderUIElement renderUIElement)
+                    continue;
+                
                 UIElement loopedElementUnderMouseCursor = null;
                 
                 // Check if the current UI component is being picked based on the current ViewParameters (used to draw this element)
                 using (Profiler.Begin(UIProfilerKeys.TouchEventsUpdate))
                 {
-                    PickingUpdate(uiElementState.RenderObject, context.CommandList.Viewport, ref uiElementState.WorldViewProjectionMatrix, drawTime, ref loopedElementUnderMouseCursor);
+                    PickingUpdate(renderUIElement, context.CommandList.Viewport, ref inputStates[renderUIElement].WorldViewProjectionMatrix, drawTime, ref loopedElementUnderMouseCursor);
                     
                     // only update result element, when this one has a value
                     if (loopedElementUnderMouseCursor != null)
@@ -56,6 +69,55 @@ namespace Stride.Rendering.UI
             PickingClear();
 
             return elementUnderMouseCursor;
+        }
+        
+        private void UpdateStates(RenderDrawContext context)
+        {
+            var renderTarget = context.CommandList.RenderTargets[0];
+            
+            oldRenderObjects.AddRange(inputStates.Keys);
+            foreach (RenderObject renderObject in uiRenderFeature.RenderObjects)
+            {
+                if (renderObject is not RenderUIElement renderUIElement)
+                    continue;
+                
+                // Create a state for the render object if it doesn't have one already.
+                if (!inputStates.TryGetValue(renderUIElement, out var state))
+                    inputStates[renderUIElement] = state = new UIElementInputState(renderUIElement);
+                
+                
+                // calculate the size of the virtual resolution depending on target size (UI canvas)
+                var virtualResolution = renderUIElement.Resolution;
+
+                if (renderUIElement.IsFullScreen)
+                {
+                    //var targetSize = viewportSize;
+                    var targetSize = new Vector2(renderTarget.Width, renderTarget.Height);
+
+                    // update the virtual resolution of the renderer
+                    if (renderUIElement.ResolutionStretch == ResolutionStretch.FixedWidthAdaptableHeight)
+                        virtualResolution.Y = virtualResolution.X * targetSize.Y / targetSize.X;
+                    if (renderUIElement.ResolutionStretch == ResolutionStretch.FixedHeightAdaptableWidth)
+                        virtualResolution.X = virtualResolution.Y * targetSize.X / targetSize.Y;
+
+                    state.Update(renderUIElement, virtualResolution);
+                }
+                else
+                {
+                    var cameraComponent = renderContext.Tags.Get(CameraComponentRendererExtensions.Current);
+                    if (cameraComponent != null)
+                        state.Update(renderUIElement, cameraComponent);
+                }
+                
+                // Remove the current render object, so only render objects that have state but have been removed from the render feature are left.
+                oldRenderObjects.Remove(renderUIElement);
+            }
+
+            // Remove the state for all remaining render objects, because they are no longer on the render feature.
+            foreach (RenderUIElement unhandledElement in oldRenderObjects)
+            {
+                inputStates.Remove(unhandledElement);
+            }
         }
 
         private void PickingUpdate(RenderUIElement renderUIElement, Viewport viewport, ref Matrix worldViewProj, GameTime drawTime, ref UIElement elementUnderMouseCursor)
@@ -508,6 +570,102 @@ namespace Stride.Rendering.UI
             /// Point of intersection between the ray and the hit element.
             /// </summary>
             public Vector3 IntersectionPoint { get; }
+        }
+    }
+
+    public class UIElementInputState
+    {
+        public readonly RenderUIElement RenderObject;
+        public Matrix WorldViewProjectionMatrix;
+
+        public UIElementInputState(RenderUIElement renderObject)
+        {
+            RenderObject = renderObject;
+            WorldViewProjectionMatrix = Matrix.Identity;
+        }
+
+        public void Update(RenderUIElement renderObject, CameraComponent camera)
+        {
+            var frustumHeight = 2 * MathF.Tan(MathUtil.DegreesToRadians(camera.VerticalFieldOfView) / 2);
+
+            var worldMatrix = renderObject.WorldMatrix;
+
+            // rotate the UI element perpendicular to the camera view vector, if billboard is activated
+            if (renderObject.IsFullScreen)
+            {
+                worldMatrix = Matrix.Identity;
+            }
+            else
+            {
+                Matrix viewInverse;
+                Matrix.Invert(ref camera.ViewMatrix, out viewInverse);
+                var forwardVector = viewInverse.Forward;
+
+                if (renderObject.IsBillboard)
+                {
+                    var viewInverseRow1 = viewInverse.Row1;
+                    var viewInverseRow2 = viewInverse.Row2;
+
+                    // remove scale of the camera
+                    viewInverseRow1 /= viewInverseRow1.XYZ().Length();
+                    viewInverseRow2 /= viewInverseRow2.XYZ().Length();
+
+                    // set the scale of the object
+                    viewInverseRow1 *= worldMatrix.Row1.XYZ().Length();
+                    viewInverseRow2 *= worldMatrix.Row2.XYZ().Length();
+
+                    // set the adjusted world matrix
+                    worldMatrix.Row1 = viewInverseRow1;
+                    worldMatrix.Row2 = viewInverseRow2;
+                    worldMatrix.Row3 = viewInverse.Row3;
+                }
+
+                if (renderObject.IsFixedSize)
+                {
+                    forwardVector.Normalize();
+                    var distVec = (worldMatrix.TranslationVector - viewInverse.TranslationVector);
+                    float distScalar;
+                    Vector3.Dot(ref forwardVector, ref distVec, out distScalar);
+                    distScalar = Math.Abs(distScalar);
+
+                    var worldScale = frustumHeight * distScalar * UIComponent.FixedSizeVerticalUnit; // FrustumHeight already is 2*Tan(FOV/2)
+
+                    worldMatrix.Row1 *= worldScale;
+                    worldMatrix.Row2 *= worldScale;
+                    worldMatrix.Row3 *= worldScale;
+                }
+
+                // If the UI component is not drawn fullscreen it should be drawn as a quad with world sizes corresponding to its actual size
+                worldMatrix = Matrix.Scaling(renderObject.Size / renderObject.Resolution) * worldMatrix;
+            }
+
+            // Rotation of Pi along 0x to go from UI space to world space
+            worldMatrix.Row2 = -worldMatrix.Row2;
+            worldMatrix.Row3 = -worldMatrix.Row3;
+
+            Matrix worldViewMatrix;
+            Matrix.Multiply(ref worldMatrix, ref camera.ViewMatrix, out worldViewMatrix);
+            Matrix.Multiply(ref worldViewMatrix, ref camera.ProjectionMatrix, out WorldViewProjectionMatrix);
+        }
+
+        public void Update(RenderUIElement renderObject, Vector3 virtualResolution)
+        {
+            var nearPlane = virtualResolution.Z / 2;
+            var farPlane = nearPlane + virtualResolution.Z;
+            var zOffset = nearPlane + virtualResolution.Z / 2;
+            var aspectRatio = virtualResolution.X / virtualResolution.Y;
+            var verticalFov = MathF.Atan2(virtualResolution.Y / 2, zOffset) * 2;
+
+            var cameraComponent = new CameraComponent(nearPlane, farPlane)
+            {
+                UseCustomAspectRatio = true,
+                AspectRatio = aspectRatio,
+                VerticalFieldOfView = MathUtil.RadiansToDegrees(verticalFov),
+                ViewMatrix = Matrix.LookAtRH(new Vector3(0, 0, zOffset), Vector3.Zero, Vector3.UnitY),
+                ProjectionMatrix = Matrix.PerspectiveFovRH(verticalFov, aspectRatio, nearPlane, farPlane),
+            };
+
+            Update(renderObject, cameraComponent);
         }
     }
 }

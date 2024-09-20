@@ -33,7 +33,7 @@ namespace Stride.Rendering.UI
 
         private readonly LayoutingContext layoutingContext = new LayoutingContext();
 
-        public readonly List<UIElementState> uiElementStates = new List<UIElementState>();
+        private readonly List<UIElementState> uiElementStates = new List<UIElementState>();
 
         public override Type SupportedRenderObjectType => typeof(RenderUIElement);
 
@@ -160,7 +160,7 @@ namespace Stride.Rendering.UI
             }
             
             // Handle input.
-            UIElementUnderMouseCursor = picking.Pick(context, drawTime);
+            UIElementUnderMouseCursor = picking?.Pick(context, drawTime);
             
 
             // render the UI elements of all the entities
@@ -330,7 +330,7 @@ namespace Stride.Rendering.UI
             rendererManager.RegisterRenderer(element, renderer);
         }
 
-        public class UIElementState
+        private class UIElementState
         {
             public readonly RenderUIElement RenderObject;
             public Matrix WorldViewProjectionMatrix;
