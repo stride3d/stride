@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using Stride.Core.Diagnostics;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Games;
@@ -12,17 +13,52 @@ using Stride.UI;
 
 namespace Stride.Rendering.UI
 {
-    public partial class UIRenderFeature 
+    public class UIInputPicking 
     {
         // object to avoid allocation at each element leave event
         private readonly HashSet<UIElement> newlySelectedElementParents = new HashSet<UIElement>();
-
         private readonly List<PointerEvent> compactedPointerEvents = new List<PointerEvent>();
+        private UIRenderFeature uiRenderFeature;
+        private InputManager input;
+        private IGame game;
 
-
+        public UIInputPicking(UIRenderFeature renderFeature, InputManager input, IGame game)
+        {
+            uiRenderFeature = renderFeature;
+            this.input = input;
+            this.game = game;
+        }
         
 
-        partial void PickingUpdate(RenderUIElement renderUIElement, Viewport viewport, ref Matrix worldViewProj, GameTime drawTime, ref UIElement elementUnderMouseCursor)
+        public UIElement Pick(RenderDrawContext context, GameTime drawTime)
+        {
+            UIElement elementUnderMouseCursor = null;
+            
+            // Prepare content required for Picking and MouseOver events
+            PickingPrepare();
+
+            
+            foreach (var uiElementState in uiRenderFeature.uiElementStates)
+            {
+                UIElement loopedElementUnderMouseCursor = null;
+                
+                // Check if the current UI component is being picked based on the current ViewParameters (used to draw this element)
+                using (Profiler.Begin(UIProfilerKeys.TouchEventsUpdate))
+                {
+                    PickingUpdate(uiElementState.RenderObject, context.CommandList.Viewport, ref uiElementState.WorldViewProjectionMatrix, drawTime, ref loopedElementUnderMouseCursor);
+                    
+                    // only update result element, when this one has a value
+                    if (loopedElementUnderMouseCursor != null)
+                        elementUnderMouseCursor = loopedElementUnderMouseCursor;
+                }
+            }
+
+            PickingClear();
+
+            return elementUnderMouseCursor;
+        }
+
+        private void PickingUpdate(RenderUIElement renderUIElement, Viewport viewport, ref Matrix worldViewProj, GameTime drawTime, ref UIElement elementUnderMouseCursor)
 
         {
             if (renderUIElement.Page?.RootElement == null)
@@ -35,13 +71,13 @@ namespace Stride.Rendering.UI
             UpdateTouchEvents(ref viewport, ref inverseZViewProj, renderUIElement, drawTime);
         }
 
-        partial void PickingClear()
+        private void PickingClear()
         {
             // clear the list of compacted pointer events of time frame
             ClearPointerEvents();
         }
 
-        partial void PickingPrepare()
+        private void PickingPrepare()
         {
             // compact all the pointer events that happened since last frame to avoid performing useless hit tests.
             CompactPointerEvents();
@@ -90,7 +126,7 @@ namespace Stride.Rendering.UI
         /// <returns></returns>
         private Ray GetWorldRay(ref Viewport viewport, Vector2 screenPos, ref Matrix worldViewProj)
         {
-            var graphicsDevice = graphicsDeviceService?.GraphicsDevice;
+            var graphicsDevice = game?.GraphicsDevice;
             if (graphicsDevice == null)
                 return new Ray(new Vector3(float.NegativeInfinity), new Vector3(0, 1, 0));
 
@@ -289,9 +325,7 @@ namespace Stride.Rendering.UI
                     parent = parent.VisualParent;
                 }
             }
-
-            UIElementUnderMouseCursor = mouseOverElement;
-
+            
             // update cached values
             state.LastMouseOverElement = mouseOverElement;
             state.LastMousePosition = mousePosition;
