@@ -78,8 +78,7 @@ namespace Stride.Core.Assets.Editor.Quantum.NodePresenters
             objectNode?.ResetOverrideRecursively(AssociatedNode.Index);
 
             //use our custom ResetOverride passed in constructor as a delegate
-            if (customOverride != null)
-                customOverride(this);
+            customOverride?.Invoke(this);
         }
 
         private bool IsAssociatedNodeInherited()

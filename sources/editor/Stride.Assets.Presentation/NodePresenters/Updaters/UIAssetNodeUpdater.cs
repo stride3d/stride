@@ -1,5 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -13,9 +14,7 @@ using Stride.Core.Presentation.Services;
 using Stride.Core.Quantum;
 using Stride.Assets.Presentation.ViewModel;
 using Stride.UI;
-using System;
 using Stride.UI.Panels;
-using static Stride.Rendering.ParameterCollection;
 
 namespace Stride.Assets.Presentation.NodePresenters.Updaters
 {
@@ -152,15 +151,15 @@ namespace Stride.Assets.Presentation.NodePresenters.Updaters
 
             //create virtual node
             var virtualNode = node.Factory.CreateVirtualNodePresenter(propertyNodeParent, property.Name, propertyType, order,
-             () => Getter(propertyContainerNode, propertyIndex),
-             o => Setter(undoRedoService, propertyContainerNode, propertyIndex, o),
-                checkHasBase, null, null, customOverride);
+                () => Getter(propertyContainerNode, propertyIndex),
+                o => Setter(undoRedoService, propertyContainerNode, propertyIndex, o),
+                    checkHasBase, null, null, customOverride);
 
             return virtualNode;
         }
 
         /// <summary>
-        /// Some virutal nodes dont have a specific AssociatedNode that is applicable. 
+        /// Some virtual nodes don't have a specific AssociatedNode that is applicable. 
         /// Instead delegates are passed in the constructor to allow for custom reset behaviors.
         /// 
         /// </summary>
@@ -194,7 +193,7 @@ namespace Stride.Assets.Presentation.NodePresenters.Updaters
         }
 
         //temp place for custom hasBase delegate used on the grid properties, TODO: Find better place for this
-        // can only enable override for property if the current value isnt the base value
+        // can only enable override for property if the current value isn't the base value
         public static bool CustomHasBaseGrid(UIElement element, PropertyKey property)
         {
             return (int)element.DependencyProperties.Get(property) != GridBase.GetBaseValue(property);
