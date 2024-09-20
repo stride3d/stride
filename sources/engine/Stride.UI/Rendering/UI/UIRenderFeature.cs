@@ -160,7 +160,7 @@ namespace Stride.Rendering.UI
             }
             
             // Handle input.
-            UIElementUnderMouseCursor = picking?.Pick(context, drawTime);
+            UIElementUnderMouseCursor = picking?.Pick(drawTime);
             
 
             // render the UI elements of all the entities

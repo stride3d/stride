@@ -38,15 +38,17 @@ namespace Stride.Rendering.UI
         }
         
         
-        public UIElement Pick(RenderDrawContext context, GameTime drawTime)
+        public UIElement Pick( GameTime drawTime)
         {
-            UpdateStates(context);
+            UpdateStates();
             
             UIElement elementUnderMouseCursor = null;
             
             // Prepare content required for Picking and MouseOver events
             PickingPrepare();
 
+            // TODO: Not sure if this would support VR. If it doesn't, look at ForwardRenderer.DrawCore for how to (potentially). 
+            var viewport = renderContext.ViewportState.Viewport0;
             
             foreach (var renderObject in uiRenderFeature.RenderObjects)
             {
@@ -58,7 +60,7 @@ namespace Stride.Rendering.UI
                 // Check if the current UI component is being picked based on the current ViewParameters (used to draw this element)
                 using (Profiler.Begin(UIProfilerKeys.TouchEventsUpdate))
                 {
-                    PickingUpdate(renderUIElement, context.CommandList.Viewport, ref inputStates[renderUIElement].WorldViewProjectionMatrix, drawTime, ref loopedElementUnderMouseCursor);
+                    PickingUpdate(renderUIElement, viewport, ref inputStates[renderUIElement].WorldViewProjectionMatrix, drawTime, ref loopedElementUnderMouseCursor);
                     
                     // only update result element, when this one has a value
                     if (loopedElementUnderMouseCursor != null)
@@ -71,9 +73,9 @@ namespace Stride.Rendering.UI
             return elementUnderMouseCursor;
         }
         
-        private void UpdateStates(RenderDrawContext context)
+        private void UpdateStates()
         {
-            var renderTarget = context.CommandList.RenderTargets[0];
+            var renderTarget = renderContext.GraphicsDevice.Presenter.BackBuffer;
             
             oldRenderObjects.AddRange(inputStates.Keys);
             foreach (RenderObject renderObject in uiRenderFeature.RenderObjects)
