@@ -68,6 +68,8 @@ namespace Stride.VirtualReality
         public override bool IsTouchedDown(TouchControllerButton button) => !IsButtonTouched(button, previousState) ? IsButtonTouched(button, currentState) : false;
 
         public override bool IsTouchReleased(TouchControllerButton button) => IsButtonTouched(button, previousState) ? !IsButtonTouched(button, currentState) : false;
+        
+        public override ControllerHaptics HapticsSupport => ControllerHaptics.None;
 
         public void Update(PerceptionTimestamp timeStamp, SpatialCoordinateSystem coordinateSystem)
         {
@@ -156,6 +158,9 @@ namespace Stride.VirtualReality
             currentLinearVelocity = location.Velocity?.ToVector3() ?? currentLinearVelocity;
             currentAngularVelocity = location.AngularVelocity?.ToVector3() ?? currentAngularVelocity;
         }
+
+        //TODO: implement this
+        public override async Task Vibrate(int duration, float frequency, float amplitude) { }
     }
 }
 

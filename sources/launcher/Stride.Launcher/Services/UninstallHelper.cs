@@ -29,7 +29,7 @@ internal class UninstallHelper : IDisposable
     /// Closes all processes that were started from the given directory or one of its subdirectory. If the process has a window,
     /// this method will spawn a dialog box to ask the user to terminate the process himself.
     /// </summary>
-    /// <param name="showMessage">An function that will display a message box with the given text and OK/Cancel buttons, and returns <c>True</c> if the user pressed OK or <c>False</c> if he pressed Cancel.</param>
+    /// <param name="showMessageAsync">An function that will display a message box with the given text and OK/Cancel buttons, and returns <c>True</c> if the user pressed OK or <c>False</c> if he pressed Cancel.</param>
     /// <param name="uninstallingProgramName">The name of the program being uninstalled, used for displaying a dialog message.</param>
     /// <param name="path">The path in which processes to terminate are located.</param>
     /// <returns><c>True</c> if all the processes were terminated, <c>False</c> if the user cancelled the operation.</returns>
@@ -136,13 +136,13 @@ internal class UninstallHelper : IDisposable
         return result;
     }
 
-    private async Task<bool> DisplayMessageAsync(string message)
+    private static async Task<bool> DisplayMessageAsync(string message)
     {
-        var result = await MessageBox.ShowAsync(Launcher.ApplicationName, message, MessageBoxButton.OKCancel);
-        return result != MessageBoxResult.Cancel;
+        var result = await MessageBox.ShowAsync(Launcher.ApplicationName, message, IDialogService.GetButtons(MessageBoxButton.OKCancel));
+        return result != (int)MessageBoxResult.Cancel;
     }
 
-    private async void PackageUninstalling(object? sender, PackageOperationEventArgs e)
+    private static async void PackageUninstalling(object? sender, PackageOperationEventArgs e)
     {
         await CloseProcessesInPathAsync(DisplayMessageAsync, e.Id, e.InstallPath);
     }

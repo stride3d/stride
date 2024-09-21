@@ -162,8 +162,7 @@ namespace Stride.Core.Reflection
 
         public static void RegisterScanTypes([NotNull] Assembly assembly, ScanTypes types)
         {
-            if (!AssemblyToScanTypes.ContainsKey(assembly))
-                AssemblyToScanTypes.Add(assembly, types);
+            AssemblyToScanTypes.TryAdd(assembly, types);
         }
 
         public static ScanTypes GetScanTypes([NotNull] Assembly assembly)

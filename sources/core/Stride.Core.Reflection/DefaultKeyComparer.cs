@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2015 SharpYaml - Alexandre Mutel
+// Copyright (c) 2015 SharpYaml - Alexandre Mutel
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -25,11 +25,9 @@ namespace Stride.Core.Reflection
 {
     public class DefaultKeyComparer : IComparer<object>
     {
-        public int Compare(object x, object y)
+        public int Compare(object? x, object? y)
         {
-            var left = x as IMemberDescriptor;
-            var right = y as IMemberDescriptor;
-            if (left != null && right != null)
+            if (x is IMemberDescriptor left && y is IMemberDescriptor right)
             {
                 // If order is defined, first order by order
                 if (left.Order.HasValue | right.Order.HasValue)
@@ -43,15 +41,12 @@ namespace Stride.Core.Reflection
                 return left.DefaultNameComparer.Compare(left.Name, right.Name);
             }
 
-            var sx = x as string;
-            var sy = y as string;
-            if (sx != null && sy != null)
+            if (x is string sx && y is string sy)
             {
                 return string.CompareOrdinal(sx, sy);
             }
 
-            var leftComparable = x as IComparable;
-            if (leftComparable != null)
+            if (x is IComparable leftComparable)
             {
                 return leftComparable.CompareTo(y);
             }

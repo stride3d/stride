@@ -560,7 +560,7 @@ namespace FreeImageAPI
 			{
 				if (value == null)
 				{
-					throw new ArgumentNullException("value");
+					throw new ArgumentNullException("value", $"{nameof(Data)} can not be null");
 				}
 				if (value.Length != length)
 				{

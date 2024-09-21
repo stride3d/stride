@@ -1,29 +1,27 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using System.Linq;
-using System.Threading.Tasks;
+
 using Stride.Core.BuildEngine;
-using Stride.Core.Diagnostics;
 
-namespace Stride.Editor.Thumbnails
+namespace Stride.Editor.Thumbnails;
+
+/// <summary>
+/// Special <see cref="BuildStep"/> that will forward dependencies to a <see cref="Command"/> implementing <see cref="IThumbnailCommand"/>.
+/// This should be used to properly set <see cref="IThumbnailCommand.DependencyBuildStatus"/>.
+/// </summary>
+public class ThumbnailBuildStep : CommandBuildStep
 {
-    /// <summary>
-    /// Special <see cref="BuildStep"/> that will forward dependencies to a <see cref="Command"/> implementing <see cref="IThumbnailCommand"/>.
-    /// This should be used to properly set <see cref="IThumbnailCommand.DependencyBuildStatus"/>.
-    /// </summary>
-    public class ThumbnailBuildStep : CommandBuildStep
+    //private readonly BuildStep dependencies;
+
+    public ThumbnailBuildStep(Command command)
+        : base(command)
     {
-        //private readonly BuildStep dependencies;
+        //this.dependencies = dependencies;
+    }
 
-        public ThumbnailBuildStep(Command command)
-            : base(command)
-        {
-            //this.dependencies = dependencies;
-        }
-
-        /// <inheritdoc/>
-        public override Task<ResultStatus> Execute(IExecuteContext executeContext, BuilderContext builderContext)
-        {
+    /// <inheritdoc/>
+    public override Task<ResultStatus> Execute(IExecuteContext executeContext, BuilderContext builderContext)
+    {
 //            var thumbnailCompiler = Command as IThumbnailCommand;
 //            if (thumbnailCompiler != null)
 //            {
@@ -46,7 +44,6 @@ namespace Stride.Editor.Thumbnails
 //                thumbnailCompiler.DependencyBuildStatus = highestLogMessageType;
 //            }
 
-            return base.Execute(executeContext, builderContext);
-        }
+        return base.Execute(executeContext, builderContext);
     }
 }

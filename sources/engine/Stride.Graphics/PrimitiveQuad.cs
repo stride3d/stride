@@ -9,7 +9,7 @@ using Stride.Rendering;
 namespace Stride.Graphics
 {
     /// <summary>
-    /// Primitive quad use to draw an effect on a quad (fullscreen by default). This is directly accessible from the <see cref="GraphicsDevice.DrawQuad"/> method.
+    /// Primitive quad use to draw an effect on a quad (fullscreen by default). This is directly accessible from the <see cref="GraphicsDeviceExtensions.DrawQuad"/> method.
     /// </summary>
     public class PrimitiveQuad : ComponentBase
     {

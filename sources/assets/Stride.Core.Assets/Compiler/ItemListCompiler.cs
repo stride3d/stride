@@ -89,7 +89,7 @@ namespace Stride.Core.Assets.Compiler
                 AssetCompiled?.Invoke(this, new AssetCompiledArgs(assetItem, resultPerAssetType));
 
                 // TODO: See if this can be unified with PackageBuilder.BuildStepProcessed
-                var assetFullPath = assetItem.FullPath.ToWindowsPath();
+                var assetFullPath = assetItem.FullPath.ToOSPath();
                 foreach (var message in resultPerAssetType.Messages)
                 {
                     var assetMessage = AssetLogMessage.From(null, assetItem.ToReference(), message, assetFullPath);
@@ -106,7 +106,7 @@ namespace Stride.Core.Assets.Compiler
 
                 // TODO: Big review of the log infrastructure of CompilerApp & BuildEngine!
                 // Assign module string to all command build steps
-                SetAssetLogger(resultPerAssetType.BuildSteps, assetItem.Package, assetItem.ToReference(), assetItem.FullPath.ToWindowsPath());
+                SetAssetLogger(resultPerAssetType.BuildSteps, assetItem.Package, assetItem.ToReference(), assetItem.FullPath.ToOSPath());
 
                 foreach (var buildStep in resultPerAssetType.BuildSteps)
                 {

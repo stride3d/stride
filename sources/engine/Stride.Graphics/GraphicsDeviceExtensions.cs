@@ -2,7 +2,6 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 
 using Stride.Core.Mathematics;
 using Stride.Rendering;
@@ -17,9 +16,9 @@ namespace Stride.Graphics
         /// <summary>
         /// Draws a fullscreen quad with the specified effect and parameters.
         /// </summary>
-        /// <param name="device">The device.</param>
-        /// <param name="effectInstance">The effect instance.</param>
-        /// <exception cref="System.ArgumentNullException">effect</exception>
+        /// <param name="graphicsContext">The graphics context used for drawing.</param>
+        /// <param name="effectInstance">The effect instance to apply when drawing the quad.</param>
+        /// <exception cref="System.ArgumentNullException">Thrown when <paramref name="effectInstance"/> is <c>null</c>.</exception>
         public static void DrawQuad(this GraphicsContext graphicsContext, EffectInstance effectInstance)
         {
             if (effectInstance == null) throw new ArgumentNullException("effectInstance");

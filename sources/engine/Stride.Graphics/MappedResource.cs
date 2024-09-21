@@ -3,7 +3,7 @@
 namespace Stride.Graphics
 {
     /// <summary>
-    /// A GPU resource mapped for CPU access. This is returned by using <see cref="GraphicsDevice.MapSubresource"/>
+    /// A GPU resource mapped for CPU access. This is returned by using <see cref="CommandList.MapSubresource"/>
     /// </summary>
     public partial struct MappedResource
     {

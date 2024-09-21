@@ -61,7 +61,7 @@ namespace Stride.Core.Diagnostics
         public string TypeFullName { get; set; }
 
         /// <summary>
-        /// Gets or sets the name of the exception type. Should correspond to the <see cref="Type.Name"/> property of the exception type.
+        /// Gets or sets the name of the exception type. Should correspond to the <see cref="MemberInfo.Name"/> property of the exception type.
         /// </summary>
         public string TypeName { get; set; }
 

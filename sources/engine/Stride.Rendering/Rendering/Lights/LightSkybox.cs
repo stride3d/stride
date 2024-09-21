@@ -9,7 +9,7 @@ using Stride.Rendering.Skyboxes;
 namespace Stride.Rendering.Lights
 {
     /// <summary>
-    /// A light coming from a skybox. The <see cref="SkyboxComponent"/> must be set on the entity in order to see a skybox. 
+    /// A light coming from a skybox. The `BackgroundComponent` must be set on the entity in order to see a skybox.
     /// </summary>
     [DataContract("LightSkybox")]
     [Display("Skybox")]

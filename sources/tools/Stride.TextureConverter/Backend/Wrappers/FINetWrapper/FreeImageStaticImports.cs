@@ -47,7 +47,7 @@ namespace FreeImageAPI
 		/// <summary>
 		/// Filename of the FreeImage library.
 		/// </summary>
-		private const string FreeImageLibrary = "FreeImage";
+		private const string FreeImageLibrary = "freeimage";
 
 		/// <summary>
 		/// Number of bytes to shift left within a 4 byte block.
@@ -192,14 +192,14 @@ namespace FreeImageAPI
 		/// </summary>
 		[DllImport(FreeImageLibrary, EntryPoint = "FreeImage_DeInitialise")]
 		private static extern void DeInitialise();
-
+		
 		/// <summary>
 		/// Returns a string containing the current version of the library.
 		/// </summary>
 		/// <returns>The current version of the library.</returns>
 		public static unsafe string GetVersion() { return PtrToStr(GetVersion_()); }
 		[DllImport(FreeImageLibrary, CharSet = CharSet.Ansi, EntryPoint = "FreeImage_GetVersion")]
-		private static unsafe extern byte* GetVersion_();
+		private static extern unsafe byte* GetVersion_();
 
 		/// <summary>
 		/// Returns a string containing a standard copyright message.
@@ -302,8 +302,8 @@ namespace FreeImageAPI
 		/// <param name="filename">Name of the file to decode.</param>
 		/// <param name="flags">Flags to enable or disable plugin-features.</param>
 		/// <returns>Handle to a FreeImage bitmap.</returns>
-		[DllImport(FreeImageLibrary, CharSet = CharSet.Unicode, EntryPoint = "FreeImage_LoadU")]
-		public static extern FIBITMAP Load(FREE_IMAGE_FORMAT fif, string filename, FREE_IMAGE_LOAD_FLAGS flags);
+		[DllImport(FreeImageLibrary, CharSet = CharSet.Auto, EntryPoint = "FreeImage_Load")]
+		private static extern FIBITMAP LoadNU(FREE_IMAGE_FORMAT fif, string filename, FREE_IMAGE_LOAD_FLAGS flags);
 
 		/// <summary>
 		/// Decodes a bitmap, allocates memory for it and returns it as a FIBITMAP.
@@ -315,6 +315,11 @@ namespace FreeImageAPI
 		/// <returns>Handle to a FreeImage bitmap.</returns>
 		[DllImport(FreeImageLibrary, CharSet = CharSet.Unicode, EntryPoint = "FreeImage_LoadU")]
 		private static extern FIBITMAP LoadU(FREE_IMAGE_FORMAT fif, string filename, FREE_IMAGE_LOAD_FLAGS flags);
+
+		public static FIBITMAP Load(FREE_IMAGE_FORMAT fif, string filename, FREE_IMAGE_LOAD_FLAGS flags)
+		{
+			return OperatingSystem.IsWindows() ? LoadU(fif, filename, flags) : LoadNU(fif, filename, flags);
+		}
 
 		/// <summary>
 		/// Loads a bitmap from an arbitrary source.
@@ -335,8 +340,8 @@ namespace FreeImageAPI
 		/// <param name="filename">Name of the file to save to.</param>
 		/// <param name="flags">Flags to enable or disable plugin-features.</param>
 		/// <returns>Returns true on success, false on failure.</returns>
-		[DllImport(FreeImageLibrary, CharSet = CharSet.Unicode, EntryPoint = "FreeImage_SaveU")]
-		public static extern bool Save(FREE_IMAGE_FORMAT fif, FIBITMAP dib, string filename, FREE_IMAGE_SAVE_FLAGS flags);
+		[DllImport(FreeImageLibrary, CharSet = CharSet.Auto, EntryPoint = "FreeImage_Save")]
+		private static extern bool SaveNU(FREE_IMAGE_FORMAT fif, FIBITMAP dib, string filename, FREE_IMAGE_SAVE_FLAGS flags);
 
 		/// <summary>
 		/// Saves a previosly loaded FIBITMAP to a file.
@@ -349,6 +354,11 @@ namespace FreeImageAPI
 		/// <returns>Returns true on success, false on failure.</returns>
 		[DllImport(FreeImageLibrary, CharSet = CharSet.Unicode, EntryPoint = "FreeImage_SaveU")]
 		private static extern bool SaveU(FREE_IMAGE_FORMAT fif, FIBITMAP dib, string filename, FREE_IMAGE_SAVE_FLAGS flags);
+		
+		public static bool Save(FREE_IMAGE_FORMAT fif, FIBITMAP dib, string filename, FREE_IMAGE_SAVE_FLAGS flags)
+		{
+			return OperatingSystem.IsWindows() ? SaveU(fif, dib, filename, flags) : SaveNU(fif, dib, filename, flags);
+		}
 
 		/// <summary>
 		/// Saves a bitmap to an arbitrary source.
@@ -596,8 +606,8 @@ namespace FreeImageAPI
 		/// </summary>
 		/// <param name="filename">The filename or -extension.</param>
 		/// <returns>The <see cref="FREE_IMAGE_FORMAT"/> of the plugin.</returns>
-		[DllImport(FreeImageLibrary, CharSet = CharSet.Unicode, EntryPoint = "FreeImage_GetFIFFromFilenameU")]
-		public static extern FREE_IMAGE_FORMAT GetFIFFromFilename(string filename);
+		[DllImport(FreeImageLibrary, CharSet = CharSet.Auto, EntryPoint = "FreeImage_GetFIFFromFilename")]
+		private static extern FREE_IMAGE_FORMAT GetFIFFromFilenameNU(string filename);
 
 		/// <summary>
 		/// This function takes a filename or a file-extension and returns the plugin that can
@@ -608,6 +618,11 @@ namespace FreeImageAPI
 		/// <returns>The <see cref="FREE_IMAGE_FORMAT"/> of the plugin.</returns>
 		[DllImport(FreeImageLibrary, CharSet = CharSet.Unicode, EntryPoint = "FreeImage_GetFIFFromFilenameU")]
 		private static extern FREE_IMAGE_FORMAT GetFIFFromFilenameU(string filename);
+
+		public static FREE_IMAGE_FORMAT GetFIFFromFilename(string filename)
+		{
+			return OperatingSystem.IsWindows() ? GetFIFFromFilenameU(filename) : GetFIFFromFilenameNU(filename);
+		}
 
 		/// <summary>
 		/// Checks if a plugin can load bitmaps.
@@ -785,8 +800,8 @@ namespace FreeImageAPI
 		/// <param name="filename">Name of the file to analyze.</param>
 		/// <param name="size">Reserved parameter - use 0.</param>
 		/// <returns>Type of the bitmap.</returns>
-		[DllImport(FreeImageLibrary, CharSet = CharSet.Unicode, EntryPoint = "FreeImage_GetFileTypeU")]
-		public static extern FREE_IMAGE_FORMAT GetFileType(string filename, int size);
+		[DllImport(FreeImageLibrary, CharSet = CharSet.Auto, EntryPoint = "FreeImage_GetFileType")]
+		private static extern FREE_IMAGE_FORMAT GetFileTypeNU(string filename, int size);
 
 
 		/// <summary>
@@ -798,6 +813,11 @@ namespace FreeImageAPI
 		/// <returns>Type of the bitmap.</returns>
 		[DllImport(FreeImageLibrary, CharSet = CharSet.Unicode, EntryPoint = "FreeImage_GetFileTypeU")]
 		private static extern FREE_IMAGE_FORMAT GetFileTypeU(string filename, int size);
+
+		public static FREE_IMAGE_FORMAT GetFileType(string filename, int size)
+		{
+			return OperatingSystem.IsWindows() ? GetFIFFromFilenameU(filename) : GetFIFFromFilenameNU(filename);
+		}
 
 		/// <summary>
 		/// Uses the <see cref="FreeImageIO"/> structure as described in the topic bitmap management functions
@@ -1835,7 +1855,7 @@ namespace FreeImageAPI
 
 		/// <summary>
 		/// This function rotates a 1-, 8-bit greyscale or a 24-, 32-bit color image by means of 3 shears.
-		/// 1-bit images rotation is limited to integer multiple of 90°.
+		/// 1-bit images rotation is limited to integer multiple of 90Â°.
 		/// <c>null</c> is returned for other values.
 		/// </summary>
 		/// <param name="dib">Handle to a FreeImage bitmap.</param>

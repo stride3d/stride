@@ -57,11 +57,11 @@ namespace Stride.Core.Quantum
         /// <param name="value">The new value to set.</param>
         public void UpdateValue(object value)
         {
-            if (Index != NodeIndex.Empty)
+            if (IsItem)
             {
                 ((IObjectNode)Node).Update(value, Index);
             }
-            else
+            else if (IsMember)
             {
                 ((IMemberNode)Node).Update(value);
             }

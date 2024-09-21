@@ -137,11 +137,34 @@ namespace Stride.Core.Assets.Quantum.Tests.Helpers
             public static int MemberCount => 4 + 3; // 4 (number of members in Asset) + 3 (number of members in Types.MyAssetWithRef2)
         }
 
+        [DataContract]
+        [AssetDescription(FileExtension)]
+        public class MyAssetWithStructWithPrimitives : MyAssetBase
+        {
+            public StructWithPrimitives StructValue { get; set; }
+        }
 
         [DataContract]
         public struct StructWithList
         {
             public List<string> MyStrings { get; set; }
+        }
+
+        [DataContract]
+        [DataStyle(DataStyle.Compact)]
+        public struct StructWithPrimitives : IEquatable<StructWithPrimitives>
+        {
+            [DefaultValue(0)]
+            public int Value1 { get; set; }
+            [DefaultValue(0)]
+            public int Value2 { get; set; }
+
+            public override readonly bool Equals(object obj) => obj is StructWithPrimitives value && Equals(value);
+            public readonly bool Equals(StructWithPrimitives other) => Value1 == other.Value1 && Value2 == other.Value2;
+
+            public override readonly int GetHashCode() => HashCode.Combine(Value1, Value2);
+
+            public override string ToString() => $"(Value1: {Value1}, Value2: {Value2})";
         }
 
         public interface IMyInterface

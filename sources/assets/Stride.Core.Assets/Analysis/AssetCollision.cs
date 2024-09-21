@@ -79,16 +79,10 @@ namespace Stride.Core.Assets.Analysis
                 var tuple = new Tuple<AssetId, UFile>(newId != AssetId.Empty ? newId : item.Id, newLocation ?? item.Location);
                 if (changed)
                 {
-                    if (!itemRemap.ContainsKey(item))
-                    {
-                        itemRemap.Add(item, tuple);
-                    }
+                    itemRemap.TryAdd(item, tuple);
                 }
 
-                if (!idRemap.ContainsKey(item.Id))
-                {
-                    idRemap.Add(item.Id, tuple);
-                }
+                idRemap.TryAdd(item.Id, tuple);
             }
 
             // Process assets

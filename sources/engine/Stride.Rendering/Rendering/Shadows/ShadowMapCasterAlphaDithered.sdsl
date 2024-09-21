@@ -31,7 +31,7 @@ namespace Stride.Rendering.Shadows
         {
             base.PSMain();
 
-            int2 coord = streams.ShadingPosition % 4;
+            int2 coord = int2(streams.ShadingPosition.xy % 4.0);
             float bayer = BayerMatrix[coord.x+coord.y*4];
             clip( -1.01 + bayer + streams.ColorTarget.a * 1.01 );
         }

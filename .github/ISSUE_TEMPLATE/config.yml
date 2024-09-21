@@ -1,0 +1,14 @@
+blank_issues_enabled: false
+
+contact_links:
+  - name: Stride Docs
+    url: https://github.com/stride3d/stride-docs/issues
+    about: Please report documentation issues in the Stride Docs repository.
+
+  - name: Stride Website
+    url: https://github.com/stride3d/stride-website/issues
+    about: Please report website issues in the Stride Website repository.
+
+  - name: Stride Community Toolkit
+    url: https://github.com/stride3d/stride-community-toolkit/issues
+    about: Please report community toolkit issues in the Stride Community Toolkit repository.

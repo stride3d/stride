@@ -167,10 +167,7 @@ namespace Stride.Physics.Engine
                                 debugPrimitive = shape.CreateUpdatableDebugPrimitive(graphicsDevice);
                                 updatableDebugMeshCache[shape] = debugPrimitive;
                             }
-                            if (!updatableDebugMeshes.ContainsKey(shape))
-                            {
-                                updatableDebugMeshes.Add(shape, debugPrimitive);
-                            }
+                            updatableDebugMeshes.TryAdd(shape, debugPrimitive);
                         }
                         else if (type == typeof(CapsuleColliderShape) || type == typeof(ConvexHullColliderShape) || type == typeof(StaticMeshColliderShape))
                         {

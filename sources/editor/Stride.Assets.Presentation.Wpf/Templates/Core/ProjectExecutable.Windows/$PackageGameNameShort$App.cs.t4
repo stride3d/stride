@@ -1,0 +1,6 @@
+<#@ template inherits="ProjectTemplateTransformation" language="C#" #>
+using Stride.Engine;
+
+using var game = new Game();
+game.Run();
+

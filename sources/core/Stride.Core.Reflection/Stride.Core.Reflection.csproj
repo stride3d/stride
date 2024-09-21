@@ -8,6 +8,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <StrideAssemblyProcessor>false</StrideAssemblyProcessor>
     <RestorePackages>true</RestorePackages>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">

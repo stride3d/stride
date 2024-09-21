@@ -1,326 +1,319 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
+
+using Stride.Assets;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Compiler;
 using Stride.Core.Assets.Editor.Components.Status;
 using Stride.Core.Assets.Editor.Services;
-using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Assets.Editor.ViewModels;
+using Stride.Core.Assets.Presentation.ViewModels;
 using Stride.Core.BuildEngine;
 using Stride.Core.Collections;
 using Stride.Core.Diagnostics;
-using Stride.Assets;
 using Stride.Editor.Build;
 using Stride.Editor.Resources;
 using Stride.Graphics;
 using Stride.Shaders.Compiler;
 
-namespace Stride.Editor.Thumbnails
-{ 
-    public class GameStudioThumbnailService : IThumbnailService
+namespace Stride.Editor.Thumbnails;
+
+public class GameStudioThumbnailService : IThumbnailService
+{
+    private readonly object hashLock = new();
+    private readonly Dictionary<AssetItem, PriorityQueueNode<AssetBuildUnit>> thumbnailQueueHash = new();
+
+    // Note: KVP.Value is usually null, and is only set if a new request for the same thumbnail has been done and we need to start it when the current one finish (avoid running it twice at the same time)
+    private readonly Dictionary<AssetId, ThumbnailContinuation> thumbnailsInProgressAndContinuation = new();
+    private readonly SessionViewModel session;
+    private readonly GameStudioBuilderService assetBuilderService;
+    private readonly ThumbnailListCompiler thumbnailCompiler;
+    private readonly AssetCompilerRegistry compilerRegistry;
+    private readonly List<ThumbnailPriorityItem> assetsToIncreasePriority = [];
+    private readonly ThumbnailGenerator generator;
+    private bool thumbnailThreadShouldTerminate;
+    private RenderingMode renderingMode;
+    private ColorSpace colorSpace;
+    private GraphicsProfile graphicsProfile;
+    private int firstPriority, lastPriority;
+
+    private int currentJobToken = -1;
+
+    private GameSettingsAsset currentGameSettings;
+
+    private readonly GameSettingsProviderService gameSettingsProviderService;
+
+    public GameStudioThumbnailService(SessionViewModel session, GameSettingsProviderService settingsProvider, GameStudioBuilderService assetBuilderService)
     {
-        private readonly object hashLock = new object();
-        private readonly Dictionary<AssetItem, PriorityQueueNode<AssetBuildUnit>> thumbnailQueueHash = new Dictionary<AssetItem, PriorityQueueNode<AssetBuildUnit>>();
+        this.session = session;
+        this.assetBuilderService = assetBuilderService;
 
-        // Note: KVP.Value is usually null, and is only set if a new request for the same thumbnail has been done and we need to start it when the current one finish (avoid running it twice at the same time)
-        private readonly Dictionary<AssetId, ThumbnailContinuation> thumbnailsInProgressAndContinuation = new Dictionary<AssetId, ThumbnailContinuation>();
-        private readonly SessionViewModel session;
-        private readonly GameStudioBuilderService assetBuilderService;
-        private readonly ThumbnailListCompiler thumbnailCompiler;
-        private readonly AssetCompilerRegistry compilerRegistry;
-        private readonly List<ThumbnailPriorityItem> assetsToIncreasePriority = new List<ThumbnailPriorityItem>();
-        private readonly ThumbnailGenerator generator;
-        private bool thumbnailThreadShouldTerminate;
-        private RenderingMode renderingMode;
-        private ColorSpace colorSpace;
-        private GraphicsProfile graphicsProfile;
-        private int firstPriority, lastPriority;
+        generator = new ThumbnailGenerator((EffectCompilerBase)assetBuilderService.EffectCompiler);
+        compilerRegistry = new AssetCompilerRegistry { DefaultCompiler = new CustomAssetThumbnailCompiler() };
+        thumbnailCompiler = new ThumbnailListCompiler(generator, ThumbnailBuilt, compilerRegistry);
 
-        private int currentJobToken = -1;
+        gameSettingsProviderService = settingsProvider;
+        gameSettingsProviderService.GameSettingsChanged += GameSettingsChanged;
+        UpdateGameSettings(settingsProvider.CurrentGameSettings);
+        StartPushNotificationsTask();
+    }
 
-        private GameSettingsAsset currentGameSettings;
-
-        private readonly GameSettingsProviderService gameSettingsProviderService;
-
-        public GameStudioThumbnailService(SessionViewModel session, GameSettingsProviderService settingsProvider, GameStudioBuilderService assetBuilderService)
+    public void Dispose()
+    {
+        // Terminate thumbnail control thread
+        lock (hashLock)
         {
-            this.session = session;
-            this.assetBuilderService = assetBuilderService;
+            foreach (var item in thumbnailQueueHash)
+            {
+                assetBuilderService.RemoveBuildUnit(item.Value);
+            }
+            thumbnailQueueHash.Clear();
+        }
+        thumbnailThreadShouldTerminate = true;
+        generator.Dispose();
+        gameSettingsProviderService.GameSettingsChanged -= GameSettingsChanged;
+    }
 
-            generator = new ThumbnailGenerator((EffectCompilerBase)assetBuilderService.EffectCompiler);
-            compilerRegistry = new AssetCompilerRegistry { DefaultCompiler = new CustomAssetThumbnailCompiler() };
-            thumbnailCompiler = new ThumbnailListCompiler(generator, ThumbnailBuilt, compilerRegistry);
+    private void GameSettingsChanged(object? sender, GameSettingsChangedEventArgs e)
+    {
+        UpdateGameSettings(e.GameSettings);
+    }
 
-            gameSettingsProviderService = settingsProvider;
-            gameSettingsProviderService.GameSettingsChanged += GameSettingsChanged;
-            UpdateGameSettings(settingsProvider.CurrentGameSettings);
-            StartPushNotificationsTask();
+    private void UpdateGameSettings(GameSettingsAsset gameSettings)
+    {
+        currentGameSettings = AssetCloner.Clone(gameSettings, AssetClonerFlags.RemoveUnloadableObjects);
+
+        var shouldRefreshAllThumbnails = false;
+        if (renderingMode != gameSettings.GetOrCreate<EditorSettings>().RenderingMode)
+        {
+            renderingMode = gameSettings.GetOrCreate<EditorSettings>().RenderingMode;
+            shouldRefreshAllThumbnails = true;
+        }
+        if (colorSpace != gameSettings.GetOrCreate<RenderingSettings>().ColorSpace)
+        {
+            colorSpace = gameSettings.GetOrCreate<RenderingSettings>().ColorSpace;
+            shouldRefreshAllThumbnails = true;
+        }
+        if (graphicsProfile != gameSettings.GetOrCreate<RenderingSettings>().DefaultGraphicsProfile)
+        {
+            graphicsProfile = gameSettings.GetOrCreate<RenderingSettings>().DefaultGraphicsProfile;
+            shouldRefreshAllThumbnails = true;
+        }
+        if (shouldRefreshAllThumbnails)
+        {
+            var allAssets = session.AllAssets.Select(x => x.AssetItem).ToList();
+            Task.Run(() => AddThumbnailAssetItems(allAssets, QueuePosition.First));
+        }
+    }
+
+    public static byte[] HandleBrokenThumbnail()
+    {
+        // Load broken asset thumbnail
+        var assetBrokenThumbnail = DefaultThumbnails.AssetBroken;
+
+        // Apply thumbnail status in corner
+        ThumbnailBuildHelper.ApplyThumbnailStatus(assetBrokenThumbnail, LogMessageType.Error);
+        var memoryStream = new MemoryStream();
+        assetBrokenThumbnail.Save(memoryStream, ImageFileType.Png);
+
+        return memoryStream.ToArray();
+    }
+
+    public event EventHandler<ThumbnailCompletedArgs>? ThumbnailCompleted;
+
+    /// <inheritdoc/>
+    public bool HasStaticThumbnail(Type assetType)
+    {
+        var compiler = (IThumbnailCompiler)compilerRegistry.GetCompiler(assetType, typeof(ThumbnailCompilationContext));
+        return compiler?.IsStatic ?? true;
+    }
+
+    public ListBuildStep Compile(AssetItem asset, GameSettingsAsset gameSettings)
+    {
+        // Mark thumbnail as being compiled
+        lock (hashLock)
+        {
+            thumbnailQueueHash.Remove(asset);
+            if (thumbnailsInProgressAndContinuation.ContainsKey(asset.Id) && System.Diagnostics.Debugger.IsAttached)
+            {
+                // Virgile: This case should not happen, but it happened to me once and could not reproduce.
+                // Please let me know if it happens to you.
+                // Note: this is likely not critical and should work fine even if it happens.
+                System.Diagnostics.Debugger.Break();
+            }
+            thumbnailsInProgressAndContinuation[asset.Id] = null;
         }
 
-        public void Dispose()
+        return thumbnailCompiler.Compile(asset, gameSettings, HasStaticThumbnail(asset.Asset.GetType()));
+    }
+
+    public void AddThumbnailAssetItems(IEnumerable<AssetItem> assetItems, QueuePosition position)
+    {
+        if (!thumbnailThreadShouldTerminate)
         {
-            // Terminate thumbnail control thread
+            assetBuilderService.WaitForShaders();
+
             lock (hashLock)
             {
-                foreach (var item in thumbnailQueueHash)
+                foreach (var asset in assetItems)
                 {
-                    assetBuilderService.RemoveBuildUnit(item.Value);
-                }
-                thumbnailQueueHash.Clear();
-            }
-            thumbnailThreadShouldTerminate = true;
-            generator.Dispose();
-            gameSettingsProviderService.GameSettingsChanged -= GameSettingsChanged;
-        }
-
-        private void GameSettingsChanged(object sender, GameSettingsChangedEventArgs e)
-        {
-            UpdateGameSettings(e.GameSettings);
-        }
-
-        private void UpdateGameSettings(GameSettingsAsset gameSettings)
-        {
-            currentGameSettings = AssetCloner.Clone(gameSettings, AssetClonerFlags.RemoveUnloadableObjects);
-
-            bool shouldRefreshAllThumbnails = false;
-            if (renderingMode != gameSettings.GetOrCreate<EditorSettings>().RenderingMode)
-            {
-                renderingMode = gameSettings.GetOrCreate<EditorSettings>().RenderingMode;
-                shouldRefreshAllThumbnails = true;
-            }
-            if (colorSpace != gameSettings.GetOrCreate<RenderingSettings>().ColorSpace)
-            {
-                colorSpace = gameSettings.GetOrCreate<RenderingSettings>().ColorSpace;
-                shouldRefreshAllThumbnails = true;
-            }
-            if (graphicsProfile != gameSettings.GetOrCreate<RenderingSettings>().DefaultGraphicsProfile)
-            {
-                graphicsProfile = gameSettings.GetOrCreate<RenderingSettings>().DefaultGraphicsProfile;
-                shouldRefreshAllThumbnails = true;
-            }
-            if (shouldRefreshAllThumbnails)
-            {
-                var allAssets = session.AllAssets.Select(x => x.AssetItem).ToList();
-                Task.Run(() => AddThumbnailAssetItems(allAssets, QueuePosition.First));
-            }
-        }
-
-        public static byte[] HandleBrokenThumbnail()
-        {
-            // Load broken asset thumbnail
-            var assetBrokenThumbnail = Image.Load(DefaultThumbnails.AssetBrokenThumbnail);
-
-            // Apply thumbnail status in corner
-            ThumbnailBuildHelper.ApplyThumbnailStatus(assetBrokenThumbnail, LogMessageType.Error);
-            var memoryStream = new MemoryStream();
-            assetBrokenThumbnail.Save(memoryStream, ImageFileType.Png);
-
-            return memoryStream.ToArray();
-        }
-
-        public event EventHandler<ThumbnailCompletedArgs> ThumbnailCompleted;
-
-        /// <inheritdoc/>
-        public bool HasStaticThumbnail(Type assetType)
-        {
-            var compiler = (IThumbnailCompiler)compilerRegistry.GetCompiler(assetType, typeof(ThumbnailCompilationContext));
-            return compiler?.IsStatic ?? true;
-        }
-
-        public ListBuildStep Compile(AssetItem asset, GameSettingsAsset gameSettings)
-        {
-            // Mark thumbnail as being compiled
-            lock (hashLock)
-            {
-                thumbnailQueueHash.Remove(asset);
-                if (thumbnailsInProgressAndContinuation.ContainsKey(asset.Id) && System.Diagnostics.Debugger.IsAttached)
-                {
-                    // Virgile: This case should not happen, but it happened to me once and could not reproduce.
-                    // Please let me know if it happens to you.
-                    // Note: this is likely not critical and should work fine even if it happens.
-                    System.Diagnostics.Debugger.Break();
-                }
-                thumbnailsInProgressAndContinuation[asset.Id] = null;
-            }
-
-            return thumbnailCompiler.Compile(asset, gameSettings, HasStaticThumbnail(asset.Asset.GetType()));
-        }
-
-        public void AddThumbnailAssetItems(IEnumerable<AssetItem> assetItems, QueuePosition position)
-        {
-            if (!thumbnailThreadShouldTerminate)
-            {
-                assetBuilderService.WaitForShaders();
-
-                lock (hashLock)
-                {
-                    foreach (var asset in assetItems)
+                    if (thumbnailsInProgressAndContinuation.ContainsKey(asset.Id))
                     {
-                        if (thumbnailsInProgressAndContinuation.ContainsKey(asset.Id))
-                        {
-                            // Thumbnail is already being generated, set this one as continuation
-                            thumbnailsInProgressAndContinuation[asset.Id] = new ThumbnailContinuation(asset, position);
-                        }
-                        else if (position == QueuePosition.First)
-                        {
-                            PriorityQueueNode<AssetBuildUnit> node;
-                            if (thumbnailQueueHash.TryGetValue(asset, out node))
-                            {
-                                assetBuilderService.RemoveBuildUnit(node);
-                                thumbnailQueueHash.Remove(asset);
-                            }
-
-                            node = assetBuilderService.PushBuildUnit(new ThumbnailAssetBuildUnit(asset, currentGameSettings, this, firstPriority--));
-                            thumbnailQueueHash.Add(asset, node);
-                        }
-                        else
-                        {
-                            if (!thumbnailQueueHash.ContainsKey(asset))
-                            {
-                                var node = assetBuilderService.PushBuildUnit(new ThumbnailAssetBuildUnit(asset, currentGameSettings, this, lastPriority++));
-                                thumbnailQueueHash.Add(asset, node);
-                            }
-                        }
+                        // Thumbnail is already being generated, set this one as continuation
+                        thumbnailsInProgressAndContinuation[asset.Id] = new ThumbnailContinuation(asset, position);
                     }
-                }
-            }
-        }
-
-        public void IncreaseThumbnailPriority(IEnumerable<AssetItem> assetItems)
-        {
-            if (!thumbnailThreadShouldTerminate)
-            {
-                lock (hashLock)
-                {
-                    // Batch assets whose priority needs to be updated
-                    foreach (var assetItem in assetItems)
+                    else if (position == QueuePosition.First)
                     {
-                        PriorityQueueNode<AssetBuildUnit> node;
-                        if (thumbnailQueueHash.TryGetValue(assetItem, out node))
+                        if (thumbnailQueueHash.TryGetValue(asset, out var node))
                         {
-                            var compiler = (IThumbnailCompiler)compilerRegistry.GetCompiler(assetItem.Asset.GetType(), typeof(ThumbnailCompilationContext));
-                            var priority = compiler.Priority;
-                            assetsToIncreasePriority.Add(new ThumbnailPriorityItem(assetItem, node, priority));
+                            assetBuilderService.RemoveBuildUnit(node);
+                            thumbnailQueueHash.Remove(asset);
                         }
-                    }
 
-                    // Sort by thumbnail priority
-                    assetsToIncreasePriority.Sort(ThumbnailPriorityComparer.Default);
-
-                    // Readd at beginning of the queue (reverse so that firstPriority-- matches assetsToIncreasePriority order
-                    for (int index = assetsToIncreasePriority.Count - 1; index >= 0; index--)
-                    {
-                        var thumbnailPriorityItem = assetsToIncreasePriority[index];
-                        var node = thumbnailPriorityItem.Node;
-                        var asset = thumbnailPriorityItem.Asset;
-
-                        assetBuilderService.RemoveBuildUnit(node);
-                        thumbnailQueueHash.Remove(asset);
                         node = assetBuilderService.PushBuildUnit(new ThumbnailAssetBuildUnit(asset, currentGameSettings, this, firstPriority--));
                         thumbnailQueueHash.Add(asset, node);
                     }
-
-                    assetsToIncreasePriority.Clear();
+                    else
+                    {
+                        if (!thumbnailQueueHash.ContainsKey(asset))
+                        {
+                            var node = assetBuilderService.PushBuildUnit(new ThumbnailAssetBuildUnit(asset, currentGameSettings, this, lastPriority++));
+                            thumbnailQueueHash.Add(asset, node);
+                        }
+                    }
                 }
             }
         }
+    }
 
-        private void ThumbnailBuilt(object sender, ThumbnailBuiltEventArgs e)
+    public void IncreaseThumbnailPriority(IEnumerable<AssetItem> assetItems)
+    {
+        if (!thumbnailThreadShouldTerminate)
         {
-            ThumbnailData thumbnailData = null;
-            if (e.ThumbnailStream != null)
-            {
-                var stream = new MemoryStream();
-                e.ThumbnailStream.CopyTo(stream);
-                thumbnailData = new BitmapThumbnailData(e.ThumbnailId, stream);
-            }
-
-            if (e.Result != ThumbnailBuildResult.Cancelled)
-            {
-                ThumbnailCompleted?.Invoke(this, new ThumbnailCompletedArgs(e.AssetId, thumbnailData));
-            }
-
             lock (hashLock)
             {
-                ThumbnailContinuation thumbnailContinuation;
-                thumbnailsInProgressAndContinuation.TryGetValue(e.AssetId, out thumbnailContinuation);
-                thumbnailsInProgressAndContinuation.Remove(e.AssetId);
-
-                // Check if same asset has been requested again while it was compiling
-                if (thumbnailContinuation != null)
+                // Batch assets whose priority needs to be updated
+                foreach (var assetItem in assetItems)
                 {
-                    var priority = thumbnailContinuation.Position == QueuePosition.First ? firstPriority-- : lastPriority++;
-                    var node = assetBuilderService.PushBuildUnit(new ThumbnailAssetBuildUnit(thumbnailContinuation.UpdatedAssetToRecompile, currentGameSettings, this, priority));
-                    thumbnailQueueHash.Add(thumbnailContinuation.UpdatedAssetToRecompile, node);
-                }
-            }
-        }
-
-        private void StartPushNotificationsTask()
-        {
-            Task.Run(async () =>
-            {
-                while (!thumbnailThreadShouldTerminate)
-                {
-                    await Task.Delay(500);
-                    if (currentJobToken >= 0)
+                    if (thumbnailQueueHash.TryGetValue(assetItem, out var node))
                     {
-                        if (thumbnailQueueHash.Count > 0)
-                        {
-                            EditorViewModel.Instance.Status.NotifyBackgroundJobProgress(currentJobToken, thumbnailQueueHash.Count, true);
-                        }
-                        else
-                        {
-                            EditorViewModel.Instance.Status.NotifyBackgroundJobFinished(currentJobToken);
-                            currentJobToken = -1;
-                        }
-                    }
-                    else if (thumbnailQueueHash.Count > 0)
-                    {
-                        currentJobToken = EditorViewModel.Instance.Status.NotifyBackgroundJobStarted("Building thumbnails… ({0} in queue)", JobPriority.Background);
+                        var compiler = (IThumbnailCompiler)compilerRegistry.GetCompiler(assetItem.Asset.GetType(), typeof(ThumbnailCompilationContext));
+                        var priority = compiler.Priority;
+                        assetsToIncreasePriority.Add(new ThumbnailPriorityItem(assetItem, node, priority));
                     }
                 }
-            });
-        }
 
-        struct ThumbnailPriorityItem
-        {
-            public readonly AssetItem Asset;
-            public readonly PriorityQueueNode<AssetBuildUnit> Node;
-            public readonly int Priority;
+                // Sort by thumbnail priority
+                assetsToIncreasePriority.Sort(ThumbnailPriorityComparer.Default);
 
-            public ThumbnailPriorityItem(AssetItem asset, PriorityQueueNode<AssetBuildUnit> node, int priority) : this()
-            {
-                Asset = asset;
-                Node = node;
-                Priority = priority;
+                // Readd at beginning of the queue (reverse so that firstPriority-- matches assetsToIncreasePriority order
+                for (var index = assetsToIncreasePriority.Count - 1; index >= 0; index--)
+                {
+                    var thumbnailPriorityItem = assetsToIncreasePriority[index];
+                    var node = thumbnailPriorityItem.Node;
+                    var asset = thumbnailPriorityItem.Asset;
+
+                    assetBuilderService.RemoveBuildUnit(node);
+                    thumbnailQueueHash.Remove(asset);
+                    node = assetBuilderService.PushBuildUnit(new ThumbnailAssetBuildUnit(asset, currentGameSettings, this, firstPriority--));
+                    thumbnailQueueHash.Add(asset, node);
+                }
+
+                assetsToIncreasePriority.Clear();
             }
         }
+    }
 
-        class ThumbnailPriorityComparer : Comparer<ThumbnailPriorityItem>
+    private void ThumbnailBuilt(object? sender, ThumbnailBuiltEventArgs e)
+    {
+        ThumbnailData? thumbnailData = null;
+        if (e.ThumbnailStream != null)
         {
-            public new static readonly ThumbnailPriorityComparer Default = new ThumbnailPriorityComparer();
-
-            public override int Compare(ThumbnailPriorityItem x, ThumbnailPriorityItem y)
-            {
-                return x.Priority - y.Priority;
-            }
+            var stream = new MemoryStream();
+            e.ThumbnailStream.CopyTo(stream);
+            thumbnailData = new BitmapThumbnailData(e.ThumbnailId, stream);
         }
 
-        class ThumbnailContinuation
+        if (e.Result != ThumbnailBuildResult.Cancelled)
         {
-            public readonly AssetItem UpdatedAssetToRecompile;
-            public readonly QueuePosition Position;
+            ThumbnailCompleted?.Invoke(this, new ThumbnailCompletedArgs(e.AssetId, thumbnailData));
+        }
 
-            public ThumbnailContinuation(AssetItem updatedAssetToRecompile, QueuePosition position)
+        lock (hashLock)
+        {
+            thumbnailsInProgressAndContinuation.TryGetValue(e.AssetId, out var thumbnailContinuation);
+            thumbnailsInProgressAndContinuation.Remove(e.AssetId);
+
+            // Check if same asset has been requested again while it was compiling
+            if (thumbnailContinuation != null)
             {
-                UpdatedAssetToRecompile = updatedAssetToRecompile;
-                Position = position;
+                var priority = thumbnailContinuation.Position == QueuePosition.First ? firstPriority-- : lastPriority++;
+                var node = assetBuilderService.PushBuildUnit(new ThumbnailAssetBuildUnit(thumbnailContinuation.UpdatedAssetToRecompile, currentGameSettings, this, priority));
+                thumbnailQueueHash.Add(thumbnailContinuation.UpdatedAssetToRecompile, node);
             }
+        }
+    }
+
+    private void StartPushNotificationsTask()
+    {
+        Task.Run(async () =>
+        {
+            while (!thumbnailThreadShouldTerminate)
+            {
+                await Task.Delay(500);
+                if (currentJobToken >= 0)
+                {
+                    if (thumbnailQueueHash.Count > 0)
+                    {
+                        session.Main.Status.NotifyBackgroundJobProgress(currentJobToken, thumbnailQueueHash.Count, true);
+                    }
+                    else
+                    {
+                        session.Main.Status.NotifyBackgroundJobFinished(currentJobToken);
+                        currentJobToken = -1;
+                    }
+                }
+                else if (thumbnailQueueHash.Count > 0)
+                {
+                    currentJobToken = session.Main.Status.NotifyBackgroundJobStarted("Building thumbnails… ({0} in queue)", JobPriority.Background);
+                }
+            }
+        });
+    }
+
+    private readonly struct ThumbnailPriorityItem
+    {
+        public readonly AssetItem Asset;
+        public readonly PriorityQueueNode<AssetBuildUnit> Node;
+        public readonly int Priority;
+
+        public ThumbnailPriorityItem(AssetItem asset, PriorityQueueNode<AssetBuildUnit> node, int priority) : this()
+        {
+            Asset = asset;
+            Node = node;
+            Priority = priority;
+        }
+    }
+
+    private class ThumbnailPriorityComparer : Comparer<ThumbnailPriorityItem>
+    {
+        public static new readonly ThumbnailPriorityComparer Default = new();
+
+        public override int Compare(ThumbnailPriorityItem x, ThumbnailPriorityItem y)
+        {
+            return x.Priority - y.Priority;
+        }
+    }
+
+    private class ThumbnailContinuation
+    {
+        public readonly AssetItem UpdatedAssetToRecompile;
+        public readonly QueuePosition Position;
+
+        public ThumbnailContinuation(AssetItem updatedAssetToRecompile, QueuePosition position)
+        {
+            UpdatedAssetToRecompile = updatedAssetToRecompile;
+            Position = position;
         }
     }
 }

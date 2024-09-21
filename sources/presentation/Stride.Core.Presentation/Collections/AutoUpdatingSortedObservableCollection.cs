@@ -160,7 +160,9 @@ public class AutoUpdatingSortedObservableCollection<T> : SortedObservableCollect
                     ObservableCollectionMoveItem(ChangingIndex, newIndex);
                 }
                 else
+                {
                     ChangingIndex = GetIndex(item, false);
+                }
             }
             ChangingItem = null;
         }
@@ -176,9 +178,13 @@ public class AutoUpdatingSortedObservableCollection<T> : SortedObservableCollect
 
             int comp = DefaultCompareFunc(this[imid], item);
             if (comp < 0)
+            {
                 imin = imid + 1;
+            }
             else if (comp > 0)
+            {
                 imax = imid - 1;
+            }
             else
             {
                 bool found = true;

@@ -330,7 +330,7 @@ namespace Stride.Core.Design.Tests
         }
 
         [Fact]
-        public void TestUPathToWindowsPath()
+        public void TestUPathToOSPath()
         {
             // TODO
         }

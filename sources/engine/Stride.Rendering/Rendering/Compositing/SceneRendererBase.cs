@@ -7,7 +7,7 @@ using Stride.Core.Annotations;
 namespace Stride.Rendering.Compositing
 {
     /// <summary>
-    /// Describes the code part of a <see cref="GraphicsCompositor"/>.
+    /// Describes the code part of a `GraphicsCompositor`.
     /// </summary>
     [DataContract(Inherited = true)]
     public abstract class SceneRendererBase : RendererCoreBase, ISceneRenderer

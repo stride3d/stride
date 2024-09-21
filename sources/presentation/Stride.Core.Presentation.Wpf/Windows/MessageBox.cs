@@ -10,13 +10,10 @@ using System.Windows.Input;
 using System.Windows.Media;
 using Stride.Core.Presentation.Interop;
 using Stride.Core.Annotations;
-using Stride.Core.Translation;
 
 namespace Stride.Core.Presentation.Windows
 {
-    using MessageBoxButton = Services.MessageBoxButton;
     using MessageBoxImage = Services.MessageBoxImage;
-    using MessageBoxResult = Services.MessageBoxResult;
 
     public class MessageBox : MessageDialogBase
     {
@@ -41,93 +38,6 @@ namespace Stride.Core.Presentation.Windows
         {
             get { return (ImageSource)GetValue(ImageProperty); }
             set { SetValue(ImageProperty, value); }
-        }
-
-        /// <summary>
-        /// Gets a new instance of <see cref="DialogButtonInfo"/> to serve as 'Cancel' button.
-        /// </summary>
-        /// <remarks>
-        /// <see cref="DialogButtonInfo.IsCancel"/> is set to <see langword="true"/>.
-        /// <see cref="DialogButtonInfo.Result"/> is set to <see cref="MessageBoxResult.Cancel"/>.</remarks>
-        [NotNull]
-        public static DialogButtonInfo ButtonCancel => new DialogButtonInfo
-        {
-            IsCancel = true,
-            Result = (int)MessageBoxResult.Cancel,
-            Content = "Cancel",
-        };
-
-        /// <summary>
-        /// Gets a new instance of <see cref="DialogButtonInfo"/> to serve as 'No' button.
-        /// </summary>
-        /// <remarks>
-        /// <see cref="DialogButtonInfo.Result"/> is set to <see cref="MessageBoxResult.No"/>.</remarks>
-        [NotNull]
-        public static DialogButtonInfo ButtonNo => new DialogButtonInfo
-        {
-            Result = (int)MessageBoxResult.No,
-            Content = "No",
-            Key = Tr._p("KeyGesture", "N"),
-        };
-
-        /// <summary>
-        /// Gets a new instance of <see cref="DialogButtonInfo"/> to serve as 'OK' button.
-        /// </summary>
-        /// <remarks>
-        /// <see cref="DialogButtonInfo.IsDefault"/> is set to <see langword="true"/>.
-        /// <see cref="DialogButtonInfo.Result"/> is set to <see cref="MessageBoxResult.OK"/>.</remarks>
-        [NotNull]
-        public static DialogButtonInfo ButtonOK => new DialogButtonInfo
-        {
-            IsDefault = true,
-            Result = (int)MessageBoxResult.OK,
-            Content = "OK",
-        };
-
-        /// <summary>
-        /// Gets a new instance of <see cref="DialogButtonInfo"/> to serve as 'Yes' button.
-        /// </summary>
-        /// <remarks>
-        /// <see cref="DialogButtonInfo.IsDefault"/> is set to <see langword="true"/>.
-        /// <see cref="DialogButtonInfo.Result"/> is set to <see cref="MessageBoxResult.Yes"/>.</remarks>
-        [NotNull]
-        public static DialogButtonInfo ButtonYes => new DialogButtonInfo
-        {
-            IsDefault = true,
-            Result = (int)MessageBoxResult.Yes,
-            Content = "Yes",
-            Key = Tr._p("KeyGesture", "Y"),
-        };
-
-        [NotNull]
-        internal static ICollection<DialogButtonInfo> GetButtons(MessageBoxButton button)
-        {
-            ICollection<DialogButtonInfo> buttons;
-            switch (button)
-            {
-                case MessageBoxButton.OK:
-                    var buttonOk = ButtonOK;
-                    buttonOk.IsCancel = true;
-                    buttons = new[] { buttonOk };
-                    break;
-
-                case MessageBoxButton.OKCancel:
-                    buttons = new[] { ButtonOK, ButtonCancel };
-                    break;
-
-                case MessageBoxButton.YesNoCancel:
-                    buttons = new[] { ButtonYes, ButtonNo, ButtonCancel };
-                    break;
-
-                case MessageBoxButton.YesNo:
-                    var buttonNo = ButtonNo;
-                    buttonNo.IsCancel = true;
-                    buttons = new[] { ButtonYes, buttonNo };
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(button), button, null);
-            }
-            return buttons;
         }
 
         internal static void SetImage([NotNull] MessageBox messageBox, MessageBoxImage image)
@@ -158,20 +68,6 @@ namespace Stride.Core.Presentation.Windows
                     throw new ArgumentOutOfRangeException(nameof(image), image, null);
             }
             messageBox.Image = imageKey != null ? (ImageSource)messageBox.TryFindResource(imageKey) : null;
-        }
-
-        /// <summary>
-        /// Displays a <see cref="MessageBox"/> an returns the <see cref="MessageBoxResult"/> depending on the user's choice.
-        /// </summary>
-        /// <param name="message">A <see cref="string"/> that specifies the text to display.</param>
-        /// <param name="caption">A <see cref="string"/> that specifies the title bar caption to display.</param>
-        /// <param name="button">A <see cref="MessageBoxButton"/> value that specifies which button or buttons to display</param>
-        /// <param name="image">A <see cref="MessageBoxImage"/> value that specifies the icon to display.</param>
-        /// <returns>A <see cref="MessageBoxResult"/> value that specifies which message box button is clicked by the user.</returns>
-        [NotNull]
-        public static async Task<MessageBoxResult> Show(string message, string caption, MessageBoxButton button, MessageBoxImage image)
-        {
-            return (MessageBoxResult)await Show(message, caption, GetButtons(button), image);
         }
 
         /// <summary>

@@ -14,7 +14,7 @@ namespace Stride.Core.Reflection
         public FieldDescriptor(ITypeDescriptor typeDescriptor, FieldInfo fieldInfo, StringComparer defaultNameComparer)
             : base(fieldInfo, defaultNameComparer)
         {
-            if (fieldInfo == null) throw new ArgumentNullException(nameof(fieldInfo));
+            ArgumentNullException.ThrowIfNull(fieldInfo);
 
             FieldInfo = fieldInfo;
             TypeDescriptor = typeDescriptor;
@@ -32,12 +32,12 @@ namespace Stride.Core.Reflection
 
         public override bool HasSet => !FieldInfo.IsInitOnly;
 
-        public override object Get(object thisObject)
+        public override object? Get(object thisObject)
         {
             return FieldInfo.GetValue(thisObject);
         }
 
-        public override void Set(object thisObject, object value)
+        public override void Set(object thisObject, object? value)
         {
             FieldInfo.SetValue(thisObject, value);
         }

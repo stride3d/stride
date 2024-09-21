@@ -10,7 +10,7 @@ namespace Stride.Core.MicroThreading
     /// Provides a communication mechanism between <see cref="MicroThread"/>.
     /// </summary>
     /// <remarks>
-    /// <see cref="MicroThread"/> can send and receive to a <see cref="Channel"/>. Depending on the <see cref="Channel.Preference"/>,
+    /// <see cref="MicroThread"/> can send and receive to a <see cref="Channel{T}"/>. Depending on the <see cref="Channel{T}.Preference"/>,
     /// sending or receiving <see cref="MicroThread"/> might be suspended and yield execution to another <see cref="MicroThread"/>.
     /// </remarks>
     /// <typeparam name="T">The type of element handled by this channel.</typeparam>

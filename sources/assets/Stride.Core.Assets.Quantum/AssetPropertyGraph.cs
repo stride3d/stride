@@ -217,14 +217,14 @@ namespace Stride.Core.Assets.Quantum
         private void ReconcileWithBase([NotNull] IAssetNode rootNode, Dictionary<IGraphNode, NodeIndex> nodesToReset = null)
         {
             // Two passes: first pass will reconcile almost everything, but skip object reference.
-            // The reason is that the target of the reference might not exist yet (might need to be reconcilied)
-            var visitor = CreateReconcilierVisitor();
-            visitor.Visiting += (node, path) => ReconcileWithBaseNode((IAssetNode)node, false, nodesToReset);
+            // The reason is that the target of the reference might not exist yet (might need to be reconciled)
+            var visitor = CreateReconcilerVisitor();
+            visitor.Visiting += (node, path) => ReconcileWithBaseNode((IAssetNode)node, path, reconcileObjectReference: false, nodesToReset);
             visitor.Visit(rootNode);
             // Second pass: this one should only reconcile remaining object reference.
             // TODO: these two passes could be improved!
-            visitor = CreateReconcilierVisitor();
-            visitor.Visiting += (node, path) => ReconcileWithBaseNode((IAssetNode)node, true, nodesToReset);
+            visitor = CreateReconcilerVisitor();
+            visitor.Visiting += (node, path) => ReconcileWithBaseNode((IAssetNode)node, path, reconcileObjectReference: true, nodesToReset);
             visitor.Visit(rootNode);
         }
 
@@ -268,7 +268,7 @@ namespace Stride.Core.Assets.Quantum
             {
                 var visitor = new AssetGraphVisitorBase(Definition);
                 // If we're in scenario where rootNode is an object node and index is not empty, we might already have the node in the dictionary so let's check this in Visiting
-                visitor.Visiting += (node, path) => { if (!nodesToReset.ContainsKey(node)) nodesToReset.Add(node, NodeIndex.Empty); };
+                visitor.Visiting += (node, path) => { nodesToReset.TryAdd(node, NodeIndex.Empty); };
                 visitor.Visit(rootNode);
             }
             // Then we reconcile (recursively) with the base.
@@ -291,7 +291,11 @@ namespace Stride.Core.Assets.Quantum
         /// </summary>
         /// <returns>A new instance of <see cref="GraphVisitorBase"/> for reconciliation.</returns>
         [NotNull]
-        public virtual GraphVisitorBase CreateReconcilierVisitor()
+        [Obsolete($"To be removed in future releases. Use {nameof(CreateReconcilerVisitor)} instead.")]
+        public virtual GraphVisitorBase CreateReconcilierVisitor() => CreateReconcilerVisitor();
+
+        [NotNull]
+        public virtual GraphVisitorBase CreateReconcilerVisitor()
         {
             return new AssetGraphVisitorBase(Definition);
         }
@@ -744,11 +748,11 @@ namespace Stride.Core.Assets.Quantum
             BaseContentChanged?.Invoke(e, node);
         }
 
-        private void ReconcileWithBaseNode(IAssetNode assetNode, bool reconcileObjectReference, Dictionary<IGraphNode, NodeIndex> nodesToReset)
+        private void ReconcileWithBaseNode(IAssetNode assetNode, GraphNodePath currentPath, bool reconcileObjectReference, Dictionary<IGraphNode, NodeIndex> nodesToReset)
         {
             var memberNode = assetNode as AssetMemberNode;
             var objectNode = assetNode as IAssetObjectNodeInternal;
-            // Non-overridable members should not be reconcilied.
+            // Non-overridable members should not be reconciled.
             if (assetNode?.BaseNode == null || !memberNode?.CanOverride == true)
                 return;
 
@@ -758,7 +762,7 @@ namespace Stride.Core.Assets.Quantum
             // Reconcile occurs only when the node is not overridden.
             if (memberNode != null)
             {
-                if (ShouldReconcileMember(memberNode, reconcileObjectReference, nodesToReset))
+                if (ShouldReconcileMember(memberNode, currentPath, reconcileObjectReference, nodesToReset))
                 {
                     // If we have no setter, we cannot reconcile this property. Usually it means that the value is already correct (eg. it's an instance of the correct type,
                     // or it's a value that cannot change), so we'll just keep going and try to reconcile the children of this member.
@@ -946,7 +950,7 @@ namespace Stride.Core.Assets.Quantum
             }
         }
 
-        private bool ShouldReconcileMember([NotNull] IAssetMemberNode memberNode, bool reconcileObjectReference, Dictionary<IGraphNode, NodeIndex> nodesToReset)
+        private bool ShouldReconcileMember([NotNull] IAssetMemberNode memberNode, GraphNodePath currentPath, bool reconcileObjectReference, Dictionary<IGraphNode, NodeIndex> nodesToReset)
         {
             var localValue = memberNode.Retrieve();
             var baseValue = memberNode.BaseNode.Retrieve();
@@ -984,6 +988,16 @@ namespace Stride.Core.Assets.Quantum
                 var localRef = AttachedReferenceManager.GetAttachedReference(localValue);
                 var baseRef = AttachedReferenceManager.GetAttachedReference(baseValue);
                 return localRef?.Id != baseRef?.Id || localRef?.Url != baseRef?.Url;
+            }
+
+            // Value type, check if it is a child of a value type that has been overridden
+            foreach (var pathNode in currentPath)
+            {
+                if (pathNode is IAssetMemberNode assetMemberNode && assetMemberNode.IsContentOverridden())
+                {
+                    // We are inside a struct that was overridden, so we are actually considered overridden
+                    return false;
+                }
             }
 
             // Value type, we check for equality

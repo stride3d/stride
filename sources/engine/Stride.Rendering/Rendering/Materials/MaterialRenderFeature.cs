@@ -280,31 +280,35 @@ namespace Stride.Rendering.Materials
             // Assign descriptor sets to each render node
             var resourceGroupPool = ((RootEffectRenderFeature)RootRenderFeature).ResourceGroupPool;
 
-            Dispatcher.For(0, RootRenderFeature.RenderNodes.Count, () => context.RenderContext.GetThreadContext(), (renderNodeIndex, threadContext) =>
+            Dispatcher.ForBatched(RootRenderFeature.RenderNodes.Count, (from, toExclusive) =>
             {
-                var renderNodeReference = new RenderNodeReference(renderNodeIndex);
-                var renderNode = RootRenderFeature.RenderNodes[renderNodeIndex];
-                var renderMesh = (RenderMesh)renderNode.RenderObject;
+                var threadContext = context.RenderContext.GetThreadContext();
+                for (int i = from; i < toExclusive; i++)
+                {
+                    var renderNodeReference = new RenderNodeReference(i);
+                    var renderNode = RootRenderFeature.RenderNodes[i];
+                    var renderMesh = (RenderMesh)renderNode.RenderObject;
 
-                // Ignore fallback effects
-                if (renderNode.RenderEffect.State != RenderEffectState.Normal)
-                    return;
+                    // Ignore fallback effects
+                    if (renderNode.RenderEffect.State != RenderEffectState.Normal)
+                        continue;
 
-                // Collect materials and create associated MaterialInfo (includes reflection) first time
-                // TODO: We assume same material will generate same ResourceGroup (i.e. same resources declared in same order)
-                // Need to offer some protection if this invariant is violated (or support it if it can actually happen in real scenario)
-                var material = renderMesh.MaterialPass;
-                var materialInfo = renderMesh.MaterialInfo;
-                var materialParameters = material.Parameters;
+                    // Collect materials and create associated MaterialInfo (includes reflection) first time
+                    // TODO: We assume same material will generate same ResourceGroup (i.e. same resources declared in same order)
+                    // Need to offer some protection if this invariant is violated (or support it if it can actually happen in real scenario)
+                    var material = renderMesh.MaterialPass;
+                    var materialInfo = renderMesh.MaterialInfo;
+                    var materialParameters = material.Parameters;
 
-                // Register resources usage
-                Context.StreamingManager?.StreamResources(materialParameters);
+                    // Register resources usage
+                    Context.StreamingManager?.StreamResources(materialParameters);
 
-                if (!UpdateMaterial(RenderSystem, threadContext, materialInfo, perMaterialDescriptorSetSlot.Index, renderNode.RenderEffect, materialParameters))
-                    return;
+                    if (!UpdateMaterial(RenderSystem, threadContext, materialInfo, perMaterialDescriptorSetSlot.Index, renderNode.RenderEffect, materialParameters))
+                        continue;
 
-                var descriptorSetPoolOffset = ((RootEffectRenderFeature)RootRenderFeature).ComputeResourceGroupOffset(renderNodeReference);
-                resourceGroupPool[descriptorSetPoolOffset + perMaterialDescriptorSetSlot.Index] = materialInfo.Resources;
+                    var descriptorSetPoolOffset = ((RootEffectRenderFeature)RootRenderFeature).ComputeResourceGroupOffset(renderNodeReference);
+                    resourceGroupPool[descriptorSetPoolOffset + perMaterialDescriptorSetSlot.Index] = materialInfo.Resources;
+                }
             });
         }
 

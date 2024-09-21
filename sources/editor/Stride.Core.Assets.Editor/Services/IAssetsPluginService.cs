@@ -1,24 +1,24 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using System;
-using System.Collections.Generic;
 
-using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Assets.Presentation;
+using Stride.Core.Diagnostics;
 
-namespace Stride.Core.Assets.Editor.Services
+namespace Stride.Core.Assets.Editor.Services;
+
+public interface IAssetsPluginService
 {
-    public interface IAssetsPluginService
-    {
-        IReadOnlyCollection<AssetsPlugin> Plugins { get; }
+    IReadOnlyCollection<AssetsPlugin> Plugins { get; }
 
-        bool HasImagesForEnum(SessionViewModel session, Type enumType);
+    void EnsureInitialized(ILogger logger);
 
-        object GetImageForEnum(SessionViewModel session, object value);
+    Type? GetAssetViewModelType(Type assetType);
 
-        IEnumerable<Type> GetPrimitiveTypes(SessionViewModel session);
+    Type? GetEditorViewModelType(Type viewModelType);
 
-        IEditorView ConstructEditionView(AssetViewModel asset);
+    Type? GetEditorViewType(Type editorViewModelType);
 
-        bool HasEditorView(SessionViewModel session, Type assetType);
-    }
+    Type? GetPreviewViewModelType(Type previewType);
+
+    Type? GetPreviewViewType(Type previewType);
 }

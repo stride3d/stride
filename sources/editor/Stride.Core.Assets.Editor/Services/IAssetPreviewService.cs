@@ -1,21 +1,19 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using System;
 
-using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Assets.Presentation.ViewModels;
 
-namespace Stride.Core.Assets.Editor.Services
+namespace Stride.Core.Assets.Editor.Services;
+
+public interface IAssetPreviewService : IDisposable
 {
-    public interface IAssetPreviewService : IDisposable
-    {
-        void SetAssetToPreview(AssetViewModel asset);
+    void SetAssetToPreview(AssetViewModel asset);
 
-        object GetCurrentPreviewView();
+    object GetCurrentPreviewView();
 
-        event EventHandler<EventArgs> PreviewAssetUpdated;
+    event EventHandler<EventArgs> PreviewAssetUpdated;
 
-        void OnShowPreview();
+    void OnShowPreview();
 
-        void OnHidePreview();
-    }
+    void OnHidePreview();
 }

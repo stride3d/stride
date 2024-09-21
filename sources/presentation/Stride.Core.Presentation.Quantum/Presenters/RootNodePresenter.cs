@@ -1,120 +1,119 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using System;
-using System.Collections.Generic;
-using Stride.Core.Annotations;
+
 using Stride.Core.Reflection;
 using Stride.Core.Quantum;
 
-namespace Stride.Core.Presentation.Quantum.Presenters
+namespace Stride.Core.Presentation.Quantum.Presenters;
+
+public class RootNodePresenter : NodePresenterBase
 {
-    public class RootNodePresenter : NodePresenterBase
+    protected readonly IObjectNode RootNode;
+
+    public RootNodePresenter(INodePresenterFactoryInternal factory, IPropertyProviderViewModel? propertyProvider, IObjectNode rootNode)
+        : base(factory, propertyProvider, null)
     {
-        protected readonly IObjectNode RootNode;
+        RootNode = rootNode;
+        Name = "Root";
+        DisplayName = string.Empty;
 
-        public RootNodePresenter([NotNull] INodePresenterFactoryInternal factory, IPropertyProviderViewModel propertyProvider, [NotNull] IObjectNode rootNode)
-            : base(factory, propertyProvider, null)
+        foreach (var command in factory.AvailableCommands)
         {
-            if (factory == null) throw new ArgumentNullException(nameof(factory));
-            RootNode = rootNode ?? throw new ArgumentNullException(nameof(rootNode));
-            Name = "Root";
-            DisplayName = string.Empty;
-
-            foreach (var command in factory.AvailableCommands)
-            {
-                if (command.CanAttach(this))
-                    Commands.Add(command);
-            }
-
-            rootNode.ItemChanging += OnItemChanging;
-            rootNode.ItemChanged += OnItemChanged;
-            AttachCommands();
+            if (command.CanAttach(this))
+                Commands.Add(command);
         }
 
-        public override Type Type => RootNode.Type;
+        rootNode.ItemChanging += OnItemChanging;
+        rootNode.ItemChanged += OnItemChanged;
+        AttachCommands();
+    }
 
-        public override NodeIndex Index => NodeIndex.Empty;
+    public override Type Type => RootNode.Type;
 
-        public override bool IsEnumerable => RootNode.IsEnumerable;
+    public override NodeIndex Index => NodeIndex.Empty;
 
-        [NotNull]
-        public override ITypeDescriptor Descriptor => RootNode.Descriptor;
+    public override bool IsEnumerable => RootNode.IsEnumerable;
 
-        public override object Value => RootNode.Retrieve();
+    public override ITypeDescriptor Descriptor => RootNode.Descriptor;
 
-        protected override IObjectNode ParentingNode => RootNode;
+    public override object Value => RootNode.Retrieve();
 
-        public override void Dispose()
+    protected override IObjectNode ParentingNode => RootNode;
+
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
         {
-            base.Dispose();
             RootNode.ItemChanging -= OnItemChanging;
-            RootNode.ItemChanged -= OnItemChanged;
+            RootNode.ItemChanged -= OnItemChanged;            
         }
 
-        public override void UpdateValue(object newValue)
+        base.Dispose(disposing);
+    }
+
+    public override void UpdateValue(object newValue)
+    {
+        throw new NodePresenterException($"A {nameof(RootNodePresenter)} cannot have its own value updated.");
+    }
+
+    public override void AddItem(object value)
+    {
+        if (!RootNode.IsEnumerable)
+            throw new NodePresenterException($"{nameof(RootNodePresenter)}.{nameof(AddItem)} cannot be invoked on objects that are not collection.");
+
+        try
         {
-            throw new NodePresenterException($"A {nameof(RootNodePresenter)} cannot have its own value updated.");
+            RootNode.Add(value);
         }
-
-        public override void AddItem(object value)
+        catch (Exception e)
         {
-            if (!RootNode.IsEnumerable)
-                throw new NodePresenterException($"{nameof(RootNodePresenter)}.{nameof(AddItem)} cannot be invoked on objects that are not collection.");
-
-            try
-            {
-                RootNode.Add(value);
-            }
-            catch (Exception e)
-            {
-                throw new NodePresenterException("An error occurred while adding an item to the node, see the inner exception for more information.", e);
-            }
+            throw new NodePresenterException("An error occurred while adding an item to the node, see the inner exception for more information.", e);
         }
+    }
 
-        public override void AddItem(object value, NodeIndex index)
+    public override void AddItem(object value, NodeIndex index)
+    {
+        if (!RootNode.IsEnumerable)
+            throw new NodePresenterException($"{nameof(RootNodePresenter)}.{nameof(AddItem)} cannot be invoked on objects that are not collection.");
+
+        try
         {
-            if (!RootNode.IsEnumerable)
-                throw new NodePresenterException($"{nameof(RootNodePresenter)}.{nameof(AddItem)} cannot be invoked on objects that are not collection.");
-
-            try
-            {
-                RootNode.Add(value, index);
-            }
-            catch (Exception e)
-            {
-                throw new NodePresenterException("An error occurred while adding an item to the node, see the inner exception for more information.", e);
-            }
+            RootNode.Add(value, index);
         }
-
-        public override void RemoveItem(object value, NodeIndex index)
+        catch (Exception e)
         {
-            if (!RootNode.IsEnumerable)
-                throw new NodePresenterException($"{nameof(RootNodePresenter)}.{nameof(RemoveItem)} cannot be invoked on objects that are not collection.");
-
-            try
-            {
-                RootNode.Remove(value, index);
-            }
-            catch (Exception e)
-            {
-                throw new NodePresenterException("An error occurred while removing an item to the node, see the inner exception for more information.", e);
-            }
+            throw new NodePresenterException("An error occurred while adding an item to the node, see the inner exception for more information.", e);
         }
+    }
 
-        public override NodeAccessor GetNodeAccessor()
+    public override void RemoveItem(object value, NodeIndex index)
+    {
+        if (!RootNode.IsEnumerable)
+            throw new NodePresenterException($"{nameof(RootNodePresenter)}.{nameof(RemoveItem)} cannot be invoked on objects that are not collection.");
+
+        try
         {
-            return new NodeAccessor(RootNode, NodeIndex.Empty);
+            RootNode.Remove(value, index);
         }
-
-        private void OnItemChanging(object sender, ItemChangeEventArgs e)
+        catch (Exception e)
         {
-            RaiseValueChanging(Value);
+            throw new NodePresenterException("An error occurred while removing an item to the node, see the inner exception for more information.", e);
         }
+    }
 
-        private void OnItemChanged(object sender, ItemChangeEventArgs e)
-        {
-            Refresh();
-            RaiseValueChanged(Value);
-        }
+    public override NodeAccessor GetNodeAccessor()
+    {
+        return new NodeAccessor(RootNode, NodeIndex.Empty);
+    }
+
+    private void OnItemChanging(object? sender, ItemChangeEventArgs e)
+    {
+        RaiseValueChanging(Value);
+    }
+
+    private void OnItemChanged(object? sender, ItemChangeEventArgs e)
+    {
+        Refresh();
+        RaiseValueChanged(Value);
     }
 }

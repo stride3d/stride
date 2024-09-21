@@ -11,13 +11,13 @@ namespace Stride.Core.Reflection
     /// </summary>
     public class PropertyDescriptor : MemberDescriptorBase
     {
-        private readonly MethodInfo getMethod;
-        private readonly MethodInfo setMethod;
+        private readonly MethodInfo? getMethod;
+        private readonly MethodInfo? setMethod;
 
         public PropertyDescriptor(ITypeDescriptor typeDescriptor, PropertyInfo propertyInfo, StringComparer defaultNameComparer)
             : base(propertyInfo, defaultNameComparer)
         {
-            if (propertyInfo == null) throw new ArgumentNullException(nameof(propertyInfo));
+            ArgumentNullException.ThrowIfNull(propertyInfo);
 
             PropertyInfo = propertyInfo;
 
@@ -39,17 +39,17 @@ namespace Stride.Core.Reflection
 
         public override bool HasSet => setMethod != null;
 
-        public override object Get(object thisObject)
+        public override object? Get(object thisObject)
         {
-            return getMethod.Invoke(thisObject, null);
+            return getMethod?.Invoke(thisObject, null);
         }
 
-        public override void Set(object thisObject, object value)
+        public override void Set(object thisObject, object? value)
         {
-            if (!HasSet)
+            if (setMethod is null)
                 throw new InvalidOperationException($"The property [{Name}] of type [{DeclaringType.Name}] has no setter.");
 
-            setMethod.Invoke(thisObject, new[] {value});
+            setMethod.Invoke(thisObject, [value]);
         }
 
         public override IEnumerable<T> GetCustomAttributes<T>(bool inherit)

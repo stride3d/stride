@@ -67,7 +67,7 @@ namespace Stride.Profiling
         private uint drawCallsCount;
 
         /// <summary>
-        /// The render target where the profiling results should be rendered into. If null, the <see cref="Game.GraphicsDevice.Presenter.BackBuffer"/> is used.
+        /// The render target where the profiling results should be rendered into. If null, the <see cref="Stride.Graphics.GraphicsPresenter.BackBuffer"/> is used.
         /// </summary>
         public Texture RenderTarget { get; set; }
 

@@ -15,7 +15,7 @@ namespace Stride.Core.Threading
         /// <summary>
         /// Mostly lifted from dotnet's LowLevelLifoSemaphore
         /// </summary>
-        private class SemaphoreW
+        private class SemaphoreW : ISemaphore
         {
             private const int SpinSleep0Threshold = 10;
             
@@ -60,7 +60,9 @@ namespace Stride.Core.Threading
 
             public void Wait(int timeout = -1) => internals.Wait(spinCount, lifoSemaphore, timeout);
 
-            public void Release(int releaseCount) => internals.Release(releaseCount, lifoSemaphore);
+            public void Release(int count) => internals.Release(count, lifoSemaphore);
+
+            public void Dispose() => lifoSemaphore?.Dispose();
 
             [StructLayout(LayoutKind.Explicit)]
             private struct Counts

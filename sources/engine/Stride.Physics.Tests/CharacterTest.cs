@@ -123,7 +123,7 @@ namespace Stride.Physics.Tests
                     {
                         await game.Script.NextFrame();
                     }
-                    Assert.True(false, "Character controller never collided with test collider.");
+                    Assert.Fail("Character controller never collided with test collider.");
                 });
 
                 controller.SetVelocity(Vector3.UnitX * 2.5f);

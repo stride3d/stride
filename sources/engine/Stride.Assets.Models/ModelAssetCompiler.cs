@@ -41,7 +41,6 @@ namespace Stride.Assets.Models
             var renderingSettings = gameSettingsAsset.GetOrCreate<RenderingSettings>();
             var allow32BitIndex = renderingSettings.DefaultGraphicsProfile >= GraphicsProfile.Level_9_2;
             var maxInputSlots = renderingSettings.DefaultGraphicsProfile >= GraphicsProfile.Level_10_1 ? 32 : 16;
-            var allowUnsignedBlendIndices = context.GetGraphicsPlatform(assetItem.Package) != GraphicsPlatform.OpenGLES;
             var extension = asset.Source.GetFileExtension();
 
             // Find skeleton asset, if any
@@ -62,7 +61,6 @@ namespace Stride.Assets.Models
             importModelCommand.Location = targetUrlInStorage;
             importModelCommand.Allow32BitIndex = allow32BitIndex;
             importModelCommand.MaxInputSlots = maxInputSlots;
-            importModelCommand.AllowUnsignedBlendIndices = allowUnsignedBlendIndices;
             importModelCommand.Materials = asset.Materials;
             importModelCommand.ScaleImport = asset.ScaleImport;
             importModelCommand.PivotPosition = asset.PivotPosition;

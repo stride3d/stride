@@ -1,0 +1,37 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
+        xmlns:ctrl="using:Stride.Core.Assets.Editor.Avalonia.Controls"
+        xmlns:vm="using:Stride.Core.Assets.Editor.ViewModels"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="Stride.GameStudio.Avalonia.Views.ProgressWindow"
+        x:DataType="vm:WorkProgressViewModel"
+        Title="{Binding Title}" Width="640" Height="480"
+        WindowStartupLocation="CenterOwner">
+  <Grid RowDefinitions="Auto, *, Auto">
+    <DockPanel Grid.Row="0">
+      <TextBlock DockPanel.Dock="Top"
+                 Text="{Binding ProgressMessage}" />
+      <ProgressBar Height="25"
+                   Minimum="{Binding Minimum}" Maximum="{Binding Maximum}"
+                   IsIndeterminate="{Binding IsIndeterminate}"
+                   Value="{Binding ProgressValue}" />
+    </DockPanel>
+    <ctrl:TextLogViewer Grid.Row="1"
+                        LogMessages="{Binding Log.Messages}" />
+    <StackPanel Grid.Row="2"
+                Orientation="Horizontal" HorizontalAlignment="Right">
+      <Button Content="{sd:LocalizeString Close, Context=Button}"
+              Click="OnClick_Close"
+              Margin="8 0"
+              IsEnabled="{Binding WorkDone}" />
+      <Button Content="{sd:LocalizeString Cancel, Context=Button}"
+              Command="{Binding CancelCommand}"
+              Margin="8 0"
+              IsEnabled="{Binding WorkDone, Converter={sd:InvertBool}}"
+              IsVisible="{Binding IsCancellable}" />
+    </StackPanel>
+  </Grid>
+</Window>

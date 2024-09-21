@@ -2,9 +2,8 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using Stride.Core.Assets.Compiler;
 
-namespace Stride.Editor.Thumbnails
-{
-    public class ThumbnailCompilationContext : ICompilationContext
-    {     
-    }
+namespace Stride.Editor.Thumbnails;
+
+public class ThumbnailCompilationContext : ICompilationContext
+{     
 }

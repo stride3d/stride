@@ -29,7 +29,6 @@ Stride uses the following open-source products.
 
 ### Linux, iOS, Android
 * [Mono Class Libraries](https://github.com/mono/mono/tree/master/mcs/class) (MIT License)
-* [OpenTK](http://www.opentk.com/) (MIT License)
 
 ### Android
 * [Android.Play.ExpansionLibrary](https://github.com/mattleibow/Android.Play.ExpansionLibrary) (Apache License 2.0)

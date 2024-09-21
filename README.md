@@ -22,16 +22,14 @@ Stride comes with an editor that allows you to create and manage the content of 
 To learn more about Stride, visit [stride3d.net](https://stride3d.net/).
 
 ## Earn money by contributing
-If you are a developer with solid experience in C#, rendering techniques, or game development, we want to hire you! We have allocated funds from supporters on OpenCollective and can pay for work on certain projects. [More info about this here](https://github.com/stride3d/stride/wiki/Bounty).
+If you are a developer with solid experience in C#, rendering techniques, or game development, we want to hire you! We have allocated funds from supporters on [OpenCollective](https://opencollective.com/stride3d) and can pay for work on certain projects. [More info about this here](https://doc.stride3d.net/latest/en/contributors/engine/bug-bounties.html).
 
 ## License and governance
 ### .NET Foundation
 This project is supported by the [.NET Foundation](https://dotnetfoundation.org).
 
 ### License
-Stride is covered by the [MIT License](LICENSE.md) unless stated otherwise (i.e. for some files that are copied from other projects).
-You can find the list of third-party projects [here](THIRD%20PARTY.md).
-Contributors need to sign the following [Contribution License Agreement](docs/ContributorLicenseAgreement.md).
+Stride is covered by the [MIT License](LICENSE.md) unless stated otherwise (i.e. for some files that are copied from other projects). You can find the list of third-party projects [here](THIRD%20PARTY.md). Contributors need to sign the following [Contribution License Agreement](https://github.com/dotnet-foundation/.github/blob/main/CLA/dotnetfoundation.yml).
 
 ### Code of conduct
 Stride being a [.NET Foundation](https://www.dotnetfoundation.org/) project, it has adopted the code of conduct defined by the Contributor Covenant to clarify expected behavior in our community.
@@ -54,23 +52,23 @@ Ask for help or report issues:
 * [Donate to support the project](https://opencollective.com/stride3d/)
 * [List of Projects made by users](https://github.com/stride3d/stride/wiki/Community-Projects)
 * [Awesome Stride - Huge List of Stride Resources](https://github.com/Doprez/Awesome-Stride)
-* [Localization](docs/localization.md)
+* [Localization](https://doc.stride3d.net/latest/en/contributors/engine/localization.html)
 
 ## Building from source
 
 ### Prerequisites
 
 1. **Latest** [Git](https://git-scm.com/downloads) **with Large File Support** selected in the setup on the components dialog and for convenience a git UI client like [GitExtensions](https://gitextensions.github.io/).
-2. [DotNet SDK 8.0](https://dotnet.microsoft.com/en-us/download/dotnet/8.0)
+2. [.NET 8.0 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/8.0)
    - Run `dotnet --info` in a console or powershell window to see which versions you have installed  
 3. [Visual Studio 2022](https://www.visualstudio.com/downloads/) with the following workloads:
-   - `.NET desktop development` with `.NET Framework 4.7.2 targeting pack`
+   - `.NET desktop development` with `.NET Framework 4.7.2 targeting pack` (should be enabled by default)
    - `Desktop development with C++` with
-     - `Windows 10 SDK (10.0.18362.0)` (it's currently enabled by default but it might change)
-     - `MSVC v143 - VS2022 C++ x64/x86 build tools (v14.30)` or later version (should be enabled by default)
-     - `C++/CLI support for v143 build tools (v14.30)` or later version **(not enabled by default)**
-   - Optional (to target iOS/Android): `Mobile development with .NET` and `Android SDK setup (API level 27)` individual component, then in Visual Studio go to `Tools > Android > Android SDK Manager` and install `NDK` (version 19+) from `Tools` tab.
-4. **[FBX SDK 2019.0 VS2015](https://www.autodesk.com/developer-network/platform-technologies/fbx-sdk-2019-0)**
+     - `Windows 10 SDK (10.0.18362.0)` or later version (should be enabled by default)
+     - `MSVC v143 - VS2022 C++ x64/x86 build tools (Latest)` (should be enabled by default)
+     - `C++/CLI support for v143 build tools (Latest)` **(not enabled by default)**
+   - Optional (to target iOS/Android): `.NET Multi-paltform App UI development` and `Android SDK setup` individual component (enabled by default), then in Visual Studio go to `Tools > Android > Android SDK Manager` and install `NDK` (version 20.1+) from `Tools` tab.
+   - Optional (to build VSIX package): `Visual Studio extension development`
 
 ### Build Stride
 
@@ -100,7 +98,7 @@ Do note that test solutions might fail but it should not prevent you from buildi
 
 ### Contribution Guidelines
 
-Please check our [Contributing Guidelines](docs/CONTRIBUTING.md).
+Please check our [Contributing Guidelines](https://doc.stride3d.net/latest/en/contributors/index.html).
 
 ### Build Status
 
@@ -189,6 +187,14 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center" valign="top" width="14.28%"><a href="https://chroniclesofelyria.com"><img src="https://avatars.githubusercontent.com/u/17633767?v=4?s=100" width="100px;" alt="Jeromy Walsh"/><br /><sub><b>Jeromy Walsh</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=JeromyWalsh" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://pa.rh.am/"><img src="https://avatars.githubusercontent.com/u/7075456?v=4?s=100" width="100px;" alt="Parham Gholami"/><br /><sub><b>Parham Gholami</b></sub></a><br /><a href="#design-parhamgholami" title="Design">🎨</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/adrsch"><img src="https://avatars.githubusercontent.com/u/35346279?v=4?s=100" width="100px;" alt="adrsch"/><br /><sub><b>adrsch</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=adrsch" title="Code">💻</a></td>
+    </tr>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/dotlogix"><img src="https://avatars.githubusercontent.com/u/16420200?v=4?s=100" width="100px;" alt="Alexander Schill"/><br /><sub><b>Alexander Schill</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=dotlogix" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/froce"><img src="https://avatars.githubusercontent.com/u/8515865?v=4?s=100" width="100px;" alt="froce"/><br /><sub><b>froce</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=froce" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://anthonymarmont.com/"><img src="https://avatars.githubusercontent.com/u/19309165?v=4?s=100" width="100px;" alt="Anthony Marmont"/><br /><sub><b>Anthony Marmont</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=fydar" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/MaximilianEmel"><img src="https://avatars.githubusercontent.com/u/19846453?v=4?s=100" width="100px;" alt="MaximilianEmel"/><br /><sub><b>MaximilianEmel</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=MaximilianEmel" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/Schossi"><img src="https://avatars.githubusercontent.com/u/8679168?v=4?s=100" width="100px;" alt="Schossi"/><br /><sub><b>Schossi</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=Schossi" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/ch3mbot"><img src="https://avatars.githubusercontent.com/u/110746303?v=4?s=100" width="100px;" alt="Dagan Hartmann"/><br /><sub><b>Dagan Hartmann</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=ch3mbot" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>

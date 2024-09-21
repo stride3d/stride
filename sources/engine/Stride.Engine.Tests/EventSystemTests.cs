@@ -446,7 +446,7 @@ namespace Stride.Engine.Tests
                     await game.NextFrame();
                 }
 
-                Assert.True(false, "t2 should be completed");
+                Assert.Fail("t2 should be completed");
             });
         }
 

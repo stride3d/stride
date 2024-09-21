@@ -56,10 +56,7 @@ namespace Stride.Core.Assets.CompilerApp
             {
                 foreach (var outputObject in outputObjects)
                 {
-                    if (!result.ContainsKey(outputObject.Key))
-                    {
-                        result.Add(outputObject.Key, outputObject.Value.ObjectId);
-                    }
+                    result.TryAdd(outputObject.Key, outputObject.Value.ObjectId);
                 }
             }
             return result;

@@ -7,11 +7,9 @@ namespace Stride.Core.Reflection
 {
     public class DefaultMemberComparer : IComparer<object>
     {
-        public int Compare(object x, object y)
+        public int Compare(object? x, object? y)
         {
-            var left = x as IMemberDescriptor;
-            var right = y as IMemberDescriptor;
-            if (left != null && right != null)
+            if (x is IMemberDescriptor left && y is IMemberDescriptor right)
             {
                 // If order is defined, first order by order
                 if (left.Order.HasValue | right.Order.HasValue)
@@ -22,8 +20,8 @@ namespace Stride.Core.Reflection
                 }
 
                 // try to order by class hierarchy + token (same as declaration order)
-                var leftMember = (x as MemberDescriptorBase)?.MemberInfo;
-                var rightMember = (y as MemberDescriptorBase)?.MemberInfo;
+                var leftMember = left.MemberInfo;
+                var rightMember = right.MemberInfo;
                 if (leftMember != null || rightMember != null)
                 {
                     var comparison = leftMember.CompareMetadataTokenWith(rightMember);
@@ -35,15 +33,12 @@ namespace Stride.Core.Reflection
                 return left.DefaultNameComparer.Compare(left.Name, right.Name);
             }
 
-            var sx = x as string;
-            var sy = y as string;
-            if (sx != null && sy != null)
+            if (x is string sx && y is string sy)
             {
                 return string.CompareOrdinal(sx, sy);
             }
 
-            var leftComparable = x as IComparable;
-            if (leftComparable != null)
+            if (x is IComparable leftComparable)
             {
                 return leftComparable.CompareTo(y);
             }

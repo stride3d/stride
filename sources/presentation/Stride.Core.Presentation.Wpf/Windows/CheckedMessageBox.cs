@@ -10,9 +10,7 @@ using Stride.Core.Presentation.Services;
 
 namespace Stride.Core.Presentation.Windows
 {
-    using MessageBoxButton = Services.MessageBoxButton;
     using MessageBoxImage = Services.MessageBoxImage;
-    using MessageBoxResult = Services.MessageBoxResult;
 
     public class CheckedMessageBox : MessageBox
     {
@@ -38,13 +36,6 @@ namespace Stride.Core.Presentation.Windows
         {
             get { return (bool?)GetValue(IsCheckedProperty); }
             set { SetValue(IsCheckedProperty, value); }
-        }
-
-        [NotNull]
-        public static async Task<CheckedMessageBoxResult> Show(string message, string caption, MessageBoxButton button, MessageBoxImage image, string checkedMessage, bool? isChecked)
-        {
-            var result = await Show(message, caption, GetButtons(button), image, checkedMessage, isChecked);
-            return new CheckedMessageBoxResult((MessageBoxResult)result.Result, result.IsChecked);
         }
 
         [NotNull]

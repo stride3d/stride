@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?> 
+
+<assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0">
+
+  <assemblyIdentity
+      name="Microsoft.Windows.Build.Appx.OpcServices.dll"
+      version="0.0.0.0"/>
+
+  <file name="OpcServices.dll">
+    <comClass
+        clsid="{6B2D6BA0-9F3E-4f27-920B-313CC426A39E}"
+        threadingModel="Both"
+        description="OpcFactory class"/>
+  </file>
+
+</assembly>

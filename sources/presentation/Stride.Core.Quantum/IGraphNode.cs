@@ -31,7 +31,7 @@ namespace Stride.Core.Quantum
         ITypeDescriptor Descriptor { get; }
 
         /// <summary>
-        /// Gets wheither this node holds a reference or is a direct value.
+        /// Gets whether this node holds a reference or is a direct value.
         /// </summary>
         bool IsReference { get; }
 

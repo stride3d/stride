@@ -45,7 +45,6 @@ public class STRDIAG006InvalidAssignMode : DiagnosticAnalyzer
     {
         var propertySymbol = (IPropertySymbol)context.Symbol;
 
-
         if (!propertySymbol.HasAttribute(dataMemberAttribute))
             return;
 

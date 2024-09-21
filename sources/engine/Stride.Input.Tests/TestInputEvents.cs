@@ -123,8 +123,8 @@ namespace Stride.Input.Tests
 
         internal static void Main(string[] args)
         {
-            using (var game = new TestInputEvents())
-                game.Run();
+            using var game = new TestInputEvents();
+            game.Run();
         }
 
         private struct EventLog

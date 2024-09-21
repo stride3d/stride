@@ -14,7 +14,7 @@ namespace Stride.UI.Tests.Layering
     [System.ComponentModel.Description("Tests for TextBlock layering")]
     public class TextBlockTests : TextBlock
     {
-        private class DummyFont : SpriteFont { }
+        public class DummyFont : SpriteFont { }
 
         /// <summary>
         /// Test the invalidations generated object property changes.

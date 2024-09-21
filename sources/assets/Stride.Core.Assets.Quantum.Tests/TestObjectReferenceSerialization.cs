@@ -10,6 +10,8 @@ using Stride.Core.Quantum;
 
 namespace Stride.Core.Assets.Quantum.Tests
 {
+    using SerializationHelper = Helpers.SerializationHelper;
+
     public class TestObjectReferenceSerialization
     {
         private const string SimpleReferenceYaml = @"!Stride.Core.Assets.Quantum.Tests.Helpers.Types+MyAssetWithRef,Stride.Core.Assets.Quantum.Tests

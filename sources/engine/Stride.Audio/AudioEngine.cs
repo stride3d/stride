@@ -14,8 +14,8 @@ namespace Stride.Audio
     /// In current version, the audio engine necessarily creates its context on the default audio hardware of the device.
     /// The audio engine is required when creating or loading sounds.
     /// </summary>
-    /// <remarks/>The AudioEngine is Disposable. Call the <see cref="ComponentBase.Dispose"/> function when you do not need to play sounds anymore to free memory allocated to the audio system. 
-    /// A call to Dispose automatically stops and disposes all the <see cref="SoundBase"/>, <see cref="SoundInstance"/>
+    /// <remarks>The AudioEngine is Disposable. Call the <see cref="DisposeBase.Dispose"/> function when you do not need to play sounds anymore to free memory allocated to the audio system.
+    /// A call to Dispose automatically stops and disposes all the <see cref="SoundBase"/>, <see cref="SoundInstance"/>.</remarks>
     public class AudioEngine : ComponentBase
     {
         public AudioListener DefaultListener;
@@ -89,7 +89,7 @@ namespace Stride.Audio
                 AudioLayer.Destroy(AudioDevice);
             }
         }
-        
+
         /// <summary>
         /// The list of the sounds that have been paused by the call to <see cref="PauseAudio"/> and should be resumed by <see cref="ResumeAudio"/>.
         /// </summary>
@@ -101,7 +101,7 @@ namespace Stride.Audio
         internal uint AudioSampleRate { get; private set; }
 
         /// <summary>
-        /// Method that updates all the sounds play status. 
+        /// Method that updates all the sounds play status.
         /// </summary>
         /// <remarks>Should be called in same thread as user main thread.</remarks>
         /// <exception cref="InvalidOperationException">One or several of the sounds asked for play had invalid data (corrupted or unsupported formats).</exception>
@@ -182,7 +182,7 @@ namespace Stride.Audio
             }
         }
 
-        private readonly List<SoundBase> notDisposedSounds = new List<SoundBase>(); 
+        private readonly List<SoundBase> notDisposedSounds = new List<SoundBase>();
 
         internal void RegisterSound(SoundBase newSound)
         {
