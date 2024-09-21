@@ -29,9 +29,10 @@ namespace Stride.BepuPhysics;
 [DataContract]
 public sealed class BepuSimulation : IDisposable
 {
-    const string CATEGORY_TIME = "Time";
-    const string CATEGORY_CONSTRAINTS = "Constraints";
-    const string CATEGORY_FORCES = "Forces";
+    private const string CategoryTime = "Time";
+    private const string CategoryConstraints = "Constraints";
+    private const string CategoryForces = "Forces";
+    private const string MaskCategory = "Collisions";
 
     private TimeSpan _fixedTimeStep = TimeSpan.FromTicks(TimeSpan.TicksPerSecond / 60);
     private readonly List<ISimulationUpdate> _simulationUpdateComponents = new();
@@ -90,7 +91,7 @@ public sealed class BepuSimulation : IDisposable
     /// <summary>
     /// The number of seconds per step to simulate. Lossy, prefer <see cref="FixedTimeStep"/>.
     /// </summary>
-    [Display(3, "Fixed Time Step (s)", CATEGORY_TIME)]
+    [Display(3, "Fixed Time Step (s)", CategoryTime)]
     public double FixedTimeStepSeconds
     {
         get => FixedTimeStep.TotalSeconds;
@@ -104,13 +105,13 @@ public sealed class BepuSimulation : IDisposable
     /// This stacks with <see cref="Stride.Games.GameTime"/>.<see cref="Stride.Games.GameTime.Factor"/>,
     /// changing that one already affects the simulation speed.
     /// </remarks>
-    [Display(4, "Time Scale", CATEGORY_TIME)]
+    [Display(4, "Time Scale", CategoryTime)]
     public float TimeScale { get; set; } = 1f;
 
     /// <summary>
     /// Represents the maximum number of steps per frame to avoid a death loop
     /// </summary>
-    [Display(5, "Max steps/frame", CATEGORY_TIME)]
+    [Display(5, "Max steps/frame", CategoryTime)]
     public int MaxStepPerFrame { get; set; } = 3;
 
     /// <summary>
@@ -119,7 +120,7 @@ public sealed class BepuSimulation : IDisposable
     /// <remarks>
     /// <see cref="BodyComponent.Gravity"/> will be ignored if this is false.
     /// </remarks>
-    [Display(6, "Per Body Attributes", CATEGORY_FORCES)]
+    [Display(6, "Per Body Attributes", CategoryForces)]
     public bool UsePerBodyAttributes
     {
         get => ((PoseIntegrator<StridePoseIntegratorCallbacks>)Simulation.PoseIntegrator).Callbacks.UsePerBodyAttributes;
@@ -129,7 +130,7 @@ public sealed class BepuSimulation : IDisposable
     /// <summary>
     /// Global gravity settings. This gravity will be applied to all bodies in the simulations that are not kinematic.
     /// </summary>
-    [Display(7, "Gravity", CATEGORY_FORCES)]
+    [Display(7, "Gravity", CategoryForces)]
     public Vector3 PoseGravity
     {
         get => ((PoseIntegrator<StridePoseIntegratorCallbacks>)Simulation.PoseIntegrator).Callbacks.Gravity.ToStride();
@@ -139,7 +140,7 @@ public sealed class BepuSimulation : IDisposable
     /// <summary>
     /// Controls linear damping, how fast object loose their linear velocity
     /// </summary>
-    [Display(8, "Linear Damping", CATEGORY_FORCES)]
+    [Display(8, "Linear Damping", CategoryForces)]
     public float PoseLinearDamping
     {
         get => ((PoseIntegrator<StridePoseIntegratorCallbacks>)Simulation.PoseIntegrator).Callbacks.LinearDamping;
@@ -149,7 +150,7 @@ public sealed class BepuSimulation : IDisposable
     /// <summary>
     /// Controls angular damping, how fast object loose their angular velocity
     /// </summary>
-    [Display(9, "Angular Damping", CATEGORY_FORCES)]
+    [Display(9, "Angular Damping", CategoryForces)]
     public float PoseAngularDamping
     {
         get => ((PoseIntegrator<StridePoseIntegratorCallbacks>)Simulation.PoseIntegrator).Callbacks.AngularDamping;
@@ -162,7 +163,7 @@ public sealed class BepuSimulation : IDisposable
     /// <remarks>
     /// Smaller values improve performance at the cost of stability and precision.
     /// </remarks>
-    [Display(10, "Solver Iteration", CATEGORY_CONSTRAINTS)]
+    [Display(10, "Solver Iteration", CategoryConstraints)]
     public int SolverIteration { get => Simulation.Solver.VelocityIterationCount; init => Simulation.Solver.VelocityIterationCount = value; }
 
     /// <summary>
@@ -171,7 +172,7 @@ public sealed class BepuSimulation : IDisposable
     /// <remarks>
     /// Smaller values improve performance at the cost of stability and precision.
     /// </remarks>
-    [Display(11, "Solver SubStep", CATEGORY_CONSTRAINTS)]
+    [Display(11, "Solver SubStep", CategoryConstraints)]
     public int SolverSubStep { get => Simulation.Solver.SubstepCount; init => Simulation.Solver.SubstepCount = value; }
 
     /// <summary>
@@ -181,13 +182,13 @@ public sealed class BepuSimulation : IDisposable
     /// <remarks>
     /// Negative or 0 disables this feature.
     /// </remarks>
-    [Display(12, "SoftStart Duration", CATEGORY_CONSTRAINTS)]
+    [Display(12, "SoftStart Duration", CategoryConstraints)]
     public TimeSpan SoftStartDuration { get; set; } = TimeSpan.FromSeconds(1);
 
     /// <summary>
     /// Multiplier over <see cref="SolverSubStep"/> during Soft Start
     /// </summary>
-    [Display(13, "SoftStart Substep factor", CATEGORY_CONSTRAINTS)]
+    [Display(13, "SoftStart Substep factor", CategoryConstraints)]
     public int SoftStartSubstepFactor { get; set; } = 4;
 
     /// <summary>
@@ -208,38 +209,41 @@ public sealed class BepuSimulation : IDisposable
         }
     }
 
-    [DefaultValue(CollisionMask.Everything)] public CollisionMask Layer0 { get => CollisionMatrix.Get(CollisionLayer.Layer0); set => CollisionMatrix.Set(CollisionLayer.Layer0, value); }
-    [DefaultValue(CollisionMask.Everything)] public CollisionMask Layer1 { get => CollisionMatrix.Get(CollisionLayer.Layer1); set => CollisionMatrix.Set(CollisionLayer.Layer1, value); }
-    [DefaultValue(CollisionMask.Everything)] public CollisionMask Layer2 { get => CollisionMatrix.Get(CollisionLayer.Layer2); set => CollisionMatrix.Set(CollisionLayer.Layer2, value); }
-    [DefaultValue(CollisionMask.Everything)] public CollisionMask Layer3 { get => CollisionMatrix.Get(CollisionLayer.Layer3); set => CollisionMatrix.Set(CollisionLayer.Layer3, value); }
-    [DefaultValue(CollisionMask.Everything)] public CollisionMask Layer4 { get => CollisionMatrix.Get(CollisionLayer.Layer4); set => CollisionMatrix.Set(CollisionLayer.Layer4, value); }
-    [DefaultValue(CollisionMask.Everything)] public CollisionMask Layer5 { get => CollisionMatrix.Get(CollisionLayer.Layer5); set => CollisionMatrix.Set(CollisionLayer.Layer5, value); }
-    [DefaultValue(CollisionMask.Everything)] public CollisionMask Layer6 { get => CollisionMatrix.Get(CollisionLayer.Layer6); set => CollisionMatrix.Set(CollisionLayer.Layer6, value); }
-    [DefaultValue(CollisionMask.Everything)] public CollisionMask Layer7 { get => CollisionMatrix.Get(CollisionLayer.Layer7); set => CollisionMatrix.Set(CollisionLayer.Layer7, value); }
-    [DefaultValue(CollisionMask.Everything)] public CollisionMask Layer8 { get => CollisionMatrix.Get(CollisionLayer.Layer8); set => CollisionMatrix.Set(CollisionLayer.Layer8, value); }
-    [DefaultValue(CollisionMask.Everything)] public CollisionMask Layer9 { get => CollisionMatrix.Get(CollisionLayer.Layer9); set => CollisionMatrix.Set(CollisionLayer.Layer9, value); }
-    [DefaultValue(CollisionMask.Everything)] public CollisionMask Layer10 { get => CollisionMatrix.Get(CollisionLayer.Layer10); set => CollisionMatrix.Set(CollisionLayer.Layer10, value); }
-    [DefaultValue(CollisionMask.Everything)] public CollisionMask Layer11 { get => CollisionMatrix.Get(CollisionLayer.Layer11); set => CollisionMatrix.Set(CollisionLayer.Layer11, value); }
-    [DefaultValue(CollisionMask.Everything)] public CollisionMask Layer12 { get => CollisionMatrix.Get(CollisionLayer.Layer12); set => CollisionMatrix.Set(CollisionLayer.Layer12, value); }
-    [DefaultValue(CollisionMask.Everything)] public CollisionMask Layer13 { get => CollisionMatrix.Get(CollisionLayer.Layer13); set => CollisionMatrix.Set(CollisionLayer.Layer13, value); }
-    [DefaultValue(CollisionMask.Everything)] public CollisionMask Layer14 { get => CollisionMatrix.Get(CollisionLayer.Layer14); set => CollisionMatrix.Set(CollisionLayer.Layer14, value); }
-    [DefaultValue(CollisionMask.Everything)] public CollisionMask Layer15 { get => CollisionMatrix.Get(CollisionLayer.Layer15); set => CollisionMatrix.Set(CollisionLayer.Layer15, value); }
-    [DefaultValue(CollisionMask.Everything)] public CollisionMask Layer16 { get => CollisionMatrix.Get(CollisionLayer.Layer16); set => CollisionMatrix.Set(CollisionLayer.Layer16, value); }
-    [DefaultValue(CollisionMask.Everything)] public CollisionMask Layer17 { get => CollisionMatrix.Get(CollisionLayer.Layer17); set => CollisionMatrix.Set(CollisionLayer.Layer17, value); }
-    [DefaultValue(CollisionMask.Everything)] public CollisionMask Layer18 { get => CollisionMatrix.Get(CollisionLayer.Layer18); set => CollisionMatrix.Set(CollisionLayer.Layer18, value); }
-    [DefaultValue(CollisionMask.Everything)] public CollisionMask Layer19 { get => CollisionMatrix.Get(CollisionLayer.Layer19); set => CollisionMatrix.Set(CollisionLayer.Layer19, value); }
-    [DefaultValue(CollisionMask.Everything)] public CollisionMask Layer20 { get => CollisionMatrix.Get(CollisionLayer.Layer20); set => CollisionMatrix.Set(CollisionLayer.Layer20, value); }
-    [DefaultValue(CollisionMask.Everything)] public CollisionMask Layer21 { get => CollisionMatrix.Get(CollisionLayer.Layer21); set => CollisionMatrix.Set(CollisionLayer.Layer21, value); }
-    [DefaultValue(CollisionMask.Everything)] public CollisionMask Layer22 { get => CollisionMatrix.Get(CollisionLayer.Layer22); set => CollisionMatrix.Set(CollisionLayer.Layer22, value); }
-    [DefaultValue(CollisionMask.Everything)] public CollisionMask Layer23 { get => CollisionMatrix.Get(CollisionLayer.Layer23); set => CollisionMatrix.Set(CollisionLayer.Layer23, value); }
-    [DefaultValue(CollisionMask.Everything)] public CollisionMask Layer24 { get => CollisionMatrix.Get(CollisionLayer.Layer24); set => CollisionMatrix.Set(CollisionLayer.Layer24, value); }
-    [DefaultValue(CollisionMask.Everything)] public CollisionMask Layer25 { get => CollisionMatrix.Get(CollisionLayer.Layer25); set => CollisionMatrix.Set(CollisionLayer.Layer25, value); }
-    [DefaultValue(CollisionMask.Everything)] public CollisionMask Layer26 { get => CollisionMatrix.Get(CollisionLayer.Layer26); set => CollisionMatrix.Set(CollisionLayer.Layer26, value); }
-    [DefaultValue(CollisionMask.Everything)] public CollisionMask Layer27 { get => CollisionMatrix.Get(CollisionLayer.Layer27); set => CollisionMatrix.Set(CollisionLayer.Layer27, value); }
-    [DefaultValue(CollisionMask.Everything)] public CollisionMask Layer28 { get => CollisionMatrix.Get(CollisionLayer.Layer28); set => CollisionMatrix.Set(CollisionLayer.Layer28, value); }
-    [DefaultValue(CollisionMask.Everything)] public CollisionMask Layer29 { get => CollisionMatrix.Get(CollisionLayer.Layer29); set => CollisionMatrix.Set(CollisionLayer.Layer29, value); }
-    [DefaultValue(CollisionMask.Everything)] public CollisionMask Layer30 { get => CollisionMatrix.Get(CollisionLayer.Layer30); set => CollisionMatrix.Set(CollisionLayer.Layer30, value); }
-    [DefaultValue(CollisionMask.Everything)] public CollisionMask Layer31 { get => CollisionMatrix.Get(CollisionLayer.Layer31); set => CollisionMatrix.Set(CollisionLayer.Layer31, value); }
+    #region UglyEditorWorkaroundForMasks
+    // This nonsense is temporary, we need a specific editor UI for this
+    [DefaultValue(CollisionMask.Everything), Display(category:MaskCategory)] public CollisionMask Layer0 { get => CollisionMatrix.Get(CollisionLayer.Layer0); set => CollisionMatrix.Set(CollisionLayer.Layer0, value); }
+    [DefaultValue(CollisionMask.Everything), Display(category:MaskCategory)] public CollisionMask Layer1 { get => CollisionMatrix.Get(CollisionLayer.Layer1); set => CollisionMatrix.Set(CollisionLayer.Layer1, value); }
+    [DefaultValue(CollisionMask.Everything), Display(category:MaskCategory)] public CollisionMask Layer2 { get => CollisionMatrix.Get(CollisionLayer.Layer2); set => CollisionMatrix.Set(CollisionLayer.Layer2, value); }
+    [DefaultValue(CollisionMask.Everything), Display(category:MaskCategory)] public CollisionMask Layer3 { get => CollisionMatrix.Get(CollisionLayer.Layer3); set => CollisionMatrix.Set(CollisionLayer.Layer3, value); }
+    [DefaultValue(CollisionMask.Everything), Display(category:MaskCategory)] public CollisionMask Layer4 { get => CollisionMatrix.Get(CollisionLayer.Layer4); set => CollisionMatrix.Set(CollisionLayer.Layer4, value); }
+    [DefaultValue(CollisionMask.Everything), Display(category:MaskCategory)] public CollisionMask Layer5 { get => CollisionMatrix.Get(CollisionLayer.Layer5); set => CollisionMatrix.Set(CollisionLayer.Layer5, value); }
+    [DefaultValue(CollisionMask.Everything), Display(category:MaskCategory)] public CollisionMask Layer6 { get => CollisionMatrix.Get(CollisionLayer.Layer6); set => CollisionMatrix.Set(CollisionLayer.Layer6, value); }
+    [DefaultValue(CollisionMask.Everything), Display(category:MaskCategory)] public CollisionMask Layer7 { get => CollisionMatrix.Get(CollisionLayer.Layer7); set => CollisionMatrix.Set(CollisionLayer.Layer7, value); }
+    [DefaultValue(CollisionMask.Everything), Display(category:MaskCategory)] public CollisionMask Layer8 { get => CollisionMatrix.Get(CollisionLayer.Layer8); set => CollisionMatrix.Set(CollisionLayer.Layer8, value); }
+    [DefaultValue(CollisionMask.Everything), Display(category:MaskCategory)] public CollisionMask Layer9 { get => CollisionMatrix.Get(CollisionLayer.Layer9); set => CollisionMatrix.Set(CollisionLayer.Layer9, value); }
+    [DefaultValue(CollisionMask.Everything), Display(category:MaskCategory)] public CollisionMask Layer10 { get => CollisionMatrix.Get(CollisionLayer.Layer10); set => CollisionMatrix.Set(CollisionLayer.Layer10, value); }
+    [DefaultValue(CollisionMask.Everything), Display(category:MaskCategory)] public CollisionMask Layer11 { get => CollisionMatrix.Get(CollisionLayer.Layer11); set => CollisionMatrix.Set(CollisionLayer.Layer11, value); }
+    [DefaultValue(CollisionMask.Everything), Display(category:MaskCategory)] public CollisionMask Layer12 { get => CollisionMatrix.Get(CollisionLayer.Layer12); set => CollisionMatrix.Set(CollisionLayer.Layer12, value); }
+    [DefaultValue(CollisionMask.Everything), Display(category:MaskCategory)] public CollisionMask Layer13 { get => CollisionMatrix.Get(CollisionLayer.Layer13); set => CollisionMatrix.Set(CollisionLayer.Layer13, value); }
+    [DefaultValue(CollisionMask.Everything), Display(category:MaskCategory)] public CollisionMask Layer14 { get => CollisionMatrix.Get(CollisionLayer.Layer14); set => CollisionMatrix.Set(CollisionLayer.Layer14, value); }
+    [DefaultValue(CollisionMask.Everything), Display(category:MaskCategory)] public CollisionMask Layer15 { get => CollisionMatrix.Get(CollisionLayer.Layer15); set => CollisionMatrix.Set(CollisionLayer.Layer15, value); }
+    [DefaultValue(CollisionMask.Everything), Display(category:MaskCategory)] public CollisionMask Layer16 { get => CollisionMatrix.Get(CollisionLayer.Layer16); set => CollisionMatrix.Set(CollisionLayer.Layer16, value); }
+    [DefaultValue(CollisionMask.Everything), Display(category:MaskCategory)] public CollisionMask Layer17 { get => CollisionMatrix.Get(CollisionLayer.Layer17); set => CollisionMatrix.Set(CollisionLayer.Layer17, value); }
+    [DefaultValue(CollisionMask.Everything), Display(category:MaskCategory)] public CollisionMask Layer18 { get => CollisionMatrix.Get(CollisionLayer.Layer18); set => CollisionMatrix.Set(CollisionLayer.Layer18, value); }
+    [DefaultValue(CollisionMask.Everything), Display(category:MaskCategory)] public CollisionMask Layer19 { get => CollisionMatrix.Get(CollisionLayer.Layer19); set => CollisionMatrix.Set(CollisionLayer.Layer19, value); }
+    [DefaultValue(CollisionMask.Everything), Display(category:MaskCategory)] public CollisionMask Layer20 { get => CollisionMatrix.Get(CollisionLayer.Layer20); set => CollisionMatrix.Set(CollisionLayer.Layer20, value); }
+    [DefaultValue(CollisionMask.Everything), Display(category:MaskCategory)] public CollisionMask Layer21 { get => CollisionMatrix.Get(CollisionLayer.Layer21); set => CollisionMatrix.Set(CollisionLayer.Layer21, value); }
+    [DefaultValue(CollisionMask.Everything), Display(category:MaskCategory)] public CollisionMask Layer22 { get => CollisionMatrix.Get(CollisionLayer.Layer22); set => CollisionMatrix.Set(CollisionLayer.Layer22, value); }
+    [DefaultValue(CollisionMask.Everything), Display(category:MaskCategory)] public CollisionMask Layer23 { get => CollisionMatrix.Get(CollisionLayer.Layer23); set => CollisionMatrix.Set(CollisionLayer.Layer23, value); }
+    [DefaultValue(CollisionMask.Everything), Display(category:MaskCategory)] public CollisionMask Layer24 { get => CollisionMatrix.Get(CollisionLayer.Layer24); set => CollisionMatrix.Set(CollisionLayer.Layer24, value); }
+    [DefaultValue(CollisionMask.Everything), Display(category:MaskCategory)] public CollisionMask Layer25 { get => CollisionMatrix.Get(CollisionLayer.Layer25); set => CollisionMatrix.Set(CollisionLayer.Layer25, value); }
+    [DefaultValue(CollisionMask.Everything), Display(category:MaskCategory)] public CollisionMask Layer26 { get => CollisionMatrix.Get(CollisionLayer.Layer26); set => CollisionMatrix.Set(CollisionLayer.Layer26, value); }
+    [DefaultValue(CollisionMask.Everything), Display(category:MaskCategory)] public CollisionMask Layer27 { get => CollisionMatrix.Get(CollisionLayer.Layer27); set => CollisionMatrix.Set(CollisionLayer.Layer27, value); }
+    [DefaultValue(CollisionMask.Everything), Display(category:MaskCategory)] public CollisionMask Layer28 { get => CollisionMatrix.Get(CollisionLayer.Layer28); set => CollisionMatrix.Set(CollisionLayer.Layer28, value); }
+    [DefaultValue(CollisionMask.Everything), Display(category:MaskCategory)] public CollisionMask Layer29 { get => CollisionMatrix.Get(CollisionLayer.Layer29); set => CollisionMatrix.Set(CollisionLayer.Layer29, value); }
+    [DefaultValue(CollisionMask.Everything), Display(category:MaskCategory)] public CollisionMask Layer30 { get => CollisionMatrix.Get(CollisionLayer.Layer30); set => CollisionMatrix.Set(CollisionLayer.Layer30, value); }
+    [DefaultValue(CollisionMask.Everything), Display(category:MaskCategory)] public CollisionMask Layer31 { get => CollisionMatrix.Get(CollisionLayer.Layer31); set => CollisionMatrix.Set(CollisionLayer.Layer31, value); }
+    #endregion
 
     public BepuSimulation()
     {
