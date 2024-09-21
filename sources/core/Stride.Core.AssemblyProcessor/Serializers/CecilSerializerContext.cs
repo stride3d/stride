@@ -194,11 +194,12 @@ namespace Stride.Core.AssemblyProcessor.Serializers
         private void ProcessComplexSerializerMembers(TypeReference type, SerializableTypeInfo serializableTypeInfo, string profile = "Default")
         {
             // Process base type (for complex serializers)
-            // If it's a closed type and there is a serializer, we'll serialize parent
+            // Check if we have any serializable closed base type and collect it to pass it over to GenerateSerializerCode later,
+            // who'll ensure the generated serializer for this type calls into its base types' serializer
             for (var baseType = type; (baseType = ResolveGenericsVisitor.Process(baseType, baseType.Resolve().BaseType)) != null;)
             {
                 if (baseType.ContainsGenericParameter())
-                    continue;
+                    continue; // ResolveGenericsVisitor failed, the type it returned is not closed, we can't serialize it
 
                 var parentSerializableTypeInfo = GenerateSerializer(baseType, false, profile);
                 if (parentSerializableTypeInfo?.SerializerType != null)
