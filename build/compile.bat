@@ -89,7 +89,7 @@ rem "_platform_target" is the platform being targeted
 :compile
 set _option=/nologo /nr:false /m /verbosity:%__BuildVerbosity% /p:Configuration=%__BuildType% /p:Platform="%_platform_target%" /p:StrideSkipUnitTests=%__SkipTestBuild% %Project% /p:DeployExtension=false
 
-if "%__BuildDoc%" == "1" set _option=%_option% /p:StrideGenerateDoc=true
+if "%__BuildDoc%" == "1" set _option=%_option% /p:StridePublicApi=true
 
 rem Skip Compilation if __SelectedProject was set and does not match what was requested
 if "%__SelectedProject%" NEQ "" (

@@ -720,7 +720,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
             editorPath = Environment.ExpandEnvironmentVariables(editorPath);
             try
             {
-                var path = asset.AssetItem.FullPath.ToWindowsPath();
+                var path = asset.AssetItem.FullPath.ToOSPath();
                 if (!File.Exists(path))
                 {
                     await Dialogs.MessageBoxAsync(Tr._p("Message", "You need to save the file before you can open it."), MessageBoxButton.OK, MessageBoxImage.Information);

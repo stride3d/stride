@@ -10,6 +10,6 @@ namespace Stride.TextureConverter.Requests
         Fast,
         Normal,
         High,
-        Best,
+        Best = High,
     }
 }

@@ -44,7 +44,7 @@ namespace Stride.Assets.Presentation.Templates
             {
                 using (var media = new FFmpegMedia())
                 {
-                    media.Open(file.ToWindowsPath());
+                    media.Open(file.ToOSPath());
                     
                     var videoStream = media.Streams.OfType<VideoStream>().FirstOrDefault();
                     if (videoStream != null)

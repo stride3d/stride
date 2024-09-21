@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using Stride.Core.Mathematics;
 using Stride.Engine;
+using Stride.Engine.Gizmos;
 using Stride.Graphics;
 using Stride.Rendering;
 using Buffer = Stride.Graphics.Buffer;

@@ -405,8 +405,8 @@ namespace Stride.GameStudio.ViewModels
                     if (!string.IsNullOrEmpty(Session.SolutionPath))
                     {
                         var solutionPath = UPath.Combine(Environment.CurrentDirectory, Session.SolutionPath);
-                        extraProperties.Add("SolutionPath", solutionPath.ToWindowsPath());
-                        extraProperties.Add("SolutionDir", solutionPath.GetParent().ToWindowsPath() + "\\");
+                        extraProperties.Add("SolutionPath", solutionPath.ToOSPath());
+                        extraProperties.Add("SolutionDir", solutionPath.GetParent().ToOSPath() + Path.DirectorySeparatorChar);
                     }
                     else
                     {

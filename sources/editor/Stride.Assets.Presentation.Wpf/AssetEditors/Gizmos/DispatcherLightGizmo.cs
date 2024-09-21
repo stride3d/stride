@@ -4,6 +4,7 @@
 using System;
 using Stride.Assets.Presentation.Wpf.AssetEditors.Gizmos;
 using Stride.Engine;
+using Stride.Engine.Gizmos;
 using Stride.Rendering.Lights;
 
 namespace Stride.Assets.Presentation.AssetEditors.Gizmos

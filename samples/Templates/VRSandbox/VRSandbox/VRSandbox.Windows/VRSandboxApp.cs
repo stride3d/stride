@@ -1,5 +1,5 @@
-using Stride.Engine;
+using VRSandbox;
 
-using var game = new Game();
+using var game = new VRGame();
 game.Run();
 

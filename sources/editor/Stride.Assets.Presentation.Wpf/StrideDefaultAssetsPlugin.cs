@@ -16,7 +16,6 @@ using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Assets.Presentation.AssetEditors.AssetHighlighters;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.EntityFactories;
-using Stride.Assets.Presentation.AssetEditors.Gizmos;
 using Stride.Assets.Presentation.NodePresenters.Commands;
 using Stride.Assets.Presentation.NodePresenters.Updaters;
 using Stride.Assets.Presentation.SceneEditor.Services;
@@ -24,6 +23,7 @@ using Stride.Assets.Presentation.ViewModel;
 using Stride.Assets.Presentation.ViewModel.CopyPasteProcessors;
 using Stride.Editor;
 using Stride.Engine;
+using Stride.Engine.Gizmos;
 using Stride.Core.Assets.Templates;
 using Stride.Core.Packages;
 using Stride.Editor.Annotations;
@@ -99,7 +99,7 @@ namespace Stride.Assets.Presentation
                 var packageFile = PackageStore.Instance.GetPackageFileName(packageInfo.Name, new PackageVersionRange(new PackageVersion(packageInfo.Version)));
                 if (packageFile is null)
                     throw new InvalidOperationException($"Could not find package {packageInfo.Name} {packageInfo.Version}. Ensure packages have been resolved.");
-                var package = Package.Load(logger, packageFile.ToWindowsPath());
+                var package = Package.Load(logger, packageFile.ToOSPath());
                 if (logger.HasErrors)
                     throw new InvalidOperationException($"Could not load package {packageInfo.Name}:{Environment.NewLine}{logger.ToText()}");
 

@@ -515,11 +515,14 @@ namespace Stride.TextureConverter.DxtWrapper
         [DllImport("DxtWrapper", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Unicode), SuppressUnmanagedCodeSecurity]
         private extern static void dxtComputePitch(DXGI_FORMAT fmt, int width, int height, out int rowPitch, out int slicePitch, CP_FLAGS flags);
 
-        [DllImport("DxtWrapper", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Unicode), SuppressUnmanagedCodeSecurity]
+        [DllImport("DxtWrapper", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Auto), SuppressUnmanagedCodeSecurity]
         private extern static uint dxtLoadDDSFile(string filePath, DDS_FLAGS flags, out TexMetadata metadata, IntPtr image);
 
-        [DllImport("DxtWrapper", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Unicode), SuppressUnmanagedCodeSecurity]
+        [DllImport("DxtWrapper", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Auto), SuppressUnmanagedCodeSecurity]
         private extern static uint dxtLoadTGAFile(string filePath, out TexMetadata metadata, IntPtr image);
+
+        [DllImport("DxtWrapper", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Unicode), SuppressUnmanagedCodeSecurity]
+        private extern static uint dxtLoadWICFile(String filePath, WIC_FLAGS flags, out TexMetadata metadata, IntPtr image);
 
         [DllImport("DxtWrapper", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Unicode), SuppressUnmanagedCodeSecurity]
         private extern static bool dxtIsCompressed(DXGI_FORMAT fmt);
@@ -542,10 +545,10 @@ namespace Stride.TextureConverter.DxtWrapper
         [DllImport("DxtWrapper", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Unicode), SuppressUnmanagedCodeSecurity]
         private extern static uint dxtDecompressArray(DxtImage[] cImages, int nimages, ref TexMetadata metadata, DXGI_FORMAT format, IntPtr images);
 
-        [DllImport("DxtWrapper", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Unicode), SuppressUnmanagedCodeSecurity]
+        [DllImport("DxtWrapper", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Auto), SuppressUnmanagedCodeSecurity]
         private extern static uint dxtSaveToDDSFile(ref DxtImage dxtImage, DDS_FLAGS flags, string szFile);
 
-        [DllImport("DxtWrapper", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Unicode), SuppressUnmanagedCodeSecurity]
+        [DllImport("DxtWrapper", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Auto), SuppressUnmanagedCodeSecurity]
         private extern static uint dxtSaveToDDSFileArray(DxtImage[] dxtImages, int nimages, ref TexMetadata metadata, DDS_FLAGS flags, string szFile);
 
         [DllImport("DxtWrapper", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Unicode), SuppressUnmanagedCodeSecurity]
@@ -582,6 +585,11 @@ namespace Stride.TextureConverter.DxtWrapper
         public static HRESULT LoadTGAFile(string filePath, out TexMetadata metadata, ScratchImage image)
         {
             return HandleHRESULT(dxtLoadTGAFile(filePath, out metadata, image.ptr));
+        }
+
+        public static HRESULT LoadWICFile(String filePath, WIC_FLAGS flags, out TexMetadata metadata, ScratchImage image)
+        {
+            return HandleHRESULT(dxtLoadWICFile(filePath, flags, out metadata, image.ptr));
         }
 
         public static HRESULT SaveToDDSFile(ref DxtImage dxtImage, DDS_FLAGS flags, string szFile)

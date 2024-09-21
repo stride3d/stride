@@ -6,7 +6,7 @@ using System.Globalization;
 namespace Stride.Updater
 {
     /// <summary>
-    /// Resolver for <see cref="T[]"/> in property path.
+    /// Resolver for <see cref="Array"/> with elements of type <typeparamref name="T"/>.
     /// </summary>
     /// <typeparam name="T">The type of array items.</typeparam>
     public class ArrayUpdateResolver<T> : UpdateMemberResolver
