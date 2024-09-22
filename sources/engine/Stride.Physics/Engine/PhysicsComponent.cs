@@ -583,7 +583,10 @@ namespace Stride.Engine
             }
         }
 
-        public void ComposeShape()
+        /// <summary>
+        /// Made virtual for added behavior in CharacterComponent with UAF exception
+        /// </summary>
+        public virtual void ComposeShape()
         {
             ColliderShapeChanged = false;
 
