@@ -51,7 +51,7 @@ public sealed class BepuSimulation : IDisposable
     internal List<StaticComponent?> Statics { get; } = new();
 
     [DataMemberIgnore]
-    public CollisionMatrix CollisionMatrix { get; } = CollisionMatrix.All;
+    public CollisionMatrix CollisionMatrix = CollisionMatrix.All; // Keep this as a field, user need ref access for writes
 
     /// <summary>
     /// Get the bepu Simulation /!\
