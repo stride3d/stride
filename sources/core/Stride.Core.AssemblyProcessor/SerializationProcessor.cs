@@ -82,9 +82,9 @@ namespace Stride.Core.AssemblyProcessor
 
                 TypeReference parentType = null;
                 FieldDefinition parentSerializerField = null;
-                if (complexType.Value.ComplexSerializerProcessParentType)
+                if (complexType.Value.ComplexSerializerProcessParentType != null)
                 {
-                    parentType = ResolveGenericsVisitor.Process(serializerType, type.BaseType);
+                    parentType = complexType.Value.ComplexSerializerProcessParentType;
                     serializerType.Fields.Add(parentSerializerField = new FieldDefinition("parentSerializer", Mono.Cecil.FieldAttributes.Private, dataSerializerTypeRef.MakeGenericType(parentType)));
 
                     hash.Write("parent");
@@ -134,7 +134,7 @@ namespace Stride.Core.AssemblyProcessor
                 // Add Initialize method
                 var initialize = new MethodDefinition("Initialize", MethodAttributes.Public | MethodAttributes.HideBySig | MethodAttributes.Virtual, assembly.MainModule.TypeSystem.Void);
                 initialize.Parameters.Add(new ParameterDefinition("serializerSelector", ParameterAttributes.None, serializerSelectorTypeRef));
-                if (complexType.Value.ComplexSerializerProcessParentType)
+                if (complexType.Value.ComplexSerializerProcessParentType != null)
                 {
                     initialize.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_0));
                     initialize.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_1));
@@ -162,7 +162,7 @@ namespace Stride.Core.AssemblyProcessor
                     serialize.Parameters.Add(new ParameterDefinition(parentParameter.Name, ParameterAttributes.None, assembly.MainModule.ImportReference(parentParameter.ParameterType)));
                 }
 
-                if (complexType.Value.ComplexSerializerProcessParentType)
+                if (complexType.Value.ComplexSerializerProcessParentType != null)
                 {
                     serialize.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_0));
                     serialize.Body.Instructions.Add(Instruction.Create(OpCodes.Ldfld, parentSerializerField.MakeGeneric(genericParameters)));
