@@ -118,6 +118,6 @@ shader Math
     //Exponential damping
     float ExpDecay(float a, float b, float lambda, float dt)
     {
-        return a + (b - a) * exp(-lambda * dt);
+        return b + (a - b) * exp(-lambda * dt);
     }
 };
