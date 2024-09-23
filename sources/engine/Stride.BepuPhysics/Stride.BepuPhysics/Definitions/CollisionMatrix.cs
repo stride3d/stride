@@ -4,10 +4,10 @@
 namespace Stride.BepuPhysics.Definitions;
 
 /// <summary>
-/// Defines how layers collide between each other
+/// Defines how layers collide between each other.
 /// </summary>
 /// <remarks>
-/// This structure is VERY large, prefer referencing it directly instead of passing it around
+/// This structure is VERY large, prefer referencing it directly instead of passing it around.
 /// </remarks>
 public unsafe struct CollisionMatrix : IEquatable<CollisionMatrix>
 {

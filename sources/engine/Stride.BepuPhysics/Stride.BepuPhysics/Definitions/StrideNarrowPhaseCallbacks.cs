@@ -32,14 +32,18 @@ internal struct StrideNarrowPhaseCallbacks(BepuSimulation Simulation, ContactEve
         if (Simulation.CollisionMatrix.Get(matA.Layer, matB.Layer) == false)
             return false;
 
-        if (matA.FilterByDistance.Id == matB.FilterByDistance.Id && matA.FilterByDistance.Id != 0)
+        if (matA.CollisionGroup.Id == matB.CollisionGroup.Id && matA.CollisionGroup.Id != 0)
         {
-            var differenceX = matA.FilterByDistance.XAxis - matB.FilterByDistance.XAxis;
-            var differenceY = matA.FilterByDistance.YAxis - matB.FilterByDistance.YAxis;
-            var differenceZ = matA.FilterByDistance.ZAxis - matB.FilterByDistance.ZAxis;
+            int differenceA = matA.CollisionGroup.IndexA - matB.CollisionGroup.IndexA;
+            int differenceB = matA.CollisionGroup.IndexB - matB.CollisionGroup.IndexB;
+            int differenceC = matA.CollisionGroup.IndexC - matB.CollisionGroup.IndexC;
 
-            if ((!(differenceX < -DEFAULT_DISTANCE || differenceX > DEFAULT_DISTANCE)) && (!(differenceY < -DEFAULT_DISTANCE || differenceY > DEFAULT_DISTANCE)) && (!(differenceZ < -DEFAULT_DISTANCE || differenceY > DEFAULT_DISTANCE)))
+            if (differenceA is >= -DEFAULT_DISTANCE and <= DEFAULT_DISTANCE
+                && differenceB is >= -DEFAULT_DISTANCE and <= DEFAULT_DISTANCE
+                && differenceC is >= -DEFAULT_DISTANCE and <= DEFAULT_DISTANCE)
+            {
                 return false;
+            }
         }
 
         return true;

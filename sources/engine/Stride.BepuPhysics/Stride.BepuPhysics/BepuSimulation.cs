@@ -50,17 +50,18 @@ public sealed class BepuSimulation : IDisposable
     internal List<BodyComponent?> Bodies { get; } = new();
     internal List<StaticComponent?> Statics { get; } = new();
 
+    /// <inheritdoc cref="Stride.BepuPhysics.Definitions.CollisionMatrix"/>
     [DataMemberIgnore]
     public CollisionMatrix CollisionMatrix = CollisionMatrix.All; // Keep this as a field, user need ref access for writes
 
     /// <summary>
-    /// Get the bepu Simulation /!\
+    /// Accessing and altering this object is inherently unsupported and unsafe, this is the internal bepu simulation.
     /// </summary>
     [DataMemberIgnore]
     public Simulation Simulation { get; }
 
     /// <summary>
-    /// Whether to update the simulation
+    /// Whether to update the simulation.
     /// </summary>
     /// <remarks>
     /// False also disables contact processing but won't prevent re-synchronization of static physics bodies to their engine counterpart

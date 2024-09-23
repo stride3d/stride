@@ -31,13 +31,10 @@ public abstract class CollidableComponent : EntityComponent
     private float _maximumRecoveryVelocity = 1000;
 
     private CollisionLayer _collisionLayer = CollisionLayer.Layer0;
-    private FilterByDistance _filterByDistance;
+    private CollisionGroup _collisionGroup;
 
     private ICollider _collider;
     private IContactEventHandler? _trigger;
-
-    [DataMemberIgnore]
-    public BepuSimulation? Simulation { get; private set; }
 
     [DataMemberIgnore]
     internal CollidableProcessor? Processor { get; set; }
@@ -50,6 +47,15 @@ public abstract class CollidableComponent : EntityComponent
     [DataMemberIgnore]
     internal uint Versioning { get; private set; }
 
+    /// <summary>
+    /// The simulation this object belongs to, null when it is not part of a simulation.
+    /// </summary>
+    [DataMemberIgnore]
+    public BepuSimulation? Simulation { get; private set; }
+
+    /// <summary>
+    /// The collider definition used by this object.
+    /// </summary>
     /// <remarks>
     /// Changing this value will reset some of the internal physics state of this body
     /// </remarks>
@@ -74,6 +80,9 @@ public abstract class CollidableComponent : EntityComponent
         }
     }
 
+    /// <summary>
+    /// Provides the ability to collect and mutate contact data when this object collides with other objects.
+    /// </summary>
     public IContactEventHandler? ContactEventHandler
     {
         get
@@ -153,6 +162,10 @@ public abstract class CollidableComponent : EntityComponent
         }
     }
 
+    /// <summary>
+    /// Controls how this object interacts with other objects, allow or prevent collisions between
+    /// it and other groups based on how <see cref="BepuSimulation.CollisionMatrix"/> is set up.
+    /// </summary>
     [DefaultValue(CollisionLayer.Layer0)]
     [DataAlias("CollisionMask")]
     public CollisionLayer CollisionLayer
@@ -165,16 +178,24 @@ public abstract class CollidableComponent : EntityComponent
         }
     }
 
-    public FilterByDistance FilterByDistance
+    /// <inheritdoc cref="Stride.BepuPhysics.Definitions.CollisionGroup"/>
+    [DataAlias("FilterByDistance")]
+    public CollisionGroup CollisionGroup
     {
-        get => _filterByDistance;
+        get => _collisionGroup;
         set
         {
-            _filterByDistance = value;
+            _collisionGroup = value;
             TryUpdateMaterialProperties();
         }
     }
 
+    /// <summary>
+    /// The center of mass of this object
+    /// </summary>
+    /// <remarks>
+    /// This property will always return <see cref="Vector3.Zero"/> if this object is not part of a simulation yet.
+    /// </remarks>
     [DataMemberIgnore]
     public Vector3 CenterOfMass { get; private set; }
 
@@ -264,7 +285,7 @@ public abstract class CollidableComponent : EntityComponent
         mat.IsTrigger = ContactEventHandler != null && ContactEventHandler.NoContactResponse;
 
         mat.Layer = CollisionLayer;
-        mat.FilterByDistance = FilterByDistance;
+        mat.CollisionGroup = CollisionGroup;
 
 #warning this is still kind of a mess, what should we do here ?
         mat.Gravity = this is BodyComponent body && body.Gravity;

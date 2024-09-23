@@ -15,7 +15,7 @@ public struct MaterialProperties
     public bool IsTrigger;
 
     public CollisionLayer Layer;
-    public FilterByDistance FilterByDistance;
+    public CollisionGroup CollisionGroup;
 
     //__Pose__Settings__ conditionally enabled by UsePerBodyAttributes state
     public bool Gravity;
