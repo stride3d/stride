@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.ComponentModel;
 using Stride.Core;
 
 namespace Stride.BepuPhysics.Definitions;
@@ -29,6 +30,7 @@ public struct CollisionGroup
     /// <remarks>
     /// Set this value to the same number for all objects which should have their collisions ignored when colliding between each other.
     /// </remarks>
+    [DefaultValue(0)]
     public ushort Id;
     /// <summary>
     /// An index associated with this object in the collision group <see cref="Id"/>
@@ -38,12 +40,12 @@ public struct CollisionGroup
     /// if the two objects have the same or subsequent values, collision between those two objects will be ignored.
     /// But, if their values are more than one apart, they will collide with each other.
     /// </remarks>
-    [DataAlias("XAxis")]
+    [DataAlias("XAxis"), DefaultValue(0)]
     public ushort IndexA;
     /// <inheritdoc cref="IndexA"/>
-    [DataAlias("YAxis")]
+    [DataAlias("YAxis"), DefaultValue(0)]
     public ushort IndexB;
     /// <inheritdoc cref="IndexA"/>
-    [DataAlias("ZAxis")]
+    [DataAlias("ZAxis"), DefaultValue(0)]
     public ushort IndexC;
 }
