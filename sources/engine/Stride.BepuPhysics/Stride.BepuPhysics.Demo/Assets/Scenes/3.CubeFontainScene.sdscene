@@ -115,12 +115,11 @@ Hierarchy:
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 10.0
                         MaximumRecoveryVelocity: 1000.0
-                        CollisionMask: Layer0
-                        FilterByDistance:
+                        CollisionGroup:
                             Id: 0
-                            XAxis: 0
-                            YAxis: 0
-                            ZAxis: 0
+                            IndexA: 0
+                            IndexB: 0
+                            IndexC: 0
         -   Entity:
                 Id: c6f2be1f-050d-4cb2-8122-3199af7119f3
                 Name: DefaultScripts

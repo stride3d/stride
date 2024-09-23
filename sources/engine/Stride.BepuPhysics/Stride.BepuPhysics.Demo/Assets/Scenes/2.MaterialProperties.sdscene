@@ -40,12 +40,11 @@ Hierarchy:
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1000.0
                         MaximumRecoveryVelocity: 1000.0
-                        CollisionMask: Layer0
-                        FilterByDistance:
+                        CollisionGroup:
                             Id: 0
-                            XAxis: 0
-                            YAxis: 0
-                            ZAxis: 0
+                            IndexA: 0
+                            IndexB: 0
+                            IndexC: 0
                         Kinematic: false
                         Gravity: true
                         SleepThreshold: 0.01
@@ -90,12 +89,11 @@ Hierarchy:
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 0.001
-                        CollisionMask: Layer0
-                        FilterByDistance:
+                        CollisionGroup:
                             Id: 0
-                            XAxis: 0
-                            YAxis: 0
-                            ZAxis: 0
+                            IndexA: 0
+                            IndexB: 0
+                            IndexC: 0
                         Kinematic: false
                         Gravity: true
                         SleepThreshold: 0.01
@@ -130,12 +128,12 @@ Hierarchy:
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
-                        CollisionMask: Layer3
-                        FilterByDistance:
+                        CollisionLayer: Layer3
+                        CollisionGroup:
                             Id: 0
-                            XAxis: 0
-                            YAxis: 0
-                            ZAxis: 0
+                            IndexA: 0
+                            IndexB: 0
+                            IndexC: 0
                         Kinematic: false
                         Gravity: true
                         SleepThreshold: 0.01
@@ -214,12 +212,11 @@ Hierarchy:
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
-                        CollisionMask: Layer0
-                        FilterByDistance:
+                        CollisionGroup:
                             Id: 0
-                            XAxis: 0
-                            YAxis: 0
-                            ZAxis: 0
+                            IndexA: 0
+                            IndexB: 0
+                            IndexC: 0
                         Kinematic: false
                         Gravity: true
                         SleepThreshold: 0.01
@@ -253,12 +250,12 @@ Hierarchy:
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
-                        CollisionMask: Layer2
-                        FilterByDistance:
+                        CollisionLayer: Layer2
+                        CollisionGroup:
                             Id: 0
-                            XAxis: 0
-                            YAxis: 0
-                            ZAxis: 0
+                            IndexA: 0
+                            IndexB: 0
+                            IndexC: 0
                         Kinematic: false
                         Gravity: true
                         SleepThreshold: 0.01
@@ -326,12 +323,11 @@ Hierarchy:
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
-                        CollisionMask: Layer0
-                        FilterByDistance:
+                        CollisionGroup:
                             Id: 0
-                            XAxis: 0
-                            YAxis: 0
-                            ZAxis: 0
+                            IndexA: 0
+                            IndexB: 0
+                            IndexC: 0
         -   Folder: LowRecoveryBlue
             Entity:
                 Id: 700235d2-dac0-421e-8ab5-69e540128cc9
@@ -359,12 +355,11 @@ Hierarchy:
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 0.001
-                        CollisionMask: Layer0
-                        FilterByDistance:
+                        CollisionGroup:
                             Id: 0
-                            XAxis: 0
-                            YAxis: 0
-                            ZAxis: 0
+                            IndexA: 0
+                            IndexB: 0
+                            IndexC: 0
                         Kinematic: false
                         Gravity: true
                         SleepThreshold: 0.01
@@ -405,12 +400,11 @@ Hierarchy:
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
-                        CollisionMask: Layer0
-                        FilterByDistance:
+                        CollisionGroup:
                             Id: 0
-                            XAxis: 0
-                            YAxis: 0
-                            ZAxis: 0
+                            IndexA: 0
+                            IndexB: 0
+                            IndexC: 0
                         Kinematic: false
                         Gravity: true
                         SleepThreshold: 0.01
@@ -495,12 +489,11 @@ Hierarchy:
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
-                        CollisionMask: Layer0
-                        FilterByDistance:
+                        CollisionGroup:
                             Id: 0
-                            XAxis: 0
-                            YAxis: 0
-                            ZAxis: 0
+                            IndexA: 0
+                            IndexB: 0
+                            IndexC: 0
                         Kinematic: false
                         Gravity: true
                         SleepThreshold: 0.01
@@ -539,12 +532,11 @@ Hierarchy:
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 0.001
-                        CollisionMask: Layer0
-                        FilterByDistance:
+                        CollisionGroup:
                             Id: 0
-                            XAxis: 0
-                            YAxis: 0
-                            ZAxis: 0
+                            IndexA: 0
+                            IndexB: 0
+                            IndexC: 0
                         Kinematic: false
                         Gravity: true
                         SleepThreshold: 0.01
@@ -589,12 +581,11 @@ Hierarchy:
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1000.0
                         MaximumRecoveryVelocity: 1000.0
-                        CollisionMask: Layer0
-                        FilterByDistance:
+                        CollisionGroup:
                             Id: 0
-                            XAxis: 0
-                            YAxis: 0
-                            ZAxis: 0
+                            IndexA: 0
+                            IndexB: 0
+                            IndexC: 0
                         Kinematic: false
                         Gravity: true
                         SleepThreshold: 0.01
@@ -655,12 +646,11 @@ Hierarchy:
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
-                        CollisionMask: Layer0
-                        FilterByDistance:
+                        CollisionGroup:
                             Id: 0
-                            XAxis: 0
-                            YAxis: 0
-                            ZAxis: 0
+                            IndexA: 0
+                            IndexB: 0
+                            IndexC: 0
                         Kinematic: false
                         Gravity: true
                         SleepThreshold: 0.01
@@ -700,12 +690,11 @@ Hierarchy:
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 0.001
-                        CollisionMask: Layer0
-                        FilterByDistance:
+                        CollisionGroup:
                             Id: 0
-                            XAxis: 0
-                            YAxis: 0
-                            ZAxis: 0
+                            IndexA: 0
+                            IndexB: 0
+                            IndexC: 0
                         Kinematic: false
                         Gravity: true
                         SleepThreshold: 0.01
@@ -746,12 +735,11 @@ Hierarchy:
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1000.0
                         MaximumRecoveryVelocity: 1000.0
-                        CollisionMask: Layer0
-                        FilterByDistance:
+                        CollisionGroup:
                             Id: 0
-                            XAxis: 0
-                            YAxis: 0
-                            ZAxis: 0
+                            IndexA: 0
+                            IndexB: 0
+                            IndexC: 0
                         Kinematic: false
                         Gravity: true
                         SleepThreshold: 0.01
@@ -796,12 +784,11 @@ Hierarchy:
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
-                        CollisionLayer: Layer0
-                        FilterByDistance:
+                        CollisionGroup:
                             Id: 0
-                            XAxis: 0
-                            YAxis: 0
-                            ZAxis: 0
+                            IndexA: 0
+                            IndexB: 0
+                            IndexC: 0
                         Kinematic: false
                         Gravity: true
                         SleepThreshold: 0.01
@@ -836,12 +823,12 @@ Hierarchy:
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
-                        CollisionMask: Layer1
-                        FilterByDistance:
+                        CollisionLayer: Layer1
+                        CollisionGroup:
                             Id: 0
-                            XAxis: 0
-                            YAxis: 0
-                            ZAxis: 0
+                            IndexA: 0
+                            IndexB: 0
+                            IndexC: 0
                         Kinematic: false
                         Gravity: true
                         SleepThreshold: 0.01
@@ -881,12 +868,11 @@ Hierarchy:
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1000.0
                         MaximumRecoveryVelocity: 1000.0
-                        CollisionMask: Layer0
-                        FilterByDistance:
+                        CollisionGroup:
                             Id: 0
-                            XAxis: 0
-                            YAxis: 0
-                            ZAxis: 0
+                            IndexA: 0
+                            IndexB: 0
+                            IndexC: 0
                         Kinematic: false
                         Gravity: true
                         SleepThreshold: 0.01

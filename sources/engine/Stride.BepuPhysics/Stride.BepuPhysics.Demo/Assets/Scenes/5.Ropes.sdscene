@@ -43,12 +43,11 @@ Hierarchy:
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
-                        CollisionMask: Layer0
-                        FilterByDistance:
+                        CollisionGroup:
                             Id: 0
-                            XAxis: 0
-                            YAxis: 0
-                            ZAxis: 0
+                            IndexA: 0
+                            IndexB: 0
+                            IndexC: 0
         -   Entity:
                 Id: 0c92bced-319f-42ec-84b9-955742cd3448
                 Name: Directional light
@@ -129,12 +128,11 @@ Hierarchy:
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
-                        CollisionMask: Layer0
-                        FilterByDistance:
+                        CollisionGroup:
                             Id: 0
-                            XAxis: 0
-                            YAxis: 0
-                            ZAxis: 0
+                            IndexA: 0
+                            IndexB: 0
+                            IndexC: 0
                         Kinematic: false
                         Gravity: true
                         SleepThreshold: 0.01
@@ -188,12 +186,11 @@ Hierarchy:
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
-                        CollisionMask: Layer0
-                        FilterByDistance:
+                        CollisionGroup:
                             Id: 0
-                            XAxis: 0
-                            YAxis: 0
-                            ZAxis: 0
+                            IndexA: 0
+                            IndexB: 0
+                            IndexC: 0
                         Kinematic: false
                         Gravity: true
                         SleepThreshold: 0.01
@@ -342,12 +339,11 @@ Hierarchy:
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
-                        CollisionMask: Layer0
-                        FilterByDistance:
+                        CollisionGroup:
                             Id: 0
-                            XAxis: 0
-                            YAxis: 0
-                            ZAxis: 0
+                            IndexA: 0
+                            IndexB: 0
+                            IndexC: 0
                         Kinematic: true
                         Gravity: true
                         SleepThreshold: 0.01

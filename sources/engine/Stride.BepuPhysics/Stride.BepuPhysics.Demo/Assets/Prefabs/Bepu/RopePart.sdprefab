@@ -36,14 +36,13 @@ Hierarchy:
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
-                        CollisionMask: Layer0
-                        FilterByDistance:
+                        CollisionGroup:
                             Id: 0
-                            XAxis: 0
-                            YAxis: 0
-                            ZAxis: 0
+                            IndexA: 0
+                            IndexB: 0
+                            IndexC: 0
                         Kinematic: false
-                        IgnoreGlobalGravity: false
+                        Gravity: true
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
                         InterpolationMode: None

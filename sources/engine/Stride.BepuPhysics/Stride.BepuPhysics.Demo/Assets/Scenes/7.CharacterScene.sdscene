@@ -39,12 +39,11 @@ Hierarchy:
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
-                        CollisionMask: Layer0
-                        FilterByDistance:
+                        CollisionGroup:
                             Id: 0
-                            XAxis: 0
-                            YAxis: 0
-                            ZAxis: 0
+                            IndexA: 0
+                            IndexB: 0
+                            IndexC: 0
         -   Entity:
                 Id: 0e49b5d5-76b2-4dd2-9887-32a6d9dfa51a
                 Name: Jump2
@@ -74,12 +73,11 @@ Hierarchy:
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
-                        CollisionMask: Layer0
-                        FilterByDistance:
+                        CollisionGroup:
                             Id: 0
-                            XAxis: 0
-                            YAxis: 0
-                            ZAxis: 0
+                            IndexA: 0
+                            IndexB: 0
+                            IndexC: 0
                         Kinematic: true
                         Gravity: true
                         SleepThreshold: 0.01
@@ -115,12 +113,11 @@ Hierarchy:
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
-                        CollisionMask: Layer0
-                        FilterByDistance:
+                        CollisionGroup:
                             Id: 0
-                            XAxis: 0
-                            YAxis: 0
-                            ZAxis: 0
+                            IndexA: 0
+                            IndexB: 0
+                            IndexC: 0
                         Kinematic: true
                         Gravity: true
                         SleepThreshold: 0.01
@@ -171,12 +168,11 @@ Hierarchy:
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
-                        CollisionMask: Layer0
-                        FilterByDistance:
+                        CollisionGroup:
                             Id: 0
-                            XAxis: 0
-                            YAxis: 0
-                            ZAxis: 0
+                            IndexA: 0
+                            IndexB: 0
+                            IndexC: 0
         -   Entity:
                 Id: 718407b2-5728-4811-8b58-3a7b206d2c09
                 Name: Directional light
@@ -231,12 +227,11 @@ Hierarchy:
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
-                        CollisionMask: Layer0
-                        FilterByDistance:
+                        CollisionGroup:
                             Id: 0
-                            XAxis: 0
-                            YAxis: 0
-                            ZAxis: 0
+                            IndexA: 0
+                            IndexB: 0
+                            IndexC: 0
         -   Entity:
                 Id: 79048271-9d2d-4c88-85d4-af918b1fc277
                 Name: Trig
@@ -267,12 +262,11 @@ Hierarchy:
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
-                        CollisionMask: Layer0
-                        FilterByDistance:
+                        CollisionGroup:
                             Id: 0
-                            XAxis: 0
-                            YAxis: 0
-                            ZAxis: 0
+                            IndexA: 0
+                            IndexB: 0
+                            IndexC: 0
                     f9a37efd54d23446ba6b5e0cd9f3a2f3: !Stride.BepuPhysics.Demo.Components.Utils.TriggerUsageComponent,Stride.BepuPhysics.Demo
                         Id: d50f67c5-8ccd-4785-a628-36012c6c6c0d
                         Trigger: !Stride.BepuPhysics.StaticComponent,Stride.BepuPhysics ref!! 4f3dc2aa-51ed-4b02-8fe2-da628f85faaf
@@ -395,12 +389,11 @@ Hierarchy:
                         SpringDampingRatio: 1000.0
                         FrictionCoefficient: 0.1
                         MaximumRecoveryVelocity: 1000.0
-                        CollisionMask: Layer0
-                        FilterByDistance:
+                        CollisionGroup:
                             Id: 0
-                            XAxis: 0
-                            YAxis: 0
-                            ZAxis: 0
+                            IndexA: 0
+                            IndexB: 0
+                            IndexC: 0
                         Kinematic: false
                         Gravity: true
                         SleepThreshold: 0.01
