@@ -40,7 +40,7 @@ Hierarchy:
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1000.0
                         MaximumRecoveryVelocity: 1000.0
-                        CollisionMask: Everything
+                        CollisionMask: Layer0
                         FilterByDistance:
                             Id: 0
                             XAxis: 0
@@ -90,7 +90,7 @@ Hierarchy:
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 0.001
-                        CollisionMask: Everything
+                        CollisionMask: Layer0
                         FilterByDistance:
                             Id: 0
                             XAxis: 0
@@ -214,7 +214,7 @@ Hierarchy:
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
-                        CollisionMask: Everything
+                        CollisionMask: Layer0
                         FilterByDistance:
                             Id: 0
                             XAxis: 0
@@ -326,7 +326,7 @@ Hierarchy:
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
-                        CollisionMask: Everything
+                        CollisionMask: Layer0
                         FilterByDistance:
                             Id: 0
                             XAxis: 0
@@ -359,7 +359,7 @@ Hierarchy:
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 0.001
-                        CollisionMask: Everything
+                        CollisionMask: Layer0
                         FilterByDistance:
                             Id: 0
                             XAxis: 0
@@ -405,7 +405,7 @@ Hierarchy:
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
-                        CollisionMask: Everything
+                        CollisionMask: Layer0
                         FilterByDistance:
                             Id: 0
                             XAxis: 0
@@ -495,7 +495,7 @@ Hierarchy:
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
-                        CollisionMask: Everything
+                        CollisionMask: Layer0
                         FilterByDistance:
                             Id: 0
                             XAxis: 0
@@ -539,7 +539,7 @@ Hierarchy:
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 0.001
-                        CollisionMask: Everything
+                        CollisionMask: Layer0
                         FilterByDistance:
                             Id: 0
                             XAxis: 0
@@ -589,7 +589,7 @@ Hierarchy:
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1000.0
                         MaximumRecoveryVelocity: 1000.0
-                        CollisionMask: Everything
+                        CollisionMask: Layer0
                         FilterByDistance:
                             Id: 0
                             XAxis: 0
@@ -655,7 +655,7 @@ Hierarchy:
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 1000.0
-                        CollisionMask: Everything
+                        CollisionMask: Layer0
                         FilterByDistance:
                             Id: 0
                             XAxis: 0
@@ -700,7 +700,7 @@ Hierarchy:
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1.0
                         MaximumRecoveryVelocity: 0.001
-                        CollisionMask: Everything
+                        CollisionMask: Layer0
                         FilterByDistance:
                             Id: 0
                             XAxis: 0
@@ -746,7 +746,7 @@ Hierarchy:
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1000.0
                         MaximumRecoveryVelocity: 1000.0
-                        CollisionMask: Everything
+                        CollisionMask: Layer0
                         FilterByDistance:
                             Id: 0
                             XAxis: 0
@@ -881,7 +881,7 @@ Hierarchy:
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1000.0
                         MaximumRecoveryVelocity: 1000.0
-                        CollisionMask: Everything
+                        CollisionMask: Layer0
                         FilterByDistance:
                             Id: 0
                             XAxis: 0
