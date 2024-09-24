@@ -698,6 +698,10 @@ namespace Stride.Engine
         /// </summary>
         internal void ReAttach()
         {
+            if (Data == null)
+            {
+                throw new InvalidOperationException("PhysicsComponent has not been attached yet.");
+            }
             //TODO: Could consider fully detaching and then rebuilding, but ideally this would cause null refs on Rigidbody OnDetach calls
             //Shouldnt call detach, because at this point the user has added new components and this runs as a check to rebuild as needed.
             //Entire wipes to rebuild causes loss in the data that the user has just added (and is slower)
