@@ -64,7 +64,6 @@ namespace Stride.Core.Assets
 
                     var outputType = msProject.GetPropertyValue("OutputType");
                     project.Type = outputType.ToLowerInvariant() == "winexe" || outputType.ToLowerInvariant() == "exe"
-                        || outputType.ToLowerInvariant() == "appcontainerexe" // UWP
                         || msProject.GetPropertyValue("AndroidApplication").ToLowerInvariant() == "true" // Android
                         ? ProjectType.Executable
                         : ProjectType.Library;

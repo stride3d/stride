@@ -29,7 +29,7 @@ namespace Stride.Core.IO
                 count = (count + offset > int.MaxValue) ? int.MaxValue - offset : count;
             }
 
-            if (Platform.Type == PlatformType.Windows || Platform.Type == PlatformType.UWP)
+            if (Platform.Type == PlatformType.Windows)
             {
                 var countLow = (uint)count;
                 var countHigh = (uint)(count >> 32);
@@ -74,7 +74,7 @@ namespace Stride.Core.IO
                 count = (count + offset > int.MaxValue) ? int.MaxValue - offset : count;
             }
 
-            if (Platform.Type == PlatformType.Windows || Platform.Type == PlatformType.UWP)
+            if (Platform.Type == PlatformType.Windows)
             {
                 var countLow = (uint)count;
                 var countHigh = (uint)(count >> 32);

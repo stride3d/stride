@@ -250,7 +250,6 @@ namespace Stride.Assets.Textures
                             }
                             break;
                         case PlatformType.Windows:
-                        case PlatformType.UWP:
                         case PlatformType.Linux:
                         case PlatformType.macOS:
                             switch (parameters.GraphicsPlatform)
