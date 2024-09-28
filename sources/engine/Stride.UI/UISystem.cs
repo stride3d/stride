@@ -3,16 +3,13 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.Linq;
 using Stride.Core;
-using Stride.Core.Collections;
 using Stride.Engine;
 using Stride.Games;
 using Stride.Graphics;
 using Stride.Input;
 using Stride.Rendering;
-using Stride.Rendering.UI;
 using Stride.UI.Controls;
 
 namespace Stride.UI
@@ -131,16 +128,14 @@ namespace Stride.UI
             base.Update(gameTime);
             
             if (renderContext == null)
-            {
                 renderContext = RenderContext.GetShared(Services);
-            }
             
             UIElementUnderMouseCursor = Pick(gameTime);
 
             UpdateKeyEvents();
         }
 
-        private partial UIElement Pick(GameTime drawTime);
+        private partial UIElement Pick(GameTime gameTime);
 
         private void UpdateKeyEvents()
         {

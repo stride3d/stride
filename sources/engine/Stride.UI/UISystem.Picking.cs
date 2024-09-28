@@ -33,16 +33,17 @@ namespace Stride.UI
         /// </summary>
         public UIElement UIElementUnderMouseCursor { get; internal set; }
 
-        private partial UIElement Pick( GameTime drawTime)
+        private partial UIElement Pick(GameTime gameTime)
         {
             if (renderContext == null || sceneSystem == null || sceneSystem.GraphicsCompositor == null)
                 return null;
 
+            Texture renderTarget = renderContext.GraphicsDevice.Presenter.BackBuffer;
             UIElement elementUnderMouseCursor = null;
             
             foreach (var cameraSlot in sceneSystem.GraphicsCompositor.Cameras)
             {
-                UpdateStates(cameraSlot.Camera);
+                UpdateStates();
             
                 // Prepare content required for Picking and MouseOver events
                 PickingPrepare();
@@ -52,13 +53,13 @@ namespace Stride.UI
             
                 foreach (var renderUIElement in RenderObjects)
                 {
-                
                     UIElement loopedElementUnderMouseCursor = null;
-                
+
+                    Matrix worldViewProjection = GetWorldViewProjection(renderUIElement, cameraSlot.Camera, renderTarget);
                     // Check if the current UI component is being picked based on the current ViewParameters (used to draw this element)
                     using (Profiler.Begin(UIProfilerKeys.TouchEventsUpdate))
                     {
-                        PickingUpdate(renderUIElement, viewport, ref inputStates[renderUIElement].WorldViewProjectionMatrix, drawTime, ref loopedElementUnderMouseCursor);
+                        PickingUpdate(renderUIElement, viewport, ref worldViewProjection, gameTime, ref loopedElementUnderMouseCursor);
                     
                         // only update result element, when this one has a value
                         if (loopedElementUnderMouseCursor != null)
@@ -72,41 +73,15 @@ namespace Stride.UI
             return elementUnderMouseCursor;
         }
         
-        private void UpdateStates(CameraComponent cameraComponent)
+        private void UpdateStates()
         {
-            var renderTarget = renderContext.GraphicsDevice.Presenter.BackBuffer;
-            
             oldRenderObjects.AddRange(inputStates.Keys);
             foreach (RenderUIElement renderUIElement in RenderObjects)
             {
                 
                 // Create a state for the render object if it doesn't have one already.
                 if (!inputStates.TryGetValue(renderUIElement, out var state))
-                    inputStates[renderUIElement] = state = new UIElementInputState(renderUIElement);
-                
-                
-                // calculate the size of the virtual resolution depending on target size (UI canvas)
-                var virtualResolution = renderUIElement.Resolution;
-
-                if (renderUIElement.IsFullScreen)
-                {
-                    //var targetSize = viewportSize;
-                    var targetSize = new Vector2(renderTarget.Width, renderTarget.Height);
-
-                    // update the virtual resolution of the renderer
-                    if (renderUIElement.ResolutionStretch == ResolutionStretch.FixedWidthAdaptableHeight)
-                        virtualResolution.Y = virtualResolution.X * targetSize.Y / targetSize.X;
-                    if (renderUIElement.ResolutionStretch == ResolutionStretch.FixedHeightAdaptableWidth)
-                        virtualResolution.X = virtualResolution.Y * targetSize.X / targetSize.Y;
-
-                    state.Update(renderUIElement, virtualResolution);
-                }
-                else
-                {
-                    //var cameraComponent = renderContext.Tags.Get(CameraComponentRendererExtensions.Current);
-                    if (cameraComponent != null)
-                        state.Update(renderUIElement, cameraComponent);
-                }
+                    inputStates[renderUIElement] = state = new UIElementInputState();
                 
                 // Remove the current render object, so only render objects that have state but have been removed from the render feature are left.
                 oldRenderObjects.Remove(renderUIElement);
@@ -545,44 +520,37 @@ namespace Stride.UI
                 PerformRecursiveHitTest(child, ref ray, ref worldViewProj, results);
         }
 
-        /// <summary>
-        /// Represents the result of a hit test on the UI.
-        /// </summary>
-        public class HitTestResult
+        public static Matrix GetWorldViewProjection(RenderUIElement renderUIElement,  CameraComponent camera, Texture renderTarget)
         {
-            public HitTestResult(float depthBias, UIElement element, Vector3 intersection)
+            Matrix worldViewProjection = Matrix.Identity;
+                    
+            // calculate the size of the virtual resolution depending on target size (UI canvas)
+            var virtualResolution = renderUIElement.Resolution;
+
+            if (renderUIElement.IsFullScreen)
             {
-                DepthBias = depthBias;
-                Element = element;
-                IntersectionPoint = intersection;
+                //var targetSize = viewportSize;
+                var targetSize = new Vector2(renderTarget.Width, renderTarget.Height);
+
+                // update the virtual resolution of the renderer
+                if (renderUIElement.ResolutionStretch == ResolutionStretch.FixedWidthAdaptableHeight)
+                    virtualResolution.Y = virtualResolution.X * targetSize.Y / targetSize.X;
+                if (renderUIElement.ResolutionStretch == ResolutionStretch.FixedHeightAdaptableWidth)
+                    virtualResolution.X = virtualResolution.Y * targetSize.X / targetSize.Y;
+
+                worldViewProjection = GetWorldViewProjection(renderUIElement, virtualResolution);
+            }
+            else
+            {
+                //var cameraComponent = renderContext.Tags.Get(CameraComponentRendererExtensions.Current);
+                if (camera != null)
+                    worldViewProjection = GetWorldViewProjection(renderUIElement, camera);
             }
 
-            public float DepthBias { get; }
-
-            /// <summary>
-            /// Element that was hit.
-            /// </summary>
-            public UIElement Element { get; }
-
-            /// <summary>
-            /// Point of intersection between the ray and the hit element.
-            /// </summary>
-            public Vector3 IntersectionPoint { get; }
+            return worldViewProjection;
         }
-    }
-
-    public class UIElementInputState
-    {
-        public readonly RenderUIElement RenderObject;
-        public Matrix WorldViewProjectionMatrix;
-
-        public UIElementInputState(RenderUIElement renderObject)
-        {
-            RenderObject = renderObject;
-            WorldViewProjectionMatrix = Matrix.Identity;
-        }
-
-        public void Update(RenderUIElement renderObject, CameraComponent camera)
+        
+        private static Matrix GetWorldViewProjection(RenderUIElement renderObject, CameraComponent camera)
         {
             var frustumHeight = 2 * MathF.Tan(MathUtil.DegreesToRadians(camera.VerticalFieldOfView) / 2);
 
@@ -642,11 +610,14 @@ namespace Stride.UI
             worldMatrix.Row3 = -worldMatrix.Row3;
 
             Matrix worldViewMatrix;
+            Matrix worldViewProjectionMatrix;
             Matrix.Multiply(ref worldMatrix, ref camera.ViewMatrix, out worldViewMatrix);
-            Matrix.Multiply(ref worldViewMatrix, ref camera.ProjectionMatrix, out WorldViewProjectionMatrix);
+            Matrix.Multiply(ref worldViewMatrix, ref camera.ProjectionMatrix, out worldViewProjectionMatrix);
+
+            return worldViewProjectionMatrix;
         }
 
-        public void Update(RenderUIElement renderObject, Vector3 virtualResolution)
+        private static Matrix GetWorldViewProjection(RenderUIElement renderObject, Vector3 virtualResolution)
         {
             var nearPlane = virtualResolution.Z / 2;
             var farPlane = nearPlane + virtualResolution.Z;
@@ -663,7 +634,42 @@ namespace Stride.UI
                 ProjectionMatrix = Matrix.PerspectiveFovRH(verticalFov, aspectRatio, nearPlane, farPlane),
             };
 
-            Update(renderObject, cameraComponent);
+            return GetWorldViewProjection(renderObject, cameraComponent);
+        }
+
+        /// <summary>
+        /// Represents the result of a hit test on the UI.
+        /// </summary>
+        public class HitTestResult
+        {
+            public HitTestResult(float depthBias, UIElement element, Vector3 intersection)
+            {
+                DepthBias = depthBias;
+                Element = element;
+                IntersectionPoint = intersection;
+            }
+
+            public float DepthBias { get; }
+
+            /// <summary>
+            /// Element that was hit.
+            /// </summary>
+            public UIElement Element { get; }
+
+            /// <summary>
+            /// Point of intersection between the ray and the hit element.
+            /// </summary>
+            public Vector3 IntersectionPoint { get; }
+        }
+    }
+
+    public class UIElementInputState
+    {
+        
+
+        public UIElementInputState()
+        {
+            
         }
     }
 }
