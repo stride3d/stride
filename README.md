@@ -2,7 +2,7 @@
     <picture>
       <source media="(prefers-color-scheme: dark)" srcset="https://media.githubusercontent.com/media/stride3d/stride/84092e8aa924e2039b3f8d968907b48fc699c6b3/sources/data/images/Logo/stride-logo-readme-white.png">
       <source media="(prefers-color-scheme: light)" srcset="https://media.githubusercontent.com/media/stride3d/stride/84092e8aa924e2039b3f8d968907b48fc699c6b3/sources/data/images/Logo/stride-logo-readme-black.png">
-      <img alt="The stride logo, a geometrical 'S' in the form of a cube" src="https://media.githubusercontent.com/media/stride3d/stride/84092e8aa924e2039b3f8d968907b48fc699c6b3/sources/data/images/Logo/stride-logo-readme-black.png">
+      <a href="https://www.stride3d.net/"><img alt="The stride logo, a geometrical 'S' in the form of a cube" src="https://media.githubusercontent.com/media/stride3d/stride/84092e8aa924e2039b3f8d968907b48fc699c6b3/sources/data/images/Logo/stride-logo-readme-black.png"></a>
     </picture>
 </p>
 
@@ -21,44 +21,50 @@ Stride comes with an editor that allows you to create and manage the content of 
 
 To learn more about Stride, visit [stride3d.net](https://stride3d.net/).
 
-## Earn money by contributing
-If you are a developer with solid experience in C#, rendering techniques, or game development, we want to hire you! We have allocated funds from supporters on [OpenCollective](https://opencollective.com/stride3d) and can pay for work on certain projects. [More info about this here](https://doc.stride3d.net/latest/en/contributors/engine/bug-bounties.html).
+* 🚀 [Getting Started](#-getting-started)
+* 🤝 [Contributing](#earn-money-by-contributing)
+  - [Earn money by contributing](#earn-money-by-contributing)
+* 🗺️ [Roadmap](#%EF%B8%8F-roadmap)
+* 📖 [Documentation](#documentation)
+* 🌐 [Community](#community)
+* 🛠️ [Building from source](#building-from-source)
+  - [Prerequisites](#prerequisites)
+  - [Build Stride](#build-stride)
+  - [Build Stride without Visual Studio](#build-stride-without-visual-studio)
+  - [Contribution Guidelines](#contribution-guidelines)
+* 🔬 [Build Status](#build-status)
+* 📖 [Stride Documentation Landscape](#-stride-documentation-landscape)
+* 🌐 [.NET Foundation](#-net-foundation)
+* 🛡️ [License](#%EF%B8%8Flicense)
+* ✨ [Contributors](#-contributors)
 
-## License and governance
-### .NET Foundation
-This project is supported by the [.NET Foundation](https://dotnetfoundation.org).
+## 🚀 Getting Started
 
-### License
-Stride is covered by the [MIT License](LICENSE.md) unless stated otherwise (i.e. for some files that are copied from other projects). You can find the list of third-party projects [here](THIRD%20PARTY.md). Contributors need to sign the following [Contribution License Agreement](https://github.com/dotnet-foundation/.github/blob/main/CLA/dotnetfoundation.yml).
+All the information you need to start with Stride development is available in the 📚 [Stride Docs - Contributing to the engine](https://doc.stride3d.net/latest/en/contributors/engine/index.html).
 
-### Code of conduct
-Stride being a [.NET Foundation](https://www.dotnetfoundation.org/) project, it has adopted the code of conduct defined by the Contributor Covenant to clarify expected behavior in our community.
-For more information see the [.NET Foundation Code of Conduct](https://dotnetfoundation.org/code-of-conduct). 
+## 🤝 Contributing
 
-## Documentation
+For questions and general discussions, please use [Discord](https://discord.gg/f6aerfE) or [discuss topics on GitHub Discussions](https://github.com/stride3d/stride/discussions).
 
-Find explanations and information about Stride:
-* [Stride Manual](https://doc.stride3d.net/latest/manual/index.html)
-* [Tutorials](https://doc.stride3d.net/latest/en/tutorials/)
-* [API Reference](https://doc.stride3d.net/latest/api/index.html)
-* [Release Notes](https://doc.stride3d.net/latest/ReleaseNotes/index.html)
+To report bugs or propose features, use [Issues](https://github.com/stride3d/stride/issues).
 
-## Community
+We welcome code contributions via pull requests. Issues tagged with **[`good first issue`](https://github.com/stride3d/stride/labels/good%20first%20issue)** are great starting points for code contributions.
 
-Ask for help or report issues:
-* [Chat with the community on Discord](https://discord.gg/f6aerfE)
-* [Discuss topics on GitHub discussions](https://github.com/stride3d/stride/discussions)
-* [Report engine issues](https://github.com/stride3d/stride/issues)
-* [Donate to support the project](https://opencollective.com/stride3d/)
-* [List of Projects made by users](https://github.com/stride3d/stride/wiki/Community-Projects)
-* [Awesome Stride - Huge List of Stride Resources](https://github.com/Doprez/Awesome-Stride)
-* [Localization](https://doc.stride3d.net/latest/en/contributors/engine/localization.html)
+You can help us translate Stride, check [Localization](https://doc.stride3d.net/latest/en/contributors/engine/localization.html).
 
-## Building from source
+### Earn money by contributing
+
+If you are a developer with solid experience in C#, rendering techniques, or game development, we want to hire you! We have allocated funds 💰 from supporters on [OpenCollective](https://opencollective.com/stride3d) and can pay for work on certain projects. [More info about this here](https://doc.stride3d.net/latest/en/contributors/engine/bug-bounties.html).
+
+## 🗺️ Roadmap
+
+Our [Roadmap](https://doc.stride3d.net/latest/en/contributors/roadmap.html) communicates upcoming changes to the Stride engine.
+
+## 🛠️ Building from Source
 
 ### Prerequisites
 
-1. **Latest** [Git](https://git-scm.com/downloads) **with Large File Support** selected in the setup on the components dialog and for convenience a git UI client like [GitExtensions](https://gitextensions.github.io/).
+1. Latest [Git](https://git-scm.com/downloads) **with Large File Support** selected in the setup on the components dialog and for convenience a git UI client like [GitExtensions](https://gitextensions.github.io/).
 2. [.NET 8.0 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/8.0)
    - Run `dotnet --info` in a console or powershell window to see which versions you have installed  
 3. [Visual Studio 2022](https://www.visualstudio.com/downloads/) with the following workloads:
@@ -77,7 +83,7 @@ Ask for help or report issues:
 2. Open `<StrideDir>\build\Stride.sln` with Visual Studio 2022 and build `Stride.GameStudio` in the 60-Editor solution folder (it should be the default startup project) or run it from VS's toolbar.
    - Optionally, open and build `Stride.Android.sln`, `Stride.iOS.sln`, etc.
 
-#### Build Stride without Visual Studio
+### Build Stride without Visual Studio
 
 1. Install [Visual Studio Build Tools](https://aka.ms/vs/17/release/vs_BuildTools.exe) with the same prerequisites listed above
 2. Add MSBuild's directory to your system's *PATH* (ex: `C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\MSBuild\Current\Bin`)
@@ -94,13 +100,14 @@ If building failed:
 * Make sure that Git, Git LFS and Visual Studio can access the internet.
 * Close VS, clear the nuget cache (in your cmd `dotnet nuget locals all --clear`), delete the hidden `.vs` folder inside `\build` and the files inside `bin\packages`, kill any msbuild and other vs processes, build the whole solution then build and run GameStudio.
 
-Do note that test solutions might fail but it should not prevent you from building `Stride.GameStudio`.
+> [!WARNING]
+> Do note that test solutions might fail but it should not prevent you from building `Stride.GameStudio`.
 
 ### Contribution Guidelines
 
 Please check our [Contributing Guidelines](https://doc.stride3d.net/latest/en/contributors/index.html).
 
-### Build Status
+## 🔬 Build Status
 
 |Branch| **master** |
 |:--:|:--:|
@@ -116,7 +123,39 @@ Please check our [Contributing Guidelines](https://doc.stride3d.net/latest/en/co
 |Tests Windows Simple| <a href="https://teamcity.stride3d.net/viewType.html?buildTypeId=Engine_Tests_WindowsSimple&branch=master&guest=1"><img src="https://teamcity.stride3d.net/app/rest/builds/buildType:(id:Engine_Tests_WindowsSimple),branch:master/statusIcon"/></a>
 |Tests Windows D3D11|<a href="https://teamcity.stride3d.net/viewType.html?buildTypeId=Engine_Tests_WindowsD3D11&branch=master&guest=1"><img src="https://teamcity.stride3d.net/app/rest/builds/buildType:(id:Engine_Tests_WindowsD3D11),branch:master/statusIcon"/></a> 
 
-## Contributors ✨
+## 📖 Stride Documentation Landscape
+
+The Stride documentation is organized across different locations. Here's how it's structured:
+
+1. [Stride Game Engine](https://github.com/stride3d/stride) - The main repository for Stride, a free and open-source 2D and 3D game engine.
+   - [Contributing to Stride](https://doc.stride3d.net/latest/en/contributors/engine/index.html) - A guide for developers interested in contributing to or developing the Stride engine.
+1. [Stride Website](https://www.stride3d.net/) - The official site showcasing Stride, featuring:
+   - [Features](https://www.stride3d.net/features/) 
+   - [Blog](https://www.stride3d.net/blog/)
+   - [Community](https://www.stride3d.net/community/)
+   - [Download](https://www.stride3d.net/download/)
+   - [Sponsor](https://www.stride3d.net/sponsor/)
+   - [Contributing to the Website](https://doc.stride3d.net/latest/en/contributors/website/index.html) - Guide for contributing to the Stride website.
+2. [Stride Docs](https://doc.stride3d.net/) - The official documentation, including:
+   - [Manual](https://doc.stride3d.net/latest/en/manual/index.html)
+   - [Tutorials](https://doc.stride3d.net/latest/en/tutorials/index.html)
+   - [Release Notes](https://doc.stride3d.net/latest/en/ReleaseNotes/ReleaseNotes.html)
+   - [Ways to contribute](https://doc.stride3d.net/latest/en/contributors/index.html)
+   - [API Reference](https://doc.stride3d.net/latest/en/api/index.html)
+   - [Community Resources](https://doc.stride3d.net/latest/en/community-resources/index.html) - Demos, articles, shaders, physics examples, and more.
+   - [Contributing to the Docs](https://doc.stride3d.net/latest/en/contributors/documentation/index.html) - Guide for contributing to the Stride documentation.
+4. [Stride Community Toolkit](https://stride3d.github.io/stride-community-toolkit/index.html) - A set of C# helpers and extensions to enhance your experience with the Stride game engine.
+   - [Contributing to Toolkit](https://github.com/stride3d/stride-community-toolkit) - Contribute to or explore the toolkit's source code.
+
+## 🌐 .NET Foundation
+
+This project is supported by the [.NET Foundation](http://www.dotnetfoundation.org).
+
+## 🛡️License
+
+Stride is covered by the [MIT License](LICENSE.md) unless stated otherwise (i.e. for some files that are copied from other projects). You can find the list of third-party projects [here](THIRD%20PARTY.md). Contributors need to sign the following [Contribution License Agreement](https://github.com/dotnet-foundation/.github/blob/main/CLA/dotnetfoundation.yml).
+
+## ✨ Contributors 
 
 Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/docs/en/emoji-key)):
 
