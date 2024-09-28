@@ -11,28 +11,26 @@
 [![Financial sponsors](https://img.shields.io/opencollective/all/stride3d?logo=opencollective)](https://opencollective.com/stride3d)
 [![License](https://img.shields.io/badge/license-MIT-blue)](https://github.com/stride3d/stride/blob/master/LICENSE.md)
 
-Welcome to the Stride source code repository!
+# Welcome to the Stride Source Code Repository
 
-Stride is an open-source C# game engine for realistic rendering and VR. 
-The engine is highly modular and aims at giving game makers more flexibility in their development.
-Stride comes with an editor that allows you to create and manage the content of your games or applications visually and intuitively.
+Stride is an open-source C# game engine designed for realistic rendering and VR. The engine is highly modular and aims to give game makers more flexibility in their development. Stride comes with an editor ([Game Studio](https://doc.stride3d.net/latest/en/manual/game-studio/index.html)) that allows you to create and manage the content of your games or applications visually and intuitively.
+
+To learn more about Stride, visit [stride3d.net](https://stride3d.net/).
 
 ![Stride Editor](https://stride3d.net/images/external/script-editor.png)
 
-To learn more about Stride, visit [stride3d.net](https://stride3d.net/).
+## Table of Contents
 
 * 🚀 [Getting Started](#-getting-started)
 * 🤝 [Contributing](#earn-money-by-contributing)
   - [Earn money by contributing](#earn-money-by-contributing)
 * 🗺️ [Roadmap](#%EF%B8%8F-roadmap)
-* 📖 [Documentation](#documentation)
-* 🌐 [Community](#community)
-* 🛠️ [Building from source](#building-from-source)
+* 🛠️ [Building from source](#%EF%B8%8F-building-from-source)
   - [Prerequisites](#prerequisites)
   - [Build Stride](#build-stride)
   - [Build Stride without Visual Studio](#build-stride-without-visual-studio)
   - [Contribution Guidelines](#contribution-guidelines)
-* 🔬 [Build Status](#build-status)
+* 🔬 [Build Status](#-build-status)
 * 📖 [Stride Documentation Landscape](#-stride-documentation-landscape)
 * 🌐 [.NET Foundation](#-net-foundation)
 * 🛡️ [License](#%EF%B8%8Flicense)
@@ -40,21 +38,20 @@ To learn more about Stride, visit [stride3d.net](https://stride3d.net/).
 
 ## 🚀 Getting Started
 
-All the information you need to start with Stride development is available in the 📚 [Stride Docs - Contributing to the engine](https://doc.stride3d.net/latest/en/contributors/engine/index.html).
 
 ## 🤝 Contributing
 
-For questions and general discussions, please use [Discord](https://discord.gg/f6aerfE) or [discuss topics on GitHub Discussions](https://github.com/stride3d/stride/discussions).
+For questions and general discussions, please join our [Discord server](https://discord.gg/f6aerfE) or participate in [GitHub Discussions](https://github.com/stride3d/stride/discussions).
 
-To report bugs or propose features, use [Issues](https://github.com/stride3d/stride/issues).
+To report bugs or propose features, please use the [Issues](https://github.com/stride3d/stride/issues) section on GitHub.
 
 We welcome code contributions via pull requests. Issues tagged with **[`good first issue`](https://github.com/stride3d/stride/labels/good%20first%20issue)** are great starting points for code contributions.
 
-You can help us translate Stride, check [Localization](https://doc.stride3d.net/latest/en/contributors/engine/localization.html).
+You can help us translate Stride, check out our [Localization Guide](https://doc.stride3d.net/latest/en/contributors/engine/localization.html).
 
 ### Earn money by contributing
 
-If you are a developer with solid experience in C#, rendering techniques, or game development, we want to hire you! We have allocated funds 💰 from supporters on [OpenCollective](https://opencollective.com/stride3d) and can pay for work on certain projects. [More info about this here](https://doc.stride3d.net/latest/en/contributors/engine/bug-bounties.html).
+If you are a developer with solid experience in C#, rendering techniques, or game development, we want to hire you! We have allocated funds 💰 from supporters on [Open Collective](https://opencollective.com/stride3d) and can pay for work on certain projects. [More information is available here](https://doc.stride3d.net/latest/en/contributors/engine/bug-bounties.html).
 
 ## 🗺️ Roadmap
 
@@ -64,9 +61,23 @@ Our [Roadmap](https://doc.stride3d.net/latest/en/contributors/roadmap.html) comm
 
 ### Prerequisites
 
-1. Latest [Git](https://git-scm.com/downloads) **with Large File Support** selected in the setup on the components dialog and for convenience a git UI client like [GitExtensions](https://gitextensions.github.io/).
+1. **Latest [Git](https://git-scm.com/downloads)** with **Large File Support** selected during setup. For convenience, you might also use a Git UI client like [GitExtensions](https://gitextensions.github.io/).
+2. **[.NET 8.0 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/8.0)**
+   - Run `dotnet --info` in a console or PowerShell window to see which versions you have installed.
+3. **[Visual Studio 2022](https://visualstudio.microsoft.com/downloads/)** with the following workloads:
+   - **.NET desktop development** with **.NET Framework 4.7.2 targeting pack** (should be enabled by default)
+   - **Desktop development with C++** with:
+     - **Windows 10 SDK (10.0.18362.0)** or later version (should be enabled by default)
+     - **MSVC v143 - VS2022 C++ x64/x86 build tools (Latest)** (should be enabled by default)
+     - **C++/CLI support for v143 build tools (Latest)** *(not enabled by default)*
+   - *Optional* (to target iOS/Android): **.NET Multi-platform App UI development** and **Android SDK setup** individual component (enabled by default). Then, in Visual Studio, go to `Tools > Android > Android SDK Manager` and install **NDK** (version 20.1+) from the `Tools` tab.
+   - *Optional* (to build VSIX package): **Visual Studio extension development**
+
+### Prerequisites
+
+1. Latest [Git](https://git-scm.com/downloads) with **Large File Support** selected in the setup on the components dialog and for convenience a Git UI client like [GitExtensions](https://gitextensions.github.io/).
 2. [.NET 8.0 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/8.0)
-   - Run `dotnet --info` in a console or powershell window to see which versions you have installed  
+   - Run `dotnet --info` in a console or PowerShell window to see which versions you have installed.  
 3. [Visual Studio 2022](https://www.visualstudio.com/downloads/) with the following workloads:
    - `.NET desktop development` with `.NET Framework 4.7.2 targeting pack` (should be enabled by default)
    - `Desktop development with C++` with
@@ -78,30 +89,37 @@ Our [Roadmap](https://doc.stride3d.net/latest/en/contributors/roadmap.html) comm
 
 ### Build Stride
 
-1. Clone the repo with a git UI or open a command prompt, point it to a directory and clone Stride to it: `git lfs clone https://github.com/stride3d/stride.git`
-   - **Do NOT use GitHub -> Code -> Download ZIP**, this won't include the ```lfs``` files.
-2. Open `<StrideDir>\build\Stride.sln` with Visual Studio 2022 and build `Stride.GameStudio` in the 60-Editor solution folder (it should be the default startup project) or run it from VS's toolbar.
+1. **Clone the repository** using a Git UI client or from the command line:
+   ```bash
+   git lfs clone https://github.com/stride3d/stride.git
+   ```
+   - **Do NOT use GitHub -> Code -> Download ZIP option**, as this won't include the LFS files.
+2. **Open the solution:**
+   - Open `<StrideDir>\build\Stride.sln` with Visual Studio 2022 
+   - Build `Stride.GameStudio` in the `60-Editor` solution folder (it should be the default startup project) or run it directly from Visual Studio's toolbar.
    - Optionally, open and build `Stride.Android.sln`, `Stride.iOS.sln`, etc.
 
 ### Build Stride without Visual Studio
 
-1. Install [Visual Studio Build Tools](https://aka.ms/vs/17/release/vs_BuildTools.exe) with the same prerequisites listed above
-2. Add MSBuild's directory to your system's *PATH* (ex: `C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\MSBuild\Current\Bin`)
-3. Clone the repo with a git UI or open a command prompt, point it to a directory and clone Stride to it: `git lfs clone https://github.com/stride3d/stride.git`
+1. **Install** [Visual Studio Build Tools](https://aka.ms/vs/17/release/vs_BuildTools.exe) with the same prerequisites listed above
+2.** Add MSBuild to your system's PATH:**
+  - Add MSBuild directory to your system's *PATH* (ex: `C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\MSBuild\Current\Bin`)
+3. Clone the repository:
+   - with a git UI or open a command prompt, point it to a directory and clone Stride to it: `git lfs clone https://github.com/stride3d/stride.git`
 4. Navigate to `/Build` with the command prompt, input `msbuild /t:Restore Stride.sln` then `compile.bat`
 
 If building failed:
-* Some errors for test projects are normal, GameStudio will start anyway.
-* The Visual Studio extension might fail to build if you are missing the [Visual Studio SDK](https://learn.microsoft.com/en-us/visualstudio/extensibility/installing-the-visual-studio-sdk?view=vs-2022), but GameStudio will start anyway.
-* If you skipped one of the `Prerequisites` thinking that you already have the latest version, update to the latest anyway just to be sure.
-* Visual Studio might have issues properly building if an anterior version is present alongside 2022. If you want to keep those version make sure that they are up to date and that you are building Stride through VS 2022.
+* Some errors for test projects are normal, Game Studio will start anyway.
+* The Visual Studio extension might fail to build if you are missing the [Visual Studio SDK](https://learn.microsoft.com/en-us/visualstudio/extensibility/installing-the-visual-studio-sdk?view=vs-2022), but Game Studio will start anyway.
+* If you skipped one of the **Prerequisites** thinking you already have the latest version, please update to the latest to be sure.
+* Visual Studio might have issues building properly if an older version is present alongside 2022. If you want to keep those versions, ensure they are up to date and that you are building Stride using Visual Studio 2022.
 * Your system's *PATH* should not contain older versions of MSBuild (ex: `...\Microsoft Visual Studio\2019\BuildTools\MSBuild\Current\Bin` should be removed)
 * Some changes might require a system reboot, try that if you haven't yet.
 * Make sure that Git, Git LFS and Visual Studio can access the internet.
 * Close VS, clear the nuget cache (in your cmd `dotnet nuget locals all --clear`), delete the hidden `.vs` folder inside `\build` and the files inside `bin\packages`, kill any msbuild and other vs processes, build the whole solution then build and run GameStudio.
 
 > [!WARNING]
-> Do note that test solutions might fail but it should not prevent you from building `Stride.GameStudio`.
+> Note: Test solutions might fail, but this should not prevent you from building `Stride.GameStudio`.
 
 ### Contribution Guidelines
 
@@ -157,7 +175,7 @@ Stride is covered by the [MIT License](LICENSE.md) unless stated otherwise (i.e.
 
 ## ✨ Contributors 
 
-Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/docs/en/emoji-key)):
+Thanks to all these wonderful people who have contributed to Stride!
 
 <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
 <!-- prettier-ignore-start -->
