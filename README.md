@@ -38,6 +38,11 @@ To learn more about Stride, visit [stride3d.net](https://stride3d.net/).
 
 ## 🚀 Getting Started
 
+If you want to **create games using Stride**, please visit our [Getting Started Guide](https://doc.stride3d.net/latest/en/manual/get-started/index.html). This guide provides detailed instructions on how to download, install, and begin using Stride to develop your games.
+
+If you are interested in **building the Stride engine from source** or **contributing to its development**, please continue reading this README for instructions on how to build from source and contribute to the project.
+
+
 
 ## 🤝 Contributing
 
@@ -119,7 +124,7 @@ If building failed:
 * Close VS, clear the nuget cache (in your cmd `dotnet nuget locals all --clear`), delete the hidden `.vs` folder inside `\build` and the files inside `bin\packages`, kill any msbuild and other vs processes, build the whole solution then build and run GameStudio.
 
 > [!WARNING]
-> Note: Test solutions might fail, but this should not prevent you from building `Stride.GameStudio`.
+> **Note:** Test solutions might fail, but this should not prevent you from building `Stride.GameStudio`.
 
 ### Contribution Guidelines
 
