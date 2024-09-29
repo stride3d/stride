@@ -33,7 +33,7 @@ namespace Stride.Rendering.UI
 
         private readonly List<UIElementState> uiElementStates = new List<UIElementState>();
 
-        public override Type SupportedRenderObjectType => typeof(RenderUIPage);
+        public override Type SupportedRenderObjectType => typeof(RenderUIDocument);
         
 
         public UIRenderFeature()
@@ -90,7 +90,7 @@ namespace Stride.Rendering.UI
             {
                 var renderNodeReference = renderViewStage.SortedRenderNodes[index].RenderNode;
                 var renderNode = GetRenderNode(renderNodeReference);
-                var renderElement = (RenderUIPage)renderNode.RenderObject;
+                var renderElement = (RenderUIDocument)renderNode.RenderObject;
 
                 uiElementStates.Add(new UIElementState(renderElement));
             }
@@ -318,16 +318,16 @@ namespace Stride.Rendering.UI
 
         private class UIElementState
         {
-            public readonly RenderUIPage RenderObject;
+            public readonly RenderUIDocument RenderObject;
             public Matrix WorldViewProjectionMatrix;
 
-            public UIElementState(RenderUIPage renderObject)
+            public UIElementState(RenderUIDocument renderObject)
             {
                 RenderObject = renderObject;
                 WorldViewProjectionMatrix = Matrix.Identity;
             }
 
-            public void Update(RenderUIPage renderObject, CameraComponent camera)
+            public void Update(RenderUIDocument renderObject, CameraComponent camera)
             {
                 var frustumHeight = 2 * MathF.Tan(MathUtil.DegreesToRadians(camera.VerticalFieldOfView) / 2);
 
@@ -391,7 +391,7 @@ namespace Stride.Rendering.UI
                 Matrix.Multiply(ref worldViewMatrix, ref camera.ProjectionMatrix, out WorldViewProjectionMatrix);
             }
 
-            public void Update(RenderUIPage renderObject, Vector3 virtualResolution)
+            public void Update(RenderUIDocument renderObject, Vector3 virtualResolution)
             {
                 var nearPlane = virtualResolution.Z / 2;
                 var farPlane = nearPlane + virtualResolution.Z;

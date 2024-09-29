@@ -9,9 +9,9 @@ namespace Stride.Rendering.UI
     /// <summary>
     /// The processor in charge of updating and drawing the entities having UI components.
     /// </summary>
-    public class UIRenderProcessor : EntityProcessor<UIComponent, RenderUIPage>, IEntityComponentRenderProcessor
+    public class UIRenderProcessor : EntityProcessor<UIComponent, RenderUIDocument>, IEntityComponentRenderProcessor
     {
-        public List<RenderUIPage> UIRoots { get; private set; }
+        public List<RenderUIDocument> UIRoots { get; private set; }
 
         public VisibilityGroup VisibilityGroup { get; set; }
 
@@ -21,7 +21,7 @@ namespace Stride.Rendering.UI
         public UIRenderProcessor()
             : base(typeof(TransformComponent))
         {
-            UIRoots = new List<RenderUIPage>();
+            UIRoots = new List<RenderUIDocument>();
         }
         
         public override void Draw(RenderContext gameTime)
@@ -58,22 +58,22 @@ namespace Stride.Rendering.UI
             }
         }
 
-        protected override void OnEntityComponentAdding(Entity entity, UIComponent uiComponent, RenderUIPage renderUIPage)
+        protected override void OnEntityComponentAdding(Entity entity, UIComponent uiComponent, RenderUIDocument renderUIDocument)
         {
-            VisibilityGroup.RenderObjects.Add(renderUIPage);
+            VisibilityGroup.RenderObjects.Add(renderUIDocument);
         }
 
-        protected override void OnEntityComponentRemoved(Entity entity, UIComponent uiComponent, RenderUIPage renderUIPage)
+        protected override void OnEntityComponentRemoved(Entity entity, UIComponent uiComponent, RenderUIDocument renderUIDocument)
         {
-            VisibilityGroup.RenderObjects.Remove(renderUIPage);
+            VisibilityGroup.RenderObjects.Remove(renderUIDocument);
         }
 
-        protected override RenderUIPage GenerateComponentData(Entity entity, UIComponent component)
+        protected override RenderUIDocument GenerateComponentData(Entity entity, UIComponent component)
         {
-            return new RenderUIPage { Source = component };
+            return new RenderUIDocument { Source = component };
         }
 
-        protected override bool IsAssociatedDataValid(Entity entity, UIComponent component, RenderUIPage associatedData)
+        protected override bool IsAssociatedDataValid(Entity entity, UIComponent component, RenderUIDocument associatedData)
         {
             return associatedData.Source == component;
         }

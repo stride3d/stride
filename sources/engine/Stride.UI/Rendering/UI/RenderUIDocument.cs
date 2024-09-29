@@ -21,7 +21,7 @@ namespace Stride.Rendering.UI
         AnisotropicClamp,
     }
 
-    public class RenderUIPage : RenderObject
+    public class RenderUIDocument : RenderObject
     {
         public Matrix WorldMatrix;
 
