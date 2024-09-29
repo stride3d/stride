@@ -328,7 +328,7 @@ namespace Stride.Core.VisualStudio
 
             var projectTypeGuid = new Guid(match.Groups["PROJECTTYPEGUID"].Value.Trim());
             var projectName = match.Groups["PROJECTNAME"].Value.Trim();
-            var relativePath = match.Groups["RELATIVEPATH"].Value.Trim();
+            var relativePath = match.Groups["RELATIVEPATH"].Value.Trim().Replace('\\',  Path.DirectorySeparatorChar);
             var projectGuid = new Guid(match.Groups["PROJECTGUID"].Value.Trim());
 
             var projectSections = new List<Section>();
