@@ -22,7 +22,7 @@ To learn more about Stride, visit [stride3d.net](https://stride3d.net/).
 ## Table of Contents
 
 * 🚀 [Getting Started](#-getting-started)
-* 🤝 [Contributing](#earn-money-by-contributing)
+* 🤝 [Contributing](#-contributing)
   - [Earn money by contributing](#earn-money-by-contributing)
 * 🗺️ [Roadmap](#%EF%B8%8F-roadmap)
 * 🛠️ [Building from source](#%EF%B8%8F-building-from-source)
@@ -38,7 +38,7 @@ To learn more about Stride, visit [stride3d.net](https://stride3d.net/).
 
 ## 🚀 Getting Started
 
-If you want to **create games using Stride**, please visit our [Getting Started Guide](https://doc.stride3d.net/latest/en/manual/get-started/index.html). This guide provides detailed instructions on how to download, install, and begin using Stride to develop your games.
+If you want to **create games using Stride**, please visit our [Get started with Stride](https://doc.stride3d.net/latest/en/manual/get-started/index.html). This guide provides detailed instructions on how to download, install, and begin using Stride to develop your games.
 
 If you are interested in **building the Stride engine from source** or **contributing to its development**, please continue reading this README for instructions on how to build from source and contribute to the project.
 
@@ -121,7 +121,7 @@ Our [Roadmap](https://doc.stride3d.net/latest/en/contributors/roadmap.html) comm
 * The Visual Studio extension might fail to build if you are missing the [Visual Studio SDK](https://learn.microsoft.com/en-us/visualstudio/extensibility/installing-the-visual-studio-sdk?view=vs-2022), but Game Studio will start anyway.
 * If you skipped any of the **Prerequisites** thinking you already have the latest version, please update to the latest to be sure.
 * Visual Studio might have issues building properly if an older version is present alongside 2022. If you want to keep those versions, ensure they are up to date and that you are building Stride using Visual Studio 2022.
-* *Your system's `PATH` should not contain older versions of MSBuild (e.g., `...\Microsoft Visual Studio\2019\BuildTools\MSBuild\Current\Bin` should be removed).
+* Your system's `PATH` should not contain older versions of MSBuild (e.g., `...\Microsoft Visual Studio\2019\BuildTools\MSBuild\Current\Bin` should be removed).
 * Some changes might require a system reboot, try that if you haven't yet.
 * Ensure that Git, Git LFS, and Visual Studio can access the internet.
 * Close Visual Studio, clear the NuGet cache (`dotnet nuget locals all --clear`), delete the hidden `.vs` folder inside `\build` and the files inside `bin\packages`, kill any `msbuild` and other Visual Studio processes, then build the whole solution and run GameStudio.
