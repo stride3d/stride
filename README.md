@@ -65,7 +65,7 @@ Our [Roadmap](https://doc.stride3d.net/latest/en/contributors/roadmap.html) comm
 1. **Latest [Git](https://git-scm.com/downloads)** with **Large File Support** selected during setup. For convenience, you might also use a Git UI client like [GitExtensions](https://gitextensions.github.io/).
 2. **[.NET 8.0 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/8.0)**
    - Run `dotnet --info` in a console or PowerShell window to see which versions you have installed.
-3. **[Visual Studio 2022](https://visualstudio.microsoft.com/downloads/)** with the following workloads:
+3. **[Visual Studio 2022](https://visualstudio.microsoft.com/downloads/)** (The Community edition is free) with the following workloads:
    - **.NET desktop development** with **.NET Framework 4.7.2 targeting pack** (should be enabled by default)
    - **Desktop development with C++** with:
      - **Windows 10 SDK (10.0.18362.0)** or later version (should be enabled by default)
@@ -73,6 +73,9 @@ Our [Roadmap](https://doc.stride3d.net/latest/en/contributors/roadmap.html) comm
      - **C++/CLI support for v143 build tools (Latest)** *(not enabled by default)*
    - *Optional* (to target iOS/Android): **.NET Multi-platform App UI development** and **Android SDK setup** individual component (enabled by default). Then, in Visual Studio, go to `Tools > Android > Android SDK Manager` and install **NDK** (version 20.1+) from the `Tools` tab.
    - *Optional* (to build VSIX package): **Visual Studio extension development**
+
+> [!NOTE]
+> The installation of Visual Studio with the required components may require up to **14 GB of disk space**, depending on your system and selected components.
 
 ### Build Stride
 
@@ -173,7 +176,7 @@ The Stride documentation is organized across different locations. Here's how it'
 
 This project is supported by the [.NET Foundation](http://www.dotnetfoundation.org).
 
-## 🛡️License
+## 🛡️ License
 
 Stride is covered by the [MIT License](LICENSE.md) unless stated otherwise (i.e. for some files that are copied from other projects). You can find the list of third-party projects [here](THIRD%20PARTY.md). Contributors need to sign the following [Contribution License Agreement](https://github.com/dotnet-foundation/.github/blob/main/CLA/dotnetfoundation.yml).
 
