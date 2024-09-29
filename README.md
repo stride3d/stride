@@ -27,6 +27,7 @@ Stride is an open-source C# game engine designed for realistic rendering and VR.
   - [Prerequisites](#prerequisites)
   - [Build Stride](#build-stride)
   - [Build Stride without Visual Studio](#build-stride-without-visual-studio)
+  - [If Building Fails](#build-stride-without-visual-studio)
   - [Contribution Guidelines](#contribution-guidelines)
 * 🔬 [Build Status](#-build-status)
 * 📖 [Stride Documentation Landscape](#-stride-documentation-landscape)
@@ -114,7 +115,7 @@ Our [Roadmap](https://doc.stride3d.net/latest/en/contributors/roadmap.html) comm
 
    ```
 
-**If Building Fails**
+### If Building Fails
 
 * Some errors for test projects are normal, GameStudio will start anyway.
 * The Visual Studio extension might fail to build if you are missing the [Visual Studio SDK](https://learn.microsoft.com/en-us/visualstudio/extensibility/installing-the-visual-studio-sdk?view=vs-2022), but Game Studio will start anyway.
