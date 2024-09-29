@@ -134,7 +134,7 @@ Our [Roadmap](https://doc.stride3d.net/latest/en/contributors/roadmap.html) comm
 * Close Visual Studio, clear the NuGet cache (`dotnet nuget locals all --clear`), delete the hidden `.vs` folder inside `\build` and the files inside `bin\packages`, kill any `msbuild` and other Visual Studio processes, then build the whole solution and run GameStudio.
 
 > [!WARNING]
-> **Note:** Test solutions might fail, but this should not prevent you from building `Stride.GameStudio`.
+> Test solutions might fail, but this should not prevent you from building `Stride.GameStudio`.
 
 ### Contribution Guidelines
 
