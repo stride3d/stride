@@ -11,11 +11,9 @@
 [![Financial sponsors](https://img.shields.io/opencollective/all/stride3d?logo=opencollective)](https://opencollective.com/stride3d)
 [![License](https://img.shields.io/badge/license-MIT-blue)](https://github.com/stride3d/stride/blob/master/LICENSE.md)
 
-# Welcome to the Stride Source Code Repository
+# Welcome to the Stride Game Engine
 
-Stride is an open-source C# game engine designed for realistic rendering and VR. The engine is highly modular and aims to give game makers more flexibility in their development. Stride comes with an editor ([Game Studio](https://doc.stride3d.net/latest/en/manual/game-studio/index.html)) that allows you to create and manage the content of your games or applications visually and intuitively.
-
-To learn more about Stride, visit [stride3d.net](https://stride3d.net/).
+Stride is an open-source C# game engine designed for realistic rendering and VR. Highly modular, it aims to give game makers more flexibility in their development. Stride comes with an editor, [Game Studio](https://doc.stride3d.net/latest/en/manual/game-studio/index.html), which allows you to create and manage the content of your games or applications visually and intuitively. To learn more about Stride, visit [stride3d.net](https://stride3d.net/).
 
 ![Stride Editor](https://stride3d.net/images/external/script-editor.png)
 
@@ -23,9 +21,9 @@ To learn more about Stride, visit [stride3d.net](https://stride3d.net/).
 
 * 🚀 [Getting Started](#-getting-started)
 * 🤝 [Contributing](#-contributing)
-  - [Earn money by contributing](#earn-money-by-contributing)
+  - [Earn Money by Contributing](#earn-money-by-contributing)
 * 🗺️ [Roadmap](#%EF%B8%8F-roadmap)
-* 🛠️ [Building from source](#%EF%B8%8F-building-from-source)
+* 🛠️ [Building from Source](#%EF%B8%8F-building-from-source)
   - [Prerequisites](#prerequisites)
   - [Build Stride](#build-stride)
   - [Build Stride without Visual Studio](#build-stride-without-visual-studio)
@@ -38,11 +36,9 @@ To learn more about Stride, visit [stride3d.net](https://stride3d.net/).
 
 ## 🚀 Getting Started
 
-If you want to **create games using Stride**, please visit our [Get started with Stride](https://doc.stride3d.net/latest/en/manual/get-started/index.html). This guide provides detailed instructions on how to download, install, and begin using Stride to develop your games.
+If you want to **create games using Stride**, please visit our [Get started with Stride](https://doc.stride3d.net/latest/en/manual/get-started/index.html) guide. This guide provides detailed instructions on how to download, install, and begin using Stride to develop your games.
 
 If you are interested in **building the Stride engine from source** or **contributing to its development**, please continue reading this README for instructions on how to build from source and contribute to the project.
-
-
 
 ## 🤝 Contributing
 
@@ -52,9 +48,9 @@ To report bugs or propose features, please use the [Issues](https://github.com/s
 
 We welcome code contributions via pull requests. Issues tagged with **[`good first issue`](https://github.com/stride3d/stride/labels/good%20first%20issue)** are great starting points for code contributions.
 
-You can help us translate Stride, check out our [Localization Guide](https://doc.stride3d.net/latest/en/contributors/engine/localization.html).
+You can help us translate Stride; check out our [Localization Guide](https://doc.stride3d.net/latest/en/contributors/engine/localization.html).
 
-### Earn money by contributing
+### Earn Money by Contributing
 
 If you are a developer with solid experience in C#, rendering techniques, or game development, we want to hire you! We have allocated funds 💰 from supporters on [Open Collective](https://opencollective.com/stride3d) and can pay for work on certain projects. [More information is available here](https://doc.stride3d.net/latest/en/contributors/engine/bug-bounties.html).
 
@@ -104,12 +100,12 @@ Our [Roadmap](https://doc.stride3d.net/latest/en/contributors/roadmap.html) comm
    ```
 4. **Build using the command line:**
    - Navigate to the `/build` directory in the command prompt.
-   - Run `msbuild`
+   - Run:
    ```bash
    msbuild /t:Restore Stride.sln
 
    ```
-   - Then run
+   - Then run:
    ```bash
    compile.bat
 
