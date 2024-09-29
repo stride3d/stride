@@ -84,13 +84,12 @@ Our [Roadmap](https://doc.stride3d.net/latest/en/contributors/roadmap.html) comm
    ```bash
    git lfs clone https://github.com/stride3d/stride.git
    ```
+   > [!WARNING]
+   > **Do NOT use GitHub -> Code -> Download ZIP** option, as this won't include the LFS files.
 2. **Open the solution:**
    - Open `<StrideDir>\build\Stride.sln` with Visual Studio 2022 
    - Build `Stride.GameStudio` in the `60-Editor` solution folder (it should be the default startup project) or run it directly from Visual Studio's toolbar.
    - Optionally, open and build `Stride.Android.sln`, `Stride.iOS.sln`, etc.
-
-> [!WARNING]
-> **Do NOT use GitHub -> Code -> Download ZIP option**, as this won't include the LFS files.
 
 ### Build Stride without Visual Studio
 
