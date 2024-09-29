@@ -84,31 +84,47 @@ Our [Roadmap](https://doc.stride3d.net/latest/en/contributors/roadmap.html) comm
    ```bash
    git lfs clone https://github.com/stride3d/stride.git
    ```
-   > [!WARNING]
-   > **Do NOT use GitHub -> Code -> Download ZIP** option, as this won't include the LFS files.
 2. **Open the solution:**
-   - Open `<StrideDir>\build\Stride.sln` with Visual Studio 2022 
-   - Build `Stride.GameStudio` in the `60-Editor` solution folder (it should be the default startup project) or run it directly from Visual Studio's toolbar.
-   - Optionally, open and build `Stride.Android.sln`, `Stride.iOS.sln`, etc.
+   - Open `<StrideDir>\build\Stride.sln` with Visual Studio 2022. 
+   - Build the `Stride.GameStudio` project in the `60-Editor` solution folder (it should be the default startup project) or run it directly from Visual Studio's toolbar.
+   - _Optionally_, open and build `Stride.Android.sln`, `Stride.iOS.sln`, etc.
+
+> [!WARNING]
+> **Do NOT use GitHub -> Code -> Download ZIP** option, as this won't include the LFS files.
 
 ### Build Stride without Visual Studio
 
-1. **Install** [Visual Studio Build Tools](https://aka.ms/vs/17/release/vs_BuildTools.exe) with the same prerequisites listed above
-2.** Add MSBuild to your system's PATH:**
-  - Add MSBuild directory to your system's *PATH* (ex: `C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\MSBuild\Current\Bin`)
-3. Clone the repository:
-   - with a git UI or open a command prompt, point it to a directory and clone Stride to it: `git lfs clone https://github.com/stride3d/stride.git`
-4. Navigate to `/Build` with the command prompt, input `msbuild /t:Restore Stride.sln` then `compile.bat`
+1. **Install** [Visual Studio Build Tools](https://aka.ms/vs/17/release/vs_BuildTools.exe) with the same prerequisites listed above.
+2. **Add MSBuild to your system's PATH:**
+   - Add MSBuild's directory to your `PATH` environment variable (e.g., `C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\MSBuild\Current\Bin`).
+3. **Clone the repository:**
+   ```bash
+   git lfs clone https://github.com/stride3d/stride.git
 
-If building failed:
-* Some errors for test projects are normal, Game Studio will start anyway.
+   ```
+4. **Build using the command line:**
+   - Navigate to the `/build` directory in the command prompt.
+   - Run `msbuild`
+   ```bash
+   msbuild /t:Restore Stride.sln
+
+   ```
+   - Then run
+   ```bash
+   compile.bat
+
+   ```
+
+**If Building Fails**
+
+* Some errors for test projects are normal, GameStudio will start anyway.
 * The Visual Studio extension might fail to build if you are missing the [Visual Studio SDK](https://learn.microsoft.com/en-us/visualstudio/extensibility/installing-the-visual-studio-sdk?view=vs-2022), but Game Studio will start anyway.
-* If you skipped one of the **Prerequisites** thinking you already have the latest version, please update to the latest to be sure.
+* If you skipped any of the **Prerequisites** thinking you already have the latest version, please update to the latest to be sure.
 * Visual Studio might have issues building properly if an older version is present alongside 2022. If you want to keep those versions, ensure they are up to date and that you are building Stride using Visual Studio 2022.
-* Your system's *PATH* should not contain older versions of MSBuild (ex: `...\Microsoft Visual Studio\2019\BuildTools\MSBuild\Current\Bin` should be removed)
+* *Your system's `PATH` should not contain older versions of MSBuild (e.g., `...\Microsoft Visual Studio\2019\BuildTools\MSBuild\Current\Bin` should be removed).
 * Some changes might require a system reboot, try that if you haven't yet.
-* Make sure that Git, Git LFS and Visual Studio can access the internet.
-* Close VS, clear the nuget cache (in your cmd `dotnet nuget locals all --clear`), delete the hidden `.vs` folder inside `\build` and the files inside `bin\packages`, kill any msbuild and other vs processes, build the whole solution then build and run GameStudio.
+* Ensure that Git, Git LFS, and Visual Studio can access the internet.
+* Close Visual Studio, clear the NuGet cache (`dotnet nuget locals all --clear`), delete the hidden `.vs` folder inside `\build` and the files inside `bin\packages`, kill any `msbuild` and other Visual Studio processes, then build the whole solution and run GameStudio.
 
 > [!WARNING]
 > **Note:** Test solutions might fail, but this should not prevent you from building `Stride.GameStudio`.
