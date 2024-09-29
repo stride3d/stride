@@ -117,24 +117,12 @@ namespace Stride.Core.Assets.Editor.Components.Properties
 
             Selection = selectedObjects.ToList();
 
-            CanDisplayProperties = false;
-
-            ViewModel?.Destroy();
-
-            // We set to null now, in case this async method is invoked again while not being finished (otherwise it would dispose twice!)
-            ViewModel = null;
-
             // No selection, just clean up
-            if (Selection.Count == 0)
+            string message = EmptySelectionFallbackMessage;
+            if (Selection.Count == 0 || !CanDisplaySelectedObjects(Selection, out message))
             {
-                ViewModel = null;
-                FallbackMessage = EmptySelectionFallbackMessage;
-                return null;
-            }
-
-            string message;
-            if (!CanDisplaySelectedObjects(Selection, out message))
-            {
+                CanDisplayProperties = false;
+                ViewModel?.Destroy();
                 ViewModel = null;
                 FallbackMessage = message;
                 return null;
@@ -147,13 +135,17 @@ namespace Stride.Core.Assets.Editor.Components.Properties
                 if (localToken != currentToken)
                     return null;
 
+                ViewModel?.Destroy();
                 ViewModel = newViewModel;
                 CanDisplayProperties = true;
+                FallbackMessage = "";
             }
             catch (Exception exception)
             {
+                CanDisplayProperties = false;
                 FeedbackException(Selection, exception, out message);
                 FallbackMessage = message;
+                ViewModel?.Destroy();
                 ViewModel = null;
             }
             return ViewModel;

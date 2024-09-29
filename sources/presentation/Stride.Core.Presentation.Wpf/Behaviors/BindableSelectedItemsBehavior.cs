@@ -123,6 +123,12 @@ namespace Stride.Core.Presentation.Behaviors
             if (SelectedItems != null)
             {
                 updatingCollection = true;
+
+                if (addedItems != null)
+                {
+                    SelectedItems.AddRange(addedItems.Cast<object>().Where(x => !SelectedItems.Contains(x)));
+                }
+
                 if (removedItems != null)
                 {
                     // Optimize removal if most of the selected items are removed
@@ -139,11 +145,6 @@ namespace Stride.Core.Presentation.Behaviors
                             SelectedItems.Remove(removedItem);
                         }
                     }
-                }
-
-                if (addedItems != null)
-                {
-                    SelectedItems.AddRange(addedItems.Cast<object>().Where(x => !SelectedItems.Contains(x)));
                 }
                 updatingCollection = false;
             }

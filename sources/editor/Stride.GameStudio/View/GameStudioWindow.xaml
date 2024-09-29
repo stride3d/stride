@@ -757,8 +757,6 @@
                       </DockPanel>
                     </DockPanel>
 
-                    <TextBlock Grid.Row="4" Text="{Binding Session.ActiveProperties.FallbackMessage}" HorizontalAlignment="Center" VerticalAlignment="Center"
-                           Visibility="{Binding Session.ActiveProperties.CanDisplayProperties, Converter={sd:Chained {sd:InvertBool}, {sd:VisibleOrCollapsed}}}"/>
                     <sd:PropertyView x:Name="AssetPropertyView" Grid.Row="4"
                                        ItemsSource="{Binding Session.ActiveProperties.ViewModel.RootNode.Children}"
                                        Visibility="{Binding Session.ActiveProperties.CanDisplayProperties, Converter={sd:VisibleOrCollapsed}}">
@@ -874,6 +872,8 @@
                         <sd:PropertyViewAutoExpandNodesBehavior ViewModel="{Binding Session.ActiveProperties.ViewModel, Mode=OneWay}"/>
                       </i:Interaction.Behaviors>
                     </sd:PropertyView>
+
+                    <TextBlock Grid.Row="4" Text="{Binding Session.ActiveProperties.FallbackMessage}" HorizontalAlignment="Center" VerticalAlignment="Center" Background="#99000000"/>
 
                     <GridSplitter Grid.Row="5" HorizontalAlignment="Stretch" Height="5" ResizeBehavior="PreviousAndNext"/>
 
