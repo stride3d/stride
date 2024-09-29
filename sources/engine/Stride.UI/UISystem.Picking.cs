@@ -35,6 +35,8 @@ namespace Stride.UI
                 return;
 
             Texture renderTarget = renderContext.GraphicsDevice.Presenter.BackBuffer;
+            // TODO: Not sure if this would support VR. If it doesn't, look at ForwardRenderer.DrawCore for how to (potentially). 
+            Viewport viewport = renderContext.ViewportState.Viewport0;
             UIElement elementUnderPointer = null;
             
             // Prepare content required for Picking and MouseOver events
@@ -42,11 +44,11 @@ namespace Stride.UI
             
             foreach (var cameraSlot in sceneSystem.GraphicsCompositor.Cameras)
             {
-                // TODO: Not sure if this would support VR. If it doesn't, look at ForwardRenderer.DrawCore for how to (potentially). 
-                var viewport = renderContext.ViewportState.Viewport0;
-            
                 foreach (var uiDocument in documents)
                 {
+                    if (!uiDocument.Enabled)
+                        continue;
+                    
                     Matrix worldViewProjection = uiDocument.GetWorldViewProjection(cameraSlot.Camera, renderTarget);
                     
                     // Check if the current UI component is being picked based on the current ViewParameters (used to draw this element)
@@ -54,7 +56,7 @@ namespace Stride.UI
                     {
                         UIElement renderPageElementUnderPointer = null;
                         UpdateRenderPagePointerInput(uiDocument, viewport, ref worldViewProjection, gameTime, ref renderPageElementUnderPointer);
-                    
+                        
                         // only update result element, when this one has a value
                         if (renderPageElementUnderPointer != null)
                             elementUnderPointer = renderPageElementUnderPointer;
@@ -63,7 +65,7 @@ namespace Stride.UI
             }
             
             PickingClear();
-
+            
             UIElementUnderMouseCursor = elementUnderPointer;
         }
 
@@ -133,7 +135,7 @@ namespace Stride.UI
         /// <param name="worldViewProj"></param>
         /// <param name="screenPosition">The position of the lick on the screen in normalized (0..1, 0..1) range</param>
         /// <param name="uiRay"><see cref="Ray"/> from the click in object space of the ui component in (-Resolution.X/2 .. Resolution.X/2, -Resolution.Y/2 .. Resolution.Y/2) range</param>
-        /// <returns></returns>
+        /// <returns><c>true</c> when the screen point of the ray would be within the bounds of the UI document; otherwise, <c>false</c>.</returns>
         private bool TryGetRenderPageRay(Vector3 resolution, ref Viewport viewport, ref Matrix worldViewProj, Vector2 screenPosition, out Ray uiRay)
         {
             uiRay = new Ray(new Vector3(float.NegativeInfinity), new Vector3(0, 1, 0));
@@ -291,11 +293,13 @@ namespace Stride.UI
             if (mousePosition != uiDocument.LastMousePosition || (lastPointerOverElement?.RequiresMouseOverUpdate ?? false))
             {
                 Ray uiRay;
-                if (!TryGetRenderPageRay(uiDocument.Resolution, ref viewport, ref worldViewProj, mousePosition, out uiRay))
-                    return null;
 
-                mouseOverElement = GetElementAtScreenPosition(rootElement, ref uiRay, ref worldViewProj, ref intersectionPoint);
+                if (TryGetRenderPageRay(uiDocument.Resolution, ref viewport, ref worldViewProj, mousePosition, out uiRay))
+                    mouseOverElement = GetElementAtScreenPosition(rootElement, ref uiRay, ref worldViewProj, ref intersectionPoint);
+                else
+                    mouseOverElement = null;
             }
+            
             
             // find the common parent between current and last overred elements
             var commonElement = FindCommonParent(mouseOverElement, lastPointerOverElement);
