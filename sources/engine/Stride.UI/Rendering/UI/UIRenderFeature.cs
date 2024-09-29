@@ -49,6 +49,7 @@ namespace Stride.Rendering.UI
             game = RenderSystem.Services.GetService<IGame>();
             uiSystem = RenderSystem.Services.GetService<UISystem>();
 
+            // TODO: Change Batch to be local to the UIRenderFeature and remove dep on UISystem. Requires refactoring ElementRenderer.
             if (uiSystem == null)
             {
                 var gameSystems = RenderSystem.Services.GetSafeServiceAs<IGameSystemCollection>();
@@ -60,7 +61,7 @@ namespace Stride.Rendering.UI
 
             rendererManager = new RendererManager(new DefaultRenderersFactory(RenderSystem.Services));
 
-            batch = uiSystem.Batch;
+            batch =  uiSystem.Batch;
         }
 
         public override void Draw(RenderDrawContext context, RenderView renderView, RenderViewStage renderViewStage, int startIndex, int endIndex)
@@ -147,12 +148,6 @@ namespace Stride.Rendering.UI
                         uiElementState.Update(renderObject, cameraComponent);
                 }
             }
-            
-            // Handle input.
-            //UIElementUnderMouseCursor = uiInput?.Pick(drawTime);
-            
-            uiSystem.RenderObjects.UnionWith(RenderObjects.OfType<RenderUIPage>());
-            
 
             // render the UI elements of all the entities
             foreach (var uiElementState in uiElementStates)

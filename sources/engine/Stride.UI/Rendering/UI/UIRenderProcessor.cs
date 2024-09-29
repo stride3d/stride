@@ -3,7 +3,6 @@
 
 using System.Collections.Generic;
 using Stride.Engine;
-using Stride.Rendering;
 
 namespace Stride.Rendering.UI
 {
