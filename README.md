@@ -27,7 +27,7 @@ Stride is an open-source C# game engine designed for realistic rendering and VR.
   - [Prerequisites](#prerequisites)
   - [Build Stride](#build-stride)
   - [Build Stride without Visual Studio](#build-stride-without-visual-studio)
-  - [If Building Fails](#build-stride-without-visual-studio)
+  - [If Building Fails](#if-building-fails)
   - [Contribution Guidelines](#contribution-guidelines)
 * 🔬 [Build Status](#-build-status)
 * 📖 [Stride Documentation Landscape](#-stride-documentation-landscape)
