@@ -33,7 +33,7 @@ namespace Stride.Rendering.UI
 
         private readonly List<UIElementState> uiElementStates = new List<UIElementState>();
 
-        public override Type SupportedRenderObjectType => typeof(RenderUIElement);
+        public override Type SupportedRenderObjectType => typeof(RenderUIPage);
         
 
         public UIRenderFeature()
@@ -89,7 +89,7 @@ namespace Stride.Rendering.UI
             {
                 var renderNodeReference = renderViewStage.SortedRenderNodes[index].RenderNode;
                 var renderNode = GetRenderNode(renderNodeReference);
-                var renderElement = (RenderUIElement)renderNode.RenderObject;
+                var renderElement = (RenderUIPage)renderNode.RenderObject;
 
                 uiElementStates.Add(new UIElementState(renderElement));
             }
@@ -151,8 +151,7 @@ namespace Stride.Rendering.UI
             // Handle input.
             //UIElementUnderMouseCursor = uiInput?.Pick(drawTime);
             
-            uiSystem.RenderObjects.Clear();
-            uiSystem.RenderObjects.UnionWith(RenderObjects.OfType<RenderUIElement>());
+            uiSystem.RenderObjects.UnionWith(RenderObjects.OfType<RenderUIPage>());
             
 
             // render the UI elements of all the entities
@@ -324,16 +323,16 @@ namespace Stride.Rendering.UI
 
         private class UIElementState
         {
-            public readonly RenderUIElement RenderObject;
+            public readonly RenderUIPage RenderObject;
             public Matrix WorldViewProjectionMatrix;
 
-            public UIElementState(RenderUIElement renderObject)
+            public UIElementState(RenderUIPage renderObject)
             {
                 RenderObject = renderObject;
                 WorldViewProjectionMatrix = Matrix.Identity;
             }
 
-            public void Update(RenderUIElement renderObject, CameraComponent camera)
+            public void Update(RenderUIPage renderObject, CameraComponent camera)
             {
                 var frustumHeight = 2 * MathF.Tan(MathUtil.DegreesToRadians(camera.VerticalFieldOfView) / 2);
 
@@ -397,7 +396,7 @@ namespace Stride.Rendering.UI
                 Matrix.Multiply(ref worldViewMatrix, ref camera.ProjectionMatrix, out WorldViewProjectionMatrix);
             }
 
-            public void Update(RenderUIElement renderObject, Vector3 virtualResolution)
+            public void Update(RenderUIPage renderObject, Vector3 virtualResolution)
             {
                 var nearPlane = virtualResolution.Z / 2;
                 var farPlane = nearPlane + virtualResolution.Z;

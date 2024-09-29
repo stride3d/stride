@@ -19,9 +19,9 @@ namespace Stride.Rendering.UI
         AnisotropicClamp,
     }
 
-    public class RenderUIElement : RenderObject
+    public class RenderUIPage : RenderObject
     {
-        public RenderUIElement()
+        public RenderUIPage()
         {
         }
 
@@ -46,7 +46,7 @@ namespace Stride.Rendering.UI
         /// <summary>
         /// Last element over which the mouse cursor was registered
         /// </summary>
-        public UIElement LastMouseOverElement;
+        public UIElement LastPointerOverElement;
 
         /// <summary>
         /// Last element which received a touch/click event

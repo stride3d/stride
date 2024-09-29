@@ -21,102 +21,101 @@ namespace Stride.UI
         // object to avoid allocation at each element leave event
         private readonly HashSet<UIElement> newlySelectedElementParents = new HashSet<UIElement>();
         private readonly List<PointerEvent> compactedPointerEvents = new List<PointerEvent>();
-        private readonly Dictionary<RenderUIElement, UIElementInputState> inputStates = new Dictionary<RenderUIElement, UIElementInputState>();
-        private readonly List<RenderUIElement> oldRenderObjects = new List<RenderUIElement>();
+        private readonly Dictionary<RenderUIPage, UIElementInputState> inputStates = new Dictionary<RenderUIPage, UIElementInputState>();
+        private readonly List<RenderUIPage> previousRenderObjects = new List<RenderUIPage>();
 
-        public HashSet<RenderUIElement> RenderObjects { get; } = new HashSet<RenderUIElement>();
+        public HashSet<RenderUIPage> RenderObjects { get; } = new HashSet<RenderUIPage>();
         
         /// <summary>
-        /// Represents the UI-element thats currently under the mouse cursor.
+        /// Represents the UI-element that's currently under the mouse cursor.
         /// Only elements with CanBeHitByUser == true are taken into account.
         /// Last processed element_state / ?UIComponent? with a valid element will be used.
         /// </summary>
         public UIElement UIElementUnderMouseCursor { get; internal set; }
 
-        private partial UIElement Pick(GameTime gameTime)
+        private partial void Pick(GameTime gameTime)
         {
             if (renderContext == null || sceneSystem == null || sceneSystem.GraphicsCompositor == null)
-                return null;
+                return;
 
             Texture renderTarget = renderContext.GraphicsDevice.Presenter.BackBuffer;
-            UIElement elementUnderMouseCursor = null;
+            UIElement elementUnderPointer = null;
+            
+            UpdateUIInputStates();
+            
+            // Prepare content required for Picking and MouseOver events
+            PickingPrepare();
             
             foreach (var cameraSlot in sceneSystem.GraphicsCompositor.Cameras)
             {
-                UpdateStates();
-            
-                // Prepare content required for Picking and MouseOver events
-                PickingPrepare();
-
                 // TODO: Not sure if this would support VR. If it doesn't, look at ForwardRenderer.DrawCore for how to (potentially). 
                 var viewport = renderContext.ViewportState.Viewport0;
             
-                foreach (var renderUIElement in RenderObjects)
+                foreach (var renderPage in RenderObjects)
                 {
-                    UIElement loopedElementUnderMouseCursor = null;
-
-                    Matrix worldViewProjection = GetWorldViewProjection(renderUIElement, cameraSlot.Camera, renderTarget);
+                    Matrix worldViewProjection = GetWorldViewProjection(renderPage, cameraSlot.Camera, renderTarget);
+                    
                     // Check if the current UI component is being picked based on the current ViewParameters (used to draw this element)
                     using (Profiler.Begin(UIProfilerKeys.TouchEventsUpdate))
                     {
-                        PickingUpdate(renderUIElement, viewport, ref worldViewProjection, gameTime, ref loopedElementUnderMouseCursor);
+                        UIElement renderPageElementUnderPointer = null;
+                        UpdateRenderPagePointerInput(renderPage, viewport, ref worldViewProjection, gameTime, ref renderPageElementUnderPointer);
                     
                         // only update result element, when this one has a value
-                        if (loopedElementUnderMouseCursor != null)
-                            elementUnderMouseCursor = loopedElementUnderMouseCursor;
+                        if (renderPageElementUnderPointer != null)
+                            elementUnderPointer = renderPageElementUnderPointer;
                     }
                 }
             }
             
             PickingClear();
 
-            return elementUnderMouseCursor;
+            UIElementUnderMouseCursor = elementUnderPointer;
         }
         
-        private void UpdateStates()
+        private void UpdateUIInputStates()
         {
-            oldRenderObjects.AddRange(inputStates.Keys);
-            foreach (RenderUIElement renderUIElement in RenderObjects)
+            previousRenderObjects.AddRange(inputStates.Keys);
+            
+            foreach (RenderUIPage renderUIElement in RenderObjects)
             {
-                
                 // Create a state for the render object if it doesn't have one already.
                 if (!inputStates.TryGetValue(renderUIElement, out var state))
                     inputStates[renderUIElement] = state = new UIElementInputState();
                 
                 // Remove the current render object, so only render objects that have state but have been removed from the render feature are left.
-                oldRenderObjects.Remove(renderUIElement);
+                previousRenderObjects.Remove(renderUIElement);
             }
 
             // Remove the state for all remaining render objects, because they are no longer on the render feature.
-            foreach (RenderUIElement unhandledElement in oldRenderObjects)
+            foreach (RenderUIPage unhandledElement in previousRenderObjects)
             {
                 inputStates.Remove(unhandledElement);
             }
         }
 
-        private void PickingUpdate(RenderUIElement renderUIElement, Viewport viewport, ref Matrix worldViewProj, GameTime drawTime, ref UIElement elementUnderMouseCursor)
-
+        private void UpdateRenderPagePointerInput(RenderUIPage renderUIPage, Viewport viewport, ref Matrix worldViewProj, GameTime gameTime, ref UIElement elementUnderPointer)
         {
-            if (renderUIElement.Page?.RootElement == null)
+            if (renderUIPage.Page?.RootElement == null)
                 return;
 
             var inverseZViewProj = worldViewProj;
             inverseZViewProj.Row3 = -inverseZViewProj.Row3;
 
-            elementUnderMouseCursor = UpdateMouseOver(ref viewport, ref inverseZViewProj, renderUIElement);
-            UpdateTouchEvents(ref viewport, ref inverseZViewProj, renderUIElement, drawTime);
-        }
-
-        private void PickingClear()
-        {
-            // clear the list of compacted pointer events of time frame
-            ClearPointerEvents();
+            elementUnderPointer = UpdateMouseOver(ref viewport, ref inverseZViewProj, renderUIPage);
+            UpdateTouchEvents(ref viewport, ref inverseZViewProj, renderUIPage, gameTime);
         }
 
         private void PickingPrepare()
         {
             // compact all the pointer events that happened since last frame to avoid performing useless hit tests.
             CompactPointerEvents();
+        }
+        
+        private void PickingClear()
+        {
+            // clear the list of compacted pointer events of time frame
+            ClearPointerEvents();
         }
 
         private void CompactPointerEvents()
@@ -154,6 +153,34 @@ namespace Stride.UI
         }
 
         /// <summary>
+        /// Gets a ray from a position in screen space if it is within the bounds of the resolution.
+        /// </summary>
+        /// <param name="resolution">The bounds to test within</param>
+        /// <param name="viewport">The <see cref="Viewport"/> in which the component is being rendered</param>
+        /// <param name="worldViewProj"></param>
+        /// <param name="screenPosition">The position of the lick on the screen in normalized (0..1, 0..1) range</param>
+        /// <param name="uiRay"><see cref="Ray"/> from the click in object space of the ui component in (-Resolution.X/2 .. Resolution.X/2, -Resolution.Y/2 .. Resolution.Y/2) range</param>
+        /// <returns></returns>
+        private bool TryGetRenderPageRay(Vector3 resolution, ref Viewport viewport, ref Matrix worldViewProj, Vector2 screenPosition, out Ray uiRay)
+        {
+            uiRay = new Ray(new Vector3(float.NegativeInfinity), new Vector3(0, 1, 0));
+
+            // TODO XK-3367 This only works for a single view
+
+            // Get a ray in object (RenderUIElement) space
+            var ray = GetWorldRay(ref viewport, screenPosition, ref worldViewProj);
+
+            // If the screen point is outside the canvas ignore any further testing
+            var dist = -ray.Position.Z / ray.Direction.Z;
+            if (Math.Abs(ray.Position.X + ray.Direction.X * dist) > resolution.X * 0.5f ||
+                Math.Abs(ray.Position.Y + ray.Direction.Y * dist) > resolution.Y * 0.5f)
+                return false;
+
+            uiRay = ray;
+            return true;
+        }
+        
+        /// <summary>
         /// Creates a ray in object space based on a screen position and a previously rendered object's WorldViewProjection matrix
         /// </summary>
         /// <param name="viewport">The viewport in which the object was rendered</param>
@@ -169,46 +196,17 @@ namespace Stride.UI
             screenPos.Y *= GraphicsDevice.Presenter.BackBuffer.Height;
 
             var unprojectedNear = viewport.Unproject(new Vector3(screenPos, 0.0f), ref worldViewProj);
-
             var unprojectedFar = viewport.Unproject(new Vector3(screenPos, 1.0f), ref worldViewProj);
 
             var rayDirection = Vector3.Normalize(unprojectedFar - unprojectedNear);
-            var clickRay = new Ray(unprojectedNear, rayDirection);
+            var uiRay = new Ray(unprojectedNear, rayDirection);
 
-            return clickRay;
+            return uiRay;
         }
 
-        /// <summary>
-        /// Returns if a screen position is within the borders of a tested ui component
-        /// </summary>
-        /// <param name="uiComponent">The <see cref="UIComponent"/> to be tested</param>
-        /// <param name="viewport">The <see cref="Viewport"/> in which the component is being rendered</param>
-        /// <param name="worldViewProj"></param>
-        /// <param name="screenPosition">The position of the lick on the screen in normalized (0..1, 0..1) range</param>
-        /// <param name="uiRay"><see cref="Ray"/> from the click in object space of the ui component in (-Resolution.X/2 .. Resolution.X/2, -Resolution.Y/2 .. Resolution.Y/2) range</param>
-        /// <returns></returns>
-        private bool GetTouchPosition(Vector3 resolution, ref Viewport viewport, ref Matrix worldViewProj, Vector2 screenPosition, out Ray uiRay)
+        private void UpdateTouchEvents(ref Viewport viewport, ref Matrix worldViewProj, RenderUIPage renderPage, GameTime gameTime)
         {
-            uiRay = new Ray(new Vector3(float.NegativeInfinity), new Vector3(0, 1, 0));
-
-            // TODO XK-3367 This only works for a single view
-
-            // Get a touch ray in object (UI component) space
-            var touchRay = GetWorldRay(ref viewport, screenPosition, ref worldViewProj);
-
-            // If the click point is outside the canvas ignore any further testing
-            var dist = -touchRay.Position.Z / touchRay.Direction.Z;
-            if (Math.Abs(touchRay.Position.X + touchRay.Direction.X * dist) > resolution.X * 0.5f ||
-                Math.Abs(touchRay.Position.Y + touchRay.Direction.Y * dist) > resolution.Y * 0.5f)
-                return false;
-
-            uiRay = touchRay;
-            return true;
-        }
-
-        private void UpdateTouchEvents(ref Viewport viewport, ref Matrix worldViewProj, RenderUIElement state, GameTime gameTime)
-        {
-            var rootElement = state.Page.RootElement;
+            var rootElement = renderPage.Page.RootElement;
             var intersectionPoint = Vector3.Zero;
             var lastTouchPosition = new Vector2(float.NegativeInfinity);
 
@@ -216,7 +214,7 @@ namespace Stride.UI
             foreach (var pointerEvent in compactedPointerEvents)
             {
                 // performance optimization: skip all the events that started outside of the UI
-                var lastTouchedElement = state.LastTouchedElement;
+                var lastTouchedElement = renderPage.LastTouchedElement;
                 if (lastTouchedElement == null && pointerEvent.EventType != PointerEventType.Pressed)
                     continue;
 
@@ -229,14 +227,14 @@ namespace Stride.UI
                 if (lastTouchPosition != currentTouchPosition)
                 {
                     Ray uiRay;
-                    if (!GetTouchPosition(state.Resolution, ref viewport, ref worldViewProj, currentTouchPosition, out uiRay))
+                    if (!TryGetRenderPageRay(renderPage.Resolution, ref viewport, ref worldViewProj, currentTouchPosition, out uiRay))
                         continue;
 
                     currentTouchedElement = GetElementAtScreenPosition(rootElement, ref uiRay, ref worldViewProj, ref intersectionPoint);
                 }
 
                 if (pointerEvent.EventType == PointerEventType.Pressed || pointerEvent.EventType == PointerEventType.Released)
-                    state.LastIntersectionPoint = intersectionPoint;
+                    renderPage.LastIntersectionPoint = intersectionPoint;
 
                 // TODO: add the pointer type to the event args?
                 var touchEvent = new TouchEventArgs
@@ -246,7 +244,7 @@ namespace Stride.UI
                     ScreenPosition = currentTouchPosition,
                     ScreenTranslation = pointerEvent.DeltaPosition,
                     WorldPosition = intersectionPoint,
-                    WorldTranslation = intersectionPoint - state.LastIntersectionPoint
+                    WorldTranslation = intersectionPoint - renderPage.LastIntersectionPoint
                 };
 
                 switch (pointerEvent.EventType)
@@ -299,42 +297,38 @@ namespace Stride.UI
                 }
 
                 lastTouchPosition = currentTouchPosition;
-                state.LastTouchedElement = currentTouchedElement;
-                state.LastIntersectionPoint = intersectionPoint;
+                renderPage.LastTouchedElement = currentTouchedElement;
+                renderPage.LastIntersectionPoint = intersectionPoint;
             }
         }
 
-        private UIElement UpdateMouseOver(ref Viewport viewport, ref Matrix worldViewProj, RenderUIElement state)
+        private UIElement UpdateMouseOver(ref Viewport viewport, ref Matrix worldViewProj, RenderUIPage renderPage)
         {
             if (input == null || !input.HasMouse)
                 return null;
 
             var intersectionPoint = Vector3.Zero;
             var mousePosition = input.MousePosition;
-            var rootElement = state.Page.RootElement;
-            var lastMouseOverElement = state.LastMouseOverElement;
+            var rootElement = renderPage.Page.RootElement;
+            var lastPointerOverElement = renderPage.LastPointerOverElement;
 
-            UIElement mouseOverElement = lastMouseOverElement;
-
-
+            UIElement mouseOverElement = lastPointerOverElement;
+            
             // determine currently overred element.
-            if (mousePosition != state.LastMousePosition
-                || (lastMouseOverElement?.RequiresMouseOverUpdate ?? false))
+            if (mousePosition != renderPage.LastMousePosition || (lastPointerOverElement?.RequiresMouseOverUpdate ?? false))
             {
                 Ray uiRay;
-                if (!GetTouchPosition(state.Resolution, ref viewport, ref worldViewProj, mousePosition, out uiRay))
+                if (!TryGetRenderPageRay(renderPage.Resolution, ref viewport, ref worldViewProj, mousePosition, out uiRay))
                     return null;
 
                 mouseOverElement = GetElementAtScreenPosition(rootElement, ref uiRay, ref worldViewProj, ref intersectionPoint);
-                
-
             }
             
             // find the common parent between current and last overred elements
-            var commonElement = FindCommonParent(mouseOverElement, lastMouseOverElement);
+            var commonElement = FindCommonParent(mouseOverElement, lastPointerOverElement);
 
             // disable mouse over state to previously overred hierarchy
-            var parent = lastMouseOverElement;
+            var parent = lastPointerOverElement;
             while (parent != commonElement && parent != null)
             {
                 parent.RequiresMouseOverUpdate = false;
@@ -362,8 +356,8 @@ namespace Stride.UI
             }
             
             // update cached values
-            state.LastMouseOverElement = mouseOverElement;
-            state.LastMousePosition = mousePosition;
+            renderPage.LastPointerOverElement = mouseOverElement;
+            renderPage.LastMousePosition = mousePosition;
             return mouseOverElement;
         }
 
@@ -520,37 +514,37 @@ namespace Stride.UI
                 PerformRecursiveHitTest(child, ref ray, ref worldViewProj, results);
         }
 
-        public static Matrix GetWorldViewProjection(RenderUIElement renderUIElement,  CameraComponent camera, Texture renderTarget)
+        public static Matrix GetWorldViewProjection(RenderUIPage renderUIPage,  CameraComponent camera, Texture renderTarget)
         {
             Matrix worldViewProjection = Matrix.Identity;
                     
             // calculate the size of the virtual resolution depending on target size (UI canvas)
-            var virtualResolution = renderUIElement.Resolution;
+            var virtualResolution = renderUIPage.Resolution;
 
-            if (renderUIElement.IsFullScreen)
+            if (renderUIPage.IsFullScreen)
             {
                 //var targetSize = viewportSize;
                 var targetSize = new Vector2(renderTarget.Width, renderTarget.Height);
 
                 // update the virtual resolution of the renderer
-                if (renderUIElement.ResolutionStretch == ResolutionStretch.FixedWidthAdaptableHeight)
+                if (renderUIPage.ResolutionStretch == ResolutionStretch.FixedWidthAdaptableHeight)
                     virtualResolution.Y = virtualResolution.X * targetSize.Y / targetSize.X;
-                if (renderUIElement.ResolutionStretch == ResolutionStretch.FixedHeightAdaptableWidth)
+                if (renderUIPage.ResolutionStretch == ResolutionStretch.FixedHeightAdaptableWidth)
                     virtualResolution.X = virtualResolution.Y * targetSize.X / targetSize.Y;
 
-                worldViewProjection = GetWorldViewProjection(renderUIElement, virtualResolution);
+                worldViewProjection = GetWorldViewProjection(renderUIPage, virtualResolution);
             }
             else
             {
                 //var cameraComponent = renderContext.Tags.Get(CameraComponentRendererExtensions.Current);
                 if (camera != null)
-                    worldViewProjection = GetWorldViewProjection(renderUIElement, camera);
+                    worldViewProjection = GetWorldViewProjection(renderUIPage, camera);
             }
 
             return worldViewProjection;
         }
         
-        private static Matrix GetWorldViewProjection(RenderUIElement renderObject, CameraComponent camera)
+        private static Matrix GetWorldViewProjection(RenderUIPage renderObject, CameraComponent camera)
         {
             var frustumHeight = 2 * MathF.Tan(MathUtil.DegreesToRadians(camera.VerticalFieldOfView) / 2);
 
@@ -617,7 +611,7 @@ namespace Stride.UI
             return worldViewProjectionMatrix;
         }
 
-        private static Matrix GetWorldViewProjection(RenderUIElement renderObject, Vector3 virtualResolution)
+        private static Matrix GetWorldViewProjection(RenderUIPage renderObject, Vector3 virtualResolution)
         {
             var nearPlane = virtualResolution.Z / 2;
             var farPlane = nearPlane + virtualResolution.Z;

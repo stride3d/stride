@@ -130,12 +130,12 @@ namespace Stride.UI
             if (renderContext == null)
                 renderContext = RenderContext.GetShared(Services);
             
-            UIElementUnderMouseCursor = Pick(gameTime);
+            Pick(gameTime);
 
             UpdateKeyEvents();
         }
 
-        private partial UIElement Pick(GameTime gameTime);
+        private partial void Pick(GameTime gameTime);
 
         private void UpdateKeyEvents()
         {
