@@ -41,6 +41,8 @@ If you want to **create games using Stride**, please visit our [Get started with
 
 If you are interested in **building the Stride engine from source** or **contributing to its development**, please continue reading this README for instructions on how to build from source and contribute to the project.
 
+If you are interested in both, we recommend starting with the [Get started with Stride](https://doc.stride3d.net/latest/en/manual/get-started/index.html) guide, and then returning here to learn how to build from source and contribute.
+
 ## 🤝 Contributing
 
 For questions and general discussions, please join our [Discord server](https://discord.gg/f6aerfE) or participate in [GitHub Discussions](https://github.com/stride3d/stride/discussions).
@@ -77,6 +79,9 @@ Our [Roadmap](https://doc.stride3d.net/latest/en/contributors/roadmap.html) comm
 
 > [!NOTE]
 > The installation of Visual Studio with the required components may require up to **14 GB of disk space**, depending on your system and selected components.
+
+> [!WARNING]
+> If this is your first time installing the .NET SDK, you might need to restart your system after the installation so that the system can recognize the new environment variables.
 
 ### Build Stride
 
@@ -122,7 +127,9 @@ Our [Roadmap](https://doc.stride3d.net/latest/en/contributors/roadmap.html) comm
 * If you skipped any of the **Prerequisites** thinking you already have the latest version, please update to the latest to be sure.
 * Visual Studio might have issues building properly if an older version is present alongside 2022. If you want to keep those versions, ensure they are up to date and that you are building Stride using Visual Studio 2022.
 * Your system's `PATH` should not contain older versions of MSBuild (e.g., `...\Microsoft Visual Studio\2019\BuildTools\MSBuild\Current\Bin` should be removed).
-* Some changes might require a system reboot, try that if you haven't yet.
+* Some changes might require a system reboot. Try that if you haven't yet, for example, if you see these errors:
+  * `Could not find a compatible version of MSBuild.`
+  * `Path to dotnet executable is not set.`
 * Ensure that Git, Git LFS, and Visual Studio can access the internet.
 * Close Visual Studio, clear the NuGet cache (`dotnet nuget locals all --clear`), delete the hidden `.vs` folder inside `\build` and the files inside `bin\packages`, kill any `msbuild` and other Visual Studio processes, then build the whole solution and run GameStudio.
 
