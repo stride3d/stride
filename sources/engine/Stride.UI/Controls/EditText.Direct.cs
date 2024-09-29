@@ -13,7 +13,7 @@ namespace Stride.UI.Controls
 {
     public partial class EditText
     {
-        private void OnTouchMoveImpl(TouchEventArgs args)
+        private void OnPointerMoveImpl(PointerEventArgs args)
         {
             var currentPosition = FindNearestCharacterIndex(new Vector2(args.WorldPosition.X - WorldMatrix.M41, args.WorldPosition.Y - WorldMatrix.M42));
 
@@ -33,7 +33,7 @@ namespace Stride.UI.Controls
             }
         }
 
-        private void OnTouchDownImpl(TouchEventArgs args)
+        private void OnPointerPressedImpl(PointerEventArgs args)
         {
             // Find the appropriate position for the caret.
             CaretPosition = FindNearestCharacterIndex(new Vector2(args.WorldPosition.X - WorldMatrix.M41, args.WorldPosition.Y - WorldMatrix.M42));

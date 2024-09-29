@@ -14,29 +14,29 @@ namespace Stride.UI
     {
         #region Routed Events
 
-        private static readonly RoutedEvent<TouchEventArgs> PreviewTouchDownEvent =
-            EventManager.RegisterRoutedEvent<TouchEventArgs>("PreviewTouchDown", RoutingStrategy.Tunnel, typeof(UIElement));
+        private static readonly RoutedEvent<PointerEventArgs> PreviewPointerPressedEvent =
+            EventManager.RegisterRoutedEvent<PointerEventArgs>("PreviewPointerPressed", RoutingStrategy.Tunnel, typeof(UIElement));
 
-        private static readonly RoutedEvent<TouchEventArgs> PreviewTouchMoveEvent =
-            EventManager.RegisterRoutedEvent<TouchEventArgs>("PreviewTouchMove", RoutingStrategy.Tunnel, typeof(UIElement));
+        private static readonly RoutedEvent<PointerEventArgs> PreviewPointerMoveEvent =
+            EventManager.RegisterRoutedEvent<PointerEventArgs>("PreviewPointerMove", RoutingStrategy.Tunnel, typeof(UIElement));
 
-        private static readonly RoutedEvent<TouchEventArgs> PreviewTouchUpEvent =
-            EventManager.RegisterRoutedEvent<TouchEventArgs>("PreviewTouchUp", RoutingStrategy.Tunnel, typeof(UIElement));
+        private static readonly RoutedEvent<PointerEventArgs> PreviewPointerReleasedEvent =
+            EventManager.RegisterRoutedEvent<PointerEventArgs>("PreviewPointerReleased", RoutingStrategy.Tunnel, typeof(UIElement));
 
-        private static readonly RoutedEvent<TouchEventArgs> TouchDownEvent =
-            EventManager.RegisterRoutedEvent<TouchEventArgs>("TouchDown", RoutingStrategy.Bubble, typeof(UIElement));
+        private static readonly RoutedEvent<PointerEventArgs> PointerPressedEvent =
+            EventManager.RegisterRoutedEvent<PointerEventArgs>("PointerPressed", RoutingStrategy.Bubble, typeof(UIElement));
 
-        private static readonly RoutedEvent<TouchEventArgs> TouchEnterEvent =
-            EventManager.RegisterRoutedEvent<TouchEventArgs>("TouchEnter", RoutingStrategy.Direct, typeof(UIElement));
+        private static readonly RoutedEvent<PointerEventArgs> PointerEnterEvent =
+            EventManager.RegisterRoutedEvent<PointerEventArgs>("PointerEnter", RoutingStrategy.Direct, typeof(UIElement));
 
-        private static readonly RoutedEvent<TouchEventArgs> TouchLeaveEvent =
-            EventManager.RegisterRoutedEvent<TouchEventArgs>("TouchLeave", RoutingStrategy.Direct, typeof(UIElement));
+        private static readonly RoutedEvent<PointerEventArgs> PointerLeaveEvent =
+            EventManager.RegisterRoutedEvent<PointerEventArgs>("PointerLeave", RoutingStrategy.Direct, typeof(UIElement));
 
-        private static readonly RoutedEvent<TouchEventArgs> TouchMoveEvent =
-            EventManager.RegisterRoutedEvent<TouchEventArgs>("TouchMove", RoutingStrategy.Bubble, typeof(UIElement));
+        private static readonly RoutedEvent<PointerEventArgs> PointerMoveEvent =
+            EventManager.RegisterRoutedEvent<PointerEventArgs>("PointerMove", RoutingStrategy.Bubble, typeof(UIElement));
 
-        private static readonly RoutedEvent<TouchEventArgs> TouchUpEvent =
-            EventManager.RegisterRoutedEvent<TouchEventArgs>("TouchUp", RoutingStrategy.Bubble, typeof(UIElement));
+        private static readonly RoutedEvent<PointerEventArgs> PointerReleaseEvent =
+            EventManager.RegisterRoutedEvent<PointerEventArgs>("PointerReleased", RoutingStrategy.Bubble, typeof(UIElement));
 
         private static readonly RoutedEvent<KeyEventArgs> KeyPressedEvent =
             EventManager.RegisterRoutedEvent<KeyEventArgs>("KeyPressed", RoutingStrategy.Bubble, typeof(UIElement));
@@ -57,14 +57,14 @@ namespace Stride.UI
         static UIElement()
         {
             // register the class handlers
-            EventManager.RegisterClassHandler(typeof(UIElement), PreviewTouchDownEvent, PreviewTouchDownClassHandler);
-            EventManager.RegisterClassHandler(typeof(UIElement), PreviewTouchMoveEvent, PreviewTouchMoveClassHandler);
-            EventManager.RegisterClassHandler(typeof(UIElement), PreviewTouchUpEvent, PreviewTouchUpClassHandler);
-            EventManager.RegisterClassHandler(typeof(UIElement), TouchDownEvent, TouchDownClassHandler);
-            EventManager.RegisterClassHandler(typeof(UIElement), TouchEnterEvent, TouchEnterClassHandler);
-            EventManager.RegisterClassHandler(typeof(UIElement), TouchLeaveEvent, TouchLeaveClassHandler);
-            EventManager.RegisterClassHandler(typeof(UIElement), TouchMoveEvent, TouchMoveClassHandler);
-            EventManager.RegisterClassHandler(typeof(UIElement), TouchUpEvent, TouchUpClassHandler);
+            EventManager.RegisterClassHandler(typeof(UIElement), PreviewPointerPressedEvent, PreviewPointerPressedClassHandler);
+            EventManager.RegisterClassHandler(typeof(UIElement), PreviewPointerMoveEvent, PreviewPointerMoveClassHandler);
+            EventManager.RegisterClassHandler(typeof(UIElement), PreviewPointerReleasedEvent, PreviewPointerReleasedClassHandler);
+            EventManager.RegisterClassHandler(typeof(UIElement), PointerPressedEvent, PointerPressedClassHandler);
+            EventManager.RegisterClassHandler(typeof(UIElement), PointerEnterEvent, PointerEnterClassHandler);
+            EventManager.RegisterClassHandler(typeof(UIElement), PointerLeaveEvent, PointerLeaveClassHandler);
+            EventManager.RegisterClassHandler(typeof(UIElement), PointerMoveEvent, PointerMoveClassHandler);
+            EventManager.RegisterClassHandler(typeof(UIElement), PointerReleaseEvent, PointerReleasedClassHandler);
             EventManager.RegisterClassHandler(typeof(UIElement), KeyPressedEvent, KeyPressedClassHandler);
             EventManager.RegisterClassHandler(typeof(UIElement), KeyDownEvent, KeyDownClassHandler);
             EventManager.RegisterClassHandler(typeof(UIElement), KeyReleasedEvent, KeyReleasedClassHandler);
@@ -75,26 +75,26 @@ namespace Stride.UI
         /// Gets a value indicating whether the <see cref="UIElement"/> is currently touched by the user.
         /// </summary>
         [DataMemberIgnore]
-        public bool IsTouched { get; internal set; }
+        public bool IsPointerDown { get; internal set; }
 
         /// <summary>
         /// Gets the current state of the mouse over the UI element.
         /// </summary>
-        /// <remarks>Only elements that can be clicked by user can have the <cref>MouseOverState.MouseOverElement</cref> value. 
+        /// <remarks>Only elements that can be clicked by user can have the <c>PointerOverState.Self</c> value. 
         /// That is element that have <see cref="CanBeHitByUser"/> set to <value>true</value></remarks>
         [DataMemberIgnore]
-        public MouseOverState MouseOverState
+        public PointerOverState PointerOverState
         {
-            get { return mouseOverState; }
+            get { return pointerOverState; }
             internal set
             {
-                var oldValue = mouseOverState;
+                var oldValue = pointerOverState;
                 if (oldValue == value)
                     return;
 
-                mouseOverState = value;
+                pointerOverState = value;
 
-                MouseOverStateChanged?.Invoke(this, new PropertyChangedArgs<MouseOverState> { NewValue = value, OldValue = oldValue });
+                MouseOverStateChanged?.Invoke(this, new PropertyChangedArgs<PointerOverState> { NewValue = value, OldValue = oldValue });
             }
         }
 
@@ -102,10 +102,10 @@ namespace Stride.UI
         /// Gets or sets whether this element requires a mouse over check.
         /// </summary>
         /// <remarks>
-        /// By default, the engine does not check whether <see cref="MouseOverState"/>
+        /// By default, the engine does not check whether <see cref="PointerOverState"/>
         /// of the element is changed while the cursor is still. This behavior is 
         /// overriden when this parameter is set to true, which forces the engine to
-        /// check for changes of <see cref="MouseOverState"/>.
+        /// check for changes of <see cref="PointerOverState"/>.
         /// The engine sets this to true when the layout of the element changes.
         /// </remarks>
         [DataMemberIgnore]
@@ -227,19 +227,19 @@ namespace Stride.UI
         #region Events
 
         /// <summary>
-        /// Occurs when the value of the <see cref="MouseOverState"/> property changed.
+        /// Occurs when the value of the <see cref="PointerOverState"/> property changed.
         /// </summary>
         /// <remarks>This event is not a routed event</remarks>
-        public event PropertyChangedHandler<MouseOverState> MouseOverStateChanged;
+        public event PropertyChangedHandler<PointerOverState> MouseOverStateChanged;
 
         /// <summary>
         /// Occurs when the user starts touching the <see cref="UIElement"/>. That is when he moves its finger down from the element.
         /// </summary>
         /// <remarks>A click event is tunneling</remarks>
-        public event EventHandler<TouchEventArgs> PreviewTouchDown
+        public event EventHandler<PointerEventArgs> PreviewPointerPressed
         {
-            add { AddHandler(PreviewTouchDownEvent, value); }
-            remove { RemoveHandler(PreviewTouchDownEvent, value); }
+            add { AddHandler(PreviewPointerPressedEvent, value); }
+            remove { RemoveHandler(PreviewPointerPressedEvent, value); }
         }
 
         /// <summary>
@@ -247,30 +247,30 @@ namespace Stride.UI
         /// That is when his finger was already on the element and moved from its previous position.
         /// </summary>
         /// <remarks>A click event is tunneling</remarks>
-        public event EventHandler<TouchEventArgs> PreviewTouchMove
+        public event EventHandler<PointerEventArgs> PreviewPointerMove
         {
-            add { AddHandler(PreviewTouchMoveEvent, value); }
-            remove { RemoveHandler(PreviewTouchMoveEvent, value); }
+            add { AddHandler(PreviewPointerMoveEvent, value); }
+            remove { RemoveHandler(PreviewPointerMoveEvent, value); }
         }
 
         /// <summary>
         /// Occurs when the user stops touching the <see cref="UIElement"/>. That is when he moves its finger up from the element.
         /// </summary>
         /// <remarks>A click event is tunneling</remarks>
-        public event EventHandler<TouchEventArgs> PreviewTouchUp
+        public event EventHandler<PointerEventArgs> PreviewPointerUp
         {
-            add { AddHandler(PreviewTouchUpEvent, value); }
-            remove { RemoveHandler(PreviewTouchUpEvent, value); }
+            add { AddHandler(PreviewPointerReleasedEvent, value); }
+            remove { RemoveHandler(PreviewPointerReleasedEvent, value); }
         }
 
         /// <summary>
         /// Occurs when the user starts touching the <see cref="UIElement"/>. That is when he moves its finger down from the element.
         /// </summary>
         /// <remarks>A click event is bubbling</remarks>
-        public event EventHandler<TouchEventArgs> TouchDown
+        public event EventHandler<PointerEventArgs> PointerDown
         {
-            add { AddHandler(TouchDownEvent, value); }
-            remove { RemoveHandler(TouchDownEvent, value); }
+            add { AddHandler(PointerPressedEvent, value); }
+            remove { RemoveHandler(PointerPressedEvent, value); }
         }
 
         /// <summary>
@@ -278,10 +278,10 @@ namespace Stride.UI
         /// That is when his finger was on the screen outside of the element and moved inside the element.
         /// </summary>
         /// <remarks>A click event is bubbling</remarks>
-        public event EventHandler<TouchEventArgs> TouchEnter
+        public event EventHandler<PointerEventArgs> PointerEnter
         {
-            add { AddHandler(TouchEnterEvent, value); }
-            remove { RemoveHandler(TouchEnterEvent, value); }
+            add { AddHandler(PointerEnterEvent, value); }
+            remove { RemoveHandler(PointerEnterEvent, value); }
         }
 
         /// <summary>
@@ -289,10 +289,10 @@ namespace Stride.UI
         /// That is when his finger was inside of the element and moved on the screen outside of the element.
         /// </summary>
         /// <remarks>A click event is bubbling</remarks>
-        public event EventHandler<TouchEventArgs> TouchLeave
+        public event EventHandler<PointerEventArgs> PointerLeave
         {
-            add { AddHandler(TouchLeaveEvent, value); }
-            remove { RemoveHandler(TouchLeaveEvent, value); }
+            add { AddHandler(PointerLeaveEvent, value); }
+            remove { RemoveHandler(PointerLeaveEvent, value); }
         }
 
         /// <summary>
@@ -300,20 +300,20 @@ namespace Stride.UI
         /// That is when his finger was already on the element and moved from its previous position.
         /// </summary>
         /// <remarks>A click event is bubbling</remarks>
-        public event EventHandler<TouchEventArgs> TouchMove
+        public event EventHandler<PointerEventArgs> PointerMove
         {
-            add { AddHandler(TouchMoveEvent, value); }
-            remove { RemoveHandler(TouchMoveEvent, value); }
+            add { AddHandler(PointerMoveEvent, value); }
+            remove { RemoveHandler(PointerMoveEvent, value); }
         }
 
         /// <summary>
         /// Occurs when the user stops touching the <see cref="UIElement"/>. That is when he moves its finger up from the element.
         /// </summary>
         /// <remarks>A click event is bubbling</remarks>
-        public event EventHandler<TouchEventArgs> TouchUp
+        public event EventHandler<PointerEventArgs> PointerReleased
         {
-            add { AddHandler(TouchUpEvent, value); }
-            remove { RemoveHandler(TouchUpEvent, value); }
+            add { AddHandler(PointerReleaseEvent, value); }
+            remove { RemoveHandler(PointerReleaseEvent, value); }
         }
 
         /// <summary>
@@ -359,43 +359,43 @@ namespace Stride.UI
 
         #region Internal Event Raiser
 
-        internal void RaiseTouchDownEvent(TouchEventArgs touchArgs)
+        internal void RaisePointerPressedEvent(PointerEventArgs pointerArgs)
         {
-            touchArgs.RoutedEvent = PreviewTouchDownEvent;
-            RaiseEvent(touchArgs);
+            pointerArgs.RoutedEvent = PreviewPointerPressedEvent;
+            RaiseEvent(pointerArgs);
 
-            touchArgs.RoutedEvent = TouchDownEvent;
-            RaiseEvent(touchArgs);
+            pointerArgs.RoutedEvent = PointerPressedEvent;
+            RaiseEvent(pointerArgs);
         }
 
-        internal void RaiseTouchEnterEvent(TouchEventArgs touchArgs)
+        internal void RaisePointerEnterEvent(PointerEventArgs pointerArgs)
         {
-            touchArgs.RoutedEvent = TouchEnterEvent;
-            RaiseEvent(touchArgs);
+            pointerArgs.RoutedEvent = PointerEnterEvent;
+            RaiseEvent(pointerArgs);
         }
 
-        internal void RaiseTouchLeaveEvent(TouchEventArgs touchArgs)
+        internal void RaisePointerLeaveEvent(PointerEventArgs pointerArgs)
         {
-            touchArgs.RoutedEvent = TouchLeaveEvent;
-            RaiseEvent(touchArgs);
+            pointerArgs.RoutedEvent = PointerLeaveEvent;
+            RaiseEvent(pointerArgs);
         }
 
-        internal void RaiseTouchMoveEvent(TouchEventArgs touchArgs)
+        internal void RaisePointerMoveEvent(PointerEventArgs pointerArgs)
         {
-            touchArgs.RoutedEvent = PreviewTouchMoveEvent;
-            RaiseEvent(touchArgs);
+            pointerArgs.RoutedEvent = PreviewPointerMoveEvent;
+            RaiseEvent(pointerArgs);
 
-            touchArgs.RoutedEvent = TouchMoveEvent;
-            RaiseEvent(touchArgs);
+            pointerArgs.RoutedEvent = PointerMoveEvent;
+            RaiseEvent(pointerArgs);
         }
 
-        internal void RaiseTouchUpEvent(TouchEventArgs touchArgs)
+        internal void RaisePointerReleasedEvent(PointerEventArgs pointerArgs)
         {
-            touchArgs.RoutedEvent = PreviewTouchUpEvent;
-            RaiseEvent(touchArgs);
+            pointerArgs.RoutedEvent = PreviewPointerReleasedEvent;
+            RaiseEvent(pointerArgs);
 
-            touchArgs.RoutedEvent = TouchUpEvent;
-            RaiseEvent(touchArgs);
+            pointerArgs.RoutedEvent = PointerReleaseEvent;
+            RaiseEvent(pointerArgs);
         }
 
         internal void RaiseKeyPressedEvent(KeyEventArgs keyEventArgs)
@@ -426,135 +426,135 @@ namespace Stride.UI
 
         #region Class Event Handlers
 
-        private static void PreviewTouchDownClassHandler(object sender, TouchEventArgs args)
+        private static void PreviewPointerPressedClassHandler(object sender, PointerEventArgs args)
         {
             var uiElementSender = (UIElement)sender;
             if (uiElementSender.IsHierarchyEnabled)
-                uiElementSender.OnPreviewTouchDown(args);
+                uiElementSender.OnPreviewPointerPressed(args);
         }
 
         /// <summary>
-        /// The class handler of the event <see cref="PreviewTouchDown"/>.
+        /// The class handler of the event <see cref="PreviewPointerPressed"/>.
         /// This method can be overridden in inherited classes to perform actions common to all instances of a class.
         /// </summary>
         /// <param name="args">The arguments of the event</param>
-        protected virtual void OnPreviewTouchDown(TouchEventArgs args)
+        protected virtual void OnPreviewPointerPressed(PointerEventArgs args)
         {
-            IsTouched = true;
+            IsPointerDown = true;
         }
 
-        private static void PreviewTouchMoveClassHandler(object sender, TouchEventArgs args)
+        private static void PreviewPointerMoveClassHandler(object sender, PointerEventArgs args)
         {
             var uiElementSender = (UIElement)sender;
             if (uiElementSender.IsHierarchyEnabled)
-                uiElementSender.OnPreviewTouchMove(args);
+                uiElementSender.OnPreviewPointerMove(args);
         }
 
         /// <summary>
-        /// The class handler of the event <see cref="PreviewTouchMove"/>.
+        /// The class handler of the event <see cref="PreviewPointerMove"/>.
         /// This method can be overridden in inherited classes to perform actions common to all instances of a class.
         /// </summary>
         /// <param name="args">The arguments of the event</param>
-        protected virtual void OnPreviewTouchMove(TouchEventArgs args)
+        protected virtual void OnPreviewPointerMove(PointerEventArgs args)
         {
         }
 
-        private static void PreviewTouchUpClassHandler(object sender, TouchEventArgs args)
+        private static void PreviewPointerReleasedClassHandler(object sender, PointerEventArgs args)
         {
             var uiElementSender = (UIElement)sender;
             if (uiElementSender.IsHierarchyEnabled)
-                uiElementSender.OnPreviewTouchUp(args);
+                uiElementSender.OnPreviewPointerReleased(args);
         }
 
         /// <summary>
-        /// The class handler of the event <see cref="PreviewTouchUp"/>.
+        /// The class handler of the event <see cref="PreviewPointerUp"/>.
         /// This method can be overridden in inherited classes to perform actions common to all instances of a class.
         /// </summary>
         /// <param name="args">The arguments of the event</param>
-        protected virtual void OnPreviewTouchUp(TouchEventArgs args)
+        protected virtual void OnPreviewPointerReleased(PointerEventArgs args)
         {
-            IsTouched = false;
+            IsPointerDown = false;
         }
 
-        private static void TouchDownClassHandler(object sender, TouchEventArgs args)
+        private static void PointerPressedClassHandler(object sender, PointerEventArgs args)
         {
             var uiElementSender = (UIElement)sender;
             if (uiElementSender.IsHierarchyEnabled)
-                uiElementSender.OnTouchDown(args);
+                uiElementSender.OnPointerPressed(args);
         }
 
         /// <summary>
-        /// The class handler of the event <see cref="TouchDown"/>.
+        /// The class handler of the event <see cref="PointerDown"/>.
         /// This method can be overridden in inherited classes to perform actions common to all instances of a class.
         /// </summary>
         /// <param name="args">The arguments of the event</param>
-        protected virtual void OnTouchDown(TouchEventArgs args)
+        protected virtual void OnPointerPressed(PointerEventArgs args)
         {
         }
 
-        private static void TouchEnterClassHandler(object sender, TouchEventArgs args)
+        private static void PointerEnterClassHandler(object sender, PointerEventArgs args)
         {
             var uiElementSender = (UIElement)sender;
             if (uiElementSender.IsHierarchyEnabled)
-                uiElementSender.OnTouchEnter(args);
+                uiElementSender.OnPointerEnter(args);
         }
 
         /// <summary>
-        /// The class handler of the event <see cref="TouchEnter"/>.
+        /// The class handler of the event <see cref="PointerEnter"/>.
         /// This method can be overridden in inherited classes to perform actions common to all instances of a class.
         /// </summary>
         /// <param name="args">The arguments of the event</param>
-        protected virtual void OnTouchEnter(TouchEventArgs args)
+        protected virtual void OnPointerEnter(PointerEventArgs args)
         {
-            IsTouched = true;
+            IsPointerDown = true;
         }
 
-        private static void TouchLeaveClassHandler(object sender, TouchEventArgs args)
+        private static void PointerLeaveClassHandler(object sender, PointerEventArgs args)
         {
             var uiElementSender = (UIElement)sender;
             if (uiElementSender.IsHierarchyEnabled)
-                uiElementSender.OnTouchLeave(args);
+                uiElementSender.OnPointerLeave(args);
         }
 
         /// <summary>
-        /// The class handler of the event <see cref="TouchLeave"/>.
+        /// The class handler of the event <see cref="PointerLeave"/>.
         /// This method can be overridden in inherited classes to perform actions common to all instances of a class.
         /// </summary>
         /// <param name="args">The arguments of the event</param>
-        protected virtual void OnTouchLeave(TouchEventArgs args)
+        protected virtual void OnPointerLeave(PointerEventArgs args)
         {
-            IsTouched = false;
+            IsPointerDown = false;
         }
 
-        private static void TouchMoveClassHandler(object sender, TouchEventArgs args)
+        private static void PointerMoveClassHandler(object sender, PointerEventArgs args)
         {
             var uiElementSender = (UIElement)sender;
             if (uiElementSender.IsHierarchyEnabled)
-                uiElementSender.OnTouchMove(args);
+                uiElementSender.OnPointerMove(args);
         }
 
         /// <summary>
-        /// The class handler of the event <see cref="TouchMove"/>.
+        /// The class handler of the event <see cref="PointerMove"/>.
         /// This method can be overridden in inherited classes to perform actions common to all instances of a class.
         /// </summary>
         /// <param name="args">The arguments of the event</param>
-        protected virtual void OnTouchMove(TouchEventArgs args)
+        protected virtual void OnPointerMove(PointerEventArgs args)
         {
         }
 
-        private static void TouchUpClassHandler(object sender, TouchEventArgs args)
+        private static void PointerReleasedClassHandler(object sender, PointerEventArgs args)
         {
             var uiElementSender = (UIElement)sender;
             if (uiElementSender.IsHierarchyEnabled)
-                uiElementSender.OnTouchUp(args);
+                uiElementSender.OnPointerReleased(args);
         }
 
         /// <summary>
-        /// The class handler of the event <see cref="TouchUp"/>.
+        /// The class handler of the event <see cref="PointerReleased"/>.
         /// This method can be overridden in inherited classes to perform actions common to all instances of a class.
         /// </summary>
         /// <param name="args">The arguments of the event</param>
-        protected virtual void OnTouchUp(TouchEventArgs args)
+        protected virtual void OnPointerReleased(PointerEventArgs args)
         {
         }
 

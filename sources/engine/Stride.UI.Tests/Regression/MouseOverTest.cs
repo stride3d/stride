@@ -33,8 +33,8 @@ namespace Stride.UI.Tests.Regression
         private bool triggeredCanvas;
         private bool triggeredStackPanel;
 
-        private MouseOverState oldValueButton1;
-        private MouseOverState newValueButton1;
+        private PointerOverState oldValueButton1;
+        private PointerOverState newValueButton1;
 
         public MouseOverTest()
         {
@@ -119,12 +119,12 @@ namespace Stride.UI.Tests.Regression
         {
             ResetStates();
 
-            Assert.Equal(MouseOverState.MouseOverNone, canvas.MouseOverState);
-            Assert.Equal(MouseOverState.MouseOverNone, stackPanel.MouseOverState);
-            Assert.Equal(MouseOverState.MouseOverNone, button1.MouseOverState);
-            Assert.Equal(MouseOverState.MouseOverNone, button2.MouseOverState);
-            Assert.Equal(MouseOverState.MouseOverNone, edit1.MouseOverState);
-            Assert.Equal(MouseOverState.MouseOverNone, edit2.MouseOverState);
+            Assert.Equal(PointerOverState.None, canvas.PointerOverState);
+            Assert.Equal(PointerOverState.None, stackPanel.PointerOverState);
+            Assert.Equal(PointerOverState.None, button1.PointerOverState);
+            Assert.Equal(PointerOverState.None, button2.PointerOverState);
+            Assert.Equal(PointerOverState.None, edit1.PointerOverState);
+            Assert.Equal(PointerOverState.None, edit2.PointerOverState);
 
             Assert.False(triggeredButton1);
             Assert.False(triggeredButton2);
@@ -143,12 +143,12 @@ namespace Stride.UI.Tests.Regression
 
         private void Test2()
         {
-            Assert.Equal(MouseOverState.MouseOverChild, canvas.MouseOverState);
-            Assert.Equal(MouseOverState.MouseOverNone, stackPanel.MouseOverState);
-            Assert.Equal(MouseOverState.MouseOverElement, button1.MouseOverState);
-            Assert.Equal(MouseOverState.MouseOverNone, button2.MouseOverState);
-            Assert.Equal(MouseOverState.MouseOverNone, edit1.MouseOverState);
-            Assert.Equal(MouseOverState.MouseOverNone, edit2.MouseOverState);
+            Assert.Equal(PointerOverState.Child, canvas.PointerOverState);
+            Assert.Equal(PointerOverState.None, stackPanel.PointerOverState);
+            Assert.Equal(PointerOverState.Self, button1.PointerOverState);
+            Assert.Equal(PointerOverState.None, button2.PointerOverState);
+            Assert.Equal(PointerOverState.None, edit1.PointerOverState);
+            Assert.Equal(PointerOverState.None, edit2.PointerOverState);
 
             Assert.True(triggeredButton1);
             Assert.True(triggeredCanvas);
@@ -157,8 +157,8 @@ namespace Stride.UI.Tests.Regression
             Assert.False(triggeredEdit2);
             Assert.False(triggeredStackPanel);
 
-            Assert.Equal(MouseOverState.MouseOverNone, oldValueButton1);
-            Assert.Equal(MouseOverState.MouseOverElement, newValueButton1);
+            Assert.Equal(PointerOverState.None, oldValueButton1);
+            Assert.Equal(PointerOverState.Self, newValueButton1);
         }
 
         private void PrepareTest3()
@@ -170,12 +170,12 @@ namespace Stride.UI.Tests.Regression
 
         private void Test3()
         {
-            Assert.Equal(MouseOverState.MouseOverChild, canvas.MouseOverState);
-            Assert.Equal(MouseOverState.MouseOverNone, stackPanel.MouseOverState);
-            Assert.Equal(MouseOverState.MouseOverNone, button1.MouseOverState);
-            Assert.Equal(MouseOverState.MouseOverNone, button2.MouseOverState);
-            Assert.Equal(MouseOverState.MouseOverElement, edit1.MouseOverState);
-            Assert.Equal(MouseOverState.MouseOverNone, edit2.MouseOverState);
+            Assert.Equal(PointerOverState.Child, canvas.PointerOverState);
+            Assert.Equal(PointerOverState.None, stackPanel.PointerOverState);
+            Assert.Equal(PointerOverState.None, button1.PointerOverState);
+            Assert.Equal(PointerOverState.None, button2.PointerOverState);
+            Assert.Equal(PointerOverState.Self, edit1.PointerOverState);
+            Assert.Equal(PointerOverState.None, edit2.PointerOverState);
 
             Assert.True(triggeredButton1);
             Assert.True(triggeredEdit1);
@@ -194,12 +194,12 @@ namespace Stride.UI.Tests.Regression
 
         private void Test4()
         {
-            Assert.Equal(MouseOverState.MouseOverElement, canvas.MouseOverState);
-            Assert.Equal(MouseOverState.MouseOverNone, stackPanel.MouseOverState);
-            Assert.Equal(MouseOverState.MouseOverNone, button1.MouseOverState);
-            Assert.Equal(MouseOverState.MouseOverNone, button2.MouseOverState);
-            Assert.Equal(MouseOverState.MouseOverNone, edit1.MouseOverState);
-            Assert.Equal(MouseOverState.MouseOverNone, edit2.MouseOverState);
+            Assert.Equal(PointerOverState.Self, canvas.PointerOverState);
+            Assert.Equal(PointerOverState.None, stackPanel.PointerOverState);
+            Assert.Equal(PointerOverState.None, button1.PointerOverState);
+            Assert.Equal(PointerOverState.None, button2.PointerOverState);
+            Assert.Equal(PointerOverState.None, edit1.PointerOverState);
+            Assert.Equal(PointerOverState.None, edit2.PointerOverState);
 
             Assert.True(triggeredEdit1);
             Assert.True(triggeredCanvas);
@@ -218,12 +218,12 @@ namespace Stride.UI.Tests.Regression
 
         private void Test5()
         {
-            Assert.Equal(MouseOverState.MouseOverChild, canvas.MouseOverState);
-            Assert.Equal(MouseOverState.MouseOverChild, stackPanel.MouseOverState);
-            Assert.Equal(MouseOverState.MouseOverNone, button1.MouseOverState);
-            Assert.Equal(MouseOverState.MouseOverElement, button2.MouseOverState);
-            Assert.Equal(MouseOverState.MouseOverNone, edit1.MouseOverState);
-            Assert.Equal(MouseOverState.MouseOverNone, edit2.MouseOverState);
+            Assert.Equal(PointerOverState.Child, canvas.PointerOverState);
+            Assert.Equal(PointerOverState.Child, stackPanel.PointerOverState);
+            Assert.Equal(PointerOverState.None, button1.PointerOverState);
+            Assert.Equal(PointerOverState.Self, button2.PointerOverState);
+            Assert.Equal(PointerOverState.None, edit1.PointerOverState);
+            Assert.Equal(PointerOverState.None, edit2.PointerOverState);
 
             Assert.True(triggeredCanvas);
             Assert.True(triggeredButton2);
@@ -242,12 +242,12 @@ namespace Stride.UI.Tests.Regression
 
         private void Test6()
         {
-            Assert.Equal(MouseOverState.MouseOverChild, canvas.MouseOverState);
-            Assert.Equal(MouseOverState.MouseOverChild, stackPanel.MouseOverState);
-            Assert.Equal(MouseOverState.MouseOverNone, button1.MouseOverState);
-            Assert.Equal(MouseOverState.MouseOverNone, button2.MouseOverState);
-            Assert.Equal(MouseOverState.MouseOverNone, edit1.MouseOverState);
-            Assert.Equal(MouseOverState.MouseOverElement, edit2.MouseOverState);
+            Assert.Equal(PointerOverState.Child, canvas.PointerOverState);
+            Assert.Equal(PointerOverState.Child, stackPanel.PointerOverState);
+            Assert.Equal(PointerOverState.None, button1.PointerOverState);
+            Assert.Equal(PointerOverState.None, button2.PointerOverState);
+            Assert.Equal(PointerOverState.None, edit1.PointerOverState);
+            Assert.Equal(PointerOverState.Self, edit2.PointerOverState);
 
             Assert.True(triggeredEdit2);
             Assert.True(triggeredButton2);

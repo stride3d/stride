@@ -60,7 +60,7 @@ namespace Stride.UI
         private float minimumHeight;
         private float minimumDepth;
         private Matrix localMatrix = Matrix.Identity;
-        private MouseOverState mouseOverState;
+        private PointerOverState pointerOverState;
         private LayoutingContext layoutingContext;
 
         protected bool ArrangeChanged;
@@ -203,7 +203,7 @@ namespace Stride.UI
             {
                 isEnabled = value;
 
-                MouseOverState = MouseOverState.MouseOverNone;
+                PointerOverState = PointerOverState.None;
             }
         }
 

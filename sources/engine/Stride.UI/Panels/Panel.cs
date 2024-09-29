@@ -144,8 +144,8 @@ namespace Stride.UI.Panels
             SetParent(oldElement, null);
             SetVisualParent(oldElement, null);
 
-            if (oldElement.MouseOverState != MouseOverState.MouseOverNone)
-                MouseOverState = MouseOverState.MouseOverNone;
+            if (oldElement.PointerOverState != PointerOverState.None)
+                PointerOverState = PointerOverState.None;
         }
 
         /// <summary>

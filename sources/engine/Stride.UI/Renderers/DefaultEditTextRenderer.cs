@@ -30,7 +30,7 @@ namespace Stride.UI.Renderers
 
             // determine the image to draw in background of the edit text
             var fontScale = editText.LayoutingContext.RealVirtualResolutionRatio;
-            var provider = editText.IsSelectionActive ? editText.ActiveImage : editText.MouseOverState == MouseOverState.MouseOverElement ? editText.MouseOverImage : editText.InactiveImage;
+            var provider = editText.IsSelectionActive ? editText.ActiveImage : editText.PointerOverState == PointerOverState.Self ? editText.MouseOverImage : editText.InactiveImage;
             var image = provider?.GetSprite();
 
             var fontSize = new Vector2(fontScale.Y * editText.ActualTextSize);
@@ -82,7 +82,7 @@ namespace Stride.UI.Renderers
             // determine the image to draw in background of the edit text
             var fontScale = element.LayoutingContext.RealVirtualResolutionRatio;
             var color = editText.RenderOpacity * Color.White;
-            var provider = editText.IsSelectionActive ? editText.ActiveImage : editText.MouseOverState == MouseOverState.MouseOverElement ? editText.MouseOverImage : editText.InactiveImage;
+            var provider = editText.IsSelectionActive ? editText.ActiveImage : editText.PointerOverState == PointerOverState.Self ? editText.MouseOverImage : editText.InactiveImage;
             var image = provider?.GetSprite();
 
             if (image?.Texture != null)

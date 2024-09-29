@@ -27,7 +27,7 @@ namespace Stride.UI
         /// Only elements with CanBeHitByUser == true are taken into account.
         /// Last processed element_state / ?UIComponent? with a valid element will be used.
         /// </summary>
-        public UIElement UIElementUnderMouseCursor { get; internal set; }
+        public UIElement PointerOveredElement { get; internal set; }
 
         private partial void Pick(GameTime gameTime)
         {
@@ -37,7 +37,7 @@ namespace Stride.UI
             Texture renderTarget = renderContext.GraphicsDevice.Presenter.BackBuffer;
             // TODO: Not sure if this would support VR. If it doesn't, look at ForwardRenderer.DrawCore for how to (potentially). 
             Viewport viewport = renderContext.ViewportState.Viewport0;
-            UIElement elementUnderPointer = null;
+            UIElement currentPointerOveredElement = null;
             
             // Prepare content required for Picking and MouseOver events
             PickingPrepare();
@@ -54,22 +54,22 @@ namespace Stride.UI
                     // Check if the current UI component is being picked based on the current ViewParameters (used to draw this element)
                     using (Profiler.Begin(UIProfilerKeys.TouchEventsUpdate))
                     {
-                        UIElement renderPageElementUnderPointer = null;
-                        UpdateRenderPagePointerInput(uiDocument, viewport, ref worldViewProjection, gameTime, ref renderPageElementUnderPointer);
+                        UIElement documentPointerOveredElement = null;
+                        UpdateDocumentPointerInput(uiDocument, viewport, ref worldViewProjection, gameTime, ref documentPointerOveredElement);
                         
                         // only update result element, when this one has a value
-                        if (renderPageElementUnderPointer != null)
-                            elementUnderPointer = renderPageElementUnderPointer;
+                        if (documentPointerOveredElement != null)
+                            currentPointerOveredElement = documentPointerOveredElement;
                     }
                 }
             }
             
             PickingClear();
             
-            UIElementUnderMouseCursor = elementUnderPointer;
+            PointerOveredElement = currentPointerOveredElement;
         }
 
-        private void UpdateRenderPagePointerInput(UIDocument uiDocument, Viewport viewport, ref Matrix worldViewProj, GameTime gameTime, ref UIElement elementUnderPointer)
+        private void UpdateDocumentPointerInput(UIDocument uiDocument, Viewport viewport, ref Matrix worldViewProj, GameTime gameTime, ref UIElement elementUnderPointer)
         {
             if (uiDocument.Page?.RootElement == null)
                 return;
@@ -77,8 +77,8 @@ namespace Stride.UI
             var inverseZViewProj = worldViewProj;
             inverseZViewProj.Row3 = -inverseZViewProj.Row3;
 
-            elementUnderPointer = UpdateMouseOver(uiDocument, ref viewport, ref inverseZViewProj);
-            UpdateTouchEvents(uiDocument, ref viewport, ref inverseZViewProj, gameTime);
+            elementUnderPointer = UpdatePointerOver(uiDocument, ref viewport, ref inverseZViewProj);
+            UpdatePointerEvents(uiDocument, ref viewport, ref inverseZViewProj, gameTime);
         }
 
         private void PickingPrepare()
@@ -136,7 +136,7 @@ namespace Stride.UI
         /// <param name="screenPosition">The position of the lick on the screen in normalized (0..1, 0..1) range</param>
         /// <param name="uiRay"><see cref="Ray"/> from the click in object space of the ui component in (-Resolution.X/2 .. Resolution.X/2, -Resolution.Y/2 .. Resolution.Y/2) range</param>
         /// <returns><c>true</c> when the screen point of the ray would be within the bounds of the UI document; otherwise, <c>false</c>.</returns>
-        private bool TryGetRenderPageRay(Vector3 resolution, ref Viewport viewport, ref Matrix worldViewProj, Vector2 screenPosition, out Ray uiRay)
+        private bool TryGetDocumentRay(Vector3 resolution, ref Viewport viewport, ref Matrix worldViewProj, Vector2 screenPosition, out Ray uiRay)
         {
             uiRay = new Ray(new Vector3(float.NegativeInfinity), new Vector3(0, 1, 0));
 
@@ -179,7 +179,7 @@ namespace Stride.UI
             return uiRay;
         }
 
-        private void UpdateTouchEvents(UIDocument uiDocument, ref Viewport viewport, ref Matrix worldViewProj, GameTime gameTime)
+        private void UpdatePointerEvents(UIDocument uiDocument, ref Viewport viewport, ref Matrix worldViewProj, GameTime gameTime)
         {
             var rootElement = uiDocument.Page.RootElement;
             var intersectionPoint = Vector3.Zero;
@@ -202,7 +202,7 @@ namespace Stride.UI
                 if (lastTouchPosition != currentTouchPosition)
                 {
                     Ray uiRay;
-                    if (!TryGetRenderPageRay(uiDocument.Resolution, ref viewport, ref worldViewProj, currentTouchPosition, out uiRay))
+                    if (!TryGetDocumentRay(uiDocument.Resolution, ref viewport, ref worldViewProj, currentTouchPosition, out uiRay))
                         continue;
 
                     currentTouchedElement = GetElementAtScreenPosition(rootElement, ref uiRay, ref worldViewProj, ref intersectionPoint);
@@ -211,59 +211,54 @@ namespace Stride.UI
                 if (pointerEvent.EventType == PointerEventType.Pressed || pointerEvent.EventType == PointerEventType.Released)
                     uiDocument.LastIntersectionPoint = intersectionPoint;
 
-                // TODO: add the pointer type to the event args?
-                var touchEvent = new TouchEventArgs
+                var uiPointerEvent = new PointerEventArgs()
                 {
-                    Action = TouchAction.Down,
-                    Timestamp = time,
-                    ScreenPosition = currentTouchPosition,
-                    ScreenTranslation = pointerEvent.DeltaPosition,
+                    Device = pointerEvent.Device,
+                    PointerId = pointerEvent.PointerId,
+                    Position = pointerEvent.Position,
+                    DeltaPosition = pointerEvent.DeltaPosition,
+                    DeltaTime = pointerEvent.DeltaTime,
+                    EventType = pointerEvent.EventType,
+                    IsDown = pointerEvent.IsDown,
                     WorldPosition = intersectionPoint,
-                    WorldTranslation = intersectionPoint - uiDocument.LastIntersectionPoint
+                    WorldDeltaPosition =  intersectionPoint - uiDocument.LastIntersectionPoint
                 };
 
                 switch (pointerEvent.EventType)
                 {
                     case PointerEventType.Pressed:
-                        touchEvent.Action = TouchAction.Down;
-                        currentTouchedElement?.RaiseTouchDownEvent(touchEvent);
+                        currentTouchedElement?.RaisePointerPressedEvent(uiPointerEvent);
                         break;
 
                     case PointerEventType.Released:
-                        touchEvent.Action = TouchAction.Up;
-
                         // generate enter/leave events if we passed from an element to another without move events
                         if (currentTouchedElement != lastTouchedElement)
-                            ThrowEnterAndLeaveTouchEvents(currentTouchedElement, lastTouchedElement, touchEvent);
+                            ThrowEnterAndLeavePointerEvents(currentTouchedElement, lastTouchedElement, uiPointerEvent);
 
                         // trigger the up event
-                        currentTouchedElement?.RaiseTouchUpEvent(touchEvent);
+                        currentTouchedElement?.RaisePointerReleasedEvent(uiPointerEvent);
                         break;
 
                     case PointerEventType.Moved:
-                        touchEvent.Action = TouchAction.Move;
-
                         // first notify the move event (even if the touched element changed in between it is still coherent in one of its parents)
-                        currentTouchedElement?.RaiseTouchMoveEvent(touchEvent);
+                        currentTouchedElement?.RaisePointerMoveEvent(uiPointerEvent);
 
                         // then generate enter/leave events if we passed from an element to another
                         if (currentTouchedElement != lastTouchedElement)
-                            ThrowEnterAndLeaveTouchEvents(currentTouchedElement, lastTouchedElement, touchEvent);
+                            ThrowEnterAndLeavePointerEvents(currentTouchedElement, lastTouchedElement, uiPointerEvent);
                         break;
 
                     case PointerEventType.Canceled:
-                        touchEvent.Action = TouchAction.Move;
-
                         // generate enter/leave events if we passed from an element to another without move events
                         if (currentTouchedElement != lastTouchedElement)
-                            ThrowEnterAndLeaveTouchEvents(currentTouchedElement, lastTouchedElement, touchEvent);
+                            ThrowEnterAndLeavePointerEvents(currentTouchedElement, lastTouchedElement, uiPointerEvent);
 
                         // then raise leave event to all the hierarchy of the previously selected element.
                         var element = currentTouchedElement;
                         while (element != null)
                         {
-                            if (element.IsTouched)
-                                element.RaiseTouchLeaveEvent(touchEvent);
+                            if (element.IsPointerDown)
+                                element.RaisePointerLeaveEvent(uiPointerEvent);
                             element = element.VisualParent;
                         }
                         break;
@@ -277,7 +272,7 @@ namespace Stride.UI
             }
         }
 
-        private UIElement UpdateMouseOver(UIDocument uiDocument, ref Viewport viewport, ref Matrix worldViewProj)
+        private UIElement UpdatePointerOver(UIDocument uiDocument, ref Viewport viewport, ref Matrix worldViewProj)
         {
             if (input == null || !input.HasMouse)
                 return null;
@@ -287,55 +282,54 @@ namespace Stride.UI
             var rootElement = uiDocument.Page.RootElement;
             var lastPointerOverElement = uiDocument.LastPointerOverElement;
 
-            UIElement mouseOverElement = lastPointerOverElement;
+            UIElement pointerOveredElement = lastPointerOverElement;
             
             // determine currently overred element.
             if (mousePosition != uiDocument.LastMousePosition || (lastPointerOverElement?.RequiresMouseOverUpdate ?? false))
             {
                 Ray uiRay;
 
-                if (TryGetRenderPageRay(uiDocument.Resolution, ref viewport, ref worldViewProj, mousePosition, out uiRay))
-                    mouseOverElement = GetElementAtScreenPosition(rootElement, ref uiRay, ref worldViewProj, ref intersectionPoint);
+                if (TryGetDocumentRay(uiDocument.Resolution, ref viewport, ref worldViewProj, mousePosition, out uiRay))
+                    pointerOveredElement = GetElementAtScreenPosition(rootElement, ref uiRay, ref worldViewProj, ref intersectionPoint);
                 else
-                    mouseOverElement = null;
+                    pointerOveredElement = null;
             }
             
             
-            // find the common parent between current and last overred elements
-            var commonElement = FindCommonParent(mouseOverElement, lastPointerOverElement);
-
-            // disable mouse over state to previously overred hierarchy
+            // Find the common parent between current and last overed elements.
+            var commonElement = FindCommonParent(pointerOveredElement, lastPointerOverElement);
+            
+            // Disable mouse over state to previously overed hierarchy.
             var parent = lastPointerOverElement;
             while (parent != commonElement && parent != null)
             {
                 parent.RequiresMouseOverUpdate = false;
 
-                parent.MouseOverState = MouseOverState.MouseOverNone;
+                parent.PointerOverState = PointerOverState.None;
                 parent = parent.VisualParent;
             }
-
             
-            // enable mouse over state to currently overred hierarchy
-            if (mouseOverElement != null)
+            // Enable pointer over state to currently overed hierarchy.
+            if (pointerOveredElement != null)
             {
-                // the element itself
-                mouseOverElement.MouseOverState = MouseOverState.MouseOverElement;
+                // The element itself.
+                pointerOveredElement.PointerOverState = PointerOverState.Self;
 
-                // its hierarchy
-                parent = mouseOverElement.VisualParent;
+                // Its hierarchy.
+                parent = pointerOveredElement.VisualParent;
                 while (parent != null)
                 {
                     if (parent.IsHierarchyEnabled)
-                        parent.MouseOverState = MouseOverState.MouseOverChild;
+                        parent.PointerOverState = PointerOverState.Child;
 
                     parent = parent.VisualParent;
                 }
             }
             
             // update cached values
-            uiDocument.LastPointerOverElement = mouseOverElement;
+            uiDocument.LastPointerOverElement = pointerOveredElement;
             uiDocument.LastMousePosition = mousePosition;
-            return mouseOverElement;
+            return pointerOveredElement;
         }
 
         private UIElement FindCommonParent(UIElement element1, UIElement element2)
@@ -357,7 +351,7 @@ namespace Stride.UI
             return commonElement;
         }
 
-        private void ThrowEnterAndLeaveTouchEvents(UIElement currentElement, UIElement previousElement, TouchEventArgs touchEvent)
+        private void ThrowEnterAndLeavePointerEvents(UIElement currentElement, UIElement previousElement, PointerEventArgs pointerArgs)
         {
             var commonElement = FindCommonParent(currentElement, previousElement);
 
@@ -365,10 +359,10 @@ namespace Stride.UI
             var previousElementParent = previousElement;
             while (previousElementParent != commonElement && previousElementParent != null)
             {
-                if (previousElementParent.IsHierarchyEnabled && previousElementParent.IsTouched)
+                if (previousElementParent.IsHierarchyEnabled && previousElementParent.IsPointerDown)
                 {
-                    touchEvent.Handled = false; // reset 'handled' because it corresponds to another event
-                    previousElementParent.RaiseTouchLeaveEvent(touchEvent);
+                    pointerArgs.Handled = false; // reset 'handled' because it corresponds to another event
+                    previousElementParent.RaisePointerLeaveEvent(pointerArgs);
                 }
                 previousElementParent = previousElementParent.VisualParent;
             }
@@ -377,10 +371,10 @@ namespace Stride.UI
             var newElementParent = currentElement;
             while (newElementParent != commonElement && newElementParent != null)
             {
-                if (newElementParent.IsHierarchyEnabled && !newElementParent.IsTouched)
+                if (newElementParent.IsHierarchyEnabled && !newElementParent.IsPointerDown)
                 {
-                    touchEvent.Handled = false; // reset 'handled' because it corresponds to another event
-                    newElementParent.RaiseTouchEnterEvent(touchEvent);
+                    pointerArgs.Handled = false; // reset 'handled' because it corresponds to another event
+                    newElementParent.RaisePointerEnterEvent(pointerArgs);
                 }
                 newElementParent = newElementParent.VisualParent;
             }

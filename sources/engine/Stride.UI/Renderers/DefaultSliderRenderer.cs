@@ -129,7 +129,7 @@ namespace Stride.UI.Renderers
             }
 
             //draws the thumb
-            image = (slider.MouseOverState == MouseOverState.MouseOverElement ? slider.MouseOverThumbImage : slider.ThumbImage)?.GetSprite();
+            image = (slider.PointerOverState == PointerOverState.Self ? slider.MouseOverThumbImage : slider.ThumbImage)?.GetSprite();
             if (image?.Texture != null)
             {
                 var imageAxis = (int)image.Orientation;

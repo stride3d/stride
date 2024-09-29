@@ -524,10 +524,10 @@ namespace Stride.Assets.Presentation.AssetEditors.UIEditor.Game
                 if (adornerCanvas == null)
                     continue;
 
-                adornerCanvas.PreviewTouchDown += PreviewTouchDown;
-                adornerCanvas.PreviewTouchMove += PreviewTouchMove;
-                adornerCanvas.TouchMove += TouchMove;
-                adornerCanvas.TouchUp += TouchUp;
+                adornerCanvas.PreviewPointerPressed += PreviewPointerPressed;
+                adornerCanvas.PreviewPointerMove += PreviewPointerMove;
+                adornerCanvas.PointerMove += PointerMove;
+                adornerCanvas.PointerReleased += PointerReleased;
                 break;
             }
 

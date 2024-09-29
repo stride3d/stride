@@ -26,7 +26,7 @@ namespace Stride.Input
         public Vector2 AbsolutePosition => Position * Pointer.SurfaceSize;
 
         /// <summary>
-        /// Gets the normalized screen position of the pointer.
+        /// Gets the normalized screen position of the pointer. Position is normalized between [0,1]. (0,0) is the left top corner, (1,1) is the right bottom corner.
         /// </summary>
         /// <value>The position.</value>
         public Vector2 Position { get; internal set; }

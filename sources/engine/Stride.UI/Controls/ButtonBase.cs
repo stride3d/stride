@@ -65,9 +65,9 @@ namespace Stride.UI.Controls
             typeof(Button));
 
 
-        protected override void OnTouchDown(TouchEventArgs args)
+        protected override void OnPointerPressed(PointerEventArgs args)
         {
-            base.OnTouchDown(args);
+            base.OnPointerPressed(args);
 
             IsPressed = true;
 
@@ -75,9 +75,9 @@ namespace Stride.UI.Controls
                 RaiseEvent(new RoutedEventArgs(ClickEvent));
         }
 
-        protected override void OnTouchUp(TouchEventArgs args)
+        protected override void OnPointerReleased(PointerEventArgs args)
         {
-            base.OnTouchUp(args);
+            base.OnPointerReleased(args);
 
             if (IsPressed && ClickMode == ClickMode.Release)
                 RaiseEvent(new RoutedEventArgs(ClickEvent));
@@ -85,9 +85,9 @@ namespace Stride.UI.Controls
             IsPressed = false;
         }
 
-        protected override void OnTouchLeave(TouchEventArgs args)
+        protected override void OnPointerLeave(PointerEventArgs args)
         {
-            base.OnTouchLeave(args);
+            base.OnPointerLeave(args);
 
             IsPressed = false;
         }

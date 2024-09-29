@@ -71,14 +71,14 @@ namespace Stride.Assets.Presentation.AssetEditors.UIEditor.Game
         }
 
         #region Event Handlers
-        private void PreviewTouchDown(object sender, TouchEventArgs e)
+        private void PreviewPointerPressed(object sender, PointerEventArgs e)
         {
             if (!Game.Input.IsMouseButtonDown(MouseButton.Left))
                 return;
 
             // Save the current pointer position
             originWorldPosition = currentPosition = e.WorldPosition;
-            originScreenPosition = e.ScreenPosition;
+            originScreenPosition = e.Position;
 
             // No prior selection (selection is done on TouchUp)
             if (selectedAdorners.Count == 0)
@@ -115,13 +115,13 @@ namespace Stride.Assets.Presentation.AssetEditors.UIEditor.Game
             isInProgress = true;
         }
 
-        private void PreviewTouchMove(object sender, TouchEventArgs e)
+        private void PreviewPointerMove(object sender, PointerEventArgs e)
         {
             var worldPosition = e.WorldPosition;
             DoHighlightingAtPosition(ref worldPosition);
         }
 
-        private void TouchMove(object sender, TouchEventArgs e)
+        private void PointerMove(object sender, PointerEventArgs e)
         {
             // dragging state
             if (isInProgress)
@@ -134,7 +134,7 @@ namespace Stride.Assets.Presentation.AssetEditors.UIEditor.Game
                 if (!isDragging)
                 {
                     // Start dragging only if a minimum distance is reached (on the real screen, not the virtual screen).
-                    var delta = (e.ScreenPosition - originScreenPosition)*new Vector2(Game.GraphicsDevice.Presenter.BackBuffer.Width, Game.GraphicsDevice.Presenter.BackBuffer.Height);
+                    var delta = (e.Position - originScreenPosition)*new Vector2(Game.GraphicsDevice.Presenter.BackBuffer.Width, Game.GraphicsDevice.Presenter.BackBuffer.Height);
                     if (Math.Abs(delta.X) > System.Windows.SystemParameters.MinimumHorizontalDragDistance || Math.Abs(delta.Y) > System.Windows.SystemParameters.MinimumVerticalDragDistance)
                     {
                         isDragging = true;
@@ -183,7 +183,7 @@ namespace Stride.Assets.Presentation.AssetEditors.UIEditor.Game
             // TODO: special case when trying to move when there is nothing selected: should select and start moving at the same time
         }
 
-        private void TouchUp(object sender, TouchEventArgs e)
+        private void PointerReleased(object sender, PointerEventArgs e)
         {
             if (!Game.Input.IsMouseButtonReleased(MouseButton.Left))
                 return;
@@ -231,7 +231,7 @@ namespace Stride.Assets.Presentation.AssetEditors.UIEditor.Game
             }
 
             // Select the corresponding asset-side UIElement, if pointer did not move between down and up events
-            var delta = (e.ScreenPosition - originScreenPosition)*new Vector2(Game.GraphicsDevice.Presenter.BackBuffer.Width, Game.GraphicsDevice.Presenter.BackBuffer.Height);
+            var delta = (e.Position - originScreenPosition)*new Vector2(Game.GraphicsDevice.Presenter.BackBuffer.Width, Game.GraphicsDevice.Presenter.BackBuffer.Height);
             if (Math.Abs(delta.X) < System.Windows.SystemParameters.MinimumHorizontalDragDistance && Math.Abs(delta.Y) < System.Windows.SystemParameters.MinimumVerticalDragDistance)
             {
                 var additiveSelection = Game.Input.IsKeyDown(Keys.LeftCtrl) || Game.Input.IsKeyDown(Keys.RightCtrl);
