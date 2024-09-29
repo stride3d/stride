@@ -78,31 +78,19 @@ Our [Roadmap](https://doc.stride3d.net/latest/en/contributors/roadmap.html) comm
    - *Optional* (to target iOS/Android): **.NET Multi-platform App UI development** and **Android SDK setup** individual component (enabled by default). Then, in Visual Studio, go to `Tools > Android > Android SDK Manager` and install **NDK** (version 20.1+) from the `Tools` tab.
    - *Optional* (to build VSIX package): **Visual Studio extension development**
 
-### Prerequisites
-
-1. Latest [Git](https://git-scm.com/downloads) with **Large File Support** selected in the setup on the components dialog and for convenience a Git UI client like [GitExtensions](https://gitextensions.github.io/).
-2. [.NET 8.0 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/8.0)
-   - Run `dotnet --info` in a console or PowerShell window to see which versions you have installed.  
-3. [Visual Studio 2022](https://www.visualstudio.com/downloads/) with the following workloads:
-   - `.NET desktop development` with `.NET Framework 4.7.2 targeting pack` (should be enabled by default)
-   - `Desktop development with C++` with
-     - `Windows 10 SDK (10.0.18362.0)` or later version (should be enabled by default)
-     - `MSVC v143 - VS2022 C++ x64/x86 build tools (Latest)` (should be enabled by default)
-     - `C++/CLI support for v143 build tools (Latest)` **(not enabled by default)**
-   - Optional (to target iOS/Android): `.NET Multi-paltform App UI development` and `Android SDK setup` individual component (enabled by default), then in Visual Studio go to `Tools > Android > Android SDK Manager` and install `NDK` (version 20.1+) from `Tools` tab.
-   - Optional (to build VSIX package): `Visual Studio extension development`
-
 ### Build Stride
 
 1. **Clone the repository** using a Git UI client or from the command line:
    ```bash
    git lfs clone https://github.com/stride3d/stride.git
    ```
-   - **Do NOT use GitHub -> Code -> Download ZIP option**, as this won't include the LFS files.
 2. **Open the solution:**
    - Open `<StrideDir>\build\Stride.sln` with Visual Studio 2022 
    - Build `Stride.GameStudio` in the `60-Editor` solution folder (it should be the default startup project) or run it directly from Visual Studio's toolbar.
    - Optionally, open and build `Stride.Android.sln`, `Stride.iOS.sln`, etc.
+
+> [!WARNING]
+> **Do NOT use GitHub -> Code -> Download ZIP option**, as this won't include the LFS files.
 
 ### Build Stride without Visual Studio
 
