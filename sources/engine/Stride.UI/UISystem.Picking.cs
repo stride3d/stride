@@ -6,10 +6,12 @@ using System.Collections.Generic;
 using System.Linq;
 using Stride.Core.Diagnostics;
 using Stride.Core.Mathematics;
+using Stride.Engine;
 using Stride.Games;
 using Stride.Graphics;
 using Stride.Input;
 using Stride.Rendering;
+using Stride.Rendering.Compositing;
 using Stride.Rendering.UI;
 
 namespace Stride.UI
@@ -41,32 +43,45 @@ namespace Stride.UI
             
             // Prepare content required for Picking and MouseOver events
             PickingPrepare();
-            
-            foreach (var cameraSlot in sceneSystem.GraphicsCompositor.Cameras)
+
+            // In the editor the Cameras in GraphicsCompositor are not set, so this is required for selection to work in the UI editor.
+            if (sceneSystem.GraphicsCompositor.Game is SceneExternalCameraRenderer externalCameraRenderer)
             {
-                foreach (var uiDocument in documents)
+                ProcessUIDocuments(externalCameraRenderer.ExternalCamera, ref viewport, renderTarget, gameTime, ref currentPointerOveredElement);
+            }
+            else
+            {
+                foreach (var cameraSlot in sceneSystem.GraphicsCompositor.Cameras)
                 {
-                    if (!uiDocument.Enabled)
-                        continue;
-                    
-                    Matrix worldViewProjection = uiDocument.GetWorldViewProjection(cameraSlot.Camera, renderTarget);
-                    
-                    // Check if the current UI component is being picked based on the current ViewParameters (used to draw this element)
-                    using (Profiler.Begin(UIProfilerKeys.TouchEventsUpdate))
-                    {
-                        UIElement documentPointerOveredElement = null;
-                        UpdateDocumentPointerInput(uiDocument, viewport, ref worldViewProjection, gameTime, ref documentPointerOveredElement);
-                        
-                        // only update result element, when this one has a value
-                        if (documentPointerOveredElement != null)
-                            currentPointerOveredElement = documentPointerOveredElement;
-                    }
+                    ProcessUIDocuments(cameraSlot.Camera, ref viewport, renderTarget, gameTime, ref currentPointerOveredElement);
                 }
             }
             
             PickingClear();
             
             PointerOveredElement = currentPointerOveredElement;
+        }
+
+        private void ProcessUIDocuments(CameraComponent camera, ref Viewport viewport, Texture renderTarget, GameTime gameTime, ref UIElement currentPointerOveredElement)
+        {
+            foreach (var uiDocument in documents)
+            {
+                if (!uiDocument.Enabled)
+                    continue;
+                    
+                Matrix worldViewProjection = uiDocument.GetWorldViewProjection(camera, renderTarget);
+                    
+                // Check if the current UI component is being picked based on the current ViewParameters (used to draw this element)
+                using (Profiler.Begin(UIProfilerKeys.TouchEventsUpdate))
+                {
+                    UIElement documentPointerOveredElement = null;
+                    UpdateDocumentPointerInput(uiDocument, viewport, ref worldViewProjection, gameTime, ref documentPointerOveredElement);
+                        
+                    // only update result element, when this one has a value
+                    if (documentPointerOveredElement != null)
+                        currentPointerOveredElement = documentPointerOveredElement;
+                }
+            }
         }
 
         private void UpdateDocumentPointerInput(UIDocument uiDocument, Viewport viewport, ref Matrix worldViewProj, GameTime gameTime, ref UIElement elementUnderPointer)
