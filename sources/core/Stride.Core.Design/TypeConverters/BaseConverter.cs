@@ -126,7 +126,7 @@ namespace Stride.Core.TypeConverters
             var converter = TypeDescriptor.GetConverter(typeof(T));
             var strings = str.Trim().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
 
-            // Note: we explicitely box the struct so we can use reflection to set values.
+            // Note: we explicitly box the struct so we can use reflection to set values.
             object result = new TResult();
             foreach (var comp in strings)
             {
