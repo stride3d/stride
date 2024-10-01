@@ -109,7 +109,6 @@ Our [Roadmap](https://doc.stride3d.net/latest/en/contributors/roadmap.html) comm
    ```
 4. **Build using the command line:**
    - Navigate to the `/build` directory in the command prompt and run:
-   - Run:
    ```bash
    msbuild /t:Restore Stride.sln
 
