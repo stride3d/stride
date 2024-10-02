@@ -1,5 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#if WINDOWS
+
 using System;
 using Silk.NET.Core.Native;
 using Silk.NET.XAudio;
@@ -8,7 +10,7 @@ using Stride.Core.Mathematics;
 
 namespace Stride.Audio
 {
-    internal sealed class XAudio2Provider// : IAudioProvider
+    internal sealed class AudioProvider
     {
         private const int AUDIO_CHANNELS = 2;
         private const float XAUDIO2_MAX_FREQ_RATIO = 1024.0f;
@@ -17,14 +19,14 @@ namespace Stride.Audio
 
         private XAudio xAudio;
 
-        public XAudio2Provider()
+        public AudioProvider()
 		{
             xAudio = XAudio.GetApi();
         }
 
-        public unsafe XAudioBuffer BufferCreate(int maxBufferSizeBytes)
+        public unsafe AudioBuffer BufferCreate(int maxBufferSizeBytes)
         {
-            var buffer = new XAudioBuffer(maxBufferSizeBytes);
+            var buffer = new AudioBuffer(maxBufferSizeBytes);
 			//buffer.buffer.PContext = buffer;
 			return buffer;
         }
@@ -34,7 +36,7 @@ namespace Stride.Audio
             //nothing to destroy (?)
         }
 
-        public unsafe void BufferFill(XAudioBuffer buffer, nint pcm, int bufferSize, int sampleRate, bool mono)
+        public unsafe void BufferFill(AudioBuffer buffer, nint pcm, int bufferSize, int sampleRate, bool mono)
         {
             //(void)sampleRate;
 			
@@ -46,9 +48,9 @@ namespace Stride.Audio
             buffer.buffer.PAudioData = (byte*)pcm.ToPointer();
         }
 
-        public unsafe XAudioDevice? Create(string deviceName, DeviceFlags flags)
+        public unsafe Device? Create(string deviceName, DeviceFlags flags)
         {
-            var device = new XAudioDevice();
+            var device = new Device();
 
             //res.hrtf = xnHrtfApoLib && (flags & xnAudioDeviceFlagsHrtf);
 
@@ -83,16 +85,16 @@ namespace Stride.Audio
 			return device;
         }
 
-        public unsafe void Destroy(XAudioDevice device)
+        public unsafe void Destroy(Device device)
         {
             device.xAudio->StopEngine();
 			
 			device.masteringVoice->DestroyVoice();
         }
 
-        public XAudioListener ListenerCreate(XAudioDevice device)
+        public Listener ListenerCreate(Device device)
         {
-            var listener = new XAudioListener();
+            var listener = new Listener();
 			listener.device = device;
             listener.listener = null;
             return listener;
@@ -116,7 +118,7 @@ namespace Stride.Audio
 			return true;
         }
 
-        public void ListenerPush3D(XAudioListener listener, ref Vector3 pos, ref Vector3 forward, ref Vector3 up, ref Vector3 vel, ref Matrix worldTransform)
+        public void ListenerPush3D(Listener listener, ref Vector3 pos, ref Vector3 forward, ref Vector3 up, ref Vector3 vel, ref Matrix worldTransform)
         {
             listener.listener.Position= pos;
             listener.listener.Velocity= vel;
@@ -125,16 +127,16 @@ namespace Stride.Audio
             listener.worldTransform = worldTransform;
         }
 
-        public unsafe void SetMasterVolume(XAudioDevice device, float volume)
+        public unsafe void SetMasterVolume(Device device, float volume)
         {
             device.masteringVoice->SetVolume(volume,0);
         }
 
-        public unsafe XAudioSource SourceCreate(XAudioListener listener, int sampleRate, int maxNumberOfBuffers, bool mono, bool spatialized, bool streamed, bool hrtf, float hrtfDirectionFactor, HrtfEnvironment environment)
+        public unsafe Source SourceCreate(Listener listener, int sampleRate, int maxNumberOfBuffers, bool mono, bool spatialized, bool streamed, bool hrtf, float hrtfDirectionFactor, HrtfEnvironment environment)
         {
             //(void)streamed;
 
-			var source = new XAudioSource();
+			var source = new Source();
 			source.listener = listener;
 			source.sampleRate = sampleRate;
 			source.mono = mono;
@@ -160,7 +162,7 @@ namespace Stride.Audio
             }
 
 			//we could have used a tinystl vector but it did not link properly on ARM windows... so we just use an array
-			source.freeBuffers = new XAudioBuffer[maxNumberOfBuffers];
+			source.freeBuffers = new AudioBuffer[maxNumberOfBuffers];
 			source.freeBuffersMax = maxNumberOfBuffers;
 			for (int i = 0; i < maxNumberOfBuffers; i++)
 			{
@@ -241,20 +243,20 @@ namespace Stride.Audio
 			return source;
         }
 
-        public unsafe void SourceDestroy(XAudioSource source)
+        public unsafe void SourceDestroy(Source source)
         {
             source.sourceVoice->Stop(0,0);
 			source.sourceVoice->DestroyVoice();
         }
 
-        public unsafe void SourceFlushBuffers(XAudioSource source)
+        public unsafe void SourceFlushBuffers(Source source)
         {
             source.sourceVoice->FlushSourceBuffers();
         }
 
-        public XAudioBuffer? SourceGetFreeBuffer(XAudioSource source)
+        public AudioBuffer? SourceGetFreeBuffer(Source source)
         {
-			XAudioBuffer buffer = null;
+			AudioBuffer buffer = null;
 			for (int i = 0; i < source.freeBuffersMax; i++)
 			{
 				if (source.freeBuffers[i] != null)
@@ -268,7 +270,7 @@ namespace Stride.Audio
 			return buffer;
         }
 
-        public unsafe float SourceGetPosition(XAudioSource source)
+        public unsafe float SourceGetPosition(Source source)
         {
             VoiceState state;
 			source.GetState(&state);
@@ -280,19 +282,19 @@ namespace Stride.Audio
 			return (state.SamplesPlayed - (ulong)source.samplesAtBegin) / (float)source.sampleRate;
         }
 
-        public bool SourceIsPlaying(XAudioSource source)
+        public bool SourceIsPlaying(Source source)
         {
             return source.playing || source.pause;
         }
 
-        public unsafe void SourcePause(XAudioSource source)
+        public unsafe void SourcePause(Source source)
         {
             source.sourceVoice->Stop(0,0);
 			source.playing = false;
 			source.pause = true;
         }
 
-        public unsafe void SourcePlay(XAudioSource source)
+        public unsafe void SourcePlay(Source source)
         {
             source.sourceVoice->Start(0,0);
 			source.playing = true;
@@ -307,7 +309,7 @@ namespace Stride.Audio
 			source.pause = false;
         }
 
-        public unsafe void SourcePush3D(XAudioSource source, ref Vector3 pos, ref Vector3 forward, ref Vector3 up, ref Vector3 vel, ref Matrix worldTransform)
+        public unsafe void SourcePush3D(Source source, ref Vector3 pos, ref Vector3 forward, ref Vector3 up, ref Vector3 vel, ref Matrix worldTransform)
         {
             if(source.hrtf_params != null)
 			{
@@ -351,7 +353,7 @@ namespace Stride.Audio
 			}
         }
 
-        public unsafe void SourceQueueBuffer(XAudioSource source, XAudioBuffer buffer, nint pcm, int bufferSize, BufferType streamType)
+        public unsafe void SourceQueueBuffer(Source source, AudioBuffer buffer, nint pcm, int bufferSize, BufferType streamType)
         {
             //used only when streaming, to fill a buffer, often..
 			source.streamed = true;
@@ -368,7 +370,7 @@ namespace Stride.Audio
             }
         }
 
-        public unsafe void SourceSetBuffer(XAudioSource source, XAudioBuffer buffer)
+        public unsafe void SourceSetBuffer(Source source, AudioBuffer buffer)
         {
             //this function is called only when the audio source is actually fully cached in memory, so we deal only with the first buffer
             source.streamed = false;
@@ -381,12 +383,12 @@ namespace Stride.Audio
             }
         }
 
-        public unsafe void SourceSetGain(XAudioSource source, float gain)
+        public unsafe void SourceSetGain(Source source, float gain)
         {
             source.sourceVoice->SetVolume(gain,0);
         }
 
-        public unsafe void SourceSetLooping(XAudioSource source, bool looped)
+        public unsafe void SourceSetLooping(Source source, bool looped)
         {
             source.looped = looped;
 
@@ -415,7 +417,7 @@ namespace Stride.Audio
             }
         }
 
-        public unsafe void SourceSetPan(XAudioSource source, float pan)
+        public unsafe void SourceSetPan(Source source, float pan)
         {
             if (source.mono)
 			{
@@ -456,13 +458,13 @@ namespace Stride.Audio
 			}
         }
 
-        public unsafe void SourceSetPitch(XAudioSource source, float pitch)
+        public unsafe void SourceSetPitch(Source source, float pitch)
         {
             source.pitch = pitch;
 			source.sourceVoice->SetFrequencyRatio(source.dopplerPitch * source.pitch, 0);
         }
 
-        public unsafe void SourceSetRange(XAudioSource source, double startTime, double stopTime)
+        public unsafe void SourceSetRange(Source source, double startTime, double stopTime)
         {
             if(!source.streamed)
 			{
@@ -501,7 +503,7 @@ namespace Stride.Audio
 			}
         }
 
-        public unsafe void SourceStop(XAudioSource source)
+        public unsafe void SourceStop(Source source)
         {
             source.sourceVoice->Stop(0, 0);
 			source.sourceVoice->FlushSourceBuffers();
@@ -541,3 +543,4 @@ namespace Stride.Audio
         }
     }
 }
+#endif

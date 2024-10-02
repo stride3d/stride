@@ -10,7 +10,7 @@ namespace Stride.Audio;
 /// </summary>
 public class AudioLayer
 {
-    private static IAudioProvider al;
+    private static AudioProvider al;
 
     static AudioLayer()
     {
@@ -19,12 +19,7 @@ public class AudioLayer
 
     public static void Init()
     {
-        if(OperatingSystem.IsLinux() || OperatingSystem.IsMacOS() || OperatingSystem.IsIOS())
-            al = new OpenALProvider();
-        if(OperatingSystem.IsAndroid())
-            al = new OpenSLESProvider();
-        // if(OperatingSystem.IsWindows())
-        //     al = new XAudio2Provider();
+        al = new AudioProvider();
     }
 
     public static Device? Create(string deviceName, DeviceFlags flags)
