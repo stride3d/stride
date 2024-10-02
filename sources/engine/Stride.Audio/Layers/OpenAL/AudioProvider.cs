@@ -1,5 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#if LINUX || OSX 
 using System;
 using System.Runtime.InteropServices;
 using Silk.NET.OpenAL;
@@ -7,11 +8,11 @@ using Stride.Core.Mathematics;
 
 namespace Stride.Audio;
 
-internal sealed unsafe class OpenALProvider : IAudioProvider
+internal sealed unsafe class AudioProvider
 {
     private readonly ALContext alc;
     private readonly AL al;
-    public OpenALProvider()
+    public AudioProvider()
     {
         alc = ALContext.GetApi();
         al = AL.GetApi();
@@ -425,3 +426,4 @@ internal sealed unsafe class OpenALProvider : IAudioProvider
         device.DeviceLock.Unlock();
     }
 }
+#endif
