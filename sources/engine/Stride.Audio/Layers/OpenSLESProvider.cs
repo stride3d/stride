@@ -1,10 +1,11 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#if ANDROID
 using Stride.Core.Mathematics;
 
 namespace Stride.Audio;
 
-internal class OpenSLESProvider : IAudioProvider
+internal class OpenSLESProvider
 {
     public AudioBuffer BufferCreate(int maxBufferSizeBytes)
     {
@@ -151,3 +152,4 @@ internal class OpenSLESProvider : IAudioProvider
         throw new System.NotImplementedException();
     }
 }
+#endif

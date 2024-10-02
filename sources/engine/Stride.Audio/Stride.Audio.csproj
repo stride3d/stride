@@ -6,12 +6,16 @@
   </PropertyGroup>
   <Import Project="..\..\targets\Stride.props" />
   <PropertyGroup>
-    <ProductVersion>8.0.30703</ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <StridePlatformDependent>true</StridePlatformDependent>
     <StrideBuildTags>*</StrideBuildTags>
     <StrideCodeAnalysis>true</StrideCodeAnalysis>
+  </PropertyGroup>
+  <PropertyGroup>
+    <DefineConstants Condition="$([System.OperatingSystem]::IsWindows())">WINDOWS</DefineConstants>
+    <DefineConstants Condition="$([System.OperatingSystem]::IsMacOS())">OSX</DefineConstants>
+    <DefineConstants Condition="$([System.OperatingSystem]::IsLinux())">LINUX</DefineConstants>
+    <DefineConstants Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">ANDROID</DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition="'$(TargetFramework)' == '$(StrideFrameworkAndroid)'">
     <!-- <DefineConstants>STRIDE_VIDEO_FFMPEG;$(DefineConstants)</DefineConstants> -->
