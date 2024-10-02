@@ -55,7 +55,23 @@ namespace Stride.Core.AssemblyProcessor
                     ConstructorArguments = { new CustomAttributeArgument(assembly.MainModule.TypeSystem.Int32, order) }
                 });
         }
-
+        public static MethodDefinition OpenModuleConstructor(this AssemblyDefinition assembly, out Instruction returnInstruction)
+        {
+            // Get or create module static constructor
+            var voidType = assembly.MainModule.TypeSystem.Void;
+            var moduleClass = assembly.MainModule.Types.First(t => t.Name == "<Module>");
+            var staticConstructor = moduleClass.GetStaticConstructor();
+            if (staticConstructor == null)
+            {
+                staticConstructor = new MethodDefinition(".cctor",
+                                                            Mono.Cecil.MethodAttributes.Private | Mono.Cecil.MethodAttributes.HideBySig | Mono.Cecil.MethodAttributes.Static | Mono.Cecil.MethodAttributes.SpecialName | Mono.Cecil.MethodAttributes.RTSpecialName,
+                                                            voidType);
+                staticConstructor.Body.GetILProcessor().Append(Instruction.Create(OpCodes.Ret));
+                moduleClass.Methods.Add(staticConstructor);
+            }
+            returnInstruction = staticConstructor.Body.Instructions.Last();
+            return staticConstructor;
+        }
         public static TypeReference MakeGenericType(this TypeReference self, params TypeReference[] arguments)
         {
             if (self.GenericParameters.Count != arguments.Length)
