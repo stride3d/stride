@@ -128,7 +128,9 @@ namespace Stride.Audio
                 if (freeBuffer == null)
                     return false;
 
+                #if STRIDE_GRAPHICS_API_OPENGL || STRIDE_GRAPHICS_API_VULKAN
                 freeBuffers.Enqueue(freeBuffer.Value);
+                #endif
                 return true;
             }
         }

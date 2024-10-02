@@ -1,15 +1,18 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+#if STRIDE_GRAPHICS_API_DIRECT3D
 using Silk.NET.XAudio;
 
 namespace Stride.Audio;
 
-internal sealed class XAudioBuffer
+public sealed class AudioBuffer : IInitializable
 {
     internal uint length;
     internal Buffer buffer;
     internal BufferType type;
-    public XAudioBuffer(int maxBufferSizeBytes)
+    public bool Initialized => true;
+    public AudioBuffer(int maxBufferSizeBytes)
     {
         buffer = new();
         unsafe
@@ -19,3 +22,4 @@ internal sealed class XAudioBuffer
         }
     }
 }
+#endif
