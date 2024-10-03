@@ -61,7 +61,7 @@ namespace Stride.Rendering.UI
 
             rendererManager = new RendererManager(new DefaultRenderersFactory(RenderSystem.Services));
 
-            batch =  uiSystem.Batch;
+            batch = uiSystem.Batch;
         }
 
         public override void Draw(RenderDrawContext context, RenderView renderView, RenderViewStage renderViewStage, int startIndex, int endIndex)
