@@ -54,7 +54,15 @@ namespace Stride.Audio
         /// </summary>
         public void Dispose()
         {
-            xnCeltDestroy();    
+            if (encoder != null) 
+                opus_custom_encoder_destroy(encoder);
+            encoder = null;
+            if (decoder != null) 
+                opus_custom_decoder_destroy(decoder);
+            decoder = null;
+            if (mode != null) 
+                opus_custom_mode_destroy(mode);
+            mode = null;    
         }
 
         /// <summary>
@@ -70,7 +78,7 @@ namespace Stride.Audio
             fixed (short* samplesPtr = outputSamples)
             fixed (byte* bufferPtr = inputBuffer)
             {
-                return xnCeltDecodeShort(decoder, bufferPtr, inputBufferSize, samplesPtr, outputSamples.Length / Channels);
+                return opus_custom_decode(decoder, bufferPtr, inputBufferSize, samplesPtr, outputSamples.Length / Channels);
             }
         }
 
@@ -86,7 +94,7 @@ namespace Stride.Audio
             Debug.Assert((uint)inputBufferSize <= (uint)inputBuffer.Length);
             fixed (byte* bufferPtr = inputBuffer)
             {
-                return xnCeltDecodeShort(decoder, bufferPtr, inputBufferSize, outputSamples, BufferSize);
+                return opus_custom_decode(decoder, bufferPtr, inputBufferSize, outputSamples, BufferSize);
             }
         }
 
@@ -95,7 +103,7 @@ namespace Stride.Audio
         /// </summary>
         public void ResetDecoder()
         {
-            xnCeltResetDecoder(decoder);
+            opus_custom_decoder_ctl(decoder, (int)OpusRequest.ResetState);
         }
 
         /// <summary>
@@ -121,7 +129,7 @@ namespace Stride.Audio
             fixed (short* samplesPtr = audioSamples)
             fixed (byte* bufferPtr = outputBuffer)
             {
-                return xnCeltEncodeShort(encoder, samplesPtr, audioSamples.Length / Channels, bufferPtr, outputBuffer.Length);
+                return opus_custom_encode(encoder, samplesPtr, audioSamples.Length / Channels, bufferPtr, outputBuffer.Length);
             }
         }
 
@@ -137,7 +145,7 @@ namespace Stride.Audio
             fixed (float* samplesPtr = outputSamples)
             fixed (byte* bufferPtr = inputBuffer)
             {
-                return xnCeltDecodeFloat(decoder, bufferPtr, inputBufferSize, samplesPtr, outputSamples.Length / Channels);
+                return opus_custom_decode_float(decoder, bufferPtr, inputBufferSize, samplesPtr, outputSamples.Length / Channels);
             }
         }
 
@@ -152,7 +160,7 @@ namespace Stride.Audio
             fixed (float* samplesPtr = audioSamples)
             fixed (byte* bufferPtr = outputBuffer)
             {
-                return xnCeltEncodeFloat(encoder, samplesPtr, audioSamples.Length / Channels, bufferPtr, outputBuffer.Length);
+                return opus_custom_encode_float(encoder, samplesPtr, audioSamples.Length / Channels, bufferPtr, outputBuffer.Length);
             }
         }
 
@@ -205,47 +213,9 @@ namespace Stride.Audio
         [DllImport("opus", CallingConvention = CallingConvention.Cdecl)]
         private static extern int opus_custom_decode(OpusCustomDecoder* decoder, byte* inputBuffer, int inputBufferSize, short* outputBuffer, int numberOfOutputSamples);
 
-        private void xnCeltDestroy()
-        {
-            if (encoder != null) 
-                opus_custom_encoder_destroy(encoder);
-            encoder = null;
-            if (decoder != null) 
-                opus_custom_decoder_destroy(decoder);
-            decoder = null;
-            if (mode != null) 
-                opus_custom_mode_destroy(mode);
-            mode = null;
-        }
-
-        private static int xnCeltResetDecoder(OpusCustomDecoder* decoder)
-        {
-            return opus_custom_decoder_ctl(decoder, (int)OpusRequest.ResetState);
-        }
-
         private static int xnCeltGetDecoderSampleDelay(OpusCustomDecoder* decoder, ref int delay)
         {
             return opus_custom_decoder_ctl(decoder, (int)OpusRequest.LookAhead , delay);
-        }
-
-        private static unsafe int xnCeltEncodeFloat(OpusCustomEncoder* encoder, float* inputSamples, int numberOfInputSamples, byte* outputBuffer, int maxOutputSize)
-        {
-            return opus_custom_encode_float(encoder, inputSamples, numberOfInputSamples, outputBuffer, maxOutputSize);
-        }
-
-        private static unsafe int xnCeltDecodeFloat(OpusCustomDecoder* decoder, byte* inputBuffer, int inputBufferSize, float* outputBuffer, int numberOfOutputSamples)
-        {
-            return opus_custom_decode_float(decoder, inputBuffer, inputBufferSize, outputBuffer, numberOfOutputSamples);
-        }
-
-        private static unsafe int xnCeltEncodeShort(OpusCustomEncoder* encoder, short* inputSamples, int numberOfInputSamples, byte* outputBuffer, int maxOutputSize)
-        {
-            return opus_custom_encode(encoder, inputSamples, numberOfInputSamples, outputBuffer, maxOutputSize);
-        }
-
-        private static unsafe int xnCeltDecodeShort(OpusCustomDecoder* decoder, byte* inputBuffer, int inputBufferSize, short* outputBuffer, int numberOfOutputSamples)
-        {
-            return opus_custom_decode(decoder, inputBuffer, inputBufferSize, outputBuffer, numberOfOutputSamples);
         }
     }
 
