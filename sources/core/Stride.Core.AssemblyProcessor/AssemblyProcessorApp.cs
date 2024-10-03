@@ -211,12 +211,6 @@ namespace Stride.Core.AssemblyProcessor
                     processors.Add(new GenerateUserDocumentationProcessor(DocumentationFile));
                 }
 
-
-
-                if (ModuleInitializer)
-                {
-                    // processors.Add(new ModuleInitializerProcessor());
-                }
                 if (SerializationAssembly)
                 {
                     processors.Add(new AssemblyScanProcessor());
@@ -225,7 +219,7 @@ namespace Stride.Core.AssemblyProcessor
                 {
                     processors.Add(new SerializationProcessor());
                 }
-                processors.Add(new InitLocalsProcessor());
+
                 processors.Add(new DispatcherProcessor());
 
                 // Check if there is already a AssemblyProcessedAttribute (in which case we can skip processing, it has already been done).
