@@ -31,14 +31,21 @@ public class EffectClass(TextLocation info) : Node(info)
 
 public abstract class EffectStatement(TextLocation info) : Node(info);
 
-public class MixinCompose(SDSL.AST.Identifier name, TextLocation info) : EffectStatement(info)
+public class MixinUse(SDSL.AST.ShaderMixin mixin, TextLocation info) : EffectStatement(info)
 {
-    public SDSL.AST.Identifier MixinName { get; set; } = name;
+    public SDSL.AST.ShaderMixin MixinName { get; set; } = mixin;
 }
 
-public class ComposeMixin(SDSL.AST.Identifier name, TextLocation info) : EffectStatement(info)
+public abstract class Composable();
+
+public class ComposeMixin(SDSL.AST.ShaderMixin mixin, TextLocation info) : EffectStatement(info)
 {
-    public SDSL.AST.Identifier MixinName { get; set; } = name;
+    public SDSL.AST.ShaderMixin MixinName { get; set; } = mixin;
+}
+
+public class ComposeParams(SDSL.AST.ShaderMixin mixin, TextLocation info) : EffectStatement(info)
+{
+    public SDSL.AST.ShaderMixin MixinName { get; set; } = mixin;
 }
 public class UsingParams(SDSL.AST.Identifier name, TextLocation info) : EffectStatement(info)
 {
