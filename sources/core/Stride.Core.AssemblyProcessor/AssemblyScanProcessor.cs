@@ -74,13 +74,12 @@ namespace Stride.Core.AssemblyProcessor
                 var moduleConstructor = assembly.OpenModuleConstructor(out returnInstruction);
 
                 // Get the IL processor of the module constructor
-                var ilProcessor = moduleConstructor.Body.GetILProcessor();
+                var il = moduleConstructor.Body.GetILProcessor();
+
 
                 // Create the call to Initialize method
                 var initializeMethodReference = assembly.MainModule.ImportReference(initializeMethod);
-                var callInitializeInstruction = ilProcessor.Create(OpCodes.Call, initializeMethodReference);
-
-
+                var callInitializeInstruction = il.Create(OpCodes.Call, initializeMethodReference);
 
                 var mscorlibAssembly = CecilExtensions.FindCorlibAssembly(assembly);
                 var collectionAssembly = CecilExtensions.FindCollectionsAssembly(assembly);
@@ -138,8 +137,8 @@ namespace Stride.Core.AssemblyProcessor
 
                 initializeMethodIL.Emit(OpCodes.Ret);
 
-                // Insert the call at the beginning of the method body
-                ilProcessor.InsertBefore(moduleConstructor.Body.Instructions.First(), callInitializeInstruction);
+                il.InsertBefore(moduleConstructor.Body.Instructions.First(), callInitializeInstruction);
+
                 //var assemblyScanCodeGenerator = new AssemblyScanCodeGenerator(assembly, registry);
                 //sourceCodeRegisterAction(assemblyScanCodeGenerator.TransformText(), "AssemblyScan");
             }
