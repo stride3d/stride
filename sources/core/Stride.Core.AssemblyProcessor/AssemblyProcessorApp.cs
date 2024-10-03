@@ -211,15 +211,15 @@ namespace Stride.Core.AssemblyProcessor
                     processors.Add(new GenerateUserDocumentationProcessor(DocumentationFile));
                 }
 
-                if (SerializationAssembly)
-                {
-                    processors.Add(new AssemblyScanProcessor());
-                    
-                }
+
 
                 if (ModuleInitializer)
                 {
-                    processors.Add(new ModuleInitializerProcessor());
+                    // processors.Add(new ModuleInitializerProcessor());
+                }
+                if (SerializationAssembly)
+                {
+                    processors.Add(new AssemblyScanProcessor());
                 }
                 if (SerializationAssembly)
                 {

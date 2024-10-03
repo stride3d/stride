@@ -537,7 +537,7 @@ namespace Stride.Core.AssemblyProcessor
                 }
             });
             // Insert the call at the beginning of the method body
-            System.Diagnostics.Debugger.Launch();
+            //System.Diagnostics.Debugger.Launch();
             il.InsertBefore(moduleConstructor.Body.Instructions.Last(), callInitializeInstruction);
 
             serializationHash = hash.ComputeHash();

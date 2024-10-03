@@ -29,6 +29,12 @@ internal static class WellKnownReferences
         return compilation.GetTypeByMetadataName("Stride.Core.DataContractAttribute");
     }
 
+    public static INamedTypeSymbol? ModuleInitializerAttribute(Compilation compilation)
+    {
+        return compilation.GetTypeByMetadataName(ModuleInitializerAttributeName);
+    }
+    public const string ModuleInitializerAttributeName = "Stride.Core.ModuleInitializerAttribute";
+
     public static bool HasAttribute(this ISymbol symbol, INamedTypeSymbol attribute)
     {
         if (symbol.GetAttributes().Any(attr => attr.AttributeClass?.OriginalDefinition.Equals(attribute, SymbolEqualityComparer.Default) ?? false))
