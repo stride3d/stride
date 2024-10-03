@@ -21,8 +21,6 @@ namespace Stride.Audio
         private OpusCustomMode* mode;
         private OpusCustomEncoder* encoder;
         private OpusCustomDecoder* decoder;
-        
-        private static readonly int OPUS_RESET_STATE = 4028;
 
         static Celt()
         {
