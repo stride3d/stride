@@ -4,14 +4,13 @@
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using System.Security;
 
 namespace Stride.Audio
 {
     /// <summary>
     /// Wrapper around Celt
     /// </summary>
-    internal class Celt : IDisposable
+    internal unsafe class Celt : IDisposable
     {
         public int SampleRate { get; set; }
 
@@ -19,7 +18,11 @@ namespace Stride.Audio
 
         public int Channels { get; set; }
 
-        private IntPtr celtPtr;
+        private OpusCustomMode* mode;
+        private OpusCustomEncoder* encoder;
+        private OpusCustomDecoder* decoder;
+        
+        private static readonly int OPUS_RESET_STATE = 4028;
 
         static Celt()
         {
@@ -38,8 +41,8 @@ namespace Stride.Audio
             SampleRate = sampleRate;
             BufferSize = bufferSize;
             Channels = channels;
-            celtPtr = xnCeltCreate(sampleRate, bufferSize, channels, decoderOnly);
-            if (celtPtr == IntPtr.Zero)
+            var result = xnCeltCreate(sampleRate, bufferSize, channels, decoderOnly);
+            if (result == false)
             {
                 throw new Exception("Failed to create an instance of the celt encoder/decoder.");
             }
@@ -51,11 +54,7 @@ namespace Stride.Audio
         /// </summary>
         public void Dispose()
         {
-            if (celtPtr != IntPtr.Zero)
-            {
-                xnCeltDestroy(celtPtr);
-                celtPtr = IntPtr.Zero;
-            }
+            xnCeltDestroy();    
         }
 
         /// <summary>
@@ -71,7 +70,7 @@ namespace Stride.Audio
             fixed (short* samplesPtr = outputSamples)
             fixed (byte* bufferPtr = inputBuffer)
             {
-                return xnCeltDecodeShort(celtPtr, bufferPtr, inputBufferSize, samplesPtr, outputSamples.Length / Channels);
+                return xnCeltDecodeShort(decoder, bufferPtr, inputBufferSize, samplesPtr, outputSamples.Length / Channels);
             }
         }
 
@@ -87,7 +86,7 @@ namespace Stride.Audio
             Debug.Assert((uint)inputBufferSize <= (uint)inputBuffer.Length);
             fixed (byte* bufferPtr = inputBuffer)
             {
-                return xnCeltDecodeShort(celtPtr, bufferPtr, inputBufferSize, outputSamples, BufferSize);
+                return xnCeltDecodeShort(decoder, bufferPtr, inputBufferSize, outputSamples, BufferSize);
             }
         }
 
@@ -96,7 +95,7 @@ namespace Stride.Audio
         /// </summary>
         public void ResetDecoder()
         {
-            xnCeltResetDecoder(celtPtr);
+            xnCeltResetDecoder(decoder);
         }
 
         /// <summary>
@@ -106,7 +105,7 @@ namespace Stride.Audio
         public int GetDecoderSampleDelay()
         {
             var delay = 0;
-            if (xnCeltGetDecoderSampleDelay(celtPtr, ref delay) != 0)
+            if (xnCeltGetDecoderSampleDelay(decoder, ref delay) != 0)
                 delay = 0;
             return delay;
         }
@@ -122,7 +121,7 @@ namespace Stride.Audio
             fixed (short* samplesPtr = audioSamples)
             fixed (byte* bufferPtr = outputBuffer)
             {
-                return xnCeltEncodeShort(celtPtr, samplesPtr, audioSamples.Length / Channels, bufferPtr, outputBuffer.Length);
+                return xnCeltEncodeShort(encoder, samplesPtr, audioSamples.Length / Channels, bufferPtr, outputBuffer.Length);
             }
         }
 
@@ -138,7 +137,7 @@ namespace Stride.Audio
             fixed (float* samplesPtr = outputSamples)
             fixed (byte* bufferPtr = inputBuffer)
             {
-                return xnCeltDecodeFloat(celtPtr, bufferPtr, inputBufferSize, samplesPtr, outputSamples.Length / Channels);
+                return xnCeltDecodeFloat(decoder, bufferPtr, inputBufferSize, samplesPtr, outputSamples.Length / Channels);
             }
         }
 
@@ -153,40 +152,118 @@ namespace Stride.Audio
             fixed (float* samplesPtr = audioSamples)
             fixed (byte* bufferPtr = outputBuffer)
             {
-                return xnCeltEncodeFloat(celtPtr, samplesPtr, audioSamples.Length / Channels, bufferPtr, outputBuffer.Length);
+                return xnCeltEncodeFloat(encoder, samplesPtr, audioSamples.Length / Channels, bufferPtr, outputBuffer.Length);
             }
         }
 
-        [SuppressUnmanagedCodeSecurity]
-        [DllImport(NativeInvoke.Library, CallingConvention = CallingConvention.Cdecl)]
-        private static extern IntPtr xnCeltCreate(int sampleRate, int bufferSize, int channels, bool decoderOnly);
+        private bool xnCeltCreate(int sampleRate, int bufferSize, int channels, bool decoderOnly)
+        {
+            mode = opus_custom_mode_create(sampleRate, bufferSize, null);
+            if (mode == null) return false;
 
-        [SuppressUnmanagedCodeSecurity]
-        [DllImport(NativeInvoke.Library, CallingConvention = CallingConvention.Cdecl)]
-        private static extern void xnCeltDestroy(IntPtr celt);
+            decoder = opus_custom_decoder_create(mode, channels, null);
+            if (decoder == null) return false;
 
-        [SuppressUnmanagedCodeSecurity]
-        [DllImport(NativeInvoke.Library, CallingConvention = CallingConvention.Cdecl)]
-        private static extern int xnCeltResetDecoder(IntPtr celt);
+            if (!decoderOnly)
+            {
+                encoder = opus_custom_encoder_create(mode, channels, null);
+                if (encoder  == null) return false;
+            }
+            return true;
+        }
 
-        [SuppressUnmanagedCodeSecurity]
-        [DllImport(NativeInvoke.Library, CallingConvention = CallingConvention.Cdecl)]
-        private static extern int xnCeltGetDecoderSampleDelay(IntPtr celt, ref int delay);
+        [DllImport("opus", CallingConvention = CallingConvention.Cdecl)]
+        private static extern OpusCustomEncoder* opus_custom_encoder_create(OpusCustomMode* mode, int channels, int* error);
 
-        [SuppressUnmanagedCodeSecurity]
-        [DllImport(NativeInvoke.Library, CallingConvention = CallingConvention.Cdecl)]
-        private static extern unsafe int xnCeltEncodeFloat(IntPtr celt, float* inputSamples, int numberOfInputSamples, byte* outputBuffer, int maxOutputSize);
+        [DllImport("opus", CallingConvention = CallingConvention.Cdecl)]
+        private static extern OpusCustomDecoder* opus_custom_decoder_create(OpusCustomMode* mode, int channels, int* error);
 
-        [SuppressUnmanagedCodeSecurity]
-        [DllImport(NativeInvoke.Library, CallingConvention = CallingConvention.Cdecl)]
-        private static extern unsafe int xnCeltDecodeFloat(IntPtr celt, byte* inputBuffer, int inputBufferSize, float* outputBuffer, int numberOfOutputSamples);
+        [DllImport("opus", CallingConvention = CallingConvention.Cdecl)]
+        private static extern OpusCustomMode* opus_custom_mode_create(int sampleRate, int bufferSize, int* error);
 
-        [SuppressUnmanagedCodeSecurity]
-        [DllImport(NativeInvoke.Library, CallingConvention = CallingConvention.Cdecl)]
-        private static extern unsafe int xnCeltEncodeShort(IntPtr celt, short* inputSamples, int numberOfInputSamples, byte* outputBuffer, int maxOutputSize);
+        [DllImport("opus", CallingConvention = CallingConvention.Cdecl)]
+        private static extern int opus_custom_decoder_ctl(OpusCustomDecoder* decoder, int request, params nint[] args);
 
-        [SuppressUnmanagedCodeSecurity]
-        [DllImport(NativeInvoke.Library, CallingConvention = CallingConvention.Cdecl)]
-        private static extern unsafe int xnCeltDecodeShort(IntPtr celt, byte* inputBuffer, int inputBufferSize, short* outputBuffer, int numberOfOutputSamples);
+        [DllImport("opus", CallingConvention = CallingConvention.Cdecl)]
+        private static extern void opus_custom_encoder_destroy(OpusCustomEncoder* encoder);
+        
+        [DllImport("opus", CallingConvention = CallingConvention.Cdecl)]
+        private static extern void opus_custom_decoder_destroy(OpusCustomDecoder* encoder);
+
+        [DllImport("opus", CallingConvention = CallingConvention.Cdecl)]
+        private static extern void opus_custom_mode_destroy(OpusCustomMode* encoder);
+
+        [DllImport("opus", CallingConvention = CallingConvention.Cdecl)]
+        private static extern int opus_custom_encode_float(OpusCustomEncoder* encoder, float* inputSamples, int numberOfInputSamples, byte* outputBuffer, int maxOutputSize);
+
+        [DllImport("opus", CallingConvention = CallingConvention.Cdecl)]
+        private static extern int opus_custom_decode_float(OpusCustomDecoder* decoder, byte* inputBuffer, int inputBufferSize, float* outputBuffer, int numberOfOutputSamples);
+
+        [DllImport("opus", CallingConvention = CallingConvention.Cdecl)]
+        private static extern int opus_custom_encode(OpusCustomEncoder* encoder, short* inputSamples, int numberOfInputSamples, byte* outputBuffer, int maxOutputSize);
+        
+        [DllImport("opus", CallingConvention = CallingConvention.Cdecl)]
+        private static extern int opus_custom_decode(OpusCustomDecoder* decoder, byte* inputBuffer, int inputBufferSize, short* outputBuffer, int numberOfOutputSamples);
+
+        private void xnCeltDestroy()
+        {
+            if (encoder != null) 
+                opus_custom_encoder_destroy(encoder);
+            encoder = null;
+            if (decoder != null) 
+                opus_custom_decoder_destroy(decoder);
+            decoder = null;
+            if (mode != null) 
+                opus_custom_mode_destroy(mode);
+            mode = null;
+        }
+
+        private static int xnCeltResetDecoder(OpusCustomDecoder* decoder)
+        {
+            return opus_custom_decoder_ctl(decoder, (int)OpusRequest.ResetState);
+        }
+
+        private static int xnCeltGetDecoderSampleDelay(OpusCustomDecoder* decoder, ref int delay)
+        {
+            return opus_custom_decoder_ctl(decoder, (int)OpusRequest.LookAhead , delay);
+        }
+
+        private static unsafe int xnCeltEncodeFloat(OpusCustomEncoder* encoder, float* inputSamples, int numberOfInputSamples, byte* outputBuffer, int maxOutputSize)
+        {
+            return opus_custom_encode_float(encoder, inputSamples, numberOfInputSamples, outputBuffer, maxOutputSize);
+        }
+
+        private static unsafe int xnCeltDecodeFloat(OpusCustomDecoder* decoder, byte* inputBuffer, int inputBufferSize, float* outputBuffer, int numberOfOutputSamples)
+        {
+            return opus_custom_decode_float(decoder, inputBuffer, inputBufferSize, outputBuffer, numberOfOutputSamples);
+        }
+
+        private static unsafe int xnCeltEncodeShort(OpusCustomEncoder* encoder, short* inputSamples, int numberOfInputSamples, byte* outputBuffer, int maxOutputSize)
+        {
+            return opus_custom_encode(encoder, inputSamples, numberOfInputSamples, outputBuffer, maxOutputSize);
+        }
+
+        private static unsafe int xnCeltDecodeShort(OpusCustomDecoder* decoder, byte* inputBuffer, int inputBufferSize, short* outputBuffer, int numberOfOutputSamples)
+        {
+            return opus_custom_decode(decoder, inputBuffer, inputBufferSize, outputBuffer, numberOfOutputSamples);
+        }
+    }
+
+    internal enum OpusRequest
+    {
+        LookAhead = 4027,
+        ResetState = 4028
+    }
+
+    internal class OpusCustomEncoder
+    {
+    }
+
+    internal class OpusCustomDecoder
+    {
+    }
+
+    internal class OpusCustomMode
+    {
     }
 }
