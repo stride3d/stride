@@ -130,12 +130,12 @@ namespace Stride.UI
             if (renderContext == null)
                 renderContext = RenderContext.GetShared(Services);
             
-            Pick(gameTime);
+            UpdatePointerInput();
 
             UpdateKeyEvents();
         }
 
-        private partial void Pick(GameTime gameTime);
+        private partial void UpdatePointerInput();
 
         private void UpdateKeyEvents()
         {

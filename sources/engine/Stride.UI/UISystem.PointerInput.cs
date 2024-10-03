@@ -7,7 +7,6 @@ using System.Linq;
 using Stride.Core.Diagnostics;
 using Stride.Core.Mathematics;
 using Stride.Engine;
-using Stride.Games;
 using Stride.Graphics;
 using Stride.Input;
 using Stride.Rendering;
@@ -31,38 +30,42 @@ namespace Stride.UI
         /// </summary>
         public UIElement PointerOveredElement { get; internal set; }
 
-        private partial void Pick(GameTime gameTime)
+        private partial void UpdatePointerInput()
         {
             if (renderContext == null || sceneSystem == null || sceneSystem.GraphicsCompositor == null)
                 return;
 
             Texture renderTarget = renderContext.GraphicsDevice.Presenter.BackBuffer;
-            // TODO: Not sure if this would support VR. If it doesn't, look at ForwardRenderer.DrawCore for how to (potentially). 
+            
+            // TODO: Not sure if this supports VR. Update comment after testing. If it doesn't, look at ForwardRenderer.DrawCore for how to (potentially). 
             Viewport viewport = renderContext.ViewportState.Viewport0;
+            
             UIElement currentPointerOveredElement = null;
             
-            // Prepare content required for Picking and MouseOver events
-            PickingPrepare();
+            // Compact all the pointer events that happened since last frame to avoid performing useless hit tests.
+            CompactPointerEvents();
 
             // In the editor the Cameras in GraphicsCompositor are not set, so this is required for selection to work in the UI editor.
             if (sceneSystem.GraphicsCompositor.Game is SceneExternalCameraRenderer externalCameraRenderer)
             {
-                ProcessUIDocuments(externalCameraRenderer.ExternalCamera, ref viewport, renderTarget, gameTime, ref currentPointerOveredElement);
+                ProcessUIDocuments(externalCameraRenderer.ExternalCamera, ref viewport, renderTarget, ref currentPointerOveredElement);
             }
             else
             {
+                // Handle input on the UI for each camera used in the scene (doing hit tests from the perspective of each camera).
                 foreach (var cameraSlot in sceneSystem.GraphicsCompositor.Cameras)
                 {
-                    ProcessUIDocuments(cameraSlot.Camera, ref viewport, renderTarget, gameTime, ref currentPointerOveredElement);
+                    ProcessUIDocuments(cameraSlot.Camera, ref viewport, renderTarget, ref currentPointerOveredElement);
                 }
             }
             
-            PickingClear();
+            // clear the list of compacted pointer events of time frame
+            ClearPointerEvents();
             
             PointerOveredElement = currentPointerOveredElement;
         }
 
-        private void ProcessUIDocuments(CameraComponent camera, ref Viewport viewport, Texture renderTarget, GameTime gameTime, ref UIElement currentPointerOveredElement)
+        private void ProcessUIDocuments(CameraComponent camera, ref Viewport viewport, Texture renderTarget, ref UIElement currentPointerOveredElement)
         {
             foreach (var uiDocument in documents)
             {
@@ -75,7 +78,7 @@ namespace Stride.UI
                 using (Profiler.Begin(UIProfilerKeys.TouchEventsUpdate))
                 {
                     UIElement documentPointerOveredElement = null;
-                    UpdateDocumentPointerInput(uiDocument, viewport, ref worldViewProjection, gameTime, ref documentPointerOveredElement);
+                    UpdateDocumentPointerInput(uiDocument, viewport, ref worldViewProjection, ref documentPointerOveredElement);
                         
                     // only update result element, when this one has a value
                     if (documentPointerOveredElement != null)
@@ -84,7 +87,7 @@ namespace Stride.UI
             }
         }
 
-        private void UpdateDocumentPointerInput(UIDocument uiDocument, Viewport viewport, ref Matrix worldViewProj, GameTime gameTime, ref UIElement elementUnderPointer)
+        private void UpdateDocumentPointerInput(UIDocument uiDocument, Viewport viewport, ref Matrix worldViewProj, ref UIElement elementUnderPointer)
         {
             if (uiDocument.Page?.RootElement == null)
                 return;
@@ -93,19 +96,7 @@ namespace Stride.UI
             inverseZViewProj.Row3 = -inverseZViewProj.Row3;
 
             elementUnderPointer = UpdatePointerOver(uiDocument, ref viewport, ref inverseZViewProj);
-            UpdatePointerEvents(uiDocument, ref viewport, ref inverseZViewProj, gameTime);
-        }
-
-        private void PickingPrepare()
-        {
-            // compact all the pointer events that happened since last frame to avoid performing useless hit tests.
-            CompactPointerEvents();
-        }
-        
-        private void PickingClear()
-        {
-            // clear the list of compacted pointer events of time frame
-            ClearPointerEvents();
+            UpdatePointerEvents(uiDocument, ref viewport, ref inverseZViewProj);
         }
 
         private void CompactPointerEvents()
@@ -148,7 +139,7 @@ namespace Stride.UI
         /// <param name="resolution">The bounds to test within</param>
         /// <param name="viewport">The <see cref="Viewport"/> in which the component is being rendered</param>
         /// <param name="worldViewProj"></param>
-        /// <param name="screenPosition">The position of the lick on the screen in normalized (0..1, 0..1) range</param>
+        /// <param name="screenPosition">The position on the screen in normalized (0..1, 0..1) range</param>
         /// <param name="uiRay"><see cref="Ray"/> from the click in object space of the ui component in (-Resolution.X/2 .. Resolution.X/2, -Resolution.Y/2 .. Resolution.Y/2) range</param>
         /// <returns><c>true</c> when the screen point of the ray would be within the bounds of the UI document; otherwise, <c>false</c>.</returns>
         private bool TryGetDocumentRay(Vector3 resolution, ref Viewport viewport, ref Matrix worldViewProj, Vector2 screenPosition, out Ray uiRay)
@@ -157,10 +148,10 @@ namespace Stride.UI
 
             // TODO XK-3367 This only works for a single view
 
-            // Get a ray in object (RenderUIElement) space
+            // Get a ray in object (UIDocument) space
             var ray = GetWorldRay(ref viewport, screenPosition, ref worldViewProj);
 
-            // If the screen point is outside the canvas ignore any further testing
+            // If the screen point is outside the document ignore any further testing.
             var dist = -ray.Position.Z / ray.Direction.Z;
             if (Math.Abs(ray.Position.X + ray.Direction.X * dist) > resolution.X * 0.5f ||
                 Math.Abs(ray.Position.Y + ray.Direction.Y * dist) > resolution.Y * 0.5f)
@@ -171,11 +162,11 @@ namespace Stride.UI
         }
         
         /// <summary>
-        /// Creates a ray in object space based on a screen position and a previously rendered object's WorldViewProjection matrix
+        /// Creates a ray in object space based on a screen position and a WorldViewProjection matrix
         /// </summary>
-        /// <param name="viewport">The viewport in which the object was rendered</param>
-        /// <param name="screenPos">The click position on screen in normalized (0..1, 0..1) range</param>
-        /// <param name="worldViewProj">The WorldViewProjection matrix with which the object was last rendered in the view</param>
+        /// <param name="viewport">The viewport used to transform the screen position to a ray.</param>
+        /// <param name="screenPos">The position on screen in normalized (0..1, 0..1) range</param>
+        /// <param name="worldViewProj">The WorldViewProjection matrix of the UIDocument for the current camera.</param>
         /// <returns></returns>
         private Ray GetWorldRay(ref Viewport viewport, Vector2 screenPos, ref Matrix worldViewProj)
         {
@@ -194,7 +185,7 @@ namespace Stride.UI
             return uiRay;
         }
 
-        private void UpdatePointerEvents(UIDocument uiDocument, ref Viewport viewport, ref Matrix worldViewProj, GameTime gameTime)
+        private void UpdatePointerEvents(UIDocument uiDocument, ref Viewport viewport, ref Matrix worldViewProj)
         {
             var rootElement = uiDocument.Page.RootElement;
             var intersectionPoint = Vector3.Zero;
@@ -207,8 +198,6 @@ namespace Stride.UI
                 var lastTouchedElement = uiDocument.LastTouchedElement;
                 if (lastTouchedElement == null && pointerEvent.EventType != PointerEventType.Pressed)
                     continue;
-
-                var time = gameTime.Total;
 
                 var currentTouchPosition = pointerEvent.Position;
                 var currentTouchedElement = lastTouchedElement;
@@ -225,7 +214,8 @@ namespace Stride.UI
 
                 if (pointerEvent.EventType == PointerEventType.Pressed || pointerEvent.EventType == PointerEventType.Released)
                     uiDocument.LastIntersectionPoint = intersectionPoint;
-
+                
+                // TODO: Add RoutedEventArgs pooling to avoid allocation every event (like every mouse move).
                 var uiPointerEvent = new PointerEventArgs()
                 {
                     Device = pointerEvent.Device,
@@ -289,7 +279,7 @@ namespace Stride.UI
 
         private UIElement UpdatePointerOver(UIDocument uiDocument, ref Viewport viewport, ref Matrix worldViewProj)
         {
-            if (input == null || !input.HasMouse)
+            if (input == null || !input.HasMouse) // no input for thumbnails
                 return null;
 
             var intersectionPoint = Vector3.Zero;
@@ -299,11 +289,11 @@ namespace Stride.UI
 
             UIElement pointerOveredElement = lastPointerOverElement;
             
-            // determine currently overred element.
+            // Determine currently overed element.
             if (mousePosition != uiDocument.LastMousePosition || (lastPointerOverElement?.RequiresMouseOverUpdate ?? false))
             {
                 Ray uiRay;
-
+                
                 if (TryGetDocumentRay(uiDocument.Resolution, ref viewport, ref worldViewProj, mousePosition, out uiRay))
                     pointerOveredElement = GetElementAtScreenPosition(rootElement, ref uiRay, ref worldViewProj, ref intersectionPoint);
                 else
@@ -394,21 +384,23 @@ namespace Stride.UI
                 newElementParent = newElementParent.VisualParent;
             }
         }
+        
+        // TODO Refactor static utility methods to be more user friendly.
 
         /// <summary>
-        /// Gets the element with which the clickRay intersects, or null if none is found
+        /// Gets the element with which the ray intersects, or null if none is found
         /// </summary>
         /// <param name="rootElement">The root <see cref="UIElement"/> from which it should test</param>
-        /// <param name="clickRay"><see cref="Ray"/> from the click in object space of the ui component in (-Resolution.X/2 .. Resolution.X/2, -Resolution.Y/2 .. Resolution.Y/2) range</param>
+        /// <param name="uiRay"><see cref="Ray"/> from the point in object space of the ui component in (-Resolution.X/2 .. Resolution.X/2, -Resolution.Y/2 .. Resolution.Y/2) range</param>
         /// <param name="worldViewProj"></param>
         /// <param name="intersectionPoint">Intersection point between the ray and the element</param>
         /// <returns>The <see cref="UIElement"/> with which the ray intersects</returns>
-        public static UIElement GetElementAtScreenPosition(UIElement rootElement, ref Ray clickRay, ref Matrix worldViewProj, ref Vector3 intersectionPoint)
+        public static UIElement GetElementAtScreenPosition(UIElement rootElement, ref Ray uiRay, ref Matrix worldViewProj, ref Vector3 intersectionPoint)
         {
             UIElement clickedElement = null;
             var smallestDepth = float.PositiveInfinity;
             var highestDepthBias = -1.0f;
-            PerformRecursiveHitTest(rootElement, ref clickRay, ref worldViewProj, ref clickedElement, ref intersectionPoint, ref smallestDepth, ref highestDepthBias);
+            PerformRecursiveHitTest(rootElement, ref uiRay, ref worldViewProj, ref clickedElement, ref intersectionPoint, ref smallestDepth, ref highestDepthBias);
 
             return clickedElement;
         }

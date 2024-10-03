@@ -8,6 +8,9 @@ using Stride.UI.Events;
 
 namespace Stride.UI;
 
+/// <summary>
+/// Routed event arguments associated with a pointer event.
+/// </summary>
 public class PointerEventArgs : RoutedEventArgs
 {
     // Pointer properties... 
