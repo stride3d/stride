@@ -194,8 +194,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.ConnectionRouter", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.EffectCompilerServer", "..\sources\tools\Stride.EffectCompilerServer\Stride.EffectCompilerServer.csproj", "{E25E7778-0B2F-4A0B-BCD6-1DE95320B531}"
 EndProject
-Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Stride.PrivacyPolicy", "..\sources\editor\Stride.PrivacyPolicy\Stride.PrivacyPolicy.shproj", "{950BADD0-AD5A-4F58-87EC-4ADAECBEA89B}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.SpriteStudio.Offline", "..\sources\engine\Stride.SpriteStudio.Offline\Stride.SpriteStudio.Offline.csproj", "{63562B0A-E501-42C2-97BB-13D3AD3A7DB4}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.SpriteStudio.Runtime", "..\sources\engine\Stride.SpriteStudio.Runtime\Stride.SpriteStudio.Runtime.csproj", "{9BC63BEC-F305-451D-BB31-262938EA964D}"
@@ -1549,7 +1547,6 @@ Global
 		{73AA8A18-15C4-405B-BBF4-5D41C1CE44AD} = {5D2D3BE8-9910-45CA-8E45-95660DA4C563}
 		{77E2FCC0-4CA6-436C-BE6F-9418CB807D45} = {1AE1AC60-5D2F-4CA7-AE20-888F44551185}
 		{E25E7778-0B2F-4A0B-BCD6-1DE95320B531} = {1AE1AC60-5D2F-4CA7-AE20-888F44551185}
-		{950BADD0-AD5A-4F58-87EC-4ADAECBEA89B} = {5D2D3BE8-9910-45CA-8E45-95660DA4C563}
 		{63562B0A-E501-42C2-97BB-13D3AD3A7DB4} = {F765035E-F4F4-4CFA-BA02-755DC677AA97}
 		{9BC63BEC-F305-451D-BB31-262938EA964D} = {4C142567-C42B-40F5-B092-798882190209}
 		{9AC6D791-811E-4D6A-B08E-93F0093EF268} = {75A820AB-0F21-40F2-9448-5D7F495B97A0}
@@ -1616,7 +1613,6 @@ Global
 		..\sources\shared\Stride.Core.ShellHelper\Stride.Core.ShellHelper.projitems*{1e54a9a2-4439-4444-ae57-6d2ed3c0dc47}*SharedItemsImports = 5
 		..\sources\shared\Stride.NuGetResolver.Targets\Stride.NuGetResolver.Targets.projitems*{2fc40214-a4aa-45dc-9c93-72ed800c40b0}*SharedItemsImports = 5
 		..\sources\editor\Stride.Editor.CrashReport\Stride.Editor.CrashReport.projitems*{2fca2d8b-b10f-4dca-9847-4221f74ba586}*SharedItemsImports = 5
-		..\sources\editor\Stride.PrivacyPolicy\Stride.PrivacyPolicy.projitems*{2fca2d8b-b10f-4dca-9847-4221f74ba586}*SharedItemsImports = 5
 		..\sources\shared\Stride.Core.ShellHelper\Stride.Core.ShellHelper.projitems*{2fca2d8b-b10f-4dca-9847-4221f74ba586}*SharedItemsImports = 5
 		..\sources\shared\Stride.NuGetResolver.Targets\Stride.NuGetResolver.Targets.projitems*{2fca2d8b-b10f-4dca-9847-4221f74ba586}*SharedItemsImports = 5
 		..\sources\shared\Stride.Core.ShellHelper\Stride.Core.ShellHelper.projitems*{39ae9c77-e94b-404f-8768-b6261b3c1e0e}*SharedItemsImports = 5
@@ -1628,7 +1624,6 @@ Global
 		..\sources\shared\Stride.Core.ShellHelper\Stride.Core.ShellHelper.projitems*{77e2fcc0-4ca6-436c-be6f-9418cb807d45}*SharedItemsImports = 5
 		..\sources\shared\Stride.NuGetResolver.Targets\Stride.NuGetResolver.Targets.projitems*{77e2fcc0-4ca6-436c-be6f-9418cb807d45}*SharedItemsImports = 5
 		..\sources\engine\Stride.Shared\Refactor\Stride.Refactor.projitems*{7af4b563-aad3-42ff-b91e-84b9d34d904a}*SharedItemsImports = 5
-		..\sources\editor\Stride.PrivacyPolicy\Stride.PrivacyPolicy.projitems*{950badd0-ad5a-4f58-87ec-4adaecbea89b}*SharedItemsImports = 13
 		..\sources\editor\Stride.Core.MostRecentlyUsedFiles\Stride.Core.MostRecentlyUsedFiles.projitems*{9ac6d791-811e-4d6a-b08e-93f0093ef268}*SharedItemsImports = 13
 		..\sources\shared\Stride.Core.ShellHelper\Stride.Core.ShellHelper.projitems*{a5dc820b-9554-45b6-9677-6a2f902e7787}*SharedItemsImports = 5
 		..\sources\shared\Stride.NuGetResolver.Targets\Stride.NuGetResolver.Targets.projitems*{a5dc820b-9554-45b6-9677-6a2f902e7787}*SharedItemsImports = 5
