@@ -1,6 +1,8 @@
 namespace Stride.Core.CompilerServices.Common;
 internal static class WellKnownReferences
 {
+    public const string ModuleInitializerAttributeName = "Stride.Core.ModuleInitializerAttribute";
+
     public static INamedTypeSymbol? DataMemberAttribute(Compilation compilation)
     {
         return compilation.GetTypeByMetadataName("Stride.Core.DataMemberAttribute");
@@ -35,7 +37,7 @@ internal static class WellKnownReferences
     {
         return compilation.GetTypeByMetadataName(ModuleInitializerAttributeName);
     }
-    public const string ModuleInitializerAttributeName = "Stride.Core.ModuleInitializerAttribute";
+
     public static bool HasAttribute(this ISymbol symbol, INamedTypeSymbol attribute)
     {
         if (symbol.GetAttributes().Any(attr => attr.AttributeClass?.OriginalDefinition.Equals(attribute, SymbolEqualityComparer.Default) ?? false))

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -41,8 +41,8 @@ public class ModuleInitializerGenerator : IIncrementalGenerator
                     }
                 );
         var provider2 = provider.Collect();
-        
-        context.RegisterSourceOutput(provider2, Generate) ;
+
+        context.RegisterSourceOutput(provider2, Generate);
     }
 
     private void Generate(SourceProductionContext context, ImmutableArray<OrderedModuleInitializerMethod?> array)
@@ -52,7 +52,7 @@ public class ModuleInitializerGenerator : IIncrementalGenerator
             return;
         foreach (var module in array.OrderBy(x => x.Order))
         {
-            if(module is not null)
+            if (module is not null)
             {
                 code.AppendLine($"\t\t\t{module.InvocationString}();");
             }
