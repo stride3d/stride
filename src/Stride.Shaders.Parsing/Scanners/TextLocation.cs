@@ -12,11 +12,7 @@ public record struct TextLocation(ReadOnlyMemory<char> Original, Range Range)
     public readonly int Column => Range.StartsAt(Original.Length) - Original.Span[..Range.StartsAt(Original.Length)].LastIndexOf('\n');
     public readonly override string ToString()
     {
-        #if NETSTANDARD2_0
-        return $"[l{Line}-c{Column}]\n{Text.Span.ToString()}";
-        #else
         return $"[l{Line}-c{Column}]\n{Text.Span}";
-        #endif
     }
 }
 

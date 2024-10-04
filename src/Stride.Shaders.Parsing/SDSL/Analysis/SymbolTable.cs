@@ -13,7 +13,7 @@ public partial class SymbolTable
 
     public void Process(ShaderClass sclass, Dictionary<string, Symbol>? globalSymbols = null)
     {
-        DeclaredTypes.Add(sclass.Name.Name, new MixinSymbol(sclass));
+        DeclaredTypes.Add(sclass.Name.Name, new MixinSymbol(sclass.Name, []));
         foreach (var e in sclass.Elements)
         {
             if(e is ShaderMember member)

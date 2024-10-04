@@ -1,4 +1,4 @@
-namespace MyNamespace.SoftTouch.Hello;
+namespace MyNamespace.Stride.Shaders.Hello;
     
 shader Parent
 {

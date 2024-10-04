@@ -3,8 +3,8 @@ using Silk.NET.Core.Native;
 using Silk.NET.Direct3D.Compilers;
 using Silk.NET.Shaderc;
 using Silk.NET.SPIRV.Cross;
-using SoftTouch.Spirv.Core;
-using SoftTouch.Spirv.Core.Buffers;
+using Stride.Shaders.Spirv.Core;
+using Stride.Shaders.Spirv.Core.Buffers;
 
 namespace Stride.Shaders.Compilers;
 

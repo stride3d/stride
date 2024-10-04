@@ -2,7 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Stride.Shaders.Parsing\Stride.Shaders.Parsing.csproj" />
-    <ProjectReference Include="..\SoftTouch.Spirv\src\SoftTouch.Spirv\SoftTouch.Spirv.csproj" />
+    <ProjectReference Include="..\Stride.Shaders.Spirv\Stride.Shaders.Spirv\Stride.Shaders.Spirv.csproj" />
   </ItemGroup>
 
   <ItemGroup>
