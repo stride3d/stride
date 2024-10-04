@@ -119,8 +119,12 @@ namespace Stride.Physics
 
                 if (InternalRigidBody == null)
                 {
-                    //When setting ColliderShape, setup could have been previously skipped (eg when PhysicsComponent is created using GetOrCreate)
-                    ReAttach();
+                    if (Data != null && !attachInProgress)
+                    {
+                        //When setting ColliderShape, setup could have been previously skipped (eg when PhysicsComponent is created using GetOrCreate)
+                        ReAttach();
+                    }
+                    
                     return;
                 }
 

@@ -267,6 +267,8 @@ namespace Stride.Physics.Tests
                 
                 var body = cube.GetOrCreate<RigidbodyComponent>();
 
+                await game.Script.NextFrame();
+
                 //verify values not properly set up
                 Assert.Null(body.ColliderShape);
                 Assert.Equal(RigidBodyTypes.Static, body.RigidBodyType);

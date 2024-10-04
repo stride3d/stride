@@ -373,8 +373,17 @@ namespace Stride.Core.AssemblyProcessor
                 assembly.MainModule.TypeSystem.Void);
             serializerFactoryType.Methods.Add(initializeMethod);
 
-            // Make sure it is called at module startup
-            initializeMethod.AddModuleInitializer(-1000);
+            // Obtain the static constructor of <Module> and the return instruction
+            Instruction returnInstruction;
+            var moduleConstructor = assembly.OpenModuleConstructor(out returnInstruction);
+
+            // Get the IL processor of the module constructor
+            var il = moduleConstructor.Body.GetILProcessor();
+
+            // Create the call to Initialize method
+            var initializeMethodReference = assembly.MainModule.ImportReference(initializeMethod);
+            var callInitializeInstruction = il.Create(OpCodes.Call, initializeMethodReference);
+
 
             var initializeMethodIL = initializeMethod.Body.GetILProcessor();
 
@@ -525,6 +534,8 @@ namespace Stride.Core.AssemblyProcessor
                     new CustomAttributeNamedArgument("Type", new CustomAttributeArgument(typeTypeRef, serializerFactoryType)),
                 }
             });
+            // Insert the call before the end of the method body
+            il.InsertBefore(moduleConstructor.Body.Instructions.Last(), callInitializeInstruction);
 
             serializationHash = hash.ComputeHash();
         }
