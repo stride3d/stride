@@ -5,6 +5,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Stride.BepuPhysics.Constraints;
+using Stride.BepuPhysics.Definitions;
+using Stride.BepuPhysics.Systems;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 
@@ -16,7 +18,8 @@ namespace Stride.BepuPhysics.Demo.Components.Utils
     [ComponentCategory("BepuDemo - Utils")]
     public class RopeSpawnerComponent : StartupScript
     {
-        public int SimulationIndex { get; set; } = 0;
+        [DefaultValueIsSceneBased]
+        public ISimulationSelector SimulationSelector { get; set; } = SceneBasedSimulationSelector.Shared;
         public Prefab? RopePart { get; set; } //The rope part must be long in Z
         public float RopePartSize { get; set; } = 1.0f; //the z size of the rope part
 
@@ -55,7 +58,7 @@ namespace Stride.BepuPhysics.Demo.Components.Utils
                 entity.Transform.Position = start + dir * RopePartSize * i;
                 entity.Transform.Rotation = Quaternion.LookRotation(dir, Vector3.UnitY);
                 var body = entity.Get<BodyComponent>();
-                body.SimulationIndex = SimulationIndex;
+                body.SimulationSelector = SimulationSelector;
 
                 bodies.Add(body);
                 entity.SetParent(Entity);

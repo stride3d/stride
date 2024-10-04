@@ -88,11 +88,11 @@ namespace Stride.BepuPhysics.Tests
 
                 Assert.True(c.Attached);
 
-                e1.SimulationIndex = 1;
+                e1.SimulationSelector = new IndexBasedSimulationSelector { Index = 1 };
 
                 Assert.False(c.Attached);
 
-                e1.SimulationIndex = 0;
+                e1.SimulationSelector = new IndexBasedSimulationSelector { Index = 0 };
 
                 Assert.True(c.Attached);
 

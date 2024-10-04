@@ -82,11 +82,7 @@ public class DebugRenderProcessor : EntityProcessor<DebugRenderComponent>
         _game = Services.GetSafeServiceAs<IGame>();
         _sceneSystem = Services.GetSafeServiceAs<SceneSystem>();
 
-        if (_sceneSystem.GraphicsCompositor.RenderFeatures.OfType<SinglePassWireframeRenderFeature>().FirstOrDefault() is { } wireframeFeature)
-        {
-            wireframeRenderFeature = wireframeFeature;
-        }
-        else
+        if (_sceneSystem.GraphicsCompositor.RenderFeatures.OfType<SinglePassWireframeRenderFeature>().FirstOrDefault() is null)
         {
             wireframeRenderFeature = new();
             _sceneSystem.GraphicsCompositor.RenderFeatures.Add(wireframeRenderFeature);

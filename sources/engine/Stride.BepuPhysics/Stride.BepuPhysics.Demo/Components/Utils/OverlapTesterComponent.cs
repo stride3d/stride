@@ -18,7 +18,7 @@ namespace Stride.BepuPhysics.Demo.Components.Utils
             var rot = Entity.Transform.GetWorldRot();
             var pos = Entity.Transform.GetWorldPos();
 
-            if (bepuConfig.BepuSimulations[0].SweepCast(new Box(0.25f, 0.25f, 0.25f), new RigidPose(pos, rot), new BodyVelocity((rot * new Vector3(0, 0, 1)), default), 10, out _))
+            if (Entity.GetSimulation().SweepCast(new Box(0.25f, 0.25f, 0.25f), new RigidPose(pos, rot), new BodyVelocity((rot * new Vector3(0, 0, 1)), default), 10, out _))
             {
                 DebugText.Print("Sweep successful", new((int)(Game.Window.PreferredWindowedSize.X - 500 * 1.5f), 700));
             }
@@ -28,7 +28,7 @@ namespace Stride.BepuPhysics.Demo.Components.Utils
             }
 
             int j = 0;
-            foreach (var hit in bepuConfig.BepuSimulations[0].Overlap(new Box(0.25f, 0.25f, 0.25f), new RigidPose(pos, rot), buffer))
+            foreach (var hit in Entity.GetSimulation().Overlap(new Box(0.25f, 0.25f, 0.25f), new RigidPose(pos, rot), buffer))
             {
                 DebugText.Print($"Overlap : {hit.Entity.Name}", new((int)(Game.Window.PreferredWindowedSize.X - 500 * 1.5f), 430 + 25 * j));
                 j++;

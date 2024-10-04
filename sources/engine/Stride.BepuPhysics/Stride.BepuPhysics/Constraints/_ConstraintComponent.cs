@@ -91,11 +91,10 @@ public abstract class ConstraintComponent<T> : ConstraintComponentBase where T :
                 return ConstraintState.BodyNotInScene; // need to wait for a body to be attached or instanced
         }
 
-        int simIndex = Bodies[0]!.SimulationIndex;
+        var newSimulation = Bodies[0]!.SimulationSelector.Pick(_bepuConfig, Bodies[0]!.Entity);
+
         Span<BodyHandle> bodies = stackalloc BodyHandle[Bodies.Length];
         int count = 0;
-
-        var newSimulation = _bepuConfig.BepuSimulations[simIndex];
 
         foreach (var component in Bodies)
         {
@@ -104,8 +103,9 @@ public abstract class ConstraintComponent<T> : ConstraintComponentBase where T :
 
             if (ReferenceEquals(component.Simulation, newSimulation) == false)
             {
+                int simIndex = _bepuConfig.BepuSimulations.IndexOf(newSimulation);
                 string otherSimulation = component.Simulation == null ? "null" : _bepuConfig.BepuSimulations.IndexOf(component.Simulation).ToString();
-                Logger.Warning($"A constraint between object with different SimulationIndex is not possible ({this} @ #{simIndex} -> {component} @ #{otherSimulation})");
+                Logger.Warning($"A constraint between object with different Simulation is not possible ({this} @ #{simIndex} -> {component} @ #{otherSimulation})");
                 return ConstraintState.SimulationMismatch;
             }
 

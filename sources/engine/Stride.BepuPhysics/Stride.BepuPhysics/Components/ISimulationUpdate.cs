@@ -9,6 +9,15 @@ namespace Stride.BepuPhysics.Components;
 /// </summary>
 internal interface ISimulationUpdate
 {
+    /// <summary>
+    /// Called before the simulation updates
+    /// </summary>
+    /// <param name="simTimeStep"> The amount of time in seconds this simulation lasts for </param>
     public void SimulationUpdate(float simTimeStep);
+
+    /// <summary>
+    /// Called after the simulation updates
+    /// </summary>
+    /// <param name="simTimeStep"> The amount of time in seconds this simulation lasts for </param>
     public void AfterSimulationUpdate(float simTimeStep);
 }

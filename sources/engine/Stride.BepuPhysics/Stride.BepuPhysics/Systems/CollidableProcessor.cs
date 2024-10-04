@@ -75,7 +75,7 @@ public class CollidableProcessor : EntityProcessor<CollidableComponent>
 
         component.Processor = this;
 
-        var targetSimulation = BepuConfiguration.BepuSimulations[component.SimulationIndex];
+        var targetSimulation = component.SimulationSelector.Pick(BepuConfiguration, component.Entity);
         component.ReAttach(targetSimulation);
 
         if (component is ISimulationUpdate simulationUpdate)

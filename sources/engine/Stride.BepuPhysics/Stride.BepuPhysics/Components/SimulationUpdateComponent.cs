@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Stride.BepuPhysics.Definitions;
+using Stride.BepuPhysics.Systems;
 using Stride.Core;
 using Stride.Engine;
 
@@ -9,43 +10,71 @@ namespace Stride.BepuPhysics.Components;
 
 public abstract class SimulationUpdateComponent : SyncScript, ISimulationUpdate
 {
-    private bool _started = false;
-    private int _simulationIndex = 0;
+    private BepuSimulation? _simulation;
+    private ISimulationSelector _simulationSelector = SceneBasedSimulationSelector.Shared;
 
-    public int SimulationIndex
+    /// <summary>
+    /// How the simulation this component belongs to and updates with is selected
+    /// </summary>
+    [DefaultValueIsSceneBased]
+    public ISimulationSelector SimulationSelector
     {
-        get => _simulationIndex;
+        get
+        {
+            return _simulationSelector;
+        }
         set
         {
-            if (_simulationIndex != value)
+            _simulationSelector = value;
+            if (_simulation is not null)
             {
-                Cancel();
-                _simulationIndex = value;
-                if (_started)
-                    Start();
+                _simulation.Unregister(this);
+                _simulation = null;
+                _simulation = SimulationSelector.Pick(Services.GetSafeServiceAs<BepuConfiguration>(), Entity);
             }
         }
     }
 
-
+    /// <summary>
+    /// Return the simulation this component uses
+    /// </summary>
+    /// <remarks>
+    /// Depends on the <see cref="SimulationSelector"/> set
+    /// </remarks>
     [DataMemberIgnore]
-    public BepuSimulation? BepuSimulation { get; set; }
+    public BepuSimulation Simulation
+    {
+        get
+        {
+            if (_simulation is not null)
+                return _simulation;
 
+            ServicesHelper.LoadBepuServices(Services, out var config, out _, out _);
+            _simulation = SimulationSelector.Pick(config, Entity);
+            return _simulation;
+        }
+    }
+
+    /// <inheritdoc/>
     public override void Start()
     {
-        _started = true;
         base.Start();
         ServicesHelper.LoadBepuServices(Services, out var config, out _, out _);
-        BepuSimulation = config.BepuSimulations[SimulationIndex];
-        BepuSimulation.Register(this);
+        _simulation = SimulationSelector.Pick(config, Entity);
+        _simulation.Register(this);
     }
+
+    /// <inheritdoc/>
     public override void Cancel()
     {
         base.Cancel();
-        BepuSimulation?.Unregister(this);
-        BepuSimulation = null;
+        _simulation?.Unregister(this);
+        _simulation = null;
     }
 
+    /// <inheritdoc cref="ISimulationUpdate.SimulationUpdate"/>
     public abstract void SimulationUpdate(float simTimeStep);
+
+    /// <inheritdoc cref="ISimulationUpdate.AfterSimulationUpdate"/>
     public abstract void AfterSimulationUpdate(float simTimeStep);
 }

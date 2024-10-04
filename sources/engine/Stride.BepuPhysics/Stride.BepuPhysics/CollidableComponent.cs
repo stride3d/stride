@@ -24,7 +24,6 @@ public abstract class CollidableComponent : EntityComponent
 {
     private static uint VersioningCounter;
 
-    private int _simulationIndex = 0;
     private float _springFrequency = 30;
     private float _springDampingRatio = 3;
     private float _frictionCoefficient = 1f;
@@ -35,6 +34,7 @@ public abstract class CollidableComponent : EntityComponent
 
     private ICollider _collider;
     private IContactEventHandler? _trigger;
+    private ISimulationSelector _simulationSelector = SceneBasedSimulationSelector.Shared;
 
     [DataMemberIgnore]
     internal CollidableProcessor? Processor { get; set; }
@@ -100,17 +100,18 @@ public abstract class CollidableComponent : EntityComponent
         }
     }
 
-    public int SimulationIndex
+    [DefaultValueIsSceneBased]
+    public ISimulationSelector SimulationSelector
     {
         get
         {
-            return _simulationIndex;
+            return _simulationSelector;
         }
         set
         {
-            _simulationIndex = value;
+            _simulationSelector = value;
             if (Processor is not null)
-                ReAttach(Processor.BepuConfiguration.BepuSimulations[_simulationIndex]);
+                ReAttach(_simulationSelector.Pick(Processor.BepuConfiguration, Entity));
             else
                 Detach();
         }
@@ -211,7 +212,7 @@ public abstract class CollidableComponent : EntityComponent
         if (Simulation is not null)
             ReAttach(Simulation);
         else if (Processor is not null) // We may have to fall back to this when 'Collider.TryAttach' failed previously; when this collidable didn't have any collider before
-            ReAttach(Processor.BepuConfiguration.BepuSimulations[SimulationIndex]);
+            ReAttach(SimulationSelector.Pick(Processor.BepuConfiguration, Entity));
 
         OnFeaturesUpdated?.Invoke(this);
     }

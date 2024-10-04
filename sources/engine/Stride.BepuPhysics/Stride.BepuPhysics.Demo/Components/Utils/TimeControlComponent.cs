@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using Stride.Core;
 using Stride.Engine;
 using Stride.Input;
 
@@ -16,7 +17,7 @@ namespace Stride.BepuPhysics.Demo.Components.Utils
 
         public override void Start()
         {
-            _bepuSimulation = Services.GetService<BepuConfiguration>().BepuSimulations[SimulationIndex];
+            _bepuSimulation = Services.GetSafeServiceAs<BepuConfiguration>().BepuSimulations[SimulationIndex];
         }
 
         public override void Update()

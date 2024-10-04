@@ -32,8 +32,8 @@ namespace Stride.BepuPhysics.Demo.Components.Utils
 
             if (entity.Get<CollidableComponent>() is BodyComponent body)
             {
-                body.SimulationIndex = SimulationIndex;
-                body?.ApplyImpulse(Impulse, ImpulsePos);
+                body.SimulationSelector = SimulationSelector;
+                body.ApplyImpulse(Impulse, ImpulsePos);
             }
         }
     }

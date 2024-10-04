@@ -19,13 +19,10 @@ namespace Stride.BepuPhysics._2D
         }
         public override void AfterSimulationUpdate(float simTimeStep)
         {
-            if (BepuSimulation == null)
-                return;
-
-            for (int i = 0; i < BepuSimulation.Simulation.Bodies.ActiveSet.Count; i++)
+            for (int i = 0; i < Simulation.Simulation.Bodies.ActiveSet.Count; i++)
             {
-                var handle = BepuSimulation.Simulation.Bodies.ActiveSet.IndexToHandle[i];
-                var body = BepuSimulation.GetComponent(handle);
+                var handle = Simulation.Simulation.Bodies.ActiveSet.IndexToHandle[i];
+                var body = Simulation.GetComponent(handle);
 
                 if (body is not Body2DComponent)
                     continue;

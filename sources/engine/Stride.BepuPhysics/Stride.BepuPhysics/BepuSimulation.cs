@@ -18,7 +18,8 @@ using Stride.Core.Threading;
 using Stride.Core;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
-
+using Stride.Core.Serialization;
+using Stride.Engine;
 using NVector3 = System.Numerics.Vector3;
 using BRigidPose = BepuPhysics.RigidPose;
 using SRigidPose = Stride.BepuPhysics.Definitions.RigidPose;
@@ -59,6 +60,16 @@ public sealed class BepuSimulation : IDisposable
     /// </summary>
     [DataMemberIgnore]
     public Simulation Simulation { get; }
+
+    /// <summary>
+    /// The scene associated with this simulation.
+    /// </summary>
+    /// <remarks>
+    /// When this is set, entities spawning inside this scene will be automatically associated with
+    /// this simulation as long as their <see cref="CollidableComponent.SimulationSelector"/> is set to <see cref="SceneBasedSimulationSelector"/>.
+    /// See <see cref="SceneBasedSimulationSelector"/> for more info.
+    /// </remarks>
+    public UrlReference<Scene> AssociatedScene { get; init; }
 
     /// <summary>
     /// Whether to update the simulation.
