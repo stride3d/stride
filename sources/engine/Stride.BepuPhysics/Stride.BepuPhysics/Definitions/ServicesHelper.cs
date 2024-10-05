@@ -18,7 +18,7 @@ internal static class ServicesHelper
             if (services.GetService<IGameSettingsService>() is {} settings)
                 config = settings.Settings.Configurations.Get<BepuConfiguration>();
             else
-                config = new();
+                config = new BepuConfiguration{ BepuSimulations = [new BepuSimulation()] };
             services.AddService(config);
         }
 
