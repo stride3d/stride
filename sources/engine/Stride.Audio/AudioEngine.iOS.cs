@@ -9,7 +9,7 @@ namespace Stride.Audio
 {
     public class AudioEngineIos : AudioEngine
     {
-        internal override void InitializeAudioEngine(AudioLayer.DeviceFlags flags)
+        internal override void InitializeAudioEngine(DeviceFlags flags)
         {
             ActivateAudioSession();
             base.InitializeAudioEngine(flags);
