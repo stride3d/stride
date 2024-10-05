@@ -42,6 +42,7 @@ public sealed class BepuSimulation : IDisposable
     private TimeSpan _remainingUpdateTime;
     private TimeSpan _softStartRemainingDuration;
     private bool _softStartScheduled = false;
+    private UrlReference<Scene>? _associatedScene = null;
 
     internal BufferPool BufferPool { get; }
 
@@ -69,7 +70,20 @@ public sealed class BepuSimulation : IDisposable
     /// this simulation as long as their <see cref="CollidableComponent.SimulationSelector"/> is set to <see cref="SceneBasedSimulationSelector"/>.
     /// See <see cref="SceneBasedSimulationSelector"/> for more info.
     /// </remarks>
-    public UrlReference<Scene> AssociatedScene { get; init; }
+    public UrlReference<Scene>? AssociatedScene
+    {
+        get
+        {
+            return _associatedScene;
+        }
+        set
+        {
+            if (value?.IsEmpty == true)
+                throw new ArgumentException("Url must be valid, assign null instead");
+
+            _associatedScene = value;
+        }
+    }
 
     /// <summary>
     /// Whether to update the simulation.

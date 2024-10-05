@@ -30,7 +30,7 @@ public record SceneBasedSimulationSelector : ISimulationSelector
         ContentManager? contentManager = null;
         foreach (var simulation in configuration.BepuSimulations)
         {
-            if (simulation.AssociatedScene.IsEmpty)
+            if (simulation.AssociatedScene is null)
             {
                 sim ??= simulation;
                 continue;
