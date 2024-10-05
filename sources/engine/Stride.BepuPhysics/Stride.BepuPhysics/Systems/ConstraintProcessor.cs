@@ -23,12 +23,10 @@ public class ConstraintProcessor : EntityProcessor<ConstraintComponentBase>
 
     protected override void OnEntityComponentAdding(Entity entity, ConstraintComponentBase component, ConstraintComponentBase data)
     {
-        base.OnEntityComponentAdding(entity, component, data);
         component.Activate(_bepuConfiguration);
     }
     protected override void OnEntityComponentRemoved(Entity entity, ConstraintComponentBase component, ConstraintComponentBase data)
     {
-        base.OnEntityComponentRemoved(entity, component, data);
         component.Deactivate();
     }
 }

@@ -41,8 +41,6 @@ public class CollidableProcessor : EntityProcessor<CollidableComponent>
 
     public override unsafe void Draw(RenderContext context) // While this is not related to drawing, we're doing this in draw as it runs after the TransformProcessor updates WorldMatrix
     {
-        base.Draw(context);
-
         Dispatcher.ForBatched(Statics.Count, Statics, &Process);
 
         static void Process(UnsortedO1List<StaticComponent, Matrix4x4> statics, int from, int toExclusive)
