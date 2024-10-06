@@ -43,6 +43,8 @@ public sealed class BepuSimulation : IDisposable
     private TimeSpan _softStartRemainingDuration;
     private bool _softStartScheduled = false;
     private UrlReference<Scene>? _associatedScene = null;
+    private AwaitRunner _preTickRunner = new();
+    private AwaitRunner _postTickRunner = new();
 
     internal BufferPool BufferPool { get; }
 
@@ -319,6 +321,18 @@ public sealed class BepuSimulation : IDisposable
         Debug.Assert(statics is not null, "Handle is invalid, Bepu's array indexing strategy might have changed under us");
         return statics;
     }
+
+    /// <summary>
+    /// Yields execution until right before the next physics tick
+    /// </summary>
+    /// <returns>Task that will resume next tick.</returns>
+    public TickAwaiter NextTick() => new TickAwaiter(_preTickRunner);
+
+    /// <summary>
+    /// Yields execution until right after the next physics tick
+    /// </summary>
+    /// <returns>Task that will resume next tick.</returns>
+    public TickAwaiter AfterTick() => new TickAwaiter(_postTickRunner);
 
     /// <summary>
     /// Whether a physics test with <paramref name="mask"/> against <paramref name="collidable"/> should be performed or entirely ignored
@@ -689,6 +703,9 @@ public sealed class BepuSimulation : IDisposable
             }
 
             var simTimeStepInSec = (float)FixedTimeStep.TotalSeconds;
+
+            _preTickRunner.Run();
+
             foreach (var updateComponent in _simulationUpdateComponents)
             {
                 updateComponent.SimulationUpdate(simTimeStepInSec);
@@ -709,6 +726,8 @@ public sealed class BepuSimulation : IDisposable
             {
                 updateComponent.AfterSimulationUpdate(simTimeStepInSec);
             }
+
+            _postTickRunner.Run();
 
             foreach (var body in _interpolatedBodies)
             {
@@ -839,5 +858,54 @@ public sealed class BepuSimulation : IDisposable
     internal void UnregisterInterpolated(BodyComponent body)
     {
         _interpolatedBodies.Remove(body);
+    }
+
+    internal class AwaitRunner
+    {
+        private object _addLock = new();
+        private List<Action> _scheduled = new();
+        private List<Action> _processed = new();
+
+        public void Add(Action a)
+        {
+            lock (_addLock)
+            {
+                _scheduled.Add(a);
+            }
+        }
+
+        public void Run()
+        {
+            lock (_addLock)
+            {
+                (_processed, _scheduled) = (_scheduled, _processed);
+            }
+
+            foreach (var item in _processed)
+                item.Invoke();
+
+            _processed.Clear();
+        }
+    }
+
+    /// <summary>
+    /// Await this struct to continue during a physics tick
+    /// </summary>
+    public struct TickAwaiter : INotifyCompletion
+    {
+        private AwaitRunner _runner;
+
+        internal TickAwaiter(AwaitRunner runner)
+        {
+            _runner = runner;
+        }
+
+        public bool IsCompleted => false; // Forces the awaiter to call OnCompleted() right away to schedule asynchronous method continuation with our runner
+
+        public void OnCompleted(Action continuation) => _runner.Add(continuation);
+
+        public void GetResult() { }
+
+        public TickAwaiter GetAwaiter() => this;
     }
 }
