@@ -1,0 +1,47 @@
+!PrefabAsset
+Id: 479558df-2f6b-4998-bbbf-73fd053e2554
+SerializedVersion: {Stride: 3.1.0.1}
+Tags: []
+Hierarchy:
+    RootParts:
+        - ref!! b4fa1a6d-a008-4fa0-b687-817c3dc07d57
+    Parts:
+        -   Entity:
+                Id: b4fa1a6d-a008-4fa0-b687-817c3dc07d57
+                Name: BepuCube
+                Components:
+                    9af7d6d7a90cd79c4137e14aa6777939: !TransformComponent
+                        Id: 418d1d44-222c-47b6-9f10-ecee846eff9d
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    eee7e38930ad9e3a7e668fb9385fafae: !Stride.BepuPhysics.BodyComponent,Stride.BepuPhysics
+                        Id: caed6768-34fc-4532-ac97-b1d2376b5e1d
+                        Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
+                            Colliders:
+                                0b483eebd369e43a1b0c31fa827e6e54: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
+                                    Mass: 1.0
+                                    PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                    RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                    Size: {X: 1.0, Y: 1.0, Z: 1.0}
+                        ContactEventHandler: null
+                        SimulationIndex: 0
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 1000.0
+                        CollisionGroup:
+                            Id: 0
+                            IndexA: 0
+                            IndexB: 0
+                            IndexC: 0
+                        Kinematic: false
+                        Gravity: true
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
+                        InterpolationMode: None
+                        ContinuousDetectionMode: Discrete
+                    fe417a7f83004f72593133d581ddcc78: !InstanceComponent
+                        Id: ebfeb59d-26e2-4b18-9116-11795be2fd10
+                        Master: null

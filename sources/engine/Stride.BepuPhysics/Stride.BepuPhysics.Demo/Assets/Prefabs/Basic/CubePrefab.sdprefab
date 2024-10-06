@@ -1,0 +1,22 @@
+!PrefabAsset
+Id: 911900c6-8d54-41b5-a767-60a39cde577a
+SerializedVersion: {Stride: 3.1.0.1}
+Tags: []
+Hierarchy:
+    RootParts:
+        - ref!! babdc77d-a500-424d-98fa-8c81287b1a6e
+    Parts:
+        -   Entity:
+                Id: babdc77d-a500-424d-98fa-8c81287b1a6e
+                Name: Cube
+                Components:
+                    9af7d6d7a90cd79c4137e14aa6777939: !TransformComponent
+                        Id: 61bd2877-c524-4ae6-9565-f757194456f8
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    45622cc758f41101f5e1fa63ecc9a77f: !ModelComponent
+                        Id: f266e591-fa6d-4c3a-818f-992a59ab8a0b
+                        Model: 2e92e632-0dc1-43d1-a917-0fd994f7ac71:Models/CubeModel
+                        Materials: {}
