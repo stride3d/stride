@@ -54,6 +54,9 @@ public sealed class BepuSimulation : IDisposable
     internal List<BodyComponent?> Bodies { get; } = new();
     internal List<StaticComponent?> Statics { get; } = new();
 
+    /// <summary> Required when a component is removed from the simulation and must have its contacts flushed </summary>
+    internal (int value, CollidableComponent? component) TemporaryDetachedLookup { get; set; }
+
     /// <inheritdoc cref="Stride.BepuPhysics.Definitions.CollisionMatrix"/>
     [DataMemberIgnore]
     public CollisionMatrix CollisionMatrix = CollisionMatrix.All; // Keep this as a field, user need ref access for writes
@@ -310,6 +313,9 @@ public sealed class BepuSimulation : IDisposable
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public BodyComponent GetComponent(BodyHandle handle)
     {
+        if (TemporaryDetachedLookup.component is BodyComponent detachedBody && handle.Value == TemporaryDetachedLookup.value)
+            return detachedBody;
+
         var body = Bodies[handle.Value];
         Debug.Assert(body is not null, "Handle is invalid, Bepu's array indexing strategy might have changed under us");
         return body;
@@ -317,6 +323,9 @@ public sealed class BepuSimulation : IDisposable
 
     public StaticComponent GetComponent(StaticHandle handle)
     {
+        if (TemporaryDetachedLookup.component is StaticComponent detachedStatic && handle.Value == TemporaryDetachedLookup.value)
+            return detachedStatic;
+
         var statics = Statics[handle.Value];
         Debug.Assert(statics is not null, "Handle is invalid, Bepu's array indexing strategy might have changed under us");
         return statics;

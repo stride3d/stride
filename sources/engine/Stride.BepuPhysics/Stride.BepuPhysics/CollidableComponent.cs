@@ -112,8 +112,6 @@ public abstract class CollidableComponent : EntityComponent
             _simulationSelector = value;
             if (Processor is not null)
                 ReAttach(_simulationSelector.Pick(Processor.BepuConfiguration, Entity));
-            else
-                Detach();
         }
     }
 
@@ -220,7 +218,7 @@ public abstract class CollidableComponent : EntityComponent
     internal void ReAttach(BepuSimulation onSimulation)
     {
         Versioning = Interlocked.Increment(ref VersioningCounter);
-        Detach();
+        Detach(true);
 
         Debug.Assert(Processor is not null);
 
@@ -248,10 +246,12 @@ public abstract class CollidableComponent : EntityComponent
         Processor?.OnPostAdd?.Invoke(this);
     }
 
-    internal void Detach()
+    internal void Detach(bool reAttaching)
     {
         if (Simulation is null)
             return;
+
+        int getHandleValue = GetHandleValue();
 
         Versioning = Interlocked.Increment(ref VersioningCounter);
         Processor?.OnPreRemove?.Invoke(this);
@@ -270,6 +270,13 @@ public abstract class CollidableComponent : EntityComponent
         }
 
         DetachInner();
+        if (reAttaching == false)
+        {
+            Simulation.TemporaryDetachedLookup = (getHandleValue, this);
+            Simulation.ContactEvents.Flush(); // Ensure that removing this collidable sends the appropriate contact events to listeners
+            Simulation.TemporaryDetachedLookup = (-1, null);
+        }
+
         Simulation = null;
     }
 
@@ -302,6 +309,7 @@ public abstract class CollidableComponent : EntityComponent
     /// May occur when certain larger changes are made to the object, <see cref="Simulation"/> is the one this object is being added to
     /// </remarks>
     protected abstract void AttachInner(NRigidPose pose, BodyInertia shapeInertia, TypedIndex shapeIndex);
+
     /// <summary>
     /// Called every time this is removed from the simulation
     /// </summary>
@@ -309,6 +317,9 @@ public abstract class CollidableComponent : EntityComponent
     /// May occur right before <see cref="AttachInner"/> when certain larger changes are made to the object, <see cref="Simulation"/> is the one this object was on prior to detaching
     /// </remarks>
     protected abstract void DetachInner();
+
+    protected abstract int GetHandleValue();
+
     protected abstract void RegisterContactHandler();
     protected abstract void UnregisterContactHandler();
     protected abstract bool IsContactHandlerRegistered();

@@ -97,6 +97,14 @@ public class StaticComponent : CollidableComponent
         Processor.Statics.Remove(this);
     }
 
+    protected override int GetHandleValue()
+    {
+        if (StaticReference is { } sRef)
+            return sRef.Handle.Value;
+
+        throw new InvalidOperationException();
+    }
+
     protected override void RegisterContactHandler()
     {
         if (ContactEventHandler is not null && Simulation is not null && StaticReference is { } sRef)

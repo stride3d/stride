@@ -350,6 +350,14 @@ public class BodyComponent : CollidableComponent
         BodyReference = null;
     }
 
+    protected override int GetHandleValue()
+    {
+        if (BodyReference is { } bRef)
+            return bRef.Handle.Value;
+
+        throw new InvalidOperationException();
+    }
+
     protected override void RegisterContactHandler()
     {
         if (ContactEventHandler is not null && Simulation is not null && BodyReference is { } bRef)
