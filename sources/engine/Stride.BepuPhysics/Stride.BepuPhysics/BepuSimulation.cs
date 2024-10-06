@@ -361,7 +361,7 @@ public sealed class BepuSimulation : IDisposable
     /// <param name="dir">The normalized direction the ray is facing</param>
     /// <param name="maxDistance">The maximum from the origin that hits will be collected</param>
     /// <param name="result">An intersection in the world when this method returns true, an undefined value when this method returns false</param>
-    /// <param name="collisionMask"></param>
+    /// <param name="collisionMask">Which layer should be hit</param>
     /// <returns>True when the given ray intersects with a shape, false otherwise</returns>
     public bool RayCast(in Vector3 origin, in Vector3 dir, float maxDistance, out HitInfo result, CollisionMask collisionMask = CollisionMask.Everything)
     {
@@ -391,14 +391,14 @@ public sealed class BepuSimulation : IDisposable
     /// A temporary buffer which is used as a backing array to write to, its length defines the maximum amount of info you want to read.
     /// It is used by the returned enumerator as its backing array from which you read
     /// </param>
-    /// <param name="collisionMask"></param>
-    public unsafe ConversionEnum<ManagedConverter, HitInfoStack, HitInfo> RaycastPenetrating(in Vector3 origin, in Vector3 dir, float maxDistance, Span<HitInfoStack> buffer, CollisionMask collisionMask = CollisionMask.Everything)
+    /// <param name="collisionMask">Which layer should be hit</param>
+    public unsafe ConversionEnum<ManagedConverter, HitInfoStack, HitInfo> RayCastPenetrating(in Vector3 origin, in Vector3 dir, float maxDistance, Span<HitInfoStack> buffer, CollisionMask collisionMask = CollisionMask.Everything)
     {
         fixed (HitInfoStack* ptr = &buffer[0])
         {
             var handler = new RayHitsStackHandler(ptr, buffer.Length, this, collisionMask);
             Simulation.RayCast(origin.ToNumeric(), dir.ToNumeric(), maxDistance, ref handler);
-            return new (buffer[..handler.Head], new(this));
+            return new (buffer[..handler.Head], new ManagedConverter(this));
         }
     }
 
@@ -410,8 +410,8 @@ public sealed class BepuSimulation : IDisposable
     /// <param name="dir">The normalized direction the ray is facing</param>
     /// <param name="maxDistance">The maximum from the origin that hits will be collected</param>
     /// <param name="collection">The collection used to store hits into, the collection is not cleared before usage, hits are appended to it</param>
-    /// <param name="collisionMask"></param>
-    public void RaycastPenetrating(in Vector3 origin, in Vector3 dir, float maxDistance, ICollection<HitInfo> collection, CollisionMask collisionMask = CollisionMask.Everything)
+    /// <param name="collisionMask">Which layer should be hit</param>
+    public void RayCastPenetrating(in Vector3 origin, in Vector3 dir, float maxDistance, ICollection<HitInfo> collection, CollisionMask collisionMask = CollisionMask.Everything)
     {
         var handler = new RayHitsCollectionHandler(this, collection, collisionMask);
         Simulation.RayCast(origin.ToNumeric(), dir.ToNumeric(), maxDistance, ref handler);
@@ -425,7 +425,7 @@ public sealed class BepuSimulation : IDisposable
     /// <param name="velocity">Velocity used to throw the shape</param>
     /// <param name="maxDistance">The maximum distance, or amount of time along the path of the <paramref name="velocity"/></param>
     /// <param name="result">The resulting contact when this method returns true, an undefined value when this method returns false</param>
-    /// <param name="collisionMask"></param>
+    /// <param name="collisionMask">Which layer should be hit</param>
     /// <typeparam name="TShape"></typeparam>
     /// <returns>True when the given ray intersects with a shape, false otherwise</returns>
     public bool SweepCast<TShape>(in TShape shape, in SRigidPose pose, in SBodyVelocity velocity, float maxDistance, out HitInfo result, CollisionMask collisionMask = CollisionMask.Everything) where TShape : unmanaged, IConvexShape //== collider "RayCast"
@@ -457,7 +457,7 @@ public sealed class BepuSimulation : IDisposable
     /// A temporary buffer which is used as a backing array to write to, its length defines the maximum amount of info you want to read.
     /// It is used by the returned enumerator as its backing array from which you read
     /// </param>
-    /// <param name="collisionMask"></param>
+    /// <param name="collisionMask">Which layer should be hit</param>
     /// <typeparam name="TShape"></typeparam>
     public unsafe ConversionEnum<ManagedConverter, HitInfoStack, HitInfo> SweepCastPenetrating<TShape>(in TShape shape, in SRigidPose pose, in SBodyVelocity velocity, float maxDistance, Span<HitInfoStack> buffer, CollisionMask collisionMask = CollisionMask.Everything) where TShape : unmanaged, IConvexShape //== collider "RayCast"
     {
@@ -478,7 +478,7 @@ public sealed class BepuSimulation : IDisposable
     /// <param name="velocity">Velocity used to throw the shape</param>
     /// <param name="maxDistance">The maximum distance, or amount of time along the path of the <paramref name="velocity"/></param>
     /// <param name="collection">The collection used to store hits into, the collection is not cleared before usage, hits are appended to it</param>
-    /// <param name="collisionMask"></param>
+    /// <param name="collisionMask">Which layer should be hit</param>
     /// <typeparam name="TShape"></typeparam>
     /// <returns>True when the given ray intersects with a shape, false otherwise</returns>
     public void SweepCastPenetrating<TShape>(in TShape shape, in SRigidPose pose, in SBodyVelocity velocity, float maxDistance, ICollection<HitInfo> collection, CollisionMask collisionMask = CollisionMask.Everything) where TShape : unmanaged, IConvexShape //== collider "RayCast"
@@ -494,7 +494,7 @@ public sealed class BepuSimulation : IDisposable
     /// <param name="shape">The shape used to test for overlap</param>
     /// <param name="pose">Position the shape is on for this test</param>
     /// <param name="collection">The collection used to store overlapped shapes into. Note that the collection is not cleared before items are added to it</param>
-    /// <param name="collisionMask">The mask used to improve performance by masking only what you intend to detect</param>
+    /// <param name="collisionMask">Which layer should be hit</param>
     public void Overlap<TShape>(in TShape shape, in SRigidPose pose, ICollection<OverlapInfo> collection, CollisionMask collisionMask = CollisionMask.Everything) where TShape : unmanaged, IConvexShape
     {
         var collector = new CollectionCollector(collection);
@@ -511,7 +511,7 @@ public sealed class BepuSimulation : IDisposable
     /// A temporary buffer which is used as a backing array to write to, its length defines the maximum amount of info you want to read.
     /// It is used by the returned enumerator as its backing array from which you read
     /// </param>
-    /// <param name="collisionMask">Mask used to ignore shapes assigned to certain layers</param>
+    /// <param name="collisionMask">Which layer should be hit</param>
     public ConversionEnum<ManagedConverter, CollidableStack, CollidableComponent> Overlap<TShape>(in TShape shape, in SRigidPose pose, Span<CollidableStack> buffer, CollisionMask collisionMask = CollisionMask.Everything) where TShape : unmanaged, IConvexShape
     {
         unsafe
@@ -538,7 +538,7 @@ public sealed class BepuSimulation : IDisposable
     /// A temporary buffer which is used as a backing array to write to, its length defines the maximum amount of info you want to read.
     /// It is used by the returned enumerator as its backing array from which you read
     /// </param>
-    /// <param name="collisionMask">Mask used to ignore shapes assigned to certain layers</param>
+    /// <param name="collisionMask">Which layer should be hit</param>
     public ConversionEnum<ManagedConverter, OverlapInfoStack, OverlapInfo> OverlapInfo<TShape>(in TShape shape, in SRigidPose pose, Span<OverlapInfoStack> buffer, CollisionMask collisionMask = CollisionMask.Everything) where TShape : unmanaged, IConvexShape
     {
         unsafe
