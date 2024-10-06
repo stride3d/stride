@@ -60,6 +60,7 @@ namespace Stride.Core.Assets.Editor.Components.Properties
             RegisterNodePresenterCommand(new FlagEnumSelectNoneCommand());
             RegisterNodePresenterCommand(new FlagEnumSelectInvertCommand());
 
+            RegisterNodePresenterUpdater(new AbstractNodeCollectionEntryNodeUpdater());
             RegisterNodePresenterUpdater(new AbstractNodeEntryNodeUpdater());
             RegisterNodePresenterUpdater(new CategoryNodeUpdater());
             RegisterNodePresenterUpdater(new CollectionPropertyNodeUpdater());
