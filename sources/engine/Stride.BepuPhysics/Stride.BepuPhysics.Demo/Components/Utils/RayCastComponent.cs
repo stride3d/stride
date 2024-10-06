@@ -33,7 +33,7 @@ namespace Stride.BepuPhysics.Demo.Components.Utils
             rotation.Rotate(ref worldDir);
             System.Span<HitInfoStack> buffer = stackalloc HitInfoStack[16];
             int j = 0;
-            foreach (var hitInfo in _bepuConfig.BepuSimulations[SimulationIndex].RaycastPenetrating(Entity.Transform.GetWorldPos() + Offset, worldDir, MaxT, buffer))
+            foreach (var hitInfo in _bepuConfig.BepuSimulations[SimulationIndex].RayCastPenetrating(Entity.Transform.GetWorldPos() + Offset, worldDir, MaxT, buffer))
             {
                 DebugText.Print($"T : {hitInfo.Distance}  |  normal : {hitInfo.Normal}  |  Entity : {hitInfo.Collidable.Entity} (worldDir : {worldDir})", new((int)(Game.Window.PreferredWindowedSize.X - 500 * 1.5f), 830 + 25 * j));
                 j++;
