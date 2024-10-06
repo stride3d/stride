@@ -1,9 +1,13 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using Stride.BepuPhysics.Constraints;
 using Stride.BepuPhysics.Definitions;
 using Stride.BepuPhysics.Definitions.Colliders;
+using Stride.Core.Mathematics;
 using Xunit;
 using Stride.Engine;
 using Stride.Graphics.Regression;
@@ -115,6 +119,79 @@ namespace Stride.BepuPhysics.Tests
                 game.Exit();
             });
             RunGameTest(game);
+        }
+
+        [Fact]
+        public static void OnContactRemovalTest()
+        {
+            var game = new GameTest();
+            game.Script.AddTask(async () =>
+            {
+                game.ScreenShotAutomationEnabled = false;
+
+                var c1 = new CharacterComponent { Collider = new CompoundCollider { Colliders = { new BoxCollider() } } };
+                var c2 = new StaticComponent { Collider = new CompoundCollider { Colliders = { new BoxCollider() } } };
+
+                var e1 = new Entity{ c1 };
+                var e2 = new Entity{ c2 };
+
+                e1.Transform.Position.Y = 3;
+
+                game.SceneSystem.SceneInstance.RootScene.Entities.AddRange(new []{ e1, e2 });
+
+                var simulation = e1.GetSimulation();
+
+                while (c1.Contacts.Count == 0)
+                    await simulation.AfterTick(); // Wait for a collision
+
+                foreach (var component in c1.Contacts.Select(x => x.Source).ToArray())
+                    component.Entity.Scene = null;
+
+                Assert.Empty(c1.Contacts);
+
+                game.Exit();
+            });
+            RunGameTest(game);
+        }
+
+        [Fact]
+        public static void OnRaycastRemovalTest()
+        {
+            var game = new GameTest();
+            game.Script.AddTask(async () =>
+            {
+                game.ScreenShotAutomationEnabled = false;
+
+                var c1 = new CharacterComponent { Collider = new CompoundCollider { Colliders = { new BoxCollider() } } };
+                var c2 = new StaticComponent { Collider = new CompoundCollider { Colliders = { new BoxCollider() } } };
+
+                var e1 = new Entity{ c1 };
+                var e2 = new Entity{ c2 };
+
+                e1.Transform.Position.Y = 3;
+
+                game.SceneSystem.SceneInstance.RootScene.Entities.AddRange(new []{ e1, e2 });
+
+                var simulation = e1.GetSimulation();
+
+                Assert.Equal(2, TestRemovalUnsafe(simulation));
+                Assert.Equal(0, TestRemovalUnsafe(simulation));
+
+                game.Exit();
+            });
+            RunGameTest(game);
+
+            int TestRemovalUnsafe(BepuSimulation simulation)
+            {
+                Span<HitInfoStack> list = stackalloc HitInfoStack[16];
+                var hits = simulation.RayCastPenetrating(new Vector3(0, 6, 0), new Vector3(0, -1, 0), 10, list);
+                foreach (var hitInfo in hits)
+                {
+                    hitInfo.Collidable.Entity.Scene = null;
+                }
+
+                return hits.Span.Length;
+            }
         }
     }
 }
