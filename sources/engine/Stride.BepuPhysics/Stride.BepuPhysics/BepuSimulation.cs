@@ -335,13 +335,13 @@ public sealed class BepuSimulation : IDisposable
     /// Yields execution until right before the next physics tick
     /// </summary>
     /// <returns>Task that will resume next tick.</returns>
-    public TickAwaiter NextTick() => new TickAwaiter(_preTickRunner);
+    public TickAwaiter NextUpdate() => new TickAwaiter(_preTickRunner);
 
     /// <summary>
     /// Yields execution until right after the next physics tick
     /// </summary>
     /// <returns>Task that will resume next tick.</returns>
-    public TickAwaiter AfterTick() => new TickAwaiter(_postTickRunner);
+    public TickAwaiter AfterUpdate() => new TickAwaiter(_postTickRunner);
 
     /// <summary>
     /// Whether a physics test with <paramref name="mask"/> against <paramref name="collidable"/> should be performed or entirely ignored

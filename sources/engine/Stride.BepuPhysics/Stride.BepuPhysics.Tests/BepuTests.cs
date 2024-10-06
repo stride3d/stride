@@ -142,7 +142,7 @@ namespace Stride.BepuPhysics.Tests
                 var simulation = e1.GetSimulation();
 
                 while (c1.Contacts.Count == 0)
-                    await simulation.AfterTick(); // Wait for a collision
+                    await simulation.AfterUpdate(); // Wait for a collision
 
                 foreach (var component in c1.Contacts.Select(x => x.Source).ToArray())
                     component.Entity.Scene = null;
