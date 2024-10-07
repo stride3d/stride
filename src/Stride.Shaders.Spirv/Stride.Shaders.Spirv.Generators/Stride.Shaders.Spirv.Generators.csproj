@@ -1,0 +1,42 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>netstandard2.0</TargetFramework>
+		<EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+		<LangVersion>12</LangVersion>
+	</PropertyGroup>
+
+	<ItemGroup>
+	  <None Remove="Extensions\spirv.sdsl.grammar-ext.json" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.10.0" PrivateAssets="all" />
+		<PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.11.0" PrivateAssets="all" />
+		<PackageReference Include="System.Text.Json" Version="8.0.4" GeneratePathProperty="true" PrivateAssets="all" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<EmbeddedResource Include="..\..\..\submodules\SpirvHeaders\include\spirv\unified1\spirv.core.grammar.json" />
+		<EmbeddedResource Include="Extensions\spirv.sdsl.grammar-ext.json" />
+		<EmbeddedResource Include="..\..\..\submodules\SpirvHeaders\include\spirv\unified1\extinst.glsl.std.450.grammar.json" />
+		<EmbeddedResource Include="..\..\..\submodules\SpirvHeaders\include\spirv\unified1\extinst.opencl.std.100.grammar.json" />
+		<EmbeddedResource Include="..\..\..\submodules\SpirvHeaders\include\spirv\unified1\extinst.spv-amd-gcn-shader.grammar.json" />
+		<EmbeddedResource Include="..\..\..\submodules\SpirvHeaders\include\spirv\unified1\extinst.spv-amd-shader-ballot.grammar.json" />
+		<EmbeddedResource Include="..\..\..\submodules\SpirvHeaders\include\spirv\unified1\extinst.spv-amd-shader-explicit-vertex-parameter.grammar.json" />
+		<EmbeddedResource Include="..\..\..\submodules\SpirvHeaders\include\spirv\unified1\extinst.spv-amd-shader-trinary-minmax.grammar.json" />
+	</ItemGroup>
+
+	<PropertyGroup>
+		<GetTargetPathDependsOn>$(GetTargetPathDependsOn);GetDependencyTargetPaths</GetTargetPathDependsOn>
+	</PropertyGroup>
+
+	<Target Name="GetDependencyTargetPaths">
+		<ItemGroup>
+			<TargetPathWithTargetPlatformMoniker Include="$(PKGSystem_Text_Json)\lib\netstandard2.0\System.Text.Json.dll" IncludeRuntimeDependency="false" />
+		</ItemGroup>
+	</Target>
+
+	<ProjectExtensions><VisualStudio><UserProperties /></VisualStudio></ProjectExtensions>
+
+</Project>
