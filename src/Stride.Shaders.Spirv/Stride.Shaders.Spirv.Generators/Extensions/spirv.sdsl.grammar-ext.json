@@ -1,0 +1,212 @@
+{
+  "instructions": [
+    {
+      "opname": "OpSDSLMixinName",
+      "class": "Miscellaneous",
+      "operands": [
+        {
+          "kind": "LiteralString",
+          "name": "mixinName"
+        }
+      ]
+    },
+    {
+      "opname": "OpSDSLMixinEnd",
+      "class": "Miscellaneous"
+    },
+    {
+      "opname": "OpSDSLMixinOffset",
+      "class": "Miscellaneous",
+      "operands": [
+        {
+          "kind": "LiteralInteger",
+          "name": "mixinName"
+        }
+      ]
+    },
+    {
+      "opname": "OpSDSLMixinInherit",
+      "class": "Miscellaneous",
+      "operands": [
+        {
+          "kind": "LiteralString",
+          "name": "mixinName"
+        }
+      ]
+    },
+    {
+      "opname": "OpSDSLCompose",
+      "class": "Miscellaneous",
+      "operands": [
+        {
+          "kind": "LiteralString",
+          "name": "mixin"
+        },
+        {
+          "kind": "LiteralString",
+          "name": "name"
+        }
+      ]
+    },
+    {
+      "opname": "OpSDSLStage",
+      "class": "Miscellaneous",
+      "operands": [
+        {
+          "kind": "IdRef",
+          "name": "stagedElement"
+        }
+      ]
+    },
+    {
+      "opname": "OpSDSLImportFunction",
+      "class": "Miscellaneous",
+      "operands": [
+        {
+          "kind": "IdResult"
+        },
+        {
+          "kind": "LiteralString",
+          "name": "functionName"
+        },
+        {
+          "kind": "LiteralString",
+          "name": "mixinName"
+        },
+        {
+          "kind": "LiteralInteger",
+          "name": "id"
+        },
+        {
+          "kind": "LiteralInteger",
+          "name": "typeId"
+        }
+      ]
+    },
+    {
+      "opname": "OpSDSLImportVariable",
+      "class": "Miscellaneous",
+      "operands": [
+        {
+          "kind": "IdResult"
+        },
+        {
+          "kind": "LiteralString",
+          "name": "variableName"
+        },
+        {
+          "kind": "LiteralString",
+          "name": "mixinName"
+        },
+        {
+          "kind": "LiteralInteger",
+          "name": "id"
+        }
+      ]
+    },
+    {
+      "opname": "OpSDSLImportIdRef",
+      "class": "Miscellaneous",
+      "operands": [
+        {
+          "kind": "IdResult"
+        },
+        {
+          "kind": "LiteralString",
+          "name": "mixinName"
+        },
+        {
+          "kind": "LiteralInteger",
+          "name": "id"
+        }
+      ]
+    },
+    {
+      "opname": "OpSDSLMixinVariable",
+      "class": "Miscellaneous",
+      "operands": [
+        {
+          "kind": "IdResult"
+        },
+        {
+          "kind": "IdRef",
+          "name": "mixinId"
+        },
+        {
+          "kind": "IdRef",
+          "name": "variableId"
+        }
+      ]
+    },
+    {
+      "opname": "OpSDSLVariable",
+      "class": "Memory",
+      "operands": [
+        { "kind": "IdResultType" },
+        { "kind": "IdResult" },
+        { "kind": "StorageClass" },
+        {
+          "kind": "LiteralString",
+          "name": "name"
+        },
+        {
+          "kind": "IdRef",
+          "quantifier": "?",
+          "name": "'Initializer'"
+        }
+      ]
+    },
+    {
+      "opname": "OpSDSLFunctionParameter",
+      "class": "Function",
+      "operands": [
+        { "kind": "IdResultType" },
+        { "kind": "IdResult" },
+        {
+          "kind": "LiteralString",
+          "name": "name"
+        }
+      ]
+    },
+    {
+      "opname": "OpSDSLIOVariable",
+      "class": "Memory",
+      "operands": [
+        { "kind": "IdResultType" },
+        { "kind": "IdResult" },
+        { "kind": "StorageClass" },
+        { "kind": "ExecutionModel" },
+        {
+          "kind": "LiteralString",
+          "name": "name"
+        },
+        {
+          "kind": "LiteralString",
+          "name": "semantic"
+        },
+        {
+          "kind": "IdRef",
+          "quantifier": "?",
+          "name": "'Initializer'"
+        }
+      ]
+    },
+    {
+      "opname": "OpSDSLFunction",
+      "class": "Function",
+      "operands": [
+        { "kind": "IdResultType" },
+        { "kind": "IdResult" },
+        { "kind": "FunctionControl" },
+        {
+          "kind": "IdRef",
+          "name": "'Function Type'"
+        },
+        {
+          "kind": "LiteralString",
+          "name": "functionName"
+        }
+      ]
+    }
+  ]
+}

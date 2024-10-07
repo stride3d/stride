@@ -10,9 +10,4 @@
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.HighPerformance" Version="8.2.2" />
   </ItemGroup>
-  <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' ">
-    <PackageReference Include="IndexRange" Version="1.0.3" />
-    <PackageReference Include="System.Memory" Version="4.5.5" />
-  </ItemGroup>
-
 </Project>
