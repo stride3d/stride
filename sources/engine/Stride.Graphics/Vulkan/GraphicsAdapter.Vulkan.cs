@@ -1,26 +1,23 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 #if STRIDE_GRAPHICS_API_VULKAN
+
 using System;
 using System.Collections.Generic;
-using System.Resources;
 using System.Runtime.InteropServices;
-using System.Text;
 using Vortice.Vulkan;
-using static Vortice.Vulkan.Vulkan;
-using Stride.Core;
 
-using ComponentBase = Stride.Core.ComponentBase;
-using Utilities = Stride.Core.Utilities;
+using static Vortice.Vulkan.Vulkan;
 
 namespace Stride.Graphics
 {
     /// <summary>
     /// Provides methods to retrieve and manipulate graphics adapters. This is the equivalent to <see cref="Adapter1"/>.
     /// </summary>
-    /// <msdn-id>ff471329</msdn-id>	
-    /// <unmanaged>IDXGIAdapter1</unmanaged>	
-    /// <unmanaged-short>IDXGIAdapter1</unmanaged-short>	
+    /// <msdn-id>ff471329</msdn-id>
+    /// <unmanaged>IDXGIAdapter1</unmanaged>
+    /// <unmanaged-short>IDXGIAdapter1</unmanaged-short>
     public partial class GraphicsAdapter
     {
         private VkPhysicalDevice defaultPhysicalDevice;
@@ -56,7 +53,7 @@ namespace Stride.Graphics
             //outputs = new GraphicsOutput[displayProperties.Length];
             //for (var i = 0; i < outputs.Length; i++)
             //    outputs[i] = new GraphicsOutput(this, displayProperties[i], i).DisposeBy(this);
-            outputs = new[] { new GraphicsOutput() };
+            Outputs = new[] { new GraphicsOutput() };
         }
 
         /// <summary>
@@ -132,5 +129,6 @@ namespace Stride.Graphics
             //return SharpDX.Direct3D11.Device.IsSupportedFeatureLevel(this.NativeAdapter, (SharpDX.Direct3D.FeatureLevel)graphicsProfile);
         }
     }
-} 
+}
+
 #endif
