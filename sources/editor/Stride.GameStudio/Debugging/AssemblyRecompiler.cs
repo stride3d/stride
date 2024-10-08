@@ -183,7 +183,7 @@ namespace Stride.GameStudio.Debugging
                         if (referenceBuild.IsCanceled || result.HasErrors)
                             break;
 
-                        var assemblyProcessorParameters = "--parameter-key --auto-module-initializer --serialization";
+                        var assemblyProcessorParameters = "--parameter-key --serialization";
                         var assemblyProcessorApp = AssemblyProcessorProgram.CreateAssemblyProcessorApp(SplitCommandLine(assemblyProcessorParameters).ToArray(), new LoggerAssemblyProcessorWrapper(result));
 
                         foreach (var referencePath in referenceBuildResult.ProjectStateAfterBuild.Items.Where(x => x.ItemType == "ReferencePath"))

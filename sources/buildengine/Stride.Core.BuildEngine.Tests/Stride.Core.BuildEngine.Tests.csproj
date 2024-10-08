@@ -5,7 +5,7 @@
     <TargetFramework>$(StrideEditorTargetFramework)</TargetFramework>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
-    <StrideAssemblyProcessorOptions>--auto-module-initializer --serialization</StrideAssemblyProcessorOptions>
+    <StrideAssemblyProcessorOptions>--serialization</StrideAssemblyProcessorOptions>
     <StrideBuildTags>WindowsTools</StrideBuildTags>
   </PropertyGroup>
 

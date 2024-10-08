@@ -8,7 +8,6 @@
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
     <StrideBuildTags>WindowsTools</StrideBuildTags>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
-    <StrideAssemblyProcessorOptions>--auto-module-initializer</StrideAssemblyProcessorOptions>
     <StrideOutputFolder>Tests\$(AssemblyName)</StrideOutputFolder>
     <StrideCompilerTargetsEnable Condition="'$(StridePackageBuild)' == 'true'">false</StrideCompilerTargetsEnable>
   </PropertyGroup>
