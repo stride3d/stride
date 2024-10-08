@@ -3,10 +3,7 @@
 #if STRIDE_GRAPHICS_API_OPENGL
 
 using System;
-using System.Threading;
-using Stride.Core;
 using Stride.Core.Mathematics;
-using Stride;
 using Stride.Shaders;
 using Color4 = Stride.Core.Mathematics.Color4;
 
@@ -53,6 +50,8 @@ namespace Stride.Graphics
         private IndexBufferView indexBuffer;
 
         private VertexBufferView[] vertexBuffers = new VertexBufferView[8];
+        private readonly int versionMajor;
+        private readonly int versionMinor;
 
 #if !STRIDE_GRAPHICS_API_OPENGLES
         private readonly float[] nativeViewports = new float[4 * MaxViewportAndScissorRectangleCount];
@@ -79,6 +78,8 @@ namespace Stride.Graphics
 #if !STRIDE_GRAPHICS_API_OPENGLES
             RasterizerBoundState.PolygonMode = PolygonMode.Fill;
 #endif
+            GL.GetInteger(GetPName.MajorVersion, out versionMajor);
+            GL.GetInteger(GetPName.MinorVersion, out versionMinor);
 
             ClearState();
         }
@@ -920,39 +921,31 @@ namespace Stride.Graphics
                 mapMode = MapMode.WriteDiscard;
 
 
-            var buffer = resource as Buffer;
-            if (buffer != null)
+            if (resource is Buffer buffer)
             {
                 if (lengthInBytes == 0)
                     lengthInBytes = buffer.Description.SizeInBytes;
 
-                IntPtr mapResult = IntPtr.Zero;
-
                 GL.BindBuffer(buffer.BufferTarget, buffer.BufferId);
 
-#if !STRIDE_GRAPHICS_API_OPENGLES
-                //if (mapMode != MapMode.WriteDiscard && mapMode != MapMode.WriteNoOverwrite)
-                //    mapResult = GL.MapBuffer(buffer.bufferTarget, mapMode.ToOpenGL());
-                //else
-#endif
+                // Orphan the buffer (let driver knows we don't need it anymore)
+                if (mapMode == MapMode.WriteDiscard)
                 {
-                    // Orphan the buffer (let driver knows we don't need it anymore)
-                    if (mapMode == MapMode.WriteDiscard)
-                    {
-                        doNotWait = true;
-                        GL.BufferData(buffer.BufferTarget, (UIntPtr)buffer.Description.SizeInBytes, IntPtr.Zero, buffer.BufferUsageHint);
-                    }
-
-                    var unsynchronized = doNotWait && mapMode != MapMode.Read && mapMode != MapMode.ReadWrite;
-
-                    mapResult = (IntPtr)GL.MapBufferRange(buffer.BufferTarget, (IntPtr)offsetInBytes, (UIntPtr)lengthInBytes, mapMode.ToOpenGLMask() | (unsynchronized ? MapBufferAccessMask.MapUnsynchronizedBit : 0));
+                    if(versionMajor >= 4 && versionMinor >= 3)
+                        GL.InvalidateBufferData(buffer.BufferId);
+                    else
+                        GL.BufferData(buffer.BufferTarget, (uint)buffer.Description.SizeInBytes, IntPtr.Zero, buffer.BufferUsageHint);
                 }
+
+                var unsynchronized = doNotWait && mapMode != MapMode.Read && mapMode != MapMode.ReadWrite;
+
+                var mapResult = (IntPtr)GL.MapBufferRange(buffer.BufferTarget, offsetInBytes, (UIntPtr)lengthInBytes, mapMode.ToOpenGLMask() | (unsynchronized ? MapBufferAccessMask.UnsynchronizedBit : 0));
+                
 
                 return new MappedResource(resource, subResourceIndex, new DataBox { DataPointer = mapResult, SlicePitch = 0, RowPitch = 0 });
             }
 
-            var texture = resource as Texture;
-            if (texture != null)
+            if (resource is Texture texture)
             {
                 if (lengthInBytes == 0)
                     lengthInBytes = texture.ComputeSubresourceSize(subResourceIndex);
