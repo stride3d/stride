@@ -76,7 +76,7 @@ namespace Stride.Extensions
             result.VertexBuffers = new VertexBufferBinding[]
             {
                 new VertexBufferBinding(
-                    new BufferData(BufferFlags.VertexBuffer, destBufferData).ToSerializableVersion(),
+                    new BufferData(BufferFlags.VertexBuffer | BufferFlags.RawBuffer, destBufferData).ToSerializableVersion(),
                     firstVertexBuffer.Declaration,
                     totalVertexCount,
                     firstVertexBuffer.Stride),
@@ -104,7 +104,7 @@ namespace Stride.Extensions
                 // Allocate index buffer
                 destBufferData = new byte[(use32BitIndex ? sizeof(uint) : sizeof(ushort)) * totalIndexCount];
                 result.IndexBuffer = new IndexBufferBinding(
-                    new BufferData(BufferFlags.IndexBuffer, destBufferData).ToSerializableVersion(),
+                    new BufferData(BufferFlags.IndexBuffer | BufferFlags.RawBuffer, destBufferData).ToSerializableVersion(),
                     use32BitIndex,
                     totalIndexCount);
 
