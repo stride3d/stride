@@ -1,6 +1,6 @@
 # Stride.StorageTool
 
-This is simple Stride3D Asset Bundle previewer.
+This is simple Stride Asset Bundle previewer.
 Please, read the article in the documentation to learn more : https://doc.stride3d.net/latest/en/manual/engine/assets/asset-bundles.html
 
 ## Installation
