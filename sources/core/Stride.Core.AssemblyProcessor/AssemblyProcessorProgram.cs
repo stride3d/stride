@@ -110,7 +110,6 @@ namespace Stride.Core.AssemblyProcessor
                 { "p|platform=", "The platform (Windows, Android, iOS)", v => app.Platform = (PlatformType)Enum.Parse(typeof(PlatformType), v) },
                 { "parameter-key", "Automatically initialize parameter keys in module static constructor", v => app.ParameterKey = true },
                 { "rename-assembly=", "Rename assembly", v => app.NewAssemblyName = v },
-                { "auto-module-initializer", "Execute function tagged with [ModuleInitializer] at module initialization (automatically enabled)", v => app.ModuleInitializer = true },
                 { "serialization", "Generate serialiation assembly", v => app.SerializationAssembly = true },
                 { "docfile=", "Generate user documentation from XML file", v => app.DocumentationFile = v },
                 { "d|directory=", "Additional search directory for assemblies", app.SearchDirectories.Add },

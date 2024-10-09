@@ -6,7 +6,6 @@
     <TargetFramework>$(StrideEditorTargetFramework)</TargetFramework>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
-    <StrideAssemblyProcessorOptions>--auto-module-initializer</StrideAssemblyProcessorOptions>
     <StrideSkipAutoPack>false</StrideSkipAutoPack>
     <IsPackable>true</IsPackable>
   </PropertyGroup>
