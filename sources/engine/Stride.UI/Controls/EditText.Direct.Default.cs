@@ -47,7 +47,7 @@ namespace Stride.UI.Controls
         {
         }
 
-        private void OnTouchUpImpl(TouchEventArgs args)
+        private void OnPointerReleasedImpl(PointerEventArgs args)
         {
         }
     }

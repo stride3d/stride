@@ -388,31 +388,31 @@ namespace Stride.UI.Controls
             slider.OnValueChanged(args);
         }
 
-        protected override void OnTouchDown(TouchEventArgs args)
+        protected override void OnPointerPressed(PointerEventArgs args)
         {
-            base.OnTouchDown(args);
+            base.OnPointerPressed(args);
 
             SetValueFromTouchPosition(args.WorldPosition);
             IsTouchedDown = true;
         }
 
-        protected override void OnTouchUp(TouchEventArgs args)
+        protected override void OnPointerReleased(PointerEventArgs args)
         {
-            base.OnTouchUp(args);
+            base.OnPointerReleased(args);
 
             IsTouchedDown = false;
         }
 
-        protected override void OnTouchLeave(TouchEventArgs args)
+        protected override void OnPointerLeave(PointerEventArgs args)
         {
-            base.OnTouchLeave(args);
+            base.OnPointerLeave(args);
 
             IsTouchedDown = false;
         }
 
-        protected override void OnTouchMove(TouchEventArgs args)
+        protected override void OnPointerMove(PointerEventArgs args)
         {
-            base.OnTouchMove(args);
+            base.OnPointerMove(args);
 
             if (IsTouchedDown)
             {
