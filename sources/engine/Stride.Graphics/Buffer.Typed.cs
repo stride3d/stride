@@ -21,6 +21,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
+using System;
 using Stride.Games;
 
 namespace Stride.Graphics
@@ -61,6 +62,21 @@ namespace Stride.Graphics
             /// <returns>A Typed buffer</returns>
             public static Buffer<T> New<T>(GraphicsDevice device, T[] value, PixelFormat viewFormat, bool isUnorderedAccess = false, GraphicsResourceUsage usage = GraphicsResourceUsage.Default) where T : unmanaged
             {
+                return Buffer.New(device, (ReadOnlySpan<T>)value, BufferFlags.ShaderResource | (isUnorderedAccess ? BufferFlags.UnorderedAccess : BufferFlags.None), viewFormat, usage);
+            }
+
+            /// <summary>
+            /// Creates a new Typed buffer <see cref="GraphicsResourceUsage.Default" /> uasge.
+            /// </summary>
+            /// <typeparam name="T">Type of the Typed buffer to get the sizeof from</typeparam>
+            /// <param name="device">The <see cref="GraphicsDevice"/>.</param>
+            /// <param name="value">The value to initialize the Typed buffer.</param>
+            /// <param name="viewFormat">The view format of the buffer.</param>
+            /// <param name="isUnorderedAccess">if set to <c>true</c> this buffer supports unordered access (RW in HLSL).</param>
+            /// <param name="usage">The usage of this resource.</param>
+            /// <returns>A Typed buffer</returns>
+            public static Buffer<T> New<T>(GraphicsDevice device, ReadOnlySpan<T> value, PixelFormat viewFormat, bool isUnorderedAccess = false, GraphicsResourceUsage usage = GraphicsResourceUsage.Default) where T : unmanaged
+            {
                 return Buffer.New(device, value, BufferFlags.ShaderResource | (isUnorderedAccess ? BufferFlags.UnorderedAccess : BufferFlags.None), viewFormat, usage);
             }
 
@@ -73,6 +89,7 @@ namespace Stride.Graphics
             /// <param name="isUnorderedAccess">if set to <c>true</c> this buffer supports unordered access (RW in HLSL).</param>
             /// <param name="usage">The usage of this resource.</param>
             /// <returns>A Typed buffer</returns>
+            [Obsolete("Use span instead")]
             public static Buffer New(GraphicsDevice device, DataPointer value, PixelFormat viewFormat, bool isUnorderedAccess = false, GraphicsResourceUsage usage = GraphicsResourceUsage.Default)
             {
                 return Buffer.New(device, value, 0, BufferFlags.ShaderResource | (isUnorderedAccess ? BufferFlags.UnorderedAccess : BufferFlags.None), viewFormat, usage);

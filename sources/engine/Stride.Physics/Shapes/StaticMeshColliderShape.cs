@@ -263,20 +263,16 @@ namespace Stride.Physics
                     .GetValue(buffer.GraphicsDevice);
 
                 output = new byte[buffer.SizeInBytes];
-                fixed (byte* window = output)
+                if (buffer.Description.Usage == GraphicsResourceUsage.Staging)
                 {
-                    var ptr = new DataPointer(window, output.Length);
-                    if (buffer.Description.Usage == GraphicsResourceUsage.Staging)
-                    {
-                        // Directly if this is a staging resource
-                        buffer.GetData(commandList, buffer, ptr);
-                    }
-                    else
-                    {
-                        // inefficient way to use the Copy method using dynamic staging texture
-                        using var throughStaging = buffer.ToStaging();
-                        buffer.GetData(commandList, throughStaging, ptr);
-                    }
+                    // Directly if this is a staging resource
+                    buffer.GetData(commandList, buffer, output);
+                }
+                else
+                {
+                    // inefficient way to use the Copy method using dynamic staging texture
+                    using var throughStaging = buffer.ToStaging();
+                    buffer.GetData(commandList, throughStaging, output);
                 }
 
                 return output;
