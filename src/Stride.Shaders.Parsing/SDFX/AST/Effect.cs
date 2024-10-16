@@ -1,3 +1,5 @@
+using Stride.Shaders.Parsing.SDSL.AST;
+
 namespace Stride.Shaders.Parsing.SDFX.AST;
 
 
@@ -24,8 +26,9 @@ public class EffectNamespace(TextLocation info) : Node(info)
     }
 }
 
-public class EffectClass(TextLocation info) : Node(info)
+public class EffectClass(TypeName name, TextLocation info) : Node(info)
 {
+    public TypeName Name { get; set; } = name;
     public List<EffectStatement> Members { get; set; } = [];
 }
 
@@ -38,7 +41,7 @@ public class MixinUse(SDSL.AST.ShaderMixin mixin, TextLocation info) : EffectSta
 
 public abstract class Composable();
 
-public class ComposeMixin(SDSL.AST.ShaderMixin mixin, TextLocation info) : EffectStatement(info)
+public class MixinCompose(SDSL.AST.ShaderMixin mixin, TextLocation info) : EffectStatement(info)
 {
     public SDSL.AST.ShaderMixin MixinName { get; set; } = mixin;
 }

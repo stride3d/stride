@@ -9,8 +9,35 @@ public record struct EffectStatementParsers : IParser<EffectStatement>
 {
     public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, out EffectStatement parsed, in ParseError? orError = null) where TScanner : struct, IScanner
     {
-        throw new NotImplementedException();
+        var position = scanner.Position;
+        if(UsingParams(ref scanner, result, out var p1, orError) && CommonParsers.FollowedBy(ref scanner, Terminals.Char(';'), withSpaces: true, advance: true))
+        {
+            parsed = p1;
+            return true;
+        }
+        else if(MixinCompose(ref scanner, result, out var p2, orError) && CommonParsers.FollowedBy(ref scanner, Terminals.Char(';'), withSpaces: true, advance: true))
+        {
+            parsed = p2;
+            return true;
+        }
+        else if(MixinUse(ref scanner, result, out var p3, orError) && CommonParsers.FollowedBy(ref scanner, Terminals.Char(';'), withSpaces: true, advance: true))
+        {
+            parsed = p3;
+            return true;
+        }
+        return CommonParsers.Exit(ref scanner, result, out parsed, position, orError);
     }
+
+    public static bool Statement<TScanner>(ref TScanner scanner, ParseResult result, out EffectStatement parsed, in ParseError? orError = null) where TScanner : struct, IScanner
+        => new EffectStatementParsers().Match(ref scanner, result, out parsed, orError);
+
+    public static bool UsingParams<TScanner>(ref TScanner scanner, ParseResult result, out UsingParams parsed, in ParseError? orError = null) where TScanner : struct, IScanner
+        => new UsingParamsParser().Match(ref scanner, result, out parsed, orError);
+    
+    public static bool MixinCompose<TScanner>(ref TScanner scanner, ParseResult result, out MixinCompose parsed, in ParseError? orError = null) where TScanner : struct, IScanner
+        => new MixinComposeParser().Match(ref scanner, result, out parsed, orError);
+    public static bool MixinUse<TScanner>(ref TScanner scanner, ParseResult result, out AST.MixinUse parsed, in ParseError? orError = null) where TScanner : struct, IScanner
+        => new MixinUseParser().Match(ref scanner, result, out parsed, orError);
 }
 
 
@@ -34,9 +61,9 @@ public record struct UsingParamsParser : IParser<UsingParams>
     }
 }
 
-public record struct MixinComposeParser : IParser<ComposeMixin>
+public record struct MixinComposeParser : IParser<MixinCompose>
 {
-    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, out ComposeMixin parsed, in ParseError? orError = null) where TScanner : struct, IScanner
+    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, out MixinCompose parsed, in ParseError? orError = null) where TScanner : struct, IScanner
     {
         var position = scanner.Position;
         if (
@@ -65,7 +92,7 @@ public record struct MixinComposeParser : IParser<ComposeMixin>
     }
 }
 
-public record struct MixinParser : IParser<MixinUse>
+public record struct MixinUseParser : IParser<MixinUse>
 {
     public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, out MixinUse parsed, in ParseError? orError = null) where TScanner : struct, IScanner
     {
