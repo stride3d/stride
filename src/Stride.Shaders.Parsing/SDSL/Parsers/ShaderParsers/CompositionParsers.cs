@@ -6,7 +6,7 @@ namespace Stride.Shaders.Parsing.SDSL;
 
 public record struct CompositionParser() : IParser<ShaderCompose>
 {
-    public bool Match<TScanner>(ref TScanner scanner, ParseResult result, out ShaderCompose parsed, in ParseError? orError = null) where TScanner : struct, IScanner
+    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, out ShaderCompose parsed, in ParseError? orError = null) where TScanner : struct, IScanner
     {
         var position = scanner.Position;
         if (Terminals.Literal("compose", ref scanner, advance: true) && CommonParsers.Spaces1(ref scanner, result, out _))

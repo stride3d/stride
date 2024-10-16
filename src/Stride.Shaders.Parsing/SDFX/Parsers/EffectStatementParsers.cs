@@ -1,5 +1,6 @@
 using Stride.Shaders.Parsing.SDFX.AST;
 using Stride.Shaders.Parsing.SDSL;
+using Stride.Shaders.Parsing.SDSL.AST;
 
 namespace Stride.Shaders.Parsing.SDFX.Parsers;
 
@@ -10,10 +11,28 @@ public record struct EffectStatementParsers : IParser<EffectStatement>
     {
         throw new NotImplementedException();
     }
-
-
 }
 
+
+public record struct UsingParamsParser : IParser<UsingParams>
+{
+    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, out UsingParams parsed, in ParseError? orError = null) where TScanner : struct, IScanner
+    {
+        var position = scanner.Position;
+        if(Terminals.Literal("using", ref scanner, advance: true) && CommonParsers.Spaces1(ref scanner, result, out _))
+        {
+            if(Terminals.Literal("params", ref scanner, advance: true) && CommonParsers.Spaces1(ref scanner, result, out _, orError : new("Expected space here", scanner.CreateError(scanner.Position))))
+            {
+                if(LiteralsParser.Identifier(ref scanner, result, out var identifier))
+                {
+                    parsed = new(identifier, scanner.GetLocation(position..scanner.Position));
+                    return true;
+                }
+            }
+        }
+        return CommonParsers.Exit(ref scanner, result, out parsed, position, orError);
+    }
+}
 
 public record struct MixinComposeParser : IParser<ComposeMixin>
 {

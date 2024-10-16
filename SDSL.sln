@@ -27,6 +27,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stride.Shaders.Spirv.Genera
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stride.Shaders.Spirv.Core.Benchmarks", "src\Stride.Shaders.Spirv\Stride.Shaders.Spirv.Core.Benchmarks\Stride.Shaders.Spirv.Core.Benchmarks.csproj", "{8A94649E-8A3B-4F7C-85A5-9D38212AAA3C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stride.Shaders.Parsing.Tests", "src\Stride.Shaders.Parsing.Tests\Stride.Shaders.Parsing.Tests.csproj", "{41050DB9-A819-4FC7-9D46-0ED054CAE7CB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -76,6 +78,10 @@ Global
 		{8A94649E-8A3B-4F7C-85A5-9D38212AAA3C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8A94649E-8A3B-4F7C-85A5-9D38212AAA3C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8A94649E-8A3B-4F7C-85A5-9D38212AAA3C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{41050DB9-A819-4FC7-9D46-0ED054CAE7CB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{41050DB9-A819-4FC7-9D46-0ED054CAE7CB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{41050DB9-A819-4FC7-9D46-0ED054CAE7CB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{41050DB9-A819-4FC7-9D46-0ED054CAE7CB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{6641B2F9-0E20-43E5-BF88-44B02B32117B} = {F15E41A8-FD75-462B-9BB0-DCE18A6AD334}
@@ -89,5 +95,6 @@ Global
 		{07ED0B5B-BB1A-4B7E-ACBD-C06FC106AF00} = {6F9ED3BC-F61F-4FFE-9AC4-F42FDECDFA92}
 		{1205976E-A945-4475-AD87-C63527D5A63A} = {6F9ED3BC-F61F-4FFE-9AC4-F42FDECDFA92}
 		{8A94649E-8A3B-4F7C-85A5-9D38212AAA3C} = {6F9ED3BC-F61F-4FFE-9AC4-F42FDECDFA92}
+		{41050DB9-A819-4FC7-9D46-0ED054CAE7CB} = {F15E41A8-FD75-462B-9BB0-DCE18A6AD334}
 	EndGlobalSection
 EndGlobal

@@ -3,9 +3,9 @@ using Stride.Shaders.Parsing.SDSL.AST;
 namespace Stride.Shaders.Parsing.SDFX.AST;
 
 
-public class EffectParameters(Identifier name, TextLocation info) : Node(info)
+public class EffectParameters(TypeName name, TextLocation info) : Node(info)
 {
-    public Identifier Name { get; set; } = name;
+    public TypeName Name { get; set; } = name;
     public List<EffectParameter> Parameters { get; set; } = [];
 }
 

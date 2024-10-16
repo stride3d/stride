@@ -12,4 +12,11 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
+  <ItemGroup>
+     <None 
+         Include="..\..\assets\**" 
+         CopyToOutputDirectory="PreserveNewest" 
+         LinkBase="assets\" />
+  </ItemGroup>
+
 </Project>

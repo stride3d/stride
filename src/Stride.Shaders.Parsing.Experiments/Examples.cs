@@ -79,7 +79,7 @@ public static class Examples
 
     public static void ParseSDSL()
     {
-        var text = File.ReadAllText(@"C:\Users\youness_kafia\Documents\dotnetProjs\SDSL\assets\SDSL\Commented.sdsl");
+        var text = File.ReadAllText("./assets/Stride/SDSL/B.sdsl");
         var parsed = SDSLParser.Parse(text);
         Console.WriteLine(parsed.AST);
         if(parsed.Errors.Count > 0)

@@ -102,4 +102,6 @@ public class TypeName(string name, TextLocation info) : Literal(info)
     {
         return $"{Name}";
     }
+
+    public static implicit operator string(TypeName tn) => tn.Name;
 }
