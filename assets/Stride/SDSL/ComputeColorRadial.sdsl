@@ -1,0 +1,24 @@
+﻿// This is a little more complex example which you can use
+//  Refer to the Radial Partical System in the Editor
+//  Under Material it uses a Shader for its Emissive color, and the shader's name is ComputeColorRadial
+//  In addition to ComputeColor this shader also inherits Texturing so it can use texture coordinates
+//  ColorCenter and ColorEdge are design time permutations and appear in the shader dictionary when you choose ComputeColorRadial from the proeprty grid
+
+shader ComputeColorRadial<float4 ColorCenter, float4 ColorEdge> : ComputeColor, Texturing
+{
+    override float4 Compute()
+    {
+        float radialDistance = length(streams.TexCoord - float2(0.5, 0.5)) * 2;
+
+        float4 unclamped = lerp(ColorCenter, ColorEdge, radialDistance);
+
+        // We want to allow the intensity to grow a lot, but cap the alpha to 1
+        float4 clamped = clamp(unclamped, float4(0, 0, 0, 0), float4(1000, 1000, 1000, 1));
+
+        // Remember that we use a premultiplied alpha pipeline so all color values should be premultiplied
+        clamped.rgb *= clamped.a;
+
+        return clamped;
+    }
+};
+

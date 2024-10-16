@@ -1,0 +1,15 @@
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Sean Boettger <sean@whypenguins.com>
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+shader VoxelModifierApplierSolidifyAnisotropic<int SolidityAttributeID> : VoxelModifierApplierAnisotropic, LocalSamples
+{
+    override void Apply(inout float4 XP, inout float4 XN, inout float4 YP, inout float4 YN, inout float4 ZP, inout float4 ZN)
+    {
+        float Solidity = streams.LocalSample[SolidityAttributeID].a;
+        XP.a = max(Solidity, XP.a);
+        XN.a = max(Solidity, XN.a);
+        YP.a = max(Solidity, YP.a);
+        YN.a = max(Solidity, YN.a);
+        ZP.a = max(Solidity, ZP.a);
+        ZN.a = max(Solidity, ZN.a);
+    }
+};

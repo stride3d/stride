@@ -5,4 +5,3 @@ obj/
 .vs/
 .antlr/
 /src/SDSLParserExample/Properties/launchSettings.json
-assets/Stride
