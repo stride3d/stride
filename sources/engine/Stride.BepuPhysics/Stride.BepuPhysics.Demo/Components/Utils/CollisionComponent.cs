@@ -46,12 +46,12 @@ namespace Stride.BepuPhysics.Demo.Components.Utils
         public bool Contact { get; private set; } = false;
         public bool NoContactResponse => false;
 
-        void IContactEventHandler.OnStartedTouching<TManifold>(CollidableReference eventSource, CollidableReference other, ref TManifold contactManifold, int contactIndex, BepuSimulation bepuSimulation)
+        void IContactEventHandler.OnStartedTouching<TManifold>(CollidableReference eventSource, CollidableReference other, ref TManifold contactManifold, bool flippedManifold, int contactIndex, BepuSimulation bepuSimulation)
         {
             Contact = true;
         }
 
-        void IContactEventHandler.OnStoppedTouching<TManifold>(CollidableReference eventSource, CollidableReference other, ref TManifold contactManifold, int contactIndex, BepuSimulation bepuSimulation)
+        void IContactEventHandler.OnStoppedTouching<TManifold>(CollidableReference eventSource, CollidableReference other, ref TManifold contactManifold, bool flippedManifold, int contactIndex, BepuSimulation bepuSimulation)
         {
             Contact = false;
         }

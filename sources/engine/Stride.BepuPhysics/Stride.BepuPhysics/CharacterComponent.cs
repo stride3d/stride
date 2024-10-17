@@ -19,19 +19,22 @@ namespace Stride.BepuPhysics;
 [ComponentCategory("Bepu")]
 public class CharacterComponent : BodyComponent, ISimulationUpdate, IContactEventHandler
 {
-    private bool _tryJump;
+    private bool _jumping;
 
     /// <summary> Base speed applied when moving, measured in units per second </summary>
     public float Speed { get; set; } = 10f;
 
     /// <summary> Force of the impulse applied when calling <see cref="TryJump"/> </summary>
-    public float JumpSpeed { get; set; } = 10f;
+    [DataAlias("JumpSpeed")]
+    public float JumpForce { get; set; } = 10f;
 
     [DataMemberIgnore]
     public Vector3 Velocity { get; set; }
 
     [DataMemberIgnore]
     public bool IsGrounded { get; protected set; }
+
+    public bool IsJumping => _jumping;
 
     /// <summary>
     /// Order is not guaranteed and may change at any moment
@@ -47,10 +50,8 @@ public class CharacterComponent : BodyComponent, ISimulationUpdate, IContactEven
     /// <inheritdoc cref="BodyComponent.AttachInner"/>
     protected override void AttachInner(NRigidPose pose, BodyInertia shapeInertia, TypedIndex shapeIndex)
     {
-        #warning Norbo: validate whether we can remove the setter for BodyInertia below by feeding it in place of shapeIntertia here ?
-        base.AttachInner(pose, shapeInertia, shapeIndex);
+        base.AttachInner(pose, new BodyInertia { InverseMass = 1f }, shapeIndex);
         FrictionCoefficient = 0f;
-        BodyInertia = new BodyInertia { InverseMass = 1f };
         ContactEventHandler = this;
     }
 
@@ -72,7 +73,7 @@ public class CharacterComponent : BodyComponent, ISimulationUpdate, IContactEven
     /// </summary>
     public virtual void TryJump()
     {
-        _tryJump = true;
+        _jumping = true;
     }
 
     /// <summary>
@@ -83,14 +84,21 @@ public class CharacterComponent : BodyComponent, ISimulationUpdate, IContactEven
     {
         Awake = true; // Keep this body active
 
-        LinearVelocity = new Vector3(Velocity.X, LinearVelocity.Y, Velocity.Z);
+        var gravity = Simulation!.PoseGravity;
+        if (IsGrounded == false || Velocity.LengthSquared() > 0f)
+            LinearVelocity += simTimeStep * gravity; // Custom gravity, applies only when the character is not grounded or when moving about
 
-        if (_tryJump)
+        // Only keep the vertical component from the linear velocity, be it gravity or jump
+        LinearVelocity = Velocity + Project(LinearVelocity, gravity);
+
+        if (_jumping && LinearVelocity.Y <= 0)
         {
             if (IsGrounded)
-                ApplyLinearImpulse(Vector3.UnitY * JumpSpeed);
-            _tryJump = false;
+                ApplyLinearImpulse(-Vector3.Normalize(gravity) * JumpForce);
+            else
+                _jumping = false;
         }
+        Gravity = false;
     }
 
     /// <summary>
@@ -99,11 +107,24 @@ public class CharacterComponent : BodyComponent, ISimulationUpdate, IContactEven
     /// <param name="simTimeStep">The amount of time in seconds since the last simulation</param>
     public virtual void AfterSimulationUpdate(float simTimeStep)
     {
-        IsGrounded = GroundTest(-Simulation!.PoseGravity.ToNumeric()); // Checking for grounded after simulation ran to compute contacts as soon as possible after they are received
-        // If there is no input from the player, and we are grounded, ignore gravity to prevent sliding down the slope we might be on
-        // Do not ignore if there is any input to ensure we stick to the surface as much as possible while moving down a slope
-        Gravity = !IsGrounded || Velocity.Length() > 0f;
+        var gravity = Simulation!.PoseGravity;
+        IsGrounded = GroundTest(-gravity.ToNumeric()); // Checking for grounded after simulation ran to compute contacts as soon as possible after they are received
+
+        bool downwardForce = Vector3.Dot(gravity, LinearVelocity) >= 0f;
+
+        if (_jumping && downwardForce)
+            _jumping = false; // If we have any downward forces we're past the apex of the jump
+
+        if (IsGrounded && Velocity.LengthSquared() == 0f)
+            LinearVelocity = ProjectOnPlane(LinearVelocity, gravity); // Clip gravity when standing still on ground, mostly for slopes
+        else if (downwardForce == false && _jumping == false)
+            LinearVelocity = ProjectOnPlane(LinearVelocity, gravity); // Clip bouncing upward after a collision
     }
+
+    static Vector3 Project(Vector3 vector, Vector3 direction) => direction * Vector3.Dot(vector, direction) / Vector3.Dot(direction, direction);
+
+    static Vector3 ProjectOnPlane(Vector3 vector, Vector3 planeNormal) => vector - Project(vector, planeNormal);
+
 
     /// <summary>
     /// Returns whether this body is in contact with the ground.
@@ -139,21 +160,31 @@ public class CharacterComponent : BodyComponent, ISimulationUpdate, IContactEven
     }
 
     bool IContactEventHandler.NoContactResponse => NoContactResponse;
-    void IContactEventHandler.OnStartedTouching<TManifold>(CollidableReference eventSource, CollidableReference other, ref TManifold contactManifold, int contactIndex, BepuSimulation bepuSimulation) => OnStartedTouching(eventSource, other, ref contactManifold, contactIndex, bepuSimulation);
-    void IContactEventHandler.OnStoppedTouching<TManifold>(CollidableReference eventSource, CollidableReference other, ref TManifold contactManifold, int contactIndex, BepuSimulation bepuSimulation) => OnStoppedTouching(eventSource, other, ref contactManifold, contactIndex, bepuSimulation);
+    void IContactEventHandler.OnStartedTouching<TManifold>(CollidableReference eventSource, CollidableReference other, ref TManifold contactManifold, bool flippedManifold, int contactIndex, BepuSimulation bepuSimulation) => OnStartedTouching(eventSource, other, ref contactManifold, flippedManifold, contactIndex, bepuSimulation);
+    void IContactEventHandler.OnStoppedTouching<TManifold>(CollidableReference eventSource, CollidableReference other, ref TManifold contactManifold, bool flippedManifold, int contactIndex, BepuSimulation bepuSimulation) => OnStoppedTouching(eventSource, other, ref contactManifold, flippedManifold, contactIndex, bepuSimulation);
 
 
     protected bool NoContactResponse => false;
 
-    protected virtual void OnStartedTouching<TManifold>(CollidableReference eventSource, CollidableReference other, ref TManifold contactManifold, int contactIndex, BepuSimulation bepuSimulation) where TManifold : unmanaged, IContactManifold<TManifold>
+    /// <inheritdoc cref="IContactEventHandler.OnStartedTouching{TManifold}"/>
+    protected virtual void OnStartedTouching<TManifold>(CollidableReference eventSource, CollidableReference other, ref TManifold contactManifold, bool flippedManifold, int contactIndex, BepuSimulation bepuSimulation) where TManifold : unmanaged, IContactManifold<TManifold>
     {
         var otherCollidable = bepuSimulation.GetComponent(other);
         contactManifold.GetContact(contactIndex, out var contact);
+
+        if (flippedManifold)
+        {
+            // Contact manifold was computed from the other collidable's point of view, normal and offset should be flipped
+            contact.Offset = -contact.Offset;
+            contact.Normal = -contact.Normal;
+        }
+
         contact.Offset = contact.Offset + Entity.Transform.WorldMatrix.TranslationVector.ToNumeric() + CenterOfMass.ToNumeric();
         Contacts.Add((otherCollidable, contact));
     }
 
-    protected virtual void OnStoppedTouching<TManifold>(CollidableReference eventSource, CollidableReference other, ref TManifold contactManifold, int contactIndex, BepuSimulation bepuSimulation) where TManifold : unmanaged, IContactManifold<TManifold>
+    /// <inheritdoc cref="IContactEventHandler.OnStoppedTouching{TManifold}"/>
+    protected virtual void OnStoppedTouching<TManifold>(CollidableReference eventSource, CollidableReference other, ref TManifold contactManifold, bool flippedManifold, int contactIndex, BepuSimulation bepuSimulation) where TManifold : unmanaged, IContactManifold<TManifold>
     {
         var otherCollidable = bepuSimulation.GetComponent(other);
         for (int i = Contacts.Count - 1; i >= 0; i--)

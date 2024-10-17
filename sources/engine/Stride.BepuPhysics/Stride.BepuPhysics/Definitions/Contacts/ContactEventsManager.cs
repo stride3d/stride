@@ -278,7 +278,7 @@ internal class ContactEventsManager : IDisposable
         collision.WasTouching = isTouching;
     }
 
-    void HandleManifoldForCollidable<TManifold>(int workerIndex, CollidableReference source, CollidableReference other, ref TManifold manifold) where TManifold : unmanaged, IContactManifold<TManifold>
+    void HandleManifoldForCollidable<TManifold>(int workerIndex, CollidableReference source, CollidableReference other, bool flippedManifold, ref TManifold manifold) where TManifold : unmanaged, IContactManifold<TManifold>
     {
         //The "source" refers to the object that an event handler was (potentially) attached to, so we look for listeners registered for it.
         //(This function is called for both orders of the pair, so we'll catch listeners for either.)
@@ -317,7 +317,7 @@ internal class ContactEventsManager : IDisposable
                     }
                     if (!featureIdWasInPreviousCollision)
                     {
-                        listener.Handler.OnContactAdded(source, other, ref manifold, contactIndex, workerIndex, bepuSimulation);
+                        listener.Handler.OnContactAdded(source, other, ref manifold, flippedManifold, contactIndex, workerIndex, bepuSimulation);
                     }
                     if (manifold.GetDepth(contactIndex) >= 0)
                         isTouching = true;
@@ -329,21 +329,21 @@ internal class ContactEventsManager : IDisposable
                     {
                         if ((previousContactsStillExist & 1 << previousContactIndex) == 0)
                         {
-                            listener.Handler.OnContactRemoved(source, other, ref manifold, Unsafe.Add(ref collision.FeatureId0, previousContactIndex), workerIndex, bepuSimulation);
+                            listener.Handler.OnContactRemoved(source, other, ref manifold, flippedManifold, Unsafe.Add(ref collision.FeatureId0, previousContactIndex), workerIndex, bepuSimulation);
                         }
                     }
                 }
                 if (!collision.WasTouching && isTouching)
                 {
-                    listener.Handler.OnStartedTouching(source, other, ref manifold, workerIndex, bepuSimulation);
+                    listener.Handler.OnStartedTouching(source, other, ref manifold, flippedManifold, workerIndex, bepuSimulation);
                 }
                 else if (collision.WasTouching && !isTouching)
                 {
-                    listener.Handler.OnStoppedTouching(source, other, ref manifold, workerIndex, bepuSimulation);
+                    listener.Handler.OnStoppedTouching(source, other, ref manifold, flippedManifold, workerIndex, bepuSimulation);
                 }
                 if (isTouching)
                 {
-                    listener.Handler.OnTouching(source, other, ref manifold, workerIndex, bepuSimulation);
+                    listener.Handler.OnTouching(source, other, ref manifold, flippedManifold, workerIndex, bepuSimulation);
                 }
                 UpdatePreviousCollision(ref collision, ref manifold, isTouching);
                 break;
@@ -358,29 +358,29 @@ internal class ContactEventsManager : IDisposable
             ref var pendingAdd = ref addsforWorker.AllocateUnsafely();
             pendingAdd.ListenerIndex = listenerIndex;
             pendingAdd.Collision.Collidable = other;
-            listener.Handler.OnPairCreated(source, other, ref manifold, workerIndex, bepuSimulation);
+            listener.Handler.OnPairCreated(source, other, ref manifold, flippedManifold, workerIndex, bepuSimulation);
             //Dispatch events for all contacts in this new manifold.
             for (int i = 0; i < manifold.Count; ++i)
             {
-                listener.Handler.OnContactAdded(source, other, ref manifold, i, workerIndex, bepuSimulation);
+                listener.Handler.OnContactAdded(source, other, ref manifold, flippedManifold, i, workerIndex, bepuSimulation);
                 if (manifold.GetDepth(i) >= 0)
                     isTouching = true;
             }
             if (isTouching)
             {
-                listener.Handler.OnStartedTouching(source, other, ref manifold, workerIndex, bepuSimulation);
-                listener.Handler.OnTouching(source, other, ref manifold, workerIndex, bepuSimulation);
+                listener.Handler.OnStartedTouching(source, other, ref manifold, flippedManifold, workerIndex, bepuSimulation);
+                listener.Handler.OnTouching(source, other, ref manifold, flippedManifold, workerIndex, bepuSimulation);
             }
             UpdatePreviousCollision(ref pendingAdd.Collision, ref manifold, isTouching);
         }
-        listener.Handler.OnPairUpdated(source, other, ref manifold, workerIndex, bepuSimulation);
+        listener.Handler.OnPairUpdated(source, other, ref manifold, flippedManifold, workerIndex, bepuSimulation);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void HandleManifold<TManifold>(int workerIndex, CollidablePair pair, ref TManifold manifold) where TManifold : unmanaged, IContactManifold<TManifold>
     {
-        HandleManifoldForCollidable(workerIndex, pair.A, pair.B, ref manifold);
-        HandleManifoldForCollidable(workerIndex, pair.B, pair.A, ref manifold);
+        HandleManifoldForCollidable(workerIndex, pair.A, pair.B, false, ref manifold);
+        HandleManifoldForCollidable(workerIndex, pair.B, pair.A, true, ref manifold);
     }
 
     //For final events fired by the flush that still expect a manifold, we'll provide a special empty type.
@@ -427,10 +427,13 @@ internal class ContactEventsManager : IDisposable
                         var emptyManifold = new EmptyManifold();
                         for (int previousContactCount = 0; previousContactCount < collision.ContactCount; ++previousContactCount)
                         {
-                            listener.Handler.OnContactRemoved(listener.Source, collision.Collidable, ref emptyManifold, Unsafe.Add(ref collision.FeatureId0, previousContactCount), 0, bepuSimulation);
+                            listener.Handler.OnContactRemoved(listener.Source, collision.Collidable, ref emptyManifold, false, Unsafe.Add(ref collision.FeatureId0, previousContactCount), 0, bepuSimulation);
                         }
+
                         if (collision.WasTouching)
-                            listener.Handler.OnStoppedTouching(listener.Source, collision.Collidable, ref emptyManifold, 0, bepuSimulation);
+                        {
+                            listener.Handler.OnStoppedTouching(listener.Source, collision.Collidable, ref emptyManifold, false, 0, bepuSimulation);
+                        }
                     }
                     listener.Handler.OnPairEnded(collision.Collidable, collision.Collidable, bepuSimulation);
                     //This collision was not updated since the last flush despite being active. It should be removed.
