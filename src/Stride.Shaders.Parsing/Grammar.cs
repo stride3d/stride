@@ -1,6 +1,7 @@
+using Stride.Shaders.Parsing.SDSL;
 using Stride.Shaders.Parsing.SDSL.AST;
 
-namespace Stride.Shaders.Parsing.SDSL;
+namespace Stride.Shaders.Parsing;
 
 public static class Grammar
 {

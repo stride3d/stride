@@ -11,7 +11,7 @@ public partial class SymbolTable
     public Dictionary<string, SymbolType> DeclaredTypes { get; } = [];
     public Stack<Dictionary<string, Symbol>> Symbols { get; } = [];
 
-    public void Process(ShaderClass sclass, Dictionary<string, Symbol>? globalSymbols = null)
+    public void Process(ShaderMixin sclass, Dictionary<string, Symbol>? globalSymbols = null)
     {
         DeclaredTypes.Add(sclass.Name.Name, new MixinSymbol(sclass.Name, []));
         foreach (var e in sclass.Elements)

@@ -4,6 +4,7 @@ using Silk.NET.Direct3D.Compilers;
 using Silk.NET.Shaderc;
 using Silk.NET.SPIRV.Cross;
 using Stride.Shaders.Compilers;
+using Stride.Shaders.Parsing;
 using Stride.Shaders.Parsing.SDSL;
 
 namespace Stride.Shaders.Experiments;
@@ -79,7 +80,7 @@ public static class Examples
 
     public static void ParseSDSL()
     {
-        var text = File.ReadAllText("./assets/Stride/SDSL/B.sdsl");
+        var text = File.ReadAllText("./assets/Stride/SDSL/AdditiveLightEffect.sdsl");
         var parsed = SDSLParser.Parse(text);
         Console.WriteLine(parsed.AST);
         if(parsed.Errors.Count > 0)

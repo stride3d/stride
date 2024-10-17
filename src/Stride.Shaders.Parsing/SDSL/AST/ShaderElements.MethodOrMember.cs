@@ -7,10 +7,10 @@ public abstract class MethodOrMember(TextLocation info, bool isStaged = false) :
     public List<ShaderAttribute> Attributes { get; set; } = [];
 }
 
-public class ShaderCompose(Identifier name, ShaderMixin mixin, TextLocation info) : MethodOrMember(info)
+public class ShaderCompose(Identifier name, InheritedMixin mixin, TextLocation info) : MethodOrMember(info)
 {
     public Identifier Name { get; } = name;
-    public ShaderMixin Mixin { get; } = mixin;
+    public InheritedMixin Mixin { get; } = mixin;
     public override string ToString() => $"compose {Mixin} {Name};";
 }
 

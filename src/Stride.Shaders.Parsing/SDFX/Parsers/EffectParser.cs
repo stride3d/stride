@@ -4,9 +4,9 @@ using Stride.Shaders.Parsing.SDSL;
 namespace Stride.Shaders.Parsing.SDFX.Parsers;
 
 
-public record struct EffectParser : IParser<EffectClass>
+public record struct EffectParser : IParser<ShaderEffect>
 {
-    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, out EffectClass parsed, in ParseError? orError = null) where TScanner : struct, IScanner
+    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, out ShaderEffect parsed, in ParseError? orError = null) where TScanner : struct, IScanner
     {
         var position = scanner.Position;
         if (Terminals.Literal("effect", ref scanner, advance: true) && CommonParsers.Spaces1(ref scanner, result, out _))
@@ -40,6 +40,8 @@ public record struct EffectParser : IParser<EffectClass>
         return CommonParsers.Exit(ref scanner, result, out parsed, position, orError);
     }
 
+    public static bool Effect<TScanner>(ref TScanner scanner, ParseResult result, out ShaderEffect parsed, in ParseError? orError = null) where TScanner : struct, IScanner
+            => new EffectParser().Match(ref scanner, result, out parsed, orError);
     public static bool EffectStatement<TScanner>(ref TScanner scanner, ParseResult result, out EffectStatement parsed, in ParseError? orError = null) where TScanner : struct, IScanner
             => new EffectStatementParsers().Match(ref scanner, result, out parsed, orError);
 }

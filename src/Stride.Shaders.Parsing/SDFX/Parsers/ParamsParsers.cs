@@ -36,6 +36,8 @@ public record struct ParamsParsers : IParser<EffectParameters>
         }
         return CommonParsers.Exit(ref scanner, result, out parsed, position, orError);
     }
+    public static bool Params<TScanner>(ref TScanner scanner, ParseResult result, out EffectParameters parsed, in ParseError? orError = null) where TScanner : struct, IScanner
+            => new ParamsParsers().Match(ref scanner, result, out parsed, orError);
     public static bool Parameter<TScanner>(ref TScanner scanner, ParseResult result, out EffectParameter parsed, in ParseError? orError = null) where TScanner : struct, IScanner
             => new ParameterParser().Match(ref scanner, result, out parsed, orError);
 }

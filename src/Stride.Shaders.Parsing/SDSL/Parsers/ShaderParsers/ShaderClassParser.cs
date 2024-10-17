@@ -4,9 +4,9 @@ using Stride.Shaders.Parsing.SDSL.AST;
 namespace Stride.Shaders.Parsing.SDSL;
 
 
-public record struct ShaderClassParsers : IParser<ShaderClass>
+public record struct ShaderClassParsers : IParser<ShaderMixin>
 {
-    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, out ShaderClass parsed, in ParseError? orError = null)
+    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, out ShaderMixin parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
     {
         if (ComplexClass(ref scanner, result, out parsed, in orError))
@@ -14,23 +14,23 @@ public record struct ShaderClassParsers : IParser<ShaderClass>
         else
             return false;
     }
-    public static bool Class<TScanner>(ref TScanner scanner, ParseResult result, out ShaderClass parsed, in ParseError? orError = null)
+    public static bool Class<TScanner>(ref TScanner scanner, ParseResult result, out ShaderMixin parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
         => new ShaderClassParsers().Match(ref scanner, result, out parsed, in orError);
-    public static bool ComplexClass<TScanner>(ref TScanner scanner, ParseResult result, out ShaderClass parsed, in ParseError? orError = null)
+    public static bool ComplexClass<TScanner>(ref TScanner scanner, ParseResult result, out ShaderMixin parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
         => new ShaderClassParser().Match(ref scanner, result, out parsed, in orError);
     public static bool GenericsDefinition<TScanner>(ref TScanner scanner, ParseResult result, out ShaderGenerics parsed)
         where TScanner : struct, IScanner
         => new ShaderGenericsDefinitionParser().Match(ref scanner, result, out parsed);
-    public static bool Mixin<TScanner>(ref TScanner scanner, ParseResult result, out ShaderMixin parsed)
+    public static bool Mixin<TScanner>(ref TScanner scanner, ParseResult result, out InheritedMixin parsed)
         where TScanner : struct, IScanner
         => new ShaderMixinParser().Match(ref scanner, result, out parsed);
 }
 
-public record struct SimpleShaderClassParser : IParser<ShaderClass>
+public record struct SimpleShaderClassParser : IParser<ShaderMixin>
 {
-    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, out ShaderClass parsed, in ParseError? orError = null)
+    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, out ShaderMixin parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
@@ -45,7 +45,7 @@ public record struct SimpleShaderClassParser : IParser<ShaderClass>
 
         )
         {
-            var c = new ShaderClass(className, scanner.GetLocation(position, scanner.Position - position));
+            var c = new ShaderMixin(className, scanner.GetLocation(position, scanner.Position - position));
             while (!scanner.IsEof && !Terminals.Char('}', ref scanner, advance: true))
             {
                 if (ShaderElementParsers.ShaderElement(ref scanner, result, out var e))
@@ -63,9 +63,9 @@ public record struct SimpleShaderClassParser : IParser<ShaderClass>
     }
 }
 
-public record struct ShaderClassParser : IParser<ShaderClass>
+public record struct ShaderClassParser : IParser<ShaderMixin>
 {
-    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, out ShaderClass parsed, in ParseError? orError = null)
+    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, out ShaderMixin parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
@@ -76,7 +76,7 @@ public record struct ShaderClassParser : IParser<ShaderClass>
                 && CommonParsers.Spaces0(ref scanner, result, out _)
             )
             {
-                parsed = new ShaderClass(identifier, scanner.GetLocation(..));
+                parsed = new ShaderMixin(identifier, scanner.GetLocation(..));
                 if (Terminals.Char('<', ref scanner, advance: true))
                 {
                     ParameterParsers.Declarations(ref scanner, result, out var generics);
@@ -129,14 +129,14 @@ public record struct ShaderClassParser : IParser<ShaderClass>
 }
 
 
-public record struct ShaderMixinParser : IParser<ShaderMixin>
+public record struct ShaderMixinParser : IParser<InheritedMixin>
 {
-    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, out ShaderMixin parsed, in ParseError? orError = null) where TScanner : struct, IScanner
+    public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, out InheritedMixin parsed, in ParseError? orError = null) where TScanner : struct, IScanner
     {
         var position = scanner.Position;
         if (LiteralsParser.Identifier(ref scanner, result, out var identifier))
         {
-            parsed = new ShaderMixin(identifier, scanner.GetLocation(..));
+            parsed = new InheritedMixin(identifier, scanner.GetLocation(..));
             var tmpPos = scanner.Position;
             CommonParsers.Spaces0(ref scanner, result, out _);
             if (Terminals.Char('<', ref scanner, advance: true))
