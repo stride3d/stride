@@ -85,8 +85,6 @@ public class CharacterComponent : BodyComponent, ISimulationUpdate, IContactEven
         Awake = true; // Keep this body active
 
         var gravity = Simulation!.PoseGravity;
-        if (IsGrounded == false || Velocity.LengthSquared() > 0f)
-            LinearVelocity += simTimeStep * gravity; // Custom gravity, applies only when the character is not grounded or when moving about
 
         // Only keep the vertical component from the linear velocity, be it gravity or jump
         LinearVelocity = Velocity + Project(LinearVelocity, gravity);
@@ -98,7 +96,7 @@ public class CharacterComponent : BodyComponent, ISimulationUpdate, IContactEven
             else
                 _jumping = false;
         }
-        Gravity = false;
+        Gravity = (IsGrounded && Velocity.LengthSquared() == 0f) == false; // Apply gravity only when the character is grounded and standing still to avoid sliding down slopes
     }
 
     /// <summary>
