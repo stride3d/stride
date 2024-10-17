@@ -37,6 +37,8 @@ public sealed class RecastNavigationProcessor : EntityProcessor<RecastNavigation
             var sceneSystem = Services.GetSafeServiceAs<SceneSystem>();
             sceneSystem.Game!.GameSystems.Add(_recastMeshProcessor);
         }
+
+        Services.AddService(this);
     }
 
     protected override void OnEntityComponentAdding(Entity entity, RecastNavigationComponent component, RecastNavigationComponent data)
@@ -53,7 +55,7 @@ public sealed class RecastNavigationProcessor : EntityProcessor<RecastNavigation
     {
         var deltaTime = (float)time.Elapsed.TotalSeconds;
 
-        for(int i = 0; i < 10; i++)
+        for (int i = 0; i < 10; i++)
         {
             if (_tryGetPathQueue.IsEmpty) break;
 
@@ -67,75 +69,24 @@ public sealed class RecastNavigationProcessor : EntityProcessor<RecastNavigation
         Dispatcher.For(0, _components.Count, i =>
         {
             var component = _components[i];
-            if (component.ShouldMove)
-            {
-                Move(component, deltaTime);
-                Rotate(component);
-            }
 
-            if (component.SetNewPath && !component.InSetPathQueue)
+            if(component.State == NavigationState.QueuePathPlanning)
             {
                 _tryGetPathQueue.Enqueue(component);
-                component.InSetPathQueue = true;
-                component.SetNewPath = false;
+                component.State = NavigationState.PlanningPath;
             }
+
+            component.Update(deltaTime);
         });
     }
 
-    private void SetNewPath(RecastNavigationComponent pathfinder)
+    public bool SetNewPath(RecastNavigationComponent pathfinder)
     {
-        pathfinder.InSetPathQueue = false;
         if (_recastMeshProcessor.TryFindPath(pathfinder.Entity.Transform.WorldMatrix.TranslationVector, pathfinder.Target, ref pathfinder.Polys, ref pathfinder.Path))
         {
-            pathfinder.SetNewPath = false;
+            pathfinder.State = NavigationState.PathIsReady;
+            return true;
         }
-    }
-
-    private void Move(RecastNavigationComponent pathfinder, float deltaTime)
-    {
-        if (pathfinder.Path.Count == 0)
-        {
-            pathfinder.SetNewPath = true;
-            return;
-        }
-
-        var position = pathfinder.Entity.Transform.WorldMatrix.TranslationVector;
-
-        var nextWaypointPosition = pathfinder.Path[0];
-        var distanceToWaypoint = Vector3.Distance(position, nextWaypointPosition);
-
-        // When the distance between the character and the next waypoint is large enough, move closer to the waypoint
-        if (distanceToWaypoint > 0.1)
-        {
-            var direction = nextWaypointPosition - position;
-            direction.Normalize();
-            direction *= pathfinder.Speed * deltaTime;
-
-            position += direction;
-        }
-        else
-        {
-            if (pathfinder.Path.Count > 0)
-            {
-                // need to test if storing the index in Pathfinder would be faster than this.
-                pathfinder.Path.RemoveAt(0);
-            }
-        }
-
-        pathfinder.Entity.Transform.Position = position;
-    }
-
-    private void Rotate(RecastNavigationComponent pathfinder)
-    {
-        if (pathfinder.Path.Count == 0)
-        {
-            return;
-        }
-        var position = pathfinder.Entity.Transform.WorldMatrix.TranslationVector;
-
-        float angle = (float)Math.Atan2(pathfinder.Path[0].Z - position.Z,
-            pathfinder.Path[0].X - position.X);
-
-        pathfinder.Entity.Transform.Rotation = Quaternion.RotationY(-angle);
+        return false;
     }
 }

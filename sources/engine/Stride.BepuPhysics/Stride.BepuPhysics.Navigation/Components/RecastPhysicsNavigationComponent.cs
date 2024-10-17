@@ -1,59 +1,79 @@
-﻿using Stride.BepuPhysics.Navigation.Definitions;
-using Stride.BepuPhysics.Navigation.Processors;
-using Stride.Core;
+﻿using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Engine;
-using Stride.Engine.Design;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using Stride.Core.Annotations;
 
 namespace Stride.BepuPhysics.Navigation.Components;
 [DataContract(nameof(RecastPhysicsNavigationComponent))]
 [ComponentCategory("Bepu - Navigation")]
-[DefaultEntityComponentProcessor(typeof(RecastPhysicsNavigationProcessor), ExecutionMode = ExecutionMode.Runtime)]
-public class RecastPhysicsNavigationComponent : EntityComponent
+public class RecastPhysicsNavigationComponent : RecastNavigationComponent
 {
-    public float Speed { get; set; } = 5.0f;
 
     [MemberRequired]
     public required CharacterComponent PhysicsComponent { get; set; }
 
-    /// <summary>
-    /// True if a new path needs to be calculated, can be manually changed to force a new path to be calculated.
-    /// </summary>
-    [DataMemberIgnore]
-    public bool ShouldMove
+    public override void StartFollowingPath()
     {
-        get => _shouldMove;
-        set
+        IsMoving = true;
+    }
+
+    public override void StopFollowingPath()
+    {
+        IsMoving = false;
+        PhysicsComponent.Move(Vector3.Zero);
+    }
+
+    public override void Update(float deltaTime)
+    {
+        if (IsMoving)
         {
-            _shouldMove = value;
-            if(!value)
+            Move();
+            Rotate();
+        }
+    }
+
+    private void Move()
+    {
+        if (Path.Count == 0)
+        {
+            return;
+        }
+
+        var position = Entity.Transform.WorldMatrix.TranslationVector;
+
+        var nextWaypointPosition = Path[0];
+        var distanceToWaypoint = Vector3.Distance(position, nextWaypointPosition);
+
+        // When the distance between the character and the next waypoint is large enough, move closer to the waypoint
+        if (distanceToWaypoint > 0.5)
+        {
+            var direction = nextWaypointPosition - position;
+            direction.Normalize();
+
+            PhysicsComponent.Move(direction);
+        }
+        else
+        {
+            if (Path.Count > 0)
             {
-                PhysicsComponent.Move(Vector3.Zero);
+                // need to test if storing the index in Pathfinder would be faster than this.
+                Path.RemoveAt(0);
             }
         }
     }
 
-    private bool _shouldMove;
+    private void Rotate()
+    {
+        if (Path.Count == 0)
+        {
+            return;
+        }
+        var position = Entity.Transform.WorldMatrix.TranslationVector;
 
-    [DataMemberIgnore]
-    public bool SetNewPath { get; set; } = true;
+        float angle = (float)Math.Atan2(Path[0].Z - position.Z,
+            Path[0].X - position.X);
 
-    [DataMemberIgnore]
-    public bool InSetPathQueue { get; set; }
-
-    /// <summary>
-    /// The target position for the agent to move to. will trigger IsDirty to be set to true.
-    /// </summary>
-    [DataMemberIgnore]
-    public Vector3 Target;
-
-    [DataMemberIgnore]
-    public List<Vector3> Path = new();
-
-    [DataMemberIgnore]
-    public List<long> Polys = new();
+        Entity.Transform.Rotation = Quaternion.RotationY(-angle);
+        PhysicsComponent.Orientation = Entity.Transform.Rotation;
+    }
 }
