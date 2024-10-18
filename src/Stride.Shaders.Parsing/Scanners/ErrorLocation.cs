@@ -21,11 +21,11 @@ public struct ErrorLocation
         scanner.Position = pos;
 
         // Setting other attributes
-        leftOffset = position - 5 > 0 ? 5 : position;
-        rightOffset = position + 5 < scanner.Span.Length ? 5 : scanner.Span.Length - position - 1;
+        leftOffset = Math.Max(0, position - 5);
+        rightOffset = Math.Min(scanner.Memory.Length, position);
         Position = position;
         
-        Text = scanner.Memory[(position - leftOffset)..(position + rightOffset)];
+        Text = scanner.Memory;
     }
     
     public static ErrorLocation Create<TScannable>(Scanner<TScannable> scanner, int position)
@@ -39,17 +39,16 @@ public struct ErrorLocation
         scanner.Position = pos;
 
         // Setting other attributes
-        error.leftOffset = position - 5 > 0 ? 5 : position;
-        error.rightOffset = position + 5 < scanner.Span.Length ? 5 : scanner.Span.Length - position - 1;
+        error.leftOffset = Math.Max(0, position - 5);
+        error.rightOffset = Math.Min(scanner.Memory.Length, position);
         error.Position = position;
-        
-        error.Text = scanner.Memory[(position - error.leftOffset)..(position + error.rightOffset)];
+        error.Text = scanner.Memory;
         return error;
     }
 
     public readonly override string ToString()
     {
-        return $"l{line}-c{column} : \n{Text[..5]}>>>{Text[5..]}";
+        return $"l{line}-c{column} : \n{Text[leftOffset..Position]}>>>{Text[Position..]}";
     }
 }
 

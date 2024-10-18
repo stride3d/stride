@@ -32,6 +32,7 @@ public record struct EffectParser : IParser<ShaderEffect>
                     else if(Terminals.Char('}', ref scanner, advance: true))
                     {
                         parsed.Info = scanner.GetLocation(position..scanner.Position);
+                        CommonParsers.FollowedBy(ref scanner, Terminals.Char(';'), withSpaces: true, advance: true);
                         return true;
                     }
                 }

@@ -31,7 +31,7 @@ public record struct ShaderFileParser : IParser<ShaderFile>
                 file.RootDeclarations.Add(shader);
                 CommonParsers.Spaces0(ref scanner, result, out _);
             }
-            else if(Terminals.Literal("effect", ref scanner)
+            else if((Terminals.Literal("effect", ref scanner) || CommonParsers.SequenceOf(ref scanner, ["partial", "effect"]))
                 && EffectParser.Effect(ref scanner, result, out var effect)
             )
             {
@@ -68,6 +68,8 @@ public record struct NamespaceParsers : IParser<ShaderNamespace>
             var ns = new ShaderNamespace(new());
             do
             {
+                CommonParsers.Spaces0(ref scanner, result, out _);
+
                 if (LiteralsParser.Identifier(ref scanner, result, out var identifier))
                     ns.NamespacePath.Add(identifier);
                 else return CommonParsers.Exit(ref scanner, result, out parsed, position, new("Expected identifier", scanner.CreateError(scanner.Position)));
@@ -90,10 +92,12 @@ public record struct NamespaceParsers : IParser<ShaderNamespace>
                 CommonParsers.Spaces0(ref scanner, result, out _);
                 while (!scanner.IsEof && !Terminals.Char('}', ref scanner, advance: true))
                 {
-                    if(ShaderClassParsers.Class(ref scanner, result, out var shader) && CommonParsers.Spaces0(ref scanner, result, out _))
+                    if (ShaderClassParsers.Class(ref scanner, result, out var shader) && CommonParsers.Spaces0(ref scanner, result, out _))
                         ns.Declarations.Add(shader);
-                    else 
-                        return CommonParsers.Exit(ref scanner, result, out parsed, position, new("Expected shader class", scanner.CreateError(scanner.Position)));
+                    else if (EffectParser.Effect(ref scanner, result, out var effect) && CommonParsers.Spaces0(ref scanner, result, out _))
+                        ns.Declarations.Add(effect);
+                    else
+                        return CommonParsers.Exit(ref scanner, result, out parsed, position, new("Expected shader class or effect", scanner.CreateError(scanner.Position)));
                 }
             }
             else return CommonParsers.Exit(ref scanner, result, out parsed, position, orError);

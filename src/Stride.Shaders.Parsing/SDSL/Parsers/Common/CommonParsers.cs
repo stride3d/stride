@@ -39,6 +39,22 @@ public static class CommonParsers
         => new Space1(onlyWhiteSpace).Match(ref scanner, result, out node, in orError);
 
 
+    public static bool SequenceOf<TScanner>(ref TScanner scanner, ReadOnlySpan<string> literals, bool advance = false)
+        where TScanner : struct, IScanner
+    {
+        var position = scanner.Position;
+        foreach(var l in literals)
+        {
+            if (!(Terminals.Literal(l, ref scanner, advance: true) && Spaces1(ref scanner, null!, out _)))
+            {
+                scanner.Position = position;
+                return false;
+            }
+        }
+        scanner.Position = advance ? scanner.Position : position;
+        return true;
+    }
+
     public static bool Optional<TScanner, TTerminal>(ref TScanner scanner, TTerminal terminal, bool advance = false)
         where TScanner : struct, IScanner
         where TTerminal : struct, ITerminal
@@ -53,6 +69,7 @@ public static class CommonParsers
         parser.Match(ref scanner, result, out node);
         return true;
     }
+
 
     public static bool FollowedBy<TScanner, TTerminal>(ref TScanner scanner, TTerminal terminal, bool withSpaces = false, bool advance = false)
         where TScanner : struct, IScanner
