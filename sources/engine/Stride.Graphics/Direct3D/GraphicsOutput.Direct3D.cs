@@ -25,9 +25,8 @@
 using System;
 using System.Collections.Generic;
 using SharpDX.Direct3D;
-using SharpDX.Direct3D11;
 using SharpDX.DXGI;
-
+using SharpDX.Mathematics.Interop;
 using Stride.Core;
 using Stride.Core.Mathematics;
 
@@ -86,7 +85,7 @@ namespace Stride.Graphics
             SharpDX.Direct3D11.Device deviceTemp = null;
             try
             {
-                var features = new SharpDX.Direct3D.FeatureLevel[targetProfiles.Length];
+                var features = new FeatureLevel[targetProfiles.Length];
                 for (int i = 0; i < targetProfiles.Length; i++)
                 {
                     features[i] = (FeatureLevel)targetProfiles[i];
@@ -96,12 +95,12 @@ namespace Stride.Graphics
             }
             catch (Exception) { }
 
-            var description = new SharpDX.DXGI.ModeDescription()
+            var description = new ModeDescription()
             {
                 Width = mode.Width,
                 Height = mode.Height,
                 RefreshRate = mode.RefreshRate.ToSharpDX(),
-                Format = (SharpDX.DXGI.Format)mode.Format,
+                Format = (Format)mode.Format,
                 Scaling = DisplayModeScaling.Unspecified,
                 ScanlineOrdering = DisplayModeScanlineOrder.Unspecified,
             };
@@ -205,23 +204,32 @@ namespace Stride.Graphics
         /// <returns>A matched <see cref="DisplayMode"/> or null if nothing is found.</returns>
         private DisplayMode TryFindMatchingDisplayMode(Format format)
         {
-            var desktopBounds = outputDescription.DesktopBounds;
-
-            foreach (var supportedDisplayMode in SupportedDisplayModes)
+            ModeDescription closestDescription;
+            SharpDX.Direct3D11.Device deviceTemp = null;
+            try
             {
-                var width = desktopBounds.Right - desktopBounds.Left;
-                var height = desktopBounds.Bottom - desktopBounds.Top;
-
-                if (supportedDisplayMode.Width == width
-                    && supportedDisplayMode.Height == height
-                    && (Format)supportedDisplayMode.Format == format)
-                {
-                    // Stupid DXGI, there is no way to get the DXGI.Format, nor the refresh rate.
-                    return new DisplayMode((PixelFormat)format, width, height, supportedDisplayMode.RefreshRate);
-                }
+                // We don't care about FeatureLevel because we want to get missing data 
+                // about the current display/monitor mode and not the supported display mode for the specific graphics profile
+                deviceTemp = new SharpDX.Direct3D11.Device(adapter.NativeAdapter);
             }
+            catch (Exception) { }
 
-            return null;
+            RawRectangle desktopBounds = outputDescription.DesktopBounds;
+            // We don't specify RefreshRate on purpose, it will be automatically
+            // filled in with current RefreshRate of the output (dispaly/monitor) by GetClosestMatchingMode
+            ModeDescription description = new ModeDescription
+            {
+                Width = desktopBounds.Right - desktopBounds.Left,
+                Height = desktopBounds.Bottom - desktopBounds.Top,
+                // Format will be automatically filled with the RefreshRate parameter if we pass reference to the Direct3D11 device
+                Format = deviceTemp is null
+                    ? format
+                    : Format.Unknown
+            };
+            using (SharpDX.Direct3D11.Device device = deviceTemp)
+                output.GetClosestMatchingMode(device, description, out closestDescription);
+
+            return DisplayMode.FromDescription(closestDescription);
         }
     }
 }
