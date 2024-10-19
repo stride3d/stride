@@ -90,4 +90,26 @@ public static class Examples
                 Console.WriteLine(e);
         }
     }
+
+    public static void TryAllFiles()
+    {
+        foreach(var f in Directory.EnumerateFiles("./assets/Stride/SDSL"))
+        {
+            // var text = File.ReadAllText(f);
+            var preprocessed = MonoGamePreProcessor.Run(f, []);
+            Console.WriteLine(preprocessed);
+            var parsed = SDSLParser.Parse(preprocessed);
+            if(parsed.Errors.Count > 0)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine(f);
+            }
+            else
+            {
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine(f);
+            }
+        }
+        Console.ForegroundColor = ConsoleColor.White;
+    }
 }

@@ -18,10 +18,11 @@
 
   <ItemGroup>
     <Using Include="Xunit" />
-    <None 
-         Include="..\..\assets\**" 
-         CopyToOutputDirectory="PreserveNewest" 
-         LinkBase="assets\" />
+    <None Include="..\..\assets\**" CopyToOutputDirectory="PreserveNewest" LinkBase="assets\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\submodules\CppNet8\CppNet.csproj" />
   </ItemGroup>
 
 </Project>

@@ -9,6 +9,13 @@ public class ParsingTests1
         var shader = File.ReadAllText(path);
         Assert.True(shader.Length > 0);
     }
+    [Theory]
+    [InlineData("assets/Stride/Commented.sdsl")]
+    public void TestMacro(string path)
+    {
+        var shader = File.ReadAllText(path);
+        Assert.True(shader.Length > 0);
+    }
 
     [Fact]
     public void Test2()

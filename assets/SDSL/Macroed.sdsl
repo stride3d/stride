@@ -1,4 +1,10 @@
 #ifdef cond
-machin
+shader Machin
+{
+
+}
 #endif
-machin2
+shader Machin2
+{
+    
+}
