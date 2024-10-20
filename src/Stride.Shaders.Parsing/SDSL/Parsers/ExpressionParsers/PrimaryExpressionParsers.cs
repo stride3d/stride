@@ -48,7 +48,7 @@ public record struct ParenthesisExpressionParser : IParser<Expression>
         if (
             Terminals.Char('(', ref scanner, advance: true)
             && CommonParsers.Spaces0(ref scanner, result, out _)
-            && ExpressionParser.Expression(ref scanner, result, out parsed, new("Expected expression value", scanner.CreateError(position)))
+            && ExpressionParser.Expression(ref scanner, result, out parsed, new("Expected expression value", scanner.GetErrorLocation(position)))
             && CommonParsers.Spaces0(ref scanner, result, out _)
             && Terminals.Char(')', ref scanner, advance: true)
         )
@@ -76,7 +76,7 @@ public record struct MethodCallParser : IParser<Expression>
                 parsed = new MethodCall(identifier, parameters, scanner.GetLocation(position..scanner.Position));
                 return true;
             }
-            else return CommonParsers.Exit(ref scanner, result, out parsed, position, new("Expected closing parenthesis", scanner.CreateError(scanner.Position)));
+            else return CommonParsers.Exit(ref scanner, result, out parsed, position, new("Expected closing parenthesis", scanner.GetErrorLocation(scanner.Position)));
         }
         return CommonParsers.Exit(ref scanner, result, out parsed, position, orError);
     }

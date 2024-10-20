@@ -37,7 +37,7 @@ public interface IScanner
 
     public TextLocation GetLocation(int position, int length);
     public TextLocation GetLocation(Range range);
-    public ErrorLocation CreateError(int position);
+    public ErrorLocation GetErrorLocation(int position);
 }
 
 

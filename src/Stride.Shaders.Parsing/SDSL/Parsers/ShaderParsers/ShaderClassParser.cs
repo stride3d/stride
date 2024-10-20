@@ -37,8 +37,8 @@ public record struct SimpleShaderClassParser : IParser<ShaderMixin>
 
         if (
             Terminals.Literal("shader", ref scanner, advance: true)
-            && CommonParsers.Spaces1(ref scanner, result, out _, new("Expected at least one space", scanner.CreateError(scanner.Position)))
-            && LiteralsParser.Identifier(ref scanner, result, out var className, new("Expected class name", scanner.CreateError(scanner.Position)))
+            && CommonParsers.Spaces1(ref scanner, result, out _, new("Expected at least one space", scanner.GetErrorLocation(scanner.Position)))
+            && LiteralsParser.Identifier(ref scanner, result, out var className, new("Expected class name", scanner.GetErrorLocation(scanner.Position)))
             && CommonParsers.Spaces0(ref scanner, result, out _)
             && Terminals.Char('{', ref scanner, advance: true)
             && CommonParsers.Spaces0(ref scanner, result, out _)
@@ -72,7 +72,7 @@ public record struct ShaderClassParser : IParser<ShaderMixin>
         if (Terminals.Literal("shader ", ref scanner, advance: true))
         {
             if (
-                LiteralsParser.Identifier(ref scanner, result, out var identifier, new("Expected identifier here", scanner.CreateError(scanner.Position)))
+                LiteralsParser.Identifier(ref scanner, result, out var identifier, new("Expected identifier here", scanner.GetErrorLocation(scanner.Position)))
                 && CommonParsers.Spaces0(ref scanner, result, out _)
             )
             {
@@ -82,7 +82,7 @@ public record struct ShaderClassParser : IParser<ShaderMixin>
                     ParameterParsers.Declarations(ref scanner, result, out var generics);
                     CommonParsers.Spaces0(ref scanner, result, out _);
                     if (!Terminals.Char('>', ref scanner, advance: true))
-                        return CommonParsers.Exit(ref scanner, result, out parsed, position, new("Expected closing chevron", scanner.CreateError(scanner.Position)));
+                        return CommonParsers.Exit(ref scanner, result, out parsed, position, new("Expected closing chevron", scanner.GetErrorLocation(scanner.Position)));
                     parsed.Generics = generics;
                     CommonParsers.Spaces0(ref scanner, result, out _);
                 }
@@ -99,7 +99,7 @@ public record struct ShaderClassParser : IParser<ShaderMixin>
                             break;
                     }
                     if (parsed.Mixins.Count == 0)
-                        return CommonParsers.Exit(ref scanner, result, out parsed, position, new("Expecting at least one mixin", scanner.CreateError(scanner.Position)));
+                        return CommonParsers.Exit(ref scanner, result, out parsed, position, new("Expecting at least one mixin", scanner.GetErrorLocation(scanner.Position)));
                     CommonParsers.Spaces0(ref scanner, result, out _);
                 }
                 if (Terminals.Char('{', ref scanner, advance: true)
@@ -120,7 +120,7 @@ public record struct ShaderClassParser : IParser<ShaderMixin>
                     parsed.Info = scanner.GetLocation(position..scanner.Position);
                     return true;
                 }
-                else return CommonParsers.Exit(ref scanner, result, out parsed, position, new("Expecting shader body", scanner.CreateError(position)));
+                else return CommonParsers.Exit(ref scanner, result, out parsed, position, new("Expecting shader body", scanner.GetErrorLocation(position)));
 
             }
         }
@@ -141,11 +141,11 @@ public record struct ShaderMixinParser : IParser<InheritedMixin>
             CommonParsers.Spaces0(ref scanner, result, out _);
             if (Terminals.Char('<', ref scanner, advance: true))
             {
-                ParameterParsers.GenericsList(ref scanner, result, out var values, new("Expecting constant generics", scanner.CreateError(position)));
+                ParameterParsers.GenericsList(ref scanner, result, out var values, new("Expecting constant generics", scanner.GetErrorLocation(position)));
                 parsed.Generics = values;
                 CommonParsers.Spaces0(ref scanner, result, out _);
                 if (!Terminals.Char('>', ref scanner, advance: true))
-                    return CommonParsers.Exit(ref scanner, result, out parsed, position, new("Expected closing chevron", scanner.CreateError(scanner.Position)));
+                    return CommonParsers.Exit(ref scanner, result, out parsed, position, new("Expected closing chevron", scanner.GetErrorLocation(scanner.Position)));
                 return true;
             }
             else
@@ -167,7 +167,7 @@ public record struct ShaderGenericsDefinitionParser : IParser<ShaderGenerics>
         var position = scanner.Position;
         if (
             LiteralsParser.Identifier(ref scanner, result, out var typename)
-            && CommonParsers.Spaces1(ref scanner, result, out _, new("Expected at least one space", scanner.CreateError(scanner.Position)))
+            && CommonParsers.Spaces1(ref scanner, result, out _, new("Expected at least one space", scanner.GetErrorLocation(scanner.Position)))
             && LiteralsParser.Identifier(ref scanner, result, out var identifier)
         )
         {

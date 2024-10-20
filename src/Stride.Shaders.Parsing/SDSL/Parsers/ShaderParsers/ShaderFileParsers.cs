@@ -72,7 +72,7 @@ public record struct NamespaceParsers : IParser<ShaderNamespace>
 
                 if (LiteralsParser.Identifier(ref scanner, result, out var identifier))
                     ns.NamespacePath.Add(identifier);
-                else return CommonParsers.Exit(ref scanner, result, out parsed, position, new("Expected identifier", scanner.CreateError(scanner.Position)));
+                else return CommonParsers.Exit(ref scanner, result, out parsed, position, new("Expected identifier", scanner.GetErrorLocation(scanner.Position)));
                     
                 CommonParsers.Spaces0(ref scanner, result, out _);
             }
@@ -97,7 +97,7 @@ public record struct NamespaceParsers : IParser<ShaderNamespace>
                     else if (EffectParser.Effect(ref scanner, result, out var effect) && CommonParsers.Spaces0(ref scanner, result, out _))
                         ns.Declarations.Add(effect);
                     else
-                        return CommonParsers.Exit(ref scanner, result, out parsed, position, new("Expected shader class or effect", scanner.CreateError(scanner.Position)));
+                        return CommonParsers.Exit(ref scanner, result, out parsed, position, new("Expected shader class or effect", scanner.GetErrorLocation(scanner.Position)));
                 }
             }
             else return CommonParsers.Exit(ref scanner, result, out parsed, position, orError);

@@ -14,16 +14,16 @@ public record struct CompositionParser() : IParser<ShaderCompose>
             if (
                 ShaderClassParsers.Mixin(ref scanner, result, out var mixin)
                 && CommonParsers.Spaces1(ref scanner, result, out _)
-                && LiteralsParser.Identifier(ref scanner, result, out var identifier, new("Expected variable name here", scanner.CreateError(scanner.Position)))
+                && LiteralsParser.Identifier(ref scanner, result, out var identifier, new("Expected variable name here", scanner.GetErrorLocation(scanner.Position)))
             )
             {
                 CommonParsers.Spaces0(ref scanner, result, out _);
                 if (!Terminals.Char(';', ref scanner, advance: true))
-                    return CommonParsers.Exit(ref scanner, result, out parsed, position, new("Expected semi colon", scanner.CreateError(position)));
+                    return CommonParsers.Exit(ref scanner, result, out parsed, position, new("Expected semi colon", scanner.GetErrorLocation(position)));
                 parsed = new(identifier, mixin, scanner.GetLocation(position..));
                 return true;
             }
-            else return CommonParsers.Exit(ref scanner, result, out parsed, position, new("Expected Mixin variable", scanner.CreateError(scanner.Position)));
+            else return CommonParsers.Exit(ref scanner, result, out parsed, position, new("Expected Mixin variable", scanner.GetErrorLocation(scanner.Position)));
         }
         else return CommonParsers.Exit(ref scanner, result, out parsed, position, orError);
     }

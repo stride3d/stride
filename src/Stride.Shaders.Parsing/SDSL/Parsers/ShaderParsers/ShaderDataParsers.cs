@@ -31,20 +31,20 @@ public record struct ShaderMemberParser : IParser<ShaderMember>
             {
                 CommonParsers.Until(ref scanner, '=', advance: true);
                 CommonParsers.Spaces0(ref scanner, result, out _);
-                if (ExpressionParser.Expression(ref scanner, result, out var expression, orError: orError ?? new("Expected expression here", scanner.CreateError(scanner.Position))))
+                if (ExpressionParser.Expression(ref scanner, result, out var expression, orError: orError ?? new("Expected expression here", scanner.GetErrorLocation(scanner.Position))))
                 {
                     if (CommonParsers.FollowedBy(ref scanner, Terminals.Char(':')))
                     {
                         CommonParsers.Until(ref scanner, ':', advance: true);
                         CommonParsers.Spaces0(ref scanner, result, out _);
-                        if (LiteralsParser.Identifier(ref scanner, result, out var semantic, orError ?? new("Expected semantic here", scanner.CreateError(scanner.Position))))
+                        if (LiteralsParser.Identifier(ref scanner, result, out var semantic, orError ?? new("Expected semantic here", scanner.GetErrorLocation(scanner.Position))))
                         {
                             if (CommonParsers.Spaces0(ref scanner, result, out _) && Terminals.Char(';', ref scanner))
                             {
                                 parsed = new ShaderMember(typename, name, expression, scanner.GetLocation(position..scanner.Position), semantic: semantic);
                                 return true;
                             }
-                            else return CommonParsers.Exit(ref scanner, result, out parsed, position, new("Missing semi colon here", scanner.CreateError(scanner.Position)));
+                            else return CommonParsers.Exit(ref scanner, result, out parsed, position, new("Missing semi colon here", scanner.GetErrorLocation(scanner.Position)));
 
                         }
                         else return CommonParsers.Exit(ref scanner, result, out parsed, position, orError);
@@ -79,7 +79,7 @@ public record struct ShaderStructParser : IParser<ShaderStruct>
                 parsed.Info = scanner.GetLocation(position..scanner.Position);
                 return true;
             }
-            else return CommonParsers.Exit(ref scanner, result, out parsed, position, new("Expected closing bracket", scanner.CreateError(scanner.Position)));
+            else return CommonParsers.Exit(ref scanner, result, out parsed, position, new("Expected closing bracket", scanner.GetErrorLocation(scanner.Position)));
         }
         return CommonParsers.Exit(ref scanner, result, out parsed, position, orError);
     }

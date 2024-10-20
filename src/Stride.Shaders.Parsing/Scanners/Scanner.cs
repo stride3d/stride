@@ -106,7 +106,7 @@ public struct Scanner(string code) : IScanner
     {
         return new(Memory, new(position, position + length));
     }
-    public readonly ErrorLocation CreateError(int position)
+    public readonly ErrorLocation GetErrorLocation(int position)
     {
         return new ErrorLocation(this, position);
     }

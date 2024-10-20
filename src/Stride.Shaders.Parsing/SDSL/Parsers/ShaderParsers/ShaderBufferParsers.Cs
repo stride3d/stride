@@ -47,7 +47,7 @@ public record struct CBufferParser : IParser<CBuffer>
         if (Terminals.Literal("cbuffer ", ref scanner, advance: true))
         {
             if (
-                LiteralsParser.Identifier(ref scanner, result, out var identifier, new("Expected identifier here", scanner.CreateError(scanner.Position)))
+                LiteralsParser.Identifier(ref scanner, result, out var identifier, new("Expected identifier here", scanner.GetErrorLocation(scanner.Position)))
                 && CommonParsers.Spaces0(ref scanner, result, out _)
             )
             {
@@ -85,7 +85,7 @@ public record struct TBufferParser : IParser<TBuffer>
         if (Terminals.Literal("tbuffer ", ref scanner, advance: true))
         {
             if (
-                LiteralsParser.Identifier(ref scanner, result, out var identifier, new("Expected identifier here", scanner.CreateError(scanner.Position)))
+                LiteralsParser.Identifier(ref scanner, result, out var identifier, new("Expected identifier here", scanner.GetErrorLocation(scanner.Position)))
                 && CommonParsers.Spaces0(ref scanner, result, out _)
             )
             {
@@ -143,7 +143,7 @@ public record struct BufferMemberParser : IParser<ShaderMember>
             {
                 CommonParsers.Until(ref scanner, '=', advance: true);
                 CommonParsers.Spaces0(ref scanner, result, out _);
-                if (ExpressionParser.Expression(ref scanner, result, out var expression, orError: orError ?? new("Expected expression here", scanner.CreateError(scanner.Position))))
+                if (ExpressionParser.Expression(ref scanner, result, out var expression, orError: orError ?? new("Expected expression here", scanner.GetErrorLocation(scanner.Position))))
                 {
                     if (CommonParsers.Spaces0(ref scanner, result, out _) && Terminals.Char(';', ref scanner))
                     {

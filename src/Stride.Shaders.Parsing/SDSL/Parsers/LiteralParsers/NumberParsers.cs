@@ -132,7 +132,7 @@ public struct HexParser : IParser<HexLiteral>
                 var add = v * Math.Pow(16, i);
                 if (ulong.MaxValue - sum < add)
                 {
-                    result.Errors.Add(new ParseError("Hex value bigger than ulong.", scanner.CreateError(position)));
+                    result.Errors.Add(new ParseError("Hex value bigger than ulong.", scanner.GetErrorLocation(position)));
                     return false;
                 }
             }

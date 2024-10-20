@@ -106,7 +106,7 @@ public struct Scanner<T>(T code) : IScanner
         return new(Memory, new(position, position + length));
     }
 
-    public readonly ErrorLocation CreateError(int position)
+    public readonly ErrorLocation GetErrorLocation(int position)
     {
         return ErrorLocation.Create(this, position);
     }

@@ -71,7 +71,7 @@ public record struct GenericsListParser : IParser<ShaderExpressionList>
     public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, out ShaderExpressionList parsed, in ParseError? orError = null) where TScanner : struct, IScanner
     {
         var position = scanner.Position;
-        if (ParameterParsers.GenericsValue(ref scanner, result, out var parameter, new("Expecting at least one generics value", scanner.CreateError(scanner.Position))))
+        if (ParameterParsers.GenericsValue(ref scanner, result, out var parameter, new("Expecting at least one generics value", scanner.GetErrorLocation(scanner.Position))))
         {
             parsed = new(scanner.GetLocation(position..scanner.Position));
             parsed.Values.Add(parameter);
@@ -79,7 +79,7 @@ public record struct GenericsListParser : IParser<ShaderExpressionList>
             while (Terminals.Char(',', ref scanner, advance: true))
             {
                 CommonParsers.Spaces0(ref scanner, result, out _);
-                if (ParameterParsers.GenericsValue(ref scanner, result, out var other, new("Expecting at least one generics value", scanner.CreateError(scanner.Position))))
+                if (ParameterParsers.GenericsValue(ref scanner, result, out var other, new("Expecting at least one generics value", scanner.GetErrorLocation(scanner.Position))))
                 {
                     parsed.Values.Add(other);
                     CommonParsers.Spaces0(ref scanner, result, out _);

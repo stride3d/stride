@@ -25,10 +25,10 @@ public record struct EffectParser : IParser<ShaderEffect>
                         {
                             parsed.Members.Add(s);
                         }
-                        else return CommonParsers.Exit(ref scanner, result, out parsed, position, new("Expected statement here", scanner.CreateError(scanner.Position)));
+                        else return CommonParsers.Exit(ref scanner, result, out parsed, position, new("Expected statement here", scanner.GetErrorLocation(scanner.Position)));
                     }
                     if(scanner.IsEof)
-                        return CommonParsers.Exit(ref scanner, result, out parsed, position, new("Expected statement or end of block", scanner.CreateError(scanner.Position)));
+                        return CommonParsers.Exit(ref scanner, result, out parsed, position, new("Expected statement or end of block", scanner.GetErrorLocation(scanner.Position)));
                     else if(Terminals.Char('}', ref scanner, advance: true))
                     {
                         parsed.Info = scanner.GetLocation(position..scanner.Position);

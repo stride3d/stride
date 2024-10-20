@@ -28,7 +28,7 @@ public record struct ParamsParsers : IParser<EffectParameters>
                             return true;
                         }
                         else
-                            CommonParsers.Exit(ref scanner, result, out parsed, position, new("Expected parameter definition or closing curly brace", scanner.CreateError(scanner.Position)));
+                            CommonParsers.Exit(ref scanner, result, out parsed, position, new("Expected parameter definition or closing curly brace", scanner.GetErrorLocation(scanner.Position)));
                         CommonParsers.Spaces0(ref scanner, result, out _);
                     }
                 }
@@ -58,7 +58,7 @@ public record struct ParameterParser : IParser<EffectParameter>
                     if (ExpressionParser.Expression(ref scanner, result, out var expression) && CommonParsers.Spaces0(ref scanner, result, out _))
                     {
                         if (!Terminals.Char(';', ref scanner, advance: true))
-                            return CommonParsers.Exit(ref scanner, result, out parsed, position, new("Expected semi colon", scanner.CreateError(scanner.Position)));
+                            return CommonParsers.Exit(ref scanner, result, out parsed, position, new("Expected semi colon", scanner.GetErrorLocation(scanner.Position)));
                         parsed = new(typename, identifier, scanner.GetLocation(position..scanner.Position), expression);
                         return true;
                     }
@@ -68,7 +68,7 @@ public record struct ParameterParser : IParser<EffectParameter>
                     parsed = new(typename, identifier, scanner.GetLocation(position..scanner.Position));
                     return true;
                 }
-                else return CommonParsers.Exit(ref scanner, result, out parsed, position, new("expected assignment or semi colon", scanner.CreateError(scanner.Position)));
+                else return CommonParsers.Exit(ref scanner, result, out parsed, position, new("expected assignment or semi colon", scanner.GetErrorLocation(scanner.Position)));
             }
         }
         return CommonParsers.Exit(ref scanner, result, out parsed, position, orError);

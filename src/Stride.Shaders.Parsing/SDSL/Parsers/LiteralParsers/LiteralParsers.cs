@@ -65,11 +65,11 @@ public record struct LiteralsParser : IParser<Literal>
         where TScanner : struct, IScanner
     {
         op = AssignOperator.NOp;
-        if(
+        if (
             Terminals.AnyOf(
-                ["=", "+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>="], 
-                ref scanner, 
-                out var matched, 
+                ["=", "+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>="],
+                ref scanner,
+                out var matched,
                 advance: true
             )
         )
@@ -247,7 +247,7 @@ public record struct VectorParser : IParser<VectorLiteral>
             var tnPos = scanner.Position;
             int size = scanner.Span[scanner.Position - 1] - '0';
             if (size < 2 || size > 4)
-                return CommonParsers.Exit(ref scanner, result, out parsed, position, new($"A vector cannot be of size {size}", scanner.CreateError(scanner.Position - 1)));
+                return CommonParsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrors.SDSL0002, scanner.GetErrorLocation(scanner.Position - 1), scanner.Memory));
             CommonParsers.Spaces0(ref scanner, result, out _);
             if (Terminals.Char('(', ref scanner, advance: true))
             {
@@ -269,9 +269,9 @@ public record struct VectorParser : IParser<VectorLiteral>
                         break;
                 }
                 if (scanner.IsEof)
-                    return CommonParsers.Exit(ref scanner, result, out parsed, position, new("Unfinished vector declaration", scanner.CreateError(scanner.Position)));
+                    return CommonParsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrors.SDSL0004, scanner.GetErrorLocation(scanner.Position), scanner.Memory));
                 if (p.Values.Count != size && p.Values.Count > size)
-                    return CommonParsers.Exit(ref scanner, result, out parsed, position, new($"Too many values for vector of size {size}", scanner.CreateError(scanner.Position)));
+                    return CommonParsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrors.SDSL0005, scanner.GetErrorLocation(scanner.Position), scanner.Memory));
                 parsed = p;
                 return true;
             }
@@ -298,7 +298,7 @@ public record struct MatrixParser : IParser<MatrixLiteral>
             int rows = scanner.Span[scanner.Position - 3] - '0';
             int cols = scanner.Span[scanner.Position - 1] - '0';
             if (cols < 2 || cols > 4 || rows < 2 || rows > 4)
-                return CommonParsers.Exit(ref scanner, result, out parsed, position, new($"A vector cannot be of size {rows}x{cols}", scanner.CreateError(scanner.Position - 1)));
+                return CommonParsers.Exit(ref scanner, result, out parsed, position, new($"A vector cannot be of size {rows}x{cols}", scanner.GetErrorLocation(scanner.Position - 1)));
             CommonParsers.Spaces0(ref scanner, result, out _);
             if (Terminals.Char('(', ref scanner, advance: true))
             {
@@ -311,7 +311,7 @@ public record struct MatrixParser : IParser<MatrixLiteral>
                     CommonParsers.Spaces0(ref scanner, result, out _);
                     if (LiteralsParser.Number(ref scanner, result, out var number))
                         p.Values.Add(number);
-                    else if (LiteralsParser.Vector(ref scanner, result, out var vector, new("Expecting number or vector value", scanner.CreateError(scanner.Position))))
+                    else if (LiteralsParser.Vector(ref scanner, result, out var vector, new("Expecting number or vector value", scanner.GetErrorLocation(scanner.Position))))
                         p.Values.Add(vector);
                     else return CommonParsers.Exit(ref scanner, result, out parsed, position, orError);
                     CommonParsers.Spaces0(ref scanner, result, out _);
@@ -321,9 +321,9 @@ public record struct MatrixParser : IParser<MatrixLiteral>
                         break;
                 }
                 if (scanner.IsEof)
-                    return CommonParsers.Exit(ref scanner, result, out parsed, position, new("Unfinished vector declaration", scanner.CreateError(scanner.Position)));
+                    return CommonParsers.Exit(ref scanner, result, out parsed, position, new("Unfinished vector declaration", scanner.GetErrorLocation(scanner.Position)));
                 if (p.Values.Count != rows * cols && p.Values.Count > rows * cols)
-                    return CommonParsers.Exit(ref scanner, result, out parsed, position, new($"Too many values for vector of size {rows}x{cols}", scanner.CreateError(scanner.Position)));
+                    return CommonParsers.Exit(ref scanner, result, out parsed, position, new($"Too many values for vector of size {rows}x{cols}", scanner.GetErrorLocation(scanner.Position)));
                 parsed = p;
                 return true;
             }

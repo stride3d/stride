@@ -107,7 +107,7 @@ public record struct ReturnStatementParser : IParser<Statement>
         }
         else if (
             Terminals.Literal("return", ref scanner, advance: true)
-            && CommonParsers.Spaces1(ref scanner, result, out _, new("Expected at least one space", scanner.CreateError(scanner.Position)))
+            && CommonParsers.Spaces1(ref scanner, result, out _, new("Expected at least one space", scanner.GetErrorLocation(scanner.Position)))
         )
         {
             if (Terminals.Char(';', ref scanner, advance: true))
@@ -124,7 +124,7 @@ public record struct ReturnStatementParser : IParser<Statement>
                 parsed = new Return(scanner.GetLocation(position, scanner.Position - position), val);
                 return true;
             }
-            else return CommonParsers.Exit(ref scanner, result, out parsed, position, new("Expected value or \";\"", scanner.CreateError(scanner.Position)));
+            else return CommonParsers.Exit(ref scanner, result, out parsed, position, new("Expected value or \";\"", scanner.GetErrorLocation(scanner.Position)));
 
 
         }
@@ -208,7 +208,7 @@ public record struct BlockStatementParser : IParser<Statement>
                     block.Statements.Add(statement);
                     CommonParsers.Spaces0(ref scanner, result, out _);
                 }
-                else return CommonParsers.Exit(ref scanner, result, out parsed, position, new("Expected Statement", scanner.CreateError(scanner.Position)));
+                else return CommonParsers.Exit(ref scanner, result, out parsed, position, new("Expected Statement", scanner.GetErrorLocation(scanner.Position)));
             }
             block.Info = scanner.GetLocation(position, scanner.Position - position);
             parsed = block;
@@ -243,7 +243,7 @@ public record struct VariableAssignParser : IParser<VariableAssign>
                     parsed = new(identifier, scanner.GetLocation(position..scanner.Position), op, expression);
                     return true;
                 }
-                else return CommonParsers.Exit(ref scanner, result, out parsed, position, new("Expected expression here", scanner.CreateError(position)));
+                else return CommonParsers.Exit(ref scanner, result, out parsed, position, new("Expected expression here", scanner.GetErrorLocation(position)));
             }
             else
             {
@@ -280,7 +280,7 @@ public record struct DeclareStatementParser : IParser<Statement>
                     };
                     return true;
                 }
-                else return CommonParsers.Exit(ref scanner, result, out parsed, position, new("Expected semi colon to end statement", scanner.CreateError(scanner.Position)));
+                else return CommonParsers.Exit(ref scanner, result, out parsed, position, new("Expected semi colon to end statement", scanner.GetErrorLocation(scanner.Position)));
             }
         }
         return CommonParsers.Exit(ref scanner, result, out parsed, position, orError);
@@ -304,7 +304,7 @@ public record struct AssignmentsParser : IParser<Statement>
                 };
                 return true;
             }
-            else return CommonParsers.Exit(ref scanner, result, out parsed, position, new("Expected semi colon to end statement", scanner.CreateError(scanner.Position)));
+            else return CommonParsers.Exit(ref scanner, result, out parsed, position, new("Expected semi colon to end statement", scanner.GetErrorLocation(scanner.Position)));
         }
         else return CommonParsers.Exit(ref scanner, result, out parsed, position, orError);
     }
