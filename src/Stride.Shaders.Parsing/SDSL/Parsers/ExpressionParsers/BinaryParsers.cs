@@ -66,13 +66,13 @@ public record struct TernaryParser : IParser<Expression>
             {
 
                 CommonParsers.Spaces0(ref scanner, result, out _);
-                if (ExpressionParser.Expression(ref scanner, result, out var left, new("Expected expression", scanner.GetErrorLocation(scanner.Position))))
+                if (ExpressionParser.Expression(ref scanner, result, out var left, new(SDSLErrors.SDSL0015, scanner.GetErrorLocation(scanner.Position), scanner.Memory)))
                 {
                     CommonParsers.Spaces0(ref scanner, result, out _);
                     if (Terminals.Char(':', ref scanner, advance: true))
                     {
                         CommonParsers.Spaces0(ref scanner, result, out _);
-                        if (ExpressionParser.Expression(ref scanner, result, out var right, new("Expected expression", scanner.GetErrorLocation(scanner.Position))))
+                        if (ExpressionParser.Expression(ref scanner, result, out var right, new(SDSLErrors.SDSL0015, scanner.GetErrorLocation(scanner.Position), scanner.Memory)))
                         {
                             parsed = new TernaryExpression(parsed, left, right, scanner.GetLocation(position, scanner.Position - position));
                             return true;
@@ -105,7 +105,7 @@ public record struct OrParser() : IParser<Expression>
             {
                 if (ExpressionParser.And(ref scanner, result, out var and))
                     parsed = new BinaryExpression(parsed, op.ToOperator(), and, scanner.GetLocation(position..scanner.Position));
-                else return CommonParsers.Exit(ref scanner, result, out parsed, position, new("Expecting AndExpression", scanner.GetErrorLocation(scanner.Position)));
+                else return CommonParsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrors.SDSL0022, scanner.GetErrorLocation(scanner.Position), scanner.Memory));
             }
             else if (parsed is null && op == "")
             {
@@ -136,7 +136,7 @@ public record struct AndParser() : IParser<Expression>
             {
                 if (ExpressionParser.BOr(ref scanner, result, out var bOr))
                     parsed = new BinaryExpression(parsed, op.ToOperator(), bOr, scanner.GetLocation(position..scanner.Position));
-                else return CommonParsers.Exit(ref scanner, result, out parsed, position, new("Expecting BitwiseOrExpression", scanner.GetErrorLocation(scanner.Position)));
+                else return CommonParsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrors.SDSL0024, scanner.GetErrorLocation(scanner.Position), scanner.Memory));
             }
             else if (parsed is null && op == "")
             {
@@ -167,7 +167,7 @@ public record struct BitwiseOrParser() : IParser<Expression>
             {
                 if (ExpressionParser.XOr(ref scanner, result, out var xor))
                     parsed = new BinaryExpression(parsed, op.ToOperator(), xor, scanner.GetLocation(position..scanner.Position));
-                else return CommonParsers.Exit(ref scanner, result, out parsed, position, new("Expecting XorExpression", scanner.GetErrorLocation(scanner.Position)));
+                else return CommonParsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrors.SDSL0025, scanner.GetErrorLocation(scanner.Position), scanner.Memory));
             }
             else if (parsed is null && op == "")
             {
@@ -197,7 +197,7 @@ public record struct BitwiseXOrParser() : IParser<Expression>
             {
                 if (ExpressionParser.BAnd(ref scanner, result, out var bAnd))
                     parsed = new BinaryExpression(parsed, op.ToOperator(), bAnd, scanner.GetLocation(position..scanner.Position));
-                else return CommonParsers.Exit(ref scanner, result, out parsed, position, new("Expecting BitwiseAndExpression", scanner.GetErrorLocation(scanner.Position)));
+                else return CommonParsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrors.SDSL0026, scanner.GetErrorLocation(scanner.Position), scanner.Memory));
             }
             else if (parsed is null && op == "")
             {
@@ -227,7 +227,7 @@ public record struct BitwiseAndParser() : IParser<Expression>
             {
                 if (ExpressionParser.Equality(ref scanner, result, out var eq))
                     parsed = new BinaryExpression(parsed, op.ToOperator(), eq, scanner.GetLocation(position..scanner.Position));
-                else return CommonParsers.Exit(ref scanner, result, out parsed, position, new("Expecting EqualityExpression", scanner.GetErrorLocation(scanner.Position)));
+                else return CommonParsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrors.SDSL0027, scanner.GetErrorLocation(scanner.Position), scanner.Memory));
             }
             else if (parsed is null && op == "")
             {
@@ -260,7 +260,7 @@ public record struct EqualityParser() : IParser<Expression>
             {
                 if (ExpressionParser.Relation(ref scanner, result, out var rel))
                     parsed = new BinaryExpression(parsed, op.ToOperator(), rel, scanner.GetLocation(position..scanner.Position));
-                else return CommonParsers.Exit(ref scanner, result, out parsed, position, new("Expecting RelationExpression", scanner.GetErrorLocation(scanner.Position)));
+                else return CommonParsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrors.SDSL0028, scanner.GetErrorLocation(scanner.Position), scanner.Memory));
             }
             else if (parsed is null && op == "")
             {
@@ -291,7 +291,7 @@ public record struct RelationalParser() : IParser<Expression>
             {
                 if (ExpressionParser.Shift(ref scanner, result, out var shift))
                     parsed = new BinaryExpression(parsed, op.ToOperator(), shift, scanner.GetLocation(position..scanner.Position));
-                else return CommonParsers.Exit(ref scanner, result, out parsed, position, new("Expecting ShiftExpression", scanner.GetErrorLocation(scanner.Position)));
+                else return CommonParsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrors.SDSL0029, scanner.GetErrorLocation(scanner.Position), scanner.Memory));
             }
             else if (parsed is null && op == "")
             {
@@ -322,7 +322,7 @@ public record struct BitwiseShiftParser() : IParser<Expression>
             {
                 if (ExpressionParser.Add(ref scanner, result, out var add))
                     parsed = new BinaryExpression(parsed, op.ToOperator(), add, scanner.GetLocation(position..scanner.Position));
-                else return CommonParsers.Exit(ref scanner, result, out parsed, position, new("Expecting AddExpression", scanner.GetErrorLocation(scanner.Position)));
+                else return CommonParsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrors.SDSL0030, scanner.GetErrorLocation(scanner.Position), scanner.Memory));
             }
             else if (parsed is null && op == "")
             {
@@ -353,7 +353,7 @@ public record struct AdditionParser() : IParser<Expression>
             {
                 if (ExpressionParser.Mul(ref scanner, result, out var mul))
                     parsed = new BinaryExpression(parsed, op.ToOperator(), mul, scanner.GetLocation(position..scanner.Position));
-                else return CommonParsers.Exit(ref scanner, result, out parsed, position, new("Expecting MulExpression", scanner.GetErrorLocation(scanner.Position)));
+                else return CommonParsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrors.SDSL0031, scanner.GetErrorLocation(scanner.Position), scanner.Memory));
             }
             else if (parsed is null && op == '\0')
             {
@@ -384,7 +384,7 @@ public record struct MultiplicationParser() : IParser<Expression>
             {
                 if (UnaryParsers.Prefix(ref scanner, result, out var prefix))
                     parsed = new BinaryExpression(parsed, op.ToOperator(), prefix, scanner.GetLocation(position..scanner.Position));
-                else return CommonParsers.Exit(ref scanner, result, out parsed, position, new("Expecting MulExpression", scanner.GetErrorLocation(scanner.Position)));
+                else return CommonParsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrors.SDSL0042, scanner.GetErrorLocation(scanner.Position), scanner.Memory));
             }
             else if (parsed is null && op == '\0')
             {

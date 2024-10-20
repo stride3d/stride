@@ -56,11 +56,11 @@ public record struct AttributeParser : IParser<ShaderAttribute>
                         parsed = new AnyShaderAttribute(identifier, scanner.GetLocation(position..), values.Values);
                         return true;
                     }
-                    else return CommonParsers.Exit(ref scanner, result, out parsed, position, new("Badly formatted attribute", scanner.GetErrorLocation(position)));
+                    else return CommonParsers.Exit(ref scanner, result, out parsed, position, new("Badly formatted attribute", scanner.GetErrorLocation(position), scanner.Memory));
                 }
                 CommonParsers.Spaces0(ref scanner, result, out _);
                 if (!Terminals.Char(']', ref scanner, advance: true))
-                    return CommonParsers.Exit(ref scanner, result, out parsed, position, new("Expected end attribute", scanner.GetErrorLocation(position)));
+                    return CommonParsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrors.SDSL0019, scanner.GetErrorLocation(position), scanner.Memory));
                 parsed = new AnyShaderAttribute(identifier, scanner.GetLocation(position..));
                 return true;
             }

@@ -40,14 +40,14 @@ public record struct SimpleMethodParser : IParser<ShaderMethod>
         var position = scanner.Position;
         if (
             LiteralsParser.TypeName(ref scanner, result, out var typename)
-            && CommonParsers.Spaces1(ref scanner, result, out _, new("Expected at least one space", scanner.GetErrorLocation(scanner.Position)))
+            && CommonParsers.Spaces1(ref scanner, result, out _, new(SDSLErrors.SDSL0016, scanner.GetErrorLocation(scanner.Position), scanner.Memory))
             && LiteralsParser.Identifier(ref scanner, result, out var methodName)
             && CommonParsers.Spaces0(ref scanner, result, out _)
             && Terminals.Char('(', ref scanner, advance: true)
             && ShaderMethodParsers.Parameters(ref scanner, result, out var parameters)
             && Terminals.Char(')', ref scanner, advance: true)
             && CommonParsers.Spaces0(ref scanner, result, out _)
-            && StatementParsers.Block(ref scanner, result, out var body, new("Expected Body declaration", scanner.GetErrorLocation(scanner.Position)))
+            && StatementParsers.Block(ref scanner, result, out var body, new(SDSLErrors.SDSL0040, scanner.GetErrorLocation(scanner.Position), scanner.Memory))
         )
         {
             parsed = new ShaderMethod(typename, methodName, scanner.GetLocation(position, scanner.Position - position))
@@ -72,9 +72,9 @@ public record struct MethodParser : IParser<ShaderMethod>
         if (Terminals.Literal("abstract", ref scanner, advance: true) && CommonParsers.Spaces1(ref scanner, result, out _))
         {
             if (
-                LiteralsParser.TypeName(ref scanner, result, out var typename, orError: new("Expected type name here", scanner.GetErrorLocation(scanner.Position)))
+                LiteralsParser.TypeName(ref scanner, result, out var typename, orError: new(SDSLErrors.SDSL0017, scanner.GetErrorLocation(scanner.Position), scanner.Memory))
                 && CommonParsers.Spaces1(ref scanner, result, out _)
-                && LiteralsParser.Identifier(ref scanner, result, out var methodName, orError: new("Expected method name here", scanner.GetErrorLocation(scanner.Position)))
+                && LiteralsParser.Identifier(ref scanner, result, out var methodName, orError: new(SDSLErrors.SDSL0017, scanner.GetErrorLocation(scanner.Position), scanner.Memory))
                 && CommonParsers.Spaces0(ref scanner, result, out _)
             )
             {
@@ -83,13 +83,13 @@ public record struct MethodParser : IParser<ShaderMethod>
                     ShaderMethodParsers.Parameters(ref scanner, result, out var parameters);
                     CommonParsers.Spaces0(ref scanner, result, out _);
                     if (!Terminals.Char(')', ref scanner, advance: true))
-                        return CommonParsers.Exit(ref scanner, result, out parsed, position, new("Expected closed parenthesis", scanner.GetErrorLocation(scanner.Position)));
+                        return CommonParsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrors.SDSL0018, scanner.GetErrorLocation(scanner.Position), scanner.Memory));
 
                     CommonParsers.Spaces0(ref scanner, result, out _);
                     if (!Terminals.Char(';', ref scanner, advance: true))
                     {
                         if (orError != null)
-                            return CommonParsers.Exit(ref scanner, result, out parsed, position, new("Expected semi colon", scanner.GetErrorLocation(scanner.Position)));
+                            return CommonParsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrors.SDSL0033, scanner.GetErrorLocation(scanner.Position), scanner.Memory));
                         else return CommonParsers.Exit(ref scanner, result, out parsed, position, orError);
                     }
                     else
