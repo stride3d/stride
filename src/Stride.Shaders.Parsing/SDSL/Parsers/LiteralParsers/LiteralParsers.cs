@@ -251,7 +251,7 @@ public record struct VectorParser : IParser<VectorLiteral>
             CommonParsers.Spaces0(ref scanner, result, out _);
             if (Terminals.Char('(', ref scanner, advance: true))
             {
-                var p = new VectorLiteral<ValueLiteral>(new TypeName(scanner.Memory[position..tnPos].ToString(), scanner.GetLocation(position..tnPos), isArray: false), scanner.GetLocation(..))
+                var p = new VectorLiteral(new TypeName(scanner.Memory[position..tnPos].ToString(), scanner.GetLocation(position..tnPos), isArray: false), scanner.GetLocation(..))
                 {
                     TypeName = new(baseType, scanner.GetLocation((tnPos - baseType.Length)..(tnPos - 1)), isArray: false)
                 };
@@ -262,6 +262,9 @@ public record struct VectorParser : IParser<VectorLiteral>
                         p.Values.Add(number);
                     else if (LiteralsParser.Vector(ref scanner, result, out var vec))
                         p.Values.Add(vec);
+                    else if (ExpressionParser.Expression(ref scanner, result, out var exp))
+                        p.Values.Add(exp);
+                    else return CommonParsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrors.SDSL0001, scanner.GetErrorLocation(scanner.Position), scanner.Memory));
                     CommonParsers.Spaces0(ref scanner, result, out _);
                     if (Terminals.Char(',', ref scanner, advance: true))
                         CommonParsers.Spaces0(ref scanner, result, out _);

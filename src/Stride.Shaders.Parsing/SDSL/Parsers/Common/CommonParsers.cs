@@ -43,7 +43,7 @@ public static class CommonParsers
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
-        foreach(var l in literals)
+        foreach (var l in literals)
         {
             if (!(Terminals.Literal(l, ref scanner, advance: true) && Spaces1(ref scanner, null!, out _)))
             {
@@ -109,6 +109,24 @@ public static class CommonParsers
         if (withSpaces)
             Spaces0(ref scanner, null!, out _);
         if (func.Invoke(ref scanner, result, out parsed))
+        {
+            if (!advance)
+                scanner.Position = position;
+            return true;
+        }
+        scanner.Position = position;
+        return false;
+    }
+
+    public static bool FollowedBy<TScanner, TParser, TResult>(ref TScanner scanner, TParser parser, ParseResult result, out TResult parsed, bool withSpaces = false, bool advance = false)
+        where TScanner : struct, IScanner
+        where TParser : struct, IParser<TResult>
+        where TResult : Node
+    {
+        var position = scanner.Position;
+        if (withSpaces)
+            Spaces0(ref scanner, null!, out _);
+        if (parser.Match(ref scanner, result, out parsed))
         {
             if (!advance)
                 scanner.Position = position;
@@ -209,7 +227,7 @@ public static class CommonParsers
                     if (withSpaces)
                         Spaces0(ref scanner, result, out _);
                 }
-                else if(nodes.Count >= minimum)
+                else if (nodes.Count >= minimum)
                     return true;
                 else return Exit(ref scanner, result, out nodes, position, orError);
             }

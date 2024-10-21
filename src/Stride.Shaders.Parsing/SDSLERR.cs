@@ -45,5 +45,6 @@ public static class SDSLErrors
     public const string SDSL0040 = "SDSL0040: Expected body declaration";
     public const string SDSL0041 = "SDSL0041: Expected expression or semi colon";
     public const string SDSL0042 = "SDSL0042: Expected prefix expression";
+    public const string SDSL0043 = "SDSL0043: Unexpected <EOF>";
 
 }

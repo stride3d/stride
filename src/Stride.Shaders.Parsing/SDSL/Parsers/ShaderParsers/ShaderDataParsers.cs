@@ -27,7 +27,7 @@ public record struct ShaderMemberParser : IParser<ShaderMember>
                 if (CommonParsers.FollowedBy(ref scanner, Terminals.Set(";"), withSpaces: true))
                 {
                     CommonParsers.Until(ref scanner, ';', advance: true);
-                    parsed = new ShaderMember(typename, name, null, scanner.GetLocation(position..scanner.Position));
+                    parsed = new ShaderMember(typename, name, null, false, scanner.GetLocation(position..scanner.Position));
                     return true;
                 }
                 else if (CommonParsers.FollowedBy(ref scanner, Terminals.Set("="), withSpaces: true))
@@ -44,7 +44,7 @@ public record struct ShaderMemberParser : IParser<ShaderMember>
                             {
                                 if (CommonParsers.Spaces0(ref scanner, result, out _) && Terminals.Char(';', ref scanner))
                                 {
-                                    parsed = new ShaderMember(typename, name, expression, scanner.GetLocation(position..scanner.Position), semantic: semantic);
+                                    parsed = new ShaderMember(typename, name, expression, false, scanner.GetLocation(position..scanner.Position), semantic: semantic);
                                     return true;
                                 }
                                 else return CommonParsers.Exit(ref scanner, result, out parsed, position, new("Missing semi colon here", scanner.GetErrorLocation(scanner.Position), scanner.Memory));
@@ -52,7 +52,7 @@ public record struct ShaderMemberParser : IParser<ShaderMember>
                             }
                             else return CommonParsers.Exit(ref scanner, result, out parsed, position, orError);
                         }
-                        parsed = new ShaderMember(typename, name, expression, scanner.GetLocation(position..scanner.Position));
+                        parsed = new ShaderMember(typename, name, expression, false, scanner.GetLocation(position..scanner.Position));
                         return true;
                     }
                 }
@@ -73,7 +73,7 @@ public record struct ShaderMemberParser : IParser<ShaderMember>
                 if (CommonParsers.FollowedBy(ref scanner, Terminals.Set(";"), withSpaces: true))
                 {
                     CommonParsers.Until(ref scanner, ';', advance: true);
-                    parsed = new ShaderMember(typename, name2, null, scanner.GetLocation(position..scanner.Position));
+                    parsed = new ShaderMember(typename, name2, null, true, scanner.GetLocation(position..scanner.Position), arraySize: arraySize);
                     return true;
                 }
                 else if (CommonParsers.FollowedBy(ref scanner, Terminals.Set("="), withSpaces: true))
@@ -90,7 +90,7 @@ public record struct ShaderMemberParser : IParser<ShaderMember>
                             {
                                 if (CommonParsers.Spaces0(ref scanner, result, out _) && Terminals.Char(';', ref scanner))
                                 {
-                                    parsed = new ShaderMember(typename, name2, expression, scanner.GetLocation(position..scanner.Position), semantic: semantic);
+                                    parsed = new ShaderMember(typename, name2, expression, true, scanner.GetLocation(position..scanner.Position), semantic: semantic, arraySize: arraySize);
                                     return true;
                                 }
                                 else return CommonParsers.Exit(ref scanner, result, out parsed, position, new("Missing semi colon here", scanner.GetErrorLocation(scanner.Position), scanner.Memory));
@@ -98,7 +98,7 @@ public record struct ShaderMemberParser : IParser<ShaderMember>
                             }
                             else return CommonParsers.Exit(ref scanner, result, out parsed, position, orError);
                         }
-                        parsed = new ShaderMember(typename, name2, expression, scanner.GetLocation(position..scanner.Position));
+                        parsed = new ShaderMember(typename, name2, expression, true, scanner.GetLocation(position..scanner.Position), arraySize: arraySize);
                         return true;
                     }
                 }

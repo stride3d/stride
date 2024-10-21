@@ -47,14 +47,10 @@ public class BoolLiteral(bool value, TextLocation info) : ScalarLiteral(info)
     public bool Value { get; set; } = value;
 }
 
-public abstract class VectorLiteral(TypeName typeName, TextLocation info) : ValueLiteral(info)
+public class VectorLiteral(TypeName typeName, TextLocation info) : ValueLiteral(info)
 {
     public TypeName TypeName { get; set; } = typeName;
-}
-public class VectorLiteral<TValueLiteral>(TypeName typeName, TextLocation info) : VectorLiteral(typeName, info)
-    where TValueLiteral : ValueLiteral
-{
-    public List<TValueLiteral> Values { get; set; } = [];
+    public List<Expression> Values { get; set; } = [];
 
     public override string ToString()
     {
