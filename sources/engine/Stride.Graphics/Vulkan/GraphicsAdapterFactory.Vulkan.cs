@@ -3,13 +3,14 @@
 #if STRIDE_GRAPHICS_API_VULKAN
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Vortice.Vulkan;
 using static Vortice.Vulkan.Vulkan;
 using Stride.Core;
 using Stride.Core.Diagnostics;
+using System.Text;
+using Stride.Core.Extensions;
 
 namespace Stride.Graphics
 {
@@ -83,7 +84,6 @@ namespace Stride.Graphics
     internal class GraphicsAdapterFactoryInstance : IDisposable
     {
         private VkDebugUtilsMessengerEXT debugReportCallback;
-        private vkDebugUtilsMessengerCallbackEXT debugReport;
 
         internal VkInstance NativeInstance;
         internal bool HasXlibSurfaceSupport;
@@ -93,80 +93,81 @@ namespace Stride.Graphics
 
         public unsafe GraphicsAdapterFactoryInstance(bool enableValidation)
         {
+            var pEngineName = new VkUtf8ReadOnlyString("Stride"u8);
             var applicationInfo = new VkApplicationInfo
             {
-                sType = VkStructureType.ApplicationInfo,
-                apiVersion = new VkVersion(1, 0, 0),
-                pEngineName = (byte*)Marshal.StringToHGlobalAnsi("Stride"),
+                pEngineName = pEngineName,
                 //engineVersion = new VkVersion()
             };
 
-            var validationLayerNames = new[]
+            var validationLayerNames = new List<VkUtf8String>()
             {
-                "VK_LAYER_KHRONOS_validation",
+                VK_LAYER_KHRONOS_VALIDATION_EXTENSION_NAME,
             };
-
-            IntPtr[] enabledLayerNames = new IntPtr[0];
+            var enabledLayerNames = new List<VkUtf8String>();
 
             if (enableValidation)
             {
                 var layers = vkEnumerateInstanceLayerProperties();
-                var availableLayerNames = new HashSet<string>();
+                var availableLayerNames = new HashSet<VkUtf8String>();
 
                 for (int index = 0; index < layers.Length; index++)
                 {
                     var properties = layers[index];
-                    var namePointer = properties.layerName;
-                    var name = Marshal.PtrToStringAnsi((IntPtr)namePointer);
+                    var name = new ReadOnlySpan<byte>(properties.layerName, 256);
+                    var actualName = new ReadOnlySpan<byte>(properties.layerName, name.IndexOf((byte)0) + 1);
 
-                    availableLayerNames.Add(name);
+                    availableLayerNames.Add(actualName);
                 }
 
-                enabledLayerNames = validationLayerNames
-                    .Where(x => availableLayerNames.Contains(x))
-                    .Select(Marshal.StringToHGlobalAnsi).ToArray();
+                enabledLayerNames.AddRange(validationLayerNames.Where(availableLayerNames.Contains));
 
                 // Check if validation was really available
-                enableValidation = enabledLayerNames.Length > 0;
+                enableValidation = enabledLayerNames.Count > 0;
             }
 
-            var extensionProperties = vkEnumerateInstanceExtensionProperties();
-            var availableExtensionNames = new List<string>();
-            var desiredExtensionNames = new List<string>();
+            vkEnumerateInstanceExtensionProperties(out uint extensionCount).CheckResult();
+            var extensionProperties = new VkExtensionProperties[extensionCount];
+            fixed (VkExtensionProperties* propertiesPtr = extensionProperties)
+                vkEnumerateInstanceExtensionProperties(&extensionCount, propertiesPtr).CheckResult(); ;
 
-            for (int index = 0; index < extensionProperties.Length; index++)
+            var availableExtensionNames = new List<VkUtf8String>();
+            var desiredExtensionNames = new List<VkUtf8String>();
+
+            for (int index = 0; index < extensionCount; index++)
             {
                 var extensionProperty = extensionProperties[index];
-                var name = Marshal.PtrToStringAnsi((IntPtr)extensionProperty.extensionName);
-                availableExtensionNames.Add(name);
+                var name = new ReadOnlySpan<byte>(extensionProperty.extensionName, 256);
+                var actualName = new ReadOnlySpan<byte>(extensionProperty.extensionName, name.IndexOf((byte)0) + 1);
+                availableExtensionNames.Add(actualName);
             }
 
-            desiredExtensionNames.Add(KHRSurfaceExtensionName);
-            if (!availableExtensionNames.Contains(KHRSurfaceExtensionName))
-                throw new InvalidOperationException($"Required extension {KHRSurfaceExtensionName} is not available");
+            desiredExtensionNames.Add(VK_KHR_SURFACE_EXTENSION_NAME);
+            if (availableExtensionNames.Contains(VK_KHR_SURFACE_EXTENSION_NAME))
+                throw new InvalidOperationException($"Required extension {Encoding.UTF8.GetString(VK_KHR_SURFACE_EXTENSION_NAME)} is not available");
 
             if (Platform.Type == PlatformType.Windows)
             {
-                desiredExtensionNames.Add(KHRWin32SurfaceExtensionName);
-                if (!availableExtensionNames.Contains(KHRWin32SurfaceExtensionName))
-                    throw new InvalidOperationException($"Required extension {KHRWin32SurfaceExtensionName} is not available");
+                desiredExtensionNames.Add(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
+                if (availableExtensionNames.Contains(VK_KHR_WIN32_SURFACE_EXTENSION_NAME))
+                    throw new InvalidOperationException($"Required extension {Encoding.UTF8.GetString(VK_KHR_WIN32_SURFACE_EXTENSION_NAME)} is not available");
             }
             else if (Platform.Type == PlatformType.Android)
             {
-                desiredExtensionNames.Add(KHRAndroidSurfaceExtensionName);
-                if (!availableExtensionNames.Contains(KHRAndroidSurfaceExtensionName))
-                    throw new InvalidOperationException($"Required extension {KHRAndroidSurfaceExtensionName} is not available");
+                desiredExtensionNames.Add(VK_KHR_ANDROID_SURFACE_EXTENSION_NAME);
+                if (availableExtensionNames.Contains(VK_KHR_ANDROID_SURFACE_EXTENSION_NAME))
+                    throw new InvalidOperationException($"Required extension {Encoding.UTF8.GetString(VK_KHR_ANDROID_SURFACE_EXTENSION_NAME)} is not available");
             }
             else if (Platform.Type == PlatformType.Linux)
             {
-                if (availableExtensionNames.Contains("VK_KHR_xlib_surface"))
+                if (availableExtensionNames.Contains(VK_KHR_XLIB_SURFACE_EXTENSION_NAME))
                 {
-                    desiredExtensionNames.Add("VK_KHR_xlib_surface");
+                    desiredExtensionNames.Add(VK_KHR_XLIB_SURFACE_EXTENSION_NAME);
                     HasXlibSurfaceSupport = true;
                 }
-                else if (availableExtensionNames.Contains("VK_KHR_xcb_surface"))
+                else if (availableExtensionNames.Contains(VK_KHR_XCB_SURFACE_EXTENSION_NAME))
                 {
-                    desiredExtensionNames.Add("VK_KHR_xcb_surface");
+                    desiredExtensionNames.Add(VK_KHR_XCB_SURFACE_EXTENSION_NAME);
                 }
                 else
                 {
@@ -174,65 +175,45 @@ namespace Stride.Graphics
                 }
             }
 
-            bool enableDebugReport = enableValidation && availableExtensionNames.Contains(EXTDebugUtilsExtensionName);
+            bool enableDebugReport = enableValidation && availableExtensionNames.Contains(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
             if (enableDebugReport)
-                desiredExtensionNames.Add(EXTDebugUtilsExtensionName);
+                desiredExtensionNames.Add(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 
-            var enabledExtensionNames = desiredExtensionNames.Select(Marshal.StringToHGlobalAnsi).ToArray();
+            using VkStringArray ppEnabledLayerNames = new(enabledLayerNames);
+            using VkStringArray ppEnabledExtensionNames = new(desiredExtensionNames);
 
-            try
+            var instanceCreateInfo = new VkInstanceCreateInfo
             {
-                fixed (void* enabledExtensionNamesPointer = &enabledExtensionNames[0])
-                fixed (void* fEnabledLayerNames = enabledLayerNames) // null if array is empty or null
-                {
-                    var instanceCreateInfo = new VkInstanceCreateInfo
-                    {
-                        sType = VkStructureType.InstanceCreateInfo,
-                        pApplicationInfo = &applicationInfo,
-                        enabledLayerCount = enabledLayerNames != null ? (uint)enabledLayerNames.Length : 0,
-                        ppEnabledLayerNames = (byte**)fEnabledLayerNames,
-                        enabledExtensionCount = (uint)enabledExtensionNames.Length,
-                        ppEnabledExtensionNames = (byte**)enabledExtensionNamesPointer,
-                    };
+                sType = VkStructureType.InstanceCreateInfo,
+                pApplicationInfo = &applicationInfo,
+                enabledLayerCount = ppEnabledLayerNames.Length,
+                ppEnabledLayerNames = ppEnabledLayerNames,
+                enabledExtensionCount = ppEnabledExtensionNames.Length,
+                ppEnabledExtensionNames = ppEnabledExtensionNames,
+            };
 
-                    vkCreateInstance(&instanceCreateInfo, null, out NativeInstance);
-                    vkLoadInstance(NativeInstance);
-                }
+            vkCreateInstance(&instanceCreateInfo, null, out NativeInstance);
+            vkLoadInstance(NativeInstance);
 
-                // Check if validation layer was available (otherwise detected count is 0)
-                if (enableValidation)
-                {
-                    debugReport = DebugReport;
-                    var createInfo = new VkDebugUtilsMessengerCreateInfoEXT
-                    {
-                        sType = VkStructureType.DebugUtilsMessengerCreateInfoEXT,
-                        messageSeverity = VkDebugUtilsMessageSeverityFlagsEXT.Verbose | VkDebugUtilsMessageSeverityFlagsEXT.Error | VkDebugUtilsMessageSeverityFlagsEXT.Warning,
-                        messageType = VkDebugUtilsMessageTypeFlagsEXT.General | VkDebugUtilsMessageTypeFlagsEXT.Validation | VkDebugUtilsMessageTypeFlagsEXT.Performance,
-                        pfnUserCallback = Marshal.GetFunctionPointerForDelegate(debugReport)
-                    };
-
-                    vkCreateDebugUtilsMessengerEXT(NativeInstance, &createInfo, null, out debugReportCallback).CheckResult();
-                }
-            }
-            finally
+            // Check if validation layer was available (otherwise detected count is 0)
+            if (enableValidation)
             {
-                foreach (var enabledExtensionName in enabledExtensionNames)
+                var createInfo = new VkDebugUtilsMessengerCreateInfoEXT
                 {
-                    Marshal.FreeHGlobal(enabledExtensionName);
-                }
+                    sType = VkStructureType.DebugUtilsMessengerCreateInfoEXT,
+                    messageSeverity = VkDebugUtilsMessageSeverityFlagsEXT.Verbose | VkDebugUtilsMessageSeverityFlagsEXT.Error | VkDebugUtilsMessageSeverityFlagsEXT.Warning,
+                    messageType = VkDebugUtilsMessageTypeFlagsEXT.General | VkDebugUtilsMessageTypeFlagsEXT.Validation | VkDebugUtilsMessageTypeFlagsEXT.Performance,
+                    pfnUserCallback = &DebugReport
+                };
 
-                foreach (var enabledLayerName in enabledLayerNames)
-                {
-                    Marshal.FreeHGlobal(enabledLayerName);
-                }
-
-                Marshal.FreeHGlobal((IntPtr)applicationInfo.pEngineName);
+                vkCreateDebugUtilsMessengerEXT(NativeInstance, &createInfo, null, out debugReportCallback).CheckResult();
             }
         }
 
-        private unsafe static VkBool32 DebugReport(VkDebugUtilsMessageSeverityFlagsEXT severity, VkDebugUtilsMessageTypeFlagsEXT types, VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, IntPtr userData)
+        [UnmanagedCallersOnly]
+        private unsafe static uint DebugReport(VkDebugUtilsMessageSeverityFlagsEXT severity, VkDebugUtilsMessageTypeFlagsEXT types, VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* userData)
         {
-            var message = Vortice.Vulkan.Interop.GetString(pCallbackData->pMessage);
+            var message = new VkUtf8String(pCallbackData->pMessage).ToString();
 
             // Redirect to log
             if (severity == VkDebugUtilsMessageSeverityFlagsEXT.Error)
@@ -252,7 +233,7 @@ namespace Stride.Graphics
                 Log.Verbose(message);
             }
 
-            return false;
+            return VK_FALSE;
         }
 
         public unsafe void Dispose()

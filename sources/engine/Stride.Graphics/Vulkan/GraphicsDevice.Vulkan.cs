@@ -4,13 +4,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Threading;
 using Vortice.Vulkan;
 using static Vortice.Vulkan.Vulkan;
 
 using Stride.Core;
 using Stride.Core.Threading;
+using Stride.Core.Extensions;
 
 namespace Stride.Graphics
 {
@@ -288,55 +288,42 @@ namespace Stride.Graphics
             };
 
             var extensionProperties = vkEnumerateDeviceExtensionProperties(NativePhysicalDevice);
-            var availableExtensionNames = new List<string>();
-            var desiredExtensionNames = new List<string>();
+            var availableExtensionNames = new List<VkUtf8String>();
+            var desiredExtensionNames = new List<VkUtf8String>();
 
             fixed (VkExtensionProperties* extensionPropertiesPtr = extensionProperties)
             {
                 for (int index = 0; index < extensionProperties.Length; index++)
                 {
-                    var namePointer = new IntPtr(extensionPropertiesPtr[index].extensionName);
-                    var name = Marshal.PtrToStringAnsi(namePointer);
-                    availableExtensionNames.Add(name);
+                    var namePointer = extensionPropertiesPtr[index].extensionName;
+                    var name = new ReadOnlySpan<byte>(namePointer, 256);
+                    var actualName = new ReadOnlySpan<byte>(namePointer, name.IndexOf((byte)0) + 1);
+                    availableExtensionNames.Add(actualName);
                 }
             }
 
-            desiredExtensionNames.Add(KHRSwapchainExtensionName);
-            if (!availableExtensionNames.Contains(KHRSwapchainExtensionName))
+            desiredExtensionNames.Add(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
+            if (availableExtensionNames.Contains(VK_KHR_SWAPCHAIN_EXTENSION_NAME))
                 throw new InvalidOperationException();
 
-            if (availableExtensionNames.Contains(EXTDebugMarkerExtensionName) && IsDebugMode)
+            if (availableExtensionNames.Contains(VK_EXT_DEBUG_MARKER_EXTENSION_NAME) && IsDebugMode)
             {
-                desiredExtensionNames.Add(EXTDebugMarkerExtensionName);
+                desiredExtensionNames.Add(VK_EXT_DEBUG_MARKER_EXTENSION_NAME);
                 IsProfilingSupported = true;
             }
 
-            var enabledExtensionNames = desiredExtensionNames.Select(Marshal.StringToHGlobalAnsi).ToArray();
-
-            try
+            using VkStringArray ppEnabledExtensionNames = new(desiredExtensionNames);
+            var deviceCreateInfo = new VkDeviceCreateInfo
             {
-                // fixed yields null if array is empty or null
-                fixed (void* fEnabledExtensionNames = enabledExtensionNames) {
-                    var deviceCreateInfo = new VkDeviceCreateInfo
-                    {
-                        sType = VkStructureType.DeviceCreateInfo,
-                        queueCreateInfoCount = 1,
-                        pQueueCreateInfos = &queueCreateInfo,
-                        enabledExtensionCount = (uint)enabledExtensionNames.Length,
-                        ppEnabledExtensionNames = (byte**)fEnabledExtensionNames,
-                        pEnabledFeatures = &enabledFeature,
-                    };
+                sType = VkStructureType.DeviceCreateInfo,
+                queueCreateInfoCount = 1,
+                pQueueCreateInfos = &queueCreateInfo,
+                enabledExtensionCount = ppEnabledExtensionNames.Length,
+                ppEnabledExtensionNames = ppEnabledExtensionNames,
+                pEnabledFeatures = &enabledFeature,
+            };
 
-                    vkCreateDevice(NativePhysicalDevice, &deviceCreateInfo, null, out nativeDevice);
-                }
-            }
-            finally
-            {
-                foreach (var enabledExtensionName in enabledExtensionNames)
-                {
-                    Marshal.FreeHGlobal(enabledExtensionName);
-                }
-            }
+            vkCreateDevice(NativePhysicalDevice, &deviceCreateInfo, null, out nativeDevice);
 
             vkGetDeviceQueue(nativeDevice, 0, 0, out NativeCommandQueue);
 
@@ -423,7 +410,7 @@ namespace Stride.Graphics
                 if ((typeBits & 1) == 1)
                 {
                     // Type is available, does it match user properties?
-                    var memoryType = *(&physicalDeviceMemoryProperties.memoryTypes_0 + i);
+                    var memoryType = *(&physicalDeviceMemoryProperties.memoryTypes[0] + i);
                     if ((memoryType.propertyFlags & memoryProperties) == memoryProperties)
                     {
                         allocateInfo.memoryTypeIndex = i;
