@@ -120,6 +120,9 @@ public record struct BufferMemberParser : IParser<ShaderMember>
 {
     public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, out ShaderMember parsed, in ParseError? orError = null) where TScanner : struct, IScanner
     {
+        #error this doesn't parse well
+        bool hasAttributes = ShaderAttributeListParser.AttributeList(ref scanner, result, out var attributes, orError);
+        CommonParsers.Spaces0(ref scanner, result, out _);
         var position = scanner.Position;
         var isStage = false;
         var isStream = false;

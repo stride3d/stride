@@ -26,6 +26,7 @@ public record struct ShaderElementParsers : IParser<ShaderElement>
             bool isStreamed = false;
             bool hasAttributes = ShaderAttributeListParser.AttributeList(ref scanner, result, out var attributes, orError);
             var tmpPos = scanner.Position;
+            #warning override keyword should always happen after stage and stream
             if (Terminals.Literal("override", ref scanner, advance: true) && CommonParsers.Spaces1(ref scanner, result, out _))
             {
                 isOverride = true;
