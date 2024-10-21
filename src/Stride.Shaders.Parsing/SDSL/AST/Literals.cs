@@ -94,9 +94,11 @@ public class Identifier(string name, TextLocation info) : Literal(info)
     }
 }
 
-public class TypeName(string name, TextLocation info) : Literal(info)
+public class TypeName(string name, TextLocation info, bool isArray) : Literal(info)
 {
     public string Name { get; set; } = name;
+    public bool IsArray { get; set; } = isArray;
+    public Expression? ArraySize { get; set; }
 
     public override string ToString()
     {

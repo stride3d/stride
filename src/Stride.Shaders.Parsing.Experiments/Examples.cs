@@ -104,13 +104,13 @@ public static class Examples
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine(string.Join("; ", parsed.Errors.Select(x => x.ToString())));
                 Console.WriteLine(f);
+                break;
             }
             else
             {
                 Console.ForegroundColor = ConsoleColor.Green;
                 Console.WriteLine(f);
             }
-            break;
         }
         Console.ForegroundColor = ConsoleColor.White;
     }

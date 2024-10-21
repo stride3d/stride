@@ -216,13 +216,13 @@ public record struct TypeNameParser() : ILiteralParser<TypeName>
                 && Terminals.Char(']', ref scanner, advance: true)
             )
             {
-                name = new TypeName(scanner.Memory[position..scanner.Position].ToString().Trim(), scanner.GetLocation(position..scanner.Position));
+                name = new TypeName(scanner.Memory[position..scanner.Position].ToString().Trim(), scanner.GetLocation(position..scanner.Position), isArray: true);
                 return true;
             }
             else
             {
                 scanner.Position = intermediate;
-                name = new(identifier.Name, scanner.GetLocation(position..scanner.Position));
+                name = new(identifier.Name, scanner.GetLocation(position..scanner.Position), isArray : false);
                 return true;
             }
         }
@@ -251,9 +251,9 @@ public record struct VectorParser : IParser<VectorLiteral>
             CommonParsers.Spaces0(ref scanner, result, out _);
             if (Terminals.Char('(', ref scanner, advance: true))
             {
-                var p = new VectorLiteral<ValueLiteral>(new TypeName(scanner.Memory[position..tnPos].ToString(), scanner.GetLocation(position..tnPos)), scanner.GetLocation(..))
+                var p = new VectorLiteral<ValueLiteral>(new TypeName(scanner.Memory[position..tnPos].ToString(), scanner.GetLocation(position..tnPos), isArray: false), scanner.GetLocation(..))
                 {
-                    TypeName = new(baseType, scanner.GetLocation((tnPos - baseType.Length)..(tnPos - 1)))
+                    TypeName = new(baseType, scanner.GetLocation((tnPos - baseType.Length)..(tnPos - 1)), isArray: false)
                 };
                 while (!scanner.IsEof)
                 {
@@ -302,9 +302,9 @@ public record struct MatrixParser : IParser<MatrixLiteral>
             CommonParsers.Spaces0(ref scanner, result, out _);
             if (Terminals.Char('(', ref scanner, advance: true))
             {
-                var p = new MatrixLiteral<ValueLiteral>(new TypeName(scanner.Memory[position..tnPos].ToString(), scanner.GetLocation(position..tnPos)), rows, cols, scanner.GetLocation(..))
+                var p = new MatrixLiteral<ValueLiteral>(new TypeName(scanner.Memory[position..tnPos].ToString(), scanner.GetLocation(position..tnPos), isArray: false), rows, cols, scanner.GetLocation(..))
                 {
-                    TypeName = new(baseType, scanner.GetLocation((tnPos - baseType.Length)..(tnPos - 1)))
+                    TypeName = new(baseType, scanner.GetLocation((tnPos - baseType.Length)..(tnPos - 1)), isArray: false)
                 };
                 while (!scanner.IsEof)
                 {

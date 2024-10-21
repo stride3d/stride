@@ -21,11 +21,18 @@ public record struct ShaderElementParsers : IParser<ShaderElement>
         }
         else
         {
+            bool isOverride = false;
             bool isStaged = false;
             bool isStreamed = false;
             bool hasAttributes = ShaderAttributeListParser.AttributeList(ref scanner, result, out var attributes, orError);
             var tmpPos = scanner.Position;
-            
+            if (Terminals.Literal("override", ref scanner, advance: true) && CommonParsers.Spaces1(ref scanner, result, out _))
+            {
+                isOverride = true;
+                tmpPos = scanner.Position;
+            }
+            else
+                scanner.Position = tmpPos;
             if (Terminals.Literal("stage", ref scanner, advance: true) && CommonParsers.Spaces1(ref scanner, result, out _))
             {
                 isStaged = true;
@@ -48,6 +55,7 @@ public record struct ShaderElementParsers : IParser<ShaderElement>
             }
             else if (Method(ref scanner, result, out var method))
             {
+                method.IsOverride = isOverride;
                 method.IsStaged = isStaged;
                 if(hasAttributes)
                     member.Attributes = attributes.Attributes;

@@ -225,7 +225,7 @@ public record struct VariableAssignParser : IParser<VariableAssign>
     public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, out VariableAssign parsed, in ParseError? orError = null) where TScanner : struct, IScanner
     {
         var position = scanner.Position;
-        if (LiteralsParser.Identifier(ref scanner, result, out var identifier))
+        if (PostfixParser.Postfix(ref scanner, result, out var identifier))
         {
             if (
                 CommonParsers.FollowedBy(

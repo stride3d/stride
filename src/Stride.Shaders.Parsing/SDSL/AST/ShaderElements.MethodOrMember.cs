@@ -7,11 +7,12 @@ public abstract class MethodOrMember(TextLocation info, bool isStaged = false) :
     public List<ShaderAttribute> Attributes { get; set; } = [];
 }
 
-public class ShaderCompose(Identifier name, InheritedMixin mixin, TextLocation info) : MethodOrMember(info)
+public class ShaderCompose(Identifier name, InheritedMixin mixin, bool isArray, TextLocation info) : MethodOrMember(info)
 {
-    public Identifier Name { get; } = name;
-    public InheritedMixin Mixin { get; } = mixin;
-    public override string ToString() => $"compose {Mixin} {Name};";
+    public Identifier Name { get; set; } = name;
+    public InheritedMixin Mixin { get; set; } = mixin;
+    public bool IsArray { get; set; } = isArray;
+    public override string ToString() => $"compose {Mixin}{(IsArray ? "[]" : "")} {Name}";
 }
 
 public sealed class ShaderMember(TypeName type, Identifier name, Expression? initialValue, TextLocation location, bool isStaged = false, bool isStream = false, Identifier? semantic = null) : MethodOrMember(location, isStaged)

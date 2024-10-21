@@ -33,17 +33,17 @@ public abstract class Declaration(TypeName typename, TextLocation info) : Statem
     public TypeName TypeName { get; set; } = typename;
 }
 
-public class VariableAssign(Identifier name, TextLocation info, AssignOperator? op = null,  Expression? value = null) : Node(info)
+public class VariableAssign(Expression variable, TextLocation info, AssignOperator? op = null,  Expression? value = null) : Node(info)
 {
-    public Identifier Name { get; set; } = name;
+    public Expression Variable { get; set; } = variable;
     public AssignOperator? Operator { get; set; } = op;
     public Expression? Value { get; set; } = value;
 
     public override string ToString()
         => Value switch
         {
-            null => Name.Name,
-            Expression v => $"{Name} = {v}"
+            null => Variable.ToString() ?? "",
+            Expression v => $"{Variable} = {v}"
         };
 }
 
