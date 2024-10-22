@@ -290,12 +290,6 @@ namespace Stride.UI.Controls
         }
 
         /// <summary>
-        /// Gets a value that indicates whether the is currently touched down.
-        /// </summary>
-        [DataMemberIgnore]
-        protected virtual bool IsTouchedDown { get; set; }
-
-        /// <summary>
         /// Snap the current <see cref="Value"/> to the closest tick.
         /// </summary>
         public void SnapToClosestTick()
@@ -393,28 +387,13 @@ namespace Stride.UI.Controls
             base.OnPointerPressed(args);
 
             SetValueFromPosition(args.WorldPosition);
-            IsTouchedDown = true;
-        }
-
-        protected override void OnPointerReleased(PointerEventArgs args)
-        {
-            base.OnPointerReleased(args);
-
-            IsTouchedDown = false;
-        }
-
-        protected override void OnPointerLeave(PointerEventArgs args)
-        {
-            base.OnPointerLeave(args);
-
-            IsTouchedDown = false;
         }
 
         protected override void OnPointerMove(PointerEventArgs args)
         {
             base.OnPointerMove(args);
 
-            if (IsTouchedDown)
+            if (IsPointerDown)
             {
                 SetValueFromPosition(args.WorldPosition);
             }
