@@ -47,7 +47,7 @@ public record struct CBufferParser : IParser<CBuffer>
         if (Terminals.Literal("cbuffer ", ref scanner, advance: true))
         {
             if (
-                LiteralsParser.Identifier(ref scanner, result, out var identifier, new(SDSLErrors.SDSL0017, scanner.GetErrorLocation(scanner.Position), scanner.Memory))
+                LiteralsParser.Identifier(ref scanner, result, out var identifier, new(SDSLParsingMessages.SDSL0017, scanner.GetErrorLocation(scanner.Position), scanner.Memory))
                 && CommonParsers.Spaces0(ref scanner, result, out _)
             )
             {
@@ -59,10 +59,10 @@ public record struct CBufferParser : IParser<CBuffer>
                     {
                         if (BufferParsers.Member(ref scanner, result, out var member) && CommonParsers.Spaces0(ref scanner, result, out _))
                             members.Add(member);
-                        else return CommonParsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrors.SDSL0001, scanner.GetErrorLocation(scanner.Position), scanner.Memory));
+                        else return CommonParsers.Exit(ref scanner, result, out parsed, position, new(SDSLParsingMessages.SDSL0001, scanner.GetErrorLocation(scanner.Position), scanner.Memory));
                     }
                     if(scanner.IsEof)
-                        return CommonParsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrors.SDSL0043, scanner.GetErrorLocation(scanner.Position), scanner.Memory));
+                        return CommonParsers.Exit(ref scanner, result, out parsed, position, new(SDSLParsingMessages.SDSL0043, scanner.GetErrorLocation(scanner.Position), scanner.Memory));
                     parsed = new(identifier, scanner.GetLocation(position..scanner.Position))
                     {
                         Members = members
@@ -85,7 +85,7 @@ public record struct TBufferParser : IParser<TBuffer>
         if (Terminals.Literal("tbuffer ", ref scanner, advance: true))
         {
             if (
-                LiteralsParser.Identifier(ref scanner, result, out var identifier, new(SDSLErrors.SDSL0017, scanner.GetErrorLocation(scanner.Position), scanner.Memory))
+                LiteralsParser.Identifier(ref scanner, result, out var identifier, new(SDSLParsingMessages.SDSL0017, scanner.GetErrorLocation(scanner.Position), scanner.Memory))
                 && CommonParsers.Spaces0(ref scanner, result, out _)
             )
             {
@@ -154,7 +154,7 @@ public record struct BufferMemberParser : IParser<ShaderMember>
             {
                 CommonParsers.Until(ref scanner, '=', advance: true);
                 CommonParsers.Spaces0(ref scanner, result, out _);
-                if (ExpressionParser.Expression(ref scanner, result, out var expression, orError: orError ?? new(SDSLErrors.SDSL0015, scanner.GetErrorLocation(scanner.Position), scanner.Memory)))
+                if (ExpressionParser.Expression(ref scanner, result, out var expression, orError: orError ?? new(SDSLParsingMessages.SDSL0015, scanner.GetErrorLocation(scanner.Position), scanner.Memory)))
                 {
                     if (CommonParsers.Spaces0(ref scanner, result, out _) && Terminals.Char(';', ref scanner))
                     {
@@ -182,7 +182,7 @@ public record struct BufferMemberParser : IParser<ShaderMember>
             {
                 CommonParsers.Until(ref scanner, '=', advance: true);
                 CommonParsers.Spaces0(ref scanner, result, out _);
-                if (ExpressionParser.Expression(ref scanner, result, out var expression, orError: orError ?? new(SDSLErrors.SDSL0015, scanner.GetErrorLocation(scanner.Position), scanner.Memory)))
+                if (ExpressionParser.Expression(ref scanner, result, out var expression, orError: orError ?? new(SDSLParsingMessages.SDSL0015, scanner.GetErrorLocation(scanner.Position), scanner.Memory)))
                 {
                     if (CommonParsers.Spaces0(ref scanner, result, out _) && Terminals.Char(';', ref scanner))
                     {

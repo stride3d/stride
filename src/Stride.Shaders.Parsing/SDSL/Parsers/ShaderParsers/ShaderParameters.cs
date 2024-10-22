@@ -39,8 +39,9 @@ public record struct ParameterDeclarationsParser : IParser<ShaderParameterDeclar
         )
         {
             parameters.Add(new(typename, name));
-            if (!Terminals.Char(',', ref scanner, advance: true) && CommonParsers.Spaces0(ref scanner, result, out _))
-                break;
+            if (Terminals.Char(',', ref scanner, advance: true))
+                CommonParsers.Spaces0(ref scanner, result, out _);
+            else break;
         }
         parsed = new(scanner.GetLocation(position..scanner.Position)) { Parameters = parameters };
         return true;

@@ -42,7 +42,7 @@ public record struct PrefixIncrementParser : IParser<Expression>
                 parsed = new PrefixExpression(Operator.Inc, lit, scanner.GetLocation(position, scanner.Position - position));
                 return true;
             }
-            else return CommonParsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrors.SDSL0020, scanner.GetErrorLocation(position), scanner.Memory));
+            else return CommonParsers.Exit(ref scanner, result, out parsed, position, new(SDSLParsingMessages.SDSL0020, scanner.GetErrorLocation(position), scanner.Memory));
         }
         // prefix decrememnt 
         else if (Terminals.Literal("--", ref scanner, advance: true))
@@ -53,7 +53,7 @@ public record struct PrefixIncrementParser : IParser<Expression>
                 parsed = new PrefixExpression(Operator.Inc, lit, scanner.GetLocation(position, scanner.Position - position));
                 return true;
             }
-            else return CommonParsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrors.SDSL0020, scanner.GetErrorLocation(position), scanner.Memory));
+            else return CommonParsers.Exit(ref scanner, result, out parsed, position, new(SDSLParsingMessages.SDSL0020, scanner.GetErrorLocation(position), scanner.Memory));
    
         }
         else return CommonParsers.Exit(ref scanner, result, out parsed, position, orError);
@@ -77,7 +77,7 @@ public record struct NotExpressionParser : IParser<Expression>
                 parsed = new PrefixExpression(op, lit, scanner.GetLocation(position, scanner.Position - position));
                 return true;
             }
-            else return CommonParsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrors.SDSL0020, scanner.GetErrorLocation(position), scanner.Memory));
+            else return CommonParsers.Exit(ref scanner, result, out parsed, position, new(SDSLParsingMessages.SDSL0020, scanner.GetErrorLocation(position), scanner.Memory));
                 
         }
         else return CommonParsers.Exit(ref scanner, result, out parsed, position, orError);
@@ -115,7 +115,7 @@ public record struct CastExpressionParser : IParser<Expression>
         if (
                 Terminals.Char('(', ref scanner, advance: true)
                 && CommonParsers.Spaces0(ref scanner, result, out _)
-                && LiteralsParser.Identifier(ref scanner, result, out var typeName, new(SDSLErrors.SDSL0017, scanner.GetErrorLocation(scanner.Position), scanner.Memory))
+                && LiteralsParser.Identifier(ref scanner, result, out var typeName, new(SDSLParsingMessages.SDSL0017, scanner.GetErrorLocation(scanner.Position), scanner.Memory))
                 && CommonParsers.Spaces0(ref scanner, result, out _)
                 && Terminals.Char(')', ref scanner, true)
                 && UnaryParsers.Postfix(ref scanner, result, out var lit)

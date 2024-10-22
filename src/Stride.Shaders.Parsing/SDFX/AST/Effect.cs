@@ -16,9 +16,9 @@ public class ShaderEffect(TypeName name, TextLocation info) : ShaderDeclaration(
 
 public abstract class EffectStatement(TextLocation info) : Node(info);
 
-public class MixinUse(InheritedMixin mixin, TextLocation info) : EffectStatement(info)
+public class MixinUse(Mixin mixin, TextLocation info) : EffectStatement(info)
 {
-    public InheritedMixin MixinName { get; set; } = mixin;
+    public Mixin MixinName { get; set; } = mixin;
     public override string ToString()
     {
         return $"mixin {MixinName}";
@@ -27,19 +27,19 @@ public class MixinUse(InheritedMixin mixin, TextLocation info) : EffectStatement
 
 public abstract class Composable();
 
-public class MixinCompose(Identifier identifier, InheritedMixin mixin, TextLocation info) : EffectStatement(info)
+public class MixinCompose(Identifier identifier, Mixin mixin, TextLocation info) : EffectStatement(info)
 {
     public Identifier Identifier { get; set; } = identifier;
-    public InheritedMixin MixinName { get; set; } = mixin;
+    public Mixin MixinName { get; set; } = mixin;
     public override string ToString()
     {
         return $"mixin compose {Identifier} = {MixinName}";
     }
 }
 
-public class ComposeParams(InheritedMixin mixin, TextLocation info) : EffectStatement(info)
+public class ComposeParams(Mixin mixin, TextLocation info) : EffectStatement(info)
 {
-    public InheritedMixin MixinName { get; set; } = mixin;
+    public Mixin MixinName { get; set; } = mixin;
 }
 public class UsingParams(Identifier name, TextLocation info) : EffectStatement(info)
 {

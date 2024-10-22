@@ -53,7 +53,7 @@ public record struct DirectivePrefixIncrementParser : IParser<Expression>
             {
                 parsed = null!;
                 scanner.Position = position;
-                result.Errors.Add(new(SDSLErrors.SDSL0020, scanner.GetErrorLocation(position), scanner.Memory));
+                result.Errors.Add(new(SDSLParsingMessages.SDSL0020, scanner.GetErrorLocation(position), scanner.Memory));
                 return false;
             }
         }
@@ -70,7 +70,7 @@ public record struct DirectivePrefixIncrementParser : IParser<Expression>
             {
                 parsed = null!;
                 scanner.Position = position;
-                result.Errors.Add(new(SDSLErrors.SDSL0020, scanner.GetErrorLocation(position), scanner.Memory));
+                result.Errors.Add(new(SDSLParsingMessages.SDSL0020, scanner.GetErrorLocation(position), scanner.Memory));
                 return false;
             }
         }
@@ -106,7 +106,7 @@ public record struct DirectiveNotExpressionParser : IParser<Expression>
             {
                 parsed = null!;
                 scanner.Position = position;
-                result.Errors.Add(new(SDSLErrors.SDSL0020, scanner.GetErrorLocation(position), scanner.Memory));
+                result.Errors.Add(new(SDSLParsingMessages.SDSL0020, scanner.GetErrorLocation(position), scanner.Memory));
                 return false;
             }
         }
@@ -164,7 +164,7 @@ public record struct DirectiveCastExpressionParser : IParser<Expression>
         if (
                 Terminals.Char('(', ref scanner, advance: true)
                 && CommonParsers.Spaces0(ref scanner, result, out _)
-                && LiteralsParser.Identifier(ref scanner, result, out var typeName, new(SDSLErrors.SDSL0017, scanner.GetErrorLocation(scanner.Position), scanner.Memory))
+                && LiteralsParser.Identifier(ref scanner, result, out var typeName, new(SDSLParsingMessages.SDSL0017, scanner.GetErrorLocation(scanner.Position), scanner.Memory))
                 && CommonParsers.Spaces0(ref scanner, result, out _)
                 && Terminals.Char(')', ref scanner, true)
                 && DirectiveUnaryParsers.Primary(ref scanner, result, out var lit)

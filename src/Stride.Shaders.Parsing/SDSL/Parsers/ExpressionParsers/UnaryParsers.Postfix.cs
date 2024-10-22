@@ -49,7 +49,7 @@ public record struct PostfixParser : IParser<Expression>
                     parsed = new PostfixExpression(parsed, Operator.Dec, scanner.GetLocation(position, scanner.Position - position));
                     return true;
                 }
-                else return CommonParsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrors.SDSL0020, scanner.GetErrorLocation(position), scanner.Memory));
+                else return CommonParsers.Exit(ref scanner, result, out parsed, position, new(SDSLParsingMessages.SDSL0020, scanner.GetErrorLocation(position), scanner.Memory));
                     
             }
             else return true;
@@ -84,7 +84,7 @@ public record struct PostfixAccessorParser : IParser<Expression>
             if (
                 Terminals.Char('.', ref scanner, advance: true)
                 && CommonParsers.Spaces0(ref scanner, result, out _)
-                && PostfixParser.Accessor(ref scanner, result, out var accessed, new(SDSLErrors.SDSL0024, scanner.GetErrorLocation(scanner.Position), scanner.Memory)))
+                && PostfixParser.Accessor(ref scanner, result, out var accessed, new(SDSLParsingMessages.SDSL0024, scanner.GetErrorLocation(scanner.Position), scanner.Memory)))
             {
                 parsed = new AccessorExpression(expression, accessed, scanner.GetLocation(position, scanner.Position - position));
                 return true;
@@ -115,7 +115,7 @@ public record struct PostfixIndexerParser : IParser<Expression>
             {
                 if (
                     CommonParsers.Spaces0(ref scanner, result, out _)
-                    && ExpressionParser.Expression(ref scanner, result, out var index, new(SDSLErrors.SDSL0015, scanner.GetErrorLocation(scanner.Position), scanner.Memory))
+                    && ExpressionParser.Expression(ref scanner, result, out var index, new(SDSLParsingMessages.SDSL0015, scanner.GetErrorLocation(scanner.Position), scanner.Memory))
                     && CommonParsers.Spaces0(ref scanner, result, out _)
                     && Terminals.Char(']', ref scanner, advance: true)
                 )
@@ -123,7 +123,7 @@ public record struct PostfixIndexerParser : IParser<Expression>
                     parsed = new IndexerExpression(expression, index, scanner.GetLocation(position, scanner.Position - position));
                     return true;
                 }
-                else return CommonParsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrors.SDSL0021, scanner.GetErrorLocation(position), scanner.Memory));
+                else return CommonParsers.Exit(ref scanner, result, out parsed, position, new(SDSLParsingMessages.SDSL0021, scanner.GetErrorLocation(position), scanner.Memory));
                     
             }
             else

@@ -80,7 +80,8 @@ public static class Examples
 
     public static void ParseSDSL()
     {
-        var text = File.ReadAllText("./assets/Stride/SDSL/AdditiveLightEffect.sdsl");
+        // var text = File.ReadAllText("./assets/Stride/SDSL/AmbientOcclusionBlurShader.sdsl");
+        var text = MonoGamePreProcessor.Run("./assets/Stride/SDSL/AmbientOcclusionBlurShader.sdsl", []);
         var parsed = SDSLParser.Parse(text);
         Console.WriteLine(parsed.AST);
         if(parsed.Errors.Count > 0)

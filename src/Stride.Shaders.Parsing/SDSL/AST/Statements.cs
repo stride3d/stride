@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace Stride.Shaders.Parsing.SDSL.AST;
@@ -33,11 +34,12 @@ public abstract class Declaration(TypeName typename, TextLocation info) : Statem
     public TypeName TypeName { get; set; } = typename;
 }
 
-public class VariableAssign(Expression variable, TextLocation info, AssignOperator? op = null,  Expression? value = null) : Node(info)
+public class VariableAssign(Expression variable, bool isConst, TextLocation info, AssignOperator? op = null, Expression? value = null) : Node(info)
 {
     public Expression Variable { get; set; } = variable;
     public AssignOperator? Operator { get; set; } = op;
     public Expression? Value { get; set; } = value;
+    public bool IsConst { get; set; } = isConst;
 
     public override string ToString()
         => Value switch

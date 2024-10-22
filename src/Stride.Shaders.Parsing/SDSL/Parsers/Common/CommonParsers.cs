@@ -55,6 +55,157 @@ public static class CommonParsers
         return true;
     }
 
+
+    public static bool TypeNameIdentifierArraySizeValue<TScanner>(ref TScanner scanner, ParseResult result, out TypeName typeName, out Identifier identifier, out Expression? arraySize, out Expression? value, bool advance = true)
+        where TScanner : struct, IScanner
+    {
+        var position = scanner.Position;
+        arraySize = null!;
+        value = null!;
+        if (
+            LiteralsParser.TypeName(ref scanner, result, out typeName)
+            && Spaces1(ref scanner, result, out _)
+            && LiteralsParser.Identifier(ref scanner, result, out identifier))
+        {
+            var tmp = scanner.Position;
+            Spaces0(ref scanner, result, out _);
+            if (
+                !(
+                    Terminals.Char('[', ref scanner, advance: true)
+                    && Spaces0(ref scanner, result, out _)
+                    && ExpressionParser.Expression(ref scanner, result, out arraySize)
+                    && Spaces0(ref scanner, result, out _)
+                    && Terminals.Char(']', ref scanner, advance: true)
+                )
+            )
+            {
+                scanner.Position = tmp;
+            }
+            tmp = scanner.Position;
+            if (
+                !(
+                    Terminals.Char('=', ref scanner, advance: true)
+                    && Spaces0(ref scanner, result, out _)
+                    && ExpressionParser.Expression(ref scanner, result, out value)
+                )
+            )
+            {
+                scanner.Position = tmp;
+            }
+            if (!advance)
+                scanner.Position = position;
+            return true;
+        }
+        else
+        {
+            scanner.Position = position;
+            if (
+                LiteralsParser.TypeName(ref scanner, result, out typeName)
+                && FollowedBy(ref scanner, Terminals.Char('['), withSpaces: true, advance: true)
+                && ExpressionParser.Expression(ref scanner, result, out arraySize)
+                && FollowedBy(ref scanner, Terminals.Char(']'), withSpaces: true, advance: true)
+                && Spaces1(ref scanner, result, out _)
+                && LiteralsParser.Identifier(ref scanner, result, out identifier))
+            {
+                var tmp = scanner.Position;
+                Spaces0(ref scanner, result, out _);
+                if (
+                    !(
+                        Terminals.Char('=', ref scanner, advance: true)
+                        && Spaces0(ref scanner, result, out _)
+                        && ExpressionParser.Expression(ref scanner, result, out value)
+                    )
+                )
+                {
+                    scanner.Position = tmp;
+                }
+                if (!advance)
+                    scanner.Position = position;
+                return true;
+            }
+        }
+        scanner.Position = position;
+        typeName = null!;
+        identifier = null!;
+        arraySize = null!;
+        return false;
+    }
+
+    public static bool TypeNameMixinArraySizeValue<TScanner>(ref TScanner scanner, ParseResult result, out TypeName typeName, out Mixin mixin, out Expression? arraySize, out Expression? value, bool advance = true)
+        where TScanner : struct, IScanner
+    {
+        var position = scanner.Position;
+        arraySize = null!;
+        value = null!;
+        if (
+            LiteralsParser.TypeName(ref scanner, result, out typeName)
+            && Spaces1(ref scanner, result, out _)
+            && ShaderClassParsers.Mixin(ref scanner, result, out mixin))
+        {
+            var tmp = scanner.Position;
+            Spaces0(ref scanner, result, out _);
+            if (
+                !(
+                    Terminals.Char('[', ref scanner, advance: true)
+                    && Spaces0(ref scanner, result, out _)
+                    && ExpressionParser.Expression(ref scanner, result, out arraySize)
+                    && Spaces0(ref scanner, result, out _)
+                    && Terminals.Char(']', ref scanner, advance: true)
+                )
+            )
+            {
+                scanner.Position = tmp;
+            }
+            tmp = scanner.Position;
+            if(
+                !(
+                    Terminals.Char('=', ref scanner, advance: true)
+                    && Spaces0(ref scanner, result, out _)
+                    && ExpressionParser.Expression(ref scanner, result, out value)
+                )
+            )
+            {
+                scanner.Position = tmp;
+            }
+            if (!advance)
+                scanner.Position = position;
+            return true;
+        }
+        else
+        {
+            scanner.Position = position;
+            if (
+                LiteralsParser.TypeName(ref scanner, result, out typeName)
+                && FollowedBy(ref scanner, Terminals.Char('['), withSpaces: true, advance: true)
+                && ExpressionParser.Expression(ref scanner, result, out arraySize)
+                && FollowedBy(ref scanner, Terminals.Char(']'), withSpaces: true, advance: true)
+                && Spaces1(ref scanner, result, out _)
+                && ShaderClassParsers.Mixin(ref scanner, result, out mixin))
+            {
+                var tmp = scanner.Position;
+                Spaces0(ref scanner, result, out _);
+                if (
+                    !(
+                        Terminals.Char('=', ref scanner, advance: true)
+                        && Spaces0(ref scanner, result, out _)
+                        && ExpressionParser.Expression(ref scanner, result, out value)
+                    )
+                )
+                {
+                    scanner.Position = tmp;
+                }
+                if (!advance)
+                    scanner.Position = position;
+                return true;
+            }
+        }
+        scanner.Position = position;
+        typeName = null!;
+        mixin = null!;
+        arraySize = null!;
+        return false;
+    }
+
     public static bool Optional<TScanner, TTerminal>(ref TScanner scanner, TTerminal terminal, bool advance = false)
         where TScanner : struct, IScanner
         where TTerminal : struct, ITerminal

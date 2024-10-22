@@ -60,7 +60,7 @@ public record struct DirectivePostfixParser : IParser<Expression>
                 }
                 else 
                 {
-                    result.Errors.Add(new(SDSLErrors.SDSL0020, scanner.GetErrorLocation(position), scanner.Memory));
+                    result.Errors.Add(new(SDSLParsingMessages.SDSL0020, scanner.GetErrorLocation(position), scanner.Memory));
                     return false;
                 }
             }
@@ -102,7 +102,7 @@ public record struct DirectivePostfixAccessorParser : IParser<Expression>
             if (
                 Terminals.Char('.', ref scanner, advance: true)
                 && CommonParsers.Spaces0(ref scanner, result, out _)
-                && PostfixParser.Accessor(ref scanner, result, out var accessed, new(SDSLErrors.SDSL0021, scanner.GetErrorLocation(scanner.Position), scanner.Memory)))
+                && PostfixParser.Accessor(ref scanner, result, out var accessed, new(SDSLParsingMessages.SDSL0021, scanner.GetErrorLocation(scanner.Position), scanner.Memory)))
             {
                 parsed = new AccessorExpression(expression, accessed, scanner.GetLocation(position, scanner.Position - position));
                 return true;
@@ -136,7 +136,7 @@ public record struct DirectivePostfixIndexerParser : IParser<Expression>
             {
                 if (
                     CommonParsers.Spaces0(ref scanner, result, out _)
-                    && ExpressionParser.Expression(ref scanner, result, out var index, new(SDSLErrors.SDSL0010, scanner.GetErrorLocation(scanner.Position), scanner.Memory))
+                    && ExpressionParser.Expression(ref scanner, result, out var index, new(SDSLParsingMessages.SDSL0010, scanner.GetErrorLocation(scanner.Position), scanner.Memory))
                     && CommonParsers.Spaces0(ref scanner, result, out _)
                     && Terminals.Char(']', ref scanner, advance: true)
                 )
@@ -146,7 +146,7 @@ public record struct DirectivePostfixIndexerParser : IParser<Expression>
                 }
                 else 
                 {
-                    result.Errors.Add(new(SDSLErrors.SDSL0021, scanner.GetErrorLocation(position), scanner.Memory));
+                    result.Errors.Add(new(SDSLParsingMessages.SDSL0021, scanner.GetErrorLocation(position), scanner.Memory));
                     parsed = null!;
                     return false;
                 }

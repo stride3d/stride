@@ -59,6 +59,7 @@ public static class Reserved
             "compile",
             "compile_fragment",
             "CompileShader",
+            "compose",
             "const",
             "continue",
             "ComputeShader",

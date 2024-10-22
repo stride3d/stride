@@ -66,11 +66,11 @@ public record struct DirectiveTernaryParser : IParser<Expression>
             if (
                 Terminals.Char('?', ref scanner, advance: true)
                 && CommonParsers.Spaces0(ref scanner, result, out _)
-                && DirectiveExpressionParser.Expression(ref scanner, result, out var left, new(SDSLErrors.SDSL0015, scanner.GetErrorLocation(scanner.Position), scanner.Memory))
+                && DirectiveExpressionParser.Expression(ref scanner, result, out var left, new(SDSLParsingMessages.SDSL0015, scanner.GetErrorLocation(scanner.Position), scanner.Memory))
                 && CommonParsers.Spaces0(ref scanner, result, out _)
                 && Terminals.Char(':', ref scanner, advance: true)
                 && CommonParsers.Spaces0(ref scanner, result, out _)
-                && DirectiveExpressionParser.Expression(ref scanner, result, out var right, new(SDSLErrors.SDSL0015, scanner.GetErrorLocation(scanner.Position), scanner.Memory))
+                && DirectiveExpressionParser.Expression(ref scanner, result, out var right, new(SDSLParsingMessages.SDSL0015, scanner.GetErrorLocation(scanner.Position), scanner.Memory))
             )
             {
                 parsed = new TernaryExpression(parsed, left, right, scanner.GetLocation(position, scanner.Position - position));

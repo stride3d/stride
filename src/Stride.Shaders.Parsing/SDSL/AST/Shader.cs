@@ -3,12 +3,12 @@ namespace Stride.Shaders.Parsing.SDSL.AST;
 
 
 
-public class ShaderMixin(Identifier name, TextLocation info) : ShaderDeclaration(info)
+public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration(info)
 {
     public Identifier Name { get; set; } = name;
     public List<ShaderElement> Elements { get; set; } = [];
     public ShaderParameterDeclarations? Generics { get; set; }
-    public List<InheritedMixin> Mixins { get; set; } = [];
+    public List<Mixin> Mixins { get; set; } = [];
 
 
     public override string ToString()
@@ -31,7 +31,7 @@ public class ShaderGenerics(Identifier typename, Identifier name, TextLocation i
     public Identifier TypeName { get; set; } = typename;
 }
 
-public class InheritedMixin(Identifier name, TextLocation info) : Node(info)
+public class Mixin(Identifier name, TextLocation info) : Node(info)
 {
     public Identifier Name { get; set; } = name;
     public ShaderExpressionList? Generics { get; set; }

@@ -204,8 +204,8 @@ public record struct ConditionalIfDefDirectivesParser : IParser<IfDefDirective>
         CommonParsers.Spaces0(ref scanner, result, out _, onlyWhiteSpace: true);
         if (
             Terminals.Literal("#ifdef", ref scanner, advance: true)
-            && CommonParsers.Spaces1(ref scanner, result, out _, onlyWhiteSpace: true, orError: new(SDSLErrors.SDSL0016, scanner.GetErrorLocation(scanner.Position), scanner.Memory))
-            && LiteralsParser.Identifier(ref scanner, result, out var id, new(SDSLErrors.SDSL0017, scanner.GetErrorLocation(scanner.Position), scanner.Memory))
+            && CommonParsers.Spaces1(ref scanner, result, out _, onlyWhiteSpace: true, orError: new(SDSLParsingMessages.SDSL0016, scanner.GetErrorLocation(scanner.Position), scanner.Memory))
+            && LiteralsParser.Identifier(ref scanner, result, out var id, new(SDSLParsingMessages.SDSL0017, scanner.GetErrorLocation(scanner.Position), scanner.Memory))
             && Terminals.EOL(ref scanner, advance: true)
         )
         {
@@ -431,7 +431,7 @@ public record struct FunctionDefineDirectiveParser : IParser<FunctionDefineDirec
                 func.Parameters.Add(param);
             if(!Terminals.Char(')', ref scanner, advance: true))
             {
-                result.Errors.Add(new(SDSLErrors.SDSL0018, scanner.GetErrorLocation(scanner.Position), scanner.Memory));
+                result.Errors.Add(new(SDSLParsingMessages.SDSL0018, scanner.GetErrorLocation(scanner.Position), scanner.Memory));
                 scanner.Position = position;
                 parsed = null!;
                 return false;

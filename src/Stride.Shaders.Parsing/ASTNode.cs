@@ -12,6 +12,11 @@ public class ValueNode(TextLocation info) : Node(info)
 }
 public class NoNode() : Node(new());
 
+public class ListNode(TextLocation info) : Node(info)
+{
+    public List<Node> Nodes { get; set; } = [];
+}
+
 public abstract class ShaderDeclaration(TextLocation info) : Node(info);
 
 

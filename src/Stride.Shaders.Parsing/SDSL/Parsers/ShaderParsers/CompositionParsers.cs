@@ -25,7 +25,7 @@ public record struct CompositionParser() : IParser<ShaderCompose>
             {
                 CommonParsers.Spaces0(ref scanner, result, out _);
                 if (!Terminals.Char(';', ref scanner, advance: true))
-                    return CommonParsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrors.SDSL0033, scanner.GetErrorLocation(position), scanner.Memory));
+                    return CommonParsers.Exit(ref scanner, result, out parsed, position, new(SDSLParsingMessages.SDSL0033, scanner.GetErrorLocation(position), scanner.Memory));
                 parsed = new(identifier2, mixin2, true, scanner.GetLocation(position..));
                 return true;
             }
@@ -38,11 +38,11 @@ public record struct CompositionParser() : IParser<ShaderCompose>
             {
                 CommonParsers.Spaces0(ref scanner, result, out _);
                 if (!Terminals.Char(';', ref scanner, advance: true))
-                    return CommonParsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrors.SDSL0033, scanner.GetErrorLocation(position), scanner.Memory));
+                    return CommonParsers.Exit(ref scanner, result, out parsed, position, new(SDSLParsingMessages.SDSL0033, scanner.GetErrorLocation(position), scanner.Memory));
                 parsed = new(identifier, mixin, false, scanner.GetLocation(position..));
                 return true;
             }
-            else return CommonParsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrors.SDSL0032, scanner.GetErrorLocation(scanner.Position), scanner.Memory));
+            else return CommonParsers.Exit(ref scanner, result, out parsed, position, new(SDSLParsingMessages.SDSL0032, scanner.GetErrorLocation(scanner.Position), scanner.Memory));
         }
         else return CommonParsers.Exit(ref scanner, result, out parsed, position, orError);
     }

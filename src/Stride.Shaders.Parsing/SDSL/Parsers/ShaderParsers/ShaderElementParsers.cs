@@ -45,7 +45,24 @@ public record struct ShaderElementParsers : IParser<ShaderElement>
                 isStreamed = true;
             else
                 scanner.Position = tmpPos;
-            if (ShaderMemberParser.Member(ref scanner, result, out var member))
+            if(Compose(ref scanner, result, out var compose))
+            {
+                compose.IsStaged = isStaged;
+                if(hasAttributes)
+                    compose.Attributes = attributes.Attributes;
+                parsed = compose;
+                return true;
+            }
+            else if (Method(ref scanner, result, out var method))
+            {
+                method.IsOverride = isOverride;
+                method.IsStaged = isStaged;
+                if(hasAttributes)
+                    method.Attributes = attributes.Attributes;
+                parsed = method;
+                return true;
+            }
+            else if (ShaderMemberParser.Member(ref scanner, result, out var member))
             {
                 member.IsStream = isStreamed;
                 member.IsStaged = isStaged;
@@ -54,23 +71,8 @@ public record struct ShaderElementParsers : IParser<ShaderElement>
                 parsed = member;
                 return true;
             }
-            else if (Method(ref scanner, result, out var method))
-            {
-                method.IsOverride = isOverride;
-                method.IsStaged = isStaged;
-                if(hasAttributes)
-                    member.Attributes = attributes.Attributes;
-                parsed = method;
-                return true;
-            }
-            else if(Compose(ref scanner, result, out var compose))
-            {
-                compose.IsStaged = isStaged;
-                if(hasAttributes)
-                    compose.Attributes = attributes.Attributes;
-                parsed = compose;
-                return true;
-            }
+            
+            
             else return CommonParsers.Exit(ref scanner, result, out parsed, position);
         }
         

@@ -15,95 +15,32 @@ public record struct ShaderMemberParser : IParser<ShaderMember>
     {
         parsed = null!;
         var position = scanner.Position;
-        if (LiteralsParser.TypeName(ref scanner, result, out var typename)
-            && CommonParsers.Spaces1(ref scanner, result, out _)
-        )
+
+        TypeName? typeName = null!;
+        Expression? arraySize = null!;
+        Expression? value = null!;
+
+
+        if (!Terminals.Literal("compose", ref scanner) && CommonParsers.TypeNameIdentifierArraySizeValue(ref scanner, result, out typeName, out var identifier, out arraySize, out value))
         {
             if (
-                LiteralsParser.Identifier(ref scanner, result, out Identifier name)
-                && CommonParsers.FollowedBy(ref scanner, Terminals.Set("=;"), withSpaces: true)
+                CommonParsers.FollowedBy(ref scanner, Terminals.Char(':'), withSpaces: true, advance: true)
+                && LiteralsParser.Identifier(ref scanner, result, out var semantic)
             )
             {
-                if (CommonParsers.FollowedBy(ref scanner, Terminals.Set(";"), withSpaces: true))
+                if (CommonParsers.FollowedBy(ref scanner, Terminals.Char(';'), withSpaces: true, advance: true) && CommonParsers.Until(ref scanner, ')', advance: true))
                 {
-                    CommonParsers.Until(ref scanner, ';', advance: true);
-                    parsed = new ShaderMember(typename, name, null, false, scanner.GetLocation(position..scanner.Position));
+                    parsed = new(typeName, identifier, value, arraySize != null, scanner.GetLocation(position..scanner.Position), semantic: semantic, arraySize: arraySize);
                     return true;
                 }
-                else if (CommonParsers.FollowedBy(ref scanner, Terminals.Set("="), withSpaces: true))
-                {
-                    CommonParsers.Until(ref scanner, '=', advance: true);
-                    CommonParsers.Spaces0(ref scanner, result, out _);
-                    if (ExpressionParser.Expression(ref scanner, result, out var expression, orError: orError ?? new(SDSLErrors.SDSL0015, scanner.GetErrorLocation(scanner.Position), scanner.Memory)))
-                    {
-                        if (CommonParsers.FollowedBy(ref scanner, Terminals.Char(':')))
-                        {
-                            CommonParsers.Until(ref scanner, ':', advance: true);
-                            CommonParsers.Spaces0(ref scanner, result, out _);
-                            if (LiteralsParser.Identifier(ref scanner, result, out var semantic, orError ?? new(SDSLErrors.SDSL0017, scanner.GetErrorLocation(scanner.Position), scanner.Memory)))
-                            {
-                                if (CommonParsers.Spaces0(ref scanner, result, out _) && Terminals.Char(';', ref scanner))
-                                {
-                                    parsed = new ShaderMember(typename, name, expression, false, scanner.GetLocation(position..scanner.Position), semantic: semantic);
-                                    return true;
-                                }
-                                else return CommonParsers.Exit(ref scanner, result, out parsed, position, new("Missing semi colon here", scanner.GetErrorLocation(scanner.Position), scanner.Memory));
-
-                            }
-                            else return CommonParsers.Exit(ref scanner, result, out parsed, position, orError);
-                        }
-                        parsed = new ShaderMember(typename, name, expression, false, scanner.GetLocation(position..scanner.Position));
-                        return true;
-                    }
-                }
+                else return CommonParsers.Exit(ref scanner, result, out parsed, position, new(SDSLParsingMessages.SDSL0001, scanner.GetErrorLocation(scanner.Position), scanner.Memory));
             }
-            else if (
-                LiteralsParser.Identifier(ref scanner, result, out Identifier name2)
-                && CommonParsers.Spaces0(ref scanner, result, out _)
-                && Terminals.Char('[', ref scanner, advance: true)
-                && CommonParsers.Spaces0(ref scanner, result, out _)
-                && CommonParsers.Optional(ref scanner, new ExpressionParser(), result, out var arraySize)
-                && CommonParsers.Spaces0(ref scanner, result, out _)
-                && Terminals.Char(']', ref scanner, advance: true)
-                && CommonParsers.FollowedBy(ref scanner, Terminals.Set("=;"), withSpaces: true)
-            )
+            else if (CommonParsers.FollowedBy(ref scanner, Terminals.Char(';'), withSpaces: true, advance: true))
             {
-                typename.IsArray = true;
-                typename.ArraySize = arraySize;
-                if (CommonParsers.FollowedBy(ref scanner, Terminals.Set(";"), withSpaces: true))
-                {
-                    CommonParsers.Until(ref scanner, ';', advance: true);
-                    parsed = new ShaderMember(typename, name2, null, true, scanner.GetLocation(position..scanner.Position), arraySize: arraySize);
-                    return true;
-                }
-                else if (CommonParsers.FollowedBy(ref scanner, Terminals.Set("="), withSpaces: true))
-                {
-                    CommonParsers.Until(ref scanner, '=', advance: true);
-                    CommonParsers.Spaces0(ref scanner, result, out _);
-                    if (ExpressionParser.Expression(ref scanner, result, out var expression, orError: orError ?? new(SDSLErrors.SDSL0015, scanner.GetErrorLocation(scanner.Position), scanner.Memory)))
-                    {
-                        if (CommonParsers.FollowedBy(ref scanner, Terminals.Char(':')))
-                        {
-                            CommonParsers.Until(ref scanner, ':', advance: true);
-                            CommonParsers.Spaces0(ref scanner, result, out _);
-                            if (LiteralsParser.Identifier(ref scanner, result, out var semantic, orError ?? new(SDSLErrors.SDSL0017, scanner.GetErrorLocation(scanner.Position), scanner.Memory)))
-                            {
-                                if (CommonParsers.Spaces0(ref scanner, result, out _) && Terminals.Char(';', ref scanner))
-                                {
-                                    parsed = new ShaderMember(typename, name2, expression, true, scanner.GetLocation(position..scanner.Position), semantic: semantic, arraySize: arraySize);
-                                    return true;
-                                }
-                                else return CommonParsers.Exit(ref scanner, result, out parsed, position, new("Missing semi colon here", scanner.GetErrorLocation(scanner.Position), scanner.Memory));
-
-                            }
-                            else return CommonParsers.Exit(ref scanner, result, out parsed, position, orError);
-                        }
-                        parsed = new ShaderMember(typename, name2, expression, true, scanner.GetLocation(position..scanner.Position), arraySize: arraySize);
-                        return true;
-                    }
-                }
+                parsed = new(typeName, identifier, value, arraySize != null, scanner.GetLocation(position..scanner.Position), arraySize: arraySize);
+                return true;
             }
-
+            else return CommonParsers.Exit(ref scanner, result, out parsed, position, new(SDSLParsingMessages.SDSL0013, scanner.GetErrorLocation(scanner.Position), scanner.Memory));
         }
         return CommonParsers.Exit(ref scanner, result, out parsed, position, orError);
     }
@@ -130,7 +67,7 @@ public record struct ShaderStructParser : IParser<ShaderStruct>
                 parsed.Info = scanner.GetLocation(position..scanner.Position);
                 return true;
             }
-            else return CommonParsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrors.SDSL0019, scanner.GetErrorLocation(scanner.Position), scanner.Memory));
+            else return CommonParsers.Exit(ref scanner, result, out parsed, position, new(SDSLParsingMessages.SDSL0019, scanner.GetErrorLocation(scanner.Position), scanner.Memory));
         }
         return CommonParsers.Exit(ref scanner, result, out parsed, position, orError);
     }
