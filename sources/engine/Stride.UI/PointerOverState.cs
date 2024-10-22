@@ -13,9 +13,9 @@ namespace Stride.UI
         /// <userdoc>The pointer is neither over the element nor one of its children.</userdoc>
         None,
         /// <summary>
-        /// The pointer is over one of children of the element.
+        /// The pointer is over one of the children of the element.
         /// </summary>
-        /// <userdoc>The pointer is over one of children of the element.</userdoc>
+        /// <userdoc>The pointer is over one of the children of the element.</userdoc>
         Child,
         /// <summary>
         /// The pointer is directly over the element.
