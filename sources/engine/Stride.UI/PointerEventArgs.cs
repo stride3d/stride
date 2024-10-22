@@ -48,13 +48,23 @@ public class PointerEventArgs : RoutedEventArgs
     // UI specific properties...
     
     /// <summary>
-    /// Gets the position of the touch in the UI virtual world space.
+    /// Gets the position of the pointer in the UI virtual world space (in virtual pixels).
     /// </summary>
+    /// <remarks>
+    /// WorldPosition is between [-resolution/2, +resolution/2]. (-resolution.X/2, -resolution.Y/2) is the top left corner,
+    /// (+resolution.X/2, +resolution.Y/2) is the bottom right corner, with (0, 0) being the center.
+    /// resolution is the resolution of the page. The Z axis is un-used.
+    /// </remarks>
     public Vector3 WorldPosition { get; internal set; }
 
     /// <summary>
-    /// Gets the translation of the touch in the UI virtual world space.
+    /// Gets the translation of the pointer in the UI virtual world space (in virtual pixels).
     /// </summary>
+    /// <remarks>
+    /// World space is between [-resolution/2, +resolution/2]. (-resolution.X/2, -resolution.Y/2) is the top left corner,
+    /// (+resolution.X/2, +resolution.Y/2) is the bottom right corner, with (0, 0) being the center.
+    /// resolution is the resolution of the page. The Z axis is un-used.
+    /// </remarks>
     public Vector3 WorldDeltaPosition { get; internal set; }
 
     public PointerEventArgs Clone()

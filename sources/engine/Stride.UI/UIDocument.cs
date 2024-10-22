@@ -33,13 +33,47 @@ public class UIDocument
     /// </summary>
     public UIPage Page { get; set; }
     
+    /// <summary>
+    /// Specifies the sampling method to be used for this UI.
+    /// </summary>
     public UIElementSampler Sampler { get; set; }
+    
+    /// <summary>
+    /// Determines whether the UI should be full screen.
+    /// </summary>
     public bool IsFullScreen { get; set; }
+    
+    /// <summary>
+    /// The virtual resolution of the UI in virtual pixels.
+    /// </summary>
     public Vector3 Resolution { get; set; }
+    
+    /// <summary>
+    /// The actual size of the UI in world units. This value is ignored in fullscreen mode.
+    /// </summary>
     public Vector3 Size { get; set; }
+    
+    /// <summary>
+    /// specifies how the virtual resolution value should be interpreted.
+    /// </summary>
     public ResolutionStretch ResolutionStretch { get; set; }
+    
+    /// <summary>
+    /// Determines whether the UI should be displayed as billboard.
+    /// </summary>
+    /// <remarks>A billboard is rendered in world space and automatically rotated parallel to the screen.</remarks>
     public bool IsBillboard { get; set; }
+    
+    /// <summary>
+    /// Determines whether the UI texts should be snapped to closest pixel.
+    /// </summary>
+    /// <remarks>If <c>true</c>, all the text of the UI is snapped to the closest pixel (pixel perfect). This is only effective if IsFullScreen or IsFixedSize is set, as well as IsBillboard.</remarks>
     public bool SnapText { get; set; }
+    
+    /// <summary>
+    /// Determines whether the UI should be always a fixed size on the screen.
+    /// </summary>
+    /// <remarks>A fixed size component with a height of 1 unit will be 0.1 of the screen size.</remarks>
     public bool IsFixedSize { get; set; }
     
     /// <summary>
@@ -53,9 +87,12 @@ public class UIDocument
     public UIElement LastPointerOverElement { get; set; }
 
     /// <summary>
-    /// Last element which received a touch/click event
+    /// Last element which received a pointer event
     /// </summary>
-    public UIElement LastTouchedElement { get; set; }
+    public UIElement LastInteractedElement { get; set; }
 
+    /// <summary>
+    /// The last point in UI virtual world space that the pointer was over an element.
+    /// </summary>
     public Vector3 LastIntersectionPoint { get; set; }
 }

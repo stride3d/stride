@@ -7,7 +7,7 @@ using Stride.Games;
 namespace Stride.UI;
 
 /// <summary>
-/// The processor in charge of updating entities that have <see cref="UIComponent"/>s.
+/// The processor in charge of updating <see cref="UIComponent"/>s in the scene.
 /// </summary>
 public class UIComponentProcessor : EntityProcessor<UIComponent, UIDocument>
 {
@@ -39,18 +39,21 @@ public class UIComponentProcessor : EntityProcessor<UIComponent, UIDocument>
             var uiDocument = componentDocumentKeyPair.Value;
 
             uiDocument.Enabled = uiComponent.Enabled;
-            
-            uiDocument.WorldMatrix = uiComponent.Entity.Transform.WorldMatrix;
-            uiDocument.RenderGroup = uiComponent.RenderGroup;
-            uiDocument.Page = uiComponent.Page;
-            uiDocument.Sampler = uiComponent.Sampler;
-            uiDocument.IsFullScreen = uiComponent.IsFullScreen;
-            uiDocument.Resolution = uiComponent.Resolution;
-            uiDocument.Size = uiComponent.Size;
-            uiDocument.ResolutionStretch = uiComponent.ResolutionStretch;
-            uiDocument.IsBillboard = uiComponent.IsBillboard;
-            uiDocument.SnapText = uiComponent.SnapText;
-            uiDocument.IsFixedSize = uiComponent.IsFixedSize;
+
+            if (uiDocument.Enabled)
+            {
+                uiDocument.WorldMatrix = uiComponent.Entity.Transform.WorldMatrix;
+                uiDocument.RenderGroup = uiComponent.RenderGroup;
+                uiDocument.Page = uiComponent.Page;
+                uiDocument.Sampler = uiComponent.Sampler;
+                uiDocument.IsFullScreen = uiComponent.IsFullScreen;
+                uiDocument.Resolution = uiComponent.Resolution;
+                uiDocument.Size = uiComponent.Size;
+                uiDocument.ResolutionStretch = uiComponent.ResolutionStretch;
+                uiDocument.IsBillboard = uiComponent.IsBillboard;
+                uiDocument.SnapText = uiComponent.SnapText;
+                uiDocument.IsFixedSize = uiComponent.IsFixedSize;
+            }
         }
     }
 

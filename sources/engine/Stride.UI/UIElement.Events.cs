@@ -72,16 +72,18 @@ namespace Stride.UI
         }
 
         /// <summary>
-        /// Gets a value indicating whether the <see cref="UIElement"/> is currently touched by the user.
+        /// Gets a value indicating whether a pointer is pressed down on the <see cref="UIElement"/>.
         /// </summary>
         [DataMemberIgnore]
         public bool IsPointerDown { get; internal set; }
 
         /// <summary>
-        /// Gets the current state of the mouse over the UI element.
+        /// Gets the current state of the pointer over the UI element.
         /// </summary>
-        /// <remarks>Only elements that can be clicked by user can have the <c>PointerOverState.Self</c> value. 
-        /// That is element that have <see cref="CanBeHitByUser"/> set to <value>true</value></remarks>
+        /// <remarks>
+        /// Only elements that can be clicked by user can have the <c>PointerOverState.Self</c> value. 
+        /// That is element that have <see cref="CanBeHitByUser"/> set to <value>true</value>
+        /// </remarks>
         [DataMemberIgnore]
         public PointerOverState PointerOverState
         {
@@ -233,9 +235,9 @@ namespace Stride.UI
         public event PropertyChangedHandler<PointerOverState> MouseOverStateChanged;
 
         /// <summary>
-        /// Occurs when the user starts touching the <see cref="UIElement"/>. That is when he moves its finger down from the element.
+        /// Occurs when the user starts pressing the <see cref="UIElement"/> with a pointer.
         /// </summary>
-        /// <remarks>A click event is tunneling</remarks>
+        /// <remarks>A press event is tunneling</remarks>
         public event EventHandler<PointerEventArgs> PreviewPointerPressed
         {
             add { AddHandler(PreviewPointerPressedEvent, value); }
@@ -243,10 +245,9 @@ namespace Stride.UI
         }
 
         /// <summary>
-        /// Occurs when the user moves its finger on the <see cref="UIElement"/>. 
-        /// That is when his finger was already on the element and moved from its previous position.
+        /// Occurs when the user moves a pointer on the <see cref="UIElement"/>. 
         /// </summary>
-        /// <remarks>A click event is tunneling</remarks>
+        /// <remarks>A move event is tunneling</remarks>
         public event EventHandler<PointerEventArgs> PreviewPointerMove
         {
             add { AddHandler(PreviewPointerMoveEvent, value); }
@@ -254,30 +255,30 @@ namespace Stride.UI
         }
 
         /// <summary>
-        /// Occurs when the user stops touching the <see cref="UIElement"/>. That is when he moves its finger up from the element.
+        /// Occurs when the user stops pressing the <see cref="UIElement"/>.
         /// </summary>
-        /// <remarks>A click event is tunneling</remarks>
-        public event EventHandler<PointerEventArgs> PreviewPointerUp
+        /// <remarks>A release event is tunneling</remarks>
+        public event EventHandler<PointerEventArgs> PreviewPointerReleased
         {
             add { AddHandler(PreviewPointerReleasedEvent, value); }
             remove { RemoveHandler(PreviewPointerReleasedEvent, value); }
         }
 
         /// <summary>
-        /// Occurs when the user starts touching the <see cref="UIElement"/>. That is when he moves its finger down from the element.
+        /// Occurs when the user starts pressing the <see cref="UIElement"/>.
         /// </summary>
-        /// <remarks>A click event is bubbling</remarks>
-        public event EventHandler<PointerEventArgs> PointerDown
+        /// <remarks>A press event is bubbling.</remarks>
+        public event EventHandler<PointerEventArgs> PointerPressed
         {
             add { AddHandler(PointerPressedEvent, value); }
             remove { RemoveHandler(PointerPressedEvent, value); }
         }
 
         /// <summary>
-        /// Occurs when the user enters its finger into <see cref="UIElement"/>. 
-        /// That is when his finger was on the screen outside of the element and moved inside the element.
+        /// Occurs when the user moves a pointer into <see cref="UIElement"/>. 
+        /// That is when a pointer was on the screen outside of the element and moved inside the element.
         /// </summary>
-        /// <remarks>A click event is bubbling</remarks>
+        /// <remarks>A enter event is bubbling</remarks>
         public event EventHandler<PointerEventArgs> PointerEnter
         {
             add { AddHandler(PointerEnterEvent, value); }
@@ -285,10 +286,10 @@ namespace Stride.UI
         }
 
         /// <summary>
-        /// Occurs when the user leaves its finger from the <see cref="UIElement"/>. 
-        /// That is when his finger was inside of the element and moved on the screen outside of the element.
+        /// Occurs when the user moves a pointer from the <see cref="UIElement"/>. 
+        /// That is when a pointer was inside of the element and moved on the screen outside of the element.
         /// </summary>
-        /// <remarks>A click event is bubbling</remarks>
+        /// <remarks>A leave event is bubbling</remarks>
         public event EventHandler<PointerEventArgs> PointerLeave
         {
             add { AddHandler(PointerLeaveEvent, value); }
@@ -296,10 +297,10 @@ namespace Stride.UI
         }
 
         /// <summary>
-        /// Occurs when the user move its finger inside the <see cref="UIElement"/>.
-        /// That is when his finger was already on the element and moved from its previous position.
+        /// Occurs when the user move a pointer inside the <see cref="UIElement"/>.
+        /// That is when a pointer was already on the element and moved from its previous position.
         /// </summary>
-        /// <remarks>A click event is bubbling</remarks>
+        /// <remarks>A move event is bubbling</remarks>
         public event EventHandler<PointerEventArgs> PointerMove
         {
             add { AddHandler(PointerMoveEvent, value); }
@@ -307,9 +308,9 @@ namespace Stride.UI
         }
 
         /// <summary>
-        /// Occurs when the user stops touching the <see cref="UIElement"/>. That is when he moves its finger up from the element.
+        /// Occurs when the user stops pressing the <see cref="UIElement"/>.
         /// </summary>
-        /// <remarks>A click event is bubbling</remarks>
+        /// <remarks>A release event is bubbling</remarks>
         public event EventHandler<PointerEventArgs> PointerReleased
         {
             add { AddHandler(PointerReleaseEvent, value); }
@@ -467,7 +468,7 @@ namespace Stride.UI
         }
 
         /// <summary>
-        /// The class handler of the event <see cref="PreviewPointerUp"/>.
+        /// The class handler of the event <see cref="PreviewPointerReleased"/>.
         /// This method can be overridden in inherited classes to perform actions common to all instances of a class.
         /// </summary>
         /// <param name="args">The arguments of the event</param>
@@ -484,7 +485,7 @@ namespace Stride.UI
         }
 
         /// <summary>
-        /// The class handler of the event <see cref="PointerDown"/>.
+        /// The class handler of the event <see cref="PointerPressed"/>.
         /// This method can be overridden in inherited classes to perform actions common to all instances of a class.
         /// </summary>
         /// <param name="args">The arguments of the event</param>

@@ -8,7 +8,7 @@ using Stride.Core.Mathematics;
 namespace Stride.Input
 {
     /// <summary>
-    /// A pointer event.
+    /// A pointer event. A pointer is a mouse, pen, finger, or other touch.
     /// </summary>
     public class PointerEvent : InputEvent
     {
@@ -23,24 +23,28 @@ namespace Stride.Input
         /// Gets the absolute screen position of the pointer.
         /// </summary>
         /// <value>The absolute delta position.</value>
+        /// <remarks>AbsolutePosition is between [0, SurfaceSize]. (0, 0) is the left top corner, (SurfaceSize.X, SurfaceSize.Y) is the right bottom corner.</remarks>
         public Vector2 AbsolutePosition => Position * Pointer.SurfaceSize;
 
         /// <summary>
-        /// Gets the normalized screen position of the pointer. Position is normalized between [0,1]. (0,0) is the left top corner, (1,1) is the right bottom corner.
+        /// Gets the normalized screen position of the pointer.
         /// </summary>
         /// <value>The position.</value>
+        /// <remarks>Position is normalized between [0,1]. (0,0) is the left top corner, (1,1) is the right bottom corner.</remarks>
         public Vector2 Position { get; internal set; }
 
         /// <summary>
         /// Gets the absolute delta position of the pointer since the previous frame.
         /// </summary>
         /// <value>The absolute delta position.</value>
+        /// <remarks>AbsoluteDeltaPosition position space is between [0, SurfaceSize]. (0, 0) is the left top corner, (SurfaceSize.X, SurfaceSize.Y) is the right bottom corner.</remarks>
         public Vector2 AbsoluteDeltaPosition => DeltaPosition * Pointer.SurfaceSize;
 
         /// <summary>
         /// Gets the delta position of the pointer since the previous frame.
         /// </summary>
         /// <value>The delta position.</value>
+        /// <remarks>DeltaPosition position space is normalized between [0,1]. (0,0) is the left top corner, (1,1) is the right bottom corner.</remarks>
         public Vector2 DeltaPosition { get; internal set; }
 
         /// <summary>
