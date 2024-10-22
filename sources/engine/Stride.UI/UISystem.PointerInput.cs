@@ -290,7 +290,7 @@ namespace Stride.UI
             UIElement pointerOveredElement = lastPointerOverElement;
             
             // Determine currently overed element.
-            if (mousePosition != uiDocument.LastMousePosition || (lastPointerOverElement?.RequiresMouseOverUpdate ?? false))
+            if (mousePosition != uiDocument.LastPointerPosition || (lastPointerOverElement?.RequiresMouseOverUpdate ?? false))
             {
                 Ray uiRay;
                 
@@ -333,7 +333,7 @@ namespace Stride.UI
             
             // update cached values
             uiDocument.LastPointerOverElement = pointerOveredElement;
-            uiDocument.LastMousePosition = mousePosition;
+            uiDocument.LastPointerPosition = mousePosition;
             return pointerOveredElement;
         }
 

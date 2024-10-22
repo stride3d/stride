@@ -77,22 +77,26 @@ public class UIDocument
     public bool IsFixedSize { get; set; }
     
     /// <summary>
-    /// Last registered position of the mouse
+    /// Last registered position of the pointer on the <see cref="UIDocument"/>.
     /// </summary>
-    public Vector2 LastMousePosition { get; set; }
+    /// <remarks>Ignores other <see cref="UIDocument"/>s.</remarks>
+    public Vector2 LastPointerPosition { get; set; }
 
     /// <summary>
-    /// Last element over which the mouse cursor was registered
+    /// Last element over which the pointer was registered on the <see cref="UIDocument"/>.
     /// </summary>
+    /// <remarks>Ignores other <see cref="UIDocument"/>s.</remarks>
     public UIElement LastPointerOverElement { get; set; }
 
     /// <summary>
-    /// Last element which received a pointer event
+    /// Last element which received a pointer event on the <see cref="UIDocument"/>.
     /// </summary>
+    /// <remarks>Ignores other <see cref="UIDocument"/>s.</remarks>
     public UIElement LastInteractedElement { get; set; }
 
     /// <summary>
-    /// The last point in UI virtual world space that the pointer was over an element.
+    /// The last point in UI virtual world space that the pointer was over an element on the <see cref="UIDocument"/>..
     /// </summary>
+    /// <remarks>Ignores other <see cref="UIDocument"/>s.</remarks>
     public Vector3 LastIntersectionPoint { get; set; }
 }
