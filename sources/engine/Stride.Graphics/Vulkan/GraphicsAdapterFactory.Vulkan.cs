@@ -137,9 +137,8 @@ namespace Stride.Graphics
             for (int index = 0; index < extensionCount; index++)
             {
                 var extensionProperty = extensionProperties[index];
-                var name = new ReadOnlySpan<byte>(extensionProperty.extensionName, 256);
-                var actualName = new ReadOnlySpan<byte>(extensionProperty.extensionName, name.IndexOf((byte)0) + 1);
-                availableExtensionNames.Add(actualName);
+                var name = new VkUtf8String(extensionProperty.extensionName);
+                availableExtensionNames.Add(name);
             }
 
             desiredExtensionNames.Add(VK_KHR_SURFACE_EXTENSION_NAME);

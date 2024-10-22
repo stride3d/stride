@@ -296,9 +296,8 @@ namespace Stride.Graphics
                 for (int index = 0; index < extensionProperties.Length; index++)
                 {
                     var namePointer = extensionPropertiesPtr[index].extensionName;
-                    var name = new ReadOnlySpan<byte>(namePointer, 256);
-                    var actualName = new ReadOnlySpan<byte>(namePointer, name.IndexOf((byte)0) + 1);
-                    availableExtensionNames.Add(actualName);
+                    var name = new VkUtf8String(namePointer);
+                    availableExtensionNames.Add(name);
                 }
             }
 
