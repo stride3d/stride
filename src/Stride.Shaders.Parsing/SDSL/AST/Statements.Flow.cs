@@ -40,12 +40,13 @@ public enum ForAnnotationKind
 }
 public record struct ForAnnotation(ForAnnotationKind Kind, int? Count = null);
 
-public class For(Statement initializer, Statement cond, Statement update, Statement body, TextLocation info) : Loop(info)
+public class For(Statement initializer, Statement cond, Statement update, Statement body, TextLocation info, ShaderAttribute? attribute = null) : Loop(info)
 {
     public Statement Initializer { get; set; } = initializer;
     public Statement Condition { get; set; } = cond;
     public Statement Update { get; set; } = update;
     public Statement Body { get; set; } = body;
+    public ShaderAttribute? Attribute = attribute;
     public List<ForAnnotation> Annotations { get; set; } = [];
 
     public override string ToString()

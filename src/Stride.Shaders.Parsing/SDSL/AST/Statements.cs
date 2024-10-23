@@ -45,7 +45,7 @@ public class VariableAssign(Expression variable, bool isConst, TextLocation info
         => Value switch
         {
             null => Variable.ToString() ?? "",
-            Expression v => $"{Variable} = {v}"
+            Expression v => $"{Variable} {Operator?.ToAssignSymbol()} {v}"
         };
 }
 

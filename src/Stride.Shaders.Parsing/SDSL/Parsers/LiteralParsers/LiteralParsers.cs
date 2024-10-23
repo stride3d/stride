@@ -113,12 +113,12 @@ public readonly record struct FloatSuffixParser() : ILiteralParser<Suffix>
         where TScanner : struct, IScanner
     {
         suffix = new(32, false, false);
-        if (Terminals.AnyOf(["f16", "f32", "f64", "d", "h"], ref scanner, out var matched, advance: true))
+        if (Terminals.AnyOf(["f", "f16", "f32", "f64", "d", "h"], ref scanner, out var matched, advance: true))
         {
             suffix = matched switch
             {
                 "f16" or "h" => new(16, true, true),
-                "f32" => new(32, true, true),
+                "f32" or "f" => new(32, true, true),
                 "f64" or "d" => new(64, true, true),
 
                 _ => throw new NotImplementedException()

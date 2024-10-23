@@ -21,8 +21,6 @@ public record struct StatementParsers : IParser<Statement>
             parsed = flow;
             return true;
         }
-        else if (Expression(ref scanner, result, out parsed))
-            return true;
         else if (Break(ref scanner, result, out parsed))
             return true;
         else if (Return(ref scanner, result, out parsed))
@@ -32,6 +30,8 @@ public record struct StatementParsers : IParser<Statement>
         else if (Declare(ref scanner, result, out parsed))
             return true;
         else if (Assignments(ref scanner, result, out parsed))
+            return true;
+        else if (Expression(ref scanner, result, out parsed))
             return true;
         else if (Block(ref scanner, result, out parsed))
             return true;
@@ -64,7 +64,27 @@ public record struct StatementParsers : IParser<Statement>
     internal static bool Assignments<TScanner>(ref TScanner scanner, ParseResult result, out Statement parsed, ParseError? orError = null)
         where TScanner : struct, IScanner
         => new AssignmentsParser().Match(ref scanner, result, out parsed, orError);
-    internal static bool VarAssign<TScanner>(ref TScanner scanner, ParseResult result, out VariableAssign parsed, ParseError? orError = null)
+    internal static bool DeclareOrAssign<TScanner>(ref TScanner scanner, ParseResult result, out Statement parsed, ParseError? orError = null)
+        where TScanner : struct, IScanner
+    {
+        var position = scanner.Position;
+        if (Assignments(ref scanner, result, out parsed, orError))
+            return true;
+        else if (Declare(ref scanner, result, out parsed, orError))
+            return true;
+        else return CommonParsers.Exit(ref scanner, result, out parsed, position, orError);
+    }
+    internal static bool AssignOrExpression<TScanner>(ref TScanner scanner, ParseResult result, out Statement parsed, ParseError? orError = null)
+        where TScanner : struct, IScanner
+    {
+        var position = scanner.Position;
+        if (Assignments(ref scanner, result, out parsed, orError))
+            return true;
+        else if (Expression(ref scanner, result, out parsed, orError))
+            return true;
+        else return CommonParsers.Exit(ref scanner, result, out parsed, position, orError);
+    }
+    internal static bool VarAssign<TScanner>(ref TScanner scanner, ParseResult result, out VariableAssign parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
         => new VariableAssignParser().Match(ref scanner, result, out parsed, orError);
     internal static bool Controls<TScanner>(ref TScanner scanner, ParseResult result, out ConditionalFlow parsed, ParseError? orError = null)
@@ -177,8 +197,7 @@ public record struct ExpressionStatementParser : IParser<Statement>
         var position = scanner.Position;
         if (
             ExpressionParser.Expression(ref scanner, result, out var expression)
-            && CommonParsers.Spaces0(ref scanner, result, out _)
-            && Terminals.Char(';', ref scanner, advance: true)
+            && CommonParsers.FollowedBy(ref scanner, Terminals.Char(';'), advance: true)
         )
         {
             parsed = new ExpressionStatement(expression, scanner.GetLocation(position, scanner.Position - position));
@@ -232,7 +251,7 @@ public record struct VariableAssignParser : IParser<VariableAssign>
                 CommonParsers.FollowedBy(
                     ref scanner,
                     result,
-                    (ref TScanner s, ParseResult result, out AssignOperator op, ParseError? orError = null) => LiteralsParser.AssignOperators(ref s, null!, out op) && CommonParsers.Spaces0(ref s, result, out _),
+                    (ref TScanner s, ParseResult result, out AssignOperator op, in ParseError? orError = null) => LiteralsParser.AssignOperators(ref s, null!, out op) && CommonParsers.Spaces0(ref s, result, out _),
                     out var op,
                     withSpaces: true,
                     advance: true)

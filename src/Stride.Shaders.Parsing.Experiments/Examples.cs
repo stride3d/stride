@@ -81,7 +81,7 @@ public static class Examples
     public static void ParseSDSL()
     {
         // var text = File.ReadAllText("./assets/Stride/SDSL/AmbientOcclusionBlurShader.sdsl");
-        var text = MonoGamePreProcessor.Run("./assets/Stride/SDSL/AmbientOcclusionBlurShader.sdsl", []);
+        var text = MonoGamePreProcessor.Run("./assets/Stride/SDSL/AmbientOcclusionRawAOShader.sdsl", []);
         var parsed = SDSLParser.Parse(text);
         Console.WriteLine(parsed.AST);
         if(parsed.Errors.Count > 0)
@@ -98,19 +98,19 @@ public static class Examples
         {
             // var text = File.ReadAllText(f);
             var preprocessed = MonoGamePreProcessor.Run(f, []);
-            Console.WriteLine(preprocessed);
             var parsed = SDSLParser.Parse(preprocessed);
             if(parsed.Errors.Count > 0)
             {
+                Console.WriteLine(preprocessed);
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine(string.Join("; ", parsed.Errors.Select(x => x.ToString())));
                 Console.WriteLine(f);
+                Console.ForegroundColor = ConsoleColor.White;
                 break;
             }
             else
             {
-                Console.ForegroundColor = ConsoleColor.Green;
-                Console.WriteLine(f);
+                // Console.WriteLine(f);
             }
         }
         Console.ForegroundColor = ConsoleColor.White;

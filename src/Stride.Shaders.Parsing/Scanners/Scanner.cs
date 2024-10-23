@@ -9,6 +9,7 @@ public struct Scanner(string code) : IScanner
     // public string Code { get; } = code;
     public readonly ReadOnlySpan<char> Span => Code.AsSpan();
     public readonly ReadOnlyMemory<char> Memory => Code.AsMemory();
+    public readonly ReadOnlyMemory<char> Rest => Memory[Position..];
     string Code { get; set; } = code;
     public int Position { get; set; } = 0;
 

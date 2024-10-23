@@ -7,9 +7,9 @@ namespace Stride.Shaders.Parsing.SDSL;
 
 public delegate bool ParserDelegate<TScanner>(ref TScanner scanner, ParseResult result)
     where TScanner : struct, IScanner;
-public delegate bool ParserValueDelegate<TScanner, TResult>(ref TScanner scanner, ParseResult result, out TResult parsed, ParseError? orError = null)
+public delegate bool ParserValueDelegate<TScanner, TResult>(ref TScanner scanner, ParseResult result, out TResult parsed, in ParseError? orError = null)
     where TScanner : struct, IScanner;
-public delegate bool ParserOptionalValueDelegate<TScanner, TResult>(ref TScanner scanner, ParseResult result, out TResult? parsed, ParseError? orError = null)
+public delegate bool ParserOptionalValueDelegate<TScanner, TResult>(ref TScanner scanner, ParseResult result, out TResult? parsed, in ParseError? orError = null)
     where TScanner : struct, IScanner;
 
 public static class CommonParsers
@@ -84,9 +84,8 @@ public static class CommonParsers
             tmp = scanner.Position;
             if (
                 !(
-                    Terminals.Char('=', ref scanner, advance: true)
-                    && Spaces0(ref scanner, result, out _)
-                    && ExpressionParser.Expression(ref scanner, result, out value)
+                    FollowedBy(ref scanner, Terminals.Char('='), withSpaces: true, advance: true)
+                    && FollowedBy(ref scanner, result, ExpressionParser.Expression, out value, withSpaces: true, advance: true)
                 )
             )
             {
@@ -253,6 +252,21 @@ public static class CommonParsers
         scanner.Position = position;
         return false;
     }
+    public static bool FollowedByDel<TScanner, TResult>(ref TScanner scanner, ParseResult result, ParserValueDelegate<TScanner, TResult> func, out TResult parsed, bool withSpaces = false, bool advance = false)
+        where TScanner : struct, IScanner
+    {
+        var position = scanner.Position;
+        if (withSpaces)
+            Spaces0(ref scanner, null!, out _);
+        if (func.Invoke(ref scanner, result, out parsed))
+        {
+            if (!advance)
+                scanner.Position = position;
+            return true;
+        }
+        scanner.Position = position;
+        return false;
+    }
     public static bool FollowedBy<TScanner, TResult>(ref TScanner scanner, ParseResult result, ParserValueDelegate<TScanner, TResult> func, out TResult parsed, bool withSpaces = false, bool advance = false)
         where TScanner : struct, IScanner
     {
@@ -353,7 +367,7 @@ public static class CommonParsers
         where TParser : struct, IParser<TNode>
         where TNode : Node
     {
-        return Repeat(ref scanner, (ref TScanner s, ParseResult r, out TNode node, ParseError? orError) => new TParser().Match(ref s, r, out node, orError), result, out nodes, minimum, withSpaces, separator, orError);
+        return Repeat(ref scanner, (ref TScanner s, ParseResult r, out TNode node, in ParseError? orError) => new TParser().Match(ref s, r, out node, orError), result, out nodes, minimum, withSpaces, separator, orError);
     }
     public static bool Repeat<TScanner, TNode>(ref TScanner scanner, ParserValueDelegate<TScanner, TNode> parser, ParseResult result, out List<TNode> nodes, int minimum, bool withSpaces = false, string? separator = null, in ParseError? orError = null)
         where TScanner : struct, IScanner
