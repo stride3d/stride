@@ -10,7 +10,6 @@ using static Vortice.Vulkan.Vulkan;
 using Stride.Core;
 using Stride.Core.Diagnostics;
 using System.Text;
-using Stride.Core.Extensions;
 
 namespace Stride.Graphics
 {
@@ -114,65 +113,35 @@ namespace Stride.Graphics
                 for (int index = 0; index < layers.Length; index++)
                 {
                     var properties = layers[index];
-                    var name = new ReadOnlySpan<byte>(properties.layerName, 256);
-                    var actualName = new ReadOnlySpan<byte>(properties.layerName, name.IndexOf((byte)0) + 1);
+                    var name = new VkUtf8String(properties.layerName);
+                    var indexOfLayerName = validationLayerNames.IndexOf(name);
 
-                    availableLayerNames.Add(actualName);
+                    if (indexOfLayerName >= 0)
+                        enabledLayerNames.Add(validationLayerNames[indexOfLayerName]);
                 }
-
-                enabledLayerNames.AddRange(validationLayerNames.Where(availableLayerNames.Contains));
 
                 // Check if validation was really available
                 enableValidation = enabledLayerNames.Count > 0;
             }
 
-            vkEnumerateInstanceExtensionProperties(out uint extensionCount).CheckResult();
-            var extensionProperties = new VkExtensionProperties[extensionCount];
-            fixed (VkExtensionProperties* propertiesPtr = extensionProperties)
-                vkEnumerateInstanceExtensionProperties(&extensionCount, propertiesPtr).CheckResult(); ;
-
-            var availableExtensionNames = new List<VkUtf8String>();
-            var desiredExtensionNames = new List<VkUtf8String>();
-
-            for (int index = 0; index < extensionCount; index++)
+            var supportedExtensionNames = new List<VkUtf8String>()
             {
-                var extensionProperty = extensionProperties[index];
-                var name = new VkUtf8String(extensionProperty.extensionName);
-                availableExtensionNames.Add(name);
-            }
+                VK_KHR_SURFACE_EXTENSION_NAME,
+                VK_KHR_WIN32_SURFACE_EXTENSION_NAME,
+                VK_KHR_ANDROID_SURFACE_EXTENSION_NAME,
+                VK_KHR_XLIB_SURFACE_EXTENSION_NAME,
+                VK_KHR_XCB_SURFACE_EXTENSION_NAME,
+                VK_EXT_DEBUG_UTILS_EXTENSION_NAME
+            };
+            var availableExtensionNames = GetAvailableExtensionNames(supportedExtensionNames);
+            ValidateSurfaceExtensionNamesAvailability(availableExtensionNames);
+            var desiredExtensionNames = new HashSet<VkUtf8String>
+            {
+                VK_KHR_SURFACE_EXTENSION_NAME,
+                GetPlatformRelatedSurfaceExtensionName(availableExtensionNames)
+            };
 
-            desiredExtensionNames.Add(VK_KHR_SURFACE_EXTENSION_NAME);
-            if (availableExtensionNames.Contains(VK_KHR_SURFACE_EXTENSION_NAME))
-                throw new InvalidOperationException($"Required extension {Encoding.UTF8.GetString(VK_KHR_SURFACE_EXTENSION_NAME)} is not available");
-
-            if (Platform.Type == PlatformType.Windows)
-            {
-                desiredExtensionNames.Add(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
-                if (availableExtensionNames.Contains(VK_KHR_WIN32_SURFACE_EXTENSION_NAME))
-                    throw new InvalidOperationException($"Required extension {Encoding.UTF8.GetString(VK_KHR_WIN32_SURFACE_EXTENSION_NAME)} is not available");
-            }
-            else if (Platform.Type == PlatformType.Android)
-            {
-                desiredExtensionNames.Add(VK_KHR_ANDROID_SURFACE_EXTENSION_NAME);
-                if (availableExtensionNames.Contains(VK_KHR_ANDROID_SURFACE_EXTENSION_NAME))
-                    throw new InvalidOperationException($"Required extension {Encoding.UTF8.GetString(VK_KHR_ANDROID_SURFACE_EXTENSION_NAME)} is not available");
-            }
-            else if (Platform.Type == PlatformType.Linux)
-            {
-                if (availableExtensionNames.Contains(VK_KHR_XLIB_SURFACE_EXTENSION_NAME))
-                {
-                    desiredExtensionNames.Add(VK_KHR_XLIB_SURFACE_EXTENSION_NAME);
-                    HasXlibSurfaceSupport = true;
-                }
-                else if (availableExtensionNames.Contains(VK_KHR_XCB_SURFACE_EXTENSION_NAME))
-                {
-                    desiredExtensionNames.Add(VK_KHR_XCB_SURFACE_EXTENSION_NAME);
-                }
-                else
-                {
-                    throw new InvalidOperationException("None of the supported surface extensions VK_KHR_xcb_surface or VK_KHR_xlib_surface is available");
-                }
-            }
+            HasXlibSurfaceSupport = desiredExtensionNames.Contains(VK_KHR_XLIB_SURFACE_EXTENSION_NAME);
 
             bool enableDebugReport = enableValidation && availableExtensionNames.Contains(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
             if (enableDebugReport)
@@ -207,6 +176,78 @@ namespace Stride.Graphics
 
                 vkCreateDebugUtilsMessengerEXT(NativeInstance, &createInfo, null, out debugReportCallback).CheckResult();
             }
+        }
+
+        private unsafe static List<VkUtf8String> GetAvailableExtensionNames(List<VkUtf8String> supportedExtensionNames)
+        {
+            var availableExtensionNames = new List<VkUtf8String>();
+            vkEnumerateInstanceExtensionProperties(out uint extensionCount).CheckResult();
+            var extensionProperties = new VkExtensionProperties[extensionCount];
+            vkEnumerateInstanceExtensionProperties(extensionProperties).CheckResult();
+
+            for (int index = 0; index < extensionCount; index++)
+            {
+                var extensionProperty = extensionProperties[index];
+                var name = new VkUtf8String(extensionProperty.extensionName).Span;
+                var indexOfExtensionName = supportedExtensionNames.IndexOf(name);
+
+                if (indexOfExtensionName >= 0)
+                    availableExtensionNames.Add(supportedExtensionNames[indexOfExtensionName]);
+            }
+
+            return availableExtensionNames;
+        }
+
+        private static void ValidateSurfaceExtensionNamesAvailability(List<VkUtf8String> availableExtensionNames)
+        {
+            if (!availableExtensionNames.Contains(VK_KHR_SURFACE_EXTENSION_NAME))
+                throw new InvalidOperationException($"Required extension {Encoding.UTF8.GetString(VK_KHR_SURFACE_EXTENSION_NAME)} is not available");
+
+            if (Platform.Type == PlatformType.Windows)
+            {
+                if (!availableExtensionNames.Contains(VK_KHR_WIN32_SURFACE_EXTENSION_NAME))
+                    throw new InvalidOperationException($"Required extension {Encoding.UTF8.GetString(VK_KHR_WIN32_SURFACE_EXTENSION_NAME)} is not available");
+            }
+            else if (Platform.Type == PlatformType.Android)
+            {
+                if (!availableExtensionNames.Contains(VK_KHR_ANDROID_SURFACE_EXTENSION_NAME))
+                    throw new InvalidOperationException($"Required extension {Encoding.UTF8.GetString(VK_KHR_ANDROID_SURFACE_EXTENSION_NAME)} is not available");
+            }
+            else if (Platform.Type == PlatformType.Linux)
+            {
+                if (!availableExtensionNames.Contains(VK_KHR_XLIB_SURFACE_EXTENSION_NAME)
+                    && !availableExtensionNames.Contains(VK_KHR_XCB_SURFACE_EXTENSION_NAME))
+                {
+                    throw new InvalidOperationException("None of the supported surface extensions VK_KHR_xcb_surface or VK_KHR_xlib_surface is available");
+                }
+            }
+        }
+
+        private static VkUtf8String GetPlatformRelatedSurfaceExtensionName(List<VkUtf8String> availableExtensionNames)
+        {
+            VkUtf8String surfaceExtensionName = VK_KHR_SURFACE_EXTENSION_NAME;
+
+            if (Platform.Type == PlatformType.Windows)
+            {
+                surfaceExtensionName = VK_KHR_WIN32_SURFACE_EXTENSION_NAME;
+            }
+            else if (Platform.Type == PlatformType.Android)
+            {
+                surfaceExtensionName = VK_KHR_ANDROID_SURFACE_EXTENSION_NAME;
+            }
+            else if (Platform.Type == PlatformType.Linux)
+            {
+                if (availableExtensionNames.Contains(VK_KHR_XLIB_SURFACE_EXTENSION_NAME))
+                {
+                    surfaceExtensionName = VK_KHR_XLIB_SURFACE_EXTENSION_NAME;
+                }
+                else if (availableExtensionNames.Contains(VK_KHR_XCB_SURFACE_EXTENSION_NAME))
+                {
+                    surfaceExtensionName = VK_KHR_XCB_SURFACE_EXTENSION_NAME;
+                }
+            }
+
+            return surfaceExtensionName;
         }
 
         [UnmanagedCallersOnly]

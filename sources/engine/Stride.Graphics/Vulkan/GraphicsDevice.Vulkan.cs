@@ -10,7 +10,6 @@ using static Vortice.Vulkan.Vulkan;
 
 using Stride.Core;
 using Stride.Core.Threading;
-using Stride.Core.Extensions;
 
 namespace Stride.Graphics
 {
@@ -287,31 +286,25 @@ namespace Stride.Graphics
                 depthClamp = true,
             };
 
-            var extensionProperties = vkEnumerateDeviceExtensionProperties(NativePhysicalDevice);
-            var availableExtensionNames = new List<VkUtf8String>();
-            var desiredExtensionNames = new List<VkUtf8String>();
-
-            fixed (VkExtensionProperties* extensionPropertiesPtr = extensionProperties)
+            var supportedExtensionProperties = new List<VkUtf8String>()
             {
-                for (int index = 0; index < extensionProperties.Length; index++)
-                {
-                    var namePointer = extensionPropertiesPtr[index].extensionName;
-                    var name = new VkUtf8String(namePointer);
-                    availableExtensionNames.Add(name);
-                }
-            }
-
-            desiredExtensionNames.Add(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
-            if (availableExtensionNames.Contains(VK_KHR_SWAPCHAIN_EXTENSION_NAME))
-                throw new InvalidOperationException();
-
-            if (availableExtensionNames.Contains(VK_EXT_DEBUG_MARKER_EXTENSION_NAME) && IsDebugMode)
+                VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+                VK_EXT_DEBUG_MARKER_EXTENSION_NAME,
+            };
+            var availableExtensionProperties = GetAvailableExtensionProperties(supportedExtensionProperties);
+            ValidateExtensionPropertiesAvailability(availableExtensionProperties);
+            var desiredExtensionProperties = new HashSet<VkUtf8String>
             {
-                desiredExtensionNames.Add(VK_EXT_DEBUG_MARKER_EXTENSION_NAME);
+                VK_KHR_SWAPCHAIN_EXTENSION_NAME
+            };
+
+            if (availableExtensionProperties.Contains(VK_EXT_DEBUG_MARKER_EXTENSION_NAME) && IsDebugMode)
+            {
+                desiredExtensionProperties.Add(VK_EXT_DEBUG_MARKER_EXTENSION_NAME);
                 IsProfilingSupported = true;
             }
 
-            using VkStringArray ppEnabledExtensionNames = new(desiredExtensionNames);
+            using VkStringArray ppEnabledExtensionNames = new(desiredExtensionProperties);
             var deviceCreateInfo = new VkDeviceCreateInfo
             {
                 sType = VkStructureType.DeviceCreateInfo,
@@ -348,6 +341,33 @@ namespace Stride.Graphics
             EmptyTexelBufferInt = Buffer.Typed.New(this, 1, PixelFormat.R32G32B32A32_UInt);
             EmptyTexelBufferFloat = Buffer.Typed.New(this, 1, PixelFormat.R32G32B32A32_Float);
             EmptyTexture = Texture.New2D(this, 1, 1, PixelFormat.R8G8B8A8_UNorm_SRgb, TextureFlags.ShaderResource);
+        }
+
+        private unsafe List<VkUtf8String> GetAvailableExtensionProperties(List<VkUtf8String> supportedExtensionProperties)
+        {
+            var availableExtensionProperties = new List<VkUtf8String>();
+            var extensionProperties = vkEnumerateDeviceExtensionProperties(NativePhysicalDevice);
+
+            fixed (VkExtensionProperties* extensionPropertiesPtr = extensionProperties)
+            {
+                for (int index = 0; index < extensionProperties.Length; index++)
+                {
+                    var namePointer = extensionPropertiesPtr[index].extensionName;
+                    var name = new VkUtf8String(namePointer);
+                    var indexOfExtensionName = supportedExtensionProperties.IndexOf(name);
+
+                    if (indexOfExtensionName >= 0)
+                        availableExtensionProperties.Add(supportedExtensionProperties[indexOfExtensionName]);
+                }
+            }
+
+            return availableExtensionProperties;
+        }
+
+        private static void ValidateExtensionPropertiesAvailability(List<VkUtf8String> availableExtensionProperties)
+        {
+            if (!availableExtensionProperties.Contains(VK_KHR_SWAPCHAIN_EXTENSION_NAME))
+                throw new InvalidOperationException();
         }
 
         internal unsafe IntPtr AllocateUploadBuffer(int size, out VkBuffer resource, out int offset)
