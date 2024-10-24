@@ -1,6 +1,7 @@
 
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 
 namespace Stride.Shaders.Parsing.SDSL;
 
@@ -69,6 +70,41 @@ public static class Terminals
     public static bool EOF<TScanner>(ref TScanner scanner)
         where TScanner : struct, IScanner
         => new EOFTerminalParser().Match(ref scanner, false);
+
+    public static bool FloatSuffix<TScanner>(ref TScanner scanner, out Suffix? suffix, bool advance = false)
+        where TScanner : struct, IScanner
+    {
+        suffix = null;
+        if (AnyOf(["f16", "h", "f32", "f", "f64", "d"], ref scanner, out var matched, advance: advance))
+        {
+            suffix = matched switch
+            {
+                "f16" or "h" => new(16, true, true),
+                "f32" or "f" => new(32, true, true),
+                "f64" or "d" => new(64, true, true),
+                _ => throw new NotImplementedException()
+            };
+            return true;
+        }
+        else return false;
+    }
+    public static bool IntSuffix<TScanner>(ref TScanner scanner, out Suffix? suffix, bool advance = false)
+        where TScanner : struct, IScanner
+    {
+        suffix = null;
+        if (AnyOf(["u32", "u", "U", "i64", "l", "L", "u64", "ul", "UL"], ref scanner, out var matched, advance: advance))
+        {
+            suffix = matched switch
+            {
+                "u32" or "u" or "U" => new(32, false, false),
+                "i64" or "l" or "L" => new(64, false, true),
+                "u64" or "ul" or "UL" => new(64, false, false),
+                _ => throw new NotImplementedException()
+            };
+            return true;
+        }
+        else return false;
+    }
 }
 
 public interface ITerminal
