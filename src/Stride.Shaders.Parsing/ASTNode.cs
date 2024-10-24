@@ -31,6 +31,11 @@ public class ShaderFile(TextLocation info) : Node(info)
     }
 }
 
+public class UsingShaderNamespace(TextLocation info) : ShaderDeclaration(info)
+{
+    public List<SDSL.AST.Identifier> NamespacePath { get; set; } = [];
+}
+
 public class ShaderNamespace(TextLocation info) : Node(info)
 {
     public List<SDSL.AST.Identifier> NamespacePath { get; set; } = [];

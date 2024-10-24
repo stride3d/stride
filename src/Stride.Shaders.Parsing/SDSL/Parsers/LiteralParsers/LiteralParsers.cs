@@ -257,9 +257,7 @@ public record struct VectorParser : IParser<VectorLiteral>
                 while (!scanner.IsEof)
                 {
                     CommonParsers.Spaces0(ref scanner, result, out _);
-                    if (LiteralsParser.Number(ref scanner, result, out var number))
-                        p.Values.Add(number);
-                    else if (LiteralsParser.Vector(ref scanner, result, out var vec))
+                    if (LiteralsParser.Vector(ref scanner, result, out var vec))
                         p.Values.Add(vec);
                     else if (ExpressionParser.Expression(ref scanner, result, out var exp))
                         p.Values.Add(exp);

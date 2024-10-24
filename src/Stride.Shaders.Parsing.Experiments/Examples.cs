@@ -81,7 +81,7 @@ public static class Examples
     public static void ParseSDSL()
     {
         // var text = File.ReadAllText("./assets/Stride/SDSL/AmbientOcclusionBlurShader.sdsl");
-        var text = MonoGamePreProcessor.Run("./assets/Stride/SDSL/AmbientOcclusionRawAOShader.sdsl", []);
+        var text = MonoGamePreProcessor.Run("./assets/Stride/SDSL/BRDFMicrofacet.sdsl", []);
         var parsed = SDSLParser.Parse(text);
         Console.WriteLine(parsed.AST);
         if(parsed.Errors.Count > 0)
@@ -97,6 +97,8 @@ public static class Examples
         foreach(var f in Directory.EnumerateFiles("./assets/Stride/SDSL"))
         {
             // var text = File.ReadAllText(f);
+            if (f.Contains("BasicMixin.sdsl"))
+                continue;
             var preprocessed = MonoGamePreProcessor.Run(f, []);
             var parsed = SDSLParser.Parse(preprocessed);
             if(parsed.Errors.Count > 0)

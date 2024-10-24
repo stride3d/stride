@@ -25,10 +25,10 @@ public record struct ShaderMemberParser : IParser<ShaderMember>
         {
             if (
                 CommonParsers.FollowedBy(ref scanner, Terminals.Char(':'), withSpaces: true, advance: true)
-                && LiteralsParser.Identifier(ref scanner, result, out var semantic)
+                && CommonParsers.FollowedByDel(ref scanner, result, LiteralsParser.Identifier, out Identifier semantic, withSpaces: true, advance: true)
             )
             {
-                if (CommonParsers.FollowedBy(ref scanner, Terminals.Char(';'), withSpaces: true, advance: true) && CommonParsers.Until(ref scanner, ')', advance: true))
+                if (CommonParsers.FollowedBy(ref scanner, Terminals.Char(';'), withSpaces: true, advance: true))
                 {
                     parsed = new(typeName, identifier, value, arraySize != null, scanner.GetLocation(position..scanner.Position), semantic: semantic, arraySize: arraySize);
                     return true;

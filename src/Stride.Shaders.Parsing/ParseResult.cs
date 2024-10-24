@@ -10,6 +10,8 @@ public record struct ParseError(string Message, ErrorLocation Location, ReadOnly
     {
         ReadOnlySpan<char> operators = ['+', '-', '*', '/', '%', '=', '!', '<', '>', '&', '|', '^', '~', '?', ':'];
         var pos = Location.Position;
+        if (pos >= Code.Span.Length)
+            return [];
         if(operators.Contains(Code.Span[pos]))
         {
             while(operators.Contains(Code.Span[pos]))
