@@ -3,10 +3,11 @@ using Stride.Shaders.Parsing.SDSL.AST;
 namespace Stride.Shaders.Parsing.SDFX.AST;
 
 
-public class ShaderEffect(TypeName name, TextLocation info) : ShaderDeclaration(info)
+public class ShaderEffect(TypeName name, bool isPartial, TextLocation info) : ShaderDeclaration(info)
 {
     public TypeName Name { get; set; } = name;
     public List<EffectStatement> Members { get; set; } = [];
+    public bool IsPartial { get; set; } = isPartial;
 
     public override string ToString()
     {

@@ -292,7 +292,7 @@ public record struct DeclareStatementParser : IParser<Statement>
 
         )
         {
-            if (CommonParsers.Repeat<TScanner, VariableAssign>(ref scanner, StatementParsers.VarAssign, result, out var assigns, 1, true, ","))
+            if (CommonParsers.Repeat<TScanner, VariableAssign>(ref scanner, result, StatementParsers.VarAssign, out var assigns, 1, true, ","))
             {
                 foreach (var a in assigns)
                     a.IsConst = isConst;
@@ -318,7 +318,7 @@ public record struct AssignmentsParser : IParser<Statement>
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
-        if (CommonParsers.Repeat<TScanner, VariableAssign>(ref scanner, StatementParsers.VarAssign, result, out var assigns, 1, true, ","))
+        if (CommonParsers.Repeat<TScanner, VariableAssign>(ref scanner, result, StatementParsers.VarAssign, out var assigns, 1, true, ","))
         {
             CommonParsers.Spaces0(ref scanner, result, out _);
             if (Terminals.Char(';', ref scanner, advance: true))

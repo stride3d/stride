@@ -9,11 +9,16 @@ public record struct EffectParser : IParser<ShaderEffect>
     public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, out ShaderEffect parsed, in ParseError? orError = null) where TScanner : struct, IScanner
     {
         var position = scanner.Position;
+
+        var isPartial = Terminals.Literal("partial", ref scanner, advance: true) && CommonParsers.Spaces1(ref scanner, result, out _);
+        if(!isPartial)
+            scanner.Position = position;
+
         if (Terminals.Literal("effect", ref scanner, advance: true) && CommonParsers.Spaces1(ref scanner, result, out _))
         {
             if (LiteralsParser.TypeName(ref scanner, result, out var effectName) && CommonParsers.Spaces0(ref scanner, result, out _))
             {
-                parsed = new(effectName, new());
+                parsed = new(effectName, isPartial, new());
                 if (Terminals.Char('{', ref scanner, advance: true) && CommonParsers.Spaces0(ref scanner, result, out _))
                 {
                     while(

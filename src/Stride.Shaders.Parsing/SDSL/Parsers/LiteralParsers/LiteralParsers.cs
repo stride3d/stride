@@ -60,6 +60,21 @@ public record struct LiteralsParser : IParser<Literal>
     public static bool Integer<TScanner>(ref TScanner scanner, ParseResult result, out IntegerLiteral number, in ParseError? orError = null)
         where TScanner : struct, IScanner
         => new IntegerParser().Match(ref scanner, result, out number, in orError);
+    
+    public static bool StringLiteral<TScanner>(ref TScanner scanner, ParseResult result, out StringLiteral parsed, in ParseError? orError = null)
+        where TScanner : struct, IScanner
+    {
+        var position = scanner.Position;
+        if(Terminals.Char('\"', ref scanner, advance: true))
+        {
+            CommonParsers.Until(ref scanner, '\"', advance: true);
+            if (scanner.Span[position..scanner.Position].Contains('\n'))
+                return CommonParsers.Exit(ref scanner, result, out parsed, position, new(SDSLParsingMessages.SDSL0001, scanner.GetErrorLocation(position), scanner.Memory));
+            parsed = new(scanner.Span[position..scanner.Position].ToString(), scanner.GetLocation(position..scanner.Position));
+            return true;
+        }
+        return CommonParsers.Exit(ref scanner, result, out parsed, position);
+    }
 
     public static bool AssignOperators<TScanner>(ref TScanner scanner, ParseResult result, out AssignOperator op, in ParseError? orError = null)
         where TScanner : struct, IScanner
@@ -200,12 +215,25 @@ public record struct TypeNameParser() : ILiteralParser<TypeName>
         var position = scanner.Position;
         if (Terminals.Char('_', ref scanner) || Terminals.Letter(ref scanner))
         {
+            name = new TypeName("", new(), false);
             scanner.Advance(1);
             while (Terminals.LetterOrDigit(ref scanner) || Terminals.Char('_', ref scanner))
                 scanner.Advance(1);
             var identifier = new Identifier(scanner.Memory[position..scanner.Position].ToString(), scanner.GetLocation(position, scanner.Position - position));
 
             var intermediate = scanner.Position;
+
+            if(CommonParsers.FollowedBy(ref scanner, Terminals.Char('<'), withSpaces: true, advance: true))
+            {
+                CommonParsers.Spaces0(ref scanner, result, out _);
+                CommonParsers.Repeat(ref scanner, result, LiteralsParser.TypeName, out List<TypeName> generics, 1, withSpaces: true, separator: ",");
+                if (!CommonParsers.FollowedBy(ref scanner, Terminals.Char('>'), withSpaces: true, advance: true))
+                    return CommonParsers.Exit(ref scanner, result, out name, position, new(SDSLParsingMessages.SDSL0034, scanner.GetErrorLocation(scanner.Position), scanner.Memory));
+                name.Generics = generics;
+                intermediate = scanner.Position;
+            }
+
+
             if (
                 CommonParsers.Spaces0(ref scanner, result, out _)
                 && Terminals.Char('[', ref scanner, advance: true)
@@ -215,13 +243,17 @@ public record struct TypeNameParser() : ILiteralParser<TypeName>
                 && Terminals.Char(']', ref scanner, advance: true)
             )
             {
-                name = new TypeName(scanner.Memory[position..scanner.Position].ToString().Trim(), scanner.GetLocation(position..scanner.Position), isArray: true);
+                name.Name = scanner.Memory[position..scanner.Position].ToString().Trim();
+                name.Info = scanner.GetLocation(position..scanner.Position);
+                name.IsArray = true;
                 return true;
             }
             else
             {
                 scanner.Position = intermediate;
-                name = new(identifier.Name, scanner.GetLocation(position..scanner.Position), isArray : false);
+                name.Name = identifier.Name;
+                name.Info = scanner.GetLocation(position..scanner.Position);
+                name.IsArray = false;
                 return true;
             }
         }

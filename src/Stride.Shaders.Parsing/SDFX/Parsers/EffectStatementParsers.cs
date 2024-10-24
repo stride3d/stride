@@ -25,6 +25,11 @@ public record struct EffectStatementParsers : IParser<EffectStatement>
             parsed = p3;
             return true;
         }
+        else if(EffectControlsParser.Control(ref scanner, result, out var control))
+        {
+            parsed = control;
+            return true;
+        }
         return CommonParsers.Exit(ref scanner, result, out parsed, position, orError);
     }
 

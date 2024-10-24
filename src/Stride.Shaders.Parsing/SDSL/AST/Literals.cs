@@ -9,6 +9,17 @@ public abstract class Literal(TextLocation info) : Expression(info);
 public abstract class ValueLiteral(TextLocation info) : Literal(info);
 public abstract class ScalarLiteral(TextLocation info) : ValueLiteral(info);
 
+
+public class StringLiteral(string value, TextLocation info) : Literal(info)
+{
+    public string Value { get; set; } = value;
+
+    public override string ToString( )
+    {
+        return $"\"{Value}\"";
+    }
+}
+
 public abstract class NumberLiteral(TextLocation info) : ScalarLiteral(info)
 {
     public abstract double DoubleValue { get; }
@@ -95,6 +106,7 @@ public class TypeName(string name, TextLocation info, bool isArray) : Literal(in
     public string Name { get; set; } = name;
     public bool IsArray { get; set; } = isArray;
     public Expression? ArraySize { get; set; }
+    public List<TypeName> Generics { get; set; } = [];
 
     public override string ToString()
     {

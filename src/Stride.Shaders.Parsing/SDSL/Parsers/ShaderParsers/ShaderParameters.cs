@@ -53,12 +53,19 @@ public record struct ParameterListParser : IParser<ShaderExpressionList>
     {
         var position = scanner.Position;
         List<Expression> values = [];
-        while (ExpressionParser.Expression(ref scanner, result, out var expr) && CommonParsers.Spaces0(ref scanner, result, out _))
+        do
         {
-            values.Add(expr);
-            if (!Terminals.Char(',', ref scanner, advance: true) && CommonParsers.Spaces0(ref scanner, result, out _))
-                break;
+            CommonParsers.Spaces0(ref scanner, result, out _);
+            if (ExpressionParser.Expression(ref scanner, result, out var expr))
+                values.Add(expr);
+            else if (LiteralsParser.StringLiteral(ref scanner, result, out var str))
+                values.Add(str);
+            else if (values.Count == 0)
+                break; 
+            else return CommonParsers.Exit(ref scanner, result, out parsed, position, new(SDSLParsingMessages.SDSL0001, scanner.GetErrorLocation(scanner.Position), scanner.Memory));
         }
+        while (!scanner.IsEof && CommonParsers.FollowedBy(ref scanner, Terminals.Char(','), advance: true));
+
         parsed = new(scanner.GetLocation(position..scanner.Position))
         {
             Values = values

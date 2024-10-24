@@ -156,7 +156,7 @@ public static class CommonParsers
                 scanner.Position = tmp;
             }
             tmp = scanner.Position;
-            if(
+            if (
                 !(
                     Terminals.Char('=', ref scanner, advance: true)
                     && Spaces0(ref scanner, result, out _)
@@ -367,9 +367,9 @@ public static class CommonParsers
         where TParser : struct, IParser<TNode>
         where TNode : Node
     {
-        return Repeat(ref scanner, (ref TScanner s, ParseResult r, out TNode node, in ParseError? orError) => new TParser().Match(ref s, r, out node, orError), result, out nodes, minimum, withSpaces, separator, orError);
+        return Repeat(ref scanner, result, (ref TScanner s, ParseResult r, out TNode node, in ParseError? orError) => new TParser().Match(ref s, r, out node, orError), out nodes, minimum, withSpaces, separator, orError);
     }
-    public static bool Repeat<TScanner, TNode>(ref TScanner scanner, ParserValueDelegate<TScanner, TNode> parser, ParseResult result, out List<TNode> nodes, int minimum, bool withSpaces = false, string? separator = null, in ParseError? orError = null)
+    public static bool Repeat<TScanner, TNode>(ref TScanner scanner, ParseResult result, ParserValueDelegate<TScanner, TNode> parser, out List<TNode> nodes, int minimum, bool withSpaces = false, string? separator = null, in ParseError? orError = null)
         where TScanner : struct, IScanner
         where TNode : Node
     {

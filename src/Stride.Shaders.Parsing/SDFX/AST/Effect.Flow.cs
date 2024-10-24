@@ -2,7 +2,7 @@ namespace Stride.Shaders.Parsing.SDFX.AST;
 
 public class EffectFlow(TextLocation info) : EffectStatement(info);
 
-public class ConditionalFlow(If first, TextLocation info) : EffectFlow(info)
+public class EffectControl(If first, TextLocation info) : EffectFlow(info)
 {
     public If If { get; set; } = first;
     public List<ElseIf> ElseIfs { get; set; } = [];
