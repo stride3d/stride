@@ -1,7 +1,6 @@
 using Stride.BepuPhysics.Definitions;
 using Stride.BepuPhysics.Navigation.Components;
 using Stride.Core;
-using Stride.Core.Mathematics;
 using Stride.Core.Threading;
 using Stride.Engine;
 using Stride.Games;
@@ -11,7 +10,7 @@ namespace Stride.BepuPhysics.Navigation.Processors;
 
 public sealed class RecastNavigationProcessor : EntityProcessor<RecastNavigationComponent>
 {
-    private RecastMeshProcessor _recastMeshProcessor;
+    private RecastMeshSystem _recastMeshSystem;
     private readonly List<RecastNavigationComponent> _components = new();
     private readonly ConcurrentQueue<RecastNavigationComponent> _tryGetPathQueue = new();
 
@@ -19,23 +18,23 @@ public sealed class RecastNavigationProcessor : EntityProcessor<RecastNavigation
     {
         //run after the RecastMeshProcessor
         Order = 20001;
-        _recastMeshProcessor = null!; // Initialized below
+        _recastMeshSystem = null!; // Initialized below
     }
 
     protected override void OnSystemAdd()
     {
         ServicesHelper.LoadBepuServices(Services, out _, out _, out _);
-        if (Services.GetService<RecastMeshProcessor>() is { } recastMeshProcessor)
+        if (Services.GetService<RecastMeshSystem>() is { } recastMeshProcessor)
         {
-            _recastMeshProcessor = recastMeshProcessor;
+            _recastMeshSystem = recastMeshProcessor;
         }
         else
         {
             // add the RecastMeshProcessor if it doesn't exist
-            _recastMeshProcessor = new RecastMeshProcessor(Services);
+            _recastMeshSystem = new RecastMeshSystem(Services);
             // add to the Scenes processors
             var sceneSystem = Services.GetSafeServiceAs<SceneSystem>();
-            sceneSystem.Game!.GameSystems.Add(_recastMeshProcessor);
+            sceneSystem.Game!.GameSystems.Add(_recastMeshSystem);
         }
 
         Services.AddService(this);
@@ -82,7 +81,7 @@ public sealed class RecastNavigationProcessor : EntityProcessor<RecastNavigation
 
     public bool SetNewPath(RecastNavigationComponent pathfinder)
     {
-        if (_recastMeshProcessor.TryFindPath(pathfinder.Entity.Transform.WorldMatrix.TranslationVector, pathfinder.Target, ref pathfinder.Polys, ref pathfinder.Path))
+        if (_recastMeshSystem.TryFindPath(pathfinder.Entity.Transform.WorldMatrix.TranslationVector, pathfinder.Target, ref pathfinder.Polys, ref pathfinder.Path))
         {
             pathfinder.State = NavigationState.PathIsReady;
             return true;

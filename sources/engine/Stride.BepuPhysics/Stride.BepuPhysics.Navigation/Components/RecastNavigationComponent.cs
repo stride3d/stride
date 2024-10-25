@@ -1,10 +1,8 @@
-﻿using System.ComponentModel;
-using Stride.BepuPhysics.Navigation.Processors;
+﻿using Stride.BepuPhysics.Navigation.Processors;
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Engine.Design;
-using Stride.Games;
 
 namespace Stride.BepuPhysics.Navigation.Components;
 [DataContract(nameof(RecastNavigationComponent))]
@@ -106,13 +104,11 @@ public class RecastNavigationComponent : StartupScript
         // This allows  the user to determine if the agent should stop moving if the path is no longer valid.
         if (IsMoving)
         {
-            Move(deltaTime);
-            Rotate();
+            MoveAndRotate(deltaTime);
         }
-
     }
 
-    private void Move(float deltaTime)
+    private void MoveAndRotate(float deltaTime)
     {
         if (Path.Count == 0)
         {
@@ -120,63 +116,23 @@ public class RecastNavigationComponent : StartupScript
             return;
         }
 
-        var position = Entity.Transform.WorldMatrix.TranslationVector;
+        var worldPosition = Entity.Transform.WorldMatrix.TranslationVector;
 
         var nextWaypointPosition = Path[0];
-        var distanceToWaypoint = Vector3.Distance(position, nextWaypointPosition);
+        var rotation = Quaternion.LookRotation(Vector3.Normalize(Path[0] - worldPosition), Vector3.UnitY);
+        var targetPosition = Vector3.MoveTo(worldPosition, nextWaypointPosition, Speed * deltaTime);
+        var scale = Entity.Transform.Scale;
 
-        // When the distance between the character and the next waypoint is large enough, move closer to the waypoint
-        if (distanceToWaypoint > 0.1)
+        if (targetPosition == nextWaypointPosition && Path.Count > 0)
         {
-            var direction = nextWaypointPosition - position;
-            direction.Normalize();
-            direction *= Speed * deltaTime;
-
-            position += direction;
-        }
-        else
-        {
-            if (Path.Count > 0)
-            {
-                // need to test if storing the index in Pathfinder would be faster than this.
-                Path.RemoveAt(0);
-            }
+            // need to test if storing the index in Pathfinder would be faster than this.
+            Path.RemoveAt(0);
         }
 
-        Entity.Transform.Position = position;
+        // Handle the scenario where the agent has a parent.
+        Entity.Transform.Parent?.WorldToLocal(ref targetPosition, ref rotation, ref scale);
+
+        Entity.Transform.Position = targetPosition;
+        Entity.Transform.Rotation = rotation;// Quaternion.Lerp(Entity.Transform.Rotation, rotation, .1f);
     }
-
-    private void Rotate()
-    {
-        if (Path.Count == 0)
-        {
-            return;
-        }
-        var position = Entity.Transform.WorldMatrix.TranslationVector;
-
-        float angle = (float)Math.Atan2(Path[0].Z - position.Z,
-            Path[0].X - position.X);
-
-        Entity.Transform.Rotation = Quaternion.RotationY(-angle);
-    }
-}
-
-public enum NavigationState
-{
-    /// <summary>
-    /// Tells the <see cref="RecastNavigationProcessor"/> a plan needs to be queued. This is used internally to prevent multiple path calculations per frame.
-    /// </summary>
-    QueuePathPlanning,
-    /// <summary>
-    /// Tells the <see cref="RecastNavigationProcessor"/> to set a new path at the next available opportunity.
-    /// </summary>
-    PlanningPath,
-    /// <summary>
-    /// Tells the <see cref="RecastNavigationProcessor"/> the agent has a path.
-    /// </summary>
-    PathIsReady,
-    /// <summary>
-    /// Tells the <see cref="RecastNavigationProcessor"/> the agent does not have a valid path.
-    /// </summary>
-    PathIsInvalid,
 }
