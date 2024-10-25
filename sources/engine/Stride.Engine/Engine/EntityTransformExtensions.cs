@@ -334,8 +334,7 @@ namespace Stride.Engine
                 return;
             }
 
-            Matrix worldMatrix = transformComponent.Parent.WorldMatrix;
-            worldMatrix.Decompose(out _, out Quaternion parentRot, out _);
+            transformComponent.Parent.WorldMatrix.Decompose(out _, out Quaternion parentRot, out _);
             transformComponent.Rotation = Quaternion.Invert(parentRot) * rotation;
         }
     }
