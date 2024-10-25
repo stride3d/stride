@@ -3,6 +3,6 @@
 
 // Examples.SpvOpt();
 // Examples.TranslateHLSL();
-Examples.ParseSDSL();
+// Examples.ParseSDSL();
 
-// Examples.TryAllFiles();
+Examples.TryAllFiles();
