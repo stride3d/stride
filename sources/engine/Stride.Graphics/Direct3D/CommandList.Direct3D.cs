@@ -526,7 +526,7 @@ namespace Stride.Graphics
 
             PrepareDraw();
 
-            NativeDeviceContext.DrawIndexedInstancedIndirect(argumentsBuffer.NativeBuffer, alignedByteOffsetForArgs);
+            NativeDeviceContext.DrawInstancedIndirect(argumentsBuffer.NativeBuffer, alignedByteOffsetForArgs);
 
             GraphicsDevice.FrameDrawCalls++;
         }

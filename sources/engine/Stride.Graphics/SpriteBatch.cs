@@ -599,7 +599,7 @@ namespace Stride.Graphics
 
                 if (Math.Abs(drawInfo->Rotation) > float.Epsilon)
                 {
-                    (rotation.X, rotation.Y) = MathF.SinCos(drawInfo->Rotation);
+                    (rotation.Y, rotation.X) = MathF.SinCos(drawInfo->Rotation);
                 }
 
                 Vector2 origin = drawInfo->Origin;
