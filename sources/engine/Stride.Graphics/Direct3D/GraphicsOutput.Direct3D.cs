@@ -83,9 +83,10 @@ namespace Stride.Graphics
 
             ModeDescription closestDescription;
             SharpDX.Direct3D11.Device deviceTemp = null;
+            FeatureLevel[] features = null;
             try
             {
-                var features = new FeatureLevel[targetProfiles.Length];
+                features = new FeatureLevel[targetProfiles.Length];
                 for (int i = 0; i < targetProfiles.Length; i++)
                 {
                     features[i] = (FeatureLevel)targetProfiles[i];
@@ -93,7 +94,10 @@ namespace Stride.Graphics
 
                 deviceTemp = new SharpDX.Direct3D11.Device(adapter.NativeAdapter, SharpDX.Direct3D11.DeviceCreationFlags.None, features);
             }
-            catch (Exception) { }
+            catch (Exception exception)
+            {
+                Log.Error($"Failed to create Direct3D device using {adapter.NativeAdapter.Description} adapter with features: {string.Join(", ", features)}.\nException: {exception}");
+            }
 
             var description = new ModeDescription()
             {
@@ -212,7 +216,10 @@ namespace Stride.Graphics
                 // about the current display/monitor mode and not the supported display mode for the specific graphics profile
                 deviceTemp = new SharpDX.Direct3D11.Device(adapter.NativeAdapter);
             }
-            catch (Exception) { }
+            catch (Exception exception)
+            {
+                Log.Error($"Failed to create Direct3D device using {adapter.NativeAdapter.Description}.\nException: {exception}");
+            }
 
             RawRectangle desktopBounds = outputDescription.DesktopBounds;
             // We don't specify RefreshRate on purpose, it will be automatically
