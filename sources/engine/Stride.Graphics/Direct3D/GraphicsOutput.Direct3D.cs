@@ -236,7 +236,10 @@ namespace Stride.Graphics
             using (SharpDX.Direct3D11.Device device = deviceTemp)
                 output.GetClosestMatchingMode(device, description, out closestDescription);
 
-            return DisplayMode.FromDescription(closestDescription);
+            if (description.Format == format)
+                return DisplayMode.FromDescription(closestDescription);
+            else
+                return null;
         }
     }
 }
