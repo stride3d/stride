@@ -31,6 +31,19 @@ public sealed class ShaderMember(TypeName type, Identifier name, Expression? ini
     }
 }
 
+public class MethodParameter(TypeName type, Identifier name, TextLocation info, string? storage = null, Expression? arraySize = null) : Node(info)
+{
+    public TypeName Type { get; set; } = type;
+    public Identifier Name { get; set; } = name;
+    public Expression? ArraySize { get; set; } = arraySize;
+    public string? Storage { get; set; } = storage;
+
+    public override string ToString()
+    {
+        return $"{Type} {Name}";
+    }
+}
+
 public class ShaderMethod(TypeName returnType, Identifier name, TextLocation info, Identifier? visibility = null, Identifier? storage = null, bool isStaged = false, bool isAbstract = false, bool isVirtual = false, bool isOverride = false, bool isClone = false) : MethodOrMember(info, isStaged)
 {
     public TypeName ReturnType { get; set; } = returnType;
@@ -41,7 +54,7 @@ public class ShaderMethod(TypeName returnType, Identifier name, TextLocation inf
     public bool? IsVirtual { get; set; } = isVirtual;
     public bool? IsOverride { get; set; } = isOverride;
     public bool? IsClone { get; set; } = isClone;
-    public ShaderParameterDeclarations? ParameterList { get; set; }
+    public List<MethodParameter> Parameters { get; set; } = [];
     public BlockStatement? Body { get; set; }
 
     public override string ToString()

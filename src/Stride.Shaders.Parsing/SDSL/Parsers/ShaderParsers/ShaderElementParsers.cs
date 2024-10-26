@@ -11,11 +11,13 @@ public record struct ShaderElementParsers : IParser<ShaderElement>
         var position = scanner.Position;
         if (BufferParsers.Buffer(ref scanner, result, out var buffer))
         {
+            CommonParsers.FollowedBy(ref scanner, Terminals.Char(';'), withSpaces: true, advance: true);
             parsed = buffer;
             return true;
         }
         else if(Struct(ref scanner, result, out var structElement))
         {
+            CommonParsers.FollowedBy(ref scanner, Terminals.Char(';'), withSpaces: true, advance: true);
             parsed = structElement;
             return true;
         }

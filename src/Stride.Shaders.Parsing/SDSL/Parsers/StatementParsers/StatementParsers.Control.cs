@@ -13,7 +13,7 @@ public record struct ControlsParser : IParser<ConditionalFlow>
         if (If(ref scanner, result, out var ifstatement, orError) && CommonParsers.Spaces0(ref scanner, result, out _))
         {
             parsed = new(ifstatement, scanner.GetLocation(..));
-            while(ElseIf(ref scanner, result, out var elseif, orError))
+            while(ElseIf(ref scanner, result, out var elseif, orError) && CommonParsers.Spaces0(ref scanner, result, out _))
                 parsed.ElseIfs.Add(elseif);
             if (Else(ref scanner, result, out var elseStatement, orError))
                 parsed.Else = elseStatement;

@@ -27,9 +27,36 @@ public record struct ShaderMethodParsers : IParser<ShaderMethod>
         where TScanner : struct, IScanner
         => new SimpleMethodParser().Match(ref scanner, result, out parsed, in orError);
 
-    public static bool Parameters<TScanner>(ref TScanner scanner, ParseResult result, out ShaderParameterDeclarations parsed, in ParseError? orError = null)
+
+    
+    public static bool MethodParameters<TScanner>(ref TScanner scanner, ParseResult result, out List<MethodParameter> parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
-        => new ParameterDeclarationsParser().Match(ref scanner, result, out parsed, orError);
+    {
+        var position = scanner.Position;
+        if(CommonParsers.Repeat(ref scanner, result, MethodParameter, out List<MethodParameter> parameters, 0, withSpaces: true, separator: ","))
+        {
+            parsed = parameters;
+            return true;
+        }
+        else return CommonParsers.Exit(ref scanner, result, out parsed, position);
+
+    }
+    public static bool MethodParameter<TScanner>(ref TScanner scanner, ParseResult result, out MethodParameter parsed, in ParseError? orError = null)
+        where TScanner : struct, IScanner
+    {
+        var position = scanner.Position;
+
+        if(Terminals.AnyOf(["inout", "in", "out", "triangle"], ref scanner, out var storage, advance: true))
+            CommonParsers.Spaces1(ref scanner, result, out _);
+        if(CommonParsers.TypeNameIdentifierArraySizeValue(ref scanner, result, out var typename, out var identifier, out var arraySize, out var value, advance: true)
+        )
+        {
+            parsed = new(typename, identifier, scanner.GetLocation(position..scanner.Position), storage);
+            return true;
+        }
+        else return CommonParsers.Exit(ref scanner, result, out parsed, position);
+
+    }
 }
 
 public record struct SimpleMethodParser : IParser<ShaderMethod>
@@ -43,7 +70,7 @@ public record struct SimpleMethodParser : IParser<ShaderMethod>
             && CommonParsers.Spaces1(ref scanner, result, out _, new(SDSLParsingMessages.SDSL0016, scanner.GetErrorLocation(scanner.Position), scanner.Memory))
             && LiteralsParser.Identifier(ref scanner, result, out var methodName)
             && CommonParsers.FollowedBy(ref scanner, Terminals.Char('('), withSpaces: true, advance: true)
-            && CommonParsers.FollowedByDel(ref scanner, result, ShaderMethodParsers.Parameters, out ShaderParameterDeclarations parameters, withSpaces: true, advance: true)
+            && CommonParsers.FollowedByDel(ref scanner, result, ShaderMethodParsers.MethodParameters, out List<MethodParameter> parameters, withSpaces: true, advance: true)
             && CommonParsers.FollowedBy(ref scanner, Terminals.Char(')'), withSpaces: true, advance: true)
             && CommonParsers.Spaces0(ref scanner, result, out _)
             && StatementParsers.Block(ref scanner, result, out var body, new(SDSLParsingMessages.SDSL0040, scanner.GetErrorLocation(scanner.Position), scanner.Memory))
@@ -51,7 +78,7 @@ public record struct SimpleMethodParser : IParser<ShaderMethod>
         {
             parsed = new ShaderMethod(typename, methodName, scanner.GetLocation(position, scanner.Position - position))
             {
-                ParameterList = parameters,
+                Parameters = parameters,
                 Body = (BlockStatement)body
             };
             return true;
@@ -79,7 +106,7 @@ public record struct MethodParser : IParser<ShaderMethod>
             {
                 if (Terminals.Char('(', ref scanner, advance: true) && CommonParsers.Spaces0(ref scanner, result, out _))
                 {
-                    ShaderMethodParsers.Parameters(ref scanner, result, out var parameters);
+                    ShaderMethodParsers.MethodParameters(ref scanner, result, out var parameters);
                     CommonParsers.Spaces0(ref scanner, result, out _);
                     if (!Terminals.Char(')', ref scanner, advance: true))
                         return CommonParsers.Exit(ref scanner, result, out parsed, position, new(SDSLParsingMessages.SDSL0018, scanner.GetErrorLocation(scanner.Position), scanner.Memory));
@@ -95,7 +122,7 @@ public record struct MethodParser : IParser<ShaderMethod>
                     {
                         parsed = new(typename, methodName, scanner.GetLocation(position..scanner.Position), isAbstract: true)
                         {
-                            ParameterList = parameters
+                            Parameters = parameters
                         };
                         return true;
                     }

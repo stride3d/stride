@@ -23,6 +23,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\submodules\CppNet8\CppNet.csproj" />
+    <ProjectReference Include="..\Stride.Shaders.Parsing\Stride.Shaders.Parsing.csproj" />
   </ItemGroup>
 
 </Project>

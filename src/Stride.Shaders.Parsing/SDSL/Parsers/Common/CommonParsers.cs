@@ -9,6 +9,10 @@ public delegate bool ParserDelegate<TScanner>(ref TScanner scanner, ParseResult 
     where TScanner : struct, IScanner;
 public delegate bool ParserValueDelegate<TScanner, TResult>(ref TScanner scanner, ParseResult result, out TResult parsed, in ParseError? orError = null)
     where TScanner : struct, IScanner;
+
+public delegate bool ParserListValueDelegate<TScanner, TResult>(ref TScanner scanner, ParseResult result, out List<TResult> parsed, in ParseError? orError = null)
+    where TScanner : struct, IScanner;
+
 public delegate bool ParserOptionalValueDelegate<TScanner, TResult>(ref TScanner scanner, ParseResult result, out TResult? parsed, in ParseError? orError = null)
     where TScanner : struct, IScanner;
 
@@ -253,6 +257,21 @@ public static class CommonParsers
         return false;
     }
     public static bool FollowedByDel<TScanner, TResult>(ref TScanner scanner, ParseResult result, ParserValueDelegate<TScanner, TResult> func, out TResult parsed, bool withSpaces = false, bool advance = false)
+        where TScanner : struct, IScanner
+    {
+        var position = scanner.Position;
+        if (withSpaces)
+            Spaces0(ref scanner, null!, out _);
+        if (func.Invoke(ref scanner, result, out parsed))
+        {
+            if (!advance)
+                scanner.Position = position;
+            return true;
+        }
+        scanner.Position = position;
+        return false;
+    }
+    public static bool FollowedByDelList<TScanner, TResult>(ref TScanner scanner, ParseResult result, ParserListValueDelegate<TScanner, TResult> func, out List<TResult> parsed, bool withSpaces = false, bool advance = false)
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;

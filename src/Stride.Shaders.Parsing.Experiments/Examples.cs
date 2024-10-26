@@ -80,7 +80,7 @@ public static class Examples
 
     public static void ParseSDSL()
     {
-        var text = MonoGamePreProcessor.Run("./assets/Stride/SDSL/BufferToTextureColumnsEffect.sdsl", []);
+        var text = MonoGamePreProcessor.Run("./assets/Stride/SDSL/ComputeColorTextureScaledOffsetDynamicSamplerRandomUV.sdsl", []);
         var parsed = SDSLParser.Parse(text);
         Console.WriteLine(parsed.AST);
         if(parsed.Errors.Count > 0)

@@ -31,18 +31,21 @@ public record struct ParameterDeclarationsParser : IParser<ShaderParameterDeclar
     {
         var position = scanner.Position;
         List<ShaderParameter> parameters = [];
-        while (
-            LiteralsParser.TypeName(ref scanner, result, out var typename)
-            && CommonParsers.Spaces1(ref scanner, result, out _)
-            && LiteralsParser.Identifier(ref scanner, result, out var name)
-            && CommonParsers.Spaces0(ref scanner, result, out _)
-        )
+
+        do
         {
-            parameters.Add(new(typename, name));
-            if (Terminals.Char(',', ref scanner, advance: true))
-                CommonParsers.Spaces0(ref scanner, result, out _);
-            else break;
+            if (
+                CommonParsers.FollowedBy(ref scanner, result, LiteralsParser.TypeName, out TypeName typename, withSpaces: true, advance: true)
+                && CommonParsers.Spaces1(ref scanner, result, out _)
+                && LiteralsParser.Identifier(ref scanner, result, out var name)
+                && CommonParsers.Spaces0(ref scanner, result, out _)
+            )
+            {
+                parameters.Add(new(typename, name));
+            }
+            else return CommonParsers.Exit(ref scanner, result, out parsed, position, new(SDSLParsingMessages.SDSL0001, scanner.GetErrorLocation(scanner.Position), scanner.Memory));
         }
+        while (!scanner.IsEof && Terminals.Char(',', ref scanner, advance: true));
         parsed = new(scanner.GetLocation(position..scanner.Position)) { Parameters = parameters };
         return true;
     }
@@ -61,7 +64,7 @@ public record struct ParameterListParser : IParser<ShaderExpressionList>
             else if (LiteralsParser.StringLiteral(ref scanner, result, out var str))
                 values.Add(str);
             else if (values.Count == 0)
-                break; 
+                break;
             else return CommonParsers.Exit(ref scanner, result, out parsed, position, new(SDSLParsingMessages.SDSL0001, scanner.GetErrorLocation(scanner.Position), scanner.Memory));
         }
         while (!scanner.IsEof && CommonParsers.FollowedBy(ref scanner, Terminals.Char(','), advance: true));

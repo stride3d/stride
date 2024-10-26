@@ -57,7 +57,10 @@ public record struct CBufferParser : IParser<CBuffer>
                     CommonParsers.Spaces0(ref scanner, result, out _);
                     while(!scanner.IsEof && !Terminals.Char('}', ref scanner, advance: true))
                     {
-                        if (BufferParsers.Member(ref scanner, result, out var member) && CommonParsers.Spaces0(ref scanner, result, out _))
+                        if (
+                            BufferParsers.Member(ref scanner, result, out var member) 
+                            && CommonParsers.Spaces0(ref scanner, result, out _)
+                        )
                             members.Add(member);
                         else return CommonParsers.Exit(ref scanner, result, out parsed, position, new(SDSLParsingMessages.SDSL0001, scanner.GetErrorLocation(scanner.Position), scanner.Memory));
                     }
@@ -184,7 +187,7 @@ public record struct BufferMemberParser : IParser<ShaderMember>
                 CommonParsers.Spaces0(ref scanner, result, out _);
                 if (ExpressionParser.Expression(ref scanner, result, out var expression, orError: orError ?? new(SDSLParsingMessages.SDSL0015, scanner.GetErrorLocation(scanner.Position), scanner.Memory)))
                 {
-                    if (CommonParsers.Spaces0(ref scanner, result, out _) && Terminals.Char(';', ref scanner))
+                    if (CommonParsers.FollowedBy(ref scanner, Terminals.Char(';'), withSpaces: true, advance: true))
                     {
                         parsed = new ShaderMember(typename, name, expression, false, scanner.GetLocation(position..scanner.Position), isStage, isStream);
                         return true;

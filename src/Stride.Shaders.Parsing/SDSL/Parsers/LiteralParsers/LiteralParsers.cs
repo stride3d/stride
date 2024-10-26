@@ -60,12 +60,12 @@ public record struct LiteralsParser : IParser<Literal>
     public static bool Integer<TScanner>(ref TScanner scanner, ParseResult result, out IntegerLiteral number, in ParseError? orError = null)
         where TScanner : struct, IScanner
         => new IntegerParser().Match(ref scanner, result, out number, in orError);
-    
+
     public static bool StringLiteral<TScanner>(ref TScanner scanner, ParseResult result, out StringLiteral parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
-        if(Terminals.Char('\"', ref scanner, advance: true))
+        if (Terminals.Char('\"', ref scanner, advance: true))
         {
             CommonParsers.Until(ref scanner, '\"', advance: true);
             if (scanner.Span[position..scanner.Position].Contains('\n'))
@@ -223,12 +223,12 @@ public record struct TypeNameParser() : ILiteralParser<TypeName>
 
             var intermediate = scanner.Position;
 
-            if(CommonParsers.FollowedBy(ref scanner, Terminals.Char('<'), withSpaces: true, advance: true))
+            if (CommonParsers.FollowedBy(ref scanner, Terminals.Char('<'), withSpaces: true, advance: true))
             {
                 CommonParsers.Spaces0(ref scanner, result, out _);
                 CommonParsers.Repeat(ref scanner, result, LiteralsParser.TypeName, out List<TypeName> generics, 1, withSpaces: true, separator: ",");
                 if (!CommonParsers.FollowedBy(ref scanner, Terminals.Char('>'), withSpaces: true, advance: true))
-                    return CommonParsers.Exit(ref scanner, result, out name, position, new(SDSLParsingMessages.SDSL0034, scanner.GetErrorLocation(scanner.Position), scanner.Memory));
+                    return CommonParsers.Exit(ref scanner, result, out name, position);
                 name.Generics = generics;
                 intermediate = scanner.Position;
             }
@@ -272,41 +272,57 @@ public record struct VectorParser : IParser<VectorLiteral>
         var position = scanner.Position;
         if (
             Terminals.AnyOf(["bool", "half", "float", "double", "short", "ushort", "int", "uint", "long", "ulong"], ref scanner, out var baseType, advance: true)
-            && Terminals.Digit(ref scanner, 2..4, advance: true)
         )
         {
             var tnPos = scanner.Position;
-            int size = scanner.Span[scanner.Position - 1] - '0';
-            if (size < 2 || size > 4)
-                return CommonParsers.Exit(ref scanner, result, out parsed, position, new(SDSLParsingMessages.SDSL0002, scanner.GetErrorLocation(scanner.Position - 1), scanner.Memory));
-            CommonParsers.Spaces0(ref scanner, result, out _);
-            if (Terminals.Char('(', ref scanner, advance: true))
+            if (Terminals.Digit(ref scanner, 2..4, advance: true))
             {
-                var p = new VectorLiteral(new TypeName(scanner.Memory[position..tnPos].ToString(), scanner.GetLocation(position..tnPos), isArray: false), scanner.GetLocation(..))
+                tnPos = scanner.Position;
+                int size = scanner.Span[scanner.Position - 1] - '0';
+                if (size < 2 || size > 4)
+                    return CommonParsers.Exit(ref scanner, result, out parsed, position, new(SDSLParsingMessages.SDSL0002, scanner.GetErrorLocation(scanner.Position - 1), scanner.Memory));
+                CommonParsers.Spaces0(ref scanner, result, out _);
+                if (Terminals.Char('(', ref scanner, advance: true))
                 {
-                    TypeName = new(baseType, scanner.GetLocation((tnPos - baseType.Length)..(tnPos - 1)), isArray: false)
-                };
-                while (!scanner.IsEof)
-                {
-                    CommonParsers.Spaces0(ref scanner, result, out _);
-                    if (LiteralsParser.Vector(ref scanner, result, out var vec))
-                        p.Values.Add(vec);
-                    else if (ExpressionParser.Expression(ref scanner, result, out var exp))
-                        p.Values.Add(exp);
-                    else return CommonParsers.Exit(ref scanner, result, out parsed, position, new(SDSLParsingMessages.SDSL0001, scanner.GetErrorLocation(scanner.Position), scanner.Memory));
-                    CommonParsers.Spaces0(ref scanner, result, out _);
-                    if (Terminals.Char(',', ref scanner, advance: true))
+                    var p = new VectorLiteral(new TypeName(scanner.Memory[position..tnPos].ToString(), scanner.GetLocation(position..tnPos), isArray: false), scanner.GetLocation(..))
+                    {
+                        TypeName = new(baseType, scanner.GetLocation((tnPos - baseType.Length)..(tnPos - 1)), isArray: false)
+                    };
+                    while (!scanner.IsEof)
+                    {
                         CommonParsers.Spaces0(ref scanner, result, out _);
-                    else if (Terminals.Char(')', ref scanner, advance: true))
-                        break;
+                        if (LiteralsParser.Vector(ref scanner, result, out var vec))
+                            p.Values.Add(vec);
+                        else if (ExpressionParser.Expression(ref scanner, result, out var exp))
+                            p.Values.Add(exp);
+                        else return CommonParsers.Exit(ref scanner, result, out parsed, position, new(SDSLParsingMessages.SDSL0001, scanner.GetErrorLocation(scanner.Position), scanner.Memory));
+                        CommonParsers.Spaces0(ref scanner, result, out _);
+                        if (Terminals.Char(',', ref scanner, advance: true))
+                            CommonParsers.Spaces0(ref scanner, result, out _);
+                        else if (Terminals.Char(')', ref scanner, advance: true))
+                            break;
+                    }
+                    if (scanner.IsEof)
+                        return CommonParsers.Exit(ref scanner, result, out parsed, position, new(SDSLParsingMessages.SDSL0004, scanner.GetErrorLocation(scanner.Position), scanner.Memory));
+                    if (p.Values.Count != size && p.Values.Count > size)
+                        return CommonParsers.Exit(ref scanner, result, out parsed, position, new(SDSLParsingMessages.SDSL0005, scanner.GetErrorLocation(scanner.Position), scanner.Memory));
+                    parsed = p;
+                    return true;
                 }
-                if (scanner.IsEof)
-                    return CommonParsers.Exit(ref scanner, result, out parsed, position, new(SDSLParsingMessages.SDSL0004, scanner.GetErrorLocation(scanner.Position), scanner.Memory));
-                if (p.Values.Count != size && p.Values.Count > size)
-                    return CommonParsers.Exit(ref scanner, result, out parsed, position, new(SDSLParsingMessages.SDSL0005, scanner.GetErrorLocation(scanner.Position), scanner.Memory));
-                parsed = p;
+            }
+            else if (
+                CommonParsers.FollowedBy(ref scanner, Terminals.Char('('), withSpaces: true, advance: true)
+                && CommonParsers.FollowedByDel(ref scanner, result, ExpressionParser.Expression, out Expression value, withSpaces: true, advance: true)
+                && CommonParsers.FollowedBy(ref scanner, Terminals.Char(')'), withSpaces: true, advance: true)
+            )
+            {
+                parsed = new VectorLiteral(new TypeName(baseType, scanner.GetLocation(position..tnPos), isArray: false), scanner.GetLocation(position..scanner.Position))
+                {
+                    Values = [value]
+                };
                 return true;
             }
+            else return CommonParsers.Exit(ref scanner, result, out parsed, position);
 
         }
         return CommonParsers.Exit(ref scanner, result, out parsed, position, orError);
