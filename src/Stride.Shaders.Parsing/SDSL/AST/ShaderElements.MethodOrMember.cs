@@ -44,13 +44,15 @@ public class MethodParameter(TypeName type, Identifier name, TextLocation info, 
     }
 }
 
-public class ShaderMethod(TypeName returnType, Identifier name, TextLocation info, Identifier? visibility = null, Identifier? storage = null, bool isStaged = false, bool isAbstract = false, bool isVirtual = false, bool isOverride = false, bool isClone = false) : MethodOrMember(info, isStaged)
+public class ShaderMethod(TypeName returnType, Identifier name, TextLocation info, Identifier? visibility = null, Identifier? storage = null, bool isStaged = false, bool isAbstract = false, bool isVirtual = false, bool isStatic = false, bool isOverride = false, bool isClone = false) : MethodOrMember(info, isStaged)
 {
+
     public TypeName ReturnType { get; set; } = returnType;
     public Identifier Name { get; set; } = name;
     public Identifier? Visibility { get; set; } = visibility;
     public Identifier? Storage { get; set; } = storage;
     public bool? IsAbstract { get; set; } = isAbstract;
+    public bool IsStatic { get; set; } = isStatic;
     public bool? IsVirtual { get; set; } = isVirtual;
     public bool? IsOverride { get; set; } = isOverride;
     public bool? IsClone { get; set; } = isClone;

@@ -47,6 +47,21 @@ public record struct LiteralsParser : IParser<Literal>
     public static bool TypeName<TScanner>(ref TScanner scanner, ParseResult result, out TypeName typeName, in ParseError? orError = null)
         where TScanner : struct, IScanner
         => new TypeNameParser().Match(ref scanner, result, out typeName);
+    
+    public static bool TypeNameOrNumber<TScanner>(ref TScanner scanner, ParseResult result, out TypeName parsed, in ParseError? orError = null)
+        where TScanner : struct, IScanner
+    {
+        if(TypeName(ref scanner, result, out parsed))
+        {
+            return true;
+        }
+        else if(Number(ref scanner, result, out var number))
+        {
+            parsed = new TypeName(number.ToString(), number.Info, isArray: false);
+            return true;
+        }
+        else return CommonParsers.Exit(ref scanner, result, out parsed, scanner.Position, orError);
+    }
 
     public static bool Number<TScanner>(ref TScanner scanner, ParseResult result, out NumberLiteral number, in ParseError? orError = null)
         where TScanner : struct, IScanner
@@ -226,7 +241,7 @@ public record struct TypeNameParser() : ILiteralParser<TypeName>
             if (CommonParsers.FollowedBy(ref scanner, Terminals.Char('<'), withSpaces: true, advance: true))
             {
                 CommonParsers.Spaces0(ref scanner, result, out _);
-                CommonParsers.Repeat(ref scanner, result, LiteralsParser.TypeName, out List<TypeName> generics, 1, withSpaces: true, separator: ",");
+                CommonParsers.Repeat(ref scanner, result, LiteralsParser.TypeNameOrNumber, out List<TypeName> generics, 1, withSpaces: true, separator: ",");
                 if (!CommonParsers.FollowedBy(ref scanner, Terminals.Char('>'), withSpaces: true, advance: true))
                     return CommonParsers.Exit(ref scanner, result, out name, position);
                 name.Generics = generics;
@@ -257,7 +272,7 @@ public record struct TypeNameParser() : ILiteralParser<TypeName>
                 return true;
             }
         }
-        else return false;
+        else return CommonParsers.Exit(ref scanner, result, out name, position, orError);
     }
 }
 

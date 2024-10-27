@@ -46,7 +46,7 @@ public record struct ShaderMethodParsers : IParser<ShaderMethod>
     {
         var position = scanner.Position;
 
-        if(Terminals.AnyOf(["inout", "in", "out", "triangle"], ref scanner, out var storage, advance: true))
+        if(Terminals.AnyOf(["inout", "in", "out", "triangle", "const"], ref scanner, out var storage, advance: true))
             CommonParsers.Spaces1(ref scanner, result, out _);
         if(CommonParsers.TypeNameIdentifierArraySizeValue(ref scanner, result, out var typename, out var identifier, out var arraySize, out var value, advance: true)
         )
@@ -132,21 +132,25 @@ public record struct MethodParser : IParser<ShaderMethod>
         }
         else
             scanner.Position = position;
-        if (Terminals.AnyOf(["clone", "override"], ref scanner, out var matched, advance: true) && CommonParsers.Spaces1(ref scanner, result, out _))
+        if (Terminals.AnyOf(["clone", "override", "static"], ref scanner, out var matched, advance: true) && CommonParsers.Spaces1(ref scanner, result, out _))
         {
             var isClone = false;
             var isOverride = false;
+            var isStatic = false;
             var tmpPos = scanner.Position;
             if (matched == "clone")
                 isClone = true;
             else if (matched == "override")
                 isOverride = true;
+            else if (matched == "static")
+                isStatic = true;
 
             CommonParsers.Spaces0(ref scanner, result, out _);
             if (ShaderMethodParsers.Simple(ref scanner, result, out parsed, orError))
             {
                 parsed.IsClone = isClone;
                 parsed.IsOverride = isOverride;
+                parsed.IsStatic = isStatic;
                 parsed.Info = scanner.GetLocation(position..scanner.Position);
                 return true;
             }

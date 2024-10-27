@@ -3,6 +3,16 @@ namespace Stride.Shaders.Parsing.SDSL.AST;
 
 public abstract class ShaderElement(TextLocation info) : Node(info);
 
+public class TypeDef(TypeName type, Identifier name, TextLocation info) : ShaderElement(info)
+{
+    public Identifier Name { get; set; } = name;
+    public TypeName Type { get; set; } = type;
+
+    public override string ToString()
+    {
+        return $"typedef {Type} {Name}";
+    }
+}
 
 public abstract class ShaderBuffer(List<Identifier> name, TextLocation info) : ShaderElement(info)
 {

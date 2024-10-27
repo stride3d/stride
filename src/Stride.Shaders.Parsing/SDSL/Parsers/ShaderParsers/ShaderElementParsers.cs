@@ -9,7 +9,12 @@ public record struct ShaderElementParsers : IParser<ShaderElement>
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
-        if (BufferParsers.Buffer(ref scanner, result, out var buffer))
+        if(TypeDef(ref scanner, result, out var typeDef))
+        {
+            parsed = typeDef;
+            return true;
+        }
+        else if (BufferParsers.Buffer(ref scanner, result, out var buffer))
         {
             CommonParsers.FollowedBy(ref scanner, Terminals.Char(';'), withSpaces: true, advance: true);
             parsed = buffer;
@@ -92,4 +97,27 @@ public record struct ShaderElementParsers : IParser<ShaderElement>
     public static bool Method<TScanner>(ref TScanner scanner, ParseResult result, out ShaderMethod parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
         => new ShaderMethodParsers().Match(ref scanner, result, out parsed, in orError);
+
+    public static bool TypeDef<TScanner>(ref TScanner scanner, ParseResult result, out ShaderElement parsed, in ParseError? orError = null)
+        where TScanner : struct, IScanner
+    {
+        var position = scanner.Position;
+
+        if (
+            Terminals.Literal("typedef", ref scanner, advance: true)
+            && CommonParsers.Spaces1(ref scanner, result, out _)
+            && LiteralsParser.TypeName(ref scanner, result, out var type)
+            && CommonParsers.Spaces1(ref scanner, result, out _)
+            && LiteralsParser.Identifier(ref scanner, result, out var name)
+            && CommonParsers.Spaces0(ref scanner, result, out _)
+            && Terminals.Char(';', ref scanner, advance: true)
+        )
+        {
+            parsed = new TypeDef(type, name, scanner.GetLocation(position..scanner.Position));
+            return true;
+        }
+        else return CommonParsers.Exit(ref scanner, result, out parsed, position, orError);
+
+    }
+
 }

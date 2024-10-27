@@ -25,7 +25,11 @@ public record struct ShaderFileParser : IParser<ShaderFile>
                 CommonParsers.Spaces0(ref scanner, result, out _);
             }
             else if (
-                (Terminals.Literal("shader", ref scanner) || CommonParsers.SequenceOf(ref scanner, ["internal", "shader"]))
+                (
+                    Terminals.Literal("class", ref scanner) 
+                    || Terminals.Literal("shader", ref scanner) 
+                    || CommonParsers.SequenceOf(ref scanner, ["internal", "shader"])
+                )
                 && ShaderClassParsers.Class(ref scanner, result, out var shader)
             )
             {

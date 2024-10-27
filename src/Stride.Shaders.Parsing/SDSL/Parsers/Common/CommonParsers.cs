@@ -66,6 +66,7 @@ public static class CommonParsers
         var position = scanner.Position;
         arraySize = null!;
         value = null!;
+
         if (
             LiteralsParser.TypeName(ref scanner, result, out typeName)
             && Spaces1(ref scanner, result, out _)

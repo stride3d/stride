@@ -72,7 +72,12 @@ public record struct ShaderClassParser : IParser<ShaderClass>
         var tmp = position;
         if (Terminals.Literal("internal", ref scanner, advance: true) && CommonParsers.Spaces1(ref scanner, result, out _))
             tmp = scanner.Position;
-        if (Terminals.Literal("shader", ref scanner, advance: true) && CommonParsers.Spaces1(ref scanner, result,out _))
+        if (
+            (
+                Terminals.Literal("shader", ref scanner, advance: true) 
+                || Terminals.Literal("class", ref scanner, advance: true) 
+            )
+            && CommonParsers.Spaces1(ref scanner, result,out _))
         {
             if (
                 LiteralsParser.Identifier(ref scanner, result, out var identifier, new(SDSLParsingMessages.SDSL0017, scanner.GetErrorLocation(scanner.Position), scanner.Memory))
