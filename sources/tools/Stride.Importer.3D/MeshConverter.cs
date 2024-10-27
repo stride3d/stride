@@ -1066,8 +1066,8 @@ namespace Stride.Importer.ThreeD
 
             // Build the mesh data
             var vertexDeclaration = new VertexDeclaration(vertexElements.ToArray());
-            var vertexBufferBinding = new VertexBufferBinding(GraphicsSerializerExtensions.ToSerializableVersion(new BufferData(BufferFlags.VertexBuffer, vertexBuffer)), vertexDeclaration, (int)mesh->MNumVertices, vertexDeclaration.VertexStride, 0);
-            var indexBufferBinding = new IndexBufferBinding(GraphicsSerializerExtensions.ToSerializableVersion(new BufferData(BufferFlags.IndexBuffer, indexBuffer)), is32BitIndex, (int)nbIndices, 0);
+            var vertexBufferBinding = new VertexBufferBinding(GraphicsSerializerExtensions.ToSerializableVersion(new BufferData(BufferFlags.VertexBuffer | BufferFlags.RawBuffer, vertexBuffer)), vertexDeclaration, (int)mesh->MNumVertices, vertexDeclaration.VertexStride, 0);
+            var indexBufferBinding = new IndexBufferBinding(GraphicsSerializerExtensions.ToSerializableVersion(new BufferData(BufferFlags.IndexBuffer | BufferFlags.RawBuffer, indexBuffer)), is32BitIndex, (int)nbIndices, 0);
 
 
             drawData.VertexBuffers = new VertexBufferBinding[] { vertexBufferBinding };

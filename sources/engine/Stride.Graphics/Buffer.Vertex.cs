@@ -44,7 +44,7 @@ namespace Stride.Graphics
             /// </returns>
             public static Buffer New(GraphicsDevice device, int size, GraphicsResourceUsage usage = GraphicsResourceUsage.Default, BufferFlags bindFlags = BufferFlags.VertexBuffer)
             {
-                return Buffer.New(device, size, bindFlags, usage);
+                return Buffer.New(device, size, bindFlags | BufferFlags.RawBuffer, usage);
             }
 
             /// <summary>
@@ -56,7 +56,7 @@ namespace Stride.Graphics
             /// <returns>A Vertex buffer</returns>
             public static Buffer<T> New<T>(GraphicsDevice device, GraphicsResourceUsage usage = GraphicsResourceUsage.Default) where T : unmanaged
             {
-                return Buffer.New<T>(device, 1, BufferFlags.VertexBuffer, usage);
+                return Buffer.New<T>(device, 1, BufferFlags.VertexBuffer | BufferFlags.RawBuffer, usage);
             }
 
             /// <summary>
@@ -69,7 +69,7 @@ namespace Stride.Graphics
             /// <returns>A Vertex buffer</returns>
             public static Buffer<T> New<T>(GraphicsDevice device, ref T value, GraphicsResourceUsage usage = GraphicsResourceUsage.Immutable) where T : unmanaged
             {
-                return Buffer.New(device, ref value, BufferFlags.VertexBuffer, usage);
+                return Buffer.New(device, ref value, BufferFlags.VertexBuffer | BufferFlags.RawBuffer, usage);
             }
 
             /// <summary>
@@ -82,7 +82,7 @@ namespace Stride.Graphics
             /// <returns>A Vertex buffer</returns>
             public static Buffer<T> New<T>(GraphicsDevice device, T[] value, GraphicsResourceUsage usage = GraphicsResourceUsage.Immutable) where T : unmanaged
             {
-                return Buffer.New(device, value, BufferFlags.VertexBuffer, usage);
+                return Buffer.New(device, value, BufferFlags.VertexBuffer | BufferFlags.RawBuffer, usage);
             }
 
             /// <summary>
@@ -95,7 +95,7 @@ namespace Stride.Graphics
             /// <returns>A Vertex buffer</returns>
             public static Buffer<T> New<T>(GraphicsDevice device, int vertexBufferCount, GraphicsResourceUsage usage = GraphicsResourceUsage.Default) where T : unmanaged
             {
-                return Buffer.New<T>(device, vertexBufferCount, BufferFlags.VertexBuffer, usage);
+                return Buffer.New<T>(device, vertexBufferCount, BufferFlags.VertexBuffer | BufferFlags.RawBuffer, usage);
             }
 
             /// <summary>
@@ -107,7 +107,7 @@ namespace Stride.Graphics
             /// <returns>A Vertex buffer</returns>
             public static Buffer New(GraphicsDevice device, DataPointer value, GraphicsResourceUsage usage = GraphicsResourceUsage.Immutable)
             {
-                return Buffer.New(device, value, 0, BufferFlags.VertexBuffer, usage);
+                return Buffer.New(device, value, 0, BufferFlags.VertexBuffer | BufferFlags.RawBuffer, usage);
             }
         }
     }

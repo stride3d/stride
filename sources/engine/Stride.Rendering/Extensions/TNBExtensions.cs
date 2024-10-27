@@ -47,7 +47,7 @@ namespace Stride.Extensions
                     indexCountArg: indexBufferBinding?.Count ?? 0);
 
                 // Replace new vertex buffer binding
-                meshData.VertexBuffers[0] = new VertexBufferBinding(new BufferData(BufferFlags.VertexBuffer, result.VertexBuffer).ToSerializableVersion(), result.Layout, oldVertexBufferBinding.Count);
+                meshData.VertexBuffers[0] = new VertexBufferBinding(new BufferData(BufferFlags.VertexBuffer | BufferFlags.RawBuffer, result.VertexBuffer).ToSerializableVersion(), result.Layout, oldVertexBufferBinding.Count);
             }
         }
     }

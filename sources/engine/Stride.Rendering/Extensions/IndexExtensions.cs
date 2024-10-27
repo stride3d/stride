@@ -56,7 +56,7 @@ namespace Stride.Extensions
                 }
             }
 
-            meshData.VertexBuffers[0] = new VertexBufferBinding(new BufferData(BufferFlags.VertexBuffer, newVertices).ToSerializableVersion(), vertexBuffer.Declaration, indexBuffer.Count);
+            meshData.VertexBuffers[0] = new VertexBufferBinding(new BufferData(BufferFlags.VertexBuffer | BufferFlags.RawBuffer, newVertices).ToSerializableVersion(), vertexBuffer.Declaration, indexBuffer.Count);
             meshData.IndexBuffer = null;
         }
 
@@ -88,7 +88,7 @@ namespace Stride.Extensions
                     Unsafe.CopyBlockUnaligned(vertexBufferDataCurrent, oldVertexBufferDataStart + oldVertexStride * vertices[i], (uint)newVertexStride);
                     vertexBufferDataCurrent += newVertexStride;
                 }
-                meshData.VertexBuffers[0] = new VertexBufferBinding(new BufferData(BufferFlags.VertexBuffer, vertexBufferData).ToSerializableVersion(), declaration, indexMapping.Vertices.Length);
+                meshData.VertexBuffers[0] = new VertexBufferBinding(new BufferData(BufferFlags.VertexBuffer | BufferFlags.RawBuffer, vertexBufferData).ToSerializableVersion(), declaration, indexMapping.Vertices.Length);
             }
 
             // Generate index buffer
@@ -97,7 +97,7 @@ namespace Stride.Extensions
             fixed (byte* indexBufferDataStart = &indexBufferData[0])
             {
                 Unsafe.CopyBlockUnaligned(indexBufferDataStart, indexDataStart, (uint)indexBufferData.Length);
-                meshData.IndexBuffer = new IndexBufferBinding(new BufferData(BufferFlags.IndexBuffer, indexBufferData).ToSerializableVersion(), true, indexMapping.Indices.Length);
+                meshData.IndexBuffer = new IndexBufferBinding(new BufferData(BufferFlags.IndexBuffer | BufferFlags.RawBuffer, indexBufferData).ToSerializableVersion(), true, indexMapping.Indices.Length);
             }
         }
 
@@ -140,7 +140,7 @@ namespace Stride.Extensions
                     *indexBufferDataPtr++ = (ushort)*oldIndexBufferDataPtr++;
                 }
 
-                meshData.IndexBuffer = new IndexBufferBinding(new BufferData(BufferFlags.IndexBuffer, indexBufferData).ToSerializableVersion(), false, indexCount);
+                meshData.IndexBuffer = new IndexBufferBinding(new BufferData(BufferFlags.IndexBuffer | BufferFlags.RawBuffer, indexBufferData).ToSerializableVersion(), false, indexCount);
             }
 
             return true;
@@ -289,7 +289,7 @@ namespace Stride.Extensions
                 Unsafe.CopyBlockUnaligned(indexBufferDataStart, indexDataStart, (uint)indexBufferData.Length);
             }
 
-            meshData.IndexBuffer = new IndexBufferBinding(new BufferData(BufferFlags.IndexBuffer, indexBufferData).ToSerializableVersion(), true, triangleCount * 12);
+            meshData.IndexBuffer = new IndexBufferBinding(new BufferData(BufferFlags.IndexBuffer | BufferFlags.RawBuffer, indexBufferData).ToSerializableVersion(), true, triangleCount * 12);
             meshData.DrawCount = meshData.IndexBuffer.Count;
             meshData.PrimitiveType = PrimitiveType.PatchList.ControlPointCount(12);
         }
@@ -492,7 +492,7 @@ namespace Stride.Extensions
             if (!GetReversedWindingOrder(meshData, out newIndexBuffer))
                 return false;
 
-            meshData.IndexBuffer = new IndexBufferBinding(new BufferData(BufferFlags.IndexBuffer, newIndexBuffer).ToSerializableVersion(), meshData.IndexBuffer.Is32Bit, meshData.IndexBuffer.Count);
+            meshData.IndexBuffer = new IndexBufferBinding(new BufferData(BufferFlags.IndexBuffer | BufferFlags.RawBuffer, newIndexBuffer).ToSerializableVersion(), meshData.IndexBuffer.Is32Bit, meshData.IndexBuffer.Count);
             return true;
         }
 
