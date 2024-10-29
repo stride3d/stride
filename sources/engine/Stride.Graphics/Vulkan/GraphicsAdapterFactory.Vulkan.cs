@@ -99,22 +99,22 @@ namespace Stride.Graphics
                 //engineVersion = new VkVersion()
             };
 
-            var validationLayerNames = new List<VkUtf8String>()
+            var validationLayerNames = stackalloc VkUtf8String[]
             {
                 VK_LAYER_KHRONOS_VALIDATION_EXTENSION_NAME,
             };
+            var validationLayers = new Span<VkUtf8String>(validationLayerNames, 1);
             var enabledLayerNames = new List<VkUtf8String>();
 
             if (enableValidation)
             {
                 var layers = vkEnumerateInstanceLayerProperties();
-                var availableLayerNames = new HashSet<VkUtf8String>();
 
                 for (int index = 0; index < layers.Length; index++)
                 {
                     var properties = layers[index];
                     var name = new VkUtf8String(properties.layerName);
-                    var indexOfLayerName = validationLayerNames.IndexOf(name);
+                    var indexOfLayerName = validationLayers.IndexOf(name);
 
                     if (indexOfLayerName >= 0)
                         enabledLayerNames.Add(validationLayerNames[indexOfLayerName]);
@@ -124,7 +124,7 @@ namespace Stride.Graphics
                 enableValidation = enabledLayerNames.Count > 0;
             }
 
-            var supportedExtensionNames = new List<VkUtf8String>()
+            var supportedExtensionNames = stackalloc VkUtf8String[]
             {
                 VK_KHR_SURFACE_EXTENSION_NAME,
                 VK_KHR_WIN32_SURFACE_EXTENSION_NAME,
@@ -133,7 +133,8 @@ namespace Stride.Graphics
                 VK_KHR_XCB_SURFACE_EXTENSION_NAME,
                 VK_EXT_DEBUG_UTILS_EXTENSION_NAME
             };
-            var availableExtensionNames = GetAvailableExtensionNames(supportedExtensionNames);
+            var supportedExtensions = new Span<VkUtf8String>(supportedExtensionNames, 6);
+            var availableExtensionNames = GetAvailableExtensionNames(supportedExtensions);
             ValidateSurfaceExtensionNamesAvailability(availableExtensionNames);
             var desiredExtensionNames = new HashSet<VkUtf8String>
             {
@@ -178,9 +179,9 @@ namespace Stride.Graphics
             }
         }
 
-        private unsafe static List<VkUtf8String> GetAvailableExtensionNames(List<VkUtf8String> supportedExtensionNames)
+        private unsafe static HashSet<VkUtf8String> GetAvailableExtensionNames(Span<VkUtf8String> supportedExtensionNames)
         {
-            var availableExtensionNames = new List<VkUtf8String>();
+            var availableExtensionNames = new HashSet<VkUtf8String>();
             vkEnumerateInstanceExtensionProperties(out uint extensionCount).CheckResult();
             var extensionProperties = new VkExtensionProperties[extensionCount];
             vkEnumerateInstanceExtensionProperties(extensionProperties).CheckResult();
@@ -198,7 +199,7 @@ namespace Stride.Graphics
             return availableExtensionNames;
         }
 
-        private static void ValidateSurfaceExtensionNamesAvailability(List<VkUtf8String> availableExtensionNames)
+        private static void ValidateSurfaceExtensionNamesAvailability(HashSet<VkUtf8String> availableExtensionNames)
         {
             if (!availableExtensionNames.Contains(VK_KHR_SURFACE_EXTENSION_NAME))
                 throw new InvalidOperationException($"Required extension {Encoding.UTF8.GetString(VK_KHR_SURFACE_EXTENSION_NAME)} is not available");
@@ -223,7 +224,7 @@ namespace Stride.Graphics
             }
         }
 
-        private static VkUtf8String GetPlatformRelatedSurfaceExtensionName(List<VkUtf8String> availableExtensionNames)
+        private static VkUtf8String GetPlatformRelatedSurfaceExtensionName(HashSet<VkUtf8String> availableExtensionNames)
         {
             VkUtf8String surfaceExtensionName = VK_KHR_SURFACE_EXTENSION_NAME;
 

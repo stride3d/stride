@@ -286,12 +286,13 @@ namespace Stride.Graphics
                 depthClamp = true,
             };
 
-            var supportedExtensionProperties = new List<VkUtf8String>()
+            var supportedExtensionProperties = stackalloc VkUtf8String[]
             {
                 VK_KHR_SWAPCHAIN_EXTENSION_NAME,
                 VK_EXT_DEBUG_MARKER_EXTENSION_NAME,
             };
-            var availableExtensionProperties = GetAvailableExtensionProperties(supportedExtensionProperties);
+            var supportedProperties = new Span<VkUtf8String>(supportedExtensionProperties, 2);
+            var availableExtensionProperties = GetAvailableExtensionProperties(supportedProperties);
             ValidateExtensionPropertiesAvailability(availableExtensionProperties);
             var desiredExtensionProperties = new HashSet<VkUtf8String>
             {
@@ -343,9 +344,9 @@ namespace Stride.Graphics
             EmptyTexture = Texture.New2D(this, 1, 1, PixelFormat.R8G8B8A8_UNorm_SRgb, TextureFlags.ShaderResource);
         }
 
-        private unsafe List<VkUtf8String> GetAvailableExtensionProperties(List<VkUtf8String> supportedExtensionProperties)
+        private unsafe HashSet<VkUtf8String> GetAvailableExtensionProperties(Span<VkUtf8String> supportedExtensionProperties)
         {
-            var availableExtensionProperties = new List<VkUtf8String>();
+            var availableExtensionProperties = new HashSet<VkUtf8String>();
             var extensionProperties = vkEnumerateDeviceExtensionProperties(NativePhysicalDevice);
 
             fixed (VkExtensionProperties* extensionPropertiesPtr = extensionProperties)
@@ -364,7 +365,7 @@ namespace Stride.Graphics
             return availableExtensionProperties;
         }
 
-        private static void ValidateExtensionPropertiesAvailability(List<VkUtf8String> availableExtensionProperties)
+        private static void ValidateExtensionPropertiesAvailability(HashSet<VkUtf8String> availableExtensionProperties)
         {
             if (!availableExtensionProperties.Contains(VK_KHR_SWAPCHAIN_EXTENSION_NAME))
                 throw new InvalidOperationException();
