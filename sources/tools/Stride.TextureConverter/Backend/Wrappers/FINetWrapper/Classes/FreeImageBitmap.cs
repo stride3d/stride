@@ -641,13 +641,11 @@ namespace FreeImageAPI
 			{
 				throw new ArgumentOutOfRangeException("height");
 			}
-			uint bpp, redMask, greenMask, blueMask;
-			FREE_IMAGE_TYPE type;
-			if (!FreeImage.GetFormatParameters(format, out type, out bpp, out redMask, out greenMask, out blueMask))
-			{
-				throw new ArgumentException("format is invalid");
-			}
-			dib = FreeImage.AllocateT(type, width, height, (int)bpp, redMask, greenMask, blueMask);
+            if (!FreeImage.GetFormatParameters(format, out var type, out var bpp, out var redMask, out var greenMask, out var blueMask))
+            {
+                throw new ArgumentException("format is invalid");
+            }
+            dib = FreeImage.AllocateT(type, width, height, (int)bpp, redMask, greenMask, blueMask);
 			if (dib.IsNull)
 			{
 				throw new Exception(ErrorCreatingBitmap);
@@ -4370,7 +4368,11 @@ namespace FreeImageAPI
 				info.AddValue("Bitmap Data", memory.GetBuffer());
 			}
 		}
+        public FreeImageBitmap ConvertTo32Bits()
+        {
+            return new FreeImageBitmap(FreeImage.ConvertTo32Bits(dib));
+        }
 
-		#endregion
-	}
+        #endregion
+    }
 }
