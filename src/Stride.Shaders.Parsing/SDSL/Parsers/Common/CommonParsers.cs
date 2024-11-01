@@ -60,14 +60,17 @@ public static class CommonParsers
     }
 
 
-    public static bool IdentifierArraySizeValue<TScanner>(ref TScanner scanner, ParseResult result, out Identifier identifier, out Expression? arraySize, out Expression? value, bool advance = true)
+    public static bool IdentifierArraySizeOptionalValue<TScanner>(ref TScanner scanner, ParseResult result, out Identifier identifier, out Expression? arraySize, out Expression? value, bool advance = true)
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
         arraySize = null!;
         value = null!;
 
-        if (LiteralsParser.Identifier(ref scanner, result, out identifier))
+        if (
+            LiteralsParser.Identifier(ref scanner, result, out identifier)
+            && !FollowedBy(ref scanner, Terminals.Char('.'), withSpaces: true, advance: true)
+        )
         {
             var tmp = scanner.Position;
             Spaces0(ref scanner, result, out _);

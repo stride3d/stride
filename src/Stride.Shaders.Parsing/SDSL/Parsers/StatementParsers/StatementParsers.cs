@@ -253,7 +253,7 @@ public record struct VariableAssignParser : IParser<VariableAssign>
     {
         var position = scanner.Position;
 
-        if (CommonParsers.IdentifierArraySizeValue(ref scanner, result, out var identifier, out var arraySisze, out var value, advance: true))
+        if (CommonParsers.IdentifierArraySizeOptionalValue(ref scanner, result, out var identifier, out var arraySisze, out var value, advance: true))
         {
             if (
                 CommonParsers.FollowedBy(

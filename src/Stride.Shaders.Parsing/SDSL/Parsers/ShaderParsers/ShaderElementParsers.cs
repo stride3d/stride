@@ -63,6 +63,12 @@ public record struct ShaderElementParsers : IParser<ShaderElement>
                 parsed = samplerState;
                 return true;
             }
+            else if (SamplerComparisonState(ref scanner, result, out var samplerCompState))
+            {
+                CommonParsers.FollowedBy(ref scanner, Terminals.Char(';'), withSpaces: true, advance: true);
+                parsed = samplerCompState;
+                return true;
+            }
             else if (Compose(ref scanner, result, out var compose))
             {
                 compose.IsStaged = isStaged;
@@ -104,6 +110,9 @@ public record struct ShaderElementParsers : IParser<ShaderElement>
     public static bool SamplerState<TScanner>(ref TScanner scanner, ParseResult result, out ShaderSamplerState parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
         => new ShaderSamplerStateParser().Match(ref scanner, result, out parsed, in orError);
+    public static bool SamplerComparisonState<TScanner>(ref TScanner scanner, ParseResult result, out ShaderSamplerComparisonState parsed, in ParseError? orError = null)
+        where TScanner : struct, IScanner
+        => new ShaderSamplerComparisonStateParser().Match(ref scanner, result, out parsed, in orError);
     public static bool ShaderElement<TScanner>(ref TScanner scanner, ParseResult result, out ShaderElement parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
         => new ShaderElementParsers().Match(ref scanner, result, out parsed, in orError);

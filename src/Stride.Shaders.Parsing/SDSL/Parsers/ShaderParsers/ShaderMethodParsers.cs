@@ -61,7 +61,7 @@ public record struct ShaderMethodParsers : IParser<ShaderMethod>
     {
         var position = scanner.Position;
 
-        if(Terminals.AnyOf(["inout", "in", "out", "triangle", "const"], ref scanner, out var storage, advance: true))
+        if(Terminals.AnyOf(["inout", "in", "out", "triangle", "point", "const"], ref scanner, out var storage, advance: true))
             CommonParsers.Spaces1(ref scanner, result, out _);
         if(CommonParsers.TypeNameIdentifierArraySizeValue(ref scanner, result, out var typename, out var identifier, out var arraySize, out var value, advance: true)
         )

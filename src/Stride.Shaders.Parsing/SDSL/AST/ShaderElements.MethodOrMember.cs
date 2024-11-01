@@ -29,6 +29,16 @@ public class ShaderSamplerState(Identifier name, TextLocation info) : MethodOrMe
         return $"SamplerState {Name} ({string.Join(", ", Members)})";
     }
 }
+public class ShaderSamplerComparisonState(Identifier name, TextLocation info) : MethodOrMember(info)
+{
+    public Identifier Name { get; set; } = name;
+    public List<SamplerStateAssign> Members { get; set; } = [];
+
+    public override string ToString()
+    {
+        return $"SamplerState {Name} ({string.Join(", ", Members)})";
+    }
+}
 
 
 public class ShaderCompose(Identifier name, Mixin mixin, bool isArray, TextLocation info) : MethodOrMember(info)
