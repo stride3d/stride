@@ -10,9 +10,14 @@ public record struct ControlsParser : IParser<ConditionalFlow>
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
+        if(ShaderAttributeListParser.AttributeList(ref scanner, result, out var attributeList))
+            CommonParsers.Spaces0(ref scanner, result, out _);
         if (If(ref scanner, result, out var ifstatement, orError) && CommonParsers.Spaces0(ref scanner, result, out _))
         {
-            parsed = new(ifstatement, scanner.GetLocation(..));
+            parsed = new(ifstatement, scanner.GetLocation(..))
+            {
+                Attributes = attributeList
+            };
             while(ElseIf(ref scanner, result, out var elseif, orError) && CommonParsers.Spaces0(ref scanner, result, out _))
                 parsed.ElseIfs.Add(elseif);
             if (Else(ref scanner, result, out var elseStatement, orError))

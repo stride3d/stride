@@ -3,6 +3,19 @@ namespace Stride.Shaders.Parsing.SDSL.AST;
 
 public abstract class ShaderElement(TextLocation info) : Node(info);
 
+
+public class ShaderConstant(TypeName type, Identifier name, Expression? value, TextLocation info) : ShaderElement(info)
+{
+    public TypeName Type { get; set; } = type;
+    public Identifier Name { get; set; } = name;
+    public Expression? Value { get; set; } = value;
+
+    public override string ToString()
+    {
+        return $"{Type} {Name} = {Value}";
+    }
+}
+
 public class TypeDef(TypeName type, Identifier name, TextLocation info) : ShaderElement(info)
 {
     public Identifier Name { get; set; } = name;
@@ -23,6 +36,7 @@ public class ShaderStructMember(TypeName typename, Identifier identifier, TextLo
 {
     public TypeName TypeName { get; set; } = typename;
     public Identifier Name { get; set; } = identifier;
+    public List<ShaderAttribute> Attributes { get; set; } = [];
 
     public override string ToString()
     {
@@ -40,6 +54,7 @@ public class ShaderStruct(Identifier typename, TextLocation info) : ShaderElemen
         return $"struct {TypeName} ({string.Join(", ", Members)})";
     }
 }
+
 
 public sealed class CBuffer(List<Identifier> name, TextLocation info) : ShaderBuffer(name, info)
 {

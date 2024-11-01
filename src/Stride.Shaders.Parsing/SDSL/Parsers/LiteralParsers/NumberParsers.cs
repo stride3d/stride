@@ -87,9 +87,8 @@ public struct FloatParser : IParser<FloatLiteral>
                     return CommonParsers.Exit(ref scanner, result, out node, position, new(SDSLParsingMessages.SDSL0001, scanner.GetErrorLocation(scanner.Position), scanner.Memory));
                 while (Terminals.Digit(ref scanner, advance: true)) ;
             }
-            else if (!Terminals.FloatSuffix(ref scanner, out _))
-                return CommonParsers.Exit(ref scanner, result, out node, position);
-            else return CommonParsers.Exit(ref scanner, result, out node, position, new(SDSLParsingMessages.SDSL0001, scanner.GetErrorLocation(scanner.Position), scanner.Memory));
+            else if (Terminals.FloatSuffix(ref scanner, out _) || Terminals.Char('e', ref scanner)){}
+            else return CommonParsers.Exit(ref scanner, result, out node, position);
         }
         else if (Terminals.Digit(ref scanner, 0, advance: true))
         {
@@ -105,13 +104,26 @@ public struct FloatParser : IParser<FloatLiteral>
 
 
         var value = double.Parse(scanner.Span[position..scanner.Position]);
+        int? exponent = null;
+        if (Terminals.Char('e', ref scanner, advance: true))
+        {
+            var signed = Terminals.AnyOf(["+", "-"], ref scanner, out var matched, advance: true);
+            if (LiteralsParser.Integer(ref scanner, result, out var exp))
+            {
+                exponent = (int)exp.Value;
+                if(signed && matched == "-")
+                    exponent = -exponent;
+            }
+            else return CommonParsers.Exit(ref scanner, result, out node, position, new(SDSLParsingMessages.SDSL0001, scanner.GetErrorLocation(scanner.Position), scanner.Memory));
+        }
         if (Terminals.FloatSuffix(ref scanner, out var suffix, advance: true) && suffix is not null)
-            node = new(suffix.Value, value, scanner.GetLocation(position..scanner.Position));
+            node = new(suffix.Value, value, exponent, scanner.GetLocation(position..scanner.Position));
         else
-            node = new(new(32, true, true), value, scanner.GetLocation(position..scanner.Position));
+            node = new(new(32, true, true), value, exponent, scanner.GetLocation(position..scanner.Position));
         return true;
     }
 }
+
 public struct HexParser : IParser<HexLiteral>
 {
     public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, out HexLiteral node, in ParseError? orError = null)

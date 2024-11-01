@@ -6,7 +6,7 @@ using Stride.Shaders.Parsing.SDSL.AST;
 
 // Examples.SpvOpt();
 // Examples.TranslateHLSL();
-Grammar.Match<ExpressionParser, Expression>("float(num) / 4294967295.0");
+Grammar.Match<StatementParsers, Statement>("{\nsamplePosition += BackfaceOffsets[lightIndex];}");
 Examples.ParseSDSL();
 
 Examples.TryAllFiles();

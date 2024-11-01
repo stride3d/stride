@@ -60,6 +60,51 @@ public static class CommonParsers
     }
 
 
+    public static bool IdentifierArraySizeValue<TScanner>(ref TScanner scanner, ParseResult result, out Identifier identifier, out Expression? arraySize, out Expression? value, bool advance = true)
+        where TScanner : struct, IScanner
+    {
+        var position = scanner.Position;
+        arraySize = null!;
+        value = null!;
+
+        if (LiteralsParser.Identifier(ref scanner, result, out identifier))
+        {
+            var tmp = scanner.Position;
+            Spaces0(ref scanner, result, out _);
+            if (
+                !(
+                    Terminals.Char('[', ref scanner, advance: true)
+                    && Spaces0(ref scanner, result, out _)
+                    && Optional(ref scanner, new ExpressionParser(), result, out arraySize)
+                    && Spaces0(ref scanner, result, out _)
+                    && Terminals.Char(']', ref scanner, advance: true)
+                )
+            )
+            {
+                scanner.Position = tmp;
+            }
+            tmp = scanner.Position;
+            if (
+                !(
+                    FollowedBy(ref scanner, Terminals.Char('='), withSpaces: true, advance: true)
+                    && FollowedBy(ref scanner, result, ExpressionParser.Expression, out value, withSpaces: true, advance: true)
+                )
+            )
+            {
+                scanner.Position = tmp;
+            }
+            if (!advance)
+                scanner.Position = position;
+            return true;
+        }
+        else
+        {
+            scanner.Position = position;
+            identifier = null!;
+            arraySize = null!;
+            return false;
+        }
+    }
     public static bool TypeNameIdentifierArraySizeValue<TScanner>(ref TScanner scanner, ParseResult result, out TypeName typeName, out Identifier identifier, out Expression? arraySize, out Expression? value, bool advance = true)
         where TScanner : struct, IScanner
     {

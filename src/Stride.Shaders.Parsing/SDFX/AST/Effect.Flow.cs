@@ -1,4 +1,5 @@
 using Stride.Shaders.Parsing.SDSL;
+using Stride.Shaders.Parsing.SDSL.AST;
 namespace Stride.Shaders.Parsing.SDFX.AST;
 
 public class EffectFlow(TextLocation info) : EffectStatement(info);
@@ -8,7 +9,6 @@ public class EffectControl(If first, TextLocation info) : EffectFlow(info)
     public If If { get; set; } = first;
     public List<ElseIf> ElseIfs { get; set; } = [];
     public Else? Else { get; set; }
-
     public override string ToString()
     {
         return $"{If}{string.Join("\n", ElseIfs.Select(x => x.ToString()))}{Else}";

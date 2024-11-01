@@ -35,6 +35,11 @@ public record struct LiteralsParser : IParser<Literal>
             literal = n;
             return true;
         }
+        else if (Boolean(ref scanner, result, out var b, orError))
+        {
+            literal = b;
+            return true;
+        }
         else return CommonParsers.Exit(ref scanner, result, out literal, position, orError);
     }
     public static bool Literal<TScanner>(ref TScanner scanner, ParseResult result, out Literal literal, in ParseError? orError = null)
@@ -63,9 +68,21 @@ public record struct LiteralsParser : IParser<Literal>
         else return CommonParsers.Exit(ref scanner, result, out parsed, scanner.Position, orError);
     }
 
+    public static bool Boolean<TScanner>(ref TScanner scanner, ParseResult result, out BoolLiteral number, in ParseError? orError = null)
+        where TScanner : struct, IScanner
+    {
+        var position = scanner.Position;
+        if(Terminals.AnyOf(["true", "false"], ref scanner, out var matched, advance: true))
+        {
+            number = new(matched == "true", scanner.GetLocation(position..scanner.Position));
+            return true;
+        }
+        else return CommonParsers.Exit(ref scanner, result, out number, scanner.Position, orError);
+    }
     public static bool Number<TScanner>(ref TScanner scanner, ParseResult result, out NumberLiteral number, in ParseError? orError = null)
         where TScanner : struct, IScanner
         => new NumberParser().Match(ref scanner, result, out number, in orError);
+    
     public static bool Vector<TScanner>(ref TScanner scanner, ParseResult result, out VectorLiteral parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
         => new VectorParser().Match(ref scanner, result, out parsed, in orError);
@@ -365,17 +382,18 @@ public record struct MatrixParser : IParser<MatrixLiteral>
             CommonParsers.Spaces0(ref scanner, result, out _);
             if (Terminals.Char('(', ref scanner, advance: true))
             {
-                var p = new MatrixLiteral<ValueLiteral>(new TypeName(scanner.Memory[position..tnPos].ToString(), scanner.GetLocation(position..tnPos), isArray: false), rows, cols, scanner.GetLocation(..))
+                var p = new MatrixLiteral(new TypeName(scanner.Memory[position..tnPos].ToString(), scanner.GetLocation(position..tnPos), isArray: false), rows, cols, scanner.GetLocation(..))
                 {
                     TypeName = new(baseType, scanner.GetLocation((tnPos - baseType.Length)..(tnPos - 1)), isArray: false)
                 };
                 while (!scanner.IsEof)
                 {
                     CommonParsers.Spaces0(ref scanner, result, out _);
-                    if (LiteralsParser.Number(ref scanner, result, out var number))
-                        p.Values.Add(number);
-                    else if (LiteralsParser.Vector(ref scanner, result, out var vector, new(SDSLParsingMessages.SDSL0007, scanner.GetErrorLocation(scanner.Position), scanner.Memory)))
+                    
+                    if (LiteralsParser.Vector(ref scanner, result, out var vector))
                         p.Values.Add(vector);
+                    else if (ExpressionParser.Expression(ref scanner, result, out var expression))
+                        p.Values.Add(expression);
                     else return CommonParsers.Exit(ref scanner, result, out parsed, position, orError);
                     CommonParsers.Spaces0(ref scanner, result, out _);
                     if (Terminals.Char(',', ref scanner, advance: true))

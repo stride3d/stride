@@ -17,6 +17,18 @@ public class ShaderEffect(TypeName name, bool isPartial, TextLocation info) : Sh
 
 public abstract class EffectStatement(TextLocation info) : Node(info);
 
+
+public class ShaderSourceDeclaration(Identifier name, TextLocation info, Expression? value = null) : EffectStatement(info)
+{
+    public Identifier Name { get; set; } = name;
+    public Expression? Value { get; set; } = value;
+    public bool IsCollection => Name.Name.Contains("Collection");
+    public override string ToString()
+    {
+        return $"ShaderSourceCollection {Name} = {Value}";
+    }
+}
+
 public class EffectStatementBlock(TextLocation info) : EffectStatement(info)
 {
     public List<EffectStatement> Statements { get; set; } = [];
@@ -35,6 +47,23 @@ public class MixinUse(Mixin mixin, TextLocation info) : EffectStatement(info)
         return $"mixin {MixinName}";
     }
 }
+public class MixinChild(Mixin mixin, TextLocation info) : EffectStatement(info)
+{
+    public Mixin MixinName { get; set; } = mixin;
+    public override string ToString()
+    {
+        return $"mixin child {MixinName}";
+    }
+}
+
+public class MixinClone(Mixin mixin, TextLocation info) : EffectStatement(info)
+{
+    public Mixin MixinName { get; set; } = mixin;
+    public override string ToString()
+    {
+        return $"mixin clone {MixinName}";
+    }
+}
 
 public class MixinConst(string identifier, TextLocation info) : EffectStatement(info)
 {
@@ -47,6 +76,13 @@ public class MixinCompose(Identifier identifier, Mixin mixin, TextLocation info)
 {
     public Identifier Identifier { get; set; } = identifier;
     public Mixin MixinName { get; set; } = mixin;
+
+
+    public MixinCompose(Identifier identifier, Expression value, TextLocation info) : this(identifier, new Mixin(new(value.ToString(), value.Info), value.Info), info)
+    {
+
+    }
+
     public override string ToString()
     {
         return $"mixin compose {Identifier} = {MixinName}";

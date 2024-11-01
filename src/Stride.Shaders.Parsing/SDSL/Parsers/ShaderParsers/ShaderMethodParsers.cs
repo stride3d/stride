@@ -33,6 +33,21 @@ public record struct ShaderMethodParsers : IParser<ShaderMethod>
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
+        #warning We should not allow void to be a parameter, this is legacy C code
+        if(
+            CommonParsers.FollowedBy(ref scanner, Terminals.Char(')'), withSpaces: true)
+            || 
+            (
+                CommonParsers.FollowedBy(ref scanner, Terminals.Literal("void"), withSpaces: true, advance: true)
+                && CommonParsers.FollowedBy(ref scanner, Terminals.Char(')'), withSpaces: true)
+            )
+        )
+        {
+            parsed = [];
+            return true;
+        }
+        else
+
         if(CommonParsers.Repeat(ref scanner, result, MethodParameter, out List<MethodParameter> parameters, 0, withSpaces: true, separator: ","))
         {
             parsed = parameters;

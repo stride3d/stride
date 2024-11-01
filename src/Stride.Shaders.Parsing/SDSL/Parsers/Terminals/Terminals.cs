@@ -71,6 +71,8 @@ public static class Terminals
         where TScanner : struct, IScanner
         => new EOFTerminalParser().Match(ref scanner, false);
 
+
+    
     public static bool FloatSuffix<TScanner>(ref TScanner scanner, out Suffix? suffix, bool advance = false)
         where TScanner : struct, IScanner
     {

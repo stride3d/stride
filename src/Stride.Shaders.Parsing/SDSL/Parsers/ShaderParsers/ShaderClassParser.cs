@@ -23,7 +23,7 @@ public record struct ShaderClassParsers : IParser<ShaderClass>
     public static bool GenericsDefinition<TScanner>(ref TScanner scanner, ParseResult result, out ShaderGenerics parsed)
         where TScanner : struct, IScanner
         => new ShaderGenericsDefinitionParser().Match(ref scanner, result, out parsed);
-    public static bool Mixin<TScanner>(ref TScanner scanner, ParseResult result, out Mixin parsed)
+    public static bool Mixin<TScanner>(ref TScanner scanner, ParseResult result, out Mixin parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
         => new ShaderMixinParser().Match(ref scanner, result, out parsed);
 }
