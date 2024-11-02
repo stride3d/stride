@@ -195,18 +195,14 @@ public record struct BufferMemberParser : IParser<ShaderMember>
         if (LiteralsParser.TypeName(ref scanner, result, out var typename1)
             && CommonParsers.Spaces1(ref scanner, result, out _)
             && LiteralsParser.Identifier(ref scanner, result, out Identifier name1)
-            && Terminals.Char('[', ref scanner, advance: true)
-            && CommonParsers.Spaces0(ref scanner, result, out _)
-            && CommonParsers.Optional(ref scanner, new ExpressionParser(), result, out var arraySize)
-            && CommonParsers.Spaces0(ref scanner, result, out _)
-            && Terminals.Char(']', ref scanner, advance: true)
+            && CommonParsers.FollowedByDelList(ref scanner, result, CommonParsers.ArraySizes, out List<Expression> arraySizes, withSpaces:true, advance: true)
             && CommonParsers.FollowedBy(ref scanner, Terminals.Set("=;"), withSpaces: true)
         )
         {
             if (CommonParsers.FollowedBy(ref scanner, Terminals.Set(";"), withSpaces: true))
             {
                 CommonParsers.Until(ref scanner, ';', advance: true);
-                parsed = new ShaderMember(typename1, name1, null, true, scanner.GetLocation(position..scanner.Position), isStage, isStream, arraySize: arraySize);
+                parsed = new ShaderMember(typename1, name1, null, true, scanner.GetLocation(position..scanner.Position), isStage, isStream, arraySizes: arraySizes);
                 return true;
             }
             else if (CommonParsers.FollowedBy(ref scanner, Terminals.Set("="), withSpaces: true))
@@ -217,7 +213,7 @@ public record struct BufferMemberParser : IParser<ShaderMember>
                 {
                     if (CommonParsers.Spaces0(ref scanner, result, out _) && Terminals.Char(';', ref scanner))
                     {
-                        parsed = new ShaderMember(typename1, name1, expression, true, scanner.GetLocation(position..scanner.Position), isStage, isStream, arraySize: arraySize);
+                        parsed = new ShaderMember(typename1, name1, expression, true, scanner.GetLocation(position..scanner.Position), isStage, isStream, arraySizes: arraySizes);
                         return true;
                     }
                     else return CommonParsers.Exit(ref scanner, result, out parsed, position, orError);

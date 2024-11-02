@@ -60,11 +60,11 @@ public static class CommonParsers
     }
 
 
-    public static bool IdentifierArraySizeOptionalValue<TScanner>(ref TScanner scanner, ParseResult result, out Identifier identifier, out Expression? arraySize, out Expression? value, bool advance = true)
+    public static bool IdentifierArraySizeOptionalValue<TScanner>(ref TScanner scanner, ParseResult result, out Identifier identifier, out List<Expression> arraySizes, out Expression? value, bool advance = true)
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
-        arraySize = null!;
+        arraySizes = null!;
         value = null!;
 
         if (
@@ -74,15 +74,7 @@ public static class CommonParsers
         {
             var tmp = scanner.Position;
             Spaces0(ref scanner, result, out _);
-            if (
-                !(
-                    Terminals.Char('[', ref scanner, advance: true)
-                    && Spaces0(ref scanner, result, out _)
-                    && Optional(ref scanner, new ExpressionParser(), result, out arraySize)
-                    && Spaces0(ref scanner, result, out _)
-                    && Terminals.Char(']', ref scanner, advance: true)
-                )
-            )
+            if (!FollowedByDelList(ref scanner, result, ArraySizes, out arraySizes, withSpaces: true, advance: true))
             {
                 scanner.Position = tmp;
             }
@@ -104,11 +96,11 @@ public static class CommonParsers
         {
             scanner.Position = position;
             identifier = null!;
-            arraySize = null!;
+            arraySizes = null!;
             return false;
         }
     }
-    public static bool TypeNameIdentifierArraySizeValue<TScanner>(ref TScanner scanner, ParseResult result, out TypeName typeName, out Identifier identifier, out Expression? arraySize, out Expression? value, bool advance = true)
+    public static bool TypeNameIdentifierArraySizeValue<TScanner>(ref TScanner scanner, ParseResult result, out TypeName typeName, out Identifier identifier, out List<Expression> arraySize, out Expression? value, bool advance = true)
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
@@ -122,15 +114,7 @@ public static class CommonParsers
         {
             var tmp = scanner.Position;
             Spaces0(ref scanner, result, out _);
-            if (
-                !(
-                    Terminals.Char('[', ref scanner, advance: true)
-                    && Spaces0(ref scanner, result, out _)
-                    && ExpressionParser.Expression(ref scanner, result, out arraySize)
-                    && Spaces0(ref scanner, result, out _)
-                    && Terminals.Char(']', ref scanner, advance: true)
-                )
-            )
+            if (!FollowedByDelList(ref scanner, result, ArraySizes, out arraySize, withSpaces: true, advance: true))
             {
                 scanner.Position = tmp;
             }
@@ -153,9 +137,7 @@ public static class CommonParsers
             scanner.Position = position;
             if (
                 LiteralsParser.TypeName(ref scanner, result, out typeName)
-                && FollowedBy(ref scanner, Terminals.Char('['), withSpaces: true, advance: true)
-                && ExpressionParser.Expression(ref scanner, result, out arraySize)
-                && FollowedBy(ref scanner, Terminals.Char(']'), withSpaces: true, advance: true)
+                && FollowedByDelList(ref scanner, result, ArraySizes, out List<Expression> sizes, withSpaces: true, advance: true)
                 && Spaces1(ref scanner, result, out _)
                 && LiteralsParser.Identifier(ref scanner, result, out identifier))
             {
@@ -181,6 +163,27 @@ public static class CommonParsers
         identifier = null!;
         arraySize = null!;
         return false;
+    }
+
+    public static bool ArraySizes<TScanner>(ref TScanner scanner, ParseResult result, out List<Expression> arraySizes, in ParseError? orError = null)
+        where TScanner : struct, IScanner
+    {
+        arraySizes = [];
+        while (!scanner.IsEof)
+        {
+            if (FollowedBy(ref scanner, Terminals.Char('['), withSpaces: true, advance: true))
+            {
+                if (FollowedByDel(ref scanner, result, ExpressionParser.Expression, out Expression arraySize, withSpaces: true, advance: true))
+                {
+                    arraySizes.Add(arraySize);
+                    if (!FollowedBy(ref scanner, Terminals.Char(']'), withSpaces: true, advance: true))
+                        return Exit(ref scanner, result, out arraySizes, scanner.Position);
+                }
+                else return Exit(ref scanner, result, out arraySizes, scanner.Position);
+            }
+            else break;
+        }
+        return true;
     }
 
     public static bool TypeNameMixinArraySizeValue<TScanner>(ref TScanner scanner, ParseResult result, out TypeName typeName, out Mixin mixin, out Expression? arraySize, out Expression? value, bool advance = true)

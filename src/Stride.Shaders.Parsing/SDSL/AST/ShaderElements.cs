@@ -4,15 +4,67 @@ namespace Stride.Shaders.Parsing.SDSL.AST;
 public abstract class ShaderElement(TextLocation info) : Node(info);
 
 
-public class ShaderConstant(TypeName type, Identifier name, Expression? value, TextLocation info) : ShaderElement(info)
+public enum StorageClass
+{
+    None,
+    Extern,
+    NoInterpolation,
+    Precise,
+    Shared,
+    GroupShared,
+    Static,
+    Uniform,
+    Volatile
+}
+
+public enum TypeModifier
+{
+    None,
+    Const,
+    RowMajor,
+    ColumnMajor
+}
+
+public static class ShaderVariableInformationExtensions
+{
+    public static StorageClass ToStorageClass(this string str)
+    {
+        return str switch
+        {
+            "extern" => StorageClass.Extern,
+            "nointerpolation" => StorageClass.NoInterpolation,
+            "precise" => StorageClass.Precise,
+            "shared" => StorageClass.Shared,
+            "groupshared" => StorageClass.GroupShared,
+            "static" => StorageClass.Static,
+            "uniform" => StorageClass.Uniform,
+            "volatile" => StorageClass.Volatile,
+            _ => StorageClass.None
+        };
+    }
+
+    public static TypeModifier ToTypeModifier(this string str)
+    {
+        return str switch
+        {
+            "const" => TypeModifier.Const,
+            "row_major" => TypeModifier.RowMajor,
+            "column_major" => TypeModifier.ColumnMajor,
+            _ => TypeModifier.None
+        };
+    }
+}
+
+public class ShaderVariable(TypeName type, Identifier name, Expression? value, TextLocation info) : ShaderElement(info)
 {
     public TypeName Type { get; set; } = type;
     public Identifier Name { get; set; } = name;
     public Expression? Value { get; set; } = value;
-
+    public StorageClass StorageClass { get; set; } = StorageClass.None;
+    public TypeModifier TypeModifier { get; set; } = TypeModifier.None;
     public override string ToString()
     {
-        return $"{Type} {Name} = {Value}";
+        return $"{(StorageClass != StorageClass.None ? $"{StorageClass} " :"")}{(TypeModifier != TypeModifier.None ? $"{TypeModifier} " :"")}{Type} {Name} = {Value}";
     }
 }
 

@@ -17,11 +17,11 @@ public record struct ShaderMemberParser : IParser<ShaderMember>
         var position = scanner.Position;
 
         TypeName? typeName = null!;
-        Expression? arraySize = null!;
+        List<Expression> arraySizes = null!;
         Expression? value = null!;
 
 
-        if (!Terminals.Literal("compose", ref scanner) && CommonParsers.TypeNameIdentifierArraySizeValue(ref scanner, result, out typeName, out var identifier, out arraySize, out value))
+        if (!Terminals.Literal("compose", ref scanner) && CommonParsers.TypeNameIdentifierArraySizeValue(ref scanner, result, out typeName, out var identifier, out arraySizes, out value))
         {
             if (
                 CommonParsers.FollowedBy(ref scanner, Terminals.Char(':'), withSpaces: true, advance: true)
@@ -30,14 +30,14 @@ public record struct ShaderMemberParser : IParser<ShaderMember>
             {
                 if (CommonParsers.FollowedBy(ref scanner, Terminals.Char(';'), withSpaces: true, advance: true))
                 {
-                    parsed = new(typeName, identifier, value, arraySize != null, scanner.GetLocation(position..scanner.Position), semantic: semantic, arraySize: arraySize);
+                    parsed = new(typeName, identifier, value, arraySizes != null, scanner.GetLocation(position..scanner.Position), semantic: semantic, arraySizes: arraySizes);
                     return true;
                 }
                 else return CommonParsers.Exit(ref scanner, result, out parsed, position, new(SDSLParsingMessages.SDSL0001, scanner.GetErrorLocation(scanner.Position), scanner.Memory));
             }
             else if (CommonParsers.FollowedBy(ref scanner, Terminals.Char(';'), withSpaces: true, advance: true))
             {
-                parsed = new(typeName, identifier, value, arraySize != null, scanner.GetLocation(position..scanner.Position), arraySize: arraySize);
+                parsed = new(typeName, identifier, value, arraySizes != null, scanner.GetLocation(position..scanner.Position), arraySizes: arraySizes);
                 return true;
             }
             else return CommonParsers.Exit(ref scanner, result, out parsed, position, new(SDSLParsingMessages.SDSL0013, scanner.GetErrorLocation(scanner.Position), scanner.Memory));

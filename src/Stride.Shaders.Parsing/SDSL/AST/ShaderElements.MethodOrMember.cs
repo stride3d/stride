@@ -49,14 +49,14 @@ public class ShaderCompose(Identifier name, Mixin mixin, bool isArray, TextLocat
     public override string ToString() => $"compose {Mixin}{(IsArray ? "[]" : "")} {Name}";
 }
 
-public sealed class ShaderMember(TypeName type, Identifier name, Expression? initialValue, bool isArray, TextLocation location, bool isStaged = false, bool isStream = false, Identifier? semantic = null, Expression? arraySize = null) : MethodOrMember(location, isStaged)
+public sealed class ShaderMember(TypeName type, Identifier name, Expression? initialValue, bool isArray, TextLocation location, bool isStaged = false, bool isStream = false, Identifier? semantic = null, List<Expression>? arraySizes = null) : MethodOrMember(location, isStaged)
 {
     public TypeName Type { get; set; } = type;
     public Identifier Name { get; set; } = name;
     public Identifier? Semantic { get; set; } = semantic;
     public bool IsStream { get; set; } = isStream;
     public bool IsArray { get; set; } = isArray;
-    public Expression? ArraySize { get; set; } = arraySize;
+    public List<Expression>? ArraySizes { get; set; } = arraySizes;
     public Expression? Value { get; set; } = initialValue;
 
     public override string ToString()

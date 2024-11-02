@@ -23,15 +23,17 @@ public record struct StatementParsers : IParser<Statement>
         }
         else if (Break(ref scanner, result, out parsed))
             return true;
+        else if (Discard(ref scanner, result, out parsed))
+            return true;
         else if (Return(ref scanner, result, out parsed))
             return true;
         else if (Continue(ref scanner, result, out parsed))
             return true;
         else if (Declare(ref scanner, result, out parsed))
             return true;
-        else if (!Terminals.Char('{', ref scanner) && Assignments(ref scanner, result, out parsed))
-            return true;
         else if (!Terminals.Char('{', ref scanner) && Expression(ref scanner, result, out parsed))
+            return true;
+        else if (!Terminals.Char('{', ref scanner) && Assignments(ref scanner, result, out parsed))
             return true;
         else if (Block(ref scanner, result, out parsed))
             return true;
@@ -49,6 +51,20 @@ public record struct StatementParsers : IParser<Statement>
     internal static bool Break<TScanner>(ref TScanner scanner, ParseResult result, out Statement parsed, ParseError? orError = null)
         where TScanner : struct, IScanner
         => new BreakParser().Match(ref scanner, result, out parsed, orError);
+    internal static bool Discard<TScanner>(ref TScanner scanner, ParseResult result, out Statement parsed, ParseError? orError = null)
+        where TScanner : struct, IScanner
+    {
+        var position = scanner.Position;
+        if (
+            CommonParsers.FollowedBy(ref scanner, Terminals.Literal("discard"), withSpaces: true, advance: true) 
+            && CommonParsers.FollowedBy(ref scanner, Terminals.Char(';'), withSpaces: true, advance: true)
+        )
+        {
+            parsed = new Discard(scanner.GetLocation(position..scanner.Position));
+            return true;
+        }
+        else return CommonParsers.Exit(ref scanner, result, out parsed, position, orError);
+    }
     internal static bool Return<TScanner>(ref TScanner scanner, ParseResult result, out Statement parsed, ParseError? orError = null)
         where TScanner : struct, IScanner
         => new ReturnStatementParser().Match(ref scanner, result, out parsed, orError);

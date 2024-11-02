@@ -4,6 +4,7 @@ public abstract class Flow(TextLocation info) : Statement(info);
 
 public abstract class Loop(TextLocation info) : Flow(info);
 public class Break(TextLocation info) : Statement(info);
+public class Discard(TextLocation info) : Statement(info);
 public class Continue(TextLocation info) : Statement(info);
 
 

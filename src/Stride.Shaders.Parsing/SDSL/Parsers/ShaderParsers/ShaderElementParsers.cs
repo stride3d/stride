@@ -14,7 +14,7 @@ public record struct ShaderElementParsers : IParser<ShaderElement>
             parsed = typeDef;
             return true;
         }
-        else if (Constant(ref scanner, result, out var cst))
+        else if (ShaderVariable(ref scanner, result, out var cst))
         {
             parsed = cst;
             return true;
@@ -121,28 +121,38 @@ public record struct ShaderElementParsers : IParser<ShaderElement>
         where TScanner : struct, IScanner
         => new ShaderMethodParsers().Match(ref scanner, result, out parsed, in orError);
 
-    public static bool Constant<TScanner>(ref TScanner scanner, ParseResult result, out ShaderElement parsed, in ParseError? orError = null)
+    public static bool ShaderVariable<TScanner>(ref TScanner scanner, ParseResult result, out ShaderElement parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
+        
+        var hasStorageClass = 
+            Terminals.AnyOf(
+                ["extern", "nointerpolation", "precise", "shared", "groupshared", "static", "uniform", "volatile"], 
+                ref scanner, 
+                out var storageClass,
+                advance: true)
+            && CommonParsers.Spaces1(ref scanner, result, out _)
+            ;
+        var hasTypeModifier = 
+            Terminals.AnyOf(
+                ["const", "row_major", "column_major"],
+                ref scanner, 
+                out var typemodifier,
+                advance: true)
+            && CommonParsers.Spaces1(ref scanner, result, out _)
+            ;
+
         if(
-            (
-                CommonParsers.SequenceOf(ref scanner, ["static", "const"], advance: true) 
-                || Terminals.Literal("const", ref scanner, advance: true)
-            )
-            && CommonParsers.TypeNameIdentifierArraySizeValue(ref scanner, result, out var type, out var name, out var arraySize, out var value)
+            CommonParsers.TypeNameIdentifierArraySizeValue(ref scanner, result, out var type, out var name, out var arraySize, out var value)
             && CommonParsers.FollowedBy(ref scanner, Terminals.Char(';'), withSpaces: true, advance: true)
         )
         {
-            parsed = new ShaderConstant(type, name, value, scanner.GetLocation(position..scanner.Position));
-            return true;
-        }
-        else if(
-            CommonParsers.TypeNameIdentifierArraySizeValue(ref scanner, result, out type, out name, out arraySize, out value)
-            && CommonParsers.FollowedBy(ref scanner, Terminals.Char(';'), withSpaces: true, advance: true)
-        )
-        {
-            parsed = new ShaderConstant(type, name, value, scanner.GetLocation(position..scanner.Position));
+            parsed = new ShaderVariable(type, name, value, scanner.GetLocation(position..scanner.Position))
+            {
+                StorageClass = storageClass.ToStorageClass(),
+                TypeModifier = typemodifier.ToTypeModifier()
+            };
             return true;
         }
         else return CommonParsers.Exit(ref scanner, result, out parsed, position, orError);
