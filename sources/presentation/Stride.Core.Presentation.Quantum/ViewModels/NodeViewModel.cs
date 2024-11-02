@@ -182,33 +182,28 @@ namespace Stride.Core.Presentation.Quantum.ViewModels
         /// </summary>
         /// <remarks>Used mostly for sorting purpose.</remarks>
         /// <seealso cref="HasList"/>
-        public bool HasList => ListDescriptor.IsList(Type) || this.NodeValue != null && ListDescriptor.IsList(this.NodeValue.GetType());
+        public bool HasList => ListDescriptor.IsList(Type);
 
         /// <summary>
         /// Gets whether this node contains a collection.
         /// </summary>
         /// <remarks>Used mostly for sorting purpose.</remarks>
         /// <seealso cref="HasDictionary"/>
-        public bool HasCollection => OldCollectionDescriptor.IsCollection(Type) || this.NodeValue != null && OldCollectionDescriptor.IsCollection(this.NodeValue.GetType());
+        public bool HasCollection => OldCollectionDescriptor.IsCollection(Type);
 
         /// <summary>
         /// Gets whether this node contains a dictionary.
         /// </summary>
         /// <remarks>Usually a dictionary is also a collection.</remarks>
         /// <seealso cref="HasCollection"/>
-        public bool HasDictionary => DictionaryDescriptor.IsDictionary(Type) || this.NodeValue != null && DictionaryDescriptor.IsDictionary(this.NodeValue.GetType());
+        public bool HasDictionary => DictionaryDescriptor.IsDictionary(Type);
 
         /// <summary>
         /// Gets whether this node contains a set.
         /// </summary>
         /// <remarks>Usually a set is also a collection.</remarks>
         /// <seealso cref="HasCollection"/>
-        public bool HasSet => SetDescriptor.IsSet(Type) || this.NodeValue != null && SetDescriptor.IsSet(this.NodeValue.GetType());
-
-        /// <summary>
-        /// Gets whether this node contains any kind of collection.
-        /// </summary>
-        public bool HasAnyCollection => HasList || HasCollection || HasDictionary || HasSet;
+        public bool HasSet => SetDescriptor.IsSet(Type);
 
         /// <summary>
         /// Gets the number of visible children.

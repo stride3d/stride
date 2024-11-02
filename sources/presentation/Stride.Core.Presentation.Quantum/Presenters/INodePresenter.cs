@@ -6,8 +6,6 @@ using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Core.Reflection;
 using Stride.Core.Quantum;
-using System.Diagnostics.CodeAnalysis;
-using NotNullAttribute = Stride.Core.Annotations.NotNullAttribute;
 
 namespace Stride.Core.Presentation.Quantum.Presenters
 {
@@ -85,54 +83,5 @@ namespace Stride.Core.Presentation.Quantum.Presenters
 
         [CanBeNull]
         INodePresenter TryGetChild(string childName);
-
-        /// <summary>
-        /// Returns true if this <see cref="Descriptor"/> or <see cref="Value"/> is an array, dictionary or collection
-        /// </summary>
-        /// <param name="hasAdd">Whether this collection supports adding items</param>
-        /// <param name="itemType">What the collection is composed of, for dictionaries this would be the value type</param>
-        /// <param name="descriptor"><see cref="Descriptor"/> or <see cref="Value"/> if <see cref="Descriptor"/> is not a collection </param>
-        public bool ValueIsAnyCollection(out bool hasAdd, [MaybeNullWhen(false)] out Type itemType, [MaybeNullWhen(false)] out ITypeDescriptor descriptor)
-        {
-            if (DescriptorIsAnyCollection(Descriptor, out hasAdd, out itemType))
-            {
-                descriptor = Descriptor;
-                return true;
-            }
-            if (Value is { } val 
-                && TypeDescriptorFactory.Default.Find(val.GetType()) is { } valueDescriptor 
-                && DescriptorIsAnyCollection(valueDescriptor, out hasAdd, out itemType))
-            {
-                descriptor = valueDescriptor;
-                return true;
-            }
-            descriptor = null;
-            return false;
-        }
-
-        private static bool DescriptorIsAnyCollection(ITypeDescriptor descriptor, out bool hasAdd, [MaybeNullWhen(false)] out Type itemType)
-        {
-            if (descriptor is DictionaryDescriptor dd)
-            {
-                itemType = dd.ValueType;
-                hasAdd = true;
-                return true;
-            }
-            else if (descriptor is CollectionDescriptor cd)
-            {
-                itemType = cd.ElementType;
-                hasAdd = cd.HasAdd;
-                return true;
-            }
-            else if (descriptor is ArrayDescriptor arr)
-            {
-                itemType = arr.ElementType;
-                hasAdd = false;
-                return true;
-            }
-            itemType = null;
-            hasAdd = false;
-            return false;
-        }
     }
 }

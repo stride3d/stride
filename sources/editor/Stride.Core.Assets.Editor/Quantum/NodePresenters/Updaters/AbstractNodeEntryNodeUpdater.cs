@@ -16,7 +16,7 @@ namespace Stride.Core.Assets.Editor.Quantum.NodePresenters.Updaters
     {
         public static IEnumerable<AbstractNodeEntry> FillDefaultAbstractNodeEntry(IAssetNodePresenter node)
         {
-            var type = node.Descriptor.Type;
+            var type = node.Descriptor.GetInnerCollectionType();
 
             IEnumerable<AbstractNodeEntry> abstractNodeMatchingEntries = AbstractNodeType.GetInheritedInstantiableTypes(type);
 

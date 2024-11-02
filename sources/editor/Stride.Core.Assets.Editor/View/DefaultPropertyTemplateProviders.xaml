@@ -30,7 +30,7 @@
   <Style x:Key="AddNewItemButtonStyle" BasedOn="{StaticResource ImageButtonStyle}" TargetType="Button">
     <Setter Property="Visibility" Value="{sd:MultiBinding {Binding HasCommand_AddNewItem}, {Binding HasCollection},
                                                             {Binding HasAssociatedData_ReadOnlyCollection, Converter={sd:InvertBool}},
-                                                            {Binding HasAssociatedData_AbstractNodeCollectionMatchingEntries, Converter={sd:InvertBool}},
+                                                            {Binding HasAssociatedData_AbstractNodeMatchingEntries, Converter={sd:InvertBool}},
                                                             Converter={sd:MultiChained {sd:AndMultiConverter}, {sd:VisibleOrCollapsed}}, FallbackValue={sd:Collapsed}}"/>
     <Setter Property="Command" Value="{Binding AddNewItem}"/>
     <Setter Property="ToolTip" Value="{sd:Localize Add..., Context=ToolTip}"/>
@@ -125,7 +125,7 @@
     <Setter Property="Height" Value="16"/>
     <Setter Property="BorderBrush" Value="Transparent"/>
     <Setter Property="VerticalAlignment" Value="Center"/>
-    <Setter Property="Visibility" Value="{sd:MultiBinding {Binding HasCommand_AddNewItem}, {Binding HasCollection}, {Binding HasAssociatedData_AbstractNodeCollectionMatchingEntries},
+    <Setter Property="Visibility" Value="{sd:MultiBinding {Binding HasCommand_AddNewItem}, {Binding HasCollection}, {Binding HasAssociatedData_AbstractNodeMatchingEntries},
                                                             Converter={sd:MultiChained {sd:AndMultiConverter}, {sd:VisibleOrCollapsed}}, FallbackValue={sd:Collapsed}}"/>
     <Setter Property="ToolTip" Value="{sd:Localize Add..., Context=ToolTip}" />
     <Setter Property="Tag" Value="{StaticResource ImageAdd}"/>
@@ -404,9 +404,9 @@
       <DockPanel>
         <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
           <Button Style="{StaticResource AddNewItemButtonStyle}"/>
-          <ComboBox x:Name="AddItemSelectionComboBox" Style="{StaticResource AddItemComboBox}" ItemsSource="{Binding AbstractNodeCollectionMatchingEntries}">
+          <ComboBox x:Name="InstanceTypeSelectionComboBox" Style="{StaticResource AddItemComboBox}" ItemsSource="{Binding AbstractNodeMatchingEntries}">
             <i:Interaction.Behaviors>
-              <behaviors:OnComboBoxClosedWithSelectionBehavior Command="{Binding AddNewItem}" CommandParameter="{Binding SelectedItem, ElementName=AddItemSelectionComboBox}"/>
+              <behaviors:OnComboBoxClosedWithSelectionBehavior Command="{Binding AddNewItem}" CommandParameter="{Binding SelectedItem, ElementName=InstanceTypeSelectionComboBox}"/>
             </i:Interaction.Behaviors>
           </ComboBox>
         </StackPanel>
@@ -447,10 +447,10 @@
                 <!-- Concrete type -->
                 <Button DockPanel.Dock="Right" Style="{StaticResource AddNewItemButtonStyle}"/>
                 <!-- Abstract type -->
-                <ComboBox DockPanel.Dock="Right" x:Name="AddItemSelectionComboBox" Style="{StaticResource AddItemComboBox}"
-                          ItemsSource="{Binding AbstractNodeCollectionMatchingEntries}" Margin="2,0">
+                <ComboBox DockPanel.Dock="Right" x:Name="InstanceTypeSelectionComboBox" Style="{StaticResource AddItemComboBox}"
+                          ItemsSource="{Binding AbstractNodeMatchingEntries}" Margin="2,0">
                   <i:Interaction.Behaviors>
-                    <behaviors:OnComboBoxClosedWithSelectionBehavior Command="{Binding AddNewItem}" CommandParameter="{Binding SelectedItem, ElementName=AddItemSelectionComboBox}"/>
+                    <behaviors:OnComboBoxClosedWithSelectionBehavior Command="{Binding AddNewItem}" CommandParameter="{Binding SelectedItem, ElementName=InstanceTypeSelectionComboBox}"/>
                   </i:Interaction.Behaviors>
                 </ComboBox>
                 <TextBlock Text="{Binding DisplayName, StringFormat={sd:Localize Add to {0}}}" TextTrimming="CharacterEllipsis" FontStyle="Italic"/>
@@ -508,9 +508,9 @@
       <DockPanel>
         <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
           <Button Style="{StaticResource AddNewItemButtonStyle}"/>
-          <ComboBox x:Name="AddItemSelectionComboBox" Style="{StaticResource AddItemComboBox}" ItemsSource="{Binding AbstractNodeCollectionMatchingEntries}">
+          <ComboBox x:Name="InstanceTypeSelectionComboBox" Style="{StaticResource AddItemComboBox}" ItemsSource="{Binding AbstractNodeMatchingEntries}">
             <i:Interaction.Behaviors>
-              <behaviors:OnComboBoxClosedWithSelectionBehavior Command="{Binding AddNewItem}" CommandParameter="{Binding SelectedItem, ElementName=AddItemSelectionComboBox}"/>
+              <behaviors:OnComboBoxClosedWithSelectionBehavior Command="{Binding AddNewItem}" CommandParameter="{Binding SelectedItem, ElementName=InstanceTypeSelectionComboBox}"/>
             </i:Interaction.Behaviors>
           </ComboBox>
         </StackPanel>
@@ -551,10 +551,10 @@
                 <!-- Concrete type -->
                 <Button DockPanel.Dock="Right" Style="{StaticResource AddNewItemButtonStyle}"/>
                 <!-- Abstract type -->
-                <ComboBox DockPanel.Dock="Right" x:Name="AddItemSelectionComboBox" Style="{StaticResource AddItemComboBox}"
-                          ItemsSource="{Binding AbstractNodeCollectionMatchingEntries}" Margin="2,0">
+                <ComboBox DockPanel.Dock="Right" x:Name="InstanceTypeSelectionComboBox" Style="{StaticResource AddItemComboBox}"
+                          ItemsSource="{Binding AbstractNodeMatchingEntries}" Margin="2,0">
                   <i:Interaction.Behaviors>
-                    <behaviors:OnComboBoxClosedWithSelectionBehavior Command="{Binding AddNewItem}" CommandParameter="{Binding SelectedItem, ElementName=AddItemSelectionComboBox}"/>
+                    <behaviors:OnComboBoxClosedWithSelectionBehavior Command="{Binding AddNewItem}" CommandParameter="{Binding SelectedItem, ElementName=InstanceTypeSelectionComboBox}"/>
                   </i:Interaction.Behaviors>
                 </ComboBox>
                 <TextBlock Text="{Binding DisplayName, StringFormat={sd:Localize Add to {0}}}" TextTrimming="CharacterEllipsis" FontStyle="Italic"/>
