@@ -9,6 +9,15 @@ public record struct ShaderElementParsers : IParser<ShaderElement>
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
+
+        bool isOverride = false;
+        bool isStaged = false;
+        bool isStreamed = false;
+        bool hasAttributes = ShaderAttributeListParser.AttributeList(ref scanner, result, out var attributes, orError);
+        var tmpPos = position;
+#warning interpolation modifier should always be after stream/stage
+        var hasInterpolation = Terminals.AnyOf(["linear ", "centroid ", "nointerpolation", "noperspective", "sample"], ref scanner, out var interpolation, advance: true);
+        
         if (TypeDef(ref scanner, result, out var typeDef))
         {
             parsed = typeDef;
@@ -33,11 +42,8 @@ public record struct ShaderElementParsers : IParser<ShaderElement>
         }
         else
         {
-            bool isOverride = false;
-            bool isStaged = false;
-            bool isStreamed = false;
-            bool hasAttributes = ShaderAttributeListParser.AttributeList(ref scanner, result, out var attributes, orError);
-            var tmpPos = scanner.Position;
+
+            tmpPos = scanner.Position;
 #warning override keyword should always happen after stage and stream
             if (Terminals.Literal("override", ref scanner, advance: true) && CommonParsers.Spaces1(ref scanner, result, out _))
             {
@@ -57,6 +63,8 @@ public record struct ShaderElementParsers : IParser<ShaderElement>
                 isStreamed = true;
             else
                 scanner.Position = tmpPos;
+            if(!hasInterpolation)
+                hasInterpolation = Terminals.AnyOf(["linear ", "centroid ", "nointerpolation", "noperspective", "sample"], ref scanner, out interpolation, advance: true);
             if (SamplerState(ref scanner, result, out var samplerState))
             {
                 CommonParsers.FollowedBy(ref scanner, Terminals.Char(';'), withSpaces: true, advance: true);
@@ -90,6 +98,8 @@ public record struct ShaderElementParsers : IParser<ShaderElement>
             {
                 member.IsStream = isStreamed;
                 member.IsStaged = isStaged;
+                if(hasInterpolation)
+                    member.Interpolation = interpolation.ToInterpolationModifier();
                 if (hasAttributes)
                     member.Attributes = attributes.Attributes;
                 parsed = member;
@@ -125,29 +135,30 @@ public record struct ShaderElementParsers : IParser<ShaderElement>
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
-        
-        var hasStorageClass = 
+
+        var hasStorageClass =
             Terminals.AnyOf(
-                ["extern", "nointerpolation", "precise", "shared", "groupshared", "static", "uniform", "volatile"], 
-                ref scanner, 
+                ["extern", "nointerpolation", "precise", "shared", "groupshared", "static", "uniform", "volatile"],
+                ref scanner,
                 out var storageClass,
                 advance: true)
             && CommonParsers.Spaces1(ref scanner, result, out _)
             ;
-        var hasTypeModifier = 
+        var hasTypeModifier =
             Terminals.AnyOf(
                 ["const", "row_major", "column_major"],
-                ref scanner, 
+                ref scanner,
                 out var typemodifier,
                 advance: true)
             && CommonParsers.Spaces1(ref scanner, result, out _)
             ;
 
-        if(
+        if (
             CommonParsers.TypeNameIdentifierArraySizeValue(ref scanner, result, out var type, out var name, out var arraySize, out var value)
             && CommonParsers.FollowedBy(ref scanner, Terminals.Char(';'), withSpaces: true, advance: true)
         )
         {
+            type.ArraySize = arraySize;
             parsed = new ShaderVariable(type, name, value, scanner.GetLocation(position..scanner.Position))
             {
                 StorageClass = storageClass.ToStorageClass(),
@@ -158,7 +169,7 @@ public record struct ShaderElementParsers : IParser<ShaderElement>
         else return CommonParsers.Exit(ref scanner, result, out parsed, position, orError);
 
     }
-    
+
     public static bool TypeDef<TScanner>(ref TScanner scanner, ParseResult result, out ShaderElement parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
     {

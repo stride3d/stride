@@ -16,6 +16,15 @@ public class MethodCall(Identifier name, ShaderExpressionList parameters, TextLo
     }
 }
 
+public class MixinAccess(Mixin mixin, TextLocation info) : Expression(info)
+{
+    public Mixin Mixin { get; set; } = mixin;
+    public override string ToString()
+    {
+        return $"{Mixin}";
+    }
+}
+
 
 public abstract class UnaryExpression(Expression expression, Operator op, TextLocation info) : Expression(info)
 {

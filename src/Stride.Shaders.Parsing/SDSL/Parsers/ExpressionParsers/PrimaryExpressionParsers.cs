@@ -9,23 +9,21 @@ public record struct PrimaryParsers : IParser<Expression>
     public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, out Expression parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
     {
+        var position = scanner.Position;
         if (Parenthesis(ref scanner, result, out parsed))
             return true;
         else if (ArrayLiteral(ref scanner, result, out parsed))
             return true;
         else if (Method(ref scanner, result, out parsed))
             return true;
+        else if (MixinAccess(ref scanner, result, out parsed))
+            return true;
         else if (LiteralsParser.Literal(ref scanner, result, out var lit))
         {
             parsed = lit;
             return true;
         }
-        else
-        {
-            if (orError is not null)
-                result.Errors.Add(orError.Value);
-            return false;
-        }
+        else return CommonParsers.Exit(ref scanner, result, out parsed, position, orError);
     }
     public static bool Primary<TScanner>(ref TScanner scanner, ParseResult result, out Expression parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
@@ -42,6 +40,20 @@ public record struct PrimaryParsers : IParser<Expression>
     public static bool ArrayLiteral<TScanner>(ref TScanner scanner, ParseResult result, out Expression parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
         => new ArrayLiteralParser().Match(ref scanner, result, out parsed, in orError);
+    public static bool MixinAccess<TScanner>(ref TScanner scanner, ParseResult result, out Expression parsed, in ParseError? orError = null)
+        where TScanner : struct, IScanner
+    {
+        var position = scanner.Position;
+        if(
+            ShaderClassParsers.Mixin(ref scanner, result, out var mixin)
+            && CommonParsers.FollowedBy(ref scanner, Terminals.Char('.'), withSpaces: true)
+        )
+        {
+            parsed = new MixinAccess(mixin, scanner.GetLocation(position..scanner.Position));
+            return true;
+        }
+        else return CommonParsers.Exit(ref scanner, result, out parsed, position, orError);
+    }
 }
 
 

@@ -48,10 +48,36 @@ public class VariableAssign(Expression variable, bool isConst, TextLocation info
             Expression v => $"{Variable} {Operator?.ToAssignSymbol()} {v}"
         };
 }
+public class DeclaredVariableAssign(Expression variable, bool isConst, TextLocation info, AssignOperator? op = null, Expression? value = null) : Node(info)
+{
+    public Expression Variable { get; set; } = variable;
+    public AssignOperator? Operator { get; set; } = op;
+    public Expression? Value { get; set; } = value;
+    public bool IsConst { get; set; } = isConst;
+    public TypeName TypeName { get; set; } = new("void", info, false);
+    public List<Expression>? ArraySizes
+    {
+        get => TypeName.ArraySize;
+        set => TypeName.ArraySize = value;
+    }
+
+    internal void ReplaceTypeName(TypeName typeName)
+    {
+        TypeName.Type = typeName.Type;
+        TypeName.Info = typeName.Info;
+    }
+
+    public override string ToString()
+        => Value switch
+        {
+            null => Variable.ToString() ?? "",
+            Expression v => $"{Variable} {Operator?.ToAssignSymbol()} {v}"
+        };
+}
 
 public class Declare(TypeName typename, TextLocation info) : Declaration(typename, info)
 {
-    public List<VariableAssign> Variables { get; set; } = [];
+    public List<DeclaredVariableAssign> Variables { get; set; } = [];
 
     public override string ToString()
     {

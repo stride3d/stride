@@ -43,7 +43,7 @@ public record struct ParameterDeclarationsParser : IParser<ShaderParameterDeclar
             {
                 parameters.Add(new(typename, name));
             }
-            else return CommonParsers.Exit(ref scanner, result, out parsed, position, new(SDSLParsingMessages.SDSL0001, scanner.GetErrorLocation(scanner.Position), scanner.Memory));
+            else return CommonParsers.Exit(ref scanner, result, out parsed, position);
         }
         while (!scanner.IsEof && Terminals.Char(',', ref scanner, advance: true));
         parsed = new(scanner.GetLocation(position..scanner.Position)) { Parameters = parameters };
@@ -82,7 +82,7 @@ public record struct GenericsListParser : IParser<ShaderExpressionList>
     public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, out ShaderExpressionList parsed, in ParseError? orError = null) where TScanner : struct, IScanner
     {
         var position = scanner.Position;
-        if (ParameterParsers.GenericsValue(ref scanner, result, out var parameter, new("Expecting at least one generics value", scanner.GetErrorLocation(scanner.Position), scanner.Memory)))
+        if (ParameterParsers.GenericsValue(ref scanner, result, out var parameter))
         {
             parsed = new(scanner.GetLocation(position..scanner.Position));
             parsed.Values.Add(parameter);

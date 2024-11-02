@@ -66,6 +66,7 @@ public record struct ShaderMethodParsers : IParser<ShaderMethod>
         if(CommonParsers.TypeNameIdentifierArraySizeValue(ref scanner, result, out var typename, out var identifier, out var arraySize, out var value, advance: true)
         )
         {
+            typename.ArraySize = arraySize;
             parsed = new(typename, identifier, scanner.GetLocation(position..scanner.Position), storage);
             return true;
         }

@@ -112,7 +112,7 @@ public class TypeName(string name, TextLocation info, bool isArray) : Literal(in
 {
     public string Name { get; set; } = name;
     public bool IsArray { get; set; } = isArray;
-    public Expression? ArraySize { get; set; }
+    public List<Expression>? ArraySize { get; set; }
     public List<TypeName> Generics { get; set; } = [];
 
     public override string ToString()

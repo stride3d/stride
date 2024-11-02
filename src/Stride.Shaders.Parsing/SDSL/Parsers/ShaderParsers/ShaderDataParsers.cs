@@ -30,6 +30,7 @@ public record struct ShaderMemberParser : IParser<ShaderMember>
             {
                 if (CommonParsers.FollowedBy(ref scanner, Terminals.Char(';'), withSpaces: true, advance: true))
                 {
+                    typeName.ArraySize = arraySizes;
                     parsed = new(typeName, identifier, value, arraySizes != null, scanner.GetLocation(position..scanner.Position), semantic: semantic, arraySizes: arraySizes);
                     return true;
                 }

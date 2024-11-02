@@ -24,9 +24,30 @@ public enum TypeModifier
     RowMajor,
     ColumnMajor
 }
+public enum InterpolationModifier
+{
+    None,
+    Linear,
+    Centroid,
+    NoInterpolation,
+    NoPerspective,
+    Sample
+}
 
 public static class ShaderVariableInformationExtensions
 {
+    public static InterpolationModifier ToInterpolationModifier(this string str)
+    {
+        return str switch
+        {
+            "linear" => InterpolationModifier.Linear,
+            "centroid" => InterpolationModifier.Centroid,
+            "nointerpolation" => InterpolationModifier.NoInterpolation,
+            "noperspective" => InterpolationModifier.NoPerspective,
+            "sample" => InterpolationModifier.Sample,
+            _ => InterpolationModifier.None
+        };
+    }
     public static StorageClass ToStorageClass(this string str)
     {
         return str switch

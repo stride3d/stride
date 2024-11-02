@@ -138,6 +138,7 @@ public record struct EffectStatementParsers : IParser<EffectStatement>
             && CommonParsers.FollowedBy(ref scanner, Terminals.Char(';'), withSpaces: true, advance: true)
         )
         {
+            typename.ArraySize = arraySize;
             parsed = new(name, scanner.GetLocation(position..scanner.Position), value);
             return true;
         }

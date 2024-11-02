@@ -6,7 +6,11 @@ using Stride.Shaders.Parsing.SDSL.AST;
 
 // Examples.SpvOpt();
 // Examples.TranslateHLSL();
-Grammar.Match<StatementParsers, Statement>("{\nsamplePosition += BackfaceOffsets[lightIndex];}");
-Examples.ParseSDSL();
+var matched = Grammar.Match<StatementParsers, Statement>("if(depth < 0 || depth > 1)\n    return 1;");
+foreach(var e in matched.Errors)
+    Console.WriteLine(e);
+Console.WriteLine(matched.AST);
 
-Examples.TryAllFiles();
+// Examples.ParseSDSL();
+
+// Examples.TryAllFiles();

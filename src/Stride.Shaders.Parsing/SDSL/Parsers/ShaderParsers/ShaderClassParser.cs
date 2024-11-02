@@ -149,11 +149,11 @@ public record struct ShaderMixinParser : IParser<Mixin>
             CommonParsers.Spaces0(ref scanner, result, out _);
             if (Terminals.Char('<', ref scanner, advance: true))
             {
-                ParameterParsers.GenericsList(ref scanner, result, out var values, new("Expecting constant generics", scanner.GetErrorLocation(position), scanner.Memory));
+                ParameterParsers.GenericsList(ref scanner, result, out var values);
                 parsed.Generics = values;
                 CommonParsers.Spaces0(ref scanner, result, out _);
                 if (!Terminals.Char('>', ref scanner, advance: true))
-                    return CommonParsers.Exit(ref scanner, result, out parsed, position, new(SDSLParsingMessages.SDSL0034, scanner.GetErrorLocation(scanner.Position), scanner.Memory));
+                    return CommonParsers.Exit(ref scanner, result, out parsed, position);
                 return true;
             }
             else
