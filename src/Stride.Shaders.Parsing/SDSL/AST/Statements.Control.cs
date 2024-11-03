@@ -9,6 +9,7 @@ public class ConditionalFlow(If first, TextLocation info) : Flow(info)
     public If If { get; set; } = first;
     public List<ElseIf> ElseIfs { get; set; } = [];
     public Else? Else { get; set; }
+    public ShaderAttributeList? Attributes { get; set; }
 
     public override string ToString()
     {

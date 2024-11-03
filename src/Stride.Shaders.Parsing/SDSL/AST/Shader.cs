@@ -2,35 +2,13 @@ namespace Stride.Shaders.Parsing.SDSL.AST;
 
 
 
-public class ShaderFile(TextLocation info) : Node(info)
-{
-    public List<ShaderClass> RootClasses { get; set; } = [];
-    public List<ShaderNamespace> Namespaces { get; set; } = [];
 
-    public override string ToString()
-    {
-        return $"{string.Join("\n", RootClasses)}\n\n{string.Join("\n", Namespaces)}";
-    }
-}
-
-public class ShaderNamespace(TextLocation info) : Node(info)
-{
-    public List<Identifier> NamespacePath { get; set; } = [];
-    public string? Namespace { get; set; }
-    public List<ShaderClass> ShaderClasses { get; set; } = [];
-
-    public override string ToString()
-    {
-        return $"namespace {string.Join(".", NamespacePath)}\nBlock\n{string.Join("\n", ShaderClasses)}End\n";
-    }
-}
-
-public class ShaderClass(Identifier name, TextLocation info) : Node(info)
+public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration(info)
 {
     public Identifier Name { get; set; } = name;
     public List<ShaderElement> Elements { get; set; } = [];
     public ShaderParameterDeclarations? Generics { get; set; }
-    public List<ShaderMixin> Mixins { get; set; } = [];
+    public List<Mixin> Mixins { get; set; } = [];
 
 
     public override string ToString()
@@ -53,8 +31,9 @@ public class ShaderGenerics(Identifier typename, Identifier name, TextLocation i
     public Identifier TypeName { get; set; } = typename;
 }
 
-public class ShaderMixin(Identifier name, TextLocation info) : Node(info)
+public class Mixin(Identifier name, TextLocation info) : Node(info)
 {
+    public List<Identifier> Path { get; set; } = [];
     public Identifier Name { get; set; } = name;
     public ShaderExpressionList? Generics { get; set; }
     public override string ToString()

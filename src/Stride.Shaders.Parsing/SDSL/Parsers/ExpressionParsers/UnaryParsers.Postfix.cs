@@ -9,50 +9,40 @@ public record struct PostfixParser : IParser<Expression>
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
-        // If the following 
-        if (
-            Accessor(ref scanner, result, out parsed)
-            && CommonParsers.Spaces0(ref scanner, result, out _)
-        )
+        if (PrimaryParsers.Primary(ref scanner, result, out parsed))
         {
-            if (Terminals.Set("[.", ref scanner) || Terminals.Literal("++", ref scanner) || Terminals.Literal("--", ref scanner))
+            while(!scanner.IsEof && CommonParsers.FollowedByAny(ref scanner, ["[", ".", "++", "--"], out var matched, withSpaces: true, advance: true))
             {
-                if (Terminals.Char('.', ref scanner, advance: true))
+                if(
+                    matched == "["
+                    && CommonParsers.FollowedByDel(ref scanner, result, ExpressionParser.Expression, out Expression indexer, withSpaces: true, advance: true)
+                    && CommonParsers.FollowedBy(ref scanner, Terminals.Char(']'), withSpaces: true, advance: true)
+                )
                 {
-                    if (Postfix(ref scanner, result, out var accessed))
-                    {
-                        parsed = new AccessorExpression(parsed, accessed, scanner.GetLocation(position, scanner.Position));
-                        return true;
-                    }
-                    else return CommonParsers.Exit(ref scanner, result, out parsed, position, orError);
+                    parsed = new IndexerExpression(parsed, indexer, scanner.GetLocation(position..scanner.Position));
                 }
-                else if (Terminals.Char('[', ref scanner, advance: true))
+                else if(
+                    matched == "."
+                    && CommonParsers.FollowedByDel(ref scanner, result, PrimaryParsers.Method, out Expression call, withSpaces: true, advance: true)
+                )
                 {
-                    CommonParsers.Spaces0(ref scanner, result, out _);
-                    if (
-                        ExpressionParser.Expression(ref scanner, result, out var index)
-                        && CommonParsers.Spaces0(ref scanner, result, out _)
-                        && Terminals.Char(']', ref scanner, advance: true)
-                    )
-                    {
-                        parsed = new IndexerExpression(parsed, index, scanner.GetLocation(position, scanner.Position - position));
-                        return true;
-                    }
+                    parsed = new AccessorExpression(parsed, call, scanner.GetLocation(position..scanner.Position));
                 }
-                else if (Terminals.Literal("++", ref scanner, advance: true))
+                else if(
+                    matched == "."
+                    && CommonParsers.FollowedByDel(ref scanner, result, LiteralsParser.Literal, out Literal accessor, withSpaces: true, advance: true)
+                )
                 {
-                    parsed = new PostfixExpression(parsed, Operator.Inc, scanner.GetLocation(position, scanner.Position - position));
-                    return true;
+                    parsed = new AccessorExpression(parsed, accessor, scanner.GetLocation(position..scanner.Position));
                 }
-                else if (Terminals.Literal("--", ref scanner, advance: true))
+                else if(matched == "++" || matched == "--")
                 {
-                    parsed = new PostfixExpression(parsed, Operator.Dec, scanner.GetLocation(position, scanner.Position - position));
-                    return true;
+                    parsed = new PostfixExpression(parsed, matched.ToOperator(), scanner.GetLocation(position..scanner.Position));
+                    break;
                 }
-                else return CommonParsers.Exit(ref scanner, result, out parsed, position, new("Expected Postfix expression", scanner.CreateError(position)));
-                    
             }
-            else return true;
+            CommonParsers.Spaces0(ref scanner, result, out _);
+            return true;
         }
         return CommonParsers.Exit(ref scanner, result, out parsed, position, orError);
     }
@@ -84,7 +74,7 @@ public record struct PostfixAccessorParser : IParser<Expression>
             if (
                 Terminals.Char('.', ref scanner, advance: true)
                 && CommonParsers.Spaces0(ref scanner, result, out _)
-                && PostfixParser.Accessor(ref scanner, result, out var accessed, new("Expected accessor expression", scanner.CreateError(scanner.Position))))
+                && PostfixParser.Accessor(ref scanner, result, out var accessed))
             {
                 parsed = new AccessorExpression(expression, accessed, scanner.GetLocation(position, scanner.Position - position));
                 return true;
@@ -115,7 +105,7 @@ public record struct PostfixIndexerParser : IParser<Expression>
             {
                 if (
                     CommonParsers.Spaces0(ref scanner, result, out _)
-                    && ExpressionParser.Expression(ref scanner, result, out var index, new("Expected expression", scanner.CreateError(scanner.Position)))
+                    && ExpressionParser.Expression(ref scanner, result, out var index)
                     && CommonParsers.Spaces0(ref scanner, result, out _)
                     && Terminals.Char(']', ref scanner, advance: true)
                 )
@@ -123,7 +113,7 @@ public record struct PostfixIndexerParser : IParser<Expression>
                     parsed = new IndexerExpression(expression, index, scanner.GetLocation(position, scanner.Position - position));
                     return true;
                 }
-                else return CommonParsers.Exit(ref scanner, result, out parsed, position, new("Expected accessor parser", scanner.CreateError(position)));
+                else return CommonParsers.Exit(ref scanner, result, out parsed, position, new(SDSLParsingMessages.SDSL0021, scanner.GetErrorLocation(position), scanner.Memory));
                     
             }
             else

@@ -53,7 +53,7 @@ public record struct DirectivePrefixIncrementParser : IParser<Expression>
             {
                 parsed = null!;
                 scanner.Position = position;
-                result.Errors.Add(new("Expecting Postfix expression", scanner.CreateError(position)));
+                result.Errors.Add(new(SDSLParsingMessages.SDSL0020, scanner.GetErrorLocation(position), scanner.Memory));
                 return false;
             }
         }
@@ -70,7 +70,7 @@ public record struct DirectivePrefixIncrementParser : IParser<Expression>
             {
                 parsed = null!;
                 scanner.Position = position;
-                result.Errors.Add(new("Expecting Postfix expression", scanner.CreateError(position)));
+                result.Errors.Add(new(SDSLParsingMessages.SDSL0020, scanner.GetErrorLocation(position), scanner.Memory));
                 return false;
             }
         }
@@ -106,14 +106,14 @@ public record struct DirectiveNotExpressionParser : IParser<Expression>
             {
                 parsed = null!;
                 scanner.Position = position;
-                result.Errors.Add(new("Expecting Postfix expression", scanner.CreateError(position)));
+                result.Errors.Add(new(SDSLParsingMessages.SDSL0020, scanner.GetErrorLocation(position), scanner.Memory));
                 return false;
             }
         }
         else 
         {
             if (orError is not null)
-                result.Errors.Add(orError.Value with { Location = scanner.CreateError(position) });
+                result.Errors.Add(orError.Value with { Location = scanner.GetErrorLocation(position) });
             return false;
         }
     }
@@ -140,7 +140,7 @@ public record struct DirectiveSignExpressionParser : IParser<Expression>
             {
                 // TODO: check if error can be added here
                 if (orError is not null)
-                    result.Errors.Add(orError.Value with { Location = scanner.CreateError(position) });
+                    result.Errors.Add(orError.Value with { Location = scanner.GetErrorLocation(position) });
                 parsed = null!;
                 scanner.Position = position;
                 return false;
@@ -149,7 +149,7 @@ public record struct DirectiveSignExpressionParser : IParser<Expression>
         else 
         {
             if (orError is not null)
-                result.Errors.Add(orError.Value with { Location = scanner.CreateError(position) });
+                result.Errors.Add(orError.Value with { Location = scanner.GetErrorLocation(position) });
             return false;
         }
     }
@@ -164,7 +164,7 @@ public record struct DirectiveCastExpressionParser : IParser<Expression>
         if (
                 Terminals.Char('(', ref scanner, advance: true)
                 && CommonParsers.Spaces0(ref scanner, result, out _)
-                && LiteralsParser.Identifier(ref scanner, result, out var typeName, new("Expected identifier", scanner.CreateError(scanner.Position)))
+                && LiteralsParser.Identifier(ref scanner, result, out var typeName, new(SDSLParsingMessages.SDSL0017, scanner.GetErrorLocation(scanner.Position), scanner.Memory))
                 && CommonParsers.Spaces0(ref scanner, result, out _)
                 && Terminals.Char(')', ref scanner, true)
                 && DirectiveUnaryParsers.Primary(ref scanner, result, out var lit)
@@ -176,7 +176,7 @@ public record struct DirectiveCastExpressionParser : IParser<Expression>
         else
         {
             if (orError is not null)
-                result.Errors.Add(orError.Value with { Location = scanner.CreateError(position) });
+                result.Errors.Add(orError.Value with { Location = scanner.GetErrorLocation(position) });
             parsed = null!;
             scanner.Position = position;
             return false;

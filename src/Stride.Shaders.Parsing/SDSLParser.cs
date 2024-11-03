@@ -1,7 +1,8 @@
+using Stride.Shaders.Parsing.SDSL;
 using Stride.Shaders.Parsing.SDSL.AST;
 using Stride.Shaders.Parsing.SDSL.PreProcessing;
 
-namespace Stride.Shaders.Parsing.SDSL;
+namespace Stride.Shaders.Parsing;
 
 
 public static class SDSLParser

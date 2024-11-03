@@ -9,6 +9,7 @@ public struct Scanner(string code) : IScanner
     // public string Code { get; } = code;
     public readonly ReadOnlySpan<char> Span => Code.AsSpan();
     public readonly ReadOnlyMemory<char> Memory => Code.AsMemory();
+    public readonly ReadOnlyMemory<char> Rest => Memory[Position..];
     string Code { get; set; } = code;
     public int Position { get; set; } = 0;
 
@@ -106,7 +107,7 @@ public struct Scanner(string code) : IScanner
     {
         return new(Memory, new(position, position + length));
     }
-    public readonly ErrorLocation CreateError(int position)
+    public readonly ErrorLocation GetErrorLocation(int position)
     {
         return new ErrorLocation(this, position);
     }

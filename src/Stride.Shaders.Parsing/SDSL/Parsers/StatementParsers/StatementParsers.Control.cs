@@ -10,10 +10,15 @@ public record struct ControlsParser : IParser<ConditionalFlow>
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
-        if(If(ref scanner, result, out var ifstatement, orError))
+        if(ShaderAttributeListParser.AttributeList(ref scanner, result, out var attributeList))
+            CommonParsers.Spaces0(ref scanner, result, out _);
+        if (If(ref scanner, result, out var ifstatement, orError) && CommonParsers.Spaces0(ref scanner, result, out _))
         {
-            parsed = new(ifstatement, scanner.GetLocation(..));
-            while(ElseIf(ref scanner, result, out var elseif, orError))
+            parsed = new(ifstatement, scanner.GetLocation(..))
+            {
+                Attributes = attributeList
+            };
+            while(ElseIf(ref scanner, result, out var elseif, orError) && CommonParsers.Spaces0(ref scanner, result, out _))
                 parsed.ElseIfs.Add(elseif);
             if (Else(ref scanner, result, out var elseStatement, orError))
                 parsed.Else = elseStatement;
@@ -21,7 +26,7 @@ public record struct ControlsParser : IParser<ConditionalFlow>
             return true;
         }
         else if(Terminals.Literal("else ", ref scanner))
-            return CommonParsers.Exit(ref scanner, result, out parsed, position, new("Else block should be preceeded by If statement", scanner.CreateError(scanner.Position)));
+            return CommonParsers.Exit(ref scanner, result, out parsed, position, new("Else block should be preceeded by If statement", scanner.GetErrorLocation(scanner.Position), scanner.Memory));
         return CommonParsers.Exit(ref scanner, result, out parsed, position, orError);
     }
 
@@ -46,22 +51,21 @@ public record struct IfStatementParser : IParser<If>
         var position = scanner.Position;
         if (
             Terminals.Literal("if", ref scanner, advance: true)
+            && CommonParsers.FollowedBy(ref scanner, Terminals.Char('('), withSpaces: true, advance: true)
             && CommonParsers.Spaces0(ref scanner, result, out _)
-            && Terminals.Char('(', ref scanner, advance: true)
-            && CommonParsers.Spaces0(ref scanner, result, out _)
-            && ExpressionParser.Expression(ref scanner, result, out var condition, new("Expected expression here", scanner.CreateError(scanner.Position)))
+            && ExpressionParser.Expression(ref scanner, result, out var condition, new(SDSLParsingMessages.SDSL0015, scanner.GetErrorLocation(scanner.Position), scanner.Memory))
             && CommonParsers.Spaces0(ref scanner, result, out _)
         )
         {
             if (Terminals.Char(')', ref scanner, advance: true) && CommonParsers.Spaces0(ref scanner, result, out _))
             {
-                if (StatementParsers.Statement(ref scanner, result, out var statement, new("Expected statement here", scanner.CreateError(scanner.Position))))
+                if (StatementParsers.Statement(ref scanner, result, out var statement, new(SDSLParsingMessages.SDSL0010, scanner.GetErrorLocation(scanner.Position), scanner.Memory)))
                 {
                     parsed = new(condition, statement, scanner.GetLocation(position..scanner.Position));
                     return true;
                 }
             }
-            else return CommonParsers.Exit(ref scanner, result, out parsed, position, new("Expected closing parenthesis", scanner.CreateError(scanner.Position)));
+            else return CommonParsers.Exit(ref scanner, result, out parsed, position, new(SDSLParsingMessages.SDSL0018, scanner.GetErrorLocation(scanner.Position), scanner.Memory));
         }
         return CommonParsers.Exit(ref scanner, result, out parsed, position, orError);
     }
@@ -80,19 +84,19 @@ public record struct ElseIfStatementParser : IParser<ElseIf>
             && CommonParsers.Spaces0(ref scanner, result, out _)
             && Terminals.Char('(', ref scanner, advance: true)
             && CommonParsers.Spaces0(ref scanner, result, out _)
-            && ExpressionParser.Expression(ref scanner, result, out var condition, new("Expected expression here", scanner.CreateError(scanner.Position)))
+            && ExpressionParser.Expression(ref scanner, result, out var condition, new(SDSLParsingMessages.SDSL0015, scanner.GetErrorLocation(scanner.Position), scanner.Memory))
             && CommonParsers.Spaces0(ref scanner, result, out _)
         )
         {
             if (Terminals.Char(')', ref scanner, advance: true) && CommonParsers.Spaces0(ref scanner, result, out _))
             {
-                if (StatementParsers.Statement(ref scanner, result, out var statement, new("Expected statement here", scanner.CreateError(scanner.Position))))
+                if (StatementParsers.Statement(ref scanner, result, out var statement, new(SDSLParsingMessages.SDSL0010, scanner.GetErrorLocation(scanner.Position), scanner.Memory)))
                 {
                     parsed = new(condition, statement, scanner.GetLocation(position..scanner.Position));
                     return true;
                 }
             }
-            else return CommonParsers.Exit(ref scanner, result, out parsed, position, new("Expected closing parenthesis", scanner.CreateError(scanner.Position)));
+            else return CommonParsers.Exit(ref scanner, result, out parsed, position, new(SDSLParsingMessages.SDSL0018, scanner.GetErrorLocation(scanner.Position), scanner.Memory));
         }
         return CommonParsers.Exit(ref scanner, result, out parsed, position, orError);
     }
@@ -107,7 +111,7 @@ public record struct ElseStatementParser : IParser<Else>
         if (
             Terminals.Literal("else", ref scanner, advance: true)
             && CommonParsers.Spaces0(ref scanner, result, out _)
-            && StatementParsers.Statement(ref scanner, result, out var statement, new("Expected statement here", scanner.CreateError(scanner.Position)))
+            && StatementParsers.Statement(ref scanner, result, out var statement, new(SDSLParsingMessages.SDSL0010, scanner.GetErrorLocation(scanner.Position), scanner.Memory))
         )
         {
             parsed = new(statement, scanner.GetLocation(position..scanner.Position));

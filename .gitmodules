@@ -1,3 +1,6 @@
 [submodule "submodules/SpirvHeaders"]
 	path = submodules/SpirvHeaders
 	url = https://github.com/KhronosGroup/SPIRV-Headers
+[submodule "submodules/CppNet8"]
+	path = submodules/CppNet8
+	url = https://github.com/ykafia/CppNet/

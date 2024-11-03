@@ -1,60 +1,144 @@
+using Stride.Shaders.Parsing.SDSL;
+using Stride.Shaders.Parsing.SDSL.AST;
+
 namespace Stride.Shaders.Parsing.SDFX.AST;
 
 
-public class EffectFile(TextLocation info) : Node(info)
+public class ShaderEffect(TypeName name, bool isPartial, TextLocation info) : ShaderDeclaration(info)
 {
-    public List<EffectClass> RootClasses { get; set; } = [];
-    public List<EffectNamespace> Namespaces { get; set; } = [];
-
-    public override string ToString()
-    {
-        return $"{string.Join("\n", RootClasses)}\n\n{string.Join("\n", Namespaces)}";
-    }
-}
-
-public class EffectNamespace(TextLocation info) : Node(info)
-{
-    public List<SDSL.AST.Identifier> NamespacePath { get; set; } = [];
-    public string? Namespace { get; set; }
-    public List<EffectClass> ShaderClasses { get; set; } = [];
-
-    public override string ToString()
-    {
-        return $"namespace {string.Join(".", NamespacePath)}\nBlock\n{string.Join("\n", ShaderClasses)}End\n";
-    }
-}
-
-public class EffectClass(TextLocation info) : Node(info)
-{
+    public TypeName Name { get; set; } = name;
     public List<EffectStatement> Members { get; set; } = [];
+    public bool IsPartial { get; set; } = isPartial;
+
+    public override string ToString()
+    {
+        return string.Join("", Members.Select(x => $"{x}\n"));
+    }
 }
 
 public abstract class EffectStatement(TextLocation info) : Node(info);
 
-public class MixinUse(SDSL.AST.ShaderMixin mixin, TextLocation info) : EffectStatement(info)
+
+public class ShaderSourceDeclaration(Identifier name, TextLocation info, Expression? value = null) : EffectStatement(info)
 {
-    public SDSL.AST.ShaderMixin MixinName { get; set; } = mixin;
+    public Identifier Name { get; set; } = name;
+    public Expression? Value { get; set; } = value;
+    public bool IsCollection => Name.Name.Contains("Collection");
+    public override string ToString()
+    {
+        return $"ShaderSourceCollection {Name} = {Value}";
+    }
+}
+
+public class EffectStatementBlock(TextLocation info) : EffectStatement(info)
+{
+    public List<EffectStatement> Statements { get; set; } = [];
+
+    public override string ToString()
+    {
+        return string.Join("\n", Statements);
+    }
+}
+
+public class MixinUse(List<Mixin> mixin, TextLocation info) : EffectStatement(info)
+{
+    public List<Mixin> MixinName { get; set; } = mixin;
+    public override string ToString()
+    {
+        return $"mixin {MixinName}";
+    }
+}
+public class MixinChild(Mixin mixin, TextLocation info) : EffectStatement(info)
+{
+    public Mixin MixinName { get; set; } = mixin;
+    public override string ToString()
+    {
+        return $"mixin child {MixinName}";
+    }
+}
+
+public class MixinClone(Mixin mixin, TextLocation info) : EffectStatement(info)
+{
+    public Mixin MixinName { get; set; } = mixin;
+    public override string ToString()
+    {
+        return $"mixin clone {MixinName}";
+    }
+}
+
+public class MixinConst(string identifier, TextLocation info) : EffectStatement(info)
+{
+    public string Identifier { get; set; } = identifier;
 }
 
 public abstract class Composable();
 
-public class ComposeMixin(SDSL.AST.ShaderMixin mixin, TextLocation info) : EffectStatement(info)
+
+public abstract class ComposeValue(TextLocation info) : Node(info);
+
+public class ComposePathValue(string path, TextLocation info) : ComposeValue(info)
 {
-    public SDSL.AST.ShaderMixin MixinName { get; set; } = mixin;
+    public string Path { get; set; } = path;
+    public override string ToString()
+    {
+        return Path.ToString();
+    }
+}
+public class ComposeMixinValue(Mixin mixin, TextLocation info) : ComposeValue(info)
+{
+    public Mixin Mixin { get; set; } = mixin;
+    public override string ToString()
+    {
+        return Mixin.ToString();
+    }
 }
 
-public class ComposeParams(SDSL.AST.ShaderMixin mixin, TextLocation info) : EffectStatement(info)
+public class MixinCompose(Identifier identifier, AssignOperator op, ComposeValue value, TextLocation info) : EffectStatement(info)
 {
-    public SDSL.AST.ShaderMixin MixinName { get; set; } = mixin;
+    public Identifier Identifier { get; set; } = identifier;
+    AssignOperator Operator { get; set; } = op;
+    public ComposeValue ComposeValue { get; set; } = value;
+
+    public override string ToString()
+    {
+        return $"mixin compose {Identifier} = {ComposeValue}";
+    }
 }
-public class UsingParams(SDSL.AST.Identifier name, TextLocation info) : EffectStatement(info)
+public class MixinComposeAdd(Identifier identifier, Identifier source, TextLocation info) : EffectStatement(info)
 {
-    public SDSL.AST.Identifier ParamsName { get; set; } = name;
+    public Identifier Identifier { get; set; } = identifier;
+    public Identifier Source { get; set; } = source;
+    public override string ToString()
+    {
+        return $"mixin compose {Identifier} += {Source}";
+    }
+}
+
+public class ComposeParams(Mixin mixin, TextLocation info) : EffectStatement(info)
+{
+    public Mixin MixinName { get; set; } = mixin;
+}
+public class UsingParams(Identifier name, TextLocation info) : EffectStatement(info)
+{
+    public Identifier ParamsName { get; set; } = name;
+
+    public override string ToString()
+    {
+        return $"using params {ParamsName}";
+    }
 }
 
 public class EffectBlock(TextLocation info) : EffectStatement(info)
 {
     public List<EffectStatement> Statements { get; set; } = [];
 }
+
+
+public class EffectExpressionStatement(Statement statement, TextLocation info) : EffectStatement(info)
+{
+    public Statement Statement { get; set; } = statement;
+}
+
+public class EffectDiscardStatement(TextLocation info) : EffectStatement(info);
 
 

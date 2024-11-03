@@ -1,0 +1,14 @@
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Sean Boettger <sean@whypenguins.com>
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+shader VoxelLayout_Float4 : NormalStream
+{
+    void InitializeDummy(){}
+    void InitializeFromStreams(float4 original){}
+    void IndirectWrite(RWBuffer<uint> buffer, uint address){}
+    void InitializeFromBuffer(RWBuffer<uint> buffer, uint address){}
+    void DirectWrite(uint3 address, uint strideIndex, uint stride){}
+    float4 SampleLocal()
+    {
+        return float4(0,0,0,0);
+    }
+};

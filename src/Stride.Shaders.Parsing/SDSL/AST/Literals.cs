@@ -9,6 +9,17 @@ public abstract class Literal(TextLocation info) : Expression(info);
 public abstract class ValueLiteral(TextLocation info) : Literal(info);
 public abstract class ScalarLiteral(TextLocation info) : ValueLiteral(info);
 
+
+public class StringLiteral(string value, TextLocation info) : Literal(info)
+{
+    public string Value { get; set; } = value;
+
+    public override string ToString()
+    {
+        return $"\"{Value}\"";
+    }
+}
+
 public abstract class NumberLiteral(TextLocation info) : ScalarLiteral(info)
 {
     public abstract double DoubleValue { get; }
@@ -34,9 +45,10 @@ public abstract class NumberLiteral<T>(Suffix suffix, T value, TextLocation info
 public class IntegerLiteral(Suffix suffix, long value, TextLocation info) : NumberLiteral<long>(suffix, value, info);
 public class UnsignedIntegerLiteral(Suffix suffix, ulong value, TextLocation info) : NumberLiteral<ulong>(suffix, value, info);
 
-public sealed class FloatLiteral(Suffix suffix, double value, TextLocation info) : NumberLiteral<double>(suffix, value, info)
+public sealed class FloatLiteral(Suffix suffix, double value, int? exponent, TextLocation info) : NumberLiteral<double>(suffix, value, info)
 {
-    public static implicit operator FloatLiteral(double v) => new(new(), v, new());
+    public int? Exponent { get; set; } = exponent;
+    public static implicit operator FloatLiteral(double v) => new(new(), v, null, new());
 }
 
 public sealed class HexLiteral(ulong value, TextLocation info) : UnsignedIntegerLiteral(new(32, false, false), value, info);
@@ -47,14 +59,10 @@ public class BoolLiteral(bool value, TextLocation info) : ScalarLiteral(info)
     public bool Value { get; set; } = value;
 }
 
-public abstract class VectorLiteral(TypeName typeName, TextLocation info) : ValueLiteral(info)
+public class VectorLiteral(TypeName typeName, TextLocation info) : ValueLiteral(info)
 {
     public TypeName TypeName { get; set; } = typeName;
-}
-public class VectorLiteral<TValueLiteral>(TypeName typeName, TextLocation info) : VectorLiteral(typeName, info)
-    where TValueLiteral : ValueLiteral
-{
-    public List<TValueLiteral> Values { get; set; } = [];
+    public List<Expression> Values { get; set; } = [];
 
     public override string ToString()
     {
@@ -63,22 +71,28 @@ public class VectorLiteral<TValueLiteral>(TypeName typeName, TextLocation info) 
 }
 
 
-public abstract class MatrixLiteral(TypeName typeName, int rows, int cols, TextLocation info) : ValueLiteral(info)
+public class MatrixLiteral(TypeName typeName, int rows, int cols, TextLocation info) : ValueLiteral(info)
 {
     public TypeName TypeName { get; set; } = typeName;
     public int Rows { get; set; } = rows;
     public int Cols { get; set; } = cols;
-}
-public class MatrixLiteral<TValueLiteral>(TypeName typeName, int rows, int cols, TextLocation info) : MatrixLiteral(typeName, rows, cols, info)
-    where TValueLiteral : ValueLiteral
-{
-    public List<TValueLiteral> Values { get; set; } = [];
-
+    public List<Expression> Values { get; set; } = [];
     public override string ToString()
     {
         return $"{TypeName}{Values.Count}({string.Join(", ", Values.Select(x => x.ToString()))})";
     }
 }
+
+public class ArrayLiteral(TextLocation info) : ValueLiteral(info)
+{
+    public List<Expression> Values { get; set; } = [];
+    public override string ToString()
+    {
+        return $"{Values.Count}({string.Join(", ", Values.Select(x => x.ToString()))})";
+    }
+}
+
+
 
 
 
@@ -94,12 +108,17 @@ public class Identifier(string name, TextLocation info) : Literal(info)
     }
 }
 
-public class TypeName(string name, TextLocation info) : Literal(info)
+public class TypeName(string name, TextLocation info, bool isArray) : Literal(info)
 {
     public string Name { get; set; } = name;
+    public bool IsArray { get; set; } = isArray;
+    public List<Expression>? ArraySize { get; set; }
+    public List<TypeName> Generics { get; set; } = [];
 
     public override string ToString()
     {
         return $"{Name}";
     }
+
+    public static implicit operator string(TypeName tn) => tn.Name;
 }

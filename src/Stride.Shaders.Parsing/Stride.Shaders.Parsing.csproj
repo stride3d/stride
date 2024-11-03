@@ -10,4 +10,8 @@
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.HighPerformance" Version="8.2.2" />
   </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\submodules\CppNet8\CppNet.csproj" />
+  </ItemGroup>
 </Project>

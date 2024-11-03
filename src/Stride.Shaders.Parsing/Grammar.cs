@@ -1,6 +1,7 @@
+using Stride.Shaders.Parsing.SDSL;
 using Stride.Shaders.Parsing.SDSL.AST;
 
-namespace Stride.Shaders.Parsing.SDSL;
+namespace Stride.Shaders.Parsing;
 
 public static class Grammar
 {
@@ -14,7 +15,7 @@ public static class Grammar
         if (p.Match(ref scanner, result, out var fnum))
             result.AST = fnum;
         if(!Terminals.EOF(ref scanner))
-            result.Errors.Add(new("Expected end of file", scanner.CreateError(scanner.Position)));
+            result.Errors.Add(new(SDSLParsingMessages.SDSL0009, scanner.GetErrorLocation(scanner.Position), scanner.Memory));
         return result;
     }
 
@@ -30,7 +31,7 @@ public static class Grammar
         if (p.Match(ref scanner, result, out var fnum))
             result.AST = fnum;
         if(!Terminals.EOF(ref scanner))
-            result.Errors.Add(new("Expected end of file", scanner.CreateError(scanner.Position)));
+            result.Errors.Add(new(SDSLParsingMessages.SDSL0009, scanner.GetErrorLocation(scanner.Position), scanner.Memory));
         return result;
     }
 

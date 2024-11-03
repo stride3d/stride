@@ -1,8 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <ItemGroup>
-    <ProjectReference Include="..\Stride.Shaders.Compilers\Stride.Shaders.Compilers.csproj" />
-  </ItemGroup>
+  
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -11,5 +9,14 @@
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Stride.Shaders.Compilers\Stride.Shaders.Compilers.csproj" />
+    <ProjectReference Include="..\..\submodules\CppNet8\CppNet.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+     <None Include="..\..\assets\**" CopyToOutputDirectory="PreserveNewest" LinkBase="assets\" />
+  </ItemGroup>
 
 </Project>

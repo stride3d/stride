@@ -4,6 +4,7 @@ using Silk.NET.Direct3D.Compilers;
 using Silk.NET.Shaderc;
 using Silk.NET.SPIRV.Cross;
 using Stride.Shaders.Compilers;
+using Stride.Shaders.Parsing;
 using Stride.Shaders.Parsing.SDSL;
 
 namespace Stride.Shaders.Experiments;
@@ -79,7 +80,7 @@ public static class Examples
 
     public static void ParseSDSL()
     {
-        var text = File.ReadAllText(@"C:\Users\youness_kafia\Documents\dotnetProjs\SDSL\assets\SDSL\Commented.sdsl");
+        var text = MonoGamePreProcessor.Run("./assets/Stride/SDSL/ComputeColorTextureScaledOffsetDynamicSamplerRandomUV.sdsl", []);
         var parsed = SDSLParser.Parse(text);
         Console.WriteLine(parsed.AST);
         if(parsed.Errors.Count > 0)
@@ -88,5 +89,31 @@ public static class Examples
             foreach (var e in parsed.Errors)
                 Console.WriteLine(e);
         }
+    }
+
+    public static void TryAllFiles()
+    {
+        foreach(var f in Directory.EnumerateFiles("./assets/Stride/SDSL"))
+        {
+            // var text = File.ReadAllText(f);
+            if (f.Contains("BasicMixin.sdsl"))
+                continue;
+            var preprocessed = MonoGamePreProcessor.Run(f, []);
+            var parsed = SDSLParser.Parse(preprocessed);
+            if(parsed.Errors.Count > 0)
+            {
+                Console.WriteLine(preprocessed);
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine(string.Join("; ", parsed.Errors.Select(x => x.ToString())));
+                Console.WriteLine(f);
+                Console.ForegroundColor = ConsoleColor.White;
+                break;
+            }
+            else
+            {
+                // Console.WriteLine(f);
+            }
+        }
+        Console.ForegroundColor = ConsoleColor.White;
     }
 }

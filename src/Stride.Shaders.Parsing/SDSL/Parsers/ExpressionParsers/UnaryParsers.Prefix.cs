@@ -42,7 +42,7 @@ public record struct PrefixIncrementParser : IParser<Expression>
                 parsed = new PrefixExpression(Operator.Inc, lit, scanner.GetLocation(position, scanner.Position - position));
                 return true;
             }
-            else return CommonParsers.Exit(ref scanner, result, out parsed, position, new("Expecting Postfix expression", scanner.CreateError(position)));
+            else return CommonParsers.Exit(ref scanner, result, out parsed, position, new(SDSLParsingMessages.SDSL0020, scanner.GetErrorLocation(position), scanner.Memory));
         }
         // prefix decrememnt 
         else if (Terminals.Literal("--", ref scanner, advance: true))
@@ -53,7 +53,7 @@ public record struct PrefixIncrementParser : IParser<Expression>
                 parsed = new PrefixExpression(Operator.Inc, lit, scanner.GetLocation(position, scanner.Position - position));
                 return true;
             }
-            else return CommonParsers.Exit(ref scanner, result, out parsed, position, new("Expecting Postfix expression", scanner.CreateError(position)));
+            else return CommonParsers.Exit(ref scanner, result, out parsed, position, new(SDSLParsingMessages.SDSL0020, scanner.GetErrorLocation(position), scanner.Memory));
    
         }
         else return CommonParsers.Exit(ref scanner, result, out parsed, position, orError);
@@ -77,7 +77,7 @@ public record struct NotExpressionParser : IParser<Expression>
                 parsed = new PrefixExpression(op, lit, scanner.GetLocation(position, scanner.Position - position));
                 return true;
             }
-            else return CommonParsers.Exit(ref scanner, result, out parsed, position, new("Expecting Postfix expression", scanner.CreateError(position)));
+            else return CommonParsers.Exit(ref scanner, result, out parsed, position, new(SDSLParsingMessages.SDSL0020, scanner.GetErrorLocation(position), scanner.Memory));
                 
         }
         else return CommonParsers.Exit(ref scanner, result, out parsed, position, orError);
@@ -113,15 +113,13 @@ public record struct CastExpressionParser : IParser<Expression>
     {
         var position = scanner.Position;
         if (
-                Terminals.Char('(', ref scanner, advance: true)
-                && CommonParsers.Spaces0(ref scanner, result, out _)
-                && LiteralsParser.Identifier(ref scanner, result, out var typeName, new("Expected identifier", scanner.CreateError(scanner.Position)))
-                && CommonParsers.Spaces0(ref scanner, result, out _)
-                && Terminals.Char(')', ref scanner, true)
-                && UnaryParsers.Postfix(ref scanner, result, out var lit)
+                CommonParsers.FollowedBy(ref scanner, Terminals.Char('('), withSpaces: true, advance: true)
+                && CommonParsers.FollowedBy(ref scanner, result, LiteralsParser.TypeName, out TypeName typeName, withSpaces: true, advance: true)
+                && CommonParsers.FollowedBy(ref scanner, Terminals.Char(')'), withSpaces: true, advance: true)
+                && CommonParsers.FollowedBy(ref scanner, result, UnaryParsers.Postfix, out Expression expression, withSpaces: true, advance: true)
         )
         {
-            parsed = new CastExpression(typeName.Name, Operator.Cast, lit, scanner.GetLocation(position, scanner.Position - position));
+            parsed = new CastExpression(typeName.Name, Operator.Cast, expression, scanner.GetLocation(position, scanner.Position - position));
             return true;
         }
         else return CommonParsers.Exit(ref scanner, result, out parsed, position, orError);

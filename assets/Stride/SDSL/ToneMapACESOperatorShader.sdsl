@@ -1,0 +1,31 @@
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+namespace Stride.Rendering.Images
+{
+    /// <summary>
+    /// The ACES tonemap operator.
+    /// </summary>
+    internal shader ToneMapACESOperatorShader : ToneMapCommonOperatorShader
+    {
+	    // ACES filmic tonemapper with highlight desaturation ("crosstalk").
+		// Based on the curve fit by Krzysztof Narkowicz.
+		// https://knarkowicz.wordpress.com/2016/01/06/aces-filmic-tone-mapping-curve/
+
+        override float4 Compute(float4 color)
+        {
+			float pixelLuminance = LuminanceUtils.Luma(color);
+			
+			// ACES Tonemapper
+			const float a = 2.51f;
+			const float b = 0.03f;
+			const float c = 2.43f;
+			const float d = 0.59f;
+			const float e = 0.14f;
+
+			float toneMappedLuminance = (pixelLuminance * (a * pixelLuminance + b)) / (pixelLuminance * (c * pixelLuminance + d) + e);
+			float whiteLuminance = (WhiteLevel * (a * WhiteLevel + b)) / (WhiteLevel * (c * WhiteLevel + d) + e);
+			return toneMappedLuminance / whiteLuminance * pow(color / pixelLuminance, LuminanceSaturation);
+        }
+    };
+}
