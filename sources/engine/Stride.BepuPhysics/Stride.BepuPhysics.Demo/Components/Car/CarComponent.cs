@@ -16,7 +16,7 @@ namespace Stride.BepuPhysics.Demo.Components.Car
 
 #warning This need rework/Rename and could be part of the API
     [ComponentCategory("BepuDemo - Car")]
-    public class CarComponent : SimulationUpdateComponent
+    public class CarComponent : SyncScript, ISimulationUpdate
     {
         public const float GEAR_UP_VALUE = 0.9f;
         public const float GEAR_DOWN_VALUE = 0.1f;
@@ -141,7 +141,8 @@ namespace Stride.BepuPhysics.Demo.Components.Car
                 $"CurrentRPM:{CurrentRPM}" + " | " +
                 $"", new(100, 1000));
         }
-        public override void SimulationUpdate(float simTimeStep)
+
+        public void SimulationUpdate(BepuSimulation simulation, float simTimeStep)
         {
             HandleGearing();
             HandleEngineStartingAndUpdate();
@@ -153,7 +154,7 @@ namespace Stride.BepuPhysics.Demo.Components.Car
                 LastsRPMList.RemoveAt(0);
         }
 
-        public override void AfterSimulationUpdate(float simTimeStep)
+        public void AfterSimulationUpdate(BepuSimulation simulation, float simTimeStep)
         {
 
         }
@@ -264,7 +265,7 @@ namespace Stride.BepuPhysics.Demo.Components.Car
                     DriveWheels.ForEach(e =>
                     {
                         var wheelBody = e.Get<BodyComponent>();
-                        // do we want to get rid of the GetPhysicBody() method? 
+                        // do we want to get rid of the GetPhysicBody() method?
                         var rotationNormal = GetWheelRotationNormal(wheelBody);
                         wheelBody.ApplyAngularImpulse(rotationNormal * engineForce);
                         wheelBody.Awake = true;
@@ -411,6 +412,5 @@ namespace Stride.BepuPhysics.Demo.Components.Car
             e.Orientation.Rotate(ref unitVec);
             return unitVec;
         }
-
     }
 }

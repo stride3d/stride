@@ -3,16 +3,21 @@
 
 using System.Linq;
 using Stride.BepuPhysics.Components;
+using Stride.BepuPhysics.Definitions;
+using Stride.BepuPhysics.Systems;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 
 
 namespace Stride.BepuPhysics.Demo.Components.Utils
 {
-    public abstract class Spawner : SimulationUpdateComponent
+    public abstract class Spawner : SyncScript
     {
         public Prefab? SpawnPrefab { get; set; }
         public InstancingComponent? Instancing { get; set; }
+
+        [DefaultValueIsSceneBased]
+        public ISimulationSelector SimulationSelector { get; set; } = SceneBasedSimulationSelector.Shared;
 
         protected void Spawn(Vector3 position, Vector3 Impulse, Vector3 ImpulsePos)
         {

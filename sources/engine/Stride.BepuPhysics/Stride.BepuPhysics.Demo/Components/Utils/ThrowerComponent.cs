@@ -15,14 +15,6 @@ namespace Stride.BepuPhysics.Demo.Components.Utils
 
         public float Speed { get; set; } = 20f;
 
-        public override void SimulationUpdate(float simTimeStep)
-        {
-        }
-
-        public override void AfterSimulationUpdate(float simTimeStep)
-        {
-        }
-
         public override void Update()
         {
             DebugText.Print("Throw a prefab (T)", new(Game.Window.PreferredWindowedSize.X - 500, 125));

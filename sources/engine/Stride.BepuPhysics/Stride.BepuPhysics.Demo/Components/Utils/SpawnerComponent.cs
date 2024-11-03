@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
+using Stride.BepuPhysics.Components;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Input;
@@ -10,7 +11,7 @@ namespace Stride.BepuPhysics.Demo.Components.Utils
 {
     //[DataContract("SpawnerComponent", Inherited = true)]
     [ComponentCategory("BepuDemo - Utils")]
-    public class SpawnerComponent : Spawner
+    public class SpawnerComponent : Spawner, ISimulationUpdate
     {
         public Entity? SpawnPosition { get; set; } //set it from a (empty) entity at the wanted location
 
@@ -24,7 +25,7 @@ namespace Stride.BepuPhysics.Demo.Components.Utils
         private int currentCount = 0;
         private float currentTime = 0;
 
-        public override void SimulationUpdate(float timeStep)
+        public void SimulationUpdate(BepuSimulation simulation, float timeStep)
         {
             if (SpawnPosition == null) return;
 
@@ -54,7 +55,7 @@ namespace Stride.BepuPhysics.Demo.Components.Utils
             }
         }
 
-        public override void AfterSimulationUpdate(float simTimeStep)
+        public void AfterSimulationUpdate(BepuSimulation simulation, float simTimeStep)
         {
 
         }

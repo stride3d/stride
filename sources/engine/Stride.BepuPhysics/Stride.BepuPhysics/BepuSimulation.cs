@@ -36,7 +36,7 @@ public sealed class BepuSimulation : IDisposable
     private const string MaskCategory = "Collisions";
 
     private TimeSpan _fixedTimeStep = TimeSpan.FromTicks(TimeSpan.TicksPerSecond / 60);
-    private readonly List<ISimulationUpdate> _simulationUpdateComponents = new();
+    private readonly Dictionary<Type, Elider> _simulationUpdateComponents = new();
     private readonly List<BodyComponent> _interpolatedBodies = new();
     private readonly ThreadDispatcher _threadDispatcher;
     private TimeSpan _remainingUpdateTime;
@@ -711,14 +711,11 @@ public sealed class BepuSimulation : IDisposable
                 _softStartRemainingDuration -= FixedTimeStep;
             }
 
-            var simTimeStepInSec = (float)FixedTimeStep.TotalSeconds;
+            float simTimeStepInSec = (float)FixedTimeStep.TotalSeconds;
 
             _preTickRunner.Run();
 
-            foreach (var updateComponent in _simulationUpdateComponents)
-            {
-                updateComponent.SimulationUpdate(simTimeStepInSec);
-            }
+            Elider.SimulationUpdate(_simulationUpdateComponents, this, simTimeStepInSec);
 
             Simulation.Timestep(simTimeStepInSec, _threadDispatcher); //perform physic simulation using SimulationFixedStep
             ContactEvents.Flush(); //Fire event handler stuff.
@@ -731,10 +728,7 @@ public sealed class BepuSimulation : IDisposable
 
             SyncActiveTransformsWithPhysics();
 
-            foreach (var updateComponent in _simulationUpdateComponents)
-            {
-                updateComponent.AfterSimulationUpdate(simTimeStepInSec);
-            }
+            Elider.AfterSimulationUpdate(_simulationUpdateComponents, this, simTimeStepInSec);
 
             _postTickRunner.Run();
 
@@ -846,11 +840,12 @@ public sealed class BepuSimulation : IDisposable
 
     internal void Register(ISimulationUpdate simulationUpdateComponent)
     {
-        _simulationUpdateComponents.Add(simulationUpdateComponent);
+        Elider.AddToHandlers(simulationUpdateComponent, _simulationUpdateComponents);
     }
-    internal void Unregister(ISimulationUpdate simulationUpdateComponent)
+
+    internal bool Unregister(ISimulationUpdate simulationUpdateComponent)
     {
-        _simulationUpdateComponents.Remove(simulationUpdateComponent);
+        return Elider.RemoveFromHandlers(simulationUpdateComponent, _simulationUpdateComponents);
     }
 
     internal void RegisterInterpolated(BodyComponent body)
@@ -867,6 +862,64 @@ public sealed class BepuSimulation : IDisposable
     internal void UnregisterInterpolated(BodyComponent body)
     {
         _interpolatedBodies.Remove(body);
+    }
+
+    /// <summary>
+    /// Used to JIT specialized classes handling each type implementing <see cref="ISimulationUpdate"/> individually
+    /// to elide and inline the virtual calls.
+    /// </summary>
+    internal abstract class Elider
+    {
+        protected abstract void Add(ISimulationUpdate obj);
+        protected abstract bool Remove(ISimulationUpdate obj);
+        protected abstract void SimulationUpdate(BepuSimulation sim, float deltaTime);
+        protected abstract void AfterSimulationUpdate(BepuSimulation sim, float deltaTime);
+
+        public static void AddToHandlers(ISimulationUpdate item, Dictionary<Type, Elider> handlers)
+        {
+            var concreteType = item.GetType();
+            if (handlers.TryGetValue(concreteType, out var batcher) == false)
+            {
+                var gen = typeof(Handler<>).MakeGenericType(concreteType); // Create one specific Handler<> for this concrete type
+                batcher = (Elider)Activator.CreateInstance(gen)!; // Create an instance of this specialized type to pass our items to it
+                handlers.Add(concreteType, batcher);
+            }
+            batcher.Add(item);
+        }
+
+        public static bool RemoveFromHandlers(ISimulationUpdate item, Dictionary<Type, Elider> handlers)
+        {
+            return handlers.TryGetValue(item.GetType(), out var handler) && handler.Remove(item);
+        }
+
+        public static void SimulationUpdate(Dictionary<Type, Elider> handlers, BepuSimulation sim, float deltaTime)
+        {
+            foreach (var kvp in handlers)
+                kvp.Value.SimulationUpdate(sim, deltaTime);
+        }
+
+        public static void AfterSimulationUpdate(Dictionary<Type, Elider> handlers, BepuSimulation sim, float deltaTime)
+        {
+            foreach (var kvp in handlers)
+                kvp.Value.AfterSimulationUpdate(sim, deltaTime);
+        }
+
+        private sealed class Handler<T> : Elider where T : ISimulationUpdate // This class get specialized to a concrete type
+        {
+            private List<T> _abstraction = [];
+            protected override void Add(ISimulationUpdate obj) => _abstraction.Add((T)obj);
+            protected override bool Remove(ISimulationUpdate obj) => _abstraction.Remove((T)obj);
+            protected override void SimulationUpdate(BepuSimulation sim, float deltaTime)
+            {
+                foreach (var abstraction in _abstraction)
+                    abstraction.SimulationUpdate(sim, deltaTime);
+            }
+            protected override void AfterSimulationUpdate(BepuSimulation sim, float deltaTime)
+            {
+                foreach (var abstraction in _abstraction)
+                    abstraction.AfterSimulationUpdate(sim, deltaTime);
+            }
+        }
     }
 
     internal class AwaitRunner

@@ -38,10 +38,10 @@ public class CharacterControllerComponent : CharacterComponent, IComponent<Chara
             TryJump();
     }
 
-    public override void SimulationUpdate(float simTimeStep)
+    public override void SimulationUpdate(BepuSimulation simulation, float simTimeStep)
     {
         Orientation = Quaternion.RotationY(_cameraAngle.Y); // Do it before physics tick to ensure it is interpolated properly
-        base.SimulationUpdate(simTimeStep);
+        base.SimulationUpdate(simulation, simTimeStep);
     }
 
     private void Move()

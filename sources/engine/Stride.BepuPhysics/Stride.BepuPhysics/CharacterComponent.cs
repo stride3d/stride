@@ -79,8 +79,9 @@ public class CharacterComponent : BodyComponent, ISimulationUpdate, IContactEven
     /// <summary>
     /// This is called internally right before the physics simulation does a tick
     /// </summary>
+    /// <param name="sim"> The simulation this <see cref="ISimulationUpdate"/> is bound to, and the one currently updating </param>
     /// <param name="simTimeStep">The amount of time in seconds since the last simulation</param>
-    public virtual void SimulationUpdate(float simTimeStep)
+    public virtual void SimulationUpdate(BepuSimulation sim, float simTimeStep)
     {
         Awake = true; // Keep this body active
 
@@ -102,8 +103,9 @@ public class CharacterComponent : BodyComponent, ISimulationUpdate, IContactEven
     /// <summary>
     /// This is called internally right after the physics simulation does a tick
     /// </summary>
+    /// <param name="sim"> The simulation this <see cref="ISimulationUpdate"/> is bound to, and the one currently updating </param>
     /// <param name="simTimeStep">The amount of time in seconds since the last simulation</param>
-    public virtual void AfterSimulationUpdate(float simTimeStep)
+    public virtual void AfterSimulationUpdate(BepuSimulation sim, float simTimeStep)
     {
         var gravity = Simulation!.PoseGravity;
         IsGrounded = GroundTest(-gravity.ToNumeric()); // Checking for grounded after simulation ran to compute contacts as soon as possible after they are received
