@@ -72,6 +72,8 @@ public record struct ShaderClassParser : IParser<ShaderClass>
         var tmp = position;
         if (Terminals.Literal("internal", ref scanner, advance: true) && CommonParsers.Spaces1(ref scanner, result, out _))
             tmp = scanner.Position;
+        if(CommonParsers.FollowedBy(ref scanner, Terminals.Literal("partial"), withSpaces: true, advance: true) && CommonParsers.Spaces1(ref scanner, result, out _))
+            tmp = scanner.Position;
         if (
             (
                 Terminals.Literal("shader", ref scanner, advance: true) 

@@ -312,16 +312,13 @@ public record struct MixinUseParser : IParser<MixinUse>
         )
         {
             var betweenParenthesis = CommonParsers.FollowedBy(ref scanner, Terminals.Char('('), withSpaces: true, advance: true);
-            if (
-                ShaderClassParsers.Mixin(ref scanner, result, out var mixin)
-                && !CommonParsers.FollowedBy(ref scanner, Terminals.Char('.'), withSpaces: true)
-            )
+            if (CommonParsers.Repeat(ref scanner, result, ShaderClassParsers.Mixin, out List<Mixin> mixins, 1, withSpaces: true, separator: ","))
             {
                 var checkParen = betweenParenthesis == CommonParsers.FollowedBy(ref scanner, Terminals.Char(')'), withSpaces: true, advance: true);
                 var finished = CommonParsers.FollowedBy(ref scanner, Terminals.Char(';'), withSpaces: true);
                 if (finished && checkParen)
                 {
-                    parsed = new(mixin, scanner.GetLocation(position..scanner.Position));
+                    parsed = new(mixins, scanner.GetLocation(position..scanner.Position));
                     return finished;
                 }
                 else return CommonParsers.Exit(ref scanner, result, out parsed, position);

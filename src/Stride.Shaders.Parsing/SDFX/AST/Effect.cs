@@ -40,9 +40,9 @@ public class EffectStatementBlock(TextLocation info) : EffectStatement(info)
     }
 }
 
-public class MixinUse(Mixin mixin, TextLocation info) : EffectStatement(info)
+public class MixinUse(List<Mixin> mixin, TextLocation info) : EffectStatement(info)
 {
-    public Mixin MixinName { get; set; } = mixin;
+    public List<Mixin> MixinName { get; set; } = mixin;
     public override string ToString()
     {
         return $"mixin {MixinName}";
