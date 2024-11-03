@@ -43,7 +43,7 @@ public record struct ShaderFileParser : IParser<ShaderFile>
                 file.RootDeclarations.Add(effect);
                 CommonParsers.Spaces0(ref scanner, result, out _);
             }
-            else if (Terminals.Literal("params", ref scanner)
+            else if (Terminals.Literal("params ", ref scanner)
                 && ParamsParsers.Params(ref scanner, result, out var p)
             )
             {
@@ -144,6 +144,8 @@ public record struct NamespaceParsers : IParser<ShaderNamespace>
                         ns.Declarations.Add(shader);
                     else if (EffectParser.Effect(ref scanner, result, out var effect) && CommonParsers.Spaces0(ref scanner, result, out _))
                         ns.Declarations.Add(effect);
+                    else if (ParamsParsers.Params(ref scanner, result, out var p) && CommonParsers.Spaces0(ref scanner, result, out _))
+                        ns.Declarations.Add(p);
                     else
                         return CommonParsers.Exit(ref scanner, result, out parsed, position, new(SDSLParsingMessages.SDSL0039, scanner.GetErrorLocation(scanner.Position), scanner.Memory));
                 }

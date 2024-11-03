@@ -142,15 +142,28 @@ public record struct ShaderMixinParser : IParser<Mixin>
     public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, out Mixin parsed, in ParseError? orError = null) where TScanner : struct, IScanner
     {
         var position = scanner.Position;
-        if (LiteralsParser.Identifier(ref scanner, result, out var identifier))
+        List<Identifier> path = [];
+        do
         {
+            if(LiteralsParser.Identifier(ref scanner, result, out var id))
+                path.Add(id);
+        }
+        while (!scanner.IsEof && Terminals.Char('.', ref scanner, advance: true) && CommonParsers.Spaces0(ref scanner, result, out _));
+
+        if (path.Count > 0)
+        {
+            var identifier = path[^1];
             parsed = new Mixin(identifier, scanner.GetLocation(..));
             var tmpPos = scanner.Position;
             CommonParsers.Spaces0(ref scanner, result, out _);
-            if (Terminals.Char('<', ref scanner, advance: true))
+            if (
+                Terminals.Char('<', ref scanner, advance: true)
+                && CommonParsers.Spaces0(ref scanner, result, out _)
+            )
             {
                 ParameterParsers.GenericsList(ref scanner, result, out var values);
                 parsed.Generics = values;
+                parsed.Path = path[..^1];
                 CommonParsers.Spaces0(ref scanner, result, out _);
                 if (!Terminals.Char('>', ref scanner, advance: true))
                     return CommonParsers.Exit(ref scanner, result, out parsed, position);

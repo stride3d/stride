@@ -33,6 +33,7 @@ public class ShaderGenerics(Identifier typename, Identifier name, TextLocation i
 
 public class Mixin(Identifier name, TextLocation info) : Node(info)
 {
+    public List<Identifier> Path { get; set; } = [];
     public Identifier Name { get; set; } = name;
     public ShaderExpressionList? Generics { get; set; }
     public override string ToString()

@@ -22,8 +22,9 @@ public record struct ParamsParsers : IParser<EffectParameters>
                     {
                         if (Parameter(ref scanner, result, out var p))
                             parsed.Parameters.Add(p);
-                        else if (CommonParsers.FollowedBy(ref scanner, Terminals.Char(';'), withSpaces: true, advance: true))
+                        else if (CommonParsers.FollowedBy(ref scanner, Terminals.Char('}'), withSpaces: true, advance: true))
                         {
+                            CommonParsers.FollowedBy(ref scanner, Terminals.Char(';'), withSpaces: true, advance: true);
                             parsed.Info = scanner.GetLocation(position..scanner.Position);
                             return true;
                         }

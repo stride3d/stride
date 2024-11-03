@@ -1,3 +1,4 @@
+using Stride.Shaders.Parsing.SDSL;
 using Stride.Shaders.Parsing.SDSL.AST;
 
 namespace Stride.Shaders.Parsing.SDFX.AST;
@@ -72,20 +73,35 @@ public class MixinConst(string identifier, TextLocation info) : EffectStatement(
 
 public abstract class Composable();
 
-public class MixinCompose(Identifier identifier, Mixin mixin, TextLocation info) : EffectStatement(info)
+
+public abstract class ComposeValue(TextLocation info) : Node(info);
+
+public class ComposePathValue(string path, TextLocation info) : ComposeValue(info)
+{
+    public string Path { get; set; } = path;
+    public override string ToString()
+    {
+        return Path.ToString();
+    }
+}
+public class ComposeMixinValue(Mixin mixin, TextLocation info) : ComposeValue(info)
+{
+    public Mixin Mixin { get; set; } = mixin;
+    public override string ToString()
+    {
+        return Mixin.ToString();
+    }
+}
+
+public class MixinCompose(Identifier identifier, AssignOperator op, ComposeValue value, TextLocation info) : EffectStatement(info)
 {
     public Identifier Identifier { get; set; } = identifier;
-    public Mixin MixinName { get; set; } = mixin;
-
-
-    public MixinCompose(Identifier identifier, Expression value, TextLocation info) : this(identifier, new Mixin(new(value.ToString(), value.Info), value.Info), info)
-    {
-
-    }
+    AssignOperator Operator { get; set; } = op;
+    public ComposeValue ComposeValue { get; set; } = value;
 
     public override string ToString()
     {
-        return $"mixin compose {Identifier} = {MixinName}";
+        return $"mixin compose {Identifier} = {ComposeValue}";
     }
 }
 public class MixinComposeAdd(Identifier identifier, Identifier source, TextLocation info) : EffectStatement(info)
@@ -116,5 +132,13 @@ public class EffectBlock(TextLocation info) : EffectStatement(info)
 {
     public List<EffectStatement> Statements { get; set; } = [];
 }
+
+
+public class EffectExpressionStatement(Statement statement, TextLocation info) : EffectStatement(info)
+{
+    public Statement Statement { get; set; } = statement;
+}
+
+public class EffectDiscardStatement(TextLocation info) : EffectStatement(info);
 
 
