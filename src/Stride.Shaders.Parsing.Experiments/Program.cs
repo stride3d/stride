@@ -6,7 +6,7 @@ using Stride.Shaders.Parsing.SDSL.AST;
 
 // Examples.SpvOpt();
 // Examples.TranslateHLSL();
-var matched = Grammar.Match<StatementParsers, Statement>("if(depth < 0 || depth > 1)\n    return 1;");
+var matched = Grammar.Match<StatementParsers, Statement>("int uSeed = (int) (fSeed);");
 foreach(var e in matched.Errors)
     Console.WriteLine(e);
 Console.WriteLine(matched.AST);

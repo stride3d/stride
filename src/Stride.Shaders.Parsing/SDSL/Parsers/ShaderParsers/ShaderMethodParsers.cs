@@ -28,15 +28,15 @@ public record struct ShaderMethodParsers : IParser<ShaderMethod>
         => new SimpleMethodParser().Match(ref scanner, result, out parsed, in orError);
 
 
-    
+
     public static bool MethodParameters<TScanner>(ref TScanner scanner, ParseResult result, out List<MethodParameter> parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
-        #warning We should not allow void to be a parameter, this is legacy C code
-        if(
+#warning We should not allow void to be a parameter, this is legacy C code
+        if (
             CommonParsers.FollowedBy(ref scanner, Terminals.Char(')'), withSpaces: true)
-            || 
+            ||
             (
                 CommonParsers.FollowedBy(ref scanner, Terminals.Literal("void"), withSpaces: true, advance: true)
                 && CommonParsers.FollowedBy(ref scanner, Terminals.Char(')'), withSpaces: true)
@@ -48,7 +48,7 @@ public record struct ShaderMethodParsers : IParser<ShaderMethod>
         }
         else
 
-        if(CommonParsers.Repeat(ref scanner, result, MethodParameter, out List<MethodParameter> parameters, 0, withSpaces: true, separator: ","))
+        if (CommonParsers.Repeat(ref scanner, result, MethodParameter, out List<MethodParameter> parameters, 0, withSpaces: true, separator: ","))
         {
             parsed = parameters;
             return true;
@@ -61,14 +61,26 @@ public record struct ShaderMethodParsers : IParser<ShaderMethod>
     {
         var position = scanner.Position;
 
-        if(Terminals.AnyOf(["inout", "in", "out", "triangle", "point", "const"], ref scanner, out var storage, advance: true))
+        if (Terminals.AnyOf(["inout", "in", "out", "triangle", "point", "const"], ref scanner, out var storage, advance: true))
             CommonParsers.Spaces1(ref scanner, result, out _);
-        if(CommonParsers.TypeNameIdentifierArraySizeValue(ref scanner, result, out var typename, out var identifier, out var arraySize, out var value, advance: true)
+        if (CommonParsers.TypeNameIdentifierArraySizeValue(ref scanner, result, out var typename, out var identifier, out var arraySize, out var value, advance: true)
         )
         {
             typename.ArraySize = arraySize;
-            parsed = new(typename, identifier, scanner.GetLocation(position..scanner.Position), storage);
-            return true;
+            if (
+                CommonParsers.FollowedBy(ref scanner, Terminals.Char(':'), withSpaces: true, advance: true)
+                && CommonParsers.FollowedBy(ref scanner, result, LiteralsParser.Identifier, out Identifier semantic, withSpaces: true, advance: true)
+                && CommonParsers.Spaces0(ref scanner, result, out _)
+            )
+            {
+                parsed = new(typename, identifier, scanner.GetLocation(position..scanner.Position), storage, semantic: semantic);
+                return true;
+            }
+            else
+            {
+                parsed = new(typename, identifier, scanner.GetLocation(position..scanner.Position), storage);
+                return true;
+            }
         }
         else return CommonParsers.Exit(ref scanner, result, out parsed, position);
 
@@ -111,7 +123,11 @@ public record struct MethodParser : IParser<ShaderMethod>
     {
         parsed = null!;
         var position = scanner.Position;
-        if (Terminals.Literal("abstract", ref scanner, advance: true) && CommonParsers.Spaces1(ref scanner, result, out _))
+
+        var hasAttributes = ShaderAttributeListParser.AttributeList(ref scanner, result, out var attributes) && CommonParsers.Spaces0(ref scanner, result, out _);
+        var hasModifiers = CommonParsers.MethodModifiers(ref scanner, result, out var isStaged, out var isStatic, out var isClone, out var isOverride, out var isAbstract, advance: true) && CommonParsers.Spaces0(ref scanner, result, out _);
+
+        if (isAbstract)
         {
             if (
                 LiteralsParser.TypeName(ref scanner, result, out var typename, orError: new(SDSLParsingMessages.SDSL0017, scanner.GetErrorLocation(scanner.Position), scanner.Memory))
@@ -146,24 +162,12 @@ public record struct MethodParser : IParser<ShaderMethod>
                 else return CommonParsers.Exit(ref scanner, result, out parsed, position, orError);
             }
         }
-        else
-            scanner.Position = position;
-        if (Terminals.AnyOf(["clone", "override", "static"], ref scanner, out var matched, advance: true) && CommonParsers.Spaces1(ref scanner, result, out _))
+        else if (isClone || isOverride || isStatic)
         {
-            var isClone = false;
-            var isOverride = false;
-            var isStatic = false;
-            var tmpPos = scanner.Position;
-            if (matched == "clone")
-                isClone = true;
-            else if (matched == "override")
-                isOverride = true;
-            else if (matched == "static")
-                isStatic = true;
-
-            CommonParsers.Spaces0(ref scanner, result, out _);
             if (ShaderMethodParsers.Simple(ref scanner, result, out parsed, orError))
             {
+                if (hasAttributes)
+                    parsed.Attributes = attributes.Attributes;
                 parsed.IsClone = isClone;
                 parsed.IsOverride = isOverride;
                 parsed.IsStatic = isStatic;
@@ -171,9 +175,7 @@ public record struct MethodParser : IParser<ShaderMethod>
                 return true;
             }
         }
-        else
-            scanner.Position = position;
-        if (ShaderMethodParsers.Simple(ref scanner, result, out parsed, orError))
+        else if (ShaderMethodParsers.Simple(ref scanner, result, out parsed, orError))
         {
             parsed.Info = scanner.GetLocation(position..scanner.Position);
             return true;

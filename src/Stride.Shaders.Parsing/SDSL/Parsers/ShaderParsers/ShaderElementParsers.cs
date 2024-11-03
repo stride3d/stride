@@ -9,23 +9,9 @@ public record struct ShaderElementParsers : IParser<ShaderElement>
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
-
-        bool isOverride = false;
-        bool isStaged = false;
-        bool isStreamed = false;
-        bool hasAttributes = ShaderAttributeListParser.AttributeList(ref scanner, result, out var attributes, orError);
-        var tmpPos = position;
-#warning interpolation modifier should always be after stream/stage
-        var hasInterpolation = Terminals.AnyOf(["linear ", "centroid ", "nointerpolation", "noperspective", "sample"], ref scanner, out var interpolation, advance: true);
-        
         if (TypeDef(ref scanner, result, out var typeDef))
         {
             parsed = typeDef;
-            return true;
-        }
-        else if (ShaderVariable(ref scanner, result, out var cst))
-        {
-            parsed = cst;
             return true;
         }
         else if (BufferParsers.Buffer(ref scanner, result, out var buffer))
@@ -43,65 +29,24 @@ public record struct ShaderElementParsers : IParser<ShaderElement>
         else
         {
 
-            tmpPos = scanner.Position;
-#warning override keyword should always happen after stage and stream
-            if (Terminals.Literal("override", ref scanner, advance: true) && CommonParsers.Spaces1(ref scanner, result, out _))
+
+            if(AnySamplers(ref scanner, result, out var sampler))
             {
-                isOverride = true;
-                tmpPos = scanner.Position;
-            }
-            else
-                scanner.Position = tmpPos;
-            if (Terminals.Literal("stage", ref scanner, advance: true) && CommonParsers.Spaces1(ref scanner, result, out _))
-            {
-                isStaged = true;
-                tmpPos = scanner.Position;
-            }
-            else
-                scanner.Position = tmpPos;
-            if (Terminals.Literal("stream", ref scanner, advance: true) && CommonParsers.Spaces1(ref scanner, result, out _))
-                isStreamed = true;
-            else
-                scanner.Position = tmpPos;
-            if(!hasInterpolation)
-                hasInterpolation = Terminals.AnyOf(["linear ", "centroid ", "nointerpolation", "noperspective", "sample"], ref scanner, out interpolation, advance: true);
-            if (SamplerState(ref scanner, result, out var samplerState))
-            {
-                CommonParsers.FollowedBy(ref scanner, Terminals.Char(';'), withSpaces: true, advance: true);
-                parsed = samplerState;
-                return true;
-            }
-            else if (SamplerComparisonState(ref scanner, result, out var samplerCompState))
-            {
-                CommonParsers.FollowedBy(ref scanner, Terminals.Char(';'), withSpaces: true, advance: true);
-                parsed = samplerCompState;
+                parsed = sampler;
                 return true;
             }
             else if (Compose(ref scanner, result, out var compose))
             {
-                compose.IsStaged = isStaged;
-                if (hasAttributes)
-                    compose.Attributes = attributes.Attributes;
                 parsed = compose;
                 return true;
             }
             else if (Method(ref scanner, result, out var method))
             {
-                method.IsOverride = isOverride;
-                method.IsStaged = isStaged;
-                if (hasAttributes)
-                    method.Attributes = attributes.Attributes;
                 parsed = method;
                 return true;
             }
             else if (ShaderMemberParser.Member(ref scanner, result, out var member))
             {
-                member.IsStream = isStreamed;
-                member.IsStaged = isStaged;
-                if(hasInterpolation)
-                    member.Interpolation = interpolation.ToInterpolationModifier();
-                if (hasAttributes)
-                    member.Attributes = attributes.Attributes;
                 parsed = member;
                 return true;
             }
@@ -117,6 +62,28 @@ public record struct ShaderElementParsers : IParser<ShaderElement>
     public static bool Struct<TScanner>(ref TScanner scanner, ParseResult result, out ShaderStruct parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
         => new ShaderStructParser().Match(ref scanner, result, out parsed, in orError);
+
+
+    public static bool AnySamplers<TScanner>(ref TScanner scanner, ParseResult result, out ShaderElement parsed, in ParseError? orError = null)
+        where TScanner : struct, IScanner
+    {
+        var position = scanner.Position;
+        var isStaged = Terminals.Literal("stage", ref scanner, advance: true) && CommonParsers.Spaces0(ref scanner, result, out _);
+
+        if (SamplerState(ref scanner, result, out var samplerState))
+        {
+            samplerState.IsStaged = isStaged;
+            parsed = samplerState;
+            return true;
+        }
+        else if (SamplerComparisonState(ref scanner, result, out var samplerCompState))
+        {
+            samplerCompState.IsStaged = isStaged;
+            parsed = samplerCompState;
+            return true;
+        }
+        else return CommonParsers.Exit(ref scanner,  result, out parsed, position);
+    }
     public static bool SamplerState<TScanner>(ref TScanner scanner, ParseResult result, out ShaderSamplerState parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
         => new ShaderSamplerStateParser().Match(ref scanner, result, out parsed, in orError);
@@ -189,7 +156,6 @@ public record struct ShaderElementParsers : IParser<ShaderElement>
             return true;
         }
         else return CommonParsers.Exit(ref scanner, result, out parsed, position, orError);
-
     }
 
 }

@@ -60,6 +60,135 @@ public static class CommonParsers
     }
 
 
+    public static bool MethodModifiers<TScanner>(ref TScanner scanner, ParseResult result, out bool isStaged, out bool isStatic, out bool isClone, out bool isOverride, out bool isAbstract, bool advance = true)
+        where TScanner : struct, IScanner
+    {
+        var position = scanner.Position;
+        isStaged = false;
+        isStatic = false;
+        isOverride = false;
+        isAbstract = false;
+        isClone = false;
+        bool matched = false;
+        // legacy
+        while (
+            Terminals.AnyOf(
+                [
+                    "stage", 
+                    "override",
+                    "clone",
+                    "abstract",
+                    "static"
+                ], 
+                ref scanner, 
+                out string match,
+                advance: true) 
+            && Spaces1(ref scanner, result, out _))
+        {
+            matched = true;
+            if(match == "stage")
+                isStaged = true; 
+            else if(match == "override")
+                isOverride = true;
+            else if(match == "clone")
+                isClone = true;
+            else if(match == "abstract")
+                isAbstract = true;
+            else if(match == "static")
+                isStatic = true;
+            else break;
+        }
+        if(!advance)
+            scanner.Position = position;
+        return matched;
+    }
+
+    public static bool VariableModifiers<TScanner>(ref TScanner scanner, ParseResult result, out bool isStaged, out StreamKind streamKind, out InterpolationModifier interpolation, out TypeModifier typeModifier, out StorageClass storageClass, bool advance = true)
+        where TScanner : struct, IScanner
+    {
+        var position = scanner.Position;
+        isStaged = false;
+        streamKind = StreamKind.None;
+        interpolation = InterpolationModifier.None;
+        typeModifier = TypeModifier.None;
+        storageClass = StorageClass.None;
+        bool matched = false;
+        // legacy
+        while (
+            Terminals.AnyOf(
+                [
+                    "stage", 
+                    "stream", 
+                    "patchstream", 
+                    "linear", 
+                    "centroid", 
+                    "nointerpolation", 
+                    "noperspective", 
+                    "sample",
+                    "extern", 
+                    "nointerpolation", 
+                    "precise", 
+                    "shared", 
+                    "groupshared", 
+                    "static", 
+                    "uniform", 
+                    "volatile",
+                    "const",
+                    "rowmajor",
+                    "columnmajor"
+                ], 
+                ref scanner, 
+                out string match,
+                advance: true) 
+            && Spaces1(ref scanner, result, out _))
+        {
+            matched = true;
+            if (match == "stage")
+                isStaged = true;
+            else if(match == "stream")
+                streamKind = StreamKind.Stream;
+            else if(match == "patchstream")
+                streamKind = StreamKind.PatchStream;
+            else if(match == "linear")
+                interpolation = InterpolationModifier.Linear;
+            else if(match == "centroid")
+                interpolation = InterpolationModifier.Centroid;
+            else if(match == "nointerpolation")
+                interpolation = InterpolationModifier.NoInterpolation;
+            else if(match == "noperspective")
+                interpolation = InterpolationModifier.NoPerspective;
+            else if(match == "sample")
+                interpolation = InterpolationModifier.Sample;
+            else if(match == "extern")
+                storageClass = StorageClass.Extern;
+            else if(match == "nointerpolation")
+                storageClass = StorageClass.NoInterpolation;
+            else if(match == "precise")
+                storageClass = StorageClass.Precise;
+            else if(match == "shared")
+                storageClass = StorageClass.Shared;
+            else if(match == "groupshared")
+                storageClass = StorageClass.GroupShared;
+            else if(match == "static")
+                storageClass = StorageClass.Static;
+            else if(match == "uniform")
+                storageClass = StorageClass.Uniform;
+            else if(match == "volatile")
+                storageClass = StorageClass.Volatile;
+            else if(match == "const")
+                typeModifier = TypeModifier.Const;
+            else if(match == "rowmajor")
+                typeModifier = TypeModifier.RowMajor;
+            else if(match == "columnmajor")
+                typeModifier = TypeModifier.ColumnMajor;
+            else break;
+        }
+        if(!advance)
+            scanner.Position = position;
+        return matched;
+    }
+
+
     public static bool IdentifierArraySizeOptionalValue<TScanner>(ref TScanner scanner, ParseResult result, out Identifier identifier, out List<Expression> arraySizes, out Expression? value, bool advance = true)
         where TScanner : struct, IScanner
     {
@@ -164,6 +293,70 @@ public static class CommonParsers
         arraySize = null!;
         return false;
     }
+    public static bool MixinIdentifierArraySizeValue<TScanner>(ref TScanner scanner, ParseResult result, out Mixin mixin, out Identifier identifier, out List<Expression> arraySize, out Expression? value, bool advance = true)
+        where TScanner : struct, IScanner
+    {
+        var position = scanner.Position;
+        arraySize = null!;
+        value = null!;
+
+        if (
+            ShaderClassParsers.Mixin(ref scanner, result, out mixin)
+            && Spaces1(ref scanner, result, out _)
+            && LiteralsParser.Identifier(ref scanner, result, out identifier))
+        {
+            var tmp = scanner.Position;
+            Spaces0(ref scanner, result, out _);
+            if (!FollowedByDelList(ref scanner, result, ArraySizes, out arraySize, withSpaces: true, advance: true))
+            {
+                scanner.Position = tmp;
+            }
+            tmp = scanner.Position;
+            if (
+                !(
+                    FollowedBy(ref scanner, Terminals.Char('='), withSpaces: true, advance: true)
+                    && FollowedBy(ref scanner, result, ExpressionParser.Expression, out value, withSpaces: true, advance: true)
+                )
+            )
+            {
+                scanner.Position = tmp;
+            }
+            if (!advance)
+                scanner.Position = position;
+            return true;
+        }
+        else
+        {
+            scanner.Position = position;
+            if (
+                ShaderClassParsers.Mixin(ref scanner, result, out mixin)
+                && FollowedByDelList(ref scanner, result, ArraySizes, out List<Expression> sizes, withSpaces: true, advance: true)
+                && Spaces1(ref scanner, result, out _)
+                && LiteralsParser.Identifier(ref scanner, result, out identifier))
+            {
+                var tmp = scanner.Position;
+                Spaces0(ref scanner, result, out _);
+                if (
+                    !(
+                        Terminals.Char('=', ref scanner, advance: true)
+                        && Spaces0(ref scanner, result, out _)
+                        && ExpressionParser.Expression(ref scanner, result, out value)
+                    )
+                )
+                {
+                    scanner.Position = tmp;
+                }
+                if (!advance)
+                    scanner.Position = position;
+                return true;
+            }
+        }
+        scanner.Position = position;
+        mixin = null!;
+        identifier = null!;
+        arraySize = null!;
+        return false;
+    }
 
     public static bool ArraySizes<TScanner>(ref TScanner scanner, ParseResult result, out List<Expression> arraySizes, in ParseError? orError = null)
         where TScanner : struct, IScanner
@@ -173,7 +366,9 @@ public static class CommonParsers
         {
             if (FollowedBy(ref scanner, Terminals.Char('['), withSpaces: true, advance: true))
             {
-                if (FollowedByDel(ref scanner, result, ExpressionParser.Expression, out Expression arraySize, withSpaces: true, advance: true))
+                if(FollowedBy(ref scanner, Terminals.Char(']'), withSpaces: true, advance: true))
+                    break;
+                else if (FollowedByDel(ref scanner, result, ExpressionParser.Expression, out Expression arraySize, withSpaces: true, advance: true))
                 {
                     arraySizes.Add(arraySize);
                     if (!FollowedBy(ref scanner, Terminals.Char(']'), withSpaces: true, advance: true))

@@ -83,7 +83,7 @@ public struct FloatParser : IParser<FloatLiteral>
             if (Terminals.Char('.', ref scanner))
             {
                 scanner.Advance(1);
-                if (!Terminals.Digit(ref scanner))
+                if (!Terminals.Digit(ref scanner) && !Terminals.FloatSuffix(ref scanner, out _))
                     return CommonParsers.Exit(ref scanner, result, out node, position, new(SDSLParsingMessages.SDSL0001, scanner.GetErrorLocation(scanner.Position), scanner.Memory));
                 while (Terminals.Digit(ref scanner, advance: true)) ;
             }
@@ -94,7 +94,7 @@ public struct FloatParser : IParser<FloatLiteral>
         {
             if (Terminals.Char('.', ref scanner, advance: true))
             {
-                if (!Terminals.Digit(ref scanner))
+                if (!Terminals.Digit(ref scanner) && !Terminals.FloatSuffix(ref scanner, out _))
                     return CommonParsers.Exit(ref scanner, result, out node, position, new(SDSLParsingMessages.SDSL0001, scanner.GetErrorLocation(scanner.Position), scanner.Memory));
                 while (Terminals.Digit(ref scanner, advance: true)) ;
             }

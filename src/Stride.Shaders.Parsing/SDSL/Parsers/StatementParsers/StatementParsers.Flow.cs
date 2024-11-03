@@ -10,8 +10,13 @@ public record struct FlowParsers : IParser<Flow>
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
+        var hasAttributes = ShaderAttributeListParser.Attribute(ref scanner, result, out var attribute) && CommonParsers.Spaces0(ref scanner, result, out _);
+        if (!hasAttributes)
+            scanner.Position = position;
         if (While(ref scanner, result, out var w, orError))
         {
+            if(hasAttributes)
+                w.Attribute = attribute;
             parsed = w;
             return true;
         }
@@ -22,6 +27,8 @@ public record struct FlowParsers : IParser<Flow>
         }
         else if (For(ref scanner, result, out var f, orError))
         {
+            if(hasAttributes)
+                f.Attribute = attribute;
             parsed = f;
             return true;
         }
@@ -47,10 +54,6 @@ public record struct ForParser : IParser<For>
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
-
-        var hasAttributes = ShaderAttributeListParser.Attribute(ref scanner, result, out var attribute) && CommonParsers.Spaces0(ref scanner, result, out _);
-        if (!hasAttributes)
-            scanner.Position = position;
         if(
             Terminals.Literal("for", ref scanner, advance: true)
             && CommonParsers.FollowedBy(ref scanner, Terminals.Char('('), withSpaces: true, advance: true)
@@ -58,7 +61,7 @@ public record struct ForParser : IParser<For>
         {
             Statement? init = null;
             Statement? condition = null;
-            Statement? expression = null;
+            List<Statement>? expressions = null;
             CommonParsers.Spaces0(ref scanner, result, out _);
 
             // Parsing the initialization
@@ -79,8 +82,8 @@ public record struct ForParser : IParser<For>
             
             var tmpPos = scanner.Position;
 
-            if (!AssignOrExpression(ref scanner, result, out expression))
-                expression = new EmptyStatement(scanner.GetLocation(tmpPos..scanner.Position));
+            if (!CommonParsers.Repeat(ref scanner, result, AssignOrExpression, out expressions, 0, withSpaces: true, separator: ","))
+                expressions = [new EmptyStatement(scanner.GetLocation(tmpPos..scanner.Position))];
             if(!CommonParsers.FollowedBy(ref scanner, Terminals.Char(')'), withSpaces: true, advance: true))
                 return CommonParsers.Exit(ref scanner, result, out parsed, position, new(SDSLParsingMessages.SDSL0018, scanner.GetErrorLocation(scanner.Position), scanner.Memory));            
             CommonParsers.Spaces0(ref scanner, result, out _);
@@ -89,7 +92,7 @@ public record struct ForParser : IParser<For>
 
             if(StatementParsers.Statement(ref scanner, result, out var body))
             {
-                parsed = new For(init, condition, expression!, body, scanner.GetLocation(position..scanner.Position), attribute: attribute);
+                parsed = new For(init, condition, expressions!, body, scanner.GetLocation(position..scanner.Position));
                 return true;
             }
             else return CommonParsers.Exit(ref scanner, result, out parsed, position, orError);
@@ -97,7 +100,7 @@ public record struct ForParser : IParser<For>
         else return CommonParsers.Exit(ref scanner, result, out parsed, position, orError);
     }
 
-    internal static bool AssignOrExpression<TScanner>(ref TScanner scanner, ParseResult result, out Statement parsed, ParseError? orError = null)
+    internal static bool AssignOrExpression<TScanner>(ref TScanner scanner, ParseResult result, out Statement parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;

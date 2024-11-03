@@ -34,8 +34,24 @@ public enum InterpolationModifier
     Sample
 }
 
+public enum StreamKind
+{
+    None,
+    Stream,
+    PatchStream
+}
+
 public static class ShaderVariableInformationExtensions
 {
+    public static StreamKind ToStreamKind(this string str)
+    {
+        return str switch
+        {
+            "stream" => StreamKind.Stream,
+            "patchstream" => StreamKind.PatchStream,
+            _ => StreamKind.None
+        };
+    }
     public static InterpolationModifier ToInterpolationModifier(this string str)
     {
         return str switch

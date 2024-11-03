@@ -182,7 +182,7 @@ public record struct BufferMemberParser : IParser<ShaderMember>
         CommonParsers.Spaces0(ref scanner, result, out _);
         var position = scanner.Position;
         var isStage = false;
-        var isStream = false;
+        StreamKind streamKind = StreamKind.None;
         bool hasAttributes = ShaderAttributeListParser.AttributeList(ref scanner, result, out var attributes, orError);
         var tmp = scanner.Position;
         if (Terminals.Literal("stage", ref scanner, advance: true) && CommonParsers.Spaces1(ref scanner, result, out _))
@@ -192,61 +192,13 @@ public record struct BufferMemberParser : IParser<ShaderMember>
         }
         else
             scanner.Position = tmp;
-        if (LiteralsParser.TypeName(ref scanner, result, out var typename1)
-            && CommonParsers.Spaces1(ref scanner, result, out _)
-            && LiteralsParser.Identifier(ref scanner, result, out Identifier name1)
-            && CommonParsers.FollowedByDelList(ref scanner, result, CommonParsers.ArraySizes, out List<Expression> arraySizes, withSpaces:true, advance: true)
-            && CommonParsers.FollowedBy(ref scanner, Terminals.Set("=;"), withSpaces: true)
+        if (
+            CommonParsers.TypeNameIdentifierArraySizeValue(ref scanner, result, out var typename, out var identifier, out var arraySizes, out var value, advance: true)
+            && CommonParsers.FollowedBy(ref scanner, Terminals.Set(";"), withSpaces: true, advance: true)
         )
         {
-            if (CommonParsers.FollowedBy(ref scanner, Terminals.Set(";"), withSpaces: true))
-            {
-                CommonParsers.Until(ref scanner, ';', advance: true);
-                parsed = new ShaderMember(typename1, name1, null, true, scanner.GetLocation(position..scanner.Position), isStage, isStream, arraySizes: arraySizes);
-                return true;
-            }
-            else if (CommonParsers.FollowedBy(ref scanner, Terminals.Set("="), withSpaces: true))
-            {
-                CommonParsers.Until(ref scanner, '=', advance: true);
-                CommonParsers.Spaces0(ref scanner, result, out _);
-                if (ExpressionParser.Expression(ref scanner, result, out var expression, orError: orError ?? new(SDSLParsingMessages.SDSL0015, scanner.GetErrorLocation(scanner.Position), scanner.Memory)))
-                {
-                    if (CommonParsers.Spaces0(ref scanner, result, out _) && Terminals.Char(';', ref scanner))
-                    {
-                        parsed = new ShaderMember(typename1, name1, expression, true, scanner.GetLocation(position..scanner.Position), isStage, isStream, arraySizes: arraySizes);
-                        return true;
-                    }
-                    else return CommonParsers.Exit(ref scanner, result, out parsed, position, orError);
-                }
-            }
-        }
-        scanner.Position = tmp;
-        if (LiteralsParser.TypeName(ref scanner, result, out var typename)
-           && CommonParsers.Spaces1(ref scanner, result, out _)
-           && LiteralsParser.Identifier(ref scanner, result, out Identifier name)
-           && CommonParsers.FollowedBy(ref scanner, Terminals.Set("=;"), withSpaces: true)
-        )
-        {
-            if (CommonParsers.FollowedBy(ref scanner, Terminals.Set(";"), withSpaces: true))
-            {
-                CommonParsers.Until(ref scanner, ';', advance: true);
-                parsed = new ShaderMember(typename, name, null, false, scanner.GetLocation(position..scanner.Position), isStage, isStream);
-                return true;
-            }
-            else if (CommonParsers.FollowedBy(ref scanner, Terminals.Set("="), withSpaces: true))
-            {
-                CommonParsers.Until(ref scanner, '=', advance: true);
-                CommonParsers.Spaces0(ref scanner, result, out _);
-                if (ExpressionParser.Expression(ref scanner, result, out var expression, orError: orError ?? new(SDSLParsingMessages.SDSL0015, scanner.GetErrorLocation(scanner.Position), scanner.Memory)))
-                {
-                    if (CommonParsers.FollowedBy(ref scanner, Terminals.Char(';'), withSpaces: true, advance: true))
-                    {
-                        parsed = new ShaderMember(typename, name, expression, false, scanner.GetLocation(position..scanner.Position), isStage, isStream);
-                        return true;
-                    }
-                    else return CommonParsers.Exit(ref scanner, result, out parsed, position, orError);
-                }
-            }
+            parsed = new ShaderMember(typename, identifier, null, true, scanner.GetLocation(position..scanner.Position), isStage, streamKind, arraySizes: arraySizes);
+            return true;
         }
         return CommonParsers.Exit(ref scanner, result, out parsed, position, orError);
     }

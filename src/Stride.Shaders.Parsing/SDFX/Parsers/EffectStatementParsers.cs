@@ -203,7 +203,7 @@ public record struct MixinComposeParser : IParser<MixinCompose>
         {
             var paren = CommonParsers.FollowedBy(ref scanner, Terminals.Char('('), withSpaces: true, advance: true);
             if (
-                ShaderClassParsers.Mixin(ref scanner, result, out var mixin)
+                ExpressionParser.Expression(ref scanner, result, out var mixin)
                 && paren == CommonParsers.FollowedBy(ref scanner, Terminals.Char(')'), withSpaces: true, advance: true)
                 && CommonParsers.FollowedBy(ref scanner, Terminals.Char(';'), withSpaces: true, advance: true)
             )
