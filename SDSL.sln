@@ -5,37 +5,36 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{F15E41A8-FD75-462B-9BB0-DCE18A6AD334}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stride.Shaders.Parsing", "src\Stride.Shaders.Parsing\Stride.Shaders.Parsing.csproj", "{6641B2F9-0E20-43E5-BF88-44B02B32117B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Shaders.Parsing", "src\Stride.Shaders.Parsing\Stride.Shaders.Parsing.csproj", "{6641B2F9-0E20-43E5-BF88-44B02B32117B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stride.Shaders.Parsing.Experiments", "src\Stride.Shaders.Parsing.Experiments\Stride.Shaders.Parsing.Experiments.csproj", "{55F0B4B4-8BD5-4957-8D96-BF369E3CCCFD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Shaders.Parsing.Experiments", "src\Stride.Shaders.Parsing.Experiments\Stride.Shaders.Parsing.Experiments.csproj", "{55F0B4B4-8BD5-4957-8D96-BF369E3CCCFD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stride.Shaders.Compilers", "src\Stride.Shaders.Compilers\Stride.Shaders.Compilers.csproj", "{06F65A22-F517-49B4-B4A5-F38D60555B2A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Shaders.Compilers", "src\Stride.Shaders.Compilers\Stride.Shaders.Compilers.csproj", "{06F65A22-F517-49B4-B4A5-F38D60555B2A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stride.Shaders.LSP", "src\Stride.Shaders.LSP\Stride.Shaders.LSP.csproj", "{E59CE683-4805-4FD3-98EB-4F704C253F1A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Shaders.LSP", "src\Stride.Shaders.LSP\Stride.Shaders.LSP.csproj", "{E59CE683-4805-4FD3-98EB-4F704C253F1A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stride.Shaders.LSP.Test", "src\Stride.Shaders.LSP.Test\Stride.Shaders.LSP.Test.csproj", "{FB96F2D7-6288-492A-8CB5-2FCE9DB1BA8C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Shaders.LSP.Test", "src\Stride.Shaders.LSP.Test\Stride.Shaders.LSP.Test.csproj", "{FB96F2D7-6288-492A-8CB5-2FCE9DB1BA8C}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Stride.Shaders.Spirv", "Stride.Shaders.Spirv", "{6F9ED3BC-F61F-4FFE-9AC4-F42FDECDFA92}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stride.Shaders.Spirv.Core", "src\Stride.Shaders.Spirv\Stride.Shaders.Spirv.Core\Stride.Shaders.Spirv.Core.csproj", "{DDCF65EC-1CF7-4098-B20B-DA6761F6B8E6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Shaders.Spirv.Core", "src\Stride.Shaders.Spirv\Stride.Shaders.Spirv.Core\Stride.Shaders.Spirv.Core.csproj", "{DDCF65EC-1CF7-4098-B20B-DA6761F6B8E6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stride.Shaders.Spirv", "src\Stride.Shaders.Spirv\Stride.Shaders.Spirv\Stride.Shaders.Spirv.csproj", "{4EC134E1-5B64-497B-B129-4E1B4806E466}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Shaders.Spirv", "src\Stride.Shaders.Spirv\Stride.Shaders.Spirv\Stride.Shaders.Spirv.csproj", "{4EC134E1-5B64-497B-B129-4E1B4806E466}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stride.Shaders.Spirv.Experiments", "src\Stride.Shaders.Spirv\Stride.Shaders.Spirv.Experiments\Stride.Shaders.Spirv.Experiments.csproj", "{07ED0B5B-BB1A-4B7E-ACBD-C06FC106AF00}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Shaders.Spirv.Experiments", "src\Stride.Shaders.Spirv\Stride.Shaders.Spirv.Experiments\Stride.Shaders.Spirv.Experiments.csproj", "{07ED0B5B-BB1A-4B7E-ACBD-C06FC106AF00}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stride.Shaders.Spirv.Generators", "src\Stride.Shaders.Spirv\Stride.Shaders.Spirv.Generators\Stride.Shaders.Spirv.Generators.csproj", "{1205976E-A945-4475-AD87-C63527D5A63A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Shaders.Spirv.Generators", "src\Stride.Shaders.Spirv\Stride.Shaders.Spirv.Generators\Stride.Shaders.Spirv.Generators.csproj", "{1205976E-A945-4475-AD87-C63527D5A63A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stride.Shaders.Spirv.Core.Benchmarks", "src\Stride.Shaders.Spirv\Stride.Shaders.Spirv.Core.Benchmarks\Stride.Shaders.Spirv.Core.Benchmarks.csproj", "{8A94649E-8A3B-4F7C-85A5-9D38212AAA3C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Shaders.Spirv.Core.Benchmarks", "src\Stride.Shaders.Spirv\Stride.Shaders.Spirv.Core.Benchmarks\Stride.Shaders.Spirv.Core.Benchmarks.csproj", "{8A94649E-8A3B-4F7C-85A5-9D38212AAA3C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stride.Shaders.Parsing.Tests", "src\Stride.Shaders.Parsing.Tests\Stride.Shaders.Parsing.Tests.csproj", "{41050DB9-A819-4FC7-9D46-0ED054CAE7CB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Shaders.Parsing.Tests", "src\Stride.Shaders.Parsing.Tests\Stride.Shaders.Parsing.Tests.csproj", "{41050DB9-A819-4FC7-9D46-0ED054CAE7CB}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CppNet", "submodules\CppNet8\CppNet.csproj", "{8DE1B8C3-4276-4B6D-B4DE-1B9C0B41B897}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
-	EndGlobalSection
-	GlobalSection(SolutionProperties) = preSolution
-		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{6641B2F9-0E20-43E5-BF88-44B02B32117B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -82,6 +81,13 @@ Global
 		{41050DB9-A819-4FC7-9D46-0ED054CAE7CB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{41050DB9-A819-4FC7-9D46-0ED054CAE7CB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{41050DB9-A819-4FC7-9D46-0ED054CAE7CB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8DE1B8C3-4276-4B6D-B4DE-1B9C0B41B897}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8DE1B8C3-4276-4B6D-B4DE-1B9C0B41B897}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8DE1B8C3-4276-4B6D-B4DE-1B9C0B41B897}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8DE1B8C3-4276-4B6D-B4DE-1B9C0B41B897}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{6641B2F9-0E20-43E5-BF88-44B02B32117B} = {F15E41A8-FD75-462B-9BB0-DCE18A6AD334}
