@@ -1,4 +1,5 @@
 using Stride.Shaders.Parsing.SDSL.AST;
+using System.Globalization;
 
 namespace Stride.Shaders.Parsing.SDSL;
 
@@ -103,7 +104,7 @@ public struct FloatParser : IParser<FloatLiteral>
         else return CommonParsers.Exit(ref scanner, result, out node, position);
 
 
-        var value = double.Parse(scanner.Span[position..scanner.Position]);
+        var value = double.Parse(scanner.Span[position..scanner.Position], CultureInfo.InvariantCulture);
         int? exponent = null;
         if (Terminals.Char('e', ref scanner, advance: true))
         {
