@@ -81,8 +81,11 @@ namespace Stride.Audio
         /// </summary>
         internal void DestroyAudioEngine()
         {
-            AudioLayer.ListenerDestroy(DefaultListener.Listener);
-            AudioLayer.Destroy(AudioDevice);
+            if (AudioDevice != null)
+            {
+                AudioLayer.ListenerDestroy(DefaultListener.Listener);
+                AudioLayer.Destroy(AudioDevice);
+            }
         }
 
         /// <summary>
