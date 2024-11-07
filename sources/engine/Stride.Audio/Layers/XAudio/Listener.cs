@@ -6,11 +6,10 @@ using Stride.Core.Mathematics;
 
 namespace Stride.Audio;
 
-public sealed class Listener : IInitializable
+public sealed class Listener
 {
     internal Device device;
     internal X3DAudioListener listener;
     internal Matrix worldTransform;
-    public bool Initialized => true;
 }
 #endif

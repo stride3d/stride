@@ -6,7 +6,7 @@ using Stride.Audio.Layers.XAudio;
 
 namespace Stride.Audio;
 
-public sealed unsafe class Source : IInitializable
+public sealed unsafe partial class Source
 {
     public IXAudio2VoiceCallback value = new();
     public IXAudio2MasteringVoice* masteringVoice;
@@ -14,13 +14,10 @@ public sealed unsafe class Source : IInitializable
     public X3DAudioEmitter emitter;
     public X3DAudioDSPSettings dsp_settings;
     public IXAPOHrtfParameters* hrtf_params;
-    internal Listener listener;
+    internal Listener Listener;
     public volatile bool playing;
     public volatile bool pause;
     public volatile bool looped;
-    public int sampleRate;
-    public bool mono;
-    public bool streamed;
     public volatile float pitch = 1.0f;
     public volatile float dopplerPitch = 1.0f;
     internal AudioBuffer[] freeBuffers;
@@ -29,7 +26,6 @@ public sealed unsafe class Source : IInitializable
     public Buffer singleBuffer;
 
     public volatile int samplesAtBegin = 0; 
-    public bool Initialized => true;
 
     public unsafe void GetState(VoiceState* state)
     {

@@ -22,15 +22,19 @@ internal sealed unsafe class AudioProvider
     {
         var buffer = new AudioBuffer();
         buffer.Pcm = new short[maxBufferSize];
-        al.GenBuffers(1, &buffer.Value);
-        buffer.Initialized = true;
+        fixed (uint* bufferPtr = &buffer.Value)
+        {
+            al.GenBuffers(1, bufferPtr);
+        }
         return buffer;
     }
 
     public void BufferDestroy(AudioBuffer buffer)
     {
-        al.DeleteBuffers(1, &buffer.Value);
-        buffer.Initialized = false;
+        fixed (uint* bufferPtr = &buffer.Value)
+        {
+            al.DeleteBuffers(1, bufferPtr);
+        }
 	    buffer.Pcm = null;
     }
 
@@ -61,11 +65,11 @@ internal sealed unsafe class AudioProvider
 		listener.Device = device;
 
 		listener.Context = alc.CreateContext(device.Value, null);
-        listener.Initialized = alc.GetError(device.Value) == ContextError.NoError;
+        System.Diagnostics.Debug.Assert(alc.GetError(device.Value) == ContextError.NoError);
         alc.MakeContextCurrent(listener.Context);
-        listener.Initialized = alc.GetError(device.Value) == ContextError.NoError;
+        System.Diagnostics.Debug.Assert(alc.GetError(device.Value) == ContextError.NoError);
         alc.ProcessContext(listener.Context);        
-        listener.Initialized = alc.GetError(device.Value) == ContextError.NoError;
+        System.Diagnostics.Debug.Assert(alc.GetError(device.Value) == ContextError.NoError);
         
         device.DeviceLock.Lock();
 
@@ -83,8 +87,6 @@ internal sealed unsafe class AudioProvider
         listener.Device.Listeners.Remove(listener);
 
         listener.Device.DeviceLock.Unlock();
-
-        listener.Initialized = false;
 
         alc.DestroyContext(listener.Context);
     }
@@ -128,12 +130,18 @@ internal sealed unsafe class AudioProvider
         };
         _ = new ContextState(listener.Context);
 
-        al.GenSources(1, &source.Sources);
-        al.GenSources(1, &source.Value);
+        fixed(uint* sourcesPtr = &source.Sources)
+        {
+            al.GenSources(1, sourcesPtr);
+        }
+        fixed(uint* sourcePtr = &source.Value)
+        {
+            al.GenSources(1, sourcePtr);
+        }
 
-        source.Initialized = al.GetError() == AudioError.NoError;
+        System.Diagnostics.Debug.Assert(al.GetError() == AudioError.NoError);
         al.SetSourceProperty(source.Value, SourceFloat.ReferenceDistance, 1.0f);
-        source.Initialized = al.GetError() == AudioError.NoError;
+        System.Diagnostics.Debug.Assert(al.GetError() == AudioError.NoError);
 
         if(spatialized)
         {
@@ -154,9 +162,11 @@ internal sealed unsafe class AudioProvider
     public void SourceDestroy(Source source)
     {
         _ = new ContextState(source.Listener.Context);
-
-        al.DeleteSources(1, &source.Value);
-        source.Initialized = false;
+        
+        fixed(uint* sourcePtr = &source.Value)
+        {
+            al.DeleteSources(1, sourcePtr);
+        }
         source.Listener.Sources.Remove(source);
     }
 
@@ -218,7 +228,7 @@ internal sealed unsafe class AudioProvider
     {
         _ = new ContextState(source.Listener.Context);
 		al.GetSourceProperty(source.Value, GetSourceInteger.SourceState, out var value);
-		return value == (int)SourceState.Paused || value == (int)SourceState.Paused;
+		return value == (int)SourceState.Playing || value == (int)SourceState.Paused;
     }
 
     public void SourcePause(Source source)
@@ -255,7 +265,11 @@ internal sealed unsafe class AudioProvider
         buffer.Type = streamType;
         buffer.Size = bufferSize;
         al.BufferData(buffer.Value, source.Mono ? BufferFormat.Mono16 : BufferFormat.Stereo16, pcm.ToPointer(), bufferSize, source.SampleRate);
-        al.SourceQueueBuffers(source.Value, 1, &buffer.Value);
+        fixed (uint* bufferPtr = &buffer.Value)
+        {
+            al.SourceQueueBuffers(source.Value, 1, bufferPtr);
+        }
+
         source.Listener.Buffers[buffer.Value] = buffer;
     }
 
@@ -409,7 +423,7 @@ internal sealed unsafe class AudioProvider
                         float postDTime;
                         al.GetSourceProperty(source.Value, SourceFloat.SecOffset, &postDTime);
 
-                        if (bufferPtr.Type == BufferType.EndOfStream || bufferPtr.Type == BufferType.EndOfLoop)
+                        if (bufferPtr.Type is BufferType.EndOfStream or BufferType.EndOfLoop)
                         {
                             source.DequeuedTime = 0.0f;
                         }

@@ -6,19 +6,17 @@ using Silk.NET.XAudio;
 
 namespace Stride.Audio;
 
-public sealed partial class AudioBuffer : IInitializable
+public sealed partial class AudioBuffer
 {
-    internal uint length;
-    internal Buffer buffer = new();
-    internal BufferType type;
-    public bool Initialized => true;
+    internal Buffer Buffer;
+
     public AudioBuffer(int maxBufferSizeBytes)
     {
-        buffer = new();
+        Buffer = new();
         unsafe
         {
             var data = stackalloc byte[maxBufferSizeBytes];
-            buffer.PAudioData = data;
+            Buffer.PAudioData = data;
         }
     }
 }

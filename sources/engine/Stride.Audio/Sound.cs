@@ -75,7 +75,7 @@ namespace Stride.Audio
 
         internal void LoadSoundInMemory()
         {
-            if (PreloadedBuffer.Initialized) return;
+            if (PreloadedBuffer != null) return;
 
             using var soundStream = FileProvider.OpenStream(CompressedDataUrl, VirtualFileMode.Open, VirtualFileAccess.Read, VirtualFileShare.Read, StreamFlags.Seekable);
             using var decoder = new Celt(SampleRate, CompressedSoundSource.SamplesPerFrame, Channels, true);

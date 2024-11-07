@@ -131,7 +131,7 @@ namespace Stride.Audio
 
         internal void Update()
         {
-            if (!Listener.Initialized) 
+            if (Listener == null) 
                 return;
             AudioLayer.ListenerPush3D(Listener, ref Position, ref forward, ref up, ref Velocity, ref WorldTransform);
         }
