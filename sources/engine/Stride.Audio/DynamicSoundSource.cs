@@ -128,9 +128,7 @@ namespace Stride.Audio
                 if (freeBuffer == null)
                     return false;
 
-                #if LINUX || OSX 
-                freeBuffers.Enqueue(freeBuffer.Value);
-                #endif
+                freeBuffers.Enqueue(freeBuffer);
                 return true;
             }
         }

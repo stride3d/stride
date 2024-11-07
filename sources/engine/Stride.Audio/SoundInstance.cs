@@ -51,7 +51,7 @@ namespace Stride.Audio
                 return;
 
             Source = AudioLayer.SourceCreate(listener.Listener, sampleRate, dynamicSoundSource.MaxNumberOfBuffers, mono, spatialized, true, useHrtf, directionalFactor, environment);
-            if (!Source.Initialized)
+            if (Source == null)
             {
                 throw new Exception("Failed to create an AudioLayer Source");
             }
@@ -74,7 +74,7 @@ namespace Stride.Audio
                 return;
 
             Source = AudioLayer.SourceCreate(listener.Listener, staticSound.SampleRate, streamed ? CompressedSoundSource.NumberOfBuffers : 1, staticSound.Channels == 1, spatialized, streamed, useHrtf, directionalFactor, environment);
-            if (!Source.Initialized)
+            if (Source == null)
             {
                 throw new Exception("Failed to create an AudioLayer Source");
             }
@@ -85,7 +85,7 @@ namespace Stride.Audio
             }
             else
             {
-                if (!staticSound.PreloadedBuffer.Initialized)
+                if (staticSound.PreloadedBuffer == null)
                 {
                     staticSound.LoadSoundInMemory(); //this should be already loaded by the serializer, but in the case of forceLoadInMemory might not be the case yet.
                 }

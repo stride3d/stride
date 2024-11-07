@@ -40,12 +40,13 @@ namespace Stride.Audio
         {
             //(void)sampleRate;
 			
-			buffer.buffer.AudioBytes = (uint)bufferSize;
+			buffer.Buffer.AudioBytes = (uint)bufferSize;
 			
-			buffer.buffer.PlayBegin = 0;
-			buffer.buffer.PlayLength = buffer.length = (uint)bufferSize / sizeof(short) / (mono ? 1u : 2u);
+			buffer.Buffer.PlayBegin = 0;
+            buffer.Size = bufferSize / sizeof(short) / (mono ? 1 : 2);
+            buffer.Buffer.PlayLength = (uint)buffer.Size;
 
-            buffer.buffer.PAudioData = (byte*)pcm.ToPointer();
+            buffer.Buffer.PAudioData = (byte*)pcm.ToPointer();
         }
 
         public unsafe Device? Create(string deviceName, DeviceFlags flags)
@@ -134,15 +135,15 @@ namespace Stride.Audio
 
         public unsafe Source SourceCreate(Listener listener, int sampleRate, int maxNumberOfBuffers, bool mono, bool spatialized, bool streamed, bool hrtf, float hrtfDirectionFactor, HrtfEnvironment environment)
         {
-            //(void)streamed;
-
-			var source = new Source();
-			source.listener = listener;
-			source.sampleRate = sampleRate;
-			source.mono = mono;
-			source.streamed = streamed;
+            var source = new Source
+            {
+                Listener = listener,
+                SampleRate = sampleRate,
+                Mono = mono,
+                Streamed = streamed,
+            };
 			source.masteringVoice = listener.device.masteringVoice;
-			if((spatialized && !hrtf) || (hrtf && !source.listener.device.hrtf))
+			if((spatialized && !hrtf) || (hrtf && !source.Listener.device.hrtf))
 			{
 				//if spatialized we also need those structures to calculate 3D audio
 				source.emitter = new();
@@ -185,7 +186,7 @@ namespace Stride.Audio
                 return null;
             }
 
-            if (spatialized && source.listener.device.hrtf && hrtf)
+            if (spatialized && source.Listener.device.hrtf && hrtf)
             {
                 IXAudio2SubmixVoice* submixVoice = null;
 
@@ -275,11 +276,11 @@ namespace Stride.Audio
             VoiceState state;
 			source.GetState(&state);
 
-			if (!source.streamed)
-				return (source.singleBuffer.PlayBegin + state.SamplesPlayed - (ulong)source.samplesAtBegin) / (float)source.sampleRate;
+			if (!source.Streamed)
+				return (source.singleBuffer.PlayBegin + state.SamplesPlayed - (ulong)source.samplesAtBegin) / (float)source.SampleRate;
 			
 			//things work different for streamed sources, but anyway we simply subtract the snapshotted samples at begin of the stream ( could be the begin of the loop )
-			return (state.SamplesPlayed - (ulong)source.samplesAtBegin) / (float)source.sampleRate;
+			return (state.SamplesPlayed - (ulong)source.samplesAtBegin) / (float)source.SampleRate;
         }
 
         public bool SourceIsPlaying(Source source)
@@ -299,7 +300,7 @@ namespace Stride.Audio
             source.sourceVoice->Start(0,0);
 			source.playing = true;
 
-			if(!source.streamed && !source.pause)
+			if(!source.Streamed && !source.pause)
 			{
                 VoiceState state = new();
                 source.GetState(&state);
@@ -313,7 +314,7 @@ namespace Stride.Audio
         {
             if(source.hrtf_params != null)
 			{
-                Matrix invListener = source.listener.worldTransform;
+                Matrix invListener = source.Listener.worldTransform;
                 Matrix.Invert(ref invListener, out invListener);
                 Matrix.Multiply(ref worldTransform, ref invListener, out var localTransform);
 
@@ -356,15 +357,16 @@ namespace Stride.Audio
         public unsafe void SourceQueueBuffer(Source source, AudioBuffer buffer, nint pcm, int bufferSize, BufferType streamType)
         {
             //used only when streaming, to fill a buffer, often..
-			source.streamed = true;
+			source.Streamed = true;
 
 			//flag the stream
-			buffer.buffer.Flags = streamType == BufferType.EndOfStream ? (uint)XAudio.EndOfStream : 0;
-			buffer.type = streamType;
+			buffer.Buffer.Flags = streamType == BufferType.EndOfStream ? (uint)XAudio.EndOfStream : 0;
+			buffer.Type = streamType;
 			
-			buffer.length = buffer.buffer.AudioBytes = (uint)bufferSize;
-            buffer.buffer.PAudioData = (byte*)pcm.ToPointer();
-            fixed (Silk.NET.XAudio.Buffer* bufferPtr = &buffer.buffer)
+			buffer.Size = bufferSize;
+            buffer.Buffer.AudioBytes = (uint)buffer.Size;
+            buffer.Buffer.PAudioData = (byte*)pcm.ToPointer();
+            fixed (Silk.NET.XAudio.Buffer* bufferPtr = &buffer.Buffer)
             {
                 source.sourceVoice->SubmitSourceBuffer(bufferPtr, null);
             }
@@ -373,9 +375,9 @@ namespace Stride.Audio
         public unsafe void SourceSetBuffer(Source source, AudioBuffer buffer)
         {
             //this function is called only when the audio source is actually fully cached in memory, so we deal only with the first buffer
-            source.streamed = false;
+            source.Streamed = false;
             source.freeBuffers[0] = buffer;
-            source.singleBuffer = buffer.buffer;
+            source.singleBuffer = buffer.Buffer;
 
             fixed (Silk.NET.XAudio.Buffer* bufferPtr = &source.singleBuffer)
             {
@@ -392,7 +394,7 @@ namespace Stride.Audio
         {
             source.looped = looped;
 
-			if (!source.streamed)
+			if (!source.Streamed)
 			{
 				if (!source.looped)
 				{
@@ -419,7 +421,7 @@ namespace Stride.Audio
 
         public unsafe void SourceSetPan(Source source, float pan)
         {
-            if (source.mono)
+            if (source.Mono)
 			{
 				var panning = stackalloc float[2];
 				if (pan < 0)
@@ -466,27 +468,27 @@ namespace Stride.Audio
 
         public unsafe void SourceSetRange(Source source, double startTime, double stopTime)
         {
-            if(!source.streamed)
+            if(!source.Streamed)
 			{
 				var singleBuffer = source.freeBuffers[0];
 				if(startTime == 0 && stopTime == 0)
 				{
 					source.singleBuffer.PlayBegin = 0;
-					source.singleBuffer.PlayLength = singleBuffer.length;
+					source.singleBuffer.PlayLength = (uint)singleBuffer.Size;
 				}
 				else
 				{					
-					var sampleStart = (int)(source.sampleRate * startTime);
-					var sampleStop = (int)(source.sampleRate * stopTime);
+					var sampleStart = (int)(source.SampleRate * startTime);
+					var sampleStop = (int)(source.SampleRate * stopTime);
 
-					if (sampleStart > singleBuffer.length)
+					if (sampleStart > singleBuffer.Size)
 					{
 						return; //the starting position must be less then the total length of the buffer
 					}
 
-					if (sampleStop > singleBuffer.length) //if the end point is more then the length of the buffer fix the value
+					if (sampleStop > singleBuffer.Size) //if the end point is more then the length of the buffer fix the value
 					{
-						sampleStop = (int)singleBuffer.length;
+						sampleStop = singleBuffer.Size;
 					}
 
 					var len = sampleStop - sampleStart;
@@ -511,7 +513,7 @@ namespace Stride.Audio
 			source.pause = false;
 
 			//since we flush we also rebuffer in this case
-			if (!source.streamed)
+			if (!source.Streamed)
 			{
                 fixed (Silk.NET.XAudio.Buffer* bufferPtr = &source.singleBuffer)
                 {
