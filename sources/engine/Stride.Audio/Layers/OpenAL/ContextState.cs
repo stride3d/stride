@@ -4,7 +4,6 @@ namespace Stride.Audio;
 
 public sealed unsafe class ContextState
 {
-
     private readonly bool swap;
     private readonly Context* mOldContext;
     private static readonly SpinLock sOpenAlLock = new();

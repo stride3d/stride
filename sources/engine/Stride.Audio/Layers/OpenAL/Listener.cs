@@ -5,12 +5,11 @@ using System.Collections.Generic;
 
 namespace Stride.Audio;
 
-public struct Listener() : IInitializable
+public class Listener
 {
     public List<Source> Sources { get; internal set; } = [];
     public Device Device { get; internal set; } = new();
     public unsafe Silk.NET.OpenAL.Context* Context { get; internal set; }
     public Dictionary<uint, AudioBuffer> Buffers { get; internal set; } = [];
-    public bool Initialized { get; internal set; }
 }
 #endif

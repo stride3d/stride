@@ -124,7 +124,7 @@ public class AudioLayer
 
     public static void SourcePause(Source source)
     {
-        SourcePause(source);
+        al.SourcePause(source);
     }
 
     public static void SourceStop(Source source)
