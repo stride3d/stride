@@ -8,7 +8,7 @@ namespace Stride.Audio;
 public sealed unsafe class Device
 {
     internal IXAudio2* xAudio;
-    internal X3DAUDIO_HANDLE x3_audio;
+    internal nint x3_audio;
     internal IXAudio2MasteringVoice* masteringVoice;
     internal bool hrtf;
 }
