@@ -1,6 +1,13 @@
-struct Machin {
-    [Link("hello")]
-    stage something something;
-    [Link("hello2", 1 , 3)]
-    stage something[] something;
+
+shader Main {
+    struct Machin {
+        [Link("hello")]
+        stage something something;
+        [Link("hello2", 1 , 3)]
+        stage something[machin, machin, 3, machin(22), obo.obo] something;
+    }
+
+    struct Machin {
+        
+    }
 }
