@@ -66,7 +66,7 @@ namespace Stride.Audio
             }
 
             //this means opening the real audio device, which will be virtual actually so in the case of default device change Xaudio will deal with it for us.
-            result = device.xAudio->CreateMasteringVoice(ref device.masteringVoice, AUDIO_CHANNELS, 0, 0, deviceName, null, AudioStreamCategory.GameMedia);
+            result = device.xAudio->CreateMasteringVoice(ref device.masteringVoice, AUDIO_CHANNELS, 0, 0, deviceName, null, AudioStreamCategory.GameEffects);
             if (HResult.IndicatesFailure(result))
             {
                 return null;
@@ -441,8 +441,7 @@ namespace Stride.Audio
 					panning[0] = 1.0f - pan;
 					panning[1] = 1.0f;
 				}
-                var voice = (IXAudio2Voice)(*source.masteringVoice);
-                source.sourceVoice->SetOutputMatrix(&voice, 1, AUDIO_CHANNELS, panning, 0);
+                source.sourceVoice->SetOutputMatrix<IXAudio2MasteringVoice>(source.masteringVoice, 1, AUDIO_CHANNELS, panning, 0);
                 
             }
 			else
@@ -462,8 +461,7 @@ namespace Stride.Audio
 					panning[2] = 0.0f;
 					panning[3] = 1.0f;
 				}
-				var voice = (IXAudio2Voice)(*source.masteringVoice);
-				source.sourceVoice->SetOutputMatrix(&voice, 2, AUDIO_CHANNELS, panning, 0);
+				source.sourceVoice->SetOutputMatrix<IXAudio2MasteringVoice>(source.masteringVoice, 2, AUDIO_CHANNELS, panning, 0);
 			}
         }
 
