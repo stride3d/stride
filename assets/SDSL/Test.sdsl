@@ -1,0 +1,6 @@
+struct Machin {
+    [Link("hello")]
+    stage something something;
+    [Link("hello2", 1 , 3)]
+    stage something[] something;
+}
