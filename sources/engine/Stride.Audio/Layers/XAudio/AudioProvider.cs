@@ -3,6 +3,7 @@
 #if WINDOWS
 
 using System;
+using System.Runtime.InteropServices;
 using Silk.NET.Core.Native;
 using Silk.NET.XAudio;
 using Stride.Audio.Layers.XAudio;
@@ -26,8 +27,12 @@ namespace Stride.Audio
 
         public unsafe AudioBuffer BufferCreate(int maxBufferSizeBytes)
         {
-            var buffer = new AudioBuffer(maxBufferSizeBytes);
-			//buffer.buffer.PContext = buffer;
+            var buffer = new AudioBuffer();
+            AudioBuffer* bufferPtr = &buffer;        
+			buffer.Buffer.PContext = bufferPtr;
+            
+            var data = stackalloc byte[maxBufferSizeBytes];
+			buffer.Buffer.PAudioData = data;
 			return buffer;
         }
 
@@ -37,9 +42,7 @@ namespace Stride.Audio
         }
 
         public unsafe void BufferFill(AudioBuffer buffer, nint pcm, int bufferSize, int sampleRate, bool mono)
-        {
-            //(void)sampleRate;
-			
+        {			
 			buffer.Buffer.AudioBytes = (uint)bufferSize;
 			
 			buffer.Buffer.PlayBegin = 0;
@@ -53,7 +56,9 @@ namespace Stride.Audio
         {
             var device = new Device();
 
-            //res.hrtf = xnHrtfApoLib && (flags & xnAudioDeviceFlagsHrtf);
+            bool xnHrtfApoLib = true;
+            //todo apolib load
+            device.hrtf = xnHrtfApoLib && flags == DeviceFlags.Hrtf;
 
             //XAudio2, no flags, processor 1
             var result = xAudio.CreateWithVersionInfo(ref device.xAudio, device.hrtf ? 0x8000u : 0, 1, 0);
@@ -77,7 +82,7 @@ namespace Stride.Audio
             }		
 			
 			//X3DAudio
-			result = X3DAudio.X3DAudioInitializeFunc(3, SPEED_OF_SOUND, device.x3_audio);
+			result = X3DAudio.X3DAudioInitialize(3, SPEED_OF_SOUND, device.x3_audio);
 			if (HResult.IndicatesFailure(result))
 			{
 				return null;
@@ -143,6 +148,7 @@ namespace Stride.Audio
                 Streamed = streamed,
             };
 			source.masteringVoice = listener.device.masteringVoice;
+            
 			if((spatialized && !hrtf) || (hrtf && !source.Listener.device.hrtf))
 			{
 				//if spatialized we also need those structures to calculate 3D audio
@@ -160,6 +166,11 @@ namespace Stride.Audio
                 source.dsp_settings.pMatrixCoefficients = matrix;
                 var delay = stackalloc float[AUDIO_CHANNELS];
                 source.dsp_settings.pDelayTimes = delay;
+            }
+            else
+            {
+                source.emitter = null;
+				source.dsp_settings = null;
             }
 
 			//we could have used a tinystl vector but it did not link properly on ARM windows... so we just use an array
@@ -194,7 +205,7 @@ namespace Stride.Audio
                 HrtfApoInit apoInit = new(directivity);
 
                 IUnknown apoRoot = new();
-                result = HrtpApo.CreateHrtfApoFunc(&apoInit, &apoRoot);
+                result = HrtpApo.CreateHrtfApo(&apoInit, &apoRoot);
                 if (HResult.IndicatesFailure(result))
                 {
                     return null;
@@ -330,19 +341,19 @@ namespace Stride.Audio
 				};
 				source.hrtf_params->SetSourceOrientation(ref hrtfEmitterRot);
 			}
-			else
+			else if (source.emitter != null) 
 			{
-				if (source.emitter == null) 
-                    return;
-
-				// memcpy(&source.emitter.Position, pos, sizeof(float) * 3);
-				// memcpy(&source.emitter.Velocity, vel, sizeof(float) * 3);
-				// memcpy(&source.emitter.OrientFront, forward, sizeof(float) * 3);
-				// memcpy(&source.emitter.OrientTop, up, sizeof(float) * 3);
+				source.emitter.Position = pos;
+				source.emitter.Velocity = vel;
+				source.emitter.OrientFront = forward;
+				source.emitter.OrientTop = up;
 
 				//everything is calculated by Xaudio for us
-				// X3DAudioCalculateFunc(source.listener.device.x3_audio_, &source.listener.listener_, source.emitter_,
-				// 	X3DAUDIO_CALCULATE_MATRIX | X3DAUDIO_CALCULATE_DOPPLER | X3DAUDIO_CALCULATE_LPF_DIRECT | X3DAUDIO_CALCULATE_REVERB, source.dsp_settings_);
+                fixed(X3DAudioListener* listenerPtr = &source.Listener.listener)
+                {
+                    X3DAudio.X3DAudioCalculate(source.Listener.device.x3_audio, listenerPtr, source.emitter,
+                        Calculate.Matrix | Calculate.Doppler | Calculate.LPF_Direct | Calculate.Reverb, source.dsp_settings);
+                }
 				var voice = (IXAudio2Voice)(*source.masteringVoice);
 				source.sourceVoice->SetOutputMatrix(&voice, 1, AUDIO_CHANNELS, source.dsp_settings.pMatrixCoefficients, 0);
 				source.dopplerPitch = source.dsp_settings.DopplerFactor;
@@ -531,18 +542,17 @@ namespace Stride.Audio
 
     internal class HrtpApo
     {
-        internal static unsafe int CreateHrtfApoFunc(HrtfApoInit* v1, IUnknown* v2)
-        {
-            throw new NotImplementedException();
-        }
+        [DllImport("HrtfApo")]
+        public static extern unsafe int CreateHrtfApo(HrtfApoInit* v1, IUnknown* v2);
     }
 
     internal class X3DAudio
     {
-        internal static int X3DAudioInitializeFunc(int SpeakerChannelMask, float SpeedOfSound, X3DAUDIO_HANDLE Instance)
-        {
-            throw new NotImplementedException();
-        }
+        [DllImport("XAudio2_9")]
+        public static extern int X3DAudioInitialize(int SpeakerChannelMask, float SpeedOfSound, X3DAUDIO_HANDLE Instance);
+
+        [DllImport("XAudio2_9")]
+        public static extern unsafe void X3DAudioCalculate(X3DAUDIO_HANDLE x3_audio, X3DAudioListener* listenerPtr, X3DAudioEmitter emitter, Calculate calculate, X3DAudioDSPSettings dsp_settings);
     }
 }
 #endif
