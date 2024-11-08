@@ -56,9 +56,7 @@ namespace Stride.Audio
         {
             var device = new Device();
 
-            bool xnHrtfApoLib = true;
-            //todo apolib load
-            device.hrtf = xnHrtfApoLib && flags == DeviceFlags.Hrtf;
+            device.hrtf = flags == DeviceFlags.Hrtf;
 
             //XAudio2, no flags, processor 1
             var result = xAudio.CreateWithVersionInfo(ref device.xAudio, device.hrtf ? 0x8000u : 0, 1, 0);
@@ -82,7 +80,7 @@ namespace Stride.Audio
             }		
 			
 			//X3DAudio
-			result = X3DAudio.X3DAudioInitialize(3, SPEED_OF_SOUND, device.x3_audio);
+			result = X3DAudio.X3DAudioInitialize(3, SPEED_OF_SOUND, out device.x3_audio);
 			if (HResult.IndicatesFailure(result))
 			{
 				return null;
@@ -114,22 +112,20 @@ namespace Stride.Audio
         public void ListenerDisable(Listener listener)
         {
             //unused in Xaudio2
-			//(void)listener;
         }
 
         public bool ListenerEnable(Listener listener)
         {
             //unused in Xaudio2
-			//(void)listener;
 			return true;
         }
 
         public void ListenerPush3D(Listener listener, ref Vector3 pos, ref Vector3 forward, ref Vector3 up, ref Vector3 vel, ref Matrix worldTransform)
         {
-            listener.listener.Position= pos;
-            listener.listener.Velocity= vel;
-            listener.listener.OrientFront= forward;
-            listener.listener.OrientTop= up;
+            listener.listener.Position = pos;
+            listener.listener.Velocity = vel;
+            listener.listener.OrientFront = forward;
+            listener.listener.OrientTop = up;
             listener.worldTransform = worldTransform;
         }
 
@@ -351,8 +347,8 @@ namespace Stride.Audio
 				//everything is calculated by Xaudio for us
                 fixed(X3DAudioListener* listenerPtr = &source.Listener.listener)
                 {
-                    X3DAudio.X3DAudioCalculate(source.Listener.device.x3_audio, listenerPtr, source.emitter,
-                        Calculate.Matrix | Calculate.Doppler | Calculate.LPF_Direct | Calculate.Reverb, source.dsp_settings);
+                    X3DAudio.X3DAudioCalculate(out source.Listener.device.x3_audio, listenerPtr, source.emitter,
+                        Calculate.Matrix | Calculate.Doppler | Calculate.LPF_Direct | Calculate.Reverb, out source.dsp_settings);
                 }
 				var voice = (IXAudio2Voice)(*source.masteringVoice);
 				source.sourceVoice->SetOutputMatrix(&voice, 1, AUDIO_CHANNELS, source.dsp_settings.pMatrixCoefficients, 0);
@@ -549,10 +545,10 @@ namespace Stride.Audio
     internal class X3DAudio
     {
         [DllImport("XAudio2_9")]
-        public static extern int X3DAudioInitialize(int SpeakerChannelMask, float SpeedOfSound, X3DAUDIO_HANDLE Instance);
+        public static extern int X3DAudioInitialize(uint SpeakerChannelMask, float SpeedOfSound, out nint Instance);
 
         [DllImport("XAudio2_9")]
-        public static extern unsafe void X3DAudioCalculate(X3DAUDIO_HANDLE x3_audio, X3DAudioListener* listenerPtr, X3DAudioEmitter emitter, Calculate calculate, X3DAudioDSPSettings dsp_settings);
+        public static extern unsafe void X3DAudioCalculate(out nint x3_audio, X3DAudioListener* listenerPtr, X3DAudioEmitter emitter, Calculate calculate, out X3DAudioDSPSettings dsp_settings);
     }
 }
 #endif
