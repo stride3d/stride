@@ -1,20 +1,20 @@
-namespace machin.other.chamqsdklj;
-
-shader Parent 
+shader 
+    Parent : 
+        hello
 {
     [Layout(1, 2)]
     stream int a;
 }
 
-shader Main<int amplitude> {
-    struct Machin {
-        [Link("hello")]
-        stage something something;
-        [Link("hello2", 1 , 3)]
-        stage something[machin, machin, 3, machin(22), obo.obo] something;
-    }
+// shader Main<int amplitude> {
+//     struct Machin {
+//         [Link("hello")]
+//         stage something something;
+//         [Link("hello2", 1 , 3)]
+//         stage something[machin, machin, 3, machin(22), obo.obo] something;
+//     }
 
-    struct Machin {
+//     struct Machin {
         
-    }
-}
+//     }
+// }
