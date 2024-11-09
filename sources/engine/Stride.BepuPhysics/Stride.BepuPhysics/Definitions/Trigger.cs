@@ -18,18 +18,18 @@ public class Trigger : IContactEventHandler
     public bool NoContactResponse => true;
     public event TriggerDelegate? OnEnter, OnLeave;
 
-    void IContactEventHandler.OnStartedTouching<TManifold>(CollidableReference eventSource, CollidableReference other, ref TManifold contactManifold, bool flippedManifold, int contactIndex, BepuSimulation bepuSimulation) => OnStartedTouching(eventSource, other, ref contactManifold, flippedManifold, contactIndex, bepuSimulation);
-    void IContactEventHandler.OnStoppedTouching<TManifold>(CollidableReference eventSource, CollidableReference other, ref TManifold contactManifold, bool flippedManifold, int contactIndex, BepuSimulation bepuSimulation) => OnStoppedTouching(eventSource, other, ref contactManifold, flippedManifold, contactIndex, bepuSimulation);
+    void IContactEventHandler.OnStartedTouching<TManifold>(CollidableComponent eventSource, CollidableComponent other, ref TManifold contactManifold, bool flippedManifold, int contactIndex, BepuSimulation bepuSimulation) => OnStartedTouching(eventSource, other, ref contactManifold, flippedManifold, contactIndex, bepuSimulation);
+    void IContactEventHandler.OnStoppedTouching<TManifold>(CollidableComponent eventSource, CollidableComponent other, ref TManifold contactManifold, bool flippedManifold, int contactIndex, BepuSimulation bepuSimulation) => OnStoppedTouching(eventSource, other, ref contactManifold, flippedManifold, contactIndex, bepuSimulation);
 
     /// <inheritdoc cref="IContactEventHandler.OnStartedTouching{TManifold}"/>
-    protected void OnStartedTouching<TManifold>(CollidableReference eventSource, CollidableReference other, ref TManifold contactManifold, bool flippedManifold, int contactIndex, BepuSimulation bepuSimulation)
+    protected void OnStartedTouching<TManifold>(CollidableComponent eventSource, CollidableComponent other, ref TManifold contactManifold, bool flippedManifold, int contactIndex, BepuSimulation bepuSimulation)
     {
-        OnEnter?.Invoke(bepuSimulation.GetComponent(eventSource), bepuSimulation.GetComponent(other));
+        OnEnter?.Invoke(eventSource, other);
     }
 
     /// <inheritdoc cref="IContactEventHandler.OnStoppedTouching{TManifold}"/>
-    protected void OnStoppedTouching<TManifold>(CollidableReference eventSource, CollidableReference other, ref TManifold contactManifold, bool flippedManifold, int contactIndex, BepuSimulation bepuSimulation)
+    protected void OnStoppedTouching<TManifold>(CollidableComponent eventSource, CollidableComponent other, ref TManifold contactManifold, bool flippedManifold, int contactIndex, BepuSimulation bepuSimulation)
     {
-        OnLeave?.Invoke(bepuSimulation.GetComponent(eventSource), bepuSimulation.GetComponent(other));
+        OnLeave?.Invoke(eventSource, other);
     }
 }

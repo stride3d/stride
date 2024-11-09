@@ -1,7 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using BepuPhysics.Collidables;
 using BepuPhysics.CollisionDetection;
 
 namespace Stride.BepuPhysics.Definitions.Contacts;
@@ -26,7 +25,8 @@ public interface IContactEventHandler
     /// <param name="flippedManifold">Whether the manifold's normals and offset is flipped from the source's point of view.</param>
     /// <param name="contactIndex">Index of the new contact in the contact manifold.</param>
     /// <param name="workerIndex">Index of the worker thread that fired this event.</param>
-    void OnContactAdded<TManifold>(CollidableReference eventSource, CollidableReference other, ref TManifold contactManifold, bool flippedManifold, int contactIndex, int workerIndex, BepuSimulation bepuSimulation) where TManifold : unmanaged, IContactManifold<TManifold>
+    /// <param name="bepuSimulation">The simulation where the contact occured.</param>
+    void OnContactAdded<TManifold>(CollidableComponent eventSource, CollidableComponent other, ref TManifold contactManifold, bool flippedManifold, int contactIndex, int workerIndex, BepuSimulation bepuSimulation) where TManifold : unmanaged, IContactManifold<TManifold>
     {
     }
 
@@ -40,7 +40,8 @@ public interface IContactEventHandler
     /// <param name="flippedManifold">Whether the manifold's normals and offset is flipped from the source's point of view.</param>
     /// <param name="removedFeatureId">Feature id of the contact that was removed and is no longer present in the contact manifold.</param>
     /// <param name="workerIndex">Index of the worker thread that fired this event.</param>
-    void OnContactRemoved<TManifold>(CollidableReference eventSource, CollidableReference other, ref TManifold contactManifold, bool flippedManifold, int removedFeatureId, int workerIndex, BepuSimulation bepuSimulation) where TManifold : unmanaged, IContactManifold<TManifold>
+    /// <param name="bepuSimulation">The simulation where the contact occured.</param>
+    void OnContactRemoved<TManifold>(CollidableComponent eventSource, CollidableComponent other, ref TManifold contactManifold, bool flippedManifold, int removedFeatureId, int workerIndex, BepuSimulation bepuSimulation) where TManifold : unmanaged, IContactManifold<TManifold>
     {
     }
 
@@ -53,7 +54,8 @@ public interface IContactEventHandler
     /// <param name="contactManifold">Set of remaining contacts in the collision.</param>
     /// <param name="flippedManifold">Whether the manifold's normals and offset is flipped from the source's point of view.</param>
     /// <param name="workerIndex">Index of the worker thread that fired this event.</param>
-    void OnStartedTouching<TManifold>(CollidableReference eventSource, CollidableReference other, ref TManifold contactManifold, bool flippedManifold, int workerIndex, BepuSimulation bepuSimulation) where TManifold : unmanaged, IContactManifold<TManifold>
+    /// <param name="bepuSimulation">The simulation where the contact occured.</param>
+    void OnStartedTouching<TManifold>(CollidableComponent eventSource, CollidableComponent other, ref TManifold contactManifold, bool flippedManifold, int workerIndex, BepuSimulation bepuSimulation) where TManifold : unmanaged, IContactManifold<TManifold>
     {
     }
 
@@ -66,7 +68,8 @@ public interface IContactEventHandler
     /// <param name="contactManifold">Set of remaining contacts in the collision.</param>
     /// <param name="flippedManifold">Whether the manifold's normals and offset is flipped from the source's point of view.</param>
     /// <param name="workerIndex">Index of the worker thread that fired this event.</param>
-    void OnTouching<TManifold>(CollidableReference eventSource, CollidableReference other, ref TManifold contactManifold, bool flippedManifold, int workerIndex, BepuSimulation bepuSimulation) where TManifold : unmanaged, IContactManifold<TManifold>
+    /// <param name="bepuSimulation">The simulation where the contact occured.</param>
+    void OnTouching<TManifold>(CollidableComponent eventSource, CollidableComponent other, ref TManifold contactManifold, bool flippedManifold, int workerIndex, BepuSimulation bepuSimulation) where TManifold : unmanaged, IContactManifold<TManifold>
     {
     }
 
@@ -80,7 +83,8 @@ public interface IContactEventHandler
     /// <param name="contactManifold">Set of remaining contacts in the collision.</param>
     /// <param name="flippedManifold">Whether the manifold's normals and offset is flipped from the source's point of view.</param>
     /// <param name="workerIndex">Index of the worker thread that fired this event.</param>
-    void OnStoppedTouching<TManifold>(CollidableReference eventSource, CollidableReference other, ref TManifold contactManifold, bool flippedManifold, int workerIndex, BepuSimulation bepuSimulation) where TManifold : unmanaged, IContactManifold<TManifold>
+    /// <param name="bepuSimulation">The simulation where the contact occured.</param>
+    void OnStoppedTouching<TManifold>(CollidableComponent eventSource, CollidableComponent other, ref TManifold contactManifold, bool flippedManifold, int workerIndex, BepuSimulation bepuSimulation) where TManifold : unmanaged, IContactManifold<TManifold>
     {
     }
 
@@ -94,7 +98,8 @@ public interface IContactEventHandler
     /// <param name="contactManifold">Set of remaining contacts in the collision.</param>
     /// <param name="flippedManifold">Whether the manifold's normals and offset is flipped from the source's point of view.</param>
     /// <param name="workerIndex">Index of the worker thread that fired this event.</param>
-    void OnPairCreated<TManifold>(CollidableReference eventSource, CollidableReference other, ref TManifold contactManifold, bool flippedManifold, int workerIndex, BepuSimulation bepuSimulation) where TManifold : unmanaged, IContactManifold<TManifold>
+    /// <param name="bepuSimulation">The simulation where the contact occured.</param>
+    void OnPairCreated<TManifold>(CollidableComponent eventSource, CollidableComponent other, ref TManifold contactManifold, bool flippedManifold, int workerIndex, BepuSimulation bepuSimulation) where TManifold : unmanaged, IContactManifold<TManifold>
     {
     }
 
@@ -107,7 +112,8 @@ public interface IContactEventHandler
     /// <param name="contactManifold">Set of remaining contacts in the collision.</param>
     /// <param name="flippedManifold">Whether the manifold's normals and offset is flipped from the source's point of view.</param>
     /// <param name="workerIndex">Index of the worker thread that fired this event.</param>
-    void OnPairUpdated<TManifold>(CollidableReference eventSource, CollidableReference other, ref TManifold contactManifold, bool flippedManifold, int workerIndex, BepuSimulation bepuSimulation) where TManifold : unmanaged, IContactManifold<TManifold>
+    /// <param name="bepuSimulation">The simulation where the contact occured.</param>
+    void OnPairUpdated<TManifold>(CollidableComponent eventSource, CollidableComponent other, ref TManifold contactManifold, bool flippedManifold, int workerIndex, BepuSimulation bepuSimulation) where TManifold : unmanaged, IContactManifold<TManifold>
     {
     }
 
@@ -116,7 +122,8 @@ public interface IContactEventHandler
     /// </summary>
     /// <param name="eventSource">Collidable that the event was attached to.</param>
     /// <param name="other">Other collider <paramref name="eventSource"/> collided with.</param>
-    void OnPairEnded(CollidableReference eventSource, CollidableReference other, BepuSimulation bepuSimulation)
+    /// <param name="bepuSimulation">The simulation where the contact occured.</param>
+    void OnPairEnded(CollidableComponent eventSource, CollidableComponent other, BepuSimulation bepuSimulation)
     {
     }
 }
