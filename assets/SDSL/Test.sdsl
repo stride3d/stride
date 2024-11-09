@@ -1,5 +1,12 @@
+namespace machin.other.chamqsdklj;
 
-shader Main {
+shader Parent 
+{
+    [Layout(1, 2)]
+    stream int a;
+}
+
+shader Main<int amplitude> {
     struct Machin {
         [Link("hello")]
         stage something something;
