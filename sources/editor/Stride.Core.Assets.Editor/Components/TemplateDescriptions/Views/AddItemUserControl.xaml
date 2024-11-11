@@ -9,7 +9,7 @@
              xmlns:view="clr-namespace:Stride.Core.Assets.Editor.Components.TemplateDescriptions.Views"
              xmlns:viewModels="clr-namespace:Stride.Core.Assets.Editor.Components.TemplateDescriptions.ViewModels"
              mc:Ignorable="d" 
-             d:DesignHeight="300" d:DesignWidth="300">
+             d:DesignHeight="240" d:DesignWidth="300">
   <UserControl.Resources>
     <ResourceDictionary>
       <ResourceDictionary.MergedDictionaries>
@@ -20,7 +20,7 @@
   <sd:FilteringComboBox DataContext="{Binding TemplateCollection, RelativeSource={RelativeSource AncestorType=view:AddItemUserControl}}"
                           Text="{Binding SearchToken, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" WatermarkContent="{sd:Localize Search}"
                           ItemsSource="{Binding Templates}" SortMemberPath="Name" x:Name="FilteringComboBox"
-                          ClearTextAfterValidation="True" ValidateOnLostFocus="False">
+                          ClearTextAfterValidation="True" ValidateOnLostFocus="False" Height="240">
     <sd:FilteringComboBox.Template>
       <ControlTemplate TargetType="{x:Type sd:FilteringComboBox}">
         <Grid>
@@ -123,7 +123,7 @@
     </sd:FilteringComboBox.Template>
     <sd:FilteringComboBox.ItemTemplate>
       <DataTemplate DataType="viewModels:ITemplateDescriptionViewModel">
-        <DockPanel Height="56">
+        <DockPanel Height="52">
           <Image Source="{Binding Icon}" DockPanel.Dock="Left" Width="48" Height="48" Margin="2"/>
           <DockPanel Margin="18,0">
             <TextBlock DockPanel.Dock="Top" FontSize="16" Text="{Binding Name}"/>
