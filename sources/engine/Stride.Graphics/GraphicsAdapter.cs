@@ -5,7 +5,8 @@ using Stride.Core;
 namespace Stride.Graphics
 {
     /// <summary>
-    /// This class represents a graphics adapter.
+    ///   Represents a display subsystem (including one or more GPUs, DACs and video memory).
+    ///   A display subsystem is often referred to as a video card, however, on some machines the display subsystem is part of the motherboard.
     /// </summary>
     public sealed partial class GraphicsAdapter : ComponentBase
     {
@@ -15,17 +16,17 @@ namespace Stride.Graphics
         public GraphicsOutput[] Outputs { get; }
 
         /// <summary>
-        /// Return the description of this adapter
+        ///   Gets the unique identifier of this <see cref="GraphicsAdapter"/>.
         /// </summary>
-        /// <returns></returns>
+        public long AdapterUid { get; internal set; }
+
+
+        /// <summary>
+        ///   Returns the description of this <see cref="GraphicsAdapter"/>.
+        /// </summary>
         public override string ToString()
         {
             return Description;
         }
-
-        /// <summary>
-        ///   Gets the unique id of this device.
-        /// </summary>
-        public long AdapterUid { get; internal set; }
     }
 }
