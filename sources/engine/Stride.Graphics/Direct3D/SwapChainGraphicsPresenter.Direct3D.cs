@@ -599,9 +599,9 @@ namespace Stride.Graphics
             IDXGISwapChain* newSwapChain;
 
 #if STRIDE_GRAPHICS_API_DIRECT3D11
-            HResult result = GraphicsAdapterFactory.NativeFactory->CreateSwapChain((IUnknown*) GraphicsDevice.NativeDevice, &description, &newSwapChain);
+            HResult result = GraphicsAdapterFactory.NativeFactory.CreateSwapChain((IUnknown*) GraphicsDevice.NativeDevice, &description, &newSwapChain);
 #elif STRIDE_GRAPHICS_API_DIRECT3D12
-            HResult result = GraphicsAdapterFactory.NativeFactory->CreateSwapChain((IUnknown*) GraphicsDevice.NativeCommandQueue, &description, &newSwapChain);
+            HResult result = GraphicsAdapterFactory.NativeFactory.CreateSwapChain((IUnknown*) GraphicsDevice.NativeCommandQueue, &description, &newSwapChain);
 #endif
             if (result.IsFailure)
                 result.Throw();
@@ -618,7 +618,7 @@ namespace Stride.Graphics
 
             // Prevent switching between windowed and full screen modes by pressing Alt+ENTER
             const uint DXGI_MWA_NO_ALT_ENTER = 2;
-            GraphicsAdapterFactory.NativeFactory->MakeWindowAssociation(handle, DXGI_MWA_NO_ALT_ENTER);
+            GraphicsAdapterFactory.NativeFactory.MakeWindowAssociation(handle, DXGI_MWA_NO_ALT_ENTER);
 
             if (Description.IsFullScreen)
             {
