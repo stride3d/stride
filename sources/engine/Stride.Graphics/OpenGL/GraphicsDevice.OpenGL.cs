@@ -319,6 +319,10 @@ namespace Stride.Graphics
             return program;
         }
 
+        /// <summary>
+        ///   Enables or disables profiling.
+        /// </summary>
+        /// <param name="enabledFlag"><see langword="true"/> to enable profiling; <see langword="false"/> to disable it.</param>
         public void EnableProfile(bool enabledFlag)
         {
             ProfileEnabled = true;

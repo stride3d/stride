@@ -73,7 +73,7 @@ namespace Stride.Graphics
         /// <summary>
         /// The tick frquency of timestamp queries in Hertz.
         /// </summary>
-        public ulong TimestampFrequency { get; private set; }
+        public long TimestampFrequency { get; private set; }
 
         /// <summary>
         ///     Gets the status of this device.
@@ -137,9 +137,9 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        /// Enables profiling.
+        ///   Enables or disables profiling.
         /// </summary>
-        /// <param name="enabledFlag">if set to <c>true</c> [enabled flag].</param>
+        /// <param name="enabledFlag"><see langword="true"/> to enable profiling; <see langword="false"/> to disable it.</param>
         public void EnableProfile(bool enabledFlag)
         {
         }
