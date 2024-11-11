@@ -10,7 +10,9 @@ namespace Stride.Graphics
     {
         private static readonly Logger Log = GlobalLogger.GetLogger(typeof(GraphicsOutput).FullName);
         private readonly object lockModes = new object();
+
         private readonly GraphicsAdapter adapter;
+
         private DisplayMode currentDisplayMode;
         private DisplayMode[] supportedDisplayModes;
         private readonly Rectangle desktopBounds;
