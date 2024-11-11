@@ -29,26 +29,19 @@ using System.Runtime.CompilerServices;
 using Silk.NET.Core.Native;
 using Silk.NET.Direct3D11;
 using Silk.NET.DXGI;
+using Stride.Core;
 
 namespace Stride.Graphics
 {
-    /// <summary>
-    /// Provides methods to retrieve and manipulate graphics adapters. This is the equivalent to <see cref="Adapter1"/>.
-    /// </summary>
-    /// <msdn-id>ff471329</msdn-id>
-    /// <unmanaged>IDXGIAdapter1</unmanaged>
-    /// <unmanaged-short>IDXGIAdapter1</unmanaged-short>
     public unsafe partial class GraphicsAdapter
     {
         /// <summary>
         ///   Gets the native DXGI adapter.
         /// </summary>
-        internal IDXGIAdapter1* NativeAdapter { get; }
+        internal ComPtr<IDXGIAdapter1> NativeAdapter { get; }
 
-        private readonly int adapterOrdinal;
+        private readonly uint adapterOrdinal;
         private readonly AdapterDesc1 adapterDesc;
-
-        private readonly string adapterDescriptionString;
 
         private GraphicsProfile minimumUnsupportedProfile = (GraphicsProfile) int.MaxValue;
         private GraphicsProfile maximumSupportedProfile;
@@ -56,15 +49,15 @@ namespace Stride.Graphics
         /// <summary>
         ///   Gets the description of this adapter.
         /// </summary>
-        public string Description => adapterDescriptionString;
+        public string Description { get; }
 
         /// <summary>
         ///   Gets the vendor identifier of this adapter.
         /// </summary>
-        public int VendorId => (int)adapterDesc.VendorId;
+        public int VendorId => (int) adapterDesc.VendorId;
 
         /// <summary>
-        ///   Determines if this instance of GraphicsAdapter is the default adapter.
+        ///   Determines if this <see cref="GraphicsAdapter"/> is the default adapter.
         /// </summary>
         public bool IsDefaultAdapter => adapterOrdinal == 0;
 
@@ -74,21 +67,20 @@ namespace Stride.Graphics
         /// </summary>
         /// <param name="adapter">The DXGI adapter.</param>
         /// <param name="adapterOrdinal">The adapter ordinal.</param>
-        internal GraphicsAdapter(IDXGIAdapter1* adapter, int adapterOrdinal)
+        internal GraphicsAdapter(ComPtr<IDXGIAdapter1> adapter, uint adapterOrdinal)
         {
             this.adapterOrdinal = adapterOrdinal;
 
+            // The received IDXGIAdapter1's lifetime is already tracked by GraphicsAdapterFactory
             NativeAdapter = adapter;
 
-            HResult result = NativeAdapter->GetDesc1(ref adapterDesc);
+            Unsafe.SkipInit(out AdapterDesc1 adapterDesc);
+            HResult result = NativeAdapter.GetDesc1(ref adapterDesc);
 
             if (result.IsFailure)
                 result.Throw();
 
-            fixed (char* descString = adapterDesc.Description)
-                adapterDescriptionString = SilkMarshal.PtrToString((nint) descString, NativeStringEncoding.LPWStr);
-
-            var nativeOutputs = new List<GraphicsOutput>();
+            Name = Description = SilkMarshal.PtrToString((nint) adapterDesc.Description, NativeStringEncoding.LPWStr);
 
             const int DXGI_ERROR_NOT_FOUND = unchecked((int) 0x887A0002);
 
@@ -98,15 +90,16 @@ namespace Stride.Graphics
 
             do
             {
-                IDXGIOutput* output;
-                result = adapter->EnumOutputs(outputIndex, &output);
+                ComPtr<IDXGIOutput> output = default;
+                result = adapter.EnumOutputs(outputIndex, ref output);
 
                 foundValidOutput = result.IsSuccess && result.Code != DXGI_ERROR_NOT_FOUND;
 
                 if (!foundValidOutput)
                     break;
 
-                var gfxOutput = new GraphicsOutput(adapter: this, output, (int) outputIndex);
+                var gfxOutput = new GraphicsOutput(adapter: this, output, outputIndex);
+                gfxOutput.DisposeBy(this);
                 outputsList.Add(gfxOutput);
 
                 outputIndex++;
@@ -116,13 +109,16 @@ namespace Stride.Graphics
             Outputs = outputsList.ToArray();
 
             AdapterUid = Unsafe.As<Luid, long>(ref adapterDesc.AdapterLuid);
+            this.adapterDesc = adapterDesc;
         }
 
         /// <summary>
-        /// Tests to see if the adapter supports the requested profile.
+        ///   Checks if the graphics adapter supports the requested profile.
         /// </summary>
-        /// <param name="graphicsProfile">The graphics profile.</param>
-        /// <returns>true if the profile is supported</returns>
+        /// <param name="graphicsProfile">The graphics profile to check.</param>
+        /// <returns>
+        ///   <see langword="true"/> if the graphics profile is supported; <see langword="false"/> otherwise.
+        /// </returns>
         public bool IsProfileSupported(GraphicsProfile graphicsProfile)
         {
 #if STRIDE_GRAPHICS_API_DIRECT3D12

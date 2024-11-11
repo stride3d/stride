@@ -12,9 +12,9 @@ namespace Stride.Graphics
     public static unsafe partial class GraphicsAdapterFactory
     {
 #if STRIDE_PLATFORM_UWP || DIRECTX11_1
-        internal static IDXGIFactory2* NativeFactory;
+        internal static ComPtr<IDXGIFactory2> NativeFactory;
 #else
-        internal static IDXGIFactory1* NativeFactory;
+        internal static ComPtr<IDXGIFactory1> NativeFactory;
 #endif
 
         /// <summary>
@@ -34,26 +34,12 @@ namespace Stride.Graphics
             uint debugFlag = 0;
 #endif
 
-            IDXGIFactory2* factory2;
-            HResult result = dxgi.CreateDXGIFactory2(debugFlag, SilkMarshal.GuidPtrOf<IDXGIFactory2>(), (void**) &factory2);
-
-            if (result.IsFailure)
-                result.Throw();
-
-            NativeFactory = factory2;
-            ComPtr<IDXGIFactory2> adapterFactory = new() { Handle = factory2 };
+            NativeFactory = dxgi.CreateDXGIFactory2<IDXGIFactory2>();
 #else
-            IDXGIFactory1* factory1;
-            HResult result = dxgi.CreateDXGIFactory1(SilkMarshal.GuidPtrOf<IDXGIFactory1>(), (void**) &factory1);
-
-            if (result.IsFailure)
-                result.Throw();
-
-            NativeFactory = factory1;
-            ComPtr<IDXGIFactory1> adapterFactory = new() { Handle = factory1 };
+            NativeFactory = dxgi.CreateDXGIFactory1<IDXGIFactory1>();
 #endif
 
-            staticCollector.Add(adapterFactory);
+            staticCollector.Add(NativeFactory);
 
             const int DXGI_ERROR_NOT_FOUND = unchecked((int) 0x887A0002);
 
@@ -63,14 +49,14 @@ namespace Stride.Graphics
 
             do
             {
-                IDXGIAdapter1* dxgiAdapter;
-                result = NativeFactory->EnumAdapters1(adapterIndex, &dxgiAdapter);
+                ComPtr<IDXGIAdapter1> dxgiAdapter = default;
+                HResult result = NativeFactory.EnumAdapters1(adapterIndex, ref dxgiAdapter);
 
                 foundValidAdapter = result.IsSuccess && result.Code != DXGI_ERROR_NOT_FOUND;
                 if (!foundValidAdapter)
                     break;
 
-                var adapter = new GraphicsAdapter(dxgiAdapter, (int) adapterIndex);
+                var adapter = new GraphicsAdapter(dxgiAdapter, adapterIndex);
                 staticCollector.Add(adapter);
                 adapterList.Add(adapter);
 
@@ -83,7 +69,7 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        /// Gets the <see cref="IDXGIFactory"/> used by all <see cref="GraphicsAdapter"/>s.
+        ///   Gets the <see cref="IDXGIFactory"/> used by all <see cref="GraphicsAdapter"/>s.
         /// </summary>
 #if STRIDE_PLATFORM_UWP || DIRECTX11_1
         internal static IDXGIFactory2* Factory

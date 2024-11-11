@@ -5,18 +5,20 @@ using Stride.Core;
 namespace Stride.Graphics
 {
     /// <summary>
-    /// Factory for <see cref="GraphicsAdapter"/>.
+    ///   Static factory for obtaining the available <see cref="GraphicsAdapter"/>s in the system.
     /// </summary>
     public static partial class GraphicsAdapterFactory
     {
         private static readonly object StaticLock = new object();
-        private static ObjectCollector staticCollector = new ObjectCollector();
+
+        private static ObjectCollector staticCollector = new();
+
         private static bool isInitialized = false;
         private static GraphicsAdapter[] adapters;
         private static GraphicsAdapter defaultAdapter;
 
         /// <summary>
-        /// Initializes the GraphicsAdapter. On Desktop and WinRT, this is done statically.
+        ///   Initializes the <see cref="GraphicsAdapterFactory"/>. On Desktop and WinRT, this is done statically.
         /// </summary>
         public static void Initialize()
         {
@@ -31,7 +33,8 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        /// Perform a <see cref="Dispose"/> and <see cref="Initialize"/> to re-initialize all adapters informations.
+        ///   <see cref="Dispose"/>s and <see cref="Initialize"/>s the <see cref="GraphicsAdapterFactory"/>
+        ///   to re-initialize all adapters informations.
         /// </summary>
         public static void Reset()
         {
@@ -43,7 +46,7 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        /// Dispose all statically cached value by this instance.
+        ///   Dispose all statically cached adapter informations in the <see cref="GraphicsAdapterFactory"/>.
         /// </summary>
         public static void Dispose()
         {
@@ -57,7 +60,7 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        /// Collection of available adapters on the system.
+        ///   Gets a collection of the available <see cref="GraphicsAdapter"/>s on the system.
         /// </summary>
         public static GraphicsAdapter[] Adapters
         {
@@ -72,8 +75,11 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        /// Gets the default adapter. This property can be <c>null</c>.
+        ///   Gets the default <see cref="GraphicsAdapter"/>.
         /// </summary>
+        /// <value>
+        ///   The default <see cref="GraphicsAdapter"/>. This property can be <see langword="null"/>.
+        /// </value>
         public static GraphicsAdapter Default
         {
             get

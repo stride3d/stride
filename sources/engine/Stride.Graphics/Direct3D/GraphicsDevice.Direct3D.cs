@@ -242,7 +242,7 @@ namespace Stride.Graphics
                 ID3D11DeviceContext* deviceContext = null;
                 D3DFeatureLevel usedFeatureLevel = 0;
 
-                HResult result = d3d11.CreateDevice((IDXGIAdapter*) Adapter.NativeAdapter, D3DDriverType.Unknown, Software: 0, (uint) creationFlags,
+                HResult result = d3d11.CreateDevice((IDXGIAdapter*) Adapter.NativeAdapter.Handle, D3DDriverType.Unknown, Software: 0, (uint) creationFlags,
                                                     featureLevels, 1, D3D11.SdkVersion,
                                                     &device, &usedFeatureLevel, &deviceContext);
 

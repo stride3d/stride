@@ -6,31 +6,26 @@ using Stride.Core.Mathematics;
 
 namespace Stride.Graphics
 {
+    /// <summary>
+    ///   Represents an output (such as a monitor) attached to a <see cref="GraphicsAdapter"/>.
+    /// </summary>
     public partial class GraphicsOutput : ComponentBase
     {
         private static readonly Logger Log = GlobalLogger.GetLogger(typeof(GraphicsOutput).FullName);
         private readonly object lockModes = new object();
 
-        private readonly GraphicsAdapter adapter;
-
         private DisplayMode currentDisplayMode;
-        private DisplayMode[] supportedDisplayModes;
-        private readonly Rectangle desktopBounds;
+        private DisplayMode[] supportedDisplayModes = null;
+
 
         /// <summary>
-        /// Default constructor to initialize fields that are not explicitly set to avoid warnings at compile time.
+        ///   Gets the <see cref="GraphicsAdapter"/> this output is attached to.
         /// </summary>
-        internal GraphicsOutput()
-        {
-            adapter = null;
-            supportedDisplayModes = null;
-            desktopBounds = Rectangle.Empty;
-        }
+        public GraphicsAdapter Adapter { get; } = null;
 
         /// <summary>
-        /// Gets the current display mode.
+        ///   Gets the current display mode of this <see cref="GraphicsOutput"/>.
         /// </summary>
-        /// <value>The current display mode.</value>
         public DisplayMode CurrentDisplayMode
         {
             get
@@ -47,7 +42,7 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        /// Returns a collection of supported display modes for this <see cref="GraphicsOutput"/>.
+        ///   Returns a collection of the supported display modes for this <see cref="GraphicsOutput"/>.
         /// </summary>
         public DisplayMode[] SupportedDisplayModes
         {
@@ -65,23 +60,8 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        /// Gets the desktop bounds of the current output.
+        ///   Gets the desktop bounds of the current <see cref="GraphicsOutput"/>.
         /// </summary>
-        public Rectangle DesktopBounds
-        {
-            get
-            {
-                return desktopBounds;
-            }
-        }
-
-        /// <summary>
-        /// Gets the adapter this output is attached.
-        /// </summary>
-        /// <value>The adapter.</value>
-        public GraphicsAdapter Adapter
-        {
-            get { return adapter; }
-        }
+        public Rectangle DesktopBounds { get; } = Rectangle.Empty;
     }
 }
