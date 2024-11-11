@@ -747,15 +747,15 @@ namespace Stride.Games
                         if (IsFullScreen)
                         {
                             if (((PreferredBackBufferWidth == 0) || (PreferredBackBufferHeight == 0)) &&
-                                PreferredFullScreenOutputIndex < leftAdapter.Outputs.Length && 
+                                PreferredFullScreenOutputIndex < leftAdapter.Outputs.Length &&
                                 PreferredFullScreenOutputIndex < rightAdapter.Outputs.Length)
                             {
-                                // assume we got here only adapters that have the needed number of outputs:
-                                var leftOutput = leftAdapter.Outputs[PreferredFullScreenOutputIndex];
-                                var rightOutput = rightAdapter.Outputs[PreferredFullScreenOutputIndex];
+                                // Assume we got here only adapters that have the needed number of outputs:
+                                var leftOutput = leftAdapter.Outputs[PreferredFullScreenOutputIndex].CurrentDisplayMode ?? default;
+                                var rightOutput = rightAdapter.Outputs[PreferredFullScreenOutputIndex].CurrentDisplayMode ?? default;
 
-                                leftPixelCount = leftOutput.CurrentDisplayMode.Width * leftOutput.CurrentDisplayMode.Height;
-                                rightPixelCount = rightOutput.CurrentDisplayMode.Width * rightOutput.CurrentDisplayMode.Height;
+                                leftPixelCount = leftOutput.Width * leftOutput.Height;
+                                rightPixelCount = rightOutput.Width * rightOutput.Height;
                             }
                             else
                             {

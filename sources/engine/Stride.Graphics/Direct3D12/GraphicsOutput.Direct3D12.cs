@@ -191,7 +191,7 @@ namespace Stride.Graphics
             HResult result = default;
 
             var modesAvailable = new List<DisplayMode>();
-            var modesMap = new Dictionary<string, DisplayMode>();
+            var knownModes = new Dictionary<int, DisplayMode>();
 
 #if DIRECTX11_1
             using ComPtr<IDXGIOutput1> output1 = NativeOutput.QueryInterface<IDXGIOutput1>();
@@ -228,13 +228,13 @@ namespace Stride.Graphics
 
                     if (mode.Scaling == ModeScaling.Unspecified)
                     {
-                        var modeKey = FormattableString.Invariant($"{format};{mode.Width};{mode.Height};{mode.RefreshRate.Numerator};{mode.RefreshRate.Denominator}");
+                        var modeKey = HashCode.Combine(format, mode.Width, mode.Height, mode.RefreshRate.Numerator, mode.RefreshRate.Denominator);
 
-                        if (!modesMap.ContainsKey(modeKey))
+                        if (!knownModes.ContainsKey(modeKey))
                         {
                             var displayMode = DisplayMode.FromDescription(mode);
 
-                            modesMap.Add(modeKey, displayMode);
+                            knownModes.Add(modeKey, displayMode);
                             modesAvailable.Add(displayMode);
                         }
                     }
@@ -255,34 +255,34 @@ namespace Stride.Graphics
         {
             currentDisplayMode = TryFindMatchingDisplayMode(Format.FormatR8G8B8A8Unorm) ??
                                  TryFindMatchingDisplayMode(Format.FormatB8G8R8A8Unorm);
-        }
 
-        /// <summary>
-        ///   Tries to find a display mode with the specified format that has the same size as the current desktop size
-        ///   of this <see cref="GraphicsOutput"/>.
-        /// </summary>
-        /// <param name="format">The format to match with.</param>
-        /// <returns>A matched <see cref="DisplayMode"/>, or <see langword="null"/> if nothing is found.</returns>
-        private DisplayMode TryFindMatchingDisplayMode(Format format)
-        {
-            var desktopBounds = outputDescription.DesktopCoordinates;
-
-            foreach (var supportedDisplayMode in SupportedDisplayModes)
+            /// <summary>
+            ///   Tries to find a display mode with the specified format that has the same size as the current desktop size
+            ///   of this <see cref="GraphicsOutput"/>.
+            /// </summary>
+            /// <param name="format">The format to match with.</param>
+            /// <returns>A matched <see cref="DisplayMode"/>, or <see langword="null"/> if nothing is found.</returns>
+            private DisplayMode? TryFindMatchingDisplayMode(Format format)
             {
-                var width = desktopBounds.Size.X;
-                var height = desktopBounds.Size.Y;
-                var matchingFormat = (PixelFormat) format;
+                var desktopBounds = outputDescription.DesktopCoordinates;
 
-                if (supportedDisplayMode.Width == width &&
-                    supportedDisplayMode.Height == height &&
-                    supportedDisplayMode.Format == matchingFormat)
+                foreach (var supportedDisplayMode in SupportedDisplayModes)
                 {
-                    // TODO: DXGI, there is no way to get the DXGI.Format, nor the refresh rate
-                    return new DisplayMode(matchingFormat, width, height, supportedDisplayMode.RefreshRate);
-                }
-            }
+                    var width = desktopBounds.Size.X;
+                    var height = desktopBounds.Size.Y;
+                    var matchingFormat = (PixelFormat) format;
 
-            return null;
+                    if (supportedDisplayMode.Width == width &&
+                        supportedDisplayMode.Height == height &&
+                        supportedDisplayMode.Format == matchingFormat)
+                    {
+                        // TODO: DXGI, there is no way to get the DXGI.Format, nor the refresh rate
+                        return new DisplayMode(matchingFormat, width, height, supportedDisplayMode.RefreshRate);
+                    }
+                }
+
+                return null;
+            }
         }
     }
 }

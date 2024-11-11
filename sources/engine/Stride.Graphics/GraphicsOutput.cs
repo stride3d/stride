@@ -1,5 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 using Stride.Core;
 using Stride.Core.Diagnostics;
 using Stride.Core.Mathematics;
@@ -14,7 +15,7 @@ namespace Stride.Graphics
         private static readonly Logger Log = GlobalLogger.GetLogger(typeof(GraphicsOutput).FullName);
         private readonly object lockModes = new object();
 
-        private DisplayMode currentDisplayMode;
+        private DisplayMode? currentDisplayMode;
         private DisplayMode[] supportedDisplayModes = null;
 
 
@@ -26,7 +27,7 @@ namespace Stride.Graphics
         /// <summary>
         ///   Gets the current display mode of this <see cref="GraphicsOutput"/>.
         /// </summary>
-        public DisplayMode CurrentDisplayMode
+        public DisplayMode? CurrentDisplayMode
         {
             get
             {

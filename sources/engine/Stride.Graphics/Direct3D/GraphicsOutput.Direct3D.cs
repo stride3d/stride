@@ -185,7 +185,7 @@ namespace Stride.Graphics
             HResult result = default;
 
             var modesAvailable = new List<DisplayMode>();
-            var modesMap = new Dictionary<string, DisplayMode>();
+            var knownModes = new Dictionary<int, DisplayMode>();
 
 #if DIRECTX11_1
             using ComPtr<IDXGIOutput1> output1 = NativeOutput.QueryInterface<IDXGIOutput1>();
@@ -218,17 +218,17 @@ namespace Stride.Graphics
 
                 for (int i = 0; i < displayModeCount; i++)
                 {
-                    var mode = displayModes[i];
+                    ref var mode = ref displayModes[i];
 
                     if (mode.Scaling == ModeScaling.Unspecified)
                     {
-                        var modeKey = FormattableString.Invariant($"{format};{mode.Width};{mode.Height};{mode.RefreshRate.Numerator};{mode.RefreshRate.Denominator}");
+                        var modeKey = HashCode.Combine(format, mode.Width, mode.Height, mode.RefreshRate.Numerator, mode.RefreshRate.Denominator);
 
-                        if (!modesMap.ContainsKey(modeKey))
+                        if (!knownModes.ContainsKey(modeKey))
                         {
                             var displayMode = DisplayMode.FromDescription(mode);
 
-                            modesMap.Add(modeKey, displayMode);
+                            knownModes.Add(modeKey, displayMode);
                             modesAvailable.Add(displayMode);
                         }
                     }
