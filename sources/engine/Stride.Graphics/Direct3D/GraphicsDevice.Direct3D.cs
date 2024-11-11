@@ -12,6 +12,7 @@ using Silk.NET.Core.Native;
 using Stride.Core;
 
 using QueryPtr = Stride.Core.UnsafeExtensions.Pointer<Silk.NET.Direct3D11.ID3D11Query>;
+using System.Runtime.CompilerServices;
 
 namespace Stride.Graphics
 {
@@ -27,15 +28,17 @@ namespace Stride.Graphics
         /// <summary>
         ///   Gets the native Direct3D 11 device.
         /// </summary>
-        public ID3D11Device* NativeDevice { get; private set; }
+        public ComPtr<ID3D11Device> NativeDevice { get; private set; }
 
         /// <summary>
         ///   Gets the native Direct3D 11 device context.
         /// </summary>
-        internal ID3D11DeviceContext* NativeDeviceContext { get; private set; }
+        internal ComPtr<ID3D11DeviceContext> NativeDeviceContext { get; private set; }
 
-        private readonly Queue<QueryPtr> disjointQueries = new(4);
-        private readonly Stack<QueryPtr> currentDisjointQueries = new(2);
+        //private readonly Queue<QueryPtr> disjointQueries = new(4);
+        //private readonly Stack<QueryPtr> currentDisjointQueries = new(2);
+        private readonly Queue<ComPtr<ID3D11Query>> disjointQueries = new(4);
+        private readonly Stack<ComPtr<ID3D11Query>> currentDisjointQueries = new(2);
 
         internal GraphicsProfile RequestedProfile;
 
@@ -45,7 +48,7 @@ namespace Stride.Graphics
         /// <summary>
         /// The tick frquency of timestamp queries in Hertz.
         /// </summary>
-        public long TimestampFrequency { get; private set; }
+        public ulong TimestampFrequency { get; private set; }
 
         /// <summary>
         ///   Gets the current status of this device.
@@ -60,7 +63,7 @@ namespace Stride.Graphics
                     return GraphicsDeviceStatus.Reset;
                 }
 
-                var result = (DeviceRemoveReason) NativeDevice->GetDeviceRemovedReason();
+                var result = (DeviceRemoveReason) NativeDevice.GetDeviceRemovedReason();
 
                 return result switch
                 {
@@ -95,35 +98,35 @@ namespace Stride.Graphics
         /// <summary>
         ///   Marks the graphics device context as active on the current thread.
         /// </summary>
-        public unsafe void Begin()
+        public void Begin()
         {
             FrameTriangleCount = 0;
             FrameDrawCalls = 0;
 
-            var queryResult = new QueryDataTimestampDisjoint();
+            Unsafe.SkipInit(out QueryDataTimestampDisjoint queryResult);
 
-            ID3D11Query* currentDisjointQuery = null;
+            ComPtr<ID3D11Query> currentDisjointQuery = null;
 
             // Try to read back the oldest disjoint query and reuse it. If not ready, create a new one
             if (disjointQueries.Count > 0)
             {
                 currentDisjointQuery = disjointQueries.Peek();
 
-                var asyncQuery = (ID3D11Asynchronous*) currentDisjointQuery;
-                var dataSize = currentDisjointQuery->GetDataSize();
-                HResult result = NativeDeviceContext->GetData(asyncQuery, ref queryResult, dataSize, (int) AsyncGetdataFlag.Donotflush);
+                var asyncQuery = (ID3D11Asynchronous*) currentDisjointQuery.Handle;
+                var dataSize = currentDisjointQuery.GetDataSize();
+                HResult result = NativeDeviceContext.GetData(asyncQuery, ref queryResult, dataSize, (int) AsyncGetdataFlag.Donotflush);
 
                 if (result.IsFailure)
                     result.Throw();
 
-                TimestampFrequency = (long) queryResult.Frequency;
+                TimestampFrequency = queryResult.Frequency;
                 currentDisjointQuery = disjointQueries.Dequeue();
             }
             else
             {
                 var disjointQueryDescription = new QueryDesc { Query = Query.TimestampDisjoint };
 
-                HResult result = NativeDevice->CreateQuery(in disjointQueryDescription, ref currentDisjointQuery);
+                HResult result = NativeDevice.CreateQuery(in disjointQueryDescription, ref currentDisjointQuery);
 
                 if (result.IsFailure)
                     result.Throw();
@@ -131,16 +134,14 @@ namespace Stride.Graphics
 
             currentDisjointQueries.Push(currentDisjointQuery);
 
-            NativeDeviceContext->Begin((ID3D11Asynchronous*) currentDisjointQuery);
+            NativeDeviceContext.Begin(currentDisjointQuery);
         }
 
         /// <summary>
-        /// Enables profiling.
+        ///   Enables or disables profiling.
         /// </summary>
-        /// <param name="enabledFlag">if set to <c>true</c> [enabled flag].</param>
-        public void EnableProfile(bool enabledFlag)
-        {
-        }
+        /// <param name="enabledFlag"><see langword="true"/> to enable profiling; <see langword="false"/> to disable it.</param>
+        public void EnableProfile(bool enabledFlag) { }
 
         /// <summary>
         ///   Unmarks the graphics device context as active on the current thread.
@@ -149,34 +150,31 @@ namespace Stride.Graphics
         {
             // If this fails, it means Begin() / End() don't match, something is very wrong
             var currentDisjointQuery = currentDisjointQueries.Pop();
-
-            ID3D11Asynchronous* asyncQuery = null;
-
-            ID3D11Query* query = currentDisjointQuery;
-            query->QueryInterface(SilkMarshal.GuidPtrOf<ID3D11Asynchronous>(), (void**) &asyncQuery);
-
-            NativeDeviceContext->End(asyncQuery);
+            NativeDeviceContext.End(currentDisjointQuery);
             disjointQueries.Enqueue(currentDisjointQuery);
         }
 
         /// <summary>
-        /// Executes a deferred command list.
+        ///   Executes a deferred command list.
         /// </summary>
-        /// <param name="commandList">The deferred command list.</param>
+        /// <param name="commandList">The deferred command list to execute.</param>
         public void ExecuteCommandList(CompiledCommandList commandList)
         {
             throw new NotImplementedException();
         }
 
         /// <summary>
-        /// Executes multiple deferred command lists.
+        ///   Executes multiple deferred command lists.
         /// </summary>
-        /// <param name="commandLists">The deferred command lists.</param>
+        /// <param name="commandLists">The deferred command lists to execute.</param>
         public void ExecuteCommandLists(int count, CompiledCommandList[] commandLists)
         {
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        ///   Sets the graphics device to simulate a situation in which the device is lost and then reset.
+        /// </summary>
         public void SimulateReset()
         {
             simulateReset = true;
@@ -194,14 +192,14 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        ///     Initializes the specified device.
+        ///   Initializes the graphics device.
         /// </summary>
-        /// <param name="graphicsProfiles">The graphics profiles.</param>
+        /// <param name="graphicsProfiles">The graphics profiles to try, in order of preference.</param>
         /// <param name="deviceCreationFlags">The device creation flags.</param>
         /// <param name="windowHandle">The window handle.</param>
         private unsafe void InitializePlatformDevice(GraphicsProfile[] graphicsProfiles, DeviceCreationFlags deviceCreationFlags, object windowHandle)
         {
-            if (NativeDevice != null)
+            if (NativeDevice.Handle != null)
             {
                 // Destroy previous device
                 ReleaseDevice();
@@ -212,14 +210,13 @@ namespace Stride.Graphics
             // Profiling is supported through PIX markers
             IsProfilingSupported = true;
 
-            // Map GraphicsProfile to D3D11 FeatureLevel
             creationFlags = (CreateDeviceFlag) deviceCreationFlags;
 
-            // Create Device D3D11 with feature Level based on profile
+            // Create D3D11 Device with feature Level based on profile
             for (int index = 0; index < graphicsProfiles.Length; index++)
             {
+                // Map GraphicsProfiles to D3D11 FeatureLevels
                 var graphicsProfile = graphicsProfiles[index];
-
                 var level = graphicsProfile.ToFeatureLevel();
 
                 // INTEL workaround: it seems Intel driver doesn't support properly feature level 9.x. Fallback to 10.
@@ -254,8 +251,8 @@ namespace Stride.Graphics
                         continue;
                 }
 
-                NativeDevice = device;
-                NativeDeviceContext = deviceContext;
+                NativeDevice = new ComPtr<ID3D11Device> { Handle = device }.DisposeBy(this);
+                NativeDeviceContext = new ComPtr<ID3D11DeviceContext> { Handle = deviceContext }.DisposeBy(this);
 
                 // INTEL workaround: force ShaderProfile to be 10+ as well
                 if (Adapter.VendorId == 0x8086)
@@ -272,10 +269,15 @@ namespace Stride.Graphics
             //((IUnknown)nativeDeviceContext).AddReference();
             if (IsDebugMode)
             {
-                DebugHelpers.SetDebugName((ID3D11DeviceChild*) NativeDeviceContext, "ImmediateContext");
+                using ComPtr<ID3D11DeviceChild> deviceChild = NativeDeviceContext.QueryInterface<ID3D11DeviceChild>();
+                deviceChild.SetDebugName("ImmediateContext", owningObject: this);
             }
         }
 
+        /// <summary>
+        ///   Makes adjustments to the pipeline state specific to Direct3D 11.
+        /// </summary>
+        /// <param name="pipelineStateDescription">The pipeline state description to modify.</param>
         private void AdjustDefaultPipelineStateDescription(ref PipelineStateDescription pipelineStateDescription)
         {
             // On D3D, default state is Less instead of our LessEqual
@@ -283,42 +285,52 @@ namespace Stride.Graphics
             pipelineStateDescription.DepthStencilState.DepthBufferFunction = CompareFunction.Less;
         }
 
+        /// <summary>
+        ///   Releases the graphics device and all its associated resources.
+        /// </summary>
         protected void DestroyPlatformDevice()
         {
             ReleaseDevice();
         }
 
+        /// <summary>
+        ///   Disposes the graphics device and all its associated resources.
+        /// </summary>
         private void ReleaseDevice()
         {
             foreach (var queryPtr in disjointQueries)
             {
-                queryPtr.Value->Release();
+                queryPtr.Release();
             }
             disjointQueries.Clear();
 
-            // Display D3D11 ref counting info
             ID3D11DeviceContext* immediateContext = null;
-            NativeDevice->GetImmediateContext(ref immediateContext);
+            NativeDevice.GetImmediateContext(ref immediateContext);
 
             immediateContext->ClearState();
             immediateContext->Flush();
+            immediateContext->Release();
 
+            // Display D3D11 ref counting info
             if (IsDebugMode)
             {
-                ID3D11Debug* debugDevice = null;
-                HResult result = NativeDevice->QueryInterface(SilkMarshal.GuidPtrOf<ID3D11Debug>(), (void**) &debugDevice);
+                HResult result = NativeDevice.QueryInterface(out ComPtr<ID3D11Debug> debugDevice);
 
-                if (result.IsSuccess && debugDevice != null)
+                if (result.IsSuccess && debugDevice.Handle != null)
                 {
-                    debugDevice->ReportLiveDeviceObjects(RldoFlags.Detail);
-                    debugDevice->Release();
+                    debugDevice.ReportLiveDeviceObjects(RldoFlags.Detail);
+                    debugDevice.Release();
                 }
             }
 
-            NativeDevice->Release();
+            NativeDevice.RemoveDisposeBy(this);
+            NativeDevice.Dispose();
             NativeDevice = null;
         }
 
+        /// <summary>
+        ///   Called when the graphics device is being destroyed.
+        /// </summary>
         internal void OnDestroyed()
         {
         }
