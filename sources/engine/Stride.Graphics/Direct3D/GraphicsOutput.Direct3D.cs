@@ -173,6 +173,8 @@ namespace Stride.Graphics
 #endif
                 if (result.IsFailure && result.Code != DXGI_ERROR_NOT_CURRENTLY_AVAILABLE)
                     result.Throw();
+                if (displayModeCount == 0)
+                    continue;
 
 #if DIRECTX11_1
                 Span<ModeDesc1> displayModes = stackalloc ModeDesc1[(int) displayModeCount];
