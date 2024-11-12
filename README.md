@@ -10,6 +10,7 @@
 [![All Contributors](https://img.shields.io/github/all-contributors/stride3d/stride?color=ee8449)](#contributors)
 [![Financial sponsors](https://img.shields.io/opencollective/all/stride3d?logo=opencollective)](https://opencollective.com/stride3d)
 [![License](https://img.shields.io/badge/license-MIT-blue)](https://github.com/stride3d/stride/blob/master/LICENSE.md)
+[![Gurubase](https://img.shields.io/badge/Gurubase-Ask%20Stride%20Guru-006BFF)](https://gurubase.io/g/stride)
 
 Welcome to the Stride source code repository!
 
