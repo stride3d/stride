@@ -23,8 +23,10 @@
 
 using System;
 using System.ComponentModel;
+using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Text.RegularExpressions;
 using Stride.Core.Serialization;
 
 namespace Stride.Core.Mathematics
@@ -156,6 +158,18 @@ namespace Stride.Core.Mathematics
         public static bool operator !=(Half2 left, Half2 right)
         {
             return !Equals(ref left, ref right);
+        }
+
+        /// <summary>
+        /// Returns a <see cref="string"/> that represents this instance.
+        /// </summary>
+        /// <returns>
+        /// A <see cref="string"/> that represents this instance.
+        /// </returns>
+        public override string ToString()
+        {
+            CultureInfo culture = CultureInfo.CurrentCulture;
+            return string.Format(culture, "{0}{1} {2}", X.ToString(), culture.TextInfo.ListSeparator, Y.ToString());
         }
 
         /// <summary>

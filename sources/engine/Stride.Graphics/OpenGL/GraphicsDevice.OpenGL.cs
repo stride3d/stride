@@ -658,23 +658,24 @@ namespace Stride.Graphics
 #endif
 
 #if STRIDE_UI_SDL
-            gameWindow = (Stride.Graphics.SDL.Window)windowHandle.NativeWindow;
+            // NOTE : This null handling is specific for Linux AssetCompiler #2504 (refactor required?)
+            gameWindow = windowHandle?.NativeWindow as SDL.Window ?? new SDL.Window("");
 
             var SDL = Graphics.SDL.Window.SDL;
 
 #if STRIDE_GRAPHICS_API_OPENGLES
-            SDL.GLSetAttribute(GLattr.GLContextProfileMask, (int)GLprofile.GLContextProfileES);
+            SDL.GLSetAttribute(GLattr.ContextProfileMask, (int)GLprofile.ES);
 #else
-            SDL.GLSetAttribute(GLattr.GLContextProfileMask, (int)GLprofile.GLContextProfileCore);
+            SDL.GLSetAttribute(GLattr.ContextProfileMask, (int)GLprofile.Core);
 #endif
 
 
             if (IsDebugMode)
-                SDL.GLSetAttribute(GLattr.GLContextFlags, (int)GLcontextFlag.GLContextDebugFlag);
+                SDL.GLSetAttribute(GLattr.ContextFlags, (int)GLcontextFlag.DebugFlag);
 
             // Setup version
-            SDL.GLSetAttribute(GLattr.GLContextMajorVersion, currentVersion / 100);
-            SDL.GLSetAttribute(GLattr.GLContextMinorVersion, (currentVersion / 10) % 10);
+            SDL.GLSetAttribute(GLattr.ContextMajorVersion, currentVersion / 100);
+            SDL.GLSetAttribute(GLattr.ContextMinorVersion, (currentVersion / 10) % 10);
 
             MainGraphicsContext = new SdlContext(SDL, (Silk.NET.SDL.Window*)gameWindow.SdlHandle);
             ((SdlContext)MainGraphicsContext).Create();
@@ -690,7 +691,7 @@ namespace Stride.Graphics
 #endif
 
             // Create shared context for creating graphics resources from other threads
-            SDL.GLSetAttribute(GLattr.GLShareWithCurrentContext, 1);
+            SDL.GLSetAttribute(GLattr.ShareWithCurrentContext, 1);
             deviceCreationContext = new SdlContext(SDL, (Silk.NET.SDL.Window*)gameWindow.SdlHandle);
             ((SdlContext)deviceCreationContext).Create();
 
