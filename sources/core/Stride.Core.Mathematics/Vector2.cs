@@ -1038,8 +1038,8 @@ namespace Stride.Core.Mathematics
         /// <remarks>
         /// A coordinate transform performs the transformation with the assumption that the w component
         /// is one. The four dimensional vector obtained from the transformation operation has each
-        /// component in the vector divided by the w component. This forces the wcomponent to be one and
-        /// therefore makes the vector homogeneous. The homogeneous vector is often prefered when working
+        /// component in the vector divided by the w component. This forces the w component to be one and
+        /// therefore makes the vector homogeneous. The homogeneous vector is often preferred when working
         /// with coordinates as the w component can safely be ignored.
         /// </remarks>
         public static void TransformCoordinate(ref readonly Vector2 coordinate, ref readonly Matrix transform, out Vector2 result)
@@ -1062,8 +1062,8 @@ namespace Stride.Core.Mathematics
         /// <remarks>
         /// A coordinate transform performs the transformation with the assumption that the w component
         /// is one. The four dimensional vector obtained from the transformation operation has each
-        /// component in the vector divided by the w component. This forces the wcomponent to be one and
-        /// therefore makes the vector homogeneous. The homogeneous vector is often prefered when working
+        /// component in the vector divided by the w component. This forces the w component to be one and
+        /// therefore makes the vector homogeneous. The homogeneous vector is often preferred when working
         /// with coordinates as the w component can safely be ignored.
         /// </remarks>
         public static Vector2 TransformCoordinate(Vector2 coordinate, Matrix transform)
@@ -1076,7 +1076,7 @@ namespace Stride.Core.Mathematics
         /// <summary>
         /// Performs a coordinate transformation on an array of vectors using the given <see cref="Stride.Core.Mathematics.Matrix"/>.
         /// </summary>
-        /// <param name="source">The array of coordinate vectors to trasnform.</param>
+        /// <param name="source">The array of coordinate vectors to transform.</param>
         /// <param name="transform">The transformation <see cref="Stride.Core.Mathematics.Matrix"/>.</param>
         /// <param name="destination">The array for which the transformed vectors are stored.
         /// This array may be the same array as <paramref name="source"/>.</param>
@@ -1085,8 +1085,8 @@ namespace Stride.Core.Mathematics
         /// <remarks>
         /// A coordinate transform performs the transformation with the assumption that the w component
         /// is one. The four dimensional vector obtained from the transformation operation has each
-        /// component in the vector divided by the w component. This forces the wcomponent to be one and
-        /// therefore makes the vector homogeneous. The homogeneous vector is often prefered when working
+        /// component in the vector divided by the w component. This forces the w component to be one and
+        /// therefore makes the vector homogeneous. The homogeneous vector is often preferred when working
         /// with coordinates as the w component can safely be ignored.
         /// </remarks>
         public static void TransformCoordinate(Vector2[] source, ref readonly Matrix transform, Vector2[] destination)
@@ -1112,9 +1112,9 @@ namespace Stride.Core.Mathematics
         /// <param name="result">When the method completes, contains the transformed normal.</param>
         /// <remarks>
         /// A normal transform performs the transformation with the assumption that the w component
-        /// is zero. This causes the fourth row and fourth collumn of the matrix to be unused. The
+        /// is zero. This causes the fourth row and fourth column of the matrix to be unused. The
         /// end result is a vector that is not translated, but all other transformation properties
-        /// apply. This is often prefered for normal vectors as normals purely represent direction
+        /// apply. This is often preferred for normal vectors as normals purely represent direction
         /// rather than location because normal vectors should not be translated.
         /// </remarks>
         public static void TransformNormal(ref readonly Vector2 normal, ref readonly Matrix transform, out Vector2 result)
@@ -1132,9 +1132,9 @@ namespace Stride.Core.Mathematics
         /// <returns>The transformed normal.</returns>
         /// <remarks>
         /// A normal transform performs the transformation with the assumption that the w component
-        /// is zero. This causes the fourth row and fourth collumn of the matrix to be unused. The
+        /// is zero. This causes the fourth row and fourth column of the matrix to be unused. The
         /// end result is a vector that is not translated, but all other transformation properties
-        /// apply. This is often prefered for normal vectors as normals purely represent direction
+        /// apply. This is often preferred for normal vectors as normals purely represent direction
         /// rather than location because normal vectors should not be translated.
         /// </remarks>
         public static Vector2 TransformNormal(Vector2 normal, Matrix transform)
@@ -1155,9 +1155,9 @@ namespace Stride.Core.Mathematics
         /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="destination"/> is shorter in length than <paramref name="source"/>.</exception>
         /// <remarks>
         /// A normal transform performs the transformation with the assumption that the w component
-        /// is zero. This causes the fourth row and fourth collumn of the matrix to be unused. The
+        /// is zero. This causes the fourth row and fourth column of the matrix to be unused. The
         /// end result is a vector that is not translated, but all other transformation properties
-        /// apply. This is often prefered for normal vectors as normals purely represent direction
+        /// apply. This is often preferred for normal vectors as normals purely represent direction
         /// rather than location because normal vectors should not be translated.
         /// </remarks>
         public static void TransformNormal(Vector2[] source, ref readonly Matrix transform, Vector2[] destination)
@@ -1190,7 +1190,7 @@ namespace Stride.Core.Mathematics
         /// <summary>
         /// Assert a vector (return it unchanged).
         /// </summary>
-        /// <param name="value">The vector to assert (unchange).</param>
+        /// <param name="value">The vector to assert (unchanged).</param>
         /// <returns>The asserted (unchanged) vector.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector2 operator +(Vector2 value)
@@ -1296,6 +1296,7 @@ namespace Stride.Core.Mathematics
         /// <summary>
         /// Tests for equality between two objects.
         /// </summary>
+        /// <remarks> Comparison is not strict, a difference of <see cref="MathUtil.ZeroTolerance"/> will return as equal. </remarks>
         /// <param name="left">The first value to compare.</param>
         /// <param name="right">The second value to compare.</param>
         /// <returns><c>true</c> if <paramref name="left"/> has the same value as <paramref name="right"/>; otherwise, <c>false</c>.</returns>
@@ -1307,6 +1308,7 @@ namespace Stride.Core.Mathematics
         /// <summary>
         /// Tests for inequality between two objects.
         /// </summary>
+        /// <remarks> Comparison is not strict, a difference of <see cref="MathUtil.ZeroTolerance"/> will return as equal. </remarks>
         /// <param name="left">The first value to compare.</param>
         /// <param name="right">The second value to compare.</param>
         /// <returns><c>true</c> if <paramref name="left"/> has a different value than <paramref name="right"/>; otherwise, <c>false</c>.</returns>
@@ -1401,11 +1403,23 @@ namespace Stride.Core.Mathematics
         }
 
         /// <summary>
-        /// Determines whether the specified <see cref="Stride.Core.Mathematics.Vector2"/> is equal to this instance.
+        /// Determines whether the specified <see cref="Vector2"/> is exactly equal to this instance.
+        /// </summary>
+        /// <param name="other">The <see cref="Vector2"/> to compare with this instance.</param>
+        /// <returns>
+        /// <c>true</c> if the specified <see cref="Vector2"/> is exactly equal to this instance; otherwise, <c>false</c>.
+        /// </returns>
+        public bool EqualsStrict(Vector2 other)
+        {
+            return other.X == this.X && other.Y == this.Y;
+        }
+
+        /// <summary>
+        /// Determines whether the specified <see cref="Stride.Core.Mathematics.Vector2"/> is within <see cref="MathUtil.ZeroTolerance"/> for equality to this instance.
         /// </summary>
         /// <param name="other">The <see cref="Stride.Core.Mathematics.Vector2"/> to compare with this instance.</param>
         /// <returns>
-        /// <c>true</c> if the specified <see cref="Stride.Core.Mathematics.Vector2"/> is equal to this instance; otherwise, <c>false</c>.
+        /// <c>true</c> if the specified <see cref="Stride.Core.Mathematics.Vector2"/> is equal or almost equal to this instance; otherwise, <c>false</c>.
         /// </returns>
         public bool Equals(Vector2 other)
         {
@@ -1414,11 +1428,11 @@ namespace Stride.Core.Mathematics
         }
 
         /// <summary>
-        /// Determines whether the specified <see cref="object"/> is equal to this instance.
+        /// Determines whether the specified <see cref="object"/> is within <see cref="MathUtil.ZeroTolerance"/> for equality to this instance.
         /// </summary>
         /// <param name="value">The <see cref="object"/> to compare with this instance.</param>
         /// <returns>
-        /// <c>true</c> if the specified <see cref="object"/> is equal to this instance; otherwise, <c>false</c>.
+        /// <c>true</c> if the specified <see cref="object"/> is equal or almost equal to this instance; otherwise, <c>false</c>.
         /// </returns>
         public override bool Equals(object value)
         {
