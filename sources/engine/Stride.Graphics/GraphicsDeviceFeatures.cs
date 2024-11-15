@@ -21,9 +21,6 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-using System;
-using System.Collections.Generic;
-
 namespace Stride.Graphics
 {
     /// <summary>
@@ -113,12 +110,11 @@ namespace Stride.Graphics
         /// </summary>
         public struct FeaturesPerFormat
         {
-            //internal FeaturesPerFormat(PixelFormat format, MultisampleCount maximumMultisampleCount, ComputeShaderFormatSupport computeShaderFormatSupport, FormatSupport formatSupport)
-            internal FeaturesPerFormat(PixelFormat format, MultisampleCount maximumMultisampleCount, FormatSupport formatSupport)
+            internal FeaturesPerFormat(PixelFormat format, MultisampleCount maximumMultisampleCount, ComputeShaderFormatSupport computeShaderFormatSupport, FormatSupport formatSupport)
             {
                 Format = format;
-                this.MultisampleCountMax = maximumMultisampleCount;
-                //ComputeShaderFormatSupport = computeShaderFormatSupport;
+                MultisampleCountMax = maximumMultisampleCount;
+                ComputeShaderFormatSupport = computeShaderFormatSupport;
                 FormatSupport = formatSupport;
             }
 
@@ -135,23 +131,24 @@ namespace Stride.Graphics
             /// <summary>
             /// Gets the unordered resource support options for a compute shader resource.
             /// </summary>
-            //public readonly ComputeShaderFormatSupport ComputeShaderFormatSupport;
+            public readonly ComputeShaderFormatSupport ComputeShaderFormatSupport;
 
             /// <summary>
             /// Support of a given format on the installed video device.
             /// </summary>
             public readonly FormatSupport FormatSupport;
 
-            public override string ToString()
+
+            /// <inheritdoc/>
+            public override readonly string ToString()
             {
-                //return string.Format("Format: {0}, MultisampleCountMax: {1}, ComputeShaderFormatSupport: {2}, FormatSupport: {3}", Format, this.MSAALevelMax, ComputeShaderFormatSupport, FormatSupport);
-                return string.Format("Format: {0}, MultisampleCountMax: {1}, FormatSupport: {2}", Format, this.MultisampleCountMax, FormatSupport);
+                return $"Format: {Format}, MultisampleCountMax: {MultisampleCountMax}, ComputeShaderFormatSupport: {ComputeShaderFormatSupport}, FormatSupport: {FormatSupport}";
             }
         }
 
         public override string ToString()
         {
-            return string.Format("Level: {0}, HasComputeShaders: {1}, HasDoublePrecision: {2}, HasMultiThreadingConcurrentResources: {3}, HasDriverCommandLists: {4}", RequestedProfile, HasComputeShaders, HasDoublePrecision, HasMultiThreadingConcurrentResources, this.HasDriverCommandLists);
+            return $"Level: {RequestedProfile}, HasComputeShaders: {HasComputeShaders}, HasDoublePrecision: {HasDoublePrecision}, HasMultiThreadingConcurrentResources: {HasMultiThreadingConcurrentResources}, HasDriverCommandLists: {HasDriverCommandLists}";
         }
     }
 }

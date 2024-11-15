@@ -1,71 +1,35 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using System.Globalization;
 
 namespace Stride.Graphics
 {
     /// <summary>
-    /// Describes the display mode.
+    ///   Describes a display mode.
     /// </summary>
-    public partial class DisplayMode
+    /// <param name="Format">The pixel format of this display mode.</param>
+    /// <param name="Width">The screen width, in pixels.</param>
+    /// <param name="Height">The screen height, in pixels.</param>
+    /// <param name="RefreshRate">The refresh rate, in Hz.</param>
+    public readonly partial record struct DisplayMode(PixelFormat Format, int Width, int Height, Rational RefreshRate)
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="DisplayMode"/> class.
+        ///   Initializes a new instance of the <see cref="DisplayMode"/> record.
         /// </summary>
-        /// <param name="format">The format.</param>
-        /// <param name="width">The width.</param>
-        /// <param name="height">The height.</param>
-        /// <param name="refreshRate">The refresh rate.</param>
-        public DisplayMode(PixelFormat format, int width, int height, Rational refreshRate)
-        {
-            Format = format;
-            Width = width;
-            Height = height;
-            RefreshRate = refreshRate;
-        }
+        /// <param name="format">The pixel format of this display mode.</param>
+        /// <param name="width">The screen width, in pixels.</param>
+        /// <param name="height">The screen height, in pixels.</param>
+        /// <param name="refreshRate">The refresh rate, in Hz.</param>
+        public DisplayMode(PixelFormat format, int width, int height, uint refreshRate)
+            : this(format, width, height, new Rational((int) refreshRate, 1)) { }
+
 
         /// <summary>
-        /// Gets the aspect ratio used by the graphics device.
+        ///   Gets the aspect ratio of this display mode.
         /// </summary>
-        public float AspectRatio
-        {
-            get
-            {
-                if ((Height != 0) && (Width != 0))
-                {
-                    return ((float)Width) / Height;
-                }
-                return 0f;
-            }
-        }
-
-        /// <summary>
-        /// Gets a value indicating the surface format of the display mode.
-        /// </summary>
-        public readonly PixelFormat Format;
-
-        /// <summary>
-        /// Gets a value indicating the screen width, in pixels.
-        /// </summary>
-        public readonly int Width;
-
-        /// <summary>
-        /// Gets a value indicating the screen height, in pixels.
-        /// </summary>
-        public readonly int Height;
-
-        /// <summary>
-        /// Gets a value indicating the refresh rate
-        /// </summary>
-        public readonly Rational RefreshRate;
-
-        /// <summary>
-        /// Retrieves a string representation of this object.
-        /// </summary>
-        /// <returns></returns>
-        public override string ToString()
-        {
-            return string.Format(CultureInfo.InvariantCulture, "[Width:{0} Height:{1} Format:{2} AspectRatio:{3}]",  Width, Height, Format, AspectRatio);
-        }
+        /// <remarks>
+        ///   The aspect ratio is the ratio of the display mode's <see cref="Width"/> in relation to the <see cref="Height"/>,
+        ///   i.e. <c>Width / Height</c>.
+        /// </remarks>
+        public readonly float AspectRatio => (Height != 0) && (Width != 0) ? (float) Width / Height : 0;
     }
 }
