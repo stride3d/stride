@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System;
 using Stride.Core;
 using Stride.Core.Diagnostics;
 using Stride.Core.Mathematics;
@@ -10,19 +11,20 @@ namespace Stride.Graphics
     /// <summary>
     ///   Represents an output (such as a monitor) attached to a <see cref="GraphicsAdapter"/>.
     /// </summary>
-    public partial class GraphicsOutput : ComponentBase
+    public sealed partial class GraphicsOutput : ComponentBase
     {
         private static readonly Logger Log = GlobalLogger.GetLogger(typeof(GraphicsOutput).FullName);
-        private readonly object lockModes = new object();
+        
+        private readonly object lockModes = new();
 
         private DisplayMode? currentDisplayMode;
-        private DisplayMode[] supportedDisplayModes = null;
+        private DisplayMode[] supportedDisplayModes;
 
 
         /// <summary>
         ///   Gets the <see cref="GraphicsAdapter"/> this output is attached to.
         /// </summary>
-        public GraphicsAdapter Adapter { get; } = null;
+        public GraphicsAdapter Adapter { get; }
 
         /// <summary>
         ///   Gets the current display mode of this <see cref="GraphicsOutput"/>.
@@ -34,9 +36,7 @@ namespace Stride.Graphics
                 lock (lockModes)
                 {
                     if (currentDisplayMode == null)
-                    {
                         InitializeCurrentDisplayMode();
-                    }
                 }
                 return currentDisplayMode;
             }
@@ -45,16 +45,14 @@ namespace Stride.Graphics
         /// <summary>
         ///   Returns a collection of the supported display modes for this <see cref="GraphicsOutput"/>.
         /// </summary>
-        public DisplayMode[] SupportedDisplayModes
+        public ReadOnlySpan<DisplayMode> SupportedDisplayModes
         {
             get
             {
                 lock (lockModes)
                 {
                     if (supportedDisplayModes == null)
-                    {
                         InitializeSupportedDisplayModes();
-                    }
                 }
                 return supportedDisplayModes;
             }
@@ -63,6 +61,6 @@ namespace Stride.Graphics
         /// <summary>
         ///   Gets the desktop bounds of the current <see cref="GraphicsOutput"/>.
         /// </summary>
-        public Rectangle DesktopBounds { get; } = Rectangle.Empty;
+        public Rectangle DesktopBounds { get; }
     }
 }

@@ -30,14 +30,19 @@ using Silk.NET.Core.Native;
 using Silk.NET.Direct3D11;
 using Silk.NET.DXGI;
 using Stride.Core;
+using Stride.Core.UnsafeExtensions;
 
 namespace Stride.Graphics
 {
-    public unsafe partial class GraphicsAdapter
+    public sealed unsafe partial class GraphicsAdapter
     {
         /// <summary>
         ///   Gets the native DXGI adapter.
         /// </summary>
+        /// <remarks>
+        ///   If the reference is going to be kept, use <see cref="ComPtr{T}.AddRef()"/> to increment the internal
+        ///   reference count, and <see cref="ComPtr{T}.Dispose()"/> when no longer needed to release the object.
+        /// </remarks>
         internal ComPtr<IDXGIAdapter1> NativeAdapter { get; }
 
         private readonly uint adapterOrdinal;
@@ -65,7 +70,9 @@ namespace Stride.Graphics
         /// <summary>
         ///   Initializes a new instance of the <see cref="GraphicsAdapter"/> class.
         /// </summary>
-        /// <param name="adapter">The DXGI adapter.</param>
+        /// <param name="adapter">
+        ///   A COM pointer to the native <see cref="IDXGIAdapter"/> interface. The ownership is transferred to this instance, so the reference count is not incremented.
+        /// </param>
         /// <param name="adapterOrdinal">The adapter ordinal.</param>
         internal GraphicsAdapter(ComPtr<IDXGIAdapter1> adapter, uint adapterOrdinal)
         {
@@ -80,21 +87,20 @@ namespace Stride.Graphics
             if (result.IsFailure)
                 result.Throw();
 
+            this.adapterDesc = adapterDesc;
             Name = Description = SilkMarshal.PtrToString((nint) adapterDesc.Description, NativeStringEncoding.LPWStr);
-
-            const int DXGI_ERROR_NOT_FOUND = unchecked((int) 0x887A0002);
+            AdapterUid = adapterDesc.AdapterLuid.BitCast<Luid, long>();
 
             uint outputIndex = 0;
             var outputsList = new List<GraphicsOutput>();
             bool foundValidOutput;
+            ComPtr<IDXGIOutput> output = default;
 
             do
             {
-                ComPtr<IDXGIOutput> output = default;
                 result = adapter.EnumOutputs(outputIndex, ref output);
 
-                foundValidOutput = result.IsSuccess && result.Code != DXGI_ERROR_NOT_FOUND;
-
+                foundValidOutput = result.IsSuccess && result.Code != DxgiConstants.ErrorNotFound;
                 if (!foundValidOutput)
                     break;
 
@@ -106,10 +112,7 @@ namespace Stride.Graphics
             }
             while (foundValidOutput);
 
-            Outputs = outputsList.ToArray();
-
-            AdapterUid = Unsafe.As<Luid, long>(ref adapterDesc.AdapterLuid);
-            this.adapterDesc = adapterDesc;
+            graphicsOutputs = outputsList.ToArray();
         }
 
         /// <summary>
@@ -124,7 +127,7 @@ namespace Stride.Graphics
 #if STRIDE_GRAPHICS_API_DIRECT3D12
             return true;
 #else
-            // Did we check fo this or a higher profile, and it was supported?
+            // Did we check for this or a higher profile, and it was supported?
             if (maximumSupportedProfile >= graphicsProfile)
                 return true;
 
@@ -144,7 +147,7 @@ namespace Stride.Graphics
 
             HResult result = d3d11.CreateDevice(pAdapter: null, D3DDriverType.Hardware, Software: IntPtr.Zero,
                                                 Flags: 0, featureLevels, 1, D3D11.SdkVersion,
-                                                &device, &matchedFeatureLevel, &deviceContext);
+                                                ref device, ref matchedFeatureLevel, ref deviceContext);
 
             if (deviceContext != null)
                 deviceContext->Release();

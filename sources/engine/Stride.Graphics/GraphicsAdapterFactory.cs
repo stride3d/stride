@@ -1,5 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+using System;
 using Stride.Core;
 
 namespace Stride.Graphics
@@ -9,11 +11,11 @@ namespace Stride.Graphics
     /// </summary>
     public static partial class GraphicsAdapterFactory
     {
-        private static readonly object StaticLock = new object();
+        private static readonly object StaticLock = new();
 
-        private static ObjectCollector staticCollector = new();
+        private static ObjectCollector staticCollector;
 
-        private static bool isInitialized = false;
+        private static bool isInitialized;
         private static GraphicsAdapter[] adapters;
         private static GraphicsAdapter defaultAdapter;
 
@@ -46,7 +48,7 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        ///   Dispose all statically cached adapter informations in the <see cref="GraphicsAdapterFactory"/>.
+        ///   Dispose all statically cached adapter information in the <see cref="GraphicsAdapterFactory"/>.
         /// </summary>
         public static void Dispose()
         {
@@ -62,7 +64,7 @@ namespace Stride.Graphics
         /// <summary>
         ///   Gets a collection of the available <see cref="GraphicsAdapter"/>s on the system.
         /// </summary>
-        public static GraphicsAdapter[] Adapters
+        public static ReadOnlySpan<GraphicsAdapter> Adapters
         {
             get
             {
@@ -80,7 +82,7 @@ namespace Stride.Graphics
         /// <value>
         ///   The default <see cref="GraphicsAdapter"/>. This property can be <see langword="null"/>.
         /// </value>
-        public static GraphicsAdapter Default
+        public static GraphicsAdapter DefaultAdapter
         {
             get
             {

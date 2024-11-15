@@ -186,8 +186,6 @@ namespace Stride.Graphics
         /// </summary>
         private void InitializeSupportedDisplayModes()
         {
-            const int DXGI_ERROR_NOT_CURRENTLY_AVAILABLE = unchecked((int) 0x887A0022);
-
             HResult result = default;
 
             var modesAvailable = new List<DisplayMode>();
@@ -209,7 +207,7 @@ namespace Stride.Graphics
 #else
                 result = NativeOutput.GetDisplayModeList(format, DisplayModeEnumerationFlags, ref displayModeCount, null);
 #endif
-                if (result.IsFailure && result.Code != DXGI_ERROR_NOT_CURRENTLY_AVAILABLE)
+                if (result.IsFailure && result.Code != DxgiConstants.ErrorNotCurrentlyAvailable)
                     result.Throw();
                 if (displayModeCount == 0)
                     continue;
