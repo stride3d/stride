@@ -1,0 +1,9 @@
+namespace machin {
+    namespace hello;
+    namespace other.thing 
+    {
+        shader class {
+
+        }
+    }
+}

@@ -1,10 +1,19 @@
-shader 
-    Parent : 
-        hello
-{
-    [Layout(1, 2)]
-    stream int a;
+shader machin {
+    
 }
+
+namespace machin.something.Hello {
+    namespace machin;
+
+    namespace hello.world 
+    {
+        shader machin {
+            
+        }
+    }
+
+}
+
 
 // shader Main<int amplitude> {
 //     struct Machin {
