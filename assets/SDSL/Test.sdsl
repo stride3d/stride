@@ -7,7 +7,7 @@ namespace machin.something.Hello {
 
     namespace hello.world 
     {
-        shader machin
+        partial shader machin
         {
             
         }

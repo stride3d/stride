@@ -2,7 +2,7 @@ namespace machin {
     namespace hello;
     namespace other.thing 
     {
-        shader class.heloo {
+        internal partial effect class.heloo {
             
         }
         
