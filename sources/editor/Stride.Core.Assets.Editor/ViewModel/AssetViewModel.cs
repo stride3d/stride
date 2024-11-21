@@ -182,7 +182,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
         [NotNull]
         public Asset Asset => AssetItem.Asset;
 
-        public AssetPropertyGraph PropertyGraph { get; }
+        public AssetPropertyGraph PropertyGraph { get; private set; }
 
         /// <summary>
         /// Gets the <see cref="ThumbnailData"/> associated to this <see cref="AssetViewModel"/>.
@@ -441,6 +441,23 @@ namespace Stride.Core.Assets.Editor.ViewModel
                 string previousName = name;
                 UpdateUrl(package, directory, newName);
                 UndoRedoService.SetName(transaction, $"Rename asset '{previousName}' to '{newName}'");
+            }
+        }
+
+        public void ReplaceAsset(AssetItem newAssetItem, ILogger loggerResult)
+        {
+            package.Assets.Remove(AssetItem);
+            package.Assets.Add(newAssetItem);
+            AssetItem = newAssetItem;
+            PropertyGraph?.Dispose();
+            Session.GraphContainer.UnregisterGraph(assetItem.Id);
+            PropertyGraph = Session.GraphContainer.InitializeAsset(assetItem, loggerResult);
+            if (PropertyGraph != null)
+            {
+                PropertyGraph.BaseContentChanged += BaseContentChanged;
+                PropertyGraph.Changed += AssetPropertyChanged;
+                PropertyGraph.ItemChanged += AssetPropertyChanged;
+                PropertyGraph.Initialize();
             }
         }
 

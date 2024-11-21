@@ -239,6 +239,23 @@ namespace Stride.Core.Assets
         /// </summary>
         /// <param name="asset">The asset.</param>
         /// <param name="flags">Flags used to control the cloning process</param>
+        /// <param name="externalIdentifiable"></param>
+        /// <returns>A callback to build a clone of the asset.</returns>
+        public static Func<object> DelayedClone(object asset, AssetClonerFlags flags, HashSet<IIdentifiable> externalIdentifiable)
+        {
+            if (asset == null)
+            {
+                return () => null;
+            }
+            var cloner = new AssetCloner(asset, flags, externalIdentifiable);
+            return () => cloner.Clone(out _);
+        }
+
+        /// <summary>
+        /// Clones the specified asset using asset serialization.
+        /// </summary>
+        /// <param name="asset">The asset.</param>
+        /// <param name="flags">Flags used to control the cloning process</param>
         /// <param name="idRemapping">A dictionary containing the remapping of <see cref="IIdentifiable.Id"/> if <see cref="AssetClonerFlags.GenerateNewIdsForIdentifiableObjects"/> has been passed to the cloner.</param>
         /// <returns>A clone of the asset.</returns>
         public static object Clone(object asset, AssetClonerFlags flags, [NotNull] out Dictionary<Guid, Guid> idRemapping)

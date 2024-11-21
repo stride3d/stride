@@ -277,14 +277,24 @@ namespace Stride.GameStudio.ViewModels
                     var assemblyToAnalyze = assembliesToReload.Where(x => x.LoadedAssembly?.Assembly != null && x.Project != null).ToDictionary(x => x.Project, x => x.LoadedAssembly.Assembly.FullName);
                     var logResult = new LoggerResult();
                     BuildLog.AddLogger(logResult);
-                    GameStudioAssemblyReloader.Reload(Session, logResult, async () =>
+
+                    // We shouldn't use assets whose types were defined in the previous version of this assembly
+                    // We'll rebuild them using the latest type by serializing them before loading the assembly,
+                    // and deserializing them further below once the new assembly is loaded in
+                    var assemblyAssets = Session.AllAssets
+                        .Where(asset => assembliesToReload.Any(assembly => assembly.LoadedAssembly.Assembly == asset.Asset.GetType().Assembly))
+                        .ToDictionary(asset => asset.Url, asset => AssetCloner.DelayedClone(asset.AssetItem.Asset, AssetClonerFlags.None, null));
+
+                    GameStudioAssemblyReloader.Reload(Session, logResult, 
+                        postReloadAction:async () =>
                     {
                         foreach (var assemblyToReload in assemblyToAnalyze)
                         {
                             await entityComponentsSorter.AnalyzeProject(Session, assemblyToReload.Key, assemblyTrackingCancellation.Token);
                         }
                         UpdateCommands();
-                    }, () =>
+                    }, 
+                        undoAction:() =>
                     {
                         foreach (var assemblyToReload in assembliesToReload)
                         {
@@ -295,7 +305,29 @@ namespace Stride.GameStudio.ViewModels
                                 modifiedAssemblies.Add(assemblyToReload.LoadedAssembly, modifiedAssembly);
                             }
                         }
-                    }, assembliesToReload.ToDictionary(x => x.LoadedAssembly, x => x.LoadedAssemblyPath));
+                    }, 
+                        modifiedAssemblies: assembliesToReload.ToDictionary(x => x.LoadedAssembly, x => x.LoadedAssemblyPath));
+                    
+                    foreach (var asset in Session.AllAssets)
+                    {
+                        if (assemblyAssets.TryGetValue(asset.Url, out var cloner))
+                        {
+                            var reloadedAsset = (Asset)cloner();
+                            var remappedAssetItem = asset.AssetItem.Clone(newAsset: reloadedAsset);
+                            asset.ReplaceAsset(remappedAssetItem, logResult);
+                        }
+
+                        foreach (var reference in asset.Dependencies.RecursiveReferencedAssets)
+                        {
+                            if (assemblyAssets.TryGetValue(reference.Url, out var cloner2))
+                            {
+                                var reloadedAsset = (Asset)cloner2();
+                                var remappedAssetItem = reference.AssetItem.Clone(newAsset: reloadedAsset);
+                                reference.ReplaceAsset(remappedAssetItem, logResult);
+                            }
+                        }
+                    }
+
                     Session.AllAssets.ForEach(x => x.PropertyGraph?.RefreshBase());
                     Session.AllAssets.ForEach(x => x.PropertyGraph?.ReconcileWithBase());
 
