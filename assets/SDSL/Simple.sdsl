@@ -2,8 +2,15 @@ namespace machin {
     namespace hello;
     namespace other.thing 
     {
-        shader class {
-
+        shader class.heloo {
+            
         }
+        
+        shader class : Hlelo {
+    
+        }
+
+        shader other;
+        
     }
 }
