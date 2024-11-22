@@ -444,13 +444,28 @@ namespace Stride.Core.Assets.Editor.ViewModel
             }
         }
 
-        public void ReplaceAsset(AssetItem newAssetItem, ILogger loggerResult)
+        /// <summary>
+        /// Replace the internal asset with the one provided, this function expects the two assets to have the same identity 
+        /// </summary>
+        /// <exception cref="ArgumentException">The asset provided does not have the same identity as the current one</exception>
+        public void UpdateAsset(Asset newAsset, ILogger loggerResult)
         {
+            if (newAsset.Id != AssetItem.Asset.Id)
+                throw new ArgumentException("Assets must have the same Id.");
+
+            if (newAsset.MainSource != AssetItem.Asset.MainSource)
+                throw new ArgumentException("Assets must have the same source.");
+            
+            var newAssetItem = AssetItem.Clone(newAsset: newAsset);
+
             package.Assets.Remove(AssetItem);
             package.Assets.Add(newAssetItem);
+
             AssetItem = newAssetItem;
+
             PropertyGraph?.Dispose();
             Session.GraphContainer.UnregisterGraph(assetItem.Id);
+
             PropertyGraph = Session.GraphContainer.InitializeAsset(assetItem, loggerResult);
             if (PropertyGraph != null)
             {

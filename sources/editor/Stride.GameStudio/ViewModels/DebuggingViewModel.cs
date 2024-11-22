@@ -312,18 +312,14 @@ namespace Stride.GameStudio.ViewModels
                     {
                         if (assemblyAssets.TryGetValue(asset.Url, out var cloner))
                         {
-                            var reloadedAsset = (Asset)cloner();
-                            var remappedAssetItem = asset.AssetItem.Clone(newAsset: reloadedAsset);
-                            asset.ReplaceAsset(remappedAssetItem, logResult);
+                            asset.UpdateAsset((Asset)cloner(), logResult);
                         }
 
                         foreach (var reference in asset.Dependencies.RecursiveReferencedAssets)
                         {
                             if (assemblyAssets.TryGetValue(reference.Url, out var cloner2))
                             {
-                                var reloadedAsset = (Asset)cloner2();
-                                var remappedAssetItem = reference.AssetItem.Clone(newAsset: reloadedAsset);
-                                reference.ReplaceAsset(remappedAssetItem, logResult);
+                                reference.UpdateAsset((Asset)cloner2(), logResult);
                             }
                         }
                     }
