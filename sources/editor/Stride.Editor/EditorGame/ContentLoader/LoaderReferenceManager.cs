@@ -122,10 +122,6 @@ namespace Stride.Editor.EditorGame.ContentLoader
 
         public async Task PushContentReference(AbsoluteId referencerId, AssetId contentId, IGraphNode contentNode, NodeIndex index)
         {
-            // Temp while I figure out how best to handle this one
-            if (contentNode.GetType().Name == "AssetMemberNode" && contentNode.Descriptor.Type.Name.StartsWith("UrlReference"))
-                return;
-
             gameDispatcher.EnsureAccess();
             using (await loader.LockDatabaseAsynchronously())
             {
