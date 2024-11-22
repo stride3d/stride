@@ -17,12 +17,6 @@ namespace Stride.Core.Serialization.Serializers
         {
             if (mode == ArchiveMode.Serialize)
             {
-                /*var attachedReference = AttachedReferenceManager.GetAttachedReference(urlReference);
-                if(attachedReference == null)
-                {
-                    throw new InvalidOperationException("UrlReference does not have an AttachedReference.");
-                }*/
-
                 stream.Write(urlReference.Id);
                 stream.Write(urlReference.Url);
             }
@@ -31,7 +25,7 @@ namespace Stride.Core.Serialization.Serializers
                 var id = stream.Read<AssetId>();
                 var url = stream.ReadString();
 
-                urlReference = new T { Url = url, Id = id };//(T)UrlReferenceHelper.CreateReference(typeof(T), id, url);
+                urlReference = new T { Url = url, Id = id };
             }
         }
     }

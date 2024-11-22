@@ -21,7 +21,7 @@ namespace Stride.Core.TypeConverters
         /// <inheritdoc/>
         public override bool CanConvertFrom(ITypeDescriptorContext context, Type sourceType)
         {
-            return UrlReferenceBase.IsUrlReferenceType(TypeConverterHelper.GetDestinationType(context));;
+            return UrlReferenceBase.IsUrlReferenceType(TypeConverterHelper.GetDestinationType(context));
         }
 
         /// <inheritdoc/>
