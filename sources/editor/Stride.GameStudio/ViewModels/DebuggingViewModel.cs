@@ -278,13 +278,6 @@ namespace Stride.GameStudio.ViewModels
                     var logResult = new LoggerResult();
                     BuildLog.AddLogger(logResult);
 
-                    // We shouldn't use assets whose types were defined in the previous version of this assembly
-                    // We'll rebuild them using the latest type by serializing them before loading the assembly,
-                    // and deserializing them further below once the new assembly is loaded in
-                    var assemblyAssets = Session.AllAssets
-                        .Where(asset => assembliesToReload.Any(assembly => assembly.LoadedAssembly.Assembly == asset.Asset.GetType().Assembly))
-                        .ToDictionary(asset => asset.Url, asset => AssetCloner.DelayedClone(asset.AssetItem.Asset, AssetClonerFlags.None, null));
-
                     GameStudioAssemblyReloader.Reload(Session, logResult, 
                         postReloadAction:async () =>
                     {
@@ -307,22 +300,6 @@ namespace Stride.GameStudio.ViewModels
                         }
                     }, 
                         modifiedAssemblies: assembliesToReload.ToDictionary(x => x.LoadedAssembly, x => x.LoadedAssemblyPath));
-                    
-                    foreach (var asset in Session.AllAssets)
-                    {
-                        if (assemblyAssets.TryGetValue(asset.Url, out var cloner))
-                        {
-                            asset.UpdateAsset((Asset)cloner(), logResult);
-                        }
-
-                        foreach (var reference in asset.Dependencies.RecursiveReferencedAssets)
-                        {
-                            if (assemblyAssets.TryGetValue(reference.Url, out var cloner2))
-                            {
-                                reference.UpdateAsset((Asset)cloner2(), logResult);
-                            }
-                        }
-                    }
 
                     Session.AllAssets.ForEach(x => x.PropertyGraph?.RefreshBase());
                     Session.AllAssets.ForEach(x => x.PropertyGraph?.ReconcileWithBase());

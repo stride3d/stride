@@ -24,6 +24,7 @@ using Stride.Assets.Entities;
 using Stride.Assets.Materials;
 using Stride.Assets.Navigation;
 using Stride.Assets.Textures;
+using Stride.Core.Reflection;
 using Stride.Editor.Build;
 using Stride.Editor.EditorGame.Game;
 using Stride.Graphics;
@@ -88,6 +89,7 @@ namespace Stride.Editor.EditorGame.ContentLoader
             currentRenderingMode = settingsProvider.CurrentGameSettings.GetOrCreate<EditorSettings>().RenderingMode;
             currentColorSpace = settingsProvider.CurrentGameSettings.GetOrCreate<RenderingSettings>().ColorSpace;
             currentNavigationGroupsHash = settingsProvider.CurrentGameSettings.GetOrDefault<NavigationSettings>().ComputeGroupsHash();
+            AssemblyRegistry.AssemblyUnregistered += AssemblyUnregistered;
         }
 
         public LoaderReferenceManager Manager { get; }
@@ -154,6 +156,11 @@ namespace Stride.Editor.EditorGame.ContentLoader
             Session.Dispatcher.InvokeAsync(() => BuildAndReloadAssets(assetToRebuild.Yield()));
         }
 
+        private void AssemblyUnregistered(object sender, AssemblyRegisteredEventArgs e)
+        {
+            Manager.ClearUserAssetsIn(e.Assembly).Forget();
+        }
+
         public T GetRuntimeObject<T>(AssetItem assetItem) where T : class
         {
             if (assetItem == null) throw new ArgumentNullException(nameof(assetItem));
@@ -180,6 +187,7 @@ namespace Stride.Editor.EditorGame.ContentLoader
 
         private void Cleanup()
         {
+            AssemblyRegistry.AssemblyUnregistered -= AssemblyUnregistered;
             settingsProvider.GameSettingsChanged -= GameSettingsChanged;
             Session.AssetPropertiesChanged -= AssetPropertiesChanged;
         }

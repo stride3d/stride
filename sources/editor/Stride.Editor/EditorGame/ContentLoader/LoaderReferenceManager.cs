@@ -55,10 +55,9 @@ namespace Stride.Editor.EditorGame.ContentLoader
         {
             this.gameDispatcher = gameDispatcher;
             this.loader = loader;
-            AssemblyRegistry.AssemblyUnregistered += AssemblyUnregistered;
         }
 
-        private void AssemblyUnregistered(object sender, AssemblyRegisteredEventArgs e)
+        public async Task ClearUserAssetsIn(Assembly assembly)
         {
             // This method is mostly there for user-defined assets, the nodes for fields and properties pointing to those assets in these collections
             // have to be manually purged on assembly reload otherwise ReplaceContent fails as the nodes still use the old assembly type
@@ -69,7 +68,7 @@ namespace Stride.Editor.EditorGame.ContentLoader
                 {
                     foreach (var accessor in accessors)
                     {
-                        if (accessor.ContentNode is IMemberNode member && member.MemberDescriptor.Type.Assembly == e.Assembly && member.MemberDescriptor.Type.GetCustomAttribute(typeof(Core.Serialization.Contents.ReferenceSerializerAttribute)) is not null)
+                        if (accessor.ContentNode is IMemberNode member && member.MemberDescriptor.Type.Assembly == assembly && member.MemberDescriptor.Type.GetCustomAttribute(typeof(Core.Serialization.Contents.ReferenceSerializerAttribute)) is not null)
                         {
                             assets.Add((id, contentId, accessor.ContentNode, accessor.index));
                         }
@@ -77,7 +76,7 @@ namespace Stride.Editor.EditorGame.ContentLoader
                 }
             }
 
-            gameDispatcher.InvokeTask(async () =>
+            await gameDispatcher.InvokeTask(async () =>
             {
                 foreach (var(referencerId, contentId, contentNode, index) in assets)
                 {

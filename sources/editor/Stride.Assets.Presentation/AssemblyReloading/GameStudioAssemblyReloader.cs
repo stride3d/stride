@@ -48,8 +48,16 @@ namespace Stride.Assets.Presentation.AssemblyReloading
                 // Serialize types from unloaded assemblies as Yaml, and unset them
                 var unloadingVisitor = new UnloadingVisitor(log, loadedAssembliesSet);
                 Dictionary<AssetViewModel, List<ItemToReload>> assetItemsToReload;
+
+                // We shouldn't use assets whose types were defined in the previous version of this assembly
+                // We'll rebuild them using the latest type by serializing them before loading the assembly,
+                // and deserializing them further below once the new assembly is loaded in
+                Dictionary<string, Func<object>> assetsToReload;
                 try
                 {
+                    assetsToReload = session.AllAssets
+                        .Where(asset => modifiedAssemblies.Any(assembly => assembly.Key.Assembly == asset.Asset.GetType().Assembly))
+                        .ToDictionary(asset => asset.Url, asset => AssetCloner.DelayedClone(asset.AssetItem.Asset, AssetClonerFlags.None, null));
                     assetItemsToReload = PrepareAssemblyReloading(session, unloadingVisitor, session.UndoRedoService);
                 }
                 catch (Exception e)
@@ -74,6 +82,21 @@ namespace Stride.Assets.Presentation.AssemblyReloading
                 var reloadingVisitor = new ReloadingVisitor(log, loadedAssembliesSet);
                 try
                 {
+                    foreach (var asset in session.AllAssets)
+                    {
+                        if (assetsToReload.TryGetValue(asset.Url, out var cloner))
+                        {
+                            asset.UpdateAsset((Asset)cloner(), log);
+                        }
+
+                        foreach (var reference in asset.Dependencies.RecursiveReferencedAssets)
+                        {
+                            if (assetsToReload.TryGetValue(reference.Url, out var cloner2))
+                            {
+                                reference.UpdateAsset((Asset)cloner2(), log);
+                            }
+                        }
+                    }
                     PostAssemblyReloading(session.UndoRedoService, session.AssetNodeContainer, reloadingVisitor, log, assetItemsToReload);
                 }
                 catch (Exception e)
