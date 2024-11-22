@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
+using Stride.Core.Assets;
 using Stride.Core.Serialization.Serializers;
 
 namespace Stride.Core.Serialization
@@ -27,6 +28,14 @@ namespace Stride.Core.Serialization
         public UrlReference(string url) : base(url)
         {
         }
+
+        /// <summary>
+        /// Create a new <see cref="UrlReference"/> instance.
+        /// </summary>
+        /// <exception cref="ArgumentNullException">If <paramref name="url"/> is <c>null</c> or empty.</exception>
+        public UrlReference(AssetId id, string url) : base(id, url)
+        {
+        }
     }
 
     /// <summary>
@@ -51,6 +60,14 @@ namespace Stride.Core.Serialization
         /// <param name="url"></param>
         /// <exception cref="ArgumentNullException">If <paramref name="url"/> is <c>null</c> or empty.</exception>
         public UrlReference(string url) : base(url)
+        {
+        }
+
+        /// <summary>
+        /// Create a new <see cref="UrlReference"/> instance.
+        /// </summary>
+        /// <exception cref="ArgumentNullException">If <paramref name="url"/> is <c>null</c> or empty.</exception>
+        public UrlReference(AssetId id, string url) : base(id, url)
         {
         }
     }
