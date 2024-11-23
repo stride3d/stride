@@ -7,8 +7,13 @@ namespace machin {
         }
         
         shader class : Hlelo {
-            float a;
-            float3x3 b = 1.0f32 + 5;
+            patchstream float a = 5;
+            float3x3 b;
+
+            float Foo(int a, int b)
+            {
+                
+            }
         }
 
         shader other;
