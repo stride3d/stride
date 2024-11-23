@@ -186,25 +186,6 @@ public class DebugRenderProcessor : EntityProcessor<DebugRenderComponent>
         StartTrackingCollidable(collidable);
     }
 
-    static int Vector3ToRGBA(Vector3 rgb, byte a = 255)
-    {
-        //Clamp to [0;1]
-        rgb.X = Math.Clamp(rgb.X, 0f, 1f);
-        rgb.Y = Math.Clamp(rgb.Y, 0f, 1f);
-        rgb.Z = Math.Clamp(rgb.Z, 0f, 1f);
-
-        // Scale RGB values to the range [0, 255]
-        int r = (int)(rgb.X * 255);
-        int g = (int)(rgb.Y * 255);
-        int b = (int)(rgb.Z * 255);
-
-        // Combine values into an int32 RGBA format
-        //int rgba = (r << 24) | (g << 16) | (b << 8) | 255;
-        int rgba = (a << 24) | (b << 16) | (g << 8) | r;
-
-        return rgba;
-    }
-
     private void ClearTrackingForCollidable(CollidableComponent collidable)
     {
         collidable.OnFeaturesUpdated -= CollidableUpdate;
@@ -235,48 +216,36 @@ public class DebugRenderProcessor : EntityProcessor<DebugRenderComponent>
 
     private Color GetCurrentColor(CollidableComponent collidable)
     {
-        var color = new Vector3(0, 0, 0);
-        byte a = 255;
-
+        ColorHSV hsv;
+        hsv.A = 1f;
         if (collidable.Collider is MeshCollider)
         {
-            //color += new Vector3(0, 0, 0);
+            hsv.H = 0.333f * 360f;
         }
         else if (collidable.Collider is CompoundCollider cc)
         {
             if (cc.IsBig)
-                color += new Vector3(1f, 0, 0);
+                hsv.H = 0.6f * 360f;
             else
-                color += new Vector3(0.5f, 0, 0);
-        }
-        else if (collidable.Collider is EmptyCollider)
-        {
-            a = 128;
-        }
-
-        if (collidable is Body2DComponent)
-        {
-            color += new Vector3(0, 1, 0);
+                hsv.H = 0.7f * 360f;
         }
         else
         {
-            //color += new Vector3(0, 0, 0);
+            hsv.H = 0f;
         }
 
         if (collidable is BodyComponent bodyC)
         {
-            color += new Vector3(0, 0, 1);
-
-            if (!bodyC.Awake)
-                color /= 3f;
+            hsv.S = bodyC.Awake ? 1f : 0.66f;
+            hsv.V = collidable.GetType() == typeof(BodyComponent) ? 1f : 0.5f;
         }
-        else if (collidable is StaticComponent staticC)
+        else
         {
-            //color += new Vector3(0, 0, 0);
-            color /= 9f;
+            hsv.S = 0.33f;
+            hsv.V = 0.5f;
         }
 
-        return Color.FromRgba(Vector3ToRGBA(color, a)); //R : Mesh, G : 2D, B : body. Total : awake => 100% else 33% | Static => 11%
+        return (Color)hsv.ToColor();
     }
 
     public enum SynchronizationMode
