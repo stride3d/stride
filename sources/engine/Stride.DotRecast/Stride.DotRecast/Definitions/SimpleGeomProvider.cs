@@ -2,12 +2,11 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using DotRecast.Core.Numerics;
-using DotRecast.Core;
 using DotRecast.Recast.Geom;
 using DotRecast.Recast;
 
-namespace Stride.BepuPhysics.Navigation;
-internal class StrideGeomProvider : IInputGeomProvider
+namespace Stride.DotRecast.Definitions;
+public class SimpleGeomProvider : IInputGeomProvider
 {
     /// <summary> Object does not expect this array to mutate </summary>
     public readonly float[] Vertices;
@@ -24,7 +23,7 @@ internal class StrideGeomProvider : IInputGeomProvider
     /// <summary>
     /// Do note that this object expects ownership over the arrays provided, do not write to them
     /// </summary>
-    public StrideGeomProvider(float[] vertices, int[] faces)
+    public SimpleGeomProvider(float[] vertices, int[] faces)
     {
         Vertices = vertices;
         Faces = faces;
@@ -76,8 +75,7 @@ internal class StrideGeomProvider : IInputGeomProvider
 
     public void RemoveOffMeshConnections(Predicate<RcOffMeshConnection> filter)
     {
-        //offMeshConnections.RetainAll(offMeshConnections.Stream().Filter(c -> !filter.Test(c)).Collect(ToList()));
-        _offMeshConnections.RemoveAll(filter); // TODO : 확인 필요 <- "Need to be confirmed"
+        _offMeshConnections.RemoveAll(filter);
     }
 
     public void AddConvexVolume(float[] verts, float minh, float maxh, RcAreaModification areaMod)
