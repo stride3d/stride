@@ -68,7 +68,7 @@ namespace FreeImageAPI
 		private object tag;
 
 		/// <summary>
-		/// Object used to syncronize lock methods.
+		/// Object used to synchronize lock methods.
 		/// </summary>
 		[DebuggerBrowsable(DebuggerBrowsableState.Never)]
 		private object lockObject = new object();
@@ -140,7 +140,7 @@ namespace FreeImageAPI
 		/// For internal use only.
 		/// </summary>
 		/// <exception cref="Exception">The operation failed.</exception>
-		internal protected FreeImageBitmap(FIBITMAP dib)
+		protected internal FreeImageBitmap(FIBITMAP dib)
 		{
 			if (dib.IsNull)
 			{
@@ -641,9 +641,8 @@ namespace FreeImageAPI
 			{
 				throw new ArgumentOutOfRangeException("height");
 			}
-			uint bpp, redMask, greenMask, blueMask;
-			FREE_IMAGE_TYPE type;
-			if (!FreeImage.GetFormatParameters(format, out type, out bpp, out redMask, out greenMask, out blueMask))
+
+			if (!FreeImage.GetFormatParameters(format, out var type, out var bpp, out var redMask, out var greenMask, out var blueMask))
 			{
 				throw new ArgumentException("format is invalid");
 			}
@@ -725,12 +724,11 @@ namespace FreeImageAPI
 			{
 				throw new ArgumentOutOfRangeException("height");
 			}
-			uint bpp, redMask, greenMask, blueMask;
-			FREE_IMAGE_TYPE type;
+
 			bool topDown = (stride > 0);
 			stride = (stride > 0) ? stride : (stride * -1);
 
-			if (!FreeImage.GetFormatParameters(format, out type, out bpp, out redMask, out greenMask, out blueMask))
+			if (!FreeImage.GetFormatParameters(format, out var type, out var bpp, out var redMask, out var greenMask, out var blueMask))
 			{
 				throw new ArgumentException("format is invalid.");
 			}
@@ -785,12 +783,11 @@ namespace FreeImageAPI
 			{
 				throw new ArgumentNullException("bits");
 			}
-			uint bpp, redMask, greenMask, blueMask;
-			FREE_IMAGE_TYPE type;
+
 			bool topDown = (stride > 0);
 			stride = (stride > 0) ? stride : (stride * -1);
 
-			if (!FreeImage.GetFormatParameters(format, out type, out bpp, out redMask, out greenMask, out blueMask))
+			if (!FreeImage.GetFormatParameters(format, out var type, out var bpp, out var redMask, out var greenMask, out var blueMask))
 			{
 				throw new ArgumentException("format is invalid.");
 			}
@@ -833,11 +830,11 @@ namespace FreeImageAPI
 			{
 				throw new ArgumentOutOfRangeException("height");
 			}
-			uint redMask, greenMask, blueMask;
+
 			bool topDown = (stride > 0);
 			stride = (stride > 0) ? stride : (stride * -1);
 
-			if (!FreeImage.GetTypeParameters(type, bpp, out redMask, out greenMask, out blueMask))
+			if (!FreeImage.GetTypeParameters(type, bpp, out var redMask, out var greenMask, out var blueMask))
 			{
 				throw new ArgumentException("bpp and type are invalid or not supported.");
 			}
@@ -885,11 +882,11 @@ namespace FreeImageAPI
 			{
 				throw new ArgumentNullException("bits");
 			}
-			uint redMask, greenMask, blueMask;
+
 			bool topDown = (stride > 0);
 			stride = (stride > 0) ? stride : (stride * -1);
 
-			if (!FreeImage.GetTypeParameters(type, bpp, out redMask, out greenMask, out blueMask))
+			if (!FreeImage.GetTypeParameters(type, bpp, out var redMask, out var greenMask, out var blueMask))
 			{
 				throw new ArgumentException("bpp and type are invalid or not supported.");
 			}
@@ -914,7 +911,7 @@ namespace FreeImageAPI
 			try
 			{
 				byte[] data = (byte[])info.GetValue("Bitmap Data", typeof(byte[]));
-				if ((data != null) && (data.Length > 0))
+				if (data is { Length: > 0 })
 				{
 					MemoryStream memory = new MemoryStream(data);
 					FREE_IMAGE_FORMAT format = FREE_IMAGE_FORMAT.FIF_TIFF;
@@ -988,20 +985,19 @@ namespace FreeImageAPI
 		/// </returns>
 		public static bool operator ==(FreeImageBitmap left, FreeImageBitmap right)
 		{
-			if (object.ReferenceEquals(left, right))
+			if (ReferenceEquals(left, right))
 			{
 				return true;
 			}
-			else if (object.ReferenceEquals(left, null) || object.ReferenceEquals(right, null))
+
+			if (ReferenceEquals(left, null) || ReferenceEquals(right, null))
 			{
 				return false;
 			}
-			else
-			{
-				left.EnsureNotDisposed();
-				right.EnsureNotDisposed();
-				return FreeImage.Compare(left.dib, right.dib, FREE_IMAGE_COMPARE_FLAGS.COMPLETE);
-			}
+
+			left.EnsureNotDisposed();
+			right.EnsureNotDisposed();
+			return FreeImage.Compare(left.dib, right.dib, FREE_IMAGE_COMPARE_FLAGS.COMPLETE);
 		}
 
 		/// <summary>
@@ -1340,8 +1336,8 @@ namespace FreeImageAPI
 				{
 					throw new InvalidOperationException("No background color available.");
 				}
-				RGBQUAD rgbq;
-				FreeImage.GetBackgroundColor(dib, out rgbq);
+
+				FreeImage.GetBackgroundColor(dib, out var rgbq);
 				return rgbq.Color;
 			}
 			set
@@ -1733,8 +1729,8 @@ namespace FreeImageAPI
 			return new RectangleF(
 					0f,
 					0f,
-					(float)FreeImage.GetWidth(dib),
-					(float)FreeImage.GetHeight(dib));
+					FreeImage.GetWidth(dib),
+					FreeImage.GetHeight(dib));
 		}
 
 		/// <summary>
@@ -2539,11 +2535,9 @@ namespace FreeImageAPI
 		public IntPtr GetHbitmap(Color background)
 		{
 			EnsureNotDisposed();
-			using (FreeImageBitmap temp = new FreeImageBitmap(this))
-			{
-				temp.BackgroundColor = background;
-				return temp.GetHbitmap();
-			}
+			using FreeImageBitmap temp = new FreeImageBitmap(this);
+			temp.BackgroundColor = background;
+			return temp.GetHbitmap();
 		}
 
 		/// <summary>
@@ -2553,11 +2547,9 @@ namespace FreeImageAPI
 		public IntPtr GetHicon()
 		{
 			EnsureNotDisposed();
-			using (Bitmap bitmap = FreeImage.GetBitmap(dib, true))
-			{
-				return bitmap.GetHicon();
-			}
-		}
+            using Bitmap bitmap = FreeImage.GetBitmap(dib, true);
+            return bitmap.GetHicon();
+        }
 
 		/// <summary>
 		/// Creates a GDI bitmap object from this <see cref="FreeImageBitmap"/> with the same
@@ -2583,19 +2575,18 @@ namespace FreeImageAPI
 			EnsureNotDisposed();
 			if (FreeImage.GetImageType(dib) == FREE_IMAGE_TYPE.FIT_BITMAP)
 			{
-				if (ColorDepth == 16 || ColorDepth == 24 || ColorDepth == 32)
+				if (ColorDepth is 16 or 24 or 32)
 				{
-					RGBQUAD rgbq;
-					if (!FreeImage.GetPixelColor(dib, (uint)x, (uint)y, out rgbq))
+					if (!FreeImage.GetPixelColor(dib, (uint)x, (uint)y, out var rgbq))
 					{
 						throw new Exception("FreeImage.GetPixelColor() failed");
 					}
 					return rgbq.Color;
 				}
-				else if (ColorDepth == 1 || ColorDepth == 4 || ColorDepth == 8)
+
+				if (ColorDepth is 1 or 4 or 8)
 				{
-					byte index;
-					if (!FreeImage.GetPixelIndex(dib, (uint)x, (uint)y, out index))
+					if (!FreeImage.GetPixelIndex(dib, (uint)x, (uint)y, out var index))
 					{
 						throw new Exception("FreeImage.GetPixelIndex() failed");
 					}
@@ -2642,7 +2633,7 @@ namespace FreeImageAPI
 			EnsureNotDisposed();
 			if (FreeImage.GetImageType(dib) == FREE_IMAGE_TYPE.FIT_BITMAP)
 			{
-				if (ColorDepth == 16 || ColorDepth == 24 || ColorDepth == 32)
+				if (ColorDepth is 16 or 24 or 32)
 				{
 					RGBQUAD rgbq = color;
 					if (!FreeImage.SetPixelColor(dib, (uint)x, (uint)y, ref rgbq))
@@ -2651,7 +2642,8 @@ namespace FreeImageAPI
 					}
 					return;
 				}
-				else if (ColorDepth == 1 || ColorDepth == 4 || ColorDepth == 8)
+
+				if (ColorDepth is 1 or 4 or 8)
 				{
 					uint colorsUsed = FreeImage.GetColorsUsed(dib);
 					RGBQUAD* palette = (RGBQUAD*)FreeImage.GetPalette(dib);
@@ -2747,7 +2739,7 @@ namespace FreeImageAPI
 		public bool ConvertType(FREE_IMAGE_TYPE type, bool scaleLinear)
 		{
 			EnsureNotDisposed();
-			return (ImageType == type) ? false : ReplaceDib(FreeImage.ConvertToType(dib, type, scaleLinear));
+			return (ImageType != type) && ReplaceDib(FreeImage.ConvertToType(dib, type, scaleLinear));
 		}
 
 		/// <summary>
@@ -3760,12 +3752,10 @@ namespace FreeImageAPI
 		/// <param name="hicon">A handle to an icon.</param>
 		/// <returns>The <see cref="FreeImageBitmap"/> that this method creates.</returns>
 		public static FreeImageBitmap FromHicon(IntPtr hicon)
-		{
-			using (Bitmap bitmap = Bitmap.FromHicon(hicon))
-			{
-				return new FreeImageBitmap(bitmap);
-			}
-		}
+        {
+            using Bitmap bitmap = Bitmap.FromHicon(hicon);
+            return new FreeImageBitmap(bitmap);
+        }
 
 		/// <summary>
 		/// Creates a <see cref="FreeImageBitmap"/> from the specified Windows resource.
@@ -3775,12 +3765,10 @@ namespace FreeImageAPI
 		/// <param name="bitmapName">A string containing the name of the resource bitmap.</param>
 		/// <returns>The <see cref="FreeImageBitmap"/> that this method creates.</returns>
 		public static FreeImageBitmap FromResource(IntPtr hinstance, string bitmapName)
-		{
-			using (Bitmap bitmap = Bitmap.FromResource(hinstance, bitmapName))
-			{
-				return new FreeImageBitmap(bitmap);
-			}
-		}
+        {
+            using Bitmap bitmap = Bitmap.FromResource(hinstance, bitmapName);
+            return new FreeImageBitmap(bitmap);
+        }
 
 		/// <summary>
 		/// Creates a <see cref="FreeImageBitmap"/> from the specified file.
@@ -4360,15 +4348,13 @@ namespace FreeImageAPI
 		void ISerializable.GetObjectData(SerializationInfo info, StreamingContext context)
 		{
 			EnsureNotDisposed();
-			using (MemoryStream memory = new MemoryStream(DataSize))
+			using MemoryStream memory = new MemoryStream(DataSize);
+			if (!FreeImage.SaveToStream(dib, memory, FREE_IMAGE_FORMAT.FIF_TIFF, FREE_IMAGE_SAVE_FLAGS.TIFF_LZW))
 			{
-				if (!FreeImage.SaveToStream(dib, memory, FREE_IMAGE_FORMAT.FIF_TIFF, FREE_IMAGE_SAVE_FLAGS.TIFF_LZW))
-				{
-					throw new SerializationException();
-				}
-				memory.Capacity = (int)memory.Length;
-				info.AddValue("Bitmap Data", memory.GetBuffer());
+				throw new SerializationException();
 			}
+			memory.Capacity = (int)memory.Length;
+			info.AddValue("Bitmap Data", memory.GetBuffer());
 		}
 
 		#endregion
