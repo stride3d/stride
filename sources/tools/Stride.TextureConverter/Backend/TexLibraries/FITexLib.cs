@@ -140,7 +140,7 @@ namespace Stride.TextureConverter.TexLibraries
 
         public bool CanHandleRequest(TexImage image, IRequest request) => CanHandleRequest(image.Format, request);
 
-        public bool CanHandleRequest(PixelFormat imageFormat, IRequest request)
+        public bool CanHandleRequest(Graphics.PixelFormat imageFormat, IRequest request)
         {
             switch (request.Type)
             {
@@ -254,7 +254,7 @@ namespace Stride.TextureConverter.TexLibraries
             image.Height = (int)FreeImage.GetHeight(libraryData.Bitmaps[0]);
             image.Depth = 1;
             image.Dimension = image.Height == 1 ? TexImage.TextureDimension.Texture1D : TexImage.TextureDimension.Texture2D;
-            image.Format = loader.LoadAsSRgb? PixelFormat.B8G8R8A8_UNorm_SRgb : PixelFormat.B8G8R8A8_UNorm;
+            image.Format = loader.LoadAsSRgb? Graphics.PixelFormat.B8G8R8A8_UNorm_SRgb : Graphics.PixelFormat.B8G8R8A8_UNorm;
             image.OriginalAlphaDepth = alphaSize;
             
             int rowPitch, slicePitch;
@@ -382,9 +382,9 @@ namespace Stride.TextureConverter.TexLibraries
             }
 
             if (image.Format.IsBGRAOrder())
-                image.Format = PixelFormat.R8G8B8A8_UNorm;
+                image.Format = Graphics.PixelFormat.R8G8B8A8_UNorm;
             else
-                image.Format = PixelFormat.B8G8R8A8_UNorm;
+                image.Format = Graphics.PixelFormat.B8G8R8A8_UNorm;
         }
 
         public bool SupportBGRAOrder()

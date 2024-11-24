@@ -537,250 +537,6 @@ namespace FreeImageAPI
 		}
 
 		/// <summary>
-		/// Converts a FreeImage bitmap to a .NET <see cref="System.Drawing.Bitmap"/>.
-		/// </summary>
-		/// <param name="dib">Handle to a FreeImage bitmap.</param>
-		/// <returns>The converted .NET <see cref="System.Drawing.Bitmap"/>.</returns>
-		/// <remarks>Copying metadata has been disabled until a proper way
-		/// of reading and storing metadata in a .NET bitmap is found.</remarks>
-		/// <exception cref="ArgumentNullException">
-		/// <paramref name="dib"/> is null.</exception>
-		/// <exception cref="ArgumentException">
-		/// The image type of <paramref name="dib"/> is not FIT_BITMAP.</exception>
-		public static Bitmap GetBitmap(FIBITMAP dib)
-		{
-			return GetBitmap(dib, true);
-		}
-
-		/// <summary>
-		/// Converts a FreeImage bitmap to a .NET <see cref="System.Drawing.Bitmap"/>.
-		/// </summary>
-		/// <param name="dib">Handle to a FreeImage bitmap.</param>
-		/// <param name="copyMetadata">When true existing metadata will be copied.</param>
-		/// <returns>The converted .NET <see cref="System.Drawing.Bitmap"/>.</returns>
-		/// <remarks>Copying metadata has been disabled until a proper way
-		/// of reading and storing metadata in a .NET bitmap is found.</remarks>
-		/// <exception cref="ArgumentNullException">
-		/// <paramref name="dib"/> is null.</exception>
-		/// <exception cref="ArgumentException">
-		/// The image type of <paramref name="dib"/> is not FIT_BITMAP.</exception>
-		internal static Bitmap GetBitmap(FIBITMAP dib, bool copyMetadata)
-		{
-			if (dib.IsNull)
-			{
-				throw new ArgumentNullException("dib");
-			}
-			if (GetImageType(dib) != FREE_IMAGE_TYPE.FIT_BITMAP)
-			{
-				throw new ArgumentException("Only bitmaps with type of FIT_BITMAP can be converted.");
-			}
-
-			PixelFormat format = GetPixelFormat(dib);
-
-			if ((format == PixelFormat.Undefined) && (GetBPP(dib) == 16u))
-			{
-				throw new ArgumentException("Only 16bit 555 and 565 are supported.");
-			}
-
-			int height = (int)GetHeight(dib);
-			int width = (int)GetWidth(dib);
-			int pitch = (int)GetPitch(dib);
-
-			Bitmap result = new Bitmap(width, height, format);
-			BitmapData data;
-			// Locking the complete bitmap in writeonly mode
-			data = result.LockBits(new Rectangle(0, 0, width, height), ImageLockMode.WriteOnly, format);
-			// Writing the bitmap data directly into the new created .NET bitmap.
-			ConvertToRawBits(data.Scan0, dib, pitch, GetBPP(dib),
-				GetRedMask(dib), GetGreenMask(dib), GetBlueMask(dib), true);
-			// Unlock the bitmap
-			result.UnlockBits(data);
-			// Apply the bitmap resolution
-            if((GetResolutionX(dib) > 0) && (GetResolutionY(dib) > 0))
-            {
-                // SetResolution will throw an exception when zero values are given on input
-                result.SetResolution(GetResolutionX(dib), GetResolutionY(dib));
-            }
-			// Check whether the bitmap has a palette
-			if (GetPalette(dib) != IntPtr.Zero)
-			{
-				// Get the bitmaps palette to apply changes
-				ColorPalette palette = result.Palette;
-				// Get the orgininal palette
-				Color[] colorPalette = new Palette(dib).ColorData;
-				// Get the maximum number of palette entries to copy
-				int entriesToCopy = Math.Min(colorPalette.Length, palette.Entries.Length);
-
-				// Check whether the bitmap is transparent
-				if (IsTransparent(dib))
-				{
-					byte[] transTable = GetTransparencyTableEx(dib);
-					int i = 0;
-					int maxEntriesWithTrans = Math.Min(entriesToCopy, transTable.Length);
-					// Copy palette entries and include transparency
-					for (; i < maxEntriesWithTrans; i++)
-					{
-						palette.Entries[i] = Color.FromArgb(transTable[i], colorPalette[i]);
-					}
-					// Copy palette entries and that have no transparancy
-					for (; i < entriesToCopy; i++)
-					{
-						palette.Entries[i] = Color.FromArgb(0xFF, colorPalette[i]);
-					}
-				}
-				else
-				{
-					for (int i = 0; i < entriesToCopy; i++)
-					{
-						palette.Entries[i] = colorPalette[i];
-					}
-				}
-
-				// Set the bitmaps palette
-				result.Palette = palette;
-			}
-			// Copy metadata
-			if (copyMetadata)
-			{
-				try
-				{
-					List<PropertyItem> list = [];
-					// Get a list of all types
-					FITAG tag;
-					FIMETADATA mData;
-					foreach (FREE_IMAGE_MDMODEL model in FREE_IMAGE_MDMODELS)
-					{
-						// Get a unique search handle
-						mData = FindFirstMetadata(model, dib, out tag);
-						// Check if metadata exists for this type
-						if (mData.IsNull) continue;
-						do
-						{
-							PropertyItem propItem = CreatePropertyItem();
-							propItem.Len = (int)GetTagLength(tag);
-							propItem.Id = (int)GetTagID(tag);
-							propItem.Type = (short)GetTagType(tag);
-							byte[] buffer = new byte[propItem.Len];
-
-							unsafe
-							{
-                                ref byte dst = ref buffer[0];
-                                ref byte src = ref Unsafe.AsRef<byte>((byte*) GetTagValue(tag));
-                                Unsafe.CopyBlockUnaligned(ref dst, ref src, (uint) propItem.Len);
-                            }
-
-                            propItem.Value = buffer;
-							list.Add(propItem);
-						}
-						while (FindNextMetadata(mData, out tag));
-						FindCloseMetadata(mData);
-					}
-					foreach (PropertyItem propItem in list)
-					{
-						result.SetPropertyItem(propItem);
-					}
-				}
-				catch
-				{
-				}
-			}
-			return result;
-		}
-
-		/// <summary>
-		/// Converts an .NET <see cref="System.Drawing.Bitmap"/> into a FreeImage bitmap.
-		/// </summary>
-		/// <param name="bitmap">The <see cref="System.Drawing.Bitmap"/> to convert.</param>
-		/// <returns>Handle to a FreeImage bitmap.</returns>
-		/// <remarks>Copying metadata has been disabled until a proper way
-		/// of reading and storing metadata in a .NET bitmap is found.</remarks>
-		/// <exception cref="ArgumentNullException">
-		/// <paramref name="bitmap"/> is null.</exception>
-		/// <exception cref="ArgumentException">
-		/// The bitmaps pixelformat is invalid.</exception>
-		public static FIBITMAP CreateFromBitmap(Bitmap bitmap)
-		{
-			return CreateFromBitmap(bitmap, false);
-		}
-
-		/// <summary>
-		/// Converts an .NET <see cref="System.Drawing.Bitmap"/> into a FreeImage bitmap.
-		/// </summary>
-		/// <param name="bitmap">The <see cref="System.Drawing.Bitmap"/> to convert.</param>
-		/// <param name="copyMetadata">When true existing metadata will be copied.</param>
-		/// <returns>Handle to a FreeImage bitmap.</returns>
-		/// <remarks>Copying metadata has been disabled until a proper way
-		/// of reading and storing metadata in a .NET bitmap is found.</remarks>
-		/// <exception cref="ArgumentNullException">
-		/// <paramref name="bitmap"/> is null.</exception>
-		/// <exception cref="ArgumentException">
-		/// The bitmaps pixelformat is invalid.</exception>
-		internal static FIBITMAP CreateFromBitmap(Bitmap bitmap, bool copyMetadata)
-		{
-			if (bitmap == null)
-			{
-				throw new ArgumentNullException("bitmap");
-			}
-
-            if (!GetFormatParameters(bitmap.PixelFormat, out var type, out var bpp, out var red_mask, out var green_mask, out var blue_mask))
-			{
-				throw new ArgumentException("The bitmaps pixelformat is invalid.");
-			}
-
-			// Locking the complete bitmap in readonly mode
-			BitmapData data = bitmap.LockBits(
-				new Rectangle(0, 0, bitmap.Width, bitmap.Height), ImageLockMode.ReadOnly, bitmap.PixelFormat);
-			// Copying the bitmap data directly from the .NET bitmap
-			FIBITMAP result = ConvertFromRawBits(
-				data.Scan0,
-				type,
-				data.Width,
-				data.Height,
-				data.Stride,
-				bpp,
-				red_mask,
-				green_mask,
-				blue_mask,
-				true);
-			bitmap.UnlockBits(data);
-			// Handle palette
-			if (GetPalette(result) != IntPtr.Zero)
-			{
-				Palette palette = new Palette(result);
-				Color[] colors = bitmap.Palette.Entries;
-				// Only copy available palette entries
-				int entriesToCopy = Math.Min(palette.Length, colors.Length);
-				byte[] transTable = new byte[entriesToCopy];
-				for (int i = 0; i < entriesToCopy; i++)
-				{
-					RGBQUAD color = (RGBQUAD)colors[i];
-					color.rgbReserved = 0x00;
-					palette[i] = color;
-					transTable[i] = colors[i].A;
-				}
-				if ((bitmap.Flags & (int)ImageFlags.HasAlpha) != 0)
-				{
-					FreeImage.SetTransparencyTable(result, transTable);
-				}
-			}
-			// Handle meta data
-			// Disabled
-			//if (copyMetadata)
-			//{
-			//    foreach (PropertyItem propItem in bitmap.PropertyItems)
-			//    {
-			//        FITAG tag = CreateTag();
-			//        SetTagLength(tag, (uint)propItem.Len);
-			//        SetTagID(tag, (ushort)propItem.Id);
-			//        SetTagType(tag, (FREE_IMAGE_MDTYPE)propItem.Type);
-			//        SetTagValue(tag, propItem.Value);
-			//        SetMetadata(FREE_IMAGE_MDMODEL.FIMD_EXIF_EXIF, result, "", tag);
-			//    }
-			//}
-			return result;
-		}
-
-		/// <summary>
 		/// Converts a raw bitmap to a FreeImage bitmap.
 		/// </summary>
 		/// <param name="bits">Array of bytes containing the raw bitmap.</param>
@@ -896,70 +652,6 @@ namespace FreeImageAPI
 		}
 
 		/// <summary>
-		/// Saves a .NET <see cref="System.Drawing.Bitmap"/> to a file.
-		/// </summary>
-		/// <param name="bitmap">The .NET <see cref="System.Drawing.Bitmap"/> to save.</param>
-		/// <param name="filename">Name of the file to save to.</param>
-		/// <returns>Returns true on success, false on failure.</returns>
-		/// <exception cref="ArgumentNullException">
-		/// <paramref name="bitmap"/> or <paramref name="filename"/> is null.</exception>
-		/// <exception cref="ArgumentException">
-		/// The bitmaps pixelformat is invalid.</exception>
-		public static bool SaveBitmap(Bitmap bitmap, string filename)
-		{
-			return SaveBitmap(
-				bitmap,
-				filename,
-				FREE_IMAGE_FORMAT.FIF_UNKNOWN,
-				FREE_IMAGE_SAVE_FLAGS.DEFAULT);
-		}
-
-		/// <summary>
-		/// Saves a .NET <see cref="System.Drawing.Bitmap"/> to a file.
-		/// </summary>
-		/// <param name="bitmap">The .NET <see cref="System.Drawing.Bitmap"/> to save.</param>
-		/// <param name="filename">Name of the file to save to.</param>
-		/// <param name="flags">Flags to enable or disable plugin-features.</param>
-		/// <returns>Returns true on success, false on failure.</returns>
-		/// <exception cref="ArgumentNullException">
-		/// <paramref name="bitmap"/> or <paramref name="filename"/> is null.</exception>
-		/// <exception cref="ArgumentException">
-		/// The bitmaps pixelformat is invalid.</exception>
-		public static bool SaveBitmap(Bitmap bitmap, string filename, FREE_IMAGE_SAVE_FLAGS flags)
-		{
-			return SaveBitmap(
-				bitmap,
-				filename,
-				FREE_IMAGE_FORMAT.FIF_UNKNOWN,
-				flags);
-		}
-
-		/// <summary>
-		/// Saves a .NET <see cref="System.Drawing.Bitmap"/> to a file.
-		/// </summary>
-		/// <param name="bitmap">The .NET <see cref="System.Drawing.Bitmap"/> to save.</param>
-		/// <param name="filename">Name of the file to save to.</param>
-		/// <param name="format">Format of the bitmap. If the format should be taken from the
-		/// filename use <see cref="FREE_IMAGE_FORMAT.FIF_UNKNOWN"/>.</param>
-		/// <param name="flags">Flags to enable or disable plugin-features.</param>
-		/// <returns>Returns true on success, false on failure.</returns>
-		/// <exception cref="ArgumentNullException">
-		/// <paramref name="bitmap"/> or <paramref name="filename"/> is null.</exception>
-		/// <exception cref="ArgumentException">
-		/// The bitmaps pixelformat is invalid.</exception>
-		public static bool SaveBitmap(
-			Bitmap bitmap,
-			string filename,
-			FREE_IMAGE_FORMAT format,
-			FREE_IMAGE_SAVE_FLAGS flags)
-		{
-			FIBITMAP dib = CreateFromBitmap(bitmap);
-			bool result = SaveEx(dib, filename, format, flags);
-			Unload(dib);
-			return result;
-		}
-
-		/// <summary>
 		/// Loads a FreeImage bitmap.
 		/// The file will be loaded with default loading flags.
 		/// </summary>
@@ -1066,26 +758,6 @@ namespace FreeImageAPI
 				_ => FREE_IMAGE_FORMAT.FIF_UNKNOWN,// Note: other format met so far seems to be properly handled by "GetFileType".
 												   //  -> no need to add the extension/format association here.
 			};
-		}
-
-	    /// <summary>
-		/// Loads a .NET <see cref="System.Drawing.Bitmap"/> from a file.
-		/// </summary>
-		/// <param name="filename">Name of the file to be loaded.</param>
-		/// <param name="format">Format of the image. If the format should be taken from the
-		/// filename use <see cref="FREE_IMAGE_FORMAT.FIF_UNKNOWN"/>.</param>
-		/// <param name="flags">Flags to enable or disable plugin-features.</param>
-		/// <returns>The loaded .NET <see cref="System.Drawing.Bitmap"/>.</returns>
-		/// <exception cref="FileNotFoundException">
-		/// <paramref name="filename"/> does not exists.</exception>
-		/// <exception cref="ArgumentException">
-		/// The image type of the image is not <see cref="FREE_IMAGE_TYPE.FIT_BITMAP"/>.</exception>
-		public static Bitmap LoadBitmap(string filename, FREE_IMAGE_LOAD_FLAGS flags, ref FREE_IMAGE_FORMAT format)
-		{
-			FIBITMAP dib = LoadEx(filename, flags, ref format);
-			Bitmap result = GetBitmap(dib, true);
-			Unload(dib);
-			return result;
 		}
 
 		/// <summary>
@@ -2074,15 +1746,15 @@ namespace FreeImageAPI
 		{
 			if (CloseMultiBitmap_(bitmap, flags))
 			{
-				lock (streamHandles)
-				{
-					if (streamHandles.TryGetValue(bitmap, out var handle))
-					{
-						streamHandles.Remove(bitmap);
-						handle.Dispose();
-					}
-				}
-				return true;
+                lock (streamHandles)
+                {
+                    if (streamHandles.TryGetValue(bitmap, out var handle))
+                    {
+                        streamHandles.Remove(bitmap);
+                        handle.Dispose();
+                    }
+                }
+                return true;
 			}
 			return false;
 		}
@@ -2210,7 +1882,7 @@ namespace FreeImageAPI
 			do
 			{
 				bytesRead = stream.Read(buffer, 0, blockSize);
-				_ = WriteMemory(buffer, blockSize, 1, memory);
+                _ = WriteMemory(buffer, blockSize, 1, memory);
 			}
 			while (bytesRead == blockSize);
 
@@ -2908,34 +2580,6 @@ namespace FreeImageAPI
 			}
 
 			return result;
-		}
-
-		/// <summary>
-		/// Returns the <see cref="FREE_IMAGE_FORMAT"/> for the specified
-		/// <see cref="ImageFormat"/>.
-		/// </summary>
-		/// <param name="imageFormat">The <see cref="ImageFormat"/>
-		/// for which to return the corresponding <see cref="FREE_IMAGE_FORMAT"/>.</param>
-		/// <returns>The <see cref="FREE_IMAGE_FORMAT"/> for the specified
-		/// <see cref="ImageFormat"/></returns>
-		public static FREE_IMAGE_FORMAT GetFormat(ImageFormat imageFormat)
-		{
-			if (imageFormat != null)
-			{
-				if (imageFormat.Equals(ImageFormat.Bmp))
-					return FREE_IMAGE_FORMAT.FIF_BMP;
-				if (imageFormat.Equals(ImageFormat.Gif))
-					return FREE_IMAGE_FORMAT.FIF_GIF;
-				if (imageFormat.Equals(ImageFormat.Icon))
-					return FREE_IMAGE_FORMAT.FIF_ICO;
-				if (imageFormat.Equals(ImageFormat.Jpeg))
-					return FREE_IMAGE_FORMAT.FIF_JPEG;
-				if (imageFormat.Equals(ImageFormat.Png))
-					return FREE_IMAGE_FORMAT.FIF_PNG;
-				if (imageFormat.Equals(ImageFormat.Tiff))
-					return FREE_IMAGE_FORMAT.FIF_TIFF;
-			}
-			return FREE_IMAGE_FORMAT.FIF_UNKNOWN;
 		}
 
 		/// <summary>

@@ -34,8 +34,6 @@
 // ==========================================================
 
 using System;
-using System.Drawing;
-using System.Drawing.Imaging;
 using System.IO;
 using System.IO.Compression;
 using System.Runtime.InteropServices;
@@ -44,6 +42,8 @@ using System.Collections;
 using System.Collections.Generic;
 using FreeImageAPI.Metadata;
 using System.Diagnostics;
+using System.Drawing.Imaging;
+using System.Drawing;
 
 namespace FreeImageAPI
 {
@@ -222,177 +222,6 @@ namespace FreeImageAPI
 				throw new Exception(ErrorLoadingBitmap);
 			}
 			originalFormat = original.originalFormat;
-			AddMemoryPressure();
-		}
-
-		/// <summary>
-		/// Initializes a new instance of the <see cref="FreeImageBitmap"/> class
-		/// bases on the specified image.
-		/// </summary>
-		/// <param name="original">The original to clone from.</param>
-		/// <remarks>
-		/// Although this constructor supports creating images in both formats
-		/// <see cref="System.Drawing.Imaging.PixelFormat.Format32bppPArgb"/>
-		/// and <see cref="System.Drawing.Imaging.PixelFormat.Format64bppPArgb"/>, bitmaps
-		/// created in these formats are treated like any normal 32-bit RGBA and 64-bit RGBA
-		/// images respectively. Currently, there is no  support for automatic premultiplying images in
-		/// <see cref="FreeImageBitmap"/>.
-		/// </remarks>
-		/// <exception cref="Exception">The operation failed.</exception>
-		public FreeImageBitmap(Image original)
-			: this(original as Bitmap)
-		{
-		}
-
-		/// <summary>
-		/// Initializes a new instance of the <see cref="FreeImageBitmap"/> class
-		/// bases on the specified image with the specified size.
-		/// </summary>
-		/// <param name="original">The original to clone from.</param>
-		/// <param name="newSize">The Size structure that represent the
-		/// size of the new <see cref="FreeImageBitmap"/>.</param>
-		/// <remarks>
-		/// Although this constructor supports creating images in both formats
-		/// <see cref="System.Drawing.Imaging.PixelFormat.Format32bppPArgb"/>
-		/// and <see cref="System.Drawing.Imaging.PixelFormat.Format64bppPArgb"/>, bitmaps
-		/// created in these formats are treated like any normal 32-bit RGBA and 64-bit RGBA
-		/// images respectively. Currently, there is no  support for automatic premultiplying images in
-		/// <see cref="FreeImageBitmap"/>.
-		/// </remarks>
-		/// <exception cref="Exception">The operation failed.</exception>
-		/// <exception cref="ArgumentNullException"><paramref name="original"/> is a null reference.</exception>
-		/// <exception cref="ArgumentOutOfRangeException">
-		/// <paramref name="newSize"/> or <paramref name="newSize"/> are less or equal zero.
-		/// </exception>
-		public FreeImageBitmap(Image original, Size newSize)
-			: this(original as Bitmap, newSize.Width, newSize.Height)
-		{
-		}
-
-		/// <summary>
-		/// Initializes a new instance of the <see cref="FreeImageBitmap"/> class
-		/// bases on the specified image with the specified size.
-		/// </summary>
-		/// <param name="original">The original to clone from.</param>
-		/// <param name="width">The width, in pixels, of the new <see cref="FreeImageBitmap"/>.</param>
-		/// <param name="height">The height, in pixels, of the new <see cref="FreeImageBitmap"/>.</param>
-		/// <remarks>
-		/// Although this constructor supports creating images in both formats
-		/// <see cref="System.Drawing.Imaging.PixelFormat.Format32bppPArgb"/>
-		/// and <see cref="System.Drawing.Imaging.PixelFormat.Format64bppPArgb"/>, bitmaps
-		/// created in these formats are treated like any normal 32-bit RGBA and 64-bit RGBA
-		/// images respectively. Currently, there is no  support for automatic premultiplying images in
-		/// <see cref="FreeImageBitmap"/>.
-		/// </remarks>
-		/// <exception cref="Exception">The operation failed.</exception>
-		/// <exception cref="ArgumentNullException"><paramref name="original"/> is a null reference.</exception>
-		/// <exception cref="ArgumentOutOfRangeException">
-		/// <paramref name="width"/> or <paramref name="height"/> are less or equal zero.</exception>
-		public FreeImageBitmap(Image original, int width, int height)
-			: this(original as Bitmap, width, height)
-		{
-		}
-
-		/// <summary>
-		/// Initializes a new instance of the <see cref="FreeImageBitmap"/> class
-		/// bases on the specified image.
-		/// </summary>
-		/// <param name="original">The original to clone from.</param>
-		/// <remarks>
-		/// Although this constructor supports creating images in both formats
-		/// <see cref="System.Drawing.Imaging.PixelFormat.Format32bppPArgb"/>
-		/// and <see cref="System.Drawing.Imaging.PixelFormat.Format64bppPArgb"/>, bitmaps
-		/// created in these formats are treated like any normal 32-bit RGBA and 64-bit RGBA
-		/// images respectively. Currently, there is no  support for automatic premultiplying images in
-		/// <see cref="FreeImageBitmap"/>.
-		/// </remarks>
-		/// <exception cref="ArgumentNullException"><paramref name="original"/> is a null reference.</exception>
-		/// <exception cref="Exception">The operation failed.</exception>
-		public FreeImageBitmap(Bitmap original)
-		{
-			if (original == null)
-			{
-				throw new ArgumentNullException("original");
-			}
-			dib = FreeImage.CreateFromBitmap(original, true);
-			if (dib.IsNull)
-			{
-				throw new Exception(ErrorLoadingBitmap);
-			}
-			originalFormat = FreeImage.GetFormat(original.RawFormat);
-			AddMemoryPressure();
-		}
-
-		/// <summary>
-		/// Initializes a new instance of the <see cref="FreeImageBitmap"/> class
-		/// bases on the specified image with the specified size.
-		/// </summary>
-		/// <param name="original">The original to clone from.</param>
-		/// <param name="newSize">The Size structure that represent the
-		/// size of the new <see cref="FreeImageBitmap"/>.</param>
-		/// <remarks>
-		/// Although this constructor supports creating images in both formats
-		/// <see cref="System.Drawing.Imaging.PixelFormat.Format32bppPArgb"/>
-		/// and <see cref="System.Drawing.Imaging.PixelFormat.Format64bppPArgb"/>, bitmaps
-		/// created in these formats are treated like any normal 32-bit RGBA and 64-bit RGBA
-		/// images respectively. Currently, there is no  support for automatic premultiplying images in
-		/// <see cref="FreeImageBitmap"/>.
-		/// </remarks>
-		/// <exception cref="Exception">The operation failed.</exception>
-		/// <exception cref="ArgumentNullException"><paramref name="original"/> is a null reference.</exception>
-		/// <exception cref="ArgumentOutOfRangeException">
-		/// <paramref name="newSize"/> or <paramref name="newSize"/> are less or equal zero.
-		/// </exception>
-		public FreeImageBitmap(Bitmap original, Size newSize)
-			: this(original, newSize.Width, newSize.Height)
-		{
-		}
-
-		/// <summary>
-		/// Initializes a new instance of the <see cref="FreeImageBitmap"/> class
-		/// bases on the specified image with the specified size.
-		/// </summary>
-		/// <param name="original">The original to clone from.</param>
-		/// <param name="width">The width, in pixels, of the new <see cref="FreeImageBitmap"/>.</param>
-		/// <param name="height">The height, in pixels, of the new <see cref="FreeImageBitmap"/>.</param>
-		/// <remarks>
-		/// Although this constructor supports creating images in both formats
-		/// <see cref="System.Drawing.Imaging.PixelFormat.Format32bppPArgb"/>
-		/// and <see cref="System.Drawing.Imaging.PixelFormat.Format64bppPArgb"/>, bitmaps
-		/// created in these formats are treated like any normal 32-bit RGBA and 64-bit RGBA
-		/// images respectively. Currently, there is no  support for automatic premultiplying images in
-		/// <see cref="FreeImageBitmap"/>.
-		/// </remarks>
-		/// <exception cref="Exception">The operation failed.</exception>
-		/// <exception cref="ArgumentNullException"><paramref name="original"/> is a null reference.</exception>
-		/// <exception cref="ArgumentOutOfRangeException">
-		/// <paramref name="width"/> or <paramref name="height"/> are less or equal zero.</exception>
-		public FreeImageBitmap(Bitmap original, int width, int height)
-		{
-			if (original == null)
-			{
-				throw new ArgumentNullException("original");
-			}
-			if (width <= 0)
-			{
-				throw new ArgumentOutOfRangeException("width");
-			}
-			if (height <= 0)
-			{
-				throw new ArgumentOutOfRangeException("height");
-			}
-			FIBITMAP temp = FreeImage.CreateFromBitmap(original, true);
-			if (temp.IsNull)
-			{
-				throw new Exception(ErrorLoadingBitmap);
-			}
-			dib = FreeImage.Rescale(temp, width, height, FREE_IMAGE_FILTER.FILTER_BICUBIC);
-			FreeImage.Unload(temp);
-			if (dib.IsNull)
-			{
-				throw new Exception(ErrorLoadingBitmap);
-			}
-			originalFormat = FreeImage.GetFormat(original.RawFormat);
 			AddMemoryPressure();
 		}
 
@@ -595,22 +424,6 @@ namespace FreeImageAPI
 		public FreeImageBitmap(Type type, string resource)
 			: this(type.Module.Assembly.GetManifestResourceStream(type, resource))
 		{
-		}
-
-		/// <summary>
-		/// Initializes a new instance of the <see cref="FreeImageBitmap"/> class bases on the specified size
-		/// and with the resolution of the specified <see cref="System.Drawing.Graphics"/> object.
-		/// </summary>
-		/// <param name="width">The width, in pixels, of the new <see cref="FreeImageBitmap"/>.</param>
-		/// <param name="height">The height, in pixels, of the new <see cref="FreeImageBitmap"/>.</param>
-		/// <param name="g">The Graphics object that specifies the resolution for the new <see cref="FreeImageBitmap"/>.</param>
-		/// <exception cref="Exception">The operation failed.</exception>
-		/// <exception cref="ArgumentNullException"><paramref name="g"/> is a null reference.</exception>
-		public FreeImageBitmap(int width, int height, Graphics g)
-			: this(width, height)
-		{
-			FreeImage.SetResolutionX(dib, (uint)g.DpiX);
-			FreeImage.SetResolutionY(dib, (uint)g.DpiY);
 		}
 
 		/// <summary>
@@ -944,38 +757,6 @@ namespace FreeImageAPI
 		#region Operators
 
 		/// <summary>
-		/// Converts a <see cref="FreeImageBitmap"/> instance to a <see cref="Bitmap"/> instance.
-		/// </summary>
-		/// <param name="value">A <see cref="FreeImageBitmap"/> instance.</param>
-		/// <returns>A new instance of <see cref="Bitmap"/> initialized to <paramref name="value"/>.</returns>
-		/// <remarks>
-		/// The explicit conversion from <see cref="FreeImageBitmap"/> into Bitmap
-		/// allows to create an instance on the fly and use it as if
-		/// was a Bitmap. This way it can be directly used with a
-		/// PixtureBox for example without having to call any
-		/// conversion operations.
-		/// </remarks>
-		public static explicit operator Bitmap(FreeImageBitmap value)
-		{
-			return value.ToBitmap();
-		}
-
-		/// <summary>
-		/// Converts a <see cref="Bitmap"/> instance to a <see cref="FreeImageBitmap"/> instance.
-		/// </summary>
-		/// <param name="value">A <see cref="Bitmap"/> instance.</param>
-		/// <returns>A new instance of <see cref="FreeImageBitmap"/> initialized to <paramref name="value"/>.</returns>
-		/// <remarks>
-		/// The explicit conversion from <see cref="Bitmap"/> into <see cref="FreeImageBitmap"/>
-		/// allows to create an instance on the fly to perform
-		/// image processing operations and converting it back.
-		/// </remarks>
-		public static explicit operator FreeImageBitmap(Bitmap value)
-		{
-			return new FreeImageBitmap(value);
-		}
-
-		/// <summary>
 		/// Determines whether two specified <see cref="FreeImageBitmap"/> objects have the same value.
 		/// </summary>
 		/// <param name="left">A <see cref="FreeImageBitmap"/> or a null reference (<b>Nothing</b> in Visual Basic).</param>
@@ -1010,7 +791,7 @@ namespace FreeImageAPI
 		/// </returns>
 		public static bool operator !=(FreeImageBitmap left, FreeImageBitmap right)
 		{
-			return (!(left == right));
+			return !(left == right);
 		}
 
 		#endregion
@@ -1533,7 +1314,7 @@ namespace FreeImageAPI
 			get
 			{
 				EnsureNotDisposed();
-				List<PropertyItem> list = new List<PropertyItem>();
+				List<PropertyItem> list = [];
 				ImageMetadata metaData = new ImageMetadata(dib, true);
 
 				foreach (MetadataModel metadataModel in metaData)
@@ -1545,24 +1326,6 @@ namespace FreeImageAPI
 				}
 
 				return list.ToArray();
-			}
-		}
-
-		/// <summary>
-		/// Gets the format of this <see cref="FreeImageBitmap"/>.
-		/// </summary>
-		public ImageFormat RawFormat
-		{
-			get
-			{
-				EnsureNotDisposed();
-				Attribute guidAttribute =
-					Attribute.GetCustomAttribute(
-						typeof(FreeImageBitmap), typeof(System.Runtime.InteropServices.GuidAttribute)
-					);
-				return (guidAttribute == null) ?
-					null :
-					new ImageFormat(new Guid(((GuidAttribute)guidAttribute).Value));
 			}
 		}
 
@@ -1644,7 +1407,7 @@ namespace FreeImageAPI
 			get
 			{
 				EnsureNotDisposed();
-				return (FreeImage.GetPalette(dib) != IntPtr.Zero);
+				return FreeImage.GetPalette(dib) != IntPtr.Zero;
 			}
 		}
 
@@ -1718,19 +1481,15 @@ namespace FreeImageAPI
 		/// <summary>
 		/// Gets the bounds of this <see cref="FreeImageBitmap"/> in the specified unit.
 		/// </summary>
-		/// <param name="pageUnit">One of the <see cref="System.Drawing.GraphicsUnit"/> values indicating
-		/// the unit of measure for the bounding rectangle.</param>
-		/// <returns>The <see cref="System.Drawing.RectangleF"/> that represents the bounds of this
 		/// <see cref="FreeImageBitmap"/>, in the specified unit.</returns>
-		public RectangleF GetBounds(ref GraphicsUnit pageUnit)
+		public RectangleF GetBounds()
 		{
 			EnsureNotDisposed();
-			pageUnit = GraphicsUnit.Pixel;
 			return new RectangleF(
 					0f,
 					0f,
-					FreeImage.GetWidth(dib),
-					FreeImage.GetHeight(dib));
+                    FreeImage.GetWidth(dib),
+                    FreeImage.GetHeight(dib));
 		}
 
 		/// <summary>
@@ -1796,16 +1555,6 @@ namespace FreeImageAPI
 				result = new FreeImageBitmap(newDib);
 			}
 			return result;
-		}
-
-		/// <summary>
-		/// Converts this <see cref="FreeImageBitmap"/> instance to a <see cref="Bitmap"/> instance.
-		/// </summary>
-		/// <returns>A new instance of <see cref="Bitmap"/> initialized this instance.</returns>
-		public Bitmap ToBitmap()
-		{
-			EnsureNotDisposed();
-			return FreeImage.GetBitmap(dib, true);
 		}
 
 		/// <summary>
@@ -2539,17 +2288,6 @@ namespace FreeImageAPI
 			temp.BackgroundColor = background;
 			return temp.GetHbitmap();
 		}
-
-		/// <summary>
-		/// Returns the handle to an icon.
-		/// </summary>
-		/// <returns>A Windows handle to an icon with the same image as this <see cref="FreeImageBitmap"/>.</returns>
-		public IntPtr GetHicon()
-		{
-			EnsureNotDisposed();
-            using Bitmap bitmap = FreeImage.GetBitmap(dib, true);
-            return bitmap.GetHicon();
-        }
 
 		/// <summary>
 		/// Creates a GDI bitmap object from this <see cref="FreeImageBitmap"/> with the same
@@ -3723,7 +3461,7 @@ namespace FreeImageAPI
 		/// <returns><b>true</b> if pixfmt contains alpha information; otherwise, <b>false</b>.</returns>
 		public static bool IsAlphaPixelFormat(PixelFormat pixfmt)
 		{
-			return Bitmap.IsAlphaPixelFormat(pixfmt);
+			return (pixfmt & PixelFormat.Alpha) != 0;
 		}
 
 		/// <summary>
@@ -3733,7 +3471,7 @@ namespace FreeImageAPI
 		/// <returns>true if pixfmt is canonical; otherwise, false.</returns>
 		public static bool IsCanonicalPixelFormat(PixelFormat pixfmt)
 		{
-			return Bitmap.IsCanonicalPixelFormat(pixfmt);
+			return (pixfmt & PixelFormat.Canonical) != 0;
 		}
 
 		/// <summary>
@@ -3743,33 +3481,9 @@ namespace FreeImageAPI
 		/// <returns>true if pixfmt is extended; otherwise, false.</returns>
 		public static bool IsExtendedPixelFormat(PixelFormat pixfmt)
 		{
-			return Bitmap.IsExtendedPixelFormat(pixfmt);
+			return (pixfmt & PixelFormat.Extended) != 0;
 		}
-
-		/// <summary>
-		/// Creates a <see cref="FreeImageBitmap"/> from a Windows handle to an icon.
-		/// </summary>
-		/// <param name="hicon">A handle to an icon.</param>
-		/// <returns>The <see cref="FreeImageBitmap"/> that this method creates.</returns>
-		public static FreeImageBitmap FromHicon(IntPtr hicon)
-        {
-            using Bitmap bitmap = Bitmap.FromHicon(hicon);
-            return new FreeImageBitmap(bitmap);
-        }
-
-		/// <summary>
-		/// Creates a <see cref="FreeImageBitmap"/> from the specified Windows resource.
-		/// </summary>
-		/// <param name="hinstance">A handle to an instance of the executable
-		/// file that contains the resource.</param>
-		/// <param name="bitmapName">A string containing the name of the resource bitmap.</param>
-		/// <returns>The <see cref="FreeImageBitmap"/> that this method creates.</returns>
-		public static FreeImageBitmap FromResource(IntPtr hinstance, string bitmapName)
-        {
-            using Bitmap bitmap = Bitmap.FromResource(hinstance, bitmapName);
-            return new FreeImageBitmap(bitmap);
-        }
-
+		
 		/// <summary>
 		/// Creates a <see cref="FreeImageBitmap"/> from the specified file.
 		/// </summary>
@@ -3873,7 +3587,7 @@ namespace FreeImageAPI
 		/// <returns>The color depth of the specified pixel format.</returns>
 		public static int GetPixelFormatSize(PixelFormat pixfmt)
 		{
-			return Bitmap.GetPixelFormatSize(pixfmt);
+			return ((int)pixfmt >> 8) & 0xFF;
 		}
 
 		/// <summary>
@@ -4160,7 +3874,7 @@ namespace FreeImageAPI
 		{
 			lock (lockObject)
 			{
-				if (!this.disposed)
+				if (!disposed)
 				{
 					return;
 				}
@@ -4265,7 +3979,7 @@ namespace FreeImageAPI
 
 			public object Clone()
 			{
-				return base.MemberwiseClone();
+				return MemberwiseClone();
 			}
 		}
 

@@ -617,9 +617,9 @@ namespace FreeImageAPI.Metadata
 		/// Gets a .NET PropertyItem for this metadata tag.
 		/// </summary>
 		/// <returns>The .NET PropertyItem.</returns>
-		public unsafe System.Drawing.Imaging.PropertyItem GetPropertyItem()
+		public unsafe PropertyItem GetPropertyItem()
 		{
-			System.Drawing.Imaging.PropertyItem item = FreeImage.CreatePropertyItem();
+			PropertyItem item = FreeImage.CreatePropertyItem();
 			item.Id = ID;
 			item.Len = (int)Length;
 			item.Type = (short)Type;

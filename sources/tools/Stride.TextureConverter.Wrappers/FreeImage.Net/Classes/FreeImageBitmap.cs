@@ -295,36 +295,6 @@ namespace FreeImageAPI
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="FreeImageBitmap"/> class
-		/// bases on the specified image.
-		/// </summary>
-		/// <param name="original">The original to clone from.</param>
-		/// <remarks>
-		/// Although this constructor supports creating images in both formats
-		/// <see cref="System.Drawing.Imaging.PixelFormat.Format32bppPArgb"/>
-		/// and <see cref="System.Drawing.Imaging.PixelFormat.Format64bppPArgb"/>, bitmaps
-		/// created in these formats are treated like any normal 32-bit RGBA and 64-bit RGBA
-		/// images respectively. Currently, there is no  support for automatic premultiplying images in
-		/// <see cref="FreeImageBitmap"/>.
-		/// </remarks>
-		/// <exception cref="ArgumentNullException"><paramref name="original"/> is a null reference.</exception>
-		/// <exception cref="Exception">The operation failed.</exception>
-		public FreeImageBitmap(Bitmap original)
-		{
-			if (original == null)
-			{
-				throw new ArgumentNullException("original");
-			}
-			dib = FreeImage.CreateFromBitmap(original, true);
-			if (dib.IsNull)
-			{
-				throw new Exception(ErrorLoadingBitmap);
-			}
-			originalFormat = FreeImage.GetFormat(original.RawFormat);
-			AddMemoryPressure();
-		}
-
-		/// <summary>
-		/// Initializes a new instance of the <see cref="FreeImageBitmap"/> class
 		/// bases on the specified image with the specified size.
 		/// </summary>
 		/// <param name="original">The original to clone from.</param>
@@ -346,54 +316,6 @@ namespace FreeImageAPI
 		public FreeImageBitmap(Bitmap original, Size newSize)
 			: this(original, newSize.Width, newSize.Height)
 		{
-		}
-
-		/// <summary>
-		/// Initializes a new instance of the <see cref="FreeImageBitmap"/> class
-		/// bases on the specified image with the specified size.
-		/// </summary>
-		/// <param name="original">The original to clone from.</param>
-		/// <param name="width">The width, in pixels, of the new <see cref="FreeImageBitmap"/>.</param>
-		/// <param name="height">The height, in pixels, of the new <see cref="FreeImageBitmap"/>.</param>
-		/// <remarks>
-		/// Although this constructor supports creating images in both formats
-		/// <see cref="System.Drawing.Imaging.PixelFormat.Format32bppPArgb"/>
-		/// and <see cref="System.Drawing.Imaging.PixelFormat.Format64bppPArgb"/>, bitmaps
-		/// created in these formats are treated like any normal 32-bit RGBA and 64-bit RGBA
-		/// images respectively. Currently, there is no  support for automatic premultiplying images in
-		/// <see cref="FreeImageBitmap"/>.
-		/// </remarks>
-		/// <exception cref="Exception">The operation failed.</exception>
-		/// <exception cref="ArgumentNullException"><paramref name="original"/> is a null reference.</exception>
-		/// <exception cref="ArgumentOutOfRangeException">
-		/// <paramref name="width"/> or <paramref name="height"/> are less or equal zero.</exception>
-		public FreeImageBitmap(Bitmap original, int width, int height)
-		{
-			if (original == null)
-			{
-				throw new ArgumentNullException("original");
-			}
-			if (width <= 0)
-			{
-				throw new ArgumentOutOfRangeException("width");
-			}
-			if (height <= 0)
-			{
-				throw new ArgumentOutOfRangeException("height");
-			}
-			FIBITMAP temp = FreeImage.CreateFromBitmap(original, true);
-			if (temp.IsNull)
-			{
-				throw new Exception(ErrorLoadingBitmap);
-			}
-			dib = FreeImage.Rescale(temp, width, height, FREE_IMAGE_FILTER.FILTER_BICUBIC);
-			FreeImage.Unload(temp);
-			if (dib.IsNull)
-			{
-				throw new Exception(ErrorLoadingBitmap);
-			}
-			originalFormat = FreeImage.GetFormat(original.RawFormat);
-			AddMemoryPressure();
 		}
 
 		/// <summary>
