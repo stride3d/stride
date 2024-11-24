@@ -1,0 +1,34 @@
+partial effect machin {
+    
+}
+
+namespace machin.something.Hello {
+    namespace machin;
+
+    namespace hello.world 
+    {
+        partial shader machin
+        {
+            
+        }
+        
+        effect machin {
+
+        }
+    }
+
+}
+
+
+// shader Main<int amplitude> {
+//     struct Machin {
+//         [Link("hello")]
+//         stage something something;
+//         [Link("hello2", 1 , 3)]
+//         stage something[machin, machin, 3, machin(22), obo.obo] something;
+//     }
+
+//     struct Machin {
+        
+//     }
+// }
