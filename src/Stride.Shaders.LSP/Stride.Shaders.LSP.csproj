@@ -20,6 +20,7 @@
 
   <PropertyGroup Condition="'$(Configuration)'=='Release'">
     <OutputPath>..\sdsl-language-support\bin\</OutputPath>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
   </PropertyGroup>
 
 </Project>
