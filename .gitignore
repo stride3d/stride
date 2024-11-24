@@ -5,3 +5,5 @@ obj/
 .vs/
 .antlr/
 /src/SDSLParserExample/Properties/launchSettings.json
+log*.txt
+*.vsix
