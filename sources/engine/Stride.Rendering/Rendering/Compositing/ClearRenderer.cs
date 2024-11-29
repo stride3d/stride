@@ -42,7 +42,7 @@ namespace Stride.Rendering.Compositing
         /// <userdoc>The color value to use when clearing the render targets</userdoc>
         [DataMember(20)]
         [Display("Color")]
-        public Color4 Color { get; set; }
+        public Color4 Color { get; set; } = Core.Mathematics.Color.CornflowerBlue;
 
         /// <summary>
         /// Gets or sets the depth value used to clear the depth stencil buffer.

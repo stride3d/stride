@@ -50,7 +50,6 @@ namespace Stride.Rendering.Compositing
 
             var singleView = new ForwardRenderer
             {
-                Clear = { Color = clearColor ?? Color.CornflowerBlue },
                 OpaqueRenderStage = opaqueRenderStage,
                 TransparentRenderStage = transparentRenderStage,
                 ShadowMapRenderStages = { shadowCasterRenderStage, shadowCasterParaboloidRenderStage, shadowCasterCubeMapRenderStage },

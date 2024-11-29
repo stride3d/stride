@@ -370,7 +370,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
             {
                 Child = new ForwardRenderer
                 {
-                    Clear = null, // Don't clear (we want to keep reusing same render target and depth buffer)
+                    SceneRenderer = null, // Don't clear (we want to keep reusing same render target and depth buffer)
                     OpaqueRenderStage = EditorSceneSystem.GraphicsCompositor.RenderStages.FirstOrDefault(x => x.Name == "Opaque"),
                     TransparentRenderStage = EditorSceneSystem.GraphicsCompositor.RenderStages.FirstOrDefault(x => x.Name == "Transparent"),
                 },

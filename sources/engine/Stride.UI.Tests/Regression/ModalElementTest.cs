@@ -49,7 +49,8 @@ namespace Stride.UI.Tests.Regression
             // TODO: Use a custom compositor as soon as we have visual scripting?
             var topChildRenderer = ((SceneCameraRenderer)SceneSystem.GraphicsCompositor.Game).Child;
             var forwardRenderer = (topChildRenderer as SceneRendererCollection)?.Children.OfType<ForwardRenderer>().FirstOrDefault() ?? (ForwardRenderer)topChildRenderer;
-            forwardRenderer.Clear = new ClearAndDrawTextureRenderer { Color = forwardRenderer.Clear.Color, Texture = sprites["GameScreen"].Texture };
+            var clearRenderer = (ClearRenderer)forwardRenderer.SceneRenderer;
+            forwardRenderer.SceneRenderer = new ClearAndDrawTextureRenderer { Color = clearRenderer.Color, Texture = sprites["GameScreen"].Texture };
 
             var lifeBar = new ImageElement { Source = SpriteFromSheet.Create(sprites, "Logo"), HorizontalAlignment = HorizontalAlignment.Center };
             lifeBar.DependencyProperties.Set(GridBase.ColumnSpanPropertyKey, 3);

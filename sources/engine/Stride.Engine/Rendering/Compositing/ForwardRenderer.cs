@@ -51,7 +51,7 @@ namespace Stride.Rendering.Compositing
 
         protected int ViewIndex { get; private set; }
 
-        public ClearRenderer Clear { get; set; } = new ClearRenderer();
+        public SceneRendererBase SceneRenderer { get; set; } = new ClearRenderer();
 
         /// <summary>
         /// Enable Light Probe.
@@ -703,7 +703,7 @@ namespace Stride.Rendering.Compositing
                                 {
                                     // Clear render target and depth stencil
                                     if (hasPostEffects || i == 0) // need to clear for each eye in the case we have two different render targets
-                                        Clear?.Draw(drawContext);
+                                        SceneRenderer?.Draw(drawContext);
 
                                     ViewIndex = i;
 
@@ -749,7 +749,7 @@ namespace Stride.Rendering.Compositing
                         drawContext.CommandList.SetRenderTargets(currentDepthStencil, currentRenderTargets.Count, currentRenderTargets.Items);
 
                         // Clear render target and depth stencil
-                        Clear?.Draw(drawContext);
+                        SceneRenderer?.Draw(drawContext);
 
                         DrawView(context, drawContext, 0, 1);
                     }
