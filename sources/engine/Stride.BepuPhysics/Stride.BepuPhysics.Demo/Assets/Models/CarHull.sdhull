@@ -1,0 +1,18 @@
+!HullAsset
+Id: f3093fed-f67d-46b5-b8d7-0e16ea58aeee
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+ConvexHulls: null
+Model: de1e1444-d2b9-45e5-bb33-00c083ea5a03:Models/SciFi031_unityfan777
+LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+Scaling: {X: 1.0, Y: 1.0, Z: 1.0}
+Decomposition:
+    Depth: 10
+    PosSampling: 10
+    AngleSampling: 10
+    PosRefine: 5
+    AngleRefine: 5
+    Alpha: 0.01
+    Threshold: 0.01
+    Enabled: false

@@ -213,8 +213,8 @@ namespace Stride.Core.AssemblyProcessor
 
                 if (SerializationAssembly)
                 {
-                    processors.Add(new SerializationProcessor());
                     processors.Add(new AssemblyScanProcessor());
+                    processors.Add(new SerializationProcessor());
                 }
 
                 processors.Add(new DispatcherProcessor());
