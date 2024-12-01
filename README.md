@@ -10,7 +10,7 @@
 [![All Contributors](https://img.shields.io/github/all-contributors/stride3d/stride?color=ee8449)](#contributors)
 [![Financial sponsors](https://img.shields.io/opencollective/all/stride3d?logo=opencollective)](https://opencollective.com/stride3d)
 [![License](https://img.shields.io/badge/license-MIT-blue)](https://github.com/stride3d/stride/blob/master/LICENSE.md)
-[![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.0-4baaaa.svg)](CODE_OF_CONDUCT.md)
+[![Contributor Covenant](https://img.shields.io/badge/contributor%20covenant-2.0-4baaaa.svg)](CODE_OF_CONDUCT.md)
 
 # Welcome to the Stride Game Engine
 
@@ -18,31 +18,7 @@ Stride is an open-source C# game engine designed for realistic rendering and VR.
 
 ![Stride Editor](https://stride3d.net/images/external/script-editor.png)
 
-## Table of Contents
-
-* 🚀 [Getting Started](#-getting-started)
-* 🤝 [Contributing](#-contributing)
-  - [Earn Money by Contributing](#earn-money-by-contributing)
-* 🗺️ [Roadmap](#%EF%B8%8F-roadmap)
-* 🛠️ [Building from Source](#%EF%B8%8F-building-from-source)
-  - [Prerequisites](#prerequisites)
-  - [Build Stride](#build-stride)
-  - [Build Stride without Visual Studio](#build-stride-without-visual-studio)
-  - [If Building Fails](#if-building-fails)
-  - [Contribution Guidelines](#contribution-guidelines)
-* 🔬 [Build Status](#-build-status)
-* 📖 [Stride Documentation Landscape](#-stride-documentation-landscape)
-* 🌐 [.NET Foundation](#-net-foundation)
-* 🛡️ [License](#%EF%B8%8Flicense)
-* ✨ [Contributors](#-contributors)
-
-## 🚀 Getting Started
-
-If you want to **create games using Stride**, please visit our [Get started with Stride](https://doc.stride3d.net/latest/en/manual/get-started/index.html) guide. This guide provides detailed instructions on how to download, install, and begin using Stride to develop your games.
-
-If you are interested in **building the Stride engine from source** or **contributing to its development**, please continue reading this README for instructions on how to build from source and contribute to the project.
-
-If you are interested in both, we recommend starting with the [Get started with Stride](https://doc.stride3d.net/latest/en/manual/get-started/index.html) guide, and then returning here to learn how to build from source and contribute.
+This README is intended for users who want to build the Stride engine from source or contribute to its development. If your goal is to create games using Stride, we recommend visiting the [Get started with Stride](https://doc.stride3d.net/latest/en/manual/get-started/index.html) guide. There, you'll find detailed instructions on downloading, installing, and getting started with game development in Stride.
 
 ## 🤝 Contributing
 
@@ -56,7 +32,7 @@ You can help us translate Stride; check out our [Localization Guide](https://doc
 
 ### Earn Money by Contributing
 
-If you are a developer with solid experience in C#, rendering techniques, or game development, we want to hire you! We have allocated funds 💰 from supporters on [Open Collective](https://opencollective.com/stride3d) and can pay for work on certain projects. [More information is available here](https://doc.stride3d.net/latest/en/contributors/engine/bug-bounties.html).
+If you are a developer with solid experience in C#, rendering techniques, or game development, we want to hire you! We have allocated funds from supporters on [Open Collective](https://opencollective.com/stride3d) and can pay for work on certain projects. [More information is available here](https://doc.stride3d.net/latest/en/contributors/engine/bug-bounties.html).
 
 ## 🗺️ Roadmap
 
@@ -160,7 +136,7 @@ Please check our [Contributing Guidelines](https://doc.stride3d.net/latest/en/co
 
 The Stride documentation is organized across different locations. Here's how it's structured:
 
-1. [Stride Game Engine](https://github.com/stride3d/stride) - The main repository for Stride, a free and open-source 2D and 3D game engine.
+1. [Stride Game Engine](https://github.com/stride3d/stride) - The main repository for Stride.
    - [Contributing to Stride](https://doc.stride3d.net/latest/en/contributors/engine/index.html) - A guide for developers interested in contributing to or developing the Stride engine.
 1. [Stride Website](https://www.stride3d.net/) - The official site showcasing Stride, featuring:
    - [Features](https://www.stride3d.net/features/) 
