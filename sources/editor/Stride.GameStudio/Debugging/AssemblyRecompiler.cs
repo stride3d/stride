@@ -197,10 +197,6 @@ namespace Stride.GameStudio.Debugging
                             {
                                 assemblyProcessorApp.ReferencesToAdd.Add(referencePath.EvaluatedInclude);
                             }
-                            else if (referencePath.EvaluatedInclude.EndsWith("Stride.BepuPhysics.dll")) //todo hard-coded! needs to go when plug in system is in
-                            {
-                                assemblyProcessorApp.ReferencesToAdd.Add(referencePath.EvaluatedInclude);
-                            }
                             else if (referencePath.EvaluatedInclude.EndsWith("Stride.Particles.dll")) //todo hard-coded! needs to go when plug in system is in
                             {
                                 assemblyProcessorApp.ReferencesToAdd.Add(referencePath.EvaluatedInclude);

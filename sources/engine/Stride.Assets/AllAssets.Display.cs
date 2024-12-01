@@ -109,14 +109,6 @@ namespace Stride.Assets
         }
     }
 
-    namespace BepuPhysics
-    {
-        [Display((int)AssetDisplayPriority.Physics, "Hull")]
-        partial class HullAsset
-        {
-        }
-    }
-
     namespace Rendering
     {
         [Display((int)AssetDisplayPriority.GraphicsCompositor, "Graphics compositor")]

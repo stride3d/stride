@@ -9,7 +9,7 @@ namespace Stride.BepuPhysics.Systems;
 
 public class ConstraintProcessor : EntityProcessor<ConstraintComponentBase>
 {
-    private BepuConfiguration _bepuConfiguration = new();
+    private BepuConfiguration _bepuConfiguration = null!;
 
     public ConstraintProcessor()
     {
