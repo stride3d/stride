@@ -10,7 +10,7 @@ namespace FreeImageAPI.Plugins
 	/// </summary>
 	public sealed class FreeImagePlugin
 	{
-        /// <summary>
+		/// <summary>
 		/// Initializes a new instance of this class.
 		/// </summary>
 		/// <param name="fif">The FreeImage format to wrap.</param>
