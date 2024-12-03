@@ -132,14 +132,30 @@ namespace Stride.Engine.Splines.Models.Mesh
                 indices[indicesIndex++] = startCapCenterIndex + 1 + side;
             }
 
+            
+   
             // Generate vertices for the end cap
             int endCapCenterIndex = startCapCenterIndex + capVertexCount; // Center vertex index for the end cap
             Vector3 endCapCenter = BezierPoints[splinePointCount - 1].Position;
             CreateVertex(endCapCenterIndex, endCapCenter, -Vector3.UnitY, new Vector2(0.5f, 0.5f));
 
+            // Calculate the direction vector of the last segment of the spline
+            Vector3 lastSegmentDirection = BezierPoints[splinePointCount - 1].Position - BezierPoints[splinePointCount - 2].Position;
+            lastSegmentDirection.Normalize();
+
+            // Create a perpendicular vector to the last segment direction
+            Vector3 perpendicular = Vector3.Cross(lastSegmentDirection, Vector3.UnitY);
+            perpendicular.Normalize();
+
             for (int side = 0; side < sides; side++)
             {
-                vertices[endCapCenterIndex + 1 + side] = vertices[(splinePointCount - 1) * sides + side]; // Copy the last ring of vertices
+                float angle = side * MathUtil.TwoPi / sides;
+                float x = (float)Math.Cos(angle) * Radius;
+                float z = (float)Math.Sin(angle) * Radius;
+                Vector3 offset = perpendicular * x + Vector3.Cross(perpendicular, lastSegmentDirection) * z; // Correctly oriented offset
+                Vector3 sideVertexPosition = endCapCenter + offset;
+                Vector3 normal = CalculateRadialNormal(sideVertexPosition, endCapCenter);
+                CreateVertex(endCapCenterIndex + 1 + side, sideVertexPosition, normal, new Vector2((float)side / sides, 1.0f));
             }
 
             // Generate indices for the end cap
