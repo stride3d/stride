@@ -95,7 +95,7 @@ namespace Stride.Assets
                 if (assetFile.Deleted)
                     continue;
 
-                var context = new AssetMigrationContext(dependentPackage, assetFile.ToReference(), assetFile.FilePath.ToWindowsPath(), log);
+                var context = new AssetMigrationContext(dependentPackage, assetFile.ToReference(), assetFile.FilePath.ToOSPath(), log);
                 AssetMigration.MigrateAssetIfNeeded(context, assetFile, dependencyName, maxVersion);
             }
         }
@@ -143,10 +143,27 @@ namespace Stride.Assets
             {
                 try
                 {
-                    var project = VSProjectHelper.LoadProject(projectFullPath.ToWindowsPath());
+                    var project = VSProjectHelper.LoadProject(projectFullPath.ToOSPath());
                     var isProjectDirty = false;
+                    
+                    List<Microsoft.Build.Evaluation.ProjectItem> packageReferences = new();
+                    foreach(var package in project.GetItems("PackageReference"))
+                    {
+                        bool addPackage = true;
+                        for (int i = 0; i < StridePackagesToSkipUpgrade.PackageNames.Length; i++)
+                        {
+                            if (package.EvaluatedInclude.StartsWith(StridePackagesToSkipUpgrade.PackageNames[i])
+                                || StridePackagesToSkipUpgrade.PackageNames[i].Equals(package.EvaluatedInclude))
+                            {
+                                addPackage = false;
+                            }
+                        }
 
-                    var packageReferences = project.GetItems("PackageReference").ToList();
+                        if(addPackage)
+                        {
+                            packageReferences.Add(package);
+                        }
+                    }
 
                     // Remove Stride reference for older executable projects (it was necessary in the past due to runtime.json)
                     if (dependency.Version.MinVersion < new PackageVersion("4.1.0.0")

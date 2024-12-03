@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2015 SharpYaml - Alexandre Mutel
+// Copyright (c) 2015 SharpYaml - Alexandre Mutel
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -56,7 +56,7 @@ namespace Stride.Core.Yaml.Serialization
     public interface IObjectFactory
     {
         /// <summary>
-        /// Creates an instance of the specified type. Returns null if instance cannot be created.
+        /// Creates an instance of the specified type. Throws with an appropriate exception if the type cannot be created.
         /// </summary>
         object Create(Type type);
     }

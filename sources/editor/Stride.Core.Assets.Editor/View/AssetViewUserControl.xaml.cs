@@ -5,6 +5,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using Stride.Core.Assets.Editor.Settings;
 using Stride.Core.Assets.Editor.View.Controls;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Presentation.Collections;
@@ -71,12 +72,12 @@ namespace Stride.Core.Assets.Editor.View
         /// <summary>
         /// Identifies the <see cref="TileThumbnailSize"/> dependency property.
         /// </summary>
-        public static readonly DependencyProperty TileThumbnailSizeProperty = DependencyProperty.Register(nameof(TileThumbnailSize), typeof(double), typeof(AssetViewUserControl), new PropertyMetadata(96.0));
+        public static readonly DependencyProperty TileThumbnailSizeProperty = DependencyProperty.Register(nameof(TileThumbnailSize), typeof(double), typeof(AssetViewUserControl), new PropertyMetadata(InternalSettings.AssetViewTileThumbnailZoom.GetValue()));
 
         /// <summary>
         /// Identifies the <see cref="GridThumbnailSize"/> dependency property.
         /// </summary>
-        public static readonly DependencyProperty GridThumbnailSizeProperty = DependencyProperty.Register(nameof(GridThumbnailSize), typeof(double), typeof(AssetViewUserControl), new PropertyMetadata(16.0));
+        public static readonly DependencyProperty GridThumbnailSizeProperty = DependencyProperty.Register(nameof(GridThumbnailSize), typeof(double), typeof(AssetViewUserControl), new PropertyMetadata(InternalSettings.AssetViewGridThumbnailZoom.GetValue()));
 
         /// <summary>
         /// Identifies the <see cref="AssetDoubleClick"/> dependency property.
@@ -225,6 +226,7 @@ namespace Stride.Core.Assets.Editor.View
                 {
                     TileThumbnailSize = ThumbnailMaximumSize;
                 }
+                InternalSettings.AssetViewTileThumbnailZoom.SetValue(TileThumbnailSize);
             }
 
             var gridView = AssetViewPresenter.FindVisualChildOfType<DataGridEx>();
@@ -235,7 +237,8 @@ namespace Stride.Core.Assets.Editor.View
                 {
                     GridThumbnailSize = ThumbnailMaximumSize;
                 }
-            }
+                InternalSettings.AssetViewGridThumbnailZoom.SetValue(GridThumbnailSize);
+            } 
         }
 
         private void ZoomOut()
@@ -248,6 +251,7 @@ namespace Stride.Core.Assets.Editor.View
                 {
                     TileThumbnailSize = ThumbnailMinimumSize;
                 }
+                InternalSettings.AssetViewTileThumbnailZoom.SetValue(TileThumbnailSize);
             }
 
             var gridView = AssetViewPresenter.FindVisualChildOfType<DataGridEx>();
@@ -258,6 +262,7 @@ namespace Stride.Core.Assets.Editor.View
                 {
                     GridThumbnailSize = ThumbnailMinimumSize;
                 }
+                InternalSettings.AssetViewGridThumbnailZoom.SetValue(GridThumbnailSize);
             }
         }
 

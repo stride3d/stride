@@ -16,7 +16,6 @@ using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Assets.Presentation.AssetEditors.AssetHighlighters;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.EntityFactories;
-using Stride.Assets.Presentation.AssetEditors.Gizmos;
 using Stride.Assets.Presentation.NodePresenters.Commands;
 using Stride.Assets.Presentation.NodePresenters.Updaters;
 using Stride.Assets.Presentation.SceneEditor.Services;
@@ -26,6 +25,9 @@ using Stride.Editor;
 using Stride.Engine;
 using Stride.Core.Assets.Templates;
 using Stride.Core.Packages;
+using Stride.Engine.Gizmos;
+using Stride.Editor.Annotations;
+using Stride.Editor.Preview.View;
 
 namespace Stride.Assets.Presentation
 {
@@ -36,7 +38,7 @@ namespace Stride.Assets.Presentation
         /// </summary>
         private class ComponentTypeComparer : EqualityComparer<Type>
         {
-            public new static readonly ComponentTypeComparer Default = new ComponentTypeComparer();
+            public static new readonly ComponentTypeComparer Default = new ComponentTypeComparer();
 
             /// <summary>
             /// Compares two component types and returns <c>true</c> if the types match, i.e.:
@@ -97,7 +99,7 @@ namespace Stride.Assets.Presentation
                 var packageFile = PackageStore.Instance.GetPackageFileName(packageInfo.Name, new PackageVersionRange(new PackageVersion(packageInfo.Version)));
                 if (packageFile is null)
                     throw new InvalidOperationException($"Could not find package {packageInfo.Name} {packageInfo.Version}. Ensure packages have been resolved.");
-                var package = Package.Load(logger, packageFile.ToWindowsPath());
+                var package = Package.Load(logger, packageFile.ToOSPath());
                 if (logger.HasErrors)
                     throw new InvalidOperationException($"Could not load package {packageInfo.Name}:{Environment.NewLine}{logger.ToText()}");
 
@@ -183,15 +185,15 @@ namespace Stride.Assets.Presentation
             session.AssetViewProperties.RegisterNodePresenterCommand(new SetEntityReferenceCommand());
             session.AssetViewProperties.RegisterNodePresenterCommand(new SetComponentReferenceCommand());
             session.AssetViewProperties.RegisterNodePresenterCommand(new SetSymbolReferenceCommand());
-            session.AssetViewProperties.RegisterNodePresenterCommand(new PickupEntityCommand(session));
-            session.AssetViewProperties.RegisterNodePresenterCommand(new PickupEntityComponentCommand(session));
+            session.AssetViewProperties.RegisterNodePresenterCommand(new PickupEntityCommand());
+            session.AssetViewProperties.RegisterNodePresenterCommand(new PickupEntityComponentCommand());
             session.AssetViewProperties.RegisterNodePresenterCommand(new EditCurveCommand(session));
             session.AssetViewProperties.RegisterNodePresenterCommand(new SkeletonNodePreserveAllCommand());
             //TODO: Add back once properly implemented.
             //session.AssetViewProperties.RegisterNodePresenterCommand(new AddNewScriptComponentCommand());
 
             session.AssetViewProperties.RegisterNodePresenterUpdater(new AnimationAssetNodeUpdater());
-            session.AssetViewProperties.RegisterNodePresenterUpdater(new CameraSlotNodeUpdater(session));
+            session.AssetViewProperties.RegisterNodePresenterUpdater(new CameraSlotNodeUpdater());
             session.AssetViewProperties.RegisterNodePresenterUpdater(new EntityHierarchyAssetNodeUpdater());
             session.AssetViewProperties.RegisterNodePresenterUpdater(new EntityHierarchyEditorNodeUpdater());
             session.AssetViewProperties.RegisterNodePresenterUpdater(new GameSettingsAssetNodeUpdater());
@@ -222,6 +224,7 @@ namespace Stride.Assets.Presentation
             session.SuggestedPackages.Add(new PackageName(typeof(Stride.Particles.Components.ParticleSystemComponent).Assembly.GetName().Name, new PackageVersion(StrideVersion.NuGetVersion)));
             session.SuggestedPackages.Add(new PackageName(typeof(Stride.Navigation.NavigationComponent).Assembly.GetName().Name, new PackageVersion(StrideVersion.NuGetVersion)));
             session.SuggestedPackages.Add(new PackageName(typeof(Stride.Physics.StaticColliderComponent).Assembly.GetName().Name, new PackageVersion(StrideVersion.NuGetVersion)));
+            session.SuggestedPackages.Add(new PackageName(typeof(Stride.BepuPhysics.CollidableComponent).Assembly.GetName().Name, new PackageVersion(StrideVersion.NuGetVersion)));
             session.SuggestedPackages.Add(new PackageName(typeof(Stride.Video.VideoComponent).Assembly.GetName().Name, new PackageVersion(StrideVersion.NuGetVersion)));
             session.SuggestedPackages.Add(new PackageName(typeof(Stride.Voxels.Module).Assembly.GetName().Name, new PackageVersion(StrideVersion.NuGetVersion)));
             session.SuggestedPackages.Add(new PackageName(typeof(Stride.SpriteStudio.Runtime.SpriteStudioNodeLinkComponent).Assembly.GetName().Name, new PackageVersion(StrideVersion.NuGetVersion)));
@@ -231,6 +234,24 @@ namespace Stride.Assets.Presentation
         public override void RegisterPrimitiveTypes(ICollection<Type> primitiveTypes)
         {
             primitiveTypes.Add(typeof(AssetReference));
+        }
+
+        /// <inheritdoc />
+        public override void RegisterAssetPreviewViewTypes(IDictionary<Type, Type> assetPreviewViewTypes)
+        {
+            var pluginAssembly = GetType().Assembly;
+            foreach (var type in pluginAssembly.GetTypes())
+            {
+                if (!typeof(IPreviewView).IsAssignableFrom(type))
+                {
+                    continue;
+                }
+
+                foreach (var attribute in type.GetCustomAttributes<AssetPreviewViewAttribute>())
+                {
+                    assetPreviewViewTypes.Add(attribute.AssetPreviewType, type);
+                }
+            }
         }
 
         /// <inheritdoc />

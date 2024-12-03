@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using Stride.Core;
@@ -181,7 +182,7 @@ namespace Stride.Core.Assets.Compiler
         private void RegisterCompilersFromAssembly(Assembly assembly)
         {
             // Process Asset types.
-            foreach (var type in assembly.GetTypes())
+            foreach (var type in GetFullyLoadedTypes(assembly))
             {
                 // Only process Asset types
                 if (!typeof(IAssetCompiler).IsAssignableFrom(type) || !type.IsClass)
@@ -200,6 +201,21 @@ namespace Stride.Core.Assets.Compiler
                 catch (Exception ex)
                 {
                     log.Error($"Unable to instantiate compiler [{compilerAttribute.TypeName}]", ex);
+                }
+            }
+
+            // Taken from https://stackoverflow.com/questions/7889228/how-to-prevent-reflectiontypeloadexception-when-calling-assembly-gettypes
+            [DebuggerNonUserCode]
+            IEnumerable<Type> GetFullyLoadedTypes(Assembly assembly)
+            {
+                try
+                {
+                    return assembly.GetTypes();
+                }
+                catch (ReflectionTypeLoadException ex)
+                {
+                    log.Warning($"Could not load all types from assembly {assembly.FullName}", ex);
+                    return ex.Types.Where(t => t != null);
                 }
             }
         }

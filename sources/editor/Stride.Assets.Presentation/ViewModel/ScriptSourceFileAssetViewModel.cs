@@ -1,5 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 using System;
 using System.ComponentModel;
 using System.IO;
@@ -7,26 +8,27 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using ICSharpCode.AvalonEdit.Document;
+using ICSharpCode.AvalonEdit.Utils;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
+using RoslynPad.Editor;
+using Stride.Assets.Presentation.AssetEditors.ScriptEditor;
+using Stride.Assets.Scripts;
+using Stride.Core.Annotations;
+using Stride.Core.Assets;
+using Stride.Core.Assets.Editor.Annotations;
 using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Assets.TextAccessors;
 using Stride.Core.Diagnostics;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.Windows;
-using Stride.Assets.Presentation.AssetEditors.ScriptEditor;
-using Stride.Assets.Scripts;
-using ICSharpCode.AvalonEdit.Document;
-using ICSharpCode.AvalonEdit.Utils;
-using RoslynPad.Editor;
-using Stride.Core.Assets.TextAccessors;
-using Stride.Core.Annotations;
 using Stride.Core.Translation;
 using TextDocument = ICSharpCode.AvalonEdit.Document.TextDocument;
-using Stride.Core.Assets;
 
 namespace Stride.Assets.Presentation.ViewModel
 {
-    [AssetViewModel(typeof(ScriptSourceFileAsset))]
+    [AssetViewModel<ScriptSourceFileAsset>]
     public class ScriptSourceFileAssetViewModel : CodeAssetViewModel<ScriptSourceFileAsset>
     {
         private Rope<char> mirroredText;
@@ -194,7 +196,7 @@ namespace Stride.Assets.Presentation.ViewModel
             Dispatcher.Invoke(() =>
             {
                 // Update source file location with latest FullPath (in case it changed)
-                workspace.UpdateFilePath(DocumentId?.Result, FullPath.ToWindowsPath());
+                workspace.UpdateFilePath(DocumentId?.Result, FullPath.ToOSPath());
 
                 // TODO: This doesn't take into account the case where you move and then undo,
                 //  to fix this case the file would need to check for modifications after it has been moved
@@ -241,7 +243,7 @@ namespace Stride.Assets.Presentation.ViewModel
             AssetItem.UpdateSourceFolders();
 
             // Capture full path before going in a Task (might be renamed in between)
-            var fullPath = AssetItem.FullPath.ToWindowsPath();
+            var fullPath = AssetItem.FullPath.ToOSPath();
 
             DocumentId = Task.Run(async () =>
             {
@@ -250,7 +252,7 @@ namespace Stride.Assets.Presentation.ViewModel
                 workspace = await strideAssets.Code.Workspace;
 
                 AssetItem.UpdateSourceFolders();
-                var sourceProject = ((SolutionProject)AssetItem.Package.Container).FullPath.ToWindowsPath();
+                var sourceProject = ((SolutionProject)AssetItem.Package.Container).FullPath.ToOSPath();
                 if (sourceProject == null)
                     throw new InvalidOperationException($"Could not find project associated to asset [{AssetItem}]");
 
@@ -356,7 +358,7 @@ namespace Stride.Assets.Presentation.ViewModel
                 var message = string.Format(
                             Tr._p("Message", "{0}\r\n\r\nThis file has been changed externally and has unsaved changes inside the editor.\r\nDo you want to reload it and lose your changes?"),
                             newDocument.FilePath);
-                var dialogResult = ServiceProvider.Get<IDialogService>().BlockingMessageBox(message, buttons, MessageBoxImage.Question);
+                var dialogResult = ServiceProvider.Get<IDialogService2>().BlockingMessageBox(message, buttons, MessageBoxImage.Question);
 
                 switch (dialogResult)
                 {

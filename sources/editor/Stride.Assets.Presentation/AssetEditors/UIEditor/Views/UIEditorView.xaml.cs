@@ -6,7 +6,6 @@ using System.Windows.Input;
 using System.Windows.Interop;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
-using Stride.Core.Annotations;
 using Stride.Assets.Presentation.AssetEditors.UIEditor.ViewModels;
 
 namespace Stride.Assets.Presentation.AssetEditors.UIEditor.Views
@@ -16,7 +15,7 @@ namespace Stride.Assets.Presentation.AssetEditors.UIEditor.Views
     /// </summary>
     public abstract partial class UIEditorView : IEditorView
     {
-        private readonly TaskCompletionSource<bool> editorInitializationNotifier = new TaskCompletionSource<bool>();
+        private readonly TaskCompletionSource editorInitializationNotifier = new();
 
         protected UIEditorView()
         {
@@ -29,22 +28,23 @@ namespace Stride.Assets.Presentation.AssetEditors.UIEditor.Views
         public Task EditorInitialization => editorInitializationNotifier.Task;
 
         /// <inheritdoc/>
-        public async Task<IAssetEditorViewModel> InitializeEditor(AssetViewModel asset)
+        public async Task<bool> InitializeEditor(IAssetEditorViewModel editor)
         {
-            var editor = CreateEditorViewModel(asset);
+            var uiEditor = (UIEditorBaseViewModel)editor;
 
             // Don't set the actual Editor property until the editor object is fully initialized - we don't want data bindings to access uninitialized properties
-            var result = await editor.Initialize();
+            if (!await editor.Initialize())
+            {
+                editor.Destroy();
+                editorInitializationNotifier.SetResult();
+                return false;
+            }
 
-            SceneView.Content = editor.Controller.EditorHost;
+            SceneView.Content = uiEditor.Controller.EditorHost;
             SceneView.InvalidateVisual();
 
-            editorInitializationNotifier.SetResult(result);
-            if (result)
-                return editor;
-
-            editor.Destroy();
-            return null;
+            editorInitializationNotifier.SetResult();
+            return true;
         }
 
         protected override void OnPreviewMouseDown(MouseButtonEventArgs e)
@@ -56,9 +56,6 @@ namespace Stride.Assets.Presentation.AssetEditors.UIEditor.Views
                 Keyboard.Focus(this);
             }
         }
-
-        [NotNull]
-        protected abstract UIEditorBaseViewModel CreateEditorViewModel([NotNull] AssetViewModel asset);
 
         private void EditorPreviewKeyDown(object sender, KeyEventArgs e)
         {

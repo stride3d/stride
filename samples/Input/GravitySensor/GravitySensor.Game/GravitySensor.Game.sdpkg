@@ -8,7 +8,8 @@ Meta:
     Dependencies: null
 AssetFolders:
     -   Path: !dir ../Assets/Shared
-ResourceFolders: []
+ResourceFolders:
+    - !dir ../Resources
 OutputGroupDirectories: {}
 ExplicitFolders: []
 Bundles: []

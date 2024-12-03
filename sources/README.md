@@ -30,9 +30,6 @@ Folders and projects layout
 * __Stride.Core.BuildEngine.Common__:
    Common parts of the build engine. It can be reused to add new build steps, build commands, and also to build a new custom build engine client.
 * __Stride.Core.BuildEngine__: Default implementation of build engine tool (executable)
-* __Stride.Core.BuildEngine.Monitor__: WPF Display live results of build engine (similar to IncrediBuild)
-* __Stride.Core.BuildEngine.Editor__: WPF Build engine rules editor
-and used by most projects.
 
 ### shader ###
 

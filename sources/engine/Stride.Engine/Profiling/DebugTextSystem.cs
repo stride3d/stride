@@ -43,7 +43,7 @@ namespace Stride.Profiling
         {
             var msg = new DebugOverlayMessage 
             { 
-                Message = message,
+                Message = message ?? string.Empty,
                 Position = position,
                 TextColor = color ?? TextColor,
                 RemainingTime = timeOnScreen ?? DefaultOnScreenTime,

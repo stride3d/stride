@@ -55,11 +55,11 @@ namespace Stride.Core.Storage
         /// <summary>
         /// Creates a stream that will be saved to database when closed and/or disposed.
         /// </summary>
-        /// <returns>a stream writer that should be passed to <see cref="SaveStream"/> in order to be stored in the database</returns>
+        /// <returns>a stream writer that should be passed to <see cref="Write"/> in order to be stored in the database</returns>
         OdbStreamWriter CreateStream();
 
         /// <summary>
-        /// Determines weither the object with the specified <see cref="ObjectId"/> exists.
+        /// Determines if the object with the specified <see cref="ObjectId"/> exists.
         /// </summary>
         /// <param name="objectId">The <see cref="ObjectId"/> to check existence for.</param>
         /// <returns><c>true</c> if an object with the specified <see cref="ObjectId"/> exists; otherwise, <c>false</c>.</returns>

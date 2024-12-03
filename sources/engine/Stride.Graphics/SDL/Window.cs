@@ -37,21 +37,54 @@ namespace Stride.Graphics.SDL
         /// Initializes a new instance of the <see cref="Window"/> class with <paramref name="title"/> as the title of the Window.
         /// </summary>
         /// <param name="title">Title of the window, see Text property.</param>
-        public unsafe Window(string title)
+        public Window(string title) : this(title, IntPtr.Zero) { }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Window"/> class with <paramref name="title"/> as the title of the Window.
+        /// </summary>
+        /// <param name="title">Title of the window, see Text property.</param>
+        /// <param name="parent">Parent window handle</param>
+        public Window(string title, IntPtr parent)
         {
-            WindowFlags flags = WindowFlags.WindowAllowHighdpi;
+            WindowFlags flags = WindowFlags.AllowHighdpi;
 #if STRIDE_GRAPHICS_API_OPENGL
-            flags |= WindowFlags.WindowOpengl;
+            flags |= WindowFlags.Opengl;
 #elif STRIDE_GRAPHICS_API_VULKAN
-            flags |= WindowFlags.WindowVulkan;
+            flags |= WindowFlags.Vulkan;
 #endif
 #if STRIDE_PLATFORM_ANDROID || STRIDE_PLATFORM_IOS
-            flags |= WindowFlags.WindowBorderless | WindowFlags.WindowFullscreen | WindowFlags.WindowShown;
+            flags |= WindowFlags.Borderless | WindowFlags.Fullscreen | WindowFlags.Shown;
 #else
-            flags |= WindowFlags.WindowHidden | WindowFlags.WindowResizable;
+            flags |= WindowFlags.Hidden | WindowFlags.Resizable;
 #endif
-            // Create the SDL window and then extract the native handle.
-            sdlHandle = SDL.CreateWindow(title, Sdl.WindowposUndefined, Sdl.WindowposUndefined, 640, 480, (uint)flags);
+
+            // If there is a parent hwnd
+            if (parent != IntPtr.Zero)
+            {
+                void* parentPtr = parent.ToPointer();
+
+                if (flags.HasFlag(WindowFlags.WindowOpengl))
+                {
+                    // SDL doesn't create OpenGL context when using SDL_CreateWindowFrom.
+                    // See https://wiki.libsdl.org/SDL_CreateWindowFrom
+                    // and https://gamedev.stackexchange.com/a/119903.
+                    var dummy = SDL.CreateWindow($"{title} - OpenGL Dummy", 0, 0, 1, 1, (uint)flags);
+                    var addrStr = new IntPtr(dummy).ToString("X");
+                    SDL.SetHint(Sdl.HintVideoWindowSharePixelFormat, addrStr);
+                    sdlHandle = SDL.CreateWindowFrom(parentPtr);
+                    SDL.SetHint(Sdl.HintVideoWindowSharePixelFormat, string.Empty);
+                    SDL.DestroyWindow(dummy);
+                }
+                else
+                {
+                    sdlHandle = SDL.CreateWindowFrom(parentPtr);
+                }
+            }
+            else // no parent window
+            {
+                // Create the SDL window and then extract the native handle.
+                sdlHandle = SDL.CreateWindow(title, Sdl.WindowposUndefined, Sdl.WindowposUndefined, 640, 480, (uint)flags);
+            }
 
 #if STRIDE_PLATFORM_ANDROID || STRIDE_PLATFORM_IOS
             GraphicsAdapter.DefaultWindow = sdlHandle;
@@ -159,7 +192,7 @@ namespace Stride.Graphics.SDL
         }
 
         /// <summary>
-        /// Show window. The first time a window is shown we execute any actions from <see cref="HandleCreated"/>.
+        /// Show window. The first time a window is shown we execute any actions from 'HandleCreated' />.
         /// </summary>
         public void Show()
         {
@@ -191,12 +224,12 @@ namespace Stride.Graphics.SDL
 
         private WindowFlags GetFullscreenFlag()
         {
-            return FullscreenIsBorderlessWindow ? WindowFlags.WindowFullscreenDesktop : WindowFlags.WindowFullscreen;
+            return FullscreenIsBorderlessWindow ? WindowFlags.FullscreenDesktop : WindowFlags.Fullscreen;
         }
 
         private static bool CheckFullscreenFlag(uint flags)
         {
-            return ((flags & (uint)WindowFlags.WindowFullscreen) != 0) || ((flags & (uint)WindowFlags.WindowFullscreenDesktop) != 0);
+            return ((flags & (uint)WindowFlags.Fullscreen) != 0) || ((flags & (uint)WindowFlags.FullscreenDesktop) != 0);
         }
 
         /// <summary>
@@ -206,7 +239,7 @@ namespace Stride.Graphics.SDL
         {
             get
             {
-                return (SDL.GetWindowFlags(sdlHandle) & (uint)WindowFlags.WindowShown) != 0;
+                return (SDL.GetWindowFlags(sdlHandle) & (uint)WindowFlags.Shown) != 0;
             }
             set
             {
@@ -233,11 +266,11 @@ namespace Stride.Graphics.SDL
                 {
                     return FormWindowState.Fullscreen;
                 }
-                if ((flags & (uint)WindowFlags.WindowMaximized) != 0)
+                if ((flags & (uint)WindowFlags.Maximized) != 0)
                 {
                     return FormWindowState.Maximized;
                 }
-                else if ((flags & (uint)WindowFlags.WindowMinimized) != 0)
+                else if ((flags & (uint)WindowFlags.Minimized) != 0)
                 {
                     return FormWindowState.Minimized;
                 }
@@ -273,7 +306,7 @@ namespace Stride.Graphics.SDL
         {
             get
             {
-                return (SDL.GetWindowFlags(sdlHandle) & (uint)WindowFlags.WindowInputFocus) != 0;
+                return (SDL.GetWindowFlags(sdlHandle) & (uint)WindowFlags.InputFocus) != 0;
             }
         }
 
@@ -325,7 +358,7 @@ namespace Stride.Graphics.SDL
                 // FIXME: We need to adapt the ClientSize to an actual Size to take into account borders.
                 // FIXME: On Windows you do this by using AdjustWindowRect.
                 // SDL.SDL_GetWindowBordersSize(sdlHandle, out var top, out var left, out var bottom, out var right);
-                // From SDL documentaion: Use this function to set the size of a window's client area.
+                // From SDL documentation: Use this function to set the size of a window's client area.
                 SDL.SetWindowSize(sdlHandle, value.Width, value.Height);
             }
         }
@@ -348,7 +381,7 @@ namespace Stride.Graphics.SDL
             }
             set
             {
-                // From SDL documentaion: Use this function to set the size of a window's client area.
+                // From SDL documentation: Use this function to set the size of a window's client area.
                 SDL.SetWindowSize(sdlHandle, value.Width, value.Height);
                 SDL.SetWindowPosition(sdlHandle, value.X, value.Y);
             }
@@ -388,8 +421,8 @@ namespace Stride.Graphics.SDL
             get
             {
                 uint flags = SDL.GetWindowFlags(sdlHandle);
-                var isResizeable = (flags & (uint)WindowFlags.WindowResizable) != 0;
-                var isBorderless = (flags & (uint)WindowFlags.WindowBorderless) != 0;
+                var isResizeable = (flags & (uint)WindowFlags.Resizable) != 0;
+                var isBorderless = (flags & (uint)WindowFlags.Borderless) != 0;
                 if (isBorderless)
                 {
                     return FormBorderStyle.None;
@@ -523,51 +556,51 @@ namespace Stride.Graphics.SDL
                 {
                     switch ((WindowEventID)e.Window.Event)
                     {
-                        case WindowEventID.WindoweventSizeChanged:
+                        case WindowEventID.SizeChanged:
                             ResizeBeginActions?.Invoke(e.Window);
                             break;
 
-                        case WindowEventID.WindoweventResized:
+                        case WindowEventID.Resized:
                             ResizeEndActions?.Invoke(e.Window);
                             break;
 
-                        case WindowEventID.WindoweventClose:
+                        case WindowEventID.Close:
                             CloseActions?.Invoke();
                             break;
 
-                        case WindowEventID.WindoweventShown:
+                        case WindowEventID.Shown:
                             ActivateActions?.Invoke(e.Window);
                             break;
 
-                        case WindowEventID.WindoweventHidden:
+                        case WindowEventID.Hidden:
                             DeActivateActions?.Invoke(e.Window);
                             break;
 
-                        case WindowEventID.WindoweventMinimized:
+                        case WindowEventID.Minimized:
                             MinimizedActions?.Invoke(e.Window);
                             break;
 
-                        case WindowEventID.WindoweventMaximized:
+                        case WindowEventID.Maximized:
                             MaximizedActions?.Invoke(e.Window);
                             break;
 
-                        case WindowEventID.WindoweventRestored:
+                        case WindowEventID.Restored:
                             RestoredActions?.Invoke(e.Window);
                             break;
 
-                        case WindowEventID.WindoweventEnter:
+                        case WindowEventID.Enter:
                             MouseEnterActions?.Invoke(e.Window);
                             break;
 
-                        case WindowEventID.WindoweventLeave:
+                        case WindowEventID.Leave:
                             MouseLeaveActions?.Invoke(e.Window);
                             break;
 
-                        case WindowEventID.WindoweventFocusGained:
+                        case WindowEventID.FocusGained:
                             FocusGainedActions?.Invoke(e.Window);
                             break;
 
-                        case WindowEventID.WindoweventFocusLost:
+                        case WindowEventID.FocusLost:
                             FocusLostActions?.Invoke(e.Window);
                             break;
                     }

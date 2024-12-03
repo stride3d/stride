@@ -10,11 +10,11 @@ using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Annotations;
 using Stride.Core.Presentation.Collections;
 using Stride.Core.Presentation.Commands;
-using Stride.Core.Presentation.ViewModel;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels;
 using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
 using Stride.Editor.EditorGame.ContentLoader;
 using Stride.Editor.EditorGame.Game;
+using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.Assets.Presentation.View
 {
@@ -84,7 +84,7 @@ namespace Stride.Assets.Presentation.View
         public DebugEntityHierarchyEditorUserControl([NotNull] EntityHierarchyEditorViewModel editor)
         {
             DataContext = new DebugEntityHierarchyEditorViewModel(editor.ServiceProvider, editor);
-            Title = $"Scene '{((IAssetEditorViewModel)editor).Asset.Url}'";
+            Title = $"Scene '{editor.Asset.Url}'";
             InitializeComponent();
         }
 

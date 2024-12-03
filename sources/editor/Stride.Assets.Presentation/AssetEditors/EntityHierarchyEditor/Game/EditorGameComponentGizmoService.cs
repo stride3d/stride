@@ -20,6 +20,7 @@ using Stride.Engine.Design;
 using Stride.Rendering;
 using Stride.Rendering.Compositing;
 using Stride.Rendering.Sprites;
+using Stride.Engine.Gizmos;
 
 namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
 {
@@ -59,9 +60,13 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
         public Entity GetContentEntityUnderMouse()
         {
             var pickResult = gizmoEntityPicker.Pick();
-            var pickedComponentId = pickResult.ComponentId;
-            var selectedGizmo = sceneGizmos.FirstOrDefault(x => x.IsUnderMouse(pickedComponentId));
-            return selectedGizmo?.ContentEntity;
+            var pickedComponentId = new OpaqueComponentId(pickResult.ComponentId);
+            foreach (var gizmo in sceneGizmos)
+            {
+                if (gizmo.HandlesComponentId(pickedComponentId, out Entity selection))
+                    return selection;
+            }
+            return null;
         }
 
         /// <summary>
@@ -314,8 +319,15 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
                 return;
 
             // initialize the gizmo
-            var gizmo = (EntityGizmo)Activator.CreateInstance(gizmoType, component);
-            gizmo.InitializeContentEntity(entity);
+            IEntityGizmo gizmo;
+            try
+            {
+                gizmo = (IEntityGizmo)Activator.CreateInstance(gizmoType, component);
+            }
+            catch (MissingMethodException e)
+            {
+                throw new MissingMethodException($"{nameof(IEntityGizmo)} '{gizmoType}' must have a constructor with exactly one parameter of type '{component.GetType()}'", e);
+            }
             gizmo.Initialize(game.Services, editorScene);
 
             gizmo.SizeFactor = GizmoSize;

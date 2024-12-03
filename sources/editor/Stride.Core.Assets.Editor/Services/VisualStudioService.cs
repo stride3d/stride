@@ -81,7 +81,7 @@ namespace Stride.Core.Assets.Editor.Services
             }
             else
             {
-                startInfo.FileName = session.SolutionPath.ToWindowsPath();
+                startInfo.FileName = session.SolutionPath.ToOSPath();
                 startInfo.UseShellExecute = true;
             }
             try
@@ -90,7 +90,7 @@ namespace Stride.Core.Assets.Editor.Services
             }
             catch
             {
-                await session.Dialogs.MessageBox(Tr._p("Message", "An error occurred while starting Visual Studio."), MessageBoxButton.OK, MessageBoxImage.Information);
+                await session.Dialogs.MessageBoxAsync(Tr._p("Message", "An error occurred while starting Visual Studio."), MessageBoxButton.OK, MessageBoxImage.Information);
                 return null;
             }
         }
@@ -99,7 +99,7 @@ namespace Stride.Core.Assets.Editor.Services
         {
             if (string.IsNullOrEmpty(session.SolutionPath))
             {
-                await session.Dialogs.MessageBox(Tr._p("Message", "The session currently open is not a Visual Studio session."), MessageBoxButton.OK, MessageBoxImage.Information);
+                await session.Dialogs.MessageBoxAsync(Tr._p("Message", "The session currently open is not a Visual Studio session."), MessageBoxButton.OK, MessageBoxImage.Information);
                 return false;
             }
             return true;

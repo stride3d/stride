@@ -38,7 +38,7 @@ namespace Stride.Core.Collections
         public object Item { get; private set; }
 
         /// <summary>
-        /// Gets the previous value. Only valid if <see cref="Action"/> is <see cref="NotifyCollectionChangedAction.Add"/> and <see cref=""/>
+        /// Gets the previous value. Only valid if <see cref="Action"/> is <see cref="NotifyCollectionChangedAction.Add"/> and <see cref="NotifyCollectionChangedAction.Remove"/>
         /// </summary>
         public object OldItem { get; private set; }
 

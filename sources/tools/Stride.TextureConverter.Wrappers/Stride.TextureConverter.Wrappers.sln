@@ -10,8 +10,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DxtWrapper", "DxtWrapper\Dx
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeImage.NET", "FreeImage.Net\FreeImage.NET.csproj", "{6598A7CD-8F27-4D3F-A675-5AE63113A7C3}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PvrttWrapper", "PvrttWrapperC++\PvrttWrapperC++.vcxproj", "{B8B85886-0F82-4FF3-BCD5-8EAE7EA19EA5}"
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DirectXTex", "DirectXTex\DirectXTex_Desktop_2017.vcxproj", "{371B9FA9-4C90-4AC6-A123-ACED756D6C77}"
 EndProject
 Global
@@ -89,32 +87,6 @@ Global
 		{6598A7CD-8F27-4D3F-A675-5AE63113A7C3}.Release|x64.Build.0 = Release|x64
 		{6598A7CD-8F27-4D3F-A675-5AE63113A7C3}.Release|x86.ActiveCfg = Release|x86
 		{6598A7CD-8F27-4D3F-A675-5AE63113A7C3}.Release|x86.Build.0 = Release|x86
-		{B8B85886-0F82-4FF3-BCD5-8EAE7EA19EA5}.Debug|Any CPU.ActiveCfg = Debug|Win32
-		{B8B85886-0F82-4FF3-BCD5-8EAE7EA19EA5}.Debug|Mixed Platforms.ActiveCfg = Debug|Win32
-		{B8B85886-0F82-4FF3-BCD5-8EAE7EA19EA5}.Debug|Mixed Platforms.Build.0 = Debug|Win32
-		{B8B85886-0F82-4FF3-BCD5-8EAE7EA19EA5}.Debug|Win32.ActiveCfg = Debug|Win32
-		{B8B85886-0F82-4FF3-BCD5-8EAE7EA19EA5}.Debug|Win32.Build.0 = Debug|Win32
-		{B8B85886-0F82-4FF3-BCD5-8EAE7EA19EA5}.Debug|x64.ActiveCfg = Debug|x64
-		{B8B85886-0F82-4FF3-BCD5-8EAE7EA19EA5}.Debug|x64.Build.0 = Debug|x64
-		{B8B85886-0F82-4FF3-BCD5-8EAE7EA19EA5}.Debug|x86.ActiveCfg = Debug|Win32
-		{B8B85886-0F82-4FF3-BCD5-8EAE7EA19EA5}.Debug|x86.Build.0 = Debug|Win32
-		{B8B85886-0F82-4FF3-BCD5-8EAE7EA19EA5}.Profile|Any CPU.ActiveCfg = Release|Win32
-		{B8B85886-0F82-4FF3-BCD5-8EAE7EA19EA5}.Profile|Mixed Platforms.ActiveCfg = Release|Win32
-		{B8B85886-0F82-4FF3-BCD5-8EAE7EA19EA5}.Profile|Mixed Platforms.Build.0 = Release|Win32
-		{B8B85886-0F82-4FF3-BCD5-8EAE7EA19EA5}.Profile|Win32.ActiveCfg = Release|Win32
-		{B8B85886-0F82-4FF3-BCD5-8EAE7EA19EA5}.Profile|Win32.Build.0 = Release|Win32
-		{B8B85886-0F82-4FF3-BCD5-8EAE7EA19EA5}.Profile|x64.ActiveCfg = Release|Win32
-		{B8B85886-0F82-4FF3-BCD5-8EAE7EA19EA5}.Profile|x86.ActiveCfg = Release|Win32
-		{B8B85886-0F82-4FF3-BCD5-8EAE7EA19EA5}.Profile|x86.Build.0 = Release|Win32
-		{B8B85886-0F82-4FF3-BCD5-8EAE7EA19EA5}.Release|Any CPU.ActiveCfg = Release|Win32
-		{B8B85886-0F82-4FF3-BCD5-8EAE7EA19EA5}.Release|Mixed Platforms.ActiveCfg = Release|Win32
-		{B8B85886-0F82-4FF3-BCD5-8EAE7EA19EA5}.Release|Mixed Platforms.Build.0 = Release|Win32
-		{B8B85886-0F82-4FF3-BCD5-8EAE7EA19EA5}.Release|Win32.ActiveCfg = Release|Win32
-		{B8B85886-0F82-4FF3-BCD5-8EAE7EA19EA5}.Release|Win32.Build.0 = Release|Win32
-		{B8B85886-0F82-4FF3-BCD5-8EAE7EA19EA5}.Release|x64.ActiveCfg = Release|x64
-		{B8B85886-0F82-4FF3-BCD5-8EAE7EA19EA5}.Release|x64.Build.0 = Release|x64
-		{B8B85886-0F82-4FF3-BCD5-8EAE7EA19EA5}.Release|x86.ActiveCfg = Release|Win32
-		{B8B85886-0F82-4FF3-BCD5-8EAE7EA19EA5}.Release|x86.Build.0 = Release|Win32
 		{371B9FA9-4C90-4AC6-A123-ACED756D6C77}.Debug|Any CPU.ActiveCfg = Debug|Win32
 		{371B9FA9-4C90-4AC6-A123-ACED756D6C77}.Debug|Mixed Platforms.ActiveCfg = Debug|Win32
 		{371B9FA9-4C90-4AC6-A123-ACED756D6C77}.Debug|Mixed Platforms.Build.0 = Debug|Win32

@@ -3,22 +3,19 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Dynamic;
 using System.Linq;
 using System.Reflection;
-using System.Windows;
-using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Core.Extensions;
 using Stride.Core.Reflection;
-using Stride.Core.TypeConverters;
 using Stride.Core.Presentation.Collections;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Core;
 using Stride.Core.Presentation.Quantum.Presenters;
-using Stride.Core.Presentation.ViewModel;
+using Stride.Core.Presentation.ViewModels;
 using Stride.Core.Quantum;
+using Stride.Core.TypeConverters;
 using Expression = System.Linq.Expressions.Expression;
 
 namespace Stride.Core.Presentation.Quantum.ViewModels
@@ -49,6 +46,8 @@ namespace Stride.Core.Presentation.Quantum.ViewModels
 #endif
 
         public static readonly object DifferentValues = new DifferentValuesObject();
+
+        public static object UnsetValue;
 
         static NodeViewModel()
         {
@@ -320,7 +319,7 @@ namespace Stride.Core.Presentation.Quantum.ViewModels
         public object GetDynamicObject(string name)
         {
             name = EscapeName(name);
-            return GetChild(name) ?? GetCommand(name) ?? GetAssociatedData(name) ?? DependencyProperty.UnsetValue;
+            return GetChild(name) ?? GetCommand(name) ?? GetAssociatedData(name) ?? UnsetValue;
         }
 
         /// <inheritdoc/>

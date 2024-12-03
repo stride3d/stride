@@ -601,10 +601,7 @@ namespace Stride.Core.Assets
                                     RegisteredDefaultAssetExtension[assetType] = extensions.FirstOrDefault();
                                     foreach (var extension in extensions)
                                     {
-                                        if (!RegisteredAssetFileExtensions.ContainsKey(extension))
-                                        {
-                                            RegisteredAssetFileExtensions.Add(extension, assetType);
-                                        }
+                                        RegisteredAssetFileExtensions.TryAdd(extension, assetType);
                                     }
                                 }
 

@@ -43,11 +43,18 @@ namespace Stride.Core.AssemblyProcessor
             var mainPrepareMethod = new MethodDefinition($"UpdateMain{prepareMethodCount++}", MethodAttributes.HideBySig | MethodAttributes.Assembly | MethodAttributes.Static, assembly.MainModule.TypeSystem.Void);
             updateEngineType.Methods.Add(mainPrepareMethod);
 
-            // Make sure it is called at module startup
-            var strideCoreModule = assembly.GetStrideCoreModule();
-            var moduleInitializerAttribute = strideCoreModule.GetType("Stride.Core.ModuleInitializerAttribute");
-            var ctorMethod = moduleInitializerAttribute.GetConstructors().Single(x => !x.IsStatic && !x.HasParameters);
-            mainPrepareMethod.CustomAttributes.Add(new CustomAttribute(assembly.MainModule.ImportReference(ctorMethod)));
+            // Obtain the static constructor of <Module> and the return instruction
+            Instruction returnInstruction;
+            var moduleConstructor = assembly.OpenModuleConstructor(out returnInstruction);
+
+            // Get the IL processor of the module constructor
+            var il = moduleConstructor.Body.GetILProcessor();
+
+
+            // Create the call to Initialize method
+            var initializeMethodReference = assembly.MainModule.ImportReference(mainPrepareMethod);
+            var callInitializeInstruction = il.Create(OpCodes.Call, initializeMethodReference);
+            il.InsertBefore(moduleConstructor.Body.Instructions.Last(), callInitializeInstruction);
 
             return mainPrepareMethod;
         }

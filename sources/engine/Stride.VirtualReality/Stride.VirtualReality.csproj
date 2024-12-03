@@ -53,6 +53,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Silk.NET.OpenXR" />
+    <PackageReference Include="Silk.NET.OpenXR.Extensions.FB" />
   </ItemGroup>
   <Import Project="$(StrideSdkTargets)" />
 </Project>

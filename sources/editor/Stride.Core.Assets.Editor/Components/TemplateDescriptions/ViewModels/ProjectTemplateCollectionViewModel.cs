@@ -4,11 +4,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Stride.Core;
 using Stride.Core.IO;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Services;
-using Stride.Core.Presentation.ViewModel;
+using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.Components.TemplateDescriptions.ViewModels
 {
@@ -69,12 +68,9 @@ namespace Stride.Core.Assets.Editor.Components.TemplateDescriptions.ViewModels
 
         private async Task BrowseDirectory(string variableName)
         {
-            IFolderOpenModalDialog openDialog = ServiceProvider.Get<IDialogService>().CreateFolderOpenModalDialog();
-            openDialog.InitialDirectory = Location;
-            var result = await openDialog.ShowModal();
-            if (result == DialogResult.Ok)
-            {
-                UDirectory directory = openDialog.Directory;
+            var directory = await ServiceProvider.Get<IDialogService>().OpenFolderPickerAsync(Location);
+            if (directory is not null)
+            {                
                 var property = GetType().GetProperty(variableName);
                 property.SetValue(this, directory);
             }

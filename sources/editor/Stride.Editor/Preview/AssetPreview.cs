@@ -9,13 +9,15 @@ using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Extensions;
-using Stride.Core.Presentation.ViewModel;
 using Stride.Assets;
+using Stride.Core.Annotations;
 using Stride.Editor.Preview.View;
 using Stride.Editor.Preview.ViewModel;
 using Stride.Engine;
 using Stride.Graphics;
 using Stride.Rendering.Compositing;
+using Stride.Core.Presentation.ViewModels;
+using Stride.Editor.Annotations;
 
 namespace Stride.Editor.Preview
 {
@@ -52,6 +54,8 @@ namespace Stride.Editor.Preview
             get; protected set;
         }
 
+        public static Type DefaultViewType { get; set; }
+
         /// <summary>
         /// Initializes the preview of an asset. This method will invoke the protected virtual method <see cref="Initialize()"/>.
         /// </summary>
@@ -76,8 +80,8 @@ namespace Stride.Editor.Preview
             RenderingMode = gameSettings.GetOrCreate<EditorSettings>().RenderingMode;
 
             await Initialize();
-            PreviewViewModel = await ProvideViewModel();
-            previewView = await ProvideView();
+            PreviewViewModel = await ProvideViewModel(asset.ServiceProvider);
+            previewView = await ProvideView(asset.ServiceProvider);
             FinalizeInitialization();
             return previewView;
         }
@@ -213,61 +217,39 @@ namespace Stride.Editor.Preview
 
         }
 
-        private static void EnsurePreviewViewModelTypes(IViewModelServiceProvider serviceProvider)
-        {
-            if (serviceProvider == null) throw new ArgumentNullException(nameof(serviceProvider));
-
-            if (previewViewModelTypes != null)
-                return;
-
-            lock (SyncRoot)
-            {
-                if (previewViewModelTypes != null)
-                    return;
-
-                previewViewModelTypes = new Dictionary<Type, Type>();
-                var pluginService = serviceProvider.Get<IAssetsPluginService>();
-                foreach (var plugin in pluginService.Plugins.OfType<StrideAssetsPlugin>())
-                {
-                    var assetPreviewViewModelsTypes = new Dictionary<Type, Type>();
-                    plugin.RegisterAssetPreviewViewModelTypes(assetPreviewViewModelsTypes);
-                    previewViewModelTypes.AddRange(assetPreviewViewModelsTypes);
-                }
-            }
-        }
-
         private void FinalizeInitialization()
         {
             initCompletionSource.SetResult(0);
         }
 
-        private async Task<IPreviewView> ProvideView()
+        [ItemCanBeNull]
+        private async Task<IPreviewView> ProvideView([NotNull] IViewModelServiceProvider serviceProvider)
         {
-            var viewAttribute = GetType().GetCustomAttribute<AssetPreviewAttribute>();
-            var viewType = viewAttribute != null ? viewAttribute.ViewType ?? AssetPreviewAttribute.DefaultViewType : AssetPreviewAttribute.DefaultViewType;
+            var pluginService = serviceProvider.Get<IAssetsPluginService>();
+            var viewType = pluginService.GetPreviewViewType(GetType()) ?? DefaultViewType;
 
-            return await Builder.Dispatcher.InvokeAsync(() =>
-            {
-                var view = (IPreviewView)Activator.CreateInstance(viewType);
-                view.InitializeView(Builder, this);
-                return view;
-            });
+            return viewType is not null
+                ? await Builder.Dispatcher.InvokeAsync(() =>
+                {
+                    var view = (IPreviewView)Activator.CreateInstance(viewType);
+                    view?.InitializeView(Builder, this);
+                    return view;
+                })
+                : null;
         }
-        
-        private async Task<IAssetPreviewViewModel> ProvideViewModel()
-        {
-            EnsurePreviewViewModelTypes(AssetViewModel.ServiceProvider);
-            Type previewViewModelType = null;
-            previewViewModelTypes?.TryGetValue(GetType(), out previewViewModelType);
 
-            return await AssetViewModel.Dispatcher.InvokeAsync(() =>
-            {
-                if (previewViewModelType != null)
+        [ItemCanBeNull]
+        private async Task<IAssetPreviewViewModel> ProvideViewModel([NotNull] IViewModelServiceProvider serviceProvider)
+        {
+            var pluginService = serviceProvider.Get<IAssetsPluginService>();
+            var previewViewModelType = pluginService.GetPreviewViewModelType(GetType());
+
+            return previewViewModelType is not null
+                ? await AssetViewModel.Dispatcher.InvokeAsync(() =>
                 {
                     return (IAssetPreviewViewModel)Activator.CreateInstance(previewViewModelType, AssetViewModel.Session);
-                }
-                return null;
-            });
+                })
+                : null;
         }
     }
 

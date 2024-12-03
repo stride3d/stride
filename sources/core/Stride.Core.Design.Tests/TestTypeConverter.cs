@@ -41,25 +41,25 @@ namespace Stride.Core.Design.Tests
             TestConversionMultipleCultures(new Color4(0.25f, 50.0f, -4.9f, 1));
         }
 
-        [Fact(Skip = "fix Half.ToString() and update converter accordingly (to match other converters)")]
+        [Fact]
         public void TestHalf()
         {
             TestConversionMultipleCultures(new Half(5.6f));
         }
 
-        [Fact(Skip = "fix Half2.ToString() and update converter accordingly (to match other converters)")]
+        [Fact]
         public void TestHalf2()
         {
             TestConversionMultipleCultures(new Half2(new Half(5.12f), new Half(2)));
         }
 
-        [Fact(Skip = "fix Half3.ToString() and update converter accordingly (to match other converters)")]
+        [Fact]
         public void TestHalf3()
         {
             TestConversionMultipleCultures(new Half3(new Half(5.12f), new Half(2), new Half(-17.54f)));
         }
 
-        [Fact(Skip = "fix Half4.ToString() and update converter accordingly (to match other converters)")]
+        [Fact]
         public void TestHalf4()
         {
             TestConversionMultipleCultures(new Half4(new Half(5.12f), new Half(2), new Half(-17.54f), new Half(-5)));

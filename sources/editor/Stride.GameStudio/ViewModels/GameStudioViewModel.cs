@@ -15,13 +15,13 @@ using Stride.Core.IO;
 using Stride.Core.MostRecentlyUsedFiles;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Services;
-using Stride.Core.Presentation.ViewModel;
 using Stride.Core.Translation;
 using Stride.Core.VisualStudio;
 using Stride.Assets.Effect;
 using Stride.Assets.Presentation.ViewModel;
 using Stride.GameStudio.Services;
 using Stride.GameStudio.Helpers;
+using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.GameStudio.ViewModels
 {
@@ -87,9 +87,9 @@ namespace Stride.GameStudio.ViewModels
 
         protected override async Task RestartAndOpenSession(UFile sessionPath)
         {
-            if (sessionPath != null && !File.Exists(sessionPath.ToWindowsPath()))
+            if (sessionPath != null && !File.Exists(sessionPath.ToOSPath()))
             {
-                await ServiceProvider.Get<IDialogService>().MessageBox(Tr._p("Message", "The file {0} does not exist.").ToFormat(sessionPath.ToWindowsPath()));
+                await ServiceProvider.Get<IDialogService>().MessageBoxAsync(Tr._p("Message", "The file {0} does not exist.").ToFormat(sessionPath.ToOSPath()));
                 return;
             }
             if (sessionPath == null)
@@ -101,7 +101,7 @@ namespace Stride.GameStudio.ViewModels
             if (sessionPath == null)
                 return;
 
-            restartArguments = $"\"{sessionPath.ToWindowsPath()}\"";
+            restartArguments = $"\"{sessionPath.ToOSPath()}\"";
             await CloseAndRestart();
         }
 
@@ -118,7 +118,7 @@ namespace Stride.GameStudio.ViewModels
         [NotNull]
         private Task CloseAndRestart()
         {
-            return ServiceProvider.Get<IDialogService>().CloseMainWindow(RestartOnClosed);
+            return ServiceProvider.Get<IDialogService2>().CloseMainWindow(RestartOnClosed);
         }
 
         private void OpenAboutPage()
