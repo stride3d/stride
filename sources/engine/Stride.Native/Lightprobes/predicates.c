@@ -335,12 +335,7 @@ DLL_EXPORT_API void exactinit()
 /*                                                                           */
 /*****************************************************************************/
 
-int fast_expansion_sum_zeroelim(elen, e, flen, f, h)  /* h cannot be e or f. */
-int elen;
-REAL *e;
-int flen;
-REAL *f;
-REAL *h;
+int fast_expansion_sum_zeroelim(int elen, REAL *e, int flen, REAL *f, REAL *h)  /* h cannot be e or f. */
 {
 	REAL Q;
 	INEXACT REAL Qnew;
@@ -427,11 +422,7 @@ REAL *h;
 /*                                                                           */
 /*****************************************************************************/
 
-int scale_expansion_zeroelim(elen, e, b, h)   /* e and h cannot be the same. */
-int elen;
-REAL *e;
-REAL b;
-REAL *h;
+int scale_expansion_zeroelim(int elen, REAL *e, REAL b, REAL *h)   /* e and h cannot be the same. */
 {
 	INEXACT REAL Q, sum;
 	REAL hh;
@@ -478,9 +469,7 @@ REAL *h;
 /*                                                                           */
 /*****************************************************************************/
 
-REAL estimate(elen, e)
-int elen;
-REAL *e;
+REAL estimate(int elen, REAL *e)
 {
 	REAL Q;
 	int eindex;
@@ -492,12 +481,7 @@ REAL *e;
 	return Q;
 }
 
-DLL_EXPORT_API REAL orient3dadapt(pa, pb, pc, pd, permanent)
-REAL *pa;
-REAL *pb;
-REAL *pc;
-REAL *pd;
-REAL permanent;
+DLL_EXPORT_API REAL orient3dadapt(REAL *pa, REAL *pb, REAL *pc, REAL *pd, REAL permanent)
 {
 	INEXACT REAL adx, bdx, cdx, ady, bdy, cdy, adz, bdz, cdz;
 	REAL det, errbound;
@@ -906,11 +890,7 @@ REAL permanent;
 	return finnow[finlength - 1];
 }
 
-DLL_EXPORT_API REAL orient3d(pa, pb, pc, pd)
-REAL *pa;
-REAL *pb;
-REAL *pc;
-REAL *pd;
+DLL_EXPORT_API REAL orient3d(REAL *pa, REAL *pb, REAL *pc, REAL *pd)
 {
 	REAL adx, bdx, cdx, ady, bdy, cdy, adz, bdz, cdz;
 	REAL bdxcdy, cdxbdy, cdxady, adxcdy, adxbdy, bdxady;
@@ -976,12 +956,7 @@ REAL *pd;
 /*                                                                           */
 /*****************************************************************************/
 
-DLL_EXPORT_API REAL insphereexact(pa, pb, pc, pd, pe)
-REAL *pa;
-REAL *pb;
-REAL *pc;
-REAL *pd;
-REAL *pe;
+DLL_EXPORT_API REAL insphereexact(REAL *pa, REAL *pb, REAL *pc, REAL *pd, REAL *pe)
 {
 	INEXACT REAL axby1, bxcy1, cxdy1, dxey1, exay1;
 	INEXACT REAL bxay1, cxby1, dxcy1, exdy1, axey1;
@@ -1233,13 +1208,7 @@ REAL *pe;
 	return deter[deterlen - 1];
 }
 
-DLL_EXPORT_API REAL insphereadapt(pa, pb, pc, pd, pe, permanent)
-REAL *pa;
-REAL *pb;
-REAL *pc;
-REAL *pd;
-REAL *pe;
-REAL permanent;
+DLL_EXPORT_API REAL insphereadapt(REAL *pa, REAL *pb, REAL *pc, REAL *pd, REAL *pe, REAL permanent)
 {
 	INEXACT REAL aex, bex, cex, dex, aey, bey, cey, dey, aez, bez, cez, dez;
 	REAL det, errbound;
@@ -1453,12 +1422,7 @@ REAL permanent;
 	return insphereexact(pa, pb, pc, pd, pe);
 }
 
-DLL_EXPORT_API REAL insphere(pa, pb, pc, pd, pe)
-REAL *pa;
-REAL *pb;
-REAL *pc;
-REAL *pd;
-REAL *pe;
+DLL_EXPORT_API REAL insphere(REAL *pa, REAL *pb, REAL *pc, REAL *pd, REAL *pe)
 {
 	REAL aex, bex, cex, dex;
 	REAL aey, bey, cey, dey;
