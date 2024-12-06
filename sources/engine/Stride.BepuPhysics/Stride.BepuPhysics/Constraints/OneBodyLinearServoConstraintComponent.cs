@@ -13,7 +13,7 @@ namespace Stride.BepuPhysics.Constraints;
 
 [DataContract]
 [DefaultEntityComponentProcessor(typeof(ConstraintProcessor), ExecutionMode = ExecutionMode.Runtime)]
-[ComponentCategory("Bepu - Constraint")]
+[ComponentCategory("Physics - Bepu Constraint")]
 public sealed class OneBodyLinearServoConstraintComponent : OneBodyConstraintComponent<OneBodyLinearServo>
 {
     public OneBodyLinearServoConstraintComponent() => BepuConstraint = new()

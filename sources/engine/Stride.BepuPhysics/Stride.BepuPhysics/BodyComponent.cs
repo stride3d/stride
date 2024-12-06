@@ -13,7 +13,7 @@ using NRigidPose = BepuPhysics.RigidPose;
 
 namespace Stride.BepuPhysics;
 
-[ComponentCategory("Bepu")]
+[ComponentCategory("Physics - Bepu")]
 public class BodyComponent : CollidableComponent
 {
     private bool _kinematic = false;

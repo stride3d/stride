@@ -1,27 +1,79 @@
-// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+﻿// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using Stride.Core;
+using Stride.Core.Assets;
+using Stride.BepuPhysics.Definitions;
+using System.Collections.Generic;
+using Stride.Core.Annotations;
+using Stride.Rendering;
+using Stride.Core.Mathematics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
+using Stride.Assets;
 using Stride.Assets.Textures;
-using Stride.BepuPhysics.Definitions;
-using Stride.Core;
-using Stride.Core.Assets;
 using Stride.Core.Assets.Analysis;
 using Stride.Core.Assets.Compiler;
 using Stride.Core.BuildEngine;
-using Stride.Core.Mathematics;
 using Stride.Core.Serialization;
 using Stride.Core.Serialization.Contents;
 using Stride.Graphics.Data;
-using Stride.Rendering;
 using VHACDSharp;
 using Buffer = Stride.Graphics.Buffer;
 
-namespace Stride.Assets.BepuPhysics
+namespace Stride.BepuPhysics.Assets
 {
+    [Display((int)AssetDisplayPriority.Physics, "Hull")]
+    [DataContract("HullAsset")]
+    [AssetDescription(FileExtension)]
+    [AssetContentType(typeof(DecomposedHulls))]
+    [AssetFormatVersion(StrideConfig.PackageName, CurrentVersion, "2.0.0.0")]
+    public class HullAsset : Asset
+    {
+        private const string CurrentVersion = "2.0.0.0";
+
+        public const string FileExtension = ".sdhull";
+
+        /// <summary>
+        /// Multiple meshes -> Multiple Hulls per mesh
+        /// </summary>
+        [Display(Browsable = false)]
+        [DataMember(10)]
+        public List<List<DecomposedHulls.Hull>> ConvexHulls = null;
+
+        /// <userdoc>
+        /// Model asset from where the engine will derive the convex hull.
+        /// </userdoc>
+        [DataMember(30)]
+        public Model Model; // Do note that this field is also assigned through reflection in HullAssetFactoryTemplateGenerator as a workaround
+
+        /// <userdoc>
+        /// The offset with the real graphic mesh.
+        /// </userdoc>
+        [DataMember(31)]
+        public Vector3 LocalOffset;
+
+        /// <userdoc>
+        /// The local rotation of the collider shape.
+        /// </userdoc>
+        [DataMember(32)]
+        public Quaternion LocalRotation = Quaternion.Identity;
+
+        /// <userdoc>
+        /// The scaling of the generated convex hull.
+        /// </userdoc>
+        [DataMember(45)]
+        public Vector3 Scaling = Vector3.One;
+
+        /// <summary>
+        /// Parameters used when decomposing the given <see cref="Model"/> into a hull
+        /// </summary>
+        [DataMember(50)]
+        [NotNull]
+        public ConvexHullDecompositionParameters Decomposition { get; set; } = new ConvexHullDecompositionParameters();
+    }
+
     [AssetCompiler(typeof(HullAsset), typeof(AssetCompilationContext))]
     internal class HullAssetCompiler : AssetCompilerBase
     {
@@ -53,7 +105,7 @@ namespace Stride.Assets.BepuPhysics
 
         public override IEnumerable<ObjectUrl> GetInputFiles(AssetItem assetItem)
         {
-            var asset = (HullAsset)assetItem.Asset; 
+            var asset = (HullAsset)assetItem.Asset;
             if (asset.Model != null)
             {
                 var url = AttachedReferenceManager.GetUrl(asset.Model);
@@ -285,6 +337,91 @@ namespace Stride.Assets.BepuPhysics
 
                 return Task.FromResult(ResultStatus.Successful);
             }
+        }
+    }
+
+    internal class HullAssetFactory : AssetFactory<HullAsset>
+    {
+        public static HullAsset Create()
+        {
+            return new HullAsset();
+        }
+
+        public override HullAsset New()
+        {
+            return Create();
+        }
+    }
+
+    [ContentSerializer(typeof(DataContentSerializer<ConvexHullDecompositionParameters>))]
+    [DataContract("BepuDecompositionParameters")]
+    [Display("DecompositionParameters")]
+    public class ConvexHullDecompositionParameters
+    {
+        /// <userdoc>
+        /// If this is unchecked the following parameters are totally ignored, as only a simple convex hull of the whole model will be generated.
+        /// </userdoc>
+        public bool Enabled { get; set; }
+
+        /// <userdoc>
+        /// Control how many sub convex hulls will be created, more depth will result in a more complex decomposition.
+        /// </userdoc>
+        [DataMember(60)]
+        public int Depth { get; set; } = 10;
+
+        /// <userdoc>
+        /// How many position samples to internally compute clipping planes ( the higher the more complex ).
+        /// </userdoc>
+        [DataMember(70)]
+        public int PosSampling { get; set; } = 10;
+
+        /// <userdoc>
+        /// How many angle samples to internally compute clipping planes ( the higher the more complex ), nested with position samples, for each position sample it will compute the amount defined here.
+        /// </userdoc>
+        [DataMember(80)]
+        public int AngleSampling { get; set; } = 10;
+
+        /// <userdoc>
+        /// If higher then 0 the computation will try to further improve the shape position sampling (this will slow down the process).
+        /// </userdoc>
+        [DataMember(90)]
+        public int PosRefine { get; set; } = 5;
+
+        /// <userdoc>
+        /// If higher then 0 the computation will try to further improve the shape angle sampling (this will slow down the process).
+        /// </userdoc>
+        [DataMember(100)]
+        public int AngleRefine { get; set; } = 5;
+
+        /// <userdoc>
+        /// Applied to the concavity during crippling plane approximation.
+        /// </userdoc>
+        [DataMember(110)]
+        public float Alpha { get; set; } = 0.01f;
+
+        /// <userdoc>
+        /// Threshold of concavity, rising this will make the shape simpler.
+        /// </userdoc>
+        [DataMember(120)]
+        public float Threshold { get; set; } = 0.01f;
+
+        public bool Match(object obj)
+        {
+            var other = obj as ConvexHullDecompositionParameters;
+
+            if (other == null)
+            {
+                return false;
+            }
+
+            return other.Enabled == Enabled &&
+                other.Depth == Depth &&
+                other.PosSampling == PosSampling &&
+                other.AngleSampling == AngleSampling &&
+                other.PosRefine == PosRefine &&
+                other.AngleRefine == AngleRefine &&
+                MathF.Abs(other.Alpha - Alpha) < float.Epsilon &&
+                MathF.Abs(other.Threshold - Threshold) < float.Epsilon;
         }
     }
 }

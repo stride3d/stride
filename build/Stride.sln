@@ -338,7 +338,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.BepuPhysics.Debug", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Importer.3D", "..\sources\tools\Stride.Importer.3D\Stride.Importer.3D.csproj", "{66EFFDE4-24F0-4E57-9618-0F5577E20A1E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stride.BepuPhysics.Tests", "..\sources\engine\Stride.BepuPhysics\Stride.BepuPhysics.Tests\Stride.BepuPhysics.Tests.csproj", "{7B70C783-4085-4702-B3C6-6570FD85CB8F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.BepuPhysics.Tests", "..\sources\engine\Stride.BepuPhysics\Stride.BepuPhysics.Tests\Stride.BepuPhysics.Tests.csproj", "{7B70C783-4085-4702-B3C6-6570FD85CB8F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -1515,12 +1515,16 @@ Global
 		{66EFFDE4-24F0-4E57-9618-0F5577E20A1E}.Release|Win32.Build.0 = Release|Any CPU
 		{7B70C783-4085-4702-B3C6-6570FD85CB8F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{7B70C783-4085-4702-B3C6-6570FD85CB8F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{7B70C783-4085-4702-B3C6-6570FD85CB8F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{7B70C783-4085-4702-B3C6-6570FD85CB8F}.Release|Any CPU.Build.0 = Release|Any CPU
 		{7B70C783-4085-4702-B3C6-6570FD85CB8F}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
 		{7B70C783-4085-4702-B3C6-6570FD85CB8F}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{7B70C783-4085-4702-B3C6-6570FD85CB8F}.Debug|Win32.ActiveCfg = Debug|Any CPU
+		{7B70C783-4085-4702-B3C6-6570FD85CB8F}.Debug|Win32.Build.0 = Debug|Any CPU
+		{7B70C783-4085-4702-B3C6-6570FD85CB8F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7B70C783-4085-4702-B3C6-6570FD85CB8F}.Release|Any CPU.Build.0 = Release|Any CPU
 		{7B70C783-4085-4702-B3C6-6570FD85CB8F}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{7B70C783-4085-4702-B3C6-6570FD85CB8F}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{7B70C783-4085-4702-B3C6-6570FD85CB8F}.Release|Win32.ActiveCfg = Release|Any CPU
+		{7B70C783-4085-4702-B3C6-6570FD85CB8F}.Release|Win32.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
