@@ -106,7 +106,7 @@ namespace Stride.Audio
 
         public void ListenerDestroy(Listener listener)
         {
-           //nothind to delete
+           //nothing to delete
         }
 
         public void ListenerDisable(Listener listener)
@@ -347,8 +347,8 @@ namespace Stride.Audio
                     X3DAudio.X3DAudioCalculate(out source.Listener.device.x3_audio, listenerPtr, source.emitter,
                         Calculate.Matrix | Calculate.Doppler | Calculate.LPF_Direct | Calculate.Reverb, out source.dsp_settings);
                 }
-				var voice = (IXAudio2Voice)(*source.masteringVoice);
-				source.sourceVoice->SetOutputMatrix(&voice, 1, AUDIO_CHANNELS, source.dsp_settings.pMatrixCoefficients, 0);
+
+				source.sourceVoice->SetOutputMatrix((IXAudio2Voice*)source.masteringVoice, 1, AUDIO_CHANNELS, source.dsp_settings.pMatrixCoefficients, 0);
 				source.dopplerPitch = source.dsp_settings.DopplerFactor;
 				source.sourceVoice->SetFrequencyRatio(source.dsp_settings.DopplerFactor * source.pitch, 0);
                 FilterParameters filter_parameters = new(FilterType.LowPassFilter,
@@ -370,10 +370,7 @@ namespace Stride.Audio
 			buffer.Size = bufferSize;
             buffer.Buffer.AudioBytes = (uint)buffer.Size;
             buffer.Buffer.PAudioData = (byte*)pcm.ToPointer();
-            fixed (Silk.NET.XAudio.Buffer* bufferPtr = &buffer.Buffer)
-            {
-                source.sourceVoice->SubmitSourceBuffer(bufferPtr, null);
-            }
+            source.sourceVoice->SubmitSourceBuffer(in buffer.Buffer, null);
         }
 
         public unsafe void SourceSetBuffer(Source source, AudioBuffer buffer)
@@ -382,11 +379,7 @@ namespace Stride.Audio
             source.Streamed = false;
             source.freeBuffers[0] = buffer;
             source.singleBuffer = buffer.Buffer;
-
-            fixed (Silk.NET.XAudio.Buffer* bufferPtr = &source.singleBuffer)
-            {
-                source.sourceVoice->SubmitSourceBuffer(bufferPtr, null);
-            }
+            source.sourceVoice->SubmitSourceBuffer(in source.singleBuffer, null);
         }
 
         public unsafe void SourceSetGain(Source source, float gain)
@@ -518,10 +511,7 @@ namespace Stride.Audio
 			//since we flush we also rebuffer in this case
 			if (!source.Streamed)
 			{
-                fixed (Silk.NET.XAudio.Buffer* bufferPtr = &source.singleBuffer)
-                {
-                    source.sourceVoice->SubmitSourceBuffer(bufferPtr, null);
-                }
+                source.sourceVoice->SubmitSourceBuffer(in source.singleBuffer, null);
             }
 
         }
