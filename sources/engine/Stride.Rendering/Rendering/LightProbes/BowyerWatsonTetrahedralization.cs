@@ -9,7 +9,6 @@ using Stride.Core;
 using Stride.Core.Collections;
 using Stride.Core.Mathematics;
 using Stride.Core.Serialization;
-using Stride.Native;
 
 namespace Stride.Rendering.LightProbes
 {
@@ -105,12 +104,6 @@ namespace Stride.Rendering.LightProbes
                         stream.Serialize((IntPtr)tetrahedronPtr, sizeof(Tetrahedron));
                 }
             }
-        }
-
-        static BowyerWatsonTetrahedralization()
-        {
-            // TODO: Add native to Stride.Engine?
-            NativeLibraryHelper.PreloadLibrary(NativeInvoke.Library, typeof(NativeInvoke));
         }
 
         public Result Compute(IReadOnlyList<Vector3> vertices)
