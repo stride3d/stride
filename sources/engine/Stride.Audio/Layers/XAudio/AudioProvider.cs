@@ -100,7 +100,7 @@ namespace Stride.Audio
         {
             var listener = new Listener();
 			listener.device = device;
-            listener.listener = null;
+            listener.listener = new();
             return listener;
         }
 
@@ -116,7 +116,6 @@ namespace Stride.Audio
 
         public bool ListenerEnable(Listener listener)
         {
-            //unused in Xaudio2
 			return true;
         }
 
@@ -149,13 +148,11 @@ namespace Stride.Audio
 			{
 				//if spatialized we also need those structures to calculate 3D audio
 				source.emitter = new();
-				//memset(source.emitter_, 0x0, sizeof(X3DAUDIO_EMITTER));
 				source.emitter.ChannelCount = 1;
 				source.emitter.CurveDistanceScaler = 1;
 				source.emitter.DopplerScaler = 1;
 
 				source.dsp_settings = new();
-				//memset(source.dsp_settings_, 0x0, sizeof(X3DAUDIO_DSP_SETTINGS));
 				source.dsp_settings.SrcChannelCount = 1;
 				source.dsp_settings.DstChannelCount = AUDIO_CHANNELS;
                 var matrix = stackalloc float[AUDIO_CHANNELS];
@@ -430,7 +427,7 @@ namespace Stride.Audio
         {
             if (source.Mono)
 			{
-				var panning = stackalloc float[2];
+				var panning = new float[2];
 				if (pan < 0)
 				{
 					panning[0] = 1.0f;
@@ -441,12 +438,14 @@ namespace Stride.Audio
 					panning[0] = 1.0f - pan;
 					panning[1] = 1.0f;
 				}
-                source.sourceVoice->SetOutputMatrix<IXAudio2MasteringVoice>(source.masteringVoice, 1, AUDIO_CHANNELS, panning, 0);
+                fixed(float* panningPtr = &panning[0]){
+                    source.sourceVoice->SetOutputMatrix((IXAudio2Voice*)source.masteringVoice, 1, AUDIO_CHANNELS, panningPtr, 0);
+                }
                 
             }
 			else
 			{
-				var panning = stackalloc float[4];
+				var panning = new float[4];
 				if (pan < 0)
 				{
 					panning[0] = 1.0f;
@@ -461,7 +460,9 @@ namespace Stride.Audio
 					panning[2] = 0.0f;
 					panning[3] = 1.0f;
 				}
-				source.sourceVoice->SetOutputMatrix<IXAudio2MasteringVoice>(source.masteringVoice, 2, AUDIO_CHANNELS, panning, 0);
+                fixed(float* panningPtr = &panning[0]){
+				    source.sourceVoice->SetOutputMatrix((IXAudio2Voice*)source.masteringVoice, 2, AUDIO_CHANNELS, panningPtr, 0);
+                }
 			}
         }
 
@@ -529,8 +530,7 @@ namespace Stride.Audio
         }
 
         public void Update(Device device)
-        {
-            //TODO: Add IUpdateAudioProvider ? 
+        { 
         }
     }
 
