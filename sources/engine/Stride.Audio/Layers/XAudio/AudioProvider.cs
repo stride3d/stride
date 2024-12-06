@@ -416,10 +416,7 @@ namespace Stride.Audio
 				}
 
 				source.sourceVoice->FlushSourceBuffers();
-                fixed(Silk.NET.XAudio.Buffer* bufferPtr = &source.singleBuffer)
-                {
-                    source.sourceVoice->SubmitSourceBuffer(bufferPtr, null);
-                }
+                source.sourceVoice->SubmitSourceBuffer(in source.singleBuffer, null);
             }
         }
 
