@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 namespace Stride.Audio;
 
-public struct Device()
+public class Device()
 {
     public SpinLock DeviceLock { get; set; } = new();
     public List<Listener> Listeners { get; internal set; } = [];
