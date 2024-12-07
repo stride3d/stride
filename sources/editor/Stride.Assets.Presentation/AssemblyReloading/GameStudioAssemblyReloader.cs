@@ -120,6 +120,7 @@ namespace Stride.Assets.Presentation.AssemblyReloading
 
         private static void PostAssemblyReloadingForUserDefinedAssets(SessionViewModel session, Dictionary<string, List<ParsingEvent>> assetsToReload, ILogger log)
         {
+            var settings = new SerializerContextSettings { Logger = log };
             foreach (var group in session.AllAssets
                          .SelectMany(x => x.Dependencies.RecursiveReferencedAssets.Append(x))
                          .Where(x => assetsToReload.ContainsKey(x.Url))
@@ -127,14 +128,11 @@ namespace Stride.Assets.Presentation.AssemblyReloading
             {
                 var events = assetsToReload[group.Key];
                 foreach (var viewModel in group)
-                    viewModel.UpdateAsset(Deserialize(events, log), log);
-            }
-
-            static Asset Deserialize(List<ParsingEvent> parsingEvents, ILogger log)
-            {
-                var eventReader = new EventReader(new MemoryParser(parsingEvents));
-                var settingsOnLoad = new SerializerContextSettings { Logger = log };
-                return (Asset)AssetYamlSerializer.Default.Deserialize(eventReader, null, typeof(Asset), out var properties, settingsOnLoad);
+                {
+                    var eventReader = new EventReader(new MemoryParser(events));
+                    var asset = (Asset)AssetYamlSerializer.Default.Deserialize(eventReader, null, typeof(Asset), out var properties, settings);
+                    viewModel.UpdateAsset(asset, log);
+                }
             }
         }
 
