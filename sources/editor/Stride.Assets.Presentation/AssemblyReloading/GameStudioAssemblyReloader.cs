@@ -52,12 +52,10 @@ namespace Stride.Assets.Presentation.AssemblyReloading
                 // We shouldn't use assets whose types were defined in the previous version of this assembly
                 // We'll rebuild them using the latest type by serializing them before loading the assembly,
                 // and deserializing them further below once the new assembly is loaded in
-                Dictionary<string, Func<object>> assetsToReload;
+                Dictionary<string, List<ParsingEvent>> assetsToReload;
                 try
                 {
-                    assetsToReload = session.AllAssets
-                        .Where(asset => modifiedAssemblies.Any(assembly => assembly.Key.Assembly == asset.Asset.GetType().Assembly))
-                        .ToDictionary(asset => asset.Url, asset => AssetCloner.DelayedClone(asset.AssetItem.Asset, AssetClonerFlags.None, null));
+                    assetsToReload = PrepareUserDefinedAssetsForReloading(session, modifiedAssemblies, log);
                     assetItemsToReload = PrepareAssemblyReloading(session, unloadingVisitor, session.UndoRedoService);
                 }
                 catch (Exception e)
@@ -82,21 +80,7 @@ namespace Stride.Assets.Presentation.AssemblyReloading
                 var reloadingVisitor = new ReloadingVisitor(log, loadedAssembliesSet);
                 try
                 {
-                    foreach (var asset in session.AllAssets)
-                    {
-                        if (assetsToReload.TryGetValue(asset.Url, out var cloner))
-                        {
-                            asset.UpdateAsset((Asset)cloner(), log);
-                        }
-
-                        foreach (var reference in asset.Dependencies.RecursiveReferencedAssets)
-                        {
-                            if (assetsToReload.TryGetValue(reference.Url, out var cloner2))
-                            {
-                                reference.UpdateAsset((Asset)cloner2(), log);
-                            }
-                        }
-                    }
+                    PostAssemblyReloadingForUserDefinedAssets(session, assetsToReload, log);
                     PostAssemblyReloading(session.UndoRedoService, session.AssetNodeContainer, reloadingVisitor, log, assetItemsToReload);
                 }
                 catch (Exception e)
@@ -112,6 +96,46 @@ namespace Stride.Assets.Presentation.AssemblyReloading
             }
 
             session.ActiveProperties.RefreshSelectedPropertiesAsync().Forget();
+        }
+
+        private static Dictionary<string, List<ParsingEvent>> PrepareUserDefinedAssetsForReloading([NotNull] SessionViewModel session, [NotNull] Dictionary<PackageLoadedAssembly, string> modifiedAssemblies, ILogger log)
+        {
+            var output = new Dictionary<string, List<ParsingEvent>>();
+            foreach (var asset in session.AllAssets)
+            {
+                if (modifiedAssemblies.Any(assembly => assembly.Key.Assembly == asset.Asset.GetType().Assembly) == false)
+                    continue;
+
+                var obj = asset.AssetItem.Asset;
+                var settings = new SerializerContextSettings(log);
+                var parsingEvents = new List<ParsingEvent>();
+                            
+                AssetYamlSerializer.Default.Serialize(new ParsingEventListEmitter(parsingEvents), obj, typeof(Asset), settings);
+                
+                output.Add(asset.Url, parsingEvents);
+            }
+
+            return output;
+        }
+
+        private static void PostAssemblyReloadingForUserDefinedAssets(SessionViewModel session, Dictionary<string, List<ParsingEvent>> assetsToReload, ILogger log)
+        {
+            foreach (var group in session.AllAssets
+                         .SelectMany(x => x.Dependencies.RecursiveReferencedAssets.Append(x))
+                         .Where(x => assetsToReload.ContainsKey(x.Url))
+                         .GroupBy(x => x.Url))
+            {
+                var events = assetsToReload[group.Key];
+                foreach (var viewModel in group)
+                    viewModel.UpdateAsset(Deserialize(events, log), log);
+            }
+
+            static Asset Deserialize(List<ParsingEvent> parsingEvents, ILogger log)
+            {
+                var eventReader = new EventReader(new MemoryParser(parsingEvents));
+                var settingsOnLoad = new SerializerContextSettings { Logger = log };
+                return (Asset)AssetYamlSerializer.Default.Deserialize(eventReader, null, typeof(Asset), out var properties, settingsOnLoad);
+            }
         }
 
         private static Dictionary<AssetViewModel, List<ItemToReload>> PrepareAssemblyReloading(SessionViewModel session, UnloadingVisitor visitor, IUndoRedoService actionService)
@@ -418,7 +442,7 @@ namespace Stride.Assets.Presentation.AssemblyReloading
                     // Other case, stop on the actual member (since we'll just visit null)
                     var expectedPath = unloadedObject.Path.Decompose().Last().GetIndex() != null ? unloadedObject.ParentPath : unloadedObject.Path;
 
-                    if (CurrentPath.Match(expectedPath))
+                    if (CurrentPath.ToString() == expectedPath.ToString()) // We have to convert to string here as the members in the path may refer to outdated types
                     {
                         var eventReader = new EventReader(new MemoryParser(unloadedObject.ParsingEvents));
                         var settings = Log != null ? new SerializerContextSettings { Logger = Log } : null;
