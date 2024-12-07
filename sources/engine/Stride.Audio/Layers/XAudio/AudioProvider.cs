@@ -3,6 +3,7 @@
 #if WINDOWS
 
 using System;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Silk.NET.Core.Native;
 using Silk.NET.XAudio;
@@ -183,8 +184,10 @@ namespace Stride.Audio
             pcmWaveFormat.WBitsPerSample = 16;
 			pcmWaveFormat.NBlockAlign = (ushort)(pcmWaveFormat.NChannels * pcmWaveFormat.WBitsPerSample / 8);
 
-
-            int result = listener.device.xAudio->CreateSourceVoice(ref source.sourceVoice, &pcmWaveFormat, 0, XAUDIO2_MAX_FREQ_RATIO, null, null, null);
+            dynamic d = source;
+            IXAudio2VoiceCallback callback = d;
+            
+            int result = listener.device.xAudio->CreateSourceVoice(ref source.sourceVoice, &pcmWaveFormat, 0, XAUDIO2_MAX_FREQ_RATIO, ref callback, null, null);
             if (HResult.IndicatesFailure(result))
             {
                 return null;
