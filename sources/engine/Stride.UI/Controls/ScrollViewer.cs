@@ -785,54 +785,54 @@ namespace Stride.UI.Controls
             }
         }
 
-        protected override void OnPreviewTouchDown(TouchEventArgs args)
+        protected override void OnPreviewPointerPressed(PointerEventArgs args)
         {
-            base.OnPreviewTouchDown(args);
+            base.OnPreviewPointerPressed(args);
 
             StopCurrentScrolling();
             accumulatedTranslation = Vector3.Zero;
             IsTouchedDown = true;
         }
 
-        protected override void OnPreviewTouchUp(TouchEventArgs args)
+        protected override void OnPreviewPointerReleased(PointerEventArgs args)
         {
-            base.OnPreviewTouchUp(args);
+            base.OnPreviewPointerReleased(args);
 
             if (IsUserScrollingViewer)
             {
                 args.Handled = true;
-                RaiseLeaveTouchEventToHierarchyChildren(this, args);
+                RaiseLeavePointerEventToHierarchyChildren(this, args);
             }
 
             IsUserScrollingViewer = false;
             IsTouchedDown = false;
         }
 
-        protected override void OnTouchEnter(TouchEventArgs args)
+        protected override void OnPointerEnter(PointerEventArgs args)
         {
-            base.OnTouchEnter(args);
+            base.OnPointerEnter(args);
 
             StopCurrentScrolling();
             accumulatedTranslation = Vector3.Zero;
         }
 
-        protected override void OnTouchLeave(TouchEventArgs args)
+        protected override void OnPointerLeave(PointerEventArgs args)
         {
-            base.OnTouchLeave(args);
+            base.OnPointerLeave(args);
 
             IsUserScrollingViewer = false;
-            IsTouchedDown = false;
+            IsPointerDown = false;
         }
 
-        protected override void OnPreviewTouchMove(TouchEventArgs args)
+        protected override void OnPreviewPointerMove(PointerEventArgs args)
         {
-            base.OnPreviewTouchMove(args);
+            base.OnPreviewPointerMove(args);
 
             if (ScrollMode == ScrollingMode.None || !TouchScrollingEnabled || !IsTouchedDown)
                 return;
 
             // accumulate all the touch moves of the frame
-            var translation = args.WorldTranslation;
+            var translation = args.WorldDeltaPosition;
             foreach (var index in ScrollModeToDirectionIndices[ScrollMode])
                 lastFrameTranslation[index] -= translation[index];
 
@@ -847,25 +847,19 @@ namespace Stride.UI.Controls
                 args.Handled = true;
         }
 
-        private static void RaiseLeaveTouchEventToHierarchyChildren(UIElement parent, TouchEventArgs args)
+        private static void RaiseLeavePointerEventToHierarchyChildren(UIElement parent, PointerEventArgs args)
         {
             if (parent == null)
                 return;
 
-            var argsCopy = new TouchEventArgs
-            {
-                Action = args.Action,
-                ScreenPosition = args.ScreenPosition,
-                ScreenTranslation = args.ScreenTranslation,
-                Timestamp = args.Timestamp
-            };
+            var argsCopy = args.Clone();
 
             foreach (var child in parent.VisualChildrenCollection)
             {
-                if (child.IsTouched)
+                if (child.IsPointerDown)
                 {
-                    child.RaiseTouchLeaveEvent(argsCopy);
-                    RaiseLeaveTouchEventToHierarchyChildren(child, args);
+                    child.RaisePointerLeaveEvent(argsCopy);
+                    RaiseLeavePointerEventToHierarchyChildren(child, args);
                 }
             }
         }
