@@ -31,7 +31,6 @@
     <ProjectReference Include="..\Stride\Stride.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Native\Celt.cpp" />
     <None Include="Stride.Native.Libs.targets">
       <SubType>Designer</SubType>
     </None>
