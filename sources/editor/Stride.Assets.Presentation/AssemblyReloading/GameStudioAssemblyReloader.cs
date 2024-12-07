@@ -440,7 +440,7 @@ namespace Stride.Assets.Presentation.AssemblyReloading
                     // Other case, stop on the actual member (since we'll just visit null)
                     var expectedPath = unloadedObject.Path.Decompose().Last().GetIndex() != null ? unloadedObject.ParentPath : unloadedObject.Path;
 
-                    if (CurrentPath.ToString() == expectedPath.ToString()) // We have to convert to string here as the members in the path may refer to outdated types
+                    if (CurrentPath.ToString().Equals(expectedPath.ToString(), StringComparison.Ordinal)) // We have to convert to string here instead of using Match() as the members in the path may refer to outdated types
                     {
                         var eventReader = new EventReader(new MemoryParser(unloadedObject.ParsingEvents));
                         var settings = Log != null ? new SerializerContextSettings { Logger = Log } : null;
