@@ -47,8 +47,6 @@ namespace Stride.Input
         {
             input = inputManager;
 
-            uiControl.LostFocus += UIControlOnLostFocus;
-
             // Hook window proc
             defaultWndProc = Win32Native.GetWindowLong(uiControl.Handle, Win32Native.WindowLongType.WndProc);
             // This is needed to prevent garbage collection of the delegate.
@@ -92,20 +90,6 @@ namespace Stride.Input
             
                 keysToRelease.Clear();
             }
-        }
-        
-        private void UIControlOnLostFocus(object sender, EventArgs eventArgs)
-        {
-            // Release keys/buttons when control focus is lost (this prevents some keys getting stuck when a focus loss happens when moving the camera)
-            if (keyboard != null)
-            {
-                foreach (var key in keyboard.KeyRepeats.Keys.ToArray())
-                {
-                    keyboard.HandleKeyUp(key);
-                }
-            }
-
-            mouse?.ForceReleaseButtons();
         }
 
         internal void HandleKeyDown(IntPtr wParam, IntPtr lParam)
