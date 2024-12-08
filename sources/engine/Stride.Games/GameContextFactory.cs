@@ -41,6 +41,8 @@ namespace Stride.Games
                 case AppContextType.iOS:
                     res = NewGameContextiOS();
                     break;
+                case AppContextType.Custom:
+                    throw new InvalidOperationException("Custom Contexts can not be created by the factory. Consider using a built in context if you are unsure.");
             }
 
             if (res == null)
