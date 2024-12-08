@@ -10,7 +10,7 @@ Defaults:
         ~Id: 163dc7cb-830a-42a5-8939-955dc5d9869a
         DefaultBackBufferWidth: 1280
         DefaultBackBufferHeight: 720
-        DefaultGraphicsProfile: Level_9_3
+        DefaultGraphicsProfile: Level_10_0
         ColorSpace: Linear
         DisplayOrientation: LandscapeRight
         PreferredGraphicsPlatform: Default
@@ -22,7 +22,7 @@ Overrides:
             ~Id: 6ebf4062-a5b4-4e49-804d-c1358898525b
             DefaultBackBufferWidth: 1280
             DefaultBackBufferHeight: 720
-            DefaultGraphicsProfile: Level_9_3
+            DefaultGraphicsProfile: Level_10_0
             ColorSpace: Linear
             DisplayOrientation: Default
             PreferredGraphicsPlatform: OpenGL
@@ -33,7 +33,7 @@ Overrides:
             ~Id: b51ae642-8557-4c3b-a854-b4afaf572914
             DefaultBackBufferWidth: 1280
             DefaultBackBufferHeight: 720
-            DefaultGraphicsProfile: Level_9_3
+            DefaultGraphicsProfile: Level_10_0
             ColorSpace: Linear
             DisplayOrientation: Default
             PreferredGraphicsPlatform: OpenGLES
@@ -44,7 +44,7 @@ Overrides:
             ~Id: f492a7ac-8c55-4191-83c6-768b9e5ba8de
             DefaultBackBufferWidth: 1280
             DefaultBackBufferHeight: 720
-            DefaultGraphicsProfile: Level_9_3
+            DefaultGraphicsProfile: Level_10_0
             ColorSpace: Linear
             DisplayOrientation: Default
             PreferredGraphicsPlatform: Vulkan
