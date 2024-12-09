@@ -6,26 +6,38 @@ using System.Text.Json.Nodes;
 using System.Text.Json;
 using System.Threading.Channels;
 using System.Threading.Tasks;
+using System.Threading;
+using System;
 
 namespace Stride.Core.Diagnostics
 {
+    /// <summary>
+    /// The chrome tracing profile writer exports diagnotic events into the chrome tracing format.
+    /// You view the file using chrome://tracing in your browser.
+    /// </summary>
     public class ChromeTracingProfileWriter
     {
+        /// <summary>
+        /// Create a tracing file at <paramref name="outputPath"/> and start writing events to it.
+        /// </summary>
+        /// <param name="outputPath">Path where to create the tracing file.</param>
+        /// <param name="indentOutput">Whether to indent output JSON. False by default for perfomance/size over readability.</param>
         public void Start(string outputPath, bool indentOutput = false)
         {
             eventReader = Profiler.Subscribe();
+            cts = new CancellationTokenSource();
             writerTask = Task.Run(async () =>
             {
                 var pid = Process.GetCurrentProcess().Id;
 
-                using FileStream fs = File.Create(outputPath);
-                using var writer = new Utf8JsonWriter(fs, options: new JsonWriterOptions { Indented = indentOutput });
+                using FileStream fs = File.Create(outputPath, 1024 * 1024);
+                using var writer = new Utf8JsonWriter(fs, options: new JsonWriterOptions { Indented = indentOutput, SkipValidation = true });
 
                 JsonObject root = new JsonObject();
 
                 writer.WriteStartObject();
                 writer.WriteStartArray("traceEvents");
-  
+
                 writer.WriteStartObject();
                 writer.WriteString("name", "thread_name");
                 writer.WriteString("ph", "M");
@@ -45,38 +57,47 @@ namespace Stride.Core.Diagnostics
                 writer.WriteEndObject();
                 writer.WriteEndObject();
 
-                await foreach (var e in eventReader.ReadAllAsync())
-                {                    
-                    //gc scopes currently start at negative timestamps and should be filtered out,
-                    //because they don't represent durations.
-                    if (e.TimeStamp.Ticks < 0)
-                        continue;
-
-                    double startTimeInMicroseconds = e.TimeStamp.TotalMilliseconds * 1000.0;
-                    double durationInMicroseconds = e.ElapsedTime.TotalMilliseconds * 1000.0;
-
-                    Debug.Assert(durationInMicroseconds >= 0);
-
-                    writer.WriteStartObject();
-                    writer.WriteString("name", e.Key.Name);
-                    if (e.Key.Parent != null)
-                        writer.WriteString("cat", e.Key.Parent.Name);
-                    writer.WriteString("ph", "X");
-                    writer.WriteNumber("ts", startTimeInMicroseconds);
-                    writer.WriteNumber("dur", durationInMicroseconds);
-                    writer.WriteNumber("tid", e.ThreadId>=0?e.ThreadId: int.MaxValue);
-                    writer.WriteNumber("pid", pid);
-                    if (e.Attributes.Count > 0)
+                try
+                {
+                    await foreach (var e in eventReader.ReadAllAsync(cts.Token))
                     {
-                        writer.WriteStartObject("args");
-                        foreach (var (k,v) in e.Attributes)
+                        //gc scopes currently start at negative timestamps and should be filtered out,
+                        //because they don't represent durations.
+                        if (e.TimeStamp.Ticks < 0)
+                            continue;
+
+                        double startTimeInMicroseconds = e.TimeStamp.TotalMilliseconds * 1000.0;
+                        double durationInMicroseconds = e.ElapsedTime.TotalMilliseconds * 1000.0;
+
+                        Debug.Assert(durationInMicroseconds >= 0);
+
+                        writer.WriteStartObject();
+                        writer.WriteString("name", e.Key.Name);
+                        if (e.Key.Parent != null)
+                            writer.WriteString("cat", e.Key.Parent.Name);
+                        writer.WriteString("ph", "X");
+                        writer.WriteNumber("ts", startTimeInMicroseconds);
+                        writer.WriteNumber("dur", durationInMicroseconds);
+                        writer.WriteNumber("tid", e.ThreadId >= 0 ? e.ThreadId : int.MaxValue);
+                        writer.WriteNumber("pid", pid);
+                        if (e.Attributes.Count > 0)
                         {
-                            writer.WriteString(k, v.ToString());
-                        }                        
+                            writer.WriteStartObject("args");
+                            foreach (var (k, v) in e.Attributes)
+                            {
+                                writer.WriteString(k, v.ToString());
+                            }
+                            writer.WriteEndObject();
+                        }
                         writer.WriteEndObject();
+
+                        if (writer.BytesPending >= 1024 * 1024)
+                        {
+                            await writer.FlushAsync();
+                        }
                     }
-                    writer.WriteEndObject();
                 }
+                catch (OperationCanceledException) { } // cancellation was requested, let's finish
 
                 writer.WriteEndArray();
                 writer.WriteEndObject();
@@ -84,17 +105,27 @@ namespace Stride.Core.Diagnostics
             });
         }
 
+        /// <summary>
+        /// Stop the profiling session and wait for the file to be flushed.
+        /// </summary>
         public void Stop()
         {
             if (eventReader != null)
             {
                 Profiler.Unsubscribe(eventReader);
+                eventReader = null;
+
+                cts?.Cancel();
+                cts?.Dispose();
+                
                 writerTask?.Wait();
             }
         }
+
 #nullable enable
         ChannelReader<ProfilingEvent>? eventReader;
         Task? writerTask;
+        CancellationTokenSource? cts;
 #nullable disable
     }
 
