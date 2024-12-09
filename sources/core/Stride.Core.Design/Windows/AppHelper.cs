@@ -7,6 +7,7 @@ using System.Management;
 using System.Text;
 using Stride.Core.Annotations;
 using Stride.Core.Extensions;
+using System.Runtime.InteropServices;
 
 namespace Stride.Core.Windows
 {
@@ -29,7 +30,7 @@ namespace Stride.Core.Windows
             }
             body.AppendLine($"Current Directory: {Environment.CurrentDirectory}");
             body.AppendLine($"Command Line Args: {string.Join(" ", GetCommandLineArgs())}");
-            body.AppendLine($"OS Version: {Environment.OSVersion} ({(Environment.Is64BitOperatingSystem ? "x64" : "x86")})");
+            body.AppendLine($"OS Version: {RuntimeInformation.OSDescription} ({(Environment.Is64BitOperatingSystem ? "x64" : "x86")})");
             body.AppendLine($"Processor Count: {Environment.ProcessorCount}");
             body.AppendLine("Video configuration:");
             WriteVideoConfig(body);
@@ -83,7 +84,14 @@ namespace Stride.Core.Windows
         public static Dictionary<string, string> GetVideoConfig()
         {
             var result = new Dictionary<string, string>();
+            if(OperatingSystem.IsWindows())
+                GetVideoConfigWindows(result);
 
+            return result;
+        }
+
+        private static void GetVideoConfigWindows(Dictionary<string, string> result)
+        {
             try
             {
                 var searcher = new ManagementObjectSearcher("SELECT * FROM Win32_VideoController");
@@ -103,8 +111,6 @@ namespace Stride.Core.Windows
             {
                 // ignored
             }
-
-            return result;
         }
     }
 }
