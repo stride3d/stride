@@ -7,31 +7,25 @@ using Stride.Core.Assets;
 namespace Stride.Core.Serialization.Serializers
 {
     /// <summary>
-    /// Serializer base class for for <see cref="UrlReference"/>.
+    /// Serializer base class for <see cref="UrlReference"/>.
     /// </summary>
     public abstract class UrlReferenceDataSerializerBase<T> : DataSerializer<T>
-        where T: IUrlReference
+        where T: UrlReferenceBase, new()
     {
         /// <inheritdoc/>
         public override void Serialize(ref T urlReference, ArchiveMode mode, [NotNull] SerializationStream stream)
         {
             if (mode == ArchiveMode.Serialize)
             {
-                var attachedReference = AttachedReferenceManager.GetAttachedReference(urlReference);
-                if(attachedReference == null)
-                {
-                    throw new InvalidOperationException("UrlReference does not have an AttachedReference.");
-                }
-
-                stream.Write(attachedReference.Id);
-                stream.Write(attachedReference.Url);
+                stream.Write(urlReference.Id);
+                stream.Write(urlReference.Url);
             }
             else
             {
                 var id = stream.Read<AssetId>();
                 var url = stream.ReadString();
 
-                urlReference = (T)UrlReferenceHelper.CreateReference(typeof(T), id, url);
+                urlReference = new T { Url = url, Id = id };
             }
         }
     }

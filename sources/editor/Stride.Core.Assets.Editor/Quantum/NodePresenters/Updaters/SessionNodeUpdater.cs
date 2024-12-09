@@ -6,6 +6,7 @@ using Stride.Core.Assets.Editor.Quantum.NodePresenters.Keys;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Reflection;
+using Stride.Core.Serialization;
 
 namespace Stride.Core.Assets.Editor.Quantum.NodePresenters.Updaters
 {
@@ -20,7 +21,7 @@ namespace Stride.Core.Assets.Editor.Quantum.NodePresenters.Updaters
 
         protected override void UpdateNode(IAssetNodePresenter node)
         {
-            if (AssetRegistry.IsContentType(node.Type) || typeof(AssetReference).IsAssignableFrom(node.Type))
+            if (AssetRegistry.IsContentType(node.Type) || typeof(AssetReference).IsAssignableFrom(node.Type) || UrlReferenceBase.IsUrlReferenceType(node.Type))
             {
                 node.AttachedProperties.Add(SessionData.SessionKey, session);
                 node.AttachedProperties.Add(ReferenceData.Key, new ContentReferenceViewModel());

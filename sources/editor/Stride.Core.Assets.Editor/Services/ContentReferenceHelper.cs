@@ -35,10 +35,8 @@ namespace Stride.Core.Assets.Editor.Services
         {
             if (asset != null)
             {
-                if (UrlReferenceHelper.IsUrlReferenceType(referenceType))
-                {
-                    return AttachedReferenceManager.CreateProxyObject(referenceType, asset.Id, asset.Url);
-                }
+                if (UrlReferenceBase.IsUrlReferenceType(referenceType))
+                    return UrlReferenceBase.New(referenceType, asset.AssetItem.Id, asset.AssetItem.Location);
 
                 if (AssetRegistry.IsContentType(referenceType))
                 {
@@ -63,10 +61,13 @@ namespace Stride.Core.Assets.Editor.Services
         /// <remarks>The <paramref name="source"/> parameter must either be an <see cref="AssetReference"/>, or a proxy object of an <see cref="AttachedReference"/>.</remarks>
         public static AssetViewModel GetReferenceTarget(SessionViewModel session, object source)
         {
-            var assetReference = source as AssetReference;
-            if (assetReference != null)
+            if (source is AssetReference assetReference)
             {
                 return session.GetAssetById(assetReference.Id);
+            }
+            if (source is UrlReferenceBase urlReference)
+            {
+                return session.GetAssetById(urlReference.Id);
             }
             var reference = AttachedReferenceManager.GetAttachedReference(source);
             return reference != null ? session.GetAssetById(reference.Id) : null;
@@ -81,7 +82,7 @@ namespace Stride.Core.Assets.Editor.Services
         public static bool ContainsReferenceType(ITypeDescriptor typeDescriptor)
         {
             var type = typeDescriptor.GetInnerCollectionType();
-            return typeof(AssetReference).IsAssignableFrom(type) || AssetRegistry.IsContentType(type);
+            return typeof(AssetReference).IsAssignableFrom(type) || UrlReferenceBase.IsUrlReferenceType(type) || AssetRegistry.IsContentType(type);
         }
     }
 }
