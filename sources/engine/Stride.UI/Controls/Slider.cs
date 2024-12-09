@@ -290,12 +290,6 @@ namespace Stride.UI.Controls
         }
 
         /// <summary>
-        /// Gets a value that indicates whether the is currently touched down.
-        /// </summary>
-        [DataMemberIgnore]
-        protected virtual bool IsTouchedDown { get; set; }
-
-        /// <summary>
         /// Snap the current <see cref="Value"/> to the closest tick.
         /// </summary>
         public void SnapToClosestTick()
@@ -388,35 +382,20 @@ namespace Stride.UI.Controls
             slider.OnValueChanged(args);
         }
 
-        protected override void OnTouchDown(TouchEventArgs args)
+        protected override void OnPointerPressed(PointerEventArgs args)
         {
-            base.OnTouchDown(args);
+            base.OnPointerPressed(args);
 
-            SetValueFromTouchPosition(args.WorldPosition);
-            IsTouchedDown = true;
+            SetValueFromPosition(args.WorldPosition);
         }
 
-        protected override void OnTouchUp(TouchEventArgs args)
+        protected override void OnPointerMove(PointerEventArgs args)
         {
-            base.OnTouchUp(args);
+            base.OnPointerMove(args);
 
-            IsTouchedDown = false;
-        }
-
-        protected override void OnTouchLeave(TouchEventArgs args)
-        {
-            base.OnTouchLeave(args);
-
-            IsTouchedDown = false;
-        }
-
-        protected override void OnTouchMove(TouchEventArgs args)
-        {
-            base.OnTouchMove(args);
-
-            if (IsTouchedDown)
+            if (IsPointerDown)
             {
-                SetValueFromTouchPosition(args.WorldPosition);
+                SetValueFromPosition(args.WorldPosition);
             }
         }
 
@@ -431,16 +410,16 @@ namespace Stride.UI.Controls
         }
 
         /// <summary>
-        /// Set <see cref="Value"/> from the world position of a touch event.
+        /// Set <see cref="Value"/> from a world position.
         /// </summary>
-        /// <param name="touchPostionWorld">The world position of the touch</param>
-        protected void SetValueFromTouchPosition(Vector3 touchPostionWorld)
+        /// <param name="worldPosition">The world position.</param>
+        protected void SetValueFromPosition(Vector3 worldPosition)
         {
             var axis = (int)Orientation;
             var offsets = TrackStartingOffsets;
             var elementSize = RenderSize[axis];
-            var touchPosition = touchPostionWorld[axis] - WorldMatrixInternal[12 + axis] + elementSize / 2;
-            var ratio = (touchPosition - offsets.X) / (elementSize - offsets.X - offsets.Y);
+            var position = worldPosition[axis] - WorldMatrixInternal[12 + axis] + elementSize / 2;
+            var ratio = (position - offsets.X) / (elementSize - offsets.X - offsets.Y);
             Value = MathUtil.Lerp(Minimum, Maximum, Orientation == Orientation.Vertical ^ IsDirectionReversed ? 1 - ratio : ratio);
         }
 

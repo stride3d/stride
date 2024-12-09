@@ -2,11 +2,14 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Stride.Core;
+using Stride.Engine;
 using Stride.Games;
 using Stride.Graphics;
 using Stride.Input;
+using Stride.Rendering;
 using Stride.UI.Controls;
 
 namespace Stride.UI
@@ -14,7 +17,7 @@ namespace Stride.UI
     /// <summary>
     /// Interface of the UI system.
     /// </summary>
-    public class UISystem : GameSystemBase
+    public partial class UISystem : GameSystemBase
     {
         internal UIBatch Batch { get; private set; }
 
@@ -25,10 +28,13 @@ namespace Stride.UI
         internal DepthStencilStateDescription DecreaseStencilValueState { get; private set; }
 
         private InputManager input;
-
+        private RenderContext renderContext;
+        private SceneSystem sceneSystem;
+     
         public UISystem(IServiceRegistry registry)
             : base(registry)
         {
+           
         }
 
         public override void Initialize()
@@ -36,6 +42,7 @@ namespace Stride.UI
             base.Initialize();
 
             input = Services.GetService<InputManager>();
+            sceneSystem = Services.GetService<SceneSystem>();
 
             Enabled = true;
             Visible = false;
@@ -119,9 +126,16 @@ namespace Stride.UI
         public override void Update(GameTime gameTime)
         {
             base.Update(gameTime);
+            
+            if (renderContext == null)
+                renderContext = RenderContext.GetShared(Services);
+            
+            UpdatePointerInput();
 
             UpdateKeyEvents();
         }
+
+        private partial void UpdatePointerInput();
 
         private void UpdateKeyEvents()
         {
