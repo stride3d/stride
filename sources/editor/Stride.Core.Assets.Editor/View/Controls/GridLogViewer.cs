@@ -158,6 +158,9 @@ namespace Stride.Core.Assets.Editor.View.Controls
                 throw new InvalidOperationException("A part named 'PART_LogGridView' must be present in the ControlTemplate, and must be of type 'DataGridControl'.");
 
             logGridView.MouseDoubleClick += GridMouseDoubleClick;
+
+            // We may have a bunch of messages appended before the logGridView was ready, let's present them now that it is 
+            ApplyFilters();
         }
 
         private void GridMouseDoubleClick(object sender, MouseButtonEventArgs e)
