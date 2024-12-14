@@ -290,13 +290,9 @@ namespace Stride.Core.Assets
             lock (RegistryLock)
             {
                 var currentType = contentType;
-                if (UrlReferenceHelper.IsGenericUrlReferenceType(currentType))
+                if (UrlReferenceBase.TryGetAssetType(contentType, out var assetType))
                 {
-                    currentType = UrlReferenceHelper.GetTargetContentType(currentType);
-                }
-                else if (UrlReferenceHelper.IsUrlReferenceType(contentType))
-                {
-                    return GetPublicTypes().Where(t => IsAssetType(t)).ToList();
+                    currentType = assetType;
                 }
                 List<Type> assetTypes;
                 return ContentToAssetTypes.TryGetValue(currentType, out assetTypes) ? new List<Type>(assetTypes) : new List<Type>();
