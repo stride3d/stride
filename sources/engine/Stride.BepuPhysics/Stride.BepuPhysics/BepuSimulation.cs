@@ -33,7 +33,7 @@ public sealed class BepuSimulation : IDisposable
     private const string CategoryTime = "Time";
     private const string CategoryConstraints = "Constraints";
     private const string CategoryForces = "Forces";
-    private const string MaskCategory = "Collisions";
+    private const string MaskCategory = "Collision Matrix";
 
     private TimeSpan _fixedTimeStep = TimeSpan.FromTicks(TimeSpan.TicksPerSecond / 60);
     private readonly Dictionary<Type, Elider> _simulationUpdateComponents = new();
