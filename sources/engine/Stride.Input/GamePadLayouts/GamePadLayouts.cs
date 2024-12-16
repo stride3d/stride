@@ -19,6 +19,9 @@ namespace Stride.Input
 
             // Support for DualShock4 controllers
             AddLayout(new GamePadLayoutDS4());
+
+            // Support for 8BitDo controllers
+            AddLayout(new GamePadLayout8BitDo());
         }
 
         /// <summary>
