@@ -40,7 +40,7 @@ namespace Stride.Core.IO
                     OffsetHigh = (int)(offset >> 32),
                 };
 
-                return LockFileEx(fileStream.SafeFileHandle, exclusive ? LOCKFILE_EXCLUSIVE_LOCK : 0 | failImmediately ? NativeLockFile.LOCKFILE_FAIL_IMMEDIATELY : 0, 0, countLow, countHigh, ref overlapped);
+                return LockFileEx(fileStream.SafeFileHandle, exclusive ? LOCKFILE_EXCLUSIVE_LOCK : 0 + failImmediately ? NativeLockFile.LOCKFILE_FAIL_IMMEDIATELY : 0, 0, countLow, countHigh, ref overlapped);
             }
             else
             {
