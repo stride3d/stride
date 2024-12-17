@@ -135,7 +135,7 @@ namespace Stride.Core.IO
                 // This will prevent another thread from writing at the same time, or reading before it is flushed.
                 if (LockEnabled && stream is FileStream)
                 {
-                    bool failed = !NativeLockFile.LockFile((FileStream)stream, indexStreamPosition, long.MaxValue - indexStreamPosition, true);
+                    bool failed = !NativeLockFile.TryLockFile((FileStream)stream, indexStreamPosition, long.MaxValue - indexStreamPosition, true);
                     if (failed)
                         throw new IOException("Couldn't lock file.");
                 }
@@ -167,7 +167,7 @@ namespace Stride.Core.IO
                 finally
                 {
                     if (LockEnabled && stream is FileStream)
-                        NativeLockFile.UnlockFile((FileStream)stream, indexStreamPosition, long.MaxValue - indexStreamPosition);
+                        NativeLockFile.TryUnlockFile((FileStream)stream, indexStreamPosition, long.MaxValue - indexStreamPosition);
                 }
             }
         }
@@ -185,7 +185,7 @@ namespace Stride.Core.IO
                 // This will prevent another thread from writing at the same time, or reading before it is flushed.
                 if (LockEnabled && stream is FileStream)
                 {
-                    bool failed = !NativeLockFile.LockFile((FileStream)stream, indexStreamPosition, long.MaxValue - indexStreamPosition, true);
+                    bool failed = !NativeLockFile.TryLockFile((FileStream)stream, indexStreamPosition, long.MaxValue - indexStreamPosition, true);
                     if (failed)
                         throw new IOException("Couldn't lock file.");
                 }
@@ -211,7 +211,7 @@ namespace Stride.Core.IO
                 finally
                 {
                     if (LockEnabled && stream is FileStream)
-                        NativeLockFile.UnlockFile((FileStream)stream, indexStreamPosition, long.MaxValue - indexStreamPosition);
+                        NativeLockFile.TryUnlockFile((FileStream)stream, indexStreamPosition, long.MaxValue - indexStreamPosition);
                 }
             }
         }
@@ -285,7 +285,7 @@ namespace Stride.Core.IO
                 // Otherwise, last possibility would be deterministic filesize (with size encoded at the beginning of each block).
                 if (LockEnabled && stream is FileStream)
                 {
-                    bool failed = !NativeLockFile.LockFile((FileStream)stream, position, long.MaxValue - position, false);
+                    bool failed = !NativeLockFile.TryLockFile((FileStream)stream, position, long.MaxValue - position, false);
                     if (failed)
                         throw new IOException("Couldn't lock file.");
                 }
@@ -300,7 +300,7 @@ namespace Stride.Core.IO
                 {
                     // Release the lock
                     if (LockEnabled && stream is FileStream)
-                        NativeLockFile.UnlockFile((FileStream)stream, position, long.MaxValue - position);
+                        NativeLockFile.TryUnlockFile((FileStream)stream, position, long.MaxValue - position);
                 }
 
                 return true;

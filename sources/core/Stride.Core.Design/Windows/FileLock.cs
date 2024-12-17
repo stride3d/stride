@@ -33,7 +33,7 @@ namespace Stride.Core.Windows
         {
             if (lockFile != null)
             {
-                NativeLockFile.UnlockFile(lockFile, 0, uint.MaxValue);
+                NativeLockFile.TryUnlockFile(lockFile, 0, uint.MaxValue);
                 lockFile.Dispose();
 
                 // Try to delete the file
@@ -94,7 +94,7 @@ namespace Stride.Core.Windows
                 if (millisecondsTimeout != 0 && millisecondsTimeout != -1)
                     throw new NotImplementedException("GlobalMutex.Wait() is implemented only for millisecondsTimeout 0 or -1");
 
-                bool hasHandle = NativeLockFile.LockFile(fileLock, 0, uint.MaxValue, true, millisecondsTimeout == 0);
+                bool hasHandle = NativeLockFile.TryLockFile(fileLock, 0, uint.MaxValue, true, millisecondsTimeout == 0);
                 return hasHandle == false ? null : new FileLock(fileLock);
             }
             catch (AbandonedMutexException)
