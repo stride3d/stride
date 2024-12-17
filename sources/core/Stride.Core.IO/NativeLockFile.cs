@@ -19,7 +19,7 @@ namespace Stride.Core.IO
         internal const uint LOCKFILE_FAIL_IMMEDIATELY = 0x00000001;
         internal const uint LOCKFILE_EXCLUSIVE_LOCK = 0x00000002;
 
-        public static bool LockFile(FileStream fileStream, long offset, long count, bool exclusive, bool failImmediately  = false)
+        public static bool TryLockFile(FileStream fileStream, long offset, long count, bool exclusive, bool failImmediately  = false)
         {
             if (Platform.Type == PlatformType.Android)
             {
@@ -62,7 +62,7 @@ namespace Stride.Core.IO
             return false;
         }
 
-        public static void UnlockFile(FileStream fileStream, long offset, long count)
+        public static void TryUnlockFile(FileStream fileStream, long offset, long count)
         {
             if (Platform.Type == PlatformType.Android)
             {
