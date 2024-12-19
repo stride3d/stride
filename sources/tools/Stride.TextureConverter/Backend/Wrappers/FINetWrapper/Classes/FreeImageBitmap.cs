@@ -4071,6 +4071,11 @@ namespace FreeImageAPI
 			info.AddValue("Bitmap Data", memory.GetBuffer());
 		}
 
+		public FreeImageBitmap ConvertTo32Bits()
+        {
+            return new FreeImageBitmap(FreeImage.ConvertTo32Bits(dib));
+        }
+
 		#endregion
 	}
 }
