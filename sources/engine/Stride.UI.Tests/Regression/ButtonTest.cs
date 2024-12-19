@@ -40,7 +40,7 @@ namespace Stride.UI.Tests.Regression
 
         private void DrawTest1()
         {
-            button.RaiseTouchDownEvent(new TouchEventArgs());
+            button.RaisePointerPressedEvent(new TouchEventArgs());
         }
 
         [Fact]

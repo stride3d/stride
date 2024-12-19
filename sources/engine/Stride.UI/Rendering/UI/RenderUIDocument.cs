@@ -3,10 +3,12 @@
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Engine;
-using Stride.UI;
 
 namespace Stride.Rendering.UI
 {
+    /// <summary>
+    /// The texture <see cref="Stride.Graphics.SamplerState"/> to use when rendering the UI.
+    /// </summary>
     public enum UIElementSampler
     {
         [Display("Point (Nearest)")]
@@ -19,12 +21,8 @@ namespace Stride.Rendering.UI
         AnisotropicClamp,
     }
 
-    public class RenderUIElement : RenderObject
+    public class RenderUIDocument : RenderObject
     {
-        public RenderUIElement()
-        {
-        }
-
         public Matrix WorldMatrix;
 
         // UIComponent values
@@ -37,23 +35,6 @@ namespace Stride.Rendering.UI
         public bool IsBillboard;
         public bool SnapText;
         public bool IsFixedSize;
-
-        /// <summary>
-        /// Last registered position of teh mouse
-        /// </summary>
-        public Vector2 LastMousePosition;
-
-        /// <summary>
-        /// Last element over which the mouse cursor was registered
-        /// </summary>
-        public UIElement LastMouseOverElement;
-
-        /// <summary>
-        /// Last element which received a touch/click event
-        /// </summary>
-        public UIElement LastTouchedElement;
-
-        public Vector3 LastIntersectionPoint;
 
         public Matrix LastRootMatrix;
     }
