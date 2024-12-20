@@ -16,7 +16,7 @@ namespace Stride.BepuPhysics.Definitions.Colliders;
 public sealed class CompoundCollider : ICollider
 {
     private readonly ListOfColliders _colliders;
-    private CollidableComponent? _component;
+    private EntityComponentWithTryUpdateFeature? _component;
 
     [DataMember]
     public IList<ColliderBase> Colliders => _colliders;
@@ -25,7 +25,7 @@ public sealed class CompoundCollider : ICollider
     public int Transforms => _colliders.Count;
 
     [DataMemberIgnore]
-    CollidableComponent? ICollider.Component { get => _component; set => _component = value; }
+    EntityComponentWithTryUpdateFeature? ICollider.Component { get => _component; set => _component = value; }
 
 #warning Norbo: What would be a good heuristic to automatically swap to big, we can provide an override for users if they know what they are doing, but I would like to have it choose automatically by default, I'm guessing it's not just a case of (child > 5) ? big : small
     public bool IsBig => false;
@@ -35,7 +35,7 @@ public sealed class CompoundCollider : ICollider
         _colliders = new() { Owner = this };
     }
 
-    public void GetLocalTransforms(CollidableComponent collidable, Span<ShapeTransform> transforms)
+    public void GetLocalTransforms(EntityComponentWithTryUpdateFeature collidable, Span<ShapeTransform> transforms)
     {
         for (int i = 0; i < _colliders.Count; i++)
         {
