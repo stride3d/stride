@@ -193,7 +193,7 @@ public class BodyComponent : CollidableComponent
     }
 
     /// <summary>
-    /// The rotation velocity in unit per second
+    /// The rotation velocity in unit per second, also known as torque
     /// </summary>
     /// <remarks>
     /// The rotation format is in axis-angle, 
@@ -303,16 +303,37 @@ public class BodyComponent : CollidableComponent
     /// </summary>
     public IReadOnlyList<ConstraintComponentBase> Constraints => BoundConstraints ?? (IReadOnlyList<ConstraintComponentBase>)Array.Empty<ConstraintComponentBase>();
 
+    /// <summary>
+    /// Applies an explosive force at a specific offset off of this body which will affect both its angular and linear velocity
+    /// </summary>
+    /// <remarks>
+    /// Does not wake the body up
+    /// </remarks>
+    /// <param name="impulse">Impulse to apply to the velocity</param>
+    /// <param name="impulseOffset">World space offset from the center of the body to apply the impulse at</param>
     public void ApplyImpulse(Vector3 impulse, Vector3 impulseOffset)
     {
         BodyReference?.ApplyImpulse(impulse.ToNumeric(), impulseOffset.ToNumeric());
     }
 
+    /// <summary>
+    /// Applies an explosive force which will only affect this body's angular velocity
+    /// </summary>
+    /// <remarks>
+    /// Does not wake the body up
+    /// </remarks>
     public void ApplyAngularImpulse(Vector3 impulse)
     {
         BodyReference?.ApplyAngularImpulse(impulse.ToNumeric());
     }
 
+
+    /// <summary>
+    /// Applies an explosive force which will only affect this body's linear velocity
+    /// </summary>
+    /// <remarks>
+    /// Does not wake the body up
+    /// </remarks>
     public void ApplyLinearImpulse(Vector3 impulse)
     {
         BodyReference?.ApplyLinearImpulse(impulse.ToNumeric());
