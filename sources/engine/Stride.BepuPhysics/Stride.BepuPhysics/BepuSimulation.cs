@@ -91,6 +91,15 @@ public sealed class BepuSimulation : IDisposable
     }
 
     /// <summary>
+    /// The number of threads the simulation runs on.
+    /// </summary>
+    /// <remarks>
+    /// A negative value results in automatic thread selection.
+    /// </remarks>
+    [Display(-1, "Thread Count")]
+    public int ThreadCount { get; set; } = -1;
+
+    /// <summary>
     /// Whether to update the simulation.
     /// </summary>
     /// <remarks>
@@ -278,7 +287,7 @@ public sealed class BepuSimulation : IDisposable
 
     public BepuSimulation()
     {
-        var targetThreadCount = Math.Max(1, Environment.ProcessorCount > 4 ? Environment.ProcessorCount - 2 : Environment.ProcessorCount - 1);
+        var targetThreadCount = ThreadCount > -1 ? ThreadCount : Math.Max(1, Environment.ProcessorCount > 4 ? Environment.ProcessorCount - 2 : Environment.ProcessorCount - 1);
 
         #warning Consider wrapping stride's threadpool/dispatcher into an IThreadDispatcher and passing that over to bepu instead of using their dispatcher
         _threadDispatcher = new ThreadDispatcher(targetThreadCount);
