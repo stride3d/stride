@@ -409,9 +409,7 @@ namespace FreeImageAPI
 		/// </summary>
 		public static FIURational operator ~(FIURational value)
 		{
-			uint temp = value.denominator;
-			value.denominator = value.numerator;
-			value.numerator = temp;
+			(value.denominator, value.numerator) = (value.numerator, value.denominator);
 			value.Normalize();
 			return value;
 		}
@@ -496,9 +494,7 @@ namespace FreeImageAPI
 		/// </summary>
 		public static FIURational operator /(FIURational left, FIURational right)
 		{
-			uint temp = right.denominator;
-			right.denominator = right.numerator;
-			right.numerator = temp;
+			(right.denominator, right.numerator) = (right.numerator, right.denominator);
 			return left * right;
 		}
 

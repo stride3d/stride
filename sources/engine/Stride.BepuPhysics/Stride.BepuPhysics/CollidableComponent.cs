@@ -59,7 +59,7 @@ public abstract class CollidableComponent : EntityComponent
     /// <remarks>
     /// Changing this value will reset some of the internal physics state of this body
     /// </remarks>
-    [MemberRequired, Display(Expand = ExpandRule.Always)]
+    [Display(Expand = ExpandRule.Always)]
     public required ICollider Collider
     {
         get
@@ -77,41 +77,6 @@ public abstract class CollidableComponent : EntityComponent
             _collider = value;
             _collider.Component = this;
             TryUpdateFeatures();
-        }
-    }
-
-    /// <summary>
-    /// Provides the ability to collect and mutate contact data when this object collides with other objects.
-    /// </summary>
-    public IContactEventHandler? ContactEventHandler
-    {
-        get
-        {
-            return _trigger;
-        }
-        set
-        {
-            if (IsContactHandlerRegistered())
-                UnregisterContactHandler();
-
-            _trigger = value;
-            RegisterContactHandler();
-            TryUpdateMaterialProperties();
-        }
-    }
-
-    [DefaultValueIsSceneBased]
-    public ISimulationSelector SimulationSelector
-    {
-        get
-        {
-            return _simulationSelector;
-        }
-        set
-        {
-            _simulationSelector = value;
-            if (Processor is not null)
-                ReAttach(_simulationSelector.Pick(Processor.BepuConfiguration, Entity));
         }
     }
 
@@ -185,6 +150,41 @@ public abstract class CollidableComponent : EntityComponent
         set
         {
             _collisionGroup = value;
+            TryUpdateMaterialProperties();
+        }
+    }
+
+    [DefaultValueIsSceneBased]
+    public ISimulationSelector SimulationSelector
+    {
+        get
+        {
+            return _simulationSelector;
+        }
+        set
+        {
+            _simulationSelector = value;
+            if (Processor is not null)
+                ReAttach(_simulationSelector.Pick(Processor.BepuConfiguration, Entity));
+        }
+    }
+
+    /// <summary>
+    /// Provides the ability to collect and mutate contact data when this object collides with other objects.
+    /// </summary>
+    public IContactEventHandler? ContactEventHandler
+    {
+        get
+        {
+            return _trigger;
+        }
+        set
+        {
+            if (IsContactHandlerRegistered())
+                UnregisterContactHandler();
+
+            _trigger = value;
+            RegisterContactHandler();
             TryUpdateMaterialProperties();
         }
     }

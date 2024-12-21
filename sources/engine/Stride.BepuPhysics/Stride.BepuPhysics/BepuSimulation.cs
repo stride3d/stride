@@ -33,7 +33,7 @@ public sealed class BepuSimulation : IDisposable
     private const string CategoryTime = "Time";
     private const string CategoryConstraints = "Constraints";
     private const string CategoryForces = "Forces";
-    private const string MaskCategory = "Collisions";
+    private const string MaskCategory = "Collision Matrix";
 
     private TimeSpan _fixedTimeStep = TimeSpan.FromTicks(TimeSpan.TicksPerSecond / 60);
     private readonly Dictionary<Type, Elider> _simulationUpdateComponents = new();
@@ -89,6 +89,15 @@ public sealed class BepuSimulation : IDisposable
             _associatedScene = value;
         }
     }
+
+    /// <summary>
+    /// The number of threads the simulation runs on.
+    /// </summary>
+    /// <remarks>
+    /// A negative value results in automatic thread selection.
+    /// </remarks>
+    [Display(-1, "Thread Count")]
+    public int ThreadCount { get; set; } = -1;
 
     /// <summary>
     /// Whether to update the simulation.
@@ -278,7 +287,7 @@ public sealed class BepuSimulation : IDisposable
 
     public BepuSimulation()
     {
-        var targetThreadCount = Math.Max(1, Environment.ProcessorCount > 4 ? Environment.ProcessorCount - 2 : Environment.ProcessorCount - 1);
+        var targetThreadCount = ThreadCount > -1 ? ThreadCount : Math.Max(1, Environment.ProcessorCount > 4 ? Environment.ProcessorCount - 2 : Environment.ProcessorCount - 1);
 
         #warning Consider wrapping stride's threadpool/dispatcher into an IThreadDispatcher and passing that over to bepu instead of using their dispatcher
         _threadDispatcher = new ThreadDispatcher(targetThreadCount);

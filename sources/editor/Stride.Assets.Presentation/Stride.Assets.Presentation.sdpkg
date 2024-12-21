@@ -16,7 +16,6 @@ TemplateFolders:
       Files:
         - !file Templates/Assets/Animations/DefaultAnimation.sdtpl
         - !file Templates/Assets/Animations/DefaultSkeleton.sdtpl
-        - !file Templates/Assets/Bepu/HullAsset.sdtpl
         - !file Templates/Assets/Fonts/OfflineRasterizedSpriteFont.sdtpl
         - !file Templates/Assets/Fonts/RuntimeRasterizedSpriteFont.sdtpl
         - !file Templates/Assets/Fonts/SignedDistanceFieldSpriteFont.sdtpl

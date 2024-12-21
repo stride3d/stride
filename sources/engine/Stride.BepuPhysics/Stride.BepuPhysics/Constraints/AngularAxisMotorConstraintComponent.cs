@@ -13,7 +13,7 @@ namespace Stride.BepuPhysics.Constraints;
 
 [DataContract]
 [DefaultEntityComponentProcessor(typeof(ConstraintProcessor), ExecutionMode = ExecutionMode.Runtime)]
-[ComponentCategory("Bepu - Constraint")]
+[ComponentCategory("Physics - Bepu Constraint")]
 public sealed class AngularAxisMotorConstraintComponent : TwoBodyConstraintComponent<AngularAxisMotor>
 {
     public AngularAxisMotorConstraintComponent() => BepuConstraint = new() { Settings = new MotorSettings(1000, 10) };
