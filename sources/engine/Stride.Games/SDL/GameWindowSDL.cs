@@ -17,7 +17,7 @@ namespace Stride.Games
     /// <summary>
     /// An abstract window.
     /// </summary>
-    internal class GameWindowSDL : GameWindow<Window>
+    public class GameWindowSDL : GameWindow
     {
         private bool isMouseVisible;
 
@@ -34,7 +34,7 @@ namespace Stride.Games
         private bool allowUserResizing;
         private bool isBorderLess;
 
-        internal GameWindowSDL()
+        public GameWindowSDL()
         {
         }
 
@@ -88,18 +88,16 @@ namespace Stride.Games
             // Desktop doesn't have orientation (unless on Windows 8?)
         }
 
-        protected override void Initialize(GameContext<Window> gameContext)
+        public override void Initialize(int width, int height)
         {
-            window = gameContext.Control;
+            window = new GameFormSDL();
 
             // Setup the initial size of the window
-            var width = gameContext.RequestedWidth;
             if (width == 0)
             {
                 width = window.ClientSize.Width;
             }
 
-            var height = gameContext.RequestedHeight;
             if (height == 0)
             {
                 height = window.ClientSize.Height;
@@ -133,7 +131,7 @@ namespace Stride.Games
             OnClosing(this, new EventArgs());
         }
 
-        internal override void Run()
+        public override void Run()
         {
             Debug.Assert(InitCallback != null, $"{nameof(InitCallback)} is null");
             Debug.Assert(RunCallback != null, $"{nameof(RunCallback)} is null");
@@ -141,33 +139,24 @@ namespace Stride.Games
             // Initialize the init callback
             InitCallback();
 
-            var context = (GameContextSDL)GameContext;
-            if (context.IsUserManagingRun)
+            var runCallback = new SDLMessageLoop.RenderCallback(RunCallback);
+            // Run the rendering loop
+            try
             {
-                context.RunCallback = RunCallback;
-                context.ExitCallback = ExitCallback;
-            }
-            else
-            {
-                var runCallback = new SDLMessageLoop.RenderCallback(RunCallback);
-                // Run the rendering loop
-                try
+                SDLMessageLoop.Run(window, () =>
                 {
-                    SDLMessageLoop.Run(window, () =>
+                    if (Exiting)
                     {
-                        if (Exiting)
-                        {
-                            Destroy();
-                            return;
-                        }
+                        Destroy();
+                        return;
+                    }
 
-                        runCallback();
-                    });
-                }
-                finally
-                {
-                    ExitCallback?.Invoke();
-                }
+                    runCallback();
+                });
+            }
+            finally
+            {
+                ExitCallback?.Invoke();
             }
         }
 

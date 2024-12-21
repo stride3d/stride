@@ -98,6 +98,8 @@ namespace Stride.Games
         /// <value>The current orientation.</value>
         public abstract DisplayOrientation CurrentOrientation { get; }
 
+        public WindowState CurrentWindowState;
+
         /// <summary>
         /// Gets a value indicating whether this instance is minimized.
         /// </summary>
@@ -225,8 +227,6 @@ namespace Stride.Games
 
         #region Methods
 
-        protected internal abstract void Initialize(GameContext gameContext);
-
         internal bool Exiting;
 
         internal Action InitCallback;
@@ -237,7 +237,7 @@ namespace Stride.Games
         
         private bool isFullscreen;
 
-        internal abstract void Run();
+        public abstract void Run();
 
         /// <summary>
         /// Sets the size of the client area and triggers the <see cref="ClientSizeChanged"/> event.
@@ -328,26 +328,16 @@ namespace Stride.Games
         {
             OnActivated(this, EventArgs.Empty);
         }
+
+        public abstract void Initialize(int width, int height);
     }
 
-    public abstract class GameWindow<TK> : GameWindow
+    public enum WindowState
     {
-        protected internal sealed override void Initialize(GameContext gameContext)
-        {
-            var context = gameContext as GameContext<TK>;
-            if (context != null)
-            {
-                GameContext = context;
-                Initialize(context);
-            }
-            else
-            {
-                throw new InvalidOperationException("Invalid context for current game.");
-            }
-        }
-
-        internal GameContext<TK> GameContext;
-
-        protected abstract void Initialize(GameContext<TK> context);
+        Minimized,
+        Maximized,
+        Fullscreen,
+        WindowedFullscreen,
+        Windowed
     }
 }

@@ -25,7 +25,7 @@ namespace Stride.Engine
         {
             base.Initialize();
 
-            Manager.Initialize(Game.Context);
+            Manager.Initialize();
 
             Game.Activated += OnApplicationResumed;
             Game.Deactivated += OnApplicationPaused;

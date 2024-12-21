@@ -30,7 +30,7 @@ using Stride.Graphics;
 
 namespace Stride.Games
 {
-    internal abstract class GamePlatform : ReferenceBase, IGraphicsDeviceFactory, IGamePlatform
+    public abstract class GamePlatform : ReferenceBase, IGraphicsDeviceFactory, IGamePlatform
     {
         private bool hasExitRan = false;
 
@@ -38,7 +38,7 @@ namespace Stride.Games
 
         protected readonly IServiceRegistry Services;
 
-        protected GameWindow gameWindow;
+        protected GameWindow GameWindow;
 
         public string FullName { get; protected set; } = string.Empty;
 
@@ -48,23 +48,7 @@ namespace Stride.Games
             Services = game.Services;
         }
 
-        public static GamePlatform Create(GameBase game)
-        {
-#if STRIDE_PLATFORM_UWP
-            return new GamePlatformUWP(game);
-#elif STRIDE_PLATFORM_ANDROID
-            return new GamePlatformAndroid(game);
-#elif STRIDE_PLATFORM_IOS
-            return new GamePlatformiOS(game);
-#else
-            // Here we cover all Desktop variants: OpenTK, SDL, Winforms,...
-            return new GamePlatformDesktop(game);
-#endif
-        }
-
         public abstract string DefaultAppDirectory { get; }
-
-        public object WindowContext { get; set; }
 
         public event EventHandler<EventArgs> Activated;
 
@@ -84,7 +68,7 @@ namespace Stride.Games
         {
             get
             {
-                return gameWindow;
+                return GameWindow;
             }
         }
 
@@ -102,7 +86,7 @@ namespace Stride.Games
                 window.PreferredWindowedSize = requestedSize;
                 window.PreferredFullscreenSize = requestedSize;
 
-                window.Initialize(gameContext);
+                window.Initialize(requestedSize.X, requestedSize.Y);
                 return window;
             }
 
@@ -115,21 +99,18 @@ namespace Stride.Games
         /// </summary>
         public bool IsBlockingRun { get; protected set; }
 
-        public void Run(GameContext gameContext)
+        public void Run(GameWindow gameWindow)
         {
-            IsBlockingRun = !gameContext.IsUserManagingRun;
-
-            gameWindow = CreateWindow(gameContext);
-
+            GameWindow = gameWindow;
             // Register on Activated 
-            gameWindow.Activated += OnActivated;
-            gameWindow.Deactivated += OnDeactivated;
-            gameWindow.InitCallback = OnInitCallback;
-            gameWindow.RunCallback = OnRunCallback;
+            GameWindow.Activated += OnActivated;
+            GameWindow.Deactivated += OnDeactivated;
+            GameWindow.InitCallback = OnInitCallback;
+            GameWindow.RunCallback = OnRunCallback;
 
             WindowCreated?.Invoke(this, EventArgs.Empty);
 
-            gameWindow.Run();
+            GameWindow.Run();
         }
 
         private void OnRunCallback()
@@ -194,7 +175,7 @@ namespace Stride.Games
         public virtual void Exit()
         {
             // Notifies that the GameWindow should exit.
-            gameWindow.Exiting = true;
+            GameWindow.Exiting = true;
         }
 
         protected void OnActivated(object source, EventArgs e)
@@ -329,7 +310,7 @@ namespace Stride.Games
 
         public virtual GraphicsDevice CreateDevice(GraphicsDeviceInformation deviceInformation)
         {
-            var graphicsDevice = GraphicsDevice.New(deviceInformation.Adapter, deviceInformation.DeviceCreationFlags, gameWindow.NativeWindow, deviceInformation.GraphicsProfile);
+            var graphicsDevice = GraphicsDevice.New(deviceInformation.Adapter, deviceInformation.DeviceCreationFlags, GameWindow.NativeWindow, deviceInformation.GraphicsProfile);
             graphicsDevice.ColorSpace = deviceInformation.PresentationParameters.ColorSpace;
 
 #if STRIDE_GRAPHICS_API_DIRECT3D11 && STRIDE_PLATFORM_UWP
@@ -350,13 +331,13 @@ namespace Stride.Games
         public virtual void RecreateDevice(GraphicsDevice currentDevice, GraphicsDeviceInformation deviceInformation)
         {
             currentDevice.ColorSpace = deviceInformation.PresentationParameters.ColorSpace;
-            currentDevice.Recreate(deviceInformation.Adapter ?? GraphicsAdapterFactory.Default, new[] { deviceInformation.GraphicsProfile }, deviceInformation.DeviceCreationFlags, gameWindow.NativeWindow);
+            currentDevice.Recreate(deviceInformation.Adapter ?? GraphicsAdapterFactory.Default, new[] { deviceInformation.GraphicsProfile }, deviceInformation.DeviceCreationFlags, GameWindow.NativeWindow);
         }
 
         public virtual void DeviceChanged(GraphicsDevice currentDevice, GraphicsDeviceInformation deviceInformation)
         {
             // Force to resize the gameWindow
-            gameWindow.Resize(deviceInformation.PresentationParameters.BackBufferWidth, deviceInformation.PresentationParameters.BackBufferHeight);
+            GameWindow.Resize(deviceInformation.PresentationParameters.BackBufferWidth, deviceInformation.PresentationParameters.BackBufferHeight);
         }
 
         public virtual GraphicsDevice ChangeOrCreateDevice(GraphicsDevice currentDevice, GraphicsDeviceInformation deviceInformation)
@@ -377,10 +358,10 @@ namespace Stride.Games
 
         protected override void Destroy()
         {
-            if (gameWindow != null)
+            if (GameWindow != null)
             {
-                gameWindow.Dispose();
-                gameWindow = null;
+                GameWindow.Dispose();
+                GameWindow = null;
             }
 
             Activated = null;

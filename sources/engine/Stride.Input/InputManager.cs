@@ -314,12 +314,8 @@ namespace Stride.Input
                 (screenCoordinates.Y * fromSize.Height - destinationRectangle.Y) / destinationRectangle.Height);
         }
 
-        public void Initialize(GameContext gameContext)
+        public void Initialize()
         {
-            this.gameContext = gameContext ?? throw new ArgumentNullException(nameof(gameContext));
-
-            AddSources();
-
             // After adding initial devices, reassign gamepad id's
             // this creates a beter index assignment in the case where you have both an xbox controller and another controller at startup
             var sortedGamePads = GamePads.OrderBy(x => x.CanChangeIndex);
@@ -628,15 +624,6 @@ namespace Stride.Input
         }
         
         /// <summary>
-        /// Resets the <see cref="Sources"/> collection back to it's default values
-        /// </summary>
-        public void ResetSources()
-        {
-            Sources.Clear();
-            AddSources();
-        }
-        
-        /// <summary>
         /// Suggests an index that is unused for a given <see cref="IGamePadDevice"/>
         /// </summary>
         /// <param name="gamePad">The gamepad to find an index for</param>
@@ -662,54 +649,6 @@ namespace Stride.Input
             }
 
             return targetIndex;
-        }
-
-        private void AddSources()
-        {
-            var context = gameContext;
-
-            // Add window specific input source
-            var windowInputSource = InputSourceFactory.NewWindowInputSource(context);
-            if (windowInputSource != null)
-            {
-                Sources.Add(windowInputSource);
-            }
-
-            // Add platform specific input sources
-            switch (context.ContextType)
-            {
-#if STRIDE_UI_SDL
-                case AppContextType.DesktopSDL:
-                    break;
-#endif
-#if STRIDE_PLATFORM_ANDROID
-                case AppContextType.Android:
-                    break;
-#endif
-#if STRIDE_PLATFORM_IOS
-                case AppContextType.iOS:
-                    break;
-#endif
-#if STRIDE_PLATFORM_UWP
-                case AppContextType.UWPXaml:
-                case AppContextType.UWPCoreWindow:
-                    break;
-#endif
-                case AppContextType.Desktop:
-#if (STRIDE_UI_WINFORMS || STRIDE_UI_WPF)
-                    Sources.Add(new InputSourceWindowsDirectInput());
-                    if (InputSourceWindowsXInput.IsSupported())
-                        Sources.Add(new InputSourceWindowsXInput());
-#if STRIDE_INPUT_RAWINPUT
-                    if (rawInputEnabled && context is GameContextWinforms gameContextWinforms)
-                        Sources.Add(new InputSourceWindowsRawInput(gameContextWinforms.Control));
-#endif
-#endif
-                    break;
-                default:
-                    Logger.Warning($"No default input source available for context type {context.ContextType}");
-                    break;
-            }
         }
 
         protected override void Destroy()

@@ -108,6 +108,7 @@ namespace Stride.Assets
                     SetPlatformOrientation(solutionProject, Parameters.GetOrDefault<RenderingSettings>().DisplayOrientation);
 
                 var assetManager = new ContentManager(MicrothreadLocalDatabases.ProviderService);
+                GameSettings.AssetUrl = Url;
                 assetManager.Save(Url, result);
 
                 return Task.FromResult(ResultStatus.Successful);

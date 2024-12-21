@@ -17,7 +17,7 @@ namespace Stride.Games
     /// <summary>
     /// An abstract window.
     /// </summary>
-    internal class GameWindowWinforms : GameWindow<Control>
+    internal class GameWindowWinforms : GameWindow
     {
         private bool isMouseVisible;
 
@@ -125,18 +125,16 @@ namespace Stride.Games
             // Desktop doesn't have orientation (unless on Windows 8?)
         }
 
-        protected override void Initialize(GameContext<Control> gameContext)
+        public override void Initialize(int width, int height)
         {
-            Control = gameContext.Control;
+            Control = new GameForm();
 
             // Setup the initial size of the window
-            var width = gameContext.RequestedWidth;
             if (width == 0)
             {
                 width = Control is Form ? GraphicsDeviceManager.DefaultBackBufferWidth : Control.ClientSize.Width;
             }
 
-            var height = gameContext.RequestedHeight;
             if (height == 0)
             {
                 height = Control is Form ? GraphicsDeviceManager.DefaultBackBufferHeight : Control.ClientSize.Height;
@@ -166,7 +164,7 @@ namespace Stride.Games
             }
         }
 
-        internal override void Run()
+        public override void Run()
         {
             Debug.Assert(InitCallback != null, $"{nameof(InitCallback)} is null");
             Debug.Assert(RunCallback != null, $"{nameof(RunCallback)} is null");
@@ -174,34 +172,24 @@ namespace Stride.Games
             // Initialize the init callback
             InitCallback();
 
-            Debug.Assert(GameContext is GameContextWinforms, "There is only one possible descendant of GameContext<Control>.");
-            var context = (GameContextWinforms)GameContext;
-            if (context.IsUserManagingRun)
+            var runCallback = new WindowsMessageLoop.RenderCallback(RunCallback);
+            // Run the rendering loop
+            try
             {
-                context.RunCallback = RunCallback;
-                context.ExitCallback = ExitCallback;
-            }
-            else
-            {
-                var runCallback = new WindowsMessageLoop.RenderCallback(RunCallback);
-                // Run the rendering loop
-                try
+                WindowsMessageLoop.Run(Control, () =>
                 {
-                    WindowsMessageLoop.Run(Control, () =>
+                    if (Exiting)
                     {
-                        if (Exiting)
-                        {
-                            Destroy();
-                            return;
-                        }
+                        Destroy();
+                        return;
+                    }
 
-                        runCallback();
-                    });
-                }
-                finally
-                {
-                    ExitCallback?.Invoke();
-                }
+                    runCallback();
+                });
+            }
+            finally
+            {
+                ExitCallback?.Invoke();
             }
         }
 
