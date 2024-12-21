@@ -193,7 +193,7 @@ public class BodyComponent : CollidableComponent
     }
 
     /// <summary>
-    /// The rotation velocity in unit per second, also known as torque
+    /// The rotation velocity in unit per second
     /// </summary>
     /// <remarks>
     /// The rotation format is in axis-angle, 
