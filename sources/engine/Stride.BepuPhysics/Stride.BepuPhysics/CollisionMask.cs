@@ -48,7 +48,7 @@ public enum CollisionMask : uint
 public static class CollisionLayersExtension
 {
     /// <summary>
-    /// Returns whether <see cref="layer"/> can be found in <see cref="mask"/>
+    /// Returns whether <paramref name="layer"/> can be found in <paramref name="mask"/>
     /// </summary>
     public static bool IsSet(this CollisionMask mask, CollisionLayer layer)
     {
@@ -56,7 +56,7 @@ public static class CollisionLayersExtension
     }
 
     /// <summary>
-    /// Returns whether <see cref="layer"/> can be found in <see cref="mask"/>
+    /// Returns whether <paramref name="layer"/> can be found in <paramref name="mask"/>
     /// </summary>
     public static bool IsSetIn(this CollisionLayer layer, CollisionMask mask)
     {
@@ -64,7 +64,7 @@ public static class CollisionLayersExtension
     }
 
     /// <summary>
-    /// Returns a new <see cref="CollisionMask"/> where <see cref="layer"/> is set
+    /// Returns a new <see cref="CollisionMask"/> where <paramref name="layer"/> is set
     /// </summary>
     public static CollisionMask ToMask(this CollisionLayer layer)
     {

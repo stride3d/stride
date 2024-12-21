@@ -16,7 +16,7 @@ using NRigidPose = BepuPhysics.RigidPose;
 
 namespace Stride.BepuPhysics;
 
-[ComponentCategory("Bepu")]
+[ComponentCategory("Physics - Bepu")]
 public class CharacterComponent : BodyComponent, ISimulationUpdate, IContactEventHandler
 {
     private bool _jumping;
@@ -148,6 +148,9 @@ public class CharacterComponent : BodyComponent, ISimulationUpdate, IContactEven
 
         foreach (var contact in Contacts)
         {
+            if (contact.Source.ContactEventHandler?.NoContactResponse == true)
+                continue;
+
             var contactNormal = contact.Contact.Normal;
 
             if (NVector3.Dot(groundNormal, contactNormal) >= threshold) // If the body is supported by a contact whose surface is against gravity
