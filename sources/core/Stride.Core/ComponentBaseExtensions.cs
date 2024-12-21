@@ -11,26 +11,57 @@ namespace Stride.Core
     public static class ComponentBaseExtensions
     {
         /// <summary>
-        /// Keeps a component alive by adding it to a container.
+        /// Keeps a disposable object alive by adding it to a container.
         /// </summary>
         /// <typeparam name="T">A component</typeparam>
         /// <param name="thisArg">The component to keep alive.</param>
         /// <param name="container">The container that will keep a reference to the component.</param>
         /// <returns>The same component instance</returns>
         public static T DisposeBy<T>(this T thisArg, ICollectorHolder container)
+            where T : IDisposable
         {
             if (ReferenceEquals(thisArg, null))
-                return default(T);
+                return default;
             return container.Collector.Add(thisArg);
         }
 
         /// <summary>
-        /// Removes a component that ws being kept alive from a container.
+        /// Removes a disposable object that was being kept alive from a container.
         /// </summary>
         /// <typeparam name="T">A component</typeparam>
         /// <param name="thisArg">The component to remove.</param>
         /// <param name="container">The container that kept a reference to the component.</param>
         public static void RemoveDisposeBy<T>(this T thisArg, ICollectorHolder container)
+            where T : IDisposable
+        {
+            if (ReferenceEquals(thisArg, null))
+                return;
+            container.Collector.Remove(thisArg);
+        }
+
+        /// <summary>
+        /// Keeps a referencable object alive by adding it to a container.
+        /// </summary>
+        /// <typeparam name="T">A component</typeparam>
+        /// <param name="thisArg">The component to keep alive.</param>
+        /// <param name="container">The container that will keep a reference to the component.</param>
+        /// <returns>The same component instance</returns>
+        public static T ReleaseBy<T>(this T thisArg, ICollectorHolder container)
+            where T : IReferencable
+        {
+            if (ReferenceEquals(thisArg, null))
+                return default;
+            return container.Collector.Add(thisArg);
+        }
+
+        /// <summary>
+        /// Removes a referencable object that was being kept alive from a container.
+        /// </summary>
+        /// <typeparam name="T">A component</typeparam>
+        /// <param name="thisArg">The component to remove.</param>
+        /// <param name="container">The container that kept a reference to the component.</param>
+        public static void RemoveReleaseBy<T>(this T thisArg, ICollectorHolder container)
+            where T : IReferencable
         {
             if (ReferenceEquals(thisArg, null))
                 return;
@@ -44,7 +75,8 @@ namespace Stride.Core
         /// <param name="thisArg">The component to add a reference to.</param>
         /// <returns>This component.</returns>
         /// <remarks>This method is equivalent to call <see cref="IReferencable.AddReference"/> and return this instance.</remarks>
-        public static T KeepReference<T>(this T thisArg) where T : IReferencable
+        public static T KeepReference<T>(this T thisArg)
+            where T : IReferencable
         {
             if (ReferenceEquals(thisArg, null))
                 return default(T);

@@ -1,11 +1,16 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using Xunit;
+using System.Threading;
+using System.Threading.Channels;
+using System.Threading.Tasks;
 using Stride.Core.Diagnostics;
+using Xunit;
 
 namespace Stride.Core.Tests
 {
@@ -23,7 +28,7 @@ namespace Stride.Core.Tests
             {
                 using (var profile = Profiler.Begin(TestKey))
                 {
-                    Utilities.Sleep(100);
+                    Thread.Sleep(100);
                 }
             }
             watcher.Finish();
@@ -44,7 +49,7 @@ namespace Stride.Core.Tests
                 Profiler.Enable(TestKey);
                 using (var profile = Profiler.Begin(TestKey))
                 {
-                    Utilities.Sleep(timeToWait);
+                    Thread.Sleep(timeToWait);
                 }
             }
             watcher.Finish();
@@ -69,7 +74,7 @@ namespace Stride.Core.Tests
                 {
                     using (var profile2 = Profiler.Begin(Test2Key))
                     {
-                        Utilities.Sleep(timeToWait);
+                        Thread.Sleep(timeToWait);
                     }
                 }
             }
@@ -94,10 +99,10 @@ namespace Stride.Core.Tests
                 Profiler.EnableAll();
                 using (var profile = Profiler.Begin(TestKey))
                 {
-                    Utilities.Sleep(timeToWait);
+                    Thread.Sleep(timeToWait);
                     profile.Mark();
 
-                    Utilities.Sleep(timeToWait);
+                    Thread.Sleep(timeToWait);
                     profile.Mark();
                 }
             }
@@ -106,7 +111,7 @@ namespace Stride.Core.Tests
 
 
         [Fact]
-        public void TestWitAttributes()
+        public void TestWithAttributes()
         {
             Profiler.Reset();
             const int timeToWait = 10;
@@ -122,16 +127,88 @@ namespace Stride.Core.Tests
                 Profiler.EnableAll();
                 using (var profile = Profiler.Begin(TestKey))
                 {
-                    profile.SetAttribute("MyAttribute", 5);
-                    Utilities.Sleep(timeToWait);
+                    profile.Attributes.Add("MyAttribute", 5);
+                    Thread.Sleep(timeToWait);
                     profile.Mark();
                 }
             }
             watcher.Finish();
         }
 
+        [Fact]
+        public async void TestSubscribersReceiveEvents()
+        {
+            const int subscriberCount = 5;
+            const int eventCount = 5;
 
-        private static Regex matchElapsed = new Regex(@"Elapsed = ([\d\.]+)");
+            var subscribers = new TestEventReader[subscriberCount];
+
+            Profiler.DisableAll();
+
+            for(int i = 0; i < subscriberCount; i++)
+            {
+                // EventReaders will Unsubscribe themselves after reading 'eventCount' events.
+                subscribers[i] = new TestEventReader(eventsToRead: eventCount);
+                subscribers[i].Subscribe();
+            }
+
+            Profiler.MinimumProfileDuration = TimeSpan.Zero;
+            Profiler.EnableAll();
+
+            for(int i = 0; i < eventCount; i++)
+            {
+                using var _ = Profiler.Begin(TestKey);
+            }
+
+            var results = await Task.WhenAll(subscribers.Select(async x => await x.ReadAll()));            
+
+            Assert.All(results, x => Assert.Equal(eventCount, x.Count));
+        }
+
+        [Fact]
+        public async void TestConcurrentUse()
+        {
+            const int subscriberCount = 100;
+            const int eventCount = 5;
+
+            using CancellationTokenSource cts = new CancellationTokenSource();
+
+            Task[] eventGenerators = Enumerable.Range(0, 4).Select(x => Task.Run(() =>
+            {
+                while (true)
+                {
+                    if (cts.IsCancellationRequested)
+                        return;
+
+                    using var _ = Profiler.Begin(TestKey);
+                    Thread.Sleep(1);
+                }
+            })).ToArray();
+
+            Profiler.MinimumProfileDuration = TimeSpan.Zero;
+            Profiler.EnableAll();
+
+            var subscribers = new ConcurrentBag<TestEventReader>();
+
+            Parallel.For(0, subscriberCount, (i) =>
+            {
+                // EventReaders will Unsubscribe themselves after reading 'eventCount' events.
+                var reader = new TestEventReader(eventsToRead: eventCount);
+                reader.Subscribe();
+                subscribers.Add(reader);
+                Thread.Sleep(1);
+            });
+            
+            var results = await Task.WhenAll(subscribers.Select(async x => await x.ReadAll()));            
+            
+            cts.Cancel();
+
+            Task.WaitAll(eventGenerators);
+
+            Assert.All(results, x => Assert.Equal(eventCount, x.Count));
+        }
+
+        private static Regex matchElapsed = new Regex(@"Elapsed = ([\d.]+)", RegexOptions.CultureInvariant);
 
         // Maximum time difference accepted between elapsed time
         private const double ElapsedTimeEpsilon = 10;
@@ -147,7 +224,7 @@ namespace Stride.Core.Tests
                     matchFunction(message);
                 }
 
-                return message.StartsWith(text);
+                return message.StartsWith(text, StringComparison.Ordinal);
             };
         }
 
@@ -215,11 +292,52 @@ namespace Stride.Core.Tests
                 Assert.True(watcher.CurrentMessage < expectedMessages.Count, $"Unexpected message received: [{messageToString}]");
                 string expectedMessage;
                 var result = expectedMessages[watcher.CurrentMessage](messageToString, out expectedMessage, false);
-                Assert.True(result, $"Expecting message [{expectedMessage}]");
+                Assert.True(result, $"Expecting message \"{expectedMessage}\", but got \"{messageToString}\"");
                 watcher.CurrentMessage++;
             };
             GlobalLogger.GlobalMessageLogged += watcher.LogAction;
             return watcher;
+        }
+
+        private class TestEventReader
+        { 
+
+            ChannelReader<ProfilingEvent> reader;
+
+            public List<ProfilingEvent> Events;
+            private int eventsToRead;
+
+            public TestEventReader(int eventsToRead)
+            {
+                this.eventsToRead = eventsToRead;
+            }
+
+            public void Subscribe()
+            {
+                Events = new List<ProfilingEvent>();
+                reader = Profiler.Subscribe();
+            }
+
+            public void Unsubscribe()
+            {
+                Profiler.Unsubscribe(reader);
+            }
+
+            public async Task<List<ProfilingEvent>> ReadAll()
+            {
+                await foreach (var item in reader.ReadAllAsync())
+                {
+                    Events.Add(item);
+                    if (Events.Count == eventsToRead)
+                    {
+                        Unsubscribe();
+                        break;
+                    }
+                }
+
+                return Events;
+            }
+
         }
     }
 }

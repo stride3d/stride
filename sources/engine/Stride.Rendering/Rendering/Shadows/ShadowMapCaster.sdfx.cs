@@ -23,7 +23,11 @@ namespace Stride.Rendering.Shadows
         {
             public void Generate(ShaderMixinSource mixin, ShaderMixinContext context)
             {
-                if (context.GetParam(MaterialKeys.UsePixelShaderWithDepthPass))
+                if (context.GetParam(MaterialKeys.UseDitheredShadows))
+                {
+                    context.Mixin(mixin, "ShadowMapCasterAlphaDithered");
+                }
+                else if (context.GetParam(MaterialKeys.UsePixelShaderWithDepthPass))
                 {
                     context.Mixin(mixin, "ShadowMapCasterAlphaDiscard");
                 }

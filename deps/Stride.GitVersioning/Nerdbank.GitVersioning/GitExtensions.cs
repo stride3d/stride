@@ -347,11 +347,11 @@ namespace Nerdbank.GitVersioning
             {
                 return Path.Combine(basePath, "lib", "win32", IntPtr.Size == 4 ? "x86" : "x64");
             }
-            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
                 return Path.Combine(basePath, "lib", "linux", IntPtr.Size == 4 ? "x86" : "x86_64");
             }
-            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
                 return Path.Combine(basePath, "lib", "osx");
             }

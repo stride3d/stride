@@ -23,7 +23,10 @@
 
 using System;
 using System.ComponentModel;
+using System.Globalization;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Text.RegularExpressions;
 using Stride.Core.Serialization;
 
 namespace Stride.Core.Mathematics
@@ -38,7 +41,7 @@ namespace Stride.Core.Mathematics
         /// <summary>
         /// The size of the <see cref="Stride.Core.Mathematics.Half2"/> type, in bytes.
         /// </summary>
-        public static readonly int SizeInBytes = Utilities.SizeOf<Half2>();
+        public static readonly int SizeInBytes = Unsafe.SizeOf<Half2>();
 
 
         /// <summary>
@@ -158,6 +161,18 @@ namespace Stride.Core.Mathematics
         }
 
         /// <summary>
+        /// Returns a <see cref="string"/> that represents this instance.
+        /// </summary>
+        /// <returns>
+        /// A <see cref="string"/> that represents this instance.
+        /// </returns>
+        public override string ToString()
+        {
+            CultureInfo culture = CultureInfo.CurrentCulture;
+            return string.Format(culture, "{0}{1} {2}", X.ToString(), culture.TextInfo.ListSeparator, Y.ToString());
+        }
+
+        /// <summary>
         /// Returns the hash code for this instance.
         /// </summary>
         /// <returns>A 32-bit signed integer hash code.</returns>
@@ -174,7 +189,7 @@ namespace Stride.Core.Mathematics
         /// <returns>
         /// <c>true</c> if <paramref name="value1" /> is the same instance as <paramref name="value2" /> or 
         /// if both are <c>null</c> references or if <c>value1.Equals(value2)</c> returns <c>true</c>; otherwise, <c>false</c>.</returns>
-        public static bool Equals(ref Half2 value1, ref Half2 value2)
+        public static bool Equals(ref readonly Half2 value1, ref readonly Half2 value2)
         {
             return ((value1.X == value2.X) && (value1.Y == value2.Y));
         }
@@ -227,6 +242,17 @@ namespace Stride.Core.Mathematics
         public static explicit operator Vector2(Half2 value)
         {
             return new Vector2(value.X, value.Y);
+        }
+                                
+        /// <summary>
+        /// Deconstructs the vector's components into named variables.
+        /// </summary>
+        /// <param name="x">The X component</param>
+        /// <param name="y">The Y component</param>
+        public void Deconstruct(out Half x, out Half y)
+        {
+            x = X;
+            y = Y;
         }
     }
 }

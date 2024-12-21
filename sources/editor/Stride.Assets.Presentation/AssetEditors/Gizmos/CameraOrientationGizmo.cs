@@ -120,9 +120,15 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
             cameraComponent.ViewMatrix = view;
         }
 
-        public override bool IsUnderMouse(int pickedComponentId)
+        public override bool HandlesComponentId(OpaqueComponentId pickedComponentId, out Entity selection)
         {
-            return IsUnderMouse();
+            if (IsUnderMouse())
+            {
+                selection = this.cameraComponent.Entity;
+                return true;
+            }
+            selection = null;
+            return false;
         }
 
         public bool IsUnderMouse()
@@ -192,7 +198,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
             }
 
             var viewDirection = viewInverse.Forward;
-            IsViewParallelToAxis = MathUtil.WithinEpsilon(Math.Abs(viewDirection.X) + Math.Abs(viewDirection.Y) + Math.Abs(viewDirection.Z), 1.0f, 1e-4f);
+            IsViewParallelToAxis = MathUtil.WithinEpsilon(MathF.Abs(viewDirection.X) + MathF.Abs(viewDirection.Y) + MathF.Abs(viewDirection.Z), 1.0f, 1e-4f);
         }
 
         private static float GetMaximum(int index)

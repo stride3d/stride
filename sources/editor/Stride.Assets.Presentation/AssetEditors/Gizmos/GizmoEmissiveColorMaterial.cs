@@ -25,6 +25,13 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
             // set the color to the material
             UpdateColor(device, material, color, intensity);
 
+            // set the transparency property to the material if necessary
+            if (color.A < byte.MaxValue)
+            {
+
+                material.Passes[0].HasTransparency = true;
+            }
+
             return material;
         }
 

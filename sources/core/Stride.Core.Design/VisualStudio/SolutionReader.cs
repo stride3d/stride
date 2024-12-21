@@ -237,7 +237,7 @@ namespace Stride.Core.VisualStudio
 
         private void ReadGlobal()
         {
-            for (var line = ReadLine(); !line.StartsWith("EndGlobal"); line = ReadLine())
+            for (var line = ReadLine(); !line.StartsWith("EndGlobal", StringComparison.Ordinal); line = ReadLine())
             {
                 ReadGlobalSection(line);
             }
@@ -328,11 +328,11 @@ namespace Stride.Core.VisualStudio
 
             var projectTypeGuid = new Guid(match.Groups["PROJECTTYPEGUID"].Value.Trim());
             var projectName = match.Groups["PROJECTNAME"].Value.Trim();
-            var relativePath = match.Groups["RELATIVEPATH"].Value.Trim();
+            var relativePath = match.Groups["RELATIVEPATH"].Value.Trim().Replace('\\',  Path.DirectorySeparatorChar);
             var projectGuid = new Guid(match.Groups["PROJECTGUID"].Value.Trim());
 
             var projectSections = new List<Section>();
-            for (var line = ReadLine(); !line.StartsWith("EndProject"); line = ReadLine())
+            for (var line = ReadLine(); !line.StartsWith("EndProject", StringComparison.Ordinal); line = ReadLine())
             {
                 projectSections.Add(ReadProjectSection(line));
             }

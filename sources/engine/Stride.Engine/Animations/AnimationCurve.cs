@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using Stride.Core;
 using Stride.Core.Collections;
 using Stride.Internals;
@@ -65,7 +66,7 @@ namespace Stride.Animations
         }
 
         /// <summary>
-        /// Shifts all animation keys by the specified time, adding it to all <see cref="KeyFrameData.Time"/>
+        /// Shifts all animation keys by the specified time, adding it to all <see cref="KeyFrameData{T}.Time" />
         /// </summary>
         /// <param name="shiftTimeSpan">The time span by which the keys should be shifted</param>
         public virtual void ShiftKeys(CompressedTimeSpan shiftTimeSpan) { }
@@ -95,10 +96,7 @@ namespace Stride.Animations
 
         /// <inheritdoc/>
         [DataMemberIgnore]
-        public override int ElementSize
-        {
-            get { return Utilities.UnsafeSizeOf<T>(); }
-        }
+        public override int ElementSize => Unsafe.SizeOf<T>();
 
         /// <inheritdoc/>
         [DataMemberIgnore]
@@ -144,11 +142,10 @@ namespace Stride.Animations
         }
 
         /// <inheritdoc/>
-        public override void AddValue(CompressedTimeSpan newTime, IntPtr location)
+        public override unsafe void AddValue(CompressedTimeSpan newTime, nint location)
         {
-            T value;
-            Utilities.UnsafeReadOut(location, out value);
-            KeyFrames.Add(new KeyFrameData<T> { Time = (CompressedTimeSpan)newTime, Value = value });
+            var value = Unsafe.ReadUnaligned<T>((void*)location);
+            KeyFrames.Add(new(newTime, value));
         }
 
         /// <inheritdoc/>

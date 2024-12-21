@@ -1,0 +1,87 @@
+{
+  "runtimeTarget": {
+    "name": ".NETStandard,Version=v2.0/",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETStandard,Version=v2.0": {},
+    ".NETStandard,Version=v2.0/": {
+      "BulletSharp.NetStandard/1.0.0": {
+        "dependencies": {
+          "NETStandard.Library": "2.0.3",
+          "Stride.Core.Mathematics": "4.0.0.1-beta02-0926"
+        },
+        "runtime": {
+          "BulletSharp.NetStandard.dll": {}
+        }
+      },
+      "Microsoft.NETCore.Platforms/2.2.3": {},
+      "NETStandard.Library/2.0.3": {
+        "dependencies": {
+          "Microsoft.NETCore.Platforms": "2.2.3"
+        }
+      },
+      "Stride.Core/4.0.0.1-beta02-0926": {
+        "dependencies": {
+          "Microsoft.NETCore.Platforms": "2.2.3",
+          "System.ValueTuple": "4.5.0"
+        }
+      },
+      "Stride.Core.Mathematics/4.0.0.1-beta02-0926": {
+        "dependencies": {
+          "Stride.Core": "4.0.0.1-beta02-0926"
+        },
+        "runtime": {
+          "lib/netstandard2.0/Stride.Core.Mathematics.dll": {
+            "assemblyVersion": "4.0.0.1",
+            "fileVersion": "4.0.0.1"
+          }
+        }
+      },
+      "System.ValueTuple/4.5.0": {}
+    }
+  },
+  "libraries": {
+    "BulletSharp.NetStandard/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "Microsoft.NETCore.Platforms/2.2.3": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-cdiDrA08CUT2gpupY2XDx+PzomJnKATPFSf/DeDhWEMhydlpSch1G0zbV7DE1U7YUrgmLoqNsCeCL0wI5bbbCA==",
+      "path": "microsoft.netcore.platforms/2.2.3",
+      "hashPath": "microsoft.netcore.platforms.2.2.3.nupkg.sha512"
+    },
+    "NETStandard.Library/2.0.3": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-st47PosZSHrjECdjeIzZQbzivYBJFv6P2nv4cj2ypdI204DO+vZ7l5raGMiX4eXMJ53RfOIg+/s4DHVZ54Nu2A==",
+      "path": "netstandard.library/2.0.3",
+      "hashPath": "netstandard.library.2.0.3.nupkg.sha512"
+    },
+    "Stride.Core/4.0.0.1-beta02-0926": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-T8jJBHezngwKL5EecSXd+lBrIwdOy3wEU4sgUWb9vstZL2JbS1zC29wO913YZi+kYy3IDIuXn98z8DAvDLN2sg==",
+      "path": "stride.core/4.0.0.1-beta02-0926",
+      "hashPath": "stride.core.4.0.0.1-beta02-0926.nupkg.sha512"
+    },
+    "Stride.Core.Mathematics/4.0.0.1-beta02-0926": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-7bsWBgHBS7080cV03EzSWcGCAYHZYolnrH6cw4VRyof2CFXiybjxlD45CwEW00zb48vAUAvAUKvnAvqiKwGtEg==",
+      "path": "stride.core.mathematics/4.0.0.1-beta02-0926",
+      "hashPath": "stride.core.mathematics.4.0.0.1-beta02-0926.nupkg.sha512"
+    },
+    "System.ValueTuple/4.5.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-okurQJO6NRE/apDIP23ajJ0hpiNmJ+f0BwOlB/cSqTLQlw5upkf+5+96+iG2Jw40G1fCVCyPz/FhIABUjMR+RQ==",
+      "path": "system.valuetuple/4.5.0",
+      "hashPath": "system.valuetuple.4.5.0.nupkg.sha512"
+    }
+  }
+}

@@ -15,7 +15,7 @@ using Stride.Core.MostRecentlyUsedFiles;
 using Stride.Core.Presentation.Collections;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Services;
-using Stride.Core.Presentation.ViewModel;
+using Stride.Core.Presentation.ViewModels;
 using Stride.Core.Presentation.Windows;
 using Stride.Core.Translation;
 
@@ -30,7 +30,6 @@ namespace Stride.Core.Assets.Editor.ViewModel
         protected EditorViewModel(IViewModelServiceProvider serviceProvider, MostRecentlyUsedFileCollection mru, string editorName, string editorVersionMajor)
             : base(serviceProvider)
         {
-            AssetsPlugin.RegisterPlugin(typeof(AssetsEditorPlugin));
             serviceProvider.Get<IEditorDialogService>();
 
             ClearMRUCommand = new AnonymousCommand(serviceProvider, () => ClearRecentFiles());
@@ -138,7 +137,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
                     Tr._p("Button", "Cancel")
                 }, 1, 2);
                 string message = string.Format(Tr._p("Message", "The last attempt to load the project **{0}** failed. \r\n\r\nDo you want to try to load it again?"), Path.GetFileName(initialSessionPath));
-                var result = await ServiceProvider.Get<IDialogService>().MessageBox(message, buttons, MessageBoxImage.Warning);
+                var result = await ServiceProvider.Get<IDialogService>().MessageBoxAsync(message, buttons, MessageBoxImage.Warning);
                 if (result != 1)
                     return false;
             }
@@ -169,7 +168,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
             {
                 RemoveRecentFile(filePath);
 
-                await ServiceProvider.Get<IDialogService>().MessageBox(string.Format(Tr._p("Message", @"The file '{0}' does not exist."), filePath), MessageBoxButton.OK, MessageBoxImage.Information);
+                await ServiceProvider.Get<IDialogService>().MessageBoxAsync(string.Format(Tr._p("Message", @"The file '{0}' does not exist."), filePath), MessageBoxButton.OK, MessageBoxImage.Information);
                 return false;
             }
 
@@ -183,7 +182,6 @@ namespace Stride.Core.Assets.Editor.ViewModel
                 return sessionResult.OperationCancelled ? (bool?)null : false;
             }
 
-            RemoveRecentFile(filePath);
             MRU.AddFile(filePath, EditorVersionMajor);
             Session = loadedSession;
 
@@ -199,7 +197,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
                 filePath = filePath.Replace('/', '\\');
                 if (!File.Exists(filePath))
                 {
-                    await ServiceProvider.Get<IDialogService>().MessageBox(Tr._p("Message", "You need to save the file before you can open it."), MessageBoxButton.OK, MessageBoxImage.Information);
+                    await ServiceProvider.Get<IDialogService>().MessageBoxAsync(Tr._p("Message", "You need to save the file before you can open it."), MessageBoxButton.OK, MessageBoxImage.Information);
                     return;
                 }
 
@@ -213,7 +211,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
             catch (Exception ex)
             {
                 var message = $"{Tr._p("Message", "An error occurred while opening the file.")}{ex.FormatSummary(true)}";
-                await ServiceProvider.Get<IDialogService>().MessageBox(message, MessageBoxButton.OK, MessageBoxImage.Error);
+                await ServiceProvider.Get<IDialogService>().MessageBoxAsync(message, MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -231,7 +229,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
             catch (Exception ex)
             {
                 var message = $"{Tr._p("Message", "An error occurred while opening the file.")}{ex.FormatSummary(true)}";
-                await ServiceProvider.Get<IDialogService>().MessageBox(message, MessageBoxButton.OK, MessageBoxImage.Error);
+                await ServiceProvider.Get<IDialogService>().MessageBoxAsync(message, MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 

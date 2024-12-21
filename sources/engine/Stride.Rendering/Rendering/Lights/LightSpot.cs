@@ -17,7 +17,7 @@ namespace Stride.Rendering.Lights
     /// </summary>
     [DataContract("LightSpot")]
     [Display("Spot")]
-    public class LightSpot : DirectLightBase
+    public class LightSpot : ColorLightBase, IDirectLight
     {
         // These values have to match the ones defined in "TextureProjectionReceiverBase.sdsl".
         public enum FlipModeEnum
@@ -143,22 +143,30 @@ namespace Stride.Rendering.Lights
 
         public override bool Update(RenderLight light)
         {
-            var range = Math.Max(0.001f, Range);
+            var range = MathF.Max(0.001f, Range);
             InvSquareRange = 1.0f / (range * range);
-            var innerAngle = Math.Min(AngleInner, AngleOuter);
-            var outerAngle = Math.Max(AngleInner, AngleOuter);
+            var innerAngle = MathF.Min(AngleInner, AngleOuter);
+            var outerAngle = MathF.Max(AngleInner, AngleOuter);
             AngleOuterInRadians = MathUtil.DegreesToRadians(outerAngle);
-            var cosInner = (float)Math.Cos(MathUtil.DegreesToRadians(innerAngle / 2));
-            var cosOuter = (float)Math.Cos(AngleOuterInRadians * 0.5f);
-            LightAngleScale = 1.0f / Math.Max(0.001f, cosInner - cosOuter);
+            var cosInner = MathF.Cos(MathUtil.DegreesToRadians(innerAngle / 2));
+            var cosOuter = MathF.Cos(AngleOuterInRadians * 0.5f);
+            LightAngleScale = 1.0f / MathF.Max(0.001f, cosInner - cosOuter);
             LightAngleOffset = -cosOuter * LightAngleScale;
 
-            LightRadiusAtTarget = (float)Math.Abs(Range * Math.Sin(AngleOuterInRadians * 0.5f));
+            LightRadiusAtTarget = MathF.Abs(Range * MathF.Sin(AngleOuterInRadians * 0.5f));
 
             return true;
         }
 
-        public override bool HasBoundingBox
+        /// <summary>
+        /// Gets or sets the shadow.
+        /// </summary>
+        /// <value>The shadow.</value>
+        /// <userdoc>The settings of the light shadow</userdoc>
+        [DataMember(200)]
+        public LightStandardShadowMap Shadow { get; set; }
+
+        public bool HasBoundingBox
         {
             get
             {
@@ -166,7 +174,7 @@ namespace Stride.Rendering.Lights
             }
         }
 
-        public override BoundingBox ComputeBounds(Vector3 position, Vector3 direction)
+        public BoundingBox ComputeBounds(Vector3 position, Vector3 direction)
         {
             // Calculates the bouding box of the spot target
             var spotTarget = position + direction * Range;
@@ -178,7 +186,7 @@ namespace Stride.Rendering.Lights
             return box;
         }
 
-        public override float ComputeScreenCoverage(RenderView renderView, Vector3 position, Vector3 direction)
+        public float ComputeScreenCoverage(RenderView renderView, Vector3 position, Vector3 direction)
         {
             // TODO: We could improve this by calculating a screen-aligned triangle and a sphere at the end of the cone.
             //       With the screen-aligned triangle we would cover the entire spotlight, not just its end.
@@ -191,7 +199,7 @@ namespace Stride.Rendering.Lights
             Vector4 projectedTarget;
             Vector4.Transform(ref targetPosition, ref renderView.ViewProjection, out projectedTarget);
 
-            var d = Math.Abs(projectedTarget.W) + 0.00001f;
+            var d = MathF.Abs(projectedTarget.W) + 0.00001f;
             var r = Range * Math.Sin(MathUtil.DegreesToRadians(AngleOuter / 2.0f));
 
             // Handle correctly the case where the eye is inside the sphere
@@ -204,5 +212,7 @@ namespace Stride.Rendering.Lights
             // Size on screen
             return (float)pr * Math.Max(renderView.ViewSize.X, renderView.ViewSize.Y);
         }
+
+        LightShadowMap IDirectLight.Shadow => Shadow;
     }
 }

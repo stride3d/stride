@@ -26,6 +26,9 @@ namespace Stride.Rendering.Compositing
     [Display("Forward renderer")]
     public partial class ForwardRenderer : SceneRendererBase, ISharedRenderer
     {
+        private static readonly ProfilingKey CollectCoreKey = new ProfilingKey("ForwardRenderer.CollectCore");
+        private static readonly ProfilingKey DrawCoreKey = new ProfilingKey("ForwardRenderer.DrawCore");
+
         // TODO: should we use GraphicsDeviceManager.PreferredBackBufferFormat?
         public const PixelFormat DepthBufferFormat = PixelFormat.D24_UNorm_S8_UInt;
 
@@ -118,6 +121,12 @@ namespace Stride.Rendering.Compositing
         [DefaultValue(true)]
         public bool BindDepthAsResourceDuringTransparentRendering { get; set; } = true;
 
+        /// <summary>
+        /// If true, render target generated during <see cref="OpaqueRenderStage"/> will be available as a shader resource named OpaqueBase.OpaqueRenderTarget during <see cref="TransparentRenderStage"/>.
+        /// </summary>
+        [DefaultValue(false)]
+        public bool BindOpaqueAsResourceDuringTransparentRendering { get; set; }
+
         protected override void InitializeCore()
         {
             base.InitializeCore();
@@ -176,6 +185,7 @@ namespace Stride.Rendering.Compositing
                     vrSystem.RequireMirror = VRSettings.CopyMirror;
                     vrSystem.MirrorWidth = GraphicsDevice.Presenter.BackBuffer.Width;
                     vrSystem.MirrorHeight = GraphicsDevice.Presenter.BackBuffer.Height;
+                    vrSystem.RequestPassthrough = VRSettings.RequestPassthrough;
 
                     vrSystem.Enabled = true; //careful this will trigger the whole chain of initialization!
                     vrSystem.Visible = true;
@@ -287,6 +297,8 @@ namespace Stride.Rendering.Compositing
 
         protected override unsafe void CollectCore(RenderContext context)
         {
+            using var _ = Profiler.Begin(CollectCoreKey);
+
             var camera = context.GetCurrentCamera();
 
             if (context.RenderView == null)
@@ -546,7 +558,11 @@ namespace Stride.Rendering.Compositing
                         if (depthStencilSRV == null)
                             depthStencilSRV = ResolveDepthAsSRV(drawContext);
 
+                        var renderTargetSRV = ResolveRenderTargetAsSRV(drawContext);
+
                         renderSystem.Draw(drawContext, context.RenderView, TransparentRenderStage);
+
+                        Context.Allocator.ReleaseReference(renderTargetSRV);
                     }
                 }
 
@@ -604,6 +620,8 @@ namespace Stride.Rendering.Compositing
 
         protected override void DrawCore(RenderContext context, RenderDrawContext drawContext)
         {
+            using var _ = Profiler.Begin(DrawCoreKey);
+
             var viewport = drawContext.CommandList.Viewport;
 
             using (drawContext.PushRenderTargetsAndRestore())
@@ -714,10 +732,6 @@ namespace Stride.Rendering.Compositing
                     //draw mirror to backbuffer (if size is matching and full viewport)
                     if (VRSettings.CopyMirror)
                     {
-                        CopyOrScaleTexture(drawContext, VRSettings.VRDevice.MirrorTexture, drawContext.CommandList.RenderTarget);
-                    }
-                    else if (hasPostEffects)
-                    {
                         CopyOrScaleTexture(drawContext, vrFullSurface, drawContext.CommandList.RenderTarget);
                     }
                 }
@@ -807,6 +821,41 @@ namespace Stride.Rendering.Compositing
             context.CommandList.SetRenderTargets(depthStencilROCached, context.CommandList.RenderTargetCount, context.CommandList.RenderTargets);
 
             return depthStencilSRV;
+        }
+
+        private Texture ResolveRenderTargetAsSRV(RenderDrawContext drawContext)
+        {
+            if (!BindOpaqueAsResourceDuringTransparentRendering)
+                return null;
+
+            // Create temporary texture and blit active render target to it
+            var renderTarget = drawContext.CommandList.RenderTargets[0];
+            var renderTargetTexture = Context.Allocator.GetTemporaryTexture2D(renderTarget.Description);
+
+            drawContext.CommandList.Copy(renderTarget, renderTargetTexture);
+
+            // Bind texture as srv in PerView.Opaque
+            var renderView = drawContext.RenderContext.RenderView;
+            foreach (var renderFeature in drawContext.RenderContext.RenderSystem.RenderFeatures)
+            {
+                if (!(renderFeature is RootEffectRenderFeature))
+                    continue;
+
+                var opaqueLogicalKey = ((RootEffectRenderFeature)renderFeature).CreateViewLogicalGroup("Opaque");
+                var viewFeature = renderView.Features[renderFeature.Index];
+
+                foreach (var viewLayout in viewFeature.Layouts)
+                {
+                    var opaqueLogicalRenderGroup = viewLayout.GetLogicalGroup(opaqueLogicalKey);
+                    if (opaqueLogicalRenderGroup.Hash == ObjectId.Empty)
+                        continue;
+
+                    var resourceGroup = viewLayout.Entries[renderView.Index].Resources;
+                    resourceGroup.DescriptorSet.SetShaderResourceView(opaqueLogicalRenderGroup.DescriptorSlotStart, renderTargetTexture);
+                }
+            }
+
+            return renderTargetTexture;
         }
 
         private void PrepareRenderTargets(RenderDrawContext drawContext, Texture outputRenderTarget, Texture outputDepthStencil)

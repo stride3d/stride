@@ -3,17 +3,17 @@
        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-       xmlns:vm="clr-namespace:Stride.Assets.Presentation.ViewModel"
        xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
        xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
        xmlns:behaviors="clr-namespace:Stride.Assets.Presentation.View.Behaviors"
+       xmlns:cmd="clr-namespace:Stride.Core.Presentation.Commands;assembly=Stride.Core.Presentation"
        xmlns:valueConverters="clr-namespace:Stride.Assets.Presentation.ValueConverters"
        xmlns:sprite="clr-namespace:Stride.Assets.Sprite;assembly=Stride.Assets"
        xmlns:strings="clr-namespace:Stride.Assets.Presentation.Resources.Strings"
        xmlns:view="clr-namespace:Stride.Assets.Presentation.AssetEditors.SpriteEditor.Views"
        xmlns:sevm="clr-namespace:Stride.Assets.Presentation.AssetEditors.SpriteEditor.ViewModels"
        mc:Ignorable="d" 
-       d:DesignHeight="300" d:DesignWidth="300" d:DataContext="{d:DesignInstance vm:SpriteSheetViewModel}">
+       d:DesignHeight="300" d:DesignWidth="300" d:DataContext="{d:DesignInstance sevm:SpriteSheetEditorViewModel}">
   <UserControl.Resources>
     <ResourceDictionary>
       <ResourceDictionary.MergedDictionaries>
@@ -27,21 +27,21 @@
     </ResourceDictionary>
   </UserControl.Resources>
   <UserControl.InputBindings>
-    <KeyBinding Command="{Binding Editor.SelectNextSpriteCommand}" CommandParameter="{sd:Int -1}"
+    <KeyBinding Command="{Binding SelectNextSpriteCommand}" CommandParameter="{sd:Int -1}"
           Gesture="{sd:KeyGesture {x:Static strings:KeyGestures.GestureSelectPreviousSprite}}"/>
-    <KeyBinding Command="{Binding Editor.SelectNextSpriteCommand}" CommandParameter="{sd:Int 1}"
+    <KeyBinding Command="{Binding SelectNextSpriteCommand}" CommandParameter="{sd:Int 1}"
           Gesture="{sd:KeyGesture {x:Static strings:KeyGestures.GestureSelectNextSprite}}"/>
-    <KeyBinding Command="{Binding Editor.AddNewSpriteCommand}" Gesture="{sd:KeyGesture {x:Static strings:KeyGestures.GestureNewSprite}}"/>
-    <KeyBinding Command="{Binding Editor.DuplicateSelectedImagesCommand}" Gesture="{sd:KeyGesture {x:Static strings:KeyGestures.GestureDuplicateSelection}}"/>
-    <KeyBinding Command="{Binding Editor.UseWholeImageCommand}" Gesture="{sd:KeyGesture {x:Static strings:KeyGestures.GestureSelectWholeImage}}"/>
+    <KeyBinding Command="{Binding AddNewSpriteCommand}" Gesture="{sd:KeyGesture {x:Static strings:KeyGestures.GestureNewSprite}}"/>
+    <KeyBinding Command="{Binding DuplicateSelectedImagesCommand}" Gesture="{sd:KeyGesture {x:Static strings:KeyGestures.GestureDuplicateSelection}}"/>
+    <KeyBinding Command="{Binding UseWholeImageCommand}" Gesture="{sd:KeyGesture {x:Static strings:KeyGestures.GestureSelectWholeImage}}"/>
     <KeyBinding Command="{x:Static view:SpriteEditorView.ActivateMagicWand}" Key="{sd:Key {x:Static strings:KeyGestures.GestureMagicWand}}"/>
     <KeyBinding Command="{x:Static view:SpriteEditorView.FocusOnRegion}" Key="{sd:Key {x:Static strings:KeyGestures.GestureFocus}}"/>
   </UserControl.InputBindings>
   <i:Interaction.Behaviors>
-    <sd:CommandBindingBehavior RoutedCommand="{x:Static view:SpriteEditorView.FocusOnRegion}" Command="{Binding Editor.FocusOnRegionCommand}"/>
-    <sd:CommandBindingBehavior RoutedCommand="{x:Static view:SpriteEditorView.ActivateMagicWand}" Command="{Binding Editor.ToggleUseMagicWandCommand}"/>
+    <sd:CommandBindingBehavior RoutedCommand="{x:Static view:SpriteEditorView.FocusOnRegion}" Command="{Binding FocusOnRegionCommand}"/>
+    <sd:CommandBindingBehavior RoutedCommand="{x:Static view:SpriteEditorView.ActivateMagicWand}" Command="{Binding ToggleUseMagicWandCommand}"/>
   </i:Interaction.Behaviors>
-  <Grid DataContext="{Binding Editor}" d:DataContext="{d:DesignInstance sevm:SpriteSheetEditorViewModel}">
+  <Grid>
     <Grid.ColumnDefinitions>
       <ColumnDefinition Width="*"/>
       <ColumnDefinition Width="5"/>
@@ -193,12 +193,12 @@
                                           DisplayInsertAdorner="True" DisplayDropAdorner="ExternalOnly"
                                           DragVisualTemplate="{StaticResource DragVisualTemplate}"/>
             <sd:ListBoxBindableSelectedItemsBehavior SelectedItems="{Binding SelectedSprites}"/>
-            <sd:CommandBindingBehavior RoutedCommand="ApplicationCommands.Copy" Command="{Binding CopyImageCommand, FallbackValue={x:Static sd:DisabledCommand.Instance}, Mode=OneWay}"/>
+            <sd:CommandBindingBehavior RoutedCommand="ApplicationCommands.Copy" Command="{Binding CopyImageCommand, FallbackValue={x:Static cmd:DisabledCommand.Instance}, Mode=OneWay}"/>
             <!--
-              <sd:CommandBindingBehavior RoutedCommand="ApplicationCommands.Cut" Command="{Binding CutImageCommand, FallbackValue={x:Static sd:DisabledCommand.Instance}, Mode=OneWay}"/>
+              <sd:CommandBindingBehavior RoutedCommand="ApplicationCommands.Cut" Command="{Binding CutImageCommand, FallbackValue={x:Static cmd:DisabledCommand.Instance}, Mode=OneWay}"/>
               -->
-            <sd:CommandBindingBehavior RoutedCommand="ApplicationCommands.Delete" Command="{Binding RemoveImageCommand, FallbackValue={x:Static sd:DisabledCommand.Instance}, Mode=OneWay}"/>
-            <sd:CommandBindingBehavior RoutedCommand="ApplicationCommands.Paste" Command="{Binding PasteImageCommand, FallbackValue={x:Static sd:DisabledCommand.Instance}, Mode=OneWay}"/>
+            <sd:CommandBindingBehavior RoutedCommand="ApplicationCommands.Delete" Command="{Binding RemoveImageCommand, FallbackValue={x:Static cmd:DisabledCommand.Instance}, Mode=OneWay}"/>
+            <sd:CommandBindingBehavior RoutedCommand="ApplicationCommands.Paste" Command="{Binding PasteImageCommand, FallbackValue={x:Static cmd:DisabledCommand.Instance}, Mode=OneWay}"/>
           </i:Interaction.Behaviors>
         </sd:EditableContentListBox>
         <i:Interaction.Behaviors>
@@ -371,9 +371,9 @@
                 <!-- FIXME: Why can't we bind directly to the local DataContext?
                      CursorOverrideRule inherits from Freezable, so it is supposed to work.
                 -->
-                <sd:CursorOverrideRule When="{Binding DataContext.Editor.ToolMode, Source={sd:XamlRoot}, Converter={sd:IsEqualToParam}, ConverterParameter={x:Static sevm:SpriteSheetEditorToolMode.ColorPick}, Mode=OneWay}"
+                <sd:CursorOverrideRule When="{Binding DataContext.ToolMode, Source={sd:XamlRoot}, Converter={sd:IsEqualToParam}, ConverterParameter={x:Static sevm:SpriteSheetEditorToolMode.ColorPick}, Mode=OneWay}"
                                          Cursor="{x:Static view:SpriteEditorView.ColorPickerCursor}" ForceCursor="True" />
-                <sd:CursorOverrideRule When="{Binding DataContext.Editor.ToolMode, Source={sd:XamlRoot}, Converter={sd:IsEqualToParam}, ConverterParameter={x:Static sevm:SpriteSheetEditorToolMode.MagicWand}, Mode=OneWay}"
+                <sd:CursorOverrideRule When="{Binding DataContext.ToolMode, Source={sd:XamlRoot}, Converter={sd:IsEqualToParam}, ConverterParameter={x:Static sevm:SpriteSheetEditorToolMode.MagicWand}, Mode=OneWay}"
                                          Cursor="{x:Static view:SpriteEditorView.MagicWandCursor}" ForceCursor="True" />
               </sd:MultiOverrideCursorBehavior>
               <sd:OnMouseEventBehavior EventType="PreviewMouseDown" Command="{Binding FindSpriteRegionCommand}"/>

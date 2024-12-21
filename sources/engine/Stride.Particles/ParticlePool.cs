@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using Stride.Core;
+using static Stride.Rendering.ParameterCollection;
 
 namespace Stride.Particles
 {
@@ -15,7 +16,7 @@ namespace Stride.Particles
     /// The maximum required size calculated on the number of particles and their fields' sizes is calculated every time the sizes or the count change
     /// </summary>
     public class ParticlePool : IDisposable, IEnumerable
-    {             
+    {
         public delegate void CopyParticlePoolDelegate(IntPtr oldPool, int oldCapacity, int oldSize, IntPtr newPool, int newCapacity, int newSize);
 
         public enum ListPolicy
@@ -33,7 +34,7 @@ namespace Stride.Particles
             Stack
 
             // OrderedStack,
-            // DynamicStack            
+            // DynamicStack
         }
 
         private readonly ListPolicy listPolicy;
@@ -78,12 +79,9 @@ namespace Stride.Particles
         public int NextFreeIndex => nextFreeIndex;
 
         /// <summary>
-        /// Returns the size of a single particle.
-#if PARTICLES_SOA
-        /// The size of the <see cref="Particle"/> equals the sum of all fields' strides.
-#else
-        /// The size of the <see cref="Particle"/> equals the pool's stride.
-#endif
+        /// Returns the size of a single <see cref="Particle"/>.
+        /// If PARTICLES_SOA is defined, the size of the <see cref="Particle"/> is the sum of all field strides.
+        /// Otherwise, the size of the <see cref="Particle"/> is the pool's stride.
         /// </summary>
         public int ParticleSize { get; private set; }
 
@@ -234,7 +232,7 @@ namespace Stride.Particles
         /// </summary>
         /// <param name="dst">Index of the destination particle</param>
         /// <param name="src">Index of the source particle</param>
-        private void CopyParticleData(int dst, int src)
+        private unsafe void CopyParticleData(int dst, int src)
         {
             var dstParticle = FromIndex(dst);
             var srcParticle = FromIndex(src);
@@ -243,10 +241,10 @@ namespace Stride.Particles
             foreach (var field in fields.Values)
             {
                 var accessor = new ParticleFieldAccessor(field);
-                Utilities.CopyMemory(dstParticle[accessor], srcParticle[accessor], field.Size);
+                Unsafe.CopyBlockUnaligned((void*) dstParticle[accessor], (void*) srcParticle[accessor], (uint) field.Size);
             }
 #else
-            Utilities.CopyMemory(dstParticle, srcParticle, ParticleSize);
+            Unsafe.CopyBlockUnaligned((void*)dstParticle.Pointer, (void*)srcParticle.Pointer, (uint)ParticleSize);
 #endif
         }
 
@@ -298,7 +296,7 @@ namespace Stride.Particles
             // In case of a Ring list we don't bother to remove dead particles
             if (listPolicy == ListPolicy.Ring)
                 return;
-            
+
             // Next free index shouldn't be 0 because we are removing a particle
             Debug.Assert(nextFreeIndex > 0);
 
@@ -308,10 +306,10 @@ namespace Stride.Particles
                 CopyParticleData(oldIndex, indexMax);
             indexMax = nextFreeIndex - 1;
 
-            particle = FromIndex(indexMax);        
+            particle = FromIndex(indexMax);
 
             // We need to position the cursor of the enumerator to the previous particle, so that enumeration works fine
-            oldIndex--;            
+            oldIndex--;
         }
 
 #region Fields
@@ -382,12 +380,12 @@ namespace Stride.Particles
         /// <param name="newPool">New memory block</param>
         /// <param name="newCapacity">New capacity (maximum particle count) of the block</param>
         /// <param name="newSize">New size of a single particle</param>
-        private void ReallocateForFieldAdded(IntPtr oldPool, int oldCapacity, int oldSize, IntPtr newPool, int newCapacity, int newSize)
+        private unsafe void ReallocateForFieldAdded(nint oldPool, int oldCapacity, int oldSize, nint newPool, int newCapacity, int newSize)
         {
             // Old particle capacity and new particle capacity should be the same when only the size changes.
             // If this is not the case, something went wrong. Reset the particle count and do not copy.
             // Also, since we are adding a field, the new particle size is expected to get bigger.
-            if (oldCapacity != newCapacity || newCapacity <= 0 || newSize <= 0 || oldPool == IntPtr.Zero || newPool == IntPtr.Zero || oldSize >= newSize)
+            if (oldCapacity != newCapacity || newCapacity <= 0 || newSize <= 0 || oldPool == 0 || newPool == 0 || oldSize >= newSize)
             {
                 nextFreeIndex = 0;
                 return;
@@ -395,16 +393,16 @@ namespace Stride.Particles
 
 #if PARTICLES_SOA
             // Easy case - the new field is added to the end. Copy the existing memory block into the new one
-            Utilities.CopyMemory(newPool, oldPool, oldSize * oldCapacity);
-            Utilities.ClearMemory(newPool + oldSize * oldCapacity, 0, (newSize - oldSize) * oldCapacity);
+            Unsafe.CopyBlockUnaligned((void*) newPool, (void*) oldPool, (uint) (oldSize * oldCapacity));
+            Unsafe.InitBlockUnaligned((void*) (newPool + oldSize * oldCapacity), 0, (uint) ((newSize - oldSize) * oldCapacity));
 #else
             // Clear the memory first instead of once per particle
-            Utilities.ClearMemory(newPool, 0, newSize * newCapacity);
+            Unsafe.InitBlockUnaligned((void*)newPool, 0, (uint)(newSize * newCapacity));
 
             // Complex case - needs to copy the head of each particle
             for (var i = 0; i < oldCapacity; i++)
             {
-                Utilities.CopyMemory(newPool + i * newSize, oldPool + i * oldSize, oldSize);
+                Unsafe.CopyBlockUnaligned((byte*)newPool + i * newSize, (byte*)oldPool + i * oldSize, (uint)oldSize);
             }
 #endif
         }
@@ -418,11 +416,11 @@ namespace Stride.Particles
         /// <param name="newPool">New memory block</param>
         /// <param name="newCapacity">New capacity (maximum particle count) of the block</param>
         /// <param name="newSize">New size of a single particle</param>
-        private void ReallocateForCapacityChanged(IntPtr oldPool, int oldCapacity, int oldSize, IntPtr newPool, int newCapacity, int newSize)
+        private unsafe void ReallocateForCapacityChanged(nint oldPool, int oldCapacity, int oldSize, nint newPool, int newCapacity, int newSize)
         {
             // Old particle size and new particle size should be the same when only the capacity changes.
             // If this is not the case, something went wrong. Reset the particle count and do not copy.
-            if (oldSize != newSize || newCapacity <= 0 || newSize <= 0 || oldPool == IntPtr.Zero || newPool == IntPtr.Zero)
+            if (oldSize != newSize || newCapacity <= 0 || newSize <= 0 || oldPool == 0 || newPool == 0)
             {
                 nextFreeIndex = 0;
                 return;
@@ -433,16 +431,16 @@ namespace Stride.Particles
 
 #if PARTICLES_SOA
             // Clear the memory first instead of once per particle
-            Utilities.ClearMemory(newPool, 0, newSize * newCapacity);
+            Unsafe.InitBlockUnaligned((void*) newPool, 0, (uint) (newSize * newCapacity));
 
             var oldOffset = 0;
             var newOffset = 0;
 
             // Fields haven't changed so we can iterate them. In case of Add/Remove fields you shouldn't use this
             foreach (var field in fields.Values)
-            {                
+            {
                 var copySize = Math.Min(oldCapacity, newCapacity) * field.Size;
-                Utilities.CopyMemory(newPool + newOffset, oldPool + oldOffset, copySize);
+                Unsafe.CopyBlockUnaligned((void*) (newPool + newOffset), (void*) (oldPool + oldOffset), (uint) copySize);
 
                 oldOffset += (field.Size * oldCapacity);
                 newOffset += (field.Size * newCapacity);
@@ -450,12 +448,13 @@ namespace Stride.Particles
 #else
             if (newCapacity > oldCapacity)
             {
-                Utilities.CopyMemory(newPool, oldPool, newSize * oldCapacity);
-                Utilities.ClearMemory(newPool + newSize * oldCapacity, 0, newSize * (newCapacity - oldCapacity));
+                var size = (uint)(newSize * oldCapacity);
+                Unsafe.CopyBlockUnaligned((byte*)newPool, (byte*)oldPool, size);
+                Unsafe.InitBlockUnaligned((byte*)newPool + size, 0, (uint)(newSize * (newCapacity - oldCapacity)));
             }
             else
             {
-                Utilities.CopyMemory(newPool, oldPool, newSize * newCapacity);
+                Unsafe.CopyBlockUnaligned((void*)newPool, (void*)oldPool, (uint)(newSize * newCapacity));
             }
 #endif
         }
@@ -505,7 +504,7 @@ namespace Stride.Particles
         /// <param name="newPool">New memory block</param>
         /// <param name="newCapacity">New capacity (maximum particle count) of the block</param>
         /// <param name="newSize">New size of a single particle</param>
-        private void ReallocateForFieldRemoved(IntPtr oldPool, int oldCapacity, int oldSize, IntPtr newPool, int newCapacity, int newSize)
+        private unsafe void ReallocateForFieldRemoved(IntPtr oldPool, int oldCapacity, int oldSize, IntPtr newPool, int newCapacity, int newSize)
         {
             // Old particle capacity and new particle capacity should be the same when only the size changes.
             // If this is not the case, something went wrong. Reset the particle count and do not copy.
@@ -523,16 +522,17 @@ namespace Stride.Particles
             foreach (var field in fields.Values)
             {
                 // This is the field which we have marked - do not copy it
-                if (field.Size == 0 || field.Offset == IntPtr.Zero)
+                if (field.Size == 0 || field.Offset == 0)
                     continue;
 
-                Utilities.CopyMemory(newPool + fieldOffset, field.Offset, field.Size * ParticleCapacity);
+                #error This is broken. This will AV.
+                Unsafe.CopyBlockUnaligned((byte*)newPool + fieldOffset, (void*)field.Offset, (uint)(field.Size * ParticleCapacity));
 
                 fieldOffset += field.Size * ParticleCapacity;
             }
 #else
             // Clear the memory first instead of once per particle
-            Utilities.ClearMemory(newPool, 0, newSize * newCapacity);
+            Unsafe.InitBlockUnaligned((void*)newPool, 0, (uint)(newSize * newCapacity));
 
             // Complex case - needs to copy up to two parts of each particle
             var firstHalfSize = 0;
@@ -553,14 +553,14 @@ namespace Stride.Particles
                 else
                 {
                     firstHalfSize += field.Size;
-                }                
+                }
             }
 
             if (firstHalfSize > 0)
             {
                 for (var i = 0; i < oldCapacity; i++)
                 {
-                    Utilities.CopyMemory(newPool + i * newSize, oldPool + i * oldSize, firstHalfSize);
+                    Unsafe.CopyBlockUnaligned((byte*)newPool + i * newSize, (byte*)oldPool + i * oldSize, (uint)firstHalfSize);
                 }
             }
 
@@ -570,7 +570,7 @@ namespace Stride.Particles
 
                 for (var i = 0; i < oldCapacity; i++)
                 {
-                    Utilities.CopyMemory(newPool + i * newSize + firstHalfSize, oldPool + i * oldSize + secondHalfOffset, secondHalfSize);
+                    Unsafe.CopyBlockUnaligned((byte*)newPool + i * newSize + firstHalfSize, (byte*)oldPool + i * oldSize + secondHalfOffset, (uint)secondHalfSize);
                 }
             }
 #endif
@@ -648,7 +648,7 @@ namespace Stride.Particles
         /// <returns></returns>
         public Enumerator GetEnumerator()
         {
-            return (listPolicy == ListPolicy.Ring) ? 
+            return (listPolicy == ListPolicy.Ring) ?
                 new Enumerator(this) :
                 new Enumerator(this, 0, nextFreeIndex - 1);
         }
@@ -706,7 +706,7 @@ namespace Stride.Particles
 
             /// <inheritdoc />
             public void Dispose()
-            {                
+            {
             }
 
             /// <inheritdoc />

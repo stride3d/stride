@@ -52,7 +52,7 @@ namespace Stride.Assets.Presentation.NodePresenters.Commands
             var session = assetPresenter.Asset.Session;
             var serviceProvider = assetPresenter.Asset.ServiceProvider;
 
-            var scriptSourceCodeProvider = serviceProvider.TryGet<IScriptSourceCodeResolver>();
+            var scriptSourceCodeProvider = serviceProvider.TryGet<IEntityComponentSourceCodeResolver>();
 
             if (scriptSourceCodeProvider == null)
                 return;

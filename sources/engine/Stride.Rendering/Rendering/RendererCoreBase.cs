@@ -21,7 +21,8 @@ namespace Stride.Rendering
     public abstract class RendererCoreBase : ComponentBase, IGraphicsRendererCore
     {
         private bool isInDrawCore;
-        private ProfilingKey profilingKey;
+        private ProfilingKey gpuProfilingKey;
+        private ProfilingKey cpuProfilingKey;
         private readonly List<GraphicsResource> scopedResources = new List<GraphicsResource>();
         private readonly List<IGraphicsRendererCore> subRenderersToUnload;
 
@@ -46,7 +47,7 @@ namespace Stride.Rendering
         }
 
         /// <summary>
-        /// Gets or sets a value indicating whether this <see cref="EntityComponentRendererBase"/> is enabled.
+        /// Gets or sets a value indicating whether this <see cref="RendererCoreBase"/> is enabled.
         /// </summary>
         /// <value><c>true</c> if enabled; otherwise, <c>false</c>.</value>
         /// <userdoc>Enabled if checked, disabled otherwise</userdoc>
@@ -58,7 +59,10 @@ namespace Stride.Rendering
         public bool Profiling { get; set; }
 
         [DataMemberIgnore]
-        public ProfilingKey ProfilingKey => profilingKey ?? (profilingKey = new ProfilingKey(Name));
+        public ProfilingKey GPUProfilingKey => gpuProfilingKey ??= new ProfilingKey(Name);
+
+        [DataMemberIgnore]
+        public ProfilingKey CPUProfilingKey => cpuProfilingKey ??= new ProfilingKey($"{Name}.Draw");
 
         [DataMemberIgnore]
         protected RenderContext Context { get; private set; }
@@ -147,7 +151,7 @@ namespace Stride.Rendering
         }
 
         /// <summary>
-        /// Gets a render target with the specified description, scoped for the duration of the <see cref="DrawEffect.DrawCore"/>.
+        /// Gets a render target with the specified description, scoped for the duration of the <see cref="DrawEffect.Draw"/>.
         /// </summary>
         /// <param name="description">The description of the buffer to allocate</param>
         /// <param name="viewFormat">The pixel format seen in shader</param>
@@ -159,7 +163,7 @@ namespace Stride.Rendering
         }
 
         /// <summary>
-        /// Gets a render target with the specified description, scoped for the duration of the <see cref="DrawEffect.DrawCore"/>.
+        /// Gets a render target with the specified description, scoped for the duration of the <see cref="DrawEffect.Draw"/>.
         /// </summary>
         /// <returns>A new instance of texture.</returns>
         protected Buffer NewScopedTypedBuffer(int count, PixelFormat viewFormat, bool isUnorderedAccess, GraphicsResourceUsage usage = GraphicsResourceUsage.Default)
@@ -225,9 +229,9 @@ namespace Stride.Rendering
 
             EnsureContext(context.RenderContext);
 
-            if (ProfilingKey.Name != null && Profiling)
+            if (GPUProfilingKey.Name != null && Profiling)
             {
-                context.QueryManager.BeginProfile(Color.Green, ProfilingKey);
+                context.QueryManager.BeginProfile(Color.Green, GPUProfilingKey);
             }
 
             PreDrawCore(context);
@@ -257,9 +261,9 @@ namespace Stride.Rendering
 
             PostDrawCore(context);
 
-            if (ProfilingKey.Name != null && Profiling)
+            if (GPUProfilingKey.Name != null && Profiling)
             {
-                context.QueryManager.EndProfile(ProfilingKey);
+                context.QueryManager.EndProfile(GPUProfilingKey);
             }
         }
     }

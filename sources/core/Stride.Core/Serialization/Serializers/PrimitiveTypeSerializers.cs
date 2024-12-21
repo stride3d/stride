@@ -3,6 +3,7 @@
 #pragma warning disable SA1402 // File may only contain a single class
 #pragma warning disable SA1649 // File name must match first type name
 using System;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Stride.Core.Reflection;
 
@@ -277,30 +278,30 @@ namespace Stride.Core.Serialization.Serializers
             {
                 case 1:
                 {
-                    var objPtr = (byte*)Interop.Cast(ref obj);
-                    uint value = *objPtr;
+                    ref var @ref = ref Unsafe.As<T, byte>(ref obj);
+                    uint value = @ref;
                     stream.Serialize(ref value);
-                    *objPtr = (byte)value;
+                    @ref = (byte)value;
                     break;
                 }
                 case 2:
                 {
-                    var objPtr = (ushort*)Interop.Cast(ref obj);
-                    uint value = *objPtr;
+                    ref var @ref = ref Unsafe.As<T, ushort>(ref obj);
+                    uint value = @ref;
                     stream.Serialize(ref value);
-                    *objPtr = (ushort)value;
+                    @ref = (ushort)value;
                     break;
                 }
                 case 4:
                 {
-                    var objPtr = (uint*)Interop.Cast(ref obj);
-                    stream.Serialize(ref *objPtr);
+                    ref var @ref = ref Unsafe.As<T, uint>(ref obj);
+                    stream.Serialize(ref @ref);
                     break;
                 }
                 case 8:
                 {
-                    var objPtr = (ulong*)Interop.Cast(ref obj);
-                    stream.Serialize(ref *objPtr);
+                    ref var @ref = ref Unsafe.As<T, ulong>(ref obj);
+                    stream.Serialize(ref @ref);
                     break;
                 }
                 default:
@@ -321,16 +322,9 @@ namespace Stride.Core.Serialization.Serializers
         /// <inheritdoc/>
         public override void Serialize(ref Guid obj, ArchiveMode mode, SerializationStream stream)
         {
-            if (mode == ArchiveMode.Serialize)
-            {
-                var guidData = obj.ToByteArray();
-                stream.Serialize(guidData, 0, guidData.Length);
-            }
-            else if (mode == ArchiveMode.Deserialize)
-            {
-                var guidData = new byte[16];
-                stream.Serialize(guidData, 0, guidData.Length);
-                obj = new Guid(guidData);
+            if (mode == ArchiveMode.Serialize || mode == ArchiveMode.Deserialize) {
+                var span = MemoryMarshal.AsBytes(MemoryMarshal.CreateSpan(ref obj, 1));
+                stream.Serialize(span);
             }
         }
     }

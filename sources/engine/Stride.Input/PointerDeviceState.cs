@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
@@ -59,7 +59,7 @@ namespace Stride.Input
         }
 
         /// <summary>
-        /// Updates the surface size of the pointing device, updates <see cref="SurfaceSize"/>, <see cref="SurfaceAspectRatio"/>, <see cref="invSurfaceSize"/> and calls <see cref="SurfaceSizeChanged"/>
+        /// Updates the surface size of the pointing device, updates <see cref="SurfaceSize"/>, <see cref="SurfaceAspectRatio"/>, <see cref="InverseSurfaceSize"/> and calls <see cref="PointerDeviceBase.SurfaceSizeChanged"/>
         /// </summary>
         /// <param name="newSize">New size of the surface</param>
         public void SetSurfaceSize(Vector2 newSize)
@@ -70,7 +70,7 @@ namespace Stride.Input
         }
 
         /// <summary>
-        /// Processes a <see cref="InputEvent"/>, converting it to a <see cref="PointerEvent"/>. Also calls <see cref="OnPointer"/> and updates <see cref="CurrentPointerEvents"/>
+        /// Processes a <see cref="InputEvent"/>, converting it to a <see cref="PointerEvent"/>. Also calls <see cref="UpdatePointerState"/> and updates current <see cref="PointerEvent"/>
         /// </summary>
         /// <param name="evt"></param>
         public PointerEvent ProcessPointerEvent(InputEvent evt)
@@ -85,7 +85,7 @@ namespace Stride.Input
         }
 
         /// <summary>
-        /// Updates a pointer event with position / type / id set and updates the storted pointer data
+        /// Updates a pointer event with position / type / id set and updates the stored pointer data
         /// </summary>
         /// <param name="evt"></param>
         public void UpdatePointerState(PointerEvent evt, bool updateDelta = true)
@@ -129,7 +129,7 @@ namespace Stride.Input
         }
 
         /// <summary>
-        /// Retrueves a pointer data structure unqiue to the given pointer ID
+        /// Retrieves a pointer data structure unique to the given pointer ID
         /// </summary>
         /// <param name="pointerId"></param>
         /// <returns></returns>

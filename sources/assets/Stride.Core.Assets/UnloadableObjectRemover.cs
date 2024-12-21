@@ -11,7 +11,7 @@ using Stride.Core.Yaml;
 namespace Stride.Core.Assets
 {
     /// <summary>
-    /// Removes objects implementing <see cref="IYamlProxy"/> from the object.
+    /// Removes objects implementing 'IYamlProxy' from the object.
     /// </summary>
     public class UnloadableObjectRemover : AssetVisitorBase
     {
@@ -87,6 +87,13 @@ namespace Stride.Core.Assets
 
             Visit(value, valueDescriptor);
             //base.VisitDictionaryKeyValue(dictionary, descriptor, key, keyDescriptor, value, valueDescriptor);
+        }
+
+        public override void VisitSetItem(IEnumerable set, SetDescriptor descriptor, object item, ITypeDescriptor itemDescriptor)
+        {
+            if (ProcessObject(item, itemDescriptor.Type)) return;
+
+            Visit(item, itemDescriptor);
         }
 
         private bool ProcessObject(object obj, Type expectedType)

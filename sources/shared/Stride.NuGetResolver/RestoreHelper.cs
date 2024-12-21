@@ -26,19 +26,7 @@ namespace Stride.Core.Assets
         {
             var assemblies = new List<string>();
 
-            var libPaths = new Dictionary<ValueTuple<string, NuGet.Versioning.NuGetVersion>, string>();
-            foreach (var lib in lockFile.Libraries)
-            {
-                foreach (var packageFolder in lockFile.PackageFolders)
-                {
-                    var libraryPath = Path.Combine(packageFolder.Path, lib.Path.Replace('/', Path.DirectorySeparatorChar));
-                    if (Directory.Exists(libraryPath))
-                    {
-                        libPaths.Add(ValueTuple.Create(lib.Name, lib.Version), libraryPath);
-                        break;
-                    }
-                }
-            }
+            var libPaths = GetLibPaths(lockFile);
 
             bool TryCollectGraphicsApiDependentAssemblies(string assemblyFile)
             {
@@ -90,6 +78,63 @@ namespace Stride.Core.Assets
             }
 
             return assemblies;
+        }
+
+        public static List<string> ListNativeLibs(LockFile lockFile)
+        {
+            var libs = new List<string>();
+
+            var libPaths = GetLibPaths(lockFile);
+
+            var target = lockFile.Targets.Last();
+            foreach (var lib in target.Libraries)
+            {
+                if (libPaths.TryGetValue(ValueTuple.Create(lib.Name, lib.Version), out var libPath))
+                {
+                    foreach (var n in lib.NativeLibraries)
+                    {
+                        if (!IsValidNativeLibraryFile(n.Path))
+                        {
+                            continue;
+                        }
+                        var assemblyFile = Path.Combine(libPath, n.Path.Replace('/', Path.DirectorySeparatorChar));
+                        libs.Add(assemblyFile);
+                    }
+                }
+            }
+
+            return libs;
+
+            static bool IsValidNativeLibraryFile(string path)
+            {
+                if (path.EndsWith(".dll", StringComparison.OrdinalIgnoreCase)
+                    || path.EndsWith(".so", StringComparison.OrdinalIgnoreCase)
+                    || path.IndexOf(".so.", StringComparison.OrdinalIgnoreCase) >= 0    // Linux allows for files like 'libnativedep.so.6'
+                    || path.EndsWith(".dylib", StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+                return false;
+            }
+        }
+
+        private static Dictionary<(string, NuGetVersion), string> GetLibPaths(LockFile lockFile)
+        {
+            var libPaths = new Dictionary<ValueTuple<string, NuGet.Versioning.NuGetVersion>, string>();
+            foreach (var lib in lockFile.Libraries)
+            {
+                foreach (var packageFolder in lockFile.PackageFolders)
+                {
+                    var libraryPath = Path.Combine(packageFolder.Path, lib.Path.Replace('/', Path.DirectorySeparatorChar));
+                    if (Directory.Exists(libraryPath))
+                    {
+                        libPaths.Add(ValueTuple.Create(lib.Name, lib.Version), libraryPath);
+                        break;
+                    }
+                }
+            }
+
+            return libPaths;
         }
 
         public static (RestoreRequest, RestoreResult) Restore(ILogger logger, NuGetFramework nugetFramework, string runtimeIdentifier, string packageName, VersionRange versionRange, string settingsRoot = null)
@@ -178,12 +223,13 @@ namespace Stride.Core.Assets
                         if (tryCount == 1)
                             throw;
 
-                        foreach (var process in new[] { "Stride.ConnectionRouter" }.SelectMany(Process.GetProcessesByName))
+                        foreach (var process in new[] { "Stride.ConnectionRouter", "Stride.VisualStudio.Commands" }.SelectMany(Process.GetProcessesByName))
                         {
                             try
                             {
                                 if (process.Id != Process.GetCurrentProcess().Id)
                                 {
+                                    logger.LogWarning($"Failed to restore NuGet, killing '{process.ProcessName}' to hopefully release locks held by it - VS extension will break");
                                     process.Kill();
                                     process.WaitForExit();
                                 }

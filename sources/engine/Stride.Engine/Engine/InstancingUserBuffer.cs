@@ -3,6 +3,7 @@
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Graphics;
+using Buffer = Stride.Graphics.Buffer;
 
 namespace Stride.Engine
 {
@@ -21,7 +22,7 @@ namespace Stride.Engine
         public virtual int InstanceCount { get; set; }
 
         /// <summary>
-        /// The bounding box of the world matrices, updated automatically by the <see cref="InstancingProcessor"/>.
+        /// The bounding box of the world matrices, updated automatically by the <see cref="Stride.Engine.Processors.InstancingProcessor"/>.
         /// </summary>
         [DataMemberIgnore]
         public virtual BoundingBox BoundingBox { get; set; } = BoundingBox.Empty;

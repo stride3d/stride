@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using Stride.Core.Diagnostics;
 using Stride.Core.Mathematics;
 using Stride.Core.Threading;
 using Stride.Graphics;
@@ -23,6 +24,9 @@ namespace Stride.Rendering
         private ConstantBufferOffsetReference world;
         private ConstantBufferOffsetReference worldInverse;
         private ConstantBufferOffsetReference camera;
+        
+        private static readonly ProfilingKey ExtractKey = new ProfilingKey("TransformRenderFeature.Extract");
+        private static readonly ProfilingKey PrepareKey = new ProfilingKey("TransformRenderFeature.Prepare");
 
         internal struct RenderModelFrameInfo
         {
@@ -53,6 +57,7 @@ namespace Stride.Rendering
         /// <inheritdoc/>
         public override void Extract()
         {
+            using var _ = Profiler.Begin(ExtractKey);
             var renderModelObjectInfo = RootRenderFeature.RenderData.GetData(RenderModelObjectInfoKey);
 
             //for (int index = 0; index < RootRenderFeature.ObjectNodeReferences.Count; index++)
@@ -67,10 +72,10 @@ namespace Stride.Rendering
             });
         }
 
-        /// <param name="context"></param>
         /// <inheritdoc/>
         public override unsafe void Prepare(RenderDrawContext context)
         {
+            using var _ = Profiler.Begin(PrepareKey);
             // Compute WorldView, WorldViewProj
             var renderModelObjectInfoData = RootRenderFeature.RenderData.GetData(RenderModelObjectInfoKey);
             var renderModelViewInfoData = RootRenderFeature.RenderData.GetData(RenderModelViewInfoKey);
@@ -155,51 +160,55 @@ namespace Stride.Rendering
             // Update PerDraw (World, WorldViewProj, etc...)
             // Copy Entity.World to PerDraw cbuffer
             // TODO: Have a PerObject cbuffer?
-            Dispatcher.ForEach(((RootEffectRenderFeature)RootRenderFeature).RenderNodes, (ref RenderNode renderNode) =>
+            Dispatcher.ForBatched(RootRenderFeature.RenderNodes.Count, (from, toExclusive) =>
             {
-                var perDrawLayout = renderNode.RenderEffect.Reflection?.PerDrawLayout;
-                if (perDrawLayout == null)
-                    return;
-
-                var worldOffset = perDrawLayout.GetConstantBufferOffset(this.world);
-                var worldInverseOffset = perDrawLayout.GetConstantBufferOffset(this.worldInverse);
-
-                if (worldOffset == -1 && worldInverseOffset == -1)
-                    return;
-
-                ref var renderModelObjectInfo = ref renderModelObjectInfoData[renderNode.RenderObject.ObjectNode];
-                ref var renderModelViewInfo = ref renderModelViewInfoData[renderNode.ViewObjectNode];
-
-                var mappedCB = renderNode.Resources.ConstantBuffer.Data;
-                if (worldOffset != -1)
+                for (int i = from; i < toExclusive; i++)
                 {
-                    var world = (Matrix*)((byte*)mappedCB + worldOffset);
-                    *world = renderModelObjectInfo.World;
-                }
+                    var renderNode = RootRenderFeature.RenderNodes[i];
+                    var perDrawLayout = renderNode.RenderEffect.Reflection?.PerDrawLayout;
+                    if (perDrawLayout == null)
+                        continue;
 
-                if (worldInverseOffset != -1)
-                {
-                    var perDraw = (PerDrawExtra*)((byte*)mappedCB + worldInverseOffset);
+                    var worldOffset = perDrawLayout.GetConstantBufferOffset(this.world);
+                    var worldInverseOffset = perDrawLayout.GetConstantBufferOffset(this.worldInverse);
 
-                    // Fill PerDraw
-                    var perDrawData = new PerDrawExtra
+                    if (worldOffset == -1 && worldInverseOffset == -1)
+                        continue;
+
+                    ref var renderModelObjectInfo = ref renderModelObjectInfoData[renderNode.RenderObject.ObjectNode];
+                    ref var renderModelViewInfo = ref renderModelViewInfoData[renderNode.ViewObjectNode];
+
+                    var mappedCB = renderNode.Resources.ConstantBuffer.Data;
+                    if (worldOffset != -1)
                     {
-                        WorldView = renderModelViewInfo.WorldView,
-                        WorldViewProjection = renderModelViewInfo.WorldViewProjection,
-                    };
+                        var world = (Matrix*)((byte*)mappedCB + worldOffset);
+                        *world = renderModelObjectInfo.World;
+                    }
 
-                    Matrix.Invert(ref renderModelObjectInfo.World, out perDrawData.WorldInverse);
-                    Matrix.Transpose(ref perDrawData.WorldInverse, out perDrawData.WorldInverseTranspose);
-                    Matrix.Invert(ref renderModelViewInfo.WorldView, out perDrawData.WorldViewInverse);
+                    if (worldInverseOffset != -1)
+                    {
+                        var perDraw = (PerDrawExtra*)((byte*)mappedCB + worldInverseOffset);
 
-                    perDrawData.WorldScale = new Vector3(
-                        ((Vector3)renderModelObjectInfo.World.Row1).Length(),
-                        ((Vector3)renderModelObjectInfo.World.Row2).Length(),
-                        ((Vector3)renderModelObjectInfo.World.Row3).Length());
+                        // Fill PerDraw
+                        var perDrawData = new PerDrawExtra
+                        {
+                            WorldView = renderModelViewInfo.WorldView,
+                            WorldViewProjection = renderModelViewInfo.WorldViewProjection,
+                        };
 
-                    perDrawData.EyeMS = new Vector4(perDrawData.WorldInverse.M41, perDrawData.WorldInverse.M42, perDrawData.WorldInverse.M43, 1.0f);
+                        Matrix.Invert(ref renderModelObjectInfo.World, out perDrawData.WorldInverse);
+                        Matrix.Transpose(ref perDrawData.WorldInverse, out perDrawData.WorldInverseTranspose);
+                        Matrix.Invert(ref renderModelViewInfo.WorldView, out perDrawData.WorldViewInverse);
 
-                    *perDraw = perDrawData;
+                        perDrawData.WorldScale = new Vector3(
+                            ((Vector3)renderModelObjectInfo.World.Row1).Length(),
+                            ((Vector3)renderModelObjectInfo.World.Row2).Length(),
+                            ((Vector3)renderModelObjectInfo.World.Row3).Length());
+
+                        perDrawData.EyeMS = new Vector4(perDrawData.WorldInverse.M41, perDrawData.WorldInverse.M42, perDrawData.WorldInverse.M43, 1.0f);
+
+                        *perDraw = perDrawData;
+                    }
                 }
             });
         }

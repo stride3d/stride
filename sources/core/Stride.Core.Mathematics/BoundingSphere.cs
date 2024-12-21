@@ -28,6 +28,7 @@
 */
 using System;
 using System.Globalization;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace Stride.Core.Mathematics
@@ -37,7 +38,7 @@ namespace Stride.Core.Mathematics
     /// </summary>
     [DataContract]
     [StructLayout(LayoutKind.Sequential, Pack = 4)]
-    public struct BoundingSphere : IEquatable<BoundingSphere>, IFormattable
+    public struct BoundingSphere : IEquatable<BoundingSphere>, IFormattable, IIntersectableWithRay, IIntersectableWithPlane
     {
         /// <summary>
         /// An empty bounding sphere (Center = 0 and Radius = 0).
@@ -70,10 +71,10 @@ namespace Stride.Core.Mathematics
         /// </summary>
         /// <param name="ray">The ray to test.</param>
         /// <returns>Whether the two objects intersected.</returns>
-        public bool Intersects(ref Ray ray)
+        public bool Intersects(ref readonly Ray ray)
         {
             float distance;
-            return CollisionHelper.RayIntersectsSphere(ref ray, ref this, out distance);
+            return CollisionHelper.RayIntersectsSphere(in ray, ref this, out distance);
         }
 
         /// <summary>
@@ -83,9 +84,9 @@ namespace Stride.Core.Mathematics
         /// <param name="distance">When the method completes, contains the distance of the intersection,
         /// or 0 if there was no intersection.</param>
         /// <returns>Whether the two objects intersected.</returns>
-        public bool Intersects(ref Ray ray, out float distance)
+        public bool Intersects(ref readonly Ray ray, out float distance)
         {
-            return CollisionHelper.RayIntersectsSphere(ref ray, ref this, out distance);
+            return CollisionHelper.RayIntersectsSphere(in ray, ref this, out distance);
         }
 
         /// <summary>
@@ -95,9 +96,9 @@ namespace Stride.Core.Mathematics
         /// <param name="point">When the method completes, contains the point of intersection,
         /// or <see cref="Stride.Core.Mathematics.Vector3.Zero"/> if there was no intersection.</param>
         /// <returns>Whether the two objects intersected.</returns>
-        public bool Intersects(ref Ray ray, out Vector3 point)
+        public bool Intersects(ref readonly Ray ray, out Vector3 point)
         {
-            return CollisionHelper.RayIntersectsSphere(ref ray, ref this, out point);
+            return CollisionHelper.RayIntersectsSphere(in ray, ref this, out point);
         }
 
         /// <summary>
@@ -105,9 +106,9 @@ namespace Stride.Core.Mathematics
         /// </summary>
         /// <param name="plane">The plane to test.</param>
         /// <returns>Whether the two objects intersected.</returns>
-        public PlaneIntersectionType Intersects(ref Plane plane)
+        public PlaneIntersectionType Intersects(ref readonly Plane plane)
         {
-            return CollisionHelper.PlaneIntersectsSphere(ref plane, ref this);
+            return CollisionHelper.PlaneIntersectsSphere(in plane, ref this);
         }
 
         /// <summary>
@@ -117,9 +118,9 @@ namespace Stride.Core.Mathematics
         /// <param name="vertex2">The second vertex of the triagnle to test.</param>
         /// <param name="vertex3">The third vertex of the triangle to test.</param>
         /// <returns>Whether the two objects intersected.</returns>
-        public bool Intersects(ref Vector3 vertex1, ref Vector3 vertex2, ref Vector3 vertex3)
+        public bool Intersects(ref readonly Vector3 vertex1, ref readonly Vector3 vertex2, ref readonly Vector3 vertex3)
         {
-            return CollisionHelper.SphereIntersectsTriangle(ref this, ref vertex1, ref vertex2, ref vertex3);
+            return CollisionHelper.SphereIntersectsTriangle(ref this, in vertex1, in vertex2, in vertex3);
         }
 
         /// <summary>
@@ -127,9 +128,9 @@ namespace Stride.Core.Mathematics
         /// </summary>
         /// <param name="box">The box to test.</param>
         /// <returns>Whether the two objects intersected.</returns>
-        public bool Intersects(ref BoundingBox box)
+        public bool Intersects(ref readonly BoundingBox box)
         {
-            return CollisionHelper.BoxIntersectsSphere(ref box, ref this);
+            return CollisionHelper.BoxIntersectsSphere(in box, ref this);
         }
 
         /// <summary>
@@ -137,9 +138,9 @@ namespace Stride.Core.Mathematics
         /// </summary>
         /// <param name="sphere">The sphere to test.</param>
         /// <returns>Whether the two objects intersected.</returns>
-        public bool Intersects(ref BoundingSphere sphere)
+        public bool Intersects(ref readonly BoundingSphere sphere)
         {
-            return CollisionHelper.SphereIntersectsSphere(ref this, ref sphere);
+            return CollisionHelper.SphereIntersectsSphere(ref this, in sphere);
         }
 
         /// <summary>
@@ -147,9 +148,9 @@ namespace Stride.Core.Mathematics
         /// </summary>
         /// <param name="point">The point to test.</param>
         /// <returns>The type of containment the two objects have.</returns>
-        public ContainmentType Contains(ref Vector3 point)
+        public ContainmentType Contains(ref readonly Vector3 point)
         {
-            return CollisionHelper.SphereContainsPoint(ref this, ref point);
+            return CollisionHelper.SphereContainsPoint(ref this, in point);
         }
 
         /// <summary>
@@ -159,9 +160,9 @@ namespace Stride.Core.Mathematics
         /// <param name="vertex2">The second vertex of the triagnle to test.</param>
         /// <param name="vertex3">The third vertex of the triangle to test.</param>
         /// <returns>The type of containment the two objects have.</returns>
-        public ContainmentType Contains(ref Vector3 vertex1, ref Vector3 vertex2, ref Vector3 vertex3)
+        public ContainmentType Contains(ref readonly Vector3 vertex1, ref readonly Vector3 vertex2, ref readonly Vector3 vertex3)
         {
-            return CollisionHelper.SphereContainsTriangle(ref this, ref vertex1, ref vertex2, ref vertex3);
+            return CollisionHelper.SphereContainsTriangle(ref this, in vertex1, in vertex2, in vertex3);
         }
 
         /// <summary>
@@ -169,9 +170,9 @@ namespace Stride.Core.Mathematics
         /// </summary>
         /// <param name="box">The box to test.</param>
         /// <returns>The type of containment the two objects have.</returns>
-        public ContainmentType Contains(ref BoundingBox box)
+        public ContainmentType Contains(ref readonly BoundingBox box)
         {
-            return CollisionHelper.SphereContainsBox(ref this, ref box);
+            return CollisionHelper.SphereContainsBox(ref this, in box);
         }
 
         /// <summary>
@@ -179,9 +180,9 @@ namespace Stride.Core.Mathematics
         /// </summary>
         /// <param name="sphere">The sphere to test.</param>
         /// <returns>The type of containment the two objects have.</returns>
-        public ContainmentType Contains(ref BoundingSphere sphere)
+        public ContainmentType Contains(ref readonly BoundingSphere sphere)
         {
-            return CollisionHelper.SphereContainsSphere(ref this, ref sphere);
+            return CollisionHelper.SphereContainsSphere(ref this, in sphere);
         }
 
         /// <summary>
@@ -192,9 +193,10 @@ namespace Stride.Core.Mathematics
         public static unsafe void FromPoints(Vector3[] points, out BoundingSphere result)
         {
             if (points == null) throw new ArgumentNullException("points");
+            if (points.Length == 0) throw new ArgumentException("Array cannot be empty or null.", nameof(points));
             fixed (void* pointsPtr = points)
             {
-                FromPoints((IntPtr)pointsPtr, 0, points.Length, Utilities.SizeOf<Vector3>(), out result);
+                FromPoints((IntPtr)pointsPtr, 0, points.Length, Unsafe.SizeOf<Vector3>(), out result);
             }
         }
 
@@ -243,7 +245,7 @@ namespace Stride.Core.Mathematics
             }
 
             //Find the real distance from the DistanceSquared.
-            radius = (float)Math.Sqrt(radius);
+            radius = MathF.Sqrt(radius);
 
             //Construct the sphere.
             result.Center = center;
@@ -267,15 +269,15 @@ namespace Stride.Core.Mathematics
         /// </summary>
         /// <param name="box">The box that will designate the extents of the sphere.</param>
         /// <param name="result">When the method completes, the newly constructed bounding sphere.</param>
-        public static void FromBox(ref BoundingBox box, out BoundingSphere result)
+        public static void FromBox(ref readonly BoundingBox box, out BoundingSphere result)
         {
-            Vector3.Lerp(ref box.Minimum, ref box.Maximum, 0.5f, out result.Center);
+            Vector3.Lerp(in box.Minimum, in box.Maximum, 0.5f, out result.Center);
 
             float x = box.Minimum.X - box.Maximum.X;
             float y = box.Minimum.Y - box.Maximum.Y;
             float z = box.Minimum.Z - box.Maximum.Z;
 
-            float distance = (float)(Math.Sqrt((x * x) + (y * y) + (z * z)));
+            float distance = MathF.Sqrt((x * x) + (y * y) + (z * z));
             result.Radius = distance * 0.5f;
         }
 
@@ -297,16 +299,16 @@ namespace Stride.Core.Mathematics
         /// <param name="value">The original bounding sphere.</param>
         /// <param name="transform">The transform to apply to the bounding sphere.</param>
         /// <param name="result">The transformed bounding sphere.</param>
-        public static void Transform(ref BoundingSphere value, ref Matrix transform, out BoundingSphere result)
+        public static void Transform(ref readonly BoundingSphere value, ref readonly Matrix transform, out BoundingSphere result)
         {
-            Vector3.TransformCoordinate(ref value.Center, ref transform, out result.Center);
+            Vector3.TransformCoordinate(in value.Center, in transform, out result.Center);
 
-            var majorAxisLengthSquared = Math.Max(
-                (transform.M11 * transform.M11) + (transform.M12 * transform.M12) + (transform.M13 * transform.M13), Math.Max(
+            var majorAxisLengthSquared = MathF.Max(
+                (transform.M11 * transform.M11) + (transform.M12 * transform.M12) + (transform.M13 * transform.M13), MathF.Max(
                 (transform.M21 * transform.M21) + (transform.M22 * transform.M22) + (transform.M23 * transform.M23),
                 (transform.M31 * transform.M31) + (transform.M32 * transform.M32) + (transform.M33 * transform.M33)));
 
-            result.Radius = value.Radius * (float)Math.Sqrt(majorAxisLengthSquared);
+            result.Radius = value.Radius * MathF.Sqrt(majorAxisLengthSquared);
         }
 
         /// <summary>
@@ -315,7 +317,7 @@ namespace Stride.Core.Mathematics
         /// <param name="value1">The first sphere to merge.</param>
         /// <param name="value2">The second sphere to merge.</param>
         /// <param name="result">When the method completes, contains the newly constructed bounding sphere.</param>
-        public static void Merge(ref BoundingSphere value1, ref BoundingSphere value2, out BoundingSphere result)
+        public static void Merge(ref readonly BoundingSphere value1, ref readonly BoundingSphere value2, out BoundingSphere result)
         {
             // Pre-exit if one of the bounding sphere by assuming that a merge with an empty sphere is equivalent at taking the non-empty sphere
             if (value1 == Empty)
@@ -352,8 +354,8 @@ namespace Stride.Core.Mathematics
             }
 
             Vector3 vector = difference * (1.0f / length);
-            float min = Math.Min(-radius, length - radius2);
-            float max = (Math.Max(radius, length + radius2) - min) * 0.5f;
+            float min = MathF.Min(-radius, length - radius2);
+            float max = (MathF.Max(radius, length + radius2) - min) * 0.5f;
 
             result.Center = value1.Center + vector * (max + min);
             result.Radius = max;

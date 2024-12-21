@@ -46,7 +46,7 @@ namespace Stride.Core.Yaml
             var input = new StringReader(assetAsString);
             yamlStream = new YamlStream();
             yamlStream.Load(input);
-            
+
             if (yamlStream.Documents.Count != 1 || !(yamlStream.Documents[0].RootNode is YamlMappingNode))
                 throw new YamlException("Unable to load the given stream");
         }

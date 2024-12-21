@@ -29,10 +29,10 @@
       <BitmapImage x:Key="ImageShowcase" UriSource="pack://application:,,,/Stride.Launcher;component/Resources/showcase.png"/>
       <BitmapImage x:Key="ImageRoadmap" UriSource="pack://application:,,,/Stride.Launcher;component/Resources/roadmap.png"/>
       <BitmapImage x:Key="ImageSurvey" UriSource="pack://application:,,,/Stride.Launcher;component/Resources/survey.png"/>
-      <BitmapImage x:Key="ImageTwitter" UriSource="pack://application:,,,/Stride.Launcher;component/Resources/twitter_bird_24.png"/>
+      <BitmapImage x:Key="ImageXTwitter" UriSource="pack://application:,,,/Stride.Launcher;component/Resources/xtwitter_24.png"/>
       <BitmapImage x:Key="ImageFacebook" UriSource="pack://application:,,,/Stride.Launcher;component/Resources/facebook_24.png"/>
       <BitmapImage x:Key="ImageReddit" UriSource="pack://application:,,,/Stride.Launcher;component/Resources/reddit_24.png"/>
-      <BitmapImage x:Key="ImagePatreon" UriSource="pack://application:,,,/Stride.Launcher;component/Resources/patreon_mark_coral_24.png"/>
+      <BitmapImage x:Key="ImageOpenCollective" UriSource="pack://application:,,,/Stride.Launcher;component/Resources/opencollective_24.png"/>
       
       <BitmapImage x:Key="ImageDownload" UriSource="pack://application:,,,/Stride.Launcher;component/Resources/download-26-dark.png"/>
       <BitmapImage x:Key="ImageUpdate" UriSource="pack://application:,,,/Stride.Launcher;component/Resources/update.png"/>
@@ -43,7 +43,7 @@
       <BitmapImage x:Key="ImageBackground" UriSource="pack://application:,,,/Stride.Launcher;component/Resources/Robot.jpg"/>
 
       <s:Double x:Key="ReleaseNotesMargin">20</s:Double>
-      <Thickness x:Key="TileBorderThickness">15</Thickness>
+      <Thickness x:Key="TileBorderThickness">12</Thickness>
       <Thickness x:Key="TileListBorderThickness">0,0,0,20</Thickness>
       <!-- 15 + 16 vertically -->
       <Thickness x:Key="TabHeaderMargin">0,15,0,31</Thickness>
@@ -229,7 +229,7 @@
             </UIElement.Clip>
           </DockPanel>
           <Button Content="{Binding Status}" Command="{Binding ExecuteActionCommand}" ToolTipService.IsEnabled="False"
-                  ToolTip="{Binding Status, Converter={sskk:FormatString}, ConverterParameter={x:Static r:Strings.ToolTipVisualStudioPlugin}}"
+                  ToolTip="{Binding Status, Converter={sskk:FormatString}, ConverterParameter={x:Static r:Strings.ToolTipVisualStudioExtension}}"
                   Visibility="{Binding IsProcessing, Converter={sskk:VisibleOrCollapsed}, ConverterParameter={sskk:False}}">
             <i:Interaction.Behaviors>
               <sskk:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding Launcher.CurrentToolTip}"
@@ -299,10 +299,10 @@
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" DockPanel.Dock="Bottom" Margin="10">
                   <Button Style="{StaticResource TransparentButtonStyle}" HorizontalAlignment="Left"
                         Command="{Binding OpenUrlCommand}" 
-                        CommandParameter="{x:Static r:Urls.Twitter}" SnapsToDevicePixels="True" Margin="2"
+                        CommandParameter="{x:Static r:Urls.XTwitter}" SnapsToDevicePixels="True" Margin="2"
                         ToolTipService.IsEnabled="False"
                         ToolTip="{Binding CommandParameter, RelativeSource={RelativeSource Self}, Converter={sskk:FormatString}, ConverterParameter={x:Static r:Strings.ToolTipOpenLink}}"
-                        Content="{sskk:Image {StaticResource ImageTwitter}, 24, 24, NearestNeighbor}">
+                        Content="{sskk:Image {StaticResource ImageXTwitter}, 24, 24, HighQuality}">
                     <i:Interaction.Behaviors>
                       <sskk:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding CurrentToolTip}"
                                                      DefaultValue="{x:Static r:Strings.ToolTipDefault}"/>
@@ -313,7 +313,7 @@
                         CommandParameter="{x:Static r:Urls.Facebook}" SnapsToDevicePixels="True" Margin="2"
                         ToolTipService.IsEnabled="False"
                         ToolTip="{Binding CommandParameter, RelativeSource={RelativeSource Self}, Converter={sskk:FormatString}, ConverterParameter={x:Static r:Strings.ToolTipOpenLink}}"
-                        Content="{sskk:Image {StaticResource ImageFacebook}, 24, 24, NearestNeighbor}">
+                        Content="{sskk:Image {StaticResource ImageFacebook}, 24, 24, HighQuality}">
                     <i:Interaction.Behaviors>
                       <sskk:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding CurrentToolTip}"
                                                      DefaultValue="{x:Static r:Strings.ToolTipDefault}"/>
@@ -324,7 +324,7 @@
                         CommandParameter="{x:Static r:Urls.Reddit}" SnapsToDevicePixels="True" Margin="2"
                         ToolTipService.IsEnabled="False"
                         ToolTip="{Binding CommandParameter, RelativeSource={RelativeSource Self}, Converter={sskk:FormatString}, ConverterParameter={x:Static r:Strings.ToolTipOpenLink}}"
-                        Content="{sskk:Image {StaticResource ImageReddit}, 24, 24, NearestNeighbor}">
+                        Content="{sskk:Image {StaticResource ImageReddit}, 24, 24, HighQuality}">
                     <i:Interaction.Behaviors>
                       <sskk:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding CurrentToolTip}"
                                                      DefaultValue="{x:Static r:Strings.ToolTipDefault}"/>
@@ -332,15 +332,15 @@
                   </Button>
                   <Button Style="{StaticResource TransparentButtonStyle}" HorizontalAlignment="Left"
                         Command="{Binding OpenUrlCommand}"
-                        CommandParameter="{x:Static r:Urls.Patreon}" SnapsToDevicePixels="True" Margin="2"
+                        CommandParameter="{x:Static r:Urls.OpenCollective}" SnapsToDevicePixels="True" Margin="2"
                         ToolTipService.IsEnabled="False"
                         ToolTip="{Binding CommandParameter, RelativeSource={RelativeSource Self}, Converter={sskk:FormatString}, ConverterParameter={x:Static r:Strings.ToolTipOpenLink}}"
-                        Content="{sskk:Image {StaticResource ImagePatreon}, 24, 24, NearestNeighbor}">
+                        Content="{sskk:Image {StaticResource ImageOpenCollective}, 24, 24, HighQuality}">
                     <i:Interaction.Behaviors>
                       <sskk:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding CurrentToolTip}"
                                                      DefaultValue="{x:Static r:Strings.ToolTipDefault}"/>
                     </i:Interaction.Behaviors>
-                  </Button>
+                  </Button>                  
                   <!--<Button Style="{StaticResource TransparentButtonStyle}" HorizontalAlignment="Left"
                         Command="{Binding OpenUrlCommand}"
                         CommandParameter="https://www.google.com/" SnapsToDevicePixels="True" Margin="2"
@@ -368,7 +368,7 @@
                                                      DefaultValue="{x:Static r:Strings.ToolTipDefault}"/>
                     </i:Interaction.Behaviors>
                     <StackPanel Orientation="Horizontal" SnapsToDevicePixels="True">
-                      <Image Margin="5" Source="{StaticResource ImageIssues}" RenderOptions.BitmapScalingMode="NearestNeighbor" Width="16" Height="16"/>
+                      <Image Margin="5" Source="{StaticResource ImageIssues}" RenderOptions.BitmapScalingMode="HighQuality" Width="16" Height="16"/>
                       <TextBlock DockPanel.Dock="Bottom" HorizontalAlignment="Center" Text="{x:Static r:Strings.ButtonIssues}" VerticalAlignment="Center"/>
                     </StackPanel>
                   </Button>
@@ -382,7 +382,7 @@
                                                      DefaultValue="{x:Static r:Strings.ToolTipDefault}"/>
                     </i:Interaction.Behaviors>
                     <StackPanel Orientation="Horizontal" SnapsToDevicePixels="True">
-                      <Image Margin="5" Source="{StaticResource ImageForums}" RenderOptions.BitmapScalingMode="NearestNeighbor" Width="16" Height="16"/>
+                      <Image Margin="5" Source="{StaticResource ImageForums}" RenderOptions.BitmapScalingMode="HighQuality" Width="16" Height="16"/>
                       <TextBlock DockPanel.Dock="Bottom" HorizontalAlignment="Center" Text="{x:Static r:Strings.ButtonForums}" VerticalAlignment="Center"/>
                     </StackPanel>
                   </Button>
@@ -396,7 +396,7 @@
                                                      DefaultValue="{x:Static r:Strings.ToolTipDefault}"/>
                     </i:Interaction.Behaviors>
                     <StackPanel Orientation="Horizontal" SnapsToDevicePixels="True">
-                      <Image Margin="5" Source="{StaticResource ImageChat}" RenderOptions.BitmapScalingMode="NearestNeighbor" Width="16" Height="16"/>
+                      <Image Margin="5" Source="{StaticResource ImageChat}" RenderOptions.BitmapScalingMode="HighQuality" Width="16" Height="16"/>
                       <TextBlock DockPanel.Dock="Bottom" HorizontalAlignment="Center" Text="{x:Static r:Strings.ButtonDiscord}" VerticalAlignment="Center"/>
                     </StackPanel>
                   </Button>
@@ -410,7 +410,7 @@
                                                      DefaultValue="{x:Static r:Strings.ToolTipDefault}"/>
                     </i:Interaction.Behaviors>
                     <StackPanel Orientation="Horizontal" SnapsToDevicePixels="True">
-                      <Image Margin="5" Source="{StaticResource ImageGithub}" RenderOptions.BitmapScalingMode="NearestNeighbor" Width="16" Height="16"/>
+                      <Image Margin="5" Source="{StaticResource ImageGithub}" RenderOptions.BitmapScalingMode="HighQuality" Width="16" Height="16"/>
                       <TextBlock DockPanel.Dock="Bottom" HorizontalAlignment="Center" Text="{x:Static r:Strings.ButtonGithub}" VerticalAlignment="Center"/>
                     </StackPanel>
                   </Button>
@@ -424,7 +424,7 @@
                                                      DefaultValue="{x:Static r:Strings.ToolTipDefault}"/>
                     </i:Interaction.Behaviors>
                     <StackPanel Orientation="Horizontal" SnapsToDevicePixels="True">
-                      <Image Margin="5" Source="{StaticResource ImageRoadmap}" RenderOptions.BitmapScalingMode="NearestNeighbor" Width="16" Height="16"/>
+                      <Image Margin="5" Source="{StaticResource ImageRoadmap}" RenderOptions.BitmapScalingMode="HighQuality" Width="16" Height="16"/>
                       <TextBlock DockPanel.Dock="Bottom" HorizontalAlignment="Center" Text="{x:Static r:Strings.ButtonRoadmap}" VerticalAlignment="Center"/>
                     </StackPanel>
                   </Button>
@@ -499,21 +499,38 @@
                 </StackPanel>
               </Border>
               <Border BorderBrush="{StaticResource TileBorderBrush}" BorderThickness="{StaticResource TileBorderThickness}" DockPanel.Dock="Top">
-                <DockPanel Height="32" Margin="10,0">
-                  <Image Source="{StaticResource ImageSwitchVersion}" Width="26" Height="26" RenderOptions.BitmapScalingMode="NearestNeighbor" VerticalAlignment="Center"/>
+                <DockPanel Height="32" Margin="5,0">
+                  <Image Source="{StaticResource ImageSwitchVersion}" Width="26" Height="26" RenderOptions.BitmapScalingMode="HighQuality" VerticalAlignment="Center"/>
                   <TextBlock Margin="10,0,0,0" Text="{x:Static r:Strings.SwitchOrUpdateVersion}" FontSize="24" TextAlignment="Left" VerticalAlignment="Center"/>
                 </DockPanel>
               </Border>
               <Border BorderBrush="{StaticResource TileBorderBrush}" BorderThickness="{StaticResource TileBorderThickness}" DockPanel.Dock="Bottom">
-                <UniformGrid Columns="2">
-                  <ContentControl Grid.Column="0" Margin="0,0,2,0" Content="{Binding VsixPackage}"/>
-                  <ContentControl Grid.Column="1" Margin="2,0,0,0" Content="{Binding VsixPackageXenko}"/>
-                </UniformGrid>
+                <StackPanel >
+                  <ContentControl Grid.Column="0" Margin="2" Content="{Binding VsixPackage2019}"/>
+                  <ContentControl Grid.Column="1" Margin="2" Content="{Binding VsixPackage2022}"/>
+                </StackPanel>
               </Border>
-              <Border BorderBrush="{StaticResource TileBorderBrush}" BorderThickness="{StaticResource TileBorderThickness}" DockPanel.Dock="Bottom">
-                <DockPanel Height="32" Margin="10,0">
-                  <Image Source="{StaticResource ImageVisualStudio}" Width="26" Height="26" RenderOptions.BitmapScalingMode="NearestNeighbor" VerticalAlignment="Center"/>
-                  <TextBlock Margin="10,0,0,0" Text="{x:Static r:Strings.VisualStudioPlugin}" FontSize="24" TextAlignment="Left" VerticalAlignment="Center"/>
+              <Border BorderBrush="{StaticResource TileBorderBrush}" DockPanel.Dock="Bottom">
+                <DockPanel Height="20" Margin="5,0">
+                  <Button Style="{StaticResource TransparentButtonStyle}" HorizontalAlignment="Left"
+                        Command="{Binding OpenUrlCommand}"
+                        CommandParameter="{x:Static r:Urls.VisualStudio}"
+                        ToolTipService.IsEnabled="False"
+                        ToolTip="{Binding CommandParameter, RelativeSource={RelativeSource Self}, Converter={sskk:FormatString}, ConverterParameter={x:Static r:Strings.ToolTipOpenLink}}">
+                    <i:Interaction.Behaviors>
+                      <sskk:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding CurrentToolTip}"
+                                                     DefaultValue="{x:Static r:Strings.ToolTipDefault}"/>
+                    </i:Interaction.Behaviors>
+                    <StackPanel Orientation="Horizontal" SnapsToDevicePixels="True">
+                      <TextBlock Margin="10,0,0,0" Text="{x:Static r:Strings.VisualStudioDownloadPage}" FontSize="12" TextAlignment="Left" VerticalAlignment="Center" Loaded="TextBlockVisualStudioDownloadPage_Loaded"/>
+                    </StackPanel>
+                  </Button>
+                </DockPanel>
+              </Border>
+              <Border BorderBrush="{StaticResource TileBorderBrush}" BorderThickness="15,0,0,0" DockPanel.Dock="Bottom">
+                <DockPanel Height="32" Margin="5,0">
+                  <Image Source="{StaticResource ImageVisualStudio}" Width="26" Height="26" RenderOptions.BitmapScalingMode="HighQuality" VerticalAlignment="Center"/>
+                  <TextBlock Margin="10,0,0,0" Text="{x:Static r:Strings.VisualStudioExtension}" FontSize="24" TextAlignment="Left" VerticalAlignment="Center"/>
                 </DockPanel>
               </Border>
               <Border BorderBrush="{StaticResource TileBorderBrush}" BorderThickness="{StaticResource TileBorderThickness}"
@@ -579,7 +596,7 @@
               <DockPanel>
                 <Border DockPanel.Dock="Top" BorderBrush="{StaticResource TileBorderBrush}" BorderThickness="{StaticResource TileBorderThickness}">
                   <DockPanel Height="48" Margin="10,0">
-                    <Image Source="{StaticResource ImageProjects}" Width="26" Height="26" RenderOptions.BitmapScalingMode="NearestNeighbor" VerticalAlignment="Center"/>
+                    <Image Source="{StaticResource ImageProjects}" Width="26" Height="26" RenderOptions.BitmapScalingMode="HighQuality" VerticalAlignment="Center"/>
                     <TextBlock Margin="10,0,0,0" Text="{x:Static r:Strings.Projects}" FontSize="24" TextAlignment="Left" VerticalAlignment="Center"/>
                   </DockPanel>
                 </Border>

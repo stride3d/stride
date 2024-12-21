@@ -81,7 +81,7 @@ namespace Stride.Core.Assets.Editor.Services
             }
             else
             {
-                startInfo.FileName = session.SolutionPath.ToWindowsPath();
+                startInfo.FileName = session.SolutionPath.ToOSPath();
                 startInfo.UseShellExecute = true;
             }
             try
@@ -90,7 +90,7 @@ namespace Stride.Core.Assets.Editor.Services
             }
             catch
             {
-                await session.Dialogs.MessageBox(Tr._p("Message", "An error occurred while starting Visual Studio."), MessageBoxButton.OK, MessageBoxImage.Information);
+                await session.Dialogs.MessageBoxAsync(Tr._p("Message", "An error occurred while starting Visual Studio."), MessageBoxButton.OK, MessageBoxImage.Information);
                 return null;
             }
         }
@@ -99,7 +99,7 @@ namespace Stride.Core.Assets.Editor.Services
         {
             if (string.IsNullOrEmpty(session.SolutionPath))
             {
-                await session.Dialogs.MessageBox(Tr._p("Message", "The session currently open is not a Visual Studio session."), MessageBoxButton.OK, MessageBoxImage.Information);
+                await session.Dialogs.MessageBoxAsync(Tr._p("Message", "The session currently open is not a Visual Studio session."), MessageBoxButton.OK, MessageBoxImage.Information);
                 return false;
             }
             return true;
@@ -112,7 +112,7 @@ namespace Stride.Core.Assets.Editor.Services
             foreach (var process in processes)
             {
                 // Get instances that have a solution with the same name currently open (The solution name is displayed in the title bar).
-                if (process.MainWindowTitle.ToLowerInvariant().StartsWith(solutionPath.GetFileNameWithoutExtension().ToLowerInvariant()))
+                if (process.MainWindowTitle.StartsWith(solutionPath.GetFileNameWithoutExtension(), StringComparison.OrdinalIgnoreCase))
                 {
                     // If there is a matching instance, get its command line.
                     var query = $"SELECT CommandLine FROM Win32_Process WHERE ProcessId = {process.Id}";
@@ -120,7 +120,7 @@ namespace Stride.Core.Assets.Editor.Services
                     {
                         var managementObject = managementObjectSearcher.Get().Cast<ManagementObject>().First();
                         var commandLine = managementObject["CommandLine"].ToString();
-                        if (commandLine.ToLowerInvariant().Replace("/", "\\").Contains(solutionPath.ToString().ToLowerInvariant().Replace("/", "\\")))
+                        if (commandLine.Replace('/', '\\').Contains(solutionPath.ToString().Replace('/', '\\'), StringComparison.OrdinalIgnoreCase))
                         {
                             return process;
                         }

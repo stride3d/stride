@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -16,25 +17,25 @@ namespace Stride.Core.Reflection
     /// </summary>
     public class ObjectDescriptor : ITypeDescriptor
     {
-        protected static readonly string SystemCollectionsNamespace = typeof(int).Namespace;
+        protected static readonly string SystemCollectionsNamespace = typeof(int).Namespace!;
         public static readonly ShouldSerializePredicate ShouldSerializeDefault = (obj, parentTypeMemberDesc) => true;
-        private static readonly List<IMemberDescriptor> EmptyMembers = new List<IMemberDescriptor>();
+        private static readonly List<IMemberDescriptor> EmptyMembers = [];
 
         private readonly ITypeDescriptorFactory factory;
         private IMemberDescriptor[] members;
         private Dictionary<string, IMemberDescriptor> mapMembers;
         private HashSet<string> remapMembers;
-        private static readonly object[] EmptyObjectArray = new object[0];
+        private static readonly object[] EmptyObjectArray = [];
         private readonly bool emitDefaultValues;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ObjectDescriptor" /> class.
         /// </summary>
-        public ObjectDescriptor(ITypeDescriptorFactory factory, [NotNull] Type type, bool emitDefaultValues, IMemberNamingConvention namingConvention)
+        public ObjectDescriptor(ITypeDescriptorFactory factory, Type type, bool emitDefaultValues, IMemberNamingConvention namingConvention)
         {
-            if (factory == null) throw new ArgumentNullException(nameof(factory));
-            if (type == null) throw new ArgumentNullException(nameof(type));
-            if (namingConvention == null) throw new ArgumentNullException(nameof(namingConvention));
+            ArgumentNullException.ThrowIfNull(factory);
+            ArgumentNullException.ThrowIfNull(type);
+            ArgumentNullException.ThrowIfNull(namingConvention);
 
             this.factory = factory;
             Type = type;
@@ -47,8 +48,7 @@ namespace Stride.Core.Reflection
             Style = DataStyle.Any;
             foreach (var attribute in Attributes)
             {
-                var styleAttribute = attribute as DataStyleAttribute;
-                if (styleAttribute != null)
+                if (attribute is DataStyleAttribute styleAttribute)
                 {
                     Style = styleAttribute.Style;
                 }
@@ -71,7 +71,6 @@ namespace Stride.Core.Reflection
 
         protected IAttributeRegistry AttributeRegistry => factory.AttributeRegistry;
 
-        [NotNull]
         public Type Type { get; }
 
         public IEnumerable<IMemberDescriptor> Members => members;
@@ -114,12 +113,11 @@ namespace Stride.Core.Reflection
             }
         }
 
-        public IMemberDescriptor TryGetMember(string name)
+        public IMemberDescriptor? TryGetMember(string name)
         {
             if (mapMembers == null)
                 return null;
-            IMemberDescriptor member;
-            mapMembers.TryGetValue(name, out member);
+            mapMembers.TryGetValue(name, out var member);
             return member;
         }
 
@@ -154,8 +152,7 @@ namespace Stride.Core.Reflection
 
             foreach (var member in members)
             {
-                IMemberDescriptor existingMember;
-                if (mapMembers.TryGetValue(member.Name, out existingMember))
+                if (mapMembers.TryGetValue(member.Name, out var existingMember))
                 {
                     throw new InvalidOperationException("Failed to get ObjectDescriptor for type [{0}]. The member [{1}] cannot be registered as a member with the same name is already registered [{2}]".ToFormat(Type.FullName, member, existingMember));
                 }
@@ -171,10 +168,7 @@ namespace Stride.Core.Reflection
                         {
                             throw new InvalidOperationException($"Failed to get ObjectDescriptor for type [{Type.FullName}]. The member [{member}] cannot be registered as a member with the same name [{alternateName}] is already registered [{existingMember}]");
                         }
-                        if (remapMembers == null)
-                        {
-                            remapMembers = new HashSet<string>();
-                        }
+                        remapMembers ??= [];
 
                         mapMembers[alternateName] = member;
                         remapMembers.Add(alternateName);
@@ -213,11 +207,12 @@ namespace Stride.Core.Reflection
             }
 
             // TODO: we might want an option to disable non-public.
-            if (Category == DescriptorCategory.Object || Category == DescriptorCategory.NotSupportedObject)
+            if (Category is DescriptorCategory.Object or DescriptorCategory.NotSupportedObject)
                 bindingFlags |= BindingFlags.NonPublic;
 
             var memberList = (from propertyInfo in Type.GetProperties(bindingFlags)
-                              where propertyInfo.CanRead && propertyInfo.GetIndexParameters().Length == 0 && IsMemberToVisit(propertyInfo)
+                              where Type.IsAnonymous() || IsAccessibleThroughAccessModifiers(propertyInfo)
+                              where propertyInfo.GetIndexParameters().Length == 0 && IsMemberToVisit(propertyInfo)
                               select new PropertyDescriptor(factory.Find(propertyInfo.PropertyType), propertyInfo, NamingConvention.Comparer)
                               into member
                               where PrepareMember(member, metadataClassMemberInfos?.FirstOrDefault(x => x.MemberInfo.Name == member.OriginalName && x.MemberType == member.Type).MemberInfo)
@@ -225,7 +220,8 @@ namespace Stride.Core.Reflection
 
             // Add all public fields
             memberList.AddRange(from fieldInfo in Type.GetFields(bindingFlags)
-                                where fieldInfo.IsPublic && IsMemberToVisit(fieldInfo)
+                                where (fieldInfo.IsPublic || (fieldInfo.IsAssembly && fieldInfo.GetCustomAttribute<DataMemberAttribute>() != null))
+                                where IsMemberToVisit(fieldInfo)
                                 select new FieldDescriptor(factory.Find(fieldInfo.FieldType), fieldInfo, NamingConvention.Comparer)
                                 into member
                                 where PrepareMember(member, metadataClassMemberInfos?.FirstOrDefault(x => x.MemberInfo.Name == member.OriginalName && x.MemberType == member.Type).MemberInfo)
@@ -235,6 +231,33 @@ namespace Stride.Core.Reflection
             (AttributeRegistry as AttributeRegistry)?.PrepareMembersCallback?.Invoke(this, memberList);
 
             return memberList;
+        }
+
+        static bool IsAccessibleThroughAccessModifiers(PropertyInfo property)
+        {
+            var get = property.GetMethod;
+            var set = property.SetMethod;
+
+            if (get == null)
+                return false;
+
+            bool forced = property.GetCustomAttribute<DataMemberAttribute>() is not null;
+
+            if (forced && (get.IsPublic || get.IsAssembly))
+                return true;
+
+            // By default, allow access for get-only auto-property, i.e.: { get; } but not { get => }
+            // as the later may create side effects, and without a setter, we can't 'set' as a fallback for those exceptional cases.
+            if (get.IsPublic)
+                return set?.IsPublic == true || set == null && TryGetBackingField(property, out _);
+
+            return false;
+        }
+
+        static bool TryGetBackingField(PropertyInfo property, [MaybeNullWhen(false)] out FieldInfo backingField)
+        {
+            backingField = property.DeclaringType?.GetField($"<{property.Name}>k__BackingField", BindingFlags.Instance | BindingFlags.NonPublic);
+            return backingField != null;
         }
 
         protected virtual bool PrepareMember(MemberDescriptorBase member, MemberInfo metadataClassMemberInfo)
@@ -253,8 +276,7 @@ namespace Stride.Core.Reflection
             }
 
             // Gets the style
-            var styleAttribute = attributes.FirstOrDefault(x => x is DataStyleAttribute) as DataStyleAttribute;
-            if (styleAttribute != null)
+            if (attributes.FirstOrDefault(x => x is DataStyleAttribute) is DataStyleAttribute styleAttribute)
             {
                 member.Style = styleAttribute.Style;
                 member.ScalarStyle = styleAttribute.ScalarStyle;
@@ -265,14 +287,12 @@ namespace Stride.Core.Reflection
             if (memberAttribute != null)
             {
                 ((IMemberDescriptor)member).Mask = memberAttribute.Mask;
+                member.Mode = memberAttribute.Mode;
                 if (!member.HasSet)
                 {
-                    if (memberAttribute.Mode == DataMemberMode.Assign ||
-                        (memberType.IsValueType && member.Mode == DataMemberMode.Content))
-                        throw new ArgumentException($"{memberType.FullName} {member.OriginalName} is not writeable by {memberAttribute.Mode.ToString()}.");
+                    if (memberAttribute.Mode == DataMemberMode.Assign || memberType.IsValueType || memberType == typeof(string))
+                        member.Mode = DataMemberMode.Never;
                 }
-
-                member.Mode = memberAttribute.Mode;
                 member.Order = memberAttribute.Order;
             }
 
@@ -289,24 +309,20 @@ namespace Stride.Core.Reflection
             }
 
             // Process all attributes just once instead of getting them one by one
-            DefaultValueAttribute defaultValueAttribute = null;
+            DefaultValueAttribute? defaultValueAttribute = null;
             foreach (var attribute in attributes)
             {
-                var valueAttribute = attribute as DefaultValueAttribute;
-                if (valueAttribute != null)
+                if (attribute is DefaultValueAttribute valueAttribute)
                 {
                     // If we've already found one, don't overwrite it
-                    defaultValueAttribute = defaultValueAttribute ?? valueAttribute;
+                    defaultValueAttribute ??= valueAttribute;
                     continue;
                 }
 
-                var yamlRemap = attribute as DataAliasAttribute;
-                if (yamlRemap != null)
+                if (attribute is DataAliasAttribute yamlRemap)
                 {
-                    if (member.AlternativeNames == null)
-                    {
-                        member.AlternativeNames = new List<string>();
-                    }
+                    member.AlternativeNames ??= [];
+                    
                     if (!string.IsNullOrWhiteSpace(yamlRemap.Name))
                     {
                         member.AlternativeNames.Add(yamlRemap.Name);
@@ -319,14 +335,6 @@ namespace Stride.Core.Reflection
             {
                 if (memberAttribute == null)
                     return false;
-            }
-
-            if (member.Mode == DataMemberMode.Binary)
-            {
-                if (!memberType.IsArray)
-                    throw new InvalidOperationException($"{memberType.FullName} {member.OriginalName} of {Type.FullName} is not an array. Can not be serialized as binary.");
-                if (!memberType.GetElementType().IsPureValueType())
-                    throw new InvalidOperationException($"{memberType.GetElementType()} is not a pure ValueType. {memberType.FullName} {member.OriginalName} of {Type.FullName} can not serialize as binary.");
             }
 
             // If this member cannot be serialized, remove it from the list
@@ -342,13 +350,13 @@ namespace Stride.Core.Reflection
             //	  otherwise => true
             var shouldSerialize = Type.GetMethod("ShouldSerialize" + member.OriginalName, BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
             if (shouldSerialize != null && shouldSerialize.ReturnType == typeof(bool) && member.ShouldSerialize == null)
-                member.ShouldSerialize = (obj, parentTypeMemberDesc) => (bool)shouldSerialize.Invoke(obj, EmptyObjectArray);
+                member.ShouldSerialize = (obj, parentTypeMemberDesc) => (bool)shouldSerialize.Invoke(obj, EmptyObjectArray)!;
 
             if (defaultValueAttribute != null && member.ShouldSerialize == null && !emitDefaultValues)
             {
                 member.DefaultValueAttribute = defaultValueAttribute;
-                object defaultValue = defaultValueAttribute.Value;
-                Type defaultType = defaultValue?.GetType();
+                var defaultValue = defaultValueAttribute.Value;
+                var defaultType = defaultValue?.GetType();
                 if (defaultType != null && defaultType.IsNumeric() && defaultType != memberType)
                 {
                     try
@@ -375,8 +383,7 @@ namespace Stride.Core.Reflection
                 };
             }
 
-            if (member.ShouldSerialize == null)
-                member.ShouldSerialize = ShouldSerializeDefault;
+            member.ShouldSerialize ??= ShouldSerializeDefault;
 
             member.Name = !string.IsNullOrEmpty(memberAttribute?.Name) ? memberAttribute.Name : NamingConvention.Convert(member.OriginalName);
 
@@ -386,21 +393,19 @@ namespace Stride.Core.Reflection
         protected bool IsMemberToVisit(MemberInfo memberInfo)
         {
             // Remove all SyncRoot from members
-            if (memberInfo is PropertyInfo && memberInfo.Name == "SyncRoot" && memberInfo.DeclaringType != null && (memberInfo.DeclaringType.Namespace ?? string.Empty).StartsWith(SystemCollectionsNamespace))
+            if (memberInfo is PropertyInfo && memberInfo.Name == "SyncRoot" && memberInfo.DeclaringType != null && (memberInfo.DeclaringType.Namespace ?? string.Empty).StartsWith(SystemCollectionsNamespace, StringComparison.Ordinal))
             {
                 return false;
             }
 
-            Type memberType = null;
-            var fieldInfo = memberInfo as FieldInfo;
-            if (fieldInfo != null)
+            Type? memberType = null;
+            if (memberInfo is FieldInfo fieldInfo)
             {
                 memberType = fieldInfo.FieldType;
             }
             else
             {
-                var propertyInfo = memberInfo as PropertyInfo;
-                if (propertyInfo != null)
+                if (memberInfo is PropertyInfo propertyInfo)
                 {
                     memberType = propertyInfo.PropertyType;
                 }
@@ -414,12 +419,7 @@ namespace Stride.Core.Reflection
                 }
             }
 
-
-            // Member is not displayed if there is a YamlIgnore attribute on it
-            if (AttributeRegistry.GetAttribute<DataMemberIgnoreAttribute>(memberInfo) != null)
-                return false;
-
-            return true;
+            return AttributeRegistry.GetAttribute<DataMemberIgnoreAttribute>(memberInfo) is null;
         }
     }
 }

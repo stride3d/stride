@@ -1,12 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-#if STRIDE_GRAPHICS_API_OPENGL 
+#if STRIDE_GRAPHICS_API_OPENGL
 using System;
-#if STRIDE_GRAPHICS_API_OPENGLES
-using OpenTK.Graphics.ES30;
-#else
-using OpenTK.Graphics.OpenGL;
-#endif
 
 namespace Stride.Graphics
 {
@@ -17,7 +12,7 @@ namespace Stride.Graphics
         public bool DepthClamp;
 
         public bool NeedCulling;
-        public CullFaceMode CullMode;
+        public GLEnum CullMode;
         public int DepthBias;
         public float SlopeScaleDepthBias;
         public FrontFaceDirection FrontFaceDirection;
@@ -29,12 +24,6 @@ namespace Stride.Graphics
 
     class RasterizerState
     {
-#if STRIDE_GRAPHICS_API_OPENGLES
-        private const EnableCap DepthClamp = (EnableCap)0x864F;
-#else
-        private const EnableCap DepthClamp = (EnableCap)ArbDepthClamp.DepthClamp;
-#endif
-
         RasterizerBoundState State;
 
         internal RasterizerState(RasterizerStateDescription rasterizerStateDescription)
@@ -48,7 +37,7 @@ namespace Stride.Graphics
 
             State.FrontFaceDirection =
                 rasterizerStateDescription.FrontFaceCounterClockwise
-                ? FrontFaceDirection.Cw
+                ? FrontFaceDirection.CW
                 : FrontFaceDirection.Ccw;
 
             State.DepthBias = rasterizerStateDescription.DepthBias;
@@ -64,11 +53,13 @@ namespace Stride.Graphics
 
         public void Apply(CommandList commandList)
         {
+            var GL = commandList.GL;
+
 #if !STRIDE_GRAPHICS_API_OPENGLES
             if (commandList.RasterizerBoundState.PolygonMode != State.PolygonMode)
             {
                 commandList.RasterizerBoundState.PolygonMode = State.PolygonMode;
-                GL.PolygonMode(MaterialFace.FrontAndBack, State.PolygonMode);
+                GL.PolygonMode(GLEnum.FrontAndBack, State.PolygonMode);
             }
 #endif
 
@@ -91,9 +82,9 @@ namespace Stride.Graphics
                 {
                     commandList.RasterizerBoundState.DepthClamp = State.DepthClamp;
                     if (State.DepthClamp)
-                        GL.Enable(DepthClamp);
+                        GL.Enable(EnableCap.DepthClamp);
                     else
-                        GL.Disable(DepthClamp);
+                        GL.Disable(EnableCap.DepthClamp);
                 }
             }
 
@@ -127,16 +118,16 @@ namespace Stride.Graphics
             }
         }
 
-        private static CullFaceMode GetCullMode(CullMode cullMode)
+        private static GLEnum GetCullMode(CullMode cullMode)
         {
             switch (cullMode)
             {
                 case CullMode.Front:
-                    return CullFaceMode.Front;
+                    return GLEnum.Front;
                 case CullMode.Back:
-                    return CullFaceMode.Back;
+                    return GLEnum.Back;
                 default:
-                    return CullFaceMode.Back; // not used if CullMode.None
+                    return GLEnum.Back; // not used if CullMode.None
             }
         }
     }

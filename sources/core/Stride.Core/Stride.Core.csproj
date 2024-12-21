@@ -11,7 +11,6 @@
   </PropertyGroup>
   
   <PropertyGroup>
-    <StrideNativeOutputName>libcore</StrideNativeOutputName>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <StrideAssemblyProcessorOptions>--auto-module-initializer --serialization</StrideAssemblyProcessorOptions>
     <StrideBuildTags>*</StrideBuildTags>
@@ -19,37 +18,10 @@
     <ExtrasUwpMetaPackageVersion>6.2.12</ExtrasUwpMetaPackageVersion>
   </PropertyGroup>
   
-  <Choose>
-    <When Condition=" '$(StridePlatform)' == 'Android' ">
-      <ItemGroup>
-        <Reference Include="Mono.Android" />
-      </ItemGroup>
-    </When>
-  </Choose>
-  <Choose>
-    <When Condition=" '$(StridePlatform)' == 'iOS' ">
-      <ItemGroup>
-        <Reference Include="Xamarin.iOS" />
-      </ItemGroup>
-    </When>
-  </Choose>
-  <Choose>
-    <When Condition=" '$(StrideNETRuntime)' == 'CoreCLR' ">
-      <ItemGroup>
-        <None Include="..\..\data\Linux\runtimeconfig.json">
-          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Include="..\..\data\Linux\CoreCLRSetup.sh">
-          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-      </ItemGroup>
-    </When>
-  </Choose>
-  
   <ItemGroup>
-    <PackageReference Include="ServiceWire" Version="5.3.4" />
-    <PackageReference Include="System.ValueTuple" Version="4.5.0" />
-    <PackageReference Include="Microsoft.NETCore.Platforms" Version="2.2.3" />
+    <PackageReference Include="ServiceWire" />
+    <PackageReference Include="System.ValueTuple" />
+    <PackageReference Include="Microsoft.NETCore.Platforms" />
   </ItemGroup>
   
   <ItemGroup>
@@ -61,6 +33,10 @@
     <None Include="build\**\*.targets" PackagePath="buildTransitive\" Pack="true" />
     <None Include="build\**\*.props" PackagePath="buildTransitive\" Pack="true" />
     <None Include="..\..\..\deps\AssemblyProcessor\**\*.*" Exclude="..\..\..\deps\AssemblyProcessor\.gitignore" PackagePath="tools\AssemblyProcessor\" Pack="true" />
+
+    <!-- The following line packages up the analyzer into Stride.Core - this way it will be transiently invoked in packages that depend on Stride.Core -->
+    <!-- You need to rebuild this project if the file changes (VS caches it somewhere) -->
+    <None Include="$(MSBuildThisFileDirectory)\..\Stride.Core.CompilerServices\bin\$(Configuration)\netstandard2.0\Stride.Core.CompilerServices.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
   </ItemGroup>
   
   <ItemGroup>
@@ -110,10 +86,6 @@
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>TupleSerializer.cs</LastGenOutput>
     </None>
-  </ItemGroup>
-  
-  <ItemGroup>
-    <StrideContent Condition="'$(StridePlatform)' == 'Linux'" Include="Stride.Core.dll.config" />
   </ItemGroup>
   
   <ItemGroup>

@@ -24,15 +24,19 @@ using Stride.Starter;
 
 namespace <#= Properties.Namespace #>
 {
-    [Activity(MainLauncher = true, 
-              Icon = "@drawable/icon", 
+    [Activity(MainLauncher = true,
+              Icon = "@mipmap/gameicon",
+              Label = "@string/app_name",
               ScreenOrientation = ScreenOrientation.<#= androidOrientation #>,
+              Theme = "@android:style/Theme.NoTitleBar.Fullscreen",
               ConfigurationChanges = ConfigChanges.UiMode | ConfigChanges.Orientation | ConfigChanges.KeyboardHidden | ConfigChanges.ScreenSize)]
-    public class <#= Properties.PackageGameNameShort #>Activity : AndroidStrideActivity
+    public class <#= Properties.PackageGameNameShort #>Activity : StrideActivity
     {
-        protected override void OnCreate(Bundle bundle)
+        protected Game Game;
+
+        protected override void OnRun()
         {
-            base.OnCreate(bundle);
+            base.OnRun();
 
             Game = new Game();
             Game.Run(GameContext);

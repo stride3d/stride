@@ -3,6 +3,7 @@
 using Stride.Core;
 using Stride.Games;
 using Stride.Graphics;
+using Buffer = Stride.Graphics.Buffer;
 
 namespace Stride.Rendering
 {

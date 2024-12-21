@@ -61,7 +61,7 @@ namespace Stride.Core.IO
         /// <param name="isDirectory">if set to <c>true</c> the filePath is considered as a directory and not a filename.</param>
         internal UPath(string filePath, bool isDirectory)
         {
-            if (!isDirectory && filePath != null && (filePath.EndsWith(DirectorySeparatorString) || filePath.EndsWith(DirectorySeparatorStringAlt) || filePath.EndsWith(Path.VolumeSeparatorChar)))
+            if (!isDirectory && filePath != null && (filePath.EndsWith(DirectorySeparatorChar) || filePath.EndsWith(DirectorySeparatorCharAlt) || filePath.EndsWith(Path.VolumeSeparatorChar)))
             {
                 throw new ArgumentException("A file path cannot end with with directory char '\\' or '/', or a volume separator ':'.");
             }
@@ -284,15 +284,18 @@ namespace Stride.Core.IO
         {
             return FullPath;
         }
-
+        
         /// <summary>
-        /// Converts this path to a Windows path (/ replaced by \)
+        /// Converts this path to a OS path, 
+        /// by replacing each separator with the current operating system
+        /// <see cref="Path.DirectorySeparatorChar"/> 
         /// </summary>
-        /// <returns>A string representation of this path in windows form.</returns>
+        ///<returns>A normalized string path</returns>
+
         [NotNull]
-        public string ToWindowsPath()
+        public string ToOSPath()
         {
-            return FullPath.Replace('/', '\\');
+            return FullPath.Replace('/', Path.DirectorySeparatorChar); 
         }
 
         /// <summary>

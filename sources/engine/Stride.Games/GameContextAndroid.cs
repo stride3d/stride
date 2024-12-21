@@ -2,28 +2,37 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #if STRIDE_PLATFORM_ANDROID
 using Android.Widget;
-using OpenTK.Platform.Android;
-using Stride.Games.Android;
+using Stride.Starter;
 
 namespace Stride.Games
 {
     /// <summary>
-    /// A <see cref="GameContext"/> to use for rendering to an existing WinForm <see cref="Control"/>.
+    /// A <see cref="GameContext"/> to use for rendering on Android.
     /// </summary>
-    public partial class GameContextAndroid : GameContext<AndroidStrideGameView>
+    public partial class GameContextAndroid : GameContextSDL
     {
+        private readonly StrideActivity strideActivity;
+        private PopupWindow editTextPopupWindow;
+
+        internal bool RecreateEditTextPopupWindow { get; set; } = true;
+
         /// <inheritDoc/>
-        public GameContextAndroid(AndroidStrideGameView control, RelativeLayout editTextLayout, int requestedWidth = 0, int requestedHeight = 0)
-            : base(control, requestedWidth, requestedHeight)
+        public GameContextAndroid(Stride.Graphics.SDL.Window control, StrideActivity strideActivity)
+            : base(control)
         {
-            EditTextLayout = editTextLayout;
+            this.strideActivity = strideActivity;
             ContextType = AppContextType.Android;
         }
 
-        /// <summary>
-        /// The layout used to add the <see cref="EditText"/>s.
-        /// </summary>
-        public readonly RelativeLayout EditTextLayout;
+        internal PopupWindow CreateEditTextPopup(EditText editText)
+        {
+            editTextPopupWindow = strideActivity.CreateEditTextPopup(editText);
+            return editTextPopupWindow;
+        }
+
+        internal void ShowEditTextPopup() => strideActivity.ShowEditTextPopup(editTextPopupWindow);
+
+        internal void HideEditTextPopup() => strideActivity.HideEditTextPopup(editTextPopupWindow);
     }
 }
 #endif

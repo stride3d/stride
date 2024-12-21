@@ -28,10 +28,8 @@ namespace Stride.Assets.Models
 
         public static ImportModelCommand Create(string extension)
         {
-            if (ImportFbxCommand.IsSupportingExtensions(extension))
-                return new ImportFbxCommand();
-            if (ImportAssimpCommand.IsSupportingExtensions(extension))
-                return new ImportAssimpCommand();
+           if (ImportThreeDCommand.IsSupportingExtensions(extension))
+                return new ImportThreeDCommand();
 
             return null;
         }
@@ -209,9 +207,12 @@ namespace Stride.Assets.Models
                 {
                     // Data
                     fixed (byte* dataValues0 = parameters0.DataValues)
-                    fixed (byte* dataValues1 = parameters1.DataValues)
-                        if (!Core.Utilities.CompareMemory((IntPtr)dataValues0 + parameterKeyInfo.Offset, (IntPtr)dataValues1 + otherParameterKeyInfo.Offset, parameterKeyInfo.Count))
+                    fixed (byte* dataValues1 = parameters1.DataValues) {
+                        var lhs = new Span<byte>(dataValues0 + parameterKeyInfo.Offset, parameterKeyInfo.Count);
+                        var rhs = new Span<byte>(dataValues1 + otherParameterKeyInfo.Offset, parameterKeyInfo.Count);
+                        if (!lhs.SequenceEqual(rhs))
                             return false;
+                    }
                 }
                 else if (parameterKeyInfo.BindingSlot != -1)
                 {

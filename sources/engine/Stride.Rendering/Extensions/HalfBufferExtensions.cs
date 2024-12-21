@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Graphics;
@@ -43,19 +44,19 @@ namespace Stride.Extensions
                         vertexElementFormat = PixelFormat.R16G16_Float;
 
                         // Adjust next offset if current object has been resized
-                        offsetShift = Utilities.SizeOf<Half2>() - Utilities.SizeOf<Vector2>();
+                        offsetShift = Unsafe.SizeOf<Half2>() - Unsafe.SizeOf<Vector2>();
                         break;
                     case PixelFormat.R32G32B32_Float:
                         vertexElementFormat = PixelFormat.R16G16B16A16_Float;
 
                         // Adjust next offset if current object has been resized
-                        offsetShift = Utilities.SizeOf<Half4>() - Utilities.SizeOf<Vector3>();
+                        offsetShift = Unsafe.SizeOf<Half4>() - Unsafe.SizeOf<Vector3>();
                         break;
                     case PixelFormat.R32G32B32A32_Float:
                         vertexElementFormat = PixelFormat.R16G16B16A16_Float;
 
                         // Adjust next offset if current object has been resized
-                        offsetShift = Utilities.SizeOf<Half4>() - Utilities.SizeOf<Vector4>();
+                        offsetShift = Unsafe.SizeOf<Half4>() - Unsafe.SizeOf<Vector4>();
                         break;
                 }
 
@@ -84,8 +85,8 @@ namespace Stride.Extensions
             fixed (byte* oldBuffer = &vertexBufferBinding.Buffer.GetSerializationData().Content[vertexBufferBinding.Offset])
             fixed (byte* newBuffer = &newBufferData[0])
             {
-                var oldBufferVertexPtr = (IntPtr)oldBuffer;
-                var newBufferVertexPtr = (IntPtr)newBuffer;
+                var oldBufferVertexPtr = oldBuffer;
+                var newBufferVertexPtr = newBuffer;
                 for (int i = 0; i < vertexBufferBinding.Count; ++i)
                 {
                     foreach (var element in vertexElements)
@@ -102,7 +103,7 @@ namespace Stride.Extensions
                                     *((Half2*)newBufferElementPtr) = (Half2)(*((Vector2*)oldBufferElementPtr));
                                     break;
                                 case PixelFormat.R32G32B32_Float:
-                                    // Put 1.0f in 
+                                    // Put 1.0f in
                                     *((Half4*)newBufferElementPtr) = (Half4)(new Vector4(*((Vector3*)oldBufferElementPtr), 1.0f));
                                     break;
                                 case PixelFormat.R32G32B32A32_Float:
@@ -113,7 +114,7 @@ namespace Stride.Extensions
                         else
                         {
                             // Copy as is
-                            Utilities.CopyMemory(newBufferElementPtr, oldBufferElementPtr, element.VertexElementWithOffset.Size);
+                            Unsafe.CopyBlockUnaligned(newBufferElementPtr, oldBufferElementPtr, (uint)element.VertexElementWithOffset.Size);
                         }
                     }
 

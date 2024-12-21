@@ -82,7 +82,7 @@ namespace Stride.Games.Testing
 
             var runTask = Task.Run(() => socketMessageLayer.MessageLoop());
 
-            var cmd = platform == PlatformType.Windows ? Path.Combine(Environment.CurrentDirectory, gamePath, "Bin\\Windows\\Debug", gameName + ".Windows.exe") : "";
+            var cmd = platform == PlatformType.Windows ? Path.Combine(Environment.CurrentDirectory, gamePath, "Bin\\Windows\\Debug\\win-x64", gameName + ".Windows.exe") : "";
 
             socketMessageLayer.Send(new TestRegistrationRequest
             {

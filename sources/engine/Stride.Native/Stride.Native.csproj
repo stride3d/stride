@@ -1,8 +1,6 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
 <Project>
   <PropertyGroup>
     <StrideRuntime>true</StrideRuntime>
-    <StrideNativeOutputName>libstride</StrideNativeOutputName>
   </PropertyGroup>
   <Import Project="..\..\targets\Stride.props" />
   <PropertyGroup>
@@ -22,16 +20,11 @@
     <ProjectReference Include="..\..\core\Stride.Core.Mathematics\Stride.Core.Mathematics.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <StrideContent Condition="'$(StridePlatform)' == 'Linux'" Include="Stride.Native.dll.config" />
     <None Include="Stride.Native.Libs.targets">
       <SubType>Designer</SubType>
     </None>
     <None Include="StrideNative.h" />
-    <None Include="LinuxAllocator.cpp" />
-	<None Include="FastTextRenderer\FastTextRenderer.c" />
-    <None Include="Sprite\SpriteBatchNative.c" />
-    <None Include="DirectInput\XInputChecker.cpp" />
-    <None Include="Lightprobes\predicates.c" />
+    <None Include="StrideNative.cpp" />
   </ItemGroup>
   <Import Project="$(StrideSdkTargets)" />
 </Project>

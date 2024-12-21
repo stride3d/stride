@@ -5,23 +5,16 @@ using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Stride.Core;
-#if STRIDE_GRAPHICS_API_OPENGLES
-using OpenTK.Graphics.ES30;
-#else
-using OpenTK.Graphics.OpenGL;
-using PixelFormatGl = OpenTK.Graphics.OpenGL.PixelFormat;
-using TextureTarget2d = OpenTK.Graphics.OpenGL.TextureTarget;
-#endif
 
 namespace Stride.Graphics
 {
-    public partial class Buffer
+    public unsafe partial class Buffer
     {
         internal const int BufferTextureEmulatedWidth = 4096;
 
-        internal int BufferId;
-        internal BufferTarget BufferTarget;
-        internal BufferUsageHint BufferUsageHint;
+        internal uint BufferId;
+        internal BufferTargetARB BufferTarget;
+        internal BufferUsageARB BufferUsageHint;
 
         private int bufferTextureElementSize;
 
@@ -56,18 +49,22 @@ namespace Stride.Graphics
         {
             if ((ViewFlags & BufferFlags.VertexBuffer) == BufferFlags.VertexBuffer)
             {
-                BufferTarget = BufferTarget.ArrayBuffer;
+                BufferTarget = BufferTargetARB.ArrayBuffer;
             }
             else if ((ViewFlags & BufferFlags.IndexBuffer) == BufferFlags.IndexBuffer)
             {
-                BufferTarget = BufferTarget.ElementArrayBuffer;
+                BufferTarget = BufferTargetARB.ElementArrayBuffer;
+            }
+            else if ((ViewFlags & BufferFlags.ConstantBuffer) == BufferFlags.ConstantBuffer)
+            {
+                BufferTarget = BufferTargetARB.UniformBuffer;
             }
             else if ((ViewFlags & BufferFlags.UnorderedAccess) == BufferFlags.UnorderedAccess)
             {
 #if STRIDE_GRAPHICS_API_OPENGLES
                 throw new NotSupportedException("GLES not support UnorderedAccess buffer");
 #else
-                BufferTarget = BufferTarget.ShaderStorageBuffer;
+                BufferTarget = BufferTargetARB.ShaderStorageBuffer;
 #endif
             }
             else if ((ViewFlags & BufferFlags.ShaderResource) == BufferFlags.ShaderResource && GraphicsDevice.HasTextureBuffers)
@@ -75,7 +72,7 @@ namespace Stride.Graphics
 #if STRIDE_GRAPHICS_API_OPENGLES
                 Internal.Refactor.ThrowNotImplementedException();
 #else
-                BufferTarget = BufferTarget.TextureBuffer;
+                BufferTarget = BufferTargetARB.TextureBuffer;
 #endif
             }
 
@@ -101,8 +98,8 @@ namespace Stride.Graphics
         {
             using (GraphicsDevice.UseOpenGLCreationContext())
             {
-                GL.DeleteTextures(1, ref TextureId);
-                GL.DeleteBuffers(1, ref BufferId);
+                GL.DeleteTextures(1, in TextureId);
+                GL.DeleteBuffers(1, in BufferId);
             }
 
             BufferId = 0;
@@ -121,11 +118,11 @@ namespace Stride.Graphics
             {
                 case GraphicsResourceUsage.Default:
                 case GraphicsResourceUsage.Immutable:
-                    BufferUsageHint = BufferUsageHint.StaticDraw;
+                    BufferUsageHint = BufferUsageARB.StaticDraw;
                     break;
                 case GraphicsResourceUsage.Dynamic:
                 case GraphicsResourceUsage.Staging:
-                    BufferUsageHint = BufferUsageHint.DynamicDraw;
+                    BufferUsageHint = BufferUsageARB.DynamicDraw;
                     break;
                 default:
                     throw new ArgumentOutOfRangeException("description.Usage");
@@ -165,7 +162,7 @@ namespace Stride.Graphics
 
                     GL.GenBuffers(1, out BufferId);
                     GL.BindBuffer(BufferTarget, BufferId);
-                    GL.BufferData(BufferTarget, (IntPtr)Description.SizeInBytes, dataPointer, BufferUsageHint);
+                    GL.BufferData(BufferTarget, (UIntPtr)Description.SizeInBytes, (void*)dataPointer, BufferUsageHint);
                     GL.BindBuffer(BufferTarget, 0);
 
                     if ((Flags & BufferFlags.ShaderResource) != 0)
@@ -177,7 +174,7 @@ namespace Stride.Graphics
                         GL.GenTextures(1, out TextureId);
                         GL.BindTexture(TextureTarget, TextureId);
                         // TODO: Check if this is really valid to cast PixelInternalFormat to SizedInternalFormat in all cases?
-                        GL.TexBuffer(TextureBufferTarget.TextureBuffer, (SizedInternalFormat)TextureInternalFormat, BufferId);
+                        GL.TexBuffer(TextureTarget.TextureBuffer, (SizedInternalFormat)TextureInternalFormat, BufferId);
 #endif
                     }
                 }
@@ -188,7 +185,7 @@ namespace Stride.Graphics
         {
             // If overwriting everything, create a new texture
             if (offset == 0 && count == SizeInBytes)
-                GL.TexImage2D((TextureTarget2d)TextureTarget, subresouceLevel, TextureInternalFormat, Math.Min(BufferTextureEmulatedWidth, elementCount), (elementCount + BufferTextureEmulatedWidth - 1) / BufferTextureEmulatedWidth, 0, TextureFormat, TextureType, IntPtr.Zero);
+                GL.TexImage2D(TextureTarget, subresouceLevel, TextureInternalFormat, (uint)Math.Min(BufferTextureEmulatedWidth, elementCount), (uint)(elementCount + BufferTextureEmulatedWidth - 1) / BufferTextureEmulatedWidth, 0, TextureFormat, TextureType, IntPtr.Zero);
 
             // Work with full elements
             Debug.Assert(offset % bufferTextureElementSize == 0 && count % bufferTextureElementSize == 0, "When updating a buffer texture, offset and count should be a multiple of the element size");
@@ -203,10 +200,10 @@ namespace Stride.Graphics
                 {
                     var firstLineSize = Math.Min(count, BufferTextureEmulatedWidth - (offset % BufferTextureEmulatedWidth));
 
-                    GL.TexSubImage2D((TextureTarget2d)TextureTarget, 0,
+                    GL.TexSubImage2D(TextureTarget, 0,
                         offset % BufferTextureEmulatedWidth, offset / BufferTextureEmulatedWidth, // coordinates
-                        BufferTextureEmulatedWidth - (offset % BufferTextureEmulatedWidth), 1, // size
-                        TextureFormat, TextureType, dataPointer);
+                        (uint)(BufferTextureEmulatedWidth - (offset % BufferTextureEmulatedWidth)), 1, // size
+                        TextureFormat, TextureType, (void*)dataPointer);
 
                     offset += firstLineSize;
                     count -= firstLineSize;
@@ -215,17 +212,17 @@ namespace Stride.Graphics
 
                 // Middle lines
                 if (count / BufferTextureEmulatedWidth > 0)
-                    GL.TexSubImage2D((TextureTarget2d)TextureTarget, 0,
+                    GL.TexSubImage2D(TextureTarget, 0,
                         0, offset / BufferTextureEmulatedWidth, // coordinates
-                        BufferTextureEmulatedWidth, count / BufferTextureEmulatedWidth, // size
-                        TextureFormat, TextureType, dataPointer);
+                        BufferTextureEmulatedWidth, (uint)(count / BufferTextureEmulatedWidth), // size
+                        TextureFormat, TextureType, (void*)dataPointer);
 
                 // Last line is done separately (to avoid buffer overrun if last line is not multiple of BufferTextureEmulatedWidth)
                 if (count % BufferTextureEmulatedWidth != 0)
-                    GL.TexSubImage2D((TextureTarget2d)TextureTarget, 0,
+                    GL.TexSubImage2D(TextureTarget, 0,
                         0, count / BufferTextureEmulatedWidth, // coordinates
-                        count % BufferTextureEmulatedWidth, 1, // size
-                        TextureFormat, TextureType, dataPointer + (count/ BufferTextureEmulatedWidth * BufferTextureEmulatedWidth) * bufferTextureElementSize);
+                        (uint)(count % BufferTextureEmulatedWidth), 1, // size
+                        TextureFormat, TextureType, (void*)(dataPointer + (count/ BufferTextureEmulatedWidth * BufferTextureEmulatedWidth) * bufferTextureElementSize));
             }
         }
     }

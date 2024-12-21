@@ -3,6 +3,7 @@
 #pragma warning disable SA1402 // File may only contain a single type
 using System;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using Stride.Core;
 using Stride.Core.Serialization;
 using Stride.Core.Storage;
@@ -44,11 +45,11 @@ namespace Stride.Rendering
 
         public abstract int Size { get; }
 
-        internal void SetName(string name)
+        internal void SetName(string nameParam)
         {
-            if (name == null) throw new ArgumentNullException("name");
+            if (nameParam == null) throw new ArgumentNullException(nameof(nameParam));
 
-            Name = string.Intern(name);
+            name = string.Intern(nameParam);
             UpdateName();
         }
 
@@ -228,7 +229,7 @@ namespace Stride.Rendering
         [DataMemberIgnore]
         public ParameterKeyValueMetadata<T> DefaultValueMetadataT { get; private set; }
 
-        public override int Size => Interop.SizeOf<T>();
+        public override int Size => Unsafe.SizeOf<T>();
 
         public override string ToString()
         {
@@ -277,10 +278,8 @@ namespace Stride.Rendering
         {
         }
 
-        internal override object ReadValue(IntPtr data)
-        {
-            return Utilities.Read<T>(data);
-        }
+        internal override unsafe object ReadValue(nint data)
+            => Unsafe.ReadUnaligned<T>((void*)data);
     }
 
     /// <summary>

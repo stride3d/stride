@@ -5,7 +5,6 @@ using System;
 using System.Runtime.InteropServices;
 using System.Text;
 using Stride.Core.Mathematics;
-using Stride.Native;
 using Stride.Rendering;
 
 namespace Stride.Graphics
@@ -504,8 +503,8 @@ namespace Stride.Graphics
 
             // snap the position the closest 'real' pixel
             Vector2.Modulate(ref drawCommand.Position, ref resolutionRatio, out drawCommand.Position);
-            drawCommand.Position.X = (float)Math.Round(drawCommand.Position.X);
-            drawCommand.Position.Y = (float)Math.Round(drawCommand.Position.Y);
+            drawCommand.Position.X = MathF.Round(drawCommand.Position.X);
+            drawCommand.Position.Y = MathF.Round(drawCommand.Position.Y);
             drawCommand.Position.X /= resolutionRatio.X;
             drawCommand.Position.Y /= resolutionRatio.Y;
 
@@ -590,16 +589,52 @@ namespace Stride.Graphics
 
         protected override unsafe void UpdateBufferValuesFromElementInfo(ref ElementInfo elementInfo, IntPtr vertexPtr, IntPtr indexPtr, int vertexOffset)
         {
+            var vertex = (VertexPositionColorTextureSwizzle*)vertexPtr;
             fixed (SpriteDrawInfo* drawInfo = &elementInfo.DrawInfo)
             {
-                NativeInvoke.UpdateBufferValuesFromElementInfo(new IntPtr(drawInfo), vertexPtr, indexPtr, vertexOffset);
+                float deltaX = 1.0f / drawInfo->TextureSize.X;
+                float deltaY = 1.0f / drawInfo->TextureSize.Y;
+
+                Vector2 rotation = new(1,0);
+
+                if (Math.Abs(drawInfo->Rotation) > float.Epsilon)
+                {
+                    (rotation.Y, rotation.X) = MathF.SinCos(drawInfo->Rotation);
+                }
+
+                Vector2 origin = drawInfo->Origin;
+                origin.X /= Math.Max(float.Epsilon, drawInfo->Source.Width);
+                origin.Y /= Math.Max(float.Epsilon, drawInfo->Source.Height);
+
+                for (int j = 0; j < 4; j++)
+                {
+                    Vector2 corner = CornerOffsets[j];
+                    Vector2 position;
+                    position.X = (corner.X - origin.X) * drawInfo->Destination.Width;
+                    position.Y = (corner.Y - origin.Y) * drawInfo->Destination.Height;
+
+                    vertex->Position.X = drawInfo->Destination.X + (position.X * rotation.X) - (position.Y * rotation.Y);
+                    vertex->Position.Y = drawInfo->Destination.Y + (position.X * rotation.Y) + (position.Y * rotation.X);
+                    vertex->Position.Z = drawInfo->Depth;
+                    vertex->Position.W = 1.0f;
+                    vertex->ColorScale = drawInfo->ColorScale;
+                    vertex->ColorAdd = drawInfo->ColorAdd;
+
+                    corner = CornerOffsets[((j ^ (int)drawInfo->SpriteEffects) + (int)drawInfo->Orientation) % 4];
+                    vertex->TextureCoordinate.X = (drawInfo->Source.X + corner.X * drawInfo->Source.Width) * deltaX;
+                    vertex->TextureCoordinate.Y = (drawInfo->Source.Y + corner.Y * drawInfo->Source.Height) * deltaY;
+
+                    vertex->Swizzle = (int)drawInfo->Swizzle;
+                    
+                    vertex++;
+                }
             }
         }
 
         protected override void PrepareForRendering()
         {
             Matrix viewProjection;
-            Matrix.MultiplyTo(ref userViewMatrix, ref userProjectionMatrix, out viewProjection);
+            Matrix.Multiply(ref userViewMatrix, ref userProjectionMatrix, out viewProjection);
 
             // Setup effect states and parameters: SamplerState and MatrixTransform
             // Sets the sampler state

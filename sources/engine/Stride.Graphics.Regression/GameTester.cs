@@ -5,7 +5,6 @@ using System.Runtime.ExceptionServices;
 using System.Threading.Tasks;
 #if STRIDE_PLATFORM_IOS
 using UIKit;
-using Stride.Starter;
 #endif
 using Stride.Core;
 using Stride.Core.Diagnostics;
@@ -68,7 +67,7 @@ namespace Stride.Graphics.Regression
                         var window = UIApplication.SharedApplication.KeyWindow;
                         var rootNavigationController = (UINavigationController)window.RootViewController;
 
-                        // create the stride game view 
+                        /*// create the stride game view 
                         var bounds = UIScreen.MainScreen.Bounds;
                         var strideGameView = new iOSStrideView((System.Drawing.RectangleF)bounds) { ContentScaleFactor = UIScreen.MainScreen.Scale };
 
@@ -82,7 +81,9 @@ namespace Stride.Graphics.Regression
                         rootNavigationController.PushViewController(gameContext.Control.GameViewController, false);
 
                         // launch the game
-                        game.Run(gameContext);
+                        game.Run(gameContext);*/
+                        throw new NotImplementedException();
+
                     });
 #elif STRIDE_PLATFORM_ANDROID
                     // Start activity

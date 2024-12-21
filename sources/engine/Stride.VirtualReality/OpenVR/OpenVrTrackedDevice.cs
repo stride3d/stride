@@ -10,7 +10,6 @@ namespace Stride.VirtualReality
 {
     internal class OpenVRTrackedDevice : TrackedItem
     {
-        private readonly int id;
         private OpenVR.TrackedDevice trackedDevice;
         private DeviceState internalState;
         private Vector3 currentPos;

@@ -10,33 +10,26 @@ namespace Stride.Core
         /// <summary>
         /// Use the default mode depending on the type of the field/property.
         /// </summary>
-        Default,
+        Default = 0,
 
         /// <summary>
         /// When restored, new object is created by using the parameters in
         /// the YAML data and assigned to the property / field. When the
-        /// property / filed is writeable, this is the default.
+        /// property / field is writeable, this is the default.
         /// </summary>
-        Assign,
+        Assign = 1,
 
         /// <summary>
-        ///  Only valid for a property / field that has a class or struct type.
-        ///  When restored, instead of recreating the whole class or struct,
+        ///  Only valid for a property / field that return a class, no strings, primitives or value types.
+        ///  When restored, instead of recreating the whole class,
         ///  the members are independently restored. When the property / field
         ///  is not writeable this is the default.
         /// </summary>
-        Content,
-
-        /// <summary>
-        ///  Only valid for a property / field that has an  array type of a 
-        ///  some value type. The content of the array is stored in a binary
-        ///  format encoded in base64 style.
-        /// </summary>
-        Binary,
+        Content = 2,
 
         /// <summary>
         /// The property / field will not be stored.
         /// </summary>
-        Never,
+        Never = 4,
     }
 }

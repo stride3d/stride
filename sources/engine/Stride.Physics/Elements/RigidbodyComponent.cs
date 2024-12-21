@@ -40,7 +40,6 @@ namespace Stride.Physics
         public RigidbodyComponent()
         {
             LinkedConstraints = new List<Constraint>();
-            ProcessCollisions = true;
         }
 
         /// <summary>
@@ -86,7 +85,11 @@ namespace Stride.Physics
 
                 mass = value;
 
-                if (InternalRigidBody == null) return;
+                if (InternalRigidBody == null)
+                {
+                    return;
+                }
+                    
 
                 var inertia = ColliderShape.InternalShape.CalculateLocalInertia(value);
                 InternalRigidBody.SetMassProps(value, inertia);
@@ -115,7 +118,15 @@ namespace Stride.Physics
                     return;
 
                 if (InternalRigidBody == null)
+                {
+                    if (Data != null && !attachInProgress)
+                    {
+                        //When setting ColliderShape, setup could have been previously skipped (eg when PhysicsComponent is created using GetOrCreate)
+                        ReAttach();
+                    }
+                    
                     return;
+                }
 
                 if (NativeCollisionObject != null)
                     NativeCollisionObject.CollisionShape = value.InternalShape;
@@ -194,7 +205,11 @@ namespace Stride.Physics
             {
                 overrideGravity = value;
 
-                if (InternalRigidBody == null) return;
+                if (InternalRigidBody == null)
+                {
+                    return;
+                }
+                    
 
                 if (value)
                 {
@@ -303,7 +318,7 @@ namespace Stride.Physics
 
             SetupBoneLink();
 
-            var rbci = new BulletSharp.RigidBodyConstructionInfo(0.0f, MotionState, ColliderShape.InternalShape, Vector3.Zero);
+            using var rbci = new BulletSharp.RigidBodyConstructionInfo(0.0f, MotionState, ColliderShape.InternalShape, Vector3.Zero);
             InternalRigidBody = new BulletSharp.RigidBody(rbci)
             {
                 UserObject = this,
@@ -342,6 +357,7 @@ namespace Stride.Physics
 
         protected override void OnDetach()
         {
+
             MotionState.Dispose();
             MotionState.Clear();
 
@@ -406,14 +422,7 @@ namespace Stride.Physics
             Data.PhysicsComponent.Simulation.SimulationProfiler.Mark();
             Data.PhysicsComponent.Simulation.UpdatedRigidbodies++;
 
-            if (BoneIndex == -1)
-            {
-                DerivePhysicsTransformation(out physicsTransform);
-            }
-            else
-            {
-                DeriveBonePhysicsTransformation(out physicsTransform);
-            }
+            DerivePhysicsTransformation(out physicsTransform, false);
         }
 
         /// <summary>

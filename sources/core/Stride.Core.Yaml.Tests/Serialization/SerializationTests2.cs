@@ -221,7 +221,7 @@ Value: World!
 
             public int[] Array { get; set; }
 
-            public int[] ArrayContent { get; private set; }
+            public int[] ArrayContent { get; }
         }
 
         [Fact]
@@ -560,29 +560,12 @@ c: true
             public int Value { get; set; }
 
             /// <summary>
-            /// Gets or sets the basic list.
-            /// </summary>
-            /// <value>The basic list.</value>
-            public IList BasicList { get; set; }
-
-            /// <summary>
-            /// For this property, the deserializer is instantiating
-            /// automatically a default List&lt;string&gtl instance.
-            /// </summary>
-            public IList<string> StringList { get; set; }
-
-            /// <summary>
             /// For this property, the deserializer is using the actual
             /// value of the list stored in this instance instead of 
             /// creating a new List&lt;T&gtl instance.
             /// </summary>
-            public List<string> StringListByContent { get; private set; }
+            public List<string> StringListByContent { get; }
 
-            /// <summary>
-            /// Gets or sets the basic map.
-            /// </summary>
-            /// <value>The basic map.</value>
-            public IDictionary BasicMap { get; set; }
 
             /// <summary>
             /// Idem as for <see cref="StringList"/> but for dictionary.
@@ -595,7 +578,7 @@ c: true
             /// Idem as for <see cref="StringListByContent"/> but for dictionary.
             /// </summary>
             /// <value>The content of the string mapby.</value>
-            public Dictionary<string, object> StringMapbyContent { get; private set; }
+            public Dictionary<string, object> StringMapbyContent { get; }
 
             /// <summary>
             /// For this property, the deserializer is using the actual
@@ -603,7 +586,7 @@ c: true
             /// creating a new List&lt;T&gtl instance.
             /// </summary>
             /// <value>The content of the list by.</value>
-            public IList ListByContent { get; private set; }
+            public List<string> ListByContent { get; }
         }
 
         /// <summary>
@@ -619,18 +602,9 @@ c: true
             var text = @"!MyCustomClassWithSpecialMembers
 Name: Yes
 Value: 0
-BasicList:
-  - 1
-  - 2
-StringList:
-  - 1
-  - 2
 StringListByContent:
   - 3
   - 4
-BasicMap:
-  a: 1
-  b: 2
 StringMap:
   c: yes
   d: 3
@@ -1127,7 +1101,7 @@ G_ListCustom: {Name: name4, ~Items: [1, 2, 3, 4, 5, 6, 7]}
             public override string ReadMemberName(ref ObjectContext objectContext, string memberName, out bool skipMember)
             {
                 skipMember = false;
-                if (memberName.EndsWith("!"))
+                if (memberName.EndsWith('!'))
                 {
                     memberName = memberName.Substring(0, memberName.Length - 1);
                     SpecialKeys.Add(new Tuple<object, object>(objectContext.Instance, objectContext.Descriptor[memberName]));
@@ -1138,9 +1112,9 @@ G_ListCustom: {Name: name4, ~Items: [1, 2, 3, 4, 5, 6, 7]}
             public override object ReadDictionaryKey(ref ObjectContext objectContext, Type keyType)
             {
                 var itemKey = base.ReadDictionaryKey(ref objectContext, keyType) as string;
-                if (itemKey != null && itemKey.EndsWith("!"))
+                if (itemKey != null && itemKey.EndsWith('!'))
                 {
-                    itemKey = itemKey.Substring(0, itemKey.Length - 1);
+                    itemKey = itemKey[..^1];
                     SpecialKeys.Add(new Tuple<object, object>(objectContext.Instance, itemKey));
                 }
                 return itemKey;
@@ -1335,7 +1309,7 @@ Enum: OldValue2
 
             public int Value { get; private set; }
 
-            protected bool Equals(MyClassImmutable other)
+            private bool Equals(MyClassImmutable other)
             {
                 return string.Equals(Name, other.Name) && Value == other.Value;
             }
@@ -1507,21 +1481,6 @@ Enum: OldValue2
         }
 
         [Fact]
-        public void TestImplicitMemberType()
-        {
-            var settings = new SerializerSettings() {LimitPrimitiveFlowSequence = 0};
-
-            var text = @"!ClassWithImplicitMemberType
-Test:
-  String: test
-";
-
-            settings.RegisterTagMapping("ClassWithImplicitMemberType", typeof(ClassWithImplicitMemberType));
-            settings.RegisterTagMapping("ClassWithImplicitMemberTypeInner", typeof(ClassWithImplicitMemberTypeInner));
-            SerialRoundTrip(settings, text);
-        }
-
-        [Fact]
         public void TestNonImplicitMemberType()
         {
             var settings = new SerializerSettings() {LimitPrimitiveFlowSequence = 0};
@@ -1567,7 +1526,8 @@ Test: !ClassWithImplicitMemberTypeInner
                 Test = new ClassWithImplicitMemberTypeInner {String = "test"};
             }
 
-            public object Test { get; protected set; }
+            [DataMember]
+            public object Test { get; init; }
         }
 
         public class ClassWithNonImplicitMemberType

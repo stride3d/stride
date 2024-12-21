@@ -233,7 +233,7 @@ namespace Stride.Core.Yaml
         }
 
         /// <summary>
-        /// Transforms the given collection or dictionary into a dictionary of (ids, items) or a dictionary of (ids & keys, items).
+        /// Transforms the given collection or dictionary into a dictionary of (ids, items) or a dictionary of (ids &amp; keys, items).
         /// </summary>
         /// <param name="descriptor">The type descriptor of the collection.</param>
         /// <param name="collection">The collection for which to create the mapping dictionary.</param>

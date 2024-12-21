@@ -18,6 +18,15 @@ namespace Stride.Physics
         }
 
         /// <summary>
+        /// Sets the hinge axis for body A (this works mostly for body-world constraints).
+        /// </summary>
+        /// <param name="axisInA">The hinge axis.</param>
+        public void SetAxis(Vector3 axisInA)
+        {
+            InternalHingeConstraint.SetAxis(axisInA);
+        }
+
+        /// <summary>
         /// Gets or sets a value indicating whether [angular only].
         /// </summary>
         /// <value>

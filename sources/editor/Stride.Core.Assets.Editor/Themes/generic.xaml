@@ -6,7 +6,7 @@
                     xmlns:diagnostics="clr-namespace:Stride.Core.Assets.Diagnostics;assembly=Stride.Core.Assets">
 
   <ResourceDictionary.MergedDictionaries>
-    <ResourceDictionary Source="/Stride.Core.Presentation;component/Themes/ThemeSelector.xaml" />
+    <ResourceDictionary Source="/Stride.Core.Presentation.Wpf;component/Themes/ThemeSelector.xaml" />
     <ResourceDictionary Source="/Stride.Core.Assets.Editor;component/View/CommonResources.xaml" />
   </ResourceDictionary.MergedDictionaries>
   
@@ -18,22 +18,22 @@
             <ToolBarTray DockPanel.Dock="Top" Visibility="{Binding IsToolBarVisible, RelativeSource={RelativeSource Mode=TemplatedParent}, Converter={sd:VisibleOrCollapsed}}">
               <ToolBar ToolBarTray.IsLocked="True" Header="Filters:" Visibility="{Binding CanFilterLog, RelativeSource={RelativeSource Mode=TemplatedParent}, Converter={sd:VisibleOrCollapsed}}">
                 <ToggleButton IsChecked="{Binding ShowDebugMessages, RelativeSource={RelativeSource Mode=TemplatedParent}}" ToolTip="{sd:Localize Toggle Debug, Context=ToolTip}">
-                  <Path Width="12" Height="12" Stretch="Uniform" Fill="{StaticResource TextBrush}" Data="{StaticResource GeometryDebugMessage}" />
+                  <Path Width="12" Height="12" Stretch="Uniform" Fill="{StaticResource TextLogDebugBrush}" Data="{StaticResource GeometryDebugMessage}" />
                 </ToggleButton>
                 <ToggleButton IsChecked="{Binding ShowVerboseMessages, RelativeSource={RelativeSource Mode=TemplatedParent}}" ToolTip="{sd:Localize Toggle Verbose, Context=ToolTip}">
-                  <Path Width="12" Height="12" Stretch="Uniform" Fill="{StaticResource TextBrush}" Data="{StaticResource GeometryVerboseMessage}" />
+                  <Path Width="12" Height="12" Stretch="Uniform" Fill="{StaticResource TextLogVerboseBrush}" Data="{StaticResource GeometryVerboseMessage}" />
                 </ToggleButton>
                 <ToggleButton IsChecked="{Binding ShowInfoMessages, RelativeSource={RelativeSource Mode=TemplatedParent}}" ToolTip="{sd:Localize Toggle Info, Context=ToolTip}">
-                  <Path Width="12" Height="12" Stretch="Uniform" Fill="{StaticResource TextBrush}" Data="{StaticResource GeometryInfoMessage}" />
+                  <Path Width="12" Height="12" Stretch="Uniform" Fill="{StaticResource TextLogInfoBrush}" Data="{StaticResource GeometryInfoMessage}" />
                 </ToggleButton>
                 <ToggleButton IsChecked="{Binding ShowWarningMessages, RelativeSource={RelativeSource Mode=TemplatedParent}}" ToolTip="{sd:Localize Toggle Warning, Context=ToolTip}">
-                  <Path Width="12" Height="12" Stretch="Uniform" Fill="{StaticResource TextBrush}" Data="{StaticResource GeometryWarningMessage}" />
+                  <Path Width="12" Height="12" Stretch="Uniform" Fill="{StaticResource TextLogWarningBrush}" Data="{StaticResource GeometryWarningMessage}" />
                 </ToggleButton>
                 <ToggleButton IsChecked="{Binding ShowErrorMessages, RelativeSource={RelativeSource Mode=TemplatedParent}}" ToolTip="{sd:Localize Toggle Error, Context=ToolTip}">
-                  <Path Width="12" Height="12" Stretch="Uniform" Fill="{StaticResource TextBrush}" Data="{StaticResource GeometryErrorMessage}" />
+                  <Path Width="12" Height="12" Stretch="Uniform" Fill="{StaticResource TextLogErrorBrush}" Data="{StaticResource GeometryErrorMessage}" />
                 </ToggleButton>
                 <ToggleButton IsChecked="{Binding ShowFatalMessages, RelativeSource={RelativeSource Mode=TemplatedParent}}" ToolTip="{sd:Localize Toggle Fatal, Context=ToolTip}">
-                  <Path Width="12" Height="12" Stretch="Uniform" Fill="{StaticResource TextBrush}" Data="{StaticResource GeometryFatalMessage}" />
+                  <Path Width="12" Height="12" Stretch="Uniform" Fill="{StaticResource TextLogFatalBrush}" Data="{StaticResource GeometryFatalMessage}" />
                 </ToggleButton>
                 <ToggleButton IsChecked="{Binding ShowStacktrace, RelativeSource={RelativeSource Mode=TemplatedParent}}" ToolTip="{sd:Localize Toggle Exception Stack Trace, Context=ToolTip}">
                   <Label Content="(...)" Width="16" Height="12" FontSize="10" HorizontalContentAlignment="Center" />
@@ -77,7 +77,7 @@
                     </Path.Style>
                   </Path>
                 </DataTemplate>
-                <DataTemplate x:Key="LogMessageHasExceptionCellTemplate" DataType="compilerApp:AssetSerializableLogMessage">
+                <DataTemplate x:Key="LogMessageHasExceptionCellTemplate" DataType="diagnostics:AssetSerializableLogMessage">
                   <Border>
                     <Image SnapsToDevicePixels="True" Width="16" Height="16" Stretch="None" VerticalAlignment="Center" Source="../Resources/exception.png" Visibility="{Binding ExceptionInfo, Mode=OneTime, Converter={sd:Chained {sd:ObjectToBool}, {sd:VisibleOrHidden}}}">
                       <ToolTipService.ToolTip>
@@ -89,7 +89,7 @@
                 <DataTemplate x:Key="LogMessageAssetUrlCellTemplate">
                   <TextBlock Text="{sd:PriorityBinding {Binding DataContext.AssetUrl, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type DataGridRow}}}, {Binding DataContext.AssetReference.Location, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type DataGridRow}}}}" />
                 </DataTemplate>
-                <DataTemplate x:Key="LogMessageTextCellTemplate" DataType="compilerApp:AssetSerializableLogMessage">
+                <DataTemplate x:Key="LogMessageTextCellTemplate" DataType="diagnostics:AssetSerializableLogMessage">
                   <TextBlock Text="{Binding}" TextWrapping="Wrap" />
                 </DataTemplate>
               </DataGrid.Resources>

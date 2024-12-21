@@ -474,7 +474,7 @@ namespace Stride.Core.Mathematics
         /// <returns><value>Log2(x)</value></returns>
         public static float Log2(float x)
         {
-            return (float)Math.Log(x) / 0.6931471805599453f;
+            return MathF.Log(x) / 0.6931471805599453f;
         }
 
         /// <summary>
@@ -588,7 +588,7 @@ namespace Stride.Core.Mathematics
         {
             if (gap == 0)
                 return value;
-            return (float)Math.Round((value / gap), MidpointRounding.AwayFromZero) * gap;
+            return MathF.Round((value / gap), MidpointRounding.AwayFromZero) * gap;
         }
 
         /// <summary>
@@ -615,8 +615,8 @@ namespace Stride.Core.Mathematics
             if (gap == 0)
                 return value;
             return new Vector2(
-                (float)Math.Round((value.X / gap), MidpointRounding.AwayFromZero) * gap,
-                (float)Math.Round((value.Y / gap), MidpointRounding.AwayFromZero) * gap);
+                MathF.Round((value.X / gap), MidpointRounding.AwayFromZero) * gap,
+                MathF.Round((value.Y / gap), MidpointRounding.AwayFromZero) * gap);
         }
 
         /// <summary>
@@ -630,9 +630,9 @@ namespace Stride.Core.Mathematics
             if (gap == 0)
                 return value;
             return new Vector3(
-                (float)Math.Round((value.X / gap), MidpointRounding.AwayFromZero) * gap,
-                (float)Math.Round((value.Y / gap), MidpointRounding.AwayFromZero) * gap,
-                (float)Math.Round((value.Z / gap), MidpointRounding.AwayFromZero) * gap);
+                MathF.Round((value.X / gap), MidpointRounding.AwayFromZero) * gap,
+                MathF.Round((value.Y / gap), MidpointRounding.AwayFromZero) * gap,
+                MathF.Round((value.Z / gap), MidpointRounding.AwayFromZero) * gap);
         }
 
         /// <summary>
@@ -646,10 +646,10 @@ namespace Stride.Core.Mathematics
             if (gap == 0)
                 return value;
             return new Vector4(
-                (float)Math.Round((value.X / gap), MidpointRounding.AwayFromZero) * gap,
-                (float)Math.Round((value.Y / gap), MidpointRounding.AwayFromZero) * gap,
-                (float)Math.Round((value.Z / gap), MidpointRounding.AwayFromZero) * gap,
-                (float)Math.Round((value.W / gap), MidpointRounding.AwayFromZero) * gap);
+                MathF.Round((value.X / gap), MidpointRounding.AwayFromZero) * gap,
+                MathF.Round((value.Y / gap), MidpointRounding.AwayFromZero) * gap,
+                MathF.Round((value.Z / gap), MidpointRounding.AwayFromZero) * gap,
+                MathF.Round((value.W / gap), MidpointRounding.AwayFromZero) * gap);
         }
 
         /// <summary>
@@ -661,6 +661,38 @@ namespace Stride.Core.Mathematics
         public static float Mod(float value, float divisor)
         {
             return ((value % divisor) + divisor) % divisor;
+        }
+
+        /// <summary>
+        /// Exponential damping. 
+        /// Alternative to 
+        /// <code>a = lerp(a, b, damping * dt)</code>
+        /// using the exponential function flipped around the Y axis: e^(-t)
+        /// </summary>
+        /// <param name="a">Initial value</param>
+        /// <param name="b">Plateau value</param>
+        /// <param name="lambda">Damping</param>
+        /// <param name="dt">Discrete time unit, delta time.</param>
+        /// <returns>A value interpolated from a to b depending on lambda and dt.</returns>
+        public static float ExpDecay(float a, float b, float lambda, float dt)
+        {
+            return b + (a - b) * MathF.Exp(-lambda * dt);
+        }
+
+        /// <summary>
+        /// Exponential damping. 
+        /// Alternative to 
+        /// <code>a = lerp(a, b, damping * dt)</code>
+        /// using the exponential function flipped around the Y axis: e^(-t)
+        /// </summary>
+        /// <param name="a">Initial value</param>
+        /// <param name="b">Plateau value</param>
+        /// <param name="lambda">Damping</param>
+        /// <param name="dt">Discrete time unit, delta time.</param>
+        /// <returns>A value interpolated from a to b depending on lambda and dt.</returns>
+        public static double ExpDecay(double a, double b, double lambda, double dt)
+        {
+            return b + (a - b) * Math.Exp(-lambda * dt);
         }
     }
 }

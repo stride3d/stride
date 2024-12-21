@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Runtime.CompilerServices;
 using Stride.Core;
 
 namespace Stride.Particles
@@ -28,7 +29,7 @@ namespace Stride.Particles
         public ParticleFieldDescription(string name)
             : base(name)
         {
-            FieldSize = ParticleUtilities.AlignedSize(Utilities.SizeOf<T>(), 4);
+            FieldSize = ParticleUtilities.AlignedSize(Unsafe.SizeOf<T>(), 4);
         }
 
         public ParticleFieldDescription(string name, T defaultValue)

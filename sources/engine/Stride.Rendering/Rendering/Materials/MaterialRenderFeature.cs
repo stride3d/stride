@@ -3,8 +3,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using Stride.Core;
+using Stride.Core.Diagnostics;
 using Stride.Core.Threading;
 using Stride.Extensions;
 using Stride.Graphics;
@@ -27,6 +29,8 @@ namespace Stride.Rendering.Materials
 
         // Material instantiated
         private readonly Dictionary<MaterialPass, MaterialInfo> allMaterialInfos = new Dictionary<MaterialPass, MaterialInfo>();
+        
+        private static readonly ProfilingKey PrepareEffectPermutationsKey = new ProfilingKey("MaterialRenderFeature.PrepareEffectPermutations");
 
         public class MaterialInfoBase
         {
@@ -62,6 +66,7 @@ namespace Stride.Rendering.Materials
             public int PermutationCounter; // Dirty counter against material.Parameters.PermutationCounter
             public ParameterCollection MaterialParameters; // Protect against changes of Material.Parameters instance (happens with editor fast reload)
             public CullMode? CullMode;
+            public CompareFunction? DepthFunction;
 
             public ShaderSource VertexStageSurfaceShaders;
             public ShaderSource VertexStageStreamInitializer;
@@ -77,15 +82,18 @@ namespace Stride.Rendering.Materials
             public bool HasNormalMap;
 
             /// <summary>
-            /// Indicates that material requries using pixel shader stage during depth-only pass (Z prepass or shadow map rendering).
+            /// Indicates that material requires using pixel shader stage during depth-only pass (Z prepass or shadow map rendering).
             /// Used by transparent and cut off materials.
             /// </summary>
             public bool UsePixelShaderWithDepthPass;
+
+            public bool UseDitheredShadows;
 
             public MaterialInfo(MaterialPass materialPass)
             {
                 MaterialPass = materialPass;
                 CullMode = materialPass.CullMode;
+                DepthFunction = materialPass.DepthFunction;
             }
         }
 
@@ -100,10 +108,10 @@ namespace Stride.Rendering.Materials
             perMaterialDescriptorSetSlot = ((RootEffectRenderFeature)RootRenderFeature).GetOrCreateEffectDescriptorSetSlot("PerMaterial");
         }
 
-        /// <param name="context"></param>
         /// <inheritdoc/>
         public override void PrepareEffectPermutations(RenderDrawContext context)
         {
+            using var _ = Profiler.Begin(PrepareEffectPermutationsKey);
             var renderEffects = RootRenderFeature.RenderData.GetData(renderEffectKey);
             var tessellationStates = RootRenderFeature.RenderData.GetData(tessellationStateKey);
             int effectSlotCount = ((RootEffectRenderFeature)RootRenderFeature).EffectPermutationSlotCount;
@@ -176,6 +184,12 @@ namespace Stride.Rendering.Materials
                     resetPipelineState = true;
                 }
 
+                if (materialInfo != null && materialInfo.DepthFunction != material.DepthFunction)
+                {
+                    materialInfo.DepthFunction = material.DepthFunction;
+                    resetPipelineState = true;
+                }
+
                 for (int i = 0; i < effectSlotCount; ++i)
                 {
                     var staticEffectObjectNode = staticObjectNode * effectSlotCount + i;
@@ -226,6 +240,7 @@ namespace Stride.Rendering.Materials
                                 materialInfo.PixelStageStreamInitializer = material.Parameters.Get(MaterialKeys.PixelStageStreamInitializer);
                                 materialInfo.HasNormalMap = material.Parameters.Get(MaterialKeys.HasNormalMap);
                                 materialInfo.UsePixelShaderWithDepthPass = material.Parameters.Get(MaterialKeys.UsePixelShaderWithDepthPass);
+                                materialInfo.UseDitheredShadows = material.Parameters.Get(MaterialKeys.UseDitheredShadows);
 
                                 materialInfo.MaterialParameters = material.Parameters;
                                 materialInfo.ParametersChanged = isMaterialParametersChanged;
@@ -259,6 +274,8 @@ namespace Stride.Rendering.Materials
                         renderEffect.EffectValidator.ValidateParameter(MaterialKeys.HasNormalMap, materialInfo.HasNormalMap);
                     if (materialInfo.UsePixelShaderWithDepthPass)
                         renderEffect.EffectValidator.ValidateParameter(MaterialKeys.UsePixelShaderWithDepthPass, materialInfo.UsePixelShaderWithDepthPass);
+                    if (materialInfo.UseDitheredShadows)
+                        renderEffect.EffectValidator.ValidateParameter(MaterialKeys.UseDitheredShadows, materialInfo.UseDitheredShadows);
                 }
             });
 
@@ -271,31 +288,35 @@ namespace Stride.Rendering.Materials
             // Assign descriptor sets to each render node
             var resourceGroupPool = ((RootEffectRenderFeature)RootRenderFeature).ResourceGroupPool;
 
-            Dispatcher.For(0, RootRenderFeature.RenderNodes.Count, () => context.RenderContext.GetThreadContext(), (renderNodeIndex, threadContext) =>
+            Dispatcher.ForBatched(RootRenderFeature.RenderNodes.Count, (from, toExclusive) =>
             {
-                var renderNodeReference = new RenderNodeReference(renderNodeIndex);
-                var renderNode = RootRenderFeature.RenderNodes[renderNodeIndex];
-                var renderMesh = (RenderMesh)renderNode.RenderObject;
+                var threadContext = context.RenderContext.GetThreadContext();
+                for (int i = from; i < toExclusive; i++)
+                {
+                    var renderNodeReference = new RenderNodeReference(i);
+                    var renderNode = RootRenderFeature.RenderNodes[i];
+                    var renderMesh = (RenderMesh)renderNode.RenderObject;
 
-                // Ignore fallback effects
-                if (renderNode.RenderEffect.State != RenderEffectState.Normal)
-                    return;
+                    // Ignore fallback effects
+                    if (renderNode.RenderEffect.State != RenderEffectState.Normal)
+                        continue;
 
-                // Collect materials and create associated MaterialInfo (includes reflection) first time
-                // TODO: We assume same material will generate same ResourceGroup (i.e. same resources declared in same order)
-                // Need to offer some protection if this invariant is violated (or support it if it can actually happen in real scenario)
-                var material = renderMesh.MaterialPass;
-                var materialInfo = renderMesh.MaterialInfo;
-                var materialParameters = material.Parameters;
+                    // Collect materials and create associated MaterialInfo (includes reflection) first time
+                    // TODO: We assume same material will generate same ResourceGroup (i.e. same resources declared in same order)
+                    // Need to offer some protection if this invariant is violated (or support it if it can actually happen in real scenario)
+                    var material = renderMesh.MaterialPass;
+                    var materialInfo = renderMesh.MaterialInfo;
+                    var materialParameters = material.Parameters;
 
-                // Register resources usage
-                Context.StreamingManager?.StreamResources(materialParameters);
+                    // Register resources usage
+                    Context.StreamingManager?.StreamResources(materialParameters);
 
-                if (!UpdateMaterial(RenderSystem, threadContext, materialInfo, perMaterialDescriptorSetSlot.Index, renderNode.RenderEffect, materialParameters))
-                    return;
+                    if (!UpdateMaterial(RenderSystem, threadContext, materialInfo, perMaterialDescriptorSetSlot.Index, renderNode.RenderEffect, materialParameters))
+                        continue;
 
-                var descriptorSetPoolOffset = ((RootEffectRenderFeature)RootRenderFeature).ComputeResourceGroupOffset(renderNodeReference);
-                resourceGroupPool[descriptorSetPoolOffset + perMaterialDescriptorSetSlot.Index] = materialInfo.Resources;
+                    var descriptorSetPoolOffset = ((RootEffectRenderFeature)RootRenderFeature).ComputeResourceGroupOffset(renderNodeReference);
+                    resourceGroupPool[descriptorSetPoolOffset + perMaterialDescriptorSetSlot.Index] = materialInfo.Resources;
+                }
             });
         }
 
@@ -375,9 +396,9 @@ namespace Stride.Rendering.Materials
             // Process PerMaterial cbuffer
             if (materialInfo.ConstantBufferReflection != null)
             {
-                var mappedCB = materialInfo.Resources.ConstantBuffer.Data;
+                var mappedCB = (byte*)materialInfo.Resources.ConstantBuffer.Data;
                 fixed (byte* dataValues = materialInfo.ParameterCollection.DataValues)
-                    Utilities.CopyMemory(mappedCB, (IntPtr)dataValues, materialInfo.Resources.ConstantBuffer.Size);
+                    Unsafe.CopyBlockUnaligned(mappedCB, dataValues, (uint)materialInfo.Resources.ConstantBuffer.Size);
             }
 
             return true;

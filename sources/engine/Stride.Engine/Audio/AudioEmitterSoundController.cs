@@ -17,12 +17,12 @@ namespace Stride.Audio
     /// <remarks>
     /// <para>
     /// Instances of this class can not be directly created by the user, but need to queried from an <see cref="AudioEmitterComponent"/>
-    /// instance using the readonly <see cref="AudioEmitterComponent.Item(string)"/> indexer.
+    /// instance using the readonly <see cref="AudioEmitterComponent.this[string]"/> indexer.
     /// </para>
     /// <para>
     /// An instance <see cref="AudioEmitterSoundController"/> is not valid anymore if any of those situations arrives:
     /// <list type="bullet">
-    ///  <item><description>The underlying <see cref="sound"/> is disposed.</description></item>
+    ///  <item><description>The underlying <see cref="Sound"/> is disposed.</description></item>
     ///  <item><description>The <see cref="AudioEmitterComponent"/> is detached from its entity.</description></item>
     ///  <item><description>The entity to which it is attached is removed from the Entity System.</description></item>
     /// </list>
@@ -47,7 +47,7 @@ namespace Stride.Audio
         /// </summary>
         /// <param name="parent">The parent AudioEmitterComponent to which the controller is associated.</param>
         /// <param name="sound">The underlying SoundBase to be controlled</param>
-        /// <remarks>A <see cref="sound"/> can be associated to several controllers.</remarks>
+        /// <remarks>A <see cref="Sound"/> can be associated to several controllers.</remarks>
         internal AudioEmitterSoundController(AudioEmitterComponent parent, SoundBase sound)
         {
             this.sound = sound ?? throw new ArgumentNullException(nameof(sound));

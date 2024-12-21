@@ -4,11 +4,12 @@
 #if STRIDE_UI_SDL
 using System;
 using System.Collections.Generic;
-using SDL2;
+using Silk.NET.SDL;
 using Stride.Core.Extensions;
 using Stride.Core.Mathematics;
 using Stride.Games;
 using Stride.Graphics.SDL;
+using Window = Stride.Graphics.SDL.Window;
 
 namespace Stride.Input
 {
@@ -17,8 +18,10 @@ namespace Stride.Input
     /// </summary>
     internal class PointerSDL : PointerDeviceBase, IDisposable
     {
+        private static Sdl SDL = Window.SDL;
+
         private readonly Window uiControl;
-        private readonly Dictionary<long, int> touchFingerIndexMap = new Dictionary<long, int>();
+        private readonly Dictionary<(long touchId, long fingerId), int> touchFingerIndexMap = new Dictionary<(long touchId, long fingerId), int>();
         private int touchCounter;
 
         public PointerSDL(InputSourceSDL source, Window uiControl)
@@ -27,14 +30,14 @@ namespace Stride.Input
             this.uiControl = uiControl;
 
             // Disable Touch-Mouse synthesis
-            SDL.SDL_SetHint(SDL.SDL_HINT_TOUCH_MOUSE_EVENTS, "false");
+            SDL.SetHint(Sdl.HintTouchMouseEvents, "false");
 
             uiControl.FingerMoveActions += OnFingerMoveEvent;
             uiControl.FingerPressActions += OnFingerPressEvent;
             uiControl.FingerReleaseActions += OnFingerReleaseEvent;
 
             uiControl.ResizeEndActions += OnSizeChanged;
-            OnSizeChanged(new SDL.SDL_WindowEvent());
+            OnSizeChanged(new WindowEvent());
 
             Id = InputDeviceUtils.DeviceNameToGuid(uiControl.SdlHandle.ToString() + Name);
         }
@@ -54,30 +57,29 @@ namespace Stride.Input
             uiControl.ResizeEndActions -= OnSizeChanged;
         }
 
-        private void OnSizeChanged(SDL.SDL_WindowEvent eventArgs)
+        private void OnSizeChanged(WindowEvent eventArgs)
         {
             SetSurfaceSize(new Vector2(uiControl.ClientSize.Width, uiControl.ClientSize.Height));
         }
 
-        // TODO Code from PointeriOS with slight modifications, consider creating and referencing a utility class
-        private int GetFingerId(long touchId, PointerEventType type)
+        private int GetFingerId(long touchId, long fingerId, PointerEventType type)
         {
             // Assign finger index (starting at 0) to touch ID
             int touchFingerIndex = 0;
+            var key = (touchId, fingerId);
             if (type == PointerEventType.Pressed)
             {
                 touchFingerIndex = touchCounter++;
-                touchFingerIndexMap.Add(touchId, touchFingerIndex);
+                touchFingerIndexMap[key] = touchFingerIndex;
             }
             else
             {
-                touchFingerIndex = touchFingerIndexMap[touchId];
+                touchFingerIndexMap.TryGetValue(key, out touchFingerIndex);
             }
 
             // Remove index
-            if (type == PointerEventType.Released)
+            if (type == PointerEventType.Released && touchFingerIndexMap.Remove(key))
             {
-                touchFingerIndexMap.Remove(touchId);
                 touchCounter = 0; // Reset touch counter
 
                 // Recalculate next finger index
@@ -91,24 +93,24 @@ namespace Stride.Input
             return touchFingerIndex;
         }
 
-        private void HandleFingerEvent(SDL.SDL_TouchFingerEvent e, PointerEventType type)
+        private void HandleFingerEvent(TouchFingerEvent e, PointerEventType type)
         {
-            var newPosition = new Vector2(e.x, e.y);
-            var id = GetFingerId(e.fingerId, type);
+            var newPosition = new Vector2(e.X, e.Y);
+            var id = GetFingerId(e.TouchId, e.FingerId, type);
             PointerState.PointerInputEvents.Add(new PointerDeviceState.InputEvent { Type = type, Position = newPosition, Id = id });
         }
 
-        private void OnFingerMoveEvent(SDL.SDL_TouchFingerEvent e)
+        private void OnFingerMoveEvent(TouchFingerEvent e)
         {
             HandleFingerEvent(e, PointerEventType.Moved);
         }
 
-        private void OnFingerPressEvent(SDL.SDL_TouchFingerEvent e)
+        private void OnFingerPressEvent(TouchFingerEvent e)
         {
             HandleFingerEvent(e, PointerEventType.Pressed);
         }
 
-        private void OnFingerReleaseEvent(SDL.SDL_TouchFingerEvent e)
+        private void OnFingerReleaseEvent(TouchFingerEvent e)
         {
             HandleFingerEvent(e, PointerEventType.Released);
         }

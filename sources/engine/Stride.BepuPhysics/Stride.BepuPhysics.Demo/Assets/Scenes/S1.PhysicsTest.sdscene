@@ -1,0 +1,69 @@
+!SceneAsset
+Id: 34252014-babe-47a9-b3b1-996ebdaff389
+SerializedVersion: {Stride: 3.1.0.1}
+Tags: []
+ChildrenIds: []
+Offset: {X: 0.0, Y: 0.0, Z: 0.0}
+Hierarchy:
+    RootParts:
+        - ref!! 723b11f4-35e5-40fe-a445-a0dfa71bb020
+        - ref!! dd46b98e-b346-4bcf-85d4-8faf0d657c97
+        - ref!! 4f6ac2cb-d18f-4746-bc5c-8755fdacbe5d
+    Parts:
+        -   Entity:
+                Id: 4f6ac2cb-d18f-4746-bc5c-8755fdacbe5d
+                Name: Camera
+                Components:
+                    ab59b40e43e4594756b0e373869dfec8: !TransformComponent
+                        Id: b82f09d6-b4b4-42e4-ad25-2b6d845b2910
+                        Position: {X: 0.0, Y: 0.0, Z: 2.225563}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    90cb01db0443add8f39b36edb813ce9a: !CameraComponent
+                        Id: 3db243f4-38a8-4968-bac3-e3a2f357803d
+                        Name: null
+                        Projection: Perspective
+                        Slot: be74c9be-5861-4bea-90b0-b175535210f7
+        -   Entity:
+                Id: 723b11f4-35e5-40fe-a445-a0dfa71bb020
+                Name: Entity
+                Components:
+                    cdfeb38a0e2f02f9f75e3bced599e76b: !TransformComponent
+                        Id: 8936363e-c5ca-4999-89c5-b6dc917e3262
+                        Position: {X: 0.99779034, Y: 0.0, Z: 1.1907759E-07}
+                        Rotation: {X: 0.0, Y: 0.70710677, Z: 0.0, W: 0.70710677}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    920fe034a3d2956bbb6566986a9f62f9: !Stride.BepuPhysics.Demo.Components.Utils.OverlapTesterComponent,Stride.BepuPhysics.Demo
+                        Id: d60df7b5-2eaf-4274-a9d3-2e7705d2dd8c
+        -   Entity:
+                Id: dd46b98e-b346-4bcf-85d4-8faf0d657c97
+                Name: Collider
+                Components:
+                    c4f25c69d237dc074e848d652d57339b: !TransformComponent
+                        Id: b64e4908-2c46-4ead-8714-f848f6c7fe99
+                        Position: {X: 1.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    f1e348c32c828e5a583787585bdf2a6b: !Stride.BepuPhysics.StaticComponent,Stride.BepuPhysics
+                        Id: 930d3811-127e-4463-9ddb-53c33d6dc3f1
+                        Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
+                            Colliders:
+                                9fcc12afdd42d9a01a7eb4e7481cf79e: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
+                                    Mass: 1.0
+                                    PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                    RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                    Size: {X: 1.0, Y: 1.0, Z: 1.0}
+                        ContactEventHandler: null
+                        SimulationIndex: 0
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 1000.0
+                        CollisionGroup:
+                            Id: 0
+                            IndexA: 0
+                            IndexB: 0
+                            IndexC: 0

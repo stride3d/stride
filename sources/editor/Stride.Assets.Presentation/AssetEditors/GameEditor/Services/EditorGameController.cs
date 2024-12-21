@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
@@ -107,7 +107,7 @@ namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Services
             sceneGameThread.SetApartmentState(ApartmentState.STA);
 
             Debug = new EditorGameDebugService();
-            Loader = new EditorContentLoader(this, Logger, asset, Game);
+            Loader = new EditorContentLoader(this, Logger, asset, editor, Game);
         }
 
         /// <inheritdoc/>
@@ -269,7 +269,7 @@ namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Services
         }
 
         /// <inheritdoc/>
-        public Task InvokeAsync(Action callback)
+        public Task InvokeAsync(Action callback, CancellationToken token = default)
         {
             EnsureNotDestroyed();
             if (IsDestroying)
@@ -278,7 +278,7 @@ namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Services
         }
 
         /// <inheritdoc/>
-        public Task LowPriorityInvokeAsync(Action callback)
+        public Task LowPriorityInvokeAsync(Action callback, CancellationToken token = default)
         {
             EnsureNotDestroyed();
             if (IsDestroying)
@@ -287,7 +287,7 @@ namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Services
         }
 
         /// <inheritdoc/>
-        public Task<TResult> InvokeAsync<TResult>(Func<TResult> callback)
+        public Task<TResult> InvokeAsync<TResult>(Func<TResult> callback, CancellationToken token = default)
         {
             EnsureNotDestroyed();
             if (IsDestroying)
@@ -296,7 +296,7 @@ namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Services
         }
 
         /// <inheritdoc/>
-        public Task InvokeTask(Func<Task> task)
+        public Task InvokeTask(Func<Task> task, CancellationToken token = default)
         {
             EnsureNotDestroyed();
             if (IsDestroying)
@@ -305,7 +305,7 @@ namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Services
         }
 
         /// <inheritdoc/>
-        public Task<TResult> InvokeTask<TResult>(Func<Task<TResult>> task)
+        public Task<TResult> InvokeTask<TResult>(Func<Task<TResult>> task, CancellationToken token = default)
         {
             EnsureNotDestroyed();
             if (IsDestroying)

@@ -7,7 +7,7 @@ using System.Collections.Generic;
 namespace Stride.Core.Shaders.Ast
 {
     /// <summary>
-    /// An assigment expression
+    /// An assignment expression
     /// </summary>
     public partial class AssignmentExpression : Expression
     {

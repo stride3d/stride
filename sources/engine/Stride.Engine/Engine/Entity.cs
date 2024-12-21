@@ -17,7 +17,9 @@ using Stride.Core.Serialization.Contents;
 namespace Stride.Engine
 {
     /// <summary>
-    /// Game entity. It usually aggregates multiple EntityComponent
+    /// Represents a game entity that typically aggregates multiple <see cref="EntityComponent"/> instances.
+    /// For more information about entities, see <see href="https://doc.stride3d.net/latest/en/manual/game-studio/add-entities.html">Adding entities</see>
+    /// and <see href="https://doc.stride3d.net/latest/en/manual/game-studio/manage-entities.html">Managing entities</see>.
     /// </summary>
     //[ContentSerializer(typeof(EntityContentSerializer))]
     //[ContentSerializer(typeof(DataContentSerializer<Entity>))]
@@ -44,20 +46,22 @@ namespace Stride.Engine
         /// </summary>
         /// <param name="name">The name to give to the entity</param>
         public Entity(string name)
-            : this(Vector3.Zero, name)
+            : this(name, Vector3.Zero)
         {
         }
 
         /// <summary>
-        /// Create a new <see cref="Entity" /> instance having the provided name and initial position.
+        /// Create a new <see cref="Entity" /> instance having the provided name, initial position, rotation and scale.
         /// </summary>
-        /// <param name="position">The initial position of the entity</param>
         /// <param name="name">The name to give to the entity</param>
-        public Entity(Vector3 position, string name = null)
+        /// <param name="position">The initial position of the entity</param>
+        /// <param name="rotation">The initial rotation of the entity</param>
+        /// <param name="scale">The initial scale of the entity</param>
+        public Entity(string name = null, Vector3 position = default, Quaternion? rotation = null, Vector3? scale = null)
             : this(name, false)
         {
             Id = Guid.NewGuid();
-            TransformValue = new TransformComponent { Position = position };
+            TransformValue = new TransformComponent { Position = position, Rotation = rotation ?? Quaternion.Identity, Scale = scale ?? Vector3.One };
             Components.Add(TransformValue);
         }
 
@@ -158,10 +162,10 @@ namespace Stride.Engine
         }
 
         /// <summary>
-        /// Adds the specified component using the <see cref="EntityComponent.DefaultKey" />.
+        /// Adds the specified component to the entity.
         /// </summary>
-        /// <param name="component">The component.</param>
-        /// <exception cref="System.ArgumentNullException">component</exception>
+        /// <param name="component">The component to add.</param>
+        /// <exception cref="System.ArgumentNullException">Thrown if the component is null.</exception>
         public void Add(EntityComponent component)
         {
             Components.Add(component);

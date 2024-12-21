@@ -114,8 +114,8 @@ namespace VRSandbox.Player
             while (enumerator.MoveNext())
             {
                 var collision = enumerator.Current;
-                var entityA = collision?.ColliderA?.Entity;
-                var entityB = collision?.ColliderB?.Entity;
+                var entityA = collision.ColliderA?.Entity;
+                var entityB = collision.ColliderB?.Entity;
 
                 var otherEntity = (entityA == Entity) ? entityB : entityA;
 

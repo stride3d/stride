@@ -1,9 +1,9 @@
-﻿<Project>
+<Project>
   <Import Project="..\..\targets\Stride.props" />
   <PropertyGroup>
     <StrideAssemblyProcessor>false</StrideAssemblyProcessor>
     <OutputType>Library</OutputType>
-    <TargetFramework>$(StrideEditorTargetFramework)</TargetFramework>
+    <TargetFramework>$(StrideXplatEditorTargetFramework)</TargetFramework>
     <StrideBuildTags>WindowsTools</StrideBuildTags>
   </PropertyGroup>
   <ItemGroup>
@@ -14,13 +14,13 @@
   </ItemGroup>
   <ItemGroup>
     <StrideNativeLib Include="$(MSBuildThisFileDirectory)..\..\..\deps\FreeImage\Release\**\*.dll">
-      <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
+      <Link>runtimes\%(RecursiveDir)native\%(Filename)%(Extension)</Link>
     </StrideNativeLib>
-    <StrideNativeLib Include="$(MSBuildThisFileDirectory)..\..\..\deps\TextureWrappers\Release\**\*.dll">
-      <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
+    <StrideNativeLib Include="$(MSBuildThisFileDirectory)..\..\..\deps\TextureWrappers\Release\**\*.dll;$(MSBuildThisFileDirectory)..\..\..\deps\TextureWrappers\Release\**\*.so">
+      <Link>runtimes\%(RecursiveDir)native\%(Filename)%(Extension)</Link>
     </StrideNativeLib>
-    <StrideNativeLib Include="$(MSBuildThisFileDirectory)..\..\..\deps\PVRTT\**\*.dll">
-      <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
+    <StrideNativeLib Include="$(MSBuildThisFileDirectory)..\..\..\deps\PVRTT\**\*.dll;$(MSBuildThisFileDirectory)..\..\..\deps\PVRTT\**\*.so">
+      <Link>runtimes\%(RecursiveDir)native\%(Filename)%(Extension)</Link>
     </StrideNativeLib>
   </ItemGroup>
   <ItemGroup>

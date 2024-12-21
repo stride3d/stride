@@ -60,12 +60,5 @@ namespace Stride.Core
         /// macOS
         /// </summary>
         macOS,
-#pragma warning restore SA1300 // Element must begin with upper-case letter
-
-        /// <summary>
-        /// The Universal Windows Platform (UWP). Please use <see cref="UWP"/> intead.
-        /// </summary>
-        [Obsolete("Please use UWP instead")]
-        Windows10 = UWP,
     }
 }

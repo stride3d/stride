@@ -6,6 +6,9 @@ namespace CSharpBeginner.Code
 {
     /// <summary>
     /// This script demonstrates how to check for keyboard input.
+    /// <para>
+    /// https://doc.stride3d.net/latest/en/tutorials/csharpbeginner/keyboard-input.html
+    /// </para>
     /// </summary>
     public class KeyboardInputDemo : SyncScript
     {

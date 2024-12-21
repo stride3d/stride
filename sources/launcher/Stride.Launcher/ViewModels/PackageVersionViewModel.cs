@@ -1,14 +1,14 @@
-// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp) 
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Threading.Tasks;
 using Stride.Core.Extensions;
-using Stride.LauncherApp.Resources;
 using Stride.Core.Packages;
-using Stride.LauncherApp.Services;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Services;
-using Stride.Core.Presentation.ViewModel;
+using Stride.Core.Presentation.ViewModels;
+using Stride.LauncherApp.Resources;
+using Stride.LauncherApp.Services;
 
 namespace Stride.LauncherApp.ViewModels
 {
@@ -35,10 +35,8 @@ namespace Stride.LauncherApp.ViewModels
         internal PackageVersionViewModel(LauncherViewModel launcher, NugetStore store, NugetLocalPackage localPackage)
             : base(launcher.SafeArgument("launcher").ServiceProvider)
         {
-            if (launcher == null) throw new ArgumentNullException(nameof(launcher));
-            if (store == null) throw new ArgumentNullException(nameof(store));
-            Launcher = launcher;
-            Store = store;
+            Launcher = launcher ?? throw new ArgumentNullException(nameof(launcher));
+            Store = store ?? throw new ArgumentNullException(nameof(store));
             LocalPackage = localPackage;
             DownloadCommand = new AnonymousTaskCommand(ServiceProvider, () => Download(true));
             DeleteCommand = new AnonymousTaskCommand(ServiceProvider, () => Delete(true, true)) { IsEnabled = CanDelete };
@@ -184,20 +182,18 @@ namespace Stride.LauncherApp.ViewModels
                     try
                     {
                         CurrentProcessStatus = null;
-                        using (var progressReport = new ProgressReport(Store, ServerPackage))
-                        {
-                            progressReport.ProgressChanged += (action, progress) => { Dispatcher.InvokeAsync(() => { UpdateProgress(action, progress); }).Forget(); };
-                            progressReport.UpdateProgress(ProgressAction.Delete, -1);
-                            await Store.UninstallPackage(LocalPackage, progressReport);
-                            CurrentProcessStatus = null;
-                        }
+                        using var progressReport = new ProgressReport(Store, ServerPackage);
+                        progressReport.ProgressChanged += (action, progress) => { Dispatcher.InvokeAsync(() => { UpdateProgress(action, progress); }).Forget(); };
+                        progressReport.UpdateProgress(ProgressAction.Delete, -1);
+                        await Store.UninstallPackage(LocalPackage, progressReport);
+                        CurrentProcessStatus = null;
                     }
                     catch (Exception e)
                     {
                         if (displayErrorMessage)
                         {
                             var message = $"{UninstallErrorMessage}{e.FormatSummary(true)}";
-                            await ServiceProvider.Get<IDialogService>().MessageBox(message, MessageBoxButton.OK, MessageBoxImage.Error);
+                            await ServiceProvider.Get<IDialogService>().MessageBoxAsync(message, MessageBoxButton.OK, MessageBoxImage.Error);
                             await UpdateVersionsFromStore();
                             IsProcessing = false;
                             return;
@@ -256,7 +252,7 @@ namespace Stride.LauncherApp.ViewModels
 ```
 {e.FormatSummary(false).TrimEnd(Environment.NewLine.ToCharArray())}
 ```";
-                        await ServiceProvider.Get<IDialogService>().MessageBox(message, MessageBoxButton.OK, MessageBoxImage.Error);
+                        await ServiceProvider.Get<IDialogService>().MessageBoxAsync(message, MessageBoxButton.OK, MessageBoxImage.Error);
                         return;
                     }
                     throw;
@@ -275,7 +271,7 @@ namespace Stride.LauncherApp.ViewModels
             if (askConfirmation)
             {
                 var message = string.Format(Strings.ConfirmUninstall, FullName);
-                var confirmResult = await ServiceProvider.Get<IDialogService>().MessageBox(message, MessageBoxButton.YesNo);
+                var confirmResult = await ServiceProvider.Get<IDialogService>().MessageBoxAsync(message, MessageBoxButton.YesNo);
                 proceed = confirmResult == MessageBoxResult.Yes;
             }
             if (proceed)
@@ -303,7 +299,7 @@ namespace Stride.LauncherApp.ViewModels
                 if (displayErrorMessage)
                 {
                     var message = $"{UninstallErrorMessage}{e.FormatSummary(true)}";
-                    await ServiceProvider.Get<IDialogService>().MessageBox(message, MessageBoxButton.OK, MessageBoxImage.Error);
+                    await ServiceProvider.Get<IDialogService>().MessageBoxAsync(message, MessageBoxButton.OK, MessageBoxImage.Error);
                     return;
                 }
                 throw;
@@ -317,7 +313,7 @@ namespace Stride.LauncherApp.ViewModels
 
         private void UpdateStatusInternal()
         {
-            CanBeDownloaded = LocalPackage == null || (LocalPackage != null && ServerPackage != null && LocalPackage.Version < ServerPackage.Version);
+            CanBeDownloaded = (LocalPackage == null && ServerPackage != null) || (LocalPackage != null && ServerPackage != null && LocalPackage.Version < ServerPackage.Version);
             CanDelete = LocalPackage != null;
             DownloadCommand.IsEnabled = CanBeDownloaded;
         }

@@ -53,16 +53,16 @@ namespace Stride.Physics
             if (other == null)
                 return false;
 
-            return Math.Abs(other.Height - Height) < float.Epsilon &&
-                   Math.Abs(other.Radius - Radius) < float.Epsilon &&
+            return MathF.Abs(other.Height - Height) < float.Epsilon &&
+                   MathF.Abs(other.Radius - Radius) < float.Epsilon &&
                    other.Orientation == Orientation &&
                    other.LocalOffset == LocalOffset &&
                    other.LocalRotation == LocalRotation;
         }
 
-        public ColliderShape CreateShape()
+        public ColliderShape CreateShape(IServiceRegistry services)
         {
-            return new CylinderColliderShape(Height, Radius, Orientation) { LocalOffset = LocalOffset, LocalRotation = LocalRotation };
+            return new CylinderColliderShape(Height, Radius, Orientation) { LocalOffset = LocalOffset, LocalRotation = LocalRotation, Description = this };
         }
     }
 }

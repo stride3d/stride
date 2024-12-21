@@ -9,6 +9,9 @@ namespace CSharpBeginner.Code
 {
     /// <summary>
     /// This script demonstrates how we can load contect from code, and attach it to an entity
+    /// <para>
+    /// https://doc.stride3d.net/latest/en/tutorials/csharpbeginner/loading-content.html
+    /// </para>
     /// </summary>
     public class LoadingContentDemo : SyncScript
     {
@@ -68,7 +71,7 @@ namespace CSharpBeginner.Code
                 var randomPosition = new Vector3(random.Next(-2, 4), 0, random.Next(-2, 2));
 
                 // Create a new entity and attach a model component 
-                var entity = new Entity(randomPosition, "My new entity with a model component");
+                var entity = new Entity("My new entity with a model component", randomPosition);
                 entity.Add(modelComponent);
 
                 // Add the new entity to the current tutorial scene

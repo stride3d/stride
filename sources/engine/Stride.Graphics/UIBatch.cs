@@ -441,7 +441,7 @@ namespace Stride.Graphics
             worldMatrix.M43 -= worldMatrix.M13 * leftTopCornerOffset.X + worldMatrix.M23 * leftTopCornerOffset.Y;
 
             // transform the world matrix into the world view project matrix
-            Matrix.MultiplyTo(ref worldMatrix, ref viewProjectionMatrix, out drawCommand.Matrix);
+            Matrix.Multiply(ref worldMatrix, ref viewProjectionMatrix, out drawCommand.Matrix);
 
             if (font.FontType == SpriteFontType.SDF)
             {

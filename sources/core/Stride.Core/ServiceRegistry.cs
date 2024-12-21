@@ -26,10 +26,16 @@ using System.Collections.Generic;
 namespace Stride.Core
 {
     /// <summary>
-    /// Base implementation for <see cref="IServiceRegistry"/>
+    /// Provides a base implementation for managing services within an application. Implements the <see cref="IServiceRegistry"/> interface.
     /// </summary>
+    /// <remarks>
+    /// This class uses a dictionary to store services by their types. It is thread-safe.
+    /// </remarks>
     public class ServiceRegistry : IServiceRegistry
     {
+        /// <summary>
+        /// The key used to identify the <see cref="ServiceRegistry"/> instance.
+        /// </summary>
         public static readonly PropertyKey<IServiceRegistry> ServiceRegistryKey = new PropertyKey<IServiceRegistry>(nameof(ServiceRegistryKey), typeof(IServiceRegistry));
 
         private readonly Dictionary<Type, object> registeredService = new Dictionary<Type, object>();
@@ -55,6 +61,9 @@ namespace Stride.Core
         }
 
         /// <inheritdoc />
+        /// <remarks>
+        /// This implementation triggers the <see cref="ServiceAdded"/> event after a service is successfully added.
+        /// </remarks>
         public void AddService<T>(T service)
             where T : class
         {
@@ -71,6 +80,10 @@ namespace Stride.Core
         }
 
         /// <inheritdoc />
+        /// <remarks>
+        /// This implementation triggers the <see cref="ServiceRemoved"/> event after a service is successfully removed.
+        /// If the service type is not found, this method does nothing.
+        /// </remarks>
         public void RemoveService<T>()
             where T : class
         {

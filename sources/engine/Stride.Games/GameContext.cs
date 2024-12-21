@@ -24,6 +24,7 @@
 
 using System;
 using System.Reflection;
+using Stride.Core;
 using Stride.Graphics;
 
 namespace Stride.Games
@@ -78,7 +79,7 @@ namespace Stride.Games
         internal PixelFormat RequestedDepthStencilFormat;
 
         /// <summary>
-        /// THe requested graphics profiles.
+        /// The requested graphics profiles.
         /// </summary>
         internal GraphicsProfile[] RequestedGraphicsProfile;
 
@@ -122,8 +123,7 @@ namespace Stride.Games
 #if STRIDE_PLATFORM_UWP
                 return string.Empty;
 #else
-                var assembly = Assembly.GetEntryAssembly();
-                return assembly?.Location;
+                return PlatformFolders.ApplicationExecutablePath ?? string.Empty;
 #endif
             }
         }
@@ -140,19 +140,6 @@ namespace Stride.Games
         public static implicit operator GameContext(System.Windows.Forms.Control control)
         {
             return new GameContextWinforms(control);
-        }
-#endif
-
-#if STRIDE_PLATFORM_DESKTOP && STRIDE_GRAPHICS_API_OPENGL && STRIDE_UI_OPENTK
-        /// <summary>
-        /// Performs an implicit conversion from <see cref="OpenTK.GameWindow"/> to <see cref="GameContextOpenTK"/>.
-        /// </summary>
-        /// <param name="gameWindow">OpenTK GameWindow</param>
-        /// <returns>The result of the conversion.</returns>
-        [Obsolete ("Use new GameContextOpenTK(gameWindow) instead.")]
-        public static implicit operator GameContext(OpenTK.GameWindow gameWindow)
-        {
-            return new GameContextOpenTK(gameWindow);
         }
 #endif
     }

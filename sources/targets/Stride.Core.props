@@ -2,45 +2,44 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <!-- Setup this part according to your project if you want your .csproj to compile individually without going through the .sln file -->
   <PropertyGroup>
-    <SolutionDir Condition=" '$(SolutionDir)' == '' ">$(MSBuildThisFileDirectory)..\..\build\</SolutionDir>
     <SolutionName Condition=" '$(SolutionName)' == '' ">Stride</SolutionName>
-    <SolutionPath Condition=" '$(SolutionPath)' == '' ">$(SolutionDir)$(SolutionName).sln</SolutionPath>
   </PropertyGroup>
 
   <!-- Setup StridePlatform according to current TargetFramework -->
   <PropertyGroup>
+    <StrideFramework>net8.0</StrideFramework>
+    <StrideFrameworkWindows>net8.0-windows</StrideFrameworkWindows>
+    <StrideFrameworkAndroid>net8.0-android</StrideFrameworkAndroid>
+    <StrideFrameworkiOS>net8.0-ios</StrideFrameworkiOS>
+    <StrideFrameworkUWP>uap10.0.16299</StrideFrameworkUWP>
+
     <!-- Default values -->
     <StridePlatformOriginal>$(StridePlatform)</StridePlatformOriginal>
-    <StridePlatform Condition=" $(TargetFramework.StartsWith('net')) ">Windows</StridePlatform>
-    <StridePlatform Condition=" $(TargetFramework.StartsWith('net')) And $(RuntimeIdentifier.StartsWith('linux')) ">Linux</StridePlatform>
-    <StridePlatform Condition=" $(TargetFramework.StartsWith('net')) And $(RuntimeIdentifier.StartsWith('osx')) ">macOS</StridePlatform>
-    <StridePlatform Condition=" $(TargetFramework.StartsWith('uap10.0')) ">UWP</StridePlatform>
-    <StridePlatform Condition=" '$(TargetFramework)' == 'monoandroid81' ">Android</StridePlatform>
-    <StridePlatform Condition=" '$(TargetFramework)' == 'xamarinios10' ">iOS</StridePlatform>
-    <!-- Default fallback -->
-    <StridePlatform Condition=" '$(StridePlatform)' == '' ">Windows</StridePlatform>
-
+    <StridePlatform>Windows</StridePlatform>
+    <StridePlatform Condition=" '$([MSBuild]::IsOSPlatform(Linux))' Or '$(RuntimeIdentifier.StartsWith(linux))' ">Linux</StridePlatform>
+    <StridePlatform Condition="  $(RuntimeIdentifier.StartsWith('osx')) ">macOS</StridePlatform>
+    <StridePlatform Condition=" '$(TargetFramework)' == '$(StrideFrameworkUWP)' ">UWP</StridePlatform>
+    <StridePlatform Condition=" '$(TargetFramework)' == '$(StrideFrameworkAndroid)' ">Android</StridePlatform>
+    <StridePlatform Condition=" '$(TargetFramework)' == '$(StrideFrameworkiOS)' ">iOS</StridePlatform>
+    
     <StridePlatformFullName Condition="'$(StridePlatformFullName)' == ''">$(StridePlatform)</StridePlatformFullName>
 
-    <StridePlatformDeps Condition=" $(TargetFramework.StartsWith('net')) ">dotnet</StridePlatformDeps>
-    <StridePlatformDeps Condition=" $(TargetFramework.StartsWith('uap10.0')) ">UWP</StridePlatformDeps>
-    <StridePlatformDeps Condition=" '$(TargetFramework)' == 'monoandroid81' ">Android</StridePlatformDeps>
-    <StridePlatformDeps Condition=" '$(TargetFramework)' == 'xamarinios10' ">iOS</StridePlatformDeps>
+    <StridePlatformDeps Condition=" '$(TargetFramework)' == '$(StrideFramework)' Or '$(TargetFramework)' == '$(StrideFrameworkWindows)' ">dotnet</StridePlatformDeps>
+    <StridePlatformDeps Condition=" '$(TargetFramework)' == '$(StrideFrameworkUWP)' ">UWP</StridePlatformDeps>
+    <StridePlatformDeps Condition=" '$(TargetFramework)' == '$(StrideFrameworkAndroid)' ">Android</StridePlatformDeps>
+    <StridePlatformDeps Condition=" '$(TargetFramework)' == '$(StrideFrameworkiOS)' ">iOS</StridePlatformDeps>
   </PropertyGroup>
 
   <!--Import Local Pre Settings for the solution being loaded -->
-  <Import Project="$(SolutionDir)$(SolutionName).Build.props" Condition="Exists('$(SolutionDir)$(SolutionName).Build.props')" />
-  <Import Project="$(SolutionDir)Stride.Core.Build.props" Condition="Exists('$(SolutionDir)Stride.Core.Build.props')" />
-
+  <Import Project="$(MSBuildThisFileDirectory)..\..\build\$(SolutionName).Build.props" Condition="Exists('$(MSBuildThisFileDirectory)..\..\build\$(SolutionName).Build.props')" />
+  <Import Project="$(MSBuildThisFileDirectory)..\..\build\Stride.Core.Build.props" Condition="Exists('$(MSBuildThisFileDirectory)..\..\build\Stride.Core.Build.props')" />
   <Import Project="$(MSBuildThisFileDirectory)Stride.Core.TargetFrameworks.Editor.props" />
   
   <!-- 
     Settings StridePlatform specific
   -->
   <PropertyGroup>
-    <!-- Using C# version 7.3 -->
-    <LangVersion>9.0</LangVersion>
-    <StridePlatformDefines>STRIDE_PLATFORM_DESKTOP;STRIDE_PLATFORM_WINDOWS;STRIDE_PLATFORM_WINDOWS_DESKTOP</StridePlatformDefines>
+    <StridePlatformDefines>STRIDE_PLATFORM_DESKTOP</StridePlatformDefines>
 
     <!-- Note: ideally we would split using ItemGroup but then PropertyGroup are not properly evaluated if they contain ItemGroup (unless using Targets) -->
     <StridePlatforms Condition="'$(StridePlatforms)' == ''">Windows</StridePlatforms>
@@ -49,20 +48,21 @@
     <_StridePlatforms>;$(StridePlatforms);</_StridePlatforms>
   </PropertyGroup>
   
-  <PropertyGroup Condition="$(TargetFramework.StartsWith('uap10.0'))">
+  <PropertyGroup Condition="'$(TargetFramework)' == '$(StrideFrameworkUWP)'">
     <!-- Fixes for GetPackagingOutputs (note: not sure if still necessary) -->
     <WindowsAppContainer>false</WindowsAppContainer>
     <AppxPackage>false</AppxPackage>
     <Platform>AnyCPU</Platform>
   </PropertyGroup>
 
-  <PropertyGroup Condition=" '$(StrideRuntime)' == 'true' ">
-    <!-- Add net5.0 no matter what (needed for references) -->
-    <StrideRuntimeTargetFrameworks>net5.0</StrideRuntimeTargetFrameworks>
-    <StrideRuntimeTargetFrameworks Condition="$(_StridePlatforms.Contains(';Windows;')) And '$(StrideRuntimeWindowsNet5)' == 'true'">$(StrideRuntimeTargetFrameworks);net5.0-windows</StrideRuntimeTargetFrameworks>
+  <PropertyGroup Condition=" '$(StrideRuntime)' == 'true' ">  
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <!-- Add net8.0 no matter what (needed for references) -->
+    <StrideRuntimeTargetFrameworks>net8.0</StrideRuntimeTargetFrameworks>
+    <StrideRuntimeTargetFrameworks Condition="$(_StridePlatforms.Contains(';Windows;')) And '$(StrideExplicitWindowsRuntime)' == 'true'">$(StrideRuntimeTargetFrameworks);net8.0-windows</StrideRuntimeTargetFrameworks>
     <StrideRuntimeTargetFrameworks Condition="$(_StridePlatforms.Contains(';UWP;'))">$(StrideRuntimeTargetFrameworks);uap10.0.16299</StrideRuntimeTargetFrameworks>
-    <StrideRuntimeTargetFrameworks Condition="$(_StridePlatforms.Contains(';Android;'))">$(StrideRuntimeTargetFrameworks);monoandroid81</StrideRuntimeTargetFrameworks>
-    <StrideRuntimeTargetFrameworks Condition="$(_StridePlatforms.Contains(';iOS;'))">$(StrideRuntimeTargetFrameworks);xamarinios10</StrideRuntimeTargetFrameworks>
+    <StrideRuntimeTargetFrameworks Condition="$(_StridePlatforms.Contains(';Android;'))">$(StrideRuntimeTargetFrameworks);net8.0-android</StrideRuntimeTargetFrameworks>
+    <StrideRuntimeTargetFrameworks Condition="$(_StridePlatforms.Contains(';iOS;'))">$(StrideRuntimeTargetFrameworks);net8.0-ios</StrideRuntimeTargetFrameworks>
 
     <StrideRuntimeTargetFrameworks>$([MSBuild]::Unescape($(StrideRuntimeTargetFrameworks.Trim(';'))))</StrideRuntimeTargetFrameworks>
 
@@ -104,7 +104,7 @@
     <When  Condition=" '$(StridePlatform)' == 'Android' ">
       <PropertyGroup Condition=" '$(Platform)' == 'Android' "/>
     </When>
-    <When  Condition=" '$(StridePlatform)' == 'iOS' ">
+    <When  Condition=" '$(TargetFramework)' == '$(StrideFrameworkiOS)' ">
       <PropertyGroup Condition=" '$(Platform)' == 'iPhone' "/>
       <PropertyGroup Condition=" '$(Platform)' == 'iPhoneSimulator' "/>
     </When>
@@ -124,7 +124,7 @@
   <!-- Default values -->
   <PropertyGroup>
     <StrideAssemblyProcessor Condition="'$(StrideAssemblyProcessor)' == ''">false</StrideAssemblyProcessor>
-    <StrideAssemblyProcessorOptions Condition="'$(StrideAssemblyProcessorOptions)' == ''">--auto-notify-property --auto-module-initializer --serialization</StrideAssemblyProcessorOptions>
+    <StrideAssemblyProcessorOptions Condition="'$(StrideAssemblyProcessorOptions)' == ''">--auto-module-initializer --serialization</StrideAssemblyProcessorOptions>
   </PropertyGroup>
 
   <!-- 
@@ -135,22 +135,23 @@
     <StrideCommonDependenciesDir Condition="'$(StrideCommonDependenciesDir)' != '' and !HasTrailingSlash('$(StrideCommonDependenciesDir)')">$(StrideCommonDependenciesDir)\</StrideCommonDependenciesDir>
     <ErrorReport>prompt</ErrorReport>
     <FileAlignment>512</FileAlignment>
+    <ValidateExecutableReferencesMatchSelfContained>false</ValidateExecutableReferencesMatchSelfContained>
   </PropertyGroup>
 
-  <PropertyGroup Condition=" $(TargetFramework.StartsWith('net5')) ">
+  <PropertyGroup Condition=" '$(TargetFramework)' == '$(StrideFramework)' Or '$(TargetFramework)' == '$(StrideFrameworkWindows)' ">
     <StridePlatformDefines>STRIDE_PLATFORM_DESKTOP</StridePlatformDefines>
   </PropertyGroup>
 
-  <PropertyGroup Condition=" '$(StridePlatform)' == 'UWP' ">
+  <PropertyGroup Condition=" '$(TargetFramework)' == '$(StrideFrameworkUWP)' ">
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
-    <StridePlatformDefines>STRIDE_PLATFORM_WINDOWS;STRIDE_PLATFORM_UWP</StridePlatformDefines>
+    <StridePlatformDefines>STRIDE_PLATFORM_UWP</StridePlatformDefines>
     <ExtrasUwpMetaPackageVersion>6.2.12</ExtrasUwpMetaPackageVersion>
     <TargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</TargetPlatformVersion>
     <TargetPlatformMinVersion>10.0.16299.0</TargetPlatformMinVersion>
     <GenerateLibraryLayout>false</GenerateLibraryLayout>
   </PropertyGroup>
 
-  <PropertyGroup Condition=" '$(StridePlatform)' == 'Android' ">
+  <PropertyGroup Condition=" '$(TargetFramework)' == '$(StrideFrameworkAndroid)' ">
     <StridePlatformDefines>STRIDE_PLATFORM_MONO_MOBILE;STRIDE_PLATFORM_ANDROID</StridePlatformDefines>
     <AndroidStoreUncompressedFileExtensions />
     <MandroidI18n />
@@ -158,15 +159,17 @@
     <DesignTimeBuild Condition="'$(DesignTimeBuild)' == ''">False</DesignTimeBuild>
     <!-- Use AssemblyName rather than RootNamespace for Resource class otherwise it might clash between some assemblies (i.e. Stride and Stride.Engine) -->
     <AndroidResgenNamespace>$(AssemblyName)</AndroidResgenNamespace>
+    <!-- Needs to be set to 21 as long as generated entry point projects are - otherwise user gets a lot of build warnings -->
+    <SupportedOSPlatformVersion>21</SupportedOSPlatformVersion>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(StridePlatform)' == 'Android' And '$(OutputType)' == 'Exe' ">
+  <PropertyGroup Condition=" '$(TargetFramework)' == '$(StrideFrameworkAndroid)' And '$(OutputType)' == 'Exe' ">
     <AndroidApplication>true</AndroidApplication>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(StridePlatform)' == 'Android' And '$(Configuration)' == 'Debug' ">
+  <PropertyGroup Condition=" '$(TargetFramework)' == '$(StrideFrameworkAndroid)' And '$(Configuration)' == 'Debug' ">
     <AndroidUseSharedRuntime>True</AndroidUseSharedRuntime>
     <AndroidLinkMode>None</AndroidLinkMode>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(StridePlatform)' == 'Android' And '$(Configuration)' == 'Release' ">
+  <PropertyGroup Condition=" '$(TargetFramework)' == '$(StrideFrameworkAndroid)' And '$(Configuration)' == 'Release' ">
     <AndroidUseSharedRuntime>False</AndroidUseSharedRuntime>
     <AndroidLinkMode>SdkOnly</AndroidLinkMode>
   </PropertyGroup>
@@ -181,14 +184,14 @@
     </ItemGroup>
   </Target>
 
-  <PropertyGroup Condition=" '$(StridePlatform)' == 'iOS' ">
+  <PropertyGroup Condition=" '$(TargetFramework)' == '$(StrideFrameworkiOS)' ">
     <Platform Condition=" '$(Platform)' == '' ">iPhone</Platform>
     <StridePlatformDefines>STRIDE_PLATFORM_MONO_MOBILE;STRIDE_PLATFORM_IOS</StridePlatformDefines>
     <IPhoneResourcePrefix>Resources</IPhoneResourcePrefix>
   </PropertyGroup>
 
   <Choose>
-    <When Condition=" '$(StridePlatform)' == 'Android' Or '$(StridePlatform)' == 'iOS' Or '$(StridePlatform)' == 'UWP' ">
+    <When Condition=" '$(TargetFramework)' == '$(StrideFrameworkUWP)' ">
       <ItemGroup>
         <Reference Include="System" />
         <Reference Include="System.Core" />
@@ -199,15 +202,15 @@
   </Choose>
 
   <!-- Create empty project platform configuration so that MSBuild and Visual Studio Configuration Manager know about it -->
-  <PropertyGroup Condition=" '$(StridePlatform)' == 'iOS' And '$(Configuration)|$(Platform)' == 'Debug|iPhone' "/>
-  <PropertyGroup Condition=" '$(StridePlatform)' == 'iOS' And '$(Configuration)|$(Platform)' == 'Release|iPhone' "/>
-  <PropertyGroup Condition=" '$(StridePlatform)' == 'iOS' And '$(Configuration)|$(Platform)' == 'Debug|iPhoneSimulator' "/>
-  <PropertyGroup Condition=" '$(StridePlatform)' == 'iOS' And '$(Configuration)|$(Platform)' == 'Release|iPhoneSimulator' "/>
+  <PropertyGroup Condition=" '$(TargetFramework)' == '$(StrideFrameworkiOS)' And '$(Configuration)|$(Platform)' == 'Debug|iPhone' "/>
+  <PropertyGroup Condition=" '$(TargetFramework)' == '$(StrideFrameworkiOS)' And '$(Configuration)|$(Platform)' == 'Release|iPhone' "/>
+  <PropertyGroup Condition=" '$(TargetFramework)' == '$(StrideFrameworkiOS)' And '$(Configuration)|$(Platform)' == 'Debug|iPhoneSimulator' "/>
+  <PropertyGroup Condition=" '$(TargetFramework)' == '$(StrideFrameworkiOS)' And '$(Configuration)|$(Platform)' == 'Release|iPhoneSimulator' "/>
 
   <!-- 
     Settings StrideNETRuntime specific
   -->
-  <PropertyGroup Condition="$(TargetFramework.StartsWith('netcoreapp')) Or $(TargetFramework.StartsWith('net5'))">
+  <PropertyGroup Condition="$(TargetFramework.StartsWith('net8'))">
     <StrideNETRuntimeDefines>STRIDE_RUNTIME_CORECLR</StrideNETRuntimeDefines>
   </PropertyGroup>
 
@@ -219,15 +222,14 @@
 
   <!-- SourceLink -->
   <ItemGroup>
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Condition="'$(StrideProjectType)' == 'CSharp'" Version="1.0.0" PrivateAssets="All"/>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Condition="'$(StrideProjectType)' == 'CSharp'" PrivateAssets="All"/>
   </ItemGroup>
 
-  <!-- Copy the libcore.a and libfreetype.a libraries to the project root directory for future native link.
-       Note: this target is redefined in References.targets for user projects -->
-  <Target Name="CopyStrideNativeLibraries" Condition=" '$(StridePlatform)' == 'iOS' and '$(OutputType)' == 'Exe'">
+  <!-- Copy the libcore.a and libfreetype.a libraries to the project root directory for future native link. -->
+  <Target Name="CopyStrideNativeLibraries" Condition=" '$(TargetFramework)' == '$(StrideFrameworkiOS)' and '$(OutputType)' == 'Exe'">
   </Target>
 
-  <!-- Used by Stride.build to detect if unit tests prefer to run in 32 or 64 bits (note: it's a copy of Stride.UnitTests.targets one because some unit tests import Stride.Core.PreSettings.targets rather than Stride.UnitTests.targets) -->
+  <!-- Used by Stride.build to detect if unit tests prefer to run in 32 or 64 bits (note: it's a copy of Stride.UnitTests.targets one because some unit tests import Stride.Core.props rather than Stride.UnitTests.props) -->
   <Target Name="_StrideAfterGetTargetPathWithTargetPlatformMoniker" AfterTargets="GetTargetPathWithTargetPlatformMoniker">
     <ItemGroup>
       <TargetPathWithTargetPlatformMoniker Update="$(TargetPath)">
@@ -235,6 +237,9 @@
       </TargetPathWithTargetPlatformMoniker>
     </ItemGroup>
   </Target>
+
+  <!-- Include Stride analyzer/code generator -->
+  <Import Project="$(MSBuildThisFileDirectory)Stride.Core.CompilerServices.props"/>
 
   <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" Condition="'$(StrideProjectType)' != 'Cpp'" />
 

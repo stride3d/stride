@@ -2,11 +2,12 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Threading.Tasks;
-using Stride.Core.Assets;
-using Stride.Core.Assets.Editor.ViewModel;
-using Stride.Core;
-using Stride.Core.IO;
 using Stride.Assets.SpriteFont;
+using Stride.Core;
+using Stride.Core.Assets;
+using Stride.Core.Assets.Editor.Annotations;
+using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.IO;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.Windows;
@@ -15,7 +16,7 @@ using Stride.Graphics;
 
 namespace Stride.Assets.Presentation.ViewModel
 {
-    [AssetViewModel(typeof(SpriteFontAsset))]
+    [AssetViewModel<SpriteFontAsset>]
     public class SpriteFontViewModel : AssetViewModel<SpriteFontAsset>
     {
         /// <summary>
@@ -44,17 +45,16 @@ namespace Stride.Assets.Presentation.ViewModel
             if (font.FontType is RuntimeRasterizedSpriteFontType)
             {
                 // Note: Markdown (**, _) are used to format the text.
-                await dialogService.MessageBox(Tr._p("Message", "**Only static fonts can be precompiled.**\r\n\r\nClear the _Is Dynamic_ property on this font and try again."), MessageBoxButton.OK, MessageBoxImage.Error);
+                await dialogService.MessageBoxAsync(Tr._p("Message", "**Only static fonts can be precompiled.**\r\n\r\nClear the _Is Dynamic_ property on this font and try again."), MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
             }
             // Compute unique name
             var precompiledName = NamingHelper.ComputeNewName($"{AssetItem.Location.GetFileNameWithoutExtension()} (Precompiled)", Directory.Assets, x => x.Name);
 
             // Ask location for generated texture
-            var folderDialog = dialogService.CreateFolderOpenModalDialog();
-            folderDialog.InitialDirectory = (Session.CurrentProject?.Package?.RootDirectory ?? Session.SolutionPath.GetFullDirectory()).ToWindowsPath() + "\\Resources";
-            var dialogResult = await folderDialog.ShowModal();
-            if (dialogResult != DialogResult.Ok)
+            var initialPath = UDirectory.Combine(Session.CurrentProject?.Package?.RootDirectory ?? Session.SolutionPath.GetFullDirectory(), "Resources");
+            var directory = await ServiceProvider.Get<IDialogService>().OpenFolderPickerAsync(initialPath);
+            if (directory is null)
                 return;
 
             bool srgb;
@@ -62,7 +62,7 @@ namespace Stride.Assets.Presentation.ViewModel
             if (gameSettings == null)
             {
                 var buttons = DialogHelper.CreateButtons(new[] { ColorSpace.Linear.ToString(), ColorSpace.Gamma.ToString(), Tr._p("Button", "Cancel") }, 1, 3);
-                var result = await dialogService.MessageBox(Tr._p("Message", "Which color space do you want to use?"), buttons, MessageBoxImage.Question);
+                var result = await dialogService.MessageBoxAsync(Tr._p("Message", "Which color space do you want to use?"), buttons, MessageBoxImage.Question);
                 // Close without clicking a button or Cancel
                 if (result == 0 || result == 3)
                     return;
@@ -74,8 +74,8 @@ namespace Stride.Assets.Presentation.ViewModel
             }
 
             var precompiledFontAsset = (font.FontType is SignedDistanceFieldSpriteFontType) ?
-                font.GeneratePrecompiledSDFSpriteFont(AssetItem, UFile.Combine(folderDialog.Directory, precompiledName)) : 
-                font.GeneratePrecompiledSpriteFont(AssetItem, UFile.Combine(folderDialog.Directory, precompiledName), srgb);
+                font.GeneratePrecompiledSDFSpriteFont(AssetItem, UFile.Combine(directory, precompiledName)) : 
+                font.GeneratePrecompiledSpriteFont(AssetItem, UFile.Combine(directory, precompiledName), srgb);
 
             // NOTE: following code could be factorized with AssetFactoryViewModel
             var defaultLocation = UFile.Combine(Directory.Path, precompiledName);

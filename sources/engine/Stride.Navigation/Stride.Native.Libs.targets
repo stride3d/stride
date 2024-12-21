@@ -1,15 +1,13 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <!--
-    We need both StrideNativePathLibs and StrideNativePathLibs2 as in Windows platforms it's a simple string while on other platforms they need to be iterated and processed
-  -->
   <PropertyGroup>
-    <StrideNativePathLibs Condition="'$(StridePlatform)' == 'Windows'">Recast.lib Detour.lib</StrideNativePathLibs>
-    <StrideNativePathLibs Condition="'$(StridePlatform)' == 'UWP'">Recast.lib Detour.lib</StrideNativePathLibs>
+    <StrideNativePathLibsWindows>Recast.lib Detour.lib</StrideNativePathLibsWindows>
+    <StrideNativePathLibsUWP Condition="'$(StridePlatform)' == 'UWP'">Recast.lib Detour.lib</StrideNativePathLibsUWP>
   </PropertyGroup>
 
   <ItemGroup>
-    <StrideNativePathLibs2 Condition="'$(StridePlatform)' == 'iOS' or '$(StridePlatform)' == 'macOS'" 
-                          Include="$(MSBuildThisFileDirectory)..\..\..\deps\NativePath\iOS\libDetour.a;$(MSBuildThisFileDirectory)..\..\..\deps\NativePath\iOS\libRecast.a" />
-    <StrideNativePathLibs2 Condition="'$(StridePlatform)' == 'Linux' Or '$(StridePlatform)' == 'Android'" Include="libDetour.a;libRecast.a" />
+    <StrideNativePathLibsiOS Include="$(MSBuildThisFileDirectory)..\..\..\deps\NativePath\iOS\libDetour.a;$(MSBuildThisFileDirectory)..\..\..\deps\NativePath\iOS\libRecast.a" />
+    <StrideNativePathLibsmacOS Include="$(MSBuildThisFileDirectory)..\..\..\deps\NativePath\iOS\libDetour.a;$(MSBuildThisFileDirectory)..\..\..\deps\NativePath\iOS\libRecast.a" />
+    <StrideNativePathLibsLinux Include="libDetour.a;libRecast.a" />
+    <StrideNativePathLibsAndroid Include="libDetour.a;libRecast.a" />
   </ItemGroup>
 </Project>

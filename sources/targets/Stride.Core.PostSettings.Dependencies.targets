@@ -4,6 +4,7 @@
   <PropertyGroup>
     <AllowedOutputExtensionsInPackageBuildOutputFolder>.ssdeps; $(AllowedOutputExtensionsInPackageBuildOutputFolder)</AllowedOutputExtensionsInPackageBuildOutputFolder>
     <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);_StrideRegisterDependenciesOutputs</TargetsForTfmSpecificBuildOutput>
+    <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);_StrideRegisterPackageFiles</TargetsForTfmSpecificContentInPackage>
   </PropertyGroup>
   <!-- 
   *****************************************************************************************************************************
@@ -14,8 +15,8 @@
   <!-- List dependency files from .ssdeps -->
   <Target Name="_StrideListDepsFiles" DependsOnTargets="ResolveAssemblyReferences">
     <ItemGroup>
-      <_StrideDepsFile Include="@(ReferencePath->'%(RootDir)%(Directory)%(Filename).ssdeps')" Condition="'%(CopyLocal)' != 'false' And Exists('%(RootDir)%(Directory)%(Filename).ssdeps')"/>
-      <_StrideDepsFile Include="@(ReferenceDependencyPaths->'%(RootDir)%(Directory)%(Filename).ssdeps')" Condition="'%(CopyLocal)' != 'false' And Exists('%(RootDir)%(Directory)%(Filename).ssdeps')"/>
+      <_StrideDepsFile Include="@(ReferencePath->'%(RootDir)%(Directory)%(Filename).ssdeps')" Condition="'%(ReferencePath.CopyLocal)' != 'false' And Exists('%(RootDir)%(Directory)%(Filename).ssdeps')"/>
+      <_StrideDepsFile Include="@(ReferenceDependencyPaths->'%(RootDir)%(Directory)%(Filename).ssdeps')" Condition="'%(ReferenceDependencyPaths.CopyLocal)' != 'false' And Exists('%(RootDir)%(Directory)%(Filename).ssdeps')"/>
       <None Include="@(_StrideDepsFile)" CopyToOutputDirectory="PreserveNewest" />
     </ItemGroup>
   </Target>
@@ -65,19 +66,19 @@
   -->
   <Target Name="_StrideSetupNativeLibraries" DependsOnTargets="_StrideBuildDependencies" AfterTargets="ResolveAssemblyReferences" Condition="'$(StrideDependenciesCopy)' != 'false'">
     <!-- Windows, UWP, Linux & macOS -->
-    <ItemGroup Condition=" '$(StridePlatform)' == '' Or '$(StridePlatform)' == 'Windows' Or '$(StridePlatform)' == 'Linux' Or '$(StridePlatform)' == 'macOS' Or '$(StridePlatform)' == 'UWP' ">
+    <ItemGroup Condition=" '$(TargetFramework)' == '$(StrideFramework)' Or '$(TargetFramework)' == '$(StrideFrameworkWindows)' Or '$(TargetFramework)' == '$(StrideFrameworkUWP)' ">
       <None Include="@(_StrideDependencyNativeLib)">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
     </ItemGroup>
 
     <!-- Android -->
-    <ItemGroup Condition=" '$(StridePlatform)' == 'Android' ">
+    <ItemGroup Condition=" '$(TargetFramework)' == '$(StrideFrameworkAndroid)' ">
       <AndroidNativeLibrary Include="@(_StrideDependencyNativeLib)"/>
     </ItemGroup>
 
     <!--iOS -->
-    <ItemGroup Condition=" '$(StridePlatform)' == 'iOS' ">
+    <ItemGroup Condition=" '$(TargetFramework)' == '$(StrideFrameworkiOS)' ">
       <!-- strip any "lib" prefix and populate the LibraryName value -->
       <_StrideDependencyNativeLib>
         <LibraryName>$([System.Text.RegularExpressions.Regex]::Match('%(Filename)', `(lib)*(.+)`).get_Groups().get_Item(2).ToString())</LibraryName>
@@ -88,7 +89,7 @@
       </None>
     </ItemGroup>
   
-    <PropertyGroup Condition=" '$(StridePlatform)' == 'iOS' ">
+    <PropertyGroup Condition=" '$(TargetFramework)' == '$(StrideFrameworkiOS)' ">
       <MtouchExtraArgsLibs>$(StrideMTouchExtras) -L"%24{ProjectDir}" @(_StrideDependencyNativeLib->'-l%(LibraryName) "%24{ProjectDir}/%(Filename)%(Extension)"',' ')</MtouchExtraArgsLibs>
       <MtouchExtraArgs>$(MtouchExtraArgs) --compiler=clang -cxx -gcc_flags '-lstdc++ $(MtouchExtraArgsLibs)'</MtouchExtraArgs>
     </PropertyGroup>
@@ -121,7 +122,7 @@
         <Type>NativeLib</Type>
         <Destination>$(OutDir)%(TargetPath)</Destination>
       </_StrideDependencyToCopy>
-      
+
       <_StrideDependencyToCopy Remove="@(_StrideNativeLibAssigned)" Condition=" '$(StridePackageBuild)' == 'true' And '%(_StrideNativeLibAssigned.Extension)' == '.pdb' "/>
     </ItemGroup>
 
@@ -147,7 +148,21 @@
   <Target Name="_StrideRegisterDependenciesOutputs" Condition="'$(TargetFramework)' != ''" DependsOnTargets="_StrideGenerateDependenciesCore">
     <ItemGroup Condition="'@(_StrideDependencyToCopy)' != ''">
       <BuildOutputInPackage Include="$(OutputPath)$(AssemblyName).ssdeps" />
-      <BuildOutputInPackage Include="@(_StrideDependencyToCopy)" PackagePath="%(_StrideDependencyToCopy.TargetPath)" />
+    </ItemGroup>
+  </Target>
+  <Target Name="_StrideRegisterPackageFiles" Condition="'$(TargetFramework)' != ''" DependsOnTargets="_StrideGenerateDependenciesCore">
+    <ItemGroup Condition="'@(_StrideDependencyToCopy)' != ''">
+      <!-- Native dependencies go to the runtimes/RID/native folder -->
+      <TfmSpecificPackageFile Include="@(_StrideDependencyToCopy)" 
+                              Condition=" '%(_StrideDependencyToCopy.Type)' == 'NativeLib' "
+                              PackagePath="%(_StrideDependencyToCopy.TargetPath)" />
+      
+      <!-- Content goes to contentFiles/any/any (language/tfm) with CopyToOutput=true and BuildAction=None -->
+      <TfmSpecificPackageFile Include="@(_StrideDependencyToCopy)" 
+                              Condition=" '%(_StrideDependencyToCopy.Type)' == 'Content' " 
+                              PackagePath="contentFiles/any/any/%(_StrideDependencyToCopy.TargetPath)"
+                              PackageCopyToOutput="true"
+                              BuildAction="None" />
     </ItemGroup>
   </Target>
 </Project>

@@ -1,0 +1,99 @@
+!SceneAsset
+Id: 7e0d3cb4-324d-41c8-b215-c4b2800dff86
+SerializedVersion: {Stride: 3.1.0.1}
+Tags: []
+ChildrenIds: []
+Offset: {X: 0.0, Y: 0.0, Z: 0.0}
+Hierarchy:
+    RootParts:
+        - ref!! 669fd594-d421-478d-ae0c-919cabe0a670
+        - ref!! ad055f7f-c837-4c0b-9d1d-c5fc7e4cc2a9
+        - ref!! dc050b73-16b0-4e08-a640-9dffbc18c32f
+        - ref!! 2afe4d33-883a-49e9-9b80-ffe9276bd383
+        - ref!! d78503e7-9cc8-4722-b4d9-92daee16f739
+        - ref!! 571ea878-511d-4c3e-8f5d-d5b18960fe3a
+    Parts:
+        -   Entity:
+                Id: 2afe4d33-883a-49e9-9b80-ffe9276bd383
+                Name: BoxD
+                Components:
+                    c4fdf4ec005c6ea7cf985ea6465b01ea: !TransformComponent
+                        Id: 27119395-7ce4-4a54-87dc-d6c40463a6b6
+                        Position: {X: -2.8595226, Y: 0.5, Z: -2.885975}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.5476727, Z: 1.0}
+                        Children: {}
+                    3ca9bc7a194ca18271353029a4ade6dc: !ModelComponent
+                        Id: 08c59e3b-faa1-418b-bc8d-15ad95155f3f
+                        Model: e288f24b-258b-4875-85bb-a696a7445a7c:Models/BoxF
+                        Materials: {}
+        -   Entity:
+                Id: 571ea878-511d-4c3e-8f5d-d5b18960fe3a
+                Name: BoxF
+                Components:
+                    26d3b932922f4cfa68b3ed0674fc9362: !TransformComponent
+                        Id: b061c05c-10ad-4dcf-b839-c1e5a3a174c4
+                        Position: {X: 1.1110702, Y: 0.5, Z: -1.8733592}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.6201411, Y: 1.0, Z: 0.13307507}
+                        Children: {}
+                    f5724adc01005d44e7a72d683d96b810: !ModelComponent
+                        Id: ba919469-4f23-494a-a334-dda7e7c74903
+                        Model: e288f24b-258b-4875-85bb-a696a7445a7c:Models/BoxF
+                        Materials: {}
+        -   Entity:
+                Id: 669fd594-d421-478d-ae0c-919cabe0a670
+                Name: BoxA
+                Components:
+                    ac5b5754c96280a524dbbf0c9ec864f0: !TransformComponent
+                        Id: 4644598e-467e-454c-a534-fdbe50049770
+                        Position: {X: -2.1613133, Y: 1.2154764, Z: -1.8663871}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 0.62270397, Y: 0.62270397, Z: 0.62270397}
+                        Children: {}
+                    476b107f884ff1a4e81f3c10eebcdcec: !ModelComponent
+                        Id: 91383478-2b6f-4243-b23f-6e57a7eeff86
+                        Model: e288f24b-258b-4875-85bb-a696a7445a7c:Models/BoxF
+                        Materials: {}
+        -   Entity:
+                Id: ad055f7f-c837-4c0b-9d1d-c5fc7e4cc2a9
+                Name: BoxB
+                Components:
+                    1cd445adbe147ebed54fe39642a34d24: !TransformComponent
+                        Id: 1013bdc0-2ef6-4efe-9acc-a6ed5fb6a773
+                        Position: {X: -1.0257397, Y: 0.5, Z: -3.2363138}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.5121521, Y: 1.5121521, Z: 1.5121521}
+                        Children: {}
+                    ad61adc4f4807e8d71ccd50226bf2629: !ModelComponent
+                        Id: ef5acf8e-da0e-43d2-b7f7-b1271dc57ed9
+                        Model: e288f24b-258b-4875-85bb-a696a7445a7c:Models/BoxF
+                        Materials: {}
+        -   Entity:
+                Id: d78503e7-9cc8-4722-b4d9-92daee16f739
+                Name: BoxE
+                Components:
+                    19420af4249f7ab8ec11b5bb3db3a6db: !TransformComponent
+                        Id: 1068e5c2-904f-4497-882d-b9e4db270f5e
+                        Position: {X: 0.0162673, Y: 0.5, Z: -1.2922912}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 0.73471653, Y: 0.73471653, Z: 0.73471653}
+                        Children: {}
+                    a2daf839353a117d6fbe300f4a335893: !ModelComponent
+                        Id: 5785374e-6f17-4819-8db2-83b8f134b374
+                        Model: e288f24b-258b-4875-85bb-a696a7445a7c:Models/BoxF
+                        Materials: {}
+        -   Entity:
+                Id: dc050b73-16b0-4e08-a640-9dffbc18c32f
+                Name: BoxC
+                Components:
+                    bf59f5853bb617a560eb6fdb003e73dd: !TransformComponent
+                        Id: e323e76a-0562-49af-8b5d-8add0ac3c498
+                        Position: {X: -2.1931186, Y: 0.5, Z: -1.5623884}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    8fc37b8e2d485b1e78ddcba212d64718: !ModelComponent
+                        Id: ccf6aa8d-af9f-47eb-8444-979b72991e93
+                        Model: e288f24b-258b-4875-85bb-a696a7445a7c:Models/BoxF
+                        Materials: {}

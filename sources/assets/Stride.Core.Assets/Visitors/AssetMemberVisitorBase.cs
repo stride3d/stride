@@ -13,7 +13,7 @@ namespace Stride.Core.Assets.Visitors
         /// <summary>
         /// Gets the <see cref="Core.Reflection.MemberPath"/> that will be checked against when visiting.
         /// </summary>
-        /// <seealso cref="AssetVisitorBase.CurrentPath"/>
+        /// <seealso cref="DataVisitorBase.CurrentPath"/>
         protected MemberPath MemberPath { get; set; }
 
         /// <inheritdoc/>
@@ -50,6 +50,14 @@ namespace Stride.Core.Assets.Visitors
             }
         }
 
+        public override void VisitSetItem(IEnumerable set, SetDescriptor descriptor, object item, ITypeDescriptor itemDescriptor)
+        {
+            if (CurrentPath.Match(MemberPath))
+                VisitAssetMember(item, itemDescriptor);
+            else
+                base.VisitSetItem(set, descriptor, item, itemDescriptor);
+        }
+
         /// <inheritdoc />
         public override void VisitObject(object obj, ObjectDescriptor descriptor, bool visitMembers)
         {
@@ -78,7 +86,7 @@ namespace Stride.Core.Assets.Visitors
         }
 
         /// <summary>
-        /// Called when <see cref="AssetVisitorBase.CurrentPath"/> matches the <see cref="MemberPath"/> given when creating this instance.
+        /// Called when <see cref="DataVisitorBase.CurrentPath"/> matches the <see cref="MemberPath"/> given when creating this instance.
         /// </summary>
         /// <param name="value"></param>
         /// <param name="descriptor"></param>

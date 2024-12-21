@@ -155,7 +155,12 @@ namespace Stride.Core
 #if STRIDE_PLATFORM_ANDROID
             return PlatformAndroid.Context.PackageCodePath;
 #elif STRIDE_PLATFORM_DESKTOP || STRIDE_PLATFORM_MONO_MOBILE
-            return Assembly.GetEntryAssembly()?.Location;
+            var appPath = Assembly.GetEntryAssembly()?.Location;
+            if (string.IsNullOrEmpty(appPath))
+            {
+                appPath = Environment.ProcessPath;
+            }
+            return appPath;
 #else
             return null;
 #endif
@@ -184,11 +189,12 @@ namespace Stride.Core
         [NotNull]
         private static string GetApplicationBinaryDirectory()
         {
-            var executablePath = GetApplicationExecutableDirectory();
 #if STRIDE_PLATFORM_ANDROID
-            return executablePath;
+            return GetApplicationExecutableDirectory();
+#elif STRIDE_PLATFORM_DESKTOP
+            return Path.GetDirectoryName(AppContext.BaseDirectory);
 #else
-            return FindCoreAssemblyDirectory(executablePath);
+            return Path.GetDirectoryName(typeof(PlatformFolders).Assembly.Location);
 #endif
         }
 
@@ -210,30 +216,6 @@ namespace Stride.Core
 #else
             throw new NotImplementedException();
 #endif
-        }
-
-        static string FindCoreAssemblyDirectory(string entryDirectory)
-        {
-            //simple case
-            var corePath = Path.Combine(entryDirectory, "Stride.Core.dll");
-            if (File.Exists(corePath))
-            {
-                return entryDirectory;
-            }
-            else //search one level down
-            {
-                foreach (var subfolder in Directory.GetDirectories(entryDirectory))
-                {
-                    corePath = Path.Combine(subfolder, "Stride.Core.dll");
-                    if (File.Exists(corePath))
-                    {
-                        return subfolder;
-                    }
-                }
-            }
-
-            //if nothing found, return input
-            return entryDirectory;
         }
 
         [NotNull]

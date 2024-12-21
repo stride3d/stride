@@ -2,7 +2,6 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.IO;
-using Stride.Core.IO;
 
 namespace Stride.Core.Serialization
 {
@@ -10,9 +9,9 @@ namespace Stride.Core.Serialization
     /// A multithreaded wrapper over a Stream, used by the VirtualFileSystem.
     /// It also allows restricted access to subparts of the Stream (useful for serialization and data streaming).
     /// </summary>
-    public class VirtualFileStream : NativeStream
+    public class VirtualFileStream : Stream
     {
-        public Stream InternalStream { get; internal protected set; }
+        public Stream InternalStream { get; protected internal set; }
         protected VirtualFileStream virtualFileStream;
         protected readonly long startPosition;
         protected readonly long endPosition;
@@ -35,23 +34,25 @@ namespace Stride.Core.Serialization
         /// <param name="startPosition">The start position.</param>
         /// <param name="endPosition">The end position.</param>
         /// <param name="disposeInternalStream">if set to <c>true</c> this instance has ownership of the internal stream and will dispose it].</param>
-        /// <exception cref="System.ArgumentException">startPosition and endPosition doesn't fit inside current bounds</exception>
+        /// <exception cref="System.ArgumentOutOfRangeException">startPosition and endPosition doesn't fit inside current bounds</exception>
         /// <exception cref="System.NotSupportedException">Attempted to create a VirtualFileStream from a Stream which doesn't support seeking.</exception>
         public VirtualFileStream(Stream internalStream, long startPosition = 0, long endPosition = -1, bool disposeInternalStream = true, bool seekToBeginning = true)
         {
             this.disposeInternalStream = disposeInternalStream;
 
-            if (internalStream is VirtualFileStream)
+            if (internalStream is VirtualFileStream vfs)
             {
-                virtualFileStream = (VirtualFileStream)internalStream;
+                virtualFileStream = vfs;
                 internalStream = virtualFileStream.InternalStream;
                 startPosition += virtualFileStream.startPosition;
                 if (endPosition == -1)
                     endPosition = virtualFileStream.endPosition;
                 else
                     endPosition += virtualFileStream.startPosition;
-                if (startPosition < virtualFileStream.startPosition || ((endPosition < startPosition || endPosition > virtualFileStream.endPosition) && virtualFileStream.endPosition != -1))
-                    throw new ArgumentException("startPosition and endPosition doesn't fit inside current bounds");
+                if (startPosition < virtualFileStream.startPosition)
+                    throw new ArgumentOutOfRangeException(nameof(startPosition));
+                if ((endPosition < startPosition || endPosition > virtualFileStream.endPosition) && virtualFileStream.endPosition != -1)
+                    throw new ArgumentOutOfRangeException(nameof(endPosition));
 
                 if (!virtualFileStream.disposeInternalStream)
                     this.disposeInternalStream = false;
@@ -73,7 +74,7 @@ namespace Stride.Core.Serialization
 
             if (disposeInternalStream && InternalStream != null)
             {
-                InternalStream.Dispose();   
+                InternalStream.Dispose();
             }
 
             InternalStream = null;
@@ -137,6 +138,20 @@ namespace Stride.Core.Serialization
         }
 
         /// <inheritdoc/>
+        public override int Read(Span<byte> buffer)
+        {
+            if (endPosition != -1)
+            {
+                var maxCount = (int)(endPosition - InternalStream.Position);
+                if (buffer.Length > maxCount)
+                    buffer = buffer[..maxCount];
+            }
+
+            var bytesProcessed = InternalStream.Read(buffer);
+            return bytesProcessed;
+        }
+
+        /// <inheritdoc/>
         public override int ReadByte()
         {
             if (endPosition != -1 && InternalStream.Position >= endPosition)
@@ -148,6 +163,8 @@ namespace Stride.Core.Serialization
         }
 
         /// <inheritdoc/>
+        /// <exception cref="IOException">The <paramref name="offset"/> and <paramref name="origin"/>
+        /// would seek to a position before the start of the stream or after the end.</exception>
         public override long Seek(long offset, SeekOrigin origin)
         {
             switch (origin)
@@ -175,7 +192,7 @@ namespace Stride.Core.Serialization
             if (newPosition < startPosition || (endPosition != -1 && newPosition > endPosition))
             {
                 InternalStream.Position = startPosition;
-                throw new InvalidOperationException("Seek position is out of bound.");
+                throw new IOException("Cannot seek to the specified position.");
             }
 
             return newPosition;
@@ -186,29 +203,46 @@ namespace Stride.Core.Serialization
         {
             if (endPosition != -1)
             {
-                throw new InvalidOperationException("Can't resize VirtualFileStream if endPosition is not -1.");
+                throw new NotSupportedException("Can't resize VirtualFileStream if endPosition is not -1.");
             }
 
             InternalStream.SetLength(value);
         }
 
         /// <inheritdoc/>
+        /// <exception cref="IOException">The remaining capacity in the stream
+        /// is not large enough to write the specified <paramref name="buffer"/>.</exception>
         public override void Write(byte[] buffer, int offset, int count)
         {
             if (endPosition != -1 && count > endPosition - InternalStream.Position)
             {
-                throw new NotSupportedException("Can't write beyond end of stream.");
+                throw new IOException("Can't write beyond end of stream.");
             }
 
             InternalStream.Write(buffer, offset, count);
         }
 
         /// <inheritdoc/>
+        /// <exception cref="IOException">The remaining capacity in the stream
+        /// is not large enough to write the specified <paramref name="buffer"/>.</exception>
+        public override void Write(ReadOnlySpan<byte> buffer)
+        {
+            if (endPosition != -1 && buffer.Length > endPosition - InternalStream.Position)
+            {
+                throw new IOException("Can't write beyond end of stream.");
+            }
+
+            InternalStream.Write(buffer);
+        }
+
+        /// <inheritdoc/>
+        /// <exception cref="IOException">The remaining capacity in the stream
+        /// is not large enough to write the specified <paramref name="buffer"/>.</exception>
         public override void WriteByte(byte value)
         {
             if (endPosition != -1 && InternalStream.Position >= endPosition)
             {
-                throw new NotSupportedException("Can't write beyond end of stream.");
+                throw new IOException("Can't write beyond end of stream.");
             }
 
             InternalStream.WriteByte(value);

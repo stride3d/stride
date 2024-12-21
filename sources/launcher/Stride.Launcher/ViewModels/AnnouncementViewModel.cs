@@ -6,7 +6,7 @@ using System.Linq;
 using System.Reflection;
 using Stride.Core.Extensions;
 using Stride.Core.Presentation.Commands;
-using Stride.Core.Presentation.ViewModel;
+using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.LauncherApp.ViewModels
 {
@@ -66,10 +66,8 @@ namespace Stride.LauncherApp.ViewModels
                     if (stream == null)
                         return null;
 
-                    using (var reader = new StreamReader(stream))
-                    {
-                        return reader.ReadToEnd();
-                    }
+                    using var reader = new StreamReader(stream);
+                    return reader.ReadToEnd();
                 }
             }
             catch (Exception)

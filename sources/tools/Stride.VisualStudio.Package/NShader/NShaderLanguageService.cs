@@ -434,7 +434,7 @@ namespace NShader
 
         private void NavigateToSourceError(object sender, EventArgs e)
         {
-            var task = sender as Microsoft.VisualStudio.Shell.Task;
+            var task = sender as TaskListItem;
             if (task != null)
             {
                 GoToLocation(new RawSourceSpan(task.Document, task.Line + 1, task.Column + 1), null, false);

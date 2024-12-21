@@ -51,6 +51,12 @@ namespace Stride.Rendering.Materials
         [DataMember(20)]
         public IComputeColor Tint { get; set; }
 
+        /// <userdoc>
+        /// Dither shadows cast by this object to simulate semi-transparent shadows, works best at higher PCF filtering levels.
+        /// </userdoc>
+        [DataMember(30)]
+        public bool DitheredShadows { get; set; } = true;
+
         public override void GenerateShader(MaterialGeneratorContext context)
         {
             var alpha = Alpha ?? new ComputeFloat(0.5f);
@@ -77,6 +83,10 @@ namespace Stride.Rendering.Materials
             context.SetStream(AlphaBlendColorStream.Stream, tint, MaterialKeys.AlphaBlendColorMap, MaterialKeys.AlphaBlendColorValue, Color.White);
 
             context.MaterialPass.Parameters.Set(MaterialKeys.UsePixelShaderWithDepthPass, true);
+            if (DitheredShadows)
+            {
+                context.MaterialPass.Parameters.Set(MaterialKeys.UseDitheredShadows, true);
+            }
 
             if (!context.Tags.Get(HasFinalCallback))
             {

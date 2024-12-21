@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.Build.Evaluation;
 using Microsoft.Build.Execution;
@@ -129,7 +130,8 @@ namespace Stride.Core.Assets
                     {
                         var parameters = new BuildParameters(pc)
                         {
-                            Loggers = new[] { new LoggerRedirect(logger, true) } //Instance of ILogger instantiated earlier
+                            Loggers = new[] { new LoggerRedirect(logger, true) }, //Instance of ILogger instantiated earlier
+                            DisableInProcNode = true,
                         };
 
                         // Run a MSBuild /t:Restore <projectfile>
@@ -168,7 +170,8 @@ namespace Stride.Core.Assets
                 {
                     var parameters = new BuildParameters(pc)
                     {
-                        Loggers = new[] { new LoggerRedirect(logger, true) } //Instance of ILogger instantiated earlier
+                        Loggers = new[] { new LoggerRedirect(logger, true) }, //Instance of ILogger instantiated earlier
+                        DisableInProcNode = true,
                     };
 
                     // Run a MSBuild /t:Restore <projectfile>
@@ -295,12 +298,21 @@ namespace Stride.Core.Assets
 
             void ErrorRaised(object sender, Microsoft.Build.Framework.BuildErrorEventArgs e)
             {
-                var loggerResult = logger as LoggerResult;
-                if (loggerResult != null)
+                if (logger is LoggerResult loggerResult)
                 {
-                    loggerResult.Module = string.Format("{0}({1},{2})", e.File, e.LineNumber, e.ColumnNumber);
+                    loggerResult.Module = $"{e.File}({e.LineNumber},{e.ColumnNumber})";
                 }
-                logger.Error(e.Message);
+
+                if (e.Code == "NETSDK1045")
+                {
+                    var netVersion = Regex.Match(e.Message, @"\.(NET|net) ?(\d+\.\d+)");
+                    if (netVersion.Success)
+                        logger.Error($"{e.Code}: this project requires {netVersion} SDK, please go to https://dotnet.microsoft.com/download and download {netVersion} SDK.");
+                    else
+                        logger.Error($"{e.Code}: {e.Message}");
+                }
+                else
+                    logger.Error(e.Message);
             }
         }
 
@@ -339,7 +351,8 @@ namespace Stride.Core.Assets
                     var buildResult = mainBuildManager.Build(
                         new BuildParameters(project.ProjectCollection)
                         {
-                            Loggers = new[] { logger }
+                            Loggers = new[] { logger },
+                            DisableInProcNode = true,
                         },
                         new BuildRequestData(projectInstance, targets.Split(';'), null, flags));
 

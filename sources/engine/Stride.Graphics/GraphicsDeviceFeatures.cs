@@ -87,7 +87,7 @@ namespace Stride.Graphics
         public readonly bool HasMultisampleDepthAsSRV;
 
         /// <summary>
-        /// Boolean indicating if the graphics API supports resource renaming (with either <see cref="MapMode.WriteDiscard"/> or <see cref="CommandList.UpdateSubresource"/> with full size).
+        /// Boolean indicating if the graphics API supports resource renaming (with either <see cref="MapMode.WriteDiscard"/> `CommandList.UpdateSubresource` with full size).
         /// </summary>
         public readonly bool HasResourceRenaming;
 

@@ -21,6 +21,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
+using System;
 using Stride.Games;
 
 namespace Stride.Graphics
@@ -54,7 +55,7 @@ namespace Stride.Graphics
             /// <param name="device">The <see cref="GraphicsDevice"/>.</param>
             /// <param name="usage">The usage.</param>
             /// <returns>A Vertex buffer</returns>
-            public static Buffer<T> New<T>(GraphicsDevice device, GraphicsResourceUsage usage = GraphicsResourceUsage.Default) where T : struct
+            public static Buffer<T> New<T>(GraphicsDevice device, GraphicsResourceUsage usage = GraphicsResourceUsage.Default) where T : unmanaged
             {
                 return Buffer.New<T>(device, 1, BufferFlags.VertexBuffer, usage);
             }
@@ -67,7 +68,7 @@ namespace Stride.Graphics
             /// <param name="value">The value to initialize the Vertex buffer.</param>
             /// <param name="usage">The usage of this resource.</param>
             /// <returns>A Vertex buffer</returns>
-            public static Buffer<T> New<T>(GraphicsDevice device, ref T value, GraphicsResourceUsage usage = GraphicsResourceUsage.Immutable) where T : struct
+            public static Buffer<T> New<T>(GraphicsDevice device, ref T value, GraphicsResourceUsage usage = GraphicsResourceUsage.Immutable) where T : unmanaged
             {
                 return Buffer.New(device, ref value, BufferFlags.VertexBuffer, usage);
             }
@@ -80,9 +81,9 @@ namespace Stride.Graphics
             /// <param name="value">The value to initialize the Vertex buffer.</param>
             /// <param name="usage">The usage of this resource.</param>
             /// <returns>A Vertex buffer</returns>
-            public static Buffer<T> New<T>(GraphicsDevice device, T[] value, GraphicsResourceUsage usage = GraphicsResourceUsage.Immutable) where T : struct
+            public static Buffer<T> New<T>(GraphicsDevice device, T[] value, GraphicsResourceUsage usage = GraphicsResourceUsage.Immutable) where T : unmanaged
             {
-                return Buffer.New(device, value, BufferFlags.VertexBuffer, usage);
+                return Buffer.New(device, (ReadOnlySpan<T>)value, BufferFlags.VertexBuffer, usage:usage);
             }
 
             /// <summary>
@@ -93,7 +94,7 @@ namespace Stride.Graphics
             /// <param name="vertexBufferCount">Number of vertex in this buffer with the sizeof(T).</param>
             /// <param name="usage">The usage.</param>
             /// <returns>A Vertex buffer</returns>
-            public static Buffer<T> New<T>(GraphicsDevice device, int vertexBufferCount, GraphicsResourceUsage usage = GraphicsResourceUsage.Default) where T : struct
+            public static Buffer<T> New<T>(GraphicsDevice device, int vertexBufferCount, GraphicsResourceUsage usage = GraphicsResourceUsage.Default) where T : unmanaged
             {
                 return Buffer.New<T>(device, vertexBufferCount, BufferFlags.VertexBuffer, usage);
             }
@@ -105,6 +106,19 @@ namespace Stride.Graphics
             /// <param name="value">The value to initialize the Vertex buffer.</param>
             /// <param name="usage">The usage of this resource.</param>
             /// <returns>A Vertex buffer</returns>
+            public static Buffer New(GraphicsDevice device, Span<byte> value, GraphicsResourceUsage usage = GraphicsResourceUsage.Immutable)
+            {
+                return Buffer.New(device, value, 0, BufferFlags.VertexBuffer, usage:usage);
+            }
+
+            /// <summary>
+            /// Creates a new Vertex buffer with <see cref="GraphicsResourceUsage.Immutable"/> uasge by default.
+            /// </summary>
+            /// <param name="device">The <see cref="GraphicsDevice"/>.</param>
+            /// <param name="value">The value to initialize the Vertex buffer.</param>
+            /// <param name="usage">The usage of this resource.</param>
+            /// <returns>A Vertex buffer</returns>
+            [Obsolete("Use span instead")]
             public static Buffer New(GraphicsDevice device, DataPointer value, GraphicsResourceUsage usage = GraphicsResourceUsage.Immutable)
             {
                 return Buffer.New(device, value, 0, BufferFlags.VertexBuffer, usage);

@@ -11,6 +11,7 @@ using Stride.Core.Diagnostics;
 using Stride.Core.Mathematics;
 using Stride.Core.MicroThreading;
 using Stride.Engine.Design;
+using Stride.Engine.Gizmos;
 using Stride.Physics;
 using Stride.Physics.Engine;
 using Stride.Rendering;
@@ -99,6 +100,7 @@ namespace Stride.Engine
         /// </userdoc>
         [Display("Record collision events")]
         [DataMemberIgnore]
+        [Obsolete("Always processed and stored by now")]
         public bool ProcessCollisions { get; set; } = false;
 
         /// <summary>
@@ -366,6 +368,9 @@ namespace Stride.Engine
         protected ColliderShape colliderShape;
 
         [DataMemberIgnore]
+        protected bool attachInProgress = false;
+
+        [DataMemberIgnore]
         public virtual ColliderShape ColliderShape
         {
             get
@@ -424,7 +429,7 @@ namespace Stride.Engine
         [DataMemberIgnore]
         public Entity DebugEntity { get; set; }
 
-        public void AddDebugEntity(Scene scene, RenderGroup renderGroup = RenderGroup.Group0, bool alwaysAddOffset = false)
+        public void AddDebugEntity(Scene scene, RenderGroup renderGroup = IEntityGizmo.PickingRenderGroup, bool alwaysAddOffset = false)
         {
             if (DebugEntity != null) return;
 
@@ -449,16 +454,25 @@ namespace Stride.Engine
         #region Utility
 
         /// <summary>
-        /// Computes the physics transformation from the TransformComponent values
+        /// Computes the physics transformation from the Bone or TransformComponent values
         /// </summary>
-        /// <returns></returns>
-        internal void DerivePhysicsTransformation(out Matrix derivedTransformation)
+        /// <param name="derivedTransformation">The resulting transformation matrix</param>
+        /// <param name="forceUpdateTransform">Ensure that the Transform.WorldMatrix we are reading from is up to date</param>
+        internal void DerivePhysicsTransformation(out Matrix derivedTransformation, bool forceUpdateTransform = true)
         {
-            Matrix rotation;
-            Vector3 translation;
-            Vector3 scale;
-            Entity.Transform.WorldMatrix.Decompose(out scale, out rotation, out translation);
-
+            if (BoneIndex == -1)
+            {
+                if (forceUpdateTransform)
+                    Entity.Transform.UpdateWorldMatrix();
+                derivedTransformation = Entity.Transform.WorldMatrix;
+            }
+            else
+            {
+                derivedTransformation = BoneWorldMatrix;
+            }
+            
+            derivedTransformation.Decompose(out Vector3 scale, out Matrix rotation, out Vector3 translation);
+            
             var translationMatrix = Matrix.Translation(translation);
             Matrix.Multiply(ref rotation, ref translationMatrix, out derivedTransformation);
 
@@ -476,48 +490,6 @@ namespace Stride.Engine
             {
                 derivedTransformation = Matrix.Multiply(ColliderShape.PositiveCenterMatrix, derivedTransformation);
             }
-
-            if (DebugEntity == null) return;
-
-            derivedTransformation.Decompose(out scale, out rotation, out translation);
-            DebugEntity.Transform.Position = translation;
-            DebugEntity.Transform.Rotation = Quaternion.RotationMatrix(rotation);
-        }
-
-        /// <summary>
-        /// Computes the physics transformation from the TransformComponent values
-        /// </summary>
-        /// <returns></returns>
-        internal void DeriveBonePhysicsTransformation(out Matrix derivedTransformation)
-        {
-            Matrix rotation;
-            Vector3 translation;
-            Vector3 scale;
-            BoneWorldMatrix.Decompose(out scale, out rotation, out translation);
-
-            var translationMatrix = Matrix.Translation(translation);
-            Matrix.Multiply(ref rotation, ref translationMatrix, out derivedTransformation);
-
-            //handle dynamic scaling if allowed (aka not using assets)
-            if (CanScaleShape)
-            {
-                if (ColliderShape.Scaling != scale)
-                {
-                    ColliderShape.Scaling = scale;
-                }
-            }
-
-            //Handle collider shape offset
-            if (ColliderShape.LocalOffset != Vector3.Zero || ColliderShape.LocalRotation != Quaternion.Identity)
-            {
-                derivedTransformation = Matrix.Multiply(ColliderShape.PositiveCenterMatrix, derivedTransformation);
-            }
-
-            if (DebugEntity == null) return;
-
-            derivedTransformation.Decompose(out scale, out rotation, out translation);
-            DebugEntity.Transform.Position = translation;
-            DebugEntity.Transform.Rotation = Quaternion.RotationMatrix(rotation);
         }
 
         /// <summary>
@@ -598,22 +570,26 @@ namespace Stride.Engine
         /// Useful to manually force movements.
         /// In the case of dynamic rigidbodies a velocity reset should be applied first.
         /// </summary>
-        public void UpdatePhysicsTransformation()
+        /// <param name="forceUpdateTransform">Ensure that the Transform.WorldMatrix we are reading from is up to date</param>
+        public void UpdatePhysicsTransformation(bool forceUpdateTransform = true)
         {
-            Matrix transform;
-            if (BoneIndex == -1)
-            {
-                DerivePhysicsTransformation(out transform);
-            }
-            else
-            {
-                DeriveBonePhysicsTransformation(out transform);
-            }
+            DerivePhysicsTransformation(out var transform, forceUpdateTransform);
+            
             //finally copy back to bullet
             PhysicsWorldTransform = transform;
+
+            if (DebugEntity != null)
+            {
+                transform.Decompose(out _, out Quaternion rotation, out var translation);
+                DebugEntity.Transform.Position = translation;
+                DebugEntity.Transform.Rotation = rotation;
+            }
         }
 
-        public void ComposeShape()
+        /// <summary>
+        /// Made virtual for added behavior in CharacterComponent with UAF exception
+        /// </summary>
+        public virtual void ComposeShape()
         {
             ColliderShapeChanged = false;
 
@@ -631,16 +607,16 @@ namespace Stride.Engine
             }
 
             CanScaleShape = true;
-
+            foreach (var desc in ColliderShapes)
+            {
+                if(desc is ColliderShapeAssetDesc)
+                    CanScaleShape = false;
+            }
+            
+            var services = Entity?.EntityManager?.Services;
             if (ColliderShapes.Count == 1) //single shape case
             {
-                if (ColliderShapes[0] == null) return;
-                if (ColliderShapes[0].GetType() == typeof(ColliderShapeAssetDesc))
-                {
-                    CanScaleShape = false;
-                }
-
-                ColliderShape = PhysicsColliderShape.CreateShape(ColliderShapes[0]);
+                ColliderShape = ColliderShapes[0]?.CreateShape(services);
             }
             else if (ColliderShapes.Count > 1) //need a compound shape in this case
             {
@@ -648,12 +624,8 @@ namespace Stride.Engine
                 foreach (var desc in ColliderShapes)
                 {
                     if (desc == null) continue;
-                    if (desc.GetType() == typeof(ColliderShapeAssetDesc))
-                    {
-                        CanScaleShape = false;
-                    }
 
-                    var subShape = PhysicsColliderShape.CreateShape(desc);
+                    var subShape = desc.CreateShape(services);
                     if (subShape != null)
                     {
                         compound.AddChildShape(subShape);
@@ -675,27 +647,32 @@ namespace Stride.Engine
         internal void Attach(PhysicsProcessor.AssociatedData data)
         {
             Data = data;
+            attachInProgress = true;
+
+            if (ColliderShapes.Count == 0 && ColliderShape == null)
+            {
+                logger.Error($"Entity {{Entity.Name}} has a PhysicsComponent without any collider shape.");
+                attachInProgress = false;
+                return; //no shape no purpose
+            }
 
             //this is mostly required for the game studio gizmos
             if (Simulation.DisableSimulation)
             {
+                attachInProgress = false;
                 return;
             }
 
             //this is not optimal as UpdateWorldMatrix will end up being called twice this frame.. but we need to ensure that we have valid data.
             Entity.Transform.UpdateWorldMatrix();
 
-            if (ColliderShapes.Count == 0 && ColliderShape == null)
-            {
-                logger.Error($"Entity {Entity.Name} has a PhysicsComponent without any collider shape.");
-                return; //no shape no purpose
-            }
-            else if (ColliderShape == null)
+            if (ColliderShape == null)
             {
                 ComposeShape();
                 if (ColliderShape == null)
                 {
                     logger.Error($"Entity {Entity.Name}'s PhysicsComponent failed to compose its collider shape.");
+                    attachInProgress = false;
                     return; //no shape no purpose
                 }
             }
@@ -707,6 +684,38 @@ namespace Stride.Engine
             if(ignoreCollisionBuffer != null && NativeCollisionObject != null)
             {
                 foreach(var kvp in ignoreCollisionBuffer)
+                {
+                    IgnoreCollisionWith(kvp.Key, kvp.Value);
+                }
+                ignoreCollisionBuffer = null;
+            }
+
+            attachInProgress = false;
+        }
+
+        /// <summary>
+        /// Ran when properties of Components may not be fully setup and need to be reintegrated (eg GetOrCreate<RigidbodyComponent> and adding collidershapes)
+        /// </summary>
+        internal void ReAttach()
+        {
+            if (Data == null)
+            {
+                throw new InvalidOperationException("PhysicsComponent has not been attached yet.");
+            }
+            //TODO: Could consider fully detaching and then rebuilding, but ideally this would cause null refs on Rigidbody OnDetach calls
+            //Shouldnt call detach, because at this point the user has added new components and this runs as a check to rebuild as needed.
+            //Entire wipes to rebuild causes loss in the data that the user has just added (and is slower)
+
+            Entity.Transform.UpdateWorldMatrix();
+
+            BoneIndex = -1;
+
+            OnAttach();
+
+            //ensure ignore collisions
+            if (ignoreCollisionBuffer != null && NativeCollisionObject != null)
+            {
+                foreach (var kvp in ignoreCollisionBuffer)
                 {
                     IgnoreCollisionWith(kvp.Key, kvp.Value);
                 }
@@ -734,6 +743,9 @@ namespace Stride.Engine
             }
         }
 
+        /// <summary>
+        /// Called whenever an entity with this component is added to scene.
+        /// </summary>
         protected virtual void OnAttach()
         {
             //set pre-set post deserialization properties
@@ -793,12 +805,8 @@ namespace Stride.Engine
             {
                 if(ignoreCollisionBuffer != null || other.ignoreCollisionBuffer == null)
                 {
-                    if(ignoreCollisionBuffer == null)
-                        ignoreCollisionBuffer = new Dictionary<PhysicsComponent, CollisionState>();
-                    if(ignoreCollisionBuffer.ContainsKey(other))
-                        ignoreCollisionBuffer[other] = state;
-                    else
-                        ignoreCollisionBuffer.Add(other, state);
+                    ignoreCollisionBuffer ??= [];
+                    ignoreCollisionBuffer[other] = state;
                 }
                 else
                 {

@@ -68,11 +68,11 @@ namespace Stride.Core.Shaders.Analysis.Hlsl
 
             swizzles = new List<MatrixType.Indexer>();
 
-            if (components.StartsWith("_"))
+            if (components.StartsWith("_", StringComparison.Ordinal))
             {
                 string[] splitComponents;
                 int indexOffset = 0;
-                if (components.StartsWith("_m"))
+                if (components.StartsWith("_m", StringComparison.Ordinal))
                 {
                     splitComponents = components.Split(new[] { "_m" }, StringSplitOptions.RemoveEmptyEntries);
                 }
@@ -312,6 +312,17 @@ namespace Stride.Core.Shaders.Analysis.Hlsl
             value = StateType.Parse(name);
             if (value != null)
                 return value;
+
+            value = ByteAddressBufferType.Parse(name);
+            if (value != null)
+            {
+                if (value.TypeInference.TargetType == null && BuiltinObjects.TryGetValue(value.Name, out var predefinedType))
+                {
+                    value.TypeInference.TargetType = predefinedType;
+                }
+
+                return value;
+            }
 
             // Replace shader objects
             if (name == "VertexShader" || name == "GeometryShader" || name == "PixelShader")

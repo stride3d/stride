@@ -3,12 +3,12 @@
 
   <PropertyGroup>
     <TargetFramework><#= Properties.TargetFramework #></TargetFramework>
-    <RuntimeIdentifier>linux-x64</RuntimeIdentifier>
+    <RuntimeIdentifier><#= Properties.RuntimeIdentifier #></RuntimeIdentifier>
     <ApplicationIcon>Resources\Icon.ico</ApplicationIcon>
     <OutputType>WinExe</OutputType>
     <RootNamespace><#= Properties.Namespace #></RootNamespace>
 
-    <OutputPath>..\Bin\Linux\$(Configuration)\</OutputPath>
+    <OutputPath>..\Bin\<#= Properties.CurrentPlatform #>\$(Configuration)\</OutputPath>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
 
     <!-- Force msbuild to check to rebuild this assembly instead of letting VS IDE guess -->

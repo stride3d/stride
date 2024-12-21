@@ -119,7 +119,7 @@ namespace Stride.Core.Assets
             }
             catch (Exception ex)
             {
-                log.Error($"Unexpected exception while loading project [{project.FullPath.ToWindowsPath()}]", ex);
+                log.Error($"Unexpected exception while loading project [{project.FullPath.ToOSPath()}]", ex);
             }
 
             foreach (var packageReference in packageReferences)
@@ -182,7 +182,7 @@ namespace Stride.Core.Assets
                     try
                     {
                         var projectFile = project.FullPath;
-                        var msbuildProject = VSProjectHelper.LoadProject(projectFile.ToWindowsPath());
+                        var msbuildProject = VSProjectHelper.LoadProject(projectFile.ToOSPath());
                         var isProjectDirty = false;
 
                         foreach (var packageReference in msbuildProject.GetItems("PackageReference").ToList())
@@ -238,7 +238,7 @@ namespace Stride.Core.Assets
                 }
                 catch (Exception ex)
                 {
-                    log.Error($"Unexpected exception while loading project [{project.FullPath.ToWindowsPath()}]", ex);
+                    log.Error($"Unexpected exception while loading project [{project.FullPath.ToOSPath()}]", ex);
                 }
             }
 
@@ -258,7 +258,7 @@ namespace Stride.Core.Assets
                     switch (projectDependency.Type)
                     {
                         case DependencyType.Project:
-                            if (Path.GetExtension(projectDependency.MSBuildProject).ToLowerInvariant() == ".csproj")
+                            if (SupportedProgrammingLanguages.IsProjectExtensionSupported(Path.GetExtension(projectDependency.MSBuildProject).ToLowerInvariant()))
                                 file = UPath.Combine(project.FullPath.GetFullDirectory(), (UFile)projectDependency.MSBuildProject);
                             break;
                         case DependencyType.Package:
@@ -355,7 +355,7 @@ namespace Stride.Core.Assets
                                 // Build list of assemblies
                                 foreach (var a in targetLibrary.RuntimeAssemblies)
                                 {
-                                    if (!a.Path.EndsWith("_._"))
+                                    if (!a.Path.EndsWith("_._", StringComparison.Ordinal) && !a.Path.Contains("/native/"))
                                     {
                                         var assemblyFile = Path.Combine(libraryPath, a.Path.Replace('/', Path.DirectorySeparatorChar));
                                         projectDependency.Assemblies.Add(assemblyFile);
@@ -363,7 +363,7 @@ namespace Stride.Core.Assets
                                 }
                                 foreach (var a in targetLibrary.RuntimeTargets)
                                 {
-                                    if (!a.Path.EndsWith("_._"))
+                                    if (!a.Path.EndsWith("_._", StringComparison.Ordinal) && !a.Path.Contains("/native/"))
                                     {
                                         var assemblyFile = Path.Combine(libraryPath, a.Path.Replace('/', Path.DirectorySeparatorChar));
                                         projectDependency.Assemblies.Add(assemblyFile);
@@ -394,25 +394,6 @@ namespace Stride.Core.Assets
                     }
                 }
             }
-        }
-
-        private static RemoteWalkContext CreateRemoteWalkContext(RestoreRequest request, RestoreCollectorLogger logger)
-        {
-            var context = new RemoteWalkContext(
-                request.CacheContext,
-                logger);
-
-            foreach (var provider in request.DependencyProviders.LocalProviders)
-            {
-                context.LocalLibraryProviders.Add(provider);
-            }
-
-            foreach (var provider in request.DependencyProviders.RemoteProviders)
-            {
-                context.RemoteLibraryProviders.Add(provider);
-            }
-
-            return context;
         }
 
         private static ExternalProjectReference ToExternalProjectReference(PackageSpec project)

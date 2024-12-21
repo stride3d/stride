@@ -294,6 +294,19 @@ namespace Stride.Shaders.Parser.Mixins
             ProcessInitialValueStatus = false;
         }
 
+        public override void Visit(TypeName typeName)
+        {
+            if (typeName.IsByteAddressBufferType())
+            {
+                Write("Buffer");
+                ProcessInitialValueStatus = false;
+            }
+            else
+            {
+                base.Visit(typeName);
+            }
+        }
+
         /// <summary>
         /// Visits the specified for each statement.
         /// </summary>
@@ -386,7 +399,7 @@ namespace Stride.Shaders.Parser.Mixins
                     }
 
                     WriteLine();
-                    WriteLine("[ModuleInitializer]");
+                    WriteLine("[System.Runtime.CompilerServices.ModuleInitializer]");
                     WriteLine("internal static void __Initialize__()");
                     {
                         OpenBrace();

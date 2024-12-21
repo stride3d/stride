@@ -3,6 +3,7 @@
 
 using System;
 using Stride.Core;
+using Stride.Core.Diagnostics;
 using Stride.Rendering.Compositing;
 
 namespace Stride.Rendering
@@ -45,6 +46,7 @@ namespace Stride.Rendering
         {
             if (Enabled)
             {
+                using var _ = Profiler.Begin(CPUProfilingKey);
                 PreDrawCoreInternal(context);
                 DrawCore(context);
                 PostDrawCoreInternal(context);

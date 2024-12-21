@@ -77,7 +77,7 @@ namespace Stride.Rendering.Images
 
             // Blur in one direction
             var blurAngle = 0f;
-            directionalBlurEffect.Parameters.Set(DepthAwareDirectionalBlurUtilKeys.Direction, new Vector2((float)Math.Cos(blurAngle), (float)Math.Sin(blurAngle)));
+            directionalBlurEffect.Parameters.Set(DepthAwareDirectionalBlurUtilKeys.Direction, new Vector2(MathF.Cos(blurAngle), MathF.Sin(blurAngle)));
 
             var firstBlurTexture = NewScopedRenderTarget2D(originalTexture.Description);
             directionalBlurEffect.SetInput(0, originalTexture);
@@ -86,7 +86,7 @@ namespace Stride.Rendering.Images
 
             // Second blur pass to ouput the final result
             blurAngle = MathUtil.PiOverTwo;
-            directionalBlurEffect.Parameters.Set(DepthAwareDirectionalBlurUtilKeys.Direction, new Vector2((float)Math.Cos(blurAngle), (float)Math.Sin(blurAngle)));
+            directionalBlurEffect.Parameters.Set(DepthAwareDirectionalBlurUtilKeys.Direction, new Vector2(MathF.Cos(blurAngle), MathF.Sin(blurAngle)));
 
             directionalBlurEffect.SetInput(0, firstBlurTexture);
             directionalBlurEffect.SetOutput(outputTexture);

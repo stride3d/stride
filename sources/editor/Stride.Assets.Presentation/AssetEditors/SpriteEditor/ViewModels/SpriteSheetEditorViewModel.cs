@@ -23,9 +23,9 @@ using Stride.Core.Presentation.Interop;
 using Stride.Core.Presentation.Quantum;
 using Stride.Core.Quantum;
 using Stride.Assets.Presentation.AssetEditors.SpriteEditor.Services;
-using Stride.Assets.Presentation.AssetEditors.SpriteEditor.Views;
 using Stride.Assets.Presentation.ViewModel;
 using Stride.Assets.Sprite;
+using Stride.Core.Assets.Editor.Annotations;
 
 namespace Stride.Assets.Presentation.AssetEditors.SpriteEditor.ViewModels
 {
@@ -40,7 +40,7 @@ namespace Stride.Assets.Presentation.AssetEditors.SpriteEditor.ViewModels
         Borders,
     };
 
-    [AssetEditorViewModel(typeof(SpriteSheetAsset), typeof(SpriteEditorView))]
+    [AssetEditorViewModel<SpriteSheetViewModel>]
     public sealed class SpriteSheetEditorViewModel : AssetEditorViewModel, IAddChildViewModel
     {
         private readonly ObservableList<SpriteInfoViewModel> sprites;
@@ -96,7 +96,7 @@ namespace Stride.Assets.Presentation.AssetEditors.SpriteEditor.ViewModels
             spritesNode.ItemChanged += SpritesContentChanged;
         }
 
-        public new SpriteSheetViewModel Asset => (SpriteSheetViewModel)base.Asset;
+        public override SpriteSheetViewModel Asset => (SpriteSheetViewModel)base.Asset;
 
         public SpriteSheetType Type { get => typeNodeBinding.Value; set => typeNodeBinding.Value = value; }
 
@@ -181,7 +181,7 @@ namespace Stride.Assets.Presentation.AssetEditors.SpriteEditor.ViewModels
         {
             Cache = new SpriteEditorImageCache();
             Initialized?.Invoke(this, EventArgs.Empty);
-            return Task.FromResult(false);
+            return Task.FromResult(true);
         }
 
         /// <inheritdoc />

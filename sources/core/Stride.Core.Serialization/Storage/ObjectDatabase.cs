@@ -37,8 +37,8 @@ namespace Stride.Core.Storage
             ContentIndexMap = new ObjectDatabaseContentIndexMap();
 
             // Try to open file backends
-            bool isReadOnly = Platform.Type != PlatformType.Windows;
-            var backend = new FileOdbBackend(vfsMainUrl, indexName, isReadOnly);
+            bool isDesktop = Platform.Type is PlatformType.Windows or PlatformType.Linux or PlatformType.macOS;
+            var backend = new FileOdbBackend(vfsMainUrl, indexName, !isDesktop);
 
             ContentIndexMap.Merge(backend.ContentIndexMap);
             if (backend.IsReadOnly)
@@ -146,7 +146,7 @@ namespace Stride.Core.Storage
         }
 
         /// <summary>
-        /// Loads the specified bundle.
+        /// Unloads the specified bundle.
         /// </summary>
         /// <param name="bundleName">Name of the bundle.</param>
         public void UnloadBundle(string bundleName)
@@ -220,12 +220,13 @@ namespace Stride.Core.Storage
         /// <param name="size">The size.</param>
         /// <param name="forceWrite">Set to true to force writing the datastream even if a content is already stored with the same id. Default is false.</param>
         /// <returns>The <see cref="ObjectId"/> of the given data.</returns>
-        public ObjectId Write(IntPtr data, int size, bool forceWrite = false)
+        public unsafe ObjectId Write(IntPtr data, int size, bool forceWrite = false)
         {
             if (backendWrite == null)
                 throw new InvalidOperationException("Read-only object database.");
 
-            return backendWrite.Write(ObjectId.Empty, new NativeMemoryStream(data, size), size, forceWrite);
+            var ums = new UnmanagedMemoryStream((byte*)data, size, capacity: size, access: FileAccess.Write);
+            return backendWrite.Write(ObjectId.Empty, ums, size, forceWrite);
         }
 
         /// <summary>
@@ -297,7 +298,7 @@ namespace Stride.Core.Storage
         /// </summary>
         /// <param name="objectId">The <see cref="ObjectId"/>.</param>
         /// <param name="checkCache">if set to <c>true</c> [check cache for existing blobs].</param>
-        /// <returns>A <see cref="NativeStream"/> of the requested data.</returns>
+        /// <returns>A <see cref="Stream"/> of the requested data.</returns>
         public Stream Read(ObjectId objectId, bool checkCache = false)
         {
             if (checkCache)
@@ -317,9 +318,9 @@ namespace Stride.Core.Storage
         }
 
         /// <summary>
-        /// Creates a stream that can then be saved directly in the database using <see cref="SaveStream"/>.
+        /// Creates a stream that can then be saved directly in the database using <see cref="Write"/>.
         /// </summary>
-        /// <returns>a stream writer that should be passed to <see cref="SaveStream"/> in order to be stored in the database</returns>
+        /// <returns>a stream writer that should be passed to <see cref="Write"/> in order to be stored in the database</returns>
         public OdbStreamWriter CreateStream()
         {
             return backendWrite.CreateStream();
@@ -332,11 +333,11 @@ namespace Stride.Core.Storage
         /// <param name="data">The data.</param>
         /// <param name="size">The size.</param>
         /// <returns>The <see cref="Blob"/> containing given data, with its reference count incremented.</returns>
-        public Blob CreateBlob(IntPtr data, int size)
+        public unsafe Blob CreateBlob(IntPtr data, int size)
         {
             // Generate hash
             ObjectId objectId;
-            var nativeMemoryStream = new NativeMemoryStream(data, size);
+            var nativeMemoryStream = new UnmanagedMemoryStream((byte*)data, size, capacity: size, access: FileAccess.Write);
 
             using (var digestStream = new DigestStream(Stream.Null))
             {
@@ -347,7 +348,7 @@ namespace Stride.Core.Storage
             lock (LoadedBlobs)
             {
                 var blob = Lookup(objectId);
-                
+
                 // Blob doesn't exist yet, so let's create it and save it to ODB.
                 if (blob == null)
                 {
@@ -386,7 +387,7 @@ namespace Stride.Core.Storage
                         return null;
 
                     // Load blob if not cached
-                    var stream = OpenStream(objectId).ToNativeStream();
+                    var stream = OpenStream(objectId);
 
                     // Create blob and add to cache
                     blob = new Blob(this, objectId, stream);

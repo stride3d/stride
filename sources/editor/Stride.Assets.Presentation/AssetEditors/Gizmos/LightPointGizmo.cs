@@ -119,18 +119,18 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
                     var rotation = Matrix.Identity;
                     if (j == 1)
                     {
-                        rotation = Matrix.RotationX((float)Math.PI / 2);
+                        rotation = Matrix.RotationX(MathF.PI / 2);
                     }
                     else if (j == 2)
                     {
-                        rotation = Matrix.RotationY((float)Math.PI / 2);
+                        rotation = Matrix.RotationY(MathF.PI / 2);
                     }
 
                     for (int i = 0; i <= Tesselation; i++)
                     {
                         var longitude = (float)(i * 2.0 * Math.PI / Tesselation);
-                        var dx = (float)Math.Cos(longitude);
-                        var dy = (float)Math.Sin(longitude);
+                        var dx = MathF.Cos(longitude);
+                        var dy = MathF.Sin(longitude);
 
                         var normal = new Vector3(dx, dy, 0);
                         Vector3.TransformNormal(ref normal, ref rotation, out normal);

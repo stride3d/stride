@@ -84,6 +84,7 @@ namespace Stride.Rendering.Images
         [Category]
         public Outline Outline { get; private set; }
 
+        /// <summary>
         /// Gets the fog effect.
         /// </summary>
         [DataMember(7)]

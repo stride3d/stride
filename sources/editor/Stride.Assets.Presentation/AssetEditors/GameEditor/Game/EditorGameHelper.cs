@@ -21,7 +21,7 @@ namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Game
             {
                 // calculate the ray direction corresponding to the click in the view space
                 var verticalFov = MathUtil.DegreesToRadians(camera.VerticalFieldOfView);
-                var rayDirectionView = Vector3.Normalize(new Vector3(camera.AspectRatio * screenPosition.X, screenPosition.Y, -1 / (float)Math.Tan(verticalFov / 2f)));
+                var rayDirectionView = Vector3.Normalize(new Vector3(camera.AspectRatio * screenPosition.X, screenPosition.Y, -1 / MathF.Tan(verticalFov / 2f)));
 
                 // calculate the direction of the ray in the gizmo space
                 var rayDirectionGizmo = Vector3.Normalize(Vector3.TransformNormal(rayDirectionView, worldView));
@@ -50,7 +50,7 @@ namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Game
             // Ensures a ray angle with projection plane of at least 'limitAngle' to avoid the object to go to infinity.
             var dotProductValue = Vector3.Dot(ray.Direction, projectionPlane.Normal);
             var comparisonSign = Math.Sign(Vector3.Dot(ray.Position, projectionPlane.Normal) + projectionPlane.D);
-            if (comparisonSign * (Math.Acos(dotProductValue) - MathUtil.PiOverTwo) < limitAngle)
+            if (comparisonSign * (MathF.Acos(dotProductValue) - MathUtil.PiOverTwo) < limitAngle)
             {
                 var rotationAxis = Vector3.Normalize(Vector3.Cross(projectionPlane.Normal, ray.Direction));
                 var initialDirection = Vector3.Normalize(Vector3.Cross(rotationAxis, projectionPlane.Normal));

@@ -8,6 +8,7 @@ Example of use:
   <PropertyGroup>
     <StrideRoot>$(MSBuildThisFileDirectory)..\</StrideRoot>
     <StrideSolution>$(StrideRoot)build\Stride</StrideSolution>
+    <StrideVisualStudioSolution>$(StrideRoot)build\Stride.VisualStudio</StrideVisualStudioSolution>
     <StrideSolutionLauncher>$(StrideRoot)build\Stride.Launcher</StrideSolutionLauncher>
     <StridePlatforms Condition="'$(StridePlatforms)' == ''">Windows</StridePlatforms>
     <BuildProperties>Configuration=Release;NoWarn=1591;DeployExtension=false;StridePlatforms=$([MSBuild]::Escape('$(StridePlatforms)'));StrideGraphicsApiDependentBuildAll=$(StrideGraphicsApiDependentBuildAll)</BuildProperties>
@@ -16,7 +17,9 @@ Example of use:
     <NuGetPath>$(MSBuildThisFileDirectory).nuget\NuGet.exe</NuGetPath>
     <XunitRunnerConsoleVersion>2.4.1</XunitRunnerConsoleVersion>
     <StrideStoreUrl Condition="'$(StrideStoreUrl)' == ''">https://api.nuget.org/v3/index.json</StrideStoreUrl>
-    <AdvancedInstallerPath Condition="'$(AdvancedInstallerPath)' == '' And Exists('$(MSBuildProgramFiles32)\Caphyon\Advanced Installer 17.9\bin\x86\AdvancedInstaller.com')">$(MSBuildProgramFiles32)\Caphyon\Advanced Installer 17.9\bin\x86\AdvancedInstaller.com</AdvancedInstallerPath>
+    <AdvancedInstallerPath Condition="'$(AdvancedInstallerPath)' == '' And Exists('$(MSBuildProgramFiles32)\Caphyon\Advanced Installer 22.0\bin\x86\AdvancedInstaller.com')">$(MSBuildProgramFiles32)\Caphyon\Advanced Installer 22.0\bin\x86\AdvancedInstaller.com</AdvancedInstallerPath>
+    <AdvancedInstallerBuildScript Condition="'$(StrideSign)' == 'true'">$(MSBuildThisFileDirectory)advancedinstaller-signed.aic</AdvancedInstallerBuildScript>
+    <AdvancedInstallerBuildScript Condition="'$(StrideSign)' != 'true'">$(MSBuildThisFileDirectory)advancedinstaller-unsigned.aic</AdvancedInstallerBuildScript>
     <StrideBuildPrerequisitesInstaller Condition="'$(StrideBuildPrerequisitesInstaller)' == ''">true</StrideBuildPrerequisitesInstaller>
   </PropertyGroup>
 
@@ -38,16 +41,24 @@ Example of use:
 
     <Delete Files="@(FilesToDeleteVSIX)"/>
 
-    <MSBuild Targets="91-VisualStudio\Stride_VisualStudio_Package;91-VisualStudio\Stride_VisualStudio_PackageInstall" Projects="$(StrideSolution).sln" Properties="$(BuildProperties);Platform=Mixed Platforms"/>
+    <MSBuild Targets="Restore" Projects="$(StrideVisualStudioSolution).sln" />
+    <MSBuild Targets="Stride_VisualStudio_Package;Stride_VisualStudio_PackageInstall" Projects="$(StrideVisualStudioSolution).sln" Properties="$(BuildProperties);Platform=Any CPU"/>
     <Exec Command='"$(NuGetPath)" pack "$(StrideRoot)sources\tools\Stride.VisualStudio.Package\Stride.VisualStudio.Package.nuspec" -BasePath "$(StrideRoot)sources\tools\Stride.VisualStudio.Package" -OutputDirectory "$(StrideRoot)bin\vsix"' />
+ 
+    <ItemGroup>
+      <VSIXPackagesToSign Include="$(MSBuildThisFileDirectory)..\bin\vsix\*.nupkg" />
+    </ItemGroup>
+    <Exec Condition="'$(StrideSign)' == 'true'" Command="$(MSBuildThisFileDirectory)sign\sign code azure-key-vault %(VSIXPackagesToSign.Identity) --description &quot;Stride&quot; --description-url &quot;https://stride3d.net&quot; --publisher-name &quot;Stride&quot; --azure-key-vault-tenant-id &quot;$(StrideSignTenantId)&quot; --azure-key-vault-client-id &quot;$(StrideSignClientId)&quot; --azure-key-vault-client-secret &quot;$(StrideSignClientSecret)&quot; --azure-key-vault-certificate &quot;$(StrideSignKeyVaultCertificate)&quot; --azure-key-vault-url &quot;https://$(StrideSignKeyVaultName).vault.azure.net/&quot; --file-list &quot;sign\nupkgfilter.txt&quot; -v Information" EchoOff="true" />
   </Target>
   
   <!--
   Package Installer: install-prerequisites.exe
   -->
-  <Target Name="PrerequisitesInstaller">
+  <Target Name="PrerequisitesInstaller" DependsOnTargets="SignCredentialsCheck">
     <Delete Files="$(StrideRoot)Bin\Prerequisites\install-prerequisites.exe"/>
-    <Exec Command='"$(AdvancedInstallerPath)" /rebuild "$(StrideRoot)sources\prerequisites\prerequisites.aip"'/>
+    <Exec Condition="'$(StrideSign)' == 'true'" Command='"$(AdvancedInstallerPath)" /edit "$(StrideRoot)sources\prerequisites\prerequisites.aip" /SetAzureKeyVaultParameters -tenant_id $(StrideSignTenantId) -app_id $(StrideSignClientId) -vault_name $(StrideSignKeyVaultName) -certificate_name $(StrideSignKeyVaultCertificate) -enable_signing '/>
+    <Exec Command='"$(AdvancedInstallerPath)" /execute "$(StrideRoot)sources\prerequisites\prerequisites.aip" "$(AdvancedInstallerBuildScript)"' EnvironmentVariables="StrideSignClientSecret=&quot;$(StrideSignClientSecret)&quot;"/>
+    <!-- Note: this exe will be signed as part of GameStudio.nupkg -->
   </Target>
 
   <!--
@@ -72,7 +83,7 @@ Example of use:
       <!-- Remove Samples.Templates (we use -SkipDuplicate since version is rarely bumped) -->
       <NuGetPackage Remove="@(NuGetPackage)" Condition="$([System.String]::Copy('%(Filename)').Contains('Stride.Samples.Templates'))"/>
     </ItemGroup>
-    <Exec Command='"$(NuGetPath)" push %(NuGetPackage.Identity) -ApiKey $(StrideStoreApiKey) -Source $(StrideStoreUrl) -Timeout 1800 -NoSymbols'/>
+    <Exec Command='"$(NuGetPath)" push %(NuGetPackage.Identity) -ApiKey $(StrideStoreApiKey) -Source $(StrideStoreUrl) -Timeout 1800 -NoSymbols -SkipDuplicate'/>
     <Exec Command='"$(NuGetPath)" push ..\bin\packages\Stride.Samples.Templates*.nupkg -ApiKey $(StrideStoreApiKey) -Source $(StrideStoreUrl) -Timeout 1800 -NoSymbols -SkipDuplicate'/>
     <!-- Push GameStudio so that dependencies are already uploaded -->
     <Exec Command='"$(NuGetPath)" push ..\bin\packages\Stride.GameStudio*.nupkg -ApiKey $(StrideStoreApiKey) -Source $(StrideStoreUrl) -Timeout 1800 -NoSymbols'/>
@@ -117,12 +128,12 @@ Example of use:
     </GenerateVersionFile>
 
     <Message Text="Done preparing build for version $(StridePackageVersion)"/>
-    <TeamCitySetBuildNumber BuildNumber="$(StridePackageVersion)" Condition="'$(TEAMCITY_BUILD_PROPERTIES_FILE)' != '' " />
+    <Message Text="##teamcity[buildNumber '$(StridePackageVersion)']" Importance="High" Condition="'$(TEAMCITY_BUILD_PROPERTIES_FILE)' != '' " />
   </Target>
   <PropertyGroup>
     <_StridePackageTargetPrerequisitesInstaller Condition="'$(StrideBuildPrerequisitesInstaller)' == 'true'">PrerequisitesInstaller</_StridePackageTargetPrerequisitesInstaller>
   </PropertyGroup>
-  <Target Name="Package" DependsOnTargets="PreparePackageBuild;$(_StridePackageTargetPrerequisitesInstaller);Build;VSIXPlugin"/>
+  <Target Name="Package" DependsOnTargets="PreparePackageBuild;$(_StridePackageTargetPrerequisitesInstaller);Build;SignPackage;VSIXPlugin"/>
 
   <Target Name="RestoreInternal">
     <MSBuild Targets="Restore" Projects="$(StrideSolution).sln" Properties="StrideGraphicsApiDependentBuildAll=$(StrideGraphicsApiDependentBuildAll);StrideGraphicsApis=$(StrideGraphicsApis);StridePlatforms=$(StridePlatforms)" />
@@ -180,13 +191,6 @@ Example of use:
     <MSBuild Targets="Build" Projects="$(StrideSolution).iOS.sln" Properties="$(BuildProperties);StridePlatforms=iOS;StrideSkipAutoPack=true;StrideSkipUnitTests=true"/>
   </Target>
   
-  <Target Name="BuildWindowsStore">
-    <!-- Only a warning since build servers might still call this target for old branches -->
-    <Warning Text="Windows Store doesn't exist anymore"/>
-  </Target>
-
-  <Target Name="BuildWindows10" DependsOnTargets="BuildUWP" />
-
   <Target Name="BuildUWP">
     <PropertyGroup>
       <StrideSolution>$(StrideSolution).Runtime</StrideSolution>
@@ -194,11 +198,6 @@ Example of use:
     </PropertyGroup>
     <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StridePlatforms=$(StridePlatforms);StrideSolution=$(StrideSolution)"/>
     <MSBuild Targets="Build" Projects="$(StrideSolution).sln" Properties="$(BuildProperties);StridePlatforms=$(StridePlatforms);StrideSkipAutoPack=true;StrideSkipUnitTests=true"/>
-  </Target>
-  
-  <Target Name="BuildWindowsPhone">
-    <!-- Only a warning since build servers might still call this target for old branches -->
-    <Warning Text="Windows Phone doesn't exist anymore"/>
   </Target>
   
   <Target Name="BuildWindowsVulkan">
@@ -251,6 +250,7 @@ Example of use:
     </CreateItem>
     <!-- Restore NuGet packages -->
     <Message Importance="High" Text="Restoring NuGet packages"/>
+    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileDirectory)Stride.sln" />
     <MSBuild Targets="Restore" Projects="$(MSBuildThisFileDirectory)Stride.Tests.%(StrideTestCategoriesItem.Identity).slnf" />
     <!-- Build -->
     <Message Importance="High" Text="Building unit tests"/>
@@ -317,60 +317,31 @@ Example of use:
     
     <!-- Generate the nuget package for the launcher application -->
     <Exec Command='"$(NuGetPath)" pack "$(StrideRoot)sources\launcher\Stride.Launcher\Stride.Launcher.nuspec" -BasePath "$(StrideRoot)sources\launcher\Stride.Launcher\bin\Release\publish" -OutputDirectory "$(StrideRoot)bin\launcher"' />
+
+    <ItemGroup>
+      <LauncherPackagesToSign Include="$(MSBuildThisFileDirectory)..\bin\launcher\*.nupkg" />
+    </ItemGroup>
+    <Exec Condition="'$(StrideSign)' == 'true'" Command="$(MSBuildThisFileDirectory)sign\sign code azure-key-vault %(LauncherPackagesToSign.Identity) --description &quot;Stride&quot; --description-url &quot;https://stride3d.net&quot; --publisher-name &quot;Stride&quot; --azure-key-vault-tenant-id &quot;$(StrideSignTenantId)&quot; --azure-key-vault-client-id &quot;$(StrideSignClientId)&quot; --azure-key-vault-client-secret &quot;$(StrideSignClientSecret)&quot; --azure-key-vault-certificate &quot;$(StrideSignKeyVaultCertificate)&quot; --azure-key-vault-url &quot;https://$(StrideSignKeyVaultName).vault.azure.net/&quot; --file-list &quot;sign\nupkgfilter.txt&quot; -v Information" EchoOff="true" />
   </Target>
   
   <!--
   Package Installer: StrideSetup.exe
   -->
-  <Target Name="PackageInstallerSimple" DependsOnTargets="PackageLauncher">
-    <Delete Files="$(StrideRoot)bin\launcher\StrideSetup.exe"/>
+  <Target Name="PackageInstaller" DependsOnTargets="PackageLauncher;SignCredentialsCheck">
     <!-- Run advanced installer -->
-    <Exec Command='"$(AdvancedInstallerPath)" /rebuild "$(StrideRoot)sources\launcher\Setup\setup.aip"'/>
+    <!-- Workaround until env variables are supported in the config -->
+    <Exec Condition="'$(StrideSign)' == 'true'" Command='"$(AdvancedInstallerPath)" /edit "$(StrideRoot)sources\launcher\Setup\setup.aip" /SetAzureKeyVaultParameters -tenant_id $(StrideSignTenantId) -app_id $(StrideSignClientId) -vault_name $(StrideSignKeyVaultName) -certificate_name $(StrideSignKeyVaultCertificate) -enable_signing '/>
+    <Exec Command='"$(AdvancedInstallerPath)" /execute "$(StrideRoot)sources\launcher\Setup\setup.aip" "$(AdvancedInstallerBuildScript)"' EnvironmentVariables="StrideSignClientSecret=&quot;$(StrideSignClientSecret)&quot;"/>
+
     <Copy SourceFiles="$(StrideRoot)sources\launcher\Setup\setup-SetupFiles\StrideSetup.exe" DestinationFolder="$(StrideRoot)bin\launcher"/>
   </Target>
-  <Target Name="PackageInstallerCustom" DependsOnTargets="PackageLauncher">
-    <Error Condition="'$(CustomInstaller)' == '' Or '$(CustomInstallerStoreUrl)' == ''" Text="When CustomInstaller is set, CustomInstallerStoreUrl also needs to be defined"/>
-    <PropertyGroup>
-      <CustomInstallerNoSpace>$(CustomInstaller.Replace(' ', ''))</CustomInstallerNoSpace>
-    </PropertyGroup>
-  
-    <Delete Files="StrideSetup$(CustomInstallerNoSpace).exe"/>
-    <!-- Make sure it is deleted otherwise Advanced Installer complains (in case previous run didn't complete -->
-    <Delete Files="$(StrideRoot)sources\launcher\Setup\setup-$(CustomInstallerNoSpace).aip"/>
-    <!-- Duplicate setup.aip with different IDs -->
-    <Exec Command='"$(AdvancedInstallerPath)" /edit "$(StrideRoot)sources\launcher\Setup\setup.aip" /DuplicateProject "$(StrideRoot)sources\launcher\Setup\setup-$(CustomInstallerNoSpace).aip"'/>
-    <!-- Edit a few parameters -->
-    <Exec Command='"$(AdvancedInstallerPath)" /edit "$(StrideRoot)sources\launcher\Setup\setup-$(CustomInstallerNoSpace).aip" /SetProperty BuildExeName="StrideSetup$(CustomInstallerNoSpace)"'/>
-    <Exec Command='"$(AdvancedInstallerPath)" /edit "$(StrideRoot)sources\launcher\Setup\setup-$(CustomInstallerNoSpace).aip" /SetProperty ProductName="Stride $(CustomInstaller)"'/>
-    <Exec Command='"$(AdvancedInstallerPath)" /edit "$(StrideRoot)sources\launcher\Setup\setup-$(CustomInstallerNoSpace).aip" /SetProperty AI_PRODUCTNAME_ARP="Stride $(CustomInstaller)"'/>
-
-    <!-- Backup store.config -->
-    <Copy SourceFiles="$(StrideRoot)sources\launcher\Stride.LauncherApp\bin\Release\store.config" DestinationFiles="$(StrideRoot)sources\launcher\Stride.LauncherApp\bin\Release\store.config.backup"/>
-    
-    <!-- Update store.config with additional parameters -->
-    <Exec Command='"$(NuGetPath)" sources Add -Name "Stride $(CustomInstaller)" -Source "$(CustomInstallerStoreUrl)" -ConfigFile "$(StrideRoot)sources\launcher\Stride.LauncherApp\bin\Release\store.config"'/>
-    
-    <!-- Run advanced installer -->
-    <Exec Command='"$(AdvancedInstallerPath)" /rebuild "$(StrideRoot)sources\launcher\Setup\setup-$(CustomInstallerNoSpace).aip"'/>
-    <Copy SourceFiles="$(StrideRoot)sources\launcher\Setup\setup-$(CustomInstallerNoSpace)-SetupFiles\StrideSetup$(CustomInstallerNoSpace).exe" DestinationFolder="$(MSBuildThisFileDirectory)"/>
-    <Delete Files="$(StrideRoot)sources\launcher\Setup\setup-$(CustomInstallerNoSpace).aip"/>
-    
-    <!-- Restore store.config -->
-    <Copy SourceFiles="$(StrideRoot)sources\launcher\Stride.LauncherApp\bin\Release\store.config.backup" DestinationFiles="$(StrideRoot)Stride.LauncherApp\bin\Release\store.config"/>
-    <Delete Files="$(StrideRoot)sources\launcher\Stride.LauncherApp\bin\Release\store.config.backup"/>	
-  </Target>
-  <PropertyGroup>
-    <!-- Choose proper target to execute -->
-    <PackageInstallerTarget Condition="'$(CustomInstaller)' == ''">PackageInstallerSimple</PackageInstallerTarget>
-    <PackageInstallerTarget Condition="'$(CustomInstaller)' != ''">PackageInstallerCustom</PackageInstallerTarget>
-  </PropertyGroup>
-  <Target Name="PackageInstaller" DependsOnTargets="$(PackageInstallerTarget)"/>
   
   <!--
   Package Installer: launcher-prerequisites.exe
   -->
-  <Target Name="LauncherPrerequisitesInstaller">
-    <Exec Command='"$(AdvancedInstallerPath)" /rebuild "$(StrideRoot)sources\launcher\Prerequisites\launcher-prerequisites.aip"'/>
+  <Target Name="LauncherPrerequisitesInstaller" DependsOnTargets="SignCredentialsCheck">
+    <Exec Condition="'$(StrideSign)' == 'true'" Command='"$(AdvancedInstallerPath)" /edit "$(StrideRoot)sources\launcher\Prerequisites\launcher-prerequisites.aip" /SetAzureKeyVaultParameters -tenant_id $(StrideSignTenantId) -app_id $(StrideSignClientId) -vault_name $(StrideSignKeyVaultName) -certificate_name $(StrideSignKeyVaultCertificate) -enable_signing '/>
+    <Exec Command='"$(AdvancedInstallerPath)" /execute "$(StrideRoot)sources\launcher\Prerequisites\launcher-prerequisites.aip" "$(AdvancedInstallerBuildScript)"' EnvironmentVariables="StrideSignClientSecret=&quot;$(StrideSignClientSecret)&quot;"/>
   </Target>
 
   <!--
@@ -389,12 +360,29 @@ Example of use:
     <Exec Command='"$(NuGetPath)" push ..\bin\launcher\*.nupkg -ApiKey $(StrideStoreApiKey) -Source $(StrideStoreUrl) -NoSymbols'/>
   </Target>
   
-  <Target Name="BuildLauncher">
+  <Target Name="BuildLauncher" DependsOnTargets="SignCredentialsCheck">
     <PropertyGroup>
       <StrideSolution>Stride.Launcher</StrideSolution>
     </PropertyGroup>
-    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StridePlatforms=Windows;StrideSolution=$(StrideSolution)"/>
+    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StridePlatforms=Windows;StrideSolution=$(StrideSolution);RuntimeIdentifiers=win-x64"/>
     <MSBuild Projects="..\sources\launcher\Stride.Launcher\Stride.Launcher.csproj" Targets="Publish" Properties="$(BuildProperties);PublishProfile=FolderProfile;SolutionName=Stride.Launcher" />
+  </Target>
+
+  <Target Name="SignCredentialsCheck" Condition="'$(StrideSign)' == 'true'">
+    <Error Condition="'$(StrideSignTenantId)' == ''" Text="StrideSignTenantId is not set. Please set StrideSign to false if you don't want to sign using code certificates." />
+    <Error Condition="'$(StrideSignClientId)' == ''" Text="StrideSignClientId is not set. Please set StrideSign to false if you don't want to sign using code certificates." />
+    <Error Condition="'$(StrideSignClientSecret)' == ''" Text="StrideSignClientSecret is not set. Please set StrideSign to false if you don't want to sign using code certificates." />
+    <Error Condition="'$(StrideSignKeyVaultCertificate)' == ''" Text="StrideSignKeyVaultCertificate is not set. Please set StrideSign to false if you don't want to sign using code certificates." />
+    <Error Condition="'$(StrideSignKeyVaultName)' == ''" Text="StrideSignKeyVaultName is not set. Please set StrideSign to false if you don't want to sign using code certificates." />
+  </Target>
+
+  <Target Name="SignPackage" DependsOnTargets="SignCredentialsCheck" Condition="'$(StrideSign)' == 'true'">
+    <!-- nupkg containing executables to sign -->
+    <Message Importance="high" Text="Signing packages"/> 
+    <ItemGroup>
+      <MainPackagesToSign Include="$(MSBuildThisFileDirectory)..\bin\packages\*.nupkg" />
+    </ItemGroup>
+    <Exec Command="$(MSBuildThisFileDirectory)sign\sign code azure-key-vault %(MainPackagesToSign.Identity) --description &quot;Stride&quot; --description-url &quot;https://stride3d.net&quot; --publisher-name &quot;Stride&quot; --azure-key-vault-tenant-id &quot;$(StrideSignTenantId)&quot; --azure-key-vault-client-id &quot;$(StrideSignClientId)&quot; --azure-key-vault-client-secret &quot;$(StrideSignClientSecret)&quot; --azure-key-vault-certificate &quot;$(StrideSignKeyVaultCertificate)&quot; --azure-key-vault-url &quot;https://$(StrideSignKeyVaultName).vault.azure.net/&quot; --file-list &quot;sign\nupkgfilter.txt&quot; -v Information" EchoOff="true" />
   </Target>
 
 </Project>

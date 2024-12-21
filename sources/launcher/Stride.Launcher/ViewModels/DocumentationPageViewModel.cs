@@ -3,20 +3,20 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
-using System.Net;
+using System.Net.Http;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Stride.LauncherApp.Resources;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Services;
-using Stride.Core.Presentation.ViewModel;
+using Stride.Core.Presentation.ViewModels;
+using Stride.LauncherApp.Resources;
 
 namespace Stride.LauncherApp.ViewModels
 {
     internal class DocumentationPageViewModel : DispatcherViewModel
     {
         private static readonly Regex ParsingRegex = new Regex(@"\{([^\{\}]+)\}\{([^\{\}]+)\}\{([^\{\}]+)\}");
+        private static readonly HttpClient httpClient = new();
         private const string DocPageScheme = "page:";
         private const string PageUrlFormatString = "{0}{1}";
 
@@ -35,7 +35,7 @@ namespace Stride.LauncherApp.ViewModels
             }
             catch (Exception)
             {
-                await ServiceProvider.Get<IDialogService>().MessageBox(Strings.ErrorOpeningBrowser, MessageBoxButton.OK, MessageBoxImage.Error);
+                await ServiceProvider.Get<IDialogService>().MessageBoxAsync(Strings.ErrorOpeningBrowser, MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -71,56 +71,40 @@ namespace Stride.LauncherApp.ViewModels
 
         public static async Task<List<DocumentationPageViewModel>> FetchGettingStartedPages(IViewModelServiceProvider serviceProvider, string version)
         {
-            string urlData = null;
             var result = new List<DocumentationPageViewModel>();
+            string urlData;
             try
             {
-                WebRequest request = WebRequest.Create(string.Format(Urls.GettingStarted, version));
-                using (var reponse = await request.GetResponseAsync())
+                using var response = await httpClient.GetAsync(string.Format(Urls.GettingStarted, version));
+                response.EnsureSuccessStatusCode();
+                urlData = await response.Content.ReadAsStringAsync();
+
+                if (urlData == null)
                 {
-                    using (var str = reponse.GetResponseStream())
-                    {
-                        if (str != null)
-                        {
-                            using (var reader = new StreamReader(str))
-                            {
-                                urlData = reader.ReadToEnd();
-                            }
-                        }
-                    }
+                    return result;
                 }
-            }
-            catch (Exception)
-            {
-                // Unable to reach the url, return an empty list.
-                return result;
-            }
-
-            if (urlData == null)
-                return result;
-
-            try
-            {
                 var urls = urlData.Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
                 foreach (var url in urls)
                 {
                     var match = ParsingRegex.Match(url);
-                    if (match.Success && match.Groups.Count == 4)
+                    if (!match.Success || match.Groups.Count != 4)
                     {
-                        var link = match.Groups[3].Value;
-                        if (link.StartsWith(DocPageScheme))
-                        {
-                            link = GetDocumentationPageUrl(version, link.Substring(DocPageScheme.Length));
-                        }
-                        var page = new DocumentationPageViewModel(serviceProvider, version)
-                        {
-                            Title = match.Groups[1].Value.Trim(),
-                            Description = match.Groups[2].Value.Trim(),
-                            Url = link.Trim()
-                        };
-                        result.Add(page);
+                        continue;
                     }
+                    var link = match.Groups[3].Value;
+                    if (link.StartsWith(DocPageScheme))
+                    {
+                        link = GetDocumentationPageUrl(version, link.Substring(DocPageScheme.Length));
+                    }
+                    var page = new DocumentationPageViewModel(serviceProvider, version)
+                    {
+                        Title = match.Groups[1].Value.Trim(),
+                        Description = match.Groups[2].Value.Trim(),
+                        Url = link.Trim()
+                    };
+                    result.Add(page);
                 }
+                return result;
             }
             catch (Exception)
             {

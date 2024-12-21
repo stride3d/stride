@@ -1,8 +1,0 @@
-<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ItemGroup>
-    <Reference Include="SDL2-CS">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(MSBuildThisFileDirectory)..\..\deps\SDL2-CS\SDL2-CS.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-</Project>

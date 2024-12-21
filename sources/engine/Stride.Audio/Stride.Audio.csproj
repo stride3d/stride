@@ -13,7 +13,7 @@
     <StrideBuildTags>*</StrideBuildTags>
     <StrideCodeAnalysis>true</StrideCodeAnalysis>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(StridePlatform)' == 'Android'">
+  <PropertyGroup Condition="'$(TargetFramework)' == '$(StrideFrameworkAndroid)'">
     <!-- <DefineConstants>STRIDE_VIDEO_FFMPEG;$(DefineConstants)</DefineConstants> -->
     <DefineConstants>STRIDE_VIDEO_MEDIACODEC;$(DefineConstants)</DefineConstants>
   </PropertyGroup>
@@ -28,7 +28,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Native\Celt.cpp" />
-    <StrideContent Condition="'$(StridePlatform)' == 'Linux'" Include="Stride.Audio.dll.config" />
     <None Include="Stride.Native.Libs.targets">
       <SubType>Designer</SubType>
     </None>

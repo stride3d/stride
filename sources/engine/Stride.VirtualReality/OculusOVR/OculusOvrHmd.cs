@@ -26,7 +26,7 @@ namespace Stride.VirtualReality
         private OculusTouchController leftHandController;
         private OculusTouchController rightHandController;
         private readonly List<OculusOverlay> overlays = new List<OculusOverlay>();
-        private IntPtr[] overlayPtrs = new IntPtr[0];
+        private IntPtr[] overlayPtrs = Array.Empty<IntPtr>();
 
         internal OculusOvrHmd()
         {
@@ -83,8 +83,8 @@ namespace Stride.VirtualReality
 
             ActualRenderFrameSize = new Size2(textures[0].Width, textures[0].Height);
 
-            leftHandController = new OculusTouchController(TouchControllerHand.Left);
-            rightHandController = new OculusTouchController(TouchControllerHand.Right);
+            leftHandController = new OculusTouchController(TouchControllerHand.Left, ovrSession);
+            rightHandController = new OculusTouchController(TouchControllerHand.Right, ovrSession);
         }
 
         private OculusOvr.PosesProperties currentPoses;
@@ -137,7 +137,7 @@ namespace Stride.VirtualReality
 
         public override TouchController RightHand => rightHandController;
 
-        public override TrackedItem[] TrackedItems => new TrackedItem[0];
+        public override TrackedItem[] TrackedItems => Array.Empty<TrackedItem>();
 
         public override bool CanInitialize
         {
@@ -162,7 +162,7 @@ namespace Stride.VirtualReality
                 return initDone;
             }
         }
-        
+
         public override void Recenter()
         {
             OculusOvr.Recenter(ovrSession);

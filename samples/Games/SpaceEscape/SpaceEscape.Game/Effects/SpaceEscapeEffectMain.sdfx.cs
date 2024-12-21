@@ -34,7 +34,7 @@ namespace SpaceEscape.Effects
                 if (context.GetParam(GameParameters.EnableBend))
                     context.Mixin(mixin, "TransformationBendWorld");
                 if (context.GetParam(GameParameters.EnableFog))
-                    context.Mixin(mixin, "FogEffect");
+                    context.Mixin(mixin, "CustomFogEffect");
             }
 
             [ModuleInitializer]

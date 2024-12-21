@@ -2,9 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #pragma warning disable SA1402 // File may only contain a single class
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using Stride.Core.IO;
+using System.IO;
 
 namespace Stride.Core.Serialization
 {
@@ -15,15 +13,10 @@ namespace Stride.Core.Serialization
     {
         protected const int BufferTLSSize = 1024;
 
-        // Helper buffer for classes needing it.
-        // If null, it should be initialized with BufferTLSSize constant.
-        [ThreadStatic]
-        protected static byte[] bufferTLS;
-
         /// <summary>
-        /// The underlying native stream.
+        /// The <see cref="Stream"/> from which this serializer reads or to which it writes.
         /// </summary>
-        public NativeStream NativeStream { get; protected set; }
+        public Stream UnderlyingStream { get; protected set; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SerializationStream"/> class.
@@ -128,8 +121,7 @@ namespace Stride.Core.Serialization
         /// Serializes the specified memory area.
         /// </summary>
         /// <param name="memory">The memory area to serialize.</param>
-        /// <param name="count">The size, in bytes, to serialize.</param>
-        public abstract void Serialize(IntPtr memory, int count);
+        public abstract void Serialize(Span<byte> memory);
 
         /// <summary>
         /// Flushes all recent writes (for better batching).

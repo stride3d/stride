@@ -112,8 +112,8 @@ namespace Stride.Assets.SpriteFont.Compiler
             {
                 M11 = 1,
                 M22 = 1,
-                M31 = -(float)Math.Floor(xOffset) + 1,
-                M32 = -(float)Math.Floor(yOffset) + 1
+                M31 = -MathF.Floor(xOffset) + 1,
+                M32 = -MathF.Floor(yOffset) + 1
             };
 
             Bitmap bitmap;
@@ -126,7 +126,7 @@ namespace Stride.Assets.SpriteFont.Compiler
                 var glyphRun = new GlyphRun
                 {
                     FontFace = fontFace,
-                    Advances = new[] { (float)Math.Ceiling(advanceWidth) },
+                    Advances = new[] { MathF.Ceiling(advanceWidth) },
                     FontSize = fontSize,
                     BidiLevel = 0,
                     Indices = indices,

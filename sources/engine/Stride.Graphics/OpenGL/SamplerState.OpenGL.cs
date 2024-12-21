@@ -3,12 +3,6 @@
 #if STRIDE_GRAPHICS_API_OPENGL 
 using System;
 using Stride.Core.Mathematics;
-#if STRIDE_GRAPHICS_API_OPENGLES
-using OpenTK.Graphics.ES30;
-using TextureCompareMode = OpenTK.Graphics.ES30.All;
-#else
-using OpenTK.Graphics.OpenGL;
-#endif
 
 namespace Stride.Graphics
 {
@@ -136,7 +130,7 @@ namespace Stride.Graphics
 
 #if !STRIDE_PLATFORM_IOS
             if (maxAnisotropy != oldSamplerState.maxAnisotropy && GraphicsDevice.HasAnisotropicFiltering)
-                GL.TexParameter(target, (TextureParameterName)OpenTK.Graphics.ES20.ExtTextureFilterAnisotropic.TextureMaxAnisotropyExt, Description.MaxAnisotropy);
+                GL.TexParameter(target, (TextureParameterName)SamplerParameterF.TextureMaxAnisotropy, Description.MaxAnisotropy);
 #endif
             if (magFilter != oldSamplerState.magFilter)
                 GL.TexParameter(target, TextureParameterName.TextureMagFilter, (int)magFilter);

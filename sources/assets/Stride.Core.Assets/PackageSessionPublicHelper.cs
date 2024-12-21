@@ -16,6 +16,12 @@ namespace Stride.Core.Assets
     /// </summary>
     public static class PackageSessionPublicHelper
     {
+
+        /// <summary>
+        /// The current major .NET version that Stride will use.
+        /// </summary>
+        public static int NetMajorVersion => Environment.Version.Major;
+
         private static readonly string[] s_msBuildAssemblies =
         {
             "Microsoft.Build",
@@ -36,13 +42,19 @@ namespace Stride.Core.Assets
             if (MSBuildInstance == null && Interlocked.Increment(ref MSBuildLocatorCount) == 1)
             {
                 // Detect either .NET Core SDK or Visual Studio depending on current runtime
-                var isNETCore = !RuntimeInformation.FrameworkDescription.StartsWith(".NET Framework");
+                var isNETCore = !RuntimeInformation.FrameworkDescription.StartsWith(".NET Framework", StringComparison.Ordinal);
                 MSBuildInstance = MSBuildLocator.QueryVisualStudioInstances().FirstOrDefault(x => isNETCore
-                    ? x.DiscoveryType == DiscoveryType.DotNetSdk && x.Version.Major >= 3
+                    ? x.DiscoveryType == DiscoveryType.DotNetSdk && x.Version.Major == NetMajorVersion
                     : (x.DiscoveryType == DiscoveryType.VisualStudioSetup || x.DiscoveryType == DiscoveryType.DeveloperConsole) && x.Version.Major >= 16);
+                
+                if (MSBuildInstance == null)
+                {
+                    throw new InvalidOperationException("Could not find a MSBuild installation (expected 16.0 or later) " +
+                        $"Please ensure you have the .NET {NetMajorVersion} SDK installed from Microsoft's website");
+                }
 
                 // Make sure it is not already loaded (otherwise MSBuildLocator.RegisterDefaults() throws an exception)
-                if (MSBuildInstance != null && !AppDomain.CurrentDomain.GetAssemblies().Any(IsMSBuildAssembly))
+                if (!AppDomain.CurrentDomain.GetAssemblies().Any(IsMSBuildAssembly))
                 {
                     // We can't use directly RegisterInstance because we want to avoid NuGet verison conflicts (between MSBuild/dotnet one and ours).
                     // More details at https://github.com/microsoft/MSBuildLocator/issues/127
@@ -66,9 +78,7 @@ namespace Stride.Core.Assets
                 }
             }
 
-            if (MSBuildInstance == null)
-                throw new InvalidOperationException("Could not find a MSBuild installation (expected 16.0 or later)");
-
+            SetupMSBuildCurrentHostForOutOfProc(MSBuildInstance.MSBuildPath);
             CheckMSBuildToolset();
 
             // Reset MSBUILD_EXE_PATH once MSBuild is resolved, to not spook child process (had issues with ThisProcess(MSBuild)->CompilerApp(net472): CompilerApp couldn't load MSBuild project properly)
@@ -84,9 +94,9 @@ namespace Stride.Core.Assets
 
             var variables = new Dictionary<string, string>
             {
-                [MSBUILD_EXE_PATH] = dotNetSdkPath + "MSBuild.dll",
+                [MSBUILD_EXE_PATH] = Path.Combine(dotNetSdkPath, "MSBuild.dll"),
                 [MSBuildExtensionsPath] = dotNetSdkPath,
-                [MSBuildSDKsPath] = dotNetSdkPath + "Sdks"
+                [MSBuildSDKsPath] = Path.Combine(dotNetSdkPath, "Sdks")
             };
 
             foreach (var kvp in variables)
@@ -103,6 +113,18 @@ namespace Stride.Core.Assets
         private static bool IsMSBuildAssembly(System.Reflection.AssemblyName assemblyName)
         {
             return s_msBuildAssemblies.Contains(assemblyName.Name, StringComparer.OrdinalIgnoreCase);
+        }
+
+        private static void SetupMSBuildCurrentHostForOutOfProc(string dotNetSdkPath)
+        {
+            // Workaround for https://github.com/dotnet/msbuild/pull/7013 (dotnet.exe not properly detected by MSBuild so it fallbacks to launching our own executable instead)
+            var currentHostField = typeof(Microsoft.Build.Evaluation.Project).Assembly
+                .GetType("Microsoft.Build.BackEnd.NodeProviderOutOfProcBase")?
+                .GetField("CurrentHost", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+            if (currentHostField != null)
+            {
+                currentHostField.SetValue(null, Path.Combine(new DirectoryInfo(dotNetSdkPath).Parent.Parent.FullName, OperatingSystem.IsWindows() ? "dotnet.exe" : "dotnet"));
+            }
         }
 
         private static void CheckMSBuildToolset()

@@ -50,7 +50,7 @@
                     <Border BorderBrush="{StaticResource NormalBorderBrush}" BorderThickness="2" CornerRadius="3" Background="{StaticResource NormalBrush}"
                           HorizontalAlignment="Right" VerticalAlignment="Top" Visibility="{Binding Sources.NeedUpdateFromSource, Converter={sd:VisibleOrHidden}, FallbackValue={sd:Hidden}}" Margin="0,3,0,0">
                       <Button Style="{StaticResource ImageButtonStyle}" Command="{Binding Sources.UpdateFromSourceCommand}" Margin="0">
-                        <Image Source="{StaticResource UpdateSelectedAssetsFromSource}" Width="16" Height="16" Margin="-1"/>
+                        <Image Source="{StaticResource UpdateSelectedAssetsFromSource}" Width="12" Height="12" Margin="5"/>
                       </Button>
                     </Border>
                     <Button HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,3" Command="{Binding Dependencies.ToggleIsRootOnSelectedAssetCommand, FallbackValue={x:Null}}">
@@ -66,9 +66,9 @@
                         </Style>
                       </Button.Style>
                       <Grid Background="Transparent">
-                        <Image Source="{StaticResource ImageAssetIsRoot}" Width="16" Height="16" Visibility="{Binding Dependencies.IsRoot, Converter={sd:VisibleOrHidden}, FallbackValue={sd:Hidden}}"/>
-                        <Image Source="{StaticResource ImageAssetIsIndirectlyIncluded}" Width="16" Height="16" Visibility="{Binding Dependencies.IsIndirectlyIncluded, Converter={sd:VisibleOrHidden}, FallbackValue={sd:Hidden}}"/>
-                        <Image Source="{StaticResource ImageAssetIsExcluded}" Width="16" Height="16" Visibility="{Binding Dependencies.IsExcluded, Converter={sd:VisibleOrHidden}, FallbackValue={sd:Hidden}}"/>
+                        <Image Source="{StaticResource ImageAssetIsRoot}" Width="12" Height="12" Margin ="5" Visibility="{Binding Dependencies.IsRoot, Converter={sd:VisibleOrHidden}, FallbackValue={sd:Hidden}}"/>
+                        <Image Source="{StaticResource ImageAssetIsIndirectlyIncluded}" Width="12" Height="12" Margin ="5" Visibility="{Binding Dependencies.IsIndirectlyIncluded, Converter={sd:VisibleOrHidden}, FallbackValue={sd:Hidden}}"/>
+                        <Image Source="{StaticResource ImageAssetIsExcluded}" Width="12" Height="12" Margin ="5" Visibility="{Binding Dependencies.IsExcluded, Converter={sd:VisibleOrHidden}, FallbackValue={sd:Hidden}}"/>
                       </Grid>
                     </Button>
                   </Grid>
@@ -280,7 +280,7 @@
         <Menu Background="Transparent">
           <MenuItem StaysOpenOnClick="True" Style="{StaticResource ToolBarIconMenuItemStyle}">
             <MenuItem.Icon>
-              <Image Source="{StaticResource ImageView}" MaxHeight="24" MaxWidth="24"
+              <Image Source="{StaticResource ImageView}" MaxHeight="16" MaxWidth="16"
                      ToolTip="{sd:Localize Asset view options, Context=ToolTip}" status:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True"/>
             </MenuItem.Icon>
             <MenuItem.Resources>

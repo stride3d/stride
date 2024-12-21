@@ -1,4 +1,4 @@
-﻿---
+---
 !EffectCompileRequest
 EffectName: StrideForwardShadingEffect.ShadowMapCaster
 UsedParameters:
@@ -1268,6 +1268,7 @@ UsedParameters:
 EffectName: AmbientOcclusionRawAOEffect
 UsedParameters:
     AmbientOcclusionRawAO.Count: 13
+    AmbientOcclusionRawAO.IsOrthographic: false
 ---
 !EffectCompileRequest
 EffectName: AmbientOcclusionBlurEffect
@@ -1276,6 +1277,7 @@ UsedParameters:
     AmbientOcclusionBlur.Count: 5
     AmbientOcclusionBlur.BlurScale: 1.85
     AmbientOcclusionBlur.EdgeSharpness: 3.0
+    AmbientOcclusionBlur.IsOrthographic: false
 ---
 !EffectCompileRequest
 EffectName: AmbientOcclusionBlurEffect
@@ -1284,6 +1286,7 @@ UsedParameters:
     AmbientOcclusionBlur.Count: 5
     AmbientOcclusionBlur.BlurScale: 1.85
     AmbientOcclusionBlur.EdgeSharpness: 3.0
+    AmbientOcclusionBlur.IsOrthographic: false
 ---
 !EffectCompileRequest
 EffectName: ApplyAmbientOcclusionShader

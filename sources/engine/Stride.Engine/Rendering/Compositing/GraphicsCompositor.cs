@@ -7,6 +7,7 @@ using System.ComponentModel;
 using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Core.Collections;
+using Stride.Core.Diagnostics;
 using Stride.Core.Serialization;
 using Stride.Core.Serialization.Contents;
 using Stride.Engine;
@@ -14,6 +15,29 @@ using Stride.Graphics;
 
 namespace Stride.Rendering.Compositing
 {
+    /// <summary>
+    /// The <c>GraphicsCompositor</c> class organizes how scenes are rendered in the Stride engine, providing extensive customization of the rendering pipeline.
+    /// </summary>
+    /// <remarks>
+    /// This class handles the initialization and destruction of the render system, manages the cameras used in the composition, and controls the render stages and features.
+    /// It provides entry points for the game compositor, a single view compositor, and a compositor used by the scene editor.
+    /// <para>
+    /// Key features of the <c>GraphicsCompositor</c> include:
+    /// </para>
+    /// <list type="bullet">
+    ///   <item><description>Using one or multiple cameras</description></item>
+    ///   <item><description>Filtering entities</description></item>
+    ///   <item><description>Rendering to one or more render textures with different viewports</description></item>
+    ///   <item><description>Setting HDR or LDR rendering</description></item>
+    ///   <item><description>Applying post effects to a render target</description></item>
+    ///   <item><description>Clearing a render target or only the depth buffer</description></item>
+    ///   <item><description>Editable in the Game Studio and at runtime from scripts</description></item>
+    /// </list>
+    /// <para>
+    /// For more information, see the
+    /// <see href="https://doc.stride3d.net/latest/en/manual/graphics/graphics-compositor/index.html">Graphics Compositor</see> documentation.
+    /// </para>
+    /// </remarks>
     [DataSerializerGlobal(typeof(ReferenceSerializer<GraphicsCompositor>), Profile = "Content")]
     [ReferenceSerializer, ContentSerializer(typeof(DataContentSerializerWithReuse<GraphicsCompositor>))]
     [DataContract]
@@ -24,11 +48,19 @@ namespace Stride.Rendering.Compositing
     public class GraphicsCompositor : RendererBase
     {
         /// <summary>
-        /// A property key to get the current graphics compositor from the <see cref="RenderContext.Tags"/>.
+        /// A property key to get the current <see cref="GraphicsCompositor"/> from the <see cref="ComponentBase.Tags"/>.
         /// </summary>
         public static readonly PropertyKey<GraphicsCompositor> Current = new PropertyKey<GraphicsCompositor>("GraphicsCompositor.Current", typeof(GraphicsCompositor));
 
         private readonly List<SceneInstance> initializedSceneInstances = new List<SceneInstance>();
+        private static readonly ProfilingKey RenderSystemCollectKey = new ProfilingKey("RenderSystem.Collect");
+        private static readonly ProfilingKey GameCollectKey = new ProfilingKey("Game.Collect");
+        private static readonly ProfilingKey RenderSystemExtractKey = new ProfilingKey("RenderSystem.Extract");
+        private static readonly ProfilingKey GameDrawKey = new ProfilingKey("Game.Draw");
+        private static readonly ProfilingKey RenderSystemPrepareKey = new ProfilingKey("RenderSystem.Prepare");
+        private static readonly ProfilingKey RenderSystemFlushKey = new ProfilingKey("RenderSystem.Flush");
+        private static readonly ProfilingKey RenderSystemResetKey = new ProfilingKey("RenderSystem.Reset");
+        private static readonly ProfilingKey DrawCoreKey = new ProfilingKey("GraphicsCompositor.DrawCore");
 
         /// <summary>
         /// Gets the render system used with this graphics compositor.
@@ -115,6 +147,8 @@ namespace Stride.Rendering.Compositing
         {
             if (Game != null)
             {
+                using var _ = Profiler.Begin(DrawCoreKey);
+
                 // Get or create VisibilityGroup for this RenderSystem + SceneInstance
                 var sceneInstance = SceneInstance.GetCurrent(context.RenderContext);
                 VisibilityGroup visibilityGroup = null;
@@ -161,35 +195,56 @@ namespace Stride.Rendering.Compositing
 
                     try
                     {
-                        // Collect in the game graphics compositor: Setup features/stages, enumerate views and populates VisibilityGroup
-                        Game.Collect(context.RenderContext);
-
-                        // Collect in render features
-                        RenderSystem.Collect(context.RenderContext);
-
-                        // Collect visibile objects from each view (that were not properly collected previously)
-                        if (visibilityGroup != null)
+                        
+                        using (Profiler.Begin(GameCollectKey))
                         {
-                            foreach (var view in RenderSystem.Views)
-                                visibilityGroup.TryCollect(view);
+                            // Collect in the game graphics compositor: Setup features/stages, enumerate views and populates VisibilityGroup
+                            Game.Collect(context.RenderContext);
                         }
 
-                        // Extract
-                        RenderSystem.Extract(context.RenderContext);
+                        using (Profiler.Begin(RenderSystemCollectKey))
+                        {
+                            // Collect in render features
+                            RenderSystem.Collect(context.RenderContext);
 
-                        // Prepare
-                        RenderSystem.Prepare(context);
+                            // Collect visibile objects from each view (that were not properly collected previously)
+                            if (visibilityGroup != null)
+                            {
+                                foreach (var view in RenderSystem.Views)
+                                    visibilityGroup.TryCollect(view);
+                            }
+                        }
 
-                        // Draw using the game graphics compositor
-                        Game.Draw(context);
+                        using (Profiler.Begin(RenderSystemExtractKey))
+                        {
+                            // Extract
+                            RenderSystem.Extract(context.RenderContext);
+                        }
+                        using (Profiler.Begin(RenderSystemPrepareKey))
+                        {
+                            // Prepare
+                            RenderSystem.Prepare(context);
+                        }
 
-                        // Flush
-                        RenderSystem.Flush(context);
+                        using (Profiler.Begin(GameDrawKey))
+                        {
+                            // Draw using the game graphics compositor
+                            Game.Draw(context);
+                        }
+
+                        using (Profiler.Begin(RenderSystemFlushKey))
+                        {
+                            // Flush
+                            RenderSystem.Flush(context);
+                        }
                     }
                     finally
                     {
-                        // Reset render context data
-                        RenderSystem.Reset();
+                        using (Profiler.Begin(RenderSystemResetKey))
+                        {
+                            // Reset render context data
+                            RenderSystem.Reset();
+                        }
                     }
                 }
             }

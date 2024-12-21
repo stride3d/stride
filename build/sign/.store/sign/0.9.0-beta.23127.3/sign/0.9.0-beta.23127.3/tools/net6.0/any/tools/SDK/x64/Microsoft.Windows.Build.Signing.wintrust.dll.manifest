@@ -1,0 +1,11 @@
+<assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0">
+
+<assemblyIdentity
+    name="Microsoft.Windows.Build.Signing.wintrust.dll"
+    version="0.0.0.0"
+/>
+
+  <file name="wintrust.dll">
+  </file>
+
+</assembly>

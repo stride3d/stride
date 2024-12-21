@@ -121,17 +121,7 @@ namespace Stride.Core.Storage
 
             using (var file = virtualFileProvider.OpenStream(tmpFileName, VirtualFileMode.Create, VirtualFileAccess.Write))
             {
-                // TODO: Fast case for NativeStream. However we still need a file implementation of NativeStream.
-                var buffer = new byte[WriteBufferSize];
-                for (int offset = 0; offset < length; offset += WriteBufferSize)
-                {
-                    int blockSize = length - offset;
-                    if (blockSize > WriteBufferSize)
-                        blockSize = WriteBufferSize;
-
-                    dataStream.Read(buffer, 0, blockSize);
-                    file.Write(buffer, 0, blockSize);
-                }
+                dataStream.CopyTo(file);
             }
 
             MoveToDatabase(tmpFileName, objectId, forceWrite);

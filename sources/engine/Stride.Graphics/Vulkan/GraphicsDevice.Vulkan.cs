@@ -291,9 +291,9 @@ namespace Stride.Graphics
             var availableExtensionNames = new List<string>();
             var desiredExtensionNames = new List<string>();
 
-            for (int index = 0; index < extensionProperties.Length; index++)
+            fixed (VkExtensionProperties* extensionPropertiesPtr = extensionProperties)
             {
-                fixed (VkExtensionProperties* extensionPropertiesPtr = extensionProperties)
+                for (int index = 0; index < extensionProperties.Length; index++)
                 {
                     var namePointer = new IntPtr(extensionPropertiesPtr[index].extensionName);
                     var name = Marshal.PtrToStringAnsi(namePointer);
@@ -315,17 +315,20 @@ namespace Stride.Graphics
 
             try
             {
-                var deviceCreateInfo = new VkDeviceCreateInfo
-                {
-                    sType = VkStructureType.DeviceCreateInfo,
-                    queueCreateInfoCount = 1,
-                    pQueueCreateInfos = &queueCreateInfo,
-                    enabledExtensionCount = (uint)enabledExtensionNames.Length,
-                    ppEnabledExtensionNames = enabledExtensionNames.Length > 0 ? (byte**)Core.Interop.Fixed(enabledExtensionNames) : null,
-                    pEnabledFeatures = &enabledFeature,
-                };
+                // fixed yields null if array is empty or null
+                fixed (void* fEnabledExtensionNames = enabledExtensionNames) {
+                    var deviceCreateInfo = new VkDeviceCreateInfo
+                    {
+                        sType = VkStructureType.DeviceCreateInfo,
+                        queueCreateInfoCount = 1,
+                        pQueueCreateInfos = &queueCreateInfo,
+                        enabledExtensionCount = (uint)enabledExtensionNames.Length,
+                        ppEnabledExtensionNames = (byte**)fEnabledExtensionNames,
+                        pEnabledFeatures = &enabledFeature,
+                    };
 
-                vkCreateDevice(NativePhysicalDevice, &deviceCreateInfo, null, out nativeDevice);
+                    vkCreateDevice(NativePhysicalDevice, &deviceCreateInfo, null, out nativeDevice);
+                }
             }
             finally
             {
@@ -771,15 +774,17 @@ namespace Stride.Graphics
                 .Where(size => size.descriptorCount > 0)
                 .ToArray();
 
-            var descriptorPoolCreateInfo = new VkDescriptorPoolCreateInfo
-            {
-                sType = VkStructureType.DescriptorPoolCreateInfo,
-                poolSizeCount = (uint)poolSizes.Length,
-                pPoolSizes = (VkDescriptorPoolSize*)Core.Interop.Fixed(poolSizes),
-                maxSets = GraphicsDevice.MaxDescriptorSetCount,
-            };
-            vkCreateDescriptorPool(GraphicsDevice.NativeDevice, &descriptorPoolCreateInfo, null, out var descriptorPool);
-            return descriptorPool;
+            fixed (VkDescriptorPoolSize* fPoolSizes = poolSizes) { // null if array is empty or null
+                var descriptorPoolCreateInfo = new VkDescriptorPoolCreateInfo
+                {
+                    sType = VkStructureType.DescriptorPoolCreateInfo,
+                    poolSizeCount = (uint)poolSizes.Length,
+                    pPoolSizes = fPoolSizes,
+                    maxSets = GraphicsDevice.MaxDescriptorSetCount,
+                };
+                vkCreateDescriptorPool(GraphicsDevice.NativeDevice, &descriptorPoolCreateInfo, null, out var descriptorPool);
+                return descriptorPool;
+            }
         }
 
         protected override void ResetObject(VkDescriptorPool obj)

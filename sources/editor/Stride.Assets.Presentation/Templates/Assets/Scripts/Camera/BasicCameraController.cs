@@ -243,7 +243,7 @@ namespace ##Namespace##
                             var composite = (GestureEventComposite)gestureEvent;
                             translation.X = -composite.DeltaTranslation.X * TouchMovementSpeed.X;
                             translation.Y = -composite.DeltaTranslation.Y * TouchMovementSpeed.Y;
-                            translation.Z = (float)Math.Log(composite.DeltaScale + 1) * TouchMovementSpeed.Z;
+                            translation.Z = MathF.Log(composite.DeltaScale + 1) * TouchMovementSpeed.Z;
                             break;
                     }
                 }
@@ -264,7 +264,7 @@ namespace ##Namespace##
             up.Normalize();
 
             // Adjust pitch. Prevent it from exceeding up and down facing. Stabilize edge cases.
-            var currentPitch = MathUtil.PiOverTwo - (float)Math.Acos(Vector3.Dot(rotation.Forward, upVector));
+            var currentPitch = MathUtil.PiOverTwo - MathF.Acos(Vector3.Dot(rotation.Forward, upVector));
             pitch = MathUtil.Clamp(currentPitch + pitch, -MaximumPitch, MaximumPitch) - currentPitch;
 
             Vector3 finalTranslation = translation;

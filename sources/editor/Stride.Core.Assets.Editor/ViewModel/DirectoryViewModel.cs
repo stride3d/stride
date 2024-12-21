@@ -2,7 +2,6 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Annotations;
@@ -141,7 +140,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
             string error;
             if (IsValidName(newName, out error) == false)
             {
-                ServiceProvider.Get<IDialogService>().BlockingMessageBox(string.Format(Tr._p("Message", "Unable to rename folder. {0}"), error), MessageBoxButton.OK, MessageBoxImage.Error);
+                ServiceProvider.Get<IDialogService2>().BlockingMessageBox(string.Format(Tr._p("Message", "Unable to rename folder. {0}"), error), MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
             }
 
@@ -186,7 +185,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
             {
                 var normalized = UPath.Normalize(path);
                 var result = System.IO.Path.GetFullPath(normalized.ToString());
-                if (result.StartsWith("\\\\.\\"))
+                if (result.StartsWith("\\\\.\\", StringComparison.Ordinal))
                 {
                     message = Tr._p("Message", "Path is a device name");  // pipe, CON, NUL, COM1...
                     ok = false;

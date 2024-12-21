@@ -82,9 +82,9 @@ namespace Stride.Core.AssemblyProcessor
 
                 TypeReference parentType = null;
                 FieldDefinition parentSerializerField = null;
-                if (complexType.Value.ComplexSerializerProcessParentType)
+                if (complexType.Value.ComplexSerializerProcessParentType != null)
                 {
-                    parentType = ResolveGenericsVisitor.Process(serializerType, type.BaseType);
+                    parentType = complexType.Value.ComplexSerializerProcessParentType;
                     serializerType.Fields.Add(parentSerializerField = new FieldDefinition("parentSerializer", Mono.Cecil.FieldAttributes.Private, dataSerializerTypeRef.MakeGenericType(parentType)));
 
                     hash.Write("parent");
@@ -134,7 +134,7 @@ namespace Stride.Core.AssemblyProcessor
                 // Add Initialize method
                 var initialize = new MethodDefinition("Initialize", MethodAttributes.Public | MethodAttributes.HideBySig | MethodAttributes.Virtual, assembly.MainModule.TypeSystem.Void);
                 initialize.Parameters.Add(new ParameterDefinition("serializerSelector", ParameterAttributes.None, serializerSelectorTypeRef));
-                if (complexType.Value.ComplexSerializerProcessParentType)
+                if (complexType.Value.ComplexSerializerProcessParentType != null)
                 {
                     initialize.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_0));
                     initialize.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_1));
@@ -162,7 +162,7 @@ namespace Stride.Core.AssemblyProcessor
                     serialize.Parameters.Add(new ParameterDefinition(parentParameter.Name, ParameterAttributes.None, assembly.MainModule.ImportReference(parentParameter.ParameterType)));
                 }
 
-                if (complexType.Value.ComplexSerializerProcessParentType)
+                if (complexType.Value.ComplexSerializerProcessParentType != null)
                 {
                     serialize.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_0));
                     serialize.Body.Instructions.Add(Instruction.Create(OpCodes.Ldfld, parentSerializerField.MakeGeneric(genericParameters)));
@@ -373,8 +373,17 @@ namespace Stride.Core.AssemblyProcessor
                 assembly.MainModule.TypeSystem.Void);
             serializerFactoryType.Methods.Add(initializeMethod);
 
-            // Make sure it is called at module startup
-            initializeMethod.AddModuleInitializer(-1000);
+            // Obtain the static constructor of <Module> and the return instruction
+            Instruction returnInstruction;
+            var moduleConstructor = assembly.OpenModuleConstructor(out returnInstruction);
+
+            // Get the IL processor of the module constructor
+            var il = moduleConstructor.Body.GetILProcessor();
+
+            // Create the call to Initialize method
+            var initializeMethodReference = assembly.MainModule.ImportReference(initializeMethod);
+            var callInitializeInstruction = il.Create(OpCodes.Call, initializeMethodReference);
+
 
             var initializeMethodIL = initializeMethod.Body.GetILProcessor();
 
@@ -525,6 +534,8 @@ namespace Stride.Core.AssemblyProcessor
                     new CustomAttributeNamedArgument("Type", new CustomAttributeArgument(typeTypeRef, serializerFactoryType)),
                 }
             });
+            // Insert the call before the end of the method body
+            il.InsertBefore(moduleConstructor.Body.Instructions.Last(), callInitializeInstruction);
 
             serializationHash = hash.ComputeHash();
         }

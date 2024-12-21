@@ -2,7 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
-
+using System.Runtime.CompilerServices;
 using Stride.Core;
 using Stride.Graphics;
 
@@ -246,7 +246,7 @@ namespace Stride.TextureConverter
         /// <returns>
         /// A new object that is a copy of this instance.
         /// </returns>
-        virtual public Object Clone(bool CopyMemory)
+        public virtual unsafe object Clone(bool CopyMemory)
         {
             if (this.CurrentLibrary != null) { this.CurrentLibrary.EndLibrary(this); this.CurrentLibrary = null; }
 
@@ -280,13 +280,13 @@ namespace Stride.TextureConverter
                 Disposed = this.Disposed,
             };
 
-            if (CopyMemory) Utilities.CopyMemory(newTex.Data, this.Data, this.DataSize);
+            if (CopyMemory) Unsafe.CopyBlockUnaligned((void*)newTex.Data, (void*)Data, (uint)DataSize);
 
             int offset = 0;
             for (int i = 0; i < this.SubImageArray.Length; ++i)
             {
                 newTex.SubImageArray[i] = this.SubImageArray[i];
-                if (CopyMemory) newTex.SubImageArray[i].Data = new IntPtr(newTex.Data.ToInt64() + offset);
+                if (CopyMemory) newTex.SubImageArray[i].Data = (nint)newTex.Data + offset;
                 offset += newTex.SubImageArray[i].DataSize;
             }
 

@@ -3,10 +3,14 @@
 #if STRIDE_UI_SDL
 using System;
 using System.Diagnostics;
-using SDL2;
+using Silk.NET.SDL;
 using Stride.Core.Mathematics;
 using Stride.Graphics;
 using Stride.Graphics.SDL;
+using Cursor = Stride.Graphics.SDL.Cursor;
+using DisplayOrientation = Stride.Graphics.DisplayOrientation;
+using Point = Stride.Core.Mathematics.Point;
+using Window = Stride.Graphics.SDL.Window;
 
 namespace Stride.Games
 {
@@ -57,45 +61,23 @@ namespace Stride.Games
             if (!deviceChangeWillBeFullScreen.HasValue)
                 return;
 
-            window.FullscreenIsBorderlessWindow = FullscreenIsBorderlessWindow;
-
-            if (deviceChangeWillBeFullScreen.Value) //windowed to fullscreen
+            isFullScreenMaximized = deviceChangeWillBeFullScreen.Value;
+            if (window != null)
             {
-                isFullScreenMaximized = true;
-
-                if (window != null)
+                window.FullscreenIsBorderlessWindow = FullscreenIsBorderlessWindow;
+                if (deviceChangeWillBeFullScreen.Value) //windowed to fullscreen
                 {
                     window.ClientSize = new Size2(clientWidth, clientHeight);
+                    window.IsFullScreen = true;
                 }
-
-                // Notifies the GameForm about the fullscreen state
-                var gameForm = window as GameFormSDL;
-                if (gameForm != null)
+                else //fullscreen to windowed or window resize
                 {
-                    gameForm.IsFullScreen = isFullScreenMaximized;
-                    gameForm.BringToFront();
-                }
-
-            }
-            else //fullscreen to windowed or window resize
-            {
-                isFullScreenMaximized = false;
-
-                // Notifies the GameForm about the fullscreen state
-                var gameForm = window as GameFormSDL;
-                if (gameForm != null)
-                {
-                    gameForm.IsFullScreen = isFullScreenMaximized;
-                }
-
-                if (window != null)
-                {
+                    window.IsFullScreen = false;
                     window.ClientSize = new Size2(clientWidth, clientHeight);
                     window.Location = savedFormLocation;
                     UpdateFormBorder();
-                    window.BringToFront();
                 }
-
+                window.BringToFront();
             }
 
             deviceChangeWillBeFullScreen = null;
@@ -194,7 +176,7 @@ namespace Stride.Games
             return new SDLMessageLoop(window);
         }
 
-        private void WindowOnMouseEnterActions(SDL.SDL_WindowEvent sdlWindowEvent)
+        private void WindowOnMouseEnterActions(WindowEvent sdlWindowEvent)
         {
             if (!isMouseVisible && !isMouseCurrentlyHidden)
             {
@@ -203,7 +185,7 @@ namespace Stride.Games
             }
         }
 
-        private void WindowOnMouseLeaveActions(SDL.SDL_WindowEvent sdlWindowEvent)
+        private void WindowOnMouseLeaveActions(WindowEvent sdlWindowEvent)
         {
             if (isMouseCurrentlyHidden)
             {
@@ -212,7 +194,7 @@ namespace Stride.Games
             }
         }
 
-        private void WindowOnResizeEndActions(SDL.SDL_WindowEvent sdlWindowEvent)
+        private void WindowOnResizeEndActions(WindowEvent sdlWindowEvent)
         {
             OnClientSizeChanged(window, EventArgs.Empty);
         }

@@ -1,22 +1,23 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Stride.Assets.Effect;
+using Stride.Assets.Materials;
+using Stride.Core.Assets.Editor.Annotations;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Extensions;
-using Stride.Assets.Materials;
-using Stride.Rendering.Materials;
-using Stride.Core.Presentation.Quantum;
 using Stride.Core.Quantum;
 using Stride.Core.Shaders.Ast;
 using Stride.Core.Shaders.Ast.Stride;
-using Stride.Assets.Effect;
+using Stride.Rendering.Materials;
 using Stride.Rendering.Materials.ComputeColors;
 
 namespace Stride.Assets.Presentation.ViewModel
 {
-    [AssetViewModel(typeof(MaterialAsset))]
+    [AssetViewModel<MaterialAsset>]
     public class MaterialViewModel : AssetViewModel<MaterialAsset>
     {
         public MaterialViewModel(AssetViewModelConstructionParameters parameters)
@@ -96,7 +97,7 @@ namespace Stride.Assets.Presentation.ViewModel
             where T : class, IComputeNode
         {
             var genericsNode = ownerNode[nameof(ComputeShaderClassBase<T>.Generics)].Target;
-            var keysToRemove = new List<object>(node.Generics.Keys);
+            var keysToRemove = new List<string>(node.Generics.Keys);
             if (shader != null)
             {
                 foreach (var generic in shader.ShaderGenerics)
@@ -131,7 +132,11 @@ namespace Stride.Assets.Presentation.ViewModel
             }
 
             // Remove all generics that we don't have anymore
-            keysToRemove.Select(x => new NodeIndex(x)).ForEach(x => genericsNode.Remove(genericsNode.Retrieve(x), x));
+            foreach (var k in keysToRemove)
+            {
+                var x = new NodeIndex(k);
+                genericsNode.Remove(genericsNode.Retrieve(x), x);
+            }
         }
 
         private void UpdateCompositionNodes<T>(ShaderClassType shader, ComputeShaderClassBase<T> node, IObjectNode ownerNode)
@@ -167,4 +172,3 @@ namespace Stride.Assets.Presentation.ViewModel
         }
     }
 }
-

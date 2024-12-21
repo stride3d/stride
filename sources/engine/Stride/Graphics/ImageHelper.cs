@@ -1,6 +1,9 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
+using System.Diagnostics;
+using System.IO;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Stride.Core;
 using Stride.Core.IO;
@@ -12,10 +15,12 @@ namespace Stride.Graphics
     {
         internal static DataSerializer<ImageDescription> ImageDescriptionSerializer = SerializerSelector.Default.GetSerializer<ImageDescription>();
         internal static readonly FourCC MagicCode = "TKTX";
-        
+
         public static unsafe Image LoadFromMemory(IntPtr pSource, int size, bool makeACopy, GCHandle? handle)
         {
-            var stream = new BinarySerializationReader(new NativeMemoryStream((byte*)pSource, size));
+            Debug.Assert(size >= 0);
+            var ums = new UnmanagedMemoryStream((byte*)pSource, size, capacity: size, access: FileAccess.Read);
+            var stream = new BinarySerializationReader(ums);
 
             // Read and check magic code
             var magicCode = stream.ReadUInt32();
@@ -29,7 +34,7 @@ namespace Stride.Graphics
             if (makeACopy)
             {
                 var buffer = Utilities.AllocateMemory(size);
-                Utilities.CopyMemory(buffer, pSource, size);
+                Unsafe.CopyBlockUnaligned((void*)buffer, source: (void*)pSource, (uint)size);
                 pSource = buffer;
                 makeACopy = false;
             }

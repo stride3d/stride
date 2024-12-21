@@ -2,40 +2,15 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #if STRIDE_GRAPHICS_API_OPENGL
 using System;
-using System.Runtime.InteropServices;
-using Stride.Core;
+using System.Runtime.CompilerServices;
 using Stride.Core.Mathematics;
-#if STRIDE_GRAPHICS_API_OPENGLES
-using OpenTK.Graphics.ES30;
-using RenderbufferStorage = OpenTK.Graphics.ES30.RenderbufferInternalFormat;
-using PixelFormatGl = OpenTK.Graphics.ES30.PixelFormat;
-using PixelInternalFormat = OpenTK.Graphics.ES30.TextureComponentCount;
-#else
-using OpenTK.Graphics.OpenGL;
-using PixelFormatGl = OpenTK.Graphics.OpenGL.PixelFormat;
-#endif
-
-// TODO: remove these when OpenTK API is consistent between OpenGL, mobile OpenGL ES and desktop OpenGL ES
-#if STRIDE_GRAPHICS_API_OPENGLES
-using CompressedInternalFormat2D = OpenTK.Graphics.ES30.CompressedInternalFormat;
-using CompressedInternalFormat3D = OpenTK.Graphics.ES30.CompressedInternalFormat;
-using TextureComponentCount2D = OpenTK.Graphics.ES30.TextureComponentCount;
-using TextureComponentCount3D = OpenTK.Graphics.ES30.TextureComponentCount;
-#else
-using CompressedInternalFormat2D = OpenTK.Graphics.OpenGL.PixelInternalFormat;
-using CompressedInternalFormat3D = OpenTK.Graphics.OpenGL.PixelInternalFormat;
-using TextureComponentCount2D = OpenTK.Graphics.OpenGL.PixelInternalFormat;
-using TextureComponentCount3D = OpenTK.Graphics.OpenGL.PixelInternalFormat;
-using TextureTarget2d = OpenTK.Graphics.OpenGL.TextureTarget;
-using TextureTarget3d = OpenTK.Graphics.OpenGL.TextureTarget;
-#endif
 
 namespace Stride.Graphics
 {
     /// <summary>
     /// Abstract class for all textures
     /// </summary>
-    public partial class Texture
+    public unsafe partial class Texture
     {
         private const int TextureRowPitchAlignment = 1;
         private const int TextureSubresourceAlignment = 1;
@@ -45,24 +20,18 @@ namespace Stride.Graphics
         internal SamplerState BoundSamplerState;
         internal int PixelBufferFrame;
         internal int TextureTotalSize;
-        private int pixelBufferObjectId;
-        private int stencilId;
+        private uint pixelBufferObjectId;
+        private uint stencilId;
 
         internal int DepthPitch { get; set; }
         internal int RowPitch { get; set; }
         internal bool IsDepthBuffer { get; private set; }   // TODO: Isn't this redundant? This gets set to the same value as IsDepthStencil...
         internal bool HasStencil { get; private set; }
         internal bool IsRenderbuffer { get; private set; }
-        
-        internal int PixelBufferObjectId
-        {
-            get { return pixelBufferObjectId; }
-        }
 
-        internal int StencilId
-        {
-            get { return stencilId; }
-        }
+        internal uint PixelBufferObjectId => pixelBufferObjectId;
+
+        internal uint StencilId => stencilId;
 
         public static bool IsDepthStencilReadOnlySupported(GraphicsDevice device)
         {
@@ -72,39 +41,29 @@ namespace Stride.Graphics
 
         internal void SwapInternal(Texture other)
         {
-            var tmp = DepthPitch;
-            DepthPitch = other.DepthPitch;
-            other.DepthPitch = tmp;
-            //
-            tmp = RowPitch;
-            RowPitch = other.RowPitch;
-            other.RowPitch = tmp;
-            //
-            var tmp2 = IsDepthBuffer;
-            IsDepthBuffer = other.IsDepthBuffer;
-            other.IsDepthBuffer = tmp2;
-            //
-            tmp2 = HasStencil;
-            HasStencil = other.HasStencil;
-            other.HasStencil = tmp2;
-            //
-            tmp2 = IsRenderbuffer;
-            HasStencil = other.IsRenderbuffer;
-            other.IsRenderbuffer = tmp2;
-            //
-            Utilities.Swap(ref BoundSamplerState, ref other.BoundSamplerState);
-            Utilities.Swap(ref PixelBufferFrame, ref other.PixelBufferFrame);
-            Utilities.Swap(ref TextureTotalSize, ref other.TextureTotalSize);
-            Utilities.Swap(ref pixelBufferObjectId, ref other.pixelBufferObjectId);
-            Utilities.Swap(ref stencilId, ref other.stencilId);
-            //
-            Utilities.Swap(ref DiscardNextMap, ref other.DiscardNextMap);
-            Utilities.Swap(ref TextureId, ref other.TextureId);
-            Utilities.Swap(ref TextureTarget, ref other.TextureTarget);
-            Utilities.Swap(ref TextureInternalFormat, ref other.TextureInternalFormat);
-            Utilities.Swap(ref TextureFormat, ref other.TextureFormat);
-            Utilities.Swap(ref TextureType, ref other.TextureType);
-            Utilities.Swap(ref TexturePixelSize, ref other.TexturePixelSize);
+            (other.DepthPitch, DepthPitch) = (DepthPitch, other.DepthPitch);
+
+            (other.RowPitch, RowPitch) = (RowPitch, other.RowPitch);
+
+            (other.IsDepthBuffer, IsDepthBuffer) = (IsDepthBuffer, other.IsDepthBuffer);
+
+            (other.HasStencil, HasStencil) = (HasStencil, other.HasStencil);
+
+            (other.IsRenderbuffer, IsRenderbuffer) = (IsRenderbuffer, other.IsRenderbuffer);
+
+            (BoundSamplerState, other.BoundSamplerState)     = (other.BoundSamplerState, BoundSamplerState);
+            (PixelBufferFrame, other.PixelBufferFrame)       = (other.PixelBufferFrame, PixelBufferFrame);
+            (TextureTotalSize, other.TextureTotalSize)       = (other.TextureTotalSize, TextureTotalSize);
+            (pixelBufferObjectId, other.pixelBufferObjectId) = (other.pixelBufferObjectId, pixelBufferObjectId);
+            (stencilId, other.stencilId)                     = (other.stencilId, stencilId);
+
+            (DiscardNextMap, other.DiscardNextMap)               = (other.DiscardNextMap, DiscardNextMap);
+            (TextureId, other.TextureId)                         = (other.TextureId, TextureId);
+            (TextureTarget, other.TextureTarget)                 = (other.TextureTarget, TextureTarget);
+            (TextureInternalFormat, other.TextureInternalFormat) = (other.TextureInternalFormat, TextureInternalFormat);
+            (TextureFormat, other.TextureFormat)                 = (other.TextureFormat, TextureFormat);
+            (TextureType, other.TextureType)                     = (other.TextureType, TextureType);
+            (TexturePixelSize, other.TexturePixelSize)           = (other.TexturePixelSize, TexturePixelSize);
         }
 
         public void Recreate(DataBox[] dataBoxes = null)
@@ -145,9 +104,9 @@ namespace Stride.Graphics
                 //Android.Opengl.GLES20.GlBindTexture(Android.Opengl.GLES11Ext.GlTextureExternalOes, TextureId);
 
                 //Any "proper" way to do this? (GLES20 could directly accept it, not GLES30 anymore)
-                TextureTarget = (TextureTarget)Android.Opengl.GLES11Ext.GlTextureExternalOes;
+                TextureTarget = (TextureTarget) Android.Opengl.GLES11Ext.GlTextureExternalOes;
                 GL.BindTexture(TextureTarget, TextureId);
-                
+
                 //GL.BindTexture(TextureTarget, 0);
             }
         }
@@ -159,9 +118,9 @@ namespace Stride.Graphics
         	{
                 case TextureDimension.Texture1D:
 #if !STRIDE_GRAPHICS_API_OPENGLES
-                        if (ArraySize > 1)
-                            throw new PlatformNotSupportedException("Texture1DArray is not implemented under OpenGL");
-                        return TextureTarget.Texture1D;
+                    if (ArraySize > 1)
+                        throw new PlatformNotSupportedException("Texture1DArray is not implemented under OpenGL");
+                    return TextureTarget.Texture1D;
 #endif
                 case TextureDimension.Texture2D:
                     return ArraySize > 1 ? TextureTarget.Texture2DArray : TextureTarget.Texture2D;
@@ -205,8 +164,7 @@ namespace Stride.Graphics
             {
                 TextureTarget = GetTextureTarget(Dimension);
 
-                bool compressed;
-                OpenGLConvertExtensions.ConvertPixelFormat(GraphicsDevice, ref textureDescription.Format, out TextureInternalFormat, out TextureFormat, out TextureType, out TexturePixelSize, out compressed);
+                OpenGLConvertExtensions.ConvertPixelFormat(GraphicsDevice, ref textureDescription.Format, out TextureInternalFormat, out TextureFormat, out TextureType, out TexturePixelSize, out var compressed);
 
                 DepthPitch = Description.Width * Description.Height * TexturePixelSize;
                 RowPitch = Description.Width * TexturePixelSize;
@@ -319,11 +277,9 @@ namespace Stride.Graphics
         {
             if (Description.IsDepthStencil) // If it is a depth/stencil attachment:
             {
-                RenderbufferStorage depthRenderbufferFormat;
-                RenderbufferStorage stencilRenderbufferFormat;
-                ConvertDepthFormat(GraphicsDevice, Description.Format, out depthRenderbufferFormat);
+                ConvertDepthFormat(GraphicsDevice, Description.Format, out var depthRenderbufferFormat);
 
-                CreateRenderbuffer(Width, Height, (int)Description.MultisampleCount, depthRenderbufferFormat, out TextureId);
+                CreateRenderbuffer(Width, Height, (int) Description.MultisampleCount, depthRenderbufferFormat, out TextureId);
 
                 if (HasStencil)    // If depth and stencil are stored inside the same renderbuffer:
                 {
@@ -332,7 +288,7 @@ namespace Stride.Graphics
             }
             else if (Description.IsRenderTarget)    // If it is a color attachment:
             {
-                CreateRenderbuffer(Width, Height, (int)Description.MultisampleCount, (RenderbufferStorage)TextureInternalFormat, out TextureId);
+                CreateRenderbuffer(Width, Height, (int) Description.MultisampleCount, TextureInternalFormat, out TextureId);
             }
             else
             {
@@ -347,10 +303,10 @@ namespace Stride.Graphics
             if (Description.IsDepthStencil || Description.IsRenderTarget)   // Set the filtering mode of depth, stencil and color FBO attachments:
             {
                 // Disable filtering on FBO attachments:
-                GL.TexParameter(TextureTarget, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Nearest);   // TODO: Do we enter this for MSAA buffers too? Is this an issue?
-                GL.TexParameter(TextureTarget, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);   // TODO: Why would we force the filter to "nearest"?
-                GL.TexParameter(TextureTarget, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToEdge);
-                GL.TexParameter(TextureTarget, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToEdge);
+                GL.TexParameter(TextureTarget, TextureParameterName.TextureMinFilter, (int) TextureMinFilter.Nearest);   // TODO: Do we enter this for MSAA buffers too? Is this an issue?
+                GL.TexParameter(TextureTarget, TextureParameterName.TextureMagFilter, (int) TextureMagFilter.Nearest);   // TODO: Why would we force the filter to "nearest"?
+                GL.TexParameter(TextureTarget, TextureParameterName.TextureWrapS, (int) TextureWrapMode.ClampToEdge);
+                GL.TexParameter(TextureTarget, TextureParameterName.TextureWrapT, (int) TextureWrapMode.ClampToEdge);
                 BoundSamplerState = GraphicsDevice.SamplerStates.PointClamp;
 
                 if (HasStencil)
@@ -362,8 +318,8 @@ namespace Stride.Graphics
 #if STRIDE_GRAPHICS_API_OPENGLES
             else if (Description.MipLevels <= 1)
             {
-                GL.TexParameter(TextureTarget, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Nearest);   // TODO: Why does this use the nearest filter for minification? Using Linear filtering would result in a smoother appearance for minified textures.
-                GL.TexParameter(TextureTarget, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
+                GL.TexParameter(TextureTarget, TextureParameterName.TextureMinFilter, (int) TextureMinFilter.Nearest);   // TODO: Why does this use the nearest filter for minification? Using Linear filtering would result in a smoother appearance for minified textures.
+                GL.TexParameter(TextureTarget, TextureParameterName.TextureMagFilter, (int) TextureMagFilter.Linear);
             }
 #endif
 
@@ -371,7 +327,7 @@ namespace Stride.Graphics
             GL.TexParameter(TextureTarget, TextureParameterName.TextureMaxLevel, Description.MipLevels - 1);
         }
 
-        private void CreateRenderbuffer(int width, int height, int multisampleCount, RenderbufferStorage internalFormat, out int textureID)
+        private void CreateRenderbuffer(int width, int height, int multisampleCount, InternalFormat internalFormat, out uint textureID)
         {
             GL.GenRenderbuffers(1, out textureID);
             GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, textureID);
@@ -380,12 +336,12 @@ namespace Stride.Graphics
             {
 #if !STRIDE_PLATFORM_IOS
                 // MSAA is not supported on iOS currently because OpenTK doesn't expose "GL.BlitFramebuffer()" on iOS for some reason.
-                GL.RenderbufferStorageMultisample(RenderbufferTarget.Renderbuffer, multisampleCount, internalFormat, width, height);
+                GL.RenderbufferStorageMultisample(RenderbufferTarget.Renderbuffer, (uint) multisampleCount, internalFormat, (uint) width, (uint) height);
 #endif
             }
             else
             {
-                GL.RenderbufferStorage(RenderbufferTarget.Renderbuffer, internalFormat, width, height);
+                GL.RenderbufferStorage(RenderbufferTarget.Renderbuffer, internalFormat, (uint) width, (uint) height);
             }
         }
 
@@ -395,11 +351,11 @@ namespace Stride.Graphics
 #if !STRIDE_GRAPHICS_API_OPENGLES
             if (compressed)
             {
-                GL.CompressedTexImage1D(TextureTarget, mipLevel, TextureInternalFormat, width, 0, dataBox.SlicePitch, dataBox.DataPointer);
+                GL.CompressedTexImage1D(TextureTarget, mipLevel, TextureInternalFormat, (uint) width, border: 0, (uint) dataBox.SlicePitch, (void*) dataBox.DataPointer);
             }
             else
             {
-                GL.TexImage1D(TextureTarget, mipLevel, TextureInternalFormat, width, 0, TextureFormat, TextureType, dataBox.DataPointer);
+                GL.TexImage1D(TextureTarget, mipLevel, TextureInternalFormat, (uint) width, border: 0, TextureFormat, TextureType, (void*) dataBox.DataPointer);
             }
 #endif
         }
@@ -413,17 +369,14 @@ namespace Stride.Graphics
 
                 if (IsRenderbuffer)
                 {
-#if !STRIDE_PLATFORM_IOS
-                    // MSAA is not supported on iOS currently because OpenTK doesn't expose "GL.BlitFramebuffer()" on iOS for some reason.
-                    GL.RenderbufferStorageMultisample(RenderbufferTarget.Renderbuffer, (int)Description.MultisampleCount, (RenderbufferStorage)TextureInternalFormat, width, height);
-#endif
+                    GL.RenderbufferStorageMultisample(RenderbufferTarget.Renderbuffer, (uint) Description.MultisampleCount, TextureInternalFormat, (uint) width, (uint) height);
                 }
                 else
                 {
 #if STRIDE_GRAPHICS_API_OPENGLES
                     throw new NotSupportedException("Multisample textures are not supported on OpenGL ES.");
 #else
-                    GL.TexImage2DMultisample(TextureTargetMultisample.Texture2DMultisample, (int)Description.MultisampleCount, (TextureComponentCount2D)TextureInternalFormat, width, height, false);
+                    GL.TexImage2DMultisample(TextureTarget.Texture2DMultisample, (uint) Description.MultisampleCount, TextureInternalFormat, (uint) width, (uint) height, fixedsamplelocations: false);
 #endif
                 }
             }
@@ -432,11 +385,11 @@ namespace Stride.Graphics
                 var dataSetTarget = GetTextureTargetForDataSet2D(TextureTarget, arrayIndex);
                 if (compressed)
                 {
-                    GL.CompressedTexImage2D(dataSetTarget, mipLevel, (CompressedInternalFormat2D)TextureInternalFormat, width, height, 0, dataBox.SlicePitch, dataBox.DataPointer);
+                    GL.CompressedTexImage2D(dataSetTarget, mipLevel, TextureInternalFormat, (uint) width, (uint) height, border: 0, (uint) dataBox.SlicePitch, (void*) dataBox.DataPointer);
                 }
                 else
                 {
-                    GL.TexImage2D(dataSetTarget, mipLevel, (TextureComponentCount2D)TextureInternalFormat, width, height, 0, TextureFormat, TextureType, dataBox.DataPointer);
+                    GL.TexImage2D(dataSetTarget, mipLevel, TextureInternalFormat, (uint) width, (uint) height, border: 0, TextureFormat, TextureType, (void*) dataBox.DataPointer);
                 }
             }
         }
@@ -445,11 +398,11 @@ namespace Stride.Graphics
         {
             if (compressed)
             {
-                GL.CompressedTexImage3D((TextureTarget3d)TextureTarget, mipLevel, (CompressedInternalFormat3D)TextureInternalFormat, width, height, depth, 0, dataBox.SlicePitch, dataBox.DataPointer);
+                GL.CompressedTexImage3D(TextureTarget, mipLevel, TextureInternalFormat, (uint) width, (uint) height, (uint) depth, border: 0, (uint) dataBox.SlicePitch, (void*) dataBox.DataPointer);
             }
             else
             {
-                GL.TexImage3D((TextureTarget3d)TextureTarget, mipLevel, (TextureComponentCount3D)TextureInternalFormat, width, height, depth, 0, TextureFormat, TextureType, dataBox.DataPointer);
+                GL.TexImage3D(TextureTarget, mipLevel, TextureInternalFormat, (uint) width, (uint) height, (uint) depth, border: 0, TextureFormat, TextureType, (void*) dataBox.DataPointer);
             }
         }
 
@@ -460,11 +413,11 @@ namespace Stride.Graphics
             {
                 if (compressed)
                 {
-                    GL.CompressedTexImage3D((TextureTarget3d)TextureTarget, mipLevel, (CompressedInternalFormat3D)TextureInternalFormat, width, height, ArraySize, 0, 0, IntPtr.Zero);
+                    GL.CompressedTexImage3D(TextureTarget, mipLevel, TextureInternalFormat, (uint) width, (uint) height, (uint) ArraySize, border: 0, imageSize: 0, data: null);
                 }
                 else
                 {
-                    GL.TexImage3D((TextureTarget3d)TextureTarget, mipLevel, (TextureComponentCount3D)TextureInternalFormat, width, height, ArraySize, 0, TextureFormat, TextureType, IntPtr.Zero);
+                    GL.TexImage3D(TextureTarget, mipLevel, TextureInternalFormat, (uint) width, (uint) height, (uint) ArraySize, border: 0, TextureFormat, TextureType, null);
                 }
             }
 
@@ -472,11 +425,11 @@ namespace Stride.Graphics
             {
                 if (compressed)
                 {
-                    GL.CompressedTexSubImage3D((TextureTarget3d)TextureTarget, mipLevel, 0, 0, arrayIndex, width, height, 1, TextureFormat, dataBox.SlicePitch, dataBox.DataPointer);
+                    GL.CompressedTexSubImage3D(TextureTarget, mipLevel, xoffset: 0, yoffset: 0, arrayIndex, (uint) width, (uint) height, depth: 1, TextureInternalFormat, (uint) dataBox.SlicePitch, (void*) dataBox.DataPointer);
                 }
                 else
                 {
-                    GL.TexSubImage3D((TextureTarget3d)TextureTarget, mipLevel, 0, 0, arrayIndex, width, height, 1, TextureFormat, TextureType, dataBox.DataPointer);
+                    GL.TexSubImage3D(TextureTarget, mipLevel, xoffset: 0, yoffset: 0, arrayIndex, (uint) width, (uint) height, depth: 1, TextureFormat, TextureType, (void*) dataBox.DataPointer);
                 }
             }
         }
@@ -489,18 +442,18 @@ namespace Stride.Graphics
                 if (TextureId != 0 && ParentTexture == null)
                 {
                     if (IsRenderbuffer)
-                        GL.DeleteRenderbuffers(1, ref TextureId);
+                        GL.DeleteRenderbuffer(TextureId);
                     else
-                        GL.DeleteTextures(1, ref TextureId);
+                        GL.DeleteTexture(TextureId);
 
                     GraphicsDevice.RegisterTextureMemoryUsage(-SizeInBytes);
                 }
 
                 if (stencilId != 0)
-                    GL.DeleteRenderbuffers(1, ref stencilId);
+                    GL.DeleteRenderbuffer(stencilId);
 
                 if (pixelBufferObjectId != 0)
-                    GL.DeleteBuffers(1, ref pixelBufferObjectId);
+                    GL.DeleteBuffer(pixelBufferObjectId);
             }
 
             TextureTotalSize = 0;
@@ -511,34 +464,22 @@ namespace Stride.Graphics
             base.OnDestroyed();
         }
 
-        private static void ConvertDepthFormat(GraphicsDevice graphicsDevice, PixelFormat requestedFormat, out RenderbufferStorage depthFormat)
+        private static void ConvertDepthFormat(GraphicsDevice graphicsDevice, PixelFormat requestedFormat, out InternalFormat depthFormat)
         {
             switch (requestedFormat)
             {
                 case PixelFormat.D16_UNorm:
-                    depthFormat = RenderbufferStorage.DepthComponent16;
+                    depthFormat = InternalFormat.DepthComponent16;
                     break;
-#if !STRIDE_GRAPHICS_API_OPENGLES
                 case PixelFormat.D24_UNorm_S8_UInt:
-                    depthFormat = RenderbufferStorage.Depth24Stencil8;
+                    depthFormat = InternalFormat.Depth24Stencil8;
                     break;
                 case PixelFormat.D32_Float:
-                    depthFormat = RenderbufferStorage.DepthComponent32;
+                    depthFormat = InternalFormat.DepthComponent32;
                     break;
                 case PixelFormat.D32_Float_S8X24_UInt:
-                    depthFormat = RenderbufferStorage.Depth32fStencil8;
+                    depthFormat = InternalFormat.Depth32fStencil8;
                     break;
-#else
-                case PixelFormat.D24_UNorm_S8_UInt:
-                    depthFormat = RenderbufferStorage.Depth24Stencil8;
-                    break;
-                case PixelFormat.D32_Float:
-                    depthFormat = RenderbufferInternalFormat.DepthComponent32f;
-                    break;
-                case PixelFormat.D32_Float_S8X24_UInt:
-                    depthFormat = RenderbufferInternalFormat.Depth32fStencil8;
-                    break;
-#endif
                 default:
                     throw new NotImplementedException();
             }
@@ -578,17 +519,17 @@ namespace Stride.Graphics
             }
         }
 
-        internal static TextureTarget2d GetTextureTargetForDataSet2D(TextureTarget target, int arrayIndex)
+        internal static TextureTarget GetTextureTargetForDataSet2D(TextureTarget target, int arrayIndex)
         {
             // TODO: Proxy from ES 3.1?
             if (target == TextureTarget.TextureCubeMap)
-                return TextureTarget2d.TextureCubeMapPositiveX + arrayIndex;
-            return (TextureTarget2d)target;
+                return TextureTarget.TextureCubeMapPositiveX + arrayIndex;
+            return target;
         }
 
-        internal static TextureTarget3d GetTextureTargetForDataSet3D(TextureTarget target)
+        internal static TextureTarget GetTextureTargetForDataSet3D(TextureTarget target)
         {
-            return (TextureTarget3d)target;
+            return target;
         }
 
         private static int TextureSetSize(TextureTarget target)
@@ -622,11 +563,11 @@ namespace Stride.Graphics
 
         private void InitializeStagingPixelBufferObject(DataBox[] dataBoxes)
         {
-            pixelBufferObjectId = GeneratePixelBufferObject(BufferTarget.PixelPackBuffer, PixelStoreParameter.PackAlignment, BufferUsageHint.StreamRead, TextureTotalSize);
-            UploadInitialData(BufferTarget.PixelPackBuffer, dataBoxes);
+            pixelBufferObjectId = GeneratePixelBufferObject(BufferTargetARB.PixelPackBuffer, PixelStoreParameter.PackAlignment, BufferUsageARB.StreamRead, TextureTotalSize);
+            UploadInitialData(BufferTargetARB.PixelPackBuffer, dataBoxes);
         }
 
-        private void UploadInitialData(BufferTarget bufferTarget, DataBox[] dataBoxes)
+        private unsafe void UploadInitialData(BufferTargetARB bufferTarget, DataBox[] dataBoxes)
         {
             // Upload initial data
             int offset = 0;
@@ -635,7 +576,7 @@ namespace Stride.Graphics
             if (PixelBufferObjectId != 0)
             {
                 GL.BindBuffer(bufferTarget, PixelBufferObjectId);
-                bufferData = GL.MapBufferRange(bufferTarget, (IntPtr)0, (IntPtr)TextureTotalSize, BufferAccessMask.MapWriteBit | BufferAccessMask.MapUnsynchronizedBit);
+                bufferData = (IntPtr) GL.MapBufferRange(bufferTarget, IntPtr.Zero, (UIntPtr) TextureTotalSize, MapBufferAccessMask.MapWriteBit | MapBufferAccessMask.MapUnsynchronizedBit);
             }
 
             if (bufferData != IntPtr.Zero)
@@ -645,10 +586,11 @@ namespace Stride.Graphics
                     var offsetArray = arrayIndex * Description.MipLevels;
                     for (int i = 0; i < Description.MipLevels; ++i)
                     {
-                        IntPtr data = IntPtr.Zero;
-                        var width = CalculateMipSize(Description.Width, i);
-                        var height = CalculateMipSize(Description.Height, i);
-                        var depth = CalculateMipSize(Description.Depth, i);
+                        var data = IntPtr.Zero;
+
+                        var width = CalculateMipSize(Description.Width, mipLevel: i);
+                        var height = CalculateMipSize(Description.Height, mipLevel: i);
+                        var depth = CalculateMipSize(Description.Depth, mipLevel: i);
                         if (dataBoxes != null && i < dataBoxes.Length)
                         {
                             data = dataBoxes[offsetArray + i].DataPointer;
@@ -656,7 +598,7 @@ namespace Stride.Graphics
 
                         if (data != IntPtr.Zero)
                         {
-                            Utilities.CopyMemory(bufferData + offset, data, width * height * depth * TexturePixelSize);
+                            Unsafe.CopyBlockUnaligned((void*) (bufferData + offset), (void*) data, (uint) (width * height * depth * TexturePixelSize));
                         }
 
                         offset += width*height*TexturePixelSize;
@@ -671,15 +613,14 @@ namespace Stride.Graphics
             }
         }
 
-        internal int GeneratePixelBufferObject(BufferTarget target, PixelStoreParameter alignment, BufferUsageHint bufferUsage, int totalSize)
+        internal uint GeneratePixelBufferObject(BufferTargetARB target, PixelStoreParameter alignment, BufferUsageARB bufferUsage, int totalSize)
         {
-            int result;
 
-            GL.GenBuffers(1, out result);
+            GL.GenBuffers(1, out uint result);
             GL.BindBuffer(target, result);
             if (RowPitch < 4)
                 GL.PixelStore(alignment, 1);
-            GL.BufferData(target, totalSize, IntPtr.Zero, bufferUsage);
+            GL.BufferData(target, (UIntPtr) totalSize, null, bufferUsage);
             GL.BindBuffer(target, 0);
 
             return result;

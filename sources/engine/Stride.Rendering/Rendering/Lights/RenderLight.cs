@@ -14,14 +14,14 @@ namespace Stride.Rendering.Lights
         public float Intensity;
 
         /// <summary>
-        /// Gets the light position in World-Space (computed by the <see cref="LightProcessor"/>) (readonly field). See remarks.
+        /// Gets the light position in World-Space (computed by the `LightProcessor`) (readonly field). See remarks.
         /// </summary>
         /// <value>The position.</value>
         /// <remarks>This property should only be used inside a renderer and not from a script as it is updated after scripts</remarks>
         public Vector3 Position;
 
         /// <summary>
-        /// Gets the light direction in World-Space (computed by the <see cref="LightProcessor"/>) (readonly field).
+        /// Gets the light direction in World-Space (computed by the `LightProcessor`) (readonly field).
         /// </summary>
         /// <value>The direction.</value>
         /// <remarks>This property should only be used inside a renderer and not from a script as it is updated after scripts</remarks>
@@ -30,19 +30,19 @@ namespace Stride.Rendering.Lights
         public Color3 Color;
 
         /// <summary>
-        /// The bounding box of this light in WS after the <see cref="LightProcessor"/> has been applied (readonly field).
+        /// The bounding box of this light in WS after the `LightProcessor` has been applied (readonly field).
         /// </summary>
-        internal BoundingBox BoundingBox;
+        public BoundingBox BoundingBox;
 
         /// <summary>
-        /// The bounding box extents of this light in WS after the <see cref="LightProcessor"/> has been applied (readonly field).
+        /// The bounding box extents of this light in WS after the `LightProcessor` has been applied (readonly field).
         /// </summary>
-        internal BoundingBoxExt BoundingBoxExt;
+        public BoundingBoxExt BoundingBoxExt;
 
         /// <summary>
         /// The determines whether this instance has a valid bounding box (readonly field).
         /// </summary>
-        internal bool HasBoundingBox;
+        public bool HasBoundingBox;
 
         /// <summary>
         /// Updates this instance( <see cref="Position"/>, <see cref="Direction"/>, <see cref="HasBoundingBox"/>, <see cref="BoundingBox"/>, <see cref="BoundingBoxExt"/>

@@ -60,6 +60,16 @@ namespace Stride.Assets.Models
         public override UFile MainSource => Source;
 
         /// <summary>
+        /// Index of imported animation in the source file.
+        /// </summary>
+        /// <userdoc>
+        /// Index of animation to import if multiple are present in the source file.
+        /// </userdoc>
+        [DataMember(-10)]
+        [Display("Animation Index")]
+        public int AnimationStack { get; set; }
+
+        /// <summary>
         /// Enable clipping of the animation duration
         /// </summary>
         /// <userdoc>

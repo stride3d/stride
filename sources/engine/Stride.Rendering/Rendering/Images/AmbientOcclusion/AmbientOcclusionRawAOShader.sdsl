@@ -3,7 +3,7 @@
 
 namespace Stride.Rendering.Images
 {
-    shader AmbientOcclusionRawAOShader <int SamplesCount>  : ImageEffectShader, Camera
+    shader AmbientOcclusionRawAOShader <int SamplesCount, bool IsOrthographic>  : ImageEffectShader, Camera
     {
         float4   ProjInfo;    // .x = zN * zF, .y = zN - zF, .z = zF
         float4   ScreenInfo;  // .x = Width, .y = Height, .z = Aspect
@@ -16,12 +16,24 @@ namespace Stride.Rendering.Images
 
         stage float reconstructCSZ(float depth)
         {
-            return ZProjection.y / (depth - ZProjection.x);
+            if (IsOrthographic) //near + z * (far - near)
+                return ZProjection.x + depth * ZProjection.y;
+            else
+                return ZProjection.y / (depth - ZProjection.x);
         }
 
         stage float3 reconstructCSPosition(float2 S, float z)
         {
-            return float3((S.xy * ProjInfo.xy + ProjInfo.zw) * z, z);
+            if (IsOrthographic)
+            {
+                float2 uv = S.xy / ScreenInfo.xy;
+                uv = uv * 2 - 1;
+                return float3(uv * ProjInfo.xy, z);
+            }
+            else
+            {
+                return float3((S.xy * ProjInfo.xy + ProjInfo.zw) * z, z);
+            }
         }
 
         stage float3 reconstructCSNormal(float3 position)
@@ -50,7 +62,7 @@ namespace Stride.Rendering.Images
             //*****************************
             // View Position
             float3 position = reconstructCSPosition(samplePosInt + float2(0.5, 0.5), linearDepth);
-                   position.x *= -1;
+            position.x *= -1;
 
             //*****************************
             // View Normal
@@ -80,23 +92,27 @@ namespace Stride.Rendering.Images
             // Reconstruct View space position XYZ
             int2 screenPosition = streams.TexCoord.xy * ScreenInfo.xy;
             float3 viewPosition = reconstructCSPosition(screenPosition + float2(0.5, 0.5), linearDepth);
-                   viewPosition.x *= -1;
+            viewPosition.x *= -1;
 
             //*****************************
             // Reconstruct View space normal NxNyNz
             float3 viewNormal = reconstructCSNormal(viewPosition.xyz);
-                   viewNormal.xy *= -1;
+            viewNormal.xy *= -1;
 
             //*****************************
             // Hash function used in the HPG12 AlchemyAO paper
             int linearDepthInt = (int)linearDepth;
             //float randomPatternRotationAngle = (3 * screenPosition.x ^ screenPosition.y + screenPosition.x * screenPosition.y) * 10;
-            float randomPatternRotationAngle = (15 * linearDepthInt + 3 * screenPosition.x ^ 2 * screenPosition.y + screenPosition.x * screenPosition.y) * 10;
+            float randomPatternRotationAngle = ((15 * linearDepthInt + 3 * screenPosition.x ^ 2 * screenPosition.y + screenPosition.x * screenPosition.y) & 0x0000FFFF) * 10;
 
             //*****************************
             // Choose a sample radius proportional to the projected area of the half-sphere
             //float diskRadius = -projScale * radius / linearDepth;
-            float diskRadius = ParamProjScale / linearDepth;
+            float diskRadius;
+            if (IsOrthographic) 
+                diskRadius = ParamProjScale / ProjInfo.z;
+            else
+                diskRadius = ParamProjScale / linearDepth;
 
             //*****************************
             // Compute the ambient occlusion
@@ -108,22 +124,22 @@ namespace Stride.Rendering.Images
 
             float temp = ParamRadiusSquared * ParamRadius;
             sum /= temp * temp;
-	        float A = max(0.0, 1.0 - sum * 5 * ParamIntensity / SamplesCount);
+            float A = max(0.0, 1.0 - sum * 5 * ParamIntensity / SamplesCount);
             
             float nearPlaneFade = saturate(linearDepth * 2.0 - 0.5);
             A = lerp(1, A, nearPlaneFade);
 
             //*****************************
             // Bilateral box-filter over a quad for free, respecting depth edges
-	        // (the difference that this makes is subtle)
+            // (the difference that this makes is subtle)
             if (abs(ddx(linearDepth)) < 0.02)
             {
-		        A -= ddx(A) * ((screenPosition.x & 1) - 0.5);
-	        }
-	        if (abs(ddy(linearDepth)) < 0.02)
+                A -= ddx(A) * ((screenPosition.x & 1) - 0.5);
+            }
+            if (abs(ddy(linearDepth)) < 0.02)
             {
                 A -= ddy(A) * ((screenPosition.y & 1) - 0.5);
-	        }
+            }
 
             //************************
             // A now contains the light intensity factor (0 to 1) which can be applied to the ambient light illuminating the pixel

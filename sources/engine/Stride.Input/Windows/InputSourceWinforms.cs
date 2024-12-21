@@ -47,9 +47,6 @@ namespace Stride.Input
         {
             input = inputManager;
 
-            uiControl.LostFocus += UIControlOnLostFocus;
-            MissingInputHack();
-
             // Hook window proc
             defaultWndProc = Win32Native.GetWindowLong(uiControl.Handle, Win32Native.WindowLongType.WndProc);
             // This is needed to prevent garbage collection of the delegate.
@@ -63,40 +60,6 @@ namespace Stride.Input
 
             mouse = new MouseWinforms(this, uiControl);
             RegisterDevice(mouse);
-        }
-
-        /// <summary>
-        /// This function houses a hack to fix the window missing some input events,
-        /// see Stride pull #181 for more information (https://github.com/stride3d/stride/pull/181).
-        /// TODO: Find a proper solution to replace this workaround.
-        /// </summary>
-        private void MissingInputHack()
-        {
-#if STRIDE_INPUT_RAWINPUT
-            Device.RegisterDevice(SharpDX.Multimedia.UsagePage.Generic, SharpDX.Multimedia.UsageId.GenericKeyboard, DeviceFlags.None);
-            Device.KeyboardInput += (sender, args) =>
-            {
-                switch (args.State)
-                {
-                    case KeyState.SystemKeyDown:
-                    case KeyState.ImeKeyDown:
-                    case KeyState.KeyDown:
-                    {
-                        keyboard?.HandleKeyUp(args.Key);
-                        heldKeys.Add(args.Key);
-                        break;
-                    }
-                    case KeyState.SystemKeyUp:
-                    case KeyState.ImeKeyUp:
-                    case KeyState.KeyUp:
-                    {
-                        heldKeys.Remove(args.Key);
-                        keyboard?.HandleKeyDown(args.Key);
-                        break;
-                    }
-                }
-            };
-#endif
         }
 
         public override void Dispose()
@@ -127,20 +90,6 @@ namespace Stride.Input
             
                 keysToRelease.Clear();
             }
-        }
-        
-        private void UIControlOnLostFocus(object sender, EventArgs eventArgs)
-        {
-            // Release keys/buttons when control focus is lost (this prevents some keys getting stuck when a focus loss happens when moving the camera)
-            if (keyboard != null)
-            {
-                foreach (var key in keyboard.KeyRepeats.Keys.ToArray())
-                {
-                    keyboard.HandleKeyUp(key);
-                }
-            }
-
-            mouse?.ForceReleaseButtons();
         }
 
         internal void HandleKeyDown(IntPtr wParam, IntPtr lParam)

@@ -33,6 +33,7 @@ namespace Stride.Rendering
             NodeIndex = mesh.NodeIndex;
             Name = mesh.Name;
             BoundingBox = mesh.BoundingBox;
+            BoundingSphere = mesh.BoundingSphere;
             Skinning = mesh.Skinning;
         }
 
@@ -44,8 +45,8 @@ namespace Stride.Rendering
         /// <exception cref="System.ArgumentNullException">parameters</exception>
         public Mesh(MeshDraw meshDraw, ParameterCollection parameters)
         {
-            if (meshDraw == null) throw new ArgumentNullException("meshDraw");
-            if (parameters == null) throw new ArgumentNullException("parameters");
+            if (meshDraw == null) throw new ArgumentNullException(nameof(meshDraw));
+            if (parameters == null) throw new ArgumentNullException(nameof(parameters));
             Draw = meshDraw;
             Parameters = parameters;
         }
@@ -53,8 +54,8 @@ namespace Stride.Rendering
         public MeshDraw Draw { get; set; }
 
         public int MaterialIndex { get; set; }
-        
-        public ParameterCollection Parameters { get; private set; }
+
+        public ParameterCollection Parameters { get; }
         
         /// <summary>
         /// Index of the transformation node in <see cref="Model"/>.

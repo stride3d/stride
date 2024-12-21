@@ -3,7 +3,7 @@
   <PropertyGroup>
     <StrideSdkTargets>$(MSBuildThisFileDirectory)Stride.targets</StrideSdkTargets>
     <StrideAssemblyProcessorGlobal>true</StrideAssemblyProcessorGlobal>
-    <StrideAssemblyProcessorDefaultOptions>--auto-notify-property --parameter-key --auto-module-initializer --serialization</StrideAssemblyProcessorDefaultOptions>
+    <StrideAssemblyProcessorDefaultOptions>--parameter-key --auto-module-initializer --serialization</StrideAssemblyProcessorDefaultOptions>
     <StrideAssemblyProcessorOptions Condition="'$(StrideAssemblyProcessorOptions)' == ''">$(StrideAssemblyProcessorDefaultOptions)</StrideAssemblyProcessorOptions>
   </PropertyGroup>
 
@@ -12,24 +12,24 @@
 
   <!-- Default GraphicsApi -->
   <PropertyGroup>
-    <StrideGraphicsApisWindows Condition="'$(StrideGraphicsApisWindows)' == ''">Direct3D11;Direct3D12;OpenGL;OpenGLES;Vulkan</StrideGraphicsApisWindows>
-    <StrideGraphicsApisLinux Condition="'$(StrideGraphicsApisLinux)' == ''">Vulkan;OpenGL</StrideGraphicsApisLinux>
-    <StrideGraphicsApis Condition="('$(StrideGraphicsApis)' == '' Or '$(StrideGraphicsApiDependentBuildAll)' == 'true') And '$(StridePlatform)' == 'Windows'">$(StrideGraphicsApisWindows)</StrideGraphicsApis>
-    <StrideGraphicsApis Condition="('$(StrideGraphicsApis)' == '' Or '$(StrideGraphicsApiDependentBuildAll)' == 'true') And '$(StridePlatform)' == 'Linux'">$(StrideGraphicsApisLinux)</StrideGraphicsApis>
+    <!-- When working in a specific API in the Stride Runtime or in the Stride solution (not in a game or app),
+         you can uncomment this property and set its value to the name of that graphics API so it becomes
+         the active one that Visual Studio and IntelliSense takes into account -->
+    <!--<StrideDefaultGraphicsApiDesignTime>Vulkan</StrideDefaultGraphicsApiDesignTime>-->
+
+    <StrideGraphicsApis Condition="('$(StrideGraphicsApis)' == '' Or '$(StrideGraphicsApiDependentBuildAll)' == 'true') And ('$(TargetFramework)' == '$(StrideFramework)' Or '$(TargetFramework)' == '$(StrideFrameworkWindows)')">Direct3D11;Direct3D12;OpenGL;OpenGLES;Vulkan</StrideGraphicsApis>
 
     <StrideDefaultGraphicsApi Condition="'$(StrideGraphicsApis)' != ''">$(StrideGraphicsApis.Split(';', StringSplitOptions.RemoveEmptyEntries)[0])</StrideDefaultGraphicsApi>
-    <StrideDefaultGraphicsApi Condition="'$(StridePlatform)' == 'UWP'">Direct3D11</StrideDefaultGraphicsApi>
-    <StrideDefaultGraphicsApi Condition="'$(StridePlatform)' == 'macOS'">Vulkan</StrideDefaultGraphicsApi>
-    <StrideDefaultGraphicsApi Condition="'$(StridePlatform)' == 'Android'">OpenGLES</StrideDefaultGraphicsApi>
-    <StrideDefaultGraphicsApi Condition="'$(StridePlatform)' == 'iOS'">OpenGLES</StrideDefaultGraphicsApi>
+    <StrideDefaultGraphicsApi Condition="'$(TargetFramework)' == '$(StrideFrameworkUWP)'">Direct3D11</StrideDefaultGraphicsApi>
+    <StrideDefaultGraphicsApi Condition="'$(TargetFramework)' == '$(StrideFrameworkAndroid)'">OpenGLES</StrideDefaultGraphicsApi>
+    <StrideDefaultGraphicsApi Condition="'$(TargetFramework)' == '$(StrideFrameworkiOS)'">OpenGLES</StrideDefaultGraphicsApi>
   </PropertyGroup>
   <!-- Some platforms only have a single graphics API.
       If yes, set it right away and disable StrideGraphicsApiDependent (only for inner builds, check using TargetFrameworks) -->
   <PropertyGroup Condition="'$(StrideGraphicsApiDependent)' == 'true' And !('$(TargetFrameworks)' != '' and '$(TargetFramework)' == '')">
-    <StrideGraphicsApiDependent Condition="'$(StridePlatform)' == 'UWP'">false</StrideGraphicsApiDependent>
-    <StrideGraphicsApiDependent Condition="'$(StridePlatform)' == 'macOS'">false</StrideGraphicsApiDependent>
-    <StrideGraphicsApiDependent Condition="'$(StridePlatform)' == 'Android'">false</StrideGraphicsApiDependent>
-    <StrideGraphicsApiDependent Condition="'$(StridePlatform)' == 'iOS'">false</StrideGraphicsApiDependent>
+    <StrideGraphicsApiDependent Condition="'$(TargetFramework)' == '$(StrideFrameworkUWP)'">false</StrideGraphicsApiDependent>
+    <StrideGraphicsApiDependent Condition="'$(TargetFramework)' == '$(StrideFrameworkiOS)'">false</StrideGraphicsApiDependent>
+    <StrideGraphicsApiDependent Condition="'$(TargetFramework)' == '$(StrideFrameworkAndroid)'">false</StrideGraphicsApiDependent>
     <StrideGraphicsApi Condition="'$(StrideGraphicsApiDependent)' == 'false'">$(StrideDefaultGraphicsApi)</StrideGraphicsApi>
   </PropertyGroup>
   <!-- Setup default GraphicsApi for design-time build (that's the one used for Visual Studio intellisense, so it can be useful to override when working on a specific API) -->
@@ -38,7 +38,7 @@
     <StrideGraphicsApi Condition="'$(StrideGraphicsApi)' == ''">$(StrideDefaultGraphicsApi)</StrideGraphicsApi>
   </PropertyGroup>
 
-  <!-- 
+  <!--
     Settings StrideGraphicsApi specific
   -->
   <PropertyGroup Condition=" '$(StrideGraphicsApi)' == 'Direct3D11' ">
@@ -65,14 +65,14 @@
     <StrideGraphicsApiDefines>STRIDE_GRAPHICS_API_VULKAN</StrideGraphicsApiDefines>
   </PropertyGroup>
 
-  <!-- 
-    Settings StridePlatform specific
+  <!--
+    Settings TargetFramework specific
   -->
-  <PropertyGroup Condition=" '$(StridePlatform)' == 'UWP' ">
+  <PropertyGroup Condition=" '$(TargetFramework)' == '$(StrideFrameworkUWP)' ">
     <ProjectLockFile Condition="'$(ProjectLockFile)' == ''">$(MSBuildThisFileDirectory)..\build\project.lock.json</ProjectLockFile>
   </PropertyGroup>
 
-  <!-- 
+  <!--
     Global Defines
   -->
   <PropertyGroup>
@@ -80,12 +80,10 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <StrideUI Condition="'$(StridePlatform)' == 'Windows' Or '$(StridePlatform)' == 'Linux' Or '$(StridePlatform)' == 'macOS'">SDL</StrideUI>
-    <StrideUI Condition="'$(StrideGraphicsApi)' == 'OpenGL'">$(StrideUI);OPENTK</StrideUI>
-    <StrideUI Condition="$(TargetFramework.EndsWith('-windows')) AND ('$(StrideGraphicsApi)' == 'Direct3D11' Or '$(StrideGraphicsApi)' == 'Direct3D12')">$(StrideUI);WINFORMS;WPF</StrideUI>
+    <StrideUI Condition="'$(TargetFramework)' != '$(StrideFrameworkUWP)'">SDL</StrideUI>
+    <StrideUI Condition="'$(TargetFramework)' == '$(StrideFrameworkWindows)' AND ('$(StrideGraphicsApi)' == 'Direct3D11' Or '$(StrideGraphicsApi)' == 'Direct3D12')">$(StrideUI);WINFORMS;WPF</StrideUI>
 
     <DefineConstants Condition="$(StrideUI.Contains('SDL'))">$(DefineConstants);STRIDE_UI_SDL</DefineConstants>
-    <DefineConstants Condition="$(StrideUI.Contains('OPENTK'))">$(DefineConstants);STRIDE_UI_OPENTK</DefineConstants>
     <DefineConstants Condition="$(StrideUI.Contains('WINFORMS'))">$(DefineConstants);STRIDE_UI_WINFORMS</DefineConstants>
     <DefineConstants Condition="$(StrideUI.Contains('WPF'))">$(DefineConstants);STRIDE_UI_WPF</DefineConstants>
   </PropertyGroup>
@@ -99,6 +97,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <ExecutableExtension Condition="$([MSBuild]::IsOSPlatform('Windows'))">.exe</ExecutableExtension>
   </PropertyGroup>
 
   <!-- Pack target -->
@@ -108,7 +107,7 @@
     <!--<PackAssets ProjectFile="$(MSBuildProjectFile)" IntermediatePackagePath="$(IntermediateOutputPath)\stride">
       <Output TaskParameter="GeneratedItems" ItemName="None"/>
     </PackAssets>-->
-    <Exec Command="&quot;$(MSBuildThisFileDirectory)..\core\Stride.Core.Tasks\bin\$(Configuration)\$(StrideEditorTargetFramework)\Stride.Core.Tasks.exe&quot; pack-assets &quot;$(MSBuildProjectFile)&quot; &quot;$(IntermediateOutputPath)\stride&quot;" ConsoleToMsBuild="true">
+    <Exec Command="&quot;$(MSBuildThisFileDirectory)..\core\Stride.Core.Tasks\bin\$(Configuration)\$(StrideXplatEditorTargetFramework)\Stride.Core.Tasks$(ExecutableExtension)&quot; pack-assets &quot;$(MSBuildProjectFile)&quot; &quot;$(IntermediateOutputPath)\stride&quot;" ConsoleToMsBuild="true">
       <Output TaskParameter="ConsoleOutput" ItemName="PackAssetsLine" />
     </Exec>
     <ItemGroup>

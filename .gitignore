@@ -44,6 +44,7 @@ Bin/
 ipch/
 obj/
 .vs/
+.idea/
 Cache/
 /doc/stride_doc_output/
 /build/Stride.version
@@ -96,6 +97,11 @@ x64Release
 *.opendb
 screenshots
 samplesGenerated
+
+# VS Code files
+.vscode/*
+!.vscode/tasks.json
+!.vscode/launch.json
 
 # Xcode
 #

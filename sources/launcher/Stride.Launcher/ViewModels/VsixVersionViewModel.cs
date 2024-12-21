@@ -1,18 +1,14 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-
 using Stride.Core.Extensions;
-using Stride.Core.VisualStudio;
-using Stride.LauncherApp.Resources;
-using Stride.LauncherApp.Services;
 using Stride.Core.Packages;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Services;
+using Stride.LauncherApp.Resources;
 
 namespace Stride.LauncherApp.ViewModels
 {
@@ -21,17 +17,19 @@ namespace Stride.LauncherApp.ViewModels
         private readonly string packageId;
         private bool isLatestVersionInstalled;
         private string status;
+        private readonly NugetStore.VsixSupportedVsVersion vsixSupportedVsVersion;
 
-        internal VsixVersionViewModel(LauncherViewModel launcher, NugetStore store, string packageId)
+        internal VsixVersionViewModel(LauncherViewModel launcher, NugetStore store, string packageId, NugetStore.VsixSupportedVsVersion vsixSupportedVsVersion)
             : base(launcher, store, null)
         {
             this.packageId = packageId;
+            this.vsixSupportedVsVersion = vsixSupportedVsVersion;
             status = FormatStatus(Strings.ReportChecking);
             ExecuteActionCommand = new AnonymousTaskCommand(ServiceProvider, ExecuteAction) { IsEnabled = false };
         }
 
         /// <inheritdoc/>
-        public override string Name => Strings.VisualStudioPlugin;
+        public override string Name => Strings.VisualStudioExtension;
 
         /// <inheritdoc/>
         public override string FullName => Name;
@@ -64,7 +62,7 @@ namespace Stride.LauncherApp.ViewModels
             await UpdateVersionsFromStore();
             Dispatcher.Invoke(UpdateStatus);
         }
-        
+
         /// <inheritdoc/>
         protected override void UpdateStatus()
         {
@@ -75,13 +73,25 @@ namespace Stride.LauncherApp.ViewModels
                 newStatus = LocalPackage == null ? Strings.VSIXVerbInstall : Strings.VSIXVerbUpdate;
                 IsLatestVersionInstalled = false;
             }
-            ExecuteActionCommand.IsEnabled = true;
+
+            // Enable the control only if there is an eligible package for the VS extension.
+            ExecuteActionCommand.IsEnabled = (LocalPackage != null || ServerPackage != null);
             Status = FormatStatus(newStatus);
         }
 
         private string FormatStatus(string status)
         {
-            return $"{packageId.Split('.')[0]}: {status}";
+            string vsixTarget = "Visual Studio {0} extension";
+            switch (vsixSupportedVsVersion)
+            {
+                case NugetStore.VsixSupportedVsVersion.VS2019:
+                    vsixTarget = string.Format(vsixTarget,"2019");
+                    break;
+                case NugetStore.VsixSupportedVsVersion.VS2022:
+                    vsixTarget = string.Format(vsixTarget, "2022"); ;
+                    break;
+            }
+            return $"{vsixTarget}: {status}";
         }
 
         /// <inheritdoc/>
@@ -104,8 +114,12 @@ namespace Stride.LauncherApp.ViewModels
         /// <inheritdoc/>
         protected override async Task UpdateVersionsFromStore()
         {
-            LocalPackage = await Launcher.RunLockTask(() => Store.GetLocalPackages(packageId).OrderByDescending(p => p.Version).FirstOrDefault());
-            ServerPackage = await Launcher.RunLockTask(() => Store.FindSourcePackagesById(packageId, CancellationToken.None).Result.OrderByDescending(p => p.Version).FirstOrDefault());
+            var versionRange = Store.VsixVersionToStrideRelease[vsixSupportedVsVersion];
+            var minVersion = versionRange.MinVersion;
+            var maxVersion = versionRange.MaxVersion;
+
+            LocalPackage = await Launcher.RunLockTask(() => Store.GetLocalPackages(packageId).Where(package => package.Version >= minVersion && package.Version < maxVersion).OrderByDescending(p => p.Version).FirstOrDefault());
+            ServerPackage = await Launcher.RunLockTask(() => Store.FindSourcePackagesById(packageId, CancellationToken.None).Result.Where(package => package.Version >= minVersion && package.Version < maxVersion).OrderByDescending(p => p.Version).FirstOrDefault());
         }
 
         public async Task ExecuteAction()
@@ -120,14 +134,14 @@ namespace Stride.LauncherApp.ViewModels
                 {
                     CurrentProcessStatus = checkingStatus;
                     IsProcessing = false;
-                    await ServiceProvider.Get<IDialogService>().MessageBox(Strings.VSIXInstallSucessful, MessageBoxButton.OK, MessageBoxImage.Information);
+                    await ServiceProvider.Get<IDialogService>().MessageBoxAsync(Strings.VSIXInstallSucessful, MessageBoxButton.OK, MessageBoxImage.Information);
                 }
                 catch (Exception e)
                 {
                     CurrentProcessStatus = checkingStatus;
                     IsProcessing = false;
                     var message = $"{Strings.ErrorInstallingVSIX}{e.FormatSummary(true)}";
-                    await ServiceProvider.Get<IDialogService>().MessageBox(message, MessageBoxButton.OK, MessageBoxImage.Error);
+                    await ServiceProvider.Get<IDialogService>().MessageBoxAsync(message, MessageBoxButton.OK, MessageBoxImage.Error);
                 }
                 UpdateStatus();
             });

@@ -142,7 +142,7 @@ namespace Stride.UI.Panels
             }
 
             var validPosition = Math.Max(0, Math.Min(position, elementCount * modulo));
-            var inferiorQuotient = Math.Min(elementCount - 1, (float)Math.Floor(validPosition / modulo));
+            var inferiorQuotient = Math.Min(elementCount - 1, MathF.Floor(validPosition / modulo));
 
             distances.X = (inferiorQuotient+0) * modulo - validPosition;
             distances.Y = (inferiorQuotient+1) * modulo - validPosition;

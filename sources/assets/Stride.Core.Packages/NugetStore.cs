@@ -6,33 +6,29 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using NuGet.Commands;
 using NuGet.Common;
 using NuGet.Configuration;
+using NuGet.Frameworks;
+using NuGet.LibraryModel;
 using NuGet.PackageManagement;
 using NuGet.Packaging;
+using NuGet.Packaging.Core;
 using NuGet.ProjectManagement;
+using NuGet.ProjectModel;
 using NuGet.Protocol;
 using NuGet.Protocol.Core.Types;
-using Stride.Core;
+using NuGet.Resolver;
+using NuGet.Versioning;
 using Stride.Core.Extensions;
 using Stride.Core.Windows;
 using ISettings = NuGet.Configuration.ISettings;
 using PackageSource = NuGet.Configuration.PackageSource;
 using PackageSourceProvider = NuGet.Configuration.PackageSourceProvider;
-using Settings = NuGet.Configuration.Settings;
-using NuGet.Resolver;
-using System.Reflection;
-using NuGet.Frameworks;
-using NuGet.Packaging.Core;
-using NuGet.Versioning;
-using NuGet.ProjectModel;
-using NuGet.LibraryModel;
-using NuGet.Commands;
 
 namespace Stride.Core.Packages
 {
@@ -42,7 +38,7 @@ namespace Stride.Core.Packages
     public class NugetStore : INugetDownloadProgress
     {
         private IPackagesLogger logger;
-        private readonly ISettings settings, localSettings;
+        private readonly ISettings settings;
         private ProgressReport currentProgressReport;
 
         private readonly string oldRootDirectory;
@@ -91,7 +87,7 @@ namespace Stride.Core.Packages
                 {
                     var path = packageSource.GetValueAsPath();
 
-                    if (packageSource.Key.StartsWith(prefixName))
+                    if (packageSource.Key.StartsWith(prefixName, StringComparison.Ordinal))
                     {
                         // Remove entry from packageSources
                         settings.Remove("packageSources", packageSource);
@@ -109,7 +105,7 @@ namespace Stride.Core.Packages
                 {
                     var path = packageSource.GetValueAsPath();
 
-                    if (packageSource.Key.StartsWith(prefixName)
+                    if (packageSource.Key.StartsWith(prefixName, StringComparison.Ordinal)
                         && Uri.TryCreate(path, UriKind.Absolute, out var uri) && uri.IsFile // make sure it's a valid file URI
                         && !Directory.Exists(path)) // detect if directory has been deleted
                     {
@@ -159,7 +155,29 @@ namespace Stride.Core.Packages
         /// <summary>
         /// Package Id of the Visual Studio Integration plugin.
         /// </summary>
-        public string VsixPluginId { get; } = "Stride.VisualStudio.Package";
+        public string VsixPackageId { get; } = "Stride.VisualStudio.Package";
+
+        /// <summary>
+        /// The different supported versions of Visual Studio
+        /// </summary>
+        public enum VsixSupportedVsVersion
+        {
+            VS2019,
+            VS2022
+        }
+
+        /// <summary>
+        /// A mapping of the supported versions of VS to a Stride release version range.  
+        /// For each supported VS release, the first Version represents the included earliest Stride version eligible for the VSIX and the second Version is the excluded upper bound.
+        /// </summary>
+        public IReadOnlyDictionary<VsixSupportedVsVersion, (PackageVersion MinVersion, PackageVersion MaxVersion)> VsixVersionToStrideRelease { get; } = new Dictionary<VsixSupportedVsVersion, (PackageVersion, PackageVersion)>
+        {
+            // The VSIX for VS2019 is avaliable in Stride packages of version 4.0.x
+            {VsixSupportedVsVersion.VS2019, (new PackageVersion("4.0"), new PackageVersion("4.1")) },
+
+            // The VSIX for VS2022 is available in Stride packages of version 4.1.x and later.
+            {VsixSupportedVsVersion.VS2022, (new PackageVersion("4.1"), new PackageVersion(int.MaxValue,0,0,0)) },
+        };
 
         /// <summary>
         /// Logger for all operations of the package manager.
@@ -319,7 +337,7 @@ namespace Stride.Core.Packages
 
                         // In case it's a package without any TFM (i.e. Visual Studio plugin), we still need to specify one
                         if (!targetFrameworks.Any())
-                            targetFrameworks = new string[] { "net5.0" };
+                            targetFrameworks = new string[] { "net8.0" };
 
                         // Old version expects to be installed in GamePackages
                         if (packageId == "Xenko" && version < new PackageVersion(3, 0, 0, 0) && oldRootDirectory != null)
@@ -711,12 +729,12 @@ namespace Stride.Core.Packages
         {
             return package.Version < new PackageVersion(3, 1, 0, 0)
                 ? File.Exists(GetRedirectFile(package))
-                : (package.Version.SpecialVersion != null && package.Version.SpecialVersion.StartsWith("dev") && !package.Version.SpecialVersion.Contains('.'));
+                : (package.Version.SpecialVersion != null && package.Version.SpecialVersion.StartsWith("dev", StringComparison.Ordinal) && !package.Version.SpecialVersion.Contains('.'));
         }
 
         public bool IsDevRedirectPackage(NugetServerPackage package)
         {
-            return (package.Version.SpecialVersion != null && package.Version.SpecialVersion.StartsWith("dev") && !package.Version.SpecialVersion.Contains('.'));
+            return (package.Version.SpecialVersion != null && package.Version.SpecialVersion.StartsWith("dev", StringComparison.Ordinal) && !package.Version.SpecialVersion.Contains('.'));
         }
 
         private void OnPackageInstalled(object sender, PackageOperationEventArgs args)

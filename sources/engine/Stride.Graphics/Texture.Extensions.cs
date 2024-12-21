@@ -78,7 +78,7 @@ namespace Stride.Graphics
                 }
             }
 
-            result.Reload = graphicsResource =>
+            result.Reload = (graphicsResource, services) =>
             {
                 using (var imageStream = new MemoryStream(data))
                 {

@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Stride.Core.Assets;
 using Stride.Core;
-using Stride.Core.Presentation.ViewModel;
+using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.Assets.Presentation.Templates
 {

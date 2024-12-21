@@ -8,7 +8,7 @@ namespace Stride.Graphics
     public partial class GraphicsResourceBase : ComponentBase
     {
         internal GraphicsResourceLifetimeState LifetimeState;
-        public Action<GraphicsResourceBase> Reload;
+        public Action<GraphicsResourceBase, IServiceRegistry> Reload;
 
         /// <summary>
         /// Gets the graphics device attached to this instance.

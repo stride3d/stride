@@ -44,8 +44,6 @@ namespace Stride.Core.AssemblyProcessor
             ModuleInitializer = true;
         }
 
-        public bool AutoNotifyProperty { get; set; }
-
         public bool ParameterKey { get; set; }
 
         public bool ModuleInitializer { get; set; }
@@ -58,8 +56,6 @@ namespace Stride.Core.AssemblyProcessor
 
         internal PlatformType Platform { get; set; }
 
-        public string TargetFramework { get; set; }
-
         public List<string> SearchDirectories { get; set; }
 
         public List<string> References { get; set; }
@@ -68,11 +64,8 @@ namespace Stride.Core.AssemblyProcessor
 
         public List<string> ReferencesToAdd { get; set; }
 
-        public string SignKeyFile { get; set; }
-
         public bool UseSymbols { get; set; }
 
-        public bool TreatWarningsAsErrors { get; set; }
         public bool DeleteOutputOnError { get; set; }
 
         /// <summary>
@@ -194,12 +187,6 @@ namespace Stride.Core.AssemblyProcessor
 
                 var processors = new List<IAssemblyDefinitionProcessor>();
 
-                // We are no longer using it so we are deactivating it for now to avoid processing
-                //if (AutoNotifyProperty)
-                //{
-                //    processors.Add(new NotifyPropertyProcessor());
-                //}
-
                 processors.Add(new AddReferenceProcessor(ReferencesToAdd));
 
                 if (ParameterKey)
@@ -216,7 +203,6 @@ namespace Stride.Core.AssemblyProcessor
 
                 // Always applies the interop processor
                 processors.Add(new InteropProcessor());
-                processors.Add(new MonoFixedProcessor());
 
                 processors.Add(new AssemblyVersionProcessor());
 
@@ -231,12 +217,6 @@ namespace Stride.Core.AssemblyProcessor
                     processors.Add(new SerializationProcessor());
                 }
 
-                if (ModuleInitializer)
-                {
-                    processors.Add(new ModuleInitializerProcessor());
-                }
-
-                processors.Add(new InitLocalsProcessor());
                 processors.Add(new DispatcherProcessor());
 
                 // Check if there is already a AssemblyProcessedAttribute (in which case we can skip processing, it has already been done).

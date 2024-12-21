@@ -24,12 +24,12 @@
 namespace Stride.Games
 {
     /// <summary>
-    /// Type of a <see cref="GameContext"/>.
+    /// Type of a `GameContext`.
     /// </summary>
     public enum AppContextType
     {
         /// <summary>
-        /// Game running on desktop in a form or <see cref="System.Windows.Forms.Control"/>.
+        /// Game running on desktop in a form or <see cref="System.Windows.Forms"/> Control.
         /// </summary>
         Desktop,
 
@@ -42,11 +42,6 @@ namespace Stride.Games
         /// Game running on desktop in a WPF window through a D3DImage.
         /// </summary>
         DesktopWpf,
-
-        /// <summary>
-        /// Game running on desktop in an OpenTK form.
-        /// </summary>
-        DesktopOpenTK,
 
         /// <summary>
         /// Game running on Android in an AndroidStrideGameView.

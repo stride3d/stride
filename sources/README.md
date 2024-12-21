@@ -30,18 +30,16 @@ Folders and projects layout
 * __Stride.Core.BuildEngine.Common__:
    Common parts of the build engine. It can be reused to add new build steps, build commands, and also to build a new custom build engine client.
 * __Stride.Core.BuildEngine__: Default implementation of build engine tool (executable)
-* __Stride.Core.BuildEngine.Monitor__: WPF Display live results of build engine (similar to IncrediBuild)
-* __Stride.Core.BuildEngine.Editor__: WPF Build engine rules editor
-and used by most projects.
 
 ### shader ###
 
 * __Irony__: Parsing library, used by Stride.Core.Shaders. Should later be replaced by ANTLR4.
 * __Stride.Core.Shaders__: Shader parsing, type analysis and conversion library (used by HLSL->GLSL and Stride Shader Language)
+* __Irony.GrammarExplorer__: As the name suggests, language syntax tester, you can check how [Stride Shading Language (SDSL)](https://doc.stride3d.net/latest/en/manual/graphics/effects-and-shaders/shading-language/index.html) works or test the newly introduced features
 
 ### targets ###
 
-* MSBuild target files to create easily cross-platform solutions (Android, iOS, WinRT, WinPhone, etc...), and define behaviors and targets globally. Extensible.
+* MSBuild target files to create easily cross-platform solutions (Android, iOS, WinRT, etc...), and define behaviors and targets globally. Extensible.
 
 ----------
 

@@ -21,6 +21,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
+using System;
 using Stride.Games;
 
 namespace Stride.Graphics
@@ -50,7 +51,7 @@ namespace Stride.Graphics
             /// <typeparam name="T">Type of the constant buffer to get the sizeof from</typeparam>
             /// <param name="device">The <see cref="GraphicsDevice"/>.</param>
             /// <returns>A constant buffer</returns>
-            public static Buffer<T> New<T>(GraphicsDevice device) where T : struct
+            public static Buffer<T> New<T>(GraphicsDevice device) where T : unmanaged
             {
                 return Buffer.New<T>(device, 1, BufferFlags.ConstantBuffer, GraphicsResourceUsage.Dynamic);
             }
@@ -63,7 +64,7 @@ namespace Stride.Graphics
             /// <param name="value">The value to initialize the constant buffer.</param>
             /// <param name="usage">The usage of this resource.</param>
             /// <returns>A constant buffer</returns>
-            public static Buffer<T> New<T>(GraphicsDevice device, ref T value, GraphicsResourceUsage usage = GraphicsResourceUsage.Dynamic) where T : struct
+            public static Buffer<T> New<T>(GraphicsDevice device, ref T value, GraphicsResourceUsage usage = GraphicsResourceUsage.Dynamic) where T : unmanaged
             {
                 return Buffer.New(device, ref value, BufferFlags.ConstantBuffer, usage);
             }
@@ -76,9 +77,9 @@ namespace Stride.Graphics
             /// <param name="value">The value to initialize the constant buffer.</param>
             /// <param name="usage">The usage of this resource.</param>
             /// <returns>A constant buffer</returns>
-            public static Buffer<T> New<T>(GraphicsDevice device, T[] value, GraphicsResourceUsage usage = GraphicsResourceUsage.Dynamic) where T : struct
+            public static Buffer<T> New<T>(GraphicsDevice device, T[] value, GraphicsResourceUsage usage = GraphicsResourceUsage.Dynamic) where T : unmanaged
             {
-                return Buffer.New(device, value, BufferFlags.ConstantBuffer, usage);
+                return Buffer.New(device, value, BufferFlags.ConstantBuffer, usage:usage);
             }
 
             /// <summary>
@@ -88,6 +89,19 @@ namespace Stride.Graphics
             /// <param name="value">The value to initialize the constant buffer.</param>
             /// <param name="usage">The usage of this resource.</param>
             /// <returns>A constant buffer</returns>
+            public static Buffer New(GraphicsDevice device, ReadOnlySpan<byte> value, GraphicsResourceUsage usage = GraphicsResourceUsage.Dynamic)
+            {
+                return Buffer.New(device, value, 0, BufferFlags.ConstantBuffer, usage:usage);
+            }
+
+            /// <summary>
+            /// Creates a new constant buffer with <see cref="GraphicsResourceUsage.Dynamic"/> usage.
+            /// </summary>
+            /// <param name="device">The <see cref="GraphicsDevice"/>.</param>
+            /// <param name="value">The value to initialize the constant buffer.</param>
+            /// <param name="usage">The usage of this resource.</param>
+            /// <returns>A constant buffer</returns>
+            [Obsolete("Use span instead")]
             public static Buffer New(GraphicsDevice device, DataPointer value, GraphicsResourceUsage usage = GraphicsResourceUsage.Dynamic)
             {
                 return Buffer.New(device, value, 0, BufferFlags.ConstantBuffer, usage);

@@ -403,6 +403,18 @@ namespace Stride.Core.Serialization.Contents
             return result;
         }
 
+        public bool TryGetLoadedAsset(string url, out object asset)
+        {
+            if (LoadedAssetUrls.TryGetValue(url, out var reference))
+            {
+                asset = reference.Object;
+                return true;
+            }
+
+            asset = null;
+            return false;
+        }
+
         internal Reference FindDeserializedObject(string url, Type objType)
         {
             // Try to find already loaded object
@@ -507,7 +519,7 @@ namespace Stride.Core.Serialization.Contents
                     // Find serializer
                     var serializer = Serializer.GetSerializer(headerObjType, objType);
                     if (serializer == null)
-                        throw new InvalidOperationException($"Content serializer for {headerObjType}/{objType} could not be found.");
+                        throw new InvalidOperationException($"Content serializer for {url} could not be found. Was expecting to find type {objType} but the actual type of the resource was {headerObjType}");
                     contentSerializerContext = new ContentSerializerContext(url, ArchiveMode.Deserialize, this)
                     {
                         LoadContentReferences = settings.LoadContentReferences,
@@ -518,9 +530,9 @@ namespace Stride.Core.Serialization.Contents
                     if (chunkHeader != null && chunkHeader.OffsetToReferences != -1)
                     {
                         // Seek to where references are stored and deserialize them
-                        streamReader.NativeStream.Seek(chunkHeader.OffsetToReferences, SeekOrigin.Begin);
+                        streamReader.UnderlyingStream.Seek(chunkHeader.OffsetToReferences, SeekOrigin.Begin);
                         contentSerializerContext.SerializeReferences(streamReader);
-                        streamReader.NativeStream.Seek(chunkHeader.OffsetToObject, SeekOrigin.Begin);
+                        streamReader.UnderlyingStream.Seek(chunkHeader.OffsetToObject, SeekOrigin.Begin);
                     }
 
                     if (reference == null)
@@ -631,7 +643,7 @@ namespace Stride.Core.Serialization.Contents
                 {
                     header = new ChunkHeader { Type = serializer.SerializationType.AssemblyQualifiedName };
                     header.Write(streamWriter);
-                    header.OffsetToObject = (int)streamWriter.NativeStream.Position;
+                    header.OffsetToObject = (int)streamWriter.UnderlyingStream.Position;
                 }
 
                 contentSerializerContext.SerializeContent(streamWriter, serializer, obj);
@@ -639,7 +651,7 @@ namespace Stride.Core.Serialization.Contents
                 // Write references and updated header
                 if (header != null)
                 {
-                    header.OffsetToReferences = (int)streamWriter.NativeStream.Position;
+                    header.OffsetToReferences = (int)streamWriter.UnderlyingStream.Position;
                     contentSerializerContext.SerializeReferences(streamWriter);
 
                     // Move back to the pre-allocated header position in the steam

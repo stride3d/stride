@@ -81,7 +81,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
             else
             {
                 var halfFov = MathUtil.DegreesToRadians(cameraService.VerticalFieldOfView/2f);
-                rayDirectionView = Vector3.Normalize(new Vector3(cameraService.AspectRatio*screenPosition.X, screenPosition.Y, -1/(float)Math.Tan(halfFov)));
+                rayDirectionView = Vector3.Normalize(new Vector3(cameraService.AspectRatio*screenPosition.X, screenPosition.Y, -1/MathF.Tan(halfFov)));
             }
 
             // calculate the view to gizmo space matrix 
@@ -92,8 +92,8 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
 
             // calculate the length of the box depending to tessellation
             const float Alpha = 2f * MathUtil.Pi / CollisionTessellation;
-            var length = (float)Math.Sqrt(2f * RotationGizmoRadius * RotationGizmoRadius * (1 - (float)Math.Cos(Alpha)));
-            length += ClickThickness * (float)Math.Tan((MathUtil.Pi / 2 - Alpha) / 2f); // avoid small gaps between elements
+            var length = MathF.Sqrt(2f * RotationGizmoRadius * RotationGizmoRadius * (1 - MathF.Cos(Alpha)));
+            length += ClickThickness * MathF.Tan((MathUtil.Pi / 2 - Alpha) / 2f); // avoid small gaps between elements
 
             // calculate the bounding box containing the segment
             var minimum = new Vector3(-ClickThickness);
@@ -102,7 +102,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
             maximum[0] = +length / 2;
             var boundingBox = new BoundingBox(minimum, maximum);
 
-            var boxRadius = RotationGizmoRadius * (float)Math.Cos(Alpha);
+            var boxRadius = RotationGizmoRadius * MathF.Cos(Alpha);
             var rotationMatrix = new[] { Matrix.RotationYawPitchRoll(MathUtil.Pi / 2, 0, 0), Matrix.RotationYawPitchRoll(0, MathUtil.Pi / 2, 0), Matrix.Identity };
 
             // select the axis whose intersection is the closest

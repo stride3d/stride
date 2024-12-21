@@ -151,11 +151,14 @@ namespace Stride.Shaders
 
         public bool Equals(ShaderMixinSource other)
         {
-            if (ReferenceEquals(null, other)) return false;
+            if (other is null) return false;
             if (ReferenceEquals(this, other)) return true;
 
             // Doesn't check for Parent for Children
-            return Utilities.Compare(Mixins, other.Mixins) && Utilities.Compare(Macros, other.Macros) && Utilities.Compare<string, ShaderSource>(Compositions, other.Compositions);
+            return
+                Mixins.SequenceEqualAllowNull(other.Mixins) &&
+                Macros.SequenceEqualAllowNull(other.Macros) &&
+                Compositions.SequenceEqualAllowNull(other.Compositions);
         }
         public override int GetHashCode()
         {
@@ -171,7 +174,7 @@ namespace Stride.Shaders
                 return hashCode;
             }
         }
-        
+
         public override object Clone()
         {
             var newMixin = (ShaderMixinSource)MemberwiseClone();

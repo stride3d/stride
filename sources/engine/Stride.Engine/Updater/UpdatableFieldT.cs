@@ -3,6 +3,7 @@
 #pragma warning disable SA1649 // File name must match first type name
 
 using System;
+using System.Runtime.CompilerServices;
 using Stride.Core;
 
 namespace Stride.Updater
@@ -15,7 +16,7 @@ namespace Stride.Updater
         public UpdatableField(int offset)
         {
             Offset = offset;
-            Size = Interop.SizeOf<T>();
+            Size = Unsafe.SizeOf<T>();
         }
 
         /// <inheritdoc/>

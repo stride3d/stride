@@ -10,9 +10,17 @@
   <Target Name="GetNativeManifest"/>
   <Target Name="GetPackagingOutputs"/>
 
+  <!-- OS Compatibility Properties -->
+  <PropertyGroup>
+    <TEMP>$([System.IO.Path]::GetTempPath())</TEMP>
+    <DependencyDir>$(MSBuildThisFileDirectory)../../deps</DependencyDir>
+    <BuildDir>$(MSBuildThisFileDirectory)../../build/</BuildDir>
+    <SourceDir>$(MSBuildThisFileDirectory)../../sources</SourceDir>
+  </PropertyGroup>
+
   <!--Import Local Post Settings for the solution being loaded -->
-  <Import Project="$(SolutionDir)$(SolutionName).Build.targets" Condition="Exists('$(SolutionDir)$(SolutionName).Build.targets')" />
-  <Import Project="$(SolutionDir)Stride.Core.Build.targets" Condition="Exists('$(SolutionDir)Stride.Core.Build.targets')" />
+  <Import Project="$(BuildDir)/$(SolutionName).Build.targets" Condition="Exists('$(BuildDir)/$(SolutionName).Build.targets')" />
+  <Import Project="$(BuildDir)/Stride.Core.Build.targets" Condition="Exists('$(BuildDir)/Stride.Core.Build.targets')" />
 
   <!-- Workaround: GetPackagingOutputs from UWP (uap) try to build ProjectReference with current TFM, and that's the only way I could find to skip it -->
   <Target Name="_StrideRemoveTargetFrameworkBeforeGetPackagingOutputs" BeforeTargets="GetPackagingOutputs">
@@ -23,41 +31,10 @@
     </ItemGroup>
   </Target>
 
-  <!-- Include platform dependent assembly when specified -->
-  <Choose>
-    <When Condition="'$(StridePlatformDependent)' == 'true'">
-      <Choose>
-        <When Condition=" '$(StridePlatform)' == 'Android'">
-          <ItemGroup>
-            <Reference Include="Mono.Android" />
-          </ItemGroup>
-        </When>
-        <When Condition=" '$(StridePlatform)' == 'iOS'">
-          <ItemGroup>
-            <Reference Include="Xamarin.iOS" />
-          </ItemGroup>
-        </When>
-      </Choose>
-    </When>
-  </Choose>
-
   <!-- Code Analysis -->
   <PropertyGroup Condition="'$(StrideCodeAnalysis)' == 'true'">
     <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)Stride.ruleset</CodeAnalysisRuleSet>
-    <!--<TreatWarningsAsErrors>true</TreatWarningsAsErrors>-->
   </PropertyGroup>
-  <ItemGroup Condition="'$(StrideCodeAnalysis)' == 'true'">
-    <AdditionalFiles Include="$(MSBuildThisFileDirectory)stylecop.json" />
-    <PackageReference Include="StyleCop.Analyzers" Version="1.1.0-beta008" PrivateAssets="All" />
-  </ItemGroup>
-  <!-- Disable analyzers unless StrideEnableCodeAnalysis is set (note: PackageReference can't depend on external Condition) -->
-  <Target Name="DisableAnalyzersForStrideBuild"
-        BeforeTargets="CoreCompile"
-        Condition="'$(StrideEnableCodeAnalysis)' != 'true'">
-    <ItemGroup>
-      <Analyzer Remove="@(Analyzer)"/>
-    </ItemGroup>
-  </Target>
 
   <!-- docfx doesn't like if there is no TargetFramework set by default -->
   <PropertyGroup Condition="'$(StrideBuildDoc)' == 'true'">
@@ -67,7 +44,7 @@
   <!-- Setup compiler targets per platform / language -->
   <PropertyGroup>
     <!-- On Android, everything is library (even Exe) -->
-    <OutputType Condition=" '$(StridePlatform)' == 'Android' ">Library</OutputType>
+    <OutputType Condition=" '$(TargetFramework)' == '$(StrideFrameworkAndroid)' ">Library</OutputType>
   </PropertyGroup>
 
   <!-- User Documentation (.usrdoc) -->
@@ -88,7 +65,7 @@
   </Target>
 
   <PropertyGroup>
-    <StrideCompilerTargetsEnable Condition=" '$(StridePlatform)' != 'Windows' and $(StrideWindowsOnly) == 'true'">false</StrideCompilerTargetsEnable>
+    <StrideCompilerTargetsEnable Condition=" '$(TargetFramework)' != '$(StrideFramework)' and '$(TargetFramework)' == '$(StrideFrameworkWindows)' and $(StrideWindowsOnly) == 'true'">false</StrideCompilerTargetsEnable>
 
     <!-- Skip unit tests if requested -->
     <StrideCompilerTargetsEnable Condition="'$(StrideSkipUnitTests)' == 'true' And $(StrideOutputFolder.StartsWith('Tests'))">false</StrideCompilerTargetsEnable>
@@ -98,9 +75,9 @@
 
     <StrideAssemblyProcessorFramework>netstandard2.0</StrideAssemblyProcessorFramework>
     <StrideAssemblyProcessorExt>.dll</StrideAssemblyProcessorExt>
-    <StrideAssemblyProcessorHash Condition="'$(StrideAssemblyProcessorBasePath)' != ''">$([System.IO.File]::ReadAllText('$(StrideAssemblyProcessorBasePath)\$(StrideAssemblyProcessorFramework)\Stride.Core.AssemblyProcessor.Packed$(StrideAssemblyProcessorExt).hash'))</StrideAssemblyProcessorHash>
+    <StrideAssemblyProcessorHash Condition="'$(StrideAssemblyProcessorBasePath)' != ''">$([System.IO.File]::ReadAllText('$(StrideAssemblyProcessorBasePath)\$(StrideAssemblyProcessorFramework)\Stride.Core.AssemblyProcessor$(StrideAssemblyProcessorExt).hash'))</StrideAssemblyProcessorHash>
     <StrideAssemblyProcessorTempBasePath Condition="'$(StrideAssemblyProcessorBasePath)' != ''">$(TEMP)\Stride\AssemblyProcessor\$(StrideAssemblyProcessorHash)\$(StrideAssemblyProcessorFramework)\</StrideAssemblyProcessorTempBasePath>
-    <StrideAssemblyProcessorTempPath Condition="'$(StrideAssemblyProcessorBasePath)' != ''">$(StrideAssemblyProcessorTempBasePath)Stride.Core.AssemblyProcessor.Packed$(StrideAssemblyProcessorExt)</StrideAssemblyProcessorTempPath>
+    <StrideAssemblyProcessorTempPath Condition="'$(StrideAssemblyProcessorBasePath)' != ''">$(StrideAssemblyProcessorTempBasePath)Stride.Core.AssemblyProcessor$(StrideAssemblyProcessorExt)</StrideAssemblyProcessorTempPath>
   </PropertyGroup>
 
   <!-- Setup default output path for C++ projects -->
@@ -124,11 +101,9 @@
 
     <!--Add platform and target framework to assembly processor options-->
     <PropertyGroup>
-      <StrideAssemblyProcessorOptions>--platform=$(StridePlatform) --targetFramework=$(TargetFrameworkVersion) $(StrideAssemblyProcessorOptions)</StrideAssemblyProcessorOptions>
+      <StrideAssemblyProcessorOptions>--platform=$(StridePlatform) $(StrideAssemblyProcessorOptions)</StrideAssemblyProcessorOptions>
       <StrideAssemblyProcessorOptions>$(StrideAssemblyProcessorOptions) --references-file="$(IntermediateOutputPath)StrideReferences.cache"</StrideAssemblyProcessorOptions>
-      <StrideAssemblyProcessorOptions Condition="'$(AssemblyOriginatorKeyFile)' != ''">$(StrideAssemblyProcessorOptions) --signkeyfile="$(AssemblyOriginatorKeyFile)"</StrideAssemblyProcessorOptions>
       <StrideAssemblyProcessorOptions Condition="'$(DocumentationFile)' != ''">$(StrideAssemblyProcessorOptions) --docfile="$(DocumentationFile)"</StrideAssemblyProcessorOptions>
-      <StrideAssemblyProcessorOptions>$(StrideAssemblyProcessorOptions) --Werror</StrideAssemblyProcessorOptions>
       <StrideAssemblyProcessorOptions>$(StrideAssemblyProcessorOptions) "$(IntermediateOutputPath)$(TargetName)$(TargetExt)"</StrideAssemblyProcessorOptions>
     </PropertyGroup>
 
@@ -160,7 +135,6 @@
     </Copy>
   </Target>
 
-  <Import Project="$(MSBuildThisFileDirectory)Stride.Core.Sign.targets" />
   <Import Project="$(MSBuildThisFileDirectory)Stride.Core.PostSettings.Dependencies.targets"/>
   <Import Condition="'$(StrideNativeOutputName)' != ''" Project="$(MSBuildThisFileDirectory)..\native\Stride.Native.targets" />
 
@@ -188,25 +162,36 @@
   <Import Project="$(MSBuildThisFileDirectory)Stride.AutoPack.targets"/>
 
   <!-- Generate localization satellite assemblies -->
-  <Target Name="StrideGenerateLocalizationSatelliteDlls" BeforeTargets="SatelliteDllsProjectOutputGroup" Returns="@(SatelliteDllsProjectOutputGroupOutput)" Condition="'$(StrideLocalized)' == 'true' And '$(Configuration)' == 'Release'">
+  <PropertyGroup>
+    <!-- Unless explicitly requested, only build them for packages to save dev time -->
+    <StrideBuildLocalization Condition="'$(StrideBuildLocalization)' == '' And '$(StridePackageBuild)' == 'true'">true</StrideBuildLocalization>
+  </PropertyGroup>
+  <Target Name="StrideGenerateLocalizationSatelliteDlls"
+          BeforeTargets="SatelliteDllsProjectOutputGroup"
+          AfterTargets="Build"
+          Returns="@(SatelliteDllsProjectOutputGroupOutput)"
+          Condition="'$(StrideLocalized)' == 'true' And '$(StrideBuildLocalization)' == 'true'">
+
     <ItemGroup>
       <!-- Current list of languages to try to generate -->
-      <StrideTraductions Include="fr;ja;es;de;ru;it;ko"/>
-      <StrideTraductions Include="zh-Hans">
+      <StrideTranslations Include="fr;ja;es;de;ru;it;ko"/>
+      <StrideTranslations Include="zh-Hans">
         <Source>zh_HANS-CN</Source>
-      </StrideTraductions>
+      </StrideTranslations>
 
-      <_StrideTraductions Include="@(StrideTraductions)">
-        <Source Condition="%(StrideTraductions.Source) == ''">%(StrideTraductions.Identity)</Source>
-      </_StrideTraductions>
+      <_StrideTranslations Include="@(StrideTranslations)">
+        <Source Condition="%(StrideTranslations.Source) == ''">%(StrideTranslations.Identity)</Source>
+      </_StrideTranslations>
     </ItemGroup>
-    <Message Importance="High" Text="Generating traduction for %(_StrideTraductions.Identity) %(_StrideTraductions.SourceFolder)"/>
-    <Exec Condition="Exists('$(SolutionDir)..\sources\localization\%(_StrideTraductions.Source)\$(TargetName).%(_StrideTraductions.Source).po')" Command="Path=$(RoslynTargetsPath);$(Path)
-&quot;$(SolutionDir)..\deps\Gettext.Net\GNU.Gettext.Msgfmt.exe&quot; --lib-dir &quot;$(SolutionDir)..\deps\Gettext.Net&quot; --resource $(TargetName) -d &quot;$(TargetDir).&quot; --locale %(_StrideTraductions.Identity) &quot;$(MSBuildThisFileDirectory)..\localization\%(_StrideTraductions.Source)\$(TargetName).%(_StrideTraductions.Source).po&quot; --verbose" />
+    <Message Importance="High" Text="Generating translation for %(_StrideTranslations.Identity) %(_StrideTranslations.SourceFolder)"/>
+
+    <Exec Condition="Exists('$(SourceDir)\localization\%(_StrideTranslations.Source)\$(TargetName).%(_StrideTranslations.Source).po')"
+          Command="&quot;$(DependencyDir)\Gettext.Net\GNU.Gettext.Msgfmt.exe&quot; -r $(TargetName) -d &quot;$(TargetDir)\&quot; -l %(_StrideTranslations.Identity) -L &quot;$(DependencyDir)\Gettext.Net&quot; &quot;$(MSBuildThisFileDirectory)..\localization\%(_StrideTranslations.Source)\$(TargetName).%(_StrideTranslations.Source).po&quot;" />
+
     <ItemGroup>
-      <SatelliteDllsProjectOutputGroupOutputIntermediate Include="$(OutDir)%(_StrideTraductions.Identity)\$(TargetName).Messages.resources.dll" Condition="Exists('$(OutDir)%(_StrideTraductions.Identity)\$(TargetName).Messages.resources.dll')">
-        <TargetPath>%(_StrideTraductions.Identity)\$(TargetName).Messages.resources.dll</TargetPath>
-        <Culture>%(_StrideTraductions.Identity)</Culture>
+      <SatelliteDllsProjectOutputGroupOutputIntermediate Include="$(OutDir)%(_StrideTranslations.Identity)\$(TargetName).Messages.resources.dll" Condition="Exists('$(OutDir)%(_StrideTranslations.Identity)\$(TargetName).Messages.resources.dll')">
+        <TargetPath>%(_StrideTranslations.Identity)\$(TargetName).Messages.resources.dll</TargetPath>
+        <Culture>%(_StrideTranslations.Identity)</Culture>
       </SatelliteDllsProjectOutputGroupOutputIntermediate>
     </ItemGroup>
   </Target>
@@ -222,9 +207,14 @@
   <PropertyGroup>
     <_SdkLanguageSourceName Condition="'$(MSBuildProjectExtension)' == '.csproj'">CSharp</_SdkLanguageSourceName>
   </PropertyGroup>
-  <Import Condition="'$(TargetFramework)' != ''" Project="$(MSBuildThisFileDirectory)MSBuild.Sdk.Extras\Inference.targets" />
-  <Import Condition="'$(TargetFramework)' != ''" Project="$(MSBuildThisFileDirectory)MSBuild.Sdk.Extras\Platforms.targets" />
-  <Import Condition="'$(TargetFramework)' != ''" Project="$(MSBuildThisFileDirectory)MSBuild.Sdk.Extras\DefaultItems\ImplicitPackages.targets"/>
+  
+    <!-- A workaround for https://github.com/microsoft/msbuild/issues/4584 and resolves https://github.com/onovotny/MSBuildSdkExtras/issues/176 -->
+  <Target Name="_RemoveNativeReferencesManifest" Condition="'$(TargetFramework)' == '$(StrideFrameworkiOS)'" AfterTargets="BuiltProjectOutputGroup">
+    <ItemGroup>
+      <_BuiltProjectOutputGroupOutputIntermediate Remove="$(OutDir)$(_DeploymentTargetApplicationManifestFileName)" />
+      <BuiltProjectOutputGroupOutput Remove="$(ProjectDir)$(OutDir)$(_DeploymentTargetApplicationManifestFileName)" />
+    </ItemGroup>
+  </Target>
 
   <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" Condition="'$(StrideProjectType)' != 'Cpp'" />
 </Project>

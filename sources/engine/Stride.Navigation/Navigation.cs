@@ -116,6 +116,31 @@ namespace Stride.Navigation
             public Vector3 Normal;
         }
 
+        #region Handles
+        #warning TODO: do this better; use SafeHandle?
+        public readonly unsafe struct NavBuilderHandle : IEquatable<NavBuilderHandle>
+        {
+            #pragma warning disable CS0649 // Field is never assigned to - it is a handle obtained through P/Invoke
+            private readonly void* handle;
+            #pragma warning restore CS0649 // Field is never assigned to - it is a handle obtained through P/Invoke
+
+            public override bool Equals(object obj) => obj is NavBuilderHandle other && Equals(other);
+            public bool Equals(NavBuilderHandle other) => handle == other.handle;
+            public override int GetHashCode() => HashCode.Combine((nint)handle);
+            public static bool operator ==(NavBuilderHandle x, NavBuilderHandle y) => x.handle == y.handle;
+            public static bool operator !=(NavBuilderHandle x, NavBuilderHandle y) => x.handle != y.handle;
+        }
+        public readonly unsafe struct NavMeshHandle {
+            #pragma warning disable CS0649 // Field is never assigned to - it is a handle obtained through P/Invoke
+            private readonly void* handle;
+            #pragma warning restore CS0649 // Field is never assigned to - it is a handle obtained through P/Invoke
+            public override bool Equals(object obj) => obj is NavMeshHandle other && Equals(other);
+            public bool Equals(NavMeshHandle other) => handle == other.handle;
+            public override int GetHashCode() => HashCode.Combine((nint)handle);
+            public static bool operator ==(NavMeshHandle x, NavMeshHandle y) => x.handle == y.handle;
+            public static bool operator !=(NavMeshHandle x, NavMeshHandle y) => x.handle != y.handle;
+        }
+        #endregion
         static Navigation()
         {
             NativeInvoke.PreLoad();
@@ -124,34 +149,34 @@ namespace Stride.Navigation
         // Navmesh generation API
         [SuppressUnmanagedCodeSecurity]
         [DllImport(NativeInvoke.Library, EntryPoint = "xnNavigationCreateBuilder", CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr CreateBuilder();
+        public static extern NavBuilderHandle CreateBuilder();
 
         [SuppressUnmanagedCodeSecurity]
         [DllImport(NativeInvoke.Library, EntryPoint = "xnNavigationDestroyBuilder", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void DestroyBuilder(IntPtr builder);
+        public static extern void DestroyBuilder(NavBuilderHandle builder);
 
         [SuppressUnmanagedCodeSecurity]
         [DllImport(NativeInvoke.Library, EntryPoint = "xnNavigationBuildNavmesh", CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr Build(IntPtr builder,
-            [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 2)] Vector3[] verts, int numVerts,
-            [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 4)] int[] inds, int numInds);
+        public static extern unsafe GeneratedData* Build(NavBuilderHandle builder,
+            Vector3* vertices, int numVertices,
+            int* indices, int numIndices);
 
         [SuppressUnmanagedCodeSecurity]
         [DllImport(NativeInvoke.Library, EntryPoint = "xnNavigationSetSettings", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void SetSettings(IntPtr builder, IntPtr settings);
+        public static extern unsafe void SetSettings(NavBuilderHandle builder, BuildSettings* settings);
 
         /// <summary>
-        /// Creates a new navigation mesh object. 
+        /// Creates a new navigation mesh object.
         /// You must add tiles to it with AddTile before you can perform navigation queries using Query
         /// </summary>
         /// <returns></returns>
         [SuppressUnmanagedCodeSecurity]
         [DllImport(NativeInvoke.Library, EntryPoint = "xnNavigationCreateNavmesh", CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr CreateNavmesh(float cellTileSize);
+        public static extern NavMeshHandle CreateNavmesh(float cellTileSize);
 
         [SuppressUnmanagedCodeSecurity]
         [DllImport(NativeInvoke.Library, EntryPoint = "xnNavigationDestroyNavmesh", CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr DestroyNavmesh(IntPtr query);
+        public static extern void DestroyNavmesh(NavMeshHandle query);
 
         /// <summary>
         /// Adds a new tile to the navigation mesh object
@@ -161,7 +186,7 @@ namespace Stride.Navigation
         /// <param name="dataLength">Length of the binary mesh data</param>
         [SuppressUnmanagedCodeSecurity]
         [DllImport(NativeInvoke.Library, EntryPoint = "xnNavigationAddTile", CallingConvention = CallingConvention.Cdecl)]
-        public static extern bool AddTile(IntPtr navmesh, IntPtr data, int dataLength);
+        public static extern unsafe bool AddTile(NavMeshHandle navmesh, byte* data, int dataLength);
 
         /// <summary>
         /// Removes a tile from the navigation mesh object
@@ -170,7 +195,7 @@ namespace Stride.Navigation
         /// <param name="tileCoordinate">Coordinate of the tile to remove</param>
         [SuppressUnmanagedCodeSecurity]
         [DllImport(NativeInvoke.Library, EntryPoint = "xnNavigationRemoveTile", CallingConvention = CallingConvention.Cdecl)]
-        public static extern bool RemoveTile(IntPtr navmesh, Point tileCoordinate);
+        public static extern bool RemoveTile(NavMeshHandle navmesh, Point tileCoordinate);
 
         /// <summary>
         /// Perform a pathfinding query on the navigation mesh
@@ -181,7 +206,7 @@ namespace Stride.Navigation
         /// <returns>A PathFindQueryResult</returns>
         [SuppressUnmanagedCodeSecurity]
         [DllImport(NativeInvoke.Library, EntryPoint = "xnNavigationPathFindQuery", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void DoPathFindQuery(IntPtr query, PathFindQuery pathFindQuery, IntPtr resultStructure);
+        public static extern unsafe void DoPathFindQuery(NavMeshHandle query, PathFindQuery pathFindQuery, ref PathFindResult resultStructure);
 
         /// <summary>
         /// Perform a raycast on the navigation mesh
@@ -192,8 +217,8 @@ namespace Stride.Navigation
         /// <returns>A RaycastQueryResult</returns>
         [SuppressUnmanagedCodeSecurity]
         [DllImport(NativeInvoke.Library, EntryPoint = "xnNavigationRaycastQuery", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void DoRaycastQuery(IntPtr query, RaycastQuery pathFindQuery, IntPtr resultStructure);
-        
+        public static extern void DoRaycastQuery(NavMeshHandle query, RaycastQuery pathFindQuery, out RaycastResult resultStructure);
+
         public static int DtAlign4(int size)
         {
             return (size + 3) & ~3;

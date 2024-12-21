@@ -1,1 +1,0 @@
-taskkill /IM MSBuild.exe /F

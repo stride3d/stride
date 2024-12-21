@@ -195,7 +195,7 @@ namespace Stride.Core.Assets.CompilerApp
             {
                 // Note: check if file exists (since it could be an "implicit package" from csproj)
                 if (File.Exists(package.FullPath))
-                    inputs.Add(package.FullPath.ToWindowsPath());
+                    inputs.Add(package.FullPath.ToOSPath());
 
                 // TODO: optimization: for nuget packages, directly use sha512 file rather than individual assets for faster checking
 
@@ -203,7 +203,7 @@ namespace Stride.Core.Assets.CompilerApp
                 foreach (var assetFolder in package.AssetFolders)
                 {
                     if (Directory.Exists(assetFolder.Path))
-                        inputs.Add(assetFolder.Path.ToWindowsPath() + @"\**\*.*");
+                        inputs.Add(assetFolder.Path.ToOSPath() + "/**/*.*".Replace('/', Path.DirectorySeparatorChar));
                 }
 
                 // List project assets
@@ -215,7 +215,7 @@ namespace Stride.Core.Assets.CompilerApp
                     {
                         // Make sure it is not already covered by one of the previously registered asset folders
                         if (!package.AssetFolders.Any(assetFolder => assetFolder.Path.Contains(assetItem.FullPath)))
-                            inputs.Add(assetItem.FullPath.ToWindowsPath());
+                            inputs.Add(assetItem.FullPath.ToOSPath());
                     }
                 }
 
@@ -233,7 +233,7 @@ namespace Stride.Core.Assets.CompilerApp
             {
                 if (inputObject.Key.Type == UrlType.File)
                 {
-                    inputs.Add(new UFile(inputObject.Key.Path).ToWindowsPath());
+                    inputs.Add(new UFile(inputObject.Key.Path).ToOSPath());
                 }
             }
 
@@ -441,14 +441,6 @@ namespace Stride.Core.Assets.CompilerApp
             var address = "Stride/CompilerApp/PackageBuilderApp/" + Guid.NewGuid();
             var arguments = $"--slave=\"{address}\" --build-path=\"{builderOptions.BuildDirectory}\"";
 
-            using (var debugger = VisualStudioDebugger.GetAttached())
-            {
-                if (debugger != null)
-                {
-                    arguments += $" --reattach-debugger={debugger.ProcessId}";
-                }
-            }
-
             // Start ServiceWire pipe for communication with process
             var processBuilderRemote = new ProcessBuilderRemote(assemblyContainer, commandContext, command);
             var host = new NpHost(address,null,null, new StrideServiceWireSerializer());
@@ -457,7 +449,7 @@ namespace Stride.Core.Assets.CompilerApp
             var startInfo = new ProcessStartInfo
             {
                 // Note: try to get exec server if it exists, otherwise use CompilerApp.exe
-                FileName = Path.ChangeExtension(typeof(PackageBuilder).Assembly.Location, ".exe"),
+                FileName = LoaderToolLocator.GetExecutable(typeof(PackageBuilder).Assembly.Location),
                 Arguments = arguments,
                 WorkingDirectory = Environment.CurrentDirectory,
                 CreateNoWindow = true,

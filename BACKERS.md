@@ -3,18 +3,29 @@ Sponsors & Backers
 
 Stride is a MIT-licensed opensource project, supported by generous [sponsors and backers](https://github.com/stride3d/stride/blob/master/BACKERS.md).
 
-[Become a sponsor or backer for the project](https://www.patreon.com/stride3d).
+[Become a sponsor or backer for the project](https://opencollective.com/stride3d).
 
 Thank you everybody for your generous contributions!
 
-## Gold Sponsor
+## Diamond Strider
 
 * David Jeske
-
-## Super Backers
-
 * [Marshmallow Laser Feast](http://www.marshmallowlaserfeast.com/)
 * [vvvv.org](https://vvvv.org/)
+
+## Platinum Strider
+
+## Gold Strider
+* Vaclac Elias
+
+## Silver Strider
+* Mitchel Albertz
+
+## Bronze Strider
+* Marian Dziubiak
+* Youness KAFIA
+* Jorn Aggror
+
 
 ## Backers
 
@@ -41,7 +52,6 @@ Thank you everybody for your generous contributions!
 * [TheKeyblader](https://github.com/TheKeyblader)
 * Boris Callens
 * Daniel Keenan
-* Jorn Theunissen
 * Jeff Kesselman
 * Sean Connor
 * Regan Laitila
@@ -50,6 +60,3 @@ Thank you everybody for your generous contributions!
 * Miles Johnson
 * Ancient Phoenix
 
-## Mini Backers
-
-Thank you to all the backers supporting the project with a small monthly donation!

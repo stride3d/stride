@@ -74,9 +74,9 @@ namespace Stride.Rendering.Voxels
             for (int i = 0; i < (ClipMapCount + MipMapCount); i++)
             {
                 Vector3 SnappedVolumeTranslation = context.VoxelSpaceTranslation;
-                SnappedVolumeTranslation.X = (float)Math.Floor(SnappedVolumeTranslation.X / voxelScale) * voxelScale;
-                SnappedVolumeTranslation.Y = (float)Math.Floor(SnappedVolumeTranslation.Y / voxelScale) * voxelScale;
-                SnappedVolumeTranslation.Z = (float)Math.Floor(SnappedVolumeTranslation.Z / voxelScale) * voxelScale;
+                SnappedVolumeTranslation.X = MathF.Floor(SnappedVolumeTranslation.X / voxelScale) * voxelScale;
+                SnappedVolumeTranslation.Y = MathF.Floor(SnappedVolumeTranslation.Y / voxelScale) * voxelScale;
+                SnappedVolumeTranslation.Z = MathF.Floor(SnappedVolumeTranslation.Z / voxelScale) * voxelScale;
 
                 if (ShouldUpdateClipIndex(i))
                 {

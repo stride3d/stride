@@ -21,7 +21,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.IO", "..\source
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.MicroThreading", "..\sources\core\Stride.Core.MicroThreading\Stride.Core.MicroThreading.csproj", "{076940AD-70F3-47A8-827C-8E722714F937}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Presentation", "..\sources\presentation\Stride.Core.Presentation\Stride.Core.Presentation.csproj", "{61E90191-22FF-4ADC-AFD0-FAB662589AB4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Presentation.Wpf", "..\sources\presentation\Stride.Core.Presentation.Wpf\Stride.Core.Presentation.Wpf.csproj", "{61E90191-22FF-4ADC-AFD0-FAB662589AB4}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Presentation.Dialogs", "..\sources\presentation\Stride.Core.Presentation.Dialogs\Stride.Core.Presentation.Dialogs.csproj", "{5EB0493A-076D-4488-AF08-D812FB3FDF7C}"
 EndProject
@@ -30,6 +30,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Translation.Presentation", "..\sources\presentation\Stride.Core.Translation.Presentation\Stride.Core.Translation.Presentation.csproj", "{7B286D71-5143-4A08-B9DE-113B310A3F0C}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Packages", "..\sources\assets\Stride.Core.Packages\Stride.Core.Packages.csproj", "{1F5FBA04-C334-41C2-895A-ACC4B786F99E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stride.Core.Presentation", "..\sources\presentation\Stride.Core.Presentation\Stride.Core.Presentation.csproj", "{0C63EF8B-26F9-4511-9FC5-7431DE9657D6}"
 EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
@@ -99,6 +101,10 @@ Global
 		{1F5FBA04-C334-41C2-895A-ACC4B786F99E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1F5FBA04-C334-41C2-895A-ACC4B786F99E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1F5FBA04-C334-41C2-895A-ACC4B786F99E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0C63EF8B-26F9-4511-9FC5-7431DE9657D6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0C63EF8B-26F9-4511-9FC5-7431DE9657D6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0C63EF8B-26F9-4511-9FC5-7431DE9657D6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0C63EF8B-26F9-4511-9FC5-7431DE9657D6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

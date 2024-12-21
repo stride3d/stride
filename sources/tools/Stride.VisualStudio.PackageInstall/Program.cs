@@ -1,7 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -22,11 +21,11 @@ namespace Stride.VisualStudio.PackageInstall
 
                 const string vsixFile = "Stride.vsix";
 
-                // Locate VSIXInstaller.exe
-                // We now only deal with VS2019+ which has a unified installer. Still getting latest version of VS possible, in case there is some bugfixes or incompatible changes.
-                var visualStudioVersionByVsixVersion = VisualStudioVersions.AvailableVisualStudioInstances.Where(x => x.HasVsixInstaller && x.VsixInstallerVersion == VSIXInstallerVersion.VS2019AndFutureVersions);
-                var visualStudioVersion = visualStudioVersionByVsixVersion.OrderByDescending(x => x.Version).FirstOrDefault(x => File.Exists(x.VsixInstallerPath));
-                if (visualStudioVersion == null)
+                // Locate a VS installation with VSIXInstaller.exe.
+                // Select the latest version of VS possible, in case there is some bugfixes or incompatible changes.
+                var visualStudioVersionByVsixVersion = VisualStudioVersions.AvailableVisualStudioInstances.Where(x => x.HasVsixInstaller);
+                var ideInfo = visualStudioVersionByVsixVersion.OrderByDescending(x => x.InstallationVersion).FirstOrDefault(x => File.Exists(x.VsixInstallerPath));
+                if (ideInfo == null)
                 {
                     throw new InvalidOperationException($"Could not find a proper installation of Visual Studio 2019 or later");
                 }
@@ -37,15 +36,16 @@ namespace Stride.VisualStudio.PackageInstall
                     case "/repair":
                     {
                         // Install VSIX
-                        var exitCode = RunVsixInstaller(visualStudioVersion.VsixInstallerPath, "\"" + vsixFile + "\"");
+                        var exitCode = RunVsixInstaller(ideInfo.VsixInstallerPath, "\"" + vsixFile + "\"");
                         if (exitCode != 0)
                             throw new InvalidOperationException($"VSIX Installer didn't run properly: exit code {exitCode}");
                         break;
                     }
+
                     case "/uninstall":
                     {
-                        // Note: we allow uninstall to fail (i.e. VSIX was not installed for that specific VIsual Studio version)
-                        RunVsixInstaller(visualStudioVersion.VsixInstallerPath, "/uninstall:248ff1ce-dacd-4404-947a-85e999d3c3ea");
+                        // Note: we allow uninstall to fail (i.e. VSIX was not installed for that specific Visual Studio version)
+                        RunVsixInstaller(ideInfo.VsixInstallerPath, "/uninstall:Stride.VisualStudio.Package.2022 /quiet");
                         break;
                     }
                 }

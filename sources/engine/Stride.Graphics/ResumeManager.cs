@@ -11,9 +11,11 @@ namespace Stride.Graphics
         private GraphicsDevice graphicsDevice;
         private bool deviceHasBeenDestroyed = false;
         private bool deviceHasBeenPaused = false;
+        private IServiceRegistry services;
 
         public ResumeManager(IServiceRegistry services)
         {
+            this.services = services;
             graphicsDevice = services.GetSafeServiceAs<IGraphicsDeviceService>().GraphicsDevice;
         }
 
@@ -103,9 +105,6 @@ namespace Stride.Graphics
 
         public void OnDestroyed()
         {
-            // Destroy presenter first (so that its backbuffer and render target are destroyed properly before other resources)
-            graphicsDevice.Presenter?.OnDestroyed();
-
             foreach (var resource in graphicsDevice.Resources)
             {
                 resource.OnDestroyed();
@@ -124,7 +123,7 @@ namespace Stride.Graphics
                 {
                     if (resource.Reload != null)
                     {
-                        resource.Reload(resource);
+                        resource.Reload(resource, services);
                         resource.LifetimeState = GraphicsResourceLifetimeState.Active;
                     }
                 }

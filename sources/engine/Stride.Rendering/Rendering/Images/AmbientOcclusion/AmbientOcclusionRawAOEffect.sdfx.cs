@@ -22,7 +22,7 @@ namespace Stride.Rendering.Images
         {
             public void Generate(ShaderMixinSource mixin, ShaderMixinContext context)
             {
-                context.Mixin(mixin, "AmbientOcclusionRawAOShader", context.GetParam(AmbientOcclusionRawAOKeys.Count));
+                context.Mixin(mixin, "AmbientOcclusionRawAOShader", context.GetParam(AmbientOcclusionRawAOKeys.Count), context.GetParam(AmbientOcclusionRawAOKeys.IsOrthographic));
             }
 
             [ModuleInitializer]

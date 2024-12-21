@@ -170,22 +170,61 @@ namespace Stride.Rendering.Images
             var aoTexture1 = NewScopedRenderTarget2D(tempWidth, tempHeight, PixelFormat.R8_UNorm, 1);
             var aoTexture2 = NewScopedRenderTarget2D(tempWidth, tempHeight, PixelFormat.R8_UNorm, 1);
 
+
             aoRawImageEffect.Parameters.Set(AmbientOcclusionRawAOKeys.Count, NumberOfSamples > 0 ? NumberOfSamples : 9);
 
+            // check whether the projection matrix is orthographic
+            var isOrthographic = renderView.Projection.M44 == 1;
+            aoRawImageEffect.Parameters.Set(AmbientOcclusionRawAOKeys.IsOrthographic, isOrthographic);
+            blurH.Parameters.Set(AmbientOcclusionBlurKeys.IsOrthographic, isOrthographic);
+            blurV.Parameters.Set(AmbientOcclusionBlurKeys.IsOrthographic, isOrthographic);
+
+            Vector2 zProj;
+            if (isOrthographic)
+            {
+                zProj = new Vector2(renderView.NearClipPlane, renderView.FarClipPlane - renderView.NearClipPlane);
+            }
+            else
+            {
+                zProj = CameraKeys.ZProjectionACalculate(renderView.NearClipPlane, renderView.FarClipPlane);
+            }
+
             // Set Near/Far pre-calculated factors to speed up the linear depth reconstruction
-            aoRawImageEffect.Parameters.Set(CameraKeys.ZProjection, CameraKeys.ZProjectionACalculate(renderView.NearClipPlane, renderView.FarClipPlane));
+            aoRawImageEffect.Parameters.Set(CameraKeys.ZProjection, ref zProj);
+
 
             Vector4 screenSize = new Vector4(originalColorBuffer.Width, originalColorBuffer.Height, 0, 0);
             screenSize.Z = screenSize.X / screenSize.Y;
             aoRawImageEffect.Parameters.Set(AmbientOcclusionRawAOShaderKeys.ScreenInfo, screenSize);
 
-            // Projection infor used to reconstruct the View space position from linear depth
-            var p00 = renderView.Projection.M11;
-            var p11 = renderView.Projection.M22;
-            var p02 = renderView.Projection.M13;
-            var p12 = renderView.Projection.M23;
-            Vector4 projInfo = new Vector4(-2.0f / (screenSize.X * p00), -2.0f / (screenSize.Y * p11), (1.0f - p02) / p00, (1.0f + p12) / p11);
-            aoRawImageEffect.Parameters.Set(AmbientOcclusionRawAOShaderKeys.ProjInfo, projInfo);
+            Vector4 projInfo;
+            if (isOrthographic)
+            {
+                // The orthographic scale to map the xy coordinates
+                float scaleX = 1 / renderView.Projection.M11;
+                float scaleY = 1 / renderView.Projection.M22;
+
+                // Constant factor to map the ProjScale parameter to the orthographic scale
+                float projZScale = System.Math.Max(scaleX, scaleY) * 4;
+
+                projInfo = new Vector4(scaleX, scaleY, projZScale, 0);
+            }
+            else
+            {
+                // Projection info used to reconstruct the View space position from linear depth
+                var p00 = renderView.Projection.M11;
+                var p11 = renderView.Projection.M22;
+                var p02 = renderView.Projection.M13;
+                var p12 = renderView.Projection.M23;
+
+                projInfo = new Vector4(
+                    -2.0f / (screenSize.X * p00),
+                    -2.0f / (screenSize.Y * p11),
+                    (1.0f - p02) / p00,
+                    (1.0f + p12) / p11);
+            }
+
+            aoRawImageEffect.Parameters.Set(AmbientOcclusionRawAOShaderKeys.ProjInfo, ref projInfo);
 
             //**********************************
             // User parameters
@@ -216,7 +255,6 @@ namespace Stride.Rendering.Images
                 }
 
                 // Set Near/Far pre-calculated factors to speed up the linear depth reconstruction
-                var zProj = CameraKeys.ZProjectionACalculate(renderView.NearClipPlane, renderView.FarClipPlane);
                 blurH.Parameters.Set(CameraKeys.ZProjection, ref zProj);
                 blurV.Parameters.Set(CameraKeys.ZProjection, ref zProj);
 

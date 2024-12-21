@@ -22,6 +22,7 @@
 // THE SOFTWARE.
 using System;
 using System.Globalization;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Stride.Core.Serialization;
 
@@ -37,7 +38,7 @@ namespace Stride.Core.Mathematics
         /// <summary>
         ///   The size of the <see cref = "UInt4" /> type, in bytes.
         /// </summary>
-        public static readonly int SizeInBytes = Utilities.SizeOf<UInt4>();
+        public static readonly int SizeInBytes = Unsafe.SizeOf<UInt4>();
 
         /// <summary>
         ///   A <see cref = "UInt4" /> with all of its components set to zero.
@@ -211,7 +212,7 @@ namespace Stride.Core.Mathematics
         /// <param name = "left">The first vector to add.</param>
         /// <param name = "right">The second vector to add.</param>
         /// <param name = "result">When the method completes, contains the sum of the two vectors.</param>
-        public static void Add(ref UInt4 left, ref UInt4 right, out UInt4 result)
+        public static void Add(ref readonly UInt4 left, ref readonly UInt4 right, out UInt4 result)
         {
             result = new UInt4(left.X + right.X, left.Y + right.Y, left.Z + right.Z, left.W + right.W);
         }
@@ -233,7 +234,7 @@ namespace Stride.Core.Mathematics
         /// <param name = "left">The first vector to subtract.</param>
         /// <param name = "right">The second vector to subtract.</param>
         /// <param name = "result">When the method completes, contains the difference of the two vectors.</param>
-        public static void Subtract(ref UInt4 left, ref UInt4 right, out UInt4 result)
+        public static void Subtract(ref readonly UInt4 left, ref readonly UInt4 right, out UInt4 result)
         {
             result = new UInt4(left.X - right.X, left.Y - right.Y, left.Z - right.Z, left.W - right.W);
         }
@@ -255,7 +256,7 @@ namespace Stride.Core.Mathematics
         /// <param name = "value">The vector to scale.</param>
         /// <param name = "scale">The amount by which to scale the vector.</param>
         /// <param name = "result">When the method completes, contains the scaled vector.</param>
-        public static void Multiply(ref UInt4 value, uint scale, out UInt4 result)
+        public static void Multiply(ref readonly UInt4 value, uint scale, out UInt4 result)
         {
             result = new UInt4(value.X * scale, value.Y * scale, value.Z * scale, value.W * scale);
         }
@@ -277,7 +278,7 @@ namespace Stride.Core.Mathematics
         /// <param name = "left">The first vector to modulate.</param>
         /// <param name = "right">The second vector to modulate.</param>
         /// <param name = "result">When the method completes, contains the modulated vector.</param>
-        public static void Modulate(ref UInt4 left, ref UInt4 right, out UInt4 result)
+        public static void Modulate(ref readonly UInt4 left, ref readonly UInt4 right, out UInt4 result)
         {
             result = new UInt4(left.X * right.X, left.Y * right.Y, left.Z * right.Z, left.W * right.W);
         }
@@ -299,7 +300,7 @@ namespace Stride.Core.Mathematics
         /// <param name = "value">The vector to scale.</param>
         /// <param name = "scale">The amount by which to scale the vector.</param>
         /// <param name = "result">When the method completes, contains the scaled vector.</param>
-        public static void Divide(ref UInt4 value, uint scale, out UInt4 result)
+        public static void Divide(ref readonly UInt4 value, uint scale, out UInt4 result)
         {
             result = new UInt4(value.X / scale, value.Y / scale, value.Z / scale, value.W / scale);
         }
@@ -322,7 +323,7 @@ namespace Stride.Core.Mathematics
         /// <param name = "min">The minimum value.</param>
         /// <param name = "max">The maximum value.</param>
         /// <param name = "result">When the method completes, contains the clamped value.</param>
-        public static void Clamp(ref UInt4 value, ref UInt4 min, ref UInt4 max, out UInt4 result)
+        public static void Clamp(ref readonly UInt4 value, ref readonly UInt4 min, ref readonly UInt4 max, out UInt4 result)
         {
             uint x = value.X;
             x = (x > max.X) ? max.X : x;
@@ -363,7 +364,7 @@ namespace Stride.Core.Mathematics
         /// <param name = "left">The first source vector.</param>
         /// <param name = "right">The second source vector.</param>
         /// <param name = "result">When the method completes, contains an new vector composed of the largest components of the source vectors.</param>
-        public static void Max(ref UInt4 left, ref UInt4 right, out UInt4 result)
+        public static void Max(ref readonly UInt4 left, ref readonly UInt4 right, out UInt4 result)
         {
             result.X = (left.X > right.X) ? left.X : right.X;
             result.Y = (left.Y > right.Y) ? left.Y : right.Y;
@@ -390,7 +391,7 @@ namespace Stride.Core.Mathematics
         /// <param name = "left">The first source vector.</param>
         /// <param name = "right">The second source vector.</param>
         /// <param name = "result">When the method completes, contains an new vector composed of the smallest components of the source vectors.</param>
-        public static void Min(ref UInt4 left, ref UInt4 right, out UInt4 result)
+        public static void Min(ref readonly UInt4 left, ref readonly UInt4 right, out UInt4 result)
         {
             result.X = (left.X < right.X) ? left.X : right.X;
             result.Y = (left.Y < right.Y) ? left.Y : right.Y;
@@ -647,6 +648,21 @@ namespace Stride.Core.Mathematics
         public static implicit operator uint[](UInt4 input)
         {
             return input.ToArray();
+        }
+
+        /// <summary>
+        /// Deconstructs the vector's components into named variables.
+        /// </summary>
+        /// <param name="x">The X component</param>
+        /// <param name="y">The Y component</param>
+        /// <param name="z">The Z component</param>
+        /// <param name="w">The W component</param>
+        public void Deconstruct(out uint x, out uint y, out uint z, out uint w)
+        {
+            x = X;
+            y = Y;
+            z = Z;
+            w = W;
         }
     }
 }

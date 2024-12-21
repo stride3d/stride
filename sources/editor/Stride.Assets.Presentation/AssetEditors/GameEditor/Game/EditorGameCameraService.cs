@@ -160,10 +160,10 @@ namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Game
         public virtual void ResetCamera(Vector3 viewDirection)
         {
             var isViewVertical = MathUtil.NearEqual(viewDirection.X, 0) && MathUtil.NearEqual(viewDirection.Z, 0);
-            Yaw = isViewVertical ? 0 : (float)Math.Atan2(-viewDirection.X, -viewDirection.Z);
+            Yaw = isViewVertical ? 0 : MathF.Atan2(-viewDirection.X, -viewDirection.Z);
 
             var horizontalViewDirection = new Vector2(viewDirection.X, viewDirection.Z);
-            Pitch = (float)Math.Atan2(viewDirection.Y, horizontalViewDirection.Length());
+            Pitch = MathF.Atan2(viewDirection.Y, horizontalViewDirection.Length());
         }
 
         public void ResetCamera(CameraOrientation orientation)

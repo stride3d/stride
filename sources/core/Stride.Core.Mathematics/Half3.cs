@@ -23,6 +23,8 @@
 
 using System;
 using System.ComponentModel;
+using System.Globalization;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Stride.Core.Serialization;
 
@@ -38,7 +40,7 @@ namespace Stride.Core.Mathematics
         /// <summary>
         /// The size of the <see cref="Stride.Core.Mathematics.Half3"/> type, in bytes.
         /// </summary>
-        public static readonly int SizeInBytes = Utilities.SizeOf<Half3>();
+        public static readonly int SizeInBytes = Unsafe.SizeOf<Half3>();
 
         /// <summary>
         /// A <see cref="Stride.Core.Mathematics.Half3"/> with all of its components set to zero.
@@ -175,6 +177,18 @@ namespace Stride.Core.Mathematics
         }
 
         /// <summary>
+        /// Returns a <see cref="string"/> that represents this instance.
+        /// </summary>
+        /// <returns>
+        /// A <see cref="string"/> that represents this instance.
+        /// </returns>
+        public override string ToString()
+        {
+            CultureInfo culture = CultureInfo.CurrentCulture;
+            return string.Format(culture, "{0}{1} {2}{1} {3}", X.ToString(), culture.TextInfo.ListSeparator, Y.ToString(), Z.ToString());
+        }
+
+        /// <summary>
         /// Returns the hash code for this instance.
         /// </summary>
         /// <returns>A 32-bit signed integer hash code.</returns>
@@ -192,7 +206,7 @@ namespace Stride.Core.Mathematics
         /// <returns>
         /// <c>true</c> if <paramref name="value1" /> is the same instance as <paramref name="value2" /> or 
         /// if both are <c>null</c> references or if <c>value1.Equals(value2)</c> returns <c>true</c>; otherwise, <c>false</c>.</returns>
-        public static bool Equals(ref Half3 value1, ref Half3 value2)
+        public static bool Equals(ref readonly Half3 value1, ref readonly Half3 value2)
         {
             return (((value1.X == value2.X) && (value1.Y == value2.Y)) && (value1.Z == value2.Z));
         }
@@ -245,6 +259,19 @@ namespace Stride.Core.Mathematics
                 return false;
             }
             return this.Equals((Half3)obj);
+        }
+                        
+        /// <summary>
+        /// Deconstructs the vector's components into named variables.
+        /// </summary>
+        /// <param name="x">The X component</param>
+        /// <param name="y">The Y component</param>
+        /// <param name="z">The Z component</param>
+        public void Deconstruct(out Half x, out Half y, out Half z)
+        {
+            x = X;
+            y = Y;
+            z = Z;
         }
     }
 }

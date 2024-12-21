@@ -1,5 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+using System;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -8,25 +10,26 @@ using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Presentation.Controls;
 using Stride.Assets.Presentation.AssetEditors.SpriteEditor.ViewModels;
-using Stride.Assets.Presentation.ViewModel;
+using Stride.Core.Assets.Editor.Annotations;
 
 namespace Stride.Assets.Presentation.AssetEditors.SpriteEditor.Views
 {
     /// <summary>
     /// Interaction logic for SpriteEditorView.xaml
     /// </summary>
+    [AssetEditorView<SpriteSheetEditorViewModel>]
     public partial class SpriteEditorView : IEditorView
     {
         static SpriteEditorView()
         {
             var executingAssembly = Assembly.GetExecutingAssembly();
             var resources = executingAssembly.GetManifestResourceNames();
-            var stream = executingAssembly.GetManifestResourceStream(resources.First(x => x.EndsWith("ColorPicker.cur")));
+            var stream = executingAssembly.GetManifestResourceStream(resources.First(x => x.EndsWith("ColorPicker.cur", StringComparison.Ordinal)));
             if (stream != null)
             {
                 ColorPickerCursor = new Cursor(stream);
             }
-            stream = executingAssembly.GetManifestResourceStream(resources.First(x => x.EndsWith("MagicWand.cur")));
+            stream = executingAssembly.GetManifestResourceStream(resources.First(x => x.EndsWith("MagicWand.cur", StringComparison.Ordinal)));
             if (stream != null)
             {
                 MagicWandCursor = new Cursor(stream);
@@ -35,7 +38,7 @@ namespace Stride.Assets.Presentation.AssetEditors.SpriteEditor.Views
             ActivateMagicWand = new RoutedCommand("ActivateMagicWand", typeof(SpriteEditorView));
         }
 
-        private readonly TaskCompletionSource<bool> editorInitializationNotifier = new TaskCompletionSource<bool>();
+        private readonly TaskCompletionSource editorInitializationNotifier = new();
 
         public SpriteEditorView()
         {
@@ -64,13 +67,17 @@ namespace Stride.Assets.Presentation.AssetEditors.SpriteEditor.Views
             }
         }
 
-        public async Task<IAssetEditorViewModel> InitializeEditor(AssetViewModel asset)
+        /// <inheritdoc/>
+        public async Task<bool> InitializeEditor(IAssetEditorViewModel editor)
         {
-            var spriteSheet = (SpriteSheetViewModel)asset;
-            var editor = new SpriteSheetEditorViewModel(spriteSheet);
             var result = await editor.Initialize();
-            editorInitializationNotifier.SetResult(result);
-            return editor;
+            if (!result)
+            {
+                editor.Destroy();
+            }
+
+            editorInitializationNotifier.SetResult();
+            return result;
         }
     }
 }

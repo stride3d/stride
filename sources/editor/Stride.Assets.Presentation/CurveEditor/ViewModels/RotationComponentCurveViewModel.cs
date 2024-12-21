@@ -54,7 +54,7 @@ namespace Stride.Assets.Presentation.CurveEditor.ViewModels
                     break;
 
                 case VectorComponent.W:
-                    value.Z = realPoint.Y;
+                    value.W = realPoint.Y;
                     break;
 
                 default:

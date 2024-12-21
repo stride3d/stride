@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
+using System.Runtime.CompilerServices;
 using Stride.Core;
 using Stride.Core.Mathematics;
 
@@ -64,7 +65,7 @@ namespace Stride.Physics
             var heightsLength = heights.Length;
             if (heightStickArrayLength < heightsLength) throw new ArgumentException($"{ nameof(heightStickArray) }.{ nameof(heightStickArray.Length) } is not enough to copy.");
 
-            heightStickArray.Write(heights, index * Utilities.SizeOf<T>(), 0, heightsLength);
+            heightStickArray.Write(heights, index * Unsafe.SizeOf<T>(), 0, heightsLength);
         }
 
         public bool Match(object obj)

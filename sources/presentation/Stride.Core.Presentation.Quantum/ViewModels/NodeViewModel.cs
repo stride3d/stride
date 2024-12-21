@@ -3,22 +3,19 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Dynamic;
 using System.Linq;
 using System.Reflection;
-using System.Windows;
-using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Core.Extensions;
 using Stride.Core.Reflection;
-using Stride.Core.TypeConverters;
 using Stride.Core.Presentation.Collections;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Core;
 using Stride.Core.Presentation.Quantum.Presenters;
-using Stride.Core.Presentation.ViewModel;
+using Stride.Core.Presentation.ViewModels;
 using Stride.Core.Quantum;
+using Stride.Core.TypeConverters;
 using Expression = System.Linq.Expressions.Expression;
 
 namespace Stride.Core.Presentation.Quantum.ViewModels
@@ -40,6 +37,7 @@ namespace Stride.Core.Presentation.Quantum.ViewModels
         private string displayName;
         private bool isHighlighted;
         private bool valueChanging;
+        private readonly (Type declarer, int token)? sortingHint;
 
 #if DEBUG
         private static bool DebugQuantumPropertyChanges = true;
@@ -48,6 +46,8 @@ namespace Stride.Core.Presentation.Quantum.ViewModels
 #endif
 
         public static readonly object DifferentValues = new DifferentValuesObject();
+
+        public static object UnsetValue;
 
         static NodeViewModel()
         {
@@ -71,6 +71,12 @@ namespace Stride.Core.Presentation.Quantum.ViewModels
                 nodePresenter.ValueChanging += ValueChanging;
                 nodePresenter.ValueChanged += ValueChanged;
                 nodePresenter.AttachedProperties.PropertyUpdated += AttachedPropertyUpdated;
+
+                if (nodePresenter is MemberNodePresenter memberNodePresenter)
+                {
+                    var descriptor = memberNodePresenter.MemberDescriptor;
+                    sortingHint = (descriptor.MemberInfo.DeclaringType, descriptor.MemberInfo.MetadataToken);
+                }
             }
 
             UpdateViewModelProperties();
@@ -172,11 +178,18 @@ namespace Stride.Core.Presentation.Quantum.ViewModels
         public MemberInfo MemberInfo => null;
 
         /// <summary>
+        /// Gets whether this node contains a list.
+        /// </summary>
+        /// <remarks>Used mostly for sorting purpose.</remarks>
+        /// <seealso cref="HasList"/>
+        public bool HasList => ListDescriptor.IsList(Type);
+
+        /// <summary>
         /// Gets whether this node contains a collection.
         /// </summary>
         /// <remarks>Used mostly for sorting purpose.</remarks>
         /// <seealso cref="HasDictionary"/>
-        public bool HasCollection => CollectionDescriptor.IsCollection(Type);
+        public bool HasCollection => OldCollectionDescriptor.IsCollection(Type);
 
         /// <summary>
         /// Gets whether this node contains a dictionary.
@@ -184,6 +197,13 @@ namespace Stride.Core.Presentation.Quantum.ViewModels
         /// <remarks>Usually a dictionary is also a collection.</remarks>
         /// <seealso cref="HasCollection"/>
         public bool HasDictionary => DictionaryDescriptor.IsDictionary(Type);
+
+        /// <summary>
+        /// Gets whether this node contains a set.
+        /// </summary>
+        /// <remarks>Usually a set is also a collection.</remarks>
+        /// <seealso cref="HasCollection"/>
+        public bool HasSet => SetDescriptor.IsSet(Type);
 
         /// <summary>
         /// Gets the number of visible children.
@@ -299,7 +319,7 @@ namespace Stride.Core.Presentation.Quantum.ViewModels
         public object GetDynamicObject(string name)
         {
             name = EscapeName(name);
-            return GetChild(name) ?? GetCommand(name) ?? GetAssociatedData(name) ?? DependencyProperty.UnsetValue;
+            return GetChild(name) ?? GetCommand(name) ?? GetAssociatedData(name) ?? UnsetValue;
         }
 
         /// <inheritdoc/>
@@ -396,13 +416,53 @@ namespace Stride.Core.Presentation.Quantum.ViewModels
         protected void CheckDynamicMemberConsistency()
         {
             var memberNames = new HashSet<string>();
+            // We should allow space or empty or null or '.' appear when it's a string key dictionary
+            // And we should allow space or '.' appear when it's a char key dictionary
+            bool freeName = false;
+            bool allowSpCharOnly = false;
+            if (HasDictionary)
+            {
+                foreach (var iType in Type.GetTypeInfo().ImplementedInterfaces)
+                {
+                    var iTypeInfo = iType.GetTypeInfo();
+                    if (iTypeInfo.IsGenericType == false) 
+                        continue;
+                    if (iTypeInfo.GetGenericTypeDefinition() != typeof(IDictionary<,>))
+                        continue;
+                    Type[] genericTypes = iTypeInfo.GetGenericArguments();
+                    if (genericTypes[0] == typeof(string))
+                    {
+                        freeName = true;
+                    }
+                    else if (genericTypes[0] == typeof(char))
+                    {
+                        allowSpCharOnly = true;
+                    }
+                    break;
+                }
+            }
+
             foreach (var child in Children)
             {
-                if (string.IsNullOrWhiteSpace(child.Name))
-                    throw new InvalidOperationException("This node has a child with a null or blank name");
+                if (!freeName)
+                {
+                    if (allowSpCharOnly)
+                    {
+                        if (child.Name == null)
+                            throw new InvalidOperationException("This node has a child with a null name");
+                    }
+                    else
+                    {
+                        if (string.IsNullOrWhiteSpace(child.Name))
+                            throw new InvalidOperationException("This node has a child with a null or blank name");
+                    }
 
-                if (child.Name.Contains('.'))
-                    throw new InvalidOperationException($"This node has a child which contains a period (.) in its name: {child.Name}");
+                    if (!allowSpCharOnly)
+                    {
+                        if (child.Name.Contains('.'))
+                            throw new InvalidOperationException($"This node has a child which contains a period (.) in its name: {child.Name}");
+                    }
+                }
 
                 if (memberNames.Contains(child.Name))
                     throw new InvalidOperationException($"This node contains several members named {child.Name}");
@@ -629,11 +689,12 @@ namespace Stride.Core.Presentation.Quantum.ViewModels
                 return (a.Order ?? 0).CompareTo(b.Order ?? 0);
 
             // Then, try to use metadata token (if members)
-            if (a.MemberInfo != null || b.MemberInfo != null)
+            if (a.sortingHint is var (leftType, leftToken) && b.sortingHint is var (rightType, rightToken))
             {
-                var comparison = a.MemberInfo.CompareMetadataTokenWith(b.MemberInfo);
-                if (comparison != 0)
-                    return comparison;
+                if (leftType == rightType)
+                    return leftToken.CompareTo(rightToken);
+                else
+                    return leftType.IsSubclassOf(rightType) ? 1 : -1;
             }
 
             // Then we use name, only if both orders are unset.

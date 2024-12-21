@@ -32,10 +32,10 @@ namespace Stride.Assets.Presentation.AssetEditors.UIEditor.Game
         public override void ResetCamera(Vector3 viewDirection)
         {
             var isViewVertical = MathUtil.NearEqual(viewDirection.X, 0) && MathUtil.NearEqual(viewDirection.Z, 0);
-            desiredYaw = isViewVertical ? 0 : (float)Math.Atan2(-viewDirection.X, -viewDirection.Z);
+            desiredYaw = isViewVertical ? 0 : MathF.Atan2(-viewDirection.X, -viewDirection.Z);
 
             var horizontalViewDirection = new Vector2(viewDirection.X, viewDirection.Z);
-            desiredPitch = (float)Math.Atan2(viewDirection.Y, horizontalViewDirection.Length());
+            desiredPitch = MathF.Atan2(viewDirection.Y, horizontalViewDirection.Length());
         }
 
         protected override async Task<bool> Initialize(EditorServiceGame editorGame)
@@ -116,8 +116,8 @@ namespace Stride.Assets.Presentation.AssetEditors.UIEditor.Game
 
             // Perform orientation transition
             var rotationAdaptation = (float)Game.UpdateTime.Elapsed.TotalSeconds * RotationAdaptationSpeed;
-            yaw = Math.Abs(deltaYaw) < rotationAdaptation ? desiredYaw : yaw + rotationAdaptation * Math.Sign(deltaYaw);
-            pitch = Math.Abs(deltaPitch) < rotationAdaptation ? desiredPitch : pitch + rotationAdaptation * Math.Sign(deltaPitch);
+            yaw = Math.Abs(deltaYaw) < rotationAdaptation ? desiredYaw : yaw + rotationAdaptation * MathF.Sign(deltaYaw);
+            pitch = Math.Abs(deltaPitch) < rotationAdaptation ? desiredPitch : pitch + rotationAdaptation * MathF.Sign(deltaPitch);
 
             // Compute base vectors for camera movement
             var rotation = Matrix.RotationYawPitchRoll(yaw, pitch, 0);

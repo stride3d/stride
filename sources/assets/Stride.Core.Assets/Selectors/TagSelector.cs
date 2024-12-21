@@ -14,18 +14,10 @@ namespace Stride.Core.Assets.Selectors
     public class TagSelector : AssetSelector
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="TagSelector"/> class.
-        /// </summary>
-        public TagSelector()
-        {
-            Tags = new TagCollection();
-        }
-
-        /// <summary>
         /// Gets the tags that will be used to select an asset.
         /// </summary>
         /// <value>The tags.</value>
-        public TagCollection Tags { get; private set; }
+        public TagCollection Tags { get; } = new TagCollection();
 
         public override IEnumerable<string> Select(PackageSession packageSession, IContentIndexMap contentIndexMap)
         {

@@ -22,7 +22,7 @@ namespace Stride.Rendering.Images
         {
             public void Generate(ShaderMixinSource mixin, ShaderMixinContext context)
             {
-                context.Mixin(mixin, "AmbientOcclusionBlurShader", context.GetParam(AmbientOcclusionBlurKeys.Count), context.GetParam(AmbientOcclusionBlurKeys.VerticalBlur), context.GetParam(AmbientOcclusionBlurKeys.BlurScale), context.GetParam(AmbientOcclusionBlurKeys.EdgeSharpness));
+                context.Mixin(mixin, "AmbientOcclusionBlurShader", context.GetParam(AmbientOcclusionBlurKeys.Count), context.GetParam(AmbientOcclusionBlurKeys.VerticalBlur), context.GetParam(AmbientOcclusionBlurKeys.BlurScale), context.GetParam(AmbientOcclusionBlurKeys.EdgeSharpness), context.GetParam(AmbientOcclusionBlurKeys.IsOrthographic));
             }
 
             [ModuleInitializer]

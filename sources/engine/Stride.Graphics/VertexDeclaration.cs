@@ -64,10 +64,8 @@ namespace Stride.Graphics
         /// Gets the vertex elements.
         /// </summary>
         /// <value>The vertex elements.</value>
-        public VertexElement[] VertexElements
-        {
-            get { return elements; }
-        }
+        [DataMember]
+        public VertexElement[] VertexElements => elements;
 
         /// <summary>
         /// Gets the instance count.
@@ -145,7 +143,11 @@ namespace Stride.Graphics
         {
             if (ReferenceEquals(null, other)) return false;
             if (ReferenceEquals(this, other)) return true;
-            return hashCode == other.hashCode && vertexStride == other.vertexStride && instanceCount == other.instanceCount && Utilities.Compare(elements, other.elements);
+            return
+                hashCode == other.hashCode &&
+                vertexStride == other.vertexStride &&
+                instanceCount == other.instanceCount &&
+                elements.SequenceEqualAllowNull(other.elements);
         }
 
         public override bool Equals(object obj)

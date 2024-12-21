@@ -17,5 +17,7 @@ namespace Stride.Rendering.Images
         public static readonly PermutationParameterKey<float> BlurScale = ParameterKeys.NewPermutation<float>(2f);
 
         public static readonly PermutationParameterKey<float> EdgeSharpness = ParameterKeys.NewPermutation<float>(4f);
+
+        public static readonly PermutationParameterKey<bool> IsOrthographic = ParameterKeys.NewPermutation<bool>();
     }
 }

@@ -49,6 +49,7 @@ TemplateFolders:
         - !file Templates/Assets/Physics/ColliderShapeBox.sdtpl
         - !file Templates/Assets/Physics/ColliderShapeCapsule.sdtpl
         - !file Templates/Assets/Physics/ColliderShapeConvexHull.sdtpl
+        - !file Templates/Assets/Physics/ColliderShapeStatic.sdtpl
         - !file Templates/Assets/Physics/ColliderShapeCylinder.sdtpl
         - !file Templates/Assets/Physics/ColliderShapePlane.sdtpl
         - !file Templates/Assets/Physics/ColliderShapeSphere.sdtpl

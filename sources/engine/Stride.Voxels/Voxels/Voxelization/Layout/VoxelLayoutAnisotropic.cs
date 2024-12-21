@@ -54,9 +54,9 @@ namespace Stride.Rendering.Voxels
         override public void ApplySamplingParameters(VoxelViewContext viewContext, ParameterCollection parameters)
         {
             if (StorageFormat != StorageFormats.RGBA16F)
-                parameters.Set(BrightnessKey, maxBrightness * (float)Math.PI);
+                parameters.Set(BrightnessKey, maxBrightness * MathF.PI);
             else
-                parameters.Set(BrightnessKey, (float)Math.PI);
+                parameters.Set(BrightnessKey, MathF.PI);
 
             storageTex.ApplySamplingParameters(viewContext, parameters);
         }

@@ -74,7 +74,7 @@ namespace Stride.Audio.Tests.Engine
             audio.AddListener(listComp1);
             audio.AddListener(listComp2);
 
-            listComp2Entity.Transform.RotationEulerXYZ = new Vector3((float)Math.PI/2,0,0);
+            listComp2Entity.Transform.RotationEulerXYZ = new Vector3(MathF.PI/2,0,0);
         }
 
         private void EntityPositionUpdate(Game game, int loopCount, int loopCountSum)
@@ -153,7 +153,7 @@ namespace Stride.Audio.Tests.Engine
             BuildEntityHierarchy();
             CreateAndComponentToEntities();
             
-            listComp2Entity.Transform.RotationEulerXYZ = new Vector3((float)Math.PI / 2, 0, 0);
+            listComp2Entity.Transform.RotationEulerXYZ = new Vector3(MathF.PI / 2, 0, 0);
 
             Internal.Refactor.ThrowNotImplementedException("TODO: UPDATE TO USE Scene and Graphics Composer"); 
             // game.Entities.Add(rootEntity);
@@ -260,7 +260,7 @@ namespace Stride.Audio.Tests.Engine
             audio.AddListener(listComp1);
             audio.AddListener(listComp2);
 
-            listComp2Entity.Transform.RotationEulerXYZ = new Vector3((float)Math.PI / 2, 0, 0);
+            listComp2Entity.Transform.RotationEulerXYZ = new Vector3(MathF.PI / 2, 0, 0);
 
             Internal.Refactor.ThrowNotImplementedException("TODO: UPDATE TO USE Scene and Graphics Composer"); 
             //game.Entities.Add(rootEntity);
@@ -401,8 +401,8 @@ namespace Stride.Audio.Tests.Engine
 
             if (loopCount >= 10)
             {
-                listComp1Entity.Transform.RotationEulerXYZ = new Vector3((float)Math.PI / 2, 0, 0);
-                listComp2Entity.Transform.RotationEulerXYZ = new Vector3(0, (float)Math.PI / 2, 0);
+                listComp1Entity.Transform.RotationEulerXYZ = new Vector3(MathF.PI / 2, 0, 0);
+                listComp2Entity.Transform.RotationEulerXYZ = new Vector3(0, MathF.PI / 2, 0);
             }
         }
 

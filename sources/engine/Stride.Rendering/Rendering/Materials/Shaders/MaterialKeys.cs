@@ -127,6 +127,8 @@ namespace Stride.Rendering.Materials
         public static readonly PermutationParameterKey<int> SkinningMaxBones = ParameterKeys.NewPermutation<int>(56);
         
         public static readonly PermutationParameterKey<bool> UsePixelShaderWithDepthPass = ParameterKeys.NewPermutation<bool>();
+        
+        public static readonly PermutationParameterKey<bool> UseDitheredShadows = ParameterKeys.NewPermutation<bool>();
 
         static MaterialKeys()
         {
@@ -135,7 +137,7 @@ namespace Stride.Rendering.Materials
 
         private static void ScaleSpecularPower(ref float specularPower, ref float scaledSpecularPower)
         {
-            scaledSpecularPower = (float)Math.Pow(2.0f, 1.0f + specularPower * 13.0f);
+            scaledSpecularPower = MathF.Pow(2.0f, 1.0f + specularPower * 13.0f);
         }
     }
 }

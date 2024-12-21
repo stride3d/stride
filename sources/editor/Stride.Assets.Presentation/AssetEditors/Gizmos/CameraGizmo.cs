@@ -6,6 +6,7 @@ using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Editor.EditorGame.Game;
 using Stride.Engine;
+using Stride.Engine.Gizmos;
 using Stride.Engine.Processors;
 using Stride.Graphics;
 using Stride.Rendering;
@@ -180,7 +181,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
                     var zDist = i < 4 ? parameters.NearPlane : parameters.FarPlane;
 
                     var y = parameters.ProjectionMode == CameraProjectionMode.Perspective
-                        ? zDist * (float)Math.Tan(MathUtil.DegreesToRadians(parameters.VerticalFov) / 2)
+                        ? zDist * MathF.Tan(MathUtil.DegreesToRadians(parameters.VerticalFov) / 2)
                         : parameters.OrthographicSize / 2f;
 
                     vertex->Position = new Vector3(new Vector2(parameters.AspectRatio*y, y) * offsets[index], -zDist);

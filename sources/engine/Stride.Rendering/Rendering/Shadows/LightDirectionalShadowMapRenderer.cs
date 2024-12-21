@@ -104,7 +104,7 @@ namespace Stride.Rendering.Shadows
         public override LightShadowMapTexture CreateShadowMapTexture(RenderView renderView, RenderLight renderLight, IDirectLight light, int shadowMapSize)
         {
             var shadowMap = base.CreateShadowMapTexture(renderView, renderLight, light, shadowMapSize);
-            shadowMap.CascadeCount = ((LightDirectionalShadowMap)light.Shadow).GetCascadeCount();
+            shadowMap.CascadeCount = ((LightDirectional)light).Shadow.GetCascadeCount();
             // Views with orthographic cameras cannot use cascades, we force it to 1 shadow map here.
             if (renderView.Projection.M44 == 1.0f)
             {
@@ -139,7 +139,7 @@ namespace Stride.Rendering.Shadows
             // TODO: User preference?
             foreach (var vectorUp in VectorUps)
             {
-                if (Math.Abs(Vector3.Dot(direction, vectorUp)) < (1.0 - 0.0001))
+                if (MathF.Abs(Vector3.Dot(direction, vectorUp)) < (1.0 - 0.0001))
                 {
                     side = Vector3.Normalize(Vector3.Cross(vectorUp, direction));
                     upDirection = Vector3.Normalize(Vector3.Cross(direction, side));
@@ -221,9 +221,10 @@ namespace Stride.Rendering.Shadows
                     {
                         // Snap camera to texel units (so that shadow doesn't jitter when light doesn't change direction but camera is moving)
                         // Technique from ShaderX7 - Practical Cascaded Shadows Maps -  p310-311
-                        var shadowMapHalfSize = lightShadowMap.Size * 0.5f;
-                        float x = (float)Math.Ceiling(Vector3.Dot(target, upDirection) * shadowMapHalfSize / radius) * radius / shadowMapHalfSize;
-                        float y = (float)Math.Ceiling(Vector3.Dot(target, side) * shadowMapHalfSize / radius) * radius / shadowMapHalfSize;
+                        // 0.25f to stabilize the 4x4 dithered shadow pattern
+                        var snappingFactor = lightShadowMap.Size * 0.5f * 0.25f / radius;
+                        float x = MathF.Ceiling(Vector3.Dot(target, upDirection) * snappingFactor) / snappingFactor;
+                        float y = MathF.Ceiling(Vector3.Dot(target, side) * snappingFactor) / snappingFactor;
                         float z = Vector3.Dot(target, direction);
 
                         //target = up * x + side * y + direction * R32G32B32_Float.Dot(target, direction);
@@ -264,7 +265,7 @@ namespace Stride.Rendering.Shadows
                 {
                     var shadowPixelPosition = viewProjectionMatrix.TranslationVector * lightShadowMap.Size * 0.5f; // shouln't it be scale and not translation ?
                     shadowPixelPosition.Z = 0;
-                    var shadowPixelPositionRounded = new Vector3((float)Math.Round(shadowPixelPosition.X), (float)Math.Round(shadowPixelPosition.Y), 0.0f);
+                    var shadowPixelPositionRounded = new Vector3(MathF.Round(shadowPixelPosition.X), MathF.Round(shadowPixelPosition.Y), 0.0f);
 
                     var shadowPixelOffset = new Vector4(shadowPixelPositionRounded - shadowPixelPosition, 0.0f);
                     shadowPixelOffset *= 2.0f / lightShadowMap.Size;

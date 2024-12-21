@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Core.Settings;
 
@@ -93,6 +92,7 @@ namespace Stride.Core.Assets.Editor.Components.Properties
 
         internal bool HasExecutables { get; set; }
 
+        [DataMember]
         [MemberCollection(ReadOnly = true)]
         [Category]
         [NonIdentifiableCollectionItems]

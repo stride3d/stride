@@ -97,7 +97,7 @@ namespace Stride.Core.Assets.Tests
             var folder = project.AssetFolders.FirstOrDefault();
             Assert.NotNull(folder);
             Assert.NotNull(folder.Path);
-            Assert.NotNull(folder.Path.IsAbsolute);
+            Assert.True(folder.Path.IsAbsolute);
 
             // Save project back to disk on a different location
             project.FullPath = Path.Combine(DirectoryTestBase, @"TestPackage2\TestPackage2.sdpkg");

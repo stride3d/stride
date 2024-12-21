@@ -19,7 +19,7 @@ namespace Stride.LauncherApp.Resources {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     public class Urls {
@@ -88,7 +88,7 @@ namespace Stride.LauncherApp.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to https://forums.stride3d.net/.
+        ///   Looks up a localized string similar to https://github.com/stride3d/stride/discussions.
         /// </summary>
         public static string Forums {
             get {
@@ -124,11 +124,11 @@ namespace Stride.LauncherApp.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to https://www.patreon.com/stride3d.
+        ///   Looks up a localized string similar to https://opencollective.com/stride3d.
         /// </summary>
-        public static string Patreon {
+        public static string OpenCollective {
             get {
-                return ResourceManager.GetString("Patreon", resourceCulture);
+                return ResourceManager.GetString("OpenCollective", resourceCulture);
             }
         }
         
@@ -142,7 +142,7 @@ namespace Stride.LauncherApp.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to https://github.com/stride3d/stride/projects/3.
+        ///   Looks up a localized string similar to https://opencollective.com/stride3d/projects.
         /// </summary>
         public static string Roadmap {
             get {
@@ -169,11 +169,20 @@ namespace Stride.LauncherApp.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to https://twitter.com/stridedotnet.
+        ///   Looks up a localized string similar to https://visualstudio.microsoft.com/downloads.
         /// </summary>
-        public static string Twitter {
+        public static string VisualStudio {
             get {
-                return ResourceManager.GetString("Twitter", resourceCulture);
+                return ResourceManager.GetString("VisualStudio", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to https://x.com/stridedotnet.
+        /// </summary>
+        public static string XTwitter {
+            get {
+                return ResourceManager.GetString("XTwitter", resourceCulture);
             }
         }
     }

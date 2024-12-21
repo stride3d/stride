@@ -96,18 +96,6 @@ namespace FreeImageAPI.Plugins
 		private InitProc initProc;
 
 		/// <summary>
-		/// The format id assiged to the plugin.
-		/// </summary>
-		[DebuggerBrowsable(DebuggerBrowsableState.Never)]
-		protected FREE_IMAGE_FORMAT format = FREE_IMAGE_FORMAT.FIF_UNKNOWN;
-
-		/// <summary>
-		/// When true the plugin was registered successfully else false.
-		/// </summary>
-		[DebuggerBrowsable(DebuggerBrowsableState.Never)]
-		protected readonly bool registered = false;
-
-		/// <summary>
 		/// A copy of the functions used to register.
 		/// </summary>
 		[DebuggerBrowsable(DebuggerBrowsableState.Never)]
@@ -345,8 +333,8 @@ namespace FreeImageAPI.Plugins
 			initProc = new InitProc(RegisterProc);
 
 			// Register the plugin. The result will be saved and can be accessed later.
-			registered = FreeImage.RegisterLocalPlugin(initProc, null, null, null, null) != FREE_IMAGE_FORMAT.FIF_UNKNOWN;
-			if (registered)
+			Registered = FreeImage.RegisterLocalPlugin(initProc, null, null, null, null) != FREE_IMAGE_FORMAT.FIF_UNKNOWN;
+			if (Registered)
 			{
 				PluginRepository.RegisterLocalPlugin(this);
 			}
@@ -357,7 +345,7 @@ namespace FreeImageAPI.Plugins
 			// Copy the function pointers
 			plugin = this.plugin;
 			// Retrieve the format if assigned to this plugin by FreeImage.
-			format = (FREE_IMAGE_FORMAT)format_id;
+			Format = (FREE_IMAGE_FORMAT)format_id;
 		}
 
 		/// <summary>
@@ -367,20 +355,18 @@ namespace FreeImageAPI.Plugins
 		{
 			get
 			{
-				if (registered)
+				if (Registered)
 				{
-					return (FreeImage.IsPluginEnabled(format) > 0);
+					return (FreeImage.IsPluginEnabled(Format) > 0);
 				}
-				else
-				{
-					throw new ObjectDisposedException("plugin not registered");
-				}
+
+				throw new ObjectDisposedException("plugin not registered");
 			}
 			set
 			{
-				if (registered)
+				if (Registered)
 				{
-					FreeImage.SetPluginEnabled(format, value);
+					FreeImage.SetPluginEnabled(Format, value);
 				}
 				else
 				{
@@ -390,23 +376,16 @@ namespace FreeImageAPI.Plugins
 		}
 
 		/// <summary>
+		/// When true the plugin was registered successfully else false.
 		/// Gets if the plugin was registered successfully.
 		/// </summary>
-		public bool Registered
-		{
-			get { return registered; }
-		}
+		public bool Registered { get; }
 
 		/// <summary>
+		/// The format id assiged to the plugin.
 		/// Gets the <see cref="FREE_IMAGE_FORMAT"/> FreeImage assigned to this plugin.
 		/// </summary>
-		public FREE_IMAGE_FORMAT Format
-		{
-			get
-			{
-				return format;
-			}
-		}
+		public FREE_IMAGE_FORMAT Format { get; protected set; } = FREE_IMAGE_FORMAT.FIF_UNKNOWN;
 
 		/// <summary>
 		/// Reads from an unmanaged stream.

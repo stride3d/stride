@@ -2,8 +2,8 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #if STRIDE_GRAPHICS_API_DIRECT3D12
 using System;
+using System.Runtime.CompilerServices;
 using SharpDX.Direct3D12;
-using Stride.Core;
 
 namespace Stride.Graphics
 {
@@ -26,17 +26,17 @@ namespace Stride.Graphics
                 var mappedData = readbackBuffer.Map(0);
                 fixed (long* dataPointer = &dataArray[0])
                 {
-                    Utilities.CopyMemory(new IntPtr(dataPointer), mappedData, QueryCount * 8);
+                    Unsafe.CopyBlockUnaligned(dataPointer, (void*) mappedData, (uint) QueryCount * 8);
                 }
-                readbackBuffer.Unmap(0);
+                readbackBuffer.Unmap(subresource: 0);
                 return true;
             }
 
             // Otherwise, queue readback
             var commandList = GraphicsDevice.NativeCopyCommandList;
 
-            commandList.Reset(GraphicsDevice.NativeCopyCommandAllocator, null);
-            commandList.ResolveQueryData(NativeQueryHeap, SharpDX.Direct3D12.QueryType.Timestamp, 0, QueryCount, readbackBuffer, 0);
+            commandList.Reset(GraphicsDevice.NativeCopyCommandAllocator, initialStateRef: null);
+            commandList.ResolveQueryData(NativeQueryHeap, SharpDX.Direct3D12.QueryType.Timestamp, startIndex: 0, QueryCount, readbackBuffer, alignedDestinationBufferOffset: 0);
             commandList.Close();
 
             GraphicsDevice.NativeCommandQueue.ExecuteCommandList(GraphicsDevice.NativeCopyCommandList);
@@ -58,7 +58,7 @@ namespace Stride.Graphics
                 default:
                     throw new NotImplementedException();
             }
-           
+
             NativeQueryHeap = NativeDevice.CreateQueryHeap(description);
             readbackBuffer = NativeDevice.CreateCommittedResource(new HeapProperties(HeapType.Readback), HeapFlags.None, ResourceDescription.Buffer(QueryCount * 8), ResourceStates.CopyDestination);
             readbackFence = NativeDevice.CreateFence(0, FenceFlags.None);

@@ -5,36 +5,21 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
-using OpenTK.Graphics;
 using Stride.Core;
 using Stride.Core.Collections;
 using Stride.Core.Diagnostics;
 using Stride.Core.Extensions;
 using Stride.Core.Serialization;
 using Stride.Shaders;
-#if STRIDE_GRAPHICS_API_OPENGLES
-using OpenTK.Graphics.ES30;
-#else
-using OpenTK.Graphics.OpenGL;
-#endif
-
 
 namespace Stride.Graphics
 {
     class EffectProgram : GraphicsResourceBase
     {
-#if STRIDE_GRAPHICS_API_OPENGLES
-        // The ProgramParameter.ActiveUniformBlocks enum is not defined in OpenTK for OpenGL ES
-        private const GetProgramParameterName XkActiveUniformBlocks = (GetProgramParameterName)0x8A36;
-        private const ActiveUniformType FloatMat3x2 = (ActiveUniformType)0x8B67;
-#else
-        private const GetProgramParameterName XkActiveUniformBlocks = GetProgramParameterName.ActiveUniformBlocks;
-        private const ActiveUniformType FloatMat3x2 = ActiveUniformType.FloatMat3x2;
-#endif
-
-        internal int ProgramId;
+        internal uint ProgramId;
 
         const string VertexShaderDepthClamp = @"
 out float _edc_z;
@@ -71,7 +56,7 @@ void main()
         // Fake cbuffer emulation binding
         internal struct Uniform
         {
-            public ActiveUniformType Type;
+            public UniformType Type;
             public int UniformIndex;
             public int ConstantBufferSlot;
             public int Offset;
@@ -178,7 +163,7 @@ void main()
                     GL.CompileShader(shaderId);
 
                     int compileStatus;
-                    GL.GetShader(shaderId, ShaderParameter.CompileStatus, out compileStatus);
+                    GL.GetShader(shaderId, ShaderParameterName.CompileStatus, out compileStatus);
                     if (compileStatus != 1)
                     {
                         var glErrorMessage = GL.GetShaderInfoLog(shaderId);
@@ -190,7 +175,7 @@ void main()
 
 #if !STRIDE_GRAPHICS_API_OPENGLES
                 // Mark program as retrievable (necessary for later GL.GetProgramBinary).
-                GL.ProgramParameter(ProgramId, ProgramParameterName.ProgramBinaryRetrievableHint, 1);
+                GL.ProgramParameter(ProgramId, ProgramParameterPName.ProgramBinaryRetrievableHint, 1);
 #endif
 
                 // Link OpenGL program
@@ -198,7 +183,7 @@ void main()
 
                 // Check link results
                 int linkStatus;
-                GL.GetProgram(ProgramId, GetProgramParameterName.LinkStatus, out linkStatus);
+                GL.GetProgram(ProgramId, ProgramPropertyARB.LinkStatus, out linkStatus);
                 if (linkStatus != 1)
                 {
                     var infoLog = GL.GetProgramInfoLog(ProgramId);
@@ -209,13 +194,11 @@ void main()
                 {
                     // Build attributes list for shader signature
                     int activeAttribCount;
-                    GL.GetProgram(ProgramId, GetProgramParameterName.ActiveAttributes, out activeAttribCount);
+                    GL.GetProgram(ProgramId, ProgramPropertyARB.ActiveAttributes, out activeAttribCount);
 
-                    for (int activeAttribIndex = 0; activeAttribIndex < activeAttribCount; ++activeAttribIndex)
+                    for (uint activeAttribIndex = 0; activeAttribIndex < activeAttribCount; ++activeAttribIndex)
                     {
-                        int size;
-                        ActiveAttribType type;
-                        var attribName = GL.GetActiveAttrib(ProgramId, activeAttribIndex, out size, out type);
+                        var attribName = GL.GetActiveAttrib(ProgramId, activeAttribIndex, out var size, out var type);
                         var attribIndex = GL.GetAttribLocation(ProgramId, attribName);
                         Attributes.Add(attribName, attribIndex);
                     }
@@ -264,21 +247,13 @@ void main()
             GL.UseProgram(ProgramId);
 
             int uniformBlockCount;
-            GL.GetProgram(ProgramId, XkActiveUniformBlocks, out uniformBlockCount);
+            GL.GetProgram(ProgramId, ProgramPropertyARB.ActiveUniformBlocks, out uniformBlockCount);
 
             var validConstantBuffers = new bool[effectReflection.ConstantBuffers.Count];
-            for (int uniformBlockIndex = 0; uniformBlockIndex < uniformBlockCount; ++uniformBlockIndex)
+            for (uint uniformBlockIndex = 0; uniformBlockIndex < uniformBlockCount; ++uniformBlockIndex)
             {
                 // TODO: get previous name to find te actual constant buffer in the reflexion
-#if STRIDE_GRAPHICS_API_OPENGLES
-                const int sbCapacity = 128;
-                int length;
-                var sb = new StringBuilder(sbCapacity);
-                GL.GetActiveUniformBlockName(ProgramId, uniformBlockIndex, sbCapacity, out length, sb);
-                var constantBufferName = sb.ToString();
-#else
-                var constantBufferName = GL.GetActiveUniformBlockName(ProgramId, uniformBlockIndex);
-#endif
+                GL.GetActiveUniformBlockName(ProgramId, uniformBlockIndex, 1024, out var constantBufferNameLength, out string constantBufferName);
 
                 var constantBufferDescriptionIndex = effectReflection.ConstantBuffers.FindIndex(x => x.Name == constantBufferName);
                 if (constantBufferDescriptionIndex == -1)
@@ -296,37 +271,30 @@ void main()
                 var constantBufferDescription = effectReflection.ConstantBuffers[constantBufferDescriptionIndex];
                 var constantBuffer = effectReflection.ResourceBindings[constantBufferIndex];
 
-                GL.GetActiveUniformBlock(ProgramId, uniformBlockIndex, ActiveUniformBlockParameter.UniformBlockDataSize, out constantBufferDescription.Size);
+                GL.GetActiveUniformBlock(ProgramId, uniformBlockIndex, UniformBlockPName.UniformBlockDataSize, out constantBufferDescription.Size);
                 
                 int uniformCount;
-                GL.GetActiveUniformBlock(ProgramId, uniformBlockIndex, ActiveUniformBlockParameter.UniformBlockActiveUniforms, out uniformCount);
+                GL.GetActiveUniformBlock(ProgramId, uniformBlockIndex, UniformBlockPName.UniformBlockActiveUniforms, out uniformCount);
 
                 // set the binding
                 GL.UniformBlockBinding(ProgramId, uniformBlockIndex, uniformBlockIndex);
 
                 // Read uniforms desc
-                var uniformIndices = new int[uniformCount];
+                var uniformIndices = new uint[uniformCount];
                 var uniformOffsets = new int[uniformCount];
                 var uniformTypes = new int[uniformCount];
                 var uniformNames = new string[uniformCount];
-                GL.GetActiveUniformBlock(ProgramId, uniformBlockIndex, ActiveUniformBlockParameter.UniformBlockActiveUniformIndices, uniformIndices);
-                GL.GetActiveUniforms(ProgramId, uniformIndices.Length, uniformIndices, ActiveUniformParameter.UniformOffset, uniformOffsets);
-                GL.GetActiveUniforms(ProgramId, uniformIndices.Length, uniformIndices, ActiveUniformParameter.UniformType, uniformTypes);
+                GL.GetActiveUniformBlock(ProgramId, uniformBlockIndex, UniformBlockPName.UniformBlockActiveUniformIndices, MemoryMarshal.Cast<uint, int>(uniformIndices.AsSpan()));
+                GL.GetActiveUniforms(ProgramId, (uint)uniformIndices.Length, uniformIndices, UniformPName.UniformOffset, uniformOffsets);
+                GL.GetActiveUniforms(ProgramId, (uint)uniformIndices.Length, uniformIndices, UniformPName.UniformType, uniformTypes);
                 
                 for (int uniformIndex = 0; uniformIndex < uniformIndices.Length; ++uniformIndex)
                 {
-#if STRIDE_GRAPHICS_API_OPENGLES
-                    int size;
-                    ActiveUniformType aut;
-                    GL.GetActiveUniform(ProgramId, uniformIndices[uniformIndex], sbCapacity, out length, out size, out aut, sb);
-                    uniformNames[uniformIndex] = sb.ToString();
-#else
-                    uniformNames[uniformIndex] = GL.GetActiveUniformName(ProgramId, uniformIndices[uniformIndex]);
-#endif
+                    uniformNames[uniformIndex] = GL.GetActiveUniform(ProgramId, uniformIndices[uniformIndex], out var uniformSize, out var uniformType);
                 }
 
                 // Reoder by offset
-                var indexMapping = uniformIndices.Select((x, i) => new UniformMergeInfo { Offset = uniformOffsets[i], Type = (ActiveUniformType)uniformTypes[i], Name = uniformNames[i], NextOffset = 0 }).OrderBy(x => x.Offset).ToArray();
+                var indexMapping = uniformIndices.Select((x, i) => new UniformMergeInfo { Offset = uniformOffsets[i], Type = (UniformType)uniformTypes[i], Name = uniformNames[i], NextOffset = 0 }).OrderBy(x => x.Offset).ToArray();
                 indexMapping.Last().NextOffset = constantBufferDescription.Size;
 
                 // Fill next offsets
@@ -390,7 +358,7 @@ void main()
                 constantBufferDescription.Type = ConstantBufferType.ConstantBuffer;
 
                 constantBuffer.SlotCount = 1; // constant buffers are not arrays
-                constantBuffer.SlotStart = uniformBlockIndex;
+                constantBuffer.SlotStart = (int)uniformBlockIndex;
                 constantBuffer.Stage = stage;
 
                 // store the new values
@@ -410,10 +378,13 @@ void main()
                 Reflection.ResourceBindings.Add(noSampler);
 
                 int activeUniformCount;
-                GL.GetProgram(ProgramId, GetProgramParameterName.ActiveUniforms, out activeUniformCount);
+                GL.GetProgram(ProgramId, ProgramPropertyARB.ActiveUniforms, out activeUniformCount);
 #if !STRIDE_GRAPHICS_API_OPENGLES
                 var uniformTypes = new int[activeUniformCount];
-                GL.GetActiveUniforms(ProgramId, activeUniformCount, Enumerable.Range(0, activeUniformCount).ToArray(), ActiveUniformParameter.UniformType, uniformTypes);
+                var uniformIndices = new uint[activeUniformCount];
+                for (uint i = 0; i < uniformIndices.Length; ++i)
+                    uniformIndices[i] = i;
+                GL.GetActiveUniforms(ProgramId, (uint)activeUniformCount, uniformIndices, UniformPName.UniformType, uniformTypes);
 #endif
 
                 int textureUnitCount = 0;
@@ -421,18 +392,11 @@ void main()
                 const int sbCapacity = 128;
                 var sb = new StringBuilder(sbCapacity);
 
-                for (int activeUniformIndex = 0; activeUniformIndex < activeUniformCount; ++activeUniformIndex)
+                for (uint activeUniformIndex = 0; activeUniformIndex < activeUniformCount; ++activeUniformIndex)
                 {
-#if !STRIDE_GRAPHICS_API_OPENGLES
-                    var uniformType = (ActiveUniformType)uniformTypes[activeUniformIndex];
-                    var uniformName = GL.GetActiveUniformName(ProgramId, activeUniformIndex);
-#else
-                    ActiveUniformType uniformType;
-                    int uniformCount;
-                    int length;
-                    GL.GetActiveUniform(ProgramId, activeUniformIndex, sbCapacity, out length, out uniformCount, out uniformType, sb);
-                    var uniformName = sb.ToString();
+                    var uniformName = GL.GetActiveUniform(ProgramId, activeUniformIndex, out var uniformCount, out var uniformType);
 
+#if STRIDE_GRAPHICS_API_OPENGLES
                     //this is a special OpenglES case , it is declared as built in uniform, and the driver will take care of it, we just need to ignore it here
                     if (uniformName.StartsWith("gl_DepthRange"))
                     {
@@ -442,26 +406,24 @@ void main()
 
                     switch (uniformType)
                     {
-#if !STRIDE_GRAPHICS_API_OPENGLES
-                        case ActiveUniformType.Sampler1D:
-                        case ActiveUniformType.Sampler1DShadow:
-                        case ActiveUniformType.IntSampler1D:
-                        case ActiveUniformType.UnsignedIntSampler1D:
+                        case UniformType.Sampler1D:
+                        case UniformType.Sampler1DShadow:
+                        case UniformType.IntSampler1D:
+                        case UniformType.UnsignedIntSampler1D:
 
-                        case ActiveUniformType.SamplerBuffer:
-                        case ActiveUniformType.UnsignedIntSamplerBuffer:
-                        case ActiveUniformType.IntSamplerBuffer:
-#endif
-                        case ActiveUniformType.Sampler2D:
-                        case ActiveUniformType.Sampler2DShadow:
-                        case ActiveUniformType.Sampler3D: // TODO: remove Texture3D that is not available in OpenGL ES 2
-                        case ActiveUniformType.SamplerCube:
-                        case ActiveUniformType.IntSampler2D:
-                        case ActiveUniformType.IntSampler3D:
-                        case ActiveUniformType.IntSamplerCube:
-                        case ActiveUniformType.UnsignedIntSampler2D:
-                        case ActiveUniformType.UnsignedIntSampler3D:
-                        case ActiveUniformType.UnsignedIntSamplerCube:
+                        case UniformType.SamplerBuffer:
+                        case UniformType.UnsignedIntSamplerBuffer:
+                        case UniformType.IntSamplerBuffer:
+                        case UniformType.Sampler2D:
+                        case UniformType.Sampler2DShadow:
+                        case UniformType.Sampler3D: // TODO: remove Texture3D that is not available in OpenGL ES 2
+                        case UniformType.SamplerCube:
+                        case UniformType.IntSampler2D:
+                        case UniformType.IntSampler3D:
+                        case UniformType.IntSamplerCube:
+                        case UniformType.UnsignedIntSampler2D:
+                        case UniformType.UnsignedIntSampler3D:
+                        case UniformType.UnsignedIntSamplerCube:
                             var uniformIndex = GL.GetUniformLocation(ProgramId, uniformName);
 
                             // Temporary way to scan which texture and sampler created this texture_sampler variable (to fix with new HLSL2GLSL converter)
@@ -531,7 +493,7 @@ void main()
                 effectReflection.ConstantBuffers = effectReflection.ConstantBuffers.Where((cb, i) => validConstantBuffers[i]).ToList();
             }
 
-            GL.UseProgram(currentProgram);
+            GL.UseProgram((uint)currentProgram);
         }
 
         /// <summary>
@@ -554,86 +516,86 @@ void main()
             return index;
         }
 
-        private static int GetCountFromActiveUniformType(ActiveUniformType type)
+        private static int GetCountFromActiveUniformType(UniformType type)
         {
             switch (type)
             {
-                case ActiveUniformType.Int:
-                case ActiveUniformType.Float:
-                case ActiveUniformType.Bool:
+                case UniformType.Int:
+                case UniformType.Float:
+                case UniformType.Bool:
                     return 1;
-                case ActiveUniformType.IntVec2:
-                case ActiveUniformType.UnsignedIntVec2:
-                case ActiveUniformType.FloatVec2:
-                case ActiveUniformType.BoolVec2:
+                case UniformType.IntVec2:
+                case UniformType.UnsignedIntVec2:
+                case UniformType.FloatVec2:
+                case UniformType.BoolVec2:
                     return 2;
-                case ActiveUniformType.IntVec3:
-                case ActiveUniformType.UnsignedIntVec3:
-                case ActiveUniformType.FloatVec3:
-                case ActiveUniformType.BoolVec3:
+                case UniformType.IntVec3:
+                case UniformType.UnsignedIntVec3:
+                case UniformType.FloatVec3:
+                case UniformType.BoolVec3:
                     return 3;
-                case ActiveUniformType.IntVec4:
-                case ActiveUniformType.UnsignedIntVec4:
-                case ActiveUniformType.FloatVec4:
-                case ActiveUniformType.BoolVec4:
-                case ActiveUniformType.FloatMat2:
+                case UniformType.IntVec4:
+                case UniformType.UnsignedIntVec4:
+                case UniformType.FloatVec4:
+                case UniformType.BoolVec4:
+                case UniformType.FloatMat2:
                     return 4;
-                case ActiveUniformType.FloatMat2x3:
-                case FloatMat3x2:
+                case UniformType.FloatMat2x3:
+                case UniformType.FloatMat3x2:
                     return 6;
-                case ActiveUniformType.FloatMat2x4:
-                case ActiveUniformType.FloatMat4x2:
+                case UniformType.FloatMat2x4:
+                case UniformType.FloatMat4x2:
                     return 8;
-                case ActiveUniformType.FloatMat3:
+                case UniformType.FloatMat3:
                     return 9;
-                case ActiveUniformType.FloatMat3x4:
-                case ActiveUniformType.FloatMat4x3:
+                case UniformType.FloatMat3x4:
+                case UniformType.FloatMat4x3:
                     return 12;
-                case ActiveUniformType.FloatMat4:
+                case UniformType.FloatMat4:
                     return 16;
                 
-                case ActiveUniformType.Sampler2D:
-                case ActiveUniformType.SamplerCube:
-                case ActiveUniformType.Sampler3D:
-                case ActiveUniformType.Sampler2DShadow:
-                case ActiveUniformType.SamplerCubeShadow:
-                case ActiveUniformType.IntSampler2D:
-                case ActiveUniformType.IntSampler3D:
-                case ActiveUniformType.IntSamplerCube:
-                case ActiveUniformType.UnsignedIntSampler2D:
-                case ActiveUniformType.UnsignedIntSampler3D:
-                case ActiveUniformType.UnsignedIntSamplerCube:
-                case ActiveUniformType.Sampler2DArray:
-                case ActiveUniformType.Sampler2DArrayShadow:
-                case ActiveUniformType.IntSampler2DArray:
-                case ActiveUniformType.UnsignedIntSampler2DArray:
+                case UniformType.Sampler2D:
+                case UniformType.SamplerCube:
+                case UniformType.Sampler3D:
+                case UniformType.Sampler2DShadow:
+                case UniformType.SamplerCubeShadow:
+                case UniformType.IntSampler2D:
+                case UniformType.IntSampler3D:
+                case UniformType.IntSamplerCube:
+                case UniformType.UnsignedIntSampler2D:
+                case UniformType.UnsignedIntSampler3D:
+                case UniformType.UnsignedIntSamplerCube:
+                case UniformType.Sampler2DArray:
+                case UniformType.Sampler2DArrayShadow:
+                case UniformType.IntSampler2DArray:
+                case UniformType.UnsignedIntSampler2DArray:
 #if !STRIDE_GRAPHICS_API_OPENGLES
-                case ActiveUniformType.Sampler1D:
-                case ActiveUniformType.Sampler1DShadow:
-                case ActiveUniformType.Sampler2DRect:
-                case ActiveUniformType.Sampler2DRectShadow:
-                case ActiveUniformType.IntSampler1D:
-                case ActiveUniformType.IntSampler2DRect:
-                case ActiveUniformType.UnsignedIntSampler1D:
-                case ActiveUniformType.UnsignedIntSampler2DRect:
-                case ActiveUniformType.Sampler1DArray:
-                case ActiveUniformType.Sampler1DArrayShadow:
-                case ActiveUniformType.IntSampler1DArray:
-                case ActiveUniformType.UnsignedIntSampler1DArray:
+                case UniformType.Sampler1D:
+                case UniformType.Sampler1DShadow:
+                case UniformType.Sampler2DRect:
+                case UniformType.Sampler2DRectShadow:
+                case UniformType.IntSampler1D:
+                case UniformType.IntSampler2DRect:
+                case UniformType.UnsignedIntSampler1D:
+                case UniformType.UnsignedIntSampler2DRect:
+                case UniformType.Sampler1DArray:
+                case UniformType.Sampler1DArrayShadow:
+                case UniformType.IntSampler1DArray:
+                case UniformType.UnsignedIntSampler1DArray:
 #endif
                     return 1;
 #if !STRIDE_GRAPHICS_API_OPENGLES
-                case ActiveUniformType.SamplerBuffer:
-                case ActiveUniformType.IntSamplerBuffer:
-                case ActiveUniformType.UnsignedIntSamplerBuffer:
+                case UniformType.SamplerBuffer:
+                case UniformType.IntSamplerBuffer:
+                case UniformType.UnsignedIntSamplerBuffer:
                     return 1;
-                case ActiveUniformType.Sampler2DMultisample:
-                case ActiveUniformType.IntSampler2DMultisample:
-                case ActiveUniformType.UnsignedIntSampler2DMultisample:
+                case UniformType.Sampler2DMultisample:
+                case UniformType.IntSampler2DMultisample:
+                case UniformType.UnsignedIntSampler2DMultisample:
                     return 1;
-                case ActiveUniformType.Sampler2DMultisampleArray:
-                case ActiveUniformType.IntSampler2DMultisampleArray:
-                case ActiveUniformType.UnsignedIntSampler2DMultisampleArray:
+                case UniformType.Sampler2DMultisampleArray:
+                case UniformType.IntSampler2DMultisampleArray:
+                case UniformType.UnsignedIntSampler2DMultisampleArray:
 #endif
                     return 1;
                 default:
@@ -642,76 +604,76 @@ void main()
             }
         }
 
-        private static EffectParameterClass GetClassFromActiveUniformType(ActiveUniformType type)
+        private static EffectParameterClass GetClassFromActiveUniformType(UniformType type)
         {
             switch (type)
             {
-                case ActiveUniformType.Int:
-                case ActiveUniformType.Float:
-                case ActiveUniformType.Bool:
+                case UniformType.Int:
+                case UniformType.Float:
+                case UniformType.Bool:
                     return EffectParameterClass.Scalar;
-                case ActiveUniformType.FloatVec2:
-                case ActiveUniformType.FloatVec3:
-                case ActiveUniformType.FloatVec4:
-                case ActiveUniformType.IntVec2:
-                case ActiveUniformType.IntVec3:
-                case ActiveUniformType.IntVec4:
-                case ActiveUniformType.BoolVec2:
-                case ActiveUniformType.BoolVec3:
-                case ActiveUniformType.BoolVec4:
-                case ActiveUniformType.UnsignedIntVec2:
-                case ActiveUniformType.UnsignedIntVec3:
-                case ActiveUniformType.UnsignedIntVec4:
+                case UniformType.FloatVec2:
+                case UniformType.FloatVec3:
+                case UniformType.FloatVec4:
+                case UniformType.IntVec2:
+                case UniformType.IntVec3:
+                case UniformType.IntVec4:
+                case UniformType.BoolVec2:
+                case UniformType.BoolVec3:
+                case UniformType.BoolVec4:
+                case UniformType.UnsignedIntVec2:
+                case UniformType.UnsignedIntVec3:
+                case UniformType.UnsignedIntVec4:
                     return EffectParameterClass.Vector;
-                case ActiveUniformType.FloatMat2:
-                case ActiveUniformType.FloatMat3:
-                case ActiveUniformType.FloatMat4:
-                case ActiveUniformType.FloatMat2x3:
-                case ActiveUniformType.FloatMat2x4:
-                case FloatMat3x2:
-                case ActiveUniformType.FloatMat3x4:
-                case ActiveUniformType.FloatMat4x2:
-                case ActiveUniformType.FloatMat4x3:
+                case UniformType.FloatMat2:
+                case UniformType.FloatMat3:
+                case UniformType.FloatMat4:
+                case UniformType.FloatMat2x3:
+                case UniformType.FloatMat2x4:
+                case UniformType.FloatMat3x2:
+                case UniformType.FloatMat3x4:
+                case UniformType.FloatMat4x2:
+                case UniformType.FloatMat4x3:
                     return EffectParameterClass.MatrixColumns;
                     //return EffectParameterClass.MatrixRows;
                     //return EffectParameterClass.Vector;
-                case ActiveUniformType.Sampler2D:
-                case ActiveUniformType.SamplerCube:
-                case ActiveUniformType.Sampler3D:
-                case ActiveUniformType.Sampler2DShadow:
-                case ActiveUniformType.Sampler2DArray:
-                case ActiveUniformType.Sampler2DArrayShadow:
-                case ActiveUniformType.SamplerCubeShadow:
-                case ActiveUniformType.IntSampler2D:
-                case ActiveUniformType.IntSampler3D:
-                case ActiveUniformType.IntSamplerCube:
-                case ActiveUniformType.IntSampler2DArray:
-                case ActiveUniformType.UnsignedIntSampler2D:
-                case ActiveUniformType.UnsignedIntSampler3D:
-                case ActiveUniformType.UnsignedIntSamplerCube:
-                case ActiveUniformType.UnsignedIntSampler2DArray:
+                case UniformType.Sampler2D:
+                case UniformType.SamplerCube:
+                case UniformType.Sampler3D:
+                case UniformType.Sampler2DShadow:
+                case UniformType.Sampler2DArray:
+                case UniformType.Sampler2DArrayShadow:
+                case UniformType.SamplerCubeShadow:
+                case UniformType.IntSampler2D:
+                case UniformType.IntSampler3D:
+                case UniformType.IntSamplerCube:
+                case UniformType.IntSampler2DArray:
+                case UniformType.UnsignedIntSampler2D:
+                case UniformType.UnsignedIntSampler3D:
+                case UniformType.UnsignedIntSamplerCube:
+                case UniformType.UnsignedIntSampler2DArray:
 #if !STRIDE_GRAPHICS_API_OPENGLES
-                case ActiveUniformType.Sampler1D:
-                case ActiveUniformType.Sampler1DShadow:
-                case ActiveUniformType.Sampler2DRect:
-                case ActiveUniformType.Sampler2DRectShadow:
-                case ActiveUniformType.Sampler1DArray:
-                case ActiveUniformType.SamplerBuffer:
-                case ActiveUniformType.Sampler1DArrayShadow:
-                case ActiveUniformType.IntSampler1D:
-                case ActiveUniformType.IntSampler2DRect:
-                case ActiveUniformType.IntSampler1DArray:
-                case ActiveUniformType.IntSamplerBuffer:
-                case ActiveUniformType.UnsignedIntSampler1D:
-                case ActiveUniformType.UnsignedIntSampler2DRect:
-                case ActiveUniformType.UnsignedIntSampler1DArray:
-                case ActiveUniformType.UnsignedIntSamplerBuffer:
-                case ActiveUniformType.Sampler2DMultisample:
-                case ActiveUniformType.IntSampler2DMultisample:
-                case ActiveUniformType.UnsignedIntSampler2DMultisample:
-                case ActiveUniformType.Sampler2DMultisampleArray:
-                case ActiveUniformType.IntSampler2DMultisampleArray:
-                case ActiveUniformType.UnsignedIntSampler2DMultisampleArray:
+                case UniformType.Sampler1D:
+                case UniformType.Sampler1DShadow:
+                case UniformType.Sampler2DRect:
+                case UniformType.Sampler2DRectShadow:
+                case UniformType.Sampler1DArray:
+                case UniformType.SamplerBuffer:
+                case UniformType.Sampler1DArrayShadow:
+                case UniformType.IntSampler1D:
+                case UniformType.IntSampler2DRect:
+                case UniformType.IntSampler1DArray:
+                case UniformType.IntSamplerBuffer:
+                case UniformType.UnsignedIntSampler1D:
+                case UniformType.UnsignedIntSampler2DRect:
+                case UniformType.UnsignedIntSampler1DArray:
+                case UniformType.UnsignedIntSamplerBuffer:
+                case UniformType.Sampler2DMultisample:
+                case UniformType.IntSampler2DMultisample:
+                case UniformType.UnsignedIntSampler2DMultisample:
+                case UniformType.Sampler2DMultisampleArray:
+                case UniformType.IntSampler2DMultisampleArray:
+                case UniformType.UnsignedIntSampler2DMultisampleArray:
 #endif
                     return EffectParameterClass.TextureBuffer;
                 default:
@@ -720,87 +682,87 @@ void main()
             }
         }
 
-        private static EffectParameterType GetTypeFromActiveUniformType(ActiveUniformType type)
+        private static EffectParameterType GetTypeFromActiveUniformType(UniformType type)
         {
             switch (type)
             {
-                case ActiveUniformType.Int:
-                case ActiveUniformType.IntVec2:
-                case ActiveUniformType.IntVec3:
-                case ActiveUniformType.IntVec4:
+                case UniformType.Int:
+                case UniformType.IntVec2:
+                case UniformType.IntVec3:
+                case UniformType.IntVec4:
                     return EffectParameterType.Int;
-                case ActiveUniformType.Float:
-                case ActiveUniformType.FloatVec2:
-                case ActiveUniformType.FloatVec3:
-                case ActiveUniformType.FloatVec4:
-                case ActiveUniformType.FloatMat2:
-                case ActiveUniformType.FloatMat3:
-                case ActiveUniformType.FloatMat4:
-                case ActiveUniformType.FloatMat2x3:
-                case ActiveUniformType.FloatMat2x4:
-                case FloatMat3x2:
-                case ActiveUniformType.FloatMat3x4:
-                case ActiveUniformType.FloatMat4x2:
-                case ActiveUniformType.FloatMat4x3:
+                case UniformType.Float:
+                case UniformType.FloatVec2:
+                case UniformType.FloatVec3:
+                case UniformType.FloatVec4:
+                case UniformType.FloatMat2:
+                case UniformType.FloatMat3:
+                case UniformType.FloatMat4:
+                case UniformType.FloatMat2x3:
+                case UniformType.FloatMat2x4:
+                case UniformType.FloatMat3x2:
+                case UniformType.FloatMat3x4:
+                case UniformType.FloatMat4x2:
+                case UniformType.FloatMat4x3:
                     return EffectParameterType.Float;
-                case ActiveUniformType.Bool:
-                case ActiveUniformType.BoolVec2:
-                case ActiveUniformType.BoolVec3:
-                case ActiveUniformType.BoolVec4:
+                case UniformType.Bool:
+                case UniformType.BoolVec2:
+                case UniformType.BoolVec3:
+                case UniformType.BoolVec4:
                     return EffectParameterType.Bool;
-                case ActiveUniformType.UnsignedIntVec2:
-                case ActiveUniformType.UnsignedIntVec3:
-                case ActiveUniformType.UnsignedIntVec4:
+                case UniformType.UnsignedIntVec2:
+                case UniformType.UnsignedIntVec3:
+                case UniformType.UnsignedIntVec4:
                     return EffectParameterType.UInt;
 #if !STRIDE_GRAPHICS_API_OPENGLES
-                case ActiveUniformType.Sampler1D:
-                case ActiveUniformType.Sampler1DShadow:
-                case ActiveUniformType.IntSampler1D:
-                case ActiveUniformType.UnsignedIntSampler1D:
+                case UniformType.Sampler1D:
+                case UniformType.Sampler1DShadow:
+                case UniformType.IntSampler1D:
+                case UniformType.UnsignedIntSampler1D:
                     return EffectParameterType.Texture1D;
 #endif
-                case ActiveUniformType.Sampler2D:
-                case ActiveUniformType.Sampler2DShadow:
-                case ActiveUniformType.IntSampler2D:
-                case ActiveUniformType.UnsignedIntSampler2D:
+                case UniformType.Sampler2D:
+                case UniformType.Sampler2DShadow:
+                case UniformType.IntSampler2D:
+                case UniformType.UnsignedIntSampler2D:
 #if !STRIDE_GRAPHICS_API_OPENGLES
-                case ActiveUniformType.Sampler2DRect:
-                case ActiveUniformType.Sampler2DRectShadow:
-                case ActiveUniformType.IntSampler2DRect:
-                case ActiveUniformType.UnsignedIntSampler2DRect:
+                case UniformType.Sampler2DRect:
+                case UniformType.Sampler2DRectShadow:
+                case UniformType.IntSampler2DRect:
+                case UniformType.UnsignedIntSampler2DRect:
 #endif
                     return EffectParameterType.Texture2D;
-                case ActiveUniformType.Sampler3D:
-                case ActiveUniformType.IntSampler3D:
-                case ActiveUniformType.UnsignedIntSampler3D:
+                case UniformType.Sampler3D:
+                case UniformType.IntSampler3D:
+                case UniformType.UnsignedIntSampler3D:
                     return EffectParameterType.Texture3D;
-                case ActiveUniformType.SamplerCube:
-                case ActiveUniformType.SamplerCubeShadow:
-                case ActiveUniformType.IntSamplerCube:
-                case ActiveUniformType.UnsignedIntSamplerCube:
+                case UniformType.SamplerCube:
+                case UniformType.SamplerCubeShadow:
+                case UniformType.IntSamplerCube:
+                case UniformType.UnsignedIntSamplerCube:
                     return EffectParameterType.TextureCube;
-                case ActiveUniformType.Sampler2DArray:
-                case ActiveUniformType.Sampler2DArrayShadow:
-                case ActiveUniformType.IntSampler2DArray:
-                case ActiveUniformType.UnsignedIntSampler2DArray:
+                case UniformType.Sampler2DArray:
+                case UniformType.Sampler2DArrayShadow:
+                case UniformType.IntSampler2DArray:
+                case UniformType.UnsignedIntSampler2DArray:
                     return EffectParameterType.Texture2DArray;
 #if !STRIDE_GRAPHICS_API_OPENGLES
-                case ActiveUniformType.Sampler1DArray:
-                case ActiveUniformType.Sampler1DArrayShadow:
-                case ActiveUniformType.IntSampler1DArray:
-                case ActiveUniformType.UnsignedIntSampler1DArray:
+                case UniformType.Sampler1DArray:
+                case UniformType.Sampler1DArrayShadow:
+                case UniformType.IntSampler1DArray:
+                case UniformType.UnsignedIntSampler1DArray:
                     return EffectParameterType.Texture1DArray;
-                case ActiveUniformType.SamplerBuffer:
-                case ActiveUniformType.IntSamplerBuffer:
-                case ActiveUniformType.UnsignedIntSamplerBuffer:
+                case UniformType.SamplerBuffer:
+                case UniformType.IntSamplerBuffer:
+                case UniformType.UnsignedIntSamplerBuffer:
                     return EffectParameterType.TextureBuffer;
-                case ActiveUniformType.Sampler2DMultisample:
-                case ActiveUniformType.IntSampler2DMultisample:
-                case ActiveUniformType.UnsignedIntSampler2DMultisample:
+                case UniformType.Sampler2DMultisample:
+                case UniformType.IntSampler2DMultisample:
+                case UniformType.UnsignedIntSampler2DMultisample:
                     return EffectParameterType.Texture2DMultisampled;
-                case ActiveUniformType.Sampler2DMultisampleArray:
-                case ActiveUniformType.IntSampler2DMultisampleArray:
-                case ActiveUniformType.UnsignedIntSampler2DMultisampleArray:
+                case UniformType.Sampler2DMultisampleArray:
+                case UniformType.IntSampler2DMultisampleArray:
+                case UniformType.UnsignedIntSampler2DMultisampleArray:
                     return EffectParameterType.Texture2DMultisampledArray;
 #endif
                 default:
@@ -811,7 +773,7 @@ void main()
 
         class UniformMergeInfo
         {
-            public ActiveUniformType Type;
+            public UniformType Type;
             public int Offset;
             public int NextOffset;
             public string Name;

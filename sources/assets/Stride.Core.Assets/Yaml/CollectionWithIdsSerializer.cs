@@ -124,7 +124,14 @@ namespace Stride.Core.Yaml
             while (enumerator.MoveNext())
             {
                 collectionDescriptor.Add(targetCollection, enumerator.Value);
-                identifier.Add(i, (ItemId)enumerator.Key);
+                if (targetDescriptor.Category == DescriptorCategory.Set)
+                {
+                    identifier.Add(enumerator.Value, (ItemId)enumerator.Key);
+                }
+                else
+                {
+                    identifier.Add(i, (ItemId)enumerator.Key);
+                }
                 ++i;
             }
             if (deletedItems != null)
