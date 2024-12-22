@@ -6,6 +6,7 @@ using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Editor.EditorGame.Game;
 using Stride.Engine;
+using Stride.Engine.Gizmos;
 using Stride.Engine.Processors;
 using Stride.Graphics;
 using Stride.Rendering;

@@ -102,7 +102,7 @@ namespace FreeImageAPI.IO
 				}
 				readCount++;
 			}
-			return (uint)readCount;
+			return readCount;
 		}
 
 		/// <summary>
@@ -142,12 +142,11 @@ namespace FreeImageAPI.IO
 		/// </summary>
 		static int streamSeek(fi_handle handle, int offset, SeekOrigin origin)
 		{
-			Stream stream = handle.GetObject() as Stream;
-			if (stream == null)
+			if (handle.GetObject() is not Stream stream)
 			{
 				return 1;
 			}
-			stream.Seek((long)offset, origin);
+			stream.Seek(offset, origin);
 			return 0;
 		}
 
@@ -156,8 +155,7 @@ namespace FreeImageAPI.IO
 		/// </summary>
 		static int streamTell(fi_handle handle)
 		{
-			Stream stream = handle.GetObject() as Stream;
-			if (stream == null)
+			if (handle.GetObject() is not Stream stream)
 			{
 				return -1;
 			}

@@ -631,7 +631,7 @@ namespace Stride.Core.Assets
 
                 // Find the .csproj next to .sdpkg (if any)
                 // Note that we use package.FullPath since we must first perform package upgrade from 3.0 to 3.1+ (might move package in .csproj folder)
-                var projectPath = Path.ChangeExtension(package.FullPath.ToWindowsPath(), ".csproj");
+                var projectPath = Path.ChangeExtension(package.FullPath.ToOSPath(), ".csproj");
                 if (File.Exists(projectPath))
                 {
                     return new SolutionProject(package, Guid.NewGuid(), projectPath);
@@ -881,8 +881,8 @@ namespace Stride.Core.Assets
                 loggerResult?.Progress(progressMessage, i, assetFiles.Count);
 
                 var task = cancelToken.HasValue ?
-                    System.Threading.Tasks.Task.Factory.StartNew(() => LoadAsset(new AssetMigrationContext(this, assetFile.ToReference(), assetFile.FilePath.ToWindowsPath(), log), assetFile), cancelToken.Value) : 
-                    System.Threading.Tasks.Task.Factory.StartNew(() => LoadAsset(new AssetMigrationContext(this, assetFile.ToReference(), assetFile.FilePath.ToWindowsPath(), log), assetFile));
+                    System.Threading.Tasks.Task.Factory.StartNew(() => LoadAsset(new AssetMigrationContext(this, assetFile.ToReference(), assetFile.FilePath.ToOSPath(), log), assetFile), cancelToken.Value) : 
+                    System.Threading.Tasks.Task.Factory.StartNew(() => LoadAsset(new AssetMigrationContext(this, assetFile.ToReference(), assetFile.FilePath.ToOSPath(), log), assetFile));
 
                 tasks.Add(task);
             }
@@ -933,12 +933,10 @@ namespace Stride.Core.Assets
                 // Try to load only if asset is not already in the package or assetRef.Asset is null
                 var assetPath = assetFile.AssetLocation;
 
-                var assetFullPath = fileUPath.ToWindowsPath();
+                var assetFullPath = fileUPath.ToOSPath();
                 var assetContent = assetFile.AssetContent;
 
-                bool aliasOccurred;
-                AttachedYamlAssetMetadata yamlMetadata;
-                var asset = LoadAsset(context.Log, Meta.Name, assetFullPath, assetPath.ToWindowsPath(), assetContent, out aliasOccurred, out yamlMetadata);
+                var asset = LoadAsset(context.Log, Meta.Name, assetFullPath, assetPath.ToOSPath(), assetContent, out var aliasOccurred, out var yamlMetadata);
 
                 // Create asset item
                 var assetItem = new AssetItem(assetPath, asset, this)
@@ -1056,7 +1054,7 @@ namespace Stride.Core.Assets
                 // If csproj, we might need to compile it
                 if (projectReference != null)
                 {
-                    var fullProjectLocation = projectReference.Location.ToWindowsPath();
+                    var fullProjectLocation = projectReference.Location.ToOSPath();
                     if (loadParameters.AutoCompileProjects || string.IsNullOrWhiteSpace(assemblyPath))
                     {
                         assemblyPath = VSProjectHelper.GetOrCompileProjectAssembly(Session?.SolutionPath, fullProjectLocation, forwardingLogger, "Build", loadParameters.AutoCompileProjects, loadParameters.BuildConfiguration, extraProperties: loadParameters.ExtraCompileProperties, onlyErrors: true);

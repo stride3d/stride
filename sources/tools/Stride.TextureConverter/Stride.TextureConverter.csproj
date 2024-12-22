@@ -16,10 +16,10 @@
     <StrideNativeLib Include="$(MSBuildThisFileDirectory)..\..\..\deps\FreeImage\Release\**\*.dll">
       <Link>runtimes\%(RecursiveDir)native\%(Filename)%(Extension)</Link>
     </StrideNativeLib>
-    <StrideNativeLib Include="$(MSBuildThisFileDirectory)..\..\..\deps\TextureWrappers\Release\**\*.dll">
+    <StrideNativeLib Include="$(MSBuildThisFileDirectory)..\..\..\deps\TextureWrappers\Release\**\*.dll;$(MSBuildThisFileDirectory)..\..\..\deps\TextureWrappers\Release\**\*.so">
       <Link>runtimes\%(RecursiveDir)native\%(Filename)%(Extension)</Link>
     </StrideNativeLib>
-    <StrideNativeLib Include="$(MSBuildThisFileDirectory)..\..\..\deps\PVRTT\**\*.dll">
+    <StrideNativeLib Include="$(MSBuildThisFileDirectory)..\..\..\deps\PVRTT\**\*.dll;$(MSBuildThisFileDirectory)..\..\..\deps\PVRTT\**\*.so">
       <Link>runtimes\%(RecursiveDir)native\%(Filename)%(Extension)</Link>
     </StrideNativeLib>
   </ItemGroup>

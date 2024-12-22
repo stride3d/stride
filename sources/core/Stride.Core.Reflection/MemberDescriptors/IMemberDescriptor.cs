@@ -118,7 +118,7 @@ namespace Stride.Core.Reflection
         /// </summary>
         /// <param name="thisObject">The this object to get the value from.</param>
         /// <returns>Value of the member.</returns>
-        object Get(object thisObject);
+        object? Get(object thisObject);
 
         /// <summary>
         /// Sets a value of this member for the specified instance.

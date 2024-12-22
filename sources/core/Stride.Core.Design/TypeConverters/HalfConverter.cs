@@ -88,6 +88,7 @@ namespace Stride.Core.TypeConverters
             return true;
         }
 
+        //TODO: Verify that converter is properly updated to match other converters
         /// <summary>
         /// Converts the given object to the type of this converter, using the specified context and culture information.
         /// </summary>

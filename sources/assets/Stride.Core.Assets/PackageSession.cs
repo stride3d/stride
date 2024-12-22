@@ -340,7 +340,7 @@ namespace Stride.Core.Assets
                 return;
 
             var projectFile = FullPath;
-            var msbuildProject = VSProjectHelper.LoadProject(projectFile.ToWindowsPath());
+            var msbuildProject = VSProjectHelper.LoadProject(projectFile.ToOSPath());
             var isProjectDirty = false;
 
             if (e.OldItems != null && e.OldItems.Count > 0)
@@ -380,7 +380,7 @@ namespace Stride.Core.Assets
                             isProjectDirty = true;
                             break;
                         case DependencyType.Project:
-                            msbuildProject.AddItem("ProjectReference", ((UFile)dependency.MSBuildProject).MakeRelative(projectFile.GetFullDirectory()).ToWindowsPath());
+                            msbuildProject.AddItem("ProjectReference", ((UFile)dependency.MSBuildProject).MakeRelative(projectFile.GetFullDirectory()).ToOSPath());
                             isProjectDirty = true;
                             break;
                     }
@@ -646,7 +646,7 @@ MinimumVisualStudioVersion = {0}".ToFormat(DefaultVisualStudioVersion);
                 // Enable reference analysis caching during loading
                 AssetReferenceAnalysis.EnableCaching = true;
 
-                project = LoadProject(logger, projectPath.ToWindowsPath(), loadParametersArg);
+                project = LoadProject(logger, projectPath.ToOSPath(), loadParametersArg);
                 Projects.Add(project);
 
                 package = project.Package;
@@ -1045,7 +1045,7 @@ MinimumVisualStudioVersion = {0}".ToFormat(DefaultVisualStudioVersion);
                                     Microsoft.Build.Evaluation.Project project;
                                     if (!vsProjs.TryGetValue(projectFullPath, out project))
                                     {
-                                        project = VSProjectHelper.LoadProject(projectFullPath.ToWindowsPath());
+                                        project = VSProjectHelper.LoadProject(projectFullPath.ToOSPath());
                                         vsProjs.Add(projectFullPath, project);
                                     }
                                     var projectItem = project.Items.FirstOrDefault(x => (x.ItemType == "Compile" || x.ItemType == "None") && x.EvaluatedInclude == projectInclude);
@@ -1058,7 +1058,7 @@ MinimumVisualStudioVersion = {0}".ToFormat(DefaultVisualStudioVersion);
                                     var generatorAsset = assetItem.Asset as IProjectFileGeneratorAsset;
                                     if (generatorAsset != null)
                                     {
-                                        var generatedAbsolutePath = assetItem.GetGeneratedAbsolutePath().ToWindowsPath();
+                                        var generatedAbsolutePath = assetItem.GetGeneratedAbsolutePath().ToOSPath();
 
                                         File.Delete(generatedAbsolutePath);
 

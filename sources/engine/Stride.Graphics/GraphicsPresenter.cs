@@ -28,7 +28,7 @@ using Stride.Core.ReferenceCounting;
 namespace Stride.Graphics
 {
     /// <summary>
-    /// This class is a frontend to <see cref="SwapChain" /> and <see cref="SwapChain1" />.
+    /// This class is a frontend to <see cref="SharpDX.DXGI.SwapChain" /> and <see cref="SharpDX.DXGI.SwapChain1" />.
     /// </summary>
     /// <remarks>
     /// In order to create a new <see cref="GraphicsPresenter"/>, a <see cref="GraphicsDevice"/> should have been initialized first.

@@ -3,7 +3,6 @@
 #if STRIDE_PLATFORM_IOS
 
 using AVFoundation;
-using Stride.Native;
 
 namespace Stride.Audio
 {

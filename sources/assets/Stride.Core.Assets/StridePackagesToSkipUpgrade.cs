@@ -16,6 +16,5 @@ public static class StridePackagesToSkipUpgrade
         "Stride.GNU.Gettext",
         "Stride.OpenTK",
         "Stride.Metrics",
-        "Stride.BepuPhysics",
     ];
 }

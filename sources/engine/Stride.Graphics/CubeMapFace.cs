@@ -5,7 +5,7 @@ using System;
 namespace Stride.Graphics
 {
     /// <summary>
-    /// Defines the faces of a cube map for <see cref="TextureCube"/>.
+    /// Defines the faces of a cube map for Cube <see cref="Texture"/>.
     /// </summary>
     public enum CubeMapFace
     {

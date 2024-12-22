@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using Stride.Core.Mathematics;
 using Stride.Engine;
+using Stride.Engine.Gizmos;
 using Stride.Extensions;
 using Stride.Graphics.GeometricPrimitives;
 using Stride.Physics;

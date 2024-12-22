@@ -36,12 +36,10 @@ public class STRDIAG001InvalidDataContract : DiagnosticAnalyzer
     {
         var dataContractAttribute = WellKnownReferences.DataContractAttribute(context.Compilation);
 
-
         if (dataContractAttribute is null)
             return;
 
         context.RegisterSymbolAction(symbolContext => AnalyzeSymbol(symbolContext, dataContractAttribute), SymbolKind.NamedType);
-        
     }
 
     private static void AnalyzeSymbol(SymbolAnalysisContext context, INamedTypeSymbol dataContractAttribute)
@@ -51,7 +49,10 @@ public class STRDIAG001InvalidDataContract : DiagnosticAnalyzer
         if (!symbol.HasAttribute(dataContractAttribute))
             return;
 
-        if(!symbol.IsVisibleToSerializer(hasDataMemberAttribute: true))
+        if (symbol.IsFileLocal)
+            Rule.ReportDiagnostics(context, symbol);
+
+        if (!symbol.IsVisibleToSerializer(hasDataMemberAttribute: true))
             Rule.ReportDiagnostics(context, symbol);
     }
 }

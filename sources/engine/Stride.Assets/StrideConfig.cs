@@ -84,7 +84,6 @@ namespace Stride.Assets
                 IncludeInSolution = false,
             };
 
-            uwpPlatform.DefineConstants.Add("STRIDE_PLATFORM_WINDOWS");
             uwpPlatform.DefineConstants.Add("STRIDE_PLATFORM_UWP");
             uwpPlatform.Configurations.Add(new SolutionConfiguration("Testing"));
             uwpPlatform.Configurations.Add(new SolutionConfiguration("AppStore"));
@@ -235,6 +234,8 @@ namespace Stride.Assets
         /// <returns>true if any of the components in the dictionary are available, false otherwise</returns>
         internal static bool IsVSComponentAvailableAnyVersion(IDictionary<Version, string> vsVersionToComponent)
         {
+            if (!OperatingSystem.IsWindows()) 
+                return false;
             if (vsVersionToComponent == null) { throw new ArgumentNullException("vsVersionToComponent"); }
 
             foreach (var pair in vsVersionToComponent)

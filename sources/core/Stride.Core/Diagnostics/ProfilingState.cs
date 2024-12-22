@@ -12,7 +12,7 @@ namespace Stride.Core.Diagnostics
     /// A profiler state contains information of a portion of code being profiled. See remarks.
     /// </summary>
     /// <remarks>
-    /// This struct is not intended to be used directly but only through <see cref="Profiler.Begin()"/>.
+    /// This struct is not intended to be used directly but only through <see cref="Profiler.Begin"/>.
     /// You can still attach some attributes to it while profiling a portion of code.
     /// </remarks>
     public struct ProfilingState : IDisposable
