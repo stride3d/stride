@@ -11,7 +11,9 @@ namespace Stride.Assets.SpriteFont.Compiler
 {
     using System.Drawing;
     using System.Drawing.Imaging;
+    using FreeImageAPI;
     using SharpDX.DirectWrite;
+    using SharpFont;
     using Factory = SharpDX.DirectWrite.Factory;
 
     // This code was originally taken from DirectXTk but rewritten with DirectWrite
@@ -42,7 +44,7 @@ namespace Stride.Assets.SpriteFont.Compiler
         /// <param name="scaleX">Scale factor to convert from 'shape unit' to 'pixel unit' on x-axis</param>
         /// <param name="scaleY">Scale factor to convert from 'shape unit' to 'pixel unit' on y-axis</param>
         /// <returns></returns>
-        private Bitmap LoadSDFBitmap(char c, int width, int height, float offsetX, float offsetY, float scaleX, float scaleY)
+        private FreeImageBitmap LoadSDFBitmap(char c, int width, int height, float offsetX, float offsetY, float scaleX, float scaleY)
         {
             try
             {
@@ -75,7 +77,7 @@ namespace Stride.Assets.SpriteFont.Compiler
 
                 if (File.Exists(outputFilePath))
                 {
-                    var bitmap = (Bitmap)Image.FromFile(outputFilePath);
+                    var bitmap = FreeImageBitmap.FromFile(outputFilePath);
 
                     Normalize(bitmap);
 
@@ -88,7 +90,7 @@ namespace Stride.Assets.SpriteFont.Compiler
             }
 
             // If font generation failed for any reason, ignore it and return an empty glyph
-            return new Bitmap(1, 1, PixelFormat.Format32bppArgb);
+            return new FreeImageBitmap(1, 1, FreeImageAPI.PixelFormat.Format32bppArgb);
         }
 
         /// <summary>
@@ -97,7 +99,7 @@ namespace Stride.Assets.SpriteFont.Compiler
         /// Because we use offset we can easily detect if the corner pixel has negative (correct) or positive distance (incorrect)
         /// </summary>
         /// <param name="bitmap"></param>
-        private void Normalize(Bitmap bitmap)
+        private void Normalize(FreeImageBitmap bitmap)
         {
             // Case 1 - corner pixel is negative (outside), do not invert
             var firstPixel = bitmap.GetPixel(0, 0);
@@ -135,13 +137,14 @@ namespace Stride.Assets.SpriteFont.Compiler
 
             msdfgenExe = msdfgen.FullPath;
 #if DEBUG
-            tempDir = $"{Environment.GetEnvironmentVariable("TEMP")}\\StrideGlyphs\\";
+            tempDir = Path.Combine(Path.GetTempPath(), "StrideGlyphs");
             Directory.CreateDirectory(tempDir);
 #endif
 
             var factory = new Factory();
 
             FontFace fontFace = options.FontSource.GetFontFace();
+            Face face = options.FontSource.GetFont();
 
             var fontMetrics = fontFace.Metrics;
 
@@ -160,20 +163,28 @@ namespace Stride.Assets.SpriteFont.Compiler
             //
             // So we are first applying a factor to the line gap:
             //     NewLineGap = LineGap * LineGapFactor
-            var lineGap = fontMetrics.LineGap * options.LineGapFactor;
+            var lineGapOld = fontMetrics.LineGap * options.LineGapFactor;
+            var lineGap = (face.Height - face.Ascender + face.Descender) * options.LineGapFactor;
+            Debug.Assert(lineGapOld == lineGap);
 
-            float pixelPerDesignUnit = fontSize / fontMetrics.DesignUnitsPerEm;
+            float pixelPerDesignUnitOld = fontSize / fontMetrics.DesignUnitsPerEm;
+            float pixelPerDesignUnit = fontSize / face.UnitsPerEM;
+            Debug.Assert(pixelPerDesignUnitOld == pixelPerDesignUnit);
             // Store the font height.
-            LineSpacing = (lineGap + fontMetrics.Ascent + fontMetrics.Descent) * pixelPerDesignUnit;
+            var LineSpacingOld = (lineGap + fontMetrics.Ascent + fontMetrics.Descent) * pixelPerDesignUnit;
+            LineSpacing = (float)(lineGap + face.Ascender + Math.Abs(face.Descender)) * pixelPerDesignUnit;
+            Debug.Assert(LineSpacingOld == LineSpacing);
 
             // And then the baseline is also changed in order to allow the linegap to be distributed between the top and the
             // bottom of the font:
             //     BaseLine = NewLineGap * LineGapBaseLineFactor
-            BaseLine = (lineGap * options.LineGapBaseLineFactor + fontMetrics.Ascent) * pixelPerDesignUnit;
+            var BaseLineOld = (lineGap * options.LineGapBaseLineFactor + fontMetrics.Ascent) * pixelPerDesignUnit;
+            BaseLine = (float)(lineGap * options.LineGapBaseLineFactor + face.Ascender) * pixelPerDesignUnit;
+            Debug.Assert(BaseLineOld == BaseLine);
 
             // Generate SDF bitmaps for each character in turn.
             foreach (var character in characters)
-                glyphList.Add(ImportGlyph(fontFace, character, fontMetrics, fontSize));
+                glyphList.Add(ImportGlyph(fontFace, face, character, fontMetrics, fontSize));
 
             Glyphs = glyphList;
 
@@ -188,23 +199,45 @@ namespace Stride.Assets.SpriteFont.Compiler
         /// <param name="fontMetrics">Font metrics, used to obtain design units scale</param>
         /// <param name="fontSize">Requested font size. The bigger, the more precise the SDF image is going to be</param>
         /// <returns></returns>
-        private Glyph ImportGlyph(FontFace fontFace, char character, FontMetrics fontMetrics, float fontSize)
+        private Glyph ImportGlyph(FontFace fontFace, Face face, char character, FontMetrics fontMetrics, float fontSize)
         {
-            var indices = fontFace.GetGlyphIndices(new int[] { character });
+            var index = face.GetCharIndex(character);
+            face.SetPixelSizes(0, (uint)fontSize);
+            face.LoadGlyph(index, LoadFlags.NoScale, LoadTarget.Normal);
 
+            var indices = fontFace.GetGlyphIndices([character]);
             var metrics = fontFace.GetDesignGlyphMetrics(indices, isSideways: false);
             var metric = metrics[0];
+            
+            //------------------------------------
+            float pixelPerDesignUnitOld = fontSize / fontMetrics.DesignUnitsPerEm;
+            float fontWidthPxOld = (metric.AdvanceWidth - metric.LeftSideBearing - metric.RightSideBearing) * pixelPerDesignUnitOld;
+            float fontHeightPxOld = (metric.AdvanceHeight - metric.TopSideBearing - metric.BottomSideBearing) * pixelPerDesignUnitOld;
 
-            float pixelPerDesignUnit = fontSize / fontMetrics.DesignUnitsPerEm;
-            float fontWidthPx = (metric.AdvanceWidth - metric.LeftSideBearing - metric.RightSideBearing) * pixelPerDesignUnit;
-            float fontHeightPx = (metric.AdvanceHeight - metric.TopSideBearing - metric.BottomSideBearing) * pixelPerDesignUnit;
+            float fontOffsetXPxOld = metric.LeftSideBearing * pixelPerDesignUnitOld;
+            float fontOffsetYPxOld = (metric.TopSideBearing - metric.VerticalOriginY) * pixelPerDesignUnitOld;
 
-            float fontOffsetXPx = metric.LeftSideBearing * pixelPerDesignUnit;
+            float advanceWidthPxOld = metric.AdvanceWidth * pixelPerDesignUnitOld;
+            //var advanceHeight = metric.AdvanceHeight * pixelPerDesignUnit;
+            
+            //------------------------------------
+            float pixelPerDesignUnit = fontSize / face.UnitsPerEM;
+            Debug.Assert(pixelPerDesignUnitOld == pixelPerDesignUnit);
+            float fontWidthPx = face.Glyph.Metrics.Width.Value * pixelPerDesignUnit;            
+            Debug.Assert(fontWidthPxOld == fontWidthPx);
+            float fontHeightPx = face.Glyph.Metrics.Height.Value * pixelPerDesignUnit;
+            Debug.Assert(fontHeightPxOld == fontHeightPx);
+
+            float fontOffsetXPx = face.Glyph.Metrics.HorizontalBearingX.Value * pixelPerDesignUnit;
+            Debug.Assert(fontOffsetXPxOld == fontOffsetXPx);
             float fontOffsetYPx = (metric.TopSideBearing - metric.VerticalOriginY) * pixelPerDesignUnit;
+            Debug.Assert(fontOffsetYPxOld == fontOffsetYPx);
 
             float advanceWidthPx = metric.AdvanceWidth * pixelPerDesignUnit;
+            Debug.Assert(advanceWidthPxOld == advanceWidthPx);
             //var advanceHeight = metric.AdvanceHeight * pixelPerDesignUnit;
-
+            
+            //---------------------------------------------------
             const int MarginPx = 2;     // Buffer zone for the sdf image to avoid clipping
             int bitmapWidthPx = (int)Math.Ceiling(fontWidthPx) + (2 * MarginPx);
             int bitmapHeightPx = (int)Math.Ceiling(fontHeightPx) + (2 * MarginPx);
@@ -212,23 +245,30 @@ namespace Stride.Assets.SpriteFont.Compiler
             float bitmapOffsetXPx = fontOffsetXPx - MarginPx;
             float bitmapOffsetYPx = fontOffsetYPx - MarginPx;
 
-            Bitmap bitmap;
+            FreeImageBitmap bitmap;
             if (char.IsWhiteSpace(character))
             {
-                bitmap = new Bitmap(1, 1, PixelFormat.Format32bppArgb);
+                bitmap = new FreeImageBitmap(1, 1, FreeImageAPI.PixelFormat.Format32bppArgb);
             }
             else
             {
                 // sdfPixelPerDesignUnit is hardcoded from the import in this code
                 // https://github.com/stride3d/msdfgen/blob/1af188c77822e447fe8e412420fe0fe05b782b38/ext/import-font.cpp#L126-L150
                 const float sdfPixelPerDesignUnit = 1 / 64f;      // msdf default coordinate scale
-                float boundLeft = metric.LeftSideBearing * sdfPixelPerDesignUnit;
+                float boundLeftOld = metric.LeftSideBearing * sdfPixelPerDesignUnit;
+                float boundLeft = face.Glyph.Metrics.HorizontalBearingX.Value * sdfPixelPerDesignUnit;
+                Debug.Assert(boundLeftOld == boundLeft);
                 //float boundRight = (metric.AdvanceWidth - metric.RightSideBearing) * sdfPixelPerDesignUnit;
                 //float boundTop = (metric.VerticalOriginY - metric.TopSideBearing) * sdfPixelPerDesignUnit;
                 float boundBottom = (metric.VerticalOriginY  - (metric.AdvanceHeight - metric.BottomSideBearing)) * sdfPixelPerDesignUnit;
+                Debug.Assert(boundLeftOld == boundLeft);
 
-                float glyphWidthPx = (metric.AdvanceWidth - metric.LeftSideBearing - metric.RightSideBearing) * sdfPixelPerDesignUnit;
-                float glyphHeightPx = (metric.AdvanceHeight - metric.TopSideBearing - metric.BottomSideBearing) * sdfPixelPerDesignUnit;
+                float glyphWidthPxOld = (metric.AdvanceWidth - metric.LeftSideBearing - metric.RightSideBearing) * sdfPixelPerDesignUnit;
+                float glyphWidthPx = face.Glyph.Metrics.Width.Value * sdfPixelPerDesignUnit;                
+                Debug.Assert(glyphWidthPxOld == glyphWidthPx);
+                float glyphHeightPxOld = (metric.AdvanceHeight - metric.TopSideBearing - metric.BottomSideBearing) * sdfPixelPerDesignUnit;
+                float glyphHeightPx = face.Glyph.Metrics.Height.Value * sdfPixelPerDesignUnit;                
+                Debug.Assert(glyphHeightPxOld == glyphHeightPx);
 
                 // Need to scale from msdfgen's 'shape unit' into the final bitmap's space
                 float scaleX = fontWidthPx / glyphWidthPx;
