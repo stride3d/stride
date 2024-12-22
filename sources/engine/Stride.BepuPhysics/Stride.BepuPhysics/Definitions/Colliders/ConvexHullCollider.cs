@@ -16,6 +16,7 @@ namespace Stride.BepuPhysics.Definitions.Colliders;
 [DataContract]
 public sealed class ConvexHullCollider : ColliderBase
 {
+#warning This should not be static and should be stored inside the simulation ?
     private static ConditionalWeakTable<DecomposedHulls, CachedConvexHulls> _convexes = new();
     private static BufferPool _sharedPool = new();
 
@@ -72,6 +73,16 @@ public sealed class ConvexHullCollider : ColliderBase
     internal override void OnDetach(BufferPool pool)
     {
         _cache = null; // Release reference when detached, it may then be finalized by the GC if no one else holds onto it
+    }
+    public override int GetHashCode()
+    {
+        var hash = new HashCode();
+        hash.Add(base.GetHashCode());
+        if (_hull != null)
+        {
+            hash.Add(_hull.GetHashCode());
+        }
+        return hash.ToHashCode();
     }
 
     record CachedConvexHulls(List<(ConvexHull, System.Numerics.Vector3)> Hulls)

@@ -33,5 +33,13 @@ public sealed class SphereCollider : ColliderBase
         builder.Add(new Sphere(Radius), localPose, Mass);
     }
 
-    internal override void OnDetach(BufferPool pool){ }
+    internal override void OnDetach(BufferPool pool) { }
+
+    public override int GetHashCode()
+    {
+        var hash = new HashCode();
+        hash.Add(base.GetHashCode());
+        hash.Add(_radius);
+        return hash.ToHashCode();
+    }
 }

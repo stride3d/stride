@@ -36,4 +36,14 @@ public sealed class BoxCollider : ColliderBase
     }
 
     internal override void OnDetach(BufferPool pool) { }
+
+    public override int GetHashCode()
+    {
+        var hash = new HashCode();
+        hash.Add(base.GetHashCode());
+        hash.Add(_size.X);
+        hash.Add(_size.Y);
+        hash.Add(_size.Z);
+        return hash.ToHashCode();
+    }
 }
