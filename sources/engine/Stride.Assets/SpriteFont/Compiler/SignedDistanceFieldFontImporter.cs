@@ -233,7 +233,7 @@ namespace Stride.Assets.SpriteFont.Compiler
             float fontOffsetYPx = (metric.TopSideBearing - metric.VerticalOriginY) * pixelPerDesignUnit;
             Debug.Assert(fontOffsetYPxOld == fontOffsetYPx);
 
-            float advanceWidthPx = metric.AdvanceWidth * pixelPerDesignUnit;
+            float advanceWidthPx = face.Glyph.Metrics.HorizontalAdvance.Value * pixelPerDesignUnit;
             Debug.Assert(advanceWidthPxOld == advanceWidthPx);
             //var advanceHeight = metric.AdvanceHeight * pixelPerDesignUnit;
             
