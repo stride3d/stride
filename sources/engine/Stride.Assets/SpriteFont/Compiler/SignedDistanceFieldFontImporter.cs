@@ -260,8 +260,9 @@ namespace Stride.Assets.SpriteFont.Compiler
                 Debug.Assert(boundLeftOld == boundLeft);
                 //float boundRight = (metric.AdvanceWidth - metric.RightSideBearing) * sdfPixelPerDesignUnit;
                 //float boundTop = (metric.VerticalOriginY - metric.TopSideBearing) * sdfPixelPerDesignUnit;
-                float boundBottom = (metric.VerticalOriginY  - (metric.AdvanceHeight - metric.BottomSideBearing)) * sdfPixelPerDesignUnit;
-                Debug.Assert(boundLeftOld == boundLeft);
+                float boundBottomOld = (metric.VerticalOriginY  - (metric.AdvanceHeight - metric.BottomSideBearing)) * sdfPixelPerDesignUnit;
+                float boundBottom = (face.Glyph.Metrics.HorizontalBearingY.Value - face.Glyph.Metrics.Height.Value) * sdfPixelPerDesignUnit;
+                Debug.Assert(boundBottomOld == boundBottom);
 
                 float glyphWidthPxOld = (metric.AdvanceWidth - metric.LeftSideBearing - metric.RightSideBearing) * sdfPixelPerDesignUnit;
                 float glyphWidthPx = face.Glyph.Metrics.Width.Value * sdfPixelPerDesignUnit;                
