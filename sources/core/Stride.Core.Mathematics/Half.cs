@@ -21,11 +21,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-using System;
-using System.ComponentModel;
 using System.Globalization;
 using System.Runtime.InteropServices;
-using Stride.Core.Serialization;
 
 namespace Stride.Core.Mathematics
 {

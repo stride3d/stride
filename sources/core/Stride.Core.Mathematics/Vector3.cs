@@ -190,7 +190,7 @@ namespace Stride.Core.Mathematics
         /// <param name="v">Value to cast</param>
         public static implicit operator Vector3(System.Numerics.Vector3 v)
         {
-            return Unsafe.As<System.Numerics.Vector3, Vector3>(ref v);
+            return Unsafe.BitCast<System.Numerics.Vector3, Vector3>(v);
         }
 
         /// <summary>
@@ -199,7 +199,7 @@ namespace Stride.Core.Mathematics
         /// <param name="v">Value to cast</param>
         public static implicit operator System.Numerics.Vector3(Vector3 v)
         {
-            return Unsafe.As<Vector3, System.Numerics.Vector3>(ref v);
+            return Unsafe.BitCast<Vector3, System.Numerics.Vector3>(v);
         }
 
         /// <summary>
