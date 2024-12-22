@@ -41,7 +41,8 @@ namespace Stride.Games
     {
         #region Fields
 
-        private readonly GamePlatform gamePlatform;
+        public GamePlatform GamePlatform;
+
         private IGraphicsDeviceService graphicsDeviceService;
         protected IGraphicsDeviceManager graphicsDeviceManager;
         private ResumeManager resumeManager;
@@ -96,16 +97,17 @@ namespace Stride.Games
             Services.AddService<IGameSystemCollection>(GameSystems);
 
             // Create Platform
-            gamePlatform = GamePlatform.Create(this);
-            gamePlatform.Activated += GamePlatform_Activated;
-            gamePlatform.Deactivated += GamePlatform_Deactivated;
-            gamePlatform.Exiting += GamePlatform_Exiting;
-            gamePlatform.WindowCreated += GamePlatformOnWindowCreated;
+            GamePlatform = new GamePlatformDesktop(this);
+
+            GamePlatform.Activated += GamePlatform_Activated;
+            GamePlatform.Deactivated += GamePlatform_Deactivated;
+            GamePlatform.Exiting += GamePlatform_Exiting;
+            GamePlatform.WindowCreated += GamePlatformOnWindowCreated;
 
             // Setup registry
             Services.AddService<IGame>(this);
-            Services.AddService<IGraphicsDeviceFactory>(gamePlatform);
-            Services.AddService<IGamePlatform>(gamePlatform);
+            Services.AddService<IGraphicsDeviceFactory>(GamePlatform);
+            Services.AddService<IGamePlatform>(GamePlatform);
 
             IsActive = true;
         }
@@ -172,12 +174,6 @@ namespace Stride.Games
         /// </summary>
         /// <value>The game components.</value>
         public GameSystemCollection GameSystems { get; private set; }
-
-        /// <summary>
-        /// Gets the game context.
-        /// </summary>
-        /// <value>The game context.</value>
-        public GameContext Context { get; private set; }
 
         /// <summary>
         /// Gets the graphics device.
@@ -299,9 +295,9 @@ namespace Stride.Games
         {
             get
             {
-                if (gamePlatform != null)
+                if (GamePlatform != null)
                 {
-                    return gamePlatform.MainWindow;
+                    return GamePlatform.MainWindow;
                 }
                 return null;
             }
@@ -312,7 +308,7 @@ namespace Stride.Games
         /// <summary>
         /// Gets the full name of the device this game is running if available
         /// </summary>
-        public string FullPlatformName => gamePlatform.FullName;
+        public string FullPlatformName => GamePlatform.FullName;
 
         #endregion
 
@@ -329,7 +325,7 @@ namespace Stride.Games
         public void Exit()
         {
             IsExiting = true;
-            gamePlatform.Exit();
+            GamePlatform.Exit();
         }
 
         /// <summary>
@@ -402,7 +398,7 @@ namespace Stride.Games
         /// </summary>
         /// <param name="gameContext">The window Context for this game.</param>
         /// <exception cref="System.InvalidOperationException">Cannot run this instance while it is already running</exception>
-        public void Run(GameContext gameContext = null)
+        public virtual void Run(GameContext gameContext = null)
         {
             if (IsRunning)
             {
@@ -430,8 +426,8 @@ namespace Stride.Games
                     c = AppContextType.DesktopSDL;
                 gameContext = GameContextFactory.NewGameContext(c);
             }
-            
-            Context = gameContext;
+
+            var gameWindow = new GameWindowSDL();
 
             PrepareContext();
 
@@ -439,16 +435,15 @@ namespace Stride.Games
             {
                 // TODO temporary workaround as the engine doesn't support yet resize
                 var graphicsDeviceManagerImpl = (GraphicsDeviceManager)graphicsDeviceManager;
-                Context.RequestedWidth = graphicsDeviceManagerImpl.PreferredBackBufferWidth;
-                Context.RequestedHeight = graphicsDeviceManagerImpl.PreferredBackBufferHeight;
-                Context.RequestedBackBufferFormat = graphicsDeviceManagerImpl.PreferredBackBufferFormat;
-                Context.RequestedDepthStencilFormat = graphicsDeviceManagerImpl.PreferredDepthStencilFormat;
-                Context.RequestedGraphicsProfile = graphicsDeviceManagerImpl.PreferredGraphicsProfile;
-                Context.DeviceCreationFlags = graphicsDeviceManagerImpl.DeviceCreationFlags;
+                var width = graphicsDeviceManagerImpl.PreferredBackBufferWidth;
+                var height = graphicsDeviceManagerImpl.PreferredBackBufferHeight;
+                gameWindow.Initialize(width, height);
 
-                gamePlatform.Run(Context);
+                gameWindow.SetSize( new Core.Mathematics.Int2(width, height));
 
-                if (gamePlatform.IsBlockingRun)
+                GamePlatform.Run(gameWindow);
+
+                if (GamePlatform.IsBlockingRun)
                 {
                     // If the previous call was blocking, then we can call Endrun
                     EndRun();
@@ -586,8 +581,8 @@ namespace Stride.Games
 
                 RawTick(singleFrameElapsedTime, updateCount, drawLag / (float)TargetElapsedTime.Ticks, drawFrame);
 
-                var window = gamePlatform.MainWindow;
-                if (gamePlatform.IsBlockingRun) // throttle fps if Game.Tick() called from internal main loop
+                var window = GamePlatform.MainWindow;
+                if (GamePlatform.IsBlockingRun) // throttle fps if Game.Tick() called from internal main loop
                 {
                     if (window.IsMinimized || window.Visible == false || (window.Focused == false && TreatNotFocusedLikeMinimized))
                     {
@@ -716,8 +711,7 @@ namespace Stride.Games
                 GameSystems.CopyTo(array, 0);
                 for (int i = 0; i < array.Length; i++)
                 {
-                    var disposable = array[i] as IDisposable;
-                    if (disposable != null)
+                    if (array[i] is IDisposable disposable)
                     {
                         disposable.Dispose();
                     }
@@ -726,18 +720,14 @@ namespace Stride.Games
                 // Reset graphics context
                 GraphicsContext = null;
 
-                var disposableGraphicsManager = graphicsDeviceManager as IDisposable;
-                if (disposableGraphicsManager != null)
+                if (graphicsDeviceManager is IDisposable disposableGraphicsManager)
                 {
                     disposableGraphicsManager.Dispose();
                 }
 
                 DisposeGraphicsDeviceEvents();
 
-                if (gamePlatform != null)
-                {
-                    gamePlatform.Release();
-                }
+                GamePlatform?.Release();
             }
         }
 
