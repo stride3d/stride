@@ -95,7 +95,7 @@ namespace Stride.Rendering.Images
         }
 
         /// <summary>
-        /// Sets the default parameters (called at constructor time and if <see cref="Reset"/> is called)
+        /// Sets the default parameters (called at constructor time and if <see cref="ImageEffect.Reset"/> is called)
         /// </summary>
         protected override void SetDefaultParameters()
         {

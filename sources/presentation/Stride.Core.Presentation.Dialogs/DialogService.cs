@@ -151,7 +151,7 @@ namespace Stride.Core.Presentation.Dialogs
         {
             var dialog = CreateFileOpenModalDialog();
             dialog.AllowMultiSelection = false;
-            dialog.InitialDirectory = initialPath.ToWindowsPath();
+            dialog.InitialDirectory = initialPath.ToOSPath();
             if (filters is not null)
                 dialog.Filters.AddRange(filters?.Select(x => new FileDialogFilter(x.Name, string.Join(';', x.Patterns))));
 
@@ -165,7 +165,7 @@ namespace Stride.Core.Presentation.Dialogs
         {
             var dialog = CreateFileOpenModalDialog();
             dialog.AllowMultiSelection = true;
-            dialog.InitialDirectory = initialPath.ToWindowsPath();
+            dialog.InitialDirectory = initialPath.ToOSPath();
             if (filters is not null)
                 dialog.Filters.AddRange(filters?.Select(x => new FileDialogFilter(x.Name, string.Join(';', x.Patterns))));
 
@@ -176,7 +176,7 @@ namespace Stride.Core.Presentation.Dialogs
         async Task<UDirectory> IDialogService.OpenFolderPickerAsync(UDirectory initialPath)
         {
             var dialog = CreateFolderOpenModalDialog();
-            dialog.InitialDirectory = initialPath.ToWindowsPath();
+            dialog.InitialDirectory = initialPath.ToOSPath();
 
             var result = await dialog.ShowModal();
             return result == DialogResult.Ok
@@ -189,7 +189,7 @@ namespace Stride.Core.Presentation.Dialogs
             var dialog = CreateFileSaveModalDialog();
             dialog.DefaultExtension = defaultExtension;
             dialog.DefaultFileName = defaultFileName;
-            dialog.InitialDirectory = initialPath.ToWindowsPath();
+            dialog.InitialDirectory = initialPath.ToOSPath();
             if (filters is not null)
                 dialog.Filters.AddRange(filters?.Select(x => new FileDialogFilter(x.Name, string.Join(';', x.Patterns))));
 

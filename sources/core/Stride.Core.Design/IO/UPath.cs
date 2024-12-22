@@ -284,15 +284,18 @@ namespace Stride.Core.IO
         {
             return FullPath;
         }
-
+        
         /// <summary>
-        /// Converts this path to a Windows path (/ replaced by \)
+        /// Converts this path to a OS path, 
+        /// by replacing each separator with the current operating system
+        /// <see cref="Path.DirectorySeparatorChar"/> 
         /// </summary>
-        /// <returns>A string representation of this path in windows form.</returns>
+        ///<returns>A normalized string path</returns>
+
         [NotNull]
-        public string ToWindowsPath()
+        public string ToOSPath()
         {
-            return FullPath.Replace('/', '\\');
+            return FullPath.Replace('/', Path.DirectorySeparatorChar); 
         }
 
         /// <summary>

@@ -39,7 +39,7 @@ namespace Stride.LauncherApp.ViewModels
 
         public string Name { get; private set; }
 
-        public string FullPath => fullPath.ToWindowsPath();
+        public string FullPath => fullPath.ToOSPath();
 
         public string StrideVersionName { get { return strideVersionName; } private set { SetValue(ref strideVersionName, value); } }
 
@@ -71,7 +71,7 @@ namespace Stride.LauncherApp.ViewModels
 
         private void Explore()
         {
-            var startInfo = new ProcessStartInfo("explorer.exe", $"/select,{fullPath.ToWindowsPath()}") { UseShellExecute = true };
+            var startInfo = new ProcessStartInfo("explorer.exe", $"/select,{fullPath.ToOSPath()}") { UseShellExecute = true };
             var explorer = new Process { StartInfo = startInfo };
             explorer.Start();
         }

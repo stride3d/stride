@@ -32,6 +32,7 @@ using Stride.Core.Presentation.Interop;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Translation;
 using Stride.Core.Presentation.ViewModels;
+using System.Collections;
 
 namespace Stride.Core.Assets.Editor.ViewModel
 {
@@ -75,7 +76,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
                 isActive = true;
 
                 RemoveFilterCommand = new AnonymousCommand<AssetFilterViewModel>(ServiceProvider, collection.RemoveAssetFilter);
-                ToggleIsActiveCommand = new AnonymousCommand(ServiceProvider, () => IsActive = !IsActive);
+                ToggleIsActiveCommand = new AnonymousCommand(ServiceProvider, () => { IsActive = !IsActive; collection.SaveAssetFilters(); });
             }
 
             public FilterCategory Category { get; }
@@ -152,6 +153,18 @@ namespace Stride.Core.Assets.Editor.ViewModel
                 return !Equals(left, right);
             }
         }
+
+        [DataContract(nameof(AssetFilterViewModelData))]
+        public sealed class AssetFilterViewModelData
+        {
+            public string DisplayName = "";
+            public string Filter = "";
+            public bool IsActive = false;
+            public FilterCategory category = FilterCategory.AssetName;
+        }
+
+        // Storing out primitive data for filters to save between instances of editor
+        private List<AssetFilterViewModelData> StoredListData = InternalSettings.ViewFilters.GetValue();
 
         public static readonly IEnumerable<FilterCategory> AllFilterCategories = Enum.GetValues(typeof(FilterCategory)).Cast<FilterCategory>();
 
@@ -230,6 +243,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
             SelectedLocations.CollectionChanged += SelectedLocationCollectionChanged;
             filteredAssets.CollectionChanged += FilteredAssetsCollectionChanged;
             selectedContent.CollectionChanged += SelectedContentCollectionChanged;
+            LoadAssetFilters();
             refreshing = false;
 
             DependentProperties.Add(nameof(DisplayAssetMode), new[] { nameof(DisplayLocationContentRecursively) });
@@ -1110,6 +1124,45 @@ namespace Stride.Core.Assets.Editor.ViewModel
             UpdateCommands();
         }
 
+        /// <summary>
+        /// Load asset filters from InternalSettings
+        /// </summary>
+        private void LoadAssetFilters()
+        {
+            //flip order of filters to stay consistent
+            StoredListData.Reverse();
+            foreach (var filterDataObj in StoredListData)
+            {
+                AssetFilterViewModel NewAssetFilter = new AssetFilterViewModel(this, filterDataObj.category, filterDataObj.Filter, filterDataObj.DisplayName);
+                NewAssetFilter.IsActive = filterDataObj.IsActive;
+                currentAssetFilters.Insert(0, NewAssetFilter);
+            }
+            // save out in case editor is immediately closed
+            SaveAssetFilters();
+        }
+
+        /// <summary>
+        /// Save primitive data types out from all current filters to InternalSettings
+        /// </summary>
+        private void SaveAssetFilters()
+        {
+            // Make list of AssetFilterViewModelData of just the primitives we save between editor instances
+            List<AssetFilterViewModelData> listData = new List<AssetFilterViewModelData>();
+
+            // Run through our currentAssetFilters and store out the data
+            for (int i = 0; i < currentAssetFilters.Count; i++)
+            {
+                AssetFilterViewModelData obj = new AssetFilterViewModelData();
+
+                obj.DisplayName = currentAssetFilters[i].DisplayName;
+                obj.Filter = currentAssetFilters[i].Filter;
+                obj.IsActive = currentAssetFilters[i].IsActive;
+                obj.category = currentAssetFilters[i].Category;
+                listData.Add(obj);
+            }
+            InternalSettings.ViewFilters.SetValue(listData);
+        }
+
         public void AddAssetFilter(AssetFilterViewModel filter)
         {
             if (filter == null)
@@ -1117,11 +1170,13 @@ namespace Stride.Core.Assets.Editor.ViewModel
 
             filter.IsActive = true;
             currentAssetFilters.Insert(0, filter);
+            SaveAssetFilters();
         }
 
         public void ClearAssetFilters()
         {
             currentAssetFilters.RemoveWhere(f => !f.IsReadOnly);
+            SaveAssetFilters();
         }
 
         public void RefreshAssetFilter(AssetFilterViewModel filter)
@@ -1136,6 +1191,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
             }
             refreshing = false;
             AddAssetFilter(filter);
+            SaveAssetFilters();
         }
 
         public void RemoveAssetFilter(AssetFilterViewModel filter)
@@ -1145,6 +1201,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
 
             filter.IsActive = false;
             currentAssetFilters.Remove(filter);
+            SaveAssetFilters();
         }
 
         private void AddAsset(AssetViewModel asset)

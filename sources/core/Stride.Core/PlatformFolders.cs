@@ -155,7 +155,12 @@ namespace Stride.Core
 #if STRIDE_PLATFORM_ANDROID
             return PlatformAndroid.Context.PackageCodePath;
 #elif STRIDE_PLATFORM_DESKTOP || STRIDE_PLATFORM_MONO_MOBILE
-            return Assembly.GetEntryAssembly()?.Location;
+            var appPath = Assembly.GetEntryAssembly()?.Location;
+            if (string.IsNullOrEmpty(appPath))
+            {
+                appPath = Environment.ProcessPath;
+            }
+            return appPath;
 #else
             return null;
 #endif
@@ -186,6 +191,8 @@ namespace Stride.Core
         {
 #if STRIDE_PLATFORM_ANDROID
             return GetApplicationExecutableDirectory();
+#elif STRIDE_PLATFORM_DESKTOP
+            return Path.GetDirectoryName(AppContext.BaseDirectory);
 #else
             return Path.GetDirectoryName(typeof(PlatformFolders).Assembly.Location);
 #endif

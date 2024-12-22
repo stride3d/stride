@@ -330,7 +330,15 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "NuGetResolver", "NuGetResol
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Presentation", "..\sources\presentation\Stride.Core.Presentation\Stride.Core.Presentation.csproj", "{0C63EF8B-26F9-4511-9FC5-7431DE9657D6}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Stride.Bepu", "Stride.Bepu", "{DE048114-9AE4-467E-A879-188DC0D88A59}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.BepuPhysics", "..\sources\engine\Stride.BepuPhysics\Stride.BepuPhysics\Stride.BepuPhysics.csproj", "{3E424688-EC44-4DFB-9FC0-4BB1F0683651}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.BepuPhysics.Debug", "..\sources\engine\Stride.BepuPhysics\Stride.BepuPhysics.Debug\Stride.BepuPhysics.Debug.csproj", "{7715D094-DF59-4D91-BC9A-9A5118039ECB}"
+EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Importer.3D", "..\sources\tools\Stride.Importer.3D\Stride.Importer.3D.csproj", "{66EFFDE4-24F0-4E57-9618-0F5577E20A1E}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.BepuPhysics.Tests", "..\sources\engine\Stride.BepuPhysics\Stride.BepuPhysics.Tests\Stride.BepuPhysics.Tests.csproj", "{7B70C783-4085-4702-B3C6-6570FD85CB8F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -1469,6 +1477,30 @@ Global
 		{0C63EF8B-26F9-4511-9FC5-7431DE9657D6}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{0C63EF8B-26F9-4511-9FC5-7431DE9657D6}.Release|Win32.ActiveCfg = Release|Any CPU
 		{0C63EF8B-26F9-4511-9FC5-7431DE9657D6}.Release|Win32.Build.0 = Release|Any CPU
+		{3E424688-EC44-4DFB-9FC0-4BB1F0683651}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3E424688-EC44-4DFB-9FC0-4BB1F0683651}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3E424688-EC44-4DFB-9FC0-4BB1F0683651}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{3E424688-EC44-4DFB-9FC0-4BB1F0683651}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{3E424688-EC44-4DFB-9FC0-4BB1F0683651}.Debug|Win32.ActiveCfg = Debug|Any CPU
+		{3E424688-EC44-4DFB-9FC0-4BB1F0683651}.Debug|Win32.Build.0 = Debug|Any CPU
+		{3E424688-EC44-4DFB-9FC0-4BB1F0683651}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3E424688-EC44-4DFB-9FC0-4BB1F0683651}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3E424688-EC44-4DFB-9FC0-4BB1F0683651}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{3E424688-EC44-4DFB-9FC0-4BB1F0683651}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{3E424688-EC44-4DFB-9FC0-4BB1F0683651}.Release|Win32.ActiveCfg = Release|Any CPU
+		{3E424688-EC44-4DFB-9FC0-4BB1F0683651}.Release|Win32.Build.0 = Release|Any CPU
+		{7715D094-DF59-4D91-BC9A-9A5118039ECB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7715D094-DF59-4D91-BC9A-9A5118039ECB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7715D094-DF59-4D91-BC9A-9A5118039ECB}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{7715D094-DF59-4D91-BC9A-9A5118039ECB}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{7715D094-DF59-4D91-BC9A-9A5118039ECB}.Debug|Win32.ActiveCfg = Debug|Any CPU
+		{7715D094-DF59-4D91-BC9A-9A5118039ECB}.Debug|Win32.Build.0 = Debug|Any CPU
+		{7715D094-DF59-4D91-BC9A-9A5118039ECB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7715D094-DF59-4D91-BC9A-9A5118039ECB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7715D094-DF59-4D91-BC9A-9A5118039ECB}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{7715D094-DF59-4D91-BC9A-9A5118039ECB}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{7715D094-DF59-4D91-BC9A-9A5118039ECB}.Release|Win32.ActiveCfg = Release|Any CPU
+		{7715D094-DF59-4D91-BC9A-9A5118039ECB}.Release|Win32.Build.0 = Release|Any CPU
 		{66EFFDE4-24F0-4E57-9618-0F5577E20A1E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{66EFFDE4-24F0-4E57-9618-0F5577E20A1E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{66EFFDE4-24F0-4E57-9618-0F5577E20A1E}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
@@ -1481,6 +1513,18 @@ Global
 		{66EFFDE4-24F0-4E57-9618-0F5577E20A1E}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{66EFFDE4-24F0-4E57-9618-0F5577E20A1E}.Release|Win32.ActiveCfg = Release|Any CPU
 		{66EFFDE4-24F0-4E57-9618-0F5577E20A1E}.Release|Win32.Build.0 = Release|Any CPU
+		{7B70C783-4085-4702-B3C6-6570FD85CB8F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7B70C783-4085-4702-B3C6-6570FD85CB8F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7B70C783-4085-4702-B3C6-6570FD85CB8F}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{7B70C783-4085-4702-B3C6-6570FD85CB8F}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{7B70C783-4085-4702-B3C6-6570FD85CB8F}.Debug|Win32.ActiveCfg = Debug|Any CPU
+		{7B70C783-4085-4702-B3C6-6570FD85CB8F}.Debug|Win32.Build.0 = Debug|Any CPU
+		{7B70C783-4085-4702-B3C6-6570FD85CB8F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7B70C783-4085-4702-B3C6-6570FD85CB8F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7B70C783-4085-4702-B3C6-6570FD85CB8F}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{7B70C783-4085-4702-B3C6-6570FD85CB8F}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{7B70C783-4085-4702-B3C6-6570FD85CB8F}.Release|Win32.ActiveCfg = Release|Any CPU
+		{7B70C783-4085-4702-B3C6-6570FD85CB8F}.Release|Win32.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1606,7 +1650,11 @@ Global
 		{02FD0BDE-4293-414F-97E6-69FF71105420} = {158087CF-AF74-44E9-AA20-A6AEB1E398A9}
 		{158087CF-AF74-44E9-AA20-A6AEB1E398A9} = {1AE1AC60-5D2F-4CA7-AE20-888F44551185}
 		{0C63EF8B-26F9-4511-9FC5-7431DE9657D6} = {75A820AB-0F21-40F2-9448-5D7F495B97A0}
+		{DE048114-9AE4-467E-A879-188DC0D88A59} = {4C142567-C42B-40F5-B092-798882190209}
+		{3E424688-EC44-4DFB-9FC0-4BB1F0683651} = {DE048114-9AE4-467E-A879-188DC0D88A59}
+		{7715D094-DF59-4D91-BC9A-9A5118039ECB} = {DE048114-9AE4-467E-A879-188DC0D88A59}
 		{66EFFDE4-24F0-4E57-9618-0F5577E20A1E} = {6F473FA6-4F8B-4FBA-AE33-EE5AF997D50C}
+		{7B70C783-4085-4702-B3C6-6570FD85CB8F} = {DE048114-9AE4-467E-A879-188DC0D88A59}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {FF877973-604D-4EA7-B5F5-A129961F9EF2}

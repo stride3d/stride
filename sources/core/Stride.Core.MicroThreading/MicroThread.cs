@@ -92,7 +92,7 @@ namespace Stride.Core.MicroThreading
         /// <summary>
         /// Gets the exception that was thrown by this <see cref="MicroThread"/>.
         /// </summary>
-        /// It could come from either internally, or from <see cref="RaiseException"/> if it was successfully processed.
+        /// It could come from either internally, or from <see cref="SetException"/> if it was successfully processed.
         /// <value>The exception.</value>
         public Exception Exception { get; private set; }
 

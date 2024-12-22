@@ -179,10 +179,8 @@ namespace Stride.Graphics
         /// <returns>True if the <see cref="PixelFormat"/> is valid.</returns>
         public static bool IsValid(this PixelFormat format)
         {
-            return ((int)(format) >= 1 && (int)(format) <= 115) // DirectX formats
-                || ((int)(format) >= 1024 && (int)(format) <= 1033) // PVRTC formats
-                || ((int)(format) >= 1088 && (int)(format) <= 1097) // ETC formats
-                || ((int)(format) >= 1120 && (int)(format) <= 1122); // ATITC formats
+            return ((int)format >= 1 && (int)format <= 115) // DirectX formats
+                || ((int)format >= 1088 && (int)format <= 1097); // ETC formats
         }
 
         /// <summary>

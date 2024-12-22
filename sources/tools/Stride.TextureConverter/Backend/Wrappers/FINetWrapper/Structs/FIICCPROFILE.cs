@@ -45,10 +45,6 @@ namespace FreeImageAPI
 	[Serializable, StructLayout(LayoutKind.Sequential)]
 	public struct FIICCPROFILE
 	{
-		private ICC_FLAGS flags;
-		private uint size;
-		private IntPtr data;
-
 		/// <summary>
 		/// Creates a new ICC-Profile for <paramref name="dib"/>.
 		/// </summary>
@@ -57,7 +53,7 @@ namespace FreeImageAPI
 		/// <exception cref="ArgumentNullException">
 		/// <paramref name="dib"/> is null.</exception>
 		public FIICCPROFILE(FIBITMAP dib, byte[] data)
-			: this(dib, data, (int)data.Length)
+			: this(dib, data, data.Length)
 		{
 		}
 
@@ -75,37 +71,28 @@ namespace FreeImageAPI
 			{
 				throw new ArgumentNullException("dib");
 			}
-			FIICCPROFILE prof;
-			size = Math.Min(size, (int)data.Length);
-			prof = *(FIICCPROFILE*)FreeImage.CreateICCProfile(dib, data, size);
-			this.flags = prof.flags;
-			this.size = prof.size;
-			this.data = prof.data;
+			
+			size = Math.Min(size, data.Length);
+			FIICCPROFILE prof = *(FIICCPROFILE*)FreeImage.CreateICCProfile(dib, data, size);
+			this.Flags = prof.Flags;
+			this.Size = prof.Size;
+			this.DataPointer = prof.DataPointer;
 		}
 
 		/// <summary>
 		/// Info flag of the profile.
 		/// </summary>
-		public ICC_FLAGS Flags
-		{
-			get { return flags; }
-		}
+		public ICC_FLAGS Flags { get; }
 
 		/// <summary>
 		/// Profile's size measured in bytes.
 		/// </summary>
-		public uint Size
-		{
-			get { return size; }
-		}
+		public uint Size { get; }
 
 		/// <summary>
 		/// Points to a block of contiguous memory containing the profile.
 		/// </summary>
-		public IntPtr DataPointer
-		{
-			get { return data; }
-		}
+		public IntPtr DataPointer { get; }
 
 		/// <summary>
 		/// Copy of the ICC-Profiles data.
@@ -114,14 +101,14 @@ namespace FreeImageAPI
 		{
 			get
 			{
-                byte[] result = new byte[size];
+				byte[] result = new byte[Size];
 
-                ref byte dst = ref result[0];
-                ref byte src = ref Unsafe.AsRef<byte>((void*) data);
+				ref byte dst = ref result[0];
+				ref byte src = ref Unsafe.AsRef<byte>((void*) DataPointer);
 
-                Unsafe.CopyBlockUnaligned(ref dst, ref src, size);
+				Unsafe.CopyBlockUnaligned(ref dst, ref src, Size);
 
-                return result;
+				return result;
 			}
 		}
 
@@ -132,7 +119,7 @@ namespace FreeImageAPI
 		{
 			get
 			{
-				return ((flags & ICC_FLAGS.FIICC_COLOR_IS_CMYK) != 0);
+				return ((Flags & ICC_FLAGS.FIICC_COLOR_IS_CMYK) != 0);
 			}
 		}
 	}

@@ -403,6 +403,18 @@ namespace Stride.Core.Serialization.Contents
             return result;
         }
 
+        public bool TryGetLoadedAsset(string url, out object asset)
+        {
+            if (LoadedAssetUrls.TryGetValue(url, out var reference))
+            {
+                asset = reference.Object;
+                return true;
+            }
+
+            asset = null;
+            return false;
+        }
+
         internal Reference FindDeserializedObject(string url, Type objType)
         {
             // Try to find already loaded object
@@ -507,7 +519,7 @@ namespace Stride.Core.Serialization.Contents
                     // Find serializer
                     var serializer = Serializer.GetSerializer(headerObjType, objType);
                     if (serializer == null)
-                        throw new InvalidOperationException($"Content serializer for {headerObjType}/{objType} could not be found.");
+                        throw new InvalidOperationException($"Content serializer for {url} could not be found. Was expecting to find type {objType} but the actual type of the resource was {headerObjType}");
                     contentSerializerContext = new ContentSerializerContext(url, ArchiveMode.Deserialize, this)
                     {
                         LoadContentReferences = settings.LoadContentReferences,

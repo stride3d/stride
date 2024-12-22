@@ -7,21 +7,32 @@ using System.Text;
 using System.Threading.Tasks;
 using Stride.Core.IO;
 
-namespace Stride.Assets
+namespace Stride.Assets;
+
+static class ToolLocator
 {
-    static class ToolLocator
+    public static UFile LocateTool(string toolName)
     {
-        public static UFile LocateTool(string toolName)
+        if(!OperatingSystem.IsWindows())
         {
-            var tool = UPath.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), new UFile(toolName));
-            if (File.Exists(tool))
-                return tool;
+            var pathDirectories = Environment.GetEnvironmentVariable("PATH")?.Split(':') ?? Array.Empty<string>();
 
-            tool = UPath.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), new UFile($"../../content/{toolName}"));
-            if (File.Exists(tool))
-                return tool;
-
-            return null;
+            foreach (var directory in pathDirectories)
+            {
+                var toolLocation = Path.Combine(directory, toolName);
+                if (File.Exists(toolLocation))
+                    return new UFile(toolLocation);
+            }
         }
+
+        var tool = UPath.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), new UFile($"{toolName}.exe"));
+        if (File.Exists(tool))
+            return tool;
+
+        tool = UPath.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), new UFile($"../../content/{toolName}.exe"));
+        if (File.Exists(tool))
+            return tool;
+
+        return null;
     }
 }

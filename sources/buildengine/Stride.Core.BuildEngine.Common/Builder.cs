@@ -758,9 +758,7 @@ namespace Stride.Core.BuildEngine
             {
                 lock (builderContext.CommandsInProgress)
                 {
-                    if (!builderContext.CommandsInProgress.ContainsKey(commandHash))
-                        builderContext.CommandsInProgress.Add(commandHash, commandBuildStep);
-
+                    builderContext.CommandsInProgress.TryAdd(commandHash, commandBuildStep);
                     builder.ioMonitor.CommandStarted(commandBuildStep);
                 }
             }

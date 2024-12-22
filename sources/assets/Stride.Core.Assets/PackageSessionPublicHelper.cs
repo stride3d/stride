@@ -16,6 +16,12 @@ namespace Stride.Core.Assets
     /// </summary>
     public static class PackageSessionPublicHelper
     {
+
+        /// <summary>
+        /// The current major .NET version that Stride will use.
+        /// </summary>
+        public static int NetMajorVersion => Environment.Version.Major;
+
         private static readonly string[] s_msBuildAssemblies =
         {
             "Microsoft.Build",
@@ -38,13 +44,13 @@ namespace Stride.Core.Assets
                 // Detect either .NET Core SDK or Visual Studio depending on current runtime
                 var isNETCore = !RuntimeInformation.FrameworkDescription.StartsWith(".NET Framework", StringComparison.Ordinal);
                 MSBuildInstance = MSBuildLocator.QueryVisualStudioInstances().FirstOrDefault(x => isNETCore
-                    ? x.DiscoveryType == DiscoveryType.DotNetSdk && x.Version.Major == 8
+                    ? x.DiscoveryType == DiscoveryType.DotNetSdk && x.Version.Major == NetMajorVersion
                     : (x.DiscoveryType == DiscoveryType.VisualStudioSetup || x.DiscoveryType == DiscoveryType.DeveloperConsole) && x.Version.Major >= 16);
                 
                 if (MSBuildInstance == null)
                 {
                     throw new InvalidOperationException("Could not find a MSBuild installation (expected 16.0 or later) " +
-                        "Please ensure you have the .NET 8 SDK installed from Microsoft's website");
+                        $"Please ensure you have the .NET {NetMajorVersion} SDK installed from Microsoft's website");
                 }
 
                 // Make sure it is not already loaded (otherwise MSBuildLocator.RegisterDefaults() throws an exception)
@@ -117,7 +123,7 @@ namespace Stride.Core.Assets
                 .GetField("CurrentHost", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
             if (currentHostField != null)
             {
-                currentHostField.SetValue(null, Path.Combine(new DirectoryInfo(dotNetSdkPath).Parent.Parent.FullName, RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "dotnet.exe" : "dotnet"));
+                currentHostField.SetValue(null, Path.Combine(new DirectoryInfo(dotNetSdkPath).Parent.Parent.FullName, OperatingSystem.IsWindows() ? "dotnet.exe" : "dotnet"));
             }
         }
 

@@ -7,7 +7,7 @@ using Stride.Rendering;
 namespace Stride.Engine.Design
 {
     /// <summary>
-    /// Defines how <see cref="EffectCompilerFactory.CreateEffectCompiler"/> tries to create compiler.
+    /// Defines how <see cref="Stride.Shaders.Compiler.EffectCompilerFactory.CreateEffectCompiler"/> tries to create compiler.
     /// </summary>
     [Flags]
     public enum EffectCompilationMode

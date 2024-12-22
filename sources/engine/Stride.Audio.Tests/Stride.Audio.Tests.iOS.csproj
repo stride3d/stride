@@ -16,7 +16,6 @@
     <AssemblyName>StrideAudioTests</AssemblyName>
     <StrideBuildTags>*</StrideBuildTags>
     <StridePlatform>iOS</StridePlatform>
-    <StrideBuildProfile>iOS</StrideBuildProfile>
     <StridePackageGuid>{637e7e88-bc09-4ddd-95eb-00114fd32e5e}</StridePackageGuid>
     <StrideGraphicsApi Condition="'$(StrideGraphicsApi)' == ''">OpenGLES</StrideGraphicsApi>
     <StrideOutputFolder>Tests\$(StrideGraphicsApi)\$(AssemblyName)</StrideOutputFolder>

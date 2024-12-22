@@ -270,8 +270,7 @@ namespace Stride.Core.Reflection
                                             var assemblyName = Path.GetFileNameWithoutExtension(runtimeFile.Path);
 
                                             // TODO: Properly deal with file duplicates (same file in multiple package, or RID conflicts)
-                                            if (!dependenciesMapping.ContainsKey(assemblyName))
-                                                dependenciesMapping.Add(assemblyName, fullPath);
+                                            dependenciesMapping.TryAdd(assemblyName, fullPath);
                                         }
                                     }
                                 }
@@ -295,8 +294,7 @@ namespace Stride.Core.Reflection
                                             var assemblyName = Path.GetFileNameWithoutExtension(runtimeFile);
 
                                             // TODO: Properly deal with file duplicates (same file in multiple package, or RID conflicts)
-                                            if (!dependenciesMapping.ContainsKey(assemblyName))
-                                                dependenciesMapping.Add(assemblyName, runtimeFile);
+                                            dependenciesMapping.TryAdd(assemblyName, runtimeFile);
                                         }
                                     }
                                 }
