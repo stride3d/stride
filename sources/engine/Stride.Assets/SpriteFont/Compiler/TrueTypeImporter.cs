@@ -53,12 +53,6 @@ namespace Stride.Assets.SpriteFont.Compiler
 
         public void Import(SpriteFontAsset options, List<char> characters)
         {
-            var factory = new Factory();
-
-            var fontFace = options.FontSource.GetFontFace();
-            
-            var fontMetrics = fontFace.Metrics;
-
             NativeLibraryHelper.PreloadLibrary("freeimage", typeof(TrueTypeImporter));
             
             var face = options.FontSource.GetFont();
@@ -78,57 +72,38 @@ namespace Stride.Assets.SpriteFont.Compiler
             //
             // So we are first applying a factor to the line gap:
             //     NewLineGap = LineGap * LineGapFactor
-            var lineGapOld = fontMetrics.LineGap * options.LineGapFactor;
             var lineGap = (face.Height - face.Ascender + face.Descender) * options.LineGapFactor;
-            Debug.Assert(lineGapOld == lineGap);
 
             // Store the font height.
-            var LineSpacingOld = (float)(lineGap + fontMetrics.Ascent + fontMetrics.Descent) / fontMetrics.DesignUnitsPerEm * fontSize;
             LineSpacing = (float)(lineGap + face.Ascender + Math.Abs(face.Descender)) / face.UnitsPerEM * fontSize;
-            Debug.Assert(LineSpacingOld == LineSpacing);
 
             // And then the baseline is also changed in order to allow the linegap to be distributed between the top and the 
             // bottom of the font:
             //     BaseLine = NewLineGap * LineGapBaseLineFactor
-            var BaseLineOld = (float)(lineGap * options.LineGapBaseLineFactor + fontMetrics.Ascent) / fontMetrics.DesignUnitsPerEm * fontSize;
             BaseLine = (float)(lineGap * options.LineGapBaseLineFactor + face.Ascender) / face.UnitsPerEM * fontSize;
-            Debug.Assert(BaseLineOld == BaseLine);
 
             // Rasterize each character in turn.
 
             foreach (var character in characters)
-                glyphList.Add(ImportGlyph(factory, fontFace, face, character, fontFace.Metrics, fontSize, options.FontType.AntiAlias));
+                glyphList.Add(ImportGlyph(face, character, fontSize, options.FontType.AntiAlias));
 
             Glyphs = glyphList;
         }
         
-        private Glyph ImportGlyph(Factory factory, FontFace fontFace, Face face, char character, FontMetrics fontMetrics, float fontSize, FontAntiAliasMode antiAliasMode)
+        private Glyph ImportGlyph(Face face, char character, float fontSize, FontAntiAliasMode antiAliasMode)
         {
-            var indices = fontFace.GetGlyphIndices(new int[] { character });
-
-            var metrics = fontFace.GetDesignGlyphMetrics(indices, false);
-            var metric = metrics[0];
-
             var index = face.GetCharIndex(character);
             face.SetPixelSizes(0, (uint)fontSize);
             face.LoadGlyph(index, LoadFlags.NoScale, LoadTarget.Normal);
 
-            var widthOld = (float)(metric.AdvanceWidth - metric.LeftSideBearing - metric.RightSideBearing) / fontMetrics.DesignUnitsPerEm * fontSize;
             var width = (float)face.Glyph.Metrics.Width.Value / face.UnitsPerEM * fontSize;
-            Debug.Assert(widthOld == width);
-            var heightOld = (float)face.Glyph.Metrics.Height.Value / face.UnitsPerEM * fontSize;
-            var height = (float)(metric.AdvanceHeight - metric.TopSideBearing - metric.BottomSideBearing) / fontMetrics.DesignUnitsPerEm * fontSize;
-            Debug.Assert(heightOld == height);
-            var xOffsetOld = (float)metric.LeftSideBearing / fontMetrics.DesignUnitsPerEm * fontSize;
-            var xOffset = (float)face.Glyph.Metrics.HorizontalBearingX.Value / face.UnitsPerEM * fontSize;
-            Debug.Assert(xOffsetOld == xOffset);
-            var yOffsetOld = (float)(-1)*face.Glyph.Metrics.HorizontalBearingY.Value / face.UnitsPerEM * fontSize;
-            var yOffset = (float)(metric.TopSideBearing - metric.VerticalOriginY) / fontMetrics.DesignUnitsPerEm * fontSize;
-            Debug.Assert(yOffsetOld == yOffset);
-            var advanceWidthOld = (float)metric.AdvanceWidth / fontMetrics.DesignUnitsPerEm * fontSize;
-            var advanceWidth = (float)face.Glyph.Metrics.HorizontalAdvance.Value / face.UnitsPerEM * fontSize;
+            var height = (float)face.Glyph.Metrics.Height.Value / face.UnitsPerEM * fontSize;
             
-            Debug.Assert(advanceWidthOld == advanceWidth);
+            var xOffset = (float)face.Glyph.Metrics.HorizontalBearingX.Value / face.UnitsPerEM * fontSize;
+            var yOffset = (float)(-1)*face.Glyph.Metrics.HorizontalBearingY.Value / face.UnitsPerEM * fontSize;
+            
+            var advanceWidth = (float)face.Glyph.Metrics.HorizontalAdvance.Value / face.UnitsPerEM * fontSize;
+
             //var advanceHeight = (float)metric.AdvanceHeight / face.UnitsPerEM * fontSize;
 
             var pixelWidth = (int)Math.Ceiling(width + 4);
