@@ -8,6 +8,7 @@ Stride uses the following open-source products.
 * [.Net SDK](https://github.com/dotnet/sdk) (MIT License)
 * [Bullet](http://bulletphysics.org/) (zlib License)
 * [BEPUphysics](https://github.com/bepu/bepuphysics2) (Apache License 2.0)
+* [Silk.NET](https://github.com/dotnet/Silk.NET) (MIT License)
 * [DirectXTex](http://directxtex.codeplex.com) (Ms-PL)
 * [DirectXTk](https://directxtk.codeplex.com/) (Ms-PL)
 * [FreeType](http://www.freetype.org/) (FreeType License)
