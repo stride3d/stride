@@ -20,7 +20,6 @@ using Stride.Core.Presentation.ViewModels;
 using Stride.Core.VisualStudio;
 using Stride.LauncherApp.Resources;
 using Stride.LauncherApp.Services;
-using Stride.Metrics;
 
 namespace Stride.LauncherApp.ViewModels
 {
@@ -568,17 +567,10 @@ namespace Stride.LauncherApp.ViewModels
                 argument = $"/LauncherWindowHandle {WindowHandle} {argument}";
             }
 
-            MetricsClient metricsForEditorBefore120 = null;
             try
             {
                 Dispatcher.Invoke(() => StartStudioCommand.IsEnabled = false);
                 var mainExecutable = ActiveVersion.LocateMainExecutable();
-
-                // If version is older than 1.2.0, than we need to log the usage of older version
-                if (ActiveVersion is StrideStoreVersionViewModel activeStoreVersion && activeStoreVersion.Version.Version < new Version(1, 2, 0, 0))
-                {
-                    metricsForEditorBefore120 = new MetricsClient(CommonApps.StrideEditorAppId, versionOverride: activeStoreVersion.Version.ToString());
-                }
 
                 // We set the WorkingDirectory so that global.json is properly resolved
                 Process.Start(new ProcessStartInfo(mainExecutable, argument) { WorkingDirectory = Path.GetDirectoryName(mainExecutable) } );
@@ -587,10 +579,6 @@ namespace Stride.LauncherApp.ViewModels
             {
                 var message = string.Format(Strings.ErrorStartingProcess, e.FormatSummary(true));
                 await ServiceProvider.Get<IDialogService>().MessageBoxAsync(message, MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-            finally
-            {
-                metricsForEditorBefore120?.Dispose();
             }
             await Task.Delay(5000);
             Dispatcher.Invoke(() =>
