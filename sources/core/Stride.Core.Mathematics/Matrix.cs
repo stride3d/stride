@@ -459,12 +459,10 @@ namespace Stride.Core.Mathematics
         /// <param name="v">Value to cast</param>
         public static implicit operator Matrix(System.Numerics.Matrix4x4 v)
         {
-            return new(
-                v.M11, v.M12, v.M13, v.M14,
-                v.M21, v.M22, v.M23, v.M24,
-                v.M31, v.M32, v.M33, v.M34,
-                v.M41, v.M42, v.M43, v.M44
-            );
+            Matrix nm = Unsafe.As<System.Numerics.Matrix4x4, Matrix>(ref v);
+            //Transpose the matrix due to the different row/column major layout
+            nm.Transpose();
+            return nm;
         }
         /// <summary>
         /// Casts from Stride.Maths to System.Numerics matrix
@@ -472,12 +470,9 @@ namespace Stride.Core.Mathematics
         /// <param name="v">Value to cast</param>
         public static implicit operator System.Numerics.Matrix4x4(Matrix v)
         {
-            return new(
-                v.M11, v.M12, v.M13, v.M14,
-                v.M21, v.M22, v.M23, v.M24,
-                v.M31, v.M32, v.M33, v.M34,
-                v.M41, v.M42, v.M43, v.M44
-            );
+            System.Numerics.Matrix4x4 nm = Unsafe.As<Matrix, System.Numerics.Matrix4x4>(ref v);
+            //Transpose the matrix due to the different row/column major layout
+            return System.Numerics.Matrix4x4.Transpose(nm);
         }
 
         /// <summary>
