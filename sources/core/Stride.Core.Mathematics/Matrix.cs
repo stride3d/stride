@@ -459,9 +459,9 @@ namespace Stride.Core.Mathematics
         /// <param name="v">Value to cast</param>
         public static implicit operator Matrix(System.Numerics.Matrix4x4 v)
         {
-            Matrix nm = Unsafe.As<System.Numerics.Matrix4x4, Matrix>(ref v);
             //Transpose the matrix due to the different row/column major layout
-            nm.Transpose();
+            v = System.Numerics.Matrix4x4.Transpose(v);
+            Matrix nm = Unsafe.As<System.Numerics.Matrix4x4, Matrix>(ref v);
             return nm;
         }
         /// <summary>
