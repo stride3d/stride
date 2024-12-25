@@ -35,7 +35,7 @@ namespace Stride.Core.Mathematics
     /// <summary>
     /// Common utility methods for math operations.
     /// </summary>
-    public static class MathUtil
+    public static partial class MathUtil
     {
         /// <summary>
         /// The value for which all absolute numbers smaller than are considered equal to zero.

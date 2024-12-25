@@ -528,6 +528,7 @@ namespace Stride.Core.Mathematics
         /// Inverts the matrix.
         /// If the matrix cannot be inverted (eg. Determinant was zero), then the matrix will be set equivalent to <see cref="Zero"/>.
         /// </summary>
+        [Obsolete("Use MathUtil.Invert instead. This method will be removed in future versions.")]
         public void Invert()
         {
             Invert(ref this, out this);
@@ -536,6 +537,7 @@ namespace Stride.Core.Mathematics
         /// <summary>
         /// Transposes the matrix.
         /// </summary>
+        [Obsolete("Use Matri4x4.Transpose instead. This method will be removed in future versions.")]
         public void Transpose()
         {
             float temp;
@@ -564,6 +566,7 @@ namespace Stride.Core.Mathematics
         /// If you wish for this operation to be performed on the columns, first transpose the
         /// input and then transpose the output.</para>
         /// </remarks>
+        [Obsolete("Use MathUtil.Orthogonalize instead. This method will be removed in future versions.")]
         public void Orthogonalize()
         {
             Orthogonalize(ref this, out this);
@@ -918,6 +921,7 @@ namespace Stride.Core.Mathematics
         /// <param name="left">The first matrix to add.</param>
         /// <param name="right">The second matrix to add.</param>
         /// <param name="result">When the method completes, contains the sum of the two matrices.</param>
+        [Obsolete("Use System.Numerics.Matrix4x4.Add instead. This method will be removed in future versions.")]
         public static void Add(ref readonly Matrix left, ref readonly Matrix right, out Matrix result)
         {
             result.M11 = left.M11 + right.M11;
@@ -944,6 +948,7 @@ namespace Stride.Core.Mathematics
         /// <param name="left">The first matrix to add.</param>
         /// <param name="right">The second matrix to add.</param>
         /// <returns>The sum of the two matrices.</returns>
+        [Obsolete("Use System.Numerics.Matrix4x4.Add instead. This method will be removed in future versions.")]
         public static Matrix Add(Matrix left, Matrix right)
         {
             Matrix result;
@@ -957,6 +962,7 @@ namespace Stride.Core.Mathematics
         /// <param name="left">The first matrix to subtract.</param>
         /// <param name="right">The second matrix to subtract.</param>
         /// <param name="result">When the method completes, contains the difference between the two matrices.</param>
+        [Obsolete("Use System.Numerics.Matrix4x4.Subtract instead. This method will be removed in future versions.")]
         public static void Subtract(ref readonly Matrix left, ref readonly Matrix right, out Matrix result)
         {
             result.M11 = left.M11 - right.M11;
@@ -983,6 +989,7 @@ namespace Stride.Core.Mathematics
         /// <param name="left">The first matrix to subtract.</param>
         /// <param name="right">The second matrix to subtract.</param>
         /// <returns>The difference between the two matrices.</returns>
+        [Obsolete("Use System.Numerics.Matrix4x4.Subtract instead. This method will be removed in future versions.")]
         public static Matrix Subtract(Matrix left, Matrix right)
         {
             Matrix result;
@@ -996,6 +1003,7 @@ namespace Stride.Core.Mathematics
         /// <param name="left">The matrix to scale.</param>
         /// <param name="right">The amount by which to scale.</param>
         /// <param name="result">When the method completes, contains the scaled matrix.</param>
+        [Obsolete("Use System.Numerics.Matrix4x4.Multiply instead. This method will be removed in future versions.")]
         public static void Multiply(ref readonly Matrix left, float right, out Matrix result)
         {
             result.M11 = left.M11 * right;
@@ -1022,6 +1030,7 @@ namespace Stride.Core.Mathematics
         /// <param name="left">The matrix to scale.</param>
         /// <param name="right">The amount by which to scale.</param>
         /// <returns>The scaled matrix.</returns>
+        [Obsolete("Use System.Numerics.Matrix4x4.Multiply instead. This method will be removed in future versions.")]
         public static Matrix Multiply(Matrix left, float right)
         {
             Matrix result;
@@ -1037,6 +1046,7 @@ namespace Stride.Core.Mathematics
         /// <param name="left">The first matrix to multiply.</param>
         /// <param name="right">The second matrix to multiply.</param>
         /// <param name="result">The product of the two matrices.</param>
+        [Obsolete("Use System.Numerics.Matrix4x4.Multiply instead. This method will be removed in future versions.")]
         public static void Multiply(ref readonly Matrix left, ref readonly Matrix right, out Matrix result)
         {
             ref readonly MatrixDotnet l = ref UnsafeReadonlyRefAsDotNet(in left);
@@ -1053,6 +1063,7 @@ namespace Stride.Core.Mathematics
         /// <param name="left">The first matrix to multiply.</param>
         /// <param name="right">The second matrix to multiply.</param>
         /// <param name="result">The product of the two matrices.</param>
+        [Obsolete("Use System.Numerics.Matrix4x4.Multiply instead. This method will be removed in future versions.")]
         public static void MultiplyIn(in Matrix left, in Matrix right, out Matrix result)
         {
             ref readonly MatrixDotnet l = ref UnsafeReadonlyRefAsDotNet(in left);
@@ -1067,6 +1078,7 @@ namespace Stride.Core.Mathematics
         /// <param name="left">The first matrix to multiply.</param>
         /// <param name="right">The second matrix to multiply.</param>
         /// <returns>The product of the two matrices.</returns>
+        [Obsolete("Use System.Numerics.Matrix4x4.Multiply instead. This method will be removed in future versions.")]
         public static Matrix Multiply(in Matrix left, in Matrix right) => left * right;
 
         /// <summary>
@@ -1214,6 +1226,7 @@ namespace Stride.Core.Mathematics
         /// </summary>
         /// <param name="value">The matrix to be negated.</param>
         /// <param name="result">When the method completes, contains the negated matrix.</param>
+        [Obsolete("Use System.Numerics.Matrix4x4.Negate instead. This method will be removed in future versions.")]
         public static void Negate(ref readonly Matrix value, out Matrix result)
         {
             result.M11 = -value.M11;
@@ -1239,6 +1252,7 @@ namespace Stride.Core.Mathematics
         /// </summary>
         /// <param name="value">The matrix to be negated.</param>
         /// <returns>The negated matrix.</returns>
+        [Obsolete("Use System.Numerics.Matrix4x4.Negate instead. This method will be removed in future versions.")]
         public static Matrix Negate(Matrix value)
         {
             Matrix result;
@@ -1258,6 +1272,7 @@ namespace Stride.Core.Mathematics
         /// <code>start + (end - start) * amount</code>
         /// Passing <paramref name="amount"/> a value of 0 will cause <paramref name="start"/> to be returned; a value of 1 will cause <paramref name="end"/> to be returned.
         /// </remarks>
+        [Obsolete("Use System.Numerics.Matrix4x4.Lerp instead. This method will be removed in future versions.")]
         public static void Lerp(ref readonly Matrix start, ref readonly Matrix end, float amount, out Matrix result)
         {
             result.M11 = start.M11 + ((end.M11 - start.M11) * amount);
@@ -1290,6 +1305,7 @@ namespace Stride.Core.Mathematics
         /// <code>start + (end - start) * amount</code>
         /// Passing <paramref name="amount"/> a value of 0 will cause <paramref name="start"/> to be returned; a value of 1 will cause <paramref name="end"/> to be returned.
         /// </remarks>
+        [Obsolete("Use System.Numerics.Matrix4x4.Lerp instead. This method will be removed in future versions.")]
         public static Matrix Lerp(Matrix start, Matrix end, float amount)
         {
             Matrix result;
@@ -1346,6 +1362,7 @@ namespace Stride.Core.Mathematics
         /// </summary>
         /// <param name="value">The matrix whose transpose is to be calculated.</param>
         /// <param name="result">When the method completes, contains the transpose of the specified matrix.</param>
+        [Obsolete("Use System.Numerics.Matrix4x4.Transpose instead. This method will be removed in future versions.")]
         public static void Transpose(ref readonly Matrix value, out Matrix result)
         {
             result = new Matrix(
@@ -1372,6 +1389,7 @@ namespace Stride.Core.Mathematics
         /// </summary>
         /// <param name="value">The matrix whose transpose is to be calculated.</param>
         /// <returns>The transpose of the specified matrix.</returns>
+        [Obsolete("Use Matri4x4.Transpose instead. This method will be removed in future versions.")]
         public static Matrix Transpose(in Matrix value)
         {
             value.Transpose();
@@ -1384,6 +1402,7 @@ namespace Stride.Core.Mathematics
         /// </summary>
         /// <param name="value">The matrix whose inverse is to be calculated.</param>
         /// <param name="result">When the method completes, contains the inverse of the specified matrix.</param>
+        [Obsolete("Use MathUtil.Invert instead. This method will be removed in future versions.")]
         public static void Invert(ref readonly Matrix value, out Matrix result)
         {
             // Invert works the same in row and column major, no need to transpose
@@ -1400,6 +1419,7 @@ namespace Stride.Core.Mathematics
         /// </summary>
         /// <param name="value">The matrix whose inverse is to be calculated.</param>
         /// <returns>The inverse of the specified matrix.</returns>
+        [Obsolete("Use MathUtil.Invert instead. This method will be removed in future versions.")]
         public static Matrix Invert(Matrix value)
         {
             value.Invert();
@@ -1422,6 +1442,7 @@ namespace Stride.Core.Mathematics
         /// If you wish for this operation to be performed on the columns, first transpose the
         /// input and than transpose the output.</para>
         /// </remarks>
+        [Obsolete("Use MathUtil.Orthogonalize instead. This method will be removed in future versions.")]
         public static void Orthogonalize(ref readonly Matrix value, out Matrix result)
         {
             //Uses the modified Gram-Schmidt process.
@@ -1468,6 +1489,7 @@ namespace Stride.Core.Mathematics
         /// If you wish for this operation to be performed on the columns, first transpose the
         /// input and than transpose the output.</para>
         /// </remarks>
+        [Obsolete("Use MathUtil.Orthogonalize instead. This method will be removed in future versions.")]
         public static Matrix Orthogonalize(Matrix value)
         {
             Matrix result;
@@ -1493,6 +1515,7 @@ namespace Stride.Core.Mathematics
         /// If you wish for this operation to be performed on the columns, first transpose the
         /// input and than transpose the output.</para>
         /// </remarks>
+        [Obsolete("Use MathUtil.Orthonormalize instead. This method will be removed in future versions.")]
         public static void Orthonormalize(ref readonly Matrix value, out Matrix result)
         {
             //Uses the modified Gram-Schmidt process.
@@ -1548,6 +1571,7 @@ namespace Stride.Core.Mathematics
         /// If you wish for this operation to be performed on the columns, first transpose the
         /// input and than transpose the output.</para>
         /// </remarks>
+        [Obsolete("Use MathUtil.Orthonormalize instead. This method will be removed in future versions.")]
         public static Matrix Orthonormalize(Matrix value)
         {
             Matrix result;
@@ -1926,6 +1950,7 @@ namespace Stride.Core.Mathematics
         /// <param name="cameraUpVector">The up vector of the camera.</param>
         /// <param name="cameraForwardVector">The forward vector of the camera.</param>
         /// <param name="result">When the method completes, contains the created billboard matrix.</param>
+        [Obsolete("Use System.Numerics.Matrix4x4.CreateBillboard instead. This method will be removed in future versions.")]
         public static void Billboard(ref readonly Vector3 objectPosition, ref readonly Vector3 cameraPosition, ref readonly Vector3 cameraUpVector, ref readonly Vector3 cameraForwardVector, out Matrix result)
         {
             Vector3 crossed;
@@ -1968,6 +1993,7 @@ namespace Stride.Core.Mathematics
         /// <param name="cameraUpVector">The up vector of the camera.</param>
         /// <param name="cameraForwardVector">The forward vector of the camera.</param>
         /// <returns>The created billboard matrix.</returns>
+        [Obsolete("Use System.Numerics.Matrix4x4.CreateBillboard instead. This method will be removed in future versions.")]
         public static Matrix Billboard(Vector3 objectPosition, Vector3 cameraPosition, Vector3 cameraUpVector, Vector3 cameraForwardVector)
         {
             Matrix result;
@@ -1982,6 +2008,7 @@ namespace Stride.Core.Mathematics
         /// <param name="target">The camera look-at target.</param>
         /// <param name="up">The camera's up vector.</param>
         /// <param name="result">When the method completes, contains the created look-at matrix.</param>
+        [Obsolete("Use System.Numerics.Matrix4x4.CreateLookAtLeftHanded instead. This method will be removed in future versions.")]
         public static void LookAtLH(ref readonly Vector3 eye, ref readonly Vector3 target, ref readonly Vector3 up, out Matrix result)
         {
             Vector3 xaxis, yaxis, zaxis;
@@ -2010,6 +2037,7 @@ namespace Stride.Core.Mathematics
         /// <param name="target">The camera look-at target.</param>
         /// <param name="up">The camera's up vector.</param>
         /// <returns>The created look-at matrix.</returns>
+        [Obsolete("Use System.Numerics.Matrix4x4.CreateLookAtLeftHanded instead. This method will be removed in future versions.")]
         public static Matrix LookAtLH(Vector3 eye, Vector3 target, Vector3 up)
         {
             Matrix result;
@@ -2024,6 +2052,7 @@ namespace Stride.Core.Mathematics
         /// <param name="target">The camera look-at target.</param>
         /// <param name="up">The camera's up vector.</param>
         /// <param name="result">When the method completes, contains the created look-at matrix.</param>
+        [Obsolete("Use System.Numerics.Matrix4x4.CreateLookAt instead. This method will be removed in future versions.")]
         public static void LookAtRH(ref readonly Vector3 eye, ref readonly Vector3 target, ref readonly Vector3 up, out Matrix result)
         {
             Vector3 xaxis, yaxis, zaxis;
@@ -2052,6 +2081,7 @@ namespace Stride.Core.Mathematics
         /// <param name="target">The camera look-at target.</param>
         /// <param name="up">The camera's up vector.</param>
         /// <returns>The created look-at matrix.</returns>
+        [Obsolete("Use System.Numerics.Matrix4x4.CreateLookAtLeftHanded instead. This method will be removed in future versions.")]
         public static Matrix LookAtRH(Vector3 eye, Vector3 target, Vector3 up)
         {
             Matrix result;
@@ -2067,6 +2097,7 @@ namespace Stride.Core.Mathematics
         /// <param name="znear">Minimum z-value of the viewing volume.</param>
         /// <param name="zfar">Maximum z-value of the viewing volume.</param>
         /// <param name="result">When the method completes, contains the created projection matrix.</param>
+        [Obsolete("Use System.Numerics.Matrix4x4.CreateOrthographicLeftHanded instead. This method will be removed in future versions.")]
         public static void OrthoLH(float width, float height, float znear, float zfar, out Matrix result)
         {
             float halfWidth = width * 0.5f;
@@ -2083,6 +2114,7 @@ namespace Stride.Core.Mathematics
         /// <param name="znear">Minimum z-value of the viewing volume.</param>
         /// <param name="zfar">Maximum z-value of the viewing volume.</param>
         /// <returns>The created projection matrix.</returns>
+        [Obsolete("Use System.Numerics.Matrix4x4.CreateOrthographicLeftHanded instead. This method will be removed in future versions.")]
         public static Matrix OrthoLH(float width, float height, float znear, float zfar)
         {
             Matrix result;
@@ -2098,6 +2130,7 @@ namespace Stride.Core.Mathematics
         /// <param name="znear">Minimum z-value of the viewing volume.</param>
         /// <param name="zfar">Maximum z-value of the viewing volume.</param>
         /// <param name="result">When the method completes, contains the created projection matrix.</param>
+        [Obsolete("Use System.Numerics.Matrix4x4.CreateOrthographic instead. This method will be removed in future versions.")]
         public static void OrthoRH(float width, float height, float znear, float zfar, out Matrix result)
         {
             float halfWidth = width * 0.5f;
@@ -2114,6 +2147,7 @@ namespace Stride.Core.Mathematics
         /// <param name="znear">Minimum z-value of the viewing volume.</param>
         /// <param name="zfar">Maximum z-value of the viewing volume.</param>
         /// <returns>The created projection matrix.</returns>
+        [Obsolete("Use System.Numerics.Matrix4x4.CreateOrthographic instead. This method will be removed in future versions.")]
         public static Matrix OrthoRH(float width, float height, float znear, float zfar)
         {
             Matrix result;
@@ -2131,6 +2165,7 @@ namespace Stride.Core.Mathematics
         /// <param name="znear">Minimum z-value of the viewing volume.</param>
         /// <param name="zfar">Maximum z-value of the viewing volume.</param>
         /// <param name="result">When the method completes, contains the created projection matrix.</param>
+        [Obsolete("Use System.Numerics.Matrix4x4.CreateOrthographicOffCenterLeftHanded instead. This method will be removed in future versions.")]
         public static void OrthoOffCenterLH(float left, float right, float bottom, float top, float znear, float zfar, out Matrix result)
         {
             float zRange = 1.0f / (zfar - znear);
@@ -2154,6 +2189,7 @@ namespace Stride.Core.Mathematics
         /// <param name="znear">Minimum z-value of the viewing volume.</param>
         /// <param name="zfar">Maximum z-value of the viewing volume.</param>
         /// <returns>The created projection matrix.</returns>
+        [Obsolete("Use System.Numerics.Matrix4x4.CreateOrthographicOffCenterLeftHanded instead. This method will be removed in future versions.")]
         public static Matrix OrthoOffCenterLH(float left, float right, float bottom, float top, float znear, float zfar)
         {
             Matrix result;
@@ -2171,6 +2207,7 @@ namespace Stride.Core.Mathematics
         /// <param name="znear">Minimum z-value of the viewing volume.</param>
         /// <param name="zfar">Maximum z-value of the viewing volume.</param>
         /// <param name="result">When the method completes, contains the created projection matrix.</param>
+        [Obsolete("Use System.Numerics.Matrix4x4.CreateOrthographicOffCenter instead. This method will be removed in future versions.")]
         public static void OrthoOffCenterRH(float left, float right, float bottom, float top, float znear, float zfar, out Matrix result)
         {
             OrthoOffCenterLH(left, right, bottom, top, znear, zfar, out result);
@@ -2187,6 +2224,7 @@ namespace Stride.Core.Mathematics
         /// <param name="znear">Minimum z-value of the viewing volume.</param>
         /// <param name="zfar">Maximum z-value of the viewing volume.</param>
         /// <returns>The created projection matrix.</returns>
+        [Obsolete("Use System.Numerics.Matrix4x4.CreateOrthographicOffCenter instead. This method will be removed in future versions.")]
         public static Matrix OrthoOffCenterRH(float left, float right, float bottom, float top, float znear, float zfar)
         {
             Matrix result;
@@ -2202,6 +2240,7 @@ namespace Stride.Core.Mathematics
         /// <param name="znear">Minimum z-value of the viewing volume.</param>
         /// <param name="zfar">Maximum z-value of the viewing volume.</param>
         /// <param name="result">When the method completes, contains the created projection matrix.</param>
+        [Obsolete("Use System.Numerics.Matrix4x4.CreatePerspectiveLeftHanded instead. This method will be removed in future versions.")]
         public static void PerspectiveLH(float width, float height, float znear, float zfar, out Matrix result)
         {
             float halfWidth = width * 0.5f;
@@ -2218,6 +2257,7 @@ namespace Stride.Core.Mathematics
         /// <param name="znear">Minimum z-value of the viewing volume.</param>
         /// <param name="zfar">Maximum z-value of the viewing volume.</param>
         /// <returns>The created projection matrix.</returns>
+        [Obsolete("Use System.Numerics.Matrix4x4.CreatePerspectiveLeftHanded instead. This method will be removed in future versions.")]
         public static Matrix PerspectiveLH(float width, float height, float znear, float zfar)
         {
             Matrix result;
@@ -2233,6 +2273,7 @@ namespace Stride.Core.Mathematics
         /// <param name="znear">Minimum z-value of the viewing volume.</param>
         /// <param name="zfar">Maximum z-value of the viewing volume.</param>
         /// <param name="result">When the method completes, contains the created projection matrix.</param>
+        [Obsolete("Use System.Numerics.Matrix4x4.CreatePerspective instead. This method will be removed in future versions.")]
         public static void PerspectiveRH(float width, float height, float znear, float zfar, out Matrix result)
         {
             float halfWidth = width * 0.5f;
@@ -2249,6 +2290,7 @@ namespace Stride.Core.Mathematics
         /// <param name="znear">Minimum z-value of the viewing volume.</param>
         /// <param name="zfar">Maximum z-value of the viewing volume.</param>
         /// <returns>The created projection matrix.</returns>
+        [Obsolete("Use System.Numerics.Matrix4x4.CreatePerspective instead. This method will be removed in future versions.")]
         public static Matrix PerspectiveRH(float width, float height, float znear, float zfar)
         {
             Matrix result;
@@ -2264,6 +2306,7 @@ namespace Stride.Core.Mathematics
         /// <param name="znear">Minimum z-value of the viewing volume.</param>
         /// <param name="zfar">Maximum z-value of the viewing volume.</param>
         /// <param name="result">When the method completes, contains the created projection matrix.</param>
+        [Obsolete("Use System.Numerics.Matrix4x4.CreatePerspectiveFieldOfViewLeftHanded instead. This method will be removed in future versions.")]
         public static void PerspectiveFovLH(float fov, float aspect, float znear, float zfar, out Matrix result)
         {
             float yScale = (float)(1.0 / Math.Tan(fov * 0.5f));
@@ -2283,6 +2326,7 @@ namespace Stride.Core.Mathematics
         /// <param name="znear">Minimum z-value of the viewing volume.</param>
         /// <param name="zfar">Maximum z-value of the viewing volume.</param>
         /// <returns>The created projection matrix.</returns>
+        [Obsolete("Use System.Numerics.Matrix4x4.CreatePerspectiveFieldOfViewLeftHanded instead. This method will be removed in future versions.")]
         public static Matrix PerspectiveFovLH(float fov, float aspect, float znear, float zfar)
         {
             Matrix result;
@@ -2298,6 +2342,7 @@ namespace Stride.Core.Mathematics
         /// <param name="znear">Minimum z-value of the viewing volume.</param>
         /// <param name="zfar">Maximum z-value of the viewing volume.</param>
         /// <param name="result">When the method completes, contains the created projection matrix.</param>
+        [Obsolete("Use System.Numerics.Matrix4x4.CreatePerspectiveFieldOfView instead. This method will be removed in future versions.")]
         public static void PerspectiveFovRH(float fov, float aspect, float znear, float zfar, out Matrix result)
         {
             float yScale = (float)(1.0 / Math.Tan(fov * 0.5f));
@@ -2317,6 +2362,7 @@ namespace Stride.Core.Mathematics
         /// <param name="znear">Minimum z-value of the viewing volume.</param>
         /// <param name="zfar">Maximum z-value of the viewing volume.</param>
         /// <returns>The created projection matrix.</returns>
+        [Obsolete("Use System.Numerics.Matrix4x4.CreatePerspectiveFieldOfView instead. This method will be removed in future versions.")]
         public static Matrix PerspectiveFovRH(float fov, float aspect, float znear, float zfar)
         {
             Matrix result;
@@ -2334,6 +2380,7 @@ namespace Stride.Core.Mathematics
         /// <param name="znear">Minimum z-value of the viewing volume.</param>
         /// <param name="zfar">Maximum z-value of the viewing volume.</param>
         /// <param name="result">When the method completes, contains the created projection matrix.</param>
+        [Obsolete("Use System.Numerics.Matrix4x4.CreatePerspectiveOffCenterLeftHanded instead. This method will be removed in future versions.")]
         public static void PerspectiveOffCenterLH(float left, float right, float bottom, float top, float znear, float zfar, out Matrix result)
         {
             float zRange = zfar / (zfar - znear);
@@ -2358,6 +2405,7 @@ namespace Stride.Core.Mathematics
         /// <param name="znear">Minimum z-value of the viewing volume.</param>
         /// <param name="zfar">Maximum z-value of the viewing volume.</param>
         /// <returns>The created projection matrix.</returns>
+        [Obsolete("Use System.Numerics.Matrix4x4.CreatePerspectiveOffCenterLeftHanded instead. This method will be removed in future versions.")]
         public static Matrix PerspectiveOffCenterLH(float left, float right, float bottom, float top, float znear, float zfar)
         {
             Matrix result;
@@ -2375,6 +2423,7 @@ namespace Stride.Core.Mathematics
         /// <param name="znear">Minimum z-value of the viewing volume.</param>
         /// <param name="zfar">Maximum z-value of the viewing volume.</param>
         /// <param name="result">When the method completes, contains the created projection matrix.</param>
+        [Obsolete("Use System.Numerics.Matrix4x4.CreatePerspectiveOffCenter instead. This method will be removed in future versions.")]
         public static void PerspectiveOffCenterRH(float left, float right, float bottom, float top, float znear, float zfar, out Matrix result)
         {
             PerspectiveOffCenterLH(left, right, bottom, top, znear, zfar, out result);
@@ -2394,6 +2443,7 @@ namespace Stride.Core.Mathematics
         /// <param name="znear">Minimum z-value of the viewing volume.</param>
         /// <param name="zfar">Maximum z-value of the viewing volume.</param>
         /// <returns>The created projection matrix.</returns>
+        [Obsolete("Use System.Numerics.Matrix4x4.CreatePerspectiveOffCenter instead. This method will be removed in future versions.")]
         public static Matrix PerspectiveOffCenterRH(float left, float right, float bottom, float top, float znear, float zfar)
         {
             Matrix result;
@@ -2406,6 +2456,7 @@ namespace Stride.Core.Mathematics
         /// </summary>
         /// <param name="plane">The plane for which the reflection occurs. This parameter is assumed to be normalized.</param>
         /// <param name="result">When the method completes, contains the reflection matrix.</param>
+        [Obsolete("Use System.Numerics.Matrix4x4.CreateReflection instead. This method will be removed in future versions.")]
         public static void Reflection(ref readonly Plane plane, out Matrix result)
         {
             float x = plane.Normal.X;
@@ -2438,6 +2489,7 @@ namespace Stride.Core.Mathematics
         /// </summary>
         /// <param name="plane">The plane for which the reflection occurs. This parameter is assumed to be normalized.</param>
         /// <returns>The reflection matrix.</returns>
+        [Obsolete("Use System.Numerics.Matrix4x4.CreateReflection instead. This method will be removed in future versions.")]
         public static Matrix Reflection(Plane plane)
         {
             Matrix result;
@@ -2452,6 +2504,7 @@ namespace Stride.Core.Mathematics
         /// W component is 1, the light is a point light.</param>
         /// <param name="plane">The plane onto which to project the geometry as a shadow. This parameter is assumed to be normalized.</param>
         /// <param name="result">When the method completes, contains the shadow matrix.</param>
+        [Obsolete("Use System.Numerics.Matrix4x4.CreateShadow instead. This method will be removed in future versions.")]
         public static void Shadow(ref readonly Vector4 light, ref readonly Plane plane, out Matrix result)
         {
             float dot = (plane.Normal.X * light.X) + (plane.Normal.Y * light.Y) + (plane.Normal.Z * light.Z) + (plane.D * light.W);
@@ -2485,6 +2538,7 @@ namespace Stride.Core.Mathematics
         /// W component is 1, the light is a point light.</param>
         /// <param name="plane">The plane onto which to project the geometry as a shadow. This parameter is assumed to be normalized.</param>
         /// <returns>The shadow matrix.</returns>
+        [Obsolete("Use System.Numerics.Matrix4x4.CreateShadow instead. This method will be removed in future versions.")]
         public static Matrix Shadow(Vector4 light, Plane plane)
         {
             Matrix result;
@@ -2497,6 +2551,7 @@ namespace Stride.Core.Mathematics
         /// </summary>
         /// <param name="scale">Scaling factor for all three axes.</param>
         /// <param name="result">When the method completes, contains the created scaling matrix.</param>
+        [Obsolete("Use System.Numerics.Matrix4x4.CreateScale instead. This method will be removed in future versions.")]
         public static void Scaling(ref readonly Vector3 scale, out Matrix result)
         {
             Scaling(scale.X, scale.Y, scale.Z, out result);
@@ -2507,6 +2562,7 @@ namespace Stride.Core.Mathematics
         /// </summary>
         /// <param name="scale">Scaling factor for all three axes.</param>
         /// <returns>The created scaling matrix.</returns>
+        [Obsolete("Use System.Numerics.Matrix4x4.CreateScale instead. This method will be removed in future versions.")]
         public static Matrix Scaling(Vector3 scale)
         {
             Matrix result;
@@ -2521,6 +2577,7 @@ namespace Stride.Core.Mathematics
         /// <param name="y">Scaling factor that is applied along the y-axis.</param>
         /// <param name="z">Scaling factor that is applied along the z-axis.</param>
         /// <param name="result">When the method completes, contains the created scaling matrix.</param>
+        [Obsolete("Use System.Numerics.Matrix4x4.CreateScale instead. This method will be removed in future versions.")]
         public static void Scaling(float x, float y, float z, out Matrix result)
         {
             result = Matrix.Identity;
@@ -2536,6 +2593,7 @@ namespace Stride.Core.Mathematics
         /// <param name="y">Scaling factor that is applied along the y-axis.</param>
         /// <param name="z">Scaling factor that is applied along the z-axis.</param>
         /// <returns>The created scaling matrix.</returns>
+        [Obsolete("Use System.Numerics.Matrix4x4.CreateScale instead. This method will be removed in future versions.")]
         public static Matrix Scaling(float x, float y, float z)
         {
             Matrix result;
@@ -2548,6 +2606,7 @@ namespace Stride.Core.Mathematics
         /// </summary>
         /// <param name="scale">The uniform scale that is applied along all axis.</param>
         /// <param name="result">When the method completes, contains the created scaling matrix.</param>
+        [Obsolete("Use System.Numerics.Matrix4x4.CreateScale instead. This method will be removed in future versions.")]
         public static void Scaling(float scale, out Matrix result)
         {
             result = Matrix.Identity;
@@ -2559,6 +2618,7 @@ namespace Stride.Core.Mathematics
         /// </summary>
         /// <param name="scale">The uniform scale that is applied along all axis.</param>
         /// <returns>The created scaling matrix.</returns>
+        [Obsolete("Use System.Numerics.Matrix4x4.CreateScale instead. This method will be removed in future versions.")]
         public static Matrix Scaling(float scale)
         {
             Matrix result;
@@ -2571,6 +2631,7 @@ namespace Stride.Core.Mathematics
         /// </summary>
         /// <param name="angle">Angle of rotation in radians. Angles are measured clockwise when looking along the rotation axis toward the origin.</param>
         /// <param name="result">When the method completes, contains the created rotation matrix.</param>
+        [Obsolete("Use System.Numerics.Matrix4x4.CreateRotationX instead. This method will be removed in future versions.")]
         public static void RotationX(float angle, out Matrix result)
         {
             float cos = MathF.Cos(angle);
@@ -2588,6 +2649,7 @@ namespace Stride.Core.Mathematics
         /// </summary>
         /// <param name="angle">Angle of rotation in radians. Angles are measured clockwise when looking along the rotation axis toward the origin.</param>
         /// <returns>The created rotation matrix.</returns>
+        [Obsolete("Use System.Numerics.Matrix4x4.CreateRotationX instead. This method will be removed in future versions.")]
         public static Matrix RotationX(float angle)
         {
             Matrix result;
@@ -2600,6 +2662,7 @@ namespace Stride.Core.Mathematics
         /// </summary>
         /// <param name="angle">Angle of rotation in radians. Angles are measured clockwise when looking along the rotation axis toward the origin.</param>
         /// <param name="result">When the method completes, contains the created rotation matrix.</param>
+        [Obsolete("Use System.Numerics.Matrix4x4.CreateRotationY instead. This method will be removed in future versions.")]
         public static void RotationY(float angle, out Matrix result)
         {
             float cos = MathF.Cos(angle);
@@ -2617,6 +2680,7 @@ namespace Stride.Core.Mathematics
         /// </summary>
         /// <param name="angle">Angle of rotation in radians. Angles are measured clockwise when looking along the rotation axis toward the origin.</param>
         /// <returns>The created rotation matrix.</returns>
+        [Obsolete("Use System.Numerics.Matrix4x4.CreateRotationY instead. This method will be removed in future versions.")]
         public static Matrix RotationY(float angle)
         {
             Matrix result;
@@ -2629,6 +2693,7 @@ namespace Stride.Core.Mathematics
         /// </summary>
         /// <param name="angle">Angle of rotation in radians. Angles are measured clockwise when looking along the rotation axis toward the origin.</param>
         /// <param name="result">When the method completes, contains the created rotation matrix.</param>
+        [Obsolete("Use System.Numerics.Matrix4x4.CreateRotationZ instead. This method will be removed in future versions.")]
         public static void RotationZ(float angle, out Matrix result)
         {
             float cos = MathF.Cos(angle);
@@ -2646,6 +2711,7 @@ namespace Stride.Core.Mathematics
         /// </summary>
         /// <param name="angle">Angle of rotation in radians. Angles are measured clockwise when looking along the rotation axis toward the origin.</param>
         /// <returns>The created rotation matrix.</returns>
+        [Obsolete("Use System.Numerics.Matrix4x4.CreateRotationZ instead. This method will be removed in future versions.")]
         public static Matrix RotationZ(float angle)
         {
             Matrix result;
@@ -2840,6 +2906,7 @@ namespace Stride.Core.Mathematics
         /// </summary>
         /// <param name="value">The offset for all three coordinate planes.</param>
         /// <param name="result">When the method completes, contains the created translation matrix.</param>
+        [Obsolete("Use System.Numerics.Matrix4x4.CreateTranslation instead. This method will be removed in future versions.")]
         public static void Translation(ref readonly Vector3 value, out Matrix result)
         {
             Translation(value.X, value.Y, value.Z, out result);
@@ -2850,6 +2917,7 @@ namespace Stride.Core.Mathematics
         /// </summary>
         /// <param name="value">The offset for all three coordinate planes.</param>
         /// <returns>The created translation matrix.</returns>
+        [Obsolete("Use System.Numerics.Matrix4x4.CreateTranslation instead. This method will be removed in future versions.")]
         public static Matrix Translation(Vector3 value)
         {
             Matrix result;
@@ -2864,6 +2932,7 @@ namespace Stride.Core.Mathematics
         /// <param name="y">Y-coordinate offset.</param>
         /// <param name="z">Z-coordinate offset.</param>
         /// <param name="result">When the method completes, contains the created translation matrix.</param>
+        [Obsolete("Use System.Numerics.Matrix4x4.CreateTranslation instead. This method will be removed in future versions.")]
         public static void Translation(float x, float y, float z, out Matrix result)
         {
             result = Matrix.Identity;
@@ -2879,6 +2948,7 @@ namespace Stride.Core.Mathematics
         /// <param name="y">Y-coordinate offset.</param>
         /// <param name="z">Z-coordinate offset.</param>
         /// <returns>The created translation matrix.</returns>
+        [Obsolete("Use System.Numerics.Matrix4x4.CreateTranslation instead. This method will be removed in future versions.")]
         public static Matrix Translation(float x, float y, float z)
         {
             Matrix result;
