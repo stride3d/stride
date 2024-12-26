@@ -54,26 +54,22 @@ namespace Stride.UI.Renderers
                 var borderThickness = textBlock.OutlineThickness;
                 var borderColor = textBlock.RenderOpacity * textBlock.OutlineColor;
 
-                
-                Vector2[] offsets =
-                {
-                    new Vector2(-borderThickness, 0),
-                    new Vector2(borderThickness, 0),
-                    new Vector2(0, -borderThickness),
-                    new Vector2(0, borderThickness),
-                    new Vector2(-borderThickness, -borderThickness),
-                    new Vector2(-borderThickness, borderThickness),
-                    new Vector2(borderThickness, -borderThickness),
-                    new Vector2(borderThickness, borderThickness)
-                };
 
-                foreach (var offset in offsets)
+                for (int x = -1; x <= 1; x++)
                 {
-                    var borderDrawCommand = drawCommand;
-                    borderDrawCommand.Color = borderColor;
-                    borderDrawCommand.Matrix = drawCommand.Matrix * Matrix.Translation(offset.X, offset.Y, 0);
+                    for (int y = -1; y <= 1; y++)
+                    {
+                        if (x == 0 && y == 0) continue;
 
-                    Batch.DrawString(textBlock.Font, textBlock.TextToDisplay, ref borderDrawCommand); ;
+                        var offsetX = x * borderThickness;
+                        var offsetY = y * borderThickness;
+
+                        var borderDrawCommand = drawCommand;
+                        borderDrawCommand.Color = borderColor;
+                        borderDrawCommand.Matrix = drawCommand.Matrix * Matrix.Translation(offsetX, offsetY, 0);
+
+                        Batch.DrawString(textBlock.Font, textBlock.TextToDisplay, ref borderDrawCommand);
+                    }
                 }
             }
 
