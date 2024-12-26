@@ -47,9 +47,7 @@ namespace Stride.UI.Renderers
                 Batch.BeginCustom(context.GraphicsContext, 1);                
             }
 
-            
-
-            if (textBlock.OutlineColor != null && textBlock.OutlineThickness > 0)
+            if (textBlock.OutlineColor.A != 0 && textBlock.OutlineThickness > 0)
             {
                 var borderThickness = textBlock.OutlineThickness;
                 var borderColor = textBlock.RenderOpacity * textBlock.OutlineColor;
@@ -71,9 +69,9 @@ namespace Stride.UI.Renderers
                         Batch.DrawString(textBlock.Font, textBlock.TextToDisplay, ref borderDrawCommand);
                     }
                 }
-            }
 
-            drawCommand.DepthBias += 1;
+                drawCommand.DepthBias += 1;
+            }
 
             Batch.DrawString(textBlock.Font, textBlock.TextToDisplay, ref drawCommand);
 
