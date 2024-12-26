@@ -28,7 +28,6 @@
 */
 using System;
 using System.Globalization;
-using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using static System.MathF;
@@ -1468,6 +1467,24 @@ namespace Stride.Core.Mathematics
         public override readonly bool Equals(object value)
         {
             return value is Quaternion q && Equals(q);
+        }
+
+        /// <summary>
+        /// Casts from System.Numerics to Stride.Maths vectors
+        /// </summary>
+        /// <param name="v">Value to cast</param>
+        public static implicit operator Quaternion(System.Numerics.Quaternion v)
+        {
+            return Unsafe.BitCast<System.Numerics.Quaternion, Quaternion>(v);
+        }
+
+        /// <summary>
+        /// Casts from Stride.Maths to System.Numerics vectors
+        /// </summary>
+        /// <param name="v">Value to cast</param>
+        public static implicit operator System.Numerics.Quaternion(Quaternion v)
+        {
+            return Unsafe.BitCast<Quaternion, System.Numerics.Quaternion>(v);
         }
 
 #if SlimDX1xInterop
