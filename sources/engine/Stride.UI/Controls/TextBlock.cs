@@ -35,8 +35,6 @@ namespace Stride.UI.Controls
         /// <seealso cref="SpriteFont.Size"/>
         public float ActualTextSize => !float.IsNaN(TextSize) ? TextSize : Font?.Size ?? 0;
 
-       
-
         /// <summary>
         /// Returns the text to display during the draw call.
         /// </summary>
