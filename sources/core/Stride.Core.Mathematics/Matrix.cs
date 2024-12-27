@@ -454,6 +454,28 @@ namespace Stride.Core.Mathematics
         }
 
         /// <summary>
+        /// Casts from System.Numerics to Stride.Maths matrix
+        /// </summary>
+        /// <param name="v">Value to cast</param>
+        public static implicit operator Matrix(System.Numerics.Matrix4x4 v)
+        {
+            //Transpose the matrix due to the different row/column major layout
+            v = System.Numerics.Matrix4x4.Transpose(v);
+            Matrix nm = Unsafe.As<System.Numerics.Matrix4x4, Matrix>(ref v);
+            return nm;
+        }
+        /// <summary>
+        /// Casts from Stride.Maths to System.Numerics matrix
+        /// </summary>
+        /// <param name="v">Value to cast</param>
+        public static implicit operator System.Numerics.Matrix4x4(Matrix v)
+        {
+            System.Numerics.Matrix4x4 nm = Unsafe.As<Matrix, System.Numerics.Matrix4x4>(ref v);
+            //Transpose the matrix due to the different row/column major layout
+            return System.Numerics.Matrix4x4.Transpose(nm);
+        }
+
+        /// <summary>
         /// Gets or sets the component at the specified index.
         /// </summary>
         /// <value>The value of the matrix component, depending on the index.</value>
