@@ -40,6 +40,9 @@ public class BodyComponent : CollidableComponent
     [DataMemberIgnore]
     internal List<ConstraintComponentBase>? BoundConstraints;
 
+    /// <summary>
+    /// When kinematic is set, the object will not be affected by physics forces like gravity or collisions but will still push away bodies it collides with.
+    /// </summary>
     public bool Kinematic
     {
         get => _kinematic;
@@ -74,6 +77,9 @@ public class BodyComponent : CollidableComponent
         }
     }
 
+    /// <summary>
+    /// Controls whether and how the motion of this body is smoothed out between physics update
+    /// </summary>
     public InterpolationMode InterpolationMode
     {
         get => _interpolationMode;
@@ -88,8 +94,11 @@ public class BodyComponent : CollidableComponent
     }
 
     /// <summary>
-    /// Shortcut to <see cref="ContinuousDetection"/>.<see cref="ContinuousDetection.Mode"/>
+    /// Whether the object's path or only its destination is checked for collision when moving, prevents objects from passing through each other at higher speed 
     /// </summary>
+    /// <remarks>
+    /// This property is a shortcut to the <see cref="ContinuousDetection"/>.<see cref="ContinuousDetection.Mode"/> property
+    /// </remarks>
     public ContinuousDetectionMode ContinuousDetectionMode
     {
         get => _continuous.Mode;
@@ -108,6 +117,10 @@ public class BodyComponent : CollidableComponent
         }
     }
 
+    /// <summary>
+    /// Threshold of squared combined velocity under which the body is allowed to go to sleep.
+    /// Setting this to a negative value guarantees the body cannot go to sleep without user action.
+    /// </summary>
     public float SleepThreshold
     {
         get => _sleepThreshold;
@@ -126,6 +139,11 @@ public class BodyComponent : CollidableComponent
             }
         }
     }
+    
+    /// <summary>
+    /// The number of time steps that the body must be under the sleep threshold before the body becomes a sleeping candidate.
+    /// Note that the body is not guaranteed to go to sleep immediately after meeting this minimum.
+    /// </summary>
     public byte MinimumTimestepCountUnderThreshold
     {
         get => _minimumTimestepCountUnderThreshold;
@@ -145,6 +163,10 @@ public class BodyComponent : CollidableComponent
         }
     }
 
+    /// <summary>
+    /// Whether the body is being actively simulated. 
+    /// Setting this to true will attempt to wake the body; setting it to false will force the body and any constraint-connected bodies asleep.
+    /// </summary>
     [DataMemberIgnore]
     public bool Awake
     {
@@ -156,6 +178,9 @@ public class BodyComponent : CollidableComponent
         }
     }
 
+    /// <summary>
+    /// The translation velocity in unit per second
+    /// </summary>
     [DataMemberIgnore]
     public Vector3 LinearVelocity
     {
@@ -167,6 +192,14 @@ public class BodyComponent : CollidableComponent
         }
     }
 
+    /// <summary>
+    /// The rotation velocity in unit per second
+    /// </summary>
+    /// <remarks>
+    /// The rotation format is in axis-angle, 
+    /// meaning that AngularVelocity.Normalized is the axis of rotation, 
+    /// while AngularVelocity.Length is the amount of rotation around that axis in radians per second
+    /// </remarks>
     [DataMemberIgnore]
     public Vector3 AngularVelocity
     {
@@ -179,7 +212,7 @@ public class BodyComponent : CollidableComponent
     }
 
     /// <summary>
-    /// Teleports this object to a new world position.
+    /// The position of this body in the physics scene, setting it will teleport this object to the positoin provided.
     /// </summary>
     /// <remarks>
     /// Using this property to move objects around is not recommended,
@@ -203,7 +236,7 @@ public class BodyComponent : CollidableComponent
     }
 
     /// <summary>
-    /// Teleports this object to a new world rotation.
+    /// The rotation of this body in the physics scene, setting it will 'teleport' this object's rotation to the one provided.
     /// </summary>
     /// <remarks>
     /// Using this property to move objects around is not recommended,
@@ -225,6 +258,9 @@ public class BodyComponent : CollidableComponent
         }
     }
 
+    /// <summary>
+    /// The mass and inertia tensor of this body
+    /// </summary>
     [DataMemberIgnore]
     public BodyInertia BodyInertia
     {
@@ -247,6 +283,9 @@ public class BodyComponent : CollidableComponent
         }
     }
 
+    /// <summary>
+    /// Defines how a collidable handles collisions with significant velocity.
+    /// </summary>
     [DataMemberIgnore]
     public ContinuousDetection ContinuousDetection
     {
@@ -264,16 +303,37 @@ public class BodyComponent : CollidableComponent
     /// </summary>
     public IReadOnlyList<ConstraintComponentBase> Constraints => BoundConstraints ?? (IReadOnlyList<ConstraintComponentBase>)Array.Empty<ConstraintComponentBase>();
 
+    /// <summary>
+    /// Applies an explosive force at a specific offset off of this body which will affect both its angular and linear velocity
+    /// </summary>
+    /// <remarks>
+    /// Does not wake the body up
+    /// </remarks>
+    /// <param name="impulse">Impulse to apply to the velocity</param>
+    /// <param name="impulseOffset">World space offset from the center of the body to apply the impulse at</param>
     public void ApplyImpulse(Vector3 impulse, Vector3 impulseOffset)
     {
         BodyReference?.ApplyImpulse(impulse.ToNumeric(), impulseOffset.ToNumeric());
     }
 
+    /// <summary>
+    /// Applies an explosive force which will only affect this body's angular velocity
+    /// </summary>
+    /// <remarks>
+    /// Does not wake the body up
+    /// </remarks>
     public void ApplyAngularImpulse(Vector3 impulse)
     {
         BodyReference?.ApplyAngularImpulse(impulse.ToNumeric());
     }
 
+
+    /// <summary>
+    /// Applies an explosive force which will only affect this body's linear velocity
+    /// </summary>
+    /// <remarks>
+    /// Does not wake the body up
+    /// </remarks>
     public void ApplyLinearImpulse(Vector3 impulse)
     {
         BodyReference?.ApplyLinearImpulse(impulse.ToNumeric());
