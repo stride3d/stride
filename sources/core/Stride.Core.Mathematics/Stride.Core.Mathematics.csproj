@@ -9,7 +9,7 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <StrideBuildTags>*</StrideBuildTags>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
-    <StrideAssemblyProcessorOptions>--auto-module-initializer --serialization</StrideAssemblyProcessorOptions>
+    <StrideAssemblyProcessorOptions>--serialization</StrideAssemblyProcessorOptions>
     <StridePublicApi>true</StridePublicApi>
     <StrideCodeAnalysis>true</StrideCodeAnalysis>
   </PropertyGroup>
