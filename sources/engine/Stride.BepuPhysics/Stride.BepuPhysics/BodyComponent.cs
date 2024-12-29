@@ -145,6 +145,9 @@ public class BodyComponent : CollidableComponent
         }
     }
 
+    /// <summary>
+    /// Gets or sets whether the body is in the active set. Setting this to true will attempt to wake the body; setting it to false will force the body and any constraint-connected bodies asleep.
+    /// </summary>
     [DataMemberIgnore]
     public bool Awake
     {
@@ -236,6 +239,17 @@ public class BodyComponent : CollidableComponent
         }
     }
 
+    /// <summary>
+    /// Automatically computed size of the margin around the surface of the shape in which contacts can be generated. These contacts will have negative depth and only contribute if the frame's velocities
+    /// would push the shapes of a pair into overlap.
+    /// <para>This is automatically set by bounding box prediction each frame, and is bound by the collidable's <see cref="Collidable.MinimumSpeculativeMargin"/> and <see cref="Collidable.MaximumSpeculativeMargin"/> values.
+    /// The effective speculative margin for a collision pair can also be modified from <see cref="INarrowPhaseCallbacks"/> callbacks.</para>
+    /// <para>This should be positive to avoid jittering.</para>
+    /// <para>It can also be used as a form of continuous collision detection, but excessively high values combined with fast motion may result in visible 'ghost collision' artifacts.
+    /// For continuous collision detection with less chance of ghost collisions, use <see cref="ContinuousDetectionMode.Continuous"/>.</para>
+    /// <para>If using <see cref="ContinuousDetectionMode.Continuous"/>, consider setting <see cref="Collidable.MaximumSpeculativeMargin"/> to a smaller value to help filter ghost collisions.</para>
+    /// <para>For more information, see the <see href="https://github.com/bepu/bepuphysics2/blob/master/Documentation/ContinuousCollisionDetection.md">Continuous Collision Detection</see> documentation.</para>
+    /// </summary>
     [DataMemberIgnore]
     public float SpeculativeMargin
     {
@@ -247,6 +261,9 @@ public class BodyComponent : CollidableComponent
         }
     }
 
+    /// <summary>
+    /// Continuous collision detection settings for this collidable. Includes the collision detection mode to use and tuning variables associated with those modes.
+    /// </summary>
     [DataMemberIgnore]
     public ContinuousDetection ContinuousDetection
     {
@@ -264,16 +281,29 @@ public class BodyComponent : CollidableComponent
     /// </summary>
     public IReadOnlyList<ConstraintComponentBase> Constraints => BoundConstraints ?? (IReadOnlyList<ConstraintComponentBase>)Array.Empty<ConstraintComponentBase>();
 
+    /// <summary>
+    /// Applies an impulse to a body at the given world space position. Does not modify activity states.
+    /// </summary>
+    /// <param name="impulse">Impulse to apply to the body.</param>
+    /// <param name="impulseOffset">World space offset to apply the impulse at.</param>
     public void ApplyImpulse(Vector3 impulse, Vector3 impulseOffset)
     {
         BodyReference?.ApplyImpulse(impulse.ToNumeric(), impulseOffset.ToNumeric());
     }
 
+    /// <summary>
+    /// Applies an angular impulse to an angular velocity. Does not wake the body up.
+    /// </summary>
+    /// <param name="impulse">Impulse to apply to the velocity.</param>
     public void ApplyAngularImpulse(Vector3 impulse)
     {
         BodyReference?.ApplyAngularImpulse(impulse.ToNumeric());
     }
 
+    /// <summary>
+    /// Applies an impulse to a linear velocity. Does not wake the body up.
+    /// </summary>
+    /// <param name="impulse">Impulse to apply to the velocity.</param>
     public void ApplyLinearImpulse(Vector3 impulse)
     {
         BodyReference?.ApplyLinearImpulse(impulse.ToNumeric());
