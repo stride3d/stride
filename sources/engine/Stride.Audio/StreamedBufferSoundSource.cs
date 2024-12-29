@@ -218,11 +218,11 @@ namespace Stride.Audio
                 //Can we flush the storage buffer?
                 if (storageBuffer.CountDataBytes >= MinBufferSizeBytesBeforeFlushingStorageBuffer)
                 {
-                    var bufferType = AudioLayer.BufferType.None;
+                    var bufferType = BufferType.None;
 
                     if (beginningOfStream)
                     {
-                        bufferType = AudioLayer.BufferType.BeginOfStream;
+                        bufferType = BufferType.BeginOfStream;
                         beginningOfStream = false;
                     }
                     //We don't use an enfOfLoop or endOfStream type: we don't know what the mediaScheduler will ask us to do when we arrive at the end
@@ -247,7 +247,7 @@ namespace Stride.Audio
 
         partial void ReleaseMediaInternal();
 
-        private unsafe void SendExtractedAudioDataToAudioBuffer(AudioLayer.BufferType bufferType)
+        private unsafe void SendExtractedAudioDataToAudioBuffer(BufferType bufferType)
         {
             {
                 //Update the average number of bytes per buffer
