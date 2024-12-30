@@ -146,13 +146,11 @@ namespace Stride.Engine
         {
             get
             {
-                var consoleLogListener = logListener as ConsoleLogListener;
-                return consoleLogListener != null ? consoleLogListener.LogMode : default(ConsoleLogMode);
+                return logListener is ConsoleLogListener consoleLogListener ? consoleLogListener.LogMode : default;
             }
             set
             {
-                var consoleLogListener = logListener as ConsoleLogListener;
-                if (consoleLogListener != null)
+                if (logListener is ConsoleLogListener consoleLogListener)
                 {
                     consoleLogListener.LogMode = value;
                 }
@@ -167,13 +165,11 @@ namespace Stride.Engine
         {
             get
             {
-                var consoleLogListener = logListener as ConsoleLogListener;
-                return consoleLogListener != null ? consoleLogListener.LogLevel : default(LogMessageType);
+                return logListener is ConsoleLogListener consoleLogListener ? consoleLogListener.LogLevel : default;
             }
             set
             {
-                var consoleLogListener = logListener as ConsoleLogListener;
-                if (consoleLogListener != null)
+                if (logListener is ConsoleLogListener consoleLogListener)
                 {
                     consoleLogListener.LogLevel = value;
                 }
@@ -253,48 +249,45 @@ namespace Stride.Engine
             base.PrepareContext();
 
             // Init assets
-            if (Context.InitializeDatabase)
+            databaseFileProvider = InitializeAssetDatabase();
+            ((DatabaseFileProviderService)Services.GetService<IDatabaseFileProviderService>()).FileProvider = databaseFileProvider;
+
+            var renderingSettings = new RenderingSettings();
+            if (Content.Exists(GameSettings.AssetUrl))
             {
-                databaseFileProvider = InitializeAssetDatabase();
-                ((DatabaseFileProviderService)Services.GetService<IDatabaseFileProviderService>()).FileProvider = databaseFileProvider;
+                Settings = Content.Load<GameSettings>(GameSettings.AssetUrl);
 
-                var renderingSettings = new RenderingSettings();
-                if (Content.Exists(GameSettings.AssetUrl))
-                {
-                    Settings = Content.Load<GameSettings>(GameSettings.AssetUrl);
+                renderingSettings = Settings.Configurations.Get<RenderingSettings>();
 
-                    renderingSettings = Settings.Configurations.Get<RenderingSettings>();
-
-                    // Set ShaderProfile even if AutoLoadDefaultSettings is false (because that is what shaders in effect logs are compiled against, even if actual instantiated profile is different)
-                    if (renderingSettings.DefaultGraphicsProfile > 0)
-                    {
-                        var deviceManager = (GraphicsDeviceManager)graphicsDeviceManager;
-                        if (!deviceManager.ShaderProfile.HasValue)
-                            deviceManager.ShaderProfile = renderingSettings.DefaultGraphicsProfile;
-                    }
-
-                    Services.AddService<IGameSettingsService>(this);
-                }
-
-                // Load several default settings
-                if (AutoLoadDefaultSettings)
+                // Set ShaderProfile even if AutoLoadDefaultSettings is false (because that is what shaders in effect logs are compiled against, even if actual instantiated profile is different)
+                if (renderingSettings.DefaultGraphicsProfile > 0)
                 {
                     var deviceManager = (GraphicsDeviceManager)graphicsDeviceManager;
-                    if (renderingSettings.DefaultGraphicsProfile > 0)
-                    {
-                        deviceManager.PreferredGraphicsProfile = new[] { renderingSettings.DefaultGraphicsProfile };
-                    }
-
-                    if (renderingSettings.DefaultBackBufferWidth > 0) deviceManager.PreferredBackBufferWidth = renderingSettings.DefaultBackBufferWidth;
-                    if (renderingSettings.DefaultBackBufferHeight > 0) deviceManager.PreferredBackBufferHeight = renderingSettings.DefaultBackBufferHeight;
-
-                    deviceManager.PreferredColorSpace = renderingSettings.ColorSpace;
-                    SceneSystem.InitialSceneUrl = Settings?.DefaultSceneUrl;
-                    SceneSystem.InitialGraphicsCompositorUrl = Settings?.DefaultGraphicsCompositorUrl;
-                    SceneSystem.SplashScreenUrl = Settings?.SplashScreenUrl;
-                    SceneSystem.SplashScreenColor = Settings?.SplashScreenColor ?? Color4.Black;
-                    SceneSystem.DoubleViewSplashScreen = Settings?.DoubleViewSplashScreen ?? false;
+                    if (!deviceManager.ShaderProfile.HasValue)
+                        deviceManager.ShaderProfile = renderingSettings.DefaultGraphicsProfile;
                 }
+
+                Services.AddService<IGameSettingsService>(this);
+            }
+
+            // Load several default settings
+            if (AutoLoadDefaultSettings)
+            {
+                var deviceManager = (GraphicsDeviceManager)graphicsDeviceManager;
+                if (renderingSettings.DefaultGraphicsProfile > 0)
+                {
+                    deviceManager.PreferredGraphicsProfile = new[] { renderingSettings.DefaultGraphicsProfile };
+                }
+
+                if (renderingSettings.DefaultBackBufferWidth > 0) deviceManager.PreferredBackBufferWidth = renderingSettings.DefaultBackBufferWidth;
+                if (renderingSettings.DefaultBackBufferHeight > 0) deviceManager.PreferredBackBufferHeight = renderingSettings.DefaultBackBufferHeight;
+
+                deviceManager.PreferredColorSpace = renderingSettings.ColorSpace;
+                SceneSystem.InitialSceneUrl = Settings?.DefaultSceneUrl;
+                SceneSystem.InitialGraphicsCompositorUrl = Settings?.DefaultGraphicsCompositorUrl;
+                SceneSystem.SplashScreenUrl = Settings?.SplashScreenUrl;
+                SceneSystem.SplashScreenColor = Settings?.SplashScreenColor ?? Color4.Black;
+                SceneSystem.DoubleViewSplashScreen = Settings?.DoubleViewSplashScreen ?? false;
             }
         }
 
@@ -309,8 +302,8 @@ namespace Stride.Engine
             if (gameCreation)
             {
                 //if our device width or height is actually smaller then requested we use the device one
-                deviceManager.PreferredBackBufferWidth = Context.RequestedWidth = Math.Min(deviceManager.PreferredBackBufferWidth, Window.ClientBounds.Width);
-                deviceManager.PreferredBackBufferHeight = Context.RequestedHeight = Math.Min(deviceManager.PreferredBackBufferHeight, Window.ClientBounds.Height);
+                deviceManager.PreferredBackBufferWidth = Math.Min(deviceManager.PreferredBackBufferWidth, Window.ClientBounds.Width);
+                deviceManager.PreferredBackBufferHeight = Math.Min(deviceManager.PreferredBackBufferHeight, Window.ClientBounds.Height);
             }
 
             //these might get triggered even during game runtime, resize, orientation change
@@ -320,11 +313,11 @@ namespace Stride.Engine
 
                 if (deviceManager.PreferredBackBufferHeight > deviceManager.PreferredBackBufferWidth)
                 {
-                    deviceManager.PreferredBackBufferWidth = Context.RequestedWidth = (int)(deviceManager.PreferredBackBufferHeight * deviceAr);
+                    deviceManager.PreferredBackBufferWidth = (int)(deviceManager.PreferredBackBufferHeight * deviceAr);
                 }
                 else
                 {
-                    deviceManager.PreferredBackBufferHeight = Context.RequestedHeight = (int)(deviceManager.PreferredBackBufferWidth / deviceAr);
+                    deviceManager.PreferredBackBufferHeight = (int)(deviceManager.PreferredBackBufferWidth / deviceAr);
                 }
             }
         }

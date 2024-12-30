@@ -65,12 +65,6 @@ namespace Stride.Games
         GameSystemCollection GameSystems { get; }
 
         /// <summary>
-        /// Gets the game context.
-        /// </summary>
-        /// <value>The game context.</value>
-        GameContext Context { get; }
-
-        /// <summary>
         /// Gets the graphics device.
         /// </summary>
         /// <value>The graphics device.</value>
