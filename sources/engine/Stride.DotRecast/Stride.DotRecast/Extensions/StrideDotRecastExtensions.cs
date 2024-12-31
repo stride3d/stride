@@ -1,7 +1,10 @@
-﻿using DotRecast.Core.Numerics;
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+using DotRecast.Core.Numerics;
 using Stride.Core.Mathematics;
 
-namespace Stride.BepuPhysics.Navigation.Extensions;
+namespace Stride.DotRecast.Extensions;
 public static class StrideDotRecastExtensions
 {
     // hopefully wont be a thing in the near future

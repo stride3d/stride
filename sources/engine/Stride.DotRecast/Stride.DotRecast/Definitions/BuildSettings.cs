@@ -4,7 +4,7 @@
 using DotRecast.Recast;
 using Stride.Core;
 
-namespace Stride.BepuPhysics.Navigation.Definitions;
+namespace Stride.DotRecast.Definitions;
 [DataContract("DotRecastBuildSettings")]
 public class BuildSettings
 {
