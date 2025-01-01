@@ -6,7 +6,7 @@ using System.Threading;
 using System.Windows.Threading;
 using Stride.Core.Extensions;
 using Stride.Core.Windows;
-using Stride.CrashReport;
+using System.Runtime.InteropServices;
 using Stride.Editor.CrashReport;
 
 namespace Stride.LauncherApp.CrashReport
@@ -27,7 +27,12 @@ namespace Stride.LauncherApp.CrashReport
             terminating = true;
 
             var englishCulture = new CultureInfo("en-US");
-            var crashLogThread = new Thread(CrashReport) { CurrentUICulture = englishCulture, CurrentCulture = englishCulture };
+            var crashLogThread = new Thread(CrashReport)
+            {
+                CurrentUICulture = englishCulture,
+                CurrentCulture = englishCulture
+            };
+            crashLogThread.SetApartmentState(ApartmentState.STA);
             crashLogThread.Start(new CrashReportArgs(exception, dispatcher));
             crashLogThread.Join();
         }
@@ -49,12 +54,9 @@ namespace Stride.LauncherApp.CrashReport
             var crashReport = new CrashReportData
             {
                 ["Application"] = "Launcher",
-                ["UserEmail"] = "",
-
-                ["UserMessage"] = "",
                 ["CurrentDirectory"] = Environment.CurrentDirectory,
                 ["CommandArgs"] = string.Join(" ", AppHelper.GetCommandLineArgs()),
-                ["OsVersion"] = $"{Environment.OSVersion} {(Environment.Is64BitOperatingSystem ? "x64" : "x86")}",
+                ["OSDescription"] = $"{RuntimeInformation.OSDescription} {(Environment.Is64BitOperatingSystem ? "x64" : "x86")}",
                 ["ProcessorCount"] = Environment.ProcessorCount.ToString(),
                 ["Exception"] = exceptionMessage
             };
@@ -62,10 +64,10 @@ namespace Stride.LauncherApp.CrashReport
             var videoConfig = AppHelper.GetVideoConfig();
             foreach (var conf in videoConfig)
             {
-                crashReport.Data.Add(Tuple.Create(conf.Key, conf.Value));
+                crashReport.Data.Add((conf.Key, conf.Value));
             }
 
-            var reporter = new CrashReportForm(crashReport, new CrashReportSettings());
+            var reporter = new CrashReportForm(crashReport);
             reporter.ShowDialog();
         }
 
