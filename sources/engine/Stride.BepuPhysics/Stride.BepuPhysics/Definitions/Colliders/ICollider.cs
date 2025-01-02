@@ -6,12 +6,13 @@ using Stride.Core.Mathematics;
 using BepuPhysics.Collidables;
 using BepuUtilities.Memory;
 using Stride.BepuPhysics.Systems;
+using Stride.Engine;
 
 namespace Stride.BepuPhysics.Definitions.Colliders;
 
 public interface ICollider
 {
-    internal CollidableComponent? Component { get; set; }
+    internal EntityComponentWithTryUpdateFeature? Component { get; set; }
 
     public int Transforms { get; }
     /// <summary>
@@ -20,7 +21,7 @@ public interface ICollider
     /// <remarks>
     /// You must still transform this further into worldspace by using the world position and rotation the collidable's entity.
     /// </remarks>
-    public void GetLocalTransforms(CollidableComponent collidable, Span<ShapeTransform> transforms);
+    public void GetLocalTransforms(EntityComponentWithTryUpdateFeature collidable, Span<ShapeTransform> transforms);
     internal bool TryAttach(Shapes shapes, BufferPool pool, ShapeCacheSystem shapeCache, out TypedIndex index, out Vector3 centerOfMass, out BodyInertia inertia);
     internal void Detach(Shapes shapes, BufferPool pool, TypedIndex index);
     internal void AppendModel(List<BasicMeshBuffers> buffer, ShapeCacheSystem shapeCache, out object? cache);

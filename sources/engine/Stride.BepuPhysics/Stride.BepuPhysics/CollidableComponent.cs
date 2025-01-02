@@ -20,7 +20,7 @@ namespace Stride.BepuPhysics;
 
 [DataContract(Inherited = true)]
 [DefaultEntityComponentProcessor(typeof(CollidableProcessor), ExecutionMode = ExecutionMode.Runtime)]
-public abstract class CollidableComponent : EntityComponent
+public abstract class CollidableComponent : EntityComponentWithTryUpdateFeature
 {
     private static uint VersioningCounter;
 
@@ -203,8 +203,7 @@ public abstract class CollidableComponent : EntityComponent
         _collider = new CompoundCollider();
         _collider.Component = this;
     }
-
-    internal void TryUpdateFeatures()
+    internal override void TryUpdateFeatures()
     {
         #warning Norbo: Some of the callsites for this method may not require a full reconstruction of the body ? Something we should validate
         if (Simulation is not null)
