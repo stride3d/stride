@@ -79,6 +79,7 @@ using System;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
+using FreeImageAPI;
 using Stride.Core.Mathematics;
 using Stride.Graphics.Font;
 
@@ -87,7 +88,7 @@ namespace Stride.Assets.SpriteFont.Compiler
     // Writes the output sprite font binary file.
     internal static class OfflineRasterizedSpriteFontWriter
     {
-        public static Graphics.SpriteFont CreateSpriteFontData(IFontFactory fontFactory, SpriteFontAsset options, Glyph[] glyphs, float lineSpacing, float baseLine, Bitmap bitmap, bool srgb)
+        public static Graphics.SpriteFont CreateSpriteFontData(IFontFactory fontFactory, SpriteFontAsset options, Glyph[] glyphs, float lineSpacing, float baseLine, FreeImageBitmap bitmap, bool srgb)
         {
             var fontGlyphs = ConvertGlyphs(glyphs);
             var images = new[] { GetImage(options, bitmap, srgb) };
@@ -100,7 +101,7 @@ namespace Stride.Assets.SpriteFont.Compiler
         {
             var fontGlyphs = new Graphics.Font.Glyph[glyphs.Length];
 
-            for  (var i=0; i<glyphs.Length; ++i)
+            for (int i=0; i<glyphs.Length; ++i)
             {
                 var glyph = glyphs[i];
                 fontGlyphs[i] = new Graphics.Font.Glyph
@@ -115,7 +116,7 @@ namespace Stride.Assets.SpriteFont.Compiler
             return fontGlyphs;
         }
 
-        static Graphics.Image GetImage(SpriteFontAsset options, Bitmap bitmap, bool srgb)
+        static Graphics.Image GetImage(SpriteFontAsset options, FreeImageBitmap bitmap, bool srgb)
         {
             // TODO Currently we only support Rgba32 as an option. Grayscale might be added later
             return GetImageRgba32(bitmap, srgb);
@@ -123,26 +124,25 @@ namespace Stride.Assets.SpriteFont.Compiler
 
 
         // Writes an uncompressed 32 bit font texture.
-        static Graphics.Image GetImageRgba32(Bitmap bitmap, bool srgb)
+        static Graphics.Image GetImageRgba32(FreeImageBitmap bitmap, bool srgb)
         {
             var image = Graphics.Image.New2D(bitmap.Width, bitmap.Height, 1, srgb ? Graphics.PixelFormat.R8G8B8A8_UNorm_SRgb : Graphics.PixelFormat.R8G8B8A8_UNorm);
             var pixelBuffer = image.PixelBuffer[0];
-            using (var bitmapData = new BitmapUtils.PixelAccessor(bitmap, ImageLockMode.ReadOnly))
+            var bitmapData = new BitmapUtils.PixelAccessor(bitmap, ImageLockMode.ReadOnly);
+
+            for (int y = 0; y < bitmap.Height; y++)
             {
-                for (int y = 0; y < bitmap.Height; y++)
-                {
                     for (int x = 0; x < bitmap.Width; x++)
                     {
                         var color = bitmapData[x, y];
                         pixelBuffer.SetPixel(x, y, new Core.Mathematics.Color(color.R, color.G, color.B, color.A));
-                    }
                 }
             }
             return image;
         }
 
         // Writes a block compressed monochromatic font texture.
-        static unsafe Graphics.Image GetCompressedMono(Bitmap bitmap, SpriteFontAsset options)
+        static unsafe Graphics.Image GetCompressedMono(FreeImageBitmap bitmap, SpriteFontAsset options)
         {
             if ((bitmap.Width & 3) != 0 ||
                 (bitmap.Height & 3) != 0)
@@ -152,17 +152,14 @@ namespace Stride.Assets.SpriteFont.Compiler
 
             var image = Graphics.Image.New2D(bitmap.Width, bitmap.Height, 1, Graphics.PixelFormat.BC2_UNorm);
             var pixelBuffer = (BC2Pixel*)image.PixelBuffer[0].DataPointer;
-            using (var bitmapData = new BitmapUtils.PixelAccessor(bitmap, ImageLockMode.ReadOnly))
+            var bitmapData = new BitmapUtils.PixelAccessor(bitmap, ImageLockMode.ReadOnly);
+            for (int y = 0; y < bitmap.Height; y += 4)
             {
-                for (int y = 0; y < bitmap.Height; y += 4)
+                for (int x = 0; x < bitmap.Width; x += 4)
                 {
-                    for (int x = 0; x < bitmap.Width; x += 4)
-                    {
-                        BC2Pixel bc2Pixel;
-                        CompressBlock( bitmapData, x, y, options, out bc2Pixel);
+                    CompressBlock(bitmapData, x, y, options, out var bc2Pixel);
                         *pixelBuffer = bc2Pixel;
                         pixelBuffer++;
-                    }
                 }
             }
             return image;
