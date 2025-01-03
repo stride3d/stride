@@ -4,6 +4,7 @@
 using SharpDX.DirectWrite;
 using Stride.Core.Assets.Compiler;
 using Stride.Core;
+using SharpFont;
 
 namespace Stride.Assets.SpriteFont
 {
@@ -18,6 +19,12 @@ namespace Stride.Assets.SpriteFont
         /// </summary>
         /// <returns><see cref="FontFace"/> from the specified source or <c>null</c> if not found</returns>
         public abstract FontFace GetFontFace();
+
+        /// <summary>
+        /// Gets the associated font <see cref="Face"/>
+        /// </summary>
+        /// <returns><see cref="Face"/> from the specified source or <c>null</c> if not found</returns>
+        public abstract Face GetFont();
 
         /// <summary>
         /// Gets the actual file path to the font file
