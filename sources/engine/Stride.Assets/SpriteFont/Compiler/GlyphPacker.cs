@@ -79,16 +79,17 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
+using FreeImageAPI;
 
 namespace Stride.Assets.SpriteFont.Compiler
 {
     // Helper for arranging many small bitmaps onto a single larger surface.
     internal static class GlyphPacker
     {
-        public static Bitmap ArrangeGlyphs(Glyph[] sourceGlyphs)
+        public static FreeImageBitmap ArrangeGlyphs(Glyph[] sourceGlyphs)
         {
             // Build up a list of all the glyphs needing to be arranged.
-            List<ArrangedGlyph> glyphs = new List<ArrangedGlyph>();
+            List<ArrangedGlyph> glyphs = [];
 
             for (int i = 0; i < sourceGlyphs.Length; i++)
             {
@@ -126,9 +127,9 @@ namespace Stride.Assets.SpriteFont.Compiler
 
 
         // Once arranging is complete, copies each glyph to its chosen position in the single larger output bitmap.
-        static Bitmap CopyGlyphsToOutput(List<ArrangedGlyph> glyphs, int width, int height)
+        static FreeImageBitmap CopyGlyphsToOutput(List<ArrangedGlyph> glyphs, int width, int height)
         {
-            Bitmap output = new Bitmap(width, height, PixelFormat.Format32bppArgb);
+            FreeImageBitmap output = new FreeImageBitmap(width, height, FreeImageAPI.PixelFormat.Format32bppArgb);
 
             foreach (ArrangedGlyph glyph in glyphs)
             {
@@ -230,8 +231,7 @@ namespace Stride.Assets.SpriteFont.Compiler
 
             if (aSize != bSize)
                 return bSize.CompareTo(aSize);
-            else
-                return a.Source.Character.CompareTo(b.Source.Character);
+            return a.Source.Character.CompareTo(b.Source.Character);
         }
 
 
@@ -269,11 +269,9 @@ namespace Stride.Assets.SpriteFont.Compiler
 
                 return powerOfTwo;
             }
-            else
-            {
-                // Round up to the specified block size.
-                return (value + blockSize - 1) & ~(blockSize - 1);
-            }
+
+            // Round up to the specified block size.
+            return (value + blockSize - 1) & ~(blockSize - 1);
         }
     }
 }
