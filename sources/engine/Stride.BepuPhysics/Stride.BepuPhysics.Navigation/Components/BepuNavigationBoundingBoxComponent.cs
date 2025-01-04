@@ -8,7 +8,7 @@ using Stride.Engine.Design;
 using Stride.Navigation;
 
 namespace Stride.BepuPhysics.Navigation.Components;
-[DefaultEntityComponentProcessor(typeof(RecastDynamicMeshProcessor), ExecutionMode = ExecutionMode.Runtime)]
+//[DefaultEntityComponentProcessor(typeof(RecastDynamicMeshProcessor), ExecutionMode = ExecutionMode.Runtime)]
 [ComponentCategory("Bepu")]
 [DataContract("BepuNavigationBoundingBoxComponent")]
 public class BepuNavigationBoundingBoxComponent : NavigationBoundingBoxComponent

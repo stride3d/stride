@@ -10,6 +10,12 @@ namespace Stride.BepuPhysics.Navigation.Components;
 [DefaultEntityComponentProcessor(typeof(RecastNavigationProcessor), ExecutionMode = ExecutionMode.Runtime)]
 public class RecastNavigationComponent : StartupScript
 {
+
+    /// <summary>
+    /// The agent's navigation mesh id. Will be used to determine where a path is searched.
+    /// </summary>
+    public int AgentNavMeshId { get; set; }
+
     /// <summary>
     /// The speed at which the agent moves.
     /// </summary>

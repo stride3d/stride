@@ -18,6 +18,12 @@ using Stride.DotRecast.Extensions;
 using Stride.DotRecast.Definitions;
 using Stride.BepuPhysics.Definitions.Colliders;
 using System.ComponentModel;
+using DotRecast.Core;
+using DotRecast.Detour.Dynamic.Colliders;
+using DotRecast.Detour.Dynamic;
+using Stride.BepuPhysics.Definitions;
+using System.Collections.Concurrent;
+using DotRecast.Recast;
 
 namespace Stride.BepuPhysics.Navigation.Processors;
 
@@ -33,11 +39,13 @@ public class RecastMeshSystem : GameSystemBase
     private readonly SceneSystem _sceneSystem;
     private readonly ShapeCacheSystem _shapeCache;
 
-    private DtNavMesh? _navMesh;
     private Task<DtNavMesh>? _runningRebuild;
 
     private CancellationTokenSource _rebuildingTask = new();
     private RecastNavigationConfiguration _navSettings;
+
+    private CollidableProcessor _collidableProcessor = null!;
+    private bool _dirty = true;
 
     public RecastMeshSystem(IServiceRegistry registry) : base(registry)
     {
@@ -56,16 +64,52 @@ public class RecastMeshSystem : GameSystemBase
         {
             _navSettings.NavMeshes.Add(new BepuNavMeshInfo());
         }
+
+        _collidableProcessor = _sceneSystem.SceneInstance.GetProcessor<CollidableProcessor>()!;
+        _collidableProcessor.OnPostAdd += StartTrackingCollidable;
+        _collidableProcessor.OnPreRemove += ClearTrackingForCollidable;
+    }
+
+    private void InitializeNavMeshes()
+    {
+        foreach (var navSettings in _navSettings.NavMeshes)
+        {
+            navSettings.Config = navSettings.BuildSettings.CreateDynamicRecastSettings();
+
+            navSettings.NavMeshParams = new DtNavMeshParams();
+            navSettings.NavMeshParams.orig = new RcVec3f(0, 0, 0);
+            navSettings.NavMeshParams.tileWidth = navSettings.BuildSettings.TileSize;
+            navSettings.NavMeshParams.tileHeight = navSettings.BuildSettings.TileSize;
+            navSettings.NavMeshParams.maxTiles = 0x8000; //TODO: make this configurable
+            navSettings.NavMeshParams.maxPolys = 0x8000; //TODO: make this configurable
+
+            navSettings.Builder = new RcBuilder();
+            navSettings.Context = new RcContext();
+        }
     }
 
     public override void Update(GameTime time)
     {
-        if (_runningRebuild?.Status == TaskStatus.RanToCompletion)
+        foreach(var navSettings in _navSettings.NavMeshes)
         {
-            _navMesh = _runningRebuild.Result;
-            _runningRebuild = null;
-            LastNavMeshBuildTime = _stopwatch.Elapsed;
-            _stopwatch.Reset();
+            if (!navSettings.IsDynamic)
+            {
+                if (_runningRebuild?.Status == TaskStatus.RanToCompletion)
+                {
+                    navSettings.NavMesh = _runningRebuild.Result;
+                    _runningRebuild = null;
+                    LastNavMeshBuildTime = _stopwatch.Elapsed;
+                    _stopwatch.Reset();
+                }
+            }
+        }
+
+        foreach (var navSettings in _navSettings.NavMeshes)
+        {
+            if (navSettings.IsDynamic)
+            {
+                Rebuild(ProcessQueue(navSettings), navSettings);
+            }
         }
     }
 
@@ -115,7 +159,7 @@ public class RecastMeshSystem : GameSystemBase
 
         CancellationToken token = _rebuildingTask.Token;
         _stopwatch.Start();
-        var task = Task.Run(() => _navMesh = BepuNavMeshBuilder.CreateBepuNavMesh(settingsCopy, asyncInput, _navSettings.UsableThreadCount, token), token);
+        var task = Task.Run(() => _navSettings.NavMeshes[meshToRebuild].NavMesh = BepuNavMeshBuilder.CreateBepuNavMesh(settingsCopy, asyncInput, _navSettings.UsableThreadCount, token), token);
         _runningRebuild = task;
         return task;
     }
@@ -129,12 +173,12 @@ public class RecastMeshSystem : GameSystemBase
     /// <param name="smoothPath"></param>
     /// <param name="pathfindingSettings"></param>
     /// <returns></returns>
-    public bool TryFindPath(Vector3 start, Vector3 end, ref List<long> polys, ref List<Vector3> smoothPath, PathfindingSettings pathfindingSettings)
+    public bool TryFindPath(Vector3 start, Vector3 end, ref List<long> polys, ref List<Vector3> smoothPath, PathfindingSettings pathfindingSettings, int navMeshIndex)
     {
-        if (_navMesh is null) return false;
+        if (navMeshIndex >= _navSettings.NavMeshes.Count || _navSettings.NavMeshes[navMeshIndex].NavMesh is null) return false;
 
         var queryFilter = new DtQueryDefaultFilter();
-        var dtNavMeshQuery = new DtNavMeshQuery(_navMesh);
+        var dtNavMeshQuery = new DtNavMeshQuery(_navSettings.NavMeshes[navMeshIndex].NavMesh);
 
         dtNavMeshQuery.FindNearestPoly(start.ToDotRecastVector(), _polyPickExt, queryFilter, out long startRef, out _, out _);
 
@@ -153,12 +197,12 @@ public class RecastMeshSystem : GameSystemBase
     /// <param name="polys"></param>
     /// <param name="smoothPath"></param>
     /// <returns></returns>
-    public bool TryFindPath(Vector3 start, Vector3 end, ref List<long> polys, ref List<Vector3> smoothPath)
+    public bool TryFindPath(Vector3 start, Vector3 end, ref List<long> polys, ref List<Vector3> smoothPath, int navMeshIndex)
     {
-        if (_navMesh is null) return false;
+        if (navMeshIndex >= _navSettings.NavMeshes.Count || _navSettings.NavMeshes[navMeshIndex].NavMesh is null) return false;
 
         var queryFilter = new DtQueryDefaultFilter();
-        var dtNavMeshQuery = new DtNavMeshQuery(_navMesh);
+        var dtNavMeshQuery = new DtNavMeshQuery(_navSettings.NavMeshes[navMeshIndex].NavMesh);
 
         dtNavMeshQuery.FindNearestPoly(start.ToDotRecastVector(), _polyPickExt, queryFilter, out long startRef, out _, out _);
 
@@ -169,28 +213,239 @@ public class RecastMeshSystem : GameSystemBase
         return result.Succeeded();
     }
 
-    public List<Vector3>? GetNavMeshTiles()
+    //public List<Vector3>? GetNavMeshTiles()
+    //{
+    //    if (_navMesh is null) return null;
+    //
+    //    List<Vector3> verts = [];
+    //
+    //    for (int i = 0; i < _navMesh.GetMaxTiles(); i++)
+    //    {
+    //        var tile = _navMesh.GetTile(i);
+    //        if (tile?.data != null)
+    //        {
+    //            for (int j = 0; j < tile.data.verts.Length; j += 3)
+    //            {
+    //                var point = new Vector3(
+    //                    tile.data.verts[j],
+    //                    tile.data.verts[j + 1],
+    //                    tile.data.verts[j + 2]);
+    //                verts.Add(point);
+    //            }
+    //        }
+    //    }
+    //
+    //    return verts;
+    //}
+
+    private void StartTrackingCollidable(CollidableComponent collidable)
     {
-        if (_navMesh is null) return null;
-
-        List<Vector3> verts = [];
-
-        for (int i = 0; i < _navMesh.GetMaxTiles(); i++)
+        foreach(var navMeshInfo in _navSettings.NavMeshes)
         {
-            var tile = _navMesh.GetTile(i);
-            if (tile?.data != null)
+            if (collidable is StaticComponent staticComponent)
             {
-                for (int j = 0; j < tile.data.verts.Length; j += 3)
+                var colliderId = staticComponent.StaticReference.Value.Handle.Value;
+                navMeshInfo.StaticComponents.Add(colliderId, staticComponent);
+                AddCollider(navMeshInfo, colliderId);
+            }
+        }
+    }
+
+    private void ClearTrackingForCollidable(CollidableComponent collidable)
+    {
+        foreach(var navMeshInfo in _navSettings.NavMeshes)
+        {
+            if (collidable is StaticComponent staticComponent)
+            {
+                var colliderId = staticComponent.StaticReference.Value.Handle.Value;
+                navMeshInfo.StaticComponents.Remove(colliderId);
+                RemoveCollider(navMeshInfo, colliderId);
+            }
+
+        }
+    }
+
+    public long AddCollider(BepuNavMeshInfo navMeshInfo, int cid)
+    {
+        DtTrimeshCollider collider = CreateTriMeshCollider(navMeshInfo.StaticComponents[cid]);
+        navMeshInfo.UpdateQueue.Add(new DtDynamicTileColliderAdditionJob(cid, collider, GetTiles(collider.Bounds(), navMeshInfo)));
+        return cid;
+    }
+
+    public void RemoveCollider(BepuNavMeshInfo navMeshInfo, long colliderId)
+    {
+        navMeshInfo.UpdateQueue.Add(new DtDynamicTileColliderRemovalJob(colliderId, GetTilesByCollider(colliderId, navMeshInfo)));
+    }
+
+    private DtTrimeshCollider CreateTriMeshCollider(StaticComponent staticComponent)
+    {
+        var input = new AsyncMeshInput();
+
+        staticComponent.Collider.AppendModel(input.ShapeData, _shapeCache, out _);
+        int shapeCount = staticComponent.Collider.Transforms;
+        for (int i = shapeCount - 1; i >= 0; i--)
+        {
+            input.TransformsOut.Add(default);
+        }
+        staticComponent.Collider.GetLocalTransforms(staticComponent, CollectionsMarshal.AsSpan(input.TransformsOut)[^shapeCount..]);
+        input.Matrices.Add((staticComponent.Entity.Transform.WorldMatrix, shapeCount));
+
+
+        var verts = new List<VertexPosition3>();
+        var indices = new List<int>();
+        for (int collidableI = 0, shapeI = 0; collidableI < input.Matrices.Count; collidableI++)
+        {
+            (Matrix collidableMatrix, int _) = input.Matrices[collidableI];
+            collidableMatrix.Decompose(out _, out Matrix worldMatrix, out Vector3 translation);
+            worldMatrix.TranslationVector = translation;
+
+            for (int j = 0; j < shapeCount; j++, shapeI++)
+            {
+                ShapeTransform transform = input.TransformsOut[shapeI];
+                Matrix.Transformation(ref transform.Scale, ref transform.RotationLocal, ref transform.PositionLocal, out Matrix localMatrix);
+                Matrix finalMatrix = localMatrix * worldMatrix;
+
+                BasicMeshBuffers shape = input.ShapeData[shapeI];
+                verts.EnsureCapacity(verts.Count + shape.Vertices.Length);
+                indices.EnsureCapacity(indices.Count + shape.Indices.Length);
+
+                int vertexBufferStart = verts.Count;
+
+                for (int i = 0; i < shape.Indices.Length; i += 3)
                 {
-                    var point = new Vector3(
-                        tile.data.verts[j],
-                        tile.data.verts[j + 1],
-                        tile.data.verts[j + 2]);
-                    verts.Add(point);
+                    int index0 = shape.Indices[i];
+                    int index1 = shape.Indices[i + 1];
+                    int index2 = shape.Indices[i + 2];
+                    indices.Add(vertexBufferStart + index0);
+                    indices.Add(vertexBufferStart + index2);
+                    indices.Add(vertexBufferStart + index1);
+                }
+
+                for (int l = 0; l < shape.Vertices.Length; l++)
+                {
+                    Vector3 vertex = shape.Vertices[l].Position;
+                    Vector3.Transform(ref vertex, ref finalMatrix, out Vector3 transformedVertex);
+                    verts.Add(new(transformedVertex));
                 }
             }
         }
 
-        return verts;
+        // Get the backing array of this list,
+        // get a span to that backing array,
+        Span<VertexPosition3> spanToPoints = CollectionsMarshal.AsSpan(verts);
+        // cast the type of span to read it as if it was a series of contiguous floats instead of contiguous vectors
+        Span<float> reinterpretedPoints = MemoryMarshal.Cast<VertexPosition3, float>(spanToPoints);
+
+
+        return new DtTrimeshCollider(reinterpretedPoints.ToArray(), [.. indices], 0x2, 10);
+    }
+
+    private HashSet<DtDynamicTile> ProcessQueue(BepuNavMeshInfo navSettings)
+    {
+        List<IDtDaynmicTileJob> items = ConsumeQueue(navSettings);
+        foreach (IDtDaynmicTileJob item in items)
+        {
+            Process(item);
+        }
+
+        return items.SelectMany(i => i.AffectedTiles()).ToHashSet();
+    }
+
+    private List<IDtDaynmicTileJob> ConsumeQueue(BepuNavMeshInfo navSettings)
+    {
+        List<IDtDaynmicTileJob> items = [];
+        while (navSettings.UpdateQueue.TryTake(out IDtDaynmicTileJob? item))
+        {
+            items.Add(item);
+        }
+
+        return items;
+    }
+
+    private static void Process(IDtDaynmicTileJob item)
+    {
+        foreach (DtDynamicTile? tile in item.AffectedTiles())
+        {
+            item.Process(tile);
+        }
+    }
+
+    private bool Rebuild(ICollection<DtDynamicTile> tiles, BepuNavMeshInfo navSettings)
+    {
+        if(navSettings.NavMesh is null) return false;
+
+        foreach (DtDynamicTile tile in tiles)
+            Rebuild(tile, navSettings);
+
+        return UpdateNavMesh(navSettings);
+    }
+
+    private ICollection<DtDynamicTile> GetTiles(float[] bounds, BepuNavMeshInfo navSettings)
+    {
+        if (bounds == null)
+        {
+            return navSettings.Tiles.Values;
+        }
+
+        int minx = (int)MathF.Floor((bounds[0] - navSettings.NavMeshParams.orig.X) / navSettings.NavMeshParams.tileWidth) - 1;
+        int minz = (int)MathF.Floor((bounds[2] - navSettings.NavMeshParams.orig.Z) / navSettings.NavMeshParams.tileHeight) - 1;
+        int maxx = (int)MathF.Floor((bounds[3] - navSettings.NavMeshParams.orig.X) / navSettings.NavMeshParams.tileWidth) + 1;
+        int maxz = (int)MathF.Floor((bounds[5] - navSettings.NavMeshParams.orig.Z) / navSettings.NavMeshParams.tileHeight) + 1;
+        List<DtDynamicTile> tiles = [];
+        for (int z = minz; z <= maxz; ++z)
+        {
+            for (int x = minx; x <= maxx; ++x)
+            {
+                navSettings.Tiles.TryGetValue(LookupKey(x, z), out DtDynamicTile? tile);
+                if (tile != null && IntersectsXZ(tile, bounds))
+                {
+                    tiles.Add(tile);
+                }
+            }
+        }
+
+        return tiles;
+    }
+
+    private static bool IntersectsXZ(DtDynamicTile tile, float[] bounds)
+    {
+        return tile.voxelTile.boundsMin.X <= bounds[3] && tile.voxelTile.boundsMax.X >= bounds[0] &&
+               tile.voxelTile.boundsMin.Z <= bounds[5] && tile.voxelTile.boundsMax.Z >= bounds[2];
+    }
+
+    private List<DtDynamicTile> GetTilesByCollider(long cid, BepuNavMeshInfo navSettings)
+    {
+        return navSettings.Tiles.Values.Where(t => t.ContainsCollider(cid)).ToList();
+    }
+
+    private void Rebuild(DtDynamicTile tile, BepuNavMeshInfo navSettings)
+    {
+        _dirty |= tile.Build(navSettings.Builder, navSettings.Config, navSettings.Context);
+    }
+
+    private bool UpdateNavMesh(BepuNavMeshInfo navSettings)
+    {
+        if (_dirty)
+        {
+            _dirty = false;
+
+            DtNavMesh navMesh = new();
+            navMesh.Init(navSettings.NavMeshParams, navSettings.BuildSettings.VertsPerPoly);
+
+            foreach (DtDynamicTile t in navSettings.Tiles.Values)
+            {
+                t.AddTo(navMesh);
+            }
+
+            navSettings.NavMesh = navMesh;
+            return true;
+        }
+
+        return false;
+    }
+
+    private static long LookupKey(long x, long z)
+    {
+        return (z << 32) | x;
     }
 }

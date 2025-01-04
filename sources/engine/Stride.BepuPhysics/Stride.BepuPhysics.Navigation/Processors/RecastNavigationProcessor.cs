@@ -81,7 +81,7 @@ public sealed class RecastNavigationProcessor : EntityProcessor<RecastNavigation
 
     public bool SetNewPath(RecastNavigationComponent pathfinder)
     {
-        if (_recastMeshSystem.TryFindPath(pathfinder.Entity.Transform.WorldMatrix.TranslationVector, pathfinder.Target, ref pathfinder.Polys, ref pathfinder.Path))
+        if (_recastMeshSystem.TryFindPath(pathfinder.Entity.Transform.WorldMatrix.TranslationVector, pathfinder.Target, ref pathfinder.Polys, ref pathfinder.Path, pathfinder.AgentNavMeshId))
         {
             pathfinder.State = NavigationState.PathIsReady;
             return true;
