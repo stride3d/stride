@@ -11,7 +11,7 @@ namespace Stride.BepuPhysics.Constraints;
 
 [DataContract(Inherited = true)]
 [DefaultEntityComponentProcessor(typeof(ConstraintProcessor), ExecutionMode = ExecutionMode.Runtime)]
-[ComponentCategory("Bepu - Constraint")]
+[ComponentCategory("Physics - Bepu Constraint")]
 [AllowMultipleComponents]
 public abstract class ConstraintComponentBase : EntityComponent
 {

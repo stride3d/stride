@@ -56,11 +56,11 @@
     <PackageVersion Include="Mono.Cecil" Version="0.11.5" />
     <PackageVersion Include="Mono.Options" Version="6.12.0.148" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageVersion Include="NuGet.Commands" Version="6.8.0" />
-    <PackageVersion Include="NuGet.Configuration" Version="6.8.0" />
-    <PackageVersion Include="NuGet.PackageManagement" Version="6.8.0" />
-    <PackageVersion Include="NuGet.Protocol" Version="6.8.0" />
-    <PackageVersion Include="NuGet.Resolver" Version="6.8.0" />
+    <PackageVersion Include="NuGet.Commands" Version="6.12.1" />
+    <PackageVersion Include="NuGet.Configuration" Version="6.12.1" />
+    <PackageVersion Include="NuGet.PackageManagement" Version="6.12.1" />
+    <PackageVersion Include="NuGet.Protocol" Version="6.12.1" />
+    <PackageVersion Include="NuGet.Resolver" Version="6.12.1" />
     <PackageVersion Include="Silk.NET.Assimp" Version="2.22.0" />
     <PackageVersion Include="Stride.GNU.Getopt" Version="2.0.0" />
     <PackageVersion Include="Stride.GNU.Gettext" Version="2.0.0" />

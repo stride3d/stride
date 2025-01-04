@@ -2,7 +2,6 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Threading.Tasks;
-using Stride.Assets.BepuPhysics;
 using Stride.Assets.Models;
 using Stride.Core;
 using Stride.Core.Assets;
@@ -41,7 +40,8 @@ namespace Stride.Assets.Presentation.Templates
         {
             base.PostAssetCreation(parameters, assetItem);
             var model = parameters.GetTag(ModelKey);
-            ((HullAsset)assetItem.Asset).Model = model;
+            // Template generators aren't currently written to be implemented plugin-side, so we'll have to do some reflexion to assign the hull back
+            assetItem.Asset.GetType().GetField("Model").SetValue(assetItem.Asset, model);
         }
     }
 }

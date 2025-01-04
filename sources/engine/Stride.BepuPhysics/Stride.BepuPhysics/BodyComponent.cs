@@ -13,7 +13,7 @@ using NRigidPose = BepuPhysics.RigidPose;
 
 namespace Stride.BepuPhysics;
 
-[ComponentCategory("Bepu")]
+[ComponentCategory("Physics - Bepu")]
 public class BodyComponent : CollidableComponent
 {
     private bool _kinematic = false;
@@ -74,6 +74,40 @@ public class BodyComponent : CollidableComponent
         }
     }
 
+    public InterpolationMode InterpolationMode
+    {
+        get => _interpolationMode;
+        set
+        {
+            if (_interpolationMode == InterpolationMode.None && value != InterpolationMode.None)
+                Simulation?.RegisterInterpolated(this);
+            if (_interpolationMode != InterpolationMode.None && value == InterpolationMode.None)
+                Simulation?.UnregisterInterpolated(this);
+            _interpolationMode = value;
+        }
+    }
+
+    /// <summary>
+    /// Shortcut to <see cref="ContinuousDetection"/>.<see cref="ContinuousDetection.Mode"/>
+    /// </summary>
+    public ContinuousDetectionMode ContinuousDetectionMode
+    {
+        get => _continuous.Mode;
+        set
+        {
+            if (_continuous.Mode == value)
+                return;
+
+            _continuous = value switch
+            {
+                ContinuousDetectionMode.Discrete => ContinuousDetection.Discrete,
+                ContinuousDetectionMode.Passive => ContinuousDetection.Passive,
+                ContinuousDetectionMode.Continuous => ContinuousDetection.Continuous(),
+                _ => throw new ArgumentOutOfRangeException(nameof(value), value, null)
+            };
+        }
+    }
+
     public float SleepThreshold
     {
         get => _sleepThreshold;
@@ -108,40 +142,6 @@ public class BodyComponent : CollidableComponent
                 description.Activity.MinimumTimestepCountUnderThreshold = value;
                 bRef.ApplyDescription(description);
             }
-        }
-    }
-
-    public InterpolationMode InterpolationMode
-    {
-        get => _interpolationMode;
-        set
-        {
-            if (_interpolationMode == InterpolationMode.None && value != InterpolationMode.None)
-                Simulation?.RegisterInterpolated(this);
-            if (_interpolationMode != InterpolationMode.None && value == InterpolationMode.None)
-                Simulation?.UnregisterInterpolated(this);
-            _interpolationMode = value;
-        }
-    }
-
-    /// <summary>
-    /// Shortcut to <see cref="ContinuousDetection"/>.<see cref="ContinuousDetection.Mode"/>
-    /// </summary>
-    public ContinuousDetectionMode ContinuousDetectionMode
-    {
-        get => _continuous.Mode;
-        set
-        {
-            if (_continuous.Mode == value)
-                return;
-
-            _continuous = value switch
-            {
-                ContinuousDetectionMode.Discrete => ContinuousDetection.Discrete,
-                ContinuousDetectionMode.Passive => ContinuousDetection.Passive,
-                ContinuousDetectionMode.Continuous => ContinuousDetection.Continuous(),
-                _ => throw new ArgumentOutOfRangeException(nameof(value), value, null)
-            };
         }
     }
 
