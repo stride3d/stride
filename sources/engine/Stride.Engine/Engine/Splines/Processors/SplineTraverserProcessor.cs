@@ -28,11 +28,7 @@ namespace Stride.Engine.Splines.Processors
 
         protected override SplineTraverserTransformationInfo GenerateComponentData(Entity entity, SplineTraverserComponent component)
         {
-            
-            var transformationInfo = new SplineTraverserTransformationInfo(this, component)
-            {
-                TransformOperation = new SplineTraverserViewHierarchyTransformOperation(component)
-            };
+            var transformationInfo = new SplineTraverserTransformationInfo(this, component) { TransformOperation = new SplineTraverserViewHierarchyTransformOperation(component) };
 
             return transformationInfo;
         }
@@ -41,19 +37,18 @@ namespace Stride.Engine.Splines.Processors
         {
             return component == associatedData.TransformOperation.SplineTraverserComponent;
         }
-        
+
         protected override void OnEntityComponentAdding(Entity entity, SplineTraverserComponent component, SplineTraverserTransformationInfo data)
         {
             if (component.SplineComponent != null)
             {
                 component.SplineComponent.Spline.OnSplineDirty += data.OnSplineDirtyAction;
-                
             }
-            
+
             splineTraverserComponents.Add(component);
             component.SplineTraverser.Spline = component.SplineComponent?.Spline;
             component.SplineTraverser.Entity = entity;
-            
+
             entity.Transform.PostOperations.Add(data.TransformOperation);
         }
 
@@ -79,15 +74,13 @@ namespace Stride.Engine.Splines.Processors
                 component.SplineTraverser.AttachedToSpline = false;
             }
         }
-        
+
         public override void Update(GameTime time)
         {
             foreach (var component in splineTraverserComponents)
             {
-                if (component.Entity == null || component.SplineComponent?.Spline == null)
-                {
-                    return;
-                }
+                if (!IsValidComponent(component))
+                    continue;
 
                 if (!component.SplineTraverser.AttachedToSpline)
                 {
@@ -100,17 +93,27 @@ namespace Stride.Engine.Splines.Processors
                 }
 
                 UpdatePosition(component, time);
-                UpdateRotation(component);
+                UpdateRotation(component, time);
 
-                var distance = Vector3.Distance(component.Entity.Transform.WorldMatrix.TranslationVector, component.SplineTraverser.targetBezierPoint.Position);
-
-                if (distance < component.SplineTraverser.thresholdDistance)
+                //Avoid square root check. Using LengthSquared  
+                var distanceSquared = (component.Entity.Transform.WorldMatrix.TranslationVector - component.SplineTraverser.targetBezierPoint.Position).LengthSquared();
+                if (distanceSquared < component.SplineTraverser.thresholdDistance * component.SplineTraverser.thresholdDistance)
                 {
                     SetNextTarget(component);
                 }
             }
         }
 
+        private static bool IsValidComponent(SplineTraverserComponent component)
+        {
+            if (component is { Entity: not null, SplineComponent.Spline: not null })
+            {
+                return true;
+            }
+
+            Console.WriteLine($"[Warning] Invalid component or missing Spline: {component}");
+            return false;
+        }
 
         private void DetermineOriginAndTarget(SplineTraverserComponent component)
         {
@@ -145,25 +148,51 @@ namespace Stride.Engine.Splines.Processors
             SetNextTarget(component);
         }
 
-        private void UpdateRotation(SplineTraverserComponent component)
+        private void UpdateRotation(SplineTraverserComponent component, GameTime time)
         {
-            if (component.SplineTraverser.IsRotating)
+            if (!component.SplineTraverser.IsRotating)
             {
-                var entityWorldPosition = component.Entity.Transform.WorldMatrix.TranslationVector;
-                var distanceBetweenBezierPoints = Vector3.Distance(component.SplineTraverser.originBezierPoint.Position, component.SplineTraverser.targetBezierPoint.Position);
-                var currentDistance = Vector3.Distance(component.SplineTraverser.originBezierPoint.Position, entityWorldPosition);
-                var ratio = currentDistance / distanceBetweenBezierPoints;
-                component.Entity.Transform.Rotation = Quaternion.Slerp(component.SplineTraverser.startRotation, component.SplineTraverser.targetBezierPoint.Rotation, ratio);
+                return;
             }
+
+            var entityWorldPosition = component.Entity.Transform.WorldMatrix.TranslationVector;
+            var originPosition = component.SplineTraverser.originBezierPoint.Position;
+            var targetPosition = component.SplineTraverser.targetBezierPoint.Position;
+
+            var totalDistance = Vector3.Distance(originPosition, targetPosition);
+            var currentDistance = Vector3.Distance(originPosition, entityWorldPosition);
+
+            // divide-by-zero
+            if (totalDistance < 1e-6f)
+                return;
+                
+            var deltaTime = (float)time.Elapsed.TotalSeconds;
+            var rawRatio = currentDistance / totalDistance;
+            var clampedRatio = Math.Clamp(rawRatio, 0, 1);
+            var easedRatio = clampedRatio * clampedRatio * (3 - 2 * clampedRatio);
+
+              
+            var rotationStep = Math.Clamp(deltaTime / totalDistance, 0, 1); 
+            easedRatio = Math.Clamp(easedRatio + rotationStep, 0, 1);
+
+            var startRotation = Quaternion.Normalize(component.SplineTraverser.startRotation);
+            var targetRotation = Quaternion.Normalize(component.SplineTraverser.targetBezierPoint.Rotation);
+                
+            component.Entity.Transform.Rotation = Quaternion.Slerp(startRotation, targetRotation, easedRatio);
         }
+        
 
         private void UpdatePosition(SplineTraverserComponent component, GameTime time)
         {
             var entityWorldPosition = component.Entity.Transform.WorldMatrix.TranslationVector;
-            var velocity = (component.SplineTraverser.targetBezierPoint.Position - entityWorldPosition);
-            velocity.Normalize();
-            velocity *= Math.Abs(component.SplineTraverser.Speed) * (float)time.Elapsed.TotalSeconds;
-            component.Entity.Transform.Position += velocity;
+            var velocity = component.SplineTraverser.targetBezierPoint.Position - entityWorldPosition;
+            if (velocity.LengthSquared() > 0)
+            {
+                velocity.Normalize();
+                velocity *= Math.Abs(component.SplineTraverser.Speed) * (float)time.Elapsed.TotalSeconds;
+                component.Entity.Transform.Position += velocity;
+            }
+
             component.Entity.Transform.UpdateWorldMatrix();
         }
 
