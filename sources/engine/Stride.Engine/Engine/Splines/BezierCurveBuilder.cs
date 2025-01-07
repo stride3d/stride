@@ -65,8 +65,6 @@ namespace Stride.Engine.Splines
             UpdateBoundingBox();
             
             node.SetCalculatedBezierCurveValues(length, parameterizedBezierPoints, boundingBox);
-            baseBezierPoints = null;
-            parameterizedBezierPoints = null;
         }
 
 
@@ -101,18 +99,33 @@ namespace Stride.Engine.Splines
             parameterizedBezierPoints[bezierPointCount - 1] = baseBezierPoints[baseBezierPointCount - 1];
         }
 
+        // Use a binary search since the array is sorted by TotalLengthOnCurve.
         private BezierPoint GetBezierPointForDistance(float estimatedExpectedDistance)
         {
-            for (var j = 0; j < baseBezierPointCount; j++)
+            int left = 0, right = baseBezierPointCount - 1;
+
+            while (left <= right)
             {
-                var curPoint = baseBezierPoints[j];
-                if (curPoint.TotalLengthOnCurve >= estimatedExpectedDistance)
+                int mid = (left + right) / 2;
+                if (baseBezierPoints[mid].TotalLengthOnCurve < estimatedExpectedDistance)
                 {
-                    return curPoint;
+                    left = mid + 1;
+                }
+                else
+                {
+                    right = mid - 1;
                 }
             }
-            return baseBezierPoints[^1];
+
+            // Ensure 'left' is within bounds
+            if (left >= baseBezierPointCount)
+            {
+                return baseBezierPoints[baseBezierPointCount - 1]; // Return the last point
+            }
+
+            return baseBezierPoints[left];
         }
+
 
         private void CalculateRotation()
         {
@@ -135,15 +148,13 @@ namespace Stride.Engine.Splines
 
         private Vector3 CalculateBezierPoint(float t)
         {
-            var tPower3 = t * t * t;
-            var tPower2 = t * t;
-            var oneMinusT = 1 - t;
-            var oneMinusTPower3 = oneMinusT * oneMinusT * oneMinusT;
-            var oneMinusTPower2 = oneMinusT * oneMinusT;
-            var x = oneMinusTPower3 * p0.X + 3 * oneMinusTPower2 * t * p1.X + 3 * oneMinusT * tPower2 * p2.X + tPower3 * p3.X;
-            var y = oneMinusTPower3 * p0.Y + 3 * oneMinusTPower2 * t * p1.Y + 3 * oneMinusT * tPower2 * p2.Y + tPower3 * p3.Y;
-            var z = oneMinusTPower3 * p0.Z + 3 * oneMinusTPower2 * t * p1.Z + 3 * oneMinusT * tPower2 * p2.Z + tPower3 * p3.Z;
-            return new Vector3(x, y, z);
+            float t2 = t * t;
+            float t3 = t2 * t;
+            float oneMinusT = 1 - t;
+            float oneMinusT2 = oneMinusT * oneMinusT;
+            float oneMinusT3 = oneMinusT2 * oneMinusT;
+
+            return (oneMinusT3 * p0) + (3 * oneMinusT2 * t * p1) + (3 * oneMinusT * t2 * p2) + (t3 * p3);
         }
 
         private void UpdateBoundingBox()
