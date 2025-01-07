@@ -10,9 +10,9 @@ using Stride.Graphics;
 
 namespace Stride.Engine.Splines.Models.Mesh
 {
-    [DataContract("SplineMeshSpline")]
+    [DataContract("SplineMeshShape")]
     [Display("Spline")]
-    public class SplineMeshSpline : SplineMesh
+    public class SplineMeshShape : SplineMesh
     {
         private VertexPositionNormalTexture[] vertices;
         private int[] indices;

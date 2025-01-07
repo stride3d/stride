@@ -2,7 +2,6 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
-using Microsoft.VisualBasic.Devices;
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Engine;
