@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Stride.Engine;
+using Stride.Engine.Gizmos;
 using Stride.Engine.Splines.Components;
 
 namespace Stride.Assets.Presentation.AssetEditors.Gizmos.Spline
