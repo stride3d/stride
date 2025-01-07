@@ -80,43 +80,36 @@ namespace Stride.Engine.Splines
         public float GetTotalSplineLength(Spline spline)
         {
             float distance = 0;
-            for (var i = 0; i < spline.SplineNodes.Count; i++)
+            int limit = spline.Loop ? spline.SplineNodes.Count : spline.SplineNodes.Count - 1;
+            for (int i = 0; i < limit; i++)
             {
-                var curve = spline.SplineNodes[i];
-                if (curve != null)
-                {
-                    if (spline.Loop || !spline.Loop && i < spline.SplineNodes.Count - 1)
-                    {
-                        distance += curve.Length;
-                    }
-                }
+                var node = spline.SplineNodes[i];
+                if (node != null)
+                    distance += node.Length;
             }
 
             return distance;
         }
-        
+
         private void UpdateBoundingBox(Spline spline)
         {
             var allCurvePointsPositions = new List<Vector3>();
-            for (var i = 0; i <  spline.SplineNodes.Count; i++)
-            {
-                if (!spline.Loop && i ==  spline.SplineNodes.Count - 1)
-                {
-                    break;
-                }
 
-                var positions =  spline.SplineNodes[i].GetBezierPoints();
+            foreach (var node in spline.SplineNodes)
+            {
+                var positions = node?.GetBezierPoints();
                 if (positions != null)
                 {
-                    for (var j = 0; j < positions.Length; j++)
+                    foreach (var point in positions)
                     {
-                        if (positions[j] != null)
-                            allCurvePointsPositions.Add(positions[j].Position);
+                        if (point != null)
+                            allCurvePointsPositions.Add(point.Position);
                     }
                 }
             }
-            BoundingBox.FromPoints(allCurvePointsPositions.ToArray(), out var NewBoundingBox);
-            spline.BoundingBox = NewBoundingBox;
+            
+            BoundingBox.FromPoints(allCurvePointsPositions.ToArray(), out var newBoundingBox);
+            spline.BoundingBox = newBoundingBox;
         }
     }
 }
