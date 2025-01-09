@@ -80,6 +80,15 @@ public abstract class CollidableComponent : EntityComponent
         }
     }
 
+    /// <summary>
+    /// The bounce frequency in hz
+    /// </summary>
+    /// <remarks>
+    /// Must be low enough that the simulation can actually represent it. 
+    /// If the contact is trying to make a bounce happen at 240hz, 
+    /// but the integrator timestep is only 60hz, 
+    /// the unrepresentable motion will get damped out and the body won't bounce as much.
+    /// </remarks>
     public float SpringFrequency
     {
         get
@@ -93,6 +102,9 @@ public abstract class CollidableComponent : EntityComponent
         }
     }
 
+    /// <summary>
+    /// The amount of energy/velocity lost when this collidable bounces off
+    /// </summary>
     public float SpringDampingRatio
     {
         get
@@ -116,6 +128,9 @@ public abstract class CollidableComponent : EntityComponent
         }
     }
 
+    /// <summary>
+    /// The maximum speed this object will exit out of the collision when overlapping another collidable
+    /// </summary>
     public float MaximumRecoveryVelocity
     {
         get => _maximumRecoveryVelocity;
@@ -154,6 +169,9 @@ public abstract class CollidableComponent : EntityComponent
         }
     }
 
+    /// <summary>
+    /// Which simulation this object is assigned to
+    /// </summary>
     [DefaultValueIsSceneBased]
     public ISimulationSelector SimulationSelector
     {
@@ -190,7 +208,7 @@ public abstract class CollidableComponent : EntityComponent
     }
 
     /// <summary>
-    /// The center of mass of this object
+    /// The center of mass of this object in local space
     /// </summary>
     /// <remarks>
     /// This property will always return <see cref="Vector3.Zero"/> if this object is not part of a simulation yet.
