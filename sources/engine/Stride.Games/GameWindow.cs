@@ -113,12 +113,6 @@ namespace Stride.Games
         public abstract bool Focused { get; }
 
         /// <summary>
-        /// Gets or sets a value indicating whether the mouse pointer is visible over this window.
-        /// </summary>
-        /// <value><c>true</c> if this instance is mouse visible; otherwise, <c>false</c>.</value>
-        public abstract bool IsMouseVisible { get; set; }
-
-        /// <summary>
         /// Gets the native window.
         /// </summary>
         /// <value>The native window.</value>
@@ -227,13 +221,13 @@ namespace Stride.Games
 
         #region Methods
 
-        internal bool Exiting;
+        public bool Exiting;
 
-        internal Action InitCallback;
+        public Action InitCallback;
 
-        internal Action RunCallback;
+        public Action RunCallback;
 
-        internal Action ExitCallback;
+        public Action ExitCallback;
         
         private bool isFullscreen;
 
@@ -261,7 +255,7 @@ namespace Stride.Games
             throw new PlatformNotSupportedException();
         }
 
-        internal IServiceRegistry Services { get; set; }
+        public IServiceRegistry Services { get; set; }
 
         protected internal abstract void SetSupportedOrientations(DisplayOrientation orientations);
 
@@ -329,15 +323,6 @@ namespace Stride.Games
             OnActivated(this, EventArgs.Empty);
         }
 
-        public abstract void Initialize(int width, int height);
-    }
-
-    public enum WindowState
-    {
-        Minimized,
-        Maximized,
-        Fullscreen,
-        WindowedFullscreen,
-        Windowed
+        public abstract void CreateWindow(int width, int height);
     }
 }

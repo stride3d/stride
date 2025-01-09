@@ -82,15 +82,15 @@ namespace Stride.Graphics
 
         public void Recreate(GraphicsAdapter adapter, GraphicsProfile[] graphicsProfiles, DeviceCreationFlags deviceCreationFlags, WindowHandle windowHandle)
         {
-            if (adapter == null) throw new ArgumentNullException("adapter");
-            if (graphicsProfiles == null) throw new ArgumentNullException("graphicsProfiles");
+            ArgumentNullException.ThrowIfNull(adapter);
+            ArgumentNullException.ThrowIfNull(graphicsProfiles);
 
             Adapter = adapter;
             IsDebugMode = (deviceCreationFlags & DeviceCreationFlags.Debug) != 0;
 
             // Default fallback
             if (graphicsProfiles.Length == 0)
-                graphicsProfiles = new[] { GraphicsProfile.Level_11_0, GraphicsProfile.Level_10_1, GraphicsProfile.Level_10_0, GraphicsProfile.Level_9_3, GraphicsProfile.Level_9_2, GraphicsProfile.Level_9_1 };
+                graphicsProfiles = [GraphicsProfile.Level_11_0, GraphicsProfile.Level_10_1, GraphicsProfile.Level_10_0, GraphicsProfile.Level_9_3, GraphicsProfile.Level_9_2, GraphicsProfile.Level_9_1];
 
             // Initialize this instance
             InitializePlatformDevice(graphicsProfiles, deviceCreationFlags, windowHandle);
@@ -237,6 +237,12 @@ namespace Stride.Graphics
         /// </summary>
         /// <value>The shader profile.</value>
         internal GraphicsProfile? ShaderProfile { get; set; }
+
+        public void ResetFrameCounters()
+        {
+            FrameTriangleCount = 0;
+            FrameDrawCalls = 0;
+        }
 
         /// <summary>
         ///     Initializes a new instance of the <see cref="GraphicsDevice" /> class.

@@ -10,7 +10,7 @@ namespace Stride.Editor.Engine
     /// <summary>
     /// Represents a Game that is embedded in a external window.
     /// </summary>
-    public class EmbeddedGame : Game
+    public class EmbeddedGame : DefaultGame
     {
         /// <summary>
         /// All created embedded games (preview, scene, etc...) will have <see cref="DeviceCreationFlags.Debug"/> set.
@@ -34,7 +34,7 @@ namespace Stride.Editor.Engine
             base.Initialize();
 
             Window.IsBorderLess = true;
-            Window.IsMouseVisible = true;
+            IsMouseVisible = true;
         }
 
         /// <inheritdoc />

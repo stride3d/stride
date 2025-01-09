@@ -4,7 +4,7 @@
 namespace Stride.Editor.EditorGame.ViewModels
 {
     /// <summary>
-    /// Base interface for services accessible from a view model class, that allows to interact with a instance of a <see cref="Stride.Engine.Game"/>.
+    /// Base interface for services accessible from a view model class, that allows to interact with a instance of a <see cref="Stride.Engine.DefaultGame"/>.
     /// </summary>
     public interface IEditorGameViewModelService
     {

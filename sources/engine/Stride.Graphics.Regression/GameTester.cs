@@ -20,7 +20,7 @@ namespace Stride.Graphics.Regression
 
         private static object uniThreadLock = new object();
 
-        public static void RunGameTest(Game game)
+        public static void RunGameTest(DefaultGame game)
         {
 #if STRIDE_PLATFORM_DESKTOP
 

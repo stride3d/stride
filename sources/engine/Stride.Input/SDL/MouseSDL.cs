@@ -15,6 +15,7 @@ namespace Stride.Input
         private readonly Window uiControl;
 
         private bool isMousePositionLocked;
+        private bool isMouseVisible = true;
         private Point relativeCapturedPosition;
 
         public MouseSDL(InputSourceSDL source, Window uiControl)
@@ -37,6 +38,29 @@ namespace Stride.Input
         public override Guid Id { get; }
 
         public override bool IsPositionLocked => isMousePositionLocked;
+
+        public override bool IsMouseVisible
+        {
+            get
+            {
+                return isMouseVisible;
+            }
+            set
+            {
+                if (isMouseVisible != value)
+                {
+                    isMouseVisible = value;
+                    if (isMouseVisible)
+                    {
+                        Stride.Graphics.SDL.Cursor.Show();
+                    }
+                    else
+                    {
+                        Stride.Graphics.SDL.Cursor.Hide();
+                    }
+                }
+            }
+        }
 
         public override IInputSource Source { get; }
 

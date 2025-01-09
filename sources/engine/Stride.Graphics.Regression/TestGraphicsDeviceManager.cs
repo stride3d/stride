@@ -11,8 +11,8 @@ namespace Stride.Graphics.Regression
 {
     public class TestGraphicsDeviceManager : GraphicsDeviceManager
     {
-        public TestGraphicsDeviceManager(GameBase game)
-            : base(game)
+        public TestGraphicsDeviceManager(GamePlatform platform)
+            : base(platform)
         {
         }
 

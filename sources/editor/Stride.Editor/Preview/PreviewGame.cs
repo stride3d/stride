@@ -18,7 +18,7 @@ using Stride.Shaders.Compiler;
 namespace Stride.Editor.Preview
 {
     /// <summary>
-    /// A <see cref="Game"/> instance specialized to render previews and create thumbnails
+    /// A <see cref="DefaultGame"/> instance specialized to render previews and create thumbnails
     /// </summary>
     public class PreviewGame : EditorGame.Game.EditorServiceGame
     {

@@ -8,7 +8,7 @@ using Stride.Engine;
 namespace Stride.Audio.Tests.Engine
 {
     /// <summary>
-    /// Test the class <see cref="Game"/> augmented with the audio system.
+    /// Test the class <see cref="DefaultGame"/> augmented with the audio system.
     /// </summary>
     public class TestGame
     {
@@ -29,7 +29,7 @@ namespace Stride.Audio.Tests.Engine
         [Fact]
         public void TestAccessToAudio()
         {
-            using (var game = new Game())
+            using (var game = new DefaultGame())
             {
                 AudioSystem audioInterface = game.Audio;
                 Assert.NotNull(audioInterface);

@@ -22,14 +22,16 @@
 // THE SOFTWARE.
 #if STRIDE_PLATFORM_DESKTOP
 using System;
+using System.Collections.Generic;
 using System.IO;
 using Stride.Core;
+using Stride.Graphics;
 
 namespace Stride.Games
 {
-    internal class GamePlatformDesktop : GamePlatform
+    public class GamePlatformDesktop : GamePlatform
     {
-        public GamePlatformDesktop(GameBase game) : base(game)
+        public GamePlatformDesktop()
         {
             IsBlockingRun = true;
 #if (STRIDE_UI_WINFORMS || STRIDE_UI_WPF)
@@ -51,33 +53,14 @@ namespace Stride.Games
             }
         }
 
-        internal override GameWindow GetSupportedGameWindow(AppContextType type)
+        public override GraphicsDevice CreateDevice(GraphicsDeviceInformation deviceInformation)
         {
-            switch (type)
-            {
-#if STRIDE_UI_SDL
-                 case AppContextType.DesktopSDL:
-                    return new GameWindowSDL();
-#endif
+            throw new NotImplementedException();
+        }
 
-                 case AppContextType.Desktop:
-#if (STRIDE_GRAPHICS_API_DIRECT3D || STRIDE_GRAPHICS_API_VULKAN) && STRIDE_UI_WINFORMS
-                    return new GameWindowWinforms();
-#elif STRIDE_UI_SDL
-                    return new GameWindowSDL();
-#else
-                    return null;
-#endif
-
-#if STRIDE_UI_WPF
-                 case AppContextType.DesktopWpf:
-                    // WPF is not supported yet.
-                    return null;
-#endif
-
-                 default:
-                    return null;
-            }
+        public override List<GraphicsDeviceInformation> FindBestDevices(GameGraphicsParameters preferredParameters)
+        {
+            throw new NotImplementedException();
         }
     }
 }

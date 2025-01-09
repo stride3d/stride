@@ -14,6 +14,7 @@ using Stride.Core.Storage;
 using Stride.Engine.Design;
 using Stride.Engine.Processors;
 using Stride.Games;
+using Stride.Games.SDL;
 using Stride.Graphics;
 using Stride.Graphics.Font;
 using Stride.Input;
@@ -30,12 +31,20 @@ namespace Stride.Engine
     /// <summary>
     /// Main Game class system.
     /// </summary>
-    public class Game : GameBase, ISceneRendererContext, IGameSettingsService
+    public class DefaultGame : GameBase, ISceneRendererContext, IGameSettingsService
     {
+
+        private bool isMouseVisible;
+
         /// <summary>
         /// Static event that will be fired when a game is initialized
         /// </summary>
         public static event EventHandler GameStarted;
+
+        /// <summary>
+        /// Occurs when [window created].
+        /// </summary>
+        public event EventHandler<EventArgs> WindowCreated;
 
         /// <summary>
         /// Static event that will be fired when a game is destroyed
@@ -60,6 +69,22 @@ namespace Stride.Engine
         /// </summary>
         /// <value>The graphics device manager.</value>
         public GraphicsDeviceManager GraphicsDeviceManager { get; internal set; }
+
+        /// <summary>
+        /// Gets the abstract window.
+        /// </summary>
+        /// <value>The window.</value>
+        public GameWindow Window
+        {
+            get
+            {
+                if (GamePlatform is IWindowedPlatform windowedPlatform)
+                {
+                    return windowedPlatform.MainWindow;
+                }
+                return null;
+            }
+        }
 
         /// <summary>
         /// Gets the script system.
@@ -177,15 +202,48 @@ namespace Stride.Engine
         }
 
         /// <summary>
+        /// Gets or sets a value indicating whether the mouse should be visible.
+        /// </summary>
+        /// <value><c>true</c> if the mouse should be visible; otherwise, <c>false</c>.</value>
+        public bool IsMouseVisible
+        {
+            get
+            {
+                return isMouseVisible;
+            }
+            set
+            {
+                isMouseVisible = value;
+                Input?.SetMouseVisibilty(value);
+            }
+        }
+
+        /// <summary>
         /// Automatically initializes game settings like default scene, resolution, graphics profile.
         /// </summary>
         public bool AutoLoadDefaultSettings { get; set; }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="Game"/> class.
+        /// Initializes a new instance of the <see cref="DefaultGame"/> class.
         /// </summary>
-        public Game()
+        public DefaultGame()
         {
+            // TODO: Create a Platform specific GamePlatform
+            var sDLGamePlatform = new SDLGamePlatform();
+
+            sDLGamePlatform.Activated += GamePlatform_Activated;
+            sDLGamePlatform.Deactivated += GamePlatform_Deactivated;
+            sDLGamePlatform.Exiting += GamePlatform_Exiting;
+            sDLGamePlatform.WindowCreated += GamePlatformOnWindowCreated;
+
+            GamePlatform = sDLGamePlatform;
+
+            // Initialize the GamePlatform with a valid IServiceRegistry
+            sDLGamePlatform.Initialize(Services);
+            Services.AddService<IGraphicsDeviceFactory>(GamePlatform);
+            Services.AddService<IGamePlatform>(GamePlatform);
+            Services.AddService<IWindowedPlatform>(sDLGamePlatform);
+
             // Register the logger backend before anything else
             logListener = GetLogListener();
 
@@ -223,11 +281,150 @@ namespace Stride.Engine
             Services.AddService(VRDeviceSystem);
 
             // Creates the graphics device manager
-            GraphicsDeviceManager = new GraphicsDeviceManager(this);
+            GraphicsDeviceManager = new GraphicsDeviceManager(GamePlatform);
             Services.AddService<IGraphicsDeviceManager>(GraphicsDeviceManager);
             Services.AddService<IGraphicsDeviceService>(GraphicsDeviceManager);
 
             AutoLoadDefaultSettings = true;
+        }
+
+        /// <summary>
+        /// Call this method to initialize the game, begin running the game loop, and start processing events for the game.
+        /// </summary>
+        /// <exception cref="System.InvalidOperationException">Cannot run this instance while it is already running</exception>
+        public override void Run()
+        {
+            if (IsRunning)
+            {
+                throw new InvalidOperationException("Cannot run this instance while it is already running");
+            }
+
+            // Gets the graphics device manager
+            graphicsDeviceManager = Services.GetService<IGraphicsDeviceManager>();
+            ArgumentNullException.ThrowIfNull(graphicsDeviceManager, nameof(graphicsDeviceManager));
+
+            PrepareContext();
+
+            try
+            {
+                GamePlatform.Run();
+
+                if (GamePlatform.IsBlockingRun)
+                {
+                    // If the previous call was blocking, then we can call Endrun
+                    EndRun();
+                }
+                else
+                {
+                    // EndRun will be executed on Game.Exit
+                    isEndRunRequired = true;
+                }
+            }
+            finally
+            {
+                if (!isEndRunRequired)
+                {
+                    IsRunning = false;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Calls <see cref="RawTick"/> automatically based on this game's setup, override it to implement your own system.
+        /// </summary>
+        protected override void RawTickProducer()
+        {
+            try
+            {
+                // Update the timer
+                autoTickTimer.Tick();
+
+                var elapsedAdjustedTime = autoTickTimer.ElapsedTimeWithPause;
+
+                if (forceElapsedTimeToZero)
+                {
+                    elapsedAdjustedTime = TimeSpan.Zero;
+                    forceElapsedTimeToZero = false;
+                }
+
+                if (elapsedAdjustedTime > maximumElapsedTime)
+                {
+                    elapsedAdjustedTime = maximumElapsedTime;
+                }
+
+                bool drawFrame = true;
+                int updateCount = 1;
+                var singleFrameElapsedTime = elapsedAdjustedTime;
+                var drawLag = 0L;
+
+                if (suppressDraw || Window.IsMinimized && DrawWhileMinimized == false)
+                {
+                    drawFrame = false;
+                    suppressDraw = false;
+                }
+
+                if (IsFixedTimeStep)
+                {
+                    // If the rounded TargetElapsedTime is equivalent to current ElapsedAdjustedTime
+                    // then make ElapsedAdjustedTime = TargetElapsedTime. We take the same internal rules as XNA
+                    if (Math.Abs(elapsedAdjustedTime.Ticks - TargetElapsedTime.Ticks) < (TargetElapsedTime.Ticks >> 6))
+                    {
+                        elapsedAdjustedTime = TargetElapsedTime;
+                    }
+
+                    // Update the accumulated time
+                    accumulatedElapsedGameTime += elapsedAdjustedTime;
+
+                    // Calculate the number of update to issue
+                    if (ForceOneUpdatePerDraw)
+                    {
+                        updateCount = 1;
+                    }
+                    else
+                    {
+                        updateCount = (int)(accumulatedElapsedGameTime.Ticks / TargetElapsedTime.Ticks);
+                    }
+
+                    if (IsDrawDesynchronized)
+                    {
+                        drawLag = accumulatedElapsedGameTime.Ticks % TargetElapsedTime.Ticks;
+                    }
+                    else if (updateCount == 0)
+                    {
+                        drawFrame = false;
+                        // If there is no need for update, then exit
+                        return;
+                    }
+
+                    // We are going to call Update updateCount times, so we can subtract this from accumulated elapsed game time
+                    accumulatedElapsedGameTime = new TimeSpan(accumulatedElapsedGameTime.Ticks - (updateCount * TargetElapsedTime.Ticks));
+                    singleFrameElapsedTime = TargetElapsedTime;
+                }
+
+                RawTick(singleFrameElapsedTime, updateCount, drawLag / (float)TargetElapsedTime.Ticks, drawFrame);
+
+                if (GamePlatform.IsBlockingRun) // throttle fps if Game.Tick() called from internal main loop
+                {
+                    if (Window.IsMinimized || Window.Visible == false || (Window.Focused == false && TreatNotFocusedLikeMinimized))
+                    {
+                        MinimizedMinimumUpdateRate.Throttle(out long _);
+                    }
+                    else
+                    {
+                        WindowMinimumUpdateRate.Throttle(out long _);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error("Unexpected exception", ex);
+                throw;
+            }
+        }
+
+        protected override void OnExit()
+        {
+            GamePlatform.Exit();
         }
 
         /// <inheritdoc/>
@@ -237,7 +434,14 @@ namespace Stride.Engine
 
             DestroyAssetDatabase();
 
+            if (Window != null && Window.IsActivated) // force the window to be in an correct state during destroy (Deactivated events are sometimes dropped on windows)
+            {
+                Window.OnPause();
+            }
+
             base.Destroy();
+
+            GamePlatform?.Release();
 
             if (logListener != null)
                 GlobalLogger.GlobalMessageLogged -= logListener;
@@ -276,7 +480,7 @@ namespace Stride.Engine
                 var deviceManager = (GraphicsDeviceManager)graphicsDeviceManager;
                 if (renderingSettings.DefaultGraphicsProfile > 0)
                 {
-                    deviceManager.PreferredGraphicsProfile = new[] { renderingSettings.DefaultGraphicsProfile };
+                    deviceManager.PreferredGraphicsProfile = [renderingSettings.DefaultGraphicsProfile];
                 }
 
                 if (renderingSettings.DefaultBackBufferWidth > 0) deviceManager.PreferredBackBufferWidth = renderingSettings.DefaultBackBufferWidth;
@@ -456,14 +660,47 @@ namespace Stride.Engine
             return new ConsoleLogListener();
         }
 
-        private static void OnGameStarted(Game game)
+        private static void OnGameStarted(DefaultGame game)
         {
             GameStarted?.Invoke(game, null);
         }
 
-        private static void OnGameDestroyed(Game game)
+        private static void OnGameDestroyed(DefaultGame game)
         {
             GameDestroyed?.Invoke(game, null);
+        }
+
+        protected void OnWindowCreated()
+        {
+            WindowCreated?.Invoke(this, EventArgs.Empty);
+        }
+
+        private void GamePlatformOnWindowCreated(object sender, EventArgs eventArgs)
+        {
+            OnWindowCreated();
+        }
+
+        private void GamePlatform_Activated(object sender, EventArgs e)
+        {
+            if (!IsActive)
+            {
+                IsActive = true;
+                OnActivated(this, EventArgs.Empty);
+            }
+        }
+
+        private void GamePlatform_Deactivated(object sender, EventArgs e)
+        {
+            if (IsActive)
+            {
+                IsActive = false;
+                OnDeactivated(this, EventArgs.Empty);
+            }
+        }
+
+        private void GamePlatform_Exiting(object sender, EventArgs e)
+        {
+            OnExiting(this, EventArgs.Empty);
         }
     }
 }

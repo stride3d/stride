@@ -23,7 +23,7 @@ namespace Stride.Games
 
         private bool isMouseCurrentlyHidden;
 
-        private Window window;
+        public Window Window { get; private set; }
 
         private WindowHandle windowHandle;
 
@@ -48,9 +48,9 @@ namespace Stride.Games
 
         public override void BeginScreenDeviceChange(bool willBeFullScreen)
         {
-            if (!isFullScreenMaximized && window != null)
+            if (!isFullScreenMaximized && Window != null)
             {
-                savedFormLocation = window.Location;
+                savedFormLocation = Window.Location;
             }
 
             deviceChangeWillBeFullScreen = willBeFullScreen;
@@ -62,22 +62,22 @@ namespace Stride.Games
                 return;
 
             isFullScreenMaximized = deviceChangeWillBeFullScreen.Value;
-            if (window != null)
+            if (Window != null)
             {
-                window.FullscreenIsBorderlessWindow = FullscreenIsBorderlessWindow;
+                Window.FullscreenIsBorderlessWindow = FullscreenIsBorderlessWindow;
                 if (deviceChangeWillBeFullScreen.Value) //windowed to fullscreen
                 {
-                    window.ClientSize = new Size2(clientWidth, clientHeight);
-                    window.IsFullScreen = true;
+                    Window.ClientSize = new Size2(clientWidth, clientHeight);
+                    Window.IsFullScreen = true;
                 }
                 else //fullscreen to windowed or window resize
                 {
-                    window.IsFullScreen = false;
-                    window.ClientSize = new Size2(clientWidth, clientHeight);
-                    window.Location = savedFormLocation;
+                    Window.IsFullScreen = false;
+                    Window.ClientSize = new Size2(clientWidth, clientHeight);
+                    Window.Location = savedFormLocation;
                     UpdateFormBorder();
                 }
-                window.BringToFront();
+                Window.BringToFront();
             }
 
             deviceChangeWillBeFullScreen = null;
@@ -88,29 +88,29 @@ namespace Stride.Games
             // Desktop doesn't have orientation (unless on Windows 8?)
         }
 
-        public override void Initialize(int width, int height)
+        public override void CreateWindow(int width, int height)
         {
-            window = new GameFormSDL();
+            Window = new GameFormSDL();
 
             // Setup the initial size of the window
             if (width == 0)
             {
-                width = window.ClientSize.Width;
+                width = Window.ClientSize.Width;
             }
 
             if (height == 0)
             {
-                height = window.ClientSize.Height;
+                height = Window.ClientSize.Height;
             }
 
-            windowHandle = new WindowHandle(AppContextType.Desktop, window, window.Handle);
+            windowHandle = new WindowHandle(AppContextType.Desktop, Window, Window.Handle);
 
-            window.ClientSize = new Size2(width, height);
+            Window.ClientSize = new Size2(width, height);
 
-            window.MouseEnterActions += WindowOnMouseEnterActions;   
-            window.MouseLeaveActions += WindowOnMouseLeaveActions;
+            Window.MouseEnterActions += WindowOnMouseEnterActions;   
+            Window.MouseLeaveActions += WindowOnMouseLeaveActions;
 
-            var gameForm = window as GameFormSDL;
+            var gameForm = Window as GameFormSDL;
             if (gameForm != null)
             {
                 //gameForm.AppActivated += OnActivated;
@@ -122,7 +122,7 @@ namespace Stride.Games
             }
             else
             {
-                window.ResizeEndActions += WindowOnResizeEndActions;
+                Window.ResizeEndActions += WindowOnResizeEndActions;
             }
         }
 
@@ -143,7 +143,7 @@ namespace Stride.Games
             // Run the rendering loop
             try
             {
-                SDLMessageLoop.Run(window, () =>
+                SDLMessageLoop.Run(Window, () =>
                 {
                     if (Exiting)
                     {
@@ -162,7 +162,7 @@ namespace Stride.Games
 
         public override IMessageLoop CreateUserManagedMessageLoop()
         {
-            return new SDLMessageLoop(window);
+            return new SDLMessageLoop(Window);
         }
 
         private void WindowOnMouseEnterActions(WindowEvent sdlWindowEvent)
@@ -185,35 +185,7 @@ namespace Stride.Games
 
         private void WindowOnResizeEndActions(WindowEvent sdlWindowEvent)
         {
-            OnClientSizeChanged(window, EventArgs.Empty);
-        }
-
-        public override bool IsMouseVisible
-        {
-            get
-            {
-                return isMouseVisible;
-            }
-            set
-            {
-                if (isMouseVisible != value)
-                {
-                    isMouseVisible = value;
-                    if (isMouseVisible)
-                    {
-                        if (isMouseCurrentlyHidden)
-                        {
-                            Cursor.Show();
-                            isMouseCurrentlyHidden = false;
-                        }
-                    }
-                    else if (!isMouseCurrentlyHidden)
-                    {
-                        Cursor.Hide();
-                        isMouseCurrentlyHidden = true;
-                    }
-                }
-            }
+            OnClientSizeChanged(Window, EventArgs.Empty);
         }
 
         /// <summary>
@@ -224,11 +196,11 @@ namespace Stride.Games
         {
             get
             {
-                return window.Visible;
+                return Window.Visible;
             }
             set
             {
-                window.Visible = value;
+                Window.Visible = value;
             }
         }
 
@@ -236,15 +208,15 @@ namespace Stride.Games
         {
             get
             {
-                if (window == null)
+                if (Window == null)
                     return base.Position;
 
-                return new Int2(window.Location.X, window.Location.Y);
+                return new Int2(Window.Location.X, Window.Location.Y);
             }
             set
             {
-                if (window != null)
-                    window.Location = new Point(value.X, value.Y);
+                if (Window != null)
+                    Window.Location = new Point(value.X, value.Y);
 
                 base.Position = value;
             }
@@ -252,15 +224,15 @@ namespace Stride.Games
 
         protected override void SetTitle(string title)
         {
-            if (window != null)
+            if (Window != null)
             {
-                window.Text = title;
+                Window.Text = title;
             }
         }
 
         internal override void Resize(int width, int height)
         {
-            window.ClientSize = new Size2(width, height);
+            Window.ClientSize = new Size2(width, height);
         }
 
         public override bool AllowUserResizing
@@ -271,7 +243,7 @@ namespace Stride.Games
             }
             set
             {
-                if (window != null)
+                if (Window != null)
                 {
                     allowUserResizing = value;
                     UpdateFormBorder();
@@ -297,15 +269,15 @@ namespace Stride.Games
 
         private void UpdateFormBorder()
         {
-            if (window != null)
+            if (Window != null)
             {
-                window.MaximizeBox = allowUserResizing;
-                window.FormBorderStyle = isFullScreenMaximized || isBorderLess ? FormBorderStyle.None : allowUserResizing ? FormBorderStyle.Sizable : FormBorderStyle.FixedSingle;
+                Window.MaximizeBox = allowUserResizing;
+                Window.FormBorderStyle = isFullScreenMaximized || isBorderLess ? FormBorderStyle.None : allowUserResizing ? FormBorderStyle.Sizable : FormBorderStyle.FixedSingle;
 
                 if (isFullScreenMaximized)
                 {
-                    window.TopMost = true;
-                    window.BringToFront();
+                    Window.TopMost = true;
+                    Window.BringToFront();
                 }
             }
         }
@@ -315,7 +287,7 @@ namespace Stride.Games
             get
             {
                 // Ensure width and height are at least 1 to avoid divisions by 0
-                return new Rectangle(0, 0, Math.Max(window.ClientSize.Width, 1), Math.Max(window.ClientSize.Height, 1));
+                return new Rectangle(0, 0, Math.Max(Window.ClientSize.Width, 1), Math.Max(Window.ClientSize.Height, 1));
             }
         }
 
@@ -331,9 +303,9 @@ namespace Stride.Games
         {
             get
             {
-                if (window != null)
+                if (Window != null)
                 {
-                    return window.WindowState == FormWindowState.Minimized;
+                    return Window.WindowState == FormWindowState.Minimized;
                 }
                 // Check for non-window control
                 return false;
@@ -344,9 +316,9 @@ namespace Stride.Games
         {
             get
             {
-                if (window != null)
+                if (Window != null)
                 {
-                    return window.Focused;
+                    return Window.Focused;
                 }
                 // Check for non-window control
                 return false;
@@ -355,10 +327,10 @@ namespace Stride.Games
 
         protected override void Destroy()
         {
-            if (window != null)
+            if (Window != null)
             {
-                window.Dispose();
-                window = null;
+                Window.Dispose();
+                Window = null;
             }
 
             base.Destroy();

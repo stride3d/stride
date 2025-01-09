@@ -57,5 +57,11 @@ namespace Stride.Graphics
         /// </summary>
         [Display("Direct3D 11.2")]
         Level_11_2 = 0xB200,
+
+        [Display("Direct3D 12.0")]
+        Level_12_0 = 0xC000,
+
+        [Display("Direct3D 12.1")]
+        Level_12_1 = 0xC100,
     }
 }

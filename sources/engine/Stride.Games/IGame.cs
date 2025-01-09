@@ -27,11 +27,6 @@ namespace Stride.Games
         event EventHandler<EventArgs> Exiting;
 
         /// <summary>
-        /// Occurs when [window created].
-        /// </summary>
-        event EventHandler<EventArgs> WindowCreated;
-
-        /// <summary>
         /// Gets the current game time.
         /// </summary>
         /// <value>The current game time.</value>
@@ -101,12 +96,6 @@ namespace Stride.Games
         bool IsDrawDesynchronized { get; set; }
 
         /// <summary>
-        /// Gets or sets a value indicating whether the mouse should be visible.
-        /// </summary>
-        /// <value><c>true</c> if the mouse should be visible; otherwise, <c>false</c>.</value>
-        bool IsMouseVisible { get; set; }
-
-        /// <summary>
         /// Gets the launch parameters.
         /// </summary>
         /// <value>The launch parameters.</value>
@@ -128,11 +117,5 @@ namespace Stride.Games
         /// </summary>
         /// <value>The target elapsed time.</value>
         TimeSpan TargetElapsedTime { get; set; }
-
-        /// <summary>
-        /// Gets the abstract window.
-        /// </summary>
-        /// <value>The window.</value>
-        GameWindow Window { get; }
     }
 }

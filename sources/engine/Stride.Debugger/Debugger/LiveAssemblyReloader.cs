@@ -18,7 +18,7 @@ namespace Stride.Debugger
 {
     public static class LiveAssemblyReloader
     {
-        public static void Reload(Game game, AssemblyContainer assemblyContainer, List<Assembly> assembliesToUnregister, List<Assembly> assembliesToRegister)
+        public static void Reload(DefaultGame game, AssemblyContainer assemblyContainer, List<Assembly> assembliesToUnregister, List<Assembly> assembliesToRegister)
         {
             List<Entity> entities = new List<Entity>();
 
@@ -124,7 +124,7 @@ namespace Stride.Debugger
             return parsingEvents;
         }
 
-        private static void ReplaceComponent(Game game, ReloadedComponentEntryLive reloadedComponent)
+        private static void ReplaceComponent(DefaultGame game, ReloadedComponentEntryLive reloadedComponent)
         {
             // Create new component instance
             var newComponent = DeserializeComponent(reloadedComponent);

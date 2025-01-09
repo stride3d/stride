@@ -144,7 +144,7 @@ namespace Stride.UI.Tests.Regression
             sliderTickOffset = 13f;
             sliderTrackStartingOffsets = new Vector2(3);
 
-            Window.IsMouseVisible = true;
+            IsMouseVisible = true;
 
             SceneSystem.SceneInstance = new SceneInstance(Services, Scene);
         }

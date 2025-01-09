@@ -54,7 +54,7 @@ namespace Stride.Debugger.Target
         void GameLaunch(string gameTypeName);
 
         /// <summary>
-        /// Stops the current game, using <see cref="Game.Exit"/>.
+        /// Stops the current game, using <see cref="DefaultGame.Exit"/>.
         /// </summary>
         void GameStop();
         #endregion

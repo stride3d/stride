@@ -52,7 +52,7 @@ namespace Stride.Graphics.Tests
 
         internal static void Main(string[] args)
         {
-            using (Game game = new FixedAspectRatioTests())
+            using (DefaultGame game = new FixedAspectRatioTests())
             {
                 game.Run();
             }

@@ -125,7 +125,7 @@ namespace Stride.Games
             // Desktop doesn't have orientation (unless on Windows 8?)
         }
 
-        public override void Initialize(int width, int height)
+        public override void CreateWindow(int width, int height)
         {
             Control = new GameForm();
 
@@ -213,34 +213,6 @@ namespace Stride.Games
             {
                 Cursor.Show();
                 isMouseCurrentlyHidden = false;
-            }
-        }
-
-        public override bool IsMouseVisible
-        {
-            get
-            {
-                return isMouseVisible;
-            }
-            set
-            {
-                if (isMouseVisible != value)
-                {
-                    isMouseVisible = value;
-                    if (isMouseVisible)
-                    {
-                        if (isMouseCurrentlyHidden)
-                        {
-                            Cursor.Show();
-                            isMouseCurrentlyHidden = false;
-                        }
-                    }
-                    else if (!isMouseCurrentlyHidden)
-                    {
-                        Cursor.Hide();
-                        isMouseCurrentlyHidden = true;
-                    }
-                }
             }
         }
 

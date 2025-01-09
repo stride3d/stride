@@ -4,7 +4,6 @@
 using System;
 using System.Diagnostics;
 using Silk.NET.SDL;
-using Stride.Core.Mathematics;
 using Point = Stride.Core.Mathematics.Point;
 
 namespace Stride.Graphics.SDL

@@ -156,7 +156,8 @@ namespace Stride.Games
             var gamePlatform = Services.GetService<IGamePlatform>();
             GameContext.RequestedWidth = PreferredBackBufferWidth;
             GameContext.RequestedHeight = PreferredBackBufferHeight;
-            Window = gamePlatform.CreateWindow(GameContext);
+            // TODO: make the window creation more generic 
+            //Window = gamePlatform.CreateWindow(GameContext);
             Window.Visible = true;
 
             Window.ClientSizeChanged += WindowOnClientSizeChanged;

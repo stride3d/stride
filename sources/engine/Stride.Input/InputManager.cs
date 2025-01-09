@@ -356,6 +356,14 @@ namespace Stride.Input
             }
         }
 
+        public void SetMouseVisibilty(bool isVisible)
+        {
+            if (HasMouse)
+            {
+                Mouse.IsMouseVisible = isVisible;
+            }
+        }
+
         /// <summary>
         /// Unlock the mouse's position previously locked by calling <see cref="LockMousePosition"/> and restore the mouse visibility.
         /// </summary>
