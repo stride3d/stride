@@ -127,12 +127,12 @@ namespace Stride.Assets.SpriteFont.Compiler
                 bitmap = new FreeImageBitmap(pixelWidth, pixelHeight, FreeImageAPI.PixelFormat.Format32bppArgb);
 
                 face.LoadGlyph(index, LoadFlags.Render, LoadTarget.Normal);
-                for (var i = 0; i < face.Glyph.Bitmap.Rows; i++)
+                for (var y = 0; y < face.Glyph.Bitmap.Rows; y++)
                 {
-                    for (int j = 0; j < face.Glyph.Bitmap.Width; j++)
+                    for (int x = 0; x < face.Glyph.Bitmap.Width; x++)
                     {
-                        var pixel = face.Glyph.Bitmap.BufferData[i * face.Glyph.Bitmap.Width + j];
-                        bitmap.SetPixel(j, i, Color.FromArgb(pixel, pixel, pixel));
+                        var pixel = face.Glyph.Bitmap.BufferData[y * face.Glyph.Bitmap.Width + x];
+                        bitmap.SetPixel(x, y, Color.FromArgb(pixel, pixel, pixel));
                     }
                 }
             }
