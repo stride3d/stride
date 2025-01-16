@@ -90,7 +90,7 @@ namespace Stride.Assets.SpriteFont.Compiler
             Glyphs = glyphList;
         }
         
-        private Glyph ImportGlyph(Face face, char character, float fontSize, FontAntiAliasMode antiAliasMode)
+        private unsafe Glyph ImportGlyph(Face face, char character, float fontSize, FontAntiAliasMode antiAliasMode)
         {
             var index = face.GetCharIndex(character);
             face.SetPixelSizes(0, (uint)fontSize);
@@ -127,11 +127,13 @@ namespace Stride.Assets.SpriteFont.Compiler
                 bitmap = new FreeImageBitmap(pixelWidth, pixelHeight, FreeImageAPI.PixelFormat.Format32bppArgb);
 
                 face.LoadGlyph(index, LoadFlags.Render, LoadTarget.Normal);
+                var bufferData = new Span<byte>((byte*)face.Glyph.Bitmap.Buffer, face.Glyph.Bitmap.Rows * face.Glyph.Bitmap.Pitch);
+
                 for (int y = 0; y < face.Glyph.Bitmap.Rows; y++)
                 {
                     for (int x = 0; x < face.Glyph.Bitmap.Width; x++)
                     {
-                        var pixel = face.Glyph.Bitmap.BufferData[y * face.Glyph.Bitmap.Width + x];
+                        var pixel = bufferData[y * face.Glyph.Bitmap.Width + x];
                         int flipY = face.Glyph.Bitmap.Rows - 1 - y;
                         bitmap.SetPixel(x, flipY, Color.FromArgb(pixel, pixel, pixel));
                     }
