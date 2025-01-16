@@ -2416,36 +2416,6 @@ namespace FreeImageAPI
 		}
 
 		/// <summary>
-		/// This function is not yet implemented.
-		/// </summary>
-		/// <exception cref="NotImplementedException">
-		/// This method is not implemented.</exception>
-		public BitmapData LockBits(Rectangle rect, ImageLockMode flags, PixelFormat format)
-		{
-			throw new NotImplementedException();
-		}
-
-		/// <summary>
-		/// This function is not yet implemented.
-		/// </summary>
-		/// <exception cref="NotImplementedException">
-		/// This method is not implemented.</exception>
-		public BitmapData LockBits(Rectangle rect, ImageLockMode flags, PixelFormat format, BitmapData bitmapData)
-		{
-			throw new NotImplementedException();
-		}
-
-		/// <summary>
-		/// This function is not yet implemented.
-		/// </summary>
-		/// <exception cref="NotImplementedException">
-		/// This method is not implemented.</exception>
-		public void UnlockBits(BitmapData bitmapdata)
-		{
-			throw new NotImplementedException();
-		}
-
-		/// <summary>
 		/// Converts this <see cref="FreeImageBitmap"/> into a different color depth.
 		/// The parameter <paramref name="bpp"/> specifies color depth, greyscale conversion
 		/// and palette reorder.
