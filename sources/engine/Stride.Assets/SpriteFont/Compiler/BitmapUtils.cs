@@ -300,7 +300,7 @@ namespace Stride.Assets.SpriteFont.Compiler
             // Helper computes the address of the specified pixel.
             unsafe IntPtr PixelAddress(int x, int y)
             {
-                var pixel = (byte*)clone.GetScanlinePointer(y) + (x * 4);
+                var pixel = (byte*)clone.GetScanlinePointer(clone.Height - y - 1) + (x * 4);
                 return new IntPtr(pixel);
             }
 
