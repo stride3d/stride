@@ -12,12 +12,10 @@ using Stride.Core.Presentation.Quantum.Presenters;
 
 namespace Stride.Core.Assets.Editor.Quantum.NodePresenters.Updaters
 {
-    public sealed class AbstractNodeEntryNodeUpdater : AssetNodePresenterUpdaterBase
+    public sealed class AbstractNodeCollectionEntryNodeUpdater : AssetNodePresenterUpdaterBase
     {
-        public static IEnumerable<AbstractNodeEntry> FillDefaultAbstractNodeEntry(IAssetNodePresenter node)
+        public static IEnumerable<AbstractNodeEntry> FillDefaultAbstractNodeCollectionEntries(IAssetNodePresenter node, Type type)
         {
-            var type = node.Descriptor.Type;
-
             IEnumerable<AbstractNodeEntry> abstractNodeMatchingEntries = AbstractNodeType.GetInheritedInstantiableTypes(type);
 
             if (abstractNodeMatchingEntries != null)
@@ -59,11 +57,10 @@ namespace Stride.Core.Assets.Editor.Quantum.NodePresenters.Updaters
 
         protected override void UpdateNode(IAssetNodePresenter node)
         {
-            var type = node.Descriptor.GetInnerCollectionType();
-            if (type.IsAbstract && !IsReferenceType(type) && IsInstantiable(type))
+            if (node.ValueIsAnyCollection(out _, out var type, out _) && type.IsAbstract && !IsReferenceType(type) && IsInstantiable(type))
             {
-                var abstractNodeEntries = FillDefaultAbstractNodeEntry(node);
-                node.AttachedProperties.Add(AbstractNodeEntryData.Key, abstractNodeEntries);
+                var abstractNodeEntries = FillDefaultAbstractNodeCollectionEntries(node, type);
+                node.AttachedProperties.Add(AbstractNodeCollectionEntriesData.Key, abstractNodeEntries);
             }
         }
 
