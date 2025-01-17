@@ -260,7 +260,7 @@ namespace Stride.Assets.SpriteFont.Compiler
 
                 Region = region.GetValueOrDefault(new Rectangle(0, 0, bitmap.Width, bitmap.Height));
 
-                clone = bitmap.Copy(Region);
+                clone = bitmap.Copy(Region).ConvertTo32Bits();
             }
             
 
