@@ -32,10 +32,6 @@ namespace Stride.Core.MicroThreading
             {
                 d(state);
             }
-            else if (microThread.State == MicroThreadState.Completed)
-            {
-                throw new InvalidOperationException("MicroThread is already completed but still posting continuations.");
-            }
             else
             {
                 microThread.ScheduleContinuation(microThread.ScheduleMode, d, state);
