@@ -136,6 +136,10 @@ namespace Stride.Assets.SpriteFont.Compiler
                     {
                         var pixel = bufferData[y * glyphBitmap.Width + x];
                         int flipY = glyphBitmap.Rows - 1 - y;
+                        
+                        if(antiAliasMode == FontAntiAliasMode.Aliased)
+                            pixel = (pixel < 128) ? (byte)0 : (byte)255;
+                        
                         bitmap.SetPixel(x, flipY, Color.FromArgb(pixel, pixel, pixel));
                     }
                 }
