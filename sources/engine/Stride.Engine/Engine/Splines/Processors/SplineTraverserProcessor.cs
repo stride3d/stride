@@ -56,6 +56,7 @@ namespace Stride.Engine.Splines.Processors
         {
             component.SplineComponent.Spline.OnSplineDirty -= data.OnSplineDirtyAction;
             entity.Transform.PostOperations.Remove(data.TransformOperation);
+            splineTraverserComponents.Remove(component);
         }
 
         public class SplineTraverserTransformationInfo
