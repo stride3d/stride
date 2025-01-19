@@ -296,6 +296,7 @@ namespace Stride.UI.Controls
                 float lineCurrentSize;
                 var indexNextCharacter = 0;
                 var indexOfLastSpace = -1;
+                char currentCharacter = text[0];
 
                 while (true)
                 {
@@ -304,7 +305,7 @@ namespace Stride.UI.Controls
                     if (lineCurrentSize > availableWidth || indexOfNewLine + indexNextCharacter >= text.Length)
                         break;
 
-                    var currentCharacter = text[indexOfNewLine + indexNextCharacter];
+                    currentCharacter = text[indexOfNewLine + indexNextCharacter];
 
                     if (currentCharacter == '\n')
                     {
@@ -329,7 +330,13 @@ namespace Stride.UI.Controls
                 }
 
                 // we reached the end of the line.
-                if (indexOfLastSpace < 0) // no space in the line
+                if (currentLine.Length <= 1 || CalculateTextSize(currentLine).X <= 0) // just one or all empty characters... just go one by one.
+                {
+                    currentLine.Clear();
+                    currentLine.Append(currentCharacter);
+                    indexOfNewLine += indexNextCharacter;
+                }
+                else if (indexOfLastSpace < 0) // no space in the line
                 {
                     // remove last extra character
                     currentLine.Remove(currentLine.Length - 1, 1);
