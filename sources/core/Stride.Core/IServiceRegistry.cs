@@ -52,6 +52,7 @@ namespace Stride.Core
         /// <summary>
         /// Gets the service object of the specified type.
         /// </summary>
+        /// <remarks>The generic type provided must match the generic type of your initial call to <see cref="AddService{T}"/></remarks>
         /// <typeparam name="T">The type of the service to retrieve.</typeparam>
         /// <returns>A service of the requested type, or [null] if not found.</returns>
         [CanBeNull]
@@ -60,7 +61,22 @@ namespace Stride.Core
         /// <summary>
         /// Removes the object providing a specified service.
         /// </summary>
+        /// <remarks>The generic type provided must match the generic type of your initial call to <see cref="AddService{T}"/></remarks>
         /// <typeparam name="T">The type of the service to remove.</typeparam>
         void RemoveService<T>() where T : class;
+
+        /// <summary>
+        /// Removes the following object from services if it was registered as one.
+        /// </summary>
+        /// <remarks>The generic type provided must match the generic type of your initial call to <see cref="AddService{T}"/></remarks>
+        /// <returns>True if the argument was a service, false otherwise</returns>
+        /// <typeparam name="T">The type of the service to remove.</typeparam>
+        bool RemoveService<T>([NotNull] T serviceObject) where T : class;
+
+        /// <summary>
+        /// Gets the service object of the specified type, create one if it didn't exist before.
+        /// </summary>
+        /// <typeparam name="T">The type of the service to retrieve.</typeparam>
+        [NotNull] T GetOrCreate<T>() where T : class, IService;
     }
 }
