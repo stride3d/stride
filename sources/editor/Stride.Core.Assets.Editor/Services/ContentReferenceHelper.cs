@@ -36,9 +36,9 @@ public class ContentReferenceHelper
     {
         if (asset != null)
         {
-            if (UrlReferenceHelper.IsUrlReferenceType(referenceType))
+            if (UrlReferenceBase.IsUrlReferenceType(referenceType))
             {
-                return AttachedReferenceManager.CreateProxyObject(referenceType, asset.Id, asset.Url);
+                return UrlReferenceBase.New(referenceType, asset.AssetItem.Id, asset.AssetItem.Location);
             }
 
             if (AssetRegistry.IsContentType(referenceType))
@@ -64,11 +64,14 @@ public class ContentReferenceHelper
     /// <remarks>The <paramref name="source"/> parameter must either be an <see cref="AssetReference"/>, or a proxy object of an <see cref="AttachedReference"/>.</remarks>
     public static AssetViewModel GetReferenceTarget(SessionViewModel session, object source)
     {
-        var assetReference = source as AssetReference;
-        if (assetReference != null)
+		if (source is AssetReference assetReference)
         {
             return session.GetAssetById(assetReference.Id);
         }
+		if (source is UrlReferenceBase urlReference)
+		{
+			return session.GetAssetById(urlReference.Id);
+		}
         var reference = AttachedReferenceManager.GetAttachedReference(source);
         return reference != null ? session.GetAssetById(reference.Id) : null;
     }
@@ -82,6 +85,6 @@ public class ContentReferenceHelper
     public static bool ContainsReferenceType(ITypeDescriptor typeDescriptor)
     {
         var type = typeDescriptor.GetInnerCollectionType();
-        return typeof(AssetReference).IsAssignableFrom(type) || AssetRegistry.IsContentType(type);
+        return typeof(AssetReference).IsAssignableFrom(type) || UrlReferenceBase.IsUrlReferenceType(type) || AssetRegistry.IsContentType(type);
     }
 }

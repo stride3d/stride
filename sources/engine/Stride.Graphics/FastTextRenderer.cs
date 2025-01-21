@@ -112,7 +112,7 @@ namespace Stride.Graphics
 
             graphicsContext.CommandList.UnmapSubresource(mappedIndices);
 
-            indexBufferBinding = new IndexBufferBinding(Buffer.Index.New(graphicsContext.CommandList.GraphicsDevice, new DataPointer(indexPointer, indexBufferSize)), true, indexBufferLength);
+            indexBufferBinding = new IndexBufferBinding(Buffer.Index.New(graphicsContext.CommandList.GraphicsDevice, new ReadOnlySpan<byte>((void*)indexPointer, indexBufferSize)), true, indexBufferLength);
 
             // Create vertex buffers
             vertexBuffers = new Buffer[VertexBufferCount];

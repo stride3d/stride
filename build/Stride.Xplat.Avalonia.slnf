@@ -35,6 +35,7 @@
       "..\\sources\\engine\\Stride.Assets.Models\\Stride.Assets.Models.csproj",
       "..\\sources\\engine\\Stride.Assets\\Stride.Assets.csproj",
       "..\\sources\\engine\\Stride.Audio\\Stride.Audio.csproj",
+      "..\\sources\\engine\\Stride.BepuPhysics\\Stride.BepuPhysics\\Stride.BepuPhysics.csproj",
       "..\\sources\\engine\\Stride.Debugger\\Stride.Debugger.csproj",
       "..\\sources\\engine\\Stride.Engine\\Stride.Engine.csproj",
       "..\\sources\\engine\\Stride.Games\\Stride.Games.csproj",

@@ -42,20 +42,6 @@ namespace Stride.Core.AssemblyProcessor
             return strideCoreModule;
         }
 
-        public static void AddModuleInitializer(this MethodDefinition initializeMethod, int order = 0)
-        {
-            var assembly = initializeMethod.Module.Assembly;
-            var strideCoreModule = GetStrideCoreModule(assembly);
-
-            var moduleInitializerAttribute = strideCoreModule.GetType("Stride.Core.ModuleInitializerAttribute");
-            var moduleInitializerCtor = moduleInitializerAttribute.GetConstructors().Single(x => !x.IsStatic && x.Parameters.Count == 1);
-            initializeMethod.CustomAttributes.Add(
-                new CustomAttribute(assembly.MainModule.ImportReference(moduleInitializerCtor))
-                {
-                    ConstructorArguments = { new CustomAttributeArgument(assembly.MainModule.TypeSystem.Int32, order) }
-                });
-        }
-
         public static TypeReference MakeGenericType(this TypeReference self, params TypeReference[] arguments)
         {
             if (self.GenericParameters.Count != arguments.Length)
@@ -122,6 +108,26 @@ namespace Stride.Core.AssemblyProcessor
             foreach(var argument in arguments)
                 method.GenericArguments.Add(argument);
             return method;
+        }
+
+        public static MethodDefinition OpenModuleConstructor(this AssemblyDefinition assembly, out Instruction returnInstruction)
+        {
+            // Get or create module static constructor
+            var voidType = assembly.MainModule.TypeSystem.Void;
+            var moduleClass = assembly.MainModule.Types.First(t => t.Name == "<Module>");
+            var staticConstructor = moduleClass.GetStaticConstructor();
+            if (staticConstructor == null)
+            {
+                staticConstructor = new MethodDefinition(".cctor",
+                                                            Mono.Cecil.MethodAttributes.Private | Mono.Cecil.MethodAttributes.HideBySig | Mono.Cecil.MethodAttributes.Static | Mono.Cecil.MethodAttributes.SpecialName | Mono.Cecil.MethodAttributes.RTSpecialName,
+                                                            voidType);
+                staticConstructor.Body.GetILProcessor().Append(Instruction.Create(OpCodes.Ret));
+
+                moduleClass.Methods.Add(staticConstructor);
+            }
+            returnInstruction = staticConstructor.Body.Instructions.Last();
+
+            return staticConstructor;
         }
 
         public static TypeDefinition GetTypeResolved(this ModuleDefinition moduleDefinition, string typeName)

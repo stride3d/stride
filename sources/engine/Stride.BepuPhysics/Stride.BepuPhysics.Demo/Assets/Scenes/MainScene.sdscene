@@ -1,0 +1,43 @@
+!SceneAsset
+Id: c0f3be45-d538-4587-9515-19311c80e024
+SerializedVersion: {Stride: 3.1.0.1}
+Tags: []
+ChildrenIds: []
+Offset: {X: 0.0, Y: 0.0, Z: 0.0}
+Hierarchy:
+    RootParts:
+        - ref!! e47ba863-93d7-40e6-8daf-f353f3579fbc
+    Parts:
+        -   Entity:
+                Id: e47ba863-93d7-40e6-8daf-f353f3579fbc
+                Name: Main
+                Components:
+                    7d5c16e106632ac27f7fc929e55cecfd: !TransformComponent
+                        Id: ee7435c7-bdf4-4791-863a-bfabeb38aff8
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    99f7331d1cf146f05b19f1ac112490eb: !Stride.BepuPhysics.Demo.Components.SceneSelectorComponent,Stride.BepuPhysics.Demo
+                        Id: 72220342-9ff8-4f01-8f40-6c7a34fd3f9c
+                        MainScene: c0f3be45-d538-4587-9515-19311c80e024:Scenes/MainScene
+                        Scene0: 21f7a4e4-7908-4ce9-ad5c-76a910db6167:Scenes/0.Colliders
+                        Scene1: 9717c0b6-feb7-4800-a772-93627f8bdbb6:Scenes/1.ConvexAndMeshCollider
+                        Scene2: f405e7aa-df9b-4d6a-b95b-5a579edcb556:Scenes/2.MaterialProperties
+                        Scene3: aece5828-1437-4db4-9c52-72ee5d11d245:Scenes/3.CubeFontainScene
+                        Scene4: effd55be-d7a3-4d2a-89d7-7ef55924d9e1:Scenes/4.Constraint
+                        Scene5: 468de2d3-48bf-474e-afee-d76d3c1ab21e:Scenes/5.Ropes
+                        Scene6: 58094e9a-bebf-43e4-99b7-b009bfdbbae9:Scenes/6.Cars
+                        Scene7: b21cf271-4ad8-453a-8c8d-cf132e044a9c:Scenes/7.CharacterScene
+                        Scene8: 8a83a722-d865-4dc3-87a3-00a509ea3988:Scenes/8.Navigation
+                        Scene9: bef30700-cda8-4d43-b804-3da6717bea2c:Scenes/9.Demo
+                        ShiftScene0: e8b85b3b-0b26-4d4a-9989-af7f952e4446:Scenes/S0.2D
+                        ShiftScene1: 34252014-babe-47a9-b3b1-996ebdaff389:Scenes/S1.PhysicsTest
+                        ShiftScene2: null
+                        ShiftScene3: null
+                        ShiftScene4: null
+                        ShiftScene5: null
+                        ShiftScene6: null
+                        ShiftScene7: null
+                        ShiftScene8: null
+                        ShiftScene9: null

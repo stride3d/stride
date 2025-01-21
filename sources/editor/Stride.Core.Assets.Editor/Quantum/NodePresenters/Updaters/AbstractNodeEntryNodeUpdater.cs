@@ -2,12 +2,13 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Stride.Core.Annotations;
-using Stride.Core.Extensions;
-using Stride.Core.Reflection;
-using Stride.Core.Presentation.Quantum.Presenters;
 using Stride.Core.Assets.Editor.Quantum.NodePresenters.Commands;
 using Stride.Core.Assets.Editor.Quantum.NodePresenters.Keys;
 using Stride.Core.Assets.Presentation.Quantum.NodePresenters;
+using Stride.Core.Extensions;
+using Stride.Core.Presentation.Quantum.Presenters;
+using Stride.Core.Reflection;
+using Stride.Core.Serialization;
 
 namespace Stride.Core.Assets.Editor.Quantum.NodePresenters.Updaters;
 
@@ -68,5 +69,5 @@ public sealed class AbstractNodeEntryNodeUpdater : AssetNodePresenterUpdaterBase
 
     private static bool IsInstantiable(Type type) => TypeDescriptorFactory.Default.AttributeRegistry.GetAttribute<NonInstantiableAttribute>(type) == null;
 
-    private static bool IsReferenceType(Type type) => AssetRegistry.IsContentType(type) || typeof(AssetReference).IsAssignableFrom(type);
+    private static bool IsReferenceType(Type type) => AssetRegistry.IsContentType(type) || typeof(AssetReference).IsAssignableFrom(type) || UrlReferenceBase.IsUrlReferenceType(type);
 }

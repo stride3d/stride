@@ -529,7 +529,7 @@ namespace Stride.Importer.ThreeD
                     // TODO: Need to resample the animation created by the pivot chain into a single animation, have a look at the file hierarchy in Assimp's viewer to get a better clue
                     // See: 'IMPORT_FBX_PRESERVE_PIVOTS' above and https://github.com/assimp/assimp/discussions/4966
                     if (nodeAnim->MNodeName.AsString.Contains("$AssimpFbx$"))
-                        Logger.Error($"Animation '{animName}' contains a pivot bone ({nodeAnim->MNodeName.AsString}), we currently do not handle these. This animation may not resolve properly.");
+                        Logger.Warning($"Animation '{animName}' contains a pivot bone ({nodeAnim->MNodeName.AsString}), we currently do not handle these. This animation may not resolve properly.");
 
                     if (visitedNodeNames.Add(nodeName))
                     {

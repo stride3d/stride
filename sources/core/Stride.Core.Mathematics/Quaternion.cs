@@ -28,7 +28,6 @@
 */
 using System;
 using System.Globalization;
-using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using static System.MathF;
@@ -1343,6 +1342,7 @@ namespace Stride.Core.Mathematics
         /// <summary>
         /// Tests for equality between two objects.
         /// </summary>
+        /// <remarks> Comparison is not strict, a difference of <see cref="MathUtil.ZeroTolerance"/> will return as equal. </remarks>
         /// <param name="left">The first value to compare.</param>
         /// <param name="right">The second value to compare.</param>
         /// <returns><c>true</c> if <paramref name="left"/> has the same value as <paramref name="right"/>; otherwise, <c>false</c>.</returns>
@@ -1354,6 +1354,7 @@ namespace Stride.Core.Mathematics
         /// <summary>
         /// Tests for inequality between two objects.
         /// </summary>
+        /// <remarks> Comparison is not strict, a difference of <see cref="MathUtil.ZeroTolerance"/> will return as equal. </remarks>
         /// <param name="left">The first value to compare.</param>
         /// <param name="right">The second value to compare.</param>
         /// <returns><c>true</c> if <paramref name="left"/> has a different value than <paramref name="right"/>; otherwise, <c>false</c>.</returns>
@@ -1430,11 +1431,23 @@ namespace Stride.Core.Mathematics
         }
 
         /// <summary>
-        /// Determines whether the specified <see cref="Stride.Core.Mathematics.Quaternion"/> is equal to this instance.
+        /// Determines whether the specified <see cref="Quaternion"/> is exactly equal to this instance.
+        /// </summary>
+        /// <param name="other">The <see cref="Quaternion"/> to compare with this instance.</param>
+        /// <returns>
+        /// <c>true</c> if the specified <see cref="Quaternion"/> is exactly equal to this instance; otherwise, <c>false</c>.
+        /// </returns>
+        public bool EqualsStrict(Quaternion other)
+        {
+            return other.X == this.X && other.Y == this.Y && other.Z == this.Z && other.W == this.W;
+        }
+
+        /// <summary>
+        /// Determines whether the specified <see cref="Stride.Core.Mathematics.Quaternion"/> is within <see cref="MathUtil.ZeroTolerance"/> for equality to this instance.
         /// </summary>
         /// <param name="other">The <see cref="Stride.Core.Mathematics.Quaternion"/> to compare with this instance.</param>
         /// <returns>
-        /// <c>true</c> if the specified <see cref="Stride.Core.Mathematics.Quaternion"/> is equal to this instance; otherwise, <c>false</c>.
+        /// <c>true</c> if the specified <see cref="Stride.Core.Mathematics.Quaternion"/> is equal or almost equal to this instance; otherwise, <c>false</c>.
         /// </returns>
         public readonly bool Equals(Quaternion other)
         {
@@ -1445,15 +1458,33 @@ namespace Stride.Core.Mathematics
         }
 
         /// <summary>
-        /// Determines whether the specified <see cref="object"/> is equal to this instance.
+        /// Determines whether the specified <see cref="object"/> is within <see cref="MathUtil.ZeroTolerance"/> for equality to this instance.
         /// </summary>
         /// <param name="value">The <see cref="object"/> to compare with this instance.</param>
         /// <returns>
-        /// <c>true</c> if the specified <see cref="object"/> is equal to this instance; otherwise, <c>false</c>.
+        /// <c>true</c> if the specified <see cref="object"/> is equal or almost equal to this instance; otherwise, <c>false</c>.
         /// </returns>
         public override readonly bool Equals(object value)
         {
             return value is Quaternion q && Equals(q);
+        }
+
+        /// <summary>
+        /// Casts from System.Numerics to Stride.Maths vectors
+        /// </summary>
+        /// <param name="v">Value to cast</param>
+        public static implicit operator Quaternion(System.Numerics.Quaternion v)
+        {
+            return Unsafe.BitCast<System.Numerics.Quaternion, Quaternion>(v);
+        }
+
+        /// <summary>
+        /// Casts from Stride.Maths to System.Numerics vectors
+        /// </summary>
+        /// <param name="v">Value to cast</param>
+        public static implicit operator System.Numerics.Quaternion(Quaternion v)
+        {
+            return Unsafe.BitCast<Quaternion, System.Numerics.Quaternion>(v);
         }
 
 #if SlimDX1xInterop

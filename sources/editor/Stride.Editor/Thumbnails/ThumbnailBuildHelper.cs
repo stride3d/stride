@@ -83,7 +83,7 @@ public class ThumbnailBuildHelper : IDisposable
     /// </summary>
     /// <param name="thumbnailImage">The thumbnail image.</param>
     /// <param name="dependencyBuildStatus">The dependency build status.</param>
-    public static void ApplyThumbnailStatus(Image thumbnailImage, LogMessageType dependencyBuildStatus)
+    public unsafe static void ApplyThumbnailStatus(Image thumbnailImage, LogMessageType dependencyBuildStatus)
     {
         // No warning or error, nothing to do (or maybe we should display a logo for "info"?)
         if (dependencyBuildStatus < LogMessageType.Warning)
@@ -105,12 +105,12 @@ public class ThumbnailBuildHelper : IDisposable
             }
 
             // Read back result to image
-            thumbnailBuilderHelper.RenderTarget.GetData(thumbnailBuilderHelper.GraphicsContext.CommandList, thumbnailBuilderHelper.RenderTargetStaging, new DataPointer(thumbnailImage.PixelBuffer[0].DataPointer, thumbnailImage.PixelBuffer[0].BufferStride));
+            thumbnailBuilderHelper.RenderTarget.GetData(thumbnailBuilderHelper.GraphicsContext.CommandList, thumbnailBuilderHelper.RenderTargetStaging, new Span<byte>((void*)thumbnailImage.PixelBuffer[0].DataPointer, thumbnailImage.PixelBuffer[0].BufferStride));
             thumbnailImage.Description.Format = thumbnailBuilderHelper.RenderTarget.Format; // In case channels are swapped
         }
     }
 
-    public void Combine(Texture texture, Image image)
+    public unsafe void Combine(Texture texture, Image image)
     {
         lock (thumbnailLock)
         {
@@ -120,7 +120,7 @@ public class ThumbnailBuildHelper : IDisposable
             }
 
             // Read back result to image
-            RenderTarget.GetData(GraphicsContext.CommandList, RenderTargetStaging, new DataPointer(image.PixelBuffer[0].DataPointer, image.PixelBuffer[0].BufferStride));
+            RenderTarget.GetData(GraphicsContext.CommandList, RenderTargetStaging, new Span<byte>((void*)image.PixelBuffer[0].DataPointer, image.PixelBuffer[0].BufferStride));
             image.Description.Format = RenderTarget.Format; // In case channels are swapped
         }
     }
