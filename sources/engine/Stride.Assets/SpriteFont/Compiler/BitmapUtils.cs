@@ -77,7 +77,6 @@
 
 using System;
 using System.Drawing;
-using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
 using FreeImageAPI;
 using Stride.Core.Mathematics;
@@ -99,8 +98,8 @@ namespace Stride.Assets.SpriteFont.Compiler
                 throw new ArgumentException();
             }
 
-            using var sourceData = new PixelAccessor(source, ImageLockMode.ReadOnly, sourceRegion);
-            using var outputData = new PixelAccessor(output, ImageLockMode.WriteOnly, outputRegion);
+            using var sourceData = new PixelAccessor(source, sourceRegion);
+            using var outputData = new PixelAccessor(output, outputRegion);
             for (int y = 0; y < sourceRegion.Height; y++)
             {
                     for (int x = 0; x < sourceRegion.Width; x++)
@@ -114,7 +113,7 @@ namespace Stride.Assets.SpriteFont.Compiler
         // Checks whether an area of a bitmap contains entirely the specified alpha value.
         public static bool IsAlphaEntirely(byte expectedAlpha, FreeImageBitmap bitmap, Rectangle? region = null)
         {
-            using var bitmapData = new PixelAccessor(bitmap, ImageLockMode.ReadOnly, region);
+            using var bitmapData = new PixelAccessor(bitmap, region);
             for (int y = 0; y < bitmapData.Region.Height; y++)
             {
                 for (int x = 0; x < bitmapData.Region.Width; x++)
@@ -132,7 +131,7 @@ namespace Stride.Assets.SpriteFont.Compiler
         // Converts greyscale luminosity to alpha data.
         public static void ConvertGreyToAlpha(FreeImageBitmap bitmap, Rectangle region)
         {
-            using var bitmapData = new PixelAccessor(bitmap, ImageLockMode.ReadWrite, region);
+            using var bitmapData = new PixelAccessor(bitmap, region);
             for (int y = 0; y < region.Height; y++)
             {
                 for (int x = 0; x < region.Width; x++)
@@ -150,7 +149,7 @@ namespace Stride.Assets.SpriteFont.Compiler
         // Converts a bitmap to premultiplied alpha format.
         public static void PremultiplyAlphaClearType(FreeImageBitmap bitmap, bool srgb)
         {
-            using var bitmapData = new PixelAccessor(bitmap, ImageLockMode.ReadWrite);
+            using var bitmapData = new PixelAccessor(bitmap);
             for (int y = 0; y < bitmap.Height; y++)
             {
                 for (int x = 0; x < bitmap.Width; x++)
@@ -180,7 +179,7 @@ namespace Stride.Assets.SpriteFont.Compiler
         // Converts a bitmap to premultiplied alpha format.
         public static void PremultiplyAlpha(FreeImageBitmap bitmap, bool srgb)
         {
-            using var bitmapData = new PixelAccessor(bitmap, ImageLockMode.ReadWrite);
+            using var bitmapData = new PixelAccessor(bitmap);
             for (int y = 0; y < bitmap.Height; y++)
             {
                     for (int x = 0; x < bitmap.Width; x++)
@@ -218,7 +217,7 @@ namespace Stride.Assets.SpriteFont.Compiler
         // alpha, because the premultiply conversion will change the RGB of all such zero alpha pixels to black.
         public static void PadBorderPixels(FreeImageBitmap bitmap, Rectangle region)
         {
-            using var bitmapData = new PixelAccessor(bitmap, ImageLockMode.ReadWrite);
+            using var bitmapData = new PixelAccessor(bitmap);
             // Pad the top and bottom.
             for (int x = region.Left; x < region.Right; x++)
             {
@@ -254,7 +253,7 @@ namespace Stride.Assets.SpriteFont.Compiler
         public sealed class PixelAccessor : IDisposable
         {
             // Constructor locks the bitmap.
-            public PixelAccessor(FreeImageBitmap bitmap, ImageLockMode mode, Rectangle? region = null)
+            public PixelAccessor(FreeImageBitmap bitmap, Rectangle? region = null)
             {
                 this.bitmap = bitmap;
 

@@ -78,7 +78,6 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Drawing.Imaging;
 using FreeImageAPI;
 
 namespace Stride.Assets.SpriteFont.Compiler
@@ -151,7 +150,7 @@ namespace Stride.Assets.SpriteFont.Compiler
         // Searches a 2D bitmap for characters that are surrounded by a marker pink color.
         static IEnumerable<Rectangle> FindGlyphs(FreeImageBitmap bitmap)
         {
-            var bitmapData = new BitmapUtils.PixelAccessor(bitmap, ImageLockMode.ReadOnly);
+            var bitmapData = new BitmapUtils.PixelAccessor(bitmap);
             for (int y = 1; y < bitmap.Height; y++)
             {
                 for (int x = 1; x < bitmap.Width; x++)

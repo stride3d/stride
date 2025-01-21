@@ -77,7 +77,6 @@
 
 using System;
 using System.Drawing;
-using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
 using FreeImageAPI;
 using Stride.Core.Mathematics;
@@ -129,7 +128,7 @@ namespace Stride.Assets.SpriteFont.Compiler
             // TODO Maybe switch to 3-channel texture
             var image = Graphics.Image.New2D(bitmap.Width, bitmap.Height, 1, Graphics.PixelFormat.R8G8B8A8_UNorm);
             var pixelBuffer = image.PixelBuffer[0];
-            using var bitmapData = new BitmapUtils.PixelAccessor(bitmap, ImageLockMode.ReadOnly);
+            using var bitmapData = new BitmapUtils.PixelAccessor(bitmap);
 
             for (int y = 0; y < bitmap.Height; y++)
             {
