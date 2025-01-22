@@ -4486,7 +4486,7 @@ namespace FreeImageAPI.Metadata
 				string text = GetTagText("Copyright");
 				if (!string.IsNullOrEmpty(text))
 				{
-					result = text.Split(['\0'], StringSplitOptions.RemoveEmptyEntries);
+					result = text.Split("\0", StringSplitOptions.RemoveEmptyEntries);
 				}
 				return result;
 			}
