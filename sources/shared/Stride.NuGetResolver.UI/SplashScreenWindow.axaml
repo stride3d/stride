@@ -7,7 +7,7 @@
     mc:Ignorable="d"
     x:Class="Stride.NuGetResolver.SplashScreenWindow"
     WindowStartupLocation="CenterScreen"
-	  SystemDecorations="None"
+    SystemDecorations="None"
     Background="#1A1A1D"
     Width="480"
     Height="380"
