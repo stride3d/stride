@@ -97,8 +97,10 @@ namespace Stride.Core.Assets
                                     {
                                         splashScreen.CloseApp();
                                     });
+                                    splashScreen.Closed += (sender2, e2) => { splashScreen.InvokeShutDown();};
 
                                     app.Run(splashScreen);
+                                    splashScreen.Close();
                                 });
                             }
                             dialogClosed.SetResult(true);

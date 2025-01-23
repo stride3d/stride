@@ -50,6 +50,10 @@ namespace Stride.NuGetResolver
         {
             Dispatcher.UIThread.InvokeAsync(() => Close());
         }
+        public void InvokeShutDown()
+        {
+            Dispatcher.UIThread.InvokeShutdown();
+        }
     }
 
     public class NugetResolverApp
