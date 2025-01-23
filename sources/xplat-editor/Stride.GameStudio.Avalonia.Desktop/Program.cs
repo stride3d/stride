@@ -3,7 +3,6 @@
 
 using System.Collections.Concurrent;
 using System.Globalization;
-using System.Reflection;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
@@ -69,10 +68,6 @@ internal sealed class Program
                 // First hide the main window
                 ((IClassicDesktopStyleApplicationLifetime?)Application.Current?.ApplicationLifetime)?.MainWindow?.Hide();
 
-                // Then setup the new application
-                // HACK: SetupUnsafe is internal and we can't call Setup mutiple times
-                typeof(AppBuilder).GetMethod("SetupUnsafe", BindingFlags.NonPublic | BindingFlags.Instance)!.Invoke(appBuilder, null);
-
                 AppMain(appBuilder.Instance!, args);
             });
         }
@@ -112,7 +107,7 @@ internal sealed class Program
         {
             Exception = exception,
             Location = location,
-            Logs = logRingbuffer.ToArray(),
+            Logs = [.. logRingbuffer],
             ThreadName = Thread.CurrentThread.Name
         };
         CrashReport(reportArgs);
