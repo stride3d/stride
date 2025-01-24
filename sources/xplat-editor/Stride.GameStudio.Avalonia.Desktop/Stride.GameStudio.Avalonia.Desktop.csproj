@@ -14,7 +14,6 @@
 
   <ItemGroup>
     <PackageReference Include="Avalonia.Desktop" />
-    <PackageReference Include="Stride.CrashReport" />
   </ItemGroup>
 
   <ItemGroup>

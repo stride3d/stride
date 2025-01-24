@@ -6,7 +6,6 @@ using Stride.Core.Extensions;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.ViewModels;
-using Stride.CrashReport;
 
 namespace Stride.Launcher.Crash;
 
@@ -32,11 +31,7 @@ internal sealed class CrashReportViewModel : ViewModelBase
 
         CopyReportCommand = new AnonymousTaskCommand(ServiceProvider, OnCopyReport);
         CloseCommand = new AnonymousCommand(ServiceProvider, OnClose);
-#if DEBUG
-        SendCommand = new AnonymousTaskCommand(ServiceProvider, OnSend);
-#else
         SendCommand = DisabledCommand.Instance;
-#endif
         ViewReportCommand = new AnonymousCommand(ServiceProvider, OnViewReport);
     }
 
@@ -84,18 +79,6 @@ internal sealed class CrashReportViewModel : ViewModelBase
         return setClipboard.Invoke(Report.ToJson());
     }
     
-#if DEBUG
-    private async Task OnSend()
-    {
-        if (!await SendReport(Report))
-        {
-            // TODO: display error
-        }
-
-        OnClose();
-    }
-#endif // DEBUG
-
     private void OnViewReport()
     {
         IsReportVisible = true;
@@ -105,30 +88,17 @@ internal sealed class CrashReportViewModel : ViewModelBase
     {
         return new CrashReportData
         {
-            ["Application"] = "GameStudio",
+            ["Application"] = "Launcher",
             ["UserEmail"] = "",
             ["UserMessage"] = "",
             ["ThreadName"] = args.ThreadName,
 #if DEBUG
-            ["ProcessID"] = Process.GetCurrentProcess().Id.ToString(),
+            ["ProcessID"] = Environment.ProcessId.ToString(),
 #endif
             ["CurrentDirectory"] = Environment.CurrentDirectory,
             ["OsArch"] = Environment.Is64BitOperatingSystem ? "x64" : "x86",
             ["ProcessorCount"] = Environment.ProcessorCount.ToString(),
             ["Exception"] = args.Exception.FormatFull(),
         };
-    }
-
-    private static async Task<bool> SendReport(CrashReportData report)
-    {
-        try
-        {
-            await CrashReporter.Report(report);
-            return true;
-        }
-        catch (Exception)
-        {
-            return false;
-        }
     }
 }

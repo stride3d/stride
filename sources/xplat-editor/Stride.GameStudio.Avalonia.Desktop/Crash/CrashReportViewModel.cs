@@ -7,14 +7,11 @@ using Stride.Core.Extensions;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.ViewModels;
-using Stride.CrashReport;
 
 namespace Stride.GameStudio.Avalonia.Desktop.Crash;
 
 internal sealed class CrashReportViewModel : ViewModelBase
 {
-    public const string PrivacyPolicyUrl = "https://stride3d.net/legal/privacy-policy";
-
     private readonly NullDispatcherService dispatcherService = new();
 
     private readonly Func<string?, Task> setClipboard;
@@ -34,13 +31,8 @@ internal sealed class CrashReportViewModel : ViewModelBase
         report = ComputeReport(args);
 
         CopyReportCommand = new AnonymousTaskCommand(ServiceProvider, OnCopyReport);
-        DontSendCommand = new AnonymousCommand(ServiceProvider, OnDontSend);
-        OpenPrivacyPolicyCommand = new AnonymousCommand(ServiceProvider, OnOpenPrivacyPolicy);
-#if DEBUG
-        SendCommand = new AnonymousTaskCommand(ServiceProvider, OnSend);
-#else
+        CloseCommand = new AnonymousCommand(ServiceProvider, OnClose);
         SendCommand = DisabledCommand.Instance;
-#endif
         ViewReportCommand = new AnonymousCommand(ServiceProvider, OnViewReport);
     }
 
@@ -74,12 +66,11 @@ internal sealed class CrashReportViewModel : ViewModelBase
     }
 
     public ICommandBase CopyReportCommand { get; }
-    public ICommandBase DontSendCommand { get; }
-    public ICommandBase OpenPrivacyPolicyCommand { get; }
+    public ICommandBase CloseCommand { get; }
     public ICommandBase SendCommand { get; }
     public ICommandBase ViewReportCommand { get; }
 
-    private void Close()
+    private void OnClose()
     {
         exitToken.Cancel();
     }
@@ -87,41 +78,6 @@ internal sealed class CrashReportViewModel : ViewModelBase
     private Task OnCopyReport()
     {
         return setClipboard.Invoke(Report.ToJson());
-    }
-
-    private void OnDontSend()
-    {
-        Close();
-    }
-
-    private void OnOpenPrivacyPolicy()
-    {
-        try
-        {
-            var psi = new ProcessStartInfo
-            {
-                FileName = PrivacyPolicyUrl,
-                UseShellExecute = true
-            };
-            Process.Start(psi);
-        }
-        // FIXME: catch only specific exceptions?
-        catch (Exception)
-        {
-            var error = "An error occurred while opening the browser. You can access the privacy policy at the following url:"
-                + Environment.NewLine + Environment.NewLine + PrivacyPolicyUrl;
-            // TODO: display error
-        }
-    }
-
-    private async Task OnSend()
-    {
-        if (!await SendReport(Report))
-        {
-            // TODO: display error
-        }
-
-        Close();
     }
 
     private void OnViewReport()
@@ -140,7 +96,7 @@ internal sealed class CrashReportViewModel : ViewModelBase
             ["ThreadName"] = args.ThreadName,
 #if DEBUG
             ["CrashLocation"] = args.Location.ToString(),
-            ["ProcessID"] = Process.GetCurrentProcess().Id.ToString(),
+            ["ProcessID"] = Environment.ProcessId.ToString(),
 #endif
             ["CurrentDirectory"] = Environment.CurrentDirectory,
             ["OsArch"] = Environment.Is64BitOperatingSystem ? "x64" : "x86",
@@ -158,19 +114,6 @@ internal sealed class CrashReportViewModel : ViewModelBase
                 builder.AppendLine($"{i + 1}: {log}");
             }
             return builder.ToString();
-        }
-    }
-
-    private static async Task<bool> SendReport(CrashReportData report)
-    {
-        try
-        {
-            await CrashReporter.Report(report);
-            return true;
-        }
-        catch (Exception)
-        {
-            return false;
         }
     }
 }

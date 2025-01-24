@@ -30,14 +30,14 @@
       <TextBlock>
         If you have time, please describe what you were doing during the crash:
       </TextBlock>
-      <TextBox Text="{Binding Description}"
+      <TextBox Text="{Binding Description}" IsEnabled="False"
                AcceptsReturn="True" TextWrapping="Wrap"
                Height="64" ScrollViewer.VerticalScrollBarVisibility="Visible" />
       <TextBlock>
         Email: (optional)
       </TextBlock>
-      <TextBox Text="{Binding EmailAddress}" />
-      <CheckBox IsChecked="{Binding RememberEmail}">Remember my email</CheckBox>
+      <TextBox Text="{Binding EmailAddress}" IsEnabled="False" />
+      <CheckBox IsChecked="{Binding RememberEmail}" IsEnabled="False">Remember my email</CheckBox>
       <TextBlock TextWrapping="WrapWithOverflow">
         Privacy: you can see exactly what will be sent to us by pressing the 'View Report' button.
         We do not collect anything else.
