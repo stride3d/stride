@@ -25,7 +25,6 @@
     <PackageReference Include="Avalonia.Fonts.Inter" />
     <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" />
     <PackageReference Include="Stride.CrashReport" />
-    <PackageReference Include="Stride.Metrics" />
   </ItemGroup>
 
   <ItemGroup>

@@ -14,14 +14,12 @@ using Stride.Core.Presentation.Services;
 using Stride.Core.Windows;
 using Stride.Launcher.Crash;
 using Stride.Launcher.Services;
-using Stride.Metrics;
 
 namespace Stride.Launcher;
 
 internal static class Launcher
 {
     private static int terminating;
-    internal static MetricsClient? Metrics;
     internal static FileLock? Mutex;
 
     public const string ApplicationName = "Stride Launcher";
@@ -61,11 +59,7 @@ internal static class Launcher
             {
                 if (Mutex is not null)
                 {
-                    // Install Metrics for the launcher
-                    using (Metrics = new MetricsClient(CommonApps.StrideLauncherAppId))
-                    {
-                        Program.RunNewApp<App>(AppMain);
-                    }
+                    Program.RunNewApp<App>(AppMain);
                 }
                 else
                 {
