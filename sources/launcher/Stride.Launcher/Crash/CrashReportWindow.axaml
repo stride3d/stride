@@ -52,15 +52,12 @@
                 Content="Copy Report"
                 Command="{Binding CopyReportCommand}" />
         <!-- TODO: hyperlink style -->
-        <Button DockPanel.Dock="Left" Margin="8 0"
-                Content="Privacy Policy"
-                Command="{Binding OpenPrivacyPolicyCommand}" />
         <Button DockPanel.Dock="Right" Margin="8 0"
                 Content="Send"
                 Command="{Binding SendCommand}" />
         <Button DockPanel.Dock="Right" Margin="4 0"
-                Content="Don't Send" IsDefault="True"
-                Command="{Binding DontSendCommand}" />
+                Content="Close" IsDefault="True"
+                Command="{Binding CloseCommand}" />
       </DockPanel>
     </StackPanel>
     <TextBox IsReadOnly="True"

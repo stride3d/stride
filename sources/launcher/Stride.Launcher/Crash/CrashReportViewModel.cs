@@ -12,8 +12,6 @@ namespace Stride.Launcher.Crash;
 
 internal sealed class CrashReportViewModel : ViewModelBase
 {
-    public const string PrivacyPolicyUrl = "https://stride3d.net/legal/privacy-policy";
-
     private readonly NullDispatcherService dispatcherService = new();
 
     private readonly Func<string?, Task> setClipboard;
@@ -33,8 +31,7 @@ internal sealed class CrashReportViewModel : ViewModelBase
         report = ComputeReport(args);
 
         CopyReportCommand = new AnonymousTaskCommand(ServiceProvider, OnCopyReport);
-        DontSendCommand = new AnonymousCommand(ServiceProvider, OnDontSend);
-        OpenPrivacyPolicyCommand = new AnonymousCommand(ServiceProvider, OnOpenPrivacyPolicy);
+        CloseCommand = new AnonymousCommand(ServiceProvider, OnClose);
 #if DEBUG
         SendCommand = new AnonymousTaskCommand(ServiceProvider, OnSend);
 #else
@@ -73,12 +70,11 @@ internal sealed class CrashReportViewModel : ViewModelBase
     }
 
     public ICommandBase CopyReportCommand { get; }
-    public ICommandBase DontSendCommand { get; }
-    public ICommandBase OpenPrivacyPolicyCommand { get; }
+    public ICommandBase CloseCommand { get; }
     public ICommandBase SendCommand { get; }
     public ICommandBase ViewReportCommand { get; }
 
-    private void Close()
+    private void OnClose()
     {
         exitToken.Cancel();
     }
@@ -86,31 +82,6 @@ internal sealed class CrashReportViewModel : ViewModelBase
     private Task OnCopyReport()
     {
         return setClipboard.Invoke(Report.ToJson());
-    }
-
-    private void OnDontSend()
-    {
-        Close();
-    }
-
-    private void OnOpenPrivacyPolicy()
-    {
-        try
-        {
-            var psi = new ProcessStartInfo
-            {
-                FileName = PrivacyPolicyUrl,
-                UseShellExecute = true
-            };
-            Process.Start(psi);
-        }
-        // FIXME: catch only specific exceptions?
-        catch (Exception)
-        {
-            var error = "An error occurred while opening the browser. You can access the privacy policy at the following url:"
-                + Environment.NewLine + Environment.NewLine + PrivacyPolicyUrl;
-            // TODO: display error
-        }
     }
     
 #if DEBUG
@@ -121,7 +92,7 @@ internal sealed class CrashReportViewModel : ViewModelBase
             // TODO: display error
         }
 
-        Close();
+        OnClose();
     }
 #endif // DEBUG
 
