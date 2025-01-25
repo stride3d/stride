@@ -108,7 +108,7 @@ public class StaticComponent : CollidableComponent
     protected override void RegisterContactHandler()
     {
         if (ContactEventHandler is not null && Simulation is not null && StaticReference is { } sRef)
-            Simulation.ContactEvents.Register(sRef.Handle, ContactEventHandler);
+            Simulation.ContactEvents.Register(sRef.Handle);
     }
 
     protected override void UnregisterContactHandler()
@@ -120,7 +120,7 @@ public class StaticComponent : CollidableComponent
     protected override bool IsContactHandlerRegistered()
     {
         if (Simulation is not null && StaticReference is { } sRef)
-            return Simulation.ContactEvents.IsListener(sRef.Handle);
+            return Simulation.ContactEvents.IsRegistered(sRef.Handle);
         return false;
     }
 }

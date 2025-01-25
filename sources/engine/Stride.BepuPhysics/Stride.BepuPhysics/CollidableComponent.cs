@@ -22,6 +22,7 @@ namespace Stride.BepuPhysics;
 [DefaultEntityComponentProcessor(typeof(CollidableProcessor), ExecutionMode = ExecutionMode.Runtime)]
 public abstract class CollidableComponent : EntityComponent
 {
+    private static uint IdCounter;
     private static uint VersioningCounter;
 
     private float _springFrequency = 30;
@@ -46,6 +47,8 @@ public abstract class CollidableComponent : EntityComponent
 
     [DataMemberIgnore]
     internal uint Versioning { get; private set; }
+
+    internal uint StableId { get; } = Interlocked.Increment(ref IdCounter);
 
     /// <summary>
     /// The simulation this object belongs to, null when it is not part of a simulation.
@@ -84,9 +87,9 @@ public abstract class CollidableComponent : EntityComponent
     /// The bounce frequency in hz
     /// </summary>
     /// <remarks>
-    /// Must be low enough that the simulation can actually represent it. 
-    /// If the contact is trying to make a bounce happen at 240hz, 
-    /// but the integrator timestep is only 60hz, 
+    /// Must be low enough that the simulation can actually represent it.
+    /// If the contact is trying to make a bounce happen at 240hz,
+    /// but the integrator timestep is only 60hz,
     /// the unrepresentable motion will get damped out and the body won't bounce as much.
     /// </remarks>
     public float SpringFrequency
@@ -291,7 +294,7 @@ public abstract class CollidableComponent : EntityComponent
         if (reAttaching == false)
         {
             Simulation.TemporaryDetachedLookup = (getHandleValue, this);
-            Simulation.ContactEvents.Flush(); // Ensure that removing this collidable sends the appropriate contact events to listeners
+            Simulation.ContactEvents.ClearCollisionsOf(this); // Ensure that removing this collidable sends the appropriate contact events to listeners
             Simulation.TemporaryDetachedLookup = (-1, null);
         }
 
