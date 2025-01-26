@@ -78,7 +78,7 @@ internal static class Launcher
 
         CancellationToken AppMain(App app)
         {
-            _ = AppMainAsync(app.cts);
+            _ = AppMainAsync(app.cts);            
             return app.cts.Token;
         }
 
@@ -205,6 +205,7 @@ internal static class Launcher
             {
                 window.Show();
             }
+            ((IClassicDesktopStyleApplicationLifetime)app.ApplicationLifetime!).MainWindow = window;
             return cts.Token;
         }
     }

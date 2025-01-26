@@ -8,9 +8,9 @@ namespace Stride.Launcher.Crash;
 
 public sealed class CrashReportData
 {
-    public List<(string key, string? value)> Data = [];
+    public List<(string key, object? value)> Data = [];
 
-    public string? this[string key]
+    public object? this[string key]
     {
         get => Data.Find(p => p.key == key).value;
         set

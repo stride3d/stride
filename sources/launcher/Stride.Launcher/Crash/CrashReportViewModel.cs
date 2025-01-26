@@ -3,48 +3,39 @@
 
 using System.Diagnostics;
 using Stride.Core.Extensions;
+using Stride.Core.Presentation.Avalonia.Services;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.ViewModels;
+using Stride.Launcher.Assets.Localization;
 
 namespace Stride.Launcher.Crash;
 
 internal sealed class CrashReportViewModel : ViewModelBase
 {
-    private readonly NullDispatcherService dispatcherService = new();
+    private readonly IDispatcherService dispatcherService;
 
     private readonly Func<string?, Task> setClipboard;
     private readonly CancellationTokenSource exitToken;
     private readonly CrashReportData report;
 
     private bool isReportVisible;
-    private bool rememberEmail;
 
     public CrashReportViewModel(CrashReportArgs args, Func<string?, Task> setClipboard, CancellationTokenSource exitToken)
         : base(new ViewModelServiceProvider())
     {
         this.exitToken = exitToken;
         this.setClipboard = setClipboard;
-        ServiceProvider.RegisterService(dispatcherService);
+
+        ServiceProvider.RegisterService(dispatcherService = DispatcherService.Create());
+        ServiceProvider.RegisterService(new DialogService(dispatcherService) { ApplicationName = Launcher.ApplicationName });             
 
         report = ComputeReport(args);
 
         CopyReportCommand = new AnonymousTaskCommand(ServiceProvider, OnCopyReport);
         CloseCommand = new AnonymousCommand(ServiceProvider, OnClose);
-        SendCommand = DisabledCommand.Instance;
+        OpenIssueCommand = new AnonymousTaskCommand(ServiceProvider, OnOpenIssue);
         ViewReportCommand = new AnonymousCommand(ServiceProvider, OnViewReport);
-    }
-
-    public string? Description
-    {
-        get => report["UserMessage"];
-        set => SetValue(() => report["UserMessage"] = value, nameof(Description), nameof(Report));
-    }
-
-    public string? EmailAddress
-    {
-        get => report["UserEmail"];
-        set => SetValue(() => report["UserEmail"] = value, nameof(EmailAddress), nameof(Report));
     }
 
     public bool IsReportVisible
@@ -58,15 +49,9 @@ internal sealed class CrashReportViewModel : ViewModelBase
         get => report;
     }
 
-    public bool RememberEmail
-    {
-        get => rememberEmail;
-        set => SetValue(ref rememberEmail, value);
-    }
-
     public ICommandBase CopyReportCommand { get; }
     public ICommandBase CloseCommand { get; }
-    public ICommandBase SendCommand { get; }
+    public ICommandBase OpenIssueCommand { get; }
     public ICommandBase ViewReportCommand { get; }
 
     private void OnClose()
@@ -78,7 +63,25 @@ internal sealed class CrashReportViewModel : ViewModelBase
     {
         return setClipboard.Invoke(Report.ToJson());
     }
-    
+
+    private async Task OnOpenIssue()
+    {
+        try
+        {
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = "https://github.com/stride3d/stride/issues/new?labels=bug&template=bug_report.md&",
+                UseShellExecute = true
+            });
+        }
+        // FIXME: catch only specific exceptions?
+        catch (Exception ex)
+        {
+            DialogService.MainWindow!.Topmost = false;
+            await ServiceProvider.Get<IDialogService>().MessageBoxAsync(Strings.ErrorOpeningBrowser, MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
+
     private void OnViewReport()
     {
         IsReportVisible = true;
@@ -88,16 +91,15 @@ internal sealed class CrashReportViewModel : ViewModelBase
     {
         return new CrashReportData
         {
-            ["Application"] = "Launcher",
-            ["UserEmail"] = "",
-            ["UserMessage"] = "",
+            ["Application"] = Launcher.ApplicationName,
             ["ThreadName"] = args.ThreadName,
 #if DEBUG
-            ["ProcessID"] = Environment.ProcessId.ToString(),
-#endif
+            ["ProcessID"] = Environment.ProcessId,
             ["CurrentDirectory"] = Environment.CurrentDirectory,
+#endif
             ["OsArch"] = Environment.Is64BitOperatingSystem ? "x64" : "x86",
-            ["ProcessorCount"] = Environment.ProcessorCount.ToString(),
+            ["OsVersion"] = Environment.OSVersion,
+            ["ProcessorCount"] = Environment.ProcessorCount,
             ["Exception"] = args.Exception.FormatFull(),
         };
     }

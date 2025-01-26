@@ -21,29 +21,9 @@
                Source="/Assets/CrashReportImage.png"/>
         <TextBlock TextWrapping="WrapWithOverflow">
           Unfortunately, Launcher has crashed.
-          Please help us improve Stride by sending information about this crash.
-          <LineBreak />
-          If you'd like to allow us to ask some questions about the crash,
-          please enter your email (optional, we will never send you an email for any other reason).
+          Please help us improve Stride by sending information about this crash through Github Issues.
         </TextBlock>
       </DockPanel>
-      <TextBlock>
-        If you have time, please describe what you were doing during the crash:
-      </TextBlock>
-      <TextBox Text="{Binding Description}" IsEnabled="False"
-               AcceptsReturn="True" TextWrapping="Wrap"
-               Height="64" ScrollViewer.VerticalScrollBarVisibility="Visible" />
-      <TextBlock>
-        Email: (optional)
-      </TextBlock>
-      <TextBox Text="{Binding EmailAddress}" IsEnabled="False" />
-      <CheckBox IsChecked="{Binding RememberEmail}" IsEnabled="False">Remember my email</CheckBox>
-      <TextBlock TextWrapping="WrapWithOverflow">
-        Privacy: you can see exactly what will be sent to us by pressing the 'View Report' button.
-        We do not collect anything else.
-        <LineBreak />
-        By sending this report you accept our Privacy Policy.
-      </TextBlock>
       <DockPanel LastChildFill="False" Margin="4">
         <Button DockPanel.Dock="Left" Margin="4 0"
                 Content="View Report"
@@ -53,8 +33,8 @@
                 Command="{Binding CopyReportCommand}" />
         <!-- TODO: hyperlink style -->
         <Button DockPanel.Dock="Right" Margin="8 0"
-                Content="Send"
-                Command="{Binding SendCommand}" />
+                Content="New GitHub Issue"
+                Command="{Binding OpenIssueCommand}" />
         <Button DockPanel.Dock="Right" Margin="4 0"
                 Content="Close" IsDefault="True"
                 Command="{Binding CloseCommand}" />
