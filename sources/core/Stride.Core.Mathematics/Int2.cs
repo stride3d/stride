@@ -741,6 +741,11 @@ namespace Stride.Core.Mathematics
             y = Y;
         }
 
+        public Vector2 AsFloat()
+        {
+            return Unsafe.BitCast<Int2, Vector2>(this);
+        }
+
 #if WPFInterop
         /// <summary>
         /// Performs an implicit conversion from <see cref="Stride.Core.Mathematics.Int2"/> to <see cref="System.Windows.Media.Media3D.Int3D"/>.

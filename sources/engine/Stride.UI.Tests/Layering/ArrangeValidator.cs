@@ -9,18 +9,18 @@ namespace Stride.UI.Tests.Layering
 {
     class ArrangeValidator : UIElement
     {
-        public Vector3 ExpectedArrangeValue;
-        public Vector3 ReturnedMeasuredValue;
+        public Size2F ExpectedArrangeValue;
+        public Size2F ReturnedMeasuredValue;
 
-        protected override Vector3 MeasureOverride(Vector3 availableSizeWithoutMargins)
+        protected override Size2F MeasureOverride(Size2F availableSizeWithoutMargins)
         {
             return ReturnedMeasuredValue;
         }
 
-        protected override Vector3 ArrangeOverride(Vector3 finalSizeWithoutMargins)
+        protected override Size2F ArrangeOverride(Size2F finalSizeWithoutMargins)
         {
-            var maxLength = Math.Max(finalSizeWithoutMargins.Length(), ExpectedArrangeValue.Length());
-            Assert.True((finalSizeWithoutMargins - ExpectedArrangeValue).Length() <= maxLength * 0.001f, 
+            var maxLength = Math.Max(((Vector2)finalSizeWithoutMargins).Length(), ((Vector2)ExpectedArrangeValue).Length());
+            Assert.True(((Vector2)(finalSizeWithoutMargins - ExpectedArrangeValue)).Length() <= maxLength * 0.001f, 
                 "Arrange validator test failed: expected value=" + ExpectedArrangeValue + ", Received value=" + finalSizeWithoutMargins + " (Validator='" + Name + "'");
 
             return base.ArrangeOverride(finalSizeWithoutMargins);

@@ -339,13 +339,13 @@ namespace Stride.UI.Controls
             return shouldSnapToTicks ? Math.Max(Step, (Maximum - Minimum) / TickFrequency) : Step;
         }
 
-        protected override Vector3 MeasureOverride(Vector3 availableSizeWithoutMargins)
+        protected override Size2F MeasureOverride(Size2F availableSizeWithoutMargins)
         {
             if (trackBackgroundSprite == null)
                 return base.MeasureOverride(availableSizeWithoutMargins);
 
             var idealSize = trackBackgroundSprite.SizeInPixels.Y;
-            var desiredSize = new Vector3(idealSize, idealSize, 0)
+            var desiredSize = new Size2F(idealSize, idealSize)
             {
                 [(int)Orientation] = availableSizeWithoutMargins[(int)Orientation]
             };

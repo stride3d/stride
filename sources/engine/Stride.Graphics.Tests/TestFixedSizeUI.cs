@@ -87,8 +87,8 @@ namespace Stride.Graphics.Tests
                 //IsBillboard = true,
                 IsFixedSize = fixedSize,
                 IsFullScreen = false,
-                Resolution = new Vector3(100, 100, 100), // Same size as the inner grid
-                Size = new Vector3(0.1f), // 10% of the vertical resolution
+                Resolution = new Size2F(100, 100), // Same size as the inner grid
+                Size = new Size2F(0.1f, 0.1f), // 10% of the vertical resolution
             };
             uiEntity.Add(uiComponent);
 

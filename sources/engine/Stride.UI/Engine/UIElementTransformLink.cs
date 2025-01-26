@@ -48,13 +48,13 @@ namespace Stride.Engine
 
         protected CameraComponent GetUICameraComponent(UIComponent uiComponent)
         {
+            const float zOffset = 1000;
             var virtualResolution = uiComponent.Resolution;
 
-            var nearPlane = virtualResolution.Z / 2;
-            var farPlane = nearPlane + virtualResolution.Z;
-            var zOffset = nearPlane + virtualResolution.Z / 2;
-            var aspectRatio = virtualResolution.X / virtualResolution.Y;
-            var verticalFov = MathF.Atan2(virtualResolution.Y / 2, zOffset) * 2;
+            var nearPlane = zOffset / 2;
+            var farPlane = nearPlane + zOffset;
+            var aspectRatio = virtualResolution.Width / virtualResolution.Height;
+            var verticalFov = MathF.Atan2(virtualResolution.Height / 2, zOffset) * 2;
 
             var cameraComponent = new CameraComponent(nearPlane, farPlane)
             {
@@ -132,14 +132,16 @@ namespace Stride.Engine
                         worldMatrix.Row3 = viewInverse.Row3;
                     }
 
+                    var sizeRatio = parentUIComponent.Resolution / parentUIComponent.Size;
+                    
                     // The resulting matrix should be in world units
                     parentWorldMatrix.Row2 = -parentWorldMatrix.Row2;
                     parentWorldMatrix.Row3 = -parentWorldMatrix.Row3;
-                    parentWorldMatrix = Matrix.Scaling(parentUIComponent.Resolution / parentUIComponent.Size) * parentWorldMatrix;
+                    parentWorldMatrix = Matrix.Scaling(new Vector3(sizeRatio.Width, sizeRatio.Height, 0)) * parentWorldMatrix;
 
                     parentInverseMatrix.Row2 = -parentInverseMatrix.Row2;
                     parentInverseMatrix.Row3 = -parentInverseMatrix.Row3;
-                    parentInverseMatrix = Matrix.Scaling(parentUIComponent.Size / parentUIComponent.Resolution) * parentInverseMatrix;
+                    parentInverseMatrix = Matrix.Scaling(new Vector3(sizeRatio.Width, sizeRatio.Height, 0)) * parentInverseMatrix;
                    // Matrix.Invert(ref parentWorldMatrix, out parentInverseMatrix);
 
                     matrix = parentWorldMatrix * followedElement.WorldMatrix * parentInverseMatrix;

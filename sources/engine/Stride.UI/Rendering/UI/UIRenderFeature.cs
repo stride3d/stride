@@ -152,13 +152,13 @@ namespace Stride.Rendering.UI
                 if (renderObject.IsFullScreen)
                 {
                     //var targetSize = viewportSize;
-                    var targetSize = new Vector2(renderingContext.RenderTarget.Width, renderingContext.RenderTarget.Height);
+                    var targetSize = new Size2F(renderingContext.RenderTarget.Width, renderingContext.RenderTarget.Height);
 
                     // update the virtual resolution of the renderer
                     if (renderObject.ResolutionStretch == ResolutionStretch.FixedWidthAdaptableHeight)
-                        virtualResolution.Y = virtualResolution.X * targetSize.Y / targetSize.X;
+                        virtualResolution.Height = virtualResolution.Width * targetSize.Height / targetSize.Width;
                     if (renderObject.ResolutionStretch == ResolutionStretch.FixedHeightAdaptableWidth)
-                        virtualResolution.X = virtualResolution.Y * targetSize.X / targetSize.Y;
+                        virtualResolution.Width = virtualResolution.Height * targetSize.Width / targetSize.Height;
 
                     uiElementState.Update(renderObject, virtualResolution);
                 }
@@ -201,8 +201,8 @@ namespace Stride.Rendering.UI
 
                 // calculate an estimate of the UI real size by projecting the element virtual resolution on the screen
                 var virtualOrigin = uiElementState.WorldViewProjectionMatrix.Row4;
-                var virtualWidth = new Vector4(virtualResolution.X / 2, 0, 0, 1);
-                var virtualHeight = new Vector4(0, virtualResolution.Y / 2, 0, 1);
+                var virtualWidth = new Vector4(virtualResolution.Width / 2, 0, 0, 1);
+                var virtualHeight = new Vector4(0, virtualResolution.Height / 2, 0, 1);
                 var transformedVirtualWidth = Vector4.Zero;
                 var transformedVirtualHeight = Vector4.Zero;
                 for (var i = 0; i < 4; i++)
@@ -213,8 +213,8 @@ namespace Stride.Rendering.UI
 
                 var viewportSize = context.CommandList.Viewport.Size;
                 var projectedOrigin = virtualOrigin.XY() / virtualOrigin.W;
-                var projectedVirtualWidth = viewportSize * (transformedVirtualWidth.XY() / transformedVirtualWidth.W - projectedOrigin);
-                var projectedVirtualHeight = viewportSize * (transformedVirtualHeight.XY() / transformedVirtualHeight.W - projectedOrigin);
+                var projectedVirtualWidth = (viewportSize * (transformedVirtualWidth.XY() / transformedVirtualWidth.W - projectedOrigin));
+                var projectedVirtualHeight = (viewportSize * (transformedVirtualHeight.XY() / transformedVirtualHeight.W - projectedOrigin));
 
                 // Set default services
                 rootElement.UIElementServices = new UIElementServices { Services = RenderSystem.Services };
@@ -223,8 +223,8 @@ namespace Stride.Rendering.UI
 
                 // update layouting context.
                 layoutingContext.VirtualResolution = virtualResolution;
-                layoutingContext.RealResolution = viewportSize;
-                layoutingContext.RealVirtualResolutionRatio = new Vector2(projectedVirtualWidth.Length() / virtualResolution.X, projectedVirtualHeight.Length() / virtualResolution.Y);
+                layoutingContext.RealResolution = (Size2F)viewportSize;
+                layoutingContext.RealVirtualResolutionRatio = new Size2F(projectedVirtualWidth.Length() / virtualResolution.Width, projectedVirtualHeight.Length() / virtualResolution.Height);
                 rootElement.LayoutingContext = layoutingContext;
 
                 // perform the time-based updates of the UI element
@@ -235,7 +235,7 @@ namespace Stride.Rendering.UI
                 rootElement.Arrange(virtualResolution, false);
 
                 // update the UI element hierarchical properties
-                var rootMatrix = Matrix.Translation(-virtualResolution / 2); // UI world is translated by a half resolution compared to its quad, which is centered around the origin
+                var rootMatrix = Matrix.Translation(-new Vector3(virtualResolution.Width, virtualResolution.Height, 0) / 2); // UI world is translated by a half resolution compared to its quad, which is centered around the origin
                 updatableRootElement.UpdateWorldMatrix(ref rootMatrix, rootMatrix != uiElementState.RenderObject.LastRootMatrix);
                 updatableRootElement.UpdateElementState(0);
                 uiElementState.RenderObject.LastRootMatrix = rootMatrix;
@@ -413,7 +413,8 @@ namespace Stride.Rendering.UI
                     }
 
                     // If the UI component is not drawn fullscreen it should be drawn as a quad with world sizes corresponding to its actual size
-                    worldMatrix = Matrix.Scaling(renderObject.Size / renderObject.Resolution) * worldMatrix;
+                    var scaling = renderObject.Size / renderObject.Resolution;
+                    worldMatrix = Matrix.Scaling(new Vector3(scaling.Width, scaling.Height, 0)) * worldMatrix;
                 }
 
                 // Rotation of Pi along 0x to go from UI space to world space
@@ -425,13 +426,14 @@ namespace Stride.Rendering.UI
                 Matrix.Multiply(ref worldViewMatrix, ref camera.ProjectionMatrix, out WorldViewProjectionMatrix);
             }
 
-            public void Update(RenderUIElement renderObject, Vector3 virtualResolution)
+            public void Update(RenderUIElement renderObject, Size2F virtualResolution)
             {
-                var nearPlane = virtualResolution.Z / 2;
-                var farPlane = nearPlane + virtualResolution.Z;
-                var zOffset = nearPlane + virtualResolution.Z / 2;
-                var aspectRatio = virtualResolution.X / virtualResolution.Y;
-                var verticalFov = MathF.Atan2(virtualResolution.Y / 2, zOffset) * 2;
+                const float zOffset = 1000;
+                
+                var nearPlane = zOffset / 2;
+                var farPlane = nearPlane + zOffset;
+                var aspectRatio = virtualResolution.Width / virtualResolution.Height;
+                var verticalFov = MathF.Atan2(virtualResolution.Height / 2, zOffset) * 2;
 
                 var cameraComponent = new CameraComponent(nearPlane, farPlane)
                 {

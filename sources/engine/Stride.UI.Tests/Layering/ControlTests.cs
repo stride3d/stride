@@ -44,7 +44,7 @@ namespace Stride.UI.Tests.Layering
         {
             // - test the properties that are not supposed to invalidate the object layout state
 
-            UIElementLayeringTests.TestMeasureInvalidation(this, () => Padding = Thickness.UniformRectangle(23));
+            UIElementLayeringTests.TestMeasureInvalidation(this, () => Padding = Thickness.Uniform(23));
         }
     }
 }

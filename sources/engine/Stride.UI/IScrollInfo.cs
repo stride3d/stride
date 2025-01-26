@@ -19,17 +19,17 @@ namespace Stride.UI
         /// <summary>
         /// Gets the size of the extent. That is the virtual total size of the <see cref="UIElement"/>.
         /// </summary>
-        Vector3 Extent { get; }
+        Size2F Extent { get; }
 
         /// <summary>
         /// Gets the offset of the scrolled content.
         /// </summary>
-        Vector3 Offset { get; }
+        Vector2 Offset { get; }
 
         /// <summary>
         /// Gets the size of the viewport for this content.
         /// </summary>
-        Vector3 Viewport { get; }
+        Size2F Viewport { get; }
 
         /// <summary>
         /// Gets or sets a <see cref="ScrollViewer"/> element that controls scrolling behavior.
@@ -41,7 +41,7 @@ namespace Stride.UI
         /// </summary>
         /// <returns>A value between <value>0</value> and <value>1</value> for each component indicating the position of the scroll bar</returns>
         /// <remarks>Return <value>0</value> for each direction the element cannot scroll</remarks>
-        Vector3 ScrollBarPositions { get; }
+        Vector2 ScrollBarPositions { get; }
 
         /// <summary>
         /// Go to the next line in the given the direction.
@@ -83,6 +83,6 @@ namespace Stride.UI
         /// Increase the amount of offset from the current scrolling position.
         /// </summary>
         /// <param name="offsets"></param>
-        void ScrollOf(Vector3 offsets);
+        void ScrollOf(Vector2 offsets);
     }
 }

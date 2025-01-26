@@ -20,14 +20,13 @@ namespace Stride.Engine
     [ComponentCategory("UI")]
     public sealed class UIComponent : ActivableEntityComponent
     {
-        public static readonly float DefaultDepth = 1000;
         public static readonly float DefaultHeight = 720;
         public static readonly float DefaultWidth = 1280;
 
         public UIComponent()
         {
-            Resolution = new Vector3(DefaultWidth, DefaultHeight, DefaultDepth);
-            Size = new Vector3(DefaultWidth / 1000.0f, DefaultHeight / 1000.0f, 1.0f);
+            Resolution = new Size2F(DefaultWidth, DefaultHeight);
+            Size = new Size2F(DefaultWidth / 1000.0f, DefaultHeight / 1000.0f);
         }
 
         /// <summary>
@@ -62,7 +61,7 @@ namespace Stride.Engine
         /// <userdoc>The value in pixels of the resolution of the UI</userdoc>
         [DataMember(30)]
         [Display("Resolution")]
-        public Vector3 Resolution { get; set; }
+        public Size2F Resolution { get; set; }
 
         /// <summary>
         /// Gets or sets the actual size of the UI component in world units. This value is ignored in fullscreen mode.
@@ -70,7 +69,7 @@ namespace Stride.Engine
         /// <userdoc>The actual size of the UI component in world units. This value is ignored in fullscreen mode.</userdoc>
         [DataMember(35)]
         [Display("Size")]
-        public Vector3 Size { get; set; }
+        public Size2F Size { get; set; }
 
         /// <summary>
         /// Gets or sets the camera.

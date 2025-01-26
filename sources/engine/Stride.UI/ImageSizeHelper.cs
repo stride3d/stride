@@ -19,23 +19,23 @@ namespace Stride.UI
         /// <param name="stretchDirection"></param>
         /// <param name="isMeasuring"></param>
         /// <returns></returns>
-        public static Vector3 CalculateImageSizeFromAvailable(Sprite sprite, Vector3 availableSizeWithoutMargins, StretchType stretchType, StretchDirection stretchDirection, bool isMeasuring)
+        public static Size2F CalculateImageSizeFromAvailable(Sprite sprite, Size2F availableSizeWithoutMargins, StretchType stretchType, StretchDirection stretchDirection, bool isMeasuring)
         {
             if (sprite == null) // no associated image -> no region needed
-                return Vector3.Zero;
+                return Size2F.Zero;
 
             var idealSize = sprite.SizeInPixels;
             if (idealSize.X <= 0 || idealSize.Y <= 0) // image size null or invalid -> no region needed
-                return Vector3.Zero;
+                return Size2F.Zero;
 
-            if (float.IsInfinity(availableSizeWithoutMargins.X) && float.IsInfinity(availableSizeWithoutMargins.Y)) // unconstrained available size -> take the best size for the image: the image size
-                return new Vector3(idealSize, 0);
+            if (float.IsInfinity(availableSizeWithoutMargins.Width) && float.IsInfinity(availableSizeWithoutMargins.Height)) // unconstrained available size -> take the best size for the image: the image size
+                return (Size2F)idealSize;
 
             // initialize the desired size with maximum available size
             var desiredSize = availableSizeWithoutMargins;
 
             // compute the desired image ratios
-            var desiredScale = new Vector2(desiredSize.X / idealSize.X, desiredSize.Y / idealSize.Y);
+            var desiredScale = new Vector2(desiredSize.Width / idealSize.X, desiredSize.Height / idealSize.Y);
 
             // when the size along a given axis is free take the same ratio as the constrained axis.
             if (float.IsInfinity(desiredScale.X))
@@ -84,7 +84,7 @@ namespace Stride.UI
             }
 
             // update the desired size based on the desired scales
-            desiredSize = new Vector3(idealSize.X * desiredScale.X, idealSize.Y * desiredScale.Y, 0f);
+            desiredSize = new Size2F(idealSize.X * desiredScale.X, idealSize.Y * desiredScale.Y);
             
             if (!isMeasuring || !sprite.HasBorders)
                 return desiredSize;
@@ -94,7 +94,7 @@ namespace Stride.UI
             if (sprite.Orientation == ImageOrientation.Rotated90)
                 Utilities.Swap(ref borderSum.X, ref borderSum.Y);
 
-            return new Vector3(Math.Max(desiredSize.X, borderSum.X), Math.Max(desiredSize.Y, borderSum.Y), desiredSize.Z);
+            return new Size2F(Math.Max(desiredSize.Width, borderSum.X), Math.Max(desiredSize.Height, borderSum.Y));
         }
     }
 }

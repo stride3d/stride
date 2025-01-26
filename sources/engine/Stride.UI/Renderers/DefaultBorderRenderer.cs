@@ -37,69 +37,25 @@ namespace Stride.UI.Renderers
             var elementSize = element.RenderSizeInternal;
             var elementHalfSize = elementSize / 2;
 
-            // left/front
-            offsets = new Vector3(-elementHalfSize.X + elementHalfBorders.Left, 0, -elementHalfSize.Z + elementHalfBorders.Front);
-            borderSize = new Vector3(borderThickness.Left, elementSize.Y, borderThickness.Front);
+            // left
+            offsets = new Vector3(-elementHalfBorders.Left, 0, element.TotalDepthOffset);
+            borderSize = new Vector3(borderThickness.Left, elementSize.Height, 50);
             DrawBorder(border, ref offsets, ref borderSize, ref borderColor, context);
             
-            // right/front
-            offsets = new Vector3(elementHalfSize.X - elementHalfBorders.Right, 0, -elementHalfSize.Z + elementHalfBorders.Front);
-            borderSize = new Vector3(borderThickness.Right, elementSize.Y, borderThickness.Front);
+            // right
+            offsets = new Vector3(elementHalfSize.Width - elementHalfBorders.Right, 0, element.TotalDepthOffset);
+            borderSize = new Vector3(borderThickness.Right, elementSize.Height, 50);
             DrawBorder(border, ref offsets, ref borderSize, ref borderColor, context);
             
-            // top/front
-            offsets = new Vector3(0, -elementHalfSize.Y + elementHalfBorders.Top, -elementHalfSize.Z + elementHalfBorders.Front);
-            borderSize = new Vector3(elementSize.X, borderThickness.Top, borderThickness.Front);
+            // top
+            offsets = new Vector3(0, -elementHalfBorders.Top, element.TotalDepthOffset);
+            borderSize = new Vector3(elementSize.Width, borderThickness.Top, 50);
             DrawBorder(border, ref offsets, ref borderSize, ref borderColor, context);
             
-            // bottom/front
-            offsets = new Vector3(0, elementHalfSize.Y - elementHalfBorders.Bottom, -elementHalfSize.Z + elementHalfBorders.Front);
-            borderSize = new Vector3(elementSize.X, borderThickness.Bottom, borderThickness.Back);
+            // bottom
+            offsets = new Vector3(0, elementHalfSize.Height - elementHalfBorders.Bottom, element.TotalDepthOffset);
+            borderSize = new Vector3(elementSize.Width, borderThickness.Bottom, 50);
             DrawBorder(border, ref offsets, ref borderSize, ref borderColor, context);
-
-            // if the element is 3D draw the extra borders
-            if (element.ActualDepth > MathUtil.ZeroTolerance)
-            {
-                // left/back
-                offsets = new Vector3(-elementHalfSize.X + elementHalfBorders.Left, 0, elementHalfSize.Z - elementHalfBorders.Back);
-                borderSize = new Vector3(borderThickness.Left, elementSize.Y, borderThickness.Back);
-                DrawBorder(border, ref offsets, ref borderSize, ref borderColor, context);
-                
-                // right/back
-                offsets = new Vector3(elementHalfSize.X - elementHalfBorders.Right, 0, elementHalfSize.Z - elementHalfBorders.Back);
-                borderSize = new Vector3(borderThickness.Right, elementSize.Y, borderThickness.Back);
-                DrawBorder(border, ref offsets, ref borderSize, ref borderColor, context);
-                
-                // top/back
-                offsets = new Vector3(0, -elementHalfSize.Y + elementHalfBorders.Top, elementHalfSize.Z - elementHalfBorders.Back);
-                borderSize = new Vector3(elementSize.X, borderThickness.Top, borderThickness.Back);
-                DrawBorder(border, ref offsets, ref borderSize, ref borderColor, context);
-                
-                // bottom/back
-                offsets = new Vector3(0, elementHalfSize.Y - elementHalfBorders.Bottom, elementHalfSize.Z - elementHalfBorders.Back);
-                borderSize = new Vector3(elementSize.X, borderThickness.Bottom, borderThickness.Back);
-                DrawBorder(border, ref offsets, ref borderSize, ref borderColor, context);
-                
-                // left/top
-                offsets = new Vector3(-elementHalfSize.X + elementHalfBorders.Left, -elementHalfSize.Y + elementHalfBorders.Top, 0);
-                borderSize = new Vector3(borderThickness.Left, borderThickness.Top, elementSize.Z);
-                DrawBorder(border, ref offsets, ref borderSize, ref borderColor, context);
-                
-                // right/top
-                offsets = new Vector3(elementHalfSize.X - elementHalfBorders.Right, -elementHalfSize.Y + elementHalfBorders.Top, 0);
-                borderSize = new Vector3(borderThickness.Right, borderThickness.Top, elementSize.Z);
-                DrawBorder(border, ref offsets, ref borderSize, ref borderColor, context);
-                
-                // left/bottom
-                offsets = new Vector3(-elementHalfSize.X + elementHalfBorders.Left, elementHalfSize.Y - elementHalfBorders.Bottom, 0);
-                borderSize = new Vector3(borderThickness.Left, borderThickness.Bottom, elementSize.Z);
-                DrawBorder(border, ref offsets, ref borderSize, ref borderColor, context);
-                
-                // right/bottom
-                offsets = new Vector3(elementHalfSize.X - elementHalfBorders.Right, elementHalfSize.Y - elementHalfBorders.Bottom, 0);
-                borderSize = new Vector3(borderThickness.Right, borderThickness.Bottom, elementSize.Z);
-                DrawBorder(border, ref offsets, ref borderSize, ref borderColor, context);
-            }
         }
 
         private void DrawBorder(Border border, ref Vector3 offsets, ref Vector3 borderSize, ref Color borderColor, UIRenderingContext context)
@@ -108,6 +64,7 @@ namespace Stride.UI.Renderers
             worldMatrix.M41 += worldMatrix.M11 * offsets.X + worldMatrix.M21 * offsets.Y + worldMatrix.M31 * offsets.Z;
             worldMatrix.M42 += worldMatrix.M12 * offsets.X + worldMatrix.M22 * offsets.Y + worldMatrix.M32 * offsets.Z;
             worldMatrix.M43 += worldMatrix.M13 * offsets.X + worldMatrix.M23 * offsets.Y + worldMatrix.M33 * offsets.Z;
+            
             Batch.DrawCube(ref worldMatrix, ref borderSize, ref borderColor, context.DepthBias);
         }
     }

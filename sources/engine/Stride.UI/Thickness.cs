@@ -6,35 +6,26 @@ using System.ComponentModel;
 using System.Diagnostics;
 using Stride.Core;
 using Stride.Core.Annotations;
+using Stride.Core.Mathematics;
 
 namespace Stride.UI
 {
     /// <summary>
-    /// Describes the thickness of a frame around a cuboid. Six float values describe the Left, Top, Right, Bottom, Front, and Back sides of the cuboid, respectively.
+    /// Describes the thickness of a frame around a cuboid. Six float values describe the Left, Top, Right, and Bottom, sides of the rectangle, respectively.
     /// </summary>
     [DataContract(nameof(Thickness))]
     [DataStyle(DataStyle.Compact)]
-    [DebuggerDisplay("Left:{Left}, Top:{Top}, Back:{Back}, Right:{Right}, Bottom:{Bottom}, Front:{Front}")]
+    [DebuggerDisplay("Left:{Left}, Top:{Top}, Right:{Right}, Bottom:{Bottom}")]
     public struct Thickness : IEquatable<Thickness>
     {
         /// <summary>
-        /// Initializes a new instance of the Thickness structure that has the specified uniform length on the Left, Right, Top, Bottom side and 0 for the Front and Back side.
+        /// Initializes a new instance of the Thickness structure that has the specified uniform length on the Left, Right, Top, Bottom side.
         /// </summary>
         /// <param name="thickness">The uniform length applied to all four sides of the bounding rectangle.</param>
         /// <returns>The created thickness class</returns>
-        public static Thickness UniformRectangle(float thickness)
+        public static Thickness Uniform(float thickness)
         {
             return new Thickness(thickness, thickness, thickness, thickness);
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the Thickness structure that has the specified uniform length on the Left, Right, Top, Bottom, Front, and Back side.
-        /// </summary>
-        /// <param name="thickness">The uniform length applied to all six sides of the bounding cuboid.</param>
-        /// <returns>The created thickness class</returns>
-        public static Thickness UniformCuboid(float thickness)
-        {
-            return new Thickness(thickness, thickness, thickness, thickness, thickness, thickness);
         }
         
         /// <summary>
@@ -50,36 +41,7 @@ namespace Stride.UI
             Left = left;
             Right = right;
             Top = top;
-            Front = 0;
-            Back = 0;
         }
-
-        /// <summary>
-        /// Initializes a new instance of the Thickness structure that has specific lengths applied to each side of the cuboid.
-        /// </summary>
-        /// <param name="bottom">The thickness for the lower side of the cuboid.</param>
-        /// <param name="left">The thickness for the left side of the cuboid.</param>
-        /// <param name="right">The thickness for the right side of the cuboid</param>
-        /// <param name="top">The thickness for the upper side of the cuboid.</param>
-        /// <param name="front">The thickness for the front side of the cuboid.</param>
-        /// <param name="back">The thickness for the Back side of the cuboid.</param>
-        public Thickness(float left, float top, float back, float right, float bottom, float front)
-        {
-            Bottom = bottom;
-            Left = left;
-            Right = right;
-            Top = top;
-            Front = front;
-            Back = back;
-        }
-
-        /// <summary>
-        /// The Back side of the bounding cuboid.
-        /// </summary>
-        /// <userdoc>The Back side of the bounding cuboid.</userdoc>
-        [DataMember(2)]
-        [DefaultValue(0.0f)]
-        public float Back;
 
         /// <summary>
         /// The bottom side of the bounding rectangle or cuboid.
@@ -88,14 +50,6 @@ namespace Stride.UI
         [DataMember(4)]
         [DefaultValue(0.0f)]
         public float Bottom;
-
-        /// <summary>
-        /// The front side of the bounding cuboid.
-        /// </summary>
-        /// <userdoc>The front side of the bounding cuboid.</userdoc>
-        [DataMember(5)]
-        [DefaultValue(0.0f)]
-        public float Front;
 
         /// <summary>
         /// The left side of the bounding rectangle or cuboid.
@@ -137,10 +91,8 @@ namespace Stride.UI
                 {
                     case 0: return Left;
                     case 1: return Top;
-                    case 2: return Front;
-                    case 3: return Right;
-                    case 4: return Bottom;
-                    case 5: return Back;
+                    case 2: return Right;
+                    case 3: return Bottom;
                 }
 
                 throw new ArgumentOutOfRangeException(nameof(index), $"Indices for {nameof(Thickness)} run from {0} to {5}, inclusive.");
@@ -149,8 +101,8 @@ namespace Stride.UI
 
         public bool Equals(Thickness other)
         {
-            return Back.Equals(other.Back) && Bottom.Equals(other.Bottom)
-                && Front.Equals(other.Front) && Left.Equals(other.Left)
+            return Bottom.Equals(other.Bottom)
+                && Left.Equals(other.Left)
                 && Right.Equals(other.Right) && Top.Equals(other.Top);
         }
 
@@ -164,9 +116,7 @@ namespace Stride.UI
         {
             unchecked
             {
-                var hashCode = Back.GetHashCode();
-                hashCode = (hashCode * 397) ^ Bottom.GetHashCode();
-                hashCode = (hashCode * 397) ^ Front.GetHashCode();
+                var hashCode = Bottom.GetHashCode();
                 hashCode = (hashCode * 397) ^ Left.GetHashCode();
                 hashCode = (hashCode * 397) ^ Right.GetHashCode();
                 hashCode = (hashCode * 397) ^ Top.GetHashCode();
@@ -191,7 +141,7 @@ namespace Stride.UI
         /// <returns>A Thickness with the opposite direction.</returns>
         public static Thickness operator -(Thickness value)
         {
-            return new Thickness(-value.Left, -value.Top, -value.Back, -value.Right, -value.Bottom, -value.Front);
+            return new Thickness(-value.Left, -value.Top, -value.Right, -value.Bottom);
         }
 
         /// <summary>
@@ -202,7 +152,7 @@ namespace Stride.UI
         /// <returns>A Thickness representing the difference between the two Thickness.</returns>
         public static Thickness operator -(Thickness value1, Thickness value2)
         {
-            return new Thickness(value1.Left - value2.Left, value1.Top - value2.Top, value1.Back - value2.Back, value1.Right - value2.Right, value1.Bottom - value2.Bottom, value1.Front - value2.Front);
+            return new Thickness(value1.Left - value2.Left, value1.Top - value2.Top, value1.Right - value2.Right, value1.Bottom - value2.Bottom);
         }
 
         /// <summary>
@@ -213,7 +163,7 @@ namespace Stride.UI
         /// <returns>A Thickness representing the sum of the two Thickness.</returns>
         public static Thickness operator +(Thickness value1, Thickness value2)
         {
-            return new Thickness(value1.Left + value2.Left, value1.Top + value2.Top, value1.Back + value2.Back, value1.Right + value2.Right, value1.Bottom + value2.Bottom, value1.Front + value2.Front);
+            return new Thickness(value1.Left + value2.Left, value1.Top + value2.Top, value1.Right + value2.Right, value1.Bottom + value2.Bottom);
         }
 
         /// <summary>
@@ -224,7 +174,7 @@ namespace Stride.UI
         /// <returns>The divided thickness</returns>
         public static Thickness operator /(Thickness value1, float value2)
         {
-            return new Thickness(value1.Left / value2, value1.Top / value2, value1.Back / value2, value1.Right / value2, value1.Bottom / value2, value1.Front / value2);
+            return new Thickness(value1.Left / value2, value1.Top / value2, value1.Right / value2, value1.Bottom / value2);
         }
 
         /// <summary>
@@ -235,8 +185,17 @@ namespace Stride.UI
         /// <returns>The multiplied thickness</returns>
         public static Thickness operator *(Thickness value1, float value2)
         {
-            return new Thickness(value1.Left * value2, value1.Top * value2, value1.Back * value2, value1.Right * value2, value1.Bottom * value2, value1.Front * value2);
+            return new Thickness(value1.Left * value2, value1.Top * value2, value1.Right * value2, value1.Bottom * value2);
         }
 
+        public static Size2F operator +(Size2F value1, Thickness value2)
+        {
+            return new Size2F(value1.Width + value2.Left + value2.Right, value1.Height + value2.Top + value2.Bottom);
+        }
+        
+        public static Size2F operator -(Size2F value1, Thickness value2)
+        {
+            return new Size2F(Math.Max(0, value1.Width - value2.Left - value2.Right), Math.Max(0, value1.Height - value2.Top - value2.Bottom));
+        }
     }
 }

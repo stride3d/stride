@@ -30,7 +30,8 @@ namespace Stride.UI.Renderers
                 return;
             
             var color = toggleButton.RenderOpacity * Color.White;
-            Batch.DrawImage(sprite.Texture, ref element.WorldMatrixInternal, ref sprite.RegionInternal, ref element.RenderSizeInternal, ref sprite.BordersInternal, ref color, context.DepthBias, sprite.Orientation);
+            var size = new Vector3(element.RenderSizeInternal.Width, element.RenderSizeInternal.Height, 0);
+            Batch.DrawImage(sprite.Texture, ref element.WorldMatrixInternal, ref sprite.RegionInternal, ref size, ref sprite.BordersInternal, ref color, context.DepthBias, sprite.Orientation);
         }
 
         private static Sprite GetToggleStateImage(ToggleButton toggleButton)

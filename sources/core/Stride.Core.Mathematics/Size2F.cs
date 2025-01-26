@@ -54,6 +54,16 @@ namespace Stride.Core.Mathematics
             Width = width;
             Height = height;
         }
+        
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Size2F"/> struct.
+        /// </summary>
+        /// <param name="widthAndHeight">The width and height of the <see cref="Size2F"/>.</param>
+        public Size2F(float widthAndHeight)
+        {
+            Width = widthAndHeight;
+            Height = widthAndHeight;
+        }
 
         /// <summary>
         /// Width.
@@ -66,6 +76,29 @@ namespace Stride.Core.Mathematics
         /// </summary>
         [DataMember(1)]
         public float Height;
+
+        public float this[int component]
+        {
+            get
+            {
+                switch (component)
+                {
+                    case 0:
+                        return Width;
+                    case 1:
+                        return Height;
+                    default:
+                        throw new IndexOutOfRangeException();
+                }
+            }
+            set
+            {
+                if (component == 0)
+                    Width = value;
+                else
+                    Height = value;
+            }
+        }
 
         /// <summary>
         /// Determines whether the specified <see cref="object"/> is equal to this instance.
@@ -120,6 +153,64 @@ namespace Stride.Core.Mathematics
         public static bool operator !=(Size2F left, Size2F right)
         {
             return !left.Equals(right);
+        }
+
+        /// <summary>
+        /// Implements the operator <c>/</c>, component wise.
+        /// </summary>
+        /// <param name="left">The left.</param>
+        /// <param name="right">The right.</param>
+        /// <returns>
+        /// The result of the operator.
+        /// </returns>
+        public static Size2F operator /(Size2F left, Size2F right)
+        {
+            return new Size2F(left.Width / right.Width, left.Height / right.Height);
+        }
+        
+        public static Size2F operator /(Size2F left, float right)
+        {
+            return new Size2F(left.Width / right, left.Height / right);
+        }
+        
+        public static Size2F operator *(Size2F left, Size2F right)
+        {
+            return new Size2F(left.Width * right.Width, left.Height * right.Height);
+        }
+        
+        public static Size2F operator *(Size2F left, float right)
+        {
+            return new Size2F(left.Width * right, left.Height * right);
+        }
+
+        public static Size2F operator +(Size2F left, Size2F right)
+        {
+            return new Size2F(left.Width + right.Width, left.Height + right.Height);
+        }
+        
+        public static Size2F operator -(Size2F left, Size2F right)
+        {
+            return new Size2F(left.Width + right.Width, left.Height + right.Height);
+        }
+
+        public static Size2F Modulate(Size2F left, Size2F right)
+        {
+            return new Size2F(left.Width * right.Width, left.Height * right.Height);
+        }
+
+        public static Size2F Max(Size2F left, Size2F right)
+        {
+            return new Size2F(Math.Max(left.Width, right.Width), Math.Max(left.Height, right.Height));
+        }
+
+        public static explicit operator Size2F(Vector2 vector)
+        {
+            return new Size2F(vector.X, vector.Y);
+        }
+        
+        public static explicit operator Vector2(Size2F size)
+        {
+            return new Vector2(size.Width, size.Height);
         }
 
         /// <inheritdoc/>

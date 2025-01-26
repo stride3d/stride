@@ -19,11 +19,11 @@ namespace Stride.UI.Tests
             return new Vector3(random.NextFloat(), random.NextFloat(), random.NextFloat());
         }
 
-        public static Thickness NextThickness(this Random random, float leftFactor, float topFactor, float backFactor, float rightFactor, float bottomFactor, float frontFactor)
+        public static Thickness NextThickness(this Random random, float leftFactor, float topFactor, float backFactor, float rightFactor)
         {
             return new Thickness(
-                random.NextFloat() * leftFactor, random.NextFloat() * topFactor, random.NextFloat() * backFactor,
-                random.NextFloat() * rightFactor, random.NextFloat() * bottomFactor, random.NextFloat() * frontFactor);
+                random.NextFloat() * leftFactor, random.NextFloat() * topFactor,
+                random.NextFloat() * rightFactor, random.NextFloat() * backFactor);
         }
     }
 }

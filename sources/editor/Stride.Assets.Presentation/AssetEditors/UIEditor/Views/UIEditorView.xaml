@@ -89,9 +89,6 @@
           <MenuItem Header="{sd:Localize Bottom left, Context=Menu}"  Command="{Binding PanelCommand}" CommandParameter="{x:Static uevm:PanelCommandMode.PinBottomLeft}" />
           <MenuItem Header="{sd:Localize Bottom, Context=Menu}"       Command="{Binding PanelCommand}" CommandParameter="{x:Static uevm:PanelCommandMode.PinBottom}" />
           <MenuItem Header="{sd:Localize Bottom right, Context=Menu}" Command="{Binding PanelCommand}" CommandParameter="{x:Static uevm:PanelCommandMode.PinBottomRight}" />
-          <MenuItem Header="{sd:Localize Front, Context=Menu}"        Command="{Binding PanelCommand}" CommandParameter="{x:Static uevm:PanelCommandMode.PinFront}" />
-          <MenuItem Header="{sd:Localize Middle, Context=Menu}"       Command="{Binding PanelCommand}" CommandParameter="{x:Static uevm:PanelCommandMode.PinMiddle}" />
-          <MenuItem Header="{sd:Localize Back, Context=Menu}"         Command="{Binding PanelCommand}" CommandParameter="{x:Static uevm:PanelCommandMode.PinBack}" />
         </MenuItem>
         
         <!-- Grid tools -->
@@ -107,11 +104,6 @@
                   Visibility="{Binding Parent.AssetSideUIElement, Converter={sd:Chained {sd:MatchType}, {sd:VisibleOrCollapsed}, Parameter1={x:Type panels:GridBase}}, FallbackValue={sd:Collapsed}}">
           <MenuItem Header="{sd:Localize Move left, Context=Menu}" Command="{Binding PanelCommand}" CommandParameter="{x:Static uevm:PanelCommandMode.MoveLeft}" />
           <MenuItem Header="{sd:Localize Move right, Context=Menu}" Command="{Binding PanelCommand}" CommandParameter="{x:Static uevm:PanelCommandMode.MoveRight}" />
-        </MenuItem>
-        <MenuItem Header="{sd:Localize Layer, Context=Menu}"
-                  Visibility="{Binding Parent.AssetSideUIElement, Converter={sd:Chained {sd:MatchType}, {sd:VisibleOrCollapsed}, Parameter1={x:Type panels:GridBase}}, FallbackValue={sd:Collapsed}}">
-          <MenuItem Header="{sd:Localize Move back, Context=Menu}" Command="{Binding PanelCommand}" CommandParameter="{x:Static uevm:PanelCommandMode.MoveBack}" />
-          <MenuItem Header="{sd:Localize Move front, Context=Menu}" Command="{Binding PanelCommand}" CommandParameter="{x:Static uevm:PanelCommandMode.MoveFront}" />
         </MenuItem>
 
         <!-- StackPanel tools -->

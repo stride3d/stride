@@ -84,8 +84,9 @@ namespace Stride.UI.Renderers
             if (backgroundColor == new Color())
                 return;
 
+            var size = new Vector3(element.RenderSizeInternal.Width, element.RenderSizeInternal.Height, 0);
             // Default implementation: render an back-face cube with background color
-            Batch.DrawBackground(ref element.WorldMatrixInternal, ref element.RenderSizeInternal, ref backgroundColor, context.DepthBias);
+            Batch.DrawBackground(ref element.WorldMatrixInternal, ref size, ref backgroundColor, context.DepthBias);
 
             // increase depth bias value so that next elements renders on top of it.
             context.DepthBias += 1;
@@ -100,8 +101,9 @@ namespace Stride.UI.Renderers
         /// If the user wants to perform some intermediate rendering, it is his responsibility to bind them back correctly before the final rendering.</remarks>
         public virtual void RenderClipping(UIElement element, UIRenderingContext context)
         {
+            var size = new Vector3(element.RenderSizeInternal.Width, element.RenderSizeInternal.Height, 0);
             // Default implementation: render an back-face cube
-            Batch.DrawBackground(ref element.WorldMatrixInternal, ref element.RenderSizeInternal, ref blackColor, context.DepthBias);
+            Batch.DrawBackground(ref element.WorldMatrixInternal, ref size, ref blackColor, context.DepthBias);
 
             // increase the context depth bias for next elements.
             context.DepthBias += 1;

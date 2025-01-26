@@ -31,8 +31,8 @@ namespace Stride.Rendering.UI
         public UIPage Page;
         public UIElementSampler Sampler;
         public bool IsFullScreen;
-        public Vector3 Resolution;
-        public Vector3 Size;
+        public Size2F Resolution;
+        public Size2F Size;
         public ResolutionStretch ResolutionStretch;
         public bool IsBillboard;
         public bool SnapText;

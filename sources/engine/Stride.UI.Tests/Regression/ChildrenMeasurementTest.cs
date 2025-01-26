@@ -66,8 +66,8 @@ namespace Stride.UI.Tests.Regression
         private void DrawTest0()
         {
             var resolution = UIComponent.Resolution;
-            resolution.Z = 0;
-            canvas.Size = resolution;
+            //resolution.Z = 0;
+            canvas.Size = (Vector2)resolution;
         }
 
         /// <summary>
@@ -84,7 +84,7 @@ namespace Stride.UI.Tests.Regression
         /// </summary>
         private void DrawTest2()
         {
-            canvas.Size = new Vector3(float.NaN);
+            canvas.Size = new Vector2(float.NaN);
             stackPanel.BackgroundColor = Color.LightGray;
         }
 

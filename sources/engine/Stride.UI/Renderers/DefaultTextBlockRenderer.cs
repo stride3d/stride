@@ -31,7 +31,7 @@ namespace Stride.UI.Renderers
             {
                 Color = textBlock.RenderOpacity * textBlock.TextColor,
                 DepthBias = context.DepthBias,
-                RealVirtualResolutionRatio = element.LayoutingContext.RealVirtualResolutionRatio,
+                RealVirtualResolutionRatio = (Vector2)element.LayoutingContext.RealVirtualResolutionRatio,
                 RequestedFontSize = textBlock.ActualTextSize,
                 Batch = Batch,
                 SnapText = context.ShouldSnapText && !textBlock.DoNotSnapText,

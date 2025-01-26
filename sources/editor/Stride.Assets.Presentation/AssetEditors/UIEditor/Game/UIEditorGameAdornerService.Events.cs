@@ -276,15 +276,15 @@ namespace Stride.Assets.Presentation.AssetEditors.UIEditor.Game
         private ICollection<UIRenderFeature.HitTestResult> GetAdornerVisualsAtPosition(ref Vector3 worldPosition)
         {
             var uiComponent = Controller.GetEntityByName(UIEditorController.AdornerEntityName).Get<UIComponent>();
-            if (Math.Abs(worldPosition.X) > uiComponent.Resolution.X * 0.5f ||
-                Math.Abs(worldPosition.Y) > uiComponent.Resolution.Y * 0.5f)
+            if (Math.Abs(worldPosition.X) > uiComponent.Resolution.Width * 0.5f ||
+                Math.Abs(worldPosition.Y) > uiComponent.Resolution.Height * 0.5f)
                 return null;
 
             var rootElement = uiComponent.Page?.RootElement;
             if (rootElement == null)
                 return null;
 
-            var ray = new Ray(new Vector3(worldPosition.X, worldPosition.Y, uiComponent.Resolution.Z + 1), -Vector3.UnitZ);
+            var ray = new Ray(new Vector3(worldPosition.X, worldPosition.Y, 1000 + 1), -Vector3.UnitZ);
             var worldViewProj = Matrix.Identity; // All the calculation is done in UI space
             return UIRenderFeature.GetElementsAtPosition(rootElement, ref ray, ref worldViewProj);
         }

@@ -197,13 +197,13 @@ namespace Stride.UI.Controls
         /// Calculate and returns the size of the <see cref="Text"/> in virtual pixels size.
         /// </summary>
         /// <returns>The size of the Text in virtual pixels.</returns>
-        public Vector2 CalculateTextSize()
+        public Size2F CalculateTextSize()
         {
             return CalculateTextSize(TextToDisplay);
         }
 
         /// <inheritdoc/>
-        protected override Vector3 ArrangeOverride(Vector3 finalSizeWithoutMargins)
+        protected override Size2F ArrangeOverride(Size2F finalSizeWithoutMargins)
         {
             if (WrapText)
                 UpdateWrappedText(finalSizeWithoutMargins);
@@ -216,21 +216,21 @@ namespace Stride.UI.Controls
         /// </summary>
         /// <param name="textToMeasure">The text to measure</param>
         /// <returns>The size of the text in virtual pixels</returns>
-        protected Vector2 CalculateTextSize(string textToMeasure)
+        protected Size2F CalculateTextSize(string textToMeasure)
         {
             if (textToMeasure == null)
-                return Vector2.Zero;
+                return Size2F.Zero;
 
             return CalculateTextSize(new SpriteFont.StringProxy(textToMeasure));
         }
 
         /// <inheritdoc/>
-        protected override Vector3 MeasureOverride(Vector3 availableSizeWithoutMargins)
+        protected override Size2F MeasureOverride(Size2F availableSizeWithoutMargins)
         {
             if (WrapText)
                 UpdateWrappedText(availableSizeWithoutMargins);
 
-            return new Vector3(CalculateTextSize(), 0);
+            return CalculateTextSize();
         }
 
         /// <summary>
@@ -242,19 +242,19 @@ namespace Stride.UI.Controls
             InvalidateMeasure();
         }
 
-        private Vector2 CalculateTextSize(StringBuilder textToMeasure)
+        private Size2F CalculateTextSize(StringBuilder textToMeasure)
         {
             return CalculateTextSize(new SpriteFont.StringProxy(textToMeasure));
         }
 
-        private Vector2 CalculateTextSize(SpriteFont.StringProxy textToMeasure)
+        private Size2F CalculateTextSize(SpriteFont.StringProxy textToMeasure)
         {
             if (Font == null)
-                return Vector2.Zero;
+                return Size2F.Zero;
 
             var sizeRatio = LayoutingContext.RealVirtualResolutionRatio;
-            var measureFontSize = new Vector2(sizeRatio.Y * ActualTextSize); // we don't want letters non-uniform ratio
-            var realSize = Font.MeasureString(ref textToMeasure, ref measureFontSize);
+            var measureFontSize = new Vector2(sizeRatio.Height * ActualTextSize); // we don't want letters non-uniform ratio
+            var realSize = (Size2F)Font.MeasureString(ref textToMeasure, ref measureFontSize);
 
             // force pre-generation if synchronous generation is required
             if (SynchronousCharacterGeneration)
@@ -263,21 +263,21 @@ namespace Stride.UI.Controls
             if (Font.FontType == SpriteFontType.Dynamic)
             {
                 // rescale the real size to the virtual size
-                realSize.X /= sizeRatio.X;
-                realSize.Y /= sizeRatio.Y;
+                realSize.Width /= sizeRatio.Width;
+                realSize.Height /= sizeRatio.Height;
             }
 
             if (Font.FontType == SpriteFontType.SDF)
             {
                 var scaleRatio = ActualTextSize / Font.Size;
-                realSize.X *= scaleRatio;
-                realSize.Y *= scaleRatio;
+                realSize.Width *= scaleRatio;
+                realSize.Height *= scaleRatio;
             }
 
             return realSize;
         }
 
-        private void UpdateWrappedText(Vector3 availableSpace)
+        private void UpdateWrappedText(Size2F availableSpace)
         {
             if (string.IsNullOrEmpty(text))
             {
@@ -286,7 +286,7 @@ namespace Stride.UI.Controls
                 return;
             }
 
-            var availableWidth = availableSpace.X;
+            var availableWidth = availableSpace.Width;
             var currentLine = new StringBuilder(text.Length);
             var currentText = new StringBuilder(2 * text.Length);
 
@@ -299,7 +299,7 @@ namespace Stride.UI.Controls
 
                 while (true)
                 {
-                    lineCurrentSize = CalculateTextSize(currentLine).X;
+                    lineCurrentSize = CalculateTextSize(currentLine).Width;
 
                     if (lineCurrentSize > availableWidth || indexOfNewLine + indexNextCharacter >= text.Length)
                         break;

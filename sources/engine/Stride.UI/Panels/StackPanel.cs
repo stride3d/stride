@@ -18,13 +18,10 @@ namespace Stride.UI.Panels
     public class StackPanel : Panel, IScrollInfo
     {
         /// <summary>
-        /// Indicate the first index of Vector3 to use to maximize depending on the stack panel orientation.
+        /// Indicate the first index of Vector2 to use to maximize depending on the stack panel orientation.
         /// </summary>
-        protected static readonly int[] OrientationToMaximizeIndex1 = { 1, 0, 0 };
-        /// <summary>
-        /// Indicate the second index of Vector3 to use to accumulate depending on the stack panel orientation.
-        /// </summary>
-        protected static readonly int[] OrientationToMaximizeIndex2 = { 2, 2, 1 };
+        protected static readonly int[] OrientationToMaximizeIndex1 = { 1, 0 };
+        
         /// <summary>
         /// Indicate the axis along which the measure zone is infinite depending on the scroll owner scrolling mode.
         /// </summary>
@@ -39,7 +36,7 @@ namespace Stride.UI.Panels
                 new []{ 2, 0 },
             };
 
-        private Vector3 offset;
+        private Vector2 offset;
         private Orientation orientation = Orientation.Vertical;
 
         /// <summary>
@@ -64,7 +61,7 @@ namespace Stride.UI.Panels
 
         private readonly FastCollection<UIElement> cachedVisibleChildren = new FastCollection<UIElement>();
 
-        private Vector3 extent;
+        private Size2F extent;
 
         private readonly List<float> elementBounds = new List<float>();
 
@@ -189,7 +186,7 @@ namespace Stride.UI.Panels
                 ++scrollPosition;
         }
 
-        protected override Vector3 MeasureOverride(Vector3 availableSizeWithoutMargins)
+        protected override Size2F MeasureOverride(Size2F availableSizeWithoutMargins)
         {
             Viewport = availableSizeWithoutMargins;
 
@@ -197,13 +194,12 @@ namespace Stride.UI.Panels
             if (ItemVirtualizationEnabled)
                 AdjustOffsetsAndVisualChildren(scrollPosition);
 
-            var accumulatorIndex = (int)Orientation;
-            var maximizeIndex1 = OrientationToMaximizeIndex1[(int)Orientation];
-            var maximizeIndex2 = OrientationToMaximizeIndex2[(int)Orientation];
+            var mainAxisIndex = (int)Orientation;
+            var offAxisIndex = 1 - mainAxisIndex;
 
             // compute the size available to the children depending on the stack orientation
             var childAvailableSizeWithMargins = availableSizeWithoutMargins;
-            childAvailableSizeWithMargins[accumulatorIndex] = float.PositiveInfinity;
+            childAvailableSizeWithMargins[mainAxisIndex] = float.PositiveInfinity;
 
             // add infinite bounds depending on scroll owner scrolling mode
             if (ScrollOwner != null)
@@ -218,18 +214,17 @@ namespace Stride.UI.Panels
                 child.Measure(childAvailableSizeWithMargins);
 
             // calculate the stack panel desired size
-            var desiredSize = Vector3.Zero;
+            var desiredSize = Size2F.Zero;
             foreach (var child in children)
             {
-                desiredSize[accumulatorIndex] += child.DesiredSizeWithMargins[accumulatorIndex];
-                desiredSize[maximizeIndex1] = Math.Max(desiredSize[maximizeIndex1], child.DesiredSizeWithMargins[maximizeIndex1]);
-                desiredSize[maximizeIndex2] = Math.Max(desiredSize[maximizeIndex2], child.DesiredSizeWithMargins[maximizeIndex2]);
+                desiredSize[mainAxisIndex] += child.DesiredSizeWithMargins[mainAxisIndex];
+                desiredSize[offAxisIndex] = Math.Max(desiredSize[offAxisIndex], child.DesiredSizeWithMargins[offAxisIndex]);
             }
 
             return desiredSize;
         }
 
-        protected override Vector3 ArrangeOverride(Vector3 finalSizeWithoutMargins)
+        protected override Size2F ArrangeOverride(Size2F finalSizeWithoutMargins)
         {
             visibleChildren.Clear(); // children's children may have changed we need to force the rearrangement.
 
@@ -297,7 +292,6 @@ namespace Stride.UI.Panels
             // cache the accumulator and maximize indices 
             var accumulatorIndex = (int)Orientation;
             var maximizeIndex1 = OrientationToMaximizeIndex1[(int)Orientation];
-            var maximizeIndex2 = OrientationToMaximizeIndex2[(int)Orientation];
 
             // add the first element bound
             elementBounds.Add(0);
@@ -309,16 +303,15 @@ namespace Stride.UI.Panels
                 var startBound = elementBounds[elementBounds.Count - 1];
 
                 // compute the child origin
-                var childOrigin = -Viewport / 2; // correspond to (left, top, back) parent corner
+                var childOrigin = -(Vector2)Viewport / 2; // correspond to (left, top) parent corner
                 childOrigin[accumulatorIndex] += startBound;
 
                 // set the arrange matrix of the child
-                child.DependencyProperties.Set(PanelArrangeMatrixPropertyKey, Matrix.Translation(childOrigin));
+                child.DependencyProperties.Set(PanelArrangeMatrixPropertyKey, Matrix.Translation(new Vector3(childOrigin.X, childOrigin.Y, 0)));
 
                 // compute the size given to the child
                 var childSizeWithMargins = child.DesiredSizeWithMargins;
                 childSizeWithMargins[maximizeIndex1] = Viewport[maximizeIndex1];
-                childSizeWithMargins[maximizeIndex2] = Viewport[maximizeIndex2];
 
                 // arrange the child
                 child.Arrange(childSizeWithMargins, IsCollapsed);
@@ -327,7 +320,7 @@ namespace Stride.UI.Panels
                 if (child.IsCollapsed)
                     elementBounds.Add(startBound);
                 else
-                    elementBounds.Add(startBound + child.RenderSize[accumulatorIndex] + child.MarginInternal[accumulatorIndex] + child.MarginInternal[3 + accumulatorIndex]);
+                    elementBounds.Add(startBound + child.RenderSize[accumulatorIndex] + child.MarginInternal[accumulatorIndex] + child.MarginInternal[1 + accumulatorIndex]);
             }
         }
 
@@ -336,11 +329,11 @@ namespace Stride.UI.Panels
             return direction == Orientation;
         }
 
-        public Vector3 Extent => extent;
+        public Size2F Extent => extent;
 
-        public Vector3 Offset => offset;
+        public Vector2 Offset => offset;
 
-        public Vector3 Viewport { get; private set; }
+        public Size2F Viewport { get; private set; }
 
         public override Vector2 GetSurroudingAnchorDistances(Orientation direction, float position)
         {
@@ -390,7 +383,7 @@ namespace Stride.UI.Panels
             ScrolllToElement(elementIndex);
         }
 
-        public void ScrollOf(Vector3 offsetsToApply)
+        public void ScrollOf(Vector2 offsetsToApply)
         {
             ScrollOf(offsetsToApply[(int)Orientation]);
         }
@@ -440,11 +433,11 @@ namespace Stride.UI.Panels
             }
         }
 
-        public Vector3 ScrollBarPositions
+        public Vector2 ScrollBarPositions
         {
             get
             {
-                var positionRatio = Vector3.Zero;
+                var positionRatio = Vector2.Zero;
                 var scrollAxis = (int)Orientation;
 
                 if (Children.Count == 0)
@@ -597,7 +590,7 @@ namespace Stride.UI.Panels
         /// </summary>
         private void AdjustOffsetsAndVisualChildren(float desiredNewScrollPosition)
         {
-            offset = Vector3.Zero;
+            offset = Vector2.Zero;
             var axis = (int)Orientation;
 
             if (ItemVirtualizationEnabled)
@@ -610,7 +603,7 @@ namespace Stride.UI.Panels
                 if (elementBounds.Count < 2) // no children
                 {
                     scrollPosition = 0;
-                    offset = Vector3.Zero;
+                    offset = Vector2.Zero;
                 }
                 else
                 {
@@ -791,7 +784,7 @@ namespace Stride.UI.Panels
                 child.Arrange(childProvidedSize, Parent != null && Parent.IsCollapsed);
             }
 
-            return child.RenderSize[dimension] + child.Margin[dimension] + child.Margin[dimension + 3];
+            return child.RenderSize[dimension] + child.Margin[dimension] + child.Margin[dimension + 1];
         }
 
         protected internal override FastCollection<UIElement> HitableChildren => visibleChildren;

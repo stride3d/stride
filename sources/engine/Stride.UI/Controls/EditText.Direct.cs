@@ -50,7 +50,7 @@ namespace Stride.UI.Controls
                 return 0;
 
             var textRegionSize = (ActualWidth - Padding.Left - Padding.Right);
-            var fontScale = LayoutingContext.RealVirtualResolutionRatio;
+            var fontScale = (Vector2)LayoutingContext.RealVirtualResolutionRatio;
             var fontSize = new Vector2(fontScale.Y * ActualTextSize); // we don't want letters non-uniform ratio
 
             // calculate the offset of the beginning of the text due to text alignment

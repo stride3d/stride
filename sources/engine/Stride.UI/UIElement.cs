@@ -34,10 +34,10 @@ namespace Stride.UI
         protected const string LayoutCategory = "Layout";
         protected const string MiscCategory = "Misc";
 
-        internal Vector3 RenderSizeInternal;
+        internal Size2F RenderSizeInternal;
         internal Matrix WorldMatrixInternal;
         internal Matrix WorldMatrixPickingInternal;
-        protected internal Thickness MarginInternal = Thickness.UniformCuboid(0f);
+        protected internal Thickness MarginInternal = Thickness.Uniform(0f);
 
         private string name;
         private Visibility visibility = Visibility.Visible;
@@ -46,19 +46,15 @@ namespace Stride.UI
         private bool isHierarchyEnabled = true;
         private float defaultWidth;
         private float defaultHeight;
-        private float defaultDepth;
         private float width = float.NaN;
         private float height = float.NaN;
-        private float depth = float.NaN;
+        private float depthOffset = 0;
         private HorizontalAlignment horizontalAlignment = HorizontalAlignment.Stretch;
         private VerticalAlignment verticalAlignment = VerticalAlignment.Stretch;
-        private DepthAlignment depthAlignment = DepthAlignment.Center;
         private float maximumWidth = float.PositiveInfinity;
         private float maximumHeight = float.PositiveInfinity;
-        private float maximumDepth = float.PositiveInfinity;
         private float minimumWidth;
         private float minimumHeight;
-        private float minimumDepth;
         private Matrix localMatrix = Matrix.Identity;
         private MouseOverState mouseOverState;
         private LayoutingContext layoutingContext;
@@ -66,8 +62,8 @@ namespace Stride.UI
         protected bool ArrangeChanged;
         protected bool LocalMatrixChanged;
 
-        private Vector3 previousProvidedMeasureSize = new Vector3(-1,-1,-1);
-        private Vector3 previousProvidedArrangeSize = new Vector3(-1,-1,-1);
+        private Size2F previousProvidedMeasureSize = new Size2F(-1,-1);
+        private Size2F previousProvidedArrangeSize = new Size2F(-1,-1);
         private bool previousIsParentCollapsed;
 
         /// <summary>
@@ -255,37 +251,31 @@ namespace Stride.UI
             }
         }
 
-        /// <summary>
-        /// Gets or sets the user suggested depth of this element.
-        /// </summary>
-        /// <remarks>The value is coerced in the range [0, <see cref="float.MaxValue"/>].</remarks>
-        /// <userdoc>Depth of this element. If NaN, the default depth will be used instead.</userdoc>
         [DataMember]
         [DataMemberRange(0.0f, 3)]
         [Display(category: LayoutCategory)]
-        [DefaultValue(float.NaN)]
-        public float Depth
+        [DefaultValue(0)]
+        public float DepthOffset
         {
-            get => depth;
+            get => depthOffset;
             set
             {
-                depth = MathUtil.Clamp(value, 0.0f, float.MaxValue);
-                InvalidateMeasure();
+                depthOffset = MathUtil.Clamp(value, 0, float.MaxValue);
+                InvalidateArrange();
             }
         }
 
         /// <summary>
-        /// Gets or sets the size of the element. Same as setting separately <see cref="Width"/>, <see cref="Height"/>, and <see cref="Depth"/>
+        /// Gets or sets the size of the element. Same as setting separately <see cref="Width"/>, and <see cref="Height"/>.
         /// </summary>
         [DataMemberIgnore]
-        public Vector3 Size
+        public Size2F Size
         {
-            get => new Vector3(Width, Height, Depth);
+            get => new Size2F(Width, Height);
             set
             {
-                Width = value.X;
-                Height = value.Y;
-                Depth = value.Z;
+                Width = value.Width;
+                Height = value.Height;
             }
         }
 
@@ -319,23 +309,6 @@ namespace Stride.UI
             set
             {
                 verticalAlignment = value;
-                InvalidateArrange();
-            }
-        }
-
-        /// <summary>
-        /// Gets or sets the depth alignment of this element.
-        /// </summary>
-        /// <userdoc>Depth alignment of this element.</userdoc>
-        [DataMember]
-        [Display(category: LayoutCategory)]
-        [DefaultValue(DepthAlignment.Center)]
-        public DepthAlignment DepthAlignment
-        {
-            get => depthAlignment;
-            set
-            {
-                depthAlignment = value;
                 InvalidateArrange();
             }
         }
@@ -399,27 +372,6 @@ namespace Stride.UI
         }
 
         /// <summary>
-        /// Gets or sets the minimum height of this element.
-        /// </summary>
-        /// <remarks>The value is coerced in the range [0, <see cref="float.MaxValue"/>].</remarks>
-        /// <userdoc>Minimum depth of this element.</userdoc>
-        [DataMember]
-        [DataMemberRange(0.0f, 3)]
-        [Display(category: LayoutCategory)]
-        [DefaultValue(0.0f)]
-        public float MinimumDepth
-        {
-            get => minimumDepth;
-            set
-            {
-                if (float.IsNaN(value))
-                    return;
-                minimumDepth = MathUtil.Clamp(value, 0.0f, float.MaxValue);
-                InvalidateMeasure();
-            }
-        }
-
-        /// <summary>
         /// Gets or sets the maximum width of this element.
         /// </summary>
         /// <remarks>The value is coerced in the range [0, <see cref="float.PositiveInfinity"/>].</remarks>
@@ -457,27 +409,6 @@ namespace Stride.UI
                 if (float.IsNaN(value))
                     return;
                 maximumHeight = MathUtil.Clamp(value, 0.0f, float.PositiveInfinity);
-                InvalidateMeasure();
-            }
-        }
-
-        /// <summary>
-        /// Gets or sets the maximum height of this element.
-        /// </summary>
-        /// <remarks>The value is coerced in the range [0, <see cref="float.PositiveInfinity"/>].</remarks>
-        /// <userdoc>Maximum depth of this element.</userdoc>
-        [DataMember]
-        [DataMemberRange(0.0f, 3)]
-        [Display(category: LayoutCategory)]
-        [DefaultValue(float.PositiveInfinity)]
-        public float MaximumDepth
-        {
-            get => maximumDepth;
-            set
-            {
-                if (float.IsNaN(value))
-                    return;
-                maximumDepth = MathUtil.Clamp(value, 0.0f, float.PositiveInfinity);
                 InvalidateMeasure();
             }
         }
@@ -525,27 +456,6 @@ namespace Stride.UI
         }
 
         /// <summary>
-        /// Gets or sets the default width of this element.
-        /// </summary>
-        /// <remarks>The value is coerced in the range [0, <see cref="float.MaxValue"/>].</remarks>
-        /// <userdoc>Default depth of this element.</userdoc>
-        [DataMember]
-        [DataMemberRange(0.0f, 3)]
-        [Display(category: LayoutCategory)]
-        [DefaultValue(0.0f)]
-        public float DefaultDepth
-        {
-            get => defaultDepth;
-            set
-            {
-                if (float.IsNaN(value))
-                    return;
-                defaultDepth = MathUtil.Clamp(value, 0.0f, float.MaxValue);
-                InvalidateMeasure();
-            }
-        }
-
-        /// <summary>
         /// Gets or sets the name of this element.
         /// </summary>
         /// <userdoc>Name of this element.</userdoc>
@@ -570,14 +480,14 @@ namespace Stride.UI
         /// </summary>
         /// <remarks>This value does not contain possible <see cref="Margin"/></remarks>
         [DataMemberIgnore]
-        public Vector3 DesiredSize { get; private set; }
+        public Size2F DesiredSize { get; private set; }
 
         /// <summary>
         /// Gets the size that this element computed during the measure pass of the layout process.
         /// </summary>
         /// <remarks>This value contains possible <see cref="Margin"/></remarks>
         [DataMemberIgnore]
-        public Vector3 DesiredSizeWithMargins { get; private set; }
+        public Size2F DesiredSizeWithMargins { get; private set; }
 
         /// <summary>
         /// Gets a value indicating whether the computed size and position of child elements in this element's layout are valid.
@@ -766,10 +676,8 @@ namespace Stride.UI
         {
             if (dimensionIndex == 0)
                 Width = value;
-            else if (dimensionIndex == 1)
-                Height = value;
             else
-                Depth = value;
+                Height = value;
         }
 
         /// <summary>
@@ -809,7 +717,7 @@ namespace Stride.UI
         /// Gets (or sets, but see Remarks) the final render size of this element.
         /// </summary>
         [DataMemberIgnore]
-        public Vector3 RenderSize
+        public Size2F RenderSize
         {
             get => RenderSizeInternal;
             private set => RenderSizeInternal = value;
@@ -824,17 +732,14 @@ namespace Stride.UI
         /// <summary>
         /// Gets the rendered width of this element.
         /// </summary>
-        public float ActualWidth => RenderSize.X;
+        public float ActualWidth => RenderSize.Width;
 
         /// <summary>
         /// Gets the rendered height of this element.
         /// </summary>
-        public float ActualHeight => RenderSize.Y;
-
-        /// <summary>
-        /// Gets the rendered depth of this element.
-        /// </summary>
-        public float ActualDepth => RenderSize.Z;
+        public float ActualHeight => RenderSize.Height;
+        
+        public float TotalDepthOffset { get; private set; }
 
         /// <inheritdoc/>
         IEnumerable<IUIElementChildren> IUIElementChildren.Children => EnumerateChildren();
@@ -850,15 +755,15 @@ namespace Stride.UI
             yield break;
         }
 
-        private unsafe bool Vector3BinaryEqual(ref Vector3 left, ref Vector3 right)
+        private unsafe bool Size2BinaryEqual(ref Size2F left, ref Size2F right)
         {
-            fixed (Vector3* pVector3Left = &left)
-            fixed (Vector3* pVector3Right = &right)
+            fixed (Size2F* pVector2Left = &left)
+            fixed (Size2F* pVector2Right = &right)
             {
-                var pLeft = (int*)pVector3Left;
-                var pRight = (int*)pVector3Right;
+                var pLeft = (int*)pVector2Left;
+                var pRight = (int*)pVector2Right;
 
-                return pLeft[0] == pRight[0] && pLeft[1] == pRight[1] && pLeft[2] == pRight[2];
+                return pLeft[0] == pRight[0] && pLeft[1] == pRight[1];
             }
         }
 
@@ -869,9 +774,9 @@ namespace Stride.UI
         /// </summary>
         /// <param name="availableSizeWithMargins">The available space that a parent element can allocate a child element with its margins.
         /// A child element can request a larger space than what is available;  the provided size might be accommodated if scrolling is possible in the content model for the current element.</param>
-        public void Measure(Vector3 availableSizeWithMargins)
+        public void Measure(Size2F availableSizeWithMargins)
         {
-            if (!ForceNextMeasure && Vector3BinaryEqual(ref availableSizeWithMargins, ref previousProvidedMeasureSize))
+            if (!ForceNextMeasure && Size2BinaryEqual(ref availableSizeWithMargins, ref previousProvidedMeasureSize))
             {
                 IsMeasureValid = true;
                 ValidateChildrenMeasure();
@@ -887,52 +792,46 @@ namespace Stride.UI
             // avoid useless computation if the element is collapsed
             if (IsCollapsed)
             {
-                DesiredSize = DesiredSizeWithMargins = Vector3.Zero;
+                DesiredSize = DesiredSizeWithMargins = Size2F.Zero;
                 return;
             }
 
             // variable containing the temporary desired size
-            var desiredSize = new Vector3(Width, Height, Depth);
+            var desiredSize = new Size2F(Width, Height);
 
-            // width, height or the depth of the UIElement might be undetermined
+            // width, or height of the UIElement might be undetermined
             // -> compute the desired size of the children to determine it
 
             // removes the size required for the margins in the available size
-            var availableSizeWithoutMargins = CalculateSizeWithoutThickness(ref availableSizeWithMargins, ref MarginInternal);
+            var availableSizeWithoutMargins = availableSizeWithMargins - MarginInternal;
 
             // clamp the available size for the element between the maximum and minimum width/height of the UIElement
-            availableSizeWithoutMargins = new Vector3(
-                Math.Max(MinimumWidth, Math.Min(MaximumWidth, !float.IsNaN(desiredSize.X) ? desiredSize.X : availableSizeWithoutMargins.X)),
-                Math.Max(MinimumHeight, Math.Min(MaximumHeight, !float.IsNaN(desiredSize.Y) ? desiredSize.Y : availableSizeWithoutMargins.Y)),
-                Math.Max(MinimumDepth, Math.Min(MaximumDepth, !float.IsNaN(desiredSize.Z) ? desiredSize.Z : availableSizeWithoutMargins.Z)));
+            availableSizeWithoutMargins = new Size2F(
+                Math.Max(MinimumWidth, Math.Min(MaximumWidth, !float.IsNaN(desiredSize.Width) ? desiredSize.Width : availableSizeWithoutMargins.Width)),
+                Math.Max(MinimumHeight, Math.Min(MaximumHeight, !float.IsNaN(desiredSize.Height) ? desiredSize.Height : availableSizeWithoutMargins.Height)));
 
             // compute the desired size for the children
             var childrenDesiredSize = MeasureOverride(availableSizeWithoutMargins);
 
             // replace the undetermined size by the desired size for the children
-            if (float.IsNaN(desiredSize.X))
-                desiredSize.X = childrenDesiredSize.X;
-            if (float.IsNaN(desiredSize.Y))
-                desiredSize.Y = childrenDesiredSize.Y;
-            if (float.IsNaN(desiredSize.Z))
-                desiredSize.Z = childrenDesiredSize.Z;
+            if (float.IsNaN(desiredSize.Width))
+                desiredSize.Width = childrenDesiredSize.Width;
+            if (float.IsNaN(desiredSize.Height))
+                desiredSize.Height = childrenDesiredSize.Height;
 
             // override the element size by the default size if still unspecified
-            if (float.IsNaN(desiredSize.X))
-                desiredSize.X = DefaultWidth;
-            if (float.IsNaN(desiredSize.Y))
-                desiredSize.Y = DefaultHeight;
-            if (float.IsNaN(desiredSize.Z))
-                desiredSize.Z = DefaultDepth;
+            if (float.IsNaN(desiredSize.Width))
+                desiredSize.Width = DefaultWidth;
+            if (float.IsNaN(desiredSize.Height))
+                desiredSize.Height = DefaultHeight;
 
             // clamp the desired size between the maximum and minimum width/height of the UIElement
-            desiredSize = new Vector3(
-                Math.Max(MinimumWidth, Math.Min(MaximumWidth, desiredSize.X)),
-                Math.Max(MinimumHeight, Math.Min(MaximumHeight, desiredSize.Y)),
-                Math.Max(MinimumDepth, Math.Min(MaximumDepth, desiredSize.Z)));
+            desiredSize = new Size2F(
+                Math.Max(MinimumWidth, Math.Min(MaximumWidth, desiredSize.Width)),
+                Math.Max(MinimumHeight, Math.Min(MaximumHeight, desiredSize.Height)));
 
             // compute the desired size with margin
-            var desiredSizeWithMargins = CalculateSizeWithThickness(ref desiredSize, ref MarginInternal);
+            var desiredSizeWithMargins = desiredSize + MarginInternal;
 
             // update Element state variables
             DesiredSize = desiredSize;
@@ -957,9 +856,9 @@ namespace Stride.UI
         /// <param name="availableSizeWithoutMargins">The available size that this element can give to child elements.
         /// Infinity can be specified as a value to indicate that the element will size to whatever content is available.</param>
         /// <returns>The size desired by the children</returns>
-        protected virtual Vector3 MeasureOverride(Vector3 availableSizeWithoutMargins)
+        protected virtual Size2F MeasureOverride(Size2F availableSizeWithoutMargins)
         {
-            return Vector3.Zero;
+            return Size2F.Zero;
         }
 
         /// <summary>
@@ -968,9 +867,9 @@ namespace Stride.UI
         /// </summary>
         /// <param name="finalSizeWithMargins">The final size that the parent computes for the child element with the margins.</param>
         /// <param name="isParentCollapsed">Boolean indicating if one of the parents of the element is currently collapsed.</param>
-        public void Arrange(Vector3 finalSizeWithMargins, bool isParentCollapsed)
+        public void Arrange(Size2F finalSizeWithMargins, bool isParentCollapsed)
         {
-            if (!ForceNextArrange && Vector3BinaryEqual(ref finalSizeWithMargins, ref previousProvidedArrangeSize) && isParentCollapsed == previousIsParentCollapsed)
+            if (!ForceNextArrange && Size2BinaryEqual(ref finalSizeWithMargins, ref previousProvidedArrangeSize) && isParentCollapsed == previousIsParentCollapsed)
             {
                 IsArrangeValid = true;
                 ValidateChildrenArrange();
@@ -990,32 +889,30 @@ namespace Stride.UI
                 CollapseOverride();
                 return;
             }
+            
+            if (Parent != null)
+                TotalDepthOffset = Parent.TotalDepthOffset + DepthOffset;
 
             // initialize the element size with the user suggested size (maybe NaN if not set)
-            var elementSize = new Vector3(Width, Height, Depth);
+            var elementSize = new Size2F(Width, Height);
 
             // stretch the element if the user size is unspecified and alignment constraints requires it
-            var finalSizeWithoutMargins = CalculateSizeWithoutThickness(ref finalSizeWithMargins, ref MarginInternal);
-            if (float.IsNaN(elementSize.X) && HorizontalAlignment == HorizontalAlignment.Stretch)
-                elementSize.X = finalSizeWithoutMargins.X;
-            if (float.IsNaN(elementSize.Y) && VerticalAlignment == VerticalAlignment.Stretch)
-                elementSize.Y = finalSizeWithoutMargins.Y;
-            if (float.IsNaN(elementSize.Z) && DepthAlignment == DepthAlignment.Stretch)
-                elementSize.Z = finalSizeWithoutMargins.Z;
+            var finalSizeWithoutMargins = finalSizeWithMargins - MarginInternal;
+            if (float.IsNaN(elementSize.Width) && HorizontalAlignment == HorizontalAlignment.Stretch)
+                elementSize.Width = finalSizeWithoutMargins.Width;
+            if (float.IsNaN(elementSize.Height) && VerticalAlignment == VerticalAlignment.Stretch)
+                elementSize.Height = finalSizeWithoutMargins.Height;
 
             // override the element size by the desired size if still unspecified
-            if (float.IsNaN(elementSize.X))
-                elementSize.X = Math.Min(DesiredSize.X, finalSizeWithoutMargins.X);
-            if (float.IsNaN(elementSize.Y))
-                elementSize.Y = Math.Min(DesiredSize.Y, finalSizeWithoutMargins.Y);
-            if (float.IsNaN(elementSize.Z))
-                elementSize.Z = Math.Min(DesiredSize.Z, finalSizeWithoutMargins.Z);
+            if (float.IsNaN(elementSize.Width))
+                elementSize.Width = Math.Min(DesiredSize.Width, finalSizeWithoutMargins.Width);
+            if (float.IsNaN(elementSize.Height))
+                elementSize.Height = Math.Min(DesiredSize.Height, finalSizeWithoutMargins.Height);
 
             // clamp the element size between the maximum and minimum width/height of the UIElement
-            elementSize = new Vector3(
-                Math.Max(MinimumWidth, Math.Min(MaximumWidth, elementSize.X)),
-                Math.Max(MinimumHeight, Math.Min(MaximumHeight, elementSize.Y)),
-                Math.Max(MinimumDepth, Math.Min(MaximumDepth, elementSize.Z)));
+            elementSize = new Size2F(
+                Math.Max(MinimumWidth, Math.Min(MaximumWidth, elementSize.Width)),
+                Math.Max(MinimumHeight, Math.Min(MaximumHeight, elementSize.Height)));
 
             // let ArrangeOverride decide of the final taken size
             elementSize = ArrangeOverride(elementSize);
@@ -1025,7 +922,7 @@ namespace Stride.UI
 
             // update UIElement internal variables
             RenderSize = elementSize;
-            RenderOffsets = renderOffsets;
+            RenderOffsets = new Vector3(renderOffsets.X, renderOffsets.Y, TotalDepthOffset);
         }
 
         private void ValidateChildrenArrange()
@@ -1045,7 +942,7 @@ namespace Stride.UI
         /// </summary>
         /// <param name="finalSizeWithoutMargins">The final area within the parent that this element should use to arrange itself and its children.</param>
         /// <returns>The actual size used.</returns>
-        protected virtual Vector3 ArrangeOverride(Vector3 finalSizeWithoutMargins)
+        protected virtual Size2F ArrangeOverride(Size2F finalSizeWithoutMargins)
         {
             return finalSizeWithoutMargins;
         }
@@ -1055,9 +952,9 @@ namespace Stride.UI
         /// </summary>
         protected virtual void CollapseOverride()
         {
-            DesiredSize = Vector3.Zero;
-            DesiredSizeWithMargins = Vector3.Zero;
-            RenderSize = Vector3.Zero;
+            DesiredSize = Size2F.Zero;
+            DesiredSizeWithMargins = Size2F.Zero;
+            RenderSize = Size2F.Zero;
             RenderOffsets = Vector3.Zero;
 
             foreach (var child in VisualChildrenCollection)
@@ -1135,20 +1032,21 @@ namespace Stride.UI
         /// <returns><value>true</value> if the two elements intersects, <value>false</value> otherwise</returns>
         protected internal virtual bool Intersects(ref Ray ray, out Vector3 intersectionPoint)
         {
+            var renderSize = new Vector3(RenderSizeInternal.Width, RenderSizeInternal.Height, 0);
             // does ray intersect element Oxy face?
-            var intersects = CollisionHelper.RayIntersectsRectangle(ref ray, ref WorldMatrixPickingInternal, ref RenderSizeInternal, 2, out intersectionPoint);
+            var intersects = CollisionHelper.RayIntersectsRectangle(ref ray, ref WorldMatrixPickingInternal, ref renderSize, 2, out intersectionPoint);
 
             // if element has depth also test other faces
-            if (ActualDepth > MathUtil.ZeroTolerance)
+            if (TotalDepthOffset > MathUtil.ZeroTolerance)
             {
                 Vector3 intersection;
-                if (CollisionHelper.RayIntersectsRectangle(ref ray, ref WorldMatrixPickingInternal, ref RenderSizeInternal, 0, out intersection))
+                if (CollisionHelper.RayIntersectsRectangle(ref ray, ref WorldMatrixPickingInternal, ref renderSize, 0, out intersection))
                 {
                     intersects = true;
                     if (intersection.Z > intersectionPoint.Z)
                         intersectionPoint = intersection;
                 }
-                if (CollisionHelper.RayIntersectsRectangle(ref ray, ref WorldMatrixPickingInternal, ref RenderSizeInternal, 1, out intersection))
+                if (CollisionHelper.RayIntersectsRectangle(ref ray, ref WorldMatrixPickingInternal, ref renderSize, 1, out intersection))
                 {
                     intersects = true;
                     if (intersection.Z > intersectionPoint.Z)
@@ -1225,7 +1123,7 @@ namespace Stride.UI
                 var localMatrixCopy = localMatrix;
 
                 // include rendering offsets into the local matrix.
-                localMatrixCopy.TranslationVector += RenderOffsets + RenderSize / 2;
+                localMatrixCopy.TranslationVector += RenderOffsets + new Vector3(RenderSize.Width, RenderSize.Height, 0) / 2;
 
                 // calculate the world matrix of UIElement
                 Matrix worldMatrix;
@@ -1247,55 +1145,29 @@ namespace Stride.UI
         }
 
         /// <summary>
-        /// Add the thickness values into the size calculation of a UI element.
-        /// </summary>
-        /// <param name="sizeWithoutMargins">The size without the thickness included</param>
-        /// <param name="thickness">The thickness to add to the space</param>
-        /// <returns>The size with the margins included</returns>
-        protected static Vector3 CalculateSizeWithThickness(ref Vector3 sizeWithoutMargins, ref Thickness thickness)
-        {
-            var negativeThickness = -thickness;
-            return CalculateSizeWithoutThickness(ref sizeWithoutMargins, ref negativeThickness);
-        }
-
-        /// <summary>
-        /// Remove the thickness values into the size calculation of a UI element.
-        /// </summary>
-        /// <param name="sizeWithMargins">The size with the thickness included</param>
-        /// <param name="thickness">The thickness to remove in the space</param>
-        /// <returns>The size with the margins not included</returns>
-        protected static Vector3 CalculateSizeWithoutThickness(ref Vector3 sizeWithMargins, ref Thickness thickness)
-        {
-            return new Vector3(
-                    Math.Max(0, sizeWithMargins.X - thickness.Left - thickness.Right),
-                    Math.Max(0, sizeWithMargins.Y - thickness.Top - thickness.Bottom),
-                    Math.Max(0, sizeWithMargins.Z - thickness.Front - thickness.Back));
-        }
-
-        /// <summary>
-        /// Computes the (X,Y,Z) offsets to position correctly the UI element given the total provided space to it.
+        /// Computes the (X,Y) offsets to position correctly the UI element given the total provided space to it.
         /// </summary>
         /// <param name="thickness">The thickness around the element to position.</param>
         /// <param name="providedSpace">The total space given to the child element by the parent</param>
         /// <param name="usedSpaceWithoutThickness">The space used by the child element without the thickness included in it.</param>
         /// <returns>The offsets</returns>
-        protected Vector3 CalculateAdjustmentOffsets(ref Thickness thickness, ref Vector3 providedSpace, ref Vector3 usedSpaceWithoutThickness)
+        protected Vector2 CalculateAdjustmentOffsets(ref Thickness thickness, ref Size2F providedSpace, ref Size2F usedSpaceWithoutThickness)
         {
             // compute the size of the element with the thickness included
-            var usedSpaceWithThickness = CalculateSizeWithThickness(ref usedSpaceWithoutThickness, ref thickness);
+            var usedSpaceWithThickness = usedSpaceWithoutThickness + thickness;
 
             // set offset for left and stretch alignments
-            var offsets = new Vector3(thickness.Left, thickness.Top, thickness.Front);
+            var offsets = new Vector2(thickness.Left, thickness.Top);
 
             // align the element horizontally
             switch (HorizontalAlignment)
             {
                 case HorizontalAlignment.Center:
                 case HorizontalAlignment.Stretch:
-                    offsets.X += (providedSpace.X - usedSpaceWithThickness.X) / 2;
+                    offsets.X += (providedSpace.Width - usedSpaceWithThickness.Width) / 2;
                     break;
                 case HorizontalAlignment.Right:
-                    offsets.X += providedSpace.X - usedSpaceWithThickness.X;
+                    offsets.X += providedSpace.Width - usedSpaceWithThickness.Width;
                     break;
             }
 
@@ -1304,22 +1176,10 @@ namespace Stride.UI
             {
                 case VerticalAlignment.Center:
                 case VerticalAlignment.Stretch:
-                    offsets.Y += (providedSpace.Y - usedSpaceWithThickness.Y) / 2;
+                    offsets.Y += (providedSpace.Height - usedSpaceWithThickness.Height) / 2;
                     break;
                 case VerticalAlignment.Bottom:
-                    offsets.Y += providedSpace.Y - usedSpaceWithThickness.Y;
-                    break;
-            }
-
-            // align the element vertically
-            switch (DepthAlignment)
-            {
-                case DepthAlignment.Center:
-                case DepthAlignment.Stretch:
-                    offsets.Z += (providedSpace.Z - usedSpaceWithThickness.Z) / 2;
-                    break;
-                case DepthAlignment.Back:
-                    offsets.Z += providedSpace.Z - usedSpaceWithThickness.Z;
+                    offsets.Y += providedSpace.Height - usedSpaceWithThickness.Height;
                     break;
             }
 

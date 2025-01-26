@@ -34,9 +34,9 @@ namespace Stride.Assets.Presentation.Thumbnails
 
         public class UIThumbnailBuildCommand : ThumbnailFromEntityCommand<UIPage>
         {
-            private readonly Vector3 designResolution;
+            private readonly Size2F designResolution;
 
-            public UIThumbnailBuildCommand(ThumbnailCompilerContext context, string url, Vector3 designResolution, AssetItem uiPageItem, IAssetFinder assetFinder, ThumbnailCommandParameters description)
+            public UIThumbnailBuildCommand(ThumbnailCompilerContext context, string url, Size2F designResolution, AssetItem uiPageItem, IAssetFinder assetFinder, ThumbnailCommandParameters description)
                 : base(context, uiPageItem, assetFinder, url, description)
             {
                 this.designResolution = designResolution;
@@ -55,7 +55,7 @@ namespace Stride.Assets.Presentation.Thumbnails
 
                 // Use an orthographic camera
                 camera.Projection = CameraProjectionMode.Orthographic;
-                camera.OrthographicSize = Math.Max(renderingSize.X, renderingSize.Y);
+                camera.OrthographicSize = Math.Max(renderingSize.Width, renderingSize.Height);
 
                 return camera;
             }

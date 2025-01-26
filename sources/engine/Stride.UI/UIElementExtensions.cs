@@ -41,7 +41,7 @@ namespace Stride.UI
         /// <remarks>Equivalent to set the <see cref="Canvas.RelativeSizePropertyKey"/> of the element</remarks>
         /// <param name="element">The element</param>
         /// <param name="size">The relative position of the element</param>
-        public static void SetCanvasRelativeSize(this UIElement element, Vector3 size)
+        public static void SetCanvasRelativeSize(this UIElement element, Vector2 size)
         {
             element.DependencyProperties.Set(Canvas.RelativeSizePropertyKey, size);
         }
@@ -52,7 +52,7 @@ namespace Stride.UI
         /// <remarks>Equivalent to get the <see cref="Canvas.RelativeSizePropertyKey"/> of the element</remarks>
         /// <param name="element">The element</param>
         /// <returns>The relative position of the element to its parent canvas</returns>
-        public static Vector3 GetCanvasRelativeSize(this UIElement element)
+        public static Vector2 GetCanvasRelativeSize(this UIElement element)
         {
             return element.DependencyProperties.Get(Canvas.RelativeSizePropertyKey);
         }
@@ -63,7 +63,7 @@ namespace Stride.UI
         /// <remarks>Equivalent to set the <see cref="Canvas.RelativePositionPropertyKey"/> of the element</remarks>
         /// <param name="element">The element</param>
         /// <param name="position">The relative position normalized between [0,1]</param>
-        public static void SetCanvasRelativePosition(this UIElement element, Vector3 position)
+        public static void SetCanvasRelativePosition(this UIElement element, Vector2 position)
         {
             element.DependencyProperties.Set(Canvas.RelativePositionPropertyKey, position);
             element.DependencyProperties.Set(Canvas.UseAbsolutePositionPropertyKey, false);
@@ -75,7 +75,7 @@ namespace Stride.UI
         /// <remarks>Equivalent to get the <see cref="Canvas.RelativePositionPropertyKey"/> of the element</remarks>
         /// <param name="element">The element</param>
         /// <returns>The relative position of the element into its parent canvas</returns>
-        public static Vector3 GetCanvasRelativePosition(this UIElement element)
+        public static Vector2 GetCanvasRelativePosition(this UIElement element)
         {
             return element.DependencyProperties.Get(Canvas.RelativePositionPropertyKey);
         }
@@ -86,7 +86,7 @@ namespace Stride.UI
         /// <remarks>Equivalent to set the <see cref="Canvas.AbsolutePositionPropertyKey"/> of the element</remarks>
         /// <param name="element">The element</param>
         /// <param name="position">The absolute position in virtual pixels</param>
-        public static void SetCanvasAbsolutePosition(this UIElement element, Vector3 position)
+        public static void SetCanvasAbsolutePosition(this UIElement element, Vector2 position)
         {
             element.DependencyProperties.Set(Canvas.AbsolutePositionPropertyKey, position);
             element.DependencyProperties.Set(Canvas.UseAbsolutePositionPropertyKey, true);
@@ -98,7 +98,7 @@ namespace Stride.UI
         /// <remarks>Equivalent to get the <see cref="Canvas.AbsolutePositionPropertyKey"/> of the element</remarks>
         /// <param name="element">The element</param>
         /// <returns>The absolute position of the element into its parent canvas</returns>
-        public static Vector3 GetCanvasAbsolutePosition(this UIElement element)
+        public static Vector2 GetCanvasAbsolutePosition(this UIElement element)
         {
             return element.DependencyProperties.Get(Canvas.AbsolutePositionPropertyKey);
         }
@@ -110,7 +110,7 @@ namespace Stride.UI
         /// <remarks>Equivalent to set the <see cref="Canvas.PinOriginPropertyKey"/> of the element</remarks>
         /// <param name="element">The element</param>
         /// <param name="origin">The pin origin value</param>
-        public static void SetCanvasPinOrigin(this UIElement element, Vector3 origin)
+        public static void SetCanvasPinOrigin(this UIElement element, Vector2 origin)
         {
             element.DependencyProperties.Set(Canvas.PinOriginPropertyKey, origin);
         }
@@ -122,7 +122,7 @@ namespace Stride.UI
         /// <remarks>Equivalent to get the <see cref="Canvas.PinOriginPropertyKey"/> of the element</remarks>
         /// <param name="element">The element</param>
         /// <returns>The pin origin of the element</returns>
-        public static Vector3 GetCanvasPinOrigin(this UIElement element)
+        public static Vector2 GetCanvasPinOrigin(this UIElement element)
         {
             return element.DependencyProperties.Get(Canvas.PinOriginPropertyKey);
         }
@@ -172,28 +172,6 @@ namespace Stride.UI
         }
 
         /// <summary>
-        /// Sets the layer index of the grid in which resides the element.
-        /// </summary>
-        /// <remarks>Equivalent to set the <see cref="GridBase.LayerPropertyKey"/> of the element</remarks>
-        /// <param name="element">The element</param>
-        /// <param name="index">The 0-based layer index</param>
-        public static void SetGridLayer(this UIElement element, int index)
-        {
-            element.DependencyProperties.Set(GridBase.LayerPropertyKey, index);
-        }
-
-        /// <summary>
-        /// Gets the layer index of the grid in which resides the element.
-        /// </summary>
-        /// <remarks>Equivalent to get the <see cref="GridBase.LayerPropertyKey"/> of the element</remarks>
-        /// <param name="element">The element</param>
-        /// <returns>The 0-based layer index of the element</returns>
-        public static int GetGridLayer(this UIElement element)
-        {
-            return element.DependencyProperties.Get(GridBase.LayerPropertyKey);
-        }
-
-        /// <summary>
         /// Sets the number of column spans that the element occupies in the grid.
         /// </summary>
         /// <remarks>Equivalent to set the <see cref="GridBase.ColumnSpanPropertyKey"/> of the element</remarks>
@@ -235,28 +213,6 @@ namespace Stride.UI
         public static int GetGridRowSpan(this UIElement element)
         {
             return element.DependencyProperties.Get(GridBase.RowSpanPropertyKey);
-        }
-
-        /// <summary>
-        /// Sets the number of layer spans that the element occupies in the grid.
-        /// </summary>
-        /// <remarks>Equivalent to set the <see cref="GridBase.LayerSpanPropertyKey"/> of the element</remarks>
-        /// <param name="element">The element</param>
-        /// <param name="index">The number of layer spans occupied</param>
-        public static void SetGridLayerSpan(this UIElement element, int index)
-        {
-            element.DependencyProperties.Set(GridBase.LayerSpanPropertyKey, index);
-        }
-
-        /// <summary>
-        /// Gets the number of layer spans that the element occupies in the grid.
-        /// </summary>
-        /// <remarks>Equivalent to get the <see cref="GridBase.LayerSpanPropertyKey"/> of the element</remarks>
-        /// <param name="element">The element</param>
-        /// <returns>The number of layer spans occupied by the element</returns>
-        public static int GetGridLayerSpan(this UIElement element)
-        {
-            return element.DependencyProperties.Get(GridBase.LayerSpanPropertyKey);
         }
     }
 }

@@ -50,32 +50,32 @@ namespace Stride.UI.Tests.Regression
             scrollViewer.DependencyProperties.Set(Canvas.AbsolutePositionPropertyKey, new Vector3(resolution.X / 4, 0, 0));
             scrollViewer.Content = stackPanel;
 
-            var button1 = new Button { Margin = Thickness.UniformRectangle(5), Padding = Thickness.UniformRectangle(5), LocalMatrix = Matrix.Scaling(2, 2, 2) };
+            var button1 = new Button { Margin = Thickness.Uniform(5), Padding = Thickness.Uniform(5), LocalMatrix = Matrix.Scaling(2, 2, 2) };
             ApplyButtonDefaultStyle(button1);
             var textOnly = new TextBlock { Text = "Text only button", Font = Content.Load<SpriteFont>("MicrosoftSansSerif15"), TextColor = new Color(1f, 0, 0, 0.5f) };
             button1.Content = textOnly;
 
-            var button2 = new Button { Name = "Button2", Margin = Thickness.UniformRectangle(5), Padding = Thickness.UniformRectangle(5) };
+            var button2 = new Button { Name = "Button2", Margin = Thickness.Uniform(5), Padding = Thickness.Uniform(5) };
             ApplyButtonDefaultStyle(button2);
             var imageContent = new ImageElement { Name = "Image Button2", Source = (SpriteFromTexture)new Sprite(Content.Load<Texture>("uv")), StretchType = StretchType.FillOnStretch, MaximumHeight = 50 };
             button2.Content = imageContent;
 
-            var button3 = new Button { Margin = Thickness.UniformRectangle(5), Padding = Thickness.UniformRectangle(5) };
+            var button3 = new Button { Margin = Thickness.Uniform(5), Padding = Thickness.Uniform(5) };
             ApplyButtonDefaultStyle(button3);
             var stackContent = new StackPanel { Orientation = Orientation.Horizontal };
             var stackImage = new ImageElement { Name = "Image stack panel", Source = (SpriteFromTexture)new Sprite(Content.Load<Texture>("uv")), MaximumHeight = 50 };
-            var stackText = new TextBlock { Text = "button text", Font = Content.Load<SpriteFont>("MicrosoftSansSerif15"), Margin = Thickness.UniformRectangle(5) };
+            var stackText = new TextBlock { Text = "button text", Font = Content.Load<SpriteFont>("MicrosoftSansSerif15"), Margin = Thickness.Uniform(5) };
             ApplyTextBlockDefaultStyle(stackText);
             stackContent.Children.Add(stackImage);
             stackContent.Children.Add(stackText);
             button3.Content = stackContent;
 
-            var button4 = new Button { Margin = Thickness.UniformRectangle(5), HorizontalAlignment = HorizontalAlignment.Right, Padding = Thickness.UniformRectangle(5) };
+            var button4 = new Button { Margin = Thickness.Uniform(5), HorizontalAlignment = HorizontalAlignment.Right, Padding = Thickness.Uniform(5) };
             ApplyButtonDefaultStyle(button4);
             var imageContent2 = new ImageElement { Name = "button 4 uv image", Source = (SpriteFromTexture)new Sprite(Content.Load<Texture>("uv")), StretchType = StretchType.FillOnStretch, MaximumHeight = 40, Opacity = 0.5f };
             button4.Content = imageContent2;
 
-            var button5 = new Button { Margin = Thickness.UniformRectangle(5), HorizontalAlignment = HorizontalAlignment.Left, Padding = Thickness.UniformRectangle(5) };
+            var button5 = new Button { Margin = Thickness.Uniform(5), HorizontalAlignment = HorizontalAlignment.Left, Padding = Thickness.Uniform(5) };
             ApplyButtonDefaultStyle(button5);
             var textOnly2 = new TextBlock { Text = "Left aligned", Font = Content.Load<SpriteFont>("MicrosoftSansSerif15") };
             ApplyTextBlockDefaultStyle(textOnly2);
@@ -84,7 +84,7 @@ namespace Stride.UI.Tests.Regression
             var button6 = new Button
             {
                 Height = 50,
-                Margin = Thickness.UniformRectangle(5),
+                Margin = Thickness.Uniform(5),
                 HorizontalAlignment = HorizontalAlignment.Center,
                 PressedImage = (SpriteFromTexture)new Sprite(Content.Load<Texture>("ImageButtonPressed")),
                 NotPressedImage = (SpriteFromTexture)new Sprite(Content.Load<Texture>("ImageButtonNotPressed")),
@@ -102,7 +102,7 @@ namespace Stride.UI.Tests.Regression
 
             scrollingText = new ScrollingText { Font = Content.Load<SpriteFont>("MicrosoftSansSerif15"), Text = "<<<--- Scrolling text in a button ", IsEnabled = ForceInteractiveMode };
             ApplyScrollingTextDefaultStyle(scrollingText);
-            var button7 = new Button { Margin = Thickness.UniformRectangle(5), Content = scrollingText };
+            var button7 = new Button { Margin = Thickness.Uniform(5), Content = scrollingText };
             ApplyButtonDefaultStyle(button7);
 
             var uniformGrid = new UniformGrid { Rows = 2, Columns = 2 };

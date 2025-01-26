@@ -21,11 +21,10 @@ namespace Stride.UI.Panels
     {
         private readonly Logger logger = GlobalLogger.GetLogger("UI");
 
-        private readonly GridDimensionData[] dimensionData = new GridDimensionData[3]
+        private readonly GridDimensionData[] dimensionData = new GridDimensionData[2]
         {
             GridDimensionData.Create(),     // Column
-            GridDimensionData.Create(),     // Row
-            GridDimensionData.Create(),     // Layer
+            GridDimensionData.Create()     // Row
         };
 
         /// <summary>
@@ -69,7 +68,6 @@ namespace Stride.UI.Panels
         {
             RowDefinitions.CollectionChanged += DefinitionCollectionChanged;
             ColumnDefinitions.CollectionChanged += DefinitionCollectionChanged;
-            LayerDefinitions.CollectionChanged += DefinitionCollectionChanged;
         }
 
         private void DefinitionCollectionChanged(object sender, TrackingCollectionChangedEventArgs trackingCollectionChangedEventArgs)
@@ -131,15 +129,7 @@ namespace Stride.UI.Panels
         [Display(category: LayoutCategory)]
         public StripDefinitionCollection ColumnDefinitions { get; } = new StripDefinitionCollection();
 
-        /// <summary>
-        /// The definitions of the grid layers.
-        /// </summary>
-        /// <userdoc>The definitions of the grid layers.</userdoc>
-        [DataMember]
-        [Display(category: LayoutCategory)]
-        public StripDefinitionCollection LayerDefinitions { get; } = new StripDefinitionCollection();
-
-        protected override Vector3 MeasureOverride(Vector3 availableSizeWithoutMargins)
+        protected override Size2F MeasureOverride(Size2F availableSizeWithoutMargins)
         {
             // This function is composed of 6 main parts:
             // 1. Add default strip definition to ensure that all elements are in the grid
@@ -173,12 +163,12 @@ namespace Stride.UI.Panels
             // - When going to the next strip iteration, refine the previous strip estimated size (ActualSize) by taking the max sized needed among all element ending in this strip.
 
             // Initialize strip actual size with minimal values
-            for (var dim = 0; dim < 3; dim++)
+            for (var dim = 0; dim < 2; dim++)
                 InitializeStripDefinitionActualSize(dimensionData[dim].StripDefinitions);
 
             // calculate size available for all auto elements.
             var autoElementAvailableSize = availableSizeWithoutMargins;
-            for (var dim = 0; dim < 3; dim++)
+            for (var dim = 0; dim < 2; dim++)
             {
                 foreach (var definition in dimensionData[dim].StripDefinitions)
                 {
@@ -189,8 +179,8 @@ namespace Stride.UI.Panels
             // measure all the children
             foreach (var child in autoDefinedElements)
             {
-                var childAvailableSize = Vector3.Zero;
-                for (var dim = 0; dim < 3; dim++)
+                var childAvailableSize = Size2F.Zero;
+                for (var dim = 0; dim < 2; dim++)
                 {
                     var autoAvailableWithMin = autoElementAvailableSize[dim];
                     var currentDimChildAvailableSize = childAvailableSize[dim];
@@ -233,7 +223,7 @@ namespace Stride.UI.Panels
             //    The reason between this choice is that (1) will tend to increase excessively the size of auto-sized strips (for nothing).
             //    Moreover, we consider most of the time elements included both auto and star-size strips are more elements that we want
             //    to be spread along several strips rather than elements that we want auto-sized.
-            for (var dim = 0; dim < 3; dim++)
+            for (var dim = 0; dim < 2; dim++)
             {
                 ref var dimData = ref dimensionData[dim];
                 var definitions = dimData.StripDefinitions;
@@ -293,8 +283,8 @@ namespace Stride.UI.Panels
             // 6. Re-measure all the children, this time with the exact available size.
             foreach (var child in VisualChildrenCollection)
             {
-                var availableToChildWithMargin = Vector3.Zero;
-                for (var dim = 0; dim < 3; dim++)
+                var availableToChildWithMargin = Size2F.Zero;
+                for (var dim = 0; dim < 2; dim++)
                     availableToChildWithMargin[dim] = SumStripCurrentSize(dimensionData[dim].ElementToStripDefinitions[child]);
 
                 child.Measure(availableToChildWithMargin);
@@ -308,8 +298,8 @@ namespace Stride.UI.Panels
             // -> update the actual size of the star-sized elements
             // -> calculate the size needed by the grid
             //
-            var neededSize = Vector3.Zero;
-            for (var dim = 0; dim < 3; dim++)
+            var neededSize = Size2F.Zero;
+            for (var dim = 0; dim < 2; dim++)
             {
                 ref var dimData = ref dimensionData[dim];
                 var definitions = dimData.StripDefinitions;
@@ -421,7 +411,7 @@ namespace Stride.UI.Panels
             }
         }
 
-        protected override Vector3 ArrangeOverride(Vector3 finalSizeWithoutMargins)
+        protected override Size2F ArrangeOverride(Size2F finalSizeWithoutMargins)
         {
             // determine the size of the star strips now that we have the final available size.
             CalculateStarStripSize(finalSizeWithoutMargins);
@@ -430,8 +420,8 @@ namespace Stride.UI.Panels
             RebuildStripPositionCacheData();
 
             // calculate the final size of the grid.
-            var gridFinalSize = Vector3.Zero;
-            for (var dim = 0; dim < 3; dim++)
+            var gridFinalSize = Size2F.Zero;
+            for (var dim = 0; dim < 2; dim++)
             {
                 ref var dimData = ref dimensionData[dim];
                 gridFinalSize[dim] = Math.Max(dimData.CachedStripIndexToStripPosition[dimData.StripDefinitions.Count], finalSizeWithoutMargins[dim]);
@@ -442,19 +432,18 @@ namespace Stride.UI.Panels
             {
                 // calculate child position
                 var gridPosition = GetElementGridPositions(child);
-                var position = new Vector3(
+                var position = new Vector2(
                     dimensionData[0].CachedStripIndexToStripPosition[gridPosition.X],
-                    dimensionData[1].CachedStripIndexToStripPosition[gridPosition.Y],
-                    dimensionData[2].CachedStripIndexToStripPosition[gridPosition.Z]);
+                    dimensionData[1].CachedStripIndexToStripPosition[gridPosition.Y]);
 
                 // set the arrange matrix values
-                child.DependencyProperties.Set(PanelArrangeMatrixPropertyKey, Matrix.Translation(position - gridFinalSize / 2));
+                var childOffset = position - (Vector2)gridFinalSize / 2;
+                child.DependencyProperties.Set(PanelArrangeMatrixPropertyKey, Matrix.Translation(new Vector3(childOffset.X, childOffset.Y, 0)));
 
                 // calculate the size provided to the child
-                var providedSize = new Vector3(
+                var providedSize = new Size2F(
                     SumStripCurrentSize(dimensionData[0].ElementToStripDefinitions[child]),
-                    SumStripCurrentSize(dimensionData[1].ElementToStripDefinitions[child]),
-                    SumStripCurrentSize(dimensionData[2].ElementToStripDefinitions[child]));
+                    SumStripCurrentSize(dimensionData[1].ElementToStripDefinitions[child]));
 
                 // arrange the child
                 child.Arrange(providedSize, IsCollapsed);
@@ -463,10 +452,10 @@ namespace Stride.UI.Panels
             return gridFinalSize;
         }
 
-        private void CalculateStarStripSize(Vector3 finalSizeWithoutMargins)
+        private void CalculateStarStripSize(Size2F finalSizeWithoutMargins)
         {
             // calculate the ActualSize of the start-sized strips. Possible minimum and maximum values have to be taken in account for that calculation.
-            for (var dim = 0; dim < 3; dim++)
+            for (var dim = 0; dim < 2; dim++)
             {
                 ref var dimData = ref dimensionData[dim];
                 starDefinitionsCopy.Clear();
@@ -547,7 +536,7 @@ namespace Stride.UI.Panels
         {
             base.OnLogicalChildRemoved(oldElement, index);
 
-            for (var dim = 0; dim < 3; dim++)
+            for (var dim = 0; dim < 2; dim++)
             {
                 ref var dimData = ref dimensionData[dim];
                 // remove the strip definitions associated to the removed child
@@ -564,7 +553,7 @@ namespace Stride.UI.Panels
         {
             base.OnLogicalChildAdded(newElement, index);
 
-            for (var dim = 0; dim < 3; dim++)
+            for (var dim = 0; dim < 2; dim++)
             {
                 ref var dimData = ref dimensionData[dim];
                 // ensure that all children have a associate list strip definitions
@@ -578,7 +567,7 @@ namespace Stride.UI.Panels
         private void RebuildMeasureCacheData()
         {
             // clear existing cache data
-            for (var dim = 0; dim < 3; dim++)
+            for (var dim = 0; dim < 2; dim++)
             {
                 ref var dimData = ref dimensionData[dim];
                 // the 'stripIndexToNoStarElements' entries
@@ -607,7 +596,7 @@ namespace Stride.UI.Panels
                 var childPosition = GetElementGridPositions(child);
                 var childSpan = GetElementSpanValues(child);
 
-                for (var dim = 0; dim < 3; ++dim)
+                for (var dim = 0; dim < 2; ++dim)
                 {
                     ref var dimData = ref dimensionData[dim];
 
@@ -647,7 +636,7 @@ namespace Stride.UI.Panels
             }
 
             // build the star definitions cache
-            for (var dim = 0; dim < 3; ++dim)
+            for (var dim = 0; dim < 2; ++dim)
             {
                 ref var dimData = ref dimensionData[dim];
                 var starDefinitions = dimData.StarDefinitions;
@@ -663,13 +652,12 @@ namespace Stride.UI.Panels
             // Setup strips (use a default entry if nothing is set)
             CreateDefaultStripIfNecessary(ref dimensionData[0].StripDefinitions, ColumnDefinitions);
             CreateDefaultStripIfNecessary(ref dimensionData[1].StripDefinitions, RowDefinitions);
-            CreateDefaultStripIfNecessary(ref dimensionData[2].StripDefinitions, LayerDefinitions);
 
             // add default strip definitions as long as one element is partially outside of the grid
             foreach (var child in VisualChildrenCollection)
             {
                 var childLastStripPlusOne = GetElementGridPositions(child) + GetElementSpanValues(child);
-                for (var dim = 0; dim < 3; dim++)
+                for (var dim = 0; dim < 2; dim++)
                 {
                     // TODO: We should reassign everything outside to last row or 0?
                     if (dimensionData[dim].StripDefinitions.Count < childLastStripPlusOne[dim])
@@ -694,7 +682,7 @@ namespace Stride.UI.Panels
         private void RebuildStripPositionCacheData()
         {
             // rebuild strip begin position cached data
-            for (var dim = 0; dim < 3; dim++)
+            for (var dim = 0; dim < 2; dim++)
             {
                 ref var dimData = ref dimensionData[dim];
                 var cachedStripIndexToStripPosition = dimData.CachedStripIndexToStripPosition;
@@ -782,17 +770,17 @@ namespace Stride.UI.Panels
             return distances;
         }
 
-        protected override Int3 GetElementGridPositions(UIElement element)
+        protected override Int2 GetElementGridPositions(UIElement element)
         {
             var position = base.GetElementGridPositions(element);
-            return Int3.Min(position, new Int3(dimensionData[0].StripDefinitions.Count - 1, dimensionData[1].StripDefinitions.Count - 1, dimensionData[2].StripDefinitions.Count - 1));
+            return Int2.Min(position, new Int2(dimensionData[0].StripDefinitions.Count - 1, dimensionData[1].StripDefinitions.Count - 1));
         }
 
-        protected override Int3 GetElementSpanValues(UIElement element)
+        protected override Int2 GetElementSpanValues(UIElement element)
         {
             var position = GetElementGridPositions(element);
             var span = base.GetElementSpanValues(element);
-            return Int3.Min(position + span, new Int3(dimensionData[0].StripDefinitions.Count, dimensionData[1].StripDefinitions.Count, dimensionData[2].StripDefinitions.Count)) - position;
+            return Int2.Min(position + span, new Int2(dimensionData[0].StripDefinitions.Count, dimensionData[1].StripDefinitions.Count)) - position;
         }
 
         /// <summary>
