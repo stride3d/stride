@@ -31,12 +31,12 @@ internal class ContactEventsManager : IDisposable
 
     public void Initialize()
     {
-        _simulation.Simulation.Timestepper.BeforeCollisionDetection += SetFreshnessForCurrentActivityStatus;
+        _simulation.Simulation.Timestepper.BeforeCollisionDetection += TrackActivePairs;
     }
 
     public void Dispose()
     {
-        _simulation.Simulation.Timestepper.BeforeCollisionDetection -= SetFreshnessForCurrentActivityStatus;
+        _simulation.Simulation.Timestepper.BeforeCollisionDetection -= TrackActivePairs;
         if (_bodyListenerFlags.Flags.Allocated)
             _bodyListenerFlags.Dispose(_pool);
         if (_staticListenerFlags.Flags.Allocated)
@@ -369,15 +369,12 @@ internal class ContactEventsManager : IDisposable
     /// <summary>
     /// Callback attached to the simulation's ITimestepper which executes just prior to collision detection to take a snapshot of activity states to determine which pairs we should expect updates in.
     /// </summary>
-    private void SetFreshnessForCurrentActivityStatus(float dt, IThreadDispatcher threadDispatcher)
+    private void TrackActivePairs(float dt, IThreadDispatcher threadDispatcher)
     {
-        //Every single pair tracked by the contact events has a 'freshness' flag. If the final flush sees a pair that is stale, it'll remove it
-        //and any necessary events to represent the end of that pair are reported.
-        //HandleManifoldForCollidable sets 'Fresh' to true for any processed pair, but pairs between sleeping or static bodies will not show up in HandleManifoldForCollidable since they're not active.
-        //We don't want Flush to report that sleeping pairs have stopped colliding, so we pre-initialize any such sleeping/static pair as 'fresh'.
+        // We need to be notified when two collidables are too far apart to have a manifold between them,
+        // We'll track any collision were one of the pair is active, manifolds we receive will filter out those that are still in contact
+        // leaving us to Flush() only those that are not
 
-        //This could be multithreaded reasonably easily if there are a ton of listeners or collisions, but that would be a pretty high bar.
-        //For simplicity, the demo will keep it single threaded.
         var bodyHandleToLocation = _simulation.Simulation.Bodies.HandleToLocation;
         foreach (var trackedCollision in _trackedCollisions)
         {
