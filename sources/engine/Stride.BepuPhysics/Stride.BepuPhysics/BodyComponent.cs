@@ -303,6 +303,16 @@ public class BodyComponent : CollidableComponent
     /// </summary>
     public IReadOnlyList<ConstraintComponentBase> Constraints => BoundConstraints ?? (IReadOnlyList<ConstraintComponentBase>)Array.Empty<ConstraintComponentBase>();
 
+    protected internal override CollidableReference? CollidableReference
+    {
+        get
+        {
+            if (BodyReference is { } bRef)
+                return bRef.CollidableReference;
+            return null;
+        }
+    }
+
     /// <summary>
     /// Applies an explosive force at a specific offset off of this body which will affect both its angular and linear velocity
     /// </summary>
@@ -416,25 +426,6 @@ public class BodyComponent : CollidableComponent
             return bRef.Handle.Value;
 
         throw new InvalidOperationException();
-    }
-
-    protected override void RegisterContactHandler()
-    {
-        if (ContactEventHandler is not null && Simulation is not null && BodyReference is { } bRef)
-            Simulation.ContactEvents.Register(bRef.Handle);
-    }
-
-    protected override void UnregisterContactHandler()
-    {
-        if (Simulation is not null && BodyReference is { } bRef)
-            Simulation.ContactEvents.Unregister(bRef.Handle);
-    }
-
-    protected override bool IsContactHandlerRegistered()
-    {
-        if (Simulation is not null && BodyReference is { } bRef)
-            return Simulation.ContactEvents.IsRegistered(bRef.Handle);
-        return false;
     }
 
     /// <summary>

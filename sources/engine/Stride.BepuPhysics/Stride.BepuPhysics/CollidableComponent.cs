@@ -48,7 +48,7 @@ public abstract class CollidableComponent : EntityComponent
     [DataMemberIgnore]
     internal uint Versioning { get; private set; }
 
-    internal uint StableId { get; } = Interlocked.Increment(ref IdCounter);
+    internal uint InstanceIndex { get; } = Interlocked.Increment(ref IdCounter);
 
     /// <summary>
     /// The simulation this object belongs to, null when it is not part of a simulation.
@@ -219,6 +219,8 @@ public abstract class CollidableComponent : EntityComponent
     [DataMemberIgnore]
     public Vector3 CenterOfMass { get; private set; }
 
+    protected internal abstract CollidableReference? CollidableReference { get; }
+
     public CollidableComponent()
     {
         _collider = new CompoundCollider();
@@ -341,7 +343,21 @@ public abstract class CollidableComponent : EntityComponent
 
     protected abstract int GetHandleValue();
 
-    protected abstract void RegisterContactHandler();
-    protected abstract void UnregisterContactHandler();
-    protected abstract bool IsContactHandlerRegistered();
+
+    protected void RegisterContactHandler()
+    {
+        if (ContactEventHandler is not null && Simulation is not null)
+            Simulation.ContactEvents.Register(this);
+    }
+
+    protected void UnregisterContactHandler()
+    {
+        if (Simulation is not null)
+            Simulation.ContactEvents.Unregister(this);
+    }
+
+    protected bool IsContactHandlerRegistered()
+    {
+        return Simulation is not null && Simulation.ContactEvents.IsRegistered(this);
+    }
 }

@@ -2,9 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Numerics;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using BepuPhysics;
 using BepuPhysics.Collidables;
 using BepuPhysics.CollisionDetection;
 using BepuUtilities;
@@ -19,11 +17,11 @@ namespace Stride.BepuPhysics.Definitions.Contacts;
 internal class ContactEventsManager : IDisposable
 {
     private readonly Dictionary<OrderedPair, LastCollisionState> _trackedCollisions = new();
+    private readonly HashSet<OrderedPair> _outdatedPairs = new();
     private readonly BufferPool _pool;
     private readonly BepuSimulation _simulation;
     private IndexSet _staticListenerFlags;
     private IndexSet _bodyListenerFlags;
-    private int _flushes;
 
     public ContactEventsManager(BufferPool pool, BepuSimulation simulation)
     {
@@ -33,12 +31,12 @@ internal class ContactEventsManager : IDisposable
 
     public void Initialize()
     {
-        //simulation.Simulation.Timestepper.BeforeCollisionDetection += SetFreshnessForCurrentActivityStatus;
+        _simulation.Simulation.Timestepper.BeforeCollisionDetection += SetFreshnessForCurrentActivityStatus;
     }
 
     public void Dispose()
     {
-        //_simulation.Simulation.Timestepper.BeforeCollisionDetection -= SetFreshnessForCurrentActivityStatus;
+        _simulation.Simulation.Timestepper.BeforeCollisionDetection -= SetFreshnessForCurrentActivityStatus;
         if (_bodyListenerFlags.Flags.Allocated)
             _bodyListenerFlags.Dispose(_pool);
         if (_staticListenerFlags.Flags.Allocated)
@@ -46,130 +44,96 @@ internal class ContactEventsManager : IDisposable
     }
 
     /// <summary>
-    /// Begins listening for events related to the given body.
-    /// </summary>
-    /// <param name="body">Body to monitor for events.</param>
-    public void Register(BodyHandle body)
-    {
-        Register(_simulation.Simulation.Bodies[body].CollidableReference);
-    }
-
-    /// <summary>
-    /// Begins listening for events related to the given static.
-    /// </summary>
-    /// <param name="staticHandle">Static to monitor for events.</param>
-    public void Register(StaticHandle staticHandle)
-    {
-        Register(new CollidableReference(staticHandle));
-    }
-
-    /// <summary>
     /// Begins listening for events related to the given collidable.
     /// </summary>
-    public void Register(CollidableReference collidable)
+    public void Register(CollidableComponent collidable)
     {
-        if (collidable.Mobility == CollidableMobility.Static)
-            _staticListenerFlags.Add(collidable.RawHandleValue, _pool);
+        var reference = collidable.CollidableReference ?? throw new InvalidOperationException($"This Collidable's {nameof(CollidableReference)} should exist");
+        if (reference.Mobility == CollidableMobility.Static)
+            _staticListenerFlags.Add(reference.RawHandleValue, _pool);
         else
-            _bodyListenerFlags.Add(collidable.RawHandleValue, _pool);
-    }
-
-    /// <summary>
-    /// Stops listening for events related to the given body.
-    /// </summary>
-    /// <param name="body">Body to stop listening for.</param>
-    public void Unregister(BodyHandle body)
-    {
-        Unregister(_simulation.Simulation.Bodies[body].CollidableReference);
-    }
-
-    /// <summary>
-    /// Stops listening for events related to the given static.
-    /// </summary>
-    /// <param name="staticHandle">Static to stop listening for.</param>
-    public void Unregister(StaticHandle staticHandle)
-    {
-        Unregister(new CollidableReference(staticHandle));
+            _bodyListenerFlags.Add(reference.RawHandleValue, _pool);
     }
 
     /// <summary>
     /// Stops listening for events related to the given collidable.
     /// </summary>
-    public void Unregister(CollidableReference collidable)
+    public void Unregister(CollidableComponent collidable)
     {
-        if (collidable.Mobility == CollidableMobility.Static)
-            _staticListenerFlags.Remove(collidable.RawHandleValue);
+        var reference = collidable.CollidableReference ?? throw new InvalidOperationException($"This Collidable's {nameof(CollidableReference)} should exist");
+        if (reference.Mobility == CollidableMobility.Static)
+            _staticListenerFlags.Remove(reference.RawHandleValue);
         else
-            _bodyListenerFlags.Remove(collidable.RawHandleValue);
+            _bodyListenerFlags.Remove(reference.RawHandleValue);
 
-        ClearCollisionsOf(_simulation.GetComponent(collidable));
+        ClearCollisionsOf(collidable);
     }
 
     /// <summary>
     /// Checks if a collidable is registered as a listener.
     /// </summary>
-    public bool IsRegistered(BodyHandle body)
+    public bool IsRegistered(CollidableComponent collidable)
     {
-        return IsRegistered(_simulation.Simulation.Bodies[body].CollidableReference);
-    }
-    /// <summary>
-    /// Checks if a collidable is registered as a listener.
-    /// </summary>
-    public bool IsRegistered(StaticHandle staticHandle)
-    {
-        return IsRegistered(_simulation.Simulation.Statics[staticHandle].CollidableReference);
+        if (collidable.CollidableReference is { } reference)
+            return IsRegistered(reference);
+
+        return false;
     }
 
     /// <summary>
     /// Checks if a collidable is registered as a listener.
     /// </summary>
-    public bool IsRegistered(CollidableReference collidable)
+    private bool IsRegistered(CollidableReference reference)
     {
-        if (collidable.Mobility == CollidableMobility.Static)
-            return _staticListenerFlags.Contains(collidable.RawHandleValue);
+        if (reference.Mobility == CollidableMobility.Static)
+            return _staticListenerFlags.Contains(reference.RawHandleValue);
         else
-            return _bodyListenerFlags.Contains(collidable.RawHandleValue);
+            return _bodyListenerFlags.Contains(reference.RawHandleValue);
     }
 
-    public unsafe void ClearCollisionsOf(CollidableComponent collidable)
+    public void ClearCollisionsOf(CollidableComponent collidable)
     {
-#error Handle handler exceptions
         // Really slow, but improving performance has a huge amount of gotchas since user code
         // may cause this method to be re-entrant through handler calls.
         // Something to investigate later
 
-        int workerIndex = 0;
         var manifold = new EmptyManifold();
-        bool flippedManifold = false; // The flipped manifold argument does not make sense in this context given that we pass an empty one
-
         foreach (var (pair, state) in _trackedCollisions)
         {
             if (!ReferenceEquals(pair.A, collidable) && !ReferenceEquals(pair.B, collidable))
                 continue;
 
+            ClearCollision(pair, ref manifold, 0);
+        }
+    }
+
+    private unsafe void ClearCollision(OrderedPair pair, ref EmptyManifold manifold, int workerIndex)
+    {
+        const bool flippedManifold = false; // The flipped manifold argument does not make sense in this context given that we pass an empty one
 #if DEBUG
-            ref var stateRef = ref CollectionsMarshal.GetValueRefOrAddDefault(_trackedCollisions, pair, out _);
-            _trackedCollisions.Remove(pair);
-            System.Diagnostics.Debug.Assert(stateRef.Alive == false); // Notify HandleManifoldInner higher up the call stack that the manifold they are processing is dead
+        ref var stateRef = ref CollectionsMarshal.GetValueRefOrAddDefault(_trackedCollisions, pair, out _);
+        _trackedCollisions.Remove(pair, out var state);
+        System.Diagnostics.Debug.Assert(stateRef.Alive == false); // Notify HandleManifoldInner higher up the call stack that the manifold they are processing is dead
 #else
-            _trackedCollisions.Remove(pair);
+        _trackedCollisions.Remove(pair, out var state);
 #endif
 
-            for (int i = 0; i < state.ContactCount; i++)
-            {
-                state.HandlerA?.OnContactRemoved(pair.A, pair.B, ref manifold, flippedManifold, state.FeatureId[i], workerIndex, _simulation);
-                state.HandlerB?.OnContactRemoved(pair.B, pair.A, ref manifold, flippedManifold, state.FeatureId[i], workerIndex, _simulation);
-            }
+        for (int i = 0; i < state.ACount; i++)
+            state.HandlerA?.OnContactRemoved(pair.A, pair.B, ref manifold, flippedManifold, state.FeatureIdA[i], workerIndex, _simulation);
+        for (int i = 0; i < state.BCount; i++)
+            state.HandlerB?.OnContactRemoved(pair.B, pair.A, ref manifold, flippedManifold, state.FeatureIdB[i], workerIndex, _simulation);
 
-            if (state.Touching)
-            {
-                state.HandlerA?.OnStoppedTouching(pair.A, pair.B, ref manifold, flippedManifold, workerIndex, _simulation);
-                state.HandlerB?.OnStoppedTouching(pair.B, pair.A, ref manifold, flippedManifold, workerIndex, _simulation);
-            }
+        if (state.TryClear(Events.TouchingA))
+            state.HandlerA?.OnStoppedTouching(pair.A, pair.B, ref manifold, flippedManifold, workerIndex, _simulation);
+        if (state.TryClear(Events.TouchingB))
+            state.HandlerB?.OnStoppedTouching(pair.B, pair.A, ref manifold, flippedManifold, workerIndex, _simulation);
 
+        if (state.TryClear(Events.CreatedA))
             state.HandlerA?.OnPairEnded(pair.A, pair.B, _simulation);
+        if (state.TryClear(Events.CreatedB))
             state.HandlerB?.OnPairEnded(pair.B, pair.A, _simulation);
-        }
+
+        _outdatedPairs.Remove(pair);
     }
 
     public void HandleManifold<TManifold>(int workerIndex, CollidablePair pair, ref TManifold manifold) where TManifold : unmanaged, IContactManifold<TManifold>
@@ -179,96 +143,128 @@ internal class ContactEventsManager : IDisposable
         if (aListener == false && bListener == false)
             return;
 
-        HandleManifoldInner(workerIndex, _simulation.GetComponent(pair.A), _simulation.GetComponent(pair.A), ref manifold);
+        HandleManifoldInner(workerIndex, _simulation.GetComponent(pair.A), _simulation.GetComponent(pair.B), ref manifold);
     }
 
     private unsafe void HandleManifoldInner<TManifold>(int workerIndex, CollidableComponent a, CollidableComponent b, ref TManifold manifold) where TManifold : unmanaged, IContactManifold<TManifold>
     {
-#error Handle handler exceptions
-        ref var collisionState = ref CollectionsMarshal.GetValueRefOrAddDefault(_trackedCollisions, new OrderedPair(a, b), out bool alreadyExisted);
+        System.Diagnostics.Debug.Assert(manifold.Count <= LastCollisionState.FeatureCount, "This was built on the assumption that nonconvex manifolds will have a maximum of 4 contacts, but that might have changed.");
+        //If the above assert gets hit because of a change to nonconvex manifold capacities, the packed feature id representation this uses will need to be updated.
+        //I very much doubt the nonconvex manifold will ever use more than 8 contacts, so addressing this wouldn't require much of a change.
 
-        var handlerA = a.ContactEventHandler;
-        var handlerB = b.ContactEventHandler;
+        // We must first sort the collidables to ensure calls happen in a deterministic order, and to mimic `ClearCollision`'s order
+        var orderedPair = new OrderedPair(a, b);
 
+        bool aFlipped = ReferenceEquals(a, orderedPair.B); // Whether the manifold is flipped from a's point of view
+        bool bFlipped = !aFlipped;
+
+        (a, b) = (orderedPair.A, orderedPair.B);
+
+        IContactEventHandler? handlerA;
+        IContactEventHandler? handlerB;
+        ref var collisionState = ref CollectionsMarshal.GetValueRefOrAddDefault(_trackedCollisions, orderedPair, out bool alreadyExisted);
         if (alreadyExisted)
         {
-            bool previouslyTouching = collisionState.Touching;
+            handlerA = collisionState.HandlerA;
+            handlerB = collisionState.HandlerB;
+            bool touching = false;
             for (int contactIndex = 0; contactIndex < manifold.Count; ++contactIndex)
             {
                 if (manifold.GetDepth(contactIndex) < 0)
                     continue;
 
-                if (collisionState.Touching == false)
+                touching = true;
+                if (handlerA is not null && collisionState.TrySet(Events.TouchingA))
                 {
-                    collisionState.Touching = true;
-                    handlerA?.OnStartedTouching(a, b, ref manifold, false, workerIndex, _simulation);
+                    handlerA.OnStartedTouching(a, b, ref manifold, aFlipped, workerIndex, _simulation);
                     if (collisionState.Alive == false)
                         return;
-                    handlerB?.OnStartedTouching(b, a, ref manifold, true, workerIndex, _simulation);
+                }
+                if (handlerB is not null && collisionState.TrySet(Events.TouchingB))
+                {
+                    handlerB.OnStartedTouching(b, a, ref manifold, bFlipped, workerIndex, _simulation);
                     if (collisionState.Alive == false)
                         return;
                 }
 
-                handlerA?.OnTouching(a, b, ref manifold, false, workerIndex, _simulation);
+                handlerA?.OnTouching(a, b, ref manifold, aFlipped, workerIndex, _simulation);
                 if (collisionState.Alive == false)
                     return;
-                handlerB?.OnTouching(b, a, ref manifold, true, workerIndex, _simulation);
+                handlerB?.OnTouching(b, a, ref manifold, bFlipped, workerIndex, _simulation);
                 if (collisionState.Alive == false)
                     return;
                 break;
             }
 
-            int previousContactsStillExist = 0; // Bitmask to mark contacts that are both inside the previous and current manifold
-            for (int contactIndex = 0; contactIndex < manifold.Count; ++contactIndex)
+            if (touching == false && handlerA is not null && collisionState.TryClear(Events.TouchingA))
             {
-                //We can check if each contact was already present in the previous frame by looking at contact feature ids. See the 'PreviousCollision' type for a little more info on FeatureIds.
-                var featureId = manifold.GetFeatureId(contactIndex);
-                var featureIdWasInPreviousCollision = false;
-                for (int previousContactIndex = 0; previousContactIndex < collisionState.ContactCount; ++previousContactIndex)
-                {
-                    if (featureId == collisionState.FeatureId[previousContactIndex])
-                    {
-                        featureIdWasInPreviousCollision = true;
-                        previousContactsStillExist |= 1 << previousContactIndex;
-                        break;
-                    }
-                }
-
-                if (!featureIdWasInPreviousCollision)
-                {
-                    handlerA?.OnContactAdded(a, b, ref manifold, false, contactIndex, workerIndex, _simulation);
-                    if (collisionState.Alive == false)
-                        return;
-                    handlerB?.OnContactAdded(b, a, ref manifold, true, contactIndex, workerIndex, _simulation);
-                    if (collisionState.Alive == false)
-                        return;
-                }
+                handlerA.OnStoppedTouching(a, b, ref manifold, aFlipped, workerIndex, _simulation);
+                if (collisionState.Alive == false)
+                    return;
             }
 
-            if (previousContactsStillExist != (1 << collisionState.ContactCount) - 1) //At least one contact that used to exist no longer does.
+            if (touching == false && handlerB is not null && collisionState.TryClear(Events.TouchingB))
             {
-                for (int previousContactIndex = 0; previousContactIndex < collisionState.ContactCount; ++previousContactIndex)
+                handlerB.OnStoppedTouching(b, a, ref manifold, bFlipped, workerIndex, _simulation);
+                if (collisionState.Alive == false)
+                    return;
+            }
+
+            uint toRemove = (1u << collisionState.ACount) - 1u; // Bitmask to mark contacts we have to change
+            uint toAdd = (1u << manifold.Count) - 1u;
+
+            for (int i = 0; i < manifold.Count; ++i) // Check if any of our previous contact still exist
+            {
+                int featureId = manifold.GetFeatureId(i);
+                for (int j = 0; j < collisionState.ACount; ++j)
                 {
-                    if ((previousContactsStillExist & (1 << previousContactIndex)) != 0)
+                    if (featureId != collisionState.FeatureIdA[j])
                         continue;
 
-                    int id = collisionState.FeatureId[previousContactIndex];
-                    handlerA?.OnContactRemoved(a, b, ref manifold, false, id, workerIndex, _simulation);
-                    if (collisionState.Alive == false)
-                        return;
-                    handlerB?.OnContactRemoved(b, a, ref manifold, true, id, workerIndex, _simulation);
-                    if (collisionState.Alive == false)
-                        return;
+                    toAdd ^= 1u << i;
+                    toRemove ^= 1u << j;
+                    break;
                 }
             }
 
-            if (previouslyTouching && collisionState.Touching == false)
+            while (toRemove != 0)
             {
-                handlerA?.OnStoppedTouching(a, b, ref manifold, false, workerIndex, _simulation);
+                int index = 31 - BitOperations.LeadingZeroCount(toRemove); // LeadingZeroCount to remove from the end to the start
+                toRemove ^= 1u << index;
+
+                int id = collisionState.FeatureIdA[index];
+
+                collisionState.ACount--;
+                if (index != collisionState.ACount)
+                    collisionState.FeatureIdA[index] = collisionState.FeatureIdA[collisionState.ACount]; // Remove this index by swapping with last one
+
+                handlerA?.OnContactRemoved(a, b, ref manifold, aFlipped, id, workerIndex, _simulation);
                 if (collisionState.Alive == false)
                     return;
 
-                handlerB?.OnStoppedTouching(b, a, ref manifold, true, workerIndex, _simulation);
+                collisionState.BCount--;
+                if (index != collisionState.BCount)
+                    collisionState.FeatureIdB[index] = collisionState.FeatureIdB[collisionState.BCount];
+
+                handlerB?.OnContactRemoved(b, a, ref manifold, bFlipped, id, workerIndex, _simulation);
+                if (collisionState.Alive == false)
+                    return;
+            }
+
+            while (toAdd != 0)
+            {
+                int index = BitOperations.TrailingZeroCount(toAdd); // We can add from the start to the end here
+                toAdd ^= 1u << index;
+
+                int featureId = manifold.GetFeatureId(index);
+
+                collisionState.FeatureIdA[collisionState.ACount++] = featureId;
+                handlerA?.OnContactAdded(a, b, ref manifold, aFlipped, index, workerIndex, _simulation);
+                if (collisionState.Alive == false)
+                    return;
+
+                collisionState.FeatureIdB[collisionState.BCount++] = featureId;
+                handlerB?.OnContactAdded(b, a, ref manifold, bFlipped, index, workerIndex, _simulation);
                 if (collisionState.Alive == false)
                     return;
             }
@@ -276,118 +272,104 @@ internal class ContactEventsManager : IDisposable
         else
         {
             collisionState.Alive = true; // This is set as a flag to check for removal events
-            collisionState.HandlerA = handlerA;
-            collisionState.HandlerB = handlerB;
+            handlerA = collisionState.HandlerA = a.ContactEventHandler;
+            handlerB = collisionState.HandlerB = b.ContactEventHandler;
 
+            if (handlerA is not null && collisionState.TrySet(Events.CreatedA))
+            {
+                handlerA.OnPairCreated(a, b, ref manifold, aFlipped, workerIndex, _simulation);
+                if (collisionState.Alive == false)
+                    return;
+            }
 
-            handlerA?.OnPairCreated(a, b, ref manifold, false, workerIndex, _simulation);
-            if (collisionState.Alive == false)
-                return;
-            handlerB?.OnPairCreated(b, a, ref manifold, true, workerIndex, _simulation);
-            if (collisionState.Alive == false)
-                return;
+            if (handlerB is not null && collisionState.TrySet(Events.CreatedB))
+            {
+                handlerB.OnPairCreated(b, a, ref manifold, bFlipped, workerIndex, _simulation);
+                if (collisionState.Alive == false)
+                    return;
+            }
 
             for (int i = 0; i < manifold.Count; ++i)
             {
                 if (manifold.GetDepth(i) < 0)
                     continue;
 
-                collisionState.Touching = true;
+                if (handlerA is not null && collisionState.TrySet(Events.TouchingA))
+                {
+                    handlerA.OnStartedTouching(a, b, ref manifold, aFlipped, workerIndex, _simulation);
+                    if (collisionState.Alive == false)
+                        return;
+                }
 
-                handlerA?.OnStartedTouching(a, b, ref manifold, false, workerIndex, _simulation);
-                if (collisionState.Alive == false)
-                    return;
-                handlerB?.OnStartedTouching(b, a, ref manifold, true, workerIndex, _simulation);
-                if (collisionState.Alive == false)
-                    return;
+                if (handlerB is not null && collisionState.TrySet(Events.TouchingB))
+                {
+                    handlerB.OnStartedTouching(b, a, ref manifold, bFlipped, workerIndex, _simulation);
+                    if (collisionState.Alive == false)
+                        return;
+                }
 
-                handlerA?.OnTouching(a, b, ref manifold, false, workerIndex, _simulation);
-                if (collisionState.Alive == false)
-                    return;
-                handlerB?.OnTouching(b, a, ref manifold, true, workerIndex, _simulation);
-                if (collisionState.Alive == false)
-                    return;
+                if (handlerA is not null)
+                {
+                    handlerA.OnTouching(a, b, ref manifold, aFlipped, workerIndex, _simulation);
+                    if (collisionState.Alive == false)
+                        return;
+                }
+
+                if (handlerB is not null)
+                {
+                    handlerB.OnTouching(b, a, ref manifold, bFlipped, workerIndex, _simulation);
+                    if (collisionState.Alive == false)
+                        return;
+                }
                 break;
             }
 
             for (int i = 0; i < manifold.Count; ++i)
             {
-                handlerA?.OnContactAdded(a, b, ref manifold, false, i, workerIndex, _simulation);
+                int featureId = manifold.GetFeatureId(i);
+
+                collisionState.FeatureIdA[collisionState.ACount++] = featureId;
+                handlerA?.OnContactAdded(a, b, ref manifold, aFlipped, i, workerIndex, _simulation);
                 if (collisionState.Alive == false)
                     return;
-                handlerB?.OnContactAdded(b, a, ref manifold, true, i, workerIndex, _simulation);
+
+                collisionState.FeatureIdB[collisionState.BCount++] = featureId;
+                handlerB?.OnContactAdded(b, a, ref manifold, bFlipped, i, workerIndex, _simulation);
                 if (collisionState.Alive == false)
                     return;
             }
         }
 
-        handlerA?.OnPairUpdated(a, b, ref manifold, false, workerIndex, _simulation);
-        if (collisionState.Alive == false)
-            return;
-        handlerB?.OnPairUpdated(b, a, ref manifold, true, workerIndex, _simulation);
-        if (collisionState.Alive == false)
-            return;
+        if (handlerA is not null)
+        {
+            handlerA.OnPairUpdated(a, b, ref manifold, aFlipped, workerIndex, _simulation);
+            if (collisionState.Alive == false)
+                return;
+        }
 
-        System.Diagnostics.Debug.Assert(manifold.Count <= LastCollisionState.FeatureCount, "This was built on the assumption that nonconvex manifolds will have a maximum of 4 contacts, but that might have changed.");
-        //If the above assert gets hit because of a change to nonconvex manifold capacities, the packed feature id representation this uses will need to be updated.
-        //I very much doubt the nonconvex manifold will ever use more than 8 contacts, so addressing this wouldn't require much of a change.
-        for (int j = 0; j < manifold.Count; ++j)
-            collisionState.FeatureId[j] = manifold.GetFeatureId(j);
+        if (handlerB is not null)
+        {
+            handlerB.OnPairUpdated(b, a, ref manifold, bFlipped, workerIndex, _simulation);
+            if (collisionState.Alive == false)
+                return;
+        }
 
-        collisionState.ContactCount = manifold.Count;
-        collisionState.Flushes = _flushes;
+        _outdatedPairs.Remove(orderedPair);
     }
 
-    public unsafe void Flush()
+    public void Flush()
     {
-#error Handle handler exceptions
-        return;
-        int workerIndex = 0;
         var manifold = new EmptyManifold();
-        bool flippedManifold = false; // The flipped manifold argument does not make sense in this context given that we pass an empty one
 
         //Remove any stale collisions. Stale collisions are those which should have received a new manifold update but did not because the manifold is no longer active.
-        foreach (var (pair, state) in _trackedCollisions)
-        {
-            if (state.Flushes == _flushes)
-                continue;
-
-            if ((state.Flushes & 1) != (_flushes & 1))
-                continue;
-
-            // Two flushes ago, remove the collision
-
-#if DEBUG
-            ref var stateRef = ref CollectionsMarshal.GetValueRefOrAddDefault(_trackedCollisions, pair, out _);
-            _trackedCollisions.Remove(pair);
-            System.Diagnostics.Debug.Assert(stateRef.Alive == false); // Notify HandleManifoldInner higher up the call stack that the manifold they are processing is dead
-#else
-            _trackedCollisions.Remove(pair);
-#endif
-
-            for (int i = 0; i < state.ContactCount; i++)
-            {
-                state.HandlerA?.OnContactRemoved(pair.A, pair.B, ref manifold, flippedManifold, state.FeatureId[i], workerIndex, _simulation);
-                state.HandlerB?.OnContactRemoved(pair.B, pair.A, ref manifold, flippedManifold, state.FeatureId[i], workerIndex, _simulation);
-            }
-
-            if (state.Touching)
-            {
-                state.HandlerA?.OnStoppedTouching(pair.A, pair.B, ref manifold, flippedManifold, workerIndex, _simulation);
-                state.HandlerB?.OnStoppedTouching(pair.B, pair.A, ref manifold, flippedManifold, workerIndex, _simulation);
-            }
-
-            state.HandlerA?.OnPairEnded(pair.A, pair.B, _simulation);
-            state.HandlerB?.OnPairEnded(pair.B, pair.A, _simulation);
-        }
-
-        _flushes++;
+        foreach (var pair in _outdatedPairs)
+            ClearCollision(pair, ref manifold, 0);
     }
 
     /// <summary>
     /// Callback attached to the simulation's ITimestepper which executes just prior to collision detection to take a snapshot of activity states to determine which pairs we should expect updates in.
     /// </summary>
-    /*void SetFreshnessForCurrentActivityStatus(float dt, IThreadDispatcher threadDispatcher)
+    private void SetFreshnessForCurrentActivityStatus(float dt, IThreadDispatcher threadDispatcher)
     {
         //Every single pair tracked by the contact events has a 'freshness' flag. If the final flush sees a pair that is stale, it'll remove it
         //and any necessary events to represent the end of that pair are reported.
@@ -399,31 +381,15 @@ internal class ContactEventsManager : IDisposable
         var bodyHandleToLocation = _simulation.Simulation.Bodies.HandleToLocation;
         foreach (var trackedCollision in _trackedCollisions)
         {
-            var source = trackedCollision.Key.A.ContactEventHandler;
-
-            //If it's a body, and it's in the active set (index 0), then every pair associated with the listener should expect updates.
-            var sourceExpectsUpdates = source.Mobility != CollidableMobility.Static && bodyHandleToLocation[source.BodyHandle.Value].SetIndex == 0;
-            if (sourceExpectsUpdates)
+            var aRef = trackedCollision.Key.A.CollidableReference ?? throw new InvalidOperationException();
+            var bRef = trackedCollision.Key.B.CollidableReference ?? throw new InvalidOperationException();
+            if ((aRef.Mobility != CollidableMobility.Static && bodyHandleToLocation[aRef.BodyHandle.Value].SetIndex == 0)
+                || (bRef.Mobility != CollidableMobility.Static && bodyHandleToLocation[bRef.BodyHandle.Value].SetIndex == 0))
             {
-                var previousCollisions = listeners[listenerIndex].PreviousCollisions;
-                for (int j = 0; j < previousCollisions.Count; ++j)
-                {
-                    //Pair updates will set the 'freshness' to true when they happen, so that they won't be considered 'stale' in the flush and removed.
-                    previousCollisions[j].Fresh = false;
-                }
-            }
-            else
-            {
-                //The listener is either static or sleeping. We should only expect updates if the other collidable is awake.
-                var previousCollisions = listeners[listenerIndex].PreviousCollisions;
-                for (int j = 0; j < previousCollisions.Count; ++j)
-                {
-                    ref var previousCollision = ref previousCollisions[j];
-                    previousCollision.Fresh = previousCollision.Collidable.Mobility == CollidableMobility.Static || bodyHandleToLocation[previousCollision.Collidable.BodyHandle.Value].SetIndex > 0;
-                }
+                _outdatedPairs.Add(trackedCollision.Key); // It's active, if manifolds did not signal that they touched we should discard this one
             }
         }
-    }*/
+    }
 
     private unsafe struct LastCollisionState
     {
@@ -431,14 +397,46 @@ internal class ContactEventsManager : IDisposable
 
         public IContactEventHandler? HandlerA, HandlerB;
         public bool Alive;
-        public bool Touching;
-        public int Flushes;
-        public int ContactCount;
+        public Events EventsTriggered;
+        public int ACount;
+        public int BCount;
         //FeatureIds are identifiers encoding what features on the involved shapes contributed to the contact. We store up to 4 feature ids, one for each potential contact.
         //A "feature" is things like a face, vertex, or edge. There is no single interpretation for what a feature is- the mapping is defined on a per collision pair level.
         //In this demo, we only care to check whether a given contact in the current frame maps onto a contact from a previous frame.
         //We can use this to only emit 'contact added' events when a new contact with an unrecognized id is reported.
-        public fixed int FeatureId[FeatureCount];
+        public fixed int FeatureIdA[FeatureCount];
+        public fixed int FeatureIdB[FeatureCount];
+
+        public bool TrySet(Events e)
+        {
+            if ((e & EventsTriggered) == 0)
+            {
+                EventsTriggered |= e;
+                return true;
+            }
+
+            return false;
+        }
+
+        public bool TryClear(Events e)
+        {
+            if ((e & EventsTriggered) == e)
+            {
+                EventsTriggered ^= e;
+                return true;
+            }
+
+            return false;
+        }
+    }
+
+    [Flags]
+    private enum Events
+    {
+        CreatedA = 0b0001,
+        CreatedB = 0b0010,
+        TouchingA = 0b0100,
+        TouchingB = 0b1000,
     }
 
     private readonly record struct OrderedPair
@@ -446,7 +444,14 @@ internal class ContactEventsManager : IDisposable
         public readonly CollidableComponent A, B;
         public OrderedPair(CollidableComponent a, CollidableComponent b)
         {
-            (A, B) = a.StableId > b.StableId ? (a, b) : (b, a);
+            if (a.InstanceIndex != b.InstanceIndex)
+                (A, B) = a.InstanceIndex > b.InstanceIndex ? (a, b) : (b, a);
+            else if (a.GetHashCode() != b.GetHashCode())
+                (A, B) = a.GetHashCode() > b.GetHashCode() ? (a, b) : (b, a);
+            else if (ReferenceEquals(a, b))
+                (A, B) = (a, b);
+            else
+                throw new InvalidOperationException("Could not order this pair of collidable, incredibly unlikely event");
         }
     }
 
