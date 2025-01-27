@@ -2,9 +2,9 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:vm="using:Stride.Launcher.Crash"
+        xmlns:vm="using:Stride.Crash.ViewModels"
         mc:Ignorable="d" d:DesignWidth="640" d:DesignHeight="480"
-        x:Class="Stride.Launcher.Crash.CrashReportWindow"
+        x:Class="Stride.Crash.CrashReportWindow"
         x:DataType="vm:CrashReportViewModel"
         Icon="/Assets/CrashReportImage.png"
         Title="Report your crash"
@@ -20,7 +20,7 @@
                Width="64" Margin="0,0,8,8"
                Source="/Assets/CrashReportImage.png"/>
         <TextBlock TextWrapping="WrapWithOverflow">
-          Unfortunately, Launcher has crashed.
+          Unfortunately, <Run Text="{Binding ApplicationName}" /> has crashed.
           Please help us improve Stride by sending information about this crash through Github Issues.
         </TextBlock>
       </DockPanel>

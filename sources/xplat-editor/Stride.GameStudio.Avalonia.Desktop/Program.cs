@@ -9,7 +9,8 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Threading;
 using Microsoft.Build.Locator;
 using Stride.Core.Diagnostics;
-using Stride.GameStudio.Avalonia.Desktop.Crash;
+using Stride.Crash;
+using Stride.Crash.ViewModels;
 
 namespace Stride.GameStudio.Avalonia.Desktop;
 
@@ -76,7 +77,7 @@ internal sealed class Program
         {
             var cts = new CancellationTokenSource();
             var window = new CrashReportWindow { Topmost = true };
-            window.DataContext = new CrashReportViewModel(args, window.Clipboard!.SetTextAsync, cts);
+            window.DataContext = new CrashReportViewModel("Stride Game Studio", args, window.Clipboard!.SetTextAsync, cts);
             window.Closed += (_, __) => cts.Cancel();
             if (!window.IsVisible)
             {

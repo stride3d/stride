@@ -4,7 +4,7 @@
 using Avalonia.Controls;
 using Avalonia.Input;
 
-namespace Stride.Launcher.Crash;
+namespace Stride.Crash;
 
 public partial class CrashReportWindow : Window
 {

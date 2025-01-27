@@ -2,33 +2,34 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Diagnostics;
+using System.Text;
 using Stride.Core.Extensions;
 using Stride.Core.Presentation.Avalonia.Services;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.ViewModels;
-using Stride.Launcher.Assets.Localization;
 
-namespace Stride.Launcher.Crash;
+namespace Stride.Crash.ViewModels;
 
 internal sealed class CrashReportViewModel : ViewModelBase
 {
-    private readonly IDispatcherService dispatcherService;
-
-    private readonly Func<string?, Task> setClipboard;
+    private readonly string applicationName;
     private readonly CancellationTokenSource exitToken;
+    private readonly Func<string?, Task> setClipboard;
     private readonly CrashReportData report;
 
     private bool isReportVisible;
 
-    public CrashReportViewModel(CrashReportArgs args, Func<string?, Task> setClipboard, CancellationTokenSource exitToken)
+    public CrashReportViewModel(string applicationName, CrashReportArgs args, Func<string?, Task> setClipboard, CancellationTokenSource exitToken)
         : base(new ViewModelServiceProvider())
     {
+        this.applicationName = applicationName;
         this.exitToken = exitToken;
         this.setClipboard = setClipboard;
 
-        ServiceProvider.RegisterService(dispatcherService = DispatcherService.Create());
-        ServiceProvider.RegisterService(new DialogService(dispatcherService) { ApplicationName = Launcher.ApplicationName });             
+        var dispatcher = DispatcherService.Create();
+        ServiceProvider.RegisterService(dispatcher);
+        ServiceProvider.RegisterService(new DialogService(dispatcher) { ApplicationName = applicationName });
 
         report = ComputeReport(args);
 
@@ -37,6 +38,8 @@ internal sealed class CrashReportViewModel : ViewModelBase
         OpenIssueCommand = new AnonymousTaskCommand(ServiceProvider, OnOpenIssue);
         ViewReportCommand = new AnonymousCommand(ServiceProvider, OnViewReport);
     }
+
+    public string ApplicationName => applicationName;
 
     public bool IsReportVisible
     {
@@ -75,10 +78,11 @@ internal sealed class CrashReportViewModel : ViewModelBase
             });
         }
         // FIXME: catch only specific exceptions?
-        catch (Exception ex)
+        catch (Exception)
         {
             DialogService.MainWindow!.Topmost = false;
-            await ServiceProvider.Get<IDialogService>().MessageBoxAsync(Strings.ErrorOpeningBrowser, MessageBoxButton.OK, MessageBoxImage.Error);
+            // FIXME: localize resource string
+            await ServiceProvider.Get<IDialogService>().MessageBoxAsync("An error occurred while trying to open a web browser", MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
 
@@ -87,11 +91,11 @@ internal sealed class CrashReportViewModel : ViewModelBase
         IsReportVisible = true;
     }
 
-    private static CrashReportData ComputeReport(CrashReportArgs args)
+    private CrashReportData ComputeReport(CrashReportArgs args)
     {
         return new CrashReportData
         {
-            ["Application"] = Launcher.ApplicationName,
+            ["Application"] = applicationName,
             ["ThreadName"] = args.ThreadName,
 #if DEBUG
             ["ProcessID"] = Environment.ProcessId,
@@ -101,6 +105,18 @@ internal sealed class CrashReportViewModel : ViewModelBase
             ["OsVersion"] = Environment.OSVersion,
             ["ProcessorCount"] = Environment.ProcessorCount,
             ["Exception"] = args.Exception.FormatFull(),
+            ["LastLogs"] = FormatLogs(args.Logs),
         };
+
+        static string FormatLogs(string[] logs)
+        {
+            var builder = new StringBuilder();
+            for (var i = 0; i < logs.Length; i++)
+            {
+                var log = logs[i];
+                builder.AppendLine($"{i + 1}: {log}");
+            }
+            return builder.ToString();
+        }
     }
 }

@@ -12,7 +12,8 @@ using Stride.Core.Packages;
 using Stride.Core.Presentation.Avalonia.Windows;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Windows;
-using Stride.Launcher.Crash;
+using Stride.Crash;
+using Stride.Crash.ViewModels;
 using Stride.Launcher.Services;
 
 namespace Stride.Launcher;
@@ -31,11 +32,12 @@ internal static class Launcher
         try
         {
             var arguments = ProcessArguments(args);
+            throw new Exception("BOOM0");
             return ProcessAction(arguments);
         }
         catch (Exception ex)
         {
-            HandleException(ex);
+            HandleException(ex, CrashLocation.Main);
             return LauncherErrorCode.ErrorWhileRunningServer;
         }
     }
@@ -78,7 +80,7 @@ internal static class Launcher
 
         CancellationToken AppMain(App app)
         {
-            _ = AppMainAsync(app.cts);            
+            _ = AppMainAsync(app.cts);
             return app.cts.Token;
         }
 
@@ -199,7 +201,7 @@ internal static class Launcher
         {
             var cts = new CancellationTokenSource();
             var window = new CrashReportWindow { Topmost = true };
-            window.DataContext = new CrashReportViewModel(args, window.Clipboard!.SetTextAsync, cts);
+            window.DataContext = new CrashReportViewModel(ApplicationName, args, window.Clipboard!.SetTextAsync, cts);
             window.Closed += (_, _) => cts.Cancel();
             if (!window.IsVisible)
             {
@@ -214,11 +216,11 @@ internal static class Launcher
     {
         if (e.IsTerminating)
         {
-            HandleException(e.ExceptionObject as Exception);
+            HandleException(e.ExceptionObject as Exception, CrashLocation.UnhandledException);
         }
     }
 
-    private static void HandleException(Exception? exception)
+    private static void HandleException(Exception? exception, CrashLocation location)
     {
         if (exception is null) return;
 
@@ -227,10 +229,14 @@ internal static class Launcher
 
         var englishCulture = new CultureInfo("en-US");
         Thread.CurrentThread.CurrentCulture = Thread.CurrentThread.CurrentUICulture = englishCulture;
-        var reportArgs = new CrashReportArgs(exception, Thread.CurrentThread.Name);
+        var reportArgs = new CrashReportArgs
+        {
+            Exception = exception,
+            Location = location,
+            ThreadName = Thread.CurrentThread.Name
+        };
         CrashReport(reportArgs);
     }
 
     #endregion // Crash
-
 }

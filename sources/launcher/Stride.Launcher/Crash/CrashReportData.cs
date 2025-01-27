@@ -4,7 +4,7 @@
 using System.Text;
 using System.Text.Json;
 
-namespace Stride.Launcher.Crash;
+namespace Stride.Crash;
 
 public sealed class CrashReportData
 {
