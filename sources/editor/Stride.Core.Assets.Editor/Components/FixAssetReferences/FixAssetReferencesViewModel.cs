@@ -87,7 +87,7 @@ namespace Stride.Core.Assets.Editor.Components.FixAssetReferences
             return result;
         }
 
-        public override async Task<AssetViewModel> PickupObject(AssetViewModel objectToFix, object referencedMember)
+        public override async Task<AssetViewModel> PickupObject(AssetViewModel objectToFix, Type propertyType)
         {
             var assetPicker = ServiceProvider.Get<IEditorDialogService>().CreateAssetPickerDialog(objectToFix.Session);
             assetPicker.Message = "Select an asset to replace the deleted asset";
@@ -95,10 +95,9 @@ namespace Stride.Core.Assets.Editor.Components.FixAssetReferences
             assetPicker.InitialLocation = objectToFix.Directory;
             assetPicker.AllowMultiSelection = false;
             Type assetType = objectToFix.AssetType;
-            var contentType = AssetRegistry.GetContentType(objectToFix.AssetType);
-            if (contentType != null)
+
+            if (AssetRegistry.CanPropertyHandleAssets(propertyType, out var assetTypes))
             {
-                var assetTypes = AssetRegistry.GetAssetTypes(contentType);
                 assetPicker.AcceptedTypes.AddRange(assetTypes);
             }
             else

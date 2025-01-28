@@ -14,7 +14,7 @@ namespace Stride.Core.Assets.Editor.Components.FixAssetReferences
         private readonly NodeIndex index;
 
         public AssetReferenceReplacementViewModel(FixAssetReferencesViewModel fixReferences, AssetViewModel objectToFix, AssetViewModel referencer, object referencedMember, IGraphNode node, NodeIndex index)
-            : base(fixReferences, objectToFix, referencer, referencedMember)
+            : base(fixReferences, objectToFix, referencer, node.Descriptor.GetInnerCollectionType())
         {
             this.node = node;
             this.index = index;
