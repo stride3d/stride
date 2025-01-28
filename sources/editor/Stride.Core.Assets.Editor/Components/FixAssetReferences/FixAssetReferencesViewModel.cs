@@ -46,42 +46,40 @@ namespace Stride.Core.Assets.Editor.Components.FixAssetReferences
             var result = new List<ReferenceReplacementViewModel<AssetViewModel>>();
             visitor.Visiting += (node, path) =>
             {
-                var memberNode = node as IAssetMemberNode;
-                if (memberNode != null)
+                if (node is not IAssetMemberNode memberNode || !AssetRegistry.CanBeAssignedToContentTypes(memberNode.Descriptor.GetInnerCollectionType(), checkIsUrlType: true))
                 {
-                    if (AssetRegistry.IsContentType(memberNode.Descriptor.GetInnerCollectionType()))
+                    return;
+                }
+
+                if (memberNode.Target?.IsEnumerable ?? false)
+                {
+                    foreach (var index in memberNode.Target.Indices)
                     {
-                        if (memberNode.Target?.IsEnumerable ?? false)
-                        {
-                            foreach (var index in memberNode.Target.Indices)
-                            {
-                                // If this property is inherited it will be updated by the standard propagation
-                                if (memberNode.Target.IsItemInherited(index))
-                                    continue;
+                        // If this property is inherited it will be updated by the standard propagation
+                        if (memberNode.Target.IsItemInherited(index))
+                            continue;
 
-                                var target = ContentReferenceHelper.GetReferenceTarget(referencer.Session, memberNode.Target.Retrieve(index));
-                                if (target == CurrentObjectToReplace)
-                                {
-                                    // If so, prepare a replacement for it.
-                                    var viewModel = new AssetReferenceReplacementViewModel(this, CurrentObjectToReplace, referencer, referencedMember, memberNode.Target, index);
-                                    result.Add(viewModel);
-                                }
-                            }
-                        }
-                        else
+                        var target = ContentReferenceHelper.GetReferenceTarget(referencer.Session, memberNode.Target.Retrieve(index));
+                        if (target == CurrentObjectToReplace)
                         {
-                            // If this property is inherited it will be updated by the standard propagation
-                            if (memberNode.IsContentInherited())
-                                return;
-
-                            var target = ContentReferenceHelper.GetReferenceTarget(referencer.Session, memberNode.Retrieve());
-                            if (target == CurrentObjectToReplace)
-                            {
-                                // If so, prepare a replacement for it.
-                                var viewModel = new AssetReferenceReplacementViewModel(this, CurrentObjectToReplace, referencer, referencedMember, memberNode, NodeIndex.Empty);
-                                result.Add(viewModel);
-                            }
+                            // If so, prepare a replacement for it.
+                            var viewModel = new AssetReferenceReplacementViewModel(this, CurrentObjectToReplace, referencer, referencedMember, memberNode.Target, index);
+                            result.Add(viewModel);
                         }
+                    }
+                }
+                else
+                {
+                    // If this property is inherited it will be updated by the standard propagation
+                    if (memberNode.IsContentInherited())
+                        return;
+
+                    var target = ContentReferenceHelper.GetReferenceTarget(referencer.Session, memberNode.Retrieve());
+                    if (target == CurrentObjectToReplace)
+                    {
+                        // If so, prepare a replacement for it.
+                        var viewModel = new AssetReferenceReplacementViewModel(this, CurrentObjectToReplace, referencer, referencedMember, memberNode, NodeIndex.Empty);
+                        result.Add(viewModel);
                     }
                 }
             };

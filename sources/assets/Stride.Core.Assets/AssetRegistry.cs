@@ -2,8 +2,10 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using Stride.Core.Assets.Analysis;
 using Stride.Core;
 using Stride.Core.Diagnostics;
@@ -37,6 +39,7 @@ namespace Stride.Core.Assets
         private static readonly List<IDataCustomVisitor> RegisteredDataVisitNodes = new List<IDataCustomVisitor>();
         private static readonly Dictionary<string, IAssetFactory<Asset>> RegisteredAssetFactories = new Dictionary<string, IAssetFactory<Asset>>();
         private static readonly Dictionary<Type, List<Type>> RegisteredContentTypes = new Dictionary<Type, List<Type>>();
+        private static readonly Dictionary<Type, List<Type>> AssignableToContent = new Dictionary<Type, List<Type>>();
         private static readonly Dictionary<Type, List<Type>> ContentToAssetTypes = new Dictionary<Type, List<Type>>();
         private static readonly Dictionary<Type, Type> AssetToContentTypes = new Dictionary<Type, Type>();
 
@@ -285,6 +288,78 @@ namespace Stride.Core.Assets
             }
         }
 
+        /// <summary>
+        /// Whether a property of this type can be set to asset content, outputs the assets it can hold if true 
+        /// </summary>
+        /// <remarks>
+        /// The difference between this one and <see cref="CanPropertyHandleContent"/> is that this one returns the asset types,
+        /// meaning the types that would be compiled into 'content' to be used at runtime.
+        /// This means that the types contained in <see cref="AssetTypes"/> are not directly assignable to <paramref name="propertyType"/> 
+        /// </remarks>
+        public static bool CanPropertyHandleAssets([Annotations.NotNull] Type propertyType, [MaybeNullWhen(false)] out HashSet<Type> assetTypes)
+        {
+            lock (RegistryLock)
+            {
+                if (typeof(AssetReference).IsAssignableFrom(propertyType))
+                {
+                    assetTypes = GetAssetTypes(propertyType).ToHashSet();
+                    return true;
+                }
+
+                if (UrlReferenceBase.TryGetAssetType(propertyType, out var assetType))
+                {
+                    propertyType = assetType;
+                }
+
+                if (AssignableToContent.TryGetValue(propertyType, out var concreteContentTypes))
+                {
+                    assetTypes = new HashSet<Type>();
+                    foreach (var item in concreteContentTypes)
+                    {
+                        if (ContentToAssetTypes.TryGetValue(item, out var values))
+                        {
+                            foreach (var type in values)
+                            {
+                                assetTypes.Add(type);
+                            }
+                        }
+                    }
+                    return true;
+                }
+
+                assetTypes = null;
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Whether a property of this type can be set to content, outputs the content types it can hold if true
+        /// </summary>
+        /// <remarks>
+        /// The difference between this one and <see cref="CanPropertyHandleAssets"/> is that this one returns the content types,
+        /// meaning the concrete types that are types that would be compiled into 'content' to be used at runtime.
+        /// The types contained in <see cref="contentTypes"/> are not guaranteed to be assignable to <paramref name="propertyType"/>
+        /// </remarks>
+        public static bool CanPropertyHandleContent(Type propertyType, [MaybeNullWhen(false)] out IReadOnlyList<Type> contentTypes)
+        {
+            lock (RegistryLock)
+            {
+                if (UrlReferenceBase.TryGetAssetType(propertyType, out var assetType))
+                {
+                    propertyType = assetType;
+                }
+
+                if (AssignableToContent.TryGetValue(propertyType, out var concreteContentTypes))
+                {
+                    contentTypes = concreteContentTypes;
+                    return true;
+                }
+
+                contentTypes = null;
+                return false;
+            }
+        }
+
         public static IReadOnlyList<Type> GetAssetTypes(Type contentType)
         {
             lock (RegistryLock)
@@ -364,7 +439,31 @@ namespace Stride.Core.Assets
             }
         }
 
-        public static bool IsContentType(Type type)
+        /// <summary>
+        /// Can a property of this type hold content
+        /// </summary>
+        /// <remarks>
+        /// You may want to use <see cref="IsExactContentType"/> instead if you're checking if this type is a concrete content type
+        /// </remarks>
+        public static bool CanBeAssignedToContentTypes([Annotations.NotNull] Type type, bool checkIsUrlType)
+        {
+            lock (RegistryLock)
+            {
+                if (checkIsUrlType && (type.IsAssignableTo(typeof(AssetReference)) || UrlReferenceBase.IsUrlReferenceType(type)))
+                    return true;
+
+                return AssignableToContent.ContainsKey(type);
+            }
+        }
+
+        /// <summary>
+        /// Is this type a concrete content type
+        /// </summary>
+        /// <remarks>
+        /// You may want to use <see cref="CanBeAssignedToContentTypes"/> instead if you're checking
+        /// whether a property of this type could hold at least one type of content
+        /// </remarks>
+        public static bool IsExactContentType(Type type)
         {
             lock (RegistryLock)
             {
@@ -386,10 +485,8 @@ namespace Stride.Core.Assets
 
             lock (RegistryLock)
             {
-                if (RegisteredEngineAssemblies.Contains(assembly))
+                if (!RegisteredEngineAssemblies.Add(assembly))
                     return;
-
-                RegisteredEngineAssemblies.Add(assembly);
 
                 var assemblyScanTypes = AssemblyRegistry.GetScanTypes(assembly);
                 if (assemblyScanTypes != null)
@@ -401,6 +498,26 @@ namespace Stride.Core.Assets
                         foreach (var type in referenceTypes)
                         {
                             RegisteredContentTypes.Add(type, null);
+
+                            AddToAssignable(type, type);
+
+                            foreach (var @interface in type.GetInterfaces())
+                                AddToAssignable(@interface, type);
+
+                            for (var baseType = type; baseType != null; baseType = baseType.BaseType)
+                            {
+                                if (baseType.IsAbstract == false)
+                                    continue;
+
+                                AddToAssignable(baseType, type);
+                            }
+
+                            static void AddToAssignable(Type key, Type value)
+                            {
+                                ref var list = ref CollectionsMarshal.GetValueRefOrAddDefault(AssignableToContent, key, out _);
+                                list ??= new List<Type>();
+                                list.Add(value);
+                            }
                         }
                     }
                 }
@@ -421,6 +538,27 @@ namespace Stride.Core.Assets
                 foreach (var type in RegisteredContentTypes.Keys.Where(x => x.Assembly == assembly).ToList())
                 {
                     RegisteredContentTypes.Remove(type);
+
+                    RemoveFromAssignable(type, type);
+
+                    foreach (var @interface in type.GetInterfaces())
+                        RemoveFromAssignable(@interface, type);
+
+                    for (var baseType = type; baseType != null; baseType = baseType.BaseType)
+                    {
+                        if (baseType.IsAbstract == false)
+                            continue;
+
+                        RemoveFromAssignable(baseType, type);
+                    }
+
+                    static void RemoveFromAssignable(Type key, Type value)
+                    {
+                        var list = AssignableToContent[key];
+                        list.Remove(value);
+                        if (list.Count == 0)
+                            AssignableToContent.Remove(key);
+                    }
                 }
             }
         }

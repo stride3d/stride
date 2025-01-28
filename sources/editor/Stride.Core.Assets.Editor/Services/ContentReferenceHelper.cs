@@ -33,21 +33,21 @@ namespace Stride.Core.Assets.Editor.Services
         /// <remarks>A reference type is either an <see cref="AssetReference"/> or a content type registered in the <see cref="AssetRegistry"/>.</remarks>
         public static object CreateReference(AssetViewModel asset, Type referenceType)
         {
-            if (asset != null)
+            if (asset == null)
+                return null;
+
+            if (UrlReferenceBase.IsUrlReferenceType(referenceType))
+                return UrlReferenceBase.New(referenceType, asset.AssetItem.Id, asset.AssetItem.Location);
+
+            if (AssetRegistry.CanBeAssignedToContentTypes(referenceType, checkIsUrlType: false))
             {
-                if (UrlReferenceBase.IsUrlReferenceType(referenceType))
-                    return UrlReferenceBase.New(referenceType, asset.AssetItem.Id, asset.AssetItem.Location);
-
-                if (AssetRegistry.IsContentType(referenceType))
-                {
-                    var assetType = asset.AssetItem.Asset.GetType();
-                    var contentType = AssetRegistry.GetContentType(assetType);
-                    return referenceType.IsAssignableFrom(contentType) ? AttachedReferenceManager.CreateProxyObject(contentType, asset.Id, asset.Url) : null;
-                }
-
-                if (typeof(AssetReference).IsAssignableFrom(referenceType))
-                    return new AssetReference(asset.AssetItem.Id, asset.AssetItem.Location);
+                var assetType = asset.AssetItem.Asset.GetType();
+                var contentType = AssetRegistry.GetContentType(assetType);
+                return contentType.IsAssignableTo(referenceType) ? AttachedReferenceManager.CreateProxyObject(contentType, asset.AssetItem.Id, asset.AssetItem.Location) : null;
             }
+
+            if (referenceType.IsAssignableTo(typeof(AssetReference)))
+                return new AssetReference(asset.AssetItem.Id, asset.AssetItem.Location);
 
             return null;
         }
@@ -71,18 +71,6 @@ namespace Stride.Core.Assets.Editor.Services
             }
             var reference = AttachedReferenceManager.GetAttachedReference(source);
             return reference != null ? session.GetAssetById(reference.Id) : null;
-        }
-
-        /// <summary>
-        /// Indicates if the given type descriptor represents a reference type, or a collection of reference types.
-        /// </summary>
-        /// <param name="typeDescriptor">The type descriptor to analyze.</param>
-        /// <returns>True if the type descriptor represents a reference type, false otherwise.</returns>
-        /// <remarks>A reference type is either an <see cref="AssetReference"/> or a content type registered in the <see cref="AssetRegistry"/>.</remarks>
-        public static bool ContainsReferenceType(ITypeDescriptor typeDescriptor)
-        {
-            var type = typeDescriptor.GetInnerCollectionType();
-            return typeof(AssetReference).IsAssignableFrom(type) || UrlReferenceBase.IsUrlReferenceType(type) || AssetRegistry.IsContentType(type);
         }
     }
 }

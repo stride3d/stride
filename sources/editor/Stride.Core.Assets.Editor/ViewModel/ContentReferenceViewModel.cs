@@ -26,10 +26,9 @@ namespace Stride.Core.Assets.Editor.ViewModel
                     message = "The selection is not an asset";
                     return false;
                 }
-                if (AssetRegistry.IsContentType(TargetNode.Type) || typeof(AssetReference).IsAssignableFrom(TargetNode.Type) || UrlReferenceBase.IsUrlReferenceType(TargetNode.Type))
+                if (AssetRegistry.CanPropertyHandleAssets(TargetNode.Type, out var resolvedAssetTypes))
                 {
                     var isCompatible = false;
-                    var resolvedAssetTypes = AssetRegistry.GetAssetTypes(TargetNode.Type);
                     foreach (var resolvedAssetType in resolvedAssetTypes)
                     {
                         if (resolvedAssetType.IsAssignableFrom(asset.AssetType))
