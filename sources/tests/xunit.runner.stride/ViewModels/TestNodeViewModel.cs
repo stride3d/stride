@@ -10,7 +10,7 @@ namespace xunit.runner.stride.ViewModels
     {
         public abstract IEnumerable<TestCaseViewModel> EnumerateTestCases();
 
-        public abstract TestCaseViewModel LocateTestCase(ITestCase testCase);
+        public abstract TestCaseViewModel? LocateTestCase(ITestCase testCase);
 
         bool running;
         public bool Running

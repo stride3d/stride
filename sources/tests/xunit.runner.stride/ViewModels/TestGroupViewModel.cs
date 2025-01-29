@@ -27,7 +27,7 @@ public class TestGroupViewModel : TestNodeViewModel
         tests.RunTests(this);
     }
 
-    public override TestCaseViewModel LocateTestCase(ITestCase testCase)
+    public override TestCaseViewModel? LocateTestCase(ITestCase testCase)
     {
         foreach (var child in Children)
         {
