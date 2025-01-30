@@ -11,7 +11,7 @@ namespace Stride.Core.Reflection
     /// </summary>
     public class NullableDescriptor : ObjectDescriptor
     {
-        private static readonly List<IMemberDescriptor> EmptyMembers = new List<IMemberDescriptor>();
+        private static readonly List<IMemberDescriptor> EmptyMembers = [];
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ObjectDescriptor" /> class.
@@ -25,7 +25,7 @@ namespace Stride.Core.Reflection
             if (!IsNullable(type))
                 throw new ArgumentException("Type [{0}] is not a primitive");
 
-            UnderlyingType = Nullable.GetUnderlyingType(type);
+            UnderlyingType = Nullable.GetUnderlyingType(type)!;
         }
 
         public override DescriptorCategory Category => DescriptorCategory.Nullable;

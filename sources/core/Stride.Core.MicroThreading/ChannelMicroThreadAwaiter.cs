@@ -72,9 +72,8 @@ namespace Stride.Core.MicroThreading
                     MicroThread = null;
                     Continuation = null;
                     Result = default(T);
+                    pool.Add(this);
                 }
-
-                pool.Add(this);
             }
 
             return result;

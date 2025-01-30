@@ -1,5 +1,4 @@
 using System.IO;
-using System.Reflection;
 using Stride.Core.Yaml;
 
 namespace Stride.Core.Settings
@@ -14,9 +13,9 @@ namespace Stride.Core.Settings
         /// <inheritdoc/>
         public AppSettings LoadAppSettings()
         {
-            var execFilePath = Assembly.GetEntryAssembly()?.Location;
+            var execFilePath = PlatformFolders.ApplicationExecutablePath;
 
-            if (execFilePath == null)
+            if (string.IsNullOrEmpty(execFilePath))
                 return new AppSettings();
 
             var settingsFilePath = Path.ChangeExtension(execFilePath, SettingsExtension);

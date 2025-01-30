@@ -87,9 +87,9 @@ namespace Stride.GameStudio.ViewModels
 
         protected override async Task RestartAndOpenSession(UFile sessionPath)
         {
-            if (sessionPath != null && !File.Exists(sessionPath.ToWindowsPath()))
+            if (sessionPath != null && !File.Exists(sessionPath.ToOSPath()))
             {
-                await ServiceProvider.Get<IDialogService>().MessageBoxAsync(Tr._p("Message", "The file {0} does not exist.").ToFormat(sessionPath.ToWindowsPath()));
+                await ServiceProvider.Get<IDialogService>().MessageBoxAsync(Tr._p("Message", "The file {0} does not exist.").ToFormat(sessionPath.ToOSPath()));
                 return;
             }
             if (sessionPath == null)
@@ -101,7 +101,7 @@ namespace Stride.GameStudio.ViewModels
             if (sessionPath == null)
                 return;
 
-            restartArguments = $"\"{sessionPath.ToWindowsPath()}\"";
+            restartArguments = $"\"{sessionPath.ToOSPath()}\"";
             await CloseAndRestart();
         }
 

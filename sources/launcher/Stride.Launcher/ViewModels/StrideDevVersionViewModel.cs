@@ -45,7 +45,7 @@ public sealed class StrideDevVersionViewModel : StrideVersionViewModel
     public override bool CanDelete => isDevRedirect;
 
     /// <inheritdoc/>
-    public override string InstallPath => path.ToWindowsPath();
+    public override string InstallPath => path.ToOSPath();
 
 
     // This property is not used because a dev version cannot be downloaded.

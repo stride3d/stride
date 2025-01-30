@@ -11,6 +11,7 @@ using Stride.Core.Diagnostics;
 using Stride.Core.Mathematics;
 using Stride.Core.MicroThreading;
 using Stride.Engine.Design;
+using Stride.Engine.Gizmos;
 using Stride.Physics;
 using Stride.Physics.Engine;
 using Stride.Rendering;
@@ -367,6 +368,9 @@ namespace Stride.Engine
         protected ColliderShape colliderShape;
 
         [DataMemberIgnore]
+        protected bool attachInProgress = false;
+
+        [DataMemberIgnore]
         public virtual ColliderShape ColliderShape
         {
             get
@@ -425,7 +429,7 @@ namespace Stride.Engine
         [DataMemberIgnore]
         public Entity DebugEntity { get; set; }
 
-        public void AddDebugEntity(Scene scene, RenderGroup renderGroup = RenderGroup.Group0, bool alwaysAddOffset = false)
+        public void AddDebugEntity(Scene scene, RenderGroup renderGroup = IEntityGizmo.PickingRenderGroup, bool alwaysAddOffset = false)
         {
             if (DebugEntity != null) return;
 
@@ -582,7 +586,10 @@ namespace Stride.Engine
             }
         }
 
-        public void ComposeShape()
+        /// <summary>
+        /// Made virtual for added behavior in CharacterComponent with UAF exception
+        /// </summary>
+        public virtual void ComposeShape()
         {
             ColliderShapeChanged = false;
 
@@ -640,27 +647,32 @@ namespace Stride.Engine
         internal void Attach(PhysicsProcessor.AssociatedData data)
         {
             Data = data;
+            attachInProgress = true;
+
+            if (ColliderShapes.Count == 0 && ColliderShape == null)
+            {
+                logger.Error($"Entity {{Entity.Name}} has a PhysicsComponent without any collider shape.");
+                attachInProgress = false;
+                return; //no shape no purpose
+            }
 
             //this is mostly required for the game studio gizmos
             if (Simulation.DisableSimulation)
             {
+                attachInProgress = false;
                 return;
             }
 
             //this is not optimal as UpdateWorldMatrix will end up being called twice this frame.. but we need to ensure that we have valid data.
             Entity.Transform.UpdateWorldMatrix();
 
-            if (ColliderShapes.Count == 0 && ColliderShape == null)
-            {
-                logger.Error($"Entity {Entity.Name} has a PhysicsComponent without any collider shape.");
-                return; //no shape no purpose
-            }
-            else if (ColliderShape == null)
+            if (ColliderShape == null)
             {
                 ComposeShape();
                 if (ColliderShape == null)
                 {
                     logger.Error($"Entity {Entity.Name}'s PhysicsComponent failed to compose its collider shape.");
+                    attachInProgress = false;
                     return; //no shape no purpose
                 }
             }
@@ -672,6 +684,38 @@ namespace Stride.Engine
             if(ignoreCollisionBuffer != null && NativeCollisionObject != null)
             {
                 foreach(var kvp in ignoreCollisionBuffer)
+                {
+                    IgnoreCollisionWith(kvp.Key, kvp.Value);
+                }
+                ignoreCollisionBuffer = null;
+            }
+
+            attachInProgress = false;
+        }
+
+        /// <summary>
+        /// Ran when properties of Components may not be fully setup and need to be reintegrated (eg GetOrCreate<RigidbodyComponent> and adding collidershapes)
+        /// </summary>
+        internal void ReAttach()
+        {
+            if (Data == null)
+            {
+                throw new InvalidOperationException("PhysicsComponent has not been attached yet.");
+            }
+            //TODO: Could consider fully detaching and then rebuilding, but ideally this would cause null refs on Rigidbody OnDetach calls
+            //Shouldnt call detach, because at this point the user has added new components and this runs as a check to rebuild as needed.
+            //Entire wipes to rebuild causes loss in the data that the user has just added (and is slower)
+
+            Entity.Transform.UpdateWorldMatrix();
+
+            BoneIndex = -1;
+
+            OnAttach();
+
+            //ensure ignore collisions
+            if (ignoreCollisionBuffer != null && NativeCollisionObject != null)
+            {
+                foreach (var kvp in ignoreCollisionBuffer)
                 {
                     IgnoreCollisionWith(kvp.Key, kvp.Value);
                 }
@@ -699,6 +743,9 @@ namespace Stride.Engine
             }
         }
 
+        /// <summary>
+        /// Called whenever an entity with this component is added to scene.
+        /// </summary>
         protected virtual void OnAttach()
         {
             //set pre-set post deserialization properties
@@ -758,12 +805,8 @@ namespace Stride.Engine
             {
                 if(ignoreCollisionBuffer != null || other.ignoreCollisionBuffer == null)
                 {
-                    if(ignoreCollisionBuffer == null)
-                        ignoreCollisionBuffer = new Dictionary<PhysicsComponent, CollisionState>();
-                    if(ignoreCollisionBuffer.ContainsKey(other))
-                        ignoreCollisionBuffer[other] = state;
-                    else
-                        ignoreCollisionBuffer.Add(other, state);
+                    ignoreCollisionBuffer ??= [];
+                    ignoreCollisionBuffer[other] = state;
                 }
                 else
                 {

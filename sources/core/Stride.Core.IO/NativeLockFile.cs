@@ -11,15 +11,15 @@ namespace Stride.Core.IO
     public static class NativeLockFile
     {
         [DllImport("Kernel32.dll", SetLastError = true)]
-        internal static extern bool LockFileEx(Microsoft.Win32.SafeHandles.SafeFileHandle handle, uint flags, uint reserved, uint countLow, uint countHigh, ref System.Threading.NativeOverlapped overlapped);
+        private static extern bool LockFileEx(Microsoft.Win32.SafeHandles.SafeFileHandle handle, uint flags, uint reserved, uint countLow, uint countHigh, ref System.Threading.NativeOverlapped overlapped);
 
         [DllImport("Kernel32.dll", SetLastError = true)]
-        internal static extern bool UnlockFileEx(Microsoft.Win32.SafeHandles.SafeFileHandle handle, uint reserved, uint countLow, uint countHigh, ref System.Threading.NativeOverlapped overlapped);
+        private static extern bool UnlockFileEx(Microsoft.Win32.SafeHandles.SafeFileHandle handle, uint reserved, uint countLow, uint countHigh, ref System.Threading.NativeOverlapped overlapped);
 
         internal const uint LOCKFILE_FAIL_IMMEDIATELY = 0x00000001;
         internal const uint LOCKFILE_EXCLUSIVE_LOCK = 0x00000002;
 
-        public static void LockFile(FileStream fileStream, long offset, long count, bool exclusive)
+        public static bool TryLockFile(FileStream fileStream, long offset, long count, bool exclusive, bool failImmediately  = false)
         {
             if (Platform.Type == PlatformType.Android)
             {
@@ -36,17 +36,11 @@ namespace Stride.Core.IO
 
                 var overlapped = new NativeOverlapped()
                 {
-                    InternalLow = IntPtr.Zero,
-                    InternalHigh = IntPtr.Zero,
-                    OffsetLow = (int)(offset & 0x00000000FFFFFFFF),
+                    OffsetLow = (int)(offset & uint.MaxValue),
                     OffsetHigh = (int)(offset >> 32),
-                    EventHandle = IntPtr.Zero,
                 };
 
-                if (!LockFileEx(fileStream.SafeFileHandle, exclusive ? LOCKFILE_EXCLUSIVE_LOCK : 0, 0, countLow, countHigh, ref overlapped))
-                {
-                    throw new IOException("Couldn't lock file.");
-                }
+                return LockFileEx(fileStream.SafeFileHandle, (exclusive ? LOCKFILE_EXCLUSIVE_LOCK : 0) + (failImmediately ? NativeLockFile.LOCKFILE_FAIL_IMMEDIATELY : 0), 0, countLow, countHigh, ref overlapped);
             }
             else
             {
@@ -57,6 +51,7 @@ namespace Stride.Core.IO
                     try
                     {
                         fileStream.Lock(offset, count);
+                        return true;
                     }
                     catch (IOException)
                     {
@@ -64,9 +59,10 @@ namespace Stride.Core.IO
                     }
                 } while (tryAgain);
             }
+            return false;
         }
 
-        public static void UnlockFile(FileStream fileStream, long offset, long count)
+        public static void TryUnlockFile(FileStream fileStream, long offset, long count)
         {
             if (Platform.Type == PlatformType.Android)
             {
@@ -81,11 +77,8 @@ namespace Stride.Core.IO
 
                 var overlapped = new NativeOverlapped()
                 {
-                    InternalLow = IntPtr.Zero,
-                    InternalHigh = IntPtr.Zero,
-                    OffsetLow = (int)(offset & 0x00000000FFFFFFFF),
+                    OffsetLow = (int)(offset & uint.MaxValue),
                     OffsetHigh = (int)(offset >> 32),
-                    EventHandle = IntPtr.Zero,
                 };
 
                 if (!UnlockFileEx(fileStream.SafeFileHandle, 0, countLow, countHigh, ref overlapped))

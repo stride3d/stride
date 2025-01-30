@@ -21,6 +21,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
+using System;
 using Stride.Games;
 
 namespace Stride.Graphics
@@ -79,7 +80,7 @@ namespace Stride.Graphics
             /// <returns>A index buffer</returns>
             public static Buffer<T> New<T>(GraphicsDevice device, T[] value, GraphicsResourceUsage usage = GraphicsResourceUsage.Immutable) where T : unmanaged
             {
-                return Buffer.New(device, value, BufferFlags.IndexBuffer, usage);
+                return Buffer.New(device, (ReadOnlySpan<T>)value, BufferFlags.IndexBuffer, usage:usage);
             }
 
             /// <summary>
@@ -102,6 +103,19 @@ namespace Stride.Graphics
             /// <param name="value">The value to initialize the index buffer.</param>
             /// <param name="usage">The usage of this resource.</param>
             /// <returns>A index buffer</returns>
+            public static Buffer New(GraphicsDevice device, ReadOnlySpan<byte> value, GraphicsResourceUsage usage = GraphicsResourceUsage.Immutable)
+            {
+                return Buffer.New(device, value, 0, BufferFlags.IndexBuffer, PixelFormat.None, usage);
+            }
+
+            /// <summary>
+            /// Creates a new index buffer with <see cref="GraphicsResourceUsage.Immutable"/> uasge by default.
+            /// </summary>
+            /// <param name="device">The <see cref="GraphicsDevice"/>.</param>
+            /// <param name="value">The value to initialize the index buffer.</param>
+            /// <param name="usage">The usage of this resource.</param>
+            /// <returns>A index buffer</returns>
+            [Obsolete("Use span instead")]
             public static Buffer New(GraphicsDevice device, DataPointer value, GraphicsResourceUsage usage = GraphicsResourceUsage.Immutable)
             {
                 return Buffer.New(device, value, 0, BufferFlags.IndexBuffer, usage);

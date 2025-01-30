@@ -22,7 +22,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\tests\xunit.runner.stride\xunit.runner.stride.csproj" />
-    <ProjectReference Include="..\Stride.Core\Stride.Core.csproj" ReferenceOutputAssembly="false" OutputItemType="Content" CopyToOutputDirectory="Always" />
+    <ProjectReference Include="..\Stride.Core\Stride.Core.csproj" ReferenceOutputAssembly="true" OutputItemType="Content" CopyToOutputDirectory="Always" />
     <ProjectReference Include="..\Stride.Core.CompilerServices\Stride.Core.CompilerServices.csproj" />
 
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" PrivateAssets="all" />

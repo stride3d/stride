@@ -4,7 +4,6 @@
 using System;
 using Stride.Core;
 using Stride.Core.Mathematics;
-using Stride.Native;
 
 namespace Stride.Audio
 {

@@ -3,7 +3,8 @@
 	<PropertyGroup>
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<Description>Code generators for Stride.Core and its dependents</Description>
-    <LangVersion>preview</LangVersion>
+    <LangVersion>latest</LangVersion>
+    <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
 		<StrideSkipAutoPack>true</StrideSkipAutoPack>
     <Nullable>enable</Nullable>
     <!--<DefineConstants>LAUNCH_DEBUGGER;$(DefineConstants)</DefineConstants>-->
@@ -18,16 +19,20 @@
 			<Link>Properties\SharedAssemblyInfo.cs</Link>
 		</Compile>
 	</ItemGroup>
-
 	<ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
+    <PackageReference Include="PolySharp">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+
+
 	</ItemGroup>
 
 	<ItemGroup>
 	  <Folder Include="CodeFixes\" />
 	  <Folder Include="Common\" />
-	  <Folder Include="Generators\" />
     <Using Include="System.Linq" />
     <Using Include="System.Collections.Generic" />
     <Using Include="System" />

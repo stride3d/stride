@@ -166,8 +166,8 @@ namespace FreeImageAPI.Metadata
 			{
 				throw new ArgumentNullException("key");
 			}
-			MetadataTag tag;
-			return FreeImage.GetMetadata(Model, dib, key, out tag) ? tag : null;
+
+			return FreeImage.GetMetadata(Model, dib, key, out MetadataTag tag) ? tag : null;
 		}
 
 		/// <summary>
@@ -183,8 +183,8 @@ namespace FreeImageAPI.Metadata
 			{
 				throw new ArgumentNullException("key");
 			}
-			MetadataTag tag;
-			return FreeImage.GetMetadata(Model, dib, key, out tag);
+
+			return FreeImage.GetMetadata(Model, dib, key, out MetadataTag _);
 		}
 
 		/// <summary>
@@ -195,8 +195,7 @@ namespace FreeImageAPI.Metadata
 			get
 			{
 				List<MetadataTag> list = new List<MetadataTag>((int)FreeImage.GetMetadataCount(Model, dib));
-				MetadataTag tag;
-				FIMETADATA mdHandle = FreeImage.FindFirstMetadata(Model, dib, out tag);
+				FIMETADATA mdHandle = FreeImage.FindFirstMetadata(Model, dib, out MetadataTag tag);
 				if (!mdHandle.IsNull)
 				{
 					do
@@ -221,9 +220,9 @@ namespace FreeImageAPI.Metadata
 			{
 				throw new ArgumentOutOfRangeException("index");
 			}
-			MetadataTag tag;
+
 			int count = 0;
-			FIMETADATA mdHandle = FreeImage.FindFirstMetadata(Model, dib, out tag);
+			FIMETADATA mdHandle = FreeImage.FindFirstMetadata(Model, dib, out MetadataTag tag);
 			if (!mdHandle.IsNull)
 			{
 				try
@@ -297,9 +296,9 @@ namespace FreeImageAPI.Metadata
 		/// <param name="flags">A bitfield that controls which fields should be searched in.</param>
 		/// <returns>A list containing all found metadata tags.</returns>
 		/// <exception cref="ArgumentNullException">
-        /// <paramref name="searchPattern"/> is null.</exception>
+		/// <paramref name="searchPattern"/> is null.</exception>
 		/// <exception cref="ArgumentException">
-        /// <paramref name="searchPattern"/> is empty.</exception>
+		/// <paramref name="searchPattern"/> is empty.</exception>
 		public List<MetadataTag> RegexSearch(string searchPattern, MD_SEARCH_FLAGS flags)
 		{
 			if (searchPattern == null)
@@ -350,8 +349,7 @@ namespace FreeImageAPI.Metadata
 			MetadataTag tag = GetTag(key);
 			if (tag != null)
 			{
-				T[] value = tag.Value as T[];
-				if ((value != null) && (value.Length != 0))
+				if ((tag.Value is T[] value) && (value.Length != 0))
 				{
 					return value[0];
 				}
@@ -410,18 +408,17 @@ namespace FreeImageAPI.Metadata
 				object value = tag.Value;
 				if (value != null)
 				{
-					if (value is ushort[])
+					if (value is ushort[] array)
 					{
-						ushort[] array = (ushort[])value;
 						result = new uint[array.Length];
 						for (int i = 0, j = array.Length; i < j; i++)
 						{
-							result[i] = (uint)array[i];
+							result[i] = array[i];
 						}
 					}
-					else if (value is uint[])
+					else if (value is uint[] uints)
 					{
-						result = (uint[])value;
+						result = uints;
 					}
 				}
 			}
@@ -436,7 +433,7 @@ namespace FreeImageAPI.Metadata
 		protected uint? GetUInt32Value(string key)
 		{
 			uint[] value = GetUInt32Array(key);
-			return value == null ? default(uint?) : value[0];
+			return value?[0];
 		}	
 
 		/// <summary>
@@ -525,15 +522,12 @@ namespace FreeImageAPI.Metadata
 		{
 			if (string.IsNullOrEmpty(s))
 				return null;
-			switch (s[0])
+			return s[0] switch
 			{
-				case 'T':
-					return DirectionReference.TrueDirection;
-				case 'M':
-					return DirectionReference.MagneticDirection;
-				default:
-					return DirectionReference.Undefined;
-			}
+				'T' => DirectionReference.TrueDirection,
+				'M' => DirectionReference.MagneticDirection,
+				_ => DirectionReference.Undefined
+			};
 		}
 
 		/// <summary>
@@ -547,15 +541,12 @@ namespace FreeImageAPI.Metadata
 		{
 			if (type.HasValue)
 			{
-				switch (type.Value)
+				return type.Value switch
 				{
-					case DirectionReference.TrueDirection:
-						return "T";
-					case DirectionReference.MagneticDirection:
-						return "M";
-					default:
-						return "\0";
-				}
+					DirectionReference.TrueDirection => "T",
+					DirectionReference.MagneticDirection => "M",
+					_ => "\0"
+				};
 			}
 			return null;
 		}
@@ -571,17 +562,13 @@ namespace FreeImageAPI.Metadata
 		{
 			if (string.IsNullOrEmpty(s))
 				return null;
-			switch (s[0])
+			return s[0] switch
 			{
-				case 'K':
-					return VelocityUnit.Kilometers;
-				case 'M':
-					return VelocityUnit.Miles;
-				case 'N':
-					return VelocityUnit.Knots;
-				default:
-					return VelocityUnit.Undefinied;
-			}
+				'K' => VelocityUnit.Kilometers,
+				'M' => VelocityUnit.Miles,
+				'N' => VelocityUnit.Knots,
+				_ => VelocityUnit.Undefinied
+			};
 		}
 
 		/// <summary>
@@ -595,17 +582,13 @@ namespace FreeImageAPI.Metadata
 		{
 			if (type.HasValue)
 			{
-				switch (type.Value)
+				return type.Value switch
 				{
-					case VelocityUnit.Kilometers:
-						return "K";
-					case VelocityUnit.Miles:
-						return "M";
-					case VelocityUnit.Knots:
-						return "N";
-					default:
-						return "\0";
-				}
+					VelocityUnit.Kilometers => "K",
+					VelocityUnit.Miles => "M",
+					VelocityUnit.Knots => "N",
+					_ => "\0"
+				};
 			}
 			return null;
 		}
@@ -621,15 +604,12 @@ namespace FreeImageAPI.Metadata
 		{
 			if (string.IsNullOrEmpty(s))
 				return null;
-			switch (s[0])
+			return s[0] switch
 			{
-				case 'E':
-					return LongitudeType.East;
-				case 'W':
-					return LongitudeType.West;
-				default:
-					return LongitudeType.Undefined;
-			}
+				'E' => LongitudeType.East,
+				'W' => LongitudeType.West,
+				_ => LongitudeType.Undefined
+			};
 		}
 
 		/// <summary>
@@ -643,15 +623,12 @@ namespace FreeImageAPI.Metadata
 		{
 			if (type.HasValue)
 			{
-				switch (type.Value)
+				return type.Value switch
 				{
-					case LongitudeType.East:
-						return "E";
-					case LongitudeType.West:
-						return "W";
-					default:
-						return "\0";
-				}
+					LongitudeType.East => "E",
+					LongitudeType.West => "W",
+					_ => "\0"
+				};
 			}
 			return null;
 		}
@@ -667,15 +644,12 @@ namespace FreeImageAPI.Metadata
 		{
 			if (string.IsNullOrEmpty(s))
 				return null;
-			switch (s[0])
+			return s[0] switch
 			{
-				case 'N':
-					return LatitudeType.North;
-				case 'S':
-					return LatitudeType.South;
-				default:
-					return LatitudeType.Undefined;
-			}
+				'N' => LatitudeType.North,
+				'S' => LatitudeType.South,
+				_ => LatitudeType.Undefined
+			};
 		}
 
 		/// <summary>
@@ -689,15 +663,12 @@ namespace FreeImageAPI.Metadata
 		{
 			if (type.HasValue)
 			{
-				switch (type.Value)
+				return type.Value switch
 				{
-					case LatitudeType.North:
-						return "N";
-					case LatitudeType.South:
-						return "S";
-					default:
-						return "\0";
-				}
+					LatitudeType.North => "N",
+					LatitudeType.South => "S",
+					_ => "\0"
+				};
 			}
 			return null;
 		}
@@ -731,15 +702,12 @@ namespace FreeImageAPI.Metadata
 		{
 			if (type.HasValue)
 			{
-				switch (type.Value)
+				return type.Value switch
 				{
-					case InteroperabilityMode.R98:
-						return "R98";
-					case InteroperabilityMode.THM:
-						return "THM";
-					default:
-						return "\0\0\0";
-				}
+					InteroperabilityMode.R98 => "R98",
+					InteroperabilityMode.THM => "THM",
+					_ => "\0\0\0"
+				};
 			}
 			return null;
 		}

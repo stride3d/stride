@@ -12,13 +12,12 @@ namespace Stride.Core
     public static class NativeLibraryHelper
     {
         private const string UNIX_LIB_PREFIX = "lib";
-        private static readonly Dictionary<string, IntPtr> LoadedLibraries = new Dictionary<string, IntPtr>(StringComparer.OrdinalIgnoreCase);
-        private static readonly Dictionary<string, string> NativeDependencies = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        private static readonly Dictionary<string, IntPtr> LoadedLibraries = new(StringComparer.OrdinalIgnoreCase);
+        private static readonly Dictionary<string, string> NativeDependencies = new(StringComparer.OrdinalIgnoreCase);
 
         /// <summary>
         /// Try to preload the library.
         /// This is useful when we want to have AnyCPU .NET and CPU-specific native code.
-        /// Only available on Windows for now.
         /// </summary>
         /// <param name="libraryName">Name of the library, without the extension.</param>
         /// <param name="owner">Type whose assembly location is related to the native library (we can't use GetCallingAssembly as it might be wrong due to optimizations).</param>
@@ -52,54 +51,22 @@ namespace Stride.Core
                     }
                 }
 
-                string cpu;
-                string platform;
-                string extension;
-
-                switch (RuntimeInformation.ProcessArchitecture)
+                var cpu = RuntimeInformation.ProcessArchitecture switch
                 {
-                    case Architecture.X86:
-                        cpu = "x86";
-                        break;
-                    case Architecture.X64:
-                        cpu = "x64";
-                        break;
-                    case Architecture.Arm:
-                        cpu = "ARM";
-                        break;
-                    default:
-                        throw new PlatformNotSupportedException();
-                }
+                    Architecture.X86 => "x86",
+                    Architecture.X64 => "x64",
+                    Architecture.Arm => "ARM",
+                    _ => throw new PlatformNotSupportedException(),
+                };
 
-                switch (Platform.Type)
+                string platform, extension;
+                (platform, extension) = Platform.Type switch
                 {
-                    case PlatformType.Windows:
-                        platform = "win";
-                        break;
-                    case PlatformType.Linux:
-                        platform = "linux";
-                        break;
-                    case PlatformType.macOS:
-                        platform = "osx";
-                        break;
-                    default:
-                        throw new PlatformNotSupportedException();
-                }
-
-                switch (Platform.Type)
-                {
-                    case PlatformType.Windows:
-                        extension = ".dll";
-                        break;
-                    case PlatformType.Linux:
-                        extension = ".so";
-                        break;
-                    case PlatformType.macOS:
-                        extension = ".dylib";
-                        break;
-                    default:
-                        throw new PlatformNotSupportedException();
-                }
+                    PlatformType.Windows => ("win",".dll"),
+                    PlatformType.Linux => ("linux",".so"),
+                    PlatformType.macOS => ("osx",".dylib"),
+                    _ => throw new PlatformNotSupportedException(),
+                };
 
                 var libraryNameWithExtension = libraryName + extension;
 
@@ -127,7 +94,7 @@ namespace Stride.Core
                     {
                         Path.Combine(Path.GetDirectoryName(owner.GetTypeInfo().Assembly.Location) ?? string.Empty, platformNativeLibsFolder),
                         Path.Combine(Environment.CurrentDirectory ?? string.Empty, platformNativeLibsFolder),
-                        Path.Combine(Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName) ?? string.Empty, platformNativeLibsFolder),
+                        Path.Combine(Path.GetDirectoryName(Environment.ProcessPath) ?? string.Empty, platformNativeLibsFolder),
                         // Also try without platform for Windows-only packages (backward compat for editor packages)
                         Path.Combine(Path.GetDirectoryName(owner.GetTypeInfo().Assembly.Location) ?? string.Empty, cpu),
                         Path.Combine(Environment.CurrentDirectory ?? string.Empty, cpu),
@@ -167,8 +134,7 @@ namespace Stride.Core
 #if STRIDE_PLATFORM_DESKTOP
             lock (LoadedLibraries)
             {
-                IntPtr libHandle;
-                if (LoadedLibraries.TryGetValue(libraryName, out libHandle))
+                if (LoadedLibraries.TryGetValue(libraryName, out var libHandle))
                 {
                     NativeLibrary.Free(libHandle);
                     LoadedLibraries.Remove(libraryName);

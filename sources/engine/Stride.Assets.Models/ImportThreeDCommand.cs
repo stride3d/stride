@@ -34,10 +34,7 @@ namespace Stride.Assets.Models
 
         private Stride.Importer.ThreeD.MeshConverter CreateMeshConverter(ICommandContext commandContext)
         {
-            return new Stride.Importer.ThreeD.MeshConverter(commandContext.Logger)
-            {
-                AllowUnsignedBlendIndices = this.AllowUnsignedBlendIndices,
-            };
+            return new Stride.Importer.ThreeD.MeshConverter(commandContext.Logger);
         }
 
         protected override Model LoadModel(ICommandContext commandContext, ContentManager contentManager)

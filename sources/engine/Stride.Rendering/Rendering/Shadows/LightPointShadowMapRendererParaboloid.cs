@@ -41,12 +41,8 @@ namespace Stride.Rendering.Shadows
 
         public override bool CanRenderLight(IDirectLight light)
         {
-            var pl = light as LightPoint;
-            if (pl != null)
-            {
-                var type = ((LightPointShadowMap)pl.Shadow).Type;
-                return type == LightPointShadowMapType.DualParaboloid;
-            }
+            if (light is LightPoint lightPoint)
+                return lightPoint.Shadow.Type == LightPointShadowMapType.DualParaboloid;
             return false;
         }
 
@@ -121,7 +117,7 @@ namespace Stride.Rendering.Shadows
         /// </summary>
         private void CalculateViewDirection(LightShadowMapTexture shadowMapTexture)
         {
-            var pointShadowMapTexture = shadowMapTexture as ShadowMapTexture;
+            var pointShadowMapTexture = (ShadowMapTexture)shadowMapTexture;
             Matrix.Orthonormalize(ref shadowMapTexture.RenderLight.WorldMatrix, out pointShadowMapTexture.ForwardMatrix);
             pointShadowMapTexture.ForwardMatrix.Invert();
         }
@@ -134,7 +130,7 @@ namespace Stride.Rendering.Shadows
         /// </returns>
         private Vector2 GetShadowMapDepthParameters(LightShadowMapTexture shadowMapTexture)
         {
-            var lightPoint = shadowMapTexture.Light as LightPoint;
+            var lightPoint = (LightPoint)shadowMapTexture.Light;
             Vector2 clippingPlanes = GetLightClippingPlanes(lightPoint);
             return new Vector2(clippingPlanes.X, 1.0f / (clippingPlanes.Y - clippingPlanes.X));
         }
@@ -146,12 +142,12 @@ namespace Stride.Rendering.Shadows
 
         private float GetShadowMapFarPlane(LightShadowMapTexture shadowMapTexture)
         {
-            return GetLightClippingPlanes(shadowMapTexture.Light as LightPoint).Y;
+            return GetLightClippingPlanes((LightPoint)shadowMapTexture.Light).Y;
         }
 
         private void GetViewParameters(LightShadowMapTexture shadowMapTexture, int index, out Matrix view, bool forCasting)
         {
-            var pointShadowMapTexture = shadowMapTexture as ShadowMapTexture;
+            var pointShadowMapTexture = (ShadowMapTexture)shadowMapTexture;
             Matrix flippingMatrix = Matrix.Identity;
 
             // Flip Y for rendering shadow maps

@@ -75,5 +75,43 @@ namespace Stride.Core.Mathematics.Tests
             var expectedQuat = Quaternion.RotationX(pitchRadians) * Quaternion.RotationY(yawRadians) * Quaternion.RotationZ(rollRadians);
             Assert.True(expectedQuat == decompedQuat || expectedQuat == -decompedQuat, $"Quat not equals: Expected: {expectedQuat} - Actual: {decompedQuat}");
         }
+
+        [Fact]
+        public void TestNumericConversion()
+        {
+            System.Numerics.Matrix4x4 matrix = new System.Numerics.Matrix4x4(
+                1, 2, 3, 4,
+                5, 6, 7, 8,
+                9, 10, 11, 12,
+                13, 14, 15, 16);
+
+            Matrix baseStrideMatrix = new Matrix(
+                1, 2, 3, 4,
+                5, 6, 7, 8,
+                9, 10, 11, 12,
+                13, 14, 15, 16);
+
+            Matrix strideMatrix = matrix;
+            Assert.Equal(baseStrideMatrix, strideMatrix);
+        }
+
+        [Fact]
+        public void TestStrideConversion()
+        {
+            Matrix matrix = new(
+                1, 2, 3, 4,
+                5, 6, 7, 8,
+                9, 10, 11, 12,
+                13, 14, 15, 16);
+
+            System.Numerics.Matrix4x4 baseNumericseMatrix = new(
+                1, 2, 3, 4,
+                5, 6, 7, 8,
+                9, 10, 11, 12,
+                13, 14, 15, 16);
+
+            System.Numerics.Matrix4x4 numericsMatrix = matrix;
+            Assert.Equal(baseNumericseMatrix, numericsMatrix);
+        }
     }
 }

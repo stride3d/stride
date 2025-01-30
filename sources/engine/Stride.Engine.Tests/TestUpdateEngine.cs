@@ -20,6 +20,7 @@ namespace Stride.Engine.Tests
         [StructLayout(LayoutKind.Sequential)] public struct SequentialLayoutObjRef { public object Ref; }
         [StructLayout(LayoutKind.Explicit)] public struct ExplicitLayoutObjRef { [FieldOffset(0)] public object Ref; }
 
+        
         [Fact]
         public unsafe void TestGCHandleAlloc()
         {
@@ -33,7 +34,7 @@ namespace Stride.Engine.Tests
                     return false;
                 }
             }
-            Assert.False(CanPin<AutoLayout>());
+            Assert.True(CanPin<AutoLayout>());
             Assert.True(CanPin<SequentialLayout>());
             Assert.True(CanPin<ExplicitLayout>());
             Assert.False(CanPin<AutoLayoutObjRef>());

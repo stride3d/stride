@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System;
+using System.IO;
 using Silk.NET.Assimp;
 using Stride.Core.Diagnostics;
 using Stride.Core.Mathematics;
@@ -77,7 +79,7 @@ namespace Stride.Importer.ThreeD.Material
             MappingMode.Decal        // aiTextureMapMode_Decal
         };
 
-        public static unsafe MaterialStack ConvertAssimpStackCppToCs(Silk.NET.Assimp.Assimp assimp, Silk.NET.Assimp.Material* material, Silk.NET.Assimp.TextureType type, Logger logger)
+        public static unsafe MaterialStack ConvertAssimpStackCppToCs(Silk.NET.Assimp.Assimp assimp, Scene* scene, Silk.NET.Assimp.Material* material, Silk.NET.Assimp.TextureType type, Logger logger)
         {
             var ret = new MaterialStack();
             var count = (int)assimp.GetMaterialTextureCount(material, type);
@@ -141,8 +143,14 @@ namespace Stride.Importer.ThreeD.Material
                         if (assimp.GetMaterialIntegerArray(material, Silk.NET.Assimp.Assimp.MaterialMappingmodeVBase, (uint)type, (uint)iEl, ref elMappingModeV, ref pMax) != Return.Success)
                             elMappingModeV = (int)TextureMapMode.Wrap; // default mapping mode
 
+                        // Determine the physical texture file name
+                        if (!TryGetTextureFileName(elTexPath.AsString, scene, out var texFileName, out var errorMessage))
+                        {
+                            logger?.Error(errorMessage);
+                            continue; // error !
+                        }
                         el = new StackTexture(
-                            elTexPath.AsString,
+                            texFileName,
                             elTexChannel,
                             ConvertAssimpMappingModeCppToCs[elMappingModeU],
                             ConvertAssimpMappingModeCppToCs[elMappingModeV],
@@ -159,6 +167,61 @@ namespace Stride.Importer.ThreeD.Material
             }
 
             return ret;
+        }
+
+        internal static unsafe bool TryGetTextureFileName(string materialTextureFileName, Scene* scene, out string fileName, out string errorMessage)
+        {
+            var texFileName = Path.GetFileName(materialTextureFileName);
+            if (!texFileName.StartsWith(Assimp.EmbeddedTexnamePrefix))
+            {
+                fileName = texFileName;
+                errorMessage = null;
+                return true;
+            }
+            // Embedded texture is denoted by '*' + index value, where the texture is accessed by scene->MTextures[index]
+            var texIndexStringSpan = texFileName.AsSpan().Slice(Assimp.EmbeddedTexnamePrefix.Length);
+            if (int.TryParse(texIndexStringSpan, out int texIndex))
+            {
+                var texture = scene->MTextures[texIndex];
+                return TryGetTextureFileName(texture, out fileName, out errorMessage);
+            }
+            else
+            {
+                fileName = null;
+                errorMessage = $"Invalid texture name for embedded texture: {texFileName} - Expected a number.";
+                return false;
+            }
+        }
+
+        internal unsafe static bool TryGetTextureFileName(Silk.NET.Assimp.Texture* texture, out string fileName, out string errorMessage)
+        {
+            var texFileName = Path.GetFileName(texture->MFilename.AsString);
+            if (Path.HasExtension(texFileName))
+            {
+                fileName = texFileName;
+                errorMessage = null;
+                return true;
+            }
+            // Formats like glTF may strip the file extension from the file name, so we need to bring this back
+            if (texture->MHeight != 0)
+            {
+                fileName = null;
+                errorMessage = $"Could not determine texture file name: Texture '{fileName}' is an embedded uncompressed texture.";
+                return false;
+            }
+            var fileExt = System.Text.Encoding.UTF8.GetString(texture->AchFormatHint, byteCount: Assimp.Hintmaxtexturelen).Trim('\0');
+            if (!string.IsNullOrEmpty(fileExt))
+            {
+                fileName = texFileName + '.' + fileExt;
+                errorMessage = null;
+                return true;
+            }
+            else
+            {
+                fileName = null;
+                errorMessage = $"Could not determine texture file name: Embedded Texture '{fileName}' has unknown file extension.";
+                return false;
+            }
         }
     }
 }

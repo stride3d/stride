@@ -142,8 +142,7 @@ namespace Stride.Core.Serialization
             lock (Lock)
             {
                 // Register it (so that we can get it back if unregistered)
-                if (!AvailableAssemblySerializers.ContainsKey(assemblySerializers.Assembly))
-                    AvailableAssemblySerializers.Add(assemblySerializers.Assembly, assemblySerializers);
+                AvailableAssemblySerializers.TryAdd(assemblySerializers.Assembly, assemblySerializers);
 
                 // Check if already loaded
                 if (AssemblySerializers.Contains(assemblySerializers))
@@ -267,10 +266,7 @@ namespace Stride.Core.Serialization
 
                 foreach (var assemblySerializer in assemblySerializerPerProfile.Value)
                 {
-                    if (!dataSerializers.ContainsKey(assemblySerializer.ObjectType))
-                    {
-                        dataSerializers.Add(assemblySerializer.ObjectType, assemblySerializer);
-                    }
+                    dataSerializers.TryAdd(assemblySerializer.ObjectType, assemblySerializer);
                 }
             }
         }

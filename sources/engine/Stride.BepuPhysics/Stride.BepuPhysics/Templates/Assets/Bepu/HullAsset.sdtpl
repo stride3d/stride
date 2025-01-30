@@ -1,0 +1,10 @@
+!TemplateAssetFactory
+Id: FDBCB65A-9866-4EF2-9A03-AF21F943BDFD
+AssetTypeName: HullAsset
+Name: Convex hull
+Scope: Asset
+Description: A convex hull-shaped collider for use with bepu physics, computed from a 3D model
+Group: Physics-Bepu
+Icon: ..\.sdtpl\ColliderHull.png
+DefaultOutputName: ColliderHull
+FactoryTypeName: HullAssetFactory

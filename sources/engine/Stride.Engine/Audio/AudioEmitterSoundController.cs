@@ -17,7 +17,7 @@ namespace Stride.Audio
     /// <remarks>
     /// <para>
     /// Instances of this class can not be directly created by the user, but need to queried from an <see cref="AudioEmitterComponent"/>
-    /// instance using the readonly <see cref="AudioEmitterComponent.Item(string)"/> indexer.
+    /// instance using the readonly <see cref="AudioEmitterComponent.this[string]"/> indexer.
     /// </para>
     /// <para>
     /// An instance <see cref="AudioEmitterSoundController"/> is not valid anymore if any of those situations arrives:

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?> 
+<assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0"> 
+
+    <assemblyIdentity
+        name=" "
+        version="0.0.0.0"
+    />
+
+    <dependency>
+        <dependentAssembly>
+            <assemblyIdentity
+                name="Microsoft.Windows.Build.Signing.mssign32.dll"
+                version="0.0.0.0"
+            />
+        </dependentAssembly>
+    </dependency>
+
+    <dependency>
+        <dependentAssembly>
+            <assemblyIdentity
+                name="Microsoft.Windows.Build.Signing.wintrust.dll"
+                version="0.0.0.0"
+            />
+        </dependentAssembly>
+    </dependency>
+
+    <dependency>
+        <dependentAssembly>
+            <assemblyIdentity
+                name="Microsoft.Windows.Build.Appx.AppxSip.dll"
+                version="0.0.0.0"
+            />
+        </dependentAssembly>
+    </dependency>
+</assembly>

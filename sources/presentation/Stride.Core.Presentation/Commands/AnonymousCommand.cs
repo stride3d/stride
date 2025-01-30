@@ -1,7 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using Stride.Core.Extensions;
 using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.Core.Presentation.Commands;
@@ -157,7 +156,7 @@ public class AnonymousTaskCommand<T> : AnonymousCommand<T>
     /// <param name="task">A method with a typed parameter returning a task that will be called each time the command is executed.</param>
     /// <param name="canExecute">An anonymous method that will be called each time the command <see cref="CommandBase.CanExecute(object)"/> method is invoked.</param>
     public AnonymousTaskCommand(IViewModelServiceProvider serviceProvider, Func<T, Task> task, Func<T, bool>? canExecute = null)
-        : base(serviceProvider, x => task(x).Forget(), canExecute)
+        : base(serviceProvider, async x => await task(x), canExecute)
     {
         ArgumentNullException.ThrowIfNull(task);
     }

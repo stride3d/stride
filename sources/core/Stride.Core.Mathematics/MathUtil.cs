@@ -662,5 +662,37 @@ namespace Stride.Core.Mathematics
         {
             return ((value % divisor) + divisor) % divisor;
         }
+
+        /// <summary>
+        /// Exponential damping. 
+        /// Alternative to 
+        /// <code>a = lerp(a, b, damping * dt)</code>
+        /// using the exponential function flipped around the Y axis: e^(-t)
+        /// </summary>
+        /// <param name="a">Initial value</param>
+        /// <param name="b">Plateau value</param>
+        /// <param name="lambda">Damping</param>
+        /// <param name="dt">Discrete time unit, delta time.</param>
+        /// <returns>A value interpolated from a to b depending on lambda and dt.</returns>
+        public static float ExpDecay(float a, float b, float lambda, float dt)
+        {
+            return b + (a - b) * MathF.Exp(-lambda * dt);
+        }
+
+        /// <summary>
+        /// Exponential damping. 
+        /// Alternative to 
+        /// <code>a = lerp(a, b, damping * dt)</code>
+        /// using the exponential function flipped around the Y axis: e^(-t)
+        /// </summary>
+        /// <param name="a">Initial value</param>
+        /// <param name="b">Plateau value</param>
+        /// <param name="lambda">Damping</param>
+        /// <param name="dt">Discrete time unit, delta time.</param>
+        /// <returns>A value interpolated from a to b depending on lambda and dt.</returns>
+        public static double ExpDecay(double a, double b, double lambda, double dt)
+        {
+            return b + (a - b) * Math.Exp(-lambda * dt);
+        }
     }
 }

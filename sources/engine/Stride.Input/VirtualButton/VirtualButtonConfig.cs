@@ -35,11 +35,14 @@ namespace Stride.Input
             }
         }
 
+        /// <summary>
+        /// Gets the value for a particular binding.
+        /// </summary>
+        /// <returns>Value of the binding</returns>
         public virtual float GetValue(InputManager inputManager, object name)
         {
             float value = 0.0f;
-            List<VirtualButtonBinding> bindingsPerName;
-            if (mapBindings.TryGetValue(name, out bindingsPerName))
+            if (mapBindings.TryGetValue(name, out List<VirtualButtonBinding> bindingsPerName))
             {
                 foreach (var virtualButtonBinding in bindingsPerName)
                 {
@@ -52,6 +55,66 @@ namespace Stride.Input
             }
 
             return value;
+        }
+
+        /// <summary>
+        /// Gets the pressed state for a particular binding.
+        /// </summary>
+        /// <returns><c>true</c> when pressed since the last frame; otherwise, <c>false</c>.</returns>
+        public virtual bool IsPressed(InputManager inputManager, object name)
+        {
+            if (mapBindings.TryGetValue(name, out List<VirtualButtonBinding> bindingsPerName))
+            {
+                foreach (var virtualButtonBinding in bindingsPerName)
+                {
+                    if (virtualButtonBinding.IsPressed(inputManager))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+        
+        /// <summary>
+        /// Gets the held down state for a particular binding.
+        /// </summary>
+        /// <returns><c>true</c> when currently held down; otherwise, <c>false</c>.</returns>
+        public virtual bool IsDown(InputManager inputManager, object name)
+        {
+            if (mapBindings.TryGetValue(name, out List<VirtualButtonBinding> bindingsPerName))
+            {
+                foreach (var virtualButtonBinding in bindingsPerName)
+                {
+                    if (virtualButtonBinding.IsDown(inputManager))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+        
+        /// <summary>
+        /// Gets the pressed state for a particular binding.
+        /// </summary>
+        /// <returns><c>true</c> when released since the last frame; otherwise, <c>false</c>.</returns>
+        public virtual bool IsReleased(InputManager inputManager, object name)
+        {
+            if (mapBindings.TryGetValue(name, out List<VirtualButtonBinding> bindingsPerName))
+            {
+                foreach (var virtualButtonBinding in bindingsPerName)
+                {
+                    if (virtualButtonBinding.IsReleased(inputManager))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
 
         private void Bindings_CollectionChanged(object sender, TrackingCollectionChangedEventArgs e)

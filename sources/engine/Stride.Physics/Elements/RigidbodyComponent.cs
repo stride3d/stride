@@ -85,7 +85,11 @@ namespace Stride.Physics
 
                 mass = value;
 
-                if (InternalRigidBody == null) return;
+                if (InternalRigidBody == null)
+                {
+                    return;
+                }
+                    
 
                 var inertia = ColliderShape.InternalShape.CalculateLocalInertia(value);
                 InternalRigidBody.SetMassProps(value, inertia);
@@ -114,7 +118,15 @@ namespace Stride.Physics
                     return;
 
                 if (InternalRigidBody == null)
+                {
+                    if (Data != null && !attachInProgress)
+                    {
+                        //When setting ColliderShape, setup could have been previously skipped (eg when PhysicsComponent is created using GetOrCreate)
+                        ReAttach();
+                    }
+                    
                     return;
+                }
 
                 if (NativeCollisionObject != null)
                     NativeCollisionObject.CollisionShape = value.InternalShape;
@@ -193,7 +205,11 @@ namespace Stride.Physics
             {
                 overrideGravity = value;
 
-                if (InternalRigidBody == null) return;
+                if (InternalRigidBody == null)
+                {
+                    return;
+                }
+                    
 
                 if (value)
                 {
@@ -341,6 +357,7 @@ namespace Stride.Physics
 
         protected override void OnDetach()
         {
+
             MotionState.Dispose();
             MotionState.Clear();
 

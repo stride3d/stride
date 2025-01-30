@@ -4,9 +4,9 @@
 using System;
 using System.Globalization;
 using System.IO;
-using System.Reflection;
 using System.Threading.Tasks;
 using Stride.Audio;
+using Stride.Core;
 using Stride.Core.Diagnostics;
 using Stride.Core.IO;
 using Stride.Core.Mathematics;
@@ -428,7 +428,7 @@ namespace Stride.Engine
                     && Input.IsKeyDown(Keys.C)
                     && Input.IsKeyReleased(Keys.F12))
                 {
-                    var currentFilePath = Assembly.GetEntryAssembly().Location;
+                    var currentFilePath = PlatformFolders.ApplicationExecutablePath;
                     var timeNow = DateTime.Now.ToString("s", CultureInfo.InvariantCulture).Replace(':', '_');
                     var newFileName = Path.Combine(
                         Path.GetDirectoryName(currentFilePath),

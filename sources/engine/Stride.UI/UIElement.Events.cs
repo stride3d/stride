@@ -320,7 +320,7 @@ namespace Stride.UI
         /// Occurs when the element has the focus and the user press a key on the keyboard.
         /// </summary>
         /// <remarks>A key pressed event is bubbling</remarks>
-        internal event EventHandler<KeyEventArgs> KeyPressed
+        public event EventHandler<KeyEventArgs> KeyPressed
         {
             add { AddHandler(KeyPressedEvent, value); }
             remove { RemoveHandler(KeyPressedEvent, value); }
@@ -330,7 +330,7 @@ namespace Stride.UI
         /// Occurs when the element has the focus and the user maintains a key pressed on the keyboard.
         /// </summary>
         /// <remarks>A key down event is bubbling</remarks>
-        internal event EventHandler<KeyEventArgs> KeyDown
+        public event EventHandler<KeyEventArgs> KeyDown
         {
             add { AddHandler(KeyDownEvent, value); }
             remove { RemoveHandler(KeyDownEvent, value); }
@@ -340,7 +340,7 @@ namespace Stride.UI
         /// Occurs when the element has the focus and the user release a key on the keyboard.
         /// </summary>
         /// <remarks>A key released event is bubbling</remarks>
-        internal event EventHandler<KeyEventArgs> KeyReleased
+        public event EventHandler<KeyEventArgs> KeyReleased
         {
             add { AddHandler(KeyReleasedEvent, value); }
             remove { RemoveHandler(KeyReleasedEvent, value); }

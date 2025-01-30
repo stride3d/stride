@@ -46,6 +46,29 @@ MyString: MyDerivedString
         }
 
         [Fact]
+        public void TestStructWithPrimitivesOverrideMember()
+        {
+            const string primitiveMemberBaseYaml = @"!Stride.Core.Assets.Quantum.Tests.Helpers.Types+MyAssetWithStructWithPrimitives,Stride.Core.Assets.Quantum.Tests
+Id: 10000000-0000-0000-0000-000000000000
+Tags: []
+StructValue: {}
+";
+            const string primitiveMemberOverriddenYaml = @"!Stride.Core.Assets.Quantum.Tests.Helpers.Types+MyAssetWithStructWithPrimitives,Stride.Core.Assets.Quantum.Tests
+Id: 30000000-0000-0000-0000-000000000000
+Archetype: 10000000-0000-0000-0000-000000000000:MyAsset
+Tags: []
+StructValue*: {Value1: 10, Value2: 20}
+";
+            var expectedOverriddenValue = new Types.StructWithPrimitives { Value1 = 10, Value2 = 20 };
+            var context = DeriveAssetTest<Types.MyAssetWithStructWithPrimitives, Types.MyAssetBasePropertyGraph>.LoadFromYaml(primitiveMemberBaseYaml, primitiveMemberOverriddenYaml);
+            Assert.Equal(default, context.BaseAsset.StructValue);
+            Assert.Equal(expectedOverriddenValue, context.DerivedAsset.StructValue);
+            context.DerivedGraph.ReconcileWithBase();
+            Assert.Equal(default, context.BaseAsset.StructValue);
+            Assert.Equal(expectedOverriddenValue, context.DerivedAsset.StructValue);
+        }
+
+        [Fact]
         public void TestCollectionMismatchItem()
         {
             const string baseYaml = @"!Stride.Core.Assets.Quantum.Tests.Helpers.Types+MyAsset2,Stride.Core.Assets.Quantum.Tests

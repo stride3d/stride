@@ -21,7 +21,7 @@ namespace Stride.Core.TypeConverters
         /// <inheritdoc/>
         public override bool CanConvertFrom(ITypeDescriptorContext context, Type sourceType)
         {
-            return UrlReferenceHelper.IsUrlReferenceType(TypeConverterHelper.GetDestinationType(context));
+            return UrlReferenceBase.IsUrlReferenceType(TypeConverterHelper.GetDestinationType(context));
         }
 
         /// <inheritdoc/>
@@ -29,7 +29,7 @@ namespace Stride.Core.TypeConverters
         {
             var attachedReference = AttachedReferenceManager.GetAttachedReference(value);
             var destinationType = TypeConverterHelper.GetDestinationType(context);
-            return UrlReferenceHelper.CreateReference(destinationType, attachedReference.Id, attachedReference.Url);
+            return UrlReferenceBase.New(destinationType, attachedReference.Id, attachedReference.Url);
         }
     }
 }

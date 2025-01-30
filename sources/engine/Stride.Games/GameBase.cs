@@ -996,8 +996,11 @@ namespace Stride.Games
 
         private void GraphicsDeviceService_DeviceReset(object sender, EventArgs e)
         {
-            resumeManager.OnReload();
-            resumeManager.OnRecreate();
+            if (!IsExiting)
+            {
+                resumeManager.OnReload();
+                resumeManager.OnRecreate();
+            }
         }
 
         private void GraphicsDeviceService_DeviceResetting(object sender, EventArgs e)

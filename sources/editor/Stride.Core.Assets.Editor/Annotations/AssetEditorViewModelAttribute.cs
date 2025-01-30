@@ -1,11 +1,9 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using System;
 using Stride.Core.Annotations;
-using Stride.Core.Assets.Editor.ViewModel;
-
-#nullable enable
+using Stride.Core.Assets.Editor.ViewModels;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.Annotations;
 

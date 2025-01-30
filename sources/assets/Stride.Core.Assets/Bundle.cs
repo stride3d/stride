@@ -33,7 +33,7 @@ namespace Stride.Core.Assets
         public List<string> Dependencies { get; } = new List<string>();
 
         /// <summary>
-        /// Gets the output group (used in conjonction with <see cref="ProjectBuildProfile.OutputGroupDirectories"/> to control where file will be put).
+        /// Gets the output group (used in conjonction with `ProjectBuildProfile.OutputGroupDirectories` to control where file will be put).
         /// </summary>
         /// <value>
         /// The output group.

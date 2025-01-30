@@ -14,7 +14,7 @@ namespace Stride.Core.Reflection
     public interface IAttributeRegistry
     {
         // TODO: move this in a different location
-        Action<ObjectDescriptor, List<IMemberDescriptor>> PrepareMembersCallback { get; set; }
+        Action<ObjectDescriptor, List<IMemberDescriptor>>? PrepareMembersCallback { get; set; }
 
         /// <summary>
         /// Gets the attributes associated with the specified member.
@@ -22,7 +22,7 @@ namespace Stride.Core.Reflection
         /// <param name="memberInfo">The reflection member.</param>
         /// <param name="inherit">if set to <c>true</c> includes inherited attributes.</param>
         /// <returns>An enumeration of <see cref="Attribute"/>.</returns>
-        List<Attribute> GetAttributes([NotNull] MemberInfo memberInfo, bool inherit = true);
+        List<Attribute> GetAttributes(MemberInfo memberInfo, bool inherit = true);
 
         /// <summary>
         /// Registers an attribute for the specified member. Restriction: Attributes registered this way cannot be listed in inherited attributes.
@@ -58,7 +58,7 @@ namespace Stride.Core.Reflection
         /// <param name="memberInfo">The member information.</param>
         /// <param name="inherit">if set to <c>true</c> [inherit].</param>
         /// <returns>An attribute of type {T} if it was found; otherwise <c>null</c></returns>
-        public static T GetAttribute<T>(this IAttributeRegistry attributeRegistry, [NotNull] MemberInfo memberInfo, bool inherit = true) where T : Attribute
+        public static T? GetAttribute<T>(this IAttributeRegistry attributeRegistry, MemberInfo memberInfo, bool inherit = true) where T : Attribute
         {
             var list = attributeRegistry.GetAttributes(memberInfo, inherit);
             return list.OfType<T>().FirstOrDefault();

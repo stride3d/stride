@@ -104,7 +104,7 @@ namespace Stride.Rendering.Shadows
         public override LightShadowMapTexture CreateShadowMapTexture(RenderView renderView, RenderLight renderLight, IDirectLight light, int shadowMapSize)
         {
             var shadowMap = base.CreateShadowMapTexture(renderView, renderLight, light, shadowMapSize);
-            shadowMap.CascadeCount = ((LightDirectionalShadowMap)light.Shadow).GetCascadeCount();
+            shadowMap.CascadeCount = ((LightDirectional)light).Shadow.GetCascadeCount();
             // Views with orthographic cameras cannot use cascades, we force it to 1 shadow map here.
             if (renderView.Projection.M44 == 1.0f)
             {

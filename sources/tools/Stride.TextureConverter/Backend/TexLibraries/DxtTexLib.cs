@@ -44,7 +44,7 @@ namespace Stride.TextureConverter.TexLibraries
     {
         private static Logger Log = GlobalLogger.GetLogger("DxtTexLib");
 
-        private static HashSet<string> SupportedExtensions = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase)
+        private static HashSet<string> SupportedExtensionsWindows = new(StringComparer.InvariantCultureIgnoreCase)
         {
             ".dds",
             ".bmp",
@@ -55,6 +55,12 @@ namespace Stride.TextureConverter.TexLibraries
             ".png",
             ".tiff",
             ".tif",
+        };
+
+        private static HashSet<string> SupportedExtensionsNonWindows = new(StringComparer.InvariantCultureIgnoreCase)
+        {
+            ".dds",
+            ".tga",
         };
 
         /// <summary>
@@ -132,7 +138,7 @@ namespace Stride.TextureConverter.TexLibraries
             {
                 case RequestType.Loading:
                     LoadingRequest loader = (LoadingRequest)request;
-                    return loader.Mode==LoadingRequest.LoadingMode.FilePath && SupportedExtensions.Contains(Path.GetExtension(loader.FilePath));
+                    return loader.Mode==LoadingRequest.LoadingMode.FilePath && IsSupportedExtension(Path.GetExtension(loader.FilePath));
 
                 case RequestType.Compressing:
                     CompressingRequest compress = (CompressingRequest)request;
@@ -162,6 +168,18 @@ namespace Stride.TextureConverter.TexLibraries
 
                 default:
                     return false;
+            }
+        }
+
+        private bool IsSupportedExtension(string fileExtension)
+        {
+            if (OperatingSystem.IsWindows())
+            {
+                return SupportedExtensionsWindows.Contains(fileExtension);
+            }
+            else
+            {
+                return SupportedExtensionsNonWindows.Contains(fileExtension);
             }
         }
 
@@ -229,9 +247,13 @@ namespace Stride.TextureConverter.TexLibraries
             {
                 hr = Utilities.LoadTGAFile(loader.FilePath, out libraryData.Metadata, libraryData.Image);
             }
-            else
+            else if (OperatingSystem.IsWindows())
             {
                 hr = Utilities.LoadWICFile(loader.FilePath, WIC_FLAGS.WIC_FLAGS_NONE, out libraryData.Metadata, libraryData.Image);
+            }
+            else
+            {
+                hr = (HRESULT)(-1);
             }
 
             if (hr != HRESULT.S_OK)

@@ -454,6 +454,28 @@ namespace Stride.Core.Mathematics
         }
 
         /// <summary>
+        /// Casts from System.Numerics to Stride.Maths matrix
+        /// </summary>
+        /// <param name="v">Value to cast</param>
+        public static implicit operator Matrix(System.Numerics.Matrix4x4 v)
+        {
+            //Transpose the matrix due to the different row/column major layout
+            v = System.Numerics.Matrix4x4.Transpose(v);
+            Matrix nm = Unsafe.As<System.Numerics.Matrix4x4, Matrix>(ref v);
+            return nm;
+        }
+        /// <summary>
+        /// Casts from Stride.Maths to System.Numerics matrix
+        /// </summary>
+        /// <param name="v">Value to cast</param>
+        public static implicit operator System.Numerics.Matrix4x4(Matrix v)
+        {
+            System.Numerics.Matrix4x4 nm = Unsafe.As<Matrix, System.Numerics.Matrix4x4>(ref v);
+            //Transpose the matrix due to the different row/column major layout
+            return System.Numerics.Matrix4x4.Transpose(nm);
+        }
+
+        /// <summary>
         /// Gets or sets the component at the specified index.
         /// </summary>
         /// <value>The value of the matrix component, depending on the index.</value>
@@ -540,7 +562,7 @@ namespace Stride.Core.Mathematics
         /// so that the first row is the most stable and the last row is the least stable.</para>
         /// <para>This operation is performed on the rows of the matrix rather than the columns.
         /// If you wish for this operation to be performed on the columns, first transpose the
-        /// input and than transpose the output.</para>
+        /// input and then transpose the output.</para>
         /// </remarks>
         public void Orthogonalize()
         {
@@ -561,7 +583,7 @@ namespace Stride.Core.Mathematics
         /// so that the first row is the most stable and the last row is the least stable.</para>
         /// <para>This operation is performed on the rows of the matrix rather than the columns.
         /// If you wish for this operation to be performed on the columns, first transpose the
-        /// input and than transpose the output.</para>
+        /// input and then transpose the output.</para>
         /// </remarks>
         public void Orthonormalize()
         {
@@ -569,7 +591,7 @@ namespace Stride.Core.Mathematics
         }
 
         /// <summary>
-        /// Decomposes a matrix into an orthonormalized matrix Q and a right traingular matrix R.
+        /// Decomposes a matrix into an orthonormalized matrix Q and a right triangular matrix R.
         /// </summary>
         /// <param name="Q">When the method completes, contains the orthonormalized matrix of the decomposition.</param>
         /// <param name="R">When the method completes, contains the right triangular matrix of the decomposition.</param>
@@ -630,8 +652,8 @@ namespace Stride.Core.Mathematics
         /// <remarks>
         /// This rotation matrix can be represented by <b>intrinsic</b> rotations in the order <paramref name="yaw"/>, <paramref name="pitch"/>, then <paramref name="roll"/>.
         /// <br/>
-        /// Therefore the <b>extrinsic</b> rotations to achieve this matrix is the reversed order of operations,
-        /// ie. Matrix.RotationZ(roll) * Matrix.RotationX(pitch) * Matrix.RotationY(yaw)
+        /// Therefore, the <b>extrinsic</b> rotations to achieve this matrix is the reversed order of operations,
+        /// i.e. Matrix.RotationZ(roll) * Matrix.RotationX(pitch) * Matrix.RotationY(yaw)
         /// </remarks>
         public void Decompose(out float yaw, out float pitch, out float roll)
         {
@@ -784,7 +806,7 @@ namespace Stride.Core.Mathematics
             scale.Y = MathF.Sqrt((M21 * M21) + (M22 * M22) + (M23 * M23));
             scale.Z = MathF.Sqrt((M31 * M31) + (M32 * M32) + (M33 * M33));
 
-            //If any of the scaling factors are zero, than the rotation matrix can not exist.
+            //If any of the scaling factors are zero, then the rotation matrix can not exist.
             if (MathF.Abs(scale.X) < MathUtil.ZeroTolerance ||
                 MathF.Abs(scale.Y) < MathUtil.ZeroTolerance ||
                 MathF.Abs(scale.Z) < MathUtil.ZeroTolerance)
@@ -793,7 +815,7 @@ namespace Stride.Core.Mathematics
                 return false;
             }
 
-            // Calculate an perfect orthonormal matrix (no reflections)
+            // Calculate a perfect orthonormal matrix (no reflections)
             var at = new Vector3(M31 / scale.Z, M32 / scale.Z, M33 / scale.Z);
             var up = Vector3.Cross(at, new Vector3(M11 / scale.X, M12 / scale.X, M13 / scale.X));
             var right = Vector3.Cross(up, at);

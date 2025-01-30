@@ -80,12 +80,6 @@ namespace FreeImageAPI.IO
 		private bool blocking = false;
 
 		/// <summary>
-		/// Indicates if the wrapped stream is disposed or not
-		/// </summary>
-		[DebuggerBrowsable(DebuggerBrowsableState.Never)]
-		private bool disposed = false;
-
-		/// <summary>
 		/// Initializes a new instance based on the specified <see cref="Stream"/>.
 		/// </summary>
 		/// <param name="stream">The stream to wrap.</param>
@@ -286,27 +280,24 @@ namespace FreeImageAPI.IO
 
 		private new void Dispose(bool disposing)
 		{
-			if (!disposed)
+			if (!Disposed)
 			{
-				disposed = true;
+				Disposed = true;
 				if (disposing)
 				{
-					if (memoryStream != null)
-					{
-						memoryStream.Dispose();
-					}
+					memoryStream?.Dispose();
 				}
 			}
 		}
 
-		public bool Disposed
-		{
-			get { return disposed; }
-		}
+		/// <summary>
+		/// Indicates if the wrapped stream is disposed or not
+		/// </summary>
+		public bool Disposed { get; private set; }
 
 		private void checkDisposed()
 		{
-			if (disposed) throw new ObjectDisposedException("StreamWrapper");
+			if (Disposed) throw new ObjectDisposedException("StreamWrapper");
 		}
 	}
 }

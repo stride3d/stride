@@ -21,7 +21,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\sources\tests\xunit.runner.stride\xunit.runner.stride.csproj" />
-    <ProjectReference Include="..\..\sources\editor\Stride.Assets.Presentation\Stride.Assets.Presentation.csproj" />
+    <ProjectReference Include="..\..\sources\editor\Stride.Assets.Presentation.Wpf\Stride.Assets.Presentation.Wpf.csproj" />
     <ProjectReference Include="..\..\sources\editor\Stride.Samples.Templates\Stride.Samples.Templates.csproj" />
     <ProjectReference Include="..\..\sources\engine\Stride.Games.Testing\Stride.Games.Testing.csproj" />
     <ProjectReference Include="..\..\sources\tools\Stride.ConnectionRouter\Stride.ConnectionRouter.csproj" />

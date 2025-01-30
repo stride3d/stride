@@ -59,7 +59,7 @@ public partial class App : Application
         var services = new object[]
         {
             dispatcherService,
-            new DialogService(dispatcherService)
+            new DialogService(dispatcherService) { ApplicationName = Launcher.ApplicationName }
         };
         return new ViewModelServiceProvider(services);
     }

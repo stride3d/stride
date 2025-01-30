@@ -1,0 +1,155 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
+             xmlns:ctrl="using:Stride.Core.Assets.Editor.Avalonia.Controls"
+             xmlns:vm="using:Stride.GameStudio.Avalonia.ViewModels"
+             xmlns:vw="using:Stride.GameStudio.Avalonia.Views"
+             mc:Ignorable="d" d:DesignWidth="1024" d:DesignHeight="768"
+             x:Class="Stride.GameStudio.Avalonia.Views.MainView"
+             x:DataType="vm:MainViewModel">
+  <Design.DataContext>
+    <!-- This only sets the DataContext for the previewer in an IDE,
+         to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
+    <vm:MainViewModel />
+  </Design.DataContext>
+
+  <Grid RowDefinitions="Auto, *, 25"
+        Background="Transparent">
+    <Menu Grid.Row="0" Grid.Column="0"
+          VerticalAlignment="Top">
+      <MenuItem Header="{sd:LocalizeString _File, Context=Menu}">
+        <MenuItem Header="{sd:LocalizeString _Open..., Context=Menu}"
+                  Command="{Binding OpenCommand}" />
+        <MenuItem Header="{sd:LocalizeString _Close, Context=Menu}"
+                  Command="{Binding CloseCommand}"
+                  IsEnabled="{Binding Session, Mode=OneWay, Converter={sd:ObjectToBool}}"/>
+        <Separator />
+        <MenuItem Header="{sd:LocalizeString E_xit, Context=Menu}"
+                  Command="{Binding ExitCommand}" />
+      </MenuItem>
+      <MenuItem Header="{sd:LocalizeString _Help, Context=Menu}">
+        <MenuItem Header="{sd:LocalizeString Show debug window, Context=Menu}"
+                  Command="{Binding OpenDebugWindowCommand}" />
+        <Separator/>
+        <MenuItem Header="{sd:LocalizeString _About..., Context=Menu}"
+                  Command="{Binding AboutCommand}" />
+      </MenuItem>
+      <MenuItem Header="Debug"
+                IsVisible="{Binding CrashCommand.IsEnabled, Mode=OneWay}">
+        <MenuItem Header="Simulate a crash"
+                  Command="{Binding CrashCommand}" />
+      </MenuItem>
+    </Menu>
+    <Grid Grid.Row="1"
+          RowDefinitions="2*, 2, *">
+      <Grid Grid.Row="0"
+            ColumnDefinitions="3*, 2, *">
+        <!-- Editors -->
+        <vw:EditorCollectionView Grid.Column="0"
+                                 BorderThickness="2"
+                                 BorderBrush="Red"
+                                 Padding="2"
+                                 DataContext="{Binding Session.EditorCollection}" />
+        <GridSplitter Grid.Column="1" ResizeDirection="Auto" />
+        <Grid Grid.Column="2"
+              RowDefinitions="Auto, *">
+          <StackPanel Grid.Row="0"
+                      Orientation="Horizontal">
+            <Button Content="Previous"
+                    Command="{Binding Session.PreviousSelectionCommand}" />
+            <Button Content="Next"
+                    Command="{Binding Session.NextSelectionCommand}" />
+          </StackPanel>
+          <!-- Property Grid -->
+          <vw:PropertyGridView Grid.Row="1"
+                               BorderThickness="2"
+                               BorderBrush="Orange"
+                               Padding="2"
+                               DataContext="{Binding Session.ActiveProperties}" />
+        </Grid>
+      </Grid>
+      <GridSplitter Grid.Row="1" ResizeDirection="Auto" />
+      <Grid Grid.Row="2"
+            ColumnDefinitions="*, 2, 2*, 2, *">
+        <!-- Solution Explorer -->
+        <vw:SolutionExplorerView Grid.Column="0"
+                                 BorderThickness="2"
+                                 BorderBrush="Black"
+                                 Padding="2"
+                                 DataContext="{Binding Session}" />
+        <GridSplitter Grid.Column="1" ResizeDirection="Auto" />
+        <!-- Asset view and logs -->
+        <TabControl Grid.Column="2">
+          <TabItem Header="Asset view">
+            <vw:AssetExplorerView BorderThickness="2"
+                                  BorderBrush="Blue"
+                                  Padding="2"
+                                  DataContext="{Binding Session.AssetCollection}"/>
+          </TabItem>
+          <TabItem Header="Asset errors">
+            <ctrl:TextLogViewer LogMessages="{Binding Session.AssetLog.FilteredMessages}" />
+          </TabItem>
+          <TabItem Header="Output">
+
+          </TabItem>
+        </TabControl>
+        <GridSplitter Grid.Column="3" ResizeDirection="Auto" />
+        <!-- Asset preview, history and references -->
+        <TabControl Grid.Column="4">
+          <TabItem Header="Asset preview">
+            <vw:AssetPreviewView BorderThickness="2"
+                                 BorderBrush="Cyan"
+                                 Padding="2" />
+          </TabItem>
+          <TabItem Header="Edit history">
+
+          </TabItem>
+          <TabItem Header="References">
+
+          </TabItem>
+
+        </TabControl>
+      </Grid>
+    </Grid>
+
+    <!-- Status Bar -->
+    <Grid Grid.Row="2"
+          IsVisible="{Binding Session, Converter={sd:ObjectToBool}}"
+          ColumnDefinitions="2*, Auto, *, Auto, *, 100">
+      <TextBlock Grid.Column="0"
+                 Margin="8,0"
+                 VerticalAlignment="Center"
+                 Text="{Binding Status.CurrentStatus}" />
+      <Border Grid.Column="1"
+              Margin="2"
+              BorderThickness="1"
+              BorderBrush="Gray" />
+      <TextBlock Grid.Column="2"
+                 Margin="8,0"
+                 VerticalAlignment="Center">
+        <Run Text="{Binding Session.AssetCollection.SelectedContent.Count, Mode=OneWay, Converter={sd:Localize Text={}{0} item, Plural={}{0} items, IsStringFormat=True, Context=StatusBar}}" />
+        <Run Text="{Binding Session.AssetCollection.SelectedContent.Count, Mode=OneWay, Converter={sd:Localize Text=({0} selected), Plural=({0} selected), IsStringFormat=True, Context=StatusBar}}" />
+      </TextBlock>
+      <Border Grid.Column="3"
+              Margin="2"
+              BorderThickness="1"
+              BorderBrush="Gray" />
+      <TextBlock Grid.Column="4"
+                 Margin="8,0"
+                 HorizontalAlignment="Right"
+                 VerticalAlignment="Center"
+                 Text="{Binding Status.CurrentJob.Message}" />
+      <ProgressBar Grid.Column="5"
+                   IsVisible="{Binding Status.CurrentJob, Converter={sd:ObjectToBool}}"
+                   Margin="0,2"
+                   VerticalAlignment="Stretch"
+                   HorizontalAlignment="Left"
+                   IsIndeterminate="{Binding Status.CurrentJob.IsIndeterminate}"
+                   Maximum="{Binding Status.CurrentJob.Total}"
+                   Value="{Binding Status.CurrentJob.Current}" />
+    </Grid>
+  </Grid>
+
+</UserControl>

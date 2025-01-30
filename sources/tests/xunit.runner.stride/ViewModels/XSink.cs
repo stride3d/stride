@@ -37,8 +37,8 @@ public class XSink : IExecutionSink
             && message.Dispatch<ITestMethodCleanupFailure>(messageTypes, args => Interlocked.Increment(ref errors));
     }
 
-    public MessageHandler<ITestCaseFinished> HandleTestCaseFinished;
-    public MessageHandler<ITestCaseStarting> HandleTestCaseStarting;
+    public MessageHandler<ITestCaseFinished>? HandleTestCaseFinished;
+    public MessageHandler<ITestCaseStarting>? HandleTestCaseStarting;
 
     void HandleTestAssemblyFinished(MessageHandlerArgs<ITestAssemblyFinished> args)
     {

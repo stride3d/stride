@@ -1,0 +1,49 @@
+!PrefabAsset
+Id: 378e35ff-3dd0-4e6d-86e2-a477870a5c4e
+SerializedVersion: {Stride: 3.1.0.1}
+Tags: []
+Hierarchy:
+    RootParts:
+        - ref!! e3f4f49e-0dff-429b-b8ef-10ed1f25a31f
+    Parts:
+        -   Entity:
+                Id: e3f4f49e-0dff-429b-b8ef-10ed1f25a31f
+                Name: RopePart
+                Components:
+                    9af7d6d7a90cd79c4137e14aa6777939: !TransformComponent
+                        Id: 573bc55f-1008-4aaf-b0a6-44a289af115e
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 0.05, Y: 0.05, Z: 0.3}
+                        Children: {}
+                    45622cc758f41101f5e1fa63ecc9a77f: !ModelComponent
+                        Id: ee759bf8-ab63-4409-bbfb-a7b9308cd38c
+                        Model: 2e92e632-0dc1-43d1-a917-0fd994f7ac71:Models/CubeModel
+                        Materials:
+                            8c7bfae1b9a84573d57aa32bd2ec9ca5~0: fd341e00-e8cf-4e3a-8442-6c1091679e9d:Materials/QRMatG
+                    89fb3d7a9871c157e7a99fcdbf441f82: !Stride.BepuPhysics.BodyComponent,Stride.BepuPhysics
+                        Id: 891929fc-576c-4c15-8220-f5c882753275
+                        Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
+                            Colliders:
+                                70f580fd6085057ca4903905796aa265: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
+                                    Mass: 1.0
+                                    PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                    RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                    Size: {X: 0.05, Y: 0.05, Z: 0.3}
+                        ContactEventHandler: null
+                        SimulationIndex: 0
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 1000.0
+                        CollisionGroup:
+                            Id: 0
+                            IndexA: 0
+                            IndexB: 0
+                            IndexC: 0
+                        Kinematic: false
+                        Gravity: true
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
+                        InterpolationMode: None
+                        ContinuousDetectionMode: Discrete

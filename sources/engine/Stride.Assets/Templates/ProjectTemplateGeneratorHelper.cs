@@ -67,7 +67,7 @@ namespace Stride.Assets.Templates
 
             // Setup the ProjectGameGuid to be accessible from exec (in order to be able to link to the game project.
             AddOption(parameters, "ProjectGameGuid", (package.Container as SolutionProject)?.Id ?? Guid.Empty);
-            AddOption(parameters, "ProjectGameRelativePath", (package.Container as SolutionProject)?.FullPath.MakeRelative(parameters.OutputDirectory).ToWindowsPath());
+            AddOption(parameters, "ProjectGameRelativePath", (package.Container as SolutionProject)?.FullPath.MakeRelative(parameters.OutputDirectory).ToOSPath());
             AddOption(parameters, "PackageGameAssemblyName", package.Meta.Name);
 
             // Sample templates still have .Game in their name
@@ -79,7 +79,7 @@ namespace Stride.Assets.Templates
             AddOption(parameters, "PackageGameDisplayName", package.Meta.Title ?? packageNameWithoutGame);
             // Escape illegal characters for the short name
             AddOption(parameters, "PackageGameNameShort", Utilities.BuildValidClassName(packageNameWithoutGame.Replace(" ", string.Empty)));
-            AddOption(parameters, "PackageGameRelativePath", package.FullPath.MakeRelative(parameters.OutputDirectory).ToWindowsPath());
+            AddOption(parameters, "PackageGameRelativePath", package.FullPath.MakeRelative(parameters.OutputDirectory).ToOSPath());
 
             // Override namespace
             AddOption(parameters, "Namespace", parameters.Namespace ?? Utilities.BuildValidNamespaceName(packageNameWithoutGame));
@@ -123,7 +123,7 @@ namespace Stride.Assets.Templates
                 AddOption(parameters, "TargetFramework", platform.Platform.TargetFramework);
                 AddOption(parameters, "RuntimeIdentifier", platform.Platform.RuntimeIdentifier);
 
-                var projectDirectory = Path.GetDirectoryName(projectFullPath.ToWindowsPath());
+                var projectDirectory = Path.GetDirectoryName(projectFullPath.ToOSPath());
                 if (projectDirectory != null && Directory.Exists(projectDirectory))
                 {
                     try
@@ -154,7 +154,7 @@ namespace Stride.Assets.Templates
             foreach (var project in projectsToRemove)
             {
                 var projectFullPath = project.FullPath;
-                var projectDirectory = Path.GetDirectoryName(projectFullPath.ToWindowsPath());
+                var projectDirectory = Path.GetDirectoryName(projectFullPath.ToOSPath());
                 if (projectDirectory != null && Directory.Exists(projectDirectory))
                 {
                     try
