@@ -2,7 +2,6 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
-using System.Linq;
 using Xunit;
 using Stride.Core.IO;
 // ReSharper disable ObjectCreationAsStatement
@@ -30,18 +29,24 @@ namespace Stride.Core.Design.Tests
             { var s = "/a/b.txt"; new UFile(s); new UFile(s.Replace('/', '\\')); }
             { var s = "/a/b/c/d.txt"; new UFile(s); new UFile(s.Replace('/', '\\')); }
             { var s = "/a/b/c/.txt"; new UFile(s); new UFile(s.Replace('/', '\\')); }
-            { var s = "E:/a.txt"; new UFile(s); new UFile(s.Replace('/', '\\')); }
-            { var s = "E:/a/b"; new UFile(s); new UFile(s.Replace('/', '\\')); }
-            { var s = "E:/a/b.txt"; new UFile(s); new UFile(s.Replace('/', '\\')); }
-            { var s = "E:/a/b/c/d.txt"; new UFile(s); new UFile(s.Replace('/', '\\')); }
-            { var s = "E:/a/b/c/.txt"; new UFile(s); new UFile(s.Replace('/', '\\')); }
-            Assert.Throws<ArgumentException>(() => new UFile("a\""));
-            Assert.Throws<ArgumentException>(() => new UFile("*.txt"));
+            if (OperatingSystem.IsWindows())
+            {
+                { var s = "E:/a.txt"; new UFile(s); new UFile(s.Replace('/', '\\')); }
+                { var s = "E:/a/b"; new UFile(s); new UFile(s.Replace('/', '\\')); }
+                { var s = "E:/a/b.txt"; new UFile(s); new UFile(s.Replace('/', '\\')); }
+                { var s = "E:/a/b/c/d.txt"; new UFile(s); new UFile(s.Replace('/', '\\')); }
+                { var s = "E:/a/b/c/.txt"; new UFile(s); new UFile(s.Replace('/', '\\')); }
+                Assert.Throws<ArgumentException>(() => new UFile("a\""));
+                Assert.Throws<ArgumentException>(() => new UFile("*.txt"));
+            }
             Assert.Throws<ArgumentException>(() => new UFile("/a/"));
             Assert.Throws<ArgumentException>(() => new UFile("/"));
-            Assert.Throws<ArgumentException>(() => new UFile("E:/"));
-            Assert.Throws<ArgumentException>(() => new UFile("E:"));
-            Assert.Throws<ArgumentException>(() => new UFile("E:e"));
+            if (OperatingSystem.IsWindows())
+            {
+                Assert.Throws<ArgumentException>(() => new UFile("E:/"));
+                Assert.Throws<ArgumentException>(() => new UFile("E:"));
+                Assert.Throws<ArgumentException>(() => new UFile("E:e"));
+            }
         }
 
         [Fact]
@@ -66,18 +71,24 @@ namespace Stride.Core.Design.Tests
             { var s = "/a/b.txt"; new UDirectory(s); new UDirectory(s.Replace('/', '\\')); }
             { var s = "/a/b/c/d.txt"; new UDirectory(s); new UDirectory(s.Replace('/', '\\')); }
             { var s = "/a/b/c/.txt"; new UDirectory(s); new UDirectory(s.Replace('/', '\\')); }
-            { var s = "E:/a.txt"; new UDirectory(s); new UDirectory(s.Replace('/', '\\')); }
-            { var s = "E:/a.txt/"; new UDirectory(s); new UDirectory(s.Replace('/', '\\')); }
-            { var s = "E:/a/b"; new UDirectory(s); new UDirectory(s.Replace('/', '\\')); }
-            { var s = "E:/a/b.txt"; new UDirectory(s); new UDirectory(s.Replace('/', '\\')); }
-            { var s = "E:/a/b/c/d.txt"; new UDirectory(s); new UDirectory(s.Replace('/', '\\')); }
-            { var s = "E:/a/b/c/.txt"; new UDirectory(s); new UDirectory(s.Replace('/', '\\')); }
+            if (OperatingSystem.IsWindows())
+            {
+                { var s = "E:/a.txt"; new UDirectory(s); new UDirectory(s.Replace('/', '\\')); }
+                { var s = "E:/a.txt/"; new UDirectory(s); new UDirectory(s.Replace('/', '\\')); }
+                { var s = "E:/a/b"; new UDirectory(s); new UDirectory(s.Replace('/', '\\')); }
+                { var s = "E:/a/b.txt"; new UDirectory(s); new UDirectory(s.Replace('/', '\\')); }
+                { var s = "E:/a/b/c/d.txt"; new UDirectory(s); new UDirectory(s.Replace('/', '\\')); }
+                { var s = "E:/a/b/c/.txt"; new UDirectory(s); new UDirectory(s.Replace('/', '\\')); }
+                { var s = "E:/"; new UDirectory(s); new UDirectory(s.Replace('/', '\\')); }
+                { var s = "E:"; new UDirectory(s); new UDirectory(s.Replace('/', '\\')); }
+            }
             { var s = "/"; new UDirectory(s); new UDirectory(s.Replace('/', '\\')); }
-            { var s = "E:/"; new UDirectory(s); new UDirectory(s.Replace('/', '\\')); }
-            { var s = "E:"; new UDirectory(s); new UDirectory(s.Replace('/', '\\')); }
             { var s = "/a/"; new UDirectory(s); new UDirectory(s.Replace('/', '\\')); }
-            Assert.Throws<ArgumentException>(() => new UDirectory("*.txt"));
-            Assert.Throws<ArgumentException>(() => new UDirectory("E:e"));
+            if (OperatingSystem.IsWindows())
+            {
+                Assert.Throws<ArgumentException>(() => new UDirectory("*.txt"));
+                Assert.Throws<ArgumentException>(() => new UDirectory("E:e"));
+            }
         }
 
         [Fact]
@@ -89,8 +100,11 @@ namespace Stride.Core.Design.Tests
             Assert.Equal("/b/c", new UDirectory("/b/c").FullPath);
             Assert.Equal("ab/c", new UDirectory("ab/c").FullPath);
             Assert.Equal("/ab/c", new UDirectory("/ab/c").FullPath);
-            Assert.Equal("c:/", new UDirectory("c:/").FullPath);
-            Assert.Equal("c:/a", new UDirectory("c:/a").FullPath);
+            if (OperatingSystem.IsWindows())
+            {
+                Assert.Equal("c:/", new UDirectory("c:/").FullPath);
+                Assert.Equal("c:/a", new UDirectory("c:/a").FullPath);
+            }
 
             // TODO (include tests with parent and self paths .. and .)
         }
@@ -108,17 +122,25 @@ namespace Stride.Core.Design.Tests
             Assert.True(new UFile("/a/b/c.txt").HasDirectory);
             Assert.True(new UFile("/a/b/c").HasDirectory);
             Assert.True(new UFile("/a.txt").HasDirectory);
-            Assert.True(new UFile("E:/a.txt").HasDirectory);
-            Assert.True(new UFile("E:/a/b.txt").HasDirectory);
-            Assert.True(new UFile("E:/a/b/c.txt").HasDirectory);
-            Assert.True(new UFile("E:/a/b/c").HasDirectory);
+            if (OperatingSystem.IsWindows())
+            {
+                Assert.True(new UFile("E:/a.txt").HasDirectory);
+                Assert.True(new UFile("E:/a/b.txt").HasDirectory);
+                Assert.True(new UFile("E:/a/b/c.txt").HasDirectory);
+                Assert.True(new UFile("E:/a/b/c").HasDirectory);
+            }
             Assert.True(new UDirectory("/a/b/c").HasDirectory);
-            Assert.True(new UDirectory("E:/a/b/c").HasDirectory);
+            if (OperatingSystem.IsWindows())
+                Assert.True(new UDirectory("E:/a/b/c").HasDirectory);
             Assert.True(new UDirectory("/a").HasDirectory);
-            Assert.True(new UDirectory("E:/a").HasDirectory);
+            if (OperatingSystem.IsWindows())
+                Assert.True(new UDirectory("E:/a").HasDirectory);
             Assert.True(new UDirectory("/").HasDirectory);
-            Assert.True(new UDirectory("E:/").HasDirectory);
-            Assert.True(new UDirectory("E:").HasDirectory);
+            if (OperatingSystem.IsWindows())
+            {
+                Assert.True(new UDirectory("E:/").HasDirectory);
+                Assert.True(new UDirectory("E:").HasDirectory);
+            }
             Assert.False(new UFile("a.txt").HasDirectory);
             Assert.False(new UFile("a").HasDirectory);
         }
@@ -132,7 +154,8 @@ namespace Stride.Core.Design.Tests
                 Assert.Equal(!isAbsolute, x.IsRelative);
             });
             assert(new UFile("/a/b/c.txt"), true);
-            assert(new UFile("E:/a/b/c.txt"), true);
+            if (OperatingSystem.IsWindows())
+                assert(new UFile("E:/a/b/c.txt"), true);
             assert(new UDirectory("/c.txt"), true);
             assert(new UDirectory("/"), true);
             assert(new UFile("a/b/c.txt"), false);
@@ -163,7 +186,8 @@ namespace Stride.Core.Design.Tests
             Assert.True(UPath.IsNullOrEmpty(null));
             Assert.False(UPath.IsNullOrEmpty(new UFile("a")));
             Assert.False(UPath.IsNullOrEmpty(new UDirectory("a")));
-            Assert.False(UPath.IsNullOrEmpty(new UDirectory("C:/")));
+            if (OperatingSystem.IsWindows())
+                Assert.False(UPath.IsNullOrEmpty(new UDirectory("C:/")));
             Assert.False(UPath.IsNullOrEmpty(new UDirectory("/")));
         }
 
@@ -185,12 +209,15 @@ namespace Stride.Core.Design.Tests
             Assert.Equal("ab/c", new UDirectory("ab/c").GetDirectory());
             Assert.Equal("/ab/c", new UDirectory("/ab/c").GetDirectory());
             Assert.Equal("/a/b/c", new UDirectory("/a/b/c").GetDirectory());
-            Assert.Equal("/", new UDirectory("c:").GetDirectory());
-            Assert.Equal("/", new UDirectory("c:/").GetDirectory());
-            Assert.Equal("/a", new UDirectory("c:/a").GetDirectory());
-            Assert.Equal("/a/b", new UDirectory("c:/a/b").GetDirectory());
+            if (OperatingSystem.IsWindows())
+            {
+                Assert.Equal("/", new UDirectory("c:").GetDirectory());
+                Assert.Equal("/", new UDirectory("c:/").GetDirectory());
+                Assert.Equal("/a", new UDirectory("c:/a").GetDirectory());
+                Assert.Equal("/a/b", new UDirectory("c:/a/b").GetDirectory());
+                Assert.Equal("/", new UFile("c:/a.txt").GetDirectory());
+            }
             Assert.Equal("/", new UFile("/a.txt").GetDirectory());
-            Assert.Equal("/", new UFile("c:/a.txt").GetDirectory());
             // TODO
         }
 
@@ -198,14 +225,18 @@ namespace Stride.Core.Design.Tests
         public void TestUPathGetParent()
         {
             // First directories
-            var dir = new UDirectory("c:/");
-            Assert.Equal("c:/", dir.GetParent().FullPath);
+            UDirectory dir;
+            if (OperatingSystem.IsWindows())
+            {
+                dir = new UDirectory("c:/");
+                Assert.Equal("c:/", dir.GetParent().FullPath);
 
-            dir = new UDirectory("c:/a");
-            Assert.Equal("c:/", dir.GetParent().FullPath);
+                dir = new UDirectory("c:/a");
+                Assert.Equal("c:/", dir.GetParent().FullPath);
 
-            dir = new UDirectory("c:/a/b");
-            Assert.Equal("c:/a", dir.GetParent().FullPath);
+                dir = new UDirectory("c:/a/b");
+                Assert.Equal("c:/a", dir.GetParent().FullPath);
+            }
 
             dir = new UDirectory("/");
             Assert.Equal("/", dir.GetParent().FullPath);
@@ -223,11 +254,15 @@ namespace Stride.Core.Design.Tests
             Assert.Equal("a", dir.GetParent().FullPath);
 
             // Now with files.
-            var file = new UFile("c:/a.txt");
-            Assert.Equal("c:/", file.GetParent().FullPath);
+            UFile file;
+            if (OperatingSystem.IsWindows())
+            {
+                file = new UFile("c:/a.txt");
+                Assert.Equal("c:/", file.GetParent().FullPath);
 
-            file = new UFile("c:/a/b.txt");
-            Assert.Equal("c:/a", file.GetParent().FullPath);
+                file = new UFile("c:/a/b.txt");
+                Assert.Equal("c:/a", file.GetParent().FullPath);
+            }
 
             file = new UFile("/a.txt");
             Assert.Equal("/", file.GetParent().FullPath);
@@ -249,19 +284,27 @@ namespace Stride.Core.Design.Tests
             Assert.Equal(new UDirectory("/a/b"), new UFile("/a/b/c.txt").GetFullDirectory());
             Assert.Equal(new UDirectory("/a/b"), new UFile("/a/b/c").GetFullDirectory());
             Assert.Equal(new UDirectory("/"), new UFile("/a.txt").GetFullDirectory());
-            Assert.Equal(new UDirectory("E:/"), new UFile("E:/a.txt").GetFullDirectory());
-            Assert.Equal(new UDirectory("E:/a"), new UFile("E:/a/b.txt").GetFullDirectory());
-            Assert.Equal(new UDirectory("E:/a/b"), new UFile("E:/a/b/c.txt").GetFullDirectory());
-            Assert.Equal(new UDirectory("E:/a/b"), new UFile("E:/a/b/c").GetFullDirectory());
+            if (OperatingSystem.IsWindows())
+            {
+                Assert.Equal(new UDirectory("E:/"), new UFile("E:/a.txt").GetFullDirectory());
+                Assert.Equal(new UDirectory("E:/a"), new UFile("E:/a/b.txt").GetFullDirectory());
+                Assert.Equal(new UDirectory("E:/a/b"), new UFile("E:/a/b/c.txt").GetFullDirectory());
+                Assert.Equal(new UDirectory("E:/a/b"), new UFile("E:/a/b/c").GetFullDirectory());
+            }
             Assert.Equal(new UDirectory("/a/b/c"), new UDirectory("/a/b/c").GetFullDirectory());
-            Assert.Equal(new UDirectory("E:/a/b/c"), new UDirectory("E:/a/b/c").GetFullDirectory());
+            if (OperatingSystem.IsWindows())
+                Assert.Equal(new UDirectory("E:/a/b/c"), new UDirectory("E:/a/b/c").GetFullDirectory());
             Assert.Equal(new UDirectory("/a"), new UDirectory("/a").GetFullDirectory());
-            Assert.Equal(new UDirectory("E:/a"), new UDirectory("E:/a").GetFullDirectory());
+            if (OperatingSystem.IsWindows())
+                Assert.Equal(new UDirectory("E:/a"), new UDirectory("E:/a").GetFullDirectory());
             Assert.Equal(new UDirectory("/"), new UDirectory("/").GetFullDirectory());
-            Assert.Equal(new UDirectory("E:/"), new UDirectory("E:/").GetFullDirectory());
-            Assert.Equal(new UDirectory("E:/"), new UDirectory("E:").GetFullDirectory());
-            Assert.Equal(new UDirectory("E:"), new UDirectory("E:/").GetFullDirectory());
-            Assert.Equal(new UDirectory("E:"), new UDirectory("E:").GetFullDirectory());
+            if (OperatingSystem.IsWindows())
+            {
+                Assert.Equal(new UDirectory("E:/"), new UDirectory("E:/").GetFullDirectory());
+                Assert.Equal(new UDirectory("E:/"), new UDirectory("E:").GetFullDirectory());
+                Assert.Equal(new UDirectory("E:"), new UDirectory("E:/").GetFullDirectory());
+                Assert.Equal(new UDirectory("E:"), new UDirectory("E:").GetFullDirectory());
+            }
             Assert.Equal(new UDirectory(null), new UFile("a.txt").GetFullDirectory());
             Assert.Equal(new UDirectory(null), new UFile("").GetFullDirectory());
 
@@ -271,9 +314,12 @@ namespace Stride.Core.Design.Tests
             Assert.Equal("/b/c", new UDirectory("/b/c").GetFullDirectory().FullPath);
             Assert.Equal("ab/c", new UDirectory("ab/c").GetFullDirectory().FullPath);
             Assert.Equal("/ab/c", new UDirectory("/ab/c").GetFullDirectory().FullPath);
-            Assert.Equal("E:/", new UDirectory("E:/").GetFullDirectory().FullPath);
-            Assert.Equal("E:/", new UDirectory("E:").GetFullDirectory().FullPath);
-            Assert.Equal("E:/a", new UDirectory("E:/a").GetFullDirectory().FullPath);
+            if (OperatingSystem.IsWindows())
+            {
+                Assert.Equal("E:/", new UDirectory("E:/").GetFullDirectory().FullPath);
+                Assert.Equal("E:/", new UDirectory("E:").GetFullDirectory().FullPath);
+                Assert.Equal("E:/a", new UDirectory("E:/a").GetFullDirectory().FullPath);
+            }
         }
 
         [Fact]
@@ -282,27 +328,33 @@ namespace Stride.Core.Design.Tests
             var d = new UDirectory("a/b");
             Assert.Empty(new UDirectory("").GetComponents());
             Assert.Empty(new UDirectory("/").GetComponents());
-            Assert.Equal(new UDirectory("a").GetComponents(), new[] { "a" });
-            Assert.Equal(new UDirectory("/a").GetComponents(), new[] { "a" });
-            Assert.Equal(new UDirectory("a/b").GetComponents(), new[] { "a", "b" });
-            Assert.Equal(new UDirectory("/a/b").GetComponents(), new[] { "a", "b" });
-            Assert.Equal(new UDirectory("a/b/c").GetComponents(), new[] { "a", "b", "c" });
-            Assert.Equal(new UDirectory("/a/b/c").GetComponents(), new[] { "a", "b", "c" });
-            Assert.Equal(new UDirectory("c:").GetComponents(), new[] { "c:" });
-            Assert.Equal(new UDirectory("c:/a").GetComponents(), new[] { "c:", "a" });
-            Assert.Equal(new UDirectory("c:/a/b").GetComponents(), new[] { "c:", "a", "b" });
-            Assert.Equal(new UDirectory("c:/a/b.ext").GetComponents(), new[] { "c:", "a", "b.ext" });
+            Assert.Equal(new UDirectory("a").GetComponents(), ["a"]);
+            Assert.Equal(new UDirectory("/a").GetComponents(), ["a"]);
+            Assert.Equal(new UDirectory("a/b").GetComponents(), ["a", "b"]);
+            Assert.Equal(new UDirectory("/a/b").GetComponents(), ["a", "b"]);
+            Assert.Equal(new UDirectory("a/b/c").GetComponents(), ["a", "b", "c"]);
+            Assert.Equal(new UDirectory("/a/b/c").GetComponents(), ["a", "b", "c"]);
+            if (OperatingSystem.IsWindows())
+            {
+                Assert.Equal(new UDirectory("c:").GetComponents(), ["c:"]);
+                Assert.Equal(new UDirectory("c:/a").GetComponents(), ["c:", "a"]);
+                Assert.Equal(new UDirectory("c:/a/b").GetComponents(), ["c:", "a", "b"]);
+                Assert.Equal(new UDirectory("c:/a/b.ext").GetComponents(), ["c:", "a", "b.ext"]);
+            }
 
 
-            Assert.Equal(new UFile("a").GetComponents(), new[] { "a" });
-            Assert.Equal(new UFile("/a").GetComponents(), new[] { "a" });
-            Assert.Equal(new UFile("a/b").GetComponents(), new[] { "a", "b" });
-            Assert.Equal(new UFile("/a/b").GetComponents(), new[] { "a", "b" });
-            Assert.Equal(new UFile("a/b/c").GetComponents(), new[] { "a", "b", "c" });
-            Assert.Equal(new UFile("/a/b/c").GetComponents(), new[] { "a", "b", "c" });
-            Assert.Equal(new UFile("c:/a").GetComponents(), new[] { "c:", "a" });
-            Assert.Equal(new UFile("c:/a/b").GetComponents(), new[] { "c:", "a", "b" });
-            Assert.Equal(new UFile("c:/a/b.ext").GetComponents(), new[] { "c:", "a", "b.ext" });
+            Assert.Equal(new UFile("a").GetComponents(), ["a"]);
+            Assert.Equal(new UFile("/a").GetComponents(), ["a"]);
+            Assert.Equal(new UFile("a/b").GetComponents(), ["a", "b"]);
+            Assert.Equal(new UFile("/a/b").GetComponents(), ["a", "b"]);
+            Assert.Equal(new UFile("a/b/c").GetComponents(), ["a", "b", "c"]);
+            Assert.Equal(new UFile("/a/b/c").GetComponents(), ["a", "b", "c"]);
+            if (OperatingSystem.IsWindows())
+            {
+                Assert.Equal(new UFile("c:/a").GetComponents(), ["c:", "a"]);
+                Assert.Equal(new UFile("c:/a/b").GetComponents(), ["c:", "a", "b"]);
+                Assert.Equal(new UFile("c:/a/b.ext").GetComponents(), ["c:", "a", "b.ext"]);
+            }
         }
 
         [Fact]
@@ -343,15 +395,19 @@ namespace Stride.Core.Design.Tests
             Assert.Equal(new UFile("/a/b/d/e.txt"), UPath.Combine("/a/b/c", new UFile("../d/e.txt")));
             Assert.Equal(new UFile("/d/e.txt"), UPath.Combine("/a/b/c", new UFile("../../../d/e.txt")));
             Assert.Equal(new UFile("/d/e.txt"), UPath.Combine("/a/b/c", new UFile("../../../../../../d/e.txt")));
-            Assert.Equal(new UFile("C:/a/d/e.txt"), UPath.Combine("C:/a/b/c", new UFile("../../d/e.txt")));
-            Assert.Equal(new UFile("C:/d/e.txt"), UPath.Combine("C:/a/b/c", new UFile("../../../d/e.txt")));
-            Assert.Equal(new UFile("C:/d/e.txt"), UPath.Combine("C:/a/b/c", new UFile("../../../../../../d/e.txt")));
-            Assert.Equal(new UFile("C:/a.txt"), UPath.Combine("C:/", new UFile("a.txt")));
-            Assert.Equal(new UFile("C:/a/b.txt"), UPath.Combine("C:/a", new UFile("b.txt")));
-            Assert.Equal(new UFile("C:/a.txt"), UPath.Combine("C:/", new UFile("./a.txt")));
-            Assert.Equal(new UFile("C:/a/b.txt"), UPath.Combine("C:/a", new UFile("./b.txt")));
-            Assert.Equal(new UFile("C:/a.txt"), UPath.Combine("C:/", new UFile("././a.txt")));
-            Assert.Equal(new UFile("C:/a/b.txt"), UPath.Combine("C:/a", new UFile("././b.txt")));
+
+            if (OperatingSystem.IsWindows())
+            {
+                Assert.Equal(new UFile("C:/a/d/e.txt"), UPath.Combine("C:/a/b/c", new UFile("../../d/e.txt")));
+                Assert.Equal(new UFile("C:/d/e.txt"), UPath.Combine("C:/a/b/c", new UFile("../../../d/e.txt")));
+                Assert.Equal(new UFile("C:/d/e.txt"), UPath.Combine("C:/a/b/c", new UFile("../../../../../../d/e.txt")));
+                Assert.Equal(new UFile("C:/a.txt"), UPath.Combine("C:/", new UFile("a.txt")));
+                Assert.Equal(new UFile("C:/a/b.txt"), UPath.Combine("C:/a", new UFile("b.txt")));
+                Assert.Equal(new UFile("C:/a.txt"), UPath.Combine("C:/", new UFile("./a.txt")));
+                Assert.Equal(new UFile("C:/a/b.txt"), UPath.Combine("C:/a", new UFile("./b.txt")));
+                Assert.Equal(new UFile("C:/a.txt"), UPath.Combine("C:/", new UFile("././a.txt")));
+                Assert.Equal(new UFile("C:/a/b.txt"), UPath.Combine("C:/a", new UFile("././b.txt")));
+            }
         }
 
         [Fact]
@@ -416,16 +472,20 @@ namespace Stride.Core.Design.Tests
             Assert.Equal("/a/b", new UDirectory("/a/b").FullPath);
 
             // Test drive
-            Assert.Equal("C:/a/b/c", new UDirectory("C:/a/b/c").FullPath);
-            Assert.Equal("C:/", new UDirectory("C:/..").FullPath);
-            Assert.Equal("C:/", new UDirectory("C:/../").FullPath);
-            Assert.Equal("C:/", new UDirectory("C:/../..").FullPath);
-            Assert.Equal("C:/", new UDirectory("C:/../../").FullPath);
+            if (OperatingSystem.IsWindows())
+            {
+                Assert.Equal("C:/a/b/c", new UDirectory("C:/a/b/c").FullPath);
+                Assert.Equal("C:/", new UDirectory("C:/..").FullPath);
+                Assert.Equal("C:/", new UDirectory("C:/../").FullPath);
+                Assert.Equal("C:/", new UDirectory("C:/../..").FullPath);
+                Assert.Equal("C:/", new UDirectory("C:/../../").FullPath);
+            }
 
 
             Assert.Equal("/", new UDirectory("/..").FullPath);
             Assert.Equal("..", new UDirectory("..").FullPath);
-            Assert.Equal("E:/", new UDirectory("E:/..").FullPath);
+            if (OperatingSystem.IsWindows())
+                Assert.Equal("E:/", new UDirectory("E:/..").FullPath);
             Assert.Equal("..", new UDirectory("..").FullPath);
             Assert.Equal("/a", new UDirectory("/a/").FullPath);
             Assert.Equal("../../c.txt", new UFile("a/../../../c.txt").FullPath);
