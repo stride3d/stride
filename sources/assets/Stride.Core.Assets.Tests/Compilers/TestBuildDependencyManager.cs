@@ -5,7 +5,6 @@ using Xunit;
 using Stride.Core.Assets.Analysis;
 using Stride.Core.Assets.Compiler;
 using Stride.Core.BuildEngine;
-using Stride.Core;
 using Stride.Core.Diagnostics;
 using Stride.Core.Serialization;
 using Stride.Core.Serialization.Contents;
@@ -56,7 +55,7 @@ namespace Stride.Core.Assets.Tests.Compilers
             var assetBuildResult = assetBuilder.Prepare(context);
             // Since MyAsset2 is a CompileAsset reference, it should not be compiled, so we should have only 1 asset (MyAsset1) to compile.
             Assert.Equal(1, assetBuildResult.BuildSteps.Count);
-            var builder = new Builder(GlobalLogger.GetLogger("Test"), "", "");
+            var builder = new Builder(GlobalLogger.GetLogger("Test"), DirectoryTestBase, "");
             builder.Root.Add(assetBuildResult.BuildSteps);
             builder.Run(Builder.Mode.Build, false);
             RethrowAssertsFromThread(ex);
@@ -104,7 +103,7 @@ namespace Stride.Core.Assets.Tests.Compilers
             var assetBuildResult = assetBuilder.Prepare(context);
             // Since MyAsset3 is a CompileContent reference, it should be compiled, so we should have only 2 asset (MyAsset1 and MyAsset3) to compile.
             Assert.Equal(2, assetBuildResult.BuildSteps.Count);
-            var builder = new Builder(GlobalLogger.GetLogger("Test"), "", "");
+            var builder = new Builder(GlobalLogger.GetLogger("Test"), DirectoryTestBase, "");
             builder.Root.Add(assetBuildResult.BuildSteps);
             builder.Run(Builder.Mode.Build, false);
             RethrowAssertsFromThread(ex);
@@ -153,7 +152,7 @@ namespace Stride.Core.Assets.Tests.Compilers
             var assetBuildResult = assetBuilder.Prepare(context);
             // Since MyAsset4 is a Runtime reference, it should be compiled, so we should have 2 asset (MyAsset1 and MyAsset4) to compile.
             Assert.Equal(2, assetBuildResult.BuildSteps.Count);
-            var builder = new Builder(GlobalLogger.GetLogger("Test"), "", "");
+            var builder = new Builder(GlobalLogger.GetLogger("Test"), DirectoryTestBase, "");
             builder.Root.Add(assetBuildResult.BuildSteps);
             builder.Run(Builder.Mode.Build, false);
             RethrowAssertsFromThread(ex);
