@@ -38,7 +38,7 @@ namespace Stride.UI.Renderers
             var elementHalfSize = elementSize / 2;
 
             // left
-            offsets = new Vector3(-elementHalfBorders.Left, 0, 0);
+            offsets = new Vector3(-elementHalfSize.Width + elementHalfBorders.Left, 0, 0);
             borderSize = new Vector3(borderThickness.Left, elementSize.Height, 1);
             DrawBorder(border, ref offsets, ref borderSize, ref borderColor, context);
             
@@ -48,7 +48,7 @@ namespace Stride.UI.Renderers
             DrawBorder(border, ref offsets, ref borderSize, ref borderColor, context);
             
             // top
-            offsets = new Vector3(0, -elementHalfBorders.Top, 0);
+            offsets = new Vector3(0, -elementHalfSize.Height + elementHalfBorders.Top, 0);
             borderSize = new Vector3(elementSize.Width, borderThickness.Top, 1);
             DrawBorder(border, ref offsets, ref borderSize, ref borderColor, context);
             

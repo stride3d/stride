@@ -14,10 +14,8 @@ namespace Stride.Assets.Presentation.AssetEditors.UIEditor.Adorners
     {
         Left,
         Top,
-        Back,
         Right,
-        Bottom,
-        Front
+        Bottom
     }
 
     internal sealed class MarginAdorner : AdornerBase<Canvas>
@@ -108,12 +106,7 @@ namespace Stride.Assets.Presentation.AssetEditors.UIEditor.Adorners
                     position += new Vector2(0.0f, offset.Y);
                     textRelativePosition = new Vector2(0.5f, margin.Bottom > 0 ? 1.0f : 0.0f);
                     break;
-
-                case MarginEdge.Back:
-                case MarginEdge.Front:
-                    // FIXME: to be reviewed: not supported yet
-                    throw new NotSupportedException();
-
+                
                 default:
                     throw new ArgumentOutOfRangeException();
             }
