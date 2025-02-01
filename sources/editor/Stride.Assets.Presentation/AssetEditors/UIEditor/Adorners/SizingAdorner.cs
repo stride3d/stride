@@ -27,7 +27,7 @@ namespace Stride.Assets.Presentation.AssetEditors.UIEditor.Adorners
             ResizingDirection = resizingDirection;
             
             // support for mouse over cursor
-            Visual.MouseOverStateChanged += MouseOverStateChanged;
+            Visual.MouseOverStateChanged += PointerOverStateChanged;
         }
 
         public ResizingDirection ResizingDirection
@@ -147,12 +147,12 @@ namespace Stride.Assets.Presentation.AssetEditors.UIEditor.Adorners
             isDragging = false;
         }
 
-        private void MouseOverStateChanged(object sender, PropertyChangedArgs<MouseOverState> e)
+        private void PointerOverStateChanged(object sender, PropertyChangedArgs<PointerOverState> e)
         {
             if (isDragging)
                 return;
 
-            Service.Controller.ChangeCursor(e.NewValue != MouseOverState.MouseOverNone ? GetCursor() : null);
+            Service.Controller.ChangeCursor(e.NewValue != PointerOverState.None ? GetCursor() : null);
         }
     }
 }

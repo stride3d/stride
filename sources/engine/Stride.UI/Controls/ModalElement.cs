@@ -69,9 +69,9 @@ namespace Stride.UI.Controls
         [DefaultValue(true)]
         public bool IsModal { get; set; } = true;
 
-        protected override void OnTouchUp(TouchEventArgs args)
+        protected override void OnPointerReleased(PointerEventArgs args)
         {
-            base.OnTouchUp(args);
+            base.OnPointerReleased(args);
 
             if (!IsModal || args.Source != this)
                 return;

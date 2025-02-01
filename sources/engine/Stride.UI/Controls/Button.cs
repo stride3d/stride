@@ -165,7 +165,7 @@ namespace Stride.UI.Controls
             }
         }
 
-        internal ISpriteProvider ButtonImageProvider => IsPressed ? PressedImage : (MouseOverState == MouseOverState.MouseOverElement && MouseOverImage != null ? MouseOverImage : NotPressedImage);
+        internal ISpriteProvider ButtonImageProvider => IsPressed ? PressedImage : (PointerOverState == PointerOverState.Self && MouseOverImage != null ? MouseOverImage : NotPressedImage);
 
         internal Sprite ButtonImage => ButtonImageProvider?.GetSprite();
 

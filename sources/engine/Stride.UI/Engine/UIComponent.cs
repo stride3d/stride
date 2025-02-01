@@ -7,6 +7,7 @@ using Stride.Core.Mathematics;
 using Stride.Engine.Design;
 using Stride.Rendering;
 using Stride.Rendering.UI;
+using Stride.UI;
 
 namespace Stride.Engine
 {
@@ -16,6 +17,7 @@ namespace Stride.Engine
     [DataContract("UIComponent")]
     [Display("UI", Expand = ExpandRule.Once)]
     [DefaultEntityComponentRenderer(typeof(UIRenderProcessor))]
+    [DefaultEntityComponentProcessor(typeof(UIComponentProcessor))]
     [ComponentOrder(9800)]
     [ComponentCategory("UI")]
     public sealed class UIComponent : ActivableEntityComponent

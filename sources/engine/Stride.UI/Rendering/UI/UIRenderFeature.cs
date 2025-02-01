@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Stride.Core;
 using Stride.Core.Diagnostics;
 using Stride.Core.Mathematics;
@@ -19,9 +20,7 @@ namespace Stride.Rendering.UI
     {
         private IGame game;
         private UISystem uiSystem;
-        private InputManager input;
-        private IGraphicsDeviceService graphicsDeviceService;
-
+        
         private RendererManager rendererManager;
 
         private readonly UIRenderingContext renderingContext = new UIRenderingContext();
@@ -34,14 +33,8 @@ namespace Stride.Rendering.UI
 
         private readonly List<UIElementState> uiElementStates = new List<UIElementState>();
 
-        public override Type SupportedRenderObjectType => typeof(RenderUIElement);
-
-        /// <summary>
-        /// Represents the UI-element thats currently under the mouse cursor.
-        /// Only elements with CanBeHitByUser == true are taken into account.
-        /// Last processed element_state / ?UIComponent? with a valid element will be used.
-        /// </summary>
-        public UIElement UIElementUnderMouseCursor { get; private set; }
+        public override Type SupportedRenderObjectType => typeof(RenderUIDocument);
+        
 
         public UIRenderFeature()
         {
@@ -54,28 +47,22 @@ namespace Stride.Rendering.UI
 
             Name = "UIComponentRenderer";
             game = RenderSystem.Services.GetService<IGame>();
-            input = RenderSystem.Services.GetService<InputManager>();
             uiSystem = RenderSystem.Services.GetService<UISystem>();
-            graphicsDeviceService = RenderSystem.Services.GetSafeServiceAs<IGraphicsDeviceService>();
 
+            // TODO: Change Batch to be local to the UIRenderFeature and remove dep on UISystem. Requires refactoring ElementRenderer.
             if (uiSystem == null)
             {
-                var gameSytems = RenderSystem.Services.GetSafeServiceAs<IGameSystemCollection>();
+                var gameSystems = RenderSystem.Services.GetSafeServiceAs<IGameSystemCollection>();
+                
                 uiSystem = new UISystem(RenderSystem.Services);
                 RenderSystem.Services.AddService(uiSystem);
-                gameSytems.Add(uiSystem);
+                gameSystems.Add(uiSystem);
             }
 
             rendererManager = new RendererManager(new DefaultRenderersFactory(RenderSystem.Services));
 
             batch = uiSystem.Batch;
         }
-
-        partial void PickingPrepare();
-
-        partial void PickingUpdate(RenderUIElement renderUIElement, Viewport viewport, ref Matrix worldViewProj, GameTime drawTime, ref UIElement elementUnderMouseCursor);
-
-        partial void PickingClear();
 
         public override void Draw(RenderDrawContext context, RenderView renderView, RenderViewStage renderViewStage, int startIndex, int endIndex)
         {
@@ -103,7 +90,7 @@ namespace Stride.Rendering.UI
             {
                 var renderNodeReference = renderViewStage.SortedRenderNodes[index].RenderNode;
                 var renderNode = GetRenderNode(renderNodeReference);
-                var renderElement = (RenderUIElement)renderNode.RenderObject;
+                var renderElement = (RenderUIDocument)renderNode.RenderObject;
 
                 uiElementStates.Add(new UIElementState(renderElement));
             }
@@ -115,9 +102,7 @@ namespace Stride.Rendering.UI
             renderingContext.GraphicsContext = context.GraphicsContext;
             renderingContext.Time = drawTime;
             renderingContext.RenderTarget = context.CommandList.RenderTargets[0]; // TODO: avoid hardcoded index 0
-
-            // Prepare content required for Picking and MouseOver events
-            PickingPrepare();
+            
 
             // allocate temporary graphics resources if needed
             Texture scopedDepthBuffer = null;
@@ -132,10 +117,6 @@ namespace Stride.Rendering.UI
                 }
             }
 
-            // see UIElementUnderMouseCursor property
-            UIElement elementUnderMouseCursor = null;
-            
-
             // update view parameters and perform UI picking
             foreach (var uiElementState in uiElementStates)
             {
@@ -143,8 +124,6 @@ namespace Stride.Rendering.UI
                 var rootElement = renderObject.Page?.RootElement;
                 if (rootElement == null)
                     continue;
-
-                UIElement loopedElementUnderMouseCursor = null;
                 
                 // calculate the size of the virtual resolution depending on target size (UI canvas)
                 var virtualResolution = renderObject.Resolution;
@@ -168,19 +147,7 @@ namespace Stride.Rendering.UI
                     if (cameraComponent != null)
                         uiElementState.Update(renderObject, cameraComponent);
                 }
-
-                
-                // Check if the current UI component is being picked based on the current ViewParameters (used to draw this element)
-                using (Profiler.Begin(UIProfilerKeys.TouchEventsUpdate))
-                {
-                    PickingUpdate(uiElementState.RenderObject, context.CommandList.Viewport, ref uiElementState.WorldViewProjectionMatrix, drawTime, ref loopedElementUnderMouseCursor);
-                    
-                    // only update result element, when this one has a value
-                    if (loopedElementUnderMouseCursor != null)
-                        elementUnderMouseCursor = loopedElementUnderMouseCursor;
-                }
             }
-            UIElementUnderMouseCursor = elementUnderMouseCursor;
 
             // render the UI elements of all the entities
             foreach (var uiElementState in uiElementStates)
@@ -271,8 +238,7 @@ namespace Stride.Rendering.UI
                 // end the image draw session
                 batch.End();
             }
-
-            PickingClear();
+            
 
             // revert the depth stencil buffer to the default value
             context.CommandList.SetRenderTargets(context.CommandList.DepthStencilBuffer, context.CommandList.RenderTargetCount, context.CommandList.RenderTargets);
@@ -352,16 +318,16 @@ namespace Stride.Rendering.UI
 
         private class UIElementState
         {
-            public readonly RenderUIElement RenderObject;
+            public readonly RenderUIDocument RenderObject;
             public Matrix WorldViewProjectionMatrix;
 
-            public UIElementState(RenderUIElement renderObject)
+            public UIElementState(RenderUIDocument renderObject)
             {
                 RenderObject = renderObject;
                 WorldViewProjectionMatrix = Matrix.Identity;
             }
 
-            public void Update(RenderUIElement renderObject, CameraComponent camera)
+            public void Update(RenderUIDocument renderObject, CameraComponent camera)
             {
                 var frustumHeight = 2 * MathF.Tan(MathUtil.DegreesToRadians(camera.VerticalFieldOfView) / 2);
 
@@ -425,7 +391,7 @@ namespace Stride.Rendering.UI
                 Matrix.Multiply(ref worldViewMatrix, ref camera.ProjectionMatrix, out WorldViewProjectionMatrix);
             }
 
-            public void Update(RenderUIElement renderObject, Vector3 virtualResolution)
+            public void Update(RenderUIDocument renderObject, Vector3 virtualResolution)
             {
                 var nearPlane = virtualResolution.Z / 2;
                 var farPlane = nearPlane + virtualResolution.Z;
