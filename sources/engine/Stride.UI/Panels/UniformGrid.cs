@@ -75,7 +75,7 @@ namespace Stride.UI.Panels
             foreach (var child in VisualChildrenCollection)
             {
                 // compute the size available for the child depending on its spans values
-                var childSpans = GetElementSpanValues(child).AsFloat();
+                var childSpans = (Vector2)GetElementSpanValues(child);
                 var availableForChildWithMargin = Size2F.Modulate((Size2F)childSpans, availableForOneCell);
 
                 child.Measure(availableForChildWithMargin);
@@ -97,11 +97,11 @@ namespace Stride.UI.Panels
             foreach (var child in VisualChildrenCollection)
             {
                 // compute the final size of the child depending on its spans values
-                var childSpans = GetElementSpanValues(child).AsFloat();
+                var childSpans = (Vector2)GetElementSpanValues(child);
                 var finalForChildWithMargin = Size2F.Modulate((Size2F)childSpans, finalForOneCell);
 
                 // set the arrange matrix of the child
-                var childOffsets = GetElementGridPositions(child).AsFloat();
+                var childOffsets = (Vector2)GetElementGridPositions(child);
                 var totalChildOffset = Vector2.Modulate(childOffsets, (Vector2)finalForOneCell) - (Vector2)finalSizeWithoutMargins / 2;
                 child.DependencyProperties.Set(PanelArrangeMatrixPropertyKey, Matrix.Translation(new Vector3(totalChildOffset.X, totalChildOffset.Y, 0)));
 
