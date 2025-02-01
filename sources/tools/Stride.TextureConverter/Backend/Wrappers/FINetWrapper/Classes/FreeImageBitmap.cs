@@ -1488,8 +1488,8 @@ namespace FreeImageAPI
 			return new RectangleF(
 					0f,
 					0f,
-                    FreeImage.GetWidth(dib),
-                    FreeImage.GetHeight(dib));
+					FreeImage.GetWidth(dib),
+					FreeImage.GetHeight(dib));
 		}
 
 		/// <summary>
@@ -4042,9 +4042,9 @@ namespace FreeImageAPI
 		}
 
 		public FreeImageBitmap ConvertTo32Bits()
-        {
-            return new FreeImageBitmap(FreeImage.ConvertTo32Bits(dib));
-        }
+		{
+			return new FreeImageBitmap(FreeImage.ConvertTo32Bits(dib));
+		}
 
 		#endregion
 	}
