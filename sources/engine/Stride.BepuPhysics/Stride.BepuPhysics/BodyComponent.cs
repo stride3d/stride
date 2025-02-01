@@ -94,7 +94,7 @@ public class BodyComponent : CollidableComponent
     }
 
     /// <summary>
-    /// Whether the object's path or only its destination is checked for collision when moving, prevents objects from passing through each other at higher speed 
+    /// Whether the object's path or only its destination is checked for collision when moving, prevents objects from passing through each other at higher speed
     /// </summary>
     /// <remarks>
     /// This property is a shortcut to the <see cref="ContinuousDetection"/>.<see cref="ContinuousDetection.Mode"/> property
@@ -139,7 +139,7 @@ public class BodyComponent : CollidableComponent
             }
         }
     }
-    
+
     /// <summary>
     /// The number of time steps that the body must be under the sleep threshold before the body becomes a sleeping candidate.
     /// Note that the body is not guaranteed to go to sleep immediately after meeting this minimum.
@@ -164,7 +164,7 @@ public class BodyComponent : CollidableComponent
     }
 
     /// <summary>
-    /// Whether the body is being actively simulated. 
+    /// Whether the body is being actively simulated.
     /// Setting this to true will attempt to wake the body; setting it to false will force the body and any constraint-connected bodies asleep.
     /// </summary>
     [DataMemberIgnore]
@@ -196,8 +196,8 @@ public class BodyComponent : CollidableComponent
     /// The rotation velocity in unit per second
     /// </summary>
     /// <remarks>
-    /// The rotation format is in axis-angle, 
-    /// meaning that AngularVelocity.Normalized is the axis of rotation, 
+    /// The rotation format is in axis-angle,
+    /// meaning that AngularVelocity.Normalized is the axis of rotation,
     /// while AngularVelocity.Length is the amount of rotation around that axis in radians per second
     /// </remarks>
     [DataMemberIgnore]
@@ -302,6 +302,16 @@ public class BodyComponent : CollidableComponent
     /// The constraints targeting this body, some of those may not be <see cref="ConstraintComponentBase.Attached"/>
     /// </summary>
     public IReadOnlyList<ConstraintComponentBase> Constraints => BoundConstraints ?? (IReadOnlyList<ConstraintComponentBase>)Array.Empty<ConstraintComponentBase>();
+
+    protected internal override CollidableReference? CollidableReference
+    {
+        get
+        {
+            if (BodyReference is { } bRef)
+                return bRef.CollidableReference;
+            return null;
+        }
+    }
 
     /// <summary>
     /// Applies an explosive force at a specific offset off of this body which will affect both its angular and linear velocity
@@ -416,25 +426,6 @@ public class BodyComponent : CollidableComponent
             return bRef.Handle.Value;
 
         throw new InvalidOperationException();
-    }
-
-    protected override void RegisterContactHandler()
-    {
-        if (ContactEventHandler is not null && Simulation is not null && BodyReference is { } bRef)
-            Simulation.ContactEvents.Register(bRef.Handle, ContactEventHandler);
-    }
-
-    protected override void UnregisterContactHandler()
-    {
-        if (Simulation is not null && BodyReference is { } bRef)
-            Simulation.ContactEvents.Unregister(bRef.Handle);
-    }
-
-    protected override bool IsContactHandlerRegistered()
-    {
-        if (Simulation is not null && BodyReference is { } bRef)
-            return Simulation.ContactEvents.IsListener(bRef.Handle);
-        return false;
     }
 
     /// <summary>
