@@ -17,6 +17,11 @@ namespace Stride.Rendering.UI
 {
     public partial class UIRenderFeature : RootRenderFeature
     {
+        /// <summary>
+        /// The resolution depth of the UI. Used to ensure matrix operations for the UI can be properly calculated on all axis.
+        /// </summary>
+        private const float virtualResolutionDepth = 1000.0f;
+        
         private IGame game;
         private UISystem uiSystem;
         private InputManager input;
@@ -235,7 +240,7 @@ namespace Stride.Rendering.UI
                 rootElement.Arrange(virtualResolution, false);
 
                 // update the UI element hierarchical properties
-                var rootMatrix = Matrix.Translation(-new Vector3(virtualResolution.Width, virtualResolution.Height, 0) / 2); // UI world is translated by a half resolution compared to its quad, which is centered around the origin
+                var rootMatrix = Matrix.Translation(-new Vector3(virtualResolution.Width, virtualResolution.Height, virtualResolutionDepth) / 2); // UI world is translated by a half resolution compared to its quad, which is centered around the origin
                 updatableRootElement.UpdateWorldMatrix(ref rootMatrix, rootMatrix != uiElementState.RenderObject.LastRootMatrix);
                 updatableRootElement.UpdateElementState(0);
                 uiElementState.RenderObject.LastRootMatrix = rootMatrix;
@@ -414,7 +419,7 @@ namespace Stride.Rendering.UI
 
                     // If the UI component is not drawn fullscreen it should be drawn as a quad with world sizes corresponding to its actual size
                     var scaling = renderObject.Size / renderObject.Resolution;
-                    worldMatrix = Matrix.Scaling(new Vector3(scaling.Width, scaling.Height, 0)) * worldMatrix;
+                    worldMatrix = Matrix.Scaling(new Vector3(scaling.Width, scaling.Height, 1.0f / virtualResolutionDepth)) * worldMatrix;
                 }
 
                 // Rotation of Pi along 0x to go from UI space to world space
@@ -428,19 +433,17 @@ namespace Stride.Rendering.UI
 
             public void Update(RenderUIElement renderObject, Size2F virtualResolution)
             {
-                const float zOffset = 1000;
-                
-                var nearPlane = zOffset / 2;
-                var farPlane = nearPlane + zOffset;
+                var nearPlane = virtualResolutionDepth / 2;
+                var farPlane = nearPlane + virtualResolutionDepth;
                 var aspectRatio = virtualResolution.Width / virtualResolution.Height;
-                var verticalFov = MathF.Atan2(virtualResolution.Height / 2, zOffset) * 2;
+                var verticalFov = MathF.Atan2(virtualResolution.Height / 2, virtualResolutionDepth) * 2;
 
                 var cameraComponent = new CameraComponent(nearPlane, farPlane)
                 {
                     UseCustomAspectRatio = true,
                     AspectRatio = aspectRatio,
                     VerticalFieldOfView = MathUtil.RadiansToDegrees(verticalFov),
-                    ViewMatrix = Matrix.LookAtRH(new Vector3(0, 0, zOffset), Vector3.Zero, Vector3.UnitY),
+                    ViewMatrix = Matrix.LookAtRH(new Vector3(0, 0, virtualResolutionDepth), Vector3.Zero, Vector3.UnitY),
                     ProjectionMatrix = Matrix.PerspectiveFovRH(verticalFov, aspectRatio, nearPlane, farPlane),
                 };
 
