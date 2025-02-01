@@ -5,6 +5,7 @@ using SharpDX.DirectWrite;
 using Stride.Core.Assets.Compiler;
 using Stride.Core;
 using SharpFont;
+using System;
 
 namespace Stride.Assets.SpriteFont
 {
@@ -14,6 +15,7 @@ namespace Stride.Assets.SpriteFont
         [DataMemberIgnore]
         public virtual Graphics.Font.FontStyle Style { get; set; } = Graphics.Font.FontStyle.Regular;
 
+        [Obsolete("Use GetFont method instead")]
         /// <summary>
         /// Gets the associated <see cref="FontFace"/>
         /// </summary>

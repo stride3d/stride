@@ -68,16 +68,9 @@ namespace Stride.Assets.SpriteFont
         /// <inheritdoc/>
         public override Face GetFont()
         {
-            if (!File.Exists(Source))
-            {
-                // Font does not exist
-                throw new FontNotFoundException(Source);
-            }
-
             var library = new SharpFont.Library();
 
             var face = new SharpFont.Face(library, Source);
-
             return face;
         }
 
