@@ -76,7 +76,7 @@ namespace Stride.UI.Panels
             {
                 // compute the size available for the child depending on its spans values
                 var childSpans = (Vector2)GetElementSpanValues(child);
-                var availableForChildWithMargin = Size2F.Modulate((Size2F)childSpans, availableForOneCell);
+                var availableForChildWithMargin = (Size2F)childSpans * availableForOneCell;
 
                 child.Measure(availableForChildWithMargin);
 
@@ -85,7 +85,7 @@ namespace Stride.UI.Panels
                     Math.Max(neededForOneCell.Height, child.DesiredSizeWithMargins.Height / childSpans.Y));
             }
 
-            return Size2F.Modulate(gridSize, neededForOneCell);
+            return gridSize * neededForOneCell;
         }
 
         protected override Size2F ArrangeOverride(Size2F finalSizeWithoutMargins)
@@ -98,7 +98,7 @@ namespace Stride.UI.Panels
             {
                 // compute the final size of the child depending on its spans values
                 var childSpans = (Vector2)GetElementSpanValues(child);
-                var finalForChildWithMargin = Size2F.Modulate((Size2F)childSpans, finalForOneCell);
+                var finalForChildWithMargin = (Size2F)childSpans * finalForOneCell;
 
                 // set the arrange matrix of the child
                 var childOffsets = (Vector2)GetElementGridPositions(child);

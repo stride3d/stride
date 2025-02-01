@@ -22,6 +22,7 @@
 // THE SOFTWARE.
 
 using System;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace Stride.Core.Mathematics
@@ -58,11 +59,11 @@ namespace Stride.Core.Mathematics
         /// <summary>
         /// Initializes a new instance of the <see cref="Size2F"/> struct.
         /// </summary>
-        /// <param name="widthAndHeight">The width and height of the <see cref="Size2F"/>.</param>
-        public Size2F(float widthAndHeight)
+        /// <param name="uniform">The width and height of the <see cref="Size2F"/>.</param>
+        public Size2F(float uniform)
         {
-            Width = widthAndHeight;
-            Height = widthAndHeight;
+            Width = uniform;
+            Height = uniform;
         }
 
         /// <summary>
@@ -174,49 +175,109 @@ namespace Stride.Core.Mathematics
             return new Size2F(left.Width / right.Width, left.Height / right.Height);
         }
         
+        /// <summary>
+        /// Implements the operator <c>/</c>, component wise.
+        /// </summary>
+        /// <param name="left">The left.</param>
+        /// <param name="right">The right.</param>
+        /// <returns>
+        /// The result of the operator.
+        /// </returns>
         public static Size2F operator /(Size2F left, float right)
         {
             return new Size2F(left.Width / right, left.Height / right);
         }
         
+        /// <summary>
+        /// Implements the operator <c>*</c>, component wise.
+        /// </summary>
+        /// <param name="left">The left.</param>
+        /// <param name="right">The right.</param>
+        /// <returns>
+        /// The result of the operator.
+        /// </returns>
         public static Size2F operator *(Size2F left, Size2F right)
         {
             return new Size2F(left.Width * right.Width, left.Height * right.Height);
         }
         
+        /// <summary>
+        /// Implements the operator <c>*</c>, component wise.
+        /// </summary>
+        /// <param name="left">The left.</param>
+        /// <param name="right">The right.</param>
+        /// <returns>
+        /// The result of the operator.
+        /// </returns>
         public static Size2F operator *(Size2F left, float right)
         {
             return new Size2F(left.Width * right, left.Height * right);
         }
 
+        /// <summary>
+        /// Implements the operator <c>+</c>, component wise.
+        /// </summary>
+        /// <param name="left">The left.</param>
+        /// <param name="right">The right.</param>
+        /// <returns>
+        /// The result of the operator.
+        /// </returns>
         public static Size2F operator +(Size2F left, Size2F right)
         {
             return new Size2F(left.Width + right.Width, left.Height + right.Height);
         }
         
+        /// <summary>
+        /// Implements the operator <c>-</c>, component wise.
+        /// </summary>
+        /// <param name="left">The left.</param>
+        /// <param name="right">The right.</param>
+        /// <returns>
+        /// The result of the operator.
+        /// </returns>
         public static Size2F operator -(Size2F left, Size2F right)
         {
             return new Size2F(left.Width + right.Width, left.Height + right.Height);
         }
 
-        public static Size2F Modulate(Size2F left, Size2F right)
-        {
-            return new Size2F(left.Width * right.Width, left.Height * right.Height);
-        }
-
+        /// <summary>
+        /// Returns a size containing the largest components of the specified sizes.
+        /// </summary>
+        /// <param name="left">The first source size.</param>
+        /// <param name="right">The second source size.</param>
+        /// <returns>A size containing the largest components of the source size.</returns>
         public static Size2F Max(Size2F left, Size2F right)
         {
             return new Size2F(Math.Max(left.Width, right.Width), Math.Max(left.Height, right.Height));
         }
+        
+        /// <summary>
+        /// Returns a size containing the smallest components of the specified sizes.
+        /// </summary>
+        /// <param name="left">The first source size.</param>
+        /// <param name="right">The second source size.</param>
+        /// <returns>A size containing the smallest components of the source size.</returns>
+        public static Size2F Min(Size2F left, Size2F right)
+        {
+            return new Size2F(Math.Min(left.Width, right.Width), Math.Min(left.Height, right.Height));
+        }
 
+        /// <summary>
+        /// Casts from <see cref="Vector2"/> to <see cref="Size2F"/>.
+        /// </summary>
+        /// <param name="vector">Value to cast.</param>
         public static explicit operator Size2F(Vector2 vector)
         {
-            return new Size2F(vector.X, vector.Y);
+            return Unsafe.BitCast<Vector2, Size2F>(vector);
         }
         
+        /// <summary>
+        /// Casts from <see cref="Size2F"/> to <see cref="Vector2"/>.
+        /// </summary>
+        /// <param name="size">Value to cast.</param>
         public static explicit operator Vector2(Size2F size)
         {
-            return new Vector2(size.Width, size.Height);
+            return Unsafe.BitCast<Size2F, Vector2>(size);
         }
 
         /// <inheritdoc/>
