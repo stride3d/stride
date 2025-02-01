@@ -42,7 +42,7 @@ namespace Stride.UI.Renderers
                 var imageOrientation = (ImageOrientation)(axis ^ imageAxis);
                 var worldMatrix = GetAdjustedWorldMatrix(ref slider.WorldMatrixInternal, (axis & imageAxis) == 1);
 
-                var size = new Vector3(element.RenderSizeInternal.Width, element.RenderSizeInternal.Height, 0);
+                var size = new Vector3(element.RenderSizeInternal.Width, element.RenderSizeInternal.Height, 1);
                 Batch.DrawImage(image.Texture, ref worldMatrix, ref image.RegionInternal, ref size, ref image.BordersInternal, ref color, context.DepthBias, imageOrientation);
                 context.DepthBias += 1;
             }

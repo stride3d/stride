@@ -66,7 +66,7 @@ namespace Stride.UI.Renderers
 
             var selectionWorldMatrix = editText.WorldMatrixInternal;
             selectionWorldMatrix.M41 += offsetTextStart + selectionSize / 2 + offsetAlignment;
-            var selectionScaleVector = new Vector3(selectionSize, editText.LineCount * lineSpacing, 0);
+            var selectionScaleVector = new Vector3(selectionSize, editText.LineCount * lineSpacing, 1);
             Batch.DrawRectangle(ref selectionWorldMatrix, ref selectionScaleVector, ref color, context.DepthBias + 1);
         }
 
@@ -85,7 +85,7 @@ namespace Stride.UI.Renderers
             var provider = editText.IsSelectionActive ? editText.ActiveImage : editText.MouseOverState == MouseOverState.MouseOverElement ? editText.MouseOverImage : editText.InactiveImage;
             var image = provider?.GetSprite();
             
-            var size = new Vector3(element.RenderSizeInternal.Width, element.RenderSizeInternal.Height, 0);
+            var size = new Vector3(element.RenderSizeInternal.Width, element.RenderSizeInternal.Height, 1);
 
             if (image?.Texture != null)
             {
@@ -155,7 +155,7 @@ namespace Stride.UI.Renderers
                 var sizeCaret = editText.CaretWidth / fontScale.Width;
                 var caretWorldMatrix = element.WorldMatrixInternal;
                 caretWorldMatrix.M41 += offsetTextStart + offsetAlignment + (editText.CaretPosition > editText.SelectionStart? selectionSize: 0);
-                var caretScaleVector = new Vector3(sizeCaret, editText.LineCount * lineSpacing, 0);
+                var caretScaleVector = new Vector3(sizeCaret, editText.LineCount * lineSpacing, 1);
                 Batch.DrawRectangle(ref caretWorldMatrix, ref caretScaleVector, ref caretColor, context.DepthBias + 3);
             }
         }

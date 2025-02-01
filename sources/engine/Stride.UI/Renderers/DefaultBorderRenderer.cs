@@ -39,22 +39,22 @@ namespace Stride.UI.Renderers
 
             // left
             offsets = new Vector3(-elementHalfBorders.Left, 0, element.TotalDepthOffset);
-            borderSize = new Vector3(borderThickness.Left, elementSize.Height, 50);
+            borderSize = new Vector3(borderThickness.Left, elementSize.Height, 1);
             DrawBorder(border, ref offsets, ref borderSize, ref borderColor, context);
             
             // right
             offsets = new Vector3(elementHalfSize.Width - elementHalfBorders.Right, 0, element.TotalDepthOffset);
-            borderSize = new Vector3(borderThickness.Right, elementSize.Height, 50);
+            borderSize = new Vector3(borderThickness.Right, elementSize.Height, 1);
             DrawBorder(border, ref offsets, ref borderSize, ref borderColor, context);
             
             // top
             offsets = new Vector3(0, -elementHalfBorders.Top, element.TotalDepthOffset);
-            borderSize = new Vector3(elementSize.Width, borderThickness.Top, 50);
+            borderSize = new Vector3(elementSize.Width, borderThickness.Top, 1);
             DrawBorder(border, ref offsets, ref borderSize, ref borderColor, context);
             
             // bottom
             offsets = new Vector3(0, elementHalfSize.Height - elementHalfBorders.Bottom, element.TotalDepthOffset);
-            borderSize = new Vector3(elementSize.Width, borderThickness.Bottom, 50);
+            borderSize = new Vector3(elementSize.Width, borderThickness.Bottom, 1);
             DrawBorder(border, ref offsets, ref borderSize, ref borderColor, context);
         }
 
@@ -65,7 +65,7 @@ namespace Stride.UI.Renderers
             worldMatrix.M42 += worldMatrix.M12 * offsets.X + worldMatrix.M22 * offsets.Y + worldMatrix.M32 * offsets.Z;
             worldMatrix.M43 += worldMatrix.M13 * offsets.X + worldMatrix.M23 * offsets.Y + worldMatrix.M33 * offsets.Z;
             
-            Batch.DrawCube(ref worldMatrix, ref borderSize, ref borderColor, context.DepthBias);
+            Batch.DrawRectangle(ref worldMatrix, ref borderSize, ref borderColor, context.DepthBias);
         }
     }
 }

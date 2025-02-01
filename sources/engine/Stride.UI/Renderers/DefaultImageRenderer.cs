@@ -27,7 +27,7 @@ namespace Stride.UI.Renderers
                 return;
 
             var color = element.RenderOpacity * image.Color;
-            var size = new Vector3(element.RenderSizeInternal.Width, element.RenderSizeInternal.Height, 0);
+            var size = new Vector3(element.RenderSizeInternal.Width, element.RenderSizeInternal.Height, 1);
             Batch.DrawImage(sprite.Texture, ref element.WorldMatrixInternal, ref sprite.RegionInternal, ref size, ref sprite.BordersInternal, ref color, context.DepthBias, sprite.Orientation);
         }
     }

@@ -50,7 +50,7 @@ namespace Stride.UI.Renderers
                 TextBoxSize = new Vector2(scrollingText.ActualWidth, scrollingText.ActualHeight)
             };
             
-            var size = new Vector3(element.RenderSizeInternal.Width, element.RenderSizeInternal.Height, 0);
+            var size = new Vector3(element.RenderSizeInternal.Width, element.RenderSizeInternal.Height, 1);
 
             // flush the current content of the UI image batch
             Batch.End();
