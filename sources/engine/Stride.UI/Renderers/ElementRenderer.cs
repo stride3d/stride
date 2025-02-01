@@ -84,7 +84,7 @@ namespace Stride.UI.Renderers
             if (backgroundColor == new Color())
                 return;
 
-            var size = new Vector3(element.RenderSizeInternal.Width, element.RenderSizeInternal.Height, 0);
+            var size = new Vector3(element.RenderSizeInternal.Width, element.RenderSizeInternal.Height, 1);
             // Default implementation: render an back-face cube with background color
             Batch.DrawBackground(ref element.WorldMatrixInternal, ref size, ref backgroundColor, context.DepthBias);
 
@@ -101,7 +101,7 @@ namespace Stride.UI.Renderers
         /// If the user wants to perform some intermediate rendering, it is his responsibility to bind them back correctly before the final rendering.</remarks>
         public virtual void RenderClipping(UIElement element, UIRenderingContext context)
         {
-            var size = new Vector3(element.RenderSizeInternal.Width, element.RenderSizeInternal.Height, 0);
+            var size = new Vector3(element.RenderSizeInternal.Width, element.RenderSizeInternal.Height, 1);
             // Default implementation: render an back-face cube
             Batch.DrawBackground(ref element.WorldMatrixInternal, ref size, ref blackColor, context.DepthBias);
 
