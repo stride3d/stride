@@ -252,7 +252,6 @@ namespace Stride.UI
         }
 
         [DataMember]
-        [DataMemberRange(0.0f, 3)]
         [Display(category: LayoutCategory)]
         [DefaultValue(0)]
         public float DepthOffset
@@ -260,7 +259,7 @@ namespace Stride.UI
             get => depthOffset;
             set
             {
-                depthOffset = MathUtil.Clamp(value, 0, float.MaxValue);
+                depthOffset = value;
                 InvalidateArrange();
             }
         }
@@ -738,8 +737,6 @@ namespace Stride.UI
         /// Gets the rendered height of this element.
         /// </summary>
         public float ActualHeight => RenderSize.Height;
-        
-        public float TotalDepthOffset { get; private set; }
 
         /// <inheritdoc/>
         IEnumerable<IUIElementChildren> IUIElementChildren.Children => EnumerateChildren();
@@ -889,9 +886,6 @@ namespace Stride.UI
                 CollapseOverride();
                 return;
             }
-            
-            if (Parent != null)
-                TotalDepthOffset = Parent.TotalDepthOffset + DepthOffset;
 
             // initialize the element size with the user suggested size (maybe NaN if not set)
             var elementSize = new Size2F(Width, Height);
@@ -922,7 +916,7 @@ namespace Stride.UI
 
             // update UIElement internal variables
             RenderSize = elementSize;
-            RenderOffsets = new Vector3(renderOffsets.X, renderOffsets.Y, TotalDepthOffset);
+            RenderOffsets = new Vector3(renderOffsets.X, renderOffsets.Y, -DepthOffset); // invert depthOffset because -z is forward but users expect positive offset to be towards camera.
         }
 
         private void ValidateChildrenArrange()
@@ -1037,7 +1031,7 @@ namespace Stride.UI
             var intersects = CollisionHelper.RayIntersectsRectangle(ref ray, ref WorldMatrixPickingInternal, ref renderSize, 2, out intersectionPoint);
 
             // if element has depth also test other faces
-            if (TotalDepthOffset > MathUtil.ZeroTolerance)
+            if (WorldMatrix.TranslationVector.Z > MathUtil.ZeroTolerance)
             {
                 Vector3 intersection;
                 if (CollisionHelper.RayIntersectsRectangle(ref ray, ref WorldMatrixPickingInternal, ref renderSize, 0, out intersection))
