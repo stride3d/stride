@@ -562,6 +562,15 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "Arc-huangjingtong",
+      "name": "Arc",
+      "avatar_url": "https://avatars.githubusercontent.com/u/87562566?v=4",
+      "profile": "https://github.com/Arc-huangjingtong",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
