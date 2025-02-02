@@ -553,6 +553,15 @@
       "contributions": [
         "design"
       ]
+    },
+    {
+      "login": "tymokvo",
+      "name": "Tyler Kvochick",
+      "avatar_url": "https://avatars.githubusercontent.com/u/12144028?v=4",
+      "profile": "http://tylerkvochick.com",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "contributorsPerLine": 7,
