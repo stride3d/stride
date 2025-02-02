@@ -265,6 +265,7 @@ Thanks to all these wonderful people who have contributed to Stride!
     </tr>
     <tr>
       <td align="center" valign="top" width="14.28%"><a href="http://yerkoandrei.github.io"><img src="https://avatars.githubusercontent.com/u/19843418?v=4?s=100" width="100px;" alt="Yerko Andrei"/><br /><sub><b>Yerko Andrei</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=YerkoAndrei" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/ComputerSmoke"><img src="https://avatars.githubusercontent.com/u/22194459?v=4?s=100" width="100px;" alt="Addison Schmidt"/><br /><sub><b>Addison Schmidt</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=ComputerSmoke" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>
