@@ -590,6 +590,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "dloe",
+      "name": "Dylan Loe",
+      "avatar_url": "https://avatars.githubusercontent.com/u/18317814?v=4",
+      "profile": "http://www.linkedin.com/in/dylan-loe",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
