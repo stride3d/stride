@@ -581,6 +581,15 @@
         "code",
         "content"
       ]
+    },
+    {
+      "login": "timcassell",
+      "name": "Tim Cassell",
+      "avatar_url": "https://avatars.githubusercontent.com/u/35501420?v=4",
+      "profile": "https://www.timcassell.net/",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
