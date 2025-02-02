@@ -251,6 +251,7 @@ Thanks to all these wonderful people who have contributed to Stride!
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/Feralnex"><img src="https://avatars.githubusercontent.com/u/30673252?v=4?s=100" width="100px;" alt="Tomasz Czech"/><br /><sub><b>Tomasz Czech</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=Feralnex" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/TranquilAbyss"><img src="https://avatars.githubusercontent.com/u/2864849?v=4?s=100" width="100px;" alt="Tranquil Abyss"/><br /><sub><b>Tranquil Abyss</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=TranquilAbyss" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/levifmorais"><img src="https://avatars.githubusercontent.com/u/102878183?v=4?s=100" width="100px;" alt="Levi Ferreira"/><br /><sub><b>Levi Ferreira</b></sub></a><br /><a href="#design-levifmorais" title="Design">🎨</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="http://tylerkvochick.com"><img src="https://avatars.githubusercontent.com/u/12144028?v=4?s=100" width="100px;" alt="Tyler Kvochick"/><br /><sub><b>Tyler Kvochick</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=tymokvo" title="Documentation">📖</a></td>
     </tr>
   </tbody>
 </table>
