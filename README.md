@@ -249,6 +249,7 @@ Thanks to all these wonderful people who have contributed to Stride!
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/ourabigdev"><img src="https://avatars.githubusercontent.com/u/147079928?v=4?s=100" width="100px;" alt="hatim ourahou"/><br /><sub><b>hatim ourahou</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=ourabigdev" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/kopffarben"><img src="https://avatars.githubusercontent.com/u/1833690?v=4?s=100" width="100px;" alt="kopffarben"/><br /><sub><b>kopffarben</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=kopffarben" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/Feralnex"><img src="https://avatars.githubusercontent.com/u/30673252?v=4?s=100" width="100px;" alt="Tomasz Czech"/><br /><sub><b>Tomasz Czech</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=Feralnex" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/TranquilAbyss"><img src="https://avatars.githubusercontent.com/u/2864849?v=4?s=100" width="100px;" alt="Tranquil Abyss"/><br /><sub><b>Tranquil Abyss</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=TranquilAbyss" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>
