@@ -245,6 +245,9 @@ Thanks to all these wonderful people who have contributed to Stride!
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/ch3mbot"><img src="https://avatars.githubusercontent.com/u/110746303?v=4?s=100" width="100px;" alt="Dagan Hartmann"/><br /><sub><b>Dagan Hartmann</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=ch3mbot" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/Nicogo1705"><img src="https://avatars.githubusercontent.com/u/20603105?v=4?s=100" width="100px;" alt="nicogo.eth"/><br /><sub><b>nicogo.eth</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=Nicogo1705" title="Code">💻</a></td>
     </tr>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/ourabigdev"><img src="https://avatars.githubusercontent.com/u/147079928?v=4?s=100" width="100px;" alt="hatim ourahou"/><br /><sub><b>hatim ourahou</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=ourabigdev" title="Code">💻</a></td>
+    </tr>
   </tbody>
 </table>
 
