@@ -249,10 +249,12 @@ namespace Stride.Assets.SpriteFont.Compiler
             bitmapData[destX, destY] = DrawingColor.FromArgb(0, color);
         }
 
-        // Helper for locking a bitmap and efficiently reading or writing its pixels.
+        /// <summary>
+        /// Helper class that provides a snapshot mechanism for a bitmap, efficient read/write access to its pixels, 
+        /// and applies any changes back to the bitmap upon disposal.
+        /// </summary>
         public sealed class PixelAccessor : IDisposable
         {
-            // Constructor locks the bitmap.
             public PixelAccessor(FreeImageBitmap bitmap, Rectangle? region = null)
             {
                 this.bitmap = bitmap;
@@ -263,7 +265,7 @@ namespace Stride.Assets.SpriteFont.Compiler
             }
             
 
-            // Dispose unlocks the bitmap.
+            // Disposes bitmap and copies any modified pixels back to the original bitmap.
             public void Dispose()
             {
                 // Copy the modified clone back to the original bitmap
@@ -277,7 +279,7 @@ namespace Stride.Assets.SpriteFont.Compiler
 
 
 
-            // Query what part of the bitmap is locked.
+            // Query what part of the bitmap is copied.
             public Rectangle Region { get; }
 
 
@@ -296,7 +298,7 @@ namespace Stride.Assets.SpriteFont.Compiler
             }
 
 
-            // Helper computes the address of the specified pixel.
+            // Computes the address of the specified pixel in the cloned bitmap.
             unsafe IntPtr PixelAddress(int x, int y)
             {
                 var pixel = (byte*)clone.GetScanlinePointer(clone.Height - y - 1) + (x * 4);
