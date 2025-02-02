@@ -265,7 +265,7 @@ namespace Stride.Assets.SpriteFont.Compiler
             }
             
 
-            // Disposes bitmap and copies any modified pixels back to the original bitmap.
+            // Disposes the bitmap and copies any modified pixels back to the original bitmap.
             public void Dispose()
             {
                 // Copy the modified clone back to the original bitmap
