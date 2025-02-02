@@ -259,6 +259,7 @@ Thanks to all these wonderful people who have contributed to Stride!
       <td align="center" valign="top" width="14.28%"><a href="https://www.timcassell.net/"><img src="https://avatars.githubusercontent.com/u/35501420?v=4?s=100" width="100px;" alt="Tim Cassell"/><br /><sub><b>Tim Cassell</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=timcassell" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="http://www.linkedin.com/in/dylan-loe"><img src="https://avatars.githubusercontent.com/u/18317814?v=4?s=100" width="100px;" alt="Dylan Loe"/><br /><sub><b>Dylan Loe</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=dloe" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/wrshield"><img src="https://avatars.githubusercontent.com/u/145876802?v=4?s=100" width="100px;" alt="Will S"/><br /><sub><b>Will S</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=wrshield" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/soorMSWE"><img src="https://avatars.githubusercontent.com/u/147351572?v=4?s=100" width="100px;" alt="Ryan Soo"/><br /><sub><b>Ryan Soo</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=soorMSWE" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>
