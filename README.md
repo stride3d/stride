@@ -263,6 +263,9 @@ Thanks to all these wonderful people who have contributed to Stride!
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/MechWarrior99"><img src="https://avatars.githubusercontent.com/u/8076495?v=4?s=100" width="100px;" alt="MechWarrior99"/><br /><sub><b>MechWarrior99</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=MechWarrior99" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/kristian15959"><img src="https://avatars.githubusercontent.com/u/8007327?v=4?s=100" width="100px;" alt="Proxid"/><br /><sub><b>Proxid</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=kristian15959" title="Code">💻</a></td>
     </tr>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="http://yerkoandrei.github.io"><img src="https://avatars.githubusercontent.com/u/19843418?v=4?s=100" width="100px;" alt="Yerko Andrei"/><br /><sub><b>Yerko Andrei</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=YerkoAndrei" title="Code">💻</a></td>
+    </tr>
   </tbody>
 </table>
 
