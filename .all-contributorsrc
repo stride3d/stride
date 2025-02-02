@@ -544,6 +544,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "levifmorais",
+      "name": "Levi Ferreira",
+      "avatar_url": "https://avatars.githubusercontent.com/u/102878183?v=4",
+      "profile": "https://github.com/levifmorais",
+      "contributions": [
+        "design"
+      ]
     }
   ],
   "contributorsPerLine": 7,
