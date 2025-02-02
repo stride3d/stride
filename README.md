@@ -243,6 +243,7 @@ Thanks to all these wonderful people who have contributed to Stride!
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/MaximilianEmel"><img src="https://avatars.githubusercontent.com/u/19846453?v=4?s=100" width="100px;" alt="MaximilianEmel"/><br /><sub><b>MaximilianEmel</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=MaximilianEmel" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/Schossi"><img src="https://avatars.githubusercontent.com/u/8679168?v=4?s=100" width="100px;" alt="Schossi"/><br /><sub><b>Schossi</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=Schossi" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/ch3mbot"><img src="https://avatars.githubusercontent.com/u/110746303?v=4?s=100" width="100px;" alt="Dagan Hartmann"/><br /><sub><b>Dagan Hartmann</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=ch3mbot" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/Nicogo1705"><img src="https://avatars.githubusercontent.com/u/20603105?v=4?s=100" width="100px;" alt="nicogo.eth"/><br /><sub><b>nicogo.eth</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=Nicogo1705" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>
