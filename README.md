@@ -254,6 +254,9 @@ Thanks to all these wonderful people who have contributed to Stride!
       <td align="center" valign="top" width="14.28%"><a href="http://tylerkvochick.com"><img src="https://avatars.githubusercontent.com/u/12144028?v=4?s=100" width="100px;" alt="Tyler Kvochick"/><br /><sub><b>Tyler Kvochick</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=tymokvo" title="Documentation">📖</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/Arc-huangjingtong"><img src="https://avatars.githubusercontent.com/u/87562566?v=4?s=100" width="100px;" alt="Arc"/><br /><sub><b>Arc</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=Arc-huangjingtong" title="Code">💻</a></td>
     </tr>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/minktusk"><img src="https://avatars.githubusercontent.com/u/121324712?v=4?s=100" width="100px;" alt="minktusk"/><br /><sub><b>minktusk</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=minktusk" title="Code">💻</a> <a href="#content-minktusk" title="Content">🖋</a></td>
+    </tr>
   </tbody>
 </table>
 
