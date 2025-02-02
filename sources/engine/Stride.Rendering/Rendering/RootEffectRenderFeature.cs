@@ -1013,6 +1013,22 @@ namespace Stride.Rendering
             }
         }
 
+        public override void BindPerViewShaderResource(string logicalGroupName, RenderView renderView, GraphicsResource resource)
+        {
+            var depthLogicalKey = CreateViewLogicalGroup(logicalGroupName);
+            var viewFeature = renderView.Features[Index];
+
+            foreach (var viewLayout in viewFeature.Layouts)
+            {
+                var logicalGroup = viewLayout.GetLogicalGroup(depthLogicalKey);
+                if (logicalGroup.Hash == ObjectId.Empty)
+                    continue;
+
+                var resourceGroup = viewLayout.Entries[renderView.Index].Resources;
+                resourceGroup.DescriptorSet.SetShaderResourceView(logicalGroup.DescriptorSlotStart, resource);
+            }
+        }
+
         protected override void Destroy()
         {
             foreach (var effect in InstantiatedEffects)

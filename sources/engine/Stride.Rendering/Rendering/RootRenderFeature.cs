@@ -13,6 +13,7 @@ using Stride.Core.Collections;
 using Stride.Core.Diagnostics;
 using Stride.Core.Extensions;
 using Stride.Core.Threading;
+using Stride.Graphics;
 
 namespace Stride.Rendering
 {
@@ -255,6 +256,16 @@ namespace Stride.Rendering
                 default:
                     throw new ArgumentOutOfRangeException();
             }
+        }
+
+        /// <summary>
+        /// Allows the renderer to inject per view resources such as depth buffer and opaque pass output.
+        /// </summary>
+        /// <param name="logicalGroupName">Name of the logical group to bind to.</param>
+        /// <param name="renderView"></param>
+        /// <param name="resource"></param>
+        public virtual void BindPerViewShaderResource(string logicalGroupName, RenderView renderView, GraphicsResource resource)
+        { 
         }
     }
 }
