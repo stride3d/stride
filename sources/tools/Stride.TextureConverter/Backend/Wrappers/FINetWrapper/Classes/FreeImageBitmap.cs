@@ -1488,8 +1488,8 @@ namespace FreeImageAPI
 			return new RectangleF(
 					0f,
 					0f,
-                    FreeImage.GetWidth(dib),
-                    FreeImage.GetHeight(dib));
+					FreeImage.GetWidth(dib),
+					FreeImage.GetHeight(dib));
 		}
 
 		/// <summary>
@@ -2413,36 +2413,6 @@ namespace FreeImageAPI
 			EnsureNotDisposed();
 			FreeImage.SetResolutionX(dib, (uint)xDpi);
 			FreeImage.SetResolutionY(dib, (uint)yDpi);
-		}
-
-		/// <summary>
-		/// This function is not yet implemented.
-		/// </summary>
-		/// <exception cref="NotImplementedException">
-		/// This method is not implemented.</exception>
-		public BitmapData LockBits(Rectangle rect, ImageLockMode flags, PixelFormat format)
-		{
-			throw new NotImplementedException();
-		}
-
-		/// <summary>
-		/// This function is not yet implemented.
-		/// </summary>
-		/// <exception cref="NotImplementedException">
-		/// This method is not implemented.</exception>
-		public BitmapData LockBits(Rectangle rect, ImageLockMode flags, PixelFormat format, BitmapData bitmapData)
-		{
-			throw new NotImplementedException();
-		}
-
-		/// <summary>
-		/// This function is not yet implemented.
-		/// </summary>
-		/// <exception cref="NotImplementedException">
-		/// This method is not implemented.</exception>
-		public void UnlockBits(BitmapData bitmapdata)
-		{
-			throw new NotImplementedException();
 		}
 
 		/// <summary>
@@ -4069,6 +4039,11 @@ namespace FreeImageAPI
 			}
 			memory.Capacity = (int)memory.Length;
 			info.AddValue("Bitmap Data", memory.GetBuffer());
+		}
+
+		public FreeImageBitmap ConvertTo32Bits()
+		{
+			return new FreeImageBitmap(FreeImage.ConvertTo32Bits(dib));
 		}
 
 		#endregion

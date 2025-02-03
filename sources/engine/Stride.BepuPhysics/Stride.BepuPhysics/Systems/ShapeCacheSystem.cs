@@ -19,7 +19,7 @@ using Mesh = BepuPhysics.Collidables.Mesh;
 
 namespace Stride.BepuPhysics.Systems;
 
-internal class ShapeCacheSystem : IDisposable
+internal class ShapeCacheSystem : IDisposable, IService
 {
     internal readonly BasicMeshBuffers _boxShapeData;
     internal readonly BasicMeshBuffers _cylinderShapeData;
@@ -424,4 +424,6 @@ internal class ShapeCacheSystem : IDisposable
             // /!\ THIS MAY RUN OUTSIDE OF THE MAIN THREAD /!\
         }
     }
+
+    public static IService NewInstance(IServiceRegistry services) => new ShapeCacheSystem(services);
 }

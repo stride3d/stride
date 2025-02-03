@@ -85,7 +85,7 @@ namespace Stride.Assets.SpriteFont.Compiler
         public static void Crop(Glyph glyph)
         {
             // Crop the top.
-            while ((glyph.Subrect.Height > 1) && BitmapUtils.IsAlphaEntirely(0, glyph.Bitmap, new Rectangle(glyph.Subrect.X, glyph.Subrect.Y, glyph.Subrect.Width, 1)))
+            while ((glyph.Subrect.Height > 1) && BitmapUtils.IsAlphaEntirely(0, glyph.Bitmap, glyph.Subrect with { Height = 1 }))
             {
                 glyph.Subrect.Y++;
                 glyph.Subrect.Height--;
@@ -94,13 +94,13 @@ namespace Stride.Assets.SpriteFont.Compiler
             }
 
             // Crop the bottom.
-            while ((glyph.Subrect.Height > 1) && BitmapUtils.IsAlphaEntirely(0, glyph.Bitmap, new Rectangle(glyph.Subrect.X, glyph.Subrect.Bottom - 1, glyph.Subrect.Width, 1)))
+            while ((glyph.Subrect.Height > 1) && BitmapUtils.IsAlphaEntirely(0, glyph.Bitmap, glyph.Subrect with { Y = glyph.Subrect.Bottom - 1, Height = 1 }))
             {
                 glyph.Subrect.Height--;
             }
 
             // Crop the left.
-            while ((glyph.Subrect.Width > 1) && BitmapUtils.IsAlphaEntirely(0, glyph.Bitmap, new Rectangle(glyph.Subrect.X, glyph.Subrect.Y, 1, glyph.Subrect.Height)))
+            while ((glyph.Subrect.Width > 1) && BitmapUtils.IsAlphaEntirely(0, glyph.Bitmap, glyph.Subrect with { Width = 1 }))
             {
                 glyph.Subrect.X++;
                 glyph.Subrect.Width--;
@@ -109,7 +109,7 @@ namespace Stride.Assets.SpriteFont.Compiler
             }
 
             // Crop the right.
-            while ((glyph.Subrect.Width > 1) && BitmapUtils.IsAlphaEntirely(0, glyph.Bitmap, new Rectangle(glyph.Subrect.Right - 1, glyph.Subrect.Y, 1, glyph.Subrect.Height)))
+            while ((glyph.Subrect.Width > 1) && BitmapUtils.IsAlphaEntirely(0, glyph.Bitmap, glyph.Subrect with { X = glyph.Subrect.Right - 1, Width = 1 }))
             {
                 glyph.Subrect.Width--;
             }

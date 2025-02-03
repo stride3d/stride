@@ -72,9 +72,8 @@ namespace Stride.Core
             var type = typeof(T);
             lock (registeredService)
             {
-                if (registeredService.ContainsKey(type))
+                if (registeredService.TryAdd(type, service) == false)
                     throw new ArgumentException("Service is already registered with this type", nameof(type));
-                registeredService.Add(type, service);
             }
             OnServiceAdded(new ServiceEventArgs(type, service));
         }
@@ -91,11 +90,43 @@ namespace Stride.Core
             object oldService;
             lock (registeredService)
             {
-                if (registeredService.TryGetValue(type, out oldService))
-                    registeredService.Remove(type);
+                registeredService.Remove(type, out oldService);
             }
             if (oldService != null)
                 OnServiceRemoved(new ServiceEventArgs(type, oldService));
+        }
+
+        /// <inheritdoc />
+        public bool RemoveService<T>(T serviceObject) where T : class
+        {
+            lock (registeredService)
+            {
+                if (ReferenceEquals(GetService<T>(), serviceObject))
+                {
+                    RemoveService<T>();
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+        }
+
+        /// <inheritdoc />
+        public T GetOrCreate<T>() where T : class, IService
+        {
+            lock (registeredService)
+            {
+                var t = GetService<T>();
+                if (t is null)
+                {
+                    t = (T)T.NewInstance(this);
+                    AddService(t);
+                }
+
+                return t;
+            }
         }
 
         private void OnServiceAdded(ServiceEventArgs e)

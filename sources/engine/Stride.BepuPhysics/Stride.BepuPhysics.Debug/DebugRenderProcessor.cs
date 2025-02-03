@@ -78,7 +78,7 @@ public class DebugRenderProcessor : EntityProcessor<DebugRenderComponent>
     {
         SinglePassWireframeRenderFeature wireframeRenderFeature;
 
-        ServicesHelper.LoadBepuServices(Services, out _, out _shapeCacheSystem, out _);
+        _shapeCacheSystem = Services.GetOrCreate<ShapeCacheSystem>();
         _game = Services.GetSafeServiceAs<IGame>();
         _sceneSystem = Services.GetSafeServiceAs<SceneSystem>();
 
