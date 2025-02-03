@@ -272,6 +272,17 @@ public class BodyComponent : CollidableComponent
         }
     }
 
+    /// <summary>
+    /// Automatically computed size of the margin around the surface of the shape in which contacts can be generated. These contacts will have negative depth and only contribute if the frame's velocities
+    /// would push the shapes of a pair into overlap.
+    /// <para>This is automatically set by bounding box prediction each frame, and is bound by the collidable's <see cref="Collidable.MinimumSpeculativeMargin"/> and <see cref="Collidable.MaximumSpeculativeMargin"/> values.
+    /// The effective speculative margin for a collision pair can also be modified from <see cref="INarrowPhaseCallbacks"/> callbacks.</para>
+    /// <para>This should be positive to avoid jittering.</para>
+    /// <para>It can also be used as a form of continuous collision detection, but excessively high values combined with fast motion may result in visible 'ghost collision' artifacts.
+    /// For continuous collision detection with less chance of ghost collisions, use <see cref="ContinuousDetectionMode.Continuous"/>.</para>
+    /// <para>If using <see cref="ContinuousDetectionMode.Continuous"/>, consider setting <see cref="Collidable.MaximumSpeculativeMargin"/> to a smaller value to help filter ghost collisions.</para>
+    /// <para>For more information, see the <see href="https://github.com/bepu/bepuphysics2/blob/master/Documentation/ContinuousCollisionDetection.md">Continuous Collision Detection</see> documentation.</para>
+    /// </summary>
     [DataMemberIgnore]
     public float SpeculativeMargin
     {
@@ -284,7 +295,7 @@ public class BodyComponent : CollidableComponent
     }
 
     /// <summary>
-    /// Defines how a collidable handles collisions with significant velocity.
+    /// Determines the continuous collision detection configuration set for that object. Helps prevent fast-moving objects from tunneling through other objects.
     /// </summary>
     [DataMemberIgnore]
     public ContinuousDetection ContinuousDetection
@@ -302,6 +313,7 @@ public class BodyComponent : CollidableComponent
     /// The constraints targeting this body, some of those may not be <see cref="ConstraintComponentBase.Attached"/>
     /// </summary>
     public IReadOnlyList<ConstraintComponentBase> Constraints => BoundConstraints ?? (IReadOnlyList<ConstraintComponentBase>)Array.Empty<ConstraintComponentBase>();
+
 
     protected internal override CollidableReference? CollidableReference
     {
@@ -336,7 +348,6 @@ public class BodyComponent : CollidableComponent
     {
         BodyReference?.ApplyAngularImpulse(impulse.ToNumeric());
     }
-
 
     /// <summary>
     /// Applies an explosive force which will only affect this body's linear velocity
