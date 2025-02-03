@@ -112,19 +112,12 @@ namespace Stride.Assets.SpriteFont.Compiler
                 split[i] = ConvertCharacter(splitStr[i]);
             }
 
-            switch (split.Length)
+            return split.Length switch
             {
-                case 1:
-                    // Only a single character (eg. "a").
-                    return new CharacterRegion(split[0], split[0]);
-
-                case 2:
-                    // Range of characters (eg. "a-z").
-                    return new CharacterRegion(split[0], split[1]);
-             
-                default:
-                    throw new ArgumentException();
-            }
+                1 => new CharacterRegion(split[0], split[0]), // Only a single character (eg. "a").
+                2 => new CharacterRegion(split[0], split[1]), // Range of characters (eg. "a-z").
+                _ => throw new ArgumentException()
+            };
         }
 
 
@@ -135,11 +128,9 @@ namespace Stride.Assets.SpriteFont.Compiler
                 // Single character directly specifies a codepoint.
                 return value[0];
             }
-            else
-            {
-                // Otherwise it must be an integer (eg. "32" or "0x20").
-                return (char)(int)intConverter.ConvertFromInvariantString(value);
-            }
+
+            // Otherwise it must be an integer (eg. "32" or "0x20").
+            return (char)(int)intConverter.ConvertFromInvariantString(value);
         }
 
 

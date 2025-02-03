@@ -76,6 +76,7 @@
 //--------------------------------------------------------------------
 
 using System.Drawing;
+using FreeImageAPI;
 
 namespace Stride.Assets.SpriteFont.Compiler
 {
@@ -83,11 +84,11 @@ namespace Stride.Assets.SpriteFont.Compiler
     internal class Glyph
     {
         // Constructor.
-        public Glyph(char character, Bitmap bitmap, Rectangle? subrect = null)
+        public Glyph(char character, FreeImageBitmap bitmap, Rectangle? subrect = null)
         {
-            this.Character = character;
-            this.Bitmap = bitmap;
-            this.Subrect = subrect.GetValueOrDefault(new Rectangle(0, 0, bitmap.Width, bitmap.Height));
+            Character = character;
+            Bitmap = bitmap;
+            Subrect = subrect.GetValueOrDefault(new Rectangle(0, 0, bitmap.Width, bitmap.Height));
         }
 
 
@@ -96,7 +97,7 @@ namespace Stride.Assets.SpriteFont.Compiler
 
 
         // Glyph image data (may only use a portion of a larger bitmap).
-        public Bitmap Bitmap;
+        public FreeImageBitmap Bitmap;
         public Rectangle Subrect;
         
 
