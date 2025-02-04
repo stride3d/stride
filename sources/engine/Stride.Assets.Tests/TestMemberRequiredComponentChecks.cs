@@ -35,6 +35,9 @@ namespace Stride.Assets.Tests
             [MemberRequired]
             [DataMember] internal object InternalProp { get; set; }
             public override object VirtualProp { get; set; } = new object();
+            public required object KeywordRequired { get; set; }
+            [MemberRequired(ReportAs = MemberRequiredReportType.Error)] public required object KeywordAndAttributeRequired { get; set; }
+
             public MemberRequiredComponent(object initData, object internalData)
             {
                 InitProp = initData;
@@ -50,6 +53,8 @@ namespace Stride.Assets.Tests
                 InternalField = new object(),
                 PublicProp = new object(),
                 PublicField = new object(),
+                KeywordRequired = new object(),
+                KeywordAndAttributeRequired = new object()
             };
             var entity = new Entity("test");
             entity.Add(memberRequiredComponent);
@@ -70,9 +75,11 @@ namespace Stride.Assets.Tests
                 InternalField = new object(),
                 PublicProp = new object(),
                 PublicField = null,
+                KeywordRequired = new object(),
+                KeywordAndAttributeRequired = new object()
             };
             var memberName = nameof(memberRequiredComponent.PublicField);
-            TestSingle(memberRequiredComponent, memberName);
+            TestSingleWarning(memberRequiredComponent, memberName);
         }
 
         [Fact]
@@ -83,9 +90,11 @@ namespace Stride.Assets.Tests
                 InternalField = new object(),
                 PublicProp = null,
                 PublicField = new object(),
+                KeywordRequired = new object(),
+                KeywordAndAttributeRequired = new object()
             };
             var memberName = nameof(memberRequiredComponent.PublicProp);
-            TestSingle(memberRequiredComponent, memberName);
+            TestSingleWarning(memberRequiredComponent, memberName);
         }
 
         [Fact]
@@ -96,9 +105,11 @@ namespace Stride.Assets.Tests
                 InternalField = new object(),
                 PublicProp = new object(),
                 PublicField = new object(),
+                KeywordRequired = new object(),
+                KeywordAndAttributeRequired = new object()
             };
             var memberName = nameof(MemberRequiredComponent.InitProp);
-            TestSingle(memberRequiredComponent, memberName);
+            TestSingleWarning(memberRequiredComponent, memberName);
         }
 
         [Fact]
@@ -109,9 +120,41 @@ namespace Stride.Assets.Tests
                 InternalField = new object(),
                 PublicProp = new object(),
                 PublicField = new object(),
+                KeywordRequired = new object(),
+                KeywordAndAttributeRequired = new object()
             };
             var memberName = nameof(MemberRequiredComponent.InternalProp);
-            TestSingle(memberRequiredComponent, memberName);
+            TestSingleWarning(memberRequiredComponent, memberName);
+        }
+
+        [Fact]
+        void EntityIsMissingRequiredMember_Keyword()
+        {
+            var memberRequiredComponent = new MemberRequiredComponent(new object(), new object())
+            {
+                InternalField = new object(),
+                PublicProp = new object(),
+                PublicField = new object(),
+                KeywordRequired = null,
+                KeywordAndAttributeRequired = new object()
+            };
+            var memberName = nameof(MemberRequiredComponent.KeywordRequired);
+            TestSingleWarning(memberRequiredComponent, memberName);
+        }
+
+        [Fact]
+        void EntityIsMissingRequiredMember_KeywordWithAttribute()
+        {
+            var memberRequiredComponent = new MemberRequiredComponent(new object(), new object())
+            {
+                InternalField = new object(),
+                PublicProp = new object(),
+                PublicField = new object(),
+                KeywordRequired = new object(),
+                KeywordAndAttributeRequired = null
+            };
+            var memberName = nameof(MemberRequiredComponent.KeywordAndAttributeRequired);
+            TestSingleError(memberRequiredComponent, memberName);
         }
 
         [Fact]
@@ -121,6 +164,8 @@ namespace Stride.Assets.Tests
             {
                 PublicProp = null,
                 PublicField = null,
+                KeywordRequired = null,
+                KeywordAndAttributeRequired = null
             };
             var entity = new Entity("test");
             entity.Add(memberRequiredComponent);
@@ -130,7 +175,7 @@ namespace Stride.Assets.Tests
 
             Assert.True(check.AppliesTo(memberRequiredComponent.GetType()));
             check.Check(memberRequiredComponent, entity, null, "", result);
-            Assert.Equal(5, result.Messages.Count);
+            Assert.Equal(7, result.Messages.Count);
         }
 
         [Fact]
@@ -142,12 +187,24 @@ namespace Stride.Assets.Tests
                 PublicProp = new object(),
                 PublicField = new object(),
                 VirtualProp = null,
+                KeywordRequired = new object(),
+                KeywordAndAttributeRequired = new object()
             };
             var memberName = nameof(memberRequiredComponent.VirtualProp);
-            TestSingle(memberRequiredComponent, memberName);
+            TestSingleWarning(memberRequiredComponent, memberName);
         }
 
-        private static void TestSingle(MemberRequiredComponent memberRequiredComponent, string memberName)
+        private static void TestSingleError(MemberRequiredComponent memberRequiredComponent, string memberName)
+        {
+            TestSingle(memberRequiredComponent, memberName, Core.Diagnostics.LogMessageType.Error);
+        }
+
+        private static void TestSingleWarning(MemberRequiredComponent memberRequiredComponent, string memberName)
+        {
+            TestSingle(memberRequiredComponent, memberName, Core.Diagnostics.LogMessageType.Warning);
+        }
+
+        private static void TestSingle(MemberRequiredComponent memberRequiredComponent, string memberName, Core.Diagnostics.LogMessageType messageType)
         {
             var entity = new Entity("Test");
             entity.Add(memberRequiredComponent);
@@ -159,7 +216,7 @@ namespace Stride.Assets.Tests
             check.Check(memberRequiredComponent, entity, null, "", result);
             Assert.Collection(result.Messages, (msg) =>
             {
-                Assert.Equal(Core.Diagnostics.LogMessageType.Warning, msg.Type);
+                Assert.Equal(messageType, msg.Type);
                 Assert.Contains(memberName, msg.Text);
             });
         }

@@ -109,6 +109,22 @@ namespace Stride.UI.Controls
         public Color TextColor { get; set; } = Color.FromAbgr(0xF0F0F0FF);
 
         /// <summary>
+        /// Gets or sets the Text outline color.
+        /// </summary>
+        /// <userdoc>The outline color of the text.</userdoc>
+        [DataMember]
+        [Display(category: AppearanceCategory)]
+        public Color OutlineColor { get; set; } = Color.Black;
+
+        /// <summary>
+        /// Gets or sets the Text outline thickness.
+        /// </summary>
+        /// <userdoc>The outline thickness of the text.</userdoc>
+        [DataMember]
+        [Display(category: AppearanceCategory)]
+        public float OutlineThickness { get; set; } = 0.0f;
+
+        /// <summary>
         /// Gets or sets the alignment of the text to display.
         /// </summary>
         /// <userdoc>Alignment of the text.</userdoc>

@@ -85,6 +85,7 @@ using Stride.Graphics.Font;
 
 using System.Linq;
 using Stride.Graphics;
+using FreeImageAPI;
 
 namespace Stride.Assets.SpriteFont.Compiler
 {
@@ -101,16 +102,12 @@ namespace Stride.Assets.SpriteFont.Compiler
         /// <returns>A SpriteFontData object.</returns>
         public static Graphics.SpriteFont Compile(IFontFactory fontFactory, SpriteFontAsset fontAsset)
         {
-            var fontTypeSDF = fontAsset.FontType as SignedDistanceFieldSpriteFontType;
-            if (fontTypeSDF == null)
+            if (fontAsset.FontType is not SignedDistanceFieldSpriteFontType)
                 throw new ArgumentException("Tried to compile a dynamic sprite font with compiler for signed distance field fonts");
 
-            float lineSpacing;
-            float baseLine;
+            var glyphs = ImportFont(fontAsset, out var lineSpacing, out var baseLine);
 
-            var glyphs = ImportFont(fontAsset, out lineSpacing, out baseLine);
-
-            Bitmap bitmap = GlyphPacker.ArrangeGlyphs(glyphs);
+            FreeImageBitmap bitmap = GlyphPacker.ArrangeGlyphs(glyphs);
 
             return SignedDistanceFieldFontWriter.CreateSpriteFontData(fontFactory, fontAsset, glyphs, lineSpacing, baseLine, bitmap);
         }
@@ -178,8 +175,7 @@ namespace Stride.Assets.SpriteFont.Compiler
         {
             var characters = new List<char>();
 
-            var fontTypeSDF = asset.FontType as SignedDistanceFieldSpriteFontType;
-            if (fontTypeSDF == null)
+            if (asset.FontType is not SignedDistanceFieldSpriteFontType fontTypeSDF)
                 throw new ArgumentException("Tried to compile a dynamic sprite font with compiler for signed distance field fonts");
             
             // extract the list from the provided file if it exits

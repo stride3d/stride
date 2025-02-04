@@ -185,6 +185,24 @@ namespace Stride.Core.Mathematics
         }
 
         /// <summary>
+        /// Casts from System.Numerics to Stride.Maths vectors
+        /// </summary>
+        /// <param name="v">Value to cast</param>
+        public static implicit operator Vector3(System.Numerics.Vector3 v)
+        {
+            return Unsafe.BitCast<System.Numerics.Vector3, Vector3>(v);
+        }
+
+        /// <summary>
+        /// Casts from Stride.Maths to System.Numerics vectors
+        /// </summary>
+        /// <param name="v">Value to cast</param>
+        public static implicit operator System.Numerics.Vector3(Vector3 v)
+        {
+            return Unsafe.BitCast<Vector3, System.Numerics.Vector3>(v);
+        }
+
+        /// <summary>
         /// Calculates the length of the vector.
         /// </summary>
         /// <returns>The length of the vector.</returns>

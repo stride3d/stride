@@ -85,6 +85,7 @@ using Stride.Graphics.Font;
 
 using System.Linq;
 using Stride.Graphics;
+using FreeImageAPI;
 
 namespace Stride.Assets.SpriteFont.Compiler
 {
@@ -102,20 +103,16 @@ namespace Stride.Assets.SpriteFont.Compiler
         /// <returns>A SpriteFontData object.</returns>
         public static Graphics.SpriteFont Compile(IFontFactory fontFactory, SpriteFontAsset fontAsset, bool srgb)
         {
-            var fontTypeStatic = fontAsset.FontType as OfflineRasterizedSpriteFontType;
-            if (fontTypeStatic == null)
+            if (fontAsset.FontType is not OfflineRasterizedSpriteFontType)
                 throw new ArgumentException("Tried to compile a dynamic sprite font with compiler for static fonts");
 
-            float lineSpacing;
-            float baseLine;
-
-            var glyphs = ImportFont(fontAsset, out lineSpacing, out baseLine);
+            var glyphs = ImportFont(fontAsset, out var lineSpacing, out var baseLine);
 
             // Optimize.
             foreach (Glyph glyph in glyphs)
                 GlyphCropper.Crop(glyph);
 
-            Bitmap bitmap = GlyphPacker.ArrangeGlyphs(glyphs);
+            FreeImageBitmap bitmap = GlyphPacker.ArrangeGlyphs(glyphs);
 
             // Automatically detect whether this is a monochromatic or color font?
             //if (fontAsset.Format == FontTextureFormat.Auto)
@@ -151,7 +148,7 @@ namespace Stride.Assets.SpriteFont.Compiler
             var bitmapFileExtensions = new List<string> { ".bmp", ".png", ".gif" };
             var importFromBitmap = bitmapFileExtensions.Contains(sourceExtension);
 
-            importer = importFromBitmap ? (IFontImporter) new BitmapImporter() : new TrueTypeImporter();
+            importer = importFromBitmap ? new BitmapImporter() : new TrueTypeImporter();
 
             // create the list of character to import
             var characters = GetCharactersToImport(options); 
