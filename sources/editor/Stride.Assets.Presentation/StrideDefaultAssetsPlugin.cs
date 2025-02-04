@@ -25,6 +25,7 @@ using Stride.Editor;
 using Stride.Engine;
 using Stride.Core.Assets.Templates;
 using Stride.Core.Packages;
+using Stride.Core.Serialization;
 using Stride.Engine.Gizmos;
 using Stride.Editor.Annotations;
 using Stride.Editor.Preview.View;
@@ -150,18 +151,32 @@ namespace Stride.Assets.Presentation
                 category.AddFactory(instance, display.Name, display.Order ?? int.MaxValue / 2);
             }
 
-            // Update display name of scripts to have a decent default value if user didn't set one.
-            var componentTypes = typeof(EntityComponent).GetInheritedInstantiableTypes().Where(x => TypeDescriptorFactory.Default.AttributeRegistry.GetAttribute<DisplayAttribute>(x, false) == null);
-            componentTypes.ForEach(x => TypeDescriptorFactory.Default.AttributeRegistry.Register(x, new DisplayAttribute(x.Name) { Expand = ExpandRule.Once }));
             AssemblyRegistry.AssemblyRegistered += (sender, e) =>
             {
-                var types = e.Assembly.GetTypes().Where(x => typeof(EntityComponent).IsAssignableFrom(x) && TypeDescriptorFactory.Default.AttributeRegistry.GetAttribute<DisplayAttribute>(x, false) == null);
-                types.ForEach(x => TypeDescriptorFactory.Default.AttributeRegistry.Register(x, new DisplayAttribute(x.Name) { Expand = ExpandRule.Once }));
+                var types = e.Assembly.GetTypes();
+                SetTypeExpandRuleFallback(types);
+
+                if (e.Categories.Contains(AssemblyCommonCategories.Assets))
+                {
+                    OnRegisteredAssetAssembly(types);
+                }
+            };
+            
+            AssemblyRegistry.AssemblyUnregistered += (sender, e) =>
+            {
+                if (e.Categories.Contains(AssemblyCommonCategories.Assets))
+                {
+                    OnUnregisteredAssetAssembly(e.Assembly.GetTypes());
+                }
             };
 
+            SetTypeExpandRuleFallback(typeof(EntityComponent).GetInheritedInstantiableTypes().ToArray());
+
+            foreach (var assembly in AssetRegistry.AssetAssemblies)
+                OnRegisteredAssetAssembly(assembly.GetTypes());
+            
             EntityFactoryCategories = entityFactories.Keys.ToList();
-            RegisterGizmoTypes();
-            RegisterAssetHighlighterTypes();
+
             RegisterResourceDictionary(imageDictionary);
             RegisterResourceDictionary(animationPropertyTemplateDictionary);
             RegisterResourceDictionary(entityPropertyTemplateDictionary);
@@ -224,6 +239,7 @@ namespace Stride.Assets.Presentation
             session.SuggestedPackages.Add(new PackageName(typeof(Stride.Particles.Components.ParticleSystemComponent).Assembly.GetName().Name, new PackageVersion(StrideVersion.NuGetVersion)));
             session.SuggestedPackages.Add(new PackageName(typeof(Stride.Navigation.NavigationComponent).Assembly.GetName().Name, new PackageVersion(StrideVersion.NuGetVersion)));
             session.SuggestedPackages.Add(new PackageName(typeof(Stride.Physics.StaticColliderComponent).Assembly.GetName().Name, new PackageVersion(StrideVersion.NuGetVersion)));
+            session.SuggestedPackages.Add(new PackageName("Stride.BepuPhysics", new PackageVersion(StrideVersion.NuGetVersion))); // We don't want this solution to reference Bepu directly as it must stay as a plugin, so a hardcoded string will have to do for now
             session.SuggestedPackages.Add(new PackageName(typeof(Stride.Video.VideoComponent).Assembly.GetName().Name, new PackageVersion(StrideVersion.NuGetVersion)));
             session.SuggestedPackages.Add(new PackageName(typeof(Stride.Voxels.Module).Assembly.GetName().Name, new PackageVersion(StrideVersion.NuGetVersion)));
             session.SuggestedPackages.Add(new PackageName(typeof(Stride.SpriteStudio.Runtime.SpriteStudioNodeLinkComponent).Assembly.GetName().Name, new PackageVersion(StrideVersion.NuGetVersion)));
@@ -233,6 +249,7 @@ namespace Stride.Assets.Presentation
         public override void RegisterPrimitiveTypes(ICollection<Type> primitiveTypes)
         {
             primitiveTypes.Add(typeof(AssetReference));
+            primitiveTypes.Add(typeof(UrlReferenceBase));
         }
 
         /// <inheritdoc />
@@ -341,32 +358,53 @@ namespace Stride.Assets.Presentation
             return (ascending ? filtered.OrderBy(t => t.order) : filtered.OrderByDescending(t => t.order)).Select(t => t.type);
         }
 
-        private static void RegisterGizmoTypes()
+        /// <summary>
+        /// Update display name of scripts to have a decent default value if user didn't set one.
+        /// </summary>
+        private static void SetTypeExpandRuleFallback(Type[] types)
         {
-            var allTypes = AssetRegistry.AssetAssemblies.SelectMany(x => x.GetTypes());
-            foreach (var type in allTypes)
+            foreach (var type in types)
             {
-                if (typeof(IGizmo).IsAssignableFrom(type))
+                if (type.IsAssignableTo(typeof(EntityComponent)) && TypeDescriptorFactory.Default.AttributeRegistry.GetAttribute<DisplayAttribute>(type, false) == null)
                 {
-                    var attribute = type.GetCustomAttribute<GizmoComponentAttribute>(true);
-                    if (attribute != null)
-                    {
+                    TypeDescriptorFactory.Default.AttributeRegistry.Register(type, new DisplayAttribute(type.Name) { Expand = ExpandRule.Once });
+                }
+            }
+        }
+
+        private void OnRegisteredAssetAssembly(Type[] types)
+        {
+            foreach (var type in types)
+            {
+                if (type.IsAssignableTo(typeof(IGizmo)))
+                {
+                    if (type.GetCustomAttribute<GizmoComponentAttribute>(true) is {} attribute)
                         GizmoTypes.Add(attribute.ComponentType, type);
+                }
+                if (type.IsAssignableTo(typeof(AssetHighlighter)))
+                {
+                    foreach (var attribute in type.GetCustomAttributes<AssetHighlighterAttribute>(false).NotNull())
+                    {
+                        AssetHighlighterTypes.Add(attribute.AssetType, type);
                     }
                 }
             }
         }
 
-        private static void RegisterAssetHighlighterTypes()
+        private void OnUnregisteredAssetAssembly(Type[] types)
         {
-            var allTypes = AssetRegistry.AssetAssemblies.SelectMany(x => x.GetTypes());
-            foreach (var type in allTypes)
+            foreach (var type in types)
             {
-                if (typeof(AssetHighlighter).IsAssignableFrom(type))
+                if (type.IsAssignableTo(typeof(IGizmo)))
+                {
+                    if (type.GetCustomAttribute<GizmoComponentAttribute>(true) is {} attribute)
+                        GizmoTypes.Remove(attribute.ComponentType);
+                }
+                if (type.IsAssignableTo(typeof(AssetHighlighter)))
                 {
                     foreach (var attribute in type.GetCustomAttributes<AssetHighlighterAttribute>(false).NotNull())
                     {
-                        AssetHighlighterTypes.Add(attribute.AssetType, type);
+                        AssetHighlighterTypes.Remove(attribute.AssetType);
                     }
                 }
             }

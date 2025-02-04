@@ -445,14 +445,14 @@ namespace Stride.Engine
             if (oldComponent != null)
             {
                 CheckEntityComponentWithProcessors(entity, oldComponent, true, currentDependentProcessors);
-                flexibleProcessors.RemoveComponent(oldComponent);
+                flexibleProcessors.RemoveComponent(oldComponent, ExecutionMode);
             }
 
             // Add new component to processors
             if (newComponent != null)
             {
                 CheckEntityComponentWithProcessors(entity, newComponent, false, currentDependentProcessors);
-                flexibleProcessors.IntroduceComponent(newComponent);
+                flexibleProcessors.IntroduceComponent(newComponent, ExecutionMode);
             }
 
             // Update all dependencies
@@ -505,9 +505,9 @@ namespace Stride.Engine
                 }
 
                 if (forceRemove)
-                    flexibleProcessors.RemoveComponent(component);
+                    flexibleProcessors.RemoveComponent(component, ExecutionMode);
                 else
-                    flexibleProcessors.IntroduceComponent(component);
+                    flexibleProcessors.IntroduceComponent(component, ExecutionMode);
             }
         }
 

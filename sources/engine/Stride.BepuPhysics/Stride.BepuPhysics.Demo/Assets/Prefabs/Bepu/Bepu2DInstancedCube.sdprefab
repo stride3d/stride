@@ -1,0 +1,47 @@
+!PrefabAsset
+Id: 57f69f98-4a88-4440-8f4d-708972727b78
+SerializedVersion: {Stride: 3.1.0.1}
+Tags: []
+Hierarchy:
+    RootParts:
+        - ref!! c6e157d7-d96c-41f9-8a71-c306fedf2d5f
+    Parts:
+        -   Entity:
+                Id: c6e157d7-d96c-41f9-8a71-c306fedf2d5f
+                Name: BepuCube
+                Components:
+                    9af7d6d7a90cd79c4137e14aa6777939: !TransformComponent
+                        Id: 32391ea4-d87f-46a5-8848-638782b834dd
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 0.2, Y: 0.2, Z: 1.0}
+                        Children: {}
+                    fe417a7f83004f72593133d581ddcc78: !InstanceComponent
+                        Id: c2f7a377-0786-4b5a-a030-35bc416a7c44
+                        Master: null
+                    04b7ca01c1750c07459297069017aaf7: !Stride.BepuPhysics.Body2DComponent,Stride.BepuPhysics._2D
+                        Id: d638addf-bde9-4c78-ae27-4ae018aeb505
+                        Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
+                            Colliders:
+                                7ceae8199da51cce8dd432dff53e4a3e: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
+                                    Mass: 1.0
+                                    PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                    RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                    Size: {X: 0.2, Y: 0.2, Z: 1.0}
+                        ContactEventHandler: null
+                        SimulationIndex: 2
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 1000.0
+                        CollisionGroup:
+                            Id: 0
+                            IndexA: 0
+                            IndexB: 0
+                            IndexC: 0
+                        Kinematic: false
+                        Gravity: true
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
+                        InterpolationMode: None
+                        ContinuousDetectionMode: Discrete

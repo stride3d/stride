@@ -182,14 +182,14 @@ namespace Stride.Graphics
 #if STRIDE_GRAPHICS_API_DIRECT3D11
             else if ((textureDescription.Options & TextureOptions.SharedNthandle) != 0)
             {
-                var sharedResource1 = NativeDeviceChild.QueryInterface<SharpDX.DXGI.Resource1>();
+                using var sharedResource1 = NativeDeviceChild.QueryInterface<SharpDX.DXGI.Resource1>();
                 var uniqueName = "Stride:" + Guid.NewGuid().ToString();
                 SharedHandle = sharedResource1.CreateSharedHandle(uniqueName, SharpDX.DXGI.SharedResourceFlags.Write);
                 SharedNtHandleName = uniqueName;
             }
 #endif
             else if ((textureDescription.Options & TextureOptions.Shared) != 0) {
-                var sharedResource = NativeDeviceChild.QueryInterface<SharpDX.DXGI.Resource>();
+                using var sharedResource = NativeDeviceChild.QueryInterface<SharpDX.DXGI.Resource>();
                 SharedHandle = sharedResource.SharedHandle;
             }
             else

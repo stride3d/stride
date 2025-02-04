@@ -10,28 +10,19 @@ namespace FreeImageAPI.Plugins
 	/// </summary>
 	public sealed class FreeImagePlugin
 	{
-		[DebuggerBrowsable(DebuggerBrowsableState.Never)]
-		private readonly FREE_IMAGE_FORMAT fif;
-
 		/// <summary>
 		/// Initializes a new instance of this class.
 		/// </summary>
 		/// <param name="fif">The FreeImage format to wrap.</param>
 		internal FreeImagePlugin(FREE_IMAGE_FORMAT fif)
 		{
-			this.fif = fif;
+			this.FIFormat = fif;
 		}
 
 		/// <summary>
 		/// Gets the format of this instance.
 		/// </summary>
-		public FREE_IMAGE_FORMAT FIFormat
-		{
-			get
-			{
-				return fif;
-			}
-		}
+		public FREE_IMAGE_FORMAT FIFormat { get; }
 
 		/// <summary>
 		/// Gets or sets whether this plugin is enabled.
@@ -40,11 +31,11 @@ namespace FreeImageAPI.Plugins
 		{
 			get
 			{
-				return (FreeImage.IsPluginEnabled(fif) == 1);
+				return (FreeImage.IsPluginEnabled(FIFormat) == 1);
 			}
 			set
 			{
-				FreeImage.SetPluginEnabled(fif, value);
+				FreeImage.SetPluginEnabled(FIFormat, value);
 			}
 		}
 
@@ -55,7 +46,7 @@ namespace FreeImageAPI.Plugins
 		{
 			get
 			{
-				return FreeImage.GetFormatFromFIF(fif);
+				return FreeImage.GetFormatFromFIF(FIFormat);
 			}
 		}
 
@@ -67,7 +58,7 @@ namespace FreeImageAPI.Plugins
 		{
 			get
 			{
-				return FreeImage.GetFIFExtensionList(fif);
+				return FreeImage.GetFIFExtensionList(FIFormat);
 			}
 		}
 
@@ -79,7 +70,7 @@ namespace FreeImageAPI.Plugins
 		{
 			get
 			{
-				return FreeImage.GetFIFDescription(fif);
+				return FreeImage.GetFIFDescription(FIFormat);
 			}
 		}
 
@@ -92,7 +83,7 @@ namespace FreeImageAPI.Plugins
 		{
 			get
 			{
-				return FreeImage.GetFIFRegExpr(fif);
+				return FreeImage.GetFIFRegExpr(FIFormat);
 			}
 		}
 
@@ -103,7 +94,7 @@ namespace FreeImageAPI.Plugins
 		{
 			get
 			{
-				return FreeImage.FIFSupportsReading(fif);
+				return FreeImage.FIFSupportsReading(FIFormat);
 			}
 		}
 
@@ -114,7 +105,7 @@ namespace FreeImageAPI.Plugins
 		{
 			get
 			{
-				return FreeImage.FIFSupportsWriting(fif);
+				return FreeImage.FIFSupportsWriting(FIFormat);
 			}
 		}
 
@@ -125,7 +116,7 @@ namespace FreeImageAPI.Plugins
 		/// <returns>True if this plugin can save bitmaps as the desired type, else false.</returns>
 		public bool SupportsExportType(FREE_IMAGE_TYPE type)
 		{
-			return FreeImage.FIFSupportsExportType(fif, type);
+			return FreeImage.FIFSupportsExportType(FIFormat, type);
 		}
 
 		/// <summary>
@@ -135,7 +126,7 @@ namespace FreeImageAPI.Plugins
 		/// <returns>True if this plugin can save bitmaps in the desired bit depth, else false.</returns>
 		public bool SupportsExportBPP(int bpp)
 		{
-			return FreeImage.FIFSupportsExportBPP(fif, bpp);
+			return FreeImage.FIFSupportsExportBPP(FIFormat, bpp);
 		}
 
 		/// <summary>
@@ -145,7 +136,7 @@ namespace FreeImageAPI.Plugins
 		{
 			get
 			{
-				return FreeImage.FIFSupportsICCProfiles(fif);
+				return FreeImage.FIFSupportsICCProfiles(FIFormat);
 			}
 		}
 
@@ -156,7 +147,7 @@ namespace FreeImageAPI.Plugins
 		/// <returns>True if the extension is valid for this format, false otherwise.</returns>
 		public bool ValidExtension(string extension)
 		{
-			return FreeImage.IsExtensionValidForFIF(fif, extension);
+			return FreeImage.IsExtensionValidForFIF(FIFormat, extension);
 		}
 
 		/// <summary>
@@ -167,7 +158,7 @@ namespace FreeImageAPI.Plugins
 		/// <returns>True if the extension is valid for this format, false otherwise.</returns>
 		public bool ValidExtension(string extension, StringComparison comparisonType)
 		{
-			return FreeImage.IsExtensionValidForFIF(fif, extension, comparisonType);
+			return FreeImage.IsExtensionValidForFIF(FIFormat, extension, comparisonType);
 		}
 
 		/// <summary>
@@ -177,7 +168,7 @@ namespace FreeImageAPI.Plugins
 		/// <returns>True if the filename is valid for this format, false otherwise.</returns>
 		public bool ValidFilename(string filename)
 		{
-			return FreeImage.IsFilenameValidForFIF(fif, filename);
+			return FreeImage.IsFilenameValidForFIF(FIFormat, filename);
 		}
 
 		/// <summary>
@@ -188,7 +179,7 @@ namespace FreeImageAPI.Plugins
 		/// <returns>True if the filename is valid for this format, false otherwise.</returns>
 		public bool ValidFilename(string filename, StringComparison comparisonType)
 		{
-			return FreeImage.IsFilenameValidForFIF(fif, filename, comparisonType);
+			return FreeImage.IsFilenameValidForFIF(FIFormat, filename, comparisonType);
 		}
 
 		/// <summary>

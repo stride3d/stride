@@ -33,8 +33,7 @@ namespace Stride.Core.Windows
         {
             if (lockFile != null)
             {
-                var overlapped = new NativeOverlapped();
-                NativeLockFile.UnlockFileEx(lockFile.SafeFileHandle, 0, uint.MaxValue, uint.MaxValue, ref overlapped);
+                NativeLockFile.TryUnlockFile(lockFile, 0, uint.MaxValue);
                 lockFile.Dispose();
 
                 // Try to delete the file
@@ -95,8 +94,7 @@ namespace Stride.Core.Windows
                 if (millisecondsTimeout != 0 && millisecondsTimeout != -1)
                     throw new NotImplementedException("GlobalMutex.Wait() is implemented only for millisecondsTimeout 0 or -1");
 
-                var overlapped = new NativeOverlapped();
-                bool hasHandle = NativeLockFile.LockFileEx(fileLock.SafeFileHandle, NativeLockFile.LOCKFILE_EXCLUSIVE_LOCK | (millisecondsTimeout == 0 ? NativeLockFile.LOCKFILE_FAIL_IMMEDIATELY : 0), 0, uint.MaxValue, uint.MaxValue, ref overlapped);
+                bool hasHandle = NativeLockFile.TryLockFile(fileLock, 0, uint.MaxValue, true, millisecondsTimeout == 0);
                 return hasHandle == false ? null : new FileLock(fileLock);
             }
             catch (AbandonedMutexException)
