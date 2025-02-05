@@ -160,6 +160,10 @@
   </Target>
 
   <!-- Clean assets -->
+  <Target Name="StrideCleanAssetsOnClean" AfterTargets="Clean">
+    <RemoveDir Condition="Exists('$(StrideCompileAssetBuildPath)')" ContinueOnError="true"  Directories="$(StrideCompileAssetBuildPath)"/>
+  </Target>
+
   <Target Name="StrideCleanAsset" Condition="'$(StrideIsExecutable)' == 'true' And '$(StrideCompilerSkipBuild)' != 'true'">
     <RemoveDir Condition="Exists('$(StrideCompileAssetBuildPath)')" ContinueOnError="true"  Directories="$(StrideCompileAssetBuildPath)"/>
     <RemoveDir Condition="Exists('$(StrideCompileAssetOutputPath)')" ContinueOnError="true"  Directories="$(StrideCompileAssetOutputPath)"/>

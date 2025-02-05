@@ -1053,7 +1053,7 @@ namespace Stride.Core.Serialization
                     if (reuseReferences)
                     {
                         if (objectReferences.Count != index)
-                            throw new InvalidOperationException("Serialization contentRef indices are out of sync.");
+                            throw new ContentRefOutOfSyncException();
                         objectReferences.Add(null);
                     }
                     if (hasTypeInfo)
@@ -1262,7 +1262,7 @@ namespace Stride.Core.Serialization
                     if (reuseReferences)
                     {
                         if (objectReferences.Count != index)
-                            throw new InvalidOperationException("Serialization contentRef indices are out of sync.");
+                            throw new ContentRefOutOfSyncException();
                         objectReferences.Add(null);
                     }
                     if (hasTypeInfo)
@@ -1483,7 +1483,7 @@ namespace Stride.Core.Serialization
                     if (reuseReferences)
                     {
                         if (objectReferences.Count != index)
-                            throw new InvalidOperationException("Serialization contentRef indices are out of sync.");
+                            throw new ContentRefOutOfSyncException();
                         objectReferences.Add(null);
                     }
                     if (hasTypeInfo)
@@ -1703,7 +1703,7 @@ namespace Stride.Core.Serialization
                     if (reuseReferences)
                     {
                         if (objectReferences.Count != index)
-                            throw new InvalidOperationException("Serialization contentRef indices are out of sync.");
+                            throw new ContentRefOutOfSyncException();
                         objectReferences.Add(null);
                     }
                     if (hasTypeInfo)
