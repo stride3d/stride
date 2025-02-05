@@ -262,6 +262,7 @@ namespace Stride.Navigation.Processors
                 {
                     loadedNavigationMeshes.Remove(data.NavigationMesh);
                 }
+                group.RecastNavigationMesh.Dispose();
             }
         }
 
