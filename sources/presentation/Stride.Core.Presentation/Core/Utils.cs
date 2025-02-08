@@ -32,7 +32,12 @@ public static class Utils
         var displayAttribute = TypeDescriptorFactory.Default.AttributeRegistry.GetAttribute<DisplayAttribute>(type);
         var hash = displayAttribute?.Name.GetHashCode() ?? type.Name.GetHashCode();
         hash = hash >> 16 ^ hash;
-        var hue = TypeDescriptorFactory.Default.AttributeRegistry.GetAttribute<DisplayAttribute>(type)?.CustomHue ?? hash % 360;
+        
+        var hue = TypeDescriptorFactory.Default.AttributeRegistry.GetAttribute<DisplayAttribute>(type)?.CustomHue ?? -1;
+        if(hue is < 0 or > 360)
+        {
+            hue = hash % 360;
+        }
         return new ColorHSV(hue, 0.75f + (hash % 101) / 400f, 0.5f + (hash % 151) / 300f, 1).ToColor();
     }
 }
