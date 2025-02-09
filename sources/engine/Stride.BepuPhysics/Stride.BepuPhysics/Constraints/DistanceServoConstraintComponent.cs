@@ -2,7 +2,6 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using BepuPhysics.Constraints;
-using Stride.BepuPhysics.Definitions;
 using Stride.BepuPhysics.Systems;
 using Stride.Core;
 using Stride.Core.Mathematics;
@@ -11,6 +10,9 @@ using Stride.Engine.Design;
 
 namespace Stride.BepuPhysics.Constraints;
 
+/// <summary>
+/// Constrains points on two bodies to be separated by a goal distance.
+/// </summary>
 [DataContract]
 [DefaultEntityComponentProcessor(typeof(ConstraintProcessor), ExecutionMode = ExecutionMode.Runtime)]
 [ComponentCategory("Physics - Bepu Constraint")]
@@ -22,6 +24,9 @@ public sealed class DistanceServoConstraintComponent : TwoBodyConstraintComponen
         ServoSettings = new ServoSettings(10, 1, 1000)
     };
 
+    /// <summary>
+    /// Local offset from the center of body A to its attachment point.
+    /// </summary>
     public Vector3 LocalOffsetA
     {
         get
@@ -35,6 +40,9 @@ public sealed class DistanceServoConstraintComponent : TwoBodyConstraintComponen
         }
     }
 
+    /// <summary>
+    /// Local offset from the center of body B to its attachment point.
+    /// </summary>
     public Vector3 LocalOffsetB
     {
         get
@@ -48,6 +56,9 @@ public sealed class DistanceServoConstraintComponent : TwoBodyConstraintComponen
         }
     }
 
+    /// <summary>
+    /// Distance that the constraint will try to reach between the attachment points.
+    /// </summary>
     public float TargetDistance
     {
         get
