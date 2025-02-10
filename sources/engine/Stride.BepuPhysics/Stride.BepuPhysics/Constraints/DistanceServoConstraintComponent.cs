@@ -11,7 +11,7 @@ using Stride.Engine.Design;
 namespace Stride.BepuPhysics.Constraints;
 
 /// <summary>
-/// Constrains points on two bodies to be separated by a goal distance.
+/// Constrains points on two bodies to be separated by a target distance.
 /// </summary>
 [DataContract]
 [DefaultEntityComponentProcessor(typeof(ConstraintProcessor), ExecutionMode = ExecutionMode.Runtime)]
