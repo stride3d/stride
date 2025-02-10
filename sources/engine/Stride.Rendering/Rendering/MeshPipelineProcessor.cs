@@ -21,7 +21,7 @@ namespace Stride.Rendering
             if (renderNode.RenderStage == TransparentRenderStage)
             {
                 pipelineState.BlendState = renderMesh.MaterialPass.BlendState ?? BlendStates.AlphaBlend;
-                pipelineState.DepthStencilState = DepthStencilStates.DepthRead;
+                pipelineState.DepthStencilState = renderMesh.MaterialPass.WriteDepthInTransparentStage ? DepthStencilStates.Default : DepthStencilStates.DepthRead;
                 if (isMultisample)
                     pipelineState.BlendState.AlphaToCoverageEnable = renderMesh.MaterialPass.AlphaToCoverage ?? true;
             }
