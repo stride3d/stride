@@ -2,6 +2,7 @@
   "solution": {
     "path": "Stride.sln",
     "projects": [
+      "..\\sources\\assets\\Stride.Core.Assets.CompilerApp\\Stride.Core.Assets.CompilerApp.csproj",
       "..\\sources\\assets\\Stride.Core.Assets.Quantum\\Stride.Core.Assets.Quantum.csproj",
       "..\\sources\\assets\\Stride.Core.Assets.Yaml\\Stride.Core.Assets.Yaml.shproj",
       "..\\sources\\assets\\Stride.Core.Assets\\Stride.Core.Assets.csproj",
@@ -53,6 +54,8 @@
       "..\\sources\\shaders\\Irony\\Irony.csproj",
       "..\\sources\\shaders\\Stride.Core.Shaders\\Stride.Core.Shaders.csproj",
       "..\\sources\\shared\\Stride.Core.ShellHelper\\Stride.Core.ShellHelper.shproj",
+      "..\\sources\\shared\\Stride.NuGetResolver.Targets\\Stride.NuGetResolver.Targets.shproj",
+      "..\\sources\\shared\\Stride.NuGetResolver\\Stride.NuGetResolver.csproj",
       "..\\sources\\tools\\Stride.Core.ProjectTemplating\\Stride.Core.ProjectTemplating.csproj",
       "..\\sources\\tools\\Stride.Importer.3D\\Stride.Importer.3D.csproj",
       "..\\sources\\tools\\Stride.Importer.Common\\Stride.Importer.Common.csproj",
