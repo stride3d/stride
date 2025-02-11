@@ -23,22 +23,15 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
-
-using SharpDX.Direct2D1;
 using Stride.Graphics.Font;
 
 namespace Stride.Assets.SpriteFont.Compiler
 {
-    using System.Diagnostics;
     using System.Drawing;
-    using System.Drawing.Imaging;
-    using SharpDX.DirectWrite;
     using FreeImageAPI;
     using SharpDX.Mathematics.Interop;
     using SharpFont;
     using Stride.Core;
-    using Factory = SharpDX.DirectWrite.Factory;
 
     // This code was originally taken from DirectXTk but rewritten with DirectWrite
     // for more accuracy in font rendering
@@ -128,7 +121,7 @@ namespace Stride.Assets.SpriteFont.Compiler
                 face.LoadGlyph(index, LoadFlags.Render, LoadTarget.Normal);
 
                 var glyphBitmap = face.Glyph.Bitmap;
-                var bufferData = new Span<byte>((byte*)glyphBitmap.Buffer, glyphBitmap.Rows * glyphBitmap.Pitch);
+                var bufferData = new Span<byte>((byte*)glyphBitmap.Buffer, glyphBitmap.Rows * glyphBitmap.Width);
 
                 for (int y = 0; y < glyphBitmap.Rows; y++)
                 {
