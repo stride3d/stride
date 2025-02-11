@@ -46,12 +46,6 @@
         <sd:Hyperlink Click="ThirdParty_OnClick">
           <TextBlock Text="{sd:LocalizeString See the list, Context=About}" />
         </sd:Hyperlink>
-        <LineBreak />
-        <LineBreak />
-        <!-- Privacy policy -->
-        <sd:Hyperlink Click="Privacy_OnClick">
-          <TextBlock Text="{sd:LocalizeString Privacy policy, Context=About}" />
-        </sd:Hyperlink>
       </TextBlock>
       <!-- Backers -->
       <md:MarkdownScrollViewer Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3"

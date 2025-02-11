@@ -57,11 +57,6 @@ public partial class AboutWindow : Window
         OpenLink("LICENSE.md");
     }
 
-    private void Privacy_OnClick(object? sender, RoutedEventArgs e)
-    {
-        OpenLink("https://stride3d.net/legal/privacy-policy");
-    }
-
     private void ThirdParty_OnClick(object? sender, RoutedEventArgs e)
     {
         OpenLink("THIRD PARTY.md");
