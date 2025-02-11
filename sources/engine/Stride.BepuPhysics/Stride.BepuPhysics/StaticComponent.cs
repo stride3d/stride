@@ -58,6 +58,16 @@ public class StaticComponent : CollidableComponent
     protected override ref MaterialProperties MaterialProperties => ref Simulation!.CollidableMaterials[StaticReference!.Value.Handle];
     protected internal override NRigidPose? Pose => StaticReference?.Pose;
 
+    protected internal override CollidableReference? CollidableReference
+    {
+        get
+        {
+            if (StaticReference is { } sRef)
+                return sRef.CollidableReference;
+            return null;
+        }
+    }
+
     protected override void AttachInner(NRigidPose pose, BodyInertia shapeInertia, TypedIndex shapeIndex)
     {
         Debug.Assert(Processor is not null);
@@ -103,24 +113,5 @@ public class StaticComponent : CollidableComponent
             return sRef.Handle.Value;
 
         throw new InvalidOperationException();
-    }
-
-    protected override void RegisterContactHandler()
-    {
-        if (ContactEventHandler is not null && Simulation is not null && StaticReference is { } sRef)
-            Simulation.ContactEvents.Register(sRef.Handle, ContactEventHandler);
-    }
-
-    protected override void UnregisterContactHandler()
-    {
-        if (Simulation is not null && StaticReference is { } sRef)
-            Simulation.ContactEvents.Unregister(sRef.Handle);
-    }
-
-    protected override bool IsContactHandlerRegistered()
-    {
-        if (Simulation is not null && StaticReference is { } sRef)
-            return Simulation.ContactEvents.IsListener(sRef.Handle);
-        return false;
     }
 }

@@ -113,14 +113,13 @@ public class ThumbnailGenerator : IDisposable
         GraphicsDeviceService = new GraphicsDeviceServiceLocal(Services, GraphicsDevice);
         Services.AddService(GraphicsDeviceService);
 
-        var uiSystem = new UISystem(Services);
-        Services.AddService(uiSystem);
-
         var physicsSystem = new Bullet2PhysicsSystem(Services);
         Services.AddService<IPhysicsSystem>(physicsSystem);
 
-        gameSystems = new GameSystemCollection(Services) { fontSystem, uiSystem, physicsSystem };
+        gameSystems = new GameSystemCollection(Services) { fontSystem, physicsSystem };
         Services.AddService<IGameSystemCollection>(gameSystems);
+
+        Services.GetOrCreate<UISystem>();
         Simulation.DisableSimulation = true; //make sure we do not simulate physics within the editor
 
         // initialize base services

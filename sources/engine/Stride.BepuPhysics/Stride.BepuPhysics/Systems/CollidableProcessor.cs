@@ -34,9 +34,8 @@ public class CollidableProcessor : EntityProcessor<CollidableComponent>
 
     protected override void OnSystemAdd()
     {
-        ServicesHelper.LoadBepuServices(Services, out var config, out var shapes, out _);
-        BepuConfiguration = config;
-        ShapeCache = shapes;
+        BepuConfiguration = Services.GetOrCreate<BepuConfiguration>();
+        ShapeCache = Services.GetOrCreate<ShapeCacheSystem>();
     }
 
     public override unsafe void Draw(RenderContext context) // While this is not related to drawing, we're doing this in draw as it runs after the TransformProcessor updates WorldMatrix

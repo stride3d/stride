@@ -9,6 +9,10 @@ using NuGet.Configuration;
 using NuGet.Frameworks;
 using NuGet.Versioning;
 
+#if STRIDE_NUGET_RESOLVER_UI
+using Avalonia.Controls;
+#endif
+
 namespace Stride.Core.Assets
 {
     public class NuGetAssemblyResolver
@@ -73,29 +77,26 @@ namespace Stride.Core.Assets
                             Thread.Sleep(500);
                             if (!dialogNotNeeded.Task.IsCompleted)
                             {
-                                var splashScreen = new Stride.NuGetResolver.SplashScreenWindow();
-                                splashScreen.Show();
-
-                                // Register log
-                                logger.SetupLogAction((level, message) =>
+                                Stride.NuGetResolver.NugetResolverApp.Run((app, args) =>
                                 {
-                                    splashScreen.Dispatcher.InvokeAsync(() =>
+                                    app.Styles.Add(new Avalonia.Themes.Fluent.FluentTheme());
+                                    var splashScreen = new Stride.NuGetResolver.SplashScreenWindow();
+                                    splashScreen.Show();
+                                    // Register log
+                                    logger.SetupLogAction((level, message) =>
                                     {
-                                        splashScreen.AppendMessage(level, message);
+                                        splashScreen.SetupLog(level, message);
                                     });
+
+                                    dialogNotNeeded.Task.ContinueWith(t =>
+                                    {
+                                        splashScreen.CloseApp();
+                                    });
+                                    splashScreen.Closed += (sender2, e2) => { splashScreen.InvokeShutDown();};
+
+                                    app.Run(splashScreen);
+                                    splashScreen.Close();
                                 });
-
-                                dialogNotNeeded.Task.ContinueWith(t =>
-                                {
-                                    splashScreen.Dispatcher.Invoke(() => splashScreen.Close());
-                                });
-
-                                splashScreen.Closed += (sender2, e2) =>
-                                    splashScreen.Dispatcher.InvokeShutdown();
-
-                                System.Windows.Threading.Dispatcher.Run();
-
-                                splashScreen.Close();
                             }
                             dialogClosed.SetResult(true);
                         });

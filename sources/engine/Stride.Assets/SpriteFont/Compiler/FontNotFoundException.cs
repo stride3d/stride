@@ -6,7 +6,7 @@ namespace Stride.Assets.SpriteFont.Compiler
 {
     internal class FontNotFoundException : Exception
     {
-        public FontNotFoundException(string fontName) : base(string.Format("Font with name [{0}] not found on this machine", fontName))
+        public FontNotFoundException(string fontName) : base($"Font with name [{fontName}] not found on this machine")
         {
             FontName = fontName;
         }
