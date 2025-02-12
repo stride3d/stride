@@ -347,7 +347,7 @@ namespace Stride.UI.Controls
             var idealSize = trackBackgroundSprite.SizeInPixels.Y;
             var desiredSize = new Vector3(idealSize, idealSize, 0)
             {
-                [(int)Orientation] = availableSizeWithoutMargins[(int)Orientation]
+                [(int)Orientation] = float.IsInfinity(availableSizeWithoutMargins[(int)Orientation]) ? float.MaxValue : availableSizeWithoutMargins[(int)Orientation]
             };
 
             return desiredSize;
