@@ -17,6 +17,7 @@
     <StrideSkipAutoPack>true</StrideSkipAutoPack>
     <VSSDKTargetPlatformRegRootSuffix>Stride</VSSDKTargetPlatformRegRootSuffix>
     <DefineConstants>$(DefineConstants);STRIDE_VSPACKAGE</DefineConstants>
+    <ImplicitUsings>enable</ImplicitUsings>
     <LangVersion>latest</LangVersion>
   </PropertyGroup>  
   <ItemGroup>
