@@ -3,9 +3,6 @@
 
 using Stride.Core.Collections;
 
-namespace Stride.Core.Serialization.Serializers
-{
-    internal class IndexingDictionarySerializer<TValue> : DictionaryAllSerializer<IndexingDictionary<TValue>, int, TValue> where TValue : class
-    {
-    }
-}
+namespace Stride.Core.Serialization.Serializers;
+
+internal class IndexingDictionarySerializer<TValue> : DictionaryAllSerializer<IndexingDictionary<TValue>, int, TValue> where TValue : class;
