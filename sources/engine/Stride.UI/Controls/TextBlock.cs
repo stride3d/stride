@@ -330,7 +330,7 @@ namespace Stride.UI.Controls
                 }
 
                 // we reached the end of the line.
-                if (currentLine.Length <= 1 || CalculateTextSize(currentLine).X <= 0) // just one or all empty characters... just go one by one.
+                if (currentLine.Length <= 1 || lineCurrentSize <= 0) // just one or all empty characters... just go one by one.
                 {
                     currentLine.Clear();
                     currentLine.Append(currentCharacter);
