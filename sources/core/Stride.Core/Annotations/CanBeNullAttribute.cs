@@ -43,5 +43,5 @@ namespace Stride.Core.Annotations;
      AttributeTargets.Method | AttributeTargets.Parameter | AttributeTargets.Property |
      AttributeTargets.Delegate | AttributeTargets.Field | AttributeTargets.Event |
      AttributeTargets.Class | AttributeTargets.Interface | AttributeTargets.GenericParameter)]
-[Obsolete("Consider using the built-in nullable feature")]
+// [Obsolete("Consider using the built-in nullable feature")]
 public sealed class CanBeNullAttribute : Attribute;
