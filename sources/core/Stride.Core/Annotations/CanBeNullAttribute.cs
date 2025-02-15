@@ -23,29 +23,25 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE. */
 
-using System;
+namespace Stride.Core.Annotations;
 
-namespace Stride.Core.Annotations
-{
-    /// <summary>
-    /// Indicates that the value of the marked element could be <c>null</c> sometimes, so the check for <c>null</c>
-    /// is necessary before its usage.
-    /// </summary>
-    /// <example>
-    /// <code>
-    /// [CanBeNull] object Test() => null;
-    /// 
-    /// void UseTest() {
-    ///   var p = Test();
-    ///   var s = p.ToString(); // Warning: Possible 'System.NullReferenceException'
-    /// }
-    /// </code>
-    /// </example>
-    [AttributeUsage(
-         AttributeTargets.Method | AttributeTargets.Parameter | AttributeTargets.Property |
-         AttributeTargets.Delegate | AttributeTargets.Field | AttributeTargets.Event |
-         AttributeTargets.Class | AttributeTargets.Interface | AttributeTargets.GenericParameter)]
-    public sealed class CanBeNullAttribute : Attribute
-    {
-    }
-}
+/// <summary>
+/// Indicates that the value of the marked element could be <c>null</c> sometimes, so the check for <c>null</c>
+/// is necessary before its usage.
+/// </summary>
+/// <example>
+/// <code>
+/// [CanBeNull] object Test() => null;
+/// 
+/// void UseTest() {
+///   var p = Test();
+///   var s = p.ToString(); // Warning: Possible 'System.NullReferenceException'
+/// }
+/// </code>
+/// </example>
+[AttributeUsage(
+     AttributeTargets.Method | AttributeTargets.Parameter | AttributeTargets.Property |
+     AttributeTargets.Delegate | AttributeTargets.Field | AttributeTargets.Event |
+     AttributeTargets.Class | AttributeTargets.Interface | AttributeTargets.GenericParameter)]
+// [Obsolete("Consider using the built-in nullable feature")]
+public sealed class CanBeNullAttribute : Attribute;
