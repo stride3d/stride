@@ -20,7 +20,7 @@ namespace Stride.Core.Assets
 
         protected override bool CanVisit(object obj)
         {
-            return !AssetRegistry.IsContentType(obj?.GetType()) && base.CanVisit(obj);
+            return !AssetRegistry.IsExactContentType(obj?.GetType()) && base.CanVisit(obj);
         }
 
         public override void VisitObject(object obj, ObjectDescriptor descriptor, bool visitMembers)

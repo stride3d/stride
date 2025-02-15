@@ -26,7 +26,7 @@ namespace Stride.Assets
 
         public override void VisitObject(object obj, ObjectDescriptor descriptor, bool visitMembers)
         {
-            if (AssetRegistry.IsContentType(obj.GetType()))
+            if (AssetRegistry.IsExactContentType(obj.GetType()))
             {
                 // Asset compiler will sort out any dependencies so we dont need to visit any content types
                 runtimeTypes.Add(obj.GetType());

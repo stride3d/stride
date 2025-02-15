@@ -287,7 +287,7 @@ namespace Stride.Core.Assets.Analysis
                     {
                         references.Add(urlRef);
                     }
-                    else if (AssetRegistry.IsContentType(obj.GetType()))
+                    else if (AssetRegistry.IsExactContentType(obj.GetType()))
                     {
                         reference = AttachedReferenceManager.GetAttachedReference(obj);
                         if (reference != null)
