@@ -150,7 +150,7 @@ public class IndexingDictionary<T> : IDictionary<int, T> where T : class
         return index >= 0 && index < items.Count ? items[index] : null;
     }
 
-    private void SafeSet(int index, T value)
+    private void SafeSet(int index, T? value)
     {
         while (items.Count <= index)
         {

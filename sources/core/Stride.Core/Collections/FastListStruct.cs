@@ -53,9 +53,9 @@ public struct FastListStruct<T> : IEnumerable<T>
 
     public void AddRange(FastListStruct<T> items)
     {
-        for (var i = 0; i < items.Count; i++)
+        foreach (var t in items)
         {
-            Add(items[i]);
+            Add(t);
         }
     }
 

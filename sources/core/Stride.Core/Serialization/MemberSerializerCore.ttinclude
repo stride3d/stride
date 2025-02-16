@@ -216,8 +216,7 @@
             {
                 var externalIdentifiables = context.Get(MemberSerializer.ExternalIdentifiables);
                 var identifier = stream.Read<Guid>();
-                IIdentifiable identifiable;
-                externalIdentifiables.TryGetValue(identifier, out identifiable);
+                externalIdentifiables.TryGetValue(identifier, out var identifiable);
                 obj = <#= castExpr #>identifiable;
             }
 <# } #>

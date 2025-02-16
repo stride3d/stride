@@ -44,7 +44,7 @@ public static class AssemblyRegistry
     {
         lock (Lock)
         {
-            return new HashSet<Assembly>(MapAssemblyToCategories.Keys);
+            return [..MapAssemblyToCategories.Keys];
         }
     }
 
@@ -183,7 +183,7 @@ public static class AssemblyRegistry
         {
             if (!MapAssemblyToCategories.TryGetValue(assembly, out var registeredCategoriesPerAssembly))
             {
-                registeredCategoriesPerAssembly = new HashSet<string>();
+                registeredCategoriesPerAssembly = [];
                 MapAssemblyToCategories.Add(assembly, registeredCategoriesPerAssembly);
             }
 

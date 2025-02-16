@@ -133,7 +133,7 @@ public class MultiValueSortedDictionary<TKey, TValue> : IDictionary<TKey, TValue
     /// A KoderHack.MultiValueSortedDictionary&lt;TKey,TValue&gt;.ValueCollection
     /// containing the keys in the KoderHack.MultiValueSortedDictionary&lt;TKey,TValue&gt;.
     /// </returns>
-    public ValueCollection Values => new ValueCollection(this);
+    public ValueCollection Values => new(this);
 
     /// <summary>
     /// Gets or sets the value associated with the specified key.
@@ -156,8 +156,7 @@ public class MultiValueSortedDictionary<TKey, TValue> : IDictionary<TKey, TValue
         {
             if (key == null) throw new ArgumentNullException(nameof(key));
 
-            List<TValue> values;
-            if (!_SortedDictionary.TryGetValue(key, out values))
+            if (!_SortedDictionary.TryGetValue(key, out var values))
                 return (TValue)TryToGetOnNotFound(key);
             var value = default(TValue);
             if (values != null)
@@ -186,11 +185,9 @@ public class MultiValueSortedDictionary<TKey, TValue> : IDictionary<TKey, TValue
     {
         if (key == null) throw new ArgumentNullException(nameof(key));
 
-        List<TValue> values;
-
-        if (!_SortedDictionary.TryGetValue(key, out values))
+        if (!_SortedDictionary.TryGetValue(key, out var values))
         {
-            values = new List<TValue>();
+            values = [];
             _SortedDictionary[key] = values;
         }
 
@@ -320,8 +317,7 @@ public class MultiValueSortedDictionary<TKey, TValue> : IDictionary<TKey, TValue
             throw new ArgumentException();
 
         var removed = false;
-        List<TValue> values;
-        if (_SortedDictionary.TryGetValue(item.Key, out values) &&
+        if (_SortedDictionary.TryGetValue(item.Key, out var values) &&
             values.Remove(item.Value))
         {
             --_Count;
@@ -349,8 +345,7 @@ public class MultiValueSortedDictionary<TKey, TValue> : IDictionary<TKey, TValue
         if (key == null) throw new ArgumentNullException();
 
         var removed = false;
-        List<TValue> values;
-        if (_SortedDictionary.TryGetValue(key, out values) &&
+        if (_SortedDictionary.TryGetValue(key, out var values) &&
             _SortedDictionary.Remove(key))
         {
             _Count -= values.Count;
@@ -381,10 +376,9 @@ public class MultiValueSortedDictionary<TKey, TValue> : IDictionary<TKey, TValue
     {
         if (key == null) throw new ArgumentNullException();
 
-        value = default(TValue);
+        value = default;
         var found = false;
-        List<TValue> values;
-        if (_SortedDictionary.TryGetValue(key, out values))
+        if (_SortedDictionary.TryGetValue(key, out var values))
         {
             value = values[0];
             found = true;
@@ -415,8 +409,7 @@ public class MultiValueSortedDictionary<TKey, TValue> : IDictionary<TKey, TValue
 
         values = null;
         var found = false;
-        List<TValue> valuesList;
-        if (_SortedDictionary.TryGetValue(key, out valuesList))
+        if (_SortedDictionary.TryGetValue(key, out var valuesList))
         {
             values = valuesList;
             found = true;
@@ -441,9 +434,8 @@ public class MultiValueSortedDictionary<TKey, TValue> : IDictionary<TKey, TValue
         {
             if (key == null) throw new ArgumentNullException(nameof(key));
 
-            List<TValue> values;
             var keyT = (TKey) Convert.ChangeType(key, typeof(TKey));
-            if (!_SortedDictionary.TryGetValue(keyT, out values))
+            if (!_SortedDictionary.TryGetValue(keyT, out var values))
                 return TryToGetOnNotFound(keyT);
             return values[0];
         }
@@ -506,8 +498,7 @@ public class MultiValueSortedDictionary<TKey, TValue> : IDictionary<TKey, TValue
     bool ICollection<KeyValuePair<TKey, TValue>>.Remove(KeyValuePair<TKey, TValue> item)
     {
         var done = false;
-        List<TValue> values;
-        if (_SortedDictionary.TryGetValue(item.Key, out values) &&
+        if (_SortedDictionary.TryGetValue(item.Key, out var values) &&
             values.Contains(item.Value))
         {
             if (values.Remove(item.Value))
@@ -523,9 +514,8 @@ public class MultiValueSortedDictionary<TKey, TValue> : IDictionary<TKey, TValue
 
     bool ICollection<KeyValuePair<TKey, TValue>>.Contains(KeyValuePair<TKey, TValue> item)
     {
-        List<TValue> values;
-        return _SortedDictionary.TryGetValue(item.Key, out values) &&
-            values.Contains(item.Value);
+        return _SortedDictionary.TryGetValue(item.Key, out var values) &&
+               values.Contains(item.Value);
     }
 
     void ICollection<KeyValuePair<TKey, TValue>>.Add(KeyValuePair<TKey, TValue> item)
@@ -572,9 +562,7 @@ public class MultiValueSortedDictionary<TKey, TValue> : IDictionary<TKey, TValue
         /// </exception>
         public ValueCollection(MultiValueSortedDictionary<TKey, TValue> dictionary)
         {
-            if (dictionary == null) throw new ArgumentNullException();
-
-            _Dictionary = dictionary;
+            _Dictionary = dictionary ?? throw new ArgumentNullException();
             //foreach (KeyValuePair<TKey, List<TValue>> pair in dictionary._SortedDictionary)
             //    _values.AddRange(pair.Value);
         }
@@ -806,9 +794,7 @@ public class MultiValueSortedDictionary<TKey, TValue> : IDictionary<TKey, TValue
 
         public Enumerator(MultiValueSortedDictionary<TKey, TValue> dictionary)
         {
-            if (dictionary == null) throw new ArgumentNullException(nameof(dictionary));
-
-            _Dictionary = dictionary;
+            _Dictionary = dictionary ?? throw new ArgumentNullException(nameof(dictionary));
             _Enumerator1 = dictionary._SortedDictionary.GetEnumerator();
             _Enumerator2 = null;
             DefaultCurrent = new KeyValuePair<TKey, TValue>(default(TKey), default(TValue));
@@ -837,7 +823,7 @@ public class MultiValueSortedDictionary<TKey, TValue> : IDictionary<TKey, TValue
         /// The System.Collections.IDictionaryEnumerator is positioned before the first
         /// entry of the dictionary or after the last entry.
         /// </exception>
-        DictionaryEntry IDictionaryEnumerator.Entry => new DictionaryEntry(Current.Key, Current.Value);
+        DictionaryEntry IDictionaryEnumerator.Entry => new(Current.Key, Current.Value);
 
         /// <summary>
         /// Gets the key of the current dictionary entry.
