@@ -52,7 +52,7 @@ public class NavMeshBuilder
             {
                 dtMeshes.Add(DemoNavMeshBuilder.UpdateAreaAndFlags(dtMeshData));
             }
-
+        
             cancelToken.ThrowIfCancellationRequested();
         }
 
@@ -74,6 +74,40 @@ public class NavMeshBuilder
         cancelToken.ThrowIfCancellationRequested();
 
         return navMesh;
+    }
+
+    public static List<RcBuilderResult> GetBuildResults(RcNavMeshBuildSettings navSettings, IInputGeomProvider geom, int threads, CancellationToken cancelToken)
+    {
+        cancelToken.ThrowIfCancellationRequested();
+
+        RcConfig cfg = new(
+            useTiles: true,
+            navSettings.tileSize,
+            navSettings.tileSize,
+            RcConfig.CalcBorder(navSettings.agentRadius, navSettings.cellSize),
+            RcPartitionType.OfValue(navSettings.partitioning),
+            navSettings.cellSize,
+            navSettings.cellHeight,
+            navSettings.agentMaxSlope,
+            navSettings.agentHeight,
+            navSettings.agentRadius,
+            navSettings.agentMaxClimb,
+            (navSettings.minRegionSize * navSettings.minRegionSize) * navSettings.cellSize * navSettings.cellSize,
+            (navSettings.mergedRegionSize * navSettings.mergedRegionSize) * navSettings.cellSize * navSettings.cellSize,
+            navSettings.edgeMaxLen,
+            navSettings.edgeMaxError,
+            navSettings.vertsPerPoly,
+            navSettings.detailSampleDist,
+            navSettings.detailSampleMaxError,
+            navSettings.filterLowHangingObstacles,
+            navSettings.filterLedgeSpans,
+            navSettings.filterWalkableLowHeightSpans,
+            SampleAreaModifications.SAMPLE_AREAMOD_WALKABLE,
+            buildMeshDetail: true);
+
+        cancelToken.ThrowIfCancellationRequested();
+
+        return new RcBuilder().BuildTiles(geom, cfg, true, false, threads, cancellation: cancelToken);
     }
 
     private static int GetMaxTiles(IInputGeomProvider geom, float cellSize, int tileSize)

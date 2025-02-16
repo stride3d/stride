@@ -24,7 +24,6 @@ public static class BuildSettingsExtensions
             agentMaxClimb = settings.AgentMaxClimb,
             agentMaxSlope = settings.AgentMaxSlope,
             agentMaxAcceleration = settings.AgentMaxAcceleration,
-            //agentMaxSpeed = settings.agentMaxSpeed,
             minRegionSize = settings.MinRegionSize,
             mergedRegionSize = settings.MergedRegionSize,
             partitioning = settings.Partitioning,

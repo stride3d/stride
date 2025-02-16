@@ -59,7 +59,7 @@ public class BuildSettings
 
     public float DetailSampleMaxError = 1f;
 
-    public bool Tiled;
+    public bool Tiled = true;
 
     public int TileSize = 32;
 }

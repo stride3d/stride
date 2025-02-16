@@ -16,14 +16,13 @@ using Stride.Engine.Design;
 using Stride.BepuPhysics.Navigation.GenericBuilder;
 using Stride.DotRecast.Extensions;
 using Stride.DotRecast.Definitions;
-using Stride.BepuPhysics.Definitions.Colliders;
-using System.ComponentModel;
 using DotRecast.Core;
 using DotRecast.Detour.Dynamic.Colliders;
 using DotRecast.Detour.Dynamic;
 using Stride.BepuPhysics.Definitions;
-using System.Collections.Concurrent;
 using DotRecast.Recast;
+using DotRecast.Detour.Dynamic.Io;
+using DotRecast.Recast.Toolset.Builder;
 
 namespace Stride.BepuPhysics.Navigation.Processors;
 
@@ -33,13 +32,14 @@ public class RecastMeshSystem : GameSystemBase
     public TimeSpan LastNavMeshBuildTime { get; private set; }
 
     // The size of the area to search for the nearest polygon.
-    private readonly RcVec3f _polyPickExt = new(2, 4, 2);
+    private readonly RcVec3f _polyPickExt = new(0.5f, 0.5f, 0.5f);
 
     private readonly Stopwatch _stopwatch = new();
     private readonly SceneSystem _sceneSystem;
     private readonly ShapeCacheSystem _shapeCache;
 
     private Task<DtNavMesh>? _runningRebuild;
+    private Task<List<RcBuilderResult>>? _runningBuildResults;
 
     private CancellationTokenSource _rebuildingTask = new();
     private RecastNavigationConfiguration _navSettings;
@@ -65,9 +65,7 @@ public class RecastMeshSystem : GameSystemBase
             _navSettings.NavMeshes.Add(new BepuNavMeshInfo());
         }
 
-        _collidableProcessor = _sceneSystem.SceneInstance.GetProcessor<CollidableProcessor>()!;
-        _collidableProcessor.OnPostAdd += StartTrackingCollidable;
-        _collidableProcessor.OnPreRemove += ClearTrackingForCollidable;
+        InitializeNavMeshes();
     }
 
     private void InitializeNavMeshes()
@@ -88,27 +86,43 @@ public class RecastMeshSystem : GameSystemBase
         }
     }
 
+    protected override void Destroy()
+    {
+        if (_collidableProcessor is not null)
+        {
+            _collidableProcessor.OnPostAdd -= StartTrackingCollidable;
+            _collidableProcessor.OnPreRemove -= ClearTrackingForCollidable;
+        }
+
+        base.Destroy();
+    }
+
     public override void Update(GameTime time)
     {
-        foreach(var navSettings in _navSettings.NavMeshes)
+        if(_collidableProcessor is null)
         {
-            if (!navSettings.IsDynamic)
+            _collidableProcessor = _sceneSystem.SceneInstance.GetProcessor<CollidableProcessor>()!;
+            _collidableProcessor.OnPostAdd += StartTrackingCollidable;
+            _collidableProcessor.OnPreRemove += ClearTrackingForCollidable;
+            return;
+        }
+
+        foreach(var bepuNavMesh in _navSettings.NavMeshes)
+        {
+            if (bepuNavMesh.IsDynamic)
+            {
+                // only rebuild the tiles affected by the static colliders that have been added or removed.
+                Rebuild(ProcessQueue(bepuNavMesh), bepuNavMesh);
+            }
+            else
             {
                 if (_runningRebuild?.Status == TaskStatus.RanToCompletion)
                 {
-                    navSettings.NavMesh = _runningRebuild.Result;
+                    bepuNavMesh.NavMesh = _runningRebuild.Result;
                     _runningRebuild = null;
                     LastNavMeshBuildTime = _stopwatch.Elapsed;
                     _stopwatch.Reset();
                 }
-            }
-        }
-
-        foreach (var navSettings in _navSettings.NavMeshes)
-        {
-            if (navSettings.IsDynamic)
-            {
-                Rebuild(ProcessQueue(navSettings), navSettings);
             }
         }
     }
@@ -159,8 +173,57 @@ public class RecastMeshSystem : GameSystemBase
 
         CancellationToken token = _rebuildingTask.Token;
         _stopwatch.Start();
-        var task = Task.Run(() => _navSettings.NavMeshes[meshToRebuild].NavMesh = BepuNavMeshBuilder.CreateBepuNavMesh(settingsCopy, asyncInput, _navSettings.UsableThreadCount, token), token);
+        var task = Task.Run(() => BepuNavMeshBuilder.CreateNavMesh(settingsCopy, asyncInput, _navSettings.UsableThreadCount, token), token);
         _runningRebuild = task;
+        return task;
+    }
+
+
+    public Task BuildNavMeshResults(int meshToRebuild = 0)
+    {
+        if (_navSettings.NavMeshes.Count <= meshToRebuild) return Task.CompletedTask;
+
+        // Cancel any ongoing rebuild
+        _rebuildingTask.Cancel();
+        _rebuildingTask = new CancellationTokenSource();
+
+        _stopwatch.Start();
+
+        // Fetch mesh data from the scene - this may be too slow
+        // There are a couple of avenues we could go down into to fix this but none of them are easy
+        // Something we'll have to investigate later.
+        var asyncInput = new AsyncMeshInput();
+        var containerProcessor = _sceneSystem.SceneInstance.Processors.Get<CollidableProcessor>();
+        for (var e = containerProcessor.ComponentDataEnumerator; e.MoveNext();)
+        {
+            var collidable = e.Current.Value;
+
+            // Only use StaticColliders for the nav mesh build.
+            if (collidable is BodyComponent)
+                continue;
+
+            // skip if the collision layer should not be used for the nav mesh build.
+            if (!_navSettings.NavMeshes[meshToRebuild].CollisionMask.IsSet(collidable.CollisionLayer))
+                continue;
+
+            // No need to store cache, nav mesh recompute should be rare enough were it would waste more memory than necessary
+            collidable.Collider.AppendModel(asyncInput.ShapeData, _shapeCache, out object? cache);
+            int shapeCount = collidable.Collider.Transforms;
+            for (int i = shapeCount - 1; i >= 0; i--)
+                asyncInput.TransformsOut.Add(default);
+            collidable.Collider.GetLocalTransforms(collidable, CollectionsMarshal.AsSpan(asyncInput.TransformsOut)[^shapeCount..]);
+            asyncInput.Matrices.Add((collidable.Entity.Transform.WorldMatrix, shapeCount));
+        }
+
+        LastShapeCacheTime = _stopwatch.Elapsed;
+        _stopwatch.Reset();
+
+        RcNavMeshBuildSettings settingsCopy = _navSettings.NavMeshes[meshToRebuild].BuildSettings.CreateRecastSettings();
+
+        CancellationToken token = _rebuildingTask.Token;
+        _stopwatch.Start();
+        var task = Task.Run(() => BepuNavMeshBuilder.CreateBuildResults(settingsCopy, asyncInput, _navSettings.UsableThreadCount, token), token);
+        _runningBuildResults = task;
         return task;
     }
 
@@ -213,31 +276,6 @@ public class RecastMeshSystem : GameSystemBase
         return result.Succeeded();
     }
 
-    //public List<Vector3>? GetNavMeshTiles()
-    //{
-    //    if (_navMesh is null) return null;
-    //
-    //    List<Vector3> verts = [];
-    //
-    //    for (int i = 0; i < _navMesh.GetMaxTiles(); i++)
-    //    {
-    //        var tile = _navMesh.GetTile(i);
-    //        if (tile?.data != null)
-    //        {
-    //            for (int j = 0; j < tile.data.verts.Length; j += 3)
-    //            {
-    //                var point = new Vector3(
-    //                    tile.data.verts[j],
-    //                    tile.data.verts[j + 1],
-    //                    tile.data.verts[j + 2]);
-    //                verts.Add(point);
-    //            }
-    //        }
-    //    }
-    //
-    //    return verts;
-    //}
-
     private void StartTrackingCollidable(CollidableComponent collidable)
     {
         foreach(var navMeshInfo in _navSettings.NavMeshes)
@@ -258,8 +296,8 @@ public class RecastMeshSystem : GameSystemBase
             if (collidable is StaticComponent staticComponent)
             {
                 var colliderId = staticComponent.StaticReference.Value.Handle.Value;
-                navMeshInfo.StaticComponents.Remove(colliderId);
                 RemoveCollider(navMeshInfo, colliderId);
+                navMeshInfo.StaticComponents.Remove(colliderId);
             }
 
         }
@@ -370,14 +408,81 @@ public class RecastMeshSystem : GameSystemBase
         }
     }
 
-    private bool Rebuild(ICollection<DtDynamicTile> tiles, BepuNavMeshInfo navSettings)
+    private bool Rebuild(ICollection<DtDynamicTile> tiles, BepuNavMeshInfo bepuNavMesh)
     {
-        if(navSettings.NavMesh is null) return false;
+        if (bepuNavMesh.Tiles.Count == 0 || bepuNavMesh.StaticComponents.Count == 0)
+        {
+            InitializeDynamicMesh(bepuNavMesh);
+            return false;
+        }
 
         foreach (DtDynamicTile tile in tiles)
-            Rebuild(tile, navSettings);
+            Rebuild(tile, bepuNavMesh);
 
-        return UpdateNavMesh(navSettings);
+        return UpdateNavMesh(bepuNavMesh);
+    }
+
+    /// <summary>
+    /// Initializes the navigation mesh with all of the currently known Static colliders.
+    /// </summary>
+    /// <param name="bepuNavMesh"></param>
+    private void InitializeDynamicMesh(BepuNavMeshInfo bepuNavMesh)
+    {
+        if(_runningBuildResults is null && bepuNavMesh.Tiles.Count == 0)
+        {
+            BuildNavMeshResults();
+            return;
+        }
+        if (_runningBuildResults?.Status == TaskStatus.RanToCompletion)
+        {
+            var buildResults = _runningBuildResults.Result;
+            _runningBuildResults = null;
+
+            RcNavMeshBuildSettings navSettings = bepuNavMesh.BuildSettings.CreateRecastSettings();
+
+            RcConfig cfg = new(
+                useTiles: true,
+                navSettings.tileSize,
+                navSettings.tileSize,
+                RcConfig.CalcBorder(navSettings.agentRadius, navSettings.cellSize),
+                RcPartitionType.OfValue(navSettings.partitioning),
+                navSettings.cellSize,
+                navSettings.cellHeight,
+                navSettings.agentMaxSlope,
+                navSettings.agentHeight,
+                navSettings.agentRadius,
+                navSettings.agentMaxClimb,
+                (navSettings.minRegionSize * navSettings.minRegionSize) * navSettings.cellSize * navSettings.cellSize,
+                (navSettings.mergedRegionSize * navSettings.mergedRegionSize) * navSettings.cellSize * navSettings.cellSize,
+                navSettings.edgeMaxLen,
+                navSettings.edgeMaxError,
+                navSettings.vertsPerPoly,
+                navSettings.detailSampleDist,
+                navSettings.detailSampleMaxError,
+                navSettings.filterLowHangingObstacles,
+                navSettings.filterLedgeSpans,
+                navSettings.filterWalkableLowHeightSpans,
+                SampleAreaModifications.SAMPLE_AREAMOD_WALKABLE,
+                buildMeshDetail: true);
+
+            var voxelFile = DtVoxelFile.From(cfg, buildResults);
+
+            bepuNavMesh.Tiles.Clear();
+            foreach (var t in voxelFile.tiles)
+            {
+                bepuNavMesh.Tiles.Add(LookupKey(t.tileX, t.tileZ), new DtDynamicTile(t));
+            }
+        }
+
+        for (var e = _collidableProcessor.ComponentDataEnumerator; e.MoveNext();)
+        {
+            if (e.Current.Value is StaticComponent staticCollider && staticCollider.StaticReference is not null)
+            {
+                var colliderId = staticCollider.StaticReference.Value.Handle.Value;
+                bepuNavMesh.StaticComponents.Add(colliderId, staticCollider);
+                AddCollider(bepuNavMesh, colliderId);
+            }
+        }
     }
 
     private ICollection<DtDynamicTile> GetTiles(float[] bounds, BepuNavMeshInfo navSettings)
@@ -423,21 +528,21 @@ public class RecastMeshSystem : GameSystemBase
         _dirty |= tile.Build(navSettings.Builder, navSettings.Config, navSettings.Context);
     }
 
-    private bool UpdateNavMesh(BepuNavMeshInfo navSettings)
+    private bool UpdateNavMesh(BepuNavMeshInfo bepuNavMesh)
     {
         if (_dirty)
         {
             _dirty = false;
 
             DtNavMesh navMesh = new();
-            navMesh.Init(navSettings.NavMeshParams, navSettings.BuildSettings.VertsPerPoly);
+            navMesh.Init(bepuNavMesh.NavMeshParams, bepuNavMesh.BuildSettings.VertsPerPoly);
 
-            foreach (DtDynamicTile t in navSettings.Tiles.Values)
+            foreach (DtDynamicTile t in bepuNavMesh.Tiles.Values)
             {
                 t.AddTo(navMesh);
             }
 
-            navSettings.NavMesh = navMesh;
+            bepuNavMesh.NavMesh = navMesh;
             return true;
         }
 
