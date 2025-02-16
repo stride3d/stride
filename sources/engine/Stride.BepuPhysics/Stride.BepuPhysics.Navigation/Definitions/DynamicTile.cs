@@ -1,12 +1,16 @@
 ﻿// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 //  Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using Stride.Core;
+using DotRecast.Detour;
+using Stride.Core.Mathematics;
 
 namespace Stride.BepuPhysics.Navigation.Definitions;
-[DataContract()]
-[Display("Pathfinding Settings")]
-public class PathfindingSettings
+public class DynamicTile : DtMeshTile
 {
-    public int MaxAllowedVisitedTiles { get; set; } = 16;
+    public DynamicTile(int index) : base(index)
+    {
+    }
+
+    public BoundingBox BoundingBox { get; set; }
+
 }
