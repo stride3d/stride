@@ -18,7 +18,7 @@ namespace Stride.Core.Design.Tests
         [Fact]
         public void TestConcurrencyInMicrothreads()
         {
-            var scheduler = new Scheduler();
+            using var scheduler = new Scheduler();
             var microThreadLock = new MicroThreadLock();
             var counter = 0;
             for (var j = 0; j < ThreadCount; ++j)
@@ -48,7 +48,7 @@ namespace Stride.Core.Design.Tests
         [Fact]
         public void TestSequentialLocksInMicrothreads()
         {
-            var scheduler = new Scheduler();
+            using var scheduler = new Scheduler();
             var microThreadLock = new MicroThreadLock();
             var counter = 0;
             for (var j = 0; j < ThreadCount; ++j)
@@ -88,7 +88,7 @@ namespace Stride.Core.Design.Tests
         [Fact]
         public void TestReentrancyInMicrothreads()
         {
-            var scheduler = new Scheduler();
+            using var scheduler = new Scheduler();
             var microThreadLock = new MicroThreadLock();
             var counter = 0;
             for (var j = 0; j < ThreadCount; ++j)
@@ -363,7 +363,7 @@ namespace Stride.Core.Design.Tests
         [Fact]
         public void TestConcurrencyInThreadsAndMicrothreads()
         {
-            var scheduler = new Scheduler();
+            using var scheduler = new Scheduler();
             var microThreadLock = new MicroThreadLock();
             var counter = 0;
             for (var j = 0; j < ThreadCount; ++j)
@@ -421,7 +421,7 @@ namespace Stride.Core.Design.Tests
         [Fact]
         public void TestConcurrencyInTasksAndMicrothreads()
         {
-            var scheduler = new Scheduler();
+            using var scheduler = new Scheduler();
             var microThreadLock = new MicroThreadLock();
             var counter = 0;
             for (var j = 0; j < ThreadCount; ++j)

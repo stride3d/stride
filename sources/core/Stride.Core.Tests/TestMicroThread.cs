@@ -271,7 +271,7 @@ namespace Stride.Core.Tests
 
         protected MicroThread[] TestBase(string testName, BaseTests baseTests, Func<Action, Task> asyncFunction, int parallelCount, MicroThreadFlags flags = MicroThreadFlags.None)
         {
-            var scheduler = new Scheduler();
+            using var scheduler = new Scheduler();
             int completed = 0;
             var microThreads = new MicroThread[parallelCount];
 
@@ -329,7 +329,7 @@ namespace Stride.Core.Tests
         {
             int completed = 0;
 
-            var scheduler = new Scheduler();
+            using var scheduler = new Scheduler();
             Action test = async () =>
                 {
                     using (await scheduler.SwitchToNewMicroThread())
@@ -364,7 +364,7 @@ namespace Stride.Core.Tests
         [Fact]
         public void TestTaskCompletionSource()
         {
-            var scheduler = new Scheduler();
+            using var scheduler = new Scheduler();
             var tcs = new TaskCompletionSource<int>();
             bool completed = false;
             scheduler.Add(() => TestTaskCompletionSourceAsync(tcs, () => { completed = true; CheckStackForSchedulerStep(); }));
