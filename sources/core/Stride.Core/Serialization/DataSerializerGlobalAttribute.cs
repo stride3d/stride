@@ -18,7 +18,7 @@ public class DataSerializerGlobalAttribute : Attribute
     /// <param name="mode">Defines how generic type are added to <paramref name="serializerType"/>.</param>
     /// <param name="inherited">Similar to <see cref="DataContractAttribute.Inherited"/></param>
     /// <param name="complexSerializer">True if it should use the auto-generated serializer.</param>
-    public DataSerializerGlobalAttribute(Type serializerType, Type? dataType = null, DataSerializerGenericMode mode = DataSerializerGenericMode.None, bool inherited = false, bool complexSerializer = false)
+    public DataSerializerGlobalAttribute(Type? serializerType = null, Type? dataType = null, DataSerializerGenericMode mode = DataSerializerGenericMode.None, bool inherited = false, bool complexSerializer = false)
     {
     }
 
