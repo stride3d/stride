@@ -23,63 +23,59 @@
 
 #endregion
 
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
-using Stride.Core.Annotations;
 
-namespace Stride.Core.VisualStudio
+namespace Stride.Core.VisualStudio;
+
+/// <summary>
+/// A collection of <see cref="PropertyItem"/>
+/// </summary>
+[DebuggerDisplay("Count = {" + nameof(Count) + "}")]
+public sealed class PropertyItemCollection
+    : KeyedCollection<string, PropertyItem>
 {
     /// <summary>
-    /// A collection of <see cref="PropertyItem"/>
+    /// Initializes a new instance of the <see cref="PropertyItemCollection"/> class.
     /// </summary>
-    [DebuggerDisplay("Count = {" + nameof(Count) + "}")]
-    public sealed class PropertyItemCollection
-        : KeyedCollection<string, PropertyItem>
+    public PropertyItemCollection()
+        : base(StringComparer.InvariantCultureIgnoreCase)
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="PropertyItemCollection"/> class.
-        /// </summary>
-        public PropertyItemCollection()
-            : base(StringComparer.InvariantCultureIgnoreCase)
-        {
-        }
+    }
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="PropertyItemCollection"/> class.
-        /// </summary>
-        /// <param name="items">The items to copy from.</param>
-        public PropertyItemCollection(IEnumerable<PropertyItem> items)
-            : this()
-        {
-            this.AddRange(items);
-        }
+    /// <summary>
+    /// Initializes a new instance of the <see cref="PropertyItemCollection"/> class.
+    /// </summary>
+    /// <param name="items">The items to copy from.</param>
+    public PropertyItemCollection(IEnumerable<PropertyItem> items)
+        : this()
+    {
+        this.AddRange(items);
+    }
 
-        protected override string GetKeyForItem([NotNull] PropertyItem item)
-        {
-            return item.Name;
-        }
+    protected override string GetKeyForItem(PropertyItem item)
+    {
+        return item.Name;
+    }
 
-        protected override void InsertItem(int index, [NotNull] PropertyItem item)
-        {
-            var existingItem = (Contains(GetKeyForItem(item))) ? this[GetKeyForItem(item)] : null;
+    protected override void InsertItem(int index, PropertyItem item)
+    {
+        var existingItem = Contains(GetKeyForItem(item)) ? this[GetKeyForItem(item)] : null;
 
-            if (existingItem == null)
-            {
-                // Add a clone of the item instead of the item itself
-                base.InsertItem(index, item.Clone());
-            }
-            else if (item.Value != existingItem.Value)
-            {
-                existingItem.Value = item.Value;
-            }
-        }
-
-        protected override void SetItem(int index, [NotNull] PropertyItem item)
+        if (existingItem == null)
         {
             // Add a clone of the item instead of the item itself
-            base.SetItem(index, item.Clone());
+            base.InsertItem(index, item.Clone());
         }
+        else if (item.Value != existingItem.Value)
+        {
+            existingItem.Value = item.Value;
+        }
+    }
+
+    protected override void SetItem(int index, PropertyItem item)
+    {
+        // Add a clone of the item instead of the item itself
+        base.SetItem(index, item.Clone());
     }
 }

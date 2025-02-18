@@ -82,7 +82,7 @@ public abstract class UrlReferenceBase : IReference, IUrlReference
         return (UrlReferenceBase)Activator.CreateInstance(urlReferenceType, id, url)!;
     }
 
-    public static bool IsUrlReferenceType(Type type)
+    public static bool IsUrlReferenceType(Type? type)
     {
         return typeof(UrlReferenceBase).IsAssignableFrom(type);
     }

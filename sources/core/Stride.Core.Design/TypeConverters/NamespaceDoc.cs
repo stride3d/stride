@@ -20,13 +20,11 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-namespace Stride.Core.TypeConverters
-{
-    /// <summary>
-    /// The <see cref="Stride.Core.TypeConverters"/> namespace contains design-time converters for all vectors structures.
-    /// </summary>
-    [System.Runtime.CompilerServices.CompilerGenerated]
-    internal class NamespaceDoc
-    {
-    }
-}
+
+namespace Stride.Core.TypeConverters;
+
+/// <summary>
+/// The <see cref="TypeConverters"/> namespace contains design-time converters for all vectors structures.
+/// </summary>
+[System.Runtime.CompilerServices.CompilerGenerated]
+internal class NamespaceDoc;

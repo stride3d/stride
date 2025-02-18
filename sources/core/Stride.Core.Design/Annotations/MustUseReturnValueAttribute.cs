@@ -23,26 +23,22 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE. */
 
-using System;
+namespace Stride.Core.Annotations;
 
-namespace Stride.Core.Annotations
+/// <summary>
+/// Indicates that the return value of method invocation must be used.
+/// </summary>
+[AttributeUsage(AttributeTargets.Method)]
+public sealed class MustUseReturnValueAttribute : Attribute
 {
-    /// <summary>
-    /// Indicates that the return value of method invocation must be used.
-    /// </summary>
-    [AttributeUsage(AttributeTargets.Method)]
-    public sealed class MustUseReturnValueAttribute : Attribute
+    public MustUseReturnValueAttribute()
     {
-        public MustUseReturnValueAttribute()
-        {
-        }
-
-        public MustUseReturnValueAttribute([NotNull] string justification)
-        {
-            Justification = justification;
-        }
-
-        [CanBeNull]
-        public string Justification { get; private set; }
     }
+
+    public MustUseReturnValueAttribute(string justification)
+    {
+        Justification = justification;
+    }
+
+    public string? Justification { get; }
 }
