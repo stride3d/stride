@@ -60,7 +60,7 @@
   </ItemGroup>
   <!-- Can be deleted -->
   <ItemGroup Condition="'$(TargetFramework)' == '$(StrideFrameworkUWP)'">
-    <StrideNativeCPU Include="x86;x64;ARM;ARM64" LibraryExtension=".dll" />
+    <StrideNativeCPU Include="x86;x64;ARM" LibraryExtension=".dll" />
   </ItemGroup>
   <!-- Use runtimes/*/native folder -->
   <ItemGroup>
