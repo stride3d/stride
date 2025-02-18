@@ -18,7 +18,7 @@ public class ConstraintProcessor : EntityProcessor<ConstraintComponentBase>
 
     protected override void OnSystemAdd()
     {
-        ServicesHelper.LoadBepuServices(Services, out _bepuConfiguration, out _, out _);
+        _bepuConfiguration = Services.GetOrCreate<BepuConfiguration>();
     }
 
     protected override void OnEntityComponentAdding(Entity entity, ConstraintComponentBase component, ConstraintComponentBase data)

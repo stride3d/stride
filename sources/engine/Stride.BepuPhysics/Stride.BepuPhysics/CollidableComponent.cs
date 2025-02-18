@@ -22,6 +22,7 @@ namespace Stride.BepuPhysics;
 [DefaultEntityComponentProcessor(typeof(CollidableProcessor), ExecutionMode = ExecutionMode.Runtime)]
 public abstract class CollidableComponent : EntityComponentWithTryUpdateFeature
 {
+    private static uint IdCounter;
     private static uint VersioningCounter;
 
     private float _springFrequency = 30;
@@ -46,6 +47,8 @@ public abstract class CollidableComponent : EntityComponentWithTryUpdateFeature
 
     [DataMemberIgnore]
     internal uint Versioning { get; private set; }
+
+    internal uint InstanceIndex { get; } = Interlocked.Increment(ref IdCounter);
 
     /// <summary>
     /// The simulation this object belongs to, null when it is not part of a simulation.
@@ -80,6 +83,15 @@ public abstract class CollidableComponent : EntityComponentWithTryUpdateFeature
         }
     }
 
+    /// <summary>
+    /// The bounce frequency in hz
+    /// </summary>
+    /// <remarks>
+    /// Must be low enough that the simulation can actually represent it.
+    /// If the contact is trying to make a bounce happen at 240hz,
+    /// but the integrator timestep is only 60hz,
+    /// the unrepresentable motion will get damped out and the body won't bounce as much.
+    /// </remarks>
     public float SpringFrequency
     {
         get
@@ -93,6 +105,9 @@ public abstract class CollidableComponent : EntityComponentWithTryUpdateFeature
         }
     }
 
+    /// <summary>
+    /// The amount of energy/velocity lost when this collidable bounces off
+    /// </summary>
     public float SpringDampingRatio
     {
         get
@@ -116,6 +131,9 @@ public abstract class CollidableComponent : EntityComponentWithTryUpdateFeature
         }
     }
 
+    /// <summary>
+    /// The maximum speed this object will exit out of the collision when overlapping another collidable
+    /// </summary>
     public float MaximumRecoveryVelocity
     {
         get => _maximumRecoveryVelocity;
@@ -154,6 +172,9 @@ public abstract class CollidableComponent : EntityComponentWithTryUpdateFeature
         }
     }
 
+    /// <summary>
+    /// Which simulation this object is assigned to
+    /// </summary>
     [DefaultValueIsSceneBased]
     public ISimulationSelector SimulationSelector
     {
@@ -190,13 +211,15 @@ public abstract class CollidableComponent : EntityComponentWithTryUpdateFeature
     }
 
     /// <summary>
-    /// The center of mass of this object
+    /// The center of mass of this object in local space
     /// </summary>
     /// <remarks>
     /// This property will always return <see cref="Vector3.Zero"/> if this object is not part of a simulation yet.
     /// </remarks>
     [DataMemberIgnore]
     public Vector3 CenterOfMass { get; private set; }
+
+    protected internal abstract CollidableReference? CollidableReference { get; }
 
     public CollidableComponent()
     {
@@ -272,7 +295,7 @@ public abstract class CollidableComponent : EntityComponentWithTryUpdateFeature
         if (reAttaching == false)
         {
             Simulation.TemporaryDetachedLookup = (getHandleValue, this);
-            Simulation.ContactEvents.Flush(); // Ensure that removing this collidable sends the appropriate contact events to listeners
+            Simulation.ContactEvents.ClearCollisionsOf(this); // Ensure that removing this collidable sends the appropriate contact events to listeners
             Simulation.TemporaryDetachedLookup = (-1, null);
         }
 
@@ -319,7 +342,21 @@ public abstract class CollidableComponent : EntityComponentWithTryUpdateFeature
 
     protected abstract int GetHandleValue();
 
-    protected abstract void RegisterContactHandler();
-    protected abstract void UnregisterContactHandler();
-    protected abstract bool IsContactHandlerRegistered();
+
+    protected void RegisterContactHandler()
+    {
+        if (ContactEventHandler is not null && Simulation is not null)
+            Simulation.ContactEvents.Register(this);
+    }
+
+    protected void UnregisterContactHandler()
+    {
+        if (Simulation is not null)
+            Simulation.ContactEvents.Unregister(this);
+    }
+
+    protected bool IsContactHandlerRegistered()
+    {
+        return Simulation is not null && Simulation.ContactEvents.IsRegistered(this);
+    }
 }
