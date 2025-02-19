@@ -41,7 +41,7 @@ namespace Stride.UI
         /// <remarks>Equivalent to set the <see cref="Canvas.RelativeSizePropertyKey"/> of the element</remarks>
         /// <param name="element">The element</param>
         /// <param name="size">The relative position of the element</param>
-        public static void SetCanvasRelativeSize(this UIElement element, Vector2 size)
+        public static void SetCanvasRelativeSize(this UIElement element, Size2F size)
         {
             element.DependencyProperties.Set(Canvas.RelativeSizePropertyKey, size);
         }
@@ -52,7 +52,7 @@ namespace Stride.UI
         /// <remarks>Equivalent to get the <see cref="Canvas.RelativeSizePropertyKey"/> of the element</remarks>
         /// <param name="element">The element</param>
         /// <returns>The relative position of the element to its parent canvas</returns>
-        public static Vector2 GetCanvasRelativeSize(this UIElement element)
+        public static Size2F GetCanvasRelativeSize(this UIElement element)
         {
             return element.DependencyProperties.Get(Canvas.RelativeSizePropertyKey);
         }

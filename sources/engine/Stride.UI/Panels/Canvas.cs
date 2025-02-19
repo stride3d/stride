@@ -39,7 +39,7 @@ namespace Stride.UI.Panels
         /// </summary>
         /// <remarks>Relative size must be strictly positive</remarks>
         [Display(category: LayoutCategory)]
-        public static readonly PropertyKey<Vector2> RelativeSizePropertyKey = DependencyPropertyFactory.RegisterAttached(nameof(RelativeSizePropertyKey), typeof(Canvas), new Vector2(float.NaN), CoerceRelativeSize, InvalidateCanvasMeasure);
+        public static readonly PropertyKey<Size2F> RelativeSizePropertyKey = DependencyPropertyFactory.RegisterAttached(nameof(RelativeSizePropertyKey), typeof(Canvas), new Size2F(float.NaN), CoerceRelativeSize, InvalidateCanvasMeasure);
 
         /// <summary>
         /// The key to the PinOrigin dependency property. The PinOrigin indicate which point of the <see cref="UIElement"/> should be pinned to the canvas. 
@@ -58,11 +58,11 @@ namespace Stride.UI.Panels
             value.Y = MathUtil.Clamp(value.Y, 0.0f, 1.0f);
         }
 
-        private static void CoerceRelativeSize(ref Vector2 value)
+        private static void CoerceRelativeSize(ref Size2F value)
         {
             // All the components of the relative size must be positive
-            value.X = Math.Abs(value.X);
-            value.Y = Math.Abs(value.Y);
+            value.Width = Math.Abs(value.Width);
+            value.Height = Math.Abs(value.Height);
         }
 
         private static void InvalidateCanvasMeasure<T>(object propertyOwner, PropertyKey<T> propertyKey, T propertyOldValue)
@@ -84,11 +84,11 @@ namespace Stride.UI.Panels
                 // override the available space if the child size is relative to its parent's.
                 var childRelativeSize = child.DependencyProperties.Get(RelativeSizePropertyKey);
                 
-                if (!float.IsNaN(childRelativeSize.X)) // relative size is not set
-                    childAvailableSizeWithoutMargins.Width = childRelativeSize.X > 0 ? childRelativeSize.X * availableSizeWithoutMargins.Width : 0f; // avoid NaN due to 0 x Infinity
+                if (!float.IsNaN(childRelativeSize.Width)) // relative size is not set
+                    childAvailableSizeWithoutMargins.Width = childRelativeSize.Width > 0 ? childRelativeSize.Width * availableSizeWithoutMargins.Width : 0f; // avoid NaN due to 0 x Infinity
                 
-                if (!float.IsNaN(childRelativeSize.Y)) // relative size is not set
-                    childAvailableSizeWithoutMargins.Height = childRelativeSize.Y > 0 ? childRelativeSize.Y * availableSizeWithoutMargins.Height : 0f; // avoid NaN due to 0 x Infinity
+                if (!float.IsNaN(childRelativeSize.Height)) // relative size is not set
+                    childAvailableSizeWithoutMargins.Height = childRelativeSize.Height > 0 ? childRelativeSize.Height * availableSizeWithoutMargins.Height : 0f; // avoid NaN due to 0 x Infinity
 
                 child.Measure(childAvailableSizeWithoutMargins + child.MarginInternal);
             }
