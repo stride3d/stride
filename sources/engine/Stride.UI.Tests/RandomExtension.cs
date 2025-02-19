@@ -14,9 +14,14 @@ namespace Stride.UI.Tests
             return (float)random.NextDouble();
         }
 
-        public static Vector3 NextVector3(this Random random)
+        public static Vector2 NextVector2(this Random random)
         {
-            return new Vector3(random.NextFloat(), random.NextFloat(), random.NextFloat());
+            return new Vector2(random.NextFloat(), random.NextFloat());
+        }
+        
+        public static Size2F NextSize2F(this Random random)
+        {
+            return new Size2F(random.NextFloat(), random.NextFloat());
         }
 
         public static Thickness NextThickness(this Random random, float leftFactor, float topFactor, float backFactor, float rightFactor)

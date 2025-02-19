@@ -67,7 +67,6 @@ namespace Stride.Graphics.Tests
 
             grid.RowDefinitions.Add(new StripDefinition(StripType.Auto));
             grid.ColumnDefinitions.Add(new StripDefinition());
-            grid.LayerDefinitions.Add(new StripDefinition());
 
             grid.Children.Add(touchStartLabel);
 
