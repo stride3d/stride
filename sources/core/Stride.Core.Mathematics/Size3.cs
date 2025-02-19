@@ -22,6 +22,7 @@
 // THE SOFTWARE.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 
 namespace Stride.Core.Mathematics;
@@ -83,7 +84,7 @@ public struct Size3 : IEquatable<Size3>, IComparable<Size3>
     /// <summary>
     /// Gets a volume size.
     /// </summary>
-    private long VolumeSize
+    private readonly long VolumeSize
     {
         get
         {
@@ -98,7 +99,7 @@ public struct Size3 : IEquatable<Size3>, IComparable<Size3>
     }
 
     /// <inheritdoc/>
-    public override readonly bool Equals(object? obj)
+    public override readonly bool Equals([NotNullWhen(true)] object? obj)
     {
         return obj is Size3 size && Equals(size);
     }
@@ -110,7 +111,7 @@ public struct Size3 : IEquatable<Size3>, IComparable<Size3>
     }
 
     /// <inheritdoc/>
-    public int CompareTo(Size3 other)
+    public readonly int CompareTo(Size3 other)
     {
         return Math.Sign(this.VolumeSize - other.VolumeSize);
     }
@@ -191,7 +192,7 @@ public struct Size3 : IEquatable<Size3>, IComparable<Size3>
     /// Calculates the next up mip-level (*2) of this size.
     /// </summary>
     /// <returns>A next up mip-level Size3.</returns>
-    public Size3 Up2(int count = 1)
+    public readonly Size3 Up2(int count = 1)
     {
         if (count < 0)
         {
@@ -206,7 +207,7 @@ public struct Size3 : IEquatable<Size3>, IComparable<Size3>
     /// </summary>
     /// <param name="count">The count.</param>
     /// <returns>A next down mip-level Size3.</returns>
-    public Size3 Down2(int count = 1)
+    public readonly Size3 Down2(int count = 1)
     {
         if (count < 0)
         {
@@ -221,11 +222,11 @@ public struct Size3 : IEquatable<Size3>, IComparable<Size3>
     /// </summary>
     /// <param name="direction">The direction &lt; 0 then <see cref="Down2"/>, &gt; 0  then <see cref="Up2"/>, else this unchanged.</param>
     /// <returns>Size3.</returns>
-    public Size3 Mip(int direction)
+    public readonly Size3 Mip(int direction)
     {
         return direction == 0 ? this : direction < 0 ? Down2() : Up2();
     }
-            
+
     /// <summary>
     /// Deconstructs the vector's components into named variables.
     /// </summary>

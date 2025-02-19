@@ -22,6 +22,7 @@
 // THE SOFTWARE.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Runtime.InteropServices;
 
@@ -148,7 +149,7 @@ public struct RectangleF : IEquatable<RectangleF>
     [DataMemberIgnore]
     public Vector2 Location
     {
-        get
+        readonly get
         {
             return new Vector2(X, Y);
         }
@@ -166,7 +167,7 @@ public struct RectangleF : IEquatable<RectangleF>
     /// The center.
     /// </value>
     [DataMemberIgnore]
-    public Vector2 Center
+    public readonly Vector2 Center
     {
         get
         {
@@ -180,7 +181,7 @@ public struct RectangleF : IEquatable<RectangleF>
     /// <value>
     ///   <c>true</c> if [is empty]; otherwise, <c>false</c>.
     /// </value>
-    public bool IsEmpty
+    public readonly bool IsEmpty
     {
         get
         {
@@ -195,7 +196,7 @@ public struct RectangleF : IEquatable<RectangleF>
     [DataMemberIgnore]
     public Size2F Size
     {
-        get
+        readonly get
         {
             return new Size2F(Width, Height);
         }
@@ -210,25 +211,25 @@ public struct RectangleF : IEquatable<RectangleF>
     /// Gets the position of the top-left corner of the rectangle.
     /// </summary>
     /// <value>The top-left corner of the rectangle.</value>
-    public Vector2 TopLeft { get { return new Vector2(X, Y); } }
+    public readonly Vector2 TopLeft { get { return new Vector2(X, Y); } }
 
     /// <summary>
     /// Gets the position of the top-right corner of the rectangle.
     /// </summary>
     /// <value>The top-right corner of the rectangle.</value>
-    public Vector2 TopRight { get { return new Vector2(Right, Y); } }
+    public readonly Vector2 TopRight { get { return new Vector2(Right, Y); } }
 
     /// <summary>
     /// Gets the position of the bottom-left corner of the rectangle.
     /// </summary>
     /// <value>The bottom-left corner of the rectangle.</value>
-    public Vector2 BottomLeft { get { return new Vector2(X, Bottom); } }
+    public readonly Vector2 BottomLeft { get { return new Vector2(X, Bottom); } }
 
     /// <summary>
     /// Gets the position of the bottom-right corner of the rectangle.
     /// </summary>
     /// <value>The bottom-right corner of the rectangle.</value>
-    public Vector2 BottomRight { get { return new Vector2(Right, Bottom); } }
+    public readonly Vector2 BottomRight { get { return new Vector2(Right, Bottom); } }
 
     /// <summary>Changes the position of the rectangle.</summary>
     /// <param name="amount">The values to adjust the position of the rectangle by.</param>
@@ -267,14 +268,14 @@ public struct RectangleF : IEquatable<RectangleF>
     /// <summary>Determines whether this rectangle contains a specified Point.</summary>
     /// <param name="value">The Point to evaluate.</param>
     /// <param name="result">[OutAttribute] true if the specified Point is contained within this rectangle; false otherwise.</param>
-    public void Contains(ref readonly Vector2 value, out bool result)
+    public readonly void Contains(ref readonly Vector2 value, out bool result)
     {
-        result = value.X >= this.X && value.X <= Right && value.Y >= this.Y && value.Y <= Bottom;
+        result = value.X >= X && value.X <= Right && value.Y >= Y && value.Y <= Bottom;
     }
 
     /// <summary>Determines whether this rectangle entirely contains a specified rectangle.</summary>
     /// <param name="value">The rectangle to evaluate.</param>
-    public bool Contains(Rectangle value)
+    public readonly bool Contains(Rectangle value)
     {
         return (X <= value.X) && (value.Right <= Right) && (Y <= value.Y) && (value.Bottom <= Bottom);
     }
@@ -282,7 +283,7 @@ public struct RectangleF : IEquatable<RectangleF>
     /// <summary>Determines whether this rectangle entirely contains a specified rectangle.</summary>
     /// <param name="value">The rectangle to evaluate.</param>
     /// <param name="result">[OutAttribute] On exit, is true if this rectangle entirely contains the specified rectangle, or false if not.</param>
-    public void Contains(ref readonly RectangleF value, out bool result)
+    public readonly void Contains(ref readonly RectangleF value, out bool result)
     {
         result = (X <= value.X) && (value.Right <= Right) && (Y <= value.Y) && (value.Bottom <= Bottom);
     }
@@ -293,9 +294,9 @@ public struct RectangleF : IEquatable<RectangleF>
     /// <param name="x">X point coordinate.</param>
     /// <param name="y">Y point coordinate.</param>
     /// <returns><c>true</c> if point is inside <see cref="RectangleF"/>, otherwise <c>false</c>.</returns>
-    public bool Contains(float x, float y)
+    public readonly bool Contains(float x, float y)
     {
-        return x >= this.X && x <= Right && y >= this.Y && y <= Bottom;
+        return x >= X && x <= Right && y >= Y && y <= Bottom;
     }
 
     /// <summary>
@@ -303,7 +304,7 @@ public struct RectangleF : IEquatable<RectangleF>
     /// </summary>
     /// <param name="vector2D">Coordinate <see cref="Vector2"/>.</param>
     /// <returns><c>true</c> if <see cref="Vector2"/> is inside <see cref="RectangleF"/>, otherwise <c>false</c>.</returns>
-    public bool Contains(Vector2 vector2D)
+    public readonly bool Contains(Vector2 vector2D)
     {
         return Contains(vector2D.X, vector2D.Y);
     }
@@ -313,7 +314,7 @@ public struct RectangleF : IEquatable<RectangleF>
     /// </summary>
     /// <param name="int2">Coordinate <see cref="Int2"/>.</param>
     /// <returns><c>true</c> if <see cref="Int2"/> is inside <see cref="Rectangle"/>, otherwise <c>false</c>.</returns>
-    public bool Contains(Int2 int2)
+    public readonly bool Contains(Int2 int2)
     {
         return Contains(int2.X, int2.Y);
     }
@@ -323,14 +324,14 @@ public struct RectangleF : IEquatable<RectangleF>
     /// </summary>
     /// <param name="point">Coordinate <see cref="Point"/>.</param>
     /// <returns><c>true</c> if <see cref="Point"/> is inside <see cref="RectangleF"/>, otherwise <c>false</c>.</returns>
-    public bool Contains(Point point)
+    public readonly bool Contains(Point point)
     {
         return Contains(point.X, point.Y);
     }
 
     /// <summary>Determines whether a specified rectangle intersects with this rectangle.</summary>
     /// <param name="value">The rectangle to evaluate.</param>
-    public bool Intersects(RectangleF value)
+    public readonly bool Intersects(RectangleF value)
     {
         Intersects(ref value, out var result);
         return result;
@@ -341,7 +342,7 @@ public struct RectangleF : IEquatable<RectangleF>
     /// </summary>
     /// <param name="value">The rectangle to evaluate</param>
     /// <param name="result">[OutAttribute] true if the specified rectangle intersects with this one; false otherwise.</param>
-    public void Intersects(ref readonly RectangleF value, out bool result)
+    public readonly void Intersects(ref readonly RectangleF value, out bool result)
     {
         result = (value.X < Right) && (X < value.Right) && (value.Y < Bottom) && (Y < value.Bottom);
     }
@@ -412,7 +413,7 @@ public struct RectangleF : IEquatable<RectangleF>
     /// <returns>
     /// <c>true</c> if the specified <see cref="object"/> is equal to this instance; otherwise, <c>false</c>.
     /// </returns>
-    public override readonly bool Equals(object? obj)
+    public override readonly bool Equals([NotNullWhen(true)] object? obj)
     {
         return obj is RectangleF rectangle && Equals(rectangle);
     }

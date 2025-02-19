@@ -22,6 +22,7 @@
 // THE SOFTWARE.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 
 namespace Stride.Core.Mathematics;
@@ -80,7 +81,7 @@ public struct Size2F : IEquatable<Size2F>
     }
 
     /// <inheritdoc/>
-    public override readonly bool Equals(object? obj)
+    public override readonly bool Equals([NotNullWhen(true)] object? obj)
     {
         return obj is Size2F size && Equals(size);
     }
@@ -121,7 +122,7 @@ public struct Size2F : IEquatable<Size2F>
     public override readonly string ToString()
     {
         return string.Format("({0},{1})", Width, Height);
-    }                
+    }
 
     /// <summary>
     /// Deconstructs the vector's components into named variables.

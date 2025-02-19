@@ -21,6 +21,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -255,12 +256,12 @@ public struct Half4 : IEquatable<Half4>
     }
 
     /// <summary>
-    /// Returns a value that indicates whether the current instance is equal to a specified object. 
+    /// Returns a value that indicates whether the current instance is equal to a specified object.
     /// </summary>
     /// <param name="obj">Object to make the comparison with.</param>
     /// <returns>
     /// <c>true</c> if the current instance is equal to the specified object; <c>false</c> otherwise.</returns>
-    public override readonly bool Equals(object? obj)
+    public override readonly bool Equals([NotNullWhen(true)] object? obj)
     {
         return obj is Half4 half && Equals(half);
     }

@@ -22,6 +22,7 @@
 // THE SOFTWARE.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 
 namespace Stride.Core.Mathematics;
@@ -80,7 +81,7 @@ public struct Size2 : IEquatable<Size2>
     }
 
     /// <inheritdoc/>
-    public override readonly bool Equals(object? obj)
+    public override readonly bool Equals([NotNullWhen(true)] object? obj)
     {
         return obj is Size2 size && Equals(size);
     }

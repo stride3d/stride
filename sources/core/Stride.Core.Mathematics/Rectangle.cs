@@ -22,6 +22,7 @@
 // THE SOFTWARE.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Runtime.InteropServices;
 
@@ -67,7 +68,7 @@ public struct Rectangle : IEquatable<Rectangle>
     [DataMemberIgnore]
     public int Left
     {
-        get { return X; }
+        readonly get { return X; }
         set { X = value; }
     }
 
@@ -78,7 +79,7 @@ public struct Rectangle : IEquatable<Rectangle>
     [DataMemberIgnore]
     public int Top
     {
-        get { return Y; }
+        readonly get { return Y; }
         set { Y = value; }
     }
 
@@ -87,7 +88,7 @@ public struct Rectangle : IEquatable<Rectangle>
     /// </summary>
     /// <value>The right.</value>
     [DataMemberIgnore]
-    public int Right
+    public readonly int Right
     {
         get { return X + Width; }
     }
@@ -97,7 +98,7 @@ public struct Rectangle : IEquatable<Rectangle>
     /// </summary>
     /// <value>The bottom.</value>
     [DataMemberIgnore]
-    public int Bottom
+    public readonly int Bottom
     {
         get { return Y + Height; }
     }
@@ -139,7 +140,7 @@ public struct Rectangle : IEquatable<Rectangle>
     [DataMemberIgnore]
     public Point Location
     {
-        get
+        readonly get
         {
             return new Point(X, Y);
         }
@@ -157,7 +158,7 @@ public struct Rectangle : IEquatable<Rectangle>
     /// The center.
     /// </value>
     [DataMemberIgnore]
-    public Point Center
+    public readonly Point Center
     {
         get
         {
@@ -171,7 +172,7 @@ public struct Rectangle : IEquatable<Rectangle>
     /// <value>
     ///   <c>true</c> if [is empty]; otherwise, <c>false</c>.
     /// </value>
-    public bool IsEmpty
+    public readonly bool IsEmpty
     {
         get
         {
@@ -186,7 +187,7 @@ public struct Rectangle : IEquatable<Rectangle>
     [DataMemberIgnore]
     public Size2 Size
     {
-        get
+        readonly get
         {
             return new Size2(Width, Height);
         }
@@ -201,25 +202,25 @@ public struct Rectangle : IEquatable<Rectangle>
     /// Gets the position of the top-left corner of the rectangle.
     /// </summary>
     /// <value>The top-left corner of the rectangle.</value>
-    public Point TopLeft { get { return new Point(Left, Top); } }
+    public readonly Point TopLeft { get { return new Point(Left, Top); } }
 
     /// <summary>
     /// Gets the position of the top-right corner of the rectangle.
     /// </summary>
     /// <value>The top-right corner of the rectangle.</value>
-    public Point TopRight { get { return new Point(Right, Top); } }
+    public readonly Point TopRight { get { return new Point(Right, Top); } }
 
     /// <summary>
     /// Gets the position of the bottom-left corner of the rectangle.
     /// </summary>
     /// <value>The bottom-left corner of the rectangle.</value>
-    public Point BottomLeft { get { return new Point(Left, Bottom); } }
+    public readonly Point BottomLeft { get { return new Point(Left, Bottom); } }
 
     /// <summary>
     /// Gets the position of the bottom-right corner of the rectangle.
     /// </summary>
     /// <value>The bottom-right corner of the rectangle.</value>
-    public Point BottomRight { get { return new Point(Right, Bottom); } }
+    public readonly Point BottomRight { get { return new Point(Right, Bottom); } }
 
     /// <summary>Changes the position of the rectangle.</summary>
     /// <param name="amount">The values to adjust the position of the rectangle by.</param>
@@ -251,14 +252,14 @@ public struct Rectangle : IEquatable<Rectangle>
     /// <summary>Determines whether this rectangle contains a specified point represented by its x- and y-coordinates.</summary>
     /// <param name="x">The x-coordinate of the specified point.</param>
     /// <param name="y">The y-coordinate of the specified point.</param>
-    public bool Contains(int x, int y)
+    public readonly bool Contains(int x, int y)
     {
         return (X <= x) && (x < Right) && (Y <= y) && (y < Bottom);
     }
 
     /// <summary>Determines whether this rectangle contains a specified Point.</summary>
     /// <param name="value">The Point to evaluate.</param>
-    public bool Contains(Point value)
+    public readonly bool Contains(Point value)
     {
         Contains(ref value, out var result);
         return result;
@@ -267,14 +268,14 @@ public struct Rectangle : IEquatable<Rectangle>
     /// <summary>Determines whether this rectangle contains a specified Point.</summary>
     /// <param name="value">The Point to evaluate.</param>
     /// <param name="result">[OutAttribute] true if the specified Point is contained within this rectangle; false otherwise.</param>
-    public void Contains(ref readonly Point value, out bool result)
+    public readonly void Contains(ref readonly Point value, out bool result)
     {
         result = (X <= value.X) && (value.X < Right) && (Y <= value.Y) && (value.Y < Bottom);
     }
 
     /// <summary>Determines whether this rectangle entirely contains a specified rectangle.</summary>
     /// <param name="value">The rectangle to evaluate.</param>
-    public bool Contains(Rectangle value)
+    public readonly bool Contains(Rectangle value)
     {
         Contains(ref value, out var result);
         return result;
@@ -283,7 +284,7 @@ public struct Rectangle : IEquatable<Rectangle>
     /// <summary>Determines whether this rectangle entirely contains a specified rectangle.</summary>
     /// <param name="value">The rectangle to evaluate.</param>
     /// <param name="result">[OutAttribute] On exit, is true if this rectangle entirely contains the specified rectangle, or false if not.</param>
-    public void Contains(ref readonly Rectangle value, out bool result)
+    public readonly void Contains(ref readonly Rectangle value, out bool result)
     {
         result = (X <= value.X) && (value.Right <= Right) && (Y <= value.Y) && (value.Bottom <= Bottom);
     }
@@ -294,9 +295,9 @@ public struct Rectangle : IEquatable<Rectangle>
     /// <param name="x">X point coordinate.</param>
     /// <param name="y">Y point coordinate.</param>
     /// <returns><c>true</c> if point is inside <see cref="Rectangle"/>, otherwise <c>false</c>.</returns>
-    public bool Contains(float x, float y)
+    public readonly bool Contains(float x, float y)
     {
-        return (x >= this.X && x <= Right && y >= this.Y && y <= Bottom);
+        return x >= X && x <= Right && y >= Y && y <= Bottom;
     }
 
     /// <summary>
@@ -304,7 +305,7 @@ public struct Rectangle : IEquatable<Rectangle>
     /// </summary>
     /// <param name="vector2D">Coordinate <see cref="Vector2"/>.</param>
     /// <returns><c>true</c> if <see cref="Vector2"/> is inside <see cref="Rectangle"/>, otherwise <c>false</c>.</returns>
-    public bool Contains(Vector2 vector2D)
+    public readonly bool Contains(Vector2 vector2D)
     {
         return Contains(vector2D.X, vector2D.Y);
     }
@@ -314,14 +315,14 @@ public struct Rectangle : IEquatable<Rectangle>
     /// </summary>
     /// <param name="int2">Coordinate <see cref="Int2"/>.</param>
     /// <returns><c>true</c> if <see cref="Int2"/> is inside <see cref="Rectangle"/>, otherwise <c>false</c>.</returns>
-    public bool Contains(Int2 int2)
+    public readonly bool Contains(Int2 int2)
     {
         return Contains(int2.X, int2.Y);
     }
 
     /// <summary>Determines whether a specified rectangle intersects with this rectangle.</summary>
     /// <param name="value">The rectangle to evaluate.</param>
-    public bool Intersects(Rectangle value)
+    public readonly bool Intersects(Rectangle value)
     {
         Intersects(ref value, out var result);
         return result;
@@ -332,7 +333,7 @@ public struct Rectangle : IEquatable<Rectangle>
     /// </summary>
     /// <param name="value">The rectangle to evaluate</param>
     /// <param name="result">[OutAttribute] true if the specified rectangle intersects with this one; false otherwise.</param>
-    public void Intersects(ref readonly Rectangle value, out bool result)
+    public readonly void Intersects(ref readonly Rectangle value, out bool result)
     {
         result = (value.X < Right) && (X < value.Right) && (value.Y < Bottom) && (Y < value.Bottom);
     }
@@ -368,7 +369,7 @@ public struct Rectangle : IEquatable<Rectangle>
             result = Empty;
         }
     }
-    
+
     /// <summary>
     /// Creates a new rectangle that incorporate the provided point to the given rectangle.
     /// </summary>
@@ -416,7 +417,7 @@ public struct Rectangle : IEquatable<Rectangle>
     /// <returns>
     /// <c>true</c> if the specified <see cref="object"/> is equal to this instance; otherwise, <c>false</c>.
     /// </returns>
-    public override readonly bool Equals(object? obj)
+    public override readonly bool Equals([NotNullWhen(true)] object? obj)
     {
         return obj is Rectangle rectangle && Equals(rectangle);
     }
@@ -430,7 +431,7 @@ public struct Rectangle : IEquatable<Rectangle>
     /// </returns>
     public readonly bool Equals(Rectangle other)
     {
-        return other.X == this.X && other.Y == this.Y && other.Width == Width && other.Height == Height;
+        return other.X == X && other.Y == Y && other.Width == Width && other.Height == Height;
     }
 
     /// <summary>

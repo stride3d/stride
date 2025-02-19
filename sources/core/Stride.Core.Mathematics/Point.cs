@@ -22,6 +22,7 @@
 // THE SOFTWARE.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 
 namespace Stride.Core.Mathematics;
@@ -74,7 +75,7 @@ public struct Point : IEquatable<Point>
     }
 
     /// <inheritdoc/>
-    public override readonly bool Equals(object? obj)
+    public override readonly bool Equals([NotNullWhen(true)] object? obj)
     {
         return obj is Point point && Equals(point);
     }
@@ -147,5 +148,4 @@ public struct Point : IEquatable<Point>
         x = X;
         y = Y;
     }
-
 }

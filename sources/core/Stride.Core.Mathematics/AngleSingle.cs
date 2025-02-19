@@ -27,6 +27,7 @@
 * THE SOFTWARE.
 */
 
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 
 namespace Stride.Core.Mathematics;
@@ -747,7 +748,7 @@ public struct AngleSingle : IComparable, IComparable<AngleSingle>, IEquatable<An
     /// its value is equal to the value of the current Stride.Core.Mathematics.Angle
     /// object; otherwise, false.
     /// </returns>
-    public override readonly bool Equals(object? obj)
+    public override readonly bool Equals([NotNullWhen(true)] object? obj)
     {
         return obj is AngleSingle angleSingle && Equals(angleSingle);
     }
