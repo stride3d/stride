@@ -142,20 +142,18 @@ namespace Stride.Rendering
         internal unsafe ObjectNodeReference GetOrCreateObjectNode(RenderObject renderObject)
         {
             using var _ = Profiler.Begin(GetOrCreateObjectNodeKey);
-            fixed (ObjectNodeReference* objectNodeRef = &renderObject.ObjectNode)
+
+            var oldValue = Interlocked.CompareExchange(ref renderObject.ObjectNode.Index, -2, -1);
+            if (oldValue == -1)
             {
-                var oldValue = Interlocked.CompareExchange(ref *(int*)objectNodeRef, -2, -1);
-                if (oldValue == -1)
+                var index = objectNodes.Add(new ObjectNode(renderObject));
+                renderObject.ObjectNode = new ObjectNodeReference(index);
+                ObjectNodeReferences.Add(renderObject.ObjectNode);
+            }
+            else if (oldValue == -2) // Wait until whoever is inside the scope above finishes
+            {
+                while (Volatile.Read(ref renderObject.ObjectNode.Index) == -2)
                 {
-                    var index = objectNodes.Add(new ObjectNode(renderObject));
-                    renderObject.ObjectNode = new ObjectNodeReference(index);
-                    ObjectNodeReferences.Add(renderObject.ObjectNode);
-                }
-                else
-                {
-                    while (renderObject.ObjectNode.Index == -2)
-                    {
-                    }
                 }
             }
 
