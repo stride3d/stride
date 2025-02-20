@@ -150,24 +150,24 @@ namespace Stride.UI.Tests.Layering
             grid.LayerDefinitions.Add(new StripDefinition(StripType.Fixed, 900));
 
             // the simple cells children
-            var child000 = new MeasureArrangeValidator { ExpectedMeasureValue = new Vector3(100, 400, 700), ExpectedArrangeValue = new Vector3(100, 400, 700), ReturnedMeasuredValue = 1000 * rand.NextVector3(), DepthAlignment = DepthAlignment.Stretch };
-            var child100 = new MeasureArrangeValidator { ExpectedMeasureValue = new Vector3(200, 400, 700), ExpectedArrangeValue = new Vector3(200, 400, 700), ReturnedMeasuredValue = 1000 * rand.NextVector3(), DepthAlignment = DepthAlignment.Stretch };
-            var child200 = new MeasureArrangeValidator { ExpectedMeasureValue = new Vector3(300, 400, 700), ExpectedArrangeValue = new Vector3(300, 400, 700), ReturnedMeasuredValue = 1000 * rand.NextVector3(), DepthAlignment = DepthAlignment.Stretch };
-            var child010 = new MeasureArrangeValidator { ExpectedMeasureValue = new Vector3(100, 500, 700), ExpectedArrangeValue = new Vector3(100, 500, 700), ReturnedMeasuredValue = 1000 * rand.NextVector3(), DepthAlignment = DepthAlignment.Stretch };
-            var child020 = new MeasureArrangeValidator { ExpectedMeasureValue = new Vector3(100, 600, 700), ExpectedArrangeValue = new Vector3(100, 600, 700), ReturnedMeasuredValue = 1000 * rand.NextVector3(), DepthAlignment = DepthAlignment.Stretch };
-            var child001 = new MeasureArrangeValidator { ExpectedMeasureValue = new Vector3(100, 400, 800), ExpectedArrangeValue = new Vector3(100, 400, 800), ReturnedMeasuredValue = 1000 * rand.NextVector3(), DepthAlignment = DepthAlignment.Stretch };
-            var child002 = new MeasureArrangeValidator { ExpectedMeasureValue = new Vector3(100, 400, 900), ExpectedArrangeValue = new Vector3(100, 400, 900), ReturnedMeasuredValue = 1000 * rand.NextVector3(), DepthAlignment = DepthAlignment.Stretch };
+            var child000 = new MeasureArrangeValidator { ExpectedMeasureValue = new Vector3(100, 400, 700), ExpectedArrangeValue = new Vector3(100, 400, 700), ReturnedMeasuredValue = 1000 * rand.NextVector2(), DepthAlignment = DepthAlignment.Stretch };
+            var child100 = new MeasureArrangeValidator { ExpectedMeasureValue = new Vector3(200, 400, 700), ExpectedArrangeValue = new Vector3(200, 400, 700), ReturnedMeasuredValue = 1000 * rand.NextVector2(), DepthAlignment = DepthAlignment.Stretch };
+            var child200 = new MeasureArrangeValidator { ExpectedMeasureValue = new Vector3(300, 400, 700), ExpectedArrangeValue = new Vector3(300, 400, 700), ReturnedMeasuredValue = 1000 * rand.NextVector2(), DepthAlignment = DepthAlignment.Stretch };
+            var child010 = new MeasureArrangeValidator { ExpectedMeasureValue = new Vector3(100, 500, 700), ExpectedArrangeValue = new Vector3(100, 500, 700), ReturnedMeasuredValue = 1000 * rand.NextVector2(), DepthAlignment = DepthAlignment.Stretch };
+            var child020 = new MeasureArrangeValidator { ExpectedMeasureValue = new Vector3(100, 600, 700), ExpectedArrangeValue = new Vector3(100, 600, 700), ReturnedMeasuredValue = 1000 * rand.NextVector2(), DepthAlignment = DepthAlignment.Stretch };
+            var child001 = new MeasureArrangeValidator { ExpectedMeasureValue = new Vector3(100, 400, 800), ExpectedArrangeValue = new Vector3(100, 400, 800), ReturnedMeasuredValue = 1000 * rand.NextVector2(), DepthAlignment = DepthAlignment.Stretch };
+            var child002 = new MeasureArrangeValidator { ExpectedMeasureValue = new Vector3(100, 400, 900), ExpectedArrangeValue = new Vector3(100, 400, 900), ReturnedMeasuredValue = 1000 * rand.NextVector2(), DepthAlignment = DepthAlignment.Stretch };
 
             // two cells children
-            var child000C2 = new MeasureArrangeValidator { ExpectedMeasureValue = new Vector3(300, 400, 700), ExpectedArrangeValue = new Vector3(300, 400, 700), ReturnedMeasuredValue = 1000 * rand.NextVector3(), DepthAlignment = DepthAlignment.Stretch };
-            var child100C2 = new MeasureArrangeValidator { ExpectedMeasureValue = new Vector3(500, 400, 700), ExpectedArrangeValue = new Vector3(500, 400, 700), ReturnedMeasuredValue = 1000 * rand.NextVector3(), DepthAlignment = DepthAlignment.Stretch };
-            var child000C3 = new MeasureArrangeValidator { ExpectedMeasureValue = new Vector3(600, 400, 700), ExpectedArrangeValue = new Vector3(600, 400, 700), ReturnedMeasuredValue = 1000 * rand.NextVector3(), DepthAlignment = DepthAlignment.Stretch };
-            var child000R2 = new MeasureArrangeValidator { ExpectedMeasureValue = new Vector3(100, 900, 700), ExpectedArrangeValue = new Vector3(100, 900, 700), ReturnedMeasuredValue = 1000 * rand.NextVector3(), DepthAlignment = DepthAlignment.Stretch };
-            var child010R2 = new MeasureArrangeValidator { ExpectedMeasureValue = new Vector3(100, 1100, 700), ExpectedArrangeValue = new Vector3(100, 1100, 700), ReturnedMeasuredValue = 1000 * rand.NextVector3(), DepthAlignment = DepthAlignment.Stretch };
-            var child000R3 = new MeasureArrangeValidator { ExpectedMeasureValue = new Vector3(100, 1500, 700), ExpectedArrangeValue = new Vector3(100, 1500, 700), ReturnedMeasuredValue = 1000 * rand.NextVector3(), DepthAlignment = DepthAlignment.Stretch };
-            var child000L2 = new MeasureArrangeValidator { ExpectedMeasureValue = new Vector3(100, 400, 1500), ExpectedArrangeValue = new Vector3(100, 400, 1500), ReturnedMeasuredValue = 1000 * rand.NextVector3(), DepthAlignment = DepthAlignment.Stretch };
-            var child001L2 = new MeasureArrangeValidator { ExpectedMeasureValue = new Vector3(100, 400, 1700), ExpectedArrangeValue = new Vector3(100, 400, 1700), ReturnedMeasuredValue = 1000 * rand.NextVector3(), DepthAlignment = DepthAlignment.Stretch };
-            var child000L3 = new MeasureArrangeValidator { ExpectedMeasureValue = new Vector3(100, 400, 2400), ExpectedArrangeValue = new Vector3(100, 400, 2400), ReturnedMeasuredValue = 1000 * rand.NextVector3(), DepthAlignment = DepthAlignment.Stretch };
+            var child000C2 = new MeasureArrangeValidator { ExpectedMeasureValue = new Vector3(300, 400, 700), ExpectedArrangeValue = new Vector3(300, 400, 700), ReturnedMeasuredValue = 1000 * rand.NextVector2(), DepthAlignment = DepthAlignment.Stretch };
+            var child100C2 = new MeasureArrangeValidator { ExpectedMeasureValue = new Vector3(500, 400, 700), ExpectedArrangeValue = new Vector3(500, 400, 700), ReturnedMeasuredValue = 1000 * rand.NextVector2(), DepthAlignment = DepthAlignment.Stretch };
+            var child000C3 = new MeasureArrangeValidator { ExpectedMeasureValue = new Vector3(600, 400, 700), ExpectedArrangeValue = new Vector3(600, 400, 700), ReturnedMeasuredValue = 1000 * rand.NextVector2(), DepthAlignment = DepthAlignment.Stretch };
+            var child000R2 = new MeasureArrangeValidator { ExpectedMeasureValue = new Vector3(100, 900, 700), ExpectedArrangeValue = new Vector3(100, 900, 700), ReturnedMeasuredValue = 1000 * rand.NextVector2(), DepthAlignment = DepthAlignment.Stretch };
+            var child010R2 = new MeasureArrangeValidator { ExpectedMeasureValue = new Vector3(100, 1100, 700), ExpectedArrangeValue = new Vector3(100, 1100, 700), ReturnedMeasuredValue = 1000 * rand.NextVector2(), DepthAlignment = DepthAlignment.Stretch };
+            var child000R3 = new MeasureArrangeValidator { ExpectedMeasureValue = new Vector3(100, 1500, 700), ExpectedArrangeValue = new Vector3(100, 1500, 700), ReturnedMeasuredValue = 1000 * rand.NextVector2(), DepthAlignment = DepthAlignment.Stretch };
+            var child000L2 = new MeasureArrangeValidator { ExpectedMeasureValue = new Vector3(100, 400, 1500), ExpectedArrangeValue = new Vector3(100, 400, 1500), ReturnedMeasuredValue = 1000 * rand.NextVector2(), DepthAlignment = DepthAlignment.Stretch };
+            var child001L2 = new MeasureArrangeValidator { ExpectedMeasureValue = new Vector3(100, 400, 1700), ExpectedArrangeValue = new Vector3(100, 400, 1700), ReturnedMeasuredValue = 1000 * rand.NextVector2(), DepthAlignment = DepthAlignment.Stretch };
+            var child000L3 = new MeasureArrangeValidator { ExpectedMeasureValue = new Vector3(100, 400, 2400), ExpectedArrangeValue = new Vector3(100, 400, 2400), ReturnedMeasuredValue = 1000 * rand.NextVector2(), DepthAlignment = DepthAlignment.Stretch };
 
             // set the span of the children
             child000C2.DependencyProperties.Set(GridBase.ColumnSpanPropertyKey, 2);
@@ -258,7 +258,7 @@ namespace Stride.UI.Tests.Layering
             CreateFixedSizeDefinition(grid.RowDefinitions, rowSizes);
             CreateFixedSizeDefinition(grid.LayerDefinitions, layerSizes);
 
-            var size = rand.NextVector3();
+            var size = rand.NextVector2();
             grid.Measure(size);
             grid.Arrange(size, false);
 
@@ -308,7 +308,7 @@ namespace Stride.UI.Tests.Layering
             grid.Children.Add(c01);
             grid.Children.Add(c02);
 
-            grid.Measure(50 * rand.NextVector3());
+            grid.Measure(50 * rand.NextVector2());
             Assert.Equal(new Vector3(60,0,0), grid.DesiredSizeWithMargins);
 
             grid.Arrange(2*grid.DesiredSizeWithMargins, false);
@@ -360,7 +360,7 @@ namespace Stride.UI.Tests.Layering
             grid.Children.Add(c11);
             grid.Children.Add(c20);
 
-            grid.Measure(50 * rand.NextVector3());
+            grid.Measure(50 * rand.NextVector2());
             Assert.Equal(new Vector3(60, 0, 0), grid.DesiredSizeWithMargins);
 
             grid.Arrange(2 * grid.DesiredSizeWithMargins, false);
@@ -388,7 +388,7 @@ namespace Stride.UI.Tests.Layering
             var c00 = new ArrangeValidator { Name = "c00", ReturnedMeasuredValue = new Vector3(10, 0, 0), ExpectedArrangeValue = new Vector3(20, 0, 0) };
             grid.Children.Add(c00);
 
-            grid.Measure(50 * rand.NextVector3());
+            grid.Measure(50 * rand.NextVector2());
             Assert.Equal(new Vector3(20, 0, 0), grid.DesiredSizeWithMargins);
 
             grid.Arrange(15 * Vector3.One, false);
@@ -415,7 +415,7 @@ namespace Stride.UI.Tests.Layering
             var c00 = new ArrangeValidator { Name = "c00", ReturnedMeasuredValue = new Vector3(30, 0, 0), ExpectedArrangeValue = new Vector3(20, 0, 0) };
             grid.Children.Add(c00);
 
-            grid.Measure(50 * rand.NextVector3());
+            grid.Measure(50 * rand.NextVector2());
             Assert.Equal(new Vector3(20, 0, 0), grid.DesiredSizeWithMargins);
 
             grid.Arrange(40 * Vector3.One, false);
@@ -447,7 +447,7 @@ namespace Stride.UI.Tests.Layering
             grid.Children.Add(c00);
             grid.Children.Add(c01);
 
-            grid.Measure(50 * rand.NextVector3());
+            grid.Measure(50 * rand.NextVector2());
             Assert.Equal(new Vector3(50, 0, 0), grid.DesiredSizeWithMargins);
 
             grid.Arrange(15 * Vector3.One, false);
@@ -480,7 +480,7 @@ namespace Stride.UI.Tests.Layering
             grid.Children.Add(c00);
             grid.Children.Add(c01);
 
-            grid.Measure(50 * rand.NextVector3());
+            grid.Measure(50 * rand.NextVector2());
             Assert.Equal(new Vector3(105, 0, 0), grid.DesiredSizeWithMargins);
 
             grid.Arrange(110 * Vector3.One, false);
@@ -513,7 +513,7 @@ namespace Stride.UI.Tests.Layering
             grid.Children.Add(c00);
             grid.Children.Add(c01);
 
-            grid.Measure(50 * rand.NextVector3());
+            grid.Measure(50 * rand.NextVector2());
             Assert.Equal(new Vector3(75, 0, 0), grid.DesiredSizeWithMargins);
 
             grid.Arrange(90 * Vector3.One, false);
@@ -546,7 +546,7 @@ namespace Stride.UI.Tests.Layering
             grid.Children.Add(c00);
             grid.Children.Add(c01);
 
-            grid.Measure(50 * rand.NextVector3());
+            grid.Measure(50 * rand.NextVector2());
             Assert.Equal(new Vector3(50, 0, 0), grid.DesiredSizeWithMargins);
 
             grid.Arrange(90 * Vector3.One, false);
@@ -579,7 +579,7 @@ namespace Stride.UI.Tests.Layering
             grid.Children.Add(c00);
             grid.Children.Add(c01);
 
-            grid.Measure(50 * rand.NextVector3());
+            grid.Measure(50 * rand.NextVector2());
             Assert.Equal(new Vector3(60, 0, 0), grid.DesiredSizeWithMargins);
 
             grid.Arrange(65 * Vector3.One, false);
@@ -612,7 +612,7 @@ namespace Stride.UI.Tests.Layering
             grid.Children.Add(c00);
             grid.Children.Add(c01);
 
-            grid.Measure(50 * rand.NextVector3());
+            grid.Measure(50 * rand.NextVector2());
             Assert.Equal(new Vector3(45, 0, 0), grid.DesiredSizeWithMargins);
 
             grid.Arrange(60 * Vector3.One, false);
@@ -643,7 +643,7 @@ namespace Stride.UI.Tests.Layering
             c00.DependencyProperties.Set(GridBase.ColumnSpanPropertyKey, 4);
             grid.Children.Add(c00);
 
-            grid.Measure(50 * rand.NextVector3());
+            grid.Measure(50 * rand.NextVector2());
             Assert.Equal(new Vector3(140, 0, 0), grid.DesiredSizeWithMargins);
 
             grid.Arrange(50 * Vector3.One, false);
@@ -676,7 +676,7 @@ namespace Stride.UI.Tests.Layering
             c00.DependencyProperties.Set(GridBase.ColumnSpanPropertyKey, 4);
             grid.Children.Add(c00);
 
-            grid.Measure(50 * rand.NextVector3());
+            grid.Measure(50 * rand.NextVector2());
             Assert.Equal(new Vector3(150, 0, 0), grid.DesiredSizeWithMargins);
 
             grid.Arrange(150 * Vector3.One, false);
@@ -709,7 +709,7 @@ namespace Stride.UI.Tests.Layering
             c00.DependencyProperties.Set(GridBase.ColumnSpanPropertyKey, 4);
             grid.Children.Add(c00);
 
-            grid.Measure(50 * rand.NextVector3());
+            grid.Measure(50 * rand.NextVector2());
             Assert.Equal(new Vector3(140, 0, 0), grid.DesiredSizeWithMargins);
 
             grid.Arrange(200 * Vector3.One, false);
@@ -742,7 +742,7 @@ namespace Stride.UI.Tests.Layering
             c00.DependencyProperties.Set(GridBase.ColumnSpanPropertyKey, 4);
             grid.Children.Add(c00);
 
-            grid.Measure(50 * rand.NextVector3());
+            grid.Measure(50 * rand.NextVector2());
             Assert.Equal(new Vector3(110, 0, 0), grid.DesiredSizeWithMargins);
 
             grid.Arrange(110 * Vector3.One, false);
@@ -776,7 +776,7 @@ namespace Stride.UI.Tests.Layering
             c00.DependencyProperties.Set(GridBase.ColumnSpanPropertyKey, 4);
             grid.Children.Add(c00);
 
-            grid.Measure(50 * rand.NextVector3());
+            grid.Measure(50 * rand.NextVector2());
             Assert.Equal(new Vector3(145, 0, 0), grid.DesiredSizeWithMargins);
 
             grid.Arrange(145 * Vector3.One, false);
@@ -810,7 +810,7 @@ namespace Stride.UI.Tests.Layering
             c00.DependencyProperties.Set(GridBase.ColumnSpanPropertyKey, 4);
             grid.Children.Add(c00);
 
-            grid.Measure(50 * rand.NextVector3());
+            grid.Measure(50 * rand.NextVector2());
             Assert.Equal(new Vector3(195, 0, 0), grid.DesiredSizeWithMargins);
 
             grid.Arrange(195 * Vector3.One, false);
@@ -853,7 +853,7 @@ namespace Stride.UI.Tests.Layering
             grid.Children.Add(c01);
             grid.Children.Add(c11);
 
-            grid.Measure(50 * rand.NextVector3());
+            grid.Measure(50 * rand.NextVector2());
             Assert.Equal(new Vector3(100, 0, 0), grid.DesiredSizeWithMargins);
 
             grid.Arrange(110 * Vector3.One, false);
@@ -905,10 +905,10 @@ namespace Stride.UI.Tests.Layering
             grid.Children.Add(c11);
             grid.Children.Add(c12);
 
-            grid.Measure(30 * rand.NextVector3());
+            grid.Measure(30 * rand.NextVector2());
             Assert.Equal(new Vector3(80,0,0), grid.DesiredSizeWithMargins);
 
-            grid.Arrange(30 * rand.NextVector3(), false);
+            grid.Arrange(30 * rand.NextVector2(), false);
 
             Assert.Equal(10, grid.ColumnDefinitions[0].ActualSize);
             Assert.Equal(30, grid.ColumnDefinitions[1].ActualSize);
@@ -971,10 +971,10 @@ namespace Stride.UI.Tests.Layering
             grid.Children.Add(c21);
             grid.Children.Add(c30);
 
-            grid.Measure(30 * rand.NextVector3());
+            grid.Measure(30 * rand.NextVector2());
             Assert.Equal(new Vector3(70, 0, 0), grid.DesiredSizeWithMargins);
 
-            grid.Arrange(50 * rand.NextVector3(), false);
+            grid.Arrange(50 * rand.NextVector2(), false);
 
             Assert.Equal(10, grid.ColumnDefinitions[0].ActualSize);
             Assert.Equal(30, grid.ColumnDefinitions[1].ActualSize);
@@ -1064,10 +1064,10 @@ namespace Stride.UI.Tests.Layering
             grid.Children.Add(c32);
             grid.Children.Add(c44);
 
-            grid.Measure(30 * rand.NextVector3());
+            grid.Measure(30 * rand.NextVector2());
             Assert.Equal(new Vector3(140, 0, 0), grid.DesiredSizeWithMargins);
 
-            grid.Arrange(100 * rand.NextVector3(), false);
+            grid.Arrange(100 * rand.NextVector2(), false);
 
             Assert.Equal(20, grid.ColumnDefinitions[0].ActualSize);
             Assert.Equal(20, grid.ColumnDefinitions[1].ActualSize);
@@ -1134,7 +1134,7 @@ namespace Stride.UI.Tests.Layering
         {
             var grid = new Grid();
 
-            var providedSize = 1000 * rand.NextVector3();
+            var providedSize = 1000 * rand.NextVector2();
 
             grid.ColumnDefinitions.Add(new StripDefinition(StripType.Fixed) { MinimumSize = 5 });
             grid.ColumnDefinitions.Add(new StripDefinition(StripType.Fixed) { MaximumSize = 0.5f });
@@ -1163,7 +1163,7 @@ namespace Stride.UI.Tests.Layering
         {
             var grid = new Grid();
 
-            var providedSize = 1000 * rand.NextVector3();
+            var providedSize = 1000 * rand.NextVector2();
 
             grid.ColumnDefinitions.Add(new StripDefinition(StripType.Fixed) { MinimumSize = 5 });
             grid.ColumnDefinitions.Add(new StripDefinition(StripType.Fixed) { MaximumSize = 0.5f });
@@ -1193,7 +1193,7 @@ namespace Stride.UI.Tests.Layering
         {
             var grid = new Grid();
 
-            var providedSize = 1000 * rand.NextVector3();
+            var providedSize = 1000 * rand.NextVector2();
 
             grid.ColumnDefinitions.Add(new StripDefinition(StripType.Star, 10));
             grid.ColumnDefinitions.Add(new StripDefinition(StripType.Star, 40));

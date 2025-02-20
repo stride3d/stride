@@ -42,7 +42,7 @@ namespace Stride.Assets.Presentation.AssetEditors.UIEditor.Game
 
             private Thickness prevMargin;
             private Guid? prevParentId;
-            private Vector3 prevRenderSize;
+            private Size2F prevRenderSize;
             private Matrix prevWorldMatrix;
 
             private HighlightAdorner highlightAdorner;
@@ -141,9 +141,9 @@ namespace Stride.Assets.Presentation.AssetEditors.UIEditor.Game
 
             public void Invalidate()
             {
-                prevMargin = Thickness.UniformCuboid(float.NaN);
+                prevMargin = Thickness.Uniform(float.NaN);
                 prevParentId = null;
-                prevRenderSize = new Vector3(float.NaN);
+                prevRenderSize = new Size2F(float.NaN);
                 prevWorldMatrix = new Matrix(float.NaN);
             }
 
@@ -178,40 +178,40 @@ namespace Stride.Assets.Presentation.AssetEditors.UIEditor.Game
                 highlightAdorner?.Unlit();
             }
 
-            public void Update(ref Vector3 availableSize)
+            public void Update(ref Size2F availableSize)
             {
-                Vector3 parentPosition;
-                Vector3 parentSize;
+                Vector2 parentPosition;
+                Size2F parentSize;
                 Matrix parentMatrixInv;
                 var parent = gameSideElement.VisualParent;
                 if (parent != null)
                 {
                     // parentCanvas is sized to the parent of the associated UIElement
                     var parentMatrix = parent.WorldMatrix;
-                    parentPosition = parentMatrix.TranslationVector + availableSize * 0.5f;
+                    parentPosition = parentMatrix.TranslationVector.XY() + (Vector2)availableSize * 0.5f;
                     parentSize = parent.RenderSize;
                     parentMatrixInv = Matrix.Invert(parent.WorldMatrix);
                 }
                 else
                 {
                     // or to the total available size if it doesn't have a parent.
-                    parentPosition = availableSize * 0.5f;
+                    parentPosition = (Vector2)availableSize * 0.5f;
                     parentSize = availableSize;
                     parentMatrixInv = Matrix.Identity;
                 }
                 parentCanvas.Size = parentSize;
                 parentCanvas.SetCanvasAbsolutePosition(parentPosition);
-                parentCanvas.SetCanvasPinOrigin(0.5f * Vector3.One); // centered on origin
+                parentCanvas.SetCanvasPinOrigin(0.5f * Vector2.One); // centered on origin
 
                 var diffMatrix = Matrix.Multiply(parentMatrixInv, gameSideElement.WorldMatrix);
-                var position = diffMatrix.TranslationVector + parentSize * 0.5f;
+                var position = diffMatrix.TranslationVector.XY() + (Vector2)parentSize * 0.5f;
                 // canvas is sized to the associated UIElement
                 canvas.Size = gameSideElement.RenderSize;
                 // canvas is z-offset by depth bias (+1 to differentiate with the adorner root canvas)
-                canvas.Margin = new Thickness(0, 0, 0, 0, 0, -1*(gameSideElement.DepthBias + 1)); // because we are inside a canvas, only Left, Top and Front margins can be used.
+                //canvas.Margin = new Thickness(0, 0, 0, 0, 0, -1*(gameSideElement.DepthBias + 1)); // because we are inside a canvas, only Left, Top and Front margins can be used.
 
                 canvas.SetCanvasAbsolutePosition(position);
-                canvas.SetCanvasPinOrigin(0.5f * Vector3.One); // centered on origin
+                canvas.SetCanvasPinOrigin(0.5f * Vector2.One); // centered on origin
 
                 adorners.ForEach(a => a.Update(position));
                 highlightAdorner?.Update(position);

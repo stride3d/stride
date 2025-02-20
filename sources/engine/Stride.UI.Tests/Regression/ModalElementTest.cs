@@ -61,7 +61,7 @@ namespace Stride.UI.Tests.Regression
                 Content = quitText,
                 VerticalAlignment = VerticalAlignment.Bottom,
                 HorizontalAlignment = HorizontalAlignment.Left,
-                Padding = Thickness.UniformRectangle(10),
+                Padding = Thickness.Uniform(10),
             };
             ApplyButtonDefaultStyle(quitGameButton);
             quitGameButton.DependencyProperties.Set(GridBase.ColumnPropertyKey, 0);
@@ -76,7 +76,7 @@ namespace Stride.UI.Tests.Regression
                 Content = modalButton1Text,
                 VerticalAlignment = VerticalAlignment.Center,
                 HorizontalAlignment = HorizontalAlignment.Center,
-                Padding = Thickness.UniformRectangle(10),
+                Padding = Thickness.Uniform(10),
             };
             ApplyButtonDefaultStyle(modalButton1);
             modalButton1.Click += ModalButton1OnClick;
@@ -94,7 +94,7 @@ namespace Stride.UI.Tests.Regression
                 Content = modalButton2Text,
                 VerticalAlignment = VerticalAlignment.Center,
                 HorizontalAlignment = HorizontalAlignment.Center,
-                Padding = Thickness.UniformRectangle(10),
+                Padding = Thickness.Uniform(10),
             };
             ApplyButtonDefaultStyle(modalButton2);
             modalButton2.Click += ModalButton2OnClick;

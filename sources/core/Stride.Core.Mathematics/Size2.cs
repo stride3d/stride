@@ -66,6 +66,35 @@ namespace Stride.Core.Mathematics
         /// </summary>
         [DataMember(1)]
         public int Height;
+        
+        /// <summary>
+        /// Gets or sets the component at the specified index.
+        /// </summary>
+        /// <value>The value of the Width or Height component, depending on the index.</value>
+        /// <param name="index">The index of the component to access. Use 0 for the Width component and 1 for the Height component.</param>
+        /// <returns>The value of the component at the specified index.</returns>
+        /// <exception cref="System.ArgumentOutOfRangeException">Thrown when the <paramref name="index"/> is out of the range [0, 1].</exception>
+        public int this[int index]
+        {
+            get
+            {
+                switch (index)
+                {
+                    case 0: return Width;
+                    case 1: return Height;
+                    default:  throw new ArgumentOutOfRangeException(nameof(index), "Indices for Size2 run from 0 to 1, inclusive.");
+                }
+            }
+            set
+            {
+                switch (index)
+                {
+                    case 0: Width = value; break;
+                    case 1: Height = value; break;
+                    default: throw new ArgumentOutOfRangeException(nameof(index), "Indices for Size2 run from 0 to 1, inclusive.");
+                }
+            }
+        }
 
         /// <summary>
         /// Determines whether the specified <see cref="object"/> is equal to this instance.
