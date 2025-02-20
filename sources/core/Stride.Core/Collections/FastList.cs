@@ -410,7 +410,7 @@ public class FastList<T> : IList<T>, IReadOnlyList<T>
                 {
                     Array.Copy(Items, index, Items, index + count, size - index);
                 }
-                if (this == is2)
+                if (ReferenceEquals(this, is2))
                 {
                     Array.Copy(Items, 0, Items, index, index);
                     Array.Copy(Items, index + count, Items, index * 2, size - index);

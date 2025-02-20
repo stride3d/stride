@@ -142,9 +142,9 @@ public class SortedList<TKey, TValue> : IDictionary<TKey, TValue>, IDictionary
     {
         get
         {
-            if (!(key is TKey))
+            if (key is not TKey key1)
                 return null;
-            return this[(TKey)key];
+            return this[key1];
         }
 
         set
@@ -337,10 +337,10 @@ public class SortedList<TKey, TValue> : IDictionary<TKey, TValue>, IDictionary
     bool IDictionary.Contains(object key)
     {
         ArgumentNullException.ThrowIfNull(key);
-        if (!(key is TKey))
+        if (key is not TKey key1)
             return false;
 
-        return (Find((TKey)key) >= 0);
+        return (Find(key1) >= 0);
     }
 
     IDictionaryEnumerator IDictionary.GetEnumerator()
@@ -351,9 +351,9 @@ public class SortedList<TKey, TValue> : IDictionary<TKey, TValue>, IDictionary
     void IDictionary.Remove(object key)
     {
         ArgumentNullException.ThrowIfNull(key);
-        if (!(key is TKey))
+        if (key is not TKey key1)
             return;
-        var i = IndexOfKey((TKey)key);
+        var i = IndexOfKey(key1);
         if (i >= 0) RemoveAt(i);
     }
 
@@ -376,7 +376,7 @@ public class SortedList<TKey, TValue> : IDictionary<TKey, TValue>, IDictionary
         if (Count > (array.Length - arrayIndex))
             throw new ArgumentNullException("Not enough space in array from arrayIndex to end of array");
 
-        IEnumerator<KeyValuePair<TKey, TValue>> it = GetEnumerator();
+        using var it = GetEnumerator();
         var i = arrayIndex;
 
         while (it.MoveNext())
@@ -612,16 +612,16 @@ public class SortedList<TKey, TValue> : IDictionary<TKey, TValue>, IDictionary
     private TKey ToKey(object key)
     {
         ArgumentNullException.ThrowIfNull(key);
-        if (!(key is TKey))
+        if (key is not TKey key1)
             throw new ArgumentException("The value \"" + key + "\" isn't of type \"" + typeof(TKey) + "\" and can't be used in this generic collection.", nameof(key));
-        return (TKey)key;
+        return key1;
     }
 
     private TValue ToValue(object value)
     {
-        if (!(value is TValue))
+        if (value is not TValue value1)
             throw new ArgumentException("The value \"" + value + "\" isn't of type \"" + typeof(TValue) + "\" and can't be used in this generic collection.", nameof(value));
-        return (TValue)value;
+        return value1;
     }
 
     internal TKey KeyAt(int index)

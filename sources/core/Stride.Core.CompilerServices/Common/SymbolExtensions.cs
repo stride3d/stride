@@ -28,7 +28,7 @@ internal static class SymbolExtensions
     /// <returns>true if the attribute is found, else false</returns>
     public static bool TryGetAttribute(this ISymbol symbol, INamedTypeSymbol attribute, [MaybeNullWhen(false)] out AttributeData attributeData)
     {
-        attributeData = symbol.GetAttributes().FirstOrDefault(attr => attr.AttributeClass?.OriginalDefinition.Equals(attribute, SymbolEqualityComparer.Default) ?? false)!;
+        attributeData = symbol.GetAttributes().FirstOrDefault(attr => attr.AttributeClass?.OriginalDefinition.Equals(attribute, SymbolEqualityComparer.Default) ?? false);
         return attributeData is not null;
     }
 

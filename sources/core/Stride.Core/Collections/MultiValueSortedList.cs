@@ -17,17 +17,16 @@ namespace Stride.Core.Collections;
 /// <typeparam name="TValue">The type of the value.</typeparam>
 public class MultiValueSortedList<TKey, TValue> : ILookup<TKey, TValue>, ICollection<KeyValuePair<TKey, TValue>>, IEnumerable<KeyValuePair<TKey, TValue>>, ICollection, IEnumerable where TKey : IComparable<TKey>
 {
-    private struct Grouping : IGrouping<TKey, TValue>
+    private readonly struct Grouping : IGrouping<TKey, TValue>
     {
         public IEnumerator<TValue> GetEnumerator() { return enumerable.GetEnumerator(); }
         IEnumerator IEnumerable.GetEnumerator() { return enumerable.GetEnumerator(); }
-        public TKey Key => key;
-        public Grouping(TKey key, IEnumerable<TValue> values) { this.key = key; enumerable = values; }
-        private readonly TKey key;
+        public TKey Key { get; }
+        public Grouping(TKey key, IEnumerable<TValue> values) { this.Key = key; enumerable = values; }
         private readonly IEnumerable<TValue> enumerable;
     }
 
-    private struct GroupingEnumerator : IEnumerator<IGrouping<TKey, TValue>>
+    private readonly struct GroupingEnumerator : IEnumerator<IGrouping<TKey, TValue>>
     {
         public void Dispose() { keys.Dispose(); }
         public bool MoveNext() { return keys.MoveNext(); }
@@ -39,8 +38,8 @@ public class MultiValueSortedList<TKey, TValue> : ILookup<TKey, TValue>, ICollec
         private readonly MultiValueSortedList<TKey, TValue> list;
     }
 
-    private readonly List<KeyValuePair<TKey, TValue>> list = new List<KeyValuePair<TKey, TValue>>();
-    private readonly List<TKey> keys = new List<TKey>();
+    private readonly List<KeyValuePair<TKey, TValue>> list = [];
+    private readonly List<TKey> keys = [];
 
     public IEnumerable<TKey> Keys => DistinctKeys();
     public IEnumerable<TValue> Values { get { return list.Select(x => x.Value); } }

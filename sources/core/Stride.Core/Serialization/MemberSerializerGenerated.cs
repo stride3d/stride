@@ -432,8 +432,8 @@ public static unsafe class MemberNonSealedSerializer
                     stream.Serialize(ref serializationTypeId);
 
                     objectDataSerializer = context.SerializerSelector.GetSerializer(ref serializationTypeId);
-						if (objectDataSerializer is null)
-						    throw new ArgumentException("No serializer available for type id " + serializationTypeId + " and base type " + objType.FullName);
+                    if (objectDataSerializer is null)
+                        throw new ArgumentException("No serializer available for type id " + serializationTypeId + " and base type " + objType.FullName);
 
                     objectDataSerializer.PreSerialize(ref obj, mode, stream);
 
@@ -566,8 +566,8 @@ public unsafe class MemberNonSealedSerializer<T> : MemberSerializer<T>
                     stream.Serialize(ref serializationTypeId);
 
                     objectDataSerializer = context.SerializerSelector.GetSerializer(ref serializationTypeId);
-						if (objectDataSerializer is null)
-						    throw new ArgumentException("No serializer available for type id " + serializationTypeId + " and base type " + typeof(T).FullName);
+                    if (objectDataSerializer is null)
+                        throw new ArgumentException("No serializer available for type id " + serializationTypeId + " and base type " + typeof(T).FullName);
 
                     objCopy = obj;
                     objectDataSerializer.PreSerialize(ref objCopy, mode, stream);
@@ -712,8 +712,8 @@ public unsafe class MemberNonSealedSerializer<T> : MemberSerializer<T>
                     stream.Serialize(ref serializationTypeId);
 
                     objectDataSerializer = context.SerializerSelector.GetSerializer(ref serializationTypeId);
-						if (objectDataSerializer is null)
-						    throw new ArgumentException("No serializer available for type id " + serializationTypeId + " and base type " + typeof(T).FullName);
+                    if (objectDataSerializer is null)
+                        throw new ArgumentException("No serializer available for type id " + serializationTypeId + " and base type " + typeof(T).FullName);
 
                     objCopy = obj;
                     objectDataSerializer.PreSerialize(ref objCopy, mode, stream);
@@ -857,8 +857,8 @@ public unsafe class MemberNonSealedSerializerObject<T> : MemberSerializer<T>
                     stream.Serialize(ref serializationTypeId);
 
                     objectDataSerializer = context.SerializerSelector.GetSerializer(ref serializationTypeId);
-						if (objectDataSerializer is null)
-						    throw new ArgumentException("No serializer available for type id " + serializationTypeId + " and base type " + typeof(T).FullName);
+                    if (objectDataSerializer is null)
+                        throw new ArgumentException("No serializer available for type id " + serializationTypeId + " and base type " + typeof(T).FullName);
 
                     objCopy = obj;
                     objectDataSerializer.PreSerialize(ref objCopy, mode, stream);
@@ -1037,9 +1037,8 @@ public static unsafe class MemberReuseSerializer
             else if (externalIdentifiableAsGuid && isExternalIdentifiable)
             {
                 var externalIdentifiables = context.Get(MemberSerializer.ExternalIdentifiables);
-					var identifier = stream.Read<Guid>();
-					IIdentifiable identifiable;
-					externalIdentifiables.TryGetValue(identifier, out identifiable);
+                var identifier = stream.Read<Guid>();
+                externalIdentifiables.TryGetValue(identifier, out var identifiable);
                 obj = identifiable;
             }
             else if (reuseReferences && isReference)
@@ -1060,8 +1059,8 @@ public static unsafe class MemberReuseSerializer
                     stream.Serialize(ref serializationTypeId);
 
                     objectDataSerializer = context.SerializerSelector.GetSerializer(ref serializationTypeId);
-						if (objectDataSerializer is null)
-						    throw new ArgumentException("No serializer available for type id " + serializationTypeId + " and base type " + objType.FullName);
+                    if (objectDataSerializer is null)
+                        throw new ArgumentException("No serializer available for type id " + serializationTypeId + " and base type " + objType.FullName);
 
                     objectDataSerializer.PreSerialize(ref obj, mode, stream);
 
@@ -1246,9 +1245,8 @@ public unsafe class MemberReuseSerializer<T> : MemberSerializer<T>
             else if (externalIdentifiableAsGuid && isExternalIdentifiable)
             {
                 var externalIdentifiables = context.Get(MemberSerializer.ExternalIdentifiables);
-					var identifier = stream.Read<Guid>();
-					IIdentifiable identifiable;
-					externalIdentifiables.TryGetValue(identifier, out identifiable);
+                var identifier = stream.Read<Guid>();
+                externalIdentifiables.TryGetValue(identifier, out var identifiable);
                 obj = (T)identifiable;
             }
             else if (reuseReferences && isReference)
@@ -1269,8 +1267,8 @@ public unsafe class MemberReuseSerializer<T> : MemberSerializer<T>
                     stream.Serialize(ref serializationTypeId);
 
                     objectDataSerializer = context.SerializerSelector.GetSerializer(ref serializationTypeId);
-						if (objectDataSerializer is null)
-						    throw new ArgumentException("No serializer available for type id " + serializationTypeId + " and base type " + typeof(T).FullName);
+                    if (objectDataSerializer is null)
+                        throw new ArgumentException("No serializer available for type id " + serializationTypeId + " and base type " + typeof(T).FullName);
 
                     objCopy = obj;
                     objectDataSerializer.PreSerialize(ref objCopy, mode, stream);
@@ -1467,9 +1465,8 @@ public unsafe class MemberReuseSerializer<T> : MemberSerializer<T>
             else if (externalIdentifiableAsGuid && isExternalIdentifiable)
             {
                 var externalIdentifiables = context.Get(MemberSerializer.ExternalIdentifiables);
-					var identifier = stream.Read<Guid>();
-					IIdentifiable identifiable;
-					externalIdentifiables.TryGetValue(identifier, out identifiable);
+                var identifier = stream.Read<Guid>();
+                externalIdentifiables.TryGetValue(identifier, out var identifiable);
                 obj = (T)identifiable;
             }
             else if (reuseReferences && isReference)
@@ -1490,8 +1487,8 @@ public unsafe class MemberReuseSerializer<T> : MemberSerializer<T>
                     stream.Serialize(ref serializationTypeId);
 
                     objectDataSerializer = context.SerializerSelector.GetSerializer(ref serializationTypeId);
-						if (objectDataSerializer is null)
-						    throw new ArgumentException("No serializer available for type id " + serializationTypeId + " and base type " + typeof(T).FullName);
+                    if (objectDataSerializer is null)
+                        throw new ArgumentException("No serializer available for type id " + serializationTypeId + " and base type " + typeof(T).FullName);
 
                     objCopy = obj;
                     objectDataSerializer.PreSerialize(ref objCopy, mode, stream);
@@ -1687,9 +1684,8 @@ public unsafe class MemberReuseSerializerObject<T> : MemberSerializer<T>
             else if (externalIdentifiableAsGuid && isExternalIdentifiable)
             {
                 var externalIdentifiables = context.Get(MemberSerializer.ExternalIdentifiables);
-					var identifier = stream.Read<Guid>();
-					IIdentifiable identifiable;
-					externalIdentifiables.TryGetValue(identifier, out identifiable);
+                var identifier = stream.Read<Guid>();
+                externalIdentifiables.TryGetValue(identifier, out var identifiable);
                 obj = (T)identifiable;
             }
             else if (reuseReferences && isReference)
@@ -1710,8 +1706,8 @@ public unsafe class MemberReuseSerializerObject<T> : MemberSerializer<T>
                     stream.Serialize(ref serializationTypeId);
 
                     objectDataSerializer = context.SerializerSelector.GetSerializer(ref serializationTypeId);
-						if (objectDataSerializer is null)
-						    throw new ArgumentException("No serializer available for type id " + serializationTypeId + " and base type " + typeof(T).FullName);
+                    if (objectDataSerializer is null)
+                        throw new ArgumentException("No serializer available for type id " + serializationTypeId + " and base type " + typeof(T).FullName);
 
                     objCopy = obj;
                     objectDataSerializer.PreSerialize(ref objCopy, mode, stream);

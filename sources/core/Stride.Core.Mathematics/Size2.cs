@@ -22,121 +22,116 @@
 // THE SOFTWARE.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 
-namespace Stride.Core.Mathematics
+namespace Stride.Core.Mathematics;
+
+/// <summary>
+/// Defines a 2D rectangular size (width,height).
+/// </summary>
+[DataContract("!Size2")]
+[DataStyle(DataStyle.Compact)]
+[StructLayout(LayoutKind.Sequential, Pack = 4)]
+public struct Size2 : IEquatable<Size2>
 {
     /// <summary>
-    /// Defines a 2D rectangular size (width,height).
+    /// A zero size with (width, height) = (0,0)
     /// </summary>
-    [DataContract("!Size2")]
-    [DataStyle(DataStyle.Compact)]
-    [StructLayout(LayoutKind.Sequential, Pack = 4)]
-    public struct Size2 : IEquatable<Size2>
+    public static readonly Size2 Zero = new(0, 0);
+
+    /// <summary>
+    /// A zero size with (width, height) = (0,0)
+    /// </summary>
+    public static readonly Size2 Empty = Zero;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="Size2"/> struct.
+    /// </summary>
+    /// <param name="width">The x.</param>
+    /// <param name="height">The y.</param>
+    public Size2(int width, int height)
     {
-        /// <summary>
-        /// A zero size with (width, height) = (0,0)
-        /// </summary>
-        public static readonly Size2 Zero = new Size2(0, 0);
+        Width = width;
+        Height = height;
+    }
 
-        /// <summary>
-        /// A zero size with (width, height) = (0,0)
-        /// </summary>
-        public static readonly Size2 Empty = Zero;
+    /// <summary>
+    /// Width.
+    /// </summary>
+    [DataMember(0)]
+    public int Width;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="Size2"/> struct.
-        /// </summary>
-        /// <param name="width">The x.</param>
-        /// <param name="height">The y.</param>
-        public Size2(int width, int height)
-        {
-            Width = width;
-            Height = height;
-        }
+    /// <summary>
+    /// Height.
+    /// </summary>
+    [DataMember(1)]
+    public int Height;
 
-        /// <summary>
-        /// Width.
-        /// </summary>
-        [DataMember(0)]
-        public int Width;
+    /// <summary>
+    /// Determines whether the specified <see cref="object"/> is equal to this instance.
+    /// </summary>
+    /// <param name="other">The <see cref="object"/> to compare with this instance.</param>
+    /// <returns>
+    ///   <c>true</c> if the specified <see cref="object"/> is equal to this instance; otherwise, <c>false</c>.
+    /// </returns>
+    public readonly bool Equals(Size2 other)
+    {
+        return other.Width == Width && other.Height == Height;
+    }
 
-        /// <summary>
-        /// Height.
-        /// </summary>
-        [DataMember(1)]
-        public int Height;
+    /// <inheritdoc/>
+    public override readonly bool Equals([NotNullWhen(true)] object? obj)
+    {
+        return obj is Size2 size && Equals(size);
+    }
 
-        /// <summary>
-        /// Determines whether the specified <see cref="object"/> is equal to this instance.
-        /// </summary>
-        /// <param name="other">The <see cref="object"/> to compare with this instance.</param>
-        /// <returns>
-        ///   <c>true</c> if the specified <see cref="object"/> is equal to this instance; otherwise, <c>false</c>.
-        /// </returns>
-        public bool Equals(Size2 other)
-        {
-            return other.Width == Width && other.Height == Height;
-        }
+    /// <inheritdoc/>
+    public override readonly int GetHashCode()
+    {
+        return HashCode.Combine(Width, Height);
+    }
 
-        /// <inheritdoc/>
-        public override bool Equals(object obj)
-        {
-            if (ReferenceEquals(null, obj)) return false;
-            if (obj.GetType() != typeof(Size2)) return false;
-            return Equals((Size2)obj);
-        }
+    /// <summary>
+    /// Implements the operator ==.
+    /// </summary>
+    /// <param name="left">The left.</param>
+    /// <param name="right">The right.</param>
+    /// <returns>
+    /// The result of the operator.
+    /// </returns>
+    public static bool operator ==(Size2 left, Size2 right)
+    {
+        return left.Equals(right);
+    }
 
-        /// <inheritdoc/>
-        public override int GetHashCode()
-        {
-            unchecked
-            {
-                return (Width * 397) ^ Height;
-            }
-        }
+    /// <summary>
+    /// Implements the operator !=.
+    /// </summary>
+    /// <param name="left">The left.</param>
+    /// <param name="right">The right.</param>
+    /// <returns>
+    /// The result of the operator.
+    /// </returns>
+    public static bool operator !=(Size2 left, Size2 right)
+    {
+        return !left.Equals(right);
+    }
 
-        /// <summary>
-        /// Implements the operator ==.
-        /// </summary>
-        /// <param name="left">The left.</param>
-        /// <param name="right">The right.</param>
-        /// <returns>
-        /// The result of the operator.
-        /// </returns>
-        public static bool operator ==(Size2 left, Size2 right)
-        {
-            return left.Equals(right);
-        }
+    /// <inheritdoc/>
+    public override readonly string ToString()
+    {
+        return string.Format("({0},{1})", Width, Height);
+    }
 
-        /// <summary>
-        /// Implements the operator !=.
-        /// </summary>
-        /// <param name="left">The left.</param>
-        /// <param name="right">The right.</param>
-        /// <returns>
-        /// The result of the operator.
-        /// </returns>
-        public static bool operator !=(Size2 left, Size2 right)
-        {
-            return !left.Equals(right);
-        }
-
-        /// <inheritdoc/>
-        public override string ToString()
-        {
-            return string.Format("({0},{1})", Width, Height);
-        }
-
-        /// <summary>
-        /// Deconstructs the vector's components into named variables.
-        /// </summary>
-        /// <param name="width">The Width component</param>
-        /// <param name="height">The Height component</param>
-        public void Deconstruct(out int width, out int height)
-        {
-            width = Width;
-            height = Height;
-        }
+    /// <summary>
+    /// Deconstructs the vector's components into named variables.
+    /// </summary>
+    /// <param name="width">The Width component</param>
+    /// <param name="height">The Height component</param>
+    public readonly void Deconstruct(out int width, out int height)
+    {
+        width = Width;
+        height = Height;
     }
 }

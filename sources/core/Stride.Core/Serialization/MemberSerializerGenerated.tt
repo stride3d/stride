@@ -12,8 +12,8 @@
 using System.Runtime.CompilerServices;
 using Stride.Core.Storage;
 
-namespace Stride.Core.Serialization
-{
+namespace Stride.Core.Serialization;
+
 <#
 var className = "MemberNullableSerializer";
 var supportsNullDataSerializer = false;
@@ -39,4 +39,3 @@ supportsValueType = false;
 supportsReuseReferences = true;
 supportsExternalIdentifiableAsGuid = true; #>
 <#@ include file="MemberSerializerClass.ttinclude" #>
-}

@@ -23,365 +23,360 @@
 
 #endregion
 
-using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
-using Stride.Core.Annotations;
 
-namespace Stride.Core.VisualStudio
+namespace Stride.Core.VisualStudio;
+
+internal class SolutionReader : IDisposable
 {
-    internal class SolutionReader : IDisposable
+    private static readonly Regex RegexConvertEscapedValues = new(@"\\u(?<HEXACODE>[0-9a-fA-F]{4})");
+    private static readonly Regex RegexParseGlobalSection = new(@"^(?<TYPE>GlobalSection)\((?<NAME>.*)\) = (?<STEP>.*)$");
+    private static readonly Regex RegexParseProject = new("^Project\\(\"(?<PROJECTTYPEGUID>.*)\"\\)\\s*=\\s*\"(?<PROJECTNAME>.*)\"\\s*,\\s*\"(?<RELATIVEPATH>.*)\"\\s*,\\s*\"(?<PROJECTGUID>.*)\"$");
+    private static readonly Regex RegexParseProjectConfigurationPlatformsName = new(@"^(?<GUID>\{[-0-9a-zA-Z]+\})\.(?<DESCRIPTION>.*)$");
+    private static readonly Regex RegexParseProjectSection = new(@"^(?<TYPE>ProjectSection)\((?<NAME>.*)\) = (?<STEP>.*)$");
+    private static readonly Regex RegexParsePropertyLine = new(@"^(?<PROPERTYNAME>[^=]*)\s*=\s*(?<PROPERTYVALUE>[^=]*)$");
+    private static readonly Regex RegexParseVersionControlName = new("^(?<NAME_WITHOUT_INDEX>[a-zA-Z]*)(?<INDEX>[0-9]+)$");
+    private readonly string solutionFullPath;
+    private Solution solution;
+    private int currentLineNumber;
+    private StreamReader? reader;
+    private bool disposed;
+
+    public SolutionReader(string solutionFullPath) : this(solutionFullPath, new FileStream(solutionFullPath, FileMode.Open, FileAccess.Read))
     {
-        private static readonly Regex RegexConvertEscapedValues = new Regex(@"\\u(?<HEXACODE>[0-9a-fA-F]{4})");
-        private static readonly Regex RegexParseGlobalSection = new Regex(@"^(?<TYPE>GlobalSection)\((?<NAME>.*)\) = (?<STEP>.*)$");
-        private static readonly Regex RegexParseProject = new Regex("^Project\\(\"(?<PROJECTTYPEGUID>.*)\"\\)\\s*=\\s*\"(?<PROJECTNAME>.*)\"\\s*,\\s*\"(?<RELATIVEPATH>.*)\"\\s*,\\s*\"(?<PROJECTGUID>.*)\"$");
-        private static readonly Regex RegexParseProjectConfigurationPlatformsName = new Regex(@"^(?<GUID>\{[-0-9a-zA-Z]+\})\.(?<DESCRIPTION>.*)$");
-        private static readonly Regex RegexParseProjectSection = new Regex(@"^(?<TYPE>ProjectSection)\((?<NAME>.*)\) = (?<STEP>.*)$");
-        private static readonly Regex RegexParsePropertyLine = new Regex(@"^(?<PROPERTYNAME>[^=]*)\s*=\s*(?<PROPERTYVALUE>[^=]*)$");
-        private static readonly Regex RegexParseVersionControlName = new Regex(@"^(?<NAME_WITHOUT_INDEX>[a-zA-Z]*)(?<INDEX>[0-9]+)$");
-        private readonly string solutionFullPath;
-        private Solution solution;
-        private int currentLineNumber;
-        private StreamReader reader;
+    }
 
-        public SolutionReader(string solutionFullPath) : this(solutionFullPath, new FileStream(solutionFullPath, FileMode.Open, FileAccess.Read))
+    public SolutionReader(string solutionFullPath, Stream reader)
+    {
+        this.solutionFullPath = solutionFullPath;
+        this.reader = new StreamReader(reader, Encoding.Default);
+        currentLineNumber = 0;
+    }
+
+    public void Dispose()
+    {
+        disposed = true;
+        if (reader is not null)
         {
+            reader.Dispose();
+            reader = null!;
         }
+    }
 
-        public SolutionReader(string solutionFullPath, [NotNull] Stream reader)
+    public Solution ReadSolutionFile()
+    {
+#if NET7_0_OR_GREATER
+        ObjectDisposedException.ThrowIf(disposed, this);
+#else
+        if (disposed) throw new ObjectDisposedException(nameof(SolutionReader));
+#endif
+        lock (reader!)
         {
-            this.solutionFullPath = solutionFullPath;
-            this.reader = new StreamReader(reader, Encoding.Default);
-            currentLineNumber = 0;
-        }
-
-        public void Dispose()
-        {
-            if (reader != null)
+            solution = new Solution();
+            ReadHeader();
+            for (var line = ReadLine(); line != null; line = ReadLine())
             {
-                reader.Dispose();
-                reader = null;
-            }
-        }
-
-        public Solution ReadSolutionFile()
-        {
-            lock (reader)
-            {
-                solution = new Solution();
-                ReadHeader();
-                for (var line = ReadLine(); line != null; line = ReadLine())
+                // Skip blank lines
+                if (string.IsNullOrWhiteSpace(line))
                 {
-                    // Skip blank lines
-                    if (string.IsNullOrWhiteSpace(line))
-                    {
-                        continue;
-                    }
-
-                    if (line.StartsWith("Project(", StringComparison.InvariantCultureIgnoreCase))
-                    {
-                        solution.Projects.Add(ReadProject(line));
-                    }
-                    else if (string.Compare(line, "Global", StringComparison.InvariantCultureIgnoreCase) == 0)
-                    {
-                        ReadGlobal();
-                        // TODO valide end of file
-                        break;
-                    }
-                    else if (RegexParsePropertyLine.Match(line).Success)
-                    {
-                        // Read VS properties (introduced in VS2012/VS2013?)
-                        solution.Properties.Add(ReadPropertyLine(line));
-                    }
-                    else
-                    {
-                        throw new SolutionFileException($"Invalid line read on line #{currentLineNumber}.\nFound: {line}\nExpected: A line beginning with 'Project(' or 'Global'.");
-                    }
-                }
-                return solution;
-            }
-        }
-
-        [NotNull]
-        private Project FindProjectByGuid([NotNull] string guid, int lineNumber)
-        {
-            var p = solution.Projects.FindByGuid(new Guid(guid));
-            if (p == null)
-            {
-                throw new SolutionFileException($"Invalid guid found on line #{lineNumber}.\nFound: {guid}\nExpected: A guid from one of the projects in the solution.");
-            }
-            return p;
-        }
-
-        private void HandleNestedProjects([NotNull] string name, string type, string step, [NotNull] List<PropertyItem> propertyLines, int startLineNumber)
-        {
-            var localLineNumber = startLineNumber;
-            foreach (var propertyLine in propertyLines)
-            {
-                localLineNumber++;
-                var left = FindProjectByGuid(propertyLine.Name, localLineNumber);
-                left.ParentGuid = new Guid(propertyLine.Value);
-            }
-            solution.GlobalSections.Add(
-                new Section(
-                    name,
-                    type,
-                    step,
-                    null));
-        }
-
-        private void HandleProjectConfigurationPlatforms([NotNull] string name, string type, string step, [NotNull] List<PropertyItem> propertyLines, int startLineNumber)
-        {
-            var localLineNumber = startLineNumber;
-            foreach (var propertyLine in propertyLines)
-            {
-                localLineNumber++;
-                var match = RegexParseProjectConfigurationPlatformsName.Match(propertyLine.Name);
-                if (!match.Success)
-                {
-                    throw new SolutionFileException($"Invalid format for a project configuration name on line #{currentLineNumber}.\nFound: {propertyLine.Name}");
+                    continue;
                 }
 
-                var projectGuid = match.Groups["GUID"].Value;
-                var description = match.Groups["DESCRIPTION"].Value;
-                var left = FindProjectByGuid(projectGuid, localLineNumber);
-                left.PlatformProperties.Add(
-                    new PropertyItem(
-                        description,
-                        propertyLine.Value));
-            }
-            solution.GlobalSections.Add(
-                new Section(
-                    name,
-                    type,
-                    step,
-                    null));
-        }
-
-        private void HandleVersionControlLines([NotNull] string name, string type, string step, [NotNull] List<PropertyItem> propertyLines)
-        {
-            var propertyLinesByIndex = new Dictionary<int, List<PropertyItem>>();
-            var othersVersionControlLines = new List<PropertyItem>();
-            foreach (var propertyLine in propertyLines)
-            {
-                var match = RegexParseVersionControlName.Match(propertyLine.Name);
-                if (match.Success)
+                if (line.StartsWith("Project(", StringComparison.InvariantCultureIgnoreCase))
                 {
-                    var nameWithoutIndex = match.Groups["NAME_WITHOUT_INDEX"].Value.Trim();
-                    var index = int.Parse(match.Groups["INDEX"].Value.Trim());
-
-                    if (!propertyLinesByIndex.ContainsKey(index))
-                    {
-                        propertyLinesByIndex[index] = new List<PropertyItem>();
-                    }
-                    propertyLinesByIndex[index].Add(new PropertyItem(nameWithoutIndex, propertyLine.Value));
+                    solution.Projects.Add(ReadProject(line));
+                }
+                else if (string.Equals(line, "Global", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    ReadGlobal();
+                    // TODO valide end of file
+                    break;
+                }
+                else if (RegexParsePropertyLine.Match(line).Success)
+                {
+                    // Read VS properties (introduced in VS2012/VS2013?)
+                    solution.Properties.Add(ReadPropertyLine(line));
                 }
                 else
                 {
-                    // Ignore SccNumberOfProjects. This number will be computed and added by the SolutionFileWriter class.
-                    if (propertyLine.Name != "SccNumberOfProjects")
-                    {
-                        othersVersionControlLines.Add(propertyLine);
-                    }
+                    throw new SolutionFileException($"Invalid line read on line #{currentLineNumber}.\nFound: {line}\nExpected: A line beginning with 'Project(' or 'Global'.");
                 }
             }
+            return solution;
+        }
+    }
 
-            // Handle the special case for the solution itself.
-            othersVersionControlLines.Add(new PropertyItem("SccLocalPath0", "."));
+    private Project FindProjectByGuid(string guid, int lineNumber)
+    {
+        return solution.Projects.FindByGuid(new Guid(guid))
+            ?? throw new SolutionFileException($"Invalid guid found on line #{lineNumber}.\nFound: {guid}\nExpected: A guid from one of the projects in the solution.");
+    }
 
-            foreach (var item in propertyLinesByIndex)
+    private void HandleNestedProjects(string name, string type, string step, List<PropertyItem> propertyLines, int startLineNumber)
+    {
+        var localLineNumber = startLineNumber;
+        foreach (var propertyLine in propertyLines)
+        {
+            localLineNumber++;
+            var left = FindProjectByGuid(propertyLine.Name, localLineNumber);
+            left.ParentGuid = new Guid(propertyLine.Value);
+        }
+        solution.GlobalSections.Add(
+            new Section(
+                name,
+                type,
+                step,
+                null));
+    }
+
+    private void HandleProjectConfigurationPlatforms(string name, string type, string step, List<PropertyItem> propertyLines, int startLineNumber)
+    {
+        var localLineNumber = startLineNumber;
+        foreach (var propertyLine in propertyLines)
+        {
+            localLineNumber++;
+            var match = RegexParseProjectConfigurationPlatformsName.Match(propertyLine.Name);
+            if (!match.Success)
             {
-                var index = item.Key;
-                var propertiesForIndex = item.Value;
+                throw new SolutionFileException($"Invalid format for a project configuration name on line #{currentLineNumber}.\nFound: {propertyLine.Name}");
+            }
 
-                var uniqueNameProperty = propertiesForIndex.Find(delegate(PropertyItem property) { return property.Name == "SccProjectUniqueName"; });
-                // If there is no ProjectUniqueName, we assume that it's the entry related to the solution by itself. We
-                // can ignore it because we added the special case above.
-                if (uniqueNameProperty != null)
+            var projectGuid = match.Groups["GUID"].Value;
+            var description = match.Groups["DESCRIPTION"].Value;
+            var left = FindProjectByGuid(projectGuid, localLineNumber);
+            left.PlatformProperties.Add(
+                new PropertyItem(
+                    description,
+                    propertyLine.Value));
+        }
+        solution.GlobalSections.Add(
+            new Section(
+                name,
+                type,
+                step,
+                null));
+    }
+
+    private void HandleVersionControlLines(string name, string type, string step, List<PropertyItem> propertyLines)
+    {
+        var propertyLinesByIndex = new Dictionary<int, List<PropertyItem>>();
+        var othersVersionControlLines = new List<PropertyItem>();
+        foreach (var propertyLine in propertyLines)
+        {
+            var match = RegexParseVersionControlName.Match(propertyLine.Name);
+            if (match.Success)
+            {
+                var nameWithoutIndex = match.Groups["NAME_WITHOUT_INDEX"].Value.Trim();
+                var index = int.Parse(match.Groups["INDEX"].Value.Trim());
+
+                if (!propertyLinesByIndex.TryGetValue(index, out var value))
                 {
-                    var uniqueName = RegexConvertEscapedValues.Replace(uniqueNameProperty.Value, match =>
-                    {
-                        var hexaValue = int.Parse(match.Groups["HEXACODE"].Value, NumberStyles.AllowHexSpecifier);
-                        return char.ConvertFromUtf32(hexaValue);
-                    });
-                    uniqueName = uniqueName.Replace(@"\\", @"\");
-
-                    Project relatedProject = null;
-                    foreach (var project in solution.Projects)
-                    {
-                        if (string.Compare(project.GetRelativePath(solution), uniqueName, StringComparison.InvariantCultureIgnoreCase) == 0)
-                        {
-                            relatedProject = project;
-                        }
-                    }
-                    if (relatedProject == null)
-                    {
-                        throw new SolutionFileException(
-                            $"Invalid value for the property 'SccProjectUniqueName{index}' of the global section '{name}'.\nFound: {uniqueName}\nExpected: A value equal to the field 'RelativePath' of one of the projects in the solution.");
-                    }
-
-                    relatedProject.VersionControlProperties.AddRange(propertiesForIndex);
+                    value = [];
+                    propertyLinesByIndex[index] = value;
                 }
+
+                value.Add(new PropertyItem(nameWithoutIndex, propertyLine.Value));
             }
-
-            solution.GlobalSections.Add(
-                new Section(
-                    name,
-                    type,
-                    step,
-                    othersVersionControlLines));
-        }
-
-        private void ReadGlobal()
-        {
-            for (var line = ReadLine(); !line.StartsWith("EndGlobal", StringComparison.Ordinal); line = ReadLine())
+            else
             {
-                ReadGlobalSection(line);
-            }
-        }
-
-        private void ReadGlobalSection([NotNull] string firstLine)
-        {
-            var match = RegexParseGlobalSection.Match(firstLine);
-            if (!match.Success)
-            {
-                throw new SolutionFileException($"Invalid format for a global section on line #{currentLineNumber}.\nFound: {firstLine}");
-            }
-
-            var type = match.Groups["TYPE"].Value.Trim();
-            var name = match.Groups["NAME"].Value.Trim();
-            var step = match.Groups["STEP"].Value.Trim();
-
-            var propertyLines = new List<PropertyItem>();
-            var startLineNumber = currentLineNumber;
-            var endOfSectionToken = "End" + type;
-            for (var line = ReadLine(); !line.StartsWith(endOfSectionToken, StringComparison.InvariantCultureIgnoreCase); line = ReadLine())
-            {
-                propertyLines.Add(ReadPropertyLine(line));
-            }
-
-            switch (name)
-            {
-                case "NestedProjects":
-                    HandleNestedProjects(name, type, step, propertyLines, startLineNumber);
-                    break;
-
-                case "ProjectConfigurationPlatforms":
-                    HandleProjectConfigurationPlatforms(name, type, step, propertyLines, startLineNumber);
-                    break;
-
-                default:
-                    if (name.EndsWith("Control", StringComparison.InvariantCultureIgnoreCase))
-                    {
-                        HandleVersionControlLines(name, type, step, propertyLines);
-                    }
-                    else
-                    {
-                        solution.GlobalSections.Add(
-                            new Section(
-                                name,
-                                type,
-                                step,
-                                propertyLines));
-                    }
-                    break;
-            }
-        }
-
-        private void ReadHeader()
-        {
-            for (var i = 1; i <= 3; i++)
-            {
-                var line = ReadLine();
-                solution.Headers.Add(line);
-                if (line.StartsWith("#"))
+                // Ignore SccNumberOfProjects. This number will be computed and added by the SolutionFileWriter class.
+                if (propertyLine.Name != "SccNumberOfProjects")
                 {
-                    return;
+                    othersVersionControlLines.Add(propertyLine);
                 }
             }
         }
 
-        [NotNull]
-        private string ReadLine()
-        {
-            var line = reader.ReadLine();
-            if (line == null)
-            {
-                throw new SolutionFileException("Unexpected end of file encounted while reading the solution file.");
-            }
+        // Handle the special case for the solution itself.
+        othersVersionControlLines.Add(new PropertyItem("SccLocalPath0", "."));
 
-            currentLineNumber++;
-            return line.Trim();
+        foreach (var item in propertyLinesByIndex)
+        {
+            var index = item.Key;
+            var propertiesForIndex = item.Value;
+
+            var uniqueNameProperty = propertiesForIndex.Find(property => property.Name == "SccProjectUniqueName");
+            // If there is no ProjectUniqueName, we assume that it's the entry related to the solution by itself. We
+            // can ignore it because we added the special case above.
+            if (uniqueNameProperty != null)
+            {
+                var uniqueName = RegexConvertEscapedValues.Replace(uniqueNameProperty.Value, match =>
+                {
+                    var hexaValue = int.Parse(match.Groups["HEXACODE"].Value, NumberStyles.AllowHexSpecifier);
+                    return char.ConvertFromUtf32(hexaValue);
+                });
+                uniqueName = uniqueName.Replace(@"\\", @"\");
+
+                Project? relatedProject = null;
+                foreach (var project in solution.Projects)
+                {
+                    if (string.Equals(project.GetRelativePath(solution), uniqueName, StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        relatedProject = project;
+                    }
+                }
+                if (relatedProject == null)
+                {
+                    throw new SolutionFileException(
+                        $"Invalid value for the property 'SccProjectUniqueName{index}' of the global section '{name}'.\nFound: {uniqueName}\nExpected: A value equal to the field 'RelativePath' of one of the projects in the solution.");
+                }
+
+                relatedProject.VersionControlProperties.AddRange(propertiesForIndex);
+            }
         }
 
-        [NotNull]
-        private Project ReadProject([NotNull] string firstLine)
+        solution.GlobalSections.Add(
+            new Section(
+                name,
+                type,
+                step,
+                othersVersionControlLines));
+    }
+
+    private void ReadGlobal()
+    {
+        for (var line = ReadLine(); !line.StartsWith("EndGlobal", StringComparison.Ordinal); line = ReadLine())
         {
-            var match = RegexParseProject.Match(firstLine);
-            if (!match.Success)
-            {
-                throw new SolutionFileException($"Invalid format for a project on line #{currentLineNumber}.\nFound: {firstLine}.");
-            }
+            ReadGlobalSection(line);
+        }
+    }
 
-            var projectTypeGuid = new Guid(match.Groups["PROJECTTYPEGUID"].Value.Trim());
-            var projectName = match.Groups["PROJECTNAME"].Value.Trim();
-            var relativePath = match.Groups["RELATIVEPATH"].Value.Trim().Replace('\\',  Path.DirectorySeparatorChar);
-            var projectGuid = new Guid(match.Groups["PROJECTGUID"].Value.Trim());
-
-            var projectSections = new List<Section>();
-            for (var line = ReadLine(); !line.StartsWith("EndProject", StringComparison.Ordinal); line = ReadLine())
-            {
-                projectSections.Add(ReadProjectSection(line));
-            }
-
-            return new Project(
-                projectGuid,
-                projectTypeGuid,
-                projectName,
-                projectTypeGuid == KnownProjectTypeGuid.SolutionFolder ? relativePath : Path.Combine(Path.GetDirectoryName(solutionFullPath), relativePath),
-                Guid.Empty,
-                projectSections,
-                null,
-                null);
+    private void ReadGlobalSection(string firstLine)
+    {
+        var match = RegexParseGlobalSection.Match(firstLine);
+        if (!match.Success)
+        {
+            throw new SolutionFileException($"Invalid format for a global section on line #{currentLineNumber}.\nFound: {firstLine}");
         }
 
-        [NotNull]
-        private Section ReadProjectSection([NotNull] string firstLine)
+        var type = match.Groups["TYPE"].Value.Trim();
+        var name = match.Groups["NAME"].Value.Trim();
+        var step = match.Groups["STEP"].Value.Trim();
+
+        var propertyLines = new List<PropertyItem>();
+        var startLineNumber = currentLineNumber;
+        var endOfSectionToken = "End" + type;
+        for (var line = ReadLine(); !line.StartsWith(endOfSectionToken, StringComparison.InvariantCultureIgnoreCase); line = ReadLine())
         {
-            var match = RegexParseProjectSection.Match(firstLine);
-            if (!match.Success)
-            {
-                throw new SolutionFileException($"Invalid format for a project section on line #{currentLineNumber}.\nFound: {firstLine}.");
-            }
-
-            var type = match.Groups["TYPE"].Value.Trim();
-            var name = match.Groups["NAME"].Value.Trim();
-            var step = match.Groups["STEP"].Value.Trim();
-
-            var propertyLines = new List<PropertyItem>();
-            var endOfSectionToken = "End" + type;
-            for (var line = ReadLine(); !line.StartsWith(endOfSectionToken, StringComparison.InvariantCultureIgnoreCase); line = ReadLine())
-            {
-                propertyLines.Add(ReadPropertyLine(line));
-            }
-            return new Section(name, type, step, propertyLines);
+            propertyLines.Add(ReadPropertyLine(line));
         }
 
-        [NotNull]
-        private PropertyItem ReadPropertyLine([NotNull] string line)
+        switch (name)
         {
-            var match = RegexParsePropertyLine.Match(line);
-            if (!match.Success)
-            {
-                throw new SolutionFileException($"Invalid format for a property on line #{currentLineNumber}.\nFound: {line}.");
-            }
+            case "NestedProjects":
+                HandleNestedProjects(name, type, step, propertyLines, startLineNumber);
+                break;
 
-            return new PropertyItem(
-                match.Groups["PROPERTYNAME"].Value.Trim(),
-                match.Groups["PROPERTYVALUE"].Value.Trim());
+            case "ProjectConfigurationPlatforms":
+                HandleProjectConfigurationPlatforms(name, type, step, propertyLines, startLineNumber);
+                break;
+
+            default:
+                if (name.EndsWith("Control", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    HandleVersionControlLines(name, type, step, propertyLines);
+                }
+                else
+                {
+                    solution.GlobalSections.Add(
+                        new Section(
+                            name,
+                            type,
+                            step,
+                            propertyLines));
+                }
+                break;
         }
+    }
+
+    private void ReadHeader()
+    {
+        for (var i = 1; i <= 3; i++)
+        {
+            var line = ReadLine();
+            solution.Headers.Add(line);
+#if NETCOREAPP2_0_OR_GREATER
+            if (line.StartsWith('#'))
+#else
+            if (line.StartsWith("#"))
+#endif
+            {
+                return;
+            }
+        }
+    }
+
+    private string ReadLine()
+    {
+        var line = reader!.ReadLine()
+            ?? throw new SolutionFileException("Unexpected end of file encounted while reading the solution file.");
+        currentLineNumber++;
+        return line.Trim();
+    }
+
+    private Project ReadProject(string firstLine)
+    {
+        var match = RegexParseProject.Match(firstLine);
+        if (!match.Success)
+        {
+            throw new SolutionFileException($"Invalid format for a project on line #{currentLineNumber}.\nFound: {firstLine}.");
+        }
+
+        var projectTypeGuid = new Guid(match.Groups["PROJECTTYPEGUID"].Value.Trim());
+        var projectName = match.Groups["PROJECTNAME"].Value.Trim();
+        var relativePath = match.Groups["RELATIVEPATH"].Value.Trim().Replace('\\', Path.DirectorySeparatorChar);
+        var projectGuid = new Guid(match.Groups["PROJECTGUID"].Value.Trim());
+
+        var projectSections = new List<Section>();
+        for (var line = ReadLine(); !line.StartsWith("EndProject", StringComparison.Ordinal); line = ReadLine())
+        {
+            projectSections.Add(ReadProjectSection(line));
+        }
+
+        return new Project(
+            projectGuid,
+            projectTypeGuid,
+            projectName,
+            projectTypeGuid == KnownProjectTypeGuid.SolutionFolder ? relativePath : Path.Combine(Path.GetDirectoryName(solutionFullPath), relativePath),
+            Guid.Empty,
+            projectSections,
+            null,
+            null);
+    }
+
+    private Section ReadProjectSection(string firstLine)
+    {
+        var match = RegexParseProjectSection.Match(firstLine);
+        if (!match.Success)
+        {
+            throw new SolutionFileException($"Invalid format for a project section on line #{currentLineNumber}.\nFound: {firstLine}.");
+        }
+
+        var type = match.Groups["TYPE"].Value.Trim();
+        var name = match.Groups["NAME"].Value.Trim();
+        var step = match.Groups["STEP"].Value.Trim();
+
+        var propertyLines = new List<PropertyItem>();
+        var endOfSectionToken = "End" + type;
+        for (var line = ReadLine(); !line.StartsWith(endOfSectionToken, StringComparison.InvariantCultureIgnoreCase); line = ReadLine())
+        {
+            propertyLines.Add(ReadPropertyLine(line));
+        }
+        return new Section(name, type, step, propertyLines);
+    }
+
+    private PropertyItem ReadPropertyLine(string line)
+    {
+        var match = RegexParsePropertyLine.Match(line);
+        if (!match.Success)
+        {
+            throw new SolutionFileException($"Invalid format for a property on line #{currentLineNumber}.\nFound: {line}.");
+        }
+
+        return new PropertyItem(
+            match.Groups["PROPERTYNAME"].Value.Trim(),
+            match.Groups["PROPERTYVALUE"].Value.Trim());
     }
 }

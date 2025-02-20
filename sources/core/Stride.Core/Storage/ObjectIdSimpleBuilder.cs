@@ -61,8 +61,7 @@ public unsafe struct ObjectIdSimpleBuilder
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ObjectId ComputeHash()
     {
-        ObjectId result;
-        ComputeHash(out result);
+        ComputeHash(out var result);
         return result;
     }
 

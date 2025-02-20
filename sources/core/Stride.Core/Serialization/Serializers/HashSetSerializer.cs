@@ -24,7 +24,7 @@ public class HashSetSerializer<T> : DataSerializer<HashSet<T>>, IDataSerializerG
         if (mode == ArchiveMode.Deserialize)
         {
             if (obj == null)
-                obj = new HashSet<T>();
+                obj = [];
             else
                 obj.Clear();
         }

@@ -15,7 +15,7 @@ public static class Platform
     /// <summary>
     /// The current running <see cref="PlatformType"/>.
     /// </summary>
-    public static readonly PlatformType Type = PlatformType.UWP;
+    public const PlatformType Type = PlatformType.UWP;
 #else
     /// <summary>
     /// The current running <see cref="PlatformType"/>.

@@ -87,7 +87,7 @@ public static class StringExtensions
     public static bool EndsWith(this string stringToTest, char endChar)
     {
         ArgumentNullException.ThrowIfNull(stringToTest);
-        return stringToTest.Length > 0 && endChar == stringToTest[stringToTest.Length - 1];
+        return stringToTest.Length > 0 && endChar == stringToTest[^1];
     }
 
     /// <summary>
@@ -100,7 +100,7 @@ public static class StringExtensions
     {
         ArgumentNullException.ThrowIfNull(stringToTest);
         ArgumentNullException.ThrowIfNull(endChars);
-        return stringToTest.Length > 0 && endChars.Contains(stringToTest[stringToTest.Length - 1]);
+        return stringToTest.Length > 0 && endChars.Contains(stringToTest[^1]);
     }
 
     /// <summary>
@@ -109,7 +109,7 @@ public static class StringExtensions
     /// <param name="stringToFormat">The string automatic format.</param>
     /// <param name="argumentsToFormat">The arguments automatic format.</param>
     /// <returns>A formatted string. See <see cref="string.Format(string,object)"/> </returns>
-    public static string ToFormat(this string stringToFormat, params object[] argumentsToFormat)
+    public static string ToFormat(this string stringToFormat, params object?[] argumentsToFormat)
     {
         return string.Format(stringToFormat, argumentsToFormat);
     }
@@ -149,8 +149,8 @@ public static class StringExtensions
     /// <param name="count">The number of character positions to be examined.</param>
     /// <param name="matchCount">The number of match before stopping. Default is 1</param>
     /// <returns>The character position of the value parameter for the specified character if it is found, or -1 if it is not found.</returns>
-    /// <exception cref="System.ArgumentNullException">text</exception>
-    /// <exception cref="System.ArgumentOutOfRangeException">
+    /// <exception cref="ArgumentNullException">text</exception>
+    /// <exception cref="ArgumentOutOfRangeException">
     /// count;Count must be a positive value
     /// or
     /// startIndexFromEnd;StartIndexFromEnd must be a positive value

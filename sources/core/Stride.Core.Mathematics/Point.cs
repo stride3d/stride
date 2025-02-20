@@ -22,137 +22,130 @@
 // THE SOFTWARE.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
-using Stride.Core.Serialization;
 
-namespace Stride.Core.Mathematics
+namespace Stride.Core.Mathematics;
+
+/// <summary>
+/// A 2D point.
+/// </summary>
+[DataContract]
+[StructLayout(LayoutKind.Sequential, Pack = 4)]
+public struct Point : IEquatable<Point>
 {
     /// <summary>
-    /// A 2D point.
+    /// A point with (0,0) coordinates.
     /// </summary>
-    [DataContract]
-    [StructLayout(LayoutKind.Sequential, Pack = 4)]
-    public struct Point : IEquatable<Point>
+    public static readonly Point Zero = new(0, 0);
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="Point"/> struct.
+    /// </summary>
+    /// <param name="x">The x.</param>
+    /// <param name="y">The y.</param>
+    public Point(int x, int y)
     {
-        /// <summary>
-        /// A point with (0,0) coordinates.
-        /// </summary>
-        public static readonly Point Zero = new Point(0, 0);
+        X = x;
+        Y = y;
+    }
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="Point"/> struct.
-        /// </summary>
-        /// <param name="x">The x.</param>
-        /// <param name="y">The y.</param>
-        public Point(int x, int y)
-        {
-            X = x;
-            Y = y;
-        }
+    /// <summary>
+    /// Left coordinate.
+    /// </summary>
+    [DataMember(0)]
+    public int X;
 
-        /// <summary>
-        /// Left coordinate.
-        /// </summary>
-        [DataMember(0)]
-        public int X;
+    /// <summary>
+    /// Top coordinate.
+    /// </summary>
+    [DataMember(1)]
+    public int Y;
 
-        /// <summary>
-        /// Top coordinate.
-        /// </summary>
-        [DataMember(1)]
-        public int Y;
+    /// <summary>
+    /// Determines whether the specified <see cref="object"/> is equal to this instance.
+    /// </summary>
+    /// <param name="other">The <see cref="object"/> to compare with this instance.</param>
+    /// <returns>
+    ///   <c>true</c> if the specified <see cref="object"/> is equal to this instance; otherwise, <c>false</c>.
+    /// </returns>
+    public readonly bool Equals(Point other)
+    {
+        return other.X == X && other.Y == Y;
+    }
 
-        /// <summary>
-        /// Determines whether the specified <see cref="object"/> is equal to this instance.
-        /// </summary>
-        /// <param name="other">The <see cref="object"/> to compare with this instance.</param>
-        /// <returns>
-        ///   <c>true</c> if the specified <see cref="object"/> is equal to this instance; otherwise, <c>false</c>.
-        /// </returns>
-        public bool Equals(Point other)
-        {
-            return other.X == X && other.Y == Y;
-        }
+    /// <inheritdoc/>
+    public override readonly bool Equals([NotNullWhen(true)] object? obj)
+    {
+        return obj is Point point && Equals(point);
+    }
 
-        /// <inheritdoc/>
-        public override bool Equals(object obj)
-        {
-            if (ReferenceEquals(null, obj)) return false;
-            if (obj.GetType() != typeof(Point)) return false;
-            return Equals((Point)obj);
-        }
+    /// <inheritdoc/>
+    public override readonly int GetHashCode()
+    {
+        return HashCode.Combine(X, Y);
+    }
 
-        /// <inheritdoc/>
-        public override int GetHashCode()
-        {
-            unchecked
-            {
-                return (X * 397) ^ Y;
-            }
-        }
+    /// <summary>
+    /// Implements the operator ==.
+    /// </summary>
+    /// <param name="left">The left.</param>
+    /// <param name="right">The right.</param>
+    /// <returns>
+    /// The result of the operator.
+    /// </returns>
+    public static bool operator ==(Point left, Point right)
+    {
+        return left.Equals(right);
+    }
 
-        /// <summary>
-        /// Implements the operator ==.
-        /// </summary>
-        /// <param name="left">The left.</param>
-        /// <param name="right">The right.</param>
-        /// <returns>
-        /// The result of the operator.
-        /// </returns>
-        public static bool operator ==(Point left, Point right)
-        {
-            return left.Equals(right);
-        }
+    /// <summary>
+    /// Implements the operator !=.
+    /// </summary>
+    /// <param name="left">The left.</param>
+    /// <param name="right">The right.</param>
+    /// <returns>
+    /// The result of the operator.
+    /// </returns>
+    public static bool operator !=(Point left, Point right)
+    {
+        return !left.Equals(right);
+    }
 
-        /// <summary>
-        /// Implements the operator !=.
-        /// </summary>
-        /// <param name="left">The left.</param>
-        /// <param name="right">The right.</param>
-        /// <returns>
-        /// The result of the operator.
-        /// </returns>
-        public static bool operator !=(Point left, Point right)
-        {
-            return !left.Equals(right);
-        }
+    /// <inheritdoc/>
+    public override readonly string ToString()
+    {
+        return string.Format("({0},{1})", X, Y);
+    }
 
-        /// <inheritdoc/>
-        public override string ToString()
-        {
-            return string.Format("({0},{1})", X, Y);
-        }
+    /// <summary>
+    /// Performs an implicit conversion from <see cref="Vector2"/> to <see cref="Point"/>.
+    /// </summary>
+    /// <param name="value">The value.</param>
+    /// <returns>The result of the conversion.</returns>
+    public static explicit operator Point(Vector2 value)
+    {
+        return new Point((int)value.X, (int)value.Y);
+    }
 
-        /// <summary>
-        /// Performs an implicit conversion from <see cref="Vector2"/> to <see cref="Point"/>.
-        /// </summary>
-        /// <param name="value">The value.</param>
-        /// <returns>The result of the conversion.</returns>
-        public static explicit operator Point(Vector2 value)
-        {
-            return new Point((int)value.X, (int)value.Y);
-        }
+    /// <summary>
+    /// Performs an explicit conversion from <see cref="Point"/> to <see cref="Vector2"/>.
+    /// </summary>
+    /// <param name="value">The value.</param>
+    /// <returns>The result of the conversion.</returns>
+    public static implicit operator Vector2(Point value)
+    {
+        return new Vector2(value.X, value.Y);
+    }
 
-        /// <summary>
-        /// Performs an explicit conversion from <see cref="Point"/> to <see cref="Vector2"/>.
-        /// </summary>
-        /// <param name="value">The value.</param>
-        /// <returns>The result of the conversion.</returns>
-        public static implicit operator Vector2(Point value)
-        {
-            return new Vector2(value.X, value.Y);
-        }
-
-        /// <summary>
-        /// Deconstructs the vector's components into named variables.
-        /// </summary>
-        /// <param name="x">The X component</param>
-        /// <param name="y">The Y component</param>
-        public void Deconstruct(out int x, out int y)
-        {
-            x = X;
-            y = Y;
-        }
-
-   }
+    /// <summary>
+    /// Deconstructs the vector's components into named variables.
+    /// </summary>
+    /// <param name="x">The X component</param>
+    /// <param name="y">The Y component</param>
+    public readonly void Deconstruct(out int x, out int y)
+    {
+        x = X;
+        y = Y;
+    }
 }

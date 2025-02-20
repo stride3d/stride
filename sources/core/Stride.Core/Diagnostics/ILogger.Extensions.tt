@@ -40,7 +40,7 @@ public static class LoggerExtensions
     /// <param name="logger">The logger.</param>
     /// <param name="message">The <#= name.ToLowerInvariant() #> message.</param>
     /// <param name="callerInfo">Information about the caller. Default is null, otherwise use <see cref="CallerInfo.Get"/>.</param>
-    public static void <#= name #>(this ILogger logger, string message, CallerInfo callerInfo = null)
+    public static void <#= name #>(this ILogger logger, string message, CallerInfo? callerInfo = null)
     {
         <#= name #>(logger, message, null, callerInfo);
     }
