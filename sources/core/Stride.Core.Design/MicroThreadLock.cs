@@ -30,7 +30,11 @@ public class MicroThreadLock : IDisposable
     /// <returns>A task that completes when the lock is reserved. The result of the task is an <see cref="ISyncLockable"/> object allowing to do the lock.</returns>
     public async Task<ISyncLockable> ReserveSyncLock()
     {
+#if NET7_0_OR_GREATER
         ObjectDisposedException.ThrowIf(isDisposed, this);
+#else
+        if (isDisposed) throw new ObjectDisposedException(nameof(MicroThreadLock));
+#endif
 
         // If we already acquired the lock in this thread, we're just re-entering
         if (currentSyncLockThread == Environment.CurrentManagedThreadId)
@@ -57,7 +61,11 @@ public class MicroThreadLock : IDisposable
     public async Task<IDisposable> LockAsync()
     {
         if (Scheduler.CurrentMicroThread == null) throw new InvalidOperationException($"Aynchronous lock can only be acquired from a micro-thread. Use {nameof(ReserveSyncLock)}.");
+#if NET7_0_OR_GREATER
         ObjectDisposedException.ThrowIf(isDisposed, this);
+#else
+        if (isDisposed) throw new ObjectDisposedException(nameof(MicroThreadLock));
+#endif
 
         // If we already acquired the lock in this micro-thread, we're just re-entering
         if (asyncLocks.IsValueCreated && asyncLocks.Value != null)

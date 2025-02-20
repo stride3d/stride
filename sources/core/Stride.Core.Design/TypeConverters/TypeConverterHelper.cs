@@ -15,8 +15,13 @@ public static class TypeConverterHelper
     /// <returns><c>true</c> if such a conversion exists; otherwise, <c>false</c>.</returns>
     public static bool CanConvert(Type sourceType, Type destinationType)
     {
+#if NET6_0_OR_GREATER
         ArgumentNullException.ThrowIfNull(sourceType);
         ArgumentNullException.ThrowIfNull(destinationType);
+#else
+        if (sourceType is null) throw new ArgumentNullException(nameof(sourceType));
+        if (destinationType is null) throw new ArgumentNullException(nameof(destinationType));
+#endif
 
         var context = new DestinationTypeDescriptorContext(destinationType);
         // already same type or inherited (also works with interface), or
@@ -36,7 +41,11 @@ public static class TypeConverterHelper
     /// <returns><c>true</c> if the <paramref name="source"/> could be converted to the <paramref name="destinationType"/>; otherwise, <c>false</c>.</returns>
     public static bool TryConvert(object source, Type destinationType, out object? target)
     {
+#if NET6_0_OR_GREATER
         ArgumentNullException.ThrowIfNull(destinationType);
+#else
+        if (destinationType is null) throw new ArgumentNullException(nameof(destinationType));
+#endif
 
         if (source != null)
         {

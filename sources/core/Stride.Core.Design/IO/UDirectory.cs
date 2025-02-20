@@ -84,7 +84,11 @@ public sealed class UDirectory : UPath
     /// <returns><c>true</c> if this directory contains the specified path; otherwise, <c>false</c>.</returns>
     public bool Contains(UPath path)
     {
+#if NET6_0_OR_GREATER
         ArgumentNullException.ThrowIfNull(path);
+#else
+        if (path is null) throw new ArgumentNullException(nameof(path));
+#endif
         return path.FullPath.StartsWith(FullPath, StringComparison.OrdinalIgnoreCase) && path.FullPath.Length > FullPath.Length && path.FullPath[FullPath.Length] == DirectorySeparatorChar;
     }
 }

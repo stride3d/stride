@@ -37,7 +37,11 @@ public sealed class PropertyItem
     /// <param name="value">The value.</param>
     public PropertyItem(string name, string value)
     {
+#if NET6_0_OR_GREATER
         ArgumentNullException.ThrowIfNull(name);
+#else
+        if (name is null) throw new ArgumentNullException(nameof(name));
+#endif
         this.Name = name;
         Value = value;
     }

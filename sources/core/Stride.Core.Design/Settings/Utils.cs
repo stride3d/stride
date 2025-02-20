@@ -17,7 +17,11 @@ internal static class Utils
     /// <param name="action">The action to invoke if the field has changed.</param>
     public static void SetAndInvokeIfChanged<T>(ref T field, T value, [NotNull] Action action)
     {
+#if NET6_0_OR_GREATER
         ArgumentNullException.ThrowIfNull(action);
+#else
+        if (action is null) throw new ArgumentNullException(nameof(action));
+#endif
         bool changed = !Equals(field, value);
         if (changed)
         {

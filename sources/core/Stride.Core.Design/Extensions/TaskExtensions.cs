@@ -10,6 +10,10 @@ public static class TaskExtensions
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void Forget(this Task task)
     {
+#if NET6_0_OR_GREATER
         ArgumentNullException.ThrowIfNull(task);
+#else
+        if (task is null) throw new ArgumentNullException(nameof(task));
+#endif
     }
 }

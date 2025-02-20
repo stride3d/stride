@@ -128,7 +128,11 @@ public sealed class UFile : UPath
     /// <returns><c>true</c> if the specified path is a valid <see cref="UFile"/>; otherwise, <c>false</c>.</returns>
     public static new bool IsValid(string path)
     {
+#if NET6_0_OR_GREATER
         ArgumentNullException.ThrowIfNull(path);
+#else
+        if (path is null) throw new ArgumentNullException(nameof(path));
+#endif
         if (!UPath.IsValid(path))
         {
             return false;

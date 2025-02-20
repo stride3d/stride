@@ -60,7 +60,11 @@ public sealed class SectionCollection
 
     protected override void InsertItem(int index, Section item)
     {
+#if NET6_0_OR_GREATER
         ArgumentNullException.ThrowIfNull(item);
+#else
+        if (item is null) throw new ArgumentNullException(nameof(item));
+#endif
 
         // Add a clone of the item instead of the item itself
         base.InsertItem(index, item.Clone());
@@ -68,7 +72,11 @@ public sealed class SectionCollection
 
     protected override void SetItem(int index, Section item)
     {
+#if NET6_0_OR_GREATER
         ArgumentNullException.ThrowIfNull(item);
+#else
+        if (item is null) throw new ArgumentNullException(nameof(item));
+#endif
 
         // Add a clone of the item instead of the item itself
         base.SetItem(index, item.Clone());

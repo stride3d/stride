@@ -143,7 +143,11 @@ public class Half3Converter : ExpandableObjectConverter
     /// <returns>An <see cref = "T:System.Object" /> that represents the converted value.</returns>
     public override object? ConvertTo(ITypeDescriptorContext? context, CultureInfo? culture, object? value, Type destinationType)
     {
+#if NET6_0_OR_GREATER
         ArgumentNullException.ThrowIfNull(destinationType);
+#else
+        if (destinationType is null) throw new ArgumentNullException(nameof(destinationType));
+#endif
         culture ??= CultureInfo.CurrentCulture;
         if ((destinationType == typeof(string)) && (value is Half3 half))
         {
@@ -174,7 +178,11 @@ public class Half3Converter : ExpandableObjectConverter
     /// <returns>An <see cref = "T:System.Object" /> representing the given <see cref = "T:System.Collections.IDictionary" />, or <c>null</c> if the object cannot be created.</returns>
     public override object CreateInstance(ITypeDescriptorContext? context, IDictionary propertyValues)
     {
+#if NET6_0_OR_GREATER
         ArgumentNullException.ThrowIfNull(propertyValues);
+#else
+        if (propertyValues is null) throw new ArgumentNullException(nameof(propertyValues));
+#endif
         return new Half3((Half)propertyValues["X"]!, (Half)propertyValues["Y"]!, (Half)propertyValues["Z"]!);
     }
 

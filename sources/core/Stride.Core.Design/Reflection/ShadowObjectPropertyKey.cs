@@ -20,7 +20,11 @@ public struct ShadowObjectPropertyKey : IEquatable<ShadowObjectPropertyKey>
     /// <param name="copyValueOnClone">Indicate whether this shadow object property should be copied when the host object is cloned.</param>
     public ShadowObjectPropertyKey(object item1, bool copyValueOnClone) : this()
     {
+#if NET6_0_OR_GREATER
         ArgumentNullException.ThrowIfNull(item1);
+#else
+        if (item1 is null) throw new ArgumentNullException(nameof(item1));
+#endif
         Item1 = item1;
         CopyValueOnClone = copyValueOnClone;
     }

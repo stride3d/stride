@@ -121,7 +121,11 @@ public class HalfConverter : ExpandableObjectConverter
     /// <returns>An <see cref="T:System.Object" /> that represents the converted value.</returns>
     public override object? ConvertTo(ITypeDescriptorContext? context, CultureInfo? culture, object? value, Type destinationType)
     {
+#if NET6_0_OR_GREATER
         ArgumentNullException.ThrowIfNull(destinationType);
+#else
+        if (destinationType is null) throw new ArgumentNullException(nameof(destinationType));
+#endif
         culture ??= CultureInfo.CurrentCulture;
         if ((destinationType == typeof(string)) && value is Half half)
         {

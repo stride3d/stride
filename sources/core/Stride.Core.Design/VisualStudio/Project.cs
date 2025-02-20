@@ -61,7 +61,11 @@ public class Project
         IEnumerable<PropertyItem> versionControlLines,
         IEnumerable<PropertyItem> projectConfigurationPlatformsLines)
     {
+#if NET6_0_OR_GREATER
         ArgumentNullException.ThrowIfNull(name);
+#else
+        if (name is null) throw new ArgumentNullException(nameof(name));
+#endif
 
         this.Guid = guid;
         TypeGuid = typeGuid;
@@ -202,9 +206,17 @@ public class Project
             // Example: "{GUID}|Infra.dll;{GUID2}|Services.dll;"
             var propertyItem = Sections["WebsiteProperties"].Properties["ProjectReferences"];
             var value = propertyItem.Value;
+#if NETCOREAPP2_0_OR_GREATER
             if (value.StartsWith('\\'))
+#else
+            if (value.StartsWith("\\"))
+#endif
                 value = value[1..];
+#if NETCOREAPP2_0_OR_GREATER
             if (value.EndsWith('\\'))
+#else
+            if (value.EndsWith("\\"))
+#endif
                 value = value[..^1];
 
             foreach (var dependency in value.Split(';'))

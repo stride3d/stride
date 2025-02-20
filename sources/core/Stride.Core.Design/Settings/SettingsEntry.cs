@@ -22,8 +22,13 @@ internal abstract class SettingsEntry
     /// <param name="name">The name associated to this <see cref="SettingsEntry"/>.</param>
     protected SettingsEntry(SettingsProfile profile, UFile name)
     {
+#if NET6_0_OR_GREATER
         ArgumentNullException.ThrowIfNull(profile);
         ArgumentNullException.ThrowIfNull(name);
+#else
+        if (profile is null) throw new ArgumentNullException(nameof(profile));
+        if (name is null) throw new ArgumentNullException(nameof(name));
+#endif
         Profile = profile;
         Name = name;
     }
@@ -47,8 +52,13 @@ internal abstract class SettingsEntry
     /// <returns>A new instance of a <see cref="SettingsEntry"/> class.</returns>
     internal static SettingsEntry CreateFromValue(SettingsProfile profile, UFile name, object value)
     {
+#if NET6_0_OR_GREATER
         ArgumentNullException.ThrowIfNull(profile);
         ArgumentNullException.ThrowIfNull(name);
+#else
+        if (profile is null) throw new ArgumentNullException(nameof(profile));
+        if (name is null) throw new ArgumentNullException(nameof(name));
+#endif
         return new SettingsEntryValue(profile, name, value);
     }
 

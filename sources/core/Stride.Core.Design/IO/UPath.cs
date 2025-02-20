@@ -68,7 +68,11 @@ public abstract class UPath : IEquatable<UPath>, IComparable
 
     protected UPath(string fullPath, StringSpan driveSpan, StringSpan directorySpan)
     {
+#if NET6_0_OR_GREATER
         ArgumentNullException.ThrowIfNull(fullPath);
+#else
+        if (fullPath is null) throw new ArgumentNullException(nameof(fullPath));
+#endif
         FullPath = fullPath;
         hashCode = ComputeStringHashCodeCaseInsensitive(fullPath);
         DriveSpan = driveSpan;
@@ -312,8 +316,13 @@ public abstract class UPath : IEquatable<UPath>, IComparable
     /// <returns>The combination of both paths.</returns>
     public static T Combine<T>(UDirectory leftPath, T rightPath) where T : UPath
     {
+#if NET6_0_OR_GREATER
         ArgumentNullException.ThrowIfNull(leftPath);
         ArgumentNullException.ThrowIfNull(rightPath);
+#else
+        if (leftPath is null) throw new ArgumentNullException(nameof(leftPath));
+        if (rightPath is null) throw new ArgumentNullException(nameof(rightPath));
+#endif
 
         // If right path is absolute, return it directly
         if (rightPath.IsAbsolute)
@@ -333,7 +342,11 @@ public abstract class UPath : IEquatable<UPath>, IComparable
     /// <returns>A relative path of this instance to the anchor directory.</returns>
     public UPath MakeRelative(UDirectory anchorDirectory)
     {
+#if NET6_0_OR_GREATER
         ArgumentNullException.ThrowIfNull(anchorDirectory);
+#else
+        if (anchorDirectory is null) throw new ArgumentNullException(nameof(anchorDirectory));
+#endif
 
         // If the toRelativize path is already relative, don't bother
         if (IsRelative)

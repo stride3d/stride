@@ -91,7 +91,11 @@ public class Vector3Converter : BaseConverter
     /// </exception>
     public override object? ConvertTo(ITypeDescriptorContext? context, CultureInfo? culture, object? value, Type destinationType)
     {
+#if NET6_0_OR_GREATER
         ArgumentNullException.ThrowIfNull(destinationType);
+#else
+        if (destinationType is null) throw new ArgumentNullException(nameof(destinationType));
+#endif
 
         if (value is Vector3 vector)
         {
@@ -136,7 +140,11 @@ public class Vector3Converter : BaseConverter
     /// </returns>
     public override object CreateInstance(ITypeDescriptorContext? context, IDictionary propertyValues)
     {
+#if NET6_0_OR_GREATER
         ArgumentNullException.ThrowIfNull(propertyValues);
+#else
+        if (propertyValues is null) throw new ArgumentNullException(nameof(propertyValues));
+#endif
         return new Vector3((float)propertyValues[nameof(Vector3.X)]!, (float)propertyValues[nameof(Vector3.Y)]!, (float)propertyValues[nameof(Vector3.Z)]!);
     }
 }

@@ -76,8 +76,13 @@ public sealed class ShadowObject : Dictionary<ShadowObjectPropertyKey, object>
     public static void Copy(object fromInstance, object toInstance)
     {
         if (!Enable) return;
+#if NET6_0_OR_GREATER
         ArgumentNullException.ThrowIfNull(fromInstance);
         ArgumentNullException.ThrowIfNull(toInstance);
+#else
+        if (fromInstance is null) throw new ArgumentNullException(nameof(fromInstance));
+        if (toInstance is null) throw new ArgumentNullException(nameof(toInstance));
+#endif
 
         Shadows.TryGetValue(fromInstance, out var shadow);
 

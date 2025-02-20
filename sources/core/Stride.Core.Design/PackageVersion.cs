@@ -23,8 +23,13 @@ namespace Stride.Core;
 public sealed partial class PackageVersion : IComparable, IComparable<PackageVersion>, IEquatable<PackageVersion>
 {
     private const RegexOptions Flags = RegexOptions.IgnoreCase | RegexOptions.ExplicitCapture;
+#if NET7_0_OR_GREATER
     private static readonly Regex SemanticVersionRegex = GetSemanticVersionRegex();
     private static readonly Regex StrictSemanticVersionRegex = GetStrictSemanticVersionRegex();
+#else
+    private static readonly Regex SemanticVersionRegex = new Regex(@"^(?<Version>\d+(\s*\.\s*\d+){0,3})(?<Release>-[0-9a-z]*[\.0-9a-z-]*)?(?<BuildMetadata>\+[0-9a-z]*[\.0-9a-z-]*)?$", Flags);
+    private static readonly Regex StrictSemanticVersionRegex = new Regex(@"^(?<Version>\d+(\.\d+){2})(?<Release>-[0-9a-z]*[\.0-9a-z-]*)?(?<BuildMetadata>\+[0-9a-z]*[\.0-9a-z-]*)?$", Flags);
+#endif
     private readonly string originalString;
 
     /// <summary>
@@ -89,7 +94,11 @@ public sealed partial class PackageVersion : IComparable, IComparable<PackageVer
 
     private PackageVersion(Version version, string specialVersion, string? originalString)
     {
+#if NET6_0_OR_GREATER
         ArgumentNullException.ThrowIfNull(version);
+#else
+        if (version is null) throw new ArgumentNullException(nameof(version));
+#endif
         Version = NormalizeVersionValue(version);
         SpecialVersion = specialVersion ?? string.Empty;
         this.originalString = string.IsNullOrEmpty(originalString) ? version + (!string.IsNullOrEmpty(specialVersion) ? '-' + specialVersion : null) : originalString;
@@ -277,7 +286,11 @@ public sealed partial class PackageVersion : IComparable, IComparable<PackageVer
 
     public static bool operator <(PackageVersion version1, PackageVersion? version2)
     {
+#if NET6_0_OR_GREATER
         ArgumentNullException.ThrowIfNull(version1);
+#else
+        if (version1 is null) throw new ArgumentNullException(nameof(version1));
+#endif
         return version1.CompareTo(version2) < 0;
     }
 
@@ -288,7 +301,11 @@ public sealed partial class PackageVersion : IComparable, IComparable<PackageVer
 
     public static bool operator >(PackageVersion version1, PackageVersion? version2)
     {
+#if NET6_0_OR_GREATER
         ArgumentNullException.ThrowIfNull(version1);
+#else
+        if (version1 is null) throw new ArgumentNullException(nameof(version1));
+#endif
         return version1.CompareTo(version2) > 0;
     }
 
@@ -322,11 +339,25 @@ public sealed partial class PackageVersion : IComparable, IComparable<PackageVer
     /// <inheritdoc/>
     public override int GetHashCode()
     {
+#if NETCOREAPP2_1_OR_GREATER
         return HashCode.Combine(Version, SpecialVersion);
+#else
+        unchecked
+        {
+            var hashCode = Version.GetHashCode();
+            if (SpecialVersion != null)
+            {
+                hashCode = (hashCode * 4567) ^ SpecialVersion.GetHashCode();
+            }
+            return hashCode;
+        }
+#endif
     }
 
+#if NET7_0_OR_GREATER
     [GeneratedRegex(@"^(?<Version>\d+(\s*\.\s*\d+){0,3})(?<Release>-[0-9a-z]*[\.0-9a-z-]*)?(?<BuildMetadata>\+[0-9a-z]*[\.0-9a-z-]*)?$", RegexOptions.IgnoreCase | RegexOptions.ExplicitCapture)]
     private static partial Regex GetSemanticVersionRegex();
     [GeneratedRegex(@"^(?<Version>\d+(\.\d+){2})(?<Release>-[0-9a-z]*[\.0-9a-z-]*)?(?<BuildMetadata>\+[0-9a-z]*[\.0-9a-z-]*)?$", RegexOptions.IgnoreCase | RegexOptions.ExplicitCapture)]
     private static partial Regex GetStrictSemanticVersionRegex();
+#endif
 }

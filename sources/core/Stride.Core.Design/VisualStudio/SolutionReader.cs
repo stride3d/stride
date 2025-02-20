@@ -67,7 +67,11 @@ internal class SolutionReader : IDisposable
 
     public Solution ReadSolutionFile()
     {
+#if NET7_0_OR_GREATER
         ObjectDisposedException.ThrowIf(disposed, this);
+#else
+        if (disposed) throw new ObjectDisposedException(nameof(SolutionReader));
+#endif
         lock (reader!)
         {
             solution = new Solution();
@@ -293,7 +297,11 @@ internal class SolutionReader : IDisposable
         {
             var line = ReadLine();
             solution.Headers.Add(line);
+#if NETCOREAPP2_0_OR_GREATER
             if (line.StartsWith('#'))
+#else
+            if (line.StartsWith("#"))
+#endif
             {
                 return;
             }

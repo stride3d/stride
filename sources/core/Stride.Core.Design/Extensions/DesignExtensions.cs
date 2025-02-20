@@ -19,7 +19,11 @@ public static class DesignExtensions
     [Pure]
     public static bool IsReadOnly([NoEnumeration] this IEnumerable source)
     {
+#if NET6_0_OR_GREATER
         ArgumentNullException.ThrowIfNull(source);
+#else
+        if (source is null) throw new ArgumentNullException(nameof(source));
+#endif
 
         if (source is ICollection<object> collection)
             return collection.IsReadOnly;
@@ -59,8 +63,13 @@ public static class DesignExtensions
     [Pure]
     public static IEnumerable<Tuple<T1, T2>> Zip<T1, T2>(this IEnumerable<T1> enumerable1, IEnumerable<T2> enumerable2)
     {
+#if NET6_0_OR_GREATER
         ArgumentNullException.ThrowIfNull(enumerable1);
         ArgumentNullException.ThrowIfNull(enumerable2);
+#else
+        if (enumerable1 is null) throw new ArgumentNullException(nameof(enumerable1));
+        if (enumerable2 is null) throw new ArgumentNullException(nameof(enumerable2));
+#endif
 
         return Impl();
 
@@ -94,7 +103,11 @@ public static class DesignExtensions
     [Pure]
     public static IEnumerable<T> SelectDeep<T>(this IEnumerable<T> source, Func<T, IEnumerable<T>> childrenSelector)
     {
+#if NET6_0_OR_GREATER
         ArgumentNullException.ThrowIfNull(childrenSelector);
+#else
+        if (childrenSelector is null) throw new ArgumentNullException(nameof(childrenSelector));
+#endif
 
         return Impl();
 
@@ -127,7 +140,11 @@ public static class DesignExtensions
     [Pure]
     public static IEnumerable<T> BreadthFirst<T>(this IEnumerable<T> source, Func<T, IEnumerable<T>> childrenSelector)
     {
+#if NET6_0_OR_GREATER
         ArgumentNullException.ThrowIfNull(childrenSelector);
+#else
+        if (childrenSelector is null) throw new ArgumentNullException(nameof(childrenSelector));
+#endif
 
         return Impl();
 
@@ -161,8 +178,13 @@ public static class DesignExtensions
     [Pure]
     public static IEnumerable<T> DepthFirst<T>(this IEnumerable<T> source, Func<T, IEnumerable<T>> childrenSelector)
     {
+#if NET6_0_OR_GREATER
         ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(childrenSelector);
+#else
+        if (source is null) throw new ArgumentNullException(nameof(source));
+        if (childrenSelector is null) throw new ArgumentNullException(nameof(childrenSelector));
+#endif
 
         return Impl();
 
@@ -297,7 +319,11 @@ public static class DesignExtensions
     /// <returns>The value attached to key, if key already exists in the dictionary; otherwise, the new value returned by the <paramref name="createValueFunc"/>.</returns>
     public static TValue GetOrCreateValue<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key, Func<TKey, TValue> createValueFunc)
     {
+#if NET6_0_OR_GREATER
         ArgumentNullException.ThrowIfNull(dictionary);
+#else
+        if (dictionary is null) throw new ArgumentNullException(nameof(dictionary));
+#endif
         if (!dictionary.TryGetValue(key, out var value))
         {
             value = createValueFunc.Invoke(key);

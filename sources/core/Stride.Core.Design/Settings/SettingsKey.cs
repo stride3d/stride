@@ -237,7 +237,11 @@ public class SettingsKey<T> : SettingsKey
     /// <param name="profile">The profile in which to set the value. Must be a non-null that uses the same <see cref="SettingsContainer"/> that this <see cref="SettingsKey"/>.</param>
     public void SetValue(T value, SettingsProfile profile)
     {
+#if NET6_0_OR_GREATER
         ArgumentNullException.ThrowIfNull(profile);
+#else
+        if (profile is null) throw new ArgumentNullException(nameof(profile));
+#endif
         profile = ResolveProfile(profile);
         profile.SetValue(Name, value);
     }

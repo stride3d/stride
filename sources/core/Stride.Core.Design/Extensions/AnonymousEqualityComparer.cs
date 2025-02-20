@@ -19,8 +19,13 @@ public class AnonymousEqualityComparer<T> : IEqualityComparer<T>
     /// <param name="getHashCode">The function to use to compute hash codes for the objects to compare.</param>
     public AnonymousEqualityComparer(Func<T?, T?, bool> equals, Func<T, int> getHashCode)
     {
+#if NET6_0_OR_GREATER
         ArgumentNullException.ThrowIfNull(equals);
         ArgumentNullException.ThrowIfNull(getHashCode);
+#else
+        if (equals is null) throw new ArgumentNullException(nameof(equals));
+        if (getHashCode is null) throw new ArgumentNullException(nameof(getHashCode));
+#endif
         this.equals = equals;
         this.getHashCode = getHashCode;
     }

@@ -11,7 +11,11 @@ namespace Stride.Core;
 /// </summary>
 public static partial class NamingHelper
 {
+#if NET7_0_OR_GREATER
     private static readonly Regex MatchIdentifier = GetMatchIdentifierRegex();
+#else
+    private static readonly Regex MatchIdentifier = new Regex("^[a-zA-Z_][a-zA-Z0-9_]*$");
+#endif
     private const string DefaultNamePattern = "{0} ({1})";
 
     /// <summary>
@@ -39,7 +43,11 @@ public static partial class NamingHelper
     /// <returns><c>true</c> if is a valid namespace identifier; otherwise, <c>false</c>.</returns>
     public static bool IsValidNamespace(string text, out string? error)
     {
+#if NET6_0_OR_GREATER
         ArgumentNullException.ThrowIfNull(text);
+#else
+        if (text is null) throw new ArgumentNullException(nameof(text));
+#endif
 
         if (string.IsNullOrWhiteSpace(text))
         {
@@ -61,7 +69,11 @@ public static partial class NamingHelper
     /// <exception cref="ArgumentNullException">text</exception>
     public static bool IsIdentifier(string text)
     {
+#if NET6_0_OR_GREATER
         ArgumentNullException.ThrowIfNull(text);
+#else
+        if (text is null) throw new ArgumentNullException(nameof(text));
+#endif
         return MatchIdentifier.Match(text).Success;
     }
 
@@ -76,7 +88,11 @@ public static partial class NamingHelper
     /// <returns><see cref="baseName"/> if no item of <see cref="existingItems"/> returns this value through <see cref="existingNameFunc"/>. Otherwise, a string formatted with <see cref="namePattern"/>, using <see cref="baseName"/> as token '{0}' and the smallest numerical value that can generate an available name, starting from 2</returns>
     public static string ComputeNewName<T>(string baseName, IEnumerable<T> existingItems, Func<T, string>? existingNameFunc = null, string? namePattern = null)
     {
+#if NET6_0_OR_GREATER
         ArgumentNullException.ThrowIfNull(existingItems);
+#else
+        if (existingItems is null) throw new ArgumentNullException(nameof(existingItems));
+#endif
         existingNameFunc ??= x => x.ToString();
 
         var existingNames = new HashSet<string>(existingItems.Select(existingNameFunc).Select(x => x.ToUpperInvariant()));
@@ -92,10 +108,15 @@ public static partial class NamingHelper
     /// <returns><see cref="baseName"/> if the "contains predicate" returns false. Otherwise, a string formatted with <see cref="namePattern"/>, using <see cref="baseName"/> as token '{0}' and the smallest numerical value that can generate an available name, starting from 2</returns>
     public static string ComputeNewName(string baseName, ContainsLocationDelegate containsDelegate, string? namePattern = null)
     {
+#if NET6_0_OR_GREATER
         ArgumentNullException.ThrowIfNull(baseName);
         ArgumentNullException.ThrowIfNull(containsDelegate);
+#else
+        if (baseName is null) throw new ArgumentNullException(nameof(baseName));
+        if (containsDelegate is null) throw new ArgumentNullException(nameof(containsDelegate));
+#endif
         namePattern ??= DefaultNamePattern;
-        if (!namePattern.Contains("{0}") || !namePattern.Contains("{1}")) throw new ArgumentException(@"This parameter must be a formattable string containing '{0}' and '{1}' tokens", nameof(namePattern));
+        if (!namePattern.Contains("{0}") || !namePattern.Contains("{1}")) throw new ArgumentException("This parameter must be a formattable string containing '{0}' and '{1}' tokens", nameof(namePattern));
 
         // First check if the base name itself is ok
         if (!containsDelegate(baseName))
@@ -126,6 +147,8 @@ public static partial class NamingHelper
         return result;
     }
 
+#if NET7_0_OR_GREATER
     [GeneratedRegex("^[a-zA-Z_][a-zA-Z0-9_]*$")]
     private static partial Regex GetMatchIdentifierRegex();
+#endif
 }

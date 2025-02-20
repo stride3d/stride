@@ -124,7 +124,11 @@ public class SettingsContainer
     /// </remarks>
     public SettingsProfile? LoadSettingsProfile(UFile filePath, bool setAsCurrent, SettingsProfile? parent = null, bool registerInContainer = true)
     {
+#if NET6_0_OR_GREATER
         ArgumentNullException.ThrowIfNull(filePath);
+#else
+        if (filePath is null) throw new ArgumentNullException(nameof(filePath));
+#endif
         if (setAsCurrent && !registerInContainer) throw new ArgumentException("Cannot set the profile as current if it's not registered to the container", nameof(setAsCurrent));
 
         if (!File.Exists(filePath))
@@ -215,7 +219,11 @@ public class SettingsContainer
     /// <returns><c>true</c> if the file was correctly saved, <c>false</c> otherwise.</returns>
     public bool SaveSettingsProfile(SettingsProfile profile, UFile filePath)
     {
+#if NET6_0_OR_GREATER
         ArgumentNullException.ThrowIfNull(profile);
+#else
+        if (profile is null) throw new ArgumentNullException(nameof(profile));
+#endif
         try
         {
             profile.Saving = true;
@@ -338,8 +346,13 @@ public class SettingsContainer
 
     private void ChangeCurrentProfile(SettingsProfile oldProfile, SettingsProfile newProfile)
     {
+#if NET6_0_OR_GREATER
         ArgumentNullException.ThrowIfNull(oldProfile);
         ArgumentNullException.ThrowIfNull(newProfile);
+#else
+        if (oldProfile is null) throw new ArgumentNullException(nameof(oldProfile));
+        if (newProfile is null) throw new ArgumentNullException(nameof(newProfile));
+#endif
         currentProfile = newProfile;
 
         lock (SettingsLock)

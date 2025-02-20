@@ -75,7 +75,11 @@ public class Vector2Converter : BaseConverter
     /// <inheritdoc/>
     public override object? ConvertTo(ITypeDescriptorContext? context, CultureInfo? culture, object? value, Type destinationType)
     {
+#if NET6_0_OR_GREATER
         ArgumentNullException.ThrowIfNull(destinationType);
+#else
+        if (destinationType is null) throw new ArgumentNullException(nameof(destinationType));
+#endif
 
         if (value is Vector2 vector)
         {
@@ -102,7 +106,11 @@ public class Vector2Converter : BaseConverter
     /// <inheritdoc/>
     public override object CreateInstance(ITypeDescriptorContext? context, IDictionary propertyValues)
     {
+#if NET6_0_OR_GREATER
         ArgumentNullException.ThrowIfNull(propertyValues);
+#else
+        if (propertyValues is null) throw new ArgumentNullException(nameof(propertyValues));
+#endif
         return new Vector2((float)propertyValues[nameof(Vector2.X)]!, (float)propertyValues[nameof(Vector2.Y)]!);
     }
 }

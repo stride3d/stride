@@ -28,7 +28,11 @@ public class ObjectCache<TKey, TValue> where TKey : IEquatable<TKey> where TValu
     /// <param name="comparer">The comparer to use to compare keys.</param>
     public ObjectCache(int size, IEqualityComparer<TKey>? comparer)
     {
+#if NET8_0_OR_GREATER
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(size);
+#else
+        if (size <= 0) throw new ArgumentOutOfRangeException(nameof(size))
+#endif
         this.size = size;
         cache = new Dictionary<TKey, TValue>(size, comparer);
         accessHistory = new SortedList<long, TKey>(size);
@@ -104,7 +108,11 @@ public class ObjectCache<TKey, TValue> where TKey : IEquatable<TKey> where TValu
     {
         lock (objectLock)
         {
+#if NET8_0_OR_GREATER
             ArgumentOutOfRangeException.ThrowIfNegativeOrZero(newSize);
+#else
+            if (newSize <= 0) throw new ArgumentOutOfRangeException(nameof(newSize))
+#endif
             size = newSize;
             // Remove any object that is beyond our new size.
             ShrinkCache();

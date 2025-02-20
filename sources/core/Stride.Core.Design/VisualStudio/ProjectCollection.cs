@@ -41,7 +41,11 @@ public sealed class ProjectCollection : KeyedCollection<Guid, Project>
     /// <exception cref="ArgumentNullException">container</exception>
     internal ProjectCollection(Solution container)
     {
+#if NET6_0_OR_GREATER
         ArgumentNullException.ThrowIfNull(container);
+#else
+        if (container is null) throw new ArgumentNullException(nameof(container));
+#endif
 
         Solution = container;
     }

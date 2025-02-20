@@ -48,7 +48,11 @@ public sealed class Section
     /// <param name="properties">The property lines.</param>
     public Section(string name, string sectionType, string step, IEnumerable<PropertyItem> properties)
     {
+#if NET6_0_OR_GREATER
         ArgumentNullException.ThrowIfNull(name);
+#else
+        if (name is null) throw new ArgumentNullException(nameof(name));
+#endif
         this.Name = name;
         SectionType = sectionType;
         Step = step;

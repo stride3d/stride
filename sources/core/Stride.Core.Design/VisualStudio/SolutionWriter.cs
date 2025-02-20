@@ -53,13 +53,21 @@ internal class SolutionWriter : IDisposable
 
     public void Flush()
     {
+#if NET7_0_OR_GREATER
         ObjectDisposedException.ThrowIf(disposed, this);
+#else
+        if (disposed) throw new ObjectDisposedException(nameof(SolutionWriter));
+#endif
         writer!.Flush();
     }
 
     public void WriteSolutionFile(Solution solution)
     {
+#if NET7_0_OR_GREATER
         ObjectDisposedException.ThrowIf(disposed, this);
+#else
+        if (disposed) throw new ObjectDisposedException(nameof(SolutionWriter));
+#endif
         lock (writer!)
         {
             WriteHeader(solution);

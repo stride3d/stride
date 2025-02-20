@@ -80,7 +80,11 @@ public class SettingsProfile : IDisposable
     /// <returns><c>True</c> if the profile contains the given settings key, <c>False</c> otherwise.</returns>
     public bool ContainsKey(SettingsKey key)
     {
+#if NET6_0_OR_GREATER
         ArgumentNullException.ThrowIfNull(key);
+#else
+        if (key is null) throw new ArgumentNullException(nameof(key));
+#endif
         return ContainsKey(key.Name);
     }
 
@@ -92,7 +96,11 @@ public class SettingsProfile : IDisposable
     /// <returns><c>True</c> if the profile contains the given settings key, <c>False</c> otherwise.</returns>
     public bool ContainsKey(UFile name)
     {
+#if NET6_0_OR_GREATER
         ArgumentNullException.ThrowIfNull(name);
+#else
+        if (name is null) throw new ArgumentNullException(nameof(name));
+#endif
         lock (SettingsContainer.SettingsLock)
         {
             return Settings.ContainsKey(name);
@@ -181,7 +189,11 @@ public class SettingsProfile : IDisposable
     /// <param name="entry">The entry to register.</param>
     internal void RegisterEntry(SettingsEntry entry)
     {
+#if NET6_0_OR_GREATER
         ArgumentNullException.ThrowIfNull(entry);
+#else
+        if (entry is null) throw new ArgumentNullException(nameof(entry));
+#endif
         lock (SettingsContainer.SettingsLock)
         {
             Settings.Add(entry.Name, entry);
@@ -198,7 +210,11 @@ public class SettingsProfile : IDisposable
     /// <returns><c>true</c> if an entry matching the name is found, <c>false</c> otherwise.</returns>
     internal bool GetValue(UFile name, out object? value, bool searchInParent, bool createInCurrentProfile)
     {
+#if NET6_0_OR_GREATER
         ArgumentNullException.ThrowIfNull(name);
+#else
+        if (name is null) throw new ArgumentNullException(nameof(name));
+#endif
         SettingsEntry? entry = GetEntry(name, searchInParent, createInCurrentProfile);
         if (entry != null)
         {
@@ -216,7 +232,11 @@ public class SettingsProfile : IDisposable
     /// <param name="value">The value to set.</param>
     internal void SetValue(UFile name, object value)
     {
+#if NET6_0_OR_GREATER
         ArgumentNullException.ThrowIfNull(name);
+#else
+        if (name is null) throw new ArgumentNullException(nameof(name));
+#endif
 
         lock (SettingsContainer.SettingsLock)
         {
@@ -253,7 +273,11 @@ public class SettingsProfile : IDisposable
     /// <returns>An instance of <see cref="SettingsEntry"/> that matches the name, or <c>null</c>.</returns>
     private SettingsEntry? GetEntry(UFile name, bool searchInParent, bool createInCurrentProfile)
     {
+#if NET6_0_OR_GREATER
         ArgumentNullException.ThrowIfNull(name);
+#else
+        if (name is null) throw new ArgumentNullException(nameof(name));
+#endif
 
         lock (SettingsContainer.SettingsLock)
         {

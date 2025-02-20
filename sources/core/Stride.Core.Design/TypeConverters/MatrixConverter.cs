@@ -89,7 +89,11 @@ public class MatrixConverter : BaseConverter
     /// <inheritdoc/>
     public override object? ConvertTo(ITypeDescriptorContext? context, CultureInfo? culture, object? value, Type destinationType)
     {
+#if NET6_0_OR_GREATER
         ArgumentNullException.ThrowIfNull(destinationType);
+#else
+        if (destinationType is null) throw new ArgumentNullException(nameof(destinationType));
+#endif
 
         if (value is Matrix matrix)
         {
@@ -121,7 +125,11 @@ public class MatrixConverter : BaseConverter
     /// <inheritdoc/>
     public override object CreateInstance(ITypeDescriptorContext? context, IDictionary propertyValues)
     {
+#if NET6_0_OR_GREATER
         ArgumentNullException.ThrowIfNull(propertyValues);
+#else
+        if (propertyValues is null) throw new ArgumentNullException(nameof(propertyValues));
+#endif
         return new Matrix
         {
             M11 = (float)propertyValues[nameof(Matrix.M11)]!,

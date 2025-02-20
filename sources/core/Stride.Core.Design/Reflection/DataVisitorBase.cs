@@ -39,7 +39,11 @@ public abstract class DataVisitorBase : IDataVisitor
     /// <exception cref="ArgumentNullException">typeDescriptorFactory</exception>
     protected DataVisitorBase(ITypeDescriptorFactory typeDescriptorFactory)
     {
+#if NET6_0_OR_GREATER
         ArgumentNullException.ThrowIfNull(typeDescriptorFactory);
+#else
+        if (typeDescriptorFactory is null) throw new ArgumentNullException(nameof(typeDescriptorFactory));
+#endif
         TypeDescriptorFactory = typeDescriptorFactory;
         CustomVisitors = [];
         context.DescriptorFactory = TypeDescriptorFactory;

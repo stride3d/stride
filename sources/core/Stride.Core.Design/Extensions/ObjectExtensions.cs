@@ -70,7 +70,11 @@ public static class ObjectExtensions
     [NotNull]
     public static T SafeArgument<T>(this T obj, [CallerArgumentExpression(nameof(obj))] string argumentName = "") where T : class
     {
+#if NET6_0_OR_GREATER
         ArgumentNullException.ThrowIfNull(argumentName);
+#else
+        if (argumentName is null) throw new ArgumentNullException(nameof(argumentName));
+#endif
         if (obj == null) throw new ArgumentNullException(argumentName);
         return obj;
     }

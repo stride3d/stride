@@ -19,7 +19,11 @@ public class YamlSerializer : YamlSerializerBase
 
     public static T Load<T>(string filePath, ILogger? log = null)
     {
+#if NET6_0_OR_GREATER
         ArgumentNullException.ThrowIfNull(filePath);
+#else
+        if (filePath is null) throw new ArgumentNullException(nameof(filePath));
+#endif
         using var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
         return (T)Default.Deserialize(stream);
     }

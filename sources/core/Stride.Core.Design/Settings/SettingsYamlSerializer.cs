@@ -21,7 +21,11 @@ public class SettingsYamlSerializer : YamlSerializer
     /// <returns>An instance of the YAML data.</returns>
     public object Deserialize(Stream stream, object existingObject)
     {
+#if NET6_0_OR_GREATER
         ArgumentNullException.ThrowIfNull(existingObject);
+#else
+        if (existingObject is null) throw new ArgumentNullException(nameof(existingObject));
+#endif
         using var textReader = new StreamReader(stream);
         var serializer = GetYamlSerializer();
         return serializer.Deserialize(textReader, existingObject.GetType(), existingObject);
