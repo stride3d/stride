@@ -148,7 +148,8 @@ namespace Stride.Editor.Preview
             if (!DisablePreview)
             {
                 PreviewGame.GraphicsDeviceManager.DeviceCreated += GraphicsDeviceManagerDeviceCreated;
-                PreviewGame.Run(context);
+                //PreviewGame.Run(context);
+                throw new NotImplementedException("Game.Run(context) is not implemented");
                 PreviewGame.Dispose();
             }
         }

@@ -9,7 +9,7 @@ using Stride.Input;
 namespace Stride.Engine
 {
     /// <summary>
-    /// The input system updating the input manager exposed by <see cref="Game.Input"/>.
+    /// The input system updating the input manager exposed by <see cref="DefaultGame.Input"/>.
     /// </summary>
     public sealed class InputSystem : GameSystemBase
     {
@@ -25,7 +25,7 @@ namespace Stride.Engine
         {
             base.Initialize();
 
-            Manager.Initialize(Game.Context);
+            Manager.Initialize();
 
             Game.Activated += OnApplicationResumed;
             Game.Deactivated += OnApplicationPaused;

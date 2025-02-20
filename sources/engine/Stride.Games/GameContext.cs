@@ -44,44 +44,32 @@ namespace Stride.Games
         /// </summary>
         public bool IsUserManagingRun { get; protected set; }
 
-        /// <summary>
-        /// Gets the main loop callback to be called when <see cref="IsUserManagingRun"/> is true.
-        /// </summary>
-        /// <value>The run loop.</value>
-        public Action RunCallback { get; internal set; }
-
-        /// <summary>
-        /// Gets the exit callback to be called when <see cref="IsUserManagingRun"/> is true when exiting the game.
-        /// </summary>
-        /// <value>The run loop.</value>
-        public Action ExitCallback { get; internal set; }
-
         // TODO: remove these requested values.
 
         /// <summary>
         /// The requested width.
         /// </summary>
-        internal int RequestedWidth;
+        public int RequestedWidth;
 
         /// <summary>
         /// The requested height.
         /// </summary>
-        internal int RequestedHeight;
+        public int RequestedHeight;
 
         /// <summary>
         /// The requested back buffer format.
         /// </summary>
-        internal PixelFormat RequestedBackBufferFormat;
+        public PixelFormat RequestedBackBufferFormat;
 
         /// <summary>
         /// The requested depth stencil format.
         /// </summary>
-        internal PixelFormat RequestedDepthStencilFormat;
+        public PixelFormat RequestedDepthStencilFormat;
 
         /// <summary>
         /// The requested graphics profiles.
         /// </summary>
-        internal GraphicsProfile[] RequestedGraphicsProfile;
+        public GraphicsProfile[] RequestedGraphicsProfile;
 
         /// <summary>
         /// The device creation flags that will be used to create the <see cref="GraphicsDevice"/>.
@@ -98,7 +86,7 @@ namespace Stride.Games
         /// Product name of game.
         /// TODO: Provide proper access title through code and game studio
         /// </summary>
-        internal static string ProductName
+        public static string ProductName
         {
             get
             {
@@ -168,7 +156,6 @@ namespace Stride.Games
             Control = control;
             RequestedWidth = requestedWidth;
             RequestedHeight = requestedHeight;
-            IsUserManagingRun = isUserManagingRun;
         }
     }
 }

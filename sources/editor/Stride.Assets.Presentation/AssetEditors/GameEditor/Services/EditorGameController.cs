@@ -412,7 +412,8 @@ namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Services
 
             // Notify game start
             gameStartedTaskSource.SetResult(true);
-            Game.Run(context);
+            //Game.Run(context);
+            throw new NotImplementedException("Game.Run(context) is not implemented");
             Game.Dispose();
         }
 
