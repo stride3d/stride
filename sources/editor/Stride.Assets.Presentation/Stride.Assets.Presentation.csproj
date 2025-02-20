@@ -106,6 +106,7 @@
     <None Include="Templates\Core\**" />
     <None Include="Templates\Assets\**" />
   </ItemGroup>
+    
   <Import Project="$(StrideSdkTargets)" />
   <PropertyGroup>
     <TargetsForTfmSpecificBuildOutput>_StrideIncludeExtraAssemblies;$(TargetsForTfmSpecificBuildOutput)</TargetsForTfmSpecificBuildOutput>
