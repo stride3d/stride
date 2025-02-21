@@ -93,18 +93,18 @@ public interface IDialogService
             case MessageBoxButton.OK:
                 var buttonOk = ButtonOK;
                 buttonOk.IsCancel = true;
-                return new[] { buttonOk };
+                return [buttonOk];
 
             case MessageBoxButton.OKCancel:
-                return new[] { ButtonOK, ButtonCancel };
+                return [ButtonOK, ButtonCancel];
 
             case MessageBoxButton.YesNoCancel:
-                return new[] { ButtonYes, ButtonNo, ButtonCancel };
+                return [ButtonYes, ButtonNo, ButtonCancel];
 
             case MessageBoxButton.YesNo:
                 var buttonNo = ButtonNo;
                 buttonNo.IsCancel = true;
-                return new[] { ButtonYes, buttonNo };
+                return [ButtonYes, buttonNo];
 
             default:
                 throw new ArgumentOutOfRangeException(nameof(buttons), buttons, null);
