@@ -23,21 +23,17 @@
 
 #endregion
 
-using System;
+namespace Stride.Core.VisualStudio;
 
-namespace Stride.Core.VisualStudio
+internal class SolutionFileException : Exception
 {
-    class SolutionFileException
-        : Exception
+    public SolutionFileException(string message)
+        : base(message)
     {
-        public SolutionFileException(string message)
-            : base(message)
-        {
-        }
+    }
 
-        public SolutionFileException(string message, Exception innerException)
-            : base(message, innerException)
-        {
-        }
+    public SolutionFileException(string message, Exception innerException)
+        : base(message, innerException)
+    {
     }
 }

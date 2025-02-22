@@ -12,7 +12,7 @@ public class STRDIAG004PropertyWithNoGetter : DiagnosticAnalyzer
     private const string InvalidAccessibilityOnGetterMessageFormat = "The property '{0}' with [DataMember] does not have an accessible getter which is required for serialization. A public/internal/internal protected getter is expected.";
     private const string Category = DiagnosticCategory.Serialization;
 
-    private static DiagnosticDescriptor NonExistentGetterRule = new DiagnosticDescriptor(
+    private static DiagnosticDescriptor NonExistentGetterRule = new(
         DiagnosticId,
         Title,
         NonExistentGetterMessageFormat,
@@ -21,7 +21,7 @@ public class STRDIAG004PropertyWithNoGetter : DiagnosticAnalyzer
         isEnabledByDefault: true,
         helpLinkUri: string.Format(DiagnosticCategory.LinkFormat, DiagnosticId));
 
-    private static DiagnosticDescriptor InvalidAccesibilityRule = new DiagnosticDescriptor(
+    private static DiagnosticDescriptor InvalidAccesibilityRule = new(
         DiagnosticId,
         Title,
         InvalidAccessibilityOnGetterMessageFormat,

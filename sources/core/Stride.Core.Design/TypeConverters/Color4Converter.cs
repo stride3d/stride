@@ -46,98 +46,90 @@
 * THE SOFTWARE.
 */
 
-using System;
 using System.Collections;
 using System.ComponentModel;
 using System.ComponentModel.Design.Serialization;
 using System.Globalization;
-using Stride.Core.Annotations;
 using Stride.Core.Mathematics;
 
-namespace Stride.Core.TypeConverters
+namespace Stride.Core.TypeConverters;
+
+/// <summary>
+/// Defines a type converter for <see cref="Color4"/>.
+/// </summary>
+public class Color4Converter : BaseConverter
 {
     /// <summary>
-    /// Defines a type converter for <see cref="Color4"/>.
+    /// Initializes a new instance of the <see cref="Color4Converter"/> class.
     /// </summary>
-    public class Color4Converter : BaseConverter
+    public Color4Converter()
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="Color4Converter"/> class.
-        /// </summary>
-        public Color4Converter()
+        var type = typeof(Color4);
+        Properties = new PropertyDescriptorCollection(
+        [
+            new FieldPropertyDescriptor(type.GetField(nameof(Color4.R))!),
+            new FieldPropertyDescriptor(type.GetField(nameof(Color4.G))!),
+            new FieldPropertyDescriptor(type.GetField(nameof(Color4.B))!),
+            new FieldPropertyDescriptor(type.GetField(nameof(Color4.A))!),
+        ]);
+    }
+
+    /// <inheritdoc/>
+    public override bool CanConvertTo(ITypeDescriptorContext? context, Type? destinationType)
+    {
+        return destinationType == typeof(Color) || destinationType == typeof(Color3) || base.CanConvertTo(context, destinationType);
+    }
+
+    /// <inheritdoc/>
+    public override object? ConvertTo(ITypeDescriptorContext? context, CultureInfo? culture, object? value, Type destinationType)
+    {
+#if NET6_0_OR_GREATER
+        ArgumentNullException.ThrowIfNull(destinationType);
+#else
+        if (destinationType is null) throw new ArgumentNullException(nameof(destinationType));
+#endif
+
+        if (value is Color4 color4)
         {
-            var type = typeof(Color4);
-            Properties = new PropertyDescriptorCollection(new PropertyDescriptor[]
+            if (destinationType == typeof(string))
             {
-                new FieldPropertyDescriptor(type.GetField(nameof(Color4.R))),
-                new FieldPropertyDescriptor(type.GetField(nameof(Color4.G))),
-                new FieldPropertyDescriptor(type.GetField(nameof(Color4.B))),
-                new FieldPropertyDescriptor(type.GetField(nameof(Color4.A))),
-            });
-        }
-
-        /// <inheritdoc/>
-        public override bool CanConvertTo(ITypeDescriptorContext context, Type destinationType)
-        {
-            return destinationType == typeof(Color) || destinationType == typeof(Color3) || base.CanConvertTo(context, destinationType);
-        }
-
-        /// <inheritdoc/>
-        public override object ConvertTo(ITypeDescriptorContext context, CultureInfo culture, object value, Type destinationType)
-        {
-            if (destinationType == null) throw new ArgumentNullException(nameof(destinationType));
-
-            if (value is Color4)
-            {
-                var color = (Color4)value;
-
-                if (destinationType == typeof(string))
-                {
-                    return color.ToString();
-                }
-                if (destinationType == typeof(Color))
-                {
-                    return (Color)color;
-                }
-                if (destinationType == typeof(Color3))
-                {
-                    return color.ToColor3();
-                }
-
-                if (destinationType == typeof(InstanceDescriptor))
-                {
-                    var constructor = typeof(Color4).GetConstructor(MathUtil.Array(typeof(float), 4));
-                    if (constructor != null)
-                        return new InstanceDescriptor(constructor, color.ToArray());
-                }
+                return color4.ToString();
             }
-
-            return base.ConvertTo(context, culture, value, destinationType);
+            if (destinationType == typeof(Color))
+            {
+                return (Color)color4;
+            }
+            if (destinationType == typeof(Color3))
+            {
+                return color4.ToColor3();
+            }
+            if (destinationType == typeof(InstanceDescriptor))
+            {
+                var constructor = typeof(Color4).GetConstructor(MathUtil.Array(typeof(float), 4));
+                if (constructor != null)
+                    return new InstanceDescriptor(constructor, color4.ToArray());
+            }
         }
 
-        /// <inheritdoc/>
-        public override bool CanConvertFrom(ITypeDescriptorContext context, Type sourceType)
-        {
-            return sourceType == typeof(Color) || sourceType == typeof(Color3) || base.CanConvertFrom(context, sourceType);
-        }
+        return base.ConvertTo(context, culture, value, destinationType);
+    }
 
-        /// <inheritdoc/>
-        public override object ConvertFrom(ITypeDescriptorContext context, CultureInfo culture, object value)
-        {
-            if (value is Color)
-            {
-                var color = (Color)value;
-                return color.ToColor4();
-            }
-            if (value is Color3)
-            {
-                var color = (Color3)value;
-                return color.ToColor4();
-            }
+    /// <inheritdoc/>
+    public override bool CanConvertFrom(ITypeDescriptorContext? context, Type sourceType)
+    {
+        return sourceType == typeof(Color) || sourceType == typeof(Color3) || base.CanConvertFrom(context, sourceType);
+    }
 
-            var str = value as string;
-            if (str != null)
-            {
+    /// <inheritdoc/>
+    public override object? ConvertFrom(ITypeDescriptorContext? context, CultureInfo? culture, object value)
+    {
+        switch (value)
+        {
+            case Color color2:
+                return color2.ToColor4();
+            case Color3 color3:
+                return color3.ToColor4();
+            case string str:
                 // First try to convert using StringToRgba
                 if (ColorExtensions.CanConvertStringToRgba(str))
                 {
@@ -145,17 +137,25 @@ namespace Stride.Core.TypeConverters
                     return new Color4(colorValue);
                 }
                 // If we can't, use the default ConvertFromString method.
-                return ConvertFromString<Color4, float>(context, culture, value);
-            }
-            return base.ConvertFrom(context, culture, value);
-        }
+                return ConvertFromString<Color4, float>(context, culture, str);
 
-        /// <inheritdoc/>
-        [NotNull]
-        public override object CreateInstance(ITypeDescriptorContext context, IDictionary propertyValues)
-        {
-            if (propertyValues == null) throw new ArgumentNullException(nameof(propertyValues));
-            return new Color4((float)propertyValues[nameof(Color.R)], (float)propertyValues[nameof(Color.G)], (float)propertyValues[nameof(Color.B)], (float)propertyValues[nameof(Color.A)]);
+            default:
+                return base.ConvertFrom(context, culture, value);
         }
+    }
+
+    /// <inheritdoc/>
+    public override object CreateInstance(ITypeDescriptorContext? context, IDictionary propertyValues)
+    {
+#if NET6_0_OR_GREATER
+        ArgumentNullException.ThrowIfNull(propertyValues);
+#else
+        if (propertyValues is null) throw new ArgumentNullException(nameof(propertyValues));
+#endif
+        return new Color4(
+            (float)propertyValues[nameof(Color.R)]!,
+            (float)propertyValues[nameof(Color.G)]!,
+            (float)propertyValues[nameof(Color.B)]!,
+            (float)propertyValues[nameof(Color.A)]!);
     }
 }

@@ -109,7 +109,7 @@ public class SerializerSelector
     /// </summary>
     public bool ExternalIdentifiableAsGuid { get; }
 
-    public List<SerializerFactory> SerializerFactories { get; } = new List<SerializerFactory>();
+    public List<SerializerFactory> SerializerFactories { get; } = [];
 
     public DataSerializer? GetSerializer(ref ObjectId typeId)
     {
