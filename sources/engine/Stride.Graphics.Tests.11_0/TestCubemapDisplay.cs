@@ -23,7 +23,7 @@ namespace Stride.Graphics.Tests
 
         public TestCubemapDisplay()
         {
-            GraphicsDeviceManager.PreferredGraphicsProfile = new[] { GraphicsProfile.Level_9_1 };
+            GraphicsDeviceManager.PreferredGraphicsProfile = new[] { GraphicsProfile.Level_10_0 };
         }
 
         protected override async Task LoadContent()
