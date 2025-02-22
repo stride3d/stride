@@ -48,8 +48,14 @@ namespace Stride.Assets.Presentation.AssemblyReloading
                 // Serialize types from unloaded assemblies as Yaml, and unset them
                 var unloadingVisitor = new UnloadingVisitor(log, loadedAssembliesSet);
                 Dictionary<AssetViewModel, List<ItemToReload>> assetItemsToReload;
+
+                // We shouldn't use assets whose types were defined in the previous version of this assembly
+                // We'll rebuild them using the latest type by serializing them before loading the assembly,
+                // and deserializing them further below once the new assembly is loaded in
+                Dictionary<string, List<ParsingEvent>> assetsToReload;
                 try
                 {
+                    assetsToReload = PrepareUserDefinedAssetsForReloading(session, modifiedAssemblies, log);
                     assetItemsToReload = PrepareAssemblyReloading(session, unloadingVisitor, session.UndoRedoService);
                 }
                 catch (Exception e)
@@ -74,6 +80,7 @@ namespace Stride.Assets.Presentation.AssemblyReloading
                 var reloadingVisitor = new ReloadingVisitor(log, loadedAssembliesSet);
                 try
                 {
+                    PostAssemblyReloadingForUserDefinedAssets(session, assetsToReload, log);
                     PostAssemblyReloading(session.UndoRedoService, session.AssetNodeContainer, reloadingVisitor, log, assetItemsToReload);
                 }
                 catch (Exception e)
@@ -89,6 +96,44 @@ namespace Stride.Assets.Presentation.AssemblyReloading
             }
 
             session.ActiveProperties.RefreshSelectedPropertiesAsync().Forget();
+        }
+
+        private static Dictionary<string, List<ParsingEvent>> PrepareUserDefinedAssetsForReloading([NotNull] SessionViewModel session, [NotNull] Dictionary<PackageLoadedAssembly, string> modifiedAssemblies, ILogger log)
+        {
+            var output = new Dictionary<string, List<ParsingEvent>>();
+            foreach (var asset in session.AllAssets)
+            {
+                if (modifiedAssemblies.Any(assembly => assembly.Key.Assembly == asset.Asset.GetType().Assembly) == false)
+                    continue;
+
+                var obj = asset.AssetItem.Asset;
+                var settings = new SerializerContextSettings(log);
+                var parsingEvents = new List<ParsingEvent>();
+                            
+                AssetYamlSerializer.Default.Serialize(new ParsingEventListEmitter(parsingEvents), obj, typeof(Asset), settings);
+                
+                output.Add(asset.Url, parsingEvents);
+            }
+
+            return output;
+        }
+
+        private static void PostAssemblyReloadingForUserDefinedAssets(SessionViewModel session, Dictionary<string, List<ParsingEvent>> assetsToReload, ILogger log)
+        {
+            var settings = new SerializerContextSettings { Logger = log };
+            foreach (var group in session.AllAssets
+                         .SelectMany(x => x.Dependencies.RecursiveReferencedAssets.Append(x))
+                         .Where(x => assetsToReload.ContainsKey(x.Url))
+                         .GroupBy(x => x.Url))
+            {
+                var events = assetsToReload[group.Key];
+                foreach (var viewModel in group)
+                {
+                    var eventReader = new EventReader(new MemoryParser(events));
+                    var asset = (Asset)AssetYamlSerializer.Default.Deserialize(eventReader, null, typeof(Asset), out var properties, settings);
+                    viewModel.UpdateAsset(asset, log);
+                }
+            }
         }
 
         private static Dictionary<AssetViewModel, List<ItemToReload>> PrepareAssemblyReloading(SessionViewModel session, UnloadingVisitor visitor, IUndoRedoService actionService)
@@ -395,7 +440,7 @@ namespace Stride.Assets.Presentation.AssemblyReloading
                     // Other case, stop on the actual member (since we'll just visit null)
                     var expectedPath = unloadedObject.Path.Decompose().Last().GetIndex() != null ? unloadedObject.ParentPath : unloadedObject.Path;
 
-                    if (CurrentPath.Match(expectedPath))
+                    if (CurrentPath.ToString().Equals(expectedPath.ToString(), StringComparison.Ordinal)) // We have to convert to string here instead of using Match() as the members in the path may refer to outdated types
                     {
                         var eventReader = new EventReader(new MemoryParser(unloadedObject.ParsingEvents));
                         var settings = Log != null ? new SerializerContextSettings { Logger = Log } : null;
