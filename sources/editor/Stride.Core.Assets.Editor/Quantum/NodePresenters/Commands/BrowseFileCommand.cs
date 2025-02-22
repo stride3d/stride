@@ -2,13 +2,11 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Stride.Core.IO;
 using Stride.Core.Presentation.Quantum;
 using Stride.Core.Presentation.Quantum.Presenters;
 using Stride.Core.Presentation.Services;
-using Stride.Core.Quantum;
 
 namespace Stride.Core.Assets.Editor.Quantum.NodePresenters.Commands
 {
@@ -49,26 +47,20 @@ namespace Stride.Core.Assets.Editor.Quantum.NodePresenters.Commands
         /// <inheritdoc/>
         protected override async Task<PickerResult> ShowPicker(IReadOnlyCollection<INodePresenter> nodePresenters, object currentValue, object parameter)
         {
-            var openDialog = dialogService.CreateFileOpenModalDialog();
-            var currentPath = (UFile)currentValue;
-            if (currentPath != null)
+            var currentPath = currentValue as UPath;
+            if (currentPath is not null)
             {
-                var currentDirectory = currentPath.GetFullDirectory();
-                if (initialDirectoryProvider != null)
+                if (initialDirectoryProvider is not null)
                 {
-                    currentDirectory = initialDirectoryProvider.GetInitialDirectory(currentDirectory);
-                }
-                if (currentDirectory != null)
-                {
-                    openDialog.InitialDirectory = currentDirectory;
+                    currentPath = initialDirectoryProvider.GetInitialDirectory(currentPath.GetFullDirectory());
                 }
             }
 
-            var result = await openDialog.ShowModal();
+            var file = await dialogService.OpenFilePickerAsync(currentPath?.GetFullDirectory());
             var pickerResult = new PickerResult
             {
-                ProcessChange = result == DialogResult.Ok,
-                NewValue = result == DialogResult.Ok ? new UFile(openDialog.FilePaths.First()) : null
+                ProcessChange = file is not null,
+                NewValue = file
             };
             return pickerResult;
         }

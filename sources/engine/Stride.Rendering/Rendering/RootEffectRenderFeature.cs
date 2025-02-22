@@ -53,6 +53,7 @@ namespace Stride.Rendering
         private readonly List<NamedSlotDefinition> viewCBufferOffsetSlots = new List<NamedSlotDefinition>();
         private readonly List<NamedSlotDefinition> drawCBufferOffsetSlots = new List<NamedSlotDefinition>();
 
+        private readonly List<NamedSlotDefinition> frameLogicalGroups = new List<NamedSlotDefinition>();
         private readonly List<NamedSlotDefinition> viewLogicalGroups = new List<NamedSlotDefinition>();
         private readonly List<NamedSlotDefinition> drawLogicalGroups = new List<NamedSlotDefinition>();
 
@@ -213,6 +214,33 @@ namespace Stride.Rendering
         public void RemoveViewCBufferOffsetSlot(ConstantBufferOffsetReference cbufferOffsetSlot)
         {
             viewCBufferOffsetSlots[cbufferOffsetSlot.Index] = new NamedSlotDefinition(null);
+        }
+
+        public LogicalGroupReference CreateFrameLogicalGroup(string logicalGroup)
+        {
+            // Check existing slots
+            for (int i = 0; i < frameLogicalGroups.Count; i++)
+            {
+                if (frameLogicalGroups[i].Variable.Equals(logicalGroup))
+                    return new LogicalGroupReference(i);
+            }
+
+            // Need a new slot
+            var slotReference = new LogicalGroupReference(frameLogicalGroups.Count);
+            frameLogicalGroups.Add(new NamedSlotDefinition(logicalGroup));
+
+            foreach (var frameResourceLayoutEntry in frameResourceLayouts)
+            {
+                var resourceGroupLayout = frameResourceLayoutEntry.Value;
+
+                // Ensure there is enough space
+                if (resourceGroupLayout.LogicalGroups == null || resourceGroupLayout.LogicalGroups.Length < frameLogicalGroups.Count)
+                    Array.Resize(ref resourceGroupLayout.LogicalGroups, frameLogicalGroups.Count);
+
+                ResolveLogicalGroup(resourceGroupLayout, slotReference.Index, logicalGroup);
+            }
+
+            return slotReference;
         }
 
         public LogicalGroupReference CreateViewLogicalGroup(string logicalGroup)
@@ -746,7 +774,7 @@ namespace Stride.Rendering
                     {
                         threadContext.ResourceGroupAllocator.PrepareResourceGroup(frameLayout, BufferPoolAllocationType.UsedMultipleTime, frameLayout.Entry.Resources);
 
-                        // Register it in list of view layouts to update for this frame
+                        // Register it in list of frame layouts to update for this frame
                         FrameLayouts.Add(frameLayout);
                     }
 
@@ -928,6 +956,13 @@ namespace Stride.Rendering
                 }
 
                 frameResourceLayouts.Add(hash, result);
+
+                // Resolve logical groups
+                result.LogicalGroups = new LogicalGroup[frameLogicalGroups.Count];
+                for (int index = 0; index < frameLogicalGroups.Count; index++)
+                {
+                    ResolveLogicalGroup(result, index, frameLogicalGroups[index].Variable);
+                }
             }
 
             return result;
@@ -1010,6 +1045,22 @@ namespace Stride.Rendering
                 case System.Collections.Specialized.NotifyCollectionChangedAction.Remove:
                     // TODO GRAPHICS REFACTOR support removal of render stages
                     throw new NotImplementedException();
+            }
+        }
+
+        public override void BindPerViewShaderResource(string logicalGroupName, RenderView renderView, GraphicsResource resource)
+        {
+            var depthLogicalKey = CreateViewLogicalGroup(logicalGroupName);
+            var viewFeature = renderView.Features[Index];
+
+            foreach (var viewLayout in viewFeature.Layouts)
+            {
+                var logicalGroup = viewLayout.GetLogicalGroup(depthLogicalKey);
+                if (logicalGroup.Hash == ObjectId.Empty)
+                    continue;
+
+                var resourceGroup = viewLayout.Entries[renderView.Index].Resources;
+                resourceGroup.DescriptorSet.SetShaderResourceView(logicalGroup.DescriptorSlotStart, resource);
             }
         }
 

@@ -55,7 +55,7 @@ namespace Stride.Core.Translation.Extractor
         {
             var lineNumberLookup = new LineNumberLookup();
             // Read all content
-            var content = File.ReadAllText(file.ToWindowsPath());
+            var content = File.ReadAllText(file.ToOSPath());
             // Remove comments
             content = RemoveComments(content);
             // Read content again to build the line number lookup

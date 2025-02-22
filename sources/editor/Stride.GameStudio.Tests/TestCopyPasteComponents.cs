@@ -15,6 +15,8 @@ using Stride.GameStudio.Tests.Helpers;
 
 namespace Stride.GameStudio.Tests
 {
+    // AssetQuantumRegistry is currently not thread safe. Any unit tests accessing it must not run in parallel.
+    [Collection("TestCopyPaste")]
     public sealed class TestCopyPasteProperties
     {
         private ICopyPasteService service;

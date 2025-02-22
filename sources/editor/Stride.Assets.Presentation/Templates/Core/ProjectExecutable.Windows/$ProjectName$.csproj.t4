@@ -7,6 +7,7 @@
     <ApplicationIcon>Resources\Icon.ico</ApplicationIcon>
     <OutputType>WinExe</OutputType>
     <RootNamespace><#= Properties.Namespace #></RootNamespace>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
 
     <OutputPath>..\Bin\<#= Properties.CurrentPlatform #>\$(Configuration)\</OutputPath>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>

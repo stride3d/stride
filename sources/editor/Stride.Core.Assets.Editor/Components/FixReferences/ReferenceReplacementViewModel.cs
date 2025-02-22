@@ -4,7 +4,7 @@ using System;
 using System.Threading.Tasks;
 using Stride.Core.Extensions;
 using Stride.Core.Presentation.Commands;
-using Stride.Core.Presentation.ViewModel;
+using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.Components.FixReferences
 {

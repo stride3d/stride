@@ -11,6 +11,7 @@ using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Diagnostics;
 using Stride.Core.IO;
 using Stride.Editor;
+using Stride.Editor.Annotations;
 using Stride.Editor.Build;
 using Stride.Editor.Preview;
 using Stride.Editor.Thumbnails;
@@ -20,7 +21,7 @@ using Stride.GameStudio.ViewModels;
 
 namespace Stride.GameStudio.Plugin
 {
-    public class StrideEditorPlugin : StrideAssetsPlugin
+    internal sealed class StrideEditorPlugin : StrideAssetsPlugin
     {
         protected override void Initialize(ILogger logger)
         {
@@ -36,7 +37,7 @@ namespace Stride.GameStudio.Plugin
                 if (package != null)
                 {
                     // In package, we override editor build directory to be per-project and be shared with game build directory
-                    buildDirectory = $"{package.PackagePath.GetFullDirectory().ToWindowsPath()}\\obj\\stride\\assetbuild\\data";
+                    buildDirectory = new UFile($"{package.PackagePath.GetFullDirectory()}\\obj\\stride\\assetbuild\\data").ToOSPath();
                 }
 
                 // Attempt to create the directory to ensure it is valid.
@@ -86,6 +87,11 @@ namespace Stride.GameStudio.Plugin
 
             GameStudioViewModel.GameStudio.Preview = new PreviewViewModel(session);
             GameStudioViewModel.GameStudio.Debugging = new DebuggingViewModel(GameStudioViewModel.GameStudio, strideDebugService);
+        }
+
+        public override void RegisterAssetPreviewViewTypes(IDictionary<Type, Type> assetPreviewViewTypes)
+        {
+            // nothing for now
         }
     }
 }

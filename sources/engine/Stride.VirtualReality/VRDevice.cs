@@ -54,6 +54,13 @@ namespace Stride.VirtualReality
 
         public bool SupportsOverlays { get; protected set; } = false;
 
+        /// <summary>
+        /// Whether or not passthrough is supported by the device. 
+        /// It needs to be requested on device creation by enabling <see cref="VRDeviceSystem.RequestPassthrough"/>.
+        /// If supported, passthrough can be started (and stopped) with the <see cref="StartPassthrough"/> method.
+        /// </summary>
+        public bool SupportsPassthrough { get; protected set; } = false;
+
         public virtual VROverlay CreateOverlay(int width, int height, int mipLevels, int sampleCount)
         {
             return null;
@@ -61,6 +68,17 @@ namespace Stride.VirtualReality
 
         public virtual void ReleaseOverlay(VROverlay overlay)
         {         
+        }
+
+        /// <summary>
+        /// Starts a passthrough. When enabled the scene is rendered on top of the camera image of the device.
+        /// </summary>
+        /// <returns>A disposable which will stop the passthrough on dispose.</returns>
+        /// <exception cref="NotSupportedException">Thrown if the passthrough mode is not supported by the device.</exception>
+        /// <exception cref="InvalidOperationException">Thrown if the passthrough mode is already enabled.</exception>
+        public virtual IDisposable StartPassthrough()
+        {
+            throw new NotSupportedException();
         }
 
         public abstract void Enable(GraphicsDevice device, GraphicsDeviceManager graphicsDeviceManager, bool requireMirror, int mirrorWidth, int mirrorHeight);

@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -47,7 +46,7 @@ namespace Stride.Assets.Presentation.AssetEditors.VisualScriptEditor
 
             try
             {
-                var generatedAbsolutePath = assetItem.GetGeneratedAbsolutePath()?.ToWindowsPath();
+                var generatedAbsolutePath = assetItem.GetGeneratedAbsolutePath()?.ToOSPath();
                 if (generatedAbsolutePath == null)
                     return;
 

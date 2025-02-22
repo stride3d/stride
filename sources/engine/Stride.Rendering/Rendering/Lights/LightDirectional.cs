@@ -14,17 +14,25 @@ namespace Stride.Rendering.Lights
     /// </summary>
     [DataContract("LightDirectional")]
     [Display("Directional")]
-    public class LightDirectional : DirectLightBase
+    public class LightDirectional : ColorLightBase, IDirectLight
     {
+        /// <summary>
+        /// Gets or sets the shadow.
+        /// </summary>
+        /// <value>The shadow.</value>
+        /// <userdoc>The settings of the light shadow</userdoc>
+        [DataMember(200)]
+        public LightDirectionalShadowMap Shadow { get; set; }
+
         public LightDirectional()
         {
-            Shadow = new LightDirectionalShadowMap
+            Shadow = new()
             {
                 Size = LightShadowMapSize.Large,
             };
         }
 
-        public override bool HasBoundingBox
+        public bool HasBoundingBox
         {
             get
             {
@@ -32,12 +40,12 @@ namespace Stride.Rendering.Lights
             }
         }
 
-        public override BoundingBox ComputeBounds(Vector3 position, Vector3 direction)
+        public BoundingBox ComputeBounds(Vector3 position, Vector3 direction)
         {
             return BoundingBox.Empty;
         }
 
-        public override float ComputeScreenCoverage(RenderView renderView, Vector3 position, Vector3 direction)
+        public float ComputeScreenCoverage(RenderView renderView, Vector3 position, Vector3 direction)
         {
             // As the directional light is covering the whole screen, we take the max of current width, height
             return Math.Max(renderView.ViewSize.X, renderView.ViewSize.Y);
@@ -47,5 +55,7 @@ namespace Stride.Rendering.Lights
         {
             return true;
         }
+
+        LightShadowMap IDirectLight.Shadow => Shadow;
     }
 }

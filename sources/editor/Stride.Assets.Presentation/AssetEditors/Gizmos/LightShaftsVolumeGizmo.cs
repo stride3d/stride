@@ -3,6 +3,7 @@
 
 using Stride.Core;
 using Stride.Engine;
+using Stride.Engine.Gizmos;
 using Stride.Rendering;
 
 namespace Stride.Assets.Presentation.AssetEditors.Gizmos

@@ -1,13 +1,14 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-
-using System.Linq;
 using SharpDX.DirectWrite;
-using Stride.Core.Assets.Compiler;
-using Stride.Core;
-using Stride.Core.Diagnostics;
+using SharpFont;
 using Stride.Assets.SpriteFont.Compiler;
+using Stride.Core;
+using Stride.Core.Assets.Compiler;
+using Stride.Core.Diagnostics;
 using Stride.Graphics.Font;
+using System;
+using System.Linq;
 
 namespace Stride.Assets.SpriteFont
 {
@@ -17,11 +18,9 @@ namespace Stride.Assets.SpriteFont
     {
         private static readonly Logger Log = GlobalLogger.GetLogger("SystemFontProvider");
 
-        public const string DefaultFontName = "Arial";
-
         public SystemFontProvider()
         {
-            FontName = DefaultFontName;
+            FontName = GetDefaultFontName();
         }
 
         public SystemFontProvider(string fontName)
@@ -52,24 +51,21 @@ namespace Stride.Assets.SpriteFont
         /// <inheritdoc/>
         public override FontFace GetFontFace()
         {
-            var factory = new Factory();
+            using var factory = new Factory();
 
-            SharpDX.DirectWrite.Font font;
+            Font font;
             using (var fontCollection = factory.GetSystemFontCollection(false))
             {
-                int index;
-                if (!fontCollection.FindFamilyName(FontName, out index))
+                if (!fontCollection.FindFamilyName(FontName, out var index))
                 {
                     // Lets try to import System.Drawing for old system bitmap fonts (like MS Sans Serif)
                     throw new FontNotFoundException(FontName);
                 }
 
-                using (var fontFamily = fontCollection.GetFontFamily(index))
-                {
-                    var weight = Style.IsBold() ? FontWeight.Bold : FontWeight.Regular;
-                    var style = Style.IsItalic() ? SharpDX.DirectWrite.FontStyle.Italic : SharpDX.DirectWrite.FontStyle.Normal;
-                    font = fontFamily.GetFirstMatchingFont(weight, FontStretch.Normal, style);
-                }
+                using var fontFamily = fontCollection.GetFontFamily(index);
+                var weight = Style.IsBold() ? FontWeight.Bold : FontWeight.Regular;
+                var style = Style.IsItalic() ? SharpDX.DirectWrite.FontStyle.Italic : SharpDX.DirectWrite.FontStyle.Normal;
+                font = fontFamily.GetFirstMatchingFont(weight, FontStretch.Normal, style);
             }
 
             return new FontFace(font);
@@ -77,47 +73,91 @@ namespace Stride.Assets.SpriteFont
 
         public override string GetFontPath(AssetCompilerResult result = null)
         {
-            using (var factory = new Factory())
+            if (OperatingSystem.IsWindows())
+                return GetFontPathWindows(result);
+            if (OperatingSystem.IsLinux())
             {
-                Font font;
-
-                using (var fontCollection = factory.GetSystemFontCollection(false))
+                var fontPath = GetFontPathLinux(result);
+                var defaultFont = GetDefaultFontName();
+                if (fontPath == null && FontName != defaultFont)
                 {
-                    int index;
-                    if (!fontCollection.FindFamilyName(FontName, out index))
-                    {
-                        result?.Error($"Cannot find system font '{FontName}'. Make sure it is installed on this machine.");
-                        return null;
-                    }
+                    result?.Warning($"Cannot find font family '{FontName}'. Loading default font '{defaultFont}' instead");
+                    FontName = defaultFont;
+                    fontPath = GetFontPathLinux(result);
+                }
+                return fontPath;
+            }
+            return null;
+        }
 
-                    using (var fontFamily = fontCollection.GetFontFamily(index))
-                    {
-                        var weight = Style.IsBold() ? FontWeight.Bold : FontWeight.Regular;
-                        var style = Style.IsItalic() ? SharpDX.DirectWrite.FontStyle.Italic : SharpDX.DirectWrite.FontStyle.Normal;
-                        font = fontFamily.GetFirstMatchingFont(weight, FontStretch.Normal, style);
-                        if (font == null)
-                        {
-                            result?.Error($"Cannot find style '{Style}' for font family {FontName}. Make sure it is installed on this machine.");
-                            return null;
-                        }
-                    }
+        private string GetFontPathLinux(AssetCompilerResult result)
+        {
+            StyleFlags flags = StyleFlags.None;
+            if (Style.IsBold())
+                flags |= StyleFlags.Bold;
+            if (Style.IsItalic())
+                flags |= StyleFlags.Italic;
+
+            string systemFontDirectory = "/usr/share/fonts";
+            var files = System.IO.Directory.EnumerateFiles(systemFontDirectory, "*.ttf", System.IO.SearchOption.AllDirectories);
+
+            var library = new SharpFont.Library();
+            foreach (string file in files)
+            {              
+                var face = new Face(library, file);
+                if (face.FamilyName.Contains(FontName) && face.StyleFlags == flags)
+                {
+                    return file;
+                }
+            }
+            result?.Warning($"Cannot find style '{Style}' for font family '{FontName}'. Make sure it is installed on this machine.");
+            return null;
+        }
+
+        private string GetFontPathWindows(AssetCompilerResult result)
+        {
+            using var factory = new Factory();
+            Font font;
+
+            using (var fontCollection = factory.GetSystemFontCollection(false))
+            {
+                if (!fontCollection.FindFamilyName(FontName, out var index))
+                {
+                    result?.Error($"Cannot find system font '{FontName}'. Make sure it is installed on this machine.");
+                    return null;
                 }
 
-                var fontFace = new FontFace(font);
-
-                // get the font path on the hard drive
-                var file = fontFace.GetFiles().First();
-                var referenceKey = file.GetReferenceKey();
-                var originalLoader = (FontFileLoaderNative)file.Loader;
-                var loader = originalLoader.QueryInterface<LocalFontFileLoader>();
-                return loader.GetFilePath(referenceKey);
+                using var fontFamily = fontCollection.GetFontFamily(index);
+                var weight = Style.IsBold() ? FontWeight.Bold : FontWeight.Regular;
+                var style = Style.IsItalic() ? SharpDX.DirectWrite.FontStyle.Italic : SharpDX.DirectWrite.FontStyle.Normal;
+                font = fontFamily.GetFirstMatchingFont(weight, FontStretch.Normal, style);
+                if (font == null)
+                {
+                    result?.Error($"Cannot find style '{Style}' for font family {FontName}. Make sure it is installed on this machine.");
+                    return null;
+                }
             }
+
+            var fontFace = new FontFace(font);
+
+            // get the font path on the hard drive
+            var file = fontFace.GetFiles().First();
+            var referenceKey = file.GetReferenceKey();
+            var originalLoader = (FontFileLoaderNative)file.Loader;
+            var loader = originalLoader.QueryInterface<LocalFontFileLoader>();
+            return loader.GetFilePath(referenceKey);
         }
 
         /// <inheritdoc/>
         public override string GetFontName()
         {
             return FontName;
+        }
+
+        private static string GetDefaultFontName()
+        {
+            //Note : Both macOS and Windows contains Arial
+            return OperatingSystem.IsLinux() ? "Liberation" : "Arial";
         }
     }
 }

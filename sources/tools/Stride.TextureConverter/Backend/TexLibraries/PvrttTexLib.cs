@@ -73,7 +73,7 @@ namespace Stride.TextureConverter.TexLibraries
         {
             switch (request.Type)
             {
-                    // Loading only file with a .pvr extension
+                // Loading only file with a .pvr extension
                 case RequestType.Loading:
                     LoadingRequest loader = (LoadingRequest)request;
                     return loader.Mode == LoadingRequest.LoadingMode.FilePath && (Path.GetExtension(loader.FilePath).Equals(".pvr") || Path.GetExtension(loader.FilePath).Equals(".ktx"));
@@ -284,8 +284,8 @@ namespace Stride.TextureConverter.TexLibraries
                     break;
 
                 default:
-                    Log.Error("FITexLib (FreeImage) can't handle this request: " + request.Type);
-                    throw new TextureToolsException("FITexLib (FreeImage) can't handle this request: " + request.Type);
+                    Log.Error("PvrTexLib (PVR Texture Tool) can't handle this request: " + request.Type);
+                    throw new TextureToolsException("PvrTexLib (PVR Texture Tool) can't handle this request: " + request.Type);
             }
         }
 
@@ -350,20 +350,20 @@ namespace Stride.TextureConverter.TexLibraries
             switch(request.Filter)
             {
                 case Filter.Rescaling.Bilinear:
-                    filter = EResizeMode.eResizeLinear;
+                    filter = EResizeMode.Linear;
                     break;
                 case Filter.Rescaling.Bicubic:
-                    filter = EResizeMode.eResizeCubic;
+                    filter = EResizeMode.Cubic;
                     break;
                 case Filter.Rescaling.Nearest:
-                    filter = EResizeMode.eResizeNearest;
+                    filter = EResizeMode.Nearest;
                     break;
                 default:
-                    filter = EResizeMode.eResizeCubic;
+                    filter = EResizeMode.Cubic;
                     break;
             }
 
-            Utilities.Resize(libraryData.Texture, (uint)width, (uint)height, (uint)image.Depth, filter);
+            PVRTextureUtilities.Resize(libraryData.Texture, (uint)width, (uint)height, (uint)image.Depth, filter);
             UpdateImage(image, libraryData);
 
             // Updating image data
@@ -465,11 +465,11 @@ namespace Stride.TextureConverter.TexLibraries
 
             PVRTexture textureTemp = new PVRTexture(libraryData.Header, libraryData.Texture.GetDataPtr());
 
-            EChannelName e1 = EChannelName.eBlue;
-            EChannelName e2 = EChannelName.eRed;
+            EChannelName e1 = EChannelName.Blue;
+            EChannelName e2 = EChannelName.Red;
 
-            Utilities.CopyChannels(libraryData.Texture, textureTemp, 1, out e1, out e2);
-            Utilities.CopyChannels(libraryData.Texture, textureTemp, 1, out e2, out e1);
+            PVRTextureUtilities.CopyChannels(libraryData.Texture, textureTemp, 1, out e1, out e2);
+            PVRTextureUtilities.CopyChannels(libraryData.Texture, textureTemp, 1, out e2, out e1);
 
             textureTemp.Dispose();
 
@@ -494,7 +494,7 @@ namespace Stride.TextureConverter.TexLibraries
 
             lock (lockObject)
             {
-                if (!Utilities.Transcode(libraryData.Texture, format, pixelType, colorSpace, (ECompressorQuality)compress.Quality, false))
+                if (!PVRTextureUtilities.Transcode(libraryData.Texture, format, pixelType, colorSpace, (ECompressorQuality)compress.Quality, false))
                 {
                     Log.Error("Compression failed!");
                     throw new TextureToolsException("Compression failed!");
@@ -583,7 +583,7 @@ namespace Stride.TextureConverter.TexLibraries
         {
             Log.Verbose("Decompressing texture ...");
 
-            if (!Utilities.Transcode(libraryData.Texture, PixelType.Standard8PixelType, libraryData.Header.GetChannelType(), libraryData.Header.GetColourSpace(), ECompressorQuality.ePVRTCNormal, true))
+            if (!PVRTextureUtilities.Transcode(libraryData.Texture, (ulong)EPVRTPixelFormat.RGBG8888, libraryData.Header.GetChannelType(), libraryData.Header.GetColourSpace(), ECompressorQuality.ETCNormal, true))
             {
                 Log.Error("Decompression failed!");
                 throw new TextureToolsException("Decompression failed!");
@@ -609,24 +609,14 @@ namespace Stride.TextureConverter.TexLibraries
         private void GenerateMipMaps(TexImage image, PvrTextureLibraryData libraryData, MipMapsGenerationRequest request)
         {
             Log.Verbose("Generating Mipmaps ... ");
-
-            EResizeMode filter;
-            switch (request.Filter)
+            
+            var filter = request.Filter switch
             {
-                case Filter.MipMapGeneration.Linear:
-                    filter = EResizeMode.eResizeLinear;
-                    break;
-                case Filter.MipMapGeneration.Cubic:
-                    filter = EResizeMode.eResizeCubic;
-                    break;
-                case Filter.MipMapGeneration.Nearest:
-                    filter = EResizeMode.eResizeNearest;
-                    break;
-                default:
-                    filter = EResizeMode.eResizeCubic;
-                    break;
-            }
-
+                Filter.MipMapGeneration.Linear => EResizeMode.Linear,
+                Filter.MipMapGeneration.Cubic => EResizeMode.Cubic,
+                Filter.MipMapGeneration.Nearest => EResizeMode.Nearest,
+                _ => EResizeMode.Cubic,
+            };
             libraryData.Texture.GenerateMIPMaps(filter);
 
             UpdateImage(image, libraryData);
@@ -647,14 +637,14 @@ namespace Stride.TextureConverter.TexLibraries
             switch(request.Flip)
             {
                 case Orientation.Horizontal:
-                    if (!Utilities.Flip(libraryData.Texture, EPVRTAxis.ePVRTAxisX))
+                    if (!PVRTextureUtilities.Flip(libraryData.Texture, EPVRTAxis.AxisX))
                     {
                         Log.Error("Flipping failed.");
                         throw new TextureToolsException("Flipping failed.");
                     }
                     break;
                 case Orientation.Vertical:
-                    if (!Utilities.Flip(libraryData.Texture, EPVRTAxis.ePVRTAxisY))
+                    if (!PVRTextureUtilities.Flip(libraryData.Texture, EPVRTAxis.AxisY))
                     {
                         Log.Error("Flipping failed.");
                         throw new TextureToolsException("Flipping failed.");
@@ -688,7 +678,7 @@ namespace Stride.TextureConverter.TexLibraries
             request.NormalMap.CurrentLibrary = this;
             request.NormalMap.DisposingLibrary = this;
 
-            if (!Utilities.GenerateNormalMap(normalMapLibraryData.Texture, request.Amplitude, "xyzh"))
+            if (!PVRTextureUtilities.GenerateNormalMap(normalMapLibraryData.Texture, request.Amplitude, "xyzh"))
             {
                 Log.Error("Failed to generate normal map.");
                 throw new TextureToolsException("Failed to generate normal map.");
@@ -710,7 +700,7 @@ namespace Stride.TextureConverter.TexLibraries
         {
             Log.Verbose("Premultiplying alpha ... ");
 
-            if (!Utilities.PreMultipliedAlpha(libraryData.Texture))
+            if (!PVRTextureUtilities.PreMultipliedAlpha(libraryData.Texture))
             {
                 Log.Error("Failed to premultiply the alpha.");
                 throw new TextureToolsException("Failed to premultiply the alpha.");
@@ -785,46 +775,44 @@ namespace Stride.TextureConverter.TexLibraries
         /// <param name="format">The format.</param>
         /// <returns></returns>
         /// <exception cref="TexLibraryException">UnHandled compression format by PowerVC Texture Tool.</exception>
-        private UInt64 RetrieveNativeFormat(Stride.Graphics.PixelFormat format)
+        private ulong RetrieveNativeFormat(Stride.Graphics.PixelFormat format)
         {
             switch (format)
             {
                 case Stride.Graphics.PixelFormat.ETC1:
-                    return 6;
+                    return (ulong)EPVRTPixelFormat.ETC1;
                 case Stride.Graphics.PixelFormat.ETC2_RGB:
                 case Stride.Graphics.PixelFormat.ETC2_RGB_SRgb:
-                    return 22;
+                    return (ulong)EPVRTPixelFormat.ETC2_RGB;
                 case Stride.Graphics.PixelFormat.ETC2_RGBA:
                 case Stride.Graphics.PixelFormat.ETC2_RGBA_SRgb:
-                    return 23;
+                    return (ulong)EPVRTPixelFormat.ETC2_RGBA;
                 case Stride.Graphics.PixelFormat.ETC2_RGB_A1:
-                    return 24;
+                    return (ulong)EPVRTPixelFormat.ETC2_RGB_A1;
                 case Stride.Graphics.PixelFormat.EAC_R11_Unsigned:
-                    return 25;
+                    return (ulong)EPVRTPixelFormat.EAC_R11;
                 case Stride.Graphics.PixelFormat.EAC_R11_Signed:
-                    return 26;
+                    return (ulong)EPVRTPixelFormat.EAC_R11;
                 case Stride.Graphics.PixelFormat.EAC_RG11_Unsigned:
-                    return 27;
+                    return (ulong)EPVRTPixelFormat.EAC_RG11;
                 case Stride.Graphics.PixelFormat.EAC_RG11_Signed:
-                    return 28;
+                    return (ulong)EPVRTPixelFormat.EAC_RG11;
                 case Stride.Graphics.PixelFormat.R32G32B32A32_Float:
                 case Stride.Graphics.PixelFormat.R32G32B32_Float:
                 case Stride.Graphics.PixelFormat.R32G32B32A32_UInt:
                 case Stride.Graphics.PixelFormat.R32G32B32_UInt:
                 case Stride.Graphics.PixelFormat.R32G32B32A32_SInt:
                 case Stride.Graphics.PixelFormat.R32G32B32_SInt:
-                    return Utilities.ConvertPixelType(PixelType.Standard32PixelType);
                 case Stride.Graphics.PixelFormat.R16G16B16A16_UNorm:
                 case Stride.Graphics.PixelFormat.R16G16B16A16_UInt:
                 case Stride.Graphics.PixelFormat.R16G16B16A16_SNorm:
                 case Stride.Graphics.PixelFormat.R16G16B16A16_SInt:
-                    return Utilities.ConvertPixelType(PixelType.Standard16PixelType);
                 case Stride.Graphics.PixelFormat.R8G8B8A8_UNorm_SRgb:
                 case Stride.Graphics.PixelFormat.R8G8B8A8_UNorm:
                 case Stride.Graphics.PixelFormat.R8G8B8A8_UInt:
                 case Stride.Graphics.PixelFormat.R8G8B8A8_SNorm:
                 case Stride.Graphics.PixelFormat.R8G8B8A8_SInt:
-                    return Utilities.ConvertPixelType(PixelType.Standard8PixelType);
+                    return (ulong)EPVRTPixelFormat.RGBG8888;
                 default:
                     Log.Error("UnHandled compression format by PowerVC Texture Tool.");
                     throw new TextureToolsException("UnHandled compression format by PowerVC Texture Tool.");
@@ -838,38 +826,38 @@ namespace Stride.TextureConverter.TexLibraries
             {
                 case Stride.Graphics.PixelFormat.R32G32B32A32_Float:
                 case Stride.Graphics.PixelFormat.R32G32B32_Float:
-                    return EPVRTVariableType.ePVRTVarTypeFloat;
+                    return EPVRTVariableType.Float;
                 //case Stride.Framework.Graphics.PixelFormat.R16G16B16A16_Float:
 
                 case Stride.Graphics.PixelFormat.R32G32B32A32_UInt:
                 case Stride.Graphics.PixelFormat.R32G32B32_UInt:
-                    return EPVRTVariableType.ePVRTVarTypeUnsignedInteger;
+                    return EPVRTVariableType.UnsignedInteger;
                 case Stride.Graphics.PixelFormat.R32G32B32A32_SInt:
                 case Stride.Graphics.PixelFormat.R32G32B32_SInt:
-                    return EPVRTVariableType.ePVRTVarTypeSignedInteger;
+                    return EPVRTVariableType.SignedInteger;
 
                 case Stride.Graphics.PixelFormat.R16G16B16A16_UNorm:
-                    return EPVRTVariableType.ePVRTVarTypeUnsignedShortNorm;
+                    return EPVRTVariableType.UnsignedShortNorm;
                 case Stride.Graphics.PixelFormat.R16G16B16A16_UInt:
-                    return EPVRTVariableType.ePVRTVarTypeUnsignedShort;
+                    return EPVRTVariableType.UnsignedShort;
                 case Stride.Graphics.PixelFormat.R16G16B16A16_SNorm:
-                    return EPVRTVariableType.ePVRTVarTypeSignedShortNorm;
+                    return EPVRTVariableType.SignedShortNorm;
                 case Stride.Graphics.PixelFormat.R16G16B16A16_SInt:
-                    return EPVRTVariableType.ePVRTVarTypeSignedShort;
+                    return EPVRTVariableType.SignedShort;
 
 
                 case Stride.Graphics.PixelFormat.R8G8B8A8_UNorm_SRgb:
                 case Stride.Graphics.PixelFormat.R8G8B8A8_UNorm:
-                    return EPVRTVariableType.ePVRTVarTypeUnsignedByteNorm;
+                    return EPVRTVariableType.UnsignedByteNorm;
                 case Stride.Graphics.PixelFormat.R8G8B8A8_UInt:
-                    return EPVRTVariableType.ePVRTVarTypeUnsignedByte;
+                    return EPVRTVariableType.UnsignedByte;
                 case Stride.Graphics.PixelFormat.R8G8B8A8_SNorm:
-                    return EPVRTVariableType.ePVRTVarTypeSignedByteNorm;
+                    return EPVRTVariableType.SignedByteNorm;
                 case Stride.Graphics.PixelFormat.R8G8B8A8_SInt:
-                    return EPVRTVariableType.ePVRTVarTypeSignedByte;
+                    return EPVRTVariableType.SignedByte;
 
                 default:
-                    return EPVRTVariableType.ePVRTVarTypeUnsignedByteNorm;
+                    return EPVRTVariableType.UnsignedByteNorm;
             }
         }
 
@@ -881,11 +869,11 @@ namespace Stride.TextureConverter.TexLibraries
             {
                 switch (header.GetChannelType())
                 {
-                    case EPVRTVariableType.ePVRTVarTypeFloat:
+                    case EPVRTVariableType.Float:
                         return Stride.Graphics.PixelFormat.R32G32B32A32_Float;
-                    case EPVRTVariableType.ePVRTVarTypeUnsignedInteger:
+                    case EPVRTVariableType.UnsignedInteger:
                         return Stride.Graphics.PixelFormat.R32G32B32A32_UInt;
-                    case EPVRTVariableType.ePVRTVarTypeSignedInteger:
+                    case EPVRTVariableType.SignedInteger:
                         return Stride.Graphics.PixelFormat.R32G32B32A32_SInt;
                 }
             }
@@ -893,13 +881,13 @@ namespace Stride.TextureConverter.TexLibraries
             {
                 switch (header.GetChannelType())
                 {
-                    case EPVRTVariableType.ePVRTVarTypeUnsignedShortNorm:
+                    case EPVRTVariableType.UnsignedShortNorm:
                         return Stride.Graphics.PixelFormat.R16G16B16A16_UNorm;
-                    case EPVRTVariableType.ePVRTVarTypeUnsignedShort:
+                    case EPVRTVariableType.UnsignedShort:
                         return Stride.Graphics.PixelFormat.R16G16B16A16_UInt;
-                    case EPVRTVariableType.ePVRTVarTypeSignedShortNorm:
+                    case EPVRTVariableType.SignedShortNorm:
                         return Stride.Graphics.PixelFormat.R16G16B16A16_SNorm;
-                    case EPVRTVariableType.ePVRTVarTypeSignedShort:
+                    case EPVRTVariableType.SignedShort:
                         return Stride.Graphics.PixelFormat.R16G16B16A16_SInt;
                 }
             }
@@ -907,18 +895,17 @@ namespace Stride.TextureConverter.TexLibraries
             {
                 switch (header.GetChannelType())
                 {
-                    case EPVRTVariableType.ePVRTVarTypeUnsignedByteNorm:
+                    case EPVRTVariableType.UnsignedByteNorm:
                         {
-                            if (header.GetColourSpace() == EPVRTColourSpace.ePVRTCSpacelRGB)
+                            if (header.GetColourSpace() == EPVRTColourSpace.Linear)
                                 return Stride.Graphics.PixelFormat.R8G8B8A8_UNorm;
-                            else
-                                return Stride.Graphics.PixelFormat.R8G8B8A8_UNorm_SRgb;
+                            return Stride.Graphics.PixelFormat.R8G8B8A8_UNorm_SRgb;
                         }
-                    case EPVRTVariableType.ePVRTVarTypeUnsignedByte:
+                    case EPVRTVariableType.UnsignedByte:
                         return Stride.Graphics.PixelFormat.R8G8B8A8_UInt;
-                    case EPVRTVariableType.ePVRTVarTypeSignedByteNorm:
+                    case EPVRTVariableType.SignedByteNorm:
                         return Stride.Graphics.PixelFormat.R8G8B8A8_SNorm;
-                    case EPVRTVariableType.ePVRTVarTypeSignedByte:
+                    case EPVRTVariableType.SignedByte:
                         return Stride.Graphics.PixelFormat.R8G8B8A8_SInt;
                 }
             }
@@ -928,7 +915,7 @@ namespace Stride.TextureConverter.TexLibraries
 
         private EPVRTColourSpace RetrieveNativeColorSpace(Stride.Graphics.PixelFormat format)
         {
-            return format.IsSRgb() ? EPVRTColourSpace.ePVRTCSpaceSRgb : EPVRTColourSpace.ePVRTCSpacelRGB;
+            return format.IsSRgb() ? EPVRTColourSpace.SRgb : EPVRTColourSpace.Linear;
         }
     }
 }

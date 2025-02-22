@@ -26,7 +26,6 @@
     <JavaOptions />
     <BaseIntermediateOutputPath>obj\</BaseIntermediateOutputPath>
     <StridePlatform>Android</StridePlatform>
-    <StrideBuildProfile>Android</StrideBuildProfile>
     <StridePackageGuid>{6d251236-da95-409a-8f4b-7d42ae1fd32c}</StridePackageGuid>
     <StrideGraphicsApi Condition="'$(StrideGraphicsApi)' == ''">OpenGLES</StrideGraphicsApi>
     <StrideOutputFolder>Tests\$(StrideGraphicsApi)\$(AssemblyName)</StrideOutputFolder>

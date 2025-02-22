@@ -100,12 +100,9 @@ namespace Stride.Rendering
             }
         }
 
-        private static unsafe void SetBufferData<TData>(CommandList commandList, Buffer buffer, TData[] fromData, int elementCount) where TData : unmanaged
+        private static void SetBufferData<TData>(CommandList commandList, Buffer buffer, TData[] fromData, int elementCount) where TData : unmanaged
         {
-            fixed (void* from = fromData) {
-                var dataPointer = new DataPointer(from, Math.Min(elementCount, fromData.Length) * Unsafe.SizeOf<TData>());
-                buffer.SetData(commandList, dataPointer);
-            }
+            buffer.SetData(commandList, (ReadOnlySpan<TData>)fromData.AsSpan(0, Math.Min(elementCount, fromData.Length)));
         }
 
         public override void PrepareEffectPermutations(RenderDrawContext context)

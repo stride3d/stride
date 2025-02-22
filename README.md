@@ -2,7 +2,7 @@
     <picture>
       <source media="(prefers-color-scheme: dark)" srcset="https://media.githubusercontent.com/media/stride3d/stride/84092e8aa924e2039b3f8d968907b48fc699c6b3/sources/data/images/Logo/stride-logo-readme-white.png">
       <source media="(prefers-color-scheme: light)" srcset="https://media.githubusercontent.com/media/stride3d/stride/84092e8aa924e2039b3f8d968907b48fc699c6b3/sources/data/images/Logo/stride-logo-readme-black.png">
-      <img alt="The stride logo, a geometrical 'S' in the form of a cube" src="https://media.githubusercontent.com/media/stride3d/stride/84092e8aa924e2039b3f8d968907b48fc699c6b3/sources/data/images/Logo/stride-logo-readme-black.png">
+      <a href="https://www.stride3d.net/"><img alt="The stride logo, a geometrical 'S' in the form of a cube" src="https://media.githubusercontent.com/media/stride3d/stride/84092e8aa924e2039b3f8d968907b48fc699c6b3/sources/data/images/Logo/stride-logo-readme-black.png"></a>
     </picture>
 </p>
 
@@ -10,99 +10,113 @@
 [![All Contributors](https://img.shields.io/github/all-contributors/stride3d/stride?color=ee8449)](#contributors)
 [![Financial sponsors](https://img.shields.io/opencollective/all/stride3d?logo=opencollective)](https://opencollective.com/stride3d)
 [![License](https://img.shields.io/badge/license-MIT-blue)](https://github.com/stride3d/stride/blob/master/LICENSE.md)
+[![Contributor Covenant](https://img.shields.io/badge/contributor%20covenant-2.0-4baaaa.svg)](CODE_OF_CONDUCT.md)
 
-Welcome to the Stride source code repository!
+# Welcome to the Stride Game Engine
 
-Stride is an open-source C# game engine for realistic rendering and VR. 
-The engine is highly modular and aims at giving game makers more flexibility in their development.
-Stride comes with an editor that allows you to create and manage the content of your games or applications visually and intuitively.
+Stride is an open-source C# game engine designed for realistic rendering and VR. Highly modular, it aims to give game makers more flexibility in their development. Stride comes with an editor, [Game Studio](https://doc.stride3d.net/latest/en/manual/game-studio/index.html), which allows you to create and manage the content of your games or applications visually and intuitively. To learn more about Stride, visit [stride3d.net](https://stride3d.net/).
 
 ![Stride Editor](https://stride3d.net/images/external/script-editor.png)
 
-To learn more about Stride, visit [stride3d.net](https://stride3d.net/).
+This README is intended for users who want to build the Stride engine from source or contribute to its development. If your goal is to create games using Stride, we recommend visiting the [Get started with Stride](https://doc.stride3d.net/latest/en/manual/get-started/index.html) guide. There, you'll find detailed instructions on downloading, installing, and getting started with game development in Stride.
 
-## Earn money by contributing
-If you are a developer with solid experience in C#, rendering techniques, or game development, we want to hire you! We have allocated funds from supporters on OpenCollective and can pay for work on certain projects. [More info about this here](https://github.com/stride3d/stride/wiki/Bounty).
+## 🤝 Contributing
 
-## License and governance
-### .NET Foundation
-This project is supported by the [.NET Foundation](https://dotnetfoundation.org).
+For questions and general discussions, please join our [Discord server](https://discord.gg/f6aerfE) or participate in [GitHub Discussions](https://github.com/stride3d/stride/discussions).
 
-### License
-Stride is covered by the [MIT License](LICENSE.md) unless stated otherwise (i.e. for some files that are copied from other projects).
-You can find the list of third-party projects [here](THIRD%20PARTY.md).
-Contributors need to sign the following [Contribution License Agreement](docs/ContributorLicenseAgreement.md).
+To report bugs or propose features, please use the [Issues](https://github.com/stride3d/stride/issues) section on GitHub.
 
-### Code of conduct
-Stride being a [.NET Foundation](https://www.dotnetfoundation.org/) project, it has adopted the code of conduct defined by the Contributor Covenant to clarify expected behavior in our community.
-For more information see the [.NET Foundation Code of Conduct](https://dotnetfoundation.org/code-of-conduct). 
+We welcome code contributions via pull requests. Issues tagged with **[`good first issue`](https://github.com/stride3d/stride/labels/good%20first%20issue)** are great starting points for code contributions.
 
-## Documentation
+You can help us translate Stride; check out our [Localization Guide](https://doc.stride3d.net/latest/en/contributors/engine/localization.html).
 
-Find explanations and information about Stride:
-* [Stride Manual](https://doc.stride3d.net/latest/manual/index.html)
-* [Tutorials](https://doc.stride3d.net/latest/en/tutorials/)
-* [API Reference](https://doc.stride3d.net/latest/api/index.html)
-* [Release Notes](https://doc.stride3d.net/latest/ReleaseNotes/index.html)
+### Earn Money by Contributing
 
-## Community
+If you are a developer with solid experience in C#, rendering techniques, or game development, we want to hire you! We have allocated funds from supporters on [Open Collective](https://opencollective.com/stride3d) and can pay for work on certain projects. [More information is available here](https://doc.stride3d.net/latest/en/contributors/engine/bug-bounties.html).
 
-Ask for help or report issues:
-* [Chat with the community on Discord](https://discord.gg/f6aerfE)
-* [Discuss topics on GitHub discussions](https://github.com/stride3d/stride/discussions)
-* [Report engine issues](https://github.com/stride3d/stride/issues)
-* [Donate to support the project](https://opencollective.com/stride3d/)
-* [List of Projects made by users](https://github.com/stride3d/stride/wiki/Community-Projects)
-* [Awesome Stride - Huge List of Stride Resources](https://github.com/Doprez/Awesome-Stride)
-* [Localization](docs/localization.md)
+## 🗺️ Roadmap
 
-## Building from source
+Our [Roadmap](https://doc.stride3d.net/latest/en/contributors/roadmap.html) communicates upcoming changes to the Stride engine.
+
+## 🛠️ Building from Source
 
 ### Prerequisites
 
-1. **Latest** [Git](https://git-scm.com/downloads) **with Large File Support** selected in the setup on the components dialog and for convenience a git UI client like [GitExtensions](https://gitextensions.github.io/).
-2. [DotNet SDK 8.0](https://dotnet.microsoft.com/en-us/download/dotnet/8.0)
-   - Run `dotnet --info` in a console or powershell window to see which versions you have installed  
-3. [Visual Studio 2022](https://www.visualstudio.com/downloads/) with the following workloads:
-   - `.NET desktop development` with `.NET Framework 4.7.2 targeting pack`
-   - `Desktop development with C++` with
-     - `Windows 10 SDK (10.0.18362.0)` (it's currently enabled by default but it might change)
-     - `MSVC v143 - VS2022 C++ x64/x86 build tools (v14.30)` or later version (should be enabled by default)
-     - `C++/CLI support for v143 build tools (v14.30)` or later version **(not enabled by default)**
-   - Optional (to target iOS/Android): `Mobile development with .NET` and `Android SDK setup (API level 27)` individual component, then in Visual Studio go to `Tools > Android > Android SDK Manager` and install `NDK` (version 19+) from `Tools` tab.
-4. **[FBX SDK 2019.0 VS2015](https://www.autodesk.com/developer-network/platform-technologies/fbx-sdk-2019-0)**
+1. **Latest [Git](https://git-scm.com/downloads)** with **Large File Support** selected during setup. For convenience, you might also use a Git UI client like [GitExtensions](https://gitextensions.github.io/).
+2. **[.NET 8.0 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/8.0)**
+   - Run `dotnet --info` in a console or PowerShell window to see which versions you have installed.
+3. **[Visual Studio 2022](https://visualstudio.microsoft.com/downloads/)** (the Community edition is free) with the following workloads:
+   - **.NET desktop development** with **.NET Framework 4.7.2 targeting pack** (should be enabled by default)
+   - **Desktop development with C++** with:
+     - **Windows 11 SDK (10.0.22621.0)** or a later version (should be enabled by default)
+     - **MSVC v143 - VS2022 C++ x64/x86 build tools (Latest)** (should be enabled by default)
+     - **C++/CLI support for v143 build tools (Latest)** *(not enabled by default)*
+   - *Optional* (to target iOS/Android): **.NET Multi-platform App UI development** and the **Android SDK setup** individual component (enabled by default). Then, in Visual Studio, go to `Tools > Android > Android SDK Manager` and install **NDK** (version 20.1+) from the `Tools` tab.
+   - *Optional* (to build the VSIX package): **Visual Studio extension development**
+
+> [!NOTE]
+> The installation of Visual Studio with the required components may require up to **14 GB of disk space**, depending on your system and selected components.
+
+> [!WARNING]
+> If this is your first time installing the .NET SDK, you might need to restart your system after the installation so that the system can recognize the new environment variables.
 
 ### Build Stride
 
-1. Clone the repo with a git UI or open a command prompt, point it to a directory and clone Stride to it: `git lfs clone https://github.com/stride3d/stride.git`
-   - **Do NOT use GitHub -> Code -> Download ZIP**, this won't include the ```lfs``` files.
-2. Open `<StrideDir>\build\Stride.sln` with Visual Studio 2022 and build `Stride.GameStudio` in the 60-Editor solution folder (it should be the default startup project) or run it from VS's toolbar.
-   - Optionally, open and build `Stride.Android.sln`, `Stride.iOS.sln`, etc.
+1. **Clone the repository** using a Git UI client or from the command line:
+   ```bash
+   git lfs clone https://github.com/stride3d/stride.git
+   ```
+2. **Open the solution:**
+   - Open `<StrideDir>\build\Stride.sln` with Visual Studio 2022. 
+   - Build the `Stride.GameStudio` project in the `60-Editor` solution folder (it should be the default startup project) or run it directly from Visual Studio's toolbar.
+   - _Optionally_, open and build `Stride.Android.sln`, `Stride.iOS.sln`, etc.
 
-#### Build Stride without Visual Studio
+> [!WARNING]
+> **Do NOT use GitHub -> Code -> Download ZIP** option, as this won't include the LFS files.
 
-1. Install [Visual Studio Build Tools](https://aka.ms/vs/17/release/vs_BuildTools.exe) with the same prerequisites listed above
-2. Add MSBuild's directory to your system's *PATH* (ex: `C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\MSBuild\Current\Bin`)
-3. Clone the repo with a git UI or open a command prompt, point it to a directory and clone Stride to it: `git lfs clone https://github.com/stride3d/stride.git`
-4. Navigate to `/Build` with the command prompt, input `msbuild /t:Restore Stride.sln` then `compile.bat`
+### Build Stride without Visual Studio
 
-If building failed:
+1. **Install** [Visual Studio Build Tools](https://aka.ms/vs/17/release/vs_BuildTools.exe) with the same prerequisites listed above.
+2. **Add MSBuild to your system's PATH:**
+   - Add MSBuild's directory to your `PATH` environment variable (e.g., `C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\MSBuild\Current\Bin`).
+3. **Clone the repository:**
+   ```bash
+   git lfs clone https://github.com/stride3d/stride.git
+
+   ```
+4. **Build using the command line:**
+   - Navigate to the `/build` directory in the command prompt and run:
+   ```bash
+   msbuild /t:Restore Stride.sln
+
+   ```
+   - Then run:
+   ```bash
+   compile.bat
+
+   ```
+
+### If Building Fails
+
 * Some errors for test projects are normal, GameStudio will start anyway.
-* The Visual Studio extension might fail to build if you are missing the [Visual Studio SDK](https://learn.microsoft.com/en-us/visualstudio/extensibility/installing-the-visual-studio-sdk?view=vs-2022), but GameStudio will start anyway.
-* If you skipped one of the `Prerequisites` thinking that you already have the latest version, update to the latest anyway just to be sure.
-* Visual Studio might have issues properly building if an anterior version is present alongside 2022. If you want to keep those version make sure that they are up to date and that you are building Stride through VS 2022.
-* Your system's *PATH* should not contain older versions of MSBuild (ex: `...\Microsoft Visual Studio\2019\BuildTools\MSBuild\Current\Bin` should be removed)
-* Some changes might require a system reboot, try that if you haven't yet.
-* Make sure that Git, Git LFS and Visual Studio can access the internet.
-* Close VS, clear the nuget cache (in your cmd `dotnet nuget locals all --clear`), delete the hidden `.vs` folder inside `\build` and the files inside `bin\packages`, kill any msbuild and other vs processes, build the whole solution then build and run GameStudio.
+* The Visual Studio extension might fail to build if you are missing the [Visual Studio SDK](https://learn.microsoft.com/en-us/visualstudio/extensibility/installing-the-visual-studio-sdk?view=vs-2022), but Game Studio will start anyway.
+* If you skipped any of the **Prerequisites** thinking you already have the latest version, please update to the latest to be sure.
+* Visual Studio might have issues building properly if an older version is present alongside 2022. If you want to keep those versions, ensure they are up to date and that you are building Stride using Visual Studio 2022.
+* Your system's `PATH` should not contain older versions of MSBuild (e.g., `...\Microsoft Visual Studio\2019\BuildTools\MSBuild\Current\Bin` should be removed).
+* Some changes might require a system reboot. Try that if you haven't yet, for example, if you see these errors:
+  * `Could not find a compatible version of MSBuild.`
+  * `Path to dotnet executable is not set.`
+* Ensure that Git, Git LFS, and Visual Studio can access the internet.
+* Close Visual Studio, clear the NuGet cache (`dotnet nuget locals all --clear`), delete the hidden `.vs` folder inside `\build` and the files inside `bin\packages`, kill any `msbuild` and other Visual Studio processes, then build the whole solution and run GameStudio.
 
-Do note that test solutions might fail but it should not prevent you from building `Stride.GameStudio`.
+> [!WARNING]
+> Test solutions might fail, but this should not prevent you from building `Stride.GameStudio`.
 
 ### Contribution Guidelines
 
-Please check our [Contributing Guidelines](docs/CONTRIBUTING.md).
+Please check our [Contributing Guidelines](https://doc.stride3d.net/latest/en/contributors/index.html).
 
-### Build Status
+## 🔬 Build Status
 
 |Branch| **master** |
 |:--:|:--:|
@@ -118,9 +132,41 @@ Please check our [Contributing Guidelines](docs/CONTRIBUTING.md).
 |Tests Windows Simple| <a href="https://teamcity.stride3d.net/viewType.html?buildTypeId=Engine_Tests_WindowsSimple&branch=master&guest=1"><img src="https://teamcity.stride3d.net/app/rest/builds/buildType:(id:Engine_Tests_WindowsSimple),branch:master/statusIcon"/></a>
 |Tests Windows D3D11|<a href="https://teamcity.stride3d.net/viewType.html?buildTypeId=Engine_Tests_WindowsD3D11&branch=master&guest=1"><img src="https://teamcity.stride3d.net/app/rest/builds/buildType:(id:Engine_Tests_WindowsD3D11),branch:master/statusIcon"/></a> 
 
-## Contributors ✨
+## 📖 Stride Documentation Landscape
 
-Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/docs/en/emoji-key)):
+The Stride documentation is organized across different locations. Here's how it's structured:
+
+1. [Stride Game Engine](https://github.com/stride3d/stride) - The main repository for Stride.
+   - [Contributing to Stride](https://doc.stride3d.net/latest/en/contributors/engine/index.html) - A guide for developers interested in contributing to or developing the Stride engine.
+1. [Stride Website](https://www.stride3d.net/) - The official site showcasing Stride, featuring:
+   - [Features](https://www.stride3d.net/features/) 
+   - [Blog](https://www.stride3d.net/blog/)
+   - [Community](https://www.stride3d.net/community/)
+   - [Download](https://www.stride3d.net/download/)
+   - [Sponsor](https://www.stride3d.net/sponsor/)
+   - [Contributing to the Website](https://doc.stride3d.net/latest/en/contributors/website/index.html) - Guide for contributing to the Stride website.
+2. [Stride Docs](https://doc.stride3d.net/) - The official documentation, including:
+   - [Manual](https://doc.stride3d.net/latest/en/manual/index.html)
+   - [Tutorials](https://doc.stride3d.net/latest/en/tutorials/index.html)
+   - [Release Notes](https://doc.stride3d.net/latest/en/ReleaseNotes/ReleaseNotes.html)
+   - [Ways to contribute](https://doc.stride3d.net/latest/en/contributors/index.html)
+   - [API Reference](https://doc.stride3d.net/latest/en/api/index.html)
+   - [Community Resources](https://doc.stride3d.net/latest/en/community-resources/index.html) - Demos, articles, shaders, physics examples, and more.
+   - [Contributing to the Docs](https://doc.stride3d.net/latest/en/contributors/documentation/index.html) - Guide for contributing to the Stride documentation.
+4. [Stride Community Toolkit](https://stride3d.github.io/stride-community-toolkit/index.html) - A set of C# helpers and extensions to enhance your experience with the Stride game engine.
+   - [Contributing to Toolkit](https://github.com/stride3d/stride-community-toolkit) - Contribute to or explore the toolkit's source code.
+
+## 🌐 .NET Foundation
+
+This project is supported by the [.NET Foundation](http://www.dotnetfoundation.org).
+
+## 🛡️ License
+
+Stride is covered by the [MIT License](LICENSE.md) unless stated otherwise (i.e. for some files that are copied from other projects). You can find the list of third-party projects [here](THIRD%20PARTY.md). Contributors need to sign the following [Contribution License Agreement](https://github.com/dotnet-foundation/.github/blob/main/CLA/dotnetfoundation.yml).
+
+## ✨ Contributors 
+
+Thanks to all these wonderful people who have contributed to Stride!
 
 <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
 <!-- prettier-ignore-start -->
@@ -189,6 +235,38 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center" valign="top" width="14.28%"><a href="https://chroniclesofelyria.com"><img src="https://avatars.githubusercontent.com/u/17633767?v=4?s=100" width="100px;" alt="Jeromy Walsh"/><br /><sub><b>Jeromy Walsh</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=JeromyWalsh" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://pa.rh.am/"><img src="https://avatars.githubusercontent.com/u/7075456?v=4?s=100" width="100px;" alt="Parham Gholami"/><br /><sub><b>Parham Gholami</b></sub></a><br /><a href="#design-parhamgholami" title="Design">🎨</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/adrsch"><img src="https://avatars.githubusercontent.com/u/35346279?v=4?s=100" width="100px;" alt="adrsch"/><br /><sub><b>adrsch</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=adrsch" title="Code">💻</a></td>
+    </tr>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/dotlogix"><img src="https://avatars.githubusercontent.com/u/16420200?v=4?s=100" width="100px;" alt="Alexander Schill"/><br /><sub><b>Alexander Schill</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=dotlogix" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/froce"><img src="https://avatars.githubusercontent.com/u/8515865?v=4?s=100" width="100px;" alt="froce"/><br /><sub><b>froce</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=froce" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://fydar.dev"><img src="https://avatars.githubusercontent.com/u/19309165?v=4?s=100" width="100px;" alt="Fydar"/><br /><sub><b>Fydar</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=fydar" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/MaximilianEmel"><img src="https://avatars.githubusercontent.com/u/19846453?v=4?s=100" width="100px;" alt="MaximilianEmel"/><br /><sub><b>MaximilianEmel</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=MaximilianEmel" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/Schossi"><img src="https://avatars.githubusercontent.com/u/8679168?v=4?s=100" width="100px;" alt="Schossi"/><br /><sub><b>Schossi</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=Schossi" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/ch3mbot"><img src="https://avatars.githubusercontent.com/u/110746303?v=4?s=100" width="100px;" alt="Dagan Hartmann"/><br /><sub><b>Dagan Hartmann</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=ch3mbot" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/Nicogo1705"><img src="https://avatars.githubusercontent.com/u/20603105?v=4?s=100" width="100px;" alt="nicogo.eth"/><br /><sub><b>nicogo.eth</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=Nicogo1705" title="Code">💻</a></td>
+    </tr>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/ourabigdev"><img src="https://avatars.githubusercontent.com/u/147079928?v=4?s=100" width="100px;" alt="hatim ourahou"/><br /><sub><b>hatim ourahou</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=ourabigdev" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/kopffarben"><img src="https://avatars.githubusercontent.com/u/1833690?v=4?s=100" width="100px;" alt="kopffarben"/><br /><sub><b>kopffarben</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=kopffarben" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/Feralnex"><img src="https://avatars.githubusercontent.com/u/30673252?v=4?s=100" width="100px;" alt="Tomasz Czech"/><br /><sub><b>Tomasz Czech</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=Feralnex" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/TranquilAbyss"><img src="https://avatars.githubusercontent.com/u/2864849?v=4?s=100" width="100px;" alt="Tranquil Abyss"/><br /><sub><b>Tranquil Abyss</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=TranquilAbyss" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/levifmorais"><img src="https://avatars.githubusercontent.com/u/102878183?v=4?s=100" width="100px;" alt="Levi Ferreira"/><br /><sub><b>Levi Ferreira</b></sub></a><br /><a href="#design-levifmorais" title="Design">🎨</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="http://tylerkvochick.com"><img src="https://avatars.githubusercontent.com/u/12144028?v=4?s=100" width="100px;" alt="Tyler Kvochick"/><br /><sub><b>Tyler Kvochick</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=tymokvo" title="Documentation">📖</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/Arc-huangjingtong"><img src="https://avatars.githubusercontent.com/u/87562566?v=4?s=100" width="100px;" alt="Arc"/><br /><sub><b>Arc</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=Arc-huangjingtong" title="Code">💻</a></td>
+    </tr>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/minktusk"><img src="https://avatars.githubusercontent.com/u/121324712?v=4?s=100" width="100px;" alt="minktusk"/><br /><sub><b>minktusk</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=minktusk" title="Code">💻</a> <a href="#content-minktusk" title="Content">🖋</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://www.timcassell.net/"><img src="https://avatars.githubusercontent.com/u/35501420?v=4?s=100" width="100px;" alt="Tim Cassell"/><br /><sub><b>Tim Cassell</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=timcassell" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="http://www.linkedin.com/in/dylan-loe"><img src="https://avatars.githubusercontent.com/u/18317814?v=4?s=100" width="100px;" alt="Dylan Loe"/><br /><sub><b>Dylan Loe</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=dloe" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/wrshield"><img src="https://avatars.githubusercontent.com/u/145876802?v=4?s=100" width="100px;" alt="Will S"/><br /><sub><b>Will S</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=wrshield" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/soorMSWE"><img src="https://avatars.githubusercontent.com/u/147351572?v=4?s=100" width="100px;" alt="Ryan Soo"/><br /><sub><b>Ryan Soo</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=soorMSWE" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/MechWarrior99"><img src="https://avatars.githubusercontent.com/u/8076495?v=4?s=100" width="100px;" alt="MechWarrior99"/><br /><sub><b>MechWarrior99</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=MechWarrior99" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/kristian15959"><img src="https://avatars.githubusercontent.com/u/8007327?v=4?s=100" width="100px;" alt="Proxid"/><br /><sub><b>Proxid</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=kristian15959" title="Code">💻</a></td>
+    </tr>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="http://yerkoandrei.github.io"><img src="https://avatars.githubusercontent.com/u/19843418?v=4?s=100" width="100px;" alt="Yerko Andrei"/><br /><sub><b>Yerko Andrei</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=YerkoAndrei" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/ComputerSmoke"><img src="https://avatars.githubusercontent.com/u/22194459?v=4?s=100" width="100px;" alt="Addison Schmidt"/><br /><sub><b>Addison Schmidt</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=ComputerSmoke" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/timconner"><img src="https://avatars.githubusercontent.com/u/22841670?v=4?s=100" width="100px;" alt="Tim Conner"/><br /><sub><b>Tim Conner</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=timconner" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>

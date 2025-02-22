@@ -39,9 +39,9 @@ using Stride.Core.Mathematics;
 using Stride.Core.Presentation.Collections;
 using Stride.Core.Presentation.Drawing;
 using Stride.Core.Presentation.Extensions;
-using Stride.Core.Presentation.ViewModel;
 using Stride.Core.Quantum;
 using Stride.Animations;
+using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.Assets.Presentation.CurveEditor.ViewModels
 {

@@ -16,6 +16,7 @@ namespace Stride.Assets.Materials
         private static readonly Dictionary<string, Type> ComputeColorParameterTypeMapping = new Dictionary<string, Type>
         {
             {"Texture2D", typeof(ComputeColorParameterTexture) },
+            {"bool", typeof(ComputeColorParameterBool) },
             {"int", typeof(ComputeColorParameterInt) },
             {"float", typeof(ComputeColorParameterFloat) },
             {"float2", typeof(ComputeColorParameterFloat2) },

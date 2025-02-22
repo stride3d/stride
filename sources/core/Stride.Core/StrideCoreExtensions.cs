@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace Stride.Core;
@@ -36,7 +32,7 @@ internal static class StrideCoreExtensions
     /// <item>Neither enumerable is <c>null</c> and they have the same length and each of the elements in the enumerables compare equal pairwise.</item>
     /// </list>
     /// <para><c>false</c> otherwise.</para></returns>
-    public static bool SequenceEqualAllowNull<T>(this IEnumerable<T> first, IEnumerable<T> second, IEqualityComparer<T> comparer)
+    public static bool SequenceEqualAllowNull<T>(this IEnumerable<T> first, IEnumerable<T> second, IEqualityComparer<T>? comparer)
     {
         if (ReferenceEquals(first, second)) return true;
         if (first is null || second is null) return false;
@@ -46,6 +42,6 @@ internal static class StrideCoreExtensions
             var rhs = CollectionsMarshal.AsSpan(rlist);
             return lhs.SequenceEqual(rhs);
         }
-        return Enumerable.SequenceEqual(first, second, comparer);
+        return first.SequenceEqual(second, comparer);
     }
 }

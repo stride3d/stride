@@ -427,7 +427,7 @@ namespace Stride.Assets.Presentation.AssetEditors.UIEditor.ViewModels
                 if (elementsToDelete.Count > 1)
                     confirmMessage = string.Format(Tr._p("Message", "Are you sure you want to delete these {0} UI elements?"), elementsToDelete.Count);
                 var buttons = DialogHelper.CreateButtons(new[] { Tr._p("Button", "Delete"), Tr._p("Button", "Cancel") }, 1, 2);
-                var result = await ServiceProvider.Get<IDialogService>().CheckedMessageBox(confirmMessage, false, DialogHelper.DontAskAgain, buttons, MessageBoxImage.Question);
+                var result = await ServiceProvider.Get<IDialogService>().CheckedMessageBoxAsync(confirmMessage, false, DialogHelper.DontAskAgain, buttons, MessageBoxImage.Question);
                 if (result.Result != 1)
                     return;
                 if (result.IsChecked == true)
@@ -711,7 +711,7 @@ namespace Stride.Assets.Presentation.AssetEditors.UIEditor.ViewModels
             var libraries = new HashSet<UILibraryViewModel>(SelectedItems.Select(x => x.SourceLibrary).NotNull());
             foreach (var library in libraries)
             {
-                ServiceProvider.Get<IEditorDialogService>().AssetEditorsManager.OpenAssetEditorWindow(library);
+                ServiceProvider.Get<IAssetEditorsManager>().OpenAssetEditorWindow(library);
             }
         }
 

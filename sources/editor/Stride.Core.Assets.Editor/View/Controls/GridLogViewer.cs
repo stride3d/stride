@@ -1,14 +1,10 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Controls.Primitives;
-using System.Windows.Data;
 using System.Windows.Input;
 
 using Stride.Core.Assets.Diagnostics;
@@ -162,6 +158,9 @@ namespace Stride.Core.Assets.Editor.View.Controls
                 throw new InvalidOperationException("A part named 'PART_LogGridView' must be present in the ControlTemplate, and must be of type 'DataGridControl'.");
 
             logGridView.MouseDoubleClick += GridMouseDoubleClick;
+
+            // We may have a bunch of messages appended before the logGridView was ready, let's present them now that it is 
+            ApplyFilters();
         }
 
         private void GridMouseDoubleClick(object sender, MouseButtonEventArgs e)

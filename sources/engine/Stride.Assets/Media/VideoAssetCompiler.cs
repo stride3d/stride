@@ -83,7 +83,7 @@ namespace Stride.Assets.Media
                 try
                 {
                     // Get path to ffmpeg
-                    var ffmpeg = ToolLocator.LocateTool("ffmpeg.exe")?.ToWindowsPath() ?? throw new AssetException("Failed to compile a video asset, ffmpeg was not found.");
+                    var ffmpeg = ToolLocator.LocateTool("ffmpeg")?.ToOSPath() ?? throw new AssetException("Failed to compile a video asset, ffmpeg was not found.");
 
                     // Get absolute path of asset source on disk
                     var assetDirectory = videoAsset.Source.GetParent();
@@ -107,7 +107,7 @@ namespace Stride.Assets.Media
                     FFmpegUtils.Initialize();
                     using (var media = new FFmpegMedia())
                     {
-                        media.Open(assetSource.ToWindowsPath());
+                        media.Open(assetSource.ToOSPath());
 
                         // Get the first video stream
                         videoStream = media.Streams.OfType<VideoStream>().FirstOrDefault();
@@ -194,7 +194,7 @@ namespace Stride.Assets.Media
 
                             var commandLine = "  -hide_banner -loglevel error" + // hide most log output
                                               "  -nostdin" + // no interaction (background process)
-                                              $" -i \"{assetSource.ToWindowsPath()}\"" + // input file
+                                              $" -i \"{assetSource.ToOSPath()}\"" + // input file
                                               $"{trimmingOptions}" + 
                                               "  -f mp4 -vcodec " + targetCodecFormat + // codec
                                               channelFlag + // audio channels
@@ -213,7 +213,7 @@ namespace Stride.Assets.Media
                                 videoAsset.Source.GetFileName()));
 
                             // Use temporary file
-                            tempFile = assetSource.ToWindowsPath();
+                            tempFile = assetSource.ToOSPath();
                         }
 
                         var dataUrl = Url + "_Data";

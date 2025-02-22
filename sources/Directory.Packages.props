@@ -4,11 +4,18 @@
   </PropertyGroup>
   <!-- Runtime dependencies -->
   <ItemGroup>
+    <PackageVersion Include="BepuPhysics" Version="2.5.0-beta.19" />
+    <PackageVersion Include="BepuUtilities" Version="2.5.0-beta.19" />
+    <PackageVersion Include="DotRecast.Core" Version="2024.1.1" />
+    <PackageVersion Include="DotRecast.Detour" Version="2024.2.1" />
+    <PackageVersion Include="DotRecast.Recast" Version="2024.2.1" />
+    <PackageVersion Include="DotRecast.Recast.Toolset" Version="2024.3.1" />
     <PackageVersion Include="FFmpeg.AutoGen" Version="3.4.0.2" />
     <PackageVersion Include="K4os.Compression.LZ4.Legacy" Version="1.3.6" />
     <PackageVersion Include="Microsoft.Management.Infrastructure" Version="3.0.0-preview.4" />
     <PackageVersion Include="Microsoft.NETCore.Platforms" Version="7.0.4" />
     <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="8.0.0" />
+    <PackageVersion Include="Polysharp" Version="1.15.0" />
     <PackageVersion Include="ServiceWire" Version="5.5.4" />
     <PackageVersion Include="SharpDX" Version="4.2.0" />
     <PackageVersion Include="SharpDX.D3DCompiler" Version="4.2.0" />
@@ -19,13 +26,14 @@
     <PackageVersion Include="SharpDX.MediaFoundation" Version="4.2.0" />
     <PackageVersion Include="SharpDX.RawInput" Version="4.2.0" />
     <PackageVersion Include="SharpDX.XInput" Version="4.2.0" />
-    <PackageVersion Include="Silk.NET.OpenGL" Version="2.20.0" />
-    <PackageVersion Include="Silk.NET.OpenGLES" Version="2.20.0" />
-    <PackageVersion Include="Silk.NET.OpenGLES.Extensions.EXT" Version="2.20.0" />
-    <PackageVersion Include="Silk.NET.OpenXR" Version="2.20.0" />
-    <PackageVersion Include="Silk.NET.Sdl" Version="2.20.0" />
-    <PackageVersion Include="Silk.NET.Windowing.Sdl" Version="2.19.0" />
-    <PackageVersion Include="Stride.SharpFont" Version="1.0.0" />
+    <PackageVersion Include="Silk.NET.OpenGL" Version="2.22.0" />
+    <PackageVersion Include="Silk.NET.OpenGLES" Version="2.22.0" />
+    <PackageVersion Include="Silk.NET.OpenGLES.Extensions.EXT" Version="2.22.0" />
+    <PackageVersion Include="Silk.NET.OpenXR" Version="2.22.0" />
+    <PackageVersion Include="Silk.NET.OpenXR.Extensions.FB" Version="2.22.0" />
+    <PackageVersion Include="Silk.NET.Sdl" Version="2.22.0" />
+    <PackageVersion Include="Silk.NET.Windowing.Sdl" Version="2.22.0" />
+    <PackageVersion Include="Stride.SharpFont" Version="1.0.1" />
     <PackageVersion Include="System.Drawing.Common" Version="8.0.1" />
     <PackageVersion Include="System.Memory" Version="4.5.5" />
     <PackageVersion Include="System.Threading.Tasks.Dataflow" Version="8.0.0" />
@@ -35,9 +43,9 @@
   <!-- Other dependencies -->
   <ItemGroup>
     <PackageVersion Include="Microsoft.AspNet.WebApi.Client" Version="5.2.7" />
-    <PackageVersion Include="Microsoft.Build" Version="17.8.3" />
+    <PackageVersion Include="Microsoft.Build" Version="17.0.0" />
     <PackageVersion Include="Microsoft.Build.Locator" Version="1.6.10" />
-    <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="17.8.3" />
+    <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="17.0.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Features" Version="3.6.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="3.6.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="3.6.0" />
@@ -48,12 +56,12 @@
     <PackageVersion Include="Mono.Cecil" Version="0.11.5" />
     <PackageVersion Include="Mono.Options" Version="6.12.0.148" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageVersion Include="NuGet.Commands" Version="6.8.0" />
-    <PackageVersion Include="NuGet.Configuration" Version="6.8.0" />
-    <PackageVersion Include="NuGet.PackageManagement" Version="6.8.0" />
-    <PackageVersion Include="NuGet.Protocol" Version="6.8.0" />
-    <PackageVersion Include="NuGet.Resolver" Version="6.8.0" />
-    <PackageVersion Include="Silk.NET.Assimp" Version="2.20.0" />
+    <PackageVersion Include="NuGet.Commands" Version="6.12.1" />
+    <PackageVersion Include="NuGet.Configuration" Version="6.12.1" />
+    <PackageVersion Include="NuGet.PackageManagement" Version="6.12.1" />
+    <PackageVersion Include="NuGet.Protocol" Version="6.12.1" />
+    <PackageVersion Include="NuGet.Resolver" Version="6.12.1" />
+    <PackageVersion Include="Silk.NET.Assimp" Version="2.22.0" />
     <PackageVersion Include="Stride.GNU.Getopt" Version="2.0.0" />
     <PackageVersion Include="Stride.GNU.Gettext" Version="2.0.0" />
     <PackageVersion Include="Stride.Mono.TextTemplating" Version="2.1.0-preview-0009-g0d0b6db3ca" />
@@ -92,8 +100,8 @@
   </ItemGroup>
   <!-- Visual Studio dependencies -->
   <ItemGroup>
-    <PackageVersion Include="Microsoft.VisualStudio.SDK" Version="17.8.37222" />
-    <PackageVersion Include="Microsoft.VSSDK.BuildTools" Version="17.8.2365" />
+    <PackageVersion Include="Microsoft.VisualStudio.SDK" Version="17.0.31902.203" />
+    <PackageVersion Include="Microsoft.VSSDK.BuildTools" Version="17.0.5232" />
   </ItemGroup>
   <!-- Test dependencies -->
   <ItemGroup>
@@ -105,11 +113,16 @@
     <PackageVersion Include="Xunit.SkippableFact" Version="1.4.13" />
   </ItemGroup>
   <!-- Avalonia dependencies -->
+  <PropertyGroup>
+    <AvaloniaVersion>11.0.6</AvaloniaVersion>
+  </PropertyGroup>
   <ItemGroup>
-    <PackageVersion Include="Avalonia" Version="11.0.6" />
-    <PackageVersion Include="Avalonia.Desktop" Version="11.0.6" />
-    <PackageVersion Include="Avalonia.Fonts.Inter" Version="11.0.6" />
-    <PackageVersion Include="Avalonia.Themes.Fluent" Version="11.0.6" />
+    <PackageVersion Include="Avalonia" Version="$(AvaloniaVersion)" />
+    <PackageVersion Include="Avalonia.Controls.DataGrid" Version="$(AvaloniaVersion)" />
+    <PackageVersion Include="Avalonia.Desktop" Version="$(AvaloniaVersion)" />
+    <PackageVersion Include="Avalonia.Diagnostics" Version="$(AvaloniaVersion)" />
+    <PackageVersion Include="Avalonia.Fonts.Inter" Version="$(AvaloniaVersion)" />
+    <PackageVersion Include="Avalonia.Themes.Fluent" Version="$(AvaloniaVersion)" />
     <PackageVersion Include="CommunityToolkit.Mvvm" Version="8.2.2" />
   </ItemGroup>
   <!-- Windows/WPF dependencies -->
@@ -130,6 +143,5 @@
   <ItemGroup>
     <PackageVersion Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.4" PrivateAssets="all" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="4.7.0" PrivateAssets="all" />
-    <PackageVersion Include="StyleCop.Analyzers" Version="1.1.118" PrivateAssets="all" />
   </ItemGroup>
 </Project>
