@@ -3,107 +3,106 @@
 
 using System.Runtime.CompilerServices;
 
-namespace Stride.Core.Mathematics
+namespace Stride.Core.Mathematics;
+
+/// <summary>
+/// A bounding frustum.
+/// </summary>
+public struct BoundingFrustum
 {
     /// <summary>
-    /// A bounding frustum.
+    /// The left plane of this frustum.
     /// </summary>
-    public struct BoundingFrustum
+    public Plane LeftPlane;
+
+    /// <summary>
+    /// The right plane of this frustum.
+    /// </summary>
+    public Plane RightPlane;
+
+    /// <summary>
+    /// The top  plane of this frustum.
+    /// </summary>
+    public Plane TopPlane;
+
+    /// <summary>
+    /// The bottom plane of this frustum.
+    /// </summary>
+    public Plane BottomPlane;
+
+    /// <summary>
+    /// The near plane of this frustum.
+    /// </summary>
+    public Plane NearPlane;
+
+    /// <summary>
+    /// The far plane of this frustum.
+    /// </summary>
+    public Plane FarPlane;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="BoundingFrustum"/> struct from a matrix view-projection.
+    /// </summary>
+    /// <param name="matrix">The matrix view projection.</param>
+    public BoundingFrustum(ref readonly Matrix matrix)
     {
-        /// <summary>
-        /// The left plane of this frustum.
-        /// </summary>
-        public Plane LeftPlane;
+        // Left
+        Plane.Normalize(
+            matrix.M14 + matrix.M11,
+            matrix.M24 + matrix.M21,
+            matrix.M34 + matrix.M31,
+            matrix.M44 + matrix.M41,
+            out LeftPlane);
 
-        /// <summary>
-        /// The right plane of this frustum.
-        /// </summary>
-        public Plane RightPlane;
+        // Right
+        Plane.Normalize(
+            matrix.M14 - matrix.M11,
+            matrix.M24 - matrix.M21,
+            matrix.M34 - matrix.M31,
+            matrix.M44 - matrix.M41,
+            out RightPlane);
 
-        /// <summary>
-        /// The top  plane of this frustum.
-        /// </summary>
-        public Plane TopPlane;
+        // Top
+        Plane.Normalize(
+            matrix.M14 - matrix.M12,
+            matrix.M24 - matrix.M22,
+            matrix.M34 - matrix.M32,
+            matrix.M44 - matrix.M42,
+            out TopPlane);
 
-        /// <summary>
-        /// The bottom plane of this frustum.
-        /// </summary>
-        public Plane BottomPlane;
+        // Bottom
+        Plane.Normalize(
+            matrix.M14 + matrix.M12,
+            matrix.M24 + matrix.M22,
+            matrix.M34 + matrix.M32,
+            matrix.M44 + matrix.M42,
+            out BottomPlane);
 
-        /// <summary>
-        /// The near plane of this frustum.
-        /// </summary>
-        public Plane NearPlane;
+        // Near
+        Plane.Normalize(
+            matrix.M13,
+            matrix.M23,
+            matrix.M33,
+            matrix.M43,
+            out NearPlane);
 
-        /// <summary>
-        /// The far plane of this frustum.
-        /// </summary>
-        public Plane FarPlane;
+        // Far
+        Plane.Normalize(
+            matrix.M14 - matrix.M13,
+            matrix.M24 - matrix.M23,
+            matrix.M34 - matrix.M33,
+            matrix.M44 - matrix.M43,
+            out FarPlane);
+    }
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="BoundingFrustum"/> struct from a matrix view-projection.
-        /// </summary>
-        /// <param name="matrix">The matrix view projection.</param>
-        public BoundingFrustum(ref readonly Matrix matrix)
-        {
-            // Left
-            Plane.Normalize(
-                matrix.M14 + matrix.M11,
-                matrix.M24 + matrix.M21,
-                matrix.M34 + matrix.M31,
-                matrix.M44 + matrix.M41,
-                out LeftPlane);
-
-            // Right
-            Plane.Normalize(
-                matrix.M14 - matrix.M11,
-                matrix.M24 - matrix.M21,
-                matrix.M34 - matrix.M31,
-                matrix.M44 - matrix.M41,
-                out RightPlane);
-
-            // Top
-            Plane.Normalize(
-                matrix.M14 - matrix.M12,
-                matrix.M24 - matrix.M22,
-                matrix.M34 - matrix.M32,
-                matrix.M44 - matrix.M42,
-                out TopPlane);
-
-            // Bottom
-            Plane.Normalize(
-                matrix.M14 + matrix.M12,
-                matrix.M24 + matrix.M22,
-                matrix.M34 + matrix.M32,
-                matrix.M44 + matrix.M42,
-                out BottomPlane);
-
-            // Near
-            Plane.Normalize(
-                matrix.M13,
-                matrix.M23,
-                matrix.M33,
-                matrix.M43,
-                out NearPlane);
-
-            // Far
-            Plane.Normalize(
-                matrix.M14 - matrix.M13,
-                matrix.M24 - matrix.M23,
-                matrix.M34 - matrix.M33,
-                matrix.M44 - matrix.M43,
-                out FarPlane);
-        }
-
-        /// <summary>
-        /// Check whether this frustum contains the specified <see cref="BoundingBoxExt"/>.
-        /// </summary>
-        /// <param name="boundingBoxExt">The bounding box.</param>
-        /// <returns><c>true</c> if this frustum contains the specified bounding box.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool Contains(ref readonly BoundingBoxExt boundingBoxExt)
-        {
-            return CollisionHelper.FrustumContainsBox(ref this, in boundingBoxExt);
-        }
+    /// <summary>
+    /// Check whether this frustum contains the specified <see cref="BoundingBoxExt"/>.
+    /// </summary>
+    /// <param name="boundingBoxExt">The bounding box.</param>
+    /// <returns><c>true</c> if this frustum contains the specified bounding box.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool Contains(ref readonly BoundingBoxExt boundingBoxExt)
+    {
+        return CollisionHelper.FrustumContainsBox(ref this, in boundingBoxExt);
     }
 }

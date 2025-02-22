@@ -20,17 +20,14 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-using System;
+namespace Stride.Core;
 
-namespace Stride.Core
+[Obsolete("Do not use.", DiagnosticId = "STRIDE2000")]
+internal sealed class Interop
 {
     [Obsolete("Do not use.", DiagnosticId = "STRIDE2000")]
-    internal sealed class Interop
+    public static void Pin<T>(T data) where T : class
     {
-        [Obsolete("Do not use.", DiagnosticId = "STRIDE2000")]
-        public static void Pin<T>(T data) where T : class
-        {
-            throw new NotImplementedException();
-        }
+        throw new NotImplementedException();
     }
 }

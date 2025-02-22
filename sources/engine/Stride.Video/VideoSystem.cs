@@ -7,11 +7,19 @@ using Stride.Games;
 
 namespace Stride.Video
 {
-    public partial class VideoSystem : GameSystemBase
+    public partial class VideoSystem : GameSystemBase, IService
     {
         public VideoSystem([NotNull] IServiceRegistry registry)
             : base(registry)
         {
+        }
+
+        public static IService NewInstance(IServiceRegistry services)
+        {
+            var instance = new VideoSystem(services);
+            var gameSystems = services.GetSafeServiceAs<IGameSystemCollection>();
+            gameSystems.Add(instance);
+            return instance;
         }
     }
 }

@@ -68,12 +68,12 @@ public interface ISimulationUpdate : IComponent<ISimulationUpdate.SimUpdateProce
         {
             _services = registryParam;
             registryParam.AddService(this);
-            ServicesHelper.LoadBepuServices(registryParam, out _config, out _, out _);
+            _config = registryParam.GetOrCreate<BepuConfiguration>();
         }
 
         public void SystemRemoved()
         {
-            _services!.RemoveService<SimUpdateProcessor>();
+            _services!.RemoveService(this);
         }
 
         public void RebindSimulation(ISimulationUpdate item)

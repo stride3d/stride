@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using System.Text;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.CSharp;
-using Stride.Core.CompilerServices.Common;
-using System.Linq;
 using System.Collections.Immutable;
+using System.Linq;
+using System.Text;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Stride.Core.CompilerServices.Common;
 
 namespace Stride.Core.CompilerServices.Generators;
 [Generator]
@@ -50,7 +50,7 @@ public class ModuleInitializerGenerator : IIncrementalGenerator
         var code = new StringBuilder();
         if (array.Length == 0)
             return;
-        foreach (var module in array.OrderBy(x => x.Order))
+        foreach (var module in array.OrderBy(x => x?.Order))
         {
             if (module is not null)
             {
