@@ -18,6 +18,10 @@ public interface IContactEventHandler
     /// <summary>
     /// Fires when a contact is added.
     /// </summary>
+    /// <remarks>
+    /// This may be called before <see cref="OnStartedTouching{TManifold}"/>,
+    /// contacts are registered when two collidables are close enough, not necessarily when actually touching.
+    /// </remarks>
     /// <typeparam name="TManifold">Type of the contact manifold detected.</typeparam>
     /// <param name="eventSource">Collidable that the event was attached to.</param>
     /// <param name="other">Other collider <paramref name="eventSource"/> collided with.</param>
@@ -33,6 +37,11 @@ public interface IContactEventHandler
     /// <summary>
     /// Fires when a contact is removed.
     /// </summary>
+    /// <remarks>
+    /// This may be called without a corresponding call to <see cref="OnStoppedTouching{TManifold}"/>,
+    /// contacts are registered when two collidables are close enough, not necessarily when actually touching.
+    /// If the two collidables grazed each other, none of the touching methods will be called.
+    /// </remarks>
     /// <typeparam name="TManifold">Type of the contact manifold detected.</typeparam>
     /// <param name="eventSource">Collidable that the event was attached to.</param>
     /// <param name="other">Other collider <paramref name="eventSource"/> collided with.</param>
