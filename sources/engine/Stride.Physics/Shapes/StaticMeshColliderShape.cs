@@ -62,7 +62,7 @@ namespace Stride.Physics
             if (sharedData.Key == null)
             {
                 // Not actually shared, dispose and move on
-                sharedData.BulletMesh.Dispose();
+                sharedData.Dispose();
                 return;
             }
 
@@ -72,7 +72,7 @@ namespace Stride.Physics
                 if (sharedData.RefCount == 0)
                 {
                     MeshSharingCache.Remove(sharedData.Key);
-                    sharedData.BulletMesh.Dispose();
+                    sharedData.Dispose();
                 }
             }
         }
@@ -295,11 +295,17 @@ namespace Stride.Physics
             return null;
         }
 
-        private record SharedMeshData
+        private record SharedMeshData : IDisposable
         {
             public BulletSharp.TriangleIndexVertexArray BulletMesh;
             public int RefCount;
             public string Key;
+
+            public void Dispose()
+            {
+                BulletMesh.IndexedMeshArray.Clear();
+                BulletMesh.Dispose();
+            }
         }
         
         private class StrideToBulletWrapper : ICollection<BulletSharp.Math.Vector3>

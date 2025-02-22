@@ -46,96 +46,87 @@
 * THE SOFTWARE.
 */
 
-using System;
 using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
-using Stride.Core.Annotations;
 
-namespace Stride.Core.TypeConverters
+namespace Stride.Core.TypeConverters;
+
+public sealed class FieldPropertyDescriptor : PropertyDescriptor, IEquatable<FieldPropertyDescriptor>
 {
-    public sealed class FieldPropertyDescriptor : PropertyDescriptor, IEquatable<FieldPropertyDescriptor>
+    public FieldInfo FieldInfo { get; }
+
+    public override Type ComponentType => FieldInfo.DeclaringType!;
+
+    public override bool IsReadOnly => false;
+
+    public override Type PropertyType => FieldInfo.FieldType;
+
+    public FieldPropertyDescriptor(FieldInfo fieldInfo)
+        : base(fieldInfo.Name, [])
     {
-        private readonly FieldInfo fieldInfo;
+        FieldInfo = fieldInfo;
 
-        [NotNull]
-        public FieldInfo FieldInfo => fieldInfo;
+        var attributesObject = fieldInfo.GetCustomAttributes(true);
+        var attributes = new Attribute[attributesObject.Length];
+        for (int i = 0; i < attributes.Length; i++)
+            attributes[i] = (Attribute)attributesObject[i];
+        AttributeArray = attributes;
+    }
 
-        [CanBeNull]
-        public override Type ComponentType => fieldInfo.DeclaringType;
+    public override bool CanResetValue(object component)
+    {
+        return false;
+    }
 
-        public override bool IsReadOnly => false;
+    public override object? GetValue(object? component)
+    {
+        return FieldInfo.GetValue(component);
+    }
 
-        [NotNull]
-        public override Type PropertyType => fieldInfo.FieldType;
+    public override void ResetValue(object component)
+    {
+    }
 
-        public FieldPropertyDescriptor([NotNull] FieldInfo fieldInfo)
-            : base(fieldInfo.Name, new Attribute[0])
-        {
-            this.fieldInfo = fieldInfo;
+    public override void SetValue(object? component, object? value)
+    {
+        FieldInfo.SetValue(component, value);
+        OnValueChanged(component, EventArgs.Empty);
+    }
 
-            var attributesObject = fieldInfo.GetCustomAttributes(true);
-            var attributes = new Attribute[attributesObject.Length];
-            for (int i = 0; i < attributes.Length; i++)
-                attributes[i] = (Attribute)attributesObject[i];
-            AttributeArray = attributes;
-        }
+    public override bool ShouldSerializeValue(object component)
+    {
+        return true;
+    }
 
-        public override bool CanResetValue(object component)
-        {
-            return false;
-        }
+    /// <inheritdoc />
+    public bool Equals([NotNullWhen(true)] FieldPropertyDescriptor? other)
+    {
+        if (ReferenceEquals(null, other)) return false;
+        if (ReferenceEquals(this, other)) return true;
+        return Equals(FieldInfo, other.FieldInfo);
+    }
 
-        public override object GetValue(object component)
-        {
-            return fieldInfo.GetValue(component);
-        }
+    /// <inheritdoc />
+    public override bool Equals([NotNullWhen(true)] object? obj)
+    {
+        if (ReferenceEquals(null, obj)) return false;
+        return obj is FieldPropertyDescriptor descriptor && Equals(descriptor);
+    }
 
-        public override void ResetValue(object component)
-        {
-        }
+    /// <inheritdoc />
+    public override int GetHashCode()
+    {
+        return FieldInfo.GetHashCode();
+    }
 
-        public override void SetValue(object component, object value)
-        {
-            fieldInfo.SetValue(component, value);
-            OnValueChanged(component, EventArgs.Empty);
-        }
+    public static bool operator ==(FieldPropertyDescriptor? left, FieldPropertyDescriptor? right)
+    {
+        return Equals(left, right);
+    }
 
-        public override bool ShouldSerializeValue(object component)
-        {
-            return true;
-        }
-
-        /// <inheritdoc />
-        public bool Equals(FieldPropertyDescriptor other)
-        {
-            if (ReferenceEquals(null, other)) return false;
-            if (ReferenceEquals(this, other)) return true;
-            return Equals(fieldInfo, other.fieldInfo);
-        }
-
-        /// <inheritdoc />
-        public override bool Equals(object obj)
-        {
-            if (ReferenceEquals(null, obj)) return false;
-            if (ReferenceEquals(this, obj)) return true;
-            if (GetType() != obj.GetType()) return false;
-            return Equals(obj as FieldPropertyDescriptor);
-        }
-
-        /// <inheritdoc />
-        public override int GetHashCode()
-        {
-            return fieldInfo.GetHashCode();
-        }
-
-        public static bool operator ==(FieldPropertyDescriptor left, FieldPropertyDescriptor right)
-        {
-            return Equals(left, right);
-        }
-
-        public static bool operator !=(FieldPropertyDescriptor left, FieldPropertyDescriptor right)
-        {
-            return !Equals(left, right);
-        }
+    public static bool operator !=(FieldPropertyDescriptor? left, FieldPropertyDescriptor? right)
+    {
+        return !Equals(left, right);
     }
 }

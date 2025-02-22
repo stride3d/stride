@@ -4,9 +4,10 @@ namespace Stride.Core.CompilerServices.Tests.AnalyzerTests;
 
 public class ValidModifiersOnMutableMemberTests
 {
-    private string PublicFormat(string access) => string.Format(ClassTemplates.PublicClassTemplateNoDatamember, access, "object");
-    private string PublicFormatWithDataMember(string access) => string.Format(ClassTemplates.PublicClassTemplateDataMember, access, "object");
-    private string InternalFormatWithDataMember(string access) => string.Format(ClassTemplates.InternalClassTemplate, access, "object");
+    private static string PublicFormat(string access) => string.Format(ClassTemplates.PublicClassTemplateNoDatamember, access, "object");
+    private static string PublicFormatWithDataMember(string access) => string.Format(ClassTemplates.PublicClassTemplateDataMember, access, "object");
+    private static string InternalFormatWithDataMember(string access) => string.Format(ClassTemplates.InternalClassTemplate, access, "object");
+
     /// <summary>
     /// The Serializers serialize some Properties per default.
     /// These don't require a [DataMember] Attribute
@@ -14,7 +15,7 @@ public class ValidModifiersOnMutableMemberTests
     /// The Analyzers shouldn't ever throw on these Combinations
     /// </summary>
     [Fact]
-    public void No_Error_On_Public_Properties_No_DataMember()
+    public async Task No_Error_On_Public_Properties_No_DataMember()
     {
         var combinations = new string[] {
             "get;set;",
@@ -30,7 +31,7 @@ public class ValidModifiersOnMutableMemberTests
         foreach (var combination in combinations)
         {
             string sourceCode = PublicFormat(combination);
-            TestHelper.ExpectNoDiagnosticsErrors(sourceCode);
+            await TestHelper.ExpectNoDiagnosticsErrorsAsync(sourceCode);
         }
     }
     /// <summary>
@@ -42,7 +43,7 @@ public class ValidModifiersOnMutableMemberTests
     /// Also internal set will be treated as a valid set for assign mode
     /// </summary>
     [Fact]
-    public void No_Error_On_Public_Properties_DataMember()
+    public async Task No_Error_On_Public_Properties_DataMember()
     {
         var combinations = new string[] {
             "get;set;",
@@ -61,7 +62,7 @@ public class ValidModifiersOnMutableMemberTests
         foreach (var combination in combinations)
         {
             string sourceCode = PublicFormatWithDataMember(combination);
-            TestHelper.ExpectNoDiagnosticsErrors(sourceCode);
+            await TestHelper.ExpectNoDiagnosticsErrorsAsync(sourceCode);
         }
     }
 
@@ -70,7 +71,7 @@ public class ValidModifiersOnMutableMemberTests
     /// It's always necessary to tag them with [DataMember]
     /// </summary>
     [Fact]
-    public void No_Error_On_internal_Properties()
+    public async Task No_Error_On_internal_Properties()
     {
         var combinations = new string[] {
             "get;set;",
@@ -85,7 +86,7 @@ public class ValidModifiersOnMutableMemberTests
         foreach (var combination in combinations)
         {
             string sourceCode = InternalFormatWithDataMember(combination);
-            TestHelper.ExpectNoDiagnosticsErrors(sourceCode);
+            await TestHelper.ExpectNoDiagnosticsErrorsAsync(sourceCode);
         }
     }
     /// <summary>
@@ -93,7 +94,7 @@ public class ValidModifiersOnMutableMemberTests
     /// As long as there is no [DataMember] Attribute on them, the Analyzers should never throw on them
     /// </summary>
     [Fact]
-    public void No_Error_On_Inaccessible_properties()
+    public async Task No_Error_On_Inaccessible_properties()
     {
         var combinations = new string[] {
             "private",
@@ -103,7 +104,7 @@ public class ValidModifiersOnMutableMemberTests
         foreach (var combination in combinations)
         {
             string sourceCode = string.Format(ClassTemplates.AccessorTemplate, combination, "object");
-            TestHelper.ExpectNoDiagnosticsErrors(sourceCode);
+            await TestHelper.ExpectNoDiagnosticsErrorsAsync(sourceCode);
         }
     }
 }

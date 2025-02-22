@@ -74,6 +74,7 @@ namespace Stride.Games
         private const int MNC_CLOSE = 1;
         private const byte VK_RETURN = 0x0D;
         private const byte VK_TAB = 0x09;
+        private const int KF_REPEAT = 0x4000;
 #pragma warning restore SA1310 // Field names should not contain underscore
 
         private Size cachedSize;
@@ -319,6 +320,8 @@ namespace Stride.Games
         protected override void WndProc(ref Message m)
         {
             long wparam = m.WParam.ToInt64();
+            long lparam = m.LParam.ToInt64();
+            long keyFlags = lparam >> 16; // Bits 16-31 of LParam consist of key flags
 
             switch (m.Msg)
             {
@@ -416,12 +419,14 @@ namespace Stride.Games
                         }
                     }
                     break;
-                case Win32Native.WM_SYSKEYDOWN: //alt is down
-                    if (wparam == VK_RETURN)
+                case Win32Native.WM_SYSKEYDOWN: // alt is down
+                    // Bit 30 of LParam indicates whether the key was previously held or released
+                    // We only want to toggle full-screen if the enter key was released before pressing
+                    if (wparam == VK_RETURN && (keyFlags & KF_REPEAT) == 0)
                     {
                         isSwitchingFullScreen = true;
                         if (!enableFullscreenToggle) return;
-                        OnFullscreenToggle(new EventArgs()); //we handle alt enter manually
+                        OnFullscreenToggle(new EventArgs()); // we handle alt enter manually
                         isSwitchingFullScreen = false;
                     }
                     break;

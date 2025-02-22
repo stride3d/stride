@@ -109,12 +109,7 @@ public sealed class CollidableGizmo : IEntityGizmo
 
     private void PrepareModels()
     {
-        var bepuShapeCacheSys = _services.GetService<ShapeCacheSystem>();
-        if (bepuShapeCacheSys == null)
-        {
-            bepuShapeCacheSys = new ShapeCacheSystem(_services);
-            _services.AddService(bepuShapeCacheSys);
-        }
+        var bepuShapeCacheSys = _services.GetOrCreate<ShapeCacheSystem>();
         var graphicsDevice = _services.GetSafeServiceAs<IGraphicsDeviceService>().GraphicsDevice;
 
         if (_component.Collider is MeshCollider meshCollider && (meshCollider.Model.Meshes.Count == 0 || meshCollider.Model == null!/*May be null in editor*/))

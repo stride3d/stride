@@ -16,10 +16,7 @@ public static class BepuSimulationExtensions
     public static BepuSimulation GetSimulation(this Entity entity)
     {
         var services = entity.EntityManager.Services;
-        var config = services.GetService<BepuConfiguration>();
-        if (config == null)
-            ServicesHelper.LoadBepuServices(services, out config, out _, out _);
-
+        var config = services.GetOrCreate<BepuConfiguration>();
         return SceneBasedSimulationSelector.Shared.Pick(config, entity);
     }
 }

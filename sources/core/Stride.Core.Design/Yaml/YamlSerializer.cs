@@ -1,109 +1,105 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using System;
-using System.IO;
-using Stride.Core.Annotations;
+
 using Stride.Core.Diagnostics;
 using Stride.Core.Reflection;
 using Stride.Core.Yaml.Serialization;
 using Stride.Core.Yaml.Serialization.Serializers;
 
-namespace Stride.Core.Yaml
+namespace Stride.Core.Yaml;
+
+/// <summary>
+/// Default Yaml serializer used to serialize assets by default.
+/// </summary>
+public class YamlSerializer : YamlSerializerBase
 {
-    /// <summary>
-    /// Default Yaml serializer used to serialize assets by default.
-    /// </summary>
-    public class YamlSerializer : YamlSerializerBase
+    private Serializer? globalSerializer;
+
+    public static YamlSerializer Default { get; set; } = new YamlSerializer();
+
+    public static T Load<T>(string filePath, ILogger? log = null)
     {
-        private Serializer globalSerializer;
+#if NET6_0_OR_GREATER
+        ArgumentNullException.ThrowIfNull(filePath);
+#else
+        if (filePath is null) throw new ArgumentNullException(nameof(filePath));
+#endif
+        using var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
+        return (T)Default.Deserialize(stream);
+    }
 
-        public static YamlSerializer Default { get; set; } = new YamlSerializer();
+    /// <summary>
+    /// Deserializes an object from the specified stream (expecting a YAML string).
+    /// </summary>
+    /// <param name="stream">A YAML string from a stream.</param>
+    /// <returns>An instance of the YAML data.</returns>
+    public object Deserialize(Stream stream)
+    {
+        var serializer = GetYamlSerializer();
+        return serializer.Deserialize(stream);
+    }
 
-        public static T Load<T>([NotNull] string filePath, ILogger log = null)
+    /// <summary>
+    /// Reset the assembly cache used by this class.
+    /// </summary>
+    public override void ResetCache()
+    {
+        lock (Lock)
         {
-            if (filePath == null) throw new ArgumentNullException(nameof(filePath));
-            using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
-            {
-                return (T)Default.Deserialize(stream);
-            }
+            // Reset the current serializer as the set of assemblies has changed
+            globalSerializer = null;
         }
+    }
 
-        /// <summary>
-        /// Deserializes an object from the specified stream (expecting a YAML string).
-        /// </summary>
-        /// <param name="stream">A YAML string from a stream.</param>
-        /// <returns>An instance of the YAML data.</returns>
-        public object Deserialize(Stream stream)
-        {
-            var serializer = GetYamlSerializer();
-            return serializer.Deserialize(stream);
-        }
+    protected virtual ISerializerFactorySelector CreateSelector()
+    {
+        return new ProfileSerializerFactorySelector(YamlSerializerFactoryAttribute.Default);
+    }
 
-        /// <summary>
-        /// Reset the assembly cache used by this class.
-        /// </summary>
-        public override void ResetCache()
-        {
-            lock (Lock)
-            {
-                // Reset the current serializer as the set of assemblies has changed
-                globalSerializer = null;
-            }
-        }
+    protected Serializer GetYamlSerializer()
+    {
+        // Cache serializer to improve performance
+        var localSerializer = CreateSerializer(ref globalSerializer);
+        return localSerializer;
+    }
 
-        [NotNull]
-        protected virtual ISerializerFactorySelector CreateSelector()
-        {
-            return new ProfileSerializerFactorySelector(YamlSerializerFactoryAttribute.Default);
-        }
-
-        [NotNull]
-        protected Serializer GetYamlSerializer()
-        {
-            // Cache serializer to improve performance
-            var localSerializer = CreateSerializer(ref globalSerializer);
+    private Serializer CreateSerializer(ref Serializer? localSerializer)
+    {
+        // Early exit if already initialized
+        if (localSerializer != null)
             return localSerializer;
-        }
 
-        [NotNull]
-        private Serializer CreateSerializer([NotNull] ref Serializer localSerializer)
+        lock (Lock)
         {
-            // Early exit if already initialized
-            if (localSerializer != null)
-                return localSerializer;
-
-            lock (Lock)
+            if (localSerializer == null)
             {
-                if (localSerializer == null)
+                // var clock = Stopwatch.StartNew();
+
+                var config = new SerializerSettings
                 {
-                    // var clock = Stopwatch.StartNew();
+                    EmitAlias = false,
+                    LimitPrimitiveFlowSequence = 0,
+                    Attributes = new AttributeRegistry(),
+                    PreferredIndent = 4,
+                    EmitShortTypeName = true,
+                    ComparerForKeySorting = new DefaultMemberComparer(),
+                    SerializerFactorySelector = CreateSelector(),
+                };
 
-                    var config = new SerializerSettings
-                    {
-                        EmitAlias = false,
-                        LimitPrimitiveFlowSequence = 0,
-                        Attributes = new AttributeRegistry(),
-                        PreferredIndent = 4,
-                        EmitShortTypeName = true,
-                        ComparerForKeySorting = new DefaultMemberComparer(),
-                        SerializerFactorySelector = CreateSelector(),
-                    };
-
-                    for (int index = RegisteredAssemblies.Count - 1; index >= 0; index--)
-                    {
-                        var registeredAssembly = RegisteredAssemblies[index];
-                        config.RegisterAssembly(registeredAssembly);
-                    }
-
-                    var newSerializer = new Serializer(config);
-                    newSerializer.Settings.ObjectSerializerBackend = new DefaultObjectSerializerBackend();
-
-                    // Log.Info("New YAML serializer created in {0}ms", clock.ElapsedMilliseconds);
-                    localSerializer = newSerializer;
+                for (int index = RegisteredAssemblies.Count - 1; index >= 0; index--)
+                {
+                    var registeredAssembly = RegisteredAssemblies[index];
+                    config.RegisterAssembly(registeredAssembly);
                 }
-            }
 
-            return localSerializer;
+                var newSerializer = new Serializer(config);
+                newSerializer.Settings.ObjectSerializerBackend = new DefaultObjectSerializerBackend();
+
+                // Log.Info("New YAML serializer created in {0}ms", clock.ElapsedMilliseconds);
+                localSerializer = newSerializer;
+            }
         }
+
+        return localSerializer;
     }
 }

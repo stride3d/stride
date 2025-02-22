@@ -1,10 +1,9 @@
 using System.Numerics;
-using System.Transactions;
 
 namespace Stride.Core.Mathematics;
+
 public static partial class MathUtil
 {
-
     public static Matrix4x4 Orthonormalize(Matrix4x4 matrix)
     {
         var result = matrix;

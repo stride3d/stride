@@ -1,25 +1,24 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using System.Collections.Generic;
+
 using Mono.Cecil;
 
-namespace Stride.Core.AssemblyProcessor
+namespace Stride.Core.AssemblyProcessor;
+
+/// <summary>
+/// EqualityComparer for TypeReference, using FullName to compare.
+/// </summary>
+public class TypeReferenceEqualityComparer : EqualityComparer<TypeReference>
 {
-    /// <summary>
-    /// EqualityComparer for TypeReference, using FullName to compare.
-    /// </summary>
-    public class TypeReferenceEqualityComparer : EqualityComparer<TypeReference>
+    public new static readonly TypeReferenceEqualityComparer Default = new();
+
+    public override bool Equals(TypeReference x, TypeReference y)
     {
-        public new static readonly TypeReferenceEqualityComparer Default = new TypeReferenceEqualityComparer();
+        return x.FullName == y.FullName;
+    }
 
-        public override bool Equals(TypeReference x, TypeReference y)
-        {
-            return x.FullName == y.FullName;
-        }
-
-        public override int GetHashCode(TypeReference obj)
-        {
-            return obj.FullName.GetHashCode();
-        }
+    public override int GetHashCode(TypeReference obj)
+    {
+        return obj.FullName.GetHashCode();
     }
 }
