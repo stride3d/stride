@@ -212,7 +212,7 @@ public class BodyComponent : CollidableComponent
     }
 
     /// <summary>
-    /// The position of this body in the physics scene, setting it will teleport this object to the positoin provided.
+    /// The position of this body in the physics scene, setting it will teleport this object to the position provided.
     /// </summary>
     /// <remarks>
     /// Using this property to move objects around is not recommended,
@@ -226,12 +226,14 @@ public class BodyComponent : CollidableComponent
         set
         {
             if (BodyReference is { } bodyRef)
+            {
                 bodyRef.Pose.Position = PreviousPose.Position = value.ToNumeric();
+                bodyRef.UpdateBounds();
+            }
 
             Quaternion dummy = default;
             WorldToLocal(ref value, ref dummy);
             Entity.Transform.Position = value;
-
         }
     }
 
