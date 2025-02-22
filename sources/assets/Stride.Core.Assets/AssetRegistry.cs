@@ -457,7 +457,7 @@ namespace Stride.Core.Assets
         }
 
         /// <summary>
-        /// Is this type a concrete content type
+        /// Is this type a concrete content type, or derives from a concrete content type
         /// </summary>
         /// <remarks>
         /// You may want to use <see cref="CanBeAssignedToContentTypes"/> instead if you're checking
