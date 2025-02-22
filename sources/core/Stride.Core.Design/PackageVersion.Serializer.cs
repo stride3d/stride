@@ -3,31 +3,30 @@
 
 using Stride.Core.Serialization;
 
-namespace Stride.Core
-{
-    [DataContract("PackageVersion")]
-    [DataSerializer(typeof(PackageVersionDataSerializer))]
-    public sealed partial class PackageVersion
-    {
-        internal class PackageVersionDataSerializer : DataSerializer<PackageVersion>
-        {
-            /// <inheritdoc/>
-            public override bool IsBlittable => true;
+namespace Stride.Core;
 
-            /// <inheritdoc/>
-            public override void Serialize(ref PackageVersion obj, ArchiveMode mode, SerializationStream stream)
+[DataContract("PackageVersion")]
+[DataSerializer(typeof(PackageVersionDataSerializer))]
+public sealed partial class PackageVersion
+{
+    internal class PackageVersionDataSerializer : DataSerializer<PackageVersion>
+    {
+        /// <inheritdoc/>
+        public override bool IsBlittable => true;
+
+        /// <inheritdoc/>
+        public override void Serialize(ref PackageVersion obj, ArchiveMode mode, SerializationStream stream)
+        {
+            if (mode == ArchiveMode.Deserialize)
             {
-                if (mode == ArchiveMode.Deserialize)
-                {
-                    string version = null;
-                    stream.Serialize(ref version);
-                    obj = Parse(version);
-                }
-                else
-                {
-                    string version = obj.ToString();
-                    stream.Serialize(ref version);
-                }
+                string? version = null;
+                stream.Serialize(ref version);
+                obj = Parse(version);
+            }
+            else
+            {
+                string version = obj.ToString();
+                stream.Serialize(ref version);
             }
         }
     }

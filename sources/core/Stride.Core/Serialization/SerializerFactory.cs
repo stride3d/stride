@@ -10,7 +10,7 @@ namespace Stride.Core.Serialization
     /// </summary>
     public abstract class SerializerFactory
     {
-        public abstract DataSerializer GetSerializer(SerializerSelector selector, ref ObjectId typeId);
-        public abstract DataSerializer GetSerializer(SerializerSelector selector, Type type);
+        public abstract DataSerializer? GetSerializer(SerializerSelector selector, ref ObjectId typeId);
+        public abstract DataSerializer? GetSerializer(SerializerSelector selector, Type type);
     }
 }

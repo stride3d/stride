@@ -1,29 +1,29 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 using Mono.Cecil;
 
-namespace Stride.Core.AssemblyProcessor
+namespace Stride.Core.AssemblyProcessor;
+
+/// <summary>
+/// Generates array serializer type from a given array type.
+/// </summary>
+public class CecilArraySerializerFactory : ICecilSerializerFactory
 {
-    /// <summary>
-    /// Generates array serializer type from a given array type.
-    /// </summary>
-    public class CecilArraySerializerFactory : ICecilSerializerFactory
+    private readonly TypeReference genericArraySerializerType;
+
+    public CecilArraySerializerFactory(TypeReference genericArraySerializerType)
     {
-        private readonly TypeReference genericArraySerializerType;
+        this.genericArraySerializerType = genericArraySerializerType;
+    }
 
-        public CecilArraySerializerFactory(TypeReference genericArraySerializerType)
+    public TypeReference? GetSerializer(TypeReference objectType)
+    {
+        if (objectType.IsArray)
         {
-            this.genericArraySerializerType = genericArraySerializerType;
+            return genericArraySerializerType.MakeGenericType(((ArrayType)objectType).ElementType);
         }
 
-        public TypeReference GetSerializer(TypeReference objectType)
-        {
-            if (objectType.IsArray)
-            {
-                return genericArraySerializerType.MakeGenericType(((ArrayType)objectType).ElementType);
-            }
-
-            return null;
-        }
+        return null;
     }
 }

@@ -10,13 +10,12 @@ namespace System.Runtime.CompilerServices
     using System;
 
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
-    public sealed class ModuleInitializerAttribute : Attribute { }
+    public sealed class ModuleInitializerAttribute : Attribute;
 }
 
 namespace Stride.Core.CompilerServices
 {
     using System.Runtime.CompilerServices;
-    using System.Diagnostics;
 
     public class DebugAttacher
     {

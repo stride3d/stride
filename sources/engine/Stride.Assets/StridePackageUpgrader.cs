@@ -247,24 +247,22 @@ namespace Stride.Assets
                                 tfm.Xml.Name = "TargetFrameworks";
                                 tfm.Xml.Value = "net6.0";
                                 isProjectDirty = true;
+                                project.ReevaluateIfNecessary();
                             }
                             // Executable
                             else if ((tfm.EvaluatedValue.StartsWith("net4", StringComparison.Ordinal) || tfm.EvaluatedValue.StartsWith("net5", StringComparison.Ordinal)) && solutionProject.Type == ProjectType.Executable)
                             {
                                 tfm.Xml.Value = solutionProject.Platform == PlatformType.Windows ? "net6.0-windows" : "net6.0";
                                 isProjectDirty = true;
+                                project.ReevaluateIfNecessary();
                             }
                         }
                     }
 
                     if (dependency.Version.MinVersion < new PackageVersion("4.2.0.0") && solutionProject != null)
                     {
-                        var tfm = project.GetProperty("TargetFramework");
-                        //check if plural is required to find value
-                        if (tfm.Xml == null)
-                        {
-                            tfm = project.GetProperty("TargetFrameworks");
-                        }
+                        var tfm = project.GetProperty("TargetFramework")
+                            ?? project.GetProperty("TargetFrameworks");
                         if (tfm != null)
                         {
                             // Library

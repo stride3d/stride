@@ -1,5 +1,6 @@
 namespace Stride.Core.CompilerServices.Tests;
-internal class ClassTemplates
+
+internal static class ClassTemplates
 {
     public const string PublicClassTemplateNoDatamember = @"
 using Stride.Core;

@@ -1,0 +1,20 @@
+!Model
+Id: b665474d-edd9-4825-ac73-1fd6f4c517f4
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Source: !file ../../Resources/Models/nav_test.obj
+Skeleton: null
+PivotPosition: {X: 0.0, Y: 0.0, Z: 0.0}
+Materials:
+    a349b1d66bb05c2468508cbab04aec8a:
+        Name: DefaultMaterial
+        MaterialInstance:
+            Material: null
+    1aac94be9c9cf0e9197a5716c197a102:
+        Name: Default
+        MaterialInstance:
+            Material: null
+DeduplicateMaterials: false
+Modifiers: {}
+~SourceHashes:
+    a3fd31595ff0552e77b220f459eeaf7f~../../Resources/Models/nav_test.obj: 07acf28a20706c789e37ca5971707b86

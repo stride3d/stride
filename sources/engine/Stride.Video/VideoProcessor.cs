@@ -121,14 +121,7 @@ namespace Stride.Video.Rendering
         /// <inheritdoc />
         protected override void OnSystemAdd()
         {
-            var videoSystem = Services.GetService<VideoSystem>();
-            if (videoSystem == null)
-            {
-                videoSystem = new VideoSystem(Services);
-                Services.AddService(videoSystem);
-                var gameSystems = Services.GetSafeServiceAs<IGameSystemCollection>();
-                gameSystems.Add(videoSystem);
-            }
+            Services.GetOrCreate<VideoSystem>();
         }
     }
 }

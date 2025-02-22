@@ -4,24 +4,23 @@
 using Xunit;
 using Stride.Core.Reflection;
 
-namespace Stride.Core.Design.Tests
+namespace Stride.Core.Design.Tests;
+
+public class TestShadowObject
 {
-    public class TestShadowObject
+    [Fact]
+    public void TestGetAndGetOrCreate()
     {
-        [Fact]
-        public void TestGetAndGetOrCreate()
-        {
-            ShadowObject.Enable = true;
-            var obj = new object();
+        ShadowObject.Enable = true;
+        var obj = new object();
 
-            var shadowObject = ShadowObject.Get(obj);
-            Assert.Null(shadowObject);
+        var shadowObject = ShadowObject.Get(obj);
+        Assert.Null(shadowObject);
 
-            shadowObject = ShadowObject.GetOrCreate(obj);
-            Assert.NotNull(shadowObject);
+        shadowObject = ShadowObject.GetOrCreate(obj);
+        Assert.NotNull(shadowObject);
 
-            var shadowObject2 = ShadowObject.GetOrCreate(obj);
-            Assert.Equal(shadowObject, shadowObject2);
-        }
+        var shadowObject2 = ShadowObject.GetOrCreate(obj);
+        Assert.Equal(shadowObject, shadowObject2);
     }
 }

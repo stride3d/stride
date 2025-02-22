@@ -9,7 +9,6 @@ using Stride.Core;
 using Stride.Core.Collections;
 using Stride.Core.Mathematics;
 using Stride.Core.Serialization;
-using Stride.Native;
 
 namespace Stride.Rendering.LightProbes
 {
@@ -22,21 +21,11 @@ namespace Stride.Rendering.LightProbes
         // TODO: Make this customizable
         public const float ExtrapolationDistance = 100.0f;
 
-#pragma warning disable SA1300 // Element should begin with upper-case letter
-        [DllImport(NativeInvoke.Library, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void exactinit();
-
-        [DllImport(NativeInvoke.Library, CallingConvention = CallingConvention.Cdecl)]
-        public static extern float orient3d(ref Vector3 pa, ref Vector3 pb, ref Vector3 pc, ref Vector3 pd);
-
-        [DllImport(NativeInvoke.Library, CallingConvention = CallingConvention.Cdecl)]
-        public static extern float insphere(ref Vector3 pa, ref Vector3 pb, ref Vector3 pc, ref Vector3 pd, ref Vector3 pe);
-#pragma warning restore SA1300 // Element should begin with upper-case letter
-
         private readonly List<int> badTetrahedra = new List<int>();
         private readonly FastList<HoleFace> holeFaces = new FastList<HoleFace>();
         private readonly List<HoleEdge> edges = new List<HoleEdge>();
         private readonly List<int> freeTetrahedra = new List<int>();
+        private readonly Predicates predicates = new();
 
         private Vector3[] vertices;
 
@@ -115,13 +104,6 @@ namespace Stride.Rendering.LightProbes
                         stream.Serialize((IntPtr)tetrahedronPtr, sizeof(Tetrahedron));
                 }
             }
-        }
-
-        static BowyerWatsonTetrahedralization()
-        {
-            // TODO: Add native to Stride.Engine?
-            NativeLibraryHelper.PreloadLibrary(NativeInvoke.Library, typeof(NativeInvoke));
-            exactinit();
         }
 
         public Result Compute(IReadOnlyList<Vector3> vertices)
@@ -751,7 +733,7 @@ namespace Stride.Rendering.LightProbes
                     }
 
                     var plane = new Plane(points[infinityIndices[0]], normal);
-                    var result = insphere(ref points[tetrahedronPointer->Vertices[0]], ref points[tetrahedronPointer->Vertices[1]], ref points[tetrahedronPointer->Vertices[2]], ref points[tetrahedronPointer->Vertices[3]], ref p);
+                    var result = Predicates.insphere(ref points[tetrahedronPointer->Vertices[0]], ref points[tetrahedronPointer->Vertices[1]], ref points[tetrahedronPointer->Vertices[2]], ref points[tetrahedronPointer->Vertices[3]], ref p);
                     return CollisionHelper.DistancePlanePoint(ref plane, ref p) > 0.0f;
                 }
                 else if (infinityCount == 2)
@@ -759,7 +741,7 @@ namespace Stride.Rendering.LightProbes
                     // Build a plane that contains both points not at infinity, and that is also parallel to the line formed by the two points at "infinity"
                     var infinitePerpendicularLine = points[infinityIndices[3]] - points[infinityIndices[2]];
                     var plane = new Plane(points[infinityIndices[0]], points[infinityIndices[1]], points[infinityIndices[0]] + infinitePerpendicularLine);
-                    var result = insphere(ref points[tetrahedronPointer->Vertices[0]], ref points[tetrahedronPointer->Vertices[1]], ref points[tetrahedronPointer->Vertices[2]], ref points[tetrahedronPointer->Vertices[3]], ref p);
+                    var result = Predicates.insphere(ref points[tetrahedronPointer->Vertices[0]], ref points[tetrahedronPointer->Vertices[1]], ref points[tetrahedronPointer->Vertices[2]], ref points[tetrahedronPointer->Vertices[3]], ref p);
                     return CollisionHelper.DistancePlanePoint(ref plane, ref p) > 0.0f;
                 }
                 else if (infinityCount == 1)
@@ -771,7 +753,7 @@ namespace Stride.Rendering.LightProbes
                 }*/
 
                 // Use Adaptive Precision Floating-Point Arithmetic
-                return insphere(ref points[tetrahedronPointer->Vertices[0]], ref points[tetrahedronPointer->Vertices[1]], ref points[tetrahedronPointer->Vertices[2]], ref points[tetrahedronPointer->Vertices[3]], ref p) > 0.0f;
+                return predicates.InSphere(ref points[tetrahedronPointer->Vertices[0]], ref points[tetrahedronPointer->Vertices[1]], ref points[tetrahedronPointer->Vertices[2]], ref points[tetrahedronPointer->Vertices[3]], ref p) > 0.0f;
 #if FALSE
                 // Equivalent without Adaptive Precision Floating-Point Arithmetic
                 var matrix = new Matrix(
@@ -799,7 +781,7 @@ namespace Stride.Rendering.LightProbes
 
         private bool IsTetrahedronPositiveOrder(ref Vector3 a, ref Vector3 b, ref Vector3 c, ref Vector3 d)
         {
-            return orient3d(ref a, ref b, ref c, ref d) > 0.0f;
+            return predicates.Orient3d(ref a, ref b, ref c, ref d) > 0.0f;
 #if FALSE
             var matrix = new Matrix(
                 a.X, a.Y, a.Z, 1.0f,

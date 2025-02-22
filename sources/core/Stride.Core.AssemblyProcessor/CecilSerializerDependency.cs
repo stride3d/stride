@@ -1,64 +1,57 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using System;
-using System.Collections.Generic;
-using System.Linq;
+
 using Mono.Cecil;
 
-namespace Stride.Core.AssemblyProcessor
+namespace Stride.Core.AssemblyProcessor;
+
+/// <summary>
+/// Enumerates required subtypes the given serializer will use internally.
+/// </summary>
+public class CecilSerializerDependency : ICecilSerializerDependency
 {
+    readonly string genericSerializerTypeFullName;
+    readonly TypeReference? genericSerializableType;
+
     /// <summary>
-    /// Enumerates required subtypes the given serializer will use internally.
+    /// Initializes a new instance of the <see cref="CecilSerializerDependency" /> class.
+    /// It will enumerates T1, T2 from genericSerializerType{T1, T2}.
     /// </summary>
-    public class CecilSerializerDependency : ICecilSerializerDependency
+    /// <param name="genericSerializerTypeFullName">Type of the generic serializer.</param>
+    public CecilSerializerDependency(string genericSerializerTypeFullName)
     {
-        string genericSerializerTypeFullName;
-        TypeReference genericSerializableType;
+        this.genericSerializerTypeFullName = genericSerializerTypeFullName ?? throw new ArgumentNullException(nameof(genericSerializerTypeFullName));
+    }
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="CecilSerializerDependency" /> class.
-        /// It will enumerates T1, T2 from genericSerializerType{T1, T2}.
-        /// </summary>
-        /// <param name="genericSerializerType">Type of the generic serializer.</param>
-        public CecilSerializerDependency(string genericSerializerTypeFullName)
+    /// <summary>
+    /// Initializes a new instance of the <see cref="CecilSerializerDependency" /> class.
+    /// It will enumerates genericSerializableType{T1, T2} from genericSerializerType{T1, T2}.
+    /// </summary>
+    /// <param name="genericSerializerTypeFullName">Type of the generic serializer.</param>
+    /// <param name="genericSerializableType">Type of the generic serializable.</param>
+    public CecilSerializerDependency(string genericSerializerTypeFullName, TypeReference genericSerializableType)
+    {
+        this.genericSerializerTypeFullName = genericSerializerTypeFullName ?? throw new ArgumentNullException(nameof(genericSerializerTypeFullName));
+        this.genericSerializableType = genericSerializableType ?? throw new ArgumentNullException(nameof(genericSerializableType));
+    }
+
+    public IEnumerable<TypeReference> EnumerateSubTypesFromSerializer(TypeReference serializerType)
+    {
+        // Check if serializer type name matches
+        if (serializerType.IsGenericInstance && serializerType.GetElementType().FullName == genericSerializerTypeFullName)
         {
-            if (genericSerializerTypeFullName == null)
-                throw new ArgumentNullException("genericSerializerTypeFullName");
-
-            this.genericSerializerTypeFullName = genericSerializerTypeFullName;
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="CecilSerializerDependency" /> class.
-        /// It will enumerates genericSerializableType{T1, T2} from genericSerializerType{T1, T2}.
-        /// </summary>
-        /// <param name="genericSerializerType">Type of the generic serializer.</param>
-        /// <param name="genericSerializableType">Type of the generic serializable.</param>
-        public CecilSerializerDependency(string genericSerializerTypeFullName, TypeReference genericSerializableType)
-        {
-            if (genericSerializerTypeFullName == null)
-                throw new ArgumentNullException("genericSerializerTypeFullName");
-            if (genericSerializableType == null)
-                throw new ArgumentNullException("genericSerializableType");
-
-            this.genericSerializerTypeFullName = genericSerializerTypeFullName;
-            this.genericSerializableType = genericSerializableType;
-        }
-
-        public IEnumerable<TypeReference> EnumerateSubTypesFromSerializer(TypeReference serializerType)
-        {
-            // Check if serializer type name matches
-            if (serializerType.IsGenericInstance && serializerType.GetElementType().FullName == genericSerializerTypeFullName)
+            if (genericSerializableType != null)
             {
-                if (genericSerializableType != null)
-                    // Transforms genericSerializerType{T1, T2} into genericSerializableType{T1, T2}
-                    return Enumerable.Repeat(genericSerializableType.MakeGenericType(((GenericInstanceType)serializerType).GenericArguments.ToArray()), 1);
-                else
-                    // Transforms genericSerializerType{T1, T2} into T1, T2
-                    return ((GenericInstanceType)serializerType).GenericArguments;
+                // Transforms genericSerializerType{T1, T2} into genericSerializableType{T1, T2}
+                return Enumerable.Repeat(genericSerializableType.MakeGenericType([.. ((GenericInstanceType)serializerType).GenericArguments]), 1);
             }
-
-            return null;
+            else
+            {
+                // Transforms genericSerializerType{T1, T2} into T1, T2
+                return ((GenericInstanceType)serializerType).GenericArguments;
+            }
         }
+
+        return [];
     }
 }

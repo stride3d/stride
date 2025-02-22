@@ -6,6 +6,9 @@
   <PropertyGroup>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
     <StrideAssemblyProcessor>false</StrideAssemblyProcessor>
     <RestorePackages>true</RestorePackages>
     <Nullable>enable</Nullable>

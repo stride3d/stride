@@ -410,11 +410,11 @@ namespace FreeImageAPI.Metadata
 
 					Array array = Array.CreateInstance(idList[Type], Count);
 
-                    ref byte dst = ref MemoryMarshal.GetArrayDataReference(array);
-                    ref byte src = ref Unsafe.AsRef<byte>((void*) FreeImage.GetTagValue(tag));
-                    Unsafe.CopyBlockUnaligned(ref dst, ref src, Length);
+					ref byte dst = ref MemoryMarshal.GetArrayDataReference(array);
+					ref byte src = ref Unsafe.AsRef<byte>((void*) FreeImage.GetTagValue(tag));
+					Unsafe.CopyBlockUnaligned(ref dst, ref src, Length);
 
-                    return array;
+					return array;
 				}
 			}
 			set
@@ -437,11 +437,11 @@ namespace FreeImageAPI.Metadata
 		public bool SetValue(object value)
 		{
 			Type type = value.GetType();
-			if (!typeList.ContainsKey(type))
+			if (!typeList.TryGetValue(type, out var v))
 			{
 				throw new NotSupportedException("The type of value is not supported");
 			}
-			return SetValue(value, typeList[type]);
+			return SetValue(value, v);
 		}
 
 		/// <summary>
@@ -459,7 +459,7 @@ namespace FreeImageAPI.Metadata
 		public bool SetValue(object value, FREE_IMAGE_MDTYPE type)
 		{
 			CheckDisposed();
-			if ((!value.GetType().IsArray) && (!(value is string)))
+			if ((!value.GetType().IsArray) && (value is not string))
 			{
 				Array array = Array.CreateInstance(value.GetType(), 1);
 				array.SetValue(value, 0);
@@ -496,8 +496,7 @@ namespace FreeImageAPI.Metadata
 
 			if (type == FREE_IMAGE_MDTYPE.FIDT_ASCII)
 			{
-				string tempValue = value as string;
-				if (tempValue == null)
+				if (value is not string tempValue)
 				{
 					throw new ArgumentException("value");
 				}
@@ -516,12 +515,12 @@ namespace FreeImageAPI.Metadata
 			}
 			else
 			{
-                if (value is not Array array)
-                {
-                    throw new ArgumentException(nameof(value));
-                }
+				if (value is not Array array)
+				{
+					throw new ArgumentException(nameof(value));
+				}
 
-                if (array.Length != 0)
+				if (array.Length != 0)
 					if (!CheckType(array.GetValue(0).GetType(), type))
 						throw new ArgumentException("The type of value is incorrect.");
 
@@ -531,10 +530,10 @@ namespace FreeImageAPI.Metadata
 
 				data = new byte[Length];
 
-                ref byte dst = ref data[0];
-                ref byte src = ref MemoryMarshal.GetArrayDataReference(array);
-                Unsafe.CopyBlockUnaligned(ref dst, ref src, Length);
-            }
+				ref byte dst = ref data[0];
+				ref byte src = ref MemoryMarshal.GetArrayDataReference(array);
+				Unsafe.CopyBlockUnaligned(ref dst, ref src, Length);
+			}
 
 			return FreeImage.SetTagValue(tag, data);
 		}
@@ -618,19 +617,19 @@ namespace FreeImageAPI.Metadata
 		/// Gets a .NET PropertyItem for this metadata tag.
 		/// </summary>
 		/// <returns>The .NET PropertyItem.</returns>
-		public unsafe System.Drawing.Imaging.PropertyItem GetPropertyItem()
+		public unsafe PropertyItem GetPropertyItem()
 		{
-			System.Drawing.Imaging.PropertyItem item = FreeImage.CreatePropertyItem();
+			PropertyItem item = FreeImage.CreatePropertyItem();
 			item.Id = ID;
 			item.Len = (int)Length;
 			item.Type = (short)Type;
-            item.Value = new byte[item.Len];
+			item.Value = new byte[item.Len];
 
-            ref byte dst = ref item.Value[0];
-            ref byte src = ref Unsafe.AsRef<byte>((void*) FreeImage.GetTagValue(tag));
-            Unsafe.CopyBlockUnaligned(ref dst, ref src, Length);
+			ref byte dst = ref item.Value[0];
+			ref byte src = ref Unsafe.AsRef<byte>((void*) FreeImage.GetTagValue(tag));
+			Unsafe.CopyBlockUnaligned(ref dst, ref src, Length);
 
-            return item;
+			return item;
 		}
 
 		/// <summary>
@@ -643,14 +642,7 @@ namespace FreeImageAPI.Metadata
 			CheckDisposed();
 			string fiString = FreeImage.TagToString(model, tag, 0);
 
-			if (String.IsNullOrEmpty(fiString))
-			{
-				return tag.ToString();
-			}
-			else
-			{
-				return fiString;
-			}
+			return string.IsNullOrEmpty(fiString) ? tag.ToString() : fiString;
 		}
 
 		/// <summary>

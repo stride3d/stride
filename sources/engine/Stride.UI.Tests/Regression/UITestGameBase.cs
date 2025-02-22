@@ -93,13 +93,7 @@ namespace Stride.UI.Tests.Regression
             UIComponent.ResolutionStretch = ResolutionStretch.FixedWidthFixedHeight;
             Scene.Entities.Add(UIRoot);
 
-            UI = Services.GetService<UISystem>();
-            if (UI == null)
-            {
-                UI = new UISystem(Services);
-                Services.AddService(UI);
-                GameSystems.Add(UI);
-            }
+            UI = Services.GetOrCreate<UISystem>();
 
             Camera = new Entity("Scene camera") { new CameraComponent { Slot = SceneSystem.GraphicsCompositor.Cameras[0].ToSlotId() } };
             Camera.Transform.Position = new Vector3(0, 0, 1000);

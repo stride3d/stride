@@ -148,7 +148,7 @@ namespace FreeImageAPI
 			}
 
 			this.baseAddress = (byte*)baseAddress;
-			this.length = (int)length;
+			this.length = length;
 
 			if (!isOneBit && !isFourBit)
 			{
@@ -160,9 +160,9 @@ namespace FreeImageAPI
 				// The array is pinned immediately to prevent the GC from
 				// moving it to a different position in memory.
 				this.handle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
-				// The array and its content have beed pinned, so that its address
+				// The array and its content have been pinned, so that its address
 				// can be safely requested and stored for the whole lifetime
-				// of the instace.
+				// of the instance.
 				this.ptr = (byte*)handle.AddrOfPinnedObject();
 			}
 		}
@@ -185,12 +185,12 @@ namespace FreeImageAPI
 		/// </returns>
 		public static bool operator ==(MemoryArray<T> left, MemoryArray<T> right)
 		{
-			if (object.ReferenceEquals(left, right))
+			if (ReferenceEquals(left, right))
 			{
 				return true;
 			}
-			if (object.ReferenceEquals(right, null) ||
-				object.ReferenceEquals(left, null) ||
+			if (ReferenceEquals(right, null) ||
+				ReferenceEquals(left, null) ||
 				(left.length != right.length))
 			{
 				return false;
@@ -241,15 +241,14 @@ namespace FreeImageAPI
 			{
 				return (T)(object)(FI1BIT)(((baseAddress[index / 8] & ((1 << (7 - (index % 8))))) == 0) ? 0 : 1);
 			}
-			else if (isFourBit)
+
+			if (isFourBit)
 			{
 				return (T)(object)(FI4BIT)(((index % 2) == 0) ? (baseAddress[index / 2] >> 4) : (baseAddress[index / 2] & 0x0F));
 			}
-			else
-			{
-                Unsafe.CopyBlockUnaligned(ptr, baseAddress + (index * size), (uint) size);
-                return buffer[0];
-			}
+
+			Unsafe.CopyBlockUnaligned(ptr, baseAddress + (index * size), (uint) size);
+			return buffer[0];
 		}
 
 		/// <summary>
@@ -298,8 +297,8 @@ namespace FreeImageAPI
 			else
 			{
 				buffer[0] = value;
-                Unsafe.CopyBlockUnaligned(baseAddress + (index * size), ptr, (uint) size);
-            }
+				Unsafe.CopyBlockUnaligned(baseAddress + (index * size), ptr, (uint) size);
+			}
 		}
 
 		/// <summary>
@@ -337,8 +336,8 @@ namespace FreeImageAPI
 			else
 			{
 				ref byte dst = ref Unsafe.As<T, byte>(ref data[0]);
-                ref byte src = ref Unsafe.AsRef<byte>(baseAddress + (size * index));
-                Unsafe.CopyBlockUnaligned(ref dst, ref src, (uint) (size * length));
+				ref byte src = ref Unsafe.AsRef<byte>(baseAddress + (size * index));
+				Unsafe.CopyBlockUnaligned(ref dst, ref src, (uint) (size * length));
 			}
 			return data;
 		}
@@ -380,10 +379,10 @@ namespace FreeImageAPI
 			}
 			else
 			{
-                ref byte dst = ref Unsafe.AsRef<byte>(baseAddress + (index * size));
-                ref byte src = ref Unsafe.As<T, byte>(ref values[0]);
-                Unsafe.CopyBlockUnaligned(ref dst, ref src, (uint) (size * length));
-            }
+				ref byte dst = ref Unsafe.AsRef<byte>(baseAddress + (index * size));
+				ref byte src = ref Unsafe.As<T, byte>(ref values[0]);
+				Unsafe.CopyBlockUnaligned(ref dst, ref src, (uint) (size * length));
+			}
 		}
 
 		/// <summary>
@@ -414,7 +413,7 @@ namespace FreeImageAPI
 
 		/// <summary>
 		/// Copies a range of elements from the unmanaged array starting at the specified
-        /// <paramref name="sourceIndex"/> and pastes them to <paramref name="array"/>
+		/// <paramref name="sourceIndex"/> and pastes them to <paramref name="array"/>
 		/// starting at the specified <paramref name="destinationIndex"/>.
 		/// The length and the indexes are specified as 32-bit integers.
 		/// </summary>
@@ -449,15 +448,15 @@ namespace FreeImageAPI
 			}
 			else
 			{
-                ref byte dst = ref Unsafe.As<T, byte>(ref array[destinationIndex]);
-                ref byte src = ref Unsafe.AsRef<byte>(baseAddress + (size * sourceIndex));
-                Unsafe.CopyBlockUnaligned(ref dst, ref src, (uint) (size * length));
-            }
+				ref byte dst = ref Unsafe.As<T, byte>(ref array[destinationIndex]);
+				ref byte src = ref Unsafe.AsRef<byte>(baseAddress + (size * sourceIndex));
+				Unsafe.CopyBlockUnaligned(ref dst, ref src, (uint) (size * length));
+			}
 		}
 
 		/// <summary>
 		/// Copies a range of elements from the array starting at the specified
-        /// <paramref name="sourceIndex"/> and pastes them to the unmanaged array
+		/// <paramref name="sourceIndex"/> and pastes them to the unmanaged array
 		/// starting at the specified <paramref name="destinationIndex"/>.
 		/// The length and the indexes are specified as 32-bit integers.
 		/// </summary>
@@ -492,10 +491,10 @@ namespace FreeImageAPI
 			}
 			else
 			{
-                ref byte dst = ref Unsafe.AsRef<byte>(baseAddress + (size * destinationIndex));
-                ref byte src = ref Unsafe.As<T, byte>(ref array[sourceIndex]);
-                Unsafe.CopyBlockUnaligned(ref dst, ref src, (uint) (size * length));
-            }
+				ref byte dst = ref Unsafe.AsRef<byte>(baseAddress + (size * destinationIndex));
+				ref byte src = ref Unsafe.As<T, byte>(ref array[sourceIndex]);
+				Unsafe.CopyBlockUnaligned(ref dst, ref src, (uint) (size * length));
+			}
 		}
 
 		/// <summary>
@@ -519,11 +518,11 @@ namespace FreeImageAPI
 				result = new byte[size * length];
 			}
 
-            ref byte dst = ref result[0];
-            ref byte src = ref Unsafe.AsRef<byte>(baseAddress);
-            Unsafe.CopyBlockUnaligned(ref dst, ref src, (uint) result.Length);
+			ref byte dst = ref result[0];
+			ref byte src = ref Unsafe.AsRef<byte>(baseAddress);
+			Unsafe.CopyBlockUnaligned(ref dst, ref src, (uint) result.Length);
 
-            return result;
+			return result;
 		}
 
 		/// <summary>

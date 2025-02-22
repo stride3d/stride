@@ -1,0 +1,238 @@
+﻿shader SinglePassWireframeShader : ShaderBase, Transformation, Texturing, PositionStream4
+{
+    noperspective stage stream float4 EdgeA;
+    noperspective stage stream float4 EdgeB;
+    stage stream float3 Normal : NORMAL;
+    stage stream uint   Case;
+
+    static const uint infoA[]     = { 0, 0, 0, 0, 1, 1, 2 };
+    static const uint infoB[]     = { 1, 1, 2, 0, 2, 1, 2 };
+    static const uint infoAd[]    = { 2, 2, 1, 1, 0, 0, 0 };
+    static const uint infoBd[]    = { 2, 2, 1, 2, 0, 2, 1 }; 
+    static const uint infoEdge0[] = { 0, 2, 0, 0, 0, 0, 2 }; 
+
+    float LineWidth;
+    float3 LineColor;
+
+    cbuffer PerView
+    {
+        stage float4 Viewport;
+    }
+
+    float4 projToWorld(in float4 pos)
+    {
+        return mul(pos, WorldViewProjection);
+    }
+
+    float2 projToWindow(in float4 pos)
+    {
+        return float2(
+            Viewport.x * 0.5 * (1 + (pos.x / pos.w)) + Viewport.z,
+            Viewport.y * 0.5 * (1 - (pos.y / pos.w)) + Viewport.w
+        );
+    }
+
+    float evalMinDistanceToEdges()
+    {
+        float dist;
+
+        if (streams.Case == 0)
+        {
+            // the easy case, the 3 distances of the fragment to the 3 edges
+            // is already computed, get the min
+
+            dist = min(min(streams.EdgeA.x, streams.EdgeA.y), streams.EdgeA.z);
+        }
+        else
+        {
+            // the tricky case, compute the distances and get the min from 2D lines
+            // given from the geometry shader
+
+            float2 af = streams.Position.xy - streams.EdgeA.xy;
+            float sqaf = dot(af, af);
+            float afCosA = dot(af, streams.EdgeA.zw);
+            dist = abs(sqaf - afCosA * afCosA);
+
+            float2 bf = streams.Position.xy - streams.EdgeB.xy;
+            float sqbf = dot(bf, bf);
+            float bfCosB = dot(bf, streams.EdgeB.zw);
+            dist = min(dist, abs(sqbf - bfCosB * bfCosB));
+
+            // only need to care about the 3rd edge for some cases
+            if (streams.Case == 1 || streams.Case == 2 || streams.Case == 4)
+            {
+                float afCosA0 = dot(af, normalize(streams.EdgeB.xy - streams.EdgeA.xy));
+                dist = min(dist, abs(sqaf - afCosA0 * afCosA0));
+            }
+
+            dist = sqrt(dist);
+        }
+
+        return dist;
+    }
+
+    // geometry shader
+    [maxvertexcount(3)]
+    void GSMain(triangle Input input[3], inout TriangleStream<Output> triangleStream)
+    {
+        // project to world
+        float4 positionWS[3];
+        positionWS[0] = projToWorld(input[0].Position);
+        positionWS[1] = projToWorld(input[1].Position);
+        positionWS[2] = projToWorld(input[2].Position);
+
+        // Compute the case from the positions of point in space.
+
+        uint vertexCase
+            = (positionWS[0].z < 0 ? 1 : 0) * 4 
+            + (positionWS[1].z < 0 ? 1 : 0) * 2 
+            + (positionWS[2].z < 0 ? 1 : 0);
+
+        // Compute the case from the positions of point in space.
+        if (vertexCase == 7)
+        {
+            return;
+        }
+
+        float2 points[3];
+        points[0] = projToWindow(positionWS[0]);
+        points[1] = projToWindow(positionWS[1]);
+        points[2] = projToWindow(positionWS[2]);
+
+        float3 vertExclude = float3(0, 0, 0);
+        float excludeEdgeLength = LineWidth + 100;
+
+        // general computation
+        if (vertexCase == 0)
+        {
+            // compute the edges vectors of transformed triangle
+            float2 edges[3];
+            edges[0] = points[1] - points[0];
+            edges[1] = points[2] - points[1];
+            edges[2] = points[0] - points[2];
+
+            // store the length of the edges
+            float lengths[3];
+            lengths[0] = length(edges[0]);
+            lengths[1] = length(edges[1]);
+            lengths[2] = length(edges[2]);
+
+            float3 edgesWS[3];
+            edgesWS[0] = input[1].Position.xyz - input[0].Position.xyz;
+            edgesWS[1] = input[2].Position.xyz - input[1].Position.xyz;
+            edgesWS[2] = input[0].Position.xyz - input[2].Position.xyz;
+
+            float lengthsWS[3];
+            lengthsWS[0] = length(edgesWS[0]);
+            lengthsWS[1] = length(edgesWS[1]);
+            lengthsWS[2] = length(edgesWS[2]);
+
+            float maxLength = max(max(lengthsWS[0], lengthsWS[1]), lengthsWS[2]);
+
+            vertExclude.x = lengthsWS[0] == maxLength ? 1 : 0;
+            vertExclude.y = lengthsWS[1] == maxLength ? 1 : 0;
+            vertExclude.z = lengthsWS[2] == maxLength ? 1 : 0;
+
+            // compute the cos angle of each vertices
+            float cosAngles[3];
+            cosAngles[0] = dot(-edges[2], edges[0]) / (lengths[2] * lengths[0]);
+            cosAngles[1] = dot(-edges[0], edges[1]) / (lengths[0] * lengths[1]);
+            cosAngles[2] = dot(-edges[1], edges[2]) / (lengths[1] * lengths[2]);
+
+            // the height for each vertices of triangle
+            float heights[3];
+            heights[1] = lengths[0] * sqrt(1 - cosAngles[0] * cosAngles[0]);
+            heights[2] = lengths[1] * sqrt(1 - cosAngles[1] * cosAngles[1]);
+            heights[0] = lengths[2] * sqrt(1 - cosAngles[2] * cosAngles[2]);
+
+            float edgeSigns[3];
+            edgeSigns[0] = (edges[0] > 0 ? 1 : -1);
+            edgeSigns[1] = (edges[1] > 0 ? 1 : -1);
+            edgeSigns[2] = (edges[2] > 0 ? 1 : -1);
+
+            float edgeOffsets[3];
+            edgeOffsets[0] = lengths[0] * (0.5 - 0.5 * edgeSigns[0]);
+            edgeOffsets[1] = lengths[1] * (0.5 - 0.5 * edgeSigns[1]);
+            edgeOffsets[2] = lengths[2] * (0.5 - 0.5 * edgeSigns[2]);
+
+            // vertex 0
+            streams = input[0];
+            streams.Case = vertexCase;
+            streams.EdgeA[0] = vertExclude.x * excludeEdgeLength;
+            streams.EdgeA[1] = heights[0];
+            streams.EdgeA[2] = vertExclude.z * excludeEdgeLength;
+            streams.EdgeB[0] = edgeOffsets[0];
+            streams.EdgeB[1] = edgeOffsets[1] + edgeSigns[1] * cosAngles[1] * lengths[0];
+            streams.EdgeB[2] = edgeOffsets[2] + edgeSigns[2] * lengths[2];
+            triangleStream.Append(streams);
+
+            // vertex 1
+            streams = input[1];
+            streams.Case = vertexCase;
+            streams.EdgeA[0] = vertExclude.x * excludeEdgeLength;
+            streams.EdgeA[1] = vertExclude.y * excludeEdgeLength;
+            streams.EdgeA[2] = heights[1];
+            streams.EdgeB[0] = edgeOffsets[0] + edgeSigns[0] * lengths[0];
+            streams.EdgeB[1] = edgeOffsets[1];
+            streams.EdgeB[2] = edgeOffsets[2] * edgeSigns[2] * cosAngles[2] * lengths[1];
+            triangleStream.Append(streams);
+
+            // vertex 2
+            streams = input[2];
+            streams.Case = vertexCase;
+            streams.EdgeA[0] = heights[2];
+            streams.EdgeA[1] = vertExclude.y * excludeEdgeLength;
+            streams.EdgeA[2] = vertExclude.z * excludeEdgeLength;
+            streams.EdgeB[0] = edgeOffsets[0] + edgeSigns[0] * cosAngles[0] * lengths[2];
+            streams.EdgeB[1] = edgeOffsets[1] + edgeSigns[1] * lengths[1];
+            streams.EdgeB[2] = edgeOffsets[2];
+            triangleStream.Append(streams);
+
+            triangleStream.RestartStrip();
+        }
+        else
+        {
+            // Else need some tricky computations
+
+            for (int i = 0; i < 3; i++)
+            {
+                streams = input[i];
+
+                streams.EdgeA = float4(0, 0, 0, 0);
+                streams.EdgeB = float4(0, 0, 0, 0);
+
+                streams.Case = vertexCase;
+                streams.EdgeA.xy = points[infoA[vertexCase]];
+                streams.EdgeB.xy = points[infoB[vertexCase]];
+
+                streams.EdgeA.zw = normalize(streams.EdgeA.xy - points[infoAd[vertexCase]]);
+                streams.EdgeB.zw = normalize(streams.EdgeB.xy - points[infoBd[vertexCase]]);
+
+                triangleStream.Append(streams);
+            }
+
+            triangleStream.RestartStrip();
+        }
+    }
+
+    // vertex shader
+    stage override void VSMain()
+    { 
+        streams.ShadingPosition = projToWorld(streams.Position);
+        // Our wireframe likely sits on top of the same model so fragments will z-fight, this line reduces flickering by pulling vertices forward slightly
+        streams.ShadingPosition.z -= 0.00005;
+    }
+
+    // pixel shader
+    stage override void PSMain()
+    {
+        float dist = evalMinDistanceToEdges();
+        if (dist > 0.5 * LineWidth)
+        {
+            // too far from edge
+            discard;
+        }
+
+        streams.ColorTarget = float4(LineColor, 1);
+    }
+};

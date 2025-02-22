@@ -1,26 +1,23 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using System;
+namespace Stride.Core.Reflection;
 
-namespace Stride.Core.Reflection
+/// <summary>
+/// A custom visitor used by <see cref="DataVisitorBase"/>.
+/// </summary>
+[AssemblyScan]
+public interface IDataCustomVisitor
 {
     /// <summary>
-    /// A custom visitor used by <see cref="DataVisitorBase"/>.
+    /// Determines whether this instance can visit the specified object.
     /// </summary>
-    [AssemblyScan]
-    public interface IDataCustomVisitor
-    {
-        /// <summary>
-        /// Determines whether this instance can visit the specified object.
-        /// </summary>
-        /// <param name="type"></param>
-        /// <returns><c>true</c> if this instance can visit the specified object; otherwise, <c>false</c>.</returns>
-        bool CanVisit(Type type);
+    /// <param name="type"></param>
+    /// <returns><c>true</c> if this instance can visit the specified object; otherwise, <c>false</c>.</returns>
+    bool CanVisit(Type type);
 
-        /// <summary>
-        /// Visits the specified object.
-        /// </summary>
-        /// <param name="context">The context.</param>
-        void Visit(ref VisitorContext context);
-    }
+    /// <summary>
+    /// Visits the specified object.
+    /// </summary>
+    /// <param name="context">The context.</param>
+    void Visit(ref VisitorContext context);
 }

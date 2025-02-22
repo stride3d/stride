@@ -4,171 +4,168 @@
 using System;
 using System.Collections.Generic;
 
-namespace Stride.Core.Serialization.Contents
+namespace Stride.Core.Serialization.Contents;
+
+partial class ContentManager
 {
-    partial class ContentManager
+    // Used internally for Garbage Collection
+    // Allocate once and reuse collection for every GC
+    private Stack<Reference> stack = new();
+    private uint nextCollectIndex;
+
+    /// <summary>
+    /// Increments reference count of an <see cref="Reference"/>.
+    /// </summary>
+    /// <param name="reference">The reference.</param>
+    /// <param name="publicReference">True if public reference.</param>
+    internal void IncrementReference(Reference reference, bool publicReference)
     {
-        // Used internally for Garbage Collection
-        // Allocate once and reuse collection for every GC
-        private Stack<Reference> stack = new Stack<Reference>();
-        private uint nextCollectIndex;
-
-        /// <summary>
-        /// Increments reference count of an <see cref="Reference"/>.
-        /// </summary>
-        /// <param name="reference">The reference.</param>
-        /// <param name="publicReference">True if public reference.</param>
-        internal void IncrementReference(Reference reference, bool publicReference)
+        if (publicReference)
         {
-            if (publicReference)
-            {
-                reference.PublicReferenceCount++;
-            }
-            else
-            {
-                reference.PrivateReferenceCount++;
-            }
+            reference.PublicReferenceCount++;
         }
-
-        /// <summary>
-        /// Decrements reference count of an <see cref="Reference"/>.
-        /// </summary>
-        /// <param name="reference">The reference.</param>
-        /// <param name="publicReference">True if public erefere</param>
-        internal void DecrementReference(Reference reference, bool publicReference)
+        else
         {
-            int referenceCount;
-            if (publicReference)
-            {
-                if (reference.PublicReferenceCount <= 0)
-                    throw new InvalidOperationException("Cannot release an object that doesn't have active public references. Load/Unload pairs must match.");
+            reference.PrivateReferenceCount++;
+        }
+    }
 
-                referenceCount = --reference.PublicReferenceCount + reference.PrivateReferenceCount;
-            }
-            else
-            {
-                if (reference.PrivateReferenceCount <= 0)
-                    throw new InvalidOperationException("Cannot release an object that doesn't have active private references. This is either due to non-matching Load/Unload pairs or an engine internal error.");
+    /// <summary>
+    /// Decrements reference count of an <see cref="Reference"/>.
+    /// </summary>
+    /// <param name="reference">The reference.</param>
+    /// <param name="publicReference">True if public erefere</param>
+    internal void DecrementReference(Reference reference, bool publicReference)
+    {
+        int referenceCount;
+        if (publicReference)
+        {
+            if (reference.PublicReferenceCount <= 0)
+                throw new InvalidOperationException("Cannot release an object that doesn't have active public references. Load/Unload pairs must match.");
+
+            referenceCount = --reference.PublicReferenceCount + reference.PrivateReferenceCount;
+        }
+        else
+        {
+            if (reference.PrivateReferenceCount <= 0)
+                throw new InvalidOperationException("Cannot release an object that doesn't have active private references. This is either due to non-matching Load/Unload pairs or an engine internal error.");
              
-                referenceCount = --reference.PrivateReferenceCount + reference.PublicReferenceCount;
-            }
+            referenceCount = --reference.PrivateReferenceCount + reference.PublicReferenceCount;
+        }
 
-            if (referenceCount == 0)
-            {
-                // Free the object itself
-                ReleaseAsset(reference);
+        if (referenceCount == 0)
+        {
+            // Free the object itself
+            ReleaseAsset(reference);
 
-                // Free all its referenced objects
-                foreach (var childReference in reference.References)
-                {
-                    DecrementReference(childReference, false);
-                }
-            }
-            else if (publicReference && reference.PublicReferenceCount == 0)
+            // Free all its referenced objects
+            foreach (var childReference in reference.References)
             {
-                // If there is no more public reference but object is still alive, let's kick a cycle GC
-                CollectUnreferencedCycles();
+                DecrementReference(childReference, false);
+            }
+        }
+        else if (publicReference && reference.PublicReferenceCount == 0)
+        {
+            // If there is no more public reference but object is still alive, let's kick a cycle GC
+            CollectUnreferencedCycles();
+        }
+    }
+
+    /// <summary>
+    /// Releases an asset.
+    /// </summary>
+    /// <param name="reference">The reference.</param>
+    private void ReleaseAsset(Reference reference)
+    {
+        if (reference.Object is IReferencable referencable)
+        {
+            referencable.Release();
+        }
+        else
+        {
+            if (reference.Object is IDisposable disposable)
+            {
+                disposable.Dispose();
             }
         }
 
-        /// <summary>
-        /// Releases an asset.
-        /// </summary>
-        /// <param name="reference">The reference.</param>
-        private void ReleaseAsset(Reference reference)
+        // Remove Reference from loaded assets.
+        var oldPrev = reference.Prev;
+        var oldNext = reference.Next;
+        if (oldPrev != null)
+            oldPrev.Next = oldNext;
+        if (oldNext != null)
+            oldNext.Prev = oldPrev;
+
+        if (oldPrev == null)
         {
-            var referencable = reference.Object as IReferencable;
-            if (referencable != null)
-            {
-                referencable.Release();
-            }
+            if (oldNext == null)
+                LoadedAssetUrls.Remove(reference.Url);
             else
+                LoadedAssetUrls[reference.Url] = oldNext;
+        }
+        LoadedAssetReferences.Remove(reference.Object);
+
+        reference.Object = null;
+    }
+
+    internal void CollectUnreferencedCycles()
+    {
+        // Push everything on the stack
+        var currentCollectIndex = nextCollectIndex++;
+        foreach (var asset in LoadedAssetUrls)
+        {
+            var currentAsset = asset.Value;
+            do
             {
-                var disposable = reference.Object as IDisposable;
-                if (disposable != null)
-                {
-                    disposable.Dispose();
-                }
+                if (asset.Value.PublicReferenceCount > 0)
+                    stack.Push(asset.Value);
+                currentAsset = currentAsset.Next;
             }
-
-            // Remove Reference from loaded assets.
-            var oldPrev = reference.Prev;
-            var oldNext = reference.Next;
-            if (oldPrev != null)
-                oldPrev.Next = oldNext;
-            if (oldNext != null)
-                oldNext.Prev = oldPrev;
-
-            if (oldPrev == null)
-            {
-                if (oldNext == null)
-                    LoadedAssetUrls.Remove(reference.Url);
-                else
-                    LoadedAssetUrls[reference.Url] = oldNext;
-            }
-            LoadedAssetReferences.Remove(reference.Object);
-
-            reference.Object = null;
+            while (currentAsset != null);
         }
 
-        internal void CollectUnreferencedCycles()
+        // Until stack is empty, collect references and push them on the stack
+        while (stack.Count > 0)
         {
-            // Push everything on the stack
-            var currentCollectIndex = nextCollectIndex++;
-            foreach (var asset in LoadedAssetUrls)
-            {
-                var currentAsset = asset.Value;
-                do
-                {
-                    if (asset.Value.PublicReferenceCount > 0)
-                        stack.Push(asset.Value);
-                    currentAsset = currentAsset.Next;
-                }
-                while (currentAsset != null);
-            }
+            var v = stack.Pop();
 
-            // Until stack is empty, collect references and push them on the stack
-            while (stack.Count > 0)
+            // We use CollectIndex to know if object has already been processed during current collection
+            var collectIndex = v.CollectIndex;
+            if (collectIndex != currentCollectIndex)
             {
-                var v = stack.Pop();
-
-                // We use CollectIndex to know if object has already been processed during current collection
-                var collectIndex = v.CollectIndex;
-                if (collectIndex != currentCollectIndex)
+                v.CollectIndex = currentCollectIndex;
+                foreach (var reference in v.References)
                 {
-                    v.CollectIndex = currentCollectIndex;
-                    foreach (var reference in v.References)
-                    {
-                        if (reference.CollectIndex != currentCollectIndex)
-                            stack.Push(reference);
-                    }
+                    if (reference.CollectIndex != currentCollectIndex)
+                        stack.Push(reference);
                 }
             }
+        }
 
-            // Collect objects that are not referenceable.
-            // Reuse stack
-            // TODO: Use collections where you can iterate and remove at the same time?
-            foreach (var asset in LoadedAssetUrls)
+        // Collect objects that are not referenceable.
+        // Reuse stack
+        // TODO: Use collections where you can iterate and remove at the same time?
+        foreach (var asset in LoadedAssetUrls)
+        {
+            var currentAsset = asset.Value;
+            do
             {
-                var currentAsset = asset.Value;
-                do
+                if (asset.Value.CollectIndex != currentCollectIndex)
                 {
-                    if (asset.Value.CollectIndex != currentCollectIndex)
-                    {
-                        stack.Push(asset.Value);
-                    }
-                    currentAsset = currentAsset.Next;
+                    stack.Push(asset.Value);
                 }
-                while (currentAsset != null);
+                currentAsset = currentAsset.Next;
             }
+            while (currentAsset != null);
+        }
 
-            // Release those objects
-            // Note: order of release might be unexpected (i.e. if A ref B, B might be released before A)
-            // We don't really have a choice if there is cycle anyway, but still user could have reference himself to prevent or enforce this order if it's really important.
-            foreach (var assetReference in stack)
-            {
-                ReleaseAsset(assetReference);
-            }
+        // Release those objects
+        // Note: order of release might be unexpected (i.e. if A ref B, B might be released before A)
+        // We don't really have a choice if there is cycle anyway, but still user could have reference himself to prevent or enforce this order if it's really important.
+        foreach (var assetReference in stack)
+        {
+            ReleaseAsset(assetReference);
         }
     }
 }

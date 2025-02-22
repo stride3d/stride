@@ -1,25 +1,26 @@
 <Project>
-	<Import Project="..\..\targets\Stride.Core.props" />
-	<PropertyGroup>
-		<TargetFramework>netstandard2.0</TargetFramework>
-		<Description>Code generators for Stride.Core and its dependents</Description>
-    <LangVersion>latest</LangVersion>
+  <Import Project="..\..\targets\Stride.Core.props" />
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <Description>Code generators for Stride.Core and its dependents</Description>
     <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
-		<StrideSkipAutoPack>true</StrideSkipAutoPack>
+    <StrideSkipAutoPack>true</StrideSkipAutoPack>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
     <!--<DefineConstants>LAUNCH_DEBUGGER;$(DefineConstants)</DefineConstants>-->
-	</PropertyGroup>
+  </PropertyGroup>
   <ItemGroup>
     <Using Include="System.Linq" />
     <Using Include="Microsoft.CodeAnalysis" />
     <Using Include="Microsoft.CodeAnalysis.Diagnostics" />
   </ItemGroup>
-	<ItemGroup>
-		<Compile Include="..\..\shared\SharedAssemblyInfo.cs">
-			<Link>Properties\SharedAssemblyInfo.cs</Link>
-		</Compile>
-	</ItemGroup>
-	<ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
+      <Link>Properties\SharedAssemblyInfo.cs</Link>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
     <PackageReference Include="PolySharp">
@@ -27,15 +28,14 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
 
+  </ItemGroup>
 
-	</ItemGroup>
-
-	<ItemGroup>
-	  <Folder Include="CodeFixes\" />
-	  <Folder Include="Common\" />
+  <ItemGroup>
+    <Folder Include="CodeFixes\" />
+    <Folder Include="Common\" />
     <Using Include="System.Linq" />
     <Using Include="System.Collections.Generic" />
     <Using Include="System" />
-	</ItemGroup>
-	<Import Project="$(StrideSdkTargets)" />
+  </ItemGroup>
+  <Import Project="$(StrideSdkTargets)" />
 </Project>
