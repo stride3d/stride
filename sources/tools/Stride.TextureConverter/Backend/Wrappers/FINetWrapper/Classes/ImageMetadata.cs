@@ -50,8 +50,6 @@ namespace FreeImageAPI.Metadata
 		private readonly List<MetadataModel> data;
 		[DebuggerBrowsable(DebuggerBrowsableState.Never)]
 		private readonly FIBITMAP dib;
-		[DebuggerBrowsable(DebuggerBrowsableState.Never)]
-		private bool hideEmptyModels;
 
 		/// <summary>
 		/// Initializes a new instance based on the specified <see cref="FIBITMAP"/>,
@@ -72,7 +70,7 @@ namespace FreeImageAPI.Metadata
 			if (dib.IsNull) throw new ArgumentNullException("dib");
 			data = new List<MetadataModel>(FreeImage.FREE_IMAGE_MDMODELS.Length);
 			this.dib = dib;
-			this.hideEmptyModels = hideEmptyModels;
+			this.HideEmptyModels = hideEmptyModels;
 
 			data.Add(new MDM_ANIMATION(dib));
 			data.Add(new MDM_COMMENTS(dib));
@@ -104,7 +102,7 @@ namespace FreeImageAPI.Metadata
 				{
 					if (data[i].Model == model)
 					{
-						if (!data[i].Exists && hideEmptyModels)
+						if (!data[i].Exists && HideEmptyModels)
 						{
 							return null;
 						}
@@ -133,7 +131,7 @@ namespace FreeImageAPI.Metadata
 				{
 					throw new ArgumentOutOfRangeException("index");
 				}
-				return (hideEmptyModels && !data[index].Exists) ? null : data[index];
+				return (HideEmptyModels && !data[index].Exists) ? null : data[index];
 			}
 		}
 
@@ -145,7 +143,7 @@ namespace FreeImageAPI.Metadata
 		{
 			get
 			{
-				if (hideEmptyModels)
+				if (HideEmptyModels)
 				{
 					List<MetadataModel> result = new List<MetadataModel>();
 					for (int i = 0; i < data.Count; i++)
@@ -157,10 +155,8 @@ namespace FreeImageAPI.Metadata
 					}
 					return result;
 				}
-				else
-				{
-					return data;
-				}
+
+				return data;
 			}
 		}
 
@@ -192,7 +188,7 @@ namespace FreeImageAPI.Metadata
 		{
 			get
 			{
-				if (hideEmptyModels)
+				if (HideEmptyModels)
 				{
 					int count = 0;
 					for (int i = 0; i < data.Count; i++)
@@ -204,10 +200,8 @@ namespace FreeImageAPI.Metadata
 					}
 					return count;
 				}
-				else
-				{
-					return data.Count;
-				}
+
+				return data.Count;
 			}
 		}
 
@@ -215,17 +209,7 @@ namespace FreeImageAPI.Metadata
 		/// Gets or sets whether empty
 		/// <see cref="FreeImageAPI.Metadata.MetadataModel">MetadataModels</see> are hidden.
 		/// </summary>
-		public bool HideEmptyModels
-		{
-			get
-			{
-				return hideEmptyModels;
-			}
-			set
-			{
-				hideEmptyModels = value;
-			}
-		}
+		public bool HideEmptyModels { get; set; }
 
 		/// <summary>
 		/// Retrieves an object that can iterate through the individual
@@ -235,7 +219,7 @@ namespace FreeImageAPI.Metadata
 		/// <returns>An <see cref="IEnumerator"/> for this <see cref="ImageMetadata"/>.</returns>
 		public IEnumerator GetEnumerator()
 		{
-			if (hideEmptyModels)
+			if (HideEmptyModels)
 			{
 				List<MetadataModel> tempList = new List<MetadataModel>(data.Count);
 				for (int i = 0; i < data.Count; i++)
@@ -247,10 +231,8 @@ namespace FreeImageAPI.Metadata
 				}
 				return tempList.GetEnumerator();
 			}
-			else
-			{
-				return data.GetEnumerator();
-			}
+
+			return data.GetEnumerator();
 		}
 
 		/// <summary>

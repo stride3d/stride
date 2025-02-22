@@ -19,6 +19,7 @@ namespace Stride.Assets.Presentation.Templates
             TemplateManager.Register(HeightmapFactoryTemplateGenerator.Default);
             TemplateManager.Register(ColliderShapeHullFactoryTemplateGenerator.Default);
             TemplateManager.Register(ColliderShapeStaticMeshFactoryTemplateGenerator.Default);
+            TemplateManager.Register(HullAssetFactoryTemplateGenerator.Default);
             TemplateManager.Register(ProceduralModelFactoryTemplateGenerator.Default);
             TemplateManager.Register(SkyboxFactoryTemplateGenerator.Default);
             TemplateManager.Register(GraphicsCompositorTemplateGenerator.Default);

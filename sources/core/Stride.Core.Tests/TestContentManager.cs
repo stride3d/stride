@@ -1,331 +1,316 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+
 using Xunit;
 using Stride.Core.IO;
 using Stride.Core.Serialization;
 using Stride.Core.Serialization.Contents;
-using Stride.Core.Serialization.Serializers;
 using Stride.Core.Storage;
 
-namespace Stride.Core.Tests
+namespace Stride.Core.Tests;
+
+[ReferenceSerializer]
+[DataSerializerGlobal(typeof(ReferenceSerializer<A>), Profile = "Content")]
+[DataSerializerGlobal(typeof(ReferenceSerializer<B>), Profile = "Content")]
+[DataSerializerGlobal(typeof(ReferenceSerializer<C>), Profile = "Content")]
+[DataSerializerGlobal(typeof(ReferenceSerializer<D>), Profile = "Content")]
+[Collection("Non-Parallel Collection")]
+public class TestContentManager
 {
-    [ReferenceSerializer]
-    [DataSerializerGlobal(typeof(ReferenceSerializer<A>), Profile = "Content")]
-    [DataSerializerGlobal(typeof(ReferenceSerializer<B>), Profile = "Content")]
-    [DataSerializerGlobal(typeof(ReferenceSerializer<C>), Profile = "Content")]
-    [DataSerializerGlobal(typeof(ReferenceSerializer<D>), Profile = "Content")]
-    [Collection("Non-Parallel Collection")]
-    public class TestContentManager
+    [ContentSerializer(typeof(DataContentSerializer<A>))]
+    [DataContract]
+    public class A
     {
-        [ContentSerializer(typeof(DataContentSerializer<A>))]
-        [DataContract]
-        public class A
+        public int I;
+    }
+
+    [ContentSerializer(typeof(DataContentSerializer<B>))]
+    [DataContract]
+    public class B
+    {
+        public A A;
+        public int I;
+    }
+
+    [ContentSerializer(typeof(DataContentSerializer<C>))]
+    [DataContract]
+    public class C : ComponentBase, IContentData
+    {
+        public int I { get; set; }
+
+        public C Child { get; set; }
+
+        public D Child2 { get; set; }
+
+        public string Url { get; set; }
+    }
+
+    [ContentSerializer(typeof(D.Serializer))]
+    [DataContract]
+    public class D : ComponentBase
+    {
+        public D(int a)
         {
-            public int I;
         }
 
-        [ContentSerializer(typeof(DataContentSerializer<B>))]
-        [DataContract]
-        public class B
+        class Serializer : ContentSerializerBase<D>
         {
-            public A A;
-            public int I;
-        }
-
-        [ContentSerializer(typeof(DataContentSerializer<C>))]
-        [DataContract]
-        public class C : ComponentBase, IContentData
-        {
-            public int I { get; set; }
-
-            public C Child { get; set; }
-
-            public D Child2 { get; set; }
-
-            public string Url { get; set; }
-        }
-
-        [ContentSerializer(typeof(D.Serializer))]
-        [DataContract]
-        public class D : ComponentBase
-        {
-            public D(int a)
+            public override void Serialize(ContentSerializerContext context, SerializationStream stream, D obj)
             {
-            }
-
-            class Serializer : ContentSerializerBase<D>
-            {
-                public override void Serialize(ContentSerializerContext context, SerializationStream stream, D obj)
+                if (context.Mode == ArchiveMode.Deserialize)
                 {
-                    if (context.Mode == ArchiveMode.Deserialize)
-                    {
-                        obj = new D(12);
-                    }
+                    obj = new D(12);
                 }
             }
         }
+    }
 
-        private IDatabaseFileProviderService CreateDatabaseProvider()
+    private static DatabaseFileProviderService CreateDatabaseProvider()
+    {
+        VirtualFileSystem.CreateDirectory(VirtualFileSystem.ApplicationDatabasePath);
+        return new DatabaseFileProviderService(new DatabaseFileProvider(ContentIndexMap.NewTool(VirtualFileSystem.ApplicationDatabaseIndexName), new ObjectDatabase(VirtualFileSystem.ApplicationDatabasePath, VirtualFileSystem.ApplicationDatabaseIndexName)));
+    }
+
+    [Fact]
+    public void Simple()
+    {
+        var a1 = new A { I = 18 };
+
+        var databaseProvider = CreateDatabaseProvider();
+        var assetManager1 = new ContentManager(databaseProvider);
+        var assetManager2 = new ContentManager(databaseProvider);
+
+        assetManager1.Save("test", a1);
+
+        // Use same asset manager
+        var a2 = assetManager1.Load<A>("test");
+
+        Assert.Equal(a1, a2);
+
+        // Use new asset manager
+        var a3 = assetManager2.Load<A>("test");
+
+        Assert.NotEqual(a3, a1);
+        Assert.Equal(a1.I, a3.I);
+    }
+
+    [Fact]
+    public void SimpleWithContentReference()
+    {
+        var b1 = new B
         {
-            VirtualFileSystem.CreateDirectory(VirtualFileSystem.ApplicationDatabasePath);
-            return new DatabaseFileProviderService(new DatabaseFileProvider(ContentIndexMap.NewTool(VirtualFileSystem.ApplicationDatabaseIndexName), new ObjectDatabase(VirtualFileSystem.ApplicationDatabasePath, VirtualFileSystem.ApplicationDatabaseIndexName)));
-        }
+            A = new A { I = 18 }
+        };
 
-        [Fact]
-        public void Simple()
+        var databaseProvider = CreateDatabaseProvider();
+        var assetManager1 = new ContentManager(databaseProvider);
+        var assetManager2 = new ContentManager(databaseProvider);
+
+        assetManager1.Save("test", b1);
+
+        // Use new asset manager
+        var b2 = assetManager2.Load<B>("test");
+
+        Assert.NotEqual(b2, b1);
+        Assert.Equal(b1.A.I, b2.A.I);
+    }
+
+    [Fact]
+    public void SimpleWithContentReferenceShared()
+    {
+        var b1 = new B
         {
-            var a1 = new A { I = 18 };
+            I = 12,
+            A = new A { I = 18 }
+        };
+        var b2 = new B { I = 13, A = b1.A };
 
-            var databaseProvider = CreateDatabaseProvider();
-            var assetManager1 = new ContentManager(databaseProvider);
-            var assetManager2 = new ContentManager(databaseProvider);
+        var databaseProvider = CreateDatabaseProvider();
+        var assetManager1 = new ContentManager(databaseProvider);
+        var assetManager2 = new ContentManager(databaseProvider);
 
-            assetManager1.Save("test", a1);
+        assetManager1.Save("b1", b1);
+        assetManager1.Save("b2", b2);
 
-            // Use same asset manager
-            var a2 = assetManager1.Load<A>("test");
+        // Use new asset manager
+        var b1Loaded = assetManager2.Load<B>("b1");
+        var b2Loaded = assetManager2.Load<B>("b2");
 
-            Assert.Equal(a1, a2);
+        Assert.NotEqual(b2Loaded, b1Loaded);
+        Assert.Equal(b1Loaded.A, b2Loaded.A);
+    }
 
-            // Use new asset manager
-            var a3 = assetManager2.Load<A>("test");
-
-            Assert.NotEqual(a3, a1);
-            Assert.Equal(a1.I, a3.I);
-        }
-
-        [Fact]
-        public void SimpleWithContentReference()
+    [Fact]
+    public void SimpleLoadData()
+    {
+        var b1 = new B
         {
-            var b1 = new B();
-            b1.A = new A { I = 18 };
+            A = new A { I = 18 }
+        };
 
-            var databaseProvider = CreateDatabaseProvider();
-            var assetManager1 = new ContentManager(databaseProvider);
-            var assetManager2 = new ContentManager(databaseProvider);
+        var databaseProvider = CreateDatabaseProvider();
+        var assetManager1 = new ContentManager(databaseProvider);
+        var assetManager2 = new ContentManager(databaseProvider);
+        var assetManager3 = new ContentManager(databaseProvider);
 
-            assetManager1.Save("test", b1);
+        assetManager1.Save("test", b1);
 
-            // Use new asset manager
-            var b2 = assetManager2.Load<B>("test");
+        // Use new asset manager
+        var b2 = assetManager2.Load<B>("test");
 
-            Assert.NotEqual(b2, b1);
-            Assert.Equal(b1.A.I, b2.A.I);
-        }
+        Assert.NotEqual(b2, b1);
+        Assert.Equal(b1.A.I, b2.A.I);
 
-        [Fact]
-        public void SimpleWithContentReferenceShared()
+        // Try to load without references
+        var b3 = assetManager3.Load<B>("test", new ContentManagerLoaderSettings { LoadContentReferences = false });
+
+        Assert.NotEqual(b3, b1);
+
+        // b3.A should be null
+        Assert.Null(b3.A);
+    }
+
+    [Fact]
+    public void VerifyLoadedData()
+    {
+        var b1 = new B
         {
-            var b1 = new B { I = 12 };
-            b1.A = new A { I = 18 };
-            var b2 = new B { I = 13, A = b1.A };
+            A = new A { I = 18 }
+        };
 
-            var databaseProvider = CreateDatabaseProvider();
-            var assetManager1 = new ContentManager(databaseProvider);
-            var assetManager2 = new ContentManager(databaseProvider);
+        var databaseProvider = CreateDatabaseProvider();
+        var assetManager1 = new ContentManager(databaseProvider);
+        var assetManager2 = new ContentManager(databaseProvider);
 
-            assetManager1.Save("b1", b1);
-            assetManager1.Save("b2", b2);
+        const string b1Name = "test";
+        assetManager1.Save(b1Name, b1);
+        var b2 = assetManager2.Load<B>(b1Name);
 
-            // Use new asset manager
-            var b1Loaded = assetManager2.Load<B>("b1");
-            var b2Loaded = assetManager2.Load<B>("b2");
+        //verify asset is loaded
+        Assert.True(assetManager2.IsLoaded(b1Name));
 
-            Assert.NotEqual(b2Loaded, b1Loaded);
-            Assert.Equal(b1Loaded.A, b2Loaded.A);
-        }
+        //verify the b2 object matches the url lookup and returns true
+        Assert.True(assetManager2.TryGetAssetUrl(b2, out var urlResult));
+        Assert.Equal(b1Name, urlResult);
+    }
 
-        [Fact]
-        public void SimpleLoadData()
+    [Fact]
+    public void SimpleReloadData()
+    {
+        var a1 = new A { I = 18 };
+        var a2 = new A { I = 20 };
+
+        var databaseProvider = CreateDatabaseProvider();
+        var assetManager1 = new ContentManager(databaseProvider);
+        var assetManager2 = new ContentManager(databaseProvider);
+
+        assetManager1.Save("a1", a1);
+        assetManager1.Save("a2", a2);
+
+        // Try reloading an object that is not loaded
+        Assert.False(assetManager2.Reload(a1));
+
+        // Try reloading an object that is loaded
+        var a1Loaded = assetManager2.Load<A>("a1");
+        Assert.True(assetManager2.Reload(a1Loaded));
+
+        // a1Loaded should have I=18 value from a1
+        Assert.Equal(18, a1Loaded.I);
+
+        // Try reloading to replace a1Loaded asset with a2
+        Assert.True(assetManager2.Reload(a1Loaded, "a2"));
+
+        // a1Loaded should now have I=20 value from a2
+        Assert.Equal(20, a1Loaded.I);
+    }
+
+    [Fact]
+    public void SimpleSaveData()
+    {
+        var b1 = new B();
+        b1.A = new A { I = 18 };
+
+        var databaseProvider = CreateDatabaseProvider();
+        var assetManager1 = new ContentManager(databaseProvider);
+        var assetManager2 = new ContentManager(databaseProvider);
+
+        assetManager1.Save("test", b1);
+
+        Assert.NotNull(AttachedReferenceManager.GetUrl(b1.A));
+
+        var b2 = new B
         {
-            var b1 = new B();
-            b1.A = new A { I = 18 };
+            A = new A()
+        };
+        var attachedReference = AttachedReferenceManager.GetOrCreateAttachedReference(b2.A);
+        attachedReference.Url = AttachedReferenceManager.GetUrl(b1.A);
+        attachedReference.IsProxy = true;
+        assetManager1.Save("test2", b2);
 
-            var databaseProvider = CreateDatabaseProvider();
-            var assetManager1 = new ContentManager(databaseProvider);
-            var assetManager2 = new ContentManager(databaseProvider);
-            var assetManager3 = new ContentManager(databaseProvider);
+        var b3 = assetManager2.Load<B>("test2");
+        Assert.Equal(b1.A.I, b3.A.I);
+    }
 
-            assetManager1.Save("test", b1);
+    [Fact]
+    public void LifetimeShared()
+    {
+        var c1 = new C { I = 16 };
+        var c2 = new C { I = 18 };
+        c1.Child = new C { I = 32 };
+        c2.Child = c1.Child;
 
-            // Use new asset manager
-            var b2 = assetManager2.Load<B>("test");
+        AttachedReferenceManager.SetUrl(c1.Child, "cchild");
 
-            Assert.NotEqual(b2, b1);
-            Assert.Equal(b1.A.I, b2.A.I);
+        var databaseProvider = CreateDatabaseProvider();
+        var assetManager1 = new ContentManager(databaseProvider);
+        var assetManager2 = new ContentManager(databaseProvider);
 
-            // Try to load without references
-            var b3 = assetManager3.Load<B>("test", new ContentManagerLoaderSettings { LoadContentReferences = false });
+        assetManager1.Save("c1", c1);
+        assetManager1.Save("c2", c2);
 
-            Assert.NotEqual(b3, b1);
+        var c1Copy = assetManager2.Load<C>("c1");
+        var c2Copy = assetManager2.Load<C>("c2");
+        var c1ChildCopy = assetManager2.Load<C>("cchild");
 
-            // b3.A should be null
-            Assert.Null(b3.A);
-        }
+        assetManager2.Unload(c1Copy);
 
-        [Fact]
-        public void VerifyLoadedData()
-        {
-            var b1 = new B();
-            b1.A = new A { I = 18 };
+        // Check that everything is properly unloaded
+        Assert.Equal(0, ((IReferencable)c1Copy).ReferenceCount);
+        Assert.Equal(1, ((IReferencable)c2Copy).ReferenceCount);
+        Assert.Equal(1, ((IReferencable)c1ChildCopy).ReferenceCount);
 
-            var databaseProvider = CreateDatabaseProvider();
-            var assetManager1 = new ContentManager(databaseProvider);
-            var assetManager2 = new ContentManager(databaseProvider);
+        assetManager2.Unload(c2Copy);
 
-            string b1Name = "test";
-            assetManager1.Save(b1Name, b1);
-            var b2 = assetManager2.Load<B>(b1Name);
+        // Check that everything is properly unloaded
+        Assert.Equal(0, ((IReferencable)c2Copy).ReferenceCount);
+        Assert.Equal(1, ((IReferencable)c1ChildCopy).ReferenceCount);
 
-            //verify asset is loaded
-            Assert.True(assetManager2.IsLoaded(b1Name));
+        assetManager2.Unload(c1ChildCopy);
 
-            //verify the b2 object matches the url lookup and returns true
-            Assert.True(assetManager2.TryGetAssetUrl(b2, out var urlResult));
-            Assert.Equal(b1Name, urlResult);
-        }
+        // Check that everything is properly unloaded
+        Assert.Equal(0, ((IReferencable)c1ChildCopy).ReferenceCount);
+    }
 
-        [Fact]
-        public void SimpleReloadData()
-        {
-            var a1 = new A { I = 18 };
-            var a2 = new A { I = 20 };
+    [Fact]
+    public void LifetimeCycles()
+    {
+        var c1 = new C { I = 18 };
+        var c2 = new C { I = 20 };
+        c1.Child = c2;
+        c2.Child = c1;
 
-            var databaseProvider = CreateDatabaseProvider();
-            var assetManager1 = new ContentManager(databaseProvider);
-            var assetManager2 = new ContentManager(databaseProvider);
+        var databaseProvider = CreateDatabaseProvider();
+        var assetManager1 = new ContentManager(databaseProvider);
+        var assetManager2 = new ContentManager(databaseProvider);
 
-            assetManager1.Save("a1", a1);
-            assetManager1.Save("a2", a2);
+        assetManager1.Save("c1", c1);
 
-            // Try reloading an object that is not loaded
-            Assert.False(assetManager2.Reload(a1));
+        var c1Copy = assetManager2.Load<C>("c1");
+        Assert.Equal(1, ((IReferencable)c1Copy).ReferenceCount);
+        Assert.Equal(1, ((IReferencable)c1Copy.Child).ReferenceCount);
 
-            // Try reloading an object that is loaded
-            var a1Loaded = assetManager2.Load<A>("a1");
-            Assert.True(assetManager2.Reload(a1Loaded));
-
-            // a1Loaded should have I=18 value from a1
-            Assert.Equal(18, a1Loaded.I);
-
-            // Try reloading to replace a1Loaded asset with a2
-            Assert.True(assetManager2.Reload(a1Loaded, "a2"));
-
-            // a1Loaded should now have I=20 value from a2
-            Assert.Equal(20, a1Loaded.I);
-        }
-
-        [Fact]
-        public void SimpleSaveData()
-        {
-            var b1 = new B();
-            b1.A = new A { I = 18 };
-
-            var databaseProvider = CreateDatabaseProvider();
-            var assetManager1 = new ContentManager(databaseProvider);
-            var assetManager2 = new ContentManager(databaseProvider);
-
-            assetManager1.Save("test", b1);
-
-            Assert.NotNull(AttachedReferenceManager.GetUrl(b1.A));
-            
-            var b2 = new B();
-            b2.A = new A();
-            var attachedReference = AttachedReferenceManager.GetOrCreateAttachedReference(b2.A);
-            attachedReference.Url = AttachedReferenceManager.GetUrl(b1.A);
-            attachedReference.IsProxy = true;
-            assetManager1.Save("test2", b2);
-            
-            var b3 = assetManager2.Load<B>("test2");
-            Assert.Equal(b1.A.I, b3.A.I);
-        }
-
-        [Fact]
-        public void LifetimeShared()
-        {
-            var c1 = new C { I = 16 };
-            var c2 = new C { I = 18 };
-            c1.Child = new C { I = 32 };
-            c2.Child = c1.Child;
-
-            AttachedReferenceManager.SetUrl(c1.Child, "cchild");
-
-            var databaseProvider = CreateDatabaseProvider();
-            var assetManager1 = new ContentManager(databaseProvider);
-            var assetManager2 = new ContentManager(databaseProvider);
-
-            assetManager1.Save("c1", c1);
-            assetManager1.Save("c2", c2);
-
-            var c1Copy = assetManager2.Load<C>("c1");
-            var c2Copy = assetManager2.Load<C>("c2");
-            var c1ChildCopy = assetManager2.Load<C>("cchild");
-
-            assetManager2.Unload(c1Copy);
-
-            // Check that everything is properly unloaded
-            Assert.Equal(0, ((IReferencable)c1Copy).ReferenceCount);
-            Assert.Equal(1, ((IReferencable)c2Copy).ReferenceCount);
-            Assert.Equal(1, ((IReferencable)c1ChildCopy).ReferenceCount);
-
-            assetManager2.Unload(c2Copy);
-
-            // Check that everything is properly unloaded
-            Assert.Equal(0, ((IReferencable)c2Copy).ReferenceCount);
-            Assert.Equal(1, ((IReferencable)c1ChildCopy).ReferenceCount);
-
-            assetManager2.Unload(c1ChildCopy);
-
-            // Check that everything is properly unloaded
-            Assert.Equal(0, ((IReferencable)c1ChildCopy).ReferenceCount);
-        }
-
-        [Fact(Skip = "Need check")]
-        public void LifetimeNoSimpleConstructor()
-        {
-            var c1 = new C { I = 18 };
-            c1.Child2 = new D(18);
-
-            var databaseProvider = CreateDatabaseProvider();
-            var assetManager1 = new ContentManager(databaseProvider);
-            var assetManager2 = new ContentManager(databaseProvider);
-
-            assetManager1.Save("c1", c1);
-
-            var c1Copy = assetManager2.Load<C>("c1");
-            Assert.Equal(1, ((IReferencable)c1Copy).ReferenceCount);
-            Assert.Equal(1, ((IReferencable)c1Copy.Child2).ReferenceCount);
-
-            assetManager2.Unload(c1Copy);
-            Assert.Equal(0, ((IReferencable)c1Copy).ReferenceCount);
-            Assert.Equal(0, ((IReferencable)c1Copy.Child2).ReferenceCount);
-        }
-
-        [Fact]
-        public void LifetimeCycles()
-        {
-            var c1 = new C { I = 18 };
-            var c2 = new C { I = 20 };
-            c1.Child = c2;
-            c2.Child = c1;
-
-            var databaseProvider = CreateDatabaseProvider();
-            var assetManager1 = new ContentManager(databaseProvider);
-            var assetManager2 = new ContentManager(databaseProvider);
-
-            assetManager1.Save("c1", c1);
-
-            var c1Copy = assetManager2.Load<C>("c1");
-            Assert.Equal(1, ((IReferencable)c1Copy).ReferenceCount);
-            Assert.Equal(1, ((IReferencable)c1Copy.Child).ReferenceCount);
-
-            assetManager2.Unload(c1Copy);
-            Assert.Equal(0, ((IReferencable)c1Copy).ReferenceCount);
-            Assert.Equal(0, ((IReferencable)c1Copy.Child).ReferenceCount);
-        }
+        assetManager2.Unload(c1Copy);
+        Assert.Equal(0, ((IReferencable)c1Copy).ReferenceCount);
+        Assert.Equal(0, ((IReferencable)c1Copy.Child).ReferenceCount);
     }
 }

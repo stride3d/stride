@@ -16,7 +16,7 @@ namespace Stride.Core.Assets.Serializers
     {
         public override bool CanVisit(Type type)
         {
-            return UrlReferenceHelper.IsUrlReferenceType(type);
+            return UrlReferenceBase.IsUrlReferenceType(type);
         }
 
         public override object ConvertFrom(ref ObjectContext context, Scalar fromScalar)
@@ -26,21 +26,14 @@ namespace Stride.Core.Assets.Serializers
                 throw new YamlException(fromScalar.Start, fromScalar.End, "Unable to decode url reference [{0}]. Expecting format GUID:LOCATION".ToFormat(fromScalar.Value));
             }
 
-            var urlReference = UrlReferenceHelper.CreateReference(context.Descriptor.Type, guid, location.FullPath);
-
-            return urlReference;
+            return UrlReferenceBase.New(context.Descriptor.Type, guid, location.FullPath);
         }
 
         public override string ConvertTo(ref ObjectContext objectContext)
         {
-            if (objectContext.Instance is UrlReference urlReference)
+            if (objectContext.Instance is UrlReferenceBase urlReference)
             {
-                var attachedReference = AttachedReferenceManager.GetAttachedReference(urlReference);
-
-                if (attachedReference != null)
-                {
-                    return $"{attachedReference.Id}:{urlReference.Url}";
-                }
+                return $"{urlReference.Id}:{urlReference.Url}";
             }
 
             throw new YamlException($"Unable to extract url reference from object [{objectContext.Instance}]");

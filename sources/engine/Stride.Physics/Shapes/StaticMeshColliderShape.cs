@@ -62,7 +62,7 @@ namespace Stride.Physics
             if (sharedData.Key == null)
             {
                 // Not actually shared, dispose and move on
-                sharedData.BulletMesh.Dispose();
+                sharedData.Dispose();
                 return;
             }
 
@@ -72,7 +72,7 @@ namespace Stride.Physics
                 if (sharedData.RefCount == 0)
                 {
                     MeshSharingCache.Remove(sharedData.Key);
-                    sharedData.BulletMesh.Dispose();
+                    sharedData.Dispose();
                 }
             }
         }
@@ -263,20 +263,16 @@ namespace Stride.Physics
                     .GetValue(buffer.GraphicsDevice);
 
                 output = new byte[buffer.SizeInBytes];
-                fixed (byte* window = output)
+                if (buffer.Description.Usage == GraphicsResourceUsage.Staging)
                 {
-                    var ptr = new DataPointer(window, output.Length);
-                    if (buffer.Description.Usage == GraphicsResourceUsage.Staging)
-                    {
-                        // Directly if this is a staging resource
-                        buffer.GetData(commandList, buffer, ptr);
-                    }
-                    else
-                    {
-                        // inefficient way to use the Copy method using dynamic staging texture
-                        using var throughStaging = buffer.ToStaging();
-                        buffer.GetData(commandList, throughStaging, ptr);
-                    }
+                    // Directly if this is a staging resource
+                    buffer.GetData(commandList, buffer, output);
+                }
+                else
+                {
+                    // inefficient way to use the Copy method using dynamic staging texture
+                    using var throughStaging = buffer.ToStaging();
+                    buffer.GetData(commandList, throughStaging, output);
                 }
 
                 return output;
@@ -299,11 +295,17 @@ namespace Stride.Physics
             return null;
         }
 
-        private record SharedMeshData
+        private record SharedMeshData : IDisposable
         {
             public BulletSharp.TriangleIndexVertexArray BulletMesh;
             public int RefCount;
             public string Key;
+
+            public void Dispose()
+            {
+                BulletMesh.IndexedMeshArray.Clear();
+                BulletMesh.Dispose();
+            }
         }
         
         private class StrideToBulletWrapper : ICollection<BulletSharp.Math.Vector3>

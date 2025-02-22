@@ -6,7 +6,7 @@ namespace Stride.Core.CompilerServices.Tests.AnalyzerTests;
 public class STRDIAG008_Test
 {
     [Fact]
-    public void Error_On_DataMembered_Delegate_Property()
+    public async Task Error_On_DataMembered_Delegate_Property()
     {
         string sourceCode = @"
 using Stride.Core;
@@ -18,6 +18,6 @@ public unsafe struct B
     public fixed byte T[12];
 }
 ";
-        TestHelper.ExpectDiagnosticsError(sourceCode, STRDIAG008FixedFieldInStructs.DiagnosticId);
+        await TestHelper.ExpectDiagnosticsErrorAsync(sourceCode, STRDIAG008FixedFieldInStructs.DiagnosticId);
     }
 }

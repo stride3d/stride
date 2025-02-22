@@ -1,57 +1,54 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using System;
+
 using System.IO;
 
-namespace Stride.Core.IO
+namespace Stride.Core.IO;
+
+public partial class TemporaryFile : IDisposable
 {
-    public partial class TemporaryFile : IDisposable
+    private bool isDisposed;
+
+    public TemporaryFile()
     {
-        private bool isDisposed;
-        private string path;
+        Path = VirtualFileSystem.GetTempFileName();
+    }
 
-        public TemporaryFile()
+    public string Path { get; }
+
+    ~TemporaryFile()
+    {
+        Dispose(false);
+    }
+
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (isDisposed) return;
+
+        isDisposed = true;
+        if (disposing)
         {
-            path = VirtualFileSystem.GetTempFileName();
+            TryDelete();
         }
+    }
 
-        public string Path
+    private void TryDelete()
+    {
+        try
         {
-            get { return path; }
+            VirtualFileSystem.FileDelete(Path);
         }
-
-        ~TemporaryFile()
+        catch (IOException)
         {
-            Dispose(false);
         }
-
-        public void Dispose()
+        catch (UnauthorizedAccessException)
         {
-            Dispose(false);
-            GC.SuppressFinalize(this);
-        }
-
-        private void Dispose(bool disposing)
-        {
-            if (!isDisposed)
-            {
-                isDisposed = true;
-                TryDelete();
-            }
-        }
-
-        private void TryDelete()
-        {
-            try
-            {
-                VirtualFileSystem.FileDelete(path);
-            }
-            catch (IOException)
-            {
-            }
-            catch (UnauthorizedAccessException)
-            {
-            }
         }
     }
 }
