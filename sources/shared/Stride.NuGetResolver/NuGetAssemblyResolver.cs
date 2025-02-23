@@ -9,13 +9,9 @@ using NuGet.Configuration;
 using NuGet.Frameworks;
 using NuGet.Versioning;
 
-#if STRIDE_NUGET_RESOLVER_UI
-using Avalonia.Controls;
-#endif
-
 namespace Stride.Core.Assets;
 
-public static class NuGetAssemblyResolver
+public static partial class NuGetAssemblyResolver
 {
     public const string DevSource = @"Stride\NugetDev";
 
@@ -85,29 +81,16 @@ public static class NuGetAssemblyResolver
                     packagesConfigs.Insert(i++, (packagesConfigs[0].targetFramework, "Avalonia.Themes.Fluent", AvaloniaVersion));
                     packagesConfigs.Insert(i++, (packagesConfigs[0].targetFramework, AvaloniaPackageName, AvaloniaVersion));
 
-                    // Display splash screen after a 500 msec (when NuGet takes some time to restore)
+                    var stopwatch = Stopwatch.StartNew();
                     var newWindowThread = new Thread(() =>
                     {
                         avaloniaLoaded.Task.Wait();
-                        Thread.Sleep(500);
+                        Thread.Sleep(Math.Max(0, 500 - (int)stopwatch.ElapsedMilliseconds));
+                        // Display splash screen after a 500 msec (when NuGet takes some time to restore)
                         if (!dialogNotNeeded.Task.IsCompleted)
                         {
-                            NuGetResolver.NugetResolverApp.Run((app, ___) =>
-                            {
-                                app.Styles.Add(new Avalonia.Themes.Fluent.FluentTheme());
-                                var splashScreen = new NuGetResolver.SplashScreenWindow();
-                                splashScreen.Show();
-                                // Register log
-                                logger.SetupLogAction((level, message) => splashScreen.SetupLog(level, message));
-
-                                dialogNotNeeded.Task.ContinueWith(__ => splashScreen.CloseApp());
-                                splashScreen.Closed += (sender2, e2) => NuGetResolver.SplashScreenWindow.InvokeShutDown();
-
-                                app.Run(splashScreen);
-                                splashScreen.Close();
-                            });
+                            ResolverUILauncher.Run(dialogNotNeeded, dialogClosed, logger);
                         }
-                        dialogClosed.SetResult();
                     });
                     if (OperatingSystem.IsWindows())
                     {
