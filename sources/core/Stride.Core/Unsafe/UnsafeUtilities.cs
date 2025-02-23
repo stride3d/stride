@@ -59,6 +59,100 @@ namespace Stride.Core.UnsafeExtensions
             return MemoryMarshal.CreateReadOnlySpan(in AsReadonly<TFrom, TTo>(in span.GetReference()), span.Length);
         }
 
+        /// <summary>
+        ///   Reinterprets a regular managed object as a read-only span of elements of another type. This can be useful
+        ///   if a managed object represents a "fixed array".
+        /// </summary>
+        /// <param name="reference">A reference to data.</param>
+        /// <returns>A read-only span representing the specified reference as elements of type <typeparamref name="TTo"/>.</returns>
+        /// <remarks>
+        ///   This method should be used with caution. Even though the <see langword="ref"/> is annotated as <see langword="scoped"/>,
+        ///   it will be stored into the returned span, and the lifetime of the returned span will not be validated for safety, even by
+        ///   span-aware languages.
+        /// </remarks>
+        public static ReadOnlySpan<TTo> AsReadOnlySpan<TFrom, TTo>(scoped ref readonly TFrom reference)
+            where TFrom : unmanaged
+            where TTo : unmanaged
+        {
+            Debug.Assert(SizeOf<TFrom>() % SizeOf<TTo>() == 0);
+
+            ref readonly var referenceAsTTo = ref AsReadonly<TFrom, TTo>(in reference);
+            uint elementCount = SizeOf<TFrom>() / SizeOf<TTo>();
+            return CreateReadOnlySpan(in referenceAsTTo, (int) elementCount);
+        }
+
+        /// <summary>
+        ///   Reinterprets a regular managed object as an array of elements of another type and returns a read-only span over
+        ///   a portion of that array. This can be useful if a managed object represents a "fixed array".
+        ///   This is dangerous because the <paramref name="elementCount"/> is not checked.
+        /// </summary>
+        /// <param name="reference">A reference to data.</param>
+        /// <param name="elementCount">The number of <typeparamref name="TTo"/> elements the memory contains.</param>
+        /// <returns>
+        ///   A read-only span representing the specified reference as <paramref name="elementCount"/> elements of type <typeparamref name="TTo"/>.
+        /// </returns>
+        /// <remarks>
+        ///   This method should be used with caution. It is dangerous because the <paramref name="elementCount"/> argument is not checked.
+        ///   Even though the <see langword="ref"/> is annotated as <see langword="scoped"/>, it will be stored into the returned span,
+        ///   and the lifetime of the returned span will not be validated for safety, even by span-aware languages.
+        /// </remarks>
+        public static ReadOnlySpan<TTo> AsReadOnlySpan<TFrom, TTo>(scoped ref readonly TFrom reference, int elementCount)
+            where TFrom : unmanaged
+            where TTo : unmanaged
+        {
+            Debug.Assert((SizeOf<TTo>() * elementCount) <= SizeOf<TFrom>());
+
+            ref readonly var referenceAsTTo = ref AsReadonly<TFrom, TTo>(in reference);
+            return CreateReadOnlySpan(in referenceAsTTo, elementCount);
+        }
+
+        /// <summary>
+        ///   Reinterprets a regular managed object as a span of elements of another type. This can be useful
+        ///   if a managed object represents a "fixed array".
+        /// </summary>
+        /// <param name="reference">A reference to data.</param>
+        /// <returns>A span representing the specified reference as elements of type <typeparamref name="TTo"/>.</returns>
+        /// <remarks>
+        ///   This method should be used with caution. Even though the <see langword="ref"/> is annotated as <see langword="scoped"/>,
+        ///   it will be stored into the returned span, and the lifetime of the returned span will not be validated for safety, even by
+        ///   span-aware languages.
+        /// </remarks>
+        public static Span<TTo> AsSpan<TFrom, TTo>(scoped ref TFrom reference)
+            where TFrom : unmanaged
+            where TTo : unmanaged
+        {
+            Debug.Assert(SizeOf<TFrom>() % SizeOf<TTo>() == 0);
+
+            ref var referenceAsTTo = ref AsRef<TFrom, TTo>(in reference);
+            uint elementCount = SizeOf<TFrom>() / SizeOf<TTo>();
+            return CreateSpan(ref referenceAsTTo, (int) elementCount);
+        }
+
+        /// <summary>
+        ///   Reinterprets a regular managed object as an array of elements of another type and returns a span over
+        ///   a portion of that array. This can be useful if a managed object represents a "fixed array".
+        ///   This is dangerous because the <paramref name="elementCount"/> is not checked.
+        /// </summary>
+        /// <param name="reference">A reference to data.</param>
+        /// <param name="elementCount">The number of <typeparamref name="TTo"/> elements the memory contains.</param>
+        /// <returns>
+        ///   A span representing the specified reference as <paramref name="elementCount"/> elements of type <typeparamref name="TTo"/>.
+        /// </returns>
+        /// <remarks>
+        ///   This method should be used with caution. It is dangerous because the <paramref name="elementCount"/> argument is not checked.
+        ///   Even though the <see langword="ref"/> is annotated as <see langword="scoped"/>, it will be stored into the returned span,
+        ///   and the lifetime of the returned span will not be validated for safety, even by span-aware languages.
+        /// </remarks>
+        public static Span<TTo> AsSpan<TFrom, TTo>(scoped ref TFrom reference, int elementCount)
+            where TFrom : unmanaged
+            where TTo : unmanaged
+        {
+            Debug.Assert((SizeOf<TTo>() * elementCount) <= SizeOf<TFrom>());
+
+            ref var referenceAsTTo = ref AsRef<TFrom, TTo>(in reference);
+            return CreateSpan(ref referenceAsTTo, elementCount);
+        }
+
         /// <inheritdoc cref="DotNetUnsafe.AsPointer{T}(ref T)"/>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static T* AsPointer<T>(ref T value) where T : unmanaged
