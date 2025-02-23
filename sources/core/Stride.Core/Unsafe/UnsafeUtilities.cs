@@ -22,9 +22,9 @@ namespace Stride.Core.UnsafeExtensions
     {
         /// <inheritdoc cref="DotNetUnsafe.As{T}(object)"/>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        [return: NotNullIfNotNull("o")]
-        public static T As<T>(this object o)
-            where T : class
+        [return: NotNullIfNotNull(nameof(o))]
+        public static T As<T>(this object? o)
+            where T : class?
         {
             Debug.Assert(o is null or T);
 
@@ -44,7 +44,7 @@ namespace Stride.Core.UnsafeExtensions
         {
             Debug.Assert(SizeOf<TFrom>() == SizeOf<TTo>());
 
-            return CreateSpan(ref As<TFrom, TTo>(ref span.GetReference()), span.Length);
+            return MemoryMarshal.CreateSpan(ref DotNetUnsafe.As<TFrom, TTo>(ref span.GetReference()), span.Length);
         }
 
         /// <inheritdoc cref="DotNetUnsafe.As{TFrom, TTo}(ref TFrom)"/>
@@ -56,7 +56,7 @@ namespace Stride.Core.UnsafeExtensions
         {
             Debug.Assert(SizeOf<TFrom>() == SizeOf<TTo>());
 
-            return CreateReadOnlySpan(in AsReadonly<TFrom, TTo>(in span.GetReference()), span.Length);
+            return MemoryMarshal.CreateReadOnlySpan(in AsReadonly<TFrom, TTo>(in span.GetReference()), span.Length);
         }
 
         /// <inheritdoc cref="DotNetUnsafe.AsPointer{T}(ref T)"/>
@@ -66,12 +66,12 @@ namespace Stride.Core.UnsafeExtensions
 
         /// <inheritdoc cref="DotNetUnsafe.As{TFrom, TTo}(ref TFrom)"/>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ref readonly TTo AsReadonly<TFrom, TTo>(in TFrom source)
+        public static ref readonly TTo AsReadonly<TFrom, TTo>(ref readonly TFrom source)
             => ref DotNetUnsafe.As<TFrom, TTo>(ref AsRef(in source));
 
         /// <inheritdoc cref="DotNetUnsafe.AsPointer{T}(ref T)"/>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static T* AsReadonlyPointer<T>(in T value) where T : unmanaged
+        public static T* AsReadonlyPointer<T>(ref readonly T value) where T : unmanaged
             => AsPointer(ref AsRef(in value));
 
         /// <summary>
@@ -92,16 +92,16 @@ namespace Stride.Core.UnsafeExtensions
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ref T AsRef<T>(nuint source) => ref DotNetUnsafe.AsRef<T>((void*) source);
 
-        /// <inheritdoc cref="DotNetUnsafe.AsRef{T}(in T)"/>
+        /// <inheritdoc cref="DotNetUnsafe.AsRef{T}(ref readonly T)"/>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ref T AsRef<T>(in T source) => ref DotNetUnsafe.AsRef(in source);
+        public static ref T AsRef<T>(scoped ref readonly T source) => ref DotNetUnsafe.AsRef(in source);
 
-        /// <inheritdoc cref="DotNetUnsafe.AsRef{T}(in T)"/>
+        /// <inheritdoc cref="DotNetUnsafe.AsRef{T}(ref readonly T)"/>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ref TTo AsRef<TFrom, TTo>(in TFrom source)
+        public static ref TTo AsRef<TFrom, TTo>(scoped ref readonly TFrom source)
         {
-            ref var mutable = ref AsRef(in source);
-            return ref As<TFrom, TTo>(ref mutable);
+            ref var mutable = ref DotNetUnsafe.AsRef(in source);
+            return ref DotNetUnsafe.As<TFrom, TTo>(ref mutable);
         }
 
         /// <inheritdoc cref="DotNetUnsafe.AsRef{T}(void*)"/>
@@ -115,7 +115,7 @@ namespace Stride.Core.UnsafeExtensions
         /// <param name="span">The read-only span to reinterpret.</param>
         /// <returns>A writeable span that points to the same items as <paramref name="span"/>.</returns>
         public static Span<T> AsSpan<T>(this ReadOnlySpan<T> span)
-            => MemoryMarshal.CreateSpan(ref AsRef(in span.GetReference()), span.Length);
+            => MemoryMarshal.CreateSpan(ref DotNetUnsafe.AsRef(in span.GetReference()), span.Length);
 
         /// <inheritdoc cref="MemoryMarshal.Cast{TFrom, TTo}(Span{TFrom})"/>
         public static Span<TTo> Cast<TFrom, TTo>(this Span<TFrom> span)
@@ -133,28 +133,32 @@ namespace Stride.Core.UnsafeExtensions
             return MemoryMarshal.Cast<TFrom, TTo>(span);
         }
 
-        /// <inheritdoc cref="DotNetUnsafe.CopyBlock(ref byte, ref byte, uint)"/>
-        public static void CopyBlock<TDestination, TSource>(ref TDestination destination, in TSource source, uint byteCount)
+
+        /// <inheritdoc cref="DotNetUnsafe.CopyBlock(ref byte, ref readonly byte, uint)"/>
+        public static void CopyBlock<TDestination, TSource>(ref TDestination destination, ref readonly TSource source, uint byteCount)
         {
-            DotNetUnsafe.CopyBlock(destination: ref As<TDestination, byte>(ref destination),
-                                   source: ref AsRef<TSource, byte>(in source),
+            DotNetUnsafe.CopyBlock(destination: ref DotNetUnsafe.As<TDestination, byte>(ref destination),
+                                   source: in AsReadonly<TSource, byte>(in source),
                                    byteCount);
         }
 
-        /// <inheritdoc cref="DotNetUnsafe.CopyBlockUnaligned(ref byte, ref byte, uint)"/>
-        public static void CopyBlockUnaligned<TDestination, TSource>(ref TDestination destination, ref TSource source, uint byteCount)
+        /// <inheritdoc cref="DotNetUnsafe.CopyBlockUnaligned(ref byte, ref readonly byte, uint)"/>
+        public static void CopyBlockUnaligned<TDestination, TSource>(ref TDestination destination, ref readonly TSource source, uint byteCount)
         {
-            DotNetUnsafe.CopyBlockUnaligned(destination: ref As<TDestination, byte>(ref destination),
-                                            source: ref As<TSource, byte>(ref source),
+            DotNetUnsafe.CopyBlockUnaligned(destination: ref DotNetUnsafe.As<TDestination, byte>(ref destination),
+                                            source: in AsReadonly<TSource, byte>(in source),
                                             byteCount);
         }
 
-        /// <inheritdoc cref="MemoryMarshal.CreateSpan{T}(ref T, int)"/>
-        public static Span<T> CreateSpan<T>(ref T reference, int length) => MemoryMarshal.CreateSpan(ref reference, length);
 
-        /// <inheritdoc cref="MemoryMarshal.CreateReadOnlySpan{T}(ref T, int)"/>
-        public static ReadOnlySpan<T> CreateReadOnlySpan<T>(in T reference, int length)
-            => MemoryMarshal.CreateReadOnlySpan(ref AsRef(in reference), length);
+        /// <inheritdoc cref="MemoryMarshal.CreateSpan{T}(ref T, int)"/>
+        public static Span<T> CreateSpan<T>(scoped ref T reference, int length)
+            => MemoryMarshal.CreateSpan(ref reference, length);
+
+        /// <inheritdoc cref="MemoryMarshal.CreateReadOnlySpan{T}(ref readonly T, int)"/>
+        public static ReadOnlySpan<T> CreateReadOnlySpan<T>(scoped ref readonly T reference, int length)
+            => MemoryMarshal.CreateReadOnlySpan(in reference, length);
+
 
         /// <summary>
         ///   Returns a pointer to the element of the span at index zero.
@@ -164,7 +168,7 @@ namespace Stride.Core.UnsafeExtensions
         /// <returns>A pointer to the item at index zero of <paramref name="span"/>.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static T* GetPointer<T>(this Span<T> span) where T : unmanaged
-            => AsPointer(ref span.GetReference());
+            => (T*) DotNetUnsafe.AsPointer(ref span.GetReference());
 
         /// <summary>
         ///   Returns a pointer to the element of the span at index zero.
@@ -174,7 +178,8 @@ namespace Stride.Core.UnsafeExtensions
         /// <returns>A pointer to the item at index zero of <paramref name="span"/>.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static T* GetPointer<T>(this ReadOnlySpan<T> span) where T : unmanaged
-            => AsPointer(ref AsRef(in span.GetReference()));
+            => (T*) DotNetUnsafe.AsPointer(ref AsRef(in span.GetReference()));
+
 
         /// <inheritdoc cref="MemoryMarshal.GetArrayDataReference{T}(T[])"/>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -256,6 +261,7 @@ namespace Stride.Core.UnsafeExtensions
         public static ref readonly T GetReference<T>(this ReadOnlySpan<T> span, nuint index)
             => ref DotNetUnsafe.Add(ref MemoryMarshal.GetReference(span), index);
 
+
         /// <summary>
         ///   Determines if a given reference to a value of type <typeparamref name="T"/> is not a null reference.
         /// </summary>
@@ -266,15 +272,16 @@ namespace Stride.Core.UnsafeExtensions
         ///   otherwise, <see langword="false"/>.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool IsNotNullRef<T>(in T source) => !IsNullRef(in source);
+        public static bool IsNotNullRef<T>(ref readonly T source) => !DotNetUnsafe.IsNullRef(in source);
 
-        /// <inheritdoc cref="DotNetUnsafe.IsNullRef{T}(ref T)"/>
+        /// <inheritdoc cref="DotNetUnsafe.IsNullRef{T}(ref readonly T)"/>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool IsNullRef<T>(in T source) => DotNetUnsafe.IsNullRef(ref AsRef(in source));
+        public static bool IsNullRef<T>(ref readonly T source) => DotNetUnsafe.IsNullRef(in source);
 
         /// <inheritdoc cref="DotNetUnsafe.NullRef{T}"/>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ref T NullRef<T>() => ref DotNetUnsafe.NullRef<T>();
+
 
         /// <inheritdoc cref="DotNetUnsafe.ReadUnaligned{T}(void*)"/>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -287,9 +294,6 @@ namespace Stride.Core.UnsafeExtensions
         public static T ReadUnaligned<T>(void* source, nuint offset) where T : unmanaged
             => DotNetUnsafe.ReadUnaligned<T>((void*) ((nuint) source + offset));
 
-        /// <inheritdoc cref="DotNetUnsafe.SizeOf{T}"/>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static uint SizeOf<T>() => unchecked((uint) DotNetUnsafe.SizeOf<T>());
 
         /// <inheritdoc cref="DotNetUnsafe.WriteUnaligned{T}(void*, T)"/>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -301,5 +305,12 @@ namespace Stride.Core.UnsafeExtensions
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void WriteUnaligned<T>(void* destination, nuint offset, T value) where T : unmanaged
             => DotNetUnsafe.WriteUnaligned((void*) ((nuint) destination + offset), value);
+
+
+#pragma warning disable CS8500
+        /// <inheritdoc cref="DotNetUnsafe.SizeOf{T}"/>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static uint SizeOf<T>() => unchecked((uint) sizeof(T));
+#pragma warning restore CS8500
     }
 }
