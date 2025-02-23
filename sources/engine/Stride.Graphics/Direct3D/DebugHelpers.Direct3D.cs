@@ -37,7 +37,7 @@ internal static unsafe class DebugHelpers
                 0x00
             ];
 
-            Debug.Assert(data.Length == Unsafe.SizeOf<Guid>());
+            Debug.Assert(data.Length == sizeof(Guid));
 
             return (Guid*) Unsafe.AsPointer(ref MemoryMarshal.GetReference(data));
         }
