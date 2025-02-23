@@ -78,6 +78,7 @@ public static partial class NuGetAssemblyResolver
                     const string AvaloniaPackageName = "Avalonia.Desktop";
                     const string AvaloniaVersion = "11.0.6"; // FIXME find a way to inject that version number
                     var i = 0;
+                    packagesConfigs.Insert(i++, (packagesConfigs[0].targetFramework, "Stride.Core", packagesConfigs[0].packageVersion));
                     packagesConfigs.Insert(i++, (packagesConfigs[0].targetFramework, "Avalonia.Themes.Fluent", AvaloniaVersion));
                     packagesConfigs.Insert(i++, (packagesConfigs[0].targetFramework, AvaloniaPackageName, AvaloniaVersion));
 
@@ -142,15 +143,13 @@ public static partial class NuGetAssemblyResolver
                             }
 
                             // Register the native libraries
-                            if (packageName.StartsWith("Stride."))
-                            {
-                                var nativeLibs = RestoreHelper.ListNativeLibs(result.LockFile);
-                                RegisterNativeDependencies(assemblyNameToPath, nativeLibs);
-                            }
+                            var nativeLibs = RestoreHelper.ListNativeLibs(result.LockFile);
+                            RegisterNativeDependencies(assemblyNameToPath, nativeLibs);
 
 #if STRIDE_NUGET_RESOLVER_UI
                             if (packageName == AvaloniaPackageName)
                             {
+                                LoadNativeDependencies(assemblyNameToPath, nativeLibs);
                                 avaloniaLoaded.TrySetResult();
                             }
 #endif
@@ -255,6 +254,24 @@ public static partial class NuGetAssemblyResolver
             ?? throw new InvalidOperationException($"Couldn't find method 'RegisterDependency' in {nativeLibraryHelperType}");
         foreach (var lib in nativeLibs)
             registerDependencyMethod.Invoke(null, [lib]);
+    }
+
+    /// <summary>
+    /// Loads the listed native libs in Stride.Core.NativeLibraryHelper using reflection to avoid a compile time dependency on Stride.Core
+    /// </summary>
+    private static void LoadNativeDependencies(Dictionary<string, string> assemblyNameToPath, List<string> nativeLibs)
+    {
+        var strideCoreAssembly = Assembly.LoadFrom(assemblyNameToPath["Stride.Core"])
+            ?? throw new InvalidOperationException("Couldn't find assembly 'Stride.Core' in restored packages");
+        var nativeLibraryHelperType = strideCoreAssembly.GetType("Stride.Core.NativeLibraryHelper")
+            ?? throw new InvalidOperationException($"Couldn't find type 'Stride.Core.NativeLibraryHelper' in {strideCoreAssembly}");
+        var preloadLibraryMethod = nativeLibraryHelperType.GetMethod("PreloadLibrary")
+            ?? throw new InvalidOperationException($"Couldn't find method 'PreloadLibrary' in {nativeLibraryHelperType}");
+        foreach (var lib in nativeLibs)
+        {
+            var libName = Path.GetFileNameWithoutExtension(lib);
+            preloadLibraryMethod.Invoke(null, [libName, null]);
+        }
     }
 
     public class Logger : ILogger
