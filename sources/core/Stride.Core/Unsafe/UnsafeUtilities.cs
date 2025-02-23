@@ -126,6 +126,16 @@ namespace Stride.Core.UnsafeExtensions
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Span<byte> AsBytes<T>(this Span<T> span) where T : struct
             => MemoryMarshal.AsBytes(span);
+
+        /// <inheritdoc cref="DotNetUnsafe.BitCast{TFrom, TTo}(TFrom)"/>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static TTo BitCast<TFrom, TTo>(this TFrom source)
+            where TFrom : struct
+            where TTo : struct
+        {
+            return DotNetUnsafe.BitCast<TFrom, TTo>(source);
+        }
+
         /// <inheritdoc cref="MemoryMarshal.Cast{TFrom, TTo}(Span{TFrom})"/>
         public static Span<TTo> Cast<TFrom, TTo>(this Span<TFrom> span)
             where TFrom : struct
