@@ -117,6 +117,15 @@ namespace Stride.Core.UnsafeExtensions
         public static Span<T> AsSpan<T>(this ReadOnlySpan<T> span)
             => MemoryMarshal.CreateSpan(ref DotNetUnsafe.AsRef(in span.GetReference()), span.Length);
 
+        /// <inheritdoc cref="MemoryMarshal.AsBytes{T}(ReadOnlySpan{T})"/>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ReadOnlySpan<byte> AsBytes<T>(this ReadOnlySpan<T> span) where T : struct
+            => MemoryMarshal.AsBytes(span);
+
+        /// <inheritdoc cref="MemoryMarshal.AsBytes{T}(Span{T})"/>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Span<byte> AsBytes<T>(this Span<T> span) where T : struct
+            => MemoryMarshal.AsBytes(span);
         /// <inheritdoc cref="MemoryMarshal.Cast{TFrom, TTo}(Span{TFrom})"/>
         public static Span<TTo> Cast<TFrom, TTo>(this Span<TFrom> span)
             where TFrom : struct
