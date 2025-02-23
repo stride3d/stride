@@ -14,7 +14,7 @@ namespace Stride.Graphics
     public sealed partial class GraphicsOutput : ComponentBase
     {
         private static readonly Logger Log = GlobalLogger.GetLogger(typeof(GraphicsOutput).FullName);
-        
+
         private readonly object lockModes = new();
 
         private DisplayMode? currentDisplayMode;
