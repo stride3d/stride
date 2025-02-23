@@ -26,6 +26,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Silk.NET.Core.Native;
@@ -40,7 +41,10 @@ namespace Stride.Graphics
 {
     public sealed unsafe partial class GraphicsOutput
     {
+        private IDXGIOutput* dxgiOutput;
         private readonly uint outputIndex;
+
+        private readonly OutputDesc outputDescription;
 
         /// <summary>
         ///   Gets the native DXGI output.
@@ -49,14 +53,13 @@ namespace Stride.Graphics
         ///   If the reference is going to be kept, use <see cref="ComPtr{T}.AddRef()"/> to increment the internal
         ///   reference count, and <see cref="ComPtr{T}.Dispose()"/> when no longer needed to release the object.
         /// </remarks>
-        internal ComPtr<IDXGIOutput> NativeOutput { get; }
-
-        private readonly OutputDesc outputDescription;
+        internal ComPtr<IDXGIOutput> NativeOutput => ComPtrHelpers.ToComPtr(dxgiOutput);
 
         /// <summary>
         ///   Gets the handle of the monitor associated with this <see cref="GraphicsOutput"/>.
         /// </summary>
         public nint MonitorHandle => outputDescription.Monitor;
+
 
         /// <summary>
         ///   Initializes a new instance of <see cref="GraphicsOutput" />.
@@ -71,13 +74,12 @@ namespace Stride.Graphics
         {
             ArgumentNullException.ThrowIfNull(adapter);
 
-            Debug.Assert(nativeOutput.Handle != null);
+            Debug.Assert(!nativeOutput.IsNull());
 
             this.outputIndex = outputIndex;
-            Adapter = adapter;
+            dxgiOutput = nativeOutput;
 
-            // The received IDXGIOutput's lifetime is already tracked by GraphicsAdapter
-            NativeOutput = nativeOutput;
+            Adapter = adapter;
 
             Unsafe.SkipInit(out OutputDesc outputDesc);
             HResult result = nativeOutput.GetDesc(ref outputDesc);
@@ -97,6 +99,15 @@ namespace Stride.Graphics
 
             outputDescription = outputDesc;
         }
+
+        /// <inheritdoc/>
+        protected override void Destroy()
+        {
+            base.Destroy();
+
+            ComPtrHelpers.SafeRelease(ref dxgiOutput);
+        }
+
 
         /// <summary>
         ///   Finds the display mode that most closely matches the requested display mode.
@@ -165,7 +176,7 @@ namespace Stride.Graphics
             ModeDesc modeDescription = modeToMatch.ToDescription();
 
             Unsafe.SkipInit(out ModeDesc closestDescription);
-            HResult result = NativeOutput.FindClosestMatchingMode(in modeDescription, ref closestDescription, (IUnknown*) deviceTemp);
+            HResult result = dxgiOutput->FindClosestMatchingMode(in modeDescription, ref closestDescription, (IUnknown*) deviceTemp);
 
             if (result.IsFailure)
                 ThrowNoCompatibleProfile(result, Adapter, targetProfiles);
@@ -173,11 +184,12 @@ namespace Stride.Graphics
             deviceContext->Release();
             deviceTemp->Release();
 
-            return DisplayMode.FromDescription(closestDescription);
+            return DisplayMode.FromDescription(in closestDescription);
 
             /// <summary>
             ///   Logs and throws an exception reporting that no compatible profile was found among the specified ones.
             /// </summary>
+            [DoesNotReturn]
             static void ThrowNoCompatibleProfile(HResult result, GraphicsAdapter adapter, ReadOnlySpan<GraphicsProfile> targetProfiles)
             {
                 var exception = Marshal.GetExceptionForHR(result.Value)!;
@@ -195,7 +207,7 @@ namespace Stride.Graphics
             var knownModes = new Dictionary<int, DisplayMode>();
 
 #if DIRECTX11_1
-            using ComPtr<IDXGIOutput1> output1 = NativeOutput.QueryInterface<IDXGIOutput1>();
+            using ComPtr<IDXGIOutput1> dxgiOutput1 = dxgiOutput->QueryInterface<IDXGIOutput1>();
 #endif
             const uint DisplayModeEnumerationFlags = DXGI.EnumModesInterlaced | DXGI.EnumModesScaling;
 
@@ -206,9 +218,9 @@ namespace Stride.Graphics
 
                 uint displayModeCount = 0;
 #if DIRECTX11_1
-                HResult result = output1.GetDisplayModeList1(format, DisplayModeEnumerationFlags, ref displayModeCount, null);
+                HResult result = dxgiOutput1.GetDisplayModeList1(format, DisplayModeEnumerationFlags, ref displayModeCount, pDesc: null);
 #else
-                HResult result = NativeOutput.GetDisplayModeList(format, DisplayModeEnumerationFlags, ref displayModeCount, null);
+                HResult result = dxgiOutput->GetDisplayModeList(format, DisplayModeEnumerationFlags, ref displayModeCount, pDesc: null);
 #endif
                 if (result.IsFailure && result.Code != DxgiConstants.ErrorNotCurrentlyAvailable)
                     result.Throw();
@@ -217,10 +229,10 @@ namespace Stride.Graphics
 
 #if DIRECTX11_1
                 Span<ModeDesc1> displayModes = stackalloc ModeDesc1[(int) displayModeCount];
-                result = output1.GetDisplayModeList1(format, DisplayModeEnumerationFlags, ref displayModeCount, ref displayModes[0]);
+                result = dxgiOutput1.GetDisplayModeList1(format, DisplayModeEnumerationFlags, ref displayModeCount, ref displayModes[0]);
 #else
                 Span<ModeDesc> displayModes = stackalloc ModeDesc[(int) displayModeCount];
-                result = NativeOutput.GetDisplayModeList(format, DisplayModeEnumerationFlags, ref displayModeCount, ref displayModes[0]);
+                result = dxgiOutput->GetDisplayModeList(format, DisplayModeEnumerationFlags, ref displayModeCount, ref displayModes[0]);
 #endif
                 if (result.IsFailure)
                     continue;
@@ -236,7 +248,7 @@ namespace Stride.Graphics
 
                     if (!knownModes.ContainsKey(modeKey))
                     {
-                        var displayMode = DisplayMode.FromDescription(mode);
+                        var displayMode = DisplayMode.FromDescription(in mode);
 
                         knownModes.Add(modeKey, displayMode);
                         modesAvailable.Add(displayMode);
@@ -254,7 +266,7 @@ namespace Stride.Graphics
         /// </summary>
         private void InitializeCurrentDisplayMode()
         {
-            currentDisplayMode = GetCurrentDisplayMode() ?? 
+            currentDisplayMode = GetCurrentDisplayMode() ??
                                  GetClosestMatchingMode(PixelFormat.R8G8B8A8_UNorm) ??
                                  GetClosestMatchingMode(PixelFormat.B8G8R8A8_UNorm);
         }
@@ -266,16 +278,16 @@ namespace Stride.Graphics
         private DisplayMode? GetCurrentDisplayMode()
         {
             var d3d11 = D3D11.GetApi(null);
-            
+
             // Try to create a dummy ID3D11Device with no consideration to Graphics Profiles, etc.
             // We only want to get missing information about the current display irrespective of graphics profiles
             ID3D11Device* device = null;
             ID3D11DeviceContext* deviceContext = null;
-            
+
             D3DFeatureLevel selectedLevel = 0;
             HResult result = d3d11.CreateDevice(pAdapter: null, D3DDriverType.Unknown, Software: IntPtr.Zero, Flags: 0,
-                                                pFeatureLevels: null, FeatureLevels: 0, 
-                                                D3D11.SdkVersion, 
+                                                pFeatureLevels: null, FeatureLevels: 0,
+                                                D3D11.SdkVersion,
                                                 ref device, &selectedLevel, ref deviceContext);
             if (result.IsFailure)
             {
@@ -286,7 +298,7 @@ namespace Stride.Graphics
 
             using var d3dDevice = new ComPtr<ID3D11Device> { Handle = device };
             using var d3dDeviceContext = new ComPtr<ID3D11DeviceContext> { Handle = deviceContext };
-            
+
             Unsafe.SkipInit(out ModeDesc closestMatch);
             var modeDesc = new ModeDesc
             {
@@ -295,9 +307,9 @@ namespace Stride.Graphics
                 // Format and RefreshRate will be automatically filled if we pass reference to the Direct3D 11 device
                 Format = Format.FormatUnknown
             };
-            
-            result = NativeOutput.FindClosestMatchingMode(in modeDesc, ref closestMatch, (IUnknown*) device);
-            
+
+            result = dxgiOutput->FindClosestMatchingMode(in modeDesc, ref closestMatch, (IUnknown*) device);
+
             if (result.IsFailure)
             {
                 var exception = Marshal.GetExceptionForHR(result.Value)!;
@@ -305,8 +317,8 @@ namespace Stride.Graphics
                           $"taken from the output is not correct.\nException: {exception}");
                 return null;
             }
-            
-            return DisplayMode.FromDescription(closestMatch);
+
+            return DisplayMode.FromDescription(in closestMatch);
         }
 
         /// <summary>
@@ -329,9 +341,9 @@ namespace Stride.Graphics
             };
 
             Unsafe.SkipInit(out ModeDesc closestModeDesc);
-            
-            HResult result = NativeOutput.FindClosestMatchingMode(in modeDesc, ref closestModeDesc, null);
-            
+
+            HResult result = dxgiOutput->FindClosestMatchingMode(in modeDesc, ref closestModeDesc, null);
+
             if (result.IsFailure)
             {
                 var exception = Marshal.GetExceptionForHR(result.Value)!;
@@ -339,8 +351,8 @@ namespace Stride.Graphics
                           $"taken from the output and/or the format ({format}) is not correct.\nException: {exception}");
                 return null;
             }
-            
-            return DisplayMode.FromDescription(closestModeDesc);
+
+            return DisplayMode.FromDescription(in closestModeDesc);
         }
     }
 }

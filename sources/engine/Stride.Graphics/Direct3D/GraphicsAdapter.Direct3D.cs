@@ -36,6 +36,14 @@ namespace Stride.Graphics
 {
     public sealed unsafe partial class GraphicsAdapter
     {
+        private IDXGIAdapter1* dxgiAdapter;
+
+        private readonly uint adapterOrdinal;
+        private readonly AdapterDesc1 adapterDesc;
+
+        private GraphicsProfile minimumUnsupportedProfile = (GraphicsProfile) int.MaxValue;
+        private GraphicsProfile maximumSupportedProfile;
+
         /// <summary>
         ///   Gets the native DXGI adapter.
         /// </summary>
@@ -43,13 +51,7 @@ namespace Stride.Graphics
         ///   If the reference is going to be kept, use <see cref="ComPtr{T}.AddRef()"/> to increment the internal
         ///   reference count, and <see cref="ComPtr{T}.Dispose()"/> when no longer needed to release the object.
         /// </remarks>
-        internal ComPtr<IDXGIAdapter1> NativeAdapter { get; }
-
-        private readonly uint adapterOrdinal;
-        private readonly AdapterDesc1 adapterDesc;
-
-        private GraphicsProfile minimumUnsupportedProfile = (GraphicsProfile) int.MaxValue;
-        private GraphicsProfile maximumSupportedProfile;
+        internal ComPtr<IDXGIAdapter1> NativeAdapter => ComPtrHelpers.ToComPtr(dxgiAdapter);
 
         /// <summary>
         ///   Gets the description of this adapter.
@@ -77,19 +79,17 @@ namespace Stride.Graphics
         internal GraphicsAdapter(ComPtr<IDXGIAdapter1> adapter, uint adapterOrdinal)
         {
             this.adapterOrdinal = adapterOrdinal;
+            dxgiAdapter = adapter.Handle;
 
-            // The received IDXGIAdapter1's lifetime is already tracked by GraphicsAdapterFactory
-            NativeAdapter = adapter;
-
-            Unsafe.SkipInit(out AdapterDesc1 adapterDesc);
-            HResult result = NativeAdapter.GetDesc1(ref adapterDesc);
+            Unsafe.SkipInit(out AdapterDesc1 dxgiAdapterDesc);
+            HResult result = NativeAdapter.GetDesc1(ref dxgiAdapterDesc);
 
             if (result.IsFailure)
                 result.Throw();
 
-            this.adapterDesc = adapterDesc;
-            Name = Description = SilkMarshal.PtrToString((nint) adapterDesc.Description, NativeStringEncoding.LPWStr);
-            AdapterUid = adapterDesc.AdapterLuid.BitCast<Luid, long>();
+            this.adapterDesc = dxgiAdapterDesc;
+            Name = Description = SilkMarshal.PtrToString((nint) dxgiAdapterDesc.Description, NativeStringEncoding.LPWStr);
+            AdapterUid = dxgiAdapterDesc.AdapterLuid.BitCast<Luid, long>();
 
             uint outputIndex = 0;
             var outputsList = new List<GraphicsOutput>();
@@ -113,6 +113,14 @@ namespace Stride.Graphics
             while (foundValidOutput);
 
             graphicsOutputs = outputsList.ToArray();
+        }
+
+        /// <inheritdoc/>
+        protected override void Destroy()
+        {
+            base.Destroy();
+
+            ComPtrHelpers.SafeRelease(ref dxgiAdapter);
         }
 
         /// <summary>
@@ -141,6 +149,7 @@ namespace Stride.Graphics
 
             ID3D11Device* device = null;
             ID3D11DeviceContext* deviceContext = null;
+
             D3DFeatureLevel matchedFeatureLevel = 0;
             var featureLevel = (D3DFeatureLevel) graphicsProfile;
             var featureLevels = stackalloc D3DFeatureLevel[] { featureLevel };
@@ -149,11 +158,8 @@ namespace Stride.Graphics
                                                 Flags: 0, featureLevels, 1, D3D11.SdkVersion,
                                                 ref device, ref matchedFeatureLevel, ref deviceContext);
 
-            if (deviceContext != null)
-                deviceContext->Release();
-
-            if (device != null)
-                device->Release();
+            ComPtrHelpers.SafeRelease(ref deviceContext);
+            ComPtrHelpers.SafeRelease(ref device);
 
             if (result.IsSuccess && matchedFeatureLevel == featureLevel)
             {
