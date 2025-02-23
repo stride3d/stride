@@ -16,15 +16,15 @@
   <PropertyGroup>
     <TargetsForTfmSpecificBuildOutput>_StrideIncludeNuGetResolver;$(TargetsForTfmSpecificBuildOutput)</TargetsForTfmSpecificBuildOutput>
     <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.config;.exe</AllowedOutputExtensionsInPackageBuildOutputFolder>
-    <UseWPF Condition="'$(StrideNuGetResolverUI)' == 'true'">true</UseWPF>
   </PropertyGroup>
   <Target Name="NuGetResolverModuleInitializerGenerate" BeforeTargets="BeforeCompile;CoreCompile" DependsOnTargets="PrepareForBuild">
     <PropertyGroup>
       <NuGetResolverModuleInitializerFile>$(IntermediateOutputPath)$(MSBuildProjectName).NuGetResolverEntryPoint$(DefaultLanguageSourceExtension)</NuGetResolverModuleInitializerFile>
       <NuGetResolverTargetFramework>$(TargetFramework)</NuGetResolverTargetFramework>
       <NuGetResolverTargetFramework Condition="'$(TargetPlatformVersion)' != '' and !$(TargetFramework.EndsWith(TargetPlatformVersion))">$(TargetFramework)$(TargetPlatformVersion)</NuGetResolverTargetFramework>
+	  <DefineConstants Condition="'$(StrideNuGetResolverUI)' == 'true'">STRIDE_NUGET_RESOLVER_UI;$(DefineConstants)</DefineConstants>
     </PropertyGroup>
-    <WriteLinesToFile File="$(NuGetResolverModuleInitializerFile)" Overwrite="true" Lines="$([System.IO.File]::ReadAllText('$(MSBuildThisFileDirectory)NuGetResolverModuleInitializer.cs')&#xD;&#xA;                              .Replace('STRIDE_NUGET_RESOLVER_TARGET_FRAMEWORK','&quot;$(NuGetResolverTargetFramework)&quot;')&#xD;&#xA;                              .Replace('STRIDE_NUGET_RESOLVER_PACKAGE_NAME','&quot;$(PackageId)&quot;')&#xD;&#xA;                              .Replace('STRIDE_NUGET_RESOLVER_PACKAGE_VERSION','&quot;$(PackageVersion)&quot;'))" />
+    <WriteLinesToFile File="$(NuGetResolverModuleInitializerFile)" Overwrite="true" Lines="$([System.IO.File]::ReadAllText('$(MSBuildThisFileDirectory)NuGetResolverModuleInitializer.cs').Replace('STRIDE_NUGET_RESOLVER_TARGET_FRAMEWORK','&quot;$(NuGetResolverTargetFramework)&quot;').Replace('STRIDE_NUGET_RESOLVER_PACKAGE_NAME','&quot;$(PackageId)&quot;').Replace('STRIDE_NUGET_RESOLVER_PACKAGE_VERSION','&quot;$(PackageVersion)&quot;').Replace('STRIDE_NUGET_RESOLVER_UI_AVALONIA_VERSION','&quot;$(AvaloniaVersion)&quot;'))" />
     <ItemGroup>
       <FileWrites Include="$(NuGetResolverModuleInitializerFile)" />
       <Compile Include="$(NuGetResolverModuleInitializerFile)" />
