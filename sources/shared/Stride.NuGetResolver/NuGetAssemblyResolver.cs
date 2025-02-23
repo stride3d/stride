@@ -14,6 +14,9 @@ namespace Stride.Core.Assets;
 public static partial class NuGetAssemblyResolver
 {
     public const string DevSource = @"Stride\NugetDev";
+#if STRIDE_NUGET_RESOLVER_UI
+    public static string AvaloniaVersion = string.Empty;
+#endif
 
     static bool assembliesResolved;
     static readonly object assembliesLock = new();
@@ -76,7 +79,6 @@ public static partial class NuGetAssemblyResolver
 
                     // We need to make sure Avalonia has been restored before we can display the UI.
                     const string AvaloniaPackageName = "Avalonia.Desktop";
-                    const string AvaloniaVersion = "11.0.6"; // FIXME find a way to inject that version number
                     var i = 0;
                     packagesConfigs.Insert(i++, (packagesConfigs[0].targetFramework, "Stride.Core", packagesConfigs[0].packageVersion));
                     packagesConfigs.Insert(i++, (packagesConfigs[0].targetFramework, "Avalonia.Themes.Fluent", AvaloniaVersion));
