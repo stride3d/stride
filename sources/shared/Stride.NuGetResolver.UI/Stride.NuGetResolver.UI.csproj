@@ -18,8 +18,8 @@
     <PackageReference Include="NuGet.PackageManagement" />
     <PackageReference Include="NuGet.Resolver" />
     <PackageReference Include="NuGet.Commands" />
-    <PackageReference Include="Avalonia.Desktop" />
-    <PackageReference Include="Avalonia.Themes.Fluent" />
+    <PackageReference Include="Avalonia.Desktop" PrivateAssets="all" />
+    <PackageReference Include="Avalonia.Themes.Fluent" PrivateAssets="all" />
   </ItemGroup>
 
 </Project>

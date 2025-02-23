@@ -35,6 +35,13 @@ public static class NuGetAssemblyResolver
     /// <param name="packageVersion">Package version.</param>
     public static void SetupNuGet(string targetFramework, string packageName, string packageVersion)
     {
+        SetupNuGet([(targetFramework, packageName, packageVersion)]);
+    }
+
+    public static void SetupNuGet(List<(string targetFramework, string packageName, string packageVersion)> packagesConfigs)
+    {
+        if (packagesConfigs.Count == 0) return;
+
         // Make sure our nuget local store is added to nuget config
         var folder = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
         var devSourcePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), DevSource);
@@ -67,12 +74,21 @@ public static class NuGetAssemblyResolver
                     var logger = new Logger();
 
 #if STRIDE_NUGET_RESOLVER_UI
-                    var dialogNotNeeded = new TaskCompletionSource<bool>();
-                    var dialogClosed = new TaskCompletionSource<bool>();
+                    var avaloniaLoaded = new TaskCompletionSource();
+                    var dialogNotNeeded = new TaskCompletionSource();
+                    var dialogClosed = new TaskCompletionSource();
 
-                        // Display splash screen after a 500 msec (when NuGet takes some time to restore)
+                    // We need to make sure Avalonia has been restored before we can display the UI.
+                    const string AvaloniaPackageName = "Avalonia.Desktop";
+                    const string AvaloniaVersion = "11.0.6"; // FIXME find a way to inject that version number
+                    var i = 0;
+                    packagesConfigs.Insert(i++, (packagesConfigs[0].targetFramework, "Avalonia.Themes.Fluent", AvaloniaVersion));
+                    packagesConfigs.Insert(i++, (packagesConfigs[0].targetFramework, AvaloniaPackageName, AvaloniaVersion));
+
+                    // Display splash screen after a 500 msec (when NuGet takes some time to restore)
                     var newWindowThread = new Thread(() =>
                     {
+                        avaloniaLoaded.Task.Wait();
                         Thread.Sleep(500);
                         if (!dialogNotNeeded.Task.IsCompleted)
                         {
@@ -85,13 +101,13 @@ public static class NuGetAssemblyResolver
                                 logger.SetupLogAction((level, message) => splashScreen.SetupLog(level, message));
 
                                 dialogNotNeeded.Task.ContinueWith(__ => splashScreen.CloseApp());
-                                splashScreen.Closed += (sender2, e2) => splashScreen.InvokeShutDown();
+                                splashScreen.Closed += (sender2, e2) => NuGetResolver.SplashScreenWindow.InvokeShutDown();
 
                                 app.Run(splashScreen);
                                 splashScreen.Close();
                             });
                         }
-                        dialogClosed.SetResult(true);
+                        dialogClosed.SetResult();
                     });
                     if (OperatingSystem.IsWindows())
                     {
@@ -107,42 +123,55 @@ public static class NuGetAssemblyResolver
                         // Since we execute restore synchronously, we don't want any surprise concerning synchronization context (i.e. Avalonia one doesn't work with this)
                         SynchronizationContext.SetSynchronizationContext(null);
 
-                        // Parse current TFM
-                        var nugetFramework = NuGetFramework.Parse(targetFramework);
-
-                        // Only allow this specific version
-                        var versionRange = new VersionRange(new NuGetVersion(packageVersion), true, new NuGetVersion(packageVersion), true);
-                        var (request, result) = RestoreHelper.Restore(logger, nugetFramework, RuntimeInformation.RuntimeIdentifier, packageName, versionRange);
-                        if (!result.Success)
+                        foreach (var (targetFramework, packageName, packageVersion) in packagesConfigs)
                         {
-                            throw new InvalidOperationException("Could not restore NuGet packages");
-                        }
+                            // Parse current TFM
+                            var nugetFramework = NuGetFramework.Parse(targetFramework);
 
-                        // Build list of assemblies
-                        var assemblies = RestoreHelper.ListAssemblies(result.LockFile);
-
-                        // Create a dictionary by assembly name
-                        // note: we ignore case as filename might not be properly matching assembly name casing
-                        assemblyNameToPath = new(StringComparer.OrdinalIgnoreCase);
-                        foreach (var assembly in assemblies)
-                        {
-                            var extension = Path.GetExtension(assembly).ToLowerInvariant();
-                            if (extension != ".dll")
-                                continue;
-                            var assemblyName = Path.GetFileNameWithoutExtension(assembly);
-                            // Ignore duplicates (however, make sure it's the same version otherwise display a warning)
-                            if (assemblyNameToPath.TryGetValue(assemblyName, out var otherAssembly))
+                            // Only allow this specific version
+                            var versionRange = new VersionRange(new NuGetVersion(packageVersion), true, new NuGetVersion(packageVersion), true);
+                            var (request, result) = RestoreHelper.Restore(logger, nugetFramework, RuntimeInformation.RuntimeIdentifier, packageName, versionRange);
+                            if (!result.Success)
                             {
-                                if (!FileContentIsSame(new FileInfo(otherAssembly), new FileInfo(assembly)))
-                                    logger.LogWarning($"Assembly {assemblyName} found in two locations with different content: {assembly} and {otherAssembly}");
-                                continue;
+                                throw new InvalidOperationException("Could not restore NuGet packages");
                             }
-                            assemblyNameToPath.Add(assemblyName, assembly);
-                        }
 
-                        // Register the native libraries
-                        var nativeLibs = RestoreHelper.ListNativeLibs(result.LockFile);
-                        RegisterNativeDependencies(assemblyNameToPath, nativeLibs);
+                            // Build list of assemblies
+                            var assemblies = RestoreHelper.ListAssemblies(result.LockFile);
+
+                            // Create a dictionary by assembly name
+                            // note: we ignore case as filename might not be properly matching assembly name casing
+                            assemblyNameToPath ??= new(StringComparer.OrdinalIgnoreCase);
+                            foreach (var assembly in assemblies)
+                            {
+                                var extension = Path.GetExtension(assembly).ToLowerInvariant();
+                                if (extension != ".dll")
+                                    continue;
+                                var assemblyName = Path.GetFileNameWithoutExtension(assembly);
+                                // Ignore duplicates (however, make sure it's the same version otherwise display a warning)
+                                if (assemblyNameToPath.TryGetValue(assemblyName, out var otherAssembly))
+                                {
+                                    if (!FileContentIsSame(new FileInfo(otherAssembly), new FileInfo(assembly)))
+                                        logger.LogWarning($"Assembly {assemblyName} found in two locations with different content: {assembly} and {otherAssembly}");
+                                    continue;
+                                }
+                                assemblyNameToPath.Add(assemblyName, assembly);
+                            }
+
+                            // Register the native libraries
+                            if (packageName.StartsWith("Stride."))
+                            {
+                                var nativeLibs = RestoreHelper.ListNativeLibs(result.LockFile);
+                                RegisterNativeDependencies(assemblyNameToPath, nativeLibs);
+                            }
+
+#if STRIDE_NUGET_RESOLVER_UI
+                            if (packageName == AvaloniaPackageName)
+                            {
+                                avaloniaLoaded.TrySetResult();
+                            }
+#endif
+                        }
                     }
                     catch (Exception e)
                     {
@@ -168,7 +197,7 @@ public static class NuGetAssemblyResolver
                     finally
                     {
 #if STRIDE_NUGET_RESOLVER_UI
-                        dialogNotNeeded.TrySetResult(true);
+                        dialogNotNeeded.TrySetResult();
 #endif
                         SynchronizationContext.SetSynchronizationContext(previousSynchronizationContext);
                     }
