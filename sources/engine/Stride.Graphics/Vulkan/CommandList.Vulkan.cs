@@ -201,7 +201,7 @@ namespace Stride.Graphics
             var viewportCopy = Viewport;
             if (viewportDirty)
             {
-                vkCmdSetViewport(currentCommandList.NativeCommandBuffer, firstViewport: 0, viewportCount: 1, (Vortice.Mathematics.Viewport*) &viewportCopy);
+                vkCmdSetViewport(currentCommandList.NativeCommandBuffer, firstViewport: 0, viewportCount: 1, (VkViewport*) &viewportCopy);
                 viewportDirty = false;
             }
 
@@ -211,7 +211,7 @@ namespace Stride.Graphics
                 {
                     // Use manual scissor
                     var scissor = scissors[0];
-                    var nativeScissor = new Vortice.Mathematics.Rectangle(scissor.Left, scissor.Top, scissor.Width, scissor.Height);
+                    var nativeScissor = new VkRect2D(scissor.Left, scissor.Top, (uint)scissor.Width, (uint)scissor.Height);
                     vkCmdSetScissor(currentCommandList.NativeCommandBuffer, firstScissor: 0, scissorCount: 1, &nativeScissor);
                 }
             }
@@ -219,7 +219,7 @@ namespace Stride.Graphics
             {
                 // Use viewport
                 // Always update, because either scissor or viewport was dirty and we use viewport size
-                var scissor = new Vortice.Mathematics.Rectangle((int) viewportCopy.X, (int) viewportCopy.Y, (int) viewportCopy.Width, (int) viewportCopy.Height);
+                var scissor = new VkRect2D((int) viewportCopy.X, (int) viewportCopy.Y, (uint) viewportCopy.Width, (uint) viewportCopy.Height);
                 vkCmdSetScissor(currentCommandList.NativeCommandBuffer, firstScissor: 0, scissorCount: 1, &scissor);
             }
 
@@ -889,7 +889,7 @@ namespace Stride.Graphics
                             var copy = new VkBufferImageCopy
                             {
                                 imageSubresource = new VkImageSubresourceLayers(sourceParent.NativeImageAspect, (uint) mipLevel, (uint) arraySlice, layerCount: 1),
-                                imageExtent = new Vortice.Mathematics.Size3(width, height, depth),
+                                imageExtent = new VkExtent3D(width, height, depth),
                                 bufferOffset = (ulong) destinationOffset
                             };
                             vkCmdCopyImageToBuffer(currentCommandList.NativeCommandBuffer, sourceParent.NativeImage, VkImageLayout.TransferSrcOptimal, destinationParent.NativeBuffer, regionCount: 1, &copy);
@@ -909,7 +909,7 @@ namespace Stride.Graphics
                             var copy = new VkBufferImageCopy
                             {
                                 imageSubresource = destinationSubresource,
-                                imageExtent = new Vortice.Mathematics.Size3(width, height, depth),
+                                imageExtent = new VkExtent3D(width, height, depth),
                                 bufferOffset = (ulong) sourceOffset
                             };
                             vkCmdCopyBufferToImage(currentCommandList.NativeCommandBuffer, sourceParent.NativeBuffer, destinationParent.NativeImage, VkImageLayout.TransferDstOptimal, regionCount: 1, &copy);
@@ -920,7 +920,7 @@ namespace Stride.Graphics
                             {
                                 srcSubresource = new VkImageSubresourceLayers(sourceParent.NativeImageAspect, (uint) mipLevel, (uint) arraySlice, (uint) sourceTexture.ArraySize),
                                 dstSubresource = destinationSubresource,
-                                extent = new Vortice.Mathematics.Size3(width, height, depth)
+                                extent = new VkExtent3D(width, height, depth)
                             };
                             vkCmdCopyImage(currentCommandList.NativeCommandBuffer, sourceParent.NativeImage, VkImageLayout.TransferSrcOptimal, destinationParent.NativeImage, VkImageLayout.TransferDstOptimal, regionCount: 1, &copy);
                         }
@@ -1080,8 +1080,8 @@ namespace Stride.Graphics
                             bufferOffset = (ulong) sourceTexture.ComputeBufferOffset(sourceSubresource, 0),
                             bufferImageHeight = (uint) sourceTexture.Height,
                             bufferRowLength = (uint) sourceTexture.Width,
-                            imageOffset = new Vortice.Mathematics.Point3(dstX, dstY, dstZ),
-                            imageExtent = new Vortice.Mathematics.Size3(region.Right - region.Left, region.Bottom - region.Top, region.Back - region.Front)
+                            imageOffset = new VkOffset3D(dstX, dstY, dstZ),
+                            imageExtent = new VkExtent3D(region.Right - region.Left, region.Bottom - region.Top, region.Back - region.Front)
                         };
                         vkCmdCopyBufferToImage(currentCommandList.NativeCommandBuffer, sourceParent.NativeBuffer, destinationParent.NativeImage, VkImageLayout.TransferDstOptimal, regionCount: 1, &copy);
                     }
@@ -1090,10 +1090,10 @@ namespace Stride.Graphics
                         var copy = new VkImageCopy
                         {
                             srcSubresource = new VkImageSubresourceLayers(sourceParent.NativeImageAspect, (uint) sourceTexture.MipLevel, (uint) sourceTexture.ArraySlice, (uint) sourceTexture.ArraySize),
-                            srcOffset = new Vortice.Mathematics.Point3(region.Left, region.Top, region.Front),
+                            srcOffset = new VkOffset3D(region.Left, region.Top, region.Front),
                             dstSubresource = destinationSubresource,
-                            dstOffset = new Vortice.Mathematics.Point3(dstX, dstY, dstZ),
-                            extent = new Vortice.Mathematics.Size3(region.Right - region.Left, region.Bottom - region.Top, region.Back - region.Front)
+                            dstOffset = new VkOffset3D(dstX, dstY, dstZ),
+                            extent = new VkExtent3D(region.Right - region.Left, region.Bottom - region.Top, region.Back - region.Front)
                         };
                         vkCmdCopyImage(currentCommandList.NativeCommandBuffer, sourceParent.NativeImage, VkImageLayout.TransferSrcOptimal, destinationParent.NativeImage, VkImageLayout.TransferDstOptimal, regionCount: 1, &copy);
                     }
@@ -1219,8 +1219,8 @@ namespace Stride.Graphics
                     imageSubresource = new VkImageSubresourceLayers { aspectMask = VkImageAspectFlags.Color, baseArrayLayer = (uint) arraySlice, layerCount = 1, mipLevel = (uint) mipSlice },
                     bufferRowLength = (uint) (databox.RowPitch * texture.Format.BlockWidth() / texture.Format.BlockSize()),
                     bufferImageHeight = (uint) (databox.SlicePitch * texture.Format.BlockHeight() / databox.RowPitch),
-                    imageOffset = new Vortice.Mathematics.Point3(region.Left, region.Top, region.Front),
-                    imageExtent = new Vortice.Mathematics.Size3(region.Right - region.Left, region.Bottom - region.Top, region.Back - region.Front)
+                    imageOffset = new VkOffset3D(region.Left, region.Top, region.Front),
+                    imageExtent = new VkExtent3D(region.Right - region.Left, region.Bottom - region.Top, region.Back - region.Front)
                 };
                 vkCmdCopyBufferToImage(currentCommandList.NativeCommandBuffer, uploadResource, texture.NativeImage, VkImageLayout.TransferDstOptimal, 1, &bufferCopy);
 
@@ -1435,7 +1435,7 @@ namespace Stride.Graphics
                     sType = VkStructureType.RenderPassBeginInfo,
                     renderPass = pipelineRenderPass,
                     framebuffer = activeFramebuffer,
-                    renderArea = new Vortice.Mathematics.Rectangle(0, 0, renderTarget.ViewWidth, renderTarget.ViewHeight)
+                    renderArea = new VkRect2D(0, 0, (uint)renderTarget.ViewWidth, (uint)renderTarget.ViewHeight)
                 };
                 vkCmdBeginRenderPass(currentCommandList.NativeCommandBuffer, &renderPassBegin, VkSubpassContents.Inline);
 

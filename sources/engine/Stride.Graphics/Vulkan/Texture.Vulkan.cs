@@ -221,7 +221,7 @@ namespace Stride.Graphics
             {
                 sType = VkStructureType.ImageCreateInfo,
                 arrayLayers = (uint) ArraySize,
-                extent = new Vortice.Mathematics.Size3(Width, Height, Depth),
+                extent = new VkExtent3D(Width, Height, Depth),
                 mipLevels = (uint) MipLevels,
                 samples = VkSampleCountFlags.Count1,
                 format = NativeFormat,
@@ -361,8 +361,8 @@ namespace Stride.Graphics
                             imageSubresource = new VkImageSubresourceLayers(VkImageAspectFlags.Color, (uint) mipSlice, (uint) arraySlice, layerCount: 1),
                             bufferRowLength = (uint) (dataBoxes[i].RowPitch * Format.BlockWidth() / Format.BlockSize()),
                             bufferImageHeight = (uint) (dataBoxes[i].SlicePitch * Format.BlockHeight() / dataBoxes[i].RowPitch),
-                            imageOffset = new Vortice.Mathematics.Point3(0, 0, 0),
-                            imageExtent = new Vortice.Mathematics.Size3(mipMapDescription.Width, mipMapDescription.Height, mipMapDescription.Depth)
+                            imageOffset = new VkOffset3D(0, 0, 0),
+                            imageExtent = new VkExtent3D(mipMapDescription.Width, mipMapDescription.Height, mipMapDescription.Depth)
                         };
 
                         // Copy from upload buffer to image
@@ -701,9 +701,9 @@ namespace Stride.Graphics
 
         internal static VkFormat GetFallbackDepthStencilFormat(GraphicsDevice device, VkFormat format)
         {
-            if (format == VkFormat.D16UNormS8UInt || format == VkFormat.D24UNormS8UInt || format == VkFormat.D32SFloatS8UInt)
+            if (format == VkFormat.D16UnormS8Uint || format == VkFormat.D24UnormS8Uint || format == VkFormat.D32SfloatS8Uint)
             {
-                var fallbackFormats = new[] { format, VkFormat.D32SFloatS8UInt, VkFormat.D24UNormS8UInt, VkFormat.D16UNormS8UInt };
+                var fallbackFormats = new[] { format, VkFormat.D32SfloatS8Uint, VkFormat.D24UnormS8Uint, VkFormat.D16UnormS8Uint };
 
                 foreach (var fallbackFormat in fallbackFormats)
                 {
