@@ -41,6 +41,8 @@ namespace Stride.Input
         /// </summary>
         bool IsPositionLocked { get; }
 
+        public abstract bool IsMouseVisible { get; set; }
+
         /// <summary>
         /// Locks the mouse position to the screen
         /// </summary>

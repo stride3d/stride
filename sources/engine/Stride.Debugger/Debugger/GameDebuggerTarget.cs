@@ -29,7 +29,7 @@ namespace Stride.Debugger.Target
         private string projectName = String.Empty;
         private readonly Dictionary<DebugAssembly, Assembly> loadedAssemblies = new Dictionary<DebugAssembly, Assembly>();
         private int currentDebugAssemblyIndex;
-        private Game game;
+        private DefaultGame game;
 
         private readonly ManualResetEvent gameFinished = new ManualResetEvent(true);
         private IGameDebuggerHost host;
@@ -154,7 +154,7 @@ namespace Stride.Debugger.Target
                 if (gameType == null)
                     throw new InvalidOperationException($"Could not find type [{gameTypeName}] in project [{projectName}]");
 
-                game = (Game)Activator.CreateInstance(gameType);
+                game = (DefaultGame)Activator.CreateInstance(gameType);
 
                 // TODO: Bind database
                 Task.Run(() =>
@@ -203,8 +203,8 @@ namespace Stride.Debugger.Target
         private IEnumerable<Type> GameEnumerateTypesHelper()
         {
             // We enumerate custom games, and then typeof(Game) as fallback
-            return loadedAssemblies.SelectMany(assembly => assembly.Value.GetTypes().Where(x => typeof(Game).IsAssignableFrom(x)))
-                .Concat(Enumerable.Repeat(typeof(Game), 1));
+            return loadedAssemblies.SelectMany(assembly => assembly.Value.GetTypes().Where(x => typeof(DefaultGame).IsAssignableFrom(x)))
+                .Concat(Enumerable.Repeat(typeof(DefaultGame), 1));
         }
 
         private DebugAssembly CreateDebugAssembly(Assembly assembly)

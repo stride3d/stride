@@ -47,10 +47,10 @@ namespace Stride.Audio.Tests.Engine
             ContentLoaded = true;
         }
 
-        public event Action<Game> LoadingContent;
-        public event Action<Game> BeforeUpdating;
-        public event Action<Game> AfterUpdating;
-        public event Action<Game> BeforeDrawing;
-        public event Action<Game> AfterDrawing;
+        public event Action<DefaultGame> LoadingContent;
+        public event Action<DefaultGame> BeforeUpdating;
+        public event Action<DefaultGame> AfterUpdating;
+        public event Action<DefaultGame> BeforeDrawing;
+        public event Action<DefaultGame> AfterDrawing;
     }
 }
