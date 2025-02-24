@@ -52,7 +52,7 @@ namespace Stride.UI.Renderers
         /// <summary>
         /// Gets the  virtual resolution of the UI.
         /// </summary>
-        public Vector3 Resolution;
+        public Size2F Resolution;
 
         /// <summary>
         /// Gets the view projection matrix of the UI.

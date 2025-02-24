@@ -24,7 +24,7 @@ namespace Stride.Assets.Presentation.AssetEditors.UIEditor.Game
         /// <param name="magnetDistance">The maximum distance at which magnet will be applied</param>
         /// <param name="resolution">The resolution of the UI.</param>
         /// <returns><c>true</c> if the element has moved; otherwise, <c>false</c>.</returns>
-        public static bool Move([NotNull] UIElement element, ref Vector3 delta, float magnetDistance, ref Vector3 resolution)
+        public static bool Move([NotNull] UIElement element, ref Vector3 delta, float magnetDistance, ref Size2F resolution)
         {
             if (element == null) throw new ArgumentNullException(nameof(element));
 
@@ -53,7 +53,7 @@ namespace Stride.Assets.Presentation.AssetEditors.UIEditor.Game
         /// <param name="magnetDistance">The maximum distance at which magnet will be applied</param>
         /// <param name="resolution">The resolution of the UI.</param>
         /// <returns></returns>
-        public static bool Resize([NotNull] UIElement element, ResizingDirection resizingDirection, ref Vector3 delta, float magnetDistance, ref Vector3 resolution)
+        public static bool Resize([NotNull] UIElement element, ResizingDirection resizingDirection, ref Vector3 delta, float magnetDistance, ref Size2F resolution)
         {
             if (element == null) throw new ArgumentNullException(nameof(element));
 
@@ -138,7 +138,7 @@ namespace Stride.Assets.Presentation.AssetEditors.UIEditor.Game
         /// <param name="resolution">The resolution of the UI.</param>
         /// <returns></returns>
         [NotNull]
-        private static RectData ExtractRects([NotNull] UIElement element, ref Vector3 resolution)
+        private static RectData ExtractRects([NotNull] UIElement element, ref Size2F resolution)
         {
             var rects = new RectData
             {
@@ -216,7 +216,7 @@ namespace Stride.Assets.Presentation.AssetEditors.UIEditor.Game
             else
             {
                 // no parent, take the whole UI resolution
-                rects.Parent = new RectangleF(0, 0, resolution.X, resolution.Y);
+                rects.Parent = new RectangleF(0, 0, resolution.Width, resolution.Height);
                 rects.Container = rects.Parent;
                 rects.Siblings = new RectangleF[0];
             }
@@ -367,7 +367,7 @@ namespace Stride.Assets.Presentation.AssetEditors.UIEditor.Game
             }
         }
 
-        private static void UpdateElementLayout([NotNull] UIElement element, ref Vector3 delta, float magnetDistance, ref Vector3 resolution, LayoutParameters parameters)
+        private static void UpdateElementLayout([NotNull] UIElement element, ref Vector3 delta, float magnetDistance, ref Size2F resolution, LayoutParameters parameters)
         {
             // Retrieve all notable rects from the parent (i.e. siblings, areas such as grid cell container, etc.)
             var rects = ExtractRects(element, ref resolution);
