@@ -1,36 +1,35 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 using System;
 using System.Collections.Generic;
 using System.Threading;
 using Stride.Core;
-using Stride.Core.Diagnostics;
-using Stride.Core.Mathematics;
-using Stride.Rendering;
 
 namespace Stride.Graphics
 {
     /// <summary>
-    /// Used for GPU resources creation (buffers, textures, states, shaders), and <see cref="CommandList"/> manipulations.
+    ///   A virtual adapter that can be used for creating GPU resources (buffers, textures, states, shaders, etc),
+    ///   and to manipulate <see cref="CommandList"/>s.
     /// </summary>
     public partial class GraphicsDevice : ComponentBase
     {
-        internal readonly Dictionary<PipelineStateDescriptionWithHash, PipelineState> CachedPipelineStates = new Dictionary<PipelineStateDescriptionWithHash, PipelineState>();
-
-        internal readonly Dictionary<SamplerStateDescription, SamplerState> CachedSamplerStates = new Dictionary<SamplerStateDescription, SamplerState>();
+        internal readonly Dictionary<PipelineStateDescriptionWithHash, PipelineState> CachedPipelineStates = [];
+        internal readonly Dictionary<SamplerStateDescription, SamplerState> CachedSamplerStates = [];
 
         /// <summary>
-        ///     Gets the features supported by this graphics device.
+        ///   Gets the features supported by this graphics device.
         /// </summary>
         public GraphicsDeviceFeatures Features;
 
-        internal HashSet<GraphicsResourceBase> Resources = new HashSet<GraphicsResourceBase>();
+        internal HashSet<GraphicsResourceBase> Resources = [];
 
         internal readonly bool NeedWorkAroundForUpdateSubResource;
         internal Effect CurrentEffect;
 
-        private readonly List<IDisposable> sharedDataToDispose = new List<IDisposable>();
+        private readonly List<IDisposable> sharedDataToDispose = [];
         private readonly Dictionary<object, IDisposable> sharedDataPerDevice;
+
         private GraphicsPresenter presenter;
 
         internal PipelineState DefaultPipelineState;
@@ -46,58 +45,69 @@ namespace Stride.Graphics
         private long textureMemory;
 
         /// <summary>
-        /// Gets the GPU memory currently allocated to buffers in bytes.
+        ///   Gets the amount of GPU memory currently allocated to buffers, in bytes.
         /// </summary>
         public long BuffersMemory => Interlocked.Read(ref bufferMemory);
 
         /// <summary>
-        /// Gets the GPU memory currently allocated to texture in bytes.
+        ///   Gets the amount of GPU memory currently allocated to textures, in bytes.
         /// </summary>
         public long TextureMemory => Interlocked.Read(ref textureMemory);
 
         /// <summary>
-        /// Gets the type of the platform that graphics device is using.
+        ///   Gets the platform that graphics device is using.
         /// </summary>
         public static GraphicsPlatform Platform => GraphicPlatform;
 
         public string RendererName => GetRendererName();
 
         /// <summary>
-        ///     Initializes a new instance of the <see cref="GraphicsDevice" /> class.
+        ///   Initializes a new instance of the <see cref="GraphicsDevice"/> class.
         /// </summary>
         /// <param name="adapter">The graphics adapter.</param>
-        /// <param name="profile">The graphics profile.</param>
+        /// <param name="graphicsProfiles">The graphics profiles to try, in order of preference.</param>
         /// <param name="deviceCreationFlags">The device creation flags.</param>
         /// <param name="windowHandle">The window handle.</param>
-        protected GraphicsDevice(GraphicsAdapter adapter, GraphicsProfile[] profile, DeviceCreationFlags deviceCreationFlags, WindowHandle windowHandle)
+        protected GraphicsDevice(GraphicsAdapter adapter, GraphicsProfile[] graphicsProfiles, DeviceCreationFlags deviceCreationFlags, WindowHandle windowHandle)
         {
             // Create shared data
-            sharedDataPerDevice = new Dictionary<object, IDisposable>();
+            sharedDataPerDevice = [];
 
-            Recreate(adapter, profile, deviceCreationFlags, windowHandle);
+            Recreate(adapter, graphicsProfiles, deviceCreationFlags, windowHandle);
 
             // Helpers
             PrimitiveQuad = new PrimitiveQuad(this);
         }
 
+        /// <summary>
+        ///   Tries to create or reinitialize the graphics device.
+        /// </summary>
+        /// <param name="adapter">The graphics adapter.</param>
+        /// <param name="graphicsProfiles">The graphics profiles to try, in order of preference.</param>
+        /// <param name="deviceCreationFlags">The device creation flags.</param>
+        /// <param name="windowHandle">The window handle.</param>
+        /// <exception cref="ArgumentNullException">
+        ///   <paramref name="adapter"/> is <see langword="null"/>, or <paramref name="graphicsProfiles"/> is <see langword="null"/>.
+        /// </exception>
         public void Recreate(GraphicsAdapter adapter, GraphicsProfile[] graphicsProfiles, DeviceCreationFlags deviceCreationFlags, WindowHandle windowHandle)
         {
-            if (adapter == null) throw new ArgumentNullException("adapter");
-            if (graphicsProfiles == null) throw new ArgumentNullException("graphicsProfiles");
+            ArgumentNullException.ThrowIfNull(adapter);
+            ArgumentNullException.ThrowIfNull(graphicsProfiles);
 
             Adapter = adapter;
-            IsDebugMode = (deviceCreationFlags & DeviceCreationFlags.Debug) != 0;
+            IsDebugMode = deviceCreationFlags.HasFlag(DeviceCreationFlags.Debug);
 
             // Default fallback
             if (graphicsProfiles.Length == 0)
-                graphicsProfiles = new[] { GraphicsProfile.Level_11_0, GraphicsProfile.Level_10_1, GraphicsProfile.Level_10_0, GraphicsProfile.Level_9_3, GraphicsProfile.Level_9_2, GraphicsProfile.Level_9_1 };
+                graphicsProfiles = [ GraphicsProfile.Level_11_0, GraphicsProfile.Level_10_1, GraphicsProfile.Level_10_0, GraphicsProfile.Level_9_3, GraphicsProfile.Level_9_2, GraphicsProfile.Level_9_1 ];
 
             // Initialize this instance
             InitializePlatformDevice(graphicsProfiles, deviceCreationFlags, windowHandle);
 
-            // Create a new graphics device
+            // Checks the features supported by the new graphics device
             Features = new GraphicsDeviceFeatures(this);
 
+            // Initialize the internal states of the new graphics device
             SamplerStates = new SamplerStateFactory(this);
 
             var defaultPipelineStateDescription = new PipelineStateDescription();
@@ -108,6 +118,7 @@ namespace Stride.Graphics
             InitializePostFeatures();
         }
 
+        /// <inheritdoc/>
         protected override void Destroy()
         {
             // Clear shared data
@@ -130,7 +141,7 @@ namespace Stride.Graphics
             {
                 foreach (var resource in Resources)
                 {
-                    // Destroy leftover resources (note: should not happen if ResumeManager.OnDestroyed has properly been called)
+                    // Destroy leftover resources (NOTE: Thus should not happen if ResumeManager.OnDestroyed has properly been called)
                     if (resource.LifetimeState != GraphicsResourceLifetimeState.Destroyed)
                     {
                         resource.OnDestroyed();
@@ -149,80 +160,75 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        /// Occurs while this component is disposing and before it is disposed.
+        ///   Occurs while this component is disposing but before it is disposed.
         /// </summary>
         public event EventHandler<EventArgs> Disposing;
 
         /// <summary>
-        ///     A delegate called to create shareable data. See remarks.
+        ///   A delegate called to create shareable data.
         /// </summary>
         /// <typeparam name="T">Type of the data to create.</typeparam>
         /// <returns>A new instance of the data to share.</returns>
         /// <remarks>
-        ///     Because this method is being called from a lock region, this method should not be time consuming.
+        ///   Because this method is being called from a lock region, this method should not be time consuming.
         /// </remarks>
         public delegate T CreateSharedData<out T>(GraphicsDevice device) where T : class, IDisposable;
 
         /// <summary>
-        ///     Gets the adapter this instance is attached to.
+        ///   Gets the adapter this instance is attached to.
         /// </summary>
         public GraphicsAdapter Adapter { get; private set; }
 
         /// <summary>
-        ///     Gets a value indicating whether this instance is in debug mode.
+        ///   Gets a value indicating whether this graphics device is in "Debug mode".
         /// </summary>
         /// <value>
-        ///     <c>true</c> if this instance is debug; otherwise, <c>false</c>.
+        ///   <see langword="true"/> if this graphics device is initialized in "Debug mode"; otherwise, <see langword="false"/>.
         /// </value>
         public bool IsDebugMode { get; private set; }
 
         /// <summary>
-        ///     Indicates wether this device allows for concurrent building and deferred submission of CommandLists
+        ///   Gets a value indicating wether this device allows for concurrent building and deferred submission
+        ///   of <see cref="CommandList"/>s.
         /// </summary>
         /// <value>
-        ///     <c>true</c> if this instance is deferred; otherwise, <c>false</c>.
+        ///   <see langword="true"/> if this graphics device allows deferred execution; otherwise, <see langword="false"/>.
         /// </value>
         public bool IsDeferred { get; private set; }
 
         /// <summary>
-        ///     Gets a value indicating whether this instance supports GPU markers and profiling.
+        ///   Gets a value indicating whether this instance supports GPU markers and profiling.
         /// </summary>
+        /// <value>
+        ///   <see langword="true"/> if this graphics device allows profiling and creating GPU markers; otherwise, <see langword="false"/>.
+        /// </value>
         public bool IsProfilingSupported { get; private set; }
 
         /// <summary>
-        /// Gets the default color space.
+        ///   Gets the default color space of this graphics device.
         /// </summary>
         /// <value>The default color space.</value>
         public ColorSpace ColorSpace
         {
-            get { return Features.HasSRgb ? colorSpace : ColorSpace.Gamma; }
-            set
-            {
-                colorSpace = value;
-            }
+            get => Features.HasSRgb ? colorSpace : ColorSpace.Gamma;
+            set => colorSpace = value;
         }
 
         /// <summary>
-        ///     Gets or sets the current presenter used to display the frame.
+        ///   Gets or sets the current presenter used to display frames with this graphics device.
         /// </summary>
-        /// <value>The current presenter.</value>
+        /// <value>The current graphics presenter.</value>
         public virtual GraphicsPresenter Presenter
         {
-            get
-            {
-                return presenter;
-            }
-            set
-            {
-                presenter = value;
-            }
+            get => presenter;
+            set => presenter = value;
         }
 
         /// <summary>
-        ///     Gets the <see cref="SamplerStateFactory" /> factory.
+        ///   Gets the <see cref="SamplerStateFactory"/> factory.
         /// </summary>
         /// <value>
-        ///     The <see cref="SamplerStateFactory" /> factory.
+        ///   The <see cref="SamplerStateFactory"/> factory.
         /// </value>
         public SamplerStateFactory SamplerStates { get; private set; }
 
@@ -233,68 +239,67 @@ namespace Stride.Graphics
         public int ThreadIndex { get; internal set; }
 
         /// <summary>
-        /// Gets the shader profile.
+        ///   Gets the graphics profile this graphics device is using, which determines the available features.
         /// </summary>
-        /// <value>The shader profile.</value>
+        /// <value>The graphics profile.</value>
         internal GraphicsProfile? ShaderProfile { get; set; }
 
         /// <summary>
-        ///     Initializes a new instance of the <see cref="GraphicsDevice" /> class.
+        ///   Initializes a new instance of the <see cref="GraphicsDevice"/> class.
         /// </summary>
-        /// <param name="creationFlags">The creation flags.</param>
-        /// <param name="graphicsProfiles">The graphics profiles.</param>
-        /// <returns>
-        ///     An instance of <see cref="GraphicsDevice" />
-        /// </returns>
+        /// <param name="creationFlags">A combination of <see cref="DeviceCreationFlags"/> flags that determines how the device will be created.</param>
+        /// <param name="graphicsProfiles">The graphics profiles to try, in order of preference.</param>
+        /// <returns>The new instance of <see cref="GraphicsDevice"/>.</returns>
         public static GraphicsDevice New(DeviceCreationFlags creationFlags = DeviceCreationFlags.None, params GraphicsProfile[] graphicsProfiles)
         {
             return New(GraphicsAdapterFactory.Default, creationFlags, graphicsProfiles);
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="GraphicsDevice" /> class.
+        ///   Initializes a new instance of the <see cref="GraphicsDevice"/> class.
         /// </summary>
-        /// <param name="adapter">The adapter.</param>
-        /// <param name="creationFlags">The creation flags.</param>
-        /// <param name="graphicsProfiles">The graphics profiles.</param>
-        /// <returns>An instance of <see cref="GraphicsDevice" /></returns>
+        /// <param name="adapter">The graphics adapter the new device will use, or <see langword="null"/> to use the system's default adapter.</param>
+        /// <param name="creationFlags">A combination of <see cref="DeviceCreationFlags"/> flags that determines how the device will be created.</param>
+        /// <param name="graphicsProfiles">The graphics profiles to try, in order of preference.</param>
+        /// <returns>The new instance of <see cref="GraphicsDevice"/>.</returns>
         public static GraphicsDevice New(GraphicsAdapter adapter, DeviceCreationFlags creationFlags = DeviceCreationFlags.None, params GraphicsProfile[] graphicsProfiles)
         {
-            return new GraphicsDevice(adapter ?? GraphicsAdapterFactory.Default, graphicsProfiles, creationFlags, null);
+            return new GraphicsDevice(adapter ?? GraphicsAdapterFactory.Default, graphicsProfiles, creationFlags, windowHandle: null);
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="GraphicsDevice" /> class.
+        /// Initializes a new instance of the <see cref="GraphicsDevice"/> class.
         /// </summary>
-        /// <param name="adapter">The adapter.</param>
-        /// <param name="creationFlags">The creation flags.</param>
-        /// <param name="windowHandle">The window handle.</param>
-        /// <param name="graphicsProfiles">The graphics profiles.</param>
-        /// <returns>An instance of <see cref="GraphicsDevice" /></returns>
+        /// <param name="adapter">The graphics adapter the new device will use, or <see langword="null"/> to use the system's default adapter.</param>
+        /// <param name="creationFlags">A combination of <see cref="DeviceCreationFlags"/> flags that determines how the device will be created.</param>
+        /// <param name="windowHandle">
+        ///   The <see cref="WindowHandle"/> specifying the window the graphics device will present to,
+        ///   or <see langword="null"/> if the device should not depend on a window.
+        /// </param>
+        /// <param name="graphicsProfiles">The graphics profiles to try, in order of preference.</param>
+        /// <returns>The new instance of <see cref="GraphicsDevice"/>.</returns>
         public static GraphicsDevice New(GraphicsAdapter adapter, DeviceCreationFlags creationFlags = DeviceCreationFlags.None, WindowHandle windowHandle = null, params GraphicsProfile[] graphicsProfiles)
         {
             return new GraphicsDevice(adapter ?? GraphicsAdapterFactory.Default, graphicsProfiles, creationFlags, windowHandle);
         }
 
         /// <summary>
-        ///     Gets a shared data for this device context with a delegate to create the shared data if it is not present.
+        ///   Gets a shared data object for this device context with a delegate to create the shared data if it is not present.
         /// </summary>
-        /// <typeparam name="T">Type of the shared data to get/create.</typeparam>
-        /// <param name="type">Type of the data to share.</param>
-        /// <param name="key">The key of the shared data.</param>
-        /// <param name="sharedDataCreator">The shared data creator.</param>
+        /// <typeparam name="T">Type of the shared data to get or create.</typeparam>
+        /// <param name="key">The key that identifies the shared data.</param>
+        /// <param name="sharedDataCreator">A delegate that will be called to create the shared data.</param>
         /// <returns>
-        ///     An instance of the shared data. The shared data will be disposed by this <see cref="GraphicsDevice" /> instance.
+        ///   An instance of the shared data. It will be disposed by this <see cref="GraphicsDevice"/> instance.
         /// </returns>
         public T GetOrCreateSharedData<T>(object key, CreateSharedData<T> sharedDataCreator) where T : class, IDisposable
         {
             lock (sharedDataPerDevice)
             {
-                IDisposable localValue;
-                if (!sharedDataPerDevice.TryGetValue(key, out localValue))
+                if (!sharedDataPerDevice.TryGetValue(key, out IDisposable localValue))
                 {
                     localValue = sharedDataCreator(this);
-                    if (localValue == null)
+                    if (localValue is null)
                     {
                         return null;
                     }
@@ -302,15 +307,23 @@ namespace Stride.Graphics
                     sharedDataToDispose.Add(localValue);
                     sharedDataPerDevice.Add(key, localValue);
                 }
-                return (T)localValue;
+                return (T) localValue;
             }
         }
 
+        /// <summary>
+        ///   Adds or subtracts to the texture memory amount this graphics device has allocated.
+        /// </summary>
+        /// <param name="memoryChange">The texture memory delta: positive to increase, negative to decrease.</param>
         internal void RegisterTextureMemoryUsage(long memoryChange)
         {
             Interlocked.Add(ref textureMemory, memoryChange);
         }
 
+        /// <summary>
+        ///   Adds or subtracts to the buffer memory amount this graphics device has allocated.
+        /// </summary>
+        /// <param name="memoryChange">The buffer memory delta: positive to increase, negative to decrease.</param>
         internal void RegisterBufferMemoryUsage(long memoryChange)
         {
             Interlocked.Add(ref bufferMemory, memoryChange);
