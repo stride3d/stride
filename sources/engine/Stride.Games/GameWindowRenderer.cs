@@ -191,18 +191,8 @@ namespace Stride.Games
                 var size = GetRequestedSize(out resizeFormat);
                 var presentationParameters = new PresentationParameters((int)size.X, (int)size.Y, Window.NativeWindow, resizeFormat) { DepthStencilFormat = PreferredDepthStencilFormat };
                 presentationParameters.PresentationInterval = PresentInterval.Immediate;
-
-#if STRIDE_GRAPHICS_API_DIRECT3D11 && STRIDE_PLATFORM_UWP
-                if (Game.Context is GameContextUWPCoreWindow context && context.IsWindowsMixedReality)
-                {
-                    Presenter = new WindowsMixedRealityGraphicsPresenter(GraphicsDevice, presentationParameters);
-                }
-                else
-#endif
-                {
-                    Presenter = new SwapChainGraphicsPresenter(GraphicsDevice, presentationParameters);
-                }
-
+                
+                Presenter = new SwapChainGraphicsPresenter(GraphicsDevice, presentationParameters);
                 isBackBufferToResize = false;
             }
         }
