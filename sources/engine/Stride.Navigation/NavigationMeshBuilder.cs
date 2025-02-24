@@ -273,8 +273,7 @@ namespace Stride.Navigation
                         if (p.Item2 == null)
                         {
                             // Remove a tile
-                            if (layer.TilesInternal.ContainsKey(p.Item1))
-                                layer.TilesInternal.Remove(p.Item1);
+                            layer.TilesInternal.Remove(p.Item1);
                         }
                         else
                         {
@@ -415,8 +414,8 @@ namespace Stride.Navigation
                             }
                         }
 
-                        Navigation.DestroyBuilder(builder);
                     }
+                    Navigation.DestroyBuilder(builder);
                 }
             }
 

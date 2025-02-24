@@ -45,88 +45,87 @@
 
 using Stride.Core.Yaml.Tokens;
 
-namespace Stride.Core.Yaml.Tests
+namespace Stride.Core.Yaml.Tests;
+
+public class ScannerTestHelper : YamlTest
 {
-    public class ScannerTestHelper : YamlTest
+    protected static StreamStart StreamStart { get { return new StreamStart(); } }
+
+    protected static StreamEnd StreamEnd { get { return new StreamEnd(); } }
+
+    protected static DocumentStart DocumentStart { get { return new DocumentStart(); } }
+
+    protected static DocumentEnd DocumentEnd { get { return new DocumentEnd(); } }
+
+    protected static VersionDirective VersionDirective(int major, int minor)
     {
-        protected static StreamStart StreamStart { get { return new StreamStart(); } }
+        return new VersionDirective(new Version(major, minor));
+    }
 
-        protected static StreamEnd StreamEnd { get { return new StreamEnd(); } }
+    protected static TagDirective TagDirective(string handle, string prefix)
+    {
+        return new TagDirective(handle, prefix);
+    }
 
-        protected static DocumentStart DocumentStart { get { return new DocumentStart(); } }
+    protected static Tag Tag(string handle, string suffix)
+    {
+        return new Tag(handle, suffix);
+    }
 
-        protected static DocumentEnd DocumentEnd { get { return new DocumentEnd(); } }
+    protected static Scalar PlainScalar(string text)
+    {
+        return new Scalar(text, ScalarStyle.Plain);
+    }
 
-        protected static VersionDirective VersionDirective(int major, int minor)
-        {
-            return new VersionDirective(new Version(major, minor));
-        }
+    protected static Scalar SingleQuotedScalar(string text)
+    {
+        return new Scalar(text, ScalarStyle.SingleQuoted);
+    }
 
-        protected static TagDirective TagDirective(string handle, string prefix)
-        {
-            return new TagDirective(handle, prefix);
-        }
+    protected static Scalar DoubleQuotedScalar(string text)
+    {
+        return new Scalar(text, ScalarStyle.DoubleQuoted);
+    }
 
-        protected static Tag Tag(string handle, string suffix)
-        {
-            return new Tag(handle, suffix);
-        }
+    protected static Scalar LiteralScalar(string text)
+    {
+        return new Scalar(text, ScalarStyle.Literal);
+    }
 
-        protected static Scalar PlainScalar(string text)
-        {
-            return new Scalar(text, ScalarStyle.Plain);
-        }
+    protected static Scalar FoldedScalar(string text)
+    {
+        return new Scalar(text, ScalarStyle.Folded);
+    }
 
-        protected static Scalar SingleQuotedScalar(string text)
-        {
-            return new Scalar(text, ScalarStyle.SingleQuoted);
-        }
+    protected static FlowSequenceStart FlowSequenceStart { get { return new FlowSequenceStart(); } }
 
-        protected static Scalar DoubleQuotedScalar(string text)
-        {
-            return new Scalar(text, ScalarStyle.DoubleQuoted);
-        }
+    protected static FlowSequenceEnd FlowSequenceEnd { get { return new FlowSequenceEnd(); } }
 
-        protected static Scalar LiteralScalar(string text)
-        {
-            return new Scalar(text, ScalarStyle.Literal);
-        }
+    protected static BlockSequenceStart BlockSequenceStart { get { return new BlockSequenceStart(); } }
 
-        protected static Scalar FoldedScalar(string text)
-        {
-            return new Scalar(text, ScalarStyle.Folded);
-        }
+    protected static FlowMappingStart FlowMappingStart { get { return new FlowMappingStart(); } }
 
-        protected static FlowSequenceStart FlowSequenceStart { get { return new FlowSequenceStart(); } }
+    protected static FlowMappingEnd FlowMappingEnd { get { return new FlowMappingEnd(); } }
 
-        protected static FlowSequenceEnd FlowSequenceEnd { get { return new FlowSequenceEnd(); } }
+    protected static BlockMappingStart BlockMappingStart { get { return new BlockMappingStart(); } }
 
-        protected static BlockSequenceStart BlockSequenceStart { get { return new BlockSequenceStart(); } }
+    protected static Key Key { get { return new Key(); } }
 
-        protected static FlowMappingStart FlowMappingStart { get { return new FlowMappingStart(); } }
+    protected static Value Value { get { return new Value(); } }
 
-        protected static FlowMappingEnd FlowMappingEnd { get { return new FlowMappingEnd(); } }
+    protected static FlowEntry FlowEntry { get { return new FlowEntry(); } }
 
-        protected static BlockMappingStart BlockMappingStart { get { return new BlockMappingStart(); } }
+    protected static BlockEntry BlockEntry { get { return new BlockEntry(); } }
 
-        protected static Key Key { get { return new Key(); } }
+    protected static BlockEnd BlockEnd { get { return new BlockEnd(); } }
 
-        protected static Value Value { get { return new Value(); } }
+    protected static Anchor Anchor(string anchor)
+    {
+        return new Anchor(anchor);
+    }
 
-        protected static FlowEntry FlowEntry { get { return new FlowEntry(); } }
-
-        protected static BlockEntry BlockEntry { get { return new BlockEntry(); } }
-
-        protected static BlockEnd BlockEnd { get { return new BlockEnd(); } }
-
-        protected static Anchor Anchor(string anchor)
-        {
-            return new Anchor(anchor);
-        }
-
-        protected static AnchorAlias AnchorAlias(string alias)
-        {
-            return new AnchorAlias(alias);
-        }
+    protected static AnchorAlias AnchorAlias(string alias)
+    {
+        return new AnchorAlias(alias);
     }
 }

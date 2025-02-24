@@ -52,109 +52,108 @@ using Scalar = Stride.Core.Yaml.Events.Scalar;
 using StreamEnd = Stride.Core.Yaml.Events.StreamEnd;
 using StreamStart = Stride.Core.Yaml.Events.StreamStart;
 
-namespace Stride.Core.Yaml.Tests
+namespace Stride.Core.Yaml.Tests;
+
+public class ParserTestHelper : YamlTest
 {
-    public class ParserTestHelper : YamlTest
+    protected const bool Explicit = false;
+    protected const bool Implicit = true;
+    protected const string TagYaml = "tag:yaml.org,2002:";
+
+    protected static readonly TagDirective[] DefaultTags =
+    [
+        new TagDirective("!", "!"),
+        new TagDirective("!!", TagYaml)
+    ];
+
+    protected static StreamStart StreamStart { get { return new StreamStart(); } }
+
+    protected static StreamEnd StreamEnd { get { return new StreamEnd(); } }
+
+    protected static DocumentStart DocumentStart(bool isImplicit)
     {
-        protected const bool Explicit = false;
-        protected const bool Implicit = true;
-        protected const string TagYaml = "tag:yaml.org,2002:";
+        return DocumentStart(isImplicit, null, DefaultTags);
+    }
 
-        protected static readonly TagDirective[] DefaultTags = new[]
-        {
-            new TagDirective("!", "!"),
-            new TagDirective("!!", TagYaml)
-        };
+    protected static DocumentStart DocumentStart(bool isImplicit, VersionDirective version, params TagDirective[] tags)
+    {
+        return new DocumentStart(version, new TagDirectiveCollection(tags), isImplicit);
+    }
 
-        protected static StreamStart StreamStart { get { return new StreamStart(); } }
+    protected static VersionDirective Version(int major, int minor)
+    {
+        return new VersionDirective(new Version(major, minor));
+    }
 
-        protected static StreamEnd StreamEnd { get { return new StreamEnd(); } }
+    protected static TagDirective TagDirective(string handle, string prefix)
+    {
+        return new TagDirective(handle, prefix);
+    }
 
-        protected DocumentStart DocumentStart(bool isImplicit)
-        {
-            return DocumentStart(isImplicit, null, DefaultTags);
-        }
+    protected static DocumentEnd DocumentEnd(bool isImplicit)
+    {
+        return new DocumentEnd(isImplicit);
+    }
 
-        protected DocumentStart DocumentStart(bool isImplicit, VersionDirective version, params TagDirective[] tags)
-        {
-            return new DocumentStart(version, new TagDirectiveCollection(tags), isImplicit);
-        }
+    protected static Scalar PlainScalar(string text)
+    {
+        return new Scalar(null, null, text, ScalarStyle.Plain, true, false);
+    }
 
-        protected VersionDirective Version(int major, int minor)
-        {
-            return new VersionDirective(new Version(major, minor));
-        }
+    protected static Scalar SingleQuotedScalar(string text)
+    {
+        return new Scalar(null, null, text, ScalarStyle.SingleQuoted, false, true);
+    }
 
-        protected TagDirective TagDirective(string handle, string prefix)
-        {
-            return new TagDirective(handle, prefix);
-        }
+    protected static Scalar DoubleQuotedScalar(string text)
+    {
+        return DoubleQuotedScalar(null, text);
+    }
 
-        protected DocumentEnd DocumentEnd(bool isImplicit)
-        {
-            return new DocumentEnd(isImplicit);
-        }
+    protected static Scalar ExplicitDoubleQuotedScalar(string tag, string text)
+    {
+        return DoubleQuotedScalar(tag, text, false);
+    }
 
-        protected Scalar PlainScalar(string text)
-        {
-            return new Scalar(null, null, text, ScalarStyle.Plain, true, false);
-        }
+    protected static Scalar DoubleQuotedScalar(string tag, string text, bool quotedImplicit = true)
+    {
+        return new Scalar(null, tag, text, ScalarStyle.DoubleQuoted, false, quotedImplicit);
+    }
 
-        protected Scalar SingleQuotedScalar(string text)
-        {
-            return new Scalar(null, null, text, ScalarStyle.SingleQuoted, false, true);
-        }
+    protected static Scalar LiteralScalar(string text)
+    {
+        return new Scalar(null, null, text, ScalarStyle.Literal, false, true);
+    }
 
-        protected Scalar DoubleQuotedScalar(string text)
-        {
-            return DoubleQuotedScalar(null, text);
-        }
+    protected static Scalar FoldedScalar(string text)
+    {
+        return new Scalar(null, null, text, ScalarStyle.Folded, false, true);
+    }
 
-        protected Scalar ExplicitDoubleQuotedScalar(string tag, string text)
-        {
-            return DoubleQuotedScalar(tag, text, false);
-        }
+    protected static SequenceStart BlockSequenceStart => new(null, null, true, DataStyle.Normal);
 
-        protected Scalar DoubleQuotedScalar(string tag, string text, bool quotedImplicit = true)
-        {
-            return new Scalar(null, tag, text, ScalarStyle.DoubleQuoted, false, quotedImplicit);
-        }
+    protected static SequenceStart FlowSequenceStart => new(null, null, true, DataStyle.Compact);
 
-        protected Scalar LiteralScalar(string text)
-        {
-            return new Scalar(null, null, text, ScalarStyle.Literal, false, true);
-        }
+    protected static SequenceStart AnchoredFlowSequenceStart(string anchor)
+    {
+        return new SequenceStart(anchor, null, true, DataStyle.Compact);
+    }
 
-        protected Scalar FoldedScalar(string text)
-        {
-            return new Scalar(null, null, text, ScalarStyle.Folded, false, true);
-        }
+    protected static SequenceEnd SequenceEnd => new();
 
-        protected SequenceStart BlockSequenceStart { get { return new SequenceStart(null, null, true, DataStyle.Normal); } }
+    protected static MappingStart BlockMappingStart => new(null, null, true, DataStyle.Normal);
 
-        protected SequenceStart FlowSequenceStart { get { return new SequenceStart(null, null, true, DataStyle.Compact); } }
+    protected static MappingStart TaggedBlockMappingStart(string tag)
+    {
+        return new MappingStart(null, tag, false, DataStyle.Normal);
+    }
 
-        protected SequenceStart AnchoredFlowSequenceStart(string anchor)
-        {
-            return new SequenceStart(anchor, null, true, DataStyle.Compact);
-        }
+    protected static MappingStart FlowMappingStart => new(null, null, true, DataStyle.Compact);
 
-        protected SequenceEnd SequenceEnd { get { return new SequenceEnd(); } }
+    protected static MappingEnd MappingEnd => new();
 
-        protected MappingStart BlockMappingStart { get { return new MappingStart(null, null, true, DataStyle.Normal); } }
-
-        protected MappingStart TaggedBlockMappingStart(string tag)
-        {
-            return new MappingStart(null, tag, false, DataStyle.Normal);
-        }
-
-        protected MappingStart FlowMappingStart { get { return new MappingStart(null, null, true, DataStyle.Compact); } }
-
-        protected MappingEnd MappingEnd { get { return new MappingEnd(); } }
-
-        protected AnchorAlias AnchorAlias(string alias)
-        {
-            return new AnchorAlias(alias);
-        }
+    protected static AnchorAlias AnchorAlias(string alias)
+    {
+        return new AnchorAlias(alias);
     }
 }

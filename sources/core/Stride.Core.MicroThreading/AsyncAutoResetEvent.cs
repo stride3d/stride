@@ -1,47 +1,43 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
-namespace Stride.Core.MicroThreading
+namespace Stride.Core.MicroThreading;
+
+public class AsyncAutoResetEvent
 {
-    public class AsyncAutoResetEvent
+    // Credit: http://blogs.msdn.com/b/pfxteam/archive/2012/02/11/10266923.aspx
+    private readonly Queue<TaskCompletionSource<bool>> waits = [];
+    private bool signaled;
+
+    public Task WaitAsync()
     {
-        // Credit: http://blogs.msdn.com/b/pfxteam/archive/2012/02/11/10266923.aspx
-        private static readonly Task Completed = Task.FromResult(true);
-        private readonly Queue<TaskCompletionSource<bool>> waits = new Queue<TaskCompletionSource<bool>>();
-        private bool signaled;
-
-        public Task WaitAsync()
+        lock (waits)
         {
-            lock (waits)
+            if (signaled)
             {
-                if (signaled)
-                {
-                    signaled = false;
-                    return Completed;
-                }
-                else
-                {
-                    var tcs = new TaskCompletionSource<bool>();
-                    waits.Enqueue(tcs);
-                    return tcs.Task;
-                }
+                signaled = false;
+                return Task.CompletedTask;
+            }
+            else
+            {
+                var tcs = new TaskCompletionSource<bool>();
+                waits.Enqueue(tcs);
+                return tcs.Task;
             }
         }
+    }
 
-        public void Set()
+    public void Set()
+    {
+        TaskCompletionSource<bool>? toRelease = null;
+        lock (waits)
         {
-            TaskCompletionSource<bool> toRelease = null;
-            lock (waits)
-            {
-                if (waits.Count > 0)
-                    toRelease = waits.Dequeue();
-                else if (!signaled)
-                    signaled = true;
-            }
-            if (toRelease != null)
-                toRelease.SetResult(true);
+            if (waits.Count > 0)
+                toRelease = waits.Dequeue();
+            else if (!signaled)
+                signaled = true;
         }
+
+        toRelease?.SetResult(true);
     }
 }

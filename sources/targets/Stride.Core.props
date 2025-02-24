@@ -15,15 +15,13 @@
 
     <!-- Default values -->
     <StridePlatformOriginal>$(StridePlatform)</StridePlatformOriginal>
-    <StridePlatform Condition=" $(TargetFramework.StartsWith('net')) ">Windows</StridePlatform>
-    <StridePlatform Condition=" $(TargetFramework.StartsWith('net')) And $(RuntimeIdentifier.StartsWith('linux')) ">Linux</StridePlatform>
-    <StridePlatform Condition=" $(TargetFramework.StartsWith('net')) And $(RuntimeIdentifier.StartsWith('osx')) ">macOS</StridePlatform>
+    <StridePlatform>Windows</StridePlatform>
+    <StridePlatform Condition=" '$([MSBuild]::IsOSPlatform(Linux))' Or '$(RuntimeIdentifier.StartsWith(linux))' ">Linux</StridePlatform>
+    <StridePlatform Condition="  $(RuntimeIdentifier.StartsWith('osx')) ">macOS</StridePlatform>
     <StridePlatform Condition=" '$(TargetFramework)' == '$(StrideFrameworkUWP)' ">UWP</StridePlatform>
     <StridePlatform Condition=" '$(TargetFramework)' == '$(StrideFrameworkAndroid)' ">Android</StridePlatform>
     <StridePlatform Condition=" '$(TargetFramework)' == '$(StrideFrameworkiOS)' ">iOS</StridePlatform>
-    <!-- Default fallback -->
-    <StridePlatform Condition=" '$(StridePlatform)' == '' ">Windows</StridePlatform>
-
+    
     <StridePlatformFullName Condition="'$(StridePlatformFullName)' == ''">$(StridePlatform)</StridePlatformFullName>
 
     <StridePlatformDeps Condition=" '$(TargetFramework)' == '$(StrideFramework)' Or '$(TargetFramework)' == '$(StrideFrameworkWindows)' ">dotnet</StridePlatformDeps>
@@ -126,7 +124,7 @@
   <!-- Default values -->
   <PropertyGroup>
     <StrideAssemblyProcessor Condition="'$(StrideAssemblyProcessor)' == ''">false</StrideAssemblyProcessor>
-    <StrideAssemblyProcessorOptions Condition="'$(StrideAssemblyProcessorOptions)' == ''">--auto-notify-property --auto-module-initializer --serialization</StrideAssemblyProcessorOptions>
+    <StrideAssemblyProcessorOptions Condition="'$(StrideAssemblyProcessorOptions)' == ''">--auto-module-initializer --serialization</StrideAssemblyProcessorOptions>
   </PropertyGroup>
 
   <!-- 

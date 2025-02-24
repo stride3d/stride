@@ -11,6 +11,7 @@ using Stride.Animations;
 using Stride.Assets.Materials;
 using Stride.Core;
 using Stride.Core.Diagnostics;
+using Stride.Core.Extensions;
 using Stride.Core.IO;
 using Stride.Core.Mathematics;
 using Stride.Core.Serialization;
@@ -186,11 +187,16 @@ namespace Stride.Importer.ThreeD
             GenerateMeshNames(scene, meshNames);
 
             var nodeNames = new Dictionary<IntPtr, string>();
-            GenerateNodeNames(scene, nodeNames);
+            var duplicateNodeNameToNodePointers = new Dictionary<string, List<IntPtr>>();
+            GenerateNodeNames(scene, nodeNames, duplicateNodeNameToNodePointers);
 
             // register the nodes and fill hierarchy
             var meshIndexToNodeIndex = new Dictionary<int, List<int>>();
-            RegisterNodes(scene->MRootNode, -1, nodeNames, meshIndexToNodeIndex);
+            var nodePointerToNodeIndex = new Dictionary<IntPtr, int>();
+            RegisterNodes(scene->MRootNode, -1, nodeNames, meshIndexToNodeIndex, nodePointerToNodeIndex);
+
+            // Map the Bone pointers to their corresponding Node pointer
+            var bonePointerToNodePointerMap = GenerateBoneToNodeMap(scene, nodePointerToNodeIndex, duplicateNodeNameToNodePointers);
 
             // meshes
             for (var i = 0; i < scene->MNumMeshes; ++i)
@@ -200,7 +206,7 @@ namespace Stride.Importer.ThreeD
                     continue;
                 }
 
-                var meshInfo = ProcessMesh(scene, scene->MMeshes[i], meshNames);
+                var meshInfo = ProcessMesh(scene, scene->MMeshes[i], meshNames, nodePointerToNodeIndex, bonePointerToNodePointerMap);
 
                 if (meshInfo == null)
                 {
@@ -240,10 +246,195 @@ namespace Stride.Importer.ThreeD
             return modelData;
         }
 
+        private unsafe Dictionary<IntPtr, IntPtr> GenerateBoneToNodeMap(Scene* scene, Dictionary<IntPtr, int> nodePointerToNodeIndex, Dictionary<string, List<IntPtr>> duplicateNodeNameToNodePointers)
+        {
+            // Get the all bones in the scene
+            var allBones = new List<(IntPtr NodePointer, string BoneName)>();
+            var uniqueBoneNames = new HashSet<string>();
+            for (int meshIdx = 0; meshIdx < scene->MNumMeshes; meshIdx++)
+            {
+                var mesh = scene->MMeshes[meshIdx];
+                if (mesh->MNumBones == 0)
+                {
+                    continue;
+                }
+
+                for (int boneIdx = 0; boneIdx < mesh->MNumBones; boneIdx++)
+                {
+                    var bone = mesh->MBones[boneIdx];
+                    string boneName = bone->MName.AsString.CleanNodeName();
+                    allBones.Add(((IntPtr)bone, boneName));
+
+                    // Note that bones may appear in multiple meshes
+                    uniqueBoneNames.Add(boneName);
+                }
+            }
+
+            // Find the node each bone corresponds to
+            // Unfortunately, Assimp has a fundamental flaw where it does not properly track object types
+            // and the only link we're given is the name, but names are *not* unique
+            var bonePointerToNodePointerMap = new Dictionary<IntPtr, IntPtr>();
+            for (int i = allBones.Count - 1; i >= 0; i--)
+            {
+                var (bonePtr, boneName) = allBones[i];
+                var bone = (Bone*)bonePtr;
+                // While bone names are expected to be unique, *Node* names are NOT unique because
+                // nodes represent any object, eg. armature, mesh, bone, empty, etc.
+                // We iterate the bone pointer list in reverse because bones usually have a hierarchy
+                // such that we can test the parent or child node names as a best guess
+                IntPtr? boneNodePointer = null;
+                if (duplicateNodeNameToNodePointers.TryGetValue(boneName, out var dupNodePointers))
+                {
+                    // Case 1: If a child bone/node is connected to one of the duplicate node,
+                    // then it is most likely that node is the bone node
+                    for (int j = dupNodePointers.Count - 1; j >= 0; j--)
+                    {
+                        var nodePtr = dupNodePointers[j];
+                        bool isConnectedToBoneNode = false;
+                        foreach (var kv in bonePointerToNodePointerMap)
+                        {
+                            var otherBoneNodePtr = kv.Value;
+                            var otherBoneNode = (Node*)otherBoneNodePtr;
+                            var otherNodeParent = otherBoneNode->MParent;
+                            if (nodePtr == (IntPtr)otherNodeParent)
+                            {
+                                isConnectedToBoneNode = true;
+                                break;
+                            }
+                        }
+                        if (isConnectedToBoneNode)
+                        {
+                            boneNodePointer = nodePtr;
+                            break;
+                        }
+                    }
+                    if (boneNodePointer is null)
+                    {
+                        // Case 2: This bone is a leaf bone part of a parent bone node
+                        for (int j = dupNodePointers.Count - 1; j >= 0; j--)
+                        {
+                            var nodePtr = dupNodePointers[j];
+                            var node = (Node*)nodePtr;
+                            if (node->MNumMeshes > 0)
+                            {
+                                continue;   // Mesh object node, so we can ignore it
+                            }
+                            var parentNode = node->MParent;
+                            if (parentNode is not null)
+                            {
+                                var parentNodeName = parentNode->MName.AsString.CleanNodeName();
+                                if (parentNodeName == boneName)
+                                {
+                                    continue;   // This might occur when this bone is connected to an armature node with the same name (ie. the parent is NOT a bone node)
+                                }
+                                if (uniqueBoneNames.Contains(parentNodeName))
+                                {
+                                    boneNodePointer = nodePtr;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    if (boneNodePointer is null)
+                    {
+                        // Case 3: This bone is a bone with a (confirmed) sibling bone
+                        for (int j = dupNodePointers.Count - 1; j >= 0; j--)
+                        {
+                            var nodePtr = dupNodePointers[j];
+                            var node = (Node*)nodePtr;
+                            if (node->MNumMeshes > 0)
+                            {
+                                continue;   // Mesh object node, so we can ignore it
+                            }
+                            var parentNode = node->MParent;
+                            if (parentNode is not null)
+                            {
+                                bool hasBoneSibling = false;
+                                foreach (var kv in bonePointerToNodePointerMap)
+                                {
+                                    var otherBoneNodePtr = kv.Value;
+                                    var otherBoneNode = (Node*)otherBoneNodePtr;
+                                    if (otherBoneNode->MParent == parentNode)
+                                    {
+                                        hasBoneSibling = true;
+                                        break;
+                                    }
+                                }
+                                if (hasBoneSibling)
+                                {
+                                    boneNodePointer = nodePtr;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    if (boneNodePointer is null)
+                    {
+                        // Final case: We can only make a best guess
+                        // This might occur if you just have a single bone, or we didn't detect any related bone because we are the first node being processed
+                        Logger.Warning($"Unable to properly determine bone node due to duplicate name: {boneName}. The name must be unique to ensure the animation plays correctly.");
+                        for (int j = dupNodePointers.Count - 1; j >= 0; j--)
+                        {
+                            var nodePtr = dupNodePointers[j];
+                            var node = (Node*)nodePtr;
+                            if (node->MNumMeshes > 0)
+                            {
+                                continue;   // Mesh object node, so we can ignore it
+                            }
+                            boneNodePointer = nodePtr;
+                            break;
+                        }
+                    }
+                }
+                else
+                {
+                    // Only one node with the same name so this must be the bone's node
+                    for (int nodeIdx = 0; nodeIdx < nodes.Count; nodeIdx++)
+                    {
+                        if (boneName == nodes[nodeIdx].Name)
+                        {
+                            if (TryGetNodePointerFromNodeIndex(nodePointerToNodeIndex, nodeIdx, out var ptr))
+                            {
+                                boneNodePointer = ptr;
+                            }
+                            else
+                            {
+                                System.Diagnostics.Debug.Fail($"Node index was not mapped to a node pointer.");
+                            }
+                            break;
+                        }
+                    }
+                }
+                if (boneNodePointer is IntPtr foundNodePointer)
+                {
+                    System.Diagnostics.Debug.Assert(!bonePointerToNodePointerMap.ContainsKey(bonePtr));
+                    bonePointerToNodePointerMap[bonePtr] = foundNodePointer;
+                }
+            }
+
+            return bonePointerToNodePointerMap;
+
+            static bool TryGetNodePointerFromNodeIndex(Dictionary<IntPtr, int> nodePointerToNodeIndex, int nodeIndex, out IntPtr nodePointer)
+            {
+                foreach (var kv in nodePointerToNodeIndex)
+                {
+                    if (kv.Value == nodeIndex)
+                    {
+                        nodePointer = kv.Key;
+                        return true;
+                    }
+                }
+
+                nodePointer = default;
+                return false;
+            }
+        }
+
         private unsafe Rendering.Skeleton ProcessSkeleton(Scene* scene)
         {
             var nodeNames = new Dictionary<IntPtr, string>();
-            GenerateNodeNames(scene, nodeNames);
+            var duplicateNodeNameToNodePointers = new Dictionary<string, List<IntPtr>>();
+            GenerateNodeNames(scene, nodeNames, duplicateNodeNameToNodePointers);
 
             // register the nodes and fill hierarchy
             var meshIndexToNodeIndex = new Dictionary<int, List<int>>();
@@ -261,11 +452,39 @@ namespace Stride.Importer.ThreeD
             var visitedNodeNames = new HashSet<string>();
 
             var nodeNames = new Dictionary<IntPtr, string>();
-            GenerateNodeNames(scene, nodeNames);
+            var duplicateNodeNameToNodePointers = new Dictionary<string, List<IntPtr>>();
+            GenerateNodeNames(scene, nodeNames, duplicateNodeNameToNodePointers);
 
             // register the nodes and fill hierarchy
             var meshIndexToNodeIndex = new Dictionary<int, List<int>>();
-            RegisterNodes(scene->MRootNode, -1, nodeNames, meshIndexToNodeIndex);
+            var nodePointerToNodeIndex = new Dictionary<IntPtr, int>();
+            var duplicateNodeNameToNodeIndices = new Dictionary<string, List<int>>();
+            RegisterNodes(scene->MRootNode, -1, nodeNames, meshIndexToNodeIndex, nodePointerToNodeIndex, duplicateNodeNameToNodeIndices);
+
+            // Map the Bone pointers to their corresponding Node pointer
+            var bonePointerToNodePointerMap = GenerateBoneToNodeMap(scene, nodePointerToNodeIndex, duplicateNodeNameToNodePointers);
+            // Map the Bone name to the index of our internal 'nodes' list
+            var boneNameToNodeIndex = new Dictionary<string, int>();
+            foreach (var kv in bonePointerToNodePointerMap)
+            {
+                var bone = (Bone*)kv.Key;
+                var boneName = bone->MName.AsString.CleanNodeName();
+                if (boneNameToNodeIndex.ContainsKey(boneName))
+                {
+                    // A bone may appear on multple meshes, so only deal with the first encountered one.
+                    // Also note we cannot handle the case of multiple armatures in the same 'scene' with the same bone names
+                    // (this error is logged further down the code).
+                    continue;
+                }
+                if (TryFindNodeIndexFromBone(bone, bonePointerToNodePointerMap, nodePointerToNodeIndex, out int nodeIndex))
+                {
+                    boneNameToNodeIndex[boneName] = nodeIndex;
+                }
+                else
+                {
+                    Logger.Error($"Failed to find node with the same bone name '{boneName}'");
+                }
+            }
 
             if (scene->MNumAnimations > 0)
             {
@@ -310,11 +529,11 @@ namespace Stride.Importer.ThreeD
                     // TODO: Need to resample the animation created by the pivot chain into a single animation, have a look at the file hierarchy in Assimp's viewer to get a better clue
                     // See: 'IMPORT_FBX_PRESERVE_PIVOTS' above and https://github.com/assimp/assimp/discussions/4966
                     if (nodeAnim->MNodeName.AsString.Contains("$AssimpFbx$"))
-                        Logger.Error($"Animation '{animName}' contains a pivot bone ({nodeAnim->MNodeName.AsString}), we currently do not handle these. This animation may not resolve properly.");
+                        Logger.Warning($"Animation '{animName}' contains a pivot bone ({nodeAnim->MNodeName.AsString}), we currently do not handle these. This animation may not resolve properly.");
 
                     if (visitedNodeNames.Add(nodeName))
                     {
-                        ProcessNodeAnimation(animationData.AnimationClips, nodeAnim, ticksPerSec);
+                        ProcessNodeAnimation(animationData.AnimationClips, nodeAnim, ticksPerSec, duplicateNodeNameToNodeIndices, boneNameToNodeIndex);
                     }
                     else
                     {
@@ -327,7 +546,7 @@ namespace Stride.Importer.ThreeD
             return animationData;
         }
 
-        private unsafe void ProcessNodeAnimation(Dictionary<string, AnimationClip> animationClips, NodeAnim* nodeAnim, double ticksPerSec)
+        private unsafe void ProcessNodeAnimation(Dictionary<string, AnimationClip> animationClips, NodeAnim* nodeAnim, double ticksPerSec, Dictionary<string, List<int>> duplicateNodeNameToNodeIndices, Dictionary<string, int> boneNameToNodeIndex)
         {
             // Find the nodes on which the animation is performed
             var nodeName = nodeAnim->MNodeName.AsString.CleanNodeName();
@@ -341,8 +560,25 @@ namespace Stride.Importer.ThreeD
             // The scales
             ProcessAnimationCurveVector(animationClip, nodeAnim->MScalingKeys, nodeAnim->MNumScalingKeys, "Transform.Scale", ticksPerSec, false);
 
+            string targetNodeName = null;
+            if (duplicateNodeNameToNodeIndices.TryGetValue(nodeName, out var nodeIndices))
+            {
+                // Node name has remapped to be unique 
+                // For animation we assume the target is most likely a bone so we choose the bone node as a higher priority
+                if (!boneNameToNodeIndex.TryGetValue(nodeName, out int nodeIndex))
+                {
+                    nodeIndex = nodeIndices[0];    // Just select the first duplicate node, and hope this is what animation was targeting
+                    Logger.Warning($"Unable to properly determine target node for animation due to duplicate name: {nodeName}. The name must be unique to ensure the animation plays correctly.");
+                }
+                targetNodeName = nodes[nodeIndex].Name;
+            }
+            else
+            {
+                targetNodeName = nodeName;
+            }
+
             if (animationClip.Curves.Count > 0)
-                animationClips.Add(nodeName, animationClip);
+                animationClips.Add(targetNodeName, animationClip);
         }
 
         private unsafe void ProcessAnimationCurveVector(AnimationClip animationClip, VectorKey* keys, uint nbKeys, string partialTargetName, double ticksPerSec, bool isTranslation)
@@ -419,7 +655,7 @@ namespace Stride.Importer.ThreeD
             }
         }
 
-        private unsafe void GenerateUniqueNames(Dictionary<IntPtr, string> finalNames, List<string> baseNames, Func<int, IntPtr> objectToName)
+        private unsafe void GenerateUniqueNames(Dictionary<IntPtr, string> finalNames, List<string> baseNames, Func<int, IntPtr> objectToName, Dictionary<string, List<IntPtr>> duplicateNodeNameToNodePointers = null)
         {
             var itemNameTotalCount = new Dictionary<string, int>();
             var itemNameCurrentCount = new Dictionary<string, int>();
@@ -445,7 +681,14 @@ namespace Stride.Importer.ThreeD
                 if (itemNameTotalCount[itemName] > 1)
                 {
                     if (!itemNameCurrentCount.TryAdd(itemName, 1))
+                    {
                         itemNameCurrentCount[itemName]++;
+                    }
+                    if (duplicateNodeNameToNodePointers is not null)
+                    {
+                        var nodePointers = duplicateNodeNameToNodePointers.GetOrCreateValue(itemName);
+                        nodePointers.Add(lItem);
+                    }
 
                     itemName = itemName + "_" + itemNameCurrentCount[itemName].ToString(CultureInfo.InvariantCulture);
                 }
@@ -478,13 +721,13 @@ namespace Stride.Importer.ThreeD
             GenerateUniqueNames(animationNames, baseNames, i => (IntPtr)scene->MAnimations[i]);
         }
 
-        private unsafe void GenerateNodeNames(Scene* scene, Dictionary<IntPtr, string> nodeNames)
+        private unsafe void GenerateNodeNames(Scene* scene, Dictionary<IntPtr, string> nodeNames, Dictionary<string, List<IntPtr>> duplicateNodeNameToNodePointers = null)
         {
             var baseNames = new List<string>();
             var orderedNodes = new List<IntPtr>();
 
             GetNodeNames(scene->MRootNode, baseNames, orderedNodes);
-            GenerateUniqueNames(nodeNames, baseNames, i => orderedNodes[i]);
+            GenerateUniqueNames(nodeNames, baseNames, i => orderedNodes[i], duplicateNodeNameToNodePointers);
         }
 
         private unsafe void GetNodeNames(Node* node, List<string> nodeNames, List<IntPtr> orderedNodes)
@@ -498,7 +741,10 @@ namespace Stride.Importer.ThreeD
             }
         }
 
-        private unsafe void RegisterNodes(Node* fromNode, int parentIndex, Dictionary<IntPtr, string> nodeNames, Dictionary<int, List<int>> meshIndexToNodeIndex)
+        private unsafe void RegisterNodes(
+            Node* fromNode, int parentIndex,
+            Dictionary<IntPtr, string> nodeNames, Dictionary<int, List<int>> meshIndexToNodeIndex,
+            Dictionary<IntPtr, int> nodePointerToNodeIndex = null, Dictionary<string, List<int>> duplicateNodeNameToNodeIndices = null)
         {
             var nodeIndex = nodes.Count;
 
@@ -547,14 +793,33 @@ namespace Stride.Importer.ThreeD
 
             nodes.Add(modelNodeDefinition);
 
+            if (nodePointerToNodeIndex is not null)
+            {
+                nodePointerToNodeIndex.Add((IntPtr)fromNode, nodeIndex);
+            }
+            if (duplicateNodeNameToNodeIndices is not null)
+            {
+                string originalNodeName = fromNode->MName.AsString.CleanNodeName();
+                if (!string.IsNullOrWhiteSpace(originalNodeName) && !string.Equals(originalNodeName, modelNodeDefinition.Name))
+                {
+                    if (!duplicateNodeNameToNodeIndices.TryGetValue(originalNodeName, out var nodeIndices))
+                    {
+                        nodeIndices = new();
+                        duplicateNodeNameToNodeIndices[originalNodeName] = nodeIndices;
+                        Logger.Info($"Duplicate node name found in model: {originalNodeName}. Model might not appear correctly if this node is a bone, or animations may not play correctly if this is a target node.");
+                    }
+                    nodeIndices.Add(nodeIndex);
+                }
+            }
+
             // register the children
             for (uint child = 0; child < fromNode->MNumChildren; ++child)
             {
-                RegisterNodes(fromNode->MChildren[child], nodeIndex, nodeNames, meshIndexToNodeIndex);
+                RegisterNodes(fromNode->MChildren[child], nodeIndex, nodeNames, meshIndexToNodeIndex, nodePointerToNodeIndex, duplicateNodeNameToNodeIndices);
             }
         }
 
-        private unsafe MeshInfo ProcessMesh(Scene* scene, Silk.NET.Assimp.Mesh* mesh, Dictionary<IntPtr, string> meshNames)
+        private unsafe MeshInfo ProcessMesh(Scene* scene, Silk.NET.Assimp.Mesh* mesh, Dictionary<IntPtr, string> meshNames, Dictionary<IntPtr, int> nodePointerToNodeIndex, Dictionary<IntPtr, IntPtr> bonePointerToNodePointerMap)
         {
             List<MeshBoneDefinition> bones = null;
             var hasSkinningPosition = false;
@@ -590,25 +855,10 @@ namespace Stride.Importer.ThreeD
                         vertexIndexToBoneIdWeight[(int)vtxWeight.MVertexId].Add(((short)boneId, vtxWeight.MWeight));
                     }
 
-                    // find the node where the bone is mapped - based on the name(?)
-                    var nodeIndex = -1;
-                    var boneName = bone->MName.AsString.CleanNodeName();
-                    foreach (char c in Path.GetInvalidFileNameChars())
+                    // Find the node where the bone is mapped
+                    if (!TryFindNodeIndexFromBone(bone, bonePointerToNodePointerMap, nodePointerToNodeIndex, out int nodeIndex))
                     {
-                        boneName = boneName.Replace(c, '_');
-                    }
-                    for (var nodeDefId = 0; nodeDefId < nodes.Count; ++nodeDefId)
-                    {
-                        var nodeDef = nodes[nodeDefId];
-                        if (nodeDef.Name == boneName)
-                        {
-                            nodeIndex = nodeDefId;
-                            break;
-                        }
-                    }
-
-                    if (nodeIndex == -1)
-                    {
+                        var boneName = bone->MName.AsString.CleanNodeName();
                         Logger.Error($"No node found for name {boneId}:{boneName}");
                         nodeIndex = 0;
                     }
@@ -837,6 +1087,19 @@ namespace Stride.Importer.ThreeD
             };
         }
 
+        /// <summary>
+        /// Returns true if <paramref name="nodeIndex"/> on <see cref="nodes"/> corresponding to this <paramref name="bone"/> was found.
+        /// </summary>
+        private unsafe bool TryFindNodeIndexFromBone(Bone* bone, Dictionary<IntPtr, IntPtr> bonePointerToNodePointerMap, Dictionary<IntPtr, int> nodePointerToNodeIndex, out int nodeIndex)
+        {
+            if (bonePointerToNodePointerMap.TryGetValue((IntPtr)bone, out var nodePointer))
+            {
+                return nodePointerToNodeIndex.TryGetValue(nodePointer, out nodeIndex);
+            }
+            nodeIndex = -1;
+            return false;
+        }
+
         private void NormalizeVertexWeights(List<List<(short, float)>> controlPts, int nbBoneByVertex)
         {
             for (var vertexId = 0; vertexId < controlPts.Count; ++vertexId)
@@ -869,14 +1132,19 @@ namespace Stride.Importer.ThreeD
             }
         }
 
-       
+
         private unsafe void ExtractEmbededTexture(Scene* scene, string importFieName)
         {
             string dir = Path.GetDirectoryName(importFieName);
             for (uint i = 0; i < scene->MNumTextures; ++i)
             {
-                var texture=scene->MTextures[i];
-                string fullName = Path.Combine(dir, Path.GetFileName(texture->MFilename));
+                var texture = scene->MTextures[i];
+                if (!Material.Materials.TryGetTextureFileName(texture, out var texFileName, out var errorMessage))
+                {
+                    Logger.Error(errorMessage);
+                    continue;
+                }
+                string fullName = Path.Combine(dir, texFileName);
                 CreateTextureFile(texture, fullName);
             }
         }
@@ -903,7 +1171,7 @@ namespace Stride.Importer.ThreeD
             {
                 var lMaterial = scene->MMaterials[i];
                 var materialName = materialNames[(IntPtr)lMaterial];
-                materials.Add(materialName, ProcessMeshMaterial(lMaterial));
+                materials.Add(materialName, ProcessMeshMaterial(scene, lMaterial));
             }
             return materials;
         }
@@ -923,7 +1191,7 @@ namespace Stride.Importer.ThreeD
             GenerateUniqueNames(materialNames, baseNames, i => (IntPtr)scene->MMaterials[i]);
         }
 
-        private unsafe MaterialAsset ProcessMeshMaterial(Silk.NET.Assimp.Material* pMaterial)
+        private unsafe MaterialAsset ProcessMeshMaterial(Scene* scene, Silk.NET.Assimp.Material* pMaterial)
         {
             var finalMaterial = new MaterialAsset();
 
@@ -955,16 +1223,16 @@ namespace Stride.Importer.ThreeD
             if (hasDiffColor == false)
                 SetMaterialColorFlag(pMaterial, Assimp.MatkeyBaseColor, ref hasDiffColor, ref diffColor, true);
 
-            BuildLayeredSurface(pMaterial, hasDiffColor, false, diffColor.ToStrideColor(), 0.0f, TextureType.Diffuse, finalMaterial);
-            BuildLayeredSurface(pMaterial, hasSpecColor, false, specColor.ToStrideColor(), 0.0f, TextureType.Specular, finalMaterial);
-            BuildLayeredSurface(pMaterial, false, false, dummyColor.ToStrideColor(), 0.0f, TextureType.Normals, finalMaterial);
-            BuildLayeredSurface(pMaterial, false, false, dummyColor.ToStrideColor(), 0.0f, TextureType.Displacement, finalMaterial);
-            BuildLayeredSurface(pMaterial, hasAmbientColor, false, ambientColor.ToStrideColor(), 0.0f, TextureType.Ambient, finalMaterial);
-            BuildLayeredSurface(pMaterial, false, hasOpacity, dummyColor.ToStrideColor(), opacity, TextureType.Opacity, finalMaterial);
-            BuildLayeredSurface(pMaterial, false, hasSpecPower, dummyColor.ToStrideColor(), specPower, TextureType.Shininess, finalMaterial);
-            BuildLayeredSurface(pMaterial, hasEmissiveColor, false, emissiveColor.ToStrideColor(), 0.0f, TextureType.Emissive, finalMaterial);
-            BuildLayeredSurface(pMaterial, false, false, dummyColor.ToStrideColor(), 0.0f, TextureType.Height, finalMaterial);
-            BuildLayeredSurface(pMaterial, hasReflectiveColor, false, reflectiveColor.ToStrideColor(), 0.0f, TextureType.Reflection, finalMaterial);
+            BuildLayeredSurface(scene, pMaterial, hasDiffColor, false, diffColor.ToStrideColor(), 0.0f, TextureType.Diffuse, finalMaterial);
+            BuildLayeredSurface(scene, pMaterial, hasSpecColor, false, specColor.ToStrideColor(), 0.0f, TextureType.Specular, finalMaterial);
+            BuildLayeredSurface(scene, pMaterial, false, false, dummyColor.ToStrideColor(), 0.0f, TextureType.Normals, finalMaterial);
+            BuildLayeredSurface(scene, pMaterial, false, false, dummyColor.ToStrideColor(), 0.0f, TextureType.Displacement, finalMaterial);
+            BuildLayeredSurface(scene, pMaterial, hasAmbientColor, false, ambientColor.ToStrideColor(), 0.0f, TextureType.Ambient, finalMaterial);
+            BuildLayeredSurface(scene, pMaterial, false, hasOpacity, dummyColor.ToStrideColor(), opacity, TextureType.Opacity, finalMaterial);
+            BuildLayeredSurface(scene, pMaterial, false, hasSpecPower, dummyColor.ToStrideColor(), specPower, TextureType.Shininess, finalMaterial);
+            BuildLayeredSurface(scene, pMaterial, hasEmissiveColor, false, emissiveColor.ToStrideColor(), 0.0f, TextureType.Emissive, finalMaterial);
+            BuildLayeredSurface(scene, pMaterial, false, false, dummyColor.ToStrideColor(), 0.0f, TextureType.Height, finalMaterial);
+            BuildLayeredSurface(scene, pMaterial, hasReflectiveColor, false, reflectiveColor.ToStrideColor(), 0.0f, TextureType.Reflection, finalMaterial);
 
             return finalMaterial;
         }
@@ -989,7 +1257,7 @@ namespace Stride.Importer.ThreeD
             return diffColor != System.Numerics.Vector4.Zero;
         }
 
-        private unsafe void BuildLayeredSurface(Silk.NET.Assimp.Material* pMat, bool hasBaseColor, bool hasBaseValue, Color4 baseColor, float baseValue, TextureType textureType, MaterialAsset finalMaterial)
+        private unsafe void BuildLayeredSurface(Scene* scene, Silk.NET.Assimp.Material* pMat, bool hasBaseColor, bool hasBaseValue, Color4 baseColor, float baseValue, TextureType textureType, MaterialAsset finalMaterial)
         {
             var nbTextures = assimp.GetMaterialTextureCount(pMat, textureType);
 
@@ -1008,7 +1276,7 @@ namespace Stride.Importer.ThreeD
             }
             else
             {
-                computeColorNode = GenerateOneTextureTypeLayers(pMat, textureType, textureCount, finalMaterial);
+                computeColorNode = GenerateOneTextureTypeLayers(scene, pMat, textureType, textureCount, finalMaterial);
             }
 
             if (computeColorNode == null)
@@ -1020,7 +1288,7 @@ namespace Stride.Importer.ThreeD
             {
                 if (assimp.GetMaterialTextureCount(pMat, TextureType.Lightmap) > 0)
                 {
-                    var lightMap = GenerateOneTextureTypeLayers(pMat, TextureType.Lightmap, textureCount, finalMaterial);
+                    var lightMap = GenerateOneTextureTypeLayers(scene, pMat, TextureType.Lightmap, textureCount, finalMaterial);
                     if (lightMap != null)
                         computeColorNode = new ComputeBinaryColor(computeColorNode, lightMap, BinaryOperator.Add);
                 }
@@ -1085,9 +1353,9 @@ namespace Stride.Importer.ThreeD
             }
         }
 
-        private unsafe IComputeColor GenerateOneTextureTypeLayers(Silk.NET.Assimp.Material* pMat, TextureType textureType, int textureCount, MaterialAsset finalMaterial)
+        private unsafe IComputeColor GenerateOneTextureTypeLayers(Scene* scene, Silk.NET.Assimp.Material* pMat, TextureType textureType, int textureCount, MaterialAsset finalMaterial)
         {
-            var stack = Material.Materials.ConvertAssimpStackCppToCs(assimp, pMat, textureType, Logger);
+            var stack = Material.Materials.ConvertAssimpStackCppToCs(assimp, scene, pMat, textureType, Logger);
 
             var compositionFathers = new Stack<IComputeColor>();
 
@@ -1345,7 +1613,12 @@ namespace Stride.Importer.ThreeD
 
                         if (assimp.GetMaterialTexture(lMaterial, textureType, j, ref path, ref mapping, ref uvIndex, ref blend, ref textureOp, ref mapMode, ref flags) == Return.Success)
                         {
-                            var relFileName = Path.GetFileName(path.AsString);
+                            if (!Material.Materials.TryGetTextureFileName(path.AsString, scene, out var texFileName, out var errorMessage))
+                            {
+                                Logger.Error(errorMessage);
+                                break;
+                            }
+                            var relFileName = texFileName;
                             var fileNameToUse = Path.Combine(vfsInputPath, relFileName);
                             textureNames.Add(fileNameToUse);
                             break;

@@ -368,6 +368,9 @@ namespace Stride.Engine
         protected ColliderShape colliderShape;
 
         [DataMemberIgnore]
+        protected bool attachInProgress = false;
+
+        [DataMemberIgnore]
         public virtual ColliderShape ColliderShape
         {
             get
@@ -583,7 +586,10 @@ namespace Stride.Engine
             }
         }
 
-        public void ComposeShape()
+        /// <summary>
+        /// Made virtual for added behavior in CharacterComponent with UAF exception
+        /// </summary>
+        public virtual void ComposeShape()
         {
             ColliderShapeChanged = false;
 
@@ -641,16 +647,19 @@ namespace Stride.Engine
         internal void Attach(PhysicsProcessor.AssociatedData data)
         {
             Data = data;
+            attachInProgress = true;
 
             if (ColliderShapes.Count == 0 && ColliderShape == null)
             {
                 logger.Error($"Entity {{Entity.Name}} has a PhysicsComponent without any collider shape.");
+                attachInProgress = false;
                 return; //no shape no purpose
             }
 
             //this is mostly required for the game studio gizmos
             if (Simulation.DisableSimulation)
             {
+                attachInProgress = false;
                 return;
             }
 
@@ -663,6 +672,7 @@ namespace Stride.Engine
                 if (ColliderShape == null)
                 {
                     logger.Error($"Entity {Entity.Name}'s PhysicsComponent failed to compose its collider shape.");
+                    attachInProgress = false;
                     return; //no shape no purpose
                 }
             }
@@ -679,6 +689,8 @@ namespace Stride.Engine
                 }
                 ignoreCollisionBuffer = null;
             }
+
+            attachInProgress = false;
         }
 
         /// <summary>
@@ -686,6 +698,10 @@ namespace Stride.Engine
         /// </summary>
         internal void ReAttach()
         {
+            if (Data == null)
+            {
+                throw new InvalidOperationException("PhysicsComponent has not been attached yet.");
+            }
             //TODO: Could consider fully detaching and then rebuilding, but ideally this would cause null refs on Rigidbody OnDetach calls
             //Shouldnt call detach, because at this point the user has added new components and this runs as a check to rebuild as needed.
             //Entire wipes to rebuild causes loss in the data that the user has just added (and is slower)

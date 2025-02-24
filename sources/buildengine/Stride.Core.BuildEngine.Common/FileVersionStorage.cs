@@ -115,8 +115,10 @@ namespace Stride.Core.BuildEngine
 
         protected override void WriteEntry(Stream localStream, KeyValuePair<FileVersionKey, ObjectId> value)
         {
+            ArgumentNullException.ThrowIfNull(localStream);
+
             var key = value.Key;
-            var line = string.Format("{0}\t{1}\t{2}\t{3}\n", key.Path, key.LastModifiedDate.Ticks, key.FileSize, value.Value);
+            var line = $"{key.Path}\t{key.LastModifiedDate.Ticks}\t{key.FileSize}\t{value.Value}\n";
             var bytes = Encoding.UTF8.GetBytes(line);
             localStream.Write(bytes, 0, bytes.Length);
         }

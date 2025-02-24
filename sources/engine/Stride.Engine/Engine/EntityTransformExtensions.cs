@@ -153,12 +153,12 @@ namespace Stride.Engine
         }
 
         /// <summary>
-        /// Performs tranformation of the given transform in world space to local space.
+        /// Performs transformation of the given transform in world space to local space.
         /// </summary>
         /// <param name="transformComponent">The transform component.</param>
-        /// <param name="position">Input world space position tranformed to local space.</param>
-        /// <param name="rotation">Input world space rotation tranformed to local space.</param>
-        /// <param name="scale">Input world space scale tranformed to local space.</param>
+        /// <param name="position">Input world space position transformed to local space.</param>
+        /// <param name="rotation">Input world space rotation transformed to local space.</param>
+        /// <param name="scale">Input world space scale transformed to local space.</param>
         public static void WorldToLocal(this TransformComponent transformComponent, ref Vector3 position, ref Quaternion rotation, ref Vector3 scale)
         {
             Vector3 worldScale;
@@ -176,7 +176,7 @@ namespace Stride.Engine
         }
 
         /// <summary>
-        /// Performs tranformation of the given point in world space to local space.
+        /// Performs transformation of the given point in world space to local space.
         /// </summary>
         /// <param name="transformComponent">The transform component.</param>
         /// <param name="point">World space point.</param>
@@ -189,7 +189,7 @@ namespace Stride.Engine
         }
 
         /// <summary>
-        /// Performs tranformation of the given point in world space to local space.
+        /// Performs transformation of the given point in world space to local space.
         /// </summary>
         /// <param name="transformComponent">The transform component.</param>
         /// <param name="point">World space point.</param>
@@ -204,12 +204,12 @@ namespace Stride.Engine
         }
 
         /// <summary>
-        /// Performs tranformation of the given transform in local space to world space.
+        /// Performs transformation of the given transform in local space to world space.
         /// </summary>
         /// <param name="transformComponent">The transform component.</param>
-        /// <param name="position">Input local space position tranformed to world space.</param>
-        /// <param name="rotation">Input local space rotation tranformed to world space.</param>
-        /// <param name="scale">Input local space scale tranformed to world space.</param>
+        /// <param name="position">Input local space position transformed to world space.</param>
+        /// <param name="rotation">Input local space rotation transformed to world space.</param>
+        /// <param name="scale">Input local space scale transformed to world space.</param>
         public static void LocalToWorld(this TransformComponent transformComponent, ref Vector3 position, ref Quaternion rotation, ref Vector3 scale)
         {
             Vector3 worldScale;
@@ -223,7 +223,7 @@ namespace Stride.Engine
         }
 
         /// <summary>
-        /// Performs tranformation of the given point in local space to world space.
+        /// Performs transformation of the given point in local space to world space.
         /// </summary>
         /// <param name="transformComponent">The transform component.</param>
         /// <param name="point">Local space point.</param>
@@ -234,7 +234,7 @@ namespace Stride.Engine
         }
 
         /// <summary>
-        /// Performs tranformation of the given point in local space to world space.
+        /// Performs transformation of the given point in local space to world space.
         /// </summary>
         /// <param name="transformComponent">The transform component.</param>
         /// <param name="point">Local space point.</param>
@@ -244,6 +244,98 @@ namespace Stride.Engine
             Vector3 result;
             Vector3.Transform(ref point, ref transformComponent.WorldMatrix, out result);
             return result;
+        }
+
+        /// <summary>
+        /// Set this Transform's world position and rotation based on the given parameters.
+        /// </summary>
+        /// <remarks>
+        /// <para> This conversion is lossy, getting the world position back won't match this input position. </para>
+        /// <para>
+        /// This method relies on this object's matrix which may be out of date if any of its parents moved since the last frame.
+        /// If this is likely, you should call <see cref="TransformComponent.UpdateWorldMatrix"/> before calling this method.
+        /// </para>
+        /// </remarks>
+        /// <param name="transformComponent">The transform component.</param>
+        /// <param name="position">Input world space position.</param>
+        /// <param name="rotation">Input world space rotation.</param>
+        public static void SetWorld(this TransformComponent transformComponent, Vector3 position, Quaternion rotation)
+        {
+            if (transformComponent.Parent == null)
+            {
+                if (transformComponent.Entity.Scene is { } s)
+                    transformComponent.Position = position - s.WorldMatrix.TranslationVector;
+                else
+                    transformComponent.Position = position;
+
+                transformComponent.Rotation = rotation;
+                return;
+            }
+
+            ref Matrix worldMatrix = ref transformComponent.Parent.WorldMatrix;
+            Matrix worldMatrixInv;
+            Matrix.Invert(ref worldMatrix, out worldMatrixInv);
+            Vector3.Transform(ref position, ref worldMatrixInv, out position);
+            
+            worldMatrix.Decompose(out _, out Quaternion parentRot, out _);
+            rotation = Quaternion.Invert(parentRot) * rotation;
+            
+            transformComponent.Position = position;
+            transformComponent.Rotation = rotation;
+        }
+
+        /// <summary>
+        /// Set this Transform's world position and rotation based on the given parameters.
+        /// </summary>
+        /// <remarks>
+        /// <para> This conversion is lossy, getting the world position back won't match this input position. </para>
+        /// <para>
+        /// This method relies on this object's matrix which may be out of date if any of its parents moved since the last frame.
+        /// If this is likely, you should call <see cref="TransformComponent.UpdateWorldMatrix"/> before calling this method.
+        /// </para>
+        /// </remarks>
+        /// <param name="transformComponent">The transform component.</param>
+        /// <param name="position">Input world space position.</param>
+        public static void SetWorld(this TransformComponent transformComponent, Vector3 position)
+        {
+            if (transformComponent.Parent == null)
+            {
+                if (transformComponent.Entity.Scene is { } s)
+                    transformComponent.Position = position - s.WorldMatrix.TranslationVector;
+                else
+                    transformComponent.Position = position;
+                return;
+            }
+
+            Matrix worldMatrixInv;
+            Matrix.Invert(ref transformComponent.Parent.WorldMatrix, out worldMatrixInv);
+            Vector3.Transform(ref position, ref worldMatrixInv, out position);
+            
+            transformComponent.Position = position;
+        }
+
+        /// <summary>
+        /// Set this Transform's world position and rotation based on the given parameters.
+        /// </summary>
+        /// <remarks>
+        /// <para> This conversion is lossy, getting the world position back won't match this input position. </para>
+        /// <para>
+        /// This method relies on this object's matrix which may be out of date if any of its parents moved since the last frame.
+        /// If this is likely, you should call <see cref="TransformComponent.UpdateWorldMatrix"/> before calling this method.
+        /// </para>
+        /// </remarks>
+        /// <param name="transformComponent">The transform component.</param>
+        /// <param name="rotation">Input world space rotation.</param>
+        public static void SetWorld(this TransformComponent transformComponent, Quaternion rotation)
+        {
+            if (transformComponent.Parent == null)
+            {
+                transformComponent.Rotation = rotation;
+                return;
+            }
+
+            transformComponent.Parent.WorldMatrix.Decompose(out _, out Quaternion parentRot, out _);
+            transformComponent.Rotation = Quaternion.Invert(parentRot) * rotation;
         }
     }
 }
