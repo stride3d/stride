@@ -1,24 +1,23 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using System.Threading;
-using System.Threading.Tasks;
 using NuGet.Common;
 using NuGet.Configuration;
 using NuGet.Frameworks;
 using NuGet.Versioning;
 
+#if STRIDE_NUGET_RESOLVER_UI
+using Avalonia.Controls;
+#endif
+
 namespace Stride.Core.Assets
 {
     public class NuGetAssemblyResolver
     {
-        public const string DevSource = @"%LocalAppData%\Stride\NugetDev";
+        public const string DevSource = @"Stride\NugetDev";
 
         static bool assembliesResolved;
         static readonly object assembliesLock = new object();
@@ -39,16 +38,16 @@ namespace Stride.Core.Assets
         {
             // Make sure our nuget local store is added to nuget config
             var folder = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-            string strideFolder = null;
+            var devSourcePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), DevSource);
+
             while (folder != null)
             {
                 if (File.Exists(Path.Combine(folder, @"build\Stride.sln")))
                 {
-                    strideFolder = folder;
                     var settings = NuGet.Configuration.Settings.LoadDefaultSettings(null);
 
-                    Directory.CreateDirectory(Environment.ExpandEnvironmentVariables(DevSource));
-                    CheckPackageSource(settings, "Stride Dev", NuGet.Configuration.Settings.ApplyEnvironmentTransform(DevSource));
+                    Directory.CreateDirectory(devSourcePath);
+                    CheckPackageSource(settings, "Stride Dev", devSourcePath);
 
                     settings.SaveToDisk();
                     break;
@@ -78,29 +77,26 @@ namespace Stride.Core.Assets
                             Thread.Sleep(500);
                             if (!dialogNotNeeded.Task.IsCompleted)
                             {
-                                var splashScreen = new Stride.NuGetResolver.SplashScreenWindow();
-                                splashScreen.Show();
-
-                                // Register log
-                                logger.SetupLogAction((level, message) =>
+                                Stride.NuGetResolver.NugetResolverApp.Run((app, args) =>
                                 {
-                                    splashScreen.Dispatcher.InvokeAsync(() =>
+                                    app.Styles.Add(new Avalonia.Themes.Fluent.FluentTheme());
+                                    var splashScreen = new Stride.NuGetResolver.SplashScreenWindow();
+                                    splashScreen.Show();
+                                    // Register log
+                                    logger.SetupLogAction((level, message) =>
                                     {
-                                        splashScreen.AppendMessage(level, message);
+                                        splashScreen.SetupLog(level, message);
                                     });
+
+                                    dialogNotNeeded.Task.ContinueWith(t =>
+                                    {
+                                        splashScreen.CloseApp();
+                                    });
+                                    splashScreen.Closed += (sender2, e2) => { splashScreen.InvokeShutDown();};
+
+                                    app.Run(splashScreen);
+                                    splashScreen.Close();
                                 });
-
-                                dialogNotNeeded.Task.ContinueWith(t =>
-                                {
-                                    splashScreen.Dispatcher.Invoke(() => splashScreen.Close());
-                                });
-
-                                splashScreen.Closed += (sender2, e2) =>
-                                    splashScreen.Dispatcher.InvokeShutdown();
-
-                                System.Windows.Threading.Dispatcher.Run();
-
-                                splashScreen.Close();
                             }
                             dialogClosed.SetResult(true);
                         });

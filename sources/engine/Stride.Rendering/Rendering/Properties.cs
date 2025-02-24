@@ -158,7 +158,7 @@ namespace Stride.Rendering
 
     public partial struct ObjectNodeReference
     {
-        public readonly int Index;
+        public int Index;
 
         /// <summary>
         /// Invalid slot.

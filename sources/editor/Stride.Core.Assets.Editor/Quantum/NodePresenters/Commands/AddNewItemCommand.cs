@@ -6,6 +6,7 @@ using Stride.Core.Annotations;
 using Stride.Core.Reflection;
 using Stride.Core.Presentation.Quantum;
 using Stride.Core.Presentation.Quantum.Presenters;
+using Stride.Core.Serialization;
 
 namespace Stride.Core.Assets.Editor.Quantum.NodePresenters.Commands
 {
@@ -79,6 +80,6 @@ namespace Stride.Core.Assets.Editor.Quantum.NodePresenters.Commands
 
         public static bool CanConstruct(Type elementType) => !elementType.IsClass || elementType.GetConstructor(Type.EmptyTypes) != null || elementType == typeof(string);
 
-        public static bool IsReferenceType(Type elementType) => AssetRegistry.IsContentType(elementType) || typeof(AssetReference).IsAssignableFrom(elementType);
+        public static bool IsReferenceType(Type elementType) => AssetRegistry.IsExactContentType(elementType) || typeof(AssetReference).IsAssignableFrom(elementType) || UrlReferenceBase.IsUrlReferenceType(elementType);
     }
 }

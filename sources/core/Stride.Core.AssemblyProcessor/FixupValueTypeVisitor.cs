@@ -2,28 +2,27 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using Mono.Cecil;
 
-namespace Stride.Core.AssemblyProcessor
+namespace Stride.Core.AssemblyProcessor;
+
+class FixupValueTypeVisitor : CecilTypeReferenceVisitor
 {
-    class FixupValueTypeVisitor : CecilTypeReferenceVisitor
+    public static readonly FixupValueTypeVisitor Default = new();
+
+    public override TypeReference Visit(TypeReference type)
     {
-        public static readonly FixupValueTypeVisitor Default = new FixupValueTypeVisitor();
+        var typeDefinition = type.Resolve();
+        if (typeDefinition?.IsValueType == true && !type.IsValueType)
+            type.IsValueType = typeDefinition.IsValueType;
 
-        public override TypeReference Visit(TypeReference type)
-        {
-            var typeDefinition = type.Resolve();
-            if (typeDefinition != null && typeDefinition.IsValueType && !type.IsValueType)
-                type.IsValueType = typeDefinition.IsValueType;
+        return base.Visit(type);
+    }
 
-            return base.Visit(type);
-        }
+    public override TypeReference Visit(GenericInstanceType type)
+    {
+        type = (GenericInstanceType)base.Visit(type);
+        if (type.ElementType.IsValueType && !type.IsValueType)
+            type.IsValueType = type.ElementType.IsValueType;
 
-        public override TypeReference Visit(GenericInstanceType type)
-        {
-            type = (GenericInstanceType)base.Visit(type);
-            if (type.ElementType.IsValueType && !type.IsValueType)
-                type.IsValueType = type.ElementType.IsValueType;
-
-            return type;
-        }
+        return type;
     }
 }

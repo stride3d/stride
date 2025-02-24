@@ -1,0 +1,47 @@
+!Model
+Id: de1e1444-d2b9-45e5-bb33-00c083ea5a03
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Source: !file ../../Resources/Models/SciFi031_unityfan777.fbx
+Skeleton: 3421b446-a6a4-44dd-b0ae-769287a8d239:Models/SciFi031_unityfan777 Skeleton
+PivotPosition: {X: 0.0, Y: 0.0, Z: 0.0}
+Materials:
+    a248f0b076a8546cbfe10b3d52741e36:
+        Name: tire
+        MaterialInstance:
+            Material: ba45865f-e505-4ffc-b552-4ba50d83c916:Materials/tire
+    d45da1f6169f1b452894606d65c7161d:
+        Name: silver
+        MaterialInstance:
+            Material: 7de7f854-3eee-421b-9878-d3384b2a930d:Materials/silver
+    5e5c3137d5b1972b3809d7f92d59f4c7:
+        Name: tire_protector
+        MaterialInstance:
+            Material: 96666b25-d9f9-4b65-bf40-b20c4efaf40d:Materials/tire_protector
+    926a7488dd744553fead72a53c68f852:
+        Name: silver_dark
+        MaterialInstance:
+            Material: a71e62f7-979a-4e8c-af28-081ca3fcc496:Materials/silver_dark
+    41222c1f65f5dc2d7461853e528a433a:
+        Name: silver.001
+        MaterialInstance:
+            Material: e426771c-179c-4fe2-a3ea-fb5e6a96b48a:Materials/silver.001
+    f8550ac1c6de434ace528d12c99f2e25:
+        Name: blocker
+        MaterialInstance:
+            Material: 54ebf916-d971-43c5-90e3-16fb27ba65a5:Materials/blocker
+    cd7b846015fbda9a8c80b92c66164e6f:
+        Name: plastic_shiny
+        MaterialInstance:
+            Material: 909ad596-b71b-410d-86a3-10ae6f52c89e:Materials/plastic_shiny
+    f69ec12fa372a62f71dbd400768a7346:
+        Name: headlights
+        MaterialInstance:
+            Material: c4846aaf-e2d9-4d73-8936-46108b188d81:Materials/headlights
+    67bdc36056c68274ef1fe0ca07062209:
+        Name: taillight
+        MaterialInstance:
+            Material: 2596b3a8-a318-48dd-ac51-e4ddf73db3d8:Materials/taillight
+Modifiers: {}
+~SourceHashes:
+    4a1f152084cd2296e14e80e0d6167984~../../Resources/Models/SciFi031_unityfan777.fbx: 1ca26e2224dd402aa3733767a2755025

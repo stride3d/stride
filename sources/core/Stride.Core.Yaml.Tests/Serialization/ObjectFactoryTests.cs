@@ -43,47 +43,41 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-using System.IO;
 using Xunit;
 using Stride.Core.Yaml.Serialization;
 
-namespace Stride.Core.Yaml.Tests.Serialization
+namespace Stride.Core.Yaml.Tests.Serialization;
+
+public class ObjectFactoryTests
 {
-    public class ObjectFactoryTests
+    public class FooBase;
+
+    public class FooDerived : FooBase;
+
+    [Fact]
+    public void NotSpecifyingObjectFactoryUsesDefault()
     {
-        public class FooBase
+        var settings = new SerializerSettings();
+        settings.RegisterTagMapping("!foo", typeof(FooBase));
+        var serializer = new Serializer(settings);
+        var result = serializer.Deserialize(new StringReader("!foo {}"));
+
+        Assert.True(result is FooBase);
+    }
+
+    [Fact]
+    public void ObjectFactoryIsInvoked()
+    {
+        var settings = new SerializerSettings()
         {
-        }
+            ObjectFactory = new LambdaObjectFactory(_ => new FooDerived(), new DefaultObjectFactory())
+        };
+        settings.RegisterTagMapping("!foo", typeof(FooBase));
 
-        public class FooDerived : FooBase
-        {
-        }
+        var serializer = new Serializer(settings);
 
-        [Fact]
-        public void NotSpecifyingObjectFactoryUsesDefault()
-        {
-            var settings = new SerializerSettings();
-            settings.RegisterTagMapping("!foo", typeof(FooBase));
-            var serializer = new Serializer(settings);
-            var result = serializer.Deserialize(new StringReader("!foo {}"));
+        var result = serializer.Deserialize(new StringReader("!foo {}"));
 
-            Assert.True(result is FooBase);
-        }
-
-        [Fact]
-        public void ObjectFactoryIsInvoked()
-        {
-            var settings = new SerializerSettings()
-            {
-                ObjectFactory = new LambdaObjectFactory(t => new FooDerived(), new DefaultObjectFactory())
-            };
-            settings.RegisterTagMapping("!foo", typeof(FooBase));
-
-            var serializer = new Serializer(settings);
-
-            var result = serializer.Deserialize(new StringReader("!foo {}"));
-
-            Assert.True(result is FooDerived);
-        }
+        Assert.True(result is FooDerived);
     }
 }

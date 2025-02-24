@@ -983,7 +983,7 @@ namespace Stride.Core.Assets.Quantum
             }
 
             // Content reference (note: they are not treated as reference but as primitive type)
-            if (AssetRegistry.IsContentType(localValue?.GetType()) || AssetRegistry.IsContentType(baseValue?.GetType()))
+            if (AssetRegistry.IsExactContentType(localValue?.GetType()) || AssetRegistry.IsExactContentType(baseValue?.GetType()))
             {
                 var localRef = AttachedReferenceManager.GetAttachedReference(localValue);
                 var baseRef = AttachedReferenceManager.GetAttachedReference(baseValue);
@@ -1037,7 +1037,7 @@ namespace Stride.Core.Assets.Quantum
             }
 
             // Content reference (note: they are not treated as reference but as primitive type)
-            if (AssetRegistry.IsContentType(localValue?.GetType()) || AssetRegistry.IsContentType(baseValue?.GetType()))
+            if (AssetRegistry.IsExactContentType(localValue?.GetType()) || AssetRegistry.IsExactContentType(baseValue?.GetType()))
             {
                 var localRef = AttachedReferenceManager.GetAttachedReference(localValue);
                 var baseRef = AttachedReferenceManager.GetAttachedReference(baseValue);

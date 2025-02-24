@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using Stride.Core;
 using Stride.Core.Diagnostics;
+using Stride.Engine.Design;
 using Stride.Games;
 using Stride.Rendering;
 
@@ -41,7 +42,7 @@ namespace Stride.Engine.FlexibleProcessing
             registry = registryParam;
         }
 
-        public void IntroduceComponent(EntityComponent _component)
+        public void IntroduceComponent(EntityComponent _component, ExecutionMode executionMode)
         {
             if (_component is not IMarkedComponent component)
                 return;
@@ -83,6 +84,10 @@ namespace Stride.Engine.FlexibleProcessing
                 if (instance == null) // if the processor hasn't been created yet or was previously removed
                 {
                     pDataRef.Instance = instance = (IProcessorBase)Activator.CreateInstance(pDataRef.Type)!;
+
+                    if ((instance.ExecutionMode & executionMode) == ExecutionMode.None)
+                        continue;
+
                     if (instance is IUpdateProcessor update)
                         processorsToUpdate.Add(new(update.Order, pDataRef.Type), new(update, new ProfilingKey(GameProfilingKeys.GameUpdate, GetType().Name)));
                     if (instance is IDrawProcessor draw)
@@ -92,11 +97,14 @@ namespace Stride.Engine.FlexibleProcessing
                     // Don't read or write to pDataRef from here on since SystemAdded may have mutated processors' backing array
                 }
 
+                if ((instance.ExecutionMode & executionMode) == ExecutionMode.None)
+                    continue;
+
                 instance.OnComponentAdded(component);
             }
         }
 
-        public void RemoveComponent(EntityComponent _component)
+        public void RemoveComponent(EntityComponent _component, ExecutionMode executionMode)
         {
             if (_component is not IMarkedComponent component)
                 return;
@@ -105,7 +113,11 @@ namespace Stride.Engine.FlexibleProcessing
             {
                 ref var pDataRef = ref CollectionsMarshal.AsSpan(processors)[procIndex];
                 pDataRef.ComponentCount--;
-                pDataRef.Instance!.OnComponentRemoved(component);
+
+                if ((pDataRef.Instance!.ExecutionMode & executionMode) == ExecutionMode.None)
+                    continue;
+
+                pDataRef.Instance.OnComponentRemoved(component);
 
                 // Refresh reference as OnComponentRemoved may have mutated processors' backing array
                 pDataRef = ref CollectionsMarshal.AsSpan(processors)[procIndex];

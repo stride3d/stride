@@ -20,47 +20,59 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-using System;
-using Stride.Core.Annotations;
 
-namespace Stride.Core
+namespace Stride.Core;
+
+/// <summary>
+/// A service registry is a <see cref="IServiceProvider"/> that provides methods to register and unregister services.
+/// </summary>
+public interface IServiceRegistry
 {
     /// <summary>
-    /// A service registry is a <see cref="IServiceProvider"/> that provides methods to register and unregister services.
+    /// Occurs when a new service is added to the registry.
     /// </summary>
-    public interface IServiceRegistry
-    {
-        /// <summary>
-        /// Occurs when a new service is added to the registry.
-        /// </summary>
-        event EventHandler<ServiceEventArgs> ServiceAdded;
+    event EventHandler<ServiceEventArgs> ServiceAdded;
 
-        /// <summary>
-        /// Occurs when a service is removed from the registry.
-        /// </summary>
-        event EventHandler<ServiceEventArgs> ServiceRemoved;
+    /// <summary>
+    /// Occurs when a service is removed from the registry.
+    /// </summary>
+    event EventHandler<ServiceEventArgs> ServiceRemoved;
 
-        /// <summary>
-        /// Adds a service to this <see cref="ServiceRegistry"/>.
-        /// </summary>
-        /// <typeparam name="T">The type of service to add.</typeparam>
-        /// <param name="service">The service to add.</param>
-        /// <exception cref="ArgumentNullException">Thrown when the provided service is null.</exception>
-        /// <exception cref="ArgumentException">Thrown when a service of the same type is already registered.</exception>
-        void AddService<T>([NotNull] T service) where T : class;
+    /// <summary>
+    /// Adds a service to this <see cref="ServiceRegistry"/>.
+    /// </summary>
+    /// <typeparam name="T">The type of service to add.</typeparam>
+    /// <param name="service">The service to add.</param>
+    /// <exception cref="ArgumentNullException">Thrown when the provided service is null.</exception>
+    /// <exception cref="ArgumentException">Thrown when a service of the same type is already registered.</exception>
+    void AddService<T>(T service) where T : class;
 
-        /// <summary>
-        /// Gets the service object of the specified type.
-        /// </summary>
-        /// <typeparam name="T">The type of the service to retrieve.</typeparam>
-        /// <returns>A service of the requested type, or [null] if not found.</returns>
-        [CanBeNull]
-        T GetService<T>() where T : class;
+    /// <summary>
+    /// Gets the service object of the specified type.
+    /// </summary>
+    /// <remarks>The generic type provided must match the generic type of your initial call to <see cref="AddService{T}"/></remarks>
+    /// <typeparam name="T">The type of the service to retrieve.</typeparam>
+    /// <returns>A service of the requested type, or [null] if not found.</returns>
+    T? GetService<T>() where T : class;
 
-        /// <summary>
-        /// Removes the object providing a specified service.
-        /// </summary>
-        /// <typeparam name="T">The type of the service to remove.</typeparam>
-        void RemoveService<T>() where T : class;
-    }
+    /// <summary>
+    /// Removes the object providing a specified service.
+    /// </summary>
+    /// <remarks>The generic type provided must match the generic type of your initial call to <see cref="AddService{T}"/></remarks>
+    /// <typeparam name="T">The type of the service to remove.</typeparam>
+    void RemoveService<T>() where T : class;
+
+    /// <summary>
+    /// Removes the following object from services if it was registered as one.
+    /// </summary>
+    /// <remarks>The generic type provided must match the generic type of your initial call to <see cref="AddService{T}"/></remarks>
+    /// <returns>True if the argument was a service, false otherwise</returns>
+    /// <typeparam name="T">The type of the service to remove.</typeparam>
+    bool RemoveService<T>(T serviceObject) where T : class;
+
+    /// <summary>
+    /// Gets the service object of the specified type, create one if it didn't exist before.
+    /// </summary>
+    /// <typeparam name="T">The type of the service to retrieve.</typeparam>
+    T GetOrCreate<T>() where T : class, IService;
 }

@@ -2,12 +2,11 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #if STRIDE_PLATFORM_ANDROID
 
-namespace Stride.Core
+namespace Stride.Core;
+
+public static class PlatformAndroid
 {
-    public static class PlatformAndroid
-    {
-        public static Android.Content.Context Context;
-    }
+    public static Android.Content.Context Context;
 }
 
 #endif

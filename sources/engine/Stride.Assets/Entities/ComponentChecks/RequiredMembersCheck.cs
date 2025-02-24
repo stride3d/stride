@@ -33,12 +33,16 @@ namespace Stride.Assets.Entities.ComponentChecks
                 if (member.Type.IsValueType)
                     continue; // value types cannot be null, and must always have a proper default value
 
-                MemberRequiredAttribute memberRequired;
-                if ((memberRequired = member.GetCustomAttributes<MemberRequiredAttribute>(true).FirstOrDefault()) != null)
-                {
-                    if (member.Get(component) == null)
-                        WriteResult(result, componentName, targetUrlInStorage, entity.Name, member.Name, memberRequired.ReportAs);
-                }
+                MemberRequiredReportType reportType;
+                if (member.GetCustomAttributes<MemberRequiredAttribute>(true).FirstOrDefault() is {} strideAttribute)
+                    reportType = strideAttribute.ReportAs;
+                else if (member.GetCustomAttributes<System.Runtime.CompilerServices.RequiredMemberAttribute>(true).Any())
+                    reportType = MemberRequiredReportType.Warning;
+                else 
+                    continue;
+
+                if (member.Get(component) == null)
+                    WriteResult(result, componentName, targetUrlInStorage, entity.Name, member.Name, reportType);
             }
         }
 

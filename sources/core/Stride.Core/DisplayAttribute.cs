@@ -1,9 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using System;
-using System.Collections.Generic;
+
 using System.Reflection;
-using Stride.Core.Annotations;
 
 namespace Stride.Core
 {
@@ -29,13 +27,13 @@ namespace Stride.Core
         /// </summary>
         Always,
     }
-    
+
     /// <summary>
     /// Portable DisplayAttribute equivalent to <see cref="System.ComponentModel.DataAnnotations.DisplayAttribute"/>.
     /// </summary>
     public class DisplayAttribute : Attribute
     {
-        private static readonly Dictionary<MemberInfo, DisplayAttribute> RegisteredDisplayAttributes = new Dictionary<MemberInfo, DisplayAttribute>();
+        private static readonly Dictionary<MemberInfo, DisplayAttribute> RegisteredDisplayAttributes = [];
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DisplayAttribute"/> class.
@@ -43,7 +41,7 @@ namespace Stride.Core
         /// <param name="order">The order weight of the column.</param>
         /// <param name="name">A value that is used for display in the UI..</param>
         /// <param name="category">A value that is used to group fields in the UI..</param>
-        public DisplayAttribute(int order, string name = null, string category = null)
+        public DisplayAttribute(int order, string? name = null, string? category = null)
             : this(name, category)
         {
             Order = order;
@@ -54,7 +52,7 @@ namespace Stride.Core
         /// </summary>
         /// <param name="name">A value that is used for display in the UI..</param>
         /// <param name="category">A value that is used to group fields in the UI..</param>
-        public DisplayAttribute(string name = null, string category = null)
+        public DisplayAttribute(string? name = null, string? category = null)
         {
             Name = name;
             Category = category;
@@ -70,13 +68,13 @@ namespace Stride.Core
         /// Gets a string that is used for display in the UI.
         /// </summary>
         /// <value>The name.</value>
-        public string Name { get; }
+        public string? Name { get; }
 
         /// <summary>
         /// Gets a string that is used to group fields in the UI.
         /// </summary>
         /// <value>The category.</value>
-        public string Category { get; }
+        public string? Category { get; }
 
         /// <summary>
         /// Gets the hue of a color that is used in the UI.
@@ -101,13 +99,12 @@ namespace Stride.Core
         /// <returns>DisplayAttribute.</returns>
         /// <exception cref="System.ArgumentNullException">memberInfo</exception>
         [Obsolete("Display attribute should be retrieved via an AttributeRegistry.")]
-        public static DisplayAttribute GetDisplay([NotNull] MemberInfo memberInfo)
+        public static DisplayAttribute GetDisplay(MemberInfo memberInfo)
         {
-            if (memberInfo == null) throw new ArgumentNullException(nameof(memberInfo));
+            ArgumentNullException.ThrowIfNull(memberInfo);
             lock (RegisteredDisplayAttributes)
             {
-                DisplayAttribute value;
-                if (!RegisteredDisplayAttributes.TryGetValue(memberInfo, out value))
+                if (!RegisteredDisplayAttributes.TryGetValue(memberInfo, out var value))
                 {
                     value = memberInfo.GetCustomAttribute<DisplayAttribute>() ?? new DisplayAttribute(memberInfo.Name);
                     RegisteredDisplayAttributes.Add(memberInfo, value);
@@ -123,7 +120,7 @@ namespace Stride.Core
         /// <param name="type">The type for which to get the display name.</param>
         /// <returns>A string representing the display name of the type.</returns>
         [Obsolete("Display attribute should be retrieved via an AttributeRegistry.")]
-        public static string GetDisplayName(Type type)
+        public static string? GetDisplayName(Type type)
         {
             if (type == null)
                 return null;
@@ -132,7 +129,7 @@ namespace Stride.Core
         }
 
         [Obsolete("Display attribute should be retrieved via an AttributeRegistry.")]
-        public static int? GetOrder([NotNull] MemberInfo memberInfo)
+        public static int? GetOrder(MemberInfo memberInfo)
         {
             var display = GetDisplay(memberInfo);
             return display.Order;

@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Extensions;
 using Stride.Core.Presentation.Quantum;
 using Stride.Core.Presentation.Quantum.Presenters;
 using Stride.Core.Presentation.Services;
@@ -41,7 +42,8 @@ namespace Stride.Core.Assets.Editor.Quantum.NodePresenters.Commands
         /// <inheritdoc/>
         public override bool CanAttach(INodePresenter nodePresenter)
         {
-            return ContentReferenceHelper.ContainsReferenceType(nodePresenter.Descriptor);
+            var type = nodePresenter.Descriptor.GetInnerCollectionType();
+            return AssetRegistry.CanBeAssignedToContentTypes(type, checkIsUrlType: true);
         }
 
         /// <inheritdoc/>
@@ -96,7 +98,9 @@ namespace Stride.Core.Assets.Editor.Quantum.NodePresenters.Commands
 
         protected virtual IEnumerable<Type> GetAssetTypes(Type contentType)
         {
-            return AssetRegistry.GetAssetTypes(contentType);
+            if (AssetRegistry.CanPropertyHandleAssets(contentType, out var types))
+                return types;
+            return Array.Empty<Type>();
         }
 
         protected virtual AssetViewModel GetCurrentTarget(object currentValue)

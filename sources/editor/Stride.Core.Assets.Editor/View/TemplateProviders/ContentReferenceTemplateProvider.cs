@@ -12,16 +12,14 @@ namespace Stride.Core.Assets.Editor.View.TemplateProviders
 
         public override bool MatchNode(NodeViewModel node)
         {
-            var isReference = typeof(AssetReference).IsAssignableFrom(node.Type);
-
-            if (!isReference)
+            if (AssetRegistry.CanBeAssignedToContentTypes(node.Type, checkIsUrlType: true))
             {
-                isReference = AssetRegistry.IsContentType(node.Type);
+                object hasDynamic;
+                node.AssociatedData.TryGetValue("DynamicThumbnail", out hasDynamic);
+                return (bool)(hasDynamic ?? false) == DynamicThumbnail;
             }
 
-            object hasDynamic;
-            node.AssociatedData.TryGetValue("DynamicThumbnail", out hasDynamic);
-            return isReference && (bool)(hasDynamic ?? false) == DynamicThumbnail;
+            return false;
         }
     }
 }

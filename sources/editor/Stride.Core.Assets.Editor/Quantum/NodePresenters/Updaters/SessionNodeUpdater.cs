@@ -6,6 +6,7 @@ using Stride.Core.Assets.Editor.Quantum.NodePresenters.Keys;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Reflection;
+using Stride.Core.Serialization;
 
 namespace Stride.Core.Assets.Editor.Quantum.NodePresenters.Updaters
 {
@@ -20,7 +21,7 @@ namespace Stride.Core.Assets.Editor.Quantum.NodePresenters.Updaters
 
         protected override void UpdateNode(IAssetNodePresenter node)
         {
-            if (AssetRegistry.IsContentType(node.Type) || typeof(AssetReference).IsAssignableFrom(node.Type))
+            if (AssetRegistry.CanBeAssignedToContentTypes(node.Type, checkIsUrlType: true))
             {
                 node.AttachedProperties.Add(SessionData.SessionKey, session);
                 node.AttachedProperties.Add(ReferenceData.Key, new ContentReferenceViewModel());
@@ -30,9 +31,8 @@ namespace Stride.Core.Assets.Editor.Quantum.NodePresenters.Updaters
             {
                 node.AttachedProperties.Add(SessionData.SessionKey, session);
             }
-            if (AssetRegistry.IsContentType(node.Type))
+            if (AssetRegistry.CanPropertyHandleAssets(node.Type, out var assetTypes))
             {
-                var assetTypes = AssetRegistry.GetAssetTypes(node.Type);
                 var thumbnailService = session.ServiceProvider.Get<IThumbnailService>();
                 node.AttachedProperties.Add(SessionData.DynamicThumbnailKey, !assetTypes.All(thumbnailService.HasStaticThumbnail));
             }

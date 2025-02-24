@@ -1,0 +1,30 @@
+﻿Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.6.33723.286
+MinimumVisualStudioVersion = 16.0.0.0
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.BepuPhysics.Demo", "Stride.BepuPhysics.Demo\Stride.BepuPhysics.Demo.csproj", "{C72D80DB-B3A3-49F3-AB1A-A7FCF01959AF}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.BepuPhysics.Demo.Windows", "Stride.BepuPhysics.Demo.Windows\Stride.BepuPhysics.Demo.Windows.csproj", "{BEAAC47E-F3B6-4D25-A5AF-E571EC07EBA0}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C72D80DB-B3A3-49F3-AB1A-A7FCF01959AF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C72D80DB-B3A3-49F3-AB1A-A7FCF01959AF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C72D80DB-B3A3-49F3-AB1A-A7FCF01959AF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C72D80DB-B3A3-49F3-AB1A-A7FCF01959AF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BEAAC47E-F3B6-4D25-A5AF-E571EC07EBA0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BEAAC47E-F3B6-4D25-A5AF-E571EC07EBA0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BEAAC47E-F3B6-4D25-A5AF-E571EC07EBA0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BEAAC47E-F3B6-4D25-A5AF-E571EC07EBA0}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {10B0CB5D-C84D-4802-A91A-7762CBCAE0BD}
+	EndGlobalSection
+EndGlobal

@@ -35,7 +35,6 @@ namespace Stride.Input
             uiControl.MouseWheel += OnMouseWheelEvent;
             uiControl.SizeChanged += OnSizeChanged;
             uiControl.GotFocus += OnGotFocus;
-            uiControl.LostFocus += OnLostFocus;
 
             OnSizeChanged(this, null);
 
@@ -54,7 +53,6 @@ namespace Stride.Input
             uiControl.MouseWheel -= OnMouseWheelEvent;
             uiControl.SizeChanged -= OnSizeChanged;
             uiControl.GotFocus -= OnGotFocus;
-            uiControl.LostFocus -= OnLostFocus;
 
             if (rawInputMouse != null)
             {
@@ -124,14 +122,6 @@ namespace Stride.Input
             }
         }
 
-        internal void ForceReleaseButtons()
-        {
-            foreach (var button in DownButtons.ToArray())
-            {
-                MouseState.HandleButtonUp(button);
-            }
-        }
-
         private void OnGotFocus(object sender, EventArgs e)
         {
             // reapply cursor clip when refocusing
@@ -139,15 +129,6 @@ namespace Stride.Input
             {
                 var rect = new Rect(capturedPosition.X, capturedPosition.Y, capturedPosition.X, capturedPosition.Y);
                 ClipCursor(rect);
-            }
-        }
-
-        private void OnLostFocus(object sender, EventArgs args)
-        {
-            var buttonsToRelease = DownButtons.ToArray();
-            foreach (var button in buttonsToRelease)
-            {
-                MouseState.HandleButtonUp(button);
             }
         }
 

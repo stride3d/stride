@@ -1,74 +1,68 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.IO;
 using Mono.Cecil;
 using Xunit;
 
-namespace Stride.Core.AssemblyProcessor.Tests
+namespace Stride.Core.AssemblyProcessor.Tests;
+
+public class TestCecilExtensions
 {
-    public class TestCecilExtensions
+    class Nested;
+
+    private readonly BaseAssemblyResolver assemblyResolver = new DefaultAssemblyResolver();
+
+    public TestCecilExtensions()
     {
-        class Nested
-        {
-        }
+        // Add location of current assembly to MonoCecil search path.
+        assemblyResolver.AddSearchDirectory(Path.GetDirectoryName(typeof(TestCecilExtensions).Assembly.Location));
+    }
 
-        private readonly BaseAssemblyResolver assemblyResolver = new DefaultAssemblyResolver();
+    private string GenerateNameCecil(Type type)
+    {
+        var typeReference = type.GenerateTypeCecil(assemblyResolver);
 
-        public TestCecilExtensions()
-        {
-            // Add location of current assembly to MonoCecil search path.
-            assemblyResolver.AddSearchDirectory(Path.GetDirectoryName(typeof(TestCecilExtensions).Assembly.Location));
-        }
+        return typeReference.ConvertAssemblyQualifiedName();
+    }
 
-        private string GenerateNameCecil(Type type)
-        {
-            var typeReference = type.GenerateTypeCecil(assemblyResolver);
+    private static string? GenerateNameDotNet(Type type)
+    {
+        return type.AssemblyQualifiedName;
+    }
 
-            return typeReference.ConvertAssemblyQualifiedName();
-        }
+    private void CheckGeneratedNames(Type type)
+    {
+        var nameCecil = GenerateNameCecil(type);
+        var nameDotNet = GenerateNameDotNet(type);
+        Assert.Equal(nameDotNet, nameCecil);
+    }
 
-        private static string GenerateNameDotNet(Type type)
-        {
-            return type.AssemblyQualifiedName;
-        }
+    [Fact]
+    public void TestCecilDotNetAssemblyQualifiedNames()
+    {
+        // Primitive value type
+        CheckGeneratedNames(typeof(bool));
 
-        private void CheckGeneratedNames(Type type)
-        {
-            var nameCecil = GenerateNameCecil(type);
-            var nameDotNet = GenerateNameDotNet(type);
-            Assert.Equal(nameDotNet, nameCecil);
-        }
+        // Primitive class
+        CheckGeneratedNames(typeof(string));
 
-        [Fact]
-        public void TestCecilDotNetAssemblyQualifiedNames()
-        {
-            // Primitive value type
-            CheckGeneratedNames(typeof(bool));
+        // User class
+        CheckGeneratedNames(typeof(TestCecilExtensions));
 
-            // Primitive class
-            CheckGeneratedNames(typeof(string));
+        // Closed generics
+        CheckGeneratedNames(typeof(Dictionary<string, object>));
 
-            // User class
-            CheckGeneratedNames(typeof(TestCecilExtensions));
+        // Open generics
+        CheckGeneratedNames(typeof(Dictionary<,>));
 
-            // Closed generics
-            CheckGeneratedNames(typeof(Dictionary<string, object>));
+        // Nested types
+        CheckGeneratedNames(typeof(Nested));
 
-            // Open generics
-            CheckGeneratedNames(typeof(Dictionary<,>));
+        // Arrays
+        CheckGeneratedNames(typeof(string[]));
+        CheckGeneratedNames(typeof(Dictionary<string, object>[]));
 
-            // Nested types
-            CheckGeneratedNames(typeof(Nested));
-
-            // Arrays
-            CheckGeneratedNames(typeof(string[]));
-            CheckGeneratedNames(typeof(Dictionary<string, object>[]));
-
-            // Nullable
-            CheckGeneratedNames(typeof(bool?));
-        }
+        // Nullable
+        CheckGeneratedNames(typeof(bool?));
     }
 }

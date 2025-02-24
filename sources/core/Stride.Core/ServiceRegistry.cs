@@ -20,92 +20,120 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-using System;
-using System.Collections.Generic;
 
-namespace Stride.Core
+namespace Stride.Core;
+
+/// <summary>
+/// Provides a base implementation for managing services within an application. Implements the <see cref="IServiceRegistry"/> interface.
+/// </summary>
+/// <remarks>
+/// This class uses a dictionary to store services by their types. It is thread-safe.
+/// </remarks>
+public class ServiceRegistry : IServiceRegistry
 {
     /// <summary>
-    /// Provides a base implementation for managing services within an application. Implements the <see cref="IServiceRegistry"/> interface.
+    /// The key used to identify the <see cref="ServiceRegistry"/> instance.
     /// </summary>
-    /// <remarks>
-    /// This class uses a dictionary to store services by their types. It is thread-safe.
-    /// </remarks>
-    public class ServiceRegistry : IServiceRegistry
+    public static readonly PropertyKey<IServiceRegistry> ServiceRegistryKey = new(nameof(ServiceRegistryKey), typeof(IServiceRegistry));
+
+    private readonly Dictionary<Type, object> registeredService = [];
+
+    /// <inheritdoc />
+    public event EventHandler<ServiceEventArgs>? ServiceAdded;
+
+    /// <inheritdoc />
+    public event EventHandler<ServiceEventArgs>? ServiceRemoved;
+
+    /// <inheritdoc />
+    public T? GetService<T>()
+        where T : class
     {
-        /// <summary>
-        /// The key used to identify the <see cref="ServiceRegistry"/> instance.
-        /// </summary>
-        public static readonly PropertyKey<IServiceRegistry> ServiceRegistryKey = new PropertyKey<IServiceRegistry>(nameof(ServiceRegistryKey), typeof(IServiceRegistry));
-
-        private readonly Dictionary<Type, object> registeredService = new Dictionary<Type, object>();
-
-        /// <inheritdoc />
-        public event EventHandler<ServiceEventArgs> ServiceAdded;
-
-        /// <inheritdoc />
-        public event EventHandler<ServiceEventArgs> ServiceRemoved;
-
-        /// <inheritdoc />
-        public T GetService<T>()
-            where T : class
+        var type = typeof(T);
+        lock (registeredService)
         {
-            var type = typeof(T);
-            lock (registeredService)
+            if (registeredService.TryGetValue(type, out var service))
+                return (T)service;
+        }
+
+        return null;
+    }
+
+    /// <inheritdoc />
+    /// <remarks>
+    /// This implementation triggers the <see cref="ServiceAdded"/> event after a service is successfully added.
+    /// </remarks>
+    public void AddService<T>(T service)
+        where T : class
+    {
+        ArgumentNullException.ThrowIfNull(service);
+
+        var type = typeof(T);
+        lock (registeredService)
+        {
+            if (!registeredService.TryAdd(type, service))
+                throw new ArgumentException("Service is already registered with this type", nameof(type));
+        }
+        OnServiceAdded(new ServiceEventArgs(type, service));
+    }
+
+    /// <inheritdoc />
+    /// <remarks>
+    /// This implementation triggers the <see cref="ServiceRemoved"/> event after a service is successfully removed.
+    /// If the service type is not found, this method does nothing.
+    /// </remarks>
+    public void RemoveService<T>()
+        where T : class
+    {
+        var type = typeof(T);
+        object? oldService;
+        lock (registeredService)
+        {
+            registeredService.Remove(type, out oldService);
+        }
+        if (oldService != null)
+            OnServiceRemoved(new ServiceEventArgs(type, oldService));
+    }
+
+    /// <inheritdoc />
+    public bool RemoveService<T>(T serviceObject) where T : class
+    {
+        lock (registeredService)
+        {
+            if (ReferenceEquals(GetService<T>(), serviceObject))
             {
-                if (registeredService.TryGetValue(type, out var service))
-                    return (T)service;
+                RemoveService<T>();
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+    }
+
+    /// <inheritdoc />
+    public T GetOrCreate<T>() where T : class, IService
+    {
+        lock (registeredService)
+        {
+            var t = GetService<T>();
+            if (t is null)
+            {
+                t = (T)T.NewInstance(this);
+                AddService(t);
             }
 
-            return null;
+            return t;
         }
+    }
 
-        /// <inheritdoc />
-        /// <remarks>
-        /// This implementation triggers the <see cref="ServiceAdded"/> event after a service is successfully added.
-        /// </remarks>
-        public void AddService<T>(T service)
-            where T : class
-        {
-            if (service == null) throw new ArgumentNullException(nameof(service));
+    private void OnServiceAdded(ServiceEventArgs e)
+    {
+        ServiceAdded?.Invoke(this, e);
+    }
 
-            var type = typeof(T);
-            lock (registeredService)
-            {
-                if (registeredService.ContainsKey(type))
-                    throw new ArgumentException("Service is already registered with this type", nameof(type));
-                registeredService.Add(type, service);
-            }
-            OnServiceAdded(new ServiceEventArgs(type, service));
-        }
-
-        /// <inheritdoc />
-        /// <remarks>
-        /// This implementation triggers the <see cref="ServiceRemoved"/> event after a service is successfully removed.
-        /// If the service type is not found, this method does nothing.
-        /// </remarks>
-        public void RemoveService<T>()
-            where T : class
-        {
-            var type = typeof(T);
-            object oldService;
-            lock (registeredService)
-            {
-                if (registeredService.TryGetValue(type, out oldService))
-                    registeredService.Remove(type);
-            }
-            if (oldService != null)
-                OnServiceRemoved(new ServiceEventArgs(type, oldService));
-        }
-
-        private void OnServiceAdded(ServiceEventArgs e)
-        {
-            ServiceAdded?.Invoke(this, e);
-        }
-
-        private void OnServiceRemoved(ServiceEventArgs e)
-        {
-            ServiceRemoved?.Invoke(this, e);
-        }
+    private void OnServiceRemoved(ServiceEventArgs e)
+    {
+        ServiceRemoved?.Invoke(this, e);
     }
 }

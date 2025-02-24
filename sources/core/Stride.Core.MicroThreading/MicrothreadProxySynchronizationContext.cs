@@ -1,18 +1,16 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using System.Threading;
 
-namespace Stride.Core.MicroThreading
+namespace Stride.Core.MicroThreading;
+
+public class MicrothreadProxySynchronizationContext : SynchronizationContext, IMicroThreadSynchronizationContext
 {
-    public class MicrothreadProxySynchronizationContext : SynchronizationContext, IMicroThreadSynchronizationContext
+    private readonly MicroThread? microThread;
+
+    public MicrothreadProxySynchronizationContext(MicroThread? microThread)
     {
-        private readonly MicroThread microThread;
-
-        public MicrothreadProxySynchronizationContext(MicroThread microThread)
-        {
-            this.microThread = microThread;
-        }
-
-        MicroThread IMicroThreadSynchronizationContext.MicroThread => microThread;
+        this.microThread = microThread;
     }
+
+    MicroThread IMicroThreadSynchronizationContext.MicroThread => microThread;
 }

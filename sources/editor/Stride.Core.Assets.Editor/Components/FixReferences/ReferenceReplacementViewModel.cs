@@ -11,15 +11,15 @@ namespace Stride.Core.Assets.Editor.Components.FixReferences
     public abstract class ReferenceReplacementViewModel<T> : DispatcherViewModel where T : ViewModelBase
     {
         private readonly FixReferencesViewModel<T> fixReferences;
-        private readonly object referencedMember;
+        private readonly Type propertyType;
         private T replacementObject;
         private bool dontFixReference;
 
-        protected ReferenceReplacementViewModel(FixReferencesViewModel<T> fixReferences, T objectToFix, T referencer, object referencedMember)
+        protected ReferenceReplacementViewModel(FixReferencesViewModel<T> fixReferences, T objectToFix, T referencer, Type propertyType)
             : base(fixReferences.SafeArgument(nameof(fixReferences)).ServiceProvider)
         {
             this.fixReferences = fixReferences;
-            this.referencedMember = referencedMember;
+            this.propertyType = propertyType;
             Referencer = referencer;
             ObjectToFix = objectToFix;
             PickupReplacementObjectCommand = new AnonymousTaskCommand(fixReferences.ServiceProvider, PickupReplacementObject);
@@ -56,7 +56,7 @@ namespace Stride.Core.Assets.Editor.Components.FixReferences
 
         protected async Task PickupReplacementObject()
         {
-            var replacement = await fixReferences.PickupObject(ObjectToFix, referencedMember);
+            var replacement = await fixReferences.PickupObject(ObjectToFix, propertyType);
             if (replacement != null)
             {
                 ReplacementObject = replacement;

@@ -24,10 +24,10 @@
 
 using System;
 using System.Collections.Generic;
+using SharpDX;
 using SharpDX.Direct3D;
-using SharpDX.Direct3D11;
 using SharpDX.DXGI;
-
+using SharpDX.Mathematics.Interop;
 using Stride.Core;
 using Stride.Core.Mathematics;
 
@@ -84,9 +84,10 @@ namespace Stride.Graphics
 
             ModeDescription closestDescription;
             SharpDX.Direct3D11.Device deviceTemp = null;
+            FeatureLevel[] features = null;
             try
             {
-                var features = new SharpDX.Direct3D.FeatureLevel[targetProfiles.Length];
+                features = new FeatureLevel[targetProfiles.Length];
                 for (int i = 0; i < targetProfiles.Length; i++)
                 {
                     features[i] = (FeatureLevel)targetProfiles[i];
@@ -94,14 +95,17 @@ namespace Stride.Graphics
 
                 deviceTemp = new SharpDX.Direct3D11.Device(adapter.NativeAdapter, SharpDX.Direct3D11.DeviceCreationFlags.None, features);
             }
-            catch (Exception) { }
+            catch (Exception exception)
+            {
+                Log.Error($"Failed to create Direct3D device using {adapter.NativeAdapter.Description} adapter with features: {string.Join(", ", features)}.\nException: {exception}");
+            }
 
-            var description = new SharpDX.DXGI.ModeDescription()
+            var description = new ModeDescription()
             {
                 Width = mode.Width,
                 Height = mode.Height,
                 RefreshRate = mode.RefreshRate.ToSharpDX(),
-                Format = (SharpDX.DXGI.Format)mode.Format,
+                Format = (Format)mode.Format,
                 Scaling = DisplayModeScaling.Unspecified,
                 ScanlineOrdering = DisplayModeScanlineOrder.Unspecified,
             };
@@ -187,41 +191,120 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        /// Initializes <see cref="CurrentDisplayMode"/> with the most appropiate mode from <see cref="SupportedDisplayModes"/>.
+        /// Initializes <see cref="CurrentDisplayMode"/> with the current <see cref="DisplayMode"/>,
+        /// closest matching mode with the provided format (<see cref="Format.R8G8B8A8_UNorm"/> or <see cref="Format.B8G8R8A8_UNorm"/>)
+        /// or null in case of errors.
         /// </summary>
-        /// <remarks>It checks first for a mode with <see cref="Format.R8G8B8A8_UNorm"/>,
-        /// if it is not found - it checks for <see cref="Format.B8G8R8A8_UNorm"/>.</remarks>
         private void InitializeCurrentDisplayMode()
         {
-            currentDisplayMode = TryFindMatchingDisplayMode(Format.R8G8B8A8_UNorm)
-                                 ?? TryFindMatchingDisplayMode(Format.B8G8R8A8_UNorm);
+            if (!TryGetCurrentDisplayMode(out DisplayMode displayMode) && !TryGetClosestMatchingMode(Format.R8G8B8A8_UNorm, out displayMode))
+                TryGetClosestMatchingMode(Format.B8G8R8A8_UNorm, out displayMode);
+
+            currentDisplayMode = displayMode;
         }
 
         /// <summary>
-        /// Tries to find a display mode that has the same size as the current <see cref="OutputDescription"/> associated with this instance
-        /// of the specified format.
+        /// Tries to get current display mode based on output bounds from <see cref="outputDescription"/>.
         /// </summary>
-        /// <param name="format">The format to match with.</param>
-        /// <returns>A matched <see cref="DisplayMode"/> or null if nothing is found.</returns>
-        private DisplayMode TryFindMatchingDisplayMode(Format format)
+        /// <param out name="currentDisplayMode">Current <see cref="DisplayMode"/> or null</param>
+        /// <returns><see cref="bool"/> depending on the outcome</returns>
+        private bool TryGetCurrentDisplayMode(out DisplayMode currentDisplayMode)
         {
-            var desktopBounds = outputDescription.DesktopBounds;
-
-            foreach (var supportedDisplayMode in SupportedDisplayModes)
+            // We don't care about FeatureLevel because we want to get missing data 
+            // about the current display/monitor mode and not the supported display mode for the specific graphics profile
+            if (!TryCreateDirect3DDevice(out SharpDX.Direct3D11.Device deviceTemp))
             {
-                var width = desktopBounds.Right - desktopBounds.Left;
-                var height = desktopBounds.Bottom - desktopBounds.Top;
+                currentDisplayMode = null;
 
-                if (supportedDisplayMode.Width == width
-                    && supportedDisplayMode.Height == height
-                    && (Format)supportedDisplayMode.Format == format)
-                {
-                    // Stupid DXGI, there is no way to get the DXGI.Format, nor the refresh rate.
-                    return new DisplayMode((PixelFormat)format, width, height, supportedDisplayMode.RefreshRate);
-                }
+                return false;
             }
 
-            return null;
+            RawRectangle desktopBounds = outputDescription.DesktopBounds;
+            // We don't specify RefreshRate on purpose, it will be automatically
+            // filled in with current RefreshRate of the output (dispaly/monitor) by GetClosestMatchingMode
+            ModeDescription description = new ModeDescription
+            {
+                Width = desktopBounds.Right - desktopBounds.Left,
+                Height = desktopBounds.Bottom - desktopBounds.Top,
+                // Format will be automatically filled with the RefreshRate parameter if we pass reference to the Direct3D11 device
+                Format = Format.Unknown
+            };
+
+            using (SharpDX.Direct3D11.Device device = deviceTemp)
+            {
+                try
+                {
+                    output.GetClosestMatchingMode(device, description, out ModeDescription closestDescription);
+
+                    currentDisplayMode = DisplayMode.FromDescription(closestDescription);
+
+                    return true;
+                }
+                catch (Exception exception)
+                {
+                    Log.Error($"Failed to get current display mode. The resolution: {description.Width}x{description.Height} " +
+                        $"taken from output is not correct.\nException: {exception}");
+
+                    currentDisplayMode = null;
+
+                    return false;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Tries to get closest display mode based on output bounds from <see cref="outputDescription"/> and provided format.
+        /// </summary>
+        /// <param name="format">Format in which we want find closest display mode</param>
+        /// <param out name="closestMatchingMode">closest <see cref="DisplayMode"/> or null</param>
+        /// <returns><see cref="bool"/> depending on the outcome</returns>
+        private bool TryGetClosestMatchingMode(Format format, out DisplayMode closestMatchingMode)
+        {
+            RawRectangle desktopBounds = outputDescription.DesktopBounds;
+            // We don't specify RefreshRate on purpose, it will be automatically
+            // filled in with current RefreshRate of the output (dispaly/monitor) by GetClosestMatchingMode
+            ModeDescription description = new ModeDescription
+            {
+                Width = desktopBounds.Right - desktopBounds.Left,
+                Height = desktopBounds.Bottom - desktopBounds.Top,
+                Format = format
+            };
+
+            try
+            {
+                output.GetClosestMatchingMode(null, description, out ModeDescription closestDescription);
+
+                closestMatchingMode = DisplayMode.FromDescription(closestDescription);
+
+                return true;
+            }
+            catch (Exception exception)
+            {
+                Log.Error($"Failed to find closest matching mode. The resolution: {description.Width}x{description.Height} " +
+                    $"taken from output and/or format: {format} is not correct.\nException: {exception}");
+
+                closestMatchingMode = null;
+
+                return false;
+            }
+        }
+
+        private bool TryCreateDirect3DDevice(out SharpDX.Direct3D11.Device device)
+        {
+            device = null;
+
+            try
+            {
+                device = new SharpDX.Direct3D11.Device(adapter.NativeAdapter);
+            }
+            catch (Exception exception)
+            {
+                Log.Error($"Failed to create Direct3D device using {adapter.NativeAdapter.Description}.\nException: {exception}");
+
+                return false;
+            }
+
+            return true;
         }
     }
 }

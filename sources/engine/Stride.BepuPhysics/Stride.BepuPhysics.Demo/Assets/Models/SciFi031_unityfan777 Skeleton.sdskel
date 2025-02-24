@@ -1,0 +1,77 @@
+!Skeleton
+Id: 3421b446-a6a4-44dd-b0ae-769287a8d239
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Source: !file ../../Resources/Models/SciFi031_unityfan777.fbx
+PivotPosition: {X: 0.0, Y: 0.0, Z: 0.0}
+Nodes:
+    adb074d67168e8bb479c6dca2636320b: {Name: RootNode, Depth: 0}
+    facc23ebc9b000fb2e0ac6ef19a0ae91: {Name: SFV_wheel_01, Depth: 1}
+    439fd632b15eb8b04d785267214560d8: {Name: SFV_wheel_01|Plane.001|Dupli|, Depth: 2}
+    c6a9f02b7dbce2ea45d1da46ff3444ac: {Name: SFV_wheel_01|Plane.002|Dupli|1, Depth: 2}
+    0c6d3d1a320f3cf4a18942ce3029eb0c: {Name: SFV_wheel_01|Plane.003|Dupli|2, Depth: 2}
+    c8b7112784a4967c28cee0cf90c4517c: {Name: SFV_wheel_01|Plane.004|Dupli|3, Depth: 2}
+    1b2f835f09e6158b9fdc3eae40f187c8: {Name: SFV_wheel_01|Plane.005|Dupli|4, Depth: 2}
+    41d3f581bf0b4c7ebe15e7603639a33b: {Name: SFV_wheel_01|Circle|Dupli|5, Depth: 2}
+    751786cc9256f7d2303cd33084537ac7: {Name: SFV_wheel_01.002, Depth: 1}
+    6affc525e0fdbd95f1977ea1caca8bcc: {Name: SFV_wheel_01.002|Plane.001|Dupli|, Depth: 2}
+    d8aa62128db3eb05d22b05f8849511e6: {Name: SFV_wheel_01.002|Plane.002|Dupli|1, Depth: 2}
+    699fa34a288443d33f4c58010425a0bf: {Name: SFV_wheel_01.002|Plane.003|Dupli|2, Depth: 2}
+    62c851320697da7ebc9edadb73b8defb: {Name: SFV_wheel_01.002|Plane.004|Dupli|3, Depth: 2}
+    05152d2390f301db9dcc95e19777708e: {Name: SFV_wheel_01.002|Plane.005|Dupli|4, Depth: 2}
+    9af62a296365132682c45e81442fe194: {Name: SFV_wheel_01.002|Circle|Dupli|5, Depth: 2}
+    8515f61a6681e22964d71e641b56008f: {Name: SFV_wheel_01.001, Depth: 1}
+    445a688fab9eebbddc413a7da761c159: {Name: SFV_wheel_01.001|Plane.001|Dupli|, Depth: 2}
+    65f77914c030bf9ed3d422f79f67e132: {Name: SFV_wheel_01.001|Plane.002|Dupli|1, Depth: 2}
+    2a9179d6f084e70eeccf14df7ef0ce14: {Name: SFV_wheel_01.001|Plane.003|Dupli|2, Depth: 2}
+    b7db0cdd2918a116dc64b3f8d744c21c: {Name: SFV_wheel_01.001|Plane.004|Dupli|3, Depth: 2}
+    58a921708fa46bc637e04ab71b29fa01: {Name: SFV_wheel_01.001|Plane.005|Dupli|4, Depth: 2}
+    d5042648efc126ff5be6e9aceae50c89: {Name: SFV_wheel_01.001|Circle|Dupli|5, Depth: 2}
+    32e832ee9b47ed78822c8c46ab39a19b: {Name: SFV_wheel_01.003, Depth: 1}
+    0eb519a689834b1e51cede9f31422095: {Name: SFV_wheel_01.003|Plane.001|Dupli|, Depth: 2}
+    0c2b80b0cbb6a847fca17b2fdbb9d7ac: {Name: SFV_wheel_01.003|Plane.002|Dupli|1, Depth: 2}
+    36f4c5aa4164085f277d217ec2e73bfc: {Name: SFV_wheel_01.003|Plane.003|Dupli|2, Depth: 2}
+    be26fb96c957fa15b0f3f91ffe3703e3: {Name: SFV_wheel_01.003|Plane.004|Dupli|3, Depth: 2}
+    2050399f3c1cd8eb39f16667bc361cb2: {Name: SFV_wheel_01.003|Plane.005|Dupli|4, Depth: 2}
+    7d82de66c4bb6a094947b09dca63f034: {Name: SFV_wheel_01.003|Circle|Dupli|5, Depth: 2}
+    811ad9a30affa4c49fbdf826d9d473e5: {Name: SFV_wheel_01.004, Depth: 1}
+    fcafbc98a6f1389692f9b4691ec1871f: {Name: SFV_wheel_01.004|Plane.001|Dupli|, Depth: 2}
+    3be2e7595c739c3dd828bd8b9f32fb1b: {Name: SFV_wheel_01.004|Plane.002|Dupli|1, Depth: 2}
+    7af2cee0f781100adf365fab317372af: {Name: SFV_wheel_01.004|Plane.003|Dupli|2, Depth: 2}
+    729ae2fedfc1346abbf9d2274a3cafa4: {Name: SFV_wheel_01.004|Plane.004|Dupli|3, Depth: 2}
+    6e0114f92752593912fddb05a88082d4: {Name: SFV_wheel_01.004|Plane.005|Dupli|4, Depth: 2}
+    c6145c301456d727f67e068a2276edd7: {Name: SFV_wheel_01.004|Circle|Dupli|5, Depth: 2}
+    d93cfe05f6c40f02838a98b107eadbef: {Name: SFV_wheel_01.005, Depth: 1}
+    aef36ba6073610733222ef30d2c293ea: {Name: SFV_wheel_01.005|Plane.001|Dupli|, Depth: 2}
+    953f97723ee752ab4d62cd78ad82cae8: {Name: SFV_wheel_01.005|Plane.002|Dupli|1, Depth: 2}
+    1f46d22488ff9ace94add9aa57e583cb: {Name: SFV_wheel_01.005|Plane.003|Dupli|2, Depth: 2}
+    2f29b26c9c299299b25130522c682cb3: {Name: SFV_wheel_01.005|Plane.004|Dupli|3, Depth: 2}
+    76dccebd6da89532e8849107f5830816: {Name: SFV_wheel_01.005|Plane.005|Dupli|4, Depth: 2}
+    4f7d4089d0041dfb255bece1870db75a: {Name: SFV_wheel_01.005|Circle|Dupli|5, Depth: 2}
+    11d37fc5555c1cacdaf2a8256f2b28b9: {Name: Cube.020, Depth: 1}
+    b2c5d3550439cd13044ad7b31dc30a6f: {Name: Cube.021, Depth: 1}
+    a7ef94cd27efc463a8a1fac08d78ce0f: {Name: Cube.022, Depth: 1}
+    b1f31925fd84861b8b39c59d7941277e: {Name: Cube.023, Depth: 1}
+    4f05e513d85d8573a8bab19af1e9d7b3: {Name: Cube.024, Depth: 1}
+    a854ff07b6e2d643f639129ba69366e6: {Name: Cube.025, Depth: 1}
+    3475c55a9542f1219631a6cf8696dd3b: {Name: Cube.026, Depth: 1}
+    35f3f743ce9d5ea15024567da50a9a78: {Name: Cube.027, Depth: 1}
+    35337ab6145714fb73c143c90eb1de80: {Name: Cube.028, Depth: 1}
+    e0fe6fdd41147a9626aa7c7b8163fbdf: {Name: Cube.029, Depth: 1}
+    5b42628337ce5f78893c5c71194aa23f: {Name: Cube.033, Depth: 1}
+    ed0b7d20714e70ea296b38215304164f: {Name: Cube.034, Depth: 1}
+    8a559a2bbb19cf11f05a299a4703c040: {Name: Cube.035, Depth: 1}
+    30fa7725ad67660653108581255bd833: {Name: Cube.036, Depth: 1}
+    ddffa8c2557f24241b19c4826546534b: {Name: Cube.037, Depth: 1}
+    22a08f9acdb62452cb021747e0201f8b: {Name: Cube.038, Depth: 1}
+    56e18c222daa6897cdb136c3b25f0292: {Name: Cube.039, Depth: 1}
+    bc8d42def53a93cd5781d0975ea51164: {Name: Cube.040, Depth: 1}
+    d41cbd0d438fae53bd58e858ac478eee: {Name: Cube.041, Depth: 1}
+    3ec552b871a47540268587eb6319855a: {Name: Cube.042, Depth: 1}
+    0d426fe86496af561db8dcdec8aaea5d: {Name: Cube.043, Depth: 1}
+    886c3d7471a433b88dd5c555820aadc5: {Name: Plane, Depth: 1}
+    8b48d33c827b86e1fd27439a109d8754: {Name: Plane.007, Depth: 1}
+    b9625110e78f3adeac650ef0d7d1d4f2: {Name: Plane.006, Depth: 1}
+    362762568cfa9c34747ad7d56a91d135: {Name: Plane.008, Depth: 1}
+~SourceHashes:
+    9dfb3e03d05466062b71b13d541e7c48~../../Resources/Models/SciFi031_unityfan777.fbx: 1ca26e2224dd402aa3733767a2755025

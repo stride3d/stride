@@ -14,7 +14,7 @@ namespace Stride.Editor.EditorGame.ContentLoader
 {
     public class LoaderReferenceManager
     {
-        private struct ReferenceAccessor
+        private readonly record struct ReferenceAccessor
         {
             private readonly IGraphNode contentNode;
             private readonly NodeIndex index;
@@ -72,10 +72,9 @@ namespace Stride.Editor.EditorGame.ContentLoader
             gameDispatcher.EnsureAccess();
             using (await loader.LockDatabaseAsynchronously())
             {
-                if (!references.ContainsKey(referencerId))
+                if (!references.TryGetValue(referencerId, out var referencer))
                     throw new InvalidOperationException("The given referencer is not registered.");
 
-                var referencer = references[referencerId];
                 // Properly clear all reference first
                 foreach (var content in referencer.ToDictionary(x => x.Key, x => x.Value))
                 {
@@ -94,10 +93,9 @@ namespace Stride.Editor.EditorGame.ContentLoader
             gameDispatcher.EnsureAccess();
             using (await loader.LockDatabaseAsynchronously())
             {
-                if (!references.ContainsKey(referencerId))
+                if (!references.TryGetValue(referencerId, out var referencer))
                     throw new InvalidOperationException("The given referencer is not registered.");
 
-                var referencer = references[referencerId];
                 List<ReferenceAccessor> accessors;
                 if (!referencer.TryGetValue(contentId, out accessors))
                 {
@@ -115,8 +113,7 @@ namespace Stride.Editor.EditorGame.ContentLoader
 
                 accessors.Add(accessor);
 
-                object value;
-                if (contents.TryGetValue(contentId, out value))
+                if (contents.TryGetValue(contentId, out var value))
                 {
                     accessor.Update(value);
                 }
@@ -134,14 +131,12 @@ namespace Stride.Editor.EditorGame.ContentLoader
             gameDispatcher.EnsureAccess();
             using (await loader.LockDatabaseAsynchronously())
             {
-                if (!references.ContainsKey(referencerId))
+                if (!references.TryGetValue(referencerId, out var referencer))
                     throw new InvalidOperationException("The given referencer is not registered.");
 
-                var referencer = references[referencerId];
-                if (!referencer.ContainsKey(contentId))
+                if (!referencer.TryGetValue(contentId, out var accessors))
                     throw new InvalidOperationException("The given content is not registered to the given referencer.");
 
-                var accessors = referencer[contentId];
                 var accessor = new ReferenceAccessor(contentNode, index);
                 var accesorIndex = accessors.IndexOf(accessor);
                 if (accesorIndex < 0)

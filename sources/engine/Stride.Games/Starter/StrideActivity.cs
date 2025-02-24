@@ -40,7 +40,7 @@ namespace Stride.Starter
         {
             // set up a listener to the android ringer mode (Normal/Silent/Vibrate)
             ringerModeIntentReceiver = new RingerModeIntentReceiver((AudioManager)GetSystemService(AudioService));
-            RegisterReceiver(ringerModeIntentReceiver, new IntentFilter(AudioManager.RingerModeChangedAction));
+            RegisterReceivers();
 
             // Set the android global context
             if (PlatformAndroid.Context == null)
@@ -70,7 +70,7 @@ namespace Stride.Starter
         {
             base.OnResume();
 
-            RegisterReceiver(ringerModeIntentReceiver, new IntentFilter(AudioManager.RingerModeChangedAction));
+            RegisterReceivers();
         }
 
         /// <summary>
@@ -152,6 +152,19 @@ namespace Stride.Starter
 
                 popupWindow.Dismiss();
             });
+        }
+
+        private void RegisterReceivers()
+        {
+            var ringerModeIntentFilter = new IntentFilter(AudioManager.RingerModeChangedAction);
+            if (OperatingSystem.IsAndroidVersionAtLeast(34))
+            {
+                RegisterReceiver(ringerModeIntentReceiver, ringerModeIntentFilter, ReceiverFlags.NotExported);
+            }
+            else
+            {
+                RegisterReceiver(ringerModeIntentReceiver, ringerModeIntentFilter);
+            }
         }
 
         private class RingerModeIntentReceiver : BroadcastReceiver
