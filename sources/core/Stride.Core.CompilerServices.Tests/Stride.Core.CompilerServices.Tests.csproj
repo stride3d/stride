@@ -4,7 +4,6 @@
     <TargetFramework>$(StrideXplatEditorTargetFramework)</TargetFramework>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
-    <StrideAssemblyProcessorOptions>--auto-module-initializer</StrideAssemblyProcessorOptions>
     <StrideBuildTags>Windows;Android;iOS</StrideBuildTags>
     <ImplicitUsings>enable</ImplicitUsings>
     <LangVersion>latest</LangVersion>
