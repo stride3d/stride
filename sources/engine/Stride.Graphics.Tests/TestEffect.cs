@@ -27,7 +27,6 @@ namespace Stride.Graphics
             {
                 PreferredBackBufferWidth = 800,
                 PreferredBackBufferHeight = 480,
-                //PreferredGraphicsProfile = new[] { GraphicsProfile.Level_9_1 }
                 PreferredGraphicsProfile = new[] { GraphicsProfile.Level_11_0 }
             };
         }
