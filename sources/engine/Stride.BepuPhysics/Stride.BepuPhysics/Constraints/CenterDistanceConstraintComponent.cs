@@ -9,6 +9,9 @@ using Stride.Engine.Design;
 
 namespace Stride.BepuPhysics.Constraints;
 
+/// <summary>
+/// Constrains the center of two bodies to be separated by a target distance.
+/// </summary>
 [DataContract]
 [DefaultEntityComponentProcessor(typeof(ConstraintProcessor), ExecutionMode = ExecutionMode.Runtime)]
 [ComponentCategory("Physics - Bepu Constraint")]
@@ -16,6 +19,9 @@ public sealed class CenterDistanceConstraintComponent : TwoBodyConstraintCompone
 {
     public CenterDistanceConstraintComponent() => BepuConstraint = new() { SpringSettings = new SpringSettings(30, 5) };
 
+    /// <summary>
+    /// Target distance between the body centers.
+    /// </summary>
     public float TargetDistance
     {
         get
