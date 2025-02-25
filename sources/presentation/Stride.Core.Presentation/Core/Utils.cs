@@ -10,8 +10,8 @@ namespace Stride.Core.Presentation.Core;
 /// <summary>
 /// A static class containing various useful methods and constants.
 /// </summary>
-public static class Utils
-{   
+public static partial class Utils
+{
     /// <summary>
     /// An array of values that can be used for zooming.
     /// </summary>
@@ -24,15 +24,18 @@ public static class Utils
 
     public static string SplitCamelCase(string input)
     {
-        return Regex.Replace(input, "([a-z](?=[A-Z])|[A-Z](?=[A-Z][a-z]))", "$1 ");
+        return GetCamelCaseRegex().Replace(input, "$1 ");
     }
 
     public static Color4 GetUniqueColor(this Type type)
     {
         var displayAttribute = TypeDescriptorFactory.Default.AttributeRegistry.GetAttribute<DisplayAttribute>(type);
-        var hash = displayAttribute?.Name.GetHashCode() ?? type.Name.GetHashCode();
+        var hash = displayAttribute?.Name?.GetHashCode() ?? type.Name.GetHashCode();
         hash = hash >> 16 ^ hash;
         var hue = TypeDescriptorFactory.Default.AttributeRegistry.GetAttribute<DisplayAttribute>(type)?.CustomHue ?? hash % 360;
-        return new ColorHSV(hue, 0.75f + (hash % 101) / 400f, 0.5f + (hash % 151) / 300f, 1).ToColor();
+        return new ColorHSV(hue, 0.75f + (hash % 101 / 400f), 0.5f + (hash % 151 / 300f), 1).ToColor();
     }
+
+    [GeneratedRegex("([a-z](?=[A-Z])|[A-Z](?=[A-Z][a-z]))")]
+    private static partial Regex GetCamelCaseRegex();
 }

@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using Stride.Core.Yaml.Serialization;
 
@@ -132,7 +133,7 @@ public class SetDescriptor : CollectionDescriptor
     /// </summary>
     /// <param name="set">The set.</param>
     /// <returns>The number of elements of a set, -1 if it cannot determine the number of elements.</returns>
-    public override int GetCollectionCount(object set)
+    public override int GetCollectionCount([NotNull] object? set)
     {
         ArgumentNullException.ThrowIfNull(set);
         return countMethod.Invoke(set);

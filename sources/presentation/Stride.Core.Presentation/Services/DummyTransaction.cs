@@ -15,7 +15,7 @@ internal class DummyTransaction : ITransaction, IReadOnlyTransaction
 
     public Guid Id { get; } = Guid.NewGuid();
 
-    public IReadOnlyList<Operation> Operations { get; } = Array.Empty<Operation>();
+    public IReadOnlyList<Operation> Operations { get; } = [];
 
     public bool IsEmpty => true;
 

@@ -5,9 +5,9 @@ using System.Text.RegularExpressions;
 
 namespace Stride.Core.Presentation.Core;
 
-public class NaturalStringComparer : IComparer<string>
+public partial class NaturalStringComparer : IComparer<string>
 {
-    private static readonly Regex NumericRegex = new("([0-9]+)", RegexOptions.Compiled);
+    private static readonly Regex NumericRegex = GetNumericRegex();
     private readonly StringComparison comparison;
 
     public NaturalStringComparer(StringComparison comparison = StringComparison.InvariantCultureIgnoreCase)
@@ -23,7 +23,7 @@ public class NaturalStringComparer : IComparer<string>
             return -1;
         if (y is null)
             return 1;
-        
+
         // Split strings by numbers
         var splitX = NumericRegex.Split(x.Replace(" ", string.Empty));
         var splitY = NumericRegex.Split(y.Replace(" ", string.Empty));
@@ -60,4 +60,7 @@ public class NaturalStringComparer : IComparer<string>
 
         return comparer;
     }
+
+    [GeneratedRegex("([0-9]+)")]
+    private static partial Regex GetNumericRegex();
 }

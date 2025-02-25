@@ -1,30 +1,34 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using Stride.Core;
-using Stride.Core.Annotations;
+
 using Stride.Core.Extensions;
 using Stride.Core.Reflection;
 using Stride.Core.Quantum;
 
-namespace Stride.Core.Presentation.Quantum.Presenters
+namespace Stride.Core.Presentation.Quantum.Presenters;
+
+public abstract class NodePresenterBase : IInitializingNodePresenter
 {
-    public abstract class NodePresenterBase : IInitializingNodePresenter
+    private readonly INodePresenterFactoryInternal factory;
+    private readonly List<INodePresenter> children = [];
+    private HashSet<INodePresenter>? dependencies;
+
+    protected NodePresenterBase(INodePresenterFactoryInternal factory, IPropertyProviderViewModel? propertyProvider, INodePresenter? parent)
     {
-        private readonly INodePresenterFactoryInternal factory;
-        private readonly List<INodePresenter> children = new List<INodePresenter>();
-        private HashSet<INodePresenter> dependencies;
+        this.factory = factory ?? throw new ArgumentNullException(nameof(factory));
+        Parent = parent;
+        PropertyProvider = propertyProvider;
+    }
 
-        protected NodePresenterBase([NotNull] INodePresenterFactoryInternal factory, [CanBeNull] IPropertyProviderViewModel propertyProvider, [CanBeNull] INodePresenter parent)
-        {
-            this.factory = factory ?? throw new ArgumentNullException(nameof(factory));
-            Parent = parent;
-            PropertyProvider = propertyProvider;
-        }
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
 
-        public virtual void Dispose()
+    protected virtual void Dispose(bool disposing)
+    {
+        if (disposing)
         {
             if (dependencies != null)
             {
@@ -34,152 +38,151 @@ namespace Stride.Core.Presentation.Quantum.Presenters
                 }
             }
         }
+    }
 
-        public INodePresenter this[string childName] => TryGetChild(childName) ?? throw new KeyNotFoundException($"Key {childName} not found in {nameof(INodePresenter)}");
+    public INodePresenter this[string childName] => TryGetChild(childName) ?? throw new KeyNotFoundException($"Key {childName} not found in {nameof(INodePresenter)}");
 
-        public INodePresenter Root => Parent?.Root ?? this;
+    public INodePresenter Root => Parent?.Root ?? this;
 
-        public INodePresenter Parent { get; private set; }
+    public INodePresenter? Parent { get; private set; }
 
-        public IReadOnlyList<INodePresenter> Children => children;
+    public IReadOnlyList<INodePresenter> Children => children;
 
-        public string DisplayName { get; set; }
+    public string DisplayName { get; set; }
 
-        public string Name { get; protected set; }
+    public string Name { get; protected set; }
 
-        public List<INodePresenterCommand> Commands { get; } = new List<INodePresenterCommand>();
+    public List<INodePresenterCommand> Commands { get; } = [];
 
-        public abstract Type Type { get; }
+    public abstract Type Type { get; }
 
-        public abstract bool IsEnumerable { get; }
+    public abstract bool IsEnumerable { get; }
 
-        public bool IsVisible { get; set; } = true;
+    public bool IsVisible { get; set; } = true;
 
-        public bool IsReadOnly { get; set; }
+    public bool IsReadOnly { get; set; }
 
-        public int? Order { get; set; }
+    public int? Order { get; set; }
 
-        public abstract NodeIndex Index { get; }
+    public abstract NodeIndex Index { get; }
 
-        public abstract ITypeDescriptor Descriptor { get; }
+    public abstract ITypeDescriptor? Descriptor { get; }
 
-        public abstract object Value { get; }
+    public abstract object Value { get; }
 
-        public string CombineKey { get; set; }
+    public string CombineKey { get; set; }
 
-        public PropertyContainerClass AttachedProperties { get; } = new PropertyContainerClass();
+    public PropertyContainerClass AttachedProperties { get; } = [];
 
-        public event EventHandler<ValueChangingEventArgs> ValueChanging;
+    public event EventHandler<ValueChangingEventArgs>? ValueChanging;
 
-        public event EventHandler<ValueChangedEventArgs> ValueChanged;
+    public event EventHandler<ValueChangedEventArgs>? ValueChanged;
 
-        [CanBeNull]
-        protected abstract IObjectNode ParentingNode { get; }
+    protected abstract IObjectNode? ParentingNode { get; }
 
-        public abstract void UpdateValue(object newValue);
+    public abstract void UpdateValue(object newValue);
 
-        public abstract void AddItem(object value);
+    public abstract void AddItem(object value);
 
-        public abstract void AddItem(object value, NodeIndex index);
+    public abstract void AddItem(object value, NodeIndex index);
 
-        public abstract void RemoveItem(object value, NodeIndex index);
+    public abstract void RemoveItem(object value, NodeIndex index);
 
-        public abstract NodeAccessor GetNodeAccessor();
+    public abstract NodeAccessor GetNodeAccessor();
 
-        public IPropertyProviderViewModel PropertyProvider { get; }
+    public IPropertyProviderViewModel? PropertyProvider { get; }
 
-        public INodePresenterFactory Factory => factory;
+    public INodePresenterFactory Factory => factory;
 
-        public override string ToString()
+    public override string ToString()
+    {
+        return $"[{GetType().Name}] {Name} (Count = {Children.Count}";
+    }
+
+    public void ChangeParent(INodePresenter newParent)
+    {
+        ArgumentNullException.ThrowIfNull(newParent);
+
+        var parent = (NodePresenterBase?)Parent;
+        parent?.children.Remove(this);
+
+        parent = (NodePresenterBase)newParent;
+        parent.children.Add(this);
+
+        Parent = newParent;
+    }
+
+    public void Rename(string newName, bool overwriteCombineKey = true)
+    {
+        Name = newName;
+        if (overwriteCombineKey)
         {
-            return $"[{GetType().Name}] {Name} (Count = {Children.Count}";
+            CombineKey = newName;
         }
+    }
 
-        public void ChangeParent(INodePresenter newParent)
+    public INodePresenter? TryGetChild(string childName)
+    {
+        return children.FirstOrDefault(x => string.Equals(x.Name, childName, StringComparison.Ordinal));
+    }
+
+    public void AddDependency(INodePresenter node, bool refreshOnNestedNodeChanges)
+    {
+        ArgumentNullException.ThrowIfNull(node);
+
+        dependencies ??= [];
+        if (dependencies.Add(node))
         {
-            if (newParent == null) throw new ArgumentNullException(nameof(newParent));
-
-            var parent = (NodePresenterBase)Parent;
-            parent?.children.Remove(this);
-
-            parent = (NodePresenterBase)newParent;
-            parent.children.Add(this);
-
-            Parent = newParent;
+            node.ValueChanged += DependencyChanged;
         }
+    }
 
-        public void Rename(string newName, bool overwriteCombineKey = true)
+    protected void Refresh()
+    {
+        // Remove existing children and attached properties
+        foreach (var child in children.DepthFirst(x => x.Children))
         {
-            Name = newName;
-            if (overwriteCombineKey)
-            {
-                CombineKey = newName;
-            }
+            child.Dispose();
         }
+        children.Clear();
+        AttachedProperties.Clear();
 
-        public INodePresenter TryGetChild(string childName)
+        // And recompute them from the current value.
+        factory.CreateChildren(this, ParentingNode, PropertyProvider);
+    }
+
+    protected void AttachCommands()
+    {
+        foreach (var command in factory.AvailableCommands)
         {
-            return children.FirstOrDefault(x => string.Equals(x.Name, childName, StringComparison.Ordinal));
+            if (command.CanAttach(this))
+                Commands.Add(command);
         }
+    }
 
-        public void AddDependency([NotNull] INodePresenter node, bool refreshOnNestedNodeChanges)
-        {
-            if (node == null) throw new ArgumentNullException(nameof(node));
+    protected void RaiseValueChanging(object? newValue)
+    {
+        ValueChanging?.Invoke(this, new ValueChangingEventArgs(newValue));
+    }
 
-            dependencies = dependencies ?? new HashSet<INodePresenter>();
-            if (dependencies.Add(node))
-            {
-                node.ValueChanged += DependencyChanged;
-            }
-        }
+    protected void RaiseValueChanged(object? oldValue)
+    {
+        ValueChanged?.Invoke(this, new ValueChangedEventArgs(oldValue));
+    }
 
-        protected void Refresh()
-        {
-            // Remove existing children and attached properties
-            foreach (var child in children.DepthFirst(x => x.Children))
-            {
-                child.Dispose();
-            }
-            children.Clear();
-            AttachedProperties.Clear();
+    private void DependencyChanged(object? sender, ValueChangedEventArgs e)
+    {
+        RaiseValueChanging(Value);
+        Refresh();
+        RaiseValueChanged(Value);
+    }
 
-            // And recompute them from the current value.
-            factory.CreateChildren(this, ParentingNode, PropertyProvider);
-        }
+    void IInitializingNodePresenter.AddChild(IInitializingNodePresenter child)
+    {
+        children.Add(child);
+    }
 
-        protected void AttachCommands()
-        {
-            foreach (var command in factory.AvailableCommands)
-            {
-                if (command.CanAttach(this))
-                    Commands.Add(command);
-            }
-        }
-
-        protected void RaiseValueChanging(object newValue)
-        {
-            ValueChanging?.Invoke(this, new ValueChangingEventArgs(newValue));
-        }
-
-        protected void RaiseValueChanged(object oldValue)
-        {
-            ValueChanged?.Invoke(this, new ValueChangedEventArgs(oldValue));
-        }
-
-        private void DependencyChanged(object sender, ValueChangedEventArgs e)
-        {
-            RaiseValueChanging(Value);
-            Refresh();
-            RaiseValueChanged(Value);
-        }
-
-        void IInitializingNodePresenter.AddChild([NotNull] IInitializingNodePresenter child)
-        {
-            children.Add(child);
-        }
-
-        void IInitializingNodePresenter.FinalizeInitialization()
-        {
-        }
+    void IInitializingNodePresenter.FinalizeInitialization()
+    {
     }
 }

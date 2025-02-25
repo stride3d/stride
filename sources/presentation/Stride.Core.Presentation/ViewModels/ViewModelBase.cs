@@ -54,7 +54,7 @@ public abstract class ViewModelBase : INotifyPropertyChanging, INotifyPropertyCh
     }
 
     /// <summary>
-    /// Checks whether this view model has been disposed, and throws an <see cref="ObjectDisposedException"/> if it is the case. 
+    /// Checks whether this view model has been disposed, and throws an <see cref="ObjectDisposedException"/> if it is the case.
     /// </summary>
     /// <param name="name">The name to supply to the <see cref="ObjectDisposedException"/>.</param>
     protected void EnsureNotDestroyed(string? name = null)
@@ -77,7 +77,7 @@ public abstract class ViewModelBase : INotifyPropertyChanging, INotifyPropertyCh
     /// <returns><c>True</c> if the field was modified and events were raised, <c>False</c> if the new value was equal to the old one and nothing was done.</returns>
     protected bool SetValue<T>([NotNullIfNotNull(nameof(value))] ref T field, T value, [CallerMemberName] string propertyName = null!)
     {
-        return SetValue(ref field, value, null, new[] { propertyName });
+        return SetValue(ref field, value, null, [propertyName]);
     }
 
     /// <summary>
@@ -108,7 +108,7 @@ public abstract class ViewModelBase : INotifyPropertyChanging, INotifyPropertyCh
     /// <returns><c>True</c> if the field was modified and events were raised, <c>False</c> if the new value was equal to the old one and nothing was done.</returns>
     protected bool SetValue<T>([NotNullIfNotNull(nameof(value))] ref T field, T value, Action? updateAction, [CallerMemberName] string propertyName = null!)
     {
-        return SetValue(ref field, value, updateAction, new[] { propertyName });
+        return SetValue(ref field, value, updateAction, [propertyName]);
     }
 
     /// <summary>
@@ -125,9 +125,9 @@ public abstract class ViewModelBase : INotifyPropertyChanging, INotifyPropertyCh
     protected virtual bool SetValue<T>([NotNullIfNotNull(nameof(value))] ref T field, T value, Action? updateAction, params string[] propertyNames)
     {
         if (propertyNames.Length == 0)
-            throw new ArgumentOutOfRangeException(nameof(propertyNames), @"This method must be invoked with at least one property name.");
+            throw new ArgumentOutOfRangeException(nameof(propertyNames), "This method must be invoked with at least one property name.");
 
-        if (EqualityComparer<T>.Default.Equals(field, value) == false)
+        if (!EqualityComparer<T>.Default.Equals(field, value))
         {
             OnPropertyChanging(propertyNames);
             field = value;
@@ -148,7 +148,7 @@ public abstract class ViewModelBase : INotifyPropertyChanging, INotifyPropertyCh
     /// <returns>This method always returns<c>True</c> since it always performs the update.</returns>
     protected bool SetValue(Action? updateAction, [CallerMemberName] string propertyName = null!)
     {
-        return SetValue(null, updateAction, new[] { propertyName });
+        return SetValue(null, updateAction, [propertyName]);
     }
 
     /// <summary>
@@ -172,9 +172,9 @@ public abstract class ViewModelBase : INotifyPropertyChanging, INotifyPropertyCh
     /// <param name="updateAction">The update action that will actually manage the update of the property.</param>
     /// <param name="propertyName">The name of the property that must be notified as changing/changed. Can use <see cref="CallerMemberNameAttribute"/>.</param>
     /// <returns><c>True</c> if the update was done and events were raised, <c>False</c> if <see cref="hasChangedFunction"/> is not <c>null</c> and returned false.</returns>
-    protected bool SetValue(Func<bool> hasChangedFunction, Action? updateAction, [CallerMemberName] string propertyName = null!)
+    protected bool SetValue(Func<bool>? hasChangedFunction, Action? updateAction, [CallerMemberName] string propertyName = null!)
     {
-        return SetValue(hasChangedFunction, updateAction, new[] { propertyName });
+        return SetValue(hasChangedFunction, updateAction, [propertyName]);
     }
 
     /// <summary>
@@ -188,7 +188,7 @@ public abstract class ViewModelBase : INotifyPropertyChanging, INotifyPropertyCh
     /// <returns>The value provided in the <see cref="hasChanged"/> argument.</returns>
     protected bool SetValue(bool hasChanged, Action? updateAction, [CallerMemberName] string propertyName = null!)
     {
-        return SetValue(() => hasChanged, updateAction, new[] { propertyName });
+        return SetValue(() => hasChanged, updateAction, [propertyName]);
     }
 
     /// <summary>
@@ -217,13 +217,9 @@ public abstract class ViewModelBase : INotifyPropertyChanging, INotifyPropertyCh
     protected virtual bool SetValue(Func<bool>? hasChangedFunction, Action? updateAction, params string[] propertyNames)
     {
         if (propertyNames.Length == 0)
-            throw new ArgumentOutOfRangeException(nameof(propertyNames), @"This method must be invoked with at least one property name.");
+            throw new ArgumentOutOfRangeException(nameof(propertyNames), "This method must be invoked with at least one property name.");
 
-        var hasChanged = true;
-        if (hasChangedFunction != null)
-        {
-            hasChanged = hasChangedFunction();
-        }
+        var hasChanged = hasChangedFunction?.Invoke() ?? true;
         if (hasChanged)
         {
             OnPropertyChanging(propertyNames);
