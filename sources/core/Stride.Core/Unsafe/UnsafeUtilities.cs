@@ -4,7 +4,6 @@
 // Contains code from TerraFX Framework, Copyright (c) Tanner Gooding and Contributors
 // Licensed under the MIT License (MIT).
 
-using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
@@ -16,14 +15,14 @@ namespace Stride.Core.UnsafeExtensions
 {
     /// <summary>
     ///   Provides a set of methods to supplement or replace <see cref="System.Runtime.CompilerServices.Unsafe"/> and
-    ///   <see cref="MemoryMarshal"/>.
+    ///   <see cref="MemoryMarshal"/>, mainly for working with <see langword="struct"/>s and <see langword="unmanaged"/> types.
     /// </summary>
     public static unsafe class UnsafeUtilities
     {
         /// <inheritdoc cref="DotNetUnsafe.As{T}(object)"/>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [return: NotNullIfNotNull(nameof(o))]
-        public static T As<T>(this object? o)
+        public static T? As<T>(this object? o)
             where T : class?
         {
             Debug.Assert(o is null or T);
@@ -33,7 +32,10 @@ namespace Stride.Core.UnsafeExtensions
 
         /// <inheritdoc cref="DotNetUnsafe.As{TFrom, TTo}(ref TFrom)"/>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ref TTo As<TFrom, TTo>(ref TFrom source) => ref DotNetUnsafe.As<TFrom, TTo>(ref source);
+        public static ref TTo As<TFrom, TTo>(this ref TFrom source)
+            where TFrom : unmanaged
+            where TTo : unmanaged
+            => ref DotNetUnsafe.As<TFrom, TTo>(ref source);
 
         /// <inheritdoc cref="DotNetUnsafe.As{TFrom, TTo}(ref TFrom)"/>
         /// <param name="span">The span to reinterpret.</param>
@@ -70,10 +72,13 @@ namespace Stride.Core.UnsafeExtensions
         ///   it will be stored into the returned span, and the lifetime of the returned span will not be validated for safety, even by
         ///   span-aware languages.
         /// </remarks>
-        public static ReadOnlySpan<TTo> AsReadOnlySpan<TFrom, TTo>(scoped ref readonly TFrom reference)
+        public static ReadOnlySpan<TTo> AsReadOnlySpan<TFrom, TTo>(this scoped ref TFrom reference)
             where TFrom : unmanaged
             where TTo : unmanaged
         {
+            // NOTE: `reference` should be passed as `ref readonly`, but that results in error CS8338.
+            //       It must not be modified by this method however
+
             Debug.Assert(SizeOf<TFrom>() % SizeOf<TTo>() == 0);
 
             ref readonly var referenceAsTTo = ref AsReadonly<TFrom, TTo>(in reference);
@@ -96,10 +101,13 @@ namespace Stride.Core.UnsafeExtensions
         ///   Even though the <see langword="ref"/> is annotated as <see langword="scoped"/>, it will be stored into the returned span,
         ///   and the lifetime of the returned span will not be validated for safety, even by span-aware languages.
         /// </remarks>
-        public static ReadOnlySpan<TTo> AsReadOnlySpan<TFrom, TTo>(scoped ref readonly TFrom reference, int elementCount)
+        public static ReadOnlySpan<TTo> AsReadOnlySpan<TFrom, TTo>(this scoped ref TFrom reference, int elementCount)
             where TFrom : unmanaged
             where TTo : unmanaged
         {
+            // NOTE: `reference` should be passed as `ref readonly`, but that results in error CS8338.
+            //       It must not be modified by this method however
+
             Debug.Assert((SizeOf<TTo>() * elementCount) <= SizeOf<TFrom>());
 
             ref readonly var referenceAsTTo = ref AsReadonly<TFrom, TTo>(in reference);
@@ -117,7 +125,7 @@ namespace Stride.Core.UnsafeExtensions
         ///   it will be stored into the returned span, and the lifetime of the returned span will not be validated for safety, even by
         ///   span-aware languages.
         /// </remarks>
-        public static Span<TTo> AsSpan<TFrom, TTo>(scoped ref TFrom reference)
+        public static Span<TTo> AsSpan<TFrom, TTo>(this scoped ref TFrom reference)
             where TFrom : unmanaged
             where TTo : unmanaged
         {
@@ -143,7 +151,7 @@ namespace Stride.Core.UnsafeExtensions
         ///   Even though the <see langword="ref"/> is annotated as <see langword="scoped"/>, it will be stored into the returned span,
         ///   and the lifetime of the returned span will not be validated for safety, even by span-aware languages.
         /// </remarks>
-        public static Span<TTo> AsSpan<TFrom, TTo>(scoped ref TFrom reference, int elementCount)
+        public static Span<TTo> AsSpan<TFrom, TTo>(this scoped ref TFrom reference, int elementCount)
             where TFrom : unmanaged
             where TTo : unmanaged
         {
@@ -155,7 +163,7 @@ namespace Stride.Core.UnsafeExtensions
 
         /// <inheritdoc cref="DotNetUnsafe.AsPointer{T}(ref T)"/>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static T* AsPointer<T>(ref T value) where T : unmanaged
+        public static T* AsPointer<T>(this ref T value) where T : unmanaged
             => (T*) DotNetUnsafe.AsPointer(ref value);
 
         /// <inheritdoc cref="DotNetUnsafe.As{TFrom, TTo}(ref TFrom)"/>
