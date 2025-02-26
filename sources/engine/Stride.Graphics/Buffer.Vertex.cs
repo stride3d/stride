@@ -2,17 +2,17 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 //
 // Copyright (c) 2010-2012 SharpDX - Alexandre Mutel
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -22,7 +22,6 @@
 // THE SOFTWARE.
 
 using System;
-using Stride.Games;
 
 namespace Stride.Graphics
 {
@@ -43,9 +42,9 @@ namespace Stride.Graphics
             /// <returns>
             /// A Vertex buffer
             /// </returns>
-            public static Buffer New(GraphicsDevice device, int size, GraphicsResourceUsage usage = GraphicsResourceUsage.Default, BufferFlags bindFlags = BufferFlags.VertexBuffer)
+            public static Buffer New(GraphicsDevice device, int bufferSize, GraphicsResourceUsage usage = GraphicsResourceUsage.Default, BufferFlags additionalFlags = BufferFlags.None)
             {
-                return Buffer.New(device, size, bindFlags, usage);
+                return Buffer.New(device, bufferSize, BufferFlags.VertexBuffer | additionalFlags, usage);
             }
 
             /// <summary>
@@ -57,7 +56,7 @@ namespace Stride.Graphics
             /// <returns>A Vertex buffer</returns>
             public static Buffer<T> New<T>(GraphicsDevice device, GraphicsResourceUsage usage = GraphicsResourceUsage.Default) where T : unmanaged
             {
-                return Buffer.New<T>(device, 1, BufferFlags.VertexBuffer, usage);
+                return Buffer.New<T>(device, elementCount: 1, BufferFlags.VertexBuffer, usage);
             }
 
             /// <summary>
@@ -68,9 +67,9 @@ namespace Stride.Graphics
             /// <param name="value">The value to initialize the Vertex buffer.</param>
             /// <param name="usage">The usage of this resource.</param>
             /// <returns>A Vertex buffer</returns>
-            public static Buffer<T> New<T>(GraphicsDevice device, ref T value, GraphicsResourceUsage usage = GraphicsResourceUsage.Immutable) where T : unmanaged
+            public static Buffer<T> New<T>(GraphicsDevice device, ref readonly T value, GraphicsResourceUsage usage = GraphicsResourceUsage.Immutable) where T : unmanaged
             {
-                return Buffer.New(device, ref value, BufferFlags.VertexBuffer, usage);
+                return Buffer.New(device, in value, BufferFlags.VertexBuffer, usage);
             }
 
             /// <summary>
@@ -81,9 +80,9 @@ namespace Stride.Graphics
             /// <param name="value">The value to initialize the Vertex buffer.</param>
             /// <param name="usage">The usage of this resource.</param>
             /// <returns>A Vertex buffer</returns>
-            public static Buffer<T> New<T>(GraphicsDevice device, T[] value, GraphicsResourceUsage usage = GraphicsResourceUsage.Immutable) where T : unmanaged
+            public static Buffer<T> New<T>(GraphicsDevice device, T[] data, GraphicsResourceUsage usage = GraphicsResourceUsage.Immutable) where T : unmanaged
             {
-                return Buffer.New(device, (ReadOnlySpan<T>)value, BufferFlags.VertexBuffer, usage:usage);
+                return Buffer.New(device, (ReadOnlySpan<T>) data, BufferFlags.VertexBuffer, PixelFormat.None, usage);
             }
 
             /// <summary>
@@ -94,9 +93,9 @@ namespace Stride.Graphics
             /// <param name="vertexBufferCount">Number of vertex in this buffer with the sizeof(T).</param>
             /// <param name="usage">The usage.</param>
             /// <returns>A Vertex buffer</returns>
-            public static Buffer<T> New<T>(GraphicsDevice device, int vertexBufferCount, GraphicsResourceUsage usage = GraphicsResourceUsage.Default) where T : unmanaged
+            public static Buffer<T> New<T>(GraphicsDevice device, int vertexCount, GraphicsResourceUsage usage = GraphicsResourceUsage.Default) where T : unmanaged
             {
-                return Buffer.New<T>(device, vertexBufferCount, BufferFlags.VertexBuffer, usage);
+                return Buffer.New<T>(device, vertexCount, BufferFlags.VertexBuffer, usage);
             }
 
             /// <summary>
@@ -106,9 +105,9 @@ namespace Stride.Graphics
             /// <param name="value">The value to initialize the Vertex buffer.</param>
             /// <param name="usage">The usage of this resource.</param>
             /// <returns>A Vertex buffer</returns>
-            public static Buffer New(GraphicsDevice device, Span<byte> value, GraphicsResourceUsage usage = GraphicsResourceUsage.Immutable)
+            public static Buffer New(GraphicsDevice device, ReadOnlySpan<byte> data, GraphicsResourceUsage usage = GraphicsResourceUsage.Immutable)
             {
-                return Buffer.New(device, value, 0, BufferFlags.VertexBuffer, usage:usage);
+                return Buffer.New(device, data, elementSize: 0, BufferFlags.VertexBuffer, PixelFormat.None, usage);
             }
 
             /// <summary>
@@ -119,9 +118,9 @@ namespace Stride.Graphics
             /// <param name="usage">The usage of this resource.</param>
             /// <returns>A Vertex buffer</returns>
             [Obsolete("Use span instead")]
-            public static Buffer New(GraphicsDevice device, DataPointer value, GraphicsResourceUsage usage = GraphicsResourceUsage.Immutable)
+            public static Buffer New(GraphicsDevice device, DataPointer dataPointer, GraphicsResourceUsage usage = GraphicsResourceUsage.Immutable)
             {
-                return Buffer.New(device, value, 0, BufferFlags.VertexBuffer, usage);
+                return Buffer.New(device, dataPointer, elementSize: 0, BufferFlags.VertexBuffer, usage);
             }
         }
     }

@@ -45,50 +45,31 @@ namespace Stride.Graphics
         /// </summary>
         public int StructureByteStride;
 
-        public bool Equals(BufferDescription other)
-        {
-            return SizeInBytes == other.SizeInBytes && BufferFlags == other.BufferFlags && Usage == other.Usage && StructureByteStride == other.StructureByteStride;
-        }
 
-        public override bool Equals(object obj)
+        public readonly bool Equals(BufferDescription other)
         {
-            if (ReferenceEquals(null, obj)) return false;
-            return obj is BufferDescription && Equals((BufferDescription)obj);
+            return SizeInBytes == other.SizeInBytes
+                && BufferFlags == other.BufferFlags
+                && Usage == other.Usage
+                && StructureByteStride == other.StructureByteStride;
         }
 
         /// <inheritdoc/>
-        public override int GetHashCode()
+        public override readonly bool Equals(object obj)
         {
-            unchecked
-            {
-                var hashCode = SizeInBytes;
-                hashCode = (hashCode * 397) ^ (int)BufferFlags;
-                hashCode = (hashCode * 397) ^ (int)Usage;
-                hashCode = (hashCode * 397) ^ StructureByteStride;
-                return hashCode;
-            }
+            if (obj is null)
+                return false;
+
+            return obj is BufferDescription description && Equals(description);
         }
 
-        /// <summary>
-        /// Implements the operator ==.
-        /// </summary>
-        /// <param name="left">The left.</param>
-        /// <param name="right">The right.</param>
-        /// <returns>The result of the operator.</returns>
-        public static bool operator ==(BufferDescription left, BufferDescription right)
+        public override readonly int GetHashCode()
         {
-            return left.Equals(right);
+            return HashCode.Combine(SizeInBytes, BufferFlags, Usage, StructureByteStride);
         }
 
-        /// <summary>
-        /// Implements the operator !=.
-        /// </summary>
-        /// <param name="left">The left.</param>
-        /// <param name="right">The right.</param>
-        /// <returns>The result of the operator.</returns>
-        public static bool operator !=(BufferDescription left, BufferDescription right)
-        {
-            return !left.Equals(right);
-        }
+        public static bool operator ==(BufferDescription left, BufferDescription right) => left.Equals(right);
+
+        public static bool operator !=(BufferDescription left, BufferDescription right) => !left.Equals(right);
     }
 }

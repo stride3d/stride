@@ -2,17 +2,17 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 //
 // Copyright (c) 2010-2012 SharpDX - Alexandre Mutel
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -24,9 +24,9 @@
 using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using Stride.Core;
 using Stride.Core.Serialization;
 using Stride.Core.Serialization.Contents;
+using Stride.Core.UnsafeExtensions;
 using Stride.Graphics.Data;
 
 namespace Stride.Graphics
@@ -45,41 +45,30 @@ namespace Stride.Graphics
         protected int elementCount;
         private BufferDescription bufferDescription;
 
-        public Buffer()
-        {
-        }
+
+        public Buffer() { }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Buffer" /> class.
         /// </summary>
         /// <param name="device">The <see cref="GraphicsDevice"/>.</param>
-        protected Buffer(GraphicsDevice device) : base(device)
-        {
-        }
+        protected Buffer(GraphicsDevice device) : base(device) { }
+
 
         /// <summary>
         /// Gets the description of this buffer.
         /// </summary>
-        public BufferDescription Description
-        {
-            get { return bufferDescription; }
-        }
+        public BufferDescription Description => bufferDescription;
 
         /// <summary>
         /// Value that identifies how the buffer is to be read from and written to.
         /// </summary>
-        public GraphicsResourceUsage Usage
-        {
-            get { return bufferDescription.Usage; }
-        }
+        public GraphicsResourceUsage Usage => bufferDescription.Usage;
 
         /// <summary>
         /// Buffer flags describing the type of buffer.
         /// </summary>
-        public BufferFlags Flags
-        {
-            get { return bufferDescription.BufferFlags; }
-        }
+        public BufferFlags Flags => bufferDescription.BufferFlags;
 
         /// <summary>
         /// Gets the size of the buffer in bytes.
@@ -87,18 +76,12 @@ namespace Stride.Graphics
         /// <value>
         /// The size of the buffer in bytes.
         /// </value>
-        public int SizeInBytes
-        {
-            get { return bufferDescription.SizeInBytes; }
-        }
+        public int SizeInBytes => bufferDescription.SizeInBytes;
 
         /// <summary>
         /// The size of the structure (in bytes) when it represents a structured/typed buffer.
         /// </summary>
-        public int StructureByteStride
-        {
-            get { return bufferDescription.StructureByteStride; }
-        }
+        public int StructureByteStride => bufferDescription.StructureByteStride;
 
         /// <summary>
         /// Gets the number of elements.
@@ -108,14 +91,8 @@ namespace Stride.Graphics
         /// </remarks>
         public int ElementCount
         {
-            get
-            {
-                return elementCount;
-            }
-            protected set
-            {
-                elementCount = value;
-            }
+            get => elementCount;
+            protected set => elementCount = value;
         }
 
         /// <summary>
@@ -136,16 +113,15 @@ namespace Stride.Graphics
         /// </summary>
         public int InitialCounterOffset { get; set; } = -1;
 
+
         /// <summary>
         /// Return an equivalent staging texture CPU read-writable from this instance.
         /// </summary>
         /// <returns>A new instance of this buffer as a staging resource</returns>
         public Buffer ToStaging()
         {
-            var stagingDesc = Description;
-            stagingDesc.Usage = GraphicsResourceUsage.Staging;
-            stagingDesc.BufferFlags = BufferFlags.None;
-            return new Buffer(GraphicsDevice).InitializeFromImpl(stagingDesc, BufferFlags.None, ViewFormat, IntPtr.Zero);
+            var stagingDesc = Description with { Usage = GraphicsResourceUsage.Staging, BufferFlags = BufferFlags.None };
+            return new Buffer(GraphicsDevice).InitializeFromImpl(stagingDesc, BufferFlags.None, ViewFormat, dataPointer: IntPtr.Zero);
         }
 
         /// <summary>
@@ -157,8 +133,19 @@ namespace Stride.Graphics
         /// </remarks>
         public Buffer Clone()
         {
-            return new Buffer(GraphicsDevice).InitializeFromImpl(Description, ViewFlags, ViewFormat, IntPtr.Zero);
+            return new Buffer(GraphicsDevice).InitializeFromImpl(in bufferDescription, ViewFlags, ViewFormat, dataPointer: IntPtr.Zero);
         }
+
+        #region Initialization
+
+        /// <summary>
+        ///   Initializes this <see cref="Buffer"/> instance with the provided options.
+        /// </summary>
+        protected partial Buffer InitializeFromImpl(ref readonly BufferDescription description, BufferFlags viewFlags, PixelFormat viewFormat, IntPtr dataPointer);
+
+        #endregion
+
+        #region GetData: Reading data from the Buffer
 
         /// <summary>
         /// Gets the content of this buffer to an array of data.
@@ -168,9 +155,9 @@ namespace Stride.Graphics
         /// This method is only working when called from the main thread that is accessing the main <see cref="GraphicsDevice"/>.
         /// This method creates internally a stagging resource if this texture is not already a stagging resouce, copies to it and map it to memory. Use method with explicit staging resource
         /// for optimal performances.</remarks>
-        public TData[] GetData<TData>(CommandList commandList) where TData : unmanaged
+        public unsafe TData[] GetData<TData>(CommandList commandList) where TData : unmanaged
         {
-            var toData = new TData[this.Description.SizeInBytes / Unsafe.SizeOf<TData>()];
+            var toData = new TData[SizeInBytes / sizeof(TData)];
             GetData(commandList, toData);
             return toData;
         }
@@ -187,7 +174,7 @@ namespace Stride.Graphics
         public void GetData<TData>(CommandList commandList, TData[] toData) where TData : unmanaged
         {
             // Get data from this resource
-            if (this.Description.Usage == GraphicsResourceUsage.Staging)
+            if (Description.Usage == GraphicsResourceUsage.Staging)
             {
                 // Directly if this is a staging resource
                 GetData(commandList, this, toData);
@@ -212,7 +199,7 @@ namespace Stride.Graphics
         public void GetData<TData>(CommandList commandList, ref TData toData) where TData : unmanaged
         {
             // Get data from this resource
-            if (this.Description.Usage == GraphicsResourceUsage.Staging)
+            if (Description.Usage == GraphicsResourceUsage.Staging)
             {
                 // Directly if this is a staging resource
                 GetData(commandList, this, ref toData);
@@ -235,9 +222,9 @@ namespace Stride.Graphics
         /// <remarks>
         /// This method is only working when called from the main thread that is accessing the main <see cref="GraphicsDevice"/>.
         /// </remarks>
-        public unsafe void GetData<TData>(CommandList commandList, Buffer stagingTexture, ref TData toData) where TData : unmanaged
+        public void GetData<TData>(CommandList commandList, Buffer stagingBuffer, ref TData toData) where TData : unmanaged
         {
-            GetData(commandList, stagingTexture, MemoryMarshal.CreateSpan(ref toData, 1));
+            GetData(commandList, stagingBuffer, MemoryMarshal.CreateSpan(ref toData, 1));
         }
 
         /// <summary>
@@ -250,9 +237,9 @@ namespace Stride.Graphics
         /// <remarks>
         /// This method is only working when called from the main thread that is accessing the main <see cref="GraphicsDevice"/>.
         /// </remarks>
-        public unsafe void GetData<TData>(CommandList commandList, Buffer stagingTexture, TData[] toData) where TData : unmanaged
+        public void GetData<TData>(CommandList commandList, Buffer stagingBuffer, TData[] toData) where TData : unmanaged
         {
-            GetData(commandList, stagingTexture, toData.AsSpan());
+            GetData(commandList, stagingBuffer, toData.AsSpan());
         }
 
         /// <summary>
@@ -266,9 +253,9 @@ namespace Stride.Graphics
         /// <remarks>
         /// See the unmanaged documentation about Map/UnMap for usage and restrictions.
         /// </remarks>
-        public void SetData<TData>(CommandList commandList, ref TData fromData, int offsetInBytes = 0) where TData : unmanaged
+        public unsafe void GetData(CommandList commandList, Buffer stagingBuffer, DataPointer toData)
         {
-            SetData(commandList, MemoryMarshal.CreateReadOnlySpan(ref fromData, 1), offsetInBytes);
+            GetData(commandList, stagingBuffer, new Span<byte>((void*) toData.Pointer, toData.Size));
         }
 
         /// <summary>
@@ -282,10 +269,28 @@ namespace Stride.Graphics
         /// <remarks>
         /// See the unmanaged documentation about Map/UnMap for usage and restrictions.
         /// </remarks>
-        public void SetData<TData>(CommandList commandList, TData[] fromData, int offsetInBytes = 0) where TData : unmanaged
+        public unsafe void GetData<TData>(CommandList commandList, Buffer stagingBuffer, Span<TData> toData) where TData : unmanaged
         {
-            SetData(commandList, (ReadOnlySpan<TData>)fromData.AsSpan(), offsetInBytes);
+            // Check destination buffer has valid size
+            int toDataSizeInBytes = toData.Length * sizeof(TData);
+            if (toDataSizeInBytes > SizeInBytes)
+                throw new ArgumentException("The length of the destination data buffer is larger than the size of the Buffer");
+
+            // Copy the Buffer to a staging resource
+            if (!ReferenceEquals(this, stagingBuffer))
+                commandList.Copy(this, stagingBuffer);
+
+            // Map the staging resource to CPU-readable memory
+            var mappedResource = commandList.MapSubResource(stagingBuffer, subResourceIndex: 0, MapMode.Read);
+            var fromData = new ReadOnlySpan<TData>((void*) mappedResource.DataBox.DataPointer, toData.Length);
+            fromData.CopyTo(toData);
+            //Utilities.CopyWithAlignmentFallback(pointer, (void*)mappedResource.DataBox.DataPointer, (uint)toDataInBytes);
+            commandList.UnmapSubResource(mappedResource);
         }
+
+        #endregion
+
+        #region SetData: Writing data into the Buffer
 
         /// <summary>
         /// Copies the content of this buffer from GPU memory to a CPU memory using a specific staging resource.
@@ -297,9 +302,9 @@ namespace Stride.Graphics
         /// This method is only working when called from the main thread that is accessing the main <see cref="GraphicsDevice"/>.
         /// </remarks>
         [Obsolete("Use span instead")]
-        public unsafe void GetData(CommandList commandList, Buffer stagingTexture, DataPointer toData)
+        public void SetData<TData>(CommandList commandList, ref readonly TData fromData, int offsetInBytes = 0) where TData : unmanaged
         {
-            GetData(commandList, stagingTexture, new Span<byte>((void*)toData.Pointer, toData.Size));
+            SetData(commandList, MemoryMarshal.CreateReadOnlySpan(in fromData, 1), offsetInBytes);
         }
 
         /// <summary>
@@ -311,24 +316,9 @@ namespace Stride.Graphics
         /// <remarks>
         /// This method is only working when called from the main thread that is accessing the main <see cref="GraphicsDevice"/>.
         /// </remarks>
-        public unsafe void GetData<T>(CommandList commandList, Buffer stagingTexture, Span<T> toData) where T : unmanaged
+        public void SetData<TData>(CommandList commandList, TData[] fromData, int offsetInBytes = 0) where TData : unmanaged
         {
-            int toDataInBytes = toData.Length * sizeof(T);
-            
-            // Check size validity of data to copy to
-            if (toDataInBytes > this.Description.SizeInBytes)
-                throw new ArgumentException($"Length of {nameof(toData)} is larger than size of buffer");
-
-            // Copy the texture to a staging resource
-            if (!ReferenceEquals(this, stagingTexture))
-                commandList.Copy(this, stagingTexture);
-
-            // Map the staging resource to a CPU accessible memory
-            var mappedResource = commandList.MapSubresource(stagingTexture, 0, MapMode.Read);
-            fixed (void* pointer = toData)
-                Utilities.CopyWithAlignmentFallback(pointer, (void*)mappedResource.DataBox.DataPointer, (uint)toDataInBytes);
-            // Make sure that we unmap the resource in case of an exception
-            commandList.UnmapSubresource(mappedResource);
+            SetData(commandList, (ReadOnlySpan<TData>) fromData.AsSpan(), offsetInBytes);
         }
 
         /// <summary>
@@ -344,7 +334,7 @@ namespace Stride.Graphics
         [Obsolete("Use span instead")]
         public unsafe void SetData(CommandList commandList, DataPointer fromData, int offsetInBytes = 0)
         {
-            SetData(commandList, new ReadOnlySpan<byte>((void*)fromData.Pointer, fromData.Size), offsetInBytes);
+            SetData(commandList, new ReadOnlySpan<byte>((void*) fromData.Pointer, fromData.Size), offsetInBytes);
         }
 
         /// <summary>
@@ -357,40 +347,43 @@ namespace Stride.Graphics
         /// <remarks>
         /// See the unmanaged documentation about Map/UnMap for usage and restrictions.
         /// </remarks>
-        public unsafe void SetData<T>(CommandList commandList, ReadOnlySpan<T> fromData, int offsetInBytes = 0) where T : unmanaged
+        public unsafe void SetData<TData>(CommandList commandList, ReadOnlySpan<TData> fromData, int offsetInBytes = 0) where TData : unmanaged
         {
-            int sizeInBytes = fromData.Length * sizeof(T);
-            // Check size validity of data to copy to
-            if (sizeInBytes > this.Description.SizeInBytes)
-                throw new ArgumentException("Size of data to upload larger than size of buffer");
+            // Check size validity of data to copy from
+            var fromDataAsBytes = fromData.AsBytes();
+            var fromDataSizeInBytes = fromDataAsBytes.Length;
+            if (fromDataAsBytes.Length > SizeInBytes)
+                throw new ArgumentException("The length of the source data to upload is larger than the size of the Buffer");
 
-            fixed (void* pointer = fromData)
+            // If the Buffer is declared as Default usage, we can only use UpdateSubresource, which is not optimal but better than nothing
+            if (Description.Usage == GraphicsResourceUsage.Default)
             {
-                // If this texture is declared as default usage, we can only use UpdateSubresource, which is not optimal but better than nothing
-                if (this.Description.Usage == GraphicsResourceUsage.Default)
+                // Set up the dest region inside the Buffer
+                if (Description.BufferFlags.HasFlag(BufferFlags.ConstantBuffer))
                 {
-                    // Setup the dest region inside the buffer
-                    if ((this.Description.BufferFlags & BufferFlags.ConstantBuffer) != 0)
-                    {
-                        commandList.UpdateSubresource(this, 0, new DataBox((nint)pointer, 0, 0));
-                    }
-                    else
-                    {
-                        var destRegion = new ResourceRegion(offsetInBytes, 0, 0, offsetInBytes + sizeInBytes, 1, 1);
-                        commandList.UpdateSubresource(this, 0, new DataBox((nint)pointer, 0, 0), destRegion);
-                    }
+                    commandList.UpdateSubResource(this, subResourceIndex: 0, fromDataAsBytes);
                 }
                 else
                 {
-                    if (offsetInBytes > 0)
-                        throw new ArgumentException("offset is only supported for textured declared with ResourceUsage.Default", "offsetInBytes");
-
-                    var mappedResource = commandList.MapSubresource(this, 0, Usage == GraphicsResourceUsage.Staging ? MapMode.Write : MapMode.WriteDiscard);
-                    Utilities.CopyWithAlignmentFallback((void*)mappedResource.DataBox.DataPointer, pointer, (uint)sizeInBytes);
-                    commandList.UnmapSubresource(mappedResource);
+                    var destRegion = new ResourceRegion(left: offsetInBytes, top: 0, front: 0, right: offsetInBytes + fromDataSizeInBytes, bottom: 1, back: 1);
+                    commandList.UpdateSubResource(this, subResourceIndex: 0, fromDataAsBytes, destRegion);
                 }
             }
+            else
+            {
+                if (offsetInBytes > 0)
+                    throw new ArgumentException("Offsets are only supported for Textures declared with {nameof(GraphicsResourceUsage)}.{nameof(GraphicsResourceUsage.Default)}", nameof(offsetInBytes));
+
+                // Map the Buffer to CPU-writable memory
+                var mappedResource = commandList.MapSubResource(this, subResourceIndex: 0, Usage == GraphicsResourceUsage.Staging ? MapMode.Write : MapMode.WriteDiscard);
+                var toData = new Span<TData>((void*) mappedResource.DataBox.DataPointer, fromData.Length);
+                fromData.CopyTo(toData);
+                //Utilities.CopyWithAlignmentFallback((void*)mappedResource.DataBox.DataPointer, pointer, (uint)sizeInBytes);
+                commandList.UnmapSubResource(mappedResource);
+            }
         }
+
+        #endregion
 
         /// <summary>
         /// Creates a new <see cref="Buffer" /> instance.
@@ -402,7 +395,7 @@ namespace Stride.Graphics
         public static Buffer New(GraphicsDevice device, BufferDescription description, PixelFormat viewFormat = PixelFormat.None)
         {
             var bufferType = description.BufferFlags;
-            return new Buffer(device).InitializeFromImpl(description, bufferType, viewFormat, IntPtr.Zero);
+            return new Buffer(device).InitializeFromImpl(description, bufferType, viewFormat, dataPointer: IntPtr.Zero);
         }
 
         /// <summary>
@@ -415,7 +408,7 @@ namespace Stride.Graphics
         /// <returns>An instance of a new <see cref="Buffer" /></returns>
         public static Buffer New(GraphicsDevice device, int bufferSize, BufferFlags bufferFlags, GraphicsResourceUsage usage = GraphicsResourceUsage.Default)
         {
-            return New(device, bufferSize, 0, bufferFlags, PixelFormat.None, usage);
+            return New(device, bufferSize, elementSize: 0, bufferFlags, viewFormat: PixelFormat.None, usage);
         }
 
         /// <summary>
@@ -428,11 +421,11 @@ namespace Stride.Graphics
         /// <returns>An instance of a new <see cref="Buffer" /></returns>
         public static Buffer<T> New<T>(GraphicsDevice device, int elementCount, BufferFlags bufferFlags, GraphicsResourceUsage usage = GraphicsResourceUsage.Default) where T : unmanaged
         {
-            int bufferSize = Unsafe.SizeOf<T>() * elementCount;
             int elementSize = Unsafe.SizeOf<T>();
+            int bufferSize = elementSize * elementCount;
 
             var description = NewDescription(bufferSize, elementSize, bufferFlags, usage);
-            return new Buffer<T>(device, description, bufferFlags, PixelFormat.None, IntPtr.Zero);
+            return new Buffer<T>(device, description, bufferFlags, viewFormat: PixelFormat.None, dataPointer: IntPtr.Zero);
         }
 
         /// <summary>
@@ -444,9 +437,9 @@ namespace Stride.Graphics
         /// <param name="viewFormat">The view format must be specified if the buffer is declared as a shared resource view.</param>
         /// <param name="usage">The usage.</param>
         /// <returns>An instance of a new <see cref="Buffer" /></returns>
-        public static Buffer New(GraphicsDevice device, int bufferSize, BufferFlags bufferFlags, PixelFormat viewFormat, GraphicsResourceUsage usage = GraphicsResourceUsage.Default)
+        public static Buffer New(GraphicsDevice device, int bufferSize, BufferFlags bufferFlags, PixelFormat viewFormat = PixelFormat.None, GraphicsResourceUsage usage = GraphicsResourceUsage.Default)
         {
-            return New(device, bufferSize, 0, bufferFlags, viewFormat, usage);
+            return New(device, bufferSize, elementSize: 0, bufferFlags, viewFormat, usage);
         }
 
         /// <summary>
@@ -460,7 +453,7 @@ namespace Stride.Graphics
         /// <returns>An instance of a new <see cref="Buffer" /></returns>
         public static Buffer New(GraphicsDevice device, int bufferSize, int elementSize, BufferFlags bufferFlags, GraphicsResourceUsage usage = GraphicsResourceUsage.Default)
         {
-            return New(device, bufferSize, elementSize, bufferFlags, PixelFormat.None, usage);
+            return New(device, bufferSize, elementSize, bufferFlags, viewFormat: PixelFormat.None, usage);
         }
 
         /// <summary>
@@ -473,11 +466,12 @@ namespace Stride.Graphics
         /// <param name="viewFormat">The view format must be specified if the buffer is declared as a shared resource view.</param>
         /// <param name="usage">The usage.</param>
         /// <returns>An instance of a new <see cref="Buffer" /></returns>
-        public static Buffer New(GraphicsDevice device, int bufferSize, int elementSize, BufferFlags bufferFlags, PixelFormat viewFormat, GraphicsResourceUsage usage = GraphicsResourceUsage.Default)
+        public static Buffer New(GraphicsDevice device, int bufferSize, int elementSize, BufferFlags bufferFlags, PixelFormat viewFormat = PixelFormat.None, GraphicsResourceUsage usage = GraphicsResourceUsage.Default)
         {
             viewFormat = CheckPixelFormat(bufferFlags, elementSize, viewFormat);
+
             var description = NewDescription(bufferSize, elementSize, bufferFlags, usage);
-            return new Buffer(device).InitializeFromImpl(description, bufferFlags, viewFormat, IntPtr.Zero);
+            return new Buffer(device).InitializeFromImpl(description, bufferFlags, viewFormat, dataPointer: IntPtr.Zero);
         }
 
         /// <summary>
@@ -489,9 +483,9 @@ namespace Stride.Graphics
         /// <param name="bufferFlags">The buffer flags to specify the type of buffer.</param>
         /// <param name="usage">The usage.</param>
         /// <returns>An instance of a new <see cref="Buffer" /></returns>
-        public static Buffer<T> New<T>(GraphicsDevice device, ref T value, BufferFlags bufferFlags, GraphicsResourceUsage usage = GraphicsResourceUsage.Default) where T : unmanaged
+        public static Buffer<T> New<T>(GraphicsDevice device, ref readonly T value, BufferFlags bufferFlags, GraphicsResourceUsage usage = GraphicsResourceUsage.Default) where T : unmanaged
         {
-            return New(device, ref value, bufferFlags, PixelFormat.None, usage);
+            return New(device, in value, bufferFlags, viewFormat: PixelFormat.None, usage);
         }
 
         /// <summary>
@@ -504,16 +498,17 @@ namespace Stride.Graphics
         /// <param name="viewFormat">The view format must be specified if the buffer is declared as a shared resource view.</param>
         /// <param name="usage">The usage.</param>
         /// <returns>An instance of a new <see cref="Buffer" /></returns>
-        public static unsafe Buffer<T> New<T>(GraphicsDevice device, ref T value, BufferFlags bufferFlags, PixelFormat viewFormat, GraphicsResourceUsage usage = GraphicsResourceUsage.Default) where T : unmanaged
+        public static unsafe Buffer<T> New<T>(GraphicsDevice device, ref readonly T value, BufferFlags bufferFlags, PixelFormat viewFormat = PixelFormat.None, GraphicsResourceUsage usage = GraphicsResourceUsage.Default) where T : unmanaged
         {
-            int bufferSize = Unsafe.SizeOf<T>();
-            int elementSize = ((bufferFlags & BufferFlags.StructuredBuffer) != 0) ? Unsafe.SizeOf<T>() : 0;
+            int sizeOfT = sizeof(T);
+            int bufferSize = sizeOfT;
+            int elementSize = bufferFlags.HasFlag(BufferFlags.StructuredBuffer) ? sizeOfT : 0;
 
             viewFormat = CheckPixelFormat(bufferFlags, elementSize, viewFormat);
 
             var description = NewDescription(bufferSize, elementSize, bufferFlags, usage);
-            fixed (T* v = &value)
-                return new Buffer<T>(device, description, bufferFlags, viewFormat, (nint)v);
+            fixed (T* ptrValue = &value)
+                return new Buffer<T>(device, description, bufferFlags, viewFormat, (nint) ptrValue);
         }
 
         /// <summary>
@@ -527,7 +522,7 @@ namespace Stride.Graphics
         /// <returns>An instance of a new <see cref="Buffer" /></returns>
         public static Buffer<T> New<T>(GraphicsDevice device, T[] initialValue, BufferFlags bufferFlags, GraphicsResourceUsage usage = GraphicsResourceUsage.Default) where T : unmanaged
         {
-            return New(device, (ReadOnlySpan<T>)initialValue.AsSpan(), bufferFlags, PixelFormat.None, usage);
+            return New(device, (ReadOnlySpan<T>) initialValue.AsSpan(), bufferFlags, viewFormat: PixelFormat.None, usage);
         }
 
         /// <summary>
@@ -540,9 +535,9 @@ namespace Stride.Graphics
         /// <param name="viewFormat">The view format must be specified if the buffer is declared as a shared resource view.</param>
         /// <param name="usage">The usage.</param>
         /// <returns>An instance of a new <see cref="Buffer" /></returns>
-        public static Buffer<T> New<T>(GraphicsDevice device, T[] initialValue, BufferFlags bufferFlags, PixelFormat viewFormat, GraphicsResourceUsage usage = GraphicsResourceUsage.Default) where T : unmanaged
+        public static Buffer<T> New<T>(GraphicsDevice device, T[] initialValue, BufferFlags bufferFlags, PixelFormat viewFormat = PixelFormat.None, GraphicsResourceUsage usage = GraphicsResourceUsage.Default) where T : unmanaged
         {
-            return New(device, (ReadOnlySpan<T>)initialValue.AsSpan(), bufferFlags, PixelFormat.None, usage);
+            return New(device, (ReadOnlySpan<T>)initialValue.AsSpan(), bufferFlags, viewFormat, usage);
         }
 
         /// <summary>
@@ -557,13 +552,14 @@ namespace Stride.Graphics
         /// <returns>An instance of a new <see cref="Buffer" /></returns>
         public static unsafe Buffer<T> New<T>(GraphicsDevice device, ReadOnlySpan<T> initialValues, BufferFlags bufferFlags, PixelFormat viewFormat = PixelFormat.None, GraphicsResourceUsage usage = GraphicsResourceUsage.Default) where T : unmanaged
         {
-            int bufferSize = sizeof(T) * initialValues.Length;
             int elementSize = sizeof(T);
+            int bufferSize = elementSize * initialValues.Length;
+
             viewFormat = CheckPixelFormat(bufferFlags, elementSize, viewFormat);
 
             var description = NewDescription(bufferSize, elementSize, bufferFlags, usage);
-            fixed (void* pointer = initialValues)
-                return new Buffer<T>(device, description, bufferFlags, viewFormat, (nint)pointer);
+            fixed (void* ptrInitialValue = initialValues)
+                return new Buffer<T>(device, description, bufferFlags, viewFormat, (nint) ptrInitialValue);
         }
 
         /// <summary>
@@ -576,13 +572,13 @@ namespace Stride.Graphics
         /// <param name="viewFormat">The view format must be specified if the buffer is declared as a shared resource view.</param>
         /// <param name="usage">The usage.</param>
         /// <returns>An instance of a new <see cref="Buffer" /></returns>
-        public static Buffer New(GraphicsDevice device, ReadOnlySpan<byte> initialValue, int elementSize, BufferFlags bufferFlags, PixelFormat viewFormat = PixelFormat.None, GraphicsResourceUsage usage = GraphicsResourceUsage.Immutable)
-        {
-            return new Buffer(device).InitializeFrom(initialValue, elementSize, bufferFlags, viewFormat, usage);
-        }
 
         /// <summary>
         /// Creates a new <see cref="Buffer" /> instance.
+        public static Buffer New(GraphicsDevice device, ReadOnlySpan<byte> initialValues, int elementSize, BufferFlags bufferFlags, PixelFormat viewFormat = PixelFormat.None, GraphicsResourceUsage usage = GraphicsResourceUsage.Immutable)
+        {
+            return new Buffer(device).InitializeFrom(initialValues, elementSize, bufferFlags, viewFormat, usage);
+        }
         /// </summary>
         /// <param name="device">The <see cref="GraphicsDevice"/>.</param>
         /// <param name="dataPointer">The data pointer.</param>
@@ -593,7 +589,7 @@ namespace Stride.Graphics
         [Obsolete("Use span instead")]
         public static Buffer New(GraphicsDevice device, DataPointer dataPointer, int elementSize, BufferFlags bufferFlags, GraphicsResourceUsage usage = GraphicsResourceUsage.Default)
         {
-            return New(device, dataPointer, elementSize, bufferFlags, PixelFormat.None, usage);
+            return New(device, dataPointer, elementSize, bufferFlags, viewFormat: PixelFormat.None, usage);
         }
 
         /// <summary>
@@ -607,44 +603,45 @@ namespace Stride.Graphics
         /// <param name="usage">The usage.</param>
         /// <returns>An instance of a new <see cref="Buffer" /></returns>
         [Obsolete("Use span instead")]
-        public static Buffer New(GraphicsDevice device, DataPointer dataPointer, int elementSize, BufferFlags bufferFlags, PixelFormat viewFormat, GraphicsResourceUsage usage = GraphicsResourceUsage.Default)
+        public static Buffer New(GraphicsDevice device, DataPointer dataPointer, int elementSize, BufferFlags bufferFlags, PixelFormat viewFormat = PixelFormat.None, GraphicsResourceUsage usage = GraphicsResourceUsage.Default)
         {
             int bufferSize = dataPointer.Size;
+
             viewFormat = CheckPixelFormat(bufferFlags, elementSize, viewFormat);
+
             var description = NewDescription(bufferSize, elementSize, bufferFlags, usage);
             return new Buffer(device).InitializeFromImpl(description, bufferFlags, viewFormat, dataPointer.Pointer);
         }
 
-        internal unsafe Buffer InitializeFrom(ReadOnlySpan<byte> initialValue, int elementSize, BufferFlags bufferFlags, PixelFormat viewFormat = PixelFormat.None, GraphicsResourceUsage usage = GraphicsResourceUsage.Immutable)
+        internal unsafe Buffer InitializeFrom(ReadOnlySpan<byte> initialValues, int elementSize, BufferFlags bufferFlags, PixelFormat viewFormat = PixelFormat.None, GraphicsResourceUsage usage = GraphicsResourceUsage.Immutable)
         {
-            int bufferSize = initialValue.Length;
+            int bufferSize = initialValues.Length;
+
             viewFormat = CheckPixelFormat(bufferFlags, elementSize, viewFormat);
 
             var description = NewDescription(bufferSize, elementSize, bufferFlags, usage);
-            fixed (void* initial = initialValue)
-                return InitializeFromImpl(description, bufferFlags, viewFormat, (nint)initial);
+            fixed (void* ptrInitialValue = initialValues)
+                return InitializeFromImpl(description, bufferFlags, viewFormat, (nint) ptrInitialValue);
         }
-
         private static PixelFormat CheckPixelFormat(BufferFlags bufferFlags, int elementSize, PixelFormat viewFormat)
         {
-            if ((bufferFlags & BufferFlags.IndexBuffer) != 0 && (bufferFlags & BufferFlags.ShaderResource) != 0)
-            {
-                if (elementSize != 2 && elementSize != 4)
-                    throw new ArgumentException("Element size must be set to sizeof(short) = 2 or sizeof(int) = 4 for index buffer if index buffer is bound to a ShaderResource", "elementSize");
+            if (!bufferFlags.HasFlag(BufferFlags.IndexBuffer) || !bufferFlags.HasFlag(BufferFlags.ShaderResource))
+                return viewFormat;
 
-                viewFormat = elementSize == 2 ? PixelFormat.R16_UInt : PixelFormat.R32_UInt;
-            }
-            return viewFormat;
+            if (elementSize != 2 && elementSize != 4)
+                throw new ArgumentException("Element size must be set to sizeof(short) = 2 or sizeof(int) = 4 for Index Buffers if bound as a Shader Resource", nameof(elementSize));
+
+            return elementSize == 2 ? PixelFormat.R16_UInt : PixelFormat.R32_UInt;
         }
 
         private static BufferDescription NewDescription(int bufferSize, int elementSize, BufferFlags bufferFlags, GraphicsResourceUsage usage)
         {
-            return new BufferDescription()
+            return new BufferDescription
             {
                 SizeInBytes = bufferSize,
-                StructureByteStride = (bufferFlags & BufferFlags.StructuredBuffer) != 0 ? elementSize : 0,
+                StructureByteStride = bufferFlags.HasFlag(BufferFlags.StructuredBuffer) ? elementSize : 0,
                 BufferFlags = bufferFlags,
-                Usage = usage,
+                Usage = usage
             };
         }
 
@@ -654,9 +651,9 @@ namespace Stride.Graphics
         /// <typeparam name="T"></typeparam>
         /// <param name="dataPointer">The data pointer.</param>
         /// <returns>This instance.</returns>
-        public Buffer RecreateWith<T>(T[] dataPointer) where T : unmanaged
+        public Buffer RecreateWith<T>(T[] data) where T : unmanaged
         {
-            Reload = (graphicsResource, services) => ((Buffer)graphicsResource).Recreate(dataPointer);
+            Reload = (graphicsResource, _) => ((Buffer) graphicsResource).Recreate(data);
 
             return this;
         }
@@ -669,7 +666,7 @@ namespace Stride.Graphics
         /// <returns>This instance.</returns>
         public Buffer RecreateWith(IntPtr dataPointer)
         {
-            Reload = (graphicsResource, services) => ((Buffer)graphicsResource).Recreate(dataPointer);
+            Reload = (graphicsResource, _) => ((Buffer) graphicsResource).Recreate(dataPointer);
 
             return this;
         }
@@ -679,10 +676,10 @@ namespace Stride.Graphics
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="dataPointer"></param>
-        public unsafe void Recreate<T>(T[] dataPointer) where T : unmanaged
+        public unsafe void Recreate<T>(T[] data) where T : unmanaged
         {
-            fixed (void* data = dataPointer)
-                Recreate((nint)data);
+            fixed (void* ptrData = data)
+                Recreate((nint) ptrData);
         }
     }
 
@@ -692,11 +689,12 @@ namespace Stride.Graphics
     /// <typeparam name="T">Type of an element of this buffer.</typeparam>
     public class Buffer<T> : Buffer where T : unmanaged
     {
-        protected internal Buffer(GraphicsDevice device, BufferDescription description, BufferFlags viewFlags, PixelFormat viewFormat, IntPtr dataPointer) : base(device)
+        protected internal Buffer(GraphicsDevice device, BufferDescription description, BufferFlags bufferFlags, PixelFormat viewFormat, IntPtr dataPointer) : base(device)
         {
-            InitializeFromImpl(description, viewFlags, viewFormat, dataPointer);
-            this.ElementSize = Unsafe.SizeOf<T>();
-            this.ElementCount = Description.SizeInBytes / ElementSize;
+            InitializeFromImpl(description, bufferFlags, viewFormat, dataPointer);
+
+            ElementSize = Unsafe.SizeOf<T>();
+            ElementCount = SizeInBytes / ElementSize;
         }
 
         /// <summary>
@@ -726,9 +724,9 @@ namespace Stride.Graphics
         /// <remarks>
         /// This method is only working when called from the main thread that is accessing the main <see cref="GraphicsDevice"/>. See the unmanaged documentation about Map/UnMap for usage and restrictions.
         /// </remarks>
-        public void SetData(CommandList commandList, ref T fromData, int offsetInBytes = 0)
+        public void SetData(CommandList commandList, ref readonly T fromData, int offsetInBytes = 0)
         {
-            base.SetData(commandList, ref fromData, offsetInBytes);
+            base.SetData(commandList, in fromData, offsetInBytes);
         }
 
         /// <summary>

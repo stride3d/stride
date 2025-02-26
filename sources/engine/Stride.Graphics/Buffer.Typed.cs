@@ -2,17 +2,17 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 //
 // Copyright (c) 2010-2012 SharpDX - Alexandre Mutel
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -22,7 +22,6 @@
 // THE SOFTWARE.
 
 using System;
-using Stride.Games;
 
 namespace Stride.Graphics
 {
@@ -45,9 +44,9 @@ namespace Stride.Graphics
             /// <param name="isUnorderedAccess">if set to <c>true</c> this buffer supports unordered access (RW in HLSL).</param>
             /// <param name="usage">The usage.</param>
             /// <returns>A Typed buffer</returns>
-            public static Buffer New(GraphicsDevice device, int count, PixelFormat viewFormat, bool isUnorderedAccess = false, GraphicsResourceUsage usage = GraphicsResourceUsage.Default)
+            public static Buffer New(GraphicsDevice device, int elementCount, PixelFormat elementFormat, bool unorderedAccess = false, GraphicsResourceUsage usage = GraphicsResourceUsage.Default)
             {
-                return Buffer.New(device, count * viewFormat.SizeInBytes(), BufferFlags.ShaderResource | (isUnorderedAccess ? BufferFlags.UnorderedAccess : BufferFlags.None), viewFormat, usage);
+                return Buffer.New(device, bufferSize: elementCount * elementFormat.SizeInBytes(), BufferFlags.ShaderResource | (unorderedAccess ? BufferFlags.UnorderedAccess : BufferFlags.None), elementFormat, usage);
             }
 
             /// <summary>
@@ -60,9 +59,9 @@ namespace Stride.Graphics
             /// <param name="isUnorderedAccess">if set to <c>true</c> this buffer supports unordered access (RW in HLSL).</param>
             /// <param name="usage">The usage of this resource.</param>
             /// <returns>A Typed buffer</returns>
-            public static Buffer<T> New<T>(GraphicsDevice device, T[] value, PixelFormat viewFormat, bool isUnorderedAccess = false, GraphicsResourceUsage usage = GraphicsResourceUsage.Default) where T : unmanaged
+            public static Buffer<T> New<T>(GraphicsDevice device, T[] data, PixelFormat elementFormat, bool unorderedAccess = false, GraphicsResourceUsage usage = GraphicsResourceUsage.Default) where T : unmanaged
             {
-                return Buffer.New(device, (ReadOnlySpan<T>)value, BufferFlags.ShaderResource | (isUnorderedAccess ? BufferFlags.UnorderedAccess : BufferFlags.None), viewFormat, usage);
+                return Buffer.New(device, (ReadOnlySpan<T>)data, BufferFlags.ShaderResource | (unorderedAccess ? BufferFlags.UnorderedAccess : BufferFlags.None), elementFormat, usage);
             }
 
             /// <summary>
@@ -75,9 +74,9 @@ namespace Stride.Graphics
             /// <param name="isUnorderedAccess">if set to <c>true</c> this buffer supports unordered access (RW in HLSL).</param>
             /// <param name="usage">The usage of this resource.</param>
             /// <returns>A Typed buffer</returns>
-            public static Buffer<T> New<T>(GraphicsDevice device, ReadOnlySpan<T> value, PixelFormat viewFormat, bool isUnorderedAccess = false, GraphicsResourceUsage usage = GraphicsResourceUsage.Default) where T : unmanaged
+            public static Buffer<T> New<T>(GraphicsDevice device, ReadOnlySpan<T> data, PixelFormat elementFormat, bool unorderedAccess = false, GraphicsResourceUsage usage = GraphicsResourceUsage.Default) where T : unmanaged
             {
-                return Buffer.New(device, value, BufferFlags.ShaderResource | (isUnorderedAccess ? BufferFlags.UnorderedAccess : BufferFlags.None), viewFormat, usage);
+                return Buffer.New(device, data, BufferFlags.ShaderResource | (unorderedAccess ? BufferFlags.UnorderedAccess : BufferFlags.None), elementFormat, usage);
             }
 
             /// <summary>
@@ -90,9 +89,9 @@ namespace Stride.Graphics
             /// <param name="usage">The usage of this resource.</param>
             /// <returns>A Typed buffer</returns>
             [Obsolete("Use span instead")]
-            public static Buffer New(GraphicsDevice device, DataPointer value, PixelFormat viewFormat, bool isUnorderedAccess = false, GraphicsResourceUsage usage = GraphicsResourceUsage.Default)
+            public static Buffer New(GraphicsDevice device, DataPointer dataPointer, PixelFormat elementFormat, bool unorderedAccess = false, GraphicsResourceUsage usage = GraphicsResourceUsage.Default)
             {
-                return Buffer.New(device, value, 0, BufferFlags.ShaderResource | (isUnorderedAccess ? BufferFlags.UnorderedAccess : BufferFlags.None), viewFormat, usage);
+                return Buffer.New(device, dataPointer, 0, BufferFlags.ShaderResource | (unorderedAccess ? BufferFlags.UnorderedAccess : BufferFlags.None), elementFormat, usage);
             }
         }
     }
