@@ -161,6 +161,58 @@ namespace Stride.Core.UnsafeExtensions
             return CreateSpan(ref referenceAsTTo, elementCount);
         }
 
+        /// <summary>
+        ///   Creates a new read-only span over the target array.
+        /// </summary>
+        /// <param name="array">The array.</param>
+        /// <returns>A read-only span over the provided <paramref name="array"/>.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ReadOnlySpan<T> AsReadOnlySpan<T>(this T[]? array) => array;
+
+        /// <summary>
+        ///   Reinterprets a regular array as a read-only span of elements of another type. This can be useful
+        ///   if the types are the same size and interchangeable.
+        /// </summary>
+        /// <param name="array">An array of data.</param>
+        /// <returns>
+        ///   A read-only span representing the data of <paramref name="array"/> reinterpreted as elements of type <typeparamref name="TTo"/>.
+        ///   If the array is <see langword="null"/>, returns an empty span.
+        /// </returns>
+        public static ReadOnlySpan<TTo> AsReadOnlySpan<TFrom, TTo>(this TFrom[]? array)
+            where TFrom : unmanaged
+            where TTo : unmanaged
+        {
+            Debug.Assert(SizeOf<TFrom>() == SizeOf<TTo>());
+
+            if (array is null)
+                return default;
+
+            ref var refArray0 = ref MemoryMarshal.GetArrayDataReference(array);
+            return MemoryMarshal.CreateReadOnlySpan(in AsReadonly<TFrom, TTo>(in refArray0), array.Length);
+        }
+
+        /// <summary>
+        ///   Reinterprets a regular array as a span of elements of another type. This can be useful
+        ///   if the types are the same size and interchangeable.
+        /// </summary>
+        /// <param name="array">An array of data.</param>
+        /// <returns>
+        ///   A span representing the data of <paramref name="array"/> reinterpreted as elements of type <typeparamref name="TTo"/>.
+        ///   If the array is <see langword="null"/>, returns an empty span.
+        /// </returns>
+        public static Span<TTo> AsSpan<TFrom, TTo>(this TFrom[]? array)
+            where TFrom : unmanaged
+            where TTo : unmanaged
+        {
+            Debug.Assert(SizeOf<TFrom>() == SizeOf<TTo>());
+
+            if (array is null)
+                return default;
+
+            ref var refArray0 = ref MemoryMarshal.GetArrayDataReference(array);
+            return MemoryMarshal.CreateSpan(ref As<TFrom, TTo>(ref refArray0), array.Length);
+        }
+
         /// <inheritdoc cref="DotNetUnsafe.AsPointer{T}(ref T)"/>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static T* AsPointer<T>(this ref T value) where T : unmanaged
