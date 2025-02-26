@@ -4,10 +4,11 @@
 #if STRIDE_GRAPHICS_API_DIRECT3D11
 
 using System;
-using System.Runtime.CompilerServices;
 using Silk.NET.Core.Native;
 using Silk.NET.Direct3D11;
 using Silk.NET.DXGI;
+
+using static Stride.Graphics.ComPtrHelpers;
 
 namespace Stride.Graphics
 {
@@ -21,23 +22,30 @@ namespace Stride.Graphics
 
 
         /// <summary>
-        ///   Internal Direct3D 11 Buffer.
+        ///   Gets the internal Direct3D 11 Buffer.
         /// </summary>
-        internal ID3D11Buffer* NativeBuffer
+        /// <remarks>
+        ///   If the reference is going to be kept, use <see cref="ComPtr{T}.AddRef()"/> to increment the internal
+        ///   reference count, and <see cref="ComPtr{T}.Dispose()"/> when no longer needed to release the object.
+        /// </remarks>
+        internal ComPtr<ID3D11Buffer> NativeBuffer
         {
-            get => nativeBuffer;
+            get => ToComPtr(nativeBuffer);
             set
             {
-                if (nativeBuffer == value)
+                if (nativeBuffer == value.Handle)
                     return;
 
                 var oldNativeBuffer = nativeBuffer;
                 if (oldNativeBuffer != null)
+                {
                     oldNativeBuffer->Release();
-
-                nativeBuffer = value;
+                }
+                nativeBuffer = value.Handle;
                 if (nativeBuffer != null)
+                {
                     nativeBuffer->AddRef();
+                }
             }
         }
 
@@ -48,28 +56,28 @@ namespace Stride.Graphics
         /// <param name="viewFlags">Type of the buffer.</param>
         /// <param name="viewFormat">The view format.</param>
         /// <param name="dataPointer">The data pointer.</param>
-        protected Buffer InitializeFromImpl(BufferDescription description, BufferFlags viewFlags, PixelFormat viewFormat, IntPtr dataPointer)
+        protected partial Buffer InitializeFromImpl(ref readonly BufferDescription description, BufferFlags viewFlags, PixelFormat viewFormat, IntPtr dataPointer)
         {
             bufferDescription = description;
-            nativeDescription = ConvertToNativeDescription(Description);
+            nativeDescription = ConvertToNativeDescription(in description);
 
             ViewFlags = viewFlags;
             InitCountAndViewFormat(out elementCount, ref viewFormat);
             ViewFormat = viewFormat;
 
-            var subresourceData = dataPointer != IntPtr.Zero ? new SubresourceData((void*) dataPointer) : default;
+            var subresourceData = dataPointer != 0 ? new SubresourceData(dataPointer.ToPointer()) : default;
 
-            ID3D11Buffer* pBuffer = null;
+            var buffer = NullComPtr<ID3D11Buffer>();
 
-            HResult result = dataPointer == IntPtr.Zero
-                ? NativeDevice->CreateBuffer(in nativeDescription, pInitialData: null, ref pBuffer)
-                : NativeDevice->CreateBuffer(in nativeDescription, in subresourceData, ref pBuffer);
+            HResult result = dataPointer == 0
+                ? NativeDevice.CreateBuffer(in nativeDescription, pInitialData: null, ref buffer)
+                : NativeDevice.CreateBuffer(in nativeDescription, in subresourceData, ref buffer);
 
             if (result.IsFailure)
                 result.Throw();
 
-            nativeBuffer = pBuffer;
-            NativeDeviceChild = (ID3D11DeviceChild*) pBuffer;
+            nativeBuffer = buffer.Handle;
+            NativeDeviceChild = buffer.AsDeviceChild();
 
             // Staging resource don't have any views
             if (nativeDescription.Usage != Silk.NET.Direct3D11.Usage.Staging)
@@ -78,6 +86,89 @@ namespace Stride.Graphics
             GraphicsDevice?.RegisterBufferMemoryUsage(SizeInBytes);
 
             return this;
+
+            /// <summary>
+            ///   Returns a <see cref="BufferDesc"/> from the buffer's description.
+            /// </summary>
+            /// <exception cref="ArgumentException">Element size (<c>StructureByteStride</c>) must be greater than zero for Structured Buffers.</exception>
+            static BufferDesc ConvertToNativeDescription(ref readonly BufferDescription bufferDescription)
+            {
+                var bufferDesc = new BufferDesc
+                {
+                    ByteWidth = (uint) bufferDescription.SizeInBytes,
+                    StructureByteStride = (uint) bufferDescription.StructureByteStride,
+                    CPUAccessFlags = 0,
+                    BindFlags = 0,
+                    Usage = (Usage) bufferDescription.Usage
+                };
+
+                if (bufferDescription.BufferFlags.HasFlag(BufferFlags.ConstantBuffer))
+                {
+                    bufferDesc.BindFlags |= (uint) BindFlag.ConstantBuffer;
+                    bufferDesc.StructureByteStride = (uint) bufferDescription.StructureByteStride + (16 - ((uint) bufferDescription.StructureByteStride % 16));
+                    bufferDesc.CPUAccessFlags = (uint) CpuAccessFlag.Write;
+                }
+
+                if (bufferDescription.BufferFlags.HasFlag(BufferFlags.IndexBuffer))
+                    bufferDesc.BindFlags |= (uint) BindFlag.IndexBuffer;
+
+                if (bufferDescription.BufferFlags.HasFlag(BufferFlags.VertexBuffer))
+                    bufferDesc.BindFlags |= (uint) BindFlag.VertexBuffer;
+
+                if (bufferDescription.BufferFlags.HasFlag(BufferFlags.RenderTarget))
+                    bufferDesc.BindFlags |= (uint) BindFlag.RenderTarget;
+
+                if (bufferDescription.BufferFlags.HasFlag(BufferFlags.ShaderResource))
+                    bufferDesc.BindFlags |= (uint) BindFlag.ShaderResource;
+
+                if (bufferDescription.BufferFlags.HasFlag(BufferFlags.UnorderedAccess))
+                    bufferDesc.BindFlags |= (uint) BindFlag.UnorderedAccess;
+
+                if (bufferDescription.BufferFlags.HasFlag(BufferFlags.StructuredBuffer))
+                {
+                    bufferDesc.MiscFlags |= (uint) BufferFlags.StructuredBuffer;
+                    if (bufferDescription.StructureByteStride <= 0)
+                        throw new ArgumentException("Element size must be greater than zero for structured buffers");
+                }
+
+                if (bufferDescription.BufferFlags.HasFlag(BufferFlags.RawBuffer))
+                    bufferDesc.MiscFlags |= (uint) ResourceMiscFlag.BufferAllowRawViews;
+
+                if (bufferDescription.BufferFlags.HasFlag(BufferFlags.ArgumentBuffer))
+                    bufferDesc.MiscFlags |= (uint) ResourceMiscFlag.DrawindirectArgs;
+
+                if (bufferDescription.BufferFlags.HasFlag(BufferFlags.StreamOutput))
+                    bufferDesc.BindFlags |= (uint) BindFlag.StreamOutput;
+
+                if (bufferDesc.Usage == Silk.NET.Direct3D11.Usage.Dynamic)
+                {
+                    bufferDesc.CPUAccessFlags = (uint) CpuAccessFlag.Write;
+                    if (bufferDesc.BindFlags == 0)
+                        bufferDesc.BindFlags = (uint) BindFlag.ConstantBuffer;
+                }
+
+                return bufferDesc;
+            }
+
+            /// <summary>
+            ///   Determines the number of elements and the element format depending on the type of buffer and intended view format.
+            /// </summary>
+            void InitCountAndViewFormat(out int count, ref PixelFormat format)
+            {
+                if (Description.StructureByteStride == 0)
+                {
+                    // TODO: The way to calculate the count is not always correct depending on the ViewFlags...etc.
+                    count = ViewFlags.HasFlag(BufferFlags.RawBuffer) ? Description.SizeInBytes / sizeof(int) :
+                            ViewFlags.HasFlag(BufferFlags.ShaderResource) ? Description.SizeInBytes / format.SizeInBytes() :
+                            0;
+                }
+                else
+                {
+                    // Structured buffer
+                    count = Description.SizeInBytes / Description.StructureByteStride;
+                    format = PixelFormat.None;
+                }
+            }
         }
 
         /// <inheritdoc/>
@@ -96,15 +187,15 @@ namespace Stride.Graphics
             if (Description.Usage is GraphicsResourceUsage.Immutable or GraphicsResourceUsage.Default)
                 return false;
 
-            ID3D11Buffer* pBuffer = null;
+            var buffer = NullComPtr<ID3D11Buffer>();
 
-            HResult result = NativeDevice->CreateBuffer(in nativeDescription, in Unsafe.NullRef<SubresourceData>(), ref pBuffer);
+            HResult result = NativeDevice.CreateBuffer(in nativeDescription, pInitialData: null, ref buffer);
 
             if (result.IsFailure)
                 result.Throw();
 
-            nativeBuffer = pBuffer;
-            NativeDeviceChild = (ID3D11DeviceChild*) pBuffer;
+            nativeBuffer = buffer.Handle;
+            NativeDeviceChild = buffer.AsDeviceChild();
 
             // Staging resource don't have any views
             if (nativeDescription.Usage != Silk.NET.Direct3D11.Usage.Staging)
@@ -120,19 +211,19 @@ namespace Stride.Graphics
         /// <param name="dataPointer"></param>
         public void Recreate(IntPtr dataPointer)
         {
-            ID3D11Buffer* pBuffer = null;
+            var buffer = NullComPtr<ID3D11Buffer>();
 
-            var subresourceData = dataPointer == IntPtr.Zero ? new SubresourceData((void*) dataPointer) : default;
+            var subresourceData = dataPointer == 0 ? new SubresourceData(dataPointer.ToPointer()) : default;
 
-            HResult result = dataPointer == IntPtr.Zero
-                ? NativeDevice->CreateBuffer(in nativeDescription, pInitialData: null, ref pBuffer)
-                : NativeDevice->CreateBuffer(in nativeDescription, in subresourceData, ref pBuffer);
+            HResult result = dataPointer == 0
+                ? NativeDevice.CreateBuffer(in nativeDescription, pInitialData: null, ref buffer)
+                : NativeDevice.CreateBuffer(in nativeDescription, in subresourceData, ref buffer);
 
             if (result.IsFailure)
                 result.Throw();
 
-            nativeBuffer = pBuffer;
-            NativeDeviceChild = (ID3D11DeviceChild*) pBuffer;
+            nativeBuffer = buffer.Handle;
+            NativeDeviceChild = buffer.AsDeviceChild();
 
             // Staging resource don't have any views
             if (nativeDescription.Usage != Silk.NET.Direct3D11.Usage.Staging)
@@ -148,9 +239,9 @@ namespace Stride.Graphics
         /// The buffer must have been declared with <see cref="BufferFlags.ShaderResource"/>.
         /// The ShaderResourceView instance is kept by this buffer and will be disposed when this buffer is disposed.
         /// </remarks>
-        internal ID3D11ShaderResourceView* GetShaderResourceView(PixelFormat viewFormat)
+        internal ComPtr<ID3D11ShaderResourceView> GetShaderResourceView(PixelFormat viewFormat)
         {
-            ID3D11ShaderResourceView* srv = null;
+            var srv = NullComPtr<ID3D11ShaderResourceView>();
 
             var bindFlags = (BindFlag) nativeDescription.BindFlags;
 
@@ -171,13 +262,10 @@ namespace Stride.Graphics
 
                 if (ViewFlags.HasFlag(BufferFlags.RawBuffer))
                 {
-                    description.BufferEx = description.BufferEx with
-                    {
-                        Flags = description.BufferEx.Flags | (uint) BufferexSrvFlag.Raw
-                    };
+                    description.BufferEx.Flags |= (uint) BufferexSrvFlag.Raw;
                 }
 
-                HResult result = NativeDevice->CreateShaderResourceView(NativeResource, &description, &srv);
+                HResult result = NativeDevice.CreateShaderResourceView(NativeResource, in description, ref srv);
 
                 if (result.IsFailure)
                     result.Throw();
@@ -194,9 +282,9 @@ namespace Stride.Graphics
         /// <returns>A <see cref="RenderTargetView" /> for the particular view format.</returns>
         /// <remarks>The buffer must have been declared with <see cref="BufferFlags.RenderTarget"/>.
         /// The RenderTargetView instance is kept by this buffer and will be disposed when this buffer is disposed.</remarks>
-        internal ID3D11RenderTargetView* GetRenderTargetView(PixelFormat pixelFormat, int width)
+        internal ComPtr<ID3D11RenderTargetView> GetRenderTargetView(PixelFormat pixelFormat, int width)
         {
-            ID3D11RenderTargetView* rtv = null;
+            var rtv = NullComPtr<ID3D11RenderTargetView>();
 
             var bindFlags = (BindFlag) nativeDescription.BindFlags;
 
@@ -214,7 +302,7 @@ namespace Stride.Graphics
                     }
                 };
 
-                HResult result = NativeDevice->CreateRenderTargetView(NativeResource, &description, &rtv);
+                HResult result = NativeDevice.CreateRenderTargetView(NativeResource, in description, ref rtv);
 
                 if (result.IsFailure)
                     result.Throw();
@@ -227,90 +315,17 @@ namespace Stride.Graphics
         {
             base.OnNameChanged();
 
-            if (GraphicsDevice != null && GraphicsDevice.IsDebugMode)
-            {
-                if (NativeShaderResourceView != null)
-                    DebugHelpers.SetDebugName((ID3D11DeviceChild*) NativeShaderResourceView, Name is null ? null : $"{Name} SRV");
+            if (GraphicsDevice is not { IsDebugMode: true })
+                return;
 
-                if (NativeUnorderedAccessView != null)
-                    DebugHelpers.SetDebugName((ID3D11DeviceChild*) NativeUnorderedAccessView, Name is null ? null : $"{Name} UAV");
+            if (NativeShaderResourceView.IsNotNull())
+            {
+                NativeShaderResourceView.SetDebugName(Name is null ? null : $"{Name} SRV");
             }
-        }
-
-        private void InitCountAndViewFormat(out int count, ref PixelFormat viewFormat)
-        {
-            if (Description.StructureByteStride == 0)
+            if (NativeUnorderedAccessView.IsNotNull())
             {
-                // TODO: The way to calculate the count is not always correct depending on the ViewFlags...etc.
-                count = ViewFlags.HasFlag(BufferFlags.RawBuffer) ? Description.SizeInBytes / sizeof(int) :
-                        ViewFlags.HasFlag(BufferFlags.ShaderResource) ? Description.SizeInBytes / viewFormat.SizeInBytes() :
-                        0;
+                NativeUnorderedAccessView.SetDebugName(Name is null ? null : $"{Name} UAV");
             }
-            else
-            {
-                // For structured buffer
-                count = Description.SizeInBytes / Description.StructureByteStride;
-                viewFormat = PixelFormat.None;
-            }
-        }
-
-        private static BufferDesc ConvertToNativeDescription(BufferDescription bufferDescription)
-        {
-            var bufferDesc = new BufferDesc
-            {
-                ByteWidth = (uint) bufferDescription.SizeInBytes,
-                StructureByteStride = (uint) bufferDescription.StructureByteStride,
-                CPUAccessFlags = 0,
-                BindFlags = 0,
-                Usage = (Usage) bufferDescription.Usage
-            };
-
-            if (bufferDescription.BufferFlags.HasFlag(BufferFlags.ConstantBuffer))
-            {
-                bufferDesc.BindFlags |= (uint) BindFlag.ConstantBuffer;
-                bufferDesc.StructureByteStride = (uint) bufferDescription.StructureByteStride + (16 - ((uint) bufferDescription.StructureByteStride % 16));
-                bufferDesc.CPUAccessFlags = (uint) CpuAccessFlag.Write;
-            }
-
-            if (bufferDescription.BufferFlags.HasFlag(BufferFlags.IndexBuffer))
-                bufferDesc.BindFlags |= (uint) BindFlag.IndexBuffer;
-
-            if (bufferDescription.BufferFlags.HasFlag(BufferFlags.VertexBuffer))
-                bufferDesc.BindFlags |= (uint) BindFlag.VertexBuffer;
-
-            if (bufferDescription.BufferFlags.HasFlag(BufferFlags.RenderTarget))
-                bufferDesc.BindFlags |= (uint) BindFlag.RenderTarget;
-
-            if (bufferDescription.BufferFlags.HasFlag(BufferFlags.ShaderResource))
-                bufferDesc.BindFlags |= (uint) BindFlag.ShaderResource;
-
-            if (bufferDescription.BufferFlags.HasFlag(BufferFlags.UnorderedAccess))
-                bufferDesc.BindFlags |= (uint) BindFlag.UnorderedAccess;
-
-            if (bufferDescription.BufferFlags.HasFlag(BufferFlags.StructuredBuffer))
-            {
-                bufferDesc.MiscFlags |= (uint) BufferFlags.StructuredBuffer;
-                if (bufferDescription.StructureByteStride <= 0)
-                    throw new ArgumentException("Element size cannot be less or equal than 0 for a structured buffer");
-            }
-
-            if (bufferDescription.BufferFlags.HasFlag(BufferFlags.RawBuffer))
-                bufferDesc.MiscFlags |= (uint) ResourceMiscFlag.BufferAllowRawViews;
-
-            if (bufferDescription.BufferFlags.HasFlag(BufferFlags.ArgumentBuffer))
-                bufferDesc.MiscFlags |= (uint) ResourceMiscFlag.DrawindirectArgs;
-
-            if (bufferDescription.BufferFlags.HasFlag(BufferFlags.StreamOutput))
-                bufferDesc.BindFlags |= (uint) BindFlag.StreamOutput;
-
-            if(bufferDesc.Usage == Silk.NET.Direct3D11.Usage.Dynamic)
-            {
-                bufferDesc.CPUAccessFlags = (uint) CpuAccessFlag.Write;
-                if (bufferDesc.BindFlags == 0)
-                    bufferDesc.BindFlags = (uint) BindFlag.ConstantBuffer;
-            }
-
-            return bufferDesc;
         }
 
         /// <summary>
@@ -336,7 +351,7 @@ namespace Stride.Graphics
 
             if (bindFlags.HasFlag(BindFlag.UnorderedAccess))
             {
-                var description = new UnorderedAccessViewDesc()
+                var description = new UnorderedAccessViewDesc
                 {
                     Format = (Format) uavFormat,
                     ViewDimension = UavDimension.Buffer,
@@ -362,8 +377,9 @@ namespace Stride.Graphics
 
                 description.Buffer = description.Buffer with { Flags = (uint) bufferFlags };
 
-                ID3D11UnorderedAccessView* unorderedAccessView = null;
-                HResult result = NativeDevice->CreateUnorderedAccessView(NativeResource, &description, &unorderedAccessView);
+                var unorderedAccessView = NullComPtr<ID3D11UnorderedAccessView>();
+
+                HResult result = NativeDevice.CreateUnorderedAccessView(NativeResource, in description, ref unorderedAccessView);
 
                 if (result.IsFailure)
                     result.Throw();
