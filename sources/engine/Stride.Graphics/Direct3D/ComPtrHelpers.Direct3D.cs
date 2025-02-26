@@ -24,6 +24,20 @@ namespace Stride.Graphics;
 internal static unsafe class ComPtrHelpers
 {
     /// <summary>
+    ///   Returns a <see langword="null"/> COM pointer.
+    /// </summary>
+    /// <typeparam name="T">The type of the COM pointer.</typeparam>
+    /// <returns>
+    ///   A <see langword="null"/> COM pointer.
+    /// </returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static ComPtr<T> NullComPtr<T>()
+        where T : unmanaged, IComVtbl<T>
+    {
+        return default;
+    }
+
+    /// <summary>
     ///   Checks if the underlying COM pointer is <see langword="null"/>.
     /// </summary>
     /// <typeparam name="T">The type of the COM pointer.</typeparam>
@@ -31,6 +45,7 @@ internal static unsafe class ComPtrHelpers
     /// <returns>
     ///   <see langword="true"/> if the COM pointer is <see langword="null"/>; otherwise, <see langword="false"/>.
     /// </returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsNull<T>(this ComPtr<T> comPtr)
         where T : unmanaged, IComVtbl<T>
     {
@@ -45,6 +60,7 @@ internal static unsafe class ComPtrHelpers
     /// <returns>
     ///   <see langword="true"/> if the COM pointer is not <see langword="null"/>; otherwise, <see langword="false"/>.
     /// </returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsNotNull<T>(this ComPtr<T> comPtr)
         where T : unmanaged, IComVtbl<T>
     {
@@ -58,6 +74,7 @@ internal static unsafe class ComPtrHelpers
     /// <typeparam name="T">The type of the COM pointer.</typeparam>
     /// <param name="nativePtr">The native COM pointer to wrap.</param>
     /// <returns>A <see cref="ComPtr{T}"/> instance wrapping <paramref name="nativePtr"/>.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ComPtr<T> ToComPtr<T>(T* nativePtr)
         where T : unmanaged, IComVtbl<T>
     {
