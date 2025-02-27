@@ -217,24 +217,14 @@ public class BodyComponent : CollidableComponent
     /// <remarks>
     /// Using this property to move objects around is not recommended,
     /// as it disregards any collider that may overlap with the body at this new position,
-    /// you should make sure the area is clear to ensure this object does not become stuck in the scenery.
+    /// you should make sure the area is clear to ensure this object does not become stuck in the scenery.<br/><br/>
+    /// This value is slightly offset from this entity's Transform <see cref="TransformComponent.Position"/> based on its <see cref="CollidableComponent.CenterOfMass"/>
     /// </remarks>
     [DataMemberIgnore]
     public Vector3 Position
     {
         get => BodyReference?.Pose.Position.ToStride() ?? default;
-        set
-        {
-            if (BodyReference is { } bodyRef)
-            {
-                bodyRef.Pose.Position = PreviousPose.Position = value.ToNumeric();
-                bodyRef.UpdateBounds();
-            }
-
-            Quaternion dummy = default;
-            WorldToLocal(ref value, ref dummy);
-            Entity.Transform.Position = value;
-        }
+        set => SetPose(value, Orientation);
     }
 
     /// <summary>
@@ -249,15 +239,7 @@ public class BodyComponent : CollidableComponent
     public Quaternion Orientation
     {
         get => BodyReference?.Pose.Orientation.ToStride() ?? Quaternion.Identity;
-        set
-        {
-            if (BodyReference is { } bodyRef)
-                bodyRef.Pose.Orientation = PreviousPose.Orientation = value.ToNumeric();
-
-            Vector3 dummy = default;
-            WorldToLocal(ref dummy, ref value);
-            Entity.Transform.Rotation = value;
-        }
+        set => SetPose(Position, value);
     }
 
     /// <summary>
@@ -360,6 +342,29 @@ public class BodyComponent : CollidableComponent
     public void ApplyLinearImpulse(Vector3 impulse)
     {
         BodyReference?.ApplyLinearImpulse(impulse.ToNumeric());
+    }
+
+    /// <summary>
+    /// Teleporting this body into a new pose, faster than setting both <see cref="Position"/> and <see cref="Orientation"/> individually
+    /// </summary>
+    /// <remarks>
+    /// Using this function to move objects around is not recommended,
+    /// as it disregards any collider that may overlap with the body at this new position,
+    /// you should make sure the area is clear to ensure this object does not become stuck in the scenery.<br/><br/>
+    /// <paramref name="position"/> is slightly offset from this entity's Transform <see cref="TransformComponent.Position"/> based on its <see cref="CollidableComponent.CenterOfMass"/>
+    /// </remarks>
+    public void SetPose(Vector3 position, Quaternion orientation)
+    {
+        if (BodyReference is { } bodyRef)
+        {
+            bodyRef.Pose.Orientation = PreviousPose.Orientation = orientation.ToNumeric();
+            bodyRef.Pose.Position = PreviousPose.Position = position.ToNumeric();
+            bodyRef.UpdateBounds();
+        }
+
+        WorldToLocal(ref position, ref orientation);
+        Entity.Transform.Position = position;
+        Entity.Transform.Rotation = orientation;
     }
 
     protected override ref MaterialProperties MaterialProperties => ref Simulation!.CollidableMaterials[BodyReference!.Value];
