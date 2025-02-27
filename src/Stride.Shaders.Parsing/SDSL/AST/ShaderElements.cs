@@ -1,7 +1,14 @@
+using Stride.Shaders.Core;
+using Stride.Shaders.Core.Analysis;
+using Stride.Shaders.Parsing.Analysis;
+
 namespace Stride.Shaders.Parsing.SDSL.AST;
 
 
-public abstract class ShaderElement(TextLocation info) : Node(info);
+public abstract class ShaderElement(TextLocation info) : Node(info)
+{
+    public SymbolType? Type { get; set; }
+}
 
 
 public enum StorageClass
@@ -94,42 +101,67 @@ public static class ShaderVariableInformationExtensions
 
 public class ShaderVariable(TypeName type, Identifier name, Expression? value, TextLocation info) : ShaderElement(info)
 {
-    public TypeName Type { get; set; } = type;
+    public TypeName TypeName { get; set; } = type;
     public Identifier Name { get; set; } = name;
     public Expression? Value { get; set; } = value;
     public StorageClass StorageClass { get; set; } = StorageClass.None;
     public TypeModifier TypeModifier { get; set; } = TypeModifier.None;
     public override string ToString()
     {
-        return $"{(StorageClass != StorageClass.None ? $"{StorageClass} " :"")}{(TypeModifier != TypeModifier.None ? $"{TypeModifier} " :"")}{Type} {Name} = {Value}";
+        return $"{(StorageClass != StorageClass.None ? $"{StorageClass} " :"")}{(TypeModifier != TypeModifier.None ? $"{TypeModifier} " :"")}{TypeName} {Name} = {Value}";
     }
 }
 
 public class TypeDef(TypeName type, Identifier name, TextLocation info) : ShaderElement(info)
 {
     public Identifier Name { get; set; } = name;
-    public TypeName Type { get; set; } = type;
+    public TypeName TypeName { get; set; } = type;
 
     public override string ToString()
     {
-        return $"typedef {Type} {Name}";
+        return $"typedef {TypeName} {Name}";
     }
 }
 
 public abstract class ShaderBuffer(List<Identifier> name, TextLocation info) : ShaderElement(info)
 {
     public List<Identifier> Name { get; set; } = name;
+    public List<ShaderMember> Members { get; set; } = [];
+
+    public override void ProcessSymbol(SymbolTable table)
+    {
+        var sym = new Symbol(new(Name.ToString() ?? "", SymbolKind.CBuffer), new BufferSymbol(Name.ToString() ?? "", []));
+
+        table.DeclaredTypes.TryAdd(sym.ToString(), sym.Type);
+        var kind = this switch
+        {
+            CBuffer => SymbolKind.CBuffer,
+            TBuffer => SymbolKind.TBuffer,
+            RGroup => SymbolKind.RGroup,
+            _ => throw new NotSupportedException()
+        };
+        table.RootSymbols.Add(new(Name.ToString() ?? "", kind), sym);
+        foreach (var cbmem in Members)
+        {
+            var msym = cbmem.TypeName.ToSymbol();
+            table.DeclaredTypes.TryAdd(sym.ToString(), sym.Type);
+            cbmem.Type = msym;
+        }
+    }
 }
 
 public class ShaderStructMember(TypeName typename, Identifier identifier, TextLocation info) : Node(info)
 {
     public TypeName TypeName { get; set; } = typename;
+    public SymbolType? Type { get; set; }
     public Identifier Name { get; set; } = identifier;
     public List<ShaderAttribute> Attributes { get; set; } = [];
 
     public override string ToString()
     {
-        return $"{TypeName} {Name}";
+        if(Type is not null)
+            return $"{Type} {Name}";
+        else return $"{TypeName} {Name}";
     }
 }
 
@@ -138,6 +170,19 @@ public class ShaderStruct(Identifier typename, TextLocation info) : ShaderElemen
     public Identifier TypeName { get; set; } = typename;
     public List<ShaderStructMember> Members { get; set; } = [];
 
+    public override void ProcessSymbol(SymbolTable table)
+    {
+        var sym = new Symbol(new(TypeName.ToString() ?? "", SymbolKind.Struct), new Struct(TypeName.ToString() ?? "", []));
+        table.DeclaredTypes.TryAdd(sym.ToString(), sym.Type);
+        table.RootSymbols.Add(new(TypeName.ToString() ?? "", SymbolKind.Struct), sym);
+        foreach (var smem in Members)
+        {
+            var msym = smem.TypeName.ToSymbol();
+            table.DeclaredTypes.TryAdd(sym.ToString(), sym.Type);
+            smem.Type = msym;
+        }
+    }
+
     public override string ToString()
     {
         return $"struct {TypeName} ({string.Join(", ", Members)})";
@@ -145,15 +190,6 @@ public class ShaderStruct(Identifier typename, TextLocation info) : ShaderElemen
 }
 
 
-public sealed class CBuffer(List<Identifier> name, TextLocation info) : ShaderBuffer(name, info)
-{
-    public List<ShaderMember> Members { get; set; } = [];
-}
-public sealed class RGroup(List<Identifier> name, TextLocation info) : ShaderBuffer(name, info)
-{
-    public List<ShaderMember> Members { get; set; } = [];
-}
-public sealed class TBuffer(List<Identifier> name, TextLocation info) : ShaderBuffer(name, info)
-{
-    public List<ShaderMember> Members { get; set; } = [];
-}
+public sealed class CBuffer(List<Identifier> name, TextLocation info) : ShaderBuffer(name, info);
+public sealed class RGroup(List<Identifier> name, TextLocation info) : ShaderBuffer(name, info);
+public sealed class TBuffer(List<Identifier> name, TextLocation info) : ShaderBuffer(name, info);

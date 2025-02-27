@@ -1,3 +1,5 @@
+using Stride.Shaders.Parsing.Analysis;
+
 namespace Stride.Shaders.Parsing.SDSL.AST;
 
 
@@ -10,6 +12,21 @@ public class ConditionalFlow(If first, TextLocation info) : Flow(info)
     public List<ElseIf> ElseIfs { get; set; } = [];
     public Else? Else { get; set; }
     public ShaderAttributeList? Attributes { get; set; }
+
+    public override void ProcessSymbol(SymbolTable table)
+    {
+        If.Condition.ProcessSymbol(table);
+        If.Body.ProcessSymbol(table);
+        if (ElseIfs.Count > 0)
+        {
+            foreach (var ei in ElseIfs)
+            {
+                ei.Condition.ProcessSymbol(table);
+                ei.Body.ProcessSymbol(table);
+            }
+        }
+        Else?.Body.ProcessSymbol(table);
+    }
 
     public override string ToString()
     {

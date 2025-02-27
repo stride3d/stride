@@ -1,3 +1,7 @@
+using Stride.Shaders.Core;
+using Stride.Shaders.Core.Analysis;
+using Stride.Shaders.Parsing.Analysis;
+
 namespace Stride.Shaders.Parsing.SDSL.AST;
 
 
@@ -49,9 +53,21 @@ public class ShaderCompose(Identifier name, Mixin mixin, bool isArray, TextLocat
     public override string ToString() => $"compose {Mixin}{(IsArray ? "[]" : "")} {Name}";
 }
 
-public sealed class ShaderMember(TypeName type, Identifier name, Expression? initialValue, bool isArray, TextLocation location, bool isStaged = false, StreamKind streamKind = StreamKind.None, Identifier? semantic = null, List<Expression>? arraySizes = null, InterpolationModifier interpolation = InterpolationModifier.None, StorageClass storageClass = StorageClass.None, TypeModifier typeModifier = TypeModifier.None) : MethodOrMember(location, isStaged)
+public sealed class ShaderMember(TypeName type,
+        Identifier name,
+        Expression? initialValue,
+        bool isArray,
+        TextLocation location,
+        bool isStaged = false,
+        StreamKind streamKind = StreamKind.None,
+        Identifier? semantic = null,
+        List<Expression>? arraySizes = null,
+        InterpolationModifier interpolation = InterpolationModifier.None,
+        StorageClass storageClass = StorageClass.None,
+        TypeModifier typeModifier = TypeModifier.None
+    ) : MethodOrMember(location, isStaged)
 {
-    public TypeName Type { get; set; } = type;
+    public TypeName TypeName { get; set; } = type;
     public Identifier Name { get; set; } = name;
     public Identifier? Semantic { get; set; } = semantic;
     public StreamKind StreamKind { get; set; } = streamKind;
@@ -64,13 +80,17 @@ public sealed class ShaderMember(TypeName type, Identifier name, Expression? ini
 
     public override string ToString()
     {
-        return $"[{string.Join(" ", Attributes.Select(x => x.ToString()))}]\n{Type} {Name}";
+        if(Attributes != null)
+            return $"[{string.Join(" ", Attributes.Select(x => x.ToString()))}]\n{TypeName} {Name}";
+        else
+            return $"{TypeName} {Name}";
     }
 }
 
 public class MethodParameter(TypeName type, Identifier name, TextLocation info, string? storage = null, Expression? arraySize = null, Identifier? semantic = null) : Node(info)
 {
-    public TypeName Type { get; set; } = type;
+    public TypeName TypeName { get; set; } = type;
+    public SymbolType? Type { get; set; }
     public Identifier Name { get; set; } = name;
     public Identifier? Semantic { get; set; } = semantic;
     public Expression? ArraySize { get; set; } = arraySize;
@@ -82,10 +102,23 @@ public class MethodParameter(TypeName type, Identifier name, TextLocation info, 
     }
 }
 
-public class ShaderMethod(TypeName returnType, Identifier name, TextLocation info, Identifier? visibility = null, Identifier? storage = null, bool isStaged = false, bool isAbstract = false, bool isVirtual = false, bool isStatic = false, bool isOverride = false, bool isClone = false) : MethodOrMember(info, isStaged)
+public class ShaderMethod(
+        TypeName returnType,
+        Identifier name,
+        TextLocation info,
+        Identifier? visibility = null,
+        Identifier? storage = null,
+        bool isStaged = false,
+        bool isAbstract = false,
+        bool isVirtual = false,
+        bool isStatic = false,
+        bool isOverride = false,
+        bool isClone = false
+    ) : MethodOrMember(info, isStaged)
 {
 
-    public TypeName ReturnType { get; set; } = returnType;
+    public SymbolType? ReturnType { get; set; }
+    public TypeName ReturnTypeName { get; set; } = returnType;
     public Identifier Name { get; set; } = name;
     public Identifier? Visibility { get; set; } = visibility;
     public Identifier? Storage { get; set; } = storage;
@@ -97,9 +130,27 @@ public class ShaderMethod(TypeName returnType, Identifier name, TextLocation inf
     public List<MethodParameter> Parameters { get; set; } = [];
     public BlockStatement? Body { get; set; }
 
+
+    public override void ProcessSymbol(SymbolTable table)
+    {
+        foreach (var arg in Parameters)
+        {
+            var argSym = arg.TypeName.ToSymbol();
+            table.DeclaredTypes.TryAdd(argSym.ToString(), argSym);
+            arg.Type = argSym;
+        }
+        if (Body is not null)
+        {
+            table.Push();
+            foreach (var s in Body.Statements)
+                s.ProcessSymbol(table);
+            table.Pop();
+        }
+    }
+
     public override string ToString()
     {
-        return $"{ReturnType} {Name}()\n{Body}\n";
+        return $"{ReturnTypeName} {Name}()\n{Body}\n";
     }
 }
 

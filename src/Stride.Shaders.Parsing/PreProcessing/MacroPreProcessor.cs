@@ -4,10 +4,13 @@ using CppNet;
 namespace Stride.Shaders.Parsing;
 
 public static class MonoGamePreProcessor
-{    public static string Run(string filepath, ReadOnlySpan<(string Name, string Definition)> defines)
+{
+    public static string OpenAndRun(string filepath, params ReadOnlySpan<(string Name, string Definition)> defines)
     {
-        var file = File.ReadAllText(filepath);
-        var filename = Path.GetFileName(filepath);
+        return Run(File.ReadAllText(filepath), Path.GetFileName(filepath), defines);
+    }
+    public static string Run(string content, string filename, params ReadOnlySpan<(string Name, string Definition)> defines)
+    {
         var cpp = new Preprocessor();
         cpp.addFeature(Feature.DIGRAPHS);
         cpp.addWarning(Warning.IMPORT);
@@ -15,7 +18,7 @@ public static class MonoGamePreProcessor
         // cpp.addFeature(Feature.LINEMARKERS);
 
         // Pass defines
-        if (defines != null)
+        if (!defines.IsEmpty)
         {
             foreach (var (Name, Definition) in defines)
             {
@@ -25,7 +28,7 @@ public static class MonoGamePreProcessor
                 }
             }
         }
-        var inputSource = new StringLexerSource(file, true, filename);
+        var inputSource = new StringLexerSource(content, true, filename);
 
         cpp.addInput(inputSource);
 

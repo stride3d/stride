@@ -19,6 +19,10 @@ public struct Scanner<T>(T code) : IScanner
     public readonly int End => Span.Length;
     public readonly bool IsEof => Position >= End;
 
+    public readonly TextLocation this[Range range] => new(Memory, range);
+    public readonly ErrorLocation this[int position] => new(new Scanner(Memory.ToString()), position);
+
+
     public int ReadChar()
     {
         var pos = Position;

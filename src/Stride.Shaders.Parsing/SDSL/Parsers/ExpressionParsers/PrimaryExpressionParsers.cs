@@ -14,7 +14,7 @@ public record struct PrimaryParsers : IParser<Expression>
     public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, out Expression parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
     {
-        return CommonParsers.Alternatives(
+        return Parsers.Alternatives(
             ref scanner, result, out parsed, in orError,
             Parenthesis,
             ArrayLiteral,
@@ -33,7 +33,7 @@ public record struct PrimaryParsers : IParser<Expression>
             parsed = lit;
             return true;
         }
-        else return CommonParsers.Exit(ref scanner, result, out parsed, position);
+        else return Parsers.Exit(ref scanner, result, out parsed, position);
     }
     
     
@@ -43,20 +43,20 @@ public record struct PrimaryParsers : IParser<Expression>
         var position = scanner.Position;
         if (
             LiteralsParser.Identifier(ref scanner, result, out var identifier)
-            && CommonParsers.Spaces0(ref scanner, result, out _)
-            && Terminals.Char('(', ref scanner, advance: true)
+            && Parsers.Spaces0(ref scanner, result, out _)
+            && Tokens.Char('(', ref scanner, advance: true)
         )
         {
             ParameterParsers.Values(ref scanner, result, out var parameters);
-            CommonParsers.Spaces0(ref scanner, result, out _);
-            if (Terminals.Char(')', ref scanner, advance: true))
+            Parsers.Spaces0(ref scanner, result, out _);
+            if (Tokens.Char(')', ref scanner, advance: true))
             {
-                parsed = new MethodCall(identifier, parameters, scanner.GetLocation(position..scanner.Position));
+                parsed = new MethodCall(identifier, parameters, scanner[position..scanner.Position]);
                 return true;
             }
-            else return CommonParsers.Exit(ref scanner, result, out parsed, position, new(SDSLParsingMessages.SDSL0018, scanner.GetErrorLocation(scanner.Position), scanner.Memory));
+            else return Parsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrorMessages.SDSL0018, scanner[scanner.Position], scanner.Memory));
         }
-        return CommonParsers.Exit(ref scanner, result, out parsed, position, orError);
+        return Parsers.Exit(ref scanner, result, out parsed, position, orError);
     }
 
     public static bool Parenthesis<TScanner>(ref TScanner scanner, ParseResult result, out Expression parsed, in ParseError? orError = null)
@@ -64,14 +64,14 @@ public record struct PrimaryParsers : IParser<Expression>
     {
         var position = scanner.Position;
         if (
-            Terminals.Char('(', ref scanner, advance: true)
-            && CommonParsers.Spaces0(ref scanner, result, out _)
-            && ExpressionParser.Expression(ref scanner, result, out parsed, new(SDSLParsingMessages.SDSL0015, scanner.GetErrorLocation(position), scanner.Memory))
-            && CommonParsers.Spaces0(ref scanner, result, out _)
-            && Terminals.Char(')', ref scanner, advance: true)
+            Tokens.Char('(', ref scanner, advance: true)
+            && Parsers.Spaces0(ref scanner, result, out _)
+            && ExpressionParser.Expression(ref scanner, result, out parsed, new(SDSLErrorMessages.SDSL0015, scanner[position], scanner.Memory))
+            && Parsers.Spaces0(ref scanner, result, out _)
+            && Tokens.Char(')', ref scanner, advance: true)
         )
             return true;
-        else return CommonParsers.Exit(ref scanner, result, out parsed, position, orError);
+        else return Parsers.Exit(ref scanner, result, out parsed, position, orError);
     }
 
     public static bool ArrayLiteral<TScanner>(ref TScanner scanner, ParseResult result, out Expression parsed, in ParseError? orError = null)
@@ -79,18 +79,18 @@ public record struct PrimaryParsers : IParser<Expression>
     {
         var position = scanner.Position;
         if (
-            Terminals.Char('{', ref scanner, advance: true)
-            && CommonParsers.FollowedByDel(ref scanner, result, ParameterParsers.Values, out ShaderExpressionList values, withSpaces: true, advance: true)
-            && CommonParsers.FollowedBy(ref scanner, Terminals.Char('}'), withSpaces: true, advance: true)
+            Tokens.Char('{', ref scanner, advance: true)
+            && Parsers.FollowedByDel(ref scanner, result, ParameterParsers.Values, out ShaderExpressionList values, withSpaces: true, advance: true)
+            && Parsers.FollowedBy(ref scanner, Tokens.Char('}'), withSpaces: true, advance: true)
         )
         {
-            parsed = new ArrayLiteral(scanner.GetLocation(position..scanner.Position))
+            parsed = new ArrayLiteral(scanner[position..scanner.Position])
             {
                 Values = values.Values
             };
             return true;
         }
-        else return CommonParsers.Exit(ref scanner, result, out parsed, position);
+        else return Parsers.Exit(ref scanner, result, out parsed, position);
     }
     
     public static bool MixinAccess<TScanner>(ref TScanner scanner, ParseResult result, out Expression parsed, in ParseError? orError = null)
@@ -99,12 +99,12 @@ public record struct PrimaryParsers : IParser<Expression>
         var position = scanner.Position;
         if (
             ShaderClassParsers.Mixin(ref scanner, result, out var mixin)
-            && CommonParsers.FollowedBy(ref scanner, Terminals.Char('.'), withSpaces: true)
+            && Parsers.FollowedBy(ref scanner, Tokens.Char('.'), withSpaces: true)
         )
         {
-            parsed = new MixinAccess(mixin, scanner.GetLocation(position..scanner.Position));
+            parsed = new MixinAccess(mixin, scanner[position..scanner.Position]);
             return true;
         }
-        else return CommonParsers.Exit(ref scanner, result, out parsed, position, orError);
+        else return Parsers.Exit(ref scanner, result, out parsed, position, orError);
     }
 }

@@ -41,36 +41,36 @@ public record struct DirectivePrefixIncrementParser : IParser<Expression>
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
-        if (Terminals.Literal("++", ref scanner, advance: true))
+        if (Tokens.Literal("++", ref scanner, advance: true))
         {
-            CommonParsers.Spaces0(ref scanner, result, out _);
+            Parsers.Spaces0(ref scanner, result, out _);
             if (DirectiveUnaryParsers.Primary(ref scanner, result, out var lit))
             {
-                parsed = new PrefixExpression(Operator.Inc, lit, scanner.GetLocation(position, scanner.Position - position));
+                parsed = new PrefixExpression(Operator.Inc, lit, scanner[position..scanner.Position]);
                 return true;
             }
             else
             {
                 parsed = null!;
                 scanner.Position = position;
-                result.Errors.Add(new(SDSLParsingMessages.SDSL0020, scanner.GetErrorLocation(position), scanner.Memory));
+                result.Errors.Add(new(SDSLErrorMessages.SDSL0020, scanner[position], scanner.Memory));
                 return false;
             }
         }
         // prefix decrememnt 
-        else if (Terminals.Literal("--", ref scanner, advance: true))
+        else if (Tokens.Literal("--", ref scanner, advance: true))
         {
-            CommonParsers.Spaces0(ref scanner, result, out _);
+            Parsers.Spaces0(ref scanner, result, out _);
             if (DirectiveUnaryParsers.Primary(ref scanner, result, out var lit))
             {
-                parsed = new PrefixExpression(Operator.Inc, lit, scanner.GetLocation(position, scanner.Position - position));
+                parsed = new PrefixExpression(Operator.Inc, lit, scanner[position..scanner.Position]);
                 return true;
             }
             else
             {
                 parsed = null!;
                 scanner.Position = position;
-                result.Errors.Add(new(SDSLParsingMessages.SDSL0020, scanner.GetErrorLocation(position), scanner.Memory));
+                result.Errors.Add(new(SDSLErrorMessages.SDSL0020, scanner[position], scanner.Memory));
                 return false;
             }
         }
@@ -92,28 +92,28 @@ public record struct DirectiveNotExpressionParser : IParser<Expression>
     {
         parsed = null!;
         var position = scanner.Position;
-        if (Terminals.Set("!~", ref scanner))
+        if (Tokens.Set("!~", ref scanner))
         {
             var op = ((char)scanner.Peek()).ToOperator();
             scanner.Advance(1);
-            CommonParsers.Spaces0(ref scanner, result, out _);
+            Parsers.Spaces0(ref scanner, result, out _);
             if (DirectiveUnaryParsers.Primary(ref scanner, result, out var lit))
             {
-                parsed = new PrefixExpression(op, lit, scanner.GetLocation(position, scanner.Position - position));
+                parsed = new PrefixExpression(op, lit, scanner[position..scanner.Position]);
                 return true;
             }
             else
             {
                 parsed = null!;
                 scanner.Position = position;
-                result.Errors.Add(new(SDSLParsingMessages.SDSL0020, scanner.GetErrorLocation(position), scanner.Memory));
+                result.Errors.Add(new(SDSLErrorMessages.SDSL0020, scanner[position], scanner.Memory));
                 return false;
             }
         }
         else 
         {
             if (orError is not null)
-                result.Errors.Add(orError.Value with { Location = scanner.GetErrorLocation(position) });
+                result.Errors.Add(orError.Value with { Location = scanner[position] });
             return false;
         }
     }
@@ -126,21 +126,21 @@ public record struct DirectiveSignExpressionParser : IParser<Expression>
     {
         parsed = null!;
         var position = scanner.Position;
-        if (Terminals.Set("+-", ref scanner))
+        if (Tokens.Set("+-", ref scanner))
         {
             var op = ((char)scanner.Peek()).ToOperator();
             scanner.Advance(1);
-            CommonParsers.Spaces0(ref scanner, result, out _);
+            Parsers.Spaces0(ref scanner, result, out _);
             if (DirectiveUnaryParsers.Prefix(ref scanner, result, out var lit))
             {
-                parsed = new PrefixExpression(op, lit, scanner.GetLocation(position, scanner.Position - position));
+                parsed = new PrefixExpression(op, lit, scanner[position..scanner.Position]);
                 return true;
             }
             else
             {
                 // TODO: check if error can be added here
                 if (orError is not null)
-                    result.Errors.Add(orError.Value with { Location = scanner.GetErrorLocation(position) });
+                    result.Errors.Add(orError.Value with { Location = scanner[position] });
                 parsed = null!;
                 scanner.Position = position;
                 return false;
@@ -149,7 +149,7 @@ public record struct DirectiveSignExpressionParser : IParser<Expression>
         else 
         {
             if (orError is not null)
-                result.Errors.Add(orError.Value with { Location = scanner.GetErrorLocation(position) });
+                result.Errors.Add(orError.Value with { Location = scanner[position] });
             return false;
         }
     }
@@ -162,21 +162,21 @@ public record struct DirectiveCastExpressionParser : IParser<Expression>
     {
         var position = scanner.Position;
         if (
-                Terminals.Char('(', ref scanner, advance: true)
-                && CommonParsers.Spaces0(ref scanner, result, out _)
-                && LiteralsParser.Identifier(ref scanner, result, out var typeName, new(SDSLParsingMessages.SDSL0017, scanner.GetErrorLocation(scanner.Position), scanner.Memory))
-                && CommonParsers.Spaces0(ref scanner, result, out _)
-                && Terminals.Char(')', ref scanner, true)
+                Tokens.Char('(', ref scanner, advance: true)
+                && Parsers.Spaces0(ref scanner, result, out _)
+                && LiteralsParser.Identifier(ref scanner, result, out var typeName, new(SDSLErrorMessages.SDSL0017, scanner[scanner.Position], scanner.Memory))
+                && Parsers.Spaces0(ref scanner, result, out _)
+                && Tokens.Char(')', ref scanner, true)
                 && DirectiveUnaryParsers.Primary(ref scanner, result, out var lit)
         )
         {
-            parsed = new CastExpression(typeName.Name, Operator.Cast, lit, scanner.GetLocation(position, scanner.Position - position));
+            parsed = new CastExpression(typeName.Name, Operator.Cast, lit, scanner[position..scanner.Position]);
             return true;
         }
         else
         {
             if (orError is not null)
-                result.Errors.Add(orError.Value with { Location = scanner.GetErrorLocation(position) });
+                result.Errors.Add(orError.Value with { Location = scanner[position] });
             parsed = null!;
             scanner.Position = position;
             return false;

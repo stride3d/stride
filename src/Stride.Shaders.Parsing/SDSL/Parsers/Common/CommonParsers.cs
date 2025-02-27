@@ -6,7 +6,7 @@ namespace Stride.Shaders.Parsing.SDSL;
 
 
 
-public static class CommonParsers
+public static class Parsers
 {
     public static bool Exit<TScanner, TNode>(ref TScanner scanner, ParseResult result, out TNode parsed, int beginningPosition, in ParseError? orError = null)
         where TScanner : struct, IScanner
@@ -65,7 +65,7 @@ public static class CommonParsers
         var position = scanner.Position;
         foreach (var l in literals)
         {
-            if (!(Terminals.Literal(l, ref scanner, advance: true) && Spaces1(ref scanner, null!, out _)))
+            if (!(Tokens.Literal(l, ref scanner, advance: true) && Spaces1(ref scanner, null!, out _)))
             {
                 scanner.Position = position;
                 return false;
@@ -88,7 +88,7 @@ public static class CommonParsers
         bool matched = false;
         // legacy
         while (
-            Terminals.AnyOf(
+            Tokens.AnyOf(
                 [
                     "stage", 
                     "override",
@@ -131,7 +131,7 @@ public static class CommonParsers
         bool matched = false;
         // legacy
         while (
-            Terminals.AnyOf(
+            Tokens.AnyOf(
                 [
                     "stage", 
                     "stream", 
@@ -214,7 +214,7 @@ public static class CommonParsers
 
         if (
             LiteralsParser.Identifier(ref scanner, result, out identifier)
-            && !FollowedBy(ref scanner, Terminals.Char('.'), withSpaces: true, advance: true)
+            && !FollowedBy(ref scanner, Tokens.Char('.'), withSpaces: true, advance: true)
         )
         {
             var tmp = scanner.Position;
@@ -226,7 +226,7 @@ public static class CommonParsers
             tmp = scanner.Position;
             if (
                 !(
-                    FollowedBy(ref scanner, Terminals.Char('='), withSpaces: true, advance: true)
+                    FollowedBy(ref scanner, Tokens.Char('='), withSpaces: true, advance: true)
                     && FollowedBy(ref scanner, result, ExpressionParser.Expression, out value, withSpaces: true, advance: true)
                 )
             )
@@ -266,7 +266,7 @@ public static class CommonParsers
             tmp = scanner.Position;
             if (
                 !(
-                    FollowedBy(ref scanner, Terminals.Char('='), withSpaces: true, advance: true)
+                    FollowedBy(ref scanner, Tokens.Char('='), withSpaces: true, advance: true)
                     && FollowedBy(ref scanner, result, ExpressionParser.Expression, out value, withSpaces: true, advance: true)
                 )
             )
@@ -290,7 +290,7 @@ public static class CommonParsers
                 Spaces0(ref scanner, result, out _);
                 if (
                     !(
-                        Terminals.Char('=', ref scanner, advance: true)
+                        Tokens.Char('=', ref scanner, advance: true)
                         && Spaces0(ref scanner, result, out _)
                         && ExpressionParser.Expression(ref scanner, result, out value)
                     )
@@ -330,7 +330,7 @@ public static class CommonParsers
             tmp = scanner.Position;
             if (
                 !(
-                    FollowedBy(ref scanner, Terminals.Char('='), withSpaces: true, advance: true)
+                    FollowedBy(ref scanner, Tokens.Char('='), withSpaces: true, advance: true)
                     && FollowedBy(ref scanner, result, ExpressionParser.Expression, out value, withSpaces: true, advance: true)
                 )
             )
@@ -354,7 +354,7 @@ public static class CommonParsers
                 Spaces0(ref scanner, result, out _);
                 if (
                     !(
-                        Terminals.Char('=', ref scanner, advance: true)
+                        Tokens.Char('=', ref scanner, advance: true)
                         && Spaces0(ref scanner, result, out _)
                         && ExpressionParser.Expression(ref scanner, result, out value)
                     )
@@ -380,14 +380,14 @@ public static class CommonParsers
         arraySizes = [];
         while (!scanner.IsEof)
         {
-            if (FollowedBy(ref scanner, Terminals.Char('['), withSpaces: true, advance: true))
+            if (FollowedBy(ref scanner, Tokens.Char('['), withSpaces: true, advance: true))
             {
-                if(FollowedBy(ref scanner, Terminals.Char(']'), withSpaces: true, advance: true))
+                if(FollowedBy(ref scanner, Tokens.Char(']'), withSpaces: true, advance: true))
                     break;
                 else if (FollowedByDel(ref scanner, result, ExpressionParser.Expression, out Expression arraySize, withSpaces: true, advance: true))
                 {
                     arraySizes.Add(arraySize);
-                    if (!FollowedBy(ref scanner, Terminals.Char(']'), withSpaces: true, advance: true))
+                    if (!FollowedBy(ref scanner, Tokens.Char(']'), withSpaces: true, advance: true))
                         return Exit(ref scanner, result, out arraySizes, scanner.Position);
                 }
                 else return Exit(ref scanner, result, out arraySizes, scanner.Position);
@@ -412,11 +412,11 @@ public static class CommonParsers
             Spaces0(ref scanner, result, out _);
             if (
                 !(
-                    Terminals.Char('[', ref scanner, advance: true)
+                    Tokens.Char('[', ref scanner, advance: true)
                     && Spaces0(ref scanner, result, out _)
                     && ExpressionParser.Expression(ref scanner, result, out arraySize)
                     && Spaces0(ref scanner, result, out _)
-                    && Terminals.Char(']', ref scanner, advance: true)
+                    && Tokens.Char(']', ref scanner, advance: true)
                 )
             )
             {
@@ -425,7 +425,7 @@ public static class CommonParsers
             tmp = scanner.Position;
             if (
                 !(
-                    Terminals.Char('=', ref scanner, advance: true)
+                    Tokens.Char('=', ref scanner, advance: true)
                     && Spaces0(ref scanner, result, out _)
                     && ExpressionParser.Expression(ref scanner, result, out value)
                 )
@@ -442,9 +442,9 @@ public static class CommonParsers
             scanner.Position = position;
             if (
                 LiteralsParser.TypeName(ref scanner, result, out typeName)
-                && FollowedBy(ref scanner, Terminals.Char('['), withSpaces: true, advance: true)
+                && FollowedBy(ref scanner, Tokens.Char('['), withSpaces: true, advance: true)
                 && ExpressionParser.Expression(ref scanner, result, out arraySize)
-                && FollowedBy(ref scanner, Terminals.Char(']'), withSpaces: true, advance: true)
+                && FollowedBy(ref scanner, Tokens.Char(']'), withSpaces: true, advance: true)
                 && Spaces1(ref scanner, result, out _)
                 && ShaderClassParsers.Mixin(ref scanner, result, out mixin))
             {
@@ -452,7 +452,7 @@ public static class CommonParsers
                 Spaces0(ref scanner, result, out _);
                 if (
                     !(
-                        Terminals.Char('=', ref scanner, advance: true)
+                        Tokens.Char('=', ref scanner, advance: true)
                         && Spaces0(ref scanner, result, out _)
                         && ExpressionParser.Expression(ref scanner, result, out value)
                     )
@@ -474,7 +474,7 @@ public static class CommonParsers
 
     public static bool Optional<TScanner, TTerminal>(ref TScanner scanner, TTerminal terminal, bool advance = false)
         where TScanner : struct, IScanner
-        where TTerminal : struct, ITerminal
+        where TTerminal : struct, IToken
     {
         terminal.Match(ref scanner, advance: advance);
         return true;
@@ -490,7 +490,7 @@ public static class CommonParsers
 
     public static bool FollowedBy<TScanner, TTerminal>(ref TScanner scanner, TTerminal terminal, bool withSpaces = false, bool advance = false)
         where TScanner : struct, IScanner
-        where TTerminal : struct, ITerminal
+        where TTerminal : struct, IToken
     {
         var position = scanner.Position;
         if (withSpaces)
@@ -512,7 +512,7 @@ public static class CommonParsers
             Spaces0(ref scanner, null!, out _);
         foreach (var l in literals)
         {
-            if (Terminals.Literal(l, ref scanner, advance: advance))
+            if (Tokens.Literal(l, ref scanner, advance: advance))
             {
                 if (!advance)
                     scanner.Position = position;
@@ -521,6 +521,26 @@ public static class CommonParsers
             }
         }
         matched = null!;
+        scanner.Position = position;
+        return false;
+    }
+    public static bool FollowedByAny<TScanner>(ref TScanner scanner, string literals, out char matched, bool withSpaces = false, bool advance = false)
+        where TScanner : struct, IScanner
+    {
+        var position = scanner.Position;
+        if (withSpaces)
+            Spaces0(ref scanner, null!, out _);
+        foreach (var l in literals)
+        {
+            if (Tokens.Char(l, ref scanner, advance: advance))
+            {
+                if (!advance)
+                    scanner.Position = position;
+                matched = l;
+                return true;
+            }
+        }
+        matched = '0';
         scanner.Position = position;
         return false;
     }
@@ -606,14 +626,14 @@ public static class CommonParsers
     public static bool Until<TScanner>(ref TScanner scanner, char value, bool advance = false)
         where TScanner : struct, IScanner
     {
-        while (!scanner.IsEof && !Terminals.Char(value, ref scanner, advance))
+        while (!scanner.IsEof && !Tokens.Char(value, ref scanner, advance))
             scanner.Advance(1);
         return scanner.IsEof;
     }
     public static bool Until<TScanner>(ref TScanner scanner, string value, bool advance = false)
         where TScanner : struct, IScanner
     {
-        while (!scanner.IsEof && !Terminals.Literal(value, ref scanner, advance))
+        while (!scanner.IsEof && !Tokens.Literal(value, ref scanner, advance))
             scanner.Advance(1);
         return scanner.IsEof;
     }
@@ -623,7 +643,7 @@ public static class CommonParsers
         while (!scanner.IsEof)
         {
             foreach (var value in values)
-                if (Terminals.Literal(value, ref scanner, advance))
+                if (Tokens.Literal(value, ref scanner, advance))
                     return scanner.IsEof;
             scanner.Advance(1);
         }
@@ -631,7 +651,7 @@ public static class CommonParsers
     }
     public static bool Until<TScanner, TTerminal>(ref Scanner scanner, bool advance = false)
         where TScanner : struct, IScanner
-        where TTerminal : struct, ITerminal
+        where TTerminal : struct, IToken
     {
         var t = new TTerminal();
         while (!scanner.IsEof && !t.Match(ref scanner, advance))
@@ -640,8 +660,8 @@ public static class CommonParsers
     }
     public static bool Until<TScanner, TTerminal1, TTerminal2>(ref Scanner scanner, TTerminal1? terminal1 = null, TTerminal2? terminal2 = null, bool advance = false)
         where TScanner : struct, IScanner
-        where TTerminal1 : struct, ITerminal
-        where TTerminal2 : struct, ITerminal
+        where TTerminal1 : struct, IToken
+        where TTerminal2 : struct, IToken
     {
         var t1 = terminal1 ?? new TTerminal1();
         var t2 = terminal2 ?? new TTerminal2();
@@ -651,9 +671,9 @@ public static class CommonParsers
     }
     public static bool Until<TScanner, TTerminal1, TTerminal2, TTerminal3>(ref Scanner scanner, TTerminal1? terminal1 = null, TTerminal2? terminal2 = null, TTerminal3? terminal3 = null, bool advance = false)
         where TScanner : struct, IScanner
-        where TTerminal1 : struct, ITerminal
-        where TTerminal2 : struct, ITerminal
-        where TTerminal3 : struct, ITerminal
+        where TTerminal1 : struct, IToken
+        where TTerminal2 : struct, IToken
+        where TTerminal3 : struct, IToken
     {
         var t1 = terminal1 ?? new TTerminal1();
         var t2 = terminal2 ?? new TTerminal2();
@@ -689,7 +709,7 @@ public static class CommonParsers
 
             if (separator is not null)
             {
-                if (Terminals.Literal(separator, ref scanner, advance: true))
+                if (Tokens.Literal(separator, ref scanner, advance: true))
                 {
                     if (withSpaces)
                         Spaces0(ref scanner, result, out _);

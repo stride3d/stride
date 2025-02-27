@@ -18,19 +18,28 @@ internal class FoldingRangeHandler : IFoldingRangeHandler
     public Task<Container<FoldingRange>?> Handle(
         FoldingRangeRequestParam request,
         CancellationToken cancellationToken
-    ) =>
-        Task.FromResult<Container<FoldingRange>?>(
-            new Container<FoldingRange>(
-                new FoldingRange
-                {
-                    StartLine = 10,
-                    EndLine = 20,
-                    Kind = FoldingRangeKind.Region,
-                    EndCharacter = 0,
-                    StartCharacter = 0
-                }
-            )
-        );
+    )
+    {
+        var result = SDSLParser.Parse(File.ReadAllText(request.TextDocument.Uri.GetFileSystemPath()));
+        if (result.AST is ShaderFile sf && sf.Namespaces.Count > 0)
+        {
+            var ns = sf.Namespaces.First();
+            return Task.FromResult<Container<FoldingRange>?>(
+                new Container<FoldingRange>(
+                    new FoldingRange
+                    {
+                        StartLine = ns.Info.Line,
+                        EndLine = ns.Info.EndLine,
+                        StartCharacter = ns.Info.Column,
+                        EndCharacter = ns.Info.EndColumn,
+                        Kind = FoldingRangeKind.Region
+                    }
+                )
+            );
+        }
+
+        return Task.FromResult<Container<FoldingRange>?>(null);
+    }
 
     public FoldingRangeRegistrationOptions GetRegistrationOptions(FoldingRangeCapability capability, ClientCapabilities clientCapabilities) => new FoldingRangeRegistrationOptions
     {

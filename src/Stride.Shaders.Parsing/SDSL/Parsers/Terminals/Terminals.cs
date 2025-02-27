@@ -6,20 +6,20 @@ using System.Security.Cryptography;
 namespace Stride.Shaders.Parsing.SDSL;
 
 
-public static class Terminals
+public static class Tokens
 {
     public static bool AnyChar<TScanner>(ref TScanner scanner)
         where TScanner : struct, IScanner
         => !scanner.IsEof;
 
-    public static CharTerminalParser Char(char c) => new(c);
+    public static CharTokenParser Char(char c) => new(c);
     public static bool Char<TScanner>(char c, ref TScanner scanner, bool advance = false)
         where TScanner : struct, IScanner
-         => new CharTerminalParser(c).Match(ref scanner, advance);
-    public static SetTerminalParser Set(string set) => new(set);
+         => new CharTokenParser(c).Match(ref scanner, advance);
+    public static SetTokenParser Set(string set) => new(set);
     public static bool Set<TScanner>(string set, ref TScanner scanner, bool advance = false)
         where TScanner : struct, IScanner
-        => new SetTerminalParser(set).Match(ref scanner, advance);
+        => new SetTokenParser(set).Match(ref scanner, advance);
     
     public static bool Set<TScanner>(string set, ref TScanner scanner, out char chosen, bool advance = false)
         where TScanner : struct, IScanner
@@ -33,43 +33,43 @@ public static class Terminals
             }
         return false;
     }
-    public static LiteralTerminalParser Literal(string literal) => new(literal);
+    public static LiteralTokenParser Literal(string literal) => new(literal);
     public static bool Literal<TScanner>(string c, ref TScanner scanner, bool advance = false)
         where TScanner : struct, IScanner
-        => new LiteralTerminalParser(c).Match(ref scanner, advance);
+        => new LiteralTokenParser(c).Match(ref scanner, advance);
     public static bool AnyOf<TScanner>(ReadOnlySpan<string> literals, ref TScanner scanner, out string matched, bool advance = false)
         where TScanner : struct, IScanner
     {
         matched = null!;
         foreach(var l in literals)
-            if(new LiteralTerminalParser(l).Match(ref scanner, advance))
+            if(new LiteralTokenParser(l).Match(ref scanner, advance))
             {
                 matched = l;
                 return true;
             }
         return false;
     }
-    public static DigitTerminalParser Digit(DigitRange? mode = null) => new(mode ?? DigitRange.All);
+    public static DigitTokenParser Digit(DigitRange? mode = null) => new(mode ?? DigitRange.All);
     public static bool Digit<TScanner>(ref TScanner scanner, DigitRange? mode = null, bool advance = false)
         where TScanner : struct, IScanner
-        => new DigitTerminalParser(mode ?? DigitRange.All).Match(ref scanner, advance);
-    public static LetterTerminalParser Letter() => new();
+        => new DigitTokenParser(mode ?? DigitRange.All).Match(ref scanner, advance);
+    public static LetterTokenParser Letter() => new();
     public static bool Letter<TScanner>(ref TScanner scanner, bool advance = false)
         where TScanner : struct, IScanner
-        => new LetterTerminalParser().Match(ref scanner, advance);
-    public static LetterOrDigitTerminalParser LetterOrDigit() => new();
+        => new LetterTokenParser().Match(ref scanner, advance);
+    public static LetterOrDigitTokenParser LetterOrDigit() => new();
     public static bool LetterOrDigit<TScanner>(ref TScanner scanner, bool advance = false)
         where TScanner : struct, IScanner
-        => new LetterOrDigitTerminalParser().Match(ref scanner, advance);
+        => new LetterOrDigitTokenParser().Match(ref scanner, advance);
     public static bool IdentifierFirstChar<TScanner>(ref TScanner scanner, bool advance = false)
         where TScanner : struct, IScanner
         => Letter(ref scanner, advance) || Char('_', ref scanner, advance);
     public static bool EOL<TScanner>(ref TScanner scanner, bool advance = false)
         where TScanner : struct, IScanner
-        => new EOLTerminalParser().Match(ref scanner, advance);
+        => new EOLTokenParser().Match(ref scanner, advance);
     public static bool EOF<TScanner>(ref TScanner scanner)
         where TScanner : struct, IScanner
-        => new EOFTerminalParser().Match(ref scanner, false);
+        => new EOFTokenParser().Match(ref scanner, false);
 
 
     
@@ -109,13 +109,13 @@ public static class Terminals
     }
 }
 
-public interface ITerminal
+public interface IToken
 {
     public bool Match<TScanner>(ref TScanner scanner, bool advance)
         where TScanner : struct, IScanner;
 }
 
-public record struct CharTerminalParser(char Character) : ITerminal
+public record struct CharTokenParser(char Character) : IToken
 {
     public readonly bool Match<TScanner>(ref TScanner scanner, bool advance)
         where TScanner : struct, IScanner
@@ -128,7 +128,7 @@ public record struct CharTerminalParser(char Character) : ITerminal
         }
         return false;
     }
-    public static implicit operator CharTerminalParser(char c) => new(c);
+    public static implicit operator CharTokenParser(char c) => new(c);
 }
 
 public struct DigitRange
@@ -160,7 +160,7 @@ public struct DigitRange
     public static implicit operator DigitRange(string numbers) => new(numbers);
 }
 
-public record struct DigitTerminalParser(DigitRange Mode) : ITerminal
+public record struct DigitTokenParser(DigitRange Mode) : IToken
 {
     public readonly bool Match<TScanner>(ref TScanner scanner, bool advance)
         where TScanner : struct, IScanner
@@ -174,7 +174,7 @@ public record struct DigitTerminalParser(DigitRange Mode) : ITerminal
     }
 }
 
-public record struct LetterTerminalParser() : ITerminal
+public record struct LetterTokenParser() : IToken
 {
     public readonly bool Match<TScanner>(ref TScanner scanner, bool advance)
         where TScanner : struct, IScanner
@@ -188,7 +188,7 @@ public record struct LetterTerminalParser() : ITerminal
         return false;
     }
 }
-public record struct LetterOrDigitTerminalParser() : ITerminal
+public record struct LetterOrDigitTokenParser() : IToken
 {
     public readonly bool Match<TScanner>(ref TScanner scanner, bool advance)
         where TScanner : struct, IScanner
@@ -203,7 +203,7 @@ public record struct LetterOrDigitTerminalParser() : ITerminal
     }
 }
 
-public record struct LiteralTerminalParser(string Literal, bool CaseSensitive = true) : ITerminal
+public record struct LiteralTokenParser(string Literal, bool CaseSensitive = true) : IToken
 {
     public readonly bool Match<TScanner>(ref TScanner scanner, bool advance)
         where TScanner : struct, IScanner
@@ -216,11 +216,11 @@ public record struct LiteralTerminalParser(string Literal, bool CaseSensitive = 
         }
         return false;
     }
-    public static implicit operator LiteralTerminalParser(string lit) => new(lit);
+    public static implicit operator LiteralTokenParser(string lit) => new(lit);
 }
 
 
-public record struct SetTerminalParser(string Set) : ITerminal
+public record struct SetTokenParser(string Set) : IToken
 {
     public readonly bool Match<TScanner>(ref TScanner scanner, bool advance)
         where TScanner : struct, IScanner
@@ -234,10 +234,10 @@ public record struct SetTerminalParser(string Set) : ITerminal
         return false;
     }
 
-    public static implicit operator SetTerminalParser(string set) => new(set);
+    public static implicit operator SetTokenParser(string set) => new(set);
 }
 
-public record struct EOFTerminalParser() : ITerminal
+public record struct EOFTokenParser() : IToken
 {
     public readonly bool Match<TScanner>(ref TScanner scanner, bool advance)
         where TScanner : struct, IScanner
@@ -245,7 +245,7 @@ public record struct EOFTerminalParser() : ITerminal
         return scanner.IsEof;
     }
 }
-public record struct EOLTerminalParser() : ITerminal
+public record struct EOLTokenParser() : IToken
 {
     public readonly bool Match<TScanner>(ref TScanner scanner, bool advance)
         where TScanner : struct, IScanner
@@ -253,7 +253,7 @@ public record struct EOLTerminalParser() : ITerminal
         var position = scanner.Position;
         while (scanner.Peek() == ' ')
             scanner.Advance(1);
-        var result = Terminals.Char('\n', ref scanner, advance) || Terminals.Literal("\r\n", ref scanner, advance);
+        var result = Tokens.Char('\n', ref scanner, advance) || Tokens.Literal("\r\n", ref scanner, advance);
         if (!advance && result)
             scanner.Position = position;
         return result;

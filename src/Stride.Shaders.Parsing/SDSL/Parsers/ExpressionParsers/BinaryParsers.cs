@@ -14,7 +14,7 @@ public struct ExpressionParser : IParser<Expression>
         var position = scanner.Position;
         if (Ternary(ref scanner, result, out parsed))
             return true;
-        return CommonParsers.Exit(ref scanner, result, out parsed, position, orError);
+        return Parsers.Exit(ref scanner, result, out parsed, position, orError);
     }
 
     public static bool Add<TScanner>(ref TScanner scanner, ParseResult result, out Expression parsed, in ParseError? orError = null)
@@ -25,24 +25,24 @@ public struct ExpressionParser : IParser<Expression>
         var position = scanner.Position;
         do
         {
-            CommonParsers.Spaces0(ref scanner, result, out _);
+            Parsers.Spaces0(ref scanner, result, out _);
             if (op != '\0' && parsed is not null)
             {
                 if (Mul(ref scanner, result, out var mul))
-                    parsed = new BinaryExpression(parsed, op.ToOperator(), mul, scanner.GetLocation(position..scanner.Position));
-                else return CommonParsers.Exit(ref scanner, result, out parsed, position);
+                    parsed = new BinaryExpression(parsed, op.ToOperator(), mul, scanner[position..scanner.Position]);
+                else return Parsers.Exit(ref scanner, result, out parsed, position);
             }
             else if (parsed is null && op == '\0')
             {
                 if (Mul(ref scanner, result, out var mul))
                     parsed = mul;
-                else return CommonParsers.Exit(ref scanner, result, out parsed, position, orError);
+                else return Parsers.Exit(ref scanner, result, out parsed, position, orError);
             }
         }
-        while (Terminals.Set("+-", ref scanner, out op, advance: true));
+        while (Parsers.FollowedByAny(ref scanner, "+-", out op, withSpaces: true, advance: true));
         if (parsed is not null)
             return true;
-        else return CommonParsers.Exit(ref scanner, result, out parsed, position, orError);
+        else return Parsers.Exit(ref scanner, result, out parsed, position, orError);
     }
 
     public static bool Mul<TScanner>(ref TScanner scanner, ParseResult result, out Expression parsed, in ParseError? orError = null)
@@ -53,24 +53,24 @@ public struct ExpressionParser : IParser<Expression>
         var position = scanner.Position;
         do
         {
-            CommonParsers.Spaces0(ref scanner, result, out _);
+            Parsers.Spaces0(ref scanner, result, out _);
             if (op != '\0' && parsed is not null)
             {
                 if (PrefixParser.Prefix(ref scanner, result, out var prefix))
-                    parsed = new BinaryExpression(parsed, op.ToOperator(), prefix, scanner.GetLocation(position..scanner.Position));
-                else return CommonParsers.Exit(ref scanner, result, out parsed, position);
+                    parsed = new BinaryExpression(parsed, op.ToOperator(), prefix, scanner[position..scanner.Position]);
+                else return Parsers.Exit(ref scanner, result, out parsed, position);
             }
             else if (parsed is null && op == '\0')
             {
                 if (PrefixParser.Prefix(ref scanner, result, out var prefix))
                     parsed = prefix;
-                else return CommonParsers.Exit(ref scanner, result, out parsed, position, orError);
+                else return Parsers.Exit(ref scanner, result, out parsed, position, orError);
             }
         }
-        while (Terminals.Set("*/%", ref scanner, out op, advance: true));
+        while (Parsers.FollowedByAny(ref scanner, "*/%", out op, withSpaces: true, advance: true));
         if (parsed is not null)
             return true;
-        else return CommonParsers.Exit(ref scanner, result, out parsed, position, orError);
+        else return Parsers.Exit(ref scanner, result, out parsed, position, orError);
     }
 
     public static bool Shift<TScanner>(ref TScanner scanner, ParseResult result, out Expression parsed, in ParseError? orError = null)
@@ -81,24 +81,24 @@ public struct ExpressionParser : IParser<Expression>
         var position = scanner.Position;
         do
         {
-            CommonParsers.Spaces0(ref scanner, result, out _);
+            Parsers.Spaces0(ref scanner, result, out _);
             if (op != "" && parsed is not null)
             {
                 if (Add(ref scanner, result, out var add))
-                    parsed = new BinaryExpression(parsed, op.ToOperator(), add, scanner.GetLocation(position..scanner.Position));
-                else return CommonParsers.Exit(ref scanner, result, out parsed, position);
+                    parsed = new BinaryExpression(parsed, op.ToOperator(), add, scanner[position..scanner.Position]);
+                else return Parsers.Exit(ref scanner, result, out parsed, position);
             }
             else if (parsed is null && op == "")
             {
                 if (Add(ref scanner, result, out var add))
                     parsed = add;
-                else return CommonParsers.Exit(ref scanner, result, out parsed, position, orError);
+                else return Parsers.Exit(ref scanner, result, out parsed, position, orError);
             }
         }
-        while (Terminals.AnyOf([">>", "<<"], ref scanner, out op, advance: true));
+        while (Parsers.FollowedByAny(ref scanner, [">>", "<<"], out op, withSpaces: true, advance: true));
         if (parsed is not null)
             return true;
-        else return CommonParsers.Exit(ref scanner, result, out parsed, position, orError);
+        else return Parsers.Exit(ref scanner, result, out parsed, position, orError);
     }
 
     public static bool Relation<TScanner>(ref TScanner scanner, ParseResult result, out Expression parsed, in ParseError? orError = null)
@@ -109,26 +109,26 @@ public struct ExpressionParser : IParser<Expression>
         var position = scanner.Position;
         do
         {
-            CommonParsers.Spaces0(ref scanner, result, out _);
+            Parsers.Spaces0(ref scanner, result, out _);
             if (op != "" && parsed is not null)
             {
                 if (Shift(ref scanner, result, out var shift))
-                    parsed = new BinaryExpression(parsed, op.ToOperator(), shift, scanner.GetLocation(position..scanner.Position));
-                else return CommonParsers.Exit(ref scanner, result, out parsed, position);
+                    parsed = new BinaryExpression(parsed, op.ToOperator(), shift, scanner[position..scanner.Position]);
+                else return Parsers.Exit(ref scanner, result, out parsed, position);
             }
             else if (parsed is null && op == "")
             {
                 if (Shift(ref scanner, result, out var shift))
                     parsed = shift;
-                else return CommonParsers.Exit(ref scanner, result, out parsed, position, orError);
+                else return Parsers.Exit(ref scanner, result, out parsed, position, orError);
             }
-            CommonParsers.Spaces0(ref scanner, result, out _);
+            Parsers.Spaces0(ref scanner, result, out _);
         }
-        while (Terminals.AnyOf(["<=", ">=", "<", ">"], ref scanner, out op, advance: true));
+        while (Parsers.FollowedByAny(ref scanner, ["<=", ">=", "<", ">"], out op, withSpaces: true, advance: true));
 
         if (parsed is not null)
             return true;
-        else return CommonParsers.Exit(ref scanner, result, out parsed, position, orError);
+        else return Parsers.Exit(ref scanner, result, out parsed, position, orError);
     }
 
     public static bool Equality<TScanner>(ref TScanner scanner, ParseResult result, out Expression parsed, in ParseError? orError = null)
@@ -139,24 +139,24 @@ public struct ExpressionParser : IParser<Expression>
         var position = scanner.Position;
         do
         {
-            CommonParsers.Spaces0(ref scanner, result, out _);
+            Parsers.Spaces0(ref scanner, result, out _);
             if (op != "" && parsed is not null)
             {
                 if (Relation(ref scanner, result, out var rel))
-                    parsed = new BinaryExpression(parsed, op.ToOperator(), rel, scanner.GetLocation(position..scanner.Position));
-                else return CommonParsers.Exit(ref scanner, result, out parsed, position);
+                    parsed = new BinaryExpression(parsed, op.ToOperator(), rel, scanner[position..scanner.Position]);
+                else return Parsers.Exit(ref scanner, result, out parsed, position);
             }
             else if (parsed is null && op == "")
             {
                 if (Relation(ref scanner, result, out var rel))
                     parsed = rel;
-                else return CommonParsers.Exit(ref scanner, result, out parsed, position, orError);
+                else return Parsers.Exit(ref scanner, result, out parsed, position, orError);
             }
         }
-        while (Terminals.AnyOf(["==", "!="], ref scanner, out op, advance: true));
+        while (Parsers.FollowedByAny(ref scanner, ["==", "!="], out op, withSpaces: true, advance: true));
         if (parsed is not null)
             return true;
-        else return CommonParsers.Exit(ref scanner, result, out parsed, position, orError);
+        else return Parsers.Exit(ref scanner, result, out parsed, position, orError);
     }
 
     public static bool BAnd<TScanner>(ref TScanner scanner, ParseResult result, out Expression parsed, in ParseError? orError = null)
@@ -167,24 +167,27 @@ public struct ExpressionParser : IParser<Expression>
         var position = scanner.Position;
         do
         {
-            CommonParsers.Spaces0(ref scanner, result, out _);
+            Parsers.Spaces0(ref scanner, result, out _);
             if (op != "" && parsed is not null)
             {
                 if (Equality(ref scanner, result, out var eq))
-                    parsed = new BinaryExpression(parsed, op.ToOperator(), eq, scanner.GetLocation(position..scanner.Position));
-                else return CommonParsers.Exit(ref scanner, result, out parsed, position);
+                    parsed = new BinaryExpression(parsed, op.ToOperator(), eq, scanner[position..scanner.Position]);
+                else return Parsers.Exit(ref scanner, result, out parsed, position);
             }
             else if (parsed is null && op == "")
             {
                 if (Equality(ref scanner, result, out var eq))
                     parsed = eq;
-                else return CommonParsers.Exit(ref scanner, result, out parsed, position, orError);
+                else return Parsers.Exit(ref scanner, result, out parsed, position, orError);
             }
         }
-        while (!Terminals.Literal("&&", ref scanner) && Terminals.AnyOf(["&"], ref scanner, out op, advance: true));
+        while (
+            !Parsers.FollowedBy(ref scanner, Tokens.Literal("&&"), withSpaces: true) 
+            && Parsers.FollowedByAny(ref scanner, ["&"], out op, advance: true)
+        );
         if (parsed is not null)
             return true;
-        else return CommonParsers.Exit(ref scanner, result, out parsed, position, orError);
+        else return Parsers.Exit(ref scanner, result, out parsed, position, orError);
     }
 
     public static bool BOr<TScanner>(ref TScanner scanner, ParseResult result, out Expression parsed, in ParseError? orError = null)
@@ -195,24 +198,27 @@ public struct ExpressionParser : IParser<Expression>
         var position = scanner.Position;
         do
         {
-            CommonParsers.Spaces0(ref scanner, result, out _);
+            Parsers.Spaces0(ref scanner, result, out _);
             if (op != "" && parsed is not null)
             {
                 if (XOr(ref scanner, result, out var xor))
-                    parsed = new BinaryExpression(parsed, op.ToOperator(), xor, scanner.GetLocation(position..scanner.Position));
-                else return CommonParsers.Exit(ref scanner, result, out parsed, position);
+                    parsed = new BinaryExpression(parsed, op.ToOperator(), xor, scanner[position..scanner.Position]);
+                else return Parsers.Exit(ref scanner, result, out parsed, position);
             }
             else if (parsed is null && op == "")
             {
                 if (XOr(ref scanner, result, out var xor))
                     parsed = xor;
-                else return CommonParsers.Exit(ref scanner, result, out parsed, position, orError);
+                else return Parsers.Exit(ref scanner, result, out parsed, position, orError);
             }
         }
-        while (!Terminals.Literal("||", ref scanner) && Terminals.AnyOf(["|"], ref scanner, out op, advance: true));
+        while (
+            !Parsers.FollowedBy(ref scanner, Tokens.Literal("||"), withSpaces: true) 
+            && Parsers.FollowedByAny(ref scanner, ["|"], out op, advance: true)
+        );
         if (parsed is not null)
             return true;
-        else return CommonParsers.Exit(ref scanner, result, out parsed, position, orError);
+        else return Parsers.Exit(ref scanner, result, out parsed, position, orError);
     }
 
     public static bool XOr<TScanner>(ref TScanner scanner, ParseResult result, out Expression parsed, in ParseError? orError = null)
@@ -223,24 +229,24 @@ public struct ExpressionParser : IParser<Expression>
         var position = scanner.Position;
         do
         {
-            CommonParsers.Spaces0(ref scanner, result, out _);
+            Parsers.Spaces0(ref scanner, result, out _);
             if (op != "" && parsed is not null)
             {
                 if (BAnd(ref scanner, result, out var bAnd))
-                    parsed = new BinaryExpression(parsed, op.ToOperator(), bAnd, scanner.GetLocation(position..scanner.Position));
-                else return CommonParsers.Exit(ref scanner, result, out parsed, position);
+                    parsed = new BinaryExpression(parsed, op.ToOperator(), bAnd, scanner[position..scanner.Position]);
+                else return Parsers.Exit(ref scanner, result, out parsed, position);
             }
             else if (parsed is null && op == "")
             {
                 if (BAnd(ref scanner, result, out var bAnd))
                     parsed = bAnd;
-                else return CommonParsers.Exit(ref scanner, result, out parsed, position, orError);
+                else return Parsers.Exit(ref scanner, result, out parsed, position, orError);
             }
         }
-        while (Terminals.AnyOf(["^"], ref scanner, out op, advance: true));
+        while (Parsers.FollowedByAny(ref scanner, ["^"], out op, advance: true));
         if (parsed is not null)
             return true;
-        else return CommonParsers.Exit(ref scanner, result, out parsed, position, orError);
+        else return Parsers.Exit(ref scanner, result, out parsed, position, orError);
     }
 
     public static bool And<TScanner>(ref TScanner scanner, ParseResult result, out Expression parsed, in ParseError? orError = null)
@@ -251,24 +257,24 @@ public struct ExpressionParser : IParser<Expression>
         var position = scanner.Position;
         do
         {
-            CommonParsers.Spaces0(ref scanner, result, out _);
+            Parsers.Spaces0(ref scanner, result, out _);
             if (op != "" && parsed is not null)
             {
                 if (BOr(ref scanner, result, out var bOr))
-                    parsed = new BinaryExpression(parsed, op.ToOperator(), bOr, scanner.GetLocation(position..scanner.Position));
-                else return CommonParsers.Exit(ref scanner, result, out parsed, position);
+                    parsed = new BinaryExpression(parsed, op.ToOperator(), bOr, scanner[position..scanner.Position]);
+                else return Parsers.Exit(ref scanner, result, out parsed, position);
             }
             else if (parsed is null && op == "")
             {
                 if (BOr(ref scanner, result, out var bOr))
                     parsed = bOr;
-                else return CommonParsers.Exit(ref scanner, result, out parsed, position, orError);
+                else return Parsers.Exit(ref scanner, result, out parsed, position, orError);
             }
         }
-        while (Terminals.AnyOf(["&&"], ref scanner, out op, advance: true));
+        while (Parsers.FollowedByAny(ref scanner, ["&&"], out op, advance: true));
         if (parsed is not null)
             return true;
-        else return CommonParsers.Exit(ref scanner, result, out parsed, position, orError);
+        else return Parsers.Exit(ref scanner, result, out parsed, position, orError);
     }
 
     public static bool Or<TScanner>(ref TScanner scanner, ParseResult result, out Expression parsed, in ParseError? orError = null)
@@ -279,24 +285,24 @@ public struct ExpressionParser : IParser<Expression>
         var position = scanner.Position;
         do
         {
-            CommonParsers.Spaces0(ref scanner, result, out _);
+            Parsers.Spaces0(ref scanner, result, out _);
             if (op != "" && parsed is not null)
             {
                 if (And(ref scanner, result, out var and))
-                    parsed = new BinaryExpression(parsed, op.ToOperator(), and, scanner.GetLocation(position..scanner.Position));
-                else return CommonParsers.Exit(ref scanner, result, out parsed, position);
+                    parsed = new BinaryExpression(parsed, op.ToOperator(), and, scanner[position..scanner.Position]);
+                else return Parsers.Exit(ref scanner, result, out parsed, position);
             }
             else if (parsed is null && op == "")
             {
                 if (And(ref scanner, result, out var and))
                     parsed = and;
-                else return CommonParsers.Exit(ref scanner, result, out parsed, position, orError);
+                else return Parsers.Exit(ref scanner, result, out parsed, position, orError);
             }
         }
-        while (Terminals.AnyOf(["||"], ref scanner, out op, advance: true));
+        while (Parsers.FollowedByAny(ref scanner, ["||"], out op, advance: true));
         if (parsed is not null)
             return true;
-        else return CommonParsers.Exit(ref scanner, result, out parsed, position, orError);
+        else return Parsers.Exit(ref scanner, result, out parsed, position, orError);
     }
 
     public static bool Ternary<TScanner>(ref TScanner scanner, ParseResult result, out Expression parsed, in ParseError? orError = null)
@@ -306,20 +312,20 @@ public struct ExpressionParser : IParser<Expression>
         if (Or(ref scanner, result, out parsed))
         {
             var pos2 = scanner.Position;
-            CommonParsers.Spaces0(ref scanner, result, out _);
-            if (Terminals.Char('?', ref scanner, advance: true))
+            Parsers.Spaces0(ref scanner, result, out _);
+            if (Tokens.Char('?', ref scanner, advance: true))
             {
 
-                CommonParsers.Spaces0(ref scanner, result, out _);
-                if (Expression(ref scanner, result, out var left, new(SDSLParsingMessages.SDSL0015, scanner.GetErrorLocation(scanner.Position), scanner.Memory)))
+                Parsers.Spaces0(ref scanner, result, out _);
+                if (Expression(ref scanner, result, out var left, new(SDSLErrorMessages.SDSL0015, scanner[scanner.Position], scanner.Memory)))
                 {
-                    CommonParsers.Spaces0(ref scanner, result, out _);
-                    if (Terminals.Char(':', ref scanner, advance: true))
+                    Parsers.Spaces0(ref scanner, result, out _);
+                    if (Tokens.Char(':', ref scanner, advance: true))
                     {
-                        CommonParsers.Spaces0(ref scanner, result, out _);
-                        if (Expression(ref scanner, result, out var right, new(SDSLParsingMessages.SDSL0015, scanner.GetErrorLocation(scanner.Position), scanner.Memory)))
+                        Parsers.Spaces0(ref scanner, result, out _);
+                        if (Expression(ref scanner, result, out var right, new(SDSLErrorMessages.SDSL0015, scanner[scanner.Position], scanner.Memory)))
                         {
-                            parsed = new TernaryExpression(parsed, left, right, scanner.GetLocation(position, scanner.Position - position));
+                            parsed = new TernaryExpression(parsed, left, right, scanner[position..scanner.Position]);
                             return true;
                         }
                     }
@@ -331,6 +337,6 @@ public struct ExpressionParser : IParser<Expression>
                 return true;
             }
         }
-        return CommonParsers.Exit(ref scanner, result, out parsed, position, orError);
+        return Parsers.Exit(ref scanner, result, out parsed, position, orError);
     }
 }

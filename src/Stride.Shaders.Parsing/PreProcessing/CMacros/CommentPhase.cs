@@ -10,15 +10,15 @@ public struct CommentPhase() : IPreProcessorPhase
         var last = sdslpp.CodeFrames[^1];
         var scanner = new Scanner<ScannableMemory>(last.Code.Memory);
         var started = false;
-        while(!CommonParsers.Until(ref scanner, ["//", "/*"]))
+        while(!Parsers.Until(ref scanner, ["//", "/*"]))
         {
             if(!started)
                 started = true;
             frame.Add(last, ..scanner.Position);
-            if (Terminals.Literal("//", ref scanner))
-                CommonParsers.Until(ref scanner, '\n', advance: true);
-            else if (Terminals.Literal("/*", ref scanner))
-                CommonParsers.Until(ref scanner, "*/", advance: true);
+            if (Tokens.Literal("//", ref scanner))
+                Parsers.Until(ref scanner, '\n', advance: true);
+            else if (Tokens.Literal("/*", ref scanner))
+                Parsers.Until(ref scanner, "*/", advance: true);
         }
         if (!started)
             frame.Add(last, ..);

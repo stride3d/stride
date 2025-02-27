@@ -13,5 +13,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\submodules\CppNet8\CppNet.csproj" />
+    <ProjectReference Include="..\Stride.Shaders.Core\Stride.Shaders.Core.csproj" />
   </ItemGroup>
 </Project>

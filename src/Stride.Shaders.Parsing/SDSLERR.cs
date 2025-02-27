@@ -1,7 +1,7 @@
 namespace Stride.Shaders.Parsing;
 
 
-public static class SDSLParsingMessages
+public static class SDSLErrorMessages
 {
     public const string SDSL0001 = "SDSL0001: Unexpected token";
     public const string SDSL0002 = "SDSL0002: vector size not supported";
@@ -47,4 +47,15 @@ public static class SDSLParsingMessages
     public const string SDSL0042 = "SDSL0042: Expected prefix expression";
     public const string SDSL0043 = "SDSL0043: Unexpected <EOF>";
     public const string SDSL0044 = "SDSL0044: Use of register and packoffset keyword deprecated";
+
+
+    // Semantic errors
+
+    public const string SDSL0100 = "SDSL0100: Variable is not declared";
+    public const string SDSL0101 = "SDSL0101: Variable is already declared";
+    public const string SDSL0102 = "SDSL0102: Variable is not a constant";
+    public const string SDSL0103 = "SDSL0103: Variable cannot be assigned to";
+    public const string SDSL0104 = "SDSL0104: Cannot infer type";
+    public const string SDSL0105 = "SDSL0105: Unrecognized node";
+    public const string SDSL0106 = "SDSL0106: Unsupported type";
 }

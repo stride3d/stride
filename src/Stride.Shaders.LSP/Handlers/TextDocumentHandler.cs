@@ -13,6 +13,7 @@ using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 using OmniSharp.Extensions.LanguageServer.Protocol.Server.Capabilities;
 using OmniSharp.Extensions.LanguageServer.Protocol.Server.WorkDone;
 using OmniSharp.Extensions.LanguageServer.Protocol.Workspace;
+using Serilog;
 using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
 
 namespace Stride.Shaders.Parsing.LSP;
@@ -22,7 +23,7 @@ internal class TextDocumentHandler : TextDocumentSyncHandlerBase
     private readonly ILogger<TextDocumentHandler> _logger;
     private readonly ILanguageServerConfiguration _configuration;
 
-    private readonly TextDocumentSelector _textDocumentSelector = new TextDocumentSelector(
+    private readonly TextDocumentSelector _textDocumentSelector = new(
         new TextDocumentFilter
         {
             Pattern = "**/*.sdsl"
@@ -40,10 +41,10 @@ internal class TextDocumentHandler : TextDocumentSyncHandlerBase
 
     public override Task<Unit> Handle(DidChangeTextDocumentParams notification, CancellationToken token)
     {
-        _logger.LogCritical("Critical");
-        _logger.LogDebug("Debug");
-        _logger.LogTrace("Trace");
-        _logger.LogInformation("Hello world!");
+        // _logger.LogCritical("Critical");
+        // _logger.LogDebug("Debug");
+        // _logger.LogTrace("Trace");
+        // _logger.LogInformation("Hello world!");
         return Unit.Task;
     }
 
@@ -88,41 +89,56 @@ internal class MyDocumentSymbolHandler : IDocumentSymbolHandler
         var content = await File.ReadAllTextAsync(DocumentUri.GetFileSystemPath(request), cancellationToken).ConfigureAwait(false);
         var lines = content.Split('\n');
         var symbols = new List<SymbolInformationOrDocumentSymbol>();
-        for (var lineIndex = 0; lineIndex < lines.Length; lineIndex++)
-        {
-            var line = lines[lineIndex];
-            var parts = line.Split(' ', '.', '(', ')', '{', '}', '[', ']', ';');
-            var currentCharacter = 0;
-            foreach (var part in parts)
-            {
-                if (string.IsNullOrWhiteSpace(part))
-                {
-                    currentCharacter += part.Length + 1;
-                    continue;
-                }
 
-                symbols.Add(
-                    new DocumentSymbol
-                    {
-                        Detail = part,
-                        Deprecated = true,
-                        Kind = SymbolKind.Field,
-                        Tags = new[] { SymbolTag.Deprecated },
-                        Range = new Range(
-                            new Position(lineIndex, currentCharacter),
-                            new Position(lineIndex, currentCharacter + part.Length)
-                        ),
-                        SelectionRange =
-                            new Range(
-                                new Position(lineIndex, currentCharacter),
-                                new Position(lineIndex, currentCharacter + part.Length)
-                            ),
-                        Name = part
-                    }
-                );
-                currentCharacter += part.Length + 1;
-            }
+        var result = SDSLParser.Parse(content);
+        if (result.AST is ShaderNamespace nsp)
+        {
+            Log.Information($"{nsp.NamespacePath} is being treated");
+            symbols.Add(
+                new DocumentSymbol()
+                {
+                    Kind = SymbolKind.Namespace,
+                    Name = string.Join(".", nsp.NamespacePath.Select(x => x.Name)),
+                    Range = new Range(nsp.Info.Line, nsp.Info.Column, nsp.Info.EndLine, nsp.Info.EndColumn)
+                }
+            );
         }
+
+        // for (var lineIndex = 0; lineIndex < lines.Length; lineIndex++)
+        // {
+        //     var line = lines[lineIndex];
+        //     var parts = line.Split(' ', '.', '(', ')', '{', '}', '[', ']', ';');
+        //     var currentCharacter = 0;
+        //     foreach (var part in parts)
+        //     {
+        //         if (string.IsNullOrWhiteSpace(part))
+        //         {
+        //             currentCharacter += part.Length + 1;
+        //             continue;
+        //         }
+
+        //         symbols.Add(
+        //             new DocumentSymbol
+        //             {
+        //                 Detail = part,
+        //                 Deprecated = true,
+        //                 Kind = SymbolKind.Field,
+        //                 Tags = new[] { SymbolTag.Deprecated },
+        //                 Range = new Range(
+        //                     new Position(lineIndex, currentCharacter),
+        //                     new Position(lineIndex, currentCharacter + part.Length)
+        //                 ),
+        //                 SelectionRange =
+        //                     new Range(
+        //                         new Position(lineIndex, currentCharacter),
+        //                         new Position(lineIndex, currentCharacter + part.Length)
+        //                     ),
+        //                 Name = part
+        //             }
+        //         );
+        //         currentCharacter += part.Length + 1;
+        //     }
+        // }
 
         // await Task.Delay(2000, cancellationToken);
         return symbols;

@@ -1,5 +1,6 @@
 using Stride.Shaders.Parsing.SDFX.AST;
 using Stride.Shaders.Parsing.SDSL;
+using Stride.Shaders.Parsing.SDSL.AST;
 
 namespace Stride.Shaders.Parsing.SDFX.Parsers;
 
@@ -10,40 +11,40 @@ public record struct EffectParser : IParser<ShaderEffect>
     {
         var position = scanner.Position;
 
-        var isPartial = Terminals.Literal("partial", ref scanner, advance: true) && CommonParsers.Spaces1(ref scanner, result, out _);
+        var isPartial = Tokens.Literal("partial", ref scanner, advance: true) && SDSL.Parsers.Spaces1(ref scanner, result, out _);
         if(!isPartial)
             scanner.Position = position;
 
-        if (Terminals.Literal("effect", ref scanner, advance: true) && CommonParsers.Spaces1(ref scanner, result, out _))
+        if (Tokens.Literal("effect", ref scanner, advance: true) && SDSL.Parsers.Spaces1(ref scanner, result, out _))
         {
-            if (LiteralsParser.TypeName(ref scanner, result, out var effectName) && CommonParsers.Spaces0(ref scanner, result, out _))
+            if (LiteralsParser.TypeName(ref scanner, result, out var effectName) && SDSL.Parsers.Spaces0(ref scanner, result, out _))
             {
-                parsed = new(effectName, isPartial, new());
-                if (Terminals.Char('{', ref scanner, advance: true) && CommonParsers.Spaces0(ref scanner, result, out _))
+                parsed = new((TypeName)effectName, isPartial, new());
+                if (Tokens.Char('{', ref scanner, advance: true) && SDSL.Parsers.Spaces0(ref scanner, result, out _))
                 {
                     while(
                        !scanner.IsEof
-                       && !Terminals.Char('}', ref scanner)
+                       && !Tokens.Char('}', ref scanner)
                     )
                     {
-                        if (EffectStatementParsers.Statement(ref scanner, result, out var s) && CommonParsers.Spaces0(ref scanner, result, out _))
+                        if (EffectStatementParsers.Statement(ref scanner, result, out var s) && SDSL.Parsers.Spaces0(ref scanner, result, out _))
                         {
                             parsed.Members.Add(s);
                         }
-                        else return CommonParsers.Exit(ref scanner, result, out parsed, position, new(SDSLParsingMessages.SDSL0009, scanner.GetErrorLocation(scanner.Position), scanner.Memory));
+                        else return SDSL.Parsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrorMessages.SDSL0009, scanner[scanner.Position], scanner.Memory));
                     }
                     if(scanner.IsEof)
-                        return CommonParsers.Exit(ref scanner, result, out parsed, position, new(SDSLParsingMessages.SDSL0011, scanner.GetErrorLocation(scanner.Position), scanner.Memory));
-                    else if(Terminals.Char('}', ref scanner, advance: true))
+                        return SDSL.Parsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrorMessages.SDSL0011, scanner[scanner.Position], scanner.Memory));
+                    else if(Tokens.Char('}', ref scanner, advance: true))
                     {
-                        parsed.Info = scanner.GetLocation(position..scanner.Position);
-                        CommonParsers.FollowedBy(ref scanner, Terminals.Char(';'), withSpaces: true, advance: true);
+                        parsed.Info = scanner[position..scanner.Position];
+                        SDSL.Parsers.FollowedBy(ref scanner, Tokens.Char(';'), withSpaces: true, advance: true);
                         return true;
                     }
                 }
             }
         }
-        return CommonParsers.Exit(ref scanner, result, out parsed, position, orError);
+        return SDSL.Parsers.Exit(ref scanner, result, out parsed, position, orError);
     }
 
     public static bool Effect<TScanner>(ref TScanner scanner, ParseResult result, out ShaderEffect parsed, in ParseError? orError = null) where TScanner : struct, IScanner

@@ -46,11 +46,11 @@ public record struct DirectiveParenthesisExpressionParser : IParser<Expression>
     {
         var position = scanner.Position;
         if (
-            Terminals.Char('(', ref scanner, advance: true)
-            && CommonParsers.Spaces0(ref scanner, result, out _)
-            && ExpressionParser.Expression(ref scanner, result, out parsed, new(SDSLParsingMessages.SDSL0015, scanner.GetErrorLocation(position), scanner.Memory))
-            && CommonParsers.Spaces0(ref scanner, result, out _)
-            && Terminals.Char(')', ref scanner, advance: true)
+            Tokens.Char('(', ref scanner, advance: true)
+            && Parsers.Spaces0(ref scanner, result, out _)
+            && ExpressionParser.Expression(ref scanner, result, out parsed, new(SDSLErrorMessages.SDSL0015, scanner[position], scanner.Memory))
+            && Parsers.Spaces0(ref scanner, result, out _)
+            && Tokens.Char(')', ref scanner, advance: true)
         )
             return true;
         else
@@ -72,21 +72,21 @@ public record struct DirectiveMethodCallParser : IParser<Expression>
         var position = scanner.Position;
         if (
             LiteralsParser.Identifier(ref scanner, result, out var identifier)
-            && CommonParsers.Spaces0(ref scanner, result, out _)
-            && Terminals.Char('(', ref scanner, advance: true)
+            && Parsers.Spaces0(ref scanner, result, out _)
+            && Tokens.Char('(', ref scanner, advance: true)
         )
         {
-            CommonParsers.Spaces0(ref scanner, result, out _);
+            Parsers.Spaces0(ref scanner, result, out _);
             ParameterParsers.Values(ref scanner, result, out var parameters);
             var pos2 = scanner.Position;
-            if (Terminals.Char(')', ref scanner, advance: true))
+            if (Tokens.Char(')', ref scanner, advance: true))
             {
-                parsed = new MethodCall(identifier, parameters, scanner.GetLocation(position, scanner.Position - position));
+                parsed = new MethodCall(identifier, parameters, scanner[position..scanner.Position]);
                 return true;
             }
-            else return CommonParsers.Exit(ref scanner, result, out parsed, position, new(SDSLParsingMessages.SDSL0018, scanner.GetErrorLocation(scanner.Position), scanner.Memory));
+            else return Parsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrorMessages.SDSL0018, scanner[scanner.Position], scanner.Memory));
         }
         
-        return CommonParsers.Exit(ref scanner, result, out parsed, position, orError);
+        return Parsers.Exit(ref scanner, result, out parsed, position, orError);
     }
 }

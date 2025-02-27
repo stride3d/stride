@@ -17,6 +17,9 @@ public interface IScanner
     public int Line { get; }
     public int Column { get; }
 
+    public TextLocation this[Range range] { get; }
+    public ErrorLocation this[int position] { get; }
+
 
 
     public int End { get; }
@@ -34,10 +37,6 @@ public interface IScanner
     public ReadOnlySpan<char> Slice(int index, int length);
 
     public int LineAtIndex(int index);
-
-    public TextLocation GetLocation(int position, int length);
-    public TextLocation GetLocation(Range range);
-    public ErrorLocation GetErrorLocation(int position);
 }
 
 

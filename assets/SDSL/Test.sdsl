@@ -1,34 +1,19 @@
-partial effect machin {
-    
-}
-
-namespace machin.something.Hello {
-    namespace machin;
-
-    namespace hello.world 
+namespace Machin
+{
+    shader Test 
     {
-        partial shader machin
-        {
-            
-        }
-        
-        effect machin {
+        stream float4 Position;
+        stream float4 Color;
 
+
+        void PSMain()
+        {
+            streams.Position.w = 1.0;
+        }
+
+        void VSMain()
+        {
+            streams.Color = float4(1.0,0.0,1.0,1u32);
         }
     }
-
 }
-
-
-// shader Main<int amplitude> {
-//     struct Machin {
-//         [Link("hello")]
-//         stage something something;
-//         [Link("hello2", 1 , 3)]
-//         stage something[machin, machin, 3, machin(22), obo.obo] something;
-//     }
-
-//     struct Machin {
-        
-//     }
-// }

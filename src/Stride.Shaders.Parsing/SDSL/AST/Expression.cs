@@ -1,3 +1,6 @@
+using System.Text;
+using Stride.Shaders.Parsing.Analysis;
+
 namespace Stride.Shaders.Parsing.SDSL.AST;
 
 
@@ -39,39 +42,56 @@ public class CastExpression(string typeName, Operator op, Expression expression,
     public string TypeName { get; set; } = typeName;
 }
 
-public class PostfixExpression(Expression expression, Operator op, TextLocation info) : UnaryExpression(expression, op, info)
+public class PostfixIncrement(Operator op, TextLocation info) : Expression(info)
 {
+    public Operator Operator { get; set; } = op;
     public override string ToString()
     {
-        return $"{Expression}{Operator.ToSymbol()}";
+        return $"{Operator.ToSymbol()}";
     }
 }
 
-public class AccessorExpression(Expression expression, Expression accessed, TextLocation info) : PostfixExpression(expression, Operator.Accessor, info)
+public class AccessorChainExpression(Expression source, TextLocation info) : Expression(info)
 {
-    public Expression Accessed { get; set; } = accessed;
+    public Expression Source { get; set; } = source;
+    public List<Expression> Accessors { get; set; } = [];
 
     public override string ToString()
     {
-        return $"{Expression}.{Accessed}";
+        var builder = new StringBuilder().Append(Source);
+        foreach(var a in Accessors)
+            if(a is NumberLiteral)
+                builder.Append('[').Append(a).Append(']');
+            else if(a is PostfixIncrement)
+                builder.Append(a);
+            else
+                builder.Append('.').Append(a);
+        return builder.ToString();
     }
 }
-
-public class IndexerExpression(Expression expression, Expression index, TextLocation info) : PostfixExpression(expression, Operator.Indexer, info)
-{
-    public Expression Index { get; set; } = index;
-    public override string ToString()
-    {
-        return $"{Expression}[{Index}]";
-    }
-}
-
 
 public class BinaryExpression(Expression left, Operator op, Expression right, TextLocation info) : Expression(info)
 {
     public Operator Op { get; set; } = op;
     public Expression Left { get; set; } = left;
     public Expression Right { get; set; } = right;
+
+    public override void ProcessSymbol(SymbolTable table)
+    {
+        Left.ProcessSymbol(table);
+        Right.ProcessSymbol(table);
+        if (
+            OperatorTable.BinaryOperationResultingType(
+                Left.Type ?? throw new NotImplementedException("Missing type"),
+                Right.Type ?? throw new NotImplementedException("Missing type"),
+                Op,
+                out var t
+            )
+        )
+            Type = t;
+        else
+            table.Errors.Add(new(Info, SDSLErrorMessages.SDSL0104));
+    }
 
     public override string ToString()
     {

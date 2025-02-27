@@ -14,11 +14,9 @@ static async Task MainAsync()
 {
     Log.Logger = new LoggerConfiguration()
                         .Enrich.FromLogContext()
-                        .WriteTo.File("log.txt", rollingInterval: RollingInterval.Day)
+                        .WriteTo.File("log.txt", rollingInterval: RollingInterval.Minute)
                         .MinimumLevel.Verbose()
                         .CreateLogger();
-
-    Log.Logger.Information("This only goes file...");
 
     IObserver<WorkDoneProgressReport> workDone = null!;
 
@@ -35,7 +33,8 @@ static async Task MainAsync()
                 )
                .WithHandler<TextDocumentHandler>()
                .WithHandler<DidChangeWatchedFilesHandler>()
-               .WithHandler<FoldingRangeHandler>()
+            //    .WithHandler<FoldingRangeHandler>()
+               .WithHandler<HoverHandler>()
                .WithHandler<MyWorkspaceSymbolsHandler>()
                .WithHandler<MyDocumentSymbolHandler>()
                .WithHandler<SemanticTokensHandler>()

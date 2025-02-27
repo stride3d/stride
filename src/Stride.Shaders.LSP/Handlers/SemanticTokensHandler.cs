@@ -13,14 +13,9 @@ using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
 namespace Stride.Shaders.Parsing.LSP;
 
-public class SemanticTokensHandler : SemanticTokensHandlerBase
+public class SemanticTokensHandler(ILogger<SemanticTokensHandler> logger) : SemanticTokensHandlerBase
 {
-    private readonly ILogger _logger;
-
-    public SemanticTokensHandler(ILogger<SemanticTokensHandler> logger)
-    {
-        _logger = logger;
-    }
+    private readonly ILogger _logger = logger;
 
     public override async Task<SemanticTokens?> Handle(
         SemanticTokensParams request, CancellationToken cancellationToken
@@ -58,19 +53,27 @@ public class SemanticTokensHandler : SemanticTokensHandlerBase
         var content = await File.ReadAllTextAsync(DocumentUri.GetFileSystemPath(identifier), cancellationToken).ConfigureAwait(false);
         await Task.Yield();
 
-        foreach (var (line, text) in content.Split('\n').Select((text, line) => (line, text)))
+        var result = SDSLParser.Parse(content);
+        if(result.AST is ShaderFile sf && sf.Namespaces.Count > 0)
         {
-            var parts = text.TrimEnd().Split(';', ' ', '.', '"', '(', ')');
-            var index = 0;
-            foreach (var part in parts)
-            {
-                typesEnumerator.MoveNext();
-                modifiersEnumerator.MoveNext();
-                if (string.IsNullOrWhiteSpace(part)) continue;
-                index = text.IndexOf(part, index, StringComparison.Ordinal);
-                builder.Push(line, index, part.Length, typesEnumerator.Current, modifiersEnumerator.Current);
-            }
+            var ns = sf.Namespaces[0];
+            _logger.LogInformation($"Handling namespace : {ns.Namespace}");
+            builder.Push(ns.Info.Line,ns.Info.Column, ns.Info.Length, SemanticTokenType.Namespace, SemanticTokenModifier.Declaration);
         }
+
+        // foreach (var (line, text) in content.Split('\n').Select((text, line) => (line, text)))
+        // {
+        //     var parts = text.TrimEnd().Split(';', ' ', '.', '"', '(', ')');
+        //     var index = 0;
+        //     foreach (var part in parts)
+        //     {
+        //         typesEnumerator.MoveNext();
+        //         modifiersEnumerator.MoveNext();
+        //         if (string.IsNullOrWhiteSpace(part)) continue;
+        //         index = text.IndexOf(part, index, StringComparison.Ordinal);
+        //         builder.Push(line, index, part.Length, typesEnumerator.Current, modifiersEnumerator.Current);
+        //     }
+        // }
     }
 
     protected override Task<SemanticTokensDocument>
@@ -95,7 +98,7 @@ public class SemanticTokensHandler : SemanticTokensHandlerBase
     {
         return new SemanticTokensRegistrationOptions
         {
-            DocumentSelector = TextDocumentSelector.ForLanguage("csharp"),
+            DocumentSelector = TextDocumentSelector.ForLanguage("sdsl"),
             Legend = new SemanticTokensLegend
             {
                 TokenModifiers = capability.TokenModifiers,

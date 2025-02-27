@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Stride.Shaders.Spirv.Core\Stride.Shaders.Spirv.Core.csproj" />
+    <ProjectReference Include="..\..\Stride.Shaders.Core\Stride.Shaders.Core.csproj" />
   </ItemGroup>
 
 </Project>

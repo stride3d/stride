@@ -10,7 +10,7 @@ public record struct FlowParsers : IParser<Flow>
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
-        var hasAttributes = ShaderAttributeListParser.Attribute(ref scanner, result, out var attribute) && CommonParsers.Spaces0(ref scanner, result, out _);
+        var hasAttributes = ShaderAttributeListParser.Attribute(ref scanner, result, out var attribute) && Parsers.Spaces0(ref scanner, result, out _);
         if (!hasAttributes)
             scanner.Position = position;
         if (While(ref scanner, result, out var w, orError))
@@ -32,7 +32,7 @@ public record struct FlowParsers : IParser<Flow>
             parsed = f;
             return true;
         }
-        else return CommonParsers.Exit(ref scanner, result, out parsed, position, orError);
+        else return Parsers.Exit(ref scanner, result, out parsed, position, orError);
     }
 
     public static bool While<TScanner>(ref TScanner scanner, ParseResult result, out While parsed, ParseError? orError = null)
@@ -55,49 +55,49 @@ public record struct ForParser : IParser<For>
     {
         var position = scanner.Position;
         if(
-            Terminals.Literal("for", ref scanner, advance: true)
-            && CommonParsers.FollowedBy(ref scanner, Terminals.Char('('), withSpaces: true, advance: true)
+            Tokens.Literal("for", ref scanner, advance: true)
+            && Parsers.FollowedBy(ref scanner, Tokens.Char('('), withSpaces: true, advance: true)
         )
         {
             Statement? init = null;
             Statement? condition = null;
             List<Statement>? expressions = null;
-            CommonParsers.Spaces0(ref scanner, result, out _);
+            Parsers.Spaces0(ref scanner, result, out _);
 
             // Parsing the initialization
             if(StatementParsers.Expression(ref scanner, result, out init)){}
             else if(StatementParsers.DeclareOrAssign(ref scanner, result, out init)){}
             else if(StatementParsers.Empty(ref scanner, result, out init)){}
-            else return CommonParsers.Exit(ref scanner, result, out parsed, position, new(SDSLParsingMessages.SDSL0036, scanner.GetErrorLocation(scanner.Position), scanner.Memory));
+            else return Parsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrorMessages.SDSL0036, scanner[scanner.Position], scanner.Memory));
 
-            CommonParsers.Spaces0(ref scanner, result, out _);
+            Parsers.Spaces0(ref scanner, result, out _);
             // Parsing the condition
 
             if (StatementParsers.Expression(ref scanner, result, out condition)){}
             else if (StatementParsers.Empty(ref scanner, result, out condition)){}
-            else return CommonParsers.Exit(ref scanner, result, out parsed, position, new(SDSLParsingMessages.SDSL0037, scanner.GetErrorLocation(scanner.Position), scanner.Memory));
+            else return Parsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrorMessages.SDSL0037, scanner[scanner.Position], scanner.Memory));
             
-            CommonParsers.Spaces0(ref scanner, result, out _);
+            Parsers.Spaces0(ref scanner, result, out _);
             // parsing the final expression
             
             var tmpPos = scanner.Position;
 
-            if (!CommonParsers.Repeat(ref scanner, result, AssignOrExpression, out expressions, 0, withSpaces: true, separator: ","))
-                expressions = [new EmptyStatement(scanner.GetLocation(tmpPos..scanner.Position))];
-            if(!CommonParsers.FollowedBy(ref scanner, Terminals.Char(')'), withSpaces: true, advance: true))
-                return CommonParsers.Exit(ref scanner, result, out parsed, position, new(SDSLParsingMessages.SDSL0018, scanner.GetErrorLocation(scanner.Position), scanner.Memory));            
-            CommonParsers.Spaces0(ref scanner, result, out _);
+            if (!Parsers.Repeat(ref scanner, result, AssignOrExpression, out expressions, 0, withSpaces: true, separator: ","))
+                expressions = [new EmptyStatement(scanner[tmpPos..scanner.Position])];
+            if(!Parsers.FollowedBy(ref scanner, Tokens.Char(')'), withSpaces: true, advance: true))
+                return Parsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrorMessages.SDSL0018, scanner[scanner.Position], scanner.Memory));            
+            Parsers.Spaces0(ref scanner, result, out _);
 
             // parsing the block or statement
 
             if(StatementParsers.Statement(ref scanner, result, out var body))
             {
-                parsed = new For(init, condition, expressions!, body, scanner.GetLocation(position..scanner.Position));
+                parsed = new For(init, condition, expressions!, body, scanner[position..scanner.Position]);
                 return true;
             }
-            else return CommonParsers.Exit(ref scanner, result, out parsed, position, orError);
+            else return Parsers.Exit(ref scanner, result, out parsed, position, orError);
         }
-        else return CommonParsers.Exit(ref scanner, result, out parsed, position, orError);
+        else return Parsers.Exit(ref scanner, result, out parsed, position, orError);
     }
 
     internal static bool AssignOrExpression<TScanner>(ref TScanner scanner, ParseResult result, out Statement parsed, in ParseError? orError = null)
@@ -106,26 +106,26 @@ public record struct ForParser : IParser<For>
         var position = scanner.Position;
         if(
             PostfixParser.Postfix(ref scanner, result, out var variable)
-            && CommonParsers.FollowedByDel(ref scanner, result, LiteralsParser.AssignOperators, out AssignOperator op, withSpaces: true, advance: true)
-            && CommonParsers.FollowedByDel(ref scanner, result, ExpressionParser.Expression, out Expression value, withSpaces: true, advance: true)
+            && Parsers.FollowedByDel(ref scanner, result, LiteralsParser.AssignOperators, out AssignOperator op, withSpaces: true, advance: true)
+            && Parsers.FollowedByDel(ref scanner, result, ExpressionParser.Expression, out Expression value, withSpaces: true, advance: true)
         )
         {
-            parsed = new Assign(scanner.GetLocation(position..scanner.Position))
+            parsed = new Assign(scanner[position..scanner.Position])
             {
-                Variables = [new(variable, false, scanner.GetLocation(position..scanner.Position), op, value)]
+                Variables = [new(variable, false, scanner[position..scanner.Position], op, value)]
             };
             return true;
         }
         scanner.Position = position;
         if(
             ExpressionParser.Expression(ref scanner, result, out var expression) 
-            && CommonParsers.FollowedBy(ref scanner, Terminals.Char(')')) 
+            && Parsers.FollowedBy(ref scanner, Tokens.Char(')')) 
         )
         {
-            parsed = new ExpressionStatement(expression, scanner.GetLocation(position..scanner.Position));
+            parsed = new ExpressionStatement(expression, scanner[position..scanner.Position]);
             return true;
         }
-        return CommonParsers.Exit(ref scanner, result, out parsed, position, orError);
+        return Parsers.Exit(ref scanner, result, out parsed, position, orError);
     }
 }
 
@@ -135,41 +135,41 @@ public record struct ForEachParser : IParser<ForEach>
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
-        if (Terminals.Literal("foreach", ref scanner, advance: true) && CommonParsers.Spaces0(ref scanner, result, out _))
+        if (Tokens.Literal("foreach", ref scanner, advance: true) && Parsers.Spaces0(ref scanner, result, out _))
         {
-            if (Terminals.Char('(', ref scanner, advance: true) && CommonParsers.Spaces0(ref scanner, result, out _))
+            if (Tokens.Char('(', ref scanner, advance: true) && Parsers.Spaces0(ref scanner, result, out _))
             {
                 if (
-                    LiteralsParser.TypeName(ref scanner, result, out var typeName, new(SDSLParsingMessages.SDSL0017, scanner.GetErrorLocation(scanner.Position), scanner.Memory))
-                    && CommonParsers.Spaces1(ref scanner, result, out _)
-                    && LiteralsParser.Identifier(ref scanner, result, out var identifier, new(SDSLParsingMessages.SDSL0032, scanner.GetErrorLocation(scanner.Position), scanner.Memory))
-                    && CommonParsers.Spaces1(ref scanner, result, out _)
+                    LiteralsParser.TypeName(ref scanner, result, out var typeName, new(SDSLErrorMessages.SDSL0017, scanner[scanner.Position], scanner.Memory))
+                    && Parsers.Spaces1(ref scanner, result, out _)
+                    && LiteralsParser.Identifier(ref scanner, result, out var identifier, new(SDSLErrorMessages.SDSL0032, scanner[scanner.Position], scanner.Memory))
+                    && Parsers.Spaces1(ref scanner, result, out _)
                 )
                 {
-                    if (Terminals.Literal("in", ref scanner, advance: true) && CommonParsers.Spaces1(ref scanner, result, out _))
+                    if (Tokens.Literal("in", ref scanner, advance: true) && Parsers.Spaces1(ref scanner, result, out _))
                     {
                         if (
-                            ExpressionParser.Expression(ref scanner, result, out var collection, new(SDSLParsingMessages.SDSL0032, scanner.GetErrorLocation(scanner.Position), scanner.Memory))
-                            && CommonParsers.Spaces0(ref scanner, result, out _)
+                            ExpressionParser.Expression(ref scanner, result, out var collection, new(SDSLErrorMessages.SDSL0032, scanner[scanner.Position], scanner.Memory))
+                            && Parsers.Spaces0(ref scanner, result, out _)
                         )
                         {
-                            if (Terminals.Char(')', ref scanner, advance: true) && CommonParsers.Spaces0(ref scanner, result, out _))
+                            if (Tokens.Char(')', ref scanner, advance: true) && Parsers.Spaces0(ref scanner, result, out _))
                             {
-                                if (StatementParsers.Statement(ref scanner, result, out var statement, new(SDSLParsingMessages.SDSL0010, scanner.GetErrorLocation(scanner.Position), scanner.Memory)))
+                                if (StatementParsers.Statement(ref scanner, result, out var statement, new(SDSLErrorMessages.SDSL0010, scanner[scanner.Position], scanner.Memory)))
                                 {
-                                    parsed = new(typeName, identifier, collection, statement, scanner.GetLocation(position..scanner.Position));
+                                    parsed = new(typeName, identifier, collection, statement, scanner[position..scanner.Position]);
                                     return true;
                                 }
                             }
-                            else return CommonParsers.Exit(ref scanner, result, out parsed, position, new(SDSLParsingMessages.SDSL0018, scanner.GetErrorLocation(scanner.Position), scanner.Memory));
+                            else return Parsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrorMessages.SDSL0018, scanner[scanner.Position], scanner.Memory));
                         }
                     }
-                    else return CommonParsers.Exit(ref scanner, result, out parsed, position, new(SDSLParsingMessages.SDSL0001, scanner.GetErrorLocation(scanner.Position), scanner.Memory));
+                    else return Parsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrorMessages.SDSL0001, scanner[scanner.Position], scanner.Memory));
                 }
             }
-            else return CommonParsers.Exit(ref scanner, result, out parsed, position, new(SDSLParsingMessages.SDSL0035, scanner.GetErrorLocation(scanner.Position), scanner.Memory));
+            else return Parsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrorMessages.SDSL0035, scanner[scanner.Position], scanner.Memory));
         }
-        return CommonParsers.Exit(ref scanner, result, out parsed, position, orError);
+        return Parsers.Exit(ref scanner, result, out parsed, position, orError);
     }
 }
 
@@ -179,26 +179,26 @@ public record struct WhileParser : IParser<While>
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
-        if (Terminals.Literal("while", ref scanner, advance: true) && CommonParsers.Spaces0(ref scanner, result, out _))
+        if (Tokens.Literal("while", ref scanner, advance: true) && Parsers.Spaces0(ref scanner, result, out _))
         {
-            if (Terminals.Char('(', ref scanner, advance: true) && CommonParsers.Spaces0(ref scanner, result, out _))
+            if (Tokens.Char('(', ref scanner, advance: true) && Parsers.Spaces0(ref scanner, result, out _))
             {
-                if (ExpressionParser.Expression(ref scanner, result, out var expression, new(SDSLParsingMessages.SDSL0015, scanner.GetErrorLocation(scanner.Position), scanner.Memory)))
+                if (ExpressionParser.Expression(ref scanner, result, out var expression, new(SDSLErrorMessages.SDSL0015, scanner[scanner.Position], scanner.Memory)))
                 {
-                    if (Terminals.Char(')', ref scanner, advance: true) && CommonParsers.Spaces0(ref scanner, result, out _))
+                    if (Tokens.Char(')', ref scanner, advance: true) && Parsers.Spaces0(ref scanner, result, out _))
                     {
-                        if (StatementParsers.Statement(ref scanner, result, out var statement, new(SDSLParsingMessages.SDSL0010, scanner.GetErrorLocation(scanner.Position), scanner.Memory)))
+                        if (StatementParsers.Statement(ref scanner, result, out var statement, new(SDSLErrorMessages.SDSL0010, scanner[scanner.Position], scanner.Memory)))
                         {
-                            parsed = new(expression, statement, scanner.GetLocation(position..scanner.Position));
+                            parsed = new(expression, statement, scanner[position..scanner.Position]);
                             return true;
                         }
                     }
-                    else return CommonParsers.Exit(ref scanner, result, out parsed, position, new(SDSLParsingMessages.SDSL0018, scanner.GetErrorLocation(scanner.Position), scanner.Memory));
+                    else return Parsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrorMessages.SDSL0018, scanner[scanner.Position], scanner.Memory));
                 }
             }
-            else return CommonParsers.Exit(ref scanner, result, out parsed, position, new(SDSLParsingMessages.SDSL0035, scanner.GetErrorLocation(scanner.Position), scanner.Memory));
+            else return Parsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrorMessages.SDSL0035, scanner[scanner.Position], scanner.Memory));
         }
-        return CommonParsers.Exit(ref scanner, result, out parsed, position, orError);
+        return Parsers.Exit(ref scanner, result, out parsed, position, orError);
     }
 }
 

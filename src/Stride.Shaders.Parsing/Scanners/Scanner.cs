@@ -21,6 +21,9 @@ public struct Scanner(string code) : IScanner
     public readonly int End => Span.Length;
     public readonly bool IsEof => Position >= End;
 
+    public readonly TextLocation this[Range range] => new(Memory, range);
+    public readonly ErrorLocation this[int position] => new(this, position);
+
     public int ReadChar()
     {
         var pos = Position;
@@ -103,19 +106,6 @@ public struct Scanner(string code) : IScanner
         return lineCount + 1;
     }
 
-    public readonly TextLocation GetLocation(int position, int length)
-    {
-        return new(Memory, new(position, position + length));
-    }
-    public readonly ErrorLocation GetErrorLocation(int position)
-    {
-        return new ErrorLocation(this, position);
-    }
-
-    public readonly TextLocation GetLocation(Range range)
-    {
-        return new(Memory, range);
-    }
 }
 
 

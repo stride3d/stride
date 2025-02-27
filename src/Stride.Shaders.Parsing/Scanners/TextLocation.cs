@@ -10,6 +10,9 @@ public record struct TextLocation(ReadOnlyMemory<char> Original, Range Range)
 
     public readonly int Line => Original.Span[..Range.StartsAt(Original.Length)].Count('\n') + 1;
     public readonly int Column => Range.StartsAt(Original.Length) - Original.Span[..Range.StartsAt(Original.Length)].LastIndexOf('\n');
+
+    public readonly int EndLine => Original.Span[..Range.EndsAt(Original.Length)].Count('\n') + 1;
+    public readonly int EndColumn => Range.EndsAt(Original.Length) - Original.Span[..Range.EndsAt(Original.Length)].LastIndexOf('\n');
     public readonly override string ToString()
     {
         return $"[l{Line}-c{Column}]\n{Text.Span}";
