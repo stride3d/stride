@@ -1,13 +1,13 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-    <StrideNativePathLibsWindows>libCompilerRt.lib libCelt.lib</StrideNativePathLibsWindows>
-    <StrideNativePathLibsUWP>libCompilerRt.lib libCelt.lib Xaudio2.lib</StrideNativePathLibsUWP>
+    <StrideNativePathLibsWindows>libCelt.lib</StrideNativePathLibsWindows>
+    <StrideNativePathLibsUWP>libCelt.lib Xaudio2.lib</StrideNativePathLibsUWP>
   </PropertyGroup>
 
   <ItemGroup>
     <StrideNativePathLibsiOS Include="$(MSBuildThisFileDirectory)..\..\..\deps\NativePath\iOS\libCelt.a" />
     <StrideNativePathLibsmacOS Include="$(MSBuildThisFileDirectory)..\..\..\deps\NativePath\iOS\libCelt.a" />
-    <StrideNativePathLibsLinux Include="libCelt.a;libCompilerRt.a" />
-    <StrideNativePathLibsAndroid Include="libCelt.a;libCompilerRt.a" />
+    <StrideNativePathLibsLinux Include="libCelt.a" />
+    <StrideNativePathLibsAndroid Include="libCelt.a" />
   </ItemGroup>
 </Project>
