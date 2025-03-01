@@ -1,65 +1,97 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 #if STRIDE_GRAPHICS_API_DIRECT3D
+
 using System.Collections.Generic;
-using SharpDX.DXGI;
+using Silk.NET.Core.Native;
+using Silk.NET.DXGI;
+
+#if STRIDE_PLATFORM_UWP || DIRECTX11_1
+using DxgiFactoryType = Silk.NET.DXGI.IDXGIFactory2;
+#else
+using DxgiFactoryType = Silk.NET.DXGI.IDXGIFactory1;
+#endif
 
 namespace Stride.Graphics
 {
-    public static partial class GraphicsAdapterFactory
+    public static unsafe partial class GraphicsAdapterFactory
     {
-#if STRIDE_PLATFORM_UWP || DIRECTX11_1
-        internal static Factory2 NativeFactory;
-#else
-        internal static Factory1 NativeFactory;
-#endif
+        private static DxgiFactoryType* dxgiFactory;
 
         /// <summary>
-        /// Initializes all adapters with the specified factory.
+        ///   Gets the native DXGI factory object.
         /// </summary>
-        internal static void InitializeInternal()
-        {
-            staticCollector.Dispose();
-
-#if DIRECTX11_1
-            using (var factory = new Factory1())
-            NativeFactory = factory.QueryInterface<Factory2>();
-#elif STRIDE_PLATFORM_UWP
-            // Maybe this will become default code for everybody if we switch to DX 11.1/11.2 SharpDX dll?
-            NativeFactory = new Factory2();
-#else
-            NativeFactory = new Factory1();
-#endif
-
-            staticCollector.Add(NativeFactory);
-
-            int countAdapters = NativeFactory.GetAdapterCount1();
-            var adapterList = new List<GraphicsAdapter>();
-            for (int i = 0; i < countAdapters; i++)
-            {
-                var adapter = new GraphicsAdapter(NativeFactory, i);
-                staticCollector.Add(adapter);
-                adapterList.Add(adapter);
-            }
-
-            defaultAdapter = adapterList.Count > 0 ? adapterList[0] : null;
-            adapters = adapterList.ToArray();
-        }
-
-        /// <summary>
-        /// Gets the <see cref="Factory1"/> used by all GraphicsAdapter.
-        /// </summary>
-        internal static Factory1 Factory
+        /// <remarks>
+        ///   If the reference is going to be kept, use <see cref="ComPtr{T}.AddRef()"/> to increment the internal
+        ///   reference count, and <see cref="ComPtr{T}.Dispose()"/> when no longer needed to release the object.
+        /// </remarks>
+        internal static ComPtr<DxgiFactoryType> NativeFactory
         {
             get
             {
                 lock (StaticLock)
                 {
                     Initialize();
-                    return NativeFactory;
+                    return ComPtrHelpers.ToComPtr(dxgiFactory);
                 }
             }
         }
+
+
+        /// <summary>
+        ///   Initializes all the <see cref="GraphicsAdapter"/>s.
+        /// </summary>
+        internal static void InitializeInternal()
+        {
+            staticCollector.Dispose();
+
+            var dxgi = DXGI.GetApi(window: null);
+
+            HResult result = default;
+
+#if STRIDE_PLATFORM_UWP || DIRECTX11_1
+
+#if DEBUG
+            uint factoryFlags = DxgiConstants.CreateFactoryDebug;
+#else
+            uint factoryFlags = 0;
+#endif
+            result = dxgi.CreateDXGIFactory2<DxgiFactoryType>(factoryFlags, out var factory);
+#else
+            result = dxgi.CreateDXGIFactory1<DxgiFactoryType>(out var factory);
+#endif
+            if (result.IsFailure)
+                result.Throw();
+
+            dxgiFactory = factory.Handle;
+            staticCollector.Add(factory);
+
+            uint adapterIndex = 0;
+            var adapterList = new List<GraphicsAdapter>();
+            bool foundValidAdapter;
+            ComPtr<IDXGIAdapter1> dxgiAdapter = default;
+
+            do
+            {
+                result = dxgiFactory->EnumAdapters1(adapterIndex, ref dxgiAdapter);
+
+                foundValidAdapter = result.IsSuccess && result.Code != DxgiConstants.ErrorNotFound;
+                if (!foundValidAdapter)
+                    break;
+
+                var adapter = new GraphicsAdapter(dxgiAdapter, adapterIndex);
+                staticCollector.Add(adapter);
+                adapterList.Add(adapter);
+
+                adapterIndex++;
+
+            } while (foundValidAdapter);
+
+            defaultAdapter = adapterList.Count > 0 ? adapterList[0] : null;
+            adapters = adapterList.ToArray();
+        }
     }
 }
-#endif 
+
+#endif

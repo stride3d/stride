@@ -7,7 +7,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\engine\Stride.Graphics\Stride.Graphics.csproj" />
     <PackageReference Include="Microsoft.Win32.Registry" />
-    <PackageReference Include="SharpDX.Direct3D11" Condition="'$(TargetFramework)' == '$(StrideFramework)' Or '$(TargetFramework)' == '$(StrideFrameworkUWP)'" />
+    <PackageReference Include="Silk.NET.Direct3D11" Condition="'$(TargetFramework)' == '$(StrideFramework)' Or '$(TargetFramework)' == '$(StrideFrameworkUWP)'" />
   </ItemGroup>
   <Import Project="$(StrideSdkTargets)" />
 </Project>
