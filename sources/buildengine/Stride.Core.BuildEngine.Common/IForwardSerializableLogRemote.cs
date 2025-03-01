@@ -3,10 +3,9 @@
 
 using Stride.Core.Diagnostics;
 
-namespace Stride.Core.BuildEngine
+namespace Stride.Core.BuildEngine;
+
+public interface IForwardSerializableLogRemote
 {
-    public interface IForwardSerializableLogRemote
-    {
-        void ForwardSerializableLog(SerializableLogMessage message);
-    }
+    void ForwardSerializableLog(SerializableLogMessage message);
 }

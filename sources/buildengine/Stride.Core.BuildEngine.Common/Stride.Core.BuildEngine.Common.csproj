@@ -6,6 +6,10 @@
     <SchemaVersion>2.0</SchemaVersion>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <TargetFramework>$(StrideXplatEditorTargetFramework)</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <RootNamespace>Stride.Core.BuildEngine</RootNamespace>
     <StrideAssemblyProcessorOptions>--auto-module-initializer --serialization</StrideAssemblyProcessorOptions>
   </PropertyGroup>
   <ItemGroup>
