@@ -50,12 +50,17 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="Buffer" /> class.
+        ///   Initializes this <see cref="Buffer"/> instance with the provided options.
         /// </summary>
-        /// <param name="description">The description.</param>
-        /// <param name="viewFlags">Type of the buffer.</param>
-        /// <param name="viewFormat">The view format.</param>
-        /// <param name="dataPointer">The data pointer.</param>
+        /// <param name="description">A <see cref="BufferDescription"/> structure describing the buffer characteristics.</param>
+        /// <param name="viewFlags">A combination of flags determining how the Views over this buffer should behave.</param>
+        /// <param name="viewFormat">
+        ///   View format used if the buffer is used as a Shader Resource View,
+        ///   or <see cref="PixelFormat.None"/> if not.
+        /// </param>
+        /// <param name="dataPointer">The data pointer to the data to initialize the buffer with.</param>
+        /// <returns>This same instance of <see cref="Buffer"/> already initialized.</returns>
+        /// <exception cref="ArgumentException">Element size (<c>StructureByteStride</c>) must be greater than zero for Structured Buffers.</exception>
         protected partial Buffer InitializeFromImpl(ref readonly BufferDescription description, BufferFlags viewFlags, PixelFormat viewFormat, IntPtr dataPointer)
         {
             bufferDescription = description;
@@ -205,10 +210,9 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        /// Explicitly recreate buffer with given data. Usually called after a <see cref="GraphicsDevice"/> reset.
+        ///   Recreates this buffer explicitly with the provided data. Usually called after the <see cref="GraphicsDevice"/> has been reset.
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="dataPointer"></param>
+        /// <param name="dataPointer">The data pointer to the data to use to recreate the buffer with.</param>
         public void Recreate(IntPtr dataPointer)
         {
             var buffer = NullComPtr<ID3D11Buffer>();
@@ -231,13 +235,13 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        ///   Gets a <see cref="ShaderResourceView"/> for this buffer for a particular <see cref="PixelFormat"/>.
+        ///   Gets a <see cref="ID3D11ShaderResourceView"/> for this buffer for a particular <see cref="PixelFormat"/>.
         /// </summary>
         /// <param name="viewFormat">The view format.</param>
-        /// <returns>A <see cref="ShaderResourceView"/> for the particular view format.</returns>
+        /// <returns>A <see cref="ID3D11ShaderResourceView"/> for the particular view format.</returns>
         /// <remarks>
-        /// The buffer must have been declared with <see cref="BufferFlags.ShaderResource"/>.
-        /// The ShaderResourceView instance is kept by this buffer and will be disposed when this buffer is disposed.
+        ///   The <see cref="Buffer"/> must have been declared with <see cref="BufferFlags.ShaderResource"/>.
+        ///   The Shader Resource View is kept by this buffer and will be disposed when this buffer is disposed.
         /// </remarks>
         internal ComPtr<ID3D11ShaderResourceView> GetShaderResourceView(PixelFormat viewFormat)
         {
@@ -275,13 +279,15 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        ///   Gets a <see cref="RenderTargetView" /> for this buffer for a particular <see cref="PixelFormat"/>.
+        ///   Gets a <see cref="ID3D11RenderTargetView" /> for this buffer for a particular <see cref="PixelFormat"/>.
         /// </summary>
         /// <param name="pixelFormat">The view format.</param>
-        /// <param name="width">The width in pixels of the render target.</param>
-        /// <returns>A <see cref="RenderTargetView" /> for the particular view format.</returns>
-        /// <remarks>The buffer must have been declared with <see cref="BufferFlags.RenderTarget"/>.
-        /// The RenderTargetView instance is kept by this buffer and will be disposed when this buffer is disposed.</remarks>
+        /// <param name="width">The width in pixels of the Render Target View.</param>
+        /// <returns>A <see cref="ID3D11RenderTargetView" /> for the particular view format.</returns>
+        /// <remarks>
+        ///   The <see cref="Buffer"/> must have been declared with <see cref="BufferFlags.RenderTarget"/>.
+        ///   The Render Target View is kept by this buffer and will be disposed when this buffer is disposed.
+        /// </remarks>
         internal ComPtr<ID3D11RenderTargetView> GetRenderTargetView(PixelFormat pixelFormat, int width)
         {
             var rtv = NullComPtr<ID3D11RenderTargetView>();
@@ -311,6 +317,7 @@ namespace Stride.Graphics
             return rtv;
         }
 
+        /// <inheritdoc/>
         protected override void OnNameChanged()
         {
             base.OnNameChanged();
@@ -329,7 +336,8 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        /// Initializes the views.
+        ///   Initializes the views associated with this <see cref="Buffer"/> (a <strong>Shader Resource View</strong> and an
+        ///   <strong>Unordered Access View</strong>).
         /// </summary>
         private void InitializeViews()
         {
