@@ -35,14 +35,6 @@ namespace Stride.Input
                     var iosContext = (GameContextiOS)context;
                     return new InputSourceiOS(iosContext.Control);
 #endif
-#if STRIDE_PLATFORM_UWP
-                case AppContextType.UWPXaml:
-                    var uwpXamlContext = (GameContextUWPXaml)context;
-                    return new InputSourceUWP(Windows.UI.Xaml.Window.Current.CoreWindow);
-                case AppContextType.UWPCoreWindow:
-                    var uwpContext = (GameContextUWPCoreWindow)context;
-                    return new InputSourceUWP(uwpContext.Control);
-#endif
 #if (STRIDE_UI_WINFORMS || STRIDE_UI_WPF)
                 case AppContextType.Desktop:
                     var winformsContext = (GameContextWinforms)context;

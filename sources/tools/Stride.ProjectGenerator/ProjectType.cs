@@ -6,7 +6,6 @@ namespace Stride.ProjectGenerator
     {
         Android,
         iOS,
-        UWP,
         Linux,
         macOS
     }
