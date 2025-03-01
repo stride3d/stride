@@ -287,8 +287,8 @@ public static partial class NuGetAssemblyResolver
             lock (logLock)
             {
                 this.action = action;
-                foreach (var (level, Message) in Logs)
-                    action.Invoke(level, Message);
+                foreach (var (Level, Message) in Logs)
+                    action.Invoke(Level, Message);
             }
         }
 
