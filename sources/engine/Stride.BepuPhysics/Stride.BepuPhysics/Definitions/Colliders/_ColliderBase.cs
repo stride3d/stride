@@ -73,4 +73,20 @@ public abstract class ColliderBase
 
     internal abstract void AddToCompoundBuilder(ShapeCacheSystem shape, BufferPool pool, ref CompoundBuilder builder, NRigidPose localPose);
     internal abstract void OnDetach(BufferPool pool);
+
+    public override int GetHashCode()
+    {
+        var hash = new HashCode();
+
+        hash.Add(_mass);
+        hash.Add(_positionLocal.X);
+        hash.Add(_positionLocal.Y);
+        hash.Add(_positionLocal.Z);
+        hash.Add(_rotationLocal.X);
+        hash.Add(_rotationLocal.Y);
+        hash.Add(_rotationLocal.Z);
+        hash.Add(_rotationLocal.W);
+
+        return hash.ToHashCode();
+    }
 }
