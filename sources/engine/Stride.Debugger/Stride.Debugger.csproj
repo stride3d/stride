@@ -9,7 +9,6 @@
     <TargetFramework>$(StrideEditorTargetFramework)</TargetFramework>
     <StrideBuildTags>WindowsTools</StrideBuildTags>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <Prefer32Bit>true</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Mono.Options" />

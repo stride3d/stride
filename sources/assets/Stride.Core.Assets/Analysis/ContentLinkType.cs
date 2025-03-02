@@ -1,24 +1,22 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using System;
 
-namespace Stride.Core.Assets.Analysis
+namespace Stride.Core.Assets.Analysis;
+
+/// <summary>
+/// The different possible types of link between elements.
+/// </summary>
+[Flags]
+public enum ContentLinkType
 {
     /// <summary>
-    /// The different possible types of link between elements.
+    /// A simple reference to the asset.
     /// </summary>
-    [Flags]
-    public enum ContentLinkType
-    {
-        /// <summary>
-        /// A simple reference to the asset.
-        /// </summary>
-        Reference = 1,
+    Reference = 1,
 
-        /// <summary>
-        /// All type of links.
-        /// </summary>
-        All = Reference,
-    }
+    /// <summary>
+    /// All type of links.
+    /// </summary>
+    All = Reference,
 }

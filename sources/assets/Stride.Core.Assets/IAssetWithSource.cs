@@ -3,16 +3,15 @@
 
 using Stride.Core.IO;
 
-namespace Stride.Core.Assets
+namespace Stride.Core.Assets;
+
+public interface IAssetWithSource
 {
-    public interface IAssetWithSource
-    {
-        /// <summary>
-        /// The source file of this asset.
-        /// </summary>
-        /// <userdoc>
-        /// The source file of this asset.
-        /// </userdoc>
-        UFile Source { get; set; }
-    }
+    /// <summary>
+    /// The source file of this asset.
+    /// </summary>
+    /// <userdoc>
+    /// The source file of this asset.
+    /// </userdoc>
+    UFile Source { get; set; }
 }

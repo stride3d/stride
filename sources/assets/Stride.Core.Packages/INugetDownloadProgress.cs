@@ -1,7 +1,6 @@
-namespace Stride.Core.Packages
+namespace Stride.Core.Packages;
+
+interface INugetDownloadProgress
 {
-    interface INugetDownloadProgress
-    {
-        void DownloadProgress(long contentPosition, long contentLength);
-    }
+    void DownloadProgress(long contentPosition, long contentLength);
 }

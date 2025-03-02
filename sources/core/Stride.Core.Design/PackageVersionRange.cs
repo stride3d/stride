@@ -47,7 +47,7 @@ public sealed class PackageVersionRange : IEquatable<PackageVersionRange>
     /// Initializes a new instance of the <see cref="PackageVersionRange"/> class with only one possible version.
     /// </summary>
     /// <param name="version">The exact version.</param>
-    public PackageVersionRange(PackageVersion version) : this(version, true, version, true)
+    public PackageVersionRange(PackageVersion? version) : this(version, true, version, true)
     {
     }
 
@@ -70,7 +70,7 @@ public sealed class PackageVersionRange : IEquatable<PackageVersionRange>
     /// <param name="minVersionInclusive">if set to <c>true</c> the minimum version is inclusive</param>
     /// <param name="maxVersion">The maximum version.</param>
     /// <param name="maxVersionInclusive">if set to <c>true</c> the maximum version is inclusive</param>
-    public PackageVersionRange(PackageVersion minVersion, bool minVersionInclusive, PackageVersion maxVersion, bool maxVersionInclusive)
+    public PackageVersionRange(PackageVersion? minVersion, bool minVersionInclusive, PackageVersion? maxVersion, bool maxVersionInclusive)
     {
         IsMinInclusive = minVersionInclusive;
         IsMaxInclusive = maxVersionInclusive;
@@ -165,7 +165,7 @@ public sealed class PackageVersionRange : IEquatable<PackageVersionRange>
     /// <param name="value">The version dependency as a string.</param>
     /// <param name="result">The parsed result.</param>
     /// <returns><c>true</c> if successfuly parsed, <c>false</c> otherwise.</returns>
-    /// <exception cref="System.ArgumentNullException">value</exception>
+    /// <exception cref="ArgumentNullException">value</exception>
     public static bool TryParse(string value, [MaybeNullWhen(false)] out PackageVersionRange result)
     {
 #if NET6_0_OR_GREATER

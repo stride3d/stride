@@ -26,7 +26,7 @@ public class GraphNodeLinker
             this.linker = linker;
         }
 
-        public void Reset(IGraphNode sourceNode, IGraphNode targetNode)
+        public void Reset(IGraphNode sourceNode, IGraphNode? targetNode)
         {
             VisitedLinks.Clear();
             VisitedLinks.Add(sourceNode, targetNode);
@@ -123,7 +123,7 @@ public class GraphNodeLinker
     /// </summary>
     /// <param name="sourceNode">The root node of the "source" object to link.</param>
     /// <param name="targetNode">The root node of the "target" object to link.</param>
-    public void LinkGraph(IGraphNode sourceNode, IGraphNode targetNode)
+    public void LinkGraph(IGraphNode sourceNode, IGraphNode? targetNode)
     {
         visitor.Reset(sourceNode, targetNode);
         visitor.Visit(sourceNode);

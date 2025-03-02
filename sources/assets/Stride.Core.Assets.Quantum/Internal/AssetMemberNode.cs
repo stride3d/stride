@@ -1,131 +1,126 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using System;
-using System.Collections.Generic;
-using System.Linq;
+
 using Stride.Core.Annotations;
 using Stride.Core.Reflection;
 using Stride.Core.Quantum;
 using Stride.Core.Quantum.References;
 
-namespace Stride.Core.Assets.Quantum.Internal
+namespace Stride.Core.Assets.Quantum.Internal;
+
+internal class AssetMemberNode : MemberNode, IAssetMemberNode, IAssetNodeInternal
 {
-    internal class AssetMemberNode : MemberNode, IAssetMemberNode, IAssetNodeInternal
+    private AssetPropertyGraph propertyGraph;
+    private readonly Dictionary<string, IGraphNode> contents = [];
+
+    private OverrideType contentOverride;
+
+    public AssetMemberNode(INodeBuilder nodeBuilder, Guid guid, IObjectNode parent, IMemberDescriptor memberDescriptor, IReference? reference)
+        : base(nodeBuilder, guid, parent, memberDescriptor, reference)
     {
-        private AssetPropertyGraph propertyGraph;
-        private readonly Dictionary<string, IGraphNode> contents = new Dictionary<string, IGraphNode>();
+        ValueChanged += ContentChanged;
+        IsNonIdentifiableCollectionContent = MemberDescriptor.GetCustomAttributes<NonIdentifiableCollectionItemsAttribute>(true)?.Any() ?? false;
+        CanOverride = MemberDescriptor.GetCustomAttributes<NonOverridableAttribute>(true)?.Any() != true;
+    }
 
-        private OverrideType contentOverride;
+    public bool IsNonIdentifiableCollectionContent { get; }
 
-        public AssetMemberNode([NotNull] INodeBuilder nodeBuilder, Guid guid, [NotNull] IObjectNode parent, [NotNull] IMemberDescriptor memberDescriptor, IReference reference)
-            : base(nodeBuilder, guid, parent, memberDescriptor, reference)
+    public bool CanOverride { get; }
+
+    internal bool ResettingOverride { get; set; }
+
+    public event EventHandler<EventArgs>? OverrideChanging;
+
+    public event EventHandler<EventArgs>? OverrideChanged;
+
+    public AssetPropertyGraph PropertyGraph { get => propertyGraph; internal set => propertyGraph = value ?? throw new ArgumentNullException(nameof(value)); }
+
+    public IGraphNode BaseNode { get; private set; }
+
+    public new IAssetObjectNode Parent => (IAssetObjectNode)base.Parent;
+
+    public new IAssetObjectNode? Target => (IAssetObjectNode?)base.Target;
+
+    public void SetContent(string key, IGraphNode node)
+    {
+        contents[key] = node;
+    }
+
+    public IGraphNode? GetContent(string key)
+    {
+        contents.TryGetValue(key, out var node);
+        return node;
+    }
+
+    public void OverrideContent(bool isOverridden)
+    {
+        if (CanOverride)
         {
-            ValueChanged += ContentChanged;
-            IsNonIdentifiableCollectionContent = MemberDescriptor.GetCustomAttributes<NonIdentifiableCollectionItemsAttribute>(true)?.Any() ?? false;
-            CanOverride = MemberDescriptor.GetCustomAttributes<NonOverridableAttribute>(true)?.Any() != true;
+            OverrideChanging?.Invoke(this, EventArgs.Empty);
+            contentOverride = isOverridden ? OverrideType.New : OverrideType.Base;
+            OverrideChanged?.Invoke(this, EventArgs.Empty);
         }
+    }
 
-        public bool IsNonIdentifiableCollectionContent { get; }
+    /// <inheritdoc/>
+    public void ResetOverrideRecursively()
+    {
+        PropertyGraph.ResetAllOverridesRecursively(this, NodeIndex.Empty);
+    }
 
-        public bool CanOverride { get; }
+    private void ContentChanged(object? sender, MemberNodeChangeEventArgs e)
+    {
+        var node = (AssetMemberNode)e.Member;
+        if (node.IsNonIdentifiableCollectionContent)
+            return;
 
-        internal bool ResettingOverride { get; set; }
+        // Make sure that we have item ids everywhere we're supposed to.
+        AssetCollectionItemIdHelper.GenerateMissingItemIds(e.Member.Retrieve());
 
-        public event EventHandler<EventArgs> OverrideChanging;
+        // Don't update override if propagation from base is disabled.
+        if (PropertyGraph?.Container is null || !PropertyGraph.Container.PropagateChangesFromBase)
+            return;
 
-        public event EventHandler<EventArgs> OverrideChanged;
-
-        public AssetPropertyGraph PropertyGraph { get => propertyGraph; internal set => propertyGraph = value ?? throw new ArgumentNullException(nameof(value)); }
-
-        public IGraphNode BaseNode { get; private set; }
-
-        public new IAssetObjectNode Parent => (IAssetObjectNode)base.Parent;
-
-        [CanBeNull]
-        public new IAssetObjectNode Target => (IAssetObjectNode)base.Target;
-
-        public void SetContent([NotNull] string key, IGraphNode node)
+        // Mark it as New if it does not come from the base
+        if (BaseNode is not null && !PropertyGraph.UpdatingPropertyFromBase && !ResettingOverride)
         {
-            contents[key] = node;
+            OverrideContent(!ResettingOverride);
         }
+    }
 
-        [CanBeNull]
-        public IGraphNode GetContent([NotNull] string key)
+    internal void SetContentOverride(OverrideType overrideType)
+    {
+        if (CanOverride)
         {
-            contents.TryGetValue(key, out IGraphNode node);
-            return node;
+            contentOverride = overrideType;
         }
+    }
 
-        public void OverrideContent(bool isOverridden)
-        {
-            if (CanOverride)
-            {
-                OverrideChanging?.Invoke(this, EventArgs.Empty);
-                contentOverride = isOverridden ? OverrideType.New : OverrideType.Base;
-                OverrideChanged?.Invoke(this, EventArgs.Empty);
-            }
-        }
+    public OverrideType GetContentOverride()
+    {
+        return contentOverride;
+    }
 
-        /// <inheritdoc/>
-        public void ResetOverrideRecursively()
-        {
-            PropertyGraph.ResetAllOverridesRecursively(this, NodeIndex.Empty);
-        }
+    public bool IsContentOverridden()
+    {
+        return (contentOverride & OverrideType.New) == OverrideType.New;
+    }
 
-        private void ContentChanged(object sender, [NotNull] MemberNodeChangeEventArgs e)
-        {
-            var node = (AssetMemberNode)e.Member;
-            if (node.IsNonIdentifiableCollectionContent)
-                return;
+    public bool IsContentInherited()
+    {
+        return BaseNode is not null && !IsContentOverridden();
+    }
 
-            // Make sure that we have item ids everywhere we're supposed to.
-            AssetCollectionItemIdHelper.GenerateMissingItemIds(e.Member.Retrieve());
+    bool IAssetNodeInternal.ResettingOverride { get; set; }
 
-            // Don't update override if propagation from base is disabled.
-            if (PropertyGraph?.Container == null || PropertyGraph?.Container?.PropagateChangesFromBase == false)
-                return;
+    void IAssetNodeInternal.SetPropertyGraph(AssetPropertyGraph assetPropertyGraph)
+    {
+        ArgumentNullException.ThrowIfNull(assetPropertyGraph);
+        PropertyGraph = assetPropertyGraph;
+    }
 
-            // Mark it as New if it does not come from the base
-            if (BaseNode != null && !PropertyGraph.UpdatingPropertyFromBase && !ResettingOverride)
-            {
-                OverrideContent(!ResettingOverride);
-            }
-        }
-
-        internal void SetContentOverride(OverrideType overrideType)
-        {
-            if (CanOverride)
-            {
-                contentOverride = overrideType;
-            }
-        }
-
-        public OverrideType GetContentOverride()
-        {
-            return contentOverride;
-        }
-
-        public bool IsContentOverridden()
-        {
-            return (contentOverride & OverrideType.New) == OverrideType.New;
-        }
-
-        public bool IsContentInherited()
-        {
-            return BaseNode != null && !IsContentOverridden();
-        }
-
-        bool IAssetNodeInternal.ResettingOverride { get; set; }
-
-        void IAssetNodeInternal.SetPropertyGraph(AssetPropertyGraph assetPropertyGraph)
-        {
-            if (assetPropertyGraph == null) throw new ArgumentNullException(nameof(assetPropertyGraph));
-            PropertyGraph = assetPropertyGraph;
-        }
-
-        void IAssetNodeInternal.SetBaseNode(IGraphNode node)
-        {
-            BaseNode = node;
-        }
+    void IAssetNodeInternal.SetBaseNode(IGraphNode node)
+    {
+        BaseNode = node;
     }
 }
