@@ -104,11 +104,11 @@ namespace Stride.Video
             originalTargetTexture = null;
         }
 
-        public void UpdateTopLevelMipmapFromData(GraphicsContext context, VideoImage image)
+        public unsafe void UpdateTopLevelMipmapFromData(GraphicsContext context, VideoImage image)
         {
             // "videoComponent.Target" contains the mip mapped video texture at this point.
             // We now copy the new video frame directly into the video texture's first mip level:
-            DataPointer dataPointer = new DataPointer(image.Buffer, image.BufferSize);
+            var dataPointer = new Span<byte>((void*)image.Buffer, image.BufferSize);
             renderTargetMipMaps[0].SetData(context.CommandList, dataPointer, 0, 0);
         }
 

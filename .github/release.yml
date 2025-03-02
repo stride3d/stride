@@ -18,6 +18,9 @@ changelog:
     - title: 🚀 Performance Improvements
       labels:
         - performance
+    - title: 🧠 Core
+      labels:
+        - area-Core
     - title: 🔧 Engineering
       labels:
         - engineering
@@ -36,7 +39,7 @@ changelog:
     - title: 🛠️ GameStudio
       labels:
         - area-GameStudio
-    - title: 🖌️ Graphics
+    - title: 🎨 Graphics
       labels:
         - area-Graphics
     - title: ⌨️ Input
@@ -45,21 +48,24 @@ changelog:
     - title: 🚀 Launcher
       labels:
         - area-Launcher
+    - title: ➗ Math
+      labels:
+        - area-Math
     - title: ⚙️ Physics
       labels:
         - area-Physics
     - title: 📚 Samples
       labels:
         - area-Samples
+    - title: 🔄 Serialization
+      labels:
+        - area-Serialization
     - title: 🌈 Shaders
       labels:
         - area-Shaders
-    - title: 🖼️ UI
+    - title: 🖥️ UI
       labels:
         - area-UI
-    - title: 🎨 Rendering
-      labels:
-        - area-Rendering
     - title: 💪 Other Changes
       labels:
         - "*"

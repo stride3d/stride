@@ -15,7 +15,7 @@ namespace xunit.runner.stride;
 public partial class App : Application
 {    
     internal readonly CancellationTokenSource cts = new();
-    internal Action<bool> setInteractiveMode;
+    internal Action<bool>? setInteractiveMode;
 
     public override void Initialize()
     {

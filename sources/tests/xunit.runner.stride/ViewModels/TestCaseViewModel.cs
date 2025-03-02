@@ -28,7 +28,7 @@ public class TestCaseViewModel : TestNodeViewModel
         yield return this;
     }
 
-    public override TestCaseViewModel LocateTestCase(ITestCase testCase)
+    public override TestCaseViewModel? LocateTestCase(ITestCase testCase)
     {
         return (testCase == this.TestCase) ? this : null;
     }

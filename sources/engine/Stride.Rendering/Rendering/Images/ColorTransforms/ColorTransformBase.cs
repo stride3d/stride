@@ -54,7 +54,7 @@ namespace Stride.Rendering.Images
             {
                 if (value == null)
                 {
-                    throw new ArgumentNullException("value");
+                    throw new ArgumentNullException("value", $"{nameof(Shader)} can not be null");
                 }
 
                 Parameters.Set(ColorTransformKeys.Shader, value);

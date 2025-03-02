@@ -3,53 +3,52 @@
 
 using System.Text;
 
-namespace Stride.Core.Diagnostics
+namespace Stride.Core.Diagnostics;
+
+/// <summary>
+/// A message attached to a <see cref="ProfilingEvent"/>.
+/// </summary>
+public readonly struct ProfilingEventMessage
 {
     /// <summary>
-    /// A message attached to a <see cref="ProfilingEvent"/>.
+    /// The text supporting formatting of up to 4 numerical parameters.
     /// </summary>
-    public struct ProfilingEventMessage
+    public readonly string Text;
+
+    public readonly ProfilingCustomValue? Custom0;
+    public readonly ProfilingCustomValue? Custom1;
+    public readonly ProfilingCustomValue? Custom2;
+    public readonly ProfilingCustomValue? Custom3;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ProfilingEventMessage" /> struct.
+    /// </summary>
+    /// <param name="text">The text supporting formatting of up to 4 numerical parameters.</param>
+    /// <param name="value0"></param>
+    /// <param name="value1"></param>
+    /// <param name="value2"></param>
+    /// <param name="value3"></param>
+    public ProfilingEventMessage(
+        string text, 
+        ProfilingCustomValue? value0 = null,
+        ProfilingCustomValue? value1 = null,
+        ProfilingCustomValue? value2 = null,
+        ProfilingCustomValue? value3 = null)
     {
-        /// <summary>
-        /// The text supporting formatting of up to 4 numerical parameters.
-        /// </summary>
-        public readonly string Text;
+        Text = text;
+        Custom0 = value0;
+        Custom1 = value1;
+        Custom2 = value2;
+        Custom3 = value3;
+    }
 
-        public readonly ProfilingCustomValue? Custom0;
-        public readonly ProfilingCustomValue? Custom1;
-        public readonly ProfilingCustomValue? Custom2;
-        public readonly ProfilingCustomValue? Custom3;
+    public override readonly string ToString()
+    {
+        return string.Format(Text, Custom0?.ToObject(), Custom1?.ToObject(), Custom2?.ToObject(), Custom3?.ToObject());
+    }
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="ProfilingEventMessage" /> struct.
-        /// </summary>
-        /// <param name="text">The text supporting formatting of up to 4 numerical parameters.</param>
-        /// <param name="value0"></param>
-        /// <param name="value1"></param>
-        /// <param name="value2"></param>
-        /// <param name="value3"></param>
-        public ProfilingEventMessage(
-            string text, 
-            ProfilingCustomValue? value0 = null,
-            ProfilingCustomValue? value1 = null,
-            ProfilingCustomValue? value2 = null,
-            ProfilingCustomValue? value3 = null)
-        {
-            Text = text;
-            Custom0 = value0;
-            Custom1 = value1;
-            Custom2 = value2;
-            Custom3 = value3;
-        }
-
-        public override string ToString()
-        {
-            return string.Format(Text, Custom0?.ToObject(), Custom1?.ToObject(), Custom2?.ToObject(), Custom3?.ToObject());
-        }
-
-        public void ToString(StringBuilder builder)
-        {
-            builder.AppendFormat(Text, Custom0?.ToObject(), Custom1?.ToObject(), Custom2?.ToObject(), Custom3?.ToObject());
-        }
+    public readonly void ToString(StringBuilder builder)
+    {
+        builder.AppendFormat(Text, Custom0?.ToObject(), Custom1?.ToObject(), Custom2?.ToObject(), Custom3?.ToObject());
     }
 }

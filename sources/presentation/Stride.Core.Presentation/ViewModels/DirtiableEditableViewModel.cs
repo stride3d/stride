@@ -35,7 +35,7 @@ public abstract class DirtiableEditableViewModel : EditableViewModel, IDirtiable
     }
 
     /// <inheritdoc/>
-    public override IEnumerable<IDirtiable> Dirtiables => this.Yield();
+    public override IEnumerable<IDirtiable> Dirtiables => this.Yield()!;
 
     protected virtual void OnDirtyFlagSet()
     {

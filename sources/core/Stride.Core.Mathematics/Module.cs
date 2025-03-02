@@ -3,20 +3,19 @@
 using System.Reflection;
 using Stride.Core.Reflection;
 
-namespace Stride.Core.Mathematics
+namespace Stride.Core.Mathematics;
+
+/// <summary>
+/// Module initializer.
+/// </summary>
+internal class Module
 {
     /// <summary>
     /// Module initializer.
     /// </summary>
-    internal class Module
+    [ModuleInitializer]
+    public static void Initialize()
     {
-        /// <summary>
-        /// Module initializer.
-        /// </summary>
-        [ModuleInitializer]
-        public static void Initialize()
-        {
-            AssemblyRegistry.Register(typeof(Module).GetTypeInfo().Assembly, AssemblyCommonCategories.Assets);
-        }
+        AssemblyRegistry.Register(typeof(Module).GetTypeInfo().Assembly, AssemblyCommonCategories.Assets);
     }
 }

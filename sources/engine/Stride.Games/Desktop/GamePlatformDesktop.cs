@@ -23,7 +23,6 @@
 #if STRIDE_PLATFORM_DESKTOP
 using System;
 using System.IO;
-using System.Reflection;
 using Stride.Core;
 
 namespace Stride.Games
@@ -46,7 +45,8 @@ namespace Stride.Games
         {
             get
             {
-                var assemblyUri = new Uri(Assembly.GetEntryAssembly().Location);
+                var appPath = PlatformFolders.ApplicationExecutablePath ?? PlatformFolders.ApplicationBinaryDirectory;
+                var assemblyUri = new Uri(appPath);
                 return Path.GetDirectoryName(assemblyUri.LocalPath);
             }
         }

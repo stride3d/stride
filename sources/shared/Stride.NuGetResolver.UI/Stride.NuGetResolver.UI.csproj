@@ -1,11 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0-windows</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <StrideBuildTags>WindowsTools</StrideBuildTags>
-    <UseWPF>true</UseWPF>
     <DefineConstants>STRIDE_NUGET_RESOLVER_UI;$(DefineConstants)</DefineConstants>
   </PropertyGroup>
 
@@ -19,6 +18,8 @@
     <PackageReference Include="NuGet.PackageManagement" />
     <PackageReference Include="NuGet.Resolver" />
     <PackageReference Include="NuGet.Commands" />
+    <PackageReference Include="Avalonia.Desktop" PrivateAssets="all" />
+    <PackageReference Include="Avalonia.Themes.Fluent" PrivateAssets="all" />
   </ItemGroup>
 
 </Project>

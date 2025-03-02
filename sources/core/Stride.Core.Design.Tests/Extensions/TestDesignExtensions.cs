@@ -1,80 +1,77 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using System.Collections.Generic;
-using System.Linq;
 using Xunit;
 using Stride.Core.Extensions;
 
-namespace Stride.Core.Design.Tests.Extensions
+namespace Stride.Core.Design.Tests.Extensions;
+
+public class TestDesingExtensions
 {
-    public class TestDesingExtensions
+    private class Node
     {
-        private class Node
+        public Node(string value)
         {
-            public Node(string value)
-            {
-                Value = value;
-            }
-
-            public ICollection<Node> Children { get; } = new List<Node>();
-
-            public string Value { get; }
+            Value = value;
         }
 
-        private Node tree;
+        public ICollection<Node> Children { get; } = [];
 
-        public TestDesingExtensions()
+        public string Value { get; }
+    }
+
+    private readonly Node tree;
+
+    public TestDesingExtensions()
+    {
+        tree = new Node("A")
         {
-            tree = new Node("A")
+            Children =
             {
-                Children =
+                new Node("B")
                 {
-                    new Node("B")
+                    Children =
                     {
-                        Children =
+                        new Node("D"),
+                        new Node("E")
                         {
-                            new Node("D"),
-                            new Node("E")
+                            Children =
                             {
-                                Children =
-                                {
-                                    new Node("H")
-                                },
+                                new Node("H")
                             },
                         },
                     },
-                    new Node("C")
+                },
+                new Node("C")
+                {
+                    Children =
                     {
-                        Children =
-                        {
-                            new Node("F"),
-                            new Node("G"),
-                        },
+                        new Node("F"),
+                        new Node("G"),
                     },
                 },
-            };
-        }
+            },
+        };
+    }
 
-        [Fact]
-        public void TestBreadthFirst()
-        {
-            var result = tree.Children.BreadthFirst(n => n.Children).Aggregate(string.Empty, (s, n) => string.Concat(s, n.Value));
-            Assert.Equal("BCDEFGH", result);
-        }
-        
-        [Fact]
-        public void TestDepthFirst()
-        {
-            var result = tree.Children.DepthFirst(n => n.Children).Aggregate(string.Empty, (s, n) => string.Concat(s, n.Value));
-            Assert.Equal("BDEHCFG", result);
-        }
+    [Fact]
+    public void TestBreadthFirst()
+    {
+        var result = tree.Children.BreadthFirst(n => n.Children).Aggregate(string.Empty, (s, n) => string.Concat(s, n.Value));
+        Assert.Equal("BCDEFGH", result);
+    }
 
-        [Fact]
-        public void TestSelectDeep()
-        {
-            var result = tree.Children.SelectDeep(n => n.Children).Aggregate(string.Empty, (s, n) => string.Concat(s, n.Value));
-            Assert.Equal("BCFGDEH", result);
-        }
+    [Fact]
+    public void TestDepthFirst()
+    {
+        var result = tree.Children.DepthFirst(n => n.Children).Aggregate(string.Empty, (s, n) => string.Concat(s, n.Value));
+        Assert.Equal("BDEHCFG", result);
+    }
+
+    [Fact]
+    public void TestSelectDeep()
+    {
+        var result = tree.Children.SelectDeep(n => n.Children).Aggregate(string.Empty, (s, n) => string.Concat(s, n.Value));
+        Assert.Equal("BCFGDEH", result);
     }
 }

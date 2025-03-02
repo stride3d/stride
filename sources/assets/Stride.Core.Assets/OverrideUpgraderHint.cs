@@ -18,7 +18,7 @@ namespace Stride.Core.Assets
         Derived,
 
         /// <summary>
-        /// The upgrader is performed on the base asset of an asset being upgraded (<see cref="Asset.Base"/> or <see cref="Asset.BaseParts"/>)
+        /// The upgrader is performed on the base asset of an asset being upgraded (<see cref="AssetItem"/> or <see cref="Assets.BasePart"/>)
         /// </summary>
         Base
     }

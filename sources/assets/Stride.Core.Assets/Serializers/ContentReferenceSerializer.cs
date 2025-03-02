@@ -19,7 +19,7 @@ namespace Stride.Core.Assets.Serializers
 
         public override bool CanVisit(Type type)
         {
-            return AssetRegistry.IsContentType(type);
+            return AssetRegistry.IsExactContentType(type);
         }
 
         public override object ConvertFrom(ref ObjectContext context, Scalar fromScalar)

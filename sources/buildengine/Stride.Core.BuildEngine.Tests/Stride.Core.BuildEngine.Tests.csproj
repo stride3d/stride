@@ -2,8 +2,7 @@
   <Import Project="..\..\targets\Stride.UnitTests.props" />
 
   <PropertyGroup>
-    <TargetFramework>$(StrideEditorTargetFramework)</TargetFramework>
-    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <TargetFramework>$(StrideXplatEditorTargetFramework)</TargetFramework>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <StrideAssemblyProcessorOptions>--auto-module-initializer --serialization</StrideAssemblyProcessorOptions>
     <StrideBuildTags>WindowsTools</StrideBuildTags>

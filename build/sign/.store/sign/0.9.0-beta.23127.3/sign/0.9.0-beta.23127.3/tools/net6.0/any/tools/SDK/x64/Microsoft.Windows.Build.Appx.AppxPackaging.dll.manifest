@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?> 
+
+<assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0">
+
+  <assemblyIdentity
+      name="Microsoft.Windows.Build.Appx.AppxPackaging.dll"
+      version="0.0.0.0"/>
+
+  <file name="AppxPackaging.dll">
+    <comClass
+        clsid="{5842a140-ff9f-4166-8f5c-62f5b7b0c781}"
+        threadingModel="Both"
+        description="AppxFactory class"/>
+    <comClass
+        clsid="{DC664FDD-D868-46EE-8780-8D196CB739F7}"
+        threadingModel="Both"
+        description="AppxEncryptionFactory class"/>
+    <comClass
+        clsid="{378E0446-5384-43B7-8877-E7DBDD883446}"
+        threadingModel="Both"
+        description="AppxBundleFactory class"/>
+    <comClass
+        clsid="{48DE828C-730C-49AF-AE84-759C609911EE}"
+        threadingModel="Both"
+        description="AppxNoValidationFactory class"/>
+    <comClass
+        clsid="{F004F2CA-AEBC-4B0D-BF58-E516D5BCC0AB}"
+        threadingModel="Both"
+        description="AppxPackageEditor class"/>
+    <comClass
+        clsid="{7F00FA1E-9820-47B1-9C4F-8701F1432177}"
+        threadingModel="Both"
+        description="AppxPackagingLayoutReader class"/>
+    <comClass
+        clsid="{0CF07551-EEF2-420C-B5AB-7E4FEB2249CF}"
+        threadingModel="Both"
+        description="AppxFactoryInternal class"/>
+    <comClass
+        clsid="{50CA0A46-1588-4161-8ED2-EF9E469CED5D}"
+        threadingModel="Both"
+        description="AppxPackagingDiagnosticEventSinkManager class"/>
+  </file>
+
+  <dependency>
+    <dependentAssembly>
+      <assemblyIdentity
+        name="Microsoft.Windows.Build.Appx.OpcServices.dll"
+        version="0.0.0.0"/>
+    </dependentAssembly>
+  </dependency>
+
+</assembly>

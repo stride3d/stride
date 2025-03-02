@@ -18,20 +18,17 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-using System;
+namespace Stride.Core.Yaml.Serialization;
 
-namespace Stride.Core.Yaml.Serialization
+/// <summary>
+/// A naming convention where all members are outputed as-is.
+/// </summary>
+public class DefaultNamingConvention : IMemberNamingConvention
 {
-    /// <summary>
-    /// A naming convention where all members are outputed as-is.
-    /// </summary>
-    public class DefaultNamingConvention : IMemberNamingConvention
-    {
-        public StringComparer Comparer { get { return StringComparer.Ordinal; } }
+    public StringComparer Comparer { get { return StringComparer.Ordinal; } }
 
-        public string Convert(string name)
-        {
-            return name;
-        }
+    public string Convert(string name)
+    {
+        return name;
     }
 }

@@ -1,20 +1,16 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Stride.Core.Assets;
+
 using Stride.Core;
-using Stride.Core.Annotations;
+using Stride.Core.Assets;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Quantum;
 
-namespace Stride.Editor.EditorGame.ContentLoader
+namespace Stride.Editor.EditorGame.ContentLoader;
+
+public class LoaderReferenceManager
 {
-    public class LoaderReferenceManager
-    {
-        private struct ReferenceAccessor
+        private readonly record struct ReferenceAccessor
         {
             private readonly IGraphNode contentNode;
             private readonly NodeIndex index;
@@ -37,7 +33,7 @@ namespace Stride.Editor.EditorGame.ContentLoader
                 }
             }
 
-            public Task Clear([NotNull] LoaderReferenceManager manager, AbsoluteId referencerId, AssetId contentId)
+        public Task Clear(LoaderReferenceManager manager, AbsoluteId referencerId, AssetId contentId)
             {
                 return manager.ClearContentReference(referencerId, contentId, contentNode, index);
             }
@@ -45,9 +41,9 @@ namespace Stride.Editor.EditorGame.ContentLoader
 
         private readonly IDispatcherService gameDispatcher;
         private readonly IEditorContentLoader loader;
-        private readonly Dictionary<AbsoluteId, Dictionary<AssetId, List<ReferenceAccessor>>> references = new Dictionary<AbsoluteId, Dictionary<AssetId, List<ReferenceAccessor>>>();
-        private readonly Dictionary<AssetId, object> contents = new Dictionary<AssetId, object>();
-        private readonly HashSet<AssetId> buildPending = new HashSet<AssetId>();
+    private readonly Dictionary<AbsoluteId, Dictionary<AssetId, List<ReferenceAccessor>>> references = new();
+    private readonly Dictionary<AssetId, object> contents = new();
+    private readonly HashSet<AssetId> buildPending = new();
 
         public LoaderReferenceManager(IDispatcherService gameDispatcher, IEditorContentLoader loader)
         {
@@ -72,10 +68,9 @@ namespace Stride.Editor.EditorGame.ContentLoader
             gameDispatcher.EnsureAccess();
             using (await loader.LockDatabaseAsynchronously())
             {
-                if (!references.ContainsKey(referencerId))
+                if (!references.TryGetValue(referencerId, out var referencer))
                     throw new InvalidOperationException("The given referencer is not registered.");
 
-                var referencer = references[referencerId];
                 // Properly clear all reference first
                 foreach (var content in referencer.ToDictionary(x => x.Key, x => x.Value))
                 {
@@ -94,10 +89,9 @@ namespace Stride.Editor.EditorGame.ContentLoader
             gameDispatcher.EnsureAccess();
             using (await loader.LockDatabaseAsynchronously())
             {
-                if (!references.ContainsKey(referencerId))
+                if (!references.TryGetValue(referencerId, out var referencer))
                     throw new InvalidOperationException("The given referencer is not registered.");
 
-                var referencer = references[referencerId];
                 List<ReferenceAccessor> accessors;
                 if (!referencer.TryGetValue(contentId, out accessors))
                 {
@@ -115,8 +109,7 @@ namespace Stride.Editor.EditorGame.ContentLoader
 
                 accessors.Add(accessor);
 
-                object value;
-                if (contents.TryGetValue(contentId, out value))
+                if (contents.TryGetValue(contentId, out var value))
                 {
                     accessor.Update(value);
                 }
@@ -134,14 +127,12 @@ namespace Stride.Editor.EditorGame.ContentLoader
             gameDispatcher.EnsureAccess();
             using (await loader.LockDatabaseAsynchronously())
             {
-                if (!references.ContainsKey(referencerId))
+                if (!references.TryGetValue(referencerId, out var referencer))
                     throw new InvalidOperationException("The given referencer is not registered.");
 
-                var referencer = references[referencerId];
-                if (!referencer.ContainsKey(contentId))
+                if (!referencer.TryGetValue(contentId, out var accessors))
                     throw new InvalidOperationException("The given content is not registered to the given referencer.");
 
-                var accessors = referencer[contentId];
                 var accessor = new ReferenceAccessor(contentNode, index);
                 var accesorIndex = accessors.IndexOf(accessor);
                 if (accesorIndex < 0)
@@ -195,5 +186,4 @@ namespace Stride.Editor.EditorGame.ContentLoader
                 return new HashSet<AssetId>(references.Values.SelectMany(x => x.Keys));
             }
         }
-    }
 }

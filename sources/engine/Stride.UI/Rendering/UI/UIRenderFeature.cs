@@ -55,16 +55,8 @@ namespace Stride.Rendering.UI
             Name = "UIComponentRenderer";
             game = RenderSystem.Services.GetService<IGame>();
             input = RenderSystem.Services.GetService<InputManager>();
-            uiSystem = RenderSystem.Services.GetService<UISystem>();
+            uiSystem = RenderSystem.Services.GetOrCreate<UISystem>();
             graphicsDeviceService = RenderSystem.Services.GetSafeServiceAs<IGraphicsDeviceService>();
-
-            if (uiSystem == null)
-            {
-                var gameSytems = RenderSystem.Services.GetSafeServiceAs<IGameSystemCollection>();
-                uiSystem = new UISystem(RenderSystem.Services);
-                RenderSystem.Services.AddService(uiSystem);
-                gameSytems.Add(uiSystem);
-            }
 
             rendererManager = new RendererManager(new DefaultRenderersFactory(RenderSystem.Services));
 

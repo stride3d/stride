@@ -114,4 +114,10 @@ shader Math
         vecProjected.xyz /= vecProjected.w;
         return vecProjected;
     }
+
+    //Exponential damping
+    float ExpDecay(float a, float b, float lambda, float dt)
+    {
+        return b + (a - b) * exp(-lambda * dt);
+    }
 };

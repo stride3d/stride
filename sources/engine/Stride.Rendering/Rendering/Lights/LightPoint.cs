@@ -15,7 +15,7 @@ namespace Stride.Rendering.Lights
     /// </summary>
     [DataContract("LightPoint")]
     [Display("Point")]
-    public class LightPoint : DirectLightBase
+    public class LightPoint : ColorLightBase, IDirectLight
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="LightPoint"/> class.
@@ -23,7 +23,7 @@ namespace Stride.Rendering.Lights
         public LightPoint()
         {
             Radius = 1.0f;
-            Shadow = new LightPointShadowMap()
+            Shadow = new()
             {
                 Size = LightShadowMapSize.Small,
                 Type = LightPointShadowMapType.CubeMap,
@@ -42,7 +42,15 @@ namespace Stride.Rendering.Lights
         [DataMemberIgnore]
         internal float InvSquareRadius;
 
-        public override bool HasBoundingBox
+        /// <summary>
+        /// Gets or sets the shadow.
+        /// </summary>
+        /// <value>The shadow.</value>
+        /// <userdoc>The settings of the light shadow</userdoc>
+        [DataMember(200)]
+        public LightPointShadowMap Shadow { get; set; }
+
+        public bool HasBoundingBox
         {
             get
             {
@@ -57,12 +65,12 @@ namespace Stride.Rendering.Lights
             return true;
         }
 
-        public override BoundingBox ComputeBounds(Vector3 positionWS, Vector3 directionWS)
+        public BoundingBox ComputeBounds(Vector3 positionWS, Vector3 directionWS)
         {
             return new BoundingBox(positionWS - Radius, positionWS + Radius);
         }
 
-        public override float ComputeScreenCoverage(RenderView renderView, Vector3 position, Vector3 direction)
+        public float ComputeScreenCoverage(RenderView renderView, Vector3 position, Vector3 direction)
         {
             // http://stackoverflow.com/questions/21648630/radius-of-projected-sphere-in-screen-space
             var targetPosition = new Vector4(position, 1.0f);
@@ -82,5 +90,7 @@ namespace Stride.Rendering.Lights
             // Size on screen
             return (float)pr * Math.Max(renderView.ViewSize.X, renderView.ViewSize.Y);
         }
+
+        LightShadowMap IDirectLight.Shadow => Shadow;
     }
 }

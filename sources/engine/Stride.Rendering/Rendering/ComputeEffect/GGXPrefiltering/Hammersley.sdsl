@@ -12,7 +12,7 @@ namespace Stride.Rendering.Images
         {
             var u = 0.0;
             var p = 0.5;
-            for (int kk=k; kk; p*=0.5, kk>>=1)
+            for (int kk=k; kk > 0; p*=0.5, kk>>=1)
             {
                 if (kk & 1) // kk mod 2 == 1
                     u += p;

@@ -173,6 +173,15 @@ namespace Stride.Rendering.Materials
         public CullMode CullMode { get; set; }
 
         /// <summary>
+        /// The test used to figure out whether the material should be drawn when behind other models
+        /// </summary>
+        /// <userdoc>The test used to figure out whether the material should be drawn when behind other models</userdoc>
+        [Display("Depth Function", "Misc")]
+        [DataMember(135)]
+        [DefaultValue(CompareFunction.Less)]
+        public CompareFunction DepthFunction { get; set; } = CompareFunction.Less;
+
+        /// <summary>
         /// Gets or sets the clear coat shading features for the material.
         /// </summary>
         /// <userdoc>Use clear-coat shading to simulate vehicle paint</userdoc>
@@ -198,8 +207,7 @@ namespace Stride.Rendering.Materials
             // TODO: Should we apply it to any Diffuse Model?
             var isEnergyConservative = (Specular as MaterialSpecularMapFeature)?.IsEnergyConservative ?? false;
 
-            var lambert = DiffuseModel as IEnergyConservativeDiffuseModelFeature;
-            if (lambert != null)
+            if (DiffuseModel is IEnergyConservativeDiffuseModelFeature lambert)
             {
                 lambert.IsEnergyConservative = isEnergyConservative;
             }
@@ -227,8 +235,8 @@ namespace Stride.Rendering.Materials
 
             // If hair shading is enabled, ignore the transparency feature to avoid errors during shader compilation.
             // Allowing the transparency feature while hair shading is on makes no sense anyway.
-            if (!(SpecularModel is MaterialSpecularHairModelFeature) &&
-                !(DiffuseModel is MaterialDiffuseHairModelFeature))
+            if (SpecularModel is not MaterialSpecularHairModelFeature &&
+                DiffuseModel is not MaterialDiffuseHairModelFeature)
             {
                 context.Visit(Transparency);
             }
@@ -244,6 +252,15 @@ namespace Stride.Rendering.Materials
                 if (context.MaterialPass.CullMode == null)
                 {
                     context.MaterialPass.CullMode = CullMode;
+                }
+            }
+
+            // Only set the DepthFunction when the pass is not overriden (Only based on assumptions from how CullMode operates, not exactly sure how/when this would be used) 
+            if (context.Step == MaterialGeneratorStep.GenerateShader && DepthFunction != CompareFunction.Less)
+            {
+                if (context.MaterialPass.DepthFunction == null)
+                {
+                    context.MaterialPass.DepthFunction = DepthFunction;
                 }
             }
         }

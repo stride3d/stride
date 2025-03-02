@@ -1,34 +1,30 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using System;
-using Stride.Core.Annotations;
 
-namespace Stride.Core
+namespace Stride.Core;
+
+public class ServiceNotFoundException : Exception
 {
-    public class ServiceNotFoundException : Exception
+    public ServiceNotFoundException()
     {
-        public ServiceNotFoundException()
-        {
-        }
+    }
 
-        public ServiceNotFoundException([NotNull] Type serviceType)
-            : base(FormatServiceNotFoundMessage(serviceType))
-        {
-            ServiceType = serviceType;
-        }
+    public ServiceNotFoundException(Type serviceType)
+        : base(FormatServiceNotFoundMessage(serviceType))
+    {
+        ServiceType = serviceType;
+    }
 
-        public ServiceNotFoundException([NotNull] Type serviceType, Exception innerException)
-            : base(FormatServiceNotFoundMessage(serviceType), innerException)
-        {
-            ServiceType = serviceType;
-        }
+    public ServiceNotFoundException(Type serviceType, Exception innerException)
+        : base(FormatServiceNotFoundMessage(serviceType), innerException)
+    {
+        ServiceType = serviceType;
+    }
 
-        public Type ServiceType { get; private set; }
+    public Type ServiceType { get; }
 
-        [NotNull]
-        private static string FormatServiceNotFoundMessage([NotNull] Type serviceType)
-        {
-            return $"Service [{serviceType.Name}] not found";
-        }
+    private static string FormatServiceNotFoundMessage(Type serviceType)
+    {
+        return $"Service [{serviceType.Name}] not found";
     }
 }

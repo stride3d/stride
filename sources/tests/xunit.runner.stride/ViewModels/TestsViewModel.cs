@@ -18,7 +18,7 @@ public class TestsViewModel : ViewModelBase
 
     public TestsViewModel()
     {
-        var assemblyFileName = Assembly.GetEntryAssembly().Location;
+        var assemblyFileName = Assembly.GetEntryAssembly()!.Location;
 
         // TODO: currently we disable app domain otherwise GameTestBase.ForceInteractiveMode is not kept
         //       we should find another way to transfer this parameter
@@ -124,5 +124,5 @@ public class TestsViewModel : ViewModelBase
     }
 
     public List<TestNodeViewModel> TestCases { get; } = [];
-    public Action<bool> SetInteractiveMode { get; set; }
+    public Action<bool>? SetInteractiveMode { get; set; }
 }

@@ -5,15 +5,9 @@
 /// </summary>
 /// <remarks>
 /// SkinningMaxBones: Macro - number of threads on the X axis.
-/// STRIDE_GRAPHICS_API_OPENGLES: Macro - flag to activate on for opengl es 2.0 platforms (int4 attributes like blend indices are not supported).
 /// </remarks>
 #ifndef SkinningMaxBones
 # define SkinningMaxBones 4
-#endif
-
-// TODO: use STRIDE_GRAPHICS_API_OPENGLES20 because opengl es 3.0 supports int4 atributes.
-#ifndef STRIDE_GRAPHICS_API_OPENGLES
-# define STRIDE_GRAPHICS_API_OPENGLES false
 #endif
 
 shader TransformationSkinning : TransformationBase, PositionStream4, Transformation
@@ -25,12 +19,7 @@ shader TransformationSkinning : TransformationBase, PositionStream4, Transformat
     }
 
     stage stream float4 BlendWeights : BLENDWEIGHT;
-#if STRIDE_GRAPHICS_API_OPENGLES
-    stage stream float4 BlendIndices : BLENDINDICES;
-    //stage stream int4 BlendIndices : BLENDINDICES;
-#else
     stage stream uint4 BlendIndices : BLENDINDICES;
-#endif
 
     stage stream float4x4 skinningBlendMatrix;
 

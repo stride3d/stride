@@ -18,7 +18,7 @@ namespace Stride.Core.Assets
         {
             var assetFullPath = assetItem.FullPath;
             var projectFullPath = (assetItem.Package.Container as SolutionProject)?.FullPath;
-            return assetFullPath.MakeRelative(projectFullPath.GetFullDirectory()).ToWindowsPath();
+            return assetFullPath.MakeRelative(projectFullPath.GetFullDirectory()).ToOSPath();
         }
 
         /// <summary>

@@ -55,6 +55,7 @@ namespace Stride.Engine.Processors
         protected override void Destroy()
         {
             Scheduler.ActionException -= Scheduler_ActionException;
+            Scheduler.Dispose();
             Scheduler = null;
 
             Services.RemoveService<ScriptSystem>();

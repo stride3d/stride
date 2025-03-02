@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Text;
 using Stride.Core.CompilerServices.Common;
 
 namespace Stride.Core.CompilerServices.Analyzers;
@@ -14,7 +13,7 @@ public class STRDIAG001InvalidDataContract : DiagnosticAnalyzer
     private const string MessageFormat = "The [DataContract] is not valid for the type '{0}'. Expected is a public/internal Accessor.";
     private const string Category = DiagnosticCategory.Serialization;
 
-    private static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
+    private static readonly DiagnosticDescriptor Rule = new(
         DiagnosticId,
         Title,
         MessageFormat,
@@ -36,12 +35,10 @@ public class STRDIAG001InvalidDataContract : DiagnosticAnalyzer
     {
         var dataContractAttribute = WellKnownReferences.DataContractAttribute(context.Compilation);
 
-
         if (dataContractAttribute is null)
             return;
 
         context.RegisterSymbolAction(symbolContext => AnalyzeSymbol(symbolContext, dataContractAttribute), SymbolKind.NamedType);
-        
     }
 
     private static void AnalyzeSymbol(SymbolAnalysisContext context, INamedTypeSymbol dataContractAttribute)
@@ -51,7 +48,10 @@ public class STRDIAG001InvalidDataContract : DiagnosticAnalyzer
         if (!symbol.HasAttribute(dataContractAttribute))
             return;
 
-        if(!symbol.IsVisibleToSerializer(hasDataMemberAttribute: true))
+        if (symbol.IsFileLocal)
+            Rule.ReportDiagnostics(context, symbol);
+
+        if (!symbol.IsVisibleToSerializer(hasDataMemberAttribute: true))
             Rule.ReportDiagnostics(context, symbol);
     }
 }

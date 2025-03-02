@@ -20,6 +20,13 @@ namespace Stride.Input
         {
         }
 
+        /// <summary>
+        /// Gets a binding value for the specified name and the specified config extract from the <see cref="VirtualButtonConfigSet"/>.
+        /// </summary>
+        /// <param name="inputManager">The <see cref="InputManager"/> to used to get the device input.</param>
+        /// <param name="configIndex">An index to a <see cref="VirtualButtonConfig"/> stored in the <see cref="VirtualButtonConfigSet"/>.</param>
+        /// <param name="name">Name of the binding.</param>
+        /// <returns>The value of the binding.</returns>
         public virtual float GetValue(InputManager inputManager, int configIndex, object name)
         {
             if (configIndex < 0 || configIndex >= Count)
@@ -29,6 +36,60 @@ namespace Stride.Input
 
             var config = this[configIndex];
             return config != null ? config.GetValue(inputManager, name) : 0.0f;
+        }
+
+        /// <summary>
+        /// Determines whether the specified binding in the specified config in the <see cref="VirtualButtonConfigSet"/> was pressed since the previous Update. 
+        /// </summary>
+        /// <param name="inputManager">The <see cref="InputManager"/> to used to get device input.</param>
+        /// <param name="configIndex">An index to a <see cref="VirtualButtonConfig"/> stored in the <see cref="VirtualButtonConfigSet"/>.</param>
+        /// <param name="name">Name of the binding.</param>
+        /// <returns><c>true</c> if the binding was pressed; otherwise, <c>false</c>.</returns>
+        public virtual bool IsPressed(InputManager inputManager, int configIndex, object name)
+        {
+            if (configIndex < 0 || configIndex >= Count)
+            {
+                return false;
+            }
+
+            var config = this[configIndex];
+            return config != null ? config.IsPressed(inputManager, name) : false;
+        }
+        
+        /// <summary>
+        /// Determines whether the specified binding in the specified config in the <see cref="VirtualButtonConfigSet"/> is currently pressed down. 
+        /// </summary>
+        /// <param name="inputManager">The <see cref="InputManager"/> to used to get device input.</param>
+        /// <param name="configIndex">An index to a <see cref="VirtualButtonConfig"/> stored in the <see cref="VirtualButtonConfigSet"/>.</param>
+        /// <param name="name">Name of the binding.</param>
+        /// <returns><c>true</c> if the binding is currently pressed down; otherwise, <c>false</c>.</returns>
+        public virtual bool IsDown(InputManager inputManager, int configIndex, object name)
+        {
+            if (configIndex < 0 || configIndex >= Count)
+            {
+                return false;
+            }
+
+            var config = this[configIndex];
+            return config != null ? config.IsDown(inputManager, name) : false;
+        }
+        
+        /// <summary>
+        /// Determines whether the specified binding in the specified config in the <see cref="VirtualButtonConfigSet"/> was released since the previous Update. 
+        /// </summary>
+        /// <param name="inputManager">The <see cref="InputManager"/> to used to get device input.</param>
+        /// <param name="configIndex">An index to a <see cref="VirtualButtonConfig"/> stored in the <see cref="VirtualButtonConfigSet"/>.</param>
+        /// <param name="name">Name of the binding.</param>
+        /// <returns><c>true</c> if the binding was released; otherwise, <c>false</c>.</returns>
+        public virtual bool IsReleased(InputManager inputManager, int configIndex, object name)
+        {
+            if (configIndex < 0 || configIndex >= Count)
+            {
+                return false;
+            }
+
+            var config = this[configIndex];
+            return config != null ? config.IsReleased(inputManager, name) : false;
         }
     }
 }

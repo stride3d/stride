@@ -43,120 +43,116 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using Xunit;
 
-namespace Stride.Core.Yaml.Tests
+namespace Stride.Core.Yaml.Tests;
+
+public class InsertionQueueTests
 {
-    public class InsertionQueueTests
+    [Fact]
+    public void ShouldThrowExceptionWhenDequeuingEmptyContainer()
     {
-        [Fact]
-        public void ShouldThrowExceptionWhenDequeuingEmptyContainer()
+        var queue = CreateQueue();
+
+        Assert.Throws<InvalidOperationException>(() => queue.Dequeue());
+    }
+
+    [Fact]
+    public void ShouldThrowExceptionWhenDequeuingContainerThatBecomesEmpty()
+    {
+        var queue = new InsertionQueue<int>();
+
+        queue.Enqueue(1);
+        queue.Dequeue();
+
+        Assert.Throws<InvalidOperationException>(() => queue.Dequeue());
+    }
+
+    [Fact]
+    public void ShouldCorrectlyDequeueElementsAfterEnqueuing()
+    {
+        var queue = CreateQueue();
+
+        WithTheRange(0, 10).Perform(queue.Enqueue);
+
+        Assert.Equal([0, 1, 2, 3, 4, 5, 6, 7, 8, 9], OrderOfElementsIn(queue).ToList());
+    }
+
+    [Fact]
+    public void ShouldCorrectlyDequeueElementsWhenIntermixingEnqueuing()
+    {
+        var queue = CreateQueue();
+
+        WithTheRange(0, 10).Perform(queue.Enqueue);
+        PerformTimes(5, queue.Dequeue);
+        WithTheRange(10, 15).Perform(queue.Enqueue);
+
+        Assert.Equal([5, 6, 7, 8, 9, 10, 11, 12, 13, 14], OrderOfElementsIn(queue).ToList());
+    }
+
+    [Fact]
+    public void ShouldThrowExceptionWhenDequeuingAfterInserting()
+    {
+        var queue = CreateQueue();
+
+        queue.Enqueue(1);
+        queue.Insert(0, 99);
+        PerformTimes(2, queue.Dequeue);
+
+        Assert.Throws<InvalidOperationException>(() => queue.Dequeue());
+    }
+
+    [Fact]
+    public void ShouldCorrectlyDequeueElementsWhenInserting()
+    {
+        var queue = CreateQueue();
+
+        WithTheRange(0, 10).Perform(queue.Enqueue);
+        queue.Insert(5, 99);
+
+        Assert.Equal([0, 1, 2, 3, 4, 99, 5, 6, 7, 8, 9], OrderOfElementsIn(queue).ToList());
+    }
+
+    private static InsertionQueue<int> CreateQueue()
+    {
+        return new InsertionQueue<int>();
+    }
+
+    private static IEnumerable<int> WithTheRange(int from, int to)
+    {
+        return Enumerable.Range(@from, to - @from);
+    }
+
+    private static IEnumerable<int> OrderOfElementsIn(InsertionQueue<int> queue)
+    {
+        while (true)
         {
-            var queue = CreateQueue();
-
-            Assert.Throws<InvalidOperationException>(() => queue.Dequeue());
-        }
-
-        [Fact]
-        public void ShouldThrowExceptionWhenDequeuingContainerThatBecomesEmpty()
-        {
-            var queue = new InsertionQueue<int>();
-
-            queue.Enqueue(1);
-            queue.Dequeue();
-
-            Assert.Throws<InvalidOperationException>(() => queue.Dequeue());
-        }
-
-        [Fact]
-        public void ShouldCorrectlyDequeueElementsAfterEnqueuing()
-        {
-            var queue = CreateQueue();
-
-            WithTheRange(0, 10).Perform(queue.Enqueue);
-
-            Assert.Equal(new List<int>() {0, 1, 2, 3, 4, 5, 6, 7, 8, 9}, OrderOfElementsIn(queue).ToList());
-        }
-
-        [Fact]
-        public void ShouldCorrectlyDequeueElementsWhenIntermixingEnqueuing()
-        {
-            var queue = CreateQueue();
-
-            WithTheRange(0, 10).Perform(queue.Enqueue);
-            PerformTimes(5, queue.Dequeue);
-            WithTheRange(10, 15).Perform(queue.Enqueue);
-
-            Assert.Equal(new List<int>() {5, 6, 7, 8, 9, 10, 11, 12, 13, 14}, OrderOfElementsIn(queue).ToList());
-        }
-
-        [Fact]
-        public void ShouldThrowExceptionWhenDequeuingAfterInserting()
-        {
-            var queue = CreateQueue();
-
-            queue.Enqueue(1);
-            queue.Insert(0, 99);
-            PerformTimes(2, queue.Dequeue);
-
-            Assert.Throws<InvalidOperationException>(() => queue.Dequeue());
-        }
-
-        [Fact]
-        public void ShouldCorrectlyDequeueElementsWhenInserting()
-        {
-            var queue = CreateQueue();
-
-            WithTheRange(0, 10).Perform(queue.Enqueue);
-            queue.Insert(5, 99);
-
-            Assert.Equal(new List<int>() {0, 1, 2, 3, 4, 99, 5, 6, 7, 8, 9}, OrderOfElementsIn(queue).ToList());
-        }
-
-        private static InsertionQueue<int> CreateQueue()
-        {
-            return new InsertionQueue<int>();
-        }
-
-        private IEnumerable<int> WithTheRange(int from, int to)
-        {
-            return Enumerable.Range(@from, to - @from);
-        }
-
-        private IEnumerable<int> OrderOfElementsIn(InsertionQueue<int> queue)
-        {
-            while (true)
+            if (queue.Count == 0)
             {
-                if (queue.Count == 0)
-                {
-                    yield break;
-                }
-                yield return queue.Dequeue();
+                yield break;
             }
-        }
-
-        private void PerformTimes(int times, Func<int> func)
-        {
-            WithTheRange(0, times).Perform(func);
+            yield return queue.Dequeue();
         }
     }
 
-    public static class EnumerableExtensions
+    private static void PerformTimes(int times, Func<int> func)
     {
-        public static void Perform<T>(this IEnumerable<T> withRange, Func<int> func)
-        {
-            withRange.Perform(x => func());
-        }
+        WithTheRange(0, times).Perform(func);
+    }
+}
 
-        public static void Perform<T>(this IEnumerable<T> withRange, Action<T> action)
+public static class EnumerableExtensions
+{
+    public static void Perform<T>(this IEnumerable<T> withRange, Func<int> func)
+    {
+        withRange.Perform(_ => func());
+    }
+
+    public static void Perform<T>(this IEnumerable<T> withRange, Action<T> action)
+    {
+        foreach (var element in withRange)
         {
-            foreach (var element in withRange)
-            {
-                action(element);
-            }
+            action(element);
         }
     }
 }

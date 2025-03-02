@@ -1,0 +1,29 @@
+<Project>
+  <Import Project="..\..\targets\Stride.props" />
+
+  <PropertyGroup>
+    <TargetFramework>$(StrideXplatEditorTargetFramework)</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
+    <StrideAssemblyProcessorOptions>--auto-module-initializer --serialization</StrideAssemblyProcessorOptions>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
+      <Link>Properties\SharedAssemblyInfo.cs</Link>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Stride.Assets.Presentation\Stride.Assets.Presentation.csproj" />
+    <ProjectReference Include="..\Stride.Core.Assets.Editor\Stride.Core.Assets.Editor.csproj" />
+    <ProjectReference Include="..\Stride.Editor\Stride.Editor.csproj" />
+  </ItemGroup>
+
+  <Import Project="$(StrideSdkTargets)" />
+</Project>
