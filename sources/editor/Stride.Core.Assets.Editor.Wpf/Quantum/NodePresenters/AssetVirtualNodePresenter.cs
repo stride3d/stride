@@ -28,12 +28,14 @@ namespace Stride.Core.Assets.Editor.Quantum.NodePresenters
         protected override void Dispose(bool disposing)
         {
             base.Dispose(disposing);
-
-            if (disposing && AssociatedNode.Node != null)
+            if (disposing)
+            {
+                if (AssociatedNode.Node != null)
             {
                 ((IAssetNode)AssociatedNode.Node).OverrideChanging -= OnOverrideChanging;
                 ((IAssetNode)AssociatedNode.Node).OverrideChanged -= OnOverrideChanged;
             }
+        }
         }
 
         public new IAssetNodePresenter this[string childName] => (IAssetNodePresenter)base[childName];

@@ -3,6 +3,7 @@
 
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Presentation.ViewModels;
+using Stride.Core.Extensions;
 using Stride.Core.Presentation.Quantum;
 using Stride.Core.Presentation.Quantum.Presenters;
 
@@ -39,7 +40,8 @@ public class SetContentReferenceCommand : ChangeValueCommandBase
     /// <inheritdoc />
     public override bool CanAttach(INodePresenter nodePresenter)
     {
-        return ContentReferenceHelper.ContainsReferenceType(nodePresenter.Descriptor);
+        var type = nodePresenter.Descriptor.GetInnerCollectionType();
+        return AssetRegistry.CanBeAssignedToContentTypes(type, checkIsUrlType: true);
     }
 
     /// <inheritdoc />

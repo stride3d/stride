@@ -10,7 +10,6 @@ using Stride.Core;
 using Stride.Core.IO;
 using Stride.Assets.SpriteFont.Compiler;
 using Stride.Graphics.Font;
-using SharpFont;
 
 namespace Stride.Assets.SpriteFont
 {
@@ -58,20 +57,15 @@ namespace Stride.Assets.SpriteFont
                         throw new ArgumentOutOfRangeException();
                 }
 
+                RawBool isSupported;
+                FontFileType fontType;
+                FontFaceType faceType;
+                int numberFaces;
 
-                fontFile.Analyze(out var isSupported, out var fontType, out var faceType, out var numberFaces);
+                fontFile.Analyze(out isSupported, out fontType, out faceType, out numberFaces);
 
                 return new FontFace(factory, faceType, new[] { fontFile }, 0, fontSimulations);
             }
-        }
-
-        /// <inheritdoc/>
-        public override Face GetFont()
-        {
-            var library = new SharpFont.Library();
-
-            var face = new SharpFont.Face(library, Source);
-            return face;
         }
 
         /// <inheritdoc/>

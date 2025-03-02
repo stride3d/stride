@@ -8,7 +8,6 @@ using Stride.Core.Assets.Presentation.Quantum.NodePresenters;
 using Stride.Core.Extensions;
 using Stride.Core.Presentation.Quantum.Presenters;
 using Stride.Core.Reflection;
-using Stride.Core.Serialization;
 
 namespace Stride.Core.Assets.Editor.Quantum.NodePresenters.Updaters;
 
@@ -43,7 +42,7 @@ public sealed class AbstractNodeEntryNodeUpdater : AssetNodePresenterUpdaterBase
             var memberCollection = memberNode.MemberAttributes.OfType<MemberCollectionAttribute>().FirstOrDefault()
                                    ?? memberNode.Descriptor.Attributes.OfType<MemberCollectionAttribute>().FirstOrDefault();
 
-            if (memberNode.IsEnumerable && memberCollection != null && memberCollection.NotNullItems)
+            if (memberNode.IsEnumerable && memberCollection?.NotNullItems == true)
             {
                 // Collections
                 abstractNodeAllowNull = false;
@@ -60,14 +59,17 @@ public sealed class AbstractNodeEntryNodeUpdater : AssetNodePresenterUpdaterBase
     protected override void UpdateNode(IAssetNodePresenter node)
     {
         var type = node.Descriptor.GetInnerCollectionType();
-        if (type.IsAbstract && !IsReferenceType(type) && IsInstantiable(type))
+        if (type.IsAbstract && IsInstantiable(type))
         {
             var abstractNodeEntries = FillDefaultAbstractNodeEntry(node);
+
+            // Remove content types, the engine expects content types to be serialized as reference, not created inline
+            if (AssetRegistry.CanPropertyHandleContent(type, out var contentTypes))
+                abstractNodeEntries = abstractNodeEntries.Where(x => x is not AbstractNodeType ant || !contentTypes.Contains(ant.Type));
+
             node.AttachedProperties.Add(AbstractNodeEntryData.Key, abstractNodeEntries);
         }
     }
 
     private static bool IsInstantiable(Type type) => TypeDescriptorFactory.Default.AttributeRegistry.GetAttribute<NonInstantiableAttribute>(type) == null;
-
-    private static bool IsReferenceType(Type type) => AssetRegistry.IsContentType(type) || typeof(AssetReference).IsAssignableFrom(type) || UrlReferenceBase.IsUrlReferenceType(type);
 }

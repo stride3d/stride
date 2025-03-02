@@ -17,6 +17,7 @@ public class GraphViewModelService
     /// </summary>
     public GraphViewModelService(NodeContainer nodeContainer)
     {
+        ArgumentNullException.ThrowIfNull(nodeContainer);
         NodePresenterFactory = new NodePresenterFactory(nodeContainer.NodeBuilder, AvailableCommands, AvailableUpdaters);
         NodeViewModelFactory = new NodeViewModelFactory();
     }
@@ -25,7 +26,7 @@ public class GraphViewModelService
 
     public INodeViewModelFactory NodeViewModelFactory { get; set; }
 
-    public List<INodePresenterCommand> AvailableCommands { get; } = new List<INodePresenterCommand>();
+    public List<INodePresenterCommand> AvailableCommands { get; } = [];
 
-    public List<INodePresenterUpdater> AvailableUpdaters { get; } = new List<INodePresenterUpdater>();
+    public List<INodePresenterUpdater> AvailableUpdaters { get; } = [];
 }

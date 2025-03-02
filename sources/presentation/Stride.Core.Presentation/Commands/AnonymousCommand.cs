@@ -25,7 +25,7 @@ public class AnonymousCommand : CommandBase
     {
         ArgumentNullException.ThrowIfNull(action);
 
-        this.action = x => action();
+        this.action = _ => action();
         this.canExecute = canExecute;
     }
 
@@ -80,7 +80,7 @@ public class AnonymousTaskCommand : AnonymousCommand
     /// <param name="task">A method returning a task that will be called each time the command is executed.</param>
     /// <param name="canExecute">An anonymous method that will be called each time the command <see cref="CommandBase.CanExecute(object)"/> method is invoked.</param>
     public AnonymousTaskCommand(IViewModelServiceProvider serviceProvider, Func<Task> task, Func<bool>? canExecute = null)
-        : base(serviceProvider, async x => await task(), canExecute)
+        : base(serviceProvider, async _ => await task(), canExecute)
     {
         ArgumentNullException.ThrowIfNull(task);
     }
@@ -121,7 +121,7 @@ public class AnonymousCommand<T> : CommandBase
         parameter ??= default(T);
         // check the type
         if ((typeof(T).IsValueType || parameter != null) && parameter is not T)
-            throw new ArgumentException(@"Unexpected parameter type in the command.", nameof(parameter));
+            throw new ArgumentException("Unexpected parameter type in the command.", nameof(parameter));
 
         action((T)parameter!);
     }
@@ -136,7 +136,7 @@ public class AnonymousCommand<T> : CommandBase
     {
         parameter ??= default(T);
         if ((typeof(T).IsValueType || parameter != null) && parameter is not T)
-            throw new ArgumentException(@"Unexpected parameter type in the command.", nameof(parameter));
+            throw new ArgumentException("Unexpected parameter type in the command.", nameof(parameter));
 
         var result = base.CanExecute(parameter);
         return result && canExecute != null ? canExecute((T)parameter!) : result;

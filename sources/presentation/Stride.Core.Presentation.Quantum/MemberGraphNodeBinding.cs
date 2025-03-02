@@ -23,29 +23,30 @@ public class MemberGraphNodeBinding<TTargetType, TContentType> : GraphNodeBindin
         node.ValueChanged += ValueChanged;
         node.ValueChanging += ValueChanging;
     }
-    
+
     /// <inheritdoc/>
     protected override void Dispose(bool disposing)
     {
+        base.Dispose(disposing);
+
         if (disposing)
         {
             Node.ValueChanged -= ValueChanged;
             Node.ValueChanging -= ValueChanging;
         }
     }
-    
+
     /// <inheritdoc/>
     public override TContentType? GetNodeValue()
     {
         var value = (TContentType?)Node.Retrieve();
         return value;
     }
-    
+
     /// <inheritdoc/>
     public override void SetNodeValue(TTargetType? value)
     {
         using var transaction = ActionService?.CreateTransaction();
-
         Node.Update(Converter(value));
         ActionService?.SetName(transaction!, $"Update property {PropertyName}");
     }

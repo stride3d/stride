@@ -9,5 +9,5 @@ public interface INodePresenterFactoryInternal : INodePresenterFactory
 {
     IReadOnlyCollection<INodePresenterCommand> AvailableCommands { get; }
 
-    void CreateChildren(IInitializingNodePresenter parentPresenter, IObjectNode objectNode, IPropertyProviderViewModel? propertyProvider);
+    void CreateChildren(IInitializingNodePresenter parentPresenter, IObjectNode? objectNode, IPropertyProviderViewModel? propertyProvider);
 }

@@ -5,11 +5,13 @@ namespace Stride.Core.Presentation.Quantum.Presenters;
 
 public class SyncAnonymousNodePresenterCommand : SyncNodePresenterCommandBase
 {
-    private readonly Action<INodePresenter, object> execute;
+    private readonly Action<INodePresenter, object?> execute;
     private readonly Func<INodePresenter, bool>? canAttach;
 
-    public SyncAnonymousNodePresenterCommand(string name, Action<INodePresenter, object> execute, Func<INodePresenter, bool>? canAttach = null)
+    public SyncAnonymousNodePresenterCommand(string name, Action<INodePresenter, object?> execute, Func<INodePresenter, bool>? canAttach = null)
     {
+        ArgumentNullException.ThrowIfNull(name);
+        ArgumentNullException.ThrowIfNull(execute);
         this.execute = execute;
         this.canAttach = canAttach;
         Name = name;
@@ -25,7 +27,7 @@ public class SyncAnonymousNodePresenterCommand : SyncNodePresenterCommandBase
     }
 
     /// <inheritdoc/>
-    protected override void ExecuteSync(INodePresenter nodePresenter, object parameter, object preExecuteResult)
+    protected override void ExecuteSync(INodePresenter nodePresenter, object? parameter, object? preExecuteResult)
     {
         execute(nodePresenter, parameter);
     }

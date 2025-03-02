@@ -179,9 +179,9 @@ namespace Stride.Core.Assets.Editor.Components.FixReferences
         /// Picks up an object to replace a reference to a deleted object in the given object to fix.
         /// </summary>
         /// <param name="objectToFix">The object for which a new object must be pick up to replace a reference.</param>
-        /// <param name="referencedMember">The member of the object to fix that was actually referenced, in case it is not tje object itself.</param>
+        /// <param name="propertyType">The type of the property or field in case it is more abstract than the object itself</param>
         /// <returns>A replacement object, or <c>null</c> if the user cancelled.</returns>
-        public abstract Task<T> PickupObject(T objectToFix, object referencedMember);
+        public abstract Task<T> PickupObject(T objectToFix, Type propertyType);
         
         /// <summary>
         /// Builds the lists of objects that reference the given deleted object. The return value of this method is an enumeration of key-value pairs,
@@ -244,7 +244,8 @@ namespace Stride.Core.Assets.Editor.Components.FixReferences
         private async Task PickupSingleReplacementObject()
         {
             var current = currentObjectToReplaceEnumerator.Current.Key;
-            var selectedObject = await PickupObject(current.ReferencedObject, current.ReferencedMember);
+            var propType = current.ReferencedObject.GetType(); // We could find the type that is the most abstract and can be assigned to every replacement as well ...
+            var selectedObject = await PickupObject(current.ReferencedObject, propType);
             if (selectedObject != null)
             {
                 SingleReplacementObject = selectedObject;

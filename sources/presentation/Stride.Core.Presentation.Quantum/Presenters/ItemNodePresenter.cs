@@ -14,7 +14,9 @@ public class ItemNodePresenter : NodePresenterBase
     public ItemNodePresenter(INodePresenterFactoryInternal factory, IPropertyProviderViewModel? propertyProvider, INodePresenter parent, IObjectNode container, NodeIndex index)
         : base(factory, propertyProvider, parent)
     {
-        Container = container;
+        ArgumentNullException.ThrowIfNull(factory);
+        ArgumentNullException.ThrowIfNull(parent);
+        Container = container ?? throw new ArgumentNullException(nameof(container));
         Descriptor = TypeDescriptorFactory.Default.Find(container.Descriptor.GetInnerCollectionType());
         OwnerCollection = parent;
         if (container.Descriptor is CollectionDescriptor collectionDescriptor)
@@ -44,6 +46,7 @@ public class ItemNodePresenter : NodePresenterBase
 
     protected override void Dispose(bool disposing)
     {
+        base.Dispose(disposing);
         if (disposing)
         {
             Container.ItemChanging -= OnItemChanging;
@@ -61,7 +64,7 @@ public class ItemNodePresenter : NodePresenterBase
 
     public override bool IsEnumerable => Container.IsEnumerable;
 
-    public override ITypeDescriptor Descriptor { get; }
+    public override ITypeDescriptor? Descriptor { get; }
 
     public override object Value => Container.Retrieve(Index);
 
@@ -81,7 +84,7 @@ public class ItemNodePresenter : NodePresenterBase
 
     public override void AddItem(object value)
     {
-        if (Container.IndexedTarget(Index) == null || !Container.IndexedTarget(Index).IsEnumerable)
+        if (Container.IndexedTarget(Index)?.IsEnumerable != true)
             throw new NodePresenterException($"{nameof(MemberNodePresenter)}.{nameof(AddItem)} cannot be invoked on members that are not collection.");
 
         try
@@ -96,7 +99,7 @@ public class ItemNodePresenter : NodePresenterBase
 
     public override void AddItem(object value, NodeIndex index)
     {
-        if (Container.IndexedTarget(Index) == null || !Container.IndexedTarget(Index).IsEnumerable)
+        if (Container.IndexedTarget(Index)?.IsEnumerable != true)
             throw new NodePresenterException($"{nameof(MemberNodePresenter)}.{nameof(AddItem)} cannot be invoked on members that are not collection.");
 
         try
@@ -111,7 +114,7 @@ public class ItemNodePresenter : NodePresenterBase
 
     public override void RemoveItem(object value, NodeIndex index)
     {
-        if (Container.IndexedTarget(Index) == null || !Container.IndexedTarget(Index).IsEnumerable)
+        if (Container.IndexedTarget(Index)?.IsEnumerable != true)
             throw new NodePresenterException($"{nameof(MemberNodePresenter)}.{nameof(AddItem)} cannot be invoked on members that are not collection.");
 
         try

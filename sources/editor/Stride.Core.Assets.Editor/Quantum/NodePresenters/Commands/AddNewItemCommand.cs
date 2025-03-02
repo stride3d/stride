@@ -79,5 +79,6 @@ public class AddNewItemCommand : SyncNodePresenterCommandBase
 
     public static bool CanConstruct(Type elementType) => !elementType.IsClass || elementType.GetConstructor(Type.EmptyTypes) != null || elementType == typeof(string);
 
-    public static bool IsReferenceType(Type elementType) => AssetRegistry.IsContentType(elementType) || typeof(AssetReference).IsAssignableFrom(elementType) || UrlReferenceBase.IsUrlReferenceType(elementType);
+    public static bool IsReferenceType(Type elementType) => AssetRegistry.IsExactContentType(elementType) || typeof(AssetReference).IsAssignableFrom(elementType) || UrlReferenceBase.IsUrlReferenceType(elementType);
+
 }

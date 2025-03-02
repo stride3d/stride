@@ -21,7 +21,7 @@ public sealed class SessionNodeUpdater : AssetNodePresenterUpdaterBase
 
     protected override void UpdateNode(IAssetNodePresenter node)
     {
-        if (AssetRegistry.IsContentType(node.Type) || typeof(AssetReference).IsAssignableFrom(node.Type) || UrlReferenceBase.IsUrlReferenceType(node.Type))
+        if (AssetRegistry.CanBeAssignedToContentTypes(node.Type, checkIsUrlType: true))
         {
             node.AttachedProperties.Add(SessionData.SessionKey, session);
             node.AttachedProperties.Add(ReferenceData.Key, new ContentReferenceViewModel());
@@ -31,9 +31,8 @@ public sealed class SessionNodeUpdater : AssetNodePresenterUpdaterBase
         {
             node.AttachedProperties.Add(SessionData.SessionKey, session);
         }
-        if (AssetRegistry.IsContentType(node.Type))
+        if (AssetRegistry.CanPropertyHandleAssets(node.Type, out var assetTypes))
         {
-            var assetTypes = AssetRegistry.GetAssetTypes(node.Type);
             var thumbnailService = session.ServiceProvider.TryGet<IThumbnailService>();
             node.AttachedProperties.Add(SessionData.DynamicThumbnailKey, thumbnailService is not null && !assetTypes.All(thumbnailService.HasStaticThumbnail));
         }

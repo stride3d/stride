@@ -13,7 +13,8 @@ public class RootNodePresenter : NodePresenterBase
     public RootNodePresenter(INodePresenterFactoryInternal factory, IPropertyProviderViewModel? propertyProvider, IObjectNode rootNode)
         : base(factory, propertyProvider, null)
     {
-        RootNode = rootNode;
+        ArgumentNullException.ThrowIfNull(factory);
+        RootNode = rootNode ?? throw new ArgumentNullException(nameof(rootNode));
         Name = "Root";
         DisplayName = string.Empty;
 
@@ -42,10 +43,11 @@ public class RootNodePresenter : NodePresenterBase
 
     protected override void Dispose(bool disposing)
     {
+        base.Dispose(disposing);
         if (disposing)
         {
             RootNode.ItemChanging -= OnItemChanging;
-            RootNode.ItemChanged -= OnItemChanged;            
+            RootNode.ItemChanged -= OnItemChanged;
         }
 
         base.Dispose(disposing);

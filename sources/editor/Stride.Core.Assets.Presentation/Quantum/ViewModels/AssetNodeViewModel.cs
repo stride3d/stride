@@ -81,7 +81,7 @@ public class AssetNodeViewModel : NodeViewModel, IInternalAssetNodeViewModel
         if (reference1 != null && reference2 != null)
         {
             var type = reference1.GetType();
-            if (type == reference2.GetType() && AssetRegistry.IsContentType(type))
+            if (type == reference2.GetType() && AssetRegistry.IsExactContentType(type))
             {
                 var target1 = AttachedReferenceManager.GetAttachedReference(reference1);
                 var target2 = AttachedReferenceManager.GetAttachedReference(reference2);

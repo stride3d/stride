@@ -11,12 +11,15 @@ public class VirtualNodePresenter : NodePresenterBase
     protected NodeAccessor AssociatedNode;
     private readonly Func<object> getter;
     private readonly Action<object> setter;
-    private readonly List<Attribute> memberAttributes = new();
+    private readonly List<Attribute> memberAttributes = [];
     private bool updatingValue;
 
-    public VirtualNodePresenter(INodePresenterFactoryInternal factory, IPropertyProviderViewModel? propertyProvider, INodePresenter parent, string name,  Type type, int? order, Func<object> getter, Action<object> setter)
+    public VirtualNodePresenter(INodePresenterFactoryInternal factory, IPropertyProviderViewModel? propertyProvider, INodePresenter parent, string name, Type type, int? order, Func<object> getter, Action<object> setter)
         : base(factory, propertyProvider, parent)
     {
+        ArgumentNullException.ThrowIfNull(factory);
+        ArgumentNullException.ThrowIfNull(parent);
+        ArgumentNullException.ThrowIfNull(getter);
         this.getter = getter;
         this.setter = setter;
         Name = name;
@@ -144,7 +147,7 @@ public class VirtualNodePresenter : NodePresenterBase
         RaiseNodeChanged(e.OldValue, e.ChangeType, (e as ItemChangeEventArgs)?.Index ?? NodeIndex.Empty);
     }
 
-    private void RaiseNodeChanging(object newValue, ContentChangeType changeType, NodeIndex index)
+    private void RaiseNodeChanging(object? newValue, ContentChangeType changeType, NodeIndex index)
     {
         if (ShouldRaiseEvent(changeType, index))
         {
@@ -152,7 +155,7 @@ public class VirtualNodePresenter : NodePresenterBase
         }
     }
 
-    private void RaiseNodeChanged(object oldValue, ContentChangeType changeType, NodeIndex index)
+    private void RaiseNodeChanged(object? oldValue, ContentChangeType changeType, NodeIndex index)
     {
         if (ShouldRaiseEvent(changeType, index))
         {

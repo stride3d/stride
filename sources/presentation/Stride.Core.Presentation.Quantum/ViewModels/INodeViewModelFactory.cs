@@ -9,5 +9,5 @@ public interface INodeViewModelFactory
 {
     NodeViewModel CreateGraph(GraphViewModel owner, Type rootType, IEnumerable<INodePresenter> rootNodes);
 
-    void GenerateChildren( GraphViewModel owner, NodeViewModel parent, List<INodePresenter> nodePresenters);
+    void GenerateChildren(GraphViewModel owner, NodeViewModel parent, List<INodePresenter> nodePresenters);
 }

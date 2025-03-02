@@ -14,7 +14,7 @@ namespace Stride.Core.Presentation.ViewModels;
 
 public abstract class EditableViewModel : DispatcherViewModel
 {
-    private readonly Dictionary<string, object> preEditValues = [];
+    private readonly Dictionary<string, object?> preEditValues = [];
     private readonly HashSet<string> uncancellableChanges = [];
     private readonly List<string> suspendedCollections = [];
 
@@ -51,12 +51,12 @@ public abstract class EditableViewModel : DispatcherViewModel
 
     protected bool SetValueUncancellable<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
     {
-        return SetValueUncancellable(ref field, value, null, new[] { propertyName! });
+        return SetValueUncancellable(ref field, value, null, [propertyName!]);
     }
 
     protected bool SetValueUncancellable<T>(ref T field, T value, Action updateAction, [CallerMemberName] string? propertyName = null)
     {
-        return SetValueUncancellable(ref field, value, updateAction, new[] { propertyName! });
+        return SetValueUncancellable(ref field, value, updateAction, [propertyName!]);
     }
 
     protected bool SetValueUncancellable<T>(ref T field, T value, params string[] propertyNames)
@@ -76,8 +76,7 @@ public abstract class EditableViewModel : DispatcherViewModel
         }
         try
         {
-            var result = SetValue(ref field, value, updateAction, false, propertyNames);
-            return result;
+            return SetValue(ref field, value, updateAction, false, propertyNames);
         }
         finally
         {
@@ -94,7 +93,7 @@ public abstract class EditableViewModel : DispatcherViewModel
 
     protected bool SetValueUncancellable(Action? updateAction, [CallerMemberName] string? propertyName = null)
     {
-        return SetValueUncancellable(null, updateAction, new[] { propertyName! });
+        return SetValueUncancellable(null, updateAction, [propertyName!]);
     }
 
     protected bool SetValueUncancellable(Action? updateAction, params string[] propertyNames)
@@ -104,12 +103,12 @@ public abstract class EditableViewModel : DispatcherViewModel
 
     protected bool SetValueUncancellable(Func<bool>? hasChangedFunction, Action? updateAction, [CallerMemberName] string? propertyName = null)
     {
-        return SetValueUncancellable(hasChangedFunction, updateAction, new[] { propertyName! });
+        return SetValueUncancellable(hasChangedFunction, updateAction, [propertyName!]);
     }
 
     protected bool SetValueUncancellable(bool hasChanged, Action? updateAction, [CallerMemberName] string? propertyName = null)
     {
-        return SetValueUncancellable(() => hasChanged, updateAction, new[] { propertyName! });
+        return SetValueUncancellable(() => hasChanged, updateAction, [propertyName!]);
     }
 
     protected bool SetValueUncancellable(bool hasChanged, Action? updateAction, params string[] propertyNames)
@@ -129,8 +128,7 @@ public abstract class EditableViewModel : DispatcherViewModel
         }
         try
         {
-            var result = SetValue(hasChangedFunction, updateAction, false, propertyNames);
-            return result;
+            return SetValue(hasChangedFunction, updateAction, false, propertyNames);
         }
         finally
         {
@@ -152,7 +150,7 @@ public abstract class EditableViewModel : DispatcherViewModel
     }
 
     /// <inheritdoc/>
-    protected override bool SetValue(Func<bool> hasChangedFunction, Action? updateAction, params string[] propertyNames)
+    protected override bool SetValue(Func<bool>? hasChangedFunction, Action? updateAction, params string[] propertyNames)
     {
         return SetValue(hasChangedFunction, updateAction, true, propertyNames);
     }
@@ -183,7 +181,7 @@ public abstract class EditableViewModel : DispatcherViewModel
             if (preEditValues.TryGetValue(propertyName, out var preEditValue) && !uncancellableChanges.Contains(propertyName))
             {
                 var propertyInfo = GetType().GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public);
-                var postEditValue = propertyInfo.GetValue(this);
+                var postEditValue = propertyInfo?.GetValue(this);
                 if (!UndoRedoService.UndoRedoInProgress && !Equals(preEditValue, postEditValue))
                 {
                     var operation = CreatePropertyChangeOperation(displayName, propertyName, preEditValue);
@@ -194,7 +192,7 @@ public abstract class EditableViewModel : DispatcherViewModel
         }
     }
 
-    protected virtual Operation CreatePropertyChangeOperation(string displayName, string propertyName, object preEditValue)
+    protected virtual Operation CreatePropertyChangeOperation(string displayName, string propertyName, object? preEditValue)
     {
         var operation = new PropertyChangeOperation(propertyName, this, preEditValue, Dirtiables);
         UndoRedoService.SetName(operation, displayName);
@@ -211,11 +209,11 @@ public abstract class EditableViewModel : DispatcherViewModel
     private bool SetValue<T>(ref T field, T value, Action? updateAction, bool createTransaction, params string[] propertyNames)
     {
         if (propertyNames.Length == 0)
-            throw new ArgumentOutOfRangeException(nameof(propertyNames), @"This method must be invoked with at least one property name.");
+            throw new ArgumentOutOfRangeException(nameof(propertyNames), "This method must be invoked with at least one property name.");
 
-        if (EqualityComparer<T>.Default.Equals(field, value) == false)
+        if (!EqualityComparer<T>.Default.Equals(field, value))
         {
-            ITransaction transaction = null;
+            ITransaction? transaction = null;
             if (!UndoRedoService.UndoRedoInProgress && createTransaction)
             {
                 transaction = UndoRedoService.CreateTransaction();
@@ -239,14 +237,14 @@ public abstract class EditableViewModel : DispatcherViewModel
         return false;
     }
 
-    private bool SetValue(Func<bool> hasChangedFunction, Action updateAction, bool createTransaction, params string[] propertyNames)
+    private bool SetValue(Func<bool>? hasChangedFunction, Action? updateAction, bool createTransaction, params string[] propertyNames)
     {
         if (propertyNames.Length == 0)
-            throw new ArgumentOutOfRangeException(nameof(propertyNames), @"This method must be invoked with at least one property name.");
+            throw new ArgumentOutOfRangeException(nameof(propertyNames), "This method must be invoked with at least one property name.");
 
         if (hasChangedFunction == null || hasChangedFunction())
         {
-            ITransaction transaction = null;
+            ITransaction? transaction = null;
             if (!UndoRedoService.UndoRedoInProgress && createTransaction)
             {
                 transaction = UndoRedoService.CreateTransaction();
@@ -278,7 +276,7 @@ public abstract class EditableViewModel : DispatcherViewModel
         {
             var toIListMethod = sender?.GetType().GetMethod("ToIList");
             if (toIListMethod != null)
-                list = (IList)toIListMethod.Invoke(sender, Array.Empty<object>());
+                list = (IList?)toIListMethod.Invoke(sender, []);
         }
         if (!UndoRedoService.UndoRedoInProgress && !suspendedCollections.Contains(collectionName))
         {

@@ -67,7 +67,7 @@ public class NodePresenterCommandWrapper : CommandBase
         {
             await Command.Execute(presenter, parameter, preExecuteResult);
         }
-        await Command.PostExecute(presenters.ToList(), parameter);
+        await Command.PostExecute([.. presenters], parameter);
     }
 
     /// <inheritdoc/>

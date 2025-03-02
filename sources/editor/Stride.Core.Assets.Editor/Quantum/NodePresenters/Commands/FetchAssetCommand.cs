@@ -3,6 +3,7 @@
 
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModels;
+using Stride.Core.Extensions;
 using Stride.Core.Presentation.Quantum;
 using Stride.Core.Presentation.Quantum.Presenters;
 
@@ -37,7 +38,8 @@ public class FetchAssetCommand : NodePresenterCommandBase
     /// <inheritdoc/>
     public override bool CanAttach(INodePresenter nodePresenter)
     {
-        return ContentReferenceHelper.ContainsReferenceType(nodePresenter.Descriptor);
+        var type = nodePresenter.Descriptor.GetInnerCollectionType();
+        return AssetRegistry.CanBeAssignedToContentTypes(type, checkIsUrlType: true);
     }
 
     /// <inheritdoc/>
@@ -60,5 +62,4 @@ public class FetchAssetCommand : NodePresenterCommandBase
             //await session.Dispatcher.InvokeAsync(() => session.AssetCollection.SelectAssetCommand.Execute(asset));
         }
     }
-
 }

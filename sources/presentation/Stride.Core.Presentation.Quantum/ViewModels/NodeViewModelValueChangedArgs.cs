@@ -11,7 +11,7 @@ public class NodeViewModelValueChangedArgs : EventArgs
         Node = node;
     }
 
-    public GraphViewModel ViewModel { get; private set; }
+    public GraphViewModel ViewModel { get; }
 
-    public NodeViewModel Node { get; private set; }
+    public NodeViewModel Node { get; }
 }

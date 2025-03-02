@@ -77,8 +77,9 @@
 
 using System;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
-using FreeImageAPI;
+
 using Stride.Core.Mathematics;
 
 using DrawingColor = System.Drawing.Color;
@@ -90,7 +91,7 @@ namespace Stride.Assets.SpriteFont.Compiler
     internal static class BitmapUtils
     {
         // Copies a rectangular area from one bitmap to another.
-        public static void CopyRect(FreeImageBitmap source, Rectangle sourceRegion, FreeImageBitmap output, Rectangle outputRegion)
+        public static void CopyRect(Bitmap source, Rectangle sourceRegion, Bitmap output, Rectangle outputRegion)
         {
             if (sourceRegion.Width != outputRegion.Width ||
                 sourceRegion.Height != outputRegion.Height)
@@ -98,90 +99,128 @@ namespace Stride.Assets.SpriteFont.Compiler
                 throw new ArgumentException();
             }
 
-            using var sourceData = new PixelAccessor(source, sourceRegion);
-            using var outputData = new PixelAccessor(output, outputRegion);
-            for (int y = 0; y < sourceRegion.Height; y++)
+            using (var sourceData = new PixelAccessor(source, ImageLockMode.ReadOnly, sourceRegion))
+            using (var outputData = new PixelAccessor(output, ImageLockMode.WriteOnly, outputRegion))
             {
+                for (int y = 0; y < sourceRegion.Height; y++)
+                {
                     for (int x = 0; x < sourceRegion.Width; x++)
                     {
                         outputData[x, y] = sourceData[x, y];
                     }
+                }
             }
         }
 
 
         // Checks whether an area of a bitmap contains entirely the specified alpha value.
-        public static bool IsAlphaEntirely(byte expectedAlpha, FreeImageBitmap bitmap, Rectangle? region = null)
+        public static bool IsAlphaEntirely(byte expectedAlpha, Bitmap bitmap, Rectangle? region = null)
         {
-            using var bitmapData = new PixelAccessor(bitmap, region);
-            for (int y = 0; y < bitmapData.Region.Height; y++)
+            using (var bitmapData = new PixelAccessor(bitmap, ImageLockMode.ReadOnly, region))
             {
-                for (int x = 0; x < bitmapData.Region.Width; x++)
+                for (int y = 0; y < bitmapData.Region.Height; y++)
                 {
-                    byte alpha = bitmapData[x, y].A;
+                    for (int x = 0; x < bitmapData.Region.Width; x++)
+                    {
+                        byte alpha = bitmapData[x, y].A;
 
-                    if (alpha != expectedAlpha)
-                        return false;
+                        if (alpha != expectedAlpha)
+                            return false;
+                    }
                 }
             }
 
             return true;
         }
 
+
+        // Checks whether a bitmap contains entirely the specified RGB value.
+        public static bool IsRgbEntirely(DrawingColor expectedRgb, Bitmap bitmap)
+        {
+            using (var bitmapData = new PixelAccessor(bitmap, ImageLockMode.ReadOnly))
+            {
+                for (int y = 0; y < bitmap.Height; y++)
+                {
+                    for (int x = 0; x < bitmap.Width; x++)
+                    {
+                        DrawingColor color = bitmapData[x, y];
+
+                        if (color.A == 0)
+                            continue;
+
+                        if ((color.R != expectedRgb.R) ||
+                            (color.G != expectedRgb.G) ||
+                            (color.B != expectedRgb.B))
+                        {
+                            return false;
+                        }
+                    }
+                }
+            }
+
+            return true;
+        }
+
+
         // Converts greyscale luminosity to alpha data.
-        public static void ConvertGreyToAlpha(FreeImageBitmap bitmap, Rectangle region)
+        public static void ConvertGreyToAlpha(Bitmap bitmap, Rectangle region)
         {
-            using var bitmapData = new PixelAccessor(bitmap, region);
-            for (int y = 0; y < region.Height; y++)
+            using (var bitmapData = new PixelAccessor(bitmap, ImageLockMode.ReadWrite, region))
             {
-                for (int x = 0; x < region.Width; x++)
+                for (int y = 0; y < region.Height; y++)
                 {
-                    var color = bitmapData[x, y];
+                    for (int x = 0; x < region.Width; x++)
+                    {
+                        var color = bitmapData[x, y];
 
-                    // Average the red, green and blue values to compute brightness.
-                    var alpha = (color.R + color.G + color.B) / 3;
+                        // Average the red, green and blue values to compute brightness.
+                        var alpha = (color.R + color.G + color.B) / 3;
 
-                    bitmapData[x, y] = DrawingColor.FromArgb(alpha, 255, 255, 255);
+                        bitmapData[x, y] = DrawingColor.FromArgb(alpha, 255, 255, 255);
+                    }
                 }
             }
         }
 
         // Converts a bitmap to premultiplied alpha format.
-        public static void PremultiplyAlphaClearType(FreeImageBitmap bitmap, bool srgb)
+        public static void PremultiplyAlphaClearType(Bitmap bitmap, bool srgb)
         {
-            using var bitmapData = new PixelAccessor(bitmap);
-            for (int y = 0; y < bitmap.Height; y++)
+            using (var bitmapData = new PixelAccessor(bitmap, ImageLockMode.ReadWrite))
             {
-                for (int x = 0; x < bitmap.Width; x++)
+                for (int y = 0; y < bitmap.Height; y++)
                 {
-                    DrawingColor color = bitmapData[x, y];
-
-                    int a;
-                    if (srgb)
+                    for (int x = 0; x < bitmap.Width; x++)
                     {
-                        var colorLinear = new Color4(new Stride.Core.Mathematics.Color(color.R, color.G, color.B)).ToLinear();
-                        var alphaLinear = (colorLinear.R + colorLinear.G + colorLinear.B) / 3.0f;
-                        a = MathUtil.Clamp((int)Math.Round(alphaLinear * 255), 0, 255);
-                    }
-                    else
-                    {
-                        a = (color.R + color.G + color.B) / 3;
-                    }
-                    int r = color.R;
-                    int g = color.G;
-                    int b = color.B;
+                        DrawingColor color = bitmapData[x, y];
 
-                    bitmapData[x, y] = DrawingColor.FromArgb(a, r, g, b);
+                        int a;
+                        if (srgb)
+                        {
+                            var colorLinear = new Color4(new Stride.Core.Mathematics.Color(color.R, color.G, color.B)).ToLinear();
+                            var alphaLinear = (colorLinear.R + colorLinear.G + colorLinear.B) / 3.0f;
+                            a = MathUtil.Clamp((int)Math.Round(alphaLinear * 255), 0, 255);
+                        }
+                        else
+                        {
+                            a = (color.R + color.G + color.B) / 3;
+                        }
+                        int r = color.R;
+                        int g = color.G;
+                        int b = color.B;
+
+                        bitmapData[x, y] = DrawingColor.FromArgb(a, r, g, b);
+                    }
                 }
             }
         }
 
         // Converts a bitmap to premultiplied alpha format.
-        public static void PremultiplyAlpha(FreeImageBitmap bitmap, bool srgb)
+        public static void PremultiplyAlpha(Bitmap bitmap, bool srgb)
         {
-            using var bitmapData = new PixelAccessor(bitmap);
-            for (int y = 0; y < bitmap.Height; y++)
+            using (var bitmapData = new PixelAccessor(bitmap, ImageLockMode.ReadWrite))
             {
+                for (int y = 0; y < bitmap.Height; y++)
+                {
                     for (int x = 0; x < bitmap.Width; x++)
                     {
                         DrawingColor color = bitmapData[x, y];
@@ -207,6 +246,7 @@ namespace Stride.Assets.SpriteFont.Compiler
 
                         bitmapData[x, y] = DrawingColor.FromArgb(a, r, g, b);
                     }
+                }
             }
         }
 
@@ -215,29 +255,30 @@ namespace Stride.Assets.SpriteFont.Compiler
         // make sure the one pixel border around each glyph contains the same RGB values as the edge of the
         // glyph itself, but with zero alpha. This processing is an elaborate no-op when using premultiplied
         // alpha, because the premultiply conversion will change the RGB of all such zero alpha pixels to black.
-        public static void PadBorderPixels(FreeImageBitmap bitmap, Rectangle region)
+        public static void PadBorderPixels(Bitmap bitmap, Rectangle region)
         {
-            using var bitmapData = new PixelAccessor(bitmap);
-            // Pad the top and bottom.
-            for (int x = region.Left; x < region.Right; x++)
+            using (var bitmapData = new PixelAccessor(bitmap, ImageLockMode.ReadWrite))
             {
-                CopyBorderPixel(bitmapData, x, region.Top, x, region.Top - 1);
-                CopyBorderPixel(bitmapData, x, region.Bottom - 1, x, region.Bottom);
-            }
+                // Pad the top and bottom.
+                for (int x = region.Left; x < region.Right; x++)
+                {
+                    CopyBorderPixel(bitmapData, x, region.Top, x, region.Top - 1);
+                    CopyBorderPixel(bitmapData, x, region.Bottom - 1, x, region.Bottom);
+                }
 
-            // Pad the left and right.
-            for (int y = region.Top; y < region.Bottom; y++)
-            {
-                CopyBorderPixel(bitmapData, region.Left, y, region.Left - 1, y);
-                CopyBorderPixel(bitmapData, region.Right - 1, y, region.Right, y);
-            }
+                // Pad the left and right.
+                for (int y = region.Top; y < region.Bottom; y++)
+                {
+                    CopyBorderPixel(bitmapData, region.Left, y, region.Left - 1, y);
+                    CopyBorderPixel(bitmapData, region.Right - 1, y, region.Right, y);
+                }
 
-            // Pad the four corners.
-            CopyBorderPixel(bitmapData, region.Left, region.Top, region.Left - 1, region.Top - 1);
-            CopyBorderPixel(bitmapData, region.Right - 1, region.Top, region.Right, region.Top - 1);
-            CopyBorderPixel(bitmapData, region.Left, region.Bottom - 1, region.Left - 1, region.Bottom);
-            CopyBorderPixel(bitmapData, region.Right - 1, region.Bottom - 1, region.Right, region.Bottom);
-            
+                // Pad the four corners.
+                CopyBorderPixel(bitmapData, region.Left, region.Top, region.Left - 1, region.Top - 1);
+                CopyBorderPixel(bitmapData, region.Right - 1, region.Top, region.Right, region.Top - 1);
+                CopyBorderPixel(bitmapData, region.Left, region.Bottom - 1, region.Left - 1, region.Bottom);
+                CopyBorderPixel(bitmapData, region.Right - 1, region.Bottom - 1, region.Right, region.Bottom);
+            }
         }
 
 
@@ -249,38 +290,44 @@ namespace Stride.Assets.SpriteFont.Compiler
             bitmapData[destX, destY] = DrawingColor.FromArgb(0, color);
         }
 
-        /// <summary>
-        /// Helper class that provides a snapshot mechanism for a bitmap, efficient read/write access to its pixels, 
-        /// and applies any changes back to the bitmap upon disposal.
-        /// </summary>
+        
+        // Converts a bitmap to the specified pixel format.
+        public static Bitmap ChangePixelFormat(Bitmap bitmap, PixelFormat format)
+        {
+            Rectangle bounds = new Rectangle(0, 0, bitmap.Width, bitmap.Height);
+
+            return bitmap.Clone(bounds, format);
+        }
+
+
+        // Helper for locking a bitmap and efficiently reading or writing its pixels.
         public sealed class PixelAccessor : IDisposable
         {
-            public PixelAccessor(FreeImageBitmap bitmap, Rectangle? region = null)
+            // Constructor locks the bitmap.
+            public PixelAccessor(Bitmap bitmap, ImageLockMode mode, Rectangle? region = null)
             {
                 this.bitmap = bitmap;
 
                 Region = region.GetValueOrDefault(new Rectangle(0, 0, bitmap.Width, bitmap.Height));
 
-                clone = bitmap.Copy(Region).ConvertTo32Bits();
+                data = bitmap.LockBits(Region, mode, PixelFormat.Format32bppArgb);
             }
-            
 
-            // Disposes the bitmap and copies any modified pixels back to the original bitmap.
+
+            // Dispose unlocks the bitmap.
             public void Dispose()
             {
-                // Copy the modified clone back to the original bitmap
-                if (clone != null)
+                if (data != null)
                 {
-                    bitmap.Paste(clone, new (Region.X, Region.Y), 255);
-                    clone.Dispose();
-                    clone = null;
+                    bitmap.UnlockBits(data);
+
+                    data = null;
                 }
             }
 
 
-
-            // Query what part of the bitmap is copied.
-            public Rectangle Region { get; }
+            // Query what part of the bitmap is locked.
+            public Rectangle Region { get; private set; }
 
 
             // Get or set a pixel value.
@@ -298,16 +345,15 @@ namespace Stride.Assets.SpriteFont.Compiler
             }
 
 
-            // Computes the address of the specified pixel in the cloned bitmap.
+            // Helper computes the address of the specified pixel.
             unsafe IntPtr PixelAddress(int x, int y)
             {
-                var pixel = (byte*)clone.GetScanlinePointer(clone.Height - y - 1) + (x * 4);
-                return new IntPtr(pixel);
+                return new IntPtr((byte*)data.Scan0 + (y * data.Stride) + (x * sizeof(int)));
             }
 
             // Fields.
-            FreeImageBitmap bitmap;
-            FreeImageBitmap clone;
+            Bitmap bitmap;
+            BitmapData data;
         }
     }
 }

@@ -30,11 +30,11 @@ public class GraphViewModel : DispatcherViewModel
     private GraphViewModel(IViewModelServiceProvider serviceProvider, Type type, IEnumerable<INodePresenter> rootPresenters)
         : base(serviceProvider)
     {
-        if (serviceProvider == null) throw new ArgumentNullException(nameof(serviceProvider));
-        if (type == null) throw new ArgumentNullException(nameof(type));
-        if (rootPresenters == null) throw new ArgumentNullException(nameof(rootPresenters));
-        GraphViewModelService = serviceProvider.TryGet<GraphViewModelService>();
-        if (GraphViewModelService == null) throw new InvalidOperationException($"{nameof(GraphViewModel)} requires a {nameof(GraphViewModelService)} in the service provider.");
+        ArgumentNullException.ThrowIfNull(serviceProvider);
+        ArgumentNullException.ThrowIfNull(type);
+        ArgumentNullException.ThrowIfNull(rootPresenters);
+        GraphViewModelService = serviceProvider.TryGet<GraphViewModelService>()
+            ?? throw new InvalidOperationException($"{nameof(GraphViewModel)} requires a {nameof(GraphViewModelService)} in the service provider.");
         Logger = GlobalLogger.GetLogger(DefaultLoggerName);
         var viewModelFactory = serviceProvider.Get<GraphViewModelService>().NodeViewModelFactory;
         viewModelFactory.CreateGraph(this, type, rootPresenters);
@@ -49,11 +49,11 @@ public class GraphViewModel : DispatcherViewModel
 
     public static GraphViewModel? Create(IViewModelServiceProvider serviceProvider, IReadOnlyCollection<IPropertyProviderViewModel> propertyProviders)
     {
-        if (serviceProvider == null) throw new ArgumentNullException(nameof(serviceProvider));
-        if (propertyProviders == null) throw new ArgumentNullException(nameof(propertyProviders));
+        ArgumentNullException.ThrowIfNull(serviceProvider);
+        ArgumentNullException.ThrowIfNull(propertyProviders);
 
         var rootNodes = new List<INodePresenter>();
-        Type type = null;
+        Type? type = null;
         var factory = serviceProvider.Get<GraphViewModelService>().NodePresenterFactory;
         foreach (var propertyProvider in propertyProviders)
         {
@@ -73,7 +73,7 @@ public class GraphViewModel : DispatcherViewModel
             rootNodes.Add(node);
         }
 
-        if (propertyProviders.Count == 0 || type == null) throw new ArgumentException($@"{nameof(propertyProviders)} cannot be empty.", nameof(propertyProviders));
+        if (propertyProviders.Count == 0 || type == null) throw new ArgumentException($"{nameof(propertyProviders)} cannot be empty.", nameof(propertyProviders));
         return new GraphViewModel(serviceProvider, type, rootNodes);
     }
 
@@ -90,12 +90,12 @@ public class GraphViewModel : DispatcherViewModel
     /// <summary>
     /// Gets the <see cref="Logger"/> associated to this view model.
     /// </summary>
-    public Logger Logger { get; private set; }
+    public Logger Logger { get; }
 
     /// <summary>
     /// Raised when the value of an <see cref="NodeViewModel"/> contained into this view model has changed.
     /// </summary>
-    public event EventHandler<NodeViewModelValueChangedArgs> NodeValueChanged;
+    public event EventHandler<NodeViewModelValueChangedArgs>? NodeValueChanged;
 
     internal void NotifyNodeChanged(NodeViewModel node)
     {

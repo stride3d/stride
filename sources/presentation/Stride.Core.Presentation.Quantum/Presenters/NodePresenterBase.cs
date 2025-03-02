@@ -10,7 +10,7 @@ namespace Stride.Core.Presentation.Quantum.Presenters;
 public abstract class NodePresenterBase : IInitializingNodePresenter
 {
     private readonly INodePresenterFactoryInternal factory;
-    private readonly List<INodePresenter> children = new();
+    private readonly List<INodePresenter> children = [];
     private HashSet<INodePresenter>? dependencies;
 
     protected NodePresenterBase(INodePresenterFactoryInternal factory, IPropertyProviderViewModel? propertyProvider, INodePresenter? parent)
@@ -52,7 +52,7 @@ public abstract class NodePresenterBase : IInitializingNodePresenter
 
     public string Name { get; protected set; }
 
-    public List<INodePresenterCommand> Commands { get; } = new List<INodePresenterCommand>();
+    public List<INodePresenterCommand> Commands { get; } = [];
 
     public abstract Type Type { get; }
 
@@ -66,13 +66,13 @@ public abstract class NodePresenterBase : IInitializingNodePresenter
 
     public abstract NodeIndex Index { get; }
 
-    public abstract ITypeDescriptor Descriptor { get; }
+    public abstract ITypeDescriptor? Descriptor { get; }
 
     public abstract object Value { get; }
 
     public string CombineKey { get; set; }
 
-    public PropertyContainerClass AttachedProperties { get; } = new PropertyContainerClass();
+    public PropertyContainerClass AttachedProperties { get; } = [];
 
     public event EventHandler<ValueChangingEventArgs>? ValueChanging;
 
@@ -101,9 +101,9 @@ public abstract class NodePresenterBase : IInitializingNodePresenter
 
     public void ChangeParent(INodePresenter newParent)
     {
-        if (newParent == null) throw new ArgumentNullException(nameof(newParent));
+        ArgumentNullException.ThrowIfNull(newParent);
 
-        var parent = (NodePresenterBase)Parent;
+        var parent = (NodePresenterBase?)Parent;
         parent?.children.Remove(this);
 
         parent = (NodePresenterBase)newParent;
@@ -121,16 +121,16 @@ public abstract class NodePresenterBase : IInitializingNodePresenter
         }
     }
 
-    public INodePresenter TryGetChild(string childName)
+    public INodePresenter? TryGetChild(string childName)
     {
         return children.FirstOrDefault(x => string.Equals(x.Name, childName, StringComparison.Ordinal));
     }
 
     public void AddDependency(INodePresenter node, bool refreshOnNestedNodeChanges)
     {
-        if (node == null) throw new ArgumentNullException(nameof(node));
+        ArgumentNullException.ThrowIfNull(node);
 
-        dependencies ??= new HashSet<INodePresenter>();
+        dependencies ??= [];
         if (dependencies.Add(node))
         {
             node.ValueChanged += DependencyChanged;
@@ -160,12 +160,12 @@ public abstract class NodePresenterBase : IInitializingNodePresenter
         }
     }
 
-    protected void RaiseValueChanging(object newValue)
+    protected void RaiseValueChanging(object? newValue)
     {
         ValueChanging?.Invoke(this, new ValueChangingEventArgs(newValue));
     }
 
-    protected void RaiseValueChanged(object oldValue)
+    protected void RaiseValueChanged(object? oldValue)
     {
         ValueChanged?.Invoke(this, new ValueChangedEventArgs(oldValue));
     }

@@ -28,7 +28,7 @@ public class NodeViewModel : DispatcherViewModel, IDynamicMetaObjectProvider
     private readonly List<string> changingProperties = [];
     private readonly GraphViewModel owner;
     private readonly List<INodePresenter> nodePresenters;
-    private List<NodeViewModel> initializingChildren = [];
+    private List<NodeViewModel>? initializingChildren = [];
     private bool isVisible;
     private bool isReadOnly;
     private string displayName;
@@ -51,7 +51,7 @@ public class NodeViewModel : DispatcherViewModel, IDynamicMetaObjectProvider
         typeof(NodeViewModel).GetProperties().Select(x => x.Name).ForEach(x => ReservedNames.Add(x));
     }
 
-    protected internal NodeViewModel(GraphViewModel ownerViewModel, NodeViewModel parent, string baseName, Type nodeType, List<INodePresenter> nodePresenters)
+    protected internal NodeViewModel(GraphViewModel ownerViewModel, NodeViewModel? parent, string baseName, Type nodeType, List<INodePresenter> nodePresenters)
         : base(ownerViewModel.ServiceProvider)
     {
         owner = ownerViewModel;
@@ -121,12 +121,13 @@ public class NodeViewModel : DispatcherViewModel, IDynamicMetaObjectProvider
     /// <summary>
     /// Gets the parent of this node.
     /// </summary>
-    public NodeViewModel Parent { get; private set; }
+    public NodeViewModel? Parent { get; private set; }
 
     /// <summary>
     /// Gets the root of this node.
     /// </summary>
-    public NodeViewModel Root {
+    public NodeViewModel Root
+    {
         get
         {
             var root = this;
@@ -149,7 +150,7 @@ public class NodeViewModel : DispatcherViewModel, IDynamicMetaObjectProvider
     /// <summary>
     /// Gets the list of children nodes.
     /// </summary>
-    public IReadOnlyCollection<NodeViewModel> Children => initializingChildren != null ? initializingChildren : children;
+    public IReadOnlyCollection<NodeViewModel> Children => (IReadOnlyCollection<NodeViewModel>?)initializingChildren ?? children;
 
     /// <summary>
     /// Gets the list of commands available in this node.
@@ -184,7 +185,7 @@ public class NodeViewModel : DispatcherViewModel, IDynamicMetaObjectProvider
     /// </summary>
     /// <remarks>Used mostly for sorting purpose.</remarks>
     /// <seealso cref="HasDictionary"/>
-    public bool HasCollection => OldCollectionDescriptor.IsCollection(Type);
+    public bool HasCollection => CollectionDescriptor.IsCollection(Type);
 
     /// <summary>
     /// Gets whether this node contains a dictionary.
@@ -238,8 +239,7 @@ public class NodeViewModel : DispatcherViewModel, IDynamicMetaObjectProvider
         {
             foreach (var command in nodePresenter.Commands)
             {
-                int count;
-                if (!commonCommands.TryGetValue(command, out count))
+                if (!commonCommands.TryGetValue(command, out var count))
                 {
                     commonCommands.Add(command, 1);
                 }
@@ -274,7 +274,7 @@ public class NodeViewModel : DispatcherViewModel, IDynamicMetaObjectProvider
     /// <summary>
     /// Returns the child node with the matching name.
     /// </summary>
-    /// <param name="name">The name of the <see cref="Stride.Core.Presentation.Quantum.ViewModels.NodeViewModel"/> to look for.</param>
+    /// <param name="name">The name of the <see cref="NodeViewModel"/> to look for.</param>
     /// <returns>The corresponding child node, or <c>null</c> if no child with the given name exists.</returns>
     public NodeViewModel? GetChild(string name)
     {
@@ -345,7 +345,7 @@ public class NodeViewModel : DispatcherViewModel, IDynamicMetaObjectProvider
 
     protected virtual object GetNodeValue()
     {
-        object currentValue = null;
+        object? currentValue = null;
         var isFirst = true;
         foreach (var nodePresenter in NodePresenters)
         {
@@ -417,7 +417,7 @@ public class NodeViewModel : DispatcherViewModel, IDynamicMetaObjectProvider
             foreach (var iType in Type.GetTypeInfo().ImplementedInterfaces)
             {
                 var iTypeInfo = iType.GetTypeInfo();
-                if (iTypeInfo.IsGenericType == false) 
+                if (!iTypeInfo.IsGenericType)
                     continue;
                 if (iTypeInfo.GetGenericTypeDefinition() != typeof(IDictionary<,>))
                     continue;
@@ -533,17 +533,17 @@ public class NodeViewModel : DispatcherViewModel, IDynamicMetaObjectProvider
         return value1?.GetType() == value2?.GetType();
     }
 
-    private void ValueChanging(object sender, ValueChangingEventArgs valueChangingEventArgs)
+    private void ValueChanging(object? sender, ValueChangingEventArgs valueChangingEventArgs)
     {
         OnValueChanging();
     }
 
-    private void ValueChanged(object sender, ValueChangedEventArgs valueChangedEventArgs)
+    private void ValueChanged(object? sender, ValueChangedEventArgs valueChangedEventArgs)
     {
         OnValueChanged();
     }
 
-    private void AttachedPropertyUpdated(ref PropertyContainer propertycontainer, PropertyKey propertykey, object newvalue, object oldvalue)
+    private void AttachedPropertyUpdated(ref PropertyContainer propertycontainer, PropertyKey propertykey, object newvalue, object? oldvalue)
     {
         // This is the only legit scenario where we don't want re-entrancy. valueChanging should not be tested directly in one
         // of those methods, because other cases could actually be problem.
@@ -581,19 +581,18 @@ public class NodeViewModel : DispatcherViewModel, IDynamicMetaObjectProvider
         valueChanging = false;
     }
 
-    private object ConvertValue(object value)
+    private object? ConvertValue(object value)
     {
         if (value == null)
             return null;
-        object convertedValue;
-        if (!TypeConverterHelper.TryConvert(value, Type, out convertedValue))
+        if (!TypeConverterHelper.TryConvert(value, Type, out var convertedValue))
             throw new InvalidCastException("Can not convert value to the required type");
         return convertedValue;
     }
 
-    private void AddChild(NodeViewModel child) => ChangeAndNotify(() => { child.Parent = this; ((ICollection<NodeViewModel>)initializingChildren ?? children).Add(child); }, $"{GraphViewModel.HasChildPrefix}{child.Name}", child.Name);
+    private void AddChild(NodeViewModel child) => ChangeAndNotify(() => { child.Parent = this; ((ICollection<NodeViewModel>?)initializingChildren ?? children).Add(child); }, $"{GraphViewModel.HasChildPrefix}{child.Name}", child.Name);
 
-    private void RemoveChild(NodeViewModel child) => ChangeAndNotify(() => { child.Parent = null; ((ICollection<NodeViewModel>)initializingChildren ?? children).Remove(child); }, $"{GraphViewModel.HasChildPrefix}{child.Name}", child.Name);
+    private void RemoveChild(NodeViewModel child) => ChangeAndNotify(() => { child.Parent = null; ((ICollection<NodeViewModel>?)initializingChildren ?? children).Remove(child); }, $"{GraphViewModel.HasChildPrefix}{child.Name}", child.Name);
 
     private void AddCommand(NodePresenterCommandWrapper command) => ChangeAndNotify(() => commands.Add(command), $"{GraphViewModel.HasCommandPrefix}{command.Name}", command.Name);
 
@@ -605,7 +604,7 @@ public class NodeViewModel : DispatcherViewModel, IDynamicMetaObjectProvider
 
     private void ChangeAndNotify(Action changeAction, params string[] propertyNames)
     {
-        if (changeAction == null) throw new ArgumentNullException(nameof(changeAction));
+        ArgumentNullException.ThrowIfNull(changeAction);
         if (initializingChildren == null)
         {
             foreach (var propertyName in propertyNames)
@@ -639,7 +638,7 @@ public class NodeViewModel : DispatcherViewModel, IDynamicMetaObjectProvider
         IsReadOnly = shouldBeReadOnly;
 
         // TODO: find a way to "merge" display name if they are different (string.Join?)
-        DisplayName = Utils.SplitCamelCase(nodePresenters.First().DisplayName);
+        DisplayName = Utils.SplitCamelCase(nodePresenters[0].DisplayName);
 
         CheckDynamicMemberConsistency();
     }
@@ -700,7 +699,7 @@ public class NodeViewModel : DispatcherViewModel, IDynamicMetaObjectProvider
 
     private static object? DefaultCombineAttachedProperty(IEnumerable<object> arg)
     {
-        object result = null;
+        object? result = null;
         bool isFirst = true;
         foreach (var value in arg)
         {

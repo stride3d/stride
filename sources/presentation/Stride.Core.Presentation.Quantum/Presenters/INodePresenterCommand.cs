@@ -11,7 +11,7 @@ public interface INodePresenterCommand
 
     bool CanAttach(INodePresenter nodePresenter);
 
-    bool CanExecute(IReadOnlyCollection<INodePresenter> nodePresenters, object ?parameter);
+    bool CanExecute(IReadOnlyCollection<INodePresenter> nodePresenters, object? parameter);
 
     Task<object?> PreExecute(IReadOnlyCollection<INodePresenter> nodePresenters, object? parameter);
 

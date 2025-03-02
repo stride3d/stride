@@ -4,6 +4,7 @@
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Assets.Presentation.ViewModels;
+using Stride.Core.Extensions;
 using Stride.Core.Presentation.Quantum;
 using Stride.Core.Presentation.Quantum.Presenters;
 
@@ -38,7 +39,8 @@ public class PickupAssetCommand : ChangeValueWithPickerCommandBase
     /// <inheritdoc/>
     public override bool CanAttach(INodePresenter nodePresenter)
     {
-        return ContentReferenceHelper.ContainsReferenceType(nodePresenter.Descriptor);
+        var type = nodePresenter.Descriptor.GetInnerCollectionType();
+        return AssetRegistry.CanBeAssignedToContentTypes(type, checkIsUrlType: true);
     }
 
     /// <inheritdoc/>
@@ -67,7 +69,7 @@ public class PickupAssetCommand : ChangeValueWithPickerCommandBase
         //var result = await assetPicker.ShowModal();
 
         var pickerResult = new PickerResult
-        {            
+        {
             // FIXME xplat-editor
             //ProcessChange = result == DialogResult.Ok,
             //NewValue = result == DialogResult.Ok ? assetPicker.SelectedAssets.FirstOrDefault() : null
@@ -95,7 +97,9 @@ public class PickupAssetCommand : ChangeValueWithPickerCommandBase
 
     protected virtual IEnumerable<Type> GetAssetTypes(Type contentType)
     {
-        return AssetRegistry.GetAssetTypes(contentType);
+        if (AssetRegistry.CanPropertyHandleAssets(contentType, out var types))
+            return types;
+        return [];
     }
 
     protected virtual AssetViewModel GetCurrentTarget(object currentValue)

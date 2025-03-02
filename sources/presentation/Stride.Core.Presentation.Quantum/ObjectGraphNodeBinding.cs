@@ -26,6 +26,8 @@ public class ObjectGraphNodeBinding<TTargetType, TContentType> : GraphNodeBindin
 
     protected override void Dispose(bool disposing)
     {
+        base.Dispose(disposing);
+
         if (disposing)
         {
             Node.ItemChanged -= ValueChanged;

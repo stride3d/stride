@@ -1,17 +1,16 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-namespace Stride.Core.Streaming
+namespace Stride.Core.Streaming;
+
+/// <summary>
+/// Interface for Streaming Manager service.
+/// </summary>
+public interface IStreamingManager
 {
     /// <summary>
-    /// Interface for Streaming Manager service.
+    /// Puts request to load given resource up to the maximum residency level.
     /// </summary>
-    public interface IStreamingManager
-    {
-        /// <summary>
-        /// Puts request to load given resource up to the maximum residency level.
-        /// </summary>
-        /// <param name="obj">The streamable resource object.</param>
-        void FullyLoadResource(object obj);
-    }
+    /// <param name="obj">The streamable resource object.</param>
+    void FullyLoadResource(object obj);
 }

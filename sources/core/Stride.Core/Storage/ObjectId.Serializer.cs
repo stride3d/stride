@@ -1,43 +1,42 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using System;
+
 using Stride.Core.Serialization;
 
-namespace Stride.Core.Storage
+namespace Stride.Core.Storage;
+
+/// <summary>
+/// A hash to uniquely identify data.
+/// </summary>
+[DataSerializer(typeof(Serializer))]
+public unsafe partial struct ObjectId
 {
-    /// <summary>
-    /// A hash to uniquely identify data.
-    /// </summary>
-    [DataSerializer(typeof(ObjectId.Serializer))]
-    public unsafe partial struct ObjectId
+    internal class Serializer : DataSerializer<ObjectId>
     {
-        internal class Serializer : DataSerializer<ObjectId>
+        public override void Serialize(ref ObjectId obj, ArchiveMode mode, SerializationStream stream)
         {
-            public override void Serialize(ref ObjectId obj, ArchiveMode mode, SerializationStream stream)
+            if (mode == ArchiveMode.Serialize)
             {
-                if (mode == ArchiveMode.Serialize)
+                var hasId = obj != Empty;
+                stream.Write(hasId);
+                if (hasId)
                 {
-                    var hasId = obj != Empty;
-                    stream.Write(hasId);
-                    if (hasId)
-                    {
-                        fixed (uint* hash = &obj.hash1)
-                            stream.Serialize((IntPtr)hash, HashSize);
-                    }
+                    fixed (uint* hash = &obj.hash1)
+                        stream.Serialize((IntPtr)hash, HashSize);
                 }
-                else if (mode == ArchiveMode.Deserialize)
+            }
+            else if (mode == ArchiveMode.Deserialize)
+            {
+                var hasId = stream.ReadBoolean();
+                if (hasId)
                 {
-                    var hasId = stream.ReadBoolean();
-                    if (hasId)
-                    {
-                        var id = new byte[HashSize];
-                        stream.Serialize(id, 0, HashSize);
-                        obj = new ObjectId(id);
-                    }
-                    else
-                    {
-                        obj = ObjectId.Empty;
-                    }
+                    var id = new byte[HashSize];
+                    stream.Serialize(id, 0, HashSize);
+                    obj = new ObjectId(id);
+                }
+                else
+                {
+                    obj = Empty;
                 }
             }
         }

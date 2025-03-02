@@ -43,7 +43,6 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-using System;
 using Xunit;
 using Stride.Core.Yaml.Events;
 using Stride.Core.Yaml.Schemas;
@@ -88,7 +87,7 @@ namespace Stride.Core.Yaml.Tests
             TryParse(schema, "2002-12-14 21:59:43.234", ExtendedSchema.TimestampShortTag, new DateTime(2002, 12, 14, 21, 59, 43, 234));
         }
 
-        private void TestFailsafeSchemaCommon(IYamlSchema schema)
+        private static void TestFailsafeSchemaCommon(IYamlSchema schema)
         {
             Assert.Equal(SchemaBase.StrShortTag, schema.GetDefaultTag(new Scalar("true")));
             Assert.Equal(SchemaBase.StrShortTag, schema.GetDefaultTag(new Scalar("custom", "boom")));
@@ -106,7 +105,7 @@ namespace Stride.Core.Yaml.Tests
             TryParse(schema, "true", SchemaBase.StrShortTag, "true");
         }
 
-        private void TestJsonSchemaCommon(IYamlSchema schema)
+        private static void TestJsonSchemaCommon(IYamlSchema schema)
         {
             Assert.Equal(SchemaBase.StrShortTag, schema.GetDefaultTag(new Scalar(null, null, "true", ScalarStyle.DoubleQuoted, false, false)));
             Assert.Equal(JsonSchema.BoolShortTag, schema.GetDefaultTag(new Scalar("true")));
@@ -132,7 +131,7 @@ namespace Stride.Core.Yaml.Tests
             TryParse(schema, ".inf", JsonSchema.FloatShortTag, double.PositiveInfinity);
         }
 
-        private void TestCoreSchemaCommon(IYamlSchema schema)
+        private static void TestCoreSchemaCommon(IYamlSchema schema)
         {
             TestJsonSchemaCommon(schema);
 
@@ -148,11 +147,9 @@ namespace Stride.Core.Yaml.Tests
             TryParse(schema, "16", JsonSchema.IntShortTag, 16);
         }
 
-        private void TryParse(IYamlSchema schema, string scalar, string expectedShortTag, object expectedValue)
+        private static void TryParse(IYamlSchema schema, string scalar, string expectedShortTag, object expectedValue)
         {
-            string tag;
-            object value;
-            Assert.True(schema.TryParse(new Scalar(scalar), true, out tag, out value));
+            Assert.True(schema.TryParse(new Scalar(scalar), true, out var tag, out var value));
             Assert.Equal(expectedShortTag, tag);
             Assert.Equal(expectedValue, value);
         }

@@ -35,6 +35,10 @@ public abstract class GraphNodeBinding<TTargetType, TContentType> : IDisposable
         GC.SuppressFinalize(this);
     }
 
+    protected virtual void Dispose(bool disposing)
+    {
+    }
+
     /// <summary>
     /// Gets the current value of the graph node.
     /// </summary>
@@ -50,21 +54,19 @@ public abstract class GraphNodeBinding<TTargetType, TContentType> : IDisposable
     /// <remarks>This method will invoke the delegates passed to the constructor of this instance if the new value is different from the previous one.</remarks>
     public abstract void SetNodeValue(TTargetType? value);
 
-    protected abstract void Dispose(bool disposing);
-
-    protected void ValueChanging(object? sender, INodeChangeEventArgs e)
+    protected void ValueChanging(object? _, INodeChangeEventArgs e)
     {
         if (!notifyChangesOnly || !Equals(e.OldValue, e.NewValue))
         {
-            propertyChanging?.Invoke(new[] { PropertyName });
+            propertyChanging?.Invoke([PropertyName]);
         }
     }
 
-    protected void ValueChanged(object? sender, INodeChangeEventArgs e)
+    protected void ValueChanged(object? _, INodeChangeEventArgs e)
     {
-        if (!notifyChangesOnly || !Equals(e.OldValue,e.NewValue))
+        if (!notifyChangesOnly || !Equals(e.OldValue, e.NewValue))
         {
-            propertyChanged?.Invoke(new[] { PropertyName });
+            propertyChanged?.Invoke([PropertyName]);
         }
     }
 }

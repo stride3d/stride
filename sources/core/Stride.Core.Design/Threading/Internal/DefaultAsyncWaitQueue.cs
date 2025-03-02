@@ -29,143 +29,133 @@ SOFTWARE.
 */
 #endregion
 
-using System;
 using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
-using Stride.Core.Annotations;
 
-namespace Stride.Core.Threading
+namespace Stride.Core.Threading;
+
+/// <summary>
+/// The default wait queue implementation, which uses a double-ended queue.
+/// </summary>
+/// <typeparam name="T">The type of the results. If this isn't needed, use <see cref="object"/>.</typeparam>
+[DebuggerDisplay("Count = {" + nameof(Count) + "}")]
+[DebuggerTypeProxy(typeof(DefaultAsyncWaitQueue<>.DebugView))]
+internal sealed class DefaultAsyncWaitQueue<T> : IAsyncWaitQueue<T>
 {
-    /// <summary>
-    /// The default wait queue implementation, which uses a double-ended queue.
-    /// </summary>
-    /// <typeparam name="T">The type of the results. If this isn't needed, use <see cref="Object"/>.</typeparam>
-    [DebuggerDisplay("Count = {" + nameof(Count) + "}")]
-    [DebuggerTypeProxy(typeof(DefaultAsyncWaitQueue<>.DebugView))]
-    internal sealed class DefaultAsyncWaitQueue<T> : IAsyncWaitQueue<T>
+    private readonly Deque<TaskCompletionSource<T>> queue = new();
+
+    private int Count
     {
-        private readonly Deque<TaskCompletionSource<T>> queue = new Deque<TaskCompletionSource<T>>();
+        get { lock (queue) { return queue.Count; } }
+    }
 
-        private int Count
+    bool IAsyncWaitQueue<T>.IsEmpty => Count == 0;
+
+    Task<T> IAsyncWaitQueue<T>.Enqueue()
+    {
+        var tcs = new TaskCompletionSource<T>();
+        lock (queue)
+            queue.AddToBack(tcs);
+        return tcs.Task;
+    }
+
+    IDisposable IAsyncWaitQueue<T>.Dequeue(T result)
+    {
+        TaskCompletionSource<T> tcs;
+        lock (queue)
+            tcs = queue.RemoveFromFront();
+        return new CompleteDisposable(result, tcs);
+    }
+
+    IDisposable IAsyncWaitQueue<T>.DequeueAll(T result)
+    {
+        TaskCompletionSource<T>[] taskCompletionSources;
+        lock (queue)
         {
-            get { lock (queue) { return queue.Count; } }
+            taskCompletionSources = queue.ToArray();
+            queue.Clear();
         }
+        return new CompleteDisposable(result, taskCompletionSources);
+    }
 
-        bool IAsyncWaitQueue<T>.IsEmpty => Count == 0;
-
-        Task<T> IAsyncWaitQueue<T>.Enqueue()
+    IDisposable IAsyncWaitQueue<T>.TryCancel(Task task)
+    {
+        TaskCompletionSource<T>? tcs = null;
+        lock (queue)
         {
-            var tcs = new TaskCompletionSource<T>();
-            lock (queue)
-                queue.AddToBack(tcs);
-            return tcs.Task;
-        }
-
-        [NotNull]
-        IDisposable IAsyncWaitQueue<T>.Dequeue(T result)
-        {
-            TaskCompletionSource<T> tcs;
-            lock (queue)
-                tcs = queue.RemoveFromFront();
-            return new CompleteDisposable(result, tcs);
-        }
-
-        [NotNull]
-        IDisposable IAsyncWaitQueue<T>.DequeueAll(T result)
-        {
-            TaskCompletionSource<T>[] taskCompletionSources;
-            lock (queue)
+            for (int i = 0; i != queue.Count; ++i)
             {
-                taskCompletionSources = queue.ToArray();
-                queue.Clear();
-            }
-            return new CompleteDisposable(result, taskCompletionSources);
-        }
-
-        [NotNull]
-        IDisposable IAsyncWaitQueue<T>.TryCancel(Task task)
-        {
-            TaskCompletionSource<T> tcs = null;
-            lock (queue)
-            {
-                for (int i = 0; i != queue.Count; ++i)
+                if (queue[i].Task == task)
                 {
-                    if (queue[i].Task == task)
-                    {
-                        tcs = queue[i];
-                        queue.RemoveAt(i);
-                        break;
-                    }
+                    tcs = queue[i];
+                    queue.RemoveAt(i);
+                    break;
                 }
             }
-            if (tcs == null)
-                return new CancelDisposable();
-            return new CancelDisposable(tcs);
+        }
+        if (tcs == null)
+            return new CancelDisposable();
+        return new CancelDisposable(tcs);
+    }
+
+    IDisposable IAsyncWaitQueue<T>.CancelAll()
+    {
+        TaskCompletionSource<T>[] taskCompletionSources;
+        lock (queue)
+        {
+            taskCompletionSources = queue.ToArray();
+            queue.Clear();
+        }
+        return new CancelDisposable(taskCompletionSources);
+    }
+
+    private sealed class CancelDisposable : IDisposable
+    {
+        private readonly TaskCompletionSource<T>[] taskCompletionSources;
+
+        public CancelDisposable(params TaskCompletionSource<T>[] taskCompletionSources)
+        {
+            this.taskCompletionSources = taskCompletionSources;
         }
 
-        [NotNull]
-        IDisposable IAsyncWaitQueue<T>.CancelAll()
+        public void Dispose()
         {
-            TaskCompletionSource<T>[] taskCompletionSources;
-            lock (queue)
-            {
-                taskCompletionSources = queue.ToArray();
-                queue.Clear();
-            }
-            return new CancelDisposable(taskCompletionSources);
+            foreach (var cts in taskCompletionSources)
+                cts.TrySetCanceledWithBackgroundContinuations();
+        }
+    }
+
+    private sealed class CompleteDisposable : IDisposable
+    {
+        private readonly TaskCompletionSource<T>[] taskCompletionSources;
+        private readonly T result;
+
+        public CompleteDisposable(T result, params TaskCompletionSource<T>[] taskCompletionSources)
+        {
+            this.result = result;
+            this.taskCompletionSources = taskCompletionSources;
         }
 
-        private sealed class CancelDisposable : IDisposable
+        public void Dispose()
         {
-            private readonly TaskCompletionSource<T>[] taskCompletionSources;
+            foreach (var cts in taskCompletionSources)
+                cts.TrySetResultWithBackgroundContinuations(result);
+        }
+    }
 
-            public CancelDisposable(params TaskCompletionSource<T>[] taskCompletionSources)
-            {
-                this.taskCompletionSources = taskCompletionSources;
-            }
+    [DebuggerNonUserCode]
+    internal sealed class DebugView
+    {
+        private readonly DefaultAsyncWaitQueue<T> queue;
 
-            public void Dispose()
-            {
-                foreach (var cts in taskCompletionSources)
-                    cts.TrySetCanceledWithBackgroundContinuations();
-            }
+        public DebugView(DefaultAsyncWaitQueue<T> queue)
+        {
+            this.queue = queue;
         }
 
-        private sealed class CompleteDisposable : IDisposable
+        [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
+        public Task<T>[] Tasks
         {
-            private readonly TaskCompletionSource<T>[] taskCompletionSources;
-            private readonly T result;
-
-            public CompleteDisposable(T result, params TaskCompletionSource<T>[] taskCompletionSources)
-            {
-                this.result = result;
-                this.taskCompletionSources = taskCompletionSources;
-            }
-
-            public void Dispose()
-            {
-                foreach (var cts in taskCompletionSources)
-                    cts.TrySetResultWithBackgroundContinuations(result);
-            }
-        }
-
-        [DebuggerNonUserCode]
-        internal sealed class DebugView
-        {
-            private readonly DefaultAsyncWaitQueue<T> queue;
-
-            public DebugView(DefaultAsyncWaitQueue<T> queue)
-            {
-                this.queue = queue;
-            }
-
-            [NotNull]
-            [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
-            public Task<T>[] Tasks
-            {
-                get { return queue.queue.Select(x => x.Task).ToArray(); }
-            }
+            get { return queue.queue.Select(x => x.Task).ToArray(); }
         }
     }
 }

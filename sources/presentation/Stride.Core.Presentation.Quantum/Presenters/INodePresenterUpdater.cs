@@ -20,7 +20,7 @@ public interface INodePresenterUpdater
     /// Finalizes the tree of node presenters. This method is called once the full tree has been generated, when
     /// any of its node has been refreshed, or when a virtual node has been added.
     /// </summary>
-    /// <param name="root">The root of of the tree.</param>
+    /// <param name="root">The root of the tree.</param>
     /// <remarks>This method should not be used to modify the hierarchy.</remarks>
     void FinalizeTree(INodePresenter root);
 }

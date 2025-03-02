@@ -12,6 +12,4 @@ namespace Stride.Core.Presentation.Collections;
 /// interface. It has no additional members.
 /// </summary>
 /// <typeparam name="T">The type of item contained in the collection.</typeparam>
-public interface IObservableCollection<T> : ICollection<T>, INotifyCollectionChanged, INotifyPropertyChanged
-{
-}
+public interface IObservableCollection<T> : ICollection<T>, INotifyCollectionChanged, INotifyPropertyChanged;

@@ -3,8 +3,6 @@
 
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Assets.Presentation.ViewModels;
-using Stride.Core.Extensions;
-using Stride.Core.Reflection;
 using Stride.Core.Serialization;
 
 namespace Stride.Core.Assets.Editor.Services;
@@ -20,7 +18,7 @@ public class ContentReferenceHelper
     /// <param name="asset">The target asset of the reference to create.</param>
     /// <returns>A reference to the given asset if it's not null and <typeparamref name="TReferenceType"/> is a valid reference type, null otherwise.</returns>
     /// <remarks>A reference type is either an <see cref="AssetReference"/> or a content type registered in the <see cref="AssetRegistry"/>.</remarks>
-    public static TReferenceType CreateReference<TReferenceType>(AssetViewModel asset) where TReferenceType : class
+    public static TReferenceType? CreateReference<TReferenceType>(AssetViewModel asset) where TReferenceType : class
     {
         return CreateReference(asset, typeof(TReferenceType)) as TReferenceType;
     }
@@ -32,25 +30,25 @@ public class ContentReferenceHelper
     /// <param name="referenceType">The type of reference to create.</param>
     /// <returns>A reference to the given asset if it's not null and <paramref name="referenceType"/> is a valid reference type, null otherwise.</returns>
     /// <remarks>A reference type is either an <see cref="AssetReference"/> or a content type registered in the <see cref="AssetRegistry"/>.</remarks>
-    public static object CreateReference(AssetViewModel asset, Type referenceType)
+    public static object? CreateReference(AssetViewModel asset, Type referenceType)
     {
-        if (asset != null)
+        if (asset == null)
+            return null;
+
+        if (UrlReferenceBase.IsUrlReferenceType(referenceType))
         {
-            if (UrlReferenceBase.IsUrlReferenceType(referenceType))
-            {
-                return UrlReferenceBase.New(referenceType, asset.AssetItem.Id, asset.AssetItem.Location);
-            }
-
-            if (AssetRegistry.IsContentType(referenceType))
-            {
-                var assetType = asset.AssetItem.Asset.GetType();
-                var contentType = AssetRegistry.GetContentType(assetType);
-                return referenceType.IsAssignableFrom(contentType) ? AttachedReferenceManager.CreateProxyObject(contentType, asset.Id, asset.Url) : null;
-            }
-
-            if (typeof(AssetReference).IsAssignableFrom(referenceType))
-                return new AssetReference(asset.AssetItem.Id, asset.AssetItem.Location);
+            return UrlReferenceBase.New(referenceType, asset.AssetItem.Id, asset.AssetItem.Location);
         }
+
+        if (AssetRegistry.CanBeAssignedToContentTypes(referenceType, checkIsUrlType: false))
+        {
+            var assetType = asset.AssetItem.Asset.GetType();
+            var contentType = AssetRegistry.GetContentType(assetType);
+            return contentType.IsAssignableTo(referenceType) ? AttachedReferenceManager.CreateProxyObject(contentType, asset.AssetItem.Id, asset.AssetItem.Location) : null;
+        }
+
+        if (referenceType.IsAssignableTo(typeof(AssetReference)))
+            return new AssetReference(asset.AssetItem.Id, asset.AssetItem.Location);
 
         return null;
     }
@@ -62,29 +60,17 @@ public class ContentReferenceHelper
     /// <param name="source">The source of the reference.</param>
     /// <returns>The view model corresponding to the referenced asset if found, null otherwise.</returns>
     /// <remarks>The <paramref name="source"/> parameter must either be an <see cref="AssetReference"/>, or a proxy object of an <see cref="AttachedReference"/>.</remarks>
-    public static AssetViewModel GetReferenceTarget(SessionViewModel session, object source)
+    public static AssetViewModel? GetReferenceTarget(SessionViewModel session, object source)
     {
-		if (source is AssetReference assetReference)
+        if (source is AssetReference assetReference)
         {
             return session.GetAssetById(assetReference.Id);
         }
-		if (source is UrlReferenceBase urlReference)
-		{
-			return session.GetAssetById(urlReference.Id);
-		}
+        if (source is UrlReferenceBase urlReference)
+        {
+            return session.GetAssetById(urlReference.Id);
+        }
         var reference = AttachedReferenceManager.GetAttachedReference(source);
         return reference != null ? session.GetAssetById(reference.Id) : null;
-    }
-
-    /// <summary>
-    /// Indicates if the given type descriptor represents a reference type, or a collection of reference types.
-    /// </summary>
-    /// <param name="typeDescriptor">The type descriptor to analyze.</param>
-    /// <returns>True if the type descriptor represents a reference type, false otherwise.</returns>
-    /// <remarks>A reference type is either an <see cref="AssetReference"/> or a content type registered in the <see cref="AssetRegistry"/>.</remarks>
-    public static bool ContainsReferenceType(ITypeDescriptor typeDescriptor)
-    {
-        var type = typeDescriptor.GetInnerCollectionType();
-        return typeof(AssetReference).IsAssignableFrom(type) || UrlReferenceBase.IsUrlReferenceType(type) || AssetRegistry.IsContentType(type);
     }
 }

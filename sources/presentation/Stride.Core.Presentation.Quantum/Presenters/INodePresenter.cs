@@ -34,7 +34,7 @@ public interface INodePresenter : IDisposable
 
     NodeIndex Index { get; }
 
-    ITypeDescriptor Descriptor { get; }
+    ITypeDescriptor? Descriptor { get; }
 
     int? Order { get; set; }
 
@@ -46,9 +46,9 @@ public interface INodePresenter : IDisposable
 
     INodePresenterFactory Factory { get; }
 
-    event EventHandler<ValueChangingEventArgs> ValueChanging;
+    event EventHandler<ValueChangingEventArgs>? ValueChanging;
 
-    event EventHandler<ValueChangedEventArgs> ValueChanged;
+    event EventHandler<ValueChangedEventArgs>? ValueChanged;
 
     void UpdateValue(object newValue);
 
