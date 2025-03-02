@@ -32,7 +32,7 @@ public abstract class KeyedSortedList<TKey, T> : ICollection<T>, ICollection
     /// </summary>
     /// <param name="item">The element from which to extract the key.</param>
     /// <returns>The key for the specified item.</returns>
-    protected abstract TKey? GetKeyForItem(T? item);
+    protected abstract TKey GetKeyForItem(T item);
 
     /// <summary>
     /// Called every time an item should be added at a given index.
@@ -208,7 +208,7 @@ public abstract class KeyedSortedList<TKey, T> : ICollection<T>, ICollection
         return new Enumerator(items);
     }
 
-    public int BinarySearch(TKey? searchKey)
+    public int BinarySearch(TKey searchKey)
     {
         var values = items.Items;
         var start = 0;
@@ -246,9 +246,15 @@ public abstract class KeyedSortedList<TKey, T> : ICollection<T>, ICollection
             this.list = list;
         }
 
-        public int Compare(T? x, T? y)
+        public readonly int Compare(T? x, T? y)
         {
-            return list.comparer.Compare(list.GetKeyForItem(x), list.GetKeyForItem(y));
+            if (x is not null)
+            {
+                if (y is not null) return list.comparer.Compare(list.GetKeyForItem(x), list.GetKeyForItem(y));
+                return 1;
+            }
+            if (y is not null) return -1;
+            return 0;
         }
     }
 

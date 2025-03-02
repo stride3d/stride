@@ -99,7 +99,7 @@ namespace Stride.Core.Assets.CompilerApp.Tasks
             }
 
             var assetOutputPath = UPath.Combine(outputPath, (UDirectory)"Assets");
-            var assets = Package.ListAssetFiles(logger, package, true, true, null);
+            var assets = Package.ListAssetFiles(package, true, true);
             if (assets.Count > 0)
             {
                 newPackage.AssetFolders.Add(new AssetFolder(assetOutputPath));

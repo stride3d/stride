@@ -17,7 +17,7 @@ public sealed class UFile : UPath
     /// Initializes a new instance of the <see cref="UFile"/> class.
     /// </summary>
     /// <param name="filePath">The file path.</param>
-    public UFile(string filePath)
+    public UFile(string? filePath)
         : base(filePath, false)
     {
     }
@@ -145,7 +145,7 @@ public sealed class UFile : UPath
     }
 
     /// <summary>
-    /// Performs an implicit conversion from <see cref="System.String"/> to <see cref="UPath"/>.
+    /// Performs an implicit conversion from <see cref="string"/> to <see cref="UPath"/>.
     /// </summary>
     /// <param name="fullPath">The full path.</param>
     /// <returns>The result of the conversion.</returns>

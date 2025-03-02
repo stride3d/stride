@@ -1,13 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using Stride.Core.Diagnostics;
 using Stride.Core.Extensions;
 using Stride.Core.IO;
@@ -15,758 +9,737 @@ using Stride.Core.MicroThreading;
 using Stride.Core.Serialization.Contents;
 using Stride.Core.Storage;
 
-namespace Stride.Core.BuildEngine
+namespace Stride.Core.BuildEngine;
+
+public class Builder : IDisposable
 {
-    public class Builder : IDisposable
+    public const int ExpectedVersion = 4;
+    public static readonly string DoNotCompressTag = "DoNotCompress";
+    public static readonly string DoNotPackTag = "DoNotPack";
+
+    #region Public Members
+
+    public const string MonitorPipeName = "Stride/BuildEngine/Monitor";
+
+    public readonly ISet<ObjectId> DisableCompressionIds = new HashSet<ObjectId>();
+
+    /// <summary>
+    /// Gets the <see cref="ObjectDatabase"/> in which built objects are written.
+    /// </summary>
+    public static ObjectDatabase? ObjectDatabase { get; private set; }
+
+    /// <summary>
+    /// The <see cref="Guid"/> assigned to the builder.
+    /// </summary>
+    public Guid BuilderId { get; }
+
+    /// <summary>
+    /// Builder name
+    /// </summary>
+    public string BuilderName { get; set; }
+
+    /// <summary>
+    /// Indicate whether the build has been canceled
+    /// </summary>
+    public bool Cancelled { get; protected set; }
+
+    public IDictionary<string, string> InitialVariables { get; }
+
+    /// <summary>
+    /// Indicate whether this builder is currently running.
+    /// </summary>
+    public bool IsRunning { get; protected set; }
+
+    /// <summary>
+    /// Logger used by the builder and the commands
+    /// </summary>
+    public ILogger Logger { get; }
+
+    public List<string> MonitorPipeNames { get; }
+
+    /// <summary>
+    /// The root build step of the builder defining the builds to perform.
+    /// </summary>
+    public ListBuildStep Root { get; private set; }
+
+    /// <summary>
+    /// Number of working threads to create
+    /// </summary>
+    public int ThreadCount { get; set; }
+
+    public CommandBuildStep.TryExecuteRemoteDelegate TryExecuteRemote { get; set; }
+
+    /// <summary>
+    /// Indicate which mode to use with this builder
+    /// </summary>
+    public enum Mode
     {
-        public const int ExpectedVersion = 4;
-        public static readonly string DoNotCompressTag = "DoNotCompress";
-        public static readonly string DoNotPackTag = "DoNotPack";
-
-        #region Public Members
-
-        public const string MonitorPipeName = "Stride/BuildEngine/Monitor";
-
-        public readonly ISet<ObjectId> DisableCompressionIds = new HashSet<ObjectId>();
+        /// <summary>
+        /// Build the script
+        /// </summary>
+        Build,
 
         /// <summary>
-        /// Gets the <see cref="ObjectDatabase"/> in which built objects are written.
+        /// Clean the command cache used to determine wheither a command has already been triggered.
         /// </summary>
-        public static ObjectDatabase ObjectDatabase { get; private set; }
+        Clean,
 
         /// <summary>
-        /// The <see cref="Guid"/> assigned to the builder.
+        /// Clean the command cache and delete every output objects
         /// </summary>
-        public Guid BuilderId { get; }
+        CleanAndDelete,
+    }
 
-        /// <summary>
-        /// Builder name
-        /// </summary>
-        public string BuilderName { get; set; }
+    #endregion Public Members
 
-        /// <summary>
-        /// Indicate whether the build has been canceled
-        /// </summary>
-        public bool Cancelled { get; protected set; }
+    #region Private Members
 
-        public IDictionary<string, string> InitialVariables { get; }
+    /// <summary>
+    /// The path on the disk where to perform the build
+    /// </summary>
+    private readonly string buildPath;
 
-        /// <summary>
-        /// Indicate whether this builder is currently running.
-        /// </summary>
-        public bool IsRunning { get; protected set; }
+    /// <summary>
+    /// The name on the disk of the index file name.
+    /// </summary>
+    private readonly string indexName;
 
-        /// <summary>
-        /// Logger used by the builder and the commands
-        /// </summary>
-        public ILogger Logger { get; }
+    private readonly CommandIOMonitor ioMonitor;
 
-        public List<string> MonitorPipeNames { get; }
+    private readonly DateTime startTime;
 
-        /// <summary>
-        /// The root build step of the builder defining the builds to perform.
-        /// </summary>
-        public ListBuildStep Root { get; private set; }
+    private readonly StepCounter stepCounter = new();
 
-        /// <summary>
-        /// Number of working threads to create
-        /// </summary>
-        public int ThreadCount { get; set; }
+    /// <summary>
+    /// Cancellation token source used for cancellation.
+    /// </summary>
+    private CancellationTokenSource cancellationTokenSource;
 
-        public CommandBuildStep.TryExecuteRemoteDelegate TryExecuteRemote { get; set; }
+    /// <summary>
+    /// A map containing results of each commands, indexed by command hashes. When the builder is running, this map if filled with the result of the commands of the current execution.
+    /// </summary>
+    private ObjectDatabase? resultMap;
 
-        /// <summary>
-        /// Indicate which mode to use with this builder
-        /// </summary>
-        public enum Mode
+    /// <summary>
+    /// The build mode of the current run execution
+    /// </summary>
+    private Mode runMode;
+
+    private Scheduler scheduler;
+
+    #endregion Private Members
+
+    /// <summary>
+    /// The full path of the index file from the build directory.
+    /// </summary>
+    private string? IndexFileFullPath => indexName != null ? VirtualFileSystem.ApplicationDatabasePath + VirtualFileSystem.DirectorySeparatorChar + indexName : null;
+
+    #region Methods
+
+    public Builder(ILogger logger, string buildPath, string indexName)
+    {
+        MonitorPipeNames = [];
+        startTime = DateTime.Now;
+        this.indexName = indexName;
+        Logger = logger;
+        this.buildPath = buildPath ?? throw new ArgumentNullException(nameof(buildPath));
+        Root = new ListBuildStep();
+        ioMonitor = new CommandIOMonitor(Logger);
+        ThreadCount = Environment.ProcessorCount;
+        BuilderId = Guid.NewGuid();
+        InitialVariables = new Dictionary<string, string>();
+    }
+
+    public static void CloseObjectDatabase()
+    {
+        var db = ObjectDatabase;
+        ObjectDatabase = null;
+        db?.Dispose();
+    }
+
+    public static void OpenObjectDatabase(string buildPath, string indexName)
+    {
+        // Mount build path
+        ((FileSystemProvider)VirtualFileSystem.ApplicationData).ChangeBasePath(buildPath);
+        // Note: this has to be done after VFS.ChangeBasePath
+        ObjectDatabase ??= new ObjectDatabase(VirtualFileSystem.ApplicationDatabasePath, indexName, null, false);
+    }
+
+    /// <summary>
+    /// Cancel the currently executing build.
+    /// </summary>
+    public void CancelBuild()
+    {
+        if (IsRunning)
         {
-            /// <summary>
-            /// Build the script
-            /// </summary>
-            Build,
-
-            /// <summary>
-            /// Clean the command cache used to determine wheither a command has already been triggered.
-            /// </summary>
-            Clean,
-
-            /// <summary>
-            /// Clean the command cache and delete every output objects
-            /// </summary>
-            CleanAndDelete,
+            Cancelled = true;
+            cancellationTokenSource.Cancel();
         }
+    }
 
-        #endregion Public Members
+    public void Dispose()
+    {
+        CloseObjectDatabase();
+    }
 
-        #region Private Members
+    /// <summary>
+    /// Discard the current <see cref="Root"/> build step and initialize a new empty one.
+    /// </summary>
+    public void Reset()
+    {
+        Root = new ListBuildStep();
+        stepCounter.Clear();
+    }
 
-        /// <summary>
-        /// The path on the disk where to perform the build
-        /// </summary>
-        private readonly string buildPath;
+    /// <summary>
+    /// Runs this instance.
+    /// </summary>
+    public BuildResultCode Run(Mode mode, bool writeIndexFile = true)
+    {
+        // When we setup the database ourself we have to take responsibility to close it after
+        var shouldCloseDatabase = ObjectDatabase == null;
+        OpenObjectDatabase(buildPath, indexName);
 
-        /// <summary>
-        /// The name on the disk of the index file name.
-        /// </summary>
-        private readonly string indexName;
+        PreRun();
 
-        private readonly CommandIOMonitor ioMonitor;
+        runMode = mode;
 
-        private readonly DateTime startTime;
+        if (IsRunning)
+            throw new InvalidOperationException("An instance of this Builder is already running.");
 
-        private readonly StepCounter stepCounter = new StepCounter();
+        // reset build cache from previous build run
+        cancellationTokenSource = new CancellationTokenSource();
+        Cancelled = false;
+        IsRunning = true;
+        DisableCompressionIds.Clear();
 
-        /// <summary>
-        /// Cancellation token source used for cancellation.
-        /// </summary>
-        private CancellationTokenSource cancellationTokenSource;
-
-        /// <summary>
-        /// A map containing results of each commands, indexed by command hashes. When the builder is running, this map if filled with the result of the commands of the current execution.
-        /// </summary>
-        private ObjectDatabase resultMap;
-
-        /// <summary>
-        /// The build mode of the current run execution
-        /// </summary>
-        private Mode runMode;
-
-        private Scheduler scheduler;
-
-        #endregion Private Members
-
-        /// <summary>
-        /// The full path of the index file from the build directory.
-        /// </summary>
-        private string IndexFileFullPath => indexName != null ? VirtualFileSystem.ApplicationDatabasePath + VirtualFileSystem.DirectorySeparatorChar + indexName : null;
-
-        #region Methods
-
-        public Builder(ILogger logger, string buildPath, string indexName)
+        // Reseting result map
+        var inputHashes = FileVersionTracker.GetDefault();
         {
-            MonitorPipeNames = new List<string>();
-            startTime = DateTime.Now;
-            this.indexName = indexName;
-            Logger = logger;
-            this.buildPath = buildPath ?? throw new ArgumentNullException(nameof(buildPath));
-            Root = new ListBuildStep();
-            ioMonitor = new CommandIOMonitor(Logger);
-            ThreadCount = Environment.ProcessorCount;
-            BuilderId = Guid.NewGuid();
-            InitialVariables = new Dictionary<string, string>();
-        }
+            var builderContext = new BuilderContext(inputHashes, TryExecuteRemote);
 
-        public static void CloseObjectDatabase()
-        {
-            var db = ObjectDatabase;
-            ObjectDatabase = null;
-            db?.Dispose();
-        }
+            resultMap = ObjectDatabase;
 
-        public static void OpenObjectDatabase(string buildPath, string indexName)
-        {
-            // Mount build path
-            ((FileSystemProvider)VirtualFileSystem.ApplicationData).ChangeBasePath(buildPath);
-            if (ObjectDatabase == null)
+            scheduler = new Scheduler();
+
+            // Schedule the build
+            ScheduleBuildStep(builderContext, null, Root, InitialVariables);
+
+            // Create threads
+            var threads = Enumerable.Range(0, ThreadCount).Select(x => new Thread(SafeAction.Wrap(RunUntilEnd)) { IsBackground = true }).ToArray();
+
+            // Start threads
+            int threadId = 0;
+            foreach (var thread in threads)
             {
-                // Note: this has to be done after VFS.ChangeBasePath
-                ObjectDatabase = new ObjectDatabase(VirtualFileSystem.ApplicationDatabasePath, indexName, null, false);
+                thread.Name = (BuilderName ?? "Builder") + " worker thread " + (++threadId);
+                thread.Start();
+            }
+
+            // Wait for all threads to finish
+            foreach (var thread in threads)
+            {
+                thread.Join();
             }
         }
 
-        /// <summary>
-        /// Cancel the currently executing build.
-        /// </summary>
-        public void CancelBuild()
+        BuildResultCode result;
+
+        if (runMode == Mode.Build)
         {
-            if (IsRunning)
+            if (cancellationTokenSource.IsCancellationRequested)
             {
-                Cancelled = true;
-                cancellationTokenSource.Cancel();
+                Logger.Error("Build cancelled.");
+                result = BuildResultCode.Cancelled;
+            }
+            else if (stepCounter.Get(ResultStatus.Failed) > 0 || stepCounter.Get(ResultStatus.NotTriggeredPrerequisiteFailed) > 0)
+            {
+                Logger.Error($"Build finished in {stepCounter.Total} steps. Command results: {stepCounter.Get(ResultStatus.Successful)} succeeded, {stepCounter.Get(ResultStatus.NotTriggeredWasSuccessful)} up-to-date, {stepCounter.Get(ResultStatus.Failed)} failed, {stepCounter.Get(ResultStatus.NotTriggeredPrerequisiteFailed)} not triggered due to previous failure.");
+                Logger.Error("Build failed.");
+                result = BuildResultCode.BuildError;
+            }
+            else
+            {
+                Logger.Info($"Build finished in {stepCounter.Total} steps. Command results: {stepCounter.Get(ResultStatus.Successful)} succeeded, {stepCounter.Get(ResultStatus.NotTriggeredWasSuccessful)} up-to-date, {stepCounter.Get(ResultStatus.Failed)} failed, {stepCounter.Get(ResultStatus.NotTriggeredPrerequisiteFailed)} not triggered due to previous failure.");
+                Logger.Info("Build is successful.");
+                result = BuildResultCode.Successful;
             }
         }
+        else
+        {
+            var modeName = runMode switch
+            {
+                Mode.Clean => "Clean",
+                Mode.CleanAndDelete => "Clean-and-delete",
+                _ => throw new InvalidOperationException("Builder executed in unknown mode."),
+            };
+            if (cancellationTokenSource.IsCancellationRequested)
+            {
+                Logger.Error(modeName + " has been cancelled.");
+                result = BuildResultCode.Cancelled;
+            }
+            else if (stepCounter.Get(ResultStatus.Failed) > 0 || stepCounter.Get(ResultStatus.NotTriggeredPrerequisiteFailed) > 0)
+            {
+                Logger.Error(modeName + " has failed.");
+                result = BuildResultCode.BuildError;
+            }
+            else
+            {
+                Logger.Error(modeName + " has been successfully completed.");
+                result = BuildResultCode.Successful;
+            }
+        }
+        scheduler = null;
+        resultMap = null;
+        IsRunning = false;
 
-        public void Dispose()
+        if (shouldCloseDatabase)
         {
             CloseObjectDatabase();
         }
 
-        /// <summary>
-        /// Discard the current <see cref="Root"/> build step and initialize a new empty one.
-        /// </summary>
-        public void Reset()
+        return result;
+    }
+
+    /// <summary>
+    /// Write the generated objects into the index map file.
+    /// </summary>
+    /// <param name="mergeWithCurrentIndexFile">Indicate if old values must be deleted or merged</param>
+    public void WriteIndexFile(bool mergeWithCurrentIndexFile)
+    {
+        if (!mergeWithCurrentIndexFile)
         {
-            Root = new ListBuildStep();
-            stepCounter.Clear();
+            VirtualFileSystem.FileDelete(IndexFileFullPath);
         }
 
-        /// <summary>
-        /// Runs this instance.
-        /// </summary>
-        public BuildResultCode Run(Mode mode, bool writeIndexFile = true)
+        using var indexFile = ContentIndexMap.NewTool(indexName);
+        // Filter database Location
+        indexFile.AddValues(
+            Root.OutputObjects.Where(x => x.Key.Type == UrlType.Content)
+                .Select(x => new KeyValuePair<string, ObjectId>(x.Key.Path, x.Value.ObjectId)));
+
+        foreach (var outputObject in Root.OutputObjects.Where(x => x.Key.Type == UrlType.Content).Select(x => x.Value))
         {
-            // When we setup the database ourself we have to take responsibility to close it after
-            var shouldCloseDatabase = ObjectDatabase == null;
-            OpenObjectDatabase(buildPath, indexName);
+            if (outputObject.Tags.Contains(DoNotCompressTag))
+                DisableCompressionIds.Add(outputObject.ObjectId);
+        }
+    }
 
-            PreRun();
+    private static IEnumerable<CommandBuildStep> CollectCommandSteps(BuildStep step)
+    {
+        if (step is CommandBuildStep commandBuildStep)
+        {
+            yield return commandBuildStep;
+        }
 
-            runMode = mode;
-
-            if (IsRunning)
-                throw new InvalidOperationException("An instance of this Builder is already running.");
-
-            // reset build cache from previous build run
-            cancellationTokenSource = new CancellationTokenSource();
-            Cancelled = false;
-            IsRunning = true;
-            DisableCompressionIds.Clear();
-
-            // Reseting result map
-            var inputHashes = FileVersionTracker.GetDefault();
+        // NOTE: We assume that only EnumerableBuildStep is the base class for sub-steps and that ContentReferencable BuildStep are accessible from them (not through dynamic build step)
+        var enumerateBuildStep = step as ListBuildStep;
+        if (enumerateBuildStep?.Steps != null)
+        {
+            foreach (var subStep in enumerateBuildStep.Steps)
             {
-                var builderContext = new BuilderContext(inputHashes, TryExecuteRemote);
-
-                resultMap = ObjectDatabase;
-
-                scheduler = new Scheduler();
-
-                // Schedule the build
-                ScheduleBuildStep(builderContext, null, Root, InitialVariables);
-
-                // Create threads
-                var threads = Enumerable.Range(0, ThreadCount).Select(x => new Thread(SafeAction.Wrap(RunUntilEnd)) { IsBackground = true }).ToArray();
-
-                // Start threads
-                int threadId = 0;
-                foreach (var thread in threads)
+                foreach (var command in CollectCommandSteps(subStep))
                 {
-                    thread.Name = (BuilderName ?? "Builder") + " worker thread " + (++threadId);
-                    thread.Start();
+                    yield return command;
                 }
+            }
+        }
+    }
 
-                // Wait for all threads to finish
-                foreach (var thread in threads)
+    private static void CollectContentReferenceDependencies(BuildStep step, HashSet<string> locations)
+    {
+        // For each CommandStep for the current build step, collects all dependencies to ContenrReference-BuildStep
+        foreach (var commandStep in CollectCommandSteps(step))
+        {
+            foreach (var inputFile in commandStep.Command.GetInputFiles())
+            {
+                if (inputFile.Type == UrlType.Content)
                 {
-                    thread.Join();
+                    locations.Add(inputFile.Path);
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Collects dependencies between <see cref="BuildStep.OutputLocation"/> BuildStep. See remarks.
+    /// </summary>
+    /// <param name="step">The step to compute the dependencies for</param>
+    /// <param name="contentBuildSteps">A cache of content reference location to buildsteps </param>
+    /// <remarks>
+    /// Each BuildStep inheriting from <see cref="BuildStep.OutputLocation"/> is considered as a top-level dependency step that can have depedencies
+    /// on other top-level dependency. We are collecting all of them here.
+    /// </remarks>
+    private static void PrepareDependencyGraph(BuildStep step, Dictionary<string, KeyValuePair<BuildStep, HashSet<string>>> contentBuildSteps)
+    {
+        step.ProcessedDependencies = true;
+
+        var outputLocation = step.OutputLocation;
+        if (outputLocation != null)
+        {
+            var dependencies = new HashSet<string>();
+            if (!contentBuildSteps.ContainsKey(outputLocation))
+            {
+                contentBuildSteps.Add(outputLocation, new KeyValuePair<BuildStep, HashSet<string>>(step, dependencies));
+                CollectContentReferenceDependencies(step, dependencies);
+                foreach (var prerequisiteStep in step.PrerequisiteSteps)
+                {
+                    PrepareDependencyGraph(prerequisiteStep, contentBuildSteps);
                 }
             }
 
-            BuildResultCode result;
+            // If we have a reference, we don't need to iterate further
+            return;
+        }
+
+        // NOTE: We assume that only ListBuildStep is the base class for sub-steps and that ContentReferencable BuildStep are accessible from them (not through dynamic build step)
+        var enumerateBuildStep = step as ListBuildStep;
+        if (enumerateBuildStep?.Steps != null)
+        {
+            foreach (var subStep in enumerateBuildStep.Steps)
+            {
+                PrepareDependencyGraph(subStep, contentBuildSteps);
+            }
+        }
+    }
+
+    private void ComputeDependencyGraph(Dictionary<string, KeyValuePair<BuildStep, HashSet<string>>> contentBuildSteps)
+    {
+        foreach (var item in contentBuildSteps)
+        {
+            var step = item.Value.Key;
+            var dependencies = item.Value.Value;
+            foreach (var dependency in dependencies)
+            {
+                if (contentBuildSteps.TryGetValue(dependency, out var deps))
+                {
+                    BuildStep.LinkBuildSteps(deps.Key, step);
+                }
+                else
+                {
+                    // TODO: Either something is wrong, or it's because dependencies added afterwise (incremental) are not supported yet
+                    Logger.Error($"BuildStep [{step}] depends on [{dependency}] but nothing that generates it could be found (or maybe incremental dependencies need to be implemented)");
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Collects dependencies between <see cref="BuildStep.OutputLocation"/> and fill the <see cref="BuildStep.PrerequisiteSteps"/> accordingly.
+    /// </summary>
+    /// <param name="rootStep">The root BuildStep</param>
+    private void GenerateDependencies(BuildStep rootStep)
+    {
+        // TODO: Support proper incremental dependecies
+        if (rootStep.ProcessedDependencies)
+            return;
+
+        rootStep.ProcessedDependencies = true;
+
+        var contentBuildSteps = new Dictionary<string, KeyValuePair<BuildStep, HashSet<string>>>();
+        PrepareDependencyGraph(rootStep, contentBuildSteps);
+        ComputeDependencyGraph(contentBuildSteps);
+    }
+
+    private void PreRun()
+    {
+        var objectDatabase = Builder.ObjectDatabase;
+
+        // Check current database version, and erase it if too old
+        int currentVersion = ExpectedVersion;
+        var versionFile = Path.Combine(VirtualFileSystem.GetAbsolutePath(VirtualFileSystem.ApplicationDatabasePath), "version");
+        if (File.Exists(versionFile))
+        {
+            try
+            {
+                var versionText = File.ReadAllText(versionFile);
+                currentVersion = int.Parse(versionText);
+            }
+            catch (Exception e)
+            {
+                e.Ignore();
+                currentVersion = 0;
+            }
+        }
+
+        // Prepare data base directories
+        var databasePathSplits = VirtualFileSystem.ApplicationDatabasePath.Split('/');
+        var accumulatorPath = "/";
+        foreach (var pathPart in databasePathSplits.Where(x => x != ""))
+        {
+            accumulatorPath += pathPart + "/";
+            VirtualFileSystem.CreateDirectory(accumulatorPath);
+        }
+
+        if (currentVersion != ExpectedVersion)
+        {
+            var looseObjects = objectDatabase.EnumerateLooseObjects().ToArray();
+
+            if (looseObjects.Length > 0)
+            {
+                Logger.Info($"Database version number has been updated from {currentVersion} to {ExpectedVersion}, erasing all objects...");
+
+                // Database version has been updated, let's clean it
+                foreach (var objectId in looseObjects)
+                {
+                    try
+                    {
+                        objectDatabase.Delete(objectId);
+                    }
+                    catch (IOException)
+                    {
+                    }
+                }
+            }
+
+            // Create directory
+            File.WriteAllText(versionFile, ExpectedVersion.ToString(CultureInfo.InvariantCulture));
+        }
+    }
+
+    private void RunUntilEnd()
+    {
+
+        while (true)
+        {
+            scheduler.Run();
+
+            // Exit loop if no more micro threads
+            lock (scheduler.MicroThreads)
+            {
+                if (scheduler.MicroThreads.Count == 0)
+                    break;
+            }
+
+            // TODO: improve how we wait for work. Thread.Sleep(0) uses too much CPU.
+            Thread.Sleep(1);
+        }
+    }
+
+    private void ScheduleBuildStep(BuilderContext builderContext, BuildStep instigator, BuildStep buildStep, IDictionary<string, string> variables)
+    {
+        if (buildStep.ExecutionId == 0)
+        {
+            if (buildStep.Parent != null && buildStep.Parent != instigator)
+                throw new InvalidOperationException("Scheduling a BuildStep with a different instigator that its parent");
+            buildStep.Parent ??= instigator;
+
+            // Compute content dependencies before scheduling the build
+            GenerateDependencies(buildStep);
+
+            // TODO: Big review of the log infrastructure of CompilerApp & BuildEngine!
+            // Create a logger that redirects to various places (BuildStep.Logger, timestampped log, global log, etc...)
+            var buildStepLogger = new BuildStepLogger(buildStep, Logger, startTime);
+            var logger = (Logger)buildStepLogger;
+            // Apply user-registered callbacks to the logger
+            buildStep.TransformExecuteContextLogger?.Invoke(ref logger);
+
+            // Create execute context
+            var executeContext = new ExecuteContext(this, builderContext, buildStep, logger) { Variables = new Dictionary<string, string>(variables) };
+            //buildStep.ExpandStrings(executeContext);
 
             if (runMode == Mode.Build)
             {
-                if (cancellationTokenSource.IsCancellationRequested)
-                {
-                    Logger.Error("Build cancelled.");
-                    result = BuildResultCode.Cancelled;
-                }
-                else if (stepCounter.Get(ResultStatus.Failed) > 0 || stepCounter.Get(ResultStatus.NotTriggeredPrerequisiteFailed) > 0)
-                {
-                    Logger.Error($"Build finished in {stepCounter.Total} steps. Command results: {stepCounter.Get(ResultStatus.Successful)} succeeded, {stepCounter.Get(ResultStatus.NotTriggeredWasSuccessful)} up-to-date, {stepCounter.Get(ResultStatus.Failed)} failed, {stepCounter.Get(ResultStatus.NotTriggeredPrerequisiteFailed)} not triggered due to previous failure.");
-                    Logger.Error("Build failed.");
-                    result = BuildResultCode.BuildError;
-                }
-                else
-                {
-                    Logger.Info($"Build finished in {stepCounter.Total} steps. Command results: {stepCounter.Get(ResultStatus.Successful)} succeeded, {stepCounter.Get(ResultStatus.NotTriggeredWasSuccessful)} up-to-date, {stepCounter.Get(ResultStatus.Failed)} failed, {stepCounter.Get(ResultStatus.NotTriggeredPrerequisiteFailed)} not triggered due to previous failure.");
-                    Logger.Info("Build is successful.");
-                    result = BuildResultCode.Successful;
-                }
-            }
-            else
-            {
-                string modeName;
-                switch (runMode)
-                {
-                    case Mode.Clean:
-                        modeName = "Clean";
-                        break;
+                MicroThread microThread = scheduler.Create();
 
-                    case Mode.CleanAndDelete:
-                        modeName = "Clean-and-delete";
-                        break;
-
-                    default:
-                        throw new InvalidOperationException("Builder executed in unknown mode.");
+                // Set priority from this build step, if we have one.
+                if (buildStep.Priority.HasValue)
+                {
+                    microThread.Priority = buildStep.Priority.Value;
                 }
 
-                if (cancellationTokenSource.IsCancellationRequested)
+                buildStep.ExecutionId = microThread.Id;
+
+                microThread.Name = buildStep.ToString();
+
+                // Default:
+                // Schedule continuations as early as possible to help EnumerableBuildStep finish when all its task are finished.
+                // Otherwise, it would wait for all leaf to finish first before finishing parent EnumerableBuildStep.
+                // This should also reduce memory usage, and might improve cache coherency as well.
+                microThread.ScheduleMode = ScheduleMode.First;
+
+                microThread.Start(async () =>
                 {
-                    Logger.Error(modeName + " has been cancelled.");
-                    result = BuildResultCode.Cancelled;
-                }
-                else if (stepCounter.Get(ResultStatus.Failed) > 0 || stepCounter.Get(ResultStatus.NotTriggeredPrerequisiteFailed) > 0)
-                {
-                    Logger.Error(modeName + " has failed.");
-                    result = BuildResultCode.BuildError;
-                }
-                else
-                {
-                    Logger.Error(modeName + " has been successfully completed.");
-                    result = BuildResultCode.Successful;
-                }
-            }
-            scheduler = null;
-            resultMap = null;
-            IsRunning = false;
+                    // Wait for prerequisites
+                    await Task.WhenAll(buildStep.PrerequisiteSteps.Select(x => x.ExecutedAsync()).ToArray());
 
-            if (shouldCloseDatabase)
-            {
-                CloseObjectDatabase();
-            }
+                    // Check for failed prerequisites
+                    var status = ResultStatus.NotProcessed;
 
-            return result;
-        }
-
-        /// <summary>
-        /// Write the generated objects into the index map file.
-        /// </summary>
-        /// <param name="mergeWithCurrentIndexFile">Indicate if old values must be deleted or merged</param>
-        public void WriteIndexFile(bool mergeWithCurrentIndexFile)
-        {
-            if (!mergeWithCurrentIndexFile)
-            {
-                VirtualFileSystem.FileDelete(IndexFileFullPath);
-            }
-
-            using (var indexFile = ContentIndexMap.NewTool(indexName))
-            {
-                // Filter database Location
-                indexFile.AddValues(
-                    Root.OutputObjects.Where(x => x.Key.Type == UrlType.Content)
-                        .Select(x => new KeyValuePair<string, ObjectId>(x.Key.Path, x.Value.ObjectId)));
-
-                foreach (var outputObject in Root.OutputObjects.Where(x => x.Key.Type == UrlType.Content).Select(x => x.Value))
-                {
-                    if (outputObject.Tags.Contains(DoNotCompressTag))
-                        DisableCompressionIds.Add(outputObject.ObjectId);
-                }
-            }
-        }
-
-        private static IEnumerable<CommandBuildStep> CollectCommandSteps(BuildStep step)
-        {
-            var commandBuildStep = step as CommandBuildStep;
-            if (commandBuildStep != null)
-            {
-                yield return commandBuildStep;
-            }
-
-            // NOTE: We assume that only EnumerableBuildStep is the base class for sub-steps and that ContentReferencable BuildStep are accessible from them (not through dynamic build step)
-            var enumerateBuildStep = step as ListBuildStep;
-            if (enumerateBuildStep?.Steps != null)
-            {
-                foreach (var subStep in enumerateBuildStep.Steps)
-                {
-                    foreach (var command in CollectCommandSteps(subStep))
-                    {
-                        yield return command;
-                    }
-                }
-            }
-        }
-
-        private static void CollectContentReferenceDependencies(BuildStep step, HashSet<string> locations)
-        {
-            // For each CommandStep for the current build step, collects all dependencies to ContenrReference-BuildStep
-            foreach (var commandStep in CollectCommandSteps(step))
-            {
-                foreach (var inputFile in commandStep.Command.GetInputFiles())
-                {
-                    if (inputFile.Type == UrlType.Content)
-                    {
-                        locations.Add(inputFile.Path);
-                    }
-                }
-            }
-        }
-
-        /// <summary>
-        /// Collects dependencies between <see cref="BuildStep.OutputLocation"/> BuildStep. See remarks.
-        /// </summary>
-        /// <param name="step">The step to compute the dependencies for</param>
-        /// <param name="contentBuildSteps">A cache of content reference location to buildsteps </param>
-        /// <remarks>
-        /// Each BuildStep inheriting from <see cref="BuildStep.OutputLocation"/> is considered as a top-level dependency step that can have depedencies
-        /// on other top-level dependency. We are collecting all of them here.
-        /// </remarks>
-        private static void PrepareDependencyGraph(BuildStep step, Dictionary<string, KeyValuePair<BuildStep, HashSet<string>>> contentBuildSteps)
-        {
-            step.ProcessedDependencies = true;
-
-            var outputLocation = step.OutputLocation;
-            if (outputLocation != null)
-            {
-                var dependencies = new HashSet<string>();
-                if (!contentBuildSteps.ContainsKey(outputLocation))
-                {
-                    contentBuildSteps.Add(outputLocation, new KeyValuePair<BuildStep, HashSet<string>>(step, dependencies));
-                    CollectContentReferenceDependencies(step, dependencies);
-                    foreach (var prerequisiteStep in step.PrerequisiteSteps)
-                    {
-                        PrepareDependencyGraph(prerequisiteStep, contentBuildSteps);
-                    }
-                }
-
-                // If we have a reference, we don't need to iterate further
-                return;
-            }
-
-            // NOTE: We assume that only ListBuildStep is the base class for sub-steps and that ContentReferencable BuildStep are accessible from them (not through dynamic build step)
-            var enumerateBuildStep = step as ListBuildStep;
-            if (enumerateBuildStep?.Steps != null)
-            {
-                foreach (var subStep in enumerateBuildStep.Steps)
-                {
-                    PrepareDependencyGraph(subStep, contentBuildSteps);
-                }
-            }
-        }
-
-        private void ComputeDependencyGraph(Dictionary<string, KeyValuePair<BuildStep, HashSet<string>>> contentBuildSteps)
-        {
-            foreach (var item in contentBuildSteps)
-            {
-                var step = item.Value.Key;
-                var dependencies = item.Value.Value;
-                foreach (var dependency in dependencies)
-                {
-                    KeyValuePair<BuildStep, HashSet<string>> deps;
-                    if (contentBuildSteps.TryGetValue(dependency, out deps))
-                    {
-                        BuildStep.LinkBuildSteps(deps.Key, step);
-                    }
-                    else
-                    {
-                        // TODO: Either something is wrong, or it's because dependencies added afterwise (incremental) are not supported yet
-                        Logger.Error($"BuildStep [{step}] depends on [{dependency}] but nothing that generates it could be found (or maybe incremental dependencies need to be implemented)");
-                    }
-                }
-            }
-        }
-
-        /// <summary>
-        /// Collects dependencies between <see cref="BuildStep.OutputLocation"/> and fill the <see cref="BuildStep.PrerequisiteSteps"/> accordingly.
-        /// </summary>
-        /// <param name="rootStep">The root BuildStep</param>
-        private void GenerateDependencies(BuildStep rootStep)
-        {
-            // TODO: Support proper incremental dependecies
-            if (rootStep.ProcessedDependencies)
-                return;
-
-            rootStep.ProcessedDependencies = true;
-
-            var contentBuildSteps = new Dictionary<string, KeyValuePair<BuildStep, HashSet<string>>>();
-            PrepareDependencyGraph(rootStep, contentBuildSteps);
-            ComputeDependencyGraph(contentBuildSteps);
-        }
-
-        private void PreRun()
-        {
-            var objectDatabase = Builder.ObjectDatabase;
-
-            // Check current database version, and erase it if too old
-            int currentVersion = ExpectedVersion;
-            var versionFile = Path.Combine(VirtualFileSystem.GetAbsolutePath(VirtualFileSystem.ApplicationDatabasePath), "version");
-            if (File.Exists(versionFile))
-            {
-                try
-                {
-                    var versionText = File.ReadAllText(versionFile);
-                    currentVersion = int.Parse(versionText);
-                }
-                catch (Exception e)
-                {
-                    e.Ignore();
-                    currentVersion = 0;
-                }
-            }
-
-            // Prepare data base directories
-            var databasePathSplits = VirtualFileSystem.ApplicationDatabasePath.Split('/');
-            var accumulatorPath = "/";
-            foreach (var pathPart in databasePathSplits.Where(x => x != ""))
-            {
-                accumulatorPath += pathPart + "/";
-                VirtualFileSystem.CreateDirectory(accumulatorPath);
-            }
-
-            if (currentVersion != ExpectedVersion)
-            {
-                var looseObjects = objectDatabase.EnumerateLooseObjects().ToArray();
-
-                if (looseObjects.Length > 0)
-                {
-                    Logger.Info($"Database version number has been updated from {currentVersion} to {ExpectedVersion}, erasing all objects...");
-
-                    // Database version has been updated, let's clean it
-                    foreach (var objectId in looseObjects)
+                    if (buildStep.ArePrerequisitesSuccessful)
                     {
                         try
                         {
-                            objectDatabase.Delete(objectId);
+                            var outputObjectsGroups = executeContext.GetOutputObjectsGroups();
+                            MicrothreadLocalDatabases.MountDatabase(outputObjectsGroups);
+
+                            // Execute
+                            status = await buildStep.Execute(executeContext, builderContext);
                         }
-                        catch (IOException)
+                        catch (TaskCanceledException e)
                         {
+                            // Benlitz: I'm NOT SURE this is the correct explanation, it might be a more subtle race condition, but I can't manage to reproduce it again
+                            executeContext.Logger.Warning("A child task of build step " + buildStep + " triggered a TaskCanceledException that was not caught by the parent task. The command has not handled cancellation gracefully.");
+                            executeContext.Logger.Warning(e.Message);
+                            status = ResultStatus.Cancelled;
+                        }
+                        catch (Exception e)
+                        {
+                            executeContext.Logger.Error("Exception in command " + buildStep + ": " + e);
+                            status = ResultStatus.Failed;
+                        }
+                        finally
+                        {
+                            MicrothreadLocalDatabases.UnmountDatabase();
+
+                            // Ensure the command set at least the result status
+                            if (status == ResultStatus.NotProcessed)
+                                throw new InvalidDataException("The build step " + buildStep + " returned ResultStatus.NotProcessed after completion.");
+                        }
+                        if (microThread.Exception != null)
+                        {
+                            executeContext.Logger.Error("Exception in command " + buildStep + ": " + microThread.Exception);
+                            status = ResultStatus.Failed;
                         }
                     }
-                }
-
-                // Create directory
-                File.WriteAllText(versionFile, ExpectedVersion.ToString(CultureInfo.InvariantCulture));
-            }
-        }
-
-        private void RunUntilEnd()
-        {
-
-            while (true)
-            {
-                scheduler.Run();
-
-                // Exit loop if no more micro threads
-                lock (scheduler.MicroThreads)
-                {
-                    if (scheduler.MicroThreads.Count == 0)
-                        break;
-                }
-
-                // TODO: improve how we wait for work. Thread.Sleep(0) uses too much CPU.
-                Thread.Sleep(1);
-            }
-        }
-
-        private void ScheduleBuildStep(BuilderContext builderContext, BuildStep instigator, BuildStep buildStep, IDictionary<string, string> variables)
-        {
-            if (buildStep.ExecutionId == 0)
-            {
-                if (buildStep.Parent != null && buildStep.Parent != instigator)
-                    throw new InvalidOperationException("Scheduling a BuildStep with a different instigator that its parent");
-                if (buildStep.Parent == null)
-                {
-                    buildStep.Parent = instigator;
-                }
-
-                // Compute content dependencies before scheduling the build
-                GenerateDependencies(buildStep);
-
-                // TODO: Big review of the log infrastructure of CompilerApp & BuildEngine!
-                // Create a logger that redirects to various places (BuildStep.Logger, timestampped log, global log, etc...)
-                var buildStepLogger = new BuildStepLogger(buildStep, Logger, startTime);
-                var logger = (Logger)buildStepLogger;
-                // Apply user-registered callbacks to the logger
-                buildStep.TransformExecuteContextLogger?.Invoke(ref logger);
-
-                // Create execute context
-                var executeContext = new ExecuteContext(this, builderContext, buildStep, logger) { Variables = new Dictionary<string, string>(variables) };
-                //buildStep.ExpandStrings(executeContext);
-
-                if (runMode == Mode.Build)
-                {
-                    MicroThread microThread = scheduler.Create();
-
-                    // Set priority from this build step, if we have one.
-                    if (buildStep.Priority.HasValue)
+                    else
                     {
-                        microThread.Priority = buildStep.Priority.Value;
+                        status = ResultStatus.NotTriggeredPrerequisiteFailed;
                     }
 
-                    buildStep.ExecutionId = microThread.Id;
+                    //if (completedTask.IsCanceled)
+                    //{
+                    //    completedStep.Status = ResultStatus.Cancelled;
+                    //}
+                    var logType = LogMessageType.Info;
+                    string? logText = null;
 
-                    microThread.Name = buildStep.ToString();
-
-                    // Default:
-                    // Schedule continuations as early as possible to help EnumerableBuildStep finish when all its task are finished.
-                    // Otherwise, it would wait for all leaf to finish first before finishing parent EnumerableBuildStep.
-                    // This should also reduce memory usage, and might improve cache coherency as well.
-                    microThread.ScheduleMode = ScheduleMode.First;
-
-                    microThread.Start(async () =>
+                    switch (status)
                     {
-                        // Wait for prerequisites
-                        await Task.WhenAll(buildStep.PrerequisiteSteps.Select(x => x.ExecutedAsync()).ToArray());
+                        case ResultStatus.Successful:
+                            logType = LogMessageType.Verbose;
+                            logText = "BuildStep {0} was successful.".ToFormat(buildStep.ToString());
+                            break;
 
-                        // Check for failed prerequisites
-                        var status = ResultStatus.NotProcessed;
+                        case ResultStatus.Failed:
+                            logType = LogMessageType.Error;
+                            logText = "BuildStep {0} failed.".ToFormat(buildStep.ToString());
+                            break;
 
-                        if (buildStep.ArePrerequisitesSuccessful)
-                        {
-                            try
-                            {
-                                var outputObjectsGroups = executeContext.GetOutputObjectsGroups();
-                                MicrothreadLocalDatabases.MountDatabase(outputObjectsGroups);
+                        case ResultStatus.NotTriggeredPrerequisiteFailed:
+                            logType = LogMessageType.Error;
+                            logText = "BuildStep {0} failed of previous failed prerequisites.".ToFormat(buildStep.ToString());
+                            break;
 
-                                // Execute
-                                status = await buildStep.Execute(executeContext, builderContext);
-                            }
-                            catch (TaskCanceledException e)
-                            {
-                                // Benlitz: I'm NOT SURE this is the correct explanation, it might be a more subtle race condition, but I can't manage to reproduce it again
-                                executeContext.Logger.Warning("A child task of build step " + buildStep + " triggered a TaskCanceledException that was not caught by the parent task. The command has not handled cancellation gracefully.");
-                                executeContext.Logger.Warning(e.Message);
-                                status = ResultStatus.Cancelled;
-                            }
-                            catch (Exception e)
-                            {
-                                executeContext.Logger.Error("Exception in command " + buildStep + ": " + e);
-                                status = ResultStatus.Failed;
-                            }
-                            finally
-                            {
-                                MicrothreadLocalDatabases.UnmountDatabase();
+                        case ResultStatus.Cancelled:
+                            logType = LogMessageType.Warning;
+                            logText = "BuildStep {0} cancelled.".ToFormat(buildStep.ToString());
+                            break;
 
-                                // Ensure the command set at least the result status
-                                if (status == ResultStatus.NotProcessed)
-                                    throw new InvalidDataException("The build step " + buildStep + " returned ResultStatus.NotProcessed after completion.");
-                            }
-                            if (microThread.Exception != null)
-                            {
-                                executeContext.Logger.Error("Exception in command " + buildStep + ": " + microThread.Exception);
-                                status = ResultStatus.Failed;
-                            }
-                        }
-                        else
-                        {
-                            status = ResultStatus.NotTriggeredPrerequisiteFailed;
-                        }
+                        case ResultStatus.NotTriggeredWasSuccessful:
+                            logType = LogMessageType.Verbose;
+                            logText = "BuildStep {0} is up-to-date and has been skipped".ToFormat(buildStep.ToString());
+                            break;
 
-                        //if (completedTask.IsCanceled)
-                        //{
-                        //    completedStep.Status = ResultStatus.Cancelled;
-                        //}
-                        var logType = LogMessageType.Info;
-                        string logText = null;
+                        case ResultStatus.NotProcessed:
+                            throw new InvalidDataException("BuildStep has neither succeeded, failed, nor been cancelled");
+                    }
+                    if (logText != null)
+                    {
+                        var logMessage = new LogMessage(null, logType, logText);
+                        executeContext.Logger.Log(logMessage);
+                    }
 
-                        switch (status)
-                        {
-                            case ResultStatus.Successful:
-                                logType = LogMessageType.Verbose;
-                                logText = "BuildStep {0} was successful.".ToFormat(buildStep.ToString());
-                                break;
+                    buildStep.RegisterResult(executeContext, status);
+                    stepCounter.AddStepResult(status);
+                });
+            }
+            else
+            {
+                buildStep.Clean(executeContext, builderContext, runMode == Mode.CleanAndDelete);
+            }
+        }
+    }
 
-                            case ResultStatus.Failed:
-                                logType = LogMessageType.Error;
-                                logText = "BuildStep {0} failed.".ToFormat(buildStep.ToString());
-                                break;
+    #endregion Methods
 
-                            case ResultStatus.NotTriggeredPrerequisiteFailed:
-                                logType = LogMessageType.Error;
-                                logText = "BuildStep {0} failed of previous failed prerequisites.".ToFormat(buildStep.ToString());
-                                break;
+    private class ExecuteContext : IExecuteContext
+    {
+        private readonly Builder builder;
+        private readonly BuilderContext builderContext;
+        private readonly BuildStep buildStep;
+        private readonly BuildTransaction buildTransaction;
+        public CancellationTokenSource CancellationTokenSource => builder.cancellationTokenSource;
 
-                            case ResultStatus.Cancelled:
-                                logType = LogMessageType.Warning;
-                                logText = "BuildStep {0} cancelled.".ToFormat(buildStep.ToString());
-                                break;
+        public Logger Logger { get; }
 
-                            case ResultStatus.NotTriggeredWasSuccessful:
-                                logType = LogMessageType.Verbose;
-                                logText = "BuildStep {0} is up-to-date and has been skipped".ToFormat(buildStep.ToString());
-                                break;
+        public ObjectDatabase ResultMap => builder.resultMap;
 
-                            case ResultStatus.NotProcessed:
-                                throw new InvalidDataException("BuildStep has neither succeeded, failed, nor been cancelled");
-                        }
-                        if (logText != null)
-                        {
-                            var logMessage = new LogMessage(null, logType, logText);
-                            executeContext.Logger.Log(logMessage);
-                        }
+        public Dictionary<string, string> Variables { get; set; }
 
-                        buildStep.RegisterResult(executeContext, status);
-                        stepCounter.AddStepResult(status);
-                    });
-                }
-                else
-                {
-                    buildStep.Clean(executeContext, builderContext, runMode == Mode.CleanAndDelete);
-                }
+        public ExecuteContext(Builder builder, BuilderContext builderContext, BuildStep buildStep, Logger logger)
+        {
+            Logger = logger;
+            this.builderContext = builderContext;
+            this.builder = builder;
+            this.buildStep = buildStep;
+            buildTransaction = new BuildTransaction(null, buildStep.GetOutputObjectsGroups());
+        }
+
+        public ObjectId ComputeInputHash(UrlType type, string filePath)
+        {
+            var hash = ObjectId.Empty;
+
+            switch (type)
+            {
+                case UrlType.File:
+                    hash = builderContext.InputHashes.ComputeFileHash(filePath);
+                    break;
+
+                case UrlType.Content:
+                    if (!buildTransaction.TryGetValue(filePath, out hash))
+                        Logger.Warning("Location " + filePath + " does not exist currently and is required to compute the current command hash. The build cache will not work for this command!");
+                    break;
+            }
+
+            return hash;
+        }
+
+        public IEnumerable<IReadOnlyDictionary<ObjectUrl, OutputObject>> GetOutputObjectsGroups()
+        {
+            return buildStep.GetOutputObjectsGroups();
+        }
+
+        public CommandBuildStep? IsCommandCurrentlyRunning(ObjectId commandHash)
+        {
+            lock (builderContext.CommandsInProgress)
+            {
+                builderContext.CommandsInProgress.TryGetValue(commandHash, out var step);
+                return step;
             }
         }
 
-        #endregion Methods
-
-        private class ExecuteContext : IExecuteContext
+        public void NotifyCommandBuildStepFinished(CommandBuildStep commandBuildStep, ObjectId commandHash)
         {
-            private readonly Builder builder;
-            private readonly BuilderContext builderContext;
-            private readonly BuildStep buildStep;
-            private readonly BuildTransaction buildTransaction;
-            public CancellationTokenSource CancellationTokenSource => builder.cancellationTokenSource;
-
-            public Logger Logger { get; }
-
-            public ObjectDatabase ResultMap => builder.resultMap;
-
-            public Dictionary<string, string> Variables { get; set; }
-
-            public ExecuteContext(Builder builder, BuilderContext builderContext, BuildStep buildStep, Logger logger)
+            lock (builderContext.CommandsInProgress)
             {
-                Logger = logger;
-                this.builderContext = builderContext;
-                this.builder = builder;
-                this.buildStep = buildStep;
-                buildTransaction = new BuildTransaction(null, buildStep.GetOutputObjectsGroups());
+                builderContext.CommandsInProgress.Remove(commandHash);
+                builder.ioMonitor.CommandEnded(commandBuildStep);
             }
+        }
 
-            public ObjectId ComputeInputHash(UrlType type, string filePath)
+        public void NotifyCommandBuildStepStarted(CommandBuildStep commandBuildStep, ObjectId commandHash)
+        {
+            lock (builderContext.CommandsInProgress)
             {
-                var hash = ObjectId.Empty;
-
-                switch (type)
-                {
-                    case UrlType.File:
-                        hash = builderContext.InputHashes.ComputeFileHash(filePath);
-                        break;
-
-                    case UrlType.Content:
-                        if (!buildTransaction.TryGetValue(filePath, out hash))
-                            Logger.Warning("Location " + filePath + " does not exist currently and is required to compute the current command hash. The build cache will not work for this command!");
-                        break;
-                }
-
-                return hash;
+                builderContext.CommandsInProgress.TryAdd(commandHash, commandBuildStep);
+                builder.ioMonitor.CommandStarted(commandBuildStep);
             }
+        }
 
-            public IEnumerable<IReadOnlyDictionary<ObjectUrl, OutputObject>> GetOutputObjectsGroups()
-            {
-                return buildStep.GetOutputObjectsGroups();
-            }
-
-            public CommandBuildStep IsCommandCurrentlyRunning(ObjectId commandHash)
-            {
-                lock (builderContext.CommandsInProgress)
-                {
-                    CommandBuildStep step;
-                    builderContext.CommandsInProgress.TryGetValue(commandHash, out step);
-                    return step;
-                }
-            }
-
-            public void NotifyCommandBuildStepFinished(CommandBuildStep commandBuildStep, ObjectId commandHash)
-            {
-                lock (builderContext.CommandsInProgress)
-                {
-                    builderContext.CommandsInProgress.Remove(commandHash);
-                    builder.ioMonitor.CommandEnded(commandBuildStep);
-                }
-            }
-
-            public void NotifyCommandBuildStepStarted(CommandBuildStep commandBuildStep, ObjectId commandHash)
-            {
-                lock (builderContext.CommandsInProgress)
-                {
-                    builderContext.CommandsInProgress.TryAdd(commandHash, commandBuildStep);
-                    builder.ioMonitor.CommandStarted(commandBuildStep);
-                }
-            }
-
-            public void ScheduleBuildStep(BuildStep step)
-            {
-                builder.ScheduleBuildStep(builderContext, buildStep, step, Variables);
-            }
+        public void ScheduleBuildStep(BuildStep step)
+        {
+            builder.ScheduleBuildStep(builderContext, buildStep, step, Variables);
         }
     }
 }

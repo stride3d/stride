@@ -44,7 +44,7 @@ public static class AttachedReferenceManager
     /// </summary>
     /// <param name="obj">The object for which to get the attached reference. Can be null, in this case this method returns null.</param>
     /// <returns>The <see cref="AttachedReference"/> attached to the given object if available, <c>null</c> otherwise.</returns>
-    public static AttachedReference? GetAttachedReference(object obj)
+    public static AttachedReference? GetAttachedReference(object? obj)
     {
         if (obj == null)
             return null;

@@ -51,7 +51,7 @@ public interface IObjectNode : IGraphNode, INotifyNodeItemChange
     /// </summary>
     /// <param name="newValue">The new value to set.</param>
     /// <param name="index">The index where to update the value.</param>
-    void Update(object newValue, NodeIndex index);
+    void Update(object? newValue, NodeIndex index);
 
     /// <summary>
     /// Adds a new item to this content, assuming the content is a collection.

@@ -1,10 +1,8 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using System;
+
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using Stride.Core;
-using Stride.Core.Annotations;
 
 namespace Stride.Core.Assets
 {
@@ -57,7 +55,7 @@ namespace Stride.Core.Assets
         /// </remarks>
         [DefaultValue(null)]
         [DataMember(10)]
-        public string Name { get; set; }
+        public string? Name { get; set; }
 
         /// <summary>
         /// Gets or sets the version.
@@ -65,26 +63,25 @@ namespace Stride.Core.Assets
         /// <value>The version.</value>
         [DefaultValue(null)]
         [DataMember(20)]
-        public PackageVersionRange Version { get; set; }
+        public PackageVersionRange? Version { get; set; }
 
         /// <summary>
         /// Clones this instance.
         /// </summary>
         /// <returns>PackageDependency.</returns>
-        [NotNull]
         public PackageDependency Clone()
         {
             return new PackageDependency(Name, Version);
         }
 
-        public bool Equals(PackageDependency other)
+        public bool Equals(PackageDependency? other)
         {
             if (ReferenceEquals(null, other)) return false;
             if (ReferenceEquals(this, other)) return true;
             return string.Equals(Name, other.Name) && Equals(Version, other.Version);
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
