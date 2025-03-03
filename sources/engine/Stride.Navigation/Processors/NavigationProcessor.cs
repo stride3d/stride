@@ -41,6 +41,7 @@ namespace Stride.Navigation.Processors
                 throw new Exception("NavigationProcessor can not access the game systems collection");
 
             gameSystemCollection.CollectionChanged += GameSystemsOnCollectionChanged;
+            TryRegisterDynamicNavigationMeshSystem();
         }
 
         /// <inheritdoc />
@@ -89,10 +90,9 @@ namespace Stride.Navigation.Processors
 
         private void DynamicNavigationMeshSystemOnNavigationMeshUpdatedUpdated(object sender, NavigationMeshUpdatedEventArgs eventArgs)
         {
-            var newNavigationMesh = eventArgs.BuildResult.NavigationMesh;
-            NavigationMeshData data;
-            if (eventArgs.OldNavigationMesh != null && loadedNavigationMeshes.TryGetValue(eventArgs.OldNavigationMesh, out data))
+            if (eventArgs?.OldNavigationMesh is not null && loadedNavigationMeshes.TryGetValue(eventArgs.OldNavigationMesh, out var data))
             {
+                var newNavigationMesh = eventArgs.BuildResult.NavigationMesh;
                 // Move to new navigation mesh
                 loadedNavigationMeshes.Remove(eventArgs.OldNavigationMesh);
                 loadedNavigationMeshes.Add(newNavigationMesh, data);
@@ -182,6 +182,11 @@ namespace Stride.Navigation.Processors
 
         private void GameSystemsOnCollectionChanged(object sender, TrackingCollectionChangedEventArgs trackingCollectionChangedEventArgs)
         {
+            TryRegisterDynamicNavigationMeshSystem();
+        }
+
+        private void TryRegisterDynamicNavigationMeshSystem()
+        {
             // Detect addition of dynamic navigation mesh system
             if (dynamicNavigationMeshSystem == null)
             {
@@ -257,6 +262,7 @@ namespace Stride.Navigation.Processors
                 {
                     loadedNavigationMeshes.Remove(data.NavigationMesh);
                 }
+                group.RecastNavigationMesh.Dispose();
             }
         }
 

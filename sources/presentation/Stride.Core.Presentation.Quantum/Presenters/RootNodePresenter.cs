@@ -1,8 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using System;
-using System.Collections.Generic;
-using Stride.Core.Annotations;
+
 using Stride.Core.Reflection;
 using Stride.Core.Quantum;
 
@@ -12,10 +10,10 @@ namespace Stride.Core.Presentation.Quantum.Presenters
     {
         protected readonly IObjectNode RootNode;
 
-        public RootNodePresenter([NotNull] INodePresenterFactoryInternal factory, IPropertyProviderViewModel propertyProvider, [NotNull] IObjectNode rootNode)
+        public RootNodePresenter(INodePresenterFactoryInternal factory, IPropertyProviderViewModel? propertyProvider, IObjectNode rootNode)
             : base(factory, propertyProvider, null)
         {
-            if (factory == null) throw new ArgumentNullException(nameof(factory));
+            ArgumentNullException.ThrowIfNull(factory);
             RootNode = rootNode ?? throw new ArgumentNullException(nameof(rootNode));
             Name = "Root";
             DisplayName = string.Empty;
@@ -37,18 +35,20 @@ namespace Stride.Core.Presentation.Quantum.Presenters
 
         public override bool IsEnumerable => RootNode.IsEnumerable;
 
-        [NotNull]
         public override ITypeDescriptor Descriptor => RootNode.Descriptor;
 
         public override object Value => RootNode.Retrieve();
 
         protected override IObjectNode ParentingNode => RootNode;
 
-        public override void Dispose()
+        protected override void Dispose(bool disposing)
         {
-            base.Dispose();
-            RootNode.ItemChanging -= OnItemChanging;
-            RootNode.ItemChanged -= OnItemChanged;
+            base.Dispose(disposing);
+            if (disposing)
+            {
+                RootNode.ItemChanging -= OnItemChanging;
+                RootNode.ItemChanged -= OnItemChanged;
+            }
         }
 
         public override void UpdateValue(object newValue)
@@ -106,12 +106,12 @@ namespace Stride.Core.Presentation.Quantum.Presenters
             return new NodeAccessor(RootNode, NodeIndex.Empty);
         }
 
-        private void OnItemChanging(object sender, ItemChangeEventArgs e)
+        private void OnItemChanging(object? sender, ItemChangeEventArgs e)
         {
             RaiseValueChanging(Value);
         }
 
-        private void OnItemChanged(object sender, ItemChangeEventArgs e)
+        private void OnItemChanged(object? sender, ItemChangeEventArgs e)
         {
             Refresh();
             RaiseValueChanged(Value);

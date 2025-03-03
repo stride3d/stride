@@ -40,7 +40,7 @@ public static class TypeExtensions
 
         if (type.IsArray)
         {
-            return ToSimpleCSharpName(type.GetElementType()) + "[" + new string(',', type.GetArrayRank() - 1) + "]";
+            return ToSimpleCSharpName(type.GetElementType()!) + "[" + new string(',', type.GetArrayRank() - 1) + "]";
         }
 
         if (!type.IsGenericType)
@@ -53,7 +53,7 @@ public static class TypeExtensions
             if (simpleNameStart >= fullTypeName.Length)
                 return fullTypeName;
 
-            return fullTypeName.Substring(simpleNameStart);
+            return fullTypeName[simpleNameStart..];
         }
 
         if (Nullable.GetUnderlyingType(type) is Type nullableType)
@@ -68,6 +68,6 @@ public static class TypeExtensions
             return "(" + genericParameters + ")";
         }
 
-        return type.Name.Substring(0, type.Name.LastIndexOf('`')) + "<" + genericParameters + ">";
+        return $"{type.Name[..type.Name.LastIndexOf('`')]}<{genericParameters}>";
     }
 }

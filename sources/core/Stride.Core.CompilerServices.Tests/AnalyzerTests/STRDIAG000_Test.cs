@@ -6,23 +6,23 @@ namespace Stride.Core.CompilerServices.Tests.AnalyzerTests;
 public class STRDIAG000_Test
 {
     [Fact]
-    public void Error_On_Attribute_Contradiction_On_Property()
+    public async Task Error_On_Attribute_Contradiction_On_Property()
     {
         string sourceCode = string.Format(ClassTemplates.BasicClassTemplate, "[DataMemberIgnore][DataMember]public int Value { get; set; }");
-        TestHelper.ExpectDiagnosticsError(sourceCode, STRDIAG000AttributeContradiction.DiagnosticId);
+        await TestHelper.ExpectDiagnosticsErrorAsync(sourceCode, STRDIAG000AttributeContradiction.DiagnosticId);
     }
 
     [Fact]
-    public void Error_On_Attribute_Contradiction_On_Field()
+    public async Task Error_On_Attribute_Contradiction_On_Field()
     {
         string sourceCode = string.Format(ClassTemplates.BasicClassTemplate, "[DataMemberIgnore][DataMember]public int Value;");
-        TestHelper.ExpectDiagnosticsError(sourceCode, STRDIAG000AttributeContradiction.DiagnosticId);
+        await TestHelper.ExpectDiagnosticsErrorAsync(sourceCode, STRDIAG000AttributeContradiction.DiagnosticId);
     }
 
     [Fact]
-    public void NoErrorOn_Attribute_Contradiction_With_Updatable()
+    public async Task NoErrorOn_Attribute_Contradiction_With_Updatable()
     {
-        string sourceCode = @"
+        const string sourceCode = @"
 using System;
 using Stride.Core;
 using Stride.Updater;
@@ -46,6 +46,6 @@ namespace Test
     }
 }
 ";
-        TestHelper.ExpectNoDiagnosticsErrors(sourceCode);
+        await TestHelper.ExpectNoDiagnosticsErrorsAsync(sourceCode);
     }
 }

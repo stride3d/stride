@@ -78,7 +78,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-using FreeImageAPI;
+using System.Drawing.Imaging;
 
 namespace Stride.Assets.SpriteFont.Compiler
 {
@@ -102,12 +102,12 @@ namespace Stride.Assets.SpriteFont.Compiler
         public void Import(SpriteFontAsset options, List<char> characters)
         {
             // Load the source bitmap.
-            FreeImageBitmap bitmap;
+            Bitmap bitmap;
 
             try
             {
                 // TODO Check if source can be used as is from here
-                bitmap = FreeImageBitmap.FromFile(options.FontSource.GetFontPath());
+                bitmap = new Bitmap(options.FontSource.GetFontPath());
             }
             catch
             {
@@ -115,7 +115,7 @@ namespace Stride.Assets.SpriteFont.Compiler
             }
 
             // Convert to our desired pixel format.
-            bitmap = bitmap.ConvertTo32Bits();
+            bitmap = BitmapUtils.ChangePixelFormat(bitmap, PixelFormat.Format32bppArgb);
 
             // What characters are included in this font?
             int characterIndex = 0;
@@ -148,32 +148,34 @@ namespace Stride.Assets.SpriteFont.Compiler
 
         // Seems to be the same as this one: http://www.tonicodes.net/blog/creating-custom-fonts-with-outline-for-wp7-and-xna/
         // Searches a 2D bitmap for characters that are surrounded by a marker pink color.
-        static IEnumerable<Rectangle> FindGlyphs(FreeImageBitmap bitmap)
+        static IEnumerable<Rectangle> FindGlyphs(Bitmap bitmap)
         {
-            var bitmapData = new BitmapUtils.PixelAccessor(bitmap);
-            for (int y = 1; y < bitmap.Height; y++)
+            using (var bitmapData = new BitmapUtils.PixelAccessor(bitmap, ImageLockMode.ReadOnly))
             {
-                for (int x = 1; x < bitmap.Width; x++)
+                for (int y = 1; y < bitmap.Height; y++)
                 {
-                    // Look for the top left corner of a character (a pixel that is not pink, but was pink immediately to the left and above it)
-                    if (!IsMarkerColor(bitmapData[x, y]) &&
-                         IsMarkerColor(bitmapData[x - 1, y]) &&
-                         IsMarkerColor(bitmapData[x, y - 1]))
+                    for (int x = 1; x < bitmap.Width; x++)
                     {
-                        // Measure the size of this character.
-                        int w = 1, h = 1;
-
-                        while ((x + w < bitmap.Width) && !IsMarkerColor(bitmapData[x + w, y]))
+                        // Look for the top left corner of a character (a pixel that is not pink, but was pink immediately to the left and above it)
+                        if (!IsMarkerColor(bitmapData[x, y]) &&
+                             IsMarkerColor(bitmapData[x - 1, y]) &&
+                             IsMarkerColor(bitmapData[x, y - 1]))
                         {
-                            w++;
-                        }
+                            // Measure the size of this character.
+                            int w = 1, h = 1;
 
-                        while ((y + h < bitmap.Height) && !IsMarkerColor(bitmapData[x, y + h]))
-                        {
-                            h++;
-                        }
+                            while ((x + w < bitmap.Width) && !IsMarkerColor(bitmapData[x + w, y]))
+                            {
+                                w++;
+                            }
 
-                        yield return new Rectangle(x, y, w, h);
+                            while ((y + h < bitmap.Height) && !IsMarkerColor(bitmapData[x, y + h]))
+                            {
+                                h++;
+                            }
+
+                            yield return new Rectangle(x, y, w, h);
+                        }
                     }
                 }
             }
