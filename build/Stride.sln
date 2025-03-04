@@ -160,7 +160,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Quantum.Tests",
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.UI", "..\sources\engine\Stride.UI\Stride.UI.csproj", "{BB9DEEEF-F18C-40D8-B016-6434CC71B8C3}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.UI.Tests.Windows", "..\sources\engine\Stride.UI.Tests\Stride.UI.Tests.Windows.csproj", "{E7B1B17F-D04B-4978-B504-A6BB3EE846C9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.UI.Tests", "..\sources\engine\Stride.UI.Tests\Stride.UI.Tests.csproj", "{E7B1B17F-D04B-4978-B504-A6BB3EE846C9}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Editor", "..\sources\editor\Stride.Editor\Stride.Editor.csproj", "{16E02D45-5530-4617-97DC-BC3BDF77DE2C}"
 EndProject
