@@ -4,6 +4,7 @@
   <PropertyGroup>
     <StrideEditorTargetFramework>net8.0-windows</StrideEditorTargetFramework>
     <StrideXplatEditorTargetFramework>net8.0</StrideXplatEditorTargetFramework>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
   </PropertyGroup>
 
 </Project>
