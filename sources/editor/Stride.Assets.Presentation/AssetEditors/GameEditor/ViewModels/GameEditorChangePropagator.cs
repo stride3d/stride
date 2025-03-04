@@ -166,7 +166,7 @@ namespace Stride.Assets.Presentation.AssetEditors.GameEditor.ViewModels
                     throw new InvalidOperationException("Unable to retrieve the game-side node");
 
                 var index = (e as ItemChangeEventArgs)?.Index ?? NodeIndex.Empty;
-                if (!AssetRegistry.IsContentType(e.Node.Descriptor.GetInnerCollectionType()))
+                if (!AssetRegistry.CanBeAssignedToContentTypes(e.Node.Descriptor.GetInnerCollectionType(), checkIsUrlType: false))
                 {
                     if (e.Node.Type.IsValueType)
                     {
@@ -276,7 +276,7 @@ namespace Stride.Assets.Presentation.AssetEditors.GameEditor.ViewModels
         {
             if (editor == null) throw new ArgumentNullException(nameof(editor));
 
-            if (!AssetRegistry.IsContentType(gameSideNode.Descriptor.GetInnerCollectionType()))
+            if (!AssetRegistry.CanBeAssignedToContentTypes(gameSideNode.Descriptor.GetInnerCollectionType(), checkIsUrlType: false))
                 return;
 
             // Grab the old referenced object if it's not null

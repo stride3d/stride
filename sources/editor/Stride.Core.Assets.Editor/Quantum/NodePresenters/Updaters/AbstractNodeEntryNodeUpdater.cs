@@ -9,6 +9,7 @@ using Stride.Core.Annotations;
 using Stride.Core.Extensions;
 using Stride.Core.Reflection;
 using Stride.Core.Presentation.Quantum.Presenters;
+using Stride.Core.Serialization;
 
 namespace Stride.Core.Assets.Editor.Quantum.NodePresenters.Updaters
 {
@@ -60,15 +61,18 @@ namespace Stride.Core.Assets.Editor.Quantum.NodePresenters.Updaters
         protected override void UpdateNode(IAssetNodePresenter node)
         {
             var type = node.Descriptor.GetInnerCollectionType();
-            if (type.IsAbstract && !IsReferenceType(type) && IsInstantiable(type))
+            if (type.IsAbstract && IsInstantiable(type))
             {
                 var abstractNodeEntries = FillDefaultAbstractNodeEntry(node);
+
+                // Remove content types, the engine expects content types to be serialized as reference, not created inline
+                if (AssetRegistry.CanPropertyHandleContent(type, out var contentTypes))
+                    abstractNodeEntries = abstractNodeEntries.Where(x => x is AbstractNodeType ant == false || contentTypes.Contains(ant.Type) == false);
+
                 node.AttachedProperties.Add(AbstractNodeEntryData.Key, abstractNodeEntries);
             }
         }
 
         private static bool IsInstantiable(Type type) => TypeDescriptorFactory.Default.AttributeRegistry.GetAttribute<NonInstantiableAttribute>(type) == null;
-
-        private static bool IsReferenceType(Type type) => AssetRegistry.IsContentType(type) || typeof(AssetReference).IsAssignableFrom(type);
     }
 }

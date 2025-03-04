@@ -1,92 +1,91 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using System;
-using System.Collections.Generic;
-using Stride.Core;
-using Stride.Core.Annotations;
+
 using Stride.Core.Quantum;
 
-namespace Stride.Core.Assets.Quantum.Visitors
+namespace Stride.Core.Assets.Quantum.Visitors;
+
+/// <summary>
+/// A visitor that will collect all object references that target objects that are not included in the visited object.
+/// </summary>
+public class ExternalReferenceCollector : IdentifiableObjectVisitorBase
 {
-    /// <summary>
-    /// A visitor that will collect all object references that target objects that are not included in the visited object.
-    /// </summary>
-    public class ExternalReferenceCollector : IdentifiableObjectVisitorBase
+    private readonly AssetPropertyGraphDefinition propertyGraphDefinition;
+
+    private readonly HashSet<IIdentifiable> internalReferences = [];
+    private readonly HashSet<IIdentifiable> externalReferences = [];
+    private readonly Dictionary<IIdentifiable, List<NodeAccessor>> externalReferenceAccessors = [];
+
+    private ExternalReferenceCollector(AssetPropertyGraphDefinition propertyGraphDefinition)
+        : base(propertyGraphDefinition)
     {
-        private readonly AssetPropertyGraphDefinition propertyGraphDefinition;
+        this.propertyGraphDefinition = propertyGraphDefinition;
+    }
 
-        private readonly HashSet<IIdentifiable> internalReferences = new HashSet<IIdentifiable>();
-        private readonly HashSet<IIdentifiable> externalReferences = new HashSet<IIdentifiable>();
-        private readonly Dictionary<IIdentifiable, List<NodeAccessor>> externalReferenceAccessors = new Dictionary<IIdentifiable, List<NodeAccessor>>();
+    /// <summary>
+    /// Computes the external references to the given root node.
+    /// </summary>
+    /// <param name="propertyGraphDefinition">The property graph definition to use to analyze the graph.</param>
+    /// <param name="root">The root node to analyze.</param>
+    /// <returns>A set containing all external references to identifiable objects.</returns>
+    public static HashSet<IIdentifiable> GetExternalReferences(AssetPropertyGraphDefinition propertyGraphDefinition, IGraphNode root)
+    {
+        var visitor = new ExternalReferenceCollector(propertyGraphDefinition);
+        visitor.Visit(root);
+        // An IIdentifiable can have been recorded both as internal and external reference. In this case we still want to clone it so let's remove it from external references
+        visitor.externalReferences.ExceptWith(visitor.internalReferences);
+        return visitor.externalReferences;
+    }
 
-        private ExternalReferenceCollector([NotNull] AssetPropertyGraphDefinition propertyGraphDefinition)
-            : base(propertyGraphDefinition)
+    /// <summary>
+    /// Computes the external references to the given root node and their accessors.
+    /// </summary>
+    /// <param name="propertyGraphDefinition">The property graph definition to use to analyze the graph.</param>
+    /// <param name="root">The root node to analyze.</param>
+    /// <returns>A set containing all external references to identifiable objects.</returns>
+    public static Dictionary<IIdentifiable, List<NodeAccessor>> GetExternalReferenceAccessors(AssetPropertyGraphDefinition propertyGraphDefinition, IGraphNode root)
+    {
+        var visitor = new ExternalReferenceCollector(propertyGraphDefinition);
+        visitor.Visit(root);
+        // An IIdentifiable can have been recorded both as internal and external reference. In this case we still want to clone it so let's remove it from external references
+        foreach (var internalReference in visitor.internalReferences)
         {
-            this.propertyGraphDefinition = propertyGraphDefinition;
+            visitor.externalReferenceAccessors.Remove(internalReference);
         }
+        return visitor.externalReferenceAccessors;
+    }
 
-        /// <summary>
-        /// Computes the external references to the given root node.
-        /// </summary>
-        /// <param name="propertyGraphDefinition">The property graph definition to use to analyze the graph.</param>
-        /// <param name="root">The root node to analyze.</param>
-        /// <returns>A set containing all external references to identifiable objects.</returns>
-        [NotNull]
-        public static HashSet<IIdentifiable> GetExternalReferences([NotNull] AssetPropertyGraphDefinition propertyGraphDefinition, [NotNull] IGraphNode root)
+    protected override void ProcessIdentifiableMembers(IIdentifiable identifiable, IMemberNode member)
+    {
+        if (propertyGraphDefinition.IsMemberTargetObjectReference(member, identifiable))
         {
-            var visitor = new ExternalReferenceCollector(propertyGraphDefinition);
-            visitor.Visit(root);
-            // An IIdentifiable can have been recorded both as internal and external reference. In this case we still want to clone it so let's remove it from external references
-            visitor.externalReferences.ExceptWith(visitor.internalReferences);
-            return visitor.externalReferences;
-        }
-
-        /// <summary>
-        /// Computes the external references to the given root node and their accessors.
-        /// </summary>
-        /// <param name="propertyGraphDefinition">The property graph definition to use to analyze the graph.</param>
-        /// <param name="root">The root node to analyze.</param>
-        /// <returns>A set containing all external references to identifiable objects.</returns>
-        public static Dictionary<IIdentifiable, List<NodeAccessor>> GetExternalReferenceAccessors([NotNull] AssetPropertyGraphDefinition propertyGraphDefinition, [NotNull] IGraphNode root)
-        {
-            var visitor = new ExternalReferenceCollector(propertyGraphDefinition);
-            visitor.Visit(root);
-            // An IIdentifiable can have been recorded both as internal and external reference. In this case we still want to clone it so let's remove it from external references
-            foreach (var internalReference in visitor.internalReferences)
+            externalReferences.Add(identifiable);
+            if (!externalReferenceAccessors.TryGetValue(identifiable, out var accessors))
             {
-                visitor.externalReferenceAccessors.Remove(internalReference);
+                externalReferenceAccessors.Add(identifiable, accessors = []);
             }
-            return visitor.externalReferenceAccessors;
+            accessors.Add(CurrentPath.GetAccessor());
         }
-
-        protected override void ProcessIdentifiableMembers(IIdentifiable identifiable, IMemberNode member)
+        else
         {
-            if (propertyGraphDefinition.IsMemberTargetObjectReference(member, identifiable))
-            {
-                externalReferences.Add(identifiable);
-                if (!externalReferenceAccessors.TryGetValue(identifiable, out var accessors))
-                {
-                    externalReferenceAccessors.Add(identifiable, accessors = new List<NodeAccessor>());
-                }
-                accessors.Add(CurrentPath.GetAccessor());
-            }
-            else
-                internalReferences.Add(identifiable);
+            internalReferences.Add(identifiable);
         }
+    }
 
-        protected override void ProcessIdentifiableItems(IIdentifiable identifiable, IObjectNode collection, NodeIndex index)
+    protected override void ProcessIdentifiableItems(IIdentifiable identifiable, IObjectNode collection, NodeIndex index)
+    {
+        if (propertyGraphDefinition.IsTargetItemObjectReference(collection, index, identifiable))
         {
-            if (propertyGraphDefinition.IsTargetItemObjectReference(collection, index, identifiable))
+            externalReferences.Add(identifiable);
+            if (!externalReferenceAccessors.TryGetValue(identifiable, out var accessors))
             {
-                externalReferences.Add(identifiable);
-                if (!externalReferenceAccessors.TryGetValue(identifiable, out var accessors))
-                {
-                    externalReferenceAccessors.Add(identifiable, accessors = new List<NodeAccessor>());
-                }
-                accessors.Add(CurrentPath.GetAccessor());
+                externalReferenceAccessors.Add(identifiable, accessors = []);
             }
-            else
-                internalReferences.Add(identifiable);
+            accessors.Add(CurrentPath.GetAccessor());
+        }
+        else
+        {
+            internalReferences.Add(identifiable);
         }
     }
 }

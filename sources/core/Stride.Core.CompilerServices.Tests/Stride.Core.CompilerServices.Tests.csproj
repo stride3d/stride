@@ -1,12 +1,14 @@
 <Project>
   <Import Project="..\..\targets\Stride.UnitTests.props" />
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <TargetFramework>$(StrideXplatEditorTargetFramework)</TargetFramework>
+    <RuntimeIdentifiers>linux-x64;win-x64</RuntimeIdentifiers>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <StrideAssemblyProcessorOptions>--auto-module-initializer</StrideAssemblyProcessorOptions>
-    <StrideBuildTags>Windows;Android;iOS</StrideBuildTags>
-    <LangVersion>preview</LangVersion>
+    <StrideBuildTags>Linux;Windows;Android;iOS</StrideBuildTags>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="xunit" />

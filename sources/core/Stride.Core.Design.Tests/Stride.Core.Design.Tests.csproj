@@ -3,9 +3,12 @@
   <PropertyGroup>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <StrideAssemblyProcessorOptions>--auto-module-initializer --serialization</StrideAssemblyProcessorOptions>
-    <TargetFramework>$(StrideEditorTargetFramework)</TargetFramework>
-    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
-    <StrideBuildTags>WindowsTools</StrideBuildTags>
+    <TargetFramework>$(StrideXplatEditorTargetFramework)</TargetFramework>
+    <RuntimeIdentifiers>linux-x64;win-x64</RuntimeIdentifiers>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <StrideBuildTags>LinuxTools;WindowsTools</StrideBuildTags>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="xunit" />

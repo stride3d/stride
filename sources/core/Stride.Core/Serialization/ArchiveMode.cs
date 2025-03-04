@@ -1,20 +1,20 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-namespace Stride.Core.Serialization
+
+namespace Stride.Core.Serialization;
+
+/// <summary>
+/// Enumerates the different mode of serialization (either serialization or deserialization).
+/// </summary>
+public enum ArchiveMode
 {
     /// <summary>
-    /// Enumerates the different mode of serialization (either serialization or deserialization).
+    /// The serializer is in serialize mode.
     /// </summary>
-    public enum ArchiveMode
-    {
-        /// <summary>
-        /// The serializer is in serialize mode.
-        /// </summary>
-        Serialize,
+    Serialize,
 
-        /// <summary>
-        /// The serializer is in deserialize mode.
-        /// </summary>
-        Deserialize,
-    }
+    /// <summary>
+    /// The serializer is in deserialize mode.
+    /// </summary>
+    Deserialize,
 }

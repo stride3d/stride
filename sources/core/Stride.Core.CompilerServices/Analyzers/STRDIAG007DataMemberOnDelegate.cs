@@ -11,7 +11,7 @@ public class STRDIAG007DataMemberOnDelegate : DiagnosticAnalyzer
     private const string MessageFormat = "Invalid [DataMember] Attribute on the member '{0}'. A Delegate is not serializable.";
     private const string Category = DiagnosticCategory.Serialization;
 
-    private static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
+    private static readonly DiagnosticDescriptor Rule = new(
         DiagnosticId,
         Title,
         MessageFormat,

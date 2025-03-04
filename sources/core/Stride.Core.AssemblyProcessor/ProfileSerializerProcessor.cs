@@ -1,33 +1,28 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using System;
-using System.Linq;
-using System.Text;
-
 using Stride.Core.AssemblyProcessor.Serializers;
 
-namespace Stride.Core.AssemblyProcessor
+namespace Stride.Core.AssemblyProcessor;
+
+internal class ProfileSerializerProcessor : ICecilSerializerProcessor
 {
-    internal class ProfileSerializerProcessor : ICecilSerializerProcessor
+    public void ProcessSerializers(CecilSerializerContext context)
     {
-        public void ProcessSerializers(CecilSerializerContext context)
+        var defaultProfile = context.SerializableTypes;
+
+        foreach (var profile in context.SerializableTypesProfiles)
         {
-            var defaultProfile = context.SerializableTypes;
+            // Skip default profile
+            if (profile.Value == defaultProfile)
+                continue;
 
-            foreach (var profile in context.SerializableTypesProfiles)
+            defaultProfile.IsFrozen = true;
+
+            // For each profile, try to instantiate all types existing in default profile
+            foreach (var type in defaultProfile.SerializableTypes)
             {
-                // Skip default profile
-                if (profile.Value == defaultProfile)
-                    continue;
-
-                defaultProfile.IsFrozen = true;
-
-                // For each profile, try to instantiate all types existing in default profile
-                foreach (var type in defaultProfile.SerializableTypes)
-                {
-                    context.GenerateSerializer(type.Key, false, profile.Key);
-                }
+                context.GenerateSerializer(type.Key, false, profile.Key);
             }
         }
     }

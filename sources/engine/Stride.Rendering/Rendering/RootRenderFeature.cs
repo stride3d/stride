@@ -13,6 +13,7 @@ using Stride.Core.Collections;
 using Stride.Core.Diagnostics;
 using Stride.Core.Extensions;
 using Stride.Core.Threading;
+using Stride.Graphics;
 
 namespace Stride.Rendering
 {
@@ -141,20 +142,18 @@ namespace Stride.Rendering
         internal unsafe ObjectNodeReference GetOrCreateObjectNode(RenderObject renderObject)
         {
             using var _ = Profiler.Begin(GetOrCreateObjectNodeKey);
-            fixed (ObjectNodeReference* objectNodeRef = &renderObject.ObjectNode)
+
+            var oldValue = Interlocked.CompareExchange(ref renderObject.ObjectNode.Index, -2, -1);
+            if (oldValue == -1)
             {
-                var oldValue = Interlocked.CompareExchange(ref *(int*)objectNodeRef, -2, -1);
-                if (oldValue == -1)
+                var index = objectNodes.Add(new ObjectNode(renderObject));
+                renderObject.ObjectNode = new ObjectNodeReference(index);
+                ObjectNodeReferences.Add(renderObject.ObjectNode);
+            }
+            else if (oldValue == -2) // Wait until whoever is inside the scope above finishes
+            {
+                while (Volatile.Read(ref renderObject.ObjectNode.Index) == -2)
                 {
-                    var index = objectNodes.Add(new ObjectNode(renderObject));
-                    renderObject.ObjectNode = new ObjectNodeReference(index);
-                    ObjectNodeReferences.Add(renderObject.ObjectNode);
-                }
-                else
-                {
-                    while (renderObject.ObjectNode.Index == -2)
-                    {
-                    }
                 }
             }
 
@@ -255,6 +254,16 @@ namespace Stride.Rendering
                 default:
                     throw new ArgumentOutOfRangeException();
             }
+        }
+
+        /// <summary>
+        /// Allows the renderer to inject per view resources such as depth buffer and opaque pass output.
+        /// </summary>
+        /// <param name="logicalGroupName">Name of the logical group to bind to.</param>
+        /// <param name="renderView"></param>
+        /// <param name="resource"></param>
+        public virtual void BindPerViewShaderResource(string logicalGroupName, RenderView renderView, GraphicsResource resource)
+        { 
         }
     }
 }

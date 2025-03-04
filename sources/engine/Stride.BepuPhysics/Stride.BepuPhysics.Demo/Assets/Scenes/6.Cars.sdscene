@@ -1,0 +1,1245 @@
+!SceneAsset
+Id: 58094e9a-bebf-43e4-99b7-b009bfdbbae9
+SerializedVersion: {Stride: 3.1.0.1}
+Tags: []
+ChildrenIds: []
+Offset: {X: 0.0, Y: 0.0, Z: 0.0}
+Hierarchy:
+    RootParts:
+        - ref!! cccc7630-3a3b-4c4d-a1f0-aba092fac2ef
+        - ref!! 88d4f114-4d3b-46fc-8430-8c2f56b4fd75
+        - ref!! d1cf6b43-15ff-4f13-8efe-1811b3ac0641
+        - ref!! 0d2e38de-beac-4d90-8c1e-fb774d425bb0
+        - ref!! a41abb91-43d7-46b3-908f-4f6ef69fc3ae
+    Parts:
+        -   Entity:
+                Id: 0715b09d-da88-480a-a504-44620c099c35
+                Name: Jump7
+                Components:
+                    6961414337769221283ce59319f70fa8: !TransformComponent
+                        Id: 393a34d2-ef9d-4aec-8779-ca6038f29a65
+                        Position: {X: 40.0, Y: 3.6963282, Z: -300.0}
+                        Rotation: {X: -0.0, Y: 0.0, Z: -0.21643962, W: 0.976296}
+                        Scale: {X: 20.0, Y: 1.0, Z: 20.0}
+                        Children: {}
+                    ba218259700f28dc9c3308ada7303ea4: !ModelComponent
+                        Id: 0109ec7d-5f1a-48b9-80b1-7a3f2e9bf15a
+                        Model: 2e92e632-0dc1-43d1-a917-0fd994f7ac71:Models/CubeModel
+                        Materials: {}
+                    c4b28463cf9a36f5210f7d9eff22cfde: !Stride.BepuPhysics.BodyComponent,Stride.BepuPhysics
+                        Id: 0508740f-381f-4538-8f6e-0ffe8bec42bd
+                        Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
+                            Colliders:
+                                a33d955c36eac6e2e4638f3a6359977f: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
+                                    Mass: 1.0
+                                    PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                    RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                    Size: {X: 20.0, Y: 1.0, Z: 20.0}
+                        ContactEventHandler: null
+                        SimulationIndex: 0
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 1000.0
+                        CollisionGroup: {}
+                        Kinematic: true
+                        Gravity: true
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
+                        InterpolationMode: None
+                        ContinuousDetectionMode: Discrete
+        -   Entity:
+                Id: 0d2e38de-beac-4d90-8c1e-fb774d425bb0
+                Name: CubeInstancing
+                Components:
+                    9af7d6d7a90cd79c4137e14aa6777939: !TransformComponent
+                        Id: 03df105f-ad5d-4ab8-8adf-535b2855aeb1
+                        Position: {X: 0.0, Y: -10.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    45622cc758f41101f5e1fa63ecc9a77f: !ModelComponent
+                        Id: 7203120f-3b1d-4500-bfad-087160baa379
+                        Model: 2e92e632-0dc1-43d1-a917-0fd994f7ac71:Models/CubeModel
+                        Materials:
+                            a4372207e9cfb015a5973f7fcb15a3a8~0: 46648cbe-9a27-4d25-aad2-bbf41c9402d9:Materials/QRMat
+                    8b6177e0e71e252f50babaf34a820d3f: !InstancingComponent
+                        Id: c9c947fa-78a6-4fd7-bb81-24983ca6b3ff
+                        Type: !InstancingEntityTransform {}
+        -   Entity:
+                Id: 1237bc55-e556-4c63-afba-a5d8766e554c
+                Name: Wall
+                Components:
+                    6961414337769221283ce59319f70fa8: !TransformComponent
+                        Id: 0c4d9969-ba95-47da-bbfb-78d2de4fed1f
+                        Position: {X: 0.0, Y: 2.5, Z: -10.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 20.0, Y: 5.0, Z: 1.0}
+                        Children: {}
+                    ba218259700f28dc9c3308ada7303ea4: !ModelComponent
+                        Id: 9bcd6bfd-857c-427f-b57c-dca05a24b246
+                        Model: 2e92e632-0dc1-43d1-a917-0fd994f7ac71:Models/CubeModel
+                        Materials: {}
+                    6de2bf10291577294bceecc39892fd9a: !Stride.BepuPhysics.BodyComponent,Stride.BepuPhysics
+                        Id: 2b0e4e2a-cdc1-47fc-b556-a2cd5338a644
+                        Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
+                            Colliders:
+                                9351b803f82600ec7a09de14728ec8e3: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
+                                    Mass: 1.0
+                                    PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                    RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                    Size: {X: 20.0, Y: 5.0, Z: 1.0}
+                        ContactEventHandler: null
+                        SimulationIndex: 0
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 1000.0
+                        CollisionGroup: {}
+                        Kinematic: true
+                        Gravity: true
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
+                        InterpolationMode: None
+                        ContinuousDetectionMode: Discrete
+        -   Entity:
+                Id: 29f85f96-b79a-4023-a8ea-2cacf394249a
+                Name: Wall
+                Components:
+                    6961414337769221283ce59319f70fa8: !TransformComponent
+                        Id: df865ccd-dd42-4bcb-8b80-50d705685e01
+                        Position: {X: 10.0, Y: 2.5, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.70710677, Z: 0.0, W: 0.70710677}
+                        Scale: {X: 20.0, Y: 5.0, Z: 1.0}
+                        Children: {}
+                    ba218259700f28dc9c3308ada7303ea4: !ModelComponent
+                        Id: 25526c19-b010-49ea-b243-42172077d497
+                        Model: 2e92e632-0dc1-43d1-a917-0fd994f7ac71:Models/CubeModel
+                        Materials: {}
+                    def66f75217c7e96da7ba067d52e2213: !Stride.BepuPhysics.BodyComponent,Stride.BepuPhysics
+                        Id: f127d1fd-fcf2-4b74-b8bd-e0ce8d0e6f48
+                        Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
+                            Colliders:
+                                4097f808d44667e938a350e2264fc827: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
+                                    Mass: 1.0
+                                    PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                    RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                    Size: {X: 20.0, Y: 5.0, Z: 1.0}
+                        ContactEventHandler: null
+                        SimulationIndex: 0
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 1000.0
+                        CollisionGroup: {}
+                        Kinematic: true
+                        Gravity: true
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
+                        InterpolationMode: None
+                        ContinuousDetectionMode: Discrete
+        -   Entity:
+                Id: 306f0c6b-224f-432e-b087-6d4d693f1699
+                Name: Jump2
+                Components:
+                    6961414337769221283ce59319f70fa8: !TransformComponent
+                        Id: c20a7335-06d4-4656-b2b3-a863b266a9a8
+                        Position: {X: 40.0, Y: 2.0680501, Z: -50.0}
+                        Rotation: {X: -0.0, Y: 0.0, Z: -0.1305262, W: 0.9914449}
+                        Scale: {X: 20.0, Y: 1.0, Z: 20.0}
+                        Children: {}
+                    ba218259700f28dc9c3308ada7303ea4: !ModelComponent
+                        Id: a79c5208-484a-4c48-a14e-ca749a597dbd
+                        Model: 2e92e632-0dc1-43d1-a917-0fd994f7ac71:Models/CubeModel
+                        Materials: {}
+                    ed87bcd2ce3359ef3f3f22214964008c: !Stride.BepuPhysics.BodyComponent,Stride.BepuPhysics
+                        Id: 7f93fcf2-c302-4170-ba8d-0948dd55475d
+                        Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
+                            Colliders:
+                                9146b0cdc9c6e6690602aea904f62fec: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
+                                    Mass: 1.0
+                                    PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                    RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                    Size: {X: 20.0, Y: 1.0, Z: 20.0}
+                        ContactEventHandler: null
+                        SimulationIndex: 0
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 1000.0
+                        CollisionGroup: {}
+                        Kinematic: true
+                        Gravity: true
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
+                        InterpolationMode: None
+                        ContinuousDetectionMode: Discrete
+        -   Entity:
+                Id: 3156dd1b-4b3d-4de6-9d15-02766a536f18
+                Name: FatBodyBridge
+                Components:
+                    f8b64ae82d05af3c41344ae985864f85: !TransformComponent
+                        Id: 241c9b4e-4599-4c1c-933e-01e36fbba8c6
+                        Position: {X: -50.0, Y: 25.0, Z: 120.0}
+                        Rotation: {X: 0.0, Y: 0.70710677, Z: 0.0, W: 0.70710677}
+                        Scale: {X: 10.0, Y: 10.0, Z: 10.0}
+                        Children: {}
+                    e946980e7fbd4507b8d7058df237d47e: !ModelComponent
+                        Id: 297791ce-93e6-4420-8645-8cb75cecea52
+                        Model: e6137a80-1725-4ebf-91dc-8d3ebcdb79be:Models/bridge
+                        Materials: {}
+                    ef0ede58229ead56f4ab9d52b4bcb2f4: !Stride.BepuPhysics.BodyComponent,Stride.BepuPhysics
+                        Id: 435fb189-26b9-48e0-b03b-4ff19c269c89
+                        Collider: !Stride.BepuPhysics.Definitions.Colliders.MeshCollider,Stride.BepuPhysics
+                            Model: e6137a80-1725-4ebf-91dc-8d3ebcdb79be:Models/bridge
+                            Mass: 10.0
+                            Closed: true
+                        ContactEventHandler: null
+                        SimulationIndex: 0
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 1000.0
+                        CollisionGroup: {}
+                        Kinematic: false
+                        Gravity: true
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
+                        InterpolationMode: None
+                        ContinuousDetectionMode: Discrete
+        -   Entity:
+                Id: 41074201-12d7-44e3-9d28-77d4e368a099
+                Name: RayStart
+                Components:
+                    278e2616c6a57b80eef83c84b9629b27: !TransformComponent
+                        Id: 416544b2-7078-4044-aca3-a9f9097d737a
+                        Position: {X: -2.1, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    d7daad56958583b9b79a2491c42dcc46: !Stride.BepuPhysics.Demo.Components.Utils.RayCastComponent,Stride.BepuPhysics.Demo
+                        Id: 3f067378-88da-40dc-b69a-8a8c783e80df
+                        SimulationIndex: 0
+                        Offset: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Dir: {X: -1.0, Y: 0.0, Z: 1.0}
+                        MaxT: 100.0
+        -   Entity:
+                Id: 454cdd54-ab3a-49d7-a1db-ed1f6f99319d
+                Name: ThirdPersonPivot
+                Components:
+                    68e2c19ca27d3022aae4bbbaa52c97fd: !TransformComponent
+                        Id: 5584b930-109c-405e-9cc2-a42aee7b1857
+                        Position: {X: 0.0, Y: 0.0, Z: 8.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            3a987e3cdd253b561abc86bbf549cf9f: ref!! 1f662e52-b1e0-451d-971d-1d8fbaeb358b
+        -   Entity:
+                Id: 6495df80-ec4c-4fbd-b2d1-ba3fa8b46896
+                Name: Jump6
+                Components:
+                    6961414337769221283ce59319f70fa8: !TransformComponent
+                        Id: c2bfd577-4d21-40bb-8dc4-b268e50f3670
+                        Position: {X: 40.0, Y: 2.7783315, Z: -250.0}
+                        Rotation: {X: -0.0, Y: 0.0, Z: -0.17364818, W: 0.9848077}
+                        Scale: {X: 20.0, Y: 1.0, Z: 20.0}
+                        Children: {}
+                    ba218259700f28dc9c3308ada7303ea4: !ModelComponent
+                        Id: 9afb982f-f8b7-4159-bb6a-3c6290e38661
+                        Model: 2e92e632-0dc1-43d1-a917-0fd994f7ac71:Models/CubeModel
+                        Materials: {}
+                    78da94c52f674405e64b82de4485033b: !Stride.BepuPhysics.BodyComponent,Stride.BepuPhysics
+                        Id: 8b6aae43-734a-4185-ad4a-19cfa275a9c3
+                        Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
+                            Colliders:
+                                2f353e57c2e7dd53c24015216e8d593b: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
+                                    Mass: 1.0
+                                    PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                    RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                    Size: {X: 20.0, Y: 1.0, Z: 20.0}
+                        ContactEventHandler: null
+                        SimulationIndex: 0
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 1000.0
+                        CollisionGroup: {}
+                        Kinematic: true
+                        Gravity: true
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
+                        InterpolationMode: None
+                        ContinuousDetectionMode: Discrete
+        -   Entity:
+                Id: 6a967106-41ca-4f22-87bb-4c5d155bd58c
+                Name: BodyBridge
+                Components:
+                    f8b64ae82d05af3c41344ae985864f85: !TransformComponent
+                        Id: 170d9808-345e-4ed1-8521-636cd54c9791
+                        Position: {X: 0.0, Y: 0.9, Z: -260.0}
+                        Rotation: {X: 0.0, Y: 0.70710677, Z: 0.0, W: 0.70710677}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    e946980e7fbd4507b8d7058df237d47e: !ModelComponent
+                        Id: bbf8c384-4c2d-49a8-a698-6b2336539054
+                        Model: e6137a80-1725-4ebf-91dc-8d3ebcdb79be:Models/bridge
+                        Materials: {}
+                    f2f4ebbb173a828bb5cecb05f49c7d84: !Stride.BepuPhysics.BodyComponent,Stride.BepuPhysics
+                        Id: 08f588cc-f948-4869-80a6-1e93d97d71cb
+                        Collider: !Stride.BepuPhysics.Definitions.Colliders.MeshCollider,Stride.BepuPhysics
+                            Model: e6137a80-1725-4ebf-91dc-8d3ebcdb79be:Models/bridge
+                            Mass: 10.0
+                            Closed: true
+                        ContactEventHandler: null
+                        SimulationIndex: 0
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 1000.0
+                        CollisionGroup: {}
+                        Kinematic: false
+                        Gravity: true
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
+                        InterpolationMode: None
+                        ContinuousDetectionMode: Discrete
+        -   Entity:
+                Id: 7363a9f5-96b3-45d9-8d5f-9a734ab3aec5
+                Name: Wall
+                Components:
+                    6961414337769221283ce59319f70fa8: !TransformComponent
+                        Id: 6cd630b1-5d92-44c5-aaba-4ca4154f8b82
+                        Position: {X: -10.0, Y: 2.5, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.70710677, Z: 0.0, W: 0.70710677}
+                        Scale: {X: 20.0, Y: 5.0, Z: 1.0}
+                        Children: {}
+                    ba218259700f28dc9c3308ada7303ea4: !ModelComponent
+                        Id: f395e65d-e270-41d9-8af2-daef9d6b63cd
+                        Model: 2e92e632-0dc1-43d1-a917-0fd994f7ac71:Models/CubeModel
+                        Materials: {}
+                    2dc7d8f769694e90aa9589adb945a20f: !Stride.BepuPhysics.BodyComponent,Stride.BepuPhysics
+                        Id: 5ebbe99d-d039-4dbf-99da-6987906b8028
+                        Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
+                            Colliders:
+                                15ea773ec8a92bbd20a592acca3854c5: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
+                                    Mass: 1.0
+                                    PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                    RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                    Size: {X: 20.0, Y: 5.0, Z: 1.0}
+                        ContactEventHandler: null
+                        SimulationIndex: 0
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 1000.0
+                        CollisionGroup: {}
+                        Kinematic: true
+                        Gravity: true
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
+                        InterpolationMode: None
+                        ContinuousDetectionMode: Discrete
+        -   Entity:
+                Id: 81515b44-d6b2-4f52-b49e-ac44c4472471
+                Name: Jump1
+                Components:
+                    6961414337769221283ce59319f70fa8: !TransformComponent
+                        Id: b74e8202-b238-406d-9039-27250ce78b63
+                        Position: {X: 40.0, Y: 4.5, Z: 0.0}
+                        Rotation: {X: -0.0, Y: 0.0, Z: -0.1305262, W: 0.9914449}
+                        Scale: {X: 40.0, Y: 1.0, Z: 20.0}
+                        Children: {}
+                    ba218259700f28dc9c3308ada7303ea4: !ModelComponent
+                        Id: 1f42c5d1-bee0-4854-accf-bf897130c026
+                        Model: 2e92e632-0dc1-43d1-a917-0fd994f7ac71:Models/CubeModel
+                        Materials: {}
+                    4004855c6f751335f8f5b5da9ec32cbc: !Stride.BepuPhysics.BodyComponent,Stride.BepuPhysics
+                        Id: 82811cd5-bcb4-47f8-83da-9eaa0ddefe27
+                        Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
+                            Colliders:
+                                ae255b628cf1e37693b42c9b9f4ec4c0: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
+                                    Mass: 1.0
+                                    PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                    RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                    Size: {X: 40.0, Y: 1.0, Z: 20.0}
+                        ContactEventHandler: null
+                        SimulationIndex: 0
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 1000.0
+                        CollisionGroup: {}
+                        Kinematic: true
+                        Gravity: true
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
+                        InterpolationMode: None
+                        ContinuousDetectionMode: Discrete
+        -   Entity:
+                Id: 88d4f114-4d3b-46fc-8430-8c2f56b4fd75
+                Name: Directional light
+                Components:
+                    ba7701dac6ff028029e020b0fa73a5ee: !TransformComponent
+                        Id: 8a0ab67e-f398-4316-bcf3-40afda595688
+                        Position: {X: 0.0, Y: 2.0, Z: 0.0}
+                        Rotation: {X: 1.131334E-08, Y: -0.9659258, Z: -0.25881904, W: -4.222196E-08}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    25d69094bde55b0756a7486a0e64b72d: !LightComponent
+                        Id: 526b03de-7759-4e01-b1b0-bcaacf6c5cef
+                        Type: !LightDirectional
+                            Color: !ColorRgbProvider
+                                Value: {R: 1.0, G: 1.0, B: 1.0}
+                            Shadow:
+                                Enabled: true
+                                Filter: !LightShadowMapFilterTypePcf
+                                    FilterSize: Filter5x5
+                                Size: Large
+                                DepthRange: {}
+                                PartitionMode: !LightDirectionalShadowMap.PartitionLogarithmic {}
+                                ComputeTransmittance: false
+                                BiasParameters: {}
+                        Intensity: 0.2
+        -   Folder: null
+            Entity:
+                Id: 9070aef7-052c-4909-a77e-b7ce839fe98d
+                Name: Bot
+                Components:
+                    6961414337769221283ce59319f70fa8: !TransformComponent
+                        Id: 40238d3d-d2b6-40e5-8f63-ffa1acd539c7
+                        Position: {X: 0.0, Y: 3.5, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    ba218259700f28dc9c3308ada7303ea4: !ModelComponent
+                        Id: 30cc8a40-4db1-43f0-8a7a-e017da1a0763
+                        Model: 2e92e632-0dc1-43d1-a917-0fd994f7ac71:Models/CubeModel
+                        Materials: {}
+                    ece7eda6a6067c7aa682e605a9ec116f: !Stride.BepuPhysics.BodyComponent,Stride.BepuPhysics
+                        Id: 4a06fbeb-c266-4472-9af7-c21fa2479930
+                        Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
+                            Colliders:
+                                470d889df402a6f24fb26f0bcad45203: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
+                                    Mass: 1.0
+                                    PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                    RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                    Size: {X: 1.0, Y: 1.0, Z: 1.0}
+                        ContactEventHandler: null
+                        SimulationIndex: 0
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 1000.0
+                        CollisionGroup: {}
+                        Kinematic: false
+                        Gravity: true
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
+                        InterpolationMode: None
+                        ContinuousDetectionMode: Discrete
+        -   Entity:
+                Id: 91912d45-330e-421a-87d5-d656f2d52390
+                Name: FirstPersonPivot
+                Components:
+                    618b4444a78d7b53aeb5692c8a021f6c: !TransformComponent
+                        Id: 7fb7a2c0-1d02-4dae-8907-1a488bff98f7
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.70710677, Z: 0.0, W: 0.70710677}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            d9eca7d3ecfc509cabc2f60beaf0b319: ref!! 5584b930-109c-405e-9cc2-a42aee7b1857
+        -   Folder: null
+            Entity:
+                Id: 931b13aa-a293-4fbf-a946-e109f603ee67
+                Name: Floor
+                Components:
+                    6961414337769221283ce59319f70fa8: !TransformComponent
+                        Id: 7eed3082-0ebe-4e8d-8d59-fa2d9691db53
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 3000.0, Y: 0.1, Z: 3000.0}
+                        Children: {}
+                    ba218259700f28dc9c3308ada7303ea4: !ModelComponent
+                        Id: e1b89669-0319-44cf-96f0-4fa5f77f81b7
+                        Model: 2e92e632-0dc1-43d1-a917-0fd994f7ac71:Models/CubeModel
+                        Materials: {}
+                    92c708d40742b95bf646cb5d85014531: !Stride.BepuPhysics.StaticComponent,Stride.BepuPhysics
+                        Id: 96752ac7-15be-4847-8c4d-d41d35b5990c
+                        Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
+                            Colliders:
+                                c03bcc0dc102703a8a85d1bb5f80764c: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
+                                    Mass: 1.0
+                                    PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                    RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                    Size: {X: 3000.0, Y: 0.1, Z: 3000.0}
+                        ContactEventHandler: null
+                        SimulationIndex: 0
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 1000.0
+                        CollisionGroup: {}
+        -   Entity:
+                Id: 9372f2e7-5d24-4968-a90e-3e4c58b63eef
+                Name: Jump3
+                Components:
+                    6961414337769221283ce59319f70fa8: !TransformComponent
+                        Id: 174a4870-3496-42ea-89f3-c2497bdc412b
+                        Position: {X: 40.0, Y: 0.326226, Z: -100.0}
+                        Rotation: {X: -0.0, Y: 0.0, Z: -0.043619387, W: 0.99904823}
+                        Scale: {X: 20.0, Y: 1.0, Z: 20.0}
+                        Children: {}
+                    ba218259700f28dc9c3308ada7303ea4: !ModelComponent
+                        Id: 4dd9898c-b1e6-4c0e-b1e6-d5aea0042718
+                        Model: 2e92e632-0dc1-43d1-a917-0fd994f7ac71:Models/CubeModel
+                        Materials: {}
+                    b52166cea55a95b4a0f530f2db30b499: !Stride.BepuPhysics.BodyComponent,Stride.BepuPhysics
+                        Id: a2986570-bc9f-4f0b-a468-df27b1ad03c7
+                        Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
+                            Colliders:
+                                ad0103383c8f6c64b56f6cf863d2f34c: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
+                                    Mass: 1.0
+                                    PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                    RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                    Size: {X: 20.0, Y: 1.0, Z: 20.0}
+                        ContactEventHandler: null
+                        SimulationIndex: 0
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 1000.0
+                        CollisionGroup: {}
+                        Kinematic: true
+                        Gravity: true
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
+                        InterpolationMode: None
+                        ContinuousDetectionMode: Discrete
+        -   Entity:
+                Id: 950454f1-70b5-4301-b3cc-245cea2ebbe3
+                Name: Jump4
+                Components:
+                    6961414337769221283ce59319f70fa8: !TransformComponent
+                        Id: a140f06b-8dca-4330-b435-e90b5dc3fd2c
+                        Position: {X: 40.0, Y: 1.2228761, Z: -150.0}
+                        Rotation: {X: -0.0, Y: 0.0, Z: -0.08715574, W: 0.9961947}
+                        Scale: {X: 20.0, Y: 1.0, Z: 20.0}
+                        Children: {}
+                    ba218259700f28dc9c3308ada7303ea4: !ModelComponent
+                        Id: 7262933c-9e08-4bbc-9c64-35017f95efa5
+                        Model: 2e92e632-0dc1-43d1-a917-0fd994f7ac71:Models/CubeModel
+                        Materials: {}
+                    c71aefc5ccf7339ed2b6ba56cadb380d: !Stride.BepuPhysics.BodyComponent,Stride.BepuPhysics
+                        Id: a2cfd5ef-a469-4432-b463-7c03426a402a
+                        Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
+                            Colliders:
+                                cf5be6e0c01066ddffea9c340d427be9: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
+                                    Mass: 1.0
+                                    PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                    RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                    Size: {X: 20.0, Y: 1.0, Z: 20.0}
+                        ContactEventHandler: null
+                        SimulationIndex: 0
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 1000.0
+                        CollisionGroup: {}
+                        Kinematic: true
+                        Gravity: true
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
+                        InterpolationMode: None
+                        ContinuousDetectionMode: Discrete
+        -   Folder: null
+            Entity:
+                Id: 9750bc21-11e8-4a47-9c35-e9738674e299
+                Name: Top
+                Components:
+                    6961414337769221283ce59319f70fa8: !TransformComponent
+                        Id: b5bd677c-b506-4794-b9af-7914e197c6f5
+                        Position: {X: 0.0, Y: 10.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    ba218259700f28dc9c3308ada7303ea4: !ModelComponent
+                        Id: 99f684a1-09f7-4bce-b0da-3d80b44d8246
+                        Model: 2e92e632-0dc1-43d1-a917-0fd994f7ac71:Models/CubeModel
+                        Materials: {}
+                    8c9fe621ce058318ab21bcbd56b5f515: !Stride.BepuPhysics.BodyComponent,Stride.BepuPhysics
+                        Id: 82d55cfb-2fb7-487f-b054-b79f7515c517
+                        Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
+                            Colliders:
+                                38a1de7fe8bfafebf152b90a85880f67: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
+                                    Mass: 1.0
+                                    PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                    RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                    Size: {X: 1.0, Y: 1.0, Z: 1.0}
+                        ContactEventHandler: null
+                        SimulationIndex: 0
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 1000.0
+                        CollisionGroup: {}
+                        Kinematic: true
+                        Gravity: true
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
+                        InterpolationMode: None
+                        ContinuousDetectionMode: Discrete
+        -   Entity:
+                Id: 9ab59b3e-b542-4cd4-896a-aa1252f44e65
+                Name: Jump5
+                Components:
+                    6961414337769221283ce59319f70fa8: !TransformComponent
+                        Id: 2ab1eeb2-f522-4642-ae5f-078f5e1ed683
+                        Position: {X: 40.0, Y: 2.0680501, Z: -200.0}
+                        Rotation: {X: -0.0, Y: 0.0, Z: -0.1305262, W: 0.9914449}
+                        Scale: {X: 20.0, Y: 1.0, Z: 20.0}
+                        Children: {}
+                    ba218259700f28dc9c3308ada7303ea4: !ModelComponent
+                        Id: 832a26ea-554d-472a-bbb8-cccbda7251dd
+                        Model: 2e92e632-0dc1-43d1-a917-0fd994f7ac71:Models/CubeModel
+                        Materials: {}
+                    daef163ece62e996561e7b305161152a: !Stride.BepuPhysics.BodyComponent,Stride.BepuPhysics
+                        Id: 638d77cf-5647-4ff6-84ff-3ced764109b5
+                        Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
+                            Colliders:
+                                6c696ae0ecb89ab19f4f87b0f94a7ad0: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
+                                    Mass: 1.0
+                                    PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                    RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                    Size: {X: 20.0, Y: 1.0, Z: 20.0}
+                        ContactEventHandler: null
+                        SimulationIndex: 0
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 1000.0
+                        CollisionGroup: {}
+                        Kinematic: true
+                        Gravity: true
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
+                        InterpolationMode: None
+                        ContinuousDetectionMode: Discrete
+        -   Entity:
+                Id: 9eefaa3c-8d8f-4a6e-a9b2-7bfebe2c04bc
+                Name: Wall
+                Components:
+                    6961414337769221283ce59319f70fa8: !TransformComponent
+                        Id: 394db46f-8eab-489b-9330-aa6469c6ece4
+                        Position: {X: 0.0, Y: 2.5, Z: 10.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 20.0, Y: 5.0, Z: 1.0}
+                        Children: {}
+                    ba218259700f28dc9c3308ada7303ea4: !ModelComponent
+                        Id: 1d9c68e4-72bc-4bbe-b70a-5e203d842f1c
+                        Model: 2e92e632-0dc1-43d1-a917-0fd994f7ac71:Models/CubeModel
+                        Materials: {}
+                    0e29bde581b644281bb758b13b2f2da2: !Stride.BepuPhysics.BodyComponent,Stride.BepuPhysics
+                        Id: d56e54f0-929b-4bf1-bb0b-ff9cad72b65b
+                        Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
+                            Colliders:
+                                8e674e476670a3df44aa010f842ae256: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
+                                    Mass: 1.0
+                                    PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                    RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                    Size: {X: 20.0, Y: 5.0, Z: 1.0}
+                        ContactEventHandler: null
+                        SimulationIndex: 0
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 1000.0
+                        CollisionGroup: {}
+                        Kinematic: true
+                        Gravity: true
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
+                        InterpolationMode: None
+                        ContinuousDetectionMode: Discrete
+        -   Entity:
+                Id: 9fa49e88-3c7f-445f-a550-58d7b2d81da6
+                Name: SuperCar
+                Components:
+                    d4d70a19362138eaa821eecdfe8d9853: !TransformComponent
+                        Id: b64996cc-8acb-47f0-887a-03506172ef5c
+                        Position: {X: 200.0, Y: 10.0, Z: -50.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            788fa0c6ec08d7793e4dbf513bd641a9: ref!! 61addb5f-924b-431f-a781-88cb311318ee
+                            3ffc18ad3c1cb957e908ef9d1cf5b1ff: ref!! 9b5d3078-489d-414a-b97a-2dba55ee4e7b
+                            f53db0c23cba98c6dd06674cbcfe222a: ref!! 5d626e02-fc12-43fb-9586-29fd060a1e03
+                            0b444408e5ac9b8f4727d5fba5b7ff35: ref!! ca78e3cb-213b-45f3-b4a8-08b9d06fc2b7
+                            b9e2a044841d4d5dfc9017e4c413f242: ref!! ccca35c6-38e1-4282-a88a-5cec10834d5b
+                    d913c936f236e55cfc774cddf02457b7: !Stride.BepuPhysics.Demo.Components.Car.CarComponent,Stride.BepuPhysics.Demo
+                        Id: b35cfac2-1756-48d9-806b-23756edc7b7d
+                        SimulationIndex: 0
+                        CarBody: ref!! f84ae702-83f2-4e43-b3bf-64da64d3487d
+                        Wheels:
+                            87970579bcd98b0f6ac367fe4caec23a: ref!! efa4c3a8-9f44-4027-aa87-cfb4efdbf4ac
+                            e1270889a6e52409497fa04040d2a421: ref!! daee5aa7-0fdb-4c25-9919-84b935d31898
+                            2738d2c361e8593f06d795be8b106247: ref!! dffecd2b-9f10-4217-a8ee-bbcacbe0a234
+                            68ac4e728ae0245562826da797cac832: ref!! d3895810-3bbd-478a-b81b-5426dfed53a4
+                        SteerWheels:
+                            fbe6adfe3ce8a0ce8889fe523195e49f: ref!! efa4c3a8-9f44-4027-aa87-cfb4efdbf4ac
+                            39e32436ff8a134346387fe1798c04e9: ref!! daee5aa7-0fdb-4c25-9919-84b935d31898
+                        DriveWheels:
+                            63588890b0d0f1b5f0f6820fe2f136a3: ref!! efa4c3a8-9f44-4027-aa87-cfb4efdbf4ac
+                            8dfcbce0af73d359082097275e84eb55: ref!! daee5aa7-0fdb-4c25-9919-84b935d31898
+                        BreakWheels:
+                            10c8bfb46db63eef972ceb7bcda65c56: ref!! efa4c3a8-9f44-4027-aa87-cfb4efdbf4ac
+                            e8fb951bb118dad79c175d307330535c: ref!! daee5aa7-0fdb-4c25-9919-84b935d31898
+                            de3b91894b958ab8298a4df5be4ffad7: ref!! dffecd2b-9f10-4217-a8ee-bbcacbe0a234
+                            aff30461e7fe10fdfbfb3381cb2203d9: ref!! d3895810-3bbd-478a-b81b-5426dfed53a4
+                        AccelerateKeys:
+                            ee1c76685395dbd0a146abd82ab549e3: Z
+                            ef77c049c3164711ed661427d5f816f6: W
+                            44740503f51e45029b45399962bb317a: Up
+                        ReverseKeys:
+                            5e86403a8fcbb3d44d71ac90d160193f: S
+                            8523c04c5846ef0c4548fb8941cde2cc: Down
+                        BreakKeys:
+                            e3c41287d01579647faf412a4d777de8: Space
+                        SteerLeftKeys:
+                            187fe4404c8c67ec92527de53989e03e: Q
+                            9ddd06b340784727a274d47f4d148cbf: A
+                        SteerRightKeys:
+                            25f0d9124b3488c357c1233a45302ffb: D
+                        GearUpKeys: {}
+                        GearDownKeys: {}
+                        ClutchKeys: {}
+                        StarterKeys: {}
+                        CarEngine:
+                            MinRPM: 1000
+                            MaxRPM: 10000
+                            EngineBreakForce: 0.001
+                        BreakingForce: 0.1
+                        MaximumSteeringAngle: 30.0
+                        SteeringSpeed: 0.5
+                        Clutch: true
+                        Starter: false
+                        AutomaticGearing: true
+                        AutomaticStart: true
+                    603bff52fc6e7f59455267d440229f50: !Stride.BepuPhysics.Demo.Components.Utils.CollisionComponent,Stride.BepuPhysics.Demo
+                        Id: 4bb45d95-e29a-4bfb-9fb6-3d416a622611
+                        Collidable1: ref!! 59e4ebf6-14b1-4911-bc4b-66063fafa34a
+                        Collidable2: ref!! c1d32a7a-610f-48d6-84d8-b68762b119b8
+                        Collidable3: ref!! 68c75021-31aa-43d1-9be2-be63b703ed83
+                        Collidable4: ref!! b013e2de-4def-42c8-9d3a-d9cd5d29e664
+        -   Entity:
+                Id: a41abb91-43d7-46b3-908f-4f6ef69fc3ae
+                Name: BepuPhysics
+                Components:
+                    eda2202b601b97655c522d8b2e932ae5: !TransformComponent
+                        Id: 886ca00e-16cf-45fa-a975-7e82059a8a82
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            a5869266007b42af6b5ba5e5468a5478: ref!! 7eed3082-0ebe-4e8d-8d59-fa2d9691db53
+                            15a110a675b88f3c56bf32cd04d9ecc9: ref!! 40947c34-fa79-4ea3-aaeb-c7a077ae9fd2
+                            302847c9ce487c99f8414e78e5eda6f0: ref!! b74e8202-b238-406d-9039-27250ce78b63
+                            75ba82bcfcd2b02d69975d0e74d30925: ref!! c20a7335-06d4-4656-b2b3-a863b266a9a8
+                            e6acddc02f2b736fbf1fe04551eda9c4: ref!! 174a4870-3496-42ea-89f3-c2497bdc412b
+                            fb5e7f180f31ed3fa71c2c4228ae5ebe: ref!! a140f06b-8dca-4330-b435-e90b5dc3fd2c
+                            9c7c6806b02725f1d0efdd7f56eb8578: ref!! 2ab1eeb2-f522-4642-ae5f-078f5e1ed683
+                            e4e564216c4103195fb3a23d6a5e998c: ref!! c2bfd577-4d21-40bb-8dc4-b268e50f3670
+                            21c61beefc8551b81eb9029b0fb3fb00: ref!! 393a34d2-ef9d-4aec-8779-ca6038f29a65
+                            4f26a4a065b23ac49c5201f9d47d0ee1: ref!! 9cf3a258-c28f-4c43-95e9-71936e849779
+                            ff4ca892a76181aa0ecd4781babdba13: ref!! b64996cc-8acb-47f0-887a-03506172ef5c
+                            b3dd38a7c59023a37450d16f0afb1ae4: ref!! 494eb75e-904b-446f-9539-4653859f9975
+                            44770610e35038f4cce942628d09d6b4: ref!! 170d9808-345e-4ed1-8521-636cd54c9791
+                            0044f9d3ad653598850a1079cefc5731: ref!! 241c9b4e-4599-4c1c-933e-01e36fbba8c6
+                    807fd6f1bfea6cedc2abc9907e906240: !Stride.BepuPhysics.Demo.Components.Utils.RopeSpawnerComponent,Stride.BepuPhysics.Demo
+                        Id: 776b908f-e979-4957-bacd-d537a8f45453
+                        SimulationIndex: 0
+                        RopePart: 378e35ff-3dd0-4e6d-86e2-a477870a5c4e:Prefabs/Bepu/RopePart
+                        RopePartSize: 0.3
+                        AEntity: null
+                        APos: {X: 0.5, Y: 0.0, Z: 0.0}
+                        BEntity: null
+                        BPos: {X: 0.0, Y: -0.5, Z: 0.0}
+                    2748cd8e3f4f6ee538f8cd951e1ccdee: !Stride.BepuPhysics.Demo.Components.Utils.RopeSpawnerComponent,Stride.BepuPhysics.Demo
+                        Id: e93bbc26-9f0a-404e-bd82-855be9420ecf
+                        SimulationIndex: 0
+                        RopePart: 378e35ff-3dd0-4e6d-86e2-a477870a5c4e:Prefabs/Bepu/RopePart
+                        RopePartSize: 0.3
+                        AEntity: null
+                        APos: {X: 10.0, Y: 0.5, Z: 10.0}
+                        BEntity: null
+                        BPos: {X: 0.0, Y: -0.5, Z: 0.0}
+                    df8df1e9078962519bb2e906ff5bd744: !Stride.BepuPhysics.Demo.Components.Utils.RopeSpawnerComponent,Stride.BepuPhysics.Demo
+                        Id: 1b2f6c2e-1961-4f3a-ab07-ba0a16d9b4e3
+                        SimulationIndex: 0
+                        RopePart: 378e35ff-3dd0-4e6d-86e2-a477870a5c4e:Prefabs/Bepu/RopePart
+                        RopePartSize: 0.3
+                        AEntity: null
+                        APos: {X: 10.0, Y: 0.5, Z: -10.0}
+                        BEntity: null
+                        BPos: {X: 0.0, Y: -0.5, Z: 0.0}
+                    f0b1089156066784aa5bb1948f7006de: !Stride.BepuPhysics.Demo.Components.Utils.RopeSpawnerComponent,Stride.BepuPhysics.Demo
+                        Id: 1f48afb2-9108-4642-8805-3f48614415e3
+                        SimulationIndex: 0
+                        RopePart: 378e35ff-3dd0-4e6d-86e2-a477870a5c4e:Prefabs/Bepu/RopePart
+                        RopePartSize: 0.3
+                        AEntity: null
+                        APos: {X: -10.0, Y: 0.5, Z: -10.0}
+                        BEntity: null
+                        BPos: {X: 0.0, Y: -0.5, Z: 0.0}
+                    5a9e25158e14dc991ac2cf5110b5492b: !Stride.BepuPhysics.Demo.Components.Utils.RopeSpawnerComponent,Stride.BepuPhysics.Demo
+                        Id: 2969ea40-fe06-4fc1-aac2-b2fe7af56f42
+                        SimulationIndex: 0
+                        RopePart: 378e35ff-3dd0-4e6d-86e2-a477870a5c4e:Prefabs/Bepu/RopePart
+                        RopePartSize: 0.3
+                        AEntity: null
+                        APos: {X: -10.0, Y: 0.5, Z: 10.0}
+                        BEntity: null
+                        BPos: {X: 0.0, Y: -0.5, Z: 0.0}
+        -   Entity:
+                Id: a5421de9-c4ab-4d87-a517-201f1eef84ea
+                Name: Cup
+                Components:
+                    591543edda39c5a0a44ce42f8da6441e: !TransformComponent
+                        Id: 9cf3a258-c28f-4c43-95e9-71936e849779
+                        Position: {X: 0.0, Y: 0.0, Z: -50.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            fbe669ebdb51e191eebbb40f07d65c9a: ref!! 0c4d9969-ba95-47da-bbfb-78d2de4fed1f
+                            ad107ec8b18b3f9aa9262660a54e6972: ref!! 394db46f-8eab-489b-9330-aa6469c6ece4
+                            67f0686cfe7e8c7ba25f24de6503e1cb: ref!! df865ccd-dd42-4bcb-8b80-50d705685e01
+                            46557b5d154e8dd07cc4b98ba0de0f88: ref!! 6cd630b1-5d92-44c5-aaba-4ca4154f8b82
+        -   Entity:
+                Id: a9bb2541-fe09-4f7e-8dcf-4452ac6c17ca
+                Name: Model
+                Components:
+                    cd7f7ce28cb08e446913782fa70f57a9: !TransformComponent
+                        Id: c30993d7-6b25-4b35-b4fc-e442346b5082
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 4.0, Y: 1.0, Z: 2.5}
+                        Children: {}
+                    9e6851a4057a44538ec3c1ea9b07fdc7: !ModelComponent
+                        Id: 8e94eb48-6559-4f1c-920f-b12c23359109
+                        Model: 2e92e632-0dc1-43d1-a917-0fd994f7ac71:Models/CubeModel
+                        Materials: {}
+        -   Entity:
+                Id: ac612ecd-52e0-4e17-8b8d-e17a560b3118
+                Name: StaticBridge
+                Components:
+                    f8b64ae82d05af3c41344ae985864f85: !TransformComponent
+                        Id: 494eb75e-904b-446f-9539-4653859f9975
+                        Position: {X: 0.0, Y: 0.9, Z: -250.0}
+                        Rotation: {X: 0.0, Y: 0.70710677, Z: 0.0, W: 0.70710677}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    e946980e7fbd4507b8d7058df237d47e: !ModelComponent
+                        Id: ff4715b1-1ada-4874-a4dc-c0539009c02d
+                        Model: e6137a80-1725-4ebf-91dc-8d3ebcdb79be:Models/bridge
+                        Materials: {}
+                    cf354e1d7d135cb72515d5284d6b5f60: !Stride.BepuPhysics.StaticComponent,Stride.BepuPhysics
+                        Id: 4a2bb55a-c1f0-45aa-9623-539262e7fd8a
+                        Collider: !Stride.BepuPhysics.Definitions.Colliders.MeshCollider,Stride.BepuPhysics
+                            Model: e6137a80-1725-4ebf-91dc-8d3ebcdb79be:Models/bridge
+                            Mass: 1.0
+                            Closed: true
+                        ContactEventHandler: null
+                        SimulationIndex: 0
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 1000.0
+                        CollisionGroup: {}
+        -   Entity:
+                Id: b27fbebd-9210-4f5a-9fa1-930d6c7c21cd
+                Name: Camera
+                Components:
+                    191a9580bfac05d33d042a46b9b519ac: !TransformComponent
+                        Id: 1f662e52-b1e0-451d-971d-1d8fbaeb358b
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    c73c973e1799365d3dd49db196d92934: !CameraComponent
+                        Id: db535494-c5f6-4680-95a2-0df867dadd54
+                        Name: null
+                        Projection: Perspective
+                        NearClipPlane: 0.01
+                        FarClipPlane: 2000.0
+                        Slot: be74c9be-5861-4bea-90b0-b175535210f7
+        -   Folder: null
+            Entity:
+                Id: be266e80-486b-4e4a-a89b-5ae7b63cd814
+                Name: Cent
+                Components:
+                    6961414337769221283ce59319f70fa8: !TransformComponent
+                        Id: 040b5c8e-5685-43ca-b658-1976790006f4
+                        Position: {X: 0.0, Y: 5.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 50.0, Y: 1.0, Z: 50.0}
+                        Children: {}
+                    ba218259700f28dc9c3308ada7303ea4: !ModelComponent
+                        Id: 0869d2b1-640b-46ec-a665-c0bf00d71a7e
+                        Model: 2e92e632-0dc1-43d1-a917-0fd994f7ac71:Models/CubeModel
+                        Materials: {}
+                    bd30b55fbbf2272099d933bcb3df00b7: !Stride.BepuPhysics.BodyComponent,Stride.BepuPhysics
+                        Id: de9a2edc-7726-49cc-b16b-6ffde50649e2
+                        Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
+                            Colliders:
+                                7cb12007f06ba05d81370cefe73df9b7: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
+                                    Mass: 1.0
+                                    PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                    RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                    Size: {X: 50.0, Y: 1.0, Z: 50.0}
+                        ContactEventHandler: null
+                        SimulationIndex: 0
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 1000.0
+                        CollisionGroup: {}
+                        Kinematic: false
+                        Gravity: true
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
+                        InterpolationMode: None
+                        ContinuousDetectionMode: Discrete
+        -   Entity:
+                Id: cccc7630-3a3b-4c4d-a1f0-aba092fac2ef
+                Name: DefaultScripts
+                Components:
+                    99c6bf5dff884f29788bacf78e62a0ad: !Stride.BepuPhysics.Demo.Components.Utils.ThrowerComponent,Stride.BepuPhysics.Demo
+                        Id: b6d6c3d6-0215-4c8e-9298-067071fec188
+                        SimulationIndex: 0
+                        SpawnPrefab: 479558df-2f6b-4998-bbbf-73fd053e2554:Prefabs/Bepu/BepuInstancedCube
+                        Instancing: ref!! c9c947fa-78a6-4fd7-bb81-24983ca6b3ff
+                        SpawnPosition: ref!! b27fbebd-9210-4f5a-9fa1-930d6c7c21cd
+                        Speed: 20.0
+                    c49649f7c41f42ee571f479a236cc7d1: !Stride.BepuPhysics.Demo.Components.SceneDescriptionComponent,Stride.BepuPhysics.Demo
+                        Id: ce73554c-389f-4fb5-98d6-8193bd216c74
+                        Description: 'SimIndex : 0. Sample usages of constaints to make a car.'
+                    4082eead088a8122a68e86af53d3eb11: !TransformComponent
+                        Id: 23a689e7-5111-4afa-bfcb-6a7ccdc97cdf
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    c10a8a3d21015a9bbcccd175c7dea82b: !Stride.BepuPhysics.Demo.Components.GameProfilerComponent,Stride.BepuPhysics.Demo
+                        Id: eb1c7eb7-9f7e-438e-a8ac-01197a813fff
+                        Enabled: true
+                        TextColor: {R: 144, G: 238, B: 144, A: 255}
+                        RefreshTime: 500.0
+                        SortingMode: ByTime
+                        FilteringMode: Fps
+                        ResultPage: 1
+                    d2a1aba10bc6c540b3a7b9c522852328: !Stride.BepuPhysics.Demo.Components.Utils.TimeControlComponent,Stride.BepuPhysics.Demo
+                        Id: 23e42ba6-61a9-4542-9454-2a78601fae56
+                        SimulationIndex: 0
+        -   Entity:
+                Id: d1cf6b43-15ff-4f13-8efe-1811b3ac0641
+                Name: Skybox
+                Components:
+                    869607da036a2f5b690715353a842081: !TransformComponent
+                        Id: dc8b243f-7cb1-4774-b695-04ae23ff2ce5
+                        Position: {X: 0.0, Y: 2.0, Z: -2.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    f06cd2af4f2551332eac077780c19eff: !BackgroundComponent
+                        Id: 805ac548-506c-4cd3-9fc1-769d76c11d83
+                        Texture: be26a913-4c76-45ec-a5e0-9fd6ceead086:Skybox texture
+                        Intensity: 0.1
+                    0d373b4518bc761153fde0d2540f118b: !LightComponent
+                        Id: 729c2c98-7788-43a2-82ef-0b0361b16821
+                        Type: !LightSkybox
+                            Skybox: 798bfa4f-a596-46b7-b94a-b558d4eb1425:Skybox
+                        Intensity: 0.1
+        -   Folder: null
+            Entity:
+                Id: d3895810-3bbd-478a-b81b-5426dfed53a4
+                Name: WheelBR
+                Components:
+                    00c350f5d8d4808da90fd8348ba42f25: !Stride.BepuPhysics.BodyComponent,Stride.BepuPhysics
+                        Id: 59e4ebf6-14b1-4911-bc4b-66063fafa34a
+                        Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
+                            Colliders:
+                                3f47f4a9a2d13a461520cbed8b64c3c6: !Stride.BepuPhysics.Definitions.Colliders.CylinderCollider,Stride.BepuPhysics
+                                    Mass: 1.0
+                                    PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                    RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                    Radius: 0.5
+                                    Length: 0.25
+                        ContactEventHandler: null
+                        SimulationIndex: 0
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.5
+                        MaximumRecoveryVelocity: 10000.0
+                        CollisionLayer: Layer1
+                        CollisionGroup:
+                            Id: 1
+                        Kinematic: false
+                        Gravity: true
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
+                        InterpolationMode: None
+                        ContinuousDetectionMode: Discrete
+                    5a6b6c5e198b44c763a97cf6d576b90e: !ModelComponent
+                        Id: 4ba05cad-1f8b-4884-b109-47aea3fe62ae
+                        Model: 3b695292-455c-44fe-86e1-3cc7f0042f66:Models/Cylinder
+                        Materials: {}
+                    7400acfbb356541a4b34dd7d46e0d2c2: !TransformComponent
+                        Id: ccca35c6-38e1-4282-a88a-5cec10834d5b
+                        Position: {X: 1.75, Y: -0.8, Z: -1.25}
+                        Rotation: {X: 0.70710677, Y: 0.0, Z: 0.0, W: 0.70710677}
+                        Scale: {X: 1.0, Y: 0.25, Z: 1.0}
+                        Children: {}
+                    53f85851391a377bdd9ddb1abf0077fc: !Stride.BepuPhysics.Demo.Components.Car.WheelComponent,Stride.BepuPhysics.Demo
+                        Id: 86012dae-5367-4d3c-9cd0-b2e0a3d6b234
+                        DamperLen: 0.5
+                        DamperRatio: 0.01
+                        DamperForce: 1000.0
+        -   Folder: null
+            Entity:
+                Id: daee5aa7-0fdb-4c25-9919-84b935d31898
+                Name: WheelFR
+                Components:
+                    c648bda54c94bc9a10c887d50de7adff: !Stride.BepuPhysics.BodyComponent,Stride.BepuPhysics
+                        Id: c1d32a7a-610f-48d6-84d8-b68762b119b8
+                        Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
+                            Colliders:
+                                4a2446f79e7d582a7960b835d493455b: !Stride.BepuPhysics.Definitions.Colliders.CylinderCollider,Stride.BepuPhysics
+                                    Mass: 1.0
+                                    PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                    RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                    Radius: 0.5
+                                    Length: 0.25
+                        ContactEventHandler: null
+                        SimulationIndex: 0
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 2.0
+                        MaximumRecoveryVelocity: 10000.0
+                        CollisionLayer: Layer1
+                        CollisionGroup:
+                            Id: 1
+                        Kinematic: false
+                        Gravity: true
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
+                        InterpolationMode: None
+                        ContinuousDetectionMode: Discrete
+                    5a6b6c5e198b44c763a97cf6d576b90e: !ModelComponent
+                        Id: 83acb87a-2cbe-40c7-9dc2-f43936b6af73
+                        Model: 3b695292-455c-44fe-86e1-3cc7f0042f66:Models/Cylinder
+                        Materials: {}
+                    7400acfbb356541a4b34dd7d46e0d2c2: !TransformComponent
+                        Id: 5d626e02-fc12-43fb-9586-29fd060a1e03
+                        Position: {X: -1.75, Y: -0.8, Z: -1.25}
+                        Rotation: {X: 0.70710677, Y: 0.0, Z: 0.0, W: 0.70710677}
+                        Scale: {X: 1.0, Y: 0.25, Z: 1.0}
+                        Children: {}
+                    91f739bf880c6e28af3f3876195efa90: !Stride.BepuPhysics.Demo.Components.Car.WheelComponent,Stride.BepuPhysics.Demo
+                        Id: c260d23a-6c4e-4b41-9549-80f67b5fa7c8
+                        DamperLen: 0.5
+                        DamperRatio: 0.01
+                        DamperForce: 1000.0
+        -   Entity:
+                Id: dd8c322f-bc32-4dc8-ab16-cce5283c3094
+                Name: PlatformOnRopes
+                Components:
+                    eda2202b601b97655c522d8b2e932ae5: !TransformComponent
+                        Id: 40947c34-fa79-4ea3-aaeb-c7a077ae9fd2
+                        Position: {X: -25.0, Y: 7.5, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            8c02caf6baab9cfd36a2b078274f34f3: ref!! b5bd677c-b506-4794-b9af-7914e197c6f5
+                            2a52b4d8d655b1d4ec38c08fa4784092: ref!! 040b5c8e-5685-43ca-b658-1976790006f4
+                            5269cf169a130c56006c102a6c920d8d: ref!! 40238d3d-d2b6-40e5-8f63-ffa1acd539c7
+                    807fd6f1bfea6cedc2abc9907e906240: !Stride.BepuPhysics.Demo.Components.Utils.RopeSpawnerComponent,Stride.BepuPhysics.Demo
+                        Id: 81014eb6-5b7a-4299-9fad-8ce026ee562a
+                        SimulationIndex: 0
+                        RopePart: 378e35ff-3dd0-4e6d-86e2-a477870a5c4e:Prefabs/Bepu/RopePart
+                        RopePartSize: 0.3
+                        AEntity: ref!! 9070aef7-052c-4909-a77e-b7ce839fe98d
+                        APos: {X: 0.0, Y: 0.5, Z: 0.0}
+                        BEntity: ref!! be266e80-486b-4e4a-a89b-5ae7b63cd814
+                        BPos: {X: 0.0, Y: -0.5, Z: 0.0}
+                    2748cd8e3f4f6ee538f8cd951e1ccdee: !Stride.BepuPhysics.Demo.Components.Utils.RopeSpawnerComponent,Stride.BepuPhysics.Demo
+                        Id: 3cd0666e-530f-4394-b89c-99ffe2cb7f2b
+                        SimulationIndex: 0
+                        RopePart: 378e35ff-3dd0-4e6d-86e2-a477870a5c4e:Prefabs/Bepu/RopePart
+                        RopePartSize: 0.3
+                        AEntity: ref!! be266e80-486b-4e4a-a89b-5ae7b63cd814
+                        APos: {X: 25.0, Y: 0.5, Z: 25.0}
+                        BEntity: ref!! 9750bc21-11e8-4a47-9c35-e9738674e299
+                        BPos: {X: 0.0, Y: -0.5, Z: 0.0}
+                    df8df1e9078962519bb2e906ff5bd744: !Stride.BepuPhysics.Demo.Components.Utils.RopeSpawnerComponent,Stride.BepuPhysics.Demo
+                        Id: 40ab76a9-3952-42ca-8aab-0cc0ac336c36
+                        SimulationIndex: 0
+                        RopePart: 378e35ff-3dd0-4e6d-86e2-a477870a5c4e:Prefabs/Bepu/RopePart
+                        RopePartSize: 0.3
+                        AEntity: ref!! be266e80-486b-4e4a-a89b-5ae7b63cd814
+                        APos: {X: 25.0, Y: 0.5, Z: -25.0}
+                        BEntity: ref!! 9750bc21-11e8-4a47-9c35-e9738674e299
+                        BPos: {X: 0.0, Y: -0.5, Z: 0.0}
+                    f0b1089156066784aa5bb1948f7006de: !Stride.BepuPhysics.Demo.Components.Utils.RopeSpawnerComponent,Stride.BepuPhysics.Demo
+                        Id: a0d8dc60-7de5-411b-a131-9bdf2c523503
+                        SimulationIndex: 0
+                        RopePart: 378e35ff-3dd0-4e6d-86e2-a477870a5c4e:Prefabs/Bepu/RopePart
+                        RopePartSize: 0.3
+                        AEntity: ref!! be266e80-486b-4e4a-a89b-5ae7b63cd814
+                        APos: {X: -25.0, Y: 0.5, Z: -25.0}
+                        BEntity: ref!! 9750bc21-11e8-4a47-9c35-e9738674e299
+                        BPos: {X: 0.0, Y: -0.5, Z: 0.0}
+                    5a9e25158e14dc991ac2cf5110b5492b: !Stride.BepuPhysics.Demo.Components.Utils.RopeSpawnerComponent,Stride.BepuPhysics.Demo
+                        Id: bc77b4c7-b02a-4262-bbcb-6549c60cfb48
+                        SimulationIndex: 0
+                        RopePart: 378e35ff-3dd0-4e6d-86e2-a477870a5c4e:Prefabs/Bepu/RopePart
+                        RopePartSize: 0.3
+                        AEntity: ref!! be266e80-486b-4e4a-a89b-5ae7b63cd814
+                        APos: {X: -25.0, Y: 0.5, Z: 25.0}
+                        BEntity: ref!! 9750bc21-11e8-4a47-9c35-e9738674e299
+                        BPos: {X: 0.0, Y: -0.5, Z: 0.0}
+        -   Folder: null
+            Entity:
+                Id: dffecd2b-9f10-4217-a8ee-bbcacbe0a234
+                Name: WheelBL
+                Components:
+                    9da65c856dbd6bf484cb4a8894a91a3e: !Stride.BepuPhysics.BodyComponent,Stride.BepuPhysics
+                        Id: 68c75021-31aa-43d1-9be2-be63b703ed83
+                        Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
+                            Colliders:
+                                81e0fd6c73b4a267d98d494517230f53: !Stride.BepuPhysics.Definitions.Colliders.CylinderCollider,Stride.BepuPhysics
+                                    Mass: 1.0
+                                    PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                    RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                    Radius: 0.5
+                                    Length: 0.25
+                        ContactEventHandler: null
+                        SimulationIndex: 0
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.5
+                        MaximumRecoveryVelocity: 10000.0
+                        CollisionLayer: Layer1
+                        CollisionGroup:
+                            Id: 1
+                        Kinematic: false
+                        Gravity: true
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
+                        InterpolationMode: None
+                        ContinuousDetectionMode: Discrete
+                    5a6b6c5e198b44c763a97cf6d576b90e: !ModelComponent
+                        Id: 9be78237-30ac-47fb-81b4-485988ba91cc
+                        Model: 3b695292-455c-44fe-86e1-3cc7f0042f66:Models/Cylinder
+                        Materials: {}
+                    7400acfbb356541a4b34dd7d46e0d2c2: !TransformComponent
+                        Id: ca78e3cb-213b-45f3-b4a8-08b9d06fc2b7
+                        Position: {X: 1.75, Y: -0.8, Z: 1.25}
+                        Rotation: {X: 0.70710677, Y: 0.0, Z: 0.0, W: 0.70710677}
+                        Scale: {X: 1.0, Y: 0.25, Z: 1.0}
+                        Children: {}
+                    a7eb1775b2752c2a3a65023dbd4e1091: !Stride.BepuPhysics.Demo.Components.Car.WheelComponent,Stride.BepuPhysics.Demo
+                        Id: 8e48c195-d42b-4386-a775-ecd9a64434d7
+                        DamperLen: 0.5
+                        DamperRatio: 0.01
+                        DamperForce: 1000.0
+        -   Folder: null
+            Entity:
+                Id: efa4c3a8-9f44-4027-aa87-cfb4efdbf4ac
+                Name: WheelFL
+                Components:
+                    3504b54c9577de66b546d3e02b48932a: !TransformComponent
+                        Id: 9b5d3078-489d-414a-b97a-2dba55ee4e7b
+                        Position: {X: -1.75, Y: -0.8, Z: 1.25}
+                        Rotation: {X: 0.70710677, Y: 0.0, Z: 0.0, W: 0.70710677}
+                        Scale: {X: 1.0, Y: 0.25, Z: 1.0}
+                        Children: {}
+                    0bc27905abb2c55050be6bc4ac56447a: !ModelComponent
+                        Id: 67259073-d036-4a1d-b83b-dafff069397f
+                        Model: 3b695292-455c-44fe-86e1-3cc7f0042f66:Models/Cylinder
+                        Materials: {}
+                    ccdb1c862967164e94069d68ea1844eb: !Stride.BepuPhysics.BodyComponent,Stride.BepuPhysics
+                        Id: b013e2de-4def-42c8-9d3a-d9cd5d29e664
+                        Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
+                            Colliders:
+                                65637aec414853ccb2dc5bf35a996ab1: !Stride.BepuPhysics.Definitions.Colliders.CylinderCollider,Stride.BepuPhysics
+                                    Mass: 1.0
+                                    PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                    RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                    Radius: 0.5
+                                    Length: 0.25
+                        ContactEventHandler: null
+                        SimulationIndex: 0
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 2.0
+                        MaximumRecoveryVelocity: 10000.0
+                        CollisionLayer: Layer1
+                        CollisionGroup:
+                            Id: 1
+                        Kinematic: false
+                        Gravity: true
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
+                        InterpolationMode: None
+                        ContinuousDetectionMode: Discrete
+                    4fe16080c6d3c3d977ea1045e0f1de6f: !Stride.BepuPhysics.Demo.Components.Car.WheelComponent,Stride.BepuPhysics.Demo
+                        Id: bc8e46f8-9dde-4317-bc12-197803db2c6b
+                        DamperLen: 0.5
+                        DamperRatio: 0.01
+                        DamperForce: 1000.0
+        -   Folder: null
+            Entity:
+                Id: f84ae702-83f2-4e43-b3bf-64da64d3487d
+                Name: CarBody
+                Components:
+                    6961414337769221283ce59319f70fa8: !TransformComponent
+                        Id: 61addb5f-924b-431f-a781-88cb311318ee
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            c4e62ca9bd7fc0c51227f1ed763321da: ref!! c30993d7-6b25-4b35-b4fc-e442346b5082
+                            a138792f8c3c976a03c2696f61197fbb: ref!! 7fb7a2c0-1d02-4dae-8907-1a488bff98f7
+                            392917acfae12231b81cafd754e41495: ref!! 416544b2-7078-4044-aca3-a9f9097d737a
+                    e1ffec9a111196025e839a0a727c403c: !Stride.BepuPhysics.BodyComponent,Stride.BepuPhysics
+                        Id: 1571cbc7-6324-40cd-90a7-0b2d0fefcfe9
+                        Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
+                            Colliders:
+                                dd91e2cc4f14160af3320534a588ab16: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
+                                    Mass: 1.0
+                                    PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                    RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                    Size: {X: 4.0, Y: 1.0, Z: 2.5}
+                        ContactEventHandler: null
+                        SimulationIndex: 0
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 1000.0
+                        CollisionLayer: Layer1
+                        CollisionGroup:
+                            Id: 1
+                        Kinematic: false
+                        Gravity: true
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
+                        InterpolationMode: None
+                        ContinuousDetectionMode: Discrete
+                    c868c869df07c02f8950073fa31470a9: !Stride.BepuPhysics.Demo.Components.Camera.ThirdPersonCamera,Stride.BepuPhysics.Demo
+                        Id: cde7383e-aa0b-433c-9185-74be4a77de10
+                        Enabled: true
+                        InvertMouseY: true
+                        MouseSpeed: {X: 1.5, Y: 1.5}
+                        MaxLookUpAngle: -360.0
+                        MaxLookDownAngle: 360.0
+                        MinimumCameraDistance: 5.0
+                        CameraOffset: {X: 0.0, Y: 0.0, Z: 5.0}

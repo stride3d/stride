@@ -12,7 +12,8 @@
           "Microsoft.Build.Utilities.Core": "17.0.0",
           "Mono.Cecil": "0.11.5",
           "Mono.Options": "6.12.0.148",
-          "NETStandard.Library": "2.0.3"
+          "NETStandard.Library": "2.0.3",
+          "PolySharp": "1.15.0"
         },
         "runtime": {
           "Stride.Core.AssemblyProcessor.dll": {}
@@ -87,6 +88,7 @@
           "Microsoft.NETCore.Platforms": "1.1.0"
         }
       },
+      "PolySharp/1.15.0": {},
       "System.Buffers/4.5.1": {},
       "System.Collections/4.3.0": {
         "dependencies": {
@@ -308,6 +310,13 @@
       "sha512": "sha512-st47PosZSHrjECdjeIzZQbzivYBJFv6P2nv4cj2ypdI204DO+vZ7l5raGMiX4eXMJ53RfOIg+/s4DHVZ54Nu2A==",
       "path": "netstandard.library/2.0.3",
       "hashPath": "netstandard.library.2.0.3.nupkg.sha512"
+    },
+    "PolySharp/1.15.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-FbU0El+EEjdpuIX4iDbeS7ki1uzpJPx8vbqOzEtqnl1GZeAGJfq+jCbxeJL2y0EPnUNk8dRnnqR2xnYXg9Tf+g==",
+      "path": "polysharp/1.15.0",
+      "hashPath": "polysharp.1.15.0.nupkg.sha512"
     },
     "System.Buffers/4.5.1": {
       "type": "package",

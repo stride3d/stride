@@ -43,35 +43,34 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-using System;
-using System.IO;
 using Xunit;
 using Stride.Core.Yaml.Serialization;
 
-namespace Stride.Core.Yaml.Tests.Serialization
+namespace Stride.Core.Yaml.Tests.Serialization;
+
+public class Program
 {
-    public class Program
+    [Fact]
+    public void LoadYamlStream()
     {
-        [Fact]
-        public void LoadYamlStream()
+        // Setup the input
+        var input = new StringReader(Document);
+
+        // Load the stream
+        var yaml = new YamlStream();
+        yaml.Load(input);
+
+        // Examine the stream
+        var mapping = (YamlMappingNode) yaml.Documents[0].RootNode;
+
+        foreach (var entry in mapping.Children)
         {
-            // Setup the input
-            var input = new StringReader(Document);
-
-            // Load the stream
-            var yaml = new YamlStream();
-            yaml.Load(input);
-
-            // Examine the stream
-            var mapping = (YamlMappingNode) yaml.Documents[0].RootNode;
-
-            foreach (var entry in mapping.Children)
-            {
-                Console.WriteLine(((YamlScalarNode) entry.Key).Value);
-            }
+            Console.WriteLine(((YamlScalarNode) entry.Key).Value);
         }
+    }
 
-        private const string Document = @"---
+    private const string Document ="""
+        ---
             receipt:    Oz-Ware Purchase Invoice
             date:        2007-08-06
             customer:
@@ -85,7 +84,7 @@ namespace Stride.Core.Yaml.Tests.Serialization
                   quantity:  4
 
                 - part_no:   E1628
-                  descrip:   High Heeled ""Ruby"" Slippers
+                  descrip:   High Heeled "Ruby" Slippers
                   price:     100.27
                   quantity:  1
 
@@ -103,6 +102,6 @@ namespace Stride.Core.Yaml.Tests.Serialization
                 Road to the Emerald City.
                 Pay no attention to the
                 man behind the curtain.
-...";
-    }
+        ...
+        """;
 }

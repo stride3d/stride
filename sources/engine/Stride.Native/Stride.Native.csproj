@@ -1,7 +1,6 @@
 <Project>
   <PropertyGroup>
     <StrideRuntime>true</StrideRuntime>
-    <StrideNativeOutputName>libstride</StrideNativeOutputName>
   </PropertyGroup>
   <Import Project="..\..\targets\Stride.props" />
   <PropertyGroup>
@@ -26,7 +25,6 @@
     </None>
     <None Include="StrideNative.h" />
     <None Include="StrideNative.cpp" />
-    <None Include="Lightprobes\predicates.c" />
   </ItemGroup>
   <Import Project="$(StrideSdkTargets)" />
 </Project>

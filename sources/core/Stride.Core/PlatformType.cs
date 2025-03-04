@@ -1,64 +1,61 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using System;
+namespace Stride.Core;
 
-namespace Stride.Core
-{
-    /// <summary>
-    /// Describes the platform operating system.
-    /// </summary>
+/// <summary>
+/// Describes the platform operating system.
+/// </summary>
 #if STRIDE_ASSEMBLY_PROCESSOR
-    // To avoid a CS1503 error when compiling projects that are using both the AssemblyProcessor
-    // and Stride.Core.
-    internal enum PlatformType
+// To avoid a CS1503 error when compiling projects that are using both the AssemblyProcessor
+// and Stride.Core.
+internal enum PlatformType
 #else
-    [DataContract("PlatformType")]
-    public enum PlatformType
+[DataContract("PlatformType")]
+public enum PlatformType
 #endif
-    {
-        // ***************************************************************
-        // NOTE: This file is shared with the AssemblyProcessor.
-        // If this file is modified, the AssemblyProcessor has to be
-        // recompiled separately. See build\Stride-AssemblyProcessor.sln
-        // ***************************************************************
+{
+    // ***************************************************************
+    // NOTE: This file is shared with the AssemblyProcessor.
+    // If this file is modified, the AssemblyProcessor has to be
+    // recompiled separately. See build\Stride-AssemblyProcessor.sln
+    // ***************************************************************
 
-        /// <summary>
-        /// This is shared across platforms
-        /// </summary>
-        Shared,
+    /// <summary>
+    /// This is shared across platforms
+    /// </summary>
+    Shared,
 
-        /// <summary>
-        /// The windows desktop OS.
-        /// </summary>
-        Windows,
+    /// <summary>
+    /// The windows desktop OS.
+    /// </summary>
+    Windows,
 
-        /// <summary>
-        /// The android OS.
-        /// </summary>
-        Android,
+    /// <summary>
+    /// The android OS.
+    /// </summary>
+    Android,
 
 #pragma warning disable SA1300 // Element must begin with upper-case letter
-        /// <summary>
-        /// The iOS.
-        /// </summary>
-        iOS,
+    /// <summary>
+    /// The iOS.
+    /// </summary>
+    iOS,
 #pragma warning restore SA1300 // Element must begin with upper-case letter
 
-        /// <summary>
-        /// The Universal Windows Platform (UWP).
-        /// </summary>
-        UWP,
+    /// <summary>
+    /// The Universal Windows Platform (UWP).
+    /// </summary>
+    UWP,
 
-        /// <summary>
-        /// The Linux OS.
-        /// </summary>
-        Linux,
+    /// <summary>
+    /// The Linux OS.
+    /// </summary>
+    Linux,
 
 #pragma warning disable SA1300 // Element must begin with upper-case letter
-        /// <summary>
-        /// macOS
-        /// </summary>
-        macOS,
-    }
+    /// <summary>
+    /// macOS
+    /// </summary>
+    macOS,
 }

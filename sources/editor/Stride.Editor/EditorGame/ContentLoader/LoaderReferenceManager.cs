@@ -16,7 +16,7 @@ namespace Stride.Editor.EditorGame.ContentLoader
 {
     public class LoaderReferenceManager
     {
-        private struct ReferenceAccessor
+        private readonly record struct ReferenceAccessor
         {
             public readonly IGraphNode ContentNode;
             public readonly NodeIndex index;
@@ -102,8 +102,7 @@ namespace Stride.Editor.EditorGame.ContentLoader
             gameDispatcher.EnsureAccess();
             using (await loader.LockDatabaseAsynchronously())
             {
-                Dictionary<AssetId, List<ReferenceAccessor>> referencer;
-                if (!references.TryGetValue(referencerId, out referencer))
+                if (!references.TryGetValue(referencerId, out var referencer))
                     throw new InvalidOperationException("The given referencer is not registered.");
 
                 // Properly clear all reference first
@@ -144,8 +143,7 @@ namespace Stride.Editor.EditorGame.ContentLoader
 
                 accessors.Add(accessor);
 
-                object value;
-                if (contents.TryGetValue(contentId, out value))
+                if (contents.TryGetValue(contentId, out var value))
                 {
                     accessor.Update(value);
                 }
@@ -163,12 +161,10 @@ namespace Stride.Editor.EditorGame.ContentLoader
             gameDispatcher.EnsureAccess();
             using (await loader.LockDatabaseAsynchronously())
             {
-                Dictionary<AssetId, List<ReferenceAccessor>> referencer;
-                if (!references.TryGetValue(referencerId, out referencer))
+                if (!references.TryGetValue(referencerId, out var referencer))
                     throw new InvalidOperationException("The given referencer is not registered.");
 
-                List<ReferenceAccessor> accessors;
-                if (!referencer.TryGetValue(contentId, out accessors))
+                if (!referencer.TryGetValue(contentId, out var accessors))
                     throw new InvalidOperationException("The given content is not registered to the given referencer.");
 
                 var accessor = new ReferenceAccessor(contentNode, index);

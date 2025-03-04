@@ -3,9 +3,6 @@
 
 using CommunityToolkit.Mvvm.ComponentModel;
 
-namespace xunit.runner.stride.ViewModels
-{
-    public class ViewModelBase : ObservableObject
-    {
-    }
-}
+namespace xunit.runner.stride.ViewModels;
+
+public class ViewModelBase : ObservableObject;

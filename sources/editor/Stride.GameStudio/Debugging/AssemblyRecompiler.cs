@@ -173,7 +173,7 @@ namespace Stride.GameStudio.Debugging
                     var msbuildProject = await Task.Run(() => VSProjectHelper.LoadProject(gameProject.FilePath));
                     if (msbuildProject.GetPropertyValue("StrideAssemblyProcessor") == "true")
                     {
-                        var referenceBuild = await Task.Run(() => VSProjectHelper.CompileProjectAssemblyAsync(null, gameProject.FilePath, result, "ResolveReferences", flags: Microsoft.Build.Execution.BuildRequestDataFlags.ProvideProjectStateAfterBuild));
+                        var referenceBuild = await Task.Run(() => VSProjectHelper.CompileProjectAssemblyAsync(gameProject.FilePath, result, "ResolveReferences", flags: Microsoft.Build.Execution.BuildRequestDataFlags.ProvideProjectStateAfterBuild));
                         if (referenceBuild == null)
                         {
                             result.Error("Could not properly run ResolveAssemblyReferences");
