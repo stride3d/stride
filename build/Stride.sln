@@ -252,7 +252,7 @@ Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Stride.Core.Assets.Yaml", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Navigation", "..\sources\engine\Stride.Navigation\Stride.Navigation.csproj", "{FBE1FA7B-E699-4BB2-9C8F-41F4C9F3F088}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Navigation.Tests.Windows", "..\sources\engine\Stride.Navigation.Tests\Stride.Navigation.Tests.Windows.csproj", "{1AC5A693-3CC4-4450-AA76-70DA4F0C29DF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Navigation.Tests", "..\sources\engine\Stride.Navigation.Tests\Stride.Navigation.Tests.csproj", "{1AC5A693-3CC4-4450-AA76-70DA4F0C29DF}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Mathematics.Tests", "..\sources\core\Stride.Core.Mathematics.Tests\Stride.Core.Mathematics.Tests.csproj", "{A9A83BE5-271B-4347-9C4D-340FC3BD0B2B}"
 EndProject
