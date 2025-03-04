@@ -121,7 +121,7 @@ namespace Stride.Games
 
             gameWindow = CreateWindow(gameContext);
 
-            // Register on Activated 
+            // Register on Activated
             gameWindow.Activated += OnActivated;
             gameWindow.Deactivated += OnDeactivated;
             gameWindow.InitCallback = OnInitCallback;
@@ -266,9 +266,12 @@ namespace Stride.Games
             // Iterate on each adapter
             foreach (var graphicsAdapter in GraphicsAdapterFactory.Adapters)
             {
-                if (!string.IsNullOrEmpty(preferredParameters.RequiredAdapterUid) && graphicsAdapter.AdapterUid != preferredParameters.RequiredAdapterUid) continue;
+                var adapterUid = graphicsAdapter.AdapterUid.ToString();
 
-                // Skip adapeters that don't have graphics output 
+                if (!string.IsNullOrEmpty(preferredParameters.RequiredAdapterUid) && adapterUid != preferredParameters.RequiredAdapterUid)
+                    continue;
+
+                // Skip adapeters that don't have graphics output
                 // but only if no RequiredAdapterUid is provided (OculusVR at init time might be in a device with no outputs)
                 if (graphicsAdapter.Outputs.Length == 0 && string.IsNullOrEmpty(preferredParameters.RequiredAdapterUid))
                 {
