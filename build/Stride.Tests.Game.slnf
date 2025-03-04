@@ -11,7 +11,7 @@
       "..\\sources\\engine\\Stride.Graphics.Tests\\Stride.Graphics.Tests.csproj",
       "..\\sources\\engine\\Stride.Input.Tests\\Stride.Input.Tests.csproj",
       "..\\sources\\engine\\Stride.Navigation.Tests\\Stride.Navigation.Tests.csproj",
-      "..\\sources\\engine\\Stride.Particles.Tests\\Stride.Particles.Tests.Windows.csproj",
+      "..\\sources\\engine\\Stride.Particles.Tests\\Stride.Particles.Tests.csproj",
       "..\\sources\\engine\\Stride.Physics.Tests\\Stride.Physics.Tests.Windows.csproj",
       "..\\sources\\engine\\Stride.UI.Tests\\Stride.UI.Tests.csproj"
     ]

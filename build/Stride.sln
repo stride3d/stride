@@ -218,7 +218,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Native", "..\sources
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Assets.Tests2", "..\sources\engine\Stride.Assets.Tests2\Stride.Assets.Tests2.csproj", "{370ADF53-DFFA-461E-B72A-1302C0A0DE00}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Particles.Tests.Windows", "..\sources\engine\Stride.Particles.Tests\Stride.Particles.Tests.Windows.csproj", "{33CC6216-3F30-4B5A-BB29-C5B47EFFA713}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Particles.Tests", "..\sources\engine\Stride.Particles.Tests\Stride.Particles.Tests.csproj", "{33CC6216-3F30-4B5A-BB29-C5B47EFFA713}"
 EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Stride.Refactor", "..\sources\engine\Stride.Shared\Refactor\Stride.Refactor.shproj", "{B33E576F-2279-4BFC-A438-D9B84343B56B}"
 EndProject
