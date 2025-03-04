@@ -15,7 +15,7 @@ public class BundleCollection : List<Bundle>
     /// <param name="package">The package.</param>
     internal BundleCollection(Package package)
     {
-        this.Package = package;
+        Package = package;
     }
 
     /// <summary>

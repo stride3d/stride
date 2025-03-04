@@ -3,6 +3,4 @@
 
 namespace Stride.Core.Assets.Compiler;
 
-public class AssetCompilationContext : ICompilationContext
-{
-}
+public class AssetCompilationContext : ICompilationContext;

@@ -8,7 +8,7 @@ using Stride.Core.Serialization.Contents;
 namespace Stride.Core.Assets.Tests;
 
 [DataContract, ReferenceSerializer, DataSerializerGlobal(typeof(ReferenceSerializer<TestContent>), Profile = "Content")]
-public class TestContent { }
+public class TestContent;
 
 [DataContract("TestAssetClonerContent")]
 public class TestAssetClonerContent
@@ -37,9 +37,7 @@ public class TestObjectWithCollection
 [DataContract]
 [ContentSerializer(typeof(DataContentSerializer<TestObjectReference>))]
 [ReferenceSerializer, DataSerializerGlobal(typeof(ReferenceSerializer<TestObjectReference>), Profile = "Asset")]
-public class TestObjectReference
-{
-}
+public class TestObjectReference;
 
 public class TestAssetCloner
 {

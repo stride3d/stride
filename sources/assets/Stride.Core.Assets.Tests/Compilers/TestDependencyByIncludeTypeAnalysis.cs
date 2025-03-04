@@ -42,15 +42,15 @@ public class TestDependencyByIncludeTypeAnalysis : CompilerTestBase
 
     [DataContract, ReferenceSerializer, DataSerializerGlobal(typeof(ReferenceSerializer<MyContent1>), Profile = "Content")]
     [ContentSerializer(typeof(DataContentSerializer<MyContent1>))]
-    public class MyContent1 { }
+    public class MyContent1;
 
     [DataContract, ReferenceSerializer, DataSerializerGlobal(typeof(ReferenceSerializer<MyContent2>), Profile = "Content")]
     [ContentSerializer(typeof(DataContentSerializer<MyContent2>))]
-    public class MyContent2 { }
+    public class MyContent2;
 
     [DataContract, ReferenceSerializer, DataSerializerGlobal(typeof(ReferenceSerializer<MyContent3>), Profile = "Content")]
     [ContentSerializer(typeof(DataContentSerializer<MyContent3>))]
-    public class MyContent3 { }
+    public class MyContent3;
 
     [DataContract]
     [AssetDescription(".sdmytest")]
@@ -72,7 +72,7 @@ public class TestDependencyByIncludeTypeAnalysis : CompilerTestBase
     [DataContract]
     [AssetDescription(".sdmytest")]
     [AssetContentType(typeof(MyContent3))]
-    public class MyAsset3 : Asset { }
+    public class MyAsset3 : Asset;
 
     [AssetCompiler(typeof(MyAsset1), typeof(AssetCompilationContext))]
     public class MyAsset1Compiler : TestAssertCompiler<MyAsset1>
@@ -94,5 +94,5 @@ public class TestDependencyByIncludeTypeAnalysis : CompilerTestBase
     }
 
     [AssetCompiler(typeof(MyAsset3), typeof(AssetCompilationContext))]
-    public class MyAsset3Compiler : TestAssertCompiler<MyAsset3> { }
+    public class MyAsset3Compiler : TestAssertCompiler<MyAsset3>;
 }
