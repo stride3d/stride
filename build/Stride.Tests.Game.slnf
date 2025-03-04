@@ -4,8 +4,8 @@
     "projects": [
       "..\\sources\\engine\\Stride.Assets.Tests\\Stride.Assets.Tests.csproj",
       "..\\sources\\engine\\Stride.Audio.Tests\\Stride.Audio.Tests.Windows.csproj",
-      "..\\sources\\engine\\Stride.Engine.NoAssets.Tests\\Stride.Engine.NoAssets.Tests.Windows.csproj",
-      "..\\sources\\engine\\Stride.Engine.Tests\\Stride.Engine.Tests.Windows.csproj",
+      "..\\sources\\engine\\Stride.Engine.NoAssets.Tests\\Stride.Engine.NoAssets.Tests.csproj",
+      "..\\sources\\engine\\Stride.Engine.Tests\\Stride.Engine.Tests.csproj",
       "..\\sources\\engine\\Stride.Graphics.Tests.10_0\\Stride.Graphics.Tests.10_0.Windows.csproj",
       "..\\sources\\engine\\Stride.Graphics.Tests.11_0\\Stride.Graphics.Tests.11_0.Windows.csproj",
       "..\\sources\\engine\\Stride.Graphics.Tests\\Stride.Graphics.Tests.Windows.csproj",

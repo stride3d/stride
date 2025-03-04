@@ -84,7 +84,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Engine", "..\sources
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Graphics", "..\sources\engine\Stride.Graphics\Stride.Graphics.csproj", "{FB06C76A-6BB7-40BE-9AFA-FEC13B045FB5}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Engine.Tests.Windows", "..\sources\engine\Stride.Engine.Tests\Stride.Engine.Tests.Windows.csproj", "{A8F8D125-7A22-489F-99BC-9A02F545A17F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Engine.Tests", "..\sources\engine\Stride.Engine.Tests\Stride.Engine.Tests.csproj", "{A8F8D125-7A22-489F-99BC-9A02F545A17F}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Input.Tests.Windows", "..\sources\engine\Stride.Input.Tests\Stride.Input.Tests.Windows.csproj", "{01700344-CF44-482C-BEBC-60213B0F844C}"
 EndProject
@@ -308,7 +308,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Voxels", "..\sources
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "xunit.runner.stride", "..\sources\tests\xunit.runner.stride\xunit.runner.stride.csproj", "{D5B023BE-010F-44A8-ABF1-DB6F3BCEA392}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Engine.NoAssets.Tests.Windows", "..\sources\engine\Stride.Engine.NoAssets.Tests\Stride.Engine.NoAssets.Tests.Windows.csproj", "{1C94168A-3C0D-4C6B-883B-91627D2EF3A1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Engine.NoAssets.Tests", "..\sources\engine\Stride.Engine.NoAssets.Tests\Stride.Engine.NoAssets.Tests.csproj", "{1C94168A-3C0D-4C6B-883B-91627D2EF3A1}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Importer.Common", "..\sources\tools\Stride.Importer.Common\Stride.Importer.Common.csproj", "{806AA078-6070-4BB6-B05B-6EE6B21B1CDE}"
 EndProject
