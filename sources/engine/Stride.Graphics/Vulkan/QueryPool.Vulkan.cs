@@ -16,7 +16,7 @@ namespace Stride.Graphics
             fixed (long* dataPointer = &dataArray[0])
             {
                 // Read back all results
-                var result = vkGetQueryPoolResults(GraphicsDevice.NativeDevice, NativeQueryPool, 0, (uint)QueryCount, (uint)QueryCount * 8, dataPointer, 8, VkQueryResultFlags._64);
+                var result = vkGetQueryPoolResults(GraphicsDevice.NativeDevice, NativeQueryPool, 0, (uint)QueryCount, (uint)QueryCount * 8, dataPointer, 8, VkQueryResultFlags.Bit64);
 
                 // Some queries are not ready yet
                 if (result == VkResult.NotReady)
