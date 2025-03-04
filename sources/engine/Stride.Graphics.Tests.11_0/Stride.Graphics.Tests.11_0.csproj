@@ -1,9 +1,9 @@
 <Project>
   <Import Project="..\..\targets\Stride.UnitTests.props" />
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
-    <AssemblyName>Stride.Graphics.Tests</AssemblyName>
+    <TargetFramework>$(StrideXplatEditorTargetFramework)</TargetFramework>
+    <RuntimeIdentifiers>linux-x64;win-x64</RuntimeIdentifiers>
+    <AssemblyName>Stride.Graphics.Tests.11_0</AssemblyName>
     <RootNamespace>Stride.Graphics.Tests</RootNamespace>
     <StrideBuildTags>*</StrideBuildTags>
     <StrideCompileAssets>true</StrideCompileAssets>
@@ -15,16 +15,17 @@
     <StartupObject>xunit.runner.stride.Program</StartupObject>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Remove="Compiler\CubemapEffect.sdfx.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Remove="Compiler\CubemapEffect.sdfx" />
+    <Compile Remove="TestCubemapDeferred.cs" />
+    <Compile Remove="TestCubemapDisplay.cs" />
+    <Compile Remove="TestCubemapRendering.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\tests\xunit.runner.stride\xunit.runner.stride.csproj" />
     <ProjectReference Include="..\Stride.Engine\Stride.Engine.csproj" />
     <ProjectReference Include="..\Stride.Graphics.Regression\Stride.Graphics.Regression.csproj" />
-    <ProjectReference Include="..\Stride.UI\Stride.UI.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
   <Import Project="..\..\targets\Stride.UnitTests.targets" />
 </Project>

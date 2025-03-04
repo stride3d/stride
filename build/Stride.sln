@@ -202,11 +202,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.SpriteStudio.Runtime
 EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Stride.Core.MostRecentlyUsedFiles", "..\sources\editor\Stride.Core.MostRecentlyUsedFiles\Stride.Core.MostRecentlyUsedFiles.shproj", "{9AC6D791-811E-4D6A-B08E-93F0093EF268}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Graphics.Tests.Windows", "..\sources\engine\Stride.Graphics.Tests\Stride.Graphics.Tests.Windows.csproj", "{9DE0AA56-0DE7-4ADC-BAAC-CD38B7139EBC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Graphics.Tests", "..\sources\engine\Stride.Graphics.Tests\Stride.Graphics.Tests.csproj", "{9DE0AA56-0DE7-4ADC-BAAC-CD38B7139EBC}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Graphics.Tests.10_0.Windows", "..\sources\engine\Stride.Graphics.Tests.10_0\Stride.Graphics.Tests.10_0.Windows.csproj", "{570B0FF9-246F-4C6C-8384-F6BE1887A4A9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Graphics.Tests.10_0", "..\sources\engine\Stride.Graphics.Tests.10_0\Stride.Graphics.Tests.10_0.csproj", "{570B0FF9-246F-4C6C-8384-F6BE1887A4A9}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Graphics.Tests.11_0.Windows", "..\sources\engine\Stride.Graphics.Tests.11_0\Stride.Graphics.Tests.11_0.Windows.csproj", "{7CA99C7B-E3A2-4DE6-9D6C-314AE39BBBB7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Graphics.Tests.11_0", "..\sources\engine\Stride.Graphics.Tests.11_0\Stride.Graphics.Tests.11_0.csproj", "{7CA99C7B-E3A2-4DE6-9D6C-314AE39BBBB7}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.SamplesTestServer", "..\sources\tools\Stride.SamplesTestServer\Stride.SamplesTestServer.csproj", "{75D71310-ECF7-4592-9E35-3FE540040982}"
 EndProject
