@@ -106,7 +106,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.TextureConverter.Tes
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.ProjectGenerator", "..\sources\tools\Stride.ProjectGenerator\Stride.ProjectGenerator.csproj", "{4B299721-18EA-4B6D-AFD5-2D6E188B97BD}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Audio.Tests.Windows", "..\sources\engine\Stride.Audio.Tests\Stride.Audio.Tests.Windows.csproj", "{7AF4B563-AAD3-42FF-B91E-84B9D34D904A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Audio.Tests", "..\sources\engine\Stride.Audio.Tests\Stride.Audio.Tests.csproj", "{7AF4B563-AAD3-42FF-B91E-84B9D34D904A}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.BuildEngine.Tests", "..\sources\buildengine\Stride.Core.BuildEngine.Tests\Stride.Core.BuildEngine.Tests.csproj", "{09F32307-595A-4CBB-BF7C-F055DA1F70EE}"
 EndProject
