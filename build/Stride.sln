@@ -86,7 +86,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Graphics", "..\sourc
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Engine.Tests", "..\sources\engine\Stride.Engine.Tests\Stride.Engine.Tests.csproj", "{A8F8D125-7A22-489F-99BC-9A02F545A17F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Input.Tests.Windows", "..\sources\engine\Stride.Input.Tests\Stride.Input.Tests.Windows.csproj", "{01700344-CF44-482C-BEBC-60213B0F844C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Input.Tests", "..\sources\engine\Stride.Input.Tests\Stride.Input.Tests.csproj", "{01700344-CF44-482C-BEBC-60213B0F844C}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Tests", "..\sources\core\Stride.Core.Tests\Stride.Core.Tests.csproj", "{5AA408BA-E766-453E-B661-E3D7EC46E2A6}"
 EndProject
