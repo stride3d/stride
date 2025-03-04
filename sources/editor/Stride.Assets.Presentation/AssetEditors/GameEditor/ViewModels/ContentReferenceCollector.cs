@@ -57,7 +57,7 @@ namespace Stride.Assets.Presentation.AssetEditors.GameEditor.ViewModels
                     Visit(target);
                 }
             }
-            else if (AssetRegistry.IsContentType(node.Descriptor.GetInnerCollectionType()))
+            else if (AssetRegistry.CanBeAssignedToContentTypes(node.Descriptor.GetInnerCollectionType(), checkIsUrlType: false))
             {
                 // We have an index, and our collection is directly a collection of content type. Let's just collect the corresponding item.
                 var gameContent = node.GetContent("Game");
@@ -73,19 +73,18 @@ namespace Stride.Assets.Presentation.AssetEditors.GameEditor.ViewModels
             var gameContent = assetNode.GetContent("Game");
             if (gameContent != null)
             {
-                var memberContent = node as IMemberNode;
-                if (memberContent != null)
+                if (node is IMemberNode memberContent)
                 {
-                    if (AssetRegistry.IsContentType(memberContent.Type))
+                    if (AssetRegistry.CanBeAssignedToContentTypes(memberContent.Type, checkIsUrlType: false))
                     {
                         var id = AttachedReferenceManager.GetAttachedReference(memberContent.Retrieve())?.Id ?? AssetId.Empty;
                         CollectContentReference(id, gameContent, NodeIndex.Empty);
                     }
                 }
-                var objectNode = node as IObjectNode;
-                if (objectNode != null && objectNode.Indices != null)
+
+                if (node is IObjectNode objectNode && objectNode.Indices != null)
                 {
-                    if (AssetRegistry.IsContentType(objectNode.Descriptor.GetInnerCollectionType()))
+                    if (AssetRegistry.CanBeAssignedToContentTypes(objectNode.Descriptor.GetInnerCollectionType(), checkIsUrlType: false))
                     {
                         foreach (var index in objectNode.Indices)
                         {

@@ -124,5 +124,5 @@ public interface IMemberDescriptor
     /// </summary>
     /// <param name="thisObject">The this object.</param>
     /// <param name="value">The value.</param>
-    void Set(object thisObject, object value);
+    void Set(object thisObject, object? value);
 }

@@ -9,6 +9,4 @@ namespace Stride.Core.Presentation.Collections;
 /// interface. It has no additional members.
 /// </summary>
 /// <typeparam name="T">The type of item contained in the collection.</typeparam>
-public interface IReadOnlyObservableList<out T> : IReadOnlyList<T>, IReadOnlyObservableCollection<T>
-{
-}
+public interface IReadOnlyObservableList<out T> : IReadOnlyList<T>, IReadOnlyObservableCollection<T>;

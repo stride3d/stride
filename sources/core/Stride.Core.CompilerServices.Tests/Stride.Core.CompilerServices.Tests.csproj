@@ -2,9 +2,9 @@
   <Import Project="..\..\targets\Stride.UnitTests.props" />
   <PropertyGroup>
     <TargetFramework>$(StrideXplatEditorTargetFramework)</TargetFramework>
-    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <RuntimeIdentifiers>linux-x64;win-x64</RuntimeIdentifiers>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
-    <StrideBuildTags>Windows;Android;iOS</StrideBuildTags>
+    <StrideBuildTags>Linux;Windows;Android;iOS</StrideBuildTags>
     <ImplicitUsings>enable</ImplicitUsings>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>

@@ -24,7 +24,7 @@ public class LogMessage : ILogMessage
     /// <param name="module">The module.</param>
     /// <param name="type">The type.</param>
     /// <param name="text">The text.</param>
-    public LogMessage(string module, LogMessageType type, string text)
+    public LogMessage(string? module, LogMessageType type, string text)
     {
         Module = module;
         Type = type;
