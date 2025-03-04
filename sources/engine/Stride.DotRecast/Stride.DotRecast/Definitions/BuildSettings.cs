@@ -4,7 +4,7 @@
 using DotRecast.Recast;
 using Stride.Core;
 
-namespace Stride.BepuPhysics.Navigation.Definitions;
+namespace Stride.DotRecast.Definitions;
 [DataContract("DotRecastBuildSettings")]
 public class BuildSettings
 {
@@ -59,7 +59,7 @@ public class BuildSettings
 
     public float DetailSampleMaxError = 1f;
 
-    public bool Tiled;
+    public bool Tiled = true;
 
     public int TileSize = 32;
 }
