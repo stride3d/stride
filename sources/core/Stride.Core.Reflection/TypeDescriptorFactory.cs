@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using Stride.Core.Yaml.Serialization;
 
 namespace Stride.Core.Reflection;
@@ -45,6 +46,7 @@ public class TypeDescriptorFactory : ITypeDescriptorFactory
 
     public IAttributeRegistry AttributeRegistry { get; }
 
+    [return: NotNullIfNotNull(nameof(type))]
     public ITypeDescriptor? Find(Type? type)
     {
         if (type is null)

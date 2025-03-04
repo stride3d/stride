@@ -53,7 +53,7 @@ public sealed class MemberPath
     /// </summary>
     /// <param name="other"></param>
     /// <returns><c>true</c> if the given <see cref="MemberPath"/> matches with this instance; otherwise, <c>false</c>.</returns>
-    public bool Match(MemberPath other)
+    public bool Match(MemberPath? other)
     {
         if (ReferenceEquals(null, other)) return false;
         if (ReferenceEquals(this, other)) return true;
@@ -217,7 +217,7 @@ public sealed class MemberPath
         }
     }
 
-    public bool Apply(object rootObject, MemberPathAction actionType, object value)
+    public bool Apply(object rootObject, MemberPathAction actionType, object? value)
     {
         ArgumentNullException.ThrowIfNull(rootObject);
         if (rootObject.GetType().IsValueType) throw new ArgumentException("Value type for root objects are not supported", nameof(rootObject));

@@ -32,7 +32,7 @@ namespace Stride.Samples.Tests
         {
             var project = session.Projects.OfType<SolutionProject>().First(x => x.Platform == Core.PlatformType.Windows);
 
-            var buildResult = VSProjectHelper.CompileProjectAssemblyAsync(null, project.FullPath, logger, extraProperties: new Dictionary<string, string> { { "StrideAutoTesting", "true" } }).BuildTask.Result;
+            var buildResult = VSProjectHelper.CompileProjectAssemblyAsync(project.FullPath, logger, extraProperties: new Dictionary<string, string> { { "StrideAutoTesting", "true" } }).BuildTask.Result;
             if (logger.HasErrors)
             {
                 throw new InvalidOperationException($"Error compiling sample {sampleName}:\r\n{logger.ToText()}");

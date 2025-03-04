@@ -1,50 +1,47 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using System;
+using System.Diagnostics.CodeAnalysis;
 
-namespace Stride.Core.Reflection
+namespace Stride.Core.Reflection;
+
+/// <summary>
+/// A helper static class to retrieve <see cref="CollectionItemIdentifiers"/> from a collection or dictionary through the <see cref="ShadowObject"/> registry.
+/// </summary>
+public static class CollectionItemIdHelper
 {
-    /// <summary>
-    /// A helper static class to retrieve <see cref="CollectionItemIdentifiers"/> from a collection or dictionary through the <see cref="ShadowObject"/> registry.
-    /// </summary>
-    public static class CollectionItemIdHelper
+    // TODO: do we really need to pass an object to this constructor?
+    private static readonly ShadowObjectPropertyKey CollectionItemIdKey = new(new object(), false);
+
+    public static bool HasCollectionItemIds(object? instance)
     {
-        // TODO: do we really need to pass an object to this constructor?
-        private static readonly ShadowObjectPropertyKey CollectionItemIdKey = new ShadowObjectPropertyKey(new object(), false);
+        return ShadowObject.Get(instance)?.ContainsKey(CollectionItemIdKey) ?? false;
+    }
 
-        public static bool HasCollectionItemIds(object instance)
+    public static bool TryGetCollectionItemIds(object? instance, [MaybeNullWhen(false)] out CollectionItemIdentifiers itemIds)
+    {
+        var shadow = ShadowObject.Get(instance);
+        if (shadow == null)
         {
-            return ShadowObject.Get(instance)?.ContainsKey(CollectionItemIdKey) ?? false;
+            itemIds = null;
+            return false;
         }
 
-        public static bool TryGetCollectionItemIds(object instance, out CollectionItemIdentifiers itemIds)
-        {
-            var shadow = ShadowObject.Get(instance);
-            if (shadow == null)
-            {
-                itemIds = null;
-                return false;
-            }
+        itemIds = shadow.TryGetValue(CollectionItemIdKey, out var result) ? (CollectionItemIdentifiers)result : null;
+        return result != null;
+    }
 
-            object result;
-            itemIds = shadow.TryGetValue(CollectionItemIdKey, out result) ? (CollectionItemIdentifiers)result : null;
-            return result != null;
+    public static CollectionItemIdentifiers GetCollectionItemIds(object instance)
+    {
+        if (instance.GetType().IsValueType) throw new ArgumentException(@"The given instance is a value type and cannot have a item ids attached to it.", nameof(instance));
+
+        var shadow = ShadowObject.GetOrCreate(instance);
+        if (shadow.TryGetValue(CollectionItemIdKey, out var result))
+        {
+            return (CollectionItemIdentifiers)result;
         }
 
-        public static CollectionItemIdentifiers GetCollectionItemIds(object instance)
-        {
-            if (instance.GetType().IsValueType) throw new ArgumentException(@"The given instance is a value type and cannot have a item ids attached to it.", nameof(instance));
-
-            var shadow = ShadowObject.GetOrCreate(instance);
-            object result;
-            if (shadow.TryGetValue(CollectionItemIdKey, out result))
-            {
-                return (CollectionItemIdentifiers)result;
-            }
-
-            var itemIds = new CollectionItemIdentifiers();
-            shadow.Add(CollectionItemIdKey, itemIds);
-            return itemIds;
-        }
+        var itemIds = new CollectionItemIdentifiers();
+        shadow.Add(CollectionItemIdKey, itemIds);
+        return itemIds;
     }
 }

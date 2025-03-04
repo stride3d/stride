@@ -1,11 +1,11 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-namespace Stride.Core.Packages
+
+namespace Stride.Core.Packages;
+
+public enum ProgressAction
 {
-    public enum ProgressAction
-    {
-        Download,
-        Install,
-        Delete,
-    }
+    Download,
+    Install,
+    Delete,
 }

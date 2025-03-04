@@ -1,15 +1,12 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Threading;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace xunit.runner.stride.ViewModels;
 
-public class XSink : IExecutionSink
+public sealed class XSink : IExecutionSink
 {
     volatile int errors;
 
@@ -27,18 +24,18 @@ public class XSink : IExecutionSink
 
         return message.Dispatch<ITestCaseFinished>(messageTypes, HandleTestCaseFinished)
             && message.Dispatch<ITestCaseStarting>(messageTypes, HandleTestCaseStarting)
-            && message.Dispatch<IErrorMessage>(messageTypes, args => Interlocked.Increment(ref errors))
-            && message.Dispatch<ITestAssemblyCleanupFailure>(messageTypes, args => Interlocked.Increment(ref errors))
+            && message.Dispatch<IErrorMessage>(messageTypes, _ => Interlocked.Increment(ref errors))
+            && message.Dispatch<ITestAssemblyCleanupFailure>(messageTypes, _ => Interlocked.Increment(ref errors))
             && message.Dispatch<ITestAssemblyFinished>(messageTypes, HandleTestAssemblyFinished)
-            && message.Dispatch<ITestCaseCleanupFailure>(messageTypes, args => Interlocked.Increment(ref errors))
-            && message.Dispatch<ITestClassCleanupFailure>(messageTypes, args => Interlocked.Increment(ref errors))
-            && message.Dispatch<ITestCleanupFailure>(messageTypes, args => Interlocked.Increment(ref errors))
-            && message.Dispatch<ITestCollectionCleanupFailure>(messageTypes, args => Interlocked.Increment(ref errors))
-            && message.Dispatch<ITestMethodCleanupFailure>(messageTypes, args => Interlocked.Increment(ref errors));
+            && message.Dispatch<ITestCaseCleanupFailure>(messageTypes, _ => Interlocked.Increment(ref errors))
+            && message.Dispatch<ITestClassCleanupFailure>(messageTypes, _ => Interlocked.Increment(ref errors))
+            && message.Dispatch<ITestCleanupFailure>(messageTypes, _ => Interlocked.Increment(ref errors))
+            && message.Dispatch<ITestCollectionCleanupFailure>(messageTypes, _ => Interlocked.Increment(ref errors))
+            && message.Dispatch<ITestMethodCleanupFailure>(messageTypes, _ => Interlocked.Increment(ref errors));
     }
 
-    public MessageHandler<ITestCaseFinished> HandleTestCaseFinished;
-    public MessageHandler<ITestCaseStarting> HandleTestCaseStarting;
+    public MessageHandler<ITestCaseFinished>? HandleTestCaseFinished;
+    public MessageHandler<ITestCaseStarting>? HandleTestCaseStarting;
 
     void HandleTestAssemblyFinished(MessageHandlerArgs<ITestAssemblyFinished> args)
     {

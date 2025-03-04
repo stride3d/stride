@@ -44,7 +44,7 @@ public sealed class ShadowObject : Dictionary<ShadowObjectPropertyKey, object>
     /// </summary>
     /// <param name="instance">The live instance.</param>
     /// <returns>The shadow instance or <c>null</c> if none</returns>
-    public static ShadowObject? Get(object instance)
+    public static ShadowObject? Get(object? instance)
     {
         if (!Enable || instance == null) return null;
         Shadows.TryGetValue(instance, out var shadow);

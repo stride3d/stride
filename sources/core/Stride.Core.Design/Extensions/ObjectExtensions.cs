@@ -3,7 +3,6 @@
 
 using System.Collections;
 using System.Runtime.CompilerServices;
-using Stride.Core.Annotations;
 
 namespace Stride.Core.Extensions;
 
@@ -17,8 +16,7 @@ public static class ObjectExtensions
     /// </summary>
     /// <param name="obj">The object.</param>
     /// <returns>The return value of <see cref="object.ToString"/>, or "(null)" if <see ref="obj"/> is null, or (ExceptionInToString)" if <see cref="object.ToString"/> thrown an exception.</returns>
-    [NotNull]
-    public static string ToStringSafe([CanBeNull] this object obj)
+    public static string ToStringSafe(this object? obj)
     {
         try
         {
@@ -54,8 +52,16 @@ public static class ObjectExtensions
         if (obj is IEnumerable<T?> enumerableT)
             return enumerableT;
 
-        var enumerable = obj as IEnumerable;
-        return enumerable?.Cast<T>() ?? Yield((T?)obj);
+        if (obj is IEnumerable enumerable)
+            return enumerable.OfType<T>();
+
+        if (obj is null)
+            return Yield((T?)obj);
+
+        if (obj is T t)
+            return Yield(t);
+
+        return [];
     }
 
     /// <summary>
@@ -67,7 +73,6 @@ public static class ObjectExtensions
     /// <param name="argumentName">The name of the argument, in case an <see cref="ArgumentNullException"/> must be thrown.</param>
     /// <returns>The given object.</returns>
     /// <remarks>This method can be used to test for null argument when forwarding members of the object to the <c>base</c> or <c>this</c> constructor.</remarks>
-    [NotNull]
     public static T SafeArgument<T>(this T obj, [CallerArgumentExpression(nameof(obj))] string argumentName = "") where T : class
     {
 #if NET6_0_OR_GREATER

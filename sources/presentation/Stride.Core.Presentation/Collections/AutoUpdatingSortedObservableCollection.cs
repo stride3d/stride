@@ -106,10 +106,10 @@ public class AutoUpdatingSortedObservableCollection<T> : SortedObservableCollect
 
     protected virtual void ItemPropertyChanging(object? sender, PropertyChangingEventArgs e)
     {
-        if (propertyNames is not null && !propertyNames.Contains(e.PropertyName))
+        if (e.PropertyName is null || propertyNames?.Contains(e.PropertyName) == false)
             return;
 
-        var item = (T)sender;
+        var item = (T?)sender;
         if (ChangingItem is not null && !ReferenceEquals(ChangingItem, item))
             throw new InvalidOperationException("Multiple items in the collection are changing concurrently.");
 
@@ -122,10 +122,10 @@ public class AutoUpdatingSortedObservableCollection<T> : SortedObservableCollect
 
     protected virtual void ItemPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (propertyNames is not null && !propertyNames.Contains(e.PropertyName))
+        if (e.PropertyName is null || propertyNames?.Contains(e.PropertyName) == false)
             return;
 
-        var item = (T)sender;
+        var item = (T?)sender;
 
         // An object has been added while a property of an existing object has been modified
         if (ChangingItem is not null && AddedItem is not null)

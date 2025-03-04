@@ -193,7 +193,7 @@ public class ListDescriptor : CollectionDescriptor
     /// </summary>
     /// <param name="list">The list.</param>
     /// <returns>The number of elements of a list, -1 if it cannot determine the number of elements.</returns>
-    public override int GetCollectionCount(object list)
+    public override int GetCollectionCount(object? list)
     {
         return list == null || getListCountMethod == null ? -1 : getListCountMethod(list);
     }

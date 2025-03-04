@@ -3,21 +3,20 @@
 
 using Stride.Core.Reflection;
 
-namespace Stride.Core.Assets
+namespace Stride.Core.Assets;
+
+/// <summary>
+/// Represents a member of an asset.
+/// </summary>
+public struct AssetMember
 {
     /// <summary>
-    /// Represents a member of an asset.
+    /// The asset.
     /// </summary>
-    public struct AssetMember
-    {
-        /// <summary>
-        /// The asset.
-        /// </summary>
-        public Asset Asset;
+    public Asset Asset;
 
-        /// <summary>
-        /// The path to the member in the asset.
-        /// </summary>
-        public MemberPath MemberPath;
-    }
+    /// <summary>
+    /// The path to the member in the asset.
+    /// </summary>
+    public MemberPath MemberPath;
 }

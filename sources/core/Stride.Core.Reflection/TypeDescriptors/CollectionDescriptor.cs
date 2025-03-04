@@ -153,5 +153,5 @@ public abstract class CollectionDescriptor : ObjectDescriptor
     /// </summary>
     /// <param name="collection">The collection.</param>
     /// <returns>The number of elements of a collection, -1 if it cannot determine the number of elements.</returns>
-    public abstract int GetCollectionCount(object collection);
+    public abstract int GetCollectionCount(object? collection);
 }

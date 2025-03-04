@@ -472,7 +472,7 @@ namespace Stride.GameStudio.ViewModels
                 }
 
                 // Build project
-                currentBuild = VSProjectHelper.CompileProjectAssemblyAsync(Session?.SolutionPath, projectViewModel.ProjectPath, logger, target, configuration, platformName, extraProperties, BuildRequestDataFlags.ProvideProjectStateAfterBuild);
+                currentBuild = VSProjectHelper.CompileProjectAssemblyAsync(projectViewModel.ProjectPath, logger, target, configuration, platformName, extraProperties, BuildRequestDataFlags.ProvideProjectStateAfterBuild);
                 if (currentBuild == null)
                 {
                     logger.Error(string.Format(Tr._p("Message", "Unable to load and compile project {0}"), projectViewModel.ProjectPath));
@@ -639,7 +639,7 @@ namespace Stride.GameStudio.ViewModels
                     ["StrideBuildEngineLogVerbose"] = "true",
                 };
 
-                currentBuild = VSProjectHelper.CompileProjectAssemblyAsync(Session?.SolutionPath, projectPath, logger, target, configuration, platformName, extraProperties, BuildRequestDataFlags.ProvideProjectStateAfterBuild);
+                currentBuild = VSProjectHelper.CompileProjectAssemblyAsync(projectPath, logger, target, configuration, platformName, extraProperties, BuildRequestDataFlags.ProvideProjectStateAfterBuild);
                 if (currentBuild == null)
                 {
                     logger.Error(string.Format(Tr._p("Message", "Unable to load and compile project {0}"), projectPath));

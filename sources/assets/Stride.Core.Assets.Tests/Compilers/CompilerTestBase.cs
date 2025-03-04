@@ -1,25 +1,22 @@
-using System;
-using System.Collections.Generic;
-using Xunit;
 using Stride.Core.Serialization;
 
-namespace Stride.Core.Assets.Tests.Compilers
+namespace Stride.Core.Assets.Tests.Compilers;
+
+public class CompilerTestBase : IDisposable
 {
-    public class CompilerTestBase : IDisposable
+    public CompilerTestBase()
     {
-        public CompilerTestBase()
-        {
-            TestCompilerBase.CompiledAssets = new HashSet<AssetItem>();
-        }
+        TestCompilerBase.CompiledAssets = [];
+    }
 
-        public void Dispose()
-        {
-            TestCompilerBase.CompiledAssets = null;
-        }
+    public void Dispose()
+    {
+        TestCompilerBase.CompiledAssets = null!;
+        GC.SuppressFinalize(this);
+    }
 
-        protected static TContentType CreateRef<TContentType>(AssetItem assetItem) where TContentType : class, new()
-        {
-            return AttachedReferenceManager.CreateProxyObject<TContentType>(assetItem.Id, assetItem.Location);
-        }
+    protected static TContentType CreateRef<TContentType>(AssetItem assetItem) where TContentType : class, new()
+    {
+        return AttachedReferenceManager.CreateProxyObject<TContentType>(assetItem.Id, assetItem.Location);
     }
 }

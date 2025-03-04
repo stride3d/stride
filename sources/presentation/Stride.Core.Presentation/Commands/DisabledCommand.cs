@@ -25,7 +25,7 @@ public sealed class DisabledCommand : ICommandBase
     public bool IsEnabled
     {
         get { return false; }
-        set { if (value == false) throw new InvalidOperationException($"The {nameof(IsEnabled)} property of the {nameof(DisabledCommand)} cannot be modified"); }
+        set { if (!value) throw new InvalidOperationException($"The {nameof(IsEnabled)} property of the {nameof(DisabledCommand)} cannot be modified"); }
     }
 
     /// <inheritdoc/>

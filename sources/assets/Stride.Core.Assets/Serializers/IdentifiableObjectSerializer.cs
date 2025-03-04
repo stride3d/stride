@@ -1,125 +1,119 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using System;
-using System.Collections.Generic;
+
 using Stride.Core.Assets.Yaml;
-using Stride.Core;
 using Stride.Core.Reflection;
 using Stride.Core.Yaml;
 using Stride.Core.Yaml.Events;
 using Stride.Core.Yaml.Serialization;
 using Stride.Core.Yaml.Serialization.Serializers;
 
-namespace Stride.Core.Assets.Serializers
+namespace Stride.Core.Assets.Serializers;
+
+/// <summary>
+/// A serializer for <see cref="IIdentifiable"/> instances, that can either serialize them directly or as an object reference.
+/// </summary>
+public sealed class IdentifiableObjectSerializer : ChainedSerializer
 {
-    /// <summary>
-    /// A serializer for <see cref="IIdentifiable"/> instances, that can either serialize them directly or as an object reference.
-    /// </summary>
-    public sealed class IdentifiableObjectSerializer : ChainedSerializer
+    public const string Prefix = "ref!! ";
+    private readonly IdentifiableObjectReferenceSerializer scalarRedirectSerializer = new();
+
+    public void Visit(ref VisitorContext context)
     {
-        public const string Prefix = "ref!! ";
-        private readonly IdentifiableObjectReferenceSerializer scalarRedirectSerializer = new IdentifiableObjectReferenceSerializer();
+        // For a scalar object, we don't visit its members
+        // But we do still visit the instance (either struct or class)
+        context.Visitor.VisitObject(context.Instance, context.Descriptor, false);
+    }
 
-        public void Visit(ref VisitorContext context)
+    public override object ReadYaml(ref ObjectContext objectContext)
+    {
+        if (objectContext.Reader.Accept<Scalar>())
         {
-            // For a scalar object, we don't visit its members
-            // But we do still visit the instance (either struct or class)
-            context.Visitor.VisitObject(context.Instance, context.Descriptor, false);
-        }
-
-        public override object ReadYaml(ref ObjectContext objectContext)
-        {
-            if (objectContext.Reader.Accept<Scalar>())
+            var next = objectContext.Reader.Peek<Scalar>();
+            if (next.Value.StartsWith(Prefix, StringComparison.Ordinal))
             {
-                var next = objectContext.Reader.Peek<Scalar>();
-                if (next.Value.StartsWith(Prefix, StringComparison.Ordinal))
-                {
-                    return scalarRedirectSerializer.ReadYaml(ref objectContext);
-                }
-            }
-            return base.ReadYaml(ref objectContext);
-        }
-
-        public override void WriteYaml(ref ObjectContext objectContext)
-        {
-            if (ShouldSerializeAsScalar(ref objectContext))
-            {
-                scalarRedirectSerializer.WriteYaml(ref objectContext);
-            }
-            else
-            {
-                base.WriteYaml(ref objectContext);
+                return scalarRedirectSerializer.ReadYaml(ref objectContext);
             }
         }
+        return base.ReadYaml(ref objectContext);
+    }
 
-        public IYamlSerializable TryCreate(SerializerContext context, ITypeDescriptor typeDescriptor) => typeof(IIdentifiable).IsAssignableFrom(typeDescriptor.Type) ? this : null;
-
-        private static bool ShouldSerializeAsScalar(ref ObjectContext objectContext)
+    public override void WriteYaml(ref ObjectContext objectContext)
+    {
+        if (ShouldSerializeAsScalar(ref objectContext))
         {
-            YamlAssetMetadata<Guid> objectReferences;
-            if (!objectContext.SerializerContext.Properties.TryGetValue(AssetObjectSerializerBackend.ObjectReferencesKey, out objectReferences))
-                return false;
+            scalarRedirectSerializer.WriteYaml(ref objectContext);
+        }
+        else
+        {
+            base.WriteYaml(ref objectContext);
+        }
+    }
 
-            var path = AssetObjectSerializerBackend.GetCurrentPath(ref objectContext, true);
-            return objectReferences.TryGet(path) != Guid.Empty;
+    public IYamlSerializable? TryCreate(SerializerContext context, ITypeDescriptor typeDescriptor) => typeof(IIdentifiable).IsAssignableFrom(typeDescriptor.Type) ? this : null;
+
+    private static bool ShouldSerializeAsScalar(ref ObjectContext objectContext)
+    {
+        if (!objectContext.SerializerContext.Properties.TryGetValue(AssetObjectSerializerBackend.ObjectReferencesKey, out var objectReferences))
+            return false;
+
+        var path = AssetObjectSerializerBackend.GetCurrentPath(ref objectContext, true);
+        return objectReferences.TryGet(path) != Guid.Empty;
+    }
+
+    private static bool TryParse(string text, out Guid identifier)
+    {
+        if (!text.StartsWith(Prefix, StringComparison.Ordinal))
+        {
+            identifier = Guid.Empty;
+            return false;
+        }
+        return Guid.TryParse(text.AsSpan(Prefix.Length), out identifier);
+    }
+
+    private class IdentifiableObjectReferenceSerializer : ScalarSerializerBase
+    {
+        public override object ConvertFrom(ref ObjectContext context, Scalar fromScalar)
+        {
+            if (!TryParse(fromScalar.Value, out var identifier))
+            {
+                throw new YamlException($"Unable to deserialize reference: [{fromScalar.Value}]");
+            }
+
+            // Add the path to the currently deserialized object to the list of object references
+            if (!context.SerializerContext.Properties.TryGetValue(AssetObjectSerializerBackend.ObjectReferencesKey, out var objectReferences))
+            {
+                objectReferences = new YamlAssetMetadata<Guid>();
+                context.SerializerContext.Properties.Add(AssetObjectSerializerBackend.ObjectReferencesKey, objectReferences);
+            }
+            var path = AssetObjectSerializerBackend.GetCurrentPath(ref context, true);
+            objectReferences.Set(path, identifier);
+
+            // Return default(T)
+            //return !context.Descriptor.Type.IsValueType ? null : Activator.CreateInstance(context.Descriptor.Type);
+            // Return temporary proxy instance
+            var proxy = AbstractObjectInstantiator.CreateConcreteInstance(context.Descriptor.Type);
+            // Filtering out interface and abstracts here as they're using a proxy type which doesn't have Id implemented
+            if (context.Descriptor.Type.IsInterface == false && context.Descriptor.Type.IsAbstract == false && proxy is IIdentifiable identifiable)
+                identifiable.Id = identifier;
+            return proxy;
         }
 
-        private static bool TryParse(string text, out Guid identifier)
+        public override string ConvertTo(ref ObjectContext objectContext)
         {
-            if (!text.StartsWith(Prefix, StringComparison.Ordinal))
-            {
-                identifier = Guid.Empty;
-                return false;
-            }
-            return Guid.TryParse(text.Substring(Prefix.Length), out identifier);
+            var identifiable = (IIdentifiable)objectContext.Instance;
+            return $"{Prefix}{identifiable.Id}";
         }
 
-        private class IdentifiableObjectReferenceSerializer : ScalarSerializerBase
+        protected override void WriteScalar(ref ObjectContext objectContext, ScalarEventInfo scalar)
         {
-            public override object ConvertFrom(ref ObjectContext context, Scalar fromScalar)
-            {
-                Guid identifier;
-                if (!TryParse(fromScalar.Value, out identifier))
-                {
-                    throw new YamlException($"Unable to deserialize reference: [{fromScalar.Value}]");
-                }
+            // Remove the tag if one was added, which might happen if the concrete type is different from the container type.
+            // NOTE: disabled for now, although it doesn't seem necessary anymore. To re-enable removing, just uncomment these two lines
+            //scalar.Tag = null;
+            //scalar.IsPlainImplicit = true;
 
-                // Add the path to the currently deserialized object to the list of object references
-                YamlAssetMetadata<Guid> objectReferences;
-                if (!context.SerializerContext.Properties.TryGetValue(AssetObjectSerializerBackend.ObjectReferencesKey, out objectReferences))
-                {
-                    objectReferences = new YamlAssetMetadata<Guid>();
-                    context.SerializerContext.Properties.Add(AssetObjectSerializerBackend.ObjectReferencesKey, objectReferences);
-                }
-                var path = AssetObjectSerializerBackend.GetCurrentPath(ref context, true);
-                objectReferences.Set(path, identifier);
-
-                // Return default(T)
-                //return !context.Descriptor.Type.IsValueType ? null : Activator.CreateInstance(context.Descriptor.Type);
-                // Return temporary proxy instance
-                var proxy = AbstractObjectInstantiator.CreateConcreteInstance(context.Descriptor.Type);
-                // Filtering out interface and abstracts here as they're using a proxy type which doesn't have Id implemented
-                if (context.Descriptor.Type.IsInterface == false && context.Descriptor.Type.IsAbstract == false && proxy is IIdentifiable identifiable)
-                    identifiable.Id = identifier;
-                return proxy;
-            }
-
-            public override string ConvertTo(ref ObjectContext objectContext)
-            {
-                var identifiable = (IIdentifiable)objectContext.Instance;
-                return $"{Prefix}{identifiable.Id}";
-            }
-
-            protected override void WriteScalar(ref ObjectContext objectContext, ScalarEventInfo scalar)
-            {
-                // Remove the tag if one was added, which might happen if the concrete type is different from the container type.
-                // NOTE: disabled for now, although it doesn't seem necessary anymore. To re-enable removing, just uncomment these two lines
-                //scalar.Tag = null;
-                //scalar.IsPlainImplicit = true;
-
-                // Emit the scalar
-                objectContext.SerializerContext.Writer.Emit(scalar);
-            }
+            // Emit the scalar
+            objectContext.SerializerContext.Writer.Emit(scalar);
         }
     }
 }

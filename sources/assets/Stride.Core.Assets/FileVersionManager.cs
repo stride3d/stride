@@ -1,252 +1,232 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using System;
+
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.IO;
-using System.Threading;
 using Stride.Core.BuildEngine;
-using Stride.Core.Annotations;
 using Stride.Core.Diagnostics;
 using Stride.Core.IO;
 using Stride.Core.Storage;
 
-namespace Stride.Core.Assets
+namespace Stride.Core.Assets;
+
+public class FileVersionManager
 {
-    public class FileVersionManager
+    private static readonly object TrackerLock = new();
+    private static FileVersionManager? instance;
+    private readonly FileVersionTracker tracker;
+    private readonly Thread asyncRunner;
+    private readonly AutoResetEvent asyncRequestAvailable;
+    private readonly ConcurrentQueue<AsyncRequest> asyncRequests;
+    private readonly HashSet<AsyncRequest> requestsToProcess = [];
+    private bool isDisposing;
+    private bool isDisposed;
+    private long requestsInFlight;
+
+    private FileVersionManager()
     {
-        private static readonly object TrackerLock = new object();
-        private static FileVersionManager instance;
-        private readonly FileVersionTracker tracker;
-        private readonly Thread asyncRunner;
-        private readonly AutoResetEvent asyncRequestAvailable;
-        private readonly ConcurrentQueue<AsyncRequest> asyncRequests;
-        private readonly HashSet<AsyncRequest> requestsToProcess = new HashSet<AsyncRequest>();
-        private bool isDisposing;
-        private bool isDisposed;
-        private long requestsInFlight;
+        // Environment.SpecialFolder.ApplicationData
+        asyncRequestAvailable = new AutoResetEvent(false);
+        asyncRequests = new ConcurrentQueue<AsyncRequest>();
 
-        private FileVersionManager()
+        // Loads the file version cache
+        tracker = FileVersionTracker.GetDefault();
+        asyncRunner = new Thread(SafeAction.Wrap(ComputeFileHashAsyncRunner)) { Name = "File Version Manager", IsBackground = true };
+        asyncRunner.Start();
+    }
+
+    /// <summary>
+    /// Returns the amount of items scheduled left to process
+    /// </summary>
+    /// <remarks>
+    /// It may already be out of date as soon as it returns.
+    /// Do not rely on this to check for completion, use the callbacks instead.
+    /// </remarks>
+    public long PeekAsyncRequestsLeft
+    {
+        get
         {
-            // Environment.SpecialFolder.ApplicationData
-            asyncRequestAvailable = new AutoResetEvent(false);
-            asyncRequests = new ConcurrentQueue<AsyncRequest>();
-
-            // Loads the file version cache
-            tracker = FileVersionTracker.GetDefault();
-            asyncRunner = new Thread(SafeAction.Wrap(ComputeFileHashAsyncRunner)) { Name = "File Version Manager", IsBackground = true };
-            asyncRunner.Start();
+            return Interlocked.Read(ref requestsInFlight);
         }
+    }
 
-        /// <summary>
-        /// Returns the amount of items scheduled left to process
-        /// </summary>
-        /// <remarks>
-        /// It may already be out of date as soon as it returns.
-        /// Do not rely on this to check for completion, use the callbacks instead.
-        /// </remarks>
-        public long PeekAsyncRequestsLeft
-        {
-            get
-            {
-                return Interlocked.Read(ref requestsInFlight);
-            }
-        }
-
-        [NotNull]
-        public static FileVersionManager Instance
-        {
-            get
-            {
-                lock (TrackerLock)
-                {
-                    if (instance != null)
-                        return instance;
-
-                    instance = new FileVersionManager();
-                    AppDomain.CurrentDomain.ProcessExit += CurrentDomainProcessExit;
-                    return instance;
-                }
-            }
-        }
-
-        public static void Shutdown()
+    public static FileVersionManager Instance
+    {
+        get
         {
             lock (TrackerLock)
             {
-                if (instance == null)
-                    return;
-                instance.Dispose();
-                instance = null;
+                if (instance != null)
+                    return instance;
+
+                instance = new FileVersionManager();
+                AppDomain.CurrentDomain.ProcessExit += CurrentDomainProcessExit;
+                return instance;
             }
         }
+    }
 
-        public ObjectId ComputeFileHash(UFile path)
+    public static void Shutdown()
+    {
+        lock (TrackerLock)
         {
-            if (!File.Exists(path))
-                return ObjectId.Empty;
-
-            return tracker.ComputeFileHash(path);
+            if (instance == null)
+                return;
+            instance.Dispose();
+            instance = null;
         }
+    }
 
-        public void ComputeFileHashAsync([NotNull] UFile path, Action<UFile, ObjectId> fileHashCallback = null, CancellationToken? cancellationToken = null)
+    public ObjectId ComputeFileHash(UFile path)
+    {
+        if (!File.Exists(path))
+            return ObjectId.Empty;
+
+        return tracker.ComputeFileHash(path);
+    }
+
+    public void ComputeFileHashAsync(UFile path, Action<UFile, ObjectId>? fileHashCallback = null, CancellationToken? cancellationToken = null)
+    {
+        ArgumentNullException.ThrowIfNull(path);
+
+        lock (asyncRequests)
         {
-            if (path == null) throw new ArgumentNullException(nameof(path));
+            asyncRequests.Enqueue(new AsyncRequest(path, fileHashCallback, cancellationToken));
+            Interlocked.Increment(ref requestsInFlight);
+        }
+        asyncRequestAvailable.Set();
+    }
 
-            lock (asyncRequests)
+    public void ComputeFileHashAsync(IEnumerable<UFile> paths, Action<UFile, ObjectId>? fileHashCallback = null, CancellationToken? cancellationToken = null)
+    {
+        ArgumentNullException.ThrowIfNull(paths);
+
+        int itemCount = 0;
+        lock (asyncRequests)
+        {
+            foreach (var path in paths)
             {
                 asyncRequests.Enqueue(new AsyncRequest(path, fileHashCallback, cancellationToken));
-                Interlocked.Increment(ref requestsInFlight);
+                itemCount++;
             }
-            asyncRequestAvailable.Set();
         }
+        Interlocked.Add(ref requestsInFlight, itemCount);
+        asyncRequestAvailable.Set();
+    }
 
-        public void ComputeFileHashAsync([NotNull] IEnumerable<UFile> paths, Action<UFile, ObjectId> fileHashCallback = null, CancellationToken? cancellationToken = null)
+    private void ComputeFileHashAsyncRunner()
+    {
+        while (!isDisposing)
         {
-            if (paths == null) throw new ArgumentNullException(nameof(paths));
-
-            int itemCount = 0;
-            lock (asyncRequests)
+            if (asyncRequestAvailable.WaitOne())
             {
-                foreach (var path in paths)
+                lock (asyncRequests)
                 {
-                    asyncRequests.Enqueue(new AsyncRequest(path, fileHashCallback, cancellationToken));
-                    itemCount++;
-                }
-            }
-            Interlocked.Add(ref requestsInFlight, itemCount);
-            asyncRequestAvailable.Set();
-        }
-
-        private void ComputeFileHashAsyncRunner()
-        {
-            while (!isDisposing)
-            {
-                if (asyncRequestAvailable.WaitOne())
-                {
-                    lock (asyncRequests)
+                    // Dequeue as much as possible in a single row
+                    while (asyncRequests.TryDequeue(out var asyncRequest))
                     {
-                        // Dequeue as much as possible in a single row
-                        while (true)
-                        {
-                            AsyncRequest asyncRequest;
-                            if (asyncRequests.TryDequeue(out asyncRequest))
-                            {
-                                requestsToProcess.Add(asyncRequest);
-                            }
-                            else
-                            {
-                                break;
-                            }
-                        }
+                        requestsToProcess.Add(asyncRequest);
                     }
                 }
+            }
 
-                // Early exit
+            // Early exit
+            if (isDisposing)
+            {
+                return;
+            }
+
+            foreach (var request in requestsToProcess)
+            {
                 if (isDisposing)
                 {
                     return;
                 }
 
-                foreach (var request in requestsToProcess)
+                if (request.CancellationToken.HasValue && request.CancellationToken.Value.IsCancellationRequested)
                 {
-                    if (isDisposing)
-                    {
-                        return;
-                    }
-
-                    if (request.CancellationToken.HasValue && request.CancellationToken.Value.IsCancellationRequested)
-                    {
-                        continue;
-                    }
-
-                    var hash = ComputeFileHash(request.File);
-
-                    if (request.CancellationToken.HasValue && request.CancellationToken.Value.IsCancellationRequested)
-                    {
-                        continue;
-                    }
-
-                    if (isDisposing)
-                    {
-                        return;
-                    }
-
-                    request.FileHashCallback?.Invoke(request.File, hash);
+                    continue;
                 }
-                Interlocked.Add(ref requestsInFlight, -requestsToProcess.Count);
-                // Once we have processed the list, we can clear it
-                requestsToProcess.Clear();
-            }
-        }
 
-        private static void CurrentDomainProcessExit(object sender, EventArgs e)
-        {
-            Shutdown();
-        }
+                var hash = ComputeFileHash(request.File);
 
-        private void Dispose()
-        {
-            if (isDisposed)
-                return;
-
-            // Set to true and let the async runner thread terminates
-            isDisposing = true;
-            asyncRequestAvailable.Set();
-
-            asyncRunner.Join();
-
-            isDisposed = true;
-        }
-
-        private struct AsyncRequest : IEquatable<AsyncRequest>
-        {
-            public AsyncRequest(UFile file, Action<UFile, ObjectId> fileHashCallback, CancellationToken? cancellationToken)
-            {
-                File = file;
-                FileHashCallback = fileHashCallback;
-                CancellationToken = cancellationToken;
-            }
-
-            public readonly UFile File;
-
-            public readonly Action<UFile, ObjectId> FileHashCallback;
-
-            public readonly CancellationToken? CancellationToken;
-
-            public bool Equals(AsyncRequest other)
-            {
-                return Equals(File, other.File) &&
-                       Equals(FileHashCallback, other.FileHashCallback) &&
-                       CancellationToken.Equals(other.CancellationToken);
-            }
-
-            public override bool Equals(object obj)
-            {
-                if (ReferenceEquals(null, obj)) return false;
-                return obj is AsyncRequest && Equals((AsyncRequest)obj);
-            }
-
-            public override int GetHashCode()
-            {
-                unchecked
+                if (request.CancellationToken.HasValue && request.CancellationToken.Value.IsCancellationRequested)
                 {
-                    var hashCode = File?.GetHashCode() ?? 0;
-                    hashCode = (hashCode*397) ^ (FileHashCallback?.GetHashCode() ?? 0);
-                    hashCode = (hashCode*397) ^ CancellationToken.GetHashCode();
-                    return hashCode;
+                    continue;
                 }
-            }
 
-            public static bool operator ==(AsyncRequest left, AsyncRequest right)
-            {
-                return left.Equals(right);
-            }
+                if (isDisposing)
+                {
+                    return;
+                }
 
-            public static bool operator !=(AsyncRequest left, AsyncRequest right)
-            {
-                return !left.Equals(right);
+                request.FileHashCallback?.Invoke(request.File, hash);
             }
+            Interlocked.Add(ref requestsInFlight, -requestsToProcess.Count);
+            // Once we have processed the list, we can clear it
+            requestsToProcess.Clear();
+        }
+    }
+
+    private static void CurrentDomainProcessExit(object? sender, EventArgs e)
+    {
+        Shutdown();
+    }
+
+    private void Dispose()
+    {
+        if (isDisposed)
+            return;
+
+        // Set to true and let the async runner thread terminates
+        isDisposing = true;
+        asyncRequestAvailable.Set();
+
+        asyncRunner.Join();
+
+        isDisposed = true;
+    }
+
+    private readonly struct AsyncRequest : IEquatable<AsyncRequest>
+    {
+        public AsyncRequest(UFile file, Action<UFile, ObjectId>? fileHashCallback, CancellationToken? cancellationToken)
+        {
+            File = file;
+            FileHashCallback = fileHashCallback;
+            CancellationToken = cancellationToken;
+        }
+
+        public readonly UFile File;
+
+        public readonly Action<UFile, ObjectId>? FileHashCallback;
+
+        public readonly CancellationToken? CancellationToken;
+
+        public readonly bool Equals(AsyncRequest other)
+        {
+            return Equals(File, other.File) &&
+                   Equals(FileHashCallback, other.FileHashCallback) &&
+                   CancellationToken.Equals(other.CancellationToken);
+        }
+
+        public override readonly bool Equals(object? obj)
+        {
+            if (ReferenceEquals(null, obj)) return false;
+            return obj is AsyncRequest asyncRequest && Equals(asyncRequest);
+        }
+
+        public override readonly int GetHashCode()
+        {
+            return HashCode.Combine(File, FileHashCallback, CancellationToken);
+        }
+
+        public static bool operator ==(AsyncRequest left, AsyncRequest right)
+        {
+            return left.Equals(right);
+        }
+
+        public static bool operator !=(AsyncRequest left, AsyncRequest right)
+        {
+            return !left.Equals(right);
         }
     }
 }

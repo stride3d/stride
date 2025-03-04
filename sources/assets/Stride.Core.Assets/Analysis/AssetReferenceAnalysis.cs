@@ -1,343 +1,339 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using System;
 using System.Collections;
-using System.Collections.Generic;
 
 using Stride.Core.Assets.Visitors;
 using Stride.Core.IO;
 using Stride.Core.Reflection;
 using Stride.Core.Serialization;
 
-namespace Stride.Core.Assets.Analysis
+namespace Stride.Core.Assets.Analysis;
+
+/// <summary>
+/// This analysis provides a method for visiting asset and file references 
+/// (<see cref="Serialization.Contents.IReference" /> or <see cref="UFile" /> or <see cref="UDirectory" />)
+/// </summary>
+public static class AssetReferenceAnalysis
 {
+    private static readonly object CachingLock = new();
+
+    private static readonly Dictionary<object, List<AssetReferenceLink>> CachingReferences = [];
+
+    private static bool enableCaching;
+
     /// <summary>
-    /// This analysis provides a method for visiting asset and file references 
-    /// (<see cref="Core.Serialization.Contents.IReference" /> or <see cref="UFile" /> or <see cref="UDirectory" />)
+    /// Gets or sets the enable caching. Only used when loading packages
     /// </summary>
-    public static class AssetReferenceAnalysis
+    /// <value>The enable caching.</value>
+    internal static bool EnableCaching
     {
-        private static readonly object CachingLock = new object();
-
-        private static readonly Dictionary<object, List<AssetReferenceLink>> CachingReferences = new Dictionary<object, List<AssetReferenceLink>>();
-
-        private static bool enableCaching;
-
-        /// <summary>
-        /// Gets or sets the enable caching. Only used when loading packages
-        /// </summary>
-        /// <value>The enable caching.</value>
-        internal static bool EnableCaching
+        get
         {
-            get
+            return enableCaching;
+        }
+        set
+        {
+            lock (CachingLock)
             {
-                return enableCaching;
-            }
-            set
-            {
-                lock (CachingLock)
+                if (enableCaching != value)
                 {
-                    if (enableCaching != value)
-                    {
-                        CachingReferences.Clear();
-                    }
+                    CachingReferences.Clear();
+                }
 
-                    enableCaching = value;
+                enableCaching = value;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets all references (subclass of <see cref="Core.Serialization.Contents.IReference" /> and <see cref="UFile" />) from the specified asset
+    /// </summary>
+    /// <param name="obj">The object.</param>
+    /// <returns>A list of references.</returns>
+    public static List<AssetReferenceLink> Visit(object obj)
+    {
+        ArgumentNullException.ThrowIfNull(obj);
+
+        List<AssetReferenceLink>? assetReferences = null;
+
+        lock (CachingLock)
+        {
+            if (enableCaching)
+            {
+                if (CachingReferences.TryGetValue(obj, out assetReferences))
+                {
+                    assetReferences = new List<AssetReferenceLink>(assetReferences);
                 }
             }
         }
 
-        /// <summary>
-        /// Gets all references (subclass of <see cref="Core.Serialization.Contents.IReference" /> and <see cref="UFile" />) from the specified asset
-        /// </summary>
-        /// <param name="obj">The object.</param>
-        /// <returns>A list of references.</returns>
-        public static List<AssetReferenceLink> Visit(object obj)
+        if (assetReferences == null)
         {
-            if (obj == null) throw new ArgumentNullException(nameof(obj));
-
-            List<AssetReferenceLink> assetReferences = null;
+            assetReferences = [];
+            
+            var assetReferenceVistor = new AssetReferenceVistor { References = assetReferences };
+            assetReferenceVistor.Visit(obj);
 
             lock (CachingLock)
             {
                 if (enableCaching)
                 {
-                    if (CachingReferences.TryGetValue(obj, out assetReferences))
-                    {
-                        assetReferences = new List<AssetReferenceLink>(assetReferences);
-                    }
+                    CachingReferences[obj] = assetReferences;
                 }
             }
-
-            if (assetReferences == null)
-            {
-                assetReferences = new List<AssetReferenceLink>();
-                
-                var assetReferenceVistor = new AssetReferenceVistor { References = assetReferences };
-                assetReferenceVistor.Visit(obj);
-
-                lock (CachingLock)
-                {
-                    if (enableCaching)
-                    {
-                        CachingReferences[obj] = assetReferences;
-                    }
-                }
-            }
-
-            return assetReferences;
         }
 
-        private class AssetReferenceVistor : AssetVisitorBase
+        return assetReferences;
+    }
+
+    private class AssetReferenceVistor : AssetVisitorBase
+    {
+        public AssetReferenceVistor()
         {
-            public AssetReferenceVistor()
+            References = [];
+        }
+
+        public List<AssetReferenceLink> References { get; set; }
+
+        public override void VisitArrayItem(Array array, ArrayDescriptor descriptor, int index, object? item, ITypeDescriptor? itemDescriptor)
+        {
+            base.VisitArrayItem(array, descriptor, index, item, itemDescriptor);
+            var attachedReference = AttachedReferenceManager.GetAttachedReference(item);
+            if (item is AssetReference assetReference)
             {
-                References = new List<AssetReferenceLink>();
+                AddLink(item,
+                    (guid, location) =>
+                    {
+                        var newValue = AssetReference.New(guid ?? assetReference.Id, location);
+                        array.SetValue(newValue, index);
+                        return newValue;
+                    });
             }
-
-            public List<AssetReferenceLink> References { get; set; }
-
-            public override void VisitArrayItem(Array array, ArrayDescriptor descriptor, int index, object item, ITypeDescriptor itemDescriptor)
+            else if (attachedReference != null)
             {
-                base.VisitArrayItem(array, descriptor, index, item, itemDescriptor);
-                var assetReference = item as AssetReference;
-                var attachedReference = AttachedReferenceManager.GetAttachedReference(item);
-                if (assetReference != null)
-                {
-                    AddLink(item,
-                        (guid, location) =>
-                        {
-                            var newValue = AssetReference.New(guid ?? assetReference.Id, location);
-                            array.SetValue(newValue, index);
-                            return newValue;
-                        });
-                }
-                else if (attachedReference != null)
-                {
-                    AddLink(attachedReference,
-                        (guid, location) =>
-                        {
-                            object newValue = guid.HasValue && guid.Value != AssetId.Empty ? AttachedReferenceManager.CreateProxyObject(descriptor.ElementType, guid.Value, location) : null;
-                            array.SetValue(newValue, index);
-                            return newValue;
-                        });
-                }
-                else if (item is UFile)
-                {
-                    AddLink(item,
-                        (guid, location) =>
-                        {
-                            var newValue = new UFile(location);
-                            array.SetValue(newValue, index);
-                            return newValue;
-                        });
-                }
-                else if (item is UDirectory)
-                {
-                    AddLink(item,
-                        (guid, location) =>
-                        {
-                            var newValue = new UFile(location);
-                            array.SetValue(newValue, index);
-                            return newValue;
-                        });
-                }
+                AddLink(attachedReference,
+                    (guid, location) =>
+                    {
+                        var newValue = guid.HasValue && guid.Value != AssetId.Empty ? AttachedReferenceManager.CreateProxyObject(descriptor.ElementType, guid.Value, location) : null;
+                        array.SetValue(newValue, index);
+                        return newValue;
+                    });
             }
-
-            public override void VisitCollectionItem(IEnumerable collection, CollectionDescriptor descriptor, int index, object item, ITypeDescriptor itemDescriptor)
+            else if (item is UFile)
             {
-                base.VisitCollectionItem(collection, descriptor, index, item, itemDescriptor);
-                var assetReference = item as AssetReference;
-                var attachedReference = AttachedReferenceManager.GetAttachedReference(item);
+                AddLink(item,
+                    (guid, location) =>
+                    {
+                        var newValue = new UFile(location);
+                        array.SetValue(newValue, index);
+                        return newValue;
+                    });
+            }
+            else if (item is UDirectory)
+            {
+                AddLink(item,
+                    (guid, location) =>
+                    {
+                        var newValue = new UFile(location);
+                        array.SetValue(newValue, index);
+                        return newValue;
+                    });
+            }
+        }
 
-                // We cannot set links if we do not have indexer accessor
-                if (!descriptor.HasIndexerAccessors)
-                    return;
+        public override void VisitCollectionItem(IEnumerable collection, CollectionDescriptor descriptor, int index, object? item, ITypeDescriptor? itemDescriptor)
+        {
+            base.VisitCollectionItem(collection, descriptor, index, item, itemDescriptor);
+            var assetReference = item as AssetReference;
+            var attachedReference = AttachedReferenceManager.GetAttachedReference(item);
 
-                if (assetReference != null)
+            // We cannot set links if we do not have indexer accessor
+            if (!descriptor.HasIndexerAccessors)
+                return;
+
+            if (assetReference != null)
+            {
+                AddLink(assetReference, (guid, location) =>
                 {
-                    AddLink(assetReference, (guid, location) =>
+                    var link = AssetReference.New(guid ?? assetReference.Id, location);
+                    descriptor.SetValue(collection, index, link);
+                    return link;
+                });
+            }
+            else if (attachedReference != null)
+            {
+                AddLink(attachedReference, (guid, location) =>
+                {
+                    var link = guid.HasValue && guid.Value != AssetId.Empty ? AttachedReferenceManager.CreateProxyObject(descriptor.ElementType, guid.Value, location) : null;
+                    descriptor.SetValue(collection, index, link);
+                    return link;
+                });
+            }
+            else if (item is UFile)
+            {
+                AddLink(item, (guid, location) =>
+                {
+                    var link = new UFile(location);
+                    descriptor.SetValue(collection, index, link);
+                    return link;
+                });
+            }
+            else if (item is UDirectory)
+            {
+                AddLink(item, (guid, location) =>
+                {
+                    var link = new UDirectory(location);
+                    descriptor.SetValue(collection, index, link);
+                    return link;
+                });
+            }
+        }
+
+        public override void VisitDictionaryKeyValue(object dictionaryObj, DictionaryDescriptor descriptor, object key, ITypeDescriptor? keyDescriptor, object? value, ITypeDescriptor? valueDescriptor)
+        {
+            base.VisitDictionaryKeyValue(dictionaryObj, descriptor, key, keyDescriptor, value, valueDescriptor);
+            var assetReference = value as AssetReference;
+            var attachedReference = AttachedReferenceManager.GetAttachedReference(value);
+            if (assetReference != null)
+            {
+                AddLink(assetReference,
+                    (guid, location) =>
+                    {
+                        var newValue = AssetReference.New(guid ?? assetReference.Id, location);
+                        descriptor.SetValue(dictionaryObj, key, newValue);
+                        return newValue;
+                    });
+            }
+            else if (attachedReference != null)
+            {
+                AddLink(attachedReference,
+                    (guid, location) =>
+                    {
+                        var newValue = guid.HasValue && guid.Value != AssetId.Empty ? AttachedReferenceManager.CreateProxyObject(descriptor.ValueType, guid.Value, location) : null;
+                        descriptor.SetValue(dictionaryObj, key, newValue);
+                        return newValue;
+                    });
+            }
+            else if (value is UFile)
+            {
+                AddLink(value,
+                    (guid, location) =>
+                    {
+                        var newValue = new UFile(location);
+                        descriptor.SetValue(dictionaryObj, key, newValue);
+                        return newValue;
+                    });
+            }
+            else if (value is UDirectory)
+            {
+                AddLink(value,
+                    (guid, location) =>
+                    {
+                        var newValue = new UDirectory(location);
+                        descriptor.SetValue(dictionaryObj, key, newValue);
+                        return newValue;
+                    });
+            }
+        }
+
+        public override void VisitSetItem(IEnumerable setObject, SetDescriptor descriptor, object? item, ITypeDescriptor? itemDescriptor)
+        {
+            base.VisitSetItem(setObject, descriptor, item, itemDescriptor);
+            var assetReference = item as AssetReference;
+            var attachedReference = AttachedReferenceManager.GetAttachedReference(item);
+            if (assetReference != null)
+            {
+                AddLink(assetReference,
+                    (guid, location) =>
                     {
                         var link = AssetReference.New(guid ?? assetReference.Id, location);
-                        descriptor.SetValue(collection, index, link);
+                        descriptor.Add(setObject, link);
                         return link;
                     });
-                }
-                else if (attachedReference != null)
-                {
-                    AddLink(attachedReference, (guid, location) =>
+            }
+            else if (attachedReference != null)
+            {
+                AddLink(attachedReference,
+                    (guid, location) =>
                     {
                         var link = guid.HasValue && guid.Value != AssetId.Empty ? AttachedReferenceManager.CreateProxyObject(descriptor.ElementType, guid.Value, location) : null;
-                        descriptor.SetValue(collection, index, link);
+                        descriptor.Add(setObject, link);
                         return link;
                     });
-                }
-                else if (item is UFile)
-                {
-                    AddLink(item, (guid, location) =>
+            }
+            else if (item is UFile)
+            {
+                AddLink(item,
+                    (guid, location) =>
                     {
                         var link = new UFile(location);
-                        descriptor.SetValue(collection, index, link);
+                        descriptor.Add(setObject, link);
                         return link;
                     });
-                }
-                else if (item is UDirectory)
-                {
-                    AddLink(item, (guid, location) =>
+            }
+            else if (item is UDirectory)
+            {
+                AddLink(item,
+                    (guid, location) =>
                     {
                         var link = new UDirectory(location);
-                        descriptor.SetValue(collection, index, link);
+                        descriptor.Add(setObject, link);
                         return link;
                     });
-                }
             }
+        }
 
-            public override void VisitDictionaryKeyValue(object dictionaryObj, DictionaryDescriptor descriptor, object key, ITypeDescriptor keyDescriptor, object value, ITypeDescriptor valueDescriptor)
+        public override void VisitObjectMember(object container, ObjectDescriptor containerDescriptor, IMemberDescriptor member, object? value)
+        {
+            base.VisitObjectMember(container, containerDescriptor, member, value);
+            var assetReference = value as AssetReference;
+            var attachedReference = AttachedReferenceManager.GetAttachedReference(value);
+            if (assetReference != null)
             {
-                base.VisitDictionaryKeyValue(dictionaryObj, descriptor, key, keyDescriptor, value, valueDescriptor);
-                var assetReference = value as AssetReference;
-                var attachedReference = AttachedReferenceManager.GetAttachedReference(value);
-                if (assetReference != null)
-                {
-                    AddLink(assetReference,
-                        (guid, location) =>
-                        {
-                            var newValue = AssetReference.New(guid ?? assetReference.Id, location);
-                            descriptor.SetValue(dictionaryObj, key, newValue);
-                            return newValue;
-                        });
-                }
-                else if (attachedReference != null)
-                {
-                    AddLink(attachedReference,
-                        (guid, location) =>
-                        {
-                            object newValue = guid.HasValue && guid.Value != AssetId.Empty ? AttachedReferenceManager.CreateProxyObject(descriptor.ValueType, guid.Value, location) : null;
-                            descriptor.SetValue(dictionaryObj, key, newValue);
-                            return newValue;
-                        });
-                }
-                else if (value is UFile)
-                {
-                    AddLink(value,
-                        (guid, location) =>
-                        {
-                            var newValue = new UFile(location);
-                            descriptor.SetValue(dictionaryObj, key, newValue);
-                            return newValue;
-                        });
-                }
-                else if (value is UDirectory)
-                {
-                    AddLink(value,
-                        (guid, location) =>
-                        {
-                            var newValue = new UDirectory(location);
-                            descriptor.SetValue(dictionaryObj, key, newValue);
-                            return newValue;
-                        });
-                }
+                AddLink(assetReference,
+                    (guid, location) =>
+                    {
+                        var newValue = AssetReference.New(guid ?? assetReference.Id, location);
+                        member.Set(container, newValue);
+                        return newValue;
+                    });
             }
+            else if (attachedReference != null)
+            {
+                AddLink(attachedReference,
+                    (guid, location) =>
+                    {
+                        var newValue = guid.HasValue && guid.Value != AssetId.Empty ? AttachedReferenceManager.CreateProxyObject(member.Type, guid.Value, location) : null;
+                        member.Set(container, newValue);
+                        return newValue;
+                    });
+            }
+            else if (value is UFile)
+            {
+                AddLink(value,
+                    (guid, location) =>
+                    {
+                        var newValue = new UFile(location);
+                        member.Set(container, newValue);
+                        return newValue;
+                    });
+            }
+            else if (value is UDirectory)
+            {
+                AddLink(value,
+                    (guid, location) =>
+                    {
+                        var newValue = new UDirectory(location);
+                        member.Set(container, newValue);
+                        return newValue;
+                    });
+            }
+        }
 
-            public override void VisitSetItem(IEnumerable setObject, SetDescriptor descriptor, object item, ITypeDescriptor itemDescriptor)
-            {
-                base.VisitSetItem(setObject, descriptor, item, itemDescriptor);
-                var assetReference = item as AssetReference;
-                var attachedReference = AttachedReferenceManager.GetAttachedReference(item);
-                if (assetReference != null)
-                {
-                    AddLink(assetReference,
-                        (guid, location) =>
-                        {
-                            var link = AssetReference.New(guid ?? assetReference.Id, location);
-                            descriptor.Add(setObject, link);
-                            return link;
-                        });
-                }
-                else if (attachedReference != null)
-                {
-                    AddLink(attachedReference,
-                        (guid, location) =>
-                        {
-                            object link = guid.HasValue && guid.Value != AssetId.Empty ? AttachedReferenceManager.CreateProxyObject(descriptor.ElementType, guid.Value, location) : null;
-                            descriptor.Add(setObject, link);
-                            return link;
-                        });
-                }
-                else if (item is UFile)
-                {
-                    AddLink(item,
-                        (guid, location) =>
-                        {
-                            var link = new UFile(location);
-                            descriptor.Add(setObject, link);
-                            return link;
-                        });
-                }
-                else if (item is UDirectory)
-                {
-                    AddLink(item,
-                        (guid, location) =>
-                        {
-                            var link = new UDirectory(location);
-                            descriptor.Add(setObject, link);
-                            return link;
-                        });
-                }
-            }
-
-            public override void VisitObjectMember(object container, ObjectDescriptor containerDescriptor, IMemberDescriptor member, object value)
-            {
-                base.VisitObjectMember(container, containerDescriptor, member, value);
-                var assetReference = value as AssetReference;
-                var attachedReference = AttachedReferenceManager.GetAttachedReference(value);
-                if (assetReference != null)
-                {
-                    AddLink(assetReference,
-                        (guid, location) =>
-                        {
-                            var newValue = AssetReference.New(guid ?? assetReference.Id, location);
-                            member.Set(container, newValue);
-                            return newValue;
-                        });
-                }
-                else if (attachedReference != null)
-                {
-                    AddLink(attachedReference,
-                        (guid, location) =>
-                        {
-                            object newValue = guid.HasValue && guid.Value != AssetId.Empty ? AttachedReferenceManager.CreateProxyObject(member.Type, guid.Value, location) : null;
-                            member.Set(container, newValue);
-                            return newValue;
-                        });
-                }
-                else if (value is UFile)
-                {
-                    AddLink(value,
-                        (guid, location) =>
-                        {
-                            var newValue = new UFile(location);
-                            member.Set(container, newValue);
-                            return newValue;
-                        });
-                }
-                else if (value is UDirectory)
-                {
-                    AddLink(value,
-                        (guid, location) =>
-                        {
-                            var newValue = new UDirectory(location);
-                            member.Set(container, newValue);
-                            return newValue;
-                        });
-                }
-            }
-
-            private void AddLink(object value, Func<AssetId?, string, object> updateReference)
-            {
-                References.Add(new AssetReferenceLink(CurrentPath.Clone(), value, updateReference));
-            }
+        private void AddLink(object value, Func<AssetId?, string, object?> updateReference)
+        {
+            References.Add(new AssetReferenceLink(CurrentPath.Clone(), value, updateReference));
         }
     }
 }
