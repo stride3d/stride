@@ -440,7 +440,7 @@ public struct Int3 : IEquatable<Int3>, IFormattable
     /// <remarks>
     /// This method performs the linear interpolation based on the following formula.
     /// <c>start + (end - start) * amount</c>
-    /// Passing <paramref name="amount"/> a value of 0 will cause <paramref name="start"/> to be returned; a value of 1 will cause <paramref name="end"/> to be returned.
+    /// Passing <paramref name="amount"/> a value of 0 will cause <paramref name="start"/> to be returned; a value of 1 will cause <paramref name="end"/> to be returned. 
     /// </remarks>
     public static void Lerp(ref readonly Int3 start, ref readonly Int3 end, float amount, out Int3 result)
     {
@@ -459,7 +459,7 @@ public struct Int3 : IEquatable<Int3>, IFormattable
     /// <remarks>
     /// This method performs the linear interpolation based on the following formula.
     /// <c>start + (end - start) * amount</c>
-    /// Passing <paramref name="amount"/> a value of 0 will cause <paramref name="start"/> to be returned; a value of 1 will cause <paramref name="end"/> to be returned.
+    /// Passing <paramref name="amount"/> a value of 0 will cause <paramref name="start"/> to be returned; a value of 1 will cause <paramref name="end"/> to be returned. 
     /// </remarks>
     public static Int3 Lerp(Int3 start, Int3 end, float amount)
     {
@@ -759,7 +759,7 @@ public struct Int3 : IEquatable<Int3>, IFormattable
     /// Returns a hash code for this instance.
     /// </summary>
     /// <returns>
-    /// A hash code for this instance, suitable for use in hashing algorithms and data structures like a hash table.
+    /// A hash code for this instance, suitable for use in hashing algorithms and data structures like a hash table. 
     /// </returns>
     public override readonly int GetHashCode()
     {
@@ -776,7 +776,7 @@ public struct Int3 : IEquatable<Int3>, IFormattable
     public readonly bool Equals(Int3 other)
     {
         return MathF.Abs(other.X - X) < MathUtil.ZeroTolerance &&
-            MathF.Abs(other.Y - Y) < MathUtil.ZeroTolerance &&
+                MathF.Abs(other.Y - Y) < MathUtil.ZeroTolerance &&
             MathF.Abs(other.Z - Z) < MathUtil.ZeroTolerance;
     }
 
@@ -806,46 +806,46 @@ public struct Int3 : IEquatable<Int3>, IFormattable
     }
 
 #if WPFInterop
-    /// <summary>
-    /// Performs an implicit conversion from <see cref="Stride.Core.Mathematics.Int3"/> to <see cref="System.Windows.Media.Media3D.Int3D"/>.
-    /// </summary>
-    /// <param name="value">The value.</param>
-    /// <returns>The result of the conversion.</returns>
-    public static implicit operator System.Windows.Media.Media3D.Int3D(Int3 value)
-    {
-        return new System.Windows.Media.Media3D.Int3D(value.X, value.Y, value.Z);
-    }
+        /// <summary>
+        /// Performs an implicit conversion from <see cref="Stride.Core.Mathematics.Int3"/> to <see cref="System.Windows.Media.Media3D.Int3D"/>.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <returns>The result of the conversion.</returns>
+        public static implicit operator System.Windows.Media.Media3D.Int3D(Int3 value)
+        {
+            return new System.Windows.Media.Media3D.Int3D(value.X, value.Y, value.Z);
+        }
 
-    /// <summary>
-    /// Performs an explicit conversion from <see cref="System.Windows.Media.Media3D.Int3D"/> to <see cref="Stride.Core.Mathematics.Int3"/>.
-    /// </summary>
-    /// <param name="value">The value.</param>
-    /// <returns>The result of the conversion.</returns>
-    public static explicit operator Int3(System.Windows.Media.Media3D.Int3D value)
-    {
-        return new Int3((float)value.X, (float)value.Y, (float)value.Z);
-    }
+        /// <summary>
+        /// Performs an explicit conversion from <see cref="System.Windows.Media.Media3D.Int3D"/> to <see cref="Stride.Core.Mathematics.Int3"/>.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <returns>The result of the conversion.</returns>
+        public static explicit operator Int3(System.Windows.Media.Media3D.Int3D value)
+        {
+            return new Int3((float)value.X, (float)value.Y, (float)value.Z);
+        }
 #endif
 
 #if XnaInterop
-    /// <summary>
-    /// Performs an implicit conversion from <see cref="Stride.Core.Mathematics.Int3"/> to <see cref="Microsoft.Xna.Framework.Int3"/>.
-    /// </summary>
-    /// <param name="value">The value.</param>
-    /// <returns>The result of the conversion.</returns>
-    public static implicit operator Microsoft.Xna.Framework.Int3(Int3 value)
-    {
-        return new Microsoft.Xna.Framework.Int3(value.X, value.Y, value.Z);
-    }
+        /// <summary>
+        /// Performs an implicit conversion from <see cref="Stride.Core.Mathematics.Int3"/> to <see cref="Microsoft.Xna.Framework.Int3"/>.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <returns>The result of the conversion.</returns>
+        public static implicit operator Microsoft.Xna.Framework.Int3(Int3 value)
+        {
+            return new Microsoft.Xna.Framework.Int3(value.X, value.Y, value.Z);
+        }
 
-    /// <summary>
-    /// Performs an implicit conversion from <see cref="Microsoft.Xna.Framework.Int3"/> to <see cref="Stride.Core.Mathematics.Int3"/>.
-    /// </summary>
-    /// <param name="value">The value.</param>
-    /// <returns>The result of the conversion.</returns>
-    public static implicit operator Int3(Microsoft.Xna.Framework.Int3 value)
-    {
-        return new Int3(value.X, value.Y, value.Z);
-    }
+        /// <summary>
+        /// Performs an implicit conversion from <see cref="Microsoft.Xna.Framework.Int3"/> to <see cref="Stride.Core.Mathematics.Int3"/>.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <returns>The result of the conversion.</returns>
+        public static implicit operator Int3(Microsoft.Xna.Framework.Int3 value)
+        {
+            return new Int3(value.X, value.Y, value.Z);
+        }
 #endif
 }

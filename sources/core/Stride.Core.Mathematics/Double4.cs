@@ -563,11 +563,11 @@ public struct Double4 : IEquatable<Double4>, IFormattable
     /// <param name="value1">The first vector.</param>
     /// <param name="value2">The second vector.</param>
     /// <param name="result">When the method completes, contains the squared distance between the two vectors.</param>
-    /// <remarks>Distance squared is the value before taking the square root.
-    /// Distance squared can often be used in place of distance if relative comparisons are being made.
-    /// For example, consider three points A, B, and C. To determine whether B or C is further from A,
-    /// compare the distance between A and B to the distance between A and C. Calculating the two distances
-    /// involves two square roots, which are computationally expensive. However, using distance squared
+    /// <remarks>Distance squared is the value before taking the square root. 
+    /// Distance squared can often be used in place of distance if relative comparisons are being made. 
+    /// For example, consider three points A, B, and C. To determine whether B or C is further from A, 
+    /// compare the distance between A and B to the distance between A and C. Calculating the two distances 
+    /// involves two square roots, which are computationally expensive. However, using distance squared 
     /// provides the same information and avoids calculating two square roots.
     /// </remarks>
     public static void DistanceSquared(ref readonly Double4 value1, ref readonly Double4 value2, out double result)
@@ -586,11 +586,11 @@ public struct Double4 : IEquatable<Double4>, IFormattable
     /// <param name="value1">The first vector.</param>
     /// <param name="value2">The second vector.</param>
     /// <returns>The squared distance between the two vectors.</returns>
-    /// <remarks>Distance squared is the value before taking the square root.
-    /// Distance squared can often be used in place of distance if relative comparisons are being made.
-    /// For example, consider three points A, B, and C. To determine whether B or C is further from A,
-    /// compare the distance between A and B to the distance between A and C. Calculating the two distances
-    /// involves two square roots, which are computationally expensive. However, using distance squared
+    /// <remarks>Distance squared is the value before taking the square root. 
+    /// Distance squared can often be used in place of distance if relative comparisons are being made. 
+    /// For example, consider three points A, B, and C. To determine whether B or C is further from A, 
+    /// compare the distance between A and B to the distance between A and C. Calculating the two distances 
+    /// involves two square roots, which are computationally expensive. However, using distance squared 
     /// provides the same information and avoids calculating two square roots.
     /// </remarks>
     public static double DistanceSquared(Double4 value1, Double4 value2)
@@ -662,7 +662,7 @@ public struct Double4 : IEquatable<Double4>, IFormattable
     /// <remarks>
     /// This method performs the linear interpolation based on the following formula.
     /// <c>start + (end - start) * amount</c>
-    /// Passing <paramref name="amount"/> a value of 0 will cause <paramref name="start"/> to be returned; a value of 1 will cause <paramref name="end"/> to be returned.
+    /// Passing <paramref name="amount"/> a value of 0 will cause <paramref name="start"/> to be returned; a value of 1 will cause <paramref name="end"/> to be returned. 
     /// </remarks>
     public static void Lerp(ref readonly Double4 start, ref readonly Double4 end, double amount, out Double4 result)
     {
@@ -682,7 +682,7 @@ public struct Double4 : IEquatable<Double4>, IFormattable
     /// <remarks>
     /// This method performs the linear interpolation based on the following formula.
     /// <c>start + (end - start) * amount</c>
-    /// Passing <paramref name="amount"/> a value of 0 will cause <paramref name="start"/> to be returned; a value of 1 will cause <paramref name="end"/> to be returned.
+    /// Passing <paramref name="amount"/> a value of 0 will cause <paramref name="start"/> to be returned; a value of 1 will cause <paramref name="end"/> to be returned. 
     /// </remarks>
     public static Double4 Lerp(Double4 start, Double4 end, double amount)
     {
@@ -962,9 +962,9 @@ public struct Double4 : IEquatable<Double4>, IFormattable
         double zz = rotation.Z * z;
 
         result = new Double4(
-            (vector.X * (1.0 - yy - zz)) + (vector.Y * (xy - wz)) + (vector.Z * (xz + wy)),
-            (vector.X * (xy + wz)) + (vector.Y * (1.0 - xx - zz)) + (vector.Z * (yz - wx)),
-            (vector.X * (xz - wy)) + (vector.Y * (yz + wx)) + (vector.Z * (1.0 - xx - yy)),
+        (vector.X * (1.0 - yy - zz)) + (vector.Y * (xy - wz)) + (vector.Z * (xz + wy)),
+        (vector.X * (xy + wz)) + (vector.Y * (1.0 - xx - zz)) + (vector.Z * (yz - wx)),
+        (vector.X * (xz - wy)) + (vector.Y * (yz + wx)) + (vector.Z * (1.0 - xx - yy)),
             vector.W);
     }
 
@@ -1022,9 +1022,9 @@ public struct Double4 : IEquatable<Double4>, IFormattable
         for (int i = 0; i < source.Length; ++i)
         {
             destination[i] = new Double4(
-                (source[i].X * num1) + (source[i].Y * num2) + (source[i].Z * num3),
-                (source[i].X * num4) + (source[i].Y * num5) + (source[i].Z * num6),
-                (source[i].X * num7) + (source[i].Y * num8) + (source[i].Z * num9),
+            (source[i].X * num1) + (source[i].Y * num2) + (source[i].Z * num3),
+            (source[i].X * num4) + (source[i].Y * num5) + (source[i].Z * num6),
+            (source[i].X * num7) + (source[i].Y * num8) + (source[i].Z * num9),
                 source[i].W);
         }
     }
@@ -1338,7 +1338,7 @@ public struct Double4 : IEquatable<Double4>, IFormattable
     /// Returns a hash code for this instance.
     /// </summary>
     /// <returns>
-    /// A hash code for this instance, suitable for use in hashing algorithms and data structures like a hash table.
+    /// A hash code for this instance, suitable for use in hashing algorithms and data structures like a hash table. 
     /// </returns>
     public override readonly int GetHashCode()
     {
@@ -1355,8 +1355,8 @@ public struct Double4 : IEquatable<Double4>, IFormattable
     public readonly bool Equals(Double4 other)
     {
         return (double)Math.Abs(other.X - X) < MathUtil.ZeroTolerance &&
-            (double)Math.Abs(other.Y - Y) < MathUtil.ZeroTolerance &&
-            (double)Math.Abs(other.Z - Z) < MathUtil.ZeroTolerance &&
+                (double)Math.Abs(other.Y - Y) < MathUtil.ZeroTolerance &&
+                (double)Math.Abs(other.Z - Z) < MathUtil.ZeroTolerance &&
             (double)Math.Abs(other.W - W) < MathUtil.ZeroTolerance;
     }
 
@@ -1388,46 +1388,46 @@ public struct Double4 : IEquatable<Double4>, IFormattable
     }
 
 #if WPFInterop
-    /// <summary>
-    /// Performs an implicit conversion from <see cref="Stride.Core.Mathematics.Double4"/> to <see cref="System.Windows.Media.Media3D.Point4D"/>.
-    /// </summary>
-    /// <param name="value">The value.</param>
-    /// <returns>The result of the conversion.</returns>
-    public static implicit operator System.Windows.Media.Media3D.Point4D(Double4 value)
-    {
-        return new System.Windows.Media.Media3D.Point4D(value.X, value.Y, value.Z, value.W);
-    }
+        /// <summary>
+        /// Performs an implicit conversion from <see cref="Stride.Core.Mathematics.Double4"/> to <see cref="System.Windows.Media.Media3D.Point4D"/>.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <returns>The result of the conversion.</returns>
+        public static implicit operator System.Windows.Media.Media3D.Point4D(Double4 value)
+        {
+            return new System.Windows.Media.Media3D.Point4D(value.X, value.Y, value.Z, value.W);
+        }
 
-    /// <summary>
-    /// Performs an explicit conversion from <see cref="System.Windows.Media.Media3D.Point4D"/> to <see cref="Stride.Core.Mathematics.Double4"/>.
-    /// </summary>
-    /// <param name="value">The value.</param>
-    /// <returns>The result of the conversion.</returns>
-    public static explicit operator Double4(System.Windows.Media.Media3D.Point4D value)
-    {
-        return new Double4((double)value.X, (double)value.Y, (double)value.Z, (double)value.W);
-    }
+        /// <summary>
+        /// Performs an explicit conversion from <see cref="System.Windows.Media.Media3D.Point4D"/> to <see cref="Stride.Core.Mathematics.Double4"/>.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <returns>The result of the conversion.</returns>
+        public static explicit operator Double4(System.Windows.Media.Media3D.Point4D value)
+        {
+            return new Double4((double)value.X, (double)value.Y, (double)value.Z, (double)value.W);
+        }
 #endif
 
 #if XnaInterop
-    /// <summary>
-    /// Performs an implicit conversion from <see cref="Stride.Core.Mathematics.Double4"/> to <see cref="Microsoft.Xna.Framework.Vector4"/>.
-    /// </summary>
-    /// <param name="value">The value.</param>
-    /// <returns>The result of the conversion.</returns>
-    public static implicit operator Microsoft.Xna.Framework.Vector4(Double4 value)
-    {
-        return new Microsoft.Xna.Framework.Vector4(value.X, value.Y, value.Z, value.W);
-    }
+        /// <summary>
+        /// Performs an implicit conversion from <see cref="Stride.Core.Mathematics.Double4"/> to <see cref="Microsoft.Xna.Framework.Vector4"/>.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <returns>The result of the conversion.</returns>
+        public static implicit operator Microsoft.Xna.Framework.Vector4(Double4 value)
+        {
+            return new Microsoft.Xna.Framework.Vector4(value.X, value.Y, value.Z, value.W);
+        }
 
-    /// <summary>
-    /// Performs an implicit conversion from <see cref="Microsoft.Xna.Framework.Vector4"/> to <see cref="Stride.Core.Mathematics.Double4"/>.
-    /// </summary>
-    /// <param name="value">The value.</param>
-    /// <returns>The result of the conversion.</returns>
-    public static implicit operator Double4(Microsoft.Xna.Framework.Vector4 value)
-    {
-        return new Double4(value.X, value.Y, value.Z, value.W);
-    }
+        /// <summary>
+        /// Performs an implicit conversion from <see cref="Microsoft.Xna.Framework.Vector4"/> to <see cref="Stride.Core.Mathematics.Double4"/>.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <returns>The result of the conversion.</returns>
+        public static implicit operator Double4(Microsoft.Xna.Framework.Vector4 value)
+        {
+            return new Double4(value.X, value.Y, value.Z, value.W);
+        }
 #endif
 }
