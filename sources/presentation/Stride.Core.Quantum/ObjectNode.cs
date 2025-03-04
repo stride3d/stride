@@ -78,7 +78,7 @@ public class ObjectNode : GraphNodeBase, IInitializingObjectNode, IGraphNodeInte
     }
 
     /// <inheritdoc/>
-    public void Update(object newValue, NodeIndex index)
+    public void Update(object? newValue, NodeIndex index)
     {
         Update(newValue, index, true);
     }
@@ -204,7 +204,7 @@ public class ObjectNode : GraphNodeBase, IInitializingObjectNode, IGraphNodeInte
         FinalizeChange?.Invoke(this, args);
     }
 
-    private void Update(object newValue, NodeIndex index, bool sendNotification)
+    private void Update(object? newValue, NodeIndex index, bool sendNotification)
     {
         if (!index.TryGetValue(out var indexValue))
             throw new ArgumentException("index cannot be empty.", nameof(index));

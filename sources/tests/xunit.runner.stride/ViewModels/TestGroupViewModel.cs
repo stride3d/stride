@@ -1,8 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using System.Collections.Generic;
-using System.Linq;
 using Xunit.Abstractions;
 
 namespace xunit.runner.stride.ViewModels;
@@ -27,12 +25,12 @@ public class TestGroupViewModel : TestNodeViewModel
         tests.RunTests(this);
     }
 
-    public override TestCaseViewModel LocateTestCase(ITestCase testCase)
+    public override TestCaseViewModel? LocateTestCase(ITestCase testCase)
     {
         foreach (var child in Children)
         {
             var result = child.LocateTestCase(testCase);
-            if (result != null)
+            if (result is not null)
                 return result;
         }
         return null;

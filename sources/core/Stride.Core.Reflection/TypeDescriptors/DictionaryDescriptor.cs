@@ -134,7 +134,7 @@ public class DictionaryDescriptor : ObjectDescriptor
     /// <param name="key">The key.</param>
     /// <param name="value">The value.</param>
     /// <exception cref="InvalidOperationException">No Add() method found on dictionary [{0}].DoFormat(Type)</exception>
-    public void AddToDictionary(object dictionary, object key, object value)
+    public void AddToDictionary(object dictionary, object key, object? value)
     {
         ArgumentNullException.ThrowIfNull(dictionary);
         addMethod.Invoke(dictionary, key, value);

@@ -1,8 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using System;
-using System.Threading;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core.Plugins;
@@ -13,9 +11,9 @@ using xunit.runner.stride.Views;
 namespace xunit.runner.stride;
 
 public partial class App : Application
-{    
+{
     internal readonly CancellationTokenSource cts = new();
-    internal Action<bool> setInteractiveMode;
+    internal Action<bool>? setInteractiveMode;
 
     public override void Initialize()
     {
