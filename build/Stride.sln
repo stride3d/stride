@@ -236,7 +236,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Yaml.Tests", ".
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Reflection", "..\sources\core\Stride.Core.Reflection\Stride.Core.Reflection.csproj", "{0BE7189B-F04E-4C0C-BBE9-F347C0A59FEE}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Physics.Tests.Windows", "..\sources\engine\Stride.Physics.Tests\Stride.Physics.Tests.Windows.csproj", "{4F0E7E04-F067-4CE8-B8C8-1105F319D123}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Physics.Tests", "..\sources\engine\Stride.Physics.Tests\Stride.Physics.Tests.csproj", "{4F0E7E04-F067-4CE8-B8C8-1105F319D123}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Assets.Quantum", "..\sources\assets\Stride.Core.Assets.Quantum\Stride.Core.Assets.Quantum.csproj", "{1123EAAD-3FE3-4FD8-8DF6-4DDCF13EFCFB}"
 EndProject
