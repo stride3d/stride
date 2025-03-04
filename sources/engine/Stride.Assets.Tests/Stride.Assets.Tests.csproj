@@ -1,10 +1,10 @@
 <Project>
   <Import Project="..\..\targets\Stride.UnitTests.props" />
   <PropertyGroup>
-    <TargetFramework>$(StrideEditorTargetFramework)</TargetFramework>
+    <TargetFramework>$(StrideXplatEditorTargetFramework)</TargetFramework>
+    <RuntimeIdentifiers>linux-x64;win-x64</RuntimeIdentifiers>
     <ImplicitUsings>enable</ImplicitUsings>
     <LangVersion>latest</LangVersion>
-    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <EnableDefaultItems>false</EnableDefaultItems>
   </PropertyGroup>
   <ItemGroup>
