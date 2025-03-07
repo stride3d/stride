@@ -6,60 +6,59 @@ using Stride.Physics;
 using Stride.Rendering;
 using Stride.Rendering.Compositing;
 
-namespace ##Namespace##
+namespace ##Namespace##;
+
+public class ##Scriptname## : AsyncScript
 {
-    public class ##Scriptname## : AsyncScript
+    public RenderGroup RenderGroup = RenderGroup.Group7;
+
+    public override async Task Execute()
     {
-        public RenderGroup RenderGroup = RenderGroup.Group7;
+    // Setup rendering in the debug entry point if we have it
+    var compositor = SceneSystem.GraphicsCompositor;
+    var debugRenderer =
+        ((compositor.Game as SceneCameraRenderer)?.Child as SceneRendererCollection)?.Children.Where(
+            x => x is DebugRenderer).Cast<DebugRenderer>().FirstOrDefault();
+    if (debugRenderer == null)
+        return;
 
-        public override async Task Execute()
+    var shapesRenderState = new RenderStage("PhysicsDebugShapes", "Main");
+        compositor.RenderStages.Add(shapesRenderState);
+        var meshRenderFeature = compositor.RenderFeatures.OfType<MeshRenderFeature>().First();
+        meshRenderFeature.RenderStageSelectors.Add(new SimpleGroupToRenderStageSelector
         {
-        // Setup rendering in the debug entry point if we have it
-        var compositor = SceneSystem.GraphicsCompositor;
-        var debugRenderer =
-            ((compositor.Game as SceneCameraRenderer)?.Child as SceneRendererCollection)?.Children.Where(
-                x => x is DebugRenderer).Cast<DebugRenderer>().FirstOrDefault();
-        if (debugRenderer == null)
-            return;
+            EffectName = "StrideForwardShadingEffect",
+            RenderGroup = (RenderGroupMask)(1 << (int)RenderGroup),
+            RenderStage = shapesRenderState,
+        });
+        meshRenderFeature.PipelineProcessors.Add(new WireframePipelineProcessor { RenderStage = shapesRenderState });
+        debugRenderer.DebugRenderStages.Add(shapesRenderState);
 
-        var shapesRenderState = new RenderStage("PhysicsDebugShapes", "Main");
-            compositor.RenderStages.Add(shapesRenderState);
-            var meshRenderFeature = compositor.RenderFeatures.OfType<MeshRenderFeature>().First();
-            meshRenderFeature.RenderStageSelectors.Add(new SimpleGroupToRenderStageSelector
+        var simulation = this.GetSimulation();
+        if (simulation != null)
+            simulation.ColliderShapesRenderGroup = RenderGroup;
+
+        var enabled = false;
+        while (Game.IsRunning)
+        {
+            if (Input.IsKeyDown(Keys.LeftShift) && Input.IsKeyDown(Keys.LeftCtrl) && Input.IsKeyReleased(Keys.P))
             {
-                EffectName = "StrideForwardShadingEffect",
-                RenderGroup = (RenderGroupMask)(1 << (int)RenderGroup),
-                RenderStage = shapesRenderState,
-            });
-            meshRenderFeature.PipelineProcessors.Add(new WireframePipelineProcessor { RenderStage = shapesRenderState });
-            debugRenderer.DebugRenderStages.Add(shapesRenderState);
-
-            var simulation = this.GetSimulation();
-            if (simulation != null)
-                simulation.ColliderShapesRenderGroup = RenderGroup;
-
-            var enabled = false;
-            while (Game.IsRunning)
-            {
-                if (Input.IsKeyDown(Keys.LeftShift) && Input.IsKeyDown(Keys.LeftCtrl) && Input.IsKeyReleased(Keys.P))
+                if (simulation != null)
                 {
-                    if (simulation != null)
+                    if (enabled)
                     {
-                        if (enabled)
-                        {
-                            simulation.ColliderShapesRendering = false;
-                            enabled = false;
-                        }
-                        else
-                        {
-                            simulation.ColliderShapesRendering = true;
-                            enabled = true;
-                        }
+                        simulation.ColliderShapesRendering = false;
+                        enabled = false;
+                    }
+                    else
+                    {
+                        simulation.ColliderShapesRendering = true;
+                        enabled = true;
                     }
                 }
-
-                await Script.NextFrame();
             }
+
+            await Script.NextFrame();
         }
     }
 }

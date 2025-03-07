@@ -3,39 +3,37 @@ using Stride.Core;
 using Stride.Engine;
 using Stride.Engine.Events;
 
-namespace ##Namespace##
+namespace ##Namespace##;
+
+/// <summary>
+/// Script which listens to an event, and then catches it and performs some game logic based on the it.
+/// </summary>
+public class ##Scriptname## : AsyncScript
 {
+    // Hint. You also need the EventBroadcaster script. Change the namespace accordingly.
+    private readonly EventReceiver<string> listener = new EventReceiver<string>(EventBroadcaster.EventKey);
+
     /// <summary>
-    /// Script which listens to an event, and then catches it and performs some game logic based on the it.
+    /// This name should match the event name which you expect to receive from a EventBroadcaster script.
     /// </summary>
-    public class ##Scriptname## : AsyncScript
+    [DataMember(10)]
+    [Display("Event Name")]
+    public string EventName = "";
+
+    public override async Task Execute()
     {
-        // Hint. You also need the EventBroadcaster script. Change the namespace accordingly.
-        private readonly EventReceiver<string> listener = new EventReceiver<string>(EventBroadcaster.EventKey);
-
-        /// <summary>
-        /// This name should match the event name which you expect to receive from a EventBroadcaster script.
-        /// </summary>
-        [DataMember(10)]
-        [Display("Event Name")]
-        public string EventName = "";
-
-        public override async Task Execute()
+        while (Game.IsRunning)
         {
-            while (Game.IsRunning)
-            {
-                var trigger = await listener.ReceiveAsync();
-                if (trigger != EventName)
-                    continue;
+            var trigger = await listener.ReceiveAsync();
+            if (trigger != EventName)
+                continue;
 
-                EventReceived();
-            }
+            EventReceived();
         }
+    }
 
-        private void EventReceived()
-        {
-            // TODO Add your game logic here
-
-        }
+    private void EventReceived()
+    {
+        // TODO Add your game logic here
     }
 }
