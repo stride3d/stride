@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using Stride.Core.Collections;
+using Stride.Core.Extensions;
 using Stride.Core.Mathematics;
 
 namespace Stride.Input
@@ -13,6 +14,9 @@ namespace Stride.Input
     /// </summary>
     public abstract class PointerDeviceBase : IPointerDevice
     {
+        private readonly Dictionary<(long touchId, long fingerId), int> touchFingerIndexMap = new Dictionary<(long touchId, long fingerId), int>();
+        private int touchCounter;
+
         protected PointerDeviceState PointerState;
 
         protected PointerDeviceBase()
@@ -51,6 +55,37 @@ namespace Stride.Input
         protected Vector2 Normalize(Vector2 position)
         {
             return position * PointerState.InverseSurfaceSize;
+        }
+
+        protected int GetFingerId(long touchId, long fingerId, PointerEventType type)
+        {
+            // Assign finger index (starting at 0) to touch ID
+            int touchFingerIndex = 0;
+            var key = (touchId, fingerId);
+            if (type == PointerEventType.Pressed)
+            {
+                touchFingerIndex = touchCounter++;
+                touchFingerIndexMap[key] = touchFingerIndex;
+            }
+            else
+            {
+                touchFingerIndexMap.TryGetValue(key, out touchFingerIndex);
+            }
+
+            // Remove index
+            if (type == PointerEventType.Released && touchFingerIndexMap.Remove(key))
+            {
+                touchCounter = 0; // Reset touch counter
+
+                // Recalculate next finger index
+                if (touchFingerIndexMap.Count > 0)
+                {
+                    touchFingerIndexMap.ForEach(pair => touchCounter = Math.Max(touchCounter, pair.Value));
+                    touchCounter++; // next
+                }
+            }
+
+            return touchFingerIndex;
         }
     }
 }
