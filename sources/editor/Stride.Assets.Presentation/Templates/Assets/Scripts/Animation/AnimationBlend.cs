@@ -68,7 +68,7 @@ public class ##Scriptname## : SyncScript, IBlendTreeBuilder
 
         currentTicks = blendedMaxDuration == 0 ? TimeSpan.Zero : TimeSpan.FromTicks((currentTicks.Ticks + (long)(time.Elapsed.Ticks * TimeFactor)) % blendedMaxDuration);
 
-        currentTime = ((double) currentTicks.Ticks/(double) blendedMaxDuration);
+        currentTime = (currentTicks.Ticks/(double) blendedMaxDuration);
     }
 
     public void BuildBlendTree(FastList<AnimationOperation> blendStack)

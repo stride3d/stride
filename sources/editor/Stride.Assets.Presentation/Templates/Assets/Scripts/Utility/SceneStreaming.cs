@@ -97,7 +97,7 @@ public class ##Scriptname## : SyncScript
             {
                 if (shouldLoad)
                 {
-                    // If we should load syncrhonously, just create a completed task and load
+                    // If we should load synchronously, just create a completed task and load
                     Instance = Content.Load(Url);
                     loadingTask = Task.FromResult(Instance);
                 }

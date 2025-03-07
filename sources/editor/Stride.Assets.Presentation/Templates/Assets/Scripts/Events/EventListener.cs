@@ -11,7 +11,7 @@ namespace ##Namespace##;
 public class ##Scriptname## : AsyncScript
 {
     // Hint. You also need the EventBroadcaster script. Change the namespace accordingly.
-    private readonly EventReceiver<string> listener = new EventReceiver<string>(EventBroadcaster.EventKey);
+    private readonly EventReceiver<string> listener = new (EventBroadcaster.EventKey);
 
     /// <summary>
     /// This name should match the event name which you expect to receive from a EventBroadcaster script.

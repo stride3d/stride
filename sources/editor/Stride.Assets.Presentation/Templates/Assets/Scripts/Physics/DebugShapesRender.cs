@@ -14,15 +14,15 @@ public class ##Scriptname## : AsyncScript
 
     public override async Task Execute()
     {
-    // Setup rendering in the debug entry point if we have it
-    var compositor = SceneSystem.GraphicsCompositor;
-    var debugRenderer =
-        ((compositor.Game as SceneCameraRenderer)?.Child as SceneRendererCollection)?.Children.Where(
-            x => x is DebugRenderer).Cast<DebugRenderer>().FirstOrDefault();
-    if (debugRenderer == null)
-        return;
+        // Setup rendering in the debug entry point if we have it
+        var compositor = SceneSystem.GraphicsCompositor;
+        var debugRenderer =
+            ((compositor.Game as SceneCameraRenderer)?.Child as SceneRendererCollection)?.Children.Where(
+                x => x is DebugRenderer).Cast<DebugRenderer>().FirstOrDefault();
+        if (debugRenderer == null)
+            return;
 
-    var shapesRenderState = new RenderStage("PhysicsDebugShapes", "Main");
+        var shapesRenderState = new RenderStage("PhysicsDebugShapes", "Main");
         compositor.RenderStages.Add(shapesRenderState);
         var meshRenderFeature = compositor.RenderFeatures.OfType<MeshRenderFeature>().First();
         meshRenderFeature.RenderStageSelectors.Add(new SimpleGroupToRenderStageSelector
@@ -45,15 +45,10 @@ public class ##Scriptname## : AsyncScript
             {
                 if (simulation != null)
                 {
-                    if (enabled)
+                    if (simulation != null)
                     {
-                        simulation.ColliderShapesRendering = false;
-                        enabled = false;
-                    }
-                    else
-                    {
-                        simulation.ColliderShapesRendering = true;
-                        enabled = true;
+                        simulation.ColliderShapesRendering = !enabled;
+                        enabled = !enabled;
                     }
                 }
             }
