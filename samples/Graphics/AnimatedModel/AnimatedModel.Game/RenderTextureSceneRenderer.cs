@@ -4,43 +4,42 @@ using Stride.Graphics;
 using Stride.Rendering;
 using Stride.Rendering.Compositing;
 
-namespace AnimatedModel
+namespace AnimatedModel;
+
+public class RenderTextureSceneRenderer : SceneRendererBase
 {
-    public class RenderTextureSceneRenderer : SceneRendererBase
+    public Texture RenderTexture { get; set; }
+
+    public ISceneRenderer Child { get; set; }
+
+    protected override void CollectCore(RenderContext context)
     {
-        public Texture RenderTexture { get; set; }
+        base.CollectCore(context);
 
-        public ISceneRenderer Child { get; set; }
+        if (RenderTexture == null)
+            return;
 
-        protected override void CollectCore(RenderContext context)
+        using (context.SaveRenderOutputAndRestore())
+        using (context.SaveViewportAndRestore())
         {
-            base.CollectCore(context);
+            context.RenderOutput.RenderTargetFormat0 = RenderTexture.ViewFormat;
+            context.ViewportState.Viewport0 = new Viewport(0, 0, RenderTexture.ViewWidth, RenderTexture.ViewHeight);
 
-            if (RenderTexture == null)
-                return;
-
-            using (context.SaveRenderOutputAndRestore())
-            using (context.SaveViewportAndRestore())
-            {
-                context.RenderOutput.RenderTargetFormat0 = RenderTexture.ViewFormat;
-                context.ViewportState.Viewport0 = new Viewport(0, 0, RenderTexture.ViewWidth, RenderTexture.ViewHeight);
-
-                Child?.Collect(context);
-            }
+            Child?.Collect(context);
         }
+    }
 
-        protected override void DrawCore(RenderContext context, RenderDrawContext drawContext)
+    protected override void DrawCore(RenderContext context, RenderDrawContext drawContext)
+    {
+        if (RenderTexture == null)
+            return;
+
+        using (drawContext.PushRenderTargetsAndRestore())
         {
-            if (RenderTexture == null)
-                return;
+            var depthBuffer = PushScopedResource(context.Allocator.GetTemporaryTexture2D(RenderTexture.ViewWidth, RenderTexture.ViewHeight, drawContext.CommandList.DepthStencilBuffer.ViewFormat, TextureFlags.DepthStencil));
+            drawContext.CommandList.SetRenderTargetAndViewport(depthBuffer, RenderTexture);
 
-            using (drawContext.PushRenderTargetsAndRestore())
-            {
-                var depthBuffer = PushScopedResource(context.Allocator.GetTemporaryTexture2D(RenderTexture.ViewWidth, RenderTexture.ViewHeight, drawContext.CommandList.DepthStencilBuffer.ViewFormat, TextureFlags.DepthStencil));
-                drawContext.CommandList.SetRenderTargetAndViewport(depthBuffer, RenderTexture);
-
-                Child?.Draw(drawContext);
-            }
+            Child?.Draw(drawContext);
         }
     }
 }

@@ -7,59 +7,58 @@ using System.Threading.Tasks;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 
-namespace CSharpIntermediate.Code
+namespace CSharpIntermediate.Code;
+
+public class AsyncWebApi : AsyncScript
 {
-    public class AsyncWebApi : AsyncScript
+    private List<OpenCollectiveEvent> openCollectiveEvents;
+
+    public override async Task Execute()
     {
-        private List<OpenCollectiveEvent> openCollectiveEvents;
+        openCollectiveEvents = new List<OpenCollectiveEvent>();
 
-        public override async Task Execute()
+        while (Game.IsRunning)
         {
-            openCollectiveEvents = new List<OpenCollectiveEvent>();
+            int drawX = 500, drawY = 600;
+            DebugText.Print($"Press A to get Api data from https://opencollective.com/stride3d", new Int2(drawX, drawY));
 
-            while (Game.IsRunning)
+            if (Input.IsKeyPressed(Stride.Input.Keys.G))
             {
-                int drawX = 500, drawY = 600;
-                DebugText.Print($"Press A to get Api data from https://opencollective.com/stride3d", new Int2(drawX, drawY));
-
-                if (Input.IsKeyPressed(Stride.Input.Keys.G))
-                {
-                    await RetrieveStrideRepos();
-                    await Script.NextFrame();
-                }
-
-                foreach (var openCollectiveEvent in openCollectiveEvents)
-                {
-                    drawY += 20;
-                    DebugText.Print(openCollectiveEvent.Name, new Int2(drawX, drawY));
-                }
-
-                // We have to await the next frame. If we don't do this, our game will be stuck in an infinite loop
+                await RetrieveStrideRepos();
                 await Script.NextFrame();
             }
-        }
 
-        private async Task RetrieveStrideRepos()
-        {
-            // We can use an HttpClient to make requests to web api's
-            var client = new HttpClient();
-            HttpResponseMessage response = await client.GetAsync("https://opencollective.com/stride3d/events.json?limit=4");
-
-            if (response.StatusCode == System.Net.HttpStatusCode.OK)
+            foreach (var openCollectiveEvent in openCollectiveEvents)
             {
-                // We store the contents of the response in a string
-                string responseContent = await response.Content.ReadAsStringAsync();
-
-                // We deserialze the string into an object
-                openCollectiveEvents = JsonSerializer.Deserialize<List<OpenCollectiveEvent>>(responseContent);
+                drawY += 20;
+                DebugText.Print(openCollectiveEvent.Name, new Int2(drawX, drawY));
             }
-        }
 
-        public class OpenCollectiveEvent
+            // We have to await the next frame. If we don't do this, our game will be stuck in an infinite loop
+            await Script.NextFrame();
+        }
+    }
+
+    private async Task RetrieveStrideRepos()
+    {
+        // We can use an HttpClient to make requests to web api's
+        var client = new HttpClient();
+        HttpResponseMessage response = await client.GetAsync("https://opencollective.com/stride3d/events.json?limit=4");
+
+        if (response.StatusCode == System.Net.HttpStatusCode.OK)
         {
-            public string Name { get; set; }
+            // We store the contents of the response in a string
+            string responseContent = await response.Content.ReadAsStringAsync();
 
-            public string StartsAt { get; set; }
+            // We deserialze the string into an object
+            openCollectiveEvents = JsonSerializer.Deserialize<List<OpenCollectiveEvent>>(responseContent);
         }
+    }
+
+    public class OpenCollectiveEvent
+    {
+        public string Name { get; set; }
+
+        public string StartsAt { get; set; }
     }
 }

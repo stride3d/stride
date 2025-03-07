@@ -4,29 +4,27 @@
 using System.Threading.Tasks;
 using Stride.Engine;
 using Stride.Engine.Events;
-using Stride.Physics;
 using Stride.Rendering.Compositing;
 
-namespace JumpyJet
+namespace JumpyJet;
+
+public class BackgroundScript : AsyncScript
 {
-    public class BackgroundScript : AsyncScript
+    private EventReceiver gameOverListener = new EventReceiver(GameGlobals.GameOverEventKey);
+    private EventReceiver gameResetListener = new EventReceiver(GameGlobals.GameResetEventKey);
+
+    public override async Task Execute()
     {
-        private EventReceiver gameOverListener = new EventReceiver(GameGlobals.GameOverEventKey);
-        private EventReceiver gameResetListener = new EventReceiver(GameGlobals.GameResetEventKey);
+        // Find our JumpyJetRenderer to start/stop parallax background
+        var renderer = (JumpyJetRenderer)((SceneCameraRenderer)SceneSystem.GraphicsCompositor.Game).Child;
 
-        public override async Task Execute()
+        while (Game.IsRunning)
         {
-            // Find our JumpyJetRenderer to start/stop parallax background
-            var renderer = (JumpyJetRenderer)((SceneCameraRenderer)SceneSystem.GraphicsCompositor.Game).Child;
+            await gameOverListener.ReceiveAsync();
+            renderer.StopScrolling();
 
-            while (Game.IsRunning)
-            {
-                await gameOverListener.ReceiveAsync();
-                renderer.StopScrolling();
-
-                await gameResetListener.ReceiveAsync();
-                renderer.StartScrolling();
-            }
+            await gameResetListener.ReceiveAsync();
+            renderer.StartScrolling();
         }
     }
 }
