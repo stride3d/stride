@@ -120,22 +120,17 @@ public class PlayerInput : SyncScript
         {
             // Controller: Right trigger
             // Mouse: Left button, Tap events
-            var didShoot = Input.GetRightTriggerAny(0.2f) > 0.2f;   // This will allow for continuous shooting
-
-            if (Input.PointerEvents.Any(x => x.EventType == PointerEventType.Pressed))
-                didShoot = true;
-                
-            if (Input.HasMouse && Input.IsMouseButtonDown(MouseButton.Left))                  // This will allow for continuous shooting
-                didShoot = true;
+            var didShoot = Input.GetRightTriggerAny(0.2f) > 0.2f
+               || Input.PointerEvents.Any(x => x.EventType == PointerEventType.Pressed)
+               || Input.HasMouse && Input.IsMouseButtonDown(MouseButton.Left);   // This will allow for continuous shooting
 
             ShootEventKey.Broadcast(didShoot);
         }
 
         {
             // Reload weapon
-            var isReloading = Input.IsGamePadButtonDownAny(GamePadButton.X);
-            if (KeysReload.Any(key => Input.IsKeyDown(key)))
-                isReloading = true;
+            var isReloading = Input.IsGamePadButtonDownAny(GamePadButton.X)
+                || KeysReload.Any(key => Input.IsKeyDown(key));
 
             ReloadEventKey.Broadcast(isReloading);
         }

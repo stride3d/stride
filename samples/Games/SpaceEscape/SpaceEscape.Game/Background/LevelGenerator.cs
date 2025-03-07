@@ -1,5 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 using Stride.Core.Mathematics;
 using Stride.Engine;
 
@@ -114,8 +115,7 @@ public class LevelGenerator : ScriptComponent
             var posX = (1 - lane) * 5f;
 
             // Randomly get the obstacle, and set the position of this obstacle.
-            bool useSubBoundingBoxes;
-            var obsEnt = CloneRandomObstacle(out useSubBoundingBoxes);
+            var obsEnt = CloneRandomObstacle(out var useSubBoundingBoxes);
             obsEnt.Transform.Position = new Vector3(posX, 0, posZ);
 
             section.AddObstacleEntity(obsEnt, useSubBoundingBoxes);

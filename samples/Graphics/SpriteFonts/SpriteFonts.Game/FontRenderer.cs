@@ -37,18 +37,20 @@ public class FontRenderer : SceneRendererBase
 
     private const float DynamicFontContentSize = 50;
 
-    private const string RefenceText = @"
-In the first centuries of typesetting,
-quotations were distinguished merely by
-indicating the speaker, and this can still
-be seen in some editions of the Bible.
-During the Renaissance, quotations
-were distinguished by setting in a typeface
-contrasting with the main body text
-(often Italic type with roman,
-or the other way round).
-Block quotations were set this way
-at full size and full measure";
+    private const string RefenceText = 
+        """
+        In the first centuries of typesetting,
+        quotations were distinguished merely by
+        indicating the speaker, and this can still
+        be seen in some editions of the Bible.
+        During the Renaissance, quotations
+        were distinguished by setting in a typeface
+        contrasting with the main body text
+        (often Italic type with roman,
+        or the other way round).
+        Block quotations were set this way
+        at full size and full measure
+        """;
 
     private Vector2 centerVirtualPosition;
     private Vector2 screenSize;
@@ -80,7 +82,7 @@ at full size and full measure";
 
     private readonly Color strideColor = new(0xFF3008da);
 
-    private Vector2 virtualResolution = new(1920, 1080);
+    private readonly Vector2 virtualResolution = new(1920, 1080);
 
     private InputManager input;
 
@@ -194,10 +196,10 @@ at full size and full measure";
 
         var position = GetVirtualPosition(contentPosition);
 
-        var text = "Embeds only required characters into the database\n" +
-                   "Does not require any rendering time at execution\n" +
-                   "Cannot adjust their size to the virtual resolution\n" +
-                   "Cannot modify their size at run-time";
+        const string text = "Embeds only required characters into the database\n" +
+                            "Does not require any rendering time at execution\n" +
+                            "Cannot adjust their size to the virtual resolution\n" +
+                            "Cannot modify their size at run-time";
 
         position.X -= spriteBatch.MeasureString(StaticFont, text, screenSize).X / 2;
 
@@ -286,10 +288,10 @@ at full size and full measure";
     {
         DrawHeader("Support ", "pictogram-based", " fonts");
 
-        var sizeIncreament = 15;
-        var scale = 0.8f;
+        const int sizeIncreament = 15;
+        const float scale = 0.8f;
         var position = GetVirtualPosition(contentPosition);
-        var text = "Japanese dynamic sprite font\nあいうえおかきくけこ   天竜の\nアイウエオカキクケコ   幅八町の\n一二三四五六七八九十   梅雨濁り";
+        const string text = "Japanese dynamic sprite font\nあいうえおかきくけこ   天竜の\nアイウエオカキクケコ   幅八町の\n一二三四五六七八九十   梅雨濁り";
 
         position.X -= spriteBatch.MeasureString(JapaneseFont, text, scale * (DynamicFontContentSize + sizeIncreament), screenSize).X / 2;
         spriteBatch.DrawString(JapaneseFont, text, scale * (DynamicFontContentSize + sizeIncreament), position, Color.White * GetInterpolatedAlpha());
@@ -309,7 +311,7 @@ at full size and full measure";
         position.X = virtualResolution.X * 0.03f;
         var text = "LEFT-ALIGNED TEXT\n" + RefenceText;
 
-        var textSize = 28;
+        const int textSize = 28;
 
         spriteBatch.DrawString(TimesNewRoman, text, textSize, position, Color.White * GetInterpolatedAlpha());
 
@@ -333,7 +335,7 @@ at full size and full measure";
         DrawHeader("Easily ", "animate", " your texts!");
 
         // Draw content
-        var text = "Stride Engine";
+        const string text = "Stride Engine";
 
         spriteBatch.DrawString(DynamicFont, text, DynamicFontContentSize, animatedFontPosition, animatedFontAlpha * Color.White * GetInterpolatedAlpha(), animatedFontRotation,
             0.5f * spriteBatch.MeasureString(DynamicFont, text, DynamicFontContentSize, screenSize), animatedFontScale * Vector2.One, SpriteEffects.None, 0f, TextAlignment.Left);

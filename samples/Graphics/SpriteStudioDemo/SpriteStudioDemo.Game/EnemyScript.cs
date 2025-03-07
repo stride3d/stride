@@ -1,5 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 using System.Diagnostics;
 using Stride.Animations;
 using Stride.Core.Mathematics;
@@ -44,7 +45,7 @@ public class EnemyScript : AsyncScript
         Entity.Transform.UpdateWorldMatrix();
         rigidbodyElement.UpdatePhysicsTransformation();
 
-        if (playingAnimation == null || playingAnimation.Name != "Wait")
+        if (playingAnimation is not { Name: "Wait" })
         {
             playingAnimation = animationComponent.Play("Wait");
         }
@@ -63,7 +64,7 @@ public class EnemyScript : AsyncScript
         rigidbodyElement.IsKinematic = true;
         rigidbodyElement.IsTrigger = true;
 
-        if (playingAnimation == null || playingAnimation.Name != "Dead")
+        if (playingAnimation is not { Name: "Dead" })
         {
             playingAnimation = animationComponent.Play("Dead");
         }

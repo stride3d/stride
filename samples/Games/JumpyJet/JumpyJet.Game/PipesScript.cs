@@ -1,5 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 using System;
 using System.Collections.Generic;
 using Stride.Core.Mathematics;
@@ -17,9 +18,9 @@ public class PipesScript : SyncScript
     private const float GapBetweenPipe = 4f;
     private const float StartPipePosition = 4f;
 
-    private EventReceiver gameOverListener = new(GameGlobals.GameOverEventKey);
-    private EventReceiver gameResetListener = new(GameGlobals.GameResetEventKey);
-    private EventReceiver gameStartedListener = new(GameGlobals.GameStartedEventKey);
+    private readonly EventReceiver gameOverListener = new(GameGlobals.GameOverEventKey);
+    private readonly EventReceiver gameResetListener = new(GameGlobals.GameResetEventKey);
+    private readonly EventReceiver gameStartedListener = new(GameGlobals.GameStartedEventKey);
 
     private readonly List<Entity> pipeSets = [];
 
@@ -30,7 +31,7 @@ public class PipesScript : SyncScript
     private float sceneWidth;
 
     // The width of pipe prefab
-    private float pipeOvervaluedWidth = 1f;
+    private readonly float pipeOvervaluedWidth = 1f;
 
     public UrlReference<Prefab> PipePrefabUrl { get; set; }
 

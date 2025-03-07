@@ -75,7 +75,7 @@ public class CharacterScript : SyncScript
                     // Stop if we collide from side
                     foreach (var contact in collision.Contacts)
                     {
-                        if (contact.Normal.X < -0.5f || contact.Normal.X > 0.5f)
+                        if (contact.Normal.X is < -0.5f or > 0.5f)
                         {
                             movingToTarget = false;
                             break;

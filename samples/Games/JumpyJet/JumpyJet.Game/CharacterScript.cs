@@ -1,5 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -18,8 +19,8 @@ namespace JumpyJet;
 /// </summary>
 public class CharacterScript : AsyncScript
 {
-    private EventReceiver gameResetListener = new(GameGlobals.GameResetEventKey);
-    private EventReceiver gameStartedListener = new(GameGlobals.GameStartedEventKey);
+    private readonly EventReceiver gameResetListener = new(GameGlobals.GameResetEventKey);
+    private readonly EventReceiver gameStartedListener = new(GameGlobals.GameStartedEventKey);
 
     private static readonly Vector3 Gravity = new(0, -17, 0);
     private static readonly Vector3 StartPos = new(-1, 0, 0);
@@ -60,8 +61,7 @@ public class CharacterScript : AsyncScript
         velocity = StartVelocity;
         isRunning = false;
 
-        var provider = Entity.Get<SpriteComponent>().SpriteProvider as SpriteFromSheet;
-        if (provider != null)
+        if (Entity.Get<SpriteComponent>().SpriteProvider is SpriteFromSheet provider)
             provider.CurrentFrame = FallingSpriteFrameIndex;
     }
 
@@ -159,8 +159,7 @@ public class CharacterScript : AsyncScript
         var rotationSign = isFalling ? -1 : 1;
 
         // Set falling sprite frame
-        var provider = Entity.Get<SpriteComponent>().SpriteProvider as SpriteFromSheet;
-        if (provider != null)
+        if (Entity.Get<SpriteComponent>().SpriteProvider is SpriteFromSheet provider)
             provider.CurrentFrame = isFalling ? FallingSpriteFrameIndex : FlyingSpriteFrameIndex;
 
         // Rotate a sprite

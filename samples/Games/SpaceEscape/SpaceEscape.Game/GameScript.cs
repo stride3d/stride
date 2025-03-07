@@ -52,7 +52,6 @@ public class GameScript : SyncScript
         if (CharacterScript.IsDead)
             return;
 
-        float floorHeight;
         var agentBoundingBox = CharacterScript.CalculateCurrentBoundingBox();
 
         // Detect collision between agents and real-world obstacles.
@@ -60,7 +59,7 @@ public class GameScript : SyncScript
             KillAgent(0);
 
         // Detect if the CharacterScript falls into a hole
-        if (BackgroundScript.DetectHoles(ref CharacterScript.Entity.Transform.Position, out floorHeight))
+        if (BackgroundScript.DetectHoles(ref CharacterScript.Entity.Transform.Position, out var floorHeight))
             KillAgent(floorHeight);
     }
 

@@ -1,5 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Engine.Events;
@@ -9,8 +10,8 @@ namespace VRSandbox.Player;
 
 public enum HandSide
 {
-    Left    = 0,
-    Right   = 1,
+    Left = 0,
+    Right = 1,
 }
 
 public class HandsInput
@@ -18,12 +19,12 @@ public class HandsInput
     /// <summary>
     /// Movement of each hand since the last frame, in world space units (meters)
     /// </summary>
-    public Vector3[] HandMovement   = new Vector3[System.Enum.GetNames(typeof(HandSide)).Length];
+    public Vector3[] HandMovement = new Vector3[Enum.GetNames(typeof(HandSide)).Length];
 
     /// <summary>
     /// Grabbing power of each hand, 0 being none and 1 being maximum power
     /// </summary>
-    public float[]   HandGrab       = new float[System.Enum.GetNames(typeof(HandSide)).Length];
+    public float[] HandGrab = new float[Enum.GetNames(typeof(HandSide)).Length];
 }
 
 public class PlayerInput : SyncScript
@@ -56,11 +57,19 @@ public class PlayerInput : SyncScript
 
     public override void Update()
     {
-        var handsInput = new HandsInput();
-        handsInput.HandMovement[(int)HandSide.Left]     = AsWorldVector(Input.GetLeftThumb(ControllerIndex));
-        handsInput.HandMovement[(int)HandSide.Right]    = AsWorldVector(Input.GetRightThumb(ControllerIndex));
-        handsInput.HandGrab[(int)HandSide.Left]         = Input.GetLeftTrigger(ControllerIndex);
-        handsInput.HandGrab[(int)HandSide.Right]        = Input.GetRightTrigger(ControllerIndex);
+        var handsInput = new HandsInput
+        {
+            HandMovement =
+            {
+                [(int)HandSide.Left] = AsWorldVector(Input.GetLeftThumb(ControllerIndex)),
+                [(int)HandSide.Right] = AsWorldVector(Input.GetRightThumb(ControllerIndex))
+            },
+            HandGrab =
+            {
+                [(int)HandSide.Left] = Input.GetLeftTrigger(ControllerIndex),
+                [(int)HandSide.Right] = Input.GetRightTrigger(ControllerIndex)
+            }
+        };
 
         HandsControlEventKey.Broadcast(handsInput);
     }

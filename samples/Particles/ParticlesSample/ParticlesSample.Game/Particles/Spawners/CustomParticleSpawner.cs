@@ -19,12 +19,12 @@ public sealed class CustomParticleSpawner : ParticleSpawner
     /// Carry over the real part
     /// </summary>
     [DataMemberIgnore]
-    private float carryOver;    // Private members do not appear on the Property Grid
+    private float carryOver;            // Private members do not appear on the Property Grid
 
     [DataMemberIgnore]
-    private float spawnCount;    // Private members do not appear on the Property Grid
+    private float spawnCount = 100f;    // Private members do not appear on the Property Grid
 
-    [DataMember(100)]                    // When data is serialized, this attribute decides its priority
+    [DataMember(100)]                   // When data is serialized, this attribute decides its priority
     [Display("Number of particles")]    // This is the name which will be displayed on the Property Grid
     public float SpawnCount
     {
@@ -38,13 +38,13 @@ public sealed class CustomParticleSpawner : ParticleSpawner
     }
 
     [DataMemberIgnore]
-    private float burstTimer;    // Private members do not appear on the Property Grid
+    private float burstTimer;           // Private members do not appear on the Property Grid
 
     [DataMemberIgnore]
-    private float burstCount;    // Private members do not appear on the Property Grid
+    private float burstCount = 50f;     // Private members do not appear on the Property Grid
 
-    [DataMember(200)]                    // When data is serialized, this attribute decides its priority
-    [Display("Burst particles")]    // This is the name which will be displayed on the Property Grid
+    [DataMember(200)]                   // When data is serialized, this attribute decides its priority
+    [Display("Burst particles")]        // This is the name which will be displayed on the Property Grid
     public float BurstCount
     {
         get { return burstCount; }
@@ -54,14 +54,6 @@ public sealed class CustomParticleSpawner : ParticleSpawner
             MarkAsDirty();
             burstCount = value;
         }
-    }
-
-    public CustomParticleSpawner()
-    {
-        spawnCount = 100f;
-        burstCount = 50f;
-        carryOver = 0;
-        burstTimer = 0;
     }
 
     /// <inheritdoc/>

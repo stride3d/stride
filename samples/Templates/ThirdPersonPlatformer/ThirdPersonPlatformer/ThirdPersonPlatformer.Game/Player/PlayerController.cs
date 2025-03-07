@@ -104,8 +104,7 @@ public class PlayerController : SyncScript
         }
 
         // If the player didn't press a jump button we don't need to jump
-        bool didJump;
-        jumpEvent.TryReceive(out didJump);
+        jumpEvent.TryReceive(out var didJump);
         if (!didJump)
         {
             IsGroundedEventKey.Broadcast(true);
@@ -123,8 +122,7 @@ public class PlayerController : SyncScript
     private void Move(float speed)
     {
         // Character speed
-        Vector3 newMoveDirection;
-        moveDirectionEvent.TryReceive(out newMoveDirection);
+        moveDirectionEvent.TryReceive(out var newMoveDirection);
 
         // Allow very simple inertia to the character to make animation transitions more fluid
         moveDirection = moveDirection*0.85f + newMoveDirection *0.15f;

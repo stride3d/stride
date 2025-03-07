@@ -22,12 +22,7 @@ public class ParticleCustomMaterial : ParticleMaterialSimple
     private ShaderSource shaderBaseScalar;
 
     [DataMemberIgnore]
-    public override string EffectName
-    {
-        get { return effectName; }
-        protected set { effectName = value; }
-    }
-    private string effectName = "ParticleCustomEffect";
+    public override string EffectName { get; protected set; } = "ParticleCustomEffect";
 
     /// <summary>
     /// <see cref="IComputeColor"/> allows several channels to be blended together, including textures, vertex streams and fixed values.
@@ -37,12 +32,7 @@ public class ParticleCustomMaterial : ParticleMaterialSimple
     /// </userdoc>
     [DataMember(100)]
     [Display("Emissive")]
-    public IComputeColor ComputeColor
-    {
-        get { return computeColor; }
-        set { computeColor = value; }
-    }
-    private IComputeColor computeColor = new ComputeTextureColor();
+    public IComputeColor ComputeColor { get; set; } = new ComputeTextureColor();
 
     /// <summary>
     /// <see cref="UVBuilder"/> defines how the base coordinates of the particle shape should be modified for texture scrolling, animation, etc.
@@ -63,12 +53,7 @@ public class ParticleCustomMaterial : ParticleMaterialSimple
     /// </userdoc>
     [DataMember(300)]
     [Display("Alpha")]
-    public IComputeScalar ComputeScalar
-    {
-        get { return computeScalar; }
-        set { computeScalar = value; }
-    }
-    private IComputeScalar computeScalar = new ComputeTextureScalar();
+    public IComputeScalar ComputeScalar { get; set; } = new ComputeTextureScalar();
 
     /// <summary>
     /// <see cref="UVBuilder"/> defines how the base coordinates of the particle shape should be modified for texture scrolling, animation, etc.
@@ -137,7 +122,7 @@ public class ParticleCustomMaterial : ParticleMaterialSimple
     {
         base.UpdateVertexBuilder(vertexBuilder);
 
-        var code = shaderBaseColor != null ? shaderBaseColor.ToString() : null;
+        var code = shaderBaseColor?.ToString();
 
         if (code != null && code.Contains("COLOR0"))
         {

@@ -90,8 +90,8 @@ public class ThirdPersonCamera : SyncScript
                              Entity.GetParent().Transform.WorldMatrix;
 
             resultsOutput.Clear();
-            var cfg = CollisionFilterGroups.DefaultFilter;
-            var cfgf = CollisionFilterGroupFlags.DefaultFilter; // Intentionally ignoring the CollisionFilterGroupFlags.StaticFilter; to avoid collision with poles
+            const CollisionFilterGroups cfg = CollisionFilterGroups.DefaultFilter;
+            const CollisionFilterGroupFlags cfgf = CollisionFilterGroupFlags.DefaultFilter; // Intentionally ignoring the CollisionFilterGroupFlags.StaticFilter; to avoid collision with poles
 
             this.GetSimulation().ShapeSweepPenetrating(coneShape, fromMatrix, toMatrix, resultsOutput, cfg, cfgf);
 
@@ -121,8 +121,7 @@ public class ThirdPersonCamera : SyncScript
     private void UpdateCameraOrientation()
     {
         // Camera movement from player input
-        Vector2 cameraMovement;
-        cameraDirectionEvent.TryReceive(out cameraMovement);
+        cameraDirectionEvent.TryReceive(out var cameraMovement);
 
         if (InvertY) cameraMovement.Y *= -1;
         targetRotationXYZ.X += cameraMovement.Y * VerticalSpeed;

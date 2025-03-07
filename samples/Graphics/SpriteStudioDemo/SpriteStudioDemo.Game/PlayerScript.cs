@@ -1,5 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 using Stride.Animations;
 using Stride.Core;
 using Stride.Core.Mathematics;
@@ -57,10 +58,10 @@ public class PlayerScript : AsyncScript
     private AgentAnimation currentAgentAnimation;
 
     private AgentAnimation CurrentAgentAnimation { get; set; }
-		
-		public SpriteSheet BulletSheet { get; set; }
-		
-		public PhysicsColliderShape BulletColliderShape { get; set; }
+
+    public SpriteSheet BulletSheet { get; set; }
+
+    public PhysicsColliderShape BulletColliderShape { get; set; }
 
     public override async Task Execute()
     {
@@ -96,7 +97,7 @@ public class PlayerScript : AsyncScript
             if (inputState == InputState.None)
                 inputState = GetPointerInputState();
 
-            if (inputState == InputState.RunLeft || inputState == InputState.RunRight)
+            if (inputState is InputState.RunLeft or InputState.RunRight)
             {
                 // Update Agent's position
                 var dt = (float)Game.UpdateTime.Elapsed.TotalSeconds;
@@ -116,15 +117,15 @@ public class PlayerScript : AsyncScript
 
                 // Update the sprite animation and state
                 CurrentAgentAnimation = AgentAnimation.Run;
-                if (playingAnimation == null || playingAnimation.Name != "Run")
+                if (playingAnimation is not { Name: "Run" })
                 {
                     playingAnimation = animComponent.Play("Run");
                 }
             }
             else if (inputState == InputState.Shoot)
             {
-                if(animTask != null && !animTask.IsCompleted) continue;
-                if (animTask != null && animTask.IsCompleted) playingAnimation = null;
+                if (animTask is { IsCompleted: false }) continue;
+                if (animTask is { IsCompleted: true }) playingAnimation = null;
 
                 animTask = null;
 
@@ -151,7 +152,7 @@ public class PlayerScript : AsyncScript
 
                 // Start animation for shooting
                 CurrentAgentAnimation = AgentAnimation.Shoot;
-                if (playingAnimation == null || playingAnimation.Name != "Attack")
+                if (playingAnimation is not { Name: "Attack" })
                 {
                     playingAnimation = animComponent.Play("Attack");
                     animTask = animComponent.Ended(playingAnimation);
@@ -160,7 +161,7 @@ public class PlayerScript : AsyncScript
             else
             {
                 CurrentAgentAnimation = AgentAnimation.Idle;
-                if (playingAnimation == null || playingAnimation.Name != "Stance")
+                if (playingAnimation is not { Name: "Stance" })
                 {
                     playingAnimation = animComponent.Play("Stance");
                 }
@@ -203,10 +204,10 @@ public class PlayerScript : AsyncScript
 
         // If a user does not touch the screen, there is not input
         if (!isPointerDown)
-			{
+        {
             return InputState.None;
-			}
-			
+        }
+
         // Transform pointer's position from normorlize coordinate to virtual resolution coordinate
         var resolution = new Vector2(GraphicsDevice.Presenter.BackBuffer.Width, GraphicsDevice.Presenter.BackBuffer.Height);
         var virtualCoordinatePointerPositionA = resolution.X * (pointerState.Position.X + 0.05f);
@@ -216,10 +217,10 @@ public class PlayerScript : AsyncScript
 
         // Check if the touch position is in the x-axis region of the agent's sprite; if so, input is shoot
         if (virtualX <= virtualCoordinatePointerPositionA && virtualCoordinatePointerPositionB <= virtualX)
-			{
+        {
             return InputState.Shoot;
-			}
-			
+        }
+
         // Check if a pointer falls left or right of the screen, which would correspond to Run to the left or right respectively
         return ((pointerState.Position.X) <= virtualX / resolution.X) ? InputState.RunLeft : InputState.RunRight;
     }

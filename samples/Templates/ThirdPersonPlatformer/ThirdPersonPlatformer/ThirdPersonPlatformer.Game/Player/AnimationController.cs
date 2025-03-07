@@ -47,7 +47,7 @@ public class AnimationController : SyncScript, IBlendTreeBuilder
     private AnimationClipEvaluator animEvaluatorJumpStart;
     private AnimationClipEvaluator animEvaluatorJumpMid;
     private AnimationClipEvaluator animEvaluatorJumpEnd;
-    private double currentTime = 0;
+    private double currentTime;
 
     // Idle-Walk-Run lerp
     private AnimationClipEvaluator animEvaluatorWalkLerp1;
@@ -57,7 +57,7 @@ public class AnimationController : SyncScript, IBlendTreeBuilder
     private float walkLerpFactor = 0.5f;
 
     // Internal state
-    private bool isGrounded = false;
+    private bool isGrounded;
     private AnimationState state = AnimationState.Airborne;
     private readonly EventReceiver<float> runSpeedEvent = new(PlayerController.RunSpeedEventKey);
     private readonly EventReceiver<bool> isGroundedEvent = new(PlayerController.IsGroundedEventKey);
@@ -141,8 +141,7 @@ public class AnimationController : SyncScript, IBlendTreeBuilder
         // Use DrawTime rather than UpdateTime
         var time = Game.DrawTime;
         // This update function will account for animation with different durations, keeping a current time relative to the blended maximum duration
-        long blendedMaxDuration = 0;
-        blendedMaxDuration =
+        long blendedMaxDuration =
             (long)MathUtil.Lerp(animationClipWalkLerp1.Duration.Ticks, animationClipWalkLerp2.Duration.Ticks, walkLerpFactor);
 
         var currentTicks = TimeSpan.FromTicks((long)(currentTime * blendedMaxDuration));
@@ -152,19 +151,19 @@ public class AnimationController : SyncScript, IBlendTreeBuilder
             : TimeSpan.FromTicks((currentTicks.Ticks + (long)(time.Elapsed.Ticks * TimeFactor)) %
                                  blendedMaxDuration);
 
-        currentTime = ((double)currentTicks.Ticks / (double)blendedMaxDuration);
+        currentTime = (currentTicks.Ticks / (double)blendedMaxDuration);
     }
 
     private void UpdateJumping()
     {
-        var speedFactor = 1;
+        const int speedFactor = 1;
         var currentTicks = TimeSpan.FromTicks((long)(currentTime * AnimationJumpStart.Duration.Ticks));
         var updatedTicks = currentTicks.Ticks + (long)(Game.DrawTime.Elapsed.Ticks * TimeFactor * speedFactor);
 
         if (updatedTicks < AnimationJumpStart.Duration.Ticks)
         {
             currentTicks = TimeSpan.FromTicks(updatedTicks);
-            currentTime = ((double)currentTicks.Ticks / (double)AnimationJumpStart.Duration.Ticks);
+            currentTime = (currentTicks.Ticks / (double)AnimationJumpStart.Duration.Ticks);
         }
         else
         {
@@ -181,19 +180,19 @@ public class AnimationController : SyncScript, IBlendTreeBuilder
         var currentTicks = TimeSpan.FromTicks((long)(currentTime * AnimationJumpMid.Duration.Ticks));
         currentTicks = TimeSpan.FromTicks((currentTicks.Ticks + (long)(time.Elapsed.Ticks * TimeFactor)) %
                                  AnimationJumpMid.Duration.Ticks);
-        currentTime = ((double)currentTicks.Ticks / (double)AnimationJumpMid.Duration.Ticks);
+        currentTime = (currentTicks.Ticks / (double)AnimationJumpMid.Duration.Ticks);
     }
 
     private void UpdateLanding()
     {
-        var speedFactor = 1;
+        const int speedFactor = 1;
         var currentTicks = TimeSpan.FromTicks((long)(currentTime * AnimationJumpEnd.Duration.Ticks));
         var updatedTicks = currentTicks.Ticks + (long) (Game.DrawTime.Elapsed.Ticks * TimeFactor * speedFactor);
 
         if (updatedTicks < AnimationJumpEnd.Duration.Ticks)
         {
             currentTicks = TimeSpan.FromTicks(updatedTicks);
-            currentTime = ((double)currentTicks.Ticks / (double)AnimationJumpEnd.Duration.Ticks);
+            currentTime = (currentTicks.Ticks / (double)AnimationJumpEnd.Duration.Ticks);
         }
         else
         {
@@ -207,8 +206,7 @@ public class AnimationController : SyncScript, IBlendTreeBuilder
     {
         // State control
         runSpeedEvent.TryReceive(out runSpeed);
-        bool isGroundedNewValue;
-        isGroundedEvent.TryReceive(out isGroundedNewValue);
+        isGroundedEvent.TryReceive(out var isGroundedNewValue);
         if (isGrounded != isGroundedNewValue)
         {
             currentTime = 0;

@@ -24,7 +24,7 @@ public class TeleportController : SyncScript
 
     private VRDeviceSystem vrDeviceSystem;
 
-    private bool wasOn = false;
+    private bool wasOn;
 
     public override void Start()
     {
@@ -65,8 +65,7 @@ public class TeleportController : SyncScript
         if (Arc == null)
             return;
 
-        var arcInitializer = Arc.ParticleSystem?.Emitters[0].Initializers[2] as InitialPositionArc;
-        if (arcInitializer == null)
+        if (Arc.ParticleSystem?.Emitters[0].Initializers[2] is not InitialPositionArc arcInitializer)
             return;
 
         var distance = arcHeightBias + (Arc.Entity.Transform.WorldMatrix.TranslationVector - position).Length();

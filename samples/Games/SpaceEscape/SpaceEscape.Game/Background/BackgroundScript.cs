@@ -84,7 +84,7 @@ public class BackgroundScript : SyncScript
         }
 
         // Check if needed to add new levelblock
-        var lastBlock = levelBlocks[levelBlocks.Count - 1];
+        var lastBlock = levelBlocks[^1];
         if (lastBlock.PositionZ - lastBlock.Length * 0.5f < AddBlockPosition)
         {
             AddLevelBlock(levelGenerator.RandomCreateLevelBlock());

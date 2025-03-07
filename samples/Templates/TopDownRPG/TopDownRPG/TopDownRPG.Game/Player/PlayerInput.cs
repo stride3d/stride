@@ -38,8 +38,7 @@ public class PlayerInput : SyncScript
     {
         if (Input.HasMouse)
         {
-            ClickResult clickResult;
-            Utils.ScreenPositionToWorldPositionRaycast(Input.MousePosition, Camera, this.GetSimulation(), out clickResult);
+            Utils.ScreenPositionToWorldPositionRaycast(Input.MousePosition, Camera, this.GetSimulation(), out var clickResult);
 
             var isMoving = (Input.IsMouseButtonDown(MouseButton.Left) && lastClickResult.Type == ClickType.Ground && clickResult.Type == ClickType.Ground);
 
@@ -81,9 +80,8 @@ public class PlayerInput : SyncScript
         // Mouse-based camera rotation. Only enabled after you click the screen to lock your cursor, pressing escape cancels this
         foreach (var pointerEvent in Input.PointerEvents.Where(x => x.EventType == PointerEventType.Pressed))
         {
-            ClickResult clickResult;
             if (Utils.ScreenPositionToWorldPositionRaycast(pointerEvent.Position, Camera, this.GetSimulation(),
-                out clickResult))
+                    out var clickResult))
             {
                 lastClickResult = clickResult;
                 MoveDestinationEventKey.Broadcast(clickResult);

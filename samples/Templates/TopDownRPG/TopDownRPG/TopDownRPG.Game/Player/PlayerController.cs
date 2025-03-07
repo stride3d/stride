@@ -47,7 +47,7 @@ public class PlayerController : SyncScript
     // Allow some inertia to the movement
     private Vector3 moveDirection = Vector3.Zero;
 
-    private bool isRunning = false;
+    private bool isRunning;
 
     // Attacking
     [Display("Punch Collision")]
@@ -73,8 +73,8 @@ public class PlayerController : SyncScript
     private Entity modelChildEntity;
     private float yawOrientation;
 
-    private Entity attackEntity = null;
-    private float attackCooldown = 0f;
+    private Entity attackEntity;
+    private float attackCooldown;
 
     // Pathfinding Component
     private NavigationComponent navigation;
@@ -272,8 +272,7 @@ public class PlayerController : SyncScript
             return;
 
         // Character speed
-        ClickResult clickResult;
-        if (moveDestinationEvent.TryReceive(out clickResult) && clickResult.Type != ClickType.Empty)
+        if (moveDestinationEvent.TryReceive(out var clickResult) && clickResult.Type != ClickType.Empty)
         {
             if (clickResult.Type == ClickType.Ground)
             {

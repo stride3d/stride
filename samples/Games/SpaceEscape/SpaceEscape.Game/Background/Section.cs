@@ -19,17 +19,17 @@ public class Section
     /// <summary>
     /// Gets the root entity of the level block
     /// </summary>
-    public Entity RootEntity { get; private set; }
+    public Entity RootEntity { get; }
 
     /// <summary>
     /// Gets the list collidable obstacles of the level block
     /// </summary>
-    public List<Obstacle> CollidableObstacles { get; private set; }
+    public List<Obstacle> CollidableObstacles { get; }
 
     /// <summary>
     /// Gets the list of holes of the level block
     /// </summary>
-    public List<Hole> Holes { get; private set; }
+    public List<Hole> Holes { get; }
 
     /// <summary>
     /// Create a new empty level block.

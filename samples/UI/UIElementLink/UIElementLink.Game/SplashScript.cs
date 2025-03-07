@@ -75,7 +75,7 @@ public class SplashScript : UISceneBase
         var cornerBR = new Button { PressedImage = boxButton, NotPressedImage = boxButton, MouseOverImage = boxButton, Size = boxSize };
         cornerBR.SetCanvasAbsolutePosition(new Vector3(backBufferSize.X - boxSize.X, backBufferSize.Y - boxSize.Y, 0));
 
-        var rootElement = new Canvas() { Children = { followedButton, cornerTL, cornerTR, cornerBL, cornerBR },
+        var rootElement = new Canvas { Children = { followedButton, cornerTL, cornerTR, cornerBL, cornerBR },
             MaximumWidth = backBufferSize.X, MaximumHeight = backBufferSize.Y };
 
         Entity.Get<UIComponent>().Page = new UIPage { RootElement = rootElement };

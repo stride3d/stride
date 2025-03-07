@@ -35,7 +35,7 @@ public class RotationScript : StartupScript
         playingAnimation.CurrentTime = TimeSpan.FromSeconds(0.6f); // start at different time
     }
 
-    private AnimationCurve CreateLightRotationCurve()
+    private static AnimationCurve CreateLightRotationCurve()
     {
         return new AnimationCurve<Quaternion>
         {

@@ -1,5 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 using FirstPersonShooter.Player;
 using Stride.Core.Mathematics;
 using Stride.Engine;
@@ -78,8 +79,7 @@ public class FpsCamera : AsyncScript
     protected virtual void UpdateCamera()
     {
         // Camera movement from player input
-        Vector2 cameraMovement;
-        cameraDirectionEvent.TryReceive(out cameraMovement);
+        cameraDirectionEvent.TryReceive(out var cameraMovement);
 
         if (InvertY) cameraMovement.Y *= -1;
         if (InvertX) cameraMovement.X *= -1;

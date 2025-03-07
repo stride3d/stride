@@ -31,17 +31,16 @@ public class WeaponScript : SyncScript
     public float ShootImpulse { get; set; } = 5f;
 
     public float Cooldown { get; set; } = 0.3f;
-    private float cooldownRemaining = 0;
+    private float cooldownRemaining;
 
     public float ReloadCooldown { get; set; } = 2.0f;
 
     public SpriteComponent RemainingBullets { get; set; }
-    private int remainingBullets = 0;
+    private int remainingBullets;
 
     private void UpdateBulletsLED()
     {
-        var spriteSheet = RemainingBullets?.SpriteProvider as SpriteFromSheet;
-        if (spriteSheet != null)
+        if (RemainingBullets?.SpriteProvider is SpriteFromSheet spriteSheet)
             spriteSheet.CurrentFrame = remainingBullets;
     }
 
@@ -70,11 +69,9 @@ public class WeaponScript : SyncScript
     /// </summary>
     public override void Update()
     {
-        bool didShoot;
-        shootEvent.TryReceive(out didShoot);
+        shootEvent.TryReceive(out var didShoot);
 
-        bool didReload;
-        reloadEvent.TryReceive(out didReload);
+        reloadEvent.TryReceive(out var didReload);
 
         cooldownRemaining = (cooldownRemaining > 0) ? (cooldownRemaining - (float)this.Game.UpdateTime.Elapsed.TotalSeconds) : 0f;
         if (cooldownRemaining > 0)
@@ -102,12 +99,11 @@ public class WeaponScript : SyncScript
 
         var weaponFired = new WeaponFiredResult {HitResult = result, DidFire = true, DidHit = false };
 
-        if (result.Succeeded && result.Collider != null)
+        if (result is { Succeeded: true, Collider: not null })
         {
             weaponFired.DidHit = true;
 
-            var rigidBody = result.Collider as RigidbodyComponent;
-            if (rigidBody != null)
+            if (result.Collider is RigidbodyComponent rigidBody)
             {
                 rigidBody.Activate();
                 rigidBody.ApplyImpulse(forward * ShootImpulse);

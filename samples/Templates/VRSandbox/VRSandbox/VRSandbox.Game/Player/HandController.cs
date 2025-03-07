@@ -1,5 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 using Stride.Animations;
 using Stride.Core;
 using Stride.Core.Mathematics;
@@ -71,9 +72,8 @@ public class HandController : SyncScript
         var handPose = Matrix.RotationQuaternion(vrController.Rotation) * Matrix.Translation(vrController.Position);
 
         var mat = handPose * Head.Transform.WorldMatrix * parentWorldInv;
-        Vector3 pos, scale;
-        Quaternion rot;
-        mat.Decompose(out scale, out rot, out pos);
+        Vector3 scale;
+        mat.Decompose(out scale, out Quaternion rot, out var pos);
         Entity.Transform.Position = pos;
         Entity.Transform.Rotation = rot;
 
@@ -132,15 +132,13 @@ public class HandController : SyncScript
         rigidBody.IsKinematic = true;
         rigidBody.CanSleep = false;
 
-        Vector3 posObject, posParent;
-        Vector3 sclObject, sclParent;
-        Quaternion rotObject, rotParent;
+        Vector3 sclObject;
 
         // Make sure old positions are up to date
         grabbedEntity.Transform.UpdateWorldMatrix();
-        grabbedEntity.Transform.WorldMatrix.Decompose(out sclObject, out rotObject, out posObject);
+        grabbedEntity.Transform.WorldMatrix.Decompose(out sclObject, out Quaternion rotObject, out var posObject);
         var parentEntity = Entity.GetChild(0);
-        parentEntity.Transform.WorldMatrix.Decompose(out sclParent, out rotParent, out posParent);
+        parentEntity.Transform.WorldMatrix.Decompose(out var sclParent, out Quaternion rotParent, out var posParent);
 
         // Calculate relative transformations
         posObject -= posParent;
@@ -157,8 +155,7 @@ public class HandController : SyncScript
         }
         else
         {
-            transformLink = new ModelNodeLinkComponent();
-            transformLink.Target = parentEntity.Get<ModelComponent>();
+            transformLink = new ModelNodeLinkComponent { Target = parentEntity.Get<ModelComponent>() };
             grabbedEntity.Add(transformLink);
         }
 
@@ -203,8 +200,7 @@ public class HandController : SyncScript
 
         if (vrController != null && vrController.State != DeviceState.Invalid) return;
 
-        HandsInput handsInput;
-        if (!handsControlEvent.TryReceive(out handsInput))
+        if (!handsControlEvent.TryReceive(out var handsInput))
             return;
 
         var hand = (int) Hand;

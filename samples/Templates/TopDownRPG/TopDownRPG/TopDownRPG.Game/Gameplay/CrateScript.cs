@@ -24,9 +24,9 @@ public class CrateScript : SyncScript
 
     private EventReceiver<bool> triggeredEvent;
 
-    private bool activated = false;
+    private bool activated;
 
-    private float animationTime = 0;
+    private float animationTime;
 
     public override void Update()
     {

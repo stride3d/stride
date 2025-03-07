@@ -1,5 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 using Stride.Core.Mathematics;
 using Stride.Graphics;
 
@@ -35,7 +36,7 @@ public class BackgroundSection
     public float ScrollWidth { get; protected set; }
     public float ScrollSpeed { get; protected set; }
 
-    public BackgroundSection(Sprite backgroundSprite, Vector3 screenVirtualResolution, float scrollSpeed, float depth, Vector2 startPos = default(Vector2))
+    public BackgroundSection(Sprite backgroundSprite, Vector3 screenVirtualResolution, float scrollSpeed, float depth, Vector2 startPos = default)
     {
         screenResolution = new Int2((int)screenVirtualResolution.X, (int)screenVirtualResolution.Y);
         screenCenter = new Vector2(screenVirtualResolution.X / 2, screenVirtualResolution.Y / 2);

@@ -24,7 +24,7 @@ public class AnimationScript : StartupScript
         var colorRgbProviderName = typeof(ColorRgbProvider).AssemblyQualifiedName;
 
         animationClip.AddCurve("[TransformComponent.Key].Rotation", CreateLightRotationCurve());
-        animationClip.AddCurve(string.Format("[LightComponent.Key].Type.({0})Color.({1})Value", colorLightBaseName, colorRgbProviderName), CreateLightColorCurve());
+        animationClip.AddCurve($"[LightComponent.Key].Type.({colorLightBaseName})Color.({colorRgbProviderName})Value", CreateLightColorCurve());
 
         // Optional: Pack all animation channels into an optimized interleaved format
         animationClip.Optimize();
@@ -41,7 +41,7 @@ public class AnimationScript : StartupScript
         playingAnimation.CurrentTime = TimeSpan.FromSeconds(0.6f); // start at different time
     }
 
-    private AnimationCurve CreateLightColorCurve()
+    private static AnimationCurve CreateLightColorCurve()
     {
         return new AnimationCurve<Vector3>
         {
@@ -69,7 +69,7 @@ public class AnimationScript : StartupScript
         };
     }
 
-    private AnimationCurve CreateLightRotationCurve()
+    private static AnimationCurve CreateLightRotationCurve()
     {
         return new AnimationCurve<Quaternion>
         {

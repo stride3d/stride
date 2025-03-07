@@ -17,7 +17,7 @@ public class AnimationController : SyncScript, IBlendTreeBuilder
 
     private readonly EventReceiver<float> runSpeedEvent = new(PlayerController.RunSpeedEventKey);
 
-    private float runSpeed = 0;
+    private float runSpeed;
 
     private AnimationState defaultState = AnimationState.Idle;
 
@@ -43,7 +43,7 @@ public class AnimationController : SyncScript, IBlendTreeBuilder
     private AnimationClipEvaluator animEvaluatorWalk;
     private AnimationClipEvaluator animEvaluatorShoot;
     private AnimationClipEvaluator animEvaluatorReload;
-    private double currentTime = 0;
+    private double currentTime;
 
     private AnimationState state = AnimationState.Idle;
 
@@ -116,8 +116,7 @@ public class AnimationController : SyncScript, IBlendTreeBuilder
         WeaponFiredResult weaponResult;
         var didFire = weaponFiredEvent.TryReceive(out weaponResult);
 
-        bool isReloading;
-        var didReload = isReloadingEvent.TryReceive(out isReloading);
+        var didReload = isReloadingEvent.TryReceive(out var isReloading);
         isReloading |= didReload;
 
         // Update current animation
@@ -127,7 +126,7 @@ public class AnimationController : SyncScript, IBlendTreeBuilder
         var currentClipFinished = (updatedTicks >= currentClip.Duration.Ticks);
 
         currentTicks = TimeSpan.FromTicks(updatedTicks % currentClip.Duration.Ticks);
-        currentTime = ((double)currentTicks.Ticks / (double)currentClip.Duration.Ticks);
+        currentTime = (currentTicks.Ticks / (double)currentClip.Duration.Ticks);
 
         // State change if necessary
         if (isReloading)
@@ -157,7 +156,7 @@ public class AnimationController : SyncScript, IBlendTreeBuilder
             SwitchToDefaultState();
         }
         else
-        if ((state == AnimationState.Idle || state == AnimationState.Walking) && state != defaultState)
+        if (state is AnimationState.Idle or AnimationState.Walking && state != defaultState)
         {
             SwitchToDefaultState();
         }

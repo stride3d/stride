@@ -1,5 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Engine;
@@ -22,8 +23,8 @@ namespace JumpyJet;
 /// </summary>
 public class UIScript : SyncScript
 {
-    private EventReceiver gameOverListener = new(GameGlobals.GameOverEventKey);
-    private EventReceiver pipePassedListener = new(GameGlobals.PipePassedEventKey);
+    private readonly EventReceiver gameOverListener = new(GameGlobals.GameOverEventKey);
+    private readonly EventReceiver pipePassedListener = new(GameGlobals.PipePassedEventKey);
 
     public SpriteFont Font;
     public SpriteSheet UIImages;
@@ -35,7 +36,7 @@ public class UIScript : SyncScript
     private TextBlock scoreTextBlock;
     private ISpriteProvider buttonImage;
 
-    private int currentScore = 0;
+    private int currentScore;
 
     /// <summary>
     /// Load resource and construct ui components

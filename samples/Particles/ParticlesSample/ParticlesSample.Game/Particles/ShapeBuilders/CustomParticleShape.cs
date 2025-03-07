@@ -17,14 +17,8 @@ public class CustomParticleShape : ShapeBuilder
     [DataMember(100)]
     public bool FixYAxis = false;
 
-    private int quadsPerParticle = 1;
-
     //  One particle requires 1 quad = 4 vertices (6 indices)
-    public override int QuadsPerParticle
-    {
-        get { return quadsPerParticle; }
-        protected set { quadsPerParticle = value; }
-    }
+    public override int QuadsPerParticle { get; protected set; } = 1;
 
     /// <inheritdoc />
     public override unsafe int BuildVertexBuffer(ref ParticleBufferState bufferState, Vector3 invViewX, Vector3 invViewY,

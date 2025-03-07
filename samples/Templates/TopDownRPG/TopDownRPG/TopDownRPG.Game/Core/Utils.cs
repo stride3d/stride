@@ -167,9 +167,8 @@ public static class Utils
         foreach (var hitResult in result)
         {
             ClickType type = ClickType.Empty;
-            
-            var staticBody = hitResult.Collider as StaticColliderComponent;
-            if (staticBody != null)
+
+            if (hitResult.Collider is StaticColliderComponent staticBody)
             {
                 if (staticBody.CollisionGroup == CollisionFilterGroups.CustomFilter1)
                     type = ClickType.Ground;

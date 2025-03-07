@@ -241,7 +241,7 @@ public class SplashScript : UISceneBase
         var windowWidth = GraphicsDevice.Presenter.BackBuffer.Width;
         var windowHeight = GraphicsDevice.Presenter.BackBuffer.Height;
 
-        cameraEntity.Get<CameraComponent>().AspectRatio = ((float) windowWidth / (float) windowHeight);
+        cameraEntity.Get<CameraComponent>().AspectRatio = (windowWidth / (float) windowHeight);
         cameraEntity.Get<CameraComponent>().OrthographicSize = ((float)windowHeight / virtualHeight);
 
         switch (currentState)

@@ -44,8 +44,7 @@ public class PlayerController : SyncScript
     private void Move()
     {
         // Character speed
-        Vector3 moveDirection = Vector3.Zero;
-        moveDirectionEvent.TryReceive(out moveDirection);
+        moveDirectionEvent.TryReceive(out var moveDirection);
 
         character.SetVelocity(moveDirection * MaxRunSpeed);
 

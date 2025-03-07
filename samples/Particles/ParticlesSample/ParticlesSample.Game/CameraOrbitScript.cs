@@ -53,7 +53,7 @@ public class CameraOrbitScript : AsyncScript
                 }
 
 
-                timeToProcess = timeToProcess % Frametime;
+                timeToProcess %= Frametime;
                 UpdatePosition(movingSpeedX * 2, movingSpeedY * 2);
             }
             else
@@ -76,8 +76,8 @@ public class CameraOrbitScript : AsyncScript
 
     private void UpdatePosition(float speedX, float speedY)
     {
-        lookAtAngle = lookAtAngle + (speedX) * 7.5f * Frametime;
-        lookAtAngleY = lookAtAngleY + (speedY) * 1.5f * Frametime;
+        lookAtAngle += (speedX) * 7.5f * Frametime;
+        lookAtAngleY += (speedY) * 1.5f * Frametime;
         lookAtAngleY = MathUtil.Clamp(lookAtAngleY, MinimumCameraHeight, MaximumCameraHeight);
 
         var maxDistance = lookFromDistance*(1 + (float) Math.Sin(MathUtil.DegreesToRadians(lookAtAngleY)));

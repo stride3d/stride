@@ -24,7 +24,7 @@ public class CoinScript : SyncScript
 
     private float spinSpeed = 1f;
 
-    private bool activated = false;
+    private bool activated;
 
     private float animationTime = (float) (Math.PI * 3 / 2);
 

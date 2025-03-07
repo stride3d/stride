@@ -29,7 +29,7 @@ public class DeltaTimeDemo : SyncScript
 
     public override void Update()
     {
-        /// We can access Delta time through the static 'Game' object.
+        // We can access Delta time through the static 'Game' object.
         var deltaTime = (float)Game.UpdateTime.Elapsed.TotalSeconds;
 
         // We update the total time

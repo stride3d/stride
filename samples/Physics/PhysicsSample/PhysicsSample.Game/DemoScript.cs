@@ -80,7 +80,7 @@ public class DemoScript : StartupScript
             while (Game.IsRunning)
             {
                 var collision = await cubeRigidBody.NewCollision();
-                if (!(currentConstraint is SliderConstraint)) continue;
+                if (currentConstraint is not SliderConstraint) continue;
                 if (collision.ColliderA != sphereRigidBody && collision.ColliderB != sphereRigidBody) continue;
                 sphereRigidBody.LinearVelocity = Vector3.Zero; //clear any existing velocity
                 sphereRigidBody.ApplyImpulse(new Vector3(-25, 0, 0)); //fire impulse

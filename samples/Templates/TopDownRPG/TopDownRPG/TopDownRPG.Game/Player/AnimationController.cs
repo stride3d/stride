@@ -39,7 +39,7 @@ public class AnimationController : SyncScript, IBlendTreeBuilder
     private AnimationClipEvaluator animEvaluatorWalk;
     private AnimationClipEvaluator animEvaluatorRun;
     private AnimationClipEvaluator animEvaluatorPunch;
-    private double currentTime = 0;
+    private double currentTime;
 
     // Idle-Walk-Run lerp
     private AnimationClipEvaluator animEvaluatorWalkLerp1;
@@ -123,8 +123,7 @@ public class AnimationController : SyncScript, IBlendTreeBuilder
         // Use DrawTime rather than UpdateTime
         var time = Game.DrawTime;
         // This update function will account for animation with different durations, keeping a current time relative to the blended maximum duration
-        long blendedMaxDuration = 0;
-        blendedMaxDuration =
+        long blendedMaxDuration =
             (long)MathUtil.Lerp(animationClipWalkLerp1.Duration.Ticks, animationClipWalkLerp2.Duration.Ticks, walkLerpFactor);
 
         var currentTicks = TimeSpan.FromTicks((long)(currentTime * blendedMaxDuration));
@@ -134,19 +133,19 @@ public class AnimationController : SyncScript, IBlendTreeBuilder
             : TimeSpan.FromTicks((currentTicks.Ticks + (long)(time.Elapsed.Ticks * TimeFactor)) %
                                  blendedMaxDuration);
 
-        currentTime = ((double)currentTicks.Ticks / (double)blendedMaxDuration);
+        currentTime = (currentTicks.Ticks / (double)blendedMaxDuration);
     }
 
     private void UpdatePunching()
     {
-        var speedFactor = 1;
+        const int speedFactor = 1;
         var currentTicks = TimeSpan.FromTicks((long)(currentTime * AnimationPunch.Duration.Ticks));
         var updatedTicks = currentTicks.Ticks + (long)(Game.DrawTime.Elapsed.Ticks * TimeFactor * speedFactor);
 
         if (updatedTicks < AnimationPunch.Duration.Ticks)
         {
             currentTicks = TimeSpan.FromTicks(updatedTicks);
-            currentTime = ((double)currentTicks.Ticks / (double)AnimationPunch.Duration.Ticks);
+            currentTime = (currentTicks.Ticks / (double)AnimationPunch.Duration.Ticks);
         }
         else
         {
@@ -161,8 +160,7 @@ public class AnimationController : SyncScript, IBlendTreeBuilder
         // State control
         runSpeedEvent.TryReceive(out runSpeed);
 
-        bool isAttackingNewValue;
-        if (attackEvent.TryReceive(out isAttackingNewValue) && isAttackingNewValue && state != AnimationState.Punching)
+        if (attackEvent.TryReceive(out var isAttackingNewValue) && isAttackingNewValue && state != AnimationState.Punching)
         {
             currentTime = 0;
             state = AnimationState.Punching;

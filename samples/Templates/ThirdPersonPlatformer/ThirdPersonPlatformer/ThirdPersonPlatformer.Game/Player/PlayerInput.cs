@@ -20,7 +20,7 @@ public class PlayerInput : SyncScript
     public static readonly EventKey<Vector2> CameraDirectionEventKey = new();
 
     public static readonly EventKey<bool> JumpEventKey = new();
-    private bool jumpButtonDown = false;
+    private bool jumpButtonDown;
 
     public float DeadZone { get; set; } = 0.25f;
 

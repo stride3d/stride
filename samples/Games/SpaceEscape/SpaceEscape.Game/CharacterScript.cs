@@ -236,7 +236,7 @@ public class CharacterScript : AsyncScript
         float yDeg;
 
         // Head of dragDirection is in Quadrant 1.
-        if (dragDirection.X >= 0 && dragDirection.Y >= 0)
+        if (dragDirection is { X: >= 0, Y: >= 0 })
         {
             comparedAxis = Vector2.UnitX;
             xDeg = FindAngleBetweenVector(ref dragDirection, ref comparedAxis);
@@ -247,7 +247,7 @@ public class CharacterScript : AsyncScript
         }
 
         // Head of dragDirection is in Quadrant 2. 
-        if (dragDirection.X <= 0 && dragDirection.Y >= 0)
+        if (dragDirection is { X: <= 0, Y: >= 0 })
         {
             comparedAxis = -Vector2.UnitX;
             xDeg = FindAngleBetweenVector(ref dragDirection, ref comparedAxis);
@@ -258,7 +258,7 @@ public class CharacterScript : AsyncScript
         }
 
         // Head of dragDirection is in Quadrant 3, check if the input is left or down.
-        if (dragDirection.X <= 0 && dragDirection.Y <= 0)
+        if (dragDirection is { X: <= 0, Y: <= 0 })
         {
             comparedAxis = -Vector2.UnitX;
             xDeg = FindAngleBetweenVector(ref dragDirection, ref comparedAxis);
@@ -279,8 +279,7 @@ public class CharacterScript : AsyncScript
 
     private static float FindAngleBetweenVector(ref Vector2 v1, ref Vector2 v2)
     {
-        float dotProd;
-        Vector2.Dot(ref v1, ref v2, out dotProd);
+        Vector2.Dot(ref v1, ref v2, out var dotProd);
         return (float)Math.Acos(dotProd);
     }
 
@@ -297,11 +296,11 @@ public class CharacterScript : AsyncScript
         switch (currentInputState)
         {
             case InputState.Left:
-                if (CurLane != LeftLane && (State == AgentState.Run|| State == AgentState.Slide))
+                if (CurLane != LeftLane && State is AgentState.Run or AgentState.Slide)
                     State = AgentState.ChangeLaneLeft;
                 break;
             case InputState.Right:
-                if (CurLane != RightLane && (State == AgentState.Run || State == AgentState.Slide))
+                if (CurLane != RightLane && State is AgentState.Run or AgentState.Slide)
                     State = AgentState.ChangeLaneRight;
                 break;
             case InputState.Down:
@@ -339,7 +338,7 @@ public class CharacterScript : AsyncScript
                 PlayAnimation(AgentAnimationKeys.Crash);
                 break;
             default:
-                throw new ArgumentOutOfRangeException("agentState");
+                throw new ArgumentOutOfRangeException(nameof(agentState));
         }
     }
 

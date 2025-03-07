@@ -54,7 +54,7 @@ public class Trigger : AsyncScript
                 continue;
 
             // Broadcast the collision start event
-            if (TriggerCondition == CollisionEventType.StartOnly || TriggerCondition == CollisionEventType.StartAndEnd)
+            if (TriggerCondition is CollisionEventType.StartOnly or CollisionEventType.StartAndEnd)
                 TriggerEvent.Broadcast(true);
 
             if (TriggerCondition == CollisionEventType.StartOnly)

@@ -42,34 +42,26 @@ public class LaserOrientationScript : AsyncScript
     {
         var eyePosition = Entity.Transform.WorldMatrix.TranslationVector;
 
-        Vector3 xaxis, yaxis, zaxis;
-        Vector3.Subtract(ref eyePosition, ref targetPosition, out zaxis);
+        Vector3.Subtract(ref eyePosition, ref targetPosition, out var zaxis);
         var laserLength = zaxis.Length();
         zaxis.Normalize();
-        Vector3.Cross(ref upVector, ref zaxis, out xaxis); xaxis.Normalize();
-        Vector3.Cross(ref zaxis, ref xaxis, out yaxis);
+        Vector3.Cross(ref upVector, ref zaxis, out var xaxis); xaxis.Normalize();
+        Vector3.Cross(ref zaxis, ref xaxis, out var yaxis);
 
         var result = Matrix.Identity;
         result.M11 = xaxis.X; result.M12 = xaxis.Y; result.M13 = xaxis.Z;
         result.M21 = yaxis.X; result.M22 = yaxis.Y; result.M23 = yaxis.Z;
         result.M31 = zaxis.X; result.M32 = zaxis.Y; result.M33 = zaxis.Z;
 
-        var rotation = Quaternion.Identity;
-
-        Quaternion.RotationMatrix(ref result, out rotation);
+        Quaternion.RotationMatrix(ref result, out var rotation);
 
         Entity.Transform.Rotation = rotation;
 
         if (doNotScale)
             return;
 
-        if (scaleOnlyZ)
-        {
-            Entity.Transform.Scale = new Vector3(Entity.Transform.Scale.X, Entity.Transform.Scale.Y, laserLength);
-        }
-        else
-        {
-            Entity.Transform.Scale = new Vector3(laserLength, laserLength, laserLength);
-        }
+        Entity.Transform.Scale = scaleOnlyZ
+            ? new Vector3(Entity.Transform.Scale.X, Entity.Transform.Scale.Y, laserLength)
+            : new Vector3(laserLength, laserLength, laserLength);
     }
 }

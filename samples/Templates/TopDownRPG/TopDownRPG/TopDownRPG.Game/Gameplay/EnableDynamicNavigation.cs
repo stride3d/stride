@@ -30,8 +30,7 @@ public class EnableDynamicNavigation : StartupScript
     {
         if (trackingCollectionChangedEventArgs.Action == NotifyCollectionChangedAction.Add)
         {
-            var dynamicNavigationMeshSystem = trackingCollectionChangedEventArgs.Item as DynamicNavigationMeshSystem;
-            if (dynamicNavigationMeshSystem != null)
+            if (trackingCollectionChangedEventArgs.Item is DynamicNavigationMeshSystem dynamicNavigationMeshSystem)
             {
                 dynamicNavigationMeshSystem.Enabled = true;
 

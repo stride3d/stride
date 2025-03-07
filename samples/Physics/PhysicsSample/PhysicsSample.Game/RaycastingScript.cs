@@ -53,8 +53,7 @@ public class RaycastingScript : SyncScript
         var result = simulation.Raycast(unprojectedNear, unprojectedFar);
         if (!result.Succeeded || result.Collider == null) return;
 
-        var rigidBody = result.Collider as RigidbodyComponent;
-        if (rigidBody == null) return;
+        if (result.Collider is not RigidbodyComponent rigidBody) return;
 
         rigidBody.Activate();
         rigidBody.ApplyImpulse(new Vector3(0, 5, 0));

@@ -1,5 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 using Stride.Core.Mathematics;
 using Stride.Input;
 
@@ -18,21 +19,13 @@ public static class InputManagerExtensions
 
     public static bool IsGamePadButtonDownAny(this InputManager input, GamePadButton button)
     {
-        foreach(var gamepad in input.GamePads)
-        { 
-            if ((gamepad.State.Buttons & button) == button)
-                return true;
-        }
-        return false;
+        return input.GamePads.Any(gamepad => (gamepad.State.Buttons & button) == button);
     }
 
     public static Vector2 GetLeftThumb(this InputManager input, int index)
     {
         var gamepad = input.GetGamePadByIndex(index);
-        if (gamepad == null)
-            return Vector2.Zero;
-
-        return gamepad.State.LeftThumb;
+        return gamepad == null ? Vector2.Zero : gamepad.State.LeftThumb;
     }
 
     public static Vector2 GetLeftThumbAny(this InputManager input, float deadZone)
@@ -55,10 +48,7 @@ public static class InputManagerExtensions
     public static Vector2 GetRightThumb(this InputManager input, int index)
     {
         var gamepad = input.GetGamePadByIndex(index);
-        if (gamepad == null)
-            return Vector2.Zero;
-
-        return gamepad.State.RightThumb;
+        return gamepad == null ? Vector2.Zero : gamepad.State.RightThumb;
     }
 
     public static Vector2 GetRightThumbAny(this InputManager input, float deadZone)
@@ -81,10 +71,7 @@ public static class InputManagerExtensions
     public static float GetLeftTrigger(this InputManager input, int index)
     {
         var gamepad = input.GetGamePadByIndex(index);
-        if (gamepad == null)
-            return 0.0f;
-
-        return gamepad.State.LeftTrigger;
+        return gamepad == null ? 0.0f : gamepad.State.LeftTrigger;
     }
 
     public static float GetLeftTriggerAny(this InputManager input, float deadZone)
@@ -107,10 +94,7 @@ public static class InputManagerExtensions
     public static float GetRightTrigger(this InputManager input, int index)
     {
         var gamepad = input.GetGamePadByIndex(index);
-        if (gamepad == null)
-            return 0.0f;
-
-        return gamepad.State.RightTrigger;
+        return gamepad == null ? 0.0f : gamepad.State.RightTrigger;
     }
 
     public static float GetRightTriggerAny(this InputManager input, float deadZone)

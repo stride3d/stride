@@ -27,8 +27,7 @@ public class EffectController : TriggerScript
             if (target.DidHit)
                 SpawnEvent("BulletImpact", null, Matrix.RotationQuaternion(Quaternion.BetweenDirections(Vector3.UnitY, target.HitResult.Normal)) * Matrix.Translation(target.HitResult.Point));
 
-            var rigidBody = target.HitResult.Collider as RigidbodyComponent;
-            if (rigidBody != null)
+            if (target.HitResult.Collider is RigidbodyComponent rigidBody)
             {
                 var rand = new Random();
                 SpawnEvent("DamagedTrail", rigidBody.Entity, Matrix.Translation(new Vector3((float)rand.NextDouble() - 0.5f, (float)rand.NextDouble() - 0.5f, (float)rand.NextDouble() - 0.5f)));

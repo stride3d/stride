@@ -23,12 +23,7 @@ public class PrefabInstance : AsyncScript
     /// </summary>
     [DataMember(20)]
     [Display("Following")]
-    public bool Following
-    {
-        get { return following; }
-        set { following = value; }
-    }
-    private bool following = true;
+    public bool Following { get; set; } = true;
 
     /// <summary>
     /// How long before the prefab instance is deleted, selectable by the user
@@ -46,7 +41,7 @@ public class PrefabInstance : AsyncScript
     public AnimationComponent Animation { get; set; }
 
     private bool canTrigger = true;
-    private double lastTime = 0;
+    private double lastTime;
 
     public override async Task Execute()
     {
