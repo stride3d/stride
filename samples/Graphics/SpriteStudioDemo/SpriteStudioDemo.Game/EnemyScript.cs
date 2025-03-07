@@ -26,7 +26,7 @@ public class EnemyScript : AsyncScript
 
     // random
     private static readonly int seed = Environment.TickCount;
-    private static readonly Random enemyRandomLocal = new Random(seed);
+    private static readonly Random enemyRandomLocal = new(seed);
 
     private async Task Reset()
     {

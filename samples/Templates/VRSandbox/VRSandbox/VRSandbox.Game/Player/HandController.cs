@@ -12,7 +12,7 @@ namespace VRSandbox.Player;
 
 public class HandController : SyncScript
 {
-    private readonly EventReceiver<HandsInput> handsControlEvent = new EventReceiver<HandsInput>(PlayerInput.HandsControlEventKey);
+    private readonly EventReceiver<HandsInput> handsControlEvent = new(PlayerInput.HandsControlEventKey);
 
     [Display("Move Speed")]
     public float MaxMoveSpeed { get; set; } = 1;

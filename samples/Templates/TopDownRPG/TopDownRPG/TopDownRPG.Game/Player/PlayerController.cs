@@ -17,8 +17,7 @@ public class PlayerController : SyncScript
     //  If the character is too far from its target it will run after it until it's close enough then halt movement and attack
     //  If the character is walking towards a specific location instead it will run to it then halt movement when close enough
 
-    private readonly EventReceiver<ClickResult> moveDestinationEvent =
-        new EventReceiver<ClickResult>(PlayerInput.MoveDestinationEventKey);
+    private readonly EventReceiver<ClickResult> moveDestinationEvent = new(PlayerInput.MoveDestinationEventKey);
 
     /// <summary>
     /// The maximum speed the character can run at
@@ -43,7 +42,7 @@ public class PlayerController : SyncScript
     public float DestinationSlowdown { get; set; } = 0.4f;
 
     // The PlayerController will propagate its speed to the AnimationController
-    public static readonly EventKey<float> RunSpeedEventKey = new EventKey<float>();
+    public static readonly EventKey<float> RunSpeedEventKey = new();
 
     // Allow some inertia to the movement
     private Vector3 moveDirection = Vector3.Zero;
@@ -67,7 +66,7 @@ public class PlayerController : SyncScript
     public float AttackCooldown { get; set; } = 0.65f;
 
     // The PlayerController will propagate if it is attacking to the AnimationController
-    public static readonly EventKey<bool> IsAttackingEventKey = new EventKey<bool>();
+    public static readonly EventKey<bool> IsAttackingEventKey = new();
 
     // Character Component
     private CharacterComponent character;
@@ -79,7 +78,7 @@ public class PlayerController : SyncScript
 
     // Pathfinding Component
     private NavigationComponent navigation;
-    private readonly List<Vector3> pathToDestination = new List<Vector3>();
+    private readonly List<Vector3> pathToDestination = [];
     private int waypointIndex;
     private Vector3 moveDestination;
 

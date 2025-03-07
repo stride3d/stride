@@ -87,7 +87,7 @@ public class CrateScript : SyncScript
 
         // Spawn a collectible coin
         // CoinSpawnModel
-        Random rand = new Random();
+        Random rand = new();
         var numCoins = 3 + rand.Next(4);
         for (int i = 0; i < numCoins; i++)
         {

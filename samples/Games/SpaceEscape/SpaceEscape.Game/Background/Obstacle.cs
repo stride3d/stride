@@ -14,7 +14,7 @@ public class Obstacle
     /// <summary>
     /// The list of bounding boxes used to determine the collision with the obstacle.
     /// </summary>
-    public List<BoundingBox> BoundingBoxes = new List<BoundingBox>(); 
+    public List<BoundingBox> BoundingBoxes = []; 
 
     /// <summary>
     /// The entity representing the collidable object.

@@ -11,11 +11,11 @@ namespace FirstPersonShooter.Player;
 
 public class AnimationController : SyncScript, IBlendTreeBuilder
 {
-    private readonly EventReceiver<WeaponFiredResult> weaponFiredEvent = new EventReceiver<WeaponFiredResult>(WeaponScript.WeaponFired);
+    private readonly EventReceiver<WeaponFiredResult> weaponFiredEvent = new(WeaponScript.WeaponFired);
 
-    private readonly EventReceiver<bool> isReloadingEvent = new EventReceiver<bool>(WeaponScript.IsReloading);
+    private readonly EventReceiver<bool> isReloadingEvent = new(WeaponScript.IsReloading);
 
-    private readonly EventReceiver<float> runSpeedEvent = new EventReceiver<float>(PlayerController.RunSpeedEventKey);
+    private readonly EventReceiver<float> runSpeedEvent = new(PlayerController.RunSpeedEventKey);
 
     private float runSpeed = 0;
 

@@ -13,7 +13,7 @@ namespace FirstPersonShooter;
 /// </summary>
 public class EffectController : TriggerScript
 {      
-    private readonly EventReceiver<WeaponFiredResult> weaponFiredEvent = new EventReceiver<WeaponFiredResult>(WeaponScript.WeaponFired);
+    private readonly EventReceiver<WeaponFiredResult> weaponFiredEvent = new(WeaponScript.WeaponFired);
 
     public override async Task Execute()
     {

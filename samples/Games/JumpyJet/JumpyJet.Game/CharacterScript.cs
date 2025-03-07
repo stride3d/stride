@@ -18,12 +18,12 @@ namespace JumpyJet;
 /// </summary>
 public class CharacterScript : AsyncScript
 {
-    private EventReceiver gameResetListener = new EventReceiver(GameGlobals.GameResetEventKey);
-    private EventReceiver gameStartedListener = new EventReceiver(GameGlobals.GameStartedEventKey);
+    private EventReceiver gameResetListener = new(GameGlobals.GameResetEventKey);
+    private EventReceiver gameStartedListener = new(GameGlobals.GameStartedEventKey);
 
-    private static readonly Vector3 Gravity = new Vector3(0, -17, 0);
-    private static readonly Vector3 StartPos = new Vector3(-1, 0, 0);
-    private static readonly Vector3 StartVelocity = new Vector3(0, 7, 0);
+    private static readonly Vector3 Gravity = new(0, -17, 0);
+    private static readonly Vector3 StartPos = new(-1, 0, 0);
+    private static readonly Vector3 StartVelocity = new(0, 7, 0);
 
     private const float TopLimit = (568 - 200) * GameGlobals.GamePixelToUnitScale;
     private const float NormalVelocityY = 6.5f;

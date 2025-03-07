@@ -16,9 +16,9 @@ public class PlayerInput : SyncScript
     /// <summary>
     /// Raised every frame with the intended direction of movement from the player.
     /// </summary>
-    public static readonly EventKey<ClickResult> MoveDestinationEventKey = new EventKey<ClickResult>();
+    public static readonly EventKey<ClickResult> MoveDestinationEventKey = new();
 
-    public static readonly EventKey<bool> JumpEventKey = new EventKey<bool>();
+    public static readonly EventKey<bool> JumpEventKey = new();
 
     public int ControllerIndex { get; set; }
 

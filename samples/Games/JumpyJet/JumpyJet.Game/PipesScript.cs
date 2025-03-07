@@ -17,15 +17,15 @@ public class PipesScript : SyncScript
     private const float GapBetweenPipe = 4f;
     private const float StartPipePosition = 4f;
 
-    private EventReceiver gameOverListener = new EventReceiver(GameGlobals.GameOverEventKey);
-    private EventReceiver gameResetListener = new EventReceiver(GameGlobals.GameResetEventKey);
-    private EventReceiver gameStartedListener = new EventReceiver(GameGlobals.GameStartedEventKey);
+    private EventReceiver gameOverListener = new(GameGlobals.GameOverEventKey);
+    private EventReceiver gameResetListener = new(GameGlobals.GameResetEventKey);
+    private EventReceiver gameStartedListener = new(GameGlobals.GameStartedEventKey);
 
-    private readonly List<Entity> pipeSets = new List<Entity>();
+    private readonly List<Entity> pipeSets = [];
 
     private bool isScrolling;
 
-    private readonly Random random = new Random();
+    private readonly Random random = new();
 
     private float sceneWidth;
 

@@ -22,13 +22,11 @@ public class MainScript : UISceneBase
     private const string DefaultName = "John Doe";
     private const int MaximumStar = 3;
 
-    private static readonly List<string> ShipNameList = new List<string>
-    {
-        "red_ship", "green_ship", "blue_ship", "blue_ship", "yellow_ship", "yellow_ship", "cyan_ship"
-    };
+    private static readonly List<string> ShipNameList =
+        ["red_ship", "green_ship", "blue_ship", "blue_ship", "yellow_ship", "yellow_ship", "cyan_ship"];
 
 
-    private readonly List<SpaceShip> shipList = new List<SpaceShip>();
+    private readonly List<SpaceShip> shipList = [];
     private int money;
     private int bonus;
     private int lifeStatus;
@@ -38,8 +36,8 @@ public class MainScript : UISceneBase
     
     private int activeShipIndex; // Current SpaceShip of the character
 
-    private readonly List<int> starSpriteIndices = new List<int>();
-    private readonly List<int> borderStarSpriteIndices = new List<int>();
+    private readonly List<int> starSpriteIndices = [];
+    private readonly List<int> borderStarSpriteIndices = [];
 
     #region Visuals
 

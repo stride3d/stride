@@ -21,7 +21,7 @@ public class DemoScript : StartupScript
     public SpriteFont Font;
 
     private Constraint currentConstraint;
-    private readonly List<Action> PhysicsSampleList = new List<Action>();
+    private readonly List<Action> PhysicsSampleList = [];
     private int constraintIndex;
 
     private RigidbodyComponent cubeRigidBody;

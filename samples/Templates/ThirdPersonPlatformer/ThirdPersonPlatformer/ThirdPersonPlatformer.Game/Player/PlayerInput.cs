@@ -15,11 +15,11 @@ public class PlayerInput : SyncScript
     /// Raised every frame with the intended direction of movement from the player.
     /// </summary>
     // TODO Should not be static, but allow binding between player and controller
-    public static readonly EventKey<Vector3> MoveDirectionEventKey = new EventKey<Vector3>();
+    public static readonly EventKey<Vector3> MoveDirectionEventKey = new();
 
-    public static readonly EventKey<Vector2> CameraDirectionEventKey = new EventKey<Vector2>();
+    public static readonly EventKey<Vector2> CameraDirectionEventKey = new();
 
-    public static readonly EventKey<bool> JumpEventKey = new EventKey<bool>();
+    public static readonly EventKey<bool> JumpEventKey = new();
     private bool jumpButtonDown = false;
 
     public float DeadZone { get; set; } = 0.25f;
@@ -31,15 +31,15 @@ public class PlayerInput : SyncScript
     /// </summary>
     public float MouseSensitivity = 1f;
 
-    public List<Keys> KeysLeft { get; } = new List<Keys>();
+    public List<Keys> KeysLeft { get; } = [];
 
-    public List<Keys> KeysRight { get; } = new List<Keys>();
+    public List<Keys> KeysRight { get; } = [];
 
-    public List<Keys> KeysUp { get; } = new List<Keys>();
+    public List<Keys> KeysUp { get; } = [];
 
-    public List<Keys> KeysDown { get; } = new List<Keys>();
+    public List<Keys> KeysDown { get; } = [];
 
-    public List<Keys> KeysJump { get; } = new List<Keys>();
+    public List<Keys> KeysJump { get; } = [];
 
     public override void Update()
     {

@@ -22,8 +22,8 @@ namespace JumpyJet;
 /// </summary>
 public class UIScript : SyncScript
 {
-    private EventReceiver gameOverListener = new EventReceiver(GameGlobals.GameOverEventKey);
-    private EventReceiver pipePassedListener = new EventReceiver(GameGlobals.PipePassedEventKey);
+    private EventReceiver gameOverListener = new(GameGlobals.GameOverEventKey);
+    private EventReceiver pipePassedListener = new(GameGlobals.PipePassedEventKey);
 
     public SpriteFont Font;
     public SpriteSheet UIImages;

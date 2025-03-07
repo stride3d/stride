@@ -23,7 +23,7 @@ public class TouchInputsScript : SyncScript
     private readonly Color fontColor = Color.WhiteSmoke;
 
     private float textHeight;
-    private readonly Vector2 textLeftTopCorner = new Vector2(5, 5);
+    private readonly Vector2 textLeftTopCorner = new(5, 5);
 
     // keyboard
     private string keyEvents;
@@ -38,9 +38,9 @@ public class TouchInputsScript : SyncScript
     private readonly Color mouseColor = Color.DarkGray;
 
     // pointers
-    private readonly Queue<Tuple<Vector2, TimeSpan>> pointerPressed = new Queue<Tuple<Vector2, TimeSpan>>();
-    private readonly Queue<Tuple<Vector2, TimeSpan>> pointerMoved = new Queue<Tuple<Vector2, TimeSpan>>();
-    private readonly Queue<Tuple<Vector2, TimeSpan>> pointerReleased = new Queue<Tuple<Vector2, TimeSpan>>();
+    private readonly Queue<Tuple<Vector2, TimeSpan>> pointerPressed = [];
+    private readonly Queue<Tuple<Vector2, TimeSpan>> pointerMoved = [];
+    private readonly Queue<Tuple<Vector2, TimeSpan>> pointerReleased = [];
 
     private readonly TimeSpan displayPointerDuration = TimeSpan.FromSeconds(1.5f);
 
@@ -51,9 +51,9 @@ public class TouchInputsScript : SyncScript
     private string compositeEvent;
     private string tapEvent;
 
-    private Tuple<GestureEvent, TimeSpan> lastFlickEvent = new Tuple<GestureEvent, TimeSpan>(null, TimeSpan.Zero);
-    private Tuple<GestureEvent, TimeSpan> lastLongPressEvent = new Tuple<GestureEvent, TimeSpan>(null, TimeSpan.Zero);
-    private Tuple<GestureEvent, TimeSpan> lastTapEvent = new Tuple<GestureEvent, TimeSpan>(null, TimeSpan.Zero);
+    private Tuple<GestureEvent, TimeSpan> lastFlickEvent = new(null, TimeSpan.Zero);
+    private Tuple<GestureEvent, TimeSpan> lastLongPressEvent = new(null, TimeSpan.Zero);
+    private Tuple<GestureEvent, TimeSpan> lastTapEvent = new(null, TimeSpan.Zero);
 
     // GamePads
     private string gamePadText;

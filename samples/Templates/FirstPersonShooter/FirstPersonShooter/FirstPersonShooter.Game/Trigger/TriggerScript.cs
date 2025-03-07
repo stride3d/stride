@@ -15,7 +15,7 @@ public abstract class TriggerScript : AsyncScript
 {
     [DataMember(10)]
     [Display("TriggerGroup")]
-    public TriggerGroup TriggerGroup { get; set; } = new TriggerGroup();
+    public TriggerGroup TriggerGroup { get; set; } = new();
 
     protected void SpawnEvent(string eventName, Entity attachEntity, Matrix transformMatrix)
     {

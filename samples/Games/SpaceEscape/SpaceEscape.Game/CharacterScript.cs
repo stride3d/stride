@@ -75,7 +75,7 @@ public class CharacterScript : AsyncScript
     private PlayingAnimation playingAnimation; // Current active animation
     private float startChangeLanePosX; // Position of X before changing lane
     private float targetChangeLanePosX; // Position of X after changning lane
-    private readonly Dictionary<BoundingBoxKeys, BoundingBox> boundingBoxes = new Dictionary<BoundingBoxKeys, BoundingBox>();
+    private readonly Dictionary<BoundingBoxKeys, BoundingBox> boundingBoxes = new();
     
     public bool IsDead { get { return State == AgentState.Die; } }
 

@@ -37,8 +37,8 @@ public class Section
     public Section()
     {
         RootEntity = new Entity();
-        CollidableObstacles = new List<Obstacle>();
-        Holes = new List<Hole>();
+        CollidableObstacles = [];
+        Holes = [];
     }
 
     /// <summary>

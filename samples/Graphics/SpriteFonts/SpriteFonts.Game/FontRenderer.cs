@@ -24,10 +24,13 @@ namespace SpriteFonts;
 public class FontRenderer : SceneRendererBase
 {
     // Time to display text groups where the first index corresponding to introduction text, and the rest corresponding to text groups
-    private static readonly float[] TimeToDisplayTextGroups = { 3f /*Intro*/, 5f /*Static*/, 5f /*Dynamic*/, 4f /*Style*/, 5f /*Alias*/,
-                                                                5f /*Language*/, 5f /*Alignment*/, 10f /*Animated*/};
+    private static readonly float[] TimeToDisplayTextGroups =
+    [
+        3f /*Intro*/, 5f /*Static*/, 5f /*Dynamic*/, 4f /*Style*/, 5f /*Alias*/,
+        5f /*Language*/, 5f /*Alignment*/, 10f /*Animated*/
+    ];
 
-    private readonly List<Action> screenRenderers = new List<Action>();
+    private readonly List<Action> screenRenderers = [];
 
     private const float FadeInDuration = 1f;
     private const float FadeOutDuration = 1f;
@@ -72,12 +75,12 @@ at full size and full measure";
     private int currentScreenIndex;
     private float currentTime;
 
-    private readonly Vector2 headerPosition = new Vector2(0.5f, 0.25f);
-    private readonly Vector2 contentPosition = new Vector2(0.5f, 0.4f);
+    private readonly Vector2 headerPosition = new(0.5f, 0.25f);
+    private readonly Vector2 contentPosition = new(0.5f, 0.4f);
 
-    private readonly Color strideColor = new Color(0xFF3008da);
+    private readonly Color strideColor = new(0xFF3008da);
 
-    private Vector2 virtualResolution = new Vector2(1920, 1080);
+    private Vector2 virtualResolution = new(1920, 1080);
 
     private InputManager input;
 

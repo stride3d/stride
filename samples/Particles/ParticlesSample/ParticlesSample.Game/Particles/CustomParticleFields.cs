@@ -11,5 +11,5 @@ public static class CustomParticleFields
     /// <summary>
     /// Custom field for our particle, which defines non-uniform dimensions in 2D space
     /// </summary>
-    public static readonly ParticleFieldDescription<Vector2> RectangleXY = new ParticleFieldDescription<Vector2>("RectangleXY", new Vector2(1, 1));
+    public static readonly ParticleFieldDescription<Vector2> RectangleXY = new("RectangleXY", new Vector2(1, 1));
 }

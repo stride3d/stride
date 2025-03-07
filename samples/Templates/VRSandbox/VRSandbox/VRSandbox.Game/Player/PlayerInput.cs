@@ -28,7 +28,7 @@ public class HandsInput
 
 public class PlayerInput : SyncScript
 {
-    public static readonly EventKey<HandsInput> HandsControlEventKey = new EventKey<HandsInput>();
+    public static readonly EventKey<HandsInput> HandsControlEventKey = new();
 
     public int ControllerIndex { get; set; }
 

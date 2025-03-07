@@ -42,7 +42,7 @@ public class FpsCamera : AsyncScript
     /// </summary>
     public bool InvertY { get; set; } = false;
 
-    private readonly EventReceiver<Vector2> cameraDirectionEvent = new EventReceiver<Vector2>(PlayerInput.CameraDirectionEventKey);
+    private readonly EventReceiver<Vector2> cameraDirectionEvent = new(PlayerInput.CameraDirectionEventKey);
 
     public override async Task Execute()
     {

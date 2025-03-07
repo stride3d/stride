@@ -23,13 +23,13 @@ public class BackgroundScript : SyncScript
     public Scene LevelBlocks;
     public Model SkyplaneModel; // Cache to scroll its UV region.
 
-    internal static readonly Random Random = new Random();
-    private readonly List<Section> levelBlocks = new List<Section>();
+    internal static readonly Random Random = new();
+    private readonly List<Section> levelBlocks = [];
     private LevelGenerator levelGenerator;
     private float runningDistance; // Store how far the player progressed in m.
 
-    private static readonly Vector3 SkyPlanePosition = new Vector3(0, -10f, 340f);
-    private Vector4 skyplaneUVRegion = new Vector4(0f, 0f, 1f, 1f);
+    private static readonly Vector3 SkyPlanePosition = new(0, -10f, 340f);
+    private Vector4 skyplaneUVRegion = new(0f, 0f, 1f, 1f);
     private bool isScrolling;
     private Entity skyplaneEntity;
 

@@ -37,7 +37,7 @@ public class PlayerScript : AsyncScript
     private const int AgentMoveDistance = 10;       // virtual resolution unit/second
     private const float AgentShootDelay = 0.3f;     // second
 
-    private static readonly Dictionary<AgentAnimation, int> AnimationFps = new Dictionary<AgentAnimation, int> { { AgentAnimation.Run, 12 }, { AgentAnimation.Idle, 7 }, { AgentAnimation.Shoot, 15 } };
+    private static readonly Dictionary<AgentAnimation, int> AnimationFps = new() { { AgentAnimation.Run, 12 }, { AgentAnimation.Idle, 7 }, { AgentAnimation.Shoot, 15 } };
 
     private SpriteComponent agentSpriteComponent;
     private SpriteSheet spriteSheet;

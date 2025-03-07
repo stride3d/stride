@@ -53,7 +53,7 @@ public class ParticleCustomMaterial : ParticleMaterialSimple
     [DataMember(200)]
     [Display("TexCoord0")]
     public UVBuilder UVBuilder0;
-    private readonly AttributeDescription texCoord0 = new AttributeDescription("TEXCOORD");
+    private readonly AttributeDescription texCoord0 = new("TEXCOORD");
 
     /// <summary>
     /// <see cref="IComputeColor"/> allows several channels to be blended together, including textures, vertex streams and fixed values.
@@ -79,7 +79,7 @@ public class ParticleCustomMaterial : ParticleMaterialSimple
     [DataMember(400)]
     [Display("TexCoord1")]
     public UVBuilder UVBuilder1;
-    private readonly AttributeDescription texCoord1 = new AttributeDescription("TEXCOORD1");
+    private readonly AttributeDescription texCoord1 = new("TEXCOORD1");
 
     protected override void InitializeCore(RenderContext context)
     {

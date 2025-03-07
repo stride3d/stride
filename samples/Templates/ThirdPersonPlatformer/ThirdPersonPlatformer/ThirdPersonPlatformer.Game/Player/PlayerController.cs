@@ -14,9 +14,9 @@ public class PlayerController : SyncScript
     [Display("Run Speed")]
     public float MaxRunSpeed { get; set; } = 10;
 
-    public static readonly EventKey<bool> IsGroundedEventKey = new EventKey<bool>();
+    public static readonly EventKey<bool> IsGroundedEventKey = new();
 
-    public static readonly EventKey<float> RunSpeedEventKey = new EventKey<float>();
+    public static readonly EventKey<float> RunSpeedEventKey = new();
 
     // This component is the physics representation of a controllable character
     private CharacterComponent character;
@@ -24,9 +24,9 @@ public class PlayerController : SyncScript
 
     private float yawOrientation;
 
-    private readonly EventReceiver<Vector3> moveDirectionEvent = new EventReceiver<Vector3>(PlayerInput.MoveDirectionEventKey);
+    private readonly EventReceiver<Vector3> moveDirectionEvent = new(PlayerInput.MoveDirectionEventKey);
 
-    private readonly EventReceiver<bool> jumpEvent = new EventReceiver<bool>(PlayerInput.JumpEventKey);
+    private readonly EventReceiver<bool> jumpEvent = new(PlayerInput.JumpEventKey);
 
     /// <summary>
     /// Allow for some latency from the user input to make jumping appear more natural

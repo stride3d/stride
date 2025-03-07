@@ -23,7 +23,7 @@ public class AnimationStart : StartupScript
     /// <summary>
     /// Al list of animations to be loaded when the script starts
     /// </summary>
-    public readonly List<PlayAnimation> Animations = new List<PlayAnimation>();
+    public readonly List<PlayAnimation> Animations = [];
 
     public override void Start()
     {

@@ -14,7 +14,7 @@ public class TriggerGroup
 
     [DataMember(20)]
     [Display("Events")]
-    public List<TriggerEvent> TriggerEvents { get; } = new List<TriggerEvent>();
+    public List<TriggerEvent> TriggerEvents { get; } = [];
 
     public TriggerEvent Find(string name) => Find(x => x.Name.Equals(name));
 

@@ -24,17 +24,17 @@ public class BasicCameraController : SyncScript
     private float yaw;
     private float pitch;
 
-    public Vector3 KeyboardMovementSpeed { get; set; } = new Vector3(5.0f);
+    public Vector3 KeyboardMovementSpeed { get; set; } = new(5.0f);
 
-    public Vector3 TouchMovementSpeed { get; set; } = new Vector3(40, 40, 20);
+    public Vector3 TouchMovementSpeed { get; set; } = new(40, 40, 20);
 
     public float SpeedFactor { get; set; } = 5.0f;
 
-    public Vector2 KeyboardRotationSpeed { get; set; } = new Vector2(3.0f);
+    public Vector2 KeyboardRotationSpeed { get; set; } = new(3.0f);
 
-    public Vector2 MouseRotationSpeed { get; set; } = new Vector2(90.0f, 60.0f);
+    public Vector2 MouseRotationSpeed { get; set; } = new(90.0f, 60.0f);
 
-    public Vector2 TouchRotationSpeed { get; set; } = new Vector2(60.0f, 40.0f);
+    public Vector2 TouchRotationSpeed { get; set; } = new(60.0f, 40.0f);
 
     public override void Start()
     {

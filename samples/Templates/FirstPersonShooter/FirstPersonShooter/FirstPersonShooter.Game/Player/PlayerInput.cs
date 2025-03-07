@@ -14,13 +14,13 @@ public class PlayerInput : SyncScript
     /// <summary>
     /// Raised every frame with the intended direction of movement from the player.
     /// </summary>
-    public static readonly EventKey<Vector3> MoveDirectionEventKey = new EventKey<Vector3>();       // This can be made non-static and require specific binding to the scripts instead
+    public static readonly EventKey<Vector3> MoveDirectionEventKey = new();       // This can be made non-static and require specific binding to the scripts instead
 
-    public static readonly EventKey<Vector2> CameraDirectionEventKey = new EventKey<Vector2>();     // This can be made non-static and require specific binding to the scripts instead
+    public static readonly EventKey<Vector2> CameraDirectionEventKey = new();     // This can be made non-static and require specific binding to the scripts instead
 
-    public static readonly EventKey<bool> ShootEventKey = new EventKey<bool>();                     // This can be made non-static and require specific binding to the scripts instead
+    public static readonly EventKey<bool> ShootEventKey = new();                     // This can be made non-static and require specific binding to the scripts instead
 
-    public static readonly EventKey<bool> ReloadEventKey = new EventKey<bool>();                    // This can be made non-static and require specific binding to the scripts instead
+    public static readonly EventKey<bool> ReloadEventKey = new();                    // This can be made non-static and require specific binding to the scripts instead
 
     public float DeadZone { get; set; } = 0.25f;
 
@@ -31,15 +31,15 @@ public class PlayerInput : SyncScript
     /// </summary>
     public float MouseSensitivity { get; set; } = 100.0f;
 
-    public List<Keys> KeysLeft { get; } = new List<Keys>();
+    public List<Keys> KeysLeft { get; } = [];
 
-    public List<Keys> KeysRight { get; } = new List<Keys>();
+    public List<Keys> KeysRight { get; } = [];
 
-    public List<Keys> KeysUp { get; } = new List<Keys>();
+    public List<Keys> KeysUp { get; } = [];
 
-    public List<Keys> KeysDown { get; } = new List<Keys>();
+    public List<Keys> KeysDown { get; } = [];
 
-    public List<Keys> KeysReload { get; } = new List<Keys>();
+    public List<Keys> KeysReload { get; } = [];
 
     public PlayerInput()
     {

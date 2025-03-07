@@ -13,7 +13,7 @@ public class TouchInputsRenderer : SceneRendererBase
 {
     private SpriteBatch spriteBatch;
 
-    private Vector2 virtualResolution = new Vector2(1920, 1080);
+    private Vector2 virtualResolution = new(1920, 1080);
 
     public Texture Background;
 

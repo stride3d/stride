@@ -10,8 +10,8 @@ namespace JumpyJet;
 
 public class BackgroundScript : AsyncScript
 {
-    private EventReceiver gameOverListener = new EventReceiver(GameGlobals.GameOverEventKey);
-    private EventReceiver gameResetListener = new EventReceiver(GameGlobals.GameResetEventKey);
+    private EventReceiver gameOverListener = new(GameGlobals.GameOverEventKey);
+    private EventReceiver gameResetListener = new(GameGlobals.GameResetEventKey);
 
     public override async Task Execute()
     {

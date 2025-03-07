@@ -11,7 +11,7 @@ namespace PhysicsSample;
 public class Trigger : AsyncScript
 {
     [DataMemberIgnore]
-    public EventKey<bool> TriggerEvent = new EventKey<bool>();
+    public EventKey<bool> TriggerEvent = new();
 
     public override async Task Execute()
     {

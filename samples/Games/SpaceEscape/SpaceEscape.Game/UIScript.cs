@@ -59,7 +59,7 @@ public class UIScript : StartupScript
         strideLogo.SetCanvasRelativeSize(new Vector3(0.8f, 0.5f, 1f));
         strideLogo.SetCanvasRelativePosition(new Vector3(0.5f, 0.3f, 1f));
 
-        StartButton = new Button
+        StartButton = new Button()
         {
             Content = new TextBlock { Font = Font, Text = "Touch to Start", TextColor = Color.Black, 
                 HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center},
@@ -77,7 +77,7 @@ public class UIScript : StartupScript
         mainMenuCanvas.Children.Add(strideLogo);
         mainMenuCanvas.Children.Add(StartButton);
 
-        mainMenuRoot = new ModalElement
+        mainMenuRoot = new ModalElement()
         {
             HorizontalAlignment = HorizontalAlignment.Stretch,
             VerticalAlignment = VerticalAlignment.Stretch,
@@ -87,7 +87,7 @@ public class UIScript : StartupScript
 
     private void CreateGameUI()
     {
-        distanceTextBlock = new TextBlock { Font = Font, TextColor = Color.Gold, VerticalAlignment = VerticalAlignment.Center };
+        distanceTextBlock = new TextBlock() { Font = Font, TextColor = Color.Gold, VerticalAlignment = VerticalAlignment.Center };
         distanceTextBlock.SetCanvasPinOrigin(new Vector3(0.5f, 0.5f, 1f));
         distanceTextBlock.SetCanvasRelativePosition(new Vector3(0.2f, 0.05f, 0f));
 
@@ -105,7 +105,7 @@ public class UIScript : StartupScript
 
     private void CreateGameOverUI()
     {
-        MenuButton = new Button
+        MenuButton = new Button()
         {
             Content = new TextBlock { Font = Font, Text = "Menu", TextColor = Color.Black, 
                 HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center},
@@ -119,7 +119,7 @@ public class UIScript : StartupScript
         MenuButton.SetCanvasPinOrigin(new Vector3(0.5f, 0.5f, 1f));
         MenuButton.SetCanvasRelativePosition(new Vector3(0.70f, 0.7f, 0f));
 
-        RetryButton = new Button
+        RetryButton = new Button()
         {
             Content = new TextBlock { Font = Font, Text = "Retry", TextColor = Color.Black, 
                 HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center},
@@ -137,7 +137,7 @@ public class UIScript : StartupScript
         gameOverCanvas.Children.Add(MenuButton);
         gameOverCanvas.Children.Add(RetryButton);
 
-        gameOverRoot = new ModalElement
+        gameOverRoot = new ModalElement()
         {
             HorizontalAlignment = HorizontalAlignment.Stretch,
             VerticalAlignment = VerticalAlignment.Stretch,
@@ -151,7 +151,7 @@ public class UIScript : StartupScript
     /// </summary>
     public void StartMainMenuMode()
     {
-        Entity.Get<UIComponent>().Page = new UIPage { RootElement = mainMenuRoot };
+        Entity.Get<UIComponent>().Page = new UIPage() { RootElement = mainMenuRoot };
     }
 
     /// <summary>
@@ -159,7 +159,7 @@ public class UIScript : StartupScript
     /// </summary>
     public void StartPlayMode()
     {
-        Entity.Get<UIComponent>().Page = new UIPage { RootElement = gameRoot };
+        Entity.Get<UIComponent>().Page = new UIPage() { RootElement = gameRoot };
     }
 
     /// <summary>
@@ -167,7 +167,7 @@ public class UIScript : StartupScript
     /// </summary>
     public void StartGameOverMode()
     {
-        Entity.Get<UIComponent>().Page = new UIPage { RootElement = gameOverRoot };
+        Entity.Get<UIComponent>().Page = new UIPage() { RootElement = gameOverRoot };
     }
 
     /// <summary>

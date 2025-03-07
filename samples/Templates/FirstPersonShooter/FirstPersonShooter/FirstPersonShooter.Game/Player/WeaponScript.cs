@@ -18,13 +18,13 @@ public struct WeaponFiredResult
 
 public class WeaponScript : SyncScript
 {
-    public static readonly EventKey<WeaponFiredResult> WeaponFired = new EventKey<WeaponFiredResult>();
+    public static readonly EventKey<WeaponFiredResult> WeaponFired = new();
 
-    public static readonly EventKey<bool> IsReloading = new EventKey<bool>();
+    public static readonly EventKey<bool> IsReloading = new();
 
-    private readonly EventReceiver<bool> shootEvent = new EventReceiver<bool>(PlayerInput.ShootEventKey);
+    private readonly EventReceiver<bool> shootEvent = new(PlayerInput.ShootEventKey);
 
-    private readonly EventReceiver<bool> reloadEvent = new EventReceiver<bool>(PlayerInput.ReloadEventKey);
+    private readonly EventReceiver<bool> reloadEvent = new(PlayerInput.ReloadEventKey);
 
     public float MaxShootDistance { get; set; } = 100f;
 

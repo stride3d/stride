@@ -56,9 +56,9 @@ public class ThirdPersonCamera : SyncScript
     /// </summary>
     public float VerticalSpeed { get; set; } = 65f;
 
-    private Vector3 cameraRotationXYZ = new Vector3(-20, 45, 0);
-    private Vector3 targetRotationXYZ = new Vector3(-20, 45, 0);
-    private readonly EventReceiver<Vector2> cameraDirectionEvent = new EventReceiver<Vector2>(PlayerInput.CameraDirectionEventKey);
+    private Vector3 cameraRotationXYZ = new(-20, 45, 0);
+    private Vector3 targetRotationXYZ = new(-20, 45, 0);
+    private readonly EventReceiver<Vector2> cameraDirectionEvent = new(PlayerInput.CameraDirectionEventKey);
     private List<HitResult> resultsOutput;
     private ConeColliderShape coneShape;
 
@@ -149,7 +149,7 @@ public class ThirdPersonCamera : SyncScript
         base.Start();
 
         coneShape = new ConeColliderShape(DefaultDistance, ConeRadius, ShapeOrientation.UpZ);
-        resultsOutput = new List<HitResult>();
+        resultsOutput = [];
 
         if (Entity.GetParent() == null) throw new ArgumentException("ThirdPersonCamera should be placed as a child entity of its target entity!");
     }

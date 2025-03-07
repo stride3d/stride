@@ -49,10 +49,10 @@ public class AnimationController : SyncScript, IBlendTreeBuilder
     private float walkLerpFactor = 0.5f;
 
     // Internal state
-    private readonly EventReceiver<float> runSpeedEvent = new EventReceiver<float>(PlayerController.RunSpeedEventKey);
+    private readonly EventReceiver<float> runSpeedEvent = new(PlayerController.RunSpeedEventKey);
     private AnimationState state = AnimationState.Walking;
 
-    private readonly EventReceiver<bool> attackEvent = new EventReceiver<bool>(PlayerController.IsAttackingEventKey);
+    private readonly EventReceiver<bool> attackEvent = new(PlayerController.IsAttackingEventKey);
 
     float runSpeed;
 

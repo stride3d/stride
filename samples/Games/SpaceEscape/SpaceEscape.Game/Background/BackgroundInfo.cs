@@ -9,7 +9,7 @@ public class BackgroundInfo : ScriptComponent
 {
     public BackgroundInfo()
     {
-        Holes = new List<Hole>();
+        Holes = [];
     }
 
     public int MaxNbObstacles { get; set; }

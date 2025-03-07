@@ -20,10 +20,10 @@ public class LaserOrientationScript : AsyncScript
     [Display("Scale Only Z")]
     public bool scaleOnlyZ = true;
 
-    private Vector3 targetPosition = new Vector3(0, 0, 0);
+    private Vector3 targetPosition = new(0, 0, 0);
 
     // We could expose this if we need to change it
-    private Vector3 upVector = new Vector3(0, 1, 0);
+    private Vector3 upVector = new(0, 1, 0);
 
 
     public override async Task Execute()

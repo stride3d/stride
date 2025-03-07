@@ -19,7 +19,7 @@ public class JumpyJetRenderer : SceneRendererBase
 
     private SpriteBatch spriteBatch;
 
-    private readonly List<BackgroundSection> backgroundParallax = new List<BackgroundSection>();
+    private readonly List<BackgroundSection> backgroundParallax = [];
 
 
     public SpriteSheet ParallaxBackgrounds;

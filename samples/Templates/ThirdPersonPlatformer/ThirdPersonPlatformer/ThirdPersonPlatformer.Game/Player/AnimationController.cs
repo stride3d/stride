@@ -59,8 +59,8 @@ public class AnimationController : SyncScript, IBlendTreeBuilder
     // Internal state
     private bool isGrounded = false;
     private AnimationState state = AnimationState.Airborne;
-    private readonly EventReceiver<float> runSpeedEvent = new EventReceiver<float>(PlayerController.RunSpeedEventKey);
-    private readonly EventReceiver<bool> isGroundedEvent = new EventReceiver<bool>(PlayerController.IsGroundedEventKey);
+    private readonly EventReceiver<float> runSpeedEvent = new(PlayerController.RunSpeedEventKey);
+    private readonly EventReceiver<bool> isGroundedEvent = new(PlayerController.IsGroundedEventKey);
 
     float runSpeed;
 
