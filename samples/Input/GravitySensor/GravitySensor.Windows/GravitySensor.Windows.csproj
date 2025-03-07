@@ -7,6 +7,8 @@
     <OutputPath>..\Bin\Windows\$(Configuration)\</OutputPath>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <DefineConstants>STRIDE_PLATFORM_DESKTOP</DefineConstants>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <PropertyGroup>
     <StrideCurrentPackagePath>$(MSBuildThisFileDirectory)..\GravitySensor.sdpkg</StrideCurrentPackagePath>
