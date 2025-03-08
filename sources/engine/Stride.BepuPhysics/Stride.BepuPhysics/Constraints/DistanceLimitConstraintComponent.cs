@@ -11,7 +11,10 @@ using Stride.Engine.Design;
 namespace Stride.BepuPhysics.Constraints;
 
 /// <summary>
-/// Constrains points on two bodies to be separated by a distance within a range.
+/// Constrains points on two bodies to be separated by a distance within a specified range.
+/// This constraint ensures that the distance between two points on two bodies remains within
+/// a minimum and maximum range. It is useful for creating elastic or flexible connections
+/// between bodies, where the distance can vary within the specified limits.
 /// </summary>
 [DataContract]
 [DefaultEntityComponentProcessor(typeof(ConstraintProcessor), ExecutionMode = ExecutionMode.Runtime)]

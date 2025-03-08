@@ -11,7 +11,10 @@ using Stride.Engine.Design;
 namespace Stride.BepuPhysics.Constraints;
 
 /// <summary>
-/// Constrains points on two bodies to be separated by a target distance.
+/// Constrains points on two bodies to be separated by a target distance using servo settings.
+/// This constraint attempts to maintain a specific distance between two points on two bodies
+/// by applying forces to reach the target distance. It uses servo settings to control the speed
+/// and force applied to achieve the target distance.
 /// </summary>
 [DataContract]
 [DefaultEntityComponentProcessor(typeof(ConstraintProcessor), ExecutionMode = ExecutionMode.Runtime)]
