@@ -6,37 +6,36 @@ using Stride.Graphics;
 using Stride.Input;
 using Stride.Physics;
 
-namespace CSharpIntermediate.Code
+namespace CSharpIntermediate.Code;
+
+public class UnprojectDemo : SyncScript
 {
-    public class UnprojectDemo : SyncScript
+    private CameraComponent camera;
+    public Entity sphereToClone;
+
+    public override void Start()
     {
-        private CameraComponent camera;
-        public Entity sphereToClone;
+        camera = Entity.Get<CameraComponent>();
+    }
 
-        public override void Start()
+    public override void Update()
+    {
+        if (Input.IsMouseButtonPressed(MouseButton.Left))
         {
-            camera = Entity.Get<CameraComponent>();
-        }
+            var backBuffer = GraphicsDevice.Presenter.BackBuffer;
+            var viewport = new Viewport(0, 0, backBuffer.Width, backBuffer.Height);
 
-        public override void Update()
-        {
-            if (Input.IsMouseButtonPressed(MouseButton.Left))
+            var nearPosition = viewport.Unproject(new Vector3(Input.AbsoluteMousePosition, 0.0f), camera.ProjectionMatrix, camera.ViewMatrix, Matrix.Identity);
+            var farPosition = viewport.Unproject(new Vector3(Input.AbsoluteMousePosition, 1.0f), camera.ProjectionMatrix, camera.ViewMatrix, Matrix.Identity);
+
+            var hitResult = this.GetSimulation().Raycast(nearPosition, farPosition);
+
+            // If there is a hitresult, clone the sphere and place it on that position
+            if (hitResult.Succeeded)
             {
-                var backBuffer = GraphicsDevice.Presenter.BackBuffer;
-                var viewport = new Viewport(0, 0, backBuffer.Width, backBuffer.Height);
-
-                var nearPosition = viewport.Unproject(new Vector3(Input.AbsoluteMousePosition, 0.0f), camera.ProjectionMatrix, camera.ViewMatrix, Matrix.Identity);
-                var farPosition = viewport.Unproject(new Vector3(Input.AbsoluteMousePosition, 1.0f), camera.ProjectionMatrix, camera.ViewMatrix, Matrix.Identity);
-
-                var hitResult = this.GetSimulation().Raycast(nearPosition, farPosition);
-
-                // If there is a hitresult, clone the sphere and place it on that position
-                if (hitResult.Succeeded)
-                {
-                    var sphereClone = sphereToClone.Clone();
-                    sphereClone.Transform.Position = hitResult.Point;
-                    Entity.Scene.Entities.Add(sphereClone);
-                }
+                var sphereClone = sphereToClone.Clone();
+                sphereClone.Transform.Position = hitResult.Point;
+                Entity.Scene.Entities.Add(sphereClone);
             }
         }
     }
