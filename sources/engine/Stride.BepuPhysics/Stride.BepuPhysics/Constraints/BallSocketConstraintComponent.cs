@@ -11,7 +11,25 @@ using Stride.Engine.Design;
 namespace Stride.BepuPhysics.Constraints;
 
 /// <summary>
-/// Constrains a point on one body to a point on another body.
+/// Creates a spherical joint (also known as a ball and socket joint) that constrains two bodies to share a connection point.
+/// <para>
+/// This constraint keeps a specific point on body A (defined by LocalOffsetA) coincident with a specific point
+/// on body B (defined by LocalOffsetB), while still allowing full rotational freedom around the connection point.
+/// </para>
+/// <para>
+/// Common uses include:
+/// <list type="bullet">
+/// <item>Character joint connections (shoulders, hips, etc.)</item>
+/// <item>Chain links</item>
+/// <item>Pendulums</item>
+/// <item>Rag doll physics</item>
+/// <item>Cloth and soft body simulation</item>
+/// </list>
+/// </para>
+/// <para>
+/// The `SpringFrequency` and `SpringDampingRatio` control how rigid or soft the connection is. Higher frequency values create stiffer
+/// connections, while lower values allow more elasticity in the joint.
+/// </para>
 /// </summary>
 [DataContract]
 [DefaultEntityComponentProcessor(typeof(ConstraintProcessor), ExecutionMode = ExecutionMode.Runtime)]
