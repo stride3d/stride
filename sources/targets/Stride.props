@@ -20,14 +20,12 @@
     <StrideGraphicsApis Condition="('$(StrideGraphicsApis)' == '' Or '$(StrideGraphicsApiDependentBuildAll)' == 'true') And ('$(TargetFramework)' == '$(StrideFramework)' Or '$(TargetFramework)' == '$(StrideFrameworkWindows)')">Direct3D11;Direct3D12;OpenGL;OpenGLES;Vulkan</StrideGraphicsApis>
 
     <StrideDefaultGraphicsApi Condition="'$(StrideGraphicsApis)' != ''">$(StrideGraphicsApis.Split(';', StringSplitOptions.RemoveEmptyEntries)[0])</StrideDefaultGraphicsApi>
-    <StrideDefaultGraphicsApi Condition="'$(TargetFramework)' == '$(StrideFrameworkUWP)'">Direct3D11</StrideDefaultGraphicsApi>
     <StrideDefaultGraphicsApi Condition="'$(TargetFramework)' == '$(StrideFrameworkAndroid)'">OpenGLES</StrideDefaultGraphicsApi>
     <StrideDefaultGraphicsApi Condition="'$(TargetFramework)' == '$(StrideFrameworkiOS)'">OpenGLES</StrideDefaultGraphicsApi>
   </PropertyGroup>
   <!-- Some platforms only have a single graphics API.
       If yes, set it right away and disable StrideGraphicsApiDependent (only for inner builds, check using TargetFrameworks) -->
   <PropertyGroup Condition="'$(StrideGraphicsApiDependent)' == 'true' And !('$(TargetFrameworks)' != '' and '$(TargetFramework)' == '')">
-    <StrideGraphicsApiDependent Condition="'$(TargetFramework)' == '$(StrideFrameworkUWP)'">false</StrideGraphicsApiDependent>
     <StrideGraphicsApiDependent Condition="'$(TargetFramework)' == '$(StrideFrameworkiOS)'">false</StrideGraphicsApiDependent>
     <StrideGraphicsApiDependent Condition="'$(TargetFramework)' == '$(StrideFrameworkAndroid)'">false</StrideGraphicsApiDependent>
     <StrideGraphicsApi Condition="'$(StrideGraphicsApiDependent)' == 'false'">$(StrideDefaultGraphicsApi)</StrideGraphicsApi>
@@ -66,13 +64,6 @@
   </PropertyGroup>
 
   <!--
-    Settings TargetFramework specific
-  -->
-  <PropertyGroup Condition=" '$(TargetFramework)' == '$(StrideFrameworkUWP)' ">
-    <ProjectLockFile Condition="'$(ProjectLockFile)' == ''">$(MSBuildThisFileDirectory)..\build\project.lock.json</ProjectLockFile>
-  </PropertyGroup>
-
-  <!--
     Global Defines
   -->
   <PropertyGroup>
@@ -80,7 +71,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <StrideUI Condition="'$(TargetFramework)' != '$(StrideFrameworkUWP)'">SDL</StrideUI>
+    <StrideUI>SDL</StrideUI>
     <StrideUI Condition="'$(TargetFramework)' == '$(StrideFrameworkWindows)' AND ('$(StrideGraphicsApi)' == 'Direct3D11' Or '$(StrideGraphicsApi)' == 'Direct3D12')">$(StrideUI);WINFORMS;WPF</StrideUI>
 
     <DefineConstants Condition="$(StrideUI.Contains('SDL'))">$(DefineConstants);STRIDE_UI_SDL</DefineConstants>

@@ -48,16 +48,6 @@ namespace Stride.Games
         /// </summary>
         Android,
 
-        /// <summary>
-        /// Game running on UWP in a Xaml SwapChainPanel.
-        /// </summary>
-        UWPXaml,
-
-        /// <summary>
-        /// Game running on UWP in a CoreWindow.
-        /// </summary>
-        UWPCoreWindow,
-
 #pragma warning disable SA1300 // Element must begin with upper-case letter
         /// <summary>
         /// Game running on iOS in a iPhoneOSGameView.

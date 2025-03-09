@@ -29,10 +29,6 @@ namespace Stride.Graphics.Regression
                 game.Run();
             }
 
-#elif STRIDE_PLATFORM_UWP
-
-            throw new NotImplementedException();
-
 #elif STRIDE_PLATFORM_IOS || STRIDE_PLATFORM_ANDROID
 
             lock(uniThreadLock)

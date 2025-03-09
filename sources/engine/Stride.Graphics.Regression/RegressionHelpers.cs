@@ -1,21 +1,8 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
-using System.IO.Compression;
-using System.Runtime.InteropServices;
-using System.Text;
 using Stride.Core;
-using Stride.Core.LZ4;
-
-#if STRIDE_PLATFORM_UWP
-using Windows.Security.Cryptography;
-using Windows.Security.Cryptography.Core;
-using Windows.System.Profile;
-using Windows.Security.ExchangeActiveSyncProvisioning;
-#endif
 
 namespace Stride.Graphics.Regression
 {
@@ -68,18 +55,6 @@ namespace Stride.Graphics.Regression
             result.Platform = "iOS";
             result.DeviceName = iOSDeviceType.Version.ToString();
             result.Serial = UIKit.UIDevice.CurrentDevice.Name;
-#elif STRIDE_PLATFORM_UWP
-            result.Platform = "UWP";
-            var deviceInfo = new EasClientDeviceInformation();
-            result.DeviceName = deviceInfo.SystemManufacturer + " " + deviceInfo.SystemProductName;
-            try
-            {
-                result.Serial = deviceInfo.Id.ToString();
-            }
-            catch (Exception)
-            {
-                // Ignored on UWP
-            }
 #endif
 
             return result;
