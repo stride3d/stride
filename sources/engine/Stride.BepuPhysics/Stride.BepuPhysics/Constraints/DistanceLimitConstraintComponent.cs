@@ -16,6 +16,11 @@ namespace Stride.BepuPhysics.Constraints;
 /// a minimum and maximum range. It is useful for creating elastic or flexible connections
 /// between bodies, where the distance can vary within the specified limits.
 /// </summary>
+/// <remarks>
+/// Unlike <see cref="CenterDistanceLimitConstraintComponent"/>, this constraint allows you to specify
+/// exact attachment points on each body using <see cref="LocalOffsetA"/> and <see cref="LocalOffsetB"/> properties. If you need to
+/// constrain only the centers of bodies, use <see cref="CenterDistanceLimitConstraintComponent"/> instead.
+/// </remarks>
 [DataContract]
 [DefaultEntityComponentProcessor(typeof(ConstraintProcessor), ExecutionMode = ExecutionMode.Runtime)]
 [ComponentCategory("Physics - Bepu Constraint")]
