@@ -42,7 +42,6 @@ public sealed class DistanceLimitConstraintComponent : TwoBodyConstraintComponen
     /// <summary>
     /// Local offset from the center of body B to its attachment point.
     /// </summary>
-    /// </summary>
     public Vector3 LocalOffsetB
     {
         get
