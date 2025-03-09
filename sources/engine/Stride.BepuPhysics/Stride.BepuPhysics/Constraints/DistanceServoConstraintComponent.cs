@@ -16,6 +16,12 @@ namespace Stride.BepuPhysics.Constraints;
 /// by applying forces to reach the target distance. It uses servo settings to control the speed
 /// and force applied to achieve the target distance.
 /// </summary>
+/// <remarks>
+/// Unlike <see cref="CenterDistanceConstraintComponent"/>, this constraint allows you to specify
+/// exact attachment points on each body using <see cref="LocalOffsetA"/> and <see cref="LocalOffsetB"/> properties. If you need to
+/// constrain only the centers of bodies, use <see cref="CenterDistanceConstraintComponent"/> instead.
+/// For a version that allows a range of distances rather than a single target value, see <see cref="DistanceLimitConstraintComponent"/>.
+/// </remarks>
 [DataContract]
 [DefaultEntityComponentProcessor(typeof(ConstraintProcessor), ExecutionMode = ExecutionMode.Runtime)]
 [ComponentCategory("Physics - Bepu Constraint")]
