@@ -22,9 +22,6 @@ namespace Stride.Graphics.OpenGL
         {
             switch (graphicsProfile)
             {
-                case GraphicsProfile.Level_9_1:
-                case GraphicsProfile.Level_9_2:
-                case GraphicsProfile.Level_9_3:
                 case GraphicsProfile.Level_10_0:
                 case GraphicsProfile.Level_10_1:
                     version = 300;
@@ -50,11 +47,6 @@ namespace Stride.Graphics.OpenGL
         {
             switch (graphicsProfile)
             {
-                case GraphicsProfile.Level_9_1:
-                case GraphicsProfile.Level_9_2:
-                case GraphicsProfile.Level_9_3:
-                    version = 330;
-                    return;
                 case GraphicsProfile.Level_10_0:
                 case GraphicsProfile.Level_10_1:
                     version = 410;
@@ -78,7 +70,7 @@ namespace Stride.Graphics.OpenGL
                 if (version >= 410)
                     return GraphicsProfile.Level_10_0;
             }
-            return GraphicsProfile.Level_9_1;
+            return GraphicsProfile.Level_10_0;
         }
 #endif
     }

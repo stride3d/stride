@@ -639,59 +639,19 @@ namespace Stride.Graphics
             // If the texture is going to be bound on the depth stencil, for to use TypeLess format
             if (IsDepthStencil)
             {
-                if (IsShaderResource && GraphicsDevice.Features.CurrentProfile < GraphicsProfile.Level_10_0)
+                // Determine TypeLess Format and ShaderResourceView Format
+                format = textureDescription.Format switch
                 {
-                    throw new NotSupportedException($"ShaderResourceView for DepthStencil Textures are not supported for Graphics profile < 10.0 (Current: [{GraphicsDevice.Features.CurrentProfile}])");
-                }
-                else
-                {
-                    // Determine TypeLess Format and ShaderResourceView Format
-                    if (GraphicsDevice.Features.CurrentProfile < GraphicsProfile.Level_10_0)
-                    {
-                        switch (textureDescription.Format)
-                        {
-                            case PixelFormat.D16_UNorm:
-                                format = SharpDX.DXGI.Format.D16_UNorm;
-                                break;
-                            case PixelFormat.D32_Float:
-                                format = SharpDX.DXGI.Format.D32_Float;
-                                break;
-                            case PixelFormat.D24_UNorm_S8_UInt:
-                                format = SharpDX.DXGI.Format.D24_UNorm_S8_UInt;
-                                break;
-                            case PixelFormat.D32_Float_S8X24_UInt:
-                                format = SharpDX.DXGI.Format.D32_Float_S8X24_UInt;
-                                break;
-                            default:
-                                throw new NotSupportedException($"Unsupported DepthFormat [{textureDescription.Format}] for depth buffer");
-                        }
-                    }
-                    else
-                    {
-                        switch (textureDescription.Format)
-                        {
-                            case PixelFormat.D16_UNorm:
-                                format = SharpDX.DXGI.Format.R16_Typeless;
-                                break;
-                            case PixelFormat.D32_Float:
-                                format = SharpDX.DXGI.Format.R32_Typeless;
-                                break;
-                            case PixelFormat.D24_UNorm_S8_UInt:
-                                //format = SharpDX.DXGI.Format.D24_UNorm_S8_UInt;
-                                format = SharpDX.DXGI.Format.R24G8_Typeless;
-                                break;
-                            case PixelFormat.D32_Float_S8X24_UInt:
-                                format = SharpDX.DXGI.Format.R32G8X24_Typeless;
-                                break;
-                            default:
-                                throw new NotSupportedException($"Unsupported DepthFormat [{textureDescription.Format}] for depth buffer");
-                        }
-                    }
-                }
+                    PixelFormat.D16_UNorm => SharpDX.DXGI.Format.R16_Typeless,
+                    PixelFormat.D32_Float => SharpDX.DXGI.Format.R32_Typeless,
+                    PixelFormat.D24_UNorm_S8_UInt => SharpDX.DXGI.Format.R24G8_Typeless,//format = SharpDX.DXGI.Format.D24_UNorm_S8_UInt;
+                    PixelFormat.D32_Float_S8X24_UInt => SharpDX.DXGI.Format.R32G8X24_Typeless,
+                    _ => throw new NotSupportedException($"Unsupported DepthFormat [{textureDescription.Format}] for depth buffer"),
+                };
             }
 
             int quality = 0;
-            if (GraphicsDevice.Features.CurrentProfile >= GraphicsProfile.Level_10_1 && textureDescription.IsMultisample)
+            if (textureDescription.IsMultisample)
                 quality = (int)StandardMultisampleQualityLevels.StandardMultisamplePattern;
 
             var desc = new Texture2DDescription()
@@ -789,21 +749,6 @@ namespace Stride.Graphics
                 OptionFlags = (ResourceOptionFlags)textureDescription.Options,
             };
             return desc;
-        }
-
-        /// <summary>
-        /// Check and modify if necessary the mipmap levels of the image (Troubles with DXT images whose resolution in less than 4x4 in DX9.x).
-        /// </summary>
-        /// <param name="device">The graphics device.</param>
-        /// <param name="description">The texture description.</param>
-        /// <returns>The updated texture description.</returns>
-        private static TextureDescription CheckMipLevels(GraphicsDevice device, ref TextureDescription description)
-        {
-            if (device.Features.CurrentProfile < GraphicsProfile.Level_10_0 && (description.Flags & TextureFlags.DepthStencil) == 0 && description.Format.IsCompressed())
-            {
-                description.MipLevels = Math.Min(CalculateMipCount(description.Width, description.Height), description.MipLevels);
-            }
-            return description;
         }
 
         /// <summary>
