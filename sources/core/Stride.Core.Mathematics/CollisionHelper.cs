@@ -499,7 +499,7 @@ public static class CollisionHelper
         }
 
         Vector3.Dot(in plane.Normal, in ray.Position, out var position);
-        distance = (-plane.D - position) / direction;
+        distance = (plane.D - position) / direction;
 
         if (distance < 0f)
         {
