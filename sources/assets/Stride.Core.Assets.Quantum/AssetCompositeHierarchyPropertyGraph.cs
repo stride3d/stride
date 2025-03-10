@@ -624,6 +624,12 @@ public abstract class AssetCompositeHierarchyPropertyGraph<TAssetPartDesign, TAs
             if (part.Base is null)
                 continue;
 
+            if (part.Base.BasePartAsset is null)
+                continue;
+
+            if ((Guid)part.Base.BasePartAsset.Id == Guid.Empty)
+                continue;
+
             if (Container.TryGetGraph(part.Base.BasePartAsset.Id) is AssetCompositeHierarchyPropertyGraph<TAssetPartDesign, TAssetPart> baseAssetGraph)
             {
                 if (!basePartAssets.TryGetValue(baseAssetGraph, out var instanceIds))
