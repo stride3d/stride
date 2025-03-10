@@ -268,6 +268,7 @@ Thanks to all these wonderful people who have contributed to Stride!
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/ComputerSmoke"><img src="https://avatars.githubusercontent.com/u/22194459?v=4?s=100" width="100px;" alt="Addison Schmidt"/><br /><sub><b>Addison Schmidt</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=ComputerSmoke" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/timconner"><img src="https://avatars.githubusercontent.com/u/22841670?v=4?s=100" width="100px;" alt="Tim Conner"/><br /><sub><b>Tim Conner</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=timconner" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://www.caleblamcodes.dev/"><img src="https://avatars.githubusercontent.com/u/67606076?v=4?s=100" width="100px;" alt="Caleb L."/><br /><sub><b>Caleb L.</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=ClamEater14" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/net2cn"><img src="https://avatars.githubusercontent.com/u/6072596?v=4?s=100" width="100px;" alt="net2cn"/><br /><sub><b>net2cn</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=net2cn" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>
