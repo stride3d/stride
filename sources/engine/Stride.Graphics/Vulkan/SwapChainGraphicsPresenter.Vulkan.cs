@@ -323,7 +323,7 @@ namespace Stride.Graphics
                 surface = surface,
                 imageArrayLayers = 1,
                 imageSharingMode = VkSharingMode.Exclusive,
-                imageExtent = new Vortice.Mathematics.Size(Description.BackBufferWidth, Description.BackBufferHeight),
+                imageExtent = new VkExtent2D(Description.BackBufferWidth, Description.BackBufferHeight),
                 imageFormat = backBufferFormat,
                 imageColorSpace = Description.ColorSpace == ColorSpace.Gamma ? VkColorSpaceKHR.SrgbNonLinear : 0,
                 imageUsage = VkImageUsageFlags.ColorAttachment | VkImageUsageFlags.TransferDst | (surfaceCapabilities.supportedUsageFlags & VkImageUsageFlags.TransferSrc), // TODO VULKAN: Use off-screen buffer to emulate
