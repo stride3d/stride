@@ -8,13 +8,12 @@ using Stride.Rendering;
 using Stride.Engine;
 using Stride.Graphics;
 
-namespace <#= Properties.Namespace #>
-{
-    public class Class1
-    {
-        public void Method1()
-        {
+namespace <#= Properties.Namespace #>;
 
-        }
+public class Class1
+{
+    public void Method1()
+    {
+
     }
 }
