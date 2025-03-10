@@ -14,10 +14,8 @@ namespace Stride.Assets.Presentation.AssetEditors.UIEditor.Adorners
     {
         Left,
         Top,
-        Back,
         Right,
-        Bottom,
-        Front
+        Bottom
     }
 
     internal sealed class MarginAdorner : AdornerBase<Canvas>
@@ -39,7 +37,6 @@ namespace Stride.Assets.Presentation.AssetEditors.UIEditor.Adorners
             {
                 BackgroundColor = Color.WhiteSmoke*0.5f,
                 Font = font,
-                DepthAlignment = DepthAlignment.Center,
                 HorizontalAlignment = HorizontalAlignment.Center,
                 VerticalAlignment = VerticalAlignment.Center,
             };
@@ -65,56 +62,51 @@ namespace Stride.Assets.Presentation.AssetEditors.UIEditor.Adorners
             // do nothing (margin adorners are not hitable)
         }
 
-        public override void Update(Vector3 position)
+        public override void Update(Vector2 position)
         {
             UpdateFromSettings();
 
             var margin = GameSideElement.Margin;
-            var offset = GameSideElement.RenderSize*0.5f;
+            var offset = (Vector2)GameSideElement.RenderSize * 0.5f;
 
-            Vector3 pinOrigin;
-            Vector3 size;
-            Vector3 textRelativePosition;
+            Vector2 pinOrigin;
+            Size2F size;
+            Vector2 textRelativePosition;
             float value;
             switch (MarginEdge)
             {
                 case MarginEdge.Left:
-                    size = new Vector3(Math.Abs(margin.Left), thickness, thickness);
+                    size = new Size2F(Math.Abs(margin.Left), thickness);
                     value = margin.Left;
-                    pinOrigin = new Vector3(margin.Left >= 0 ? 1.0f : 0.0f, 0.5f, 0.5f);
-                    position += new Vector3(-offset.X, 0.0f, 0.0f);
-                    textRelativePosition = new Vector3(margin.Left < 0 ? 1.0f : 0.0f, 0.5f, 0.5f);
+                    pinOrigin = new Vector2(margin.Left >= 0 ? 1.0f : 0.0f, 0.5f);
+                    position += new Vector2(-offset.X, 0.0f);
+                    textRelativePosition = new Vector2(margin.Left < 0 ? 1.0f : 0.0f, 0.5f);
                     break;
 
                 case MarginEdge.Right:
-                    size = new Vector3(Math.Abs(margin.Right), thickness, thickness);
+                    size = new Size2F(Math.Abs(margin.Right), thickness);
                     value = margin.Right;
-                    pinOrigin = new Vector3(margin.Right <= 0 ? 1.0f : 0.0f, 0.0f, 0.5f);
-                    position += new Vector3(offset.X, 0.0f, 0.0f);
-                    textRelativePosition = new Vector3(margin.Right > 0 ? 1.0f : 0.0f, 0.5f, 0.5f);
+                    pinOrigin = new Vector2(margin.Right <= 0 ? 1.0f : 0.0f, 0.0f);
+                    position += new Vector2(offset.X, 0.0f);
+                    textRelativePosition = new Vector2(margin.Right > 0 ? 1.0f : 0.0f, 0.5f);
                     break;
 
                 case MarginEdge.Top:
-                    size = new Vector3(thickness, Math.Abs(margin.Top), thickness);
+                    size = new Size2F(thickness, Math.Abs(margin.Top));
                     value = margin.Top;
-                    pinOrigin = new Vector3(0.5f, margin.Top >= 0 ? 1.0f : 0.0f, 0.5f);
-                    position += new Vector3(0.0f, -offset.Y, 0.0f);
-                    textRelativePosition = new Vector3(0.5f, margin.Top < 0 ? 1.0f : 0.0f, 0.5f);
+                    pinOrigin = new Vector2(0.5f, margin.Top >= 0 ? 1.0f : 0.0f);
+                    position += new Vector2(0.0f, -offset.Y);
+                    textRelativePosition = new Vector2(0.5f, margin.Top < 0 ? 1.0f : 0.0f);
                     break;
 
                 case MarginEdge.Bottom:
-                    size = new Vector3(thickness, Math.Abs(margin.Bottom), thickness);
+                    size = new Size2F(thickness, Math.Abs(margin.Bottom));
                     value = margin.Bottom;
-                    pinOrigin = new Vector3(0.5f, margin.Bottom <= 0 ? 1.0f : 0.0f, 0.5f);
-                    position += new Vector3(0.0f, offset.Y, 0.0f);
-                    textRelativePosition = new Vector3(0.5f, margin.Bottom > 0 ? 1.0f : 0.0f, 0.5f);
+                    pinOrigin = new Vector2(0.5f, margin.Bottom <= 0 ? 1.0f : 0.0f);
+                    position += new Vector2(0.0f, offset.Y);
+                    textRelativePosition = new Vector2(0.5f, margin.Bottom > 0 ? 1.0f : 0.0f);
                     break;
-
-                case MarginEdge.Back:
-                case MarginEdge.Front:
-                    // FIXME: to be reviewed: not supported yet
-                    throw new NotSupportedException();
-
+                
                 default:
                     throw new ArgumentOutOfRangeException();
             }

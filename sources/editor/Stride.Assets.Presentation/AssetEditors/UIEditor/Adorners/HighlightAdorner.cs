@@ -36,7 +36,7 @@ namespace Stride.Assets.Presentation.AssetEditors.UIEditor.Adorners
             Visual.Opacity = 0.0f;
         }
 
-        public override void Update(Vector3 position)
+        public override void Update(Vector2 position)
         {
             UpdateFromSettings();
             Size = GameSideElement.RenderSize;
@@ -45,7 +45,7 @@ namespace Stride.Assets.Presentation.AssetEditors.UIEditor.Adorners
         protected override void UpdateSize()
         {
             base.UpdateSize();
-            Visual.Margin = Thickness.UniformCuboid(-BorderThickness);
+            Visual.Margin = Thickness.Uniform(-BorderThickness);
         }
 
         private void UpdateFromSettings()

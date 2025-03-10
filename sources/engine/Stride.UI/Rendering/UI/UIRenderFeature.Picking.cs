@@ -116,7 +116,7 @@ namespace Stride.Rendering.UI
         /// <param name="screenPosition">The position of the lick on the screen in normalized (0..1, 0..1) range</param>
         /// <param name="uiRay"><see cref="Ray"/> from the click in object space of the ui component in (-Resolution.X/2 .. Resolution.X/2, -Resolution.Y/2 .. Resolution.Y/2) range</param>
         /// <returns></returns>
-        private bool GetTouchPosition(Vector3 resolution, ref Viewport viewport, ref Matrix worldViewProj, Vector2 screenPosition, out Ray uiRay)
+        private bool GetTouchPosition(Size2F resolution, ref Viewport viewport, ref Matrix worldViewProj, Vector2 screenPosition, out Ray uiRay)
         {
             uiRay = new Ray(new Vector3(float.NegativeInfinity), new Vector3(0, 1, 0));
 
@@ -127,8 +127,8 @@ namespace Stride.Rendering.UI
 
             // If the click point is outside the canvas ignore any further testing
             var dist = -touchRay.Position.Z / touchRay.Direction.Z;
-            if (Math.Abs(touchRay.Position.X + touchRay.Direction.X * dist) > resolution.X * 0.5f ||
-                Math.Abs(touchRay.Position.Y + touchRay.Direction.Y * dist) > resolution.Y * 0.5f)
+            if (Math.Abs(touchRay.Position.X + touchRay.Direction.X * dist) > resolution.Width * 0.5f ||
+                Math.Abs(touchRay.Position.Y + touchRay.Direction.Y * dist) > resolution.Height * 0.5f)
                 return false;
 
             uiRay = touchRay;

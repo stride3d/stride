@@ -21,7 +21,6 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 
@@ -67,6 +66,35 @@ public struct Size2 : IEquatable<Size2>
     /// </summary>
     [DataMember(1)]
     public int Height;
+
+    /// <summary>
+    /// Gets or sets the component at the specified index.
+    /// </summary>
+    /// <value>The value of the Width or Height component, depending on the index.</value>
+    /// <param name="index">The index of the component to access. Use 0 for the Width component and 1 for the Height component.</param>
+    /// <returns>The value of the component at the specified index.</returns>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when the <paramref name="index"/> is out of the range [0, 1].</exception>
+    public int this[int index]
+    {
+        readonly get
+        {
+            return index switch
+            {
+                0 => Width,
+                1 => Height,
+                _ => throw new ArgumentOutOfRangeException(nameof(index), "Indices for Size2 run from 0 to 1, inclusive."),
+            };
+        }
+        set
+        {
+            switch (index)
+            {
+                case 0: Width = value; break;
+                case 1: Height = value; break;
+                default: throw new ArgumentOutOfRangeException(nameof(index), "Indices for Size2 run from 0 to 1, inclusive.");
+            }
+        }
+    }
 
     /// <summary>
     /// Determines whether the specified <see cref="object"/> is equal to this instance.

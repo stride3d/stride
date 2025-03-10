@@ -3,6 +3,7 @@
 using System;
 
 using Stride.Core;
+using Stride.Core.Mathematics;
 using Stride.UI.Controls;
 
 namespace Stride.UI.Renderers
@@ -24,7 +25,7 @@ namespace Stride.UI.Renderers
             var bar = (ScrollBar)element;
 
             // round the size of the bar to nearest pixel modulo to avoid to have a bar varying by one pixel length while scrolling
-            var barSize = bar.RenderSizeInternal;
+            var barSize = new Vector3(element.RenderSizeInternal.Width, element.RenderSizeInternal.Height, 1);
             var realVirtualRatio = bar.LayoutingContext.RealVirtualResolutionRatio;
             for (var i = 0; i < 2; i++)
                 barSize[i] = MathF.Ceiling(barSize[i] * realVirtualRatio[i]) / realVirtualRatio[i];
