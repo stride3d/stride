@@ -15,6 +15,9 @@ public sealed class AssetReferenceDataSerializer : DataSerializer<AssetReference
     {
         if (mode == ArchiveMode.Serialize)
         {
+            if (assetReference is null)
+                return;
+
             stream.Write(assetReference.Id);
             stream.Write(assetReference.Location);
         }
