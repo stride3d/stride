@@ -1109,7 +1109,7 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
                 }
 
                 var assetFolderAbsolute = UPath.Combine(RootDirectory, asset.SourceFolder);
-                if (!assetFolders.Add(assetFolderAbsolute))
+                if (assetFolders.Add(assetFolderAbsolute))
                 {
                     AssetFolders.Add(new AssetFolder(assetFolderAbsolute));
                     IsDirty = true;
