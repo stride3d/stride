@@ -9,44 +9,43 @@ using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Core.Reflection;
 
-namespace Stride.Editor.EditorGame.Game
+namespace Stride.Editor.EditorGame.Game;
+
+public sealed class EditorGameServiceRegistry : IAsyncDisposable
 {
-    public sealed class EditorGameServiceRegistry : Core.IAsyncDisposable
+    public List<IEditorGameService> Services { get; } = [];
+
+    [CanBeNull]
+    public T Get<T>()
     {
-        public List<IEditorGameService> Services { get; } = new List<IEditorGameService>();
+        return Services.OfType<T>().FirstOrDefault();
+    }
 
-        [CanBeNull]
-        public T Get<T>()
+    [CanBeNull]
+    public IEditorGameService Get([NotNull] Type serviceType)
+    {
+        if (serviceType == null) throw new ArgumentNullException(nameof(serviceType));
+        if (!serviceType.HasInterface(typeof(IEditorGameService)))
+            throw new ArgumentException($@"The given type must be a type that implement {nameof(IEditorGameService)}", nameof(serviceType));
+
+        return Services.FirstOrDefault(serviceType.IsInstanceOfType);
+    }
+
+    public void Add<T>([NotNull] T service)
+        where T : IEditorGameService
+    {
+        if (service == null) throw new ArgumentNullException(nameof(service));
+        Services.Add(service);
+    }
+
+    /// <inheritdoc/>
+    public async ValueTask DisposeAsync()
+    {
+        for (var index = Services.Count - 1; index >= 0; index--)
         {
-            return Services.OfType<T>().FirstOrDefault();
+            var service = Services[index];
+            await service.DisposeAsync();
         }
-
-        [CanBeNull]
-        public IEditorGameService Get([NotNull] Type serviceType)
-        {
-            if (serviceType == null) throw new ArgumentNullException(nameof(serviceType));
-            if (!serviceType.HasInterface(typeof(IEditorGameService)))
-                throw new ArgumentException($@"The given type must be a type that implement {nameof(IEditorGameService)}", nameof(serviceType));
-
-            return Services.FirstOrDefault(serviceType.IsInstanceOfType);
-        }
-
-        public void Add<T>([NotNull] T service)
-            where T : IEditorGameService
-        {
-            if (service == null) throw new ArgumentNullException(nameof(service));
-            Services.Add(service);
-        }
-
-        /// <inheritdoc/>
-        public async Task DisposeAsync()
-        {
-            for (var index = Services.Count - 1; index >= 0; index--)
-            {
-                var service = Services[index];
-                await service.DisposeAsync();
-            }
-            Services.Clear();
-        }
+        Services.Clear();
     }
 }
