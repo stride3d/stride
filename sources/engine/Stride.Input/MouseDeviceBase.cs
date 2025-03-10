@@ -21,6 +21,8 @@ namespace Stride.Input
 
         public abstract bool IsPositionLocked { get; }
 
+        public abstract bool IsMouseVisible { get; set; }
+
         public Core.Collections.IReadOnlySet<MouseButton> PressedButtons => MouseState.PressedButtons;
         public Core.Collections.IReadOnlySet<MouseButton> ReleasedButtons => MouseState.ReleasedButtons;
         public Core.Collections.IReadOnlySet<MouseButton> DownButtons => MouseState.DownButtons;

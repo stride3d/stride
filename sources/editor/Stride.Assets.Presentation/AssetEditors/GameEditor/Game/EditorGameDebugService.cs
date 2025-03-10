@@ -14,7 +14,7 @@ namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Game
     /// </summary>
     public class EditorGameDebugService : EditorGameServiceBase, IEditorGameDebugViewModelService
     {
-        private Engine.Game game;
+        private Engine.DefaultGame game;
 
         /// <summary>
         /// Gets the stats of the scene editor asset manager.

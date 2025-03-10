@@ -24,47 +24,27 @@
 
 using System;
 using System.Collections.Generic;
+using System.Net.Security;
 using Stride.Core;
-using Stride.Core.Mathematics;
 using Stride.Graphics;
 
 namespace Stride.Games
 {
-    internal abstract class GamePlatform : ReferenceBase, IGraphicsDeviceFactory, IGamePlatform
+
+    /// <summary>
+    /// This class determines what the game should run on ie Window/Surface, Graphics Device, etc.
+    /// </summary>
+    public abstract class GamePlatform : ReferenceBase, IGraphicsDeviceFactory, IGamePlatform
     {
         private bool hasExitRan = false;
 
-        protected readonly GameBase game;
-
-        protected readonly IServiceRegistry Services;
-
-        protected GameWindow gameWindow;
+        protected GameBase game;
 
         public string FullName { get; protected set; } = string.Empty;
 
-        protected GamePlatform(GameBase game)
-        {
-            this.game = game;
-            Services = game.Services;
-        }
-
-        public static GamePlatform Create(GameBase game)
-        {
-#if STRIDE_PLATFORM_UWP
-            return new GamePlatformUWP(game);
-#elif STRIDE_PLATFORM_ANDROID
-            return new GamePlatformAndroid(game);
-#elif STRIDE_PLATFORM_IOS
-            return new GamePlatformiOS(game);
-#else
-            // Here we cover all Desktop variants: OpenTK, SDL, Winforms,...
-            return new GamePlatformDesktop(game);
-#endif
-        }
+        public IServiceRegistry Services { get; protected set; }
 
         public abstract string DefaultAppDirectory { get; }
-
-        public object WindowContext { get; set; }
 
         public event EventHandler<EventArgs> Activated;
 
@@ -78,109 +58,25 @@ namespace Stride.Games
 
         public event EventHandler<EventArgs> Suspend;
 
-        public event EventHandler<EventArgs> WindowCreated;
-
-        public GameWindow MainWindow
-        {
-            get
-            {
-                return gameWindow;
-            }
-        }
-
-        internal abstract GameWindow GetSupportedGameWindow(AppContextType type);
-
-        public virtual GameWindow CreateWindow(GameContext gameContext)
-        {
-            var window = GetSupportedGameWindow(gameContext.ContextType);
-            if (window != null)
-            {
-                window.Services = Services;
-
-                // Pass initial size
-                var requestedSize = new Int2(gameContext.RequestedWidth, gameContext.RequestedHeight);
-                window.PreferredWindowedSize = requestedSize;
-                window.PreferredFullscreenSize = requestedSize;
-
-                window.Initialize(gameContext);
-                return window;
-            }
-
-            throw new ArgumentException("Game Window context not supported on this platform");
-        }
-
         /// <summary>
         /// If <c>true</c>, <see cref="Game.Run()"/> is blocking until the game is exited, i.e. internal main loop is used.
         /// If <c>false</c>, <see cref="Game.Run()"/> returns immediately and the caller has to manage the main loop by invoking the <see cref="GameWindow.RunCallback"/>.
         /// </summary>
         public bool IsBlockingRun { get; protected set; }
 
-        public void Run(GameContext gameContext)
+        /// <summary>
+        /// Is run at the startup of the <see cref="GameBase"/>
+        /// </summary>
+        /// <param name="gameWindow"></param>
+        public virtual void Run() { }
+
+        public virtual void Initialize(IServiceRegistry services)
         {
-            IsBlockingRun = !gameContext.IsUserManagingRun;
-
-            gameWindow = CreateWindow(gameContext);
-
-            // Register on Activated 
-            gameWindow.Activated += OnActivated;
-            gameWindow.Deactivated += OnDeactivated;
-            gameWindow.InitCallback = OnInitCallback;
-            gameWindow.RunCallback = OnRunCallback;
-
-            WindowCreated?.Invoke(this, EventArgs.Empty);
-
-            gameWindow.Run();
+            Services = services;
+            game = services.GetSafeServiceAs<IGame>() as GameBase;
         }
 
-        private void OnRunCallback()
-        {
-            // If/else outside of try-catch to separate user-unhandled exceptions properly
-            var unhandledException = game.UnhandledExceptionInternal;
-            if (unhandledException != null)
-            {
-                // Catch exceptions and transmit them to UnhandledException event
-                try
-                {
-                    Tick();
-                }
-                catch (Exception e)
-                {
-                    // Some system was listening for exceptions
-                    unhandledException(this, new GameUnhandledExceptionEventArgs(e, false));
-                    game.Exit();
-                }
-            }
-            else
-            {
-                Tick();
-            }
-        }
-
-        private void OnInitCallback()
-        {
-            // If/else outside of try-catch to separate user-unhandled exceptions properly
-            var unhandledException = game.UnhandledExceptionInternal;
-            if (unhandledException != null)
-            {
-                // Catch exceptions and transmit them to UnhandledException event
-                try
-                {
-                    game.InitializeBeforeRun();
-                }
-                catch (Exception e)
-                {
-                    // Some system was listening for exceptions
-                    unhandledException(this, new GameUnhandledExceptionEventArgs(e, false));
-                    game.Exit();
-                }
-            }
-            else
-            {
-                game.InitializeBeforeRun();
-            }
-        }
-
-        private void Tick()
+        protected void Tick()
         {
             game.Tick();
 
@@ -191,11 +87,7 @@ namespace Stride.Games
             }
         }
 
-        public virtual void Exit()
-        {
-            // Notifies that the GameWindow should exit.
-            gameWindow.Exiting = true;
-        }
+        public virtual void Exit() { }
 
         protected void OnActivated(object source, EventArgs e)
         {
@@ -230,8 +122,7 @@ namespace Stride.Games
         protected void AddDevice(DisplayMode mode,  GraphicsDeviceInformation deviceBaseInfo, GameGraphicsParameters preferredParameters, List<GraphicsDeviceInformation> graphicsDeviceInfos)
         {
             // TODO: Temporary woraround
-            if (mode == null)
-                mode = new DisplayMode(PixelFormat.R8G8B8A8_UNorm, 800, 480, new Rational(60, 1));
+            mode ??= new DisplayMode(PixelFormat.R8G8B8A8_UNorm, 800, 480, new Rational(60, 1));
 
             var deviceInfo = deviceBaseInfo.Clone();
 
@@ -259,104 +150,17 @@ namespace Stride.Games
             }
         }
 
-        public virtual List<GraphicsDeviceInformation> FindBestDevices(GameGraphicsParameters preferredParameters)
-        {
-            var graphicsDeviceInfos = new List<GraphicsDeviceInformation>();
+        public abstract List<GraphicsDeviceInformation> FindBestDevices(GameGraphicsParameters preferredParameters);
 
-            // Iterate on each adapter
-            foreach (var graphicsAdapter in GraphicsAdapterFactory.Adapters)
-            {
-                if (!string.IsNullOrEmpty(preferredParameters.RequiredAdapterUid) && graphicsAdapter.AdapterUid != preferredParameters.RequiredAdapterUid) continue;
-
-                // Skip adapeters that don't have graphics output 
-                // but only if no RequiredAdapterUid is provided (OculusVR at init time might be in a device with no outputs)
-                if (graphicsAdapter.Outputs.Length == 0 && string.IsNullOrEmpty(preferredParameters.RequiredAdapterUid))
-                {
-                    continue;
-                }
-
-                var preferredGraphicsProfiles = preferredParameters.PreferredGraphicsProfile;
-
-                // Iterate on each preferred graphics profile
-                foreach (var featureLevel in preferredGraphicsProfiles)
-                {
-                    // Check if this profile is supported.
-                    if (graphicsAdapter.IsProfileSupported(featureLevel))
-                    {
-                        var deviceInfo = new GraphicsDeviceInformation
-                        {
-                            Adapter = graphicsAdapter,
-                            GraphicsProfile = featureLevel,
-                            PresentationParameters =
-                            {
-                                MultisampleCount = preferredParameters.PreferredMultisampleCount,
-                                IsFullScreen = preferredParameters.IsFullScreen,
-                                PreferredFullScreenOutputIndex = preferredParameters.PreferredFullScreenOutputIndex,
-                                PresentationInterval = preferredParameters.SynchronizeWithVerticalRetrace ? PresentInterval.One : PresentInterval.Immediate,
-                                DeviceWindowHandle = MainWindow.NativeWindow,
-                                ColorSpace = preferredParameters.ColorSpace,
-                            },
-                        };
-
-                        var preferredMode = new DisplayMode(preferredParameters.PreferredBackBufferFormat,
-                            preferredParameters.PreferredBackBufferWidth,
-                            preferredParameters.PreferredBackBufferHeight,
-                            preferredParameters.PreferredRefreshRate);
-
-                        // if we want to switch to fullscreen, try to find only needed output, otherwise check them all
-                        if (preferredParameters.IsFullScreen)
-                        {
-                            if (preferredParameters.PreferredFullScreenOutputIndex < graphicsAdapter.Outputs.Length)
-                            {
-                                var output = graphicsAdapter.Outputs[preferredParameters.PreferredFullScreenOutputIndex];
-                                var displayMode = output.FindClosestMatchingDisplayMode(preferredGraphicsProfiles, preferredMode);
-                                AddDevice(displayMode, deviceInfo, preferredParameters, graphicsDeviceInfos);
-                            }
-                        }
-                        else
-                        {
-                            AddDevice(preferredMode, deviceInfo, preferredParameters, graphicsDeviceInfos);
-                        }
-
-                        // If the profile is supported, we are just using the first best one
-                        break;
-                    }
-                }
-            }
-
-            return graphicsDeviceInfos;
-        }
-
-        public virtual GraphicsDevice CreateDevice(GraphicsDeviceInformation deviceInformation)
-        {
-            var graphicsDevice = GraphicsDevice.New(deviceInformation.Adapter, deviceInformation.DeviceCreationFlags, gameWindow.NativeWindow, deviceInformation.GraphicsProfile);
-            graphicsDevice.ColorSpace = deviceInformation.PresentationParameters.ColorSpace;
-
-#if STRIDE_GRAPHICS_API_DIRECT3D11 && STRIDE_PLATFORM_UWP
-            if (game.Context is GameContextUWPCoreWindow context && context.IsWindowsMixedReality)
-            {
-                graphicsDevice.Recreate(deviceInformation.Adapter, new[] { deviceInformation.GraphicsProfile }, deviceInformation.DeviceCreationFlags |= DeviceCreationFlags.BgraSupport, gameWindow.NativeWindow);
-                graphicsDevice.Presenter = new WindowsMixedRealityGraphicsPresenter(graphicsDevice, deviceInformation.PresentationParameters);
-            }
-            else
-#endif
-            {
-                graphicsDevice.Presenter = new SwapChainGraphicsPresenter(graphicsDevice, deviceInformation.PresentationParameters);
-            }
-
-            return graphicsDevice;
-        }
+        public abstract GraphicsDevice CreateDevice(GraphicsDeviceInformation deviceInformation);
 
         public virtual void RecreateDevice(GraphicsDevice currentDevice, GraphicsDeviceInformation deviceInformation)
         {
-            currentDevice.ColorSpace = deviceInformation.PresentationParameters.ColorSpace;
-            currentDevice.Recreate(deviceInformation.Adapter ?? GraphicsAdapterFactory.Default, new[] { deviceInformation.GraphicsProfile }, deviceInformation.DeviceCreationFlags, gameWindow.NativeWindow);
         }
 
         public virtual void DeviceChanged(GraphicsDevice currentDevice, GraphicsDeviceInformation deviceInformation)
         {
-            // Force to resize the gameWindow
-            gameWindow.Resize(deviceInformation.PresentationParameters.BackBufferWidth, deviceInformation.PresentationParameters.BackBufferHeight);
+
         }
 
         public virtual GraphicsDevice ChangeOrCreateDevice(GraphicsDevice currentDevice, GraphicsDeviceInformation deviceInformation)
@@ -375,14 +179,58 @@ namespace Stride.Games
             return currentDevice;
         }
 
+        protected void OnRunCallback()
+        {
+            // If/else outside of try-catch to separate user-unhandled exceptions properly
+            var unhandledException = game.UnhandledExceptionInternal;
+            if (unhandledException != null)
+            {
+                // Catch exceptions and transmit them to UnhandledException event
+                try
+                {
+                    Tick();
+                }
+                catch (Exception e)
+                {
+                    // Some system was listening for exceptions
+                    unhandledException(this, new GameUnhandledExceptionEventArgs(e, false));
+                    //Notify subscribers that the game is exiting
+                    Exiting?.Invoke(this, EventArgs.Empty);
+                }
+            }
+            else
+            {
+                Tick();
+            }
+        }
+
+        protected void OnInitCallback()
+        {
+            // If/else outside of try-catch to separate user-unhandled exceptions properly
+            var unhandledException = game.UnhandledExceptionInternal;
+            if (unhandledException != null)
+            {
+                // Catch exceptions and transmit them to UnhandledException event
+                try
+                {
+                    game.InitializeBeforeRun();
+                }
+                catch (Exception e)
+                {
+                    // Some system was listening for exceptions
+                    unhandledException(this, new GameUnhandledExceptionEventArgs(e, false));
+                    //Notify subscribers that the game is exiting
+                    Exiting.Invoke(this, EventArgs.Empty);
+                }
+            }
+            else
+            {
+                game.InitializeBeforeRun();
+            }
+        }
+
         protected override void Destroy()
         {
-            if (gameWindow != null)
-            {
-                gameWindow.Dispose();
-                gameWindow = null;
-            }
-
             Activated = null;
             Deactivated = null;
             Exiting = null;
