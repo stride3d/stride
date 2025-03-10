@@ -8,81 +8,80 @@ using System.Threading.Tasks;
 using Stride.Core.Annotations;
 using Stride.Engine;
 
-namespace Stride.Editor.EditorGame.Game
+namespace Stride.Editor.EditorGame.Game;
+
+/// <summary>
+/// Base class for the <see cref="IEditorGameService"/> interface.
+/// </summary>
+public abstract class EditorGameServiceBase : IEditorGameService
 {
+    /// <inheritdoc/>
+    public bool IsInitialized { get; private set; }
+
+    /// <inheritdoc/>
+    public virtual bool IsActive { get { return true; } set { throw new InvalidOperationException("This service cannot be deactivated."); } }
+
+    /// <inheritdoc/>
+    public virtual IEnumerable<Type> Dependencies => [];
+
+    public EditorGameServiceRegistry Services { get; } = new();
+
     /// <summary>
-    /// Base class for the <see cref="IEditorGameService"/> interface.
+    /// Gets whether this service has been disposed.
     /// </summary>
-    public abstract class EditorGameServiceBase : IEditorGameService
+    protected bool IsDisposed { get; private set; }
+
+    /// <inheritdoc/>
+    public virtual ValueTask DisposeAsync()
     {
-        /// <inheritdoc/>
-        public bool IsInitialized { get; private set; }
+        IsDisposed = true;
+        return ValueTask.CompletedTask;
+    }
 
-        /// <inheritdoc/>
-        public virtual bool IsActive { get { return true; } set { throw new InvalidOperationException("This service cannot be deactivated."); } }
+    /// <inheritdoc/>
+    public async Task<bool> InitializeService(EditorServiceGame game)
+    {
+        EnsureNotDestroyed(nameof(EditorGameServiceBase));
 
-        /// <inheritdoc/>
-        public virtual IEnumerable<Type> Dependencies => Enumerable.Empty<Type>();
-
-        public EditorGameServiceRegistry Services { get; } = new EditorGameServiceRegistry();
-
-        /// <summary>
-        /// Gets whether this service has been disposed.
-        /// </summary>
-        protected bool IsDisposed { get; private set; }
-
-        /// <inheritdoc/>
-        public virtual Task DisposeAsync()
+        foreach (var dependency in Dependencies)
         {
-            IsDisposed = true;
-            return Task.CompletedTask;
+            Services.Add(game.EditorServices.Get(dependency));
         }
+        IsInitialized = await Initialize(game);
+        return IsInitialized;
+    }
 
-        /// <inheritdoc/>
-        public async Task<bool> InitializeService(EditorServiceGame game)
+    /// <inheritdoc/>
+    public virtual void RegisterScene(Scene scene)
+    {
+        EnsureNotDestroyed(nameof(EditorGameServiceBase));
+        // Do nothing by default.
+    }
+
+    /// <summary>
+    /// Checks whether this service has been disposed, and throws an <see cref="ObjectDisposedException"/> if it is the case. 
+    /// </summary>
+    /// <param name="name">The name to supply to the <see cref="ObjectDisposedException"/>.</param>
+    protected void EnsureNotDestroyed(string name = null)
+    {
+        if (IsDisposed)
         {
-            EnsureNotDestroyed(nameof(EditorGameServiceBase));
-
-            foreach (var dependency in Dependencies)
-            {
-                Services.Add(game.EditorServices.Get(dependency));
-            }
-            IsInitialized = await Initialize(game);
-            return IsInitialized;
+            throw new ObjectDisposedException(name ?? nameof(EditorGameServiceBase), "This service has already been disposed.");
         }
+    }
 
-        /// <inheritdoc/>
-        public virtual void RegisterScene(Scene scene)
-        {
-            EnsureNotDestroyed(nameof(EditorGameServiceBase));
-            // Do nothing by default.
-        }
+    /// <summary>
+    /// Initializes the service. This method is invoked by <see cref="InitializeService"/>.
+    /// </summary>
+    /// <param name="game"></param>
+    /// <returns></returns>
+    protected abstract Task<bool> Initialize([NotNull] EditorServiceGame game);
 
-        /// <summary>
-        /// Checks whether this service has been disposed, and throws an <see cref="ObjectDisposedException"/> if it is the case. 
-        /// </summary>
-        /// <param name="name">The name to supply to the <see cref="ObjectDisposedException"/>.</param>
-        protected void EnsureNotDestroyed(string name = null)
-        {
-            if (IsDisposed)
-            {
-                throw new ObjectDisposedException(name ?? nameof(EditorGameServiceBase), "This service has already been disposed.");
-            }
-        }
-
-        /// <summary>
-        /// Initializes the service. This method is invoked by <see cref="InitializeService"/>.
-        /// </summary>
-        /// <param name="game"></param>
-        /// <returns></returns>
-        protected abstract Task<bool> Initialize([NotNull] EditorServiceGame game);
-
-        /// <summary>
-        /// Called when the game graphics compositor is updated.
-        /// </summary>
-        /// <param name="game"></param>
-        public virtual void UpdateGraphicsCompositor(EditorServiceGame game)
-        {
-        }
+    /// <summary>
+    /// Called when the game graphics compositor is updated.
+    /// </summary>
+    /// <param name="game"></param>
+    public virtual void UpdateGraphicsCompositor(EditorServiceGame game)
+    {
     }
 }
