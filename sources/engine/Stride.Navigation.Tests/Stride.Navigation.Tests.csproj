@@ -1,10 +1,11 @@
 <Project>
   <Import Project="..\..\targets\Stride.UnitTests.props" />
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
-    <AssemblyName>Stride.Graphics.Tests.10_0</AssemblyName>
-    <RootNamespace>Stride.Graphics.Tests</RootNamespace>
+    <TargetFramework>$(StrideXplatEditorTargetFramework)</TargetFramework>
+    <RuntimeIdentifiers>linux-x64;win-x64</RuntimeIdentifiers>
+    <AssemblyName>Stride.Navigation.Tests</AssemblyName>
+    <RootNamespace>Stride.Navigation.Tests</RootNamespace>
+    <EnableDefaultItems>false</EnableDefaultItems>
     <StrideBuildTags>*</StrideBuildTags>
     <StrideCompileAssets>true</StrideCompileAssets>
     <StrideGraphicsApiDependent>true</StrideGraphicsApiDependent>
@@ -17,7 +18,14 @@
   <ItemGroup>
     <ProjectReference Include="..\..\tests\xunit.runner.stride\xunit.runner.stride.csproj" />
     <ProjectReference Include="..\Stride.Engine\Stride.Engine.csproj" />
+    <ProjectReference Include="..\Stride.Navigation\Stride.Navigation.csproj" />
     <ProjectReference Include="..\Stride.Graphics.Regression\Stride.Graphics.Regression.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="XunitAttributes.cs" />
+    <Compile Include="PlayerController.cs" />
+    <Compile Include="DynamicBarrierTest.cs" />
+    <Compile Include="StaticTest.cs" />
   </ItemGroup>
   <Import Project="..\..\targets\Stride.UnitTests.targets" />
 </Project>
