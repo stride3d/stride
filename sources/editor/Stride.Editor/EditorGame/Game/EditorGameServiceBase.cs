@@ -22,9 +22,9 @@ namespace Stride.Editor.EditorGame.Game
         public virtual bool IsActive { get { return true; } set { throw new InvalidOperationException("This service cannot be deactivated."); } }
 
         /// <inheritdoc/>
-        public virtual IEnumerable<Type> Dependencies => Enumerable.Empty<Type>();
+        public virtual IEnumerable<Type> Dependencies => [];
 
-        public EditorGameServiceRegistry Services { get; } = new EditorGameServiceRegistry();
+        public EditorGameServiceRegistry Services { get; } = new();
 
         /// <summary>
         /// Gets whether this service has been disposed.
@@ -32,10 +32,10 @@ namespace Stride.Editor.EditorGame.Game
         protected bool IsDisposed { get; private set; }
 
         /// <inheritdoc/>
-        public virtual Task DisposeAsync()
+        public virtual ValueTask DisposeAsync()
         {
             IsDisposed = true;
-            return Task.CompletedTask;
+            return ValueTask.CompletedTask;
         }
 
         /// <inheritdoc/>

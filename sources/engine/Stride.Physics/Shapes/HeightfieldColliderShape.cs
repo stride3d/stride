@@ -14,25 +14,6 @@ using Buffer = Stride.Graphics.Buffer;
 
 namespace Stride.Physics
 {
-    namespace Shapes
-    {
-        [Obsolete("This class will be deprecated. Use 'Stride.Physics.HeightfieldColliderShape'.", false)]
-        public class HeightfieldColliderShape : Stride.Physics.HeightfieldColliderShape
-        {
-            public HeightfieldColliderShape(int heightStickWidth, int heightStickLength, UnmanagedArray<short> dynamicFieldData, float heightScale, float minHeight, float maxHeight, bool flipQuadEdges)
-                : base(heightStickWidth, heightStickLength, dynamicFieldData, heightScale, minHeight, maxHeight, flipQuadEdges)
-            {
-            }
-            public HeightfieldColliderShape(int heightStickWidth, int heightStickLength, UnmanagedArray<byte> dynamicFieldData, float heightScale, float minHeight, float maxHeight, bool flipQuadEdges)
-                : base(heightStickWidth, heightStickLength, dynamicFieldData, heightScale, minHeight, maxHeight, flipQuadEdges)
-            {
-            }
-            public HeightfieldColliderShape(int heightStickWidth, int heightStickLength, UnmanagedArray<float> dynamicFieldData, float heightScale, float minHeight, float maxHeight, bool flipQuadEdges)
-                : base(heightStickWidth, heightStickLength, dynamicFieldData, heightScale, minHeight, maxHeight, flipQuadEdges)
-            {
-            }
-        }
-    }
 
     public class HeightfieldColliderShape : ColliderShape
     {
@@ -148,15 +129,10 @@ namespace Stride.Physics
         {
             var heightfieldDebugPrimitive = debugPrimitive as HeightfieldDebugPrimitive;
 
-            if (heightfieldDebugPrimitive == null)
-            {
-                return;
-            }
-
-            heightfieldDebugPrimitive.Update(commandList);
+            heightfieldDebugPrimitive?.Update(commandList);
         }
 
-        private readonly ReaderWriterLockSlim lockSlim = new ReaderWriterLockSlim();
+        private readonly ReaderWriterLockSlim lockSlim = new();
 
         ~HeightfieldColliderShape()
         {
@@ -252,7 +228,7 @@ namespace Stride.Physics
                 public MeshDraw MeshDraw;
             }
 
-            public readonly List<Tile> Tiles = new List<Tile>();
+            public readonly List<Tile> Tiles = [];
 
             private HeightfieldColliderShape heightfield;
 
@@ -265,23 +241,13 @@ namespace Stride.Physics
             {
                 var index = y * heightfield.HeightStickWidth + x;
 
-                switch (heightfield.HeightType)
+                heightStickHeight = heightfield.HeightType switch
                 {
-                    case HeightfieldTypes.Short:
-                        heightStickHeight = heightfield.ShortArray[index] * heightfield.HeightScale;
-                        break;
-
-                    case HeightfieldTypes.Byte:
-                        heightStickHeight = heightfield.ByteArray[index] * heightfield.HeightScale;
-                        break;
-
-                    case HeightfieldTypes.Float:
-                        heightStickHeight = heightfield.FloatArray[index];
-                        break;
-
-                    default:
-                        throw new NotSupportedException();
-                }
+                    HeightfieldTypes.Short => heightfield.ShortArray[index] * heightfield.HeightScale,
+                    HeightfieldTypes.Byte => heightfield.ByteArray[index] * heightfield.HeightScale,
+                    HeightfieldTypes.Float => heightfield.FloatArray[index],
+                    _ => throw new NotSupportedException()
+                };
 
                 if (heightfield.MinHeight <= heightStickHeight && heightStickHeight <= heightfield.MaxHeight)
                 {
@@ -336,7 +302,7 @@ namespace Stride.Physics
                 var meshDraw = new MeshDraw
                 {
                     PrimitiveType = PrimitiveType.TriangleList,
-                    VertexBuffers = new VertexBufferBinding[] { new VertexBufferBinding(vertexBuffer, VertexPositionNormalColor.Layout, vertexBuffer.ElementCount) },
+                    VertexBuffers = [new VertexBufferBinding(vertexBuffer, VertexPositionNormalColor.Layout, vertexBuffer.ElementCount)],
                     IndexBuffer = new IndexBufferBinding(indexBuffer, false, indexBuffer.ElementCount),
                     StartLocation = 0,
                     DrawCount = indexBuffer.ElementCount,
@@ -370,7 +336,7 @@ namespace Stride.Physics
 
             public IEnumerable<MeshDraw> GetMeshDraws()
             {
-                return Tiles.Select((t) => t.MeshDraw);
+                return Tiles.Select(t => t.MeshDraw);
             }
 
             public static HeightfieldDebugPrimitive New(GraphicsDevice device, HeightfieldColliderShape heightfieldColliderShape)
