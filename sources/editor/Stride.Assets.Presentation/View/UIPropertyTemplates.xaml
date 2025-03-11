@@ -62,18 +62,6 @@
                   <sd:NumericTextBox Grid.Row="1" Grid.Column="3" TextAlignment="Center" SelectAllOnFocus="True"
                                        Value="{Binding Bottom, RelativeSource={RelativeSource Mode=TemplatedParent}}"
                                        DecimalPlaces="{Binding DecimalPlaces, RelativeSource={RelativeSource Mode=TemplatedParent}}"/>
-                  <!-- Back -->
-                  <Image Grid.Row="2" Grid.Column="0" ToolTip="Back" Width="16" Height="16" RenderOptions.BitmapScalingMode="NearestNeighbor"
-                         Source="{StaticResource ImageThicknessBack}" />
-                  <sd:NumericTextBox Grid.Row="2" Grid.Column="1" TextAlignment="Center" SelectAllOnFocus="True"
-                                       Value="{Binding Back, RelativeSource={RelativeSource Mode=TemplatedParent}}"
-                                       DecimalPlaces="{Binding DecimalPlaces, RelativeSource={RelativeSource Mode=TemplatedParent}}"/>
-                  <!-- Front -->
-                  <Image Grid.Row="2" Grid.Column="2" ToolTip="Front" Width="16" Height="16" RenderOptions.BitmapScalingMode="NearestNeighbor"
-                         Source="{StaticResource ImageThicknessFront}" />
-                  <sd:NumericTextBox Grid.Row="2" Grid.Column="3" TextAlignment="Center" SelectAllOnFocus="True"
-                                       Value="{Binding Front, RelativeSource={RelativeSource Mode=TemplatedParent}}"
-                                       DecimalPlaces="{Binding DecimalPlaces, RelativeSource={RelativeSource Mode=TemplatedParent}}"/>
                 </Grid>
               </ControlTemplate>
             </Setter.Value>
