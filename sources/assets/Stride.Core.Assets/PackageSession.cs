@@ -5,6 +5,7 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
+using System.Text.RegularExpressions;
 using Stride.Core;
 using Stride.Core.Assets.Analysis;
 using Stride.Core.Assets.Diagnostics;
@@ -787,10 +788,12 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
             SolutionProject? firstProject = null;
 
             // If we have a solution, load all packages
-            if (string.Equals(Path.GetExtension(filePath), ".sln", StringComparison.InvariantCultureIgnoreCase))
+            if (Regex.IsMatch(Path.GetExtension(filePath), @"\.slnf?$", RegexOptions.IgnoreCase))
             {
                 // The session should save back its changes to the solution
-                var solution = session.VSSolution = VisualStudio.Solution.FromFile(filePath);
+                VisualStudio.Solution solution = session.VSSolution = Path.GetExtension(filePath).Equals(".sln", StringComparison.InvariantCultureIgnoreCase)
+                    ? VisualStudio.Solution.FromFile(filePath)
+                    : VisualStudio.Solution.FromSolutionFilter(filePath);
 
                 // Keep header
                 var versionHeader = solution.Properties.FirstOrDefault(x => x.Name == "VisualStudioVersion");

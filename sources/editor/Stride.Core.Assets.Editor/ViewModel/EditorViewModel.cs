@@ -25,6 +25,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
     {
         public const string PackageFileExtension = Package.PackageFileExtension;
         public const string SolutionFileExtension = ".sln";
+        public const string SolutionFilterFileExtension = ".slnf";
         private SessionViewModel session;
 
         protected EditorViewModel(IViewModelServiceProvider serviceProvider, MostRecentlyUsedFileCollection mru, string editorName, string editorVersionMajor)
