@@ -547,11 +547,11 @@ public struct Double3 : IEquatable<Double3>, IFormattable
     /// <param name="value1">The first vector.</param>
     /// <param name="value2">The second vector.</param>
     /// <param name="result">When the method completes, contains the squared distance between the two vectors.</param>
-    /// <remarks>Distance squared is the value before taking the square root.
-    /// Distance squared can often be used in place of distance if relative comparisons are being made.
-    /// For example, consider three points A, B, and C. To determine whether B or C is further from A,
-    /// compare the distance between A and B to the distance between A and C. Calculating the two distances
-    /// involves two square roots, which are computationally expensive. However, using distance squared
+    /// <remarks>Distance squared is the value before taking the square root. 
+    /// Distance squared can often be used in place of distance if relative comparisons are being made. 
+    /// For example, consider three points A, B, and C. To determine whether B or C is further from A, 
+    /// compare the distance between A and B to the distance between A and C. Calculating the two distances 
+    /// involves two square roots, which are computationally expensive. However, using distance squared 
     /// provides the same information and avoids calculating two square roots.
     /// </remarks>
     public static void DistanceSquared(ref readonly Double3 value1, ref readonly Double3 value2, out double result)
@@ -569,11 +569,11 @@ public struct Double3 : IEquatable<Double3>, IFormattable
     /// <param name="value1">The first vector.</param>
     /// <param name="value2">The second vector.</param>
     /// <returns>The squared distance between the two vectors.</returns>
-    /// <remarks>Distance squared is the value before taking the square root.
-    /// Distance squared can often be used in place of distance if relative comparisons are being made.
-    /// For example, consider three points A, B, and C. To determine whether B or C is further from A,
-    /// compare the distance between A and B to the distance between A and C. Calculating the two distances
-    /// involves two square roots, which are computationally expensive. However, using distance squared
+    /// <remarks>Distance squared is the value before taking the square root. 
+    /// Distance squared can often be used in place of distance if relative comparisons are being made. 
+    /// For example, consider three points A, B, and C. To determine whether B or C is further from A, 
+    /// compare the distance between A and B to the distance between A and C. Calculating the two distances 
+    /// involves two square roots, which are computationally expensive. However, using distance squared 
     /// provides the same information and avoids calculating two square roots.
     /// </remarks>
     public static double DistanceSquared(Double3 value1, Double3 value2)
@@ -643,7 +643,7 @@ public struct Double3 : IEquatable<Double3>, IFormattable
     /// <remarks>
     /// This method performs the linear interpolation based on the following formula.
     /// <c>start + (end - start) * amount</c>
-    /// Passing <paramref name="amount"/> a value of 0 will cause <paramref name="start"/> to be returned; a value of 1 will cause <paramref name="end"/> to be returned.
+    /// Passing <paramref name="amount"/> a value of 0 will cause <paramref name="start"/> to be returned; a value of 1 will cause <paramref name="end"/> to be returned. 
     /// </remarks>
     public static void Lerp(ref readonly Double3 start, ref readonly Double3 end, double amount, out Double3 result)
     {
@@ -662,7 +662,7 @@ public struct Double3 : IEquatable<Double3>, IFormattable
     /// <remarks>
     /// This method performs the linear interpolation based on the following formula.
     /// <c>start + (end - start) * amount</c>
-    /// Passing <paramref name="amount"/> a value of 0 will cause <paramref name="start"/> to be returned; a value of 1 will cause <paramref name="end"/> to be returned.
+    /// Passing <paramref name="amount"/> a value of 0 will cause <paramref name="start"/> to be returned; a value of 1 will cause <paramref name="end"/> to be returned. 
     /// </remarks>
     public static Double3 Lerp(Double3 start, Double3 end, double amount)
     {
@@ -835,7 +835,7 @@ public struct Double3 : IEquatable<Double3>, IFormattable
     }
 
     /// <summary>
-    /// Projects a 3D vector from object space into screen space.
+    /// Projects a 3D vector from object space into screen space. 
     /// </summary>
     /// <param name="vector">The vector to project.</param>
     /// <param name="x">The X position of the viewport.</param>
@@ -854,7 +854,7 @@ public struct Double3 : IEquatable<Double3>, IFormattable
     }
 
     /// <summary>
-    /// Projects a 3D vector from object space into screen space.
+    /// Projects a 3D vector from object space into screen space. 
     /// </summary>
     /// <param name="vector">The vector to project.</param>
     /// <param name="x">The X position of the viewport.</param>
@@ -872,7 +872,7 @@ public struct Double3 : IEquatable<Double3>, IFormattable
     }
 
     /// <summary>
-    /// Projects a 3D vector from screen space into object space.
+    /// Projects a 3D vector from screen space into object space. 
     /// </summary>
     /// <param name="vector">The vector to project.</param>
     /// <param name="x">The X position of the viewport.</param>
@@ -896,7 +896,7 @@ public struct Double3 : IEquatable<Double3>, IFormattable
     }
 
     /// <summary>
-    /// Projects a 3D vector from screen space into object space.
+    /// Projects a 3D vector from screen space into object space. 
     /// </summary>
     /// <param name="vector">The vector to project.</param>
     /// <param name="x">The X position of the viewport.</param>
@@ -914,12 +914,12 @@ public struct Double3 : IEquatable<Double3>, IFormattable
     }
 
     /// <summary>
-    /// Returns the reflection of a vector off a surface that has the specified normal.
+    /// Returns the reflection of a vector off a surface that has the specified normal. 
     /// </summary>
     /// <param name="vector">The source vector.</param>
     /// <param name="normal">Normal of the surface.</param>
     /// <param name="result">When the method completes, contains the reflected vector.</param>
-    /// <remarks>Reflect only gives the direction of a reflection off a surface, it does not determine
+    /// <remarks>Reflect only gives the direction of a reflection off a surface, it does not determine 
     /// whether the original vector was close enough to the surface to hit it.</remarks>
     public static void Reflect(ref readonly Double3 vector, ref readonly Double3 normal, out Double3 result)
     {
@@ -931,12 +931,12 @@ public struct Double3 : IEquatable<Double3>, IFormattable
     }
 
     /// <summary>
-    /// Returns the reflection of a vector off a surface that has the specified normal.
+    /// Returns the reflection of a vector off a surface that has the specified normal. 
     /// </summary>
     /// <param name="vector">The source vector.</param>
     /// <param name="normal">Normal of the surface.</param>
     /// <returns>The reflected vector.</returns>
-    /// <remarks>Reflect only gives the direction of a reflection off a surface, it does not determine
+    /// <remarks>Reflect only gives the direction of a reflection off a surface, it does not determine 
     /// whether the original vector was close enough to the surface to hit it.</remarks>
     public static Double3 Reflect(Double3 vector, Double3 normal)
     {
@@ -1055,9 +1055,9 @@ public struct Double3 : IEquatable<Double3>, IFormattable
         double zz = rotation.Z * z;
 
         result = new Double3(
-            (vector.X * (1.0 - yy - zz)) + (vector.Y * (xy - wz)) + (vector.Z * (xz + wy)),
-            (vector.X * (xy + wz)) + (vector.Y * (1.0 - xx - zz)) + (vector.Z * (yz - wx)),
-            (vector.X * (xz - wy)) + (vector.Y * (yz + wx)) + (vector.Z * (1.0 - xx - yy)));
+        (vector.X * (1.0 - yy - zz)) + (vector.Y * (xy - wz)) + (vector.Z * (xz + wy)),
+        (vector.X * (xy + wz)) + (vector.Y * (1.0 - xx - zz)) + (vector.Z * (yz - wx)),
+        (vector.X * (xz - wy)) + (vector.Y * (yz + wx)) + (vector.Z * (1.0 - xx - yy)));
     }
 
     /// <summary>
@@ -1114,9 +1114,9 @@ public struct Double3 : IEquatable<Double3>, IFormattable
         for (int i = 0; i < source.Length; ++i)
         {
             destination[i] = new Double3(
-                (source[i].X * num1) + (source[i].Y * num2) + (source[i].Z * num3),
-                (source[i].X * num4) + (source[i].Y * num5) + (source[i].Z * num6),
-                (source[i].X * num7) + (source[i].Y * num8) + (source[i].Z * num9));
+            (source[i].X * num1) + (source[i].Y * num2) + (source[i].Z * num3),
+            (source[i].X * num4) + (source[i].Y * num5) + (source[i].Z * num6),
+            (source[i].X * num7) + (source[i].Y * num8) + (source[i].Z * num9));
         }
     }
 
@@ -1334,7 +1334,7 @@ public struct Double3 : IEquatable<Double3>, IFormattable
     }
 
     /// <summary>
-    /// Calculate the yaw/pitch/roll rotation equivalent to the provided quaterion.
+    /// Calculate the yaw/pitch/roll rotation equivalent to the provided quaterion. 
     /// </summary>
     /// <param name="quaternion">The input rotation as quaternion</param>
     /// <param name="yawPitchRoll">The equivation yaw/pitch/roll rotation</param>
@@ -1655,7 +1655,7 @@ public struct Double3 : IEquatable<Double3>, IFormattable
     /// Returns a hash code for this instance.
     /// </summary>
     /// <returns>
-    /// A hash code for this instance, suitable for use in hashing algorithms and data structures like a hash table.
+    /// A hash code for this instance, suitable for use in hashing algorithms and data structures like a hash table. 
     /// </returns>
     public override readonly int GetHashCode()
     {
@@ -1672,7 +1672,7 @@ public struct Double3 : IEquatable<Double3>, IFormattable
     public readonly bool Equals(Double3 other)
     {
         return (double)Math.Abs(other.X - X) < MathUtil.ZeroTolerance &&
-            (double)Math.Abs(other.Y - Y) < MathUtil.ZeroTolerance &&
+                (double)Math.Abs(other.Y - Y) < MathUtil.ZeroTolerance &&
             (double)Math.Abs(other.Z - Z) < MathUtil.ZeroTolerance;
     }
 
@@ -1702,46 +1702,46 @@ public struct Double3 : IEquatable<Double3>, IFormattable
     }
 
 #if WPFInterop
-    /// <summary>
-    /// Performs an implicit conversion from <see cref="Stride.Core.Mathematics.Double3"/> to <see cref="System.Windows.Media.Media3D.Double3D"/>.
-    /// </summary>
-    /// <param name="value">The value.</param>
-    /// <returns>The result of the conversion.</returns>
-    public static implicit operator System.Windows.Media.Media3D.Double3D(Double3 value)
-    {
-        return new System.Windows.Media.Media3D.Double3D(value.X, value.Y, value.Z);
-    }
+        /// <summary>
+        /// Performs an implicit conversion from <see cref="Stride.Core.Mathematics.Double3"/> to <see cref="System.Windows.Media.Media3D.Double3D"/>.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <returns>The result of the conversion.</returns>
+        public static implicit operator System.Windows.Media.Media3D.Double3D(Double3 value)
+        {
+            return new System.Windows.Media.Media3D.Double3D(value.X, value.Y, value.Z);
+        }
 
-    /// <summary>
-    /// Performs an explicit conversion from <see cref="System.Windows.Media.Media3D.Double3D"/> to <see cref="Stride.Core.Mathematics.Double3"/>.
-    /// </summary>
-    /// <param name="value">The value.</param>
-    /// <returns>The result of the conversion.</returns>
-    public static explicit operator Double3(System.Windows.Media.Media3D.Double3D value)
-    {
-        return new Double3((double)value.X, (double)value.Y, (double)value.Z);
-    }
+        /// <summary>
+        /// Performs an explicit conversion from <see cref="System.Windows.Media.Media3D.Double3D"/> to <see cref="Stride.Core.Mathematics.Double3"/>.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <returns>The result of the conversion.</returns>
+        public static explicit operator Double3(System.Windows.Media.Media3D.Double3D value)
+        {
+            return new Double3((double)value.X, (double)value.Y, (double)value.Z);
+        }
 #endif
 
 #if XnaInterop
-    /// <summary>
-    /// Performs an implicit conversion from <see cref="Stride.Core.Mathematics.Double3"/> to <see cref="Microsoft.Xna.Framework.Vector3"/>.
-    /// </summary>
-    /// <param name="value">The value.</param>
-    /// <returns>The result of the conversion.</returns>
-    public static implicit operator Microsoft.Xna.Framework.Vector3(Double3 value)
-    {
-        return new Microsoft.Xna.Framework.Vector3(value.X, value.Y, value.Z);
-    }
+        /// <summary>
+        /// Performs an implicit conversion from <see cref="Stride.Core.Mathematics.Double3"/> to <see cref="Microsoft.Xna.Framework.Vector3"/>.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <returns>The result of the conversion.</returns>
+        public static implicit operator Microsoft.Xna.Framework.Vector3(Double3 value)
+        {
+            return new Microsoft.Xna.Framework.Vector3(value.X, value.Y, value.Z);
+        }
 
-    /// <summary>
-    /// Performs an implicit conversion from <see cref="Microsoft.Xna.Framework.Vector3"/> to <see cref="Stride.Core.Mathematics.Double3"/>.
-    /// </summary>
-    /// <param name="value">The value.</param>
-    /// <returns>The result of the conversion.</returns>
-    public static implicit operator Double3(Microsoft.Xna.Framework.Vector3 value)
-    {
-        return new Double3(value.X, value.Y, value.Z);
-    }
+        /// <summary>
+        /// Performs an implicit conversion from <see cref="Microsoft.Xna.Framework.Vector3"/> to <see cref="Stride.Core.Mathematics.Double3"/>.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <returns>The result of the conversion.</returns>
+        public static implicit operator Double3(Microsoft.Xna.Framework.Vector3 value)
+        {
+            return new Double3(value.X, value.Y, value.Z);
+        }
 #endif
 }
