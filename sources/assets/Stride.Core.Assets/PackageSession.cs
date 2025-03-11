@@ -788,7 +788,7 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
             SolutionProject? firstProject = null;
 
             // If we have a solution, load all packages
-            if (Regex.IsMatch(Path.GetExtension(filePath), @"\.slnf?$", RegexOptions.IgnoreCase))
+            if (VisualStudio.Solution.SolutionFileRegex.IsMatch(Path.GetExtension(filePath)))
             {
                 // The session should save back its changes to the solution
                 VisualStudio.Solution solution = session.VSSolution = Path.GetExtension(filePath).Equals(".sln", StringComparison.InvariantCultureIgnoreCase)

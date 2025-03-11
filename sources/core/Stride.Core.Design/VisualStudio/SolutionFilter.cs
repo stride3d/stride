@@ -5,12 +5,6 @@
 
 #endregion
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Text.Json;
-using System.Text.Json.Serialization;
-
 namespace Stride.Core.VisualStudio;
 
 /// <summary>
@@ -69,7 +63,6 @@ internal class SolutionFilterData
     /// <summary>
     /// Gets or sets the solution information.
     /// </summary>
-    [JsonPropertyName("solution")]
     public SolutionInfo? Solution { get; set; }
 
     /// <summary>
@@ -80,13 +73,11 @@ internal class SolutionFilterData
         /// <summary>
         /// Gets or sets the relative path to the solution file.
         /// </summary>
-        [JsonPropertyName("path")]
         public string? Path { get; set; }
 
         /// <summary>
         /// Gets or sets the list of project paths in the solution filter.
         /// </summary>
-        [JsonPropertyName("projects")]
         public List<string>? Projects { get; set; }
     }
 }

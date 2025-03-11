@@ -5,14 +5,11 @@
 
 #endregion
 
-using System;
-using System.IO;
 using System.Text.Json;
-using System.Text.RegularExpressions;
 
 namespace Stride.Core.VisualStudio;
 
-internal class SolutionFilterReader : IDisposable
+internal sealed class SolutionFilterReader : IDisposable
 {
     private readonly string solutionFilterPath;
     private readonly string solutionFilterDirectory;
@@ -60,12 +57,12 @@ internal class SolutionFilterReader : IDisposable
             var jsonContent = reader!.ReadToEnd();
             var options = new JsonSerializerOptions
             {
-                PropertyNameCaseInsensitive = true
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
             };
             
             var filterData = JsonSerializer.Deserialize<SolutionFilterData>(jsonContent, options);
             
-            if (filterData?.Solution?.Path == null)
+            if (filterData?.Solution?.Path is null)
             {
                 throw new SolutionFileException($"Invalid solution filter file: {solutionFilterPath}. Missing or invalid 'solution.path' property.");
             }
@@ -75,7 +72,7 @@ internal class SolutionFilterReader : IDisposable
             solutionFilter.SolutionPath = Path.GetFullPath(Path.Combine(solutionFilterDirectory, relativeSolutionPath));
             
             // Process project paths
-            if (filterData.Solution.Projects != null)
+            if (filterData.Solution.Projects is not null)
             {
                 foreach (var projectPath in filterData.Solution.Projects)
                 {
@@ -100,7 +97,7 @@ internal class SolutionFilterReader : IDisposable
     public void Dispose()
     {
         disposed = true;
-        if (reader != null)
+        if (reader is not null)
         {
             reader.Dispose();
             reader = null;

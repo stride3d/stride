@@ -24,6 +24,7 @@
 #endregion
 
 using System.Diagnostics;
+using System.Text.RegularExpressions;
 
 namespace Stride.Core.VisualStudio;
 
@@ -33,6 +34,8 @@ namespace Stride.Core.VisualStudio;
 [DebuggerDisplay("Projects = [{Projects.Count}]")]
 public class Solution
 {
+    public static readonly Regex SolutionFileRegex = new(@"\.slnf?$", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
     /// <summary>
     /// Initializes a new instance of the <see cref="Solution"/> class.
     /// </summary>

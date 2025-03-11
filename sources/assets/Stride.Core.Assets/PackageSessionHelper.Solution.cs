@@ -27,7 +27,7 @@ internal partial class PackageSessionHelper
                     return packageVersion;
                 }
             }
-            else if (Regex.IsMatch(Path.GetExtension(fullPath), @"\.slnf?$", RegexOptions.IgnoreCase))
+            else if (Solution.SolutionFileRegex.IsMatch(Path.GetExtension(fullPath)))
             {
                 // Solution file: extract projects
                 var solution = Path.GetExtension(fullPath).Equals(".sln", StringComparison.InvariantCultureIgnoreCase)
