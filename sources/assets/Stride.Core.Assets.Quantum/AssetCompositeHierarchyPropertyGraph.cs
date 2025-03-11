@@ -621,7 +621,7 @@ public abstract class AssetCompositeHierarchyPropertyGraph<TAssetPartDesign, TAs
         var currentParts = Asset.Hierarchy.RootParts.DepthFirst(x => Asset.EnumerateChildParts(x, false)).Select(x => Asset.Hierarchy.Parts[x.Id]);
         foreach (var part in currentParts)
         {
-            if (part.Base is null)
+            if (part.Base?.BasePartAsset is null)
                 continue;
 
             if (Container.TryGetGraph(part.Base.BasePartAsset.Id) is AssetCompositeHierarchyPropertyGraph<TAssetPartDesign, TAssetPart> baseAssetGraph)
