@@ -22,7 +22,7 @@ public unsafe partial struct ObjectId
                 if (hasId)
                 {
                     fixed (uint* hash = &obj.hash1)
-                        stream.Serialize((IntPtr)hash, HashSize);
+                        stream.Serialize(new Span<byte>(hash, HashSize));
                 }
             }
             else if (mode == ArchiveMode.Deserialize)

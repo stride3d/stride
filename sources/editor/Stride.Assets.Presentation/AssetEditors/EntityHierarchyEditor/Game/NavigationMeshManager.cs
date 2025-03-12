@@ -9,7 +9,6 @@ using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Core.Quantum;
 using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
-using Stride.Assets.Presentation.AssetEditors.GameEditor.ViewModels;
 using Stride.Editor.EditorGame.ContentLoader;
 using Stride.Navigation;
 
@@ -23,7 +22,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
     public class NavigationMeshManager : Core.IAsyncDisposable
     {
         [DataMember]
-        public readonly Dictionary<AssetId, NavigationMesh> Meshes = new Dictionary<AssetId, NavigationMesh>();
+        public readonly Dictionary<AssetId, NavigationMesh> Meshes = new();
 
         private readonly AbsoluteId referencerId;
         private readonly IEditorContentLoader loader;
@@ -38,7 +37,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
             meshesNode.ItemChanged += (sender, args) => { Changed?.Invoke(this, args); };
         }
 
-        public async Task DisposeAsync()
+        public async ValueTask DisposeAsync()
         {
             foreach (var pair in Meshes)
             {
