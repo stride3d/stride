@@ -24,6 +24,7 @@
 #endregion
 
 using System.Diagnostics;
+using System.Text.RegularExpressions;
 
 namespace Stride.Core.VisualStudio;
 
@@ -33,6 +34,8 @@ namespace Stride.Core.VisualStudio;
 [DebuggerDisplay("Projects = [{Projects.Count}]")]
 public class Solution
 {
+    public static readonly Regex SolutionFileRegex = new(@"\.slnf?$", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
     /// <summary>
     /// Initializes a new instance of the <see cref="Solution"/> class.
     /// </summary>
@@ -194,5 +197,78 @@ public class Solution
         var solution = reader.ReadSolutionFile();
         solution.FullPath = solutionFullPath;
         return solution;
+    }
+
+    /// <summary>
+    /// Loads a filtered solution from a solution filter file (.slnf).
+    /// </summary>
+    /// <param name="solutionFilterPath">The solution filter full path.</param>
+    /// <returns>A filtered Solution.</returns>
+    public static Solution FromSolutionFilter(string solutionFilterPath)
+    {
+        using var stream = new FileStream(solutionFilterPath, FileMode.Open, FileAccess.Read);
+        return FromSolutionFilterStream(solutionFilterPath, stream);
+    }
+    
+    /// <summary>
+    /// Loads a filtered solution from a solution filter stream (.slnf).
+    /// </summary>
+    /// <param name="solutionFilterPath">The solution filter full path.</param>
+    /// <param name="stream">The stream containing the solution filter data.</param>
+    /// <returns>A filtered Solution.</returns>
+    public static Solution FromSolutionFilterStream(string solutionFilterPath, Stream stream)
+    {
+        var solutionFilter = SolutionFilter.FromStream(solutionFilterPath, stream);
+   
+        // The solution filter contains a reference to the base solution
+        var baseSolutionPath = solutionFilter.SolutionPath;
+        var baseSolution = FromFile(baseSolutionPath);
+
+        // Create a new solution with only the filtered projects
+        var filteredSolution = new Solution();
+        filteredSolution.FullPath = solutionFilterPath;
+        filteredSolution.Headers.AddRange(baseSolution.Headers);
+        filteredSolution.Properties.AddRange(baseSolution.Properties);
+        filteredSolution.GlobalSections.AddRange(baseSolution.GlobalSections);
+
+        // Build a dictionary for quick project path lookup
+        var projectPathMap = baseSolution.Projects
+            .Where(project => !project.IsSolutionFolder)
+            .ToDictionary(
+                project => project.GetRelativePath(baseSolution).Replace('/', Path.DirectorySeparatorChar),
+                project => project,
+                StringComparer.OrdinalIgnoreCase);
+
+        // Add projects by path
+        foreach (var projectPath in solutionFilter.ProjectPaths)
+        {
+            if (projectPathMap.TryGetValue(projectPath, out var project))
+            {
+                // Only add if not already added by GUID
+                if (!filteredSolution.Projects.Contains(project.Guid))
+                {
+                    filteredSolution.Projects.Add(project);
+                }
+            }
+        }
+        
+        // Add solution folders that contain the included projects
+        var includedSolutionFolders = new HashSet<Guid>();
+        
+        // For each project, make sure its parent folders are included
+        foreach (var project in filteredSolution.Projects.ToList())
+        {
+            var parent = project.GetParentProject(baseSolution);
+            while (parent is not null)
+            {
+                if (includedSolutionFolders.Add(parent.Guid))
+                {
+                    filteredSolution.Projects.Add(parent);
+                }
+                parent = parent.GetParentProject(baseSolution);
+            }
+        }
+
+        return filteredSolution;
     }
 }
