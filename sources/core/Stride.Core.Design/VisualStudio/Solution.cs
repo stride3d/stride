@@ -226,7 +226,7 @@ public class Solution
 
         // Create a new solution with only the filtered projects
         var filteredSolution = new Solution();
-        filteredSolution.FullPath = baseSolution.FullPath;
+        filteredSolution.FullPath = solutionFilterPath;
         filteredSolution.Headers.AddRange(baseSolution.Headers);
         filteredSolution.Properties.AddRange(baseSolution.Properties);
         filteredSolution.GlobalSections.AddRange(baseSolution.GlobalSections);
@@ -259,7 +259,7 @@ public class Solution
         foreach (var project in filteredSolution.Projects.ToList())
         {
             var parent = project.GetParentProject(baseSolution);
-            while (parent != null)
+            while (parent is not null)
             {
                 if (includedSolutionFolders.Add(parent.Guid))
                 {
