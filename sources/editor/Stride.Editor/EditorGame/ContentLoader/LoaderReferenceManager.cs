@@ -3,12 +3,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using Stride.Core.Assets;
 using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Quantum;
+using Stride.Core.Reflection;
 
 namespace Stride.Editor.EditorGame.ContentLoader
 {
@@ -16,12 +18,12 @@ namespace Stride.Editor.EditorGame.ContentLoader
     {
         private readonly record struct ReferenceAccessor
         {
-            private readonly IGraphNode contentNode;
-            private readonly NodeIndex index;
+            public readonly IGraphNode ContentNode;
+            public readonly NodeIndex index;
 
             public ReferenceAccessor(IGraphNode contentNode, NodeIndex index)
             {
-                this.contentNode = contentNode;
+                this.ContentNode = contentNode;
                 this.index = index;
             }
 
@@ -29,17 +31,17 @@ namespace Stride.Editor.EditorGame.ContentLoader
             {
                 if (index == NodeIndex.Empty)
                 {
-                    ((IMemberNode)contentNode).Update(newValue);
+                    ((IMemberNode)ContentNode).Update(newValue);
                 }
                 else
                 {
-                    ((IObjectNode)contentNode).Update(newValue, index);
+                    ((IObjectNode)ContentNode).Update(newValue, index);
                 }
             }
 
             public Task Clear([NotNull] LoaderReferenceManager manager, AbsoluteId referencerId, AssetId contentId)
             {
-                return manager.ClearContentReference(referencerId, contentId, contentNode, index);
+                return manager.ClearContentReference(referencerId, contentId, ContentNode, index);
             }
         }
 
@@ -53,6 +55,34 @@ namespace Stride.Editor.EditorGame.ContentLoader
         {
             this.gameDispatcher = gameDispatcher;
             this.loader = loader;
+        }
+
+        public async Task ClearUserAssetsIn(Assembly assembly)
+        {
+            // This method is mostly there for user-defined assets, the nodes for fields and properties pointing to those assets in these collections
+            // have to be manually purged on assembly reload otherwise ReplaceContent fails as the nodes still use the old assembly type
+            var assets = new List<(AbsoluteId referencerId, AssetId contentId, IGraphNode contentNode, NodeIndex index)>();
+            foreach (var (id, referenced) in references)
+            {
+                foreach (var (contentId, accessors) in referenced)
+                {
+                    foreach (var accessor in accessors)
+                    {
+                        if (accessor.ContentNode is IMemberNode member && member.MemberDescriptor.Type.Assembly == assembly && member.MemberDescriptor.Type.GetCustomAttribute(typeof(Core.Serialization.Contents.ReferenceSerializerAttribute)) is not null)
+                        {
+                            assets.Add((id, contentId, accessor.ContentNode, accessor.index));
+                        }
+                    }
+                }
+            }
+
+            await gameDispatcher.InvokeTask(async () =>
+            {
+                foreach (var(referencerId, contentId, contentNode, index) in assets)
+                {
+                    await ClearContentReference(referencerId, contentId, contentNode, index);
+                }
+            });
         }
 
         public async Task RegisterReferencer(AbsoluteId referencerId)
