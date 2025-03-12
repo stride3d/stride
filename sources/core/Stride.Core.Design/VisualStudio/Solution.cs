@@ -251,6 +251,23 @@ public class Solution
                 }
             }
         }
+        
+        // Add solution folders that contain the included projects
+        var includedSolutionFolders = new HashSet<Guid>();
+        
+        // For each project, make sure its parent folders are included
+        foreach (var project in filteredSolution.Projects.ToList())
+        {
+            var parent = project.GetParentProject(baseSolution);
+            while (parent != null)
+            {
+                if (includedSolutionFolders.Add(parent.Guid))
+                {
+                    filteredSolution.Projects.Add(parent);
+                }
+                parent = parent.GetParentProject(baseSolution);
+            }
+        }
 
         return filteredSolution;
     }
