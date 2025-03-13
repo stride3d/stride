@@ -2,17 +2,17 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 //
 // Copyright (c) 2010-2012 SharpDX - Alexandre Mutel
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -22,7 +22,6 @@
 // THE SOFTWARE.
 
 using System;
-using Stride.Games;
 
 namespace Stride.Graphics
 {
@@ -44,9 +43,9 @@ namespace Stride.Graphics
             /// <param name="additionalBindings">The additional bindings (for example, to create a combined raw/index buffer, pass <see cref="BufferFlags.IndexBuffer" />)</param>
             /// <param name="usage">The usage.</param>
             /// <returns>A Raw buffer</returns>
-            public static Buffer New(GraphicsDevice device, int size, BufferFlags additionalBindings = BufferFlags.None, GraphicsResourceUsage usage = GraphicsResourceUsage.Default)
+            public static Buffer New(GraphicsDevice device, int bufferSize, BufferFlags additionalFlags = BufferFlags.None, GraphicsResourceUsage usage = GraphicsResourceUsage.Default)
             {
-                return Buffer.New(device, size, BufferFlags.RawBuffer | additionalBindings, usage);
+                return Buffer.New(device, bufferSize, BufferFlags.RawBuffer | additionalFlags, usage);
             }
 
             /// <summary>
@@ -57,9 +56,9 @@ namespace Stride.Graphics
             /// <param name="additionalBindings">The additional bindings (for example, to create a combined raw/index buffer, pass <see cref="BufferFlags.IndexBuffer" />)</param>
             /// <param name="usage">The usage.</param>
             /// <returns>A Raw buffer</returns>
-            public static Buffer<T> New<T>(GraphicsDevice device, BufferFlags additionalBindings = BufferFlags.None, GraphicsResourceUsage usage = GraphicsResourceUsage.Default) where T : unmanaged
+            public static Buffer<T> New<T>(GraphicsDevice device, BufferFlags additionalFlags = BufferFlags.None, GraphicsResourceUsage usage = GraphicsResourceUsage.Default) where T : unmanaged
             {
-                return Buffer.New<T>(device, 1, BufferFlags.RawBuffer | additionalBindings, usage);
+                return Buffer.New<T>(device, elementCount: 1, BufferFlags.RawBuffer | additionalFlags, usage);
             }
 
             /// <summary>
@@ -71,9 +70,9 @@ namespace Stride.Graphics
             /// <param name="additionalBindings">The additional bindings (for example, to create a combined raw/index buffer, pass <see cref="BufferFlags.IndexBuffer" />)</param>
             /// <param name="usage">The usage of this resource.</param>
             /// <returns>A Raw buffer</returns>
-            public static Buffer<T> New<T>(GraphicsDevice device, ref T value, BufferFlags additionalBindings = BufferFlags.None, GraphicsResourceUsage usage = GraphicsResourceUsage.Default) where T : unmanaged
+            public static Buffer<T> New<T>(GraphicsDevice device, ref readonly T value, BufferFlags additionalFlags = BufferFlags.None, GraphicsResourceUsage usage = GraphicsResourceUsage.Default) where T : unmanaged
             {
-                return Buffer.New(device, ref value, BufferFlags.RawBuffer | additionalBindings, usage);
+                return Buffer.New(device, in value, BufferFlags.RawBuffer | additionalFlags, usage);
             }
 
             /// <summary>
@@ -85,9 +84,9 @@ namespace Stride.Graphics
             /// <param name="additionalBindings">The additional bindings (for example, to create a combined raw/index buffer, pass <see cref="BufferFlags.IndexBuffer" />)</param>
             /// <param name="usage">The usage of this resource.</param>
             /// <returns>A Raw buffer</returns>
-            public static Buffer<T> New<T>(GraphicsDevice device, T[] value, BufferFlags additionalBindings = BufferFlags.None, GraphicsResourceUsage usage = GraphicsResourceUsage.Default) where T : unmanaged
+            public static Buffer<T> New<T>(GraphicsDevice device, T[] data, BufferFlags additionalFlags = BufferFlags.None, GraphicsResourceUsage usage = GraphicsResourceUsage.Default) where T : unmanaged
             {
-                return Buffer.New(device, (ReadOnlySpan<T>)value, BufferFlags.RawBuffer | additionalBindings, usage:usage);
+                return Buffer.New(device, (ReadOnlySpan<T>) data, BufferFlags.RawBuffer | additionalFlags, PixelFormat.None, usage);
             }
 
             /// <summary>
@@ -98,9 +97,9 @@ namespace Stride.Graphics
             /// <param name="additionalBindings">The additional bindings (for example, to create a combined raw/index buffer, pass <see cref="BufferFlags.IndexBuffer" />)</param>
             /// <param name="usage">The usage of this resource.</param>
             /// <returns>A Raw buffer</returns>
-            public static Buffer New(GraphicsDevice device, ReadOnlySpan<byte> value, BufferFlags additionalBindings = BufferFlags.None, GraphicsResourceUsage usage = GraphicsResourceUsage.Default)
+            public static Buffer New(GraphicsDevice device, ReadOnlySpan<byte> data, BufferFlags additionalFlags = BufferFlags.None, GraphicsResourceUsage usage = GraphicsResourceUsage.Default)
             {
-                return Buffer.New(device, value, 0, BufferFlags.RawBuffer | additionalBindings, usage:usage);
+                return Buffer.New(device, data, elementSize: 0, BufferFlags.RawBuffer | additionalFlags, PixelFormat.None, usage);
             }
 
             /// <summary>
@@ -112,9 +111,9 @@ namespace Stride.Graphics
             /// <param name="usage">The usage of this resource.</param>
             /// <returns>A Raw buffer</returns>
             [Obsolete("Use span instead")]
-            public static Buffer New(GraphicsDevice device, DataPointer value, BufferFlags additionalBindings = BufferFlags.None, GraphicsResourceUsage usage = GraphicsResourceUsage.Default)
+            public static Buffer New(GraphicsDevice device, DataPointer dataPointer, BufferFlags additionalFlags = BufferFlags.None, GraphicsResourceUsage usage = GraphicsResourceUsage.Default)
             {
-                return Buffer.New(device, value, 0, BufferFlags.RawBuffer | additionalBindings, usage);
+                return Buffer.New(device, dataPointer, elementSize: 0, BufferFlags.RawBuffer | additionalFlags, usage);
             }
         }
     }

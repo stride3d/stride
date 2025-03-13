@@ -1,19 +1,20 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 #if STRIDE_GRAPHICS_API_DIRECT3D12
 
 // Copyright (c) 2010-2014 SharpDX - Alexandre Mutel
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -24,209 +25,264 @@
 
 using System;
 using System.Collections.Generic;
-using SharpDX.Direct3D;
-using SharpDX.Direct3D11;
-using SharpDX.DXGI;
-
-using Stride.Core;
+using System.Diagnostics;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using Silk.NET.Core.Native;
+using Silk.NET.Direct3D12;
+using Silk.NET.DXGI;
 using Stride.Core.Mathematics;
-
-using ResultCode = SharpDX.DXGI.ResultCode;
 
 namespace Stride.Graphics
 {
-    /// <summary>
-    /// Provides methods to retrieve and manipulate an graphics output (a monitor), it is equivalent to <see cref="Output"/>.
-    /// </summary>
-    /// <msdn-id>bb174546</msdn-id>	
-    /// <unmanaged>IDXGIOutput</unmanaged>	
-    /// <unmanaged-short>IDXGIOutput</unmanaged-short>	
-    public partial class GraphicsOutput
+    public unsafe partial class GraphicsOutput
     {
-        private readonly int outputIndex;
-        private readonly Output output;
-        private readonly OutputDescription outputDescription;
+        private readonly uint outputIndex;
 
         /// <summary>
-        /// Initializes a new instance of <see cref="GraphicsOutput" />.
+        ///   Gets the native DXGI output.
         /// </summary>
-        /// <param name="adapter">The adapter.</param>
+        internal ComPtr<IDXGIOutput> NativeOutput { get; }
+
+        private readonly OutputDesc outputDescription;
+
+        /// <summary>
+        ///   Gets the handle of the monitor associated with this <see cref="GraphicsOutput"/>.
+        /// </summary>
+        public nint MonitorHandle => outputDescription.Monitor;
+
+        /// <summary>
+        ///   Initializes a new instance of <see cref="GraphicsOutput" />.
+        /// </summary>
+        /// <param name="adapter">The graphics adapter this output is attached to.</param>
         /// <param name="outputIndex">Index of the output.</param>
-        /// <exception cref="System.ArgumentNullException">output</exception>
-        /// <exception cref="ArgumentOutOfRangeException">output</exception>
-        internal GraphicsOutput(GraphicsAdapter adapter, int outputIndex)
+        /// <exception cref="ArgumentNullException"><paramref name="adapter"/> is <see langword="null"/>.</exception>
+        internal GraphicsOutput(GraphicsAdapter adapter, ComPtr<IDXGIOutput> nativeOutput, uint outputIndex)
         {
-            if (adapter == null) throw new ArgumentNullException("adapter");
+            ArgumentNullException.ThrowIfNull(adapter);
+
+            Debug.Assert(nativeOutput.Handle != null);
 
             this.outputIndex = outputIndex;
-            this.adapter = adapter;
-            this.output = adapter.NativeAdapter.GetOutput(outputIndex).DisposeBy(this);
-            outputDescription = output.Description;
+            Adapter = adapter;
 
-            unsafe
+            // The received IDXGIOutput's lifetime is already tracked by GraphicsAdapter
+            NativeOutput = nativeOutput;
+
+            Unsafe.SkipInit(out OutputDesc outputDesc);
+            HResult result = NativeOutput.GetDesc(ref outputDesc);
+
+            if (result.IsFailure)
+                result.Throw();
+
+            Name = SilkMarshal.PtrToString((nint) outputDesc.DeviceName, NativeStringEncoding.LPWStr);
+
+            var rectangle = outputDesc.DesktopCoordinates;
+            DesktopBounds = new()
             {
-                var rectangle = outputDescription.DesktopBounds;
-                desktopBounds = *(Rectangle*)&rectangle;
-            }
+                Location = *(Point*) &rectangle.Min,
+                Width = rectangle.Size.X,
+                Height = rectangle.Size.Y
+            };
+
+            outputDescription = outputDesc;
         }
 
         /// <summary>
-        /// Find the display mode that most closely matches the requested display mode.
+        ///   Finds the display mode that most closely matches the requested display mode.
         /// </summary>
-        /// <param name="targetProfiles">The target profile, as available formats are different depending on the feature level..</param>
-        /// <param name="mode">The mode.</param>
-        /// <returns>Returns the closes display mode.</returns>
-        /// <unmanaged>HRESULT IDXGIOutput::FindClosestMatchingMode([In] const DXGI_MODE_DESC* pModeToMatch,[Out] DXGI_MODE_DESC* pClosestMatch,[In, Optional] IUnknown* pConcernedDevice)</unmanaged>
-        /// <remarks>Direct3D devices require UNORM formats. This method finds the closest matching available display mode to the mode specified in pModeToMatch. Similarly ranked fields (i.e. all specified, or all unspecified, etc) are resolved in the following order.  ScanlineOrdering Scaling Format Resolution RefreshRate  When determining the closest value for a particular field, previously matched fields are used to filter the display mode list choices, and  other fields are ignored. For example, when matching Resolution, the display mode list will have already been filtered by a certain ScanlineOrdering,  Scaling, and Format, while RefreshRate is ignored. This ordering doesn't define the absolute ordering for every usage scenario of FindClosestMatchingMode, because  the application can choose some values initially, effectively changing the order that fields are chosen. Fields of the display mode are matched one at a time, generally in a specified order. If a field is unspecified, FindClosestMatchingMode gravitates toward the values for the desktop related to this output.  If this output is not part of the desktop, then the default desktop output is used to find values. If an application uses a fully unspecified  display mode, FindClosestMatchingMode will typically return a display mode that matches the desktop settings for this output.   Unspecified fields are lower priority than specified fields and will be resolved later than specified fields.</remarks>
-        public DisplayMode FindClosestMatchingDisplayMode(GraphicsProfile[] targetProfiles, DisplayMode mode)
+        /// <param name="targetProfiles">The target profiles, as available formats differ depending on the graphics profile.</param>
+        /// <param name="modeToMatch">
+        ///   The desired display mode.
+        ///   <para>
+        ///     Members of <see cref="DisplayMode"/> can be unspecified indicating no preference for that member.
+        ///   </para>
+        ///   <para>
+        ///     A value of 0 for <see cref="DisplayMode.Width"/> or <see cref="DisplayMode.Height"/> indicates the value is unspecified.
+        ///     If either <c>Width</c> or <c>Height</c> are 0, <strong>both must be 0</strong>.
+        ///   </para>
+        ///   <para>
+        ///     A numerator and denominator of 0 in <see cref="DisplayMode.RefreshRate"/> indicate it is unspecified.
+        ///   </para>
+        ///   <para>
+        ///     A value of <see cref="PixelFormat.None"/> for <see cref="DisplayMode"/> indicates the pixel format is unspecified.
+        ///   </para>
+        /// </param>
+        /// <returns>Returns the mode that most closely matches <paramref name="modeToMatch"/>.</returns>
+        /// <remarks>
+        ///   Direct3D devices require UNORM pixel formats.
+        ///   <para>
+        ///     Unspecified fields are lower priority than specified fields and will be resolved later than specified fields.
+        ///     Similarly ranked fields (i.e. all specified, or all unspecified, etc) are resolved in the following order: <c>Format</c>, <c>Width</c>, <c>Height</c>, <c>RefreshRate</c>.
+        ///   </para>
+        ///   <para>
+        ///     When determining the closest value for a particular field, previously matched fields are used to filter the display mode list choices, and other fields are ignored.
+        ///     For example, when matching resolution, the display mode list will have already been filtered by a certain pixel format, while the refresh rate is ignored.
+        ///   </para>
+        ///   <para>
+        ///     This ordering doesn't define the absolute ordering for every usage scenario of <see cref="FindClosestMatchingDisplayMode"/>, because the application can choose some
+        ///     values initially, effectively changing the order that fields are chosen. Fields of the display mode are matched one at a time, generally in a specified order.
+        ///     If a field is unspecified, this method gravitates toward the values for the desktop related to this output. If this output is not part of the desktop, then
+        ///     the default desktop output is used to find values.
+        ///   </para>
+        ///   <para>
+        ///     If an application uses a fully unspecified display mode, <see cref="FindClosestMatchingDisplayMode"/> will typically return a display mode that matches the
+        ///     desktop settings for this output.
+        ///   </para>
+        /// </remarks>
+        public DisplayMode FindClosestMatchingDisplayMode(GraphicsProfile[] targetProfiles, DisplayMode modeToMatch)
         {
-            if (targetProfiles == null) throw new ArgumentNullException("targetProfiles");
+            ArgumentNullException.ThrowIfNull(targetProfiles);
 
-            ModeDescription closestDescription;
-            SharpDX.Direct3D12.Device deviceTemp = null;
+            var d3d12 = D3D12.GetApi();
+
+            // NOTE: Assume the same underlying integer type
+            Debug.Assert(sizeof(GraphicsProfile) == sizeof(D3DFeatureLevel));
+            var featureLevels = MemoryMarshal.Cast<GraphicsProfile, D3DFeatureLevel>(targetProfiles);
+
+            HResult result;
+
+            IUnknown* nativeAdapter = (IUnknown*) Adapter.NativeAdapter.Handle;
+            ID3D12Device* deviceTemp = null;
+
             for (int i = 0; i < targetProfiles.Length; i++)
             {
+                var featureLevelToTry = (D3DFeatureLevel) targetProfiles[i];
+
                 // Create Device D3D12 with feature Level based on profile
-                try
-                {
-                    deviceTemp = new SharpDX.Direct3D12.Device(Adapter.NativeAdapter, (FeatureLevel)targetProfiles[i]);
+                result = d3d12.CreateDevice(nativeAdapter, featureLevelToTry, SilkMarshal.GuidPtrOf<ID3D12Device>(),
+                                            (void**) &deviceTemp);
+
+                if (result.IsSuccess)
                     break;
-                }
-                catch (Exception)
-                {
-                }
             }
 
             if (deviceTemp == null)
                 throw new InvalidOperationException("Could not create D3D12 graphics device");
 
-            var description = new SharpDX.DXGI.ModeDescription()
+            ModeDesc closestDescription;
+            ModeDesc modeDescription = new()
             {
-                Width = mode.Width,
-                Height = mode.Height,
-                RefreshRate = mode.RefreshRate.ToSharpDX(),
-                Format = (SharpDX.DXGI.Format)mode.Format,
-                Scaling = DisplayModeScaling.Unspecified,
-                ScanlineOrdering = DisplayModeScanlineOrder.Unspecified
+                Width = (uint) modeToMatch.Width,
+                Height = (uint) modeToMatch.Height,
+                RefreshRate = modeToMatch.RefreshRate.ToSilk(),
+                Format = (Format) modeToMatch.Format,
+                Scaling = ModeScaling.Unspecified,
+                ScanlineOrdering = ModeScanlineOrder.Unspecified
             };
-            using (var device = deviceTemp)
-                output.GetClosestMatchingMode(device, description, out closestDescription);
+
+            result = NativeOutput.FindClosestMatchingMode(in modeDescription, &closestDescription, (IUnknown*) deviceTemp);
+
+            if (result.IsFailure)
+                result.Throw();
+
+            deviceTemp->Release();
 
             return DisplayMode.FromDescription(closestDescription);
         }
 
         /// <summary>
-        /// Retrieves the handle of the monitor associated with this <see cref="GraphicsOutput"/>.
-        /// </summary>
-        /// <msdn-id>bb173068</msdn-id>	
-        /// <unmanaged>HMONITOR Monitor</unmanaged>	
-        /// <unmanaged-short>HMONITOR Monitor</unmanaged-short>	
-        public IntPtr MonitorHandle { get { return outputDescription.MonitorHandle; } }
-
-        /// <summary>
-        /// Gets the native output.
-        /// </summary>
-        /// <value>The native output.</value>
-        internal Output NativeOutput
-        {
-            get
-            {
-                return output;
-            }
-        }
-
-        /// <summary>
-        /// Enumerates all available display modes for this output and stores them in <see cref="SupportedDisplayModes"/>.
+        ///   Enumerates all available display modes for this output and stores them in <see cref="SupportedDisplayModes"/>.
         /// </summary>
         private void InitializeSupportedDisplayModes()
         {
+            HResult result = default;
+
             var modesAvailable = new List<DisplayMode>();
-            var modesMap = new Dictionary<string, DisplayMode>();
+            var knownModes = new Dictionary<int, DisplayMode>();
 
 #if DIRECTX11_1
-            var output1 = output.QueryInterface<Output1>();
+            using ComPtr<IDXGIOutput1> output1 = NativeOutput.QueryInterface<IDXGIOutput1>();
 #endif
+            const uint DisplayModeEnumerationFlags = DXGI.EnumModesInterlaced | DXGI.EnumModesScaling;
 
-            try
+            foreach (var format in Enum.GetValues<Format>())
             {
-                const DisplayModeEnumerationFlags displayModeEnumerationFlags = DisplayModeEnumerationFlags.Interlaced | DisplayModeEnumerationFlags.Scaling;
+                if (format == Format.FormatForceUint)
+                    continue;
 
-                foreach (var format in Enum.GetValues(typeof(SharpDX.DXGI.Format)))
-                {
-                    var dxgiFormat = (Format)format;
+                uint displayModeCount = 0;
 #if DIRECTX11_1
-                    var modes = output1.GetDisplayModeList1(dxgiFormat, displayModeEnumerationFlags);
+                result = output1.GetDisplayModeList1(format, DisplayModeEnumerationFlags, ref displayModeCount, null);
 #else
-                    var modes = output.GetDisplayModeList(dxgiFormat, displayModeEnumerationFlags);
+                result = NativeOutput.GetDisplayModeList(format, DisplayModeEnumerationFlags, ref displayModeCount, null);
+#endif
+                if (result.IsFailure && result.Code != DxgiConstants.ErrorNotCurrentlyAvailable)
+                    result.Throw();
+                if (displayModeCount == 0)
+                    continue;
+
+#if DIRECTX11_1
+                Span<ModeDesc1> displayModes = stackalloc ModeDesc1[(int) displayModeCount];
+                result = output1.GetDisplayModeList1(format, DisplayModeEnumerationFlags, ref displayModeCount, ref displayModes[0]);
+#else
+                Span<ModeDesc> displayModes = stackalloc ModeDesc[(int) displayModeCount];
+                result = NativeOutput.GetDisplayModeList(format, DisplayModeEnumerationFlags, ref displayModeCount, ref displayModes[0]);
 #endif
 
-                    foreach (var mode in modes)
+                for (int i = 0; i < displayModeCount; i++)
+                {
+                    var mode = displayModes[i];
+
+                    if (mode.Scaling == ModeScaling.Unspecified)
                     {
-                        if (mode.Scaling == DisplayModeScaling.Unspecified)
+                        var modeKey = HashCode.Combine(format, mode.Width, mode.Height, mode.RefreshRate.Numerator, mode.RefreshRate.Denominator);
+
+                        if (!knownModes.ContainsKey(modeKey))
                         {
-                            var key = format + ";" + mode.Width + ";" + mode.Height + ";" + mode.RefreshRate.Numerator + ";" + mode.RefreshRate.Denominator;
+                            var displayMode = DisplayMode.FromDescription(mode);
 
-                            DisplayMode oldMode;
-                            if (!modesMap.TryGetValue(key, out oldMode))
-                            {
-                                var displayMode = DisplayMode.FromDescription(mode);
-
-                                modesMap.Add(key, displayMode);
-                                modesAvailable.Add(displayMode);
-                            }
+                            knownModes.Add(modeKey, displayMode);
+                            modesAvailable.Add(displayMode);
                         }
                     }
                 }
             }
-            catch (SharpDX.SharpDXException dxgiException)
-            {
-                if (dxgiException.ResultCode != ResultCode.NotCurrentlyAvailable)
-                    throw;
-            }
 
-#if DIRECTX11_1
-            output1.Dispose();
-#endif
             supportedDisplayModes = modesAvailable.ToArray();
         }
 
         /// <summary>
         /// Initializes <see cref="CurrentDisplayMode"/> with the most appropiate mode from <see cref="SupportedDisplayModes"/>.
         /// </summary>
-        /// <remarks>It checks first for a mode with <see cref="Format.R8G8B8A8_UNorm"/>,
-        /// if it is not found - it checks for <see cref="Format.B8G8R8A8_UNorm"/>.</remarks>
+        /// <remarks>
+        /// It checks first for a mode with <see cref="Format.FormatR8G8B8A8Unorm"/>.
+        /// If it is not found, it checks for <see cref="Format.FormatB8G8R8A8Unorm"/>.
+        /// </remarks>
         private void InitializeCurrentDisplayMode()
         {
-            currentDisplayMode = TryFindMatchingDisplayMode(Format.R8G8B8A8_UNorm)
-                                 ?? TryFindMatchingDisplayMode(Format.B8G8R8A8_UNorm);
-        }
+            currentDisplayMode = TryFindMatchingDisplayMode(Format.FormatR8G8B8A8Unorm) ??
+                                 TryFindMatchingDisplayMode(Format.FormatB8G8R8A8Unorm);
 
-        /// <summary>
-        /// Tries to find a display mode that has the same size as the current <see cref="OutputDescription"/> associated with this instance
-        /// of the specified format.
-        /// </summary>
-        /// <param name="format">The format to match with.</param>
-        /// <returns>A matched <see cref="DisplayMode"/> or null if nothing is found.</returns>
-        private DisplayMode TryFindMatchingDisplayMode(Format format)
-        {
-            var desktopBounds = outputDescription.DesktopBounds;
-
-            foreach (var supportedDisplayMode in SupportedDisplayModes)
+            /// <summary>
+            ///   Tries to find a display mode with the specified format that has the same size as the current desktop size
+            ///   of this <see cref="GraphicsOutput"/>.
+            /// </summary>
+            /// <param name="format">The format to match with.</param>
+            /// <returns>A matched <see cref="DisplayMode"/>, or <see langword="null"/> if nothing is found.</returns>
+            private DisplayMode? TryFindMatchingDisplayMode(Format format)
             {
-                var width = desktopBounds.Right - desktopBounds.Left;
-                var height = desktopBounds.Bottom - desktopBounds.Top;
+                var desktopBounds = outputDescription.DesktopCoordinates;
 
-                if (supportedDisplayMode.Width == width
-                    && supportedDisplayMode.Height == height
-                    && (Format)supportedDisplayMode.Format == format)
+                foreach (var supportedDisplayMode in SupportedDisplayModes)
                 {
-                    // Stupid DXGI, there is no way to get the DXGI.Format, nor the refresh rate.
-                    return new DisplayMode((PixelFormat)format, width, height, supportedDisplayMode.RefreshRate);
-                }
-            }
+                    var width = desktopBounds.Size.X;
+                    var height = desktopBounds.Size.Y;
+                    var matchingFormat = (PixelFormat) format;
 
-            return null;
+                    if (supportedDisplayMode.Width == width &&
+                        supportedDisplayMode.Height == height &&
+                        supportedDisplayMode.Format == matchingFormat)
+                    {
+                        // TODO: DXGI, there is no way to get the DXGI.Format, nor the refresh rate
+                        return new DisplayMode(matchingFormat, width, height, supportedDisplayMode.RefreshRate);
+                    }
+                }
+
+                return null;
+            }
         }
     }
 }
+
 #endif
