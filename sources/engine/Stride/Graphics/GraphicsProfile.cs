@@ -9,25 +9,7 @@ namespace Stride.Graphics
     /// </summary>
     [DataContract("GraphicsProfile")]
     public enum GraphicsProfile
-    {
-        /// <summary>
-        /// DirectX9 support (HLSL 3.0)
-        /// </summary>
-        [Display("Direct3D 9.1 / OpenGL ES 2.0")]
-        Level_9_1 = 0x9100,
-
-        /// <summary>
-        /// DirectX9 support (HLSL 3.0)
-        /// </summary>
-        [Display("Direct3D 9.2")]
-        Level_9_2 = 0x9200,
-
-        /// <summary>
-        /// DirectX9 support (HLSL 3.0)
-        /// </summary>
-        [Display("Direct3D 9.3")]
-        Level_9_3 = 0x9300,
-        
+    {        
         /// <summary>
         /// DirectX10 support (HLSL 4.0, Geometry Shader)
         /// </summary>
