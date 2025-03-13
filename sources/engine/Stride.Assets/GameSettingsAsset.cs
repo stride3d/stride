@@ -41,7 +41,7 @@ namespace Stride.Assets
         /// </summary>
         public const string FileExtension = ".sdgamesettings";
 
-        public const string GameSettingsLocation = GameSettings.AssetUrl;
+        public static readonly string GameSettingsLocation = GameSettings.AssetUrl;
 
         public const string DefaultSceneLocation = "MainScene";
 

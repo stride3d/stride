@@ -32,6 +32,8 @@ namespace Stride.Input
         public new MouseDeviceState MouseState => base.MouseState;
         public new PointerDeviceState PointerState => base.PointerState;
 
+        public override bool IsMouseVisible { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
         public override void Update(List<InputEvent> inputEvents)
         {
             base.Update(inputEvents);

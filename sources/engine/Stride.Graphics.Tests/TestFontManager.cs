@@ -19,7 +19,7 @@ namespace Stride.Graphics.Tests
     {
         private void Init()
         {
-            Game.InitializeAssetDatabase();
+            DefaultGame.InitializeAssetDatabase();
         }
 
         private IDatabaseFileProviderService CreateDatabaseProvider()

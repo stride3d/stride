@@ -11,7 +11,7 @@ using Stride.Rendering.Sprites;
 
 namespace Stride.Engine.Tests
 {
-    public class SpriteAnimationTest : Game
+    public class SpriteAnimationTest : DefaultGame
     {
         [Fact]
         public void DefaultValues()
