@@ -9,46 +9,45 @@ using Stride.Animations;
 using Stride.Input;
 using Stride.Engine;
 
-namespace ##Namespace##
+namespace ##Namespace##;
+
+[DataContract("PlayAnimation")]
+public class PlayAnimation
 {
-    [DataContract("PlayAnimation")]
-    public class PlayAnimation
+    public AnimationClip Clip;
+    public AnimationBlendOperation BlendOperation = AnimationBlendOperation.LinearBlend;
+    public double StartTime = 0;
+}
+
+/// <summary>
+/// Script which starts a few animations on its entity
+/// </summary>
+public class ##Scriptname## : StartupScript
+{
+    /// <summary>
+    /// A list of animations to be loaded when the script starts
+    /// </summary>
+    public readonly List<PlayAnimation> Animations = [];
+    
+    public override void Start()
     {
-        public AnimationClip Clip;
-        public AnimationBlendOperation BlendOperation = AnimationBlendOperation.LinearBlend;
-        public double StartTime = 0;
+        var animComponent = Entity.GetOrCreate<AnimationComponent>();
+
+        if (animComponent != null)
+            PlayAnimations(animComponent);
+
+        // Destroy this script since it's no longer needed
+        Entity.Remove(this);
     }
 
-    /// <summary>
-    /// Script which starts a few animations on its entity
-    /// </summary>
-    public class ##Scriptname## : StartupScript
+    private void PlayAnimations(AnimationComponent animComponent)
     {
-        /// <summary>
-        /// A list of animations to be loaded when the script starts
-        /// </summary>
-        public readonly List<PlayAnimation> Animations = new List<PlayAnimation>();
-
-        public override void Start()
+        foreach (var anim in Animations)
         {
-            var animComponent = Entity.GetOrCreate<AnimationComponent>();
-
-            if (animComponent != null)
-                PlayAnimations(animComponent);
-
-            // Destroy this script since it's no longer needed
-            Entity.Remove(this);
+            if (anim.Clip != null)
+                animComponent.Add(anim.Clip, anim.StartTime, anim.BlendOperation);
         }
 
-        private void PlayAnimations(AnimationComponent animComponent)
-        {
-            foreach (var anim in Animations)
-            {
-                if (anim.Clip != null)
-                    animComponent.Add(anim.Clip, anim.StartTime, anim.BlendOperation);
-            }
-
-            Animations.Clear();
-        }
+        Animations.Clear();
     }
 }
