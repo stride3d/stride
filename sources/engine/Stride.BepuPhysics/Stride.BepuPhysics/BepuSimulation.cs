@@ -744,8 +744,10 @@ public sealed class BepuSimulation : IDisposable
             foreach (var body in _interpolatedBodies)
             {
                 body.PreviousPose = body.CurrentPose;
-                if (body.BodyReference is {} bRef)
-                    body.CurrentPose = bRef.Pose;
+
+                Debug.Assert(body.BodyReference.HasValue);
+
+                body.CurrentPose = body.BodyReference.Value.Pose;
             }
         }
 
@@ -861,11 +863,9 @@ public sealed class BepuSimulation : IDisposable
     {
         _interpolatedBodies.Add(body);
 
-        body.Entity.Transform.UpdateWorldMatrix();
-        body.Entity.Transform.WorldMatrix.Decompose(out _, out Quaternion collidableWorldRotation, out Vector3 collidableWorldTranslation);
-        body.CurrentPose.Position = (collidableWorldTranslation + body.CenterOfMass).ToNumeric();
-        body.CurrentPose.Orientation = collidableWorldRotation.ToNumeric();
-        body.PreviousPose = body.CurrentPose;
+        Debug.Assert(body.BodyReference.HasValue);
+
+        body.PreviousPose = body.CurrentPose = body.BodyReference.Value.Pose;
     }
 
     internal void UnregisterInterpolated(BodyComponent body)
