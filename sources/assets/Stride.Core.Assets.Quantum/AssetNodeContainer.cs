@@ -4,6 +4,7 @@
 using Stride.Core.IO;
 using Stride.Core.Mathematics;
 using Stride.Core.Quantum;
+using Stride.Core.Reflection;
 using IReference = Stride.Core.Serialization.Contents.IReference;
 
 namespace Stride.Core.Assets.Quantum;
@@ -38,5 +39,21 @@ public class AssetNodeContainer : NodeContainer
         {
             NodeBuilder.RegisterPrimitiveType(contentType);
         }
+
+        AssemblyRegistry.AssemblyRegistered += (sender, args) =>
+        {
+            foreach (var contentType in AssetRegistry.GetContentTypes())
+            {
+                NodeBuilder.RegisterPrimitiveType(contentType);
+            }
+        };
+
+        AssemblyRegistry.AssemblyUnregistered += (sender, args) =>
+        {
+            foreach (var contentType in AssetRegistry.GetContentTypes())
+            {
+                NodeBuilder.UnregisterPrimitiveType(contentType);
+            }
+        };
     }
 }
