@@ -277,17 +277,14 @@ namespace Stride.GameStudio.ViewModels
                     var assemblyToAnalyze = assembliesToReload.Where(x => x.LoadedAssembly?.Assembly != null && x.Project != null).ToDictionary(x => x.Project, x => x.LoadedAssembly.Assembly.FullName);
                     var logResult = new LoggerResult();
                     BuildLog.AddLogger(logResult);
-
-                    GameStudioAssemblyReloader.Reload(Session, logResult, 
-                        postReloadAction:async () =>
+                    GameStudioAssemblyReloader.Reload(Session, logResult, async () =>
                     {
                         foreach (var assemblyToReload in assemblyToAnalyze)
                         {
                             await entityComponentsSorter.AnalyzeProject(Session, assemblyToReload.Key, assemblyTrackingCancellation.Token);
                         }
                         UpdateCommands();
-                    }, 
-                        undoAction:() =>
+                    }, () =>
                     {
                         foreach (var assemblyToReload in assembliesToReload)
                         {
@@ -298,9 +295,7 @@ namespace Stride.GameStudio.ViewModels
                                 modifiedAssemblies.Add(assemblyToReload.LoadedAssembly, modifiedAssembly);
                             }
                         }
-                    }, 
-                        modifiedAssemblies: assembliesToReload.ToDictionary(x => x.LoadedAssembly, x => x.LoadedAssemblyPath));
-
+                    }, assembliesToReload.ToDictionary(x => x.LoadedAssembly, x => x.LoadedAssemblyPath));
                     Session.AllAssets.ForEach(x => x.PropertyGraph?.RefreshBase());
                     Session.AllAssets.ForEach(x => x.PropertyGraph?.ReconcileWithBase());
 

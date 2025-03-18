@@ -14,6 +14,8 @@ using Stride.Assets.Presentation.AssetEditors.AssetCompositeGameEditor.ViewModel
 using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
 using Stride.Particles.Materials;
 using Stride.Core.Reflection;
+using Stride.Core.Assets.Quantum.Visitors;
+using System.Collections.Generic;
 
 namespace Stride.Assets.Presentation.AssetEditors.GameEditor.ViewModels
 {
@@ -184,6 +186,28 @@ namespace Stride.Assets.Presentation.AssetEditors.GameEditor.ViewModels
                         var isReference = await PropagatePartReference(gameSideNode, value, e);
                         if (!isReference)
                         {
+                            // If necessary, unregister old content references that might referenced by children nodes
+                            if (e.OldValue != null)
+                            {
+                                var oldNode = Editor.NodeContainer.GetNode(e.OldValue);
+
+                                var visitor = new AssetGraphVisitorBase(Owner.Asset.PropertyGraph.Definition);
+                                var removedNodes = new HashSet<IGraphNode>();
+                                // If we're in scenario where rootNode is an object node and index is not empty, we might already have the node in the dictionary so let's check this in Visiting
+                                visitor.Visiting += (node, path) =>
+                                {
+                                    var gameSideNode = ((IAssetNode)node).GetContent(GameSideContentKey);
+                                    if (gameSideNode != null)
+                                        removedNodes.Add(gameSideNode);
+                                };
+                                visitor.Visit(oldNode);
+
+                                await Editor.Controller.InvokeTask(async () =>
+                                {
+                                    await Editor.Controller.Loader.Manager.ClearContentReferencesFromNodes(Owner.Id, removedNodes);
+                                });
+                            }
+
                             await Editor.Controller.InvokeAsync(() =>
                             {
                                 var gameSideValue = CloneObjectForGameSide(value, assetNode, gameSideNode);

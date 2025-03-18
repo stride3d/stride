@@ -3,14 +3,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Threading.Tasks;
 using Stride.Core.Assets;
 using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Quantum;
-using Stride.Core.Reflection;
+using Stride.Core.Extensions;
 
 namespace Stride.Editor.EditorGame.ContentLoader
 {
@@ -19,29 +18,29 @@ namespace Stride.Editor.EditorGame.ContentLoader
         private readonly record struct ReferenceAccessor
         {
             public readonly IGraphNode ContentNode;
-            public readonly NodeIndex index;
+            public readonly NodeIndex Index;
 
             public ReferenceAccessor(IGraphNode contentNode, NodeIndex index)
             {
                 this.ContentNode = contentNode;
-                this.index = index;
+                this.Index = index;
             }
 
             public void Update(object newValue)
             {
-                if (index == NodeIndex.Empty)
+                if (Index == NodeIndex.Empty)
                 {
                     ((IMemberNode)ContentNode).Update(newValue);
                 }
                 else
                 {
-                    ((IObjectNode)ContentNode).Update(newValue, index);
+                    ((IObjectNode)ContentNode).Update(newValue, Index);
                 }
             }
 
             public Task Clear([NotNull] LoaderReferenceManager manager, AbsoluteId referencerId, AssetId contentId)
             {
-                return manager.ClearContentReference(referencerId, contentId, ContentNode, index);
+                return manager.ClearContentReference(referencerId, contentId, ContentNode, Index);
             }
         }
 
@@ -55,34 +54,6 @@ namespace Stride.Editor.EditorGame.ContentLoader
         {
             this.gameDispatcher = gameDispatcher;
             this.loader = loader;
-        }
-
-        public async Task ClearUserAssetsIn(Assembly assembly)
-        {
-            // This method is mostly there for user-defined assets, the nodes for fields and properties pointing to those assets in these collections
-            // have to be manually purged on assembly reload otherwise ReplaceContent fails as the nodes still use the old assembly type
-            var assets = new List<(AbsoluteId referencerId, AssetId contentId, IGraphNode contentNode, NodeIndex index)>();
-            foreach (var (id, referenced) in references)
-            {
-                foreach (var (contentId, accessors) in referenced)
-                {
-                    foreach (var accessor in accessors)
-                    {
-                        if (accessor.ContentNode is IMemberNode member && member.MemberDescriptor.Type.Assembly == assembly && member.MemberDescriptor.Type.GetCustomAttribute(typeof(Core.Serialization.Contents.ReferenceSerializerAttribute)) is not null)
-                        {
-                            assets.Add((id, contentId, accessor.ContentNode, accessor.index));
-                        }
-                    }
-                }
-            }
-
-            await gameDispatcher.InvokeTask(async () =>
-            {
-                foreach (var(referencerId, contentId, contentNode, index) in assets)
-                {
-                    await ClearContentReference(referencerId, contentId, contentNode, index);
-                }
-            });
         }
 
         public async Task RegisterReferencer(AbsoluteId referencerId)
@@ -156,6 +127,37 @@ namespace Stride.Editor.EditorGame.ContentLoader
             }
         }
 
+        /// <summary>
+        /// This will clear all references within <see cref="contentNode"/> starting with <see cref="rootIndex"/>.
+        /// </summary>
+        /// <param name="referencerId"></param>
+        /// <param name="contentNode"></param>
+        /// <param name="rootIndex"></param>
+        /// <returns></returns>
+        public async Task ClearContentReferencesFromNodes(AbsoluteId referencerId, IReadOnlySet<IGraphNode> nodes)
+        {
+            gameDispatcher.EnsureAccess();
+            using (await loader.LockDatabaseAsynchronously())
+            {
+                if (!references.ContainsKey(referencerId))
+                    throw new InvalidOperationException("The given referencer is not registered.");
+
+                var referencer = references[referencerId];
+
+                foreach (var accessors in referencer.ToList())
+                {
+                    for (int i = 0; i < accessors.Value.Count; ++i)
+                    {
+                        if (nodes.Contains(accessors.Value[i].ContentNode))
+                        {
+                            // Since accessor will be removed, we also adjust index for next iteration
+                            await RemoveAccessor(accessors.Key, referencer, accessors.Value, i--);
+                        }
+                    }
+                }
+            }
+        }
+
         public async Task ClearContentReference(AbsoluteId referencerId, AssetId contentId, IGraphNode contentNode, NodeIndex index)
         {
             gameDispatcher.EnsureAccess();
@@ -172,17 +174,22 @@ namespace Stride.Editor.EditorGame.ContentLoader
                 if (accesorIndex < 0)
                     throw new InvalidOperationException("The given reference is not registered for the given content and referencer.");
 
-                accessors.RemoveAt(accesorIndex);
-                if (accessors.Count == 0)
+                await RemoveAccessor(contentId, referencer, accessors, accesorIndex);
+            }
+        }
+
+        private async Task RemoveAccessor(AssetId contentId, Dictionary<AssetId, List<ReferenceAccessor>> referencer, List<ReferenceAccessor> accessors, int accesorIndex)
+        {
+            accessors.RemoveAt(accesorIndex);
+            if (accessors.Count == 0)
+            {
+                referencer.Remove(contentId);
+                // Unload the content if nothing else is referencing it anymore
+                var unloadContent = references.Values.SelectMany(x => x.Keys).All(x => x != contentId);
+                if (unloadContent)
                 {
-                    referencer.Remove(contentId);
-                    // Unload the content if nothing else is referencing it anymore
-                    var unloadContent = references.Values.SelectMany(x => x.Keys).All(x => x != contentId);
-                    if (unloadContent)
-                    {
-                        await loader.UnloadAsset(contentId);
-                        contents.Remove(contentId);
-                    }
+                    await loader.UnloadAsset(contentId);
+                    contents.Remove(contentId);
                 }
             }
         }
