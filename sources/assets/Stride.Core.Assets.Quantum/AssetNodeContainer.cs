@@ -34,25 +34,34 @@ public class AssetNodeContainer : NodeContainer
         NodeBuilder.RegisterPrimitiveType(typeof(Matrix));
         NodeBuilder.RegisterPrimitiveType(typeof(UPath));
         NodeBuilder.RegisterPrimitiveType(typeof(AngleSingle));
+
+        var registeredTypes = new HashSet<Type>();
         // Register content types as primitive so they are not processed by Quantum
         foreach (var contentType in AssetRegistry.GetContentTypes())
         {
             NodeBuilder.RegisterPrimitiveType(contentType);
+            registeredTypes.Add(contentType);
         }
 
         AssemblyRegistry.AssemblyRegistered += (sender, args) =>
         {
+            // We're expecting the AssetRegistry to register content types before this method runs, not ideal
             foreach (var contentType in AssetRegistry.GetContentTypes())
             {
-                NodeBuilder.RegisterPrimitiveType(contentType);
+                if (registeredTypes.Add(contentType))
+                    NodeBuilder.RegisterPrimitiveType(contentType);
             }
         };
 
         AssemblyRegistry.AssemblyUnregistered += (sender, args) =>
         {
-            foreach (var contentType in AssetRegistry.GetContentTypes())
+            foreach (var contentType in registeredTypes)
             {
-                NodeBuilder.UnregisterPrimitiveType(contentType);
+                if (contentType.Assembly == args.Assembly)
+                {
+                    NodeBuilder.UnregisterPrimitiveType(contentType);
+                    registeredTypes.Remove(contentType);
+                }
             }
         };
     }
