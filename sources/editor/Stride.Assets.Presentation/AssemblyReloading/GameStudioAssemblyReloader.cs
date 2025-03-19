@@ -437,7 +437,7 @@ namespace Stride.Assets.Presentation.AssemblyReloading
                         unloadedObject.UpdatedObject = AssetYamlSerializer.Default.Deserialize(eventReader, null, unloadedObject.ExpectedType, out properties, settings);
                         // We will have broken references here because we are deserializing objects individually, so we don't pass any logger to discard warnings
                         var metadata = YamlAssetSerializer.CreateAndProcessMetadata(properties, unloadedObject.UpdatedObject, false);
-                          
+
                         var overrides = metadata.RetrieveMetadata(AssetObjectSerializerBackend.OverrideDictionaryKey);
                         unloadedObject.Overrides = overrides;
 
