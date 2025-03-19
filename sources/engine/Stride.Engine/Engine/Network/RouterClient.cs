@@ -141,8 +141,6 @@ namespace Stride.Engine.Network
             {
                 switch (Platform.Type)
                 {
-                    case PlatformType.UWP:
-                        return RouterConnectionMode.ConnectThenListen;
                     case PlatformType.Android:
                     case PlatformType.iOS:
                         return RouterConnectionMode.Listen;
@@ -166,7 +164,7 @@ namespace Stride.Engine.Network
 
             /// <summary>
             /// First, tries to connect, and if not possible, listen for a router connection.
-            /// This is useful for platform where we can't be sure (no way to determine if emulator and/or run in desktop or remotely, such as UWP).
+            /// This is useful for platform where we can't be sure (no way to determine if emulator and/or run in desktop or remotely).
             /// </summary>
             ConnectThenListen = 3,
         }

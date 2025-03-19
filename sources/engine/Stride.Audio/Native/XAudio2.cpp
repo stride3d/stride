@@ -3,7 +3,7 @@
 
 #include "Common.h"
 
-#if defined(WINDOWS_DESKTOP) || defined(UWP) || defined(WINDOWS_STORE) || defined(WINDOWS_PHONE) || !defined(__clang__)
+#if defined(WINDOWS_DESKTOP) || defined(WINDOWS_STORE) || !defined(__clang__)
 
 #include "../../../deps/NativePath/NativePath.h"
 #include "../../../deps/NativePath/NativeThreading.h"
