@@ -45,9 +45,7 @@ namespace Stride.Core.Assets.Editor.Settings
                 GetAcceptableValues = () =>
                 {
                     var names = new List<string> { IDEInfo.DefaultIDE.DisplayName };
-                    names.AddRange(VisualStudioVersions.AvailableInstances.Where(x => x.HasProgram).Select(x => x.DisplayName));                    
-                    names.AddRange(RiderVersions.AvailableInstances.Where(x => x.HasProgram).Select(x => x.DisplayName));
-                    names.AddRange(VSCodeVersions.AvailableInstances.Where(x => x.HasProgram).Select(x => x.DisplayName));
+                    names.AddRange(IDEInfoVersions.AvailableIDEs().Where(x => x.HasProgram).Select(x => x.DisplayName));
                     return names;
                 },
                 DisplayName = $"{ExternalTools}/{Tr._p("Settings", "Default IDE")}",

@@ -40,9 +40,7 @@ namespace Stride.GameStudio.ViewModels
         {
             Panels = new EditionPanelViewModel(ServiceProvider);
             availableIDEs = [IDEInfo.DefaultIDE];
-            availableIDEs.AddRange(VisualStudioVersions.AvailableInstances);
-            availableIDEs.AddRange(RiderVersions.AvailableInstances);
-            availableIDEs.AddRange(VSCodeVersions.AvailableInstances);
+            availableIDEs.AddRange(IDEInfoVersions.AvailableIDEs());
             NewSessionCommand = new AnonymousCommand(serviceProvider, RestartAndCreateNewSession);
             OpenAboutPageCommand = new AnonymousCommand(serviceProvider, OpenAboutPage);
             OpenSessionCommand = new AnonymousTaskCommand<UFile>(serviceProvider, RestartAndOpenSession);

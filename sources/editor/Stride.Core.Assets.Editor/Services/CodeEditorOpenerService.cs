@@ -45,9 +45,7 @@ namespace Stride.Core.Assets.Editor.Services
                 if (!EditorSettings.DefaultIDE.GetAcceptableValues().Contains(defaultIDEName))
                     defaultIDEName = EditorSettings.DefaultIDE.DefaultValue;
                 
-                var ides = VisualStudioVersions.AvailableInstances
-                    .Concat(VSCodeVersions.AvailableInstances)
-                    .Concat(RiderVersions.AvailableInstances);
+                IEnumerable<IDEInfo> ides = IDEInfoVersions.AvailableIDEs();
                 
                 ideInfo = ides.FirstOrDefault(x => x.DisplayName == defaultIDEName) ?? IDEInfo.DefaultIDE;
             }
