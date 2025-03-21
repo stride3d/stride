@@ -23,7 +23,7 @@
 
 #endregion
 
-namespace Stride.Core.VisualStudio;
+namespace Stride.Core.CodeEditor;
 
 internal class SolutionFileException : Exception
 {

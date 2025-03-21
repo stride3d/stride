@@ -25,7 +25,7 @@
 
 using System.Diagnostics;
 
-namespace Stride.Core.VisualStudio;
+namespace Stride.Core.CodeEditor;
 
 /// <summary>
 /// A VisualStudio solution.

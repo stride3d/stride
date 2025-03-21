@@ -27,7 +27,7 @@ using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace Stride.Core.VisualStudio;
+namespace Stride.Core.CodeEditor;
 
 internal class SolutionReader : IDisposable
 {

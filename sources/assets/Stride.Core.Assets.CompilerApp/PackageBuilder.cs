@@ -22,7 +22,7 @@ using Stride.Core.Serialization.Contents;
 using Stride;
 using Stride.Assets;
 using Stride.Graphics;
-using Stride.Core.VisualStudio;
+using Stride.Core.CodeEditor.VisualStudio;
 using ServiceWire.NamedPipes;
 using System.IO;
 using Stride.Core.Storage;

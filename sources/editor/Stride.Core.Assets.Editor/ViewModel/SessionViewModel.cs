@@ -24,10 +24,11 @@ using Stride.Core.Assets.Quantum;
 using Stride.Core.Assets.Templates;
 using Stride.Core;
 using Stride.Core.Annotations;
+using Stride.Core.CodeEditor;
 using Stride.Core.Diagnostics;
 using Stride.Core.Extensions;
 using Stride.Core.IO;
-using Stride.Core.VisualStudio;
+using Stride.Core.CodeEditor.VisualStudio;
 using Stride.Core.Presentation.Collections;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Dirtiables;
@@ -1786,7 +1787,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
 
         private Task OpenInIDE(IDEInfo ideInfo)
         {
-            return VisualStudioService.StartOrToggleVisualStudio(this, ideInfo);
+            return CodeEditorOpenerService.StartOrToggle(this, ideInfo);
         }
 
         private void ToggleIsRootOnSelectedAsset()

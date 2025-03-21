@@ -7,8 +7,9 @@ using System.Linq;
 using System.Reflection;
 using System.Xml.Linq;
 using Mono.Options;
+using Stride.Core.CodeEditor;
 using Stride.Core.Diagnostics;
-using Stride.Core.VisualStudio;
+using Stride.Core.CodeEditor.VisualStudio;
 
 namespace Stride.FixProjectReferences
 {

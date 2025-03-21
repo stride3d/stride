@@ -2,7 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Xml;
 using System.Xml.Linq;
-using Stride.Core.VisualStudio;
+using Stride.Core.CodeEditor;
 
 namespace Stride.ProjectGenerator
 {

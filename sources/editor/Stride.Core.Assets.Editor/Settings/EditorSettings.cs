@@ -4,10 +4,13 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Stride.Core.Annotations;
+using Stride.Core.CodeEditor;
 using Stride.Core.IO;
 using Stride.Core.Settings;
-using Stride.Core.VisualStudio;
+using Stride.Core.CodeEditor.VisualStudio;
 using Stride.Core.Translation;
+using Stride.Core.CodeEditor.Rider;
+using Stride.Core.CodeEditor.VSCode;
 
 namespace Stride.Core.Assets.Editor.Settings
 {
@@ -37,12 +40,14 @@ namespace Stride.Core.Assets.Editor.Settings
             {
                 DisplayName = $"{ExternalTools}/{Tr._p("Settings", "Shader editor")}",
             };
-            DefaultIDE = new SettingsKey<string>("ExternalTools/DefaultIDE", SettingsContainer, VisualStudioVersions.DefaultIDE.DisplayName)
+            DefaultIDE = new SettingsKey<string>("ExternalTools/DefaultIDE", SettingsContainer, IDEInfo.DefaultIDE.DisplayName)
             {
                 GetAcceptableValues = () =>
                 {
-                    var names = new List<string> { VisualStudioVersions.DefaultIDE.DisplayName };
-                    names.AddRange(VisualStudioVersions.AvailableVisualStudioInstances.Where(x => x.HasDevenv).Select(x => x.DisplayName));
+                    var names = new List<string> { IDEInfo.DefaultIDE.DisplayName };
+                    names.AddRange(VisualStudioVersions.AvailableInstances.Where(x => x.HasProgram).Select(x => x.DisplayName));                    
+                    names.AddRange(RiderVersions.AvailableInstances.Where(x => x.HasProgram).Select(x => x.DisplayName));
+                    names.AddRange(VSCodeVersions.AvailableInstances.Where(x => x.HasProgram).Select(x => x.DisplayName));
                     return names;
                 },
                 DisplayName = $"{ExternalTools}/{Tr._p("Settings", "Default IDE")}",

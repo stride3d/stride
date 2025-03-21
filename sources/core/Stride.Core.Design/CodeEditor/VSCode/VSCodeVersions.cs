@@ -1,0 +1,35 @@
+﻿// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+namespace Stride.Core.CodeEditor.VSCode;
+
+public static class VSCodeVersions
+{
+    public static readonly List<IDEInfo> AvailableInstances = TryGetVSCodeInstallations();
+
+    private static List<IDEInfo> TryGetVSCodeInstallations()
+    {
+        List<IDEInfo> instances = [];
+        var pathDirectories = Environment.GetEnvironmentVariable("PATH")?.Split(Path.PathSeparator) ?? [];
+
+        foreach (var directory in pathDirectories)
+        {
+            var vscodiumExe = Path.Combine(directory, "codium");
+            var vscodeExe = Path.Combine(directory, "code");
+            if (OperatingSystem.IsWindows())
+            {
+                vscodeExe += ".cmd";
+                vscodiumExe += ".cmd";
+            }
+            
+            if (File.Exists(vscodiumExe))
+                instances.Add(new IDEInfo(new(), "VS Codium", vscodiumExe, "", IDEType.VSCode));
+            
+            if (File.Exists(vscodeExe))
+                instances.Add(new IDEInfo(new(), "VS Code", vscodiumExe, "", IDEType.VSCode));
+            
+        }
+
+        return instances;
+    }
+}

@@ -23,30 +23,19 @@
 
 #endregion
 
-namespace Stride.Core.VisualStudio;
+namespace Stride.Core.CodeEditor;
 
 /// <summary>
-/// A section defined in a <see cref="Project"/>
+/// A key/value pair used by <see cref="PropertyItemCollection" />
 /// </summary>
-public sealed class Section
+public sealed class PropertyItem
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="Section"/> class.
-    /// </summary>
-    /// <param name="original">The original section to copy from.</param>
-    private Section(Section original)
-        : this(original.Name, original.SectionType, original.Step, original.Properties)
-    {
-    }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="Section"/> class.
+    /// Initializes a new instance of the <see cref="PropertyItem"/> class.
     /// </summary>
     /// <param name="name">The name.</param>
-    /// <param name="sectionType">Type of the section.</param>
-    /// <param name="step">The step.</param>
-    /// <param name="properties">The property lines.</param>
-    public Section(string name, string sectionType, string step, IEnumerable<PropertyItem> properties)
+    /// <param name="value">The value.</param>
+    public PropertyItem(string name, string value)
     {
 #if NET6_0_OR_GREATER
         ArgumentNullException.ThrowIfNull(name);
@@ -54,46 +43,37 @@ public sealed class Section
         if (name is null) throw new ArgumentNullException(nameof(name));
 #endif
         this.Name = name;
-        SectionType = sectionType;
-        Step = step;
-        this.Properties = new PropertyItemCollection(properties);
+        Value = value;
+    }
+
+    private PropertyItem(PropertyItem original)
+        : this(original.Name, original.Value)
+    {
     }
 
     /// <summary>
-    /// Gets the name of the section.
+    /// Gets the name.
     /// </summary>
     /// <value>The name.</value>
     public string Name { get; }
 
     /// <summary>
-    /// Gets the properties.
+    /// Gets or sets the value.
     /// </summary>
-    /// <value>The properties.</value>
-    public PropertyItemCollection Properties { get; }
-
-    /// <summary>
-    /// Gets or sets the type of the section.
-    /// </summary>
-    /// <value>The type of the section.</value>
-    public string SectionType { get; set; }
-
-    /// <summary>
-    /// Gets or sets the step.
-    /// </summary>
-    /// <value>The step.</value>
-    public string Step { get; set; }
+    /// <value>The value.</value>
+    public string Value { get; set; }
 
     /// <summary>
     /// Clones this instance.
     /// </summary>
-    /// <returns>Section.</returns>
-    public Section Clone()
+    /// <returns>PropertyItem.</returns>
+    public PropertyItem Clone()
     {
-        return new Section(this);
+        return new PropertyItem(this);
     }
 
     public override string ToString()
     {
-        return $"{SectionType} '{Name}'";
+        return $"{Name} = {Value}";
     }
 }

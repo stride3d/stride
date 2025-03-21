@@ -13,7 +13,7 @@ using Stride.Core.IO;
 using Stride.Core.ProjectTemplating;
 using Stride.Graphics;
 using Stride.Shaders.Parser.Mixins;
-using Stride.Core.VisualStudio;
+using Stride.Core.CodeEditor.VisualStudio;
 using Stride.Core.Extensions;
 using System.Runtime.InteropServices;
 

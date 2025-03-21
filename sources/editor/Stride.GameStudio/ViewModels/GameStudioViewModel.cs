@@ -16,9 +16,12 @@ using Stride.Core.MostRecentlyUsedFiles;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Translation;
-using Stride.Core.VisualStudio;
+using Stride.Core.CodeEditor.VisualStudio;
 using Stride.Assets.Effect;
 using Stride.Assets.Presentation.ViewModel;
+using Stride.Core.CodeEditor;
+using Stride.Core.CodeEditor.Rider;
+using Stride.Core.CodeEditor.VSCode;
 using Stride.GameStudio.Services;
 using Stride.GameStudio.Helpers;
 using Stride.Core.Presentation.ViewModels;
@@ -36,8 +39,10 @@ namespace Stride.GameStudio.ViewModels
             : base(serviceProvider, mru, StrideGameStudio.EditorName, StrideGameStudio.EditorVersionMajor)
         {
             Panels = new EditionPanelViewModel(ServiceProvider);
-            availableIDEs = new List<IDEInfo> { VisualStudioVersions.DefaultIDE };
-            availableIDEs.AddRange(VisualStudioVersions.AvailableVisualStudioInstances);
+            availableIDEs = [IDEInfo.DefaultIDE];
+            availableIDEs.AddRange(VisualStudioVersions.AvailableInstances);
+            availableIDEs.AddRange(RiderVersions.AvailableInstances);
+            availableIDEs.AddRange(VSCodeVersions.AvailableInstances);
             NewSessionCommand = new AnonymousCommand(serviceProvider, RestartAndCreateNewSession);
             OpenAboutPageCommand = new AnonymousCommand(serviceProvider, OpenAboutPage);
             OpenSessionCommand = new AnonymousTaskCommand<UFile>(serviceProvider, RestartAndOpenSession);

@@ -16,7 +16,7 @@ using Stride.Core.BuildEngine;
 using Stride.Core;
 using Stride.Core.Diagnostics;
 using Stride.Core.Yaml;
-using Stride.Core.VisualStudio;
+using Stride.Core.CodeEditor.VisualStudio;
 using Stride.Assets.Models;
 using Stride.Assets.SpriteFont;
 using Stride.Graphics;

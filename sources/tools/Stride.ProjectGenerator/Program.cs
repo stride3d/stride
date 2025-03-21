@@ -17,15 +17,13 @@ using Stride.Core.Assets.Templates;
 using Stride.Core.Assets.Yaml;
 using Stride.Core;
 using Stride.Core.Diagnostics;
-using Stride.Core.Extensions;
 using Stride.Core.IO;
-using Stride.Core.Reflection;
-using Stride.Core.VisualStudio;
-using Stride.Core.Yaml;
 using Stride.Assets;
+using Stride.Core.CodeEditor;
+using Stride.Core.Extensions;
 using Stride.Graphics;
 using Stride.Core.ProjectTemplating;
-using Project = Stride.Core.VisualStudio.Project;
+using Project = Stride.Core.CodeEditor.Project;
 
 namespace Stride.ProjectGenerator
 {
