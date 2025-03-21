@@ -193,6 +193,9 @@ namespace Stride.Shaders.Compiler.OpenGL
                 case ShaderStage.Domain:
                     shaderBytecodeResult.Error("Domain stage can't be converted to OpenGL. Only Vertex and Pixel shaders are supported");
                     break;
+                case ShaderStage.Compute when shaderPlatform == GlslShaderPlatform.Vulkan:
+                    pipelineStage = PipelineStage.Compute;
+                    break;
                 case ShaderStage.Compute:
                     shaderBytecodeResult.Error("Compute stage can't be converted to OpenGL. Only Vertex and Pixel shaders are supported");
                     break;
@@ -360,6 +363,11 @@ namespace Stride.Shaders.Compiler.OpenGL
             if (shaderPlatform == GlslShaderPlatform.OpenGLES && shaderVersion < 320)
             {
                 glslShaderWriter.ExtraHeaders = "#define texelFetchBufferPlaceholder";
+            }
+
+            if (shaderPlatform == GlslShaderPlatform.Vulkan && pipelineStage == PipelineStage.Compute)
+            {
+                glslShaderWriter.Extensions.Add("GL_EXT_shader_image_load_formatted");
             }
 
             // Write shader

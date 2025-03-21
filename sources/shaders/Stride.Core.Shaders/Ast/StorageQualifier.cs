@@ -21,6 +21,26 @@ namespace Stride.Core.Shaders.Ast
         /// </summary>
         public static readonly Qualifier Uniform = new Qualifier("uniform");
 
+        /// <summary>
+        ///   Shared qualifier.
+        /// </summary>
+        public static readonly Qualifier Shared = new Qualifier("shared");
+
+        /// <summary>
+        ///   Shared qualifier.
+        /// </summary>
+        public static readonly Qualifier GroupShared = new Qualifier("groupshared");
+
+        /// <summary>
+        ///   Writeonly qualifier.
+        /// </summary>
+        public static readonly Qualifier WriteOnly = new Qualifier("writeonly");
+
+        /// <summary>
+        ///   Readonly qualifier.
+        /// </summary>
+        public static readonly Qualifier ReadOnly = new Qualifier("readonly");
+
         #endregion
 
         #region Public Methods

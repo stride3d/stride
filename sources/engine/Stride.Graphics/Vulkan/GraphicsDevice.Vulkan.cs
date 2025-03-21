@@ -53,9 +53,9 @@ namespace Stride.Graphics
             256, // Sampler
             0, // CombinedImageSampler
             512, // SampledImage
-            0, // StorageImage
+            32, // StorageImage
             64, // UniformTexelBuffer
-            0, // StorageTexelBuffer
+            32, // StorageTexelBuffer
             512, // UniformBuffer
             0, // StorageBuffer
             0, // UniformBufferDynamic
@@ -292,11 +292,22 @@ namespace Stride.Graphics
                 depthClamp = true,
             };
 
-            Span<VkUtf8String> supportedExtensionProperties = stackalloc VkUtf8String[]
+            if (graphicsProfiles.Any(x => x >= GraphicsProfile.Level_11_0))
+            {
+                enabledFeature.shaderStorageImageReadWithoutFormat = true;
+                enabledFeature.shaderStorageImageWriteWithoutFormat = true;
+            }
+
+            var extensionProperties = vkEnumerateDeviceExtensionProperties(NativePhysicalDevice);
+            var availableExtensionNames = new List<string>();
+            var desiredExtensionNames = new List<string>();
+
+            fixed (VkExtensionProperties* extensionPropertiesPtr = extensionProperties)
             {
                 VK_KHR_SWAPCHAIN_EXTENSION_NAME,
                 VK_EXT_DEBUG_MARKER_EXTENSION_NAME,
             };
+            Span<VkUtf8String> supportedExtensionProperties = stackalloc VkUtf8String[]
             var availableExtensionProperties = GetAvailableExtensionProperties(supportedExtensionProperties);
             ValidateExtensionPropertiesAvailability(availableExtensionProperties);
             var desiredExtensionProperties = new HashSet<VkUtf8String>

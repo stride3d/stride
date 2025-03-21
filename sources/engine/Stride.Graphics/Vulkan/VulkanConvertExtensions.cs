@@ -545,6 +545,11 @@ namespace Stride.Graphics
                         case EffectParameterType.Texture1DArray:
                         case EffectParameterType.Texture2DArray:
                         case EffectParameterType.TextureCubeArray:
+                        case EffectParameterType.RWTexture1D:
+                        case EffectParameterType.RWTexture1DArray:
+                        case EffectParameterType.RWTexture2D:
+                        case EffectParameterType.RWTexture2DArray:
+                        case EffectParameterType.RWTexture3D:
                             return VkDescriptorType.SampledImage;
 
                         case EffectParameterType.Buffer:
@@ -564,6 +569,12 @@ namespace Stride.Graphics
                         case EffectParameterType.Texture1DArray:
                         case EffectParameterType.Texture2DArray:
                         case EffectParameterType.TextureCubeArray:
+                        case EffectParameterType.RWTexture1D:
+                        case EffectParameterType.RWTexture1DArray:
+                        case EffectParameterType.RWTexture2D:
+                        case EffectParameterType.RWTexture2DArray:
+                        case EffectParameterType.RWTexture3D:
+                        case EffectParameterType.RWBuffer:
                             return VkDescriptorType.StorageImage;
 
                         case EffectParameterType.Buffer:
