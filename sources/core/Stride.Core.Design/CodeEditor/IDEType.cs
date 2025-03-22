@@ -3,7 +3,23 @@
 
 namespace Stride.Core.CodeEditor;
 
+/// <summary>
+/// Represents the type of <see cref="IDEInfo"/> class.
+/// </summary>
 public enum IDEType
 {
-    VisualStudio, Rider, VSCode
+    /// <summary>
+    /// Represents the Visual Studio IDE
+    /// </summary>
+    VisualStudio,
+
+    /// <summary>
+    /// Represents the JetBrains Rider IDE
+    /// </summary>
+    Rider,
+
+    /// <summary>
+    /// Represents the Visual Studio Code IDE or it's fork - VS Codium
+    /// </summary>
+    VSCode
 }
