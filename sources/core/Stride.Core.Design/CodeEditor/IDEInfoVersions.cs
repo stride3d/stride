@@ -11,8 +11,6 @@ public static class IDEInfoVersions
 {
     public static IEnumerable<IDEInfo> AvailableIDEs()
     {
-        return VisualStudioVersions.AvailableInstances
-            .Concat(RiderVersions.AvailableInstances)
-            .Concat(VSCodeVersions.AvailableInstances);
+        return [..VisualStudioVersions.AvailableInstances, ..RiderVersions.AvailableInstances, ..VSCodeVersions.AvailableInstances];
     }
 }
