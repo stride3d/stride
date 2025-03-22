@@ -406,9 +406,9 @@ namespace Stride.Graphics
                 resource = nativeUploadBuffer;
                 offset = nativeUploadBufferOffset;
                 nativeUploadBufferOffset += size;
-            }
 
-            return nativeUploadBufferStart + offset;
+                return nativeUploadBufferStart + offset;
+            }
         }
 
         protected unsafe void AllocateMemory(VkMemoryPropertyFlags memoryProperties)
