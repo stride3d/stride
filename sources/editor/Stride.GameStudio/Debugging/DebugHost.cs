@@ -5,7 +5,6 @@ using System;
 using System.Diagnostics;
 using ServiceWire.NamedPipes;
 using Stride.Core.Diagnostics;
-using Stride.Core.CodeEditor.VisualStudio;
 using Stride.Debugger.Target;
 
 namespace Stride.GameStudio.Debugging

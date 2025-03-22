@@ -3,7 +3,7 @@
 using System.Diagnostics;
 using System.Management;
 using Stride.Core.Assets.Editor.ViewModel;
-using Stride.Core.CodeEditor;
+using Stride.Core.CodeEditorSupport;
 using Stride.Core.Extensions;
 using Stride.Core.IO;
 using Stride.Core.Presentation.Interop;

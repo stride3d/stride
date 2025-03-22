@@ -23,62 +23,57 @@
 
 #endregion
 
-using System.Collections.ObjectModel;
-using System.Diagnostics;
-
-namespace Stride.Core.CodeEditor;
+namespace Stride.Core.Solutions;
 
 /// <summary>
-/// A collection of <see cref="Section"/>
+/// A key/value pair used by <see cref="PropertyItemCollection" />
 /// </summary>
-[DebuggerDisplay("Count = {" + nameof(Count) + "}")]
-public sealed class SectionCollection
-    : KeyedCollection<string, Section>
+public sealed class PropertyItem
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="SectionCollection"/> class.
+    /// Initializes a new instance of the <see cref="PropertyItem"/> class.
     /// </summary>
-    public SectionCollection()
-        : base(StringComparer.InvariantCultureIgnoreCase)
+    /// <param name="name">The name.</param>
+    /// <param name="value">The value.</param>
+    public PropertyItem(string name, string value)
+    {
+#if NET6_0_OR_GREATER
+        ArgumentNullException.ThrowIfNull(name);
+#else
+        if (name is null) throw new ArgumentNullException(nameof(name));
+#endif
+        this.Name = name;
+        Value = value;
+    }
+
+    private PropertyItem(PropertyItem original)
+        : this(original.Name, original.Value)
     {
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="SectionCollection"/> class.
+    /// Gets the name.
     /// </summary>
-    /// <param name="items">The items.</param>
-    public SectionCollection(IEnumerable<Section> items)
-        : this()
+    /// <value>The name.</value>
+    public string Name { get; }
+
+    /// <summary>
+    /// Gets or sets the value.
+    /// </summary>
+    /// <value>The value.</value>
+    public string Value { get; set; }
+
+    /// <summary>
+    /// Clones this instance.
+    /// </summary>
+    /// <returns>PropertyItem.</returns>
+    public PropertyItem Clone()
     {
-        this.AddRange(items);
+        return new PropertyItem(this);
     }
 
-    protected override string GetKeyForItem(Section item)
+    public override string ToString()
     {
-        return item.Name;
-    }
-
-    protected override void InsertItem(int index, Section item)
-    {
-#if NET6_0_OR_GREATER
-        ArgumentNullException.ThrowIfNull(item);
-#else
-        if (item is null) throw new ArgumentNullException(nameof(item));
-#endif
-
-        // Add a clone of the item instead of the item itself
-        base.InsertItem(index, item.Clone());
-    }
-
-    protected override void SetItem(int index, Section item)
-    {
-#if NET6_0_OR_GREATER
-        ArgumentNullException.ThrowIfNull(item);
-#else
-        if (item is null) throw new ArgumentNullException(nameof(item));
-#endif
-
-        // Add a clone of the item instead of the item itself
-        base.SetItem(index, item.Clone());
+        return $"{Name} = {Value}";
     }
 }

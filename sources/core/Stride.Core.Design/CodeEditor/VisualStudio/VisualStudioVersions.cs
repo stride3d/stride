@@ -4,7 +4,7 @@
 using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.Setup.Configuration;
 
-namespace Stride.Core.CodeEditor.VisualStudio;
+namespace Stride.Core.CodeEditorSupport.VisualStudio;
 
 public static class VisualStudioVersions
 {

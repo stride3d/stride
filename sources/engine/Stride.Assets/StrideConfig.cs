@@ -6,9 +6,8 @@ using System.IO;
 using System.Linq;
 using Stride.Core.Assets;
 using Stride.Core;
-using Stride.Core.CodeEditor.VisualStudio;
-using System.Runtime.InteropServices;
-using Stride.Core.CodeEditor;
+using Stride.Core.CodeEditorSupport.VisualStudio;
+using Stride.Core.Solutions;
 
 namespace Stride.Assets
 {

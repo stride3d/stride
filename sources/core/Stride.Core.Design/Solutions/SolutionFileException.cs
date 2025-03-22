@@ -23,57 +23,17 @@
 
 #endregion
 
-namespace Stride.Core.CodeEditor;
+namespace Stride.Core.Solutions;
 
-/// <summary>
-/// A key/value pair used by <see cref="PropertyItemCollection" />
-/// </summary>
-public sealed class PropertyItem
+internal class SolutionFileException : Exception
 {
-    /// <summary>
-    /// Initializes a new instance of the <see cref="PropertyItem"/> class.
-    /// </summary>
-    /// <param name="name">The name.</param>
-    /// <param name="value">The value.</param>
-    public PropertyItem(string name, string value)
-    {
-#if NET6_0_OR_GREATER
-        ArgumentNullException.ThrowIfNull(name);
-#else
-        if (name is null) throw new ArgumentNullException(nameof(name));
-#endif
-        this.Name = name;
-        Value = value;
-    }
-
-    private PropertyItem(PropertyItem original)
-        : this(original.Name, original.Value)
+    public SolutionFileException(string message)
+        : base(message)
     {
     }
 
-    /// <summary>
-    /// Gets the name.
-    /// </summary>
-    /// <value>The name.</value>
-    public string Name { get; }
-
-    /// <summary>
-    /// Gets or sets the value.
-    /// </summary>
-    /// <value>The value.</value>
-    public string Value { get; set; }
-
-    /// <summary>
-    /// Clones this instance.
-    /// </summary>
-    /// <returns>PropertyItem.</returns>
-    public PropertyItem Clone()
+    public SolutionFileException(string message, Exception innerException)
+        : base(message, innerException)
     {
-        return new PropertyItem(this);
-    }
-
-    public override string ToString()
-    {
-        return $"{Name} = {Value}";
     }
 }

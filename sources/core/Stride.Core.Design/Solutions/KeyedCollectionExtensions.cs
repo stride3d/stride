@@ -3,7 +3,7 @@
 
 using System.Collections.ObjectModel;
 
-namespace Stride.Core.CodeEditor;
+namespace Stride.Core.Solutions;
 
 public static class KeyedCollectionExtensions
 {

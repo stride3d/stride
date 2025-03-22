@@ -5,11 +5,10 @@ using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using Stride.Core.Assets.Analysis;
-using Stride.Core.CodeEditor;
 using Stride.Core.Diagnostics;
 using Stride.Core.Reflection;
 using Stride.Core.Serialization.Contents;
-using Stride.Core.CodeEditor.VisualStudio;
+using Stride.Core.Solutions;
 using Stride.Core.Yaml.Serialization;
 using Stride.Core.Serialization;
 

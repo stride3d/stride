@@ -24,7 +24,7 @@
 using System.Text.RegularExpressions;
 using System.Xml;
 
-namespace Stride.Core.CodeEditor;
+namespace Stride.Core.Solutions;
 
 /// <summary>
 /// A project referenced by a VisualStudio solution.

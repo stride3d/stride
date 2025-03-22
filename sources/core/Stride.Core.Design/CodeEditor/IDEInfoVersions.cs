@@ -1,11 +1,11 @@
 ﻿// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using Stride.Core.CodeEditor.Rider;
-using Stride.Core.CodeEditor.VisualStudio;
-using Stride.Core.CodeEditor.VSCode;
+using Stride.Core.CodeEditorSupport.Rider;
+using Stride.Core.CodeEditorSupport.VisualStudio;
+using Stride.Core.CodeEditorSupport.VSCode;
 
-namespace Stride.Core.CodeEditor;
+namespace Stride.Core.CodeEditorSupport;
 
 public static class IDEInfoVersions
 {

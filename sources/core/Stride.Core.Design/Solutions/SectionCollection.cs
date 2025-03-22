@@ -26,55 +26,58 @@
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 
-namespace Stride.Core.CodeEditor;
+namespace Stride.Core.Solutions;
 
 /// <summary>
-/// A collection of <see cref="PropertyItem"/>
+/// A collection of <see cref="Section"/>
 /// </summary>
 [DebuggerDisplay("Count = {" + nameof(Count) + "}")]
-public sealed class PropertyItemCollection
-    : KeyedCollection<string, PropertyItem>
+public sealed class SectionCollection
+    : KeyedCollection<string, Section>
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="PropertyItemCollection"/> class.
+    /// Initializes a new instance of the <see cref="SectionCollection"/> class.
     /// </summary>
-    public PropertyItemCollection()
+    public SectionCollection()
         : base(StringComparer.InvariantCultureIgnoreCase)
     {
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="PropertyItemCollection"/> class.
+    /// Initializes a new instance of the <see cref="SectionCollection"/> class.
     /// </summary>
-    /// <param name="items">The items to copy from.</param>
-    public PropertyItemCollection(IEnumerable<PropertyItem> items)
+    /// <param name="items">The items.</param>
+    public SectionCollection(IEnumerable<Section> items)
         : this()
     {
         this.AddRange(items);
     }
 
-    protected override string GetKeyForItem(PropertyItem item)
+    protected override string GetKeyForItem(Section item)
     {
         return item.Name;
     }
 
-    protected override void InsertItem(int index, PropertyItem item)
+    protected override void InsertItem(int index, Section item)
     {
-        var existingItem = Contains(GetKeyForItem(item)) ? this[GetKeyForItem(item)] : null;
+#if NET6_0_OR_GREATER
+        ArgumentNullException.ThrowIfNull(item);
+#else
+        if (item is null) throw new ArgumentNullException(nameof(item));
+#endif
 
-        if (existingItem == null)
-        {
-            // Add a clone of the item instead of the item itself
-            base.InsertItem(index, item.Clone());
-        }
-        else if (item.Value != existingItem.Value)
-        {
-            existingItem.Value = item.Value;
-        }
+        // Add a clone of the item instead of the item itself
+        base.InsertItem(index, item.Clone());
     }
 
-    protected override void SetItem(int index, PropertyItem item)
+    protected override void SetItem(int index, Section item)
     {
+#if NET6_0_OR_GREATER
+        ArgumentNullException.ThrowIfNull(item);
+#else
+        if (item is null) throw new ArgumentNullException(nameof(item));
+#endif
+
         // Add a clone of the item instead of the item itself
         base.SetItem(index, item.Clone());
     }

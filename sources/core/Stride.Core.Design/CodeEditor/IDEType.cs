@@ -1,7 +1,7 @@
 ﻿// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-namespace Stride.Core.CodeEditor;
+namespace Stride.Core.CodeEditorSupport;
 
 /// <summary>
 /// Represents the type of <see cref="IDEInfo"/> class.

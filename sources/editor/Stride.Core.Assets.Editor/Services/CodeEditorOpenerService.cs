@@ -6,10 +6,7 @@ using System.IO;
 using System.Linq;
 using Stride.Core.Assets.Editor.Settings;
 using Stride.Core.Assets.Editor.ViewModel;
-using Stride.Core.CodeEditor;
-using Stride.Core.CodeEditor.Rider;
-using Stride.Core.CodeEditor.VisualStudio;
-using Stride.Core.CodeEditor.VSCode;
+using Stride.Core.CodeEditorSupport;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Translation;
 

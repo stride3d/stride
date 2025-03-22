@@ -9,6 +9,7 @@ using Stride.Core;
 using Stride.Core.Assets.Analysis;
 using Stride.Core.Assets.Diagnostics;
 using Stride.Core.Assets.Tracking;
+using Stride.Core.Solutions;
 using Stride.Core.Diagnostics;
 using Stride.Core.Extensions;
 using Stride.Core.IO;
@@ -291,19 +292,19 @@ public class SolutionProject : PackageContainer
     public SolutionProject(Package package, Guid projectGuid, string fullPath)
         : this(package)
     {
-        VSProject = new CodeEditor.Project(projectGuid, CodeEditor.KnownProjectTypeGuid.CSharp, Path.GetFileNameWithoutExtension(fullPath), fullPath, Guid.Empty,
+        VSProject = new Project(projectGuid, KnownProjectTypeGuid.CSharp, Path.GetFileNameWithoutExtension(fullPath), fullPath, Guid.Empty,
             [],
             [],
             []);
     }
 
-    public SolutionProject(Package package, CodeEditor.Project vsProject)
+    public SolutionProject(Package package, Project vsProject)
         : this(package)
     {
         VSProject = vsProject;
     }
 
-    public CodeEditor.Project VSProject { get; set; }
+    public Project VSProject { get; set; }
 
     public Guid Id => VSProject.Guid;
 
@@ -430,14 +431,14 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
     public event DirtyFlagChangedDelegate<AssetItem> AssetDirtyChanged;
     private TaskCompletionSource<int> saveCompletion;
 
-    internal CodeEditor.Solution VSSolution;
+    internal Solution VSSolution;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="PackageSession"/> class.
     /// </summary>
     public PackageSession()
     {
-        VSSolution = new CodeEditor.Solution();
+        VSSolution = new Solution();
         VSSolution.Headers.Add(SolutionHeader);
 
         Projects = [];
@@ -790,7 +791,7 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
             if (string.Equals(Path.GetExtension(filePath), ".sln", StringComparison.InvariantCultureIgnoreCase))
             {
                 // The session should save back its changes to the solution
-                var solution = session.VSSolution = CodeEditor.Solution.FromFile(filePath);
+                var solution = session.VSSolution = Solution.FromFile(filePath);
 
                 // Keep header
                 var versionHeader = solution.Properties.FirstOrDefault(x => x.Name == "VisualStudioVersion");
@@ -802,7 +803,7 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
                 // Note: using ToList() because upgrade from old package system might change Projects list
                 foreach (var vsProject in solution.Projects.ToList())
                 {
-                    if (vsProject.TypeGuid == CodeEditor.KnownProjectTypeGuid.CSharp || vsProject.TypeGuid == CodeEditor.KnownProjectTypeGuid.CSharpNewSystem)
+                    if (vsProject.TypeGuid == KnownProjectTypeGuid.CSharp || vsProject.TypeGuid == KnownProjectTypeGuid.CSharpNewSystem)
                     {
                         var project = (SolutionProject)session.LoadProject(sessionResult, vsProject.FullPath, loadParameters);
                         project.VSProject = vsProject;

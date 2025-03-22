@@ -23,7 +23,7 @@
 
 #endregion
 
-namespace Stride.Core.CodeEditor;
+namespace Stride.Core.Solutions;
 
 /// <summary>
 /// A section defined in a <see cref="Project"/>

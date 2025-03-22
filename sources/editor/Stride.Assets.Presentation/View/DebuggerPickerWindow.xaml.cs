@@ -7,9 +7,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
-using Stride.Core.CodeEditor.VisualStudio;
+using Stride.Core.CodeEditorSupport.VisualStudio;
 using Stride.Assets.Presentation.SceneEditor.Services;
-using Stride.Core.CodeEditor;
+using Stride.Core.CodeEditorSupport;
 using Stride.Core.Presentation.Collections;
 using Stride.Core.Presentation.Services;
 

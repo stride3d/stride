@@ -19,11 +19,11 @@ using Stride.Core;
 using Stride.Core.Diagnostics;
 using Stride.Core.IO;
 using Stride.Assets;
-using Stride.Core.CodeEditor;
+using Stride.Core.Solutions;
 using Stride.Core.Extensions;
 using Stride.Graphics;
 using Stride.Core.ProjectTemplating;
-using Project = Stride.Core.CodeEditor.Project;
+using Project = Stride.Core.Solutions.Project;
 
 namespace Stride.ProjectGenerator
 {

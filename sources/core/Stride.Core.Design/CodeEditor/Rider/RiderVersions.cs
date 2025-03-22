@@ -3,7 +3,7 @@
 
 using JetBrains.Rider.PathLocator;
 
-namespace Stride.Core.CodeEditor.Rider;
+namespace Stride.Core.CodeEditorSupport.Rider;
 
 public static class RiderVersions
 {

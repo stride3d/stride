@@ -4,9 +4,8 @@
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using NuGet.ProjectModel;
-using Stride.Core.CodeEditor;
 using Stride.Core.Extensions;
-using Stride.Core.CodeEditor.VisualStudio;
+using Stride.Core.Solutions;
 
 namespace Stride.Core.Assets;
 

@@ -4,13 +4,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Stride.Core.Annotations;
-using Stride.Core.CodeEditor;
+using Stride.Core.CodeEditorSupport;
 using Stride.Core.IO;
 using Stride.Core.Settings;
-using Stride.Core.CodeEditor.VisualStudio;
 using Stride.Core.Translation;
-using Stride.Core.CodeEditor.Rider;
-using Stride.Core.CodeEditor.VSCode;
 
 namespace Stride.Core.Assets.Editor.Settings
 {
