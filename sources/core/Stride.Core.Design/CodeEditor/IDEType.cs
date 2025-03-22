@@ -19,7 +19,7 @@ public enum IDEType
     Rider,
 
     /// <summary>
-    /// Represents the Visual Studio Code IDE or it's fork - VS Codium
+    /// Represents the Visual Studio Code editor, or it's fork - VS Codium
     /// </summary>
     VSCode
 }
