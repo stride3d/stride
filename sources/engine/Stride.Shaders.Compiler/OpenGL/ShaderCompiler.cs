@@ -295,13 +295,6 @@ namespace Stride.Shaders.Compiler.OpenGL
 
                 if (shaderPlatform == GlslShaderPlatform.Vulkan)
                 {
-                    // Register "NoSampler", required by HLSL=>GLSL translation to support HLSL such as texture.Load().
-                    var noSampler = new EffectResourceBindingDescription { KeyInfo = { KeyName = "NoSampler" }, RawName = "NoSampler", Class = EffectParameterClass.Sampler, SlotStart = -1, SlotCount = 1 };
-                    reflection.ResourceBindings.Add(noSampler);
-
-                    // Make sure it's a point sampler as some texture formats do not support linear sampling which will result in validation errors.
-                    reflection.SamplerStates.Add(new EffectSamplerStateBinding("NoSampler", new SamplerStateDescription(TextureFilter.Point, TextureAddressMode.Clamp)));
-
                     // Defines the ordering of resource groups in Vulkan. This is mirrored in the PipelineState
                     var resourceGroups = reflection.ResourceBindings.Select(x => x.ResourceGroup ?? "Globals").Distinct().ToList();
 
@@ -369,6 +362,8 @@ namespace Stride.Shaders.Compiler.OpenGL
             {
                 glslShaderWriter.Extensions.Add("GL_EXT_shader_image_load_formatted");
             }
+
+            glslShaderWriter.Extensions.Add("GL_EXT_samplerless_texture_functions");
 
             // Write shader
             glslShaderWriter.Visit(glslShader);

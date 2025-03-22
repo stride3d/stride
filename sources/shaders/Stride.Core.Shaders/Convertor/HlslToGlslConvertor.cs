@@ -2549,10 +2549,6 @@ namespace Stride.Core.Shaders.Convertor
                     AddGlobalDeclaration(textureSampler.Value);
                 }
             }
-            else
-            {
-                AddGlobalDeclaration(new Variable(StateType.SamplerState, "NoSampler"));
-            }
         }
 
         /// <summary>
@@ -3751,7 +3747,7 @@ namespace Stride.Core.Shaders.Convertor
                 }
                 else
                 {
-                    return new MethodInvocationExpression(new TypeReferenceExpression(glslSampler.Type), new VariableReferenceExpression(texture), new VariableReferenceExpression("NoSampler"));
+                    return new VariableReferenceExpression(texture);
                 }
             }
 

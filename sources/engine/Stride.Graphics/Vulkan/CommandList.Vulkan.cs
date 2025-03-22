@@ -460,7 +460,7 @@ namespace Stride.Graphics
                     case GraphicsResourceState.PixelShaderResource:
                         texture.NativeLayout = VkImageLayout.ShaderReadOnlyOptimal;
                         texture.NativeAccessMask = VkAccessFlags.ShaderRead;
-                        texture.NativePipelineStageMask = VkPipelineStageFlags.FragmentShader | VkPipelineStageFlags.ComputeShader; // TODO: Not sure why I did this can probably double check ...
+                        texture.NativePipelineStageMask = VkPipelineStageFlags.FragmentShader | VkPipelineStageFlags.ComputeShader;
                         break;
                     case GraphicsResourceState.GenericRead:
                         texture.NativeLayout = VkImageLayout.General;
