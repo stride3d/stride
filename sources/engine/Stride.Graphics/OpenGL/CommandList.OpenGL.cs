@@ -161,7 +161,7 @@ namespace Stride.Graphics
 #endif
 
 #if STRIDE_GRAPHICS_API_OPENGLES
-            Internal.Refactor.ThrowNotImplementedException();
+            throw new NotImplementedException();
 #else
             if ((buffer.ViewFlags & BufferFlags.UnorderedAccess) != BufferFlags.UnorderedAccess)
                 throw new ArgumentException("Buffer does not support unordered access");
@@ -179,7 +179,7 @@ namespace Stride.Graphics
 #endif
 
 #if STRIDE_GRAPHICS_API_OPENGLES
-            Internal.Refactor.ThrowNotImplementedException();
+            throw new NotImplementedException();
 #else
             if ((buffer.ViewFlags & BufferFlags.UnorderedAccess) != BufferFlags.UnorderedAccess)
                 throw new ArgumentException("Buffer does not support unordered access");
@@ -197,7 +197,7 @@ namespace Stride.Graphics
 #endif
 
 #if STRIDE_GRAPHICS_API_OPENGLES
-            Internal.Refactor.ThrowNotImplementedException();
+            throw new NotImplementedException();
 #else
             if ((buffer.ViewFlags & BufferFlags.UnorderedAccess) != BufferFlags.UnorderedAccess)
                 throw new ArgumentException("Buffer does not support unordered access");
@@ -215,7 +215,7 @@ namespace Stride.Graphics
 #endif
 
 #if STRIDE_GRAPHICS_API_OPENGLES
-            Internal.Refactor.ThrowNotImplementedException();
+            throw new NotImplementedException();
 #else
             if (activeTexture != 0)
             {
@@ -239,7 +239,7 @@ namespace Stride.Graphics
 #endif
 
 #if STRIDE_GRAPHICS_API_OPENGLES
-            Internal.Refactor.ThrowNotImplementedException();
+            throw new NotImplementedException();
 #else
             if (activeTexture != 0)
             {
@@ -263,7 +263,7 @@ namespace Stride.Graphics
 #endif
 
 #if STRIDE_GRAPHICS_API_OPENGLES
-            Internal.Refactor.ThrowNotImplementedException();
+            throw new NotImplementedException();
 #else
             if (activeTexture != 0)
             {
@@ -332,7 +332,7 @@ namespace Stride.Graphics
 
             if (sourceTexture == null || destTexture == null)
             {
-                throw Internal.Refactor.NewNotImplementedException("Copy is only implemented for Texture objects.");
+                throw new NotImplementedException("Copy is only implemented for Texture objects.");
             }
 
             // Get parent texture
@@ -698,7 +698,7 @@ namespace Stride.Graphics
             GraphicsDevice.EnsureContextActive();
 #endif
 
-            Internal.Refactor.ThrowNotImplementedException();
+            throw new NotImplementedException();
         }
 
         public void Dispatch(int threadCountX, int threadCountY, int threadCountZ)
@@ -710,7 +710,7 @@ namespace Stride.Graphics
 #if !STRIDE_GRAPHICS_API_OPENGLES
             GL.DispatchCompute((uint)threadCountX, (uint)threadCountY, (uint)threadCountZ);
 #else
-            Internal.Refactor.ThrowNotImplementedException();
+            throw new NotImplementedException();
 #endif
         }
 
@@ -727,7 +727,7 @@ namespace Stride.Graphics
 
             GL.BindBuffer(BufferTargetARB.DispatchIndirectBuffer, 0);
 #else
-            Internal.Refactor.ThrowNotImplementedException();
+            throw new NotImplementedException();
 #endif
         }
 
@@ -753,7 +753,7 @@ namespace Stride.Graphics
 
             //GL.DrawArraysIndirect(newPipelineState.PrimitiveType, (IntPtr)0);
             //GraphicsDevice.FrameDrawCalls++;
-            Internal.Refactor.ThrowNotImplementedException();
+            throw new NotImplementedException();
         }
 
         /// <summary>
@@ -796,7 +796,7 @@ namespace Stride.Graphics
 #endif
             PreDraw();
 #if STRIDE_GRAPHICS_API_OPENGLES
-            Internal.Refactor.ThrowNotImplementedException();
+            throw new NotImplementedException();
 #else
             GL.DrawElementsInstancedBaseVertex(newPipelineState.PrimitiveType, (uint)indexCountPerInstance, indexBuffer.Type, (void*)(indexBuffer.Offset + (startIndexLocation * indexBuffer.ElementSize)), (uint)instanceCount, baseVertexLocation);
 #endif
@@ -822,7 +822,7 @@ namespace Stride.Graphics
 
             //GraphicsDevice.FrameDrawCalls++;
 
-            Internal.Refactor.ThrowNotImplementedException();
+            throw new NotImplementedException();
         }
 
         /// <summary>
@@ -863,7 +863,7 @@ namespace Stride.Graphics
 
 #if STRIDE_GRAPHICS_API_OPENGLES
             GraphicsDevice.FrameDrawCalls++;
-            Internal.Refactor.ThrowNotImplementedException();
+            throw new NotImplementedException();
 #else
             GL.BindBuffer(BufferTargetARB.DrawIndirectBuffer, argumentsBuffer.BufferId);
 
@@ -979,7 +979,7 @@ namespace Stride.Graphics
                 }
             }
 
-            throw Internal.Refactor.NewNotImplementedException("MapSubresource not implemented for type " + resource.GetType());
+            throw new NotImplementedException("MapSubresource not implemented for type " + resource.GetType());
         }
 
         public void UnmapSubresource(MappedResource unmapped)
@@ -1056,7 +1056,7 @@ namespace Stride.Graphics
                 }
                 else // neither texture nor buffer
                 {
-                    Internal.Refactor.ThrowNotImplementedException("UnmapSubresource not implemented for type " + unmapped.Resource.GetType());
+                    throw new NotImplementedException("UnmapSubresource not implemented for type " + unmapped.Resource.GetType());
                 }
             }
         }
@@ -1283,7 +1283,7 @@ namespace Stride.Graphics
 #endif
 
 #if STRIDE_GRAPHICS_API_OPENGLES
-            Internal.Refactor.ThrowNotImplementedException();
+            throw new NotImplementedException();
 #else
             for (int i = 0; i < scissorCount; ++i)
             {
@@ -1318,7 +1318,7 @@ namespace Stride.Graphics
             GraphicsDevice.EnsureContextActive();
 #endif
 
-            Internal.Refactor.ThrowNotImplementedException();
+            throw new NotImplementedException();
         }
 
         /// <summary>
@@ -1341,7 +1341,7 @@ namespace Stride.Graphics
             if (stage != ShaderStage.Compute)
                 throw new ArgumentException("Invalid stage.", nameof(stage));
 
-            Internal.Refactor.ThrowNotImplementedException();
+            throw new NotImplementedException();
         }
         
         /// <summary>
@@ -1354,7 +1354,7 @@ namespace Stride.Graphics
             GraphicsDevice.EnsureContextActive();
 #endif
             
-            //Internal.Refactor.ThrowNotImplementedException();
+            //throw new NotImplementedException();
         }
 
         internal void SetupTargets()
@@ -1542,13 +1542,13 @@ namespace Stride.Graphics
                             GL.TexSubImage2D(Texture.GetTextureTargetForDataSet2D(texture.TextureTarget, arraySlice), mipLevel, 0, 0, (uint)desc.Width, (uint)desc.Height, texture.TextureFormat, texture.TextureType, (void*)databox.DataPointer);
                             break;
                         default:
-                            Internal.Refactor.ThrowNotImplementedException("UpdateSubresource not implemented for texture target " + texture.TextureTarget);
+                            throw new NotImplementedException("UpdateSubresource not implemented for texture target " + texture.TextureTarget);
                             break;
                     }
                 }
                 else // neither texture nor buffer
                 {
-                    Internal.Refactor.ThrowNotImplementedException("UpdateSubresource not implemented for type " + resource.GetType());
+                    throw new NotImplementedException("UpdateSubresource not implemented for type " + resource.GetType());
                 }
             }
         }
@@ -1598,7 +1598,7 @@ namespace Stride.Graphics
                     packAlignment = 4;
                 }
                 if (packAlignment == 0)
-                    Internal.Refactor.ThrowNotImplementedException("The data box RowPitch is not compatible with the region width. This requires additional copy to be implemented.");
+                    throw new NotImplementedException("The data box RowPitch is not compatible with the region width. This requires additional copy to be implemented.");
 
                 // change the Unpack Alignment
                 int previousPackAlignment;

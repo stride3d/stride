@@ -70,7 +70,7 @@ namespace Stride.Graphics
             else if ((ViewFlags & BufferFlags.ShaderResource) == BufferFlags.ShaderResource && GraphicsDevice.HasTextureBuffers)
             {
 #if STRIDE_GRAPHICS_API_OPENGLES
-                Internal.Refactor.ThrowNotImplementedException();
+                throw new NotImplementedException();
 #else
                 BufferTarget = BufferTargetARB.TextureBuffer;
 #endif
@@ -168,7 +168,7 @@ namespace Stride.Graphics
                     if ((Flags & BufferFlags.ShaderResource) != 0)
                     {
 #if STRIDE_GRAPHICS_API_OPENGLES
-                        Internal.Refactor.ThrowNotImplementedException();
+                        throw new NotImplementedException();
 #else
                         TextureTarget = TextureTarget.TextureBuffer;
                         GL.GenTextures(1, out TextureId);
