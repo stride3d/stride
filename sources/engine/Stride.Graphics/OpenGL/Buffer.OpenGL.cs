@@ -70,7 +70,7 @@ namespace Stride.Graphics
             else if ((ViewFlags & BufferFlags.ShaderResource) == BufferFlags.ShaderResource && GraphicsDevice.HasTextureBuffers)
             {
 #if STRIDE_GRAPHICS_API_OPENGLES
-                throw new NotImplementedException();
+                throw new NotSupportedException();
 #else
                 BufferTarget = BufferTargetARB.TextureBuffer;
 #endif

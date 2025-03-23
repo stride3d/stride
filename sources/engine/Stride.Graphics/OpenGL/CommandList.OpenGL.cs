@@ -332,7 +332,7 @@ namespace Stride.Graphics
 
             if (sourceTexture == null || destTexture == null)
             {
-                throw new NotImplementedException("Copy is only implemented for Texture objects.");
+                throw new NotSupportedException("Copy is only implemented for Texture objects.");
             }
 
             // Get parent texture
