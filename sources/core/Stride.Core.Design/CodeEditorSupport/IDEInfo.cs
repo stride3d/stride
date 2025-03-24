@@ -3,7 +3,7 @@
 
 namespace Stride.Core.CodeEditorSupport;
 
-public class IDEInfo
+public sealed class IDEInfo
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="IDEInfo"/> class.

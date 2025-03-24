@@ -20,7 +20,7 @@ public static class VisualStudioVersions
     {
         List<IDEInfo> instances = [];
         
-        if (OperatingSystem.IsWindows())
+        if (!OperatingSystem.IsWindows())
             return instances;
 
         // Visual Studio 16.0 (2019) and later

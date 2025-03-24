@@ -5,9 +5,10 @@ namespace Stride.Core.CodeEditorSupport.VSCode;
 
 public static class VSCodeVersions
 {
-    public static readonly List<IDEInfo> AvailableInstances = TryGetVSCodeInstallations();
+    private static readonly Lazy<List<IDEInfo>> IDEInfos = new(BuildIDEInfos());
+    public static List<IDEInfo> AvailableInstances => IDEInfos.Value;
 
-    private static List<IDEInfo> TryGetVSCodeInstallations()
+    private static List<IDEInfo> BuildIDEInfos()
     {
         List<IDEInfo> instances = [];
         var pathDirectories = Environment.GetEnvironmentVariable("PATH")?.Split(Path.PathSeparator) ?? [];
@@ -18,15 +19,15 @@ public static class VSCodeVersions
             var vscodeExe = Path.Combine(directory, "code");
             if (OperatingSystem.IsWindows())
             {
-                vscodeExe += ".cmd";
                 vscodiumExe += ".cmd";
+                vscodeExe += ".cmd";
             }
             
             if (File.Exists(vscodiumExe))
                 instances.Add(new IDEInfo(new(), "VS Codium", vscodiumExe, "", IDEType.VSCode));
             
             if (File.Exists(vscodeExe))
-                instances.Add(new IDEInfo(new(), "VS Code", vscodiumExe, "", IDEType.VSCode));
+                instances.Add(new IDEInfo(new(), "VS Code", vscodeExe, "", IDEType.VSCode));
             
         }
 

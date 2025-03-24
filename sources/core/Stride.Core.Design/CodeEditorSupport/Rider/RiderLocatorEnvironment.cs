@@ -6,7 +6,7 @@ using JetBrains.Rider.PathLocator;
 
 namespace Stride.Core.CodeEditorSupport.Rider;
 
-internal class RiderLocatorEnvironment : IRiderLocatorEnvironment
+internal sealed class RiderLocatorEnvironment : IRiderLocatorEnvironment
 {
     public T? FromJson<T>(string json)
     {
