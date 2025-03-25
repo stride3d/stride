@@ -8,7 +8,7 @@ using Stride.Core.Assets.Analysis;
 using Stride.Core.Diagnostics;
 using Stride.Core.Reflection;
 using Stride.Core.Serialization.Contents;
-using Stride.Core.VisualStudio;
+using Stride.Core.Solutions;
 using Stride.Core.Yaml.Serialization;
 using Stride.Core.Serialization;
 
