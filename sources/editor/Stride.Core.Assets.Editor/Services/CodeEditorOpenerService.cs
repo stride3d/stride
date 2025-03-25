@@ -54,6 +54,7 @@ namespace Stride.Core.Assets.Editor.Services
             {
                 startInfo.FileName = ideInfo.ProgramPath;
                 startInfo.Arguments = $"\"{ideArguments}\"";
+                startInfo.CreateNoWindow = ideInfo.IDEType == IDEType.VSCode;
             }
             else
             {
