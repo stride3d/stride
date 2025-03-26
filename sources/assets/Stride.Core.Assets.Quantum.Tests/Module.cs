@@ -4,17 +4,16 @@
 using System.Runtime.CompilerServices;
 using Stride.Core.Reflection;
 
-namespace Stride.Core.Assets.Quantum.Tests
+namespace Stride.Core.Assets.Quantum.Tests;
+
+// Somehow it helps Resharper NUnit to run module initializer first (to determine unit test configuration).
+public class Module
 {
-    // Somehow it helps Resharper NUnit to run module initializer first (to determine unit test configuration).
-    public class Module
+    [ModuleInitializer]
+    internal static void Initialize()
     {
-        [ModuleInitializer]
-        internal static void Initialize()
-        {
-            AssemblyRegistry.Register(typeof(Module).Assembly, AssemblyCommonCategories.Assets);
-            AssetQuantumRegistry.RegisterAssembly(typeof(Module).Assembly);
-            RuntimeHelpers.RunModuleConstructor(typeof(Asset).Module.ModuleHandle);
-        }
+        AssemblyRegistry.Register(typeof(Module).Assembly, AssemblyCommonCategories.Assets);
+        AssetQuantumRegistry.RegisterAssembly(typeof(Module).Assembly);
+        RuntimeHelpers.RunModuleConstructor(typeof(Asset).Module.ModuleHandle);
     }
 }

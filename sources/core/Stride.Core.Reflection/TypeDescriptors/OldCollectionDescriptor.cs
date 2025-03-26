@@ -236,7 +236,7 @@ public class OldCollectionDescriptor : CollectionDescriptor
     /// </summary>
     /// <param name="collection">The collection.</param>
     /// <returns>The number of elements of a collection, -1 if it cannot determine the number of elements.</returns>
-    public override int GetCollectionCount(object collection)
+    public override int GetCollectionCount(object? collection)
     {
         return collection == null || getCollectionCountMethod == null ? -1 : getCollectionCountMethod(collection);
     }

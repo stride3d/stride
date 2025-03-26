@@ -26,7 +26,7 @@
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 
-namespace Stride.Core.VisualStudio;
+namespace Stride.Core.Solutions;
 
 /// <summary>
 /// A collection of <see cref="Project"/>

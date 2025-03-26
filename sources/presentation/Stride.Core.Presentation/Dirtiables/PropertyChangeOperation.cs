@@ -12,7 +12,7 @@ public class PropertyChangeOperation : DirtyingOperation, IMergeableOperation
     private object? container;
     private object? previousValue;
 
-    public PropertyChangeOperation(string propertyName, object container, object previousValue, IEnumerable<IDirtiable> dirtiables, bool nonPublic = false)
+    public PropertyChangeOperation(string propertyName, object container, object? previousValue, IEnumerable<IDirtiable> dirtiables, bool nonPublic = false)
         : base(dirtiables)
     {
         ArgumentNullException.ThrowIfNull(propertyName);

@@ -44,7 +44,7 @@ namespace Stride.Debugger.Target
         private bool CanVisit(Type type)
         {
             // Also handles Entity, EntityComponent and Script
-            return AssetRegistry.IsContentType(type)
+            return AssetRegistry.IsExactContentType(type)
                    || type == typeof(Entity) || typeof(Entity).IsAssignableFrom(type) || typeof(EntityComponent).IsAssignableFrom(type);
         }
 

@@ -1,21 +1,17 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
+namespace Stride.Core.Presentation.Quantum.ViewModels;
 
-namespace Stride.Core.Presentation.Quantum.ViewModels
+public class NodeViewModelValueChangedArgs : EventArgs
 {
-    public class NodeViewModelValueChangedArgs : EventArgs
+    public NodeViewModelValueChangedArgs(GraphViewModel viewModel, NodeViewModel node)
     {
-        public NodeViewModelValueChangedArgs(GraphViewModel viewModel, NodeViewModel node)
-        {
-            ViewModel = viewModel;
-            Node = node;
-        }
-
-        public GraphViewModel ViewModel { get; private set; }
-
-        public NodeViewModel Node { get; private set; }
+        ViewModel = viewModel;
+        Node = node;
     }
+
+    public GraphViewModel ViewModel { get; }
+
+    public NodeViewModel Node { get; }
 }
