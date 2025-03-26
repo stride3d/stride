@@ -175,8 +175,11 @@ public class ShaderMethod(
             foreach (var p in Parameters)
                 builder.AddFunctionParameter(context, p.Name, p.Type);
             if(Body is BlockStatement body)
+            {
+                builder.CreateBlock(context);
                 foreach(var s in body)
                     s.Compile(table, shader, compiler);
+            }
         }
         else throw new NotImplementedException();
     }

@@ -12,9 +12,10 @@ public partial class SpirvBuilder
         foreach(var t in ftype.ParameterTypes)
             context.GetOrRegister(t);
         var func = Buffer.AddOpFunction(context.Bound++, context.GetOrRegister(ftype.ReturnType), mask, context.GetOrRegister(ftype));
+        Position += func.WordCount;
         context.AddName(func, name);
         var result = new SpirvFunction(func.ResultId!.Value, name, ftype);
-        Buffer.AddOpFunctionEnd();
+        Buffer.InsertOpFunctionEnd(Position);
         CurrentFunction = result;
         return result;
     }

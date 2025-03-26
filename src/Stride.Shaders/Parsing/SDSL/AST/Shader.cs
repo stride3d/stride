@@ -71,6 +71,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
 
     public void Compile(CompilerUnit compiler, SymbolTable table)
     {
+        compiler.Context.PutMixinName(Name);
         foreach(var method in Elements.OfType<ShaderMethod>())
             method.Compile(table, this, compiler);
     }

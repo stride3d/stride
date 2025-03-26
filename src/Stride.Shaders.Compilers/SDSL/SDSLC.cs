@@ -5,12 +5,13 @@ using Stride.Shaders.Spirv.Building;
 using Stride.Shaders.Core;
 using Stride.Shaders.Spirv.Tools;
 using Stride.Shaders.Spirv.Core.Buffers;
+using System.Runtime.InteropServices;
 
 namespace Stride.Shaders.Compilers.SDSL;
 
 public record struct SDSLC() : ICompiler
 {
-    public readonly bool Compile(string code, out Memory<byte> compiled)
+    public readonly bool Compile(string code, out byte[] compiled)
     {
         var parsed = SDSLParser.Parse(code);
         if(parsed.AST is ShaderFile sf)
@@ -21,14 +22,20 @@ public record struct SDSLC() : ICompiler
 
             if(table.Errors.Count > 0)
                 throw new Exception("Some parse errors");
-            var compiler = new CompilerUnit();
+            using var compiler = new CompilerUnit();
             shader.Compile(compiler, table);
 
             compiler.Context.Buffer.Sort();
             var merged = SpirvBuffer.Merge(compiler.Context.Buffer, compiler.Builder.Buffer);
-            var dis = new SpirvDis<SpirvBuffer>(merged);
+            var dis = new SpirvDis<SpirvBuffer>(merged, true);
             dis.Disassemble(true);
+            compiled = MemoryMarshal.AsBytes(merged.Span).ToArray();
+            return true;
         }
-        throw new NotImplementedException();
+        else
+        {
+            compiled = [];
+            return false;
+        }
     }
 }

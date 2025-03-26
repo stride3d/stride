@@ -43,7 +43,7 @@ float4 PSMain(PSInput input) : SV_TARGET
     static Guid resultGuid = Guid.Parse("58346CDA-DDE7-4497-9461-6F87AF5E0659");
     static readonly DXC dxc = DXC.GetApi();
     
-    public bool Compile(string code, out Memory<byte> compiled)
+    public bool Compile(string code, out byte[] compiled)
     {
         throw new NotImplementedException();
         // var content = Encoding.ASCII.GetBytes(Code);

@@ -10,7 +10,7 @@ public partial class SpirvBuilder
     {
         var i = Buffer.InsertOpLabel(Position, context.Bound++);
         Position += i.WordCount;
-        Position += Buffer.InsertOpUnreachable(Position).WordCount;
+        Buffer.InsertOpUnreachable(Position);
         var result = new SpirvBlock(i, CurrentFunction ?? throw new NotImplementedException(), name);
         return result;
     }

@@ -12,11 +12,22 @@ namespace Stride.Shaders.Spirv.Building;
 public class SpirvContext(SpirvModule module) : IDisposable
 {
     public int Bound { get; internal set; } = 1;
+    public string? Name { get; private set; }
     public SpirvModule Module { get; } = module;
     public SortedList<string, int> Variables { get; } = [];
     public Dictionary<SymbolType, int> Types { get; } = [];
     public Dictionary<int, SymbolType> ReverseTypes { get; } = [];
     public SpirvBuffer Buffer { get; set; } = new();
+
+    public void PutMixinName(string name)
+    {
+        if (Name is null)
+        {
+            Name = name;
+            Buffer.InsertOpSDSLMixinName(5, name);
+        }
+        else throw new NotImplementedException();
+    }
 
     public void AddName(IdRef target, string name)
         => Buffer.AddOpName(target, name);
@@ -43,7 +54,7 @@ public class SpirvContext(SpirvModule module) : IDisposable
             _ => throw new NotImplementedException()
         };
     }
-    
+
     public void AddGlobalVariable(Symbol variable)
     {
         throw new NotImplementedException();
@@ -95,7 +106,7 @@ public class SpirvContext(SpirvModule module) : IDisposable
 
     public IdRef GetOrRegister(SymbolType? type)
     {
-        if(type is null)
+        if (type is null)
             throw new ArgumentException($"Type is null");
         if (Types.TryGetValue(type, out var res))
             return res;

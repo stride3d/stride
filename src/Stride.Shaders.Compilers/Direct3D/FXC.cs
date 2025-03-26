@@ -11,7 +11,7 @@ public record struct FXCompiler() : ICompiler
 {
     static D3DCompiler d3d = D3DCompiler.GetApi();
     
-    public bool Compile(string code, out Memory<byte> compiled)
+    public bool Compile(string code, out byte[] compiled)
     {
         throw new NotImplementedException();
     }
