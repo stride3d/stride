@@ -30,7 +30,7 @@ using Stride.Graphics;
 
 namespace Stride.Games
 {
-    internal abstract class GamePlatform : ReferenceBase, IGraphicsDeviceFactory, IGamePlatform
+    public abstract class GamePlatform : ReferenceBase, IGraphicsDeviceFactory, IGamePlatform
     {
         private bool hasExitRan = false;
 
@@ -88,7 +88,7 @@ namespace Stride.Games
             }
         }
 
-        internal abstract GameWindow GetSupportedGameWindow(AppContextType type);
+        public abstract GameWindow GetSupportedGameWindow(AppContextType type);
 
         public virtual GameWindow CreateWindow(GameContext gameContext)
         {
