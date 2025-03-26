@@ -193,6 +193,9 @@ namespace Stride.Shaders.Compiler.OpenGL
                 case ShaderStage.Domain:
                     shaderBytecodeResult.Error("Domain stage can't be converted to OpenGL. Only Vertex and Pixel shaders are supported");
                     break;
+                case ShaderStage.Compute when shaderPlatform == GlslShaderPlatform.Vulkan:
+                    pipelineStage = PipelineStage.Compute;
+                    break;
                 case ShaderStage.Compute:
                     shaderBytecodeResult.Error("Compute stage can't be converted to OpenGL. Only Vertex and Pixel shaders are supported");
                     break;
@@ -292,10 +295,6 @@ namespace Stride.Shaders.Compiler.OpenGL
 
                 if (shaderPlatform == GlslShaderPlatform.Vulkan)
                 {
-                    // Register "NoSampler", required by HLSL=>GLSL translation to support HLSL such as texture.Load().
-                    var noSampler = new EffectResourceBindingDescription { KeyInfo = { KeyName = "NoSampler" }, RawName = "NoSampler", Class = EffectParameterClass.Sampler, SlotStart = -1, SlotCount = 1 };
-                    reflection.ResourceBindings.Add(noSampler);
-
                     // Defines the ordering of resource groups in Vulkan. This is mirrored in the PipelineState
                     var resourceGroups = reflection.ResourceBindings.Select(x => x.ResourceGroup ?? "Globals").Distinct().ToList();
 
@@ -358,6 +357,13 @@ namespace Stride.Shaders.Compiler.OpenGL
             {
                 glslShaderWriter.ExtraHeaders = "#define texelFetchBufferPlaceholder";
             }
+
+            if (shaderPlatform == GlslShaderPlatform.Vulkan && pipelineStage == PipelineStage.Compute)
+            {
+                glslShaderWriter.Extensions.Add("GL_EXT_shader_image_load_formatted");
+            }
+
+            glslShaderWriter.Extensions.Add("GL_EXT_samplerless_texture_functions");
 
             // Write shader
             glslShaderWriter.Visit(glslShader);

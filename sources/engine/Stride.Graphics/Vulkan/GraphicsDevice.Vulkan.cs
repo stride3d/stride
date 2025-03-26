@@ -40,6 +40,7 @@ namespace Stride.Graphics
         private IntPtr nativeUploadBufferStart;
         private int nativeUploadBufferSize;
         private int nativeUploadBufferOffset;
+        private object nativeUploadBufferLock = new();
 
         private Queue<KeyValuePair<long, VkFence>> nativeFences = new Queue<KeyValuePair<long, VkFence>>();
         private long lastCompletedFence;
@@ -52,9 +53,9 @@ namespace Stride.Graphics
             256, // Sampler
             0, // CombinedImageSampler
             512, // SampledImage
-            0, // StorageImage
+            32, // StorageImage
             64, // UniformTexelBuffer
-            0, // StorageTexelBuffer
+            32, // StorageTexelBuffer
             512, // UniformBuffer
             0, // StorageBuffer
             0, // UniformBufferDynamic
@@ -218,7 +219,11 @@ namespace Stride.Graphics
                 pWaitSemaphores = &presentSemaphoreCopy,
                 pWaitDstStageMask = &pipelineStageFlags,
             };
-            vkQueueSubmit(NativeCommandQueue, 1, &submitInfo, fence);
+
+            lock (QueueLock)
+            {
+                vkQueueSubmit(NativeCommandQueue, 1, &submitInfo, fence);
+            }
 
             presentSemaphore = VkSemaphore.Null;
             nativeResourceCollector.Release();
@@ -286,6 +291,12 @@ namespace Stride.Graphics
                 samplerAnisotropy = true,
                 depthClamp = true,
             };
+
+            if (graphicsProfiles.Any(x => x >= GraphicsProfile.Level_11_0))
+            {
+                enabledFeature.shaderStorageImageReadWithoutFormat = true;
+                enabledFeature.shaderStorageImageWriteWithoutFormat = true;
+            }
 
             var extensionProperties = vkEnumerateDeviceExtensionProperties(NativePhysicalDevice);
             var availableExtensionNames = new List<string>();
@@ -366,41 +377,44 @@ namespace Stride.Graphics
 
         internal unsafe IntPtr AllocateUploadBuffer(int size, out VkBuffer resource, out int offset)
         {
-            // TODO D3D12 thread safety, should we simply use locks?
-            if (nativeUploadBuffer == VkBuffer.Null || nativeUploadBufferOffset + size > nativeUploadBufferSize)
+            lock (nativeUploadBufferLock)
             {
-                if (nativeUploadBuffer != VkBuffer.Null)
+                if (nativeUploadBuffer == VkBuffer.Null || nativeUploadBufferOffset + size > nativeUploadBufferSize)
                 {
-                    vkUnmapMemory(NativeDevice, nativeUploadBufferMemory);
-                    Collect(nativeUploadBuffer);
-                    Collect(nativeUploadBufferMemory);
+                    if (nativeUploadBuffer != VkBuffer.Null)
+                    {
+                        vkUnmapMemory(NativeDevice, nativeUploadBufferMemory);
+                        Collect(nativeUploadBuffer);
+                        Collect(nativeUploadBufferMemory);
+                    }
+
+                    // Allocate new buffer
+                    // TODO D3D12 recycle old ones (using fences to know when GPU is done with them)
+                    // TODO D3D12 ResourceStates.CopySource not working?
+                    nativeUploadBufferSize = Math.Max(4 * 1024 * 1024, size);
+
+                    var bufferCreateInfo = new VkBufferCreateInfo
+                    {
+                        sType = VkStructureType.BufferCreateInfo,
+                        size = (ulong)nativeUploadBufferSize,
+                        flags = VkBufferCreateFlags.None,
+                        usage = VkBufferUsageFlags.TransferSrc,
+                    };
+                    vkCreateBuffer(NativeDevice, &bufferCreateInfo, null, out nativeUploadBuffer);
+                    AllocateMemory(VkMemoryPropertyFlags.HostVisible | VkMemoryPropertyFlags.HostCoherent);
+
+                    fixed (IntPtr* nativeUploadBufferStartPtr = &nativeUploadBufferStart)
+                        vkMapMemory(NativeDevice, nativeUploadBufferMemory, 0, (ulong)nativeUploadBufferSize, VkMemoryMapFlags.None, (void**)nativeUploadBufferStartPtr);
+                    nativeUploadBufferOffset = 0;
                 }
 
-                // Allocate new buffer
-                // TODO D3D12 recycle old ones (using fences to know when GPU is done with them)
-                // TODO D3D12 ResourceStates.CopySource not working?
-                nativeUploadBufferSize = Math.Max(4 * 1024 * 1024, size);
+                // Bump allocate
+                resource = nativeUploadBuffer;
+                offset = nativeUploadBufferOffset;
+                nativeUploadBufferOffset += size;
 
-                var bufferCreateInfo = new VkBufferCreateInfo
-                {
-                    sType = VkStructureType.BufferCreateInfo,
-                    size = (ulong)nativeUploadBufferSize,
-                    flags = VkBufferCreateFlags.None,
-                    usage = VkBufferUsageFlags.TransferSrc,
-                };
-                vkCreateBuffer(NativeDevice, &bufferCreateInfo, null, out nativeUploadBuffer);
-                AllocateMemory(VkMemoryPropertyFlags.HostVisible | VkMemoryPropertyFlags.HostCoherent);
-
-                fixed (IntPtr* nativeUploadBufferStartPtr = &nativeUploadBufferStart)
-                    vkMapMemory(NativeDevice, nativeUploadBufferMemory, 0, (ulong)nativeUploadBufferSize, VkMemoryMapFlags.None, (void**)nativeUploadBufferStartPtr);
-                nativeUploadBufferOffset = 0;
+                return nativeUploadBufferStart + offset;
             }
-
-            // Bump allocate
-            resource = nativeUploadBuffer;
-            offset = nativeUploadBufferOffset;
-            nativeUploadBufferOffset += size;
-            return nativeUploadBufferStart + offset;
         }
 
         protected unsafe void AllocateMemory(VkMemoryPropertyFlags memoryProperties)
@@ -523,7 +537,11 @@ namespace Stride.Graphics
                 pWaitSemaphores = &presentSemaphoreCopy,
                 pWaitDstStageMask = &pipelineStageFlags,
             };
-            vkQueueSubmit(NativeCommandQueue, 1, &submitInfo, fence);
+
+            lock (QueueLock)
+            {
+                vkQueueSubmit(NativeCommandQueue, 1, &submitInfo, fence);
+            }
 
             presentSemaphore = VkSemaphore.Null;
             nativeResourceCollector.Release();
