@@ -5,10 +5,5 @@ namespace xunit.runner.stride.ViewModels;
 
 public class MainViewModel : ViewModelBase
 {
-    public MainViewModel()
-    {
-
-    }
-
     public TestsViewModel Tests { get; } = new TestsViewModel();
 }

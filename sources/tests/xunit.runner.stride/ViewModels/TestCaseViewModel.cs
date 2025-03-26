@@ -1,7 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using System.Collections.Generic;
 using Xunit.Abstractions;
 
 namespace xunit.runner.stride.ViewModels;
@@ -28,9 +27,9 @@ public class TestCaseViewModel : TestNodeViewModel
         yield return this;
     }
 
-    public override TestCaseViewModel LocateTestCase(ITestCase testCase)
+    public override TestCaseViewModel? LocateTestCase(ITestCase testCase)
     {
-        return (testCase == this.TestCase) ? this : null;
+        return (testCase == TestCase) ? this : null;
     }
 
     public override string DisplayName => TestCase.DisplayName;

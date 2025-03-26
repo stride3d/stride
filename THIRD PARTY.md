@@ -146,7 +146,7 @@ respective owners.
   
 ### ModernUIIcons.com
 
-Please carefully understand the license and download the latest icons at ModernUIIcons.com.
+Please carefully understand the license and download the latest icons at https://github.com/Templarian/WindowsIcons
 
 #### Understand Your Rights
 No Attribution and No Derived Works

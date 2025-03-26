@@ -10,6 +10,8 @@
     <StrideGraphicsApis Condition="'$(StrideGraphicsApisTest)' != ''">$(StrideGraphicsApisTest)</StrideGraphicsApis>
     
     <!-- Build list of Graphics API for platform that supports multiple -->
+    <StrideGraphicsApis Condition="'$(StridePlatform)' == 'Linux' And '$(StrideGraphicsApiDependentBuildAll)' == 'true'">OpenGL;Vulkan</StrideGraphicsApis>
+    <StrideGraphicsApis Condition="'$(StridePlatform)' == 'Linux' And '$(StrideGraphicsApis)' == ''">OpenGL</StrideGraphicsApis>
     <StrideGraphicsApis Condition="'$(StridePlatform)' == 'Windows' And '$(StrideGraphicsApiDependentBuildAll)' == 'true'">Direct3D11;Direct3D12;OpenGL;OpenGLES;Vulkan</StrideGraphicsApis>
     <StrideGraphicsApis Condition="'$(StridePlatform)' == 'Windows' And '$(StrideGraphicsApis)' == ''">Direct3D11</StrideGraphicsApis>
   
@@ -49,15 +51,15 @@
     <IntermediateOutputPath>$(BaseIntermediateOutputPath)$(StridePlatform)-$(StrideGraphicsApi)\$(Configuration)\</IntermediateOutputPath>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(StridePlatform)' == 'Windows'">
+  <PropertyGroup Condition="'$(StridePlatform)' == 'Linux' Or '$(StridePlatform)' == 'Windows'">
     <StartupObject>xunit.runner.stride.Program</StartupObject>
   </PropertyGroup>
-  <ItemGroup Condition="'$(StridePlatform)' == 'Windows'">
-    <Compile Condition="'$(StrideGraphicsApiDependent)' != 'true'" Include="$(MSBuildThisFileDirectory)..\shared\tests\xunit\LauncherSimple.Windows.cs">
-      <Link>LauncherSimple.Windows.cs</Link>
+  <ItemGroup Condition="'$(StridePlatform)' == 'Linux' Or '$(StridePlatform)' == 'Windows'">
+    <Compile Condition="'$(StrideGraphicsApiDependent)' != 'true'" Include="$(MSBuildThisFileDirectory)..\shared\tests\xunit\LauncherSimple.Desktop.cs">
+      <Link>LauncherSimple.Desktop.cs</Link>
     </Compile>
-    <Compile Condition="'$(StrideGraphicsApiDependent)' == 'true'" Include="$(MSBuildThisFileDirectory)..\shared\tests\xunit\LauncherSimple.Windows.cs">
-      <Link>LauncherGame.Windows.cs</Link>
+    <Compile Condition="'$(StrideGraphicsApiDependent)' == 'true'" Include="$(MSBuildThisFileDirectory)..\shared\tests\xunit\LauncherSimple.Desktop.cs">
+      <Link>LauncherGame.Desktop.cs</Link>
     </Compile>
   </ItemGroup>
 

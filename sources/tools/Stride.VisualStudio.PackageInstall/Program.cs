@@ -4,7 +4,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using Stride.Core.VisualStudio;
+using Stride.Core.CodeEditor.VisualStudio;
 
 namespace Stride.VisualStudio.PackageInstall
 {
@@ -23,7 +23,7 @@ namespace Stride.VisualStudio.PackageInstall
 
                 // Locate a VS installation with VSIXInstaller.exe.
                 // Select the latest version of VS possible, in case there is some bugfixes or incompatible changes.
-                var visualStudioVersionByVsixVersion = VisualStudioVersions.AvailableVisualStudioInstances.Where(x => x.HasVsixInstaller);
+                var visualStudioVersionByVsixVersion = VisualStudioVersions.AvailableInstances.Where(x => x.HasVsixInstaller);
                 var ideInfo = visualStudioVersionByVsixVersion.OrderByDescending(x => x.InstallationVersion).FirstOrDefault(x => File.Exists(x.VsixInstallerPath));
                 if (ideInfo == null)
                 {
