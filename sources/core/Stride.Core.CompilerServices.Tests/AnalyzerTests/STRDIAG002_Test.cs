@@ -6,9 +6,9 @@ namespace Stride.Core.CompilerServices.Tests.AnalyzerTests;
 public class STRDIAG002_Test
 {
     [Fact]
-    public void Error_On_Attribute_Contradiction_On_Property()
+    public async Task Error_On_Attribute_Contradiction_On_Property()
     {
         string sourceCode = string.Format(ClassTemplates.BasicClassTemplate, "[DataMember(DataMemberMode.Content)]public int Value { get; set; }");
-        TestHelper.ExpectDiagnosticsError(sourceCode, STRDIAG002InvalidContentMode.DiagnosticId);
+        await TestHelper.ExpectDiagnosticsErrorAsync(sourceCode, STRDIAG002InvalidContentMode.DiagnosticId);
     }
 }

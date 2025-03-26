@@ -23,66 +23,57 @@
 
 #endregion
 
-using System;
-using Stride.Core.Annotations;
+namespace Stride.Core.VisualStudio;
 
-namespace Stride.Core.VisualStudio
+/// <summary>
+/// A key/value pair used by <see cref="PropertyItemCollection" />
+/// </summary>
+public sealed class PropertyItem
 {
     /// <summary>
-    /// A key/value pair used by <see cref="PropertyItemCollection" />
+    /// Initializes a new instance of the <see cref="PropertyItem"/> class.
     /// </summary>
-    public sealed class PropertyItem
+    /// <param name="name">The name.</param>
+    /// <param name="value">The value.</param>
+    public PropertyItem(string name, string value)
     {
-        private readonly string name;
+#if NET6_0_OR_GREATER
+        ArgumentNullException.ThrowIfNull(name);
+#else
+        if (name is null) throw new ArgumentNullException(nameof(name));
+#endif
+        this.Name = name;
+        Value = value;
+    }
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="PropertyItem"/> class.
-        /// </summary>
-        /// <param name="name">The name.</param>
-        /// <param name="value">The value.</param>
-        public PropertyItem([NotNull] string name, string value)
-        {
-            if (name == null) throw new ArgumentNullException(nameof(name));
-            this.name = name;
-            Value = value;
-        }
+    private PropertyItem(PropertyItem original)
+        : this(original.Name, original.Value)
+    {
+    }
 
-        private PropertyItem([NotNull] PropertyItem original)
-            : this(original.Name, original.Value)
-        {
-        }
+    /// <summary>
+    /// Gets the name.
+    /// </summary>
+    /// <value>The name.</value>
+    public string Name { get; }
 
-        /// <summary>
-        /// Gets the name.
-        /// </summary>
-        /// <value>The name.</value>
-        public string Name
-        {
-            get
-            {
-                return name;
-            }
-        }
+    /// <summary>
+    /// Gets or sets the value.
+    /// </summary>
+    /// <value>The value.</value>
+    public string Value { get; set; }
 
-        /// <summary>
-        /// Gets or sets the value.
-        /// </summary>
-        /// <value>The value.</value>
-        public string Value { get; set; }
+    /// <summary>
+    /// Clones this instance.
+    /// </summary>
+    /// <returns>PropertyItem.</returns>
+    public PropertyItem Clone()
+    {
+        return new PropertyItem(this);
+    }
 
-        /// <summary>
-        /// Clones this instance.
-        /// </summary>
-        /// <returns>PropertyItem.</returns>
-        [NotNull]
-        public PropertyItem Clone()
-        {
-            return new PropertyItem(this);
-        }
-
-        public override string ToString()
-        {
-            return $"{Name} = {Value}";
-        }
+    public override string ToString()
+    {
+        return $"{Name} = {Value}";
     }
 }

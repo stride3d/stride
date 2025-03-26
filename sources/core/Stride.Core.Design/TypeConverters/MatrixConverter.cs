@@ -46,107 +46,108 @@
 * THE SOFTWARE.
 */
 
-using System;
 using System.Collections;
 using System.ComponentModel;
 using System.ComponentModel.Design.Serialization;
 using System.Globalization;
-using Stride.Core.Annotations;
 using Stride.Core.Mathematics;
 
-namespace Stride.Core.TypeConverters
+namespace Stride.Core.TypeConverters;
+
+/// <summary>
+/// Defines a type converter for <see cref="Matrix"/>.
+/// </summary>
+public class MatrixConverter : BaseConverter
 {
     /// <summary>
-    /// Defines a type converter for <see cref="Matrix"/>.
+    /// Initializes a new instance of the <see cref="MatrixConverter"/> class.
     /// </summary>
-    public class MatrixConverter : BaseConverter
+    public MatrixConverter()
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="MatrixConverter"/> class.
-        /// </summary>
-        public MatrixConverter()
+        Type type = typeof(Matrix);
+        Properties = new PropertyDescriptorCollection(
+        [
+            new FieldPropertyDescriptor(type.GetField(nameof(Matrix.M11))!),
+            new FieldPropertyDescriptor(type.GetField(nameof(Matrix.M12))!),
+            new FieldPropertyDescriptor(type.GetField(nameof(Matrix.M13))!),
+            new FieldPropertyDescriptor(type.GetField(nameof(Matrix.M14))!),
+            new FieldPropertyDescriptor(type.GetField(nameof(Matrix.M21))!),
+            new FieldPropertyDescriptor(type.GetField(nameof(Matrix.M22))!),
+            new FieldPropertyDescriptor(type.GetField(nameof(Matrix.M23))!),
+            new FieldPropertyDescriptor(type.GetField(nameof(Matrix.M24))!),
+            new FieldPropertyDescriptor(type.GetField(nameof(Matrix.M31))!),
+            new FieldPropertyDescriptor(type.GetField(nameof(Matrix.M32))!),
+            new FieldPropertyDescriptor(type.GetField(nameof(Matrix.M33))!),
+            new FieldPropertyDescriptor(type.GetField(nameof(Matrix.M34))!),
+            new FieldPropertyDescriptor(type.GetField(nameof(Matrix.M41))!),
+            new FieldPropertyDescriptor(type.GetField(nameof(Matrix.M42))!),
+            new FieldPropertyDescriptor(type.GetField(nameof(Matrix.M43))!),
+            new FieldPropertyDescriptor(type.GetField(nameof(Matrix.M44))!),
+        ]);
+    }
+
+    /// <inheritdoc/>
+    public override object? ConvertTo(ITypeDescriptorContext? context, CultureInfo? culture, object? value, Type destinationType)
+    {
+#if NET6_0_OR_GREATER
+        ArgumentNullException.ThrowIfNull(destinationType);
+#else
+        if (destinationType is null) throw new ArgumentNullException(nameof(destinationType));
+#endif
+
+        if (value is Matrix matrix)
         {
-            Type type = typeof(Matrix);
-            Properties = new PropertyDescriptorCollection(new PropertyDescriptor[]
+            if (destinationType == typeof(string))
+                return matrix.ToString();
+
+            if (destinationType == typeof(InstanceDescriptor))
             {
-                new FieldPropertyDescriptor(type.GetField(nameof(Matrix.M11))),
-                new FieldPropertyDescriptor(type.GetField(nameof(Matrix.M12))),
-                new FieldPropertyDescriptor(type.GetField(nameof(Matrix.M13))),
-                new FieldPropertyDescriptor(type.GetField(nameof(Matrix.M14))),
-                new FieldPropertyDescriptor(type.GetField(nameof(Matrix.M21))),
-                new FieldPropertyDescriptor(type.GetField(nameof(Matrix.M22))),
-                new FieldPropertyDescriptor(type.GetField(nameof(Matrix.M23))),
-                new FieldPropertyDescriptor(type.GetField(nameof(Matrix.M24))),
-                new FieldPropertyDescriptor(type.GetField(nameof(Matrix.M31))),
-                new FieldPropertyDescriptor(type.GetField(nameof(Matrix.M32))),
-                new FieldPropertyDescriptor(type.GetField(nameof(Matrix.M33))),
-                new FieldPropertyDescriptor(type.GetField(nameof(Matrix.M34))),
-                new FieldPropertyDescriptor(type.GetField(nameof(Matrix.M41))),
-                new FieldPropertyDescriptor(type.GetField(nameof(Matrix.M42))),
-                new FieldPropertyDescriptor(type.GetField(nameof(Matrix.M43))),
-                new FieldPropertyDescriptor(type.GetField(nameof(Matrix.M44))),
-            });
-        }
-
-        /// <inheritdoc/>
-        public override object ConvertTo(ITypeDescriptorContext context, CultureInfo culture, object value, Type destinationType)
-        {
-            if (destinationType == null) throw new ArgumentNullException(nameof(destinationType));
-
-            if (value is Matrix)
-            {
-                var matrix = (Matrix)value;
-
-                if (destinationType == typeof(string))
-                    return matrix.ToString();
-
-                if (destinationType == typeof(InstanceDescriptor))
-                {
-                    var constructor = typeof(Matrix).GetConstructor(MathUtil.Array(typeof(float), 16));
-                    if (constructor != null)
-                        return new InstanceDescriptor(constructor, matrix.ToArray());
-                }
+                var constructor = typeof(Matrix).GetConstructor(MathUtil.Array(typeof(float), 16));
+                if (constructor != null)
+                    return new InstanceDescriptor(constructor, matrix.ToArray());
             }
-
-            return base.ConvertTo(context, culture, value, destinationType);
         }
 
-        /// <inheritdoc/>
-        public override object ConvertFrom(ITypeDescriptorContext context, CultureInfo culture, object value)
+        return base.ConvertTo(context, culture, value, destinationType);
+    }
+
+    /// <inheritdoc/>
+    public override object? ConvertFrom(ITypeDescriptorContext? context, CultureInfo? culture, object value)
+    {
+        var str = value as string;
+        if (string.IsNullOrEmpty(str))
+            return null;
+
+        str = str.Replace("[", string.Empty).Replace("]", string.Empty);
+        return ConvertFromString<Matrix, float>(context, culture, str);
+    }
+
+    /// <inheritdoc/>
+    public override object CreateInstance(ITypeDescriptorContext? context, IDictionary propertyValues)
+    {
+#if NET6_0_OR_GREATER
+        ArgumentNullException.ThrowIfNull(propertyValues);
+#else
+        if (propertyValues is null) throw new ArgumentNullException(nameof(propertyValues));
+#endif
+        return new Matrix
         {
-            var str = value as string;
-            if (string.IsNullOrEmpty(str))
-                return null;
-
-            str = str.Replace("[", string.Empty).Replace("]", string.Empty);
-            return ConvertFromString<Matrix, float>(context, culture, str);
-        }
-
-        /// <inheritdoc/>
-        [NotNull]
-        public override object CreateInstance(ITypeDescriptorContext context, IDictionary propertyValues)
-        {
-            if (propertyValues == null) throw new ArgumentNullException(nameof(propertyValues));
-            var matrix = new Matrix
-            {
-                M11 = (float)propertyValues[nameof(Matrix.M11)],
-                M12 = (float)propertyValues[nameof(Matrix.M12)],
-                M13 = (float)propertyValues[nameof(Matrix.M13)],
-                M14 = (float)propertyValues[nameof(Matrix.M14)],
-                M21 = (float)propertyValues[nameof(Matrix.M21)],
-                M22 = (float)propertyValues[nameof(Matrix.M22)],
-                M23 = (float)propertyValues[nameof(Matrix.M23)],
-                M24 = (float)propertyValues[nameof(Matrix.M24)],
-                M31 = (float)propertyValues[nameof(Matrix.M31)],
-                M32 = (float)propertyValues[nameof(Matrix.M32)],
-                M33 = (float)propertyValues[nameof(Matrix.M33)],
-                M34 = (float)propertyValues[nameof(Matrix.M34)],
-                M41 = (float)propertyValues[nameof(Matrix.M41)],
-                M42 = (float)propertyValues[nameof(Matrix.M42)],
-                M43 = (float)propertyValues[nameof(Matrix.M43)],
-                M44 = (float)propertyValues[nameof(Matrix.M44)],
-            };
-            return matrix;
-        }
+            M11 = (float)propertyValues[nameof(Matrix.M11)]!,
+            M12 = (float)propertyValues[nameof(Matrix.M12)]!,
+            M13 = (float)propertyValues[nameof(Matrix.M13)]!,
+            M14 = (float)propertyValues[nameof(Matrix.M14)]!,
+            M21 = (float)propertyValues[nameof(Matrix.M21)]!,
+            M22 = (float)propertyValues[nameof(Matrix.M22)]!,
+            M23 = (float)propertyValues[nameof(Matrix.M23)]!,
+            M24 = (float)propertyValues[nameof(Matrix.M24)]!,
+            M31 = (float)propertyValues[nameof(Matrix.M31)]!,
+            M32 = (float)propertyValues[nameof(Matrix.M32)]!,
+            M33 = (float)propertyValues[nameof(Matrix.M33)]!,
+            M34 = (float)propertyValues[nameof(Matrix.M34)]!,
+            M41 = (float)propertyValues[nameof(Matrix.M41)]!,
+            M42 = (float)propertyValues[nameof(Matrix.M42)]!,
+            M43 = (float)propertyValues[nameof(Matrix.M43)]!,
+            M44 = (float)propertyValues[nameof(Matrix.M44)]!,
+        };
     }
 }

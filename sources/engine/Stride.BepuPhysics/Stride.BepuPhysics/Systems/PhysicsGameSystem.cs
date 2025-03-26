@@ -11,9 +11,9 @@ internal class PhysicsGameSystem : GameSystemBase
 {
     private BepuConfiguration _bepuConfiguration;
 
-    public PhysicsGameSystem(IServiceRegistry registry) : base(registry)
+    public PhysicsGameSystem(BepuConfiguration configuration, IServiceRegistry registry) : base(registry)
     {
-        _bepuConfiguration = registry.GetService<BepuConfiguration>();
+        _bepuConfiguration = configuration;
         UpdateOrder = SystemsOrderHelper.ORDER_OF_GAME_SYSTEM;
         Enabled = true; //enabled by default
 

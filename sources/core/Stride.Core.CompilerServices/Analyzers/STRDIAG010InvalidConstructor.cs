@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Text;
-using Microsoft.CodeAnalysis;
 using Stride.Core.CompilerServices.Common;
 
 namespace Stride.Core.CompilerServices.Analyzers;
@@ -15,7 +13,7 @@ public class STRDIAG010InvalidConstructor : DiagnosticAnalyzer
     private const string MessageFormat = "The Type '{0}' doesn't have a public parameterless constructor, which is needed for Serialization";
     private const string Category = DiagnosticCategory.Serialization;
 
-    private static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
+    private static readonly DiagnosticDescriptor Rule = new(
         DiagnosticId,
         Title,
         MessageFormat,
@@ -63,7 +61,7 @@ public class STRDIAG010InvalidConstructor : DiagnosticAnalyzer
             // Check if the type has the specified DataContractAttribute through inheritance
             if (type.TryGetAttribute(dataContractAttribute,out var datacontractData) && datacontractData.AttributeConstructor is not null)
             {
-                if (datacontractData is { NamedArguments: [.., { Key: "Inherited" , Value: TypedConstant inherited } ] })
+                if (datacontractData is { NamedArguments: [.., { Key: "Inherited" , Value: var inherited } ] })
                 {
                     isInherited = (bool)inherited.Value!;
                 } 
@@ -82,10 +80,8 @@ public class STRDIAG010InvalidConstructor : DiagnosticAnalyzer
         {
             return;
         }
-        else
-        {
-            Rule.ReportDiagnostics(context, symbol);
-        }
+
+        Rule.ReportDiagnostics(context, symbol);
     }
     private static bool HasPublicEmptyConstructor(INamedTypeSymbol type) 
         => type.Constructors.Any(x => x.Parameters.Length == 0 && x.DeclaredAccessibility == Accessibility.Public);

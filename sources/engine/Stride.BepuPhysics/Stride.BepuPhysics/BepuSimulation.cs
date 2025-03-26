@@ -292,7 +292,7 @@ public sealed class BepuSimulation : IDisposable
         #warning Consider wrapping stride's threadpool/dispatcher into an IThreadDispatcher and passing that over to bepu instead of using their dispatcher
         _threadDispatcher = new ThreadDispatcher(targetThreadCount);
         BufferPool = new BufferPool();
-        ContactEvents = new ContactEventsManager(_threadDispatcher, BufferPool);
+        ContactEvents = new ContactEventsManager(BufferPool, this);
 
         var strideNarrowPhaseCallbacks = new StrideNarrowPhaseCallbacks(this, ContactEvents, CollidableMaterials);
         var stridePoseIntegratorCallbacks = new StridePoseIntegratorCallbacks(CollidableMaterials);
@@ -303,7 +303,7 @@ public sealed class BepuSimulation : IDisposable
         Simulation.Solver.SubstepCount = 1;
 
         CollidableMaterials.Initialize(Simulation);
-        ContactEvents.Initialize(this);
+        ContactEvents.Initialize();
         //CollisionBatcher = new CollisionBatcher<BatcherCallbacks>(BufferPool, Simulation.Shapes, Simulation.NarrowPhase.CollisionTaskRegistry, 0, DefaultBatcherCallbacks);
     }
 
