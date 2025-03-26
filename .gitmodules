@@ -4,3 +4,6 @@
 [submodule "submodules/CppNet8"]
 	path = submodules/CppNet8
 	url = https://github.com/ykafia/CppNet/
+[submodule "submodules/SpirvRegistry"]
+	path = submodules/SpirvRegistry
+	url = https://github.com/KhronosGroup/Registry-Root-SPIR-V

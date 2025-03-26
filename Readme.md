@@ -19,4 +19,10 @@ SDSL is a superset of the HLSL Shading language, bringing advanced and higher le
 
 ## Contribute
 
-You can fork the repository, clone it with submodules and create PRs.
+To contribute to this project, start by cloning this repository and pulling submodules : 
+
+```bash
+git clone https://github.com/Stride3D/SDSL
+cd ./SDSL
+git submodule update --init
+```

@@ -1,19 +1,23 @@
-namespace Machin
+namespace Machin;
+shader Test 
 {
-    shader Test 
+    stream float4 Position : SV_POSITION;
+    stream float4 Color : SV_TARGET;
+    bool machin = false;
+
+    void PSMain()
     {
-        stream float4 Position;
-        stream float4 Color;
+        streams.Position.w = 1.0;
+    }
 
-
-        void PSMain()
-        {
-            streams.Position.w = 1.0;
-        }
-
-        void VSMain()
-        {
-            streams.Color = float4(1.0,0.0,1.0,1u32);
-        }
+    void VSMain()
+    {
+        int a = 0;
+        a = 3;
+        if(machin)
+            streams.Color *= 2;
+        if(a < 2)
+            a *= 3;
+        streams.Color = float4(1.0,0.0,1.0,1f32);
     }
 }

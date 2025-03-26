@@ -1,0 +1,11 @@
+namespace Stride.Shaders.Tests;
+
+shader TestVertex
+{
+    stream float4 Position : SV_POSITION;
+
+    void VSMain()
+    {
+        streams.Position *= float4(1,1,1,0.5f);
+    }
+}

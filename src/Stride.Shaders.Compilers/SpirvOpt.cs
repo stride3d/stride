@@ -5,6 +5,7 @@ using Silk.NET.Shaderc;
 using Silk.NET.SPIRV.Cross;
 using Stride.Shaders.Spirv.Core;
 using Stride.Shaders.Spirv.Core.Buffers;
+using Stride.Shaders.Compilers.Direct3D;
 
 namespace Stride.Shaders.Compilers;
 

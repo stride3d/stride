@@ -1,0 +1,9 @@
+namespace Stride.Shaders.Tests;
+
+shader TestBasic
+{
+    int Add(int a, int b)
+    {
+        return a + b;
+    }
+}

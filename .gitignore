@@ -7,3 +7,4 @@ obj/
 /src/SDSLParserExample/Properties/launchSettings.json
 log*.txt
 *.vsix
+*.fsx

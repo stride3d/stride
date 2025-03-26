@@ -20,7 +20,7 @@
 
 
   <ItemGroup>
-    <ProjectReference Include="..\Stride.Shaders.Parsing\Stride.Shaders.Parsing.csproj" />
+    <ProjectReference Include="..\Stride.Shaders\Stride.Shaders.csproj" />
   </ItemGroup>
 
   <PropertyGroup Condition="'$(Configuration)'=='Release'">

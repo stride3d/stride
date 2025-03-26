@@ -1,8 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
-    <ProjectReference Include="..\Stride.Shaders.Parsing\Stride.Shaders.Parsing.csproj" />
-    <ProjectReference Include="..\Stride.Shaders.Spirv\Stride.Shaders.Spirv\Stride.Shaders.Spirv.csproj" />
+    <ProjectReference Include="..\Stride.Shaders\Stride.Shaders.csproj" />
   </ItemGroup>
 
   <ItemGroup>
