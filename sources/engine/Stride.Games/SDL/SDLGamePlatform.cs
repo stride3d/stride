@@ -22,22 +22,6 @@ public class SDLGamePlatform : GamePlatform, IWindowedPlatform
 
     public GameWindow MainWindow { get; protected set; } = new GameWindowSDL();
 
-    public override void Run()
-    {
-        MainWindow.CreateWindow(600, 900);
-        MainWindow.SetSize(new Core.Mathematics.Int2(600, 900));
-
-        // Register on Activated
-        MainWindow.Activated += OnActivated;
-        MainWindow.Deactivated += OnDeactivated;
-        MainWindow.InitCallback = OnInitCallback;
-        MainWindow.RunCallback = OnRunCallback;
-
-        WindowCreated?.Invoke(this, EventArgs.Empty);
-
-        MainWindow.Run();
-    }
-
     public override void Exit()
     {
         // Notifies that the GameWindow should exit.

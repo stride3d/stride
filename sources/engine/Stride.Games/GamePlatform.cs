@@ -32,13 +32,11 @@ namespace Stride.Games
 {
 
     /// <summary>
-    /// This class determines what the game should run on ie Window/Surface, Graphics Device, etc.
+    /// This class determines what devices the game has access to. ie graphics devices, GameWindow and Input devices.
     /// </summary>
     public abstract class GamePlatform : ReferenceBase, IGraphicsDeviceFactory, IGamePlatform
     {
         private bool hasExitRan = false;
-
-        protected GameBase game;
 
         public string FullName { get; protected set; } = string.Empty;
 
@@ -58,33 +56,11 @@ namespace Stride.Games
 
         public event EventHandler<EventArgs> Suspend;
 
-        /// <summary>
-        /// If <c>true</c>, <see cref="Game.Run()"/> is blocking until the game is exited, i.e. internal main loop is used.
-        /// If <c>false</c>, <see cref="Game.Run()"/> returns immediately and the caller has to manage the main loop by invoking the <see cref="GameWindow.RunCallback"/>.
-        /// </summary>
         public bool IsBlockingRun { get; protected set; }
-
-        /// <summary>
-        /// Is run at the startup of the <see cref="GameBase"/>
-        /// </summary>
-        /// <param name="gameWindow"></param>
-        public virtual void Run() { }
 
         public virtual void Initialize(IServiceRegistry services)
         {
             Services = services;
-            game = services.GetSafeServiceAs<IGame>() as GameBase;
-        }
-
-        protected void Tick()
-        {
-            game.Tick();
-
-            if (!IsBlockingRun && game.IsExiting && !hasExitRan)
-            {
-                hasExitRan = true;
-                OnExiting(this, EventArgs.Empty);
-            }
         }
 
         public virtual void Exit() { }
@@ -177,56 +153,6 @@ namespace Stride.Games
             DeviceChanged(currentDevice, deviceInformation);
 
             return currentDevice;
-        }
-
-        protected void OnRunCallback()
-        {
-            // If/else outside of try-catch to separate user-unhandled exceptions properly
-            var unhandledException = game.UnhandledExceptionInternal;
-            if (unhandledException != null)
-            {
-                // Catch exceptions and transmit them to UnhandledException event
-                try
-                {
-                    Tick();
-                }
-                catch (Exception e)
-                {
-                    // Some system was listening for exceptions
-                    unhandledException(this, new GameUnhandledExceptionEventArgs(e, false));
-                    //Notify subscribers that the game is exiting
-                    Exiting?.Invoke(this, EventArgs.Empty);
-                }
-            }
-            else
-            {
-                Tick();
-            }
-        }
-
-        protected void OnInitCallback()
-        {
-            // If/else outside of try-catch to separate user-unhandled exceptions properly
-            var unhandledException = game.UnhandledExceptionInternal;
-            if (unhandledException != null)
-            {
-                // Catch exceptions and transmit them to UnhandledException event
-                try
-                {
-                    game.InitializeBeforeRun();
-                }
-                catch (Exception e)
-                {
-                    // Some system was listening for exceptions
-                    unhandledException(this, new GameUnhandledExceptionEventArgs(e, false));
-                    //Notify subscribers that the game is exiting
-                    Exiting.Invoke(this, EventArgs.Empty);
-                }
-            }
-            else
-            {
-                game.InitializeBeforeRun();
-            }
         }
 
         protected override void Destroy()

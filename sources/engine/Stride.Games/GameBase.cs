@@ -287,6 +287,8 @@ namespace Stride.Games
             {
                 using (var profile = Profiler.Begin(GameProfilingKeys.GameInitialize))
                 {
+                    PreGameInitialization();
+
                     // Initialize this instance and all game systems before trying to create the device.
                     Initialize();
 
@@ -588,6 +590,10 @@ namespace Stride.Games
         {
         }
 
+        protected virtual void PreGameInitialization()
+        {
+        }
+
         protected override void Destroy()
         {
             base.Destroy();
@@ -774,6 +780,56 @@ namespace Stride.Games
         protected virtual void UnloadContent()
         {
             GameSystems.UnloadContent();
+        }
+
+        protected void OnRunCallback()
+        {
+            // If/else outside of try-catch to separate user-unhandled exceptions properly
+            var unhandledException = UnhandledExceptionInternal;
+            if (unhandledException != null)
+            {
+                // Catch exceptions and transmit them to UnhandledException event
+                try
+                {
+                    Tick();
+                }
+                catch (Exception e)
+                {
+                    // Some system was listening for exceptions
+                    unhandledException(this, new GameUnhandledExceptionEventArgs(e, false));
+                    //Notify subscribers that the game is exiting
+                    Exiting?.Invoke(this, EventArgs.Empty);
+                }
+            }
+            else
+            {
+                Tick();
+            }
+        }
+
+        protected void OnInitCallback()
+        {
+            // If/else outside of try-catch to separate user-unhandled exceptions properly
+            var unhandledException = UnhandledExceptionInternal;
+            if (unhandledException != null)
+            {
+                // Catch exceptions and transmit them to UnhandledException event
+                try
+                {
+                    InitializeBeforeRun();
+                }
+                catch (Exception e)
+                {
+                    // Some system was listening for exceptions
+                    unhandledException(this, new GameUnhandledExceptionEventArgs(e, false));
+                    //Notify subscribers that the game is exiting
+                    Exiting.Invoke(this, EventArgs.Empty);
+                }
+            }
+            else
+            {
+                InitializeBeforeRun();
+            }
         }
 
         private void SetupGraphicsDeviceEvents()

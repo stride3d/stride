@@ -51,9 +51,9 @@ namespace Stride.Engine
         /// </summary>
         public static event EventHandler GameDestroyed;
 
-        private readonly GameFontSystem gameFontSystem;
+        private GameFontSystem gameFontSystem;
 
-        private readonly LogListener logListener;
+        private LogListener logListener;
 
         private DatabaseFileProvider databaseFileProvider;
 
@@ -90,7 +90,7 @@ namespace Stride.Engine
         /// Gets the script system.
         /// </summary>
         /// <value>The script.</value>
-        public ScriptSystem Script { get; }
+        public ScriptSystem Script { get; private set; }
 
         /// <summary>
         /// Gets the input manager.
@@ -102,7 +102,7 @@ namespace Stride.Engine
         /// Gets the scene system.
         /// </summary>
         /// <value>The scene system.</value>
-        public SceneSystem SceneSystem { get; }
+        public SceneSystem SceneSystem { get; private set; }
 
         /// <summary>
         /// Gets the effect system.
@@ -114,34 +114,34 @@ namespace Stride.Engine
         /// Gets the streaming system.
         /// </summary>
         /// <value>The streaming system.</value>
-        public StreamingManager Streaming { get; }
+        public StreamingManager Streaming { get; private set; }
 
         /// <summary>
         /// Gets the audio system.
         /// </summary>
         /// <value>The audio.</value>
-        public AudioSystem Audio { get; }
+        public AudioSystem Audio { get; private set; }
 
         /// <summary>
         /// Gets the sprite animation system.
         /// </summary>
         /// <value>The sprite animation system.</value>
-        public SpriteAnimationSystem SpriteAnimation { get; }
+        public SpriteAnimationSystem SpriteAnimation { get; private set; }
 
         /// <summary>
         /// Gets the game profiler system.
         /// </summary>
-        public DebugTextSystem DebugTextSystem { get; }
+        public DebugTextSystem DebugTextSystem { get; private set; }
 
         /// <summary>
         /// Gets the game profiler system.
         /// </summary>
-        public GameProfilingSystem ProfilingSystem { get; }
+        public GameProfilingSystem ProfilingSystem { get; private set; }
 
         /// <summary>
         /// Gets the VR Device System.
         /// </summary>
-        public VRDeviceSystem VRDeviceSystem { get; }
+        public VRDeviceSystem VRDeviceSystem { get; private set; }
 
         /// <summary>
         /// Gets the font system.
@@ -226,23 +226,28 @@ namespace Stride.Engine
         /// <summary>
         /// Initializes a new instance of the <see cref="DefaultGame"/> class.
         /// </summary>
-        public DefaultGame()
+        public DefaultGame(GamePlatform gamePlatform = null)
         {
-            // TODO: Create a Platform specific GamePlatform
-            var sDLGamePlatform = new SDLGamePlatform();
 
-            sDLGamePlatform.Activated += GamePlatform_Activated;
-            sDLGamePlatform.Deactivated += GamePlatform_Deactivated;
-            sDLGamePlatform.Exiting += GamePlatform_Exiting;
-            sDLGamePlatform.WindowCreated += GamePlatformOnWindowCreated;
+            gamePlatform ??= new SDLGamePlatform();
 
-            GamePlatform = sDLGamePlatform;
+            gamePlatform.Activated += GamePlatform_Activated;
+            gamePlatform.Deactivated += GamePlatform_Deactivated;
+            gamePlatform.Exiting += GamePlatform_Exiting;
+
+            if (gamePlatform is IWindowedPlatform windowedPlatform)
+            {
+                windowedPlatform.WindowCreated += GamePlatformOnWindowCreated;
+                Services.AddService<IWindowedPlatform>(windowedPlatform);
+            }
+
+            GamePlatform = gamePlatform;
 
             // Initialize the GamePlatform with a valid IServiceRegistry
-            sDLGamePlatform.Initialize(Services);
+            GamePlatform.Initialize(Services);
+
             Services.AddService<IGraphicsDeviceFactory>(GamePlatform);
             Services.AddService<IGamePlatform>(GamePlatform);
-            Services.AddService<IWindowedPlatform>(sDLGamePlatform);
 
             // Register the logger backend before anything else
             logListener = GetLogListener();
@@ -250,6 +255,64 @@ namespace Stride.Engine
             if (logListener != null)
                 GlobalLogger.GlobalMessageLogged += logListener;
 
+            AutoLoadDefaultSettings = true;
+        }
+
+        /// <summary>
+        /// Call this method to initialize the game, begin running the game loop, and start processing events for the game.
+        /// </summary>
+        /// <exception cref="System.InvalidOperationException">Cannot run this instance while it is already running</exception>
+        public override void Run()
+        {
+            if (IsRunning)
+            {
+                throw new InvalidOperationException("Cannot run this instance while it is already running");
+            }
+
+            // Gets the graphics device manager
+            graphicsDeviceManager = Services.GetService<IGraphicsDeviceManager>();
+            ArgumentNullException.ThrowIfNull(graphicsDeviceManager, nameof(graphicsDeviceManager));
+
+            PrepareContext();
+
+            try
+            {
+                Window.CreateWindow(600, 900);
+                Window.SetSize(new Core.Mathematics.Int2(600, 900));
+
+                // Register on Activated
+                Window.Activated += OnActivated;
+                Window.Deactivated += OnDeactivated;
+                Window.InitCallback = OnInitCallback;
+                Window.RunCallback = OnRunCallback;
+
+                WindowCreated?.Invoke(this, EventArgs.Empty);
+
+                // Handles the game loop.
+                Window.Run();
+
+                if (GamePlatform.IsBlockingRun)
+                {
+                    // If the previous call was blocking, then we can call Endrun
+                    EndRun();
+                }
+                else
+                {
+                    // EndRun will be executed on Game.Exit
+                    isEndRunRequired = true;
+                }
+            }
+            finally
+            {
+                if (!isEndRunRequired)
+                {
+                    IsRunning = false;
+                }
+            }
+        }
+
+        protected override void PreGameInitialization()
+        {
             // Create all core services, except Input which is created during `Initialize'.
             // Registration takes place in `Initialize'.
             Script = new ScriptSystem(Services);
@@ -284,49 +347,6 @@ namespace Stride.Engine
             GraphicsDeviceManager = new GraphicsDeviceManager(GamePlatform);
             Services.AddService<IGraphicsDeviceManager>(GraphicsDeviceManager);
             Services.AddService<IGraphicsDeviceService>(GraphicsDeviceManager);
-
-            AutoLoadDefaultSettings = true;
-        }
-
-        /// <summary>
-        /// Call this method to initialize the game, begin running the game loop, and start processing events for the game.
-        /// </summary>
-        /// <exception cref="System.InvalidOperationException">Cannot run this instance while it is already running</exception>
-        public override void Run()
-        {
-            if (IsRunning)
-            {
-                throw new InvalidOperationException("Cannot run this instance while it is already running");
-            }
-
-            // Gets the graphics device manager
-            graphicsDeviceManager = Services.GetService<IGraphicsDeviceManager>();
-            ArgumentNullException.ThrowIfNull(graphicsDeviceManager, nameof(graphicsDeviceManager));
-
-            PrepareContext();
-
-            try
-            {
-                GamePlatform.Run();
-
-                if (GamePlatform.IsBlockingRun)
-                {
-                    // If the previous call was blocking, then we can call Endrun
-                    EndRun();
-                }
-                else
-                {
-                    // EndRun will be executed on Game.Exit
-                    isEndRunRequired = true;
-                }
-            }
-            finally
-            {
-                if (!isEndRunRequired)
-                {
-                    IsRunning = false;
-                }
-            }
         }
 
         /// <summary>
@@ -586,6 +606,10 @@ namespace Stride.Engine
 
             // TODO: data-driven?
             Content.Serializer.RegisterSerializer(new ImageSerializer());
+
+            var sdlWindow = (GameWindowSDL)Window;
+            var input = new InputSourceSDL(sdlWindow.Window);
+            Input.Sources.Add(input);
 
             OnGameStarted(this);
         }
