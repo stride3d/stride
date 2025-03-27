@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Management;
+using System.Runtime.InteropServices;
 using System.Text;
 using Stride.Core.Extensions;
 
@@ -24,7 +25,7 @@ public static class AppHelper
         }
         body.AppendLine($"Current Directory: {Environment.CurrentDirectory}");
         body.AppendLine($"Command Line Args: {string.Join(" ", GetCommandLineArgs())}");
-        body.AppendLine($"OS Version: {Environment.OSVersion} ({(Environment.Is64BitOperatingSystem ? "x64" : "x86")})");
+        body.AppendLine($"OS Version: {RuntimeInformation.OSDescription} ({(Environment.Is64BitOperatingSystem ? "x64" : "x86")})");
         body.AppendLine($"Processor Count: {Environment.ProcessorCount}");
         body.AppendLine("Video configuration:");
         WriteVideoConfig(body);
@@ -51,7 +52,7 @@ public static class AppHelper
         {
             writer.AppendLine("An error occurred while trying to retrieve memory information.");
         }
-}
+    }
 
     public static void WriteVideoConfig(StringBuilder writer)
     {
@@ -77,7 +78,14 @@ public static class AppHelper
     public static Dictionary<string, string> GetVideoConfig()
     {
         var result = new Dictionary<string, string>();
+        if (OperatingSystem.IsWindows())
+            GetVideoConfigWindows(result);
 
+        return result;
+    }
+
+    private static void GetVideoConfigWindows(Dictionary<string, string> result)
+    {
         try
         {
             var searcher = new ManagementObjectSearcher("SELECT * FROM Win32_VideoController");
@@ -97,7 +105,5 @@ public static class AppHelper
         {
             // ignored
         }
-
-        return result;
     }
 }
