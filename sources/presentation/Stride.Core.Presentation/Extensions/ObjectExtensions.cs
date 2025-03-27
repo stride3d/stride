@@ -16,7 +16,7 @@ public static class ObjectExtensions
 
         var instanceType = instance.GetType();
 
-        if (CachedMemberwiseCloneMethods.TryGetValue(instanceType, out var method) == false)
+        if (!CachedMemberwiseCloneMethods.TryGetValue(instanceType, out var method))
         {
             var dynamicMethod = GenerateDynamicMethod(instanceType);
 
@@ -33,10 +33,9 @@ public static class ObjectExtensions
     {
         ArgumentNullException.ThrowIfNull(instance);
 
-
         var instanceType = typeof(T);
 
-        if (CachedMemberwiseCloneMethods.TryGetValue(instanceType, out var method) == false)
+        if (!CachedMemberwiseCloneMethods.TryGetValue(instanceType, out var method))
         {
             var dynamicMethod = GenerateDynamicMethod(instanceType);
 
@@ -65,7 +64,7 @@ public static class ObjectExtensions
         }
         else
         {
-            var constructorInfo = instanceType.GetConstructor(Array.Empty<Type>());
+            var constructorInfo = instanceType.GetConstructor([]);
             generator.Emit(OpCodes.Newobj, constructorInfo);
             generator.Emit(OpCodes.Stloc_0);
         }

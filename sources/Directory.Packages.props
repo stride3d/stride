@@ -15,7 +15,7 @@
     <PackageVersion Include="Microsoft.Management.Infrastructure" Version="3.0.0-preview.4" />
     <PackageVersion Include="Microsoft.NETCore.Platforms" Version="7.0.4" />
     <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="8.0.0" />
-    <PackageVersion Include="Polysharp" Version="1.15.0" />
+    <PackageVersion Include="PolySharp" Version="1.15.0" />
     <PackageVersion Include="ServiceWire" Version="5.5.4" />
     <PackageVersion Include="SharpDX" Version="4.2.0" />
     <PackageVersion Include="SharpDX.D3DCompiler" Version="4.2.0" />
@@ -42,6 +42,7 @@
   </ItemGroup>
   <!-- Other dependencies -->
   <ItemGroup>
+    <PackageVersion Include="JetBrains.Rider.PathLocator" Version="1.0.12" />
     <PackageVersion Include="Microsoft.AspNet.WebApi.Client" Version="5.2.7" />
     <PackageVersion Include="Microsoft.Build" Version="17.0.0" />
     <PackageVersion Include="Microsoft.Build.Locator" Version="1.6.10" />

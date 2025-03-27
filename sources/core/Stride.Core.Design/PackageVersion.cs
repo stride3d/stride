@@ -309,7 +309,7 @@ public sealed partial class PackageVersion : IComparable, IComparable<PackageVer
         return version1.CompareTo(version2) > 0;
     }
 
-    public static bool operator >=(PackageVersion version1, PackageVersion version2)
+    public static bool operator >=(PackageVersion version1, PackageVersion? version2)
     {
         return version1 == version2 || version1 > version2;
     }

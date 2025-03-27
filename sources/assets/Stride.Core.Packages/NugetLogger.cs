@@ -1,181 +1,171 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using System;
-using System.Threading.Tasks;
 using NuGet.Common;
 using ILogger = NuGet.Common.ILogger;
 
-namespace Stride.Core.Packages
+namespace Stride.Core.Packages;
+
+/// <summary>
+/// Implementation of the <see cref="ILogger"/> interface using our <see cref="IPackagesLogger"/> interface.
+/// </summary>
+internal class NugetLogger : ILogger
 {
+    private readonly IPackagesLogger logger;
+
     /// <summary>
-    /// Implementation of the <see cref="ILogger"/> interface using our <see cref="IPackagesLogger"/> interface.
+    /// Initialize new instance of NugetLogger.
     /// </summary>
-    internal class NugetLogger : ILogger
+    /// <param name="logger">The <see cref="IPackagesLogger"/> instance to use to implement <see cref="ILogger"/></param>
+    public NugetLogger(IPackagesLogger logger)
     {
-        private readonly IPackagesLogger logger;
+        this.logger = logger;
+    }
 
-        /// <summary>
-        /// Initialize new instance of NugetLogger.
-        /// </summary>
-        /// <param name="logger">The <see cref="IPackagesLogger"/> instance to use to implement <see cref="ILogger"/></param>
-        public NugetLogger(IPackagesLogger logger)
+    #region ILogger implementation
+
+    /// <summary>
+    /// Logs a debug message <paramref name="data"/>.
+    /// </summary>
+    /// <param name="data">The message to log.</param>
+    public void LogDebug(string data)
+    {
+        logger.Log(MessageLevel.Debug, data);
+    }
+
+    /// <summary>
+    /// Logs a verbose message <paramref name="data"/>.
+    /// </summary>
+    /// <param name="data">The message to log.</param>
+    public void LogVerbose(string data)
+    {
+        logger.Log(MessageLevel.Verbose, data);
+    }
+
+    /// <summary>
+    /// Logs an information message <paramref name="data"/>.
+    /// </summary>
+    /// <param name="data">The message to log.</param>
+    public void LogInformation(string data)
+    {
+        logger.Log(MessageLevel.Info, data);
+    }
+
+    /// <summary>
+    /// Logs a minimal message <paramref name="data"/>.
+    /// </summary>
+    /// <param name="data">The message to log.</param>
+    public void LogMinimal(string data)
+    {
+        logger.Log(MessageLevel.Minimal, data);
+    }
+
+    /// <summary>
+    /// Logs a warning message <paramref name="data"/>.
+    /// </summary>
+    /// <param name="data">The message to log.</param>
+    public void LogWarning(string data)
+    {
+        logger.Log(MessageLevel.Warning, data);
+    }
+
+    /// <summary>
+    /// Logs an error message <paramref name="data"/>.
+    /// </summary>
+    /// <param name="data">The message to log.</param>
+    public void LogError(string data)
+    {
+        logger.Log(MessageLevel.Error, data);
+    }
+
+    /// <summary>
+    /// Logs an information summary message <paramref name="data"/>.
+    /// </summary>
+    /// <param name="data">The message to log.</param>
+    public void LogInformationSummary(string data)
+    {
+        logger.Log(MessageLevel.InfoSummary, data);
+    }
+
+    /// <summary>
+    /// Logs an error summary message <paramref name="data"/>.
+    /// </summary>
+    /// <param name="data">The message to log.</param>
+    public void LogErrorSummary(string data)
+    {
+        logger.Log(MessageLevel.ErrorSummary, data);
+    }
+
+    /// <summary>
+    /// Logs a message <paramref name="data"/> using the log <paramref name="level"/>.
+    /// </summary>
+    /// <param name="level">The level of the logged message.</param>
+    /// <param name="data">The message to log.</param>
+    /// <exception cref="ArgumentOutOfRangeException"><paramref name="level"/> is not a valid log level.</exception>
+    public void Log(LogLevel level, string data)
+    {
+        switch (level)
         {
-            this.logger = logger;
-        }
-
-        #region ILogger implementation
-
-        /// <summary>
-        /// Logs a debug message <paramref name="data"/>.
-        /// </summary>
-        /// <param name="data">The message to log.</param>
-        public void LogDebug(string data)
-        {
-            logger.Log(MessageLevel.Debug, data);
-        }
-
-        /// <summary>
-        /// Logs a verbose message <paramref name="data"/>.
-        /// </summary>
-        /// <param name="data">The message to log.</param>
-        public void LogVerbose(string data)
-        {
-            logger.Log(MessageLevel.Verbose, data);
-        }
-
-        /// <summary>
-        /// Logs an information message <paramref name="data"/>.
-        /// </summary>
-        /// <param name="data">The message to log.</param>
-        public void LogInformation(string data)
-        {
-            logger.Log(MessageLevel.Info, data);
-        }
-
-        /// <summary>
-        /// Logs a minimal message <paramref name="data"/>.
-        /// </summary>
-        /// <param name="data">The message to log.</param>
-        public void LogMinimal(string data)
-        {
-            logger.Log(MessageLevel.Minimal, data);
-        }
-
-        /// <summary>
-        /// Logs a warning message <paramref name="data"/>.
-        /// </summary>
-        /// <param name="data">The message to log.</param>
-        public void LogWarning(string data)
-        {
-            logger.Log(MessageLevel.Warning, data);
-        }
-
-        /// <summary>
-        /// Logs an error message <paramref name="data"/>.
-        /// </summary>
-        /// <param name="data">The message to log.</param>
-        public void LogError(string data)
-        {
-            logger.Log(MessageLevel.Error, data);
-        }
-
-        /// <summary>
-        /// Logs an information summary message <paramref name="data"/>.
-        /// </summary>
-        /// <param name="data">The message to log.</param>
-        public void LogInformationSummary(string data)
-        {
-            logger.Log(MessageLevel.InfoSummary, data);
-        }
-
-        /// <summary>
-        /// Logs an error summary message <paramref name="data"/>.
-        /// </summary>
-        /// <param name="data">The message to log.</param>
-        public void LogErrorSummary(string data)
-        {
-            logger.Log(MessageLevel.ErrorSummary, data);
-        }
-
-        /// <summary>
-        /// Logs a message <paramref name="data"/> using the log <paramref name="level"/>.
-        /// </summary>
-        /// <param name="level">The level of the logged message.</param>
-        /// <param name="data">The message to log.</param>
-        /// <exception cref="ArgumentOutOfRangeException"><paramref name="level"/> is not a valid log level.</exception>
-        public void Log(LogLevel level, string data)
-        {
-            switch (level)
-            {
-                case LogLevel.Debug:
-                    LogDebug(data);
-                    break;
-                case LogLevel.Verbose:
-                    LogVerbose(data);
-                    break;
-                case LogLevel.Information:
-                    LogInformation(data);
-                    break;
-                case LogLevel.Minimal:
-                    LogMinimal(data);
-                    break;
-                case LogLevel.Warning:
-                    LogWarning(data);
-                    break;
-                case LogLevel.Error:
-                    LogError(data);
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(level), level, null);
-            }
-        }
-
-        /// <summary>
-        /// Logs a message <paramref name="data"/> using the log <paramref name="level"/>.
-        /// </summary>
-        /// <param name="level">The level of the logged message.</param>
-        /// <param name="data">The message to log.</param>
-        /// <exception cref="ArgumentOutOfRangeException"><paramref name="level"/> is not a valid log level.</exception>
-        public Task LogAsync(LogLevel level, string data)
-        {
-            switch (level)
-            {
             case LogLevel.Debug:
-                return logger.LogAsync(MessageLevel.Debug, data);
+                LogDebug(data);
+                break;
             case LogLevel.Verbose:
-                return logger.LogAsync(MessageLevel.Verbose, data);
+                LogVerbose(data);
+                break;
             case LogLevel.Information:
-                return logger.LogAsync(MessageLevel.Info, data);
+                LogInformation(data);
+                break;
             case LogLevel.Minimal:
-                return logger.LogAsync(MessageLevel.Minimal, data);
+                LogMinimal(data);
+                break;
             case LogLevel.Warning:
-                return logger.LogAsync(MessageLevel.Warning, data);
+                LogWarning(data);
+                break;
             case LogLevel.Error:
-                return logger.LogAsync(MessageLevel.Error, data);
+                LogError(data);
+                break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(level), level, null);
-            }
         }
-
-        /// <summary>
-        /// Logs a message <paramref name="message"/>.
-        /// </summary>
-        /// <param name="message">The message to log.</param>
-        public void Log(ILogMessage message)
-        {
-            Log(message.Level, message.Message);
-        }
-
-        /// <summary>
-        /// Logs a message <paramref name="message"/>.
-        /// </summary>
-        /// <param name="message">The message to log.</param>
-        public Task LogAsync(ILogMessage message)
-        {
-            return LogAsync(message.Level, message.Message);
-        }
-
-        #endregion
     }
+
+    /// <summary>
+    /// Logs a message <paramref name="data"/> using the log <paramref name="level"/>.
+    /// </summary>
+    /// <param name="level">The level of the logged message.</param>
+    /// <param name="data">The message to log.</param>
+    /// <exception cref="ArgumentOutOfRangeException"><paramref name="level"/> is not a valid log level.</exception>
+    public Task LogAsync(LogLevel level, string data)
+    {
+        return level switch
+        {
+            LogLevel.Debug => logger.LogAsync(MessageLevel.Debug, data),
+            LogLevel.Verbose => logger.LogAsync(MessageLevel.Verbose, data),
+            LogLevel.Information => logger.LogAsync(MessageLevel.Info, data),
+            LogLevel.Minimal => logger.LogAsync(MessageLevel.Minimal, data),
+            LogLevel.Warning => logger.LogAsync(MessageLevel.Warning, data),
+            LogLevel.Error => logger.LogAsync(MessageLevel.Error, data),
+            _ => throw new ArgumentOutOfRangeException(nameof(level), level, null),
+        };
+    }
+
+    /// <summary>
+    /// Logs a message <paramref name="message"/>.
+    /// </summary>
+    /// <param name="message">The message to log.</param>
+    public void Log(ILogMessage message)
+    {
+        Log(message.Level, message.Message);
+    }
+
+    /// <summary>
+    /// Logs a message <paramref name="message"/>.
+    /// </summary>
+    /// <param name="message">The message to log.</param>
+    public Task LogAsync(ILogMessage message)
+    {
+        return LogAsync(message.Level, message.Message);
+    }
+
+    #endregion
 }

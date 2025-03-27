@@ -25,7 +25,7 @@
 
 using System.Text;
 
-namespace Stride.Core.VisualStudio;
+namespace Stride.Core.Solutions;
 
 internal class SolutionWriter : IDisposable
 {
