@@ -29,7 +29,6 @@ using Stride.Core.Annotations;
 using Stride.Core.Diagnostics;
 using Stride.Core.IO;
 using Stride.Core.Serialization.Contents;
-using Stride.Games.SDL;
 using Stride.Games.Time;
 using Stride.Graphics;
 

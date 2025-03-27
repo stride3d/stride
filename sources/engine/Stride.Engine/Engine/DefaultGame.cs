@@ -229,20 +229,20 @@ namespace Stride.Engine
         public DefaultGame()
         {
             // TODO: Create a Platform specific GamePlatform
-            var sDLGamePlatform = new SDLGamePlatform();
+            var sdlGamePlatform = new SDLGamePlatform();
 
-            sDLGamePlatform.Activated += GamePlatform_Activated;
-            sDLGamePlatform.Deactivated += GamePlatform_Deactivated;
-            sDLGamePlatform.Exiting += GamePlatform_Exiting;
-            sDLGamePlatform.WindowCreated += GamePlatformOnWindowCreated;
+            sdlGamePlatform.Activated += GamePlatform_Activated;
+            sdlGamePlatform.Deactivated += GamePlatform_Deactivated;
+            sdlGamePlatform.Exiting += GamePlatform_Exiting;
+            sdlGamePlatform.WindowCreated += GamePlatformOnWindowCreated;
 
-            GamePlatform = sDLGamePlatform;
+            GamePlatform = sdlGamePlatform;
 
             // Initialize the GamePlatform with a valid IServiceRegistry
-            sDLGamePlatform.Initialize(Services);
+            sdlGamePlatform.Initialize(Services);
             Services.AddService<IGraphicsDeviceFactory>(GamePlatform);
             Services.AddService<IGamePlatform>(GamePlatform);
-            Services.AddService<IWindowedPlatform>(sDLGamePlatform);
+            Services.AddService<IWindowedPlatform>(sdlGamePlatform);
 
             // Register the logger backend before anything else
             logListener = GetLogListener();
