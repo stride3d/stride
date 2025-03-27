@@ -1,8 +1,8 @@
 <Project>
   <Import Project="..\..\targets\Stride.UnitTests.props" />
   <PropertyGroup>
-    <TargetFramework>$(StrideEditorTargetFramework)</TargetFramework>
-    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <TargetFramework>$(StrideXplatEditorTargetFramework)</TargetFramework>
+    <RuntimeIdentifiers>linux-x64;win-x64</RuntimeIdentifiers>
     <AssemblyName>Stride.Shaders.Tests</AssemblyName>
     <RootNamespace>Stride.Shaders.Tests</RootNamespace>
     <StrideBuildTags>*</StrideBuildTags>

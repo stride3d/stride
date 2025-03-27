@@ -1,8 +1,8 @@
 <Project>
   <Import Project="..\..\targets\Stride.UnitTests.props" />
   <PropertyGroup>
-    <TargetFramework>$(StrideEditorTargetFramework)</TargetFramework>
-    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <TargetFramework>$(StrideXplatEditorTargetFramework)</TargetFramework>
+    <RuntimeIdentifiers>linux-x64;win-x64</RuntimeIdentifiers>
     <EnableDefaultItems>false</EnableDefaultItems>
     <StrideCompileAssets>true</StrideCompileAssets>
     <!-- Force msbuild to check to rebuild this assembly instead of letting VS IDE guess -->
