@@ -17,7 +17,7 @@ namespace Stride.Engine.Design
     [ContentSerializer(typeof(DataContentSerializer<GameSettings>))]
     public sealed class GameSettings
     {
-        public const string AssetUrl = "GameSettings";
+        public static string AssetUrl = "GameSettings";
 
         public GameSettings()
         {

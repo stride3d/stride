@@ -34,7 +34,7 @@ namespace Stride.Assets.Tests
 
         public TexturePackerTests()
         {
-            Game.InitializeAssetDatabase();
+            DefaultGame.InitializeAssetDatabase();
         }
 
         [Fact]
