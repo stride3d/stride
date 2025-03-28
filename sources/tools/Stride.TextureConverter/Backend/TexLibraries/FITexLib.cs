@@ -69,7 +69,7 @@ namespace Stride.TextureConverter.TexLibraries
 
             FREE_IMAGE_TYPE type;
             uint bpp, redMask, greenMask, blueMask;
-            if (!FreeImage.GetFormatParameters(image.Format, out type, out bpp, out redMask, out greenMask, out blueMask))
+            if (!FreeImageSD.GetFormatParameters(image.Format, out type, out bpp, out redMask, out greenMask, out blueMask))
             {
                 throw new ArgumentException("The pixel format '{0}' is not supported by FreeImage".ToFormat(image.Format));
             }
