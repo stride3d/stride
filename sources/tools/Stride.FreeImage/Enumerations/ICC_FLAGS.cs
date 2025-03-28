@@ -33,21 +33,20 @@
 // $Id: ICC_FLAGS.cs,v 1.1 2007/11/28 15:33:38 cklein05 Exp $
 // ==========================================================
 
-namespace FreeImageAPI
+namespace FreeImageAPI;
+
+/// <summary>
+/// Flags for ICC profiles.
+/// </summary>
+[System.Flags]
+public enum ICC_FLAGS : ushort
 {
-	/// <summary>
-	/// Flags for ICC profiles.
-	/// </summary>
-	[System.Flags]
-	public enum ICC_FLAGS : ushort
-	{
-		/// <summary>
-		/// Default value.
-		/// </summary>
-		FIICC_DEFAULT = 0x00,
-		/// <summary>
-		/// The color is CMYK.
-		/// </summary>
-		FIICC_COLOR_IS_CMYK = 0x01
-	}
+    /// <summary>
+    /// Default value.
+    /// </summary>
+    FIICC_DEFAULT = 0x00,
+    /// <summary>
+    /// The color is CMYK.
+    /// </summary>
+    FIICC_COLOR_IS_CMYK = 0x01
 }
