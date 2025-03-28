@@ -7,26 +7,25 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using FreeImageAPI;
 using Stride.Core;
 
 namespace Stride.Graphics
 {
     /// <summary>
     /// This class is responsible to provide image loader for png, gif, bmp.
-    /// TODO: Replace using System.Drawing, as it is not available on all platforms (not on Windows 8/WP8).
     /// </summary>
     partial class StandardImageHelper
     {
         public static unsafe Image LoadFromMemory(IntPtr pSource, int size, bool makeACopy, GCHandle? handle)
         {
             using var memoryStream = new UnmanagedMemoryStream((byte*)pSource, size, capacity: size, access: FileAccess.Read);
-            using var bitmap = (Bitmap)System.Drawing.Image.FromStream(memoryStream);
+            using var bitmap = FreeImageBitmap.FromStream(memoryStream);
             var sourceArea = new Rectangle(0, 0, bitmap.Width, bitmap.Height);
-            // Lock System.Drawing.Bitmap
+            //Temp copy of FreeImageBitmap
 
-            var bitmapData = bitmap.LockBits(sourceArea, ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+            var bitmapData = bitmap.Copy(sourceArea).ConvertTo32Bits();
             var image = Image.New2D(bitmap.Width, bitmap.Height, 1, PixelFormat.B8G8R8A8_UNorm, 1, bitmapData.Stride);
-            // var dataRect = new DataRectangle(bitmapData.Stride, bitmapData.Scan0);
 
             try
             {
@@ -38,7 +37,8 @@ namespace Stride.Graphics
             }
             finally
             {
-                bitmap.UnlockBits(bitmapData);
+                bitmap.Paste(bitmapData, new (sourceArea.X, sourceArea.Y), 255);
+                bitmapData.Dispose();
 
                 if (handle != null)
                     handle.Value.Free();
@@ -51,27 +51,27 @@ namespace Stride.Graphics
 
         public static void SaveGifFromMemory(PixelBuffer[] pixelBuffers, int count, ImageDescription description, Stream imageStream)
         {
-            SaveFromMemory(pixelBuffers, count, description, imageStream, ImageFormat.Gif);
+            SaveFromMemory(pixelBuffers, count, description, imageStream, FREE_IMAGE_FORMAT.FIF_GIF);
         }
 
         public static void SaveTiffFromMemory(PixelBuffer[] pixelBuffers, int count, ImageDescription description, Stream imageStream)
         {
-            SaveFromMemory(pixelBuffers, count, description, imageStream, ImageFormat.Tiff);
+            SaveFromMemory(pixelBuffers, count, description, imageStream, FREE_IMAGE_FORMAT.FIF_TIFF);
         }
 
         public static void SaveBmpFromMemory(PixelBuffer[] pixelBuffers, int count, ImageDescription description, Stream imageStream)
         {
-            SaveFromMemory(pixelBuffers, count, description, imageStream, ImageFormat.Bmp);
+            SaveFromMemory(pixelBuffers, count, description, imageStream, FREE_IMAGE_FORMAT.FIF_BMP);
         }
 
         public static void SaveJpgFromMemory(PixelBuffer[] pixelBuffers, int count, ImageDescription description, Stream imageStream)
         {
-            SaveFromMemory(pixelBuffers, count, description, imageStream, ImageFormat.Jpeg);
+            SaveFromMemory(pixelBuffers, count, description, imageStream, FREE_IMAGE_FORMAT.FIF_BMP);
         }
 
         public static void SavePngFromMemory(PixelBuffer[] pixelBuffers, int count, ImageDescription description, Stream imageStream)
         {
-            SaveFromMemory(pixelBuffers, count, description, imageStream, ImageFormat.Png);
+            SaveFromMemory(pixelBuffers, count, description, imageStream, FREE_IMAGE_FORMAT.FIF_PNG);
         }
 
         public static void SaveWmpFromMemory(PixelBuffer[] pixelBuffers, int count, ImageDescription description, Stream imageStream)
@@ -79,27 +79,27 @@ namespace Stride.Graphics
             throw new NotImplementedException();
         }
 
-        private static unsafe void SaveFromMemory(PixelBuffer[] pixelBuffers, int count, ImageDescription description, Stream imageStream, ImageFormat imageFormat)
+        private static unsafe void SaveFromMemory(PixelBuffer[] pixelBuffers, int count, ImageDescription description, Stream imageStream, FREE_IMAGE_FORMAT imageFormat)
         {
-            using var bitmap = new Bitmap(description.Width, description.Height);
+            using var bitmap = new FreeImageBitmap(description.Width, description.Height);
             var sourceArea = new Rectangle(0, 0, bitmap.Width, bitmap.Height);
 
-            // Lock System.Drawing.Bitmap
-            var bitmapData = bitmap.LockBits(sourceArea, ImageLockMode.WriteOnly, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+            //Temp copy of FreeImageBitmap
+            var bitmapData = bitmap.Copy(sourceArea).ConvertTo32Bits();
 
             try
             {
                 // Copy memory
                 var format = description.Format;
-                if (format == PixelFormat.R8G8B8A8_UNorm || format == PixelFormat.R8G8B8A8_UNorm_SRgb)
+                if (format is PixelFormat.R8G8B8A8_UNorm or PixelFormat.R8G8B8A8_UNorm_SRgb)
                 {
                     CopyMemoryBGRA(bitmapData.Scan0, pixelBuffers[0].DataPointer, pixelBuffers[0].BufferStride);
                 }
-                else if (format == PixelFormat.B8G8R8A8_UNorm || format == PixelFormat.B8G8R8A8_UNorm_SRgb)
+                else if (format is PixelFormat.B8G8R8A8_UNorm or PixelFormat.B8G8R8A8_UNorm_SRgb)
                 {
                     Unsafe.CopyBlockUnaligned((void*)bitmapData.Scan0, (void*)pixelBuffers[0].DataPointer, (uint)pixelBuffers[0].BufferStride);
                 }
-                else if (format == PixelFormat.R8_UNorm || format == PixelFormat.A8_UNorm)
+                else if (format is PixelFormat.R8_UNorm or PixelFormat.A8_UNorm)
                 {
                     // TODO Ideally we will want to support grayscale images, but the SpriteBatch can only render RGBA for now
                     //  so convert the grayscale image as an RGBA and save it
@@ -114,7 +114,8 @@ namespace Stride.Graphics
             }
             finally
             {
-                bitmap.UnlockBits(bitmapData);
+                bitmap.Paste(bitmapData, new (sourceArea.X, sourceArea.Y), 255);
+                bitmapData.Dispose();
             }
 
             // Save
