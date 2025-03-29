@@ -253,7 +253,7 @@ namespace Stride.Assets.Presentation.AssetEditors.UIEditor.Game
         internal UIEditorController Controller { get; }
 
         /// <inheritdoc/>
-        public override Task DisposeAsync()
+        public override ValueTask DisposeAsync()
         {
             EnsureNotDestroyed(nameof(UIEditorGameAdornerService));
 

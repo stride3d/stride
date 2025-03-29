@@ -32,7 +32,7 @@ namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Game
         }
 
         /// <inheritdoc/>
-        public override Task DisposeAsync()
+        public override ValueTask DisposeAsync()
         {
             EnsureNotDestroyed(nameof(EditorGameAssetHighlighterService));
             assetHighlighters.Select(x => x.Value).ForEach(x => x.Clear());
