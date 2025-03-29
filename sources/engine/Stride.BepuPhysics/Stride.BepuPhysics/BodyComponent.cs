@@ -31,8 +31,11 @@ public class BodyComponent : CollidableComponent
     [DataMemberIgnore]
     internal BodyComponent? Parent;
 
+    /// <summary>
+    /// Data used in conjunction with <see cref="InterpolationMode"/> set for this object, see <see cref="BepuSimulation.InterpolateTransforms"/>
+    /// </summary>
     [DataMemberIgnore]
-    internal NRigidPose PreviousPose, CurrentPose; //Sets by AfterSimulationUpdate()
+    internal NRigidPose PreviousPose, CurrentPose;
 
     /// <summary>
     /// Constraints that currently references this body, may not be attached if they are not in a valid state
@@ -360,6 +363,7 @@ public class BodyComponent : CollidableComponent
             bodyRef.Pose.Orientation = PreviousPose.Orientation = orientation.ToNumeric();
             bodyRef.Pose.Position = PreviousPose.Position = position.ToNumeric();
             bodyRef.UpdateBounds();
+            CurrentPose = bodyRef.Pose; // Update interpolation data as well
         }
 
         WorldToLocal(ref position, ref orientation);
