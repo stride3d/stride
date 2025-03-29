@@ -50,6 +50,7 @@ Our [Roadmap](https://doc.stride3d.net/latest/en/contributors/roadmap.html) comm
    - **Desktop development with C++** with:
      - **Windows 11 SDK (10.0.22621.0)** or a later version (should be enabled by default)
      - **MSVC v143 - VS2022 C++ x64/x86 build tools (Latest)** (should be enabled by default)
+     - **MSVC v143 - VS2022 C++ ARM64 build tools (Latest)**
      - **C++/CLI support for v143 build tools (Latest)** *(not enabled by default)*
    - *Optional* (to target iOS/Android): **.NET Multi-platform App UI development** and the **Android SDK setup** individual component (enabled by default). Then, in Visual Studio, go to `Tools > Android > Android SDK Manager` and install **NDK** (version 20.1+) from the `Tools` tab.
    - *Optional* (to build the VSIX package): **Visual Studio extension development**
