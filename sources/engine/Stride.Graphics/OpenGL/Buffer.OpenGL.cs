@@ -168,7 +168,7 @@ namespace Stride.Graphics
                     if ((Flags & BufferFlags.ShaderResource) != 0)
                     {
 #if STRIDE_GRAPHICS_API_OPENGLES
-                        throw new NotImplementedException();
+                        throw new NotSupportedException();
 #else
                         TextureTarget = TextureTarget.TextureBuffer;
                         GL.GenTextures(1, out TextureId);
