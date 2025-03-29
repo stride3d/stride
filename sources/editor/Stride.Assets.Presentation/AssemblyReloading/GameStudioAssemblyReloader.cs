@@ -192,10 +192,22 @@ namespace Stride.Assets.Presentation.AssemblyReloading
                 operationType = ContentChangeType.CollectionRemove;
                 ((IObjectNode)node).Remove(oldValue, index);
             }
-            else
+            else if (node is IMemberNode memberNode)
             {
                 operationType = ContentChangeType.ValueChange;
-                ((IMemberNode)node).Update(null);
+                memberNode.Update(null);
+            }
+            else if (node is IObjectNode objectNode)
+            {
+                var unloadedAsset = (Asset)UnloadableObjectInstantiator.CreateUnloadableObject(typeof(Asset), itemToReload.ExpectedType.Name, "Test", "Reloading", itemToReload.ParsingEvents);
+                unloadedAsset.Id = asset.Id;
+                asset.UpdateAsset(unloadedAsset, new LoggerResult());
+                operationType = ContentChangeType.ValueChange;
+                //objectNode.Update(unloadedAsset, NodeIndex.Empty);
+            }
+            else
+            {
+                throw new NotImplementedException();
             }
 
             // Save the change on the stack
@@ -221,10 +233,20 @@ namespace Stride.Assets.Presentation.AssemblyReloading
                 operationType = ContentChangeType.CollectionAdd;
                 ((IAssetObjectNode)node).Restore(itemToReload.UpdatedObject, index, itemToReload.ItemId);
             }
-            else
+            else if (node is IMemberNode memberNode)
             {
                 operationType = ContentChangeType.ValueChange;
-                ((IMemberNode)node).Update(itemToReload.UpdatedObject);
+                memberNode.Update(itemToReload.UpdatedObject);
+            }
+            else if (node is IObjectNode objectNode)
+            {
+                operationType = ContentChangeType.ValueChange;
+                //objectNode.Update(itemToReload.UpdatedObject, NodeIndex.Empty);
+                asset.UpdateAsset((Asset)itemToReload.UpdatedObject, new LoggerResult());
+            }
+            else
+            {
+                throw new NotImplementedException();
             }
 
             // Save the change on the stack
@@ -247,6 +269,18 @@ namespace Stride.Assets.Presentation.AssemblyReloading
             {
                 Log = log;
                 UnloadedAssemblies = unloadedAssemblies;
+            }
+
+            public override void VisitObject(object obj, ObjectDescriptor descriptor, bool visitMembers)
+            {
+                // For asset roots (not reference), we want the base type rather than the real one (which will be unloaded)
+                var expectedType = descriptor.Type;
+                if (obj is Asset)
+                    expectedType = typeof(Asset);
+
+                if (ProcessObject(obj, expectedType)) return;
+
+                base.VisitObject(obj, descriptor, visitMembers);
             }
 
             public override void VisitCollectionItem(IEnumerable collection, CollectionDescriptor descriptor, int index, object item, ITypeDescriptor itemDescriptor)
@@ -393,7 +427,7 @@ namespace Stride.Assets.Presentation.AssemblyReloading
                     // If a collection, stop at parent path level (since index will be already removed, we will never visit the target slot)
                     // TODO: Check if the fact we didn't enter in an item with index affect visitor states
                     // Other case, stop on the actual member (since we'll just visit null)
-                    var expectedPath = unloadedObject.Path.Decompose().Last().GetIndex() != null ? unloadedObject.ParentPath : unloadedObject.Path;
+                    var expectedPath = unloadedObject.Path.Decompose().LastOrDefault()?.GetIndex() != null ? unloadedObject.ParentPath : unloadedObject.Path;
 
                     if (CurrentPath.Match(expectedPath))
                     {

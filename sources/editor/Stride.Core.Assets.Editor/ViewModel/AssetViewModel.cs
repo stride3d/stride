@@ -182,7 +182,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
         [NotNull]
         public Asset Asset => AssetItem.Asset;
 
-        public AssetPropertyGraph PropertyGraph { get; }
+        public AssetPropertyGraph PropertyGraph { get; private set; }
 
         /// <summary>
         /// Gets the <see cref="ThumbnailData"/> associated to this <see cref="AssetViewModel"/>.
@@ -441,6 +441,38 @@ namespace Stride.Core.Assets.Editor.ViewModel
                 string previousName = name;
                 UpdateUrl(package, directory, newName);
                 UndoRedoService.SetName(transaction, $"Rename asset '{previousName}' to '{newName}'");
+            }
+        }
+
+        /// <summary>
+        /// Replace the internal asset with the one provided, this function expects the two assets to have the same identity 
+        /// </summary>
+        /// <exception cref="ArgumentException">The asset provided does not have the same identity as the current one</exception>
+        public void UpdateAsset(Asset newAsset, ILogger loggerResult)
+        {
+            if (newAsset.Id != AssetItem.Asset.Id)
+                throw new ArgumentException("Assets must have the same Id.");
+
+            if (newAsset.MainSource != AssetItem.Asset.MainSource)
+                throw new ArgumentException("Assets must have the same source.");
+
+            var newAssetItem = AssetItem.Clone(newAsset: newAsset);
+
+            package.Assets.Remove(AssetItem);
+            package.Assets.Add(newAssetItem);
+
+            AssetItem = newAssetItem;
+
+            PropertyGraph?.Dispose();
+            Session.GraphContainer.UnregisterGraph(assetItem.Id);
+
+            PropertyGraph = Session.GraphContainer.InitializeAsset(assetItem, loggerResult);
+            if (PropertyGraph != null)
+            {
+                PropertyGraph.BaseContentChanged += BaseContentChanged;
+                PropertyGraph.Changed += AssetPropertyChanged;
+                PropertyGraph.ItemChanged += AssetPropertyChanged;
+                PropertyGraph.Initialize();
             }
         }
 

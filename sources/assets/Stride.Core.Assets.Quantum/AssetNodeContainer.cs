@@ -4,6 +4,7 @@
 using Stride.Core.IO;
 using Stride.Core.Mathematics;
 using Stride.Core.Quantum;
+using Stride.Core.Reflection;
 using IReference = Stride.Core.Serialization.Contents.IReference;
 
 namespace Stride.Core.Assets.Quantum;
@@ -33,10 +34,35 @@ public class AssetNodeContainer : NodeContainer
         NodeBuilder.RegisterPrimitiveType(typeof(Matrix));
         NodeBuilder.RegisterPrimitiveType(typeof(UPath));
         NodeBuilder.RegisterPrimitiveType(typeof(AngleSingle));
+
+        var registeredTypes = new HashSet<Type>();
         // Register content types as primitive so they are not processed by Quantum
         foreach (var contentType in AssetRegistry.GetContentTypes())
         {
             NodeBuilder.RegisterPrimitiveType(contentType);
+            registeredTypes.Add(contentType);
         }
+
+        AssemblyRegistry.AssemblyRegistered += (sender, args) =>
+        {
+            // We're expecting the AssetRegistry to register content types before this method runs, not ideal
+            foreach (var contentType in AssetRegistry.GetContentTypes())
+            {
+                if (registeredTypes.Add(contentType))
+                    NodeBuilder.RegisterPrimitiveType(contentType);
+            }
+        };
+
+        AssemblyRegistry.AssemblyUnregistered += (sender, args) =>
+        {
+            foreach (var contentType in registeredTypes)
+            {
+                if (contentType.Assembly == args.Assembly)
+                {
+                    NodeBuilder.UnregisterPrimitiveType(contentType);
+                    registeredTypes.Remove(contentType);
+                }
+            }
+        };
     }
 }
