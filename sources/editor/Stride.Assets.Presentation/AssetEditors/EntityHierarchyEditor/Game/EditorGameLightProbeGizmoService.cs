@@ -177,7 +177,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
             return Task.FromResult(true);
         }
 
-        public override Task DisposeAsync()
+        public override ValueTask DisposeAsync()
         {
             Cleanup();
             game.EditorScene.Entities.Remove(debugEntity);

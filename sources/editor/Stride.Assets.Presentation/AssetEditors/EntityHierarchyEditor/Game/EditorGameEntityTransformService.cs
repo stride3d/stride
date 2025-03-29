@@ -136,7 +136,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
         internal IEditorGameEntitySelectionService Selection => Services.Get<IEditorGameEntitySelectionService>();
 
         /// <inheritdoc />
-        public override Task DisposeAsync()
+        public override ValueTask DisposeAsync()
         {
             EnsureNotDestroyed(nameof(EditorGameEntityTransformService));
 

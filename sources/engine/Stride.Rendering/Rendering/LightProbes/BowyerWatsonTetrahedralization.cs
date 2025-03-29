@@ -57,7 +57,7 @@ namespace Stride.Rendering.LightProbes
                 public override unsafe void Serialize(ref Face face, ArchiveMode mode, SerializationStream stream)
                 {
                     fixed (Face* facePtr = &face)
-                        stream.Serialize((IntPtr)facePtr, sizeof(Face));
+                        stream.Serialize(new Span<byte>(facePtr, sizeof(Face)));
                 }
             }
 
@@ -101,7 +101,7 @@ namespace Stride.Rendering.LightProbes
                 public override unsafe void Serialize(ref Tetrahedron tetrahedron, ArchiveMode mode, SerializationStream stream)
                 {
                     fixed (Tetrahedron* tetrahedronPtr = &tetrahedron)
-                        stream.Serialize((IntPtr)tetrahedronPtr, sizeof(Tetrahedron));
+                        stream.Serialize(new Span<byte>(tetrahedronPtr, sizeof(Tetrahedron)));
                 }
             }
         }

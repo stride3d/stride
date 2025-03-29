@@ -46,12 +46,12 @@ namespace Stride.Graphics
                 throw new InvalidOperationException("Image size is different than expected.");
 
             // Read image data
-            stream.Serialize(image.DataPointer, image.TotalSizeInBytes);
+            stream.Serialize(new Span<byte>((void*)image.DataPointer, image.TotalSizeInBytes));
 
             return image;
         }
 
-        public static void SaveFromMemory(PixelBuffer[] pixelBuffers, int count, ImageDescription description, System.IO.Stream imageStream)
+        public static unsafe void SaveFromMemory(PixelBuffer[] pixelBuffers, int count, ImageDescription description, System.IO.Stream imageStream)
         {
             var stream = new BinarySerializationWriter(imageStream);
 
@@ -71,7 +71,7 @@ namespace Stride.Graphics
             // Write buffers contiguously
             foreach (var pixelBuffer in pixelBuffers)
             {
-                stream.Serialize(pixelBuffer.DataPointer, pixelBuffer.BufferStride);
+                stream.Serialize(new Span<byte>((void*)pixelBuffer.DataPointer, pixelBuffer.BufferStride));
             }
         }
     }
