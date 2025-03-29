@@ -7,20 +7,19 @@ using Stride.Core.Mathematics;
 using Stride.Input;
 using Stride.Engine;
 
-namespace ##Namespace##
+namespace ##Namespace##;
+
+public class ##Scriptname## : SyncScript
 {
-    public class ##Scriptname## : SyncScript
+    // Declared public member fields and properties will show in the game studio
+
+    public override void Start()
     {
-        // Declared public member fields and properties will show in the game studio
+        // Initialization of the script.
+    }
 
-        public override void Start()
-        {
-            // Initialization of the script.
-        }
-
-        public override void Update()
-        {
-            // Do stuff every new frame
-        }
+    public override void Update()
+    {
+        // Do stuff every new frame
     }
 }
