@@ -34,18 +34,21 @@ public interface INavigationCollider : IComponent<INavigationCollider.Navigation
         public event CollectionChangedEventHandler ColliderAdded;
         public event CollectionChangedEventHandler ColliderRemoved;
 
+        private IServiceRegistry _registry;
+
         public void SystemAdded(IServiceRegistry registryParam)
         {
-            registryParam.AddService(this);
+            _registry = registryParam;
+            _registry.AddService(this);
 
             // Check if the processor was added before the DotRecast processor
-            var boundingBoxProcessor = registryParam.GetService<DotRecastNavigationProcessor>();
+            var boundingBoxProcessor = _registry.GetService<DotRecastNavMeshProcessor>();
             boundingBoxProcessor?.InitializeNavigationColliderProcessor(this);
         }
 
         public void SystemRemoved()
         {
-
+            _registry.RemoveService<NavigationColliderProcessor>();
         }
 
         public void OnComponentAdded(INavigationCollider item)

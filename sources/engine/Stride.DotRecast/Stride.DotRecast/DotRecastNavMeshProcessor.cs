@@ -3,7 +3,7 @@ using Stride.Engine;
 using Stride.Games;
 
 namespace Stride.DotRecast;
-public class DotRecastNavigationProcessor : EntityProcessor<DotRecastBoundingBoxComponent>
+public class DotRecastNavMeshProcessor : EntityProcessor<DotRecastNavMeshComponent>
 {
 
     private INavigationCollider.NavigationColliderProcessor _navigationColliderProcessor;
