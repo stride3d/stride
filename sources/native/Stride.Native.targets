@@ -26,14 +26,30 @@
   
     <!--<StrideNativeOutputPath>$([MSBuild]::MakeRelative('$(OutputPath)', '$(StridePackageStridePlatformBin)\'))</StrideNativeOutputPath>-->
     <AllowedOutputExtensionsInPackageBuildOutputFolder>.so; .a; $(AllowedOutputExtensionsInPackageBuildOutputFolder)</AllowedOutputExtensionsInPackageBuildOutputFolder>
-
-    <!-- Determining Arm builds based on OS and cpu architecture from https://learn.microsoft.com/en-us/dotnet/api/microsoft.build.utilities.processorarchitecture?view=msbuild-17-netcore -->
-    <StrideNativeWindowsArm64Enabled Condition="$([MSBuild]::IsOSPlatform('Windows')) AND '$([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture)' == 'X64'">False</StrideNativeWindowsArm64Enabled>
-    <StrideNativeWindowsArm64Enabled Condition="$([MSBuild]::IsOSPlatform('Windows')) AND '$([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture)' == 'AMD64'">False</StrideNativeWindowsArm64Enabled>
-    <StrideNativeWindowsArm64Enabled Condition="$([MSBuild]::IsOSPlatform('Windows')) AND '$([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture)' == 'X86'">False</StrideNativeWindowsArm64Enabled>
-    <StrideNativeWindowsArm64Enabled Condition="$([MSBuild]::IsOSPlatform('Windows')) AND '$([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture)' == 'ARM64'">True</StrideNativeWindowsArm64Enabled>
-    <StrideNativeWindowsArm64Enabled Condition="$([MSBuild]::IsOSPlatform('Windows')) AND '$([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture)' == 'ARM'">True</StrideNativeWindowsArm64Enabled>
   </PropertyGroup>
+  
+  <Choose>
+    <When Condition="'$(StrideNativeWindowsArm64Enabled)' == 'true'">
+      <PropertyGroup>
+        <StrideNativeWindowsArm64Enabled>True</StrideNativeWindowsArm64Enabled>
+      </PropertyGroup>
+    </When>
+    <When Condition="'$(StrideNativeWindowsArm64Enabled)' == 'false'">
+      <PropertyGroup>
+        <StrideNativeWindowsArm64Enabled>False</StrideNativeWindowsArm64Enabled>
+      </PropertyGroup>
+    </When>
+    <Otherwise>
+      <PropertyGroup>
+        <!-- Determining Arm builds based on OS and cpu architecture from https://learn.microsoft.com/en-us/dotnet/api/microsoft.build.utilities.processorarchitecture?view=msbuild-17-netcore -->
+        <StrideNativeWindowsArm64Enabled Condition="$([MSBuild]::IsOSPlatform('Windows')) AND '$([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture)' == 'X64'">False</StrideNativeWindowsArm64Enabled>
+        <StrideNativeWindowsArm64Enabled Condition="$([MSBuild]::IsOSPlatform('Windows')) AND '$([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture)' == 'AMD64'">False</StrideNativeWindowsArm64Enabled>
+        <StrideNativeWindowsArm64Enabled Condition="$([MSBuild]::IsOSPlatform('Windows')) AND '$([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture)' == 'X86'">False</StrideNativeWindowsArm64Enabled>
+        <StrideNativeWindowsArm64Enabled Condition="$([MSBuild]::IsOSPlatform('Windows')) AND '$([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture)' == 'ARM64'">True</StrideNativeWindowsArm64Enabled>
+        <StrideNativeWindowsArm64Enabled Condition="$([MSBuild]::IsOSPlatform('Windows')) AND '$([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture)' == 'ARM'">True</StrideNativeWindowsArm64Enabled>
+      </PropertyGroup>
+    </Otherwise>
+  </Choose>
 
   <Choose>
     <When Condition="'$(TargetFramework)' == '$(StrideFrameworkUWP)'">
