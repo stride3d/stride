@@ -137,7 +137,7 @@
       <AdditionalDependencies>DirectXTex.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy /y $(OutDir)$(TargetName).dll $(ProjectDir)..\..\..\..\deps\TextureWrappers\$(Configuration)\x86\ &amp; xcopy /y $(OutDir)$(TargetName).pdb $(ProjectDir)..\..\..\..\deps\TextureWrappers\$(Configuration)\x86\</Command>
+      <Command>xcopy /y $(OutDir)$(TargetName).dll $(ProjectDir)..\..\..\..\deps\TextureWrappers\$(Configuration)\win-x86\ &amp; xcopy /y $(OutDir)$(TargetName).pdb $(ProjectDir)..\..\..\..\deps\TextureWrappers\$(Configuration)\win-x86\</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -154,7 +154,7 @@
       <AdditionalDependencies>DirectXTex.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy /y $(OutDir)$(TargetName).dll $(ProjectDir)..\..\..\..\deps\TextureWrappers\$(Configuration)\x64\ &amp; xcopy /y $(OutDir)$(TargetName).pdb $(ProjectDir)..\..\..\..\deps\TextureWrappers\$(Configuration)\x64\</Command>
+      <Command>xcopy /y $(OutDir)$(TargetName).dll $(ProjectDir)..\..\..\..\deps\TextureWrappers\$(Configuration)\win-x64\ &amp; xcopy /y $(OutDir)$(TargetName).pdb $(ProjectDir)..\..\..\..\deps\TextureWrappers\$(Configuration)\win-x64\</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
@@ -171,7 +171,7 @@
       <AdditionalDependencies>DirectXTex.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy /y $(OutDir)$(TargetName).dll $(ProjectDir)..\..\..\..\deps\TextureWrappers\$(Configuration)\arm64\ &amp; xcopy /y $(OutDir)$(TargetName).pdb $(ProjectDir)..\..\..\..\deps\TextureWrappers\$(Configuration)\arm64\</Command>
+      <Command>xcopy /y $(OutDir)$(TargetName).dll $(ProjectDir)..\..\..\..\deps\TextureWrappers\$(Configuration)\win-arm64\ &amp; xcopy /y $(OutDir)$(TargetName).pdb $(ProjectDir)..\..\..\..\deps\TextureWrappers\$(Configuration)\win-arm64\</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -192,7 +192,7 @@
       <AdditionalDependencies>DirectXTex.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy /y $(OutDir)$(TargetName).dll $(ProjectDir)..\..\..\..\deps\TextureWrappers\$(Configuration)\x86\ &amp; xcopy /y $(OutDir)$(TargetName).pdb $(ProjectDir)..\..\..\..\deps\TextureWrappers\$(Configuration)\x86\</Command>
+      <Command>xcopy /y $(OutDir)$(TargetName).dll $(ProjectDir)..\..\..\..\deps\TextureWrappers\$(Configuration)\win-x86\ &amp; xcopy /y $(OutDir)$(TargetName).pdb $(ProjectDir)..\..\..\..\deps\TextureWrappers\$(Configuration)\win-x86\</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -213,7 +213,7 @@
       <AdditionalDependencies>DirectXTex.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy /y $(OutDir)$(TargetName).dll $(ProjectDir)..\..\..\..\deps\TextureWrappers\$(Configuration)\x64\ &amp; xcopy /y $(OutDir)$(TargetName).pdb $(ProjectDir)..\..\..\..\deps\TextureWrappers\$(Configuration)\x64\</Command>
+      <Command>xcopy /y $(OutDir)$(TargetName).dll $(ProjectDir)..\..\..\..\deps\TextureWrappers\$(Configuration)\win-x64\ &amp; xcopy /y $(OutDir)$(TargetName).pdb $(ProjectDir)..\..\..\..\deps\TextureWrappers\$(Configuration)\win-x64\</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
@@ -234,7 +234,7 @@
       <AdditionalDependencies>DirectXTex.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy /y $(OutDir)$(TargetName).dll $(ProjectDir)..\..\..\..\deps\TextureWrappers\$(Configuration)\arm64\ &amp; xcopy /y $(OutDir)$(TargetName).pdb $(ProjectDir)..\..\..\..\deps\TextureWrappers\$(Configuration)\arm64\</Command>
+      <Command>xcopy /y $(OutDir)$(TargetName).dll $(ProjectDir)..\..\..\..\deps\TextureWrappers\$(Configuration)\win-arm64\ &amp; xcopy /y $(OutDir)$(TargetName).pdb $(ProjectDir)..\..\..\..\deps\TextureWrappers\$(Configuration)\win-arm64\</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
