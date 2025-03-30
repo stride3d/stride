@@ -15,7 +15,6 @@ using NRigidPose = BepuPhysics.RigidPose;
 
 namespace Stride.BepuPhysics;
 
-
 [ComponentCategory("Physics - Bepu")]
 public class StaticComponent : CollidableComponent
 {

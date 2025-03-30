@@ -8,6 +8,8 @@ namespace Stride.DotRecast.Definitions;
 [DataContract("DotRecastBuildSettings")]
 public class BuildSettings
 {
+    public NavMeshLayer Layer = NavMeshLayer.Layer1;
+
     public float CellSize = 0.3f;
 
     public float CellHeight = 0.2f;
