@@ -3,7 +3,6 @@
 #if STRIDE_PLATFORM_DESKTOP
 using System;
 using System.Drawing;
-using System.Drawing.Imaging;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -18,7 +17,8 @@ namespace Stride.Graphics
     partial class StandardImageHelper
     {
         public static unsafe Image LoadFromMemory(IntPtr pSource, int size, bool makeACopy, GCHandle? handle)
-        {
+        {            
+            NativeLibraryHelper.PreloadLibrary("freeimage", typeof(StandardImageHelper));
             using var memoryStream = new UnmanagedMemoryStream((byte*)pSource, size, capacity: size, access: FileAccess.Read);
             using var bitmap = FreeImageBitmap.FromStream(memoryStream);
             var sourceArea = new Rectangle(0, 0, bitmap.Width, bitmap.Height);
@@ -33,7 +33,7 @@ namespace Stride.Graphics
                 // Directly load image as RGBA instead of BGRA, because OpenGL ES devices don't support it out of the box (extension).
                 //image.Description.Format = PixelFormat.R8G8B8A8_UNorm;
                 //CopyMemoryBGRA(image.PixelBuffer[0].DataPointer, bitmapData.Scan0, image.PixelBuffer[0].BufferStride);
-                Unsafe.CopyBlockUnaligned((void*)image.PixelBuffer[0].DataPointer, (void*)bitmapData.Scan0, (uint)image.PixelBuffer[0].BufferStride);
+                Unsafe.CopyBlockUnaligned((void*)image.PixelBuffer[0].DataPointer, (void*)bitmapData.Scan0, (uint)bitmap.Width * 4);
             }
             finally
             {
@@ -51,27 +51,27 @@ namespace Stride.Graphics
 
         public static void SaveGifFromMemory(PixelBuffer[] pixelBuffers, int count, ImageDescription description, Stream imageStream)
         {
-            SaveFromMemory(pixelBuffers, count, description, imageStream, FREE_IMAGE_FORMAT.FIF_GIF);
+            SaveFromMemory(pixelBuffers, description, imageStream, FREE_IMAGE_FORMAT.FIF_GIF);
         }
 
         public static void SaveTiffFromMemory(PixelBuffer[] pixelBuffers, int count, ImageDescription description, Stream imageStream)
         {
-            SaveFromMemory(pixelBuffers, count, description, imageStream, FREE_IMAGE_FORMAT.FIF_TIFF);
+            SaveFromMemory(pixelBuffers, description, imageStream, FREE_IMAGE_FORMAT.FIF_TIFF);
         }
 
         public static void SaveBmpFromMemory(PixelBuffer[] pixelBuffers, int count, ImageDescription description, Stream imageStream)
         {
-            SaveFromMemory(pixelBuffers, count, description, imageStream, FREE_IMAGE_FORMAT.FIF_BMP);
+            SaveFromMemory(pixelBuffers, description, imageStream, FREE_IMAGE_FORMAT.FIF_BMP);
         }
 
         public static void SaveJpgFromMemory(PixelBuffer[] pixelBuffers, int count, ImageDescription description, Stream imageStream)
         {
-            SaveFromMemory(pixelBuffers, count, description, imageStream, FREE_IMAGE_FORMAT.FIF_BMP);
+            SaveFromMemory(pixelBuffers, description, imageStream, FREE_IMAGE_FORMAT.FIF_BMP);
         }
 
         public static void SavePngFromMemory(PixelBuffer[] pixelBuffers, int count, ImageDescription description, Stream imageStream)
         {
-            SaveFromMemory(pixelBuffers, count, description, imageStream, FREE_IMAGE_FORMAT.FIF_PNG);
+            SaveFromMemory(pixelBuffers, description, imageStream, FREE_IMAGE_FORMAT.FIF_PNG);
         }
 
         public static void SaveWmpFromMemory(PixelBuffer[] pixelBuffers, int count, ImageDescription description, Stream imageStream)
@@ -79,8 +79,9 @@ namespace Stride.Graphics
             throw new NotImplementedException();
         }
 
-        private static unsafe void SaveFromMemory(PixelBuffer[] pixelBuffers, int count, ImageDescription description, Stream imageStream, FREE_IMAGE_FORMAT imageFormat)
+        private static unsafe void SaveFromMemory(PixelBuffer[] pixelBuffers, ImageDescription description, Stream imageStream, FREE_IMAGE_FORMAT imageFormat)
         {
+            NativeLibraryHelper.PreloadLibrary("freeimage", typeof(StandardImageHelper));
             using var bitmap = new FreeImageBitmap(description.Width, description.Height);
             var sourceArea = new Rectangle(0, 0, bitmap.Width, bitmap.Height);
 
@@ -93,17 +94,17 @@ namespace Stride.Graphics
                 var format = description.Format;
                 if (format is PixelFormat.R8G8B8A8_UNorm or PixelFormat.R8G8B8A8_UNorm_SRgb)
                 {
-                    CopyMemoryBGRA(bitmapData.Scan0, pixelBuffers[0].DataPointer, pixelBuffers[0].BufferStride);
+                    CopyMemoryBGRA(bitmapData.Scan0, pixelBuffers[0].DataPointer, bitmap.Width * 4);
                 }
                 else if (format is PixelFormat.B8G8R8A8_UNorm or PixelFormat.B8G8R8A8_UNorm_SRgb)
                 {
-                    Unsafe.CopyBlockUnaligned((void*)bitmapData.Scan0, (void*)pixelBuffers[0].DataPointer, (uint)pixelBuffers[0].BufferStride);
+                    Unsafe.CopyBlockUnaligned((void*)bitmapData.Scan0, (void*)pixelBuffers[0].DataPointer, (uint)bitmap.Width * 4);
                 }
                 else if (format is PixelFormat.R8_UNorm or PixelFormat.A8_UNorm)
                 {
                     // TODO Ideally we will want to support grayscale images, but the SpriteBatch can only render RGBA for now
                     //  so convert the grayscale image as an RGBA and save it
-                    CopyMemoryRRR1(bitmapData.Scan0, pixelBuffers[0].DataPointer, pixelBuffers[0].BufferStride);
+                    CopyMemoryRRR1(bitmapData.Scan0, pixelBuffers[0].DataPointer, bitmap.Width * 4);
                 }
                 else
                 {
