@@ -3329,6 +3329,15 @@ public class FreeImageBitmap : MarshalByRefObject, ICloneable, IDisposable, IEnu
         }
         return FreeImage.ApplyPaletteIndexMapping(dib, srcindices, dstindices, (uint)srcindices.Length, swap);
     }
+    
+    /// <summary>
+    /// Converts a bitmap to 32 bits. A clone of the input bitmap is returned for 32-bit bitmaps.
+    /// </summary>
+    /// <returns>The <see cref="FreeImageBitmap"/> this method creates.</returns>
+    public FreeImageBitmap ConvertTo32Bits()
+    {
+        return new FreeImageBitmap(FreeImage.ConvertTo32Bits(dib));
+    }
 
     /// <summary>
     /// Swaps two specified palette indices on a 1-, 4- or 8-bit palletized image.
