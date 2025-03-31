@@ -6,7 +6,7 @@ using Stride.Graphics;
 
 namespace Stride.DotRecast.Definitions;
 
-public class NavigationColliderData
+public class DotRecastShapeData
 {
     public BoundingBox BoundingBox = BoundingBox.Empty;
     public List<Vector3> Points = [];
@@ -16,7 +16,7 @@ public class NavigationColliderData
     /// Appends another vertex data builder
     /// </summary>
     /// <param name="other"></param>
-    public void AppendOther(NavigationColliderData other)
+    public void AppendOther(DotRecastShapeData other)
     {
         // Copy vertices
         var vbase = Points.Count;

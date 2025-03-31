@@ -1,5 +1,8 @@
+using System.Runtime.InteropServices;
 using Stride.Core;
 using Stride.Core.Annotations;
+using Stride.Core.Mathematics;
+using Stride.Core.Threading;
 using Stride.DotRecast.Definitions;
 using Stride.Engine;
 using Stride.Games;
@@ -7,76 +10,81 @@ using Stride.Games;
 namespace Stride.DotRecast;
 public class DotRecastNavMeshProcessor : EntityProcessor<DotRecastNavMeshComponent>
 {
-
-    private INavigationCollider.NavigationColliderProcessor _navigationColliderProcessor;
     private SceneSystem _sceneSystem = null!;
 
-    private bool _pendingRebuild = true;
+    private readonly Queue<DotRecastNavMeshComponent> _addedComponents = new();
+    private readonly Queue<DotRecastNavMeshComponent> _removedComponents = new();
+
+    public DotRecastNavMeshProcessor()
+    {
+        Order = 50_000;
+    }
 
     protected override void OnSystemAdd()
     {
         Services.AddService(this);
-
-        // Check if the processor was added before the DotRecast collider processor
-        var colliderProcessor = Services.GetService<INavigationCollider.NavigationColliderProcessor>();
-        if(colliderProcessor != null)
-        {
-            InitializeNavigationColliderProcessor(colliderProcessor);
-        }
 
         _sceneSystem = Services.GetSafeServiceAs<SceneSystem>();
     }
 
     protected override void OnEntityComponentAdding(Entity entity, [NotNull] DotRecastNavMeshComponent component, [NotNull] DotRecastNavMeshComponent data)
     {
-        GetObjectsToBuild(component);
+        _addedComponents.Enqueue(component);
     }
 
     protected override void OnEntityComponentRemoved(Entity entity, [NotNull] DotRecastNavMeshComponent component, [NotNull] DotRecastNavMeshComponent data)
     {
-
+        _removedComponents.Enqueue(component);
     }
 
     public override void Update(GameTime time)
     {
-        if(_pendingRebuild)
+        foreach (var component in _addedComponents)
         {
+            GetInitialObjectsToBuild(component);
+        }
+        _addedComponents.Clear();
 
-
-            _pendingRebuild = false;
+        foreach (var component in ComponentDatas.Values)
+        {
+            if (component.IsDirty)
+            {
+                RebuildNavMesh(component);
+            }
         }
     }
 
-    internal void InitializeNavigationColliderProcessor(INavigationCollider.NavigationColliderProcessor processor)
+    private void RebuildNavMesh(DotRecastNavMeshComponent component)
     {
-        if (_navigationColliderProcessor != null)
+        var shapeData = component.GetCombinedShapeData();
+        if(shapeData is null)
         {
-            _navigationColliderProcessor.ColliderAdded -= OnNavigationColliderAdded;
-            _navigationColliderProcessor.ColliderRemoved -= OnNavigationColliderRemoved;
+            return;
         }
 
-        _navigationColliderProcessor = processor;
+        // get a span to that backing array,
+        var spanToPoints = CollectionsMarshal.AsSpan(shapeData.Points);
+        // cast the type of span to read it as if it was a series of contiguous floats instead of contiguous vectors
+        var reinterpretedPoints = MemoryMarshal.Cast<Vector3, float>(spanToPoints);
+        SimpleGeomProvider geom = new(reinterpretedPoints.ToArray(), [.. shapeData.Indices]);
 
-        if (_navigationColliderProcessor != null)
-        {
-            _navigationColliderProcessor.ColliderAdded += OnNavigationColliderAdded;
-            _navigationColliderProcessor.ColliderRemoved += OnNavigationColliderRemoved;
-        }
+        var result = NavMeshBuilder.CreateNavMeshFromGeometry(component.NavMeshBuildSettings, geom, Dispatcher.MaxDegreeOfParallelism, new CancellationToken());
+
+        component.NavMesh = result;
+        component.IsDirty = false;
     }
 
-    private void OnNavigationColliderRemoved(INavigationCollider component)
+    private void OnNavigationColliderRemoved(INavigationObstacle component)
     {
-        //_pendingRebuild = true;
-
+        //pendingRebuild = true;
     }
 
-    private void OnNavigationColliderAdded(INavigationCollider component)
+    private void OnNavigationColliderAdded(INavigationObstacle component)
     {
-        //_pendingRebuild = true;
-
+        //pendingRebuild = true;
     }
 
-    private void GetObjectsToBuild(DotRecastNavMeshComponent component)
+    private void GetInitialObjectsToBuild(DotRecastNavMeshComponent component)
     {
         switch(component.CollectionMethod)
         {
@@ -93,11 +101,17 @@ public class DotRecastNavMeshProcessor : EntityProcessor<DotRecastNavMeshCompone
 
     private void GetObjectsInScene(DotRecastNavMeshComponent component)
     {
-        //var entities = _sceneSystem.SceneInstance.Entities;
+        // Due to how the Transform processor works there shouldnt be a need for recursion here.
+        foreach (var entity in _sceneSystem.SceneInstance)
+        {
+            component.CheckEntity(entity);
+            component.IsDirty = true;
+        }
     }
 
     private void GetObjectsInChildren(DotRecastNavMeshComponent component)
     {
+
     }
 
 }

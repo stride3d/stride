@@ -1,20 +1,17 @@
-﻿using Stride.BepuPhysics.Navigation.Processors;
 using Stride.Core;
 using Stride.Core.Mathematics;
+using Stride.DotRecast.Definitions;
 using Stride.Engine;
 using Stride.Engine.Design;
 
-namespace Stride.BepuPhysics.Navigation.Components;
-[DataContract(nameof(RecastNavigationComponent))]
-[ComponentCategory("Bepu - Navigation")]
-[DefaultEntityComponentProcessor(typeof(RecastNavigationProcessor), ExecutionMode = ExecutionMode.Runtime)]
-public class RecastNavigationComponent : StartupScript
+namespace Stride.DotRecast.Navigation;
+[DataContract(Inherited = true)]
+[ComponentCategory("DotRecast")]
+//[DefaultEntityComponentProcessor(typeof(RecastNavigationProcessor), ExecutionMode = ExecutionMode.Runtime)]
+public abstract class NavigationAgentComponent : StartupScript
 {
 
-    /// <summary>
-    /// The agent's navigation mesh id. Will be used to determine where a path is searched.
-    /// </summary>
-    public int AgentNavMeshId { get; set; }
+    public DotRecastNavMeshComponent NavMesh { get; set; }
 
     /// <summary>
     /// The speed at which the agent moves.
@@ -50,8 +47,6 @@ public class RecastNavigationComponent : StartupScript
     /// </summary>
     public bool IsMoving { get; protected set; }
 
-    private RecastNavigationProcessor _navigationProcessor;
-
     /// <summary>
     /// Sets the target for the agent to find a path to. This will set the <see cref="State"/> to <see cref="NavigationState.QueuePathPlanning"/>.
     /// </summary>
@@ -71,10 +66,14 @@ public class RecastNavigationComponent : StartupScript
     /// <returns></returns>
     public virtual bool TryFindPath(Vector3 target)
     {
-        _navigationProcessor ??= Services.GetSafeServiceAs<RecastNavigationProcessor>();
+        if(NavMesh is null || NavMesh.NavMesh is null)
+        {
+            State = NavigationState.PathIsInvalid;
+            return false;
+        }
 
         Target = target;
-        if (_navigationProcessor.SetNewPath(this))
+        if (NavMesh.TryFindPath(Entity.Transform.WorldMatrix.TranslationVector, Target, ref Polys, ref Path))
         {
             State = NavigationState.PathIsReady;
             return true;

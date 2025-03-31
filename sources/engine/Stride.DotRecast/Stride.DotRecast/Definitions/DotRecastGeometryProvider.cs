@@ -1,4 +1,5 @@
 using Stride.Core;
+using Stride.Engine;
 
 namespace Stride.DotRecast.Definitions;
 
@@ -8,11 +9,18 @@ namespace Stride.DotRecast.Definitions;
 [DataContract(Inherited = true)]
 public abstract class DotRecastGeometryProvider
 {
+    [DataMemberIgnore]
+    public IServiceRegistry Services;
+
+    internal void Initialize(IServiceRegistry registry)
+    {
+        Services = registry;
+    }
 
     /// <summary>
     /// Tries to get the shape information for the geometry.
     /// </summary>
     /// <returns></returns>
-    public abstract NavigationColliderData TryGetShapeInfo();
+    public abstract bool TryGetTransformedShapeInfo(Entity entity, out DotRecastShapeData shapeData);
 
 }

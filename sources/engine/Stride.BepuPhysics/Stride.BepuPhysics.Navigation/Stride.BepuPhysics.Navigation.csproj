@@ -24,5 +24,8 @@
     <ProjectReference Include="..\Stride.BepuPhysics\Stride.BepuPhysics.csproj" />
     <ProjectReference Include="..\..\Stride.Navigation\Stride.Navigation.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="GenericBuilder\" />
+  </ItemGroup>
   <Import Project="$(StrideSdkTargets)" />
 </Project>
