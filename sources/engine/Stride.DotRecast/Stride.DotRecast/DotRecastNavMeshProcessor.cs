@@ -1,3 +1,5 @@
+using Stride.Core;
+using Stride.Core.Annotations;
 using Stride.DotRecast.Definitions;
 using Stride.Engine;
 using Stride.Games;
@@ -7,6 +9,7 @@ public class DotRecastNavMeshProcessor : EntityProcessor<DotRecastNavMeshCompone
 {
 
     private INavigationCollider.NavigationColliderProcessor _navigationColliderProcessor;
+    private SceneSystem _sceneSystem = null!;
 
     private bool _pendingRebuild = true;
 
@@ -20,14 +23,27 @@ public class DotRecastNavMeshProcessor : EntityProcessor<DotRecastNavMeshCompone
         {
             InitializeNavigationColliderProcessor(colliderProcessor);
         }
+
+        _sceneSystem = Services.GetSafeServiceAs<SceneSystem>();
+    }
+
+    protected override void OnEntityComponentAdding(Entity entity, [NotNull] DotRecastNavMeshComponent component, [NotNull] DotRecastNavMeshComponent data)
+    {
+        GetObjectsToBuild(component);
+    }
+
+    protected override void OnEntityComponentRemoved(Entity entity, [NotNull] DotRecastNavMeshComponent component, [NotNull] DotRecastNavMeshComponent data)
+    {
+
     }
 
     public override void Update(GameTime time)
     {
         if(_pendingRebuild)
         {
+
+
             _pendingRebuild = false;
-            throw new NotImplementedException();
         }
     }
 
@@ -50,14 +66,38 @@ public class DotRecastNavMeshProcessor : EntityProcessor<DotRecastNavMeshCompone
 
     private void OnNavigationColliderRemoved(INavigationCollider component)
     {
-        _pendingRebuild = true;
-        throw new NotImplementedException();
+        //_pendingRebuild = true;
+
     }
 
     private void OnNavigationColliderAdded(INavigationCollider component)
     {
-        _pendingRebuild = true;
-        throw new NotImplementedException();
+        //_pendingRebuild = true;
+
+    }
+
+    private void GetObjectsToBuild(DotRecastNavMeshComponent component)
+    {
+        switch(component.CollectionMethod)
+        {
+            case DotRecastCollectionMethod.Scene:
+                GetObjectsInScene(component);
+                break;
+            case DotRecastCollectionMethod.Children:
+                GetObjectsInChildren(component);
+                break;
+            case DotRecastCollectionMethod.BoundingBox:
+                throw new NotImplementedException("Bounding boxes are not yet supported for nav mesh generation.");
+        }
+    }
+
+    private void GetObjectsInScene(DotRecastNavMeshComponent component)
+    {
+        //var entities = _sceneSystem.SceneInstance.Entities;
+    }
+
+    private void GetObjectsInChildren(DotRecastNavMeshComponent component)
+    {
     }
 
 }

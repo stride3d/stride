@@ -9,4 +9,10 @@ namespace Stride.DotRecast.Definitions;
 public abstract class DotRecastGeometryProvider
 {
 
+    /// <summary>
+    /// Tries to get the shape information for the geometry.
+    /// </summary>
+    /// <returns></returns>
+    public abstract NavigationColliderData TryGetShapeInfo();
+
 }
