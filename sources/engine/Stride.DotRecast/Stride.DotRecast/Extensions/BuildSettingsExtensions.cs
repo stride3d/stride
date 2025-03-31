@@ -6,14 +6,14 @@ using DotRecast.Recast.Toolset;
 using Stride.DotRecast.Definitions;
 
 namespace Stride.DotRecast.Extensions;
-public static class BuildSettingsExtensions
+internal static class BuildSettingsExtensions
 {
     /// <summary>
     /// Creates a <see cref="RcNavMeshBuildSettings"/> object from the Stride config <see cref="BuildSettings"/>.
     /// </summary>
     /// <param name="settings"></param>
     /// <returns></returns>
-    public static RcNavMeshBuildSettings CreateRecastSettings(this BuildSettings settings)
+    internal static RcNavMeshBuildSettings CreateRecastSettings(this BuildSettings settings)
     {
         return new RcNavMeshBuildSettings
         {
@@ -41,7 +41,7 @@ public static class BuildSettingsExtensions
         };
     }
 
-    public static DtDynamicNavMeshConfig CreateDynamicRecastSettings(this BuildSettings settings)
+    internal static DtDynamicNavMeshConfig CreateDynamicRecastSettings(this BuildSettings settings)
     {
         return new DtDynamicNavMeshConfig(settings.Tiled, settings.TileSize, settings.TileSize, settings.CellSize)
         {

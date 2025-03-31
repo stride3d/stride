@@ -6,6 +6,7 @@ using DotRecast.Recast.Geom;
 using DotRecast.Recast;
 
 namespace Stride.DotRecast;
+
 public class StrideGeomProvider : IInputGeomProvider
 {
     /// <summary> Object does not expect this array to mutate </summary>

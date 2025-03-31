@@ -41,7 +41,7 @@ public class DotRecastNavMeshProcessor : EntityProcessor<DotRecastNavMeshCompone
     {
         foreach (var component in _addedComponents)
         {
-            GetInitialObjectsToBuild(component);
+            InitializeNavMeshComponent(component);
         }
         _addedComponents.Clear();
 
@@ -74,17 +74,7 @@ public class DotRecastNavMeshProcessor : EntityProcessor<DotRecastNavMeshCompone
         component.IsDirty = false;
     }
 
-    private void OnNavigationColliderRemoved(INavigationObstacle component)
-    {
-        //pendingRebuild = true;
-    }
-
-    private void OnNavigationColliderAdded(INavigationObstacle component)
-    {
-        //pendingRebuild = true;
-    }
-
-    private void GetInitialObjectsToBuild(DotRecastNavMeshComponent component)
+    private void InitializeNavMeshComponent(DotRecastNavMeshComponent component)
     {
         switch(component.CollectionMethod)
         {
@@ -96,6 +86,27 @@ public class DotRecastNavMeshProcessor : EntityProcessor<DotRecastNavMeshCompone
                 break;
             case DotRecastCollectionMethod.BoundingBox:
                 throw new NotImplementedException("Bounding boxes are not yet supported for nav mesh generation.");
+        }
+
+        _sceneSystem.SceneInstance.EntityAdded += SceneInstance_EntityAdded;
+        _sceneSystem.SceneInstance.EntityRemoved += SceneInstance_EntityRemoved;
+    }
+
+    private void SceneInstance_EntityRemoved(object? sender, Entity e)
+    {
+        var component = e.Get<NavigationObstacleComponent>();
+        if (component is not null)
+        {
+
+        }
+    }
+
+    private void SceneInstance_EntityAdded(object? sender, Entity e)
+    {
+        var component = e.Get<NavigationObstacleComponent>();
+        if (component is not null)
+        {
+
         }
     }
 

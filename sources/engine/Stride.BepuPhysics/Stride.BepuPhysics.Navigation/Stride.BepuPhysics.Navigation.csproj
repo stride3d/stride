@@ -1,4 +1,4 @@
-<Project ToolsVersion="Current">
+<Project>
   <PropertyGroup>
     <StrideRuntime>true</StrideRuntime>
   </PropertyGroup>

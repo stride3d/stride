@@ -4,6 +4,7 @@
 using Stride.Core;
 
 namespace Stride.DotRecast.Definitions;
+
 [DataContract()]
 [Display("Pathfinding Settings")]
 public class PathfindingSettings
