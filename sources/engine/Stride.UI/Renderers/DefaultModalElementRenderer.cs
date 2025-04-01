@@ -29,7 +29,7 @@ namespace Stride.UI.Renderers
             // end the current UI image batching so that the overlay is written over it with correct transparency
             Batch.End();
 
-            var uiResolution = new Vector3(context.Resolution.X, context.Resolution.Y, 0);
+            var uiResolution = new Vector3(context.Resolution.Width, context.Resolution.Width, 0);
             Batch.Begin(context.GraphicsContext, ref context.ViewProjectionMatrix, BlendStates.AlphaBlend, noStencilNoDepth, 0);
             Batch.DrawRectangle(ref identity, ref uiResolution, ref modalElement.OverlayColorInternal, context.DepthBias);
             Batch.End(); // ensure that overlay is written before possible next transparent element.

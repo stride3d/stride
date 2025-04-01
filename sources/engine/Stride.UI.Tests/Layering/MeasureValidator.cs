@@ -9,12 +9,12 @@ namespace Stride.UI.Tests.Layering
 {
     class MeasureValidator : UIElement
     {
-        public Vector3 ReturnedMeasuredValue;
-        public Vector3 ExpectedMeasureValue;
+        public Size2F ReturnedMeasuredValue;
+        public Size2F ExpectedMeasureValue;
 
-        protected override Vector3 MeasureOverride(Vector3 availableSizeWithoutMargins)
+        protected override Size2F MeasureOverride(Size2F availableSizeWithoutMargins)
         {
-            for (int i = 0; i < 3; i++)
+            for (int i = 0; i < 2; i++)
             {
                 var val1 = availableSizeWithoutMargins[i];
                 var val2 = ExpectedMeasureValue[i];

@@ -45,9 +45,9 @@ namespace Stride.UI.Tests.Layering
             scrollViewer.Arrange(Vector3.Zero, false);
 
             // tests that no crashes happen with no content
-            scrollViewer.ScrollTo(rand.NextVector3());
+            scrollViewer.ScrollTo(rand.NextVector2());
             Assert.Equal(Vector3.Zero, ScrollPosition);
-            scrollViewer.ScrollOf(rand.NextVector3());
+            scrollViewer.ScrollOf(rand.NextVector2());
             Assert.Equal(Vector3.Zero, ScrollPosition);
             scrollViewer.ScrollToBeginning(Orientation.Horizontal);
             Assert.Equal(Vector3.Zero, ScrollPosition);

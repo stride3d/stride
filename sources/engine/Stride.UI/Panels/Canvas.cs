@@ -26,45 +26,43 @@ namespace Stride.UI.Panels
         /// The key to the AbsolutePosition dependency property. AbsolutePosition indicates where the <see cref="UIElement"/> is pinned in the canvas.
         /// </summary>
         [Display(category: LayoutCategory)]
-        public static readonly PropertyKey<Vector3> AbsolutePositionPropertyKey = DependencyPropertyFactory.RegisterAttached(nameof(AbsolutePositionPropertyKey), typeof(Canvas), Vector3.Zero, InvalidateCanvasMeasure);
+        public static readonly PropertyKey<Vector2> AbsolutePositionPropertyKey = DependencyPropertyFactory.RegisterAttached(nameof(AbsolutePositionPropertyKey), typeof(Canvas), Vector2.Zero, InvalidateCanvasMeasure);
 
         /// <summary>
         /// The key to the RelativePosition dependency property. RelativePosition indicates where the <see cref="UIElement"/> is pinned in the canvas.
         /// </summary>
         [Display(category: LayoutCategory)]
-        public static readonly PropertyKey<Vector3> RelativePositionPropertyKey = DependencyPropertyFactory.RegisterAttached(nameof(RelativePositionPropertyKey), typeof(Canvas), Vector3.Zero, InvalidateCanvasMeasure);
+        public static readonly PropertyKey<Vector2> RelativePositionPropertyKey = DependencyPropertyFactory.RegisterAttached(nameof(RelativePositionPropertyKey), typeof(Canvas), Vector2.Zero, InvalidateCanvasMeasure);
 
         /// <summary>
         /// The key to the RelativeSize dependency property. RelativeSize indicates the ratio of the size of the <see cref="UIElement"/> with respect to the parent size.
         /// </summary>
         /// <remarks>Relative size must be strictly positive</remarks>
         [Display(category: LayoutCategory)]
-        public static readonly PropertyKey<Vector3> RelativeSizePropertyKey = DependencyPropertyFactory.RegisterAttached(nameof(RelativeSizePropertyKey), typeof(Canvas), new Vector3(float.NaN), CoerceRelativeSize, InvalidateCanvasMeasure);
+        public static readonly PropertyKey<Size2F> RelativeSizePropertyKey = DependencyPropertyFactory.RegisterAttached(nameof(RelativeSizePropertyKey), typeof(Canvas), new Size2F(float.NaN), CoerceRelativeSize, InvalidateCanvasMeasure);
 
         /// <summary>
         /// The key to the PinOrigin dependency property. The PinOrigin indicate which point of the <see cref="UIElement"/> should be pinned to the canvas. 
         /// </summary>
         /// <remarks>
-        /// Those values are normalized between 0 and 1. (0,0,0) represent the Left/Top/Back corner and (1,1,1) represent the Right/Bottom/Front corner. 
+        /// Those values are normalized between 0 and 1. (0,0) represent the Left/Top corner and (1,1) represent the Right/Bottom corner. 
         /// <see cref="UIElement"/>'s margins are included in the normalization. 
         /// Values beyond [0,1] are clamped.</remarks>
         [Display(category: LayoutCategory)]
-        public static readonly PropertyKey<Vector3> PinOriginPropertyKey = DependencyPropertyFactory.RegisterAttached(nameof(PinOriginPropertyKey), typeof(Canvas), Vector3.Zero, CoercePinOriginValue, InvalidateCanvasMeasure);
+        public static readonly PropertyKey<Vector2> PinOriginPropertyKey = DependencyPropertyFactory.RegisterAttached(nameof(PinOriginPropertyKey), typeof(Canvas), Vector2.Zero, CoercePinOriginValue, InvalidateCanvasMeasure);
         
-        private static void CoercePinOriginValue(ref Vector3 value)
+        private static void CoercePinOriginValue(ref Vector2 value)
         {
             // Values must be in the range [0, 1]
             value.X = MathUtil.Clamp(value.X, 0.0f, 1.0f);
             value.Y = MathUtil.Clamp(value.Y, 0.0f, 1.0f);
-            value.Z = MathUtil.Clamp(value.Z, 0.0f, 1.0f);
         }
 
-        private static void CoerceRelativeSize(ref Vector3 value)
+        private static void CoerceRelativeSize(ref Size2F value)
         {
             // All the components of the relative size must be positive
-            value.X = Math.Abs(value.X);
-            value.Y = Math.Abs(value.Y);
-            value.Z = Math.Abs(value.Z);
+            value.Width = Math.Abs(value.Width);
+            value.Height = Math.Abs(value.Height);
         }
 
         private static void InvalidateCanvasMeasure<T>(object propertyOwner, PropertyKey<T> propertyKey, T propertyOldValue)
@@ -76,31 +74,30 @@ namespace Stride.UI.Panels
         }
 
         /// <inheritdoc/>
-        protected override Vector3 MeasureOverride(Vector3 availableSizeWithoutMargins)
+        protected override Size2F MeasureOverride(Size2F availableSizeWithoutMargins)
         {
             // Measure all the children
             // Note: canvas does not take into account possible collisions between children
             foreach (var child in VisualChildrenCollection)
             {
-                var childAvailableSizeWithoutMargins = new Vector3(float.PositiveInfinity);
+                var childAvailableSizeWithoutMargins = new Size2F(float.PositiveInfinity, float.PositiveInfinity);
                 // override the available space if the child size is relative to its parent's.
                 var childRelativeSize = child.DependencyProperties.Get(RelativeSizePropertyKey);
-                for (var i = 0; i < 3; i++)
-                {
-                    if (float.IsNaN(childRelativeSize[i])) // relative size is not set
-                        continue;
+                
+                if (!float.IsNaN(childRelativeSize.Width)) // relative size is not set
+                    childAvailableSizeWithoutMargins.Width = childRelativeSize.Width > 0 ? childRelativeSize.Width * availableSizeWithoutMargins.Width : 0f; // avoid NaN due to 0 x Infinity
+                
+                if (!float.IsNaN(childRelativeSize.Height)) // relative size is not set
+                    childAvailableSizeWithoutMargins.Height = childRelativeSize.Height > 0 ? childRelativeSize.Height * availableSizeWithoutMargins.Height : 0f; // avoid NaN due to 0 x Infinity
 
-                    childAvailableSizeWithoutMargins[i] = childRelativeSize[i] > 0 ? childRelativeSize[i]*availableSizeWithoutMargins[i] : 0f; // avoid NaN due to 0 x Infinity
-                }
-
-                child.Measure(CalculateSizeWithThickness(ref childAvailableSizeWithoutMargins, ref child.MarginInternal));
+                child.Measure(childAvailableSizeWithoutMargins + child.MarginInternal);
             }
 
-            return Vector3.Zero;
+            return Size2F.Zero;
         }
 
         /// <inheritdoc/>
-        protected override Vector3 ArrangeOverride(Vector3 finalSizeWithoutMargins)
+        protected override Size2F ArrangeOverride(Size2F finalSizeWithoutMargins)
         {
             // Arrange all the children
             foreach (var child in VisualChildrenCollection)
@@ -110,13 +107,13 @@ namespace Stride.UI.Panels
 
                 // compute the child offsets wrt parent (left,top,front) corner
                 var pinOrigin = child.DependencyProperties.Get(PinOriginPropertyKey);
-                var childOrigin = ComputeAbsolutePinPosition(child, ref finalSizeWithoutMargins) - Vector3.Modulate(pinOrigin, child.RenderSize);
+                var childOrigin = ComputeAbsolutePinPosition(child, ref finalSizeWithoutMargins) - Vector2.Modulate(pinOrigin, (Vector2)child.RenderSize);
 
                 // compute the child offsets wrt parent origin (0,0,0). 
-                var childOriginParentCenter = childOrigin - finalSizeWithoutMargins / 2;
+                var childOriginParentCenter = childOrigin - (Vector2)finalSizeWithoutMargins / 2;
 
                 // set the panel arrange matrix for the child
-                child.DependencyProperties.Set(PanelArrangeMatrixPropertyKey, Matrix.Translation(childOriginParentCenter));
+                child.DependencyProperties.Set(PanelArrangeMatrixPropertyKey, Matrix.Translation(new Vector3(childOriginParentCenter.X, childOriginParentCenter.Y, 0)));
 
             }
 
@@ -129,18 +126,17 @@ namespace Stride.UI.Panels
         /// <param name="child">The child to place</param>
         /// <param name="parentSize">The parent size</param>
         /// <returns>The child absolute position offset</returns>
-        protected Vector3 ComputeAbsolutePinPosition(UIElement child, ref Vector3 parentSize)
+        protected Vector2 ComputeAbsolutePinPosition(UIElement child, ref Size2F parentSize)
         {
             var relativePosition = child.DependencyProperties.Get(RelativePositionPropertyKey);
             var absolutePosition = child.DependencyProperties.Get(AbsolutePositionPropertyKey);
             var useAbsolutePosition = child.DependencyProperties.Get(UseAbsolutePositionPropertyKey);
-
-            for (var dim = 0; dim < 3; ++dim)
-            {
-                var relPos = relativePosition[dim];
-                if (float.IsNaN(absolutePosition[dim]) || !useAbsolutePosition && !float.IsNaN(relPos))
-                    absolutePosition[dim] = relPos == 0f ? 0f : relPos * parentSize[dim];
-            }
+            
+            if (float.IsNaN(absolutePosition.X) || !useAbsolutePosition && !float.IsNaN(relativePosition.X))
+                absolutePosition.X = relativePosition.X == 0f ? 0f : relativePosition.X * parentSize.Width;
+            
+            if (float.IsNaN(absolutePosition.Y) || !useAbsolutePosition && !float.IsNaN(relativePosition.Y))
+                absolutePosition.Y = relativePosition.Y == 0f ? 0f : relativePosition.Y * parentSize.Height;
 
             return absolutePosition;
         }
