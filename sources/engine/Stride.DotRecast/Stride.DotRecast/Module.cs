@@ -5,6 +5,7 @@ using System.Reflection;
 using Stride.Core.Reflection;
 
 namespace Stride.DotRecast;
+
 internal class Module
 {
     [Stride.Core.ModuleInitializer]

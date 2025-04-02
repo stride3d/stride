@@ -17,15 +17,8 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="DotRecast.Recast.Toolset" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\..\Stride.DotRecast\Stride.DotRecast\Stride.DotRecast.csproj" />
     <ProjectReference Include="..\Stride.BepuPhysics\Stride.BepuPhysics.csproj" />
-    <ProjectReference Include="..\..\Stride.Navigation\Stride.Navigation.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="GenericBuilder\" />
   </ItemGroup>
   <Import Project="$(StrideSdkTargets)" />
 </Project>

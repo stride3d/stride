@@ -6,6 +6,7 @@ using DotRecast.Core.Numerics;
 using Stride.Core.Mathematics;
 
 namespace Stride.DotRecast.Extensions;
+
 public static class StrideDotRecastExtensions
 {
     // hopefully wont be a thing in the near future

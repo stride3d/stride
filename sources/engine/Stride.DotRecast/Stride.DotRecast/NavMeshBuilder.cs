@@ -6,8 +6,11 @@ using DotRecast.Recast.Geom;
 using DotRecast.Recast;
 using DotRecast.Recast.Toolset.Builder;
 using DotRecast.Recast.Toolset;
+using DotRecast.Detour.Dynamic.Io;
+using DotRecast.Detour.Dynamic;
 
 namespace Stride.DotRecast;
+
 public class NavMeshBuilder
 {
     public static DtNavMesh CreateNavMeshFromGeometry(RcNavMeshBuildSettings navSettings, IInputGeomProvider geom, int threads, CancellationToken cancelToken)
@@ -52,7 +55,7 @@ public class NavMeshBuilder
             {
                 dtMeshes.Add(DemoNavMeshBuilder.UpdateAreaAndFlags(dtMeshData));
             }
-        
+
             cancelToken.ThrowIfCancellationRequested();
         }
 
@@ -76,7 +79,7 @@ public class NavMeshBuilder
         return navMesh;
     }
 
-    public static List<RcBuilderResult> GetBuildResults(RcNavMeshBuildSettings navSettings, IInputGeomProvider geom, int threads, CancellationToken cancelToken)
+    public static DtDynamicNavMesh CreateTiledDynamicNavMesh(RcNavMeshBuildSettings navSettings, IInputGeomProvider geom, CancellationToken cancelToken)
     {
         cancelToken.ThrowIfCancellationRequested();
 
@@ -107,7 +110,12 @@ public class NavMeshBuilder
 
         cancelToken.ThrowIfCancellationRequested();
 
-        return new RcBuilder().BuildTiles(geom, cfg, true, false, threads, cancellation: cancelToken);
+        var tileBuilder = new TileNavMeshBuilder();
+        var builderResults = tileBuilder.Build(geom, navSettings);
+        var voxelFile = DtVoxelFile.From(cfg, builderResults.RecastBuilderResults);
+        var dtDyanmicNavMesh = new DtDynamicNavMesh(voxelFile);
+
+        return dtDyanmicNavMesh;
     }
 
     private static int GetMaxTiles(IInputGeomProvider geom, float cellSize, int tileSize)

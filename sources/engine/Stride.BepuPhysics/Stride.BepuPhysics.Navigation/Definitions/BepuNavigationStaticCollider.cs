@@ -2,21 +2,51 @@
 //  Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Runtime.InteropServices;
+using DotRecast.Core;
+using DotRecast.Recast;
 using Stride.BepuPhysics.Definitions;
 using Stride.BepuPhysics.Systems;
+using Stride.Core;
 using Stride.Core.Mathematics;
-using Stride.DotRecast.Definitions;
+using Stride.DotRecast.Definitions.Colliders;
 using Stride.Engine;
 
 namespace Stride.BepuPhysics.Navigation.Definitions;
-
-public class BepuStaticGeometry : DotRecastGeometryProvider
+public class BepuNavigationStaticCollider : BaseNavigationCollider
 {
-    public CollisionMask CollidersToInclude { get; set; } = CollisionMask.Everything;
+    private float[] _vertices;
+    private int[] _triangles;
 
-    public override bool TryGetTransformedShapeInfo(Entity entity, out DotRecastShapeData shapeData)
+    public override float[] Bounds()
     {
-        var shapeCache = Services.GetService<ShapeCacheSystem>();
+        float[] bounds = [_vertices[0], _vertices[1], _vertices[2], _vertices[0], _vertices[1], _vertices[2]];
+        for (int i = 3; i < _vertices.Length; i += 3)
+        {
+            bounds[0] = Math.Min(bounds[0], _vertices[i]);
+            bounds[1] = Math.Min(bounds[1], _vertices[i + 1]);
+            bounds[2] = Math.Min(bounds[2], _vertices[i + 2]);
+            bounds[3] = Math.Max(bounds[3], _vertices[i]);
+            bounds[4] = Math.Max(bounds[4], _vertices[i + 1]);
+            bounds[5] = Math.Max(bounds[5], _vertices[i + 2]);
+        }
+
+        return bounds;
+    }
+
+    public override void Rasterize(RcHeightfield hf, RcContext context)
+    {
+        // TODO: check if volume matters for Dotrecase. If it does then we may want to check the sape types and determine the volume.
+
+        for (int i = 0; i < _triangles.Length; i += 3)
+        {
+            RcRasterizations.RasterizeTriangle(context, _vertices, _triangles[i], _triangles[i + 1], _triangles[i + 2], area,
+                hf, (int)MathF.Floor(flagMergeThreshold / hf.ch));
+        }
+    }
+
+    public override void Initialize(Entity entity, IServiceRegistry services)
+    {
+        var shapeCache = services.GetService<ShapeCacheSystem>();
         var collidable = entity.Get<CollidableComponent>();
         List<BasicMeshBuffers> meshBuffer = [];
         List<ShapeTransform> transforms = [];
@@ -25,14 +55,7 @@ public class BepuStaticGeometry : DotRecastGeometryProvider
         // Only use StaticColliders for the nav mesh build.
         if (collidable is not StaticComponent)
         {
-            shapeData = null;
-            return false;
-        }
-
-        if (!CollidersToInclude.IsSet(collidable.CollisionLayer))
-        {
-            shapeData = null;
-            return false;
+            throw new InvalidOperationException($"Entity ({entity.Name}) does not have a valid {nameof(StaticComponent)} attached");
         }
 
         collidable.Collider.AppendModel(meshBuffer, shapeCache, out object? _);
@@ -82,12 +105,10 @@ public class BepuStaticGeometry : DotRecastGeometryProvider
             }
         }
 
-        shapeData = new DotRecastShapeData
-        {
-            Points = verts,
-            Indices = indices
-        };
+        Span<Vector3> spanToPoints = CollectionsMarshal.AsSpan(verts);
+        Span<float> reinterpretedPoints = MemoryMarshal.Cast<Vector3, float>(spanToPoints);
 
-        return true;
+        _vertices = reinterpretedPoints.ToArray();
+        _triangles = [.. indices];
     }
 }

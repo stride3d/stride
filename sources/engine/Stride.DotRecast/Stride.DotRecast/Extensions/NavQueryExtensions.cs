@@ -4,6 +4,7 @@ using Stride.Core.Mathematics;
 using Stride.DotRecast.Definitions;
 
 namespace Stride.DotRecast.Extensions;
+
 public static class NavQueryExtensions
 {
 

@@ -1,13 +1,14 @@
-using System.Runtime.InteropServices;
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 using Stride.Core;
 using Stride.Core.Annotations;
-using Stride.Core.Mathematics;
-using Stride.Core.Threading;
-using Stride.DotRecast.Definitions;
+using Stride.DotRecast.Components;
 using Stride.Engine;
 using Stride.Games;
 
 namespace Stride.DotRecast;
+
 public class DotRecastNavMeshProcessor : EntityProcessor<DotRecastNavMeshComponent>
 {
     private SceneSystem _sceneSystem = null!;
@@ -47,31 +48,8 @@ public class DotRecastNavMeshProcessor : EntityProcessor<DotRecastNavMeshCompone
 
         foreach (var component in ComponentDatas.Values)
         {
-            if (component.IsDirty)
-            {
-                RebuildNavMesh(component);
-            }
+            component.Update();
         }
-    }
-
-    private void RebuildNavMesh(DotRecastNavMeshComponent component)
-    {
-        var shapeData = component.GetCombinedShapeData();
-        if(shapeData is null)
-        {
-            return;
-        }
-
-        // get a span to that backing array,
-        var spanToPoints = CollectionsMarshal.AsSpan(shapeData.Points);
-        // cast the type of span to read it as if it was a series of contiguous floats instead of contiguous vectors
-        var reinterpretedPoints = MemoryMarshal.Cast<Vector3, float>(spanToPoints);
-        SimpleGeomProvider geom = new(reinterpretedPoints.ToArray(), [.. shapeData.Indices]);
-
-        var result = NavMeshBuilder.CreateNavMeshFromGeometry(component.NavMeshBuildSettings, geom, Dispatcher.MaxDegreeOfParallelism, new CancellationToken());
-
-        component.NavMesh = result;
-        component.IsDirty = false;
     }
 
     private void InitializeNavMeshComponent(DotRecastNavMeshComponent component)
@@ -82,8 +60,7 @@ public class DotRecastNavMeshProcessor : EntityProcessor<DotRecastNavMeshCompone
                 GetObjectsInScene(component);
                 break;
             case DotRecastCollectionMethod.Children:
-                GetObjectsInChildren(component);
-                break;
+                throw new NotImplementedException("Getting Child entities is not yet supported for nav mesh generation.");
             case DotRecastCollectionMethod.BoundingBox:
                 throw new NotImplementedException("Bounding boxes are not yet supported for nav mesh generation.");
         }
@@ -97,7 +74,10 @@ public class DotRecastNavMeshProcessor : EntityProcessor<DotRecastNavMeshCompone
         var component = e.Get<NavigationObstacleComponent>();
         if (component is not null)
         {
-
+            foreach (var navMeshComponent in ComponentDatas.Values)
+            {
+                navMeshComponent.RemoveObstacle(component);
+            }
         }
     }
 
@@ -106,7 +86,10 @@ public class DotRecastNavMeshProcessor : EntityProcessor<DotRecastNavMeshCompone
         var component = e.Get<NavigationObstacleComponent>();
         if (component is not null)
         {
-
+            foreach (var navMeshComponent in ComponentDatas.Values)
+            {
+                navMeshComponent.AddObstacle(component);
+            }
         }
     }
 
@@ -116,7 +99,6 @@ public class DotRecastNavMeshProcessor : EntityProcessor<DotRecastNavMeshCompone
         foreach (var entity in _sceneSystem.SceneInstance)
         {
             component.CheckEntity(entity);
-            component.IsDirty = true;
         }
     }
 

@@ -1,13 +1,17 @@
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 using Stride.Core;
 using Stride.Core.Mathematics;
-using Stride.DotRecast.Definitions;
+using Stride.DotRecast.Components;
 using Stride.Engine;
 using Stride.Engine.Design;
 
 namespace Stride.DotRecast.Navigation;
+
 [DataContract(Inherited = true)]
 [ComponentCategory("DotRecast")]
-//[DefaultEntityComponentProcessor(typeof(RecastNavigationProcessor), ExecutionMode = ExecutionMode.Runtime)]
+[DefaultEntityComponentProcessor(typeof(NavigationAgentProcessor), ExecutionMode = ExecutionMode.Runtime)]
 public abstract class NavigationAgentComponent : StartupScript
 {
 
@@ -66,7 +70,14 @@ public abstract class NavigationAgentComponent : StartupScript
     /// <returns></returns>
     public virtual bool TryFindPath(Vector3 target)
     {
-        if(NavMesh is null || NavMesh.NavMesh is null)
+        if(NavMesh is null)
+        {
+            State = NavigationState.PathIsInvalid;
+            return false;
+        }
+
+        var navMesh = NavMesh.DynamicNavMesh?.NavMesh();
+        if (navMesh is null)
         {
             State = NavigationState.PathIsInvalid;
             return false;
@@ -138,6 +149,6 @@ public abstract class NavigationAgentComponent : StartupScript
         Entity.Transform.Parent?.WorldToLocal(ref targetPosition, ref rotation, ref scale);
 
         Entity.Transform.Position = targetPosition;
-        Entity.Transform.Rotation = rotation;// Quaternion.Lerp(Entity.Transform.Rotation, rotation, .1f);
+        Entity.Transform.Rotation = rotation;
     }
 }

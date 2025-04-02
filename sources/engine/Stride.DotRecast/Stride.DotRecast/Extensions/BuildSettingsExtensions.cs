@@ -6,6 +6,7 @@ using DotRecast.Recast.Toolset;
 using Stride.DotRecast.Definitions;
 
 namespace Stride.DotRecast.Extensions;
+
 internal static class BuildSettingsExtensions
 {
     /// <summary>
