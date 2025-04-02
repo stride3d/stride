@@ -32,7 +32,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
         public override IEnumerable<Type> Dependencies { get { yield return typeof(IEditorGameMouseService); } }
 
         /// <inheritdoc/>
-        public override Task DisposeAsync()
+        public override ValueTask DisposeAsync()
         {
             EnsureNotDestroyed(nameof(EditorGameRenderModeService));
             return base.DisposeAsync();

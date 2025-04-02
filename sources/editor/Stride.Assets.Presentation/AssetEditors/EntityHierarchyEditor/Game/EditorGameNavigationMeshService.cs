@@ -72,7 +72,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
             navigationMeshManager = new NavigationMeshManager(editor.Controller);
         }
 
-        public override async Task DisposeAsync()
+        public override async ValueTask DisposeAsync()
         {
             // Remove registered events
             editor.Session.DeletedAssetsChanged -= OnDeletedAssetsChanged;
