@@ -17,8 +17,8 @@ public class SrideGeomProvider : IInputGeomProvider
     private readonly RcVec3f _bMin;
     private readonly RcVec3f _bMax;
 
-    private readonly List<RcConvexVolume> _convexVolumes = new List<RcConvexVolume>();
-    private readonly List<RcOffMeshConnection> _offMeshConnections = new List<RcOffMeshConnection>();
+    private readonly List<RcConvexVolume> _convexVolumes = [];
+    private readonly List<RcOffMeshConnection> _offMeshConnections = [];
     private readonly RcTriMesh _mesh;
 
     /// <summary>

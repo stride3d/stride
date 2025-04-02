@@ -17,6 +17,8 @@ public class BepuNavigationStaticCollider : BaseNavigationCollider
     private float[] _vertices;
     private int[] _triangles;
 
+    private bool _isConvex;
+
     public override float[] Bounds()
     {
         float[] bounds = [_vertices[0], _vertices[1], _vertices[2], _vertices[0], _vertices[1], _vertices[2]];
@@ -35,7 +37,7 @@ public class BepuNavigationStaticCollider : BaseNavigationCollider
 
     public override void Rasterize(RcHeightfield hf, RcContext context)
     {
-        // TODO: check if volume matters for Dotrecase. If it does then we may want to check the sape types and determine the volume.
+        // TODO: check if volume matters for Dotrecase. If it does then we may want to check the shape types and determine the volume.
 
         for (int i = 0; i < _triangles.Length; i += 3)
         {

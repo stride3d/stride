@@ -23,7 +23,7 @@ public sealed class NavigationMeshComponent : StartupScript
 {
     public List<DotRecastGeometryProvider> GeometryProviders = [];
 
-    public DotRecastCollectionMethod CollectionMethod = DotRecastCollectionMethod.Scene;
+    public DotRecastCollectionMethod CollectionMethod { get; init; } = DotRecastCollectionMethod.Scene;
 
     public NavMeshLayer NavMeshLayer;
 
@@ -37,9 +37,6 @@ public sealed class NavigationMeshComponent : StartupScript
 
     [DataMemberIgnore]
     public readonly Dictionary<NavigationObstacleComponent, long> ObstacleRefs = [];
-
-    // The size of the area to search for the nearest polygon.
-    private readonly RcVec3f _polyPickExt = new(0.5f, 0.5f, 0.5f);
 
     private List<NavigationObstacleComponent> _newlyAddedObstacles = [];
     private List<NavigationObstacleComponent> _newlyRemovedObstacles = [];
@@ -74,12 +71,7 @@ public sealed class NavigationMeshComponent : StartupScript
             DynamicNavMesh.RemoveCollider(ObstacleRefs[obstacle]);
         }
         _newlyRemovedObstacles.Clear();
-        
-        UpdateDynamicMesh();
-    }
 
-    private void UpdateDynamicMesh()
-    {
         DynamicNavMesh.Update();
     }
 
@@ -123,12 +115,13 @@ public sealed class NavigationMeshComponent : StartupScript
     /// <returns></returns>
     public bool TryFindPath(Vector3 start, Vector3 end, ref List<long> polys, ref List<Vector3> smoothPath)
     {
+        var polyPickExt = new RcVec3f(0.5f, 0.5f, 0.5f);
         var queryFilter = new DtQueryDefaultFilter();
         var dtNavMeshQuery = new DtNavMeshQuery(DynamicNavMesh.NavMesh());
 
-        dtNavMeshQuery.FindNearestPoly(start.ToDotRecastVector(), _polyPickExt, queryFilter, out var startRef, out _, out _);
+        dtNavMeshQuery.FindNearestPoly(start.ToDotRecastVector(), polyPickExt, queryFilter, out var startRef, out _, out _);
 
-        dtNavMeshQuery.FindNearestPoly(end.ToDotRecastVector(), _polyPickExt, queryFilter, out var endRef, out _, out _);
+        dtNavMeshQuery.FindNearestPoly(end.ToDotRecastVector(), polyPickExt, queryFilter, out var endRef, out _, out _);
         // find the nearest point on the navmesh to the start and end points
         var result = dtNavMeshQuery.FindFollowPath(startRef, endRef, start.ToDotRecastVector(), end.ToDotRecastVector(), queryFilter, true, ref polys, polys.Count, ref smoothPath, new());
 
@@ -145,28 +138,35 @@ public sealed class NavigationMeshComponent : StartupScript
     /// <returns></returns>
     public bool TryFindPath(Vector3 start, Vector3 end, ref List<long> polys, ref List<Vector3> smoothPath, PathfindingSettings settings)
     {
+        var polyPickExt = new RcVec3f(0.5f, 0.5f, 0.5f);
         var queryFilter = new DtQueryDefaultFilter();
         var dtNavMeshQuery = new DtNavMeshQuery(DynamicNavMesh.NavMesh());
 
-        dtNavMeshQuery.FindNearestPoly(start.ToDotRecastVector(), _polyPickExt, queryFilter, out var startRef, out _, out _);
+        dtNavMeshQuery.FindNearestPoly(start.ToDotRecastVector(), polyPickExt, queryFilter, out var startRef, out _, out _);
 
-        dtNavMeshQuery.FindNearestPoly(end.ToDotRecastVector(), _polyPickExt, queryFilter, out var endRef, out _, out _);
+        dtNavMeshQuery.FindNearestPoly(end.ToDotRecastVector(), polyPickExt, queryFilter, out var endRef, out _, out _);
         // find the nearest point on the navmesh to the start and end points
         var result = dtNavMeshQuery.FindFollowPath(startRef, endRef, start.ToDotRecastVector(), end.ToDotRecastVector(), queryFilter, true, ref polys, polys.Count, ref smoothPath, settings);
 
         return result.Succeeded();
     }
 
+    /// <summary>
+    /// Tries to find components that can provide shape data to generate/modify the navmesh.
+    /// </summary>
+    /// <param name="entity"></param>
     internal void CheckEntity(Entity entity)
     {
         var obstacleComponent = entity.Get<NavigationObstacleComponent>();
 
         if (obstacleComponent is not null)
         {
+            // add removable objects
             AddObstacle(entity.Get<NavigationObstacleComponent>());
         }
         else
         {
+            // add static non removable objects
             foreach (var provider in GeometryProviders)
             {
                 if (provider.TryGetTransformedShapeInfo(entity, out var shapeData))
@@ -187,22 +187,4 @@ public sealed class NavigationMeshComponent : StartupScript
         _newlyRemovedObstacles.Add(component);
         DynamicNavMesh.RemoveCollider(ObstacleRefs[component]);
     }
-}
-
-public enum DotRecastCollectionMethod
-{
-    /// <summary>
-    /// Collects all entities in the scene of the entity with the <see cref="NavigationMeshComponent"/>"/>
-    /// </summary>
-    Scene,
-
-    /// <summary>
-    /// Collects all children of the entity with the <see cref="NavigationMeshComponent"/>"/>
-    /// </summary>
-    Children,
-
-    /// <summary>
-    /// Collects all entitys with a valid component in a boundingbox volume
-    /// </summary>
-    BoundingBox,
 }

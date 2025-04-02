@@ -60,7 +60,8 @@ public class DotRecastNavMeshProcessor : EntityProcessor<NavigationMeshComponent
                 GetObjectsInScene(component);
                 break;
             case DotRecastCollectionMethod.Children:
-                throw new NotImplementedException("Getting Child entities is not yet supported for nav mesh generation.");
+                GetObjectsInChildren(component);
+                break;
             case DotRecastCollectionMethod.BoundingBox:
                 throw new NotImplementedException("Bounding boxes are not yet supported for nav mesh generation.");
         }
@@ -95,16 +96,31 @@ public class DotRecastNavMeshProcessor : EntityProcessor<NavigationMeshComponent
 
     private void GetObjectsInScene(NavigationMeshComponent component)
     {
+        var scene = component.Entity.Scene;
+
         // Due to how the Transform processor works there shouldnt be a need for recursion here.
-        foreach (var entity in _sceneSystem.SceneInstance)
+        foreach (var entity in scene.Entities)
         {
             component.CheckEntity(entity);
         }
     }
 
-    private void GetObjectsInChildren(NavigationMeshComponent component)
+    private static void GetObjectsInChildren(NavigationMeshComponent component)
     {
+        var rootEntity = component.Entity;
 
+        component.CheckEntity(rootEntity);
+
+        RecurseTree(rootEntity, component);
+
+        void RecurseTree(Entity entity, NavigationMeshComponent component)
+        {
+            foreach (var child in entity.GetChildren())
+            {
+                component.CheckEntity(child);
+                RecurseTree(child, component);
+            }
+        }
     }
 
 }
