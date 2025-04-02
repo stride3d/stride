@@ -3,11 +3,12 @@
 
 using Stride.Core;
 using Stride.Core.Mathematics;
-using Stride.DotRecast.Components;
+using Stride.DotRecast.Definitions;
+using Stride.DotRecast.Processors;
 using Stride.Engine;
 using Stride.Engine.Design;
 
-namespace Stride.DotRecast.Navigation;
+namespace Stride.DotRecast.Components;
 
 [DataContract(Inherited = true)]
 [ComponentCategory("DotRecast")]
@@ -15,7 +16,7 @@ namespace Stride.DotRecast.Navigation;
 public abstract class NavigationAgentComponent : StartupScript
 {
 
-    public DotRecastNavMeshComponent NavMesh { get; set; }
+    public NavigationMeshComponent NavMesh { get; set; }
 
     /// <summary>
     /// The speed at which the agent moves.

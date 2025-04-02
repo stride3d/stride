@@ -5,7 +5,7 @@ using DotRecast.Recast;
 using Stride.Core;
 
 namespace Stride.DotRecast.Definitions;
-[DataContract("DotRecastBuildSettings")]
+[DataContract]
 public class BuildSettings
 {
     public NavMeshLayer Layer = NavMeshLayer.Layer1;

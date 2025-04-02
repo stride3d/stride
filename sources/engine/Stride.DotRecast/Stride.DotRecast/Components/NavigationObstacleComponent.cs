@@ -2,12 +2,14 @@
 //  Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using DotRecast.Detour.Dynamic.Colliders;
+using Stride.Core;
 using Stride.DotRecast.Definitions;
-using Stride.DotRecast.Definitions.Colliders;
 using Stride.Engine;
 
 namespace Stride.DotRecast.Components;
 
+[DataContract]
+[ComponentCategory("DotRecast")]
 public class NavigationObstacleComponent : StartupScript
 {
 

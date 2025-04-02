@@ -7,7 +7,7 @@ using DotRecast.Recast;
 
 namespace Stride.DotRecast.Definitions;
 
-public class SimpleGeomProvider : IInputGeomProvider
+public class SrideGeomProvider : IInputGeomProvider
 {
     /// <summary> Object does not expect this array to mutate </summary>
     public readonly float[] Vertices;
@@ -24,7 +24,7 @@ public class SimpleGeomProvider : IInputGeomProvider
     /// <summary>
     /// Do note that this object expects ownership over the arrays provided, do not write to them
     /// </summary>
-    public SimpleGeomProvider(float[] vertices, int[] faces)
+    public SrideGeomProvider(float[] vertices, int[] faces)
     {
         Vertices = vertices;
         Faces = faces;

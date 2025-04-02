@@ -8,7 +8,7 @@ using Stride.BepuPhysics.Definitions;
 using Stride.BepuPhysics.Systems;
 using Stride.Core;
 using Stride.Core.Mathematics;
-using Stride.DotRecast.Definitions.Colliders;
+using Stride.DotRecast.Definitions;
 using Stride.Engine;
 
 namespace Stride.BepuPhysics.Navigation.Definitions;

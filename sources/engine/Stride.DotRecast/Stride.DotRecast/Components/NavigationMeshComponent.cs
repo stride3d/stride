@@ -10,14 +10,16 @@ using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.DotRecast.Definitions;
 using Stride.DotRecast.Extensions;
+using Stride.DotRecast.Processors;
 using Stride.Engine;
 using Stride.Engine.Design;
 
 namespace Stride.DotRecast.Components;
 
 [DataContract]
+[ComponentCategory("DotRecast")]
 [DefaultEntityComponentProcessor(typeof(DotRecastNavMeshProcessor), ExecutionMode = ExecutionMode.Runtime)]
-public sealed class DotRecastNavMeshComponent : StartupScript
+public sealed class NavigationMeshComponent : StartupScript
 {
     public List<DotRecastGeometryProvider> GeometryProviders = [];
 
@@ -93,7 +95,7 @@ public sealed class DotRecastNavMeshComponent : StartupScript
         var spanToPoints = CollectionsMarshal.AsSpan(shapeData.Points);
         // cast the type of span to read it as if it was a series of contiguous floats instead of contiguous vectors
         var reinterpretedPoints = MemoryMarshal.Cast<Vector3, float>(spanToPoints);
-        SimpleGeomProvider geom = new(reinterpretedPoints.ToArray(), [.. shapeData.Indices]);
+        SrideGeomProvider geom = new(reinterpretedPoints.ToArray(), [.. shapeData.Indices]);
 
         var result = NavMeshBuilder.CreateTiledDynamicNavMesh(NavMeshBuildSettings, geom, new CancellationToken());
 
@@ -190,12 +192,12 @@ public sealed class DotRecastNavMeshComponent : StartupScript
 public enum DotRecastCollectionMethod
 {
     /// <summary>
-    /// Collects all entities in the scene of the entity with the <see cref="DotRecastNavMeshComponent"/>"/>
+    /// Collects all entities in the scene of the entity with the <see cref="NavigationMeshComponent"/>"/>
     /// </summary>
     Scene,
 
     /// <summary>
-    /// Collects all children of the entity with the <see cref="DotRecastNavMeshComponent"/>"/>
+    /// Collects all children of the entity with the <see cref="NavigationMeshComponent"/>"/>
     /// </summary>
     Children,
 

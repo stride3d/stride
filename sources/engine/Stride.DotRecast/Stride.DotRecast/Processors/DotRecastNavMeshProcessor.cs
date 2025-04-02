@@ -7,14 +7,14 @@ using Stride.DotRecast.Components;
 using Stride.Engine;
 using Stride.Games;
 
-namespace Stride.DotRecast;
+namespace Stride.DotRecast.Processors;
 
-public class DotRecastNavMeshProcessor : EntityProcessor<DotRecastNavMeshComponent>
+public class DotRecastNavMeshProcessor : EntityProcessor<NavigationMeshComponent>
 {
     private SceneSystem _sceneSystem = null!;
 
-    private readonly Queue<DotRecastNavMeshComponent> _addedComponents = new();
-    private readonly Queue<DotRecastNavMeshComponent> _removedComponents = new();
+    private readonly Queue<NavigationMeshComponent> _addedComponents = new();
+    private readonly Queue<NavigationMeshComponent> _removedComponents = new();
 
     public DotRecastNavMeshProcessor()
     {
@@ -28,12 +28,12 @@ public class DotRecastNavMeshProcessor : EntityProcessor<DotRecastNavMeshCompone
         _sceneSystem = Services.GetSafeServiceAs<SceneSystem>();
     }
 
-    protected override void OnEntityComponentAdding(Entity entity, [NotNull] DotRecastNavMeshComponent component, [NotNull] DotRecastNavMeshComponent data)
+    protected override void OnEntityComponentAdding(Entity entity, [NotNull] NavigationMeshComponent component, [NotNull] NavigationMeshComponent data)
     {
         _addedComponents.Enqueue(component);
     }
 
-    protected override void OnEntityComponentRemoved(Entity entity, [NotNull] DotRecastNavMeshComponent component, [NotNull] DotRecastNavMeshComponent data)
+    protected override void OnEntityComponentRemoved(Entity entity, [NotNull] NavigationMeshComponent component, [NotNull] NavigationMeshComponent data)
     {
         _removedComponents.Enqueue(component);
     }
@@ -52,7 +52,7 @@ public class DotRecastNavMeshProcessor : EntityProcessor<DotRecastNavMeshCompone
         }
     }
 
-    private void InitializeNavMeshComponent(DotRecastNavMeshComponent component)
+    private void InitializeNavMeshComponent(NavigationMeshComponent component)
     {
         switch(component.CollectionMethod)
         {
@@ -93,7 +93,7 @@ public class DotRecastNavMeshProcessor : EntityProcessor<DotRecastNavMeshCompone
         }
     }
 
-    private void GetObjectsInScene(DotRecastNavMeshComponent component)
+    private void GetObjectsInScene(NavigationMeshComponent component)
     {
         // Due to how the Transform processor works there shouldnt be a need for recursion here.
         foreach (var entity in _sceneSystem.SceneInstance)
@@ -102,7 +102,7 @@ public class DotRecastNavMeshProcessor : EntityProcessor<DotRecastNavMeshCompone
         }
     }
 
-    private void GetObjectsInChildren(DotRecastNavMeshComponent component)
+    private void GetObjectsInChildren(NavigationMeshComponent component)
     {
 
     }

@@ -3,10 +3,12 @@
 
 using System.Collections.Concurrent;
 using Stride.Core.Threading;
+using Stride.DotRecast.Components;
+using Stride.DotRecast.Definitions;
 using Stride.Engine;
 using Stride.Games;
 
-namespace Stride.DotRecast.Navigation;
+namespace Stride.DotRecast.Processors;
 public class NavigationAgentProcessor : EntityProcessor<NavigationAgentComponent>
 {
     private readonly List<NavigationAgentComponent> _components = new();
@@ -37,7 +39,7 @@ public class NavigationAgentProcessor : EntityProcessor<NavigationAgentComponent
     {
         var deltaTime = (float)time.Elapsed.TotalSeconds;
 
-        for (int i = 0; i < 10; i++)
+        for (var i = 0; i < 10; i++)
         {
             if (_tryGetPathQueue.IsEmpty) break;
 

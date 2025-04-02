@@ -7,7 +7,7 @@ using DotRecast.Recast;
 using Stride.Core;
 using Stride.Engine;
 
-namespace Stride.DotRecast.Definitions.Colliders;
+namespace Stride.DotRecast.Definitions;
 
 [DataContract(Inherited = true)]
 public abstract class BaseNavigationCollider : IDtCollider
