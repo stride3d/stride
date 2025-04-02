@@ -112,7 +112,7 @@ public sealed class DotRecastNavMeshComponent : StartupScript
     }
 
     /// <summary>
-    /// Tries to find a path from the start to the end. This uses the default <see cref="PathfindingSettings"/>.
+    /// Tries to find a path from the start to the end. This uses default <see cref="PathfindingSettings"/>.
     /// </summary>
     /// <param name="start"></param>
     /// <param name="end"></param>
@@ -129,6 +129,28 @@ public sealed class DotRecastNavMeshComponent : StartupScript
         dtNavMeshQuery.FindNearestPoly(end.ToDotRecastVector(), _polyPickExt, queryFilter, out var endRef, out _, out _);
         // find the nearest point on the navmesh to the start and end points
         var result = dtNavMeshQuery.FindFollowPath(startRef, endRef, start.ToDotRecastVector(), end.ToDotRecastVector(), queryFilter, true, ref polys, polys.Count, ref smoothPath, new());
+
+        return result.Succeeded();
+    }
+
+    /// <summary>
+    /// Tries to find a path from the start to the end.
+    /// </summary>
+    /// <param name="start"></param>
+    /// <param name="end"></param>
+    /// <param name="polys"></param>
+    /// <param name="smoothPath"></param>
+    /// <returns></returns>
+    public bool TryFindPath(Vector3 start, Vector3 end, ref List<long> polys, ref List<Vector3> smoothPath, PathfindingSettings settings)
+    {
+        var queryFilter = new DtQueryDefaultFilter();
+        var dtNavMeshQuery = new DtNavMeshQuery(DynamicNavMesh.NavMesh());
+
+        dtNavMeshQuery.FindNearestPoly(start.ToDotRecastVector(), _polyPickExt, queryFilter, out var startRef, out _, out _);
+
+        dtNavMeshQuery.FindNearestPoly(end.ToDotRecastVector(), _polyPickExt, queryFilter, out var endRef, out _, out _);
+        // find the nearest point on the navmesh to the start and end points
+        var result = dtNavMeshQuery.FindFollowPath(startRef, endRef, start.ToDotRecastVector(), end.ToDotRecastVector(), queryFilter, true, ref polys, polys.Count, ref smoothPath, settings);
 
         return result.Succeeded();
     }
