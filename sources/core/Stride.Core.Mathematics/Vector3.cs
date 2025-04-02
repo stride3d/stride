@@ -26,7 +26,7 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 * THE SOFTWARE.
 */
-using System;
+
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -1742,7 +1742,7 @@ public struct Vector3 : IEquatable<Vector3>, IFormattable
     public readonly bool Equals(Vector3 other)
     {
         return MathF.Abs(other.X - X) < MathUtil.ZeroTolerance &&
-            MathF.Abs(other.Y - Y) < MathUtil.ZeroTolerance &&
+                MathF.Abs(other.Y - Y) < MathUtil.ZeroTolerance &&
             MathF.Abs(other.Z - Z) < MathUtil.ZeroTolerance;
     }
 
@@ -1772,46 +1772,46 @@ public struct Vector3 : IEquatable<Vector3>, IFormattable
     }
 
 #if WPFInterop
-    /// <summary>
-    /// Performs an implicit conversion from <see cref="Stride.Core.Mathematics.Vector3"/> to <see cref="System.Windows.Media.Media3D.Vector3D"/>.
-    /// </summary>
-    /// <param name="value">The value.</param>
-    /// <returns>The result of the conversion.</returns>
-    public static implicit operator System.Windows.Media.Media3D.Vector3D(Vector3 value)
-    {
-        return new System.Windows.Media.Media3D.Vector3D(value.X, value.Y, value.Z);
-    }
+        /// <summary>
+        /// Performs an implicit conversion from <see cref="Stride.Core.Mathematics.Vector3"/> to <see cref="System.Windows.Media.Media3D.Vector3D"/>.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <returns>The result of the conversion.</returns>
+        public static implicit operator System.Windows.Media.Media3D.Vector3D(Vector3 value)
+        {
+            return new System.Windows.Media.Media3D.Vector3D(value.X, value.Y, value.Z);
+        }
 
-    /// <summary>
-    /// Performs an explicit conversion from <see cref="System.Windows.Media.Media3D.Vector3D"/> to <see cref="Stride.Core.Mathematics.Vector3"/>.
-    /// </summary>
-    /// <param name="value">The value.</param>
-    /// <returns>The result of the conversion.</returns>
-    public static explicit operator Vector3(System.Windows.Media.Media3D.Vector3D value)
-    {
-        return new Vector3((float)value.X, (float)value.Y, (float)value.Z);
-    }
+        /// <summary>
+        /// Performs an explicit conversion from <see cref="System.Windows.Media.Media3D.Vector3D"/> to <see cref="Stride.Core.Mathematics.Vector3"/>.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <returns>The result of the conversion.</returns>
+        public static explicit operator Vector3(System.Windows.Media.Media3D.Vector3D value)
+        {
+            return new Vector3((float)value.X, (float)value.Y, (float)value.Z);
+        }
 #endif
 
 #if XnaInterop
-    /// <summary>
-    /// Performs an implicit conversion from <see cref="Stride.Core.Mathematics.Vector3"/> to <see cref="Microsoft.Xna.Framework.Vector3"/>.
-    /// </summary>
-    /// <param name="value">The value.</param>
-    /// <returns>The result of the conversion.</returns>
-    public static implicit operator Microsoft.Xna.Framework.Vector3(Vector3 value)
-    {
-        return new Microsoft.Xna.Framework.Vector3(value.X, value.Y, value.Z);
-    }
+        /// <summary>
+        /// Performs an implicit conversion from <see cref="Stride.Core.Mathematics.Vector3"/> to <see cref="Microsoft.Xna.Framework.Vector3"/>.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <returns>The result of the conversion.</returns>
+        public static implicit operator Microsoft.Xna.Framework.Vector3(Vector3 value)
+        {
+            return new Microsoft.Xna.Framework.Vector3(value.X, value.Y, value.Z);
+        }
 
-    /// <summary>
-    /// Performs an implicit conversion from <see cref="Microsoft.Xna.Framework.Vector3"/> to <see cref="Stride.Core.Mathematics.Vector3"/>.
-    /// </summary>
-    /// <param name="value">The value.</param>
-    /// <returns>The result of the conversion.</returns>
-    public static implicit operator Vector3(Microsoft.Xna.Framework.Vector3 value)
-    {
-        return new Vector3(value.X, value.Y, value.Z);
-    }
+        /// <summary>
+        /// Performs an implicit conversion from <see cref="Microsoft.Xna.Framework.Vector3"/> to <see cref="Stride.Core.Mathematics.Vector3"/>.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <returns>The result of the conversion.</returns>
+        public static implicit operator Vector3(Microsoft.Xna.Framework.Vector3 value)
+        {
+            return new Vector3(value.X, value.Y, value.Z);
+        }
 #endif
 }
