@@ -149,7 +149,7 @@ public class TestPrimitiveMembers
     {
         var obj = new RegisteredPrimitiveClassMember { Member = new PrimitiveClass { Value = 1 } };
         var container = new NodeContainer();
-        container.NodeBuilder.RegisterPrimitiveType(typeof(PrimitiveClass));
+        container.NodeBuilder.PrimitiveTypeFilter = new ExplicitTypeFilter(typeof(PrimitiveClass), container.NodeBuilder.PrimitiveTypeFilter);
 
         // Construction
         var containerNode = container.GetOrCreateNode(obj);
@@ -171,7 +171,7 @@ public class TestPrimitiveMembers
     {
         var obj = new RegisteredPrimitiveStructMember { Member = new PrimitiveStruct { Value = 1 } };
         var container = new NodeContainer();
-        container.NodeBuilder.RegisterPrimitiveType(typeof(PrimitiveStruct));
+        container.NodeBuilder.PrimitiveTypeFilter = new ExplicitTypeFilter(typeof(PrimitiveStruct), container.NodeBuilder.PrimitiveTypeFilter);
 
         // Construction
         var containerNode = container.GetOrCreateNode(obj);
@@ -232,5 +232,13 @@ public class TestPrimitiveMembers
         Assert.Null(memberNode.Target.ItemReferences);
         Assert.Equal(typeof(float), memberNode.Target.Type);
         Assert.Equal(3.0f, memberNode.Target.Retrieve());
+    }
+
+    private class ExplicitTypeFilter(Type explicitType, IPrimitiveTypeFilter innerTypeFilter) : IPrimitiveTypeFilter
+    {
+        public bool IsPrimitiveType(Type type)
+        {
+            return innerTypeFilter.IsPrimitiveType(type) || type.IsAssignableTo(explicitType);
+        }
     }
 }

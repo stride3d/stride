@@ -170,7 +170,7 @@ namespace Stride.Assets.Presentation.AssetEditors.GameEditor.ViewModels
                 var index = (e as ItemChangeEventArgs)?.Index ?? NodeIndex.Empty;
                 if (!AssetRegistry.CanBeAssignedToContentTypes(e.Node.Descriptor.GetInnerCollectionType(), checkIsUrlType: false))
                 {
-                    if (Editor.NodeContainer.NodeBuilder.IsPrimitiveType(e.Node.Type))
+                    if (Editor.NodeContainer.NodeBuilder.PrimitiveTypeFilter.IsPrimitiveType(e.Node.Type))
                     {
                         // No need to retrieve and/or duplicate the value for value type, we just propagate the change
                         await Editor.Controller.InvokeAsync(() => UpdateGameSideContent(gameSideNode, e.NewValue, e.ChangeType, index));
