@@ -84,9 +84,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Engine", "..\sources
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Graphics", "..\sources\engine\Stride.Graphics\Stride.Graphics.csproj", "{FB06C76A-6BB7-40BE-9AFA-FEC13B045FB5}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Engine.Tests.Windows", "..\sources\engine\Stride.Engine.Tests\Stride.Engine.Tests.Windows.csproj", "{A8F8D125-7A22-489F-99BC-9A02F545A17F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Engine.Tests", "..\sources\engine\Stride.Engine.Tests\Stride.Engine.Tests.csproj", "{A8F8D125-7A22-489F-99BC-9A02F545A17F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Input.Tests.Windows", "..\sources\engine\Stride.Input.Tests\Stride.Input.Tests.Windows.csproj", "{01700344-CF44-482C-BEBC-60213B0F844C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Input.Tests", "..\sources\engine\Stride.Input.Tests\Stride.Input.Tests.csproj", "{01700344-CF44-482C-BEBC-60213B0F844C}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Tests", "..\sources\core\Stride.Core.Tests\Stride.Core.Tests.csproj", "{5AA408BA-E766-453E-B661-E3D7EC46E2A6}"
 EndProject
@@ -106,7 +106,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.TextureConverter.Tes
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.ProjectGenerator", "..\sources\tools\Stride.ProjectGenerator\Stride.ProjectGenerator.csproj", "{4B299721-18EA-4B6D-AFD5-2D6E188B97BD}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Audio.Tests.Windows", "..\sources\engine\Stride.Audio.Tests\Stride.Audio.Tests.Windows.csproj", "{7AF4B563-AAD3-42FF-B91E-84B9D34D904A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Audio.Tests", "..\sources\engine\Stride.Audio.Tests\Stride.Audio.Tests.csproj", "{7AF4B563-AAD3-42FF-B91E-84B9D34D904A}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.BuildEngine.Tests", "..\sources\buildengine\Stride.Core.BuildEngine.Tests\Stride.Core.BuildEngine.Tests.csproj", "{09F32307-595A-4CBB-BF7C-F055DA1F70EE}"
 EndProject
@@ -136,7 +136,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride", "..\sources\engine
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Shaders.Compiler", "..\sources\engine\Stride.Shaders.Compiler\Stride.Shaders.Compiler.csproj", "{E8B3553F-A79F-4E50-B75B-ACEE771C320C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Shaders.Tests.Windows", "..\sources\engine\Stride.Shaders.Tests\Stride.Shaders.Tests.Windows.csproj", "{1BE90177-FE4D-4519-839E-7EB7D78AC973}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Shaders.Tests", "..\sources\engine\Stride.Shaders.Tests\Stride.Shaders.Tests.csproj", "{1BE90177-FE4D-4519-839E-7EB7D78AC973}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Input", "..\sources\engine\Stride.Input\Stride.Input.csproj", "{84DEB606-77ED-49CD-9AED-D2B13C1F5A1E}"
 EndProject
@@ -160,7 +160,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Quantum.Tests",
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.UI", "..\sources\engine\Stride.UI\Stride.UI.csproj", "{BB9DEEEF-F18C-40D8-B016-6434CC71B8C3}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.UI.Tests.Windows", "..\sources\engine\Stride.UI.Tests\Stride.UI.Tests.Windows.csproj", "{E7B1B17F-D04B-4978-B504-A6BB3EE846C9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.UI.Tests", "..\sources\engine\Stride.UI.Tests\Stride.UI.Tests.csproj", "{E7B1B17F-D04B-4978-B504-A6BB3EE846C9}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Editor", "..\sources\editor\Stride.Editor\Stride.Editor.csproj", "{16E02D45-5530-4617-97DC-BC3BDF77DE2C}"
 EndProject
@@ -202,11 +202,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.SpriteStudio.Runtime
 EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Stride.Core.MostRecentlyUsedFiles", "..\sources\editor\Stride.Core.MostRecentlyUsedFiles\Stride.Core.MostRecentlyUsedFiles.shproj", "{9AC6D791-811E-4D6A-B08E-93F0093EF268}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Graphics.Tests.Windows", "..\sources\engine\Stride.Graphics.Tests\Stride.Graphics.Tests.Windows.csproj", "{9DE0AA56-0DE7-4ADC-BAAC-CD38B7139EBC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Graphics.Tests", "..\sources\engine\Stride.Graphics.Tests\Stride.Graphics.Tests.csproj", "{9DE0AA56-0DE7-4ADC-BAAC-CD38B7139EBC}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Graphics.Tests.10_0.Windows", "..\sources\engine\Stride.Graphics.Tests.10_0\Stride.Graphics.Tests.10_0.Windows.csproj", "{570B0FF9-246F-4C6C-8384-F6BE1887A4A9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Graphics.Tests.10_0", "..\sources\engine\Stride.Graphics.Tests.10_0\Stride.Graphics.Tests.10_0.csproj", "{570B0FF9-246F-4C6C-8384-F6BE1887A4A9}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Graphics.Tests.11_0.Windows", "..\sources\engine\Stride.Graphics.Tests.11_0\Stride.Graphics.Tests.11_0.Windows.csproj", "{7CA99C7B-E3A2-4DE6-9D6C-314AE39BBBB7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Graphics.Tests.11_0", "..\sources\engine\Stride.Graphics.Tests.11_0\Stride.Graphics.Tests.11_0.csproj", "{7CA99C7B-E3A2-4DE6-9D6C-314AE39BBBB7}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.SamplesTestServer", "..\sources\tools\Stride.SamplesTestServer\Stride.SamplesTestServer.csproj", "{75D71310-ECF7-4592-9E35-3FE540040982}"
 EndProject
@@ -218,7 +218,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Native", "..\sources
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Assets.Tests2", "..\sources\engine\Stride.Assets.Tests2\Stride.Assets.Tests2.csproj", "{370ADF53-DFFA-461E-B72A-1302C0A0DE00}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Particles.Tests.Windows", "..\sources\engine\Stride.Particles.Tests\Stride.Particles.Tests.Windows.csproj", "{33CC6216-3F30-4B5A-BB29-C5B47EFFA713}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Particles.Tests", "..\sources\engine\Stride.Particles.Tests\Stride.Particles.Tests.csproj", "{33CC6216-3F30-4B5A-BB29-C5B47EFFA713}"
 EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Stride.Refactor", "..\sources\engine\Stride.Shared\Refactor\Stride.Refactor.shproj", "{B33E576F-2279-4BFC-A438-D9B84343B56B}"
 EndProject
@@ -236,7 +236,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Yaml.Tests", ".
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Reflection", "..\sources\core\Stride.Core.Reflection\Stride.Core.Reflection.csproj", "{0BE7189B-F04E-4C0C-BBE9-F347C0A59FEE}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Physics.Tests.Windows", "..\sources\engine\Stride.Physics.Tests\Stride.Physics.Tests.Windows.csproj", "{4F0E7E04-F067-4CE8-B8C8-1105F319D123}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Physics.Tests", "..\sources\engine\Stride.Physics.Tests\Stride.Physics.Tests.csproj", "{4F0E7E04-F067-4CE8-B8C8-1105F319D123}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Assets.Quantum", "..\sources\assets\Stride.Core.Assets.Quantum\Stride.Core.Assets.Quantum.csproj", "{1123EAAD-3FE3-4FD8-8DF6-4DDCF13EFCFB}"
 EndProject
@@ -252,7 +252,7 @@ Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Stride.Core.Assets.Yaml", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Navigation", "..\sources\engine\Stride.Navigation\Stride.Navigation.csproj", "{FBE1FA7B-E699-4BB2-9C8F-41F4C9F3F088}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Navigation.Tests.Windows", "..\sources\engine\Stride.Navigation.Tests\Stride.Navigation.Tests.Windows.csproj", "{1AC5A693-3CC4-4450-AA76-70DA4F0C29DF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Navigation.Tests", "..\sources\engine\Stride.Navigation.Tests\Stride.Navigation.Tests.csproj", "{1AC5A693-3CC4-4450-AA76-70DA4F0C29DF}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Mathematics.Tests", "..\sources\core\Stride.Core.Mathematics.Tests\Stride.Core.Mathematics.Tests.csproj", "{A9A83BE5-271B-4347-9C4D-340FC3BD0B2B}"
 EndProject
@@ -308,7 +308,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Voxels", "..\sources
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "xunit.runner.stride", "..\sources\tests\xunit.runner.stride\xunit.runner.stride.csproj", "{D5B023BE-010F-44A8-ABF1-DB6F3BCEA392}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Engine.NoAssets.Tests.Windows", "..\sources\engine\Stride.Engine.NoAssets.Tests\Stride.Engine.NoAssets.Tests.Windows.csproj", "{1C94168A-3C0D-4C6B-883B-91627D2EF3A1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Engine.NoAssets.Tests", "..\sources\engine\Stride.Engine.NoAssets.Tests\Stride.Engine.NoAssets.Tests.csproj", "{1C94168A-3C0D-4C6B-883B-91627D2EF3A1}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Importer.Common", "..\sources\tools\Stride.Importer.Common\Stride.Importer.Common.csproj", "{806AA078-6070-4BB6-B05B-6EE6B21B1CDE}"
 EndProject

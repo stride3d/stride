@@ -1,10 +1,10 @@
 <Project>
   <Import Project="..\..\targets\Stride.UnitTests.props" />
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
-    <AssemblyName>Stride.Navigation.Tests</AssemblyName>
-    <RootNamespace>Stride.Navigation.Tests</RootNamespace>
+    <TargetFramework>$(StrideXplatEditorTargetFramework)</TargetFramework>
+    <RuntimeIdentifiers>linux-x64;win-x64</RuntimeIdentifiers>
+    <AssemblyName>Stride.Physics.Tests</AssemblyName>
+    <RootNamespace>Stride.Physics.Tests</RootNamespace>
     <EnableDefaultItems>false</EnableDefaultItems>
     <StrideBuildTags>*</StrideBuildTags>
     <StrideCompileAssets>true</StrideCompileAssets>
@@ -18,14 +18,19 @@
   <ItemGroup>
     <ProjectReference Include="..\..\tests\xunit.runner.stride\xunit.runner.stride.csproj" />
     <ProjectReference Include="..\Stride.Engine\Stride.Engine.csproj" />
-    <ProjectReference Include="..\Stride.Navigation\Stride.Navigation.csproj" />
+    <ProjectReference Include="..\Stride.Physics\Stride.Physics.csproj" />
     <ProjectReference Include="..\Stride.Graphics.Regression\Stride.Graphics.Regression.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="SendCollisionEndedWhenEntityIsRemovedTest.cs" />
     <Compile Include="XunitAttributes.cs" />
-    <Compile Include="PlayerController.cs" />
-    <Compile Include="DynamicBarrierTest.cs" />
-    <Compile Include="StaticTest.cs" />
+    <Compile Include="CharacterTest.cs" />
+    <Compile Include="ColliderShapesTest.cs" />
+    <Compile Include="GameTest.cs" />
+    <Compile Include="SkinnedTest.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Stride.Physics.Tests.sdpkg" />
   </ItemGroup>
   <Import Project="..\..\targets\Stride.UnitTests.targets" />
 </Project>
