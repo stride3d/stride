@@ -62,4 +62,13 @@ public sealed class TriangleCollider : ColliderBase
     }
 
     internal override void OnDetach(BufferPool pool){ }
+    public override int GetHashCode()
+    {
+        var hash = new HashCode();
+        hash.Add(base.GetHashCode());
+        hash.Add(_a.X); hash.Add(_a.Y); hash.Add(_a.Z);
+        hash.Add(_b.X); hash.Add(_b.Y); hash.Add(_b.Z);
+        hash.Add(_c.X); hash.Add(_c.Y); hash.Add(_c.Z);
+        return hash.ToHashCode();
+    }
 }
