@@ -24,6 +24,11 @@ namespace Stride.Graphics.SDL
         {
             SDL = Silk.NET.SDL.Sdl.GetApi();
 
+            // jklawreszuk: Workaround for wayland (see #2487 for more details)  
+            // Perhabs there is more elegant solution?
+            if (OperatingSystem.IsLinux())
+                SDL.SetHint("SDL_VIDEODRIVER", "x11");
+
             SDL.Init(Sdl.InitEverything);
 
             // Pass first mouse event when user clicked on window 
@@ -85,6 +90,7 @@ namespace Stride.Graphics.SDL
                 // Create the SDL window and then extract the native handle.
                 sdlHandle = SDL.CreateWindow(title, Sdl.WindowposUndefined, Sdl.WindowposUndefined, 640, 480, (uint)flags);
             }
+            
 
 #if STRIDE_PLATFORM_ANDROID || STRIDE_PLATFORM_IOS
             GraphicsAdapter.DefaultWindow = sdlHandle;
