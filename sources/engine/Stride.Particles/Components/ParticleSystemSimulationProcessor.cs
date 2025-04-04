@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using Stride.Core.Mathematics;
 using Stride.Core.Threading;
 using Stride.Engine;
-using Stride.Games;
 using Stride.Rendering;
 
 namespace Stride.Particles.Components
