@@ -25,7 +25,7 @@ namespace Stride.Graphics.SDL
             SDL = Silk.NET.SDL.Sdl.GetApi();
 
             // jklawreszuk: Workaround for wayland (see #2487 for more details)  
-            // Perhabs there is more elegant solution?
+            // Perhabs there is more elegant solution? (FIXME ?)
             if (OperatingSystem.IsLinux())
                 SDL.SetHint("SDL_VIDEODRIVER", "x11");
 
