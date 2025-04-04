@@ -276,6 +276,15 @@ namespace Stride.Graphics
                     pixelSize = 4;
                     break;
 
+                case PixelFormat.R10G10B10A2_UInt:
+                    format = VkFormat.A2R10G10B10UIntPack32;
+                    pixelSize = 4;
+                    break;
+                case PixelFormat.R10G10B10A2_UNorm:
+                    format = VkFormat.A2R10G10B10UNormPack32;
+                    pixelSize = 4;
+                    break;
+
                 case PixelFormat.R16_Float:
                     format = VkFormat.R16Sfloat;
                     pixelSize = 2;
@@ -395,6 +404,10 @@ namespace Stride.Graphics
                 case PixelFormat.D32_Float:
                     format = VkFormat.D32Sfloat;
                     pixelSize = 4;
+                    break;
+                case PixelFormat.D32_Float_S8X24_UInt:
+                    format = VkFormat.D32SFloatS8UInt;
+                    pixelSize = 8;
                     break;
 
                 case PixelFormat.ETC1:
@@ -554,6 +567,8 @@ namespace Stride.Graphics
 
                         case EffectParameterType.Buffer:
                             return VkDescriptorType.UniformTexelBuffer;
+                        case EffectParameterType.StructuredBuffer:
+                            return VkDescriptorType.StorageBuffer;
 
                         default:
                             throw new NotImplementedException();
@@ -578,6 +593,7 @@ namespace Stride.Graphics
                             return VkDescriptorType.StorageImage;
 
                         case EffectParameterType.Buffer:
+                        case EffectParameterType.StructuredBuffer:
                             return VkDescriptorType.StorageBuffer;
 
                         default:

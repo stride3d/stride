@@ -344,6 +344,12 @@ namespace Stride.Shaders.Compiler.OpenGL
                             layoutQualifier.Layouts.Add(new LayoutKeyValue("binding", layoutBindingIndex + 1));
 
                             resourceBindings.Add(bindings[layoutBindingIndex].Key.KeyName, layoutBindingIndex + 1);
+
+                            // Buffer should not be marked with uniform, this probably should not be here but it works and does not mess anything up.
+                            if (variable.Type.Qualifiers.Contains(StorageQualifier.Buffer))
+                            {
+                                variable.Qualifiers.Values.Remove(StorageQualifier.Uniform);
+                            }
                         }
                     }
                 }

@@ -22,6 +22,11 @@ namespace Stride.Core.Shaders.Ast
         public static readonly Qualifier Uniform = new Qualifier("uniform");
 
         /// <summary>
+        ///   Uniform qualifier.
+        /// </summary>
+        public static readonly Qualifier Buffer = new Qualifier("buffer");
+
+        /// <summary>
         ///   Shared qualifier.
         /// </summary>
         public static readonly Qualifier Shared = new Qualifier("shared");

@@ -101,6 +101,8 @@ namespace Stride.Core.Shaders.Convertor
 
         private int breakIndex = 0;
 
+        private int structedBufferCounter = 0;
+
         #endregion
 
         #region Constructors and Destructors
@@ -243,7 +245,7 @@ namespace Stride.Core.Shaders.Convertor
                 { "GroupMemoryBarrier", "groupMemoryBarrier" },
                 //{ "D3DCOLORtoUBYTE4", "ivec4" }, 
             };
-}
+        }
 
         #endregion
 
@@ -1093,7 +1095,7 @@ namespace Stride.Core.Shaders.Convertor
             if (memberReferenceExpression.Member == "GetDimensions")
             {
                 var textureRef = memberReferenceExpression.Target as VariableReferenceExpression;
-                var variableTexture = this.FindGlobalVariableFromExpression(textureRef);
+                var variableTexture = FindParameterOrGlobalVariableFromExpression(textureRef);
 
                 if (variableTexture == null)
                 {
@@ -1233,6 +1235,7 @@ namespace Stride.Core.Shaders.Convertor
                             "RWBuffer" => ScalarType.Int,
                             "RWTexture2D" => VectorType.Int2,
                             "RWTexture3D" => VectorType.Int3,
+                            "RWTexture2DArray" => VectorType.Int3,
                             _ => throw new NotSupportedException($"imageStore not supported for {variable.Name.Text}")
                         };
 
@@ -1305,6 +1308,24 @@ namespace Stride.Core.Shaders.Convertor
                     var leftParameter = ConvertToSafeExpressionForBinary(methodInvocationExpression.Arguments[NoSwapForBinaryMatrixOperation ? 0 : 1]);
                     var rightParameter = ConvertToSafeExpressionForBinary(methodInvocationExpression.Arguments[NoSwapForBinaryMatrixOperation ? 1 : 0]);
                     return new ParenthesizedExpression(new BinaryExpression(BinaryOperator.Multiply, leftParameter, rightParameter));
+                }
+
+                if (methodName == "rcp")
+                {
+                    var rightParameter = ConvertToSafeExpressionForBinary(methodInvocationExpression.Arguments[0]);
+                    return new ParenthesizedExpression(new BinaryExpression(BinaryOperator.Divide, new LiteralExpression(1.0f), rightParameter));
+                }
+
+                if (methodName == "mad")
+                {
+                    var firstParameter = ConvertToSafeExpressionForBinary(methodInvocationExpression.Arguments[0]);
+                    var secondParameter = ConvertToSafeExpressionForBinary(methodInvocationExpression.Arguments[1]);
+                    var thirdParameter = ConvertToSafeExpressionForBinary(methodInvocationExpression.Arguments[2]);
+
+                    var multiply = new BinaryExpression(BinaryOperator.Multiply, firstParameter, secondParameter);
+                    var add = new BinaryExpression(BinaryOperator.Plus, multiply, thirdParameter);
+
+                    return new ParenthesizedExpression(add);
                 }
 
                 if (methodName == "lit")
@@ -1389,7 +1410,7 @@ namespace Stride.Core.Shaders.Convertor
             var memberReferenceExpression = methodInvocationExpression.Target as MemberReferenceExpression;
             if (memberReferenceExpression != null)
             {
-                var targetVariable = FindGlobalVariableFromExpression(memberReferenceExpression.Target);
+                var targetVariable = FindParameterOrGlobalVariableFromExpression(memberReferenceExpression.Target);
                 if (targetVariable == null)
                 {
                     parserResult.Error("Unable to find target variable for expression [{0}]", methodInvocationExpression.Span, methodInvocationExpression);
@@ -1428,7 +1449,7 @@ namespace Stride.Core.Shaders.Convertor
                             // texture.Load() doesn't require a sampler
                             if (!isLoad)
                             {
-                                sampler = this.FindGlobalVariableFromExpression(methodInvocationExpression.Arguments[0]);
+                                sampler = FindParameterOrGlobalVariableFromExpression(methodInvocationExpression.Arguments[0]);
                             }
                             var glslSampler = GetGLSampler(sampler, targetVariable, true);
 
@@ -2477,6 +2498,7 @@ namespace Stride.Core.Shaders.Convertor
                         "RWBuffer" => ScalarType.Int,
                         "RWTexture2D" => VectorType.Int2,
                         "RWTexture3D" => VectorType.Int3,
+                        "RWTexture2DArray" => VectorType.Int3,
                         _ => throw new NotSupportedException($"imageLoad not supported for {variable.Name.Text}")
                     };
 
@@ -2484,6 +2506,16 @@ namespace Stride.Core.Shaders.Convertor
                     indexerExpression.Index = (Expression)VisitDynamic(indexerExpression.Index);
 
                     return new MethodInvocationExpression("imageLoad", indexerExpression.Target, new MethodInvocationExpression(new TypeReferenceExpression(indexerType), indexerExpression.Index));
+                }
+                else if (classType != null && (classType.Name.Text.StartsWith("StructuredBuffer") || classType.Name.Text.StartsWith("RWStructuredBuffer")))
+                {
+                    // Convert to TargetName.Buffer[index]
+                    indexerExpression.Target = (Expression)VisitDynamic(indexerExpression.Target);
+                    indexerExpression.Index = (Expression)VisitDynamic(indexerExpression.Index);
+
+                    indexerExpression.Target = new MemberReferenceExpression(indexerExpression.Target, "Buffer");
+
+                    return indexerExpression;
                 }
             }
 
@@ -3683,6 +3715,24 @@ namespace Stride.Core.Shaders.Convertor
             }
         }
 
+        private Variable FindParameterOrGlobalVariableFromExpression(Expression expression)
+        {
+            var variableRef = expression as VariableReferenceExpression;
+            if (variableRef != null)
+            {
+                // Check if present in parameter list first.
+                var parameter = CurrentFunction.Parameters.FirstOrDefault(x => x is Stride.Core.Shaders.Ast.Parameter param && param.Name == variableRef.Name);
+                if (parameter != null)
+                {
+                    return parameter;
+                }
+
+                return FindGlobalVariableFromExpression(expression);
+            }
+
+            return null;
+        }
+
         private Variable FindGlobalVariableFromExpression(Expression expression)
         {
             var variableRef = expression as VariableReferenceExpression;
@@ -3695,7 +3745,7 @@ namespace Stride.Core.Shaders.Convertor
                     // If a variable has an initial value, find the global variable
                     if (!shader.Declarations.Contains(variable) && variable.InitialValue != null)
                     {
-                        return this.FindGlobalVariableFromExpression(variable.InitialValue);
+                        return FindGlobalVariableFromExpression(variable.InitialValue);
                     }
 
                     // Is this a global variable?
@@ -4290,6 +4340,29 @@ namespace Stride.Core.Shaders.Convertor
         {
             var targetTypeName = targetType.Name.Text;
 
+            if ((targetTypeName.Equals("StructuredBuffer", StringComparison.Ordinal) || targetTypeName.Equals("RWStructuredBuffer", StringComparison.Ordinal)) 
+                && targetType is IGenerics structuredBufferGenericType)
+            {
+                // Convert to "readonly buffer Name { GenericType Buffer; };
+                var structuredBufferType = structuredBufferGenericType.GenericArguments[0];
+
+                var name = $"Stride_Internal_{structuredBufferType.Name.Text}_{++structedBufferCounter}";
+                var bufferType = new Ast.Glsl.InterfaceType(name)
+                {
+                    Qualifiers = Qualifier.None, // Assign buffer qualifier later as we want the ordering to be correct (readonly should come first)
+                    Fields = [new Variable(new ArrayType(structuredBufferType, new EmptyExpression()), "Buffer")]
+                };
+
+                if (targetTypeName.Equals("StructuredBuffer", StringComparison.Ordinal))
+                {
+                    bufferType.Qualifiers |= StorageQualifier.ReadOnly;
+                }
+
+                bufferType.Qualifiers |= StorageQualifier.Buffer;
+
+                return bufferType;
+            }
+
             if (targetTypeName.StartsWith("Texture", StringComparison.Ordinal))
                 targetTypeName = "texture" + targetTypeName["Texture".Length..];
             else if (targetTypeName.StartsWith("RWTexture", StringComparison.Ordinal))
@@ -4584,17 +4657,31 @@ namespace Stride.Core.Shaders.Convertor
             }
         }
 
+        /// <summary>
+        /// Apply std140 layout to all constant and storage buffers.
+        /// </summary>
         private void ApplyStd140Layout()
         {
             foreach (var constantBuffer in shader.Declarations.OfType<ConstantBuffer>())
             {
-                var layoutQualifier = constantBuffer.Qualifiers.OfType<Stride.Core.Shaders.Ast.Glsl.LayoutQualifier>().FirstOrDefault();
+                var layoutQualifier = constantBuffer.Qualifiers.OfType<LayoutQualifier>().FirstOrDefault();
                 if (layoutQualifier == null)
                 {
-                    layoutQualifier = new Stride.Core.Shaders.Ast.Glsl.LayoutQualifier();
+                    layoutQualifier = new LayoutQualifier();
                     constantBuffer.Qualifiers |= layoutQualifier;
                 }
                 layoutQualifier.Layouts.Add(new LayoutKeyValue("std140"));
+            }
+
+            foreach (var variable in shader.Declarations.OfType<Variable>().Where(x => x.Type.Qualifiers.Contains(StorageQualifier.Buffer)))
+            {
+                var layoutQualifier = variable.Qualifiers.OfType<LayoutQualifier>().FirstOrDefault();
+                if (layoutQualifier == null)
+                {
+                    layoutQualifier = new LayoutQualifier();
+                    variable.Qualifiers |= layoutQualifier;
+                }
+                layoutQualifier.Layouts.Add(new LayoutKeyValue("std430")); // But this is not std140? You are very much correct.
             }
         }
 

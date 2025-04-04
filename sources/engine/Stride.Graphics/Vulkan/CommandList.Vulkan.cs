@@ -373,6 +373,12 @@ namespace Stride.Graphics
                         write->pTexelBufferView = &descriptorData->BufferView;
                         break;
 
+                    case VkDescriptorType.StorageBuffer:
+                        buffer = heapObject.Value as Buffer;
+                        descriptorData->BufferInfo = new VkDescriptorBufferInfo { buffer = buffer?.NativeBuffer ?? VkBuffer.Null, offset = (ulong)heapObject.Offset, range = (ulong)(buffer?.SizeInBytes ?? 0)};
+                        write->pBufferInfo = &descriptorData->BufferInfo;
+                        break;
+
                     default:
                         throw new InvalidOperationException();
                 }
@@ -1321,10 +1327,11 @@ namespace Stride.Graphics
                     throw new InvalidOperationException();
             }
 
-            if (mapMode == MapMode.WriteDiscard)
-            {
-                throw new InvalidOperationException("Can't use WriteDiscard on Graphics API that doesn't support renaming");
-            }
+            // Maybe it just works if removed?
+            //if (mapMode == MapMode.WriteDiscard)
+            //{
+            //    throw new InvalidOperationException("Can't use WriteDiscard on Graphics API that doesn't support renaming");
+            //}
 
             if (mapMode != MapMode.WriteNoOverwrite && mapMode != MapMode.Write)
             {

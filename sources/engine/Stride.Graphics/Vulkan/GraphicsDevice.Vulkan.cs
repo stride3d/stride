@@ -57,7 +57,7 @@ namespace Stride.Graphics
             64, // UniformTexelBuffer
             64, // StorageTexelBuffer
             512, // UniformBuffer
-            0, // StorageBuffer
+            64, // StorageBuffer
             0, // UniformBufferDynamic
             0, // StorageBufferDynamic
             0 // InputAttachment
