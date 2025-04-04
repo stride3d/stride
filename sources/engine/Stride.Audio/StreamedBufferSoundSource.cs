@@ -10,8 +10,9 @@ using Stride.Media;
 
 namespace Stride.Audio
 {
+
     //The audio buffer is extracted by an external, unknown API (MediaCodec, FFMPEG, ...), and then feed into this class
-    public partial class StreamedBufferSoundSource : DynamicSoundSource, IMediaExtractor
+    public partial class StreamedBufferSoundSource : StreamedBufferSoundSourceBase, IMediaExtractor
     {
         /// <summary>
         /// Specifies how much data we wait to have extracted before we send the storage buffer to the audio buffer
@@ -40,18 +41,12 @@ namespace Stride.Audio
         /// </summary>
         private AudioDataStorageBuffer storageBuffer = new AudioDataStorageBuffer();
 
-        private volatile bool isEof;
         private bool beginningOfStream;
 
         private PlayRange playRange;
         private volatile bool looped;
 
         private DateTime lastLoopTime = DateTime.Now;
-
-        /// <summary>
-        /// The media scheduler will check this field to determine whether he can stop waiting for the extractors getting ready
-        /// </summary>
-        private volatile bool seekRequestCompleted = true;
 
         private class AudioDataStorageBuffer
         {
@@ -61,19 +56,7 @@ namespace Stride.Audio
             public TimeSpan PresentationTime;
         }
 
-        public int Channels { get; private set; }
-
-        public int SampleRate { get; private set; }
-
-        public MediaType MediaType => MediaType.Audio;
-
-        public TimeSpan MediaDuration { get; private set; }
-
         public override int MaxNumberOfBuffers => NumberOfBuffers;
-
-        public bool IsDisposed => isDisposed;
-
-        public float SpeedFactor { get; set; } = 1f;
 
         public StreamedBufferSoundSource(SoundInstanceStreamedBuffer instance, MediaSynchronizer synchronizer, string mediaDataUrl, long startPosition, long length)
             : base(instance, NumberOfBuffers, MaxBufferSizeBytes)
@@ -139,16 +122,7 @@ namespace Stride.Audio
             }
         }
 
-        public bool SeekRequestCompleted()
-        {
-            return seekRequestCompleted;
-        }
-        public bool ReachedEndOfMedia()
-        {
-            return isEof;
-        }
-
-        public void Seek(TimeSpan mediaTime)
+        public override void Seek(TimeSpan mediaTime)
         {
             seekRequestCompleted = false;
             commandSeekTime = mediaTime;
