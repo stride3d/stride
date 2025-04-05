@@ -49,7 +49,7 @@ namespace Stride.Input
                     return new InputSourceWinforms(winformsContext.Control);
 #endif
                 default:
-                    throw new InvalidOperationException("GameContext type is not supported by the InputManager");
+                    return null;
             }
         }
     }
