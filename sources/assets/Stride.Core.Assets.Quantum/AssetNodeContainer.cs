@@ -10,12 +10,12 @@ namespace Stride.Core.Assets.Quantum;
 
 public class AssetNodeContainer : NodeContainer, IPrimitiveTypeFilter
 {
-    private static readonly Type[] BasePrimitiveTypes =
+    private static readonly HashSet<Type> SealedPrimitiveTypes =
     [
-        typeof(IReference),
-        typeof(PropertyKey),
+        typeof(string),
         typeof(TimeSpan),
         typeof(DateTime),
+        typeof(decimal),
         typeof(Guid),
         typeof(AssetId),
         typeof(Color),
@@ -31,8 +31,14 @@ public class AssetNodeContainer : NodeContainer, IPrimitiveTypeFilter
         typeof(RectangleF),
         typeof(Rectangle),
         typeof(Matrix),
+        typeof(AngleSingle),
+    ];
+
+    private static readonly Type[] AbstractPrimitiveTypes =
+    [
         typeof(UPath),
-        typeof(AngleSingle)
+        typeof(IReference),
+        typeof(PropertyKey),
     ];
     
     public AssetNodeContainer()
@@ -45,6 +51,6 @@ public class AssetNodeContainer : NodeContainer, IPrimitiveTypeFilter
         if (Nullable.GetUnderlyingType(type) is { } underlyingType)
             type = underlyingType;
 
-        return type.IsPrimitive || type.IsEnum || BasePrimitiveTypes.Any(x => x.IsAssignableFrom(type)) || AssetRegistry.IsExactContentType(type);
+        return type.IsPrimitive || type.IsEnum || SealedPrimitiveTypes.Contains(type) || AbstractPrimitiveTypes.Any(x => x.IsAssignableFrom(type)) || AssetRegistry.IsExactContentType(type);
     }
 }
