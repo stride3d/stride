@@ -34,28 +34,35 @@ namespace Stride.Rendering.UI
                 var renderUIElement = spriteStateKeyPair.Value;
                 renderUIElement.Enabled = uiComponent.Enabled;
 
-                if (renderUIElement.Enabled)
+                if (!renderUIElement.Enabled)
+                    continue;
+
+                // TODO GRAPHICS REFACTOR: Proper bounding box.
+                //renderSprite.BoundingBox = new BoundingBoxExt(new Vector3(float.NegativeInfinity), new Vector3(float.PositiveInfinity));
+
+                // Copy values from ECS to render object
+                renderUIElement.WorldMatrix = uiComponent.Entity.Transform.WorldMatrix;
+
+                renderUIElement.Page = uiComponent.Page;
+                renderUIElement.Sampler = uiComponent.Sampler;
+                renderUIElement.IsFullScreen = uiComponent.IsFullScreen;
+                renderUIElement.Resolution = uiComponent.Resolution;
+                renderUIElement.Size = uiComponent.Size;
+                renderUIElement.ResolutionStretch = uiComponent.ResolutionStretch;
+                renderUIElement.IsBillboard = uiComponent.IsBillboard;
+                renderUIElement.SnapText = uiComponent.SnapText;
+                renderUIElement.IsFixedSize = uiComponent.IsFixedSize;
+
+                if (renderUIElement.RenderGroup != uiComponent.RenderGroup)
                 {
-                    // TODO GRAPHICS REFACTOR: Proper bounding box.
-                    //renderSprite.BoundingBox = new BoundingBoxExt(new Vector3(float.NegativeInfinity), new Vector3(float.PositiveInfinity));
-
-                    // Copy values from ECS to render object
-                    renderUIElement.WorldMatrix = uiComponent.Entity.Transform.WorldMatrix;
-
                     renderUIElement.RenderGroup = uiComponent.RenderGroup;
 
-                    renderUIElement.Page = uiComponent.Page;
-                    renderUIElement.Sampler = uiComponent.Sampler;
-                    renderUIElement.IsFullScreen = uiComponent.IsFullScreen;
-                    renderUIElement.Resolution = uiComponent.Resolution;
-                    renderUIElement.Size = uiComponent.Size;
-                    renderUIElement.ResolutionStretch = uiComponent.ResolutionStretch;
-                    renderUIElement.IsBillboard = uiComponent.IsBillboard;
-                    renderUIElement.SnapText = uiComponent.SnapText;
-                    renderUIElement.IsFixedSize = uiComponent.IsFixedSize;
-
-                    UIRoots.Add(renderUIElement);
+                    // Forces VisibilityGroup.ReevaluateActiveRenderStages for this render object since RenderGroup is used for render stage selection
+                    VisibilityGroup.RenderObjects.Remove(renderUIElement);
+                    VisibilityGroup.RenderObjects.Add(renderUIElement);
                 }
+
+                UIRoots.Add(renderUIElement);
             }
         }
 
@@ -71,12 +78,18 @@ namespace Stride.Rendering.UI
 
         protected override RenderUIElement GenerateComponentData(Entity entity, UIComponent component)
         {
-            return new RenderUIElement { Source = component };
+            return new RenderUIElement
+            { 
+                Source = component,
+                // RenderGroup must be up to date from the start as VisibilityGroup.ReevaluateActiveRenderStages
+                // reads from it for this objects' initial render stage
+                RenderGroup = component.RenderGroup 
+            };
         }
 
         protected override bool IsAssociatedDataValid(Entity entity, UIComponent component, RenderUIElement associatedData)
         {
-            return associatedData.Source == component;
+            return associatedData.Source == component && component.RenderGroup == associatedData.RenderGroup;
         }
     }
 }
