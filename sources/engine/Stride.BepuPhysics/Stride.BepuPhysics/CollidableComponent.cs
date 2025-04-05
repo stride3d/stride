@@ -71,7 +71,7 @@ public abstract class CollidableComponent : EntityComponent
     /// <remarks>
     /// Changing this value will reset some of the internal physics state of this body
     /// </remarks>
-    [NotNullAttribute]
+    [NotNull]
     [Display(category: CategoryCollider, Expand = ExpandRule.Always)]
     public required ICollider Collider
     {
@@ -161,7 +161,7 @@ public abstract class CollidableComponent : EntityComponent
     /// <summary>
     /// Which simulation this object is assigned to
     /// </summary>
-    [NotNullAttribute]
+    [NotNull]
     [DefaultValueIsSceneBased]
     [Display(category: CategoryContacts)]
     public ISimulationSelector SimulationSelector
