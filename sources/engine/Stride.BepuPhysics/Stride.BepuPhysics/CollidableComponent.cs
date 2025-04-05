@@ -18,10 +18,19 @@ using NRigidPose = BepuPhysics.RigidPose;
 
 namespace Stride.BepuPhysics;
 
+[CategoryOrder(5, CategoryCollider)]
+[CategoryOrder(10, CategoryForces, Expand = ExpandRule.Once)]
+[CategoryOrder(15, CategoryContacts, Expand = ExpandRule.Once)]
+[CategoryOrder(20, CategoryActivity, Expand = ExpandRule.Once)]
 [DataContract(Inherited = true)]
 [DefaultEntityComponentProcessor(typeof(CollidableProcessor), ExecutionMode = ExecutionMode.Runtime)]
 public abstract class CollidableComponent : EntityComponent
 {
+    public const string CategoryCollider = "Collider";
+    public const string CategoryForces = "Forces";
+    public const string CategoryContacts = "Contacts";
+    public const string CategoryActivity = "Activity";
+
     private static uint IdCounter;
     private static uint VersioningCounter;
 
@@ -62,7 +71,8 @@ public abstract class CollidableComponent : EntityComponent
     /// <remarks>
     /// Changing this value will reset some of the internal physics state of this body
     /// </remarks>
-    [Display(Expand = ExpandRule.Always)]
+    [NotNullAttribute]
+    [Display(category: CategoryCollider, Expand = ExpandRule.Always)]
     public required ICollider Collider
     {
         get
@@ -92,6 +102,7 @@ public abstract class CollidableComponent : EntityComponent
     /// but the integrator timestep is only 60hz,
     /// the unrepresentable motion will get damped out and the body won't bounce as much.
     /// </remarks>
+    [Display(category: CategoryForces)]
     public float SpringFrequency
     {
         get
@@ -108,6 +119,7 @@ public abstract class CollidableComponent : EntityComponent
     /// <summary>
     /// The amount of energy/velocity lost when this collidable bounces off
     /// </summary>
+    [Display(category: CategoryForces)]
     public float SpringDampingRatio
     {
         get
@@ -121,6 +133,7 @@ public abstract class CollidableComponent : EntityComponent
         }
     }
 
+    [Display(category: CategoryForces)]
     public float FrictionCoefficient
     {
         get => _frictionCoefficient;
@@ -134,6 +147,7 @@ public abstract class CollidableComponent : EntityComponent
     /// <summary>
     /// The maximum speed this object will exit out of the collision when overlapping another collidable
     /// </summary>
+    [Display(category: CategoryForces)]
     public float MaximumRecoveryVelocity
     {
         get => _maximumRecoveryVelocity;
@@ -145,37 +159,11 @@ public abstract class CollidableComponent : EntityComponent
     }
 
     /// <summary>
-    /// Controls how this object interacts with other objects, allow or prevent collisions between
-    /// it and other groups based on how <see cref="BepuSimulation.CollisionMatrix"/> is set up.
-    /// </summary>
-    [DefaultValue(CollisionLayer.Layer0)]
-    [DataAlias("CollisionMask")]
-    public CollisionLayer CollisionLayer
-    {
-        get => _collisionLayer;
-        set
-        {
-            _collisionLayer = value;
-            TryUpdateMaterialProperties();
-        }
-    }
-
-    /// <inheritdoc cref="Stride.BepuPhysics.Definitions.CollisionGroup"/>
-    [DataAlias("FilterByDistance")]
-    public CollisionGroup CollisionGroup
-    {
-        get => _collisionGroup;
-        set
-        {
-            _collisionGroup = value;
-            TryUpdateMaterialProperties();
-        }
-    }
-
-    /// <summary>
     /// Which simulation this object is assigned to
     /// </summary>
+    [NotNullAttribute]
     [DefaultValueIsSceneBased]
+    [Display(category: CategoryContacts)]
     public ISimulationSelector SimulationSelector
     {
         get
@@ -191,8 +179,39 @@ public abstract class CollidableComponent : EntityComponent
     }
 
     /// <summary>
+    /// Controls how this object interacts with other objects, allow or prevent collisions between
+    /// it and other groups based on how <see cref="BepuSimulation.CollisionMatrix"/> is set up.
+    /// </summary>
+    [DefaultValue(CollisionLayer.Layer0)]
+    [DataAlias("CollisionMask")]
+    [Display(category: CategoryContacts)]
+    public CollisionLayer CollisionLayer
+    {
+        get => _collisionLayer;
+        set
+        {
+            _collisionLayer = value;
+            TryUpdateMaterialProperties();
+        }
+    }
+
+    /// <inheritdoc cref="Stride.BepuPhysics.Definitions.CollisionGroup"/>
+    [DataAlias("FilterByDistance")]
+    [Display(category: CategoryContacts)]
+    public CollisionGroup CollisionGroup
+    {
+        get => _collisionGroup;
+        set
+        {
+            _collisionGroup = value;
+            TryUpdateMaterialProperties();
+        }
+    }
+
+    /// <summary>
     /// Provides the ability to collect and mutate contact data when this object collides with other objects.
     /// </summary>
+    [Display(category: CategoryContacts)]
     public IContactEventHandler? ContactEventHandler
     {
         get

@@ -46,6 +46,7 @@ public class BodyComponent : CollidableComponent
     /// <summary>
     /// When kinematic is set, the object will not be affected by physics forces like gravity or collisions but will still push away bodies it collides with.
     /// </summary>
+    [Display(category: CategoryForces)]
     public bool Kinematic
     {
         get => _kinematic;
@@ -67,6 +68,7 @@ public class BodyComponent : CollidableComponent
 
     /// <summary> Whether gravity should affect the simulation's <see cref="BepuSimulation.PoseGravity"/> </summary>
     /// <remarks> Gravity is always active if <see cref="BepuSimulation.UsePerBodyAttributes"/> is false </remarks>
+    [Display(category: CategoryForces)]
     public bool Gravity
     {
         get => _gravity;
@@ -81,27 +83,12 @@ public class BodyComponent : CollidableComponent
     }
 
     /// <summary>
-    /// Controls whether and how the motion of this body is smoothed out between physics update
-    /// </summary>
-    public InterpolationMode InterpolationMode
-    {
-        get => _interpolationMode;
-        set
-        {
-            if (_interpolationMode == InterpolationMode.None && value != InterpolationMode.None)
-                Simulation?.RegisterInterpolated(this);
-            if (_interpolationMode != InterpolationMode.None && value == InterpolationMode.None)
-                Simulation?.UnregisterInterpolated(this);
-            _interpolationMode = value;
-        }
-    }
-
-    /// <summary>
     /// Whether the object's path or only its destination is checked for collision when moving, prevents objects from passing through each other at higher speed
     /// </summary>
     /// <remarks>
     /// This property is a shortcut to the <see cref="ContinuousDetection"/>.<see cref="ContinuousDetection.Mode"/> property
     /// </remarks>
+    [Display(category: CategoryForces)]
     public ContinuousDetectionMode ContinuousDetectionMode
     {
         get => _continuous.Mode;
@@ -121,9 +108,27 @@ public class BodyComponent : CollidableComponent
     }
 
     /// <summary>
+    /// Controls whether and how the motion of this body is smoothed out between physics update
+    /// </summary>
+    [Display(category: CategoryForces)]
+    public InterpolationMode InterpolationMode
+    {
+        get => _interpolationMode;
+        set
+        {
+            if (_interpolationMode == InterpolationMode.None && value != InterpolationMode.None)
+                Simulation?.RegisterInterpolated(this);
+            if (_interpolationMode != InterpolationMode.None && value == InterpolationMode.None)
+                Simulation?.UnregisterInterpolated(this);
+            _interpolationMode = value;
+        }
+    }
+
+    /// <summary>
     /// Threshold of squared combined velocity under which the body is allowed to go to sleep.
     /// Setting this to a negative value guarantees the body cannot go to sleep without user action.
     /// </summary>
+    [Display(category: CategoryActivity)]
     public float SleepThreshold
     {
         get => _sleepThreshold;
@@ -147,6 +152,7 @@ public class BodyComponent : CollidableComponent
     /// The number of time steps that the body must be under the sleep threshold before the body becomes a sleeping candidate.
     /// Note that the body is not guaranteed to go to sleep immediately after meeting this minimum.
     /// </summary>
+    [Display(category: CategoryActivity)]
     public byte MinimumTimestepCountUnderThreshold
     {
         get => _minimumTimestepCountUnderThreshold;
