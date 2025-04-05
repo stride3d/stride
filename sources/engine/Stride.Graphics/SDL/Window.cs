@@ -25,7 +25,7 @@ namespace Stride.Graphics.SDL
             SDL = Silk.NET.SDL.Sdl.GetApi();
 
             // jklawreszuk: Workaround for wayland (see #2487 for more details)  
-            // Perhabs there is more elegant solution? (FIXME ?)
+            // Wayland SDL_EGL_MakeCurrent does not cover multi-context scenario (https://github.com/libsdl-org/SDL/issues/9072)
             if (OperatingSystem.IsLinux())
                 SDL.SetHint("SDL_VIDEODRIVER", "x11");
 
