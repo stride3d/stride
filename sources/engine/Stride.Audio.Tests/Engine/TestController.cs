@@ -82,7 +82,7 @@ namespace Stride.Audio.Tests.Engine
 
         private void AddRootEntityToEntitySystem(Game game)
         {
-            Internal.Refactor.ThrowNotImplementedException("TODO: UPDATE TO USE Scene and Graphics Composer"); 
+            throw new NotImplementedException("TODO: UPDATE TO USE Scene and Graphics Composer"); 
             //game.Entities.Add(rootEntity);
         }
 
@@ -325,7 +325,7 @@ namespace Stride.Audio.Tests.Engine
             else if (loopCount == 500)
             {
                 // check that the sound is stopped when removing the sound Entity from the system.
-                Internal.Refactor.ThrowNotImplementedException("TODO: UPDATE TO USE Scene and Graphics Composer"); 
+                throw new NotImplementedException("TODO: UPDATE TO USE Scene and Graphics Composer"); 
                 //game.Entities.Remove(rootEntity);
                 Assert.True(PlayState.Stopped == soundControllers[2].PlayState, "The sound has not been stopped when the emitter's entities have been removed.");
             }
@@ -462,7 +462,7 @@ namespace Stride.Audio.Tests.Engine
             var extraList = new AudioListenerComponent();
             var extraListEntity = new Entity();
             extraListEntity.Add(extraList);
-            Internal.Refactor.ThrowNotImplementedException("TODO: UPDATE TO USE Scene and Graphics Composer"); 
+            throw new NotImplementedException("TODO: UPDATE TO USE Scene and Graphics Composer"); 
             //game.Entities.Add(extraListEntity);
 
             // check that PlayState always returns 'PlayState.Stopped' when there are no listeners
