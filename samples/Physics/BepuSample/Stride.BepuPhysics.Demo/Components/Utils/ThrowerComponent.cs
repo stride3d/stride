@@ -11,6 +11,7 @@ namespace Stride.BepuPhysics.Demo.Components.Utils
     [ComponentCategory("BepuDemo - Utils")]
     public class ThrowerComponent : Spawner
     {
+        public Entity CameraEntity { get; set; }
         public Entity? SpawnPosition { get; set; }
 
         public float Speed { get; set; } = 20f;
@@ -23,8 +24,7 @@ namespace Stride.BepuPhysics.Demo.Components.Utils
 
             if (Input.IsKeyPressed(Keys.T))
             {
-                var camera = Game.Services.GetService<SceneSystem>().GraphicsCompositor.Cameras[0].Camera;
-                var forward = Vector3.TransformNormal(-Vector3.UnitZ, Matrix.RotationQuaternion(camera.Entity.Transform.GetWorldRot()));
+                var forward = Vector3.TransformNormal(-Vector3.UnitZ, Matrix.RotationQuaternion(CameraEntity.Transform.GetWorldRot()));
 
                 Spawn(SpawnPosition.Transform.GetWorldPos(), (forward * Speed), new());
             }

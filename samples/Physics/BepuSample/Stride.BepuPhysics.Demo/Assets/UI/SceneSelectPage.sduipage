@@ -11,8 +11,9 @@ Hierarchy:
         -   UIElement: !StackPanel
                 Id: a5c63225-def2-4f29-bdb5-b27874ca0df3
                 DependencyProperties:
-                    d69b68dad4122d19ac5c4471870d9150~GridBase.RowSpanPropertyKey: 3
+                    d69b68dad4122d19ac5c4471870d9150~GridBase.RowSpanPropertyKey: 2
                     64cbbcbf15bbb3dc586e3f77b51c4bb0~GridBase.RowPropertyKey: 1
+                    fec9ccbd4042b416ef49c6586be7f7c8~GridBase.ColumnPropertyKey: 2
                 BackgroundColor: {R: 0, G: 0, B: 0, A: 0}
                 Margin: {}
                 MaximumWidth: 3.4028235E+38
@@ -31,9 +32,6 @@ Hierarchy:
                 Children:
                     74cc1a8f6cdc3f533e5d558a56e1abfd: !StackPanel ref!! a5c63225-def2-4f29-bdb5-b27874ca0df3
                 RowDefinitions:
-                    5718ab594bcae20f9b50aa9b8fac960a:
-                        Type: Fixed
-                        SizeValue: 50.0
                     243a2ab8bf5b7e425091f7cf1c8d855b: {}
                     4cbe1ad28d37029c9f967529f719e547: {}
                     c126a0cbe5e3e108ec3d1a88239455e9: {}

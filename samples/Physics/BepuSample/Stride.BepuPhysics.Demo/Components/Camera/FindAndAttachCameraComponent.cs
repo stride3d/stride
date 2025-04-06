@@ -1,5 +1,7 @@
+using System;
 using Stride.BepuPhysics.Demo.Extensions;
 using Stride.Engine;
+using Stride.Core.Mathematics;
 
 namespace Stride.BepuPhysics.Demo.Components.Camera;
 public class FindAndAttachCameraComponent : SyncScript
@@ -14,8 +16,18 @@ public class FindAndAttachCameraComponent : SyncScript
 
     public override void Update()
     {
-        CameraComponent.Entity.Transform.Position = Entity.Transform.Position;
-        CameraComponent.Entity.Transform.Rotation = Entity.Transform.Rotation;
+        var deltaTime = (float)Game.UpdateTime.Elapsed.TotalSeconds;
+        var currentPosition = CameraComponent.Entity.Transform.Position;
+        var currentRotation = CameraComponent.Entity.Transform.Rotation;
+
+        var lerpSpeed = 1f - MathF.Exp(-100 * deltaTime);
+
+        Entity.Transform.GetWorldTransformation(out var otherPosition, out var otherRotation, out var _);
+
+        var newPosition = Vector3.Lerp(currentPosition, otherPosition, lerpSpeed);
+        CameraComponent.Entity.Transform.Position = newPosition;
+        Quaternion.Slerp(ref currentRotation, ref otherRotation, lerpSpeed, out var newRotation);
+        CameraComponent.Entity.Transform.Rotation = newRotation;
     }
 
     private CameraComponent? SetMainSceneCamera(SceneInstance sceneInstance)

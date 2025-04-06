@@ -372,6 +372,7 @@ Hierarchy:
                         Id: 67df5532-0bbd-478a-ae89-cd0a40c696f1
                         SpawnPrefab: 479558df-2f6b-4998-bbbf-73fd053e2554:Prefabs/Bepu/BepuInstancedCube
                         Instancing: ref!! 191e406f-0e44-44c1-b32d-acbfc269c2b6
+                        CameraEntity: ref!! 8f62e9b1-498d-4dfe-a8bb-ceaa4702eb5d
                         SpawnPosition: ref!! 8f62e9b1-498d-4dfe-a8bb-ceaa4702eb5d
                         Speed: 20.0
                     c49649f7c41f42ee571f479a236cc7d1: !Stride.BepuPhysics.Demo.Components.SceneDescriptionComponent,Stride.BepuPhysics.Demo
@@ -393,7 +394,7 @@ Hierarchy:
                         ResultPage: 1
                     3e9e8d6e7b24d918d3823713e8c37068: !Stride.BepuPhysics.Demo.Components.Utils.GravityGunComponent,Stride.BepuPhysics.Demo
                         Id: 87114be3-98e3-4bf8-9346-627867f07f8a
-                        Camera: null
+                        CameraEntity: ref!! 8f62e9b1-498d-4dfe-a8bb-ceaa4702eb5d
                         SimIndex: 1
                     d2a1aba10bc6c540b3a7b9c522852328: !Stride.BepuPhysics.Demo.Components.Utils.TimeControlComponent,Stride.BepuPhysics.Demo
                         Id: 7d2ba482-6949-4481-a60a-fa8c769c71a6

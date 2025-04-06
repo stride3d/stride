@@ -24,7 +24,7 @@ namespace Stride.BepuPhysics.Demo.Components.Utils
         private int simIndex = 0;
         private BepuConfiguration? _config;
 
-        public CameraComponent? Camera { get; set; }
+        public Entity? CameraEntity { get; set; }
         public int SimIndex
         {
             get => simIndex; set
@@ -35,7 +35,7 @@ namespace Stride.BepuPhysics.Demo.Components.Utils
         }
         public void SetActive(HitInfo info)
         {
-            if (_body != null || Camera == null)
+            if (_body != null || CameraEntity == null)
                 return;
 
             if (info.Collidable is not BodyComponent body)
@@ -61,21 +61,21 @@ namespace Stride.BepuPhysics.Demo.Components.Utils
             _body = body;
             _distance = info.Distance;
             _localGrabPoint = Vector3.Transform(info.Point - _body.Position, Quaternion.Invert(_body.Orientation));
-            _targetOrientation = body.Entity.Transform.GetWorldRot() * Quaternion.Invert(Camera.Entity.Transform.GetWorldRot());
+            _targetOrientation = body.Entity.Transform.GetWorldRot() * Quaternion.Invert(CameraEntity.Transform.GetWorldRot());
         }
         public void UpdateConstraints()
         {
-            if (Camera == null || _body == null || _oblscc == null || _obascc == null)
+            if (CameraEntity == null || _body == null || _oblscc == null || _obascc == null)
                 return;
 
             var rayDirection = GetCameraRay();
-            var targetPoint = Camera.Entity.Transform.WorldMatrix.TranslationVector + rayDirection * _distance;
+            var targetPoint = CameraEntity.Transform.WorldMatrix.TranslationVector + rayDirection * _distance;
 
             _oblscc.LocalOffset = _localGrabPoint;
             _oblscc.Target = targetPoint;
             _oblscc.Enabled = true;
 
-            _obascc.TargetOrientation = _targetOrientation * Camera.Entity.Transform.GetWorldRot();
+            _obascc.TargetOrientation = _targetOrientation * CameraEntity.Transform.GetWorldRot();
             _obascc.Enabled = true;
         }
         public void UnsetActive()
@@ -99,14 +99,14 @@ namespace Stride.BepuPhysics.Demo.Components.Utils
 
         public override void Update()
         {
-            if (Camera == null || _config == null)
+            if (CameraEntity == null || _config == null)
                 return;
 
             if (_body == null)
             {
                 if (Input.IsMouseButtonDown(MouseButton.Left))
                 {
-                    if (_config.BepuSimulations[SimIndex].RayCast(Camera.Entity.Transform.WorldMatrix.TranslationVector, GetCameraRay(), 25, out var info))
+                    if (_config.BepuSimulations[SimIndex].RayCast(CameraEntity.Transform.WorldMatrix.TranslationVector, GetCameraRay(), 25, out var info))
                     {
                         SetActive(info);
                         DebugText.Print(info.ToString(), new(20, 500));
@@ -117,10 +117,10 @@ namespace Stride.BepuPhysics.Demo.Components.Utils
             {
                 _distance += Input.MouseWheelDelta;
                 var rayDirection = GetCameraRay();
-                var targetPoint = Camera.Entity.Transform.WorldMatrix.TranslationVector + rayDirection * _distance;
+                var targetPoint = CameraEntity.Transform.WorldMatrix.TranslationVector + rayDirection * _distance;
 
                 DebugText.Print($"object should go at {targetPoint} and is at {_body.Position}", new(20, 600));
-                DebugText.Print($"Camera : {Camera.Entity.Transform.GetWorldPos()}", new(20, 650));
+                DebugText.Print($"Camera : {CameraEntity.Transform.GetWorldPos()}", new(20, 650));
 
                 if (Input.IsKeyDown(Keys.K))
                 {
@@ -143,10 +143,10 @@ namespace Stride.BepuPhysics.Demo.Components.Utils
         }
         private Vector3 GetCameraRay() //There is porbably a better way, but it's ok for now.
         {
-            if (Camera == null)
+            if (CameraEntity == null)
                 return Vector3.Zero;
 
-            var wrot = Camera.Entity.Transform.GetWorldRot();
+            var wrot = CameraEntity.Transform.GetWorldRot();
             var res = Vector3.Transform(-Vector3.UnitZ, wrot);
             DebugText.Print(res.ToString(), new(20, 550));
             return res;

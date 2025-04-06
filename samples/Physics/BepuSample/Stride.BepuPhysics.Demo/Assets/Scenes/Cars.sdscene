@@ -888,6 +888,7 @@ Hierarchy:
                         Id: b6d6c3d6-0215-4c8e-9298-067071fec188
                         SpawnPrefab: 479558df-2f6b-4998-bbbf-73fd053e2554:Prefabs/Bepu/BepuInstancedCube
                         Instancing: ref!! c9c947fa-78a6-4fd7-bb81-24983ca6b3ff
+                        CameraEntity: null
                         SpawnPosition: ref!! b27fbebd-9210-4f5a-9fa1-930d6c7c21cd
                         Speed: 20.0
                     c49649f7c41f42ee571f479a236cc7d1: !Stride.BepuPhysics.Demo.Components.SceneDescriptionComponent,Stride.BepuPhysics.Demo

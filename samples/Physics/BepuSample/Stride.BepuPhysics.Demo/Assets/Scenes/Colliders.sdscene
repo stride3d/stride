@@ -567,6 +567,7 @@ Hierarchy:
                         Id: 7fce2df0-a5f9-47dc-baad-5d0eaa862956
                         SpawnPrefab: 479558df-2f6b-4998-bbbf-73fd053e2554:Prefabs/Bepu/BepuInstancedCube
                         Instancing: ref!! 1c9d86d7-bb42-4183-bf0f-9ec8fa5cf41b
+                        CameraEntity: ref!! f06c3f0f-39a1-40b9-8be8-c4b3b3b07770
                         SpawnPosition: ref!! f06c3f0f-39a1-40b9-8be8-c4b3b3b07770
                         Speed: 20.0
                     c49649f7c41f42ee571f479a236cc7d1: !Stride.BepuPhysics.Demo.Components.SceneDescriptionComponent,Stride.BepuPhysics.Demo
@@ -591,12 +592,8 @@ Hierarchy:
                         ResultPage: 1
                     a972fa57a5da192a86308da7d2882cb0: !Stride.BepuPhysics.Demo.Components.Utils.GravityGunComponent,Stride.BepuPhysics.Demo
                         Id: 8679aa9b-1aa9-479e-be27-01ed703bfb58
-                        Camera: null
+                        CameraEntity: ref!! f06c3f0f-39a1-40b9-8be8-c4b3b3b07770
                         SimIndex: 0
-                    77ef64187e277b75062cb8d71ded09cf: !Stride.BepuPhysics.Debug.DebugRenderComponent,Stride.BepuPhysics.Debug
-                        Id: e927dc6b-05f6-4f1a-8fce-4b3c64273cfa
-                        Key: F11
-                        Visible: true
         -   Entity:
                 Id: 90d1dd74-2e69-441c-9314-fe409de4d535
                 Name: TestEntityTree

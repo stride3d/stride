@@ -27,8 +27,6 @@ namespace Stride.BepuPhysics.Demo.Components.Camera
         public float MinimumCameraDistance = 5f;
         public Vector3 CameraOffset = new Vector3(0, 0, 5);
 
-
-
         public override void Start()
         {
             Game.IsMouseVisible = false;

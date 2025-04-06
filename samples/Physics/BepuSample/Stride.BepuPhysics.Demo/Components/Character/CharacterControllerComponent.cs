@@ -21,21 +21,32 @@ public class CharacterControllerComponent : CharacterComponent, IComponent<Chara
     private Vector3 _cameraAngle;
     private UpdateCaller _processor = null!;
 
+    private bool _enabled = false;
+
     private void Update()
     {
         if (_processor.Inputs.IsKeyPressed(Keys.Tab))
         {
             _processor.Game.IsMouseVisible = !_processor.Game.IsMouseVisible;
             if (_processor.Game.IsMouseVisible)
+            {
                 _processor.Inputs.UnlockMousePosition();
+                _enabled = false;
+            }
             else
+            {
                 _processor.Inputs.LockMousePosition(true);
+                _enabled = true;
+            }
         }
 
-        Move();
-        Rotate();
-        if (_processor.Inputs.IsKeyPressed(Keys.Space))
-            TryJump();
+        if (_enabled)
+        {
+            Move();
+            Rotate();
+            if (_processor.Inputs.IsKeyPressed(Keys.Space))
+                TryJump();
+        }
     }
 
     public override void SimulationUpdate(BepuSimulation simulation, float simTimeStep)
@@ -96,9 +107,8 @@ public class CharacterControllerComponent : CharacterComponent, IComponent<Chara
         {
             Inputs = registryParam.GetService<InputManager>();
             Game = registryParam.GetService<IGame>();
-            Inputs.LockMousePosition(true);
-            Game.IsMouseVisible = false;
         }
+
         public void SystemRemoved() { }
 
         public void OnComponentAdded(CharacterControllerComponent item)
