@@ -4,6 +4,7 @@
 using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.DotRecast.Components;
+using Stride.DotRecast.Definitions;
 using Stride.Engine;
 using Stride.Games;
 
