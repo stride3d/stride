@@ -242,16 +242,14 @@ public class AssetPropertyGraph : IDisposable
         var nodesToReset = new Dictionary<IGraphNode, NodeIndex>();
 
         IGraphNode? visitRoot = null;
-        var memberNode = rootNode as AssetMemberNode;
-        if (memberNode is not null)
+        if (rootNode is AssetMemberNode memberNode)
         {
             if (indexToReset != NodeIndex.Empty) throw new InvalidOperationException("Expecting empty index when resetting a member node.");
             visitRoot = memberNode.Target;
             nodesToReset.Add(rootNode, indexToReset);
         }
 
-        var objectNode = rootNode as AssetObjectNode;
-        if (objectNode is not null)
+        if (rootNode is AssetObjectNode objectNode)
         {
             if (indexToReset != NodeIndex.Empty)
             {
@@ -286,13 +284,6 @@ public class AssetPropertyGraph : IDisposable
         var visitor = new ClearObjectReferenceVisitor(Definition, objectIds);
         visitor.Visit(RootNode);
     }
-
-    /// <summary>
-    /// Creates an instance of <see cref="GraphVisitorBase"/> that is suited to reconcile properties with the base.
-    /// </summary>
-    /// <returns>A new instance of <see cref="GraphVisitorBase"/> for reconciliation.</returns>
-    [Obsolete($"To be removed in future releases. Use {nameof(CreateReconcilerVisitor)} instead.")]
-    public virtual GraphVisitorBase CreateReconcilierVisitor() => CreateReconcilerVisitor();
 
     public virtual GraphVisitorBase CreateReconcilerVisitor()
     {
@@ -433,8 +424,7 @@ public class AssetPropertyGraph : IDisposable
             var memberNode = node as AssetMemberNode;
             memberNode?.SetContentOverride(overrideInfo.Value);
 
-            var objectNode = node as IAssetObjectNode;
-            if (objectNode is not null)
+            if (node is IAssetObjectNode objectNode)
             {
                 if (!overrideOnKey)
                 {

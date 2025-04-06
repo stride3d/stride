@@ -95,14 +95,7 @@ public static class SerializerExtensions
         dataSerializer.PreSerialize(ref obj, mode, stream);
         dataSerializer.Serialize(ref obj, mode, stream);
     }
-    /// <summary>Serializes or deserializes the memory using <see cref="SerializationStream.Serialize(Span{byte})"/>.</summary>
-    [Obsolete("Use Serialize(Span<byte>)")]
-    public static unsafe void Serialize(this SerializationStream serializer, nint ptr, int length)
-        => serializer.Serialize((void*)ptr, length);
-    /// <summary>Serializes or deserializes the memory using <see cref="SerializationStream.Serialize(Span{byte})"/>.</summary>
-    [Obsolete("Use Serialize(Span<byte>)")]
-    public static unsafe void Serialize(this SerializationStream serializer, void* ptr, int length)
-        => serializer.Serialize(new Span<byte>(ptr, length));
+
     /// <summary>Serializes or deserializes the value using <see cref="SerializationStream.Serialize(Span{byte})"/>.</summary>
     public static void Serialize<T>(this SerializationStream serializer, ref T value)
     {

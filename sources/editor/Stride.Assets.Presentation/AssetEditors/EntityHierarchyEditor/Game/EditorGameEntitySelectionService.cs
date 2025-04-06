@@ -101,7 +101,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
         private IEditorGameComponentGizmoService Gizmos => Services.Get<IEditorGameComponentGizmoService>();
 
         /// <inheritdoc />
-        public override Task DisposeAsync()
+        public override ValueTask DisposeAsync()
         {
             EnsureNotDestroyed(nameof(EditorGameEntitySelectionService));
 
