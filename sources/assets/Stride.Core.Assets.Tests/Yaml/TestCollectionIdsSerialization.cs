@@ -62,6 +62,28 @@ public class TestCollectionIdsSerialization
         public Dictionary<string, ContainerCollection> NonIdentifiableObjects { get; set; } = [];
     }
 
+    public class ContainerCollectionWithInitialData
+    {
+        public List<string> Strings { get; set; } = ["InitialData"];
+    }
+
+    public class ContainerDictionaryWithInitialData
+    {
+        public Dictionary<string, string> Strings { get; set; } = new() { { "InitialDataK", "InitialDataV" } };
+    }
+
+    public class ContainerCollectionWithInitialDataNonId
+    {
+        [NonIdentifiableCollectionItems]
+        public List<string> Strings { get; set; } = ["InitialDataNonId"];
+    }
+
+    public class ContainerDictionaryWithInitialDataNonId
+    {
+        [NonIdentifiableCollectionItems]
+        public Dictionary<string, string> Strings { get; set; } = new() { { "InitialDataNonIdK", "InitialDataNonIdV" } };
+    }
+
 
     private const string YamlCollection =
         """
@@ -670,5 +692,52 @@ public class TestCollectionIdsSerialization
         hashSet.Add(ids["key3"]);
         hashSet.Add(ids["key4"]);
         Assert.Equal(5, hashSet.Count);
+    }
+
+    [Fact]
+    public void TestCollectionWithInitialDataSerialization()
+    {
+        var output = RoundTrip(new ContainerCollectionWithInitialData
+        {
+            Strings = new() { "ReplacedData" }
+        });
+        Assert.NotNull(output);
+        Assert.Single(output.Strings);
+        Assert.Equal("ReplacedData", output.Strings[0]);
+        
+        var output2 = RoundTrip(new ContainerDictionaryWithInitialData
+        {
+            Strings = new() { { "ReplacedDataK", "ReplacedDataV" } }
+        });
+        Assert.NotNull(output2);
+        Assert.Single(output2.Strings);
+        Assert.Equal(new KeyValuePair<string, string>("ReplacedDataK", "ReplacedDataV"), output2.Strings.First());
+        
+        var output3 = RoundTrip(new ContainerCollectionWithInitialDataNonId
+        {
+            Strings = new() { "ReplacedData" }
+        });
+        Assert.NotNull(output3);
+        Assert.Single(output3.Strings);
+        Assert.Equal("ReplacedData", output3.Strings[0]);
+        
+        var output4 = RoundTrip(new ContainerDictionaryWithInitialDataNonId
+        {
+            Strings = new() { { "ReplacedDataK", "ReplacedDataV" } }
+        });
+        Assert.NotNull(output4);
+        Assert.Single(output4.Strings);
+        Assert.Equal(new KeyValuePair<string, string>("ReplacedDataK", "ReplacedDataV"), output4.Strings.First());
+
+        static T? RoundTrip<T>(T instance) where T : class
+        {
+            var yaml = SerializeAsString(instance);
+            var stream = new MemoryStream();
+            var writer = new StreamWriter(stream);
+            writer.Write(yaml);
+            writer.Flush();
+            stream.Position = 0;
+            return AssetYamlSerializer.Default.Deserialize(stream) as T;
+        }
     }
 }
