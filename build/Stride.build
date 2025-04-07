@@ -11,7 +11,7 @@ Example of use:
     <StrideVisualStudioSolution>$(StrideRoot)build\Stride.VisualStudio</StrideVisualStudioSolution>
     <StrideSolutionLauncher>$(StrideRoot)build\Stride.Launcher</StrideSolutionLauncher>
     <StridePlatforms Condition="'$(StridePlatforms)' == ''">Windows</StridePlatforms>
-    <BuildProperties>Configuration=Release;NoWarn=1591;DeployExtension=false;StridePlatforms=$([MSBuild]::Escape('$(StridePlatforms)'));StrideGraphicsApiDependentBuildAll=$(StrideGraphicsApiDependentBuildAll)</BuildProperties>
+    <BuildProperties>Configuration=Release;NoWarn=1591;DeployExtension=false;StridePlatforms=$([MSBuild]::Escape('$(StridePlatforms)'));StrideGraphicsApiDependentBuildAll=$(StrideGraphicsApiDependentBuildAll);StrideNativeWindowsArm64Enabled=true</BuildProperties>
     <StrideSign Condition="'$(StrideSign)' == ''">true</StrideSign>
     <BuildProperties Condition="'$(StrideSign)' != ''">$(BuildProperties);StrideSign=$(StrideSign)</BuildProperties>
     <NuGetPath>$(MSBuildThisFileDirectory).nuget\NuGet.exe</NuGetPath>
