@@ -1,0 +1,37 @@
+name: Build (Windows)
+
+on:
+  workflow_dispatch:
+    inputs:
+      build-type:
+        description: Build in Release or Debug?
+        required: true
+        default: Debug
+        type: choice
+        options:
+          - Debug
+          - Release
+  workflow_call:
+    inputs:
+      build-type:
+        required: true
+        default: Debug
+        type: string
+
+jobs:
+  #
+  # Build Stride for Windows
+  #
+  Windows:
+    name: Build (${{ github.event.inputs.build-type || inputs.build-type }})
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - uses: microsoft/setup-msbuild@v2
+      - name: Build Stride
+        run: msbuild build\Stride.build -t:BuildWindows -m:1 -nr:false -v:m -p:WarningLevel=0 -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type }} -p:StrideSkipUnitTests=true -p:StrideSkipAutoPack=true -p:StrideEnableCodeAnalysis=true
