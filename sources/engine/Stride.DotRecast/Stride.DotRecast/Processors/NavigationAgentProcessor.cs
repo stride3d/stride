@@ -14,8 +14,6 @@ public class NavigationAgentProcessor : EntityProcessor<NavigationAgentComponent
     private readonly List<NavigationAgentComponent> _components = new();
     private readonly ConcurrentQueue<NavigationAgentComponent> _tryGetPathQueue = new();
 
-    private DotRecastNavMeshProcessor _navMeshProcessor = null!;
-
     public NavigationAgentProcessor()
     {
         //run after the Mesh Processor
@@ -25,7 +23,6 @@ public class NavigationAgentProcessor : EntityProcessor<NavigationAgentComponent
     protected override void OnSystemAdd()
     {
         Services.AddService(this);
-        _navMeshProcessor = Services.GetService<DotRecastNavMeshProcessor>();
     }
 
     protected override void OnEntityComponentAdding(Entity entity, NavigationAgentComponent component, NavigationAgentComponent data)

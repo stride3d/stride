@@ -13,9 +13,12 @@ namespace Stride.DotRecast.Processors;
 public class DotRecastNavMeshProcessor : EntityProcessor<NavigationMeshComponent>
 {
     private SceneSystem _sceneSystem = null!;
+    private DotRecastObstacleProcessor _navMeshObstacleProcessor = null!;
 
     private readonly Queue<NavigationMeshComponent> _addedComponents = new();
     private readonly Queue<NavigationMeshComponent> _removedComponents = new();
+
+    private SceneInstance _currentSceneInstance;
 
     public DotRecastNavMeshProcessor()
     {
@@ -27,6 +30,8 @@ public class DotRecastNavMeshProcessor : EntityProcessor<NavigationMeshComponent
         Services.AddService(this);
 
         _sceneSystem = Services.GetSafeServiceAs<SceneSystem>();
+
+        _navMeshObstacleProcessor = new DotRecastObstacleProcessor();
     }
 
     protected override void OnEntityComponentAdding(Entity entity, [NotNull] NavigationMeshComponent component, [NotNull] NavigationMeshComponent data)
@@ -41,6 +46,16 @@ public class DotRecastNavMeshProcessor : EntityProcessor<NavigationMeshComponent
 
     public override void Update(GameTime time)
     {
+        if(_currentSceneInstance != _sceneSystem.SceneInstance)
+        {
+            ChangeScene(_sceneSystem.SceneInstance);
+        }
+
+        if(_currentSceneInstance == null)
+        {
+            return;
+        }
+
         foreach (var component in _addedComponents)
         {
             InitializeNavMeshComponent(component);
@@ -66,32 +81,21 @@ public class DotRecastNavMeshProcessor : EntityProcessor<NavigationMeshComponent
             case DotRecastCollectionMethod.BoundingBox:
                 throw new NotImplementedException("Bounding boxes are not yet supported for nav mesh generation.");
         }
-
-        _sceneSystem.SceneInstance.EntityAdded += SceneInstance_EntityAdded;
-        _sceneSystem.SceneInstance.EntityRemoved += SceneInstance_EntityRemoved;
     }
 
-    private void SceneInstance_EntityRemoved(object? sender, Entity e)
+    private void ProcessorOnColliderRemoved(NavigationObstacleComponent component)
     {
-        var component = e.Get<NavigationObstacleComponent>();
-        if (component is not null)
+        foreach (var navMeshComponent in ComponentDatas.Values)
         {
-            foreach (var navMeshComponent in ComponentDatas.Values)
-            {
-                navMeshComponent.RemoveObstacle(component);
-            }
+            navMeshComponent.RemoveObstacle(component);
         }
     }
 
-    private void SceneInstance_EntityAdded(object? sender, Entity e)
+    private void ProcessorOnColliderAdded(NavigationObstacleComponent component)
     {
-        var component = e.Get<NavigationObstacleComponent>();
-        if (component is not null)
+        foreach (var navMeshComponent in ComponentDatas.Values)
         {
-            foreach (var navMeshComponent in ComponentDatas.Values)
-            {
-                navMeshComponent.AddObstacle(component);
-            }
+            navMeshComponent.AddObstacle(component);
         }
     }
 
@@ -106,6 +110,25 @@ public class DotRecastNavMeshProcessor : EntityProcessor<NavigationMeshComponent
         }
     }
 
+    private void ChangeScene(SceneInstance sceneInstance)
+    {
+        if (_currentSceneInstance != null)
+        {
+            _navMeshObstacleProcessor.ColliderAdded -= ProcessorOnColliderAdded;
+            _navMeshObstacleProcessor.ColliderRemoved -= ProcessorOnColliderRemoved;
+            _sceneSystem.SceneInstance.Processors.Remove(_navMeshObstacleProcessor);
+        }
+
+        _currentSceneInstance = sceneInstance;
+
+        if (_currentSceneInstance != null)
+        {
+            _navMeshObstacleProcessor.ColliderAdded += ProcessorOnColliderAdded;
+            _navMeshObstacleProcessor.ColliderRemoved += ProcessorOnColliderRemoved;
+            _sceneSystem.SceneInstance.Processors.Add(_navMeshObstacleProcessor);
+        }
+    }
+
     private static void GetObjectsInChildren(NavigationMeshComponent component)
     {
         var rootEntity = component.Entity;
@@ -114,7 +137,7 @@ public class DotRecastNavMeshProcessor : EntityProcessor<NavigationMeshComponent
 
         RecurseTree(rootEntity, component);
 
-        void RecurseTree(Entity entity, NavigationMeshComponent component)
+        static void RecurseTree(Entity entity, NavigationMeshComponent component)
         {
             foreach (var child in entity.GetChildren())
             {

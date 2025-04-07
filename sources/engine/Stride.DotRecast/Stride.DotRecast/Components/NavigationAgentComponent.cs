@@ -15,7 +15,6 @@ namespace Stride.DotRecast.Components;
 [DefaultEntityComponentProcessor(typeof(NavigationAgentProcessor), ExecutionMode = ExecutionMode.Runtime)]
 public abstract class NavigationAgentComponent : StartupScript
 {
-
     public NavigationMeshComponent NavMesh { get; set; }
 
     /// <summary>

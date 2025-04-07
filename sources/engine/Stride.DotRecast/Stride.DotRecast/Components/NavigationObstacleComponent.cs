@@ -18,6 +18,9 @@ public class NavigationObstacleComponent : StartupScript
     /// </summary>
     public NavMeshLayerGroup NavigationLayers { get; set; }
 
+    /// <summary>
+    /// The class used to gather the collider information being passed to the dynamic nav mesh.
+    /// </summary>
     public required BaseNavigationCollider Collider { get; set; }
 
     public IDtCollider GetCollider()

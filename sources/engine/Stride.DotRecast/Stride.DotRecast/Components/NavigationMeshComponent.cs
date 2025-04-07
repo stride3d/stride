@@ -69,6 +69,7 @@ public sealed class NavigationMeshComponent : StartupScript
         foreach (var obstacle in _newlyRemovedObstacles)
         {
             DynamicNavMesh.RemoveCollider(ObstacleRefs[obstacle]);
+            ObstacleRefs.Remove(obstacle);
         }
         _newlyRemovedObstacles.Clear();
 
@@ -153,18 +154,14 @@ public sealed class NavigationMeshComponent : StartupScript
 
     /// <summary>
     /// Tries to find components that can provide shape data to generate/modify the navmesh.
+    /// <para>This does not dynamically update the mesh.</para>
     /// </summary>
     /// <param name="entity"></param>
     internal void CheckEntity(Entity entity)
     {
         var obstacleComponent = entity.Get<NavigationObstacleComponent>();
 
-        if (obstacleComponent is not null)
-        {
-            // add removable objects
-            AddObstacle(entity.Get<NavigationObstacleComponent>());
-        }
-        else
+        if (obstacleComponent is null)
         {
             // add static non removable objects
             foreach (var provider in GeometryProviders)
@@ -175,6 +172,8 @@ public sealed class NavigationMeshComponent : StartupScript
                 }
             }
         }
+        // Dynamic object should be added by the obstacle processor
+        // So we ignore them for the initial creation of the mesh.
     }
 
     internal void AddObstacle(NavigationObstacleComponent component)
@@ -185,6 +184,5 @@ public sealed class NavigationMeshComponent : StartupScript
     internal void RemoveObstacle(NavigationObstacleComponent component)
     {
         _newlyRemovedObstacles.Add(component);
-        DynamicNavMesh.RemoveCollider(ObstacleRefs[component]);
     }
 }
