@@ -47,7 +47,7 @@ namespace Stride.Assets.Presentation.AssetEditors.UIEditor.Services
         internal const string UIEntityName = "UIEntity";
 
         private readonly Lazy<Graphics.SpriteFont> defaultFontLazy;
-        private Vector3 resolution;
+        private Size2F resolution;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="UIEditorController"/> class.
@@ -67,12 +67,12 @@ namespace Stride.Assets.Presentation.AssetEditors.UIEditor.Services
 
             var resolutionNode = Editor.NodeContainer.GetNode(((UIAssetBase)Asset.Asset).Design)[nameof(UIAssetBase.UIDesign.Resolution)];
             resolutionNode.ValueChanged += ResolutionChanged;
-            resolution = (Vector3)resolutionNode.Retrieve();
+            resolution = (Size2F)resolutionNode.Retrieve();
         }
 
         private async void ResolutionChanged(object sender, MemberNodeChangeEventArgs e)
         {
-            resolution = Vector3.Max((Vector3)e.NewValue, Vector3.One);
+            resolution = Size2F.Max((Size2F)e.NewValue, new Size2F(1));
             await InvokeAsync(() =>
             {
                 var size = resolution / DesignDensity;
@@ -142,7 +142,7 @@ namespace Stride.Assets.Presentation.AssetEditors.UIEditor.Services
                             Name = DesignAreaRootElementName,
                             BackgroundColor = Color.WhiteSmoke * 0.5f, //FIXME: add an editor setting
                             BorderColor = Color.WhiteSmoke, // FIXME: add an editor setting
-                            BorderThickness = Thickness.UniformCuboid(2.0f), // FIXME: add an editor setting
+                            BorderThickness = Thickness.Uniform(2.0f), // FIXME: add an editor setting
                         }
                     },
                     IsBillboard = false,
@@ -399,7 +399,8 @@ namespace Stride.Assets.Presentation.AssetEditors.UIEditor.Services
 
             var uiEntity = GetEntityByName(AdornerEntityName);
             var uiComponent = uiEntity.Get<UIComponent>();
-            var worldMatrix = Matrix.Scaling(uiComponent.Size / uiComponent.Resolution) * uiEntity.Transform.WorldMatrix;
+            var ration = uiComponent.Size / uiComponent.Resolution;
+            var worldMatrix = Matrix.Scaling(new Vector3(ration.Width, ration.Height, 0)) * uiEntity.Transform.WorldMatrix;
             // Rotation of Pi along 0x to go from UI space to world space
             worldMatrix.Row2 = -worldMatrix.Row2;
             worldMatrix.Row3 = -worldMatrix.Row3;

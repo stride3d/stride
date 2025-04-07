@@ -95,7 +95,7 @@ namespace Stride.UI.Tests.Layering
             child.Depth = 150 * rand.NextFloat();
 
             // arrange and check child render size
-            Arrange(1000 * rand.NextVector3(), true);
+            Arrange(1000 * rand.NextVector2(), true);
             Assert.Equal(Vector3.Zero, child.RenderSize);
         }
 
@@ -109,7 +109,7 @@ namespace Stride.UI.Tests.Layering
 
             // test that desired size without content correspond to padding
             Padding = rand.NextThickness(10, 20, 30, 40, 50, 60);
-            Measure(1000*rand.NextVector3());
+            Measure(1000*rand.NextVector2());
             var v0 = Vector3.Zero;
             var expectedSize = CalculateSizeWithThickness(ref v0, ref padding);
             Assert.Equal(expectedSize, DesiredSize);
@@ -117,12 +117,12 @@ namespace Stride.UI.Tests.Layering
             // test desired size with a child
             var content = new MeasureValidator();
             Content = content;
-            var availableSize = 1000 * rand.NextVector3();
+            var availableSize = 1000 * rand.NextVector2();
             content.Margin = rand.NextThickness(60, 50, 40, 30, 20, 10);
             var availableSizeWithoutPadding = CalculateSizeWithoutThickness(ref availableSize, ref padding);
             var availableSizeWithoutPaddingChildMargin = CalculateSizeWithoutThickness(ref availableSizeWithoutPadding, ref content.MarginInternal);
             content.ExpectedMeasureValue = availableSizeWithoutPaddingChildMargin;
-            content.ReturnedMeasuredValue = 100 * rand.NextVector3();
+            content.ReturnedMeasuredValue = 100 * rand.NextVector2();
             var returnedValueWithMargin = CalculateSizeWithThickness(ref content.ReturnedMeasuredValue, ref content.MarginInternal);
             expectedSize = CalculateSizeWithThickness(ref returnedValueWithMargin, ref padding);
             Measure(availableSize);
@@ -140,14 +140,14 @@ namespace Stride.UI.Tests.Layering
             DepthAlignment = DepthAlignment.Stretch;
 
             // Test that returned value is the one provided when no content
-            var providedSize = 1000 * rand.NextVector3();
+            var providedSize = 1000 * rand.NextVector2();
             var arrangedSize = ArrangeOverride(providedSize);
             Assert.Equal(providedSize, arrangedSize);
 
             ResetState();
 
             // Test arrange with some content
-            providedSize = 1000 * rand.NextVector3();
+            providedSize = 1000 * rand.NextVector2();
             var content = new ArrangeValidator { DepthAlignment = DepthAlignment.Stretch };
             Content = content;
             Padding = rand.NextThickness(10, 20, 30, 40, 50, 60);

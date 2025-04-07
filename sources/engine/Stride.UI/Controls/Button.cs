@@ -170,7 +170,7 @@ namespace Stride.UI.Controls
         internal Sprite ButtonImage => ButtonImageProvider?.GetSprite();
 
         /// <inheritdoc/>
-        protected override Vector3 ArrangeOverride(Vector3 finalSizeWithoutMargins)
+        protected override Size2F ArrangeOverride(Size2F finalSizeWithoutMargins)
         {
             return sizeToContent
                 ? base.ArrangeOverride(finalSizeWithoutMargins)
@@ -178,7 +178,7 @@ namespace Stride.UI.Controls
         }
 
         /// <inheritdoc/>
-        protected override Vector3 MeasureOverride(Vector3 availableSizeWithoutMargins)
+        protected override Size2F MeasureOverride(Size2F availableSizeWithoutMargins)
         {
             return sizeToContent
                 ? base.MeasureOverride(availableSizeWithoutMargins)

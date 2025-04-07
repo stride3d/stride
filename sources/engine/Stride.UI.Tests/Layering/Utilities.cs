@@ -28,12 +28,11 @@ namespace Stride.UI.Tests.Layering
                 Assert.True(Math.Abs(diffMat[i]) < 0.001);
         }
         // ReSharper restore UnusedParameter.Local 
-
-        public static void AreExactlyEqual(Vector3 left, Vector3 right)
+        
+        public static void AreExactlyEqual(Vector2 left, Vector2 right)
         {
             Assert.Equal(left.X, right.X);
             Assert.Equal(left.Y, right.Y);
-            Assert.Equal(left.Z, right.Z);
         }
     }
 }

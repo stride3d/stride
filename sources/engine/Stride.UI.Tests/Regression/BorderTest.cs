@@ -30,8 +30,8 @@ namespace Stride.UI.Tests.Regression
         {
             await base.LoadContent();
 
-            border = new Border { Width = 200, Height = 150, Content = new Button { NotPressedImage = (SpriteFromTexture)new Sprite(Content.Load<Texture>("uv")), DepthAlignment = DepthAlignment.Back}};
-            border.SetCanvasPinOrigin(new Vector3(0.5f));
+            border = new Border { Width = 200, Height = 150, Content = new Button { NotPressedImage = (SpriteFromTexture)new Sprite(Content.Load<Texture>("uv")) }};
+            border.SetCanvasPinOrigin(new Vector2(0.5f));
             
             border.BackgroundColor = Color.Red;
 
@@ -67,17 +67,13 @@ namespace Stride.UI.Tests.Regression
                 localMatrix = localMatrix * Matrix.RotationZ(+RotationIncrement);
 
             if (Input.IsKeyPressed(Keys.L))
-                border.BorderThickness += new Thickness(1, 0, 0, 0, 0, 0);
+                border.BorderThickness += new Thickness(1, 0, 0, 0);
             if (Input.IsKeyPressed(Keys.R))
-                border.BorderThickness += new Thickness(0, 0, 0, 1, 0, 0);
+                border.BorderThickness += new Thickness(0, 0, 1, 0);
             if (Input.IsKeyPressed(Keys.T))
-                border.BorderThickness += new Thickness(0, 1, 0, 0, 0, 0);
+                border.BorderThickness += new Thickness(0, 1, 0, 0);
             if (Input.IsKeyPressed(Keys.B))
-                border.BorderThickness += new Thickness(0, 0, 0, 0, 1, 0);
-            if (Input.IsKeyPressed(Keys.F))
-                border.BorderThickness += new Thickness(0, 0, 0, 0, 0, 1);
-            if (Input.IsKeyPressed(Keys.S))
-                border.BorderThickness += new Thickness(0, 0, 1, 0, 0, 0);
+                border.BorderThickness += new Thickness(0, 0, 0, 1);
 
             if (Input.KeyEvents.Any())
                 border.LocalMatrix = localMatrix;
@@ -101,21 +97,17 @@ namespace Stride.UI.Tests.Regression
 
         private void ResetBorderElement()
         {
-            border.Depth = 100;
             border.LocalMatrix = Matrix.Identity;
-            border.BorderThickness = new Thickness(3, 5, 1, 4, 6, 2);
-            border.SetCanvasRelativePosition(new Vector3(0.5f));
+            border.BorderThickness = new Thickness(3, 1, 4, 6);
+            border.SetCanvasRelativePosition(new Vector2(0.5f));
         }
 
         private void FlattenBorderElement()
         {
             border.LocalMatrix = Matrix.Identity;
-            border.SetCanvasRelativePosition(new Vector3(0.5f, 0.5f, 0f));
-            border.Depth = 0;
+            border.SetCanvasRelativePosition(new Vector2(0.5f, 0.5f));
 
             var borderSize = border.BorderThickness;
-            borderSize.Front = 0;
-            borderSize.Back = 0;
             border.BorderThickness = borderSize;
         }
 
