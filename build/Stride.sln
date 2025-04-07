@@ -1679,7 +1679,6 @@ Global
 		..\sources\shared\Stride.NuGetResolver.Targets\Stride.NuGetResolver.Targets.projitems*{a5dc820b-9554-45b6-9677-6a2f902e7787}*SharedItemsImports = 5
 		..\sources\shared\Stride.NuGetResolver.Targets\Stride.NuGetResolver.Targets.projitems*{a7fc60ae-bb54-47d3-8787-788eec65ad45}*SharedItemsImports = 5
 		..\sources\editor\Stride.Editor.CrashReport\Stride.Editor.CrashReport.projitems*{ab574f65-1402-4476-9314-74dcdaf19097}*SharedItemsImports = 13
-		..\sources\engine\Stride.Shared\Refactor\Stride.Refactor.projitems*{b33e576f-2279-4bfc-a438-d9b84343b56b}*SharedItemsImports = 13
 		..\sources\engine\Stride.Shared\Refactor\Stride.Refactor.projitems*{c121a566-555e-42b9-9b0a-1696529a9088}*SharedItemsImports = 5
 		..\sources\shared\Stride.NuGetResolver.Targets\Stride.NuGetResolver.Targets.projitems*{e25e7778-0b2f-4a0b-bcd6-1de95320b531}*SharedItemsImports = 5
 		..\sources\shared\Stride.Core.ShellHelper\Stride.Core.ShellHelper.projitems*{e8b3553f-a79f-4e50-b75b-acee771c320c}*SharedItemsImports = 5
