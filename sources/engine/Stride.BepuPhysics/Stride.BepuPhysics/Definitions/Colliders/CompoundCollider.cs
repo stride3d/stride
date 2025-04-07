@@ -7,6 +7,7 @@ using BepuUtilities.Memory;
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.BepuPhysics.Systems;
+using Stride.Core.Annotations;
 using NRigidPose = BepuPhysics.RigidPose;
 
 namespace Stride.BepuPhysics.Definitions.Colliders;
@@ -18,6 +19,7 @@ public sealed class CompoundCollider : ICollider
     private readonly ListOfColliders _colliders;
     private CollidableComponent? _component;
 
+    [MemberCollection(NotNullItems = true)]
     [DataMember]
     public IList<ColliderBase> Colliders => _colliders;
 
