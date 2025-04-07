@@ -22,6 +22,7 @@ public class DictionaryDescriptor : ObjectDescriptor
     Func<object, ICollection> getValuesMethod;
     Func<object, object, object?> getValueMethod;
     Func<object, IEnumerable<KeyValuePair<object, object?>>> getEnumeratorMethod;
+    Action<object> clearMethod;
 
     #pragma warning disable CS8618
     // This warning is disabled because the necessary initialization will occur 
@@ -56,6 +57,7 @@ public class DictionaryDescriptor : ObjectDescriptor
         getValueMethod = (dictionary, key) => ((IDictionary<TKey, TValue?>)dictionary)[(TKey)key];
         setValueMethod = (dictionary, key, value) => ((IDictionary<TKey, TValue?>)dictionary)[(TKey)key] = (TValue?)value;
         getEnumeratorMethod = (dictionary) => GetGenericEnumerable((IDictionary<TKey, TValue>)dictionary);
+        clearMethod = (dictionary) => ((IDictionary<TKey, TValue?>)dictionary).Clear();
     }
 
     public override void Initialize(IComparer<object> keyComparer)
@@ -180,6 +182,16 @@ public class DictionaryDescriptor : ObjectDescriptor
     {
         ArgumentNullException.ThrowIfNull(dictionary);
         return getValuesMethod(dictionary);
+    }
+
+    /// <summary>
+    /// Calls clear on the dictionary
+    /// </summary>
+    /// <param name="dictionary">The dictionary</param>
+    public void Clear(object dictionary)
+    {
+        ArgumentNullException.ThrowIfNull(dictionary);
+        clearMethod(dictionary);
     }
 
     /// <summary>

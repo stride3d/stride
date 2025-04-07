@@ -148,6 +148,10 @@ namespace Stride.Core.Yaml.Serialization.Serializers
                 throw new InvalidOperationException($"Cannot deserialize collection to readonly collection type [{thisObject.GetType()}].");
             }
 
+            // The collection may contain some initial data from its containing instance's ctor,
+            // let's replace the existing data with the data we have serialized
+            collectionDescriptor.Clear(thisObject);
+
             var reader = objectContext.Reader;
 
             var elementType = collectionDescriptor.ElementType;
