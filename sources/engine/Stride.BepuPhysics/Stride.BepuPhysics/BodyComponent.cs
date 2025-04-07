@@ -227,7 +227,8 @@ public class BodyComponent : CollidableComponent
     public Vector3 Position
     {
         get => BodyReference?.Pose.Position.ToStride() ?? default;
-        set => SetPose(value, Orientation);
+        [Obsolete($"Setter will be removed in a future version, use {nameof(SetTargetPose)} or {nameof(Teleport)}")]
+        set => Teleport(value, Orientation);
     }
 
     /// <summary>
@@ -242,7 +243,8 @@ public class BodyComponent : CollidableComponent
     public Quaternion Orientation
     {
         get => BodyReference?.Pose.Orientation.ToStride() ?? Quaternion.Identity;
-        set => SetPose(Position, value);
+        [Obsolete($"Setter will be removed in a future version, use {nameof(SetTargetPose)} or {nameof(Teleport)}")]
+        set => Teleport(Position, value);
     }
 
     /// <summary>
@@ -348,7 +350,30 @@ public class BodyComponent : CollidableComponent
     }
 
     /// <summary>
-    /// Teleporting this body into a new pose, faster than setting both <see cref="Position"/> and <see cref="Orientation"/> individually
+    /// Set the pose this body should try to match on the next physics tick, this will collide with objects on the way
+    /// </summary>
+    /// <remarks>
+    /// Using this function to move objects around is not recommended as it results in unrealistic forces being applied on this body, or unexpected stuttering depending on the input.
+    /// Consider using a constraint between this body and whatever it is following, or using the different Impulse methods instead <br/><br/>
+    /// <paramref name="targetPosition"/> is slightly offset from this entity's Transform <see cref="TransformComponent.Position"/> based on its <see cref="CollidableComponent.CenterOfMass"/> <br/><br/>
+    /// This method sets this body's <see cref="LinearVelocity"/> and <see cref="AngularVelocity"/>, setting these properties after the call would overwrite the result of this method
+    /// </remarks>
+    public void SetTargetPose(Vector3 targetPosition, Quaternion targetOrientation)
+    {
+        if (Simulation is null)
+            return;
+
+        Awake = true;
+
+        float deltaTime = (float)Simulation.FixedTimeStep.TotalSeconds;
+
+        LinearVelocity = (targetPosition - Position) / deltaTime;
+        var quatDelta = Quaternion.Invert(Orientation) * targetOrientation;
+        AngularVelocity = new Vector3(quatDelta.X, quatDelta.Y, quatDelta.Z) / deltaTime;
+    }
+
+    /// <summary>
+    /// Teleport this body into a new pose
     /// </summary>
     /// <remarks>
     /// Using this function to move objects around is not recommended,
@@ -356,7 +381,7 @@ public class BodyComponent : CollidableComponent
     /// you should make sure the area is clear to ensure this object does not become stuck in the scenery.<br/><br/>
     /// <paramref name="position"/> is slightly offset from this entity's Transform <see cref="TransformComponent.Position"/> based on its <see cref="CollidableComponent.CenterOfMass"/>
     /// </remarks>
-    public void SetPose(Vector3 position, Quaternion orientation)
+    public void Teleport(Vector3 position, Quaternion orientation)
     {
         if (BodyReference is { } bodyRef)
         {
@@ -370,6 +395,18 @@ public class BodyComponent : CollidableComponent
         Entity.Transform.Position = position;
         Entity.Transform.Rotation = orientation;
     }
+
+    /// <summary>
+    /// Teleport this body into a new pose
+    /// </summary>
+    /// <remarks>
+    /// Using this function to move objects around is not recommended,
+    /// as it disregards any collider that may overlap with the body at this new position,
+    /// you should make sure the area is clear to ensure this object does not become stuck in the scenery.<br/><br/>
+    /// <paramref name="position"/> is slightly offset from this entity's Transform <see cref="TransformComponent.Position"/> based on its <see cref="CollidableComponent.CenterOfMass"/>
+    /// </remarks>
+    [Obsolete($"This method will be removed in the future, use {nameof(Teleport)} instead")]
+    public void SetPose(Vector3 position, Quaternion orientation) => Teleport(position, orientation);
 
     protected override ref MaterialProperties MaterialProperties => ref Simulation!.CollidableMaterials[BodyReference!.Value];
     protected internal override NRigidPose? Pose => BodyReference?.Pose;
