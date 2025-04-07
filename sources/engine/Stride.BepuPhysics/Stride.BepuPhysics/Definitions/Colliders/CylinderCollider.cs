@@ -48,4 +48,13 @@ public sealed class CylinderCollider : ColliderBase
     }
 
     internal override void OnDetach(BufferPool pool){ }
+
+    public override int GetHashCode()
+    {
+        var hash = new HashCode();
+        hash.Add(base.GetHashCode());
+        hash.Add(_radius);
+        hash.Add(_length);
+        return hash.ToHashCode();
+    }
 }
