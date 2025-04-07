@@ -24,7 +24,7 @@ public class NodePresenterFactory : INodePresenterFactoryInternal
 
     public bool IsPrimitiveType(Type type)
     {
-        return nodeBuilder.IsPrimitiveType(type);
+        return nodeBuilder.PrimitiveTypeFilter.IsPrimitiveType(type);
     }
 
     public INodePresenter CreateNodeHierarchy(IObjectNode rootNode, GraphNodePath rootNodePath, IPropertyProviderViewModel? propertyProvider)

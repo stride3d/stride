@@ -32,7 +32,6 @@ internal static class Launcher
         try
         {
             var arguments = ProcessArguments(args);
-            throw new Exception("BOOM0");
             return ProcessAction(arguments);
         }
         catch (Exception ex)

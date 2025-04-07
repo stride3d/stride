@@ -9,13 +9,20 @@ namespace Stride.Core.Assets.Editor.ViewModel
 {
     public class SessionNodeContainer : AssetNodeContainer
     {
+        private readonly Type[] additionalPrimitiveTypes;
+        
         public SessionNodeContainer(SessionViewModel session)
         {
             if (session == null) throw new ArgumentNullException(nameof(session));
 
             // Apply primitive types, commands and associated data providers that comes from plugins
             var pluginService = session.ServiceProvider.Get<IAssetsPluginService>();
-            pluginService.GetPrimitiveTypes(session).ForEach(x => NodeBuilder.RegisterPrimitiveType(x));
+            additionalPrimitiveTypes = pluginService.GetPrimitiveTypes(session).ToArray();
+        }
+
+        public override bool IsPrimitiveType(Type type)
+        {
+            return base.IsPrimitiveType(type) || additionalPrimitiveTypes.Any(x => x.IsAssignableFrom(type));
         }
     }
 }

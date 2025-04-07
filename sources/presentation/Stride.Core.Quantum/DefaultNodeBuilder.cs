@@ -2,7 +2,6 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Collections;
-using System.Diagnostics.CodeAnalysis;
 using Stride.Core.Quantum.References;
 using Stride.Core.Reflection;
 
@@ -14,17 +13,16 @@ namespace Stride.Core.Quantum;
 internal class DefaultNodeBuilder : DataVisitorBase, INodeBuilder
 {
     private readonly Stack<IInitializingGraphNode> contextStack = new();
-    private readonly HashSet<IGraphNode> referenceContents = [];
-    private readonly List<Type> primitiveTypes = [];
-    private static readonly Type[] InternalPrimitiveTypes = [typeof(decimal), typeof(string), typeof(Guid)];
     private IInitializingObjectNode? rootNode;
     private Guid rootGuid;
 
     public DefaultNodeBuilder(NodeContainer nodeContainer)
     {
         NodeContainer = nodeContainer;
-        primitiveTypes.AddRange(InternalPrimitiveTypes);
     }
+
+    /// <inheritdoc/>
+    public IPrimitiveTypeFilter PrimitiveTypeFilter { get; set; } = new DefaultPrimitiveFilter();
 
     /// <inheritdoc/>
     public NodeContainer NodeContainer { get; }
@@ -40,36 +38,7 @@ internal class DefaultNodeBuilder : DataVisitorBase, INodeBuilder
         rootNode = null;
         rootGuid = Guid.Empty;
         contextStack.Clear();
-        referenceContents.Clear();
         base.Reset();
-    }
-
-    public void RegisterPrimitiveType(Type type)
-    {
-        if (type.IsPrimitive || type.IsEnum || primitiveTypes.Contains(type))
-            return;
-
-        primitiveTypes.Add(type);
-    }
-
-    public void UnregisterPrimitiveType(Type type)
-    {
-        if (type.IsPrimitive || type.IsEnum || InternalPrimitiveTypes.Contains(type))
-            throw new InvalidOperationException("The given type cannot be unregistered from the list of primitive types");
-
-        primitiveTypes.Remove(type);
-    }
-
-    public bool IsPrimitiveType([NotNullWhen(true)] Type? type)
-    {
-        if (type == null)
-            return false;
-
-        var underlyingType = Nullable.GetUnderlyingType(type);
-        if (underlyingType != null)
-            type = underlyingType;
-
-        return type.IsPrimitive || type.IsEnum || primitiveTypes.Any(x => x.IsAssignableFrom(type));
     }
 
     /// <inheritdoc/>
@@ -100,13 +69,10 @@ internal class DefaultNodeBuilder : DataVisitorBase, INodeBuilder
             if (content.IsReference && currentDescriptor.Type.IsStruct())
                 throw new QuantumConsistencyException("A collection type", "A structure type", rootNode);
 
-            if (content.IsReference)
-                referenceContents.Add(content);
-
             PushContextNode(rootNode);
         }
 
-        if (!IsPrimitiveType(currentDescriptor.Type))
+        if (!PrimitiveTypeFilter.IsPrimitiveType(currentDescriptor.Type))
         {
             base.VisitObject(obj, descriptor, true);
         }
@@ -134,7 +100,7 @@ internal class DefaultNodeBuilder : DataVisitorBase, INodeBuilder
     /// <inheritdoc/>
     public override void VisitDictionary(object dictionary, DictionaryDescriptor descriptor)
     {
-        if (!IsPrimitiveType(descriptor.KeyType))
+        if (!PrimitiveTypeFilter.IsPrimitiveType(descriptor.KeyType))
             throw new InvalidOperationException("The type of dictionary key must be a primary type.");
 
         // Don't visit items unless they are primitive or enumerable (collections within collections)
@@ -147,14 +113,11 @@ internal class DefaultNodeBuilder : DataVisitorBase, INodeBuilder
     /// <inheritdoc/>
     public override void VisitObjectMember(object container, ObjectDescriptor containerDescriptor, IMemberDescriptor member, object? value)
     {
-        // If this member should contains a reference, create it now.
+        // If this member should contain a reference, create it now.
         var containerNode = (IInitializingObjectNode)GetContextNode();
         var guid = Guid.NewGuid();
         var content = (MemberNode)NodeFactory.CreateMemberNode(this, guid, containerNode, member, value);
         containerNode.AddMember(content);
-
-        if (content.IsReference)
-            referenceContents.Add(content);
 
         PushContextNode(content);
         if (content.TargetReference == null)
@@ -171,14 +134,14 @@ internal class DefaultNodeBuilder : DataVisitorBase, INodeBuilder
     {
         if (isMember)
         {
-            return !IsPrimitiveType(type) ? Reference.CreateReference(value, type, NodeIndex.Empty, true) : null;
+            return !PrimitiveTypeFilter.IsPrimitiveType(type) ? Reference.CreateReference(value, type, NodeIndex.Empty, true) : null;
         }
 
         var descriptor = TypeDescriptorFactory.Find(value?.GetType());
-        if (descriptor is CollectionDescriptor || descriptor is DictionaryDescriptor)
+        if (descriptor is CollectionDescriptor or DictionaryDescriptor)
         {
             var valueType = GetElementValueType(descriptor);
-            return !IsPrimitiveType(valueType) ? Reference.CreateReference(value, type, NodeIndex.Empty, false) : null;
+            return !PrimitiveTypeFilter.IsPrimitiveType(valueType) ? Reference.CreateReference(value, type, NodeIndex.Empty, false) : null;
         }
 
         return null;
@@ -208,5 +171,18 @@ internal class DefaultNodeBuilder : DataVisitorBase, INodeBuilder
     {
         var collectionDescriptor = descriptor as CollectionDescriptor;
         return descriptor is DictionaryDescriptor dictionaryDescriptor ? dictionaryDescriptor.ValueType : collectionDescriptor?.ElementType;
+    }
+
+    private class DefaultPrimitiveFilter : IPrimitiveTypeFilter
+    {
+        private static readonly HashSet<Type> InternalPrimitiveTypes = [typeof(decimal), typeof(string), typeof(Guid)];
+
+        public bool IsPrimitiveType(Type type)
+        {
+            if (Nullable.GetUnderlyingType(type) is { } underlyingType)
+                type = underlyingType;
+
+            return type.IsPrimitive || type.IsEnum || InternalPrimitiveTypes.Contains(type);
+        }
     }
 }

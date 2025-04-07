@@ -5,9 +5,9 @@ using Stride.Core.Reflection;
 
 namespace Stride.Editor.EditorGame.Game;
 
-public sealed class EditorGameServiceRegistry : Core.IAsyncDisposable
+public sealed class EditorGameServiceRegistry : IAsyncDisposable
 {
-    public List<IEditorGameService> Services { get; } = new List<IEditorGameService>();
+    public List<IEditorGameService> Services { get; } = [];
 
     public T? Get<T>()
     {
@@ -24,14 +24,14 @@ public sealed class EditorGameServiceRegistry : Core.IAsyncDisposable
     }
 
     public void Add<T>(T service)
-        where T : IEditorGameService
+            where T : IEditorGameService
     {
         if (service == null) throw new ArgumentNullException(nameof(service));
         Services.Add(service);
     }
 
     /// <inheritdoc/>
-    public async Task DisposeAsync()
+    public async ValueTask DisposeAsync()
     {
         for (var index = Services.Count - 1; index >= 0; index--)
         {

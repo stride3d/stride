@@ -1,12 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Threading;
-using System.Threading.Tasks;
 using Avalonia.Threading;
 using Xunit;
 
@@ -83,7 +78,7 @@ public class TestsViewModel : ViewModelBase
                             testCaseViewModel.Succeeded = args.Message.TestsFailed == 0;
                             testCaseViewModel.Running = false;
                             // Update progress
-                            TestCompletion = ((double)Interlocked.Increment(ref testCasesFinished) / (double)testCaseViewModels.Count) * 100.0;
+                            TestCompletion = (double)Interlocked.Increment(ref testCasesFinished) / (double)testCaseViewModels.Count * 100.0;
                         });
                     }
                 },
@@ -91,10 +86,7 @@ public class TestsViewModel : ViewModelBase
             Controller.RunTests(testCaseViewModels.Select(x => x.Value.TestCase).ToArray(), sink, TestFrameworkOptions.ForExecution());
             sink.Finished.WaitOne();
 
-            Dispatcher.UIThread.Post(() =>
-            {
-                RunningTests = false;
-            });
+            Dispatcher.UIThread.Post(() => RunningTests = false);
         });
     }
 

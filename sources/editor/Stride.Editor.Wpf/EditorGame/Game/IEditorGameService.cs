@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Engine;
 
@@ -13,7 +12,7 @@ namespace Stride.Editor.EditorGame.Game
     /// <summary>
     /// Base interface for services that handle specific features of a <see cref="Game"/> instantiated for an asset editor.
     /// </summary>
-    public interface IEditorGameService : Core.IAsyncDisposable
+    public interface IEditorGameService : IAsyncDisposable
     {
         /// <summary>
         /// Gets whether this service has been initialized.

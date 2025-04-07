@@ -26,41 +26,11 @@ public interface INodeBuilder
     /// Gets or sets the factory that will create instances of <see cref="IGraphNode"/> for nodes.
     /// </summary>
     INodeFactory NodeFactory { get; set; }
-    /// <summary>
-    /// Registers a type as a primitive type.
-    /// </summary>
-    /// <param name="type">The type to register.</param>
-    /// <remarks>
-    /// Any type can be registered as a primitive type. The node builder won't construct nodes for members of primitive types, and won't
-    /// use reference for them even if they are not value type.
-    /// </remarks>
-    /// <seealso cref="UnregisterPrimitiveType"/>
-    /// <seealso cref="IsPrimitiveType"/>
-    void RegisterPrimitiveType(Type type);
 
     /// <summary>
-    /// Unregisters a type as a primitive type.
+    /// The filter used to configure which types are considered primitive
     /// </summary>
-    /// <param name="type">The type to register.</param>
-    /// <remarks>
-    /// Any type can be registered as a primitive type. The node builder won't construct nodes for members of primitive types, and won't
-    /// use reference for them even if they are not value type.
-    /// </remarks>
-    /// <seealso cref="RegisterPrimitiveType"/>
-    /// <seealso cref="IsPrimitiveType"/>
-    void UnregisterPrimitiveType(Type type);
-
-    /// <summary>
-    /// Indicates whether a type is a primitive type for this node builder.
-    /// </summary>
-    /// <param name="type">The type to register.</param>
-    /// <remarks>
-    /// Any type can be registered as a primitive type. The node builder won't construct nodes for members of primitive types, and won't
-    /// use reference for them even if they are not value type.
-    /// </remarks>
-    /// <seealso cref="RegisterPrimitiveType"/>
-    /// <seealso cref="UnregisterPrimitiveType"/>
-    bool IsPrimitiveType(Type type);
+    IPrimitiveTypeFilter PrimitiveTypeFilter { get; set; }
 
     /// <summary>
     /// Build the node hierarchy corresponding to the given object.

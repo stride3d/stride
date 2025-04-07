@@ -3,7 +3,7 @@
 
 using Avalonia.Controls;
 using Avalonia.Interactivity;
-using Stride.Core.VisualStudio;
+using Stride.Core.CodeEditorSupport.VisualStudio;
 using Stride.Launcher.Services;
 
 namespace Stride.Launcher.Views;
@@ -26,7 +26,7 @@ public partial class MainView : UserControl
 
     private void VisualStudioDownloadPage_Button_Loaded(object? sender, RoutedEventArgs e)
     {
-        if (sender is Button button && VisualStudioVersions.AvailableVisualStudioInstances
+        if (sender is Button button && VisualStudioVersions.AvailableInstances
             .Any(ide => ide.InstallationVersion.Major == 16 || ide.InstallationVersion.Major == 17))
         {
             button.IsVisible = false;

@@ -33,7 +33,6 @@
     <ProjectReference Include="..\Stride.VirtualReality\Stride.VirtualReality.csproj" />
     <ProjectReference Include="..\Stride.Shaders.Compiler\Stride.Shaders.Compiler.csproj" />
   </ItemGroup>
-  <Import Project="..\Stride.Shared\Refactor\Stride.Refactor.projitems" Label="Shared" />
   <Import Project="$(StrideSdkTargets)" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

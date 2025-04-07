@@ -7,8 +7,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
-using Stride.Core.VisualStudio;
+using Stride.Core.CodeEditorSupport.VisualStudio;
 using Stride.Assets.Presentation.SceneEditor.Services;
+using Stride.Core.CodeEditorSupport;
 using Stride.Core.Presentation.Collections;
 using Stride.Core.Presentation.Services;
 
@@ -40,7 +41,7 @@ namespace Stride.Assets.Presentation.View
             {
                 if (process == null)
                 {
-                    process = await VisualStudioService.StartVisualStudio(session, ideInfo);
+                    process = await CodeEditorOpenerService.StartInstance(session, ideInfo);
                     process?.WaitForInputIdle();
                 }
 
@@ -88,7 +89,7 @@ namespace Stride.Assets.Presentation.View
             Debuggers = new ObservableList<Debugger>();
 
             // New instances
-            Debuggers.AddRange(VisualStudioVersions.AvailableVisualStudioInstances.Select(ideInfo => new Debugger(ideInfo)));
+            Debuggers.AddRange(VisualStudioVersions.AvailableInstances.Select(ideInfo => new Debugger(ideInfo)));
 
             // Running instances
             Debuggers.AddRange(runningInstances.Select(process => new Debugger(process)));

@@ -12,6 +12,7 @@ using Stride.TextureConverter.Requests;
 using Stride.TextureConverter.TexLibraries;
 using System.Runtime.CompilerServices;
 using Stride.TextureConverter.Backend.Requests;
+using System.Runtime.InteropServices;
 
 namespace Stride.TextureConverter
 {
@@ -38,11 +39,16 @@ namespace Stride.TextureConverter
         {
             var type = typeof(TextureTool);
             NativeLibraryHelper.PreloadLibrary("DxtWrapper", type);
-            NativeLibraryHelper.PreloadLibrary("PVRTexLib", type);
+            if (IsPVRTexLibAvailable())
+                NativeLibraryHelper.PreloadLibrary("PVRTexLib", type);
             NativeLibraryHelper.PreloadLibrary("freeimage", type);
-            //TODO: needs to explain why FreeImageNET is loaded as a dll instead of directly referencing the C# project (this does not affect the compilation process on Linux).
-            if (OperatingSystem.IsWindows())
-                NativeLibraryHelper.PreloadLibrary("FreeImageNET", type); 
+
+            static bool IsPVRTexLibAvailable()
+            {
+                if (OperatingSystem.IsWindows())
+                    return RuntimeInformation.ProcessArchitecture != Architecture.Arm64;
+                return true;
+            }
         }
 
         /// <summary>
