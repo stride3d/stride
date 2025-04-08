@@ -1,15 +1,22 @@
-﻿using Stride.BepuPhysics.Navigation.Processors;
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 using Stride.Core;
 using Stride.Core.Mathematics;
+using Stride.DotRecast.Definitions;
+using Stride.DotRecast.Processors;
 using Stride.Engine;
 using Stride.Engine.Design;
 
-namespace Stride.BepuPhysics.Navigation.Components;
-[DataContract(nameof(RecastNavigationComponent))]
-[ComponentCategory("Bepu - Navigation")]
-[DefaultEntityComponentProcessor(typeof(RecastNavigationProcessor), ExecutionMode = ExecutionMode.Runtime)]
-public class RecastNavigationComponent : StartupScript
+namespace Stride.DotRecast.Components;
+
+[DataContract(Inherited = true)]
+[ComponentCategory("DotRecast")]
+[DefaultEntityComponentProcessor(typeof(NavigationAgentProcessor), ExecutionMode = ExecutionMode.Runtime)]
+public abstract class NavigationAgentComponent : StartupScript
 {
+    public NavigationMeshComponent NavMesh { get; set; }
+
     /// <summary>
     /// The speed at which the agent moves.
     /// </summary>
@@ -44,8 +51,6 @@ public class RecastNavigationComponent : StartupScript
     /// </summary>
     public bool IsMoving { get; protected set; }
 
-    private RecastNavigationProcessor _navigationProcessor;
-
     /// <summary>
     /// Sets the target for the agent to find a path to. This will set the <see cref="State"/> to <see cref="NavigationState.QueuePathPlanning"/>.
     /// </summary>
@@ -65,10 +70,21 @@ public class RecastNavigationComponent : StartupScript
     /// <returns></returns>
     public virtual bool TryFindPath(Vector3 target)
     {
-        _navigationProcessor ??= Services.GetSafeServiceAs<RecastNavigationProcessor>();
+        if(NavMesh is null)
+        {
+            State = NavigationState.PathIsInvalid;
+            return false;
+        }
+
+        var navMesh = NavMesh.DynamicNavMesh?.NavMesh();
+        if (navMesh is null)
+        {
+            State = NavigationState.PathIsInvalid;
+            return false;
+        }
 
         Target = target;
-        if (_navigationProcessor.SetNewPath(this))
+        if (NavMesh.TryFindPath(Entity.Transform.WorldMatrix.TranslationVector, Target, ref Polys, ref Path))
         {
             State = NavigationState.PathIsReady;
             return true;
@@ -133,6 +149,6 @@ public class RecastNavigationComponent : StartupScript
         Entity.Transform.Parent?.WorldToLocal(ref targetPosition, ref rotation, ref scale);
 
         Entity.Transform.Position = targetPosition;
-        Entity.Transform.Rotation = rotation;// Quaternion.Lerp(Entity.Transform.Rotation, rotation, .1f);
+        Entity.Transform.Rotation = rotation;
     }
 }
