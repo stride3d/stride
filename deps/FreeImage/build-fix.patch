@@ -1,0 +1,144 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 5c302b2..aa06919 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -1,3 +1,5 @@
++cmake_minimum_required(VERSION 3.30)
++
+ project(FreeImage)
+ 
+ set(FreeImage_SOURCES
+@@ -30,9 +32,17 @@ include_directories(Source/LibJXR/common/include)
+ include_directories(Source/LibJXR/image/sys)
+ include_directories(Source/LibJXR/jxrgluelib)
+ 
+-add_definitions(-DOPJ_STATIC -DNO_WINDOWS -DNO_LCMS -D__ANSI__ -DDISABLE_PERF_MEASUREMENT -DLIBRAW_NODLL -DLIBRAW_LIBRARY_BUILD -DFREEIMAGE_LIB -DNO_LCMS)
+-add_library(FreeImage STATIC ${FreeImage_SOURCES})
+-install_dep(FreeImage include Source/FreeImage.h)
++add_definitions(-DOPJ_STATIC -DNO_WINDOWS -DNO_LCMS -D__ANSI__ -DDISABLE_PERF_MEASUREMENT -DLIBRAW_NODLL -DLIBRAW_LIBRARY_BUILD -DNO_LCMS)
++add_library(FreeImage SHARED ${FreeImage_SOURCES})
++# install_dep(FreeImage include Source/FreeImage.h)
++
++# Set C++ standard
++if (DEFINED C_STANDARD)
++    set(CMAKE_C_STANDARD ${C_STANDARD})
++endif()
++if (DEFINED CPP_STANDARD)
++    set(CMAKE_CXX_STANDARD ${CPP_STANDARD})
++endif()
+ 
+ if (APPLE)
+  set_target_properties(FreeImage PROPERTIES XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH "NO")
+@@ -42,6 +52,11 @@ if (APPLE)
+  endif()
+ endif()
+ 
++# Enable Multi-core compilation in MSVC
++if (MSVC)
++    target_compile_options(${PROJECT_NAME} PRIVATE /MP)
++endif()
++
+ set(FreeImage_INCLUDE_DIR "${FreeImage_SOURCE_DIR}/Source" CACHE PATH "" FORCE)
+ set(FreeImage_LIBRARY_DBG FreeImage CACHE STRING "" FORCE)
+ set(FreeImage_LIBRARY_REL FreeImage CACHE STRING "" FORCE)
+diff --git a/Source/DeprecationManager/DeprecationMgr.h b/Source/DeprecationManager/DeprecationMgr.h
+index 9141f23..c3926cc 100644
+--- a/Source/DeprecationManager/DeprecationMgr.h
++++ b/Source/DeprecationManager/DeprecationMgr.h
+@@ -30,7 +30,7 @@
+ 
+ // ==========================================================
+ 
+-#if !defined(_M_X64) && defined(_MSC_VER)
++#if !(defined(_M_X64) || defined(_M_ARM64)) && defined(_MSC_VER)
+ 	#define DEPRECATE(a,b) \
+ 	{ \
+ 		void *fptr;	\
+diff --git a/Source/LibJXR/image/sys/ansi.h b/Source/LibJXR/image/sys/ansi.h
+index 2927b05..334d196 100644
+--- a/Source/LibJXR/image/sys/ansi.h
++++ b/Source/LibJXR/image/sys/ansi.h
+@@ -1,14 +1,14 @@
+ //*@@@+++@@@@******************************************************************
+ //
+-// Copyright © Microsoft Corp.
++// Copyright Â© Microsoft Corp.
+ // All rights reserved.
+ // 
+ // Redistribution and use in source and binary forms, with or without
+ // modification, are permitted provided that the following conditions are met:
+ // 
+-// • Redistributions of source code must retain the above copyright notice,
++// â€¢ Redistributions of source code must retain the above copyright notice,
+ //   this list of conditions and the following disclaimer.
+-// • Redistributions in binary form must reproduce the above copyright notice,
++// â€¢ Redistributions in binary form must reproduce the above copyright notice,
+ //   this list of conditions and the following disclaimer in the documentation
+ //   and/or other materials provided with the distribution.
+ // 
+@@ -44,7 +44,7 @@
+ //================================
+ #define FORCE_INLINE
+ #define CDECL
+-#if __LP64__
++#if defined(__LP64__) || defined(_WIN64)
+ #define UINTPTR_T unsigned long long
+ #define INTPTR_T long long
+ #else
+diff --git a/Source/LibJXR/image/sys/strcodec.h b/Source/LibJXR/image/sys/strcodec.h
+index ba3df4e..f727d4e 100644
+--- a/Source/LibJXR/image/sys/strcodec.h
++++ b/Source/LibJXR/image/sys/strcodec.h
+@@ -1,14 +1,14 @@
+ //*@@@+++@@@@******************************************************************
+ //
+-// Copyright © Microsoft Corp.
++// Copyright Â© Microsoft Corp.
+ // All rights reserved.
+ // 
+ // Redistribution and use in source and binary forms, with or without
+ // modification, are permitted provided that the following conditions are met:
+ // 
+-// • Redistributions of source code must retain the above copyright notice,
++// â€¢ Redistributions of source code must retain the above copyright notice,
+ //   this list of conditions and the following disclaimer.
+-// • Redistributions in binary form must reproduce the above copyright notice,
++// â€¢ Redistributions in binary form must reproduce the above copyright notice,
+ //   this list of conditions and the following disclaimer in the documentation
+ //   and/or other materials provided with the distribution.
+ // 
+diff --git a/Source/LibTIFF4/tif_config.h b/Source/LibTIFF4/tif_config.h
+index 64391b8..3027b83 100644
+--- a/Source/LibTIFF4/tif_config.h
++++ b/Source/LibTIFF4/tif_config.h
+@@ -81,7 +81,10 @@ If your big endian system isn't being detected, add an OS specific check
+ #endif // BYTE_ORDER
+ 
+ #ifdef _WIN32
++/* Visual Studio 2015 / VC 14 / MSVC 19.00 finally has snprintf() */
++#if defined(_MSC_VER) && (_MSC_VER < 1900)
+ #define snprintf _snprintf
++#endif // _MSC_VER
+ #define lfind _lfind
+ #endif // _WIN32
+ 
+diff --git a/Source/OpenEXR/IlmImf/ImfAttribute.cpp b/Source/OpenEXR/IlmImf/ImfAttribute.cpp
+index feb5f83..3d601fc 100644
+--- a/Source/OpenEXR/IlmImf/ImfAttribute.cpp
++++ b/Source/OpenEXR/IlmImf/ImfAttribute.cpp
+@@ -61,12 +61,11 @@ Attribute::~Attribute () {}
+ 
+ namespace {
+ 
+-struct NameCompare: std::binary_function <const char *, const char *, bool>
++struct NameCompare
+ {
+-    bool
+-    operator () (const char *x, const char *y) const
++    bool operator () (const char *x, const char *y) const
+     {
+-	return strcmp (x, y) < 0;
++        return strcmp(x, y) < 0;
+     }
+ };
+ 

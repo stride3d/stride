@@ -220,11 +220,10 @@ namespace FreeImageAPI
 			double blue = color.B;
 
 			int i = 0;
-			double r, g, b;
 
-			r = red / splitSize;
-			g = green / splitSize;
-			b = blue / splitSize;
+			double r = red / splitSize;
+			double g = green / splitSize;
+			double b = blue / splitSize;
 
 			for (; i <= splitSize; i++)
 			{
@@ -338,10 +337,8 @@ namespace FreeImageAPI
 		/// </param>
 		public void Save(string filename)
 		{
-			using (Stream stream = new FileStream(filename, FileMode.Create, FileAccess.Write))
-			{
-				Save(stream);
-			}
+			using Stream stream = new FileStream(filename, FileMode.Create, FileAccess.Write);
+			Save(stream);
 		}
 
 		/// <summary>
@@ -373,10 +370,8 @@ namespace FreeImageAPI
 		/// <param name="filename">The name of the palette file.</param>
 		public void Load(string filename)
 		{
-			using (Stream stream = new FileStream(filename, FileMode.Open, FileAccess.Read))
-			{
-				Load(stream);
-			}
+			using Stream stream = new FileStream(filename, FileMode.Open, FileAccess.Read);
+			Load(stream);
 		}
 
 		/// <summary>
@@ -400,10 +395,10 @@ namespace FreeImageAPI
 				int size = length * sizeof(RGBQUAD);
 				byte[] data = reader.ReadBytes(size);
 
-                ref byte dst = ref Unsafe.AsRef<byte>(baseAddress);
-                ref byte src = ref data[0];
-                Unsafe.CopyBlockUnaligned(ref dst, ref src, (uint) data.Length);
-            }
+				ref byte dst = ref Unsafe.AsRef<byte>(baseAddress);
+				ref byte src = ref data[0];
+				Unsafe.CopyBlockUnaligned(ref dst, ref src, (uint) data.Length);
+			}
 		}
 
 		/// <summary>

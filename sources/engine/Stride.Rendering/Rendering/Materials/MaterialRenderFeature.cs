@@ -66,6 +66,7 @@ namespace Stride.Rendering.Materials
             public int PermutationCounter; // Dirty counter against material.Parameters.PermutationCounter
             public ParameterCollection MaterialParameters; // Protect against changes of Material.Parameters instance (happens with editor fast reload)
             public CullMode? CullMode;
+            public CompareFunction? DepthFunction;
 
             public ShaderSource VertexStageSurfaceShaders;
             public ShaderSource VertexStageStreamInitializer;
@@ -92,6 +93,7 @@ namespace Stride.Rendering.Materials
             {
                 MaterialPass = materialPass;
                 CullMode = materialPass.CullMode;
+                DepthFunction = materialPass.DepthFunction;
             }
         }
 
@@ -179,6 +181,12 @@ namespace Stride.Rendering.Materials
                 {
                     materialInfo.CullMode = material.CullMode;
                     renderMesh.IsPreviousScalingNegative = renderMesh.IsScalingNegative;
+                    resetPipelineState = true;
+                }
+
+                if (materialInfo != null && materialInfo.DepthFunction != material.DepthFunction)
+                {
+                    materialInfo.DepthFunction = material.DepthFunction;
                     resetPipelineState = true;
                 }
 

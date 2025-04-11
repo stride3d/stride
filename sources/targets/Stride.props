@@ -3,7 +3,7 @@
   <PropertyGroup>
     <StrideSdkTargets>$(MSBuildThisFileDirectory)Stride.targets</StrideSdkTargets>
     <StrideAssemblyProcessorGlobal>true</StrideAssemblyProcessorGlobal>
-    <StrideAssemblyProcessorDefaultOptions>--auto-notify-property --parameter-key --auto-module-initializer --serialization</StrideAssemblyProcessorDefaultOptions>
+    <StrideAssemblyProcessorDefaultOptions>--parameter-key --auto-module-initializer --serialization</StrideAssemblyProcessorDefaultOptions>
     <StrideAssemblyProcessorOptions Condition="'$(StrideAssemblyProcessorOptions)' == ''">$(StrideAssemblyProcessorDefaultOptions)</StrideAssemblyProcessorOptions>
   </PropertyGroup>
 

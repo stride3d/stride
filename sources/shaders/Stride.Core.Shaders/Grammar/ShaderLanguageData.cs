@@ -52,8 +52,7 @@ namespace Stride.Core.Shaders.Grammar
             else if (tokenInfo.TokenCategory == TokenCategory.Typename || tokenInfo.TokenCategory == TokenCategory.Keyword)
             {
                 var keyMap = (tokenInfo.IsCaseInsensitive) ? caseInsensitiveKeywordToTerminal : keywordToTerminal;
-                if (!keyMap.ContainsKey(term.Name))
-                    keyMap.Add(term.Name, term);
+                keyMap.TryAdd(term.Name, term);
             }
             else
             {

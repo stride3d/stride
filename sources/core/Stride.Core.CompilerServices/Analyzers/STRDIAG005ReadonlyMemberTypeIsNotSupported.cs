@@ -11,7 +11,7 @@ public class STRDIAG005ReadonlyMemberTypeIsNotSupported : DiagnosticAnalyzer
     private const string MessageFormat = "The [DataMember] Attribute is applied to a read-only member '{0}' with a non supported type. Only mutable reference types are supported for read-only members.";
     private const string Category = DiagnosticCategory.Serialization;
 
-    private static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
+    private static readonly DiagnosticDescriptor Rule = new(
         DiagnosticId,
         Title,
         MessageFormat,
@@ -51,7 +51,6 @@ public class STRDIAG005ReadonlyMemberTypeIsNotSupported : DiagnosticAnalyzer
         if (!symbol.IsVisibleToSerializer(dataMemberAttribute))
             return;
 
-
         if (!symbol.IsReadOnly)
             return;
         var fieldType = symbol.Type;
@@ -65,7 +64,6 @@ public class STRDIAG005ReadonlyMemberTypeIsNotSupported : DiagnosticAnalyzer
     private static void AnalyzeProperty(SymbolAnalysisContext context, INamedTypeSymbol dataMemberAttribute)
     {
         var propertySymbol = (IPropertySymbol)context.Symbol;
-
 
         if (!propertySymbol.HasAttribute(dataMemberAttribute))
             return;

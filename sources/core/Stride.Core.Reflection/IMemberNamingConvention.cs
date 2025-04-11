@@ -18,26 +18,23 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-using System;
+namespace Stride.Core.Yaml.Serialization;
 
-namespace Stride.Core.Yaml.Serialization
+/// <summary>
+/// Base interface for renaming members.
+/// </summary>
+public interface IMemberNamingConvention
 {
     /// <summary>
-    /// Base interface for renaming members.
+    /// Gets the comparer used for this member name.
     /// </summary>
-    public interface IMemberNamingConvention
-    {
-        /// <summary>
-        /// Gets the comparer used for this member name.
-        /// </summary>
-        /// <value>The comparer.</value>
-        StringComparer Comparer { get; }
+    /// <value>The comparer.</value>
+    StringComparer Comparer { get; }
 
-        /// <summary>
-        /// Converts the specified member name.
-        /// </summary>
-        /// <param name="name">The name.</param>
-        /// <returns>System.String.</returns>
-        string Convert(string name);
-    }
+    /// <summary>
+    /// Converts the specified member name.
+    /// </summary>
+    /// <param name="name">The name.</param>
+    /// <returns>System.String.</returns>
+    string Convert(string name);
 }

@@ -1,26 +1,25 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using System.Collections.Generic;
+
 using Stride.Core.Storage;
 using Stride.Core.Diagnostics;
 using Stride.Core.Serialization.Contents;
 
-namespace Stride.Core.BuildEngine
+namespace Stride.Core.BuildEngine;
+
+public interface ICommandContext
 {
-    public interface ICommandContext
-    {
-        Command CurrentCommand { get; }
+    Command CurrentCommand { get; }
 
-        LoggerResult Logger { get; }
+    LoggerResult Logger { get; }
 
-        IEnumerable<IReadOnlyDictionary<ObjectUrl, OutputObject>> GetOutputObjectsGroups();
+    IEnumerable<IReadOnlyDictionary<ObjectUrl, OutputObject>> GetOutputObjectsGroups();
 
-        void RegisterInputDependency(ObjectUrl url);
+    void RegisterInputDependency(ObjectUrl url);
 
-        void RegisterOutput(ObjectUrl url, ObjectId hash);
+    void RegisterOutput(ObjectUrl url, ObjectId hash);
 
-        void RegisterCommandLog(IEnumerable<ILogMessage> logMessages);
+    void RegisterCommandLog(IEnumerable<ILogMessage> logMessages);
 
-        void AddTag(ObjectUrl url, string tag);
-    }
+    void AddTag(ObjectUrl url, string tag);
 }

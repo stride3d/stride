@@ -7,6 +7,9 @@
   <PropertyGroup>
     <Description>Stride Core IO assembly.</Description>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
     <StrideCodeAnalysis>true</StrideCodeAnalysis>
   </PropertyGroup>
   
@@ -26,8 +29,8 @@
   
   <ItemGroup>
     <ProjectReference Include="..\Stride.Core\Stride.Core.csproj">
-	  <PrivateAssets>contentfiles;analyzers</PrivateAssets>
-	</ProjectReference>
+    <PrivateAssets>contentfiles;analyzers</PrivateAssets>
+  </ProjectReference>
     <PackageReference Include="SharpDX" Condition="'$(TargetFramework)' == '$(StrideFrameworkUWP)'" />
   </ItemGroup>
   

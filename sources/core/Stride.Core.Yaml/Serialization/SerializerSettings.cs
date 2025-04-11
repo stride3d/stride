@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2015 SharpYaml - Alexandre Mutel
+// Copyright (c) 2015 SharpYaml - Alexandre Mutel
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -206,7 +206,7 @@ namespace Stride.Core.Yaml.Serialization
             set
             {
                 if (value == null)
-                    throw new ArgumentNullException("value");
+                    throw new ArgumentNullException("value", $"{nameof(NamingConvention)} can not be null");
                 _namingConvention = value;
             }
         }
@@ -248,7 +248,7 @@ namespace Stride.Core.Yaml.Serialization
             set
             {
                 if (value == null)
-                    throw new ArgumentNullException("value");
+                    throw new ArgumentNullException("value", $"{nameof(specialCollectionMember)} can not be null");
 
                 // TODO this is a poor check. Need to verify this against the specs
                 if (value.Length < 2 || !(value.Contains(".") || value.Contains("~") || value.IndexOf('-') > 0))
@@ -271,7 +271,7 @@ namespace Stride.Core.Yaml.Serialization
             set
             {
                 if (value == null)
-                    throw new ArgumentNullException("value");
+                    throw new ArgumentNullException("value", $"{nameof(Attributes)} can not be null");
                 attributeRegistry = value;
             }
         }
@@ -286,7 +286,7 @@ namespace Stride.Core.Yaml.Serialization
             set
             {
                 if (value == null)
-                    throw new ArgumentNullException("value");
+                    throw new ArgumentNullException("value", $"{nameof(ObjectSerializerBackend)} can not be null");
                 objectSerializerBackend = value;
             }
         }
@@ -302,7 +302,7 @@ namespace Stride.Core.Yaml.Serialization
             set
             {
                 if (value == null)
-                    throw new ArgumentNullException("value");
+                    throw new ArgumentNullException("value", $"{nameof(ObjectFactory)} can not be null");
                 objectFactory = value;
             }
         }

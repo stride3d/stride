@@ -2,58 +2,44 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Diagnostics;
+using System.Text;
 using Stride.Core.Extensions;
+using Stride.Core.Presentation.Avalonia.Services;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.ViewModels;
-using Stride.CrashReport;
 
-namespace Stride.Launcher.Crash;
+namespace Stride.Crash.ViewModels;
 
 internal sealed class CrashReportViewModel : ViewModelBase
 {
-    public const string PrivacyPolicyUrl = "https://stride3d.net/legal/privacy-policy";
-
-    private readonly NullDispatcherService dispatcherService = new();
-
-    private readonly Func<string?, Task> setClipboard;
+    private readonly string applicationName;
     private readonly CancellationTokenSource exitToken;
+    private readonly Func<string?, Task> setClipboard;
     private readonly CrashReportData report;
 
     private bool isReportVisible;
-    private bool rememberEmail;
 
-    public CrashReportViewModel(CrashReportArgs args, Func<string?, Task> setClipboard, CancellationTokenSource exitToken)
+    public CrashReportViewModel(string applicationName, CrashReportArgs args, Func<string?, Task> setClipboard, CancellationTokenSource exitToken)
         : base(new ViewModelServiceProvider())
     {
+        this.applicationName = applicationName;
         this.exitToken = exitToken;
         this.setClipboard = setClipboard;
-        ServiceProvider.RegisterService(dispatcherService);
+
+        var dispatcher = DispatcherService.Create();
+        ServiceProvider.RegisterService(dispatcher);
+        ServiceProvider.RegisterService(new DialogService(dispatcher) { ApplicationName = applicationName });
 
         report = ComputeReport(args);
 
         CopyReportCommand = new AnonymousTaskCommand(ServiceProvider, OnCopyReport);
-        DontSendCommand = new AnonymousCommand(ServiceProvider, OnDontSend);
-        OpenPrivacyPolicyCommand = new AnonymousCommand(ServiceProvider, OnOpenPrivacyPolicy);
-#if DEBUG
-        SendCommand = new AnonymousTaskCommand(ServiceProvider, OnSend);
-#else
-        SendCommand = DisabledCommand.Instance;
-#endif
+        CloseCommand = new AnonymousCommand(ServiceProvider, OnClose);
+        OpenIssueCommand = new AnonymousTaskCommand(ServiceProvider, OnOpenIssue);
         ViewReportCommand = new AnonymousCommand(ServiceProvider, OnViewReport);
     }
 
-    public string? Description
-    {
-        get => report["UserMessage"];
-        set => SetValue(() => report["UserMessage"] = value, nameof(Description), nameof(Report));
-    }
-
-    public string? EmailAddress
-    {
-        get => report["UserEmail"];
-        set => SetValue(() => report["UserEmail"] = value, nameof(EmailAddress), nameof(Report));
-    }
+    public string ApplicationName => applicationName;
 
     public bool IsReportVisible
     {
@@ -66,19 +52,12 @@ internal sealed class CrashReportViewModel : ViewModelBase
         get => report;
     }
 
-    public bool RememberEmail
-    {
-        get => rememberEmail;
-        set => SetValue(ref rememberEmail, value);
-    }
-
     public ICommandBase CopyReportCommand { get; }
-    public ICommandBase DontSendCommand { get; }
-    public ICommandBase OpenPrivacyPolicyCommand { get; }
-    public ICommandBase SendCommand { get; }
+    public ICommandBase CloseCommand { get; }
+    public ICommandBase OpenIssueCommand { get; }
     public ICommandBase ViewReportCommand { get; }
 
-    private void Close()
+    private void OnClose()
     {
         exitToken.Cancel();
     }
@@ -88,76 +67,56 @@ internal sealed class CrashReportViewModel : ViewModelBase
         return setClipboard.Invoke(Report.ToJson());
     }
 
-    private void OnDontSend()
-    {
-        Close();
-    }
-
-    private void OnOpenPrivacyPolicy()
+    private async Task OnOpenIssue()
     {
         try
         {
-            var psi = new ProcessStartInfo
+            Process.Start(new ProcessStartInfo
             {
-                FileName = PrivacyPolicyUrl,
+                FileName = "https://github.com/stride3d/stride/issues/new?labels=bug&template=bug_report.md&",
                 UseShellExecute = true
-            };
-            Process.Start(psi);
+            });
         }
         // FIXME: catch only specific exceptions?
         catch (Exception)
         {
-            var error = "An error occurred while opening the browser. You can access the privacy policy at the following url:"
-                + Environment.NewLine + Environment.NewLine + PrivacyPolicyUrl;
-            // TODO: display error
+            DialogService.MainWindow!.Topmost = false;
+            // FIXME: localize resource string
+            await ServiceProvider.Get<IDialogService>().MessageBoxAsync("An error occurred while trying to open a web browser", MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
-    
-#if DEBUG
-    private async Task OnSend()
-    {
-        if (!await SendReport(Report))
-        {
-            // TODO: display error
-        }
-
-        Close();
-    }
-#endif // DEBUG
 
     private void OnViewReport()
     {
         IsReportVisible = true;
     }
 
-    private static CrashReportData ComputeReport(CrashReportArgs args)
+    private CrashReportData ComputeReport(CrashReportArgs args)
     {
         return new CrashReportData
         {
-            ["Application"] = "GameStudio",
-            ["UserEmail"] = "",
-            ["UserMessage"] = "",
+            ["Application"] = applicationName,
             ["ThreadName"] = args.ThreadName,
 #if DEBUG
-            ["ProcessID"] = Process.GetCurrentProcess().Id.ToString(),
-#endif
+            ["ProcessID"] = Environment.ProcessId,
             ["CurrentDirectory"] = Environment.CurrentDirectory,
+#endif
             ["OsArch"] = Environment.Is64BitOperatingSystem ? "x64" : "x86",
-            ["ProcessorCount"] = Environment.ProcessorCount.ToString(),
+            ["OsVersion"] = Environment.OSVersion,
+            ["ProcessorCount"] = Environment.ProcessorCount,
             ["Exception"] = args.Exception.FormatFull(),
+            ["LastLogs"] = FormatLogs(args.Logs),
         };
-    }
 
-    private static async Task<bool> SendReport(CrashReportData report)
-    {
-        try
+        static string FormatLogs(string[] logs)
         {
-            await CrashReporter.Report(report);
-            return true;
-        }
-        catch (Exception)
-        {
-            return false;
+            var builder = new StringBuilder();
+            for (var i = 0; i < logs.Length; i++)
+            {
+                var log = logs[i];
+                builder.AppendLine($"{i + 1}: {log}");
+            }
+            return builder.ToString();
         }
     }
 }

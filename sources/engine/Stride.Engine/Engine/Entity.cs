@@ -17,7 +17,9 @@ using Stride.Core.Serialization.Contents;
 namespace Stride.Engine
 {
     /// <summary>
-    /// Game entity. It usually aggregates multiple EntityComponent
+    /// Represents a game entity that typically aggregates multiple <see cref="EntityComponent"/> instances.
+    /// For more information about entities, see <see href="https://doc.stride3d.net/latest/en/manual/game-studio/add-entities.html">Adding entities</see>
+    /// and <see href="https://doc.stride3d.net/latest/en/manual/game-studio/manage-entities.html">Managing entities</see>.
     /// </summary>
     //[ContentSerializer(typeof(EntityContentSerializer))]
     //[ContentSerializer(typeof(DataContentSerializer<Entity>))]
@@ -54,7 +56,7 @@ namespace Stride.Engine
         /// <param name="name">The name to give to the entity</param>
         /// <param name="position">The initial position of the entity</param>
         /// <param name="rotation">The initial rotation of the entity</param>
-        /// <param name="rotation">The initial scale of the entity</param>
+        /// <param name="scale">The initial scale of the entity</param>
         public Entity(string name = null, Vector3 position = default, Quaternion? rotation = null, Vector3? scale = null)
             : this(name, false)
         {

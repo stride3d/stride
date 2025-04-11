@@ -1,14 +1,14 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 using System.Linq;
-using Xunit;
 using Stride.Core.Assets.Editor.Quantum;
-using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Quantum;
 using Stride.Core.Assets.Quantum.Tests;
 using Stride.Core.Presentation.Dirtiables;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Quantum;
+using Xunit;
 
 namespace Stride.Core.Assets.Editor.Tests
 {

@@ -12,16 +12,15 @@ using Stride.Core.Packages;
 using Stride.Core.Presentation.Avalonia.Windows;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Windows;
-using Stride.Launcher.Crash;
+using Stride.Crash;
+using Stride.Crash.ViewModels;
 using Stride.Launcher.Services;
-using Stride.Metrics;
 
 namespace Stride.Launcher;
 
 internal static class Launcher
 {
     private static int terminating;
-    internal static MetricsClient? Metrics;
     internal static FileLock? Mutex;
 
     public const string ApplicationName = "Stride Launcher";
@@ -37,14 +36,14 @@ internal static class Launcher
         }
         catch (Exception ex)
         {
-            HandleException(ex);
+            HandleException(ex, CrashLocation.Main);
             return LauncherErrorCode.ErrorWhileRunningServer;
         }
     }
 
     internal static NugetStore InitializeNugetStore()
     {
-        var thisExeDirectory = new UFile(Assembly.GetEntryAssembly()!.Location).GetFullDirectory().ToWindowsPath();
+        var thisExeDirectory = new UFile(Assembly.GetEntryAssembly()!.Location).GetFullDirectory().ToOSPath();
         var store = new NugetStore(thisExeDirectory);
         return store;
     }
@@ -61,20 +60,7 @@ internal static class Launcher
             {
                 if (Mutex is not null)
                 {
-                    // Only needed for Stride up to 2.x (and possibly 3.0): setup the StrideDir to make sure that it is passed to the underlying process (msbuild...etc.)
-                    Environment.SetEnvironmentVariable("SiliconStudioStrideDir", AppDomain.CurrentDomain.BaseDirectory);
-                    Environment.SetEnvironmentVariable("StrideDir", AppDomain.CurrentDomain.BaseDirectory);
-
-                    // We need to do that before starting recording metrics
-                    // TODO: we do not display Privacy Policy anymore from launcher, because it's either accepted from installer or shown again when a new version of GS with new Privacy Policy starts. Might want to reconsider that after the 2.0 free period
-                    PrivacyPolicyHelper.RestartApplication = SelfUpdater.RestartApplication;
-                    PrivacyPolicyHelper.EnsurePrivacyPolicyStride40();
-
-                    // Install Metrics for the launcher
-                    using (Metrics = new MetricsClient(CommonApps.StrideLauncherAppId))
-                    {
-                        Program.RunNewApp<App>(AppMain);
-                    }
+                    Program.RunNewApp<App>(AppMain);
                 }
                 else
                 {
@@ -161,7 +147,7 @@ internal static class Launcher
         try
         {
             // Kill all running processes
-            var path = new UFile(Assembly.GetEntryAssembly()!.Location).GetFullDirectory().ToWindowsPath();
+            var path = new UFile(Assembly.GetEntryAssembly()!.Location).GetFullDirectory().ToOSPath();
             if (!await UninstallHelper.CloseProcessesInPathAsync(DisplayMessageAsync, "Stride", path))
                 return LauncherErrorCode.UninstallCancelled; // User cancelled
 
@@ -214,12 +200,13 @@ internal static class Launcher
         {
             var cts = new CancellationTokenSource();
             var window = new CrashReportWindow { Topmost = true };
-            window.DataContext = new CrashReportViewModel(args, window.Clipboard!.SetTextAsync, cts);
+            window.DataContext = new CrashReportViewModel(ApplicationName, args, window.Clipboard!.SetTextAsync, cts);
             window.Closed += (_, _) => cts.Cancel();
             if (!window.IsVisible)
             {
                 window.Show();
             }
+            ((IClassicDesktopStyleApplicationLifetime)app.ApplicationLifetime!).MainWindow = window;
             return cts.Token;
         }
     }
@@ -228,11 +215,11 @@ internal static class Launcher
     {
         if (e.IsTerminating)
         {
-            HandleException(e.ExceptionObject as Exception);
+            HandleException(e.ExceptionObject as Exception, CrashLocation.UnhandledException);
         }
     }
 
-    private static void HandleException(Exception? exception)
+    private static void HandleException(Exception? exception, CrashLocation location)
     {
         if (exception is null) return;
 
@@ -241,10 +228,14 @@ internal static class Launcher
 
         var englishCulture = new CultureInfo("en-US");
         Thread.CurrentThread.CurrentCulture = Thread.CurrentThread.CurrentUICulture = englishCulture;
-        var reportArgs = new CrashReportArgs(exception, Thread.CurrentThread.Name);
+        var reportArgs = new CrashReportArgs
+        {
+            Exception = exception,
+            Location = location,
+            ThreadName = Thread.CurrentThread.Name
+        };
         CrashReport(reportArgs);
     }
 
     #endregion // Crash
-
 }

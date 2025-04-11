@@ -1,0 +1,125 @@
+<Project>
+  <Import Project="..\..\targets\Stride.props" />
+  <PropertyGroup>
+    <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
+    <StridePackAssets>true</StridePackAssets>
+    <StrideLocalized>true</StrideLocalized>
+    <TargetFramework>$(StrideEditorTargetFramework)</TargetFramework>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+    <StrideAssemblyProcessorOptions>--auto-module-initializer --serialization --parameter-key</StrideAssemblyProcessorOptions>
+    <RestorePackages>true</RestorePackages>
+    <UseWPF>true</UseWPF>
+    <EnableDefaultPageItems>false</EnableDefaultPageItems>
+    <RootNamespace>Stride.Assets.Presentation</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Build" ExcludeAssets="runtime" />
+    <PackageReference Include="AvalonEdit" />
+    <PackageReference Include="System.Reactive.Linq" />
+    <PackageReference Include="System.Reactive" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Features" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" />
+    <PackageReference Include="RoslynPad.Editor.Windows" />
+    <PackageReference Include="RoslynPad.Roslyn.Windows" />
+    <PackageReference Include="RoslynPad.Roslyn" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
+      <Link>Properties\SharedAssemblyInfo.cs</Link>
+    </Compile>
+    <Compile Include="..\Stride.Samples.Templates\ThisPackageVersion.PackageBuild.cs" Link="ThisPackageVersion.PackageBuild.cs" />
+    <Compile Include="..\Stride.Samples.Templates\ThisPackageVersion.DevBuild.cs" Link="ThisPackageVersion.DevBuild.cs" />
+    <None Include="app.config" />
+    <None Include="*.cd" />
+    <Page Include="**\*.xaml" SubType="Designer" Generator="MSBuild:Compile" />
+    <Compile Update="**\*.xaml.cs" SubType="Code" DependentUpon="%(Filename)" />
+    <EmbeddedResource Update="AssetEditors\Gizmos\GizmoResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <SubType>Designer</SubType>
+      <LastGenOutput>GizmoResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <Compile Update="AssetEditors\Gizmos\GizmoResources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>GizmoResources.resx</DependentUpon>
+    </Compile>
+    <Compile Update="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+    <AppDesigner Include="Properties\" />
+    <None Remove="EditorPackage\buildpath\**" />
+    <None Remove="EditorPackage\outputpath\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\assets\Stride.Core.Assets.Quantum\Stride.Core.Assets.Quantum.csproj" />
+    <ProjectReference Include="..\..\presentation\Stride.Core.Presentation.Wpf.Dialogs\Stride.Core.Presentation.Wpf.Dialogs.csproj" />
+    <ProjectReference Include="..\..\presentation\Stride.Core.Presentation.Wpf.Graph\Stride.Core.Presentation.Wpf.Graph.csproj" />
+    <ProjectReference Include="..\..\presentation\Stride.Core.Translation.Presentation.Wpf\Stride.Core.Translation.Presentation.Wpf.csproj" />
+    <ProjectReference Include="..\..\tools\Stride.ConnectionRouter\Stride.ConnectionRouter.csproj" />
+    <ProjectReference Include="..\..\tools\Stride.Graphics.RenderDocPlugin\Stride.Graphics.RenderDocPlugin.csproj" />
+    <ProjectReference Include="..\..\tools\Stride.Core.ProjectTemplating\Stride.Core.ProjectTemplating.csproj" />
+    <ProjectReference Include="..\Stride.Core.Assets.Editor.Wpf\Stride.Core.Assets.Editor.Wpf.csproj" />
+    <ProjectReference Include="..\Stride.Editor.Wpf\Stride.Editor.Wpf.csproj" />
+    <ProjectReference Include="..\Stride.Samples.Templates\Stride.Samples.Templates.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
+  </ItemGroup>
+  <!-- Resources -->
+  <ItemGroup>
+    <Resource Include="Resources\Components\*.png" />
+    <Resource Include="Resources\Gizmos\*.png" />
+    <Resource Include="Resources\Icons\*.png" />
+    <Compile Update="Resources\Strings\KeyGestures.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>KeyGestures.resx</DependentUpon>
+    </Compile>
+    <EmbeddedResource Update="Resources\Strings\KeyGestures.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <LastGenOutput>KeyGestures.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <None Include="Resources\Thumbnails\*.png" />
+    <Compile Update="Resources\Thumbnails\StaticThumbnails.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>StaticThumbnails.resx</DependentUpon>
+    </Compile>
+    <EmbeddedResource Update="Resources\Thumbnails\StaticThumbnails.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <LastGenOutput>StaticThumbnails.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\*.cur" />
+  </ItemGroup>
+  <!-- Templates -->
+  <ItemGroup>
+    <Compile Remove="Templates\Core\**" />
+    <Compile Remove="Templates\Assets\**" />
+    <None Include="Templates\Core\**" />
+    <None Include="Templates\Assets\**" />
+  </ItemGroup>
+  <Import Project="$(StrideSdkTargets)" />
+  <PropertyGroup>
+    <TargetsForTfmSpecificBuildOutput>_StrideIncludeExtraAssemblies;$(TargetsForTfmSpecificBuildOutput)</TargetsForTfmSpecificBuildOutput>
+
+  </PropertyGroup>
+  <Target Name="_StrideIncludeExtraAssemblies">
+    <ItemGroup>
+      <BuildOutputInPackage Include="$(OutputPath)RoslynPad*.dll" />
+    </ItemGroup>
+  </Target>
+  <Target Name="RemoveVisualStudioRoslynDependencies" AfterTargets="ResolveAssemblyReferences">
+    <ItemGroup>
+      <ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)" Condition="$([System.String]::Copy('%(ReferenceCopyLocalPaths.FileName)').StartsWith('Microsoft.VisualStudio.'))" />
+    </ItemGroup>
+  </Target>
+</Project>

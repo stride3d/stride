@@ -18,7 +18,6 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Stride.Native\Stride.Native.csproj" />
     <ProjectReference Include="..\Stride.Games\Stride.Games.csproj" />
   </ItemGroup>
   <ItemGroup>

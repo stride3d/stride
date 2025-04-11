@@ -7,6 +7,9 @@
   <PropertyGroup>
     <Description>Core assembly for all Stride assemblies.</Description>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
     <StrideCodeAnalysis>true</StrideCodeAnalysis>
   </PropertyGroup>
   

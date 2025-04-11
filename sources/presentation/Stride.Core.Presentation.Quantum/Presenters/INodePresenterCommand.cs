@@ -1,27 +1,21 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Stride.Core.Annotations;
 
-namespace Stride.Core.Presentation.Quantum.Presenters
+namespace Stride.Core.Presentation.Quantum.Presenters;
+
+public interface INodePresenterCommand
 {
-    public interface INodePresenterCommand
-    {
-        [NotNull]
-        string Name { get; }
+    string Name { get; }
 
-        CombineMode CombineMode { get; }
+    CombineMode CombineMode { get; }
 
-        bool CanAttach([NotNull] INodePresenter nodePresenter);
+    bool CanAttach(INodePresenter nodePresenter);
 
-        bool CanExecute([NotNull] IReadOnlyCollection<INodePresenter> nodePresenters, object parameter);
+    bool CanExecute(IReadOnlyCollection<INodePresenter> nodePresenters, object? parameter);
 
-        Task<object> PreExecute([NotNull] IReadOnlyCollection<INodePresenter> nodePresenters, object parameter);
+    Task<object?> PreExecute(IReadOnlyCollection<INodePresenter> nodePresenters, object? parameter);
 
-        Task Execute([NotNull] INodePresenter nodePresenter, object parameter, object preExecuteResult);
+    Task Execute(INodePresenter nodePresenter, object? parameter, object? preExecuteResult);
 
-        Task PostExecute([NotNull] IReadOnlyCollection<INodePresenter> nodePresenters, object parameter);
-    }
+    Task PostExecute(IReadOnlyCollection<INodePresenter> nodePresenters, object? parameter);
 }

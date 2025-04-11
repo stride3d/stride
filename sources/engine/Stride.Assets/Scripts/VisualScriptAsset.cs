@@ -164,7 +164,7 @@ namespace Stride.Assets.Scripts
 
         public VisualScriptCompilerResult Compile(AssetItem assetItem)
         {
-            var generatedAbsolutePath = assetItem.GetGeneratedAbsolutePath().ToWindowsPath();
+            var generatedAbsolutePath = assetItem.GetGeneratedAbsolutePath().ToOSPath();
 
             var compilerOptions = new VisualScriptCompilerOptions
             {

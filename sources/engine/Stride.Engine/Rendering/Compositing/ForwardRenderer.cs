@@ -789,23 +789,9 @@ namespace Stride.Rendering.Compositing
 
             foreach (var renderFeature in context.RenderContext.RenderSystem.RenderFeatures)
             {
-                if (!(renderFeature is RootEffectRenderFeature))
-                    continue;
-
-                var depthLogicalKey = ((RootEffectRenderFeature)renderFeature).CreateViewLogicalGroup("Depth");
-                var viewFeature = renderView.Features[renderFeature.Index];
-
-                // Copy ViewProjection to PerFrame cbuffer
-                foreach (var viewLayout in viewFeature.Layouts)
+                if (renderFeature is RootRenderFeature rootRenderFeature)
                 {
-                    var resourceGroup = viewLayout.Entries[renderView.Index].Resources;
-
-                    var depthLogicalGroup = viewLayout.GetLogicalGroup(depthLogicalKey);
-                    if (depthLogicalGroup.Hash == ObjectId.Empty)
-                        continue;
-
-                    // Might want to use ProcessLogicalGroup if more than 1 Recource
-                    resourceGroup.DescriptorSet.SetShaderResourceView(depthLogicalGroup.DescriptorSlotStart, depthStencilSRV);
+                    rootRenderFeature.BindPerViewShaderResource("Depth", renderView, depthStencilSRV);
                 }
             }
 
@@ -838,20 +824,9 @@ namespace Stride.Rendering.Compositing
             var renderView = drawContext.RenderContext.RenderView;
             foreach (var renderFeature in drawContext.RenderContext.RenderSystem.RenderFeatures)
             {
-                if (!(renderFeature is RootEffectRenderFeature))
-                    continue;
-
-                var opaqueLogicalKey = ((RootEffectRenderFeature)renderFeature).CreateViewLogicalGroup("Opaque");
-                var viewFeature = renderView.Features[renderFeature.Index];
-
-                foreach (var viewLayout in viewFeature.Layouts)
+                if (renderFeature is RootRenderFeature rootRenderFeature)
                 {
-                    var opaqueLogicalRenderGroup = viewLayout.GetLogicalGroup(opaqueLogicalKey);
-                    if (opaqueLogicalRenderGroup.Hash == ObjectId.Empty)
-                        continue;
-
-                    var resourceGroup = viewLayout.Entries[renderView.Index].Resources;
-                    resourceGroup.DescriptorSet.SetShaderResourceView(opaqueLogicalRenderGroup.DescriptorSlotStart, renderTargetTexture);
+                    rootRenderFeature.BindPerViewShaderResource("Opaque", renderView, renderTargetTexture);
                 }
             }
 

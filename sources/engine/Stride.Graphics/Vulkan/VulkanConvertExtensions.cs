@@ -653,16 +653,6 @@ namespace Stride.Graphics
                 case VkFormat.ASTC12x12SRgbBlock:
                     return 16;
 
-                //case VkFormat.Pvrtc12BppUNormBlock:
-                //case VkFormat.Pvrtc14BppUNormBlock:
-                //case VkFormat.Pvrtc22BppUNormBlock:
-                //case VkFormat.Pvrtc24BppUNormBlock:
-                //case VkFormat.Pvrtc12BppSRgbBlock:
-                //case VkFormat.Pvrtc14BppSRgbBlock:
-                //case VkFormat.Pvrtc22BppSRgbBlock:
-                //case VkFormat.Pvrtc24BppSRgbBlock:
-                //    return 8;
-
                 default:
                     throw new ArgumentOutOfRangeException(nameof(format));
             }

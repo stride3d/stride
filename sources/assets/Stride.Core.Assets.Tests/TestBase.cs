@@ -7,9 +7,9 @@ using Xunit;
 
 namespace Stride.Core.Assets.Tests
 {
-    public class TestBase
+    public abstract class TestBase
     {
-        public readonly string DirectoryTestBase = Path.Combine(AssemblyDirectory, @"data\");
+        public readonly string DirectoryTestBase = Path.Combine(AssemblyDirectory, "data");
 
         public static void GenerateAndCompare(string title, string outputFilePath, string referenceFilePath, Asset asset)
         {
@@ -26,9 +26,9 @@ namespace Stride.Core.Assets.Tests
         {
             get
             {
-                string codeBase = Assembly.GetExecutingAssembly().Location;
-                UriBuilder uri = new UriBuilder(codeBase);
-                string path = Uri.UnescapeDataString(uri.Path);
+                var codeBase = Assembly.GetExecutingAssembly().Location;
+                var uri = new Uri(new Uri("file://"), codeBase);
+                var path = Uri.UnescapeDataString(uri.AbsolutePath);
                 return Path.GetDirectoryName(path);
             }
         }

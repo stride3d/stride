@@ -155,7 +155,7 @@ namespace Stride.GameStudio.Debugging
         private static async Task<Process> GetDebuggerProcess(EditorViewModel editor)
         {
             // Check if the current solution is opened in some IDE instance
-            var process = await VisualStudioService.GetVisualStudio(editor.Session, false);
+            var process = await VisualStudioService.GetInstance(editor.Session, false);
 
             if (process == null)
             {

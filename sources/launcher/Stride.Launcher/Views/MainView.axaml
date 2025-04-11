@@ -54,7 +54,7 @@
                             HorizontalAlignment="Center">
                   <Button Classes="TransparentButton MediaButton"
                           Command="{Binding OpenUrlCommand}"
-                          CommandParameter="{x:Static l:Urls.Twitter}"
+                          CommandParameter="{x:Static l:Urls.XTwitter}"
                           ToolTip.Tip="{Binding CommandParameter, StringFormat={x:Static l:Strings.ToolTipOpenLink}, RelativeSource={RelativeSource Self}}"
                           Content="{StaticResource ImageTwitter}">
                     <Interaction.Behaviors>

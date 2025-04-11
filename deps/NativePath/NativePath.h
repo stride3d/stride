@@ -3021,7 +3021,8 @@ typedef uint32_t uint4 __attribute__((ext_vector_type(4)));
 #endif
 
 #if !__has_builtin(__builtin___strlcat_chk)
-	#error \"__strlcat_chk clang built-in not available\"
+	// FIXME xplat-editor
+	//#error \"__strlcat_chk clang built-in not available\"
 	// zc*cC*zz
 	extern size_t __strlcat_chk(...);
 #else
@@ -3029,7 +3030,8 @@ typedef uint32_t uint4 __attribute__((ext_vector_type(4)));
 #endif
 
 #if !__has_builtin(__builtin___strlcpy_chk)
-	#error \"__strlcpy_chk clang built-in not available\"
+	// FIXME xplat-editor
+	//#error \"__strlcpy_chk clang built-in not available\"
 	// zc*cC*zz
 	extern size_t __strlcpy_chk(...);
 #else

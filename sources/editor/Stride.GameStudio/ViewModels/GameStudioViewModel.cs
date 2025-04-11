@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
-using System.Threading.Tasks;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core;
@@ -16,9 +15,9 @@ using Stride.Core.MostRecentlyUsedFiles;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Translation;
-using Stride.Core.VisualStudio;
 using Stride.Assets.Effect;
 using Stride.Assets.Presentation.ViewModel;
+using Stride.Core.CodeEditorSupport;
 using Stride.GameStudio.Services;
 using Stride.GameStudio.Helpers;
 using Stride.Core.Presentation.ViewModels;
@@ -36,8 +35,8 @@ namespace Stride.GameStudio.ViewModels
             : base(serviceProvider, mru, StrideGameStudio.EditorName, StrideGameStudio.EditorVersionMajor)
         {
             Panels = new EditionPanelViewModel(ServiceProvider);
-            availableIDEs = new List<IDEInfo> { VisualStudioVersions.DefaultIDE };
-            availableIDEs.AddRange(VisualStudioVersions.AvailableVisualStudioInstances);
+            availableIDEs = [IDEInfo.DefaultIDE];
+            availableIDEs.AddRange(IDEInfoVersions.AvailableIDEs());
             NewSessionCommand = new AnonymousCommand(serviceProvider, RestartAndCreateNewSession);
             OpenAboutPageCommand = new AnonymousCommand(serviceProvider, OpenAboutPage);
             OpenSessionCommand = new AnonymousTaskCommand<UFile>(serviceProvider, RestartAndOpenSession);
@@ -87,9 +86,9 @@ namespace Stride.GameStudio.ViewModels
 
         protected override async Task RestartAndOpenSession(UFile sessionPath)
         {
-            if (sessionPath != null && !File.Exists(sessionPath.ToWindowsPath()))
+            if (sessionPath != null && !File.Exists(sessionPath.ToOSPath()))
             {
-                await ServiceProvider.Get<IDialogService>().MessageBoxAsync(Tr._p("Message", "The file {0} does not exist.").ToFormat(sessionPath.ToWindowsPath()));
+                await ServiceProvider.Get<IDialogService>().MessageBoxAsync(Tr._p("Message", "The file {0} does not exist.").ToFormat(sessionPath.ToOSPath()));
                 return;
             }
             if (sessionPath == null)
@@ -101,7 +100,7 @@ namespace Stride.GameStudio.ViewModels
             if (sessionPath == null)
                 return;
 
-            restartArguments = $"\"{sessionPath.ToWindowsPath()}\"";
+            restartArguments = $"\"{sessionPath.ToOSPath()}\"";
             await CloseAndRestart();
         }
 

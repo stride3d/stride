@@ -4,16 +4,15 @@
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.Win32;
+using Stride.Core.CodeEditorSupport.VisualStudio;
 using Stride.Core.Extensions;
 using Stride.Core.Packages;
 using Stride.Core.Presentation.Collections;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.ViewModels;
-using Stride.Core.VisualStudio;
 using Stride.Launcher.Assets.Localization;
 using Stride.Launcher.Services;
-using Stride.Metrics;
 
 namespace Stride.Launcher.ViewModels;
 
@@ -516,7 +515,7 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
                     await versionToInstall.Download(true);
 
                     // if VS2022 is installed (version 17.x)
-                    if (!VsixPackage2022.IsLatestVersionInstalled && VsixPackage2022.CanBeDownloaded && VisualStudioVersions.AvailableVisualStudioInstances.Any(ide => ide.InstallationVersion.Major == 17))
+                    if (!VsixPackage2022.IsLatestVersionInstalled && VsixPackage2022.CanBeDownloaded && VisualStudioVersions.AvailableInstances.Any(ide => ide.InstallationVersion.Major == 17))
                     {
                         result = await ServiceProvider.Get<IDialogService>().MessageBoxAsync(string.Format(Strings.AskInstallVSIX, "2022"), MessageBoxButton.YesNo, MessageBoxImage.Question);
                         if (result == MessageBoxResult.Yes)
@@ -526,7 +525,7 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
                     }
 
                     // if VS2019 is installed (version 16.x)
-                    if (!VsixPackage2019.IsLatestVersionInstalled && VsixPackage2019.CanBeDownloaded && VisualStudioVersions.AvailableVisualStudioInstances.Any(ide => ide.InstallationVersion.Major == 16))
+                    if (!VsixPackage2019.IsLatestVersionInstalled && VsixPackage2019.CanBeDownloaded && VisualStudioVersions.AvailableInstances.Any(ide => ide.InstallationVersion.Major == 16))
                     {
                         result = await ServiceProvider.Get<IDialogService>().MessageBoxAsync(string.Format(Strings.AskInstallVSIX, "2019"), MessageBoxButton.YesNo, MessageBoxImage.Question);
                         if (result == MessageBoxResult.Yes)
@@ -573,17 +572,10 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
             argument = $"/LauncherWindowHandle {WindowHandle} {argument}";
         }
 
-        MetricsClient? metricsForEditorBefore120 = null;
         try
         {
             Dispatcher.Invoke(() => StartStudioCommand.IsEnabled = false);
             var mainExecutable = ActiveVersion.LocateMainExecutable();
-
-            // If version is older than 1.2.0, than we need to log the usage of older version
-            if (ActiveVersion is StrideStoreVersionViewModel activeStoreVersion && activeStoreVersion.Version.Version < new Version(1, 2, 0, 0))
-            {
-                metricsForEditorBefore120 = new MetricsClient(CommonApps.StrideEditorAppId, versionOverride: activeStoreVersion.Version.ToString());
-            }
 
             // We set the WorkingDirectory so that global.json is properly resolved
             Process.Start(new ProcessStartInfo(mainExecutable, argument) { WorkingDirectory = Path.GetDirectoryName(mainExecutable) });
@@ -593,10 +585,7 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
             var message = string.Format(Strings.ErrorStartingProcess, e.FormatSummary(true));
             await ServiceProvider.Get<IDialogService>().MessageBoxAsync(message, MessageBoxButton.OK, MessageBoxImage.Error);
         }
-        finally
-        {
-            metricsForEditorBefore120?.Dispose();
-        }
+
         await Task.Delay(5000);
         Dispatcher.Invoke(() =>
         {

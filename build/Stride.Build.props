@@ -2,9 +2,14 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <StrideCommonPreSettingsName>Stride</StrideCommonPreSettingsName>
-    <StridePlatforms Condition="'$(StridePlatforms)' == ''">Windows</StridePlatforms>
+    <StridePlatforms Condition="'$(StridePlatforms)' == '' And '$([MSBuild]::IsOSPlatform(Windows))'">Windows</StridePlatforms>
+    <StridePlatforms Condition="'$(StridePlatforms)' == '' And '$([MSBuild]::IsOSPlatform(Linux))'">Linux</StridePlatforms>
   </PropertyGroup>
   <PropertyGroup Condition="'$(StridePlatform)' == 'Windows'">
     <StrideGraphicsApis Condition="'$(StrideGraphicsApis)' == ''">Direct3D11</StrideGraphicsApis>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(StridePlatform)' == 'Linux'">
+    <StrideGraphicsApis Condition="'$(StrideGraphicsApis)' == ''">OpenGL</StrideGraphicsApis>
   </PropertyGroup>
 </Project>

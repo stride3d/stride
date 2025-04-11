@@ -46,69 +46,71 @@
 * THE SOFTWARE.
 */
 
-using System;
 using System.Collections;
 using System.ComponentModel;
 using System.ComponentModel.Design.Serialization;
 using System.Globalization;
-using Stride.Core.Annotations;
 using Stride.Core.Mathematics;
 
-namespace Stride.Core.TypeConverters
+namespace Stride.Core.TypeConverters;
+
+/// <summary>
+/// Defines a type converter for <see cref="Vector2"/>.
+/// </summary>
+public class Vector2Converter : BaseConverter
 {
     /// <summary>
-    /// Defines a type converter for <see cref="Vector2"/>.
+    /// Initializes a new instance of the <see cref="Vector2Converter"/> class.
     /// </summary>
-    public class Vector2Converter : BaseConverter
+    public Vector2Converter()
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="Vector2Converter"/> class.
-        /// </summary>
-        public Vector2Converter()
+        var type = typeof(Vector2);
+        Properties = new PropertyDescriptorCollection(
+        [
+            new FieldPropertyDescriptor(type.GetField(nameof(Vector2.X))!),
+            new FieldPropertyDescriptor(type.GetField(nameof(Vector2.Y))!),
+        ]);
+    }
+
+    /// <inheritdoc/>
+    public override object? ConvertTo(ITypeDescriptorContext? context, CultureInfo? culture, object? value, Type destinationType)
+    {
+#if NET6_0_OR_GREATER
+        ArgumentNullException.ThrowIfNull(destinationType);
+#else
+        if (destinationType is null) throw new ArgumentNullException(nameof(destinationType));
+#endif
+
+        if (value is Vector2 vector)
         {
-            var type = typeof(Vector2);
-            Properties = new PropertyDescriptorCollection(new PropertyDescriptor[]
+            if (destinationType == typeof(string))
+                return vector.ToString();
+
+            if (destinationType == typeof(InstanceDescriptor))
             {
-                new FieldPropertyDescriptor(type.GetField(nameof(Vector2.X))),
-                new FieldPropertyDescriptor(type.GetField(nameof(Vector2.Y))),
-            });
-        }
-
-        /// <inheritdoc/>
-        public override object ConvertTo(ITypeDescriptorContext context, CultureInfo culture, object value, Type destinationType)
-        {
-            if (destinationType == null) throw new ArgumentNullException(nameof(destinationType));
-
-            if (value is Vector2)
-            {
-                var vector = (Vector2)value;
-
-                if (destinationType == typeof(string))
-                    return vector.ToString();
-
-                if (destinationType == typeof(InstanceDescriptor))
-                {
-                    var constructor = typeof(Vector2).GetConstructor(MathUtil.Array(typeof(float), 2));
-                    if (constructor != null)
-                        return new InstanceDescriptor(constructor, vector.ToArray());
-                }
+                var constructor = typeof(Vector2).GetConstructor(MathUtil.Array(typeof(float), 2));
+                if (constructor != null)
+                    return new InstanceDescriptor(constructor, vector.ToArray());
             }
-
-            return base.ConvertTo(context, culture, value, destinationType);
         }
 
-        /// <inheritdoc/>
-        public override object ConvertFrom(ITypeDescriptorContext context, CultureInfo culture, object value)
-        {
-            return value != null ? ConvertFromString<Vector2, float>(context, culture, value) : base.ConvertFrom(context, culture, null);
-        }
+        return base.ConvertTo(context, culture, value, destinationType);
+    }
 
-        /// <inheritdoc/>
-        [NotNull]
-        public override object CreateInstance(ITypeDescriptorContext context, IDictionary propertyValues)
-        {
-            if (propertyValues == null) throw new ArgumentNullException(nameof(propertyValues));
-            return new Vector2((float)propertyValues[nameof(Vector2.X)], (float)propertyValues[nameof(Vector2.Y)]);
-        }
+    /// <inheritdoc/>
+    public override object? ConvertFrom(ITypeDescriptorContext? context, CultureInfo? culture, object value)
+    {
+    return (value is string str) ? ConvertFromString<Vector2, float>(context, culture, str) : base.ConvertFrom(context, culture, value);
+    }
+
+    /// <inheritdoc/>
+    public override object CreateInstance(ITypeDescriptorContext? context, IDictionary propertyValues)
+    {
+#if NET6_0_OR_GREATER
+        ArgumentNullException.ThrowIfNull(propertyValues);
+#else
+        if (propertyValues is null) throw new ArgumentNullException(nameof(propertyValues));
+#endif
+        return new Vector2((float)propertyValues[nameof(Vector2.X)]!, (float)propertyValues[nameof(Vector2.Y)]!);
     }
 }

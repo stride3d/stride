@@ -35,7 +35,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "30-CoreDesign", "30-CoreDes
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "50-Presentation", "50-Presentation", "{3BC606D7-27B3-41FA-8FB3-9D56AC8B4DD7}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Presentation.Avalonia", "..\sources\xplat-editor\Stride.Core.Presentation.Avalonia\Stride.Core.Presentation.Avalonia.csproj", "{3B613E66-671E-4049-8EF5-43CDAA549210}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Presentation.Avalonia", "..\sources\presentation\Stride.Core.Presentation.Avalonia\Stride.Core.Presentation.Avalonia.csproj", "{3B613E66-671E-4049-8EF5-43CDAA549210}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

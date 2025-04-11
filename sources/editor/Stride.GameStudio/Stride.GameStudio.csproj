@@ -12,6 +12,7 @@
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <RestorePackages>true</RestorePackages>
     <AssemblyName>Stride.GameStudio</AssemblyName>
+    <ImplicitUsings>enable</ImplicitUsings>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <StrideAssemblyProcessorOptions>--auto-module-initializer</StrideAssemblyProcessorOptions>
     <StrideLocalized>true</StrideLocalized>
@@ -31,6 +32,7 @@
   <ItemGroup>
     <PackageReference Include="ServiceWire" />
     <PackageReference Include="SharpDX" />
+    <PackageReference Include="SSH.NET" />
     <PackageReference Include="Stride.Metrics" />
     <PackageReference Include="Stride.CrashReport" />
     <PackageReference Include="Mono.Cecil" />
@@ -65,7 +67,11 @@
       <GlobalPropertiesToRemove>TargetFramework</GlobalPropertiesToRemove>
       <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
     </ProjectReference>
-    <ProjectReference Include="..\Stride.Assets.Presentation\Stride.Assets.Presentation.csproj" />
+    <!-- Soft reference to BepuPhysics to make sure it is up to date on every editor build -->
+    <ProjectReference Include="..\..\engine\Stride.BepuPhysics\Stride.BepuPhysics\Stride.BepuPhysics.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\Stride.Assets.Presentation.Wpf\Stride.Assets.Presentation.Wpf.csproj" />
     <ProjectReference Include="..\..\tools\Stride.EffectCompilerServer\Stride.EffectCompilerServer.csproj" IncludeAssets="Build" />
   </ItemGroup>
   <ItemGroup>

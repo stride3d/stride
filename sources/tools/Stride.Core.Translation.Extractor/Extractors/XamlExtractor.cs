@@ -22,12 +22,12 @@ namespace Stride.Core.Translation.Extractor
             try
             {
                 // Read all content
-                var reader = new XamlXmlReader(file.ToWindowsPath(), new XamlXmlReaderSettings { ProvideLineInfo = true });
+                var reader = new XamlXmlReader(file.ToOSPath(), new XamlXmlReaderSettings { ProvideLineInfo = true });
                 return DoExtractMessagesFromFile(file, reader);
             }
             catch (XamlException ex)
             {
-                Console.Error.WriteLine($"{file.ToWindowsPath()}: {ex.Message}");
+                Console.Error.WriteLine($"{file.ToOSPath()}: {ex.Message}");
                 return Enumerable.Empty<Message>();
             }
         }

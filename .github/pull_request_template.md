@@ -1,20 +1,14 @@
 # PR Details
 
-<!--- Provide a general summary of your changes in the Title above -->
-
-## Description
-
-<!--- Describe your changes in detail -->
+<!--- Provide a general summary of your changes in the Title of this PR -->
+<!--- Describe your changes in detail here -->
+<!--- Visit https://doc.stride3d.net/latest/en/contributors/contribution-workflow/github-pull-request-guidelines.html for more -->
 
 ## Related Issue
 
 <!--- If suggesting a new feature or change, please discuss it in an issue first -->
 <!--- If fixing a bug, there should be an issue describing it with steps to reproduce -->
 <!--- Please link to the issue here: -->
-
-## Motivation and Context
-
-<!--- Why is this change required? What problem does it solve? -->
 
 ## Types of changes
 

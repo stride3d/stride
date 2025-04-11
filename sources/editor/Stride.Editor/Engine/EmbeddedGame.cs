@@ -5,43 +5,42 @@ using Stride.Core.Diagnostics;
 using Stride.Engine;
 using Stride.Graphics;
 
-namespace Stride.Editor.Engine
+namespace Stride.Editor.Engine;
+
+/// <summary>
+/// Represents a Game that is embedded in a external window.
+/// </summary>
+public class EmbeddedGame : Game
 {
     /// <summary>
-    /// Represents a Game that is embedded in a external window.
+    /// All created embedded games (preview, scene, etc...) will have <see cref="DeviceCreationFlags.Debug"/> set.
     /// </summary>
-    public class EmbeddedGame : Game
+    public static bool DebugMode { get; set; }
+
+    public EmbeddedGame()
     {
-        /// <summary>
-        /// All created embedded games (preview, scene, etc...) will have <see cref="DeviceCreationFlags.Debug"/> set.
-        /// </summary>
-        public static bool DebugMode { get; set; }
+        GraphicsDeviceManager.PreferredGraphicsProfile = new [] { GraphicsProfile.Level_11_0, GraphicsProfile.Level_10_1, GraphicsProfile.Level_10_0 };
+        GraphicsDeviceManager.PreferredBackBufferWidth = 64;
+        GraphicsDeviceManager.PreferredBackBufferHeight = 64;
+        GraphicsDeviceManager.PreferredDepthStencilFormat = PixelFormat.D24_UNorm_S8_UInt;
+        GraphicsDeviceManager.DeviceCreationFlags = DebugMode ? DeviceCreationFlags.Debug : DeviceCreationFlags.None;
 
-        public EmbeddedGame()
-        {
-            GraphicsDeviceManager.PreferredGraphicsProfile = new [] { GraphicsProfile.Level_11_0, GraphicsProfile.Level_10_1, GraphicsProfile.Level_10_0 };
-            GraphicsDeviceManager.PreferredBackBufferWidth = 64;
-            GraphicsDeviceManager.PreferredBackBufferHeight = 64;
-            GraphicsDeviceManager.PreferredDepthStencilFormat = PixelFormat.D24_UNorm_S8_UInt;
-            GraphicsDeviceManager.DeviceCreationFlags = DebugMode ? DeviceCreationFlags.Debug : DeviceCreationFlags.None;
+        AutoLoadDefaultSettings = false;
+    }
 
-            AutoLoadDefaultSettings = false;
-        }
+    /// <inheritdoc />
+    protected override void Initialize()
+    {
+        base.Initialize();
 
-        /// <inheritdoc />
-        protected override void Initialize()
-        {
-            base.Initialize();
+        Window.IsBorderLess = true;
+        Window.IsMouseVisible = true;
+    }
 
-            Window.IsBorderLess = true;
-            Window.IsMouseVisible = true;
-        }
-
-        /// <inheritdoc />
-        protected sealed override LogListener GetLogListener()
-        {
-            // We don't want the embedded games to log in the console
-            return null;
-        }
+    /// <inheritdoc />
+    protected sealed override LogListener GetLogListener()
+    {
+        // We don't want the embedded games to log in the console
+        return null;
     }
 }
