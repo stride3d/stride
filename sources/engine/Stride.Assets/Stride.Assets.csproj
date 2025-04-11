@@ -17,7 +17,6 @@
     <PackageReference Include="SharpDX.Direct2D1" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" />
     <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" />
-    <PackageReference Include="SSH.NET" />
     <PackageReference Include="System.AppContext" />
     <PackageReference Include="System.Collections.Immutable" />
     <PackageReference Include="System.Console" />

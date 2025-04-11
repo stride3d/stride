@@ -165,7 +165,13 @@ Example of use:
     <MSBuild Targets="Build" Projects="$(StrideSolution).slnf" Properties="$(BuildProperties);Configuration=Debug;StridePlatforms=$(StridePlatforms);StrideGraphicsApis=OpenGL;StrideSkipAutoPack=true;StrideSkipUnitTests=true;StrideGraphicsApiDependentBuildAll=$(StrideGraphicsApiDependentBuildAll)"/>
   </Target> 
 
-  <Target Name="PackAvalonia" DependsOnTargets="PreparePackageBuild;BuildAvalonia" />
+  <Target Name="BuildWpf">
+    <PropertyGroup>
+      <StrideSolution>$(StrideSolution).Editor.Wpf</StrideSolution>
+    </PropertyGroup>
+    <MSBuild Targets="Restore" Projects="$(StrideSolution).slnf" Properties="StridePlatforms=$(StridePlatforms);StrideSolution=$(StrideSolution);StrideGraphicsApiDependentBuildAll=$(StrideGraphicsApiDependentBuildAll)"/>
+    <MSBuild Targets="Build" Projects="$(StrideSolution).slnf" Properties="$(BuildProperties);Configuration=Debug;StrideSkipAutoPack=true;StrideSkipUnitTests=true;StrideGraphicsApiDependentBuildAll=$(StrideGraphicsApiDependentBuildAll)"/>
+  </Target> 
 
   <Target Name="BuildWindows">
     <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StridePlatforms=$(StridePlatforms);StrideSolution=$(StrideSolution);StrideGraphicsApiDependentBuildAll=$(StrideGraphicsApiDependentBuildAll)"/>

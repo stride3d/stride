@@ -32,6 +32,7 @@
   <ItemGroup>
     <PackageReference Include="ServiceWire" />
     <PackageReference Include="SharpDX" />
+    <PackageReference Include="SSH.NET" />
     <PackageReference Include="Stride.Metrics" />
     <PackageReference Include="Stride.CrashReport" />
     <PackageReference Include="Mono.Cecil" />
