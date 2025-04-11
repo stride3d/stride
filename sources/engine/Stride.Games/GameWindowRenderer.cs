@@ -37,6 +37,7 @@ namespace Stride.Games
         private int preferredBackBufferHeight;
         private int preferredBackBufferWidth;
         private PixelFormat preferredDepthStencilFormat;
+        private PresenterColorSpace preferredPresenterColorSpace;
         private bool isBackBufferToResize;
         private GraphicsPresenter savedPresenter;
         private bool beginDrawOk;
@@ -51,6 +52,7 @@ namespace Stride.Games
             : base(registry)
         {
             GameContext = gameContext;
+            preferredPresenterColorSpace = PresenterColorSpace.RgbFullG22NoneP709;
         }
 
         /// <summary>
@@ -87,6 +89,28 @@ namespace Stride.Games
                 if (preferredBackBufferFormat != value)
                 {
                     preferredBackBufferFormat = value;
+                    isBackBufferToResize = true;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the preferred presenter color space. Can be used to render to HDR monitors.
+        /// See: https://learn.microsoft.com/en-us/windows/win32/direct3darticles/high-dynamic-range
+        /// </summary>
+        /// <value>The preferred presenter color space.</value>
+        public PresenterColorSpace PreferredPresenterColorSpace
+        {
+            get
+            {
+                return preferredPresenterColorSpace;
+            }
+
+            set
+            {
+                if (preferredPresenterColorSpace != value)
+                {
+                    preferredPresenterColorSpace = value;
                     isBackBufferToResize = true;
                 }
             }
@@ -191,6 +215,7 @@ namespace Stride.Games
                 var size = GetRequestedSize(out resizeFormat);
                 var presentationParameters = new PresentationParameters((int)size.X, (int)size.Y, Window.NativeWindow, resizeFormat) { DepthStencilFormat = PreferredDepthStencilFormat };
                 presentationParameters.PresentationInterval = PresentInterval.Immediate;
+                presentationParameters.PresenterColorSpace = preferredPresenterColorSpace;
 
 #if STRIDE_GRAPHICS_API_DIRECT3D11 && STRIDE_PLATFORM_UWP
                 if (Game.Context is GameContextUWPCoreWindow context && context.IsWindowsMixedReality)
