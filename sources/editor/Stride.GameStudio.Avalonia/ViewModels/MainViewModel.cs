@@ -19,6 +19,13 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
     private SessionViewModel? session;
     private string title = baseTitle;
 
+#if DEBUG
+    // Note: only required for the Avalonia designer
+    public MainViewModel()
+        : this(ViewModelServiceProvider.NullServiceProvider)
+    { }
+#endif
+
     public MainViewModel(IViewModelServiceProvider serviceProvider)
         : base(serviceProvider)
     {
@@ -36,7 +43,7 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
         Status = new StatusViewModel(ServiceProvider);
         Status.PushStatus("Ready");
     }
-    
+
     public SessionViewModel? Session
     {
         get => session;
@@ -62,7 +69,7 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
     public ICommandBase OpenCommand { get; }
 
     private EditorDialogService DialogService => ServiceProvider.Get<EditorDialogService>();
-    
+
     public ICommandBase OpenDebugWindowCommand { get; }
 
     public async Task<bool?> OpenSession(UFile? filePath, CancellationToken token = default)
