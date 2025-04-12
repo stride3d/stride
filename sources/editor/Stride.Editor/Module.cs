@@ -4,15 +4,14 @@
 using Stride.Core;
 using Stride.Core.Reflection;
 
-namespace Stride.Editor
+namespace Stride.Editor;
+
+internal class Module
 {
-    internal class Module
+    [ModuleInitializer]
+    public static void Initialize()
     {
-        [ModuleInitializer]
-        public static void Initialize()
-        {
-            // Currently, we are adding this assembly as part of the "assets" in order for the thumbnail types to be accessible through the AssemblyRegistry
-            AssemblyRegistry.Register(typeof(Module).Assembly, AssemblyCommonCategories.Assets);
-        }
+        // Currently, we are adding this assembly as part of the "assets" in order for the thumbnail types to be accessible through the AssemblyRegistry
+        AssemblyRegistry.Register(typeof(Module).Assembly, AssemblyCommonCategories.Assets);
     }
 }

@@ -15,7 +15,7 @@
              Source="/Assets/Images/reddit.png" />
       <Image x:Key="ImageTwitter"
              Height="24" Width="24"
-             Source="/Assets/Images/twitter.png" />
+             Source="/Assets/Images/xtwitter.png" />
 
       <SolidColorBrush x:Key="BackgroundEmphasis" Color="#900520" />
       <SolidColorBrush x:Key="BackgroundTileAlpha" Color="#C0434343" />

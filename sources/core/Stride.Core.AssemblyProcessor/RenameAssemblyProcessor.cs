@@ -1,24 +1,22 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using Mono.Cecil;
 
-namespace Stride.Core.AssemblyProcessor
+namespace Stride.Core.AssemblyProcessor;
+
+internal class RenameAssemblyProcessor : IAssemblyDefinitionProcessor
 {
-    internal class RenameAssemblyProcessor : IAssemblyDefinitionProcessor
+    private readonly string assemblyName;
+
+    public RenameAssemblyProcessor(string assemblyName)
     {
-        private string assemblyName;
+        this.assemblyName = assemblyName;
+    }
 
-        public RenameAssemblyProcessor(string assemblyName)
-        {
-            this.assemblyName = assemblyName;
-        }
+    public bool Process(AssemblyProcessorContext context)
+    {
+        context.Assembly.Name.Name = assemblyName;
+        context.Assembly.MainModule.Name = assemblyName + ".dll";
 
-        public bool Process(AssemblyProcessorContext context)
-        {
-            context.Assembly.Name.Name = assemblyName;
-            context.Assembly.MainModule.Name = assemblyName + ".dll";
-
-            return true;
-        }
+        return true;
     }
 }

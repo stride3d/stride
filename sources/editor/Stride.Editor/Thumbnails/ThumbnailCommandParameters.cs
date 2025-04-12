@@ -7,33 +7,32 @@ using Stride.Core.Mathematics;
 using Stride.Assets;
 using Stride.Graphics;
 
-namespace Stride.Editor.Thumbnails
+namespace Stride.Editor.Thumbnails;
+
+/// <summary>
+/// The minimum parameters needed by a thumbnail build command.
+/// </summary>
+[DataContract]
+public class ThumbnailCommandParameters
 {
-    /// <summary>
-    /// The minimum parameters needed by a thumbnail build command.
-    /// </summary>
-    [DataContract]
-    public class ThumbnailCommandParameters
+    public ThumbnailCommandParameters()
     {
-        public ThumbnailCommandParameters()
-        {
-        }
-
-        public ThumbnailCommandParameters(Asset asset, string thumbnailUrl, Int2 thumbnailSize)
-        {
-            Asset = asset;
-            ThumbnailUrl = thumbnailUrl;
-            ThumbnailSize = thumbnailSize;
-        }
-
-        public Asset Asset;
-        
-        public string ThumbnailUrl; // needed to force re-calculation of thumbnails when asset file is move
-
-        public Int2 ThumbnailSize;
-
-        public ColorSpace ColorSpace { get; set; }
-
-        public RenderingMode RenderingMode { get; set; }
     }
+
+    public ThumbnailCommandParameters(Asset asset, string thumbnailUrl, Int2 thumbnailSize)
+    {
+        Asset = asset;
+        ThumbnailUrl = thumbnailUrl;
+        ThumbnailSize = thumbnailSize;
+    }
+
+    public Asset Asset;
+    
+    public string ThumbnailUrl; // needed to force re-calculation of thumbnails when asset file is move
+
+    public Int2 ThumbnailSize;
+
+    public ColorSpace ColorSpace { get; set; }
+
+    public RenderingMode RenderingMode { get; set; }
 }

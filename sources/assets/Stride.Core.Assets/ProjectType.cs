@@ -1,25 +1,23 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using Stride.Core;
 
-namespace Stride.Core.Assets
+namespace Stride.Core.Assets;
+
+// REMARK: Beware of the order of values in this enum, it is used for sorting.
+
+/// <summary>
+/// Type of the project.
+/// </summary>
+[DataContract("ProjectType")]
+public enum ProjectType
 {
-    // REMARK: Beware of the order of values in this enum, it is used for sorting.
+    /// <summary>
+    /// A library.
+    /// </summary>
+    Library,
 
     /// <summary>
-    /// Type of the project.
+    /// An executable.
     /// </summary>
-    [DataContract("ProjectType")]
-    public enum ProjectType
-    {
-        /// <summary>
-        /// A library.
-        /// </summary>
-        Library,
-
-        /// <summary>
-        /// An executable.
-        /// </summary>
-        Executable,
-    }
+    Executable,
 }

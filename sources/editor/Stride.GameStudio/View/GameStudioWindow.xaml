@@ -5,7 +5,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
         xmlns:strings="clr-namespace:Stride.GameStudio.Resources.Strings"
-        xmlns:stringsEd="clr-namespace:Stride.Core.Assets.Editor.Resources.Strings;assembly=Stride.Core.Assets.Editor"
+        xmlns:stringsEd="clr-namespace:Stride.Core.Assets.Editor.Resources.Strings;assembly=Stride.Core.Assets.Editor.Wpf"
         xmlns:gl="clr-namespace:Stride.GameStudio.Layout.Behaviors"
         xmlns:gh="clr-namespace:Stride.GameStudio.Helpers"
         xmlns:vm="clr-namespace:Stride.GameStudio.ViewModels"
@@ -13,7 +13,7 @@
         xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
         xmlns:cmd="clr-namespace:Stride.Core.Presentation.Commands;assembly=Stride.Core.Presentation"
         xmlns:viewModels="clr-namespace:Stride.Core.Presentation.Quantum.ViewModels;assembly=Stride.Core.Presentation.Quantum"
-        xmlns:viewModels1="clr-namespace:Stride.Core.Assets.Editor.Components.TemplateDescriptions.ViewModels;assembly=Stride.Core.Assets.Editor"
+        xmlns:viewModels1="clr-namespace:Stride.Core.Assets.Editor.Components.TemplateDescriptions.ViewModels;assembly=Stride.Core.Assets.Editor.Wpf"
         mc:Ignorable="d" d:DesignHeight="300" d:DesignWidth="300"
         Title="{Binding EditorTitle, RelativeSource={RelativeSource Self}}" Width="1280" Height="900" Style="{DynamicResource WindowChromeStyle}"
         PreviewMouseDown="EditorWindowPreviewMouseDown"
@@ -22,7 +22,7 @@
     <ResourceDictionary>
       <ResourceDictionary.MergedDictionaries>
         <ResourceDictionary Source="/Theme.AvalonDock.xaml"/>
-        <ResourceDictionary Source="/Stride.Core.Assets.Editor;component/View/CommonResources.xaml" />
+        <ResourceDictionary Source="/Stride.Core.Assets.Editor.Wpf;component/View/CommonResources.xaml" />
       </ResourceDictionary.MergedDictionaries>
       <DataTemplate x:Key="AvalonDock_GameStudio_TitleTemplate">
         <DockPanel LastChildFill="False">
@@ -247,7 +247,7 @@
         <MenuItem Header="{sd:Localize Solution, Context=Menu}" Style="{StaticResource MenuGroupSeparatorStyle}"/>
         <MenuItem Header="{sd:Localize New project..., Context=Menu}" Command="{Binding Session.NewProjectCommand}" Icon="{sd:Image {StaticResource ImageAddNewPackage}}"/>
         <MenuItem Header="{sd:Localize Add existing project..., Context=Menu}" Command="{Binding Session.AddExistingProjectCommand}" Icon="{sd:Image {StaticResource ImageAddExistingProject}}"/>
-        <MenuItem Header="{sd:Localize Open in IDE, Context=Menu}" Command="{Binding Session.OpenInIDECommand}" Icon="{sd:Image {StaticResource ImageVisualStudio}}"/>
+        <MenuItem Header="{sd:Localize Open in IDE, Context=Menu}" Command="{Binding Session.OpenInIDECommand}" Icon="{sd:Image {StaticResource ImageCodeEditor}}"/>
         <MenuItem Header="{sd:Localize Reload game assemblies, Context=Menu}" Command="{Binding Debugging.ReloadAssembliesCommand}" Icon="{sd:Image {StaticResource ImageReloadAssemblies}}"/>
 
         <MenuItem Header="{sd:Localize Actions, Context=Menu}" Style="{StaticResource MenuGroupSeparatorStyle}"/>
@@ -369,7 +369,7 @@
         <ToolBar>
           <Button Command="{Binding Session.OpenInIDECommand}" Margin="2,0,0,0"
                   ToolTip="{sd:Localize Open in IDE, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Status}" ToolTipService.ShowOnDisabled="True">
-            <Image Source="{StaticResource ImageVisualStudio}" Width="16" Height="16" />
+            <Image Source="{StaticResource ImageCodeEditor}" Width="16" Height="16" />
           </Button>
           <Menu Background="Transparent"
                 ToolTip="{sd:Localize Open with..., Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Status}" ToolTipService.ShowOnDisabled="True">
@@ -515,7 +515,7 @@
                             <MenuItem Header="{sd:Localize Solution, Context=Menu}" Style="{StaticResource MenuGroupSeparatorStyle}" Visibility="{sd:MultiBinding {Binding Session.NewPackageCommand.IsEnabled}, {Binding Session.AddExistingPackageCommand.IsEnabled}, {Binding Session.OpenInIDECommand.IsEnabled}, Converter={sd:MultiChained {sd:OrMultiConverter}, {sd:VisibleOrCollapsed}}}"/>
                             <MenuItem Header="{sd:Localize New project..., Context=Menu}" Command="{Binding Session.NewProjectCommand}" Icon="{sd:Image {StaticResource ImageAddNewPackage}}" Visibility="{Binding Session.NewProjectCommand.IsEnabled, Converter={sd:VisibleOrCollapsed}}"/>
                             <MenuItem Header="{sd:Localize Add existing project..., Context=Menu}" Command="{Binding Session.AddExistingProjectCommand}" Icon="{sd:Image {StaticResource ImageAddExistingProject}}" Visibility="{Binding Session.AddExistingProjectCommand.IsEnabled, Converter={sd:VisibleOrCollapsed}}"/>
-                            <MenuItem Header="{sd:Localize Open in IDE, Context=Menu}" Command="{Binding Session.OpenInIDECommand}" Icon="{sd:Image {StaticResource ImageVisualStudio}}" Visibility="{Binding Session.OpenInIDECommand.IsEnabled, Converter={sd:VisibleOrCollapsed}}"/>
+                            <MenuItem Header="{sd:Localize Open in IDE, Context=Menu}" Command="{Binding Session.OpenInIDECommand}" Icon="{sd:Image {StaticResource ImageCodeEditor}}" Visibility="{Binding Session.OpenInIDECommand.IsEnabled, Converter={sd:VisibleOrCollapsed}}"/>
 
                             <MenuItem Header="{sd:Localize Actions, Context=Menu}" Style="{StaticResource MenuGroupSeparatorStyle}"/>
                             <MenuItem Header="{sd:Localize Cut, Context=Menu}" Command="ApplicationCommands.Cut" CommandTarget="{Binding PlacementTarget, RelativeSource={RelativeSource AncestorType={x:Type ContextMenu}}}" Icon="{sd:Image {StaticResource ImageCut}}"/>

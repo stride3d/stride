@@ -1,0 +1,48 @@
+<Project>
+  <Import Project="..\..\targets\Stride.props" />
+
+  <PropertyGroup>
+    <TargetFramework>$(StrideXplatEditorTargetFramework)</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
+      <Link>Properties\SharedAssemblyInfo.cs</Link>
+    </Compile>
+  </ItemGroup>
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <OutputType Condition="'$(Configuration)' == 'Debug'">Exe</OutputType>
+    <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <AvaloniaResource Include="Assets\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia.Desktop" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Stride.GameStudio.Avalonia\Stride.GameStudio.Avalonia.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\Directory.Build.props" Link="Directory.Build.props" />
+    <Compile Include="..\..\launcher\Stride.Launcher\Crash\CrashReportArgs.cs" Link="Crash\CrashReportArgs.cs" />
+    <Compile Include="..\..\launcher\Stride.Launcher\Crash\CrashReportData.cs" Link="Crash\CrashReportData.cs" />
+    <Compile Include="..\..\launcher\Stride.Launcher\Crash\CrashReportViewModel.cs" Link="Crash\CrashReportViewModel.cs" />
+    <AvaloniaXaml Include="..\..\launcher\Stride.Launcher\Crash\CrashReportWindow.axaml" Link="Crash\CrashReportWindow.axaml">
+      <SubType>Designer</SubType>
+    </AvaloniaXaml>
+    <Compile Include="..\..\launcher\Stride.Launcher\Crash\CrashReportWindow.axaml.cs" Link="Crash\CrashReportWindow.axaml.cs" />
+  </ItemGroup>
+
+  <Import Project="$(StrideSdkTargets)" />
+</Project>

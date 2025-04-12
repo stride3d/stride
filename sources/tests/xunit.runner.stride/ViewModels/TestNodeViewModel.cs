@@ -1,16 +1,15 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using System.Collections.Generic;
 using Xunit.Abstractions;
 
-namespace xunit.runner.stride.ViewModels
+namespace xunit.runner.stride.ViewModels;
+
+public abstract class TestNodeViewModel : ViewModelBase
 {
-    public abstract class TestNodeViewModel : ViewModelBase
-    {
         public abstract IEnumerable<TestCaseViewModel> EnumerateTestCases();
 
-        public abstract TestCaseViewModel LocateTestCase(ITestCase testCase);
+        public abstract TestCaseViewModel? LocateTestCase(ITestCase testCase);
 
         bool running;
         public bool Running
@@ -34,5 +33,4 @@ namespace xunit.runner.stride.ViewModels
         }
 
         public abstract string DisplayName { get; }
-    }
 }

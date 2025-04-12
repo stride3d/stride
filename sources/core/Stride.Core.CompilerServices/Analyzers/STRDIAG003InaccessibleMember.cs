@@ -14,7 +14,7 @@ public class STRDIAG003InaccessibleMember : DiagnosticAnalyzer
     private const string MessageFormat = "The member '{0}' with [DataMember] is not accesssible to the serializer. Only public/internal/internal protected visibility is supported, when the [DataMember] attribute is applied.";
     private const string Category = DiagnosticCategory.Serialization;
 
-    private static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
+    private static readonly DiagnosticDescriptor Rule = new(
         DiagnosticId,
         Title,
         MessageFormat,

@@ -1,7 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using System.Reflection;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
@@ -52,10 +51,6 @@ internal sealed class Program
             {
                 // First hide the main window
                 ((IClassicDesktopStyleApplicationLifetime?)Application.Current?.ApplicationLifetime)?.MainWindow?.Hide();
-
-                // Then setup the new application
-                // HACK: SetupUnsafe is internal and we can't call Setup multiple times
-                typeof(AppBuilder).GetMethod("SetupUnsafe", BindingFlags.NonPublic | BindingFlags.Instance)!.Invoke(appBuilder, null);
                                 
                 var app = appBuilder.Instance!;
                 app.Run(appMain((TApp)app));

@@ -37,7 +37,7 @@ namespace Stride.Physics.Tests
                 if (hitResult.Succeeded)
                 {
                     return true;
-                }                
+                }
             }
 
             return false;
@@ -242,6 +242,53 @@ namespace Stride.Physics.Tests
                 Assert.True(hit.Succeeded);
                 Assert.Equal(0.0f, (new Vector3(-2.861034E-06f, 3.889218E-06f, -1f) - hit.Normal).Length(), 3f);
                 Assert.Equal(0.0f, (new Vector3(-5.366335f, -0.08297831f, -17.9267f) - hit.Point).Length(), 3f);
+
+                game.Exit();
+            });
+            RunGameTest(game);
+        }
+
+        /// <summary>
+        /// Verify PhysicsComponent creation through the use of GetOrCreate<T>
+        /// If component is added this way, must ensure ColliderShape is properly setup if added later
+        /// </summary>
+        [Fact]
+        public void VerifyColliderShapeSetup()
+        {
+            var game = new ColliderShapesTest();
+            game.Script.AddTask(async () =>
+            {
+                game.ScreenShotAutomationEnabled = false;
+                await game.Script.NextFrame();
+                await game.Script.NextFrame();
+
+                var simulation = game.SceneSystem.SceneInstance.RootScene.Entities.First(ent => ent.Name == "Simulation").Get<StaticColliderComponent>().Simulation;
+                var cube = game.SceneSystem.SceneInstance.RootScene.Entities.First(ent => ent.Name == "CubePrefab1");
+                
+                var body = cube.GetOrCreate<RigidbodyComponent>();
+
+                await game.Script.NextFrame();
+
+                //verify values not properly set up
+                Assert.Null(body.ColliderShape);
+                Assert.Equal(RigidBodyTypes.Static, body.RigidBodyType);
+                Assert.False(body.OverrideGravity);
+
+                //for further debug, can set breakpoint and check body.Simulation.discreteDynamicWorld.CollisionObjectArray before and after
+                //the collider shape is attached to see it properly added
+
+                //add collider shape
+                body.ColliderShape = new SphereColliderShape(false, 1.0f);
+                //check if proper colliderShape setup took place
+                Assert.True(body.ColliderShape != null);
+                Assert.Equal(ColliderShapeTypes.Sphere, body.ColliderShape.Type);
+                Assert.Equal(RigidBodyTypes.Dynamic, body.RigidBodyType);
+
+                body.OverrideGravity = true;
+                //to verify InternalRigidBody was properly set up we can change properties such as Mass or OverrideGravity 
+                //that normally would return void if there are no InternalRigidBody values
+                Assert.True(body.OverrideGravity);
+
 
                 game.Exit();
             });

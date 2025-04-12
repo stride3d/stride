@@ -17,20 +17,10 @@
     <StrideBuildTags>*</StrideBuildTags>
     <StrideCodeAnalysis>true</StrideCodeAnalysis>
   </PropertyGroup>
-  <ItemGroup>
-    <Compile Remove="Resources\Resource.Designer.cs" />
-  </ItemGroup>
   <Choose>
     <When Condition=" '$(TargetFramework)' == '$(StrideFrameworkAndroid)'">
-      <PropertyGroup>
-        <AndroidResgenFile>Resources\Resource.Designer.cs</AndroidResgenFile>
-      </PropertyGroup>
       <ItemGroup>
-        <Compile Include="Resources\Resource.Designer.cs" />
-        <AndroidResource Include="Resources\Layout\Game.axml">
-          <SubType>AndroidResource</SubType>
-        </AndroidResource>
-        <Reference Include="System.Xml" />
+        <AndroidResource Include="Platforms\Android\Resources\Layout\stride_popup_edittext.xml" />
       </ItemGroup>
     </When>
   </Choose>

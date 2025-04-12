@@ -1,0 +1,24 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:Stride.Core.Assets.Editor.Components.Properties"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="Stride.GameStudio.Avalonia.Views.PropertyGridView"
+             x:DataType="vm:PropertiesViewModel">
+  <DockPanel>
+    <TextBlock DockPanel.Dock="Top" Text=" Property Grid" />
+    <ItemsControl ItemsSource="{Binding ViewModel.RootNode.Children}">
+      <ItemsControl.ItemTemplate>
+        <DataTemplate>
+          <TextBlock Text="{Binding Name}" />
+        </DataTemplate>
+      </ItemsControl.ItemTemplate>
+      <StyledElement.Styles>
+        <Style Selector="TreeViewItem">
+          <Setter Property="IsExpanded" Value="True"/>
+        </Style>
+      </StyledElement.Styles>
+    </ItemsControl>
+  </DockPanel> 
+</UserControl>

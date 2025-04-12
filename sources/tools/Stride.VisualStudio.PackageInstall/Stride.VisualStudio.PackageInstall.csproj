@@ -1,11 +1,13 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net461</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <RestorePackages>true</RestorePackages>
     <AssemblyName>packageinstall</AssemblyName>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -24,7 +26,13 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\core\Stride.Core.Design\VisualStudio\VisualStudioVersions.cs">
+    <Compile Include="..\..\core\Stride.Core.Design\CodeEditorSupport\IDEType.cs">
+      <Link>IDEType.cs</Link>
+    </Compile>
+    <Compile Include="..\..\core\Stride.Core.Design\CodeEditorSupport\IDEInfo.cs">
+      <Link>IDEInfo.cs</Link>
+    </Compile>
+    <Compile Include="..\..\core\Stride.Core.Design\CodeEditorSupport\VisualStudio\VisualStudioVersions.cs">
       <Link>VisualStudioVersions.cs</Link>
     </Compile>
   </ItemGroup>

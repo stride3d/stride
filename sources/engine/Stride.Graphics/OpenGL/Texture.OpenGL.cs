@@ -413,11 +413,11 @@ namespace Stride.Graphics
             {
                 if (compressed)
                 {
-                    GL.CompressedTexImage3D(TextureTarget, mipLevel, TextureInternalFormat, (uint) width, (uint) height, (uint) ArraySize, border: 0, imageSize: 0, data: IntPtr.Zero);
+                    GL.CompressedTexImage3D(TextureTarget, mipLevel, TextureInternalFormat, (uint) width, (uint) height, (uint) ArraySize, border: 0, imageSize: 0, data: null);
                 }
                 else
                 {
-                    GL.TexImage3D(TextureTarget, mipLevel, TextureInternalFormat, (uint) width, (uint) height, (uint) ArraySize, border: 0, TextureFormat, TextureType, IntPtr.Zero);
+                    GL.TexImage3D(TextureTarget, mipLevel, TextureInternalFormat, (uint) width, (uint) height, (uint) ArraySize, border: 0, TextureFormat, TextureType, null);
                 }
             }
 
@@ -620,7 +620,7 @@ namespace Stride.Graphics
             GL.BindBuffer(target, result);
             if (RowPitch < 4)
                 GL.PixelStore(alignment, 1);
-            GL.BufferData(target, (UIntPtr) totalSize, IntPtr.Zero, bufferUsage);
+            GL.BufferData(target, (UIntPtr) totalSize, null, bufferUsage);
             GL.BindBuffer(target, 0);
 
             return result;

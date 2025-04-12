@@ -486,12 +486,8 @@ namespace Stride.Updater
             object currentObj = target;
             object nextObject;
 
-            // This object needs to be pinned since we will have a pointer to its memory
-            // Note that the stack don't need to have each of its object pinned since we store entries as object + offset
-            Core.Interop.Pin(currentObj);
-
             // pinned test (this will need to be on a stack somehow)
-            var currentPtr = (nint)UpdateEngineHelper.ObjectToPointer(currentObj);
+            var currentPtr = UpdateEngineHelper.ObjectToPointer(currentObj);
 
             if (operations.Length == 0)
                 return;

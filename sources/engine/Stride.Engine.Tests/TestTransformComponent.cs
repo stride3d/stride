@@ -51,5 +51,32 @@ namespace Stride.Engine.Tests
             Assert.Equal(Quaternion.RotationX(MathF.PI * -0.5f), tR1);
             Assert.Equal(new Vector3(0.5f, 0.5f, 0.5f), tS1);
         }
+
+        [Fact]
+        public void TestSetWorldTransformation()
+        {
+            var scene = new Scene();
+            scene.Offset = Vector3.UnitX;
+            var parent = new Entity{ Scene = scene }.Transform;
+            var child = new Entity{ Transform = { Parent = parent } }.Transform;
+
+            parent.Position = Vector3.UnitX;
+            parent.Rotation = Quaternion.RotationY(MathF.PI * -0.5f);
+            parent.Scale = Vector3.One * 0.5f;
+            child.UpdateWorldMatrix();
+            child.SetWorld(Vector3.Zero, Quaternion.Identity);
+            child.UpdateWorldMatrix();
+
+            // Do note that all equality below are NOT strictly equal,
+            // those transformations, as are all floating point operations, are lossy.
+            // By default, Vector and Quaternion equality allow an epsilon of difference
+            
+            Assert.Equal(Vector3.UnitZ * 4f, child.Position); // Validate our assumptions
+            Assert.Equal(Quaternion.RotationY(MathF.PI * 0.5f), child.Rotation);
+            
+            child.GetWorldTransformation(out var pos, out var rot, out _); // Validate transformations
+            Assert.Equal(Vector3.Zero, pos);
+            Assert.Equal(Quaternion.Identity, rot);
+        }
     }
 }

@@ -169,20 +169,20 @@ namespace Stride.Launcher.Assets.Localization {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to https://twitter.com/stridedotnet.
-        /// </summary>
-        public static string Twitter {
-            get {
-                return ResourceManager.GetString("Twitter", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to https://visualstudio.microsoft.com/downloads.
         /// </summary>
         public static string VisualStudio {
             get {
                 return ResourceManager.GetString("VisualStudio", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to https://x.com/stridedotnet.
+        /// </summary>
+        public static string XTwitter {
+            get {
+                return ResourceManager.GetString("XTwitter", resourceCulture);
             }
         }
     }

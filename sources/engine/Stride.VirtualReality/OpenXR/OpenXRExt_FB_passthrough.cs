@@ -3,7 +3,6 @@ using Silk.NET.Core.Contexts;
 using Silk.NET.OpenXR;
 using Silk.NET.OpenXR.Extensions.FB;
 using System;
-using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -37,7 +36,7 @@ namespace Stride.VirtualReality
 
             bool TryGetProcAddress(string n, out nint fptr)
             {
-                PfnVoidFunction function;
+                PfnVoidFunction function = default;
                 var result = xr.GetInstanceProcAddr(instance, n, ref function);
                 if (result.Success())
                 {

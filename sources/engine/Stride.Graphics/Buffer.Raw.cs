@@ -21,6 +21,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
+using System;
 using Stride.Games;
 
 namespace Stride.Graphics
@@ -86,7 +87,7 @@ namespace Stride.Graphics
             /// <returns>A Raw buffer</returns>
             public static Buffer<T> New<T>(GraphicsDevice device, T[] value, BufferFlags additionalBindings = BufferFlags.None, GraphicsResourceUsage usage = GraphicsResourceUsage.Default) where T : unmanaged
             {
-                return Buffer.New(device, value, BufferFlags.RawBuffer | additionalBindings, usage);
+                return Buffer.New(device, (ReadOnlySpan<T>)value, BufferFlags.RawBuffer | additionalBindings, usage:usage);
             }
 
             /// <summary>
@@ -97,6 +98,20 @@ namespace Stride.Graphics
             /// <param name="additionalBindings">The additional bindings (for example, to create a combined raw/index buffer, pass <see cref="BufferFlags.IndexBuffer" />)</param>
             /// <param name="usage">The usage of this resource.</param>
             /// <returns>A Raw buffer</returns>
+            public static Buffer New(GraphicsDevice device, ReadOnlySpan<byte> value, BufferFlags additionalBindings = BufferFlags.None, GraphicsResourceUsage usage = GraphicsResourceUsage.Default)
+            {
+                return Buffer.New(device, value, 0, BufferFlags.RawBuffer | additionalBindings, usage:usage);
+            }
+
+            /// <summary>
+            /// Creates a new Raw buffer with <see cref="GraphicsResourceUsage.Default"/> uasge by default.
+            /// </summary>
+            /// <param name="device">The <see cref="GraphicsDevice"/>.</param>
+            /// <param name="value">The value to initialize the Raw buffer.</param>
+            /// <param name="additionalBindings">The additional bindings (for example, to create a combined raw/index buffer, pass <see cref="BufferFlags.IndexBuffer" />)</param>
+            /// <param name="usage">The usage of this resource.</param>
+            /// <returns>A Raw buffer</returns>
+            [Obsolete("Use span instead")]
             public static Buffer New(GraphicsDevice device, DataPointer value, BufferFlags additionalBindings = BufferFlags.None, GraphicsResourceUsage usage = GraphicsResourceUsage.Default)
             {
                 return Buffer.New(device, value, 0, BufferFlags.RawBuffer | additionalBindings, usage);

@@ -1,49 +1,46 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using System;
-using System.Collections.Generic;
 
-namespace Stride.Core.BuildEngine
+namespace Stride.Core.BuildEngine;
+
+public interface IBuildMonitorRemote
 {
-    public interface IBuildMonitorRemote
+    int Ping();
+
+    void StartBuild(Guid buildId, DateTime time);
+
+    void SendBuildStepInfo(Guid buildId, long executionId, string description, DateTime startTime);
+
+    void SendCommandLog(Guid buildId, DateTime startTime, long microthreadId, List<SerializableTimestampLogMessage> messages);
+
+    void SendMicrothreadEvents(Guid buildId, DateTime startTime, DateTime now, IEnumerable<MicrothreadNotification> microthreadJobInfo);
+
+    void SendBuildStepResult(Guid buildId, DateTime startTime, long microthreadId, ResultStatus status);
+
+    void EndBuild(Guid buildId, DateTime time);
+}
+public class MicrothreadNotification
+{
+    public enum NotificationType
     {
-        int Ping();
+        JobStarted,
+        JobEnded,
+    };
 
-        void StartBuild(Guid buildId, DateTime time);
+    public int ThreadId;
+    public long MicrothreadId;
+    public long MicrothreadJobInfoId;
+    public long Time;
+    public NotificationType Type;
 
-        void SendBuildStepInfo(Guid buildId, long executionId, string description, DateTime startTime);
+    public MicrothreadNotification() { }
 
-        void SendCommandLog(Guid buildId, DateTime startTime, long microthreadId, List<SerializableTimestampLogMessage> messages);
-
-        void SendMicrothreadEvents(Guid buildId, DateTime startTime, DateTime now, IEnumerable<MicrothreadNotification> microthreadJobInfo);
-
-        void SendBuildStepResult(Guid buildId, DateTime startTime, long microthreadId, ResultStatus status);
-
-        void EndBuild(Guid buildId, DateTime time);
-    }
-    public class MicrothreadNotification
+    public MicrothreadNotification(int threadId, long microthreadId, long microthreadJobId, long time, NotificationType type)
     {
-        public enum NotificationType
-        {
-            JobStarted,
-            JobEnded,
-        };
-
-        public int ThreadId;
-        public long MicrothreadId;
-        public long MicrothreadJobInfoId;
-        public long Time;
-        public NotificationType Type;
-
-        public MicrothreadNotification() { }
-
-        public MicrothreadNotification(int threadId, long microthreadId, long microthreadJobId, long time, NotificationType type)
-        {
-            ThreadId = threadId;
-            MicrothreadId = microthreadId;
-            MicrothreadJobInfoId = microthreadJobId;
-            Time = time;
-            Type = type;
-        }
+        ThreadId = threadId;
+        MicrothreadId = microthreadId;
+        MicrothreadJobInfoId = microthreadJobId;
+        Time = time;
+        Type = type;
     }
 }

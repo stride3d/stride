@@ -11,7 +11,7 @@ public class STRDIAG000AttributeContradiction : DiagnosticAnalyzer
     private const string MessageFormat = "There is an Attribute Contradiction on '{0}' Member. [DataMemberIgnore] Attribute on a [DataMember] is not supported. Except if it has also [DataMemberUpdatable] Attribute.";
     private const string Category = DiagnosticCategory.Serialization;
 
-    private static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
+    private static readonly DiagnosticDescriptor Rule = new(
         DiagnosticId,
         Title,
         MessageFormat,

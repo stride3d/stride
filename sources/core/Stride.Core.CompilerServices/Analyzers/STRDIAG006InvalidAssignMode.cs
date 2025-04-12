@@ -11,7 +11,7 @@ public class STRDIAG006InvalidAssignMode : DiagnosticAnalyzer
     private const string MessageFormat = "Invalid DataMembermode for the specified [DataMember] member '{0}'. A public/internal/internal protected setter is required for 'DataMemberMode.Assign'.";
     private const string Category = DiagnosticCategory.Serialization;
 
-    private static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
+    private static readonly DiagnosticDescriptor Rule = new(
         DiagnosticId,
         Title,
         MessageFormat,
@@ -44,7 +44,6 @@ public class STRDIAG006InvalidAssignMode : DiagnosticAnalyzer
     private static void AnalyzeSymbol(SymbolAnalysisContext context, INamedTypeSymbol dataMemberAttribute, INamedTypeSymbol dataMemberMode)
     {
         var propertySymbol = (IPropertySymbol)context.Symbol;
-
 
         if (!propertySymbol.HasAttribute(dataMemberAttribute))
             return;

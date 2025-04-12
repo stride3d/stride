@@ -23,20 +23,16 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE. */
 
-using System;
+namespace Stride.Core.Annotations;
 
-namespace Stride.Core.Annotations
-{
-    /// <summary>
-    /// Can be appplied to symbols of types derived from <see cref="System.Collections.Generic.IEnumerable{T}"/>
-    /// as well as to symbols of <see cref="System.Threading.Tasks.Task"/> and <see cref="Lazy{T}"/> classes
-    /// to indicate that the value of a collection item, of the Task.Result property or of the Lazy.Value property
-    /// can be <c>null</c>.
-    /// </summary>
-    [AttributeUsage(
-         AttributeTargets.Method | AttributeTargets.Parameter | AttributeTargets.Property |
-         AttributeTargets.Delegate | AttributeTargets.Field)]
-    public sealed class ItemCanBeNullAttribute : Attribute
-    {
-    }
-}
+/// <summary>
+/// Can be appplied to symbols of types derived from <see cref="System.Collections.Generic.IEnumerable{T}"/>
+/// as well as to symbols of <see cref="System.Threading.Tasks.Task"/> and <see cref="Lazy{T}"/> classes
+/// to indicate that the value of a collection item, of the Task.Result property or of the Lazy.Value property
+/// can be <c>null</c>.
+/// </summary>
+[AttributeUsage(
+     AttributeTargets.Method | AttributeTargets.Parameter | AttributeTargets.Property |
+     AttributeTargets.Delegate | AttributeTargets.Field)]
+// [Obsolete("Consider using the built-in nullable feature")]
+public sealed class ItemCanBeNullAttribute : Attribute;

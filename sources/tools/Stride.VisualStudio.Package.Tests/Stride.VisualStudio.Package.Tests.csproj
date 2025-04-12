@@ -6,6 +6,8 @@
     <TargetFramework>net472</TargetFramework>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
     <StrideBuildTags>WindowsTools</StrideBuildTags>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <StrideAssemblyProcessorOptions>--auto-module-initializer</StrideAssemblyProcessorOptions>
@@ -74,9 +76,9 @@
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(StrideSdkTargets)" />
-  <Target Name="LocateDevenv" AfterTargets="PrepareForBuild">
+  <Target Name="LocateDevenv" AfterTargets="Compile">
     <!-- Compute and save VisualStudio path to a file so that it can be used when running the test. Note: ideally we should use a Task, but Visual Studio lock the files -->
-    <Exec Command="&quot;..\..\core\Stride.Core.Tasks\bin\$(Configuration)\$(StrideEditorTargetFramework)\Stride.Core.Tasks.exe&quot; locate-devenv &quot;$(MSBuildBinPath)&quot;" ConsoleToMsBuild="true">
+    <Exec Command="&quot;..\..\core\Stride.Core.Tasks\bin\$(Configuration)\$(StrideXplatEditorTargetFramework)\Stride.Core.Tasks.exe&quot; locate-devenv &quot;$(MSBuildBinPath)&quot;" ConsoleToMsBuild="true">
       <Output TaskParameter="ConsoleOutput" PropertyName="DevenvPath" />
     </Exec>
     <WriteLinesToFile File="$(OutputPath)\devenvpath.txt" Lines="$(DevenvPath)" Overwrite="true" />

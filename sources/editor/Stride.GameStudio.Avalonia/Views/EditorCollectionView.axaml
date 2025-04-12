@@ -1,0 +1,21 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:Stride.Core.Assets.Editor.ViewModels"
+             xmlns:gs="using:Stride.Assets.Editor.Avalonia"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="Stride.GameStudio.Avalonia.Views.EditorCollectionView"
+             x:DataType="vm:EditorCollectionViewModel">
+  <TabControl ItemsSource="{Binding Editors}"
+              SelectedItem="{Binding ActiveEditor}">
+    <ItemsControl.ItemTemplate>
+      <DataTemplate>
+        <TextBlock Text="{Binding Asset.Name}" />
+      </DataTemplate>
+    </ItemsControl.ItemTemplate>
+    <TabControl.ContentTemplate>
+      <gs:EditorViewSelector Session="{Binding Session}" />
+    </TabControl.ContentTemplate>
+  </TabControl>
+</UserControl>

@@ -16,40 +16,75 @@ namespace Stride.UI.Controls
 {
     public partial class EditText
     {
+        private static readonly object syncRoot = new();
         private static MyAndroidEditText staticEditText;
 
         private static EditText activeEditText;
 
         private MyAndroidEditText editText;
 
-        private InputMethodManager inputMethodManager;
+        private Action editTextSetMinLinesAction;
+        private Action editTextSetMaxLinesAction;
+        private Action editTextSetSelectionAction;
+
+        private Action editTextSetActivatedStateAction;
 
         private class MyAndroidEditText : Android.Widget.EditText
         {
+            private Action showSoftInputAction;
+            private Action deselectStrideEditTextAction;
+
+            public bool AutoFocus { get; set; }
+
             public MyAndroidEditText(Context context)
                 : base(context)
             {
+                showSoftInputAction = () =>
+                {
+                    System.Diagnostics.Debug.Assert(Context is not null);
+                    var inputMethodManager = Context.GetSystemService(Context.InputMethodService) as InputMethodManager;
+                    System.Diagnostics.Debug.Assert(inputMethodManager is not null);
+                    inputMethodManager.ShowSoftInput(this, default(ShowFlags));
+                };
+                deselectStrideEditTextAction = () =>
+                {
+                    lock (syncRoot)
+                    {
+                        if (activeEditText is not null)
+                        {
+                            activeEditText.IsSelectionActive = false;
+                        }
+                    }
+                };
             }
 
             public override bool OnKeyPreIme(Keycode keyCode, KeyEvent e)
             {
                 if (e.KeyCode == Keycode.Back)
                 {
-                    if (activeEditText != null)
-                        activeEditText.IsSelectionActive = false;
-
+                    if (activeEditText is not null)
+                    {
+                        // We use Post instead of deselecting directly because we do not want to close
+                        // the PopupWindow of this control in the same execution as processing an input
+                        // otherwise the control gets disposed while being active
+                        Post(deselectStrideEditTextAction);
+                    }
                     return true;
                 }
 
                 return base.OnKeyPreIme(keyCode, e);
             }
 
-            protected override void OnDetachedFromWindow()
+            public override void OnWindowFocusChanged(bool hasWindowFocus)
             {
-                base.OnDetachedFromWindow();
-
-                // Edit text is invalidated and need to be recreated when application is shut down with back key
-                staticEditText = null;
+                // Adapted from https://developer.android.com/develop/ui/views/touch-and-input/keyboard-input/visibility#ShowReliably
+                // Because the Android EditText will appear in a popup, the control can start in focus
+                // but it isn't immediately ready to show the soft input, so it must be done this way
+                if (AutoFocus && hasWindowFocus)
+                {
+                    RequestFocus();
+                    Post(showSoftInputAction);
+                }
             }
         }
 
@@ -61,22 +96,75 @@ namespace Stride.UI.Controls
         // -> some Android phones crashes when native edit text is created from another thread than OS UI thread.
         private void EnsureStaticEditText()
         {
-            if (staticEditText == null)
+            var gameContext = GetGameContext();
+            if (staticEditText is null || gameContext.RecreateEditTextPopupWindow)
             {
                 // create and add the edit text
-                staticEditText = new MyAndroidEditText(PlatformAndroid.Context);
+                staticEditText = new MyAndroidEditText(PlatformAndroid.Context)
+                {
+                    AutoFocus = true    // Will focus & display the soft input when editing begins
+                };
 
-                var editLayoutParams = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.WrapContent);
-                editLayoutParams.SetMargins(75, 200, 75, 0);
-                GetGameContext().EditTextLayout.AddView(staticEditText, editLayoutParams);
+                var popupWindow = gameContext.CreateEditTextPopup(staticEditText);
+                popupWindow.DismissEvent += (sender, e) =>
+                {
+                    if (IsSelectionActive)
+                    {
+                        IsSelectionActive = false;
+                    }
+                };
             }
         }
 
         private void InitializeImpl()
         {
-            // nothing to do here
+            // Cache all the Actions that will be used in EditText.Post to reduce object allocation.
+            // EditText.Post is used because we are not on the same thread as the Android UI thread,
+            // and also need to lock on syncRoot to prevent race any condition where Stride thread
+            // unsets editText while we on the Android UI thread
+            editTextSetMinLinesAction = () =>
+            {
+                lock (syncRoot)
+                {
+                    editText?.SetMinLines(MinLines);
+                }
+            };
+            editTextSetMaxLinesAction = () =>
+            {
+                lock (syncRoot)
+                {
+                    editText?.SetMaxLines(MaxLines);
+                }
+            };
+            editTextSetSelectionAction = () =>
+            {
+                lock (syncRoot)
+                {
+                    editText?.SetSelection(selectionStart, selectionStop);
+                }
+            };
+
+            editTextSetActivatedStateAction = () =>
+            {
+                lock (syncRoot)
+                {
+                    var pendingEditText = staticEditText;
+                    // set up the initial state of the android EditText
+                    UpdateInputTypeFromSelf(pendingEditText);
+                    pendingEditText.SetMinLines(MinLines);
+                    pendingEditText.SetMaxLines(MaxLines);
+                    pendingEditText.Text = text;
+                    pendingEditText.SetSelection(selectionStart, selectionStop);
+
+                    // add callbacks
+                    pendingEditText.EditorAction += AndroidEditTextOnEditorAction;
+                    pendingEditText.AfterTextChanged += AndroidEditTextOnAfterTextChanged;
+
+                    editText = pendingEditText;
+                }
+            };
         }
-        
+
         private void AndroidEditTextOnAfterTextChanged(object sender, AfterTextChangedEventArgs afterTextChangedEventArgs)
         {
             if (editText == null)
@@ -123,13 +211,13 @@ namespace Stride.UI.Controls
 
             return editText.LineCount;
         }
-        
+
         private void OnMaxLinesChangedImpl()
         {
             if (editText == null)
                 return;
 
-            editText.SetMaxLines(MaxLines);
+            editText.Post(editTextSetMaxLinesAction);
         }
 
         private void OnMinLinesChangedImpl()
@@ -137,66 +225,49 @@ namespace Stride.UI.Controls
             if (editText == null)
                 return;
 
-            editText.SetMinLines(MinLines);
+            editText.Post(editTextSetMinLinesAction);
         }
 
         private void ActivateEditTextImpl()
         {
-            if (activeEditText != null)
-                throw new Exception("Internal error: Can not activate edit text, another edit text is already active");
+            lock (syncRoot)
+            {
+                if (activeEditText is not null)
+                    throw new Exception("Internal error: Can not activate edit text, another edit text is already active");
 
-            EnsureStaticEditText();
+                EnsureStaticEditText();
 
-            activeEditText = this;
-            editText = staticEditText;
-            
-            // set up the initial state of the android EditText
-            UpdateInputTypeImpl();
+                activeEditText = this;
 
-            editText.SetMaxLines(MaxLines);
-            editText.SetMinLines(MinLines);
+                // Select all text on initial focus.
+                // TODO: Maybe make it configurable on how caret/selection should default on activation?
+                SelectAll();
+                // Note that we do not assign 'staticEditText' to 'editText' until the Post action
+                // is actually invoked to ensure the control is fully ready
+                staticEditText.Post(editTextSetActivatedStateAction);
 
-            UpdateTextToEditImpl();
-            UpdateSelectionToEditImpl();
-
-            // add callbacks
-            editText.EditorAction += AndroidEditTextOnEditorAction;
-            editText.AfterTextChanged += AndroidEditTextOnAfterTextChanged;
-
-            // add the edit to the overlay layout and show the layout
-            GetGameContext().EditTextLayout.Visibility = ViewStates.Visible;
-
-            // set the focus to the edit box
-            editText.RequestFocus();
-
-            // activate the ime (show the keyboard)
-            inputMethodManager = (InputMethodManager)PlatformAndroid.Context.GetSystemService(Context.InputMethodService);
-            inputMethodManager.ShowSoftInput(staticEditText, ShowFlags.Forced);
+                GetGameContext().ShowEditTextPopup();
+            }
         }
 
         private void DeactivateEditTextImpl()
         {
-            if (activeEditText == null)
-                throw new Exception("Internal error: Can not deactivate the EditText, it is already nullified");
+            lock (syncRoot)
+            {
+                if (activeEditText == null)
+                    throw new Exception("Internal error: Can not deactivate the EditText, it is already nullified");
 
-            // remove callbacks
-            editText.EditorAction -= AndroidEditTextOnEditorAction;
-            editText.AfterTextChanged -= AndroidEditTextOnAfterTextChanged;
+                // remove callbacks
+                editText.EditorAction -= AndroidEditTextOnEditorAction;
+                editText.AfterTextChanged -= AndroidEditTextOnAfterTextChanged;
 
-            editText.ClearFocus();
+                editText = null;
+                activeEditText = null;
 
-            editText = null;
-            activeEditText = null;
+                GetGameContext().HideEditTextPopup();
 
-            // remove the edit text from the layout and hide the layout
-            GetGameContext().EditTextLayout.Visibility = ViewStates.Gone;
-
-            // deactivate the ime (hide the keyboard)
-            if (staticEditText != null) // staticEditText can be null if window have already been detached.
-                inputMethodManager.HideSoftInputFromWindow(staticEditText.WindowToken, HideSoftInputFlags.None);
-            inputMethodManager = null;
-
-            FocusedElement = null;
+                FocusedElement = null;
+            }
         }
 
         private GameContextAndroid GetGameContext()
@@ -225,6 +296,11 @@ namespace Stride.UI.Controls
             if (editText == null)
                 return;
 
+            UpdateInputTypeFromSelf(editText);
+        }
+
+        private void UpdateInputTypeFromSelf(MyAndroidEditText editText)
+        {
             if (ShouldHideText)
             {
                 editText.TransformationMethod = new PasswordTransformationMethod();
@@ -242,10 +318,22 @@ namespace Stride.UI.Controls
             if (editText == null)
                 return;
 
-            if (editText.Text != Text) // avoid infinite text changed triggering loop.
-                editText.Text = text;
+            // Avoid infinite text changed triggering loop.
+            if (editText.Text != Text)
+            {
+                editText.Post(() =>
+                {
+                    lock (syncRoot)
+                    {
+                        if (editText is not null)
+                        {
+                            editText.Text = text;
+                        }
+                    }
+                });
+            }
         }
-        
+
         private void UpdateSelectionFromEditImpl()
         {
             if (editText == null)
@@ -260,7 +348,7 @@ namespace Stride.UI.Controls
             if (editText == null)
                 return;
 
-            editText.SetSelection(selectionStart, selectionStop);
+            editText.Post(editTextSetSelectionAction);
         }
     }
 }
