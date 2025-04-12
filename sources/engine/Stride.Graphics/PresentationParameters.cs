@@ -77,7 +77,7 @@ namespace Stride.Graphics
         /// <summary>
         /// The colorspace type used for the swapchain output.
         /// </summary>
-        public PresenterColorSpace PresenterColorSpace;
+        public ColorSpaceType OutputColorSpace;
         
 
         #endregion
@@ -98,7 +98,7 @@ namespace Stride.Graphics
             IsFullScreen = false;
             RefreshRate = new Rational(60, 1); // by default
             ColorSpace = ColorSpace.Linear;
-            PresenterColorSpace = PresenterColorSpace.RgbFullG22NoneP709; // default rgb output for monitors with a standard gamma of 2.2
+            OutputColorSpace = ColorSpaceType.RgbFullG22NoneP709; // default rgb output for monitors with a standard gamma of 2.2
         }
 
         /// <summary>

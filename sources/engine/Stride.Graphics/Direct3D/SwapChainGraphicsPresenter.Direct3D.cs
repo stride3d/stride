@@ -480,7 +480,7 @@ namespace Stride.Graphics
             var swapChain3 = newSwapChain.QueryInterface<SwapChain3>();
             if (swapChain3 != null)
             {
-                swapChain3.ColorSpace1 = (SharpDX.DXGI.ColorSpaceType)Description.PresenterColorSpace;
+                swapChain3.ColorSpace1 = (SharpDX.DXGI.ColorSpaceType)Description.OutputColorSpace;
                 swapChain3.Dispose();
             }
 
@@ -530,7 +530,7 @@ namespace Stride.Graphics
             var nonSRgb = pixelFormat.ToNonSRgb();
             switch (nonSRgb)
             {
-                case PixelFormat.R16G16B16A16_Float: // scRGB HDR, should use PresenterColorSpace.RgbFullG10NoneP709 scRGB, gets converted by windows to display color space
+                case PixelFormat.R16G16B16A16_Float: // scRGB HDR, should use PresenterColorSpace.RgbFullG10NoneP709, gets converted by windows to display color space
                 case PixelFormat.R10G10B10A2_UNorm: // HDR10/BT.2100 HDR, should use PresenterColorSpace.RgbFullG2084NoneP2020, directly sent to display
                 case PixelFormat.B8G8R8A8_UNorm:
                 case PixelFormat.R8G8B8A8_UNorm:

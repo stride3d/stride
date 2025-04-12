@@ -32,7 +32,7 @@ namespace Stride.Graphics
     /// such as ID2D1DeviceContext2::CreateImageSourceFromDxgi. The following color parameters
     /// are defined:
     /// </remarks>
-    public enum PresenterColorSpace
+    public enum ColorSpaceType
     {
         /// <summary>
         /// ColorspaceRGB Range0-255 Gamma2.2 SitingImage PrimariesBT.709. Use with backbuffer of 8 bit colors, such as PixelFormat.B8G8R8A8_UNorm.

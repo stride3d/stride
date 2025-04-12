@@ -37,8 +37,9 @@ namespace Stride.Games
         private int preferredBackBufferHeight;
         private int preferredBackBufferWidth;
         private PixelFormat preferredDepthStencilFormat;
-        private PresenterColorSpace preferredPresenterColorSpace;
         private bool isBackBufferToResize;
+        private ColorSpaceType preferredOutputColorSpace;
+        private bool isColorSpaceToChange;
         private GraphicsPresenter savedPresenter;
         private bool beginDrawOk;
         private bool windowUserResized;
@@ -52,7 +53,7 @@ namespace Stride.Games
             : base(registry)
         {
             GameContext = gameContext;
-            preferredPresenterColorSpace = PresenterColorSpace.RgbFullG22NoneP709;
+            preferredOutputColorSpace = ColorSpaceType.RgbFullG22NoneP709;
         }
 
         /// <summary>
@@ -95,23 +96,23 @@ namespace Stride.Games
         }
 
         /// <summary>
-        /// Gets or sets the preferred presenter color space. Can be used to render to HDR monitors.
+        /// Gets or sets the preferred presenter output color space. Can be used to render to HDR monitors.
         /// See: https://learn.microsoft.com/en-us/windows/win32/direct3darticles/high-dynamic-range
         /// </summary>
-        /// <value>The preferred presenter color space.</value>
-        public PresenterColorSpace PreferredPresenterColorSpace
+        /// <value>The preferred presenter output color space.</value>
+        public ColorSpaceType PreferredOutputColorSpace
         {
             get
             {
-                return preferredPresenterColorSpace;
+                return preferredOutputColorSpace;
             }
 
             set
             {
-                if (preferredPresenterColorSpace != value)
+                if (preferredOutputColorSpace != value)
                 {
-                    preferredPresenterColorSpace = value;
-                    isBackBufferToResize = true;
+                    preferredOutputColorSpace = value;
+                    isColorSpaceToChange = true;
                 }
             }
         }
@@ -209,13 +210,13 @@ namespace Stride.Games
 
         protected virtual void CreateOrUpdatePresenter()
         {
-            if (Presenter == null)
+            if (Presenter == null || isColorSpaceToChange)
             {
                 PixelFormat resizeFormat;
                 var size = GetRequestedSize(out resizeFormat);
                 var presentationParameters = new PresentationParameters((int)size.X, (int)size.Y, Window.NativeWindow, resizeFormat) { DepthStencilFormat = PreferredDepthStencilFormat };
                 presentationParameters.PresentationInterval = PresentInterval.Immediate;
-                presentationParameters.PresenterColorSpace = preferredPresenterColorSpace;
+                presentationParameters.OutputColorSpace = preferredOutputColorSpace;
 
 #if STRIDE_GRAPHICS_API_DIRECT3D11 && STRIDE_PLATFORM_UWP
                 if (Game.Context is GameContextUWPCoreWindow context && context.IsWindowsMixedReality)
@@ -229,6 +230,7 @@ namespace Stride.Games
                 }
 
                 isBackBufferToResize = false;
+                isColorSpaceToChange = false;
             }
         }
 
