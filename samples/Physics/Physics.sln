@@ -6,9 +6,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "BepuSample", "BepuSample", 
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "PhysicsSample", "PhysicsSample", "{F95F7B7B-F29E-9C12-0A12-2FC68B2FC4D3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stride.BepuSample", "BepuSample\Stride.BepuSample\Stride.BepuSample.csproj", "{5F85B846-2017-E8C4-A9A1-57A6A84F70EA}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BepuSample.Game", "BepuSample\BepuSample.Game\BepuSample.Game.csproj", "{5F85B846-2017-E8C4-A9A1-57A6A84F70EA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stride.BepuSample.Windows", "BepuSample\Stride.BepuSample.Windows\Stride.BepuSample.Windows.csproj", "{F3A332A1-11DA-1532-4FE6-91A671501F25}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BepuSample.Windows", "BepuSample\BepuSample.Windows\BepuSample.Windows.csproj", "{F3A332A1-11DA-1532-4FE6-91A671501F25}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PhysicsSample.Game", "PhysicsSample\PhysicsSample.Game\PhysicsSample.Game.csproj", "{7D53D0B9-38D5-9B90-4800-E3B873C5C31C}"
 EndProject

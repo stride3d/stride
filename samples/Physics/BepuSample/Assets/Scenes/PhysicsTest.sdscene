@@ -20,7 +20,7 @@ Hierarchy:
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
-                    1322d03ea76fc197728b4108cfde204f: !Stride.BepuSample.Components.Camera.FindAndAttachCameraComponent,Stride.BepuSample
+                    1322d03ea76fc197728b4108cfde204f: !BepuSample.Game.Components.Camera.FindAndAttachCameraComponent,BepuSample.Game
                         Id: a2406ea3-cdd7-4be7-9c28-f7f3e5115bd1
                         CameraComponent: null
         -   Entity:
@@ -33,7 +33,7 @@ Hierarchy:
                         Rotation: {X: 0.0, Y: 0.70710677, Z: 0.0, W: 0.70710677}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
-                    920fe034a3d2956bbb6566986a9f62f9: !Stride.BepuSample.Components.Utils.OverlapTesterComponent,Stride.BepuSample
+                    920fe034a3d2956bbb6566986a9f62f9: !BepuSample.Game.Components.Utils.OverlapTesterComponent,BepuSample.Game
                         Id: d60df7b5-2eaf-4274-a9d3-2e7705d2dd8c
         -   Entity:
                 Id: dd46b98e-b346-4bcf-85d4-8faf0d657c97

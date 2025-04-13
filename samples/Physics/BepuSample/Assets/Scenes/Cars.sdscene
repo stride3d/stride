@@ -212,7 +212,7 @@ Hierarchy:
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
-                    d7daad56958583b9b79a2491c42dcc46: !Stride.BepuSample.Components.Utils.RayCastComponent,Stride.BepuSample
+                    d7daad56958583b9b79a2491c42dcc46: !BepuSample.Game.Components.Utils.RayCastComponent,BepuSample.Game
                         Id: 3f067378-88da-40dc-b69a-8a8c783e80df
                         SimulationIndex: 0
                         Offset: {X: 0.0, Y: 0.0, Z: 0.0}
@@ -659,7 +659,7 @@ Hierarchy:
                             f53db0c23cba98c6dd06674cbcfe222a: ref!! 5d626e02-fc12-43fb-9586-29fd060a1e03
                             0b444408e5ac9b8f4727d5fba5b7ff35: ref!! ca78e3cb-213b-45f3-b4a8-08b9d06fc2b7
                             b9e2a044841d4d5dfc9017e4c413f242: ref!! ccca35c6-38e1-4282-a88a-5cec10834d5b
-                    d913c936f236e55cfc774cddf02457b7: !Stride.BepuSample.Components.Car.CarComponent,Stride.BepuSample
+                    d913c936f236e55cfc774cddf02457b7: !BepuSample.Game.Components.Car.CarComponent,BepuSample.Game
                         Id: b35cfac2-1756-48d9-806b-23756edc7b7d
                         CarBody: ref!! f84ae702-83f2-4e43-b3bf-64da64d3487d
                         Wheels:
@@ -707,7 +707,7 @@ Hierarchy:
                         Starter: false
                         AutomaticGearing: true
                         AutomaticStart: true
-                    603bff52fc6e7f59455267d440229f50: !Stride.BepuSample.Components.Utils.CollisionComponent,Stride.BepuSample
+                    603bff52fc6e7f59455267d440229f50: !BepuSample.Game.Components.Utils.CollisionComponent,BepuSample.Game
                         Id: 4bb45d95-e29a-4bfb-9fb6-3d416a622611
                         Collidable1: ref!! 59e4ebf6-14b1-4911-bc4b-66063fafa34a
                         Collidable2: ref!! c1d32a7a-610f-48d6-84d8-b68762b119b8
@@ -737,7 +737,7 @@ Hierarchy:
                             b3dd38a7c59023a37450d16f0afb1ae4: ref!! 494eb75e-904b-446f-9539-4653859f9975
                             44770610e35038f4cce942628d09d6b4: ref!! 170d9808-345e-4ed1-8521-636cd54c9791
                             0044f9d3ad653598850a1079cefc5731: ref!! 241c9b4e-4599-4c1c-933e-01e36fbba8c6
-                    807fd6f1bfea6cedc2abc9907e906240: !Stride.BepuSample.Components.Utils.RopeSpawnerComponent,Stride.BepuSample
+                    807fd6f1bfea6cedc2abc9907e906240: !BepuSample.Game.Components.Utils.RopeSpawnerComponent,BepuSample.Game
                         Id: 776b908f-e979-4957-bacd-d537a8f45453
                         RopePart: 378e35ff-3dd0-4e6d-86e2-a477870a5c4e:Prefabs/Bepu/RopePart
                         RopePartSize: 0.3
@@ -745,7 +745,7 @@ Hierarchy:
                         APos: {X: 0.5, Y: 0.0, Z: 0.0}
                         BEntity: null
                         BPos: {X: 0.0, Y: -0.5, Z: 0.0}
-                    2748cd8e3f4f6ee538f8cd951e1ccdee: !Stride.BepuSample.Components.Utils.RopeSpawnerComponent,Stride.BepuSample
+                    2748cd8e3f4f6ee538f8cd951e1ccdee: !BepuSample.Game.Components.Utils.RopeSpawnerComponent,BepuSample.Game
                         Id: e93bbc26-9f0a-404e-bd82-855be9420ecf
                         RopePart: 378e35ff-3dd0-4e6d-86e2-a477870a5c4e:Prefabs/Bepu/RopePart
                         RopePartSize: 0.3
@@ -753,7 +753,7 @@ Hierarchy:
                         APos: {X: 10.0, Y: 0.5, Z: 10.0}
                         BEntity: null
                         BPos: {X: 0.0, Y: -0.5, Z: 0.0}
-                    df8df1e9078962519bb2e906ff5bd744: !Stride.BepuSample.Components.Utils.RopeSpawnerComponent,Stride.BepuSample
+                    df8df1e9078962519bb2e906ff5bd744: !BepuSample.Game.Components.Utils.RopeSpawnerComponent,BepuSample.Game
                         Id: 1b2f6c2e-1961-4f3a-ab07-ba0a16d9b4e3
                         RopePart: 378e35ff-3dd0-4e6d-86e2-a477870a5c4e:Prefabs/Bepu/RopePart
                         RopePartSize: 0.3
@@ -761,7 +761,7 @@ Hierarchy:
                         APos: {X: 10.0, Y: 0.5, Z: -10.0}
                         BEntity: null
                         BPos: {X: 0.0, Y: -0.5, Z: 0.0}
-                    f0b1089156066784aa5bb1948f7006de: !Stride.BepuSample.Components.Utils.RopeSpawnerComponent,Stride.BepuSample
+                    f0b1089156066784aa5bb1948f7006de: !BepuSample.Game.Components.Utils.RopeSpawnerComponent,BepuSample.Game
                         Id: 1f48afb2-9108-4642-8805-3f48614415e3
                         RopePart: 378e35ff-3dd0-4e6d-86e2-a477870a5c4e:Prefabs/Bepu/RopePart
                         RopePartSize: 0.3
@@ -769,7 +769,7 @@ Hierarchy:
                         APos: {X: -10.0, Y: 0.5, Z: -10.0}
                         BEntity: null
                         BPos: {X: 0.0, Y: -0.5, Z: 0.0}
-                    5a9e25158e14dc991ac2cf5110b5492b: !Stride.BepuSample.Components.Utils.RopeSpawnerComponent,Stride.BepuSample
+                    5a9e25158e14dc991ac2cf5110b5492b: !BepuSample.Game.Components.Utils.RopeSpawnerComponent,BepuSample.Game
                         Id: 2969ea40-fe06-4fc1-aac2-b2fe7af56f42
                         RopePart: 378e35ff-3dd0-4e6d-86e2-a477870a5c4e:Prefabs/Bepu/RopePart
                         RopePartSize: 0.3
@@ -841,7 +841,7 @@ Hierarchy:
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
-                    16ba24496b026d12c8feacb391d5956a: !Stride.BepuSample.Components.Camera.FindAndAttachCameraComponent,Stride.BepuSample
+                    16ba24496b026d12c8feacb391d5956a: !BepuSample.Game.Components.Camera.FindAndAttachCameraComponent,BepuSample.Game
                         Id: c7fcd1cd-95cd-4791-8b46-ed589e19f8e1
                         CameraComponent: null
         -   Folder: null
@@ -884,14 +884,14 @@ Hierarchy:
                 Id: cccc7630-3a3b-4c4d-a1f0-aba092fac2ef
                 Name: DefaultScripts
                 Components:
-                    99c6bf5dff884f29788bacf78e62a0ad: !Stride.BepuSample.Components.Utils.ThrowerComponent,Stride.BepuSample
+                    99c6bf5dff884f29788bacf78e62a0ad: !BepuSample.Game.Components.Utils.ThrowerComponent,BepuSample.Game
                         Id: b6d6c3d6-0215-4c8e-9298-067071fec188
                         SpawnPrefab: 479558df-2f6b-4998-bbbf-73fd053e2554:Prefabs/Bepu/BepuInstancedCube
                         Instancing: ref!! c9c947fa-78a6-4fd7-bb81-24983ca6b3ff
                         CameraEntity: null
                         SpawnPosition: ref!! b27fbebd-9210-4f5a-9fa1-930d6c7c21cd
                         Speed: 20.0
-                    c49649f7c41f42ee571f479a236cc7d1: !Stride.BepuSample.Components.SceneDescriptionComponent,Stride.BepuSample
+                    c49649f7c41f42ee571f479a236cc7d1: !BepuSample.Game.Components.SceneDescriptionComponent,BepuSample.Game
                         Id: ce73554c-389f-4fb5-98d6-8193bd216c74
                         Description: 'SimIndex : 0. Sample usages of constaints to make a car.'
                     4082eead088a8122a68e86af53d3eb11: !TransformComponent
@@ -900,7 +900,7 @@ Hierarchy:
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
-                    c10a8a3d21015a9bbcccd175c7dea82b: !Stride.BepuSample.Components.GameProfilerComponent,Stride.BepuSample
+                    c10a8a3d21015a9bbcccd175c7dea82b: !BepuSample.Game.Components.GameProfilerComponent,BepuSample.Game
                         Id: eb1c7eb7-9f7e-438e-a8ac-01197a813fff
                         Enabled: true
                         TextColor: {R: 144, G: 238, B: 144, A: 255}
@@ -908,7 +908,7 @@ Hierarchy:
                         SortingMode: ByTime
                         FilteringMode: Fps
                         ResultPage: 1
-                    d2a1aba10bc6c540b3a7b9c522852328: !Stride.BepuSample.Components.Utils.TimeControlComponent,Stride.BepuSample
+                    d2a1aba10bc6c540b3a7b9c522852328: !BepuSample.Game.Components.Utils.TimeControlComponent,BepuSample.Game
                         Id: 23e42ba6-61a9-4542-9454-2a78601fae56
                         SimulationIndex: 0
         -   Entity:
@@ -969,7 +969,7 @@ Hierarchy:
                         Rotation: {X: 0.70710677, Y: 0.0, Z: 0.0, W: 0.70710677}
                         Scale: {X: 1.0, Y: 0.25, Z: 1.0}
                         Children: {}
-                    53f85851391a377bdd9ddb1abf0077fc: !Stride.BepuSample.Components.Car.WheelComponent,Stride.BepuSample
+                    53f85851391a377bdd9ddb1abf0077fc: !BepuSample.Game.Components.Car.WheelComponent,BepuSample.Game
                         Id: 86012dae-5367-4d3c-9cd0-b2e0a3d6b234
                         DamperLen: 0.5
                         DamperRatio: 0.01
@@ -1013,7 +1013,7 @@ Hierarchy:
                         Rotation: {X: 0.70710677, Y: 0.0, Z: 0.0, W: 0.70710677}
                         Scale: {X: 1.0, Y: 0.25, Z: 1.0}
                         Children: {}
-                    91f739bf880c6e28af3f3876195efa90: !Stride.BepuSample.Components.Car.WheelComponent,Stride.BepuSample
+                    91f739bf880c6e28af3f3876195efa90: !BepuSample.Game.Components.Car.WheelComponent,BepuSample.Game
                         Id: c260d23a-6c4e-4b41-9549-80f67b5fa7c8
                         DamperLen: 0.5
                         DamperRatio: 0.01
@@ -1031,7 +1031,7 @@ Hierarchy:
                             8c02caf6baab9cfd36a2b078274f34f3: ref!! b5bd677c-b506-4794-b9af-7914e197c6f5
                             2a52b4d8d655b1d4ec38c08fa4784092: ref!! 040b5c8e-5685-43ca-b658-1976790006f4
                             5269cf169a130c56006c102a6c920d8d: ref!! 40238d3d-d2b6-40e5-8f63-ffa1acd539c7
-                    807fd6f1bfea6cedc2abc9907e906240: !Stride.BepuSample.Components.Utils.RopeSpawnerComponent,Stride.BepuSample
+                    807fd6f1bfea6cedc2abc9907e906240: !BepuSample.Game.Components.Utils.RopeSpawnerComponent,BepuSample.Game
                         Id: 81014eb6-5b7a-4299-9fad-8ce026ee562a
                         RopePart: 378e35ff-3dd0-4e6d-86e2-a477870a5c4e:Prefabs/Bepu/RopePart
                         RopePartSize: 0.3
@@ -1039,7 +1039,7 @@ Hierarchy:
                         APos: {X: 0.0, Y: 0.5, Z: 0.0}
                         BEntity: ref!! be266e80-486b-4e4a-a89b-5ae7b63cd814
                         BPos: {X: 0.0, Y: -0.5, Z: 0.0}
-                    2748cd8e3f4f6ee538f8cd951e1ccdee: !Stride.BepuSample.Components.Utils.RopeSpawnerComponent,Stride.BepuSample
+                    2748cd8e3f4f6ee538f8cd951e1ccdee: !BepuSample.Game.Components.Utils.RopeSpawnerComponent,BepuSample.Game
                         Id: 3cd0666e-530f-4394-b89c-99ffe2cb7f2b
                         RopePart: 378e35ff-3dd0-4e6d-86e2-a477870a5c4e:Prefabs/Bepu/RopePart
                         RopePartSize: 0.3
@@ -1047,7 +1047,7 @@ Hierarchy:
                         APos: {X: 25.0, Y: 0.5, Z: 25.0}
                         BEntity: ref!! 9750bc21-11e8-4a47-9c35-e9738674e299
                         BPos: {X: 0.0, Y: -0.5, Z: 0.0}
-                    df8df1e9078962519bb2e906ff5bd744: !Stride.BepuSample.Components.Utils.RopeSpawnerComponent,Stride.BepuSample
+                    df8df1e9078962519bb2e906ff5bd744: !BepuSample.Game.Components.Utils.RopeSpawnerComponent,BepuSample.Game
                         Id: 40ab76a9-3952-42ca-8aab-0cc0ac336c36
                         RopePart: 378e35ff-3dd0-4e6d-86e2-a477870a5c4e:Prefabs/Bepu/RopePart
                         RopePartSize: 0.3
@@ -1055,7 +1055,7 @@ Hierarchy:
                         APos: {X: 25.0, Y: 0.5, Z: -25.0}
                         BEntity: ref!! 9750bc21-11e8-4a47-9c35-e9738674e299
                         BPos: {X: 0.0, Y: -0.5, Z: 0.0}
-                    f0b1089156066784aa5bb1948f7006de: !Stride.BepuSample.Components.Utils.RopeSpawnerComponent,Stride.BepuSample
+                    f0b1089156066784aa5bb1948f7006de: !BepuSample.Game.Components.Utils.RopeSpawnerComponent,BepuSample.Game
                         Id: a0d8dc60-7de5-411b-a131-9bdf2c523503
                         RopePart: 378e35ff-3dd0-4e6d-86e2-a477870a5c4e:Prefabs/Bepu/RopePart
                         RopePartSize: 0.3
@@ -1063,7 +1063,7 @@ Hierarchy:
                         APos: {X: -25.0, Y: 0.5, Z: -25.0}
                         BEntity: ref!! 9750bc21-11e8-4a47-9c35-e9738674e299
                         BPos: {X: 0.0, Y: -0.5, Z: 0.0}
-                    5a9e25158e14dc991ac2cf5110b5492b: !Stride.BepuSample.Components.Utils.RopeSpawnerComponent,Stride.BepuSample
+                    5a9e25158e14dc991ac2cf5110b5492b: !BepuSample.Game.Components.Utils.RopeSpawnerComponent,BepuSample.Game
                         Id: bc77b4c7-b02a-4262-bbcb-6549c60cfb48
                         RopePart: 378e35ff-3dd0-4e6d-86e2-a477870a5c4e:Prefabs/Bepu/RopePart
                         RopePartSize: 0.3
@@ -1110,7 +1110,7 @@ Hierarchy:
                         Rotation: {X: 0.70710677, Y: 0.0, Z: 0.0, W: 0.70710677}
                         Scale: {X: 1.0, Y: 0.25, Z: 1.0}
                         Children: {}
-                    a7eb1775b2752c2a3a65023dbd4e1091: !Stride.BepuSample.Components.Car.WheelComponent,Stride.BepuSample
+                    a7eb1775b2752c2a3a65023dbd4e1091: !BepuSample.Game.Components.Car.WheelComponent,BepuSample.Game
                         Id: 8e48c195-d42b-4386-a775-ecd9a64434d7
                         DamperLen: 0.5
                         DamperRatio: 0.01
@@ -1154,7 +1154,7 @@ Hierarchy:
                         ContinuousDetectionMode: Discrete
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
-                    4fe16080c6d3c3d977ea1045e0f1de6f: !Stride.BepuSample.Components.Car.WheelComponent,Stride.BepuSample
+                    4fe16080c6d3c3d977ea1045e0f1de6f: !BepuSample.Game.Components.Car.WheelComponent,BepuSample.Game
                         Id: bc8e46f8-9dde-4317-bc12-197803db2c6b
                         DamperLen: 0.5
                         DamperRatio: 0.01
@@ -1196,7 +1196,7 @@ Hierarchy:
                         ContinuousDetectionMode: Discrete
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
-                    c868c869df07c02f8950073fa31470a9: !Stride.BepuSample.Components.Camera.ThirdPersonCamera,Stride.BepuSample
+                    c868c869df07c02f8950073fa31470a9: !BepuSample.Game.Components.Camera.ThirdPersonCamera,BepuSample.Game
                         Id: cde7383e-aa0b-433c-9185-74be4a77de10
                         Enabled: true
                         InvertMouseY: true
