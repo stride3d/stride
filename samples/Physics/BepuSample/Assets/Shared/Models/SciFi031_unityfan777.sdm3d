@@ -2,7 +2,7 @@
 Id: de1e1444-d2b9-45e5-bb33-00c083ea5a03
 SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
-Source: !file ../../Resources/Models/SciFi031_unityfan777.fbx
+Source: !file ../../../Resources/Models/SciFi031_unityfan777.fbx
 Skeleton: 3421b446-a6a4-44dd-b0ae-769287a8d239:Models/SciFi031_unityfan777 Skeleton
 PivotPosition: {X: 0.0, Y: 0.0, Z: 0.0}
 Materials:

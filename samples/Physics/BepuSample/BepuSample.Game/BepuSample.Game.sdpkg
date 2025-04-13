@@ -7,7 +7,7 @@ Meta:
     Owners: []
     Dependencies: null
 AssetFolders:
-    -   Path: !dir ../Assets
+    -   Path: !dir ../Assets/Shared
     -   Path: !dir Effects
 ResourceFolders:
     - !dir ../Resources
@@ -15,4 +15,15 @@ OutputGroupDirectories: {}
 ExplicitFolders: []
 Bundles: []
 TemplateFolders: []
-RootAssets: []
+RootAssets: 
+    - 58094e9a-bebf-43e4-99b7-b009bfdbbae9:Scenes/Cars
+    - b21cf271-4ad8-453a-8c8d-cf132e044a9c:Scenes/CharacterScene
+    - 21f7a4e4-7908-4ce9-ad5c-76a910db6167:Scenes/Colliders
+    - effd55be-d7a3-4d2a-89d7-7ef55924d9e1:Scenes/Constraint
+    - 9717c0b6-feb7-4800-a772-93627f8bdbb6:Scenes/ConvexAndMeshCollider
+    - aece5828-1437-4db4-9c52-72ee5d11d245:Scenes/CubeFontainScene
+    - bef30700-cda8-4d43-b804-3da6717bea2c:Scenes/Demo
+    - c0f3be45-d538-4587-9515-19311c80e024:Scenes/MainScene
+    - f405e7aa-df9b-4d6a-b95b-5a579edcb556:Scenes/MaterialProperties
+    - 34252014-babe-47a9-b3b1-996ebdaff389:Scenes/PhysicsTest
+    - 468de2d3-48bf-474e-afee-d76d3c1ab21e:Scenes/Ropes

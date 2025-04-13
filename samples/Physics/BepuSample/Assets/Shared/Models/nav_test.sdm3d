@@ -2,7 +2,7 @@
 Id: b665474d-edd9-4825-ac73-1fd6f4c517f4
 SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
-Source: !file ../../Resources/Models/nav_test.obj
+Source: !file ../../../Resources/Models/nav_test.obj
 Skeleton: null
 PivotPosition: {X: 0.0, Y: 0.0, Z: 0.0}
 Materials:

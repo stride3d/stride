@@ -2,7 +2,7 @@
 Id: eadda2d3-c404-49c9-b6f3-e50cf4660c81
 SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
-Source: !file ../../Resources/Models/Hex.obj
+Source: !file ../../../Resources/Models/Hex.obj
 Skeleton: null
 PivotPosition: {X: 0.0, Y: 0.0, Z: 0.0}
 Materials:

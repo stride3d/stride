@@ -2,7 +2,7 @@
 Id: 3421b446-a6a4-44dd-b0ae-769287a8d239
 SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
-Source: !file ../../Resources/Models/SciFi031_unityfan777.fbx
+Source: !file ../../../Resources/Models/SciFi031_unityfan777.fbx
 PivotPosition: {X: 0.0, Y: 0.0, Z: 0.0}
 Nodes:
     adb074d67168e8bb479c6dca2636320b: {Name: RootNode, Depth: 0}
