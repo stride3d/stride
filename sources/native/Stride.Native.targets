@@ -26,9 +26,25 @@
   
     <!--<StrideNativeOutputPath>$([MSBuild]::MakeRelative('$(OutputPath)', '$(StridePackageStridePlatformBin)\'))</StrideNativeOutputPath>-->
     <AllowedOutputExtensionsInPackageBuildOutputFolder>.so; .a; $(AllowedOutputExtensionsInPackageBuildOutputFolder)</AllowedOutputExtensionsInPackageBuildOutputFolder>
-  
-    <StrideNativeWindowsArm64Enabled Condition="'$(StrideNativeWindowsArm64Enabled)' == ''">true</StrideNativeWindowsArm64Enabled>
   </PropertyGroup>
+  
+  <!-- To keep MSVC build tools for Arm64 optional we enable it by default only on hosts running on Arm64 -->
+  <Choose>
+    <When Condition="'$(StrideNativeWindowsArm64Enabled)' == ''">
+      <Choose>
+        <When Condition="$([System.Runtime.InteropServices.RuntimeInformation]::ProcessArchitecture) == 'Arm64'">
+          <PropertyGroup>
+            <StrideNativeWindowsArm64Enabled>true</StrideNativeWindowsArm64Enabled>
+          </PropertyGroup>
+        </When>
+        <Otherwise>
+          <PropertyGroup>
+            <StrideNativeWindowsArm64Enabled>false</StrideNativeWindowsArm64Enabled>
+          </PropertyGroup>
+        </Otherwise>
+      </Choose>
+    </When>
+  </Choose>
 
   <Choose>
     <When Condition="'$(TargetFramework)' == '$(StrideFrameworkUWP)'">
