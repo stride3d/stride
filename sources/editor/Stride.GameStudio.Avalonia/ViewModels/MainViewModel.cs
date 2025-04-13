@@ -1,19 +1,24 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Avalonia;
+using CommunityToolkit.Mvvm.Input;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.Components.Status;
 using Stride.Core.Assets.Editor.ViewModels;
+using Stride.Core.Extensions;
 using Stride.Core.IO;
 using Stride.Core.Presentation.Commands;
+using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.ViewModels;
+using Stride.Core.Translation;
 using Stride.GameStudio.Avalonia.Services;
 
 namespace Stride.GameStudio.Avalonia.ViewModels;
 
-internal sealed class MainViewModel : ViewModelBase, IMainViewModel
+internal sealed partial class MainViewModel : ViewModelBase, IMainViewModel
 {
     private static readonly string baseTitle = $"Stride Game Studio {StrideVersion.NuGetVersion} ({RuntimeInformation.FrameworkDescription})";
     private SessionViewModel? session;
@@ -134,6 +139,21 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
     private Task OnOpen(UFile? initialPath)
     {
         return OpenSession(initialPath);
+    }
+
+    [RelayCommand]
+    private async Task OpenWebPage(string url)
+    {
+        try
+        {
+            var process = new Process { StartInfo = new ProcessStartInfo(url) { UseShellExecute = true } };
+            process.Start();
+        }
+        catch (Exception ex)
+        {
+            var message = $"{Tr._p("Message", "An error occurred while opening the file.")}{ex.FormatSummary(true)}";
+            await ServiceProvider.Get<IDialogService>().MessageBoxAsync(message, MessageBoxButton.OK, MessageBoxImage.Error);
+        }
     }
 
     private async Task OnOpenDebugWindow()
