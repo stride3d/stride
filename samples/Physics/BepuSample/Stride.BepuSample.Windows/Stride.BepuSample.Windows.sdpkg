@@ -1,0 +1,29 @@
+!Package
+SerializedVersion: {Assets: 3.1.0.0}
+Meta:
+    Name: Stride.BepuSample.Windows
+    Version: 1.0.0
+    Authors: []
+    Owners: []
+    Dependencies: null
+AssetFolders:
+    -   Path: !dir Assets
+ResourceFolders:
+    - !dir Resources
+OutputGroupDirectories: {}
+ExplicitFolders: []
+Bundles: []
+TemplateFolders: []
+RootAssets:
+    - 21f7a4e4-7908-4ce9-ad5c-76a910db6167:Scenes/Colliders
+    - 34252014-babe-47a9-b3b1-996ebdaff389:Scenes/PhysicsTest
+    - 468de2d3-48bf-474e-afee-d76d3c1ab21e:Scenes/Ropes
+    - 58094e9a-bebf-43e4-99b7-b009bfdbbae9:Scenes/Cars
+    - 75e21dfe-3e40-44a5-a7e7-5e32866260c0:Cube
+    - 9717c0b6-feb7-4800-a772-93627f8bdbb6:Scenes/ConvexAndMeshCollider
+    - aece5828-1437-4db4-9c52-72ee5d11d245:Scenes/CubeFontainScene
+    - b21cf271-4ad8-453a-8c8d-cf132e044a9c:Scenes/CharacterScene
+    - bef30700-cda8-4d43-b804-3da6717bea2c:Scenes/Demo
+    - c0f3be45-d538-4587-9515-19311c80e024:Scenes/MainScene
+    - effd55be-d7a3-4d2a-89d7-7ef55924d9e1:Scenes/Constraint
+    - f405e7aa-df9b-4d6a-b95b-5a579edcb556:Scenes/MaterialProperties
