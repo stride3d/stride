@@ -161,7 +161,7 @@ namespace Stride.Graphics
 
         /// <summary>
         /// Sets the output color space of the presenter and the format for the backbuffer.
-        /// Use the following compinations: <br />
+        /// Use the following combinations: <br />
         /// Render to SDR Display with gamma 2.2: <see cref="ColorSpaceType.RgbFullG22NoneP709"/> with <see cref="PixelFormat.R8G8B8A8_UNorm"/>, <see cref="PixelFormat.R8G8B8A8_UNorm_SRgb"/>, <see cref="PixelFormat.B8G8R8A8_UNorm"/>, <see cref="PixelFormat.B8G8R8A8_UNorm"/>. <br />
         /// Render to HDR Display in scRGB (standard linear), windows DWM will do the color conversion: <see cref="ColorSpaceType.RgbFullG10NoneP709"/> with <see cref="PixelFormat.R16G16B16A16_Float"/> <br />
         /// Render to HDR Display in HDR10/BT.2100, no windows DWM conversion, rendering needs to be in the Display color space: <see cref="ColorSpaceType.RgbFullG2084NoneP2020"/> with <see cref="PixelFormat.R10G10B10A2_UNorm"/> <br />
