@@ -2,7 +2,7 @@
 
 This project is the main project for the assets in the editor.
 
-## Depencencies
+## Dependencies
 
 * It can references any Stride libraries, as long as their are cross-platform.
 * It should be platform-agnostic as well as UI-agnostic.
