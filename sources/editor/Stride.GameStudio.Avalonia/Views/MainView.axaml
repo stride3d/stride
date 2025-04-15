@@ -41,7 +41,7 @@
         <MenuItem Header="{sd:LocalizeString Report an issue..., Context=Menu}" 
                   Command="{Binding OpenWebPageCommand}" 
                   CommandParameter="{x:Static gh:StrideGameStudio.ReportIssueUrl}"/>
-        <MenuItem Header="{sd:LocalizeString Community forums, Context=Menu}" 
+        <MenuItem Header="{sd:LocalizeString Discord forum, Context=Menu}" 
                   Command="{Binding OpenWebPageCommand}" 
                   CommandParameter="{x:Static gh:StrideGameStudio.ForumsUrl}"/>        
         <Separator/>

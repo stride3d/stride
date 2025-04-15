@@ -7,7 +7,7 @@ public class StrideGameStudio
 {
     public static string EditorVersion => StrideVersion.NuGetVersion;
     public static string EditorVersionMajor => new Version(StrideVersion.PublicVersion).ToString(2);
-    public static string AnswersUrl => "https://gamedev.stackexchange.com/tags/stride"; // #706
+    public static string AnswersUrl => "https://discord.gg/f6aerfE";
     public static string DocumentationUrl => $"https://doc.stride3d.net/{EditorVersionMajor}/";
     public static string ForumsUrl => "https://github.com/stride3d/stride/discussions";
     public static string ReportIssueUrl => "https://github.com/stride3d/stride/issues/";

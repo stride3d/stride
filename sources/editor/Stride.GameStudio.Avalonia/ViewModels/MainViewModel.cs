@@ -4,7 +4,6 @@
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Avalonia;
-using CommunityToolkit.Mvvm.Input;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.Components.Status;
 using Stride.Core.Assets.Editor.ViewModels;
@@ -18,7 +17,7 @@ using Stride.GameStudio.Avalonia.Services;
 
 namespace Stride.GameStudio.Avalonia.ViewModels;
 
-internal sealed partial class MainViewModel : ViewModelBase, IMainViewModel
+internal sealed class MainViewModel : ViewModelBase, IMainViewModel
 {
     private static readonly string baseTitle = $"Stride Game Studio {StrideVersion.NuGetVersion} ({RuntimeInformation.FrameworkDescription})";
     private SessionViewModel? session;
@@ -44,6 +43,7 @@ internal sealed partial class MainViewModel : ViewModelBase, IMainViewModel
         ExitCommand = new AnonymousCommand(serviceProvider, OnExit, () => DialogService.HasMainWindow);
         OpenCommand = new AnonymousTaskCommand<UFile?>(serviceProvider, OnOpen);
         OpenDebugWindowCommand = new AnonymousTaskCommand(serviceProvider, OnOpenDebugWindow, () => DialogService.HasMainWindow);
+        OpenWebPageCommand = new AnonymousTaskCommand<string>(serviceProvider, OnOpenWebPage);
 
         Status = new StatusViewModel(ServiceProvider);
         Status.PushStatus("Ready");
@@ -72,6 +72,8 @@ internal sealed partial class MainViewModel : ViewModelBase, IMainViewModel
     public ICommandBase ExitCommand { get; }
 
     public ICommandBase OpenCommand { get; }
+
+    public ICommandBase OpenWebPageCommand { get; }
 
     private EditorDialogService DialogService => ServiceProvider.Get<EditorDialogService>();
 
@@ -141,8 +143,7 @@ internal sealed partial class MainViewModel : ViewModelBase, IMainViewModel
         return OpenSession(initialPath);
     }
 
-    [RelayCommand]
-    private async Task OpenWebPage(string url)
+    private async Task OnOpenWebPage(string url)
     {
         try
         {
