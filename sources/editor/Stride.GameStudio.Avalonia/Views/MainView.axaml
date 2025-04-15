@@ -60,7 +60,7 @@
     <Grid Grid.Row="1"
           RowDefinitions="2*, 2, *">
       <Grid Grid.Row="0"
-            ColumnDefinitions="3*, 2, *">
+            ColumnDefinitions="2*, 2, *">
         <!-- Editors -->
         <vw:EditorCollectionView Grid.Column="0"
                                  BorderThickness="2"
