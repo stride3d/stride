@@ -56,7 +56,7 @@ namespace Stride.Graphics
             HasDoublePrecision = nativeDevice.CheckFeatureSupport(SharpDX.Direct3D11.Feature.ShaderDoubles);
             nativeDevice.CheckThreadingSupport(out HasMultiThreadingConcurrentResources, out this.HasDriverCommandLists);
 
-            HasDepthAsSRV = (CurrentProfile >= GraphicsProfile.Level_10_0);
+            HasDepthAsSRV = true;
             HasDepthAsReadOnlyRT = CurrentProfile >= GraphicsProfile.Level_11_0;
             HasMultisampleDepthAsSRV = CurrentProfile >= GraphicsProfile.Level_11_0;
 
