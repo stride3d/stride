@@ -316,7 +316,9 @@ namespace Stride.Graphics
                 pEnabledFeatures = &enabledFeature,
             };
 
-            vkCreateDevice(NativePhysicalDevice, &deviceCreateInfo, null, out nativeDevice);
+            vkCreateDevice(NativePhysicalDevice, in deviceCreateInfo, null, out nativeDevice);
+
+            vkLoadDevice(nativeDevice);
 
             vkGetDeviceQueue(nativeDevice, 0, 0, out NativeCommandQueue);
 
