@@ -6,7 +6,7 @@
              xmlns:ctrl="using:Stride.Core.Assets.Editor.Avalonia.Controls"
              xmlns:vm="using:Stride.GameStudio.Avalonia.ViewModels"
              xmlns:vw="using:Stride.GameStudio.Avalonia.Views"
-             xmlns:gh="clr-namespace:Stride.GameStudio.Avalonia.Helpers"
+             xmlns:gh="using:Stride.GameStudio.Avalonia.Helpers"
              mc:Ignorable="d" d:DesignWidth="1024" d:DesignHeight="768"
              x:Class="Stride.GameStudio.Avalonia.Views.MainView"
              x:DataType="vm:MainViewModel">
