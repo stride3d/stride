@@ -6,6 +6,7 @@
              xmlns:ctrl="using:Stride.Core.Assets.Editor.Avalonia.Controls"
              xmlns:vm="using:Stride.GameStudio.Avalonia.ViewModels"
              xmlns:vw="using:Stride.GameStudio.Avalonia.Views"
+             xmlns:gh="using:Stride.GameStudio.Avalonia.Helpers"
              mc:Ignorable="d" d:DesignWidth="1024" d:DesignHeight="768"
              x:Class="Stride.GameStudio.Avalonia.Views.MainView"
              x:DataType="vm:MainViewModel">
@@ -30,7 +31,21 @@
                   Command="{Binding ExitCommand}" />
       </MenuItem>
       <MenuItem Header="{sd:LocalizeString _Help, Context=Menu}">
-        <MenuItem Header="{sd:LocalizeString Show debug window, Context=Menu}"
+        <MenuItem Header="{sd:LocalizeString Online documentation, Context=Menu}" 
+            Command="{Binding OpenWebPageCommand}" 
+            CommandParameter="{x:Static gh:StrideGameStudio.DocumentationUrl}"/>
+        <Separator/>
+        <MenuItem Header="{sd:LocalizeString Questions and answers, Context=Menu}" 
+                  Command="{Binding OpenWebPageCommand}" 
+                  CommandParameter="{x:Static gh:StrideGameStudio.AnswersUrl}"/>
+        <MenuItem Header="{sd:LocalizeString Report an issue..., Context=Menu}" 
+                  Command="{Binding OpenWebPageCommand}" 
+                  CommandParameter="{x:Static gh:StrideGameStudio.ReportIssueUrl}"/>
+        <MenuItem Header="{sd:LocalizeString Discord forum, Context=Menu}" 
+                  Command="{Binding OpenWebPageCommand}" 
+                  CommandParameter="{x:Static gh:StrideGameStudio.ForumsUrl}"/>
+        <Separator/>
+        <MenuItem Header="{sd:LocalizeString Show debug window, Context=Menu}" 
                   Command="{Binding OpenDebugWindowCommand}" />
         <Separator/>
         <MenuItem Header="{sd:LocalizeString _About..., Context=Menu}"

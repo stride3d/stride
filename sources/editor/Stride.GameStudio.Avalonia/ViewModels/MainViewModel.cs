@@ -1,14 +1,18 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Avalonia;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.Components.Status;
 using Stride.Core.Assets.Editor.ViewModels;
+using Stride.Core.Extensions;
 using Stride.Core.IO;
 using Stride.Core.Presentation.Commands;
+using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.ViewModels;
+using Stride.Core.Translation;
 using Stride.GameStudio.Avalonia.Services;
 
 namespace Stride.GameStudio.Avalonia.ViewModels;
@@ -39,6 +43,7 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
         ExitCommand = new AnonymousCommand(serviceProvider, OnExit, () => DialogService.HasMainWindow);
         OpenCommand = new AnonymousTaskCommand<UFile?>(serviceProvider, OnOpen);
         OpenDebugWindowCommand = new AnonymousTaskCommand(serviceProvider, OnOpenDebugWindow, () => DialogService.HasMainWindow);
+        OpenWebPageCommand = new AnonymousTaskCommand<string>(serviceProvider, OnOpenWebPage);
 
         Status = new StatusViewModel(ServiceProvider);
         Status.PushStatus("Ready");
@@ -67,6 +72,8 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
     public ICommandBase ExitCommand { get; }
 
     public ICommandBase OpenCommand { get; }
+
+    public ICommandBase OpenWebPageCommand { get; }
 
     private EditorDialogService DialogService => ServiceProvider.Get<EditorDialogService>();
 
@@ -134,6 +141,20 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
     private Task OnOpen(UFile? initialPath)
     {
         return OpenSession(initialPath);
+    }
+
+    private async Task OnOpenWebPage(string url)
+    {
+        try
+        {
+            var process = new Process { StartInfo = new ProcessStartInfo(url) { UseShellExecute = true } };
+            process.Start();
+        }
+        catch (Exception ex)
+        {
+            var message = $"{Tr._p("Message", "An error occurred while opening the file.")}{ex.FormatSummary(true)}";
+            await ServiceProvider.Get<IDialogService>().MessageBoxAsync(message, MessageBoxButton.OK, MessageBoxImage.Error);
+        }
     }
 
     private async Task OnOpenDebugWindow()
