@@ -91,22 +91,25 @@ namespace Stride.Rendering.Materials.ComputeColors
             var color = baseKeys.IsColor ? Value.ToColorSpace(context.ColorSpace) : Value;
             if (PremultiplyAlpha)
                 color = Color4.PremultiplyAlpha(color);
-            
-            if (key is ValueParameterKey<Color4>)
+
+            bool threeDims = false;
+            if (key is ValueParameterKey<Color4> c4)
             {
-                context.Parameters.Set((ValueParameterKey<Color4>)key, color);
+                context.Parameters.Set(c4, color);
             }
-            else if (key is ValueParameterKey<Vector4>)
+            else if (key is ValueParameterKey<Vector4> v4)
             {
-                context.Parameters.Set((ValueParameterKey<Vector4>)key, color);
+                context.Parameters.Set(v4, color);
             }
-            else if (key is ValueParameterKey<Color3>)
+            else if (key is ValueParameterKey<Color3> c3)
             {
-                context.Parameters.Set((ValueParameterKey<Color3>)key, (Color3)color);
+                threeDims = true;
+                context.Parameters.Set(c3, (Color3)color);
             }
-            else if (key is ValueParameterKey<Vector3>)
+            else if (key is ValueParameterKey<Vector3> v3)
             {
-                context.Parameters.Set((ValueParameterKey<Vector3>)key, (Vector3)color);
+                threeDims = true;
+                context.Parameters.Set(v3, (Vector3)color);
             }
             else
             {
@@ -114,7 +117,7 @@ namespace Stride.Rendering.Materials.ComputeColors
             }
             UsedKey = key;
 
-            return new ShaderClassSource("ComputeColorConstantColorLink", key);
+            return new ShaderClassSource(threeDims ? "ComputeColorConstantColor3Link" : "ComputeColorConstantColorLink", key);
             // return new ShaderClassSource("ComputeColorFixed", MaterialUtility.GetAsShaderString(Value));
         }
     }
