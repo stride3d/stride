@@ -10,6 +10,7 @@ using static Vortice.Vulkan.Vulkan;
 
 using Stride.Core;
 using Stride.Core.Threading;
+using System.Text;
 
 namespace Stride.Graphics
 {
@@ -286,13 +287,12 @@ namespace Stride.Graphics
                 depthClamp = true,
             };
 
-            var supportedExtensionProperties = stackalloc VkUtf8String[]
+            Span<VkUtf8String> supportedExtensionProperties = stackalloc VkUtf8String[]
             {
                 VK_KHR_SWAPCHAIN_EXTENSION_NAME,
                 VK_EXT_DEBUG_MARKER_EXTENSION_NAME,
             };
-            var supportedProperties = new Span<VkUtf8String>(supportedExtensionProperties, 2);
-            var availableExtensionProperties = GetAvailableExtensionProperties(supportedProperties);
+            var availableExtensionProperties = GetAvailableExtensionProperties(supportedExtensionProperties);
             ValidateExtensionPropertiesAvailability(availableExtensionProperties);
             var desiredExtensionProperties = new HashSet<VkUtf8String>
             {
@@ -351,17 +351,14 @@ namespace Stride.Graphics
             var availableExtensionProperties = new HashSet<VkUtf8String>();
             var extensionProperties = vkEnumerateDeviceExtensionProperties(NativePhysicalDevice);
 
-            fixed (VkExtensionProperties* extensionPropertiesPtr = extensionProperties)
+            for (int index = 0; index < extensionProperties.Length; index++)
             {
-                for (int index = 0; index < extensionProperties.Length; index++)
-                {
-                    var namePointer = extensionPropertiesPtr[index].extensionName;
-                    var name = new VkUtf8String(namePointer);
-                    var indexOfExtensionName = supportedExtensionProperties.IndexOf(name);
+                var properties = extensionProperties[index];
+                var name = new VkUtf8String(properties.extensionName);
+                var indexOfExtensionName = supportedExtensionProperties.IndexOf(name);
 
-                    if (indexOfExtensionName >= 0)
-                        availableExtensionProperties.Add(supportedExtensionProperties[indexOfExtensionName]);
-                }
+                if (indexOfExtensionName >= 0)
+                    availableExtensionProperties.Add(supportedExtensionProperties[indexOfExtensionName]);
             }
 
             return availableExtensionProperties;
@@ -370,7 +367,11 @@ namespace Stride.Graphics
         private static void ValidateExtensionPropertiesAvailability(HashSet<VkUtf8String> availableExtensionProperties)
         {
             if (!availableExtensionProperties.Contains(VK_KHR_SWAPCHAIN_EXTENSION_NAME))
-                throw new InvalidOperationException();
+            {
+                string extensionName = Encoding.UTF8.GetString(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
+
+                throw new NotSupportedException($"Required Vulkan extension {extensionName} is not supported by the current physical device.");
+            }
         }
 
         internal unsafe IntPtr AllocateUploadBuffer(int size, out VkBuffer resource, out int offset)

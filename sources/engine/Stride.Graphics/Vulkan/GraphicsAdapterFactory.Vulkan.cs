@@ -3,7 +3,6 @@
 #if STRIDE_GRAPHICS_API_VULKAN
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.InteropServices;
 using Vortice.Vulkan;
 using static Vortice.Vulkan.Vulkan;
@@ -99,11 +98,10 @@ namespace Stride.Graphics
                 //engineVersion = new VkVersion()
             };
 
-            var validationLayerNames = stackalloc VkUtf8String[]
+            Span<VkUtf8String> validationLayerNames = stackalloc VkUtf8String[]
             {
                 VK_LAYER_KHRONOS_VALIDATION_EXTENSION_NAME,
             };
-            var validationLayers = new Span<VkUtf8String>(validationLayerNames, 1);
             var enabledLayerNames = new List<VkUtf8String>();
 
             if (enableValidation)
@@ -114,7 +112,7 @@ namespace Stride.Graphics
                 {
                     var properties = layers[index];
                     var name = new VkUtf8String(properties.layerName);
-                    var indexOfLayerName = validationLayers.IndexOf(name);
+                    var indexOfLayerName = validationLayerNames.IndexOf(name);
 
                     if (indexOfLayerName >= 0)
                         enabledLayerNames.Add(validationLayerNames[indexOfLayerName]);
