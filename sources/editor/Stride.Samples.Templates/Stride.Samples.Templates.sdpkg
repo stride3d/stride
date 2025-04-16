@@ -17,6 +17,7 @@ TemplateFolders:
         - !file ../../../samples/Input/GravitySensor/GravitySensor.sdtpl
         - !file ../../../samples/Particles/ParticlesSample/ParticlesSample.sdtpl
         - !file ../../../samples/Physics/PhysicsSample/PhysicsSample.sdtpl
+        - !file ../../../samples/Physics/BepuSample/BepuSample.sdtpl
         - !file ../../../samples/UI/GameMenu/GameMenu.sdtpl
         - !file ../../../samples/UI/UIParticles/UIParticles.sdtpl
         - !file ../../../samples/UI/UIElementLink/UIElementLink.sdtpl
