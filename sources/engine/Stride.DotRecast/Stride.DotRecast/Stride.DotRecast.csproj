@@ -1,4 +1,4 @@
-<Project>
+﻿<Project>
   <PropertyGroup>
     <StrideRuntime>true</StrideRuntime>
   </PropertyGroup>
@@ -17,8 +17,10 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Stride.DotRecast\Stride.DotRecast\Stride.DotRecast.csproj" />
-    <ProjectReference Include="..\Stride.BepuPhysics\Stride.BepuPhysics.csproj" />
+    <PackageReference Include="DotRecast.Recast.Toolset" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Stride.Navigation\Stride.Navigation.csproj" />
   </ItemGroup>
   <Import Project="$(StrideSdkTargets)" />
 </Project>
