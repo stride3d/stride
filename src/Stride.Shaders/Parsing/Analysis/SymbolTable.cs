@@ -23,7 +23,7 @@ public partial class SymbolTable : ISymbolProvider
     public SymbolFrame? Pop()
     {
         var scope = CurrentFunctionSymbols?[^1];
-        CurrentFunctionSymbols?.Remove(scope!);
+        CurrentFunctionSymbols?.RemoveAt(CurrentFunctionSymbols.Count - 1);
         return scope;
     }
 
