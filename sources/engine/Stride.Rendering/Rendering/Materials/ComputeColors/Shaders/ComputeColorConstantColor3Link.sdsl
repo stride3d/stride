@@ -1,0 +1,22 @@
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+/// <summary>
+/// Returns the color behind the key passed as generic.
+/// </summary>
+/// <remarks>
+/// LinkName: generic LinkType - the name of the key used to set the color.
+/// </remarks>
+shader ComputeColorConstantColor3Link<LinkType LinkName> : ComputeColor
+{
+    cbuffer PerMaterial
+    {
+        [Color]
+        [Link("LinkName")]
+        stage float3 constantColor3;
+    }
+    
+    override float4 Compute()
+    {
+        return float4(constantColor3, 1.0f);
+    }
+};
