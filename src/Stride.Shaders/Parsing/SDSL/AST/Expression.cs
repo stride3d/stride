@@ -102,9 +102,9 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
 
     public override void ProcessSymbol(SymbolTable table, EntryPoint? entrypoint = null, StreamIO? io = null)
     {
-
-        if (Source is Identifier { Name: "streams" } streams && Accessors[0] is Identifier streamVar && entrypoint is not null)
+        if (Source is Identifier { Name: "streams" } streams && Accessors[0] is Identifier streamVar)
         {
+            table.CurrentFunctionSymbols.Add(table.Streams);
             streamVar.ProcessSymbol(table, entrypoint, io);
             Type = streamVar.Type;
             // If has more, dive into the type definition
@@ -124,6 +124,8 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
                         accessor.ProcessSymbol(table, entrypoint, io ?? StreamIO.Input);
                 }
             }
+
+            table.Pop();
             table.RootSymbols.StreamUsages.Add(new(streamVar, SymbolKind.Variable, Storage.Stream), new(entrypoint ?? EntryPoint.None, io ?? StreamIO.Output));
         }
         else

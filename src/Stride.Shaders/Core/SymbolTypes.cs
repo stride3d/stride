@@ -131,6 +131,8 @@ public sealed record FunctionType(SymbolType ReturnType, List<SymbolType> Parame
     }
 }
 
+public sealed record StreamsSymbol : SymbolType;
+
 public sealed record ConstantBufferSymbol(string Name, List<Symbol> Symbols) : SymbolType;
 public sealed record ParamsSymbol(string Name, List<Symbol> Symbols) : SymbolType;
 public sealed record EffectSymbol(string Name, List<Symbol> Symbols) : SymbolType;

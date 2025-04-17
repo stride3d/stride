@@ -175,6 +175,13 @@ public class Assign(TextLocation info) : Statement(info)
     }
     public override void Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
+        var (builder, _, _) = compiler;
+        foreach (var variable in Variables)
+        {
+            var target = variable.Variable.Compile(table, shader, compiler);
+            var source = variable.Value.Compile(table, shader, compiler);
+            builder.Buffer.InsertOpStore(builder.Position, target.Id, source.Id, null);
+        }
         throw new NotImplementedException();
     }
     public override string ToString()

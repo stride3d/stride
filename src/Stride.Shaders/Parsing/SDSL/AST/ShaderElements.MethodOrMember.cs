@@ -2,6 +2,7 @@ using Stride.Shaders.Core;
 using Stride.Shaders.Core.Analysis;
 using Stride.Shaders.Parsing.Analysis;
 using Stride.Shaders.Spirv.Building;
+using Stride.Shaders.Spirv.Core.Buffers;
 
 namespace Stride.Shaders.Parsing.SDSL.AST;
 
@@ -76,6 +77,17 @@ public sealed class ShaderMember(
     public TypeModifier TypeModifier { get; set; } = typeModifier;
     public StorageClass StorageClass { get; set; } = storageClass;
     public InterpolationModifier Interpolation { get; set; } = interpolation;
+
+    public void Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
+    {
+        var (builder, context, _) = compiler;
+        var registeredType = context.GetOrRegister(Type);
+        var variable = context.Bound++;
+        context.Buffer.AddOpVariable(variable, registeredType, Spv.Specification.StorageClass.Function, null);
+        if (Semantic != null)
+            context.Buffer.AddOpSDSLDecorateSemantic(variable, Semantic.Name);
+        context.AddName(variable, Name);
+    }
 
     public override string ToString()
     {

@@ -12,6 +12,7 @@ public partial class SymbolTable : ISymbolProvider
     public Dictionary<string, SymbolType> DeclaredTypes { get; } = [];
     public SymbolFrame CurrentFrame => CurrentFunctionSymbols[^1];
     public RootSymbolFrame RootSymbols { get; } = new();
+    public SymbolFrame Streams { get; } = new();
     public SortedList<string, List<SymbolFrame>> FunctionSymbols { get; } = [];
 
     public List<SemanticErrors> Errors { get; } = [];

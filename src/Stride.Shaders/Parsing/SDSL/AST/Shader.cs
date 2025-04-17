@@ -52,14 +52,27 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
                             _ => Storage.None
                         }
                     );
-                table.RootSymbols.Add
-                    (
-                        sid,
-                        new(sid, svar.Type)
-                    );
+                var symbol = new Symbol(sid, svar.Type);
+                if (sid.Storage == Storage.Stream)
+                {
+                    table.Streams.Add(sid, symbol);
+                }
+                else
+                {
+                    table.RootSymbols.Add(sid, symbol);
+                }
                 table.DeclaredTypes.TryAdd(svar.Type.ToString(), svar.Type);
             }
         }
+
+        var streams =
+            new SymbolID
+            (
+                "streams",
+                SymbolKind.Variable,
+                Storage.None
+            );
+        table.RootSymbols.Add(streams, new(streams, new StreamsSymbol()));
 
         foreach (var member in Elements)
         {
@@ -72,6 +85,8 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
     public void Compile(CompilerUnit compiler, SymbolTable table)
     {
         compiler.Context.PutMixinName(Name);
+        foreach(var member in Elements.OfType<ShaderMember>())
+            member.Compile(table, this, compiler);
         foreach(var method in Elements.OfType<ShaderMethod>())
             method.Compile(table, this, compiler);
     }
