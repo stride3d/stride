@@ -23,6 +23,7 @@ public static class StringAssignOperatorExtensions
     {
         return s switch
         {
+            "=" => AssignOperator.Simple,
             "+=" => AssignOperator.Plus,
             "-=" => AssignOperator.Minus,
             "*=" => AssignOperator.Mul,
