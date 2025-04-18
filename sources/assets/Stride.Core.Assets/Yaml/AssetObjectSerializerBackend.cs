@@ -154,9 +154,19 @@ public class AssetObjectSerializerBackend : DefaultObjectSerializerBackend
     {
         var key = objectContext.Reader.Peek<Scalar>();
         var keyName = TrimAndParseOverride(key.Value, out var overrideTypes);
+        var previousKeyValue = key.Value;
+
         key.Value = keyName;
 
-        var keyValue = base.ReadDictionaryKey(ref objectContext, keyType);
+        object? keyValue;
+        try
+        {
+            keyValue = base.ReadDictionaryKey(ref objectContext, keyType);
+        }
+        finally
+        {
+            key.Value = previousKeyValue; // rollback the change to ensure this can be re-used
+        }
 
         if (overrideTypes[0] != OverrideType.Base)
         {
