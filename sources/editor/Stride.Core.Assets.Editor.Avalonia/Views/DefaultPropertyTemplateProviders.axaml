@@ -377,6 +377,22 @@
     </DataTemplate>
   </aev:TypeMatchTemplateProvider>
 
+  <!-- Provider for DateTime -->
+  <aev:TypeMatchTemplateProvider x:Key="DateTimePropertyTemplateProvider" Type="{x:Type system:DateTime}" aev:PropertyViewHelper.TemplateCategory="PropertyEditor">
+    <DataTemplate DataType="pqvm:NodeViewModel">
+      <sd:DateTimeEditor x:Name="DateTimeEditor"
+                         Value="{Binding NodeValue, Converter={aevvc:DifferentValuesToNull}}"/>
+    </DataTemplate>
+  </aev:TypeMatchTemplateProvider>
+
+  <!-- Provider for TimeSpan -->
+  <aev:TypeMatchTemplateProvider x:Key="TimeSpanPropertyTemplateProvider" Type="{x:Type system:TimeSpan}" aev:PropertyViewHelper.TemplateCategory="PropertyEditor">
+    <DataTemplate DataType="pqvm:NodeViewModel">
+      <sd:TimeSpanEditor x:Name="TimeSpanEditor"
+                         Value="{Binding NodeValue, Converter={aevvc:DifferentValuesToNull}}"/>
+    </DataTemplate>
+  </aev:TypeMatchTemplateProvider>
+
   <!-- Fallback final provider -->
   <sd:DefaultTemplateProvider x:Key="FallbackObjectPropertyTemplateProvider" OverrideRule="None" aev:PropertyViewHelper.TemplateCategory="PropertyEditor">
     <DataTemplate DataType="pqvm:NodeViewModel">
