@@ -5,6 +5,7 @@
                     xmlns:caeqnpc="using:Stride.Core.Assets.Editor.Quantum.NodePresenters.Commands"
                     xmlns:caev="using:Stride.Core.Assets.Editor.Avalonia.Views"
                     xmlns:cpqvm="using:Stride.Core.Presentation.Quantum.ViewModels"
+                    xmlns:io="using:Stride.Core.IO"
                     xmlns:s="using:System"
                     x:Class="Stride.Core.Assets.Editor.Avalonia.Views.DefaultPropertyTemplateProviders">
   <ResourceDictionary.MergedDictionaries>
@@ -822,6 +823,36 @@
     <DataTemplate DataType="cpqvm:NodeViewModel">
       <sd:TimeSpanEditor x:Name="TimeSpanEditor"
                          Value="{Binding NodeValue, Converter={caec:DifferentValuesToNull}}"/>
+    </DataTemplate>
+  </caev:TypeMatchTemplateProvider>
+
+  <!-- Provider for UDirectory -->
+  <caev:TypeMatchTemplateProvider x:Key="UDirectoryPropertyTemplateProvider" Type="{x:Type io:UDirectory}" caev:PropertyViewHelper.TemplateCategory="PropertyEditor">
+    <DataTemplate DataType="cpqvm:NodeViewModel">
+      <DockPanel>
+        <Button DockPanel.Dock="Right"
+                Content="..."
+                IsVisible="{Binding [HasCommand_BrowseDirectory], FallbackValue={x:False}}"
+                Command="{Binding [BrowseDirectory]}"
+                ToolTip.Tip="{sd:LocalizeString Browse directory, Context=Tooltip}"/>
+        <TextBox Margin="2"
+                 Text="{Binding NodeValue, Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:UDirectoryToString}}}"/>
+      </DockPanel>
+    </DataTemplate>
+  </caev:TypeMatchTemplateProvider>
+
+  <!-- Provider for UFile -->
+  <caev:TypeMatchTemplateProvider x:Key="UFilePropertyTemplateProvider" Type="{x:Type io:UFile}" caev:PropertyViewHelper.TemplateCategory="PropertyEditor">
+    <DataTemplate DataType="cpqvm:NodeViewModel">
+      <DockPanel>
+        <Button DockPanel.Dock="Right"
+                Content="..."
+                IsVisible="{Binding [HasCommand_BrowseFile], FallbackValue={x:False}}"
+                Command="{Binding [BrowseFile]}"
+                ToolTip.Tip="{sd:LocalizeString Browse file, Context=Tooltip}"/>
+        <TextBox Margin="2"
+                 Text="{Binding NodeValue, Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:UFileToString}}}"/>
+      </DockPanel>
     </DataTemplate>
   </caev:TypeMatchTemplateProvider>
 
