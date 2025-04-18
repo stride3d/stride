@@ -5,6 +5,7 @@
                     xmlns:aevtp="using:Stride.Core.Assets.Editor.Avalonia.Views.TemplateProviders"
                     xmlns:aevvc="using:Stride.Core.Assets.Editor.Avalonia.Views.ValueConverters"
                     xmlns:io="using:Stride.Core.IO"
+                    xmlns:math="using:Stride.Core.Mathematics"
                     xmlns:pqvm="using:Stride.Core.Presentation.Quantum.ViewModels"
                     xmlns:system="using:System"
                     x:Class="Stride.Core.Assets.Editor.Avalonia.Views.DefaultPropertyTemplateProviders">
@@ -410,6 +411,133 @@
     <DataTemplate DataType="pqvm:NodeViewModel">
       <sd:TimeSpanEditor x:Name="TimeSpanEditor"
                          Value="{Binding NodeValue, Converter={aevvc:DifferentValuesToNull}}"/>
+    </DataTemplate>
+  </aev:TypeMatchTemplateProvider>
+
+  <!-- Provider for Vector2 -->
+  <aev:TypeMatchTemplateProvider x:Key="Vector2PropertyTemplateProvider" Type="{x:Type math:Vector2}" aev:PropertyViewHelper.TemplateCategory="PropertyEditor">
+    <DataTemplate DataType="pqvm:NodeViewModel">
+      <sd:Vector2Editor x:Name="VectorEditor"
+                        X="{Binding [X].NodeValue, Converter={aevvc:DifferentValuesToNull}}"
+                        Y="{Binding [Y].NodeValue, Converter={aevvc:DifferentValuesToNull}}"
+                        DecimalPlaces="3"/>
+    </DataTemplate>
+  </aev:TypeMatchTemplateProvider>
+
+  <!-- Provider for Vector3 -->
+  <aev:TypeMatchTemplateProvider x:Key="Vector3PropertyTemplateProvider" Type="{x:Type math:Vector3}" aev:PropertyViewHelper.TemplateCategory="PropertyEditor">
+    <DataTemplate DataType="pqvm:NodeViewModel">
+      <sd:Vector3Editor x:Name="VectorEditor"
+                        X="{Binding [X].NodeValue, Converter={aevvc:DifferentValuesToNull}}"
+                        Y="{Binding [Y].NodeValue, Converter={aevvc:DifferentValuesToNull}}"
+                        Z="{Binding [Z].NodeValue, Converter={aevvc:DifferentValuesToNull}}"
+                        DecimalPlaces="3"/>
+    </DataTemplate>
+  </aev:TypeMatchTemplateProvider>
+
+  <!-- Provider for Vector4 -->
+  <aev:TypeMatchTemplateProvider x:Key="Vector4PropertyTemplateProvider" Type="{x:Type math:Vector4}" aev:PropertyViewHelper.TemplateCategory="PropertyEditor">
+    <DataTemplate DataType="pqvm:NodeViewModel">
+      <sd:Vector4Editor x:Name="VectorEditor"
+                        X="{Binding [X].NodeValue, Converter={aevvc:DifferentValuesToNull}}"
+                        Y="{Binding [Y].NodeValue, Converter={aevvc:DifferentValuesToNull}}"
+                        Z="{Binding [Z].NodeValue, Converter={aevvc:DifferentValuesToNull}}"
+                        W="{Binding [W].NodeValue, Converter={aevvc:DifferentValuesToNull}}"
+                        DecimalPlaces="3"/>
+    </DataTemplate>
+  </aev:TypeMatchTemplateProvider>
+
+  <!-- Provider for Int2 -->
+  <aev:TypeMatchTemplateProvider x:Key="Int2PropertyTemplateProvider" Type="{x:Type math:Int2}" aev:PropertyViewHelper.TemplateCategory="PropertyEditor">
+    <DataTemplate DataType="pqvm:NodeViewModel">
+      <sd:Int2Editor x:Name="IntEditor"
+                     X="{Binding [X].NodeValue, Converter={aevvc:DifferentValuesToNull}}"
+                     Y="{Binding [Y].NodeValue, Converter={aevvc:DifferentValuesToNull}}"/>
+    </DataTemplate>
+  </aev:TypeMatchTemplateProvider>
+
+  <!-- Provider for Int3 -->
+  <aev:TypeMatchTemplateProvider x:Key="Int3PropertyTemplateProvider" Type="{x:Type math:Int3}" aev:PropertyViewHelper.TemplateCategory="PropertyEditor">
+    <DataTemplate DataType="pqvm:NodeViewModel">
+      <sd:Int3Editor x:Name="IntEditor"
+                     X="{Binding [X].NodeValue, Converter={aevvc:DifferentValuesToNull}}"
+                     Y="{Binding [Y].NodeValue, Converter={aevvc:DifferentValuesToNull}}"
+                     Z="{Binding [Z].NodeValue, Converter={aevvc:DifferentValuesToNull}}"/>
+    </DataTemplate>
+  </aev:TypeMatchTemplateProvider>
+
+  <!-- Provider for Int4 -->
+  <aev:TypeMatchTemplateProvider x:Key="Int4PropertyTemplateProvider" Type="{x:Type math:Int4}" aev:PropertyViewHelper.TemplateCategory="PropertyEditor">
+    <DataTemplate DataType="pqvm:NodeViewModel">
+      <sd:Int4Editor x:Name="IntEditor"
+                     X="{Binding [X].NodeValue, Converter={aevvc:DifferentValuesToNull}}"
+                     Y="{Binding [Y].NodeValue, Converter={aevvc:DifferentValuesToNull}}"
+                     Z="{Binding [Z].NodeValue, Converter={aevvc:DifferentValuesToNull}}"
+                     W="{Binding [W].NodeValue, Converter={aevvc:DifferentValuesToNull}}"/>
+    </DataTemplate>
+  </aev:TypeMatchTemplateProvider>
+
+  <!-- Provider for Rectangle -->
+  <aev:TypeMatchTemplateProvider x:Key="RectanglePropertyTemplateProvider" Type="{x:Type math:Rectangle}" aev:PropertyViewHelper.TemplateCategory="PropertyEditor">
+    <DataTemplate DataType="pqvm:NodeViewModel">
+      <sd:RectangleEditor x:Name="RectangleEditor"
+                          RectX="{Binding [X].NodeValue, Converter={aevvc:DifferentValuesToNull}}"
+                          RectY="{Binding [Y].NodeValue, Converter={aevvc:DifferentValuesToNull}}"
+                          RectWidth="{Binding [Width].NodeValue, Converter={aevvc:DifferentValuesToNull}}"
+                          RectHeight="{Binding [Height].NodeValue, Converter={aevvc:DifferentValuesToNull}}"/>
+    </DataTemplate>
+  </aev:TypeMatchTemplateProvider>
+
+  <!-- Provider for RectangleF -->
+  <aev:TypeMatchTemplateProvider x:Key="RectangleFPropertyTemplateProvider" Type="{x:Type math:RectangleF}" aev:PropertyViewHelper.TemplateCategory="PropertyEditor">
+    <DataTemplate DataType="pqvm:NodeViewModel">
+      <sd:RectangleFEditor x:Name="RectangleEditor"
+                           RectX="{Binding [X].NodeValue, Converter={aevvc:DifferentValuesToNull}}"
+                           RectY="{Binding [Y].NodeValue, Converter={aevvc:DifferentValuesToNull}}"
+                           RectWidth="{Binding [Width].NodeValue, Converter={aevvc:DifferentValuesToNull}}"
+                           RectHeight="{Binding [Height].NodeValue, Converter={aevvc:DifferentValuesToNull}}"/>
+    </DataTemplate>
+  </aev:TypeMatchTemplateProvider>
+
+  <!-- Provider for Quaternion -->
+  <aev:TypeMatchTemplateProvider x:Key="QuaternionPropertyTemplateProvider" Type="{x:Type math:Quaternion}" aev:PropertyViewHelper.TemplateCategory="PropertyEditor">
+    <DataTemplate DataType="pqvm:NodeViewModel">
+      <sd:QuaternionEditor x:Name="QuaternionEditor"
+                           Value="{Binding NodeValue, Converter={aevvc:DifferentValuesToNull}}"
+                           DecimalPlaces="3"/>
+    </DataTemplate>
+  </aev:TypeMatchTemplateProvider>
+
+  <!-- Provider for Matrix -->
+  <aev:TypeMatchTemplateProvider x:Key="MatrixPropertyTemplateProvider" Type="{x:Type math:Matrix}" aev:PropertyViewHelper.TemplateCategory="PropertyEditor">
+    <DataTemplate DataType="pqvm:NodeViewModel">
+      <sd:MatrixEditor x:Name="MatrixEditor"
+                       M11="{Binding [M11].NodeValue, Converter={aevvc:DifferentValuesToNull}}"
+                       M12="{Binding [M12].NodeValue, Converter={aevvc:DifferentValuesToNull}}"
+                       M13="{Binding [M13].NodeValue, Converter={aevvc:DifferentValuesToNull}}"
+                       M14="{Binding [M14].NodeValue, Converter={aevvc:DifferentValuesToNull}}"
+                       M21="{Binding [M21].NodeValue, Converter={aevvc:DifferentValuesToNull}}"
+                       M22="{Binding [M22].NodeValue, Converter={aevvc:DifferentValuesToNull}}"
+                       M23="{Binding [M23].NodeValue, Converter={aevvc:DifferentValuesToNull}}"
+                       M24="{Binding [M24].NodeValue, Converter={aevvc:DifferentValuesToNull}}"
+                       M31="{Binding [M31].NodeValue, Converter={aevvc:DifferentValuesToNull}}"
+                       M32="{Binding [M32].NodeValue, Converter={aevvc:DifferentValuesToNull}}"
+                       M33="{Binding [M33].NodeValue, Converter={aevvc:DifferentValuesToNull}}"
+                       M34="{Binding [M34].NodeValue, Converter={aevvc:DifferentValuesToNull}}"
+                       M41="{Binding [M41].NodeValue, Converter={aevvc:DifferentValuesToNull}}"
+                       M42="{Binding [M42].NodeValue, Converter={aevvc:DifferentValuesToNull}}"
+                       M43="{Binding [M43].NodeValue, Converter={aevvc:DifferentValuesToNull}}"
+                       M44="{Binding [M44].NodeValue, Converter={aevvc:DifferentValuesToNull}}"
+                       DecimalPlaces="3"/>
+    </DataTemplate>
+  </aev:TypeMatchTemplateProvider>
+
+  <!-- Provider for AngleSingle -->
+  <aev:TypeMatchTemplateProvider x:Key="AnglePropertyTemplateProvider" Type="{x:Type math:AngleSingle}" aev:PropertyViewHelper.TemplateCategory="PropertyEditor">
+    <DataTemplate DataType="pqvm:NodeViewModel">
+      <NumericUpDown Value="{Binding NodeValue, Converter={sd:Chained {aevvc:DifferentValuesToNull}, {sd:AngleSingleToDegrees}}}"
+                     ShowButtonSpinner="False"
+                     ToolTip.Tip="{sd:LocalizeString Angle in degrees, Context=Tooltip}"/>
     </DataTemplate>
   </aev:TypeMatchTemplateProvider>
 
