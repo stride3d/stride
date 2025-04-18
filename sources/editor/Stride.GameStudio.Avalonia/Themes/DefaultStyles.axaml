@@ -1,0 +1,58 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
+        x:Class="Stride.GameStudio.Avalonia.Themes.DefaultStyles">
+  <!-- Style for DateTime editor -->
+  <Style Selector="sd|DateTimeEditor">
+    <Setter Property="Focusable" Value="False"/>
+    <Setter Property="Template">
+      <ControlTemplate TargetType="sd:DateTimeEditor">
+        <Grid ColumnDefinitions="*, Auto">
+          <TextBox Grid.Column="0"
+                   IsReadOnly="True"
+                   Margin="-1" TextAlignment="Center"
+                   Text="{Binding Value, RelativeSource={RelativeSource TemplatedParent}, Mode=OneWay}"/>
+        </Grid>
+      </ControlTemplate>
+    </Setter>
+  </Style>
+
+  <!-- Style for TimeSpan editor -->
+  <Style Selector="sd|TimeSpanEditor">
+    <Setter Property="Focusable" Value="False"/>
+    <Setter Property="Template">
+      <ControlTemplate TargetType="sd:TimeSpanEditor">
+        <Grid ColumnDefinitions="2*, Auto, 2*, Auto, 2*, Auto, 3*, Auto">
+          <NumericUpDown Grid.Column="0"
+                         Margin="-1" TextAlignment="Right" ShowButtonSpinner="False"
+                         Minimum="0"
+                         Value="{Binding Days, RelativeSource={RelativeSource TemplatedParent}}"/>
+          <Label Grid.Column="1"
+                 Margin="2" HorizontalAlignment="Center" VerticalAlignment="Center"
+                 Content=" d "/>
+          <NumericUpDown Grid.Column="2"
+                         Margin="-1" TextAlignment="Right" ShowButtonSpinner="False"
+                         Minimum="0" Maximum="23"
+                         Value="{Binding Hours, RelativeSource={RelativeSource TemplatedParent}}"/>
+          <Label Grid.Column="3"
+                 Margin="2" HorizontalAlignment="Center" VerticalAlignment="Center"
+                 Content=" h "/>
+          <NumericUpDown Grid.Column="4"
+                         Margin="-1" TextAlignment="Right" ShowButtonSpinner="False"
+                         Minimum="0" Maximum="59"
+                         Value="{Binding Minutes, RelativeSource={RelativeSource TemplatedParent}}"/>
+          <Label Grid.Column="5"
+                 Margin="2" HorizontalAlignment="Center" VerticalAlignment="Center"
+                 Content=" min "/>
+          <NumericUpDown Grid.Column="6"
+                         Margin="-1" TextAlignment="Right" ShowButtonSpinner="False"
+                         Minimum="0.0000000" Maximum="59.9999999"
+                         Value="{Binding Seconds, RelativeSource={RelativeSource TemplatedParent}}"/>
+          <Label Grid.Column="7"
+                 Margin="2" HorizontalAlignment="Center" VerticalAlignment="Center"
+                 Content=" s "/>
+        </Grid>
+      </ControlTemplate>
+    </Setter>
+  </Style>
+</Styles>

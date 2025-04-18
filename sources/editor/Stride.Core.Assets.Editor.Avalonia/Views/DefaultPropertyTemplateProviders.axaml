@@ -745,6 +745,22 @@
     </DataTemplate>
   </caev:TypeMatchTemplateProvider>
 
+  <!-- Provider for DateTime -->
+  <caev:TypeMatchTemplateProvider x:Key="DateTimePropertyTemplateProvider" Type="{x:Type s:DateTime}" caev:PropertyViewHelper.TemplateCategory="PropertyEditor">
+    <DataTemplate DataType="cpqvm:NodeViewModel">
+      <sd:DateTimeEditor x:Name="DateTimeEditor"
+                         Value="{Binding NodeValue, Converter={caec:DifferentValuesToNull}}"/>
+    </DataTemplate>
+  </caev:TypeMatchTemplateProvider>
+
+  <!-- Provider for TimeSpan -->
+  <caev:TypeMatchTemplateProvider x:Key="TimeSpanPropertyTemplateProvider" Type="{x:Type s:TimeSpan}" caev:PropertyViewHelper.TemplateCategory="PropertyEditor">
+    <DataTemplate DataType="cpqvm:NodeViewModel">
+      <sd:TimeSpanEditor x:Name="TimeSpanEditor"
+                         Value="{Binding NodeValue, Converter={caec:DifferentValuesToNull}}"/>
+    </DataTemplate>
+  </caev:TypeMatchTemplateProvider>
+
   <!-- Provider for enums -->
   <caev:EnumTemplateProvider x:Key="EnumTemplateProvider" caev:PropertyViewHelper.TemplateCategory="PropertyEditor">
     <DataTemplate DataType="cpqvm:NodeViewModel">
