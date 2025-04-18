@@ -1,0 +1,386 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
+                    xmlns:aev="using:Stride.Core.Assets.Editor.Avalonia.Views"
+                    xmlns:aevtp="using:Stride.Core.Assets.Editor.Avalonia.Views.TemplateProviders"
+                    xmlns:aevvc="using:Stride.Core.Assets.Editor.Avalonia.Views.ValueConverters"
+                    xmlns:pqvm="using:Stride.Core.Presentation.Quantum.ViewModels"
+                    xmlns:system="using:System"
+                    x:Class="Stride.Core.Assets.Editor.Avalonia.Views.DefaultPropertyTemplateProviders">
+  <!--
+  TODO:
+    - write a rule book about the oprder of property to use in an avalonia block
+      (e.g. HorizontalAlignment before VerticalAlignment)
+    - as well as binding styles and recommandations
+  -->
+
+  <!-- Base template for property header -->
+  <DataTemplate x:Key="DefaultPropertyHeaderTemplate" DataType="pqvm:NodeViewModel">
+    <Grid x:Name="Grid" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+          IsVisible="{Binding IsVisible}">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="8"/>
+        <ColumnDefinition Width="{Binding $parent[sd:PropertyView].NameColumnSize, Mode=TwoWay}"
+                          MinWidth="64"/>
+        <ColumnDefinition Width="5"/>
+        <ColumnDefinition Width="*" MinWidth="64"/>
+      </Grid.ColumnDefinitions>
+      <Border Grid.Column="0"
+              Width="8" Margin="4,4,0,4">
+      </Border>
+      <Border Grid.Column="1" x:Name="PART_Name"
+              MinHeight="23" Margin="2" HorizontalAlignment="Stretch" VerticalAlignment="Top">
+        <Grid>
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" MinWidth="{Binding $parent[sd:PropertyViewItem].Offset, Mode=OneWay}"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="Auto"/>
+          </Grid.ColumnDefinitions>
+          <TextBlock Grid.Column="1"
+                     HorizontalAlignment="Stretch" VerticalAlignment="Center"
+                     TextTrimming="CharacterEllipsis"
+                     Text="{Binding DisplayName, Mode=OneWay}"/>
+          <CheckBox Grid.Column="2"
+                    Margin="2,0" HorizontalAlignment="Left" VerticalAlignment="Center"
+                    IsChecked="{Binding [Enabled].NodeValue, FallbackValue={x:False}, Converter={aevvc:DifferentValuesToParam}, ConverterParameter={x:Null}}"
+                    IsThreeState="{Binding [Enabled].NodeValue, FallbackValue={x:False}, Converter={sd:IsEqualToParam}, ConverterParameter={x:Static pqvm:NodeViewModel.DifferentValues}}"
+                    IsVisible="{Binding [HasChild_Enabled], FallbackValue={x:False}}"/>
+        </Grid>
+      </Border>
+      <GridSplitter Grid.Column="2" Width="2" ResizeBehavior="PreviousAndNext" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+      <Border Grid.Column="3" x:Name="PART_Editor"
+              HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0,0,5,0">
+        <ContentControl x:Name="PART_ValueContainer"
+                        Focusable="False" VerticalAlignment="Center"
+                        Content="{Binding}"
+                        ContentTemplate="{x:Static aev:PropertyViewHelper.EditorProviders}"/>
+      </Border>
+    </Grid>
+  </DataTemplate>
+
+  <!-- Base provider for property footer: nothing inside! -->
+  <sd:DefaultTemplateProvider x:Key="DefaultPropertyFooterTemplateProvider" OverrideRule="None" aev:PropertyViewHelper.TemplateCategory="PropertyFooter">
+    <DataTemplate/>
+  </sd:DefaultTemplateProvider>
+
+  <!-- Base provider for property -->
+  <sd:DefaultTemplateProvider x:Key="DefaultPropertyTemplateProvider" OverrideRule="None" aev:PropertyViewHelper.TemplateCategory="PropertyHeader"
+                              Template="{StaticResource DefaultPropertyHeaderTemplate}"/>
+
+  <!-- Provider for List item -->
+  <!--<aevtp:ListItemTemplateProvider x:Key="ListItemPropertyTemplateProvider" OverrideRule="Most" aev:PropertyViewHelper.TemplateCategory="PropertyEditor">
+    <DataTemplate>
+      <DockPanel>
+        <ContentControl Content="{Binding}" ContentTemplate="{x:Static aev:PropertyViewHelper.EditorProviders}"/>
+      </DockPanel>
+    </DataTemplate>
+  </aevtp:ListItemTemplateProvider>-->
+
+  <!-- Providers for List -->
+  <aevtp:ListTemplateProvider x:Key="ListPropertyTemplateProvider" aev:PropertyViewHelper.TemplateCategory="PropertyEditor">
+    <DataTemplate DataType="pqvm:NodeViewModel">
+      <DockPanel>
+        <TextBlock Margin="2">
+          <Run Text="{sd:LocalizeString List}"/> -
+          <Run Text="{Binding Children.Count, Mode=OneWay, Converter={sd:Localize Text={}{0} item, Plural={}{0} items, IsStringFormat=True}}"/>
+        </TextBlock>
+      </DockPanel>
+    </DataTemplate>
+  </aevtp:ListTemplateProvider>
+  <aevtp:ListTemplateProvider x:Key="ListPropertyFooterTemplateProvider" aev:PropertyViewHelper.TemplateCategory="PropertyFooter">
+    <DataTemplate DataType="pqvm:NodeViewModel">
+      <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+            IsVisible="{sd:MultiBinding {Binding IsVisible}, {Binding VisibleChildrenCount, Converter={sd:IsGreater}, ConverterParameter={sd:Int 0}},
+                                        {Binding [HasCommand_AddNewItem]}, {Binding HasCollection},
+                                        Converter={sd:AndMulti}}">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="8"/>
+          <ColumnDefinition Width="{Binding $parent[sd:PropertyView].NameColumnSize, Mode=TwoWay}"
+                            MinWidth="64"/>
+          <ColumnDefinition Width="5"/>
+          <ColumnDefinition Width="*" MinWidth="64"/>
+        </Grid.ColumnDefinitions>
+        <Border Grid.Column="1"
+                Margin="2" MinHeight="23">
+          <Grid>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="Auto" MinWidth="{Binding $parent[sd:PropertyViewItem].Offset, Mode=OneWay}"/>
+              <ColumnDefinition Width="16"/>
+              <ColumnDefinition Width="*"/>
+              <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <DockPanel Grid.Column="2"
+                       Margin="0,2,5,2" VerticalAlignment="Center">
+              <!-- TODO buttons -->
+              <TextBlock FontStyle="Italic" TextTrimming="CharacterEllipsis"
+                         Text="{Binding DisplayName, Converter={sd:Localize Text={}Add to {0}, IsStringFormat=True}}"/>
+            </DockPanel>
+          </Grid>
+        </Border>
+        <GridSplitter Grid.Column="2" Width="2" ResizeBehavior="PreviousAndNext" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="Transparent"/>
+      </Grid>
+    </DataTemplate>
+  </aevtp:ListTemplateProvider>
+
+  <!-- Provider for Array item -->
+  <!--<aevtp:ArrayItemTemplateProvider x:Key="ArrayItemPropertyTemplateProvider" OverrideRule="Most" aev:PropertyViewHelper.TemplateCategory="PropertyEditor">
+    <DataTemplate>
+      <DockPanel>
+        <ContentControl Content="{Binding}" ContentTemplate="{x:Static aev:PropertyViewHelper.EditorProviders}"/>
+      </DockPanel>
+    </DataTemplate>
+  </aevtp:ArrayItemTemplateProvider>-->
+
+  <!-- Providers for Array -->
+  <aevtp:ArrayTemplateProvider x:Key="ArrayPropertyTemplateProvider" aev:PropertyViewHelper.TemplateCategory="PropertyEditor">
+    <DataTemplate DataType="pqvm:NodeViewModel">
+      <DockPanel>
+        <TextBlock Margin="2">
+          <Run Text="{sd:LocalizeString Array}"/> -
+          <Run Text="{Binding Children.Count, Mode=OneWay, Converter={sd:Localize Text={}{0} item, Plural={}{0} items, IsStringFormat=True}}"/>
+        </TextBlock>
+      </DockPanel>
+    </DataTemplate>
+  </aevtp:ArrayTemplateProvider>
+  <aevtp:ArrayTemplateProvider x:Key="ArrayPropertyFooterTemplateProvider" aev:PropertyViewHelper.TemplateCategory="PropertyFooter">
+    <DataTemplate DataType="pqvm:NodeViewModel">
+      <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+            IsVisible="{sd:MultiBinding {Binding IsVisible}, {Binding VisibleChildrenCount, Converter={sd:IsGreater}, ConverterParameter={sd:Int 0}},
+                                        Converter={sd:AndMulti}}">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="8"/>
+          <ColumnDefinition Width="{Binding $parent[sd:PropertyView].NameColumnSize, Mode=TwoWay}"
+                            MinWidth="64"/>
+          <ColumnDefinition Width="5"/>
+          <ColumnDefinition Width="*" MinWidth="64"/>
+        </Grid.ColumnDefinitions>
+        <GridSplitter Grid.Column="2" Width="2" ResizeBehavior="PreviousAndNext" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="Transparent"/>
+      </Grid>
+    </DataTemplate>
+  </aevtp:ArrayTemplateProvider>
+
+  <!-- Providers for Dictionary -->
+  <aevtp:DictionaryTemplateProvider x:Key="DictionaryTemplateProvider" aev:PropertyViewHelper.TemplateCategory="PropertyEditor">
+    <DataTemplate DataType="pqvm:NodeViewModel">
+      <DockPanel>
+        <Button DockPanel.Dock="Right"
+                Content="+"
+                IsVisible="{sd:MultiBinding {Binding [HasCommand_AddPrimitiveKey]}, {Binding ![HasAssociatedData_ReadOnlyCollection]},
+                                            Converter={sd:AndMulti}, FallbackValue={x:False}}"
+                Command="{Binding [AddPrimitiveKey]}"
+                ToolTip.Tip="{sd:LocalizeString  Add a new entry to the dictionary, Context=Tooltip}"/>
+        <TextBlock Margin="2">
+          <Run Text="{sd:LocalizeString Dictionary}"/> -
+          <Run Text="{Binding Children.Count, Mode=OneWay, Converter={sd:Localize Text={}{0} item, Plural={}{0} items, IsStringFormat=True}}"/>
+        </TextBlock>
+      </DockPanel>
+    </DataTemplate>
+  </aevtp:DictionaryTemplateProvider>
+  <aevtp:DictionaryNumberKeyTemplateProvider x:Key="DictionaryNumberKeyTemplateProvider" aev:PropertyViewHelper.TemplateCategory="PropertyEditor">
+    <aevtp:DictionaryNumberKeyTemplateProvider.OverriddenProviderNames>
+      <system:String>Dictionary</system:String>
+    </aevtp:DictionaryNumberKeyTemplateProvider.OverriddenProviderNames>
+    <DataTemplate DataType="pqvm:NodeViewModel">
+      <DockPanel>
+        <ComboBox DockPanel.Dock="Right"
+                  Margin="2,0"
+                  IsVisible="{sd:MultiBinding {Binding [HasCommand_AddPrimitiveKey]}, {Binding ![HasAssociatedData_ReadOnlyCollection]},
+                                            Converter={sd:AndMulti}, FallbackValue={x:False}}">
+          <ComboBox.Template>
+            <ControlTemplate TargetType="{x:Type ComboBox}">
+              <Grid x:Name="grid">
+                <ToggleButton x:Name="ToggleButton"
+                              Content="+"
+                              Width="16" Height="16" Background="Transparent"
+                              Focusable="false" ClickMode="Press"
+                              ToolTip.Tip="{sd:LocalizeString Add a new entry to the dictionary, Context=ToolTip}"
+                              IsChecked="{TemplateBinding IsDropDownOpen, Mode=TwoWay}"/>
+                <Popup x:Name="PART_Popup"
+                       IsOpen="{TemplateBinding IsDropDownOpen}" Placement="Left"
+                       VerticalOffset="{Binding Bounds.Height, RelativeSource={RelativeSource TemplatedParent}}"
+                       HorizontalOffset="{Binding Bounds.Width, RelativeSource={RelativeSource TemplatedParent}}"
+                       PlacementTarget="{Binding ElementName=ToggleButton}">
+                  <DockPanel MaxHeight="{TemplateBinding MaxDropDownHeight}"
+                             Background="{DynamicResource ControlBackgroundBrush}" Margin="10">
+                    <TextBlock DockPanel.Dock="Left" Margin="8,0,0,0" VerticalAlignment="Center"
+                               Text="{sd:LocalizeString Key name:}"/>
+                    <TextBox x:Name="TextBox"
+                             Text="0"
+                             Margin="8" Width="160"/>
+                  </DockPanel>
+                </Popup>
+              </Grid>
+            </ControlTemplate>
+          </ComboBox.Template>
+        </ComboBox>
+        <TextBlock Margin="2" DockPanel.Dock="Left">
+          <Run Text="{sd:LocalizeString Dictionary}"/> -
+          <Run Text="{Binding Children.Count, Mode=OneWay, Converter={sd:Localize Text={}{0} item, Plural={}{0} items, IsStringFormat=True}}"/>
+        </TextBlock>
+      </DockPanel>
+    </DataTemplate>
+  </aevtp:DictionaryNumberKeyTemplateProvider>
+  <aevtp:DictionaryStringKeyTemplateProvider x:Key="DictionaryStringKeyTemplateProvider" aev:PropertyViewHelper.TemplateCategory="PropertyEditor">
+    <aevtp:DictionaryStringKeyTemplateProvider.OverriddenProviderNames>
+      <system:String>Dictionary</system:String>
+    </aevtp:DictionaryStringKeyTemplateProvider.OverriddenProviderNames>
+    <DataTemplate DataType="pqvm:NodeViewModel">
+      <DockPanel>
+        <ComboBox DockPanel.Dock="Right"
+                  Margin="2,0"
+                  IsVisible="{sd:MultiBinding {Binding [HasCommand_AddPrimitiveKey]}, {Binding ![HasAssociatedData_ReadOnlyCollection]},
+                                            Converter={sd:AndMulti}, FallbackValue={x:False}}">
+          <ComboBox.Template>
+            <ControlTemplate TargetType="{x:Type ComboBox}">
+              <Grid x:Name="grid">
+                <ToggleButton x:Name="ToggleButton"
+                              Content="+"
+                              Width="16" Height="16" Background="Transparent"
+                              Focusable="false" ClickMode="Press"
+                              ToolTip.Tip="{sd:LocalizeString Add a new entry to the dictionary, Context=ToolTip}"
+                              IsChecked="{TemplateBinding IsDropDownOpen, Mode=TwoWay}"/>
+                <Popup x:Name="PART_Popup"
+                       IsOpen="{TemplateBinding IsDropDownOpen}" Placement="Left"
+                       VerticalOffset="{Binding Bounds.Height, RelativeSource={RelativeSource TemplatedParent}}"
+                       HorizontalOffset="{Binding Bounds.Width, RelativeSource={RelativeSource TemplatedParent}}"
+                       PlacementTarget="{Binding ElementName=ToggleButton}">
+                  <DockPanel MaxHeight="{TemplateBinding MaxDropDownHeight}"
+                             Background="{DynamicResource ControlBackgroundBrush}" Margin="10">
+                    <TextBlock DockPanel.Dock="Left" Margin="8,0,0,0" VerticalAlignment="Center"
+                               Text="{sd:LocalizeString Key name:}"/>
+                    <TextBox x:Name="TextBox"
+                             Text="{sd:LocalizeString New key}"
+                             Margin="8" Width="160"/>
+                  </DockPanel>
+                </Popup>
+              </Grid>
+            </ControlTemplate>
+          </ComboBox.Template>
+        </ComboBox>
+        <TextBlock Margin="2" DockPanel.Dock="Left">
+          <Run Text="{sd:LocalizeString Dictionary}"/> -
+          <Run Text="{Binding Children.Count, Mode=OneWay, Converter={sd:Localize Text={}{0} item, Plural={}{0} items, IsStringFormat=True}}"/>
+        </TextBlock>
+      </DockPanel>
+    </DataTemplate>
+  </aevtp:DictionaryStringKeyTemplateProvider>
+  <aevtp:DictionaryEnumKeyTemplateProvider x:Key="DictionaryEnumKeyTemplateProvider" aev:PropertyViewHelper.TemplateCategory="PropertyEditor">
+    <aevtp:DictionaryEnumKeyTemplateProvider.OverriddenProviderNames>
+      <system:String>Dictionary</system:String>
+    </aevtp:DictionaryEnumKeyTemplateProvider.OverriddenProviderNames>
+    <DataTemplate DataType="pqvm:NodeViewModel">
+      <DockPanel>
+        <ComboBox DockPanel.Dock="Right"
+                  Margin="2,0"
+                  IsVisible="{sd:MultiBinding {Binding [HasCommand_AddPrimitiveKey]}, {Binding ![HasAssociatedData_ReadOnlyCollection]},
+                                            Converter={sd:AndMulti}, FallbackValue={x:False}}">
+          <ComboBox.Template>
+            <ControlTemplate TargetType="{x:Type ComboBox}">
+              <Grid x:Name="grid">
+                <ToggleButton x:Name="ToggleButton"
+                              Content="+"
+                              Width="16" Height="16" Background="Transparent"
+                              Focusable="false" ClickMode="Press"
+                              ToolTip.Tip="{sd:LocalizeString Add a new entry to the dictionary, Context=ToolTip}"
+                              IsChecked="{TemplateBinding IsDropDownOpen, Mode=TwoWay}"/>
+                <Popup x:Name="PART_Popup"
+                       IsOpen="{TemplateBinding IsDropDownOpen}" Placement="Left"
+                       VerticalOffset="{Binding Bounds.Height, RelativeSource={RelativeSource TemplatedParent}}"
+                       HorizontalOffset="{Binding Bounds.Width, RelativeSource={RelativeSource TemplatedParent}}"
+                       PlacementTarget="{Binding ElementName=ToggleButton}">
+                  <DockPanel MaxHeight="{TemplateBinding MaxDropDownHeight}"
+                             Background="{DynamicResource ControlBackgroundBrush}" Margin="10">
+                    <TextBlock DockPanel.Dock="Left" Margin="8,0,0,0" VerticalAlignment="Center"
+                               Text="{sd:LocalizeString Key name:}"/>
+                    <ComboBox Name="EnumKeySelectionComboBox"
+                              ItemsSource="{Binding [DictionaryNodeKeyType], Converter={sd:EnumValues}, Mode=OneWay}"
+                              SelectedItem="" MinWidth="60"/>
+                  </DockPanel>
+                </Popup>
+              </Grid>
+            </ControlTemplate>
+          </ComboBox.Template>
+        </ComboBox>
+        <TextBlock Margin="2" DockPanel.Dock="Left">
+          <Run Text="{sd:LocalizeString Dictionary}"/> -
+          <Run Text="{Binding Children.Count, Mode=OneWay, Converter={sd:Localize Text={}{0} item, Plural={}{0} items, IsStringFormat=True}}"/>
+        </TextBlock>
+      </DockPanel>
+    </DataTemplate>
+  </aevtp:DictionaryEnumKeyTemplateProvider>
+
+  <!-- Provider for bool -->
+  <aev:TypeMatchTemplateProvider x:Key="BoolPropertyTemplateProvider" Type="{x:Type system:Boolean}" aev:PropertyViewHelper.TemplateCategory="PropertyEditor">
+    <DataTemplate DataType="pqvm:NodeViewModel">
+      <CheckBox IsThreeState="{Binding NodeValue, Converter={sd:IsEqualToParam}, ConverterParameter={x:Static pqvm:NodeViewModel.DifferentValues}}"
+                IsChecked="{Binding NodeValue, Converter={aevvc:DifferentValuesToParam}, ConverterParameter={x:Null}}"/>
+    </DataTemplate>
+  </aev:TypeMatchTemplateProvider>
+
+  <!-- Provider for char -->
+  <aev:TypeMatchTemplateProvider x:Key="CharPropertyTemplateProvider" Type="{x:Type system:Char}" aev:PropertyViewHelper.TemplateCategory="PropertyEditor">
+    <DataTemplate DataType="pqvm:NodeViewModel">
+      <Grid ColumnDefinitions="Auto, 3*">
+        <TextBox Grid.Column="0" Margin="2" Width="40" TextAlignment="Center"
+                 Text="{Binding NodeValue, Converter={sd:Chained {aevvc:DifferentValuesToNull}, {sd:CharToString}}}"
+                 ToolTip.Tip="{sd:LocalizeString Character, Context=ToolTip}"/>
+        <NumericUpDown Grid.Column="1" Margin="2"
+                       Value="{Binding NodeValue, Converter={sd:CharToUnicode}}"
+                       ToolTip.Tip="{sd:LocalizeString Unicode value, Context=ToolTip}"
+                       ShowButtonSpinner="False"/>
+      </Grid>
+    </DataTemplate>
+  </aev:TypeMatchTemplateProvider>
+
+  <!-- Providers for floating-point -->
+  <DataTemplate x:Key="FloatEditorTemplate" DataType="pqvm:NodeViewModel">
+    <NumericUpDown x:Name="NumericUpDown"
+                   Value="{Binding NodeValue, Converter={sd:Chained {aevvc:DifferentValuesToNull}, {sd:ToDecimal}}}"
+                   Minimum="{Binding [Minimum], FallbackValue={x:Static system:Decimal.MinValue}, Converter={sd:Chained {aevvc:DifferentValuesToNull}, {sd:ToDecimal}}}"
+                   Maximum="{Binding [Maximum], FallbackValue={x:Static system:Decimal.MaxValue}, Converter={sd:Chained {aevvc:DifferentValuesToNull}, {sd:ToDecimal}}}"
+                   ShowButtonSpinner="False"/>
+  </DataTemplate>
+  <aev:TypeMatchTemplateProvider x:Key="FloatPropertyTemplateProvider" Type="{x:Type system:Single}" aev:PropertyViewHelper.TemplateCategory="PropertyEditor"
+                                 Template="{StaticResource FloatEditorTemplate}"/>
+  <aev:TypeMatchTemplateProvider x:Key="DoublePropertyTemplateProvider" Type="{x:Type system:Double}" aev:PropertyViewHelper.TemplateCategory="PropertyEditor"
+                                 Template="{StaticResource FloatEditorTemplate}"/>
+
+  <!-- Providers for fixed-point -->
+  <DataTemplate x:Key="IntEditorTemplate" DataType="pqvm:NodeViewModel">
+    <NumericUpDown x:Name="NumericUpDown"
+                   Value="{Binding NodeValue, Converter={sd:Chained {aevvc:DifferentValuesToNull}, {sd:ToDecimal}}}"
+                   Minimum="{Binding [Minimum], FallbackValue={x:Static system:Decimal.MinValue}, Converter={sd:Chained {aevvc:DifferentValuesToNull}, {sd:ToDecimal}}}"
+                   Maximum="{Binding [Maximum], FallbackValue={x:Static system:Decimal.MaxValue}, Converter={sd:Chained {aevvc:DifferentValuesToNull}, {sd:ToDecimal}}}"
+                   ShowButtonSpinner="False"/>
+  </DataTemplate>
+  <aev:TypeMatchTemplateProvider x:Key="Int8PropertyTemplateProvider" Type="{x:Type system:SByte}" aev:PropertyViewHelper.TemplateCategory="PropertyEditor"
+                                 Template="{StaticResource IntEditorTemplate}"/>
+  <aev:TypeMatchTemplateProvider x:Key="UInt8PropertyTemplateProvider" Type="{x:Type system:Byte}" aev:PropertyViewHelper.TemplateCategory="PropertyEditor"
+                                 Template="{StaticResource IntEditorTemplate}"/>
+  <aev:TypeMatchTemplateProvider x:Key="Int16PropertyTemplateProvider" Type="{x:Type system:Int16}" aev:PropertyViewHelper.TemplateCategory="PropertyEditor"
+                                 Template="{StaticResource IntEditorTemplate}"/>
+  <aev:TypeMatchTemplateProvider x:Key="UInt16PropertyTemplateProvider" Type="{x:Type system:UInt16}" aev:PropertyViewHelper.TemplateCategory="PropertyEditor"
+                                 Template="{StaticResource IntEditorTemplate}"/>
+  <aev:TypeMatchTemplateProvider x:Key="Int32PropertyTemplateProvider" Type="{x:Type system:Int32}" aev:PropertyViewHelper.TemplateCategory="PropertyEditor"
+                                 Template="{StaticResource IntEditorTemplate}"/>
+  <aev:TypeMatchTemplateProvider x:Key="UInt32PropertyTemplateProvider" Type="{x:Type system:UInt32}" aev:PropertyViewHelper.TemplateCategory="PropertyEditor"
+                                 Template="{StaticResource IntEditorTemplate}"/>
+  <aev:TypeMatchTemplateProvider x:Key="Int64PropertyTemplateProvider" Type="{x:Type system:Int64}" aev:PropertyViewHelper.TemplateCategory="PropertyEditor"
+                                 Template="{StaticResource IntEditorTemplate}"/>
+  <aev:TypeMatchTemplateProvider x:Key="UInt64PropertyTemplateProvider" Type="{x:Type system:UInt64}" aev:PropertyViewHelper.TemplateCategory="PropertyEditor"
+                                 Template="{StaticResource IntEditorTemplate}"/>
+
+  <!-- Provider for string -->
+  <aev:TypeMatchTemplateProvider x:Key="StringPropertyTemplateProvider" Type="{x:Type system:String}" aev:PropertyViewHelper.TemplateCategory="PropertyEditor">
+    <DataTemplate DataType="pqvm:NodeViewModel">
+      <TextBox Text="{Binding NodeValue, Converter={aevvc:DifferentValuesToString}}"/>
+    </DataTemplate>
+  </aev:TypeMatchTemplateProvider>
+
+  <!-- Fallback final provider -->
+  <sd:DefaultTemplateProvider x:Key="FallbackObjectPropertyTemplateProvider" OverrideRule="None" aev:PropertyViewHelper.TemplateCategory="PropertyEditor">
+    <DataTemplate DataType="pqvm:NodeViewModel">
+      <TextBlock Text="{Binding DisplayName, Mode=OneWay}"/>
+    </DataTemplate>
+  </sd:DefaultTemplateProvider>
+</ResourceDictionary>
