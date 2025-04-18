@@ -5,14 +5,12 @@ using Stride.Core.Presentation.Quantum.ViewModels;
 
 namespace Stride.Core.Assets.Editor.Avalonia.Views;
 
-public sealed class ArrayTemplateProvider : NodeViewModelTemplateProvider
+public sealed class SetTemplateProvider : TypeMatchTemplateProvider
 {
-    public override string Name => (ElementType?.Name ?? "") + "[]";
-
-    public Type? ElementType { get; set; }
+    public override string Name => "Set";
 
     public override bool MatchNode(NodeViewModel node)
     {
-        return node.Type.IsArray && node.NodeValue is not null;
+        return node is { HasSet: true, NodeValue: not null };
     }
 }

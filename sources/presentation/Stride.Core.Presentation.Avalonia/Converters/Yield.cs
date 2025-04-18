@@ -7,10 +7,10 @@ using Stride.Core.Extensions;
 
 namespace Stride.Core.Presentation.Avalonia.Converters;
 
-public class Yield : OneWayValueConverter<Yield>
+public sealed class Yield : OneWayValueConverter<Yield>
 {
     /// <inheritdoc />
-    public override object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    public override object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
         return value == AvaloniaProperty.UnsetValue ? AvaloniaProperty.UnsetValue : value.Yield();
     }
