@@ -246,6 +246,66 @@
     </Grid>
   </DataTemplate>
 
+  <!-- Base template for property header (read-only) -->
+  <DataTemplate x:Key="ReadOnlyPropertyHeaderTemplate" DataType="cpqvm:NodeViewModel">
+    <Grid x:Name="Grid"
+          IsVisible="{Binding IsVisible}"
+          Margin="{Binding $parent[sd:PropertyViewItem].Offset, Mode=OneWay, Converter={sd:NumericToThickness}, ConverterParameter={sd:Thickness 1,0,0,0}}">
+      <Border x:Name="PART_Name"
+              Background="#316B8F"
+              MinHeight="20" Margin="6" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"
+              ToolTip.Tip="{Binding [Documentation]}"/>
+      <DockPanel x:Name="HeaderDockPanel"
+                 Margin="10,8">
+        <StackPanel DockPanel.Dock="Right"
+                    Orientation="Horizontal" VerticalAlignment="Center">
+          <Button Theme="{StaticResource RemoveItemButtonTheme}"/>
+          <Button Theme="{StaticResource AddNewItemButtonTheme}"/>
+          <ComboBox x:Name="InstanceTypeSelectionComboBox"
+                    ItemsSource="{Binding [AbstractNodeMatchingEntries]}"
+                    Theme="{StaticResource AddItemComboBoxTheme}">
+            <Interaction.Behaviors>
+              <EventTriggerBehavior EventName="DropDownClosed"
+                                    IsEnabled="{Binding #InstanceTypeSelectionComboBox.SelectedItem, Converter={sd:ObjectToBool}}">
+                <InvokeCommandAction Command="{Binding [AddNewItem]}"
+                                     CommandParameter="{Binding #InstanceTypeSelectionComboBox.SelectedItem}"/>
+                <ChangePropertyAction PropertyName="SelectedItem" Value="{x:Null}"/>
+              </EventTriggerBehavior>
+            </Interaction.Behaviors>
+          </ComboBox>
+        </StackPanel>
+        <ToggleButton DockPanel.Dock="Left"
+                      Width="8" Height="8" HorizontalAlignment="Left"
+                      Template="{StaticResource TreeExpanderToggleButton}"
+                      IsChecked="{Binding $parent[sd:PropertyViewItem].IsExpanded}"
+                      IsVisible="{Binding VisibleChildrenCount, Converter={sd:NumericToBool}}"/>
+        <StackPanel Orientation="Horizontal" Margin="8,0,0,0">
+          <CheckBox Margin="4,0" VerticalAlignment="Center"
+                    IsVisible="{Binding [HasChild_Enabled]}"
+                    IsChecked="{Binding [Enabled].NodeValue, Converter={caec:DifferentValuesToParam}, ConverterParameter={x:Null}, FallbackValue={x:False}, TargetNullValue={x:False}}"
+                    IsThreeState="{Binding [Enabled].NodeValue, Converter={sd:IsEqualToParam}, ConverterParameter={x:Static cpqvm:NodeViewModel.DifferentValues}, FallbackValue={x:False}, TargetNullValue={x:False}}"/>
+          <Image Source="{Binding NodeValue, Converter={sd:Chained {sd:ObjectToType}, {caec:TypeToResource}}}"
+                 MaxWidth="16" MaxHeight="16" Margin="0,0,4,0"/>
+          <TextBlock x:Name="HeaderTextBlock" FontSize="16" TextTrimming="CharacterEllipsis"
+                     Text="{Binding DisplayName, Mode=OneWay}" HorizontalAlignment="Left" VerticalAlignment="Center"
+                     Foreground="#E6E6E6"/>
+          <Interaction.Behaviors>
+            <DataTriggerBehavior Binding="{Binding Level, Converter={sd:IsEqual}, ConverterParameter={sd:Int 2}}" Value="True">
+              <ChangePropertyAction TargetObject="PART_Name" PropertyName="Opacity" Value="0.6"/>
+              <ChangePropertyAction TargetObject="HeaderTextBlock" PropertyName="FontSize" Value="14"/>
+            </DataTriggerBehavior>
+            <DataTriggerBehavior Binding="{Binding Level, Converter={sd:IsGreater}, ConverterParameter={sd:Int 2}}" Value="True">
+              <ChangePropertyAction TargetObject="PART_Name" PropertyName="Opacity" Value="0.5"/>
+              <ChangePropertyAction TargetObject="HeaderTextBlock" PropertyName="FontSize" Value="12"/>
+              <ChangePropertyAction TargetObject="HeaderDockPanel" PropertyName="Margin" Value="10,4"/>
+              <ChangePropertyAction TargetObject="Grid" PropertyName="Margin" Value="15,0,0,0"/>
+            </DataTriggerBehavior>
+          </Interaction.Behaviors>
+        </StackPanel>
+      </DockPanel>
+    </Grid>
+  </DataTemplate>
+
   <!-- Base provider for property header -->
   <sd:DefaultTemplateProvider x:Key="DefaultPropertyTemplateProvider" OverrideRule="None" caev:PropertyViewHelper.TemplateCategory="PropertyHeader"
                               Template="{StaticResource DefaultPropertyHeaderTemplate}"/>
@@ -254,6 +314,10 @@
   <sd:DefaultTemplateProvider x:Key="DefaultPropertyFooterTemplateProvider" OverrideRule="None" caev:PropertyViewHelper.TemplateCategory="PropertyFooter">
     <DataTemplate/>
   </sd:DefaultTemplateProvider>
+
+  <!-- Provider for category -->
+  <caev:CategoryNodeTemplateProvider x:Key="CategoryNodeTemplateProvider" caev:PropertyViewHelper.TemplateCategory="PropertyHeader"
+                                     Template="{StaticResource ReadOnlyPropertyHeaderTemplate}"/>
 
   <!-- Provider for List item -->
   <!--<caev:ListItemTemplateProvider x:Key="ListItemPropertyTemplateProvider" OverrideRule="Most" caev:PropertyViewHelper.TemplateCategory="PropertyEditor">
