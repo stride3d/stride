@@ -53,7 +53,7 @@ public class RootNodePresenter : NodePresenterBase
         base.Dispose(disposing);
     }
 
-    public override void UpdateValue(object newValue)
+    public override void UpdateValue(object? newValue)
     {
         throw new NodePresenterException($"A {nameof(RootNodePresenter)} cannot have its own value updated.");
     }

@@ -70,7 +70,7 @@ public class ItemNodePresenter : NodePresenterBase
 
     protected override IObjectNode? ParentingNode => Container.ItemReferences != null ? Container.IndexedTarget(Index) : null;
 
-    public override void UpdateValue(object newValue)
+    public override void UpdateValue(object? newValue)
     {
         try
         {
