@@ -17,10 +17,5 @@ namespace Stride.UI
         /// </summary>
         /// <userdoc>Control or layout should be vertically oriented.</userdoc>
         Vertical,
-        /// <summary>
-        /// Control or layout should be oriented along the depth axis.
-        /// </summary>
-        /// <userdoc>Control or layout should be oriented along the depth axis.</userdoc>
-        InDepth,
     }
 }

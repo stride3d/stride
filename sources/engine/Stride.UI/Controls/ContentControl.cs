@@ -84,41 +84,41 @@ namespace Stride.UI.Controls
                 yield return Content;
         }
 
-        protected override Vector3 MeasureOverride(Vector3 availableSizeWithoutMargins)
+        protected override Size2F MeasureOverride(Size2F availableSizeWithoutMargins)
         {
             // measure size desired by the children
-            var childDesiredSizeWithMargins = Vector3.Zero;
+            var childDesiredSizeWithMargins = Size2F.Zero;
             if (VisualContent != null)
             {
                 // remove space for padding in availableSizeWithoutMargins
-                var childAvailableSizeWithMargins = CalculateSizeWithoutThickness(ref availableSizeWithoutMargins, ref padding);
+                var childAvailableSizeWithMargins = availableSizeWithoutMargins - padding;
 
                 VisualContent.Measure(childAvailableSizeWithMargins);
                 childDesiredSizeWithMargins = VisualContent.DesiredSizeWithMargins;
             }
 
             // add the padding to the child desired size
-            var desiredSizeWithPadding = CalculateSizeWithThickness(ref childDesiredSizeWithMargins, ref padding);
+            var desiredSizeWithPadding = childDesiredSizeWithMargins + padding;
 
             return desiredSizeWithPadding;
         }
 
-        protected override Vector3 ArrangeOverride(Vector3 finalSizeWithoutMargins)
+        protected override Size2F ArrangeOverride(Size2F finalSizeWithoutMargins)
         {
             // arrange the content
             if (VisualContent != null)
             {
                 // calculate the remaining space for the child after having removed the padding space.
-                var childSizeWithoutPadding = CalculateSizeWithoutThickness(ref finalSizeWithoutMargins, ref padding);
+                var childSizeWithoutPadding = finalSizeWithoutMargins - padding;
 
                 // arrange the child
                 VisualContent.Arrange(childSizeWithoutPadding, IsCollapsed);
 
                 // compute the rendering offsets of the child element wrt the parent origin (0,0,0)
-                var childOffsets = new Vector3(Padding.Left, Padding.Top, Padding.Front) - finalSizeWithoutMargins / 2;
+                var childOffsets = new Vector2(Padding.Left, Padding.Top) - (Vector2)finalSizeWithoutMargins / 2;
 
                 // set the arrange matrix of the child.
-                VisualContent.DependencyProperties.Set(ContentArrangeMatrixPropertyKey, Matrix.Translation(childOffsets));
+                VisualContent.DependencyProperties.Set(ContentArrangeMatrixPropertyKey, Matrix.Translation(new Vector3(childOffsets.X, childOffsets.Y, 0)));
             }
 
             return finalSizeWithoutMargins;

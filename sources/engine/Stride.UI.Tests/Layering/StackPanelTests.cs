@@ -71,7 +71,7 @@ namespace Stride.UI.Tests.Layering
             Children.Add(childTwo);
 
             // arrange the stack panel and check children size
-            Arrange(1000 * rand.NextVector3(), true);
+            Arrange(1000 * rand.NextVector2(), true);
             Assert.Equal(Vector3.Zero, childOne.RenderSize);
             Assert.Equal(Vector3.Zero, childTwo.RenderSize);
         }
@@ -85,7 +85,7 @@ namespace Stride.UI.Tests.Layering
             ResetState();
 
             // test that desired size is null if no children
-            Measure(1000 * rand.NextVector3());
+            Measure(1000 * rand.NextVector2());
             Assert.Equal(Vector3.Zero, DesiredSize);
 
             // Create and add children
@@ -113,14 +113,14 @@ namespace Stride.UI.Tests.Layering
             Children[2].Margin = rand.NextThickness(10, 11, 12, 13, 14, 15);
             
             // set an available size
-            var availablesizeWithMargins = 1000 * rand.NextVector3();
+            var availablesizeWithMargins = 1000 * rand.NextVector2();
             var availableSizeWithoutMargins = CalculateSizeWithoutThickness(ref availablesizeWithMargins, ref MarginInternal);
             
             // set the validator expected and return values
             foreach (MeasureValidator child in Children)
             {
                 // set the children desired size via the Measure override return value
-                child.ReturnedMeasuredValue = 100 * rand.NextVector3();
+                child.ReturnedMeasuredValue = 100 * rand.NextVector2();
 
                 // set the expected size for child provided size validation
                 var expectedSize = CalculateSizeWithoutThickness(ref availableSizeWithoutMargins, ref child.MarginInternal);
@@ -178,7 +178,7 @@ namespace Stride.UI.Tests.Layering
             DepthAlignment = DepthAlignment.Stretch;
 
             // test that arrange set render size to provided size when there is no children
-            var providedSize = 1000 * rand.NextVector3();
+            var providedSize = 1000 * rand.NextVector2();
             var providedSizeWithoutMargins = CalculateSizeWithoutThickness(ref providedSize, ref MarginInternal);
             Measure(providedSize);
             Arrange(providedSize, false);
@@ -213,13 +213,13 @@ namespace Stride.UI.Tests.Layering
             Children[2].Margin = rand.NextThickness(10, 11, 12, 13, 14, 15);
 
             // set an available size
-            var availablesizeWithMargins = 1000 * rand.NextVector3();
+            var availablesizeWithMargins = 1000 * rand.NextVector2();
             var availableSizeWithoutMargins = CalculateSizeWithoutThickness(ref availablesizeWithMargins, ref MarginInternal);
 
             // set the arrange validator values
             foreach (ArrangeValidator child in Children)
             {
-                child.ReturnedMeasuredValue = 1000 * rand.NextVector3();
+                child.ReturnedMeasuredValue = 1000 * rand.NextVector2();
                 child.ExpectedArrangeValue = CalculateSizeWithoutThickness(ref availableSizeWithoutMargins, ref child.MarginInternal);
                 child.ExpectedArrangeValue[(int)Orientation] = child.ReturnedMeasuredValue[(int)Orientation];
             }
@@ -497,11 +497,11 @@ namespace Stride.UI.Tests.Layering
             stackPanel.Arrange(referencePosition, false);
             Assert.Equal(referencePosition, stackPanel.Viewport);
 
-            referencePosition = random.NextVector3();
+            referencePosition = random.NextVector2();
             stackPanel.Arrange(referencePosition, false);
             Assert.Equal(referencePosition, stackPanel.Viewport);
 
-            referencePosition = random.NextVector3();
+            referencePosition = random.NextVector2();
             stackPanel.ScrollToEnd(Orientation.Horizontal);
             stackPanel.ScrollToEnd(Orientation.Vertical);
             stackPanel.Children.Remove(child4);

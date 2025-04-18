@@ -75,7 +75,7 @@ namespace Stride.Assets.Presentation.AssetEditors.UIEditor.Adorners
             return cursor;
         }
 
-        public override void Update(Vector3 position)
+        public override void Update(Vector2 position)
         {
             UpdateFromSettings();
         }
@@ -86,47 +86,47 @@ namespace Stride.Assets.Presentation.AssetEditors.UIEditor.Adorners
             
             BorderColor = editor.SizingColor;
             BorderThickness = editor.SizingThickness;
-            Size = new Vector3(Math.Max(8, editor.SizingThickness*4));
+            Size = new Size2F(Math.Max(8, editor.SizingThickness*4));
         }
 
         private void UpdateRelativePosition()
         {
-            Vector3 relativePosition;
+            Vector2 relativePosition;
             switch (resizingDirection)
             {
                 case ResizingDirection.Center:
                     throw new InvalidOperationException();
 
                 case ResizingDirection.TopLeft:
-                    relativePosition = new Vector3(0.0f, 0.0f, 0.5f);
+                    relativePosition = new Vector2(0.0f, 0.0f);
                     break;
 
                 case ResizingDirection.Top:
-                    relativePosition = new Vector3(0.5f, 0.0f, 0.5f);
+                    relativePosition = new Vector2(0.5f, 0.0f);
                     break;
 
                 case ResizingDirection.TopRight:
-                    relativePosition = new Vector3(1.0f, 0.0f, 0.5f);
+                    relativePosition = new Vector2(1.0f, 0.0f);
                     break;
 
                 case ResizingDirection.Right:
-                    relativePosition = new Vector3(1.0f, 0.5f, 0.5f);
+                    relativePosition = new Vector2(1.0f, 0.5f);
                     break;
 
                 case ResizingDirection.BottomRight:
-                    relativePosition = new Vector3(1.0f, 1.0f, 0.5f);
+                    relativePosition = new Vector2(1.0f, 1.0f);
                     break;
 
                 case ResizingDirection.Bottom:
-                    relativePosition = new Vector3(0.5f, 1.0f, 0.5f);
+                    relativePosition = new Vector2(0.5f, 1.0f);
                     break;
 
                 case ResizingDirection.BottomLeft:
-                    relativePosition = new Vector3(0.0f, 1.0f, 0.5f);
+                    relativePosition = new Vector2(0.0f, 1.0f);
                     break;
 
                 case ResizingDirection.Left:
-                    relativePosition = new Vector3(0.0f, 0.5f, 0.5f);
+                    relativePosition = new Vector2(0.0f, 0.5f);
                     break;
 
                 default:
@@ -134,7 +134,7 @@ namespace Stride.Assets.Presentation.AssetEditors.UIEditor.Adorners
             }
             Visual.SetCanvasRelativePosition(relativePosition);
             // anchor is snapped to the outside of the canvas
-            Visual.SetCanvasPinOrigin(Vector3.One - relativePosition);
+            Visual.SetCanvasPinOrigin(Vector2.One - relativePosition);
         }
 
         void IResizingAdorner.OnResizingDelta(float horizontalChange, float verticalChange)
