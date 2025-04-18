@@ -298,7 +298,7 @@ public class NodeViewModel : DispatcherViewModel, IDynamicMetaObjectProvider
     /// </summary>
     /// <param name="name">The name of the additionnal data to look for.</param>
     /// <returns>The corresponding additionnal data, or <c>null</c> if no data with the given name exists.</returns>
-    public object GetAssociatedData(string name)
+    public object? GetAssociatedData(string name)
     {
         name = EscapeName(name);
         return AssociatedData.FirstOrDefault(x => x.Key == name).Value;
@@ -313,6 +313,33 @@ public class NodeViewModel : DispatcherViewModel, IDynamicMetaObjectProvider
     {
         name = EscapeName(name);
         return GetChild(name) ?? GetCommand(name) ?? GetAssociatedData(name) ?? null;
+    }
+
+    // FIXME xplat-editor workaround to AvaloniaUI/Avalonia#1949
+    public object? this[string name]
+    {
+        get
+        {
+            if (name.StartsWith(GraphViewModel.HasChildPrefix, StringComparison.Ordinal))
+            {
+                name = name[GraphViewModel.HasChildPrefix.Length..];
+                return GetChild(name) is not null;
+            }
+
+            if (name.StartsWith(GraphViewModel.HasCommandPrefix, StringComparison.Ordinal))
+            {
+                name = name[GraphViewModel.HasCommandPrefix.Length..];
+                return GetCommand(name) is not null;
+            }
+
+            if (name.StartsWith(GraphViewModel.HasAssociatedDataPrefix, StringComparison.Ordinal))
+            {
+                name = name[GraphViewModel.HasAssociatedDataPrefix.Length..];
+                return GetAssociatedData(name) is not null;
+            }
+
+            return GetDynamicObject(name);
+        }
     }
 
     /// <inheritdoc/>
