@@ -58,6 +58,21 @@
     </Grid>
   </DataTemplate>
 
+  <!-- Base template for property header (read-only) -->
+  <DataTemplate x:Key="ReadOnlyPropertyHeaderTemplate" DataType="pqvm:NodeViewModel">
+    <Grid x:Name="Grid" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"
+          IsVisible="{Binding IsVisible}">
+      <Border x:Name="PART_Name"
+              Background="#316B8F"
+              MinHeight="20" Margin="6" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"/>
+      <DockPanel>
+        <TextBlock x:Name="HeaderTextBlock" FontSize="16" TextTrimming="CharacterEllipsis"
+                   Text="{Binding DisplayName, Mode=OneWay}" HorizontalAlignment="Left" VerticalAlignment="Center"
+                   Foreground="#E6E6E6"/>
+      </DockPanel>
+    </Grid>
+  </DataTemplate>
+
   <!-- Base provider for property footer: nothing inside! -->
   <sd:DefaultTemplateProvider x:Key="DefaultPropertyFooterTemplateProvider" OverrideRule="None" aev:PropertyViewHelper.TemplateCategory="PropertyFooter">
     <DataTemplate/>
@@ -66,6 +81,10 @@
   <!-- Base provider for property -->
   <sd:DefaultTemplateProvider x:Key="DefaultPropertyTemplateProvider" OverrideRule="None" aev:PropertyViewHelper.TemplateCategory="PropertyHeader"
                               Template="{StaticResource DefaultPropertyHeaderTemplate}"/>
+
+  <!-- Provider for category -->
+  <aevtp:CategoryNodeTemplateProvider x:Key="CategoryNodeTemplateProvider" aev:PropertyViewHelper.TemplateCategory="PropertyHeader"
+                                      Template="{StaticResource ReadOnlyPropertyHeaderTemplate}"/>
 
   <!-- Provider for List item -->
   <!--<aevtp:ListItemTemplateProvider x:Key="ListItemPropertyTemplateProvider" OverrideRule="Most" aev:PropertyViewHelper.TemplateCategory="PropertyEditor">
