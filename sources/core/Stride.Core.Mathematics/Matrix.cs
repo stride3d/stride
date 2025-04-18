@@ -194,9 +194,8 @@ public struct Matrix : IEquatable<Matrix>, IFormattable
     /// <param name="values">The values to assign to the components of the matrix. This must be an array with sixteen elements.</param>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="values"/> is <c>null</c>.</exception>
     /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="values"/> contains more or less than sixteen elements.</exception>
-    public Matrix(float[] values)
+    public Matrix(ReadOnlySpan<float> values)
     {
-        ArgumentNullException.ThrowIfNull(values);
         ArgumentOutOfRangeException.ThrowIfNotEqual(values.Length, 16);
 
         M11 = values[0];
