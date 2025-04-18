@@ -1,0 +1,20 @@
+﻿<Project>
+  <Import Project="..\..\targets\Stride.props" />
+  
+  <PropertyGroup>
+    <TargetFramework>$(StrideXplatEditorTargetFramework)</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\presentation\Stride.Core.Presentation.Avalonia\Stride.Core.Presentation.Avalonia.csproj" />
+    <ProjectReference Include="..\..\presentation\Stride.Core.Presentation\Stride.Core.Presentation.csproj" />
+  </ItemGroup>
+
+  <Import Project="$(StrideSdkTargets)" />
+</Project>

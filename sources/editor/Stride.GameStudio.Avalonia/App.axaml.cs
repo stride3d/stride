@@ -5,6 +5,7 @@ using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
+using Stride.Core.Assets.Editor.Avalonia;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.IO;
 using Stride.Core.Presentation.Avalonia.Services;
@@ -31,7 +32,7 @@ public partial class App : Application
 
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            desktop.MainWindow = new MainWindow();
+            desktop.MainWindow = new ProjectSelectionWindow();
         }
         else if (ApplicationLifetime is ISingleViewApplicationLifetime singleViewPlatform)
         {
