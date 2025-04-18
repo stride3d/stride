@@ -499,10 +499,10 @@ public struct Vector4 : IEquatable<Vector4>, IFormattable
     public static void Barycentric(ref readonly Vector4 value1, ref readonly Vector4 value2, ref readonly Vector4 value3, float amount1, float amount2, out Vector4 result)
     {
         result = new Vector4(
-            value1.X + (amount1 * (value2.X - value1.X)) + (amount2 * (value3.X - value1.X)),
-            value1.Y + (amount1 * (value2.Y - value1.Y)) + (amount2 * (value3.Y - value1.Y)),
-            value1.Z + (amount1 * (value2.Z - value1.Z)) + (amount2 * (value3.Z - value1.Z)),
-            value1.W + (amount1 * (value2.W - value1.W)) + (amount2 * (value3.W - value1.W)));
+        value1.X + (amount1 * (value2.X - value1.X)) + (amount2 * (value3.X - value1.X)),
+        value1.Y + (amount1 * (value2.Y - value1.Y)) + (amount2 * (value3.Y - value1.Y)),
+        value1.Z + (amount1 * (value2.Z - value1.Z)) + (amount2 * (value3.Z - value1.Z)),
+        value1.W + (amount1 * (value2.W - value1.W)) + (amount2 * (value3.W - value1.W)));
     }
 
     /// <summary>
@@ -607,11 +607,11 @@ public struct Vector4 : IEquatable<Vector4>, IFormattable
     /// <param name="value1">The first vector.</param>
     /// <param name="value2">The second vector.</param>
     /// <param name="result">When the method completes, contains the squared distance between the two vectors.</param>
-    /// <remarks>Distance squared is the value before taking the square root.
-    /// Distance squared can often be used in place of distance if relative comparisons are being made.
-    /// For example, consider three points A, B, and C. To determine whether B or C is further from A,
-    /// compare the distance between A and B to the distance between A and C. Calculating the two distances
-    /// involves two square roots, which are computationally expensive. However, using distance squared
+    /// <remarks>Distance squared is the value before taking the square root. 
+    /// Distance squared can often be used in place of distance if relative comparisons are being made. 
+    /// For example, consider three points A, B, and C. To determine whether B or C is further from A, 
+    /// compare the distance between A and B to the distance between A and C. Calculating the two distances 
+    /// involves two square roots, which are computationally expensive. However, using distance squared 
     /// provides the same information and avoids calculating two square roots.
     /// </remarks>
     public static void DistanceSquared(ref readonly Vector4 value1, ref readonly Vector4 value2, out float result)
@@ -630,11 +630,11 @@ public struct Vector4 : IEquatable<Vector4>, IFormattable
     /// <param name="value1">The first vector.</param>
     /// <param name="value2">The second vector.</param>
     /// <returns>The squared distance between the two vectors.</returns>
-    /// <remarks>Distance squared is the value before taking the square root.
-    /// Distance squared can often be used in place of distance if relative comparisons are being made.
-    /// For example, consider three points A, B, and C. To determine whether B or C is further from A,
-    /// compare the distance between A and B to the distance between A and C. Calculating the two distances
-    /// involves two square roots, which are computationally expensive. However, using distance squared
+    /// <remarks>Distance squared is the value before taking the square root. 
+    /// Distance squared can often be used in place of distance if relative comparisons are being made. 
+    /// For example, consider three points A, B, and C. To determine whether B or C is further from A, 
+    /// compare the distance between A and B to the distance between A and C. Calculating the two distances 
+    /// involves two square roots, which are computationally expensive. However, using distance squared 
     /// provides the same information and avoids calculating two square roots.
     /// </remarks>
     public static float DistanceSquared(Vector4 value1, Vector4 value2)
@@ -706,7 +706,7 @@ public struct Vector4 : IEquatable<Vector4>, IFormattable
     /// <remarks>
     /// This method performs the linear interpolation based on the following formula.
     /// <c>start + (end - start) * amount</c>
-    /// Passing <paramref name="amount"/> a value of 0 will cause <paramref name="start"/> to be returned; a value of 1 will cause <paramref name="end"/> to be returned.
+    /// Passing <paramref name="amount"/> a value of 0 will cause <paramref name="start"/> to be returned; a value of 1 will cause <paramref name="end"/> to be returned. 
     /// </remarks>
     public static void Lerp(ref readonly Vector4 start, ref readonly Vector4 end, float amount, out Vector4 result)
     {
@@ -726,7 +726,7 @@ public struct Vector4 : IEquatable<Vector4>, IFormattable
     /// <remarks>
     /// This method performs the linear interpolation based on the following formula.
     /// <c>start + (end - start) * amount</c>
-    /// Passing <paramref name="amount"/> a value of 0 will cause <paramref name="start"/> to be returned; a value of 1 will cause <paramref name="end"/> to be returned.
+    /// Passing <paramref name="amount"/> a value of 0 will cause <paramref name="start"/> to be returned; a value of 1 will cause <paramref name="end"/> to be returned. 
     /// </remarks>
     public static Vector4 Lerp(Vector4 start, Vector4 end, float amount)
     {
@@ -784,10 +784,10 @@ public struct Vector4 : IEquatable<Vector4>, IFormattable
         float part4 = cubed - squared;
 
         result = new Vector4(
-            (value1.X * part1) + (value2.X * part2) + (tangent1.X * part3) + (tangent2.X * part4),
-            (value1.Y * part1) + (value2.Y * part2) + (tangent1.Y * part3) + (tangent2.Y * part4),
-            (value1.Z * part1) + (value2.Z * part2) + (tangent1.Z * part3) + (tangent2.Z * part4),
-            (value1.W * part1) + (value2.W * part2) + (tangent1.W * part3) + (tangent2.W * part4));
+        (value1.X * part1) + (value2.X * part2) + (tangent1.X * part3) + (tangent2.X * part4),
+        (value1.Y * part1) + (value2.Y * part2) + (tangent1.Y * part3) + (tangent2.Y * part4),
+        (value1.Z * part1) + (value2.Z * part2) + (tangent1.Z * part3) + (tangent2.Z * part4),
+        (value1.W * part1) + (value2.W * part2) + (tangent1.W * part3) + (tangent2.W * part4));
     }
 
     /// <summary>
@@ -1007,9 +1007,9 @@ public struct Vector4 : IEquatable<Vector4>, IFormattable
         float zz = rotation.Z * z;
 
         result = new Vector4(
-            (vector.X * (1.0f - yy - zz)) + (vector.Y * (xy - wz)) + (vector.Z * (xz + wy)),
-            (vector.X * (xy + wz)) + (vector.Y * (1.0f - xx - zz)) + (vector.Z * (yz - wx)),
-            (vector.X * (xz - wy)) + (vector.Y * (yz + wx)) + (vector.Z * (1.0f - xx - yy)),
+        (vector.X * (1.0f - yy - zz)) + (vector.Y * (xy - wz)) + (vector.Z * (xz + wy)),
+        (vector.X * (xy + wz)) + (vector.Y * (1.0f - xx - zz)) + (vector.Z * (yz - wx)),
+        (vector.X * (xz - wy)) + (vector.Y * (yz + wx)) + (vector.Z * (1.0f - xx - yy)),
             vector.W);
     }
 
@@ -1067,9 +1067,9 @@ public struct Vector4 : IEquatable<Vector4>, IFormattable
         for (int i = 0; i < source.Length; ++i)
         {
             destination[i] = new Vector4(
-                (source[i].X * num1) + (source[i].Y * num2) + (source[i].Z * num3),
-                (source[i].X * num4) + (source[i].Y * num5) + (source[i].Z * num6),
-                (source[i].X * num7) + (source[i].Y * num8) + (source[i].Z * num9),
+            (source[i].X * num1) + (source[i].Y * num2) + (source[i].Z * num3),
+            (source[i].X * num4) + (source[i].Y * num5) + (source[i].Z * num6),
+            (source[i].X * num7) + (source[i].Y * num8) + (source[i].Z * num9),
                 source[i].W);
         }
     }
@@ -1344,7 +1344,7 @@ public struct Vector4 : IEquatable<Vector4>, IFormattable
     /// Returns a hash code for this instance.
     /// </summary>
     /// <returns>
-    /// A hash code for this instance, suitable for use in hashing algorithms and data structures like a hash table.
+    /// A hash code for this instance, suitable for use in hashing algorithms and data structures like a hash table. 
     /// </returns>
     public override readonly int GetHashCode()
     {
@@ -1373,8 +1373,8 @@ public struct Vector4 : IEquatable<Vector4>, IFormattable
     public readonly bool Equals(Vector4 other)
     {
         return MathF.Abs(other.X - X) < MathUtil.ZeroTolerance &&
-            MathF.Abs(other.Y - Y) < MathUtil.ZeroTolerance &&
-            MathF.Abs(other.Z - Z) < MathUtil.ZeroTolerance &&
+                MathF.Abs(other.Y - Y) < MathUtil.ZeroTolerance &&
+                MathF.Abs(other.Z - Z) < MathUtil.ZeroTolerance &&
             MathF.Abs(other.W - W) < MathUtil.ZeroTolerance;
     }
 
@@ -1387,7 +1387,7 @@ public struct Vector4 : IEquatable<Vector4>, IFormattable
     /// </returns>
     public override readonly bool Equals(object? value)
     {
-            return value is Vector4 vector && Equals(vector);
+        return value is Vector4 vector && Equals(vector);
     }
 
     /// <summary>
@@ -1406,46 +1406,46 @@ public struct Vector4 : IEquatable<Vector4>, IFormattable
     }
 
 #if WPFInterop
-    /// <summary>
-    /// Performs an implicit conversion from <see cref="Stride.Core.Mathematics.Vector4"/> to <see cref="System.Windows.Media.Media3D.Point4D"/>.
-    /// </summary>
-    /// <param name="value">The value.</param>
-    /// <returns>The result of the conversion.</returns>
-    public static implicit operator System.Windows.Media.Media3D.Point4D(Vector4 value)
-    {
-        return new System.Windows.Media.Media3D.Point4D(value.X, value.Y, value.Z, value.W);
-    }
+        /// <summary>
+        /// Performs an implicit conversion from <see cref="Stride.Core.Mathematics.Vector4"/> to <see cref="System.Windows.Media.Media3D.Point4D"/>.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <returns>The result of the conversion.</returns>
+        public static implicit operator System.Windows.Media.Media3D.Point4D(Vector4 value)
+        {
+            return new System.Windows.Media.Media3D.Point4D(value.X, value.Y, value.Z, value.W);
+        }
 
-    /// <summary>
-    /// Performs an explicit conversion from <see cref="System.Windows.Media.Media3D.Point4D"/> to <see cref="Stride.Core.Mathematics.Vector4"/>.
-    /// </summary>
-    /// <param name="value">The value.</param>
-    /// <returns>The result of the conversion.</returns>
-    public static explicit operator Vector4(System.Windows.Media.Media3D.Point4D value)
-    {
-        return new Vector4((float)value.X, (float)value.Y, (float)value.Z, (float)value.W);
-    }
+        /// <summary>
+        /// Performs an explicit conversion from <see cref="System.Windows.Media.Media3D.Point4D"/> to <see cref="Stride.Core.Mathematics.Vector4"/>.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <returns>The result of the conversion.</returns>
+        public static explicit operator Vector4(System.Windows.Media.Media3D.Point4D value)
+        {
+            return new Vector4((float)value.X, (float)value.Y, (float)value.Z, (float)value.W);
+        }
 #endif
 
 #if XnaInterop
-    /// <summary>
-    /// Performs an implicit conversion from <see cref="Stride.Core.Mathematics.Vector4"/> to <see cref="Microsoft.Xna.Framework.Vector4"/>.
-    /// </summary>
-    /// <param name="value">The value.</param>
-    /// <returns>The result of the conversion.</returns>
-    public static implicit operator Microsoft.Xna.Framework.Vector4(Vector4 value)
-    {
-        return new Microsoft.Xna.Framework.Vector4(value.X, value.Y, value.Z, value.W);
-    }
+        /// <summary>
+        /// Performs an implicit conversion from <see cref="Stride.Core.Mathematics.Vector4"/> to <see cref="Microsoft.Xna.Framework.Vector4"/>.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <returns>The result of the conversion.</returns>
+        public static implicit operator Microsoft.Xna.Framework.Vector4(Vector4 value)
+        {
+            return new Microsoft.Xna.Framework.Vector4(value.X, value.Y, value.Z, value.W);
+        }
 
-    /// <summary>
-    /// Performs an implicit conversion from <see cref="Microsoft.Xna.Framework.Vector4"/> to <see cref="Stride.Core.Mathematics.Vector4"/>.
-    /// </summary>
-    /// <param name="value">The value.</param>
-    /// <returns>The result of the conversion.</returns>
-    public static implicit operator Vector4(Microsoft.Xna.Framework.Vector4 value)
-    {
-        return new Vector4(value.X, value.Y, value.Z, value.W);
-    }
+        /// <summary>
+        /// Performs an implicit conversion from <see cref="Microsoft.Xna.Framework.Vector4"/> to <see cref="Stride.Core.Mathematics.Vector4"/>.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <returns>The result of the conversion.</returns>
+        public static implicit operator Vector4(Microsoft.Xna.Framework.Vector4 value)
+        {
+            return new Vector4(value.X, value.Y, value.Z, value.W);
+        }
 #endif
 }
