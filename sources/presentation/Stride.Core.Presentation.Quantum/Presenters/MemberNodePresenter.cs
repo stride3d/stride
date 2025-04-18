@@ -70,7 +70,7 @@ public class MemberNodePresenter : NodePresenterBase
 
     protected override IObjectNode ParentingNode => Member.Target;
 
-    public override void UpdateValue(object newValue)
+    public override void UpdateValue(object? newValue)
     {
         // Do not update member node presenter value to null if it does not allow null values (related to issue #668).
         // FIXME With the obsoleting of Stride.Core.Annotations.NotNullAttribute, it might become partially broken.

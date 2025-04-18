@@ -138,9 +138,9 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
         DialogService.Exit();
     }
 
-    private Task OnOpen(UFile? initialPath)
+    private async Task OnOpen(UFile? initialPath)
     {
-        return OpenSession(initialPath);
+        await OpenSession(initialPath);
     }
 
     private async Task OnOpenWebPage(string url)

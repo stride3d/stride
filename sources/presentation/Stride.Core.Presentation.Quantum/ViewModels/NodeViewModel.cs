@@ -111,7 +111,7 @@ public class NodeViewModel : DispatcherViewModel, IDynamicMetaObjectProvider
     /// <summary>
     /// Gets or sets the value of the nodes represented by this view model.
     /// </summary>
-    public object NodeValue { get => GetNodeValue(); set => SetNodeValue(ConvertValue(value)); }
+    public object? NodeValue { get => GetNodeValue(); set => SetNodeValue(ConvertValue(value)); }
 
     /// <summary>
     /// Gets the expected type of <see cref="NodeValue"/>.
@@ -368,7 +368,7 @@ public class NodeViewModel : DispatcherViewModel, IDynamicMetaObjectProvider
         return currentValue;
     }
 
-    protected virtual void SetNodeValue(object newValue)
+    protected virtual void SetNodeValue(object? newValue)
     {
         foreach (var nodePresenter in NodePresenters)
         {
@@ -581,7 +581,7 @@ public class NodeViewModel : DispatcherViewModel, IDynamicMetaObjectProvider
         valueChanging = false;
     }
 
-    private object? ConvertValue(object value)
+    private object? ConvertValue(object? value)
     {
         if (value == null)
             return null;
