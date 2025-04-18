@@ -19,15 +19,34 @@ namespace Stride.Core.Assets.Editor.Quantum.NodePresenters.Updaters
         {
             var type = node.Descriptor.GetInnerCollectionType();
 
-            IEnumerable<AbstractNodeEntry> abstractNodeMatchingEntries = AbstractNodeType.GetInheritedInstantiableTypes(type);
+            var abstractNodeMatchingEntries = AbstractNodeType.GetInheritedInstantiableTypes(type);
+            IEnumerable<AbstractNodeEntry> abstractNodeMatchingEntries2 = [];
+            foreach (var nodeType in abstractNodeMatchingEntries)
+            {
+                AbstractNodeEntry nodeEntry = IsEntityComponent(nodeType.Type) ? new AbstractNodeValue(null, nodeType.Type.Name, 0) : nodeType;
+                abstractNodeMatchingEntries2 = abstractNodeMatchingEntries2.Append(nodeEntry);
+            }
 
-            if (abstractNodeMatchingEntries != null)
+            if (abstractNodeMatchingEntries2 != null)
             {
                 // Prepend the value that will allow to set the value to null, if this command is allowed.
                 if (IsAllowingNull(node))
-                    abstractNodeMatchingEntries = AbstractNodeValue.Null.Yield().Concat(abstractNodeMatchingEntries);
+                    abstractNodeMatchingEntries2 = AbstractNodeValue.Null.Yield().Concat(abstractNodeMatchingEntries2);
             }
-            return abstractNodeMatchingEntries;
+            return abstractNodeMatchingEntries2;
+
+            static bool IsEntityComponent(Type type)
+            {
+                for (var t = type; t != null; t = t.BaseType)
+                {
+                    if (t.Name == "EntityComponent" && t.FullName == "Stride.Engine.EntityComponent")
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
         }
 
         /// <summary>

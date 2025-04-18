@@ -29,7 +29,7 @@ namespace Stride.Assets.Presentation.NodePresenters.Commands
         /// <inheritdoc/>
         public override bool CanAttach(INodePresenter nodePresenter)
         {
-            return typeof(EntityComponent).IsAssignableFrom(nodePresenter.Type);
+            return typeof(EntityComponent).IsAssignableFrom(nodePresenter.Type) || nodePresenter.Type.IsInterface && nodePresenter.Type.IsImplementedOnAny<EntityComponent>();
         }
 
         /// <inheritdoc/>
