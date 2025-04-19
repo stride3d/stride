@@ -2,7 +2,7 @@
 
 This project contains helpers for views.
 
-## Depencencies
+## Dependencies
 
 * It can only references *Core* libraries.
 * It is a specific implementation using Avalonia.

@@ -2,7 +2,7 @@
 
 This project adds capabilities to the `Stride.Core.Quantum` library to allow its use in a MVVM context.
 
-## Depencencies
+## Dependencies
 
 * It can only references *Core* libraries.
 * It should be platform-agnostic as well as UI-agnostic.

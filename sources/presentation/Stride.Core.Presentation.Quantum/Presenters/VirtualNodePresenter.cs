@@ -90,7 +90,7 @@ public class VirtualNodePresenter : NodePresenterBase
     }
 
     /// <inheritdoc/>
-    public override void UpdateValue(object newValue)
+    public override void UpdateValue(object? newValue)
     {
         try
         {

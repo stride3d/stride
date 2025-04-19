@@ -2,7 +2,7 @@
 
 This project is the base project for the view models in an application that uses the MVVM pattern.
 
-## Depencencies
+## Dependencies
 
 * It can only references *Core* libraries.
 * It should be platform-agnostic as well as UI-agnostic.

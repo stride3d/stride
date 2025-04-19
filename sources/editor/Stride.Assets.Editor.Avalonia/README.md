@@ -2,10 +2,10 @@
 
 This project contains the views of the editors.
 
-## Depencencies
+## Dependencies
 
 * It is a specific implementation using Avalonia.
-* It will likely only reference `Stride.Assets.Editor`.
+* It will likely only reference `Stride.Assets.Editor`, as well as Avalonia-specific libraries.
 
 ## Implementations
 

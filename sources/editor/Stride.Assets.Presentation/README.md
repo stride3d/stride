@@ -2,7 +2,7 @@
 
 This project is the main project for the view models of Stride assets in an application that uses the MVVM pattern..
 
-## Depencencies
+## Dependencies
 
 * It can references any Stride libraries, as long as their are cross-platform.
 * It should be platform-agnostic as well as UI-agnostic.

@@ -50,7 +50,7 @@ public interface INodePresenter : IDisposable
 
     event EventHandler<ValueChangedEventArgs>? ValueChanged;
 
-    void UpdateValue(object newValue);
+    void UpdateValue(object? newValue);
 
     void AddItem(object value);
 

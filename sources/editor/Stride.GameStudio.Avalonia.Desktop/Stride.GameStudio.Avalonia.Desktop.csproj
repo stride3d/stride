@@ -34,7 +34,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="..\Directory.Build.props" Link="Directory.Build.props" />
     <Compile Include="..\..\launcher\Stride.Launcher\Crash\CrashReportArgs.cs" Link="Crash\CrashReportArgs.cs" />
     <Compile Include="..\..\launcher\Stride.Launcher\Crash\CrashReportData.cs" Link="Crash\CrashReportData.cs" />
     <Compile Include="..\..\launcher\Stride.Launcher\Crash\CrashReportViewModel.cs" Link="Crash\CrashReportViewModel.cs" />

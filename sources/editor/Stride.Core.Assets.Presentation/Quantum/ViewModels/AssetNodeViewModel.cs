@@ -45,7 +45,7 @@ public class AssetNodeViewModel : NodeViewModel, IInternalAssetNodeViewModel
 
     private new IEnumerable<IAssetNodePresenter> NodePresenters => base.NodePresenters.Cast<IAssetNodePresenter>();
 
-    protected override void SetNodeValue(object newValue)
+    protected override void SetNodeValue(object? newValue)
     {
         using (var transaction = ServiceProvider.TryGet<IUndoRedoService>()?.CreateTransaction())
         {
