@@ -97,7 +97,7 @@ namespace Stride.Engine.Tests
             });
         }
 
-        private Sprite CreateSprite(Game game)
+        private Sprite CreateSprite(DefaultGame game)
         {
             var textureSize = new Vector2(50, 75);
             var texture = Texture.New2D(game.GraphicsDevice, (int)textureSize.X, (int)textureSize.Y, 1, PixelFormat.R8G8B8A8_UNorm);
