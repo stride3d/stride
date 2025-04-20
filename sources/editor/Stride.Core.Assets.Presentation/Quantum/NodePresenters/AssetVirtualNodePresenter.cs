@@ -61,7 +61,7 @@ public class AssetVirtualNodePresenter : VirtualNodePresenter, IAssetNodePresent
         ((IAssetNode)AssociatedNode.Node).OverrideChanged += OnOverrideChanged;
     }
 
-    public bool IsObjectReference(object value)
+    public bool IsObjectReference(object? value)
     {
         return AssociatedNode.Node != null && (Asset?.PropertyGraph?.Definition.IsObjectReference(AssociatedNode, value) ?? false);
     }

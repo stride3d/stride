@@ -29,7 +29,7 @@ public interface IAssetNodePresenter : INodePresenter
     /// </summary>
     /// <param name="value">The value to test.</param>
     /// <returns>True if the given value is an object reference, False otherwise.</returns>
-    bool IsObjectReference(object value);
+    bool IsObjectReference(object? value);
 
     void ResetOverride();
 }

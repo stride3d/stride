@@ -25,10 +25,10 @@ internal sealed class InlineMemberNodeUpdater : NodePresenterUpdaterBase
 
     private static void TransferAttachedProperties(INodePresenter node)
     {
-        if (TypeDescriptorFactory.Default.AttributeRegistry.GetAttribute<InlinePropertyAttribute>(node.Type) != null)
+        if (TypeDescriptorFactory.Default.AttributeRegistry.GetAttribute<InlinePropertyAttribute>(node.Type) is not null)
             node.AttachedProperties.Set(InlineData.InlineMemberKey, true);
 
-        if (node.Value == null)
+        if (node.Value is null)
             return;
 
         // Hide the Enabled properties - they must be inlined in their parent node to be usable
@@ -37,40 +37,37 @@ internal sealed class InlineMemberNodeUpdater : NodePresenterUpdaterBase
 
         var type = node.Value.GetType();
         var properties = type.GetProperties();
-        string mainProperty = null;
+        string? mainProperty = null;
         // Inner properties of a inlined node are usually never expanded, unless explicitly stated
         var expand = ExpandRule.Never;
 
         foreach (var property in properties)
         {
             var attribute = property.GetCustomAttribute<InlinePropertyAttribute>();
-            if (attribute != null)
+            if (attribute is not null)
             {
-                if (mainProperty != null)
+                if (mainProperty is not null)
                     throw new InvalidOperationException("Multiple properties of the same node have the InlinePropertyAttribute.");
                 mainProperty = property.Name;
                 expand = attribute.Expand;
             }
         }
 
-        if (mainProperty != null)
+        if (mainProperty is not null)
         {
             node.AttachedProperties.Set(DisplayData.AutoExpandRuleKey, expand);
             node.AttachedProperties.Set(InlineData.InlineMemberKey, true);
 
             // If the updater has already been run, the property is already properly named.
             var mainPropertyNode = node.TryGetChild(InlineData.InlinedProperty) ?? node[mainProperty];
-            if (mainPropertyNode != null)
-            {
-                TransferAttachedProperty(NumericData.MinimumKey, node, mainPropertyNode);
-                TransferAttachedProperty(NumericData.MaximumKey, node, mainPropertyNode);
-                TransferAttachedProperty(NumericData.SmallStepKey, node, mainPropertyNode);
-                TransferAttachedProperty(NumericData.LargeStepKey, node, mainPropertyNode);
-                TransferAttachedProperty(NumericData.DecimalPlacesKey, node, mainPropertyNode);
-                mainPropertyNode.Rename(InlineData.InlinedProperty);
-                mainPropertyNode.IsVisible = false;
-                node.AddDependency(mainPropertyNode, false);
-            }
+            TransferAttachedProperty(NumericData.MinimumKey, node, mainPropertyNode);
+            TransferAttachedProperty(NumericData.MaximumKey, node, mainPropertyNode);
+            TransferAttachedProperty(NumericData.SmallStepKey, node, mainPropertyNode);
+            TransferAttachedProperty(NumericData.LargeStepKey, node, mainPropertyNode);
+            TransferAttachedProperty(NumericData.DecimalPlacesKey, node, mainPropertyNode);
+            mainPropertyNode.Rename(InlineData.InlinedProperty);
+            mainPropertyNode.IsVisible = false;
+            node.AddDependency(mainPropertyNode, false);
         }
     }
 

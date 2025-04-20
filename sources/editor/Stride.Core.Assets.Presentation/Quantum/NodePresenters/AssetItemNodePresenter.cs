@@ -35,7 +35,7 @@ public class AssetItemNodePresenter : ItemNodePresenter, IAssetNodePresenter
 
     private new IAssetObjectNode Container => (IAssetObjectNode)base.Container;
 
-    public bool IsObjectReference(object value)
+    public bool IsObjectReference(object? value)
     {
         return Container.PropertyGraph?.Definition.IsTargetItemObjectReference(Container, Index, Value) ?? false;
     }

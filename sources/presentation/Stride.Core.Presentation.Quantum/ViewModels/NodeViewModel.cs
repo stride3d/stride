@@ -370,7 +370,7 @@ public class NodeViewModel : DispatcherViewModel, IDynamicMetaObjectProvider
         return new NodePresenterCommandWrapper(ServiceProvider, nodePresenters, command);
     }
 
-    protected virtual object GetNodeValue()
+    protected virtual object? GetNodeValue()
     {
         object? currentValue = null;
         var isFirst = true;
@@ -543,7 +543,7 @@ public class NodeViewModel : DispatcherViewModel, IDynamicMetaObjectProvider
     /// <param name="value1">The first value to compare.</param>
     /// <param name="value2">The second value to compare.</param>
     /// <returns>True if both values are considered equal, false otherwise.</returns>
-    protected virtual bool AreValueEqual(object value1, object value2)
+    protected virtual bool AreValueEqual(object? value1, object? value2)
     {
         return Equals(value1, value2);
     }
@@ -555,7 +555,7 @@ public class NodeViewModel : DispatcherViewModel, IDynamicMetaObjectProvider
     /// <param name="value1">The first value to compare.</param>
     /// <param name="value2">The second value to compare.</param>
     /// <returns>True if both values are considered equivalent, false otherwise.</returns>
-    protected virtual bool AreValueEquivalent(object value1, object value2)
+    protected virtual bool AreValueEquivalent(object? value1, object? value2)
     {
         return value1?.GetType() == value2?.GetType();
     }
