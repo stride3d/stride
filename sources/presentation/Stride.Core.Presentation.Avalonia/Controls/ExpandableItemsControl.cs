@@ -13,7 +13,7 @@ public class ExpandableItemsControl : HeaderedItemsControl
 {
     static ExpandableItemsControl()
     {
-        IsExpandedProperty.Changed.AddClassHandler<ExpandableItemsControl>(OnIsExpandedChanged);
+        IsExpandedProperty.Changed.AddClassHandler<ExpandableItemsControl, bool>(OnIsExpandedChanged);
     }
 
     /// <summary>
@@ -91,11 +91,9 @@ public class ExpandableItemsControl : HeaderedItemsControl
         base.OnPointerPressed(e);
     }
 
-    private static void OnIsExpandedChanged(ExpandableItemsControl sender, AvaloniaPropertyChangedEventArgs e)
+    private static void OnIsExpandedChanged(ExpandableItemsControl sender, AvaloniaPropertyChangedEventArgs<bool> e)
     {
-        var isExpanded = (bool)e.NewValue!;
-
-        if (isExpanded)
+        if (e.NewValue.Value)
             sender.OnExpanded(new RoutedEventArgs(ExpandedEvent, sender));
         else
             sender.OnCollapsed(new RoutedEventArgs(CollapsedEvent, sender));

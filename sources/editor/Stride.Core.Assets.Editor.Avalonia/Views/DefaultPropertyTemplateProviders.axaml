@@ -250,7 +250,7 @@
 
   <!-- Base template for property header (read-only) -->
   <DataTemplate x:Key="ReadOnlyPropertyHeaderTemplate" DataType="cpqvm:NodeViewModel">
-    <Grid x:Name="Grid"
+    <Grid x:Name="Grid" caev:PropertyViewHelper.Increment="0"
           IsVisible="{Binding IsVisible}"
           Margin="{Binding $parent[sd:PropertyViewItem].Offset, Mode=OneWay, Converter={sd:NumericToThickness}, ConverterParameter={sd:Thickness 1,0,0,0}}">
       <Border x:Name="PART_Name"
@@ -320,6 +320,33 @@
   <!-- Provider for category -->
   <caev:CategoryNodeTemplateProvider x:Key="CategoryNodeTemplateProvider" caev:PropertyViewHelper.TemplateCategory="PropertyHeader"
                                      Template="{StaticResource ReadOnlyPropertyHeaderTemplate}"/>
+
+  <!-- Providers for inline properties -->
+  <caev:InlinedPropertyValueTemplateProvider x:Key="InlinedPropertyValueHeaderTemplateProvider" caev:PropertyViewHelper.TemplateCategory="PropertyHeader">
+    <DataTemplate>
+      <Border caev:PropertyViewHelper.Increment="0"
+              caev:PropertyViewHelper.IsExpanded="True"/>
+    </DataTemplate>
+  </caev:InlinedPropertyValueTemplateProvider>
+  <caev:InlinedPropertyTemplateProvider x:Key="InlinedPropertyTemplateProvider" caev:PropertyViewHelper.TemplateCategory="PropertyEditor">
+    <DataTemplate DataType="cpqvm:NodeViewModel">
+      <Grid>
+        <!-- Fallback when the node has multiple values to display -->
+        <TextBlock Margin="2,0" VerticalAlignment="Center" Text="{sd:LocalizeString (Different values)}"
+                   IsVisible="{Binding NodeValue, Converter={sd:IsEqualToParam}, ConverterParameter={x:Static cpqvm:NodeViewModel.DifferentValues}}"/>
+        <!-- Fallback when the value does not have an inline property -->
+        <ContentControl x:Name="ContentControl"
+                        Content="{sd:MultiBinding {Binding [InlinedProperty]}, {Binding}, Converter={sd:PriorityMulti}}"
+                        ContentTemplate="{x:Static caev:PropertyViewHelper.EditorProviders}"
+                        IsVisible="{Binding NodeValue, Converter={sd:Chained {sd:IsEqualToParam}, {sd:InvertBool}, Parameter1={x:Static cpqvm:NodeViewModel.DifferentValues}}}"/>
+      </Grid>
+    </DataTemplate>
+  </caev:InlinedPropertyTemplateProvider>
+  <caev:InlinedPropertyValueTemplateProvider x:Key="InlinedPropertyValueFooterTemplateProvider" caev:PropertyViewHelper.TemplateCategory="PropertyFooter">
+    <DataTemplate>
+      <Border/>
+    </DataTemplate>
+  </caev:InlinedPropertyValueTemplateProvider>
 
   <!-- Provider for List item -->
   <!--<caev:ListItemTemplateProvider x:Key="ListItemPropertyTemplateProvider" OverrideRule="Most" caev:PropertyViewHelper.TemplateCategory="PropertyEditor">

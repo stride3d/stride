@@ -47,6 +47,7 @@
       </Setter>
     </ControlTheme>
     <ControlTheme x:Key="{x:Type sd:PropertyViewItem}" TargetType="sd:PropertyViewItem">
+      <Setter Property="Increment" Value="12"/>
       <Setter Property="HorizontalAlignment" Value="Stretch"/>
       <Setter Property="HeaderTemplate">
         <TreeDataTemplate ItemsSource="{Binding Children, Mode=OneWay}" DataType="pqvm:NodeViewModel">
