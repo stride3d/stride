@@ -1153,7 +1153,11 @@
   <!-- Fallback final provider -->
   <sd:DefaultTemplateProvider x:Key="FallbackObjectPropertyTemplateProvider" OverrideRule="None" caev:PropertyViewHelper.TemplateCategory="PropertyEditor">
     <DataTemplate DataType="cpqvm:NodeViewModel">
-      <TextBlock Text="{Binding DisplayName, Mode=OneWay}"/>
+      <TextBlock x:Name="DefaultTextBlock"
+                 Text="{sd:MultiBinding {Binding [AttributeDisplayName], Mode=OneWay},
+                                        {Binding Type, Mode=OneWay, Converter={sd:NotSupportedTypeToTypeName}},
+                                        {Binding NodeValue, Mode=OneWay, Converter={sd:ObjectToTypeName}},
+                                        Converter={sd:PriorityMulti}}"/>
     </DataTemplate>
   </sd:DefaultTemplateProvider>
 </ResourceDictionary>
