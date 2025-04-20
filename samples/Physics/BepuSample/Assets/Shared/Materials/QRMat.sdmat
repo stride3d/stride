@@ -1,5 +1,5 @@
 !MaterialAsset
-Id: 46648cbe-9a27-4d25-aad2-bbf41c9402d9
+Id: 02d8a19e-db6e-44b4-8861-64bdd38b05c5
 SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
 Attributes:
@@ -8,7 +8,7 @@ Attributes:
             Value: 0.65
     Diffuse: !MaterialDiffuseMapFeature
         DiffuseMap: !ComputeTextureColor
-            Texture: 3f223a83-71ab-4072-949e-201a25f102cd:Textures/GithubNicogo
+            Texture: 89a21373-dc71-4023-8f49-51da858896ce:Textures/GithubNicogo
             FallbackValue:
                 Value: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
             Filtering: Point

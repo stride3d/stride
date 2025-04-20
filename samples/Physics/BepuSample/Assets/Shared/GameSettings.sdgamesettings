@@ -1,9 +1,9 @@
 !GameSettingsAsset
-Id: e0a28f5e-a0c1-444c-8779-3344d1be2d4b
+Id: ad9d5337-d313-4a64-8570-7d7eb93012b4
 SerializedVersion: {Stride: 3.1.0.1}
 Tags: []
-DefaultScene: c0f3be45-d538-4587-9515-19311c80e024:Scenes/MainScene
-GraphicsCompositor: 236269b9-dfa3-40ca-b250-af3572ed428a:GraphicsCompositor
+DefaultScene: 1bd2dca5-6e73-443e-8613-afd501bfdd05:Scenes/MainScene
+GraphicsCompositor: e0974b3a-328f-47ed-ae09-998dea97573c:GraphicsCompositor
 Defaults:
     - !Stride.Audio.AudioEngineSettings,Stride.Audio
         HrtfSupport: false
@@ -23,7 +23,9 @@ Defaults:
         TextureQuality: Normal
     - !Stride.BepuPhysics.BepuConfiguration,Stride.BepuPhysics
         BepuSimulations:
-            -   Enabled: true
+            -   AssociatedScene: null
+                ThreadCount: -1
+                Enabled: true
                 ParallelUpdate: true
                 Deterministic: false
                 FixedTimeStepSeconds: 0.0166666
@@ -37,7 +39,9 @@ Defaults:
                 SolverSubStep: 17
                 SoftStartDuration: 0:00:00:01.0000000
                 SoftStartSubstepFactor: 4
-            -   Enabled: true
+            -   AssociatedScene: null
+                ThreadCount: -1
+                Enabled: true
                 ParallelUpdate: true
                 Deterministic: false
                 FixedTimeStepSeconds: 0.0166666
@@ -51,7 +55,9 @@ Defaults:
                 SolverSubStep: 1
                 SoftStartDuration: 0:00:00:01.0000000
                 SoftStartSubstepFactor: 4
-            -   Enabled: true
+            -   AssociatedScene: null
+                ThreadCount: -1
+                Enabled: true
                 ParallelUpdate: true
                 Deterministic: false
                 FixedTimeStepSeconds: 0.0166666

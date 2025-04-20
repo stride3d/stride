@@ -15,15 +15,12 @@ OutputGroupDirectories: {}
 ExplicitFolders: []
 Bundles: []
 TemplateFolders: []
-RootAssets: 
-    - 58094e9a-bebf-43e4-99b7-b009bfdbbae9:Scenes/Cars
-    - b21cf271-4ad8-453a-8c8d-cf132e044a9c:Scenes/CharacterScene
-    - 21f7a4e4-7908-4ce9-ad5c-76a910db6167:Scenes/Colliders
-    - effd55be-d7a3-4d2a-89d7-7ef55924d9e1:Scenes/Constraint
-    - 9717c0b6-feb7-4800-a772-93627f8bdbb6:Scenes/ConvexAndMeshCollider
-    - aece5828-1437-4db4-9c52-72ee5d11d245:Scenes/CubeFontainScene
-    - bef30700-cda8-4d43-b804-3da6717bea2c:Scenes/Demo
-    - c0f3be45-d538-4587-9515-19311c80e024:Scenes/MainScene
-    - f405e7aa-df9b-4d6a-b95b-5a579edcb556:Scenes/MaterialProperties
-    - 34252014-babe-47a9-b3b1-996ebdaff389:Scenes/PhysicsTest
-    - 468de2d3-48bf-474e-afee-d76d3c1ab21e:Scenes/Ropes
+RootAssets:
+    - 1534e89e-d5de-4e57-97c8-acbe1ea9bded:Scenes/Colliders
+    - 1bd2dca5-6e73-443e-8613-afd501bfdd05:Scenes/MainScene
+    - 6f113a3b-3bfd-4a33-8775-7a44cc88bccc:Scenes/Constraint
+    - 6f2b7463-a14b-4dbd-88c2-9230bc45bc53:Scenes/Cube Mixer
+    - 7afd942c-0aff-4677-8158-84d944e85d67:Scenes/Ropes
+    - 7cb13063-abc0-4ef8-8a34-f62408d295c3:Scenes/Convex And Mesh Collider
+    - d25e2b43-7e2e-4f5e-a50e-8a7784bb3e03:Scenes/Cube Fountain
+    - d6936be1-c5a5-4841-abbe-434854c720ef:Scenes/Material Properties

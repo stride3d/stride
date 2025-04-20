@@ -1,5 +1,5 @@
 !ProceduralModelAsset
-Id: 3b695292-455c-44fe-86e1-3cc7f0042f66
+Id: 08ddafab-062e-40f9-9467-c24ed4fac70b
 SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
 Type: !CylinderProceduralModel
@@ -8,4 +8,4 @@ Type: !CylinderProceduralModel
     LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
     NumberOfTextureCoordinates: 10
     MaterialInstance:
-        Material: 46648cbe-9a27-4d25-aad2-bbf41c9402d9:Materials/QRMat
+        Material: 02d8a19e-db6e-44b4-8861-64bdd38b05c5:Materials/QRMat

@@ -1,5 +1,5 @@
 !SceneAsset
-Id: c0f3be45-d538-4587-9515-19311c80e024
+Id: 1bd2dca5-6e73-443e-8613-afd501bfdd05
 SerializedVersion: {Stride: 3.1.0.1}
 Tags: []
 ChildrenIds: []
@@ -37,7 +37,7 @@ Hierarchy:
                         Children: {}
                     e0c15a158fd73aa93aa0e1be41af0772: !UIComponent
                         Id: b2f7a2ba-5c75-403c-b9e6-62df0cd68658
-                        Page: ba5f462f-4004-4907-8384-23357af97657:UI/SceneSelectPage
+                        Page: f55ca6f3-e8c0-4ed0-9605-76ff5b19809e:UI/SceneSelectPage
                         Resolution: {X: 1280.0, Y: 720.0, Z: 1000.0}
                         Size: {X: 1.28, Y: 0.72, Z: 1.0}
                         ResolutionStretch: FixedHeightAdaptableWidth
@@ -53,17 +53,14 @@ Hierarchy:
                         Children: {}
                     99f7331d1cf146f05b19f1ac112490eb: !BepuSample.Game.Components.SceneSelectorComponent,BepuSample.Game
                         Id: 72220342-9ff8-4f01-8f40-6c7a34fd3f9c
-                        MainScene: c0f3be45-d538-4587-9515-19311c80e024:Scenes/MainScene
+                        MainScene: 1bd2dca5-6e73-443e-8613-afd501bfdd05:Scenes/MainScene
                         SceneList:
-                            edc3702a323d3f2100d1bfaa528938d9: 58094e9a-bebf-43e4-99b7-b009bfdbbae9:Scenes/Cars
-                            db2d3c62d711ee6ff1ca336bc3464e01: b21cf271-4ad8-453a-8c8d-cf132e044a9c:Scenes/CharacterScene
-                            e59f5f889005f380e9d978b2dd1977e1: 21f7a4e4-7908-4ce9-ad5c-76a910db6167:Scenes/Colliders
-                            196a341f29501c6e845d3f3cae3d8f57: effd55be-d7a3-4d2a-89d7-7ef55924d9e1:Scenes/Constraint
-                            7028c7bbd685ca3d129db2b9fc321f5b: 9717c0b6-feb7-4800-a772-93627f8bdbb6:Scenes/ConvexAndMeshCollider
-                            3374eeeb65b01775d2d43427e6de6aad: aece5828-1437-4db4-9c52-72ee5d11d245:Scenes/CubeFontainScene
-                            aa76d15191e524b837c4df1a5aefa7a6: bef30700-cda8-4d43-b804-3da6717bea2c:Scenes/Demo
-                            a4c2d13d62689fd339e5a1ba3877049b: f405e7aa-df9b-4d6a-b95b-5a579edcb556:Scenes/MaterialProperties
-                            18a81942364223fe6faeb74ee94b9c4b: 34252014-babe-47a9-b3b1-996ebdaff389:Scenes/PhysicsTest
-                            0cb1b7bec10f7f925dcff8fc0b285c5d: 468de2d3-48bf-474e-afee-d76d3c1ab21e:Scenes/Ropes
-                        Library: 85f0229d-0977-490c-9847-1f00f6768e65:UILibrary
+                            7582cfe9a4c57b2e233325c00608b56c: 1534e89e-d5de-4e57-97c8-acbe1ea9bded:Scenes/Colliders
+                            62a582534c56a429747c4762262fbbad: 7cb13063-abc0-4ef8-8a34-f62408d295c3:Scenes/Convex And Mesh Collider
+                            112a8e86c25d35d5e29d1dbec59b9823: d6936be1-c5a5-4841-abbe-434854c720ef:Scenes/Material Properties
+                            a4938c5c9a50a67a4f5d37d03b9057c2: 6f113a3b-3bfd-4a33-8775-7a44cc88bccc:Scenes/Constraint
+                            18440c93beb5695e71be4863d730efb4: 7afd942c-0aff-4677-8158-84d944e85d67:Scenes/Ropes
+                            6177c187ab200d109c8e3ee68b616a87: d25e2b43-7e2e-4f5e-a50e-8a7784bb3e03:Scenes/Cube Fountain
+                            ee370a344503a769a3c0ee9ef2e5fe99: 6f2b7463-a14b-4dbd-88c2-9230bc45bc53:Scenes/Cube Mixer
+                        Library: d127222f-e216-460a-b67a-433ff013200c:UILibrary
                         SelectorUI: ref!! b2f7a2ba-5c75-403c-b9e6-62df0cd68658

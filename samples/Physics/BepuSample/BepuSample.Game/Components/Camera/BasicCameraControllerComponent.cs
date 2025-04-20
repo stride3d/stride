@@ -2,7 +2,6 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
-using BepuSample.Game.Extensions;
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Engine;
@@ -42,8 +41,6 @@ namespace BepuSample.Game.Components.Camera
 
         public Vector2 TouchRotationSpeed { get; set; } = new Vector2(1.0f, 0.7f);
 
-        private CameraComponent? _cameraComponent;
-
         public override void Start()
         {
             base.Start();
@@ -56,9 +53,6 @@ namespace BepuSample.Game.Components.Camera
                 Input.Gestures.Add(new GestureConfigDrag());
                 Input.Gestures.Add(new GestureConfigComposite());
             }
-
-            // Set the main camera
-            _cameraComponent = SetMainSceneCamera(SceneSystem.SceneInstance);
         }
 
         public override void Update()
@@ -184,33 +178,6 @@ namespace BepuSample.Game.Components.Camera
                     rotation.Y += -padState.RightThumb.X;
                 }
 
-                //if (Input.HasKeyboard)
-                //{
-                //    if (Input.IsKeyDown(Keys.NumPad2))
-                //    {
-                //        rotation.X += 1;
-                //    }
-                //    if (Input.IsKeyDown(Keys.NumPad8))
-                //    {
-                //        rotation.X -= 1;
-                //    }
-
-                //    if (Input.IsKeyDown(Keys.NumPad4))
-                //    {
-                //        rotation.Y += 1;
-                //    }
-                //    if (Input.IsKeyDown(Keys.NumPad6))
-                //    {
-                //        rotation.Y -= 1;
-                //    }
-
-                //    // See Keyboard & Gamepad translation's Normalize() usage
-                //    if (rotation.Length() > 1f)
-                //    {
-                //        rotation = Vector2.Normalize(rotation);
-                //    }
-                //}
-
                 // Modulate by speed
                 rotation *= KeyboardRotationSpeed * speed;
 
@@ -272,7 +239,7 @@ namespace BepuSample.Game.Components.Camera
         private void UpdateTransform()
         {
             // Get the local coordinate system
-            var rotation = Matrix.RotationQuaternion(_cameraComponent.Entity.Transform.Rotation);
+            var rotation = Matrix.RotationQuaternion(Entity.Transform.Rotation);
 
             // Enforce the global up-vector by adjusting the local x-axis
             var right = Vector3.Cross(rotation.Forward, upVector);
@@ -291,27 +258,10 @@ namespace BepuSample.Game.Components.Camera
             finalTranslation = Vector3.TransformCoordinate(finalTranslation, rotation);
 
             // Move in local coordinates
-            _cameraComponent.Entity.Transform.Position += finalTranslation;
+            Entity.Transform.Position += finalTranslation;
 
             // Yaw around global up-vector, pitch and roll in local space
-            _cameraComponent.Entity.Transform.Rotation *= Quaternion.RotationAxis(right, pitch) * Quaternion.RotationAxis(upVector, yaw);
-        }
-
-        private CameraComponent? SetMainSceneCamera(SceneInstance sceneInstance)
-        {
-            CameraComponent? camera = null;
-
-            foreach (var entity in sceneInstance)
-            {
-                camera = entity.GetComponentInChildren<CameraComponent>();
-
-                if (camera != null)
-                {
-                    break;
-                }
-            }
-
-            return camera;
+            Entity.Transform.Rotation *= Quaternion.RotationAxis(right, pitch) * Quaternion.RotationAxis(upVector, yaw);
         }
     }
 }

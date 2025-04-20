@@ -1,5 +1,5 @@
 !SceneAsset
-Id: 21f7a4e4-7908-4ce9-ad5c-76a910db6167
+Id: 1534e89e-d5de-4e57-97c8-acbe1ea9bded
 SerializedVersion: {Stride: 3.1.0.1}
 Tags: []
 ChildrenIds: []
@@ -58,9 +58,9 @@ Hierarchy:
                         Children: {}
                     45622cc758f41101f5e1fa63ecc9a77f: !ModelComponent
                         Id: c6e69d48-5986-4599-b8e9-eed8e9085821
-                        Model: 2e92e632-0dc1-43d1-a917-0fd994f7ac71:Models/CubeModel
+                        Model: 8d18384d-04f1-4190-878b-ddd4665eacdf:Models/CubeModel
                         Materials:
-                            a4372207e9cfb015a5973f7fcb15a3a8~0: 46648cbe-9a27-4d25-aad2-bbf41c9402d9:Materials/QRMat
+                            a4372207e9cfb015a5973f7fcb15a3a8~0: 02d8a19e-db6e-44b4-8861-64bdd38b05c5:Materials/QRMat
                     8b6177e0e71e252f50babaf34a820d3f: !InstancingComponent
                         Id: 1c9d86d7-bb42-4183-bf0f-9ec8fa5cf41b
                         Type: !InstancingEntityTransform {}
@@ -90,9 +90,9 @@ Hierarchy:
                         Children: {}
                     f8f0c20a9c8fbc28fdeddd3f08d16ae1: !ModelComponent
                         Id: 12255c88-1646-42f6-85d3-16aa12e52773
-                        Model: 300821e5-0e49-418f-9b46-e4c1f88a6913:Models/GeoSphere
+                        Model: 162f79e0-18f6-4043-bb0d-65ab268481b5:Models/GeoSphere
                         Materials:
-                            ef65e8ed1408768b41eb24d89aacf145~0: ad6de206-bd0a-460b-a2cb-04bb1e299128:Materials/QRMatR
+                            ef65e8ed1408768b41eb24d89aacf145~0: 01e72cab-d817-455d-8707-f6721c30562f:Materials/QRMatR
                     bef94b9f0ecc27a47c8e3a17907eeac3: !Stride.BepuPhysics.BodyComponent,Stride.BepuPhysics
                         Id: 3c478b50-f02e-485a-878f-d3dd3e0e6102
                         Collider: !Stride.BepuPhysics.Definitions.Colliders.EmptyCollider,Stride.BepuPhysics {}
@@ -128,7 +128,7 @@ Hierarchy:
                 Components:
                     b4e341001f1c96acb99047bd4d9b66c5: !ModelComponent
                         Id: 04d15e8f-c902-4b9e-9033-d922645c3f98
-                        Model: 2e92e632-0dc1-43d1-a917-0fd994f7ac71:Models/CubeModel
+                        Model: 8d18384d-04f1-4190-878b-ddd4665eacdf:Models/CubeModel
                         Materials: {}
                     9af7d6d7a90cd79c4137e14aa6777939: !TransformComponent
                         Id: 83b77750-454e-4ff1-b683-4f0b7f402928
@@ -217,7 +217,7 @@ Hierarchy:
                         MinimumTimestepCountUnderThreshold: 32
                     66feb47e5333be0ef77f0d74d21d70b3: !ModelComponent
                         Id: eef8a82e-0fc0-4035-9758-1010fbe5243e
-                        Model: 4c445e62-f878-47d0-b712-4ead1ec392f0:Models/Capsule_1_035
+                        Model: 868b4b78-8b6b-4b31-b8c1-cdba95836020:Models/Capsule_1_035
                         Materials: {}
                     ee265d38d262240aee035149906d46c5: ~(Deleted)
                     fe417a7f83004f72593133d581ddcc78: ~(Deleted)
@@ -227,9 +227,9 @@ Hierarchy:
                 Components:
                     b4e341001f1c96acb99047bd4d9b66c5: !ModelComponent
                         Id: 43ee66d1-7100-477d-911b-a92dc4153124
-                        Model: 2e92e632-0dc1-43d1-a917-0fd994f7ac71:Models/CubeModel
+                        Model: 8d18384d-04f1-4190-878b-ddd4665eacdf:Models/CubeModel
                         Materials:
-                            aab92d6110cc5268015747ae7323a988~0: bfae939d-03ce-4611-a427-b7a0eb358609:Materials/QRMatB
+                            aab92d6110cc5268015747ae7323a988~0: 6a57f19f-d1bd-4260-8089-d569ae312679:Materials/QRMatB
                     9af7d6d7a90cd79c4137e14aa6777939: !TransformComponent
                         Id: ea880ebc-6eb2-43ee-bfe4-09fb3867a854
                         Position: {X: 0.0, Y: 0.0, Z: -5.0}
@@ -327,7 +327,7 @@ Hierarchy:
                         MinimumTimestepCountUnderThreshold: 32
                     9ce36a86273c51904994abd3986c418a: !ModelComponent
                         Id: b380883d-c395-41ca-b523-00eaae872ad4
-                        Model: 3b695292-455c-44fe-86e1-3cc7f0042f66:Models/Cylinder
+                        Model: 08ddafab-062e-40f9-9467-c24ed4fac70b:Models/Cylinder
                         Materials: {}
                     ee265d38d262240aee035149906d46c5: ~(Deleted)
                     fe417a7f83004f72593133d581ddcc78: ~(Deleted)
@@ -351,9 +351,9 @@ Hierarchy:
                 Components:
                     2fe1b250e5f932b6e1f4b22cbb53ce26: !ModelComponent
                         Id: 7b69066b-10ff-42cf-87f9-67222e068138
-                        Model: 300821e5-0e49-418f-9b46-e4c1f88a6913:Models/GeoSphere
+                        Model: 162f79e0-18f6-4043-bb0d-65ab268481b5:Models/GeoSphere
                         Materials:
-                            ef65e8ed1408768b41eb24d89aacf145~0: ad6de206-bd0a-460b-a2cb-04bb1e299128:Materials/QRMatR
+                            ef65e8ed1408768b41eb24d89aacf145~0: 01e72cab-d817-455d-8707-f6721c30562f:Materials/QRMatR
                     f7be694e6475539eb01155e2b170dc08: !TransformComponent
                         Id: 9184f9cb-7ef2-4baa-ae94-c752e113d079
                         Position: {X: 0.0, Y: 0.0, Z: 8.683255}
@@ -394,7 +394,7 @@ Hierarchy:
                         MinimumTimestepCountUnderThreshold: 32
                     66feb47e5333be0ef77f0d74d21d70b3: !ModelComponent
                         Id: 26df08c9-e6e1-4e31-98dd-3cbc5737cc98
-                        Model: fe0cbb35-026d-4bc3-8d56-78a8198eaa0a:Models/Capsule_1_07
+                        Model: 8d4367a0-0777-4ecb-83cb-17dc76a371d3:Models/Capsule_1_07
                         Materials: {}
                     ee265d38d262240aee035149906d46c5: ~(Deleted)
                     fe417a7f83004f72593133d581ddcc78: ~(Deleted)
@@ -431,7 +431,7 @@ Hierarchy:
                         MinimumTimestepCountUnderThreshold: 32
                     b0830b8d5c59dbb0b8daae785c67e71b: !ModelComponent
                         Id: 45690db5-fc55-4887-a8be-4f8d027316bb
-                        Model: 300821e5-0e49-418f-9b46-e4c1f88a6913:Models/GeoSphere
+                        Model: 162f79e0-18f6-4043-bb0d-65ab268481b5:Models/GeoSphere
                         Materials: {}
                     ee265d38d262240aee035149906d46c5: ~(Deleted)
                     fe417a7f83004f72593133d581ddcc78: ~(Deleted)
@@ -448,9 +448,9 @@ Hierarchy:
                             def36a71255e9a34c9ace26290c51652: ref!! 2e4c4a64-6c62-4777-818f-9aaf54553cc1
                     01ea5ba3397cbf86d433a2ef3eb81267: !ModelComponent
                         Id: dfe99f46-7a1a-435c-b85f-04770e9c862b
-                        Model: 300821e5-0e49-418f-9b46-e4c1f88a6913:Models/GeoSphere
+                        Model: 162f79e0-18f6-4043-bb0d-65ab268481b5:Models/GeoSphere
                         Materials:
-                            ef65e8ed1408768b41eb24d89aacf145~0: fd341e00-e8cf-4e3a-8442-6c1091679e9d:Materials/QRMatG
+                            ef65e8ed1408768b41eb24d89aacf145~0: 00e4f2d4-0cc2-422b-8926-e9b8be03984c:Materials/QRMatG
         -   Entity:
                 Id: 67448412-86b6-4edc-8b08-b9239f77aa3d
                 Name: Cube4
@@ -555,7 +555,7 @@ Hierarchy:
                         MinimumTimestepCountUnderThreshold: 32
                     66feb47e5333be0ef77f0d74d21d70b3: !ModelComponent
                         Id: 6a15450e-cf5b-4764-9ba0-8289ddeb48e3
-                        Model: 5f6c40f5-8ae1-4e62-b93f-f9e327248e51:Models/Capsule_05_035
+                        Model: b6d1945f-0ef8-4c8a-ae07-329c17dde5dd:Models/Capsule_05_035
                         Materials: {}
                     ee265d38d262240aee035149906d46c5: ~(Deleted)
                     fe417a7f83004f72593133d581ddcc78: ~(Deleted)
@@ -565,7 +565,7 @@ Hierarchy:
                 Components:
                     99c6bf5dff884f29788bacf78e62a0ad: !BepuSample.Game.Components.Utils.ThrowerComponent,BepuSample.Game
                         Id: 7fce2df0-a5f9-47dc-baad-5d0eaa862956
-                        SpawnPrefab: 479558df-2f6b-4998-bbbf-73fd053e2554:Prefabs/Bepu/BepuInstancedCube
+                        SpawnPrefab: e1a0260b-dff9-405e-b4dc-1bfdc040f578:Prefabs/Bepu/BepuInstancedCube
                         Instancing: ref!! 1c9d86d7-bb42-4183-bf0f-9ec8fa5cf41b
                         CameraEntity: ref!! f06c3f0f-39a1-40b9-8be8-c4b3b3b07770
                         SpawnPosition: ref!! f06c3f0f-39a1-40b9-8be8-c4b3b3b07770
@@ -600,9 +600,9 @@ Hierarchy:
                 Components:
                     9fc54bc322e7d6d51a11a510d80184d8: !ModelComponent
                         Id: 7d1282be-24ba-47e9-ae10-f4711b581f15
-                        Model: 300821e5-0e49-418f-9b46-e4c1f88a6913:Models/GeoSphere
+                        Model: 162f79e0-18f6-4043-bb0d-65ab268481b5:Models/GeoSphere
                         Materials:
-                            8d03d42af41e70fa0cc4437790d96e86~0: fd341e00-e8cf-4e3a-8442-6c1091679e9d:Materials/QRMatG
+                            8d03d42af41e70fa0cc4437790d96e86~0: 00e4f2d4-0cc2-422b-8926-e9b8be03984c:Materials/QRMatG
                     9115ee3893ca6a9441fbe0ea3d7ac952: !TransformComponent
                         Id: 1927d4c6-b81b-4d5a-b7ae-8684932fbf2e
                         Position: {X: 0.0, Y: 20.0, Z: 0.0}
@@ -731,9 +731,9 @@ Hierarchy:
                 Components:
                     b4e341001f1c96acb99047bd4d9b66c5: !ModelComponent
                         Id: 76db2139-675a-451c-9e7d-84431a2d7956
-                        Model: 2e92e632-0dc1-43d1-a917-0fd994f7ac71:Models/CubeModel
+                        Model: 8d18384d-04f1-4190-878b-ddd4665eacdf:Models/CubeModel
                         Materials:
-                            aab92d6110cc5268015747ae7323a988~0: bfae939d-03ce-4611-a427-b7a0eb358609:Materials/QRMatB
+                            aab92d6110cc5268015747ae7323a988~0: 6a57f19f-d1bd-4260-8089-d569ae312679:Materials/QRMatB
                     9af7d6d7a90cd79c4137e14aa6777939: !TransformComponent
                         Id: 2e4c4a64-6c62-4777-818f-9aaf54553cc1
                         Position: {X: 0.0, Y: 0.0, Z: -5.0}
@@ -797,7 +797,7 @@ Hierarchy:
                         MinimumTimestepCountUnderThreshold: 32
                     9ce36a86273c51904994abd3986c418a: !ModelComponent
                         Id: 815ff3ff-3405-4162-af56-ec6a0da59f2b
-                        Model: 3b695292-455c-44fe-86e1-3cc7f0042f66:Models/Cylinder
+                        Model: 08ddafab-062e-40f9-9467-c24ed4fac70b:Models/Cylinder
                         Materials: {}
                     ee265d38d262240aee035149906d46c5: ~(Deleted)
                     fe417a7f83004f72593133d581ddcc78: ~(Deleted)
@@ -813,12 +813,12 @@ Hierarchy:
                         Children: {}
                     f06cd2af4f2551332eac077780c19eff: !BackgroundComponent
                         Id: e34595a4-86f8-4778-b58e-137fcb3d63f4
-                        Texture: be26a913-4c76-45ec-a5e0-9fd6ceead086:Skybox texture
+                        Texture: 0e559463-b70b-44f7-b0b8-e3c421efceff:Skybox texture
                         Intensity: 0.1
                     0d373b4518bc761153fde0d2540f118b: !LightComponent
                         Id: 233391c1-2a58-4697-ba40-4d66844d001d
                         Type: !LightSkybox
-                            Skybox: 798bfa4f-a596-46b7-b94a-b558d4eb1425:Skybox
+                            Skybox: d6101b68-ef34-4a51-8eef-420809c68cdd:Skybox
                         Intensity: 0.1
         -   Entity:
                 Id: cba3e333-ed6f-4cec-baa6-863a0af268c1
@@ -832,7 +832,7 @@ Hierarchy:
                         Children: {}
                     efe08501922bc19df5a068bf57372684: !ModelComponent
                         Id: 97f26b87-ae07-4a51-9572-8940fcd60d98
-                        Model: 2e92e632-0dc1-43d1-a917-0fd994f7ac71:Models/CubeModel
+                        Model: 8d18384d-04f1-4190-878b-ddd4665eacdf:Models/CubeModel
                         Materials: {}
                     d10f1a4e70a8fe7535b35d26b5b19b23: !Stride.BepuPhysics.BodyComponent,Stride.BepuPhysics
                         Id: 4e3e953b-7cb6-4bcb-8f40-69b8975246d1
@@ -894,7 +894,7 @@ Hierarchy:
                         MinimumTimestepCountUnderThreshold: 32
                     9ce36a86273c51904994abd3986c418a: !ModelComponent
                         Id: 69f8215d-3a43-47fa-a3e1-d62617c95bb5
-                        Model: 3b695292-455c-44fe-86e1-3cc7f0042f66:Models/Cylinder
+                        Model: 08ddafab-062e-40f9-9467-c24ed4fac70b:Models/Cylinder
                         Materials: {}
                     ee265d38d262240aee035149906d46c5: ~(Deleted)
                     fe417a7f83004f72593133d581ddcc78: ~(Deleted)
@@ -904,7 +904,7 @@ Hierarchy:
                 Components:
                     b4e341001f1c96acb99047bd4d9b66c5: !ModelComponent
                         Id: 3618fa6d-a9fa-4b14-9d09-a54e76cda54b
-                        Model: 2e92e632-0dc1-43d1-a917-0fd994f7ac71:Models/CubeModel
+                        Model: 8d18384d-04f1-4190-878b-ddd4665eacdf:Models/CubeModel
                         Materials: {}
                     9af7d6d7a90cd79c4137e14aa6777939: !TransformComponent
                         Id: c8d9b871-f4cb-44f6-9a04-66f8c8f1fadc
@@ -1001,7 +1001,7 @@ Hierarchy:
                         MinimumTimestepCountUnderThreshold: 32
                     f44ca2f2edb28bb0823dec206911900b: !ModelComponent
                         Id: 46252caf-208d-408a-8724-33301c53e0f0
-                        Model: 2e92e632-0dc1-43d1-a917-0fd994f7ac71:Models/CubeModel
+                        Model: 8d18384d-04f1-4190-878b-ddd4665eacdf:Models/CubeModel
                         Materials: {}
         -   Entity:
                 Id: f06c3f0f-39a1-40b9-8be8-c4b3b3b07770
@@ -1022,6 +1022,9 @@ Hierarchy:
                         KeyboardRotationSpeed: {X: 5.0, Y: 5.0}
                         MouseRotationSpeed: {X: 1.0, Y: 1.0}
                         TouchRotationSpeed: {X: 1.0, Y: 0.7}
+                    3985c14e4f43f6970cf83f6aad29bc8d: !BepuSample.Game.Components.Camera.FindAndAttachCameraComponent,BepuSample.Game
+                        Id: b6eb22d8-17bf-4c05-8f94-52f297c57b22
+                        CameraComponent: null
         -   Entity:
                 Id: f49ca28b-6821-4107-a494-04bc1910d4aa
                 Name: BepuSphere
@@ -1055,7 +1058,7 @@ Hierarchy:
                         MinimumTimestepCountUnderThreshold: 32
                     b0830b8d5c59dbb0b8daae785c67e71b: !ModelComponent
                         Id: ea3faa5f-2dfc-49e4-957b-3310c6733e61
-                        Model: 300821e5-0e49-418f-9b46-e4c1f88a6913:Models/GeoSphere
+                        Model: 162f79e0-18f6-4043-bb0d-65ab268481b5:Models/GeoSphere
                         Materials: {}
                     ee265d38d262240aee035149906d46c5: ~(Deleted)
                     fe417a7f83004f72593133d581ddcc78: ~(Deleted)
@@ -1078,7 +1081,7 @@ Hierarchy:
                 Components:
                     b4e341001f1c96acb99047bd4d9b66c5: !ModelComponent
                         Id: 2748cca3-c375-452a-a724-80ab7384c59f
-                        Model: 2e92e632-0dc1-43d1-a917-0fd994f7ac71:Models/CubeModel
+                        Model: 8d18384d-04f1-4190-878b-ddd4665eacdf:Models/CubeModel
                         Materials: {}
                     9af7d6d7a90cd79c4137e14aa6777939: !TransformComponent
                         Id: 570c2f79-0ab1-473f-b2ba-2e6ed87337c9

@@ -1,5 +1,5 @@
 !GraphicsCompositorAsset
-Id: 236269b9-dfa3-40ca-b250-af3572ed428a
+Id: e0974b3a-328f-47ed-ae09-998dea97573c
 SerializedVersion: {Stride: 3.1.0.1}
 Tags: []
 Archetype: 823a81bf-bac0-4552-9267-aeed499c40df:DefaultGraphicsCompositorLevel10
@@ -115,7 +115,7 @@ RenderFeatures:
                 OpaqueRenderStage: ref!! 32e740b1-45fe-44a2-ba24-e9ca13eaff46
                 TransparentRenderStage: ref!! 6cf18b51-9fa9-4d81-8974-e34a12f76b24
                 EffectName: null
-        PipelineProcessors: {}   
+        PipelineProcessors: {}
 SharedRenderers:
     60459475d3a3adaf2d1ba5d99913ca75: !Stride.Rendering.Compositing.ForwardRenderer,Stride.Engine
         Id: a656f77f-cb7d-42b8-921b-5549647c507b
@@ -136,6 +136,7 @@ SharedRenderers:
             Enabled: false
             RequiredApis: {}
             Overlays: {}
+            RequestPassthrough: false
         SubsurfaceScatteringBlurEffect: null
         MSAALevel*: None
         MSAAResolver: {}
@@ -158,6 +159,7 @@ SharedRenderers:
             Enabled: false
             RequiredApis: {}
             Overlays: {}
+            RequestPassthrough: false
         SubsurfaceScatteringBlurEffect: null
         MSAALevel: None
         MSAAResolver: {}

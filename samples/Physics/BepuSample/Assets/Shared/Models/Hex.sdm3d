@@ -1,5 +1,5 @@
 !Model
-Id: eadda2d3-c404-49c9-b6f3-e50cf4660c81
+Id: d09dc6b9-71e4-413b-b2c0-603f5f57fb01
 SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
 Source: !file ../../../Resources/Models/Hex.obj
@@ -17,4 +17,4 @@ Materials:
 DeduplicateMaterials: false
 Modifiers: {}
 ~SourceHashes:
-    52f0b69ef94ee41b3fac79a35e67bcce~../../Resources/Models/Hex.obj: 85a7616ad591d3c07fab118329391b29
+    5b6e6b30f334befc27fd6810596f1223~../../../Resources/Models/Hex.obj: f2da46b286c3a3da9b479beafcc7af9c

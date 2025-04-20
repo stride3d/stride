@@ -1,5 +1,5 @@
 !Skeleton
-Id: 3421b446-a6a4-44dd-b0ae-769287a8d239
+Id: 0c2362f2-3d92-4883-8d3d-420e05e26896
 SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
 Source: !file ../../../Resources/Models/SciFi031_unityfan777.fbx
@@ -74,4 +74,4 @@ Nodes:
     b9625110e78f3adeac650ef0d7d1d4f2: {Name: Plane.006, Depth: 1}
     362762568cfa9c34747ad7d56a91d135: {Name: Plane.008, Depth: 1}
 ~SourceHashes:
-    9dfb3e03d05466062b71b13d541e7c48~../../Resources/Models/SciFi031_unityfan777.fbx: 1ca26e2224dd402aa3733767a2755025
+    1c3d0d17afeae3bb7bd09351b846f567~../../../Resources/Models/SciFi031_unityfan777.fbx: 1ca26e2224dd402aa3733767a2755025

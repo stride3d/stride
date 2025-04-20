@@ -1,5 +1,5 @@
 !SceneAsset
-Id: 468de2d3-48bf-474e-afee-d76d3c1ab21e
+Id: 7afd942c-0aff-4677-8158-84d944e85d67
 SerializedVersion: {Stride: 3.1.0.1}
 Tags: []
 ChildrenIds: []
@@ -26,7 +26,7 @@ Hierarchy:
                         Children: {}
                     ba218259700f28dc9c3308ada7303ea4: !ModelComponent
                         Id: 0f72f1a9-c3b4-4051-93c4-c490120b1678
-                        Model: 2e92e632-0dc1-43d1-a917-0fd994f7ac71:Models/CubeModel
+                        Model: 8d18384d-04f1-4190-878b-ddd4665eacdf:Models/CubeModel
                         Materials: {}
                     141cef7c97863a5254b1e26c28054477: !Stride.BepuPhysics.StaticComponent,Stride.BepuPhysics
                         Id: 10bddda6-1513-4d9e-a8dd-ff8ca5839337
@@ -99,7 +99,7 @@ Hierarchy:
                         Children: {}
                     ba218259700f28dc9c3308ada7303ea4: !ModelComponent
                         Id: f0d40954-5dd4-4106-95a6-59374a13f860
-                        Model: 2e92e632-0dc1-43d1-a917-0fd994f7ac71:Models/CubeModel
+                        Model: 8d18384d-04f1-4190-878b-ddd4665eacdf:Models/CubeModel
                         Materials: {}
                     bd30b55fbbf2272099d933bcb3df00b7: !Stride.BepuPhysics.BodyComponent,Stride.BepuPhysics
                         Id: 5f8aa385-ebee-4437-b8da-7b71732ed9aa
@@ -134,9 +134,9 @@ Hierarchy:
                         Children: {}
                     45622cc758f41101f5e1fa63ecc9a77f: !ModelComponent
                         Id: fceeebb8-4f09-4fd7-b2e1-d6a16d479bdd
-                        Model: 2e92e632-0dc1-43d1-a917-0fd994f7ac71:Models/CubeModel
+                        Model: 8d18384d-04f1-4190-878b-ddd4665eacdf:Models/CubeModel
                         Materials:
-                            a4372207e9cfb015a5973f7fcb15a3a8~0: 46648cbe-9a27-4d25-aad2-bbf41c9402d9:Materials/QRMat
+                            a4372207e9cfb015a5973f7fcb15a3a8~0: 02d8a19e-db6e-44b4-8861-64bdd38b05c5:Materials/QRMat
                     8b6177e0e71e252f50babaf34a820d3f: !InstancingComponent
                         Id: 0795c268-c3c8-43c8-a668-7450adb59807
                         Type: !InstancingEntityTransform {}
@@ -152,7 +152,7 @@ Hierarchy:
                         Children: {}
                     ba218259700f28dc9c3308ada7303ea4: !ModelComponent
                         Id: 9b321b77-2c37-41c4-8f41-8d6139a52e88
-                        Model: 2e92e632-0dc1-43d1-a917-0fd994f7ac71:Models/CubeModel
+                        Model: 8d18384d-04f1-4190-878b-ddd4665eacdf:Models/CubeModel
                         Materials: {}
                     ece7eda6a6067c7aa682e605a9ec116f: !Stride.BepuPhysics.BodyComponent,Stride.BepuPhysics
                         Id: 285dee99-ee5a-459e-a32f-964531565982
@@ -191,7 +191,7 @@ Hierarchy:
                             5269cf169a130c56006c102a6c920d8d: ref!! 3c87d441-a070-48e3-896c-9150c0390233
                     807fd6f1bfea6cedc2abc9907e906240: !BepuSample.Game.Components.Utils.RopeSpawnerComponent,BepuSample.Game
                         Id: 34bb7756-98bc-4d96-bdb0-7a7e81675b29
-                        RopePart: 378e35ff-3dd0-4e6d-86e2-a477870a5c4e:Prefabs/Bepu/RopePart
+                        RopePart: b1cacc90-79d3-429a-ba31-adf14be8b805:Prefabs/Bepu/RopePart
                         RopePartSize: 0.3
                         AEntity: ref!! 9da4a590-4d5f-4025-a7d8-d1af645dfa72
                         APos: {X: 0.0, Y: 0.5, Z: 0.0}
@@ -199,7 +199,7 @@ Hierarchy:
                         BPos: {X: 0.0, Y: -0.5, Z: 0.0}
                     2748cd8e3f4f6ee538f8cd951e1ccdee: !BepuSample.Game.Components.Utils.RopeSpawnerComponent,BepuSample.Game
                         Id: 37338386-f1fd-4664-99fe-e47c8c2e3018
-                        RopePart: 378e35ff-3dd0-4e6d-86e2-a477870a5c4e:Prefabs/Bepu/RopePart
+                        RopePart: b1cacc90-79d3-429a-ba31-adf14be8b805:Prefabs/Bepu/RopePart
                         RopePartSize: 0.3
                         AEntity: ref!! 7cd72da3-c6e7-4b94-bc84-5d67f883de8c
                         APos: {X: 2.0, Y: 0.5, Z: 2.0}
@@ -207,7 +207,7 @@ Hierarchy:
                         BPos: {X: 0.0, Y: -0.5, Z: 0.0}
                     df8df1e9078962519bb2e906ff5bd744: !BepuSample.Game.Components.Utils.RopeSpawnerComponent,BepuSample.Game
                         Id: fb6d5eec-10f1-4d6e-bf7b-2321f55c82ed
-                        RopePart: 378e35ff-3dd0-4e6d-86e2-a477870a5c4e:Prefabs/Bepu/RopePart
+                        RopePart: b1cacc90-79d3-429a-ba31-adf14be8b805:Prefabs/Bepu/RopePart
                         RopePartSize: 0.3
                         AEntity: ref!! 7cd72da3-c6e7-4b94-bc84-5d67f883de8c
                         APos: {X: 2.0, Y: 0.5, Z: -2.0}
@@ -215,7 +215,7 @@ Hierarchy:
                         BPos: {X: 0.0, Y: -0.5, Z: 0.0}
                     f0b1089156066784aa5bb1948f7006de: !BepuSample.Game.Components.Utils.RopeSpawnerComponent,BepuSample.Game
                         Id: 80da0e79-7044-45fa-a057-3fb90902eef1
-                        RopePart: 378e35ff-3dd0-4e6d-86e2-a477870a5c4e:Prefabs/Bepu/RopePart
+                        RopePart: b1cacc90-79d3-429a-ba31-adf14be8b805:Prefabs/Bepu/RopePart
                         RopePartSize: 0.3
                         AEntity: ref!! 7cd72da3-c6e7-4b94-bc84-5d67f883de8c
                         APos: {X: -2.0, Y: 0.5, Z: -2.0}
@@ -223,7 +223,7 @@ Hierarchy:
                         BPos: {X: 0.0, Y: -0.5, Z: 0.0}
                     5a9e25158e14dc991ac2cf5110b5492b: !BepuSample.Game.Components.Utils.RopeSpawnerComponent,BepuSample.Game
                         Id: 57bb2f6a-2f88-4e56-9fba-0a0244447727
-                        RopePart: 378e35ff-3dd0-4e6d-86e2-a477870a5c4e:Prefabs/Bepu/RopePart
+                        RopePart: b1cacc90-79d3-429a-ba31-adf14be8b805:Prefabs/Bepu/RopePart
                         RopePartSize: 0.3
                         AEntity: ref!! 7cd72da3-c6e7-4b94-bc84-5d67f883de8c
                         APos: {X: -2.0, Y: 0.5, Z: 2.0}
@@ -241,12 +241,12 @@ Hierarchy:
                         Children: {}
                     f06cd2af4f2551332eac077780c19eff: !BackgroundComponent
                         Id: b777aa7a-d9a2-4ec5-b55f-107539d2dbe1
-                        Texture: be26a913-4c76-45ec-a5e0-9fd6ceead086:Skybox texture
+                        Texture: 0e559463-b70b-44f7-b0b8-e3c421efceff:Skybox texture
                         Intensity: 0.1
                     0d373b4518bc761153fde0d2540f118b: !LightComponent
                         Id: 8aef8585-f417-473c-a32a-a0d5167d7ff3
                         Type: !LightSkybox
-                            Skybox: 798bfa4f-a596-46b7-b94a-b558d4eb1425:Skybox
+                            Skybox: d6101b68-ef34-4a51-8eef-420809c68cdd:Skybox
                         Intensity: 0.1
         -   Entity:
                 Id: e9217a60-d4c9-4fab-a219-289cd31cce52
@@ -254,7 +254,7 @@ Hierarchy:
                 Components:
                     99c6bf5dff884f29788bacf78e62a0ad: !BepuSample.Game.Components.Utils.ThrowerComponent,BepuSample.Game
                         Id: 59e22e1b-65be-4fe0-9dbd-25985ae5060e
-                        SpawnPrefab: 479558df-2f6b-4998-bbbf-73fd053e2554:Prefabs/Bepu/BepuInstancedCube
+                        SpawnPrefab: e1a0260b-dff9-405e-b4dc-1bfdc040f578:Prefabs/Bepu/BepuInstancedCube
                         Instancing: ref!! 0795c268-c3c8-43c8-a668-7450adb59807
                         CameraEntity: ref!! 584651eb-c911-4c18-8325-9f99e220ad4f
                         SpawnPosition: ref!! 584651eb-c911-4c18-8325-9f99e220ad4f
@@ -295,7 +295,7 @@ Hierarchy:
                         Children: {}
                     ba218259700f28dc9c3308ada7303ea4: !ModelComponent
                         Id: 4b284734-045a-4de7-b906-049769182863
-                        Model: 2e92e632-0dc1-43d1-a917-0fd994f7ac71:Models/CubeModel
+                        Model: 8d18384d-04f1-4190-878b-ddd4665eacdf:Models/CubeModel
                         Materials: {}
                     8c9fe621ce058318ab21bcbd56b5f515: !Stride.BepuPhysics.BodyComponent,Stride.BepuPhysics
                         Id: 76b25967-557a-4d2b-ac23-6ea43102150b
