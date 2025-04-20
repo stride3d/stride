@@ -22,11 +22,15 @@ internal class ContactEventsManager : IDisposable
     private readonly BepuSimulation _simulation;
     private IndexSet _staticListenerFlags;
     private IndexSet _bodyListenerFlags;
+    private IPerTypeManifoldStore[][] _manifoldStoresPerWorker;
 
-    public ContactEventsManager(BufferPool pool, BepuSimulation simulation)
+    public ContactEventsManager(BufferPool pool, BepuSimulation simulation, int workerCount)
     {
         _pool = pool;
         _simulation = simulation;
+        _manifoldStoresPerWorker = new IPerTypeManifoldStore[workerCount][];
+        for (int i = 0; i < _manifoldStoresPerWorker.Length; i++)
+            _manifoldStoresPerWorker[i] = [];
     }
 
     public void Initialize()
@@ -93,6 +97,12 @@ internal class ContactEventsManager : IDisposable
 
     public void ClearCollisionsOf(CollidableComponent collidable)
     {
+        foreach (var workerStore in _manifoldStoresPerWorker)
+        {
+            foreach (var typeStore in workerStore)
+                typeStore.ClearEventsOf(collidable);
+        }
+
         // Really slow, but improving performance has a huge amount of gotchas since user code
         // may cause this method to be re-entrant through handler calls.
         // Something to investigate later
@@ -143,10 +153,10 @@ internal class ContactEventsManager : IDisposable
         if (aListener == false && bListener == false)
             return;
 
-        HandleManifoldInner(workerIndex, _simulation.GetComponent(pair.A), _simulation.GetComponent(pair.B), ref manifold);
+        IPerTypeManifoldStore.StoreManifold(_manifoldStoresPerWorker, workerIndex, ref manifold, _simulation.GetComponent(pair.A), _simulation.GetComponent(pair.B));
     }
 
-    private unsafe void HandleManifoldInner<TManifold>(int workerIndex, CollidableComponent a, CollidableComponent b, ref TManifold manifold) where TManifold : unmanaged, IContactManifold<TManifold>
+    private unsafe void RunManifoldEvent<TManifold>(int workerIndex, CollidableComponent a, CollidableComponent b, ref TManifold manifold) where TManifold : unmanaged, IContactManifold<TManifold>
     {
         System.Diagnostics.Debug.Assert(manifold.Count <= LastCollisionState.FeatureCount, "This was built on the assumption that nonconvex manifolds will have a maximum of 4 contacts, but that might have changed.");
         //If the above assert gets hit because of a change to nonconvex manifold capacities, the packed feature id representation this uses will need to be updated.
@@ -359,6 +369,12 @@ internal class ContactEventsManager : IDisposable
 
     public void Flush()
     {
+        foreach (var workerStore in _manifoldStoresPerWorker)
+        {
+            foreach (var typeStore in workerStore)
+                typeStore.RunEvents(this);
+        }
+
         var manifold = new EmptyManifold();
 
         //Remove any stale collisions. Stale collisions are those which should have received a new manifold update but did not because the manifold is no longer active.
@@ -384,6 +400,87 @@ internal class ContactEventsManager : IDisposable
                 || (bRef.Mobility != CollidableMobility.Static && bodyHandleToLocation[bRef.BodyHandle.Value].SetIndex == 0))
             {
                 _outdatedPairs.Add(trackedCollision.Key); // It's active, if manifolds did not signal that they touched we should discard this one
+            }
+        }
+    }
+
+    private interface IPerTypeManifoldStore
+    {
+        void RunEvents(ContactEventsManager eventsManager);
+
+        void ClearEventsOf(CollidableComponent collidableComponent);
+
+        public static unsafe void StoreManifold<TManifold>(IPerTypeManifoldStore[][] manifoldLists, int workerIndex, ref TManifold manifold, CollidableComponent a, CollidableComponent b) where TManifold : unmanaged, IContactManifold<TManifold>
+        {
+            var manifoldsForWorker = manifoldLists[workerIndex];
+            int typeIndex = TypeIndex<TManifold>.Index;
+            if (manifoldsForWorker.Length <= typeIndex)
+            {
+                // This type does not have a list to store those manifolds, make space and create an instance
+
+                Array.Resize(ref manifoldsForWorker, typeIndex + 1);
+                // Ensure we have stores for all previous types up to this one
+                for (int j = 0; j < manifoldsForWorker.Length; j++)
+                {
+                    ref var spot = ref manifoldsForWorker[j];
+                    if (spot == null!)
+                        spot = manifoldStoreConstructors[j]();
+                }
+
+                manifoldLists[workerIndex] = manifoldsForWorker;
+            }
+
+            var handler = (ListOf<TManifold>)manifoldsForWorker[typeIndex];
+            handler.Add((manifold, a, b));
+        }
+
+        private static int indexMax = -1;
+        private static unsafe delegate*<IPerTypeManifoldStore>[] manifoldStoreConstructors = [];
+        private static object perTypeLock = new();
+
+        // On purpose, we want
+        // ReSharper disable once UnusedTypeParameter
+        private static class TypeIndex<TManifold> where TManifold : unmanaged, IContactManifold<TManifold>
+        {
+            public static readonly int Index;
+
+            static unsafe TypeIndex()
+            {
+                lock (perTypeLock)
+                {
+                    Index = Interlocked.Increment(ref indexMax);
+                    var cpy = new delegate*<IPerTypeManifoldStore>[manifoldStoreConstructors.Length + 1];
+                    manifoldStoreConstructors.CopyTo(cpy, 0);
+                    cpy[Index] = &ManifoldCtor;
+                    manifoldStoreConstructors = cpy;
+                }
+            }
+
+            private static ListOf<TManifold> ManifoldCtor() => new();
+        }
+
+        private class ListOf<TManifold> : List<(TManifold manifold, CollidableComponent a, CollidableComponent b)>, IPerTypeManifoldStore where TManifold : unmanaged, IContactManifold<TManifold>
+        {
+            public void RunEvents(ContactEventsManager eventsManager)
+            {
+                var spanOfThis = CollectionsMarshal.AsSpan(this);
+                for (int i = spanOfThis.Length - 1; i >= 0; i--) // reverse as the scope may end up calling ClearRelatedContacts
+                {
+                    var (manifold, a, b) = spanOfThis[i];
+                    eventsManager.RunManifoldEvent(0, a, b, ref manifold);
+                }
+
+                Clear();
+            }
+
+            public void ClearEventsOf(CollidableComponent collidableComponent)
+            {
+                var spanOfThis = CollectionsMarshal.AsSpan(this);
+                for (int i = spanOfThis.Length - 1; i >= 0; i--)
+                {
+                    if (spanOfThis[i].a == collidableComponent || spanOfThis[i].b == collidableComponent)
+                        RemoveAt(i);
+                }
             }
         }
     }
