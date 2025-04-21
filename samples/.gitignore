@@ -11,6 +11,7 @@ _ReSharper.*
 *.cache
 *.tlog
 *.log
+*.obj
 *.pdb
 *.nvuser
 *.exp
