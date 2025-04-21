@@ -87,6 +87,9 @@ Hierarchy:
                         KeyboardRotationSpeed: {X: 5.0, Y: 5.0}
                         MouseRotationSpeed: {X: 1.0, Y: 1.0}
                         TouchRotationSpeed: {X: 1.0, Y: 0.7}
+                    3985c14e4f43f6970cf83f6aad29bc8d: !BepuSample.Game.Components.Camera.FindAndAttachCameraComponent,BepuSample.Game
+                        Id: 4ad637a0-d9a4-4394-b154-a41146dc74a3
+                        CameraComponent: null
         -   Entity:
                 Id: 7cd72da3-c6e7-4b94-bc84-5d67f883de8c
                 Name: Cent

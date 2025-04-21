@@ -35,9 +35,6 @@ Hierarchy:
                     d30ce5ada2da13a962bcc916699b2f23: !BepuSample.Game.Components.Camera.FindAndAttachCameraComponent,BepuSample.Game
                         Id: 8801143d-ef54-4aaf-bb3d-0fd75528df2a
                         CameraComponent: null
-                    e75f28b082fa4c55d8552cc37e295c90: !BepuSample.Game.Components.Camera.FindAndAttachCameraComponent,BepuSample.Game
-                        Id: 93c25e9e-b1a2-43e7-8486-0105910a5994
-                        CameraComponent: null
         -   Entity:
                 Id: 4369c304-c370-4cf3-b5bd-62e0e7b080bd
                 Name: Skybox
