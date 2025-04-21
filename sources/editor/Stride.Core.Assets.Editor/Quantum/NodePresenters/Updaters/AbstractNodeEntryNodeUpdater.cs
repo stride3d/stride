@@ -39,6 +39,7 @@ namespace Stride.Core.Assets.Editor.Quantum.NodePresenters.Updaters
             {
                 for (var t = type; t != null; t = t.BaseType)
                 {
+                    // TODO: Workaround for internal engine issue when selecting a component type from the type dropdown generated, see #2719
                     if (t.Name == "EntityComponent" && t.FullName == "Stride.Engine.EntityComponent")
                     {
                         return true;
