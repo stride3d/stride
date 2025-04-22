@@ -1,9 +1,11 @@
 <p>
-    <picture>
+<a href="https://www.stride3d.net/">
+<picture>
       <source media="(prefers-color-scheme: dark)" srcset="https://media.githubusercontent.com/media/stride3d/stride/84092e8aa924e2039b3f8d968907b48fc699c6b3/sources/data/images/Logo/stride-logo-readme-white.png">
       <source media="(prefers-color-scheme: light)" srcset="https://media.githubusercontent.com/media/stride3d/stride/84092e8aa924e2039b3f8d968907b48fc699c6b3/sources/data/images/Logo/stride-logo-readme-black.png">
-      <a href="https://www.stride3d.net/"><img alt="The stride logo, a geometrical 'S' in the form of a cube" src="https://media.githubusercontent.com/media/stride3d/stride/84092e8aa924e2039b3f8d968907b48fc699c6b3/sources/data/images/Logo/stride-logo-readme-black.png"></a>
-    </picture>
+      <img alt="The stride logo, a geometrical 'S' in the form of a cube" src="https://media.githubusercontent.com/media/stride3d/stride/84092e8aa924e2039b3f8d968907b48fc699c6b3/sources/data/images/Logo/stride-logo-readme-black.png">
+</picture>
+</a>
 </p>
 
 [![Join the chat at https://discord.gg/f6aerfE](https://img.shields.io/discord/500285081265635328.svg?style=flat&logo=discord&label=discord&logoColor=f2f2f2)](https://discord.gg/f6aerfE)
