@@ -1123,6 +1123,136 @@
     </DataTemplate>
   </caev:EnumTemplateProvider>
 
+  <!-- Providers for content reference -->
+  <ContextMenu x:Key="ReferenceContextMenu">
+    <MenuItem Header="{sd:LocalizeString Select an asset}"
+              IsVisible="{Binding [HasCommand_PickupAsset]}"
+              Command="{Binding [PickupAsset]}"
+              CommandParameter="{Binding Type}">
+      <MenuItem.Icon>
+        <Image Source="{StaticResource ImageFetchAsset}" />
+      </MenuItem.Icon>
+    </MenuItem>
+    <MenuItem Header="{sd:LocalizeString Clear the reference}"
+              IsVisible="{Binding [HasCommand_CreateNewInstance]}"
+              Command="{Binding [CreateNewInstance]}"
+              CommandParameter="{x:Static caeqnpc:AbstractNodeValue.Null}">
+      <MenuItem.Icon>
+        <Image Source="{StaticResource ImageClear}" />
+      </MenuItem.Icon>
+    </MenuItem>
+    <MenuItem Header="{sd:LocalizeString Select the referenced asset}"
+              IsVisible="{Binding [HasCommand_FetchAsset]}"
+              IsEnabled="{Binding NodeValue, Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ObjectToBool}}}"
+              Command="{Binding [FetchAsset]}">
+      <MenuItem.Icon>
+        <Image Source="{StaticResource ImagePickup}" />
+      </MenuItem.Icon>
+    </MenuItem>
+  </ContextMenu>
+  <DataTemplate x:Key="SimpleContentReferencePropertyTemplate" DataType="cpqvm:NodeViewModel">
+    <DockPanel>
+      <UniformGrid DockPanel.Dock="Right" Rows="1">
+        <Button Theme="{StaticResource ImageButtonTheme}"
+                IsVisible="{Binding !IsReadOnly}"
+                Command="{Binding [PickupAsset]}"
+                CommandParameter="{Binding Type}"
+                ToolTip.Tip="{sd:LocalizeString Select an asset, Context=ToolTip}">
+          <Image Source="{StaticResource ImagePickup}" Width="16" Height="16"/>
+        </Button>
+        <Button Theme="{StaticResource ImageButtonTheme}"
+                IsVisible="{Binding !IsReadOnly}"
+                Command="{Binding [CreateNewInstance]}"
+                CommandParameter="{x:Static caeqnpc:AbstractNodeValue.Null}"
+                ToolTip.Tip="{sd:LocalizeString Clear the reference, Context=ToolTip}">
+          <Image Source="{StaticResource ImageClear}" Width="16" Height="16"/>
+        </Button>
+        <Button Theme="{StaticResource ImageButtonTheme}"
+                Command="{Binding [FetchAsset]}"
+                ToolTip.Tip="{sd:LocalizeString Select the referenced asset, Context=ToolTip}">
+          <Image Source="{StaticResource ImageFetchAsset}" Width="16" Height="16"/>
+        </Button>
+      </UniformGrid>
+      <TextBox Margin="5"
+               IsReadOnly="{Binding IsReadOnly}"
+               Text="{Binding NodeValue, Converter={caec:ContentReferenceToUrl}}"
+               ContextMenu="{StaticResource ReferenceContextMenu}"/>
+    </DockPanel>
+  </DataTemplate>
+  <caev:ContentReferenceTemplateProvider x:Key="SimpleContentReferenceTemplateProvider" caev:PropertyViewHelper.TemplateCategory="PropertyEditor"
+                                         DynamicThumbnail="False"
+                                         Template="{StaticResource SimpleContentReferencePropertyTemplate}"/>
+  <caev:ContentReferenceTemplateProvider x:Key="ThumbnailContentReferenceTemplateProvider" caev:PropertyViewHelper.TemplateCategory="PropertyEditor"
+                                         DynamicThumbnail="True">
+    <DataTemplate DataType="cpqvm:NodeViewModel">
+      <DockPanel>
+        <Border DockPanel.Dock="Right"
+                Margin="0,1"
+                Background="Transparent" BorderBrush="Black" BorderThickness="1"
+                Cursor="Hand" ContextMenu="{StaticResource ReferenceContextMenu}">
+          <Grid>
+            <Border Width="64" Height="64"
+                    Background="Transparent"
+                    ToolTip.Tip="{sd:LocalizeString Select the referenced asset, Context=ToolTip}">
+              <Image x:Name="ThumbnailImage"
+                     Width="64" Height="64"
+                     DataContext="{Binding NodeValue, Converter={caec:ContentReferenceToAsset}}"
+                     Source="{Binding ThumbnailData.Presenter, Mode=OneWay}"/>
+              <Interaction.Behaviors>
+                <!-- FIXME only on pointer down -->
+                <EventTriggerBehavior EventName="PointerPressed" >
+                  <InvokeCommandAction Command="{Binding [FetchAsset]}"/>
+                </EventTriggerBehavior>
+              </Interaction.Behaviors>
+            </Border>
+            <ProgressBar Width="16" Height="4" IsIndeterminate="True"
+                         DataContext="{Binding NodeValue, Converter={caec:ContentReferenceToAsset}}"
+                         IsVisible="{Binding ThumbnailData, Converter={sd:Chained {sd:ObjectToBool}, {sd:InvertBool}}, FallbackValue={sd:False}}"/>
+            <Border Width="64" Height="64"
+                    Background="Transparent"
+                    IsVisible="{Binding NodeValue, Converter={sd:Chained {caec:ContentReferenceToAsset}, {sd:ObjectToBool}}}"
+                    ToolTip.Tip="{sd:LocalizeString Select an asset, Context=ToolTip}">
+              <Image x:Name="PickupImage"
+                     Width="16" Height="16"
+                     Source="{StaticResource ImagePickup}"/>
+              <Interaction.Behaviors>
+                <!-- FIXME only on pointer down -->
+                <EventTriggerBehavior EventName="PointerPressed" >
+                  <InvokeCommandAction Command="{Binding [PickupAsset]}"
+                                       CommandParameter="{Binding Type}"/>
+                </EventTriggerBehavior>
+              </Interaction.Behaviors>
+            </Border>
+          </Grid>
+        </Border>
+        <DockPanel>
+          <TextBox DockPanel.Dock="Top"
+                   Margin="5"
+                   IsReadOnly="{Binding IsReadOnly}"
+                   Text="{Binding NodeValue, Converter={caec:ContentReferenceToUrl}}"
+                   ContextMenu="{StaticResource ReferenceContextMenu}"/>
+          <UniformGrid Rows="1"
+                       HorizontalAlignment="Right" VerticalAlignment="Top">
+            <Button Theme="{StaticResource ImageButtonTheme}"
+                    IsVisible="{Binding [HasCommand_PickupAsset]}"
+                    Command="{Binding [PickupAsset]}"
+                    CommandParameter="{Binding Type}"
+                    ToolTip.Tip="{sd:LocalizeString Select an asset, Context=ToolTip}">
+              <Image Source="{StaticResource ImagePickup}" Width="16" Height="16"/>
+            </Button>
+            <Button Theme="{StaticResource ImageButtonTheme}"
+                    IsVisible="{Binding [HasCommand_CreateNewInstance]}"
+                    Command="{Binding [CreateNewInstance]}"
+                    CommandParameter="{x:Static caeqnpc:AbstractNodeValue.Null}"
+                    ToolTip.Tip="{sd:LocalizeString Clear the reference, Context=ToolTip}">
+              <Image Source="{StaticResource ImageClear}" Width="16" Height="16"/>
+            </Button>
+          </UniformGrid>
+        </DockPanel>
+      </DockPanel>
+    </DataTemplate>
+  </caev:ContentReferenceTemplateProvider>
+
   <!-- Provider for nulable struct -->
   <caev:NullableTemplateProvider x:Key="NullableStructPropertyTemplateProvider" caev:PropertyViewHelper.TemplateCategory="PropertyEditor">
     <DataTemplate DataType="cpqvm:NodeViewModel">
