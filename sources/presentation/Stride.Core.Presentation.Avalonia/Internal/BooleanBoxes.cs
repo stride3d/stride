@@ -1,6 +1,8 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Runtime.CompilerServices;
+
 namespace Stride.Core.Presentation.Avalonia.Internal;
 
 internal static class BooleanBoxes
@@ -19,6 +21,7 @@ internal static class BooleanBoxes
     /// </summary>
     /// <param name="value"></param>
     /// <returns>A boxed <see cref="bool"/> equivalent to the provided <paramref name="value"/>.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static object Box(this bool value)
     {
         return value ? TrueBox : FalseBox;

@@ -8,7 +8,7 @@ namespace Stride.Core.Presentation.Avalonia.MarkupExtensions;
 /// <summary>
 /// This markup extension allows to format the text of a tooltip a text and a gesture.
 /// </summary>
-public class ToolTipExtension : MarkupExtension
+public sealed class ToolTipExtension : MarkupExtension
 {
     private readonly string content;
 

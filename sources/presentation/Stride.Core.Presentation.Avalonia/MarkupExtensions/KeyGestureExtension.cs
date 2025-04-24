@@ -10,7 +10,7 @@ namespace Stride.Core.Presentation.Avalonia.MarkupExtensions;
 /// <summary>
 /// This markup extension allows to create a <see cref="KeyGesture"/> instance from a string representing the gesture.
 /// </summary>
-public class KeyGestureExtension : MarkupExtension
+public sealed class KeyGestureExtension : MarkupExtension
 {
     /// <summary>
     /// Gets or sets the key gesture.

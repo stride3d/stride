@@ -10,7 +10,7 @@ namespace Stride.Core.Presentation.Avalonia.MarkupExtensions;
 /// <summary>
 /// This markup extension allows to create a <see cref="Key"/> instance from a string representing the key.
 /// </summary>
-public class KeyExtension : MarkupExtension
+public sealed class KeyExtension : MarkupExtension
 {
     /// <summary>
     /// Gets or sets the key.

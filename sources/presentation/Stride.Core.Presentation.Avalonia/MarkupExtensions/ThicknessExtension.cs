@@ -7,7 +7,7 @@ using Avalonia.Metadata;
 
 namespace Stride.Core.Presentation.Avalonia.MarkupExtensions;
 
-public class ThicknessExtension : MarkupExtension
+public sealed class ThicknessExtension : MarkupExtension
 {
     public ThicknessExtension(double uniformLength)
     {

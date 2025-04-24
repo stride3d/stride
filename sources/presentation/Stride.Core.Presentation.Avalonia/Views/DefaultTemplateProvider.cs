@@ -6,7 +6,7 @@ namespace Stride.Core.Presentation.Avalonia.Views;
 /// <summary>
 /// A default implementation of the <see cref="ITemplateProvider"/> interface that matches any object.
 /// </summary>
-public class DefaultTemplateProvider : TemplateProviderBase
+public sealed class DefaultTemplateProvider : TemplateProviderBase
 {
     /// <inheritdoc/>
     public override string Name => "Default";

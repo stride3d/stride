@@ -10,7 +10,7 @@ namespace Stride.Core.Presentation.Avalonia.Converters;
 /// This value converter will convert any numeric value to double. <see cref="ConvertBack"/> is supported and
 /// will convert the value to the target if it is numeric, otherwise it returns the value as-is.
 /// </summary>
-public class ToDouble : ValueConverterBase<ToDouble>
+public sealed class ToDouble : ValueConverterBase<ToDouble>
 {
     /// <inheritdoc/>
     public override object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
