@@ -36,11 +36,11 @@ public sealed class PropertyViewHelper
     public static readonly AttachedProperty<Category> TemplateCategoryProperty =
         AvaloniaProperty.RegisterAttached<PropertyViewHelper, TemplateProviderBase, Category>("TemplateCategory", Category.PropertyHeader, false, BindingMode.OneTime);
 
-    public static readonly TemplateProviderSelector HeaderProviders = new();
+    public static readonly PropertyTemplateProviderSelector HeaderProviders = new();
 
-    public static readonly TemplateProviderSelector EditorProviders = new();
+    public static readonly PropertyTemplateProviderSelector EditorProviders = new();
 
-    public static readonly TemplateProviderSelector FooterProviders = new();
+    public static readonly PropertyTemplateProviderSelector FooterProviders = new();
 
     /// <summary>
     /// Get accessor for Attached property <see cref="IncrementProperty"/>.

@@ -10,12 +10,12 @@ namespace Stride.Core.Presentation.Avalonia.Views;
 /// <summary>
 /// An implementation of <see cref="IDataTemplate"/> that can select a template from a set of statically registered <see cref="ITemplateProvider"/> objects.
 /// </summary>
-public sealed class TemplateProviderSelector : IDataTemplate
+public class TemplateProviderSelector : IDataTemplate
 {
     /// <summary>
     /// The list of all template providers registered for the <see cref="TemplateProviderSelector"/>, indexed by their name.
     /// </summary>
-    private readonly List<ITemplateProvider> templateProviders = [];
+    protected readonly List<ITemplateProvider> templateProviders = [];
 
     /// <summary>
     /// A hashset of template provider names, used only to ensure unicity.
@@ -47,15 +47,13 @@ public sealed class TemplateProviderSelector : IDataTemplate
         if (templateProviderNames.Remove(templateProvider.Name))
             templateProviders.Remove(templateProvider);
     }
-    
+
     /// <inheritdoc/>
-    public Control? Build(object? param)
+    public virtual Control? Build(object? item)
     {
-        // FIXME xplat-editor what to do when several templates match? WPF version had a more complex logic.
-        var provider = templateProviders.FirstOrDefault(x => x.Match(param));
-        return provider?.Template.Build(param);
+        return templateProviders.FirstOrDefault(x => x.Match(item))?.Template.Build(item);
     }
-    
+
     /// <inheritdoc/>
     public bool Match(object? data)
     {

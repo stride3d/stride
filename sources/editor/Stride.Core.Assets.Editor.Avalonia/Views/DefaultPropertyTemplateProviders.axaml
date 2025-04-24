@@ -321,6 +321,42 @@
   <caev:CategoryNodeTemplateProvider x:Key="CategoryNodeTemplateProvider" caev:PropertyViewHelper.TemplateCategory="PropertyHeader"
                                      Template="{StaticResource ReadOnlyPropertyHeaderTemplate}"/>
 
+  <!-- Provider for abstract types -->
+  <caev:AbstractTypeTemplateProvider x:Key="InlinedAbstractTypeTemplateProvider" OverrideRule="Most" caev:PropertyViewHelper.TemplateCategory="PropertyEditor">
+    <caev:AbstractTypeTemplateProvider.OverriddenProviderNames>
+      <s:String>InlinedProperty</s:String>
+    </caev:AbstractTypeTemplateProvider.OverriddenProviderNames>
+    <DataTemplate DataType="cpqvm:NodeViewModel">
+      <DockPanel>
+        <ComboBox DockPanel.Dock="Right"
+                  x:Name="InstanceTypeSelectionComboBox"
+                  Theme="{StaticResource AbstractTypeSelectionComboBoxTheme}"
+                  ItemsSource="{Binding [AbstractNodeMatchingEntries]}"
+                  IsVisible="{sd:MultiBinding {Binding [HasCommand_CreateNewInstance]}, {Binding !IsReadOnly},
+                                              Converter={sd:AndMulti}}">
+          <Interaction.Behaviors>
+            <EventTriggerBehavior EventName="DropDownClosed"
+                                  IsEnabled="{Binding #InstanceTypeSelectionComboBox.SelectedItem, Converter={sd:ObjectToBool}}">
+              <InvokeCommandAction Command="{Binding [CreateNewInstance]}"
+                                   CommandParameter="{Binding #InstanceTypeSelectionComboBox.SelectedItem}"/>
+              <ChangePropertyAction PropertyName="SelectedItem" Value="{x:Null}"/>
+            </EventTriggerBehavior>
+          </Interaction.Behaviors>
+        </ComboBox>
+        <ContentControl x:Name="ContentControl"
+                        Content="{Binding}"
+                        ContentTemplate="{x:Static caev:PropertyViewHelper.EditorProviders}"
+                        IsVisible="{Binding NodeValue, Converter={sd:Chained {sd:IsEqualToParam}, {sd:InvertBool}, Parameter1={x:Static cpqvm:NodeViewModel.DifferentValues}}}">
+          <Interaction.Behaviors>
+            <DataTriggerBehavior Binding="{Binding NodeValue, Converter={sd:ObjectToBool}}">
+              <ChangePropertyAction TargetObject="ContentControl" PropertyName="Opacity" Value="0.5"/>
+            </DataTriggerBehavior>
+          </Interaction.Behaviors>
+        </ContentControl>
+      </DockPanel>
+    </DataTemplate>
+  </caev:AbstractTypeTemplateProvider>
+
   <!-- Providers for inline properties -->
   <caev:InlinedPropertyValueTemplateProvider x:Key="InlinedPropertyValueHeaderTemplateProvider" caev:PropertyViewHelper.TemplateCategory="PropertyHeader">
     <DataTemplate>
@@ -349,13 +385,14 @@
   </caev:InlinedPropertyValueTemplateProvider>
 
   <!-- Provider for List item -->
-  <!--<caev:ListItemTemplateProvider x:Key="ListItemPropertyTemplateProvider" OverrideRule="Most" caev:PropertyViewHelper.TemplateCategory="PropertyEditor">
+  <caev:ListItemTemplateProvider x:Key="ListItemPropertyTemplateProvider" OverrideRule="Most" caev:PropertyViewHelper.TemplateCategory="PropertyEditor">
     <DataTemplate>
       <DockPanel>
+        <Button DockPanel.Dock="Right" Theme="{StaticResource RemoveItemButtonTheme}"/>
         <ContentControl Content="{Binding}" ContentTemplate="{x:Static caev:PropertyViewHelper.EditorProviders}"/>
       </DockPanel>
     </DataTemplate>
-  </caev:ListItemTemplateProvider>-->
+  </caev:ListItemTemplateProvider>
 
   <!-- Providers for List -->
   <caev:ListTemplateProvider x:Key="ListPropertyTemplateProvider" caev:PropertyViewHelper.TemplateCategory="PropertyEditor">
@@ -435,13 +472,13 @@
   </caev:ListTemplateProvider>
 
   <!-- Provider for Array item -->
-  <!--<caev:ArrayItemTemplateProvider x:Key="ArrayItemPropertyTemplateProvider" OverrideRule="Most" caev:PropertyViewHelper.TemplateCategory="PropertyEditor">
+  <caev:ArrayItemTemplateProvider x:Key="ArrayItemPropertyTemplateProvider" OverrideRule="Most" caev:PropertyViewHelper.TemplateCategory="PropertyEditor">
     <DataTemplate>
       <DockPanel>
         <ContentControl Content="{Binding}" ContentTemplate="{x:Static caev:PropertyViewHelper.EditorProviders}"/>
       </DockPanel>
     </DataTemplate>
-  </caev:ArrayItemTemplateProvider>-->
+  </caev:ArrayItemTemplateProvider>
 
   <!-- Providers for Array -->
   <caev:ArrayTemplateProvider x:Key="ArrayPropertyTemplateProvider" caev:PropertyViewHelper.TemplateCategory="PropertyEditor">
