@@ -23,12 +23,12 @@ public sealed class PropertyViewHelper
 
     static PropertyViewHelper()
     {
-        IncrementProperty.Changed.AddClassHandler<AvaloniaObject, double>(OnIncrementChanged);
-        IsExpandedProperty.Changed.AddClassHandler<AvaloniaObject, bool>(OnIsExpandedChanged);
+        IncrementProperty.Changed.AddClassHandler<StyledElement, double>(OnIncrementChanged);
+        IsExpandedProperty.Changed.AddClassHandler<StyledElement, bool>(OnIsExpandedChanged);
     }
 
     public static readonly AttachedProperty<double> IncrementProperty =
-        AvaloniaProperty.RegisterAttached<PropertyViewHelper, TemplateProviderBase, double>("Increment");
+        AvaloniaProperty.RegisterAttached<PropertyViewHelper, TemplateProviderBase, double>("Increment", double.Epsilon);
 
     public static readonly AttachedProperty<bool> IsExpandedProperty =
         AvaloniaProperty.RegisterAttached<PropertyViewHelper, TemplateProviderBase, bool>("IsExpanded");
@@ -90,24 +90,41 @@ public sealed class PropertyViewHelper
     {
         target.SetValue(TemplateCategoryProperty, category);
     }
-    
-    private static void OnIncrementChanged(AvaloniaObject d, AvaloniaPropertyChangedEventArgs<double> e)
+
+    private static void OnIncrementChanged(StyledElement d, AvaloniaPropertyChangedEventArgs<double> e)
     {
         OnPropertyChanged(d, PropertyViewItem.IncrementProperty, e.NewValue.Value);
     }
 
-    private static void OnIsExpandedChanged(AvaloniaObject d, AvaloniaPropertyChangedEventArgs<bool> e)
+    private static void OnIsExpandedChanged(StyledElement d, AvaloniaPropertyChangedEventArgs<bool> e)
     {
         OnPropertyChanged(d, ExpandableItemsControl.IsExpandedProperty, e.NewValue.Value);
     }
 
-
-    private static void OnPropertyChanged<T>(AvaloniaObject target, StyledProperty<T> property, T newValue)
+    private static void OnPropertyChanged<T>(StyledElement target, StyledProperty<T> property, T newValue)
     {
         if (newValue is null)
             return;
 
-        var item = target as PropertyViewItem ?? target.FindVisualParentOfType<PropertyViewItem>();
-        item?.SetCurrentValue(property, newValue);
+        if (target.IsInitialized)
+        {
+            SetCurrentValue(target, property, newValue);
+            return;
+        }
+
+        target.Initialized += OnInitialized;
+        return;
+
+        void OnInitialized(object? sender, EventArgs e)
+        {
+            target.Initialized -= OnInitialized;
+            SetCurrentValue(target, property, newValue);
+        }
+
+        static void SetCurrentValue(StyledElement target, StyledProperty<T> property, T newValue)
+        {
+            var item = target as PropertyViewItem ?? target.FindVisualParentOfType<PropertyViewItem>();
+            item?.SetCurrentValue(property, newValue);
+        }
     }
 }
