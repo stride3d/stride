@@ -15,6 +15,7 @@ using Stride.Engine.Design;
 using Stride.Engine.Processors;
 using Stride.Games;
 using Stride.Games.SDL;
+using Stride.Games.Systems;
 using Stride.Graphics;
 using Stride.Graphics.Font;
 using Stride.Input;
@@ -68,7 +69,7 @@ namespace Stride.Engine
         /// Gets the graphics device manager.
         /// </summary>
         /// <value>The graphics device manager.</value>
-        public GraphicsDeviceManager GraphicsDeviceManager { get; internal set; }
+        public GraphicsDeviceComponent GraphicsDeviceManager { get; internal set; }
 
         /// <summary>
         /// Gets the abstract window.
@@ -231,6 +232,8 @@ namespace Stride.Engine
 
             gamePlatform ??= new SDLGamePlatform();
 
+            Services.AddService<GamePlatform>(gamePlatform);
+
             gamePlatform.Activated += GamePlatform_Activated;
             gamePlatform.Deactivated += GamePlatform_Deactivated;
             gamePlatform.Exiting += GamePlatform_Exiting;
@@ -238,7 +241,7 @@ namespace Stride.Engine
             if (gamePlatform is IWindowedPlatform windowedPlatform)
             {
                 windowedPlatform.WindowCreated += GamePlatformOnWindowCreated;
-                Services.AddService<IWindowedPlatform>(windowedPlatform);
+                Services.AddService(windowedPlatform);
             }
 
             GamePlatform = gamePlatform;
@@ -256,63 +259,22 @@ namespace Stride.Engine
                 GlobalLogger.GlobalMessageLogged += logListener;
 
             AutoLoadDefaultSettings = true;
+
+            GraphicsDeviceManager = new GraphicsDeviceComponent();
+            Components.Add(GraphicsDeviceManager);
         }
 
         /// <summary>
         /// Call this method to initialize the game, begin running the game loop, and start processing events for the game.
         /// </summary>
         /// <exception cref="System.InvalidOperationException">Cannot run this instance while it is already running</exception>
-        public override void Run()
+        protected override void RunInit()
         {
             if (IsRunning)
             {
                 throw new InvalidOperationException("Cannot run this instance while it is already running");
             }
 
-            // Gets the graphics device manager
-            graphicsDeviceManager = Services.GetService<IGraphicsDeviceManager>();
-            ArgumentNullException.ThrowIfNull(graphicsDeviceManager, nameof(graphicsDeviceManager));
-
-            PrepareContext();
-
-            try
-            {
-                Window.CreateWindow(600, 900);
-                Window.SetSize(new Core.Mathematics.Int2(600, 900));
-
-                // Register on Activated
-                Window.Activated += OnActivated;
-                Window.Deactivated += OnDeactivated;
-                Window.InitCallback = OnInitCallback;
-                Window.RunCallback = OnRunCallback;
-
-                WindowCreated?.Invoke(this, EventArgs.Empty);
-
-                // Handles the game loop.
-                Window.Run();
-
-                if (GamePlatform.IsBlockingRun)
-                {
-                    // If the previous call was blocking, then we can call Endrun
-                    EndRun();
-                }
-                else
-                {
-                    // EndRun will be executed on Game.Exit
-                    isEndRunRequired = true;
-                }
-            }
-            finally
-            {
-                if (!isEndRunRequired)
-                {
-                    IsRunning = false;
-                }
-            }
-        }
-
-        protected override void PreGameInitialization()
-        {
             // Create all core services, except Input which is created during `Initialize'.
             // Registration takes place in `Initialize'.
             Script = new ScriptSystem(Services);
@@ -343,10 +305,46 @@ namespace Stride.Engine
             VRDeviceSystem = new VRDeviceSystem(Services);
             Services.AddService(VRDeviceSystem);
 
-            // Creates the graphics device manager
-            GraphicsDeviceManager = new GraphicsDeviceManager(GamePlatform);
-            Services.AddService<IGraphicsDeviceManager>(GraphicsDeviceManager);
-            Services.AddService<IGraphicsDeviceService>(GraphicsDeviceManager);
+            // Gets the graphics device manager
+            graphicsDeviceManager = Services.GetService<IGraphicsDeviceManager>();
+            ArgumentNullException.ThrowIfNull(graphicsDeviceManager, nameof(graphicsDeviceManager));
+
+            PrepareContext();
+
+            try
+            {
+                Window.CreateWindow(600, 900);
+                Window.SetSize(new Int2(600, 900));
+
+                // Register on Activated
+                Window.Activated += OnActivated;
+                Window.Deactivated += OnDeactivated;
+                Window.InitCallback = OnInitCallback;
+                Window.RunCallback = OnRunCallback;
+
+                WindowCreated?.Invoke(this, EventArgs.Empty);
+
+                // Handles the game loop.
+                Window.Run();
+
+                if (GamePlatform.IsBlockingRun)
+                {
+                    // If the previous call was blocking, then we can call Endrun
+                    EndRun();
+                }
+                else
+                {
+                    // EndRun will be executed on Game.Exit
+                    isEndRunRequired = true;
+                }
+            }
+            finally
+            {
+                if (!isEndRunRequired)
+                {
+                    IsRunning = false;
+                }
+            }
         }
 
         /// <summary>
@@ -444,7 +442,8 @@ namespace Stride.Engine
 
         protected override void OnExit()
         {
-            GamePlatform.Exit();
+            // Notifies that the GameWindow should exit.
+            Window.Exiting = true;
         }
 
         /// <inheritdoc/>
@@ -486,7 +485,7 @@ namespace Stride.Engine
                 // Set ShaderProfile even if AutoLoadDefaultSettings is false (because that is what shaders in effect logs are compiled against, even if actual instantiated profile is different)
                 if (renderingSettings.DefaultGraphicsProfile > 0)
                 {
-                    var deviceManager = (GraphicsDeviceManager)graphicsDeviceManager;
+                    var deviceManager = GraphicsDeviceManager;
                     if (!deviceManager.ShaderProfile.HasValue)
                         deviceManager.ShaderProfile = renderingSettings.DefaultGraphicsProfile;
                 }
@@ -497,7 +496,7 @@ namespace Stride.Engine
             // Load several default settings
             if (AutoLoadDefaultSettings)
             {
-                var deviceManager = (GraphicsDeviceManager)graphicsDeviceManager;
+                var deviceManager = GraphicsDeviceManager;
                 if (renderingSettings.DefaultGraphicsProfile > 0)
                 {
                     deviceManager.PreferredGraphicsProfile = [renderingSettings.DefaultGraphicsProfile];
@@ -521,7 +520,7 @@ namespace Stride.Engine
 
             var renderingSettings = Settings?.Configurations.Get<RenderingSettings>();
 
-            var deviceManager = (GraphicsDeviceManager)graphicsDeviceManager;
+            var deviceManager = GraphicsDeviceManager;
 
             if (gameCreation)
             {
@@ -679,6 +678,7 @@ namespace Stride.Engine
             base.LoadContentInternal();
             Script.AddTask(LoadContent);
         }
+
         protected virtual LogListener GetLogListener()
         {
             return new ConsoleLogListener();

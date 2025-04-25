@@ -24,7 +24,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Net.Security;
 using Stride.Core;
 using Stride.Graphics;
 

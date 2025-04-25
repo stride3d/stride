@@ -56,9 +56,11 @@ namespace Stride.Graphics.Regression
         {
             ConsoleLogMode = ConsoleLogMode.Always;
 
+            Services.AddService(this.GamePlatform);
+
             // Override the default graphic device manager
             GraphicsDeviceManager.Dispose();
-            GraphicsDeviceManager = new TestGraphicsDeviceManager(this.GamePlatform)
+            GraphicsDeviceManager = new TestGraphicsDeviceManager(Services)
             {
                 PreferredBackBufferWidth = 800,
                 PreferredBackBufferHeight = 480,

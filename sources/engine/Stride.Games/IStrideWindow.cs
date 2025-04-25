@@ -1,3 +1,4 @@
+using System;
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Graphics;
@@ -26,25 +27,19 @@ public interface IStrideWindow
     /// To get the current actual size use <see cref="ClientBounds"/>.
     /// This gets overwritten when the user resizes the window. 
     /// </summary>
-    public Int2 WindowedSize { get; set; }
-
-    /// <summary>
-    /// The size the window should have when switching from windowed to fullscreen mode.
-    /// To get the current actual size use <see cref="ClientBounds"/>.
-    /// </summary>
-    public Int2 FullscreenSize { get; set; }
+    public Int2 WindowSize { get; set; }
 
     /// <summary>
     /// Gets the client bounds.
     /// </summary>
     /// <value>The client bounds.</value>
-    public abstract Rectangle ClientBounds { get; protected set; }
+    public Rectangle ClientBounds { get; protected set; }
 
     /// <summary>
     /// Gets the current orientation.
     /// </summary>
     /// <value>The current orientation.</value>
-    public abstract DisplayOrientation CurrentOrientation { get; protected set; }
+    public DisplayOrientation CurrentOrientation { get; protected set; }
 
     /// <summary>
     /// Gets the window state.
@@ -60,7 +55,7 @@ public interface IStrideWindow
     /// Gets the native window.
     /// </summary>
     /// <value>The native window.</value>
-    public WindowHandle NativeWindow { get; }
+    public IntPtr Handle { get; }
 
     public void SetTitle(string title);
 
@@ -74,7 +69,7 @@ public enum WindowState
     /// <summary>
     /// The window is in its regular configuration.
     /// </summary>
-    Normal = 0,
+    Normal,
 
     /// <summary>
     /// The window has been minimized to the task bar.
@@ -100,7 +95,7 @@ public enum WindowBorder
     /// <summary>
     /// The window can be resized by clicking and dragging its border.
     /// </summary>
-    Resizable = 0,
+    Resizable,
 
     /// <summary>
     /// The window border is visible, but cannot be resized. All window-resizings must happen solely in the code.

@@ -247,7 +247,7 @@ namespace Stride.Games
         /// Only used internally by the device managers when they adapt the window size to the backbuffer size.
         /// Resizes the window, without sending the resized event.
         /// </summary>
-        internal abstract void Resize(int width, int height);
+        public abstract void Resize(int width, int height);
 
         public virtual IMessageLoop CreateUserManagedMessageLoop()
         {

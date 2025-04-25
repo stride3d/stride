@@ -52,6 +52,8 @@ namespace Stride.Games
         private GamePlatform _platform;
         private IWindowedPlatform _windowedPlatform;
 
+        private IServiceRegistry _services;
+
         private bool deviceSettingsChanged;
 
         private bool isFullScreen;
@@ -101,8 +103,11 @@ namespace Stride.Games
         /// </summary>
         /// <param name="platform">The game.</param>
         /// <exception cref="System.ArgumentNullException">The game instance cannot be null.</exception>
-        public GraphicsDeviceManager(GamePlatform platform)
+        public GraphicsDeviceManager(IServiceRegistry services)
         {
+            _services = services;
+            var platform = services.GetSafeServiceAs<GamePlatform>();
+
             _platform = platform;
             _windowedPlatform = platform as IWindowedPlatform;
             ArgumentNullException.ThrowIfNull(_platform);
@@ -119,8 +124,8 @@ namespace Stride.Games
             preferredBackBufferHeight = DefaultBackBufferHeight;
             preferredRefreshRate = new Rational(60, 1);
             PreferredMultisampleCount = MultisampleCount.None;
-            PreferredGraphicsProfile = new[]
-                {
+            PreferredGraphicsProfile =
+                [
                     GraphicsProfile.Level_11_1, 
                     GraphicsProfile.Level_11_0, 
                     GraphicsProfile.Level_10_1, 
@@ -128,15 +133,18 @@ namespace Stride.Games
                     GraphicsProfile.Level_9_3, 
                     GraphicsProfile.Level_9_2, 
                     GraphicsProfile.Level_9_1, 
-                };
+                ];
 
-            graphicsDeviceFactory = _platform.Services.GetService<IGraphicsDeviceFactory>();
+            graphicsDeviceFactory = services.GetService<IGraphicsDeviceFactory>();
             if (graphicsDeviceFactory == null)
             {
                 throw new InvalidOperationException("IGraphicsDeviceFactory is not registered as a service");
             }
 
             _windowedPlatform.WindowCreated += GameOnWindowCreated;
+
+            services.AddService<IGraphicsDeviceManager>(this);
+            services.AddService<IGraphicsDeviceService>(this);
         }
 
         private void GameOnWindowCreated(object sender, EventArgs eventArgs)
@@ -570,13 +578,13 @@ namespace Stride.Games
         {
             if (_platform != null)
             {
-                if (_platform.Services.GetService<IGraphicsDeviceService>() == this)
+                if (_services.GetService<IGraphicsDeviceService>() == this)
                 {
-                    _platform.Services.RemoveService<IGraphicsDeviceService>();
+                    _services.RemoveService<IGraphicsDeviceService>();
                 }
-                if (_platform.Services.GetService<IGraphicsDeviceManager>() == this)
+                if (_services.GetService<IGraphicsDeviceManager>() == this)
                 {
-                    _platform.Services.RemoveService<IGraphicsDeviceManager>();
+                    _services.RemoveService<IGraphicsDeviceManager>();
                 }
 
                 _windowedPlatform.WindowCreated -= GameOnWindowCreated;

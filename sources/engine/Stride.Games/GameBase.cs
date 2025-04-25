@@ -22,6 +22,7 @@
 // THE SOFTWARE.
 
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 using System.Threading;
 using Stride.Core;
@@ -29,7 +30,6 @@ using Stride.Core.Annotations;
 using Stride.Core.Diagnostics;
 using Stride.Core.IO;
 using Stride.Core.Serialization.Contents;
-using Stride.Games.SDL;
 using Stride.Games.Time;
 using Stride.Graphics;
 
@@ -60,6 +60,8 @@ namespace Stride.Games
         protected bool isEndRunRequired;
 
         internal object TickLock = new();
+
+        public List<GameComponent> Components = [];
 
         #endregion
 
@@ -341,17 +343,10 @@ namespace Stride.Games
         }
 
         /// <summary>
-        /// Call this method to initialize the game, begin running the game loop, and start processing events for the game.
+        /// Update this method with the games running logic. This runs after the core initialization of the <seealso cref="GameComponent"/>s
         /// </summary>
-        /// <param name="gameContext">The window Context for this game.</param>
-        /// <exception cref="System.InvalidOperationException">Cannot run this instance while it is already running</exception>
-        public virtual void Run()
+        protected virtual void RunInit()
         {
-            if (IsRunning)
-            {
-                throw new InvalidOperationException("Cannot run this instance while it is already running");
-            }
-
             // Gets the graphics device manager
             graphicsDeviceManager = Services.GetService<IGraphicsDeviceManager>();
             ArgumentNullException.ThrowIfNull(graphicsDeviceManager, nameof(graphicsDeviceManager));
@@ -369,6 +364,26 @@ namespace Stride.Games
                     IsRunning = false;
                 }
             }
+        }
+
+        /// <summary>
+        /// Call this method to initialize the game, begin running the game loop, and start processing events for the game.
+        /// </summary>
+        /// <param name="gameContext">The window Context for this game.</param>
+        /// <exception cref="System.InvalidOperationException">Cannot run this instance while it is already running</exception>
+        public void Run()
+        {
+            if (IsRunning)
+            {
+                throw new InvalidOperationException("Cannot run this instance while it is already running");
+            }
+
+            foreach (var component in Components)
+            {
+                component.Initialize(Services);
+            }
+
+            RunInit();
         }
 
         /// <summary>

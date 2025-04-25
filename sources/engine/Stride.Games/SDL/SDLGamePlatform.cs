@@ -22,12 +22,6 @@ public class SDLGamePlatform : GamePlatform, IWindowedPlatform
 
     public GameWindow MainWindow { get; protected set; } = new GameWindowSDL();
 
-    public override void Exit()
-    {
-        // Notifies that the GameWindow should exit.
-        MainWindow.Exiting = true;
-    }
-
     public override List<GraphicsDeviceInformation> FindBestDevices(GameGraphicsParameters preferredParameters)
     {
         var graphicsDeviceInfos = new List<GraphicsDeviceInformation>();
