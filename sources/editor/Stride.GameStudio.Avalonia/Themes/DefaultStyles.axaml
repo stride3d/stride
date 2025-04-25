@@ -66,6 +66,170 @@
     </Setter>
   </Style>
 
+  <!-- Style for Color editor -->
+  <Style Selector="sd|ColorEditor">
+    <Setter Property="Focusable" Value="False"/>
+    <Setter Property="Template">
+      <ControlTemplate TargetType="sd:ColorEditor">
+        <Grid ColumnDefinitions="Auto,*">
+          <ToggleButton Grid.Column="0" x:Name="PickerToggleButton"
+                        Background="Black"
+                        Margin="2" Width="22" Height="22" VerticalAlignment="Center">
+            <ToggleButton.Template>
+              <ControlTemplate TargetType="ToggleButton">
+                <Rectangle Stroke="Black" StrokeThickness="1"
+                           Width="20" Height="20" VerticalAlignment="Center"
+                           Fill="{Binding $parent[sd:ColorEditor].Value, Converter={sd:ColorConverter}, Mode=OneWay, FallbackValue={x:Static Brushes.Black}}"/>
+              </ControlTemplate>
+            </ToggleButton.Template>
+          </ToggleButton>
+          <TextBox Grid.Column="1" x:Name="TextBox"
+                   Margin="2" VerticalAlignment="Center"
+                   Text="{Binding Value, Converter={sd:ColorConverter}, RelativeSource={RelativeSource TemplatedParent}}"/>
+          <Popup Grid.Column="0"
+                 IsOpen="{Binding #PickerToggleButton.IsChecked}" IsLightDismissEnabled="True">
+            <Grid MinWidth="200" MinHeight="200"
+                  MaxWidth="400" MaxHeight="400">
+              <TabControl>
+                <TabItem Header="{sd:LocalizeString Color picker, Context=Header}">
+                  <TextBlock Text="Color picker placeholder"/>
+                </TabItem>
+                <TabItem Header="{sd:LocalizeString Palette, Context=Header}">
+                  <ListBox ItemsSource="{TemplateBinding Palette}"
+                           SelectedItem="{TemplateBinding SelectedPaletteColor, Mode=TwoWay}"
+                           SelectedValue="{Binding Value, RelativeSource={RelativeSource TemplatedParent}}"
+                           SelectedValueBinding="{Binding Value}">
+                    <ListBox.ItemTemplate>
+                      <DataTemplate>
+                        <DockPanel>
+                          <Rectangle DockPanel.Dock="Left"
+                                     Stroke="Black" StrokeThickness="1"
+                                     Margin="6,2" Width="28" Height="20"
+                                     Fill="{Binding Value, Converter={sd:ColorConverter}, Mode=OneWay}"/>
+                          <TextBlock Text="{Binding Key, Mode=OneWay}" VerticalAlignment="Center"/>
+                        </DockPanel>
+                      </DataTemplate>
+                    </ListBox.ItemTemplate>
+                  </ListBox>
+                </TabItem>
+              </TabControl>
+            </Grid>
+          </Popup>
+        </Grid>
+      </ControlTemplate>
+    </Setter>
+  </Style>
+
+  <!-- Style for Color3 editor -->
+  <Style Selector="sd|Color3Editor">
+    <Setter Property="Focusable" Value="False"/>
+    <Setter Property="Template">
+      <ControlTemplate TargetType="sd:Color3Editor">
+        <Grid ColumnDefinitions="Auto,*">
+          <ToggleButton Grid.Column="0" x:Name="PickerToggleButton"
+                        Background="Black"
+                        Margin="2" Width="22" Height="22" VerticalAlignment="Center">
+            <ToggleButton.Template>
+              <ControlTemplate TargetType="ToggleButton">
+                <Rectangle Stroke="Black" StrokeThickness="1"
+                           Width="20" Height="20" VerticalAlignment="Center"
+                           Fill="{Binding $parent[sd:Color3Editor].Value, Converter={sd:ColorConverter}, Mode=OneWay, FallbackValue={x:Static Brushes.Black}}"/>
+              </ControlTemplate>
+            </ToggleButton.Template>
+          </ToggleButton>
+          <TextBox Grid.Column="1" x:Name="TextBox"
+                   Margin="2" VerticalAlignment="Center"
+                   Text="{Binding Value, Converter={sd:ColorConverter}, RelativeSource={RelativeSource TemplatedParent}}"/>
+          <Popup Grid.Column="0"
+                 IsOpen="{Binding #PickerToggleButton.IsChecked}" IsLightDismissEnabled="True">
+            <Grid MinWidth="200" MinHeight="200"
+                  MaxWidth="400" MaxHeight="400">
+              <TabControl>
+                <TabItem Header="{sd:LocalizeString Color picker, Context=Header}">
+                  <TextBlock Text="Color picker placeholder"/>
+                </TabItem>
+                <TabItem Header="{sd:LocalizeString Palette, Context=Header}">
+                  <ListBox ItemsSource="{TemplateBinding Palette}"
+                           SelectedItem="{TemplateBinding SelectedPaletteColor, Mode=TwoWay}"
+                           SelectedValue="{Binding Value, RelativeSource={RelativeSource TemplatedParent}}"
+                           SelectedValueBinding="{Binding Value}">
+                    <ListBox.ItemTemplate>
+                      <DataTemplate>
+                        <DockPanel>
+                          <Rectangle DockPanel.Dock="Left"
+                                     Stroke="Black" StrokeThickness="1"
+                                     Margin="6,2" Width="28" Height="20"
+                                     Fill="{Binding Value, Converter={sd:ColorConverter}, Mode=OneWay}"/>
+                          <TextBlock Text="{Binding Key, Mode=OneWay}" VerticalAlignment="Center"/>
+                        </DockPanel>
+                      </DataTemplate>
+                    </ListBox.ItemTemplate>
+                  </ListBox>
+                </TabItem>
+              </TabControl>
+            </Grid>
+          </Popup>
+        </Grid>
+      </ControlTemplate>
+    </Setter>
+  </Style>
+
+  <!-- Style for Color4 editor -->
+  <Style Selector="sd|Color4Editor">
+    <Setter Property="Focusable" Value="False"/>
+    <Setter Property="Template">
+      <ControlTemplate TargetType="sd:Color4Editor">
+        <Grid ColumnDefinitions="Auto,*">
+          <ToggleButton Grid.Column="0" x:Name="PickerToggleButton"
+                        Background="Black"
+                        Margin="2" Width="22" Height="22" VerticalAlignment="Center">
+            <ToggleButton.Template>
+              <ControlTemplate TargetType="ToggleButton">
+                <Rectangle Stroke="Black" StrokeThickness="1"
+                           Width="20" Height="20" VerticalAlignment="Center"
+                           Fill="{Binding $parent[sd:Color4Editor].Value, Converter={sd:ColorConverter}, Mode=OneWay, FallbackValue={x:Static Brushes.Black}}"/>
+              </ControlTemplate>
+            </ToggleButton.Template>
+          </ToggleButton>
+          <TextBox Grid.Column="1" x:Name="TextBox"
+                   Margin="2" VerticalAlignment="Center"
+                   Text="{Binding Value, Converter={sd:ColorConverter}, RelativeSource={RelativeSource TemplatedParent}}"/>
+          <Popup Grid.Column="0"
+                 IsOpen="{Binding #PickerToggleButton.IsChecked}" IsLightDismissEnabled="True">
+            <Grid MinWidth="200" MinHeight="200"
+                  MaxWidth="400" MaxHeight="400">
+              <TabControl>
+                <TabItem Header="{sd:LocalizeString Color picker, Context=Header}">
+                  <Grid>
+                    <TextBlock Text="Color picker placeholder"/>
+                  </Grid>
+                </TabItem>
+                <TabItem Header="{sd:LocalizeString Palette, Context=Header}">
+                  <ListBox ItemsSource="{TemplateBinding Palette}"
+                           SelectedItem="{TemplateBinding SelectedPaletteColor, Mode=TwoWay}"
+                           SelectedValue="{Binding Value, RelativeSource={RelativeSource TemplatedParent}}"
+                           SelectedValueBinding="{Binding Value}">
+                    <ListBox.ItemTemplate>
+                      <DataTemplate>
+                        <DockPanel>
+                          <Rectangle DockPanel.Dock="Left"
+                                     Stroke="Black" StrokeThickness="1"
+                                     Margin="6,2" Width="28" Height="20"
+                                     Fill="{Binding Value, Converter={sd:ColorConverter}, Mode=OneWay}"/>
+                          <TextBlock Text="{Binding Key, Mode=OneWay}" VerticalAlignment="Center"/>
+                        </DockPanel>
+                      </DataTemplate>
+                    </ListBox.ItemTemplate>
+                  </ListBox>
+                </TabItem>
+              </TabControl>
+            </Grid>
+          </Popup>
+        </Grid>
+      </ControlTemplate>
+    </Setter>
+  </Style>
+
   <!-- Style for Vector2 editor -->
   <Style Selector="sd|Vector2Editor">
     <Setter Property="Focusable" Value="False"/>

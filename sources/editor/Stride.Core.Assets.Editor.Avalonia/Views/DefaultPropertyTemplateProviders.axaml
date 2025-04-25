@@ -891,6 +891,30 @@
     </DataTemplate>
   </caev:TypeMatchTemplateProvider>
 
+  <!-- Provider for Color -->
+  <caev:TypeMatchTemplateProvider x:Key="ColorPropertyTemplateProvider" Type="{x:Type math:Color}" caev:PropertyViewHelper.TemplateCategory="PropertyEditor">
+    <DataTemplate DataType="cpqvm:NodeViewModel">
+      <sd:ColorEditor Value="{Binding NodeValue, Converter={caec:DifferentValuesToNull}}"
+                      Palette="{x:Static caev:ColorPalettes.Metals}"/>
+    </DataTemplate>
+  </caev:TypeMatchTemplateProvider>
+
+  <!-- Provider for Color3 -->
+  <caev:TypeMatchTemplateProvider x:Key="Color3PropertyTemplateProvider" Type="{x:Type math:Color3}" caev:PropertyViewHelper.TemplateCategory="PropertyEditor">
+    <DataTemplate DataType="cpqvm:NodeViewModel">
+      <sd:Color3Editor Value="{Binding NodeValue, Converter={caec:DifferentValuesToNull}}"
+                       Palette="{x:Static caev:ColorPalettes.Metals}"/>
+    </DataTemplate>
+  </caev:TypeMatchTemplateProvider>
+
+  <!-- Provider for Color4 -->
+  <caev:TypeMatchTemplateProvider x:Key="Color4PropertyTemplateProvider" Type="{x:Type math:Color4}" caev:PropertyViewHelper.TemplateCategory="PropertyEditor">
+    <DataTemplate DataType="cpqvm:NodeViewModel">
+      <sd:Color4Editor Value="{Binding NodeValue, Converter={caec:DifferentValuesToNull}}"
+                       Palette="{x:Static caev:ColorPalettes.Metals}"/>
+    </DataTemplate>
+  </caev:TypeMatchTemplateProvider>
+
   <!-- Provider for Vector2 -->
   <caev:TypeMatchTemplateProvider x:Key="Vector2PropertyTemplateProvider" Type="{x:Type math:Vector2}" caev:PropertyViewHelper.TemplateCategory="PropertyEditor">
     <DataTemplate DataType="cpqvm:NodeViewModel">
