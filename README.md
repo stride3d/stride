@@ -45,7 +45,7 @@ Our [Roadmap](https://doc.stride3d.net/latest/en/contributors/roadmap.html) comm
 1. **Latest [Git](https://git-scm.com/downloads)** with **Large File Support** selected during setup. For convenience, you might also use a Git UI client like [GitExtensions](https://gitextensions.github.io/).
 2. **[.NET 8.0 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/8.0)**
    - Run `dotnet --info` in a console or PowerShell window to see which versions you have installed.
-3. **[Visual Studio 2022](https://visualstudio.microsoft.com/downloads/)** (the Community edition is free) with the following workloads, which can be installed also through [Visual Studio Build Tools](https://aka.ms/vs/17/release/vs_BuildTools.exe) if you would like to use other IDEs:
+3. [Visual Studio 2022](https://visualstudio.microsoft.com/downloads/) (the Community edition is free), with the following workloads. Follow this link if you would rather use [a different IDE or the command line](#build-stride-without-visual-studio).
    - **.NET desktop development** with **.NET Framework 4.7.2 targeting pack** *(should be enabled by default)*
    - **Desktop development with C++** with:
      - **Windows 11 SDK (10.0.22621.0)** or a later version *(should be enabled by default)*
