@@ -13,10 +13,19 @@ public abstract class VectorEditorBase : TemplatedControl
     public static readonly StyledProperty<int> DecimalPlacesProperty =
         AvaloniaProperty.Register<VectorEditorBase, int>(nameof(DecimalPlaces), -1);
 
+    public static readonly StyledProperty<string?> WatermarkProperty =
+        AvaloniaProperty.Register<VectorEditorBase, string?>(nameof(Watermark));
+
     public int DecimalPlaces
     {
         get => GetValue(DecimalPlacesProperty);
         set => SetValue(DecimalPlacesProperty, value);
+    }
+
+    public string? Watermark
+    {
+        get => GetValue(WatermarkProperty);
+        set => SetValue(WatermarkProperty, value);
     }
 
     public abstract void ResetValue();

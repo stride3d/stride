@@ -13,6 +13,9 @@ public sealed class TimeSpanEditor : TemplatedControl
     public static readonly StyledProperty<TimeSpan?> ValueProperty =
         AvaloniaProperty.Register<TimeSpanEditor, TimeSpan?>(nameof(Value), defaultBindingMode: BindingMode.TwoWay);
 
+    public static readonly StyledProperty<string?> WatermarkProperty =
+        AvaloniaProperty.Register<DateTimeEditor, string?>(nameof(Watermark));
+
     public static readonly StyledProperty<int?> DaysProperty =
         AvaloniaProperty.Register<TimeSpanEditor, int?>(nameof(Days), defaultBindingMode: BindingMode.TwoWay);
 
@@ -24,11 +27,17 @@ public sealed class TimeSpanEditor : TemplatedControl
 
     public static readonly StyledProperty<double?> SecondsProperty =
         AvaloniaProperty.Register<TimeSpanEditor, double?>(nameof(Seconds), defaultBindingMode: BindingMode.TwoWay);
-    
+
     public TimeSpan? Value
     {
         get => GetValue(ValueProperty);
         set => SetValue(ValueProperty, value);
+    }
+
+    public string? Watermark
+    {
+        get => GetValue(WatermarkProperty);
+        set => SetValue(WatermarkProperty, value);
     }
 
     public int? Days
@@ -86,7 +95,7 @@ public sealed class TimeSpanEditor : TemplatedControl
             return Minutes.HasValue && Value.HasValue ? new TimeSpan(Value.Value.Days * TimeSpan.TicksPerDay + Value.Value.Hours * TimeSpan.TicksPerHour + Minutes.Value * TimeSpan.TicksPerMinute + Value.Value.Ticks % TimeSpan.TicksPerMinute) : null;
         if (property == SecondsProperty)
             return Seconds.HasValue && Value.HasValue ? new TimeSpan(Value.Value.Days * TimeSpan.TicksPerDay + Value.Value.Hours * TimeSpan.TicksPerHour + Value.Value.Minutes * TimeSpan.TicksPerMinute + (long)(Seconds.Value * TimeSpan.TicksPerSecond)) : null;
-        
+
         throw new ArgumentException($"Property {property} is unsupported by method {nameof(UpdateValueFromComponent)}.");
     }
 

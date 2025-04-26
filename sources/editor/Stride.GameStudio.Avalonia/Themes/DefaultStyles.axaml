@@ -21,7 +21,8 @@
           <TextBox Grid.Column="0"
                    IsReadOnly="True"
                    Margin="-1" TextAlignment="Center"
-                   Text="{Binding Value, RelativeSource={RelativeSource TemplatedParent}, Mode=OneWay}"/>
+                   Text="{Binding Value, RelativeSource={RelativeSource TemplatedParent}, Mode=OneWay}"
+                   Watermark="{TemplateBinding Watermark}"/>
         </Grid>
       </ControlTemplate>
     </Setter>
@@ -36,28 +37,32 @@
           <NumericUpDown Grid.Column="0"
                          Margin="-1" TextAlignment="Right" ShowButtonSpinner="False"
                          Minimum="0"
-                         Value="{Binding Days, RelativeSource={RelativeSource TemplatedParent}}"/>
+                         Value="{Binding Days, RelativeSource={RelativeSource TemplatedParent}}"
+                         Watermark="{TemplateBinding Watermark}"/>
           <Label Grid.Column="1"
                  Margin="2" HorizontalAlignment="Center" VerticalAlignment="Center"
                  Content=" d "/>
           <NumericUpDown Grid.Column="2"
                          Margin="-1" TextAlignment="Right" ShowButtonSpinner="False"
                          Minimum="0" Maximum="23"
-                         Value="{Binding Hours, RelativeSource={RelativeSource TemplatedParent}}"/>
+                         Value="{Binding Hours, RelativeSource={RelativeSource TemplatedParent}}"
+                         Watermark="{TemplateBinding Watermark}"/>
           <Label Grid.Column="3"
                  Margin="2" HorizontalAlignment="Center" VerticalAlignment="Center"
                  Content=" h "/>
           <NumericUpDown Grid.Column="4"
                          Margin="-1" TextAlignment="Right" ShowButtonSpinner="False"
                          Minimum="0" Maximum="59"
-                         Value="{Binding Minutes, RelativeSource={RelativeSource TemplatedParent}}"/>
+                         Value="{Binding Minutes, RelativeSource={RelativeSource TemplatedParent}}"
+                         Watermark="{TemplateBinding Watermark}"/>
           <Label Grid.Column="5"
                  Margin="2" HorizontalAlignment="Center" VerticalAlignment="Center"
                  Content=" min "/>
           <NumericUpDown Grid.Column="6"
                          Margin="-1" TextAlignment="Right" ShowButtonSpinner="False"
                          Minimum="0.0000000" Maximum="59.9999999"
-                         Value="{Binding Seconds, RelativeSource={RelativeSource TemplatedParent}}"/>
+                         Value="{Binding Seconds, RelativeSource={RelativeSource TemplatedParent}}"
+                         Watermark="{TemplateBinding Watermark}"/>
           <Label Grid.Column="7"
                  Margin="2" HorizontalAlignment="Center" VerticalAlignment="Center"
                  Content=" s "/>
@@ -85,7 +90,8 @@
           </ToggleButton>
           <TextBox Grid.Column="1" x:Name="TextBox"
                    Margin="2" VerticalAlignment="Center"
-                   Text="{Binding Value, Converter={sd:ColorConverter}, RelativeSource={RelativeSource TemplatedParent}}"/>
+                   Text="{Binding Value, Converter={sd:ColorConverter}, RelativeSource={RelativeSource TemplatedParent}}"
+                   Watermark="{TemplateBinding Watermark}"/>
           <Popup Grid.Column="0"
                  IsOpen="{Binding #PickerToggleButton.IsChecked}" IsLightDismissEnabled="True">
             <Grid MinWidth="200" MinHeight="200"
@@ -139,7 +145,8 @@
           </ToggleButton>
           <TextBox Grid.Column="1" x:Name="TextBox"
                    Margin="2" VerticalAlignment="Center"
-                   Text="{Binding Value, Converter={sd:ColorConverter}, RelativeSource={RelativeSource TemplatedParent}}"/>
+                   Text="{Binding Value, Converter={sd:ColorConverter}, RelativeSource={RelativeSource TemplatedParent}}"
+                   Watermark="{TemplateBinding Watermark}"/>
           <Popup Grid.Column="0"
                  IsOpen="{Binding #PickerToggleButton.IsChecked}" IsLightDismissEnabled="True">
             <Grid MinWidth="200" MinHeight="200"
@@ -193,7 +200,8 @@
           </ToggleButton>
           <TextBox Grid.Column="1" x:Name="TextBox"
                    Margin="2" VerticalAlignment="Center"
-                   Text="{Binding Value, Converter={sd:ColorConverter}, RelativeSource={RelativeSource TemplatedParent}}"/>
+                   Text="{Binding Value, Converter={sd:ColorConverter}, RelativeSource={RelativeSource TemplatedParent}}"
+                   Watermark="{TemplateBinding Watermark}"/>
           <Popup Grid.Column="0"
                  IsOpen="{Binding #PickerToggleButton.IsChecked}" IsLightDismissEnabled="True">
             <Grid MinWidth="200" MinHeight="200"
@@ -245,7 +253,8 @@
               <TextBlock Text="X" Margin="3,0" MinWidth="12" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource WhiteBrush}"/>
               <NumericUpDown Margin="-1" TextAlignment="Center"
                              ShowButtonSpinner="False"
-                             Value="{Binding X, RelativeSource={RelativeSource TemplatedParent}}"/>
+                             Value="{Binding X, RelativeSource={RelativeSource TemplatedParent}}"
+                             Watermark="{TemplateBinding Watermark}"/>
             </DockPanel>
           </Border>
           <!-- Y component -->
@@ -257,7 +266,8 @@
               <TextBlock Text="Y" Margin="3,0" MinWidth="12" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource WhiteBrush}"/>
               <NumericUpDown Margin="-1" TextAlignment="Center"
                              ShowButtonSpinner="False"
-                             Value="{Binding Y, RelativeSource={RelativeSource TemplatedParent}}"/>
+                             Value="{Binding Y, RelativeSource={RelativeSource TemplatedParent}}"
+                             Watermark="{TemplateBinding Watermark}"/>
             </DockPanel>
           </Border>
         </Grid>
@@ -280,7 +290,8 @@
               <TextBlock Text="X" Margin="3,0" MinWidth="12" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource WhiteBrush}"/>
               <NumericUpDown Margin="-1" TextAlignment="Center"
                              ShowButtonSpinner="False"
-                             Value="{Binding X, RelativeSource={RelativeSource TemplatedParent}}"/>
+                             Value="{Binding X, RelativeSource={RelativeSource TemplatedParent}}"
+                             Watermark="{TemplateBinding Watermark}"/>
             </DockPanel>
           </Border>
           <!-- Y component -->
@@ -292,7 +303,8 @@
               <TextBlock Text="Y" Margin="3,0" MinWidth="12" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource WhiteBrush}"/>
               <NumericUpDown Margin="-1" TextAlignment="Center"
                              ShowButtonSpinner="False"
-                             Value="{Binding Y, RelativeSource={RelativeSource TemplatedParent}}"/>
+                             Value="{Binding Y, RelativeSource={RelativeSource TemplatedParent}}"
+                             Watermark="{TemplateBinding Watermark}"/>
             </DockPanel>
           </Border>
           <!-- Z component -->
@@ -304,7 +316,8 @@
               <TextBlock Text="Z" Margin="3,0" MinWidth="12" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource WhiteBrush}"/>
               <NumericUpDown Margin="-1" TextAlignment="Center"
                              ShowButtonSpinner="False"
-                             Value="{Binding Z, RelativeSource={RelativeSource TemplatedParent}}"/>
+                             Value="{Binding Z, RelativeSource={RelativeSource TemplatedParent}}"
+                             Watermark="{TemplateBinding Watermark}"/>
             </DockPanel>
           </Border>
         </Grid>
@@ -327,7 +340,8 @@
               <TextBlock Text="X" Margin="3,0" MinWidth="12" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource WhiteBrush}"/>
               <NumericUpDown Margin="-1" TextAlignment="Center"
                              ShowButtonSpinner="False"
-                             Value="{Binding X, RelativeSource={RelativeSource TemplatedParent}}"/>
+                             Value="{Binding X, RelativeSource={RelativeSource TemplatedParent}}"
+                             Watermark="{TemplateBinding Watermark}"/>
             </DockPanel>
           </Border>
           <!-- Y component -->
@@ -339,7 +353,8 @@
               <TextBlock Text="Y" Margin="3,0" MinWidth="12" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource WhiteBrush}"/>
               <NumericUpDown Margin="-1" TextAlignment="Center"
                              ShowButtonSpinner="False"
-                             Value="{Binding Y, RelativeSource={RelativeSource TemplatedParent}}"/>
+                             Value="{Binding Y, RelativeSource={RelativeSource TemplatedParent}}"
+                             Watermark="{TemplateBinding Watermark}"/>
             </DockPanel>
           </Border>
           <!-- Z component -->
@@ -351,7 +366,8 @@
               <TextBlock Text="Z" Margin="3,0" MinWidth="12" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource WhiteBrush}"/>
               <NumericUpDown Margin="-1" TextAlignment="Center"
                              ShowButtonSpinner="False"
-                             Value="{Binding Z, RelativeSource={RelativeSource TemplatedParent}}"/>
+                             Value="{Binding Z, RelativeSource={RelativeSource TemplatedParent}}"
+                             Watermark="{TemplateBinding Watermark}"/>
             </DockPanel>
           </Border>
           <!-- W component -->
@@ -363,7 +379,8 @@
               <TextBlock Text="W" Margin="3,0" MinWidth="12" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource WhiteBrush}"/>
               <NumericUpDown Margin="-1" TextAlignment="Center"
                              ShowButtonSpinner="False"
-                             Value="{Binding W, RelativeSource={RelativeSource TemplatedParent}}"/>
+                             Value="{Binding W, RelativeSource={RelativeSource TemplatedParent}}"
+                             Watermark="{TemplateBinding Watermark}"/>
             </DockPanel>
           </Border>
         </Grid>
@@ -386,7 +403,8 @@
               <TextBlock Text="X" Margin="3,0" MinWidth="12" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource WhiteBrush}"/>
               <NumericUpDown Margin="-1" TextAlignment="Center"
                              ShowButtonSpinner="False"
-                             Value="{Binding X, RelativeSource={RelativeSource TemplatedParent}}"/>
+                             Value="{Binding X, RelativeSource={RelativeSource TemplatedParent}}"
+                             Watermark="{TemplateBinding Watermark}"/>
             </DockPanel>
           </Border>
           <!-- Y component -->
@@ -398,7 +416,8 @@
               <TextBlock Text="Y" Margin="3,0" MinWidth="12" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource WhiteBrush}"/>
               <NumericUpDown Margin="-1" TextAlignment="Center"
                              ShowButtonSpinner="False"
-                             Value="{Binding Y, RelativeSource={RelativeSource TemplatedParent}}"/>
+                             Value="{Binding Y, RelativeSource={RelativeSource TemplatedParent}}"
+                             Watermark="{TemplateBinding Watermark}"/>
             </DockPanel>
           </Border>
         </Grid>
@@ -421,7 +440,8 @@
               <TextBlock Text="X" Margin="3,0" MinWidth="12" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource WhiteBrush}"/>
               <NumericUpDown Margin="-1" TextAlignment="Center"
                              ShowButtonSpinner="False"
-                             Value="{Binding X, RelativeSource={RelativeSource TemplatedParent}}"/>
+                             Value="{Binding X, RelativeSource={RelativeSource TemplatedParent}}"
+                             Watermark="{TemplateBinding Watermark}"/>
             </DockPanel>
           </Border>
           <!-- Y component -->
@@ -433,7 +453,8 @@
               <TextBlock Text="Y" Margin="3,0" MinWidth="12" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource WhiteBrush}"/>
               <NumericUpDown Margin="-1" TextAlignment="Center"
                              ShowButtonSpinner="False"
-                             Value="{Binding Y, RelativeSource={RelativeSource TemplatedParent}}"/>
+                             Value="{Binding Y, RelativeSource={RelativeSource TemplatedParent}}"
+                             Watermark="{TemplateBinding Watermark}"/>
             </DockPanel>
           </Border>
           <!-- Z component -->
@@ -445,7 +466,8 @@
               <TextBlock Text="Z" Margin="3,0" MinWidth="12" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource WhiteBrush}"/>
               <NumericUpDown Margin="-1" TextAlignment="Center"
                              ShowButtonSpinner="False"
-                             Value="{Binding Z, RelativeSource={RelativeSource TemplatedParent}}"/>
+                             Value="{Binding Z, RelativeSource={RelativeSource TemplatedParent}}"
+                             Watermark="{TemplateBinding Watermark}"/>
             </DockPanel>
           </Border>
         </Grid>
@@ -468,7 +490,8 @@
               <TextBlock Text="X" Margin="3,0" MinWidth="12" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource WhiteBrush}"/>
               <NumericUpDown Margin="-1" TextAlignment="Center"
                              ShowButtonSpinner="False"
-                             Value="{Binding X, RelativeSource={RelativeSource TemplatedParent}}"/>
+                             Value="{Binding X, RelativeSource={RelativeSource TemplatedParent}}"
+                             Watermark="{TemplateBinding Watermark}"/>
             </DockPanel>
           </Border>
           <!-- Y component -->
@@ -480,7 +503,8 @@
               <TextBlock Text="Y" Margin="3,0" MinWidth="12" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource WhiteBrush}"/>
               <NumericUpDown Margin="-1" TextAlignment="Center"
                              ShowButtonSpinner="False"
-                             Value="{Binding Y, RelativeSource={RelativeSource TemplatedParent}}"/>
+                             Value="{Binding Y, RelativeSource={RelativeSource TemplatedParent}}"
+                             Watermark="{TemplateBinding Watermark}"/>
             </DockPanel>
           </Border>
           <!-- Z component -->
@@ -492,7 +516,8 @@
               <TextBlock Text="Z" Margin="3,0" MinWidth="12" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource WhiteBrush}"/>
               <NumericUpDown Margin="-1" TextAlignment="Center"
                              ShowButtonSpinner="False"
-                             Value="{Binding Z, RelativeSource={RelativeSource TemplatedParent}}"/>
+                             Value="{Binding Z, RelativeSource={RelativeSource TemplatedParent}}"
+                             Watermark="{TemplateBinding Watermark}"/>
             </DockPanel>
           </Border>
           <!-- W component -->
@@ -504,7 +529,8 @@
               <TextBlock Text="W" Margin="3,0" MinWidth="12" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource WhiteBrush}"/>
               <NumericUpDown Margin="-1" TextAlignment="Center"
                              ShowButtonSpinner="False"
-                             Value="{Binding W, RelativeSource={RelativeSource TemplatedParent}}"/>
+                             Value="{Binding W, RelativeSource={RelativeSource TemplatedParent}}"
+                             Watermark="{TemplateBinding Watermark}"/>
             </DockPanel>
           </Border>
         </Grid>
@@ -526,7 +552,8 @@
               <TextBlock Text="X" Margin="3,0" MinWidth="12" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource WhiteBrush}"/>
               <NumericUpDown Margin="-1" TextAlignment="Center"
                              ShowButtonSpinner="False"
-                             Value="{Binding RectX, RelativeSource={RelativeSource TemplatedParent}}"/>
+                             Value="{Binding RectX, RelativeSource={RelativeSource TemplatedParent}}"
+                             Watermark="{TemplateBinding Watermark}"/>
             </DockPanel>
           </Border>
           <Border Grid.Column="1"
@@ -537,7 +564,8 @@
               <TextBlock Text="Y" Margin="3,0" MinWidth="12" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource WhiteBrush}"/>
               <NumericUpDown Margin="-1" TextAlignment="Center"
                              ShowButtonSpinner="False"
-                             Value="{Binding RectY, RelativeSource={RelativeSource TemplatedParent}}"/>
+                             Value="{Binding RectY, RelativeSource={RelativeSource TemplatedParent}}"
+                             Watermark="{TemplateBinding Watermark}"/>
             </DockPanel>
           </Border>
           <Border Grid.Column="1"
@@ -548,7 +576,8 @@
               <TextBlock Text="W" Margin="3,0" MinWidth="12" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource WhiteBrush}"/>
               <NumericUpDown Margin="-1" TextAlignment="Center"
                              ShowButtonSpinner="False"
-                             Value="{Binding RectWidth, RelativeSource={RelativeSource TemplatedParent}}"/>
+                             Value="{Binding RectWidth, RelativeSource={RelativeSource TemplatedParent}}"
+                             Watermark="{TemplateBinding Watermark}"/>
             </DockPanel>
           </Border>
           <Border Grid.Column="7"
@@ -559,7 +588,8 @@
               <TextBlock Text="H" Margin="3,0" MinWidth="12" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource WhiteBrush}"/>
               <NumericUpDown Margin="-1" TextAlignment="Center"
                              ShowButtonSpinner="False"
-                             Value="{Binding RectHeight, RelativeSource={RelativeSource TemplatedParent}}"/>
+                             Value="{Binding RectHeight, RelativeSource={RelativeSource TemplatedParent}}"
+                             Watermark="{TemplateBinding Watermark}"/>
             </DockPanel>
           </Border>
         </Grid>
@@ -581,7 +611,8 @@
               <TextBlock Text="X" Margin="3,0" MinWidth="12" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource WhiteBrush}"/>
               <NumericUpDown Margin="-1" TextAlignment="Center"
                              ShowButtonSpinner="False"
-                             Value="{Binding RectX, RelativeSource={RelativeSource TemplatedParent}}"/>
+                             Value="{Binding RectX, RelativeSource={RelativeSource TemplatedParent}}"
+                             Watermark="{TemplateBinding Watermark}"/>
             </DockPanel>
           </Border>
           <Border Grid.Column="1"
@@ -592,7 +623,8 @@
               <TextBlock Text="Y" Margin="3,0" MinWidth="12" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource WhiteBrush}"/>
               <NumericUpDown Margin="-1" TextAlignment="Center"
                              ShowButtonSpinner="False"
-                             Value="{Binding RectY, RelativeSource={RelativeSource TemplatedParent}}"/>
+                             Value="{Binding RectY, RelativeSource={RelativeSource TemplatedParent}}"
+                             Watermark="{TemplateBinding Watermark}"/>
             </DockPanel>
           </Border>
           <Border Grid.Column="1"
@@ -603,7 +635,8 @@
               <TextBlock Text="W" Margin="3,0" MinWidth="12" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource WhiteBrush}"/>
               <NumericUpDown Margin="-1" TextAlignment="Center"
                              ShowButtonSpinner="False"
-                             Value="{Binding RectWidth, RelativeSource={RelativeSource TemplatedParent}}"/>
+                             Value="{Binding RectWidth, RelativeSource={RelativeSource TemplatedParent}}"
+                             Watermark="{TemplateBinding Watermark}"/>
             </DockPanel>
           </Border>
           <Border Grid.Column="7"
@@ -614,7 +647,8 @@
               <TextBlock Text="H" Margin="3,0" MinWidth="12" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource WhiteBrush}"/>
               <NumericUpDown Margin="-1" TextAlignment="Center"
                              ShowButtonSpinner="False"
-                             Value="{Binding RectHeight, RelativeSource={RelativeSource TemplatedParent}}"/>
+                             Value="{Binding RectHeight, RelativeSource={RelativeSource TemplatedParent}}"
+                             Watermark="{TemplateBinding Watermark}"/>
             </DockPanel>
           </Border>
         </Grid>
@@ -638,7 +672,8 @@
               <TextBlock Text="X" Margin="3,0" MinWidth="12" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource WhiteBrush}"/>
               <NumericUpDown Margin="-1" TextAlignment="Center"
                              ShowButtonSpinner="False"
-                             Value="{Binding X, RelativeSource={RelativeSource TemplatedParent}}"/>
+                             Value="{Binding X, RelativeSource={RelativeSource TemplatedParent}}"
+                             Watermark="{TemplateBinding Watermark}"/>
             </DockPanel>
           </Border>
           <!-- Y component -->
@@ -650,7 +685,8 @@
               <TextBlock Text="Y" Margin="3,0" MinWidth="12" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource WhiteBrush}"/>
               <NumericUpDown Margin="-1" TextAlignment="Center"
                              ShowButtonSpinner="False"
-                             Value="{Binding Y, RelativeSource={RelativeSource TemplatedParent}}"/>
+                             Value="{Binding Y, RelativeSource={RelativeSource TemplatedParent}}"
+                             Watermark="{TemplateBinding Watermark}"/>
             </DockPanel>
           </Border>
           <!-- Z component -->
@@ -662,7 +698,8 @@
               <TextBlock Text="Z" Margin="3,0" MinWidth="12" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource WhiteBrush}"/>
               <NumericUpDown Margin="-1" TextAlignment="Center"
                              ShowButtonSpinner="False"
-                             Value="{Binding Z, RelativeSource={RelativeSource TemplatedParent}}"/>
+                             Value="{Binding Z, RelativeSource={RelativeSource TemplatedParent}}"
+                             Watermark="{TemplateBinding Watermark}"/>
             </DockPanel>
           </Border>
         </Grid>
@@ -679,58 +716,73 @@
           <!-- first row -->
           <NumericUpDown Margin="2" TextAlignment="Center"
                          ShowButtonSpinner="False"
-                         Value="{Binding M11, RelativeSource={RelativeSource TemplatedParent}}"/>
+                         Value="{Binding M11, RelativeSource={RelativeSource TemplatedParent}}"
+                         Watermark="{TemplateBinding Watermark}"/>
           <NumericUpDown Margin="2" TextAlignment="Center"
                          ShowButtonSpinner="False"
-                         Value="{Binding M12, RelativeSource={RelativeSource TemplatedParent}}"/>
+                         Value="{Binding M12, RelativeSource={RelativeSource TemplatedParent}}"
+                         Watermark="{TemplateBinding Watermark}"/>
           <NumericUpDown Margin="2" TextAlignment="Center"
                          ShowButtonSpinner="False"
-                         Value="{Binding M13, RelativeSource={RelativeSource TemplatedParent}}"/>
+                         Value="{Binding M13, RelativeSource={RelativeSource TemplatedParent}}"
+                         Watermark="{TemplateBinding Watermark}"/>
           <NumericUpDown Margin="2" TextAlignment="Center"
                          ShowButtonSpinner="False"
-                         Value="{Binding M14, RelativeSource={RelativeSource TemplatedParent}}"/>
+                         Value="{Binding M14, RelativeSource={RelativeSource TemplatedParent}}"
+                         Watermark="{TemplateBinding Watermark}"/>
           <!-- second row -->
           <NumericUpDown Margin="2" TextAlignment="Center"
                          ShowButtonSpinner="False"
-                         Value="{Binding M21, RelativeSource={RelativeSource TemplatedParent}}"/>
+                         Value="{Binding M21, RelativeSource={RelativeSource TemplatedParent}}"
+                         Watermark="{TemplateBinding Watermark}"/>
           <NumericUpDown Margin="2" TextAlignment="Center"
                          ShowButtonSpinner="False"
-                         Value="{Binding M22, RelativeSource={RelativeSource TemplatedParent}}"/>
+                         Value="{Binding M22, RelativeSource={RelativeSource TemplatedParent}}"
+                         Watermark="{TemplateBinding Watermark}"/>
           <NumericUpDown Margin="2" TextAlignment="Center"
                          ShowButtonSpinner="False"
-                         Value="{Binding M23, RelativeSource={RelativeSource TemplatedParent}}"/>
+                         Value="{Binding M23, RelativeSource={RelativeSource TemplatedParent}}"
+                         Watermark="{TemplateBinding Watermark}"/>
           <NumericUpDown Margin="2" TextAlignment="Center"
                          ShowButtonSpinner="False"
-                         Value="{Binding M24, RelativeSource={RelativeSource TemplatedParent}}"/>
+                         Value="{Binding M24, RelativeSource={RelativeSource TemplatedParent}}"
+                         Watermark="{TemplateBinding Watermark}"/>
           <!-- third row -->
           <NumericUpDown Margin="2" TextAlignment="Center"
                          ShowButtonSpinner="False"
-                         Value="{Binding M31, RelativeSource={RelativeSource TemplatedParent}}"/>
+                         Value="{Binding M31, RelativeSource={RelativeSource TemplatedParent}}"
+                         Watermark="{TemplateBinding Watermark}"/>
           <NumericUpDown Margin="2" TextAlignment="Center"
                          ShowButtonSpinner="False"
-                         Value="{Binding M32, RelativeSource={RelativeSource TemplatedParent}}"/>
+                         Value="{Binding M32, RelativeSource={RelativeSource TemplatedParent}}"
+                         Watermark="{TemplateBinding Watermark}"/>
           <NumericUpDown Margin="2" TextAlignment="Center"
                          ShowButtonSpinner="False"
-                         Value="{Binding M33, RelativeSource={RelativeSource TemplatedParent}}"/>
+                         Value="{Binding M33, RelativeSource={RelativeSource TemplatedParent}}"
+                         Watermark="{TemplateBinding Watermark}"/>
           <NumericUpDown Margin="2" TextAlignment="Center"
                          ShowButtonSpinner="False"
-                         Value="{Binding M34, RelativeSource={RelativeSource TemplatedParent}}"/>
+                         Value="{Binding M34, RelativeSource={RelativeSource TemplatedParent}}"
+                         Watermark="{TemplateBinding Watermark}"/>
           <!-- fourth row -->
           <NumericUpDown Margin="2" TextAlignment="Center"
                          ShowButtonSpinner="False"
-                         Value="{Binding M41, RelativeSource={RelativeSource TemplatedParent}}"/>
+                         Value="{Binding M41, RelativeSource={RelativeSource TemplatedParent}}"
+                         Watermark="{TemplateBinding Watermark}"/>
           <NumericUpDown Margin="2" TextAlignment="Center"
                          ShowButtonSpinner="False"
-                         Value="{Binding M42, RelativeSource={RelativeSource TemplatedParent}}"/>
+                         Value="{Binding M42, RelativeSource={RelativeSource TemplatedParent}}"
+                         Watermark="{TemplateBinding Watermark}"/>
           <NumericUpDown Margin="2" TextAlignment="Center"
                          ShowButtonSpinner="False"
-                         Value="{Binding M43, RelativeSource={RelativeSource TemplatedParent}}"/>
+                         Value="{Binding M43, RelativeSource={RelativeSource TemplatedParent}}"
+                         Watermark="{TemplateBinding Watermark}"/>
           <NumericUpDown Margin="2" TextAlignment="Center"
                          ShowButtonSpinner="False"
-                         Value="{Binding M44, RelativeSource={RelativeSource TemplatedParent}}"/>
+                         Value="{Binding M44, RelativeSource={RelativeSource TemplatedParent}}"
+                         Watermark="{TemplateBinding Watermark}"/>
         </UniformGrid>
       </ControlTemplate>
     </Setter>
   </Style>
-
 </Styles>

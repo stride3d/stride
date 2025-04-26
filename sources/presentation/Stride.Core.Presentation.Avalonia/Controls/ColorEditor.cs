@@ -13,6 +13,9 @@ public abstract class ColorEditor<T> : TemplatedControl
     public static readonly StyledProperty<T> ValueProperty =
         AvaloniaProperty.Register<ColorEditor<T>, T>(nameof(Value), defaultBindingMode: BindingMode.TwoWay);
 
+    public static readonly StyledProperty<string?> WatermarkProperty =
+        AvaloniaProperty.Register<ColorEditor<T>, string?>(nameof(Watermark));
+
     public static readonly StyledProperty<IReadOnlyDictionary<string, Color4>> PaletteProperty =
         AvaloniaProperty.Register<ColorEditor<T>, IReadOnlyDictionary<string, Color4>>(nameof(Palette));
 
@@ -23,6 +26,12 @@ public abstract class ColorEditor<T> : TemplatedControl
     {
         get => GetValue(ValueProperty);
         set => SetValue(ValueProperty, value);
+    }
+
+    public string? Watermark
+    {
+        get => GetValue(WatermarkProperty);
+        set => SetValue(WatermarkProperty, value);
     }
 
     public IReadOnlyDictionary<string, Color4> Palette

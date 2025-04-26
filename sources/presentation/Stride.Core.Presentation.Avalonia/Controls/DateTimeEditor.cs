@@ -13,6 +13,9 @@ public sealed class DateTimeEditor : TemplatedControl
     public static readonly StyledProperty<DateTime?> ValueProperty =
         AvaloniaProperty.Register<DateTimeEditor, DateTime?>(nameof(Value), defaultBindingMode: BindingMode.TwoWay);
 
+    public static readonly StyledProperty<string?> WatermarkProperty =
+        AvaloniaProperty.Register<DateTimeEditor, string?>(nameof(Watermark));
+
     public static readonly StyledProperty<int?> YearProperty =
         AvaloniaProperty.Register<DateTimeEditor, int?>(nameof(Year), defaultBindingMode: BindingMode.TwoWay);
 
@@ -35,6 +38,12 @@ public sealed class DateTimeEditor : TemplatedControl
     {
         get => GetValue(ValueProperty);
         set => SetValue(ValueProperty, value);
+    }
+
+    public string? Watermark
+    {
+        get => GetValue(WatermarkProperty);
+        set => SetValue(WatermarkProperty, value);
     }
 
     public int? Year

@@ -85,17 +85,17 @@
                         Width="16" Height="16" Margin="2,0" Background="Transparent" Focusable="False">
                   <Image Source="{TemplateBinding Tag}" Width="16" Height="16"/>
                   <Interaction.Behaviors>
-                    <DataTriggerBehavior Binding="{TemplateBinding IsPointerOver}" Value="True">
-                      <ChangePropertyAction PropertyName="Background" TargetObject="Border" Value="#FFAAAAAA"/>
-                    </DataTriggerBehavior>
-                    <DataTriggerBehavior Binding="{TemplateBinding IsChecked}" Value="True">
-                      <ChangePropertyAction PropertyName="Background" TargetObject="Border" Value="#FFAAAAAA"/>
-                    </DataTriggerBehavior>
-                    <DataTriggerBehavior Binding="{TemplateBinding IsEnabled}" Value="False">
-                      <ChangePropertyAction PropertyName="Foreground" Value="#FF656565"/>
-                      <ChangePropertyAction PropertyName="Background" TargetObject="Border" Value="#FF040404"/>
-                      <ChangePropertyAction PropertyName="Opacity" TargetObject="Border" Value="0.8"/>
-                    </DataTriggerBehavior>
+                    <sd:DataTriggerBehavior Binding="{TemplateBinding IsPointerOver}" Value="{sd:True}">
+                      <sd:ChangePropertyAction PropertyName="Background" TargetObject="Border" Value="#FFAAAAAA"/>
+                    </sd:DataTriggerBehavior>
+                    <sd:DataTriggerBehavior Binding="{TemplateBinding IsChecked}" Value="{sd:True}">
+                      <sd:ChangePropertyAction PropertyName="Background" TargetObject="Border" Value="#FFAAAAAA"/>
+                    </sd:DataTriggerBehavior>
+                    <sd:DataTriggerBehavior Binding="{TemplateBinding IsEnabled}" Value="{sd:False}">
+                      <sd:ChangePropertyAction PropertyName="Foreground" Value="#FF656565"/>
+                      <sd:ChangePropertyAction PropertyName="Background" TargetObject="Border" Value="#FF040404"/>
+                      <sd:ChangePropertyAction PropertyName="Opacity" TargetObject="Border" Value="{sd:Double 0.8}"/>
+                    </sd:DataTriggerBehavior>
                   </Interaction.Behaviors>
                 </Border>
               </ControlTemplate>
@@ -220,14 +220,14 @@
                    IsVisible="{Binding [HasCommand_RenameStringKey]}"
                    ContextMenu="{Binding $parent[sd:PropertyViewItem].ContextMenu}">
             <Interaction.Behaviors>
-              <DataTriggerBehavior Binding="{Binding $parent[TextBox].IsKeyboardFocusWithin}" Value="False">
-                <ChangePropertyAction PropertyName="Background" Value="Transparent"/>
-                <ChangePropertyAction PropertyName="BorderBrush" Value="Transparent"/>
-              </DataTriggerBehavior>
-              <DataTriggerBehavior Binding="{Binding $parent[TextBox].IsReadOnly}" Value="True">
-                <ChangePropertyAction PropertyName="Background" Value="Transparent"/>
-                <ChangePropertyAction PropertyName="BorderBrush" Value="Transparent"/>
-              </DataTriggerBehavior>
+              <sd:DataTriggerBehavior Binding="{Binding $parent[TextBox].IsKeyboardFocusWithin}" Value="{sd:False}">
+                <sd:ChangePropertyAction PropertyName="Background" Value="Transparent"/>
+                <sd:ChangePropertyAction PropertyName="BorderBrush" Value="Transparent"/>
+              </sd:DataTriggerBehavior>
+              <sd:DataTriggerBehavior Binding="{Binding $parent[TextBox].IsReadOnly}" Value="{sd:True}">
+                <sd:ChangePropertyAction PropertyName="Background" Value="Transparent"/>
+                <sd:ChangePropertyAction PropertyName="BorderBrush" Value="Transparent"/>
+              </sd:DataTriggerBehavior>
             </Interaction.Behaviors>
           </TextBox>
           <CheckBox Grid.Column="3"
@@ -236,22 +236,22 @@
                     IsThreeState="{Binding [Enabled].NodeValue, Converter={sd:IsEqualToParam}, ConverterParameter={x:Static cpqvm:NodeViewModel.DifferentValues}, FallbackValue={x:False}, TargetNullValue={x:False}}"
                     IsVisible="{Binding [HasChild_Enabled], FallbackValue={x:False}}"/>
           <Interaction.Behaviors>
-            <DataTriggerBehavior Binding="{sd:MultiBinding {Binding ConverterParameter=[IsOverridden], Converter={caec:NodePathToObject}},
+            <sd:DataTriggerBehavior Binding="{sd:MultiBinding {Binding ConverterParameter=[IsOverridden], Converter={caec:NodePathToObject}},
                                                            {Binding ConverterParameter=[Enabled].[IsOverridden], Converter={caec:NodePathToObject}},
                                                            {Binding ConverterParameter=[InlinedProperty].[IsOverridden], Converter={caec:NodePathToObject}},
                                                            Converter={sd:OrMulti}}"
-                                 Value="{sd:True}">
-              <ChangePropertyAction TargetObject="PropertyNameBlock" PropertyName="FontWeight" Value="Bold"/>
-              <ChangePropertyAction TargetObject="PropertyNameBox" PropertyName="FontWeight" Value="Bold"/>
-            </DataTriggerBehavior>
-            <DataTriggerBehavior Binding="{sd:MultiBinding {Binding ConverterParameter=[HasBase], Converter={caec:NodePathToObject}, FallbackValue={sd:False}},
+                                    Value="{sd:True}">
+              <sd:ChangePropertyAction TargetObject="PropertyNameBlock" PropertyName="FontWeight" Value="Bold"/>
+              <sd:ChangePropertyAction TargetObject="PropertyNameBox" PropertyName="FontWeight" Value="Bold"/>
+            </sd:DataTriggerBehavior>
+            <sd:DataTriggerBehavior Binding="{sd:MultiBinding {Binding ConverterParameter=[HasBase], Converter={caec:NodePathToObject}, FallbackValue={sd:False}},
                                                            {Binding ConverterParameter=[IsInherited], Converter={caec:NodePathToObject}, FallbackValue={sd:True}},
                                                            {Binding ConverterParameter=[Enabled].[IsInherited], Converter={caec:NodePathToObject}, FallbackValue={sd:True}},
                                                            Converter={sd:AndMulti}}"
-                                 Value="{sd:True}">
-              <ChangePropertyAction TargetObject="PropertyNameBlock" PropertyName="Opacity" Value="0.5"/>
-              <ChangePropertyAction TargetObject="PropertyNameBox" PropertyName="Opacity" Value="0.5"/>
-            </DataTriggerBehavior>
+                                    Value="{sd:True}">
+              <sd:ChangePropertyAction TargetObject="PropertyNameBlock" PropertyName="Opacity" Value="{sd:Double 0.5}"/>
+              <sd:ChangePropertyAction TargetObject="PropertyNameBox" PropertyName="Opacity" Value="{sd:Double 0.5}"/>
+            </sd:DataTriggerBehavior>
           </Interaction.Behaviors>
         </Grid>
       </Border>
@@ -289,7 +289,7 @@
                                     IsEnabled="{Binding #InstanceTypeSelectionComboBox.SelectedItem, Converter={sd:ObjectToBool}}">
                 <InvokeCommandAction Command="{Binding [AddNewItem]}"
                                      CommandParameter="{Binding #InstanceTypeSelectionComboBox.SelectedItem}"/>
-                <ChangePropertyAction PropertyName="SelectedItem" Value="{x:Null}"/>
+                <sd:ChangePropertyAction PropertyName="SelectedItem" Value="{x:Null}"/>
               </EventTriggerBehavior>
             </Interaction.Behaviors>
           </ComboBox>
@@ -310,30 +310,33 @@
                      Text="{Binding DisplayName, Mode=OneWay}" HorizontalAlignment="Left" VerticalAlignment="Center"
                      Foreground="#E6E6E6"/>
           <Interaction.Behaviors>
-            <DataTriggerBehavior Binding="{sd:MultiBinding {Binding ConverterParameter=[IsOverridden], Converter={caec:NodePathToObject}},
+            <sd:DataTriggerBehavior Binding="{sd:MultiBinding {Binding ConverterParameter=[IsOverridden], Converter={caec:NodePathToObject}},
                                                            {Binding ConverterParameter=[Enabled].[IsOverridden], Converter={caec:NodePathToObject}},
                                                            {Binding ConverterParameter=[InlinedProperty].[IsOverridden], Converter={caec:NodePathToObject}},
                                                            Converter={sd:OrMulti}}"
-                                 Value="{sd:True}">
-              <ChangePropertyAction TargetObject="HeaderTextBlock" PropertyName="FontWeight" Value="Bold"/>
-            </DataTriggerBehavior>
-            <DataTriggerBehavior Binding="{sd:MultiBinding {Binding ConverterParameter=[HasBase], Converter={caec:NodePathToObject}, FallbackValue={sd:False}},
+                                    Value="{sd:True}">
+              <sd:ChangePropertyAction TargetObject="HeaderTextBlock" PropertyName="FontWeight" Value="Bold"/>
+            </sd:DataTriggerBehavior>
+            <sd:DataTriggerBehavior Binding="{sd:MultiBinding {Binding ConverterParameter=[HasBase], Converter={caec:NodePathToObject}, FallbackValue={sd:False}},
                                                            {Binding ConverterParameter=[IsInherited], Converter={caec:NodePathToObject}, FallbackValue={sd:True}},
                                                            {Binding ConverterParameter=[Enabled].[IsInherited], Converter={caec:NodePathToObject}, FallbackValue={sd:True}},
                                                            Converter={sd:AndMulti}}"
-                                 Value="{sd:True}">
-              <ChangePropertyAction TargetObject="HeaderTextBlock" PropertyName="Opacity" Value="0.5"/>
-            </DataTriggerBehavior>
-            <DataTriggerBehavior Binding="{Binding Level, Converter={sd:IsEqual}, ConverterParameter={sd:Int 2}}" Value="True">
-              <ChangePropertyAction TargetObject="PART_Name" PropertyName="Opacity" Value="0.6"/>
-              <ChangePropertyAction TargetObject="HeaderTextBlock" PropertyName="FontSize" Value="14"/>
-            </DataTriggerBehavior>
-            <DataTriggerBehavior Binding="{Binding Level, Converter={sd:IsGreater}, ConverterParameter={sd:Int 2}}" Value="True">
-              <ChangePropertyAction TargetObject="PART_Name" PropertyName="Opacity" Value="0.5"/>
-              <ChangePropertyAction TargetObject="HeaderTextBlock" PropertyName="FontSize" Value="12"/>
-              <ChangePropertyAction TargetObject="HeaderDockPanel" PropertyName="Margin" Value="10,4"/>
-              <ChangePropertyAction TargetObject="Grid" PropertyName="Margin" Value="15,0,0,0"/>
-            </DataTriggerBehavior>
+                                    Value="{sd:True}">
+              <sd:ChangePropertyAction TargetObject="HeaderTextBlock" PropertyName="Opacity" Value="{sd:Double 0.5}"/>
+            </sd:DataTriggerBehavior>
+            <sd:DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
+              <sd:ChangePropertyAction TargetObject="HeaderTextBlock" PropertyName="Text" Value="{sd:LocalizeString (Different values)}"/>
+            </sd:DataTriggerBehavior>
+            <sd:DataTriggerBehavior Binding="{Binding Level, Converter={sd:IsEqual}, ConverterParameter={sd:Int 2}}" Value="{sd:True}">
+              <sd:ChangePropertyAction TargetObject="PART_Name" PropertyName="Opacity" Value="{sd:Double 0.6}"/>
+              <sd:ChangePropertyAction TargetObject="HeaderTextBlock" PropertyName="FontSize" Value="{sd:Double 14}"/>
+            </sd:DataTriggerBehavior>
+            <sd:DataTriggerBehavior Binding="{Binding Level, Converter={sd:IsGreater}, ConverterParameter={sd:Int 2}}" Value="{sd:True}">
+              <sd:ChangePropertyAction TargetObject="PART_Name" PropertyName="Opacity" Value="{sd:Double 0.5}"/>
+              <sd:ChangePropertyAction TargetObject="HeaderTextBlock" PropertyName="FontSize" Value="{sd:Double 12}"/>
+              <sd:ChangePropertyAction TargetObject="HeaderDockPanel" PropertyName="Margin" Value="{sd:Thickness 10,4}"/>
+              <sd:ChangePropertyAction TargetObject="Grid" PropertyName="Margin" Value="{sd:Thickness 15,0,0,0}"/>
+            </sd:DataTriggerBehavior>
           </Interaction.Behaviors>
         </StackPanel>
       </DockPanel>
@@ -371,7 +374,7 @@
                                   IsEnabled="{Binding #InstanceTypeSelectionComboBox.SelectedItem, Converter={sd:ObjectToBool}}">
               <InvokeCommandAction Command="{Binding [CreateNewInstance]}"
                                    CommandParameter="{Binding #InstanceTypeSelectionComboBox.SelectedItem}"/>
-              <ChangePropertyAction PropertyName="SelectedItem" Value="{x:Null}"/>
+              <sd:ChangePropertyAction PropertyName="SelectedItem" Value="{x:Null}"/>
             </EventTriggerBehavior>
           </Interaction.Behaviors>
         </ComboBox>
@@ -380,9 +383,9 @@
                         ContentTemplate="{x:Static caev:PropertyViewHelper.EditorProviders}"
                         IsVisible="{Binding NodeValue, Converter={sd:Chained {sd:IsEqualToParam}, {sd:InvertBool}, Parameter1={x:Static cpqvm:NodeViewModel.DifferentValues}}}">
           <Interaction.Behaviors>
-            <DataTriggerBehavior Binding="{Binding NodeValue, Converter={sd:ObjectToBool}}">
-              <ChangePropertyAction TargetObject="ContentControl" PropertyName="Opacity" Value="0.5"/>
-            </DataTriggerBehavior>
+            <sd:DataTriggerBehavior Binding="{Binding NodeValue, Converter={sd:ObjectToBool}}">
+              <sd:ChangePropertyAction TargetObject="ContentControl" PropertyName="Opacity" Value="{sd:Double 0.5}"/>
+            </sd:DataTriggerBehavior>
           </Interaction.Behaviors>
         </ContentControl>
       </DockPanel>
@@ -441,7 +444,7 @@
                                     IsEnabled="{Binding #InstanceTypeSelectionComboBox.SelectedItem, Converter={sd:ObjectToBool}}">
                 <InvokeCommandAction Command="{Binding [AddNewItem]}"
                                      CommandParameter="{Binding #InstanceTypeSelectionComboBox.SelectedItem}"/>
-                <ChangePropertyAction PropertyName="SelectedItem" Value="{x:Null}"/>
+                <sd:ChangePropertyAction PropertyName="SelectedItem" Value="{x:Null}"/>
               </EventTriggerBehavior>
             </Interaction.Behaviors>
           </ComboBox>
@@ -489,7 +492,7 @@
                                         IsEnabled="{Binding #InstanceTypeSelectionComboBox.SelectedItem, Converter={sd:ObjectToBool}}">
                     <InvokeCommandAction Command="{Binding [AddNewItem]}"
                                          CommandParameter="{Binding #InstanceTypeSelectionComboBox.SelectedItem}"/>
-                    <ChangePropertyAction PropertyName="SelectedItem" Value="{x:Null}"/>
+                    <sd:ChangePropertyAction PropertyName="SelectedItem" Value="{x:Null}"/>
                   </EventTriggerBehavior>
                 </Interaction.Behaviors>
               </ComboBox>
@@ -555,7 +558,7 @@
                                     IsEnabled="{Binding #InstanceTypeSelectionComboBox.SelectedItem, Converter={sd:ObjectToBool}}">
                 <InvokeCommandAction Command="{Binding [AddNewItem]}"
                                      CommandParameter="{Binding #InstanceTypeSelectionComboBox.SelectedItem}"/>
-                <ChangePropertyAction PropertyName="SelectedItem" Value="{x:Null}"/>
+                <sd:ChangePropertyAction PropertyName="SelectedItem" Value="{x:Null}"/>
               </EventTriggerBehavior>
             </Interaction.Behaviors>
           </ComboBox>
@@ -603,7 +606,7 @@
                                         IsEnabled="{Binding #InstanceTypeSelectionComboBox.SelectedItem, Converter={sd:ObjectToBool}}">
                     <InvokeCommandAction Command="{Binding [AddNewItem]}"
                                          CommandParameter="{Binding #InstanceTypeSelectionComboBox.SelectedItem}"/>
-                    <ChangePropertyAction PropertyName="SelectedItem" Value="{x:Null}"/>
+                    <sd:ChangePropertyAction PropertyName="SelectedItem" Value="{x:Null}"/>
                   </EventTriggerBehavior>
                 </Interaction.Behaviors>
               </ComboBox>
@@ -672,16 +675,16 @@
                   </DockPanel>
                 </Popup>
                 <Interaction.Behaviors>
-                  <DataTriggerBehavior Binding="{TemplateBinding IsEnabled}" Value="False">
-                    <ChangePropertyAction TargetObject="Grid" PropertyName="Opacity" Value="0.5"/>
-                  </DataTriggerBehavior>
+                  <sd:DataTriggerBehavior Binding="{TemplateBinding IsEnabled}" Value="{sd:False}">
+                    <sd:ChangePropertyAction TargetObject="Grid" PropertyName="Opacity" Value="0.5"/>
+                  </sd:DataTriggerBehavior>
                   <!-- This makes sure we can validate the textbox again even if the text is not changed -->
-                  <DataTriggerBehavior Binding="{Binding #PART_Popup.IsOpen}" Value="False">
-                    <ChangePropertyAction TargetObject="TextBox1" PropertyName="Text" Value=""/>
-                  </DataTriggerBehavior>
-                  <DataTriggerBehavior Binding="{Binding #PART_Popup.IsOpen}" Value="True">
-                    <ChangePropertyAction TargetObject="TextBox1" PropertyName="Text" Value="0"/>
-                  </DataTriggerBehavior>
+                  <sd:DataTriggerBehavior Binding="{Binding #PART_Popup.IsOpen}" Value="{sd:False}">
+                    <sd:ChangePropertyAction TargetObject="TextBox1" PropertyName="Text" Value=""/>
+                  </sd:DataTriggerBehavior>
+                  <sd:DataTriggerBehavior Binding="{Binding #PART_Popup.IsOpen}" Value="{sd:True}">
+                    <sd:ChangePropertyAction TargetObject="TextBox1" PropertyName="Text" Value="0"/>
+                  </sd:DataTriggerBehavior>
                 </Interaction.Behaviors>
               </Grid>
             </ControlTemplate>
@@ -730,16 +733,16 @@
                   </DockPanel>
                 </Popup>
                 <Interaction.Behaviors>
-                  <DataTriggerBehavior Binding="{TemplateBinding IsEnabled}" Value="False">
-                    <ChangePropertyAction TargetObject="Grid" PropertyName="Opacity" Value="0.5"/>
-                  </DataTriggerBehavior>
+                  <sd:DataTriggerBehavior Binding="{TemplateBinding IsEnabled}" Value="{sd:False}">
+                    <sd:ChangePropertyAction TargetObject="Grid" PropertyName="Opacity" Value="{sd:Double 0.5}"/>
+                  </sd:DataTriggerBehavior>
                   <!-- This makes sure we can validate the textbox again even if the text is not changed -->
-                  <DataTriggerBehavior Binding="{Binding #PART_Popup.IsOpen}" Value="False">
-                    <ChangePropertyAction TargetObject="TextBox2" PropertyName="Text" Value=""/>
-                  </DataTriggerBehavior>
-                  <DataTriggerBehavior Binding="{Binding #PART_Popup.IsOpen}" Value="True">
-                    <ChangePropertyAction TargetObject="TextBox2" PropertyName="Text" Value="0"/>
-                  </DataTriggerBehavior>
+                  <sd:DataTriggerBehavior Binding="{Binding #PART_Popup.IsOpen}" Value="{sd:False}">
+                    <sd:ChangePropertyAction TargetObject="TextBox2" PropertyName="Text" Value=""/>
+                  </sd:DataTriggerBehavior>
+                  <sd:DataTriggerBehavior Binding="{Binding #PART_Popup.IsOpen}" Value="{sd:True}">
+                    <sd:ChangePropertyAction TargetObject="TextBox2" PropertyName="Text" Value="0"/>
+                  </sd:DataTriggerBehavior>
                 </Interaction.Behaviors>
               </Grid>
             </ControlTemplate>
@@ -789,16 +792,16 @@
                         <EventTriggerBehavior EventName="DropDownClosed">
                           <InvokeCommandAction Command="{Binding [AddPrimitiveKey]}"
                                                CommandParameter="{Binding #EnumKeySelectionComboBox.SelectedItem}"/>
-                          <ChangePropertyAction TargetObject="ToggleButton1" PropertyName="IsChecked" Value="False"/>
+                          <sd:ChangePropertyAction TargetObject="ToggleButton1" PropertyName="IsChecked" Value="{x:False}"/>
                         </EventTriggerBehavior>
                       </Interaction.Behaviors>
                     </ComboBox>
                   </DockPanel>
                 </Popup>
                 <Interaction.Behaviors>
-                  <DataTriggerBehavior Binding="{TemplateBinding IsEnabled}" Value="False">
-                    <ChangePropertyAction TargetObject="Grid" PropertyName="Opacity" Value="0.5"/>
-                  </DataTriggerBehavior>
+                  <sd:DataTriggerBehavior Binding="{TemplateBinding IsEnabled}" Value="{sd:False}">
+                    <sd:ChangePropertyAction TargetObject="Grid" PropertyName="Opacity" Value="{sd:Double 0.5}"/>
+                  </sd:DataTriggerBehavior>
                 </Interaction.Behaviors>
               </Grid>
             </ControlTemplate>
@@ -827,10 +830,17 @@
         <TextBox Grid.Column="0" Margin="2" Width="40" TextAlignment="Center"
                  Text="{Binding NodeValue, Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:CharToString}}}"
                  ToolTip.Tip="{sd:LocalizeString Character, Context=ToolTip}"/>
-        <NumericUpDown Grid.Column="1" Margin="2"
+        <NumericUpDown x:Name="NumericUpDown"
+                       Grid.Column="1" Margin="2"
                        Value="{Binding NodeValue, Converter={sd:CharToUnicode}}"
                        ToolTip.Tip="{sd:LocalizeString Unicode value, Context=ToolTip}"
-                       ShowButtonSpinner="False"/>
+                       ShowButtonSpinner="False">
+          <Interaction.Behaviors>
+            <sd:DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
+              <sd:ChangePropertyAction PropertyName="Watermark" Value="{sd:LocalizeString (Different values)}"/>
+            </sd:DataTriggerBehavior>
+          </Interaction.Behaviors>
+        </NumericUpDown>
       </Grid>
     </DataTemplate>
   </caev:TypeMatchTemplateProvider>
@@ -841,7 +851,13 @@
                    Value="{Binding NodeValue, Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDecimal}}}"
                    Minimum="{Binding [Minimum], Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDecimal}}, FallbackValue={x:Static s:Decimal.MinValue}}"
                    Maximum="{Binding [Maximum], Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDecimal}}, FallbackValue={x:Static s:Decimal.MaxValue}}"
-                   ShowButtonSpinner="False"/>
+                   ShowButtonSpinner="False">
+      <Interaction.Behaviors>
+        <sd:DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
+          <sd:ChangePropertyAction PropertyName="Watermark" Value="{sd:LocalizeString (Different values)}"/>
+        </sd:DataTriggerBehavior>
+      </Interaction.Behaviors>
+    </NumericUpDown>
   </DataTemplate>
   <caev:TypeMatchTemplateProvider x:Key="FloatPropertyTemplateProvider" Type="{x:Type s:Single}" caev:PropertyViewHelper.TemplateCategory="PropertyEditor"
                                   Template="{StaticResource FloatEditorTemplate}"/>
@@ -854,7 +870,13 @@
                    Value="{Binding NodeValue, Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDecimal}}}"
                    Minimum="{Binding [Minimum], Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDecimal}}, FallbackValue={x:Static s:Decimal.MinValue}}"
                    Maximum="{Binding [Maximum], Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDecimal}}, FallbackValue={x:Static s:Decimal.MaxValue}}"
-                   ShowButtonSpinner="False"/>
+                   ShowButtonSpinner="False">
+      <Interaction.Behaviors>
+        <sd:DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
+          <sd:ChangePropertyAction PropertyName="Watermark" Value="{sd:LocalizeString (Different values)}"/>
+        </sd:DataTriggerBehavior>
+      </Interaction.Behaviors>
+    </NumericUpDown>
   </DataTemplate>
   <caev:TypeMatchTemplateProvider x:Key="Int8PropertyTemplateProvider" Type="{x:Type s:SByte}" caev:PropertyViewHelper.TemplateCategory="PropertyEditor"
                                   Template="{StaticResource IntEditorTemplate}"/>
@@ -895,7 +917,13 @@
                        Value="{Binding NodeValue, Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDecimal}}}"
                        Minimum="{Binding [Minimum], Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDecimal}}, FallbackValue={x:Static s:Decimal.MinValue}}"
                        Maximum="{Binding [Maximum], Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDecimal}}, FallbackValue={x:Static s:Decimal.MaxValue}}"
-                       ShowButtonSpinner="False"/>
+                       ShowButtonSpinner="False">
+          <Interaction.Behaviors>
+            <sd:DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
+              <sd:ChangePropertyAction PropertyName="Watermark" Value="{sd:LocalizeString (Different values)}"/>
+            </sd:DataTriggerBehavior>
+          </Interaction.Behaviors>
+        </NumericUpDown>
       </Grid>
     </DataTemplate>
   </caev:RangedValueTemplateProvider>
@@ -903,7 +931,13 @@
   <!-- Provider for string -->
   <caev:TypeMatchTemplateProvider x:Key="StringPropertyTemplateProvider" Type="{x:Type s:String}" caev:PropertyViewHelper.TemplateCategory="PropertyEditor">
     <DataTemplate DataType="cpqvm:NodeViewModel">
-      <TextBox Text="{Binding NodeValue, Converter={caec:DifferentValuesToString}}"/>
+      <TextBox Text="{Binding NodeValue, Converter={caec:DifferentValuesToString}}">
+        <Interaction.Behaviors>
+          <sd:DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
+            <sd:ChangePropertyAction PropertyName="Watermark" Value="{sd:LocalizeString (Different values)}"/>
+          </sd:DataTriggerBehavior>
+        </Interaction.Behaviors>
+      </TextBox>
     </DataTemplate>
   </caev:TypeMatchTemplateProvider>
 
@@ -911,7 +945,13 @@
   <caev:TypeMatchTemplateProvider x:Key="DateTimePropertyTemplateProvider" Type="{x:Type s:DateTime}" caev:PropertyViewHelper.TemplateCategory="PropertyEditor">
     <DataTemplate DataType="cpqvm:NodeViewModel">
       <sd:DateTimeEditor x:Name="DateTimeEditor"
-                         Value="{Binding NodeValue, Converter={caec:DifferentValuesToNull}}"/>
+                         Value="{Binding NodeValue, Converter={caec:DifferentValuesToNull}}">
+        <Interaction.Behaviors>
+          <sd:DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
+            <sd:ChangePropertyAction PropertyName="Watermark" Value="{sd:LocalizeString (Different values)}"/>
+          </sd:DataTriggerBehavior>
+        </Interaction.Behaviors>
+      </sd:DateTimeEditor>
     </DataTemplate>
   </caev:TypeMatchTemplateProvider>
 
@@ -919,7 +959,13 @@
   <caev:TypeMatchTemplateProvider x:Key="TimeSpanPropertyTemplateProvider" Type="{x:Type s:TimeSpan}" caev:PropertyViewHelper.TemplateCategory="PropertyEditor">
     <DataTemplate DataType="cpqvm:NodeViewModel">
       <sd:TimeSpanEditor x:Name="TimeSpanEditor"
-                         Value="{Binding NodeValue, Converter={caec:DifferentValuesToNull}}"/>
+                         Value="{Binding NodeValue, Converter={caec:DifferentValuesToNull}}">
+        <Interaction.Behaviors>
+          <sd:DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
+            <sd:ChangePropertyAction PropertyName="Watermark" Value="×"/>
+          </sd:DataTriggerBehavior>
+        </Interaction.Behaviors>
+      </sd:TimeSpanEditor>
     </DataTemplate>
   </caev:TypeMatchTemplateProvider>
 
@@ -927,7 +973,13 @@
   <caev:TypeMatchTemplateProvider x:Key="ColorPropertyTemplateProvider" Type="{x:Type math:Color}" caev:PropertyViewHelper.TemplateCategory="PropertyEditor">
     <DataTemplate DataType="cpqvm:NodeViewModel">
       <sd:ColorEditor Value="{Binding NodeValue, Converter={caec:DifferentValuesToNull}}"
-                      Palette="{x:Static caev:ColorPalettes.Metals}"/>
+                      Palette="{x:Static caev:ColorPalettes.Metals}">
+        <Interaction.Behaviors>
+          <sd:DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
+            <sd:ChangePropertyAction PropertyName="Watermark" Value="{sd:LocalizeString (Different values)}"/>
+          </sd:DataTriggerBehavior>
+        </Interaction.Behaviors>
+      </sd:ColorEditor>
     </DataTemplate>
   </caev:TypeMatchTemplateProvider>
 
@@ -935,7 +987,13 @@
   <caev:TypeMatchTemplateProvider x:Key="Color3PropertyTemplateProvider" Type="{x:Type math:Color3}" caev:PropertyViewHelper.TemplateCategory="PropertyEditor">
     <DataTemplate DataType="cpqvm:NodeViewModel">
       <sd:Color3Editor Value="{Binding NodeValue, Converter={caec:DifferentValuesToNull}}"
-                       Palette="{x:Static caev:ColorPalettes.Metals}"/>
+                       Palette="{x:Static caev:ColorPalettes.Metals}">
+        <Interaction.Behaviors>
+          <sd:DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
+            <sd:ChangePropertyAction PropertyName="Watermark" Value="{sd:LocalizeString (Different values)}"/>
+          </sd:DataTriggerBehavior>
+        </Interaction.Behaviors>
+      </sd:Color3Editor>
     </DataTemplate>
   </caev:TypeMatchTemplateProvider>
 
@@ -943,7 +1001,13 @@
   <caev:TypeMatchTemplateProvider x:Key="Color4PropertyTemplateProvider" Type="{x:Type math:Color4}" caev:PropertyViewHelper.TemplateCategory="PropertyEditor">
     <DataTemplate DataType="cpqvm:NodeViewModel">
       <sd:Color4Editor Value="{Binding NodeValue, Converter={caec:DifferentValuesToNull}}"
-                       Palette="{x:Static caev:ColorPalettes.Metals}"/>
+                       Palette="{x:Static caev:ColorPalettes.Metals}">
+        <Interaction.Behaviors>
+          <sd:DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
+            <sd:ChangePropertyAction PropertyName="Watermark" Value="{sd:LocalizeString (Different values)}"/>
+          </sd:DataTriggerBehavior>
+        </Interaction.Behaviors>
+      </sd:Color4Editor>
     </DataTemplate>
   </caev:TypeMatchTemplateProvider>
 
@@ -952,7 +1016,13 @@
     <DataTemplate DataType="cpqvm:NodeViewModel">
       <sd:Vector2Editor x:Name="VectorEditor"
                         Value="{Binding NodeValue, Converter={caec:DifferentValuesToNull}, UpdateSourceTrigger=Explicit}"
-                        DecimalPlaces="3"/>
+                        DecimalPlaces="3">
+        <Interaction.Behaviors>
+          <sd:DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
+            <sd:ChangePropertyAction PropertyName="Watermark" Value="≠"/>
+          </sd:DataTriggerBehavior>
+        </Interaction.Behaviors>
+      </sd:Vector2Editor>
     </DataTemplate>
   </caev:TypeMatchTemplateProvider>
 
@@ -961,7 +1031,13 @@
     <DataTemplate DataType="cpqvm:NodeViewModel">
       <sd:Vector3Editor x:Name="VectorEditor"
                         Value="{Binding NodeValue, Converter={caec:DifferentValuesToNull}, UpdateSourceTrigger=Explicit}"
-                        DecimalPlaces="3"/>
+                        DecimalPlaces="3">
+        <Interaction.Behaviors>
+          <sd:DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
+            <sd:ChangePropertyAction PropertyName="Watermark" Value="≠"/>
+          </sd:DataTriggerBehavior>
+        </Interaction.Behaviors>
+      </sd:Vector3Editor>
     </DataTemplate>
   </caev:TypeMatchTemplateProvider>
 
@@ -970,7 +1046,13 @@
     <DataTemplate DataType="cpqvm:NodeViewModel">
       <sd:Vector4Editor x:Name="VectorEditor"
                         Value="{Binding NodeValue, Converter={caec:DifferentValuesToNull}, UpdateSourceTrigger=Explicit}"
-                        DecimalPlaces="3"/>
+                        DecimalPlaces="3">
+        <Interaction.Behaviors>
+          <sd:DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
+            <sd:ChangePropertyAction PropertyName="Watermark" Value="≠"/>
+          </sd:DataTriggerBehavior>
+        </Interaction.Behaviors>
+      </sd:Vector4Editor>
     </DataTemplate>
   </caev:TypeMatchTemplateProvider>
 
@@ -978,7 +1060,13 @@
   <caev:TypeMatchTemplateProvider x:Key="Int2PropertyTemplateProvider" Type="{x:Type math:Int2}" caev:PropertyViewHelper.TemplateCategory="PropertyEditor">
     <DataTemplate DataType="cpqvm:NodeViewModel">
       <sd:Int2Editor x:Name="IntEditor"
-                     Value="{Binding NodeValue, Converter={caec:DifferentValuesToNull}, UpdateSourceTrigger=Explicit}"/>
+                     Value="{Binding NodeValue, Converter={caec:DifferentValuesToNull}, UpdateSourceTrigger=Explicit}">
+        <Interaction.Behaviors>
+          <sd:DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
+            <sd:ChangePropertyAction PropertyName="Watermark" Value="≠"/>
+          </sd:DataTriggerBehavior>
+        </Interaction.Behaviors>
+      </sd:Int2Editor>
     </DataTemplate>
   </caev:TypeMatchTemplateProvider>
 
@@ -986,7 +1074,13 @@
   <caev:TypeMatchTemplateProvider x:Key="Int3PropertyTemplateProvider" Type="{x:Type math:Int3}" caev:PropertyViewHelper.TemplateCategory="PropertyEditor">
     <DataTemplate DataType="cpqvm:NodeViewModel">
       <sd:Int3Editor x:Name="IntEditor"
-                     Value="{Binding NodeValue, Converter={caec:DifferentValuesToNull}, UpdateSourceTrigger=Explicit}"/>
+                     Value="{Binding NodeValue, Converter={caec:DifferentValuesToNull}, UpdateSourceTrigger=Explicit}">
+        <Interaction.Behaviors>
+          <sd:DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
+            <sd:ChangePropertyAction PropertyName="Watermark" Value="≠"/>
+          </sd:DataTriggerBehavior>
+        </Interaction.Behaviors>
+      </sd:Int3Editor>
     </DataTemplate>
   </caev:TypeMatchTemplateProvider>
 
@@ -994,7 +1088,13 @@
   <caev:TypeMatchTemplateProvider x:Key="Int4PropertyTemplateProvider" Type="{x:Type math:Int4}" caev:PropertyViewHelper.TemplateCategory="PropertyEditor">
     <DataTemplate DataType="cpqvm:NodeViewModel">
       <sd:Int4Editor x:Name="IntEditor"
-                     Value="{Binding NodeValue, Converter={caec:DifferentValuesToNull}, UpdateSourceTrigger=Explicit}"/>
+                     Value="{Binding NodeValue, Converter={caec:DifferentValuesToNull}, UpdateSourceTrigger=Explicit}">
+        <Interaction.Behaviors>
+          <sd:DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
+            <sd:ChangePropertyAction PropertyName="Watermark" Value="≠"/>
+          </sd:DataTriggerBehavior>
+        </Interaction.Behaviors>
+      </sd:Int4Editor>
     </DataTemplate>
   </caev:TypeMatchTemplateProvider>
 
@@ -1002,7 +1102,13 @@
   <caev:TypeMatchTemplateProvider x:Key="RectanglePropertyTemplateProvider" Type="{x:Type math:Rectangle}" caev:PropertyViewHelper.TemplateCategory="PropertyEditor">
     <DataTemplate DataType="cpqvm:NodeViewModel">
       <sd:RectangleEditor x:Name="RectangleEditor"
-                          Value="{Binding NodeValue, Converter={caec:DifferentValuesToNull}, UpdateSourceTrigger=Explicit}"/>
+                          Value="{Binding NodeValue, Converter={caec:DifferentValuesToNull}, UpdateSourceTrigger=Explicit}">
+        <Interaction.Behaviors>
+          <sd:DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
+            <sd:ChangePropertyAction PropertyName="Watermark" Value="≠"/>
+          </sd:DataTriggerBehavior>
+        </Interaction.Behaviors>
+      </sd:RectangleEditor>
     </DataTemplate>
   </caev:TypeMatchTemplateProvider>
 
@@ -1010,7 +1116,13 @@
   <caev:TypeMatchTemplateProvider x:Key="RectangleFPropertyTemplateProvider" Type="{x:Type math:RectangleF}" caev:PropertyViewHelper.TemplateCategory="PropertyEditor">
     <DataTemplate DataType="cpqvm:NodeViewModel">
       <sd:RectangleFEditor x:Name="RectangleEditor"
-                           Value="{Binding NodeValue, Converter={caec:DifferentValuesToNull}, UpdateSourceTrigger=Explicit}"/>
+                           Value="{Binding NodeValue, Converter={caec:DifferentValuesToNull}, UpdateSourceTrigger=Explicit}">
+        <Interaction.Behaviors>
+          <sd:DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
+            <sd:ChangePropertyAction PropertyName="Watermark" Value="≠"/>
+          </sd:DataTriggerBehavior>
+        </Interaction.Behaviors>
+      </sd:RectangleFEditor>
     </DataTemplate>
   </caev:TypeMatchTemplateProvider>
 
@@ -1019,7 +1131,13 @@
     <DataTemplate DataType="cpqvm:NodeViewModel">
       <sd:QuaternionEditor x:Name="QuaternionEditor"
                            Value="{Binding NodeValue, Converter={caec:DifferentValuesToNull}, UpdateSourceTrigger=Explicit}"
-                           DecimalPlaces="3"/>
+                           DecimalPlaces="3">
+        <Interaction.Behaviors>
+          <sd:DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
+            <sd:ChangePropertyAction PropertyName="Watermark" Value="≠"/>
+          </sd:DataTriggerBehavior>
+        </Interaction.Behaviors>
+      </sd:QuaternionEditor>
     </DataTemplate>
   </caev:TypeMatchTemplateProvider>
 
@@ -1028,7 +1146,13 @@
     <DataTemplate DataType="cpqvm:NodeViewModel">
       <sd:MatrixEditor x:Name="MatrixEditor"
                        Value="{Binding NodeValue, Converter={caec:DifferentValuesToNull}, UpdateSourceTrigger=Explicit}"
-                       DecimalPlaces="3"/>
+                       DecimalPlaces="3">
+        <Interaction.Behaviors>
+          <sd:DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
+            <sd:ChangePropertyAction PropertyName="Watermark" Value="≠"/>
+          </sd:DataTriggerBehavior>
+        </Interaction.Behaviors>
+      </sd:MatrixEditor>
     </DataTemplate>
   </caev:TypeMatchTemplateProvider>
 
@@ -1037,7 +1161,13 @@
     <DataTemplate DataType="cpqvm:NodeViewModel">
       <NumericUpDown Value="{Binding NodeValue, Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:AngleSingleToDegrees}}}"
                      ShowButtonSpinner="False"
-                     ToolTip.Tip="{sd:LocalizeString Angle in degrees, Context=Tooltip}"/>
+                     ToolTip.Tip="{sd:LocalizeString Angle in degrees, Context=Tooltip}">
+        <Interaction.Behaviors>
+          <sd:DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
+            <sd:ChangePropertyAction PropertyName="Watermark" Value="{sd:LocalizeString (Different values)}"/>
+          </sd:DataTriggerBehavior>
+        </Interaction.Behaviors>
+      </NumericUpDown>
     </DataTemplate>
   </caev:TypeMatchTemplateProvider>
 
@@ -1051,7 +1181,13 @@
                 Command="{Binding [BrowseDirectory]}"
                 ToolTip.Tip="{sd:LocalizeString Browse directory, Context=Tooltip}"/>
         <TextBox Margin="2"
-                 Text="{Binding NodeValue, Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:UDirectoryToString}}}"/>
+                 Text="{Binding NodeValue, Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:UDirectoryToString}}}">
+          <Interaction.Behaviors>
+            <sd:DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
+              <sd:ChangePropertyAction PropertyName="Watermark" Value="{sd:LocalizeString (Different values)}"/>
+            </sd:DataTriggerBehavior>
+          </Interaction.Behaviors>
+        </TextBox>
       </DockPanel>
     </DataTemplate>
   </caev:TypeMatchTemplateProvider>
@@ -1066,7 +1202,13 @@
                 Command="{Binding [BrowseFile]}"
                 ToolTip.Tip="{sd:LocalizeString Browse file, Context=Tooltip}"/>
         <TextBox Margin="2"
-                 Text="{Binding NodeValue, Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:UFileToString}}}"/>
+                 Text="{Binding NodeValue, Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:UFileToString}}}">
+          <Interaction.Behaviors>
+            <sd:DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
+              <sd:ChangePropertyAction PropertyName="Watermark" Value="{sd:LocalizeString (Different values)}"/>
+            </sd:DataTriggerBehavior>
+          </Interaction.Behaviors>
+        </TextBox>
       </DockPanel>
     </DataTemplate>
   </caev:TypeMatchTemplateProvider>
@@ -1079,9 +1221,9 @@
         <TextBlock x:Name="TextBlock"
                    HorizontalAlignment="Left" VerticalAlignment="Center" Margin="9,0,30,0" IsHitTestVisible="False">
           <Interaction.Behaviors>
-            <DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
-              <ChangePropertyAction TargetObject="TextBlock" PropertyName="Text" Value="{sd:LocalizeString (Different values)}"/>
-            </DataTriggerBehavior>
+            <sd:DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
+              <sd:ChangePropertyAction TargetObject="TextBlock" PropertyName="Text" Value="{sd:LocalizeString (Different values)}"/>
+            </sd:DataTriggerBehavior>
           </Interaction.Behaviors>
         </TextBlock>
       </Grid>
@@ -1098,9 +1240,9 @@
                       VerticalAlignment="Center" Margin="2"
                       Content="{sd:LocalizeString Change values..., Context=Button}">
           <Interaction.Behaviors>
-            <DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
-              <ChangePropertyAction TargetObject="ToggleButton2" PropertyName="Content" Value="{sd:LocalizeString (Different values)}"/>
-            </DataTriggerBehavior>
+            <sd:DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
+              <sd:ChangePropertyAction TargetObject="ToggleButton2" PropertyName="Content" Value="{sd:LocalizeString (Different values)}"/>
+            </sd:DataTriggerBehavior>
           </Interaction.Behaviors>
         </ToggleButton>
         <Popup Grid.Column="0"
@@ -1407,7 +1549,13 @@
                  Text="{sd:MultiBinding {Binding [AttributeDisplayName], Mode=OneWay},
                                         {Binding Type, Mode=OneWay, Converter={sd:NotSupportedTypeToTypeName}},
                                         {Binding NodeValue, Mode=OneWay, Converter={sd:ObjectToTypeName}},
-                                        Converter={sd:PriorityMulti}}"/>
+                                        Converter={sd:PriorityMulti}}">
+        <Interaction.Behaviors>
+          <sd:DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
+            <sd:ChangePropertyAction TargetObject="DefaultTextBlock" PropertyName="Text" Value="(Different values)"/>
+          </sd:DataTriggerBehavior>
+        </Interaction.Behaviors>
+      </TextBlock>
     </DataTemplate>
   </sd:DefaultTemplateProvider>
 </ResourceDictionary>
