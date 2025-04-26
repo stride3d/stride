@@ -3,6 +3,7 @@
 
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor;
+using Stride.Core.Assets.Editor.Avalonia.Views;
 using Stride.Core.Assets.Editor.Editors;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModels;
@@ -10,6 +11,9 @@ using Stride.Core.Assets.Presentation;
 using Stride.Core.Assets.Presentation.ViewModels;
 using Stride.Core.Diagnostics;
 using Stride.Core.Extensions;
+using Stride.Core.Presentation.Avalonia.Views;
+using Stride.Core.Presentation.Services;
+using Stride.Core.Presentation.Views;
 using Stride.Editor.Preview;
 using Stride.Editor.Preview.ViewModels;
 using Stride.Editor.Preview.Views;
@@ -19,11 +23,18 @@ namespace Stride.GameStudio.Avalonia.Services;
 
 internal sealed class PluginService : IAssetsPluginService
 {
+    private readonly IDispatcherService dispatcherService;
+
     private readonly Dictionary<Type, Type> assetViewModelTypes = new();
     private readonly Dictionary<Type, Type> editorViewModelTypes = new();
     private readonly Dictionary<Type, Type> editorViewTypes = new();
     private readonly Dictionary<Type, Type> previewViewModelTypes = new();
     private readonly Dictionary<Type, Type> previewViewViewTypes = new();
+
+    public PluginService(IDispatcherService dispatcherService)
+    {
+        this.dispatcherService = dispatcherService;
+    }
 
     public IReadOnlyCollection<AssetsPlugin> Plugins => AssetsPlugin.RegisteredPlugins;
 
@@ -69,6 +80,38 @@ internal sealed class PluginService : IAssetsPluginService
                 AssertType(typeof(IAssetPreview), registeredAssetPreviewViewTypes.Select(x => x.Key));
                 AssertType(typeof(IPreviewView), registeredAssetPreviewViewTypes.Select(x => x.Value));
                 previewViewViewTypes.AddRange(registeredAssetPreviewViewTypes);
+
+                // Template providers
+                dispatcherService.Invoke(() =>
+                {
+                    var templateProviders = new List<ITemplateProvider>();
+                    editorPlugin.RegisterTemplateProviders(templateProviders);
+                    templateProviders.ForEach(RegisterTemplateProvider);
+                });
+            }
+        }
+
+        return;
+
+        void RegisterTemplateProvider(ITemplateProvider provider)
+        {
+            if (provider is not TemplateProviderBase avaloniaProvider)
+                return;
+
+            var category = PropertyViewHelper.GetTemplateCategory(avaloniaProvider);
+            switch (category)
+            {
+                case PropertyViewHelper.Category.PropertyHeader:
+                    PropertyViewHelper.HeaderProviders.RegisterTemplateProvider(avaloniaProvider);
+                    break;
+                case PropertyViewHelper.Category.PropertyFooter:
+                    PropertyViewHelper.FooterProviders.RegisterTemplateProvider(avaloniaProvider);
+                    break;
+                case PropertyViewHelper.Category.PropertyEditor:
+                    PropertyViewHelper.EditorProviders.RegisterTemplateProvider(avaloniaProvider);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
             }
         }
     }

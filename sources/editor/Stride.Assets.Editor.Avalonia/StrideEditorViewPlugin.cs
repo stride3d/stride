@@ -2,10 +2,13 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Reflection;
+using Stride.Assets.Editor.Avalonia.Views;
 using Stride.Core.Assets.Editor;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Presentation.ViewModels;
 using Stride.Core.Diagnostics;
+using Stride.Core.Presentation.Avalonia.Views;
+using Stride.Core.Presentation.Views;
 using Stride.Editor.Annotations;
 using Stride.Editor.Avalonia.Preview;
 using Stride.Editor.Preview;
@@ -58,6 +61,17 @@ public sealed class StrideEditorViewPlugin : AssetsEditorPlugin
                 {
                     assetPreviewViewTypes.Add(attribute.AssetPreviewType, type);
                 }
+            }
+        }
+    }
+
+    public override void RegisterTemplateProviders(ICollection<ITemplateProvider> templateProviders)
+    {
+        foreach (var (_, value) in new EntityPropertyTemplateProviders())
+        {
+            if (value is TemplateProviderBase provider)
+            {
+                templateProviders.Add(provider);
             }
         }
     }

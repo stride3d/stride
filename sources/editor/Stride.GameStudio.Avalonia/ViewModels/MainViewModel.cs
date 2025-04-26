@@ -4,18 +4,14 @@
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Avalonia;
-using Stride.Assets.Editor.Avalonia.Views;
 using Stride.Core.Assets;
-using Stride.Core.Assets.Editor.Avalonia.Views;
 using Stride.Core.Assets.Editor.Components.Status;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Extensions;
 using Stride.Core.IO;
-using Stride.Core.Presentation.Avalonia.Views;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.ViewModels;
-using Stride.Core.Presentation.Views;
 using Stride.Core.Translation;
 using Stride.GameStudio.Avalonia.Services;
 
@@ -51,72 +47,6 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
 
         Status = new StatusViewModel(ServiceProvider);
         Status.PushStatus("Ready");
-
-        // FIXME xplat-editor move to plugin
-        foreach (var (_, value) in new DefaultPropertyTemplateProviders())
-        {
-            if (value is ITemplateProvider provider1)
-            {
-                RegisterDefaultTemplateProvider(provider1);
-            }
-        }
-
-        // FIXME xplat-editor move to plugin
-        foreach (var (_, value) in new EntityPropertyTemplateProviders())
-        {
-            if (value is ITemplateProvider provider1)
-            {
-                RegisterAdditionalTemplateProvider(provider1);
-            }
-        }
-
-        return;
-
-        void RegisterDefaultTemplateProvider(ITemplateProvider provider)
-        {
-            if (provider is not TemplateProviderBase avaloniaObject)
-                return;
-
-            var category = PropertyViewHelper.GetTemplateCategory(avaloniaObject);
-            switch (category)
-            {
-                case PropertyViewHelper.Category.PropertyHeader:
-                    PropertyViewHelper.HeaderProviders.RegisterTemplateProvider(avaloniaObject);
-                    break;
-                case PropertyViewHelper.Category.PropertyFooter:
-                    PropertyViewHelper.FooterProviders.RegisterTemplateProvider(avaloniaObject);
-                    break;
-                case PropertyViewHelper.Category.PropertyEditor:
-                    PropertyViewHelper.EditorProviders.RegisterTemplateProvider(avaloniaObject);
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-        }
-
-        void RegisterAdditionalTemplateProvider(ITemplateProvider provider)
-        {
-            if (provider is not TemplateProviderBase avaloniaObject)
-                return;
-
-            // FIXME xplat-editor keep track of additional providers
-
-            var category = PropertyViewHelper.GetTemplateCategory(avaloniaObject);
-            switch (category)
-            {
-                case PropertyViewHelper.Category.PropertyHeader:
-                    PropertyViewHelper.HeaderProviders.RegisterTemplateProvider(avaloniaObject);
-                    break;
-                case PropertyViewHelper.Category.PropertyFooter:
-                    PropertyViewHelper.FooterProviders.RegisterTemplateProvider(avaloniaObject);
-                    break;
-                case PropertyViewHelper.Category.PropertyEditor:
-                    PropertyViewHelper.EditorProviders.RegisterTemplateProvider(avaloniaObject);
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-        }
     }
 
     public SessionViewModel? Session
