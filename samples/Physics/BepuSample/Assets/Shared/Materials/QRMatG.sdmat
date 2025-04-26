@@ -1,0 +1,35 @@
+!MaterialAsset
+Id: 00e4f2d4-0cc2-422b-8926-e9b8be03984c
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Archetype: 02d8a19e-db6e-44b4-8861-64bdd38b05c5:Materials/QRMat
+Attributes:
+    MicroSurface: !MaterialGlossinessMapFeature
+        GlossinessMap: !ComputeFloat
+            Value: 0.65
+    Diffuse: !MaterialDiffuseMapFeature
+        DiffuseMap: !ComputeTextureColor
+            Texture: 89a21373-dc71-4023-8f49-51da858896ce:Textures/GithubNicogo
+            FallbackValue:
+                Value: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+            Filtering: Point
+            Scale: {X: 1.0, Y: 1.0}
+            Offset: {X: 0.0, Y: 0.0}
+            Swizzle: null
+    DiffuseModel: !MaterialDiffuseLambertModelFeature {}
+    Specular: !MaterialMetalnessMapFeature
+        MetalnessMap: !ComputeFloat
+            Value: 0.3
+    SpecularModel: !MaterialSpecularMicrofacetModelFeature
+        Fresnel: !MaterialSpecularMicrofacetFresnelSchlick {}
+        Visibility: !MaterialSpecularMicrofacetVisibilitySmithSchlickGGX {}
+        NormalDistribution: !MaterialSpecularMicrofacetNormalDistributionGGX {}
+        Environment: !MaterialSpecularMicrofacetEnvironmentGGXLUT {}
+    Emissive*: !MaterialEmissiveMapFeature
+        EmissiveMap: !ComputeColor
+            Value: {R: 0.0, G: 1.0, B: 0.0, A: 1.0}
+        Intensity: !ComputeFloat
+            Value: 1.0
+    Overrides:
+        UVScale: {X: 1.0, Y: 1.0}
+Layers: {}
