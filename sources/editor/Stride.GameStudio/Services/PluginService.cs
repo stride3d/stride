@@ -91,7 +91,7 @@ public class PluginService : IAssetsPluginService
                 enumTypesWithImages.AddRange(images.Select(x => x.Key.GetType()));
 
                 // Editor and property item template providers
-                var providers = new List<ITemplateProvider>();
+                var providers = new List<TemplateProviderBase>();
                 editorPlugin.RegisterTemplateProviders(providers);
                 var dialogService = session.ServiceProvider.Get<IEditorDialogService>();
                 foreach (var provider in providers)

@@ -5,6 +5,7 @@ using System.Diagnostics;
 using Avalonia;
 using Avalonia.Markup.Xaml.Templates;
 using Avalonia.Metadata;
+using Stride.Core.Presentation.Views;
 
 namespace Stride.Core.Presentation.Avalonia.Views;
 
@@ -26,7 +27,6 @@ public abstract class TemplateProviderBase : AvaloniaObject, ITemplateProvider
     /// <inheritdoc/>
     public abstract string Name { get; }
 
-    /// <inheritdoc/>
     [Content]
     public required DataTemplate Template { get; set; }
 

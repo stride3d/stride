@@ -15,7 +15,7 @@ public class TemplateProviderSelector : IDataTemplate
     /// <summary>
     /// The list of all template providers registered for the <see cref="TemplateProviderSelector"/>, indexed by their name.
     /// </summary>
-    protected readonly List<ITemplateProvider> templateProviders = [];
+    protected readonly List<TemplateProviderBase> templateProviders = [];
 
     /// <summary>
     /// A hashset of template provider names, used only to ensure unicity.
@@ -26,7 +26,7 @@ public class TemplateProviderSelector : IDataTemplate
     /// Registers the given template into the static <see cref="TemplateProviderSelector"/>.
     /// </summary>
     /// <param name="templateProvider"></param>
-    public void RegisterTemplateProvider(ITemplateProvider templateProvider)
+    public void RegisterTemplateProvider(TemplateProviderBase templateProvider)
     {
         ArgumentNullException.ThrowIfNull(templateProvider);
 
@@ -40,7 +40,7 @@ public class TemplateProviderSelector : IDataTemplate
     /// Unregisters the given template into the static <see cref="TemplateProviderSelector"/>.
     /// </summary>
     /// <param name="templateProvider"></param>
-    public void UnregisterTemplateProvider(ITemplateProvider templateProvider)
+    public void UnregisterTemplateProvider(TemplateProviderBase templateProvider)
     {
         ArgumentNullException.ThrowIfNull(templateProvider);
 
@@ -60,7 +60,7 @@ public class TemplateProviderSelector : IDataTemplate
         return templateProviders.Any(x => x.Match(data));
     }
 
-    private static void InsertTemplateProvider(List<ITemplateProvider> list, ITemplateProvider templateProvider, List<ITemplateProvider> movedItems)
+    private static void InsertTemplateProvider(List<TemplateProviderBase> list, TemplateProviderBase templateProvider, List<TemplateProviderBase> movedItems)
     {
         movedItems.Add(templateProvider);
         // Find the first index where we can insert

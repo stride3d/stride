@@ -4,7 +4,7 @@
 namespace Stride.Core.Presentation.Avalonia.Views;
 
 /// <summary>
-/// A default implementation of the <see cref="ITemplateProvider"/> interface that matches any object.
+/// A default implementation of a template provider that matches any object.
 /// </summary>
 public sealed class DefaultTemplateProvider : TemplateProviderBase
 {

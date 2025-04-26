@@ -26,6 +26,7 @@ using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.View;
 using Stride.Core.Presentation.Windows;
 using Stride.Core.Presentation.ViewModels;
+using Stride.Core.Presentation.Views;
 
 namespace Stride.Core.Assets.Editor.View
 {
@@ -46,7 +47,7 @@ namespace Stride.Core.Assets.Editor.View
             public TaskCompletionSource<int> Displayed { get; }
         }
 
-        private static readonly List<ITemplateProvider> AdditionalProviders = new List<ITemplateProvider>();
+        private static readonly List<TemplateProviderBase> AdditionalProviders = new List<TemplateProviderBase>();
         private readonly List<NotificationWindow> notificationWindows = new List<NotificationWindow>();
         private readonly List<PendingWorkProgress> pendingProgressWindows = new List<PendingWorkProgress>();
         private readonly ConcurrentQueue<Tuple<SettingsKey, Action>> delayedNotifications = new ConcurrentQueue<Tuple<SettingsKey, Action>>();
@@ -239,13 +240,9 @@ namespace Stride.Core.Assets.Editor.View
             RegisterResourceDictionary(dictionary);
         }
 
-        public void RegisterDefaultTemplateProvider(ITemplateProvider provider)
+        public void RegisterDefaultTemplateProvider(TemplateProviderBase provider)
         {
-            var dependencyObject = provider as DependencyObject;
-            if (dependencyObject == null)
-                throw new InvalidOperationException("The template provider must be a dependency object in order to be used correctly in the property view.");
-
-            var category = PropertyViewHelper.GetTemplateCategory(dependencyObject);
+            var category = PropertyViewHelper.GetTemplateCategory(provider);
             switch (category)
             {
                 case PropertyViewHelper.Category.PropertyHeader:
@@ -263,14 +260,11 @@ namespace Stride.Core.Assets.Editor.View
         }
 
         // TODO: Move this in PluginService
-        public void RegisterAdditionalTemplateProvider(ITemplateProvider provider)
+        public void RegisterAdditionalTemplateProvider(TemplateProviderBase provider)
         {
             AdditionalProviders.Add(provider);
-            var dependencyObject = provider as DependencyObject;
-            if (dependencyObject == null)
-                throw new InvalidOperationException("The template provider must be a dependency object in order to be used correctly in the property view.");
 
-            var category = PropertyViewHelper.GetTemplateCategory(dependencyObject);
+            var category = PropertyViewHelper.GetTemplateCategory(provider);
             switch (category)
             {
                 case PropertyViewHelper.Category.PropertyHeader:
@@ -302,8 +296,7 @@ namespace Stride.Core.Assets.Editor.View
         {
             foreach (object value in dictionary.Values)
             {
-                var provider = value as ITemplateProvider;
-                if (provider != null)
+                if (value is TemplateProviderBase provider)
                 {
                     RegisterDefaultTemplateProvider(provider);
                 }

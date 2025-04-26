@@ -15,6 +15,7 @@ using Stride.Core.Presentation.Avalonia.Views;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.ViewModels;
+using Stride.Core.Presentation.Views;
 using Stride.Core.Translation;
 using Stride.GameStudio.Avalonia.Services;
 
@@ -73,20 +74,20 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
 
         void RegisterDefaultTemplateProvider(ITemplateProvider provider)
         {
-            if (provider is not AvaloniaObject avaloniaObject)
+            if (provider is not TemplateProviderBase avaloniaObject)
                 return;
 
             var category = PropertyViewHelper.GetTemplateCategory(avaloniaObject);
             switch (category)
             {
                 case PropertyViewHelper.Category.PropertyHeader:
-                    PropertyViewHelper.HeaderProviders.RegisterTemplateProvider(provider);
+                    PropertyViewHelper.HeaderProviders.RegisterTemplateProvider(avaloniaObject);
                     break;
                 case PropertyViewHelper.Category.PropertyFooter:
-                    PropertyViewHelper.FooterProviders.RegisterTemplateProvider(provider);
+                    PropertyViewHelper.FooterProviders.RegisterTemplateProvider(avaloniaObject);
                     break;
                 case PropertyViewHelper.Category.PropertyEditor:
-                    PropertyViewHelper.EditorProviders.RegisterTemplateProvider(provider);
+                    PropertyViewHelper.EditorProviders.RegisterTemplateProvider(avaloniaObject);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -95,7 +96,7 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
 
         void RegisterAdditionalTemplateProvider(ITemplateProvider provider)
         {
-            if (provider is not AvaloniaObject avaloniaObject)
+            if (provider is not TemplateProviderBase avaloniaObject)
                 return;
 
             // FIXME xplat-editor keep track of additional providers
@@ -104,13 +105,13 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
             switch (category)
             {
                 case PropertyViewHelper.Category.PropertyHeader:
-                    PropertyViewHelper.HeaderProviders.RegisterTemplateProvider(provider);
+                    PropertyViewHelper.HeaderProviders.RegisterTemplateProvider(avaloniaObject);
                     break;
                 case PropertyViewHelper.Category.PropertyFooter:
-                    PropertyViewHelper.FooterProviders.RegisterTemplateProvider(provider);
+                    PropertyViewHelper.FooterProviders.RegisterTemplateProvider(avaloniaObject);
                     break;
                 case PropertyViewHelper.Category.PropertyEditor:
-                    PropertyViewHelper.EditorProviders.RegisterTemplateProvider(provider);
+                    PropertyViewHelper.EditorProviders.RegisterTemplateProvider(avaloniaObject);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();

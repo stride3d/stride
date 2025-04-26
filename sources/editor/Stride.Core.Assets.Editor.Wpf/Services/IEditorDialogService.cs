@@ -12,6 +12,7 @@ using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.View;
 using Stride.Core.Presentation.ViewModels;
+using Stride.Core.Presentation.Views;
 
 namespace Stride.Core.Assets.Editor.Services
 {
@@ -127,9 +128,9 @@ namespace Stride.Core.Assets.Editor.Services
 
         void RegisterDefaultTemplateProviders();
 
-        void RegisterDefaultTemplateProvider(ITemplateProvider provider);
+        void RegisterDefaultTemplateProvider(TemplateProviderBase provider);
 
-        void RegisterAdditionalTemplateProvider(ITemplateProvider provider);
+        void RegisterAdditionalTemplateProvider(TemplateProviderBase provider);
 
         void UnregisterAdditionalTemplateProviders();
     }

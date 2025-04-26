@@ -1,9 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using Avalonia.Markup.Xaml.Templates;
-
-namespace Stride.Core.Presentation.Avalonia.Views;
+namespace Stride.Core.Presentation.Views;
 
 /// <summary>
 /// This enum describes how an <see cref="ITemplateProvider"/> should override other providers that matches the same object.
@@ -37,11 +35,6 @@ public interface ITemplateProvider : IComparable<ITemplateProvider>
     /// Gets an identifier name for this instance of <see cref="ITemplateProvider"/>.
     /// </summary>
     string Name { get; }
-
-    /// <summary>
-    /// Gets or sets the template associated with this <see cref="ITemplateProvider"/>
-    /// </summary>
-    DataTemplate Template { get; set; }
         
     /// <summary>
     /// Gets or sets the rule to use when this provider can potentially override other providers that matches the same object.
