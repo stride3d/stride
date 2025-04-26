@@ -235,6 +235,24 @@
                     IsChecked="{Binding [Enabled].NodeValue, Converter={caec:DifferentValuesToParam}, ConverterParameter={x:Null}, FallbackValue={x:False}, TargetNullValue={x:False}}"
                     IsThreeState="{Binding [Enabled].NodeValue, Converter={sd:IsEqualToParam}, ConverterParameter={x:Static cpqvm:NodeViewModel.DifferentValues}, FallbackValue={x:False}, TargetNullValue={x:False}}"
                     IsVisible="{Binding [HasChild_Enabled], FallbackValue={x:False}}"/>
+          <Interaction.Behaviors>
+            <DataTriggerBehavior Binding="{sd:MultiBinding {Binding ConverterParameter=[IsOverridden], Converter={caec:NodePathToObject}},
+                                                           {Binding ConverterParameter=[Enabled].[IsOverridden], Converter={caec:NodePathToObject}},
+                                                           {Binding ConverterParameter=[InlinedProperty].[IsOverridden], Converter={caec:NodePathToObject}},
+                                                           Converter={sd:OrMulti}}"
+                                 Value="{sd:True}">
+              <ChangePropertyAction TargetObject="PropertyNameBlock" PropertyName="FontWeight" Value="Bold"/>
+              <ChangePropertyAction TargetObject="PropertyNameBox" PropertyName="FontWeight" Value="Bold"/>
+            </DataTriggerBehavior>
+            <DataTriggerBehavior Binding="{sd:MultiBinding {Binding ConverterParameter=[HasBase], Converter={caec:NodePathToObject}, FallbackValue={sd:False}},
+                                                           {Binding ConverterParameter=[IsInherited], Converter={caec:NodePathToObject}, FallbackValue={sd:True}},
+                                                           {Binding ConverterParameter=[Enabled].[IsInherited], Converter={caec:NodePathToObject}, FallbackValue={sd:True}},
+                                                           Converter={sd:AndMulti}}"
+                                 Value="{sd:True}">
+              <ChangePropertyAction TargetObject="PropertyNameBlock" PropertyName="Opacity" Value="0.5"/>
+              <ChangePropertyAction TargetObject="PropertyNameBox" PropertyName="Opacity" Value="0.5"/>
+            </DataTriggerBehavior>
+          </Interaction.Behaviors>
         </Grid>
       </Border>
       <GridSplitter Grid.Column="2" Width="2" ResizeBehavior="PreviousAndNext" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
@@ -292,6 +310,20 @@
                      Text="{Binding DisplayName, Mode=OneWay}" HorizontalAlignment="Left" VerticalAlignment="Center"
                      Foreground="#E6E6E6"/>
           <Interaction.Behaviors>
+            <DataTriggerBehavior Binding="{sd:MultiBinding {Binding ConverterParameter=[IsOverridden], Converter={caec:NodePathToObject}},
+                                                           {Binding ConverterParameter=[Enabled].[IsOverridden], Converter={caec:NodePathToObject}},
+                                                           {Binding ConverterParameter=[InlinedProperty].[IsOverridden], Converter={caec:NodePathToObject}},
+                                                           Converter={sd:OrMulti}}"
+                                 Value="{sd:True}">
+              <ChangePropertyAction TargetObject="HeaderTextBlock" PropertyName="FontWeight" Value="Bold"/>
+            </DataTriggerBehavior>
+            <DataTriggerBehavior Binding="{sd:MultiBinding {Binding ConverterParameter=[HasBase], Converter={caec:NodePathToObject}, FallbackValue={sd:False}},
+                                                           {Binding ConverterParameter=[IsInherited], Converter={caec:NodePathToObject}, FallbackValue={sd:True}},
+                                                           {Binding ConverterParameter=[Enabled].[IsInherited], Converter={caec:NodePathToObject}, FallbackValue={sd:True}},
+                                                           Converter={sd:AndMulti}}"
+                                 Value="{sd:True}">
+              <ChangePropertyAction TargetObject="HeaderTextBlock" PropertyName="Opacity" Value="0.5"/>
+            </DataTriggerBehavior>
             <DataTriggerBehavior Binding="{Binding Level, Converter={sd:IsEqual}, ConverterParameter={sd:Int 2}}" Value="True">
               <ChangePropertyAction TargetObject="PART_Name" PropertyName="Opacity" Value="0.6"/>
               <ChangePropertyAction TargetObject="HeaderTextBlock" PropertyName="FontSize" Value="14"/>
