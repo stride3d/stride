@@ -37,7 +37,7 @@ namespace Stride.Graphics
             this.outputIndex = outputIndex;
             this.displayProperties = displayProperties;
 
-            desktopBounds = new Rectangle(0, 0, (int)displayProperties.physicalResolution.Width, (int)displayProperties.physicalResolution.Height);
+            desktopBounds = new Rectangle(0, 0, (int)displayProperties.physicalResolution.width, (int)displayProperties.physicalResolution.height);
         }
 
         /// <summary>

@@ -235,284 +235,284 @@ namespace Stride.Graphics
                 //    pixelSize = 1;
                 //    break;
                 case PixelFormat.R8_UNorm:
-                    format = VkFormat.R8UNorm;
+                    format = VkFormat.R8Unorm;
                     pixelSize = 1;
                     break;
                 case PixelFormat.R8_SNorm:
-                    format = VkFormat.R8SNorm;
+                    format = VkFormat.R8Snorm;
                     pixelSize = 1;
                     break;
                 case PixelFormat.R8_UInt:
-                    format = VkFormat.R8UInt;
+                    format = VkFormat.R8Uint;
                     pixelSize = 1;
                     break;
                 case PixelFormat.R8_SInt:
-                    format = VkFormat.R8SInt;
+                    format = VkFormat.R8Sint;
                     pixelSize = 1;
                     break;
 
                 case PixelFormat.R8G8B8A8_UNorm:
-                    format = VkFormat.R8G8B8A8UNorm;
+                    format = VkFormat.R8G8B8A8Unorm;
                     pixelSize = 4;
                     break;
                 case PixelFormat.R8G8B8A8_UInt:
-                    format = VkFormat.R8G8B8A8UInt;
+                    format = VkFormat.R8G8B8A8Uint;
                     pixelSize = 4;
                     break;
                 case PixelFormat.R8G8B8A8_SInt:
-                    format = VkFormat.R8G8B8A8SInt;
+                    format = VkFormat.R8G8B8A8Sint;
                     pixelSize = 4;
                     break;
                 case PixelFormat.B8G8R8A8_UNorm:
-                    format = VkFormat.B8G8R8A8UNorm;
+                    format = VkFormat.B8G8R8A8Unorm;
                     pixelSize = 4;
                     break;
                 case PixelFormat.R8G8B8A8_UNorm_SRgb:
-                    format = VkFormat.R8G8B8A8SRgb;
+                    format = VkFormat.R8G8B8A8Srgb;
                     pixelSize = 4;
                     break;
                 case PixelFormat.B8G8R8A8_UNorm_SRgb:
-                    format = VkFormat.B8G8R8A8SRgb;
+                    format = VkFormat.B8G8R8A8Srgb;
                     pixelSize = 4;
                     break;
 
                 case PixelFormat.R16_Float:
-                    format = VkFormat.R16SFloat;
+                    format = VkFormat.R16Sfloat;
                     pixelSize = 2;
                     break;
                 case PixelFormat.R16_UNorm:
-                    format = VkFormat.R16UNorm;
+                    format = VkFormat.R16Unorm;
                     pixelSize = 2;
                     break;
                 case PixelFormat.R16_UInt:
-                    format = VkFormat.R16UInt;
+                    format = VkFormat.R16Uint;
                     pixelSize = 2;
                     break;
                 case PixelFormat.R16_SInt:
-                    format = VkFormat.R16SInt;
+                    format = VkFormat.R16Sint;
                     pixelSize = 2;
                     break;
 
                 case PixelFormat.R16G16_Float:
-                    format = VkFormat.R16G16SFloat;
+                    format = VkFormat.R16G16Sfloat;
                     pixelSize = 4;
                     break;
                 case PixelFormat.R16G16_SNorm:
-                    format = VkFormat.R16G16SNorm;
+                    format = VkFormat.R16G16Snorm;
                     pixelSize = 4;
                     break;
                 case PixelFormat.R16G16_UNorm:
-                    format = VkFormat.R16G16UNorm;
+                    format = VkFormat.R16G16Unorm;
                     pixelSize = 4;
                     break;
                 case PixelFormat.R16G16_SInt:
-                    format = VkFormat.R16G16SNorm;
+                    format = VkFormat.R16G16Snorm;
                     pixelSize = 4;
                     break;
                 case PixelFormat.R16G16_UInt:
-                    format = VkFormat.R16G16UNorm;
+                    format = VkFormat.R16G16Unorm;
                     pixelSize = 4;
                     break;
 
                 case PixelFormat.R16G16B16A16_Float:
-                    format = VkFormat.R16G16B16A16SFloat;
+                    format = VkFormat.R16G16B16A16Sfloat;
                     pixelSize = 8;
                     break;
                 case PixelFormat.R16G16B16A16_UNorm:
-                    format = VkFormat.R16G16B16A16UNorm;
+                    format = VkFormat.R16G16B16A16Unorm;
                     pixelSize = 8;
                     break;
                 case PixelFormat.R16G16B16A16_SNorm:
-                    format = VkFormat.R16G16B16A16SNorm;
+                    format = VkFormat.R16G16B16A16Snorm;
                     pixelSize = 8;
                     break;
                 case PixelFormat.R16G16B16A16_UInt:
-                    format = VkFormat.R16G16B16A16UInt;
+                    format = VkFormat.R16G16B16A16Uint;
                     pixelSize = 8;
                     break;
                 case PixelFormat.R16G16B16A16_SInt:
-                    format = VkFormat.R16G16B16A16SInt;
+                    format = VkFormat.R16G16B16A16Sint;
                     pixelSize = 8;
                     break;
 
                 case PixelFormat.R32_UInt:
-                    format = VkFormat.R32UInt;
+                    format = VkFormat.R32Uint;
                     pixelSize = 4;
                     break;
                 case PixelFormat.R32_Float:
-                    format = VkFormat.R32SFloat;
+                    format = VkFormat.R32Sfloat;
                     pixelSize = 4;
                     break;
 
                 case PixelFormat.R32G32_Float:
-                    format = VkFormat.R32G32SFloat;
+                    format = VkFormat.R32G32Sfloat;
                     pixelSize = 8;
                     break;
                 case PixelFormat.R32G32_UInt:
-                    format = VkFormat.R32G32UInt;
+                    format = VkFormat.R32G32Uint;
                     pixelSize = 8;
                     break;
                 case PixelFormat.R32G32_SInt:
-                    format = VkFormat.R32G32SInt;
+                    format = VkFormat.R32G32Sint;
                     pixelSize = 8;
                     break;
 
                 case PixelFormat.R32G32B32_Float:
-                    format = VkFormat.R32G32B32SFloat;
+                    format = VkFormat.R32G32B32Sfloat;
                     pixelSize = 12;
                     break;
                 case PixelFormat.R32G32B32_SInt:
-                    format = VkFormat.R32G32B32SInt;
+                    format = VkFormat.R32G32B32Sint;
                     pixelSize = 12;
                     break;
                 case PixelFormat.R32G32B32_UInt:
-                    format = VkFormat.R32G32B32UInt;
+                    format = VkFormat.R32G32B32Uint;
                     pixelSize = 12;
                     break;
 
                 case PixelFormat.R32G32B32A32_Float:
-                    format = VkFormat.R32G32B32A32SFloat;
+                    format = VkFormat.R32G32B32A32Sfloat;
                     pixelSize = 16;
                     break;
                 case PixelFormat.R32G32B32A32_SInt:
-                    format = VkFormat.R32G32B32A32SInt;
+                    format = VkFormat.R32G32B32A32Sint;
                     pixelSize = 16;
                     break;
                 case PixelFormat.R32G32B32A32_UInt:
-                    format = VkFormat.R32G32B32A32UInt;
+                    format = VkFormat.R32G32B32A32Uint;
                     pixelSize = 16;
                     break;
 
                 case PixelFormat.D16_UNorm:
-                    format = VkFormat.D16UNorm;
+                    format = VkFormat.D16Unorm;
                     pixelSize = 2;
                     break;
                 case PixelFormat.D24_UNorm_S8_UInt:
-                    format = VkFormat.D24UNormS8UInt;
+                    format = VkFormat.D24UnormS8Uint;
                     pixelSize = 4;
                     break;
                 // TODO: Temporary depth format (need to decide relation between RenderTarget1D and Texture)
                 case PixelFormat.D32_Float:
-                    format = VkFormat.D32SFloat;
+                    format = VkFormat.D32Sfloat;
                     pixelSize = 4;
                     break;
 
                 case PixelFormat.ETC1:
                 case PixelFormat.ETC2_RGB: // ETC1 upper compatible
-                    format = VkFormat.ETC2R8G8B8UNormBlock;
+                    format = VkFormat.Etc2R8G8B8UnormBlock;
                     compressed = true;
                     pixelSize = 1; // 4bpp
                     break;
                 case PixelFormat.ETC2_RGB_SRgb:
-                    format = VkFormat.ETC2R8G8B8SRgbBlock;
+                    format = VkFormat.Etc2R8G8B8SrgbBlock;
                     compressed = true;
                     pixelSize = 1;
                     break;
                 case PixelFormat.ETC2_RGB_A1:
-                    format = VkFormat.ETC2R8G8B8A1UNormBlock;
+                    format = VkFormat.Etc2R8G8B8A1UnormBlock;
                     compressed = true;
                     pixelSize = 1; // 4bpp
                     break;
                 case PixelFormat.ETC2_RGBA: // ETC2 + EAC
-                    format = VkFormat.ETC2R8G8B8A8UNormBlock;
+                    format = VkFormat.Etc2R8G8B8A8UnormBlock;
                     compressed = true;
                     pixelSize = 2; // 8bpp
                     break;
                 case PixelFormat.ETC2_RGBA_SRgb: // ETC2 + EAC
-                    format = VkFormat.ETC2R8G8B8A8SRgbBlock;
+                    format = VkFormat.Etc2R8G8B8A8SrgbBlock;
                     compressed = true;
                     pixelSize = 2; // 8bpp
                     break;
                 case PixelFormat.EAC_R11_Unsigned:
-                    format = VkFormat.EACR11UNormBlock;
+                    format = VkFormat.EacR11UnormBlock;
                     compressed = true;
                     pixelSize = 1; // 4bpp
                     break;
                 case PixelFormat.EAC_R11_Signed:
-                    format = VkFormat.EACR11SNormBlock;
+                    format = VkFormat.EacR11SnormBlock;
                     compressed = true;
                     pixelSize = 1; // 4bpp
                     break;
                 case PixelFormat.EAC_RG11_Unsigned:
-                    format = VkFormat.EACR11G11UNormBlock;
+                    format = VkFormat.EacR11G11UnormBlock;
                     compressed = true;
                     pixelSize = 2; // 8bpp
                     break;
                 case PixelFormat.EAC_RG11_Signed:
-                    format = VkFormat.EACR11G11SNormBlock;
+                    format = VkFormat.EacR11G11SnormBlock;
                     compressed = true;
                     pixelSize = 2; // 8bpp
                     break;
 
                 case PixelFormat.BC1_UNorm:
-                    format = VkFormat.BC1RGBAUNormBlock;
+                    format = VkFormat.Bc1RgbaUnormBlock;
                     //format = VkFormat.RAD_TEXTURE_FORMAT_DXT1_RGBA;
                     compressed = true;
                     pixelSize = 1; // 4bpp
                     break;
                 case PixelFormat.BC1_UNorm_SRgb:
-                    format = VkFormat.BC1RGBASRgbBlock;
+                    format = VkFormat.Bc1RgbaSrgbBlock;
                     //format = VkFormat.RAD_TEXTURE_FORMAT_DXT1_RGBA_SRgb;
                     compressed = true;
                     pixelSize = 1; // 4bpp
                     break;
                 case PixelFormat.BC2_UNorm:
-                    format = VkFormat.BC2UNormBlock;
+                    format = VkFormat.Bc2UnormBlock;
                     compressed = true;
                     pixelSize = 2; // 8bpp
                     break;
                 case PixelFormat.BC2_UNorm_SRgb:
-                    format = VkFormat.BC2SRgbBlock;
+                    format = VkFormat.Bc2SrgbBlock;
                     compressed = true;
                     pixelSize = 2; // 8bpp
                     break;
                 case PixelFormat.BC3_UNorm:
-                    format = VkFormat.BC3UNormBlock;
+                    format = VkFormat.Bc3UnormBlock;
                     compressed = true;
                     pixelSize = 2; // 8bpp
                     break;
                 case PixelFormat.BC3_UNorm_SRgb:
-                    format = VkFormat.BC3SRgbBlock;
+                    format = VkFormat.Bc3SrgbBlock;
                     compressed = true;
                     pixelSize = 2; // 8bpp
                     break;
                 case PixelFormat.BC4_SNorm:
-                    format = VkFormat.BC4SNormBlock;
+                    format = VkFormat.Bc4SnormBlock;
                     compressed = true;
                     pixelSize = 1; // 4bpp
                     break;
                 case PixelFormat.BC4_UNorm:
-                    format = VkFormat.BC4UNormBlock;
+                    format = VkFormat.Bc4UnormBlock;
                     compressed = true;
                     pixelSize = 1; // 4bpp
                     break;
                 case PixelFormat.BC5_SNorm:
-                    format = VkFormat.BC5SNormBlock;
+                    format = VkFormat.Bc5SnormBlock;
                     compressed = true;
                     pixelSize = 2; // 8bpp
                     break;
                 case PixelFormat.BC5_UNorm:
-                    format = VkFormat.BC5UNormBlock;
+                    format = VkFormat.Bc5UnormBlock;
                     compressed = true;
                     pixelSize = 2; // 8bpp
                     break;
                 case PixelFormat.BC6H_Sf16:
-                    format = VkFormat.BC6HSFloatBlock;
+                    format = VkFormat.Bc6hSfloatBlock;
                     compressed = true;
                     pixelSize = 2; // 8bpp
                     break;
                 case PixelFormat.BC6H_Uf16:
-                    format = VkFormat.BC6HUFloatBlock;
+                    format = VkFormat.Bc6hUfloatBlock;
                     compressed = true;
                     pixelSize = 2; // 8bpp
                     break;
                 case PixelFormat.BC7_UNorm:
-                    format = VkFormat.BC7UNormBlock;
+                    format = VkFormat.Bc7UnormBlock;
                     compressed = true;
                     pixelSize = 2; // 8bpp
                     break;
                 case PixelFormat.BC7_UNorm_SRgb:
-                    format = VkFormat.BC7SRgbBlock;
+                    format = VkFormat.Bc7SrgbBlock;
                     compressed = true;
                     pixelSize = 2; // 8bpp
                     break;
@@ -581,76 +581,76 @@ namespace Stride.Graphics
         {
             switch (format)
             {
-                case VkFormat.BC1RGBUNormBlock:
-                case VkFormat.BC1RGBSRgbBlock:
-                case VkFormat.BC1RGBAUNormBlock:
-                case VkFormat.BC1RGBASRgbBlock:
+                case VkFormat.Bc1RgbUnormBlock:
+                case VkFormat.Bc1RgbSrgbBlock:
+                case VkFormat.Bc1RgbaUnormBlock:
+                case VkFormat.Bc1RgbaSrgbBlock:
                     return 8;
 
-                case VkFormat.BC2UNormBlock:
-                case VkFormat.BC2SRgbBlock:
-                case VkFormat.BC3UNormBlock:
-                case VkFormat.BC3SRgbBlock:
+                case VkFormat.Bc2UnormBlock:
+                case VkFormat.Bc2SrgbBlock:
+                case VkFormat.Bc3UnormBlock:
+                case VkFormat.Bc3SrgbBlock:
                     return 16;
 
-                case VkFormat.BC4UNormBlock:
-                case VkFormat.BC4SNormBlock:
+                case VkFormat.Bc4UnormBlock:
+                case VkFormat.Bc4SnormBlock:
                     return 8;
 
-                case VkFormat.BC5UNormBlock:
-                case VkFormat.BC5SNormBlock:
-                case VkFormat.BC6HUFloatBlock:
-                case VkFormat.BC6HSFloatBlock:
-                case VkFormat.BC7UNormBlock:
-                case VkFormat.BC7SRgbBlock:
+                case VkFormat.Bc5UnormBlock:
+                case VkFormat.Bc5SnormBlock:
+                case VkFormat.Bc6hUfloatBlock:
+                case VkFormat.Bc6hSfloatBlock:
+                case VkFormat.Bc7UnormBlock:
+                case VkFormat.Bc7SrgbBlock:
                     return 16;
 
-                case VkFormat.ETC2R8G8B8UNormBlock:
-                case VkFormat.ETC2R8G8B8SRgbBlock:
-                case VkFormat.ETC2R8G8B8A1UNormBlock:
-                case VkFormat.ETC2R8G8B8A1SRgbBlock:
+                case VkFormat.Etc2R8G8B8UnormBlock:
+                case VkFormat.Etc2R8G8B8SrgbBlock:
+                case VkFormat.Etc2R8G8B8A1UnormBlock:
+                case VkFormat.Etc2R8G8B8A1SrgbBlock:
                     return 8;
 
-                case VkFormat.ETC2R8G8B8A8UNormBlock:
-                case VkFormat.ETC2R8G8B8A8SRgbBlock:
+                case VkFormat.Etc2R8G8B8A8UnormBlock:
+                case VkFormat.Etc2R8G8B8A8SrgbBlock:
                     return 16;
 
-                case VkFormat.EACR11UNormBlock:
-                case VkFormat.EACR11SNormBlock:
+                case VkFormat.EacR11UnormBlock:
+                case VkFormat.EacR11SnormBlock:
                     return 8;
 
-                case VkFormat.EACR11G11UNormBlock:
-                case VkFormat.EACR11G11SNormBlock:
+                case VkFormat.EacR11G11UnormBlock:
+                case VkFormat.EacR11G11SnormBlock:
                     return 16;
 
-                case VkFormat.ASTC4x4UNormBlock:
-                case VkFormat.ASTC4x4SRgbBlock:
-                case VkFormat.ASTC5x4UNormBlock:
-                case VkFormat.ASTC5x4SRgbBlock:
-                case VkFormat.ASTC5x5UNormBlock:
-                case VkFormat.ASTC5x5SRgbBlock:
-                case VkFormat.ASTC6x5UNormBlock:
-                case VkFormat.ASTC6x5SRgbBlock:
-                case VkFormat.ASTC6x6UNormBlock:
-                case VkFormat.ASTC6x6SRgbBlock:
-                case VkFormat.ASTC8x5UNormBlock:
-                case VkFormat.ASTC8x5SRgbBlock:
-                case VkFormat.ASTC8x6UNormBlock:
-                case VkFormat.ASTC8x6SRgbBlock:
-                case VkFormat.ASTC8x8UNormBlock:
-                case VkFormat.ASTC8x8SRgbBlock:
-                case VkFormat.ASTC10x5UNormBlock:
-                case VkFormat.ASTC10x5SRgbBlock:
-                case VkFormat.ASTC10x6UNormBlock:
-                case VkFormat.ASTC10x6SRgbBlock:
-                case VkFormat.ASTC10x8UNormBlock:
-                case VkFormat.ASTC10x8SRgbBlock:
-                case VkFormat.ASTC10x10UNormBlock:
-                case VkFormat.ASTC10x10SRgbBlock:
-                case VkFormat.ASTC12x10UNormBlock:
-                case VkFormat.ASTC12x10SRgbBlock:
-                case VkFormat.ASTC12x12UNormBlock:
-                case VkFormat.ASTC12x12SRgbBlock:
+                case VkFormat.Astc4x4UnormBlock:
+                case VkFormat.Astc4x4SrgbBlock:
+                case VkFormat.Astc5x4UnormBlock:
+                case VkFormat.Astc5x4SrgbBlock:
+                case VkFormat.Astc5x5UnormBlock:
+                case VkFormat.Astc5x5SrgbBlock:
+                case VkFormat.Astc6x5UnormBlock:
+                case VkFormat.Astc6x5SrgbBlock:
+                case VkFormat.Astc6x6UnormBlock:
+                case VkFormat.Astc6x6SrgbBlock:
+                case VkFormat.Astc8x5UnormBlock:
+                case VkFormat.Astc8x5SrgbBlock:
+                case VkFormat.Astc8x6UnormBlock:
+                case VkFormat.Astc8x6SrgbBlock:
+                case VkFormat.Astc8x8UnormBlock:
+                case VkFormat.Astc8x8SrgbBlock:
+                case VkFormat.Astc10x5UnormBlock:
+                case VkFormat.Astc10x5SrgbBlock:
+                case VkFormat.Astc10x6UnormBlock:
+                case VkFormat.Astc10x6SrgbBlock:
+                case VkFormat.Astc10x8UnormBlock:
+                case VkFormat.Astc10x8SrgbBlock:
+                case VkFormat.Astc10x10UnormBlock:
+                case VkFormat.Astc10x10SrgbBlock:
+                case VkFormat.Astc12x10UnormBlock:
+                case VkFormat.Astc12x10SrgbBlock:
+                case VkFormat.Astc12x12UnormBlock:
+                case VkFormat.Astc12x12SrgbBlock:
                     return 16;
 
                 default:
