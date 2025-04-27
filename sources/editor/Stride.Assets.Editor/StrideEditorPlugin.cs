@@ -2,6 +2,8 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Reflection;
+using Stride.Assets.Editor.Quantum.NodePresenters.Commands;
+using Stride.Assets.Editor.Quantum.NodePresenters.Updaters;
 using Stride.Core.Assets.Editor;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Assets.Presentation.ViewModels;
@@ -11,7 +13,6 @@ using Stride.Core.Presentation.Views;
 using Stride.Editor.Annotations;
 using Stride.Editor.Build;
 using Stride.Editor.Preview.ViewModels;
-using Stride.Editor.Thumbnails;
 
 namespace Stride.Assets.Editor;
 
@@ -54,6 +55,28 @@ public sealed class StrideEditorPlugin : AssetsEditorPlugin
 
         //var thumbnailService = new GameStudioThumbnailService((SessionViewModel)session, settingsProvider, builderService);
         //session.ServiceProvider.RegisterService(thumbnailService);
+
+        if (session is SessionViewModel sessionVm)
+        {
+            // commands
+            sessionVm.ActiveProperties.RegisterNodePresenterCommand(new SetComponentReferenceCommand());
+            sessionVm.ActiveProperties.RegisterNodePresenterCommand(new SetEntityReferenceCommand());
+
+            // updaters
+            sessionVm.ActiveProperties.RegisterNodePresenterUpdater(new AnimationAssetNodeUpdater());
+            sessionVm.ActiveProperties.RegisterNodePresenterUpdater(new CameraSlotNodeUpdater());
+            sessionVm.ActiveProperties.RegisterNodePresenterUpdater(new EntityHierarchyAssetNodeUpdater());
+            sessionVm.ActiveProperties.RegisterNodePresenterUpdater(new GameSettingsAssetNodeUpdater());
+            sessionVm.ActiveProperties.RegisterNodePresenterUpdater(new GraphicsCompositorAssetNodeUpdater());
+            sessionVm.ActiveProperties.RegisterNodePresenterUpdater(new MaterialAssetNodeUpdater());
+            sessionVm.ActiveProperties.RegisterNodePresenterUpdater(new ModelAssetNodeUpdater());
+            sessionVm.ActiveProperties.RegisterNodePresenterUpdater(new SkeletonAssetNodeUpdater());
+            sessionVm.ActiveProperties.RegisterNodePresenterUpdater(new SpriteSheetAssetNodeUpdater());
+            sessionVm.ActiveProperties.RegisterNodePresenterUpdater(new TextureAssetNodeUpdater());
+            sessionVm.ActiveProperties.RegisterNodePresenterUpdater(new UIAssetNodeUpdater());
+            sessionVm.ActiveProperties.RegisterNodePresenterUpdater(new UnloadableObjectPropertyNodeUpdater());
+            sessionVm.ActiveProperties.RegisterNodePresenterUpdater(new VideoAssetNodeUpdater());
+        }
     }
 
     public override void RegisterAssetPreviewViewModelTypes(IDictionary<Type, Type> assetPreviewViewModelTypes)

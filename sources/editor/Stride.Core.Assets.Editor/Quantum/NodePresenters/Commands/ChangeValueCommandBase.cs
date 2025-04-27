@@ -21,5 +21,5 @@ public abstract class ChangeValueCommandBase : SyncNodePresenterCommandBase
     /// <param name="parameter">The parametr of the command.</param>
     /// <param name="preExecuteResult">The result of the <see cref="INodePresenterCommand.PreExecute"/> step.</param>
     /// <returns>The new value to set to the node presenter.</returns>
-    protected abstract object ChangeValue(object currentValue, object? parameter, object? preExecuteResult);
+    protected abstract object? ChangeValue(object currentValue, object? parameter, object? preExecuteResult);
 }

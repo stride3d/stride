@@ -15,6 +15,7 @@ namespace Stride.Assets.Presentation.ViewModels;
 public sealed class EntityViewModel : EntityHierarchyItemViewModel, IAssetPropertyProviderViewModel
 {
     private readonly MemberGraphNodeBinding<string> nameNodeBinding;
+    private readonly ObjectGraphNodeBinding<EntityComponentCollection> componentsNodeBinding;
 
     public EntityViewModel(EntityHierarchyViewModel asset, EntityDesign entityDesign)
         : base(asset, GetOrCreateChildPartDesigns((EntityHierarchyAssetBase)asset.Asset, entityDesign))
@@ -23,7 +24,10 @@ public sealed class EntityViewModel : EntityHierarchyItemViewModel, IAssetProper
 
         var assetNode = asset.Session.AssetNodeContainer.GetOrCreateNode(entityDesign.Entity);
         nameNodeBinding = new MemberGraphNodeBinding<string>(assetNode[nameof(Entity.Name)], nameof(Name), OnPropertyChanging, OnPropertyChanged, ServiceProvider.TryGet<IUndoRedoService>());
+        componentsNodeBinding = new ObjectGraphNodeBinding<EntityComponentCollection>(assetNode[nameof(Entity.Components)].Target!, nameof(Components), OnPropertyChanging, OnPropertyChanged, ServiceProvider.TryGet<IUndoRedoService>(), false);
     }
+
+    public IEnumerable<EntityComponent> Components => componentsNodeBinding.GetNodeValue();
 
     public Entity AssetSideEntity => EntityDesign.Entity;
 

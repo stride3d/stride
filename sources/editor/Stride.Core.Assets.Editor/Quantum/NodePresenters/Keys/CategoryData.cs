@@ -9,5 +9,5 @@ public static class CategoryData
 
     public static readonly PropertyKey<bool> Key = new(Category, typeof(CategoryData));
 
-    public static string ComputeCategoryNodeName(string categoryName) => categoryName + Category;
+    public static string ComputeCategoryNodeName(string? categoryName) => categoryName + Category;
 }
