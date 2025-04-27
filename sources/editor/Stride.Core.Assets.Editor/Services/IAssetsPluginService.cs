@@ -21,4 +21,6 @@ public interface IAssetsPluginService
     Type? GetPreviewViewModelType(Type previewType);
 
     Type? GetPreviewViewType(Type previewType);
+
+    IReadOnlyList<Type> GetPrimitiveTypes();
 }

@@ -31,6 +31,11 @@ public sealed class StrideCoreEditorViewPlugin : AssetsEditorPlugin
         // nothing for now
     }
 
+    public override void RegisterPrimitiveTypes(ICollection<Type> primitiveTypes)
+    {
+        // nothing for now
+    }
+
     public override void RegisterTemplateProviders(ICollection<ITemplateProvider> templateProviders)
     {
         foreach (var (_, value) in new DefaultPropertyTemplateProviders())

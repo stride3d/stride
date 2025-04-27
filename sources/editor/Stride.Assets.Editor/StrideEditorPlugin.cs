@@ -4,12 +4,16 @@
 using System.Reflection;
 using Stride.Assets.Editor.Quantum.NodePresenters.Commands;
 using Stride.Assets.Editor.Quantum.NodePresenters.Updaters;
+using Stride.Core.Assets;
 using Stride.Core.Assets.Editor;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Assets.Presentation.ViewModels;
 using Stride.Core.Diagnostics;
 using Stride.Core.IO;
 using Stride.Core.Presentation.Views;
+using Stride.Core.Reflection;
+using Stride.Core.Serialization;
+using Stride.Core.Serialization.Contents;
 using Stride.Editor.Annotations;
 using Stride.Editor.Build;
 using Stride.Editor.Preview.ViewModels;
@@ -95,6 +99,21 @@ public sealed class StrideEditorPlugin : AssetsEditorPlugin
     public override void RegisterAssetPreviewViewTypes(IDictionary<Type, Type> assetPreviewViewTypes)
     {
         // nothing for now
+    }
+
+    public override void RegisterPrimitiveTypes(ICollection<Type> primitiveTypes)
+    {
+        foreach (var type in AssemblyRegistry.FindAll().SelectMany(x => x.GetTypes()))
+        {
+            var serializer = SerializerSelector.AssetWithReuse.GetSerializer(type);
+            if (serializer?.GetType() is { IsGenericType: true } serializerType && serializerType.GetGenericTypeDefinition() == typeof(ReferenceSerializer<>))
+            {
+                primitiveTypes.Add(type);
+            }
+        }
+
+        primitiveTypes.Add(typeof(AssetReference));
+        primitiveTypes.Add(typeof(UrlReferenceBase));
     }
 
     public override void RegisterTemplateProviders(ICollection<ITemplateProvider> templateProviders)

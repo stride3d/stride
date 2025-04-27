@@ -47,7 +47,7 @@ public sealed partial class SessionViewModel : DispatcherViewModel, ISessionView
         PluginService.EnsureInitialized(logger);
 
         // Initialize the node container used for asset properties
-        AssetNodeContainer = new AssetNodeContainer { NodeBuilder = { NodeFactory = new AssetNodeFactory() } };
+        AssetNodeContainer = new SessionNodeContainer(serviceProvider) { NodeBuilder = { NodeFactory = new AssetNodeFactory() } };
 
         // Initialize the asset collection view model
         AssetCollection = new AssetCollectionViewModel(this);
