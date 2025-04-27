@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Collections;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Quantum;
@@ -160,7 +161,7 @@ public class AssetPropertyPasteProcessor : PasteProcessorBase
         }
 
         // Check if target collection/dictionary is null.
-        if (memberNode != null && memberNode.Target == null)
+        if (memberNode is { Target: null })
         {
             // Check if the type has a public constructor with no arguments
             if (targetNode.Type.GetConstructor(Type.EmptyTypes) != null)
@@ -511,9 +512,9 @@ public class AssetPropertyPasteProcessor : PasteProcessorBase
         }
     }
 
-    protected virtual bool CanUpdateMember(IMemberNode member, object newValue)
+    protected virtual bool CanUpdateMember([NotNullWhen(true)] IMemberNode? member, object? newValue)
     {
-        return member != null && member.MemberDescriptor.HasSet;
+        return member is { MemberDescriptor.HasSet: true };
     }
 
     protected virtual bool CanRemoveItem(IObjectNode collection, NodeIndex index)
@@ -521,27 +522,27 @@ public class AssetPropertyPasteProcessor : PasteProcessorBase
         return true;
     }
 
-    protected virtual bool CanReplaceItem(IObjectNode collection, NodeIndex index, object newItem)
+    protected virtual bool CanReplaceItem(IObjectNode collection, NodeIndex index, object? newItem)
     {
         return true;
     }
 
-    protected virtual bool CanInsertItem(IObjectNode collection, NodeIndex index, object newItem)
+    protected virtual bool CanInsertItem(IObjectNode collection, NodeIndex index, object? newItem)
     {
         return true;
     }
 
-    protected virtual void UpdateMember(IMemberNode member, object newValue)
+    protected virtual void UpdateMember(IMemberNode member, object? newValue)
     {
         member.Update(newValue);
     }
 
-    protected virtual void ReplaceItem(IObjectNode collection, NodeIndex index, object newItem)
+    protected virtual void ReplaceItem(IObjectNode collection, NodeIndex index, object? newItem)
     {
         collection.Update(newItem, index);
     }
 
-    protected virtual void InsertItem(IObjectNode collection, NodeIndex index, object newItem)
+    protected virtual void InsertItem(IObjectNode collection, NodeIndex index, object? newItem)
     {
         collection.Add(newItem, index);
     }

@@ -4,7 +4,7 @@
 using Microsoft.CSharp.RuntimeBinder;
 using Stride.Core.Assets.Analysis;
 using Stride.Core.Assets.Editor.Services;
-using Stride.Core.Assets.Editor.ViewModels;
+using Stride.Core.Assets.Presentation.ViewModels;
 using Stride.Core.Assets.Quantum;
 using Stride.Core.Assets.Yaml;
 using Stride.Core.Extensions;
@@ -15,11 +15,11 @@ namespace Stride.Core.Assets.Editor.Components.CopyPasteProcessors;
 /// <summary>
 /// Paste processor for collection of <see cref="AssetItem"/>.
 /// </summary>
-public sealed class AssetItemPasteProcessor : PasteProcessorBase
+internal sealed class AssetItemPasteProcessor : PasteProcessorBase
 {
-    private readonly SessionViewModel session;
+    private readonly ISessionViewModel session;
 
-    public AssetItemPasteProcessor(SessionViewModel session)
+    public AssetItemPasteProcessor(ISessionViewModel session)
     {
         this.session = session;
     }
@@ -36,8 +36,7 @@ public sealed class AssetItemPasteProcessor : PasteProcessorBase
     {
         var collectionDescriptor = (CollectionDescriptor)TypeDescriptorFactory.Default.Find(targetRootObject.GetType());
 
-        var collection = data as IList<AssetItem>;
-        if (collection == null)
+        if (data is not IList<AssetItem> collection)
         {
             collection = (IList<AssetItem>)Activator.CreateInstance(collectionDescriptor.Type, true);
             collectionDescriptor.Add(collection, data);

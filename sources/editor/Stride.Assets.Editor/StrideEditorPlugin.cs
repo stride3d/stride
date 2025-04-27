@@ -2,10 +2,11 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Reflection;
+using Stride.Assets.Editor.Components.CopyPasteProcessors;
 using Stride.Assets.Editor.Quantum.NodePresenters.Commands;
 using Stride.Assets.Editor.Quantum.NodePresenters.Updaters;
 using Stride.Core.Assets;
-using Stride.Core.Assets.Editor;
+using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Assets.Presentation.ViewModels;
 using Stride.Core.Diagnostics;
@@ -59,6 +60,15 @@ public sealed class StrideEditorPlugin : AssetsEditorPlugin
 
         //var thumbnailService = new GameStudioThumbnailService((SessionViewModel)session, settingsProvider, builderService);
         //session.ServiceProvider.RegisterService(thumbnailService);
+
+        if (session.ServiceProvider.TryGet<ICopyPasteService>() is { } copyPasteService)
+        {
+            copyPasteService.RegisterProcessor(new EntityComponentCopyProcessor());
+            copyPasteService.RegisterProcessor(new EntityComponentPasteProcessor());
+            copyPasteService.RegisterProcessor(new EntityHierarchyPasteProcessor());
+            copyPasteService.RegisterProcessor(new UIHierarchyPasteProcessor());
+            copyPasteService.RegisterProcessor(new ScenePostPasteProcessor());
+        }
 
         if (session is SessionViewModel sessionVm)
         {
