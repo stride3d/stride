@@ -20,8 +20,10 @@ internal sealed class CoreAssetsEditorPlugin : AssetsEditorPlugin
     {
         if (session.ServiceProvider.TryGet<ICopyPasteService>() is { } copyPasteService)
         {
-            copyPasteService.RegisterProcessor(new AssetItemPasteProcessor(session));
+            // FIXME xplat-editor order seems to matter we could make it buggy with plugins
+            //       instead, we should have a sorting/priority mechanism similar to the template providers
             copyPasteService.RegisterProcessor(new AssetPropertyPasteProcessor());
+            copyPasteService.RegisterProcessor(new AssetItemPasteProcessor(session));
         }
     }
 
