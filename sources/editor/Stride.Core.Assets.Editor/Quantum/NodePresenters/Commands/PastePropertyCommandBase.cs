@@ -31,13 +31,13 @@ public abstract class PastePropertyCommandBase : NodePresenterCommandBase
         {
             var assetNodePresenter = nodePresenter as IAssetNodePresenter;
             var copyPasteService = assetNodePresenter?.Asset?.ServiceProvider.TryGet<ICopyPasteService>();
-            if (copyPasteService == null)
+            if (copyPasteService is null)
                 return false;
 
             var asset = assetNodePresenter!.Asset!.Asset;
 
             var clipboard = assetNodePresenter?.Asset?.ServiceProvider.TryGet<IClipboardService>();
-            if (clipboard == null)
+            if (clipboard is null)
                 return false;
 
             if (!copyPasteService.CanPaste(clipboard.GetTextAsync().Result, asset.GetType(), (nodePresenter as ItemNodePresenter)?.OwnerCollection.Type ?? nodePresenter.Type))
@@ -48,7 +48,7 @@ public abstract class PastePropertyCommandBase : NodePresenterCommandBase
                 return false;
 
             // Cannot paste into read-only property (non-collection)
-            if (!nodePresenter.IsEnumerable && nodePresenter.IsReadOnly)
+            if (nodePresenter is { IsEnumerable: false, IsReadOnly: true })
                 return false;
         }
         return true;
@@ -73,7 +73,7 @@ public abstract class PastePropertyCommandBase : NodePresenterCommandBase
         var nodeAccessor = nodePresenter.GetNodeAccessor();
         var targetNode = nodeAccessor.Node;
         // If the node presenter is a virtual node without node, we cannot paste.
-        if (targetNode == null)
+        if (targetNode is null)
             return;
 
         var actionService = asset.UndoRedoService;
@@ -91,11 +91,11 @@ public abstract class PastePropertyCommandBase : NodePresenterCommandBase
 
     private static bool IsInReadOnlyCollection(INodePresenter? nodePresenter)
     {
-        if (nodePresenter == null || !nodePresenter.IsEnumerable)
+        if (nodePresenter is null || !nodePresenter.IsEnumerable)
             return false;
 
         var memberCollection = (nodePresenter as MemberNodePresenter)?.MemberAttributes.OfType<MemberCollectionAttribute>().FirstOrDefault()
                                ?? nodePresenter.Descriptor.Attributes.OfType<MemberCollectionAttribute>().FirstOrDefault();
-        return memberCollection != null && memberCollection.ReadOnly;
+        return memberCollection is { ReadOnly: true };
     }
 }

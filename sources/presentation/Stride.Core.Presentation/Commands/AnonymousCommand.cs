@@ -142,6 +142,7 @@ public class AnonymousCommand<T> : CommandBase
         return result && canExecute != null ? canExecute((T)parameter!) : result;
     }
 }
+
 /// <summary>
 /// An implementation of <see cref="CommandBase"/> that routes <see cref="AnonymousCommand{T}.Execute(object)"/> calls to a given anonymous method with a typed parameter.
 /// </summary>

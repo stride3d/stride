@@ -56,7 +56,7 @@ public class PackageViewModel : SessionObjectViewModel, IComparable<PackageViewM
 
     public IEnumerable<MountPointViewModel> MountPoints => Content.OfType<MountPointViewModel>();
 
-    internal ObservableList<AssetViewModel> DeletedAssetsInternal { get; } = new ObservableList<AssetViewModel>();
+    internal ObservableList<AssetViewModel> DeletedAssetsInternal { get; } = [];
 
     /// <summary>
     /// Gets or sets the name of this package.
@@ -90,7 +90,7 @@ public class PackageViewModel : SessionObjectViewModel, IComparable<PackageViewM
     /// <summary>
     /// Gets the collection of root assets for this package.
     /// </summary>
-    public ObservableSet<AssetViewModel> RootAssets { get; } = new ObservableSet<AssetViewModel>();
+    public ObservableSet<AssetViewModel> RootAssets { get; } = [];
 
     public UDirectory RootDirectory => Package.RootDirectory;
 

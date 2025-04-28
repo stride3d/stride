@@ -25,7 +25,7 @@ public abstract class DirectoryBaseViewModel : SessionObjectViewModel
     /// Gets the package containing this directory.
     /// </summary>
     public abstract PackageViewModel Package { get; }
-    
+
     /// <summary>
     /// Gets or sets the parent directory of this directory.
     /// </summary>
@@ -55,7 +55,8 @@ public abstract class DirectoryBaseViewModel : SessionObjectViewModel
 
     public DirectoryBaseViewModel GetOrCreateDirectory(string path)
     {
-        if (path == null) throw new ArgumentNullException(nameof(path));
+        ArgumentNullException.ThrowIfNull(path);
+
         DirectoryBaseViewModel result = this;
         if (!string.IsNullOrEmpty(path))
         {

@@ -15,7 +15,7 @@ partial class SessionViewModel
 {
     private static SessionViewModel? instance;
     private static readonly SemaphoreSlim semaphore = new(1, 1);
-    
+
     /// <summary>
     /// The current instance of <see cref="SessionViewModel"/>.
     /// </summary>

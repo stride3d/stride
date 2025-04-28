@@ -228,6 +228,7 @@ internal sealed class CopyPasteService : ICopyPasteService
     {
         pasteProcessors.Add(processor);
     }
+
     /// <inheritdoc/>
     public void RegisterProcessor(IAssetPostPasteProcessor processor)
     {

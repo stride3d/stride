@@ -45,6 +45,6 @@ public abstract class MountPointViewModel : DirectoryBaseViewModel
     /// <inheritdoc/>
     protected override void UpdateIsDeletedStatus()
     {
-        throw new NotImplementedException();
+        throw new InvalidOperationException();
     }
 }

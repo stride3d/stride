@@ -10,8 +10,10 @@ public sealed class ProjectCodeViewModel : MountPointViewModel
     {
     }
 
+    /// <inheritdoc/>
     public override bool IsEditable => false;
 
+    /// <inheritdoc/>
     public override string Name
     {
         get => "Code";

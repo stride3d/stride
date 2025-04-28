@@ -38,7 +38,7 @@ public class MoveItemCommand : SyncNodePresenterCommandBase
 
         // ... and supports remove and insert
         var collectionDescriptor = collectionNode.Descriptor as CollectionDescriptor;
-        return collectionDescriptor?.HasRemoveAt == true && collectionDescriptor.HasInsert;
+        return collectionDescriptor is { HasRemoveAt: true, HasInsert: true };
     }
 
     /// <inheritdoc/>

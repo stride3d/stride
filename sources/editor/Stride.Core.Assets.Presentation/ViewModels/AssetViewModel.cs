@@ -192,7 +192,7 @@ public abstract class AssetViewModel : SessionObjectViewModel, IAssetPropertyPro
         var result = new HashSet<AssetViewModel>(assets.SelectMany(x => x.Dependencies.RecursiveReferencedAssets));
         return result;
     }
-    
+
     private void BaseContentChanged(INodeChangeEventArgs e, IGraphNode node)
     {
         // FIXME xplat-editor

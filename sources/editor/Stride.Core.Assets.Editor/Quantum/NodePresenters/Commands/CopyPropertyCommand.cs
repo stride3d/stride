@@ -40,7 +40,7 @@ public sealed class CopyPropertyCommand : NodePresenterCommandBase
             var service = asset?.ServiceProvider.Get<ICopyPasteService>();
             var text = service?.CopyFromAsset(asset?.PropertyGraph, asset?.Id, nodePresenter.Value, assetNodePresenter.IsObjectReference(nodePresenter.Value));
             if (string.IsNullOrEmpty(text)) return;
-            if (asset?.ServiceProvider.Get<IClipboardService>().SetTextAsync(text) is Task t) await t;
+            if (asset?.ServiceProvider.Get<IClipboardService>().SetTextAsync(text) is { } t) await t;
         }
         catch (AggregateException e) when (e.InnerException is SystemException)
         {
