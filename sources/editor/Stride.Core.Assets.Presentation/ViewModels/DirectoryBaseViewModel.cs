@@ -46,6 +46,27 @@ public abstract class DirectoryBaseViewModel : SessionObjectViewModel
     /// </summary>
     public ReadOnlyObservableCollection<DirectoryViewModel> SubDirectories { get; }
 
+    /// <summary>
+    /// Retrieves the directory corresponding to the given path.
+    /// </summary>
+    /// <param name="path">The path to the directory.</param>
+    /// <returns>The directory corresponding to the given path if found, otherwise <c>null</c>.</returns>
+    /// <remarks>The path should correspond to a directory, not an asset.</remarks>
+    public DirectoryBaseViewModel? GetDirectory(string path)
+    {
+        ArgumentNullException.ThrowIfNull(path);
+
+        var directoryNames = path.Split(Separator.ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
+        DirectoryBaseViewModel? currentDirectory = this;
+        foreach (var directoryName in directoryNames)
+        {
+            currentDirectory = currentDirectory.SubDirectories.FirstOrDefault(x => string.Equals(directoryName, x.Name, StringComparison.InvariantCultureIgnoreCase));
+            if (currentDirectory is null)
+                return null;
+        }
+        return currentDirectory;
+    }
+
     public IReadOnlyCollection<DirectoryBaseViewModel> GetDirectoryHierarchy()
     {
         var hierarchy = new List<DirectoryBaseViewModel> { this };

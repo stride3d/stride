@@ -21,4 +21,10 @@ public sealed class ProjectCodeViewModel : MountPointViewModel
     }
 
     public ProjectViewModel Project => (ProjectViewModel)Package;
+
+    /// <inheritdoc/>
+    public override bool AcceptAssetType(Type assetType)
+    {
+        return typeof(IProjectAsset).IsAssignableFrom(assetType);
+    }
 }

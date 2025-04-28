@@ -2,12 +2,34 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
              xmlns:caev="using:Stride.Core.Assets.Editor.ViewModels"
              xmlns:capvm="using:Stride.Core.Assets.Presentation.ViewModels"
+             xmlns:cpc="using:Stride.Core.Presentation.Commands"
              xmlns:gc="using:Stride.GameStudio.Avalonia.Converters"
+             xmlns:gvw="using:Stride.GameStudio.Avalonia.Views"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="Stride.GameStudio.Avalonia.Views.AssetExplorerView"
              x:DataType="caev:AssetCollectionViewModel">
+  <UserControl.Resources>
+    <ContextMenu x:Key="AssetContextMenu" x:DataType="caev:AssetCollectionViewModel">
+      <Separator/>
+      <MenuItem Header="{sd:LocalizeString Cut, Context=Menu}"
+                Command="{Binding CutContentCommand, FallbackValue={x:Static cpc:DisabledCommand.Instance}}"
+                HotKey="{x:Static gvw:MainView.CutGesture}" InputGesture="{Binding $self.HotKey, Mode=OneTime}"/>
+      <MenuItem Header="{sd:LocalizeString Copy, Context=Menu}"
+                Command="{Binding CopyContentCommand, FallbackValue={x:Static cpc:DisabledCommand.Instance}}"
+                HotKey="{x:Static gvw:MainView.CopyGesture}" InputGesture="{Binding $self.HotKey, Mode=OneTime}"/>
+      <MenuItem Header="{sd:LocalizeString Copy with dependencies, Context=Menu}"
+                Command="{Binding CopyAssetsRecursivelyCommand, FallbackValue={x:Static cpc:DisabledCommand.Instance}}"/>
+      <MenuItem Header="{sd:LocalizeString Paste, Context=Menu}"
+                Command="{Binding PasteCommand, FallbackValue={x:Static cpc:DisabledCommand.Instance}}"
+                HotKey="{x:Static gvw:MainView.PasteGesture}" InputGesture="{Binding $self.HotKey, Mode=OneTime}"/>
+      <Separator/>
+      <MenuItem Header="{sd:LocalizeString Copy asset URL, Context=Menu}"
+                Command="{Binding CopyAssetUrlCommand, FallbackValue={x:Static cpc:DisabledCommand.Instance}}" />
+    </ContextMenu>
+  </UserControl.Resources>
   <DockPanel>
     <Grid DockPanel.Dock="Top">
       <TextBlock Text="Asset Explorer" />
@@ -15,7 +37,8 @@
     <ListBox ItemsSource="{Binding Assets}"
              SelectedItems="{Binding SelectedContent}"
              SelectionMode="Multiple"
-             Margin="4">
+             Margin="4"
+             ContextMenu="{StaticResource AssetContextMenu}">
       <ItemsControl.ItemsPanel>
         <ItemsPanelTemplate>
           <WrapPanel />

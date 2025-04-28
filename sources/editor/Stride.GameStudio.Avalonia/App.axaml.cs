@@ -86,6 +86,10 @@ public partial class App : Application
         var serviceProvider = new ViewModelServiceProvider(services);
         serviceProvider.RegisterService(new EditorDebugService(serviceProvider));
         serviceProvider.RegisterService(new EditorDialogService(serviceProvider));
+        if (DialogService.MainWindow?.Clipboard is { } clipboard)
+        {
+            serviceProvider.RegisterService(new ClipboardService(clipboard));
+        }
         return serviceProvider;
     }
 }

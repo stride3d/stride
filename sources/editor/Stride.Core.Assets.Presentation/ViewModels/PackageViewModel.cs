@@ -112,6 +112,7 @@ public class PackageViewModel : SessionObjectViewModel, IComparable<PackageViewM
     /// Creates the view models for each asset, directory, profile, project and reference of this package.
     /// </summary>
     /// <param name="token">A cancellation token to cancel the load process. Can be <c>null</c>.</param>
+    // FIXME xplat-editor: most method here should be moved to an utility in the editor project (asset project should have minimum capability)
     public void LoadPackageInformation(IProgressViewModel? progressVM, ref double progress, CancellationToken token = default)
     {
         if (token.IsCancellationRequested)
@@ -195,7 +196,8 @@ public class PackageViewModel : SessionObjectViewModel, IComparable<PackageViewM
         throw new InvalidOperationException("Unable to sort the given items for the Content collection of PackageViewModel");
     }
 
-    private AssetViewModel CreateAsset(AssetItem assetItem, DirectoryBaseViewModel directory, ILogger? logger = null)
+    // FIXME xplat-editor: most method here should be moved to an utility in the editor project (asset project should have minimum capability)
+    public AssetViewModel CreateAsset(AssetItem assetItem, DirectoryBaseViewModel directory, ILogger? logger = null)
     {
         AssetCollectionItemIdHelper.GenerateMissingItemIds(assetItem.Asset);
         Session.GraphContainer.InitializeAsset(assetItem, logger);
