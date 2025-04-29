@@ -8,7 +8,7 @@ using Stride.UI;
 
 namespace Stride.Assets.Editor.ViewModels;
 
-public abstract class UIEditorBaseViewModel : AssetCompositeHierarchyEditorViewModel<UIElementDesign, UIElement, UIBaseViewModel, UIHierarchyItemViewModel>
+public abstract class UIEditorBaseViewModel : AssetCompositeHierarchyEditorViewModel<UIElementDesign, UIElement, UIBaseViewModel, UIElementViewModel>
 {
     protected UIEditorBaseViewModel(UIBaseViewModel asset)
         : base(asset)
@@ -22,7 +22,7 @@ public abstract class UIEditorBaseViewModel : AssetCompositeHierarchyEditorViewM
     {
         // note: here we are assuming that all items are UIElementViewModel.
         //       if that were to change, revisit this code.
-        EditorProperties.UpdateTypeAndName(SelectedItems.OfType<UIElementViewModel>(), SelectedItems.Count, e => e.ElementType.Name, e => e.AssetSideUIElement.Name, "elements");
-        return EditorProperties.GenerateSelectionPropertiesAsync(SelectedItems.OfType<UIElementViewModel>());
+        EditorProperties.UpdateTypeAndName(SelectedItems, SelectedItems.Count, e => e.ElementType.Name, e => e.AssetSideUIElement.Name, "elements");
+        return EditorProperties.GenerateSelectionPropertiesAsync(SelectedItems);
     }
 }

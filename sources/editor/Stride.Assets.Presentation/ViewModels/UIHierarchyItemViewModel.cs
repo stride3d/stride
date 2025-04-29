@@ -2,17 +2,21 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Stride.Assets.UI;
+using Stride.Core;
 using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Assets.Presentation.ViewModels;
 
-public abstract class UIHierarchyItemViewModel : AssetCompositeItemViewModel<UIBaseViewModel, UIHierarchyItemViewModel>
+public abstract class UIHierarchyItemViewModel : AssetCompositeItemViewModel<UIBaseViewModel, UIElementViewModel>, IAssetPartViewModel
 {
     protected UIHierarchyItemViewModel(UIBaseViewModel asset, IEnumerable<UIElementDesign> childElements)
         : base(asset)
     {
         AddItems(childElements.Select(asset.CreatePartViewModel));
     }
+
+    /// <inheritdoc />
+    public abstract AbsoluteId Id { get; }
 
     protected UIAssetBase UIAsset => (UIAssetBase)Asset.Asset;
 }

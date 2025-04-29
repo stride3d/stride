@@ -25,8 +25,8 @@ public class AssetViewModel<TAsset> : AssetViewModel, IAssetViewModel<TAsset>
     {
     }
 
-    /// <inheritdoc />
-    public new TAsset Asset => (TAsset)base.Asset;
+    /// <inheritdoc cref="IAssetViewModel{TAsset}" />
+    public override TAsset Asset => (TAsset)base.Asset;
 }
 
 public abstract class AssetViewModel : SessionObjectViewModel, IAssetPropertyProviderViewModel
@@ -60,7 +60,7 @@ public abstract class AssetViewModel : SessionObjectViewModel, IAssetPropertyPro
         Initializing = false;
     }
 
-    public Asset Asset => AssetItem.Asset;
+    public virtual Asset Asset => AssetItem.Asset;
 
     public AssetItem AssetItem
     {

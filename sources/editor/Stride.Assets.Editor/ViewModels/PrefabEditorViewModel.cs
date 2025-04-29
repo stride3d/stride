@@ -13,14 +13,9 @@ public sealed class PrefabEditorViewModel : EntityHierarchyEditorViewModel, IAss
     public PrefabEditorViewModel(PrefabViewModel asset)
         : base(asset)
     {
+        RootPart = new PrefabRootViewModel(Asset);
     }
 
     /// <inheritdoc />
     public override PrefabViewModel Asset => (PrefabViewModel)base.Asset;
-
-    /// <inheritdoc />
-    protected override PrefabRootViewModel CreateRootPartViewModel()
-    {
-        return new PrefabRootViewModel(Asset);
-    }
 }

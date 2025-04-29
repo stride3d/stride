@@ -13,7 +13,7 @@ using Stride.UI.Panels;
 
 namespace Stride.Assets.Presentation.ViewModels;
 
-public class UIElementViewModel : UIHierarchyItemViewModel, IAssetPropertyProviderViewModel
+public sealed class UIElementViewModel : UIHierarchyItemViewModel, IPartDesignViewModel<UIElementDesign, UIElement>, IAssetPropertyProviderViewModel
 {
     private string? name;
 
@@ -28,8 +28,10 @@ public class UIElementViewModel : UIHierarchyItemViewModel, IAssetPropertyProvid
 
     public Type ElementType { get; }
 
-    public AbsoluteId Id => new(Asset.Id, AssetSideUIElement.Id);
+    /// <inheritdoc/>
+    public override AbsoluteId Id => new(Asset.Id, AssetSideUIElement.Id);
 
+    /// <inheritdoc/>
     public override string? Name
     {
         get => name;
@@ -54,13 +56,15 @@ public class UIElementViewModel : UIHierarchyItemViewModel, IAssetPropertyProvid
 
     AssetViewModel IAssetPropertyProviderViewModel.RelatedAsset => Asset;
 
+    UIElementDesign IPartDesignViewModel<UIElementDesign, UIElement>.PartDesign => UIElementDesign;
+
     bool IPropertyProviderViewModel.CanProvidePropertiesViewModel => true;
 
-    private static IEnumerable<UIElementDesign> GetOrCreateChildPartDesigns( UIAssetBase asset, UIElementDesign elementDesign)
+    private static IEnumerable<UIElementDesign> GetOrCreateChildPartDesigns(UIAssetBase asset, UIElementDesign elementDesign)
     {
         switch (elementDesign.UIElement)
         {
-            case ContentControl control:                
+            case ContentControl control:
                 if (control.Content != null)
                 {
                     if (!asset.Hierarchy.Parts.TryGetValue(control.Content.Id, out var partDesign))

@@ -17,28 +17,26 @@ namespace Stride.Core.Assets.Editor.ViewModels;
 /// <typeparam name="TAssetViewModel"></typeparam>
 /// <typeparam name="TItemViewModel">The type of a real <see cref="AssetCompositeItemViewModel"/> that can be copied/cut/pasted.</typeparam>
 public abstract class AssetCompositeHierarchyEditorViewModel<TAssetPartDesign, TAssetPart, TAssetViewModel, TItemViewModel>
-    : AssetCompositeEditorViewModel<AssetCompositeHierarchy<TAssetPartDesign, TAssetPart>, AssetCompositeHierarchyViewModel<TAssetPartDesign, TAssetPart>>
+    : AssetCompositeEditorViewModel<AssetCompositeHierarchy<TAssetPartDesign, TAssetPart>, TAssetViewModel>
     where TAssetPartDesign : class, IAssetPartDesign<TAssetPart>
     where TAssetPart : class, IIdentifiable
     where TAssetViewModel : AssetCompositeHierarchyViewModel<TAssetPartDesign, TAssetPart>
-    where TItemViewModel : AssetCompositeItemViewModel<TAssetViewModel, TItemViewModel>
+    where TItemViewModel : AssetCompositeItemViewModel, IPartDesignViewModel<TAssetPartDesign, TAssetPart>, IAssetPartViewModel
 {
-    private TItemViewModel rootPart;
     private bool updateSelectionGuard;
 
     protected AssetCompositeHierarchyEditorViewModel(TAssetViewModel asset)
         : base(asset)
     {
-        rootPart = CreateRootPartViewModel();
 
         SelectedContent.CollectionChanged += SelectedContentCollectionChanged;
         SelectedItems.CollectionChanged += SelectedItemsCollectionChanged;
     }
 
-    public TItemViewModel RootPart { get => rootPart; private set => SetValue(ref rootPart, value); }
+    public required AssetCompositeItemViewModel RootPart { get; init; }
 
     public ObservableSet<TItemViewModel> SelectedItems { get; } = [];
-    
+
     /// <inheritdoc/>
     public override void Destroy()
     {
@@ -70,10 +68,8 @@ public abstract class AssetCompositeHierarchyEditorViewModel<TAssetPartDesign, T
         if (RootPart is IAssetPartViewModel item && id == item.Id)
             return item;
 
-        return RootPart?.EnumerateChildren().BreadthFirst(x => x.EnumerateChildren()).FirstOrDefault(part => part is IAssetPartViewModel viewModel && viewModel.Id == id) as IAssetPartViewModel;
+        return RootPart.EnumerateChildren().BreadthFirst(x => x.EnumerateChildren()).FirstOrDefault(part => part is IAssetPartViewModel viewModel && viewModel.Id == id) as IAssetPartViewModel;
     }
-
-    protected abstract TItemViewModel CreateRootPartViewModel();
 
     protected abstract Task RefreshEditorProperties();
 

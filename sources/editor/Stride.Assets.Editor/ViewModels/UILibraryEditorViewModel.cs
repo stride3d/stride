@@ -13,14 +13,9 @@ public sealed class UILibraryEditorViewModel : UIEditorBaseViewModel, IAssetEdit
     public UILibraryEditorViewModel(UILibraryViewModel asset)
         : base(asset)
     {
+        RootPart = new UILibraryRootViewModel(Asset);
     }
 
     /// <inheritdoc />
     public override UILibraryViewModel Asset => (UILibraryViewModel)base.Asset;
-
-    /// <inheritdoc />
-    protected override UILibraryRootViewModel CreateRootPartViewModel()
-    {
-        return new UILibraryRootViewModel(Asset);
-    }
 }

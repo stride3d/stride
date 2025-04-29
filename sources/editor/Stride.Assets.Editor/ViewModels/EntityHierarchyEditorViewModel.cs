@@ -9,7 +9,7 @@ using Stride.Engine;
 
 namespace Stride.Assets.Editor.ViewModels;
 
-public abstract class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEditorViewModel<EntityDesign, Entity, EntityHierarchyViewModel, EntityHierarchyItemViewModel>
+public abstract class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEditorViewModel<EntityDesign, Entity, EntityHierarchyViewModel, EntityViewModel>
 {
     protected EntityHierarchyEditorViewModel(EntityHierarchyViewModel asset)
         : base(asset)
@@ -22,7 +22,7 @@ public abstract class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEd
     protected override async Task RefreshEditorProperties()
     {
         EditorProperties.UpdateTypeAndName(SelectedItems, x => "Entity", x => x.Name, "entities");
-        await EditorProperties.GenerateSelectionPropertiesAsync(SelectedItems.OfType<EntityViewModel>());
+        await EditorProperties.GenerateSelectionPropertiesAsync(SelectedItems);
     }
 
     /// <inheritdoc />

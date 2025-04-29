@@ -13,14 +13,9 @@ public sealed class SceneEditorViewModel : EntityHierarchyEditorViewModel, IAsse
     public SceneEditorViewModel(SceneViewModel asset)
         : base(asset)
     {
+        RootPart = new SceneRootViewModel(Asset);
     }
 
     /// <inheritdoc />
     public override SceneViewModel Asset => (SceneViewModel)base.Asset;
-
-    /// <inheritdoc />
-    protected override SceneRootViewModel CreateRootPartViewModel()
-    {
-        return new SceneRootViewModel(Asset);
-    }
 }

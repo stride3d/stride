@@ -19,5 +19,5 @@ public sealed class SceneViewModel : EntityHierarchyViewModel, IAssetViewModel<S
     }
 
     /// <inheritdoc />
-    public new SceneAsset Asset => (SceneAsset)base.Asset;
+    public override SceneAsset Asset => (SceneAsset)base.Asset;
 }
