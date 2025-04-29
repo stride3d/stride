@@ -27,18 +27,18 @@ public abstract class PastePropertyCommandBase : NodePresenterCommandBase
 
     protected virtual bool CanPaste(IReadOnlyCollection<INodePresenter> nodePresenters)
     {
-        foreach (var nodePresenter in nodePresenters)
+        foreach (var nodePresenter in nodePresenters.OfType<IAssetNodePresenter>())
         {
-            var assetNodePresenter = nodePresenter as IAssetNodePresenter;
-            var copyPasteService = assetNodePresenter?.Asset?.ServiceProvider.TryGet<ICopyPasteService>();
+            var copyPasteService = nodePresenter.Asset?.ServiceProvider.TryGet<ICopyPasteService>();
             if (copyPasteService is null)
                 return false;
 
-            var asset = assetNodePresenter!.Asset!.Asset;
 
-            var clipboard = assetNodePresenter?.Asset?.ServiceProvider.TryGet<IClipboardService>();
+            var clipboard = nodePresenter.Asset?.ServiceProvider.TryGet<IClipboardService>();
             if (clipboard is null)
                 return false;
+
+            var asset = nodePresenter.Asset!.Asset;
 
             if (!copyPasteService.CanPaste(clipboard.GetTextAsync().Result, asset.GetType(), (nodePresenter as ItemNodePresenter)?.OwnerCollection.Type ?? nodePresenter.Type))
                 return false;
@@ -54,7 +54,7 @@ public abstract class PastePropertyCommandBase : NodePresenterCommandBase
         return true;
     }
 
-    protected async Task DoPasteAsync(INodePresenter nodePresenter, bool replace)
+    protected static async Task DoPasteAsync(INodePresenter nodePresenter, bool replace)
     {
         var asset = ((IAssetNodePresenter)nodePresenter).Asset;
         if (asset is null)
@@ -77,7 +77,7 @@ public abstract class PastePropertyCommandBase : NodePresenterCommandBase
             return;
 
         var actionService = asset.UndoRedoService;
-        using var transaction = actionService.CreateTransaction();
+        using var transaction = actionService?.CreateTransaction();
 
         // FIXME: for now we only handle one result item
         var item = result.Items[0];
@@ -86,12 +86,12 @@ public abstract class PastePropertyCommandBase : NodePresenterCommandBase
 
         var propertyContainer = new PropertyContainer { { AssetPropertyPasteProcessor.IsReplaceKey, replace } };
         await (item.Processor?.Paste(item, asset.PropertyGraph, ref nodeAccessor, ref propertyContainer) ?? Task.CompletedTask);
-        actionService.SetName(transaction, replace ? "Replace property" : "Paste property");
+        actionService?.SetName(transaction!, replace ? "Replace property" : "Paste property");
     }
 
     private static bool IsInReadOnlyCollection(INodePresenter? nodePresenter)
     {
-        if (nodePresenter is null || !nodePresenter.IsEnumerable)
+        if (nodePresenter is not { IsEnumerable: true })
             return false;
 
         var memberCollection = (nodePresenter as MemberNodePresenter)?.MemberAttributes.OfType<MemberCollectionAttribute>().FirstOrDefault()

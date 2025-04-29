@@ -4,6 +4,7 @@
 using Stride.Assets.Entities;
 using Stride.Core.Assets.Presentation.Annotations;
 using Stride.Core.Assets.Presentation.ViewModels;
+using Stride.Core.Presentation.Collections;
 
 namespace Stride.Assets.Presentation.ViewModels;
 
@@ -20,4 +21,6 @@ public sealed class SceneViewModel : EntityHierarchyViewModel, IAssetViewModel<S
 
     /// <inheritdoc />
     public override SceneAsset Asset => (SceneAsset)base.Asset;
+
+    public IObservableList<SceneViewModel> Children { get; } = new ObservableSet<SceneViewModel>();
 }

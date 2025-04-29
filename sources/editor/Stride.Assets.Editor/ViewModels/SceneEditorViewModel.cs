@@ -18,4 +18,32 @@ public sealed class SceneEditorViewModel : EntityHierarchyEditorViewModel, IAsse
 
     /// <inheritdoc />
     public override SceneViewModel Asset => (SceneViewModel)base.Asset;
+
+    /// <inheritdoc />
+    protected override Task Delete()
+    {
+        var sceneRoots = SelectedContent.OfType<SceneRootViewModel>().ToList();
+        // Mix of scene roots and entities selected
+        if (sceneRoots.Count != SelectedContent.Count)
+            return base.Delete();
+
+        using var transaction = Session.ActionService?.CreateTransaction();
+        ClearSelection();
+        foreach (var sceneRoot in GetCommonRoots(sceneRoots))
+        {
+            DeleteSceneRoot(sceneRoot);
+        }
+        Session.ActionService?.SetName(transaction!, "Remove selected child scenes");
+        return Task.CompletedTask;
+    }
+
+    private void DeleteSceneRoot(SceneRootViewModel sceneRoot)
+    {
+        if (sceneRoot.Parent is SceneRootViewModel parent)
+        {
+            // Reset parenting link
+            parent.Asset.Children.Remove(Asset);
+        }
+    }
+
 }

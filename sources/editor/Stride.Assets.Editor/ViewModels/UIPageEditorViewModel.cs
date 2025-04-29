@@ -18,4 +18,10 @@ public sealed class UIPageEditorViewModel : UIEditorBaseViewModel, IAssetEditorV
 
     /// <inheritdoc />
     public override UIPageViewModel Asset => (UIPageViewModel)base.Asset;
+
+    /// <inheritdoc />
+    protected override Task Delete()
+    {
+        throw new NotImplementedException();
+    }
 }

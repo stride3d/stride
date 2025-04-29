@@ -24,6 +24,14 @@ public abstract class AssetCompositeEditorViewModel<TAsset, TAssetViewModel> : A
 
     public ObservableSet<object> SelectedContent { get; } = [];
 
+    /// <summary>
+    /// Clears the selection.
+    /// </summary>
+    public void ClearSelection()
+    {
+        SelectedContent.Clear();
+    }
+
     public override void Destroy()
     {
         // Unregister collection

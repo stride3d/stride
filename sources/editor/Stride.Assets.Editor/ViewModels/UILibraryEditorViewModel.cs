@@ -18,4 +18,10 @@ public sealed class UILibraryEditorViewModel : UIEditorBaseViewModel, IAssetEdit
 
     /// <inheritdoc />
     public override UILibraryViewModel Asset => (UILibraryViewModel)base.Asset;
+
+    /// <inheritdoc />
+    protected override Task Delete()
+    {
+        throw new NotImplementedException();
+    }
 }

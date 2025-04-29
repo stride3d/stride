@@ -41,13 +41,12 @@ partial class AssetCollectionViewModel
 
     private bool CanPaste()
     {
-        if (CopyPasteService is { } copyPaste && ClipboardService is { } clipboard)
-        {
-            var text = clipboard.GetTextAsync().Result;
-            return copyPaste.CanPaste(text, typeof(List<AssetItem>), typeof(List<AssetItem>), typeof(List<AssetItem>));
-        }
+        if (CopyPasteService is not { } copyPaste || ClipboardService is not { } clipboard)
+            return false;
 
-        return false;
+        var text = clipboard.GetTextAsync().Result;
+        return copyPaste.CanPaste(text, typeof(List<AssetItem>), typeof(List<AssetItem>), typeof(List<AssetItem>));
+
     }
 
     private async Task CopyAssetUrl()
