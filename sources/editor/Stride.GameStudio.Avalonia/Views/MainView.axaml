@@ -42,6 +42,15 @@
                   Command="{Binding ExitCommand}"
                   HotKey="Alt+F4" InputGesture="{Binding $self.HotKey, Mode=OneTime}"/>
       </MenuItem>
+      <!-- Edit menu -->
+      <MenuItem Header="{sd:LocalizeString Edit, Context=Menu}">
+        <MenuItem Header="{sd:LocalizeString Undo, Context=Menu}"
+                  Command="{Binding Session.ActionHistory.UndoCommand, FallbackValue={x:Static cpc:DisabledCommand.Instance}}"
+                  HotKey="{x:Static gvw:MainView.UndoGesture}" InputGesture="{Binding $self.HotKey, Mode=OneTime}"/>
+        <MenuItem Header="{sd:LocalizeString Redo, Context=Menu}"
+                  Command="{Binding Session.ActionHistory.RedoCommand, FallbackValue={x:Static cpc:DisabledCommand.Instance}}"
+                  HotKey="{x:Static gvw:MainView.RedoGesture}" InputGesture="{Binding $self.HotKey, Mode=OneTime}"/>
+      </MenuItem>
       <!-- Help menu -->
       <MenuItem Header="{sd:LocalizeString _Help, Context=Menu}">
         <MenuItem Header="{sd:LocalizeString Online documentation, Context=Menu}"
