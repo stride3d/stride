@@ -5,6 +5,7 @@ using System.Collections.Concurrent;
 using System.Collections.Specialized;
 using Stride.Core.Assets.Analysis;
 using Stride.Core.Assets.Editor.Components.Properties;
+using Stride.Core.Assets.Editor.Components.Transactions;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Presentation.ViewModels;
 using Stride.Core.Assets.Quantum;
@@ -62,6 +63,7 @@ public sealed partial class SessionViewModel : DispatcherViewModel, ISessionView
         if (ActionService is { } actionService)
         {
             undoRedoStackPage = debugService.CreateUndoRedoDebugPage(actionService, "Undo/redo stack");
+            ActionHistory = new ActionHistoryViewModel(this);
         }
 
         ActiveProperties = AssetCollection.AssetViewProperties;
@@ -127,6 +129,10 @@ public sealed partial class SessionViewModel : DispatcherViewModel, ISessionView
         }
     }
 
+    public ActionHistoryViewModel? ActionHistory { get; }
+
+    public IUndoRedoService? ActionService => ServiceProvider.TryGet<IUndoRedoService>();
+
     public IEnumerable<AssetViewModel> AllAssets => AllPackages.SelectMany(x => x.Assets);
 
     public IEnumerable<PackageViewModel> AllPackages => PackageCategories.Values.SelectMany(x => x.Content);
@@ -181,8 +187,6 @@ public sealed partial class SessionViewModel : DispatcherViewModel, ISessionView
 
     public ICommandBase PreviousSelectionCommand { get; }
 
-    internal IUndoRedoService? ActionService => ServiceProvider.TryGet<IUndoRedoService>();
-
     internal PackageSession PackageSession => session;
 
     internal IAssetsPluginService PluginService => ServiceProvider.Get<IAssetsPluginService>();
@@ -211,6 +215,7 @@ public sealed partial class SessionViewModel : DispatcherViewModel, ISessionView
     {
         EnsureNotDestroyed(nameof(SessionViewModel));
 
+        ActionHistory?.Destroy();
         AssetLog.Destroy();
         Thumbnails.Destroy();
 

@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
              xmlns:caec="using:Stride.Core.Assets.Editor.Avalonia.Controls"
+             xmlns:caect="using:Stride.Core.Assets.Editor.Components.Transactions"
              xmlns:cpc="using:Stride.Core.Presentation.Commands"
              xmlns:gh="using:Stride.GameStudio.Avalonia.Helpers"
              xmlns:gvm="using:Stride.GameStudio.Avalonia.ViewModels"
@@ -16,6 +17,13 @@
          to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
     <gvm:MainViewModel/>
   </Design.DataContext>
+  <UserControl.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <ResourceInclude Source="avares://Stride.Core.Assets.Editor.Avalonia/Views/ImageResources.axaml"/>
+      </ResourceDictionary.MergedDictionaries>
+    </ResourceDictionary>
+  </UserControl.Resources>
 
   <Grid RowDefinitions="Auto, *, 25"
         Background="Transparent">
@@ -126,7 +134,21 @@
                                  Padding="2"/>
           </TabItem>
           <TabItem Header="Edit history">
-
+            <ListBox ItemsSource="{Binding Session.ActionHistory.Transactions, FallbackValue={x:Null}}"
+                     HorizontalAlignment="Stretch">
+              <ListBox.ItemTemplate>
+                <DataTemplate DataType="caect:TransactionViewModel">
+                  <DockPanel>
+                    <TextBlock DockPanel.Dock="Left" x:Name="Text"
+                               Text="{Binding Name}"/>
+                    <Image DockPanel.Dock="Right" x:Name="Image"
+                           HorizontalAlignment="Right"
+                           IsVisible="{Binding IsSavePoint, Mode=OneWay}"
+                           Source="{StaticResource ImageSave}"/>
+                  </DockPanel>
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
           </TabItem>
           <TabItem Header="References">
 
