@@ -5,7 +5,9 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using Stride.Core.Assets.Editor.Components.Properties;
 using Stride.Core.Assets.Presentation.ViewModels;
+using Stride.Core.Extensions;
 using Stride.Core.Presentation.Collections;
+using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.ViewModels;
@@ -25,6 +27,8 @@ public sealed class AssetCollectionViewModel : DispatcherViewModel
 
         // Initialize the view model that will manage the properties of the assets selected on the main asset view
         AssetViewProperties = new SessionObjectPropertiesViewModel(session);
+
+        SelectAssetCommand = new AnonymousCommand<AssetViewModel>(ServiceProvider, x => SelectAssets(x.Yield()!));
 
         selectedContent.CollectionChanged += SelectedContentCollectionChanged;
         SelectedLocations.CollectionChanged += SelectedLocationCollectionChanged;
@@ -61,7 +65,32 @@ public sealed class AssetCollectionViewModel : DispatcherViewModel
         get => singleSelectedContent;
         private set => SetValue(ref singleSelectedContent, value);
     }
- 
+
+    public ICommandBase SelectAssetCommand { get; }
+
+    public void SelectAssets(IEnumerable<AssetViewModel> assetsToSelect)
+    {
+        Dispatcher.EnsureAccess();
+
+        var assetList = assetsToSelect.ToList();
+
+        // Ensure the location of the assets to select are themselves selected.
+        var locations = new HashSet<DirectoryBaseViewModel>(assetList.Select(x => x.Directory));
+        if (locations.All(x => !SelectedLocations.Contains(x)))
+        {
+            SelectedLocations.Clear();
+            SelectedLocations.AddRange(locations);
+        }
+
+        // Don't reselect if the current selection is the same
+        if (assetList.Count != SelectedAssets.Count || !assetList.All(x => SelectedAssets.Contains(x)))
+        {
+            selectedContent.Clear();
+            // FIXME xplat-editor filters
+            selectedContent.AddRange(assetList);
+        }
+    }
+
     internal IReadOnlyCollection<DirectoryBaseViewModel> GetSelectedDirectories(bool includeSubDirectoriesOfSelected)
     {
         var selectedDirectories = new List<DirectoryBaseViewModel>();
@@ -162,7 +191,7 @@ public sealed class AssetCollectionViewModel : DispatcherViewModel
         }
 
         AssetViewProperties.UpdateTypeAndName(SelectedAssets, x => x.TypeDisplayName, x => x.Url, "assets");
-        await AssetViewProperties.GenerateSelectionPropertiesAsync(SelectedAssets);            
+        await AssetViewProperties.GenerateSelectionPropertiesAsync(SelectedAssets);
     }
 
     private void SelectedLocationCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
