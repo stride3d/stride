@@ -57,19 +57,19 @@ public interface IObjectNode : IGraphNode, INotifyNodeItemChange
     /// Adds a new item to this content, assuming the content is a collection.
     /// </summary>
     /// <param name="newItem">The new item to add to the collection.</param>
-    void Add(object newItem);
+    void Add(object? newItem);
 
     /// <summary>
     /// Adds a new item at the given index to this content, assuming the content is a collection.
     /// </summary>
     /// <param name="newItem">The new item to add to the collection.</param>
     /// <param name="itemIndex">The index at which the new item must be added.</param>
-    void Add(object newItem, NodeIndex itemIndex);
+    void Add(object? newItem, NodeIndex itemIndex);
 
     /// <summary>
     /// Removes an item from this content, assuming the content is a collection.
     /// </summary>
     /// <param name="item">The item to remove.</param>
     /// <param name="itemIndex">The index from which the item must be removed.</param>
-    void Remove(object item, NodeIndex itemIndex);
+    void Remove(object? item, NodeIndex itemIndex);
 }

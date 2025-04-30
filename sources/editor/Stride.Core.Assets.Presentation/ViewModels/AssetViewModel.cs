@@ -120,9 +120,6 @@ public abstract class AssetViewModel : SessionObjectViewModel, IAssetPropertyPro
 
     protected Package Package => Directory.Package.Package;
 
-    // FIXME xplat-editor
-    protected internal IUndoRedoService? UndoRedoService => ServiceProvider.TryGet<IUndoRedoService>();
-
     /// <summary>
     /// Initializes this asset. This method is guaranteed to be called once every other assets are loaded in the session.
     /// </summary>

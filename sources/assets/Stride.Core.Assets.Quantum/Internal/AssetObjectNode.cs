@@ -44,11 +44,11 @@ internal class AssetObjectNode : ObjectNode, IAssetObjectNodeInternal
 
     public bool IsItemDeleted(ItemId itemId) => ex.IsItemDeleted(itemId);
 
-    public void Restore(object restoredItem, ItemId id) => ex.Restore(restoredItem, id);
+    public void Restore(object? restoredItem, ItemId id) => ex.Restore(restoredItem, id);
 
-    public void Restore(object restoredItem, NodeIndex index, ItemId id) => ex.Restore(restoredItem, index, id);
+    public void Restore(object? restoredItem, NodeIndex index, ItemId id) => ex.Restore(restoredItem, index, id);
 
-    public void RemoveAndDiscard(object item, NodeIndex itemIndex, ItemId id) => ex.RemoveAndDiscard(item, itemIndex, id);
+    public void RemoveAndDiscard(object? item, NodeIndex itemIndex, ItemId id) => ex.RemoveAndDiscard(item, itemIndex, id);
 
     public OverrideType GetItemOverride(NodeIndex index) => ex.GetItemOverride(index);
 

@@ -142,19 +142,19 @@ public class SessionObjectPropertiesViewModel : PropertiesViewModel
     {
         base.OnPropertyChanged(propertyNames);
         // Do this only when the property has changed from the UI thread
-        if (Dispatcher.CheckAccess())
+        if (!Dispatcher.CheckAccess())
+            return;
+
+        if (!contextLock && propertyNames.Any(x => x is nameof(ViewModel) or nameof(CanDisplayProperties) or nameof(FallbackMessage)))
         {
-            if (!contextLock && propertyNames.Any(x => x is nameof(ViewModel) or nameof(CanDisplayProperties) or nameof(FallbackMessage)))
+            contextLock = true;
+            if (Session.ActiveProperties != this)
             {
-                contextLock = true;
-                if (Session.ActiveProperties != this)
-                {
-                    // FIXME xplat-editor
-                    //Session.ActiveProperties.ClearSelection();
-                }
-                Session.ActiveProperties = this;
-                contextLock = false;
+                // FIXME xplat-editor
+                //Session.ActiveProperties.ClearSelection();
             }
+            Session.ActiveProperties = this;
+            contextLock = false;
         }
     }
 }
