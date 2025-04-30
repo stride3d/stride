@@ -199,6 +199,11 @@ public sealed partial class SessionViewModel : DispatcherViewModel, ISessionView
     public event EventHandler<AssetChangedEventArgs>? AssetPropertiesChanged;
 
     /// <summary>
+    /// Raised when some assets are deleted or undeleted.
+    /// </summary>
+    public event EventHandler<NotifyCollectionChangedEventArgs?> DeletedAssetsChanged;
+
+    /// <summary>
     /// Raised when the session state changed (e.g. current package).
     /// </summary>
     public event EventHandler<SessionStateChangedEventArgs>? SessionStateChanged;
@@ -344,9 +349,14 @@ public sealed partial class SessionViewModel : DispatcherViewModel, ISessionView
 
     private void PackageCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
-        // FIXME xplat-editor
-        //e.NewItems?.Cast<PackageViewModel>().ForEach(x => x.DeletedAssets.CollectionChanged += DeletedAssetChanged);
-        //e.OldItems?.Cast<PackageViewModel>().ForEach(x => x.DeletedAssets.CollectionChanged -= DeletedAssetChanged);
+        e.NewItems?.Cast<PackageViewModel>().ForEach(x => x.DeletedAssets.CollectionChanged += DeletedAssetChanged);
+        e.OldItems?.Cast<PackageViewModel>().ForEach(x => x.DeletedAssets.CollectionChanged -= DeletedAssetChanged);
+        return;
+
+        void DeletedAssetChanged(object? _, NotifyCollectionChangedEventArgs ev)
+        {
+            DeletedAssetsChanged?.Invoke(this, ev);
+        }
     }
 
     private async Task ProcessAddedPackages(IEnumerable<PackageViewModel> packages)
@@ -369,7 +379,7 @@ public sealed partial class SessionViewModel : DispatcherViewModel, ISessionView
         CurrentProject = project;
         AllAssets.ForEach(x => x.Dependencies.NotifyRootAssetChange(false));
         // FIXME xplat-editor
-        //SelectionIsRoot = ActiveAssetView.SelectedAssets.All(x => x.Dependencies.IsRoot);
+        //SelectionIsRoot = AssetCollection.SelectedAssets.All(x => x.Dependencies.IsRoot);
     }
 
     private void UpdateCurrentProject(ProjectViewModel? oldValue, ProjectViewModel? newValue)
