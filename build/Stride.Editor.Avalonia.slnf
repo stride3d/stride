@@ -22,6 +22,7 @@
       "..\\sources\\editor\\Stride.Assets.Editor.Avalonia\\Stride.Assets.Editor.Avalonia.csproj",
       "..\\sources\\editor\\Stride.Assets.Editor\\Stride.Assets.Editor.csproj",
       "..\\sources\\editor\\Stride.Assets.Presentation\\Stride.Assets.Presentation.csproj",
+      "..\\sources\\editor\\Stride.Core.Assets.Editor.Avalonia\\Stride.Core.Assets.Editor.Avalonia.csproj",
       "..\\sources\\editor\\Stride.Core.Assets.Editor\\Stride.Core.Assets.Editor.csproj",
       "..\\sources\\editor\\Stride.Core.Assets.Presentation\\Stride.Core.Assets.Presentation.csproj",
       "..\\sources\\editor\\Stride.Editor.Avalonia\\Stride.Editor.Avalonia.csproj",

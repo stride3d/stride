@@ -6,6 +6,7 @@ using Stride.Core.Assets.Editor.Annotations;
 using Stride.Core.Assets.Editor.Editors;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Assets.Presentation;
+using Stride.Core.Presentation.Views;
 
 namespace Stride.Core.Assets.Editor;
 
@@ -40,4 +41,6 @@ public abstract class AssetsEditorPlugin : AssetsPlugin
     public abstract void RegisterAssetPreviewViewModelTypes(IDictionary<Type, Type> assetPreviewViewModelTypes);
 
     public abstract void RegisterAssetPreviewViewTypes(IDictionary<Type, Type> assetPreviewViewTypes);
+
+    public abstract void RegisterTemplateProviders(ICollection<ITemplateProvider> templateProviders);
 }

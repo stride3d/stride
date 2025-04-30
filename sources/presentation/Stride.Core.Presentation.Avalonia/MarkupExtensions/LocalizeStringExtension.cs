@@ -16,7 +16,7 @@ public sealed class LocalizeStringExtension : MarkupExtension
 
     public LocalizeStringExtension(object value)
     {
-        Text = value?.ToString();
+        Text = value.ToString();
     }
 
     /// <summary>
@@ -28,7 +28,7 @@ public sealed class LocalizeStringExtension : MarkupExtension
     /// The text to localize.
     /// </summary>
     [Content]
-    public string? Text { get; set; }
+    public string Text { get; set; }
 
     /// <inheritdoc/>
     public override object ProvideValue(IServiceProvider serviceProvider)

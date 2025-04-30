@@ -10,3 +10,4 @@ using Avalonia.Metadata;
 [assembly: XmlnsDefinition("http://schemas.stride3d.net/xaml/presentation", "Stride.Core.Presentation.Avalonia.Converters")]
 [assembly: XmlnsDefinition("http://schemas.stride3d.net/xaml/presentation", "Stride.Core.Presentation.Avalonia.MarkupExtensions")]
 [assembly: XmlnsDefinition("http://schemas.stride3d.net/xaml/presentation", "Stride.Core.Presentation.Avalonia.Themes")]
+[assembly: XmlnsDefinition("http://schemas.stride3d.net/xaml/presentation", "Stride.Core.Presentation.Avalonia.Views")]

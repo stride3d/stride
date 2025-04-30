@@ -76,7 +76,7 @@ internal sealed class CoreAssetsEditorPlugin : AssetsEditorPlugin
     }
 
     /// <inheritdoc />
-    public override void RegisterTemplateProviders(ICollection<ITemplateProvider> templateProviders)
+    public override void RegisterTemplateProviders(ICollection<TemplateProviderBase> templateProviders)
     {
     }
 }

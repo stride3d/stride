@@ -34,7 +34,7 @@ public class AssetMemberNodePresenter : MemberNodePresenter, IAssetNodePresenter
 
     private new IAssetMemberNode Member => (IAssetMemberNode)base.Member;
 
-    public bool IsObjectReference(object value)
+    public bool IsObjectReference(object? value)
     {
         return Member.PropertyGraph?.Definition.IsMemberTargetObjectReference(Member, value) ?? false;
     }

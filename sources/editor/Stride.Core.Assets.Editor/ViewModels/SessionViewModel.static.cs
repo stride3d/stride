@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Diagnostics;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.IO;
 using Stride.Core.Presentation.Commands;
@@ -12,6 +13,32 @@ namespace Stride.Core.Assets.Editor.ViewModels;
 
 partial class SessionViewModel
 {
+    private static SessionViewModel? instance;
+    private static readonly SemaphoreSlim semaphore = new(1, 1);
+    
+    /// <summary>
+    /// The current instance of <see cref="SessionViewModel"/>.
+    /// </summary>
+    /// <remarks>Accessing this property is allowed only from view-side code, in places it would be hard to get ortherwise.</remarks>
+    public static SessionViewModel Instance
+    {
+        get
+        {
+            semaphore.Wait();
+            try
+            {
+                // This getter should only be legimitely called when the session has been created.
+                // Therefore we assume isn't null here.
+                Debug.Assert(instance is not null);
+                return instance!;
+            }
+            finally
+            {
+                semaphore.Release();
+            }
+        }
+    }
+
     public static async Task<SessionViewModel?> OpenSessionAsync(UFile path, PackageSessionResult sessionResult, IMainViewModel main, IViewModelServiceProvider serviceProvider, CancellationToken token = default)
     {
         // Create the service that handles selection
@@ -77,6 +104,20 @@ partial class SessionViewModel
         sessionResult.OperationCancelled = token.IsCancellationRequested;
         await workProgress.NotifyWorkFinished(token.IsCancellationRequested, sessionResult.HasErrors);
 
+        // Update the singleton instance
+        if (sessionViewModel is not null)
+        {
+            await semaphore.WaitAsync(token);
+            try
+            {
+                instance = sessionViewModel;
+            }
+            finally
+            {
+                semaphore.Release();
+            }
+        }
+
         return sessionViewModel;
     }
 
@@ -119,5 +160,4 @@ partial class SessionViewModel
             }
         };
     }
-
 }

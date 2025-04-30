@@ -68,6 +68,7 @@ public partial class App : Application
         // Until then, use a hack to force loading the assemblies.
         string _;
         _ = typeof(Assets.Presentation.StrideDefaultAssetsPlugin).Name;
+        _ = typeof(Core.Assets.Editor.Avalonia.StrideCoreEditorViewPlugin).Name;
         _ = typeof(Assets.Editor.StrideEditorPlugin).Name;
         _ = typeof(Assets.Editor.Avalonia.StrideEditorViewPlugin).Name;
         // Note: it doesn't have to be done here. The only constraint is to do it before AssetsPlugin.RegisteredPlugins is accessed for the first time.
@@ -80,7 +81,7 @@ public partial class App : Application
         var services = new object[]
         {
             dispatcherService,
-            new PluginService()
+            new PluginService(dispatcherService)
         };
         var serviceProvider = new ViewModelServiceProvider(services);
         serviceProvider.RegisterService(new EditorDebugService(serviceProvider));

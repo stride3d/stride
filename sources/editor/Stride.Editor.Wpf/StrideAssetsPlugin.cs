@@ -26,7 +26,7 @@ namespace Stride.Editor
     public abstract class StrideAssetsPlugin : AssetsEditorPlugin
     {
         private readonly Dictionary<object, object> enumImagesDictionary = [];
-        private readonly List<ITemplateProvider> templateProviderList = [];
+        private readonly List<TemplateProviderBase> templateProviderList = [];
 
         protected virtual void RegisterResourceDictionary(ResourceDictionary dictionary)
         {
@@ -40,8 +40,7 @@ namespace Stride.Editor
 
             foreach (object value in dictionary.Values)
             {
-                var provider = value as ITemplateProvider;
-                if (provider != null)
+                if (value is TemplateProviderBase provider)
                 {
                     templateProviderList.Add(provider);
                 }
@@ -101,7 +100,7 @@ namespace Stride.Editor
         }
 
         /// <inheritdoc />
-        public override void RegisterTemplateProviders(ICollection<ITemplateProvider> templateProviders)
+        public override void RegisterTemplateProviders(ICollection<TemplateProviderBase> templateProviders)
         {
             templateProviders.AddRange(templateProviderList);
         }

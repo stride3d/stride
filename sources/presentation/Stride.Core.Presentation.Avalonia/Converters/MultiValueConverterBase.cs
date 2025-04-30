@@ -26,7 +26,7 @@ public abstract class MultiValueConverterBase<T> : MarkupExtension, IMultiValueC
     }
 
     /// <inheritdoc/>
-    public abstract object Convert(IList<object?> values, Type targetType, object? parameter, CultureInfo culture);
+    public abstract object? Convert(IList<object?> values, Type targetType, object? parameter, CultureInfo culture);
 
     /// <inheritdoc/>
     public sealed override IMultiValueConverter ProvideValue(IServiceProvider serviceProvider)

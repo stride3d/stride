@@ -14,12 +14,12 @@ namespace Stride.Core.Presentation.Avalonia.Converters;
 public static class ConverterHelper
 {
     /// <summary>
-    /// Converts the given value to <see cref="Boolean"/>.
-    /// If the given value is <see cref="AvaloniaProperty.UnsetValue"/>, it converts to the default value of the <see cref="Boolean"/> type.
+    /// Converts the given value to <see cref="bool"/>.
+    /// If the given value is <see cref="AvaloniaProperty.UnsetValue"/>, it converts to the default value of the <see cref="bool"/> type.
     /// </summary>
     /// <param name="value">The value to convert.</param>
     /// <param name="culture">The format provider to use for the conversion.</param>
-    /// <returns>The value converted to <see cref="Boolean"/>.</returns>
+    /// <returns>The value converted to <see cref="bool"/>.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool ConvertToBoolean(object? value, IFormatProvider culture)
     {
@@ -27,42 +27,55 @@ public static class ConverterHelper
     }
 
     /// <summary>
-    /// Converts the given value to <see cref="Char"/>.
-    /// If the given value is <see cref="AvaloniaProperty.UnsetValue"/>, it converts to the default value of the <see cref="Char"/> type.
+    /// Converts the given value to <see cref="char"/>.
+    /// If the given value is <see cref="AvaloniaProperty.UnsetValue"/>, it converts to the default value of the <see cref="char"/> type.
     /// </summary>
     /// <param name="value">The value to convert.</param>
     /// <param name="culture">The format provider to use for the conversion.</param>
-    /// <returns>The value converted to <see cref="Char"/>.</returns>
+    /// <returns>The value converted to <see cref="char"/>.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static char ConvertToChar(object? value, IFormatProvider culture)
     {
-        return value != AvaloniaProperty.UnsetValue ? Convert.ToChar(Convert.ToUInt32(value), culture) : default;
+        return value != AvaloniaProperty.UnsetValue ? Convert.ToChar(Convert.ToUInt32(value), culture) : '\0';
     }
 
     /// <summary>
-    /// Converts the given value to <see cref="Double"/>.
-    /// If the given value is <see cref="AvaloniaProperty.UnsetValue"/>, it converts to the default value of the <see cref="Double"/> type.
+    /// Converts the given value to <see cref="decimal"/>.
+    /// If the given value is <see cref="AvaloniaProperty.UnsetValue"/>, it converts to the default value of the <see cref="decimal"/> type.
     /// </summary>
     /// <param name="value">The value to convert.</param>
     /// <param name="culture">The format provider to use for the conversion.</param>
-    /// <returns>The value converted to <see cref="Double"/>.</returns>
+    /// <returns>The value converted to <see cref="decimal"/>.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static decimal ConvertToDecimal(object? value, IFormatProvider culture)
+    {
+        return value != AvaloniaProperty.UnsetValue ? Convert.ToDecimal(value, culture) : 0;
+    }
+
+    /// <summary>
+    /// Converts the given value to <see cref="double"/>.
+    /// If the given value is <see cref="AvaloniaProperty.UnsetValue"/>, it converts to the default value of the <see cref="double"/> type.
+    /// </summary>
+    /// <param name="value">The value to convert.</param>
+    /// <param name="culture">The format provider to use for the conversion.</param>
+    /// <returns>The value converted to <see cref="double"/>.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static double ConvertToDouble(object? value, IFormatProvider culture)
     {
-        return value != AvaloniaProperty.UnsetValue ? Convert.ToDouble(value, culture) : default;
+        return value != AvaloniaProperty.UnsetValue ? Convert.ToDouble(value, culture) : 0;
     }
 
     /// <summary>
-    /// Converts the given value to <see cref="Int32"/>.
-    /// If the given value is <see cref="AvaloniaProperty.UnsetValue"/>, it converts to the default value of the <see cref="Int32"/> type.
+    /// Converts the given value to <see cref="int"/>.
+    /// If the given value is <see cref="AvaloniaProperty.UnsetValue"/>, it converts to the default value of the <see cref="int"/> type.
     /// </summary>
     /// <param name="value">The value to convert.</param>
     /// <param name="culture">The format provider to use for the conversion.</param>
-    /// <returns>The value converted to <see cref="Int32"/>.</returns>
+    /// <returns>The value converted to <see cref="int"/>.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int ConvertToInt32(object? value, IFormatProvider culture)
     {
-        return value != AvaloniaProperty.UnsetValue ? Convert.ToInt32(value, culture) : default;
+        return value != AvaloniaProperty.UnsetValue ? Convert.ToInt32(value, culture) : 0;
     }
 
     /// <summary>
@@ -70,12 +83,11 @@ public static class ConverterHelper
     /// If the given value is <see cref="AvaloniaProperty.UnsetValue"/>, it converts to the default value of the <see cref="TimeSpan"/> type.
     /// </summary>
     /// <param name="value">The value to convert.</param>
-    /// <param name="culture">The format provider to use for the conversion.</param>
     /// <returns>The value converted to <see cref="TimeSpan"/>.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static TimeSpan ConvertToTimeSpan(object? value)
     {
-        return value != AvaloniaProperty.UnsetValue && value is not null ? (TimeSpan)value : default;
+        return value != AvaloniaProperty.UnsetValue && value is not null ? (TimeSpan)value : TimeSpan.Zero;
     }
 
     /// <summary>
@@ -83,7 +95,6 @@ public static class ConverterHelper
     /// If the given value is <see cref="AvaloniaProperty.UnsetValue"/>, it converts to the default value of the <see cref="AngleSingle"/> type.
     /// </summary>
     /// <param name="value">The value to convert.</param>
-    /// <param name="culture">The format provider to use for the conversion.</param>
     /// <returns>The value converted to <see cref="AngleSingle"/>.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static AngleSingle ConvertToAngleSingle(object? value)
@@ -92,12 +103,12 @@ public static class ConverterHelper
     }
 
     /// <summary>
-    /// Converts the given value to <see cref="String"/>.
+    /// Converts the given value to <see cref="string"/>.
     /// If the given value is <see cref="AvaloniaProperty.UnsetValue"/>, it converts to <see cref="String.Empty"/>.
     /// </summary>
     /// <param name="value">The value to convert.</param>
     /// <param name="culture">The format provider to use for the conversion.</param>
-    /// <returns>The value converted to <see cref="String"/>.</returns>
+    /// <returns>The value converted to <see cref="string"/>.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static string? ConvertToString(object? value, IFormatProvider culture)
     {
@@ -116,16 +127,16 @@ public static class ConverterHelper
     public static object? ChangeType(object? value, Type targetType, IFormatProvider culture)
     {
         // Retrieve the underlying type if the target type is a nullable.
-        return value != AvaloniaProperty.UnsetValue ? Convert.ChangeType(value, targetType, culture) : targetType.Default();            
+        return value != AvaloniaProperty.UnsetValue ? Convert.ChangeType(value, targetType, culture) : targetType.Default();
     }
 
     /// <summary>
-    /// Tries to convert the given value to <see cref="Boolean"/>.
+    /// Tries to convert the given value to <see cref="bool"/>.
     /// If the given value is <see cref="AvaloniaProperty.UnsetValue"/> or <c>Null</c>, then <c>Null</c> is returned.
     /// </summary>
     /// <param name="value">The value to convert.</param>
     /// <param name="culture">The format provider to use for the conversion.</param>
-    /// <returns>The value converted to <see cref="Boolean"/> if the conversion was possible, <c>Null</c> otherwise.</returns>
+    /// <returns>The value converted to <see cref="bool"/> if the conversion was possible, <c>Null</c> otherwise.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool? TryConvertToBoolean(object? value, IFormatProvider culture)
     {
@@ -133,12 +144,12 @@ public static class ConverterHelper
     }
 
     /// <summary>
-    /// Tries to convert the given value to <see cref="Char"/>.
+    /// Tries to convert the given value to <see cref="char"/>.
     /// If the given value is <see cref="AvaloniaProperty.UnsetValue"/> or <c>Null</c>, then <c>Null</c> is returned.
     /// </summary>
     /// <param name="value">The value to convert.</param>
     /// <param name="culture">The format provider to use for the conversion.</param>
-    /// <returns>The value converted to <see cref="Char"/> if the conversion was possible, <c>Null</c> otherwise.</returns>
+    /// <returns>The value converted to <see cref="char"/> if the conversion was possible, <c>Null</c> otherwise.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static char? TryConvertToChar(object? value, IFormatProvider culture)
     {
@@ -146,12 +157,25 @@ public static class ConverterHelper
     }
 
     /// <summary>
-    /// Tries to convert the given value to <see cref="Double"/>.
+    /// Tries to convert the given value to <see cref="decimal"/>.
     /// If the given value is <see cref="AvaloniaProperty.UnsetValue"/> or <c>Null</c>, then <c>Null</c> is returned.
     /// </summary>
     /// <param name="value">The value to convert.</param>
     /// <param name="culture">The format provider to use for the conversion.</param>
-    /// <returns>The value converted to <see cref="Double"/> if the conversion was possible, <c>Null</c> otherwise.</returns>
+    /// <returns>The value converted to <see cref="decimal"/> if the conversion was possible, <c>Null</c> otherwise.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static decimal? TryConvertToDecimal(object? value, IFormatProvider culture)
+    {
+        return value != null && value != AvaloniaProperty.UnsetValue ? ConvertToDecimal(value, culture) : null;
+    }
+
+    /// <summary>
+    /// Tries to convert the given value to <see cref="double"/>.
+    /// If the given value is <see cref="AvaloniaProperty.UnsetValue"/> or <c>Null</c>, then <c>Null</c> is returned.
+    /// </summary>
+    /// <param name="value">The value to convert.</param>
+    /// <param name="culture">The format provider to use for the conversion.</param>
+    /// <returns>The value converted to <see cref="double"/> if the conversion was possible, <c>Null</c> otherwise.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static double? TryConvertToDouble(object? value, IFormatProvider culture)
     {
@@ -159,12 +183,12 @@ public static class ConverterHelper
     }
 
     /// <summary>
-    /// Tries to convert the given value to <see cref="Int32"/>.
+    /// Tries to convert the given value to <see cref="int"/>.
     /// If the given value is <see cref="AvaloniaProperty.UnsetValue"/> or <c>Null</c>, then <c>Null</c> is returned.
     /// </summary>
     /// <param name="value">The value to convert.</param>
     /// <param name="culture">The format provider to use for the conversion.</param>
-    /// <returns>The value converted to <see cref="Int32"/> if the conversion was possible, <c>Null</c> otherwise.</returns>
+    /// <returns>The value converted to <see cref="int"/> if the conversion was possible, <c>Null</c> otherwise.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int? TryConvertToInt32(object? value, IFormatProvider culture)
     {
@@ -176,7 +200,6 @@ public static class ConverterHelper
     /// If the given value is <see cref="AvaloniaProperty.UnsetValue"/>, it converts to the default value of the <see cref="TimeSpan"/> type.
     /// </summary>
     /// <param name="value">The value to convert.</param>
-    /// <param name="culture">The format provider to use for the conversion.</param>
     /// <returns>The value converted to <see cref="TimeSpan"/>.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static TimeSpan? TryConvertToTimeSpan(object? value)
@@ -189,7 +212,6 @@ public static class ConverterHelper
     /// If the given value is <see cref="AvaloniaProperty.UnsetValue"/>, it converts to the default value of the <see cref="AngleSingle"/> type.
     /// </summary>
     /// <param name="value">The value to convert.</param>
-    /// <param name="culture">The format provider to use for the conversion.</param>
     /// <returns>The value converted to <see cref="AngleSingle"/>.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static AngleSingle? TryConvertToAngleSingle(object? value)
@@ -198,12 +220,12 @@ public static class ConverterHelper
     }
 
     /// <summary>
-    /// Tries to convert the given value to <see cref="String"/>.
+    /// Tries to convert the given value to <see cref="string"/>.
     /// If the given value is <see cref="AvaloniaProperty.UnsetValue"/> or <c>Null</c>, then <c>Null</c> is returned.
     /// </summary>
     /// <param name="value">The value to convert.</param>
     /// <param name="culture">The format provider to use for the conversion.</param>
-    /// <returns>The value converted to <see cref="String"/> if the conversion was possible, <c>Null</c> otherwise.</returns>
+    /// <returns>The value converted to <see cref="string"/> if the conversion was possible, <c>Null</c> otherwise.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static string? TryConvertToString(object? value, IFormatProvider culture)
     {

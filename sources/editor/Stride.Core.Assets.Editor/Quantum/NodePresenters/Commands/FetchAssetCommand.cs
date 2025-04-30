@@ -43,7 +43,7 @@ public class FetchAssetCommand : NodePresenterCommandBase
     }
 
     /// <inheritdoc/>
-    public override Task Execute(INodePresenter nodePresenter, object parameter, object preExecuteResult)
+    public override Task Execute(INodePresenter nodePresenter, object? parameter, object? preExecuteResult)
     {
         return Fetch(Session, nodePresenter.Value);
     }
@@ -59,6 +59,7 @@ public class FetchAssetCommand : NodePresenterCommandBase
         if (asset != null)
         {
             // FIXME xplat-editor
+            await Task.Yield();
             //await session.Dispatcher.InvokeAsync(() => session.AssetCollection.SelectAssetCommand.Execute(asset));
         }
     }

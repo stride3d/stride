@@ -3,7 +3,6 @@
 
 using System.Globalization;
 using Avalonia.Data.Converters;
-using Stride.Core.Annotations;
 
 namespace Stride.Core.Presentation.Avalonia.Converters;
 
@@ -14,7 +13,6 @@ public abstract class CompareNum<T> : OneWayValueConverter<T>
     where T : OneWayValueConverter<T>, IValueConverter, new()
 {
     /// <inheritdoc/>
-    [NotNull]
     public override object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
         var doubleValue = ConverterHelper.ConvertToDouble(value, culture);

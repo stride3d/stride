@@ -14,7 +14,7 @@ namespace Stride.Core.Presentation.Avalonia.Converters;
 /// The parameter and target type of each converter can also be specified. <see cref="IValueConverter.ConvertBack"/> is supported and converters are invoked backward.
 /// </summary>
 /// <remarks>This converter is also a <see cref="MarkupExtension"/>, which makes it convenient to use in XAML.</remarks>
-public class MultiChained : MarkupExtension, IMultiValueConverter
+public sealed class MultiChained : MarkupExtension, IMultiValueConverter
 {
     private readonly Chained chainedConverter;
 

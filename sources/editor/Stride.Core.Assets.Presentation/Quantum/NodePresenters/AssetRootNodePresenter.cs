@@ -34,7 +34,7 @@ public class AssetRootNodePresenter : RootNodePresenter, IAssetNodePresenter
 
     private new IAssetObjectNode RootNode => (IAssetObjectNode)base.RootNode;
 
-    public bool IsObjectReference(object value)
+    public bool IsObjectReference(object? value)
     {
         return false;
     }

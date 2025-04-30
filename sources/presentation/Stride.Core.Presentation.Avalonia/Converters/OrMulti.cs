@@ -7,7 +7,9 @@ using Stride.Core.Presentation.Avalonia.Internal;
 
 namespace Stride.Core.Presentation.Avalonia.Converters;
 
-public class OrMulti : MultiValueConverterBase<OrMulti>
+/// <seealso cref="AndMulti"/>
+/// <seealso cref="XOrMulti"/>
+public sealed class OrMulti : MultiValueConverterBase<OrMulti>
 {
     public override object Convert(IList<object?> values, Type targetType, object? parameter, CultureInfo culture)
     {

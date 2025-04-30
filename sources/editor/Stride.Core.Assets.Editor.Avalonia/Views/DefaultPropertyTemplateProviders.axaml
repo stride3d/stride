@@ -1,0 +1,1561 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
+                    xmlns:caec="using:Stride.Core.Assets.Editor.Avalonia.Converters"
+                    xmlns:caeqnpc="using:Stride.Core.Assets.Editor.Quantum.NodePresenters.Commands"
+                    xmlns:caev="using:Stride.Core.Assets.Editor.Avalonia.Views"
+                    xmlns:cpqvm="using:Stride.Core.Presentation.Quantum.ViewModels"
+                    xmlns:io="using:Stride.Core.IO"
+                    xmlns:math="using:Stride.Core.Mathematics"
+                    xmlns:s="using:System"
+                    x:Class="Stride.Core.Assets.Editor.Avalonia.Views.DefaultPropertyTemplateProviders">
+  <ResourceDictionary.MergedDictionaries>
+    <ResourceInclude Source="ImageResources.axaml"/>
+  </ResourceDictionary.MergedDictionaries>
+  <!--
+  TODO:
+    - write a rule book about the order of property to use in an avalonia block
+      (e.g. HorizontalAlignment before VerticalAlignment)
+    - as well as binding styles and recommendations
+  -->
+
+  <!-- Themes for Button -->
+  <ControlTheme x:Key="ImageButtonTheme" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+    <Setter Property="Background" Value="Transparent"/>
+    <Setter Property="Margin" Value="2,0"/>
+    <Setter Property="Padding" Value="0"/>
+    <Setter Property="Width" Value="16"/>
+    <Setter Property="Height" Value="16"/>
+  </ControlTheme>
+  <ControlTheme x:Key="AddNewItemButtonTheme" TargetType="Button" BasedOn="{StaticResource ImageButtonTheme}">
+    <Setter Property="IsVisible"
+            Value="{sd:MultiBinding {Binding [HasCommand_AddNewItem]}, {Binding HasCollection},
+                                    {Binding [HasAssociatedData_ReadOnlyCollection], Converter={sd:InvertBool}},
+                                    {Binding [HasAssociatedData_AbstractNodeMatchingEntries], Converter={sd:InvertBool}},
+                                    Converter={sd:AndMulti}}"/>
+    <Setter Property="Command" Value="{Binding [AddNewItem]}"/>
+    <Setter Property="ToolTip.Tip" Value="{sd:LocalizeString Add..., Context=ToolTip}"/>
+    <Setter Property="ContentTemplate">
+      <DataTemplate>
+        <Image Source="{StaticResource ImageAdd}" Width="16" Height="16" RenderOptions.BitmapInterpolationMode="None"/>
+      </DataTemplate>
+    </Setter>
+  </ControlTheme>
+  <ControlTheme x:Key="RemoveItemButtonTheme" TargetType="Button" BasedOn="{StaticResource ImageButtonTheme}">
+    <Setter Property="IsVisible"
+            Value="{sd:MultiBinding {Binding [HasCommand_RemoveItem]},
+                                    {Binding [HasAssociatedData_ReadOnlyCollection], Converter={sd:InvertBool}},
+                                    Converter={sd:AndMulti}}"/>
+    <Setter Property="Command" Value="{Binding [RemoveItem]}"/>
+    <Setter Property="ToolTip.Tip" Value="{sd:LocalizeString Delete, Context=ToolTip}"/>
+    <Setter Property="ContentTemplate">
+      <DataTemplate>
+        <Image Source="{StaticResource ImageRemove}" Width="16" Height="16" RenderOptions.BitmapInterpolationMode="None"/>
+      </DataTemplate>
+    </Setter>
+  </ControlTheme>
+
+  <!-- Themes for ComboBox -->
+  <ControlTheme x:Key="AbstractTypeSelectionComboBoxTheme" TargetType="ComboBox" BasedOn="{StaticResource {x:Type ComboBox}}">
+    <Setter Property="IsTextSearchEnabled" Value="False"/>
+    <Setter Property="ToolTip.Tip" Value="{sd:LocalizeString Replace..., Context=ToolTip}"/>
+    <Setter Property="IsVisible"
+            Value="{sd:MultiBinding {Binding [HasCommand_CreateNewInstance]},
+                                    {Binding !IsReadOnly}, {Binding !HasCollection},
+                                    Converter={sd:AndMulti}}"/>
+    <Setter Property="BorderBrush" Value="#FF333333"/>
+    <Setter Property="BorderThickness" Value="0"/>
+    <Setter Property="Tag" Value="{StaticResource ImageDropDown}"/>
+    <Setter Property="ItemTemplate">
+      <DataTemplate DataType="caeqnpc:AbstractNodeEntry">
+        <TextBlock x:Name="TypeTextBlock"
+                   Text="{Binding DisplayValue, FallbackValue={}, Mode=OneWay}"/>
+      </DataTemplate>
+    </Setter>
+    <Setter Property="Template">
+      <ControlTemplate TargetType="ComboBox">
+        <Grid>
+          <ToggleButton x:Name="ToggleButton"
+                        Focusable="False" BorderBrush="{TemplateBinding BorderBrush}"
+                        IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}" ClickMode="Press"
+                        Tag="{TemplateBinding Tag}">
+            <ToggleButton.Template>
+              <ControlTemplate TargetType="ToggleButton">
+                <Border x:Name="Border"
+                        Width="16" Height="16" Margin="2,0" Background="Transparent" Focusable="False">
+                  <Image Source="{TemplateBinding Tag}" Width="16" Height="16"/>
+                  <Interaction.Behaviors>
+                    <sd:DataTriggerBehavior Binding="{TemplateBinding IsPointerOver}" Value="{sd:True}">
+                      <sd:ChangePropertyAction PropertyName="Background" TargetObject="Border" Value="#FFAAAAAA"/>
+                    </sd:DataTriggerBehavior>
+                    <sd:DataTriggerBehavior Binding="{TemplateBinding IsChecked}" Value="{sd:True}">
+                      <sd:ChangePropertyAction PropertyName="Background" TargetObject="Border" Value="#FFAAAAAA"/>
+                    </sd:DataTriggerBehavior>
+                    <sd:DataTriggerBehavior Binding="{TemplateBinding IsEnabled}" Value="{sd:False}">
+                      <sd:ChangePropertyAction PropertyName="Foreground" Value="#FF656565"/>
+                      <sd:ChangePropertyAction PropertyName="Background" TargetObject="Border" Value="#FF040404"/>
+                      <sd:ChangePropertyAction PropertyName="Opacity" TargetObject="Border" Value="{sd:Double 0.8}"/>
+                    </sd:DataTriggerBehavior>
+                  </Interaction.Behaviors>
+                </Border>
+              </ControlTemplate>
+            </ToggleButton.Template>
+          </ToggleButton>
+          <Popup x:Name="PART_Popup"
+                 MinWidth="{Binding Bounds.Width, RelativeSource={RelativeSource TemplatedParent}}"
+                 MaxHeight="{TemplateBinding MaxDropDownHeight}"
+                 IsLightDismissEnabled="True"
+                 IsOpen="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
+                 PlacementTarget="{TemplateBinding}" Placement="Bottom"
+                 Focusable="False" InheritsTransform="True">
+            <Grid x:Name="DropDown">
+              <Border x:Name="DropDownBorder" CornerRadius="3,3,3,3" Background="#101011"/>
+              <ScrollViewer Margin="1"
+                            HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                <ItemsPresenter ItemsPanel="{TemplateBinding ItemsPanel}"/>
+              </ScrollViewer>
+            </Grid>
+          </Popup>
+        </Grid>
+      </ControlTemplate>
+    </Setter>
+  </ControlTheme>
+  <ControlTheme x:Key="AddItemComboBoxTheme" TargetType="ComboBox" BasedOn="{StaticResource AbstractTypeSelectionComboBoxTheme}">
+    <Setter Property="Width" Value="18"/>
+    <Setter Property="Height" Value="16"/>
+    <Setter Property="BorderBrush" Value="Transparent"/>
+    <Setter Property="VerticalAlignment" Value="Center"/>
+    <Setter Property="IsVisible"
+            Value="{sd:MultiBinding {Binding [HasCommand_AddNewItem]}, {Binding HasCollection},
+                                    {Binding [HasAssociatedData_AbstractNodeMatchingEntries]},
+                                    Converter={sd:AndMulti}}"/>
+    <Setter Property="ToolTip.Tip" Value="{sd:LocalizeString Add..., Context=ToolTip}"/>
+    <Setter Property="Tag" Value="{StaticResource ImageAdd}"/>
+  </ControlTheme>
+  <ControlTheme x:Key="EnumComboBoxTheme" TargetType="ComboBox" BasedOn="{StaticResource {x:Type ComboBox}}">
+    <Setter Property="Margin" Value="2"/>
+    <Setter Property="SelectedItem" Value="{Binding NodeValue}"/>
+    <Setter Property="ItemsSource" Value="{Binding Type, Converter={sd:EnumValues}, Mode=OneWay}"/>
+    <Setter Property="ItemTemplate">
+      <DataTemplate>
+        <TextBlock Text="{Binding Converter={sd:EnumToDisplayName}}"/>
+      </DataTemplate>
+    </Setter>
+  </ControlTheme>
+
+  <!-- Template for ToggleButton -->
+  <ControlTemplate x:Key="TreeExpanderToggleButton" TargetType="{x:Type ToggleButton}">
+    <Grid Background="Transparent">
+      <Path x:Name="Up_Arrow" IsVisible="{Binding !IsChecked, RelativeSource={RelativeSource TemplatedParent}}"
+            HorizontalAlignment="Center" VerticalAlignment="Center" Fill="#FFD1D1D1"
+            Data="M 0 6 V 0 l 5 3 z" RenderTransformOrigin="0.5,0.5" Stretch="Uniform" StrokeThickness="0"/>
+      <Path x:Name="Down_Arrow" IsVisible="{Binding IsChecked, RelativeSource={RelativeSource TemplatedParent}}"
+            HorizontalAlignment="Center" VerticalAlignment="Center" Fill="#FFD1D1D1"
+            Data="M 0 0 H 6 L 3 6 Z" RenderTransformOrigin="0.5,0.5" Stretch="Uniform" StrokeThickness="0"/>
+    </Grid>
+  </ControlTemplate>
+
+  <!-- Base template for property header -->
+  <DataTemplate x:Key="DefaultPropertyHeaderTemplate" DataType="cpqvm:NodeViewModel">
+    <Grid x:Name="Grid" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+          IsVisible="{Binding IsVisible}">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="8"/>
+        <ColumnDefinition Width="{Binding $parent[sd:PropertyView].NameColumnSize, Mode=TwoWay}"
+                          MinWidth="64"/>
+        <ColumnDefinition Width="5"/>
+        <ColumnDefinition Width="*" MinWidth="64"/>
+      </Grid.ColumnDefinitions>
+      <Border Grid.Column="0"
+              Background="Transparent"
+              Width="8" Margin="4,4,0,4"
+              IsVisible="{Binding [ReorderCollectionItem], Converter={sd:ObjectToBool}}">
+        <Rectangle Focusable="False" Cursor="SizeAll">
+          <Rectangle.Fill>
+            <DrawingBrush DestinationRect="0,0,8,4" TileMode="Tile">
+              <DrawingBrush.Drawing>
+                <DrawingGroup>
+                  <GeometryDrawing Brush="Transparent">
+                    <GeometryDrawing.Geometry>
+                      <RectangleGeometry Rect="0,0,8,4"/>
+                    </GeometryDrawing.Geometry>
+                  </GeometryDrawing>
+                  <GeometryDrawing Brush="#202020">
+                    <GeometryDrawing.Geometry>
+                      <GeometryGroup>
+                        <RectangleGeometry Rect="1,1,2,2"/>
+                        <RectangleGeometry Rect="4,1,2,2"/>
+                      </GeometryGroup>
+                    </GeometryDrawing.Geometry>
+                  </GeometryDrawing>
+                </DrawingGroup>
+              </DrawingBrush.Drawing>
+            </DrawingBrush>
+          </Rectangle.Fill>
+        </Rectangle>
+      </Border>
+      <Border Grid.Column="1" x:Name="PART_Name"
+              MinHeight="23" Margin="2" HorizontalAlignment="Stretch" VerticalAlignment="Top"
+              ToolTip.Tip="{Binding [Documentation]}">
+        <Grid>
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" MinWidth="{Binding $parent[sd:PropertyViewItem].Offset, Mode=OneWay}"/>
+            <ColumnDefinition Width="16"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="Auto"/>
+          </Grid.ColumnDefinitions>
+          <ToggleButton Grid.Column="1"
+                        Width="8" Height="8" HorizontalAlignment="Left"
+                        Template="{StaticResource TreeExpanderToggleButton}"
+                        IsChecked="{Binding $parent[sd:PropertyViewItem].IsExpanded}"
+                        IsVisible="{Binding VisibleChildrenCount, Converter={sd:NumericToBool}}"/>
+          <TextBlock Grid.Column="2" x:Name="PropertyNameBlock"
+                     HorizontalAlignment="Stretch" VerticalAlignment="Center"
+                     TextTrimming="CharacterEllipsis"
+                     Text="{Binding DisplayName, Mode=OneWay}"
+                     IsVisible="{Binding [HasCommand_RenameStringKey], Converter={sd:InvertBool}}"/>
+          <TextBox Grid.Column="2" x:Name="PropertyNameBox"
+                   HorizontalAlignment="Stretch" VerticalAlignment="Center"
+                   Text="{Binding DisplayName, Mode=OneWay}"
+                   IsVisible="{Binding [HasCommand_RenameStringKey]}"
+                   ContextMenu="{Binding $parent[sd:PropertyViewItem].ContextMenu}">
+            <Interaction.Behaviors>
+              <sd:DataTriggerBehavior Binding="{Binding $parent[TextBox].IsKeyboardFocusWithin}" Value="{sd:False}">
+                <sd:ChangePropertyAction PropertyName="Background" Value="Transparent"/>
+                <sd:ChangePropertyAction PropertyName="BorderBrush" Value="Transparent"/>
+              </sd:DataTriggerBehavior>
+              <sd:DataTriggerBehavior Binding="{Binding $parent[TextBox].IsReadOnly}" Value="{sd:True}">
+                <sd:ChangePropertyAction PropertyName="Background" Value="Transparent"/>
+                <sd:ChangePropertyAction PropertyName="BorderBrush" Value="Transparent"/>
+              </sd:DataTriggerBehavior>
+            </Interaction.Behaviors>
+          </TextBox>
+          <CheckBox Grid.Column="3"
+                    Margin="2,0" HorizontalAlignment="Left" VerticalAlignment="Center"
+                    IsChecked="{Binding [Enabled].NodeValue, Converter={caec:DifferentValuesToParam}, ConverterParameter={x:Null}, FallbackValue={x:False}, TargetNullValue={x:False}}"
+                    IsThreeState="{Binding [Enabled].NodeValue, Converter={sd:IsEqualToParam}, ConverterParameter={x:Static cpqvm:NodeViewModel.DifferentValues}, FallbackValue={x:False}, TargetNullValue={x:False}}"
+                    IsVisible="{Binding [HasChild_Enabled], FallbackValue={x:False}}"/>
+          <Interaction.Behaviors>
+            <sd:DataTriggerBehavior Binding="{sd:MultiBinding {Binding ConverterParameter=[IsOverridden], Converter={caec:NodePathToObject}},
+                                                           {Binding ConverterParameter=[Enabled].[IsOverridden], Converter={caec:NodePathToObject}},
+                                                           {Binding ConverterParameter=[InlinedProperty].[IsOverridden], Converter={caec:NodePathToObject}},
+                                                           Converter={sd:OrMulti}}"
+                                    Value="{sd:True}">
+              <sd:ChangePropertyAction TargetObject="PropertyNameBlock" PropertyName="FontWeight" Value="Bold"/>
+              <sd:ChangePropertyAction TargetObject="PropertyNameBox" PropertyName="FontWeight" Value="Bold"/>
+            </sd:DataTriggerBehavior>
+            <sd:DataTriggerBehavior Binding="{sd:MultiBinding {Binding ConverterParameter=[HasBase], Converter={caec:NodePathToObject}, FallbackValue={sd:False}},
+                                                           {Binding ConverterParameter=[IsInherited], Converter={caec:NodePathToObject}, FallbackValue={sd:True}},
+                                                           {Binding ConverterParameter=[Enabled].[IsInherited], Converter={caec:NodePathToObject}, FallbackValue={sd:True}},
+                                                           Converter={sd:AndMulti}}"
+                                    Value="{sd:True}">
+              <sd:ChangePropertyAction TargetObject="PropertyNameBlock" PropertyName="Opacity" Value="{sd:Double 0.5}"/>
+              <sd:ChangePropertyAction TargetObject="PropertyNameBox" PropertyName="Opacity" Value="{sd:Double 0.5}"/>
+            </sd:DataTriggerBehavior>
+          </Interaction.Behaviors>
+        </Grid>
+      </Border>
+      <GridSplitter Grid.Column="2" Width="2" ResizeBehavior="PreviousAndNext" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+      <Border Grid.Column="3" x:Name="PART_Editor"
+              HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0,0,5,0">
+        <ContentControl x:Name="PART_ValueContainer"
+                        Focusable="False" VerticalAlignment="Center"
+                        Content="{Binding}"
+                        ContentTemplate="{x:Static caev:PropertyViewHelper.EditorProviders}"/>
+      </Border>
+    </Grid>
+  </DataTemplate>
+
+  <!-- Base template for property header (read-only) -->
+  <DataTemplate x:Key="ReadOnlyPropertyHeaderTemplate" DataType="cpqvm:NodeViewModel">
+    <Grid x:Name="Grid" caev:PropertyViewHelper.Increment="0"
+          IsVisible="{Binding IsVisible}"
+          Margin="{Binding $parent[sd:PropertyViewItem].Offset, Mode=OneWay, Converter={sd:NumericToThickness}, ConverterParameter={sd:Thickness 1,0,0,0}}">
+      <Border x:Name="PART_Name"
+              Background="#316B8F"
+              MinHeight="20" Margin="6" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"
+              ToolTip.Tip="{Binding [Documentation]}"/>
+      <DockPanel x:Name="HeaderDockPanel"
+                 Margin="10,8">
+        <StackPanel DockPanel.Dock="Right"
+                    Orientation="Horizontal" VerticalAlignment="Center">
+          <Button Theme="{StaticResource RemoveItemButtonTheme}"/>
+          <Button Theme="{StaticResource AddNewItemButtonTheme}"/>
+          <ComboBox x:Name="InstanceTypeSelectionComboBox"
+                    ItemsSource="{Binding [AbstractNodeMatchingEntries]}"
+                    Theme="{StaticResource AddItemComboBoxTheme}">
+            <Interaction.Behaviors>
+              <EventTriggerBehavior EventName="DropDownClosed"
+                                    IsEnabled="{Binding #InstanceTypeSelectionComboBox.SelectedItem, Converter={sd:ObjectToBool}}">
+                <InvokeCommandAction Command="{Binding [AddNewItem]}"
+                                     CommandParameter="{Binding #InstanceTypeSelectionComboBox.SelectedItem}"/>
+                <sd:ChangePropertyAction PropertyName="SelectedItem" Value="{x:Null}"/>
+              </EventTriggerBehavior>
+            </Interaction.Behaviors>
+          </ComboBox>
+        </StackPanel>
+        <ToggleButton DockPanel.Dock="Left"
+                      Width="8" Height="8" HorizontalAlignment="Left"
+                      Template="{StaticResource TreeExpanderToggleButton}"
+                      IsChecked="{Binding $parent[sd:PropertyViewItem].IsExpanded}"
+                      IsVisible="{Binding VisibleChildrenCount, Converter={sd:NumericToBool}}"/>
+        <StackPanel Orientation="Horizontal" Margin="8,0,0,0">
+          <CheckBox Margin="4,0" VerticalAlignment="Center"
+                    IsVisible="{Binding [HasChild_Enabled]}"
+                    IsChecked="{Binding [Enabled].NodeValue, Converter={caec:DifferentValuesToParam}, ConverterParameter={x:Null}, FallbackValue={x:False}, TargetNullValue={x:False}}"
+                    IsThreeState="{Binding [Enabled].NodeValue, Converter={sd:IsEqualToParam}, ConverterParameter={x:Static cpqvm:NodeViewModel.DifferentValues}, FallbackValue={x:False}, TargetNullValue={x:False}}"/>
+          <Image Source="{Binding NodeValue, Converter={sd:Chained {sd:ObjectToType}, {caec:TypeToResource}}}"
+                 MaxWidth="16" MaxHeight="16" Margin="0,0,4,0"/>
+          <TextBlock x:Name="HeaderTextBlock" FontSize="16" TextTrimming="CharacterEllipsis"
+                     Text="{Binding DisplayName, Mode=OneWay}" HorizontalAlignment="Left" VerticalAlignment="Center"
+                     Foreground="#E6E6E6"/>
+          <Interaction.Behaviors>
+            <sd:DataTriggerBehavior Binding="{sd:MultiBinding {Binding ConverterParameter=[IsOverridden], Converter={caec:NodePathToObject}},
+                                                           {Binding ConverterParameter=[Enabled].[IsOverridden], Converter={caec:NodePathToObject}},
+                                                           {Binding ConverterParameter=[InlinedProperty].[IsOverridden], Converter={caec:NodePathToObject}},
+                                                           Converter={sd:OrMulti}}"
+                                    Value="{sd:True}">
+              <sd:ChangePropertyAction TargetObject="HeaderTextBlock" PropertyName="FontWeight" Value="Bold"/>
+            </sd:DataTriggerBehavior>
+            <sd:DataTriggerBehavior Binding="{sd:MultiBinding {Binding ConverterParameter=[HasBase], Converter={caec:NodePathToObject}, FallbackValue={sd:False}},
+                                                           {Binding ConverterParameter=[IsInherited], Converter={caec:NodePathToObject}, FallbackValue={sd:True}},
+                                                           {Binding ConverterParameter=[Enabled].[IsInherited], Converter={caec:NodePathToObject}, FallbackValue={sd:True}},
+                                                           Converter={sd:AndMulti}}"
+                                    Value="{sd:True}">
+              <sd:ChangePropertyAction TargetObject="HeaderTextBlock" PropertyName="Opacity" Value="{sd:Double 0.5}"/>
+            </sd:DataTriggerBehavior>
+            <sd:DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
+              <sd:ChangePropertyAction TargetObject="HeaderTextBlock" PropertyName="Text" Value="{sd:LocalizeString (Different values)}"/>
+            </sd:DataTriggerBehavior>
+            <sd:DataTriggerBehavior Binding="{Binding Level, Converter={sd:IsEqual}, ConverterParameter={sd:Int 2}}" Value="{sd:True}">
+              <sd:ChangePropertyAction TargetObject="PART_Name" PropertyName="Opacity" Value="{sd:Double 0.6}"/>
+              <sd:ChangePropertyAction TargetObject="HeaderTextBlock" PropertyName="FontSize" Value="{sd:Double 14}"/>
+            </sd:DataTriggerBehavior>
+            <sd:DataTriggerBehavior Binding="{Binding Level, Converter={sd:IsGreater}, ConverterParameter={sd:Int 2}}" Value="{sd:True}">
+              <sd:ChangePropertyAction TargetObject="PART_Name" PropertyName="Opacity" Value="{sd:Double 0.5}"/>
+              <sd:ChangePropertyAction TargetObject="HeaderTextBlock" PropertyName="FontSize" Value="{sd:Double 12}"/>
+              <sd:ChangePropertyAction TargetObject="HeaderDockPanel" PropertyName="Margin" Value="{sd:Thickness 10,4}"/>
+              <sd:ChangePropertyAction TargetObject="Grid" PropertyName="Margin" Value="{sd:Thickness 15,0,0,0}"/>
+            </sd:DataTriggerBehavior>
+          </Interaction.Behaviors>
+        </StackPanel>
+      </DockPanel>
+    </Grid>
+  </DataTemplate>
+
+  <!-- Base provider for property header -->
+  <sd:DefaultTemplateProvider x:Key="DefaultPropertyTemplateProvider" OverrideRule="None" caev:PropertyViewHelper.TemplateCategory="PropertyHeader"
+                              Template="{StaticResource DefaultPropertyHeaderTemplate}"/>
+
+  <!-- Base provider for property footer: nothing inside! -->
+  <sd:DefaultTemplateProvider x:Key="DefaultPropertyFooterTemplateProvider" OverrideRule="None" caev:PropertyViewHelper.TemplateCategory="PropertyFooter">
+    <DataTemplate/>
+  </sd:DefaultTemplateProvider>
+
+  <!-- Provider for category -->
+  <caev:CategoryNodeTemplateProvider x:Key="CategoryNodeTemplateProvider" caev:PropertyViewHelper.TemplateCategory="PropertyHeader"
+                                     Template="{StaticResource ReadOnlyPropertyHeaderTemplate}"/>
+
+  <!-- Provider for abstract types -->
+  <caev:AbstractTypeTemplateProvider x:Key="InlinedAbstractTypeTemplateProvider" OverrideRule="Most" caev:PropertyViewHelper.TemplateCategory="PropertyEditor">
+    <caev:AbstractTypeTemplateProvider.OverriddenProviderNames>
+      <s:String>InlinedProperty</s:String>
+    </caev:AbstractTypeTemplateProvider.OverriddenProviderNames>
+    <DataTemplate DataType="cpqvm:NodeViewModel">
+      <DockPanel>
+        <ComboBox DockPanel.Dock="Right"
+                  x:Name="InstanceTypeSelectionComboBox"
+                  Theme="{StaticResource AbstractTypeSelectionComboBoxTheme}"
+                  ItemsSource="{Binding [AbstractNodeMatchingEntries]}"
+                  IsVisible="{sd:MultiBinding {Binding [HasCommand_CreateNewInstance]}, {Binding !IsReadOnly},
+                                              Converter={sd:AndMulti}}">
+          <Interaction.Behaviors>
+            <EventTriggerBehavior EventName="DropDownClosed"
+                                  IsEnabled="{Binding #InstanceTypeSelectionComboBox.SelectedItem, Converter={sd:ObjectToBool}}">
+              <InvokeCommandAction Command="{Binding [CreateNewInstance]}"
+                                   CommandParameter="{Binding #InstanceTypeSelectionComboBox.SelectedItem}"/>
+              <sd:ChangePropertyAction PropertyName="SelectedItem" Value="{x:Null}"/>
+            </EventTriggerBehavior>
+          </Interaction.Behaviors>
+        </ComboBox>
+        <ContentControl x:Name="ContentControl"
+                        Content="{Binding}"
+                        ContentTemplate="{x:Static caev:PropertyViewHelper.EditorProviders}"
+                        IsVisible="{Binding NodeValue, Converter={sd:Chained {sd:IsEqualToParam}, {sd:InvertBool}, Parameter1={x:Static cpqvm:NodeViewModel.DifferentValues}}}">
+          <Interaction.Behaviors>
+            <sd:DataTriggerBehavior Binding="{Binding NodeValue, Converter={sd:ObjectToBool}}">
+              <sd:ChangePropertyAction TargetObject="ContentControl" PropertyName="Opacity" Value="{sd:Double 0.5}"/>
+            </sd:DataTriggerBehavior>
+          </Interaction.Behaviors>
+        </ContentControl>
+      </DockPanel>
+    </DataTemplate>
+  </caev:AbstractTypeTemplateProvider>
+
+  <!-- Providers for inline properties -->
+  <caev:InlinedPropertyValueTemplateProvider x:Key="InlinedPropertyValueHeaderTemplateProvider" caev:PropertyViewHelper.TemplateCategory="PropertyHeader">
+    <DataTemplate>
+      <Border caev:PropertyViewHelper.Increment="0"
+              caev:PropertyViewHelper.IsExpanded="True"/>
+    </DataTemplate>
+  </caev:InlinedPropertyValueTemplateProvider>
+  <caev:InlinedPropertyTemplateProvider x:Key="InlinedPropertyTemplateProvider" caev:PropertyViewHelper.TemplateCategory="PropertyEditor">
+    <DataTemplate DataType="cpqvm:NodeViewModel">
+      <Grid>
+        <!-- Fallback when the node has multiple values to display -->
+        <TextBlock Margin="2,0" VerticalAlignment="Center" Text="{sd:LocalizeString (Different values)}"
+                   IsVisible="{Binding NodeValue, Converter={sd:IsEqualToParam}, ConverterParameter={x:Static cpqvm:NodeViewModel.DifferentValues}}"/>
+        <!-- Fallback when the value does not have an inline property -->
+        <ContentControl x:Name="ContentControl"
+                        Content="{sd:MultiBinding {Binding [InlinedProperty]}, {Binding}, Converter={sd:PriorityMulti}}"
+                        ContentTemplate="{x:Static caev:PropertyViewHelper.EditorProviders}"
+                        IsVisible="{Binding NodeValue, Converter={sd:Chained {sd:IsEqualToParam}, {sd:InvertBool}, Parameter1={x:Static cpqvm:NodeViewModel.DifferentValues}}}"/>
+      </Grid>
+    </DataTemplate>
+  </caev:InlinedPropertyTemplateProvider>
+  <caev:InlinedPropertyValueTemplateProvider x:Key="InlinedPropertyValueFooterTemplateProvider" caev:PropertyViewHelper.TemplateCategory="PropertyFooter">
+    <DataTemplate>
+      <Border/>
+    </DataTemplate>
+  </caev:InlinedPropertyValueTemplateProvider>
+
+  <!-- Provider for List item -->
+  <caev:ListItemTemplateProvider x:Key="ListItemPropertyTemplateProvider" OverrideRule="Most" caev:PropertyViewHelper.TemplateCategory="PropertyEditor">
+    <DataTemplate>
+      <DockPanel>
+        <Button DockPanel.Dock="Right" Theme="{StaticResource RemoveItemButtonTheme}"/>
+        <ContentControl Content="{Binding}" ContentTemplate="{x:Static caev:PropertyViewHelper.EditorProviders}"/>
+      </DockPanel>
+    </DataTemplate>
+  </caev:ListItemTemplateProvider>
+
+  <!-- Providers for List -->
+  <caev:ListTemplateProvider x:Key="ListPropertyTemplateProvider" caev:PropertyViewHelper.TemplateCategory="PropertyEditor">
+    <DataTemplate DataType="cpqvm:NodeViewModel">
+      <DockPanel>
+        <StackPanel DockPanel.Dock="Right"
+                    Orientation="Horizontal" VerticalAlignment="Center">
+          <Button Theme="{StaticResource AddNewItemButtonTheme}"/>
+          <ComboBox x:Name="InstanceTypeSelectionComboBox"
+                    Theme="{StaticResource AddItemComboBoxTheme}"
+                    ItemsSource="{Binding [AbstractNodeMatchingEntries]}">
+            <Interaction.Behaviors>
+              <EventTriggerBehavior EventName="DropDownClosed"
+                                    IsEnabled="{Binding #InstanceTypeSelectionComboBox.SelectedItem, Converter={sd:ObjectToBool}}">
+                <InvokeCommandAction Command="{Binding [AddNewItem]}"
+                                     CommandParameter="{Binding #InstanceTypeSelectionComboBox.SelectedItem}"/>
+                <sd:ChangePropertyAction PropertyName="SelectedItem" Value="{x:Null}"/>
+              </EventTriggerBehavior>
+            </Interaction.Behaviors>
+          </ComboBox>
+        </StackPanel>
+        <TextBlock Margin="2">
+          <Run Text="{sd:LocalizeString List}"/> -
+          <Run Text="{Binding Children.Count, Mode=OneWay, Converter={sd:Localize Text={}{0} item, Plural={}{0} items, IsStringFormat=True}}"/>
+        </TextBlock>
+      </DockPanel>
+    </DataTemplate>
+  </caev:ListTemplateProvider>
+  <caev:ListTemplateProvider x:Key="ListPropertyFooterTemplateProvider" caev:PropertyViewHelper.TemplateCategory="PropertyFooter">
+    <DataTemplate DataType="cpqvm:NodeViewModel">
+      <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+            IsVisible="{sd:MultiBinding {Binding IsVisible}, {Binding VisibleChildrenCount, Converter={sd:NumericToBool}},
+                                        {Binding [HasCommand_AddNewItem]}, {Binding HasCollection},
+                                        Converter={sd:AndMulti}, FallbackValue={sd:False}}">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="8"/>
+          <ColumnDefinition Width="{Binding $parent[sd:PropertyView].NameColumnSize, Mode=TwoWay}"
+                            MinWidth="64"/>
+          <ColumnDefinition Width="5"/>
+          <ColumnDefinition Width="*" MinWidth="64"/>
+        </Grid.ColumnDefinitions>
+        <Border Grid.Column="1"
+                Margin="2" MinHeight="23">
+          <Grid>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="Auto" MinWidth="{Binding $parent[sd:PropertyViewItem].Offset, Mode=OneWay}"/>
+              <ColumnDefinition Width="16"/>
+              <ColumnDefinition Width="*"/>
+              <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <DockPanel Grid.Column="2"
+                       Margin="0,2,5,2" VerticalAlignment="Center">
+              <!-- Concrete type -->
+              <Button DockPanel.Dock="Right" Theme="{StaticResource AddNewItemButtonTheme}"/>
+              <!-- Abstract type -->
+              <ComboBox x:Name="InstanceTypeSelectionComboBox"
+                        DockPanel.Dock="Right"
+                        Theme="{StaticResource AddItemComboBoxTheme}" Margin="2,0"
+                        ItemsSource="{Binding [AbstractNodeMatchingEntries]}">
+                <Interaction.Behaviors>
+                  <EventTriggerBehavior EventName="DropDownClosed"
+                                        IsEnabled="{Binding #InstanceTypeSelectionComboBox.SelectedItem, Converter={sd:ObjectToBool}}">
+                    <InvokeCommandAction Command="{Binding [AddNewItem]}"
+                                         CommandParameter="{Binding #InstanceTypeSelectionComboBox.SelectedItem}"/>
+                    <sd:ChangePropertyAction PropertyName="SelectedItem" Value="{x:Null}"/>
+                  </EventTriggerBehavior>
+                </Interaction.Behaviors>
+              </ComboBox>
+              <TextBlock FontStyle="Italic" TextTrimming="CharacterEllipsis"
+                         Text="{Binding DisplayName, Converter={sd:Localize Text={}Add to {0}, IsStringFormat=True}}"/>
+            </DockPanel>
+          </Grid>
+        </Border>
+        <GridSplitter Grid.Column="2" ResizeBehavior="PreviousAndNext" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="Transparent"/>
+      </Grid>
+    </DataTemplate>
+  </caev:ListTemplateProvider>
+
+  <!-- Provider for Array item -->
+  <caev:ArrayItemTemplateProvider x:Key="ArrayItemPropertyTemplateProvider" OverrideRule="Most" caev:PropertyViewHelper.TemplateCategory="PropertyEditor">
+    <DataTemplate>
+      <DockPanel>
+        <ContentControl Content="{Binding}" ContentTemplate="{x:Static caev:PropertyViewHelper.EditorProviders}"/>
+      </DockPanel>
+    </DataTemplate>
+  </caev:ArrayItemTemplateProvider>
+
+  <!-- Providers for Array -->
+  <caev:ArrayTemplateProvider x:Key="ArrayPropertyTemplateProvider" caev:PropertyViewHelper.TemplateCategory="PropertyEditor">
+    <DataTemplate DataType="cpqvm:NodeViewModel">
+      <DockPanel>
+        <TextBlock Margin="2">
+          <Run Text="{sd:LocalizeString Array}"/> -
+          <Run Text="{Binding Children.Count, Mode=OneWay, Converter={sd:Localize Text={}{0} item, Plural={}{0} items, IsStringFormat=True}}"/>
+        </TextBlock>
+      </DockPanel>
+    </DataTemplate>
+  </caev:ArrayTemplateProvider>
+  <caev:ArrayTemplateProvider x:Key="ArrayPropertyFooterTemplateProvider" caev:PropertyViewHelper.TemplateCategory="PropertyFooter">
+    <DataTemplate DataType="cpqvm:NodeViewModel">
+      <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+            IsVisible="{sd:MultiBinding {Binding IsVisible}, {Binding VisibleChildrenCount, Converter={sd:NumericToBool}},
+                                        Converter={sd:AndMulti}}">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="8"/>
+          <ColumnDefinition Width="{Binding $parent[sd:PropertyView].NameColumnSize, Mode=TwoWay}"
+                            MinWidth="64"/>
+          <ColumnDefinition Width="5"/>
+          <ColumnDefinition Width="*" MinWidth="64"/>
+        </Grid.ColumnDefinitions>
+        <GridSplitter Grid.Column="2" ResizeBehavior="PreviousAndNext" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="Transparent"/>
+      </Grid>
+    </DataTemplate>
+  </caev:ArrayTemplateProvider>
+
+  <!-- Providers for Set -->
+  <caev:SetTemplateProvider x:Key="SetPropertyTemplateProvider" caev:PropertyViewHelper.TemplateCategory="PropertyEditor">
+    <DataTemplate DataType="cpqvm:NodeViewModel">
+      <DockPanel>
+        <StackPanel DockPanel.Dock="Right"
+                    Orientation="Horizontal" VerticalAlignment="Center">
+          <Button Theme="{StaticResource AddNewItemButtonTheme}"/>
+          <ComboBox x:Name="InstanceTypeSelectionComboBox"
+                    ItemsSource="{Binding [AbstractNodeMatchingEntries]}"
+                    Theme="{StaticResource AddItemComboBoxTheme}">
+            <Interaction.Behaviors>
+              <EventTriggerBehavior EventName="DropDownClosed"
+                                    IsEnabled="{Binding #InstanceTypeSelectionComboBox.SelectedItem, Converter={sd:ObjectToBool}}">
+                <InvokeCommandAction Command="{Binding [AddNewItem]}"
+                                     CommandParameter="{Binding #InstanceTypeSelectionComboBox.SelectedItem}"/>
+                <sd:ChangePropertyAction PropertyName="SelectedItem" Value="{x:Null}"/>
+              </EventTriggerBehavior>
+            </Interaction.Behaviors>
+          </ComboBox>
+        </StackPanel>
+        <TextBlock Margin="2">
+          <Run Text="{sd:LocalizeString Set}"/> -
+          <Run Text="{Binding Children.Count, Mode=OneWay, Converter={sd:Localize Text={}{0} item, Plural={}{0} items, IsStringFormat=True}}"/>
+        </TextBlock>
+      </DockPanel>
+    </DataTemplate>
+  </caev:SetTemplateProvider>
+  <caev:SetTemplateProvider x:Key="SetPropertyFooterTemplateProvider" caev:PropertyViewHelper.TemplateCategory="PropertyFooter">
+    <DataTemplate DataType="cpqvm:NodeViewModel">
+      <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+            IsVisible="{sd:MultiBinding {Binding IsVisible}, {Binding VisibleChildrenCount, Converter={sd:NumericToBool}},
+                                        {Binding [HasCommand_AddNewItem]}, {Binding HasSet},
+                                        Converter={sd:AndMulti}}">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="8"/>
+          <ColumnDefinition Width="{Binding $parent[sd:PropertyView].NameColumnSize, Mode=TwoWay}"
+                            MinWidth="64"/>
+          <ColumnDefinition Width="5"/>
+          <ColumnDefinition Width="*" MinWidth="64"/>
+        </Grid.ColumnDefinitions>
+        <Border Grid.Column="1"
+                Margin="2" MinHeight="23">
+          <Grid>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="Auto" MinWidth="{Binding $parent[sd:PropertyViewItem].Offset, Mode=OneWay}"/>
+              <ColumnDefinition Width="16"/>
+              <ColumnDefinition Width="*"/>
+              <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <DockPanel Grid.Column="2"
+                       Margin="0,2,5,2" VerticalAlignment="Center">
+              <!-- Concrete type -->
+              <Button DockPanel.Dock="Right" Theme="{StaticResource AddNewItemButtonTheme}"/>
+              <!-- Abstract type -->
+              <ComboBox x:Name="InstanceTypeSelectionComboBox"
+                        DockPanel.Dock="Right"
+                        Theme="{StaticResource AddItemComboBoxTheme}" Margin="2,0"
+                        ItemsSource="{Binding [AbstractNodeMatchingEntries]}">
+                <Interaction.Behaviors>
+                  <EventTriggerBehavior EventName="DropDownClosed"
+                                        IsEnabled="{Binding #InstanceTypeSelectionComboBox.SelectedItem, Converter={sd:ObjectToBool}}">
+                    <InvokeCommandAction Command="{Binding [AddNewItem]}"
+                                         CommandParameter="{Binding #InstanceTypeSelectionComboBox.SelectedItem}"/>
+                    <sd:ChangePropertyAction PropertyName="SelectedItem" Value="{x:Null}"/>
+                  </EventTriggerBehavior>
+                </Interaction.Behaviors>
+              </ComboBox>
+              <TextBlock FontStyle="Italic" TextTrimming="CharacterEllipsis"
+                         Text="{Binding DisplayName, Converter={sd:Localize Text={}Add to {0}, IsStringFormat=True}}"/>
+            </DockPanel>
+          </Grid>
+        </Border>
+        <GridSplitter Grid.Column="2" ResizeBehavior="PreviousAndNext" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="Transparent"/>
+      </Grid>
+    </DataTemplate>
+  </caev:SetTemplateProvider>
+
+  <!-- Providers for Dictionary -->
+  <caev:DictionaryTemplateProvider x:Key="DictionaryTemplateProvider" caev:PropertyViewHelper.TemplateCategory="PropertyEditor">
+    <DataTemplate DataType="cpqvm:NodeViewModel">
+      <DockPanel>
+        <Button DockPanel.Dock="Right"
+                Theme="{StaticResource ImageButtonTheme}"
+                IsVisible="{sd:MultiBinding {Binding [HasCommand_AddPrimitiveKey]}, {Binding [HasAssociatedData_ReadOnlyCollection], Converter={sd:InvertBool}},
+                                            Converter={sd:AndMulti}, FallbackValue={x:False}}"
+                Command="{Binding [AddPrimitiveKey]}"
+                ToolTip.Tip="{sd:LocalizeString  Add a new entry to the dictionary, Context=Tooltip}">
+          <Image Source="{StaticResource ImageAdd}" Width="16" Height="16"/>
+        </Button>
+        <TextBlock Margin="2">
+          <Run Text="{sd:LocalizeString Dictionary}"/> -
+          <Run Text="{Binding Children.Count, Mode=OneWay, Converter={sd:Localize Text={}{0} item, Plural={}{0} items, IsStringFormat=True}}"/>
+        </TextBlock>
+      </DockPanel>
+    </DataTemplate>
+  </caev:DictionaryTemplateProvider>
+  <caev:DictionaryNumberKeyTemplateProvider x:Key="DictionaryNumberKeyTemplateProvider" caev:PropertyViewHelper.TemplateCategory="PropertyEditor">
+    <caev:DictionaryNumberKeyTemplateProvider.OverriddenProviderNames>
+      <s:String>Dictionary</s:String>
+    </caev:DictionaryNumberKeyTemplateProvider.OverriddenProviderNames>
+    <DataTemplate DataType="cpqvm:NodeViewModel">
+      <DockPanel>
+        <ComboBox DockPanel.Dock="Right"
+                  Margin="2,0"
+                  IsVisible="{sd:MultiBinding {Binding [HasCommand_AddPrimitiveKey]}, {Binding [HasAssociatedData_ReadOnlyCollection], Converter={sd:InvertBool}},
+                                            Converter={sd:AndMulti}, FallbackValue={x:False}}">
+          <ComboBox.Template>
+            <ControlTemplate TargetType="ComboBox">
+              <Grid x:Name="Grid">
+                <ToggleButton x:Name="ToggleButton"
+                              Width="16" Height="16" Background="Transparent"
+                              Focusable="false" ClickMode="Press"
+                              ToolTip.Tip="{sd:LocalizeString Add a new entry to the dictionary, Context=ToolTip}"
+                              IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}">
+                  <Image Source="{StaticResource ImageAdd}" Width="16" Height="16"/>
+                </ToggleButton>
+                <Popup x:Name="PART_Popup"
+                       IsOpen="{TemplateBinding IsDropDownOpen}" Placement="Left"
+                       VerticalOffset="{Binding Bounds.Height, RelativeSource={RelativeSource TemplatedParent}}"
+                       HorizontalOffset="{Binding Bounds.Width, RelativeSource={RelativeSource TemplatedParent}}"
+                       PlacementTarget="{Binding #ToggleButton}">
+                  <DockPanel MaxHeight="{TemplateBinding MaxDropDownHeight}"
+                             Background="{DynamicResource ControlBackgroundBrush}" Margin="10">
+                    <TextBlock DockPanel.Dock="Left" Margin="8,0,0,0" VerticalAlignment="Center"
+                               Text="{sd:LocalizeString Key name:}"/>
+                    <!-- TODO validation commands -->
+                    <TextBox x:Name="TextBox1"
+                             Text="0"
+                             Margin="8" Width="160"/>
+                  </DockPanel>
+                </Popup>
+                <Interaction.Behaviors>
+                  <sd:DataTriggerBehavior Binding="{TemplateBinding IsEnabled}" Value="{sd:False}">
+                    <sd:ChangePropertyAction TargetObject="Grid" PropertyName="Opacity" Value="0.5"/>
+                  </sd:DataTriggerBehavior>
+                  <!-- This makes sure we can validate the textbox again even if the text is not changed -->
+                  <sd:DataTriggerBehavior Binding="{Binding #PART_Popup.IsOpen}" Value="{sd:False}">
+                    <sd:ChangePropertyAction TargetObject="TextBox1" PropertyName="Text" Value=""/>
+                  </sd:DataTriggerBehavior>
+                  <sd:DataTriggerBehavior Binding="{Binding #PART_Popup.IsOpen}" Value="{sd:True}">
+                    <sd:ChangePropertyAction TargetObject="TextBox1" PropertyName="Text" Value="0"/>
+                  </sd:DataTriggerBehavior>
+                </Interaction.Behaviors>
+              </Grid>
+            </ControlTemplate>
+          </ComboBox.Template>
+        </ComboBox>
+        <TextBlock Margin="2" DockPanel.Dock="Left">
+          <Run Text="{sd:LocalizeString Dictionary}"/> -
+          <Run Text="{Binding Children.Count, Mode=OneWay, Converter={sd:Localize Text={}{0} item, Plural={}{0} items, IsStringFormat=True}}"/>
+        </TextBlock>
+      </DockPanel>
+    </DataTemplate>
+  </caev:DictionaryNumberKeyTemplateProvider>
+  <caev:DictionaryStringKeyTemplateProvider x:Key="DictionaryStringKeyTemplateProvider" caev:PropertyViewHelper.TemplateCategory="PropertyEditor">
+    <caev:DictionaryStringKeyTemplateProvider.OverriddenProviderNames>
+      <s:String>Dictionary</s:String>
+    </caev:DictionaryStringKeyTemplateProvider.OverriddenProviderNames>
+    <DataTemplate DataType="cpqvm:NodeViewModel">
+      <DockPanel>
+        <ComboBox DockPanel.Dock="Right"
+                  Margin="2,0"
+                  IsVisible="{sd:MultiBinding {Binding [HasCommand_AddPrimitiveKey]}, {Binding [HasAssociatedData_ReadOnlyCollection], Converter={sd:InvertBool}},
+                                            Converter={sd:AndMulti}, FallbackValue={x:False}}">
+          <ComboBox.Template>
+            <ControlTemplate TargetType="ComboBox">
+              <Grid x:Name="Grid">
+                <ToggleButton x:Name="ToggleButton"
+                              Width="16" Height="16" Background="Transparent"
+                              Focusable="false" ClickMode="Press"
+                              ToolTip.Tip="{sd:LocalizeString Add a new entry to the dictionary, Context=ToolTip}"
+                              IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}">
+                  <Image Source="{StaticResource ImageAdd}" Width="16" Height="16"/>
+                </ToggleButton>
+                <Popup x:Name="PART_Popup"
+                       IsOpen="{TemplateBinding IsDropDownOpen}" Placement="Left"
+                       VerticalOffset="{Binding Bounds.Height, RelativeSource={RelativeSource TemplatedParent}}"
+                       HorizontalOffset="{Binding Bounds.Width, RelativeSource={RelativeSource TemplatedParent}}"
+                       PlacementTarget="{Binding #ToggleButton}">
+                  <DockPanel MaxHeight="{TemplateBinding MaxDropDownHeight}"
+                             Background="{DynamicResource ControlBackgroundBrush}" Margin="10">
+                    <TextBlock DockPanel.Dock="Left" Margin="8,0,0,0" VerticalAlignment="Center"
+                               Text="{sd:LocalizeString Key name:}"/>
+                    <!-- TODO validation commands -->
+                    <TextBox x:Name="TextBox2"
+                             Text="{sd:LocalizeString New key}"
+                             Margin="8" Width="160"/>
+                  </DockPanel>
+                </Popup>
+                <Interaction.Behaviors>
+                  <sd:DataTriggerBehavior Binding="{TemplateBinding IsEnabled}" Value="{sd:False}">
+                    <sd:ChangePropertyAction TargetObject="Grid" PropertyName="Opacity" Value="{sd:Double 0.5}"/>
+                  </sd:DataTriggerBehavior>
+                  <!-- This makes sure we can validate the textbox again even if the text is not changed -->
+                  <sd:DataTriggerBehavior Binding="{Binding #PART_Popup.IsOpen}" Value="{sd:False}">
+                    <sd:ChangePropertyAction TargetObject="TextBox2" PropertyName="Text" Value=""/>
+                  </sd:DataTriggerBehavior>
+                  <sd:DataTriggerBehavior Binding="{Binding #PART_Popup.IsOpen}" Value="{sd:True}">
+                    <sd:ChangePropertyAction TargetObject="TextBox2" PropertyName="Text" Value="0"/>
+                  </sd:DataTriggerBehavior>
+                </Interaction.Behaviors>
+              </Grid>
+            </ControlTemplate>
+          </ComboBox.Template>
+        </ComboBox>
+        <TextBlock Margin="2" DockPanel.Dock="Left">
+          <Run Text="{sd:LocalizeString Dictionary}"/> -
+          <Run Text="{Binding Children.Count, Mode=OneWay, Converter={sd:Localize Text={}{0} item, Plural={}{0} items, IsStringFormat=True}}"/>
+        </TextBlock>
+      </DockPanel>
+    </DataTemplate>
+  </caev:DictionaryStringKeyTemplateProvider>
+  <caev:DictionaryEnumKeyTemplateProvider x:Key="DictionaryEnumKeyTemplateProvider" caev:PropertyViewHelper.TemplateCategory="PropertyEditor">
+    <caev:DictionaryEnumKeyTemplateProvider.OverriddenProviderNames>
+      <s:String>Dictionary</s:String>
+    </caev:DictionaryEnumKeyTemplateProvider.OverriddenProviderNames>
+    <DataTemplate DataType="cpqvm:NodeViewModel">
+      <DockPanel>
+        <ComboBox DockPanel.Dock="Right"
+                  Margin="2,0"
+                  IsVisible="{sd:MultiBinding {Binding [HasCommand_AddPrimitiveKey]}, {Binding [HasAssociatedData_ReadOnlyCollection], Converter={sd:InvertBool}},
+                                            Converter={sd:AndMulti}, FallbackValue={x:False}}">
+          <ComboBox.Template>
+            <ControlTemplate TargetType="ComboBox">
+              <Grid x:Name="Grid">
+                <ToggleButton x:Name="ToggleButton1"
+                              Width="16" Height="16" Background="Transparent"
+                              Focusable="false" ClickMode="Press"
+                              ToolTip.Tip="{sd:LocalizeString Add a new entry to the dictionary, Context=ToolTip}"
+                              IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}">
+                  <Image Source="{StaticResource ImageAdd}" Width="16" Height="16"/>
+                </ToggleButton>
+                <Popup x:Name="PART_Popup"
+                       IsOpen="{TemplateBinding IsDropDownOpen}" Placement="Left"
+                       VerticalOffset="{Binding Bounds.Height, RelativeSource={RelativeSource TemplatedParent}}"
+                       HorizontalOffset="{Binding Bounds.Width, RelativeSource={RelativeSource TemplatedParent}}"
+                       PlacementTarget="{Binding #ToggleButton1}">
+                  <DockPanel MaxHeight="{TemplateBinding MaxDropDownHeight}"
+                             Background="{DynamicResource ControlBackgroundBrush}" Margin="10">
+                    <TextBlock DockPanel.Dock="Left" Margin="8,0,0,0" VerticalAlignment="Center"
+                               Text="{sd:LocalizeString Key name:}"/>
+                    <ComboBox Name="EnumKeySelectionComboBox"
+                              Theme="{StaticResource EnumComboBoxTheme}"
+                              ItemsSource="{Binding [DictionaryNodeKeyType], Converter={sd:EnumValues}, Mode=OneWay}"
+                              SelectedItem="" MinWidth="60">
+                      <Interaction.Behaviors>
+                        <EventTriggerBehavior EventName="DropDownClosed">
+                          <InvokeCommandAction Command="{Binding [AddPrimitiveKey]}"
+                                               CommandParameter="{Binding #EnumKeySelectionComboBox.SelectedItem}"/>
+                          <sd:ChangePropertyAction TargetObject="ToggleButton1" PropertyName="IsChecked" Value="{x:False}"/>
+                        </EventTriggerBehavior>
+                      </Interaction.Behaviors>
+                    </ComboBox>
+                  </DockPanel>
+                </Popup>
+                <Interaction.Behaviors>
+                  <sd:DataTriggerBehavior Binding="{TemplateBinding IsEnabled}" Value="{sd:False}">
+                    <sd:ChangePropertyAction TargetObject="Grid" PropertyName="Opacity" Value="{sd:Double 0.5}"/>
+                  </sd:DataTriggerBehavior>
+                </Interaction.Behaviors>
+              </Grid>
+            </ControlTemplate>
+          </ComboBox.Template>
+        </ComboBox>
+        <TextBlock Margin="2" DockPanel.Dock="Left">
+          <Run Text="{sd:LocalizeString Dictionary}"/> -
+          <Run Text="{Binding Children.Count, Mode=OneWay, Converter={sd:Localize Text={}{0} item, Plural={}{0} items, IsStringFormat=True}}"/>
+        </TextBlock>
+      </DockPanel>
+    </DataTemplate>
+  </caev:DictionaryEnumKeyTemplateProvider>
+
+  <!-- Provider for bool -->
+  <caev:TypeMatchTemplateProvider x:Key="BoolPropertyTemplateProvider" Type="{x:Type s:Boolean}" caev:PropertyViewHelper.TemplateCategory="PropertyEditor">
+    <DataTemplate DataType="cpqvm:NodeViewModel">
+      <CheckBox IsThreeState="{Binding NodeValue, Converter={sd:IsEqualToParam}, ConverterParameter={x:Static cpqvm:NodeViewModel.DifferentValues}}"
+                IsChecked="{Binding NodeValue, Converter={caec:DifferentValuesToParam}, ConverterParameter={x:Null}}"/>
+    </DataTemplate>
+  </caev:TypeMatchTemplateProvider>
+
+  <!-- Provider for char -->
+  <caev:TypeMatchTemplateProvider x:Key="CharPropertyTemplateProvider" Type="{x:Type s:Char}" caev:PropertyViewHelper.TemplateCategory="PropertyEditor">
+    <DataTemplate DataType="cpqvm:NodeViewModel">
+      <Grid ColumnDefinitions="Auto, 3*">
+        <TextBox Grid.Column="0" Margin="2" Width="40" TextAlignment="Center"
+                 Text="{Binding NodeValue, Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:CharToString}}}"
+                 ToolTip.Tip="{sd:LocalizeString Character, Context=ToolTip}"/>
+        <NumericUpDown x:Name="NumericUpDown"
+                       Grid.Column="1" Margin="2"
+                       Value="{Binding NodeValue, Converter={sd:CharToUnicode}}"
+                       ToolTip.Tip="{sd:LocalizeString Unicode value, Context=ToolTip}"
+                       ShowButtonSpinner="False">
+          <Interaction.Behaviors>
+            <sd:DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
+              <sd:ChangePropertyAction PropertyName="Watermark" Value="{sd:LocalizeString (Different values)}"/>
+            </sd:DataTriggerBehavior>
+          </Interaction.Behaviors>
+        </NumericUpDown>
+      </Grid>
+    </DataTemplate>
+  </caev:TypeMatchTemplateProvider>
+
+  <!-- Providers for floating-point number -->
+  <DataTemplate x:Key="FloatEditorTemplate" DataType="cpqvm:NodeViewModel">
+    <NumericUpDown x:Name="NumericUpDown"
+                   Value="{Binding NodeValue, Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDecimal}}}"
+                   Minimum="{Binding [Minimum], Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDecimal}}, FallbackValue={x:Static s:Decimal.MinValue}}"
+                   Maximum="{Binding [Maximum], Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDecimal}}, FallbackValue={x:Static s:Decimal.MaxValue}}"
+                   ShowButtonSpinner="False">
+      <Interaction.Behaviors>
+        <sd:DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
+          <sd:ChangePropertyAction PropertyName="Watermark" Value="{sd:LocalizeString (Different values)}"/>
+        </sd:DataTriggerBehavior>
+      </Interaction.Behaviors>
+    </NumericUpDown>
+  </DataTemplate>
+  <caev:TypeMatchTemplateProvider x:Key="FloatPropertyTemplateProvider" Type="{x:Type s:Single}" caev:PropertyViewHelper.TemplateCategory="PropertyEditor"
+                                  Template="{StaticResource FloatEditorTemplate}"/>
+  <caev:TypeMatchTemplateProvider x:Key="DoublePropertyTemplateProvider" Type="{x:Type s:Double}" caev:PropertyViewHelper.TemplateCategory="PropertyEditor"
+                                  Template="{StaticResource FloatEditorTemplate}"/>
+
+  <!-- Providers for fixed-point number -->
+  <DataTemplate x:Key="IntEditorTemplate" DataType="cpqvm:NodeViewModel">
+    <NumericUpDown x:Name="NumericUpDown"
+                   Value="{Binding NodeValue, Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDecimal}}}"
+                   Minimum="{Binding [Minimum], Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDecimal}}, FallbackValue={x:Static s:Decimal.MinValue}}"
+                   Maximum="{Binding [Maximum], Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDecimal}}, FallbackValue={x:Static s:Decimal.MaxValue}}"
+                   ShowButtonSpinner="False">
+      <Interaction.Behaviors>
+        <sd:DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
+          <sd:ChangePropertyAction PropertyName="Watermark" Value="{sd:LocalizeString (Different values)}"/>
+        </sd:DataTriggerBehavior>
+      </Interaction.Behaviors>
+    </NumericUpDown>
+  </DataTemplate>
+  <caev:TypeMatchTemplateProvider x:Key="Int8PropertyTemplateProvider" Type="{x:Type s:SByte}" caev:PropertyViewHelper.TemplateCategory="PropertyEditor"
+                                  Template="{StaticResource IntEditorTemplate}"/>
+  <caev:TypeMatchTemplateProvider x:Key="UInt8PropertyTemplateProvider" Type="{x:Type s:Byte}" caev:PropertyViewHelper.TemplateCategory="PropertyEditor"
+                                  Template="{StaticResource IntEditorTemplate}"/>
+  <caev:TypeMatchTemplateProvider x:Key="Int16PropertyTemplateProvider" Type="{x:Type s:Int16}" caev:PropertyViewHelper.TemplateCategory="PropertyEditor"
+                                  Template="{StaticResource IntEditorTemplate}"/>
+  <caev:TypeMatchTemplateProvider x:Key="UInt16PropertyTemplateProvider" Type="{x:Type s:UInt16}" caev:PropertyViewHelper.TemplateCategory="PropertyEditor"
+                                  Template="{StaticResource IntEditorTemplate}"/>
+  <caev:TypeMatchTemplateProvider x:Key="Int32PropertyTemplateProvider" Type="{x:Type s:Int32}" caev:PropertyViewHelper.TemplateCategory="PropertyEditor"
+                                  Template="{StaticResource IntEditorTemplate}"/>
+  <caev:TypeMatchTemplateProvider x:Key="UInt32PropertyTemplateProvider" Type="{x:Type s:UInt32}" caev:PropertyViewHelper.TemplateCategory="PropertyEditor"
+                                  Template="{StaticResource IntEditorTemplate}"/>
+  <caev:TypeMatchTemplateProvider x:Key="Int64PropertyTemplateProvider" Type="{x:Type s:Int64}" caev:PropertyViewHelper.TemplateCategory="PropertyEditor"
+                                  Template="{StaticResource IntEditorTemplate}"/>
+  <caev:TypeMatchTemplateProvider x:Key="UInt64PropertyTemplateProvider" Type="{x:Type s:UInt64}" caev:PropertyViewHelper.TemplateCategory="PropertyEditor"
+                                  Template="{StaticResource IntEditorTemplate}"/>
+
+  <!-- Provider for number with a range -->
+  <caev:RangedValueTemplateProvider x:Key="RangedValueTemplateProvider" OverrideRule="Most" caev:PropertyViewHelper.TemplateCategory="PropertyEditor">
+    <DataTemplate DataType="cpqvm:NodeViewModel">
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="3*"/>
+          <ColumnDefinition Width="*" MinWidth="60"/>
+        </Grid.ColumnDefinitions>
+        <Slider Grid.Column="0"
+                Height="22" VerticalAlignment="Center"
+                IsEnabled="{sd:MultiBinding {Binding [Minimum]}, {Binding [Maximum]},
+                                            Converter={sd:MultiChained {sd:AllEqualMulti}, {sd:InvertBool}}}"
+                Value="{Binding NodeValue, Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDouble}}}"
+                Minimum="{Binding [Minimum], Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDouble}}, FallbackValue={x:Static s:Double.MinValue}}"
+                Maximum="{Binding [Maximum], Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDouble}}, FallbackValue={x:Static s:Double.MaxValue}}"
+                SmallChange="{Binding [SmallStep], Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDouble}}}"
+                LargeChange="{Binding [LargeStep], Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDouble}}}"/>
+        <NumericUpDown Grid.Column="1"
+                       Margin="6,2,2,2"
+                       Value="{Binding NodeValue, Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDecimal}}}"
+                       Minimum="{Binding [Minimum], Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDecimal}}, FallbackValue={x:Static s:Decimal.MinValue}}"
+                       Maximum="{Binding [Maximum], Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDecimal}}, FallbackValue={x:Static s:Decimal.MaxValue}}"
+                       ShowButtonSpinner="False">
+          <Interaction.Behaviors>
+            <sd:DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
+              <sd:ChangePropertyAction PropertyName="Watermark" Value="{sd:LocalizeString (Different values)}"/>
+            </sd:DataTriggerBehavior>
+          </Interaction.Behaviors>
+        </NumericUpDown>
+      </Grid>
+    </DataTemplate>
+  </caev:RangedValueTemplateProvider>
+
+  <!-- Provider for string -->
+  <caev:TypeMatchTemplateProvider x:Key="StringPropertyTemplateProvider" Type="{x:Type s:String}" caev:PropertyViewHelper.TemplateCategory="PropertyEditor">
+    <DataTemplate DataType="cpqvm:NodeViewModel">
+      <TextBox Text="{Binding NodeValue, Converter={caec:DifferentValuesToString}}">
+        <Interaction.Behaviors>
+          <sd:DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
+            <sd:ChangePropertyAction PropertyName="Watermark" Value="{sd:LocalizeString (Different values)}"/>
+          </sd:DataTriggerBehavior>
+        </Interaction.Behaviors>
+      </TextBox>
+    </DataTemplate>
+  </caev:TypeMatchTemplateProvider>
+
+  <!-- Provider for DateTime -->
+  <caev:TypeMatchTemplateProvider x:Key="DateTimePropertyTemplateProvider" Type="{x:Type s:DateTime}" caev:PropertyViewHelper.TemplateCategory="PropertyEditor">
+    <DataTemplate DataType="cpqvm:NodeViewModel">
+      <sd:DateTimeEditor x:Name="DateTimeEditor"
+                         Value="{Binding NodeValue, Converter={caec:DifferentValuesToNull}}">
+        <Interaction.Behaviors>
+          <sd:DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
+            <sd:ChangePropertyAction PropertyName="Watermark" Value="{sd:LocalizeString (Different values)}"/>
+          </sd:DataTriggerBehavior>
+        </Interaction.Behaviors>
+      </sd:DateTimeEditor>
+    </DataTemplate>
+  </caev:TypeMatchTemplateProvider>
+
+  <!-- Provider for TimeSpan -->
+  <caev:TypeMatchTemplateProvider x:Key="TimeSpanPropertyTemplateProvider" Type="{x:Type s:TimeSpan}" caev:PropertyViewHelper.TemplateCategory="PropertyEditor">
+    <DataTemplate DataType="cpqvm:NodeViewModel">
+      <sd:TimeSpanEditor x:Name="TimeSpanEditor"
+                         Value="{Binding NodeValue, Converter={caec:DifferentValuesToNull}}">
+        <Interaction.Behaviors>
+          <sd:DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
+            <sd:ChangePropertyAction PropertyName="Watermark" Value="×"/>
+          </sd:DataTriggerBehavior>
+        </Interaction.Behaviors>
+      </sd:TimeSpanEditor>
+    </DataTemplate>
+  </caev:TypeMatchTemplateProvider>
+
+  <!-- Provider for Color -->
+  <caev:TypeMatchTemplateProvider x:Key="ColorPropertyTemplateProvider" Type="{x:Type math:Color}" caev:PropertyViewHelper.TemplateCategory="PropertyEditor">
+    <DataTemplate DataType="cpqvm:NodeViewModel">
+      <sd:ColorEditor Value="{Binding NodeValue, Converter={caec:DifferentValuesToNull}}"
+                      Palette="{x:Static caev:ColorPalettes.Metals}">
+        <Interaction.Behaviors>
+          <sd:DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
+            <sd:ChangePropertyAction PropertyName="Watermark" Value="{sd:LocalizeString (Different values)}"/>
+          </sd:DataTriggerBehavior>
+        </Interaction.Behaviors>
+      </sd:ColorEditor>
+    </DataTemplate>
+  </caev:TypeMatchTemplateProvider>
+
+  <!-- Provider for Color3 -->
+  <caev:TypeMatchTemplateProvider x:Key="Color3PropertyTemplateProvider" Type="{x:Type math:Color3}" caev:PropertyViewHelper.TemplateCategory="PropertyEditor">
+    <DataTemplate DataType="cpqvm:NodeViewModel">
+      <sd:Color3Editor Value="{Binding NodeValue, Converter={caec:DifferentValuesToNull}}"
+                       Palette="{x:Static caev:ColorPalettes.Metals}">
+        <Interaction.Behaviors>
+          <sd:DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
+            <sd:ChangePropertyAction PropertyName="Watermark" Value="{sd:LocalizeString (Different values)}"/>
+          </sd:DataTriggerBehavior>
+        </Interaction.Behaviors>
+      </sd:Color3Editor>
+    </DataTemplate>
+  </caev:TypeMatchTemplateProvider>
+
+  <!-- Provider for Color4 -->
+  <caev:TypeMatchTemplateProvider x:Key="Color4PropertyTemplateProvider" Type="{x:Type math:Color4}" caev:PropertyViewHelper.TemplateCategory="PropertyEditor">
+    <DataTemplate DataType="cpqvm:NodeViewModel">
+      <sd:Color4Editor Value="{Binding NodeValue, Converter={caec:DifferentValuesToNull}}"
+                       Palette="{x:Static caev:ColorPalettes.Metals}">
+        <Interaction.Behaviors>
+          <sd:DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
+            <sd:ChangePropertyAction PropertyName="Watermark" Value="{sd:LocalizeString (Different values)}"/>
+          </sd:DataTriggerBehavior>
+        </Interaction.Behaviors>
+      </sd:Color4Editor>
+    </DataTemplate>
+  </caev:TypeMatchTemplateProvider>
+
+  <!-- Provider for Vector2 -->
+  <caev:TypeMatchTemplateProvider x:Key="Vector2PropertyTemplateProvider" Type="{x:Type math:Vector2}" caev:PropertyViewHelper.TemplateCategory="PropertyEditor">
+    <DataTemplate DataType="cpqvm:NodeViewModel">
+      <sd:Vector2Editor x:Name="VectorEditor"
+                        Value="{Binding NodeValue, Converter={caec:DifferentValuesToNull}, UpdateSourceTrigger=Explicit}"
+                        DecimalPlaces="3">
+        <Interaction.Behaviors>
+          <sd:DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
+            <sd:ChangePropertyAction PropertyName="Watermark" Value="≠"/>
+          </sd:DataTriggerBehavior>
+        </Interaction.Behaviors>
+      </sd:Vector2Editor>
+    </DataTemplate>
+  </caev:TypeMatchTemplateProvider>
+
+  <!-- Provider for Vector3 -->
+  <caev:TypeMatchTemplateProvider x:Key="Vector3PropertyTemplateProvider" Type="{x:Type math:Vector3}" caev:PropertyViewHelper.TemplateCategory="PropertyEditor">
+    <DataTemplate DataType="cpqvm:NodeViewModel">
+      <sd:Vector3Editor x:Name="VectorEditor"
+                        Value="{Binding NodeValue, Converter={caec:DifferentValuesToNull}, UpdateSourceTrigger=Explicit}"
+                        DecimalPlaces="3">
+        <Interaction.Behaviors>
+          <sd:DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
+            <sd:ChangePropertyAction PropertyName="Watermark" Value="≠"/>
+          </sd:DataTriggerBehavior>
+        </Interaction.Behaviors>
+      </sd:Vector3Editor>
+    </DataTemplate>
+  </caev:TypeMatchTemplateProvider>
+
+  <!-- Provider for Vector4 -->
+  <caev:TypeMatchTemplateProvider x:Key="Vector4PropertyTemplateProvider" Type="{x:Type math:Vector4}" caev:PropertyViewHelper.TemplateCategory="PropertyEditor">
+    <DataTemplate DataType="cpqvm:NodeViewModel">
+      <sd:Vector4Editor x:Name="VectorEditor"
+                        Value="{Binding NodeValue, Converter={caec:DifferentValuesToNull}, UpdateSourceTrigger=Explicit}"
+                        DecimalPlaces="3">
+        <Interaction.Behaviors>
+          <sd:DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
+            <sd:ChangePropertyAction PropertyName="Watermark" Value="≠"/>
+          </sd:DataTriggerBehavior>
+        </Interaction.Behaviors>
+      </sd:Vector4Editor>
+    </DataTemplate>
+  </caev:TypeMatchTemplateProvider>
+
+  <!-- Provider for Int2 -->
+  <caev:TypeMatchTemplateProvider x:Key="Int2PropertyTemplateProvider" Type="{x:Type math:Int2}" caev:PropertyViewHelper.TemplateCategory="PropertyEditor">
+    <DataTemplate DataType="cpqvm:NodeViewModel">
+      <sd:Int2Editor x:Name="IntEditor"
+                     Value="{Binding NodeValue, Converter={caec:DifferentValuesToNull}, UpdateSourceTrigger=Explicit}">
+        <Interaction.Behaviors>
+          <sd:DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
+            <sd:ChangePropertyAction PropertyName="Watermark" Value="≠"/>
+          </sd:DataTriggerBehavior>
+        </Interaction.Behaviors>
+      </sd:Int2Editor>
+    </DataTemplate>
+  </caev:TypeMatchTemplateProvider>
+
+  <!-- Provider for Int3 -->
+  <caev:TypeMatchTemplateProvider x:Key="Int3PropertyTemplateProvider" Type="{x:Type math:Int3}" caev:PropertyViewHelper.TemplateCategory="PropertyEditor">
+    <DataTemplate DataType="cpqvm:NodeViewModel">
+      <sd:Int3Editor x:Name="IntEditor"
+                     Value="{Binding NodeValue, Converter={caec:DifferentValuesToNull}, UpdateSourceTrigger=Explicit}">
+        <Interaction.Behaviors>
+          <sd:DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
+            <sd:ChangePropertyAction PropertyName="Watermark" Value="≠"/>
+          </sd:DataTriggerBehavior>
+        </Interaction.Behaviors>
+      </sd:Int3Editor>
+    </DataTemplate>
+  </caev:TypeMatchTemplateProvider>
+
+  <!-- Provider for Int4 -->
+  <caev:TypeMatchTemplateProvider x:Key="Int4PropertyTemplateProvider" Type="{x:Type math:Int4}" caev:PropertyViewHelper.TemplateCategory="PropertyEditor">
+    <DataTemplate DataType="cpqvm:NodeViewModel">
+      <sd:Int4Editor x:Name="IntEditor"
+                     Value="{Binding NodeValue, Converter={caec:DifferentValuesToNull}, UpdateSourceTrigger=Explicit}">
+        <Interaction.Behaviors>
+          <sd:DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
+            <sd:ChangePropertyAction PropertyName="Watermark" Value="≠"/>
+          </sd:DataTriggerBehavior>
+        </Interaction.Behaviors>
+      </sd:Int4Editor>
+    </DataTemplate>
+  </caev:TypeMatchTemplateProvider>
+
+  <!-- Provider for Rectangle -->
+  <caev:TypeMatchTemplateProvider x:Key="RectanglePropertyTemplateProvider" Type="{x:Type math:Rectangle}" caev:PropertyViewHelper.TemplateCategory="PropertyEditor">
+    <DataTemplate DataType="cpqvm:NodeViewModel">
+      <sd:RectangleEditor x:Name="RectangleEditor"
+                          Value="{Binding NodeValue, Converter={caec:DifferentValuesToNull}, UpdateSourceTrigger=Explicit}">
+        <Interaction.Behaviors>
+          <sd:DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
+            <sd:ChangePropertyAction PropertyName="Watermark" Value="≠"/>
+          </sd:DataTriggerBehavior>
+        </Interaction.Behaviors>
+      </sd:RectangleEditor>
+    </DataTemplate>
+  </caev:TypeMatchTemplateProvider>
+
+  <!-- Provider for RectangleF -->
+  <caev:TypeMatchTemplateProvider x:Key="RectangleFPropertyTemplateProvider" Type="{x:Type math:RectangleF}" caev:PropertyViewHelper.TemplateCategory="PropertyEditor">
+    <DataTemplate DataType="cpqvm:NodeViewModel">
+      <sd:RectangleFEditor x:Name="RectangleEditor"
+                           Value="{Binding NodeValue, Converter={caec:DifferentValuesToNull}, UpdateSourceTrigger=Explicit}">
+        <Interaction.Behaviors>
+          <sd:DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
+            <sd:ChangePropertyAction PropertyName="Watermark" Value="≠"/>
+          </sd:DataTriggerBehavior>
+        </Interaction.Behaviors>
+      </sd:RectangleFEditor>
+    </DataTemplate>
+  </caev:TypeMatchTemplateProvider>
+
+  <!-- Provider for Quaternion -->
+  <caev:TypeMatchTemplateProvider x:Key="QuaternionPropertyTemplateProvider" Type="{x:Type math:Quaternion}" caev:PropertyViewHelper.TemplateCategory="PropertyEditor">
+    <DataTemplate DataType="cpqvm:NodeViewModel">
+      <sd:QuaternionEditor x:Name="QuaternionEditor"
+                           Value="{Binding NodeValue, Converter={caec:DifferentValuesToNull}, UpdateSourceTrigger=Explicit}"
+                           DecimalPlaces="3">
+        <Interaction.Behaviors>
+          <sd:DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
+            <sd:ChangePropertyAction PropertyName="Watermark" Value="≠"/>
+          </sd:DataTriggerBehavior>
+        </Interaction.Behaviors>
+      </sd:QuaternionEditor>
+    </DataTemplate>
+  </caev:TypeMatchTemplateProvider>
+
+  <!-- Provider for Matrix -->
+  <caev:TypeMatchTemplateProvider x:Key="MatrixPropertyTemplateProvider" Type="{x:Type math:Matrix}" caev:PropertyViewHelper.TemplateCategory="PropertyEditor">
+    <DataTemplate DataType="cpqvm:NodeViewModel">
+      <sd:MatrixEditor x:Name="MatrixEditor"
+                       Value="{Binding NodeValue, Converter={caec:DifferentValuesToNull}, UpdateSourceTrigger=Explicit}"
+                       DecimalPlaces="3">
+        <Interaction.Behaviors>
+          <sd:DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
+            <sd:ChangePropertyAction PropertyName="Watermark" Value="≠"/>
+          </sd:DataTriggerBehavior>
+        </Interaction.Behaviors>
+      </sd:MatrixEditor>
+    </DataTemplate>
+  </caev:TypeMatchTemplateProvider>
+
+  <!-- Provider for AngleSingle -->
+  <caev:TypeMatchTemplateProvider x:Key="AnglePropertyTemplateProvider" Type="{x:Type math:AngleSingle}" caev:PropertyViewHelper.TemplateCategory="PropertyEditor">
+    <DataTemplate DataType="cpqvm:NodeViewModel">
+      <NumericUpDown Value="{Binding NodeValue, Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:AngleSingleToDegrees}}}"
+                     ShowButtonSpinner="False"
+                     ToolTip.Tip="{sd:LocalizeString Angle in degrees, Context=Tooltip}">
+        <Interaction.Behaviors>
+          <sd:DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
+            <sd:ChangePropertyAction PropertyName="Watermark" Value="{sd:LocalizeString (Different values)}"/>
+          </sd:DataTriggerBehavior>
+        </Interaction.Behaviors>
+      </NumericUpDown>
+    </DataTemplate>
+  </caev:TypeMatchTemplateProvider>
+
+  <!-- Provider for UDirectory -->
+  <caev:TypeMatchTemplateProvider x:Key="UDirectoryPropertyTemplateProvider" Type="{x:Type io:UDirectory}" caev:PropertyViewHelper.TemplateCategory="PropertyEditor">
+    <DataTemplate DataType="cpqvm:NodeViewModel">
+      <DockPanel>
+        <Button DockPanel.Dock="Right"
+                Content="..."
+                IsVisible="{Binding [HasCommand_BrowseDirectory], FallbackValue={x:False}}"
+                Command="{Binding [BrowseDirectory]}"
+                ToolTip.Tip="{sd:LocalizeString Browse directory, Context=Tooltip}"/>
+        <TextBox Margin="2"
+                 Text="{Binding NodeValue, Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:UDirectoryToString}}}">
+          <Interaction.Behaviors>
+            <sd:DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
+              <sd:ChangePropertyAction PropertyName="Watermark" Value="{sd:LocalizeString (Different values)}"/>
+            </sd:DataTriggerBehavior>
+          </Interaction.Behaviors>
+        </TextBox>
+      </DockPanel>
+    </DataTemplate>
+  </caev:TypeMatchTemplateProvider>
+
+  <!-- Provider for UFile -->
+  <caev:TypeMatchTemplateProvider x:Key="UFilePropertyTemplateProvider" Type="{x:Type io:UFile}" caev:PropertyViewHelper.TemplateCategory="PropertyEditor">
+    <DataTemplate DataType="cpqvm:NodeViewModel">
+      <DockPanel>
+        <Button DockPanel.Dock="Right"
+                Content="..."
+                IsVisible="{Binding [HasCommand_BrowseFile], FallbackValue={x:False}}"
+                Command="{Binding [BrowseFile]}"
+                ToolTip.Tip="{sd:LocalizeString Browse file, Context=Tooltip}"/>
+        <TextBox Margin="2"
+                 Text="{Binding NodeValue, Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:UFileToString}}}">
+          <Interaction.Behaviors>
+            <sd:DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
+              <sd:ChangePropertyAction PropertyName="Watermark" Value="{sd:LocalizeString (Different values)}"/>
+            </sd:DataTriggerBehavior>
+          </Interaction.Behaviors>
+        </TextBox>
+      </DockPanel>
+    </DataTemplate>
+  </caev:TypeMatchTemplateProvider>
+
+  <!-- Provider for enums -->
+  <caev:EnumTemplateProvider x:Key="EnumTemplateProvider" caev:PropertyViewHelper.TemplateCategory="PropertyEditor">
+    <DataTemplate DataType="cpqvm:NodeViewModel">
+      <Grid>
+        <ComboBox Theme="{StaticResource EnumComboBoxTheme}"/>
+        <TextBlock x:Name="TextBlock"
+                   HorizontalAlignment="Left" VerticalAlignment="Center" Margin="9,0,30,0" IsHitTestVisible="False">
+          <Interaction.Behaviors>
+            <sd:DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
+              <sd:ChangePropertyAction TargetObject="TextBlock" PropertyName="Text" Value="{sd:LocalizeString (Different values)}"/>
+            </sd:DataTriggerBehavior>
+          </Interaction.Behaviors>
+        </TextBlock>
+      </Grid>
+    </DataTemplate>
+  </caev:EnumTemplateProvider>
+  <caev:EnumTemplateProvider x:Key="FlagEnumTemplateProvider" caev:PropertyViewHelper.TemplateCategory="PropertyEditor"
+                             FlagEnum="True">
+    <caev:EnumTemplateProvider.OverriddenProviderNames>
+      <s:String>Enum</s:String>
+    </caev:EnumTemplateProvider.OverriddenProviderNames>
+    <DataTemplate DataType="cpqvm:NodeViewModel">
+      <Grid>
+        <ToggleButton x:Name="ToggleButton2"
+                      VerticalAlignment="Center" Margin="2"
+                      Content="{sd:LocalizeString Change values..., Context=Button}">
+          <Interaction.Behaviors>
+            <sd:DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
+              <sd:ChangePropertyAction TargetObject="ToggleButton2" PropertyName="Content" Value="{sd:LocalizeString (Different values)}"/>
+            </sd:DataTriggerBehavior>
+          </Interaction.Behaviors>
+        </ToggleButton>
+        <Popup Grid.Column="0"
+               IsLightDismissEnabled="True"
+               IsOpen="{Binding Path=#ToggleButton2.IsChecked}">
+          <Grid MinWidth="200" MaxWidth="400" MaxHeight="200">
+            <DockPanel>
+              <UniformGrid DockPanel.Dock="Bottom"
+                           Columns="3">
+                <Button Content="{sd:LocalizeString All, Context=Button}"
+                        Command="{Binding [FlagEnumSelectAll]}"
+                        ToolTip.Tip="{sd:LocalizeString Select all values, Context=ToolTip}"/>
+                <Button Content="{sd:LocalizeString None, Context=Button}"
+                        Command="{Binding [FlagEnumSelectNone]}"
+                        ToolTip.Tip="{sd:LocalizeString Clear selection, Context=ToolTip}"/>
+                <Button Content="{sd:LocalizeString Invert, Context=Button}"
+                        Command="{Binding [FlagEnumSelectInvert]}"
+                        ToolTip.Tip="{sd:LocalizeString Invert selection, Context=ToolTip}"/>
+              </UniformGrid>
+              <ListBox Margin="0" Padding="2"
+                       Background="Transparent" BorderThickness="0" SelectionMode="Multiple"
+                       ItemsSource="{Binding Type, Converter={sd:EnumValues}, Mode=OneWay}">
+                <ListBox.ItemContainerTheme>
+                  <ControlTheme TargetType="ListBoxItem">
+                    <Setter Property="Template">
+                      <ControlTemplate TargetType="ListBoxItem">
+                        <CheckBox IsChecked="{TemplateBinding IsSelected}">
+                          <ContentPresenter Content="{TemplateBinding ContentControl.Content}"
+                                            ContentTemplate="{TemplateBinding ContentControl.ContentTemplate}"
+                                            HorizontalAlignment="{TemplateBinding ContentControl.HorizontalAlignment}"
+                                            VerticalAlignment="{TemplateBinding ContentControl.VerticalAlignment}"/>
+                        </CheckBox>
+                      </ControlTemplate>
+                    </Setter>
+                  </ControlTheme>
+                </ListBox.ItemContainerTheme>
+                <ListBox.ItemTemplate>
+                  <DataTemplate>
+                    <TextBlock Text="{Binding Converter={sd:EnumToDisplayName}}"/>
+                  </DataTemplate>
+                </ListBox.ItemTemplate>
+              </ListBox>
+            </DockPanel>
+          </Grid>
+        </Popup>
+      </Grid>
+    </DataTemplate>
+  </caev:EnumTemplateProvider>
+  <caev:EnumTemplateProvider x:Key="ImageEnumPropertyTemplateProvider" caev:PropertyViewHelper.TemplateCategory="PropertyEditor"
+                             ImageEnum="True">
+    <caev:EnumTemplateProvider.OverriddenProviderNames>
+      <s:String>Enum</s:String>
+    </caev:EnumTemplateProvider.OverriddenProviderNames>
+    <DataTemplate DataType="cpqvm:NodeViewModel">
+      <ListBox Margin="0" Padding="2" Background="Transparent" BorderThickness="0"
+               ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Disabled" Focusable="False"
+               ItemsSource="{Binding Type, Converter={sd:EnumValues}, Mode=OneWay}"
+               SelectedItem="{Binding NodeValue, Converter={caec:DifferentValuesToNull}}">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate>
+            <Border Width="20" Height="20" Margin="0,0,1,0"
+                    ToolTip.Tip="{Binding}">
+              <Image HorizontalAlignment="Left" VerticalAlignment="Center" Width="16" Height="16" Margin="-1"
+                     Source="{Binding Converter={caec:EnumToResource}}"/>
+            </Border>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+        <ItemsControl.ItemContainerTheme>
+          <ControlTheme TargetType="ListBoxItem">
+            <Setter Property="Width" Value="24"/>
+          </ControlTheme>
+        </ItemsControl.ItemContainerTheme>
+        <ItemsControl.ItemsPanel>
+          <ItemsPanelTemplate>
+            <WrapPanel Orientation="Horizontal"/>
+          </ItemsPanelTemplate>
+        </ItemsControl.ItemsPanel>
+      </ListBox>
+    </DataTemplate>
+  </caev:EnumTemplateProvider>
+  <caev:EnumTemplateProvider x:Key="ImageFlagEnumPropertyTemplateProvider" caev:PropertyViewHelper.TemplateCategory="PropertyEditor"
+                             FlagEnum="True" ImageEnum="True">
+    <caev:EnumTemplateProvider.OverriddenProviderNames>
+      <s:String>Enum</s:String>
+      <s:String>FlagEnum</s:String>
+      <s:String>ImageEnum</s:String>
+    </caev:EnumTemplateProvider.OverriddenProviderNames>
+    <DataTemplate DataType="cpqvm:NodeViewModel">
+      <ListBox Margin="0" Padding="2" Background="Transparent" BorderThickness="0" SelectionMode="Multiple"
+               Focusable="False"
+               ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Disabled"
+               ItemsSource="{Binding Type, Converter={sd:EnumValues}, Mode=OneWay}">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate>
+            <Border Width="20" Height="20" Margin="0,0,1,0"
+                    ToolTip.Tip="{Binding}">
+              <Image HorizontalAlignment="Left" VerticalAlignment="Center" Width="16" Height="16" Margin="-1"
+                                Source="{Binding Converter={caec:EnumToResource}}" />
+            </Border>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+        <ItemsControl.ItemContainerTheme>
+          <ControlTheme TargetType="ListBoxItem">
+            <Setter Property="Width" Value="24"/>
+          </ControlTheme>
+        </ItemsControl.ItemContainerTheme>
+        <ItemsControl.ItemsPanel>
+          <ItemsPanelTemplate>
+            <WrapPanel Orientation="Horizontal"/>
+          </ItemsPanelTemplate>
+        </ItemsControl.ItemsPanel>
+      </ListBox>
+    </DataTemplate>
+  </caev:EnumTemplateProvider>
+
+  <!-- Providers for content reference -->
+  <ContextMenu x:Key="ReferenceContextMenu">
+    <MenuItem Header="{sd:LocalizeString Select an asset}"
+              IsVisible="{Binding [HasCommand_PickupAsset]}"
+              Command="{Binding [PickupAsset]}"
+              CommandParameter="{Binding Type}">
+      <MenuItem.Icon>
+        <Image Source="{StaticResource ImageFetchAsset}" />
+      </MenuItem.Icon>
+    </MenuItem>
+    <MenuItem Header="{sd:LocalizeString Clear the reference}"
+              IsVisible="{Binding [HasCommand_CreateNewInstance]}"
+              Command="{Binding [CreateNewInstance]}"
+              CommandParameter="{x:Static caeqnpc:AbstractNodeValue.Null}">
+      <MenuItem.Icon>
+        <Image Source="{StaticResource ImageClear}" />
+      </MenuItem.Icon>
+    </MenuItem>
+    <MenuItem Header="{sd:LocalizeString Select the referenced asset}"
+              IsVisible="{Binding [HasCommand_FetchAsset]}"
+              IsEnabled="{Binding NodeValue, Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ObjectToBool}}}"
+              Command="{Binding [FetchAsset]}">
+      <MenuItem.Icon>
+        <Image Source="{StaticResource ImagePickup}" />
+      </MenuItem.Icon>
+    </MenuItem>
+  </ContextMenu>
+  <DataTemplate x:Key="SimpleContentReferencePropertyTemplate" DataType="cpqvm:NodeViewModel">
+    <DockPanel>
+      <UniformGrid DockPanel.Dock="Right" Rows="1">
+        <Button Theme="{StaticResource ImageButtonTheme}"
+                IsVisible="{Binding !IsReadOnly}"
+                Command="{Binding [PickupAsset]}"
+                CommandParameter="{Binding Type}"
+                ToolTip.Tip="{sd:LocalizeString Select an asset, Context=ToolTip}">
+          <Image Source="{StaticResource ImagePickup}" Width="16" Height="16"/>
+        </Button>
+        <Button Theme="{StaticResource ImageButtonTheme}"
+                IsVisible="{Binding !IsReadOnly}"
+                Command="{Binding [CreateNewInstance]}"
+                CommandParameter="{x:Static caeqnpc:AbstractNodeValue.Null}"
+                ToolTip.Tip="{sd:LocalizeString Clear the reference, Context=ToolTip}">
+          <Image Source="{StaticResource ImageClear}" Width="16" Height="16"/>
+        </Button>
+        <Button Theme="{StaticResource ImageButtonTheme}"
+                Command="{Binding [FetchAsset]}"
+                ToolTip.Tip="{sd:LocalizeString Select the referenced asset, Context=ToolTip}">
+          <Image Source="{StaticResource ImageFetchAsset}" Width="16" Height="16"/>
+        </Button>
+      </UniformGrid>
+      <TextBox Margin="5"
+               IsReadOnly="{Binding IsReadOnly}"
+               Text="{Binding NodeValue, Converter={caec:ContentReferenceToUrl}}"
+               ContextMenu="{StaticResource ReferenceContextMenu}"/>
+    </DockPanel>
+  </DataTemplate>
+  <caev:ContentReferenceTemplateProvider x:Key="SimpleContentReferenceTemplateProvider" caev:PropertyViewHelper.TemplateCategory="PropertyEditor"
+                                         DynamicThumbnail="False"
+                                         Template="{StaticResource SimpleContentReferencePropertyTemplate}"/>
+  <caev:ContentReferenceTemplateProvider x:Key="ThumbnailContentReferenceTemplateProvider" caev:PropertyViewHelper.TemplateCategory="PropertyEditor"
+                                         DynamicThumbnail="True">
+    <DataTemplate DataType="cpqvm:NodeViewModel">
+      <DockPanel>
+        <Border DockPanel.Dock="Right"
+                Margin="0,1"
+                Background="Transparent" BorderBrush="Black" BorderThickness="1"
+                Cursor="Hand" ContextMenu="{StaticResource ReferenceContextMenu}">
+          <Grid>
+            <Border Width="64" Height="64"
+                    Background="Transparent"
+                    ToolTip.Tip="{sd:LocalizeString Select the referenced asset, Context=ToolTip}">
+              <Image x:Name="ThumbnailImage"
+                     Width="64" Height="64"
+                     DataContext="{Binding NodeValue, Converter={caec:ContentReferenceToAsset}}"
+                     Source="{Binding ThumbnailData.Presenter, Mode=OneWay}"/>
+              <Interaction.Behaviors>
+                <!-- FIXME only on pointer down -->
+                <EventTriggerBehavior EventName="PointerPressed" >
+                  <InvokeCommandAction Command="{Binding [FetchAsset]}"/>
+                </EventTriggerBehavior>
+              </Interaction.Behaviors>
+            </Border>
+            <ProgressBar Width="16" Height="4" IsIndeterminate="True"
+                         DataContext="{Binding NodeValue, Converter={caec:ContentReferenceToAsset}}"
+                         IsVisible="{Binding ThumbnailData, Converter={sd:Chained {sd:ObjectToBool}, {sd:InvertBool}}, FallbackValue={sd:False}}"/>
+            <Border Width="64" Height="64"
+                    Background="Transparent"
+                    IsVisible="{Binding NodeValue, Converter={sd:Chained {caec:ContentReferenceToAsset}, {sd:ObjectToBool}}}"
+                    ToolTip.Tip="{sd:LocalizeString Select an asset, Context=ToolTip}">
+              <Image x:Name="PickupImage"
+                     Width="16" Height="16"
+                     Source="{StaticResource ImagePickup}"/>
+              <Interaction.Behaviors>
+                <!-- FIXME only on pointer down -->
+                <EventTriggerBehavior EventName="PointerPressed" >
+                  <InvokeCommandAction Command="{Binding [PickupAsset]}"
+                                       CommandParameter="{Binding Type}"/>
+                </EventTriggerBehavior>
+              </Interaction.Behaviors>
+            </Border>
+          </Grid>
+        </Border>
+        <DockPanel>
+          <TextBox DockPanel.Dock="Top"
+                   Margin="5"
+                   IsReadOnly="{Binding IsReadOnly}"
+                   Text="{Binding NodeValue, Converter={caec:ContentReferenceToUrl}}"
+                   ContextMenu="{StaticResource ReferenceContextMenu}"/>
+          <UniformGrid Rows="1"
+                       HorizontalAlignment="Right" VerticalAlignment="Top">
+            <Button Theme="{StaticResource ImageButtonTheme}"
+                    IsVisible="{Binding [HasCommand_PickupAsset]}"
+                    Command="{Binding [PickupAsset]}"
+                    CommandParameter="{Binding Type}"
+                    ToolTip.Tip="{sd:LocalizeString Select an asset, Context=ToolTip}">
+              <Image Source="{StaticResource ImagePickup}" Width="16" Height="16"/>
+            </Button>
+            <Button Theme="{StaticResource ImageButtonTheme}"
+                    IsVisible="{Binding [HasCommand_CreateNewInstance]}"
+                    Command="{Binding [CreateNewInstance]}"
+                    CommandParameter="{x:Static caeqnpc:AbstractNodeValue.Null}"
+                    ToolTip.Tip="{sd:LocalizeString Clear the reference, Context=ToolTip}">
+              <Image Source="{StaticResource ImageClear}" Width="16" Height="16"/>
+            </Button>
+          </UniformGrid>
+        </DockPanel>
+      </DockPanel>
+    </DataTemplate>
+  </caev:ContentReferenceTemplateProvider>
+
+  <!-- Provider for nulable struct -->
+  <caev:NullableTemplateProvider x:Key="NullableStructPropertyTemplateProvider" caev:PropertyViewHelper.TemplateCategory="PropertyEditor">
+    <DataTemplate DataType="cpqvm:NodeViewModel">
+      <DockPanel>
+        <StackPanel DockPanel.Dock="Right"
+                    Orientation="Horizontal" VerticalAlignment="Center">
+          <Button Theme="{StaticResource ImageButtonTheme}"
+                  IsVisible="{Binding NodeValue, Converter={sd:Chained {sd:ObjectToBool}, {sd:InvertBool}}}"
+                  Command="{Binding [CreateNewInstance], Mode=OneWay}"
+                  CommandParameter="{Binding Type, Converter={sd:UnderlyingType}, Mode=OneWay}"
+                  ToolTip.Tip="{sd:LocalizeString Create an instance of this structure, Context=ToolTip}">
+            <Image Source="{StaticResource ImageCreateInstance}" Width="16" Height="16"/>
+          </Button>
+          <Button Theme="{StaticResource ImageButtonTheme}"
+                  IsVisible="{Binding NodeValue, Converter={sd:ObjectToBool}}"
+                  Command="{Binding [CreateNewInstance], Mode=OneWay}"
+                  CommandParameter="{x:Static caeqnpc:AbstractNodeValue.Null}"
+                  ToolTip.Tip="{sd:LocalizeString Clear value (set to null), Context=ToolTip}">
+            <Image Source="{StaticResource ImageClear}" Width="16" Height="16"/>
+          </Button>
+        </StackPanel>
+        <TextBlock Text="{sd:LocalizeString (null)}"
+                   IsVisible="{Binding NodeValue, Converter={sd:Chained {sd:ObjectToBool}, {sd:InvertBool}}}"/>
+        <ContentControl Content="{Binding}"
+                        ContentTemplate="{x:Static caev:PropertyViewHelper.EditorProviders}"
+                        IsVisible="{Binding NodeValue, Converter={sd:ObjectToBool}}"/>
+      </DockPanel>
+    </DataTemplate>
+  </caev:NullableTemplateProvider>
+
+  <!-- Provider for unloadable object -->
+  <caev:UnloadableObjectTemplateProvider x:Key="YamlProxyTemplateProvider" OverrideRule="All" caev:PropertyViewHelper.TemplateCategory="PropertyHeader">
+    <DataTemplate DataType="cpqvm:NodeViewModel">
+      <DockPanel>
+        <Border DockPanel.Dock="Top"
+                Margin="4,8">
+          <StackPanel>
+            <TextBlock Margin="8"
+                       Foreground="Orange"
+                       TextTrimming="CharacterEllipsis" TextWrapping="WrapWithOverflow">
+              <MultiBinding StringFormat="{sd:LocalizeString Unable to load the object of type {0} from assembly {1}}">
+                <Binding Path="NodeValue.TypeName"/>
+                <Binding Path="NodeValue.AssemblyName"/>
+              </MultiBinding>
+            </TextBlock>
+            <TextBlock Margin="8"
+                       TextTrimming="CharacterEllipsis" TextWrapping="WrapWithOverflow"
+                       Text="{Binding NodeValue.Error}"/>
+          </StackPanel>
+        </Border>
+      </DockPanel>
+    </DataTemplate>
+  </caev:UnloadableObjectTemplateProvider>
+
+  <!-- Fallback final provider -->
+  <sd:DefaultTemplateProvider x:Key="FallbackObjectPropertyTemplateProvider" OverrideRule="None" caev:PropertyViewHelper.TemplateCategory="PropertyEditor">
+    <DataTemplate DataType="cpqvm:NodeViewModel">
+      <TextBlock x:Name="DefaultTextBlock"
+                 Text="{sd:MultiBinding {Binding [AttributeDisplayName], Mode=OneWay},
+                                        {Binding Type, Mode=OneWay, Converter={sd:NotSupportedTypeToTypeName}},
+                                        {Binding NodeValue, Mode=OneWay, Converter={sd:ObjectToTypeName}},
+                                        Converter={sd:PriorityMulti}}">
+        <Interaction.Behaviors>
+          <sd:DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
+            <sd:ChangePropertyAction TargetObject="DefaultTextBlock" PropertyName="Text" Value="(Different values)"/>
+          </sd:DataTriggerBehavior>
+        </Interaction.Behaviors>
+      </TextBlock>
+    </DataTemplate>
+  </sd:DefaultTemplateProvider>
+</ResourceDictionary>

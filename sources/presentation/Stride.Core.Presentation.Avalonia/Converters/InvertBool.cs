@@ -6,7 +6,7 @@ using Stride.Core.Presentation.Avalonia.Internal;
 
 namespace Stride.Core.Presentation.Avalonia.Converters;
 
-public class InvertBool : ValueConverterBase<InvertBool>
+public sealed class InvertBool : ValueConverterBase<InvertBool>
 {
     /// <inheritdoc/>
     public override object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)

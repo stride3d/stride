@@ -5,7 +5,7 @@ namespace Stride.Core.Presentation.Avalonia.MarkupExtensions;
 /// <summary>
 /// This class extends the <see cref="global::Avalonia.Data.MultiBinding"/> by providing constructors that allows construction using markup extension.
 /// </summary>
-public class MultiBinding : global::Avalonia.Data.MultiBinding
+public sealed class MultiBinding : global::Avalonia.Data.MultiBinding
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="MultiBinding"/> class.

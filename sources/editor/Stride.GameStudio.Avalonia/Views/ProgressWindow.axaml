@@ -30,7 +30,7 @@
       <Button Content="{sd:LocalizeString Cancel, Context=Button}"
               Command="{Binding CancelCommand}"
               Margin="8 0"
-              IsEnabled="{Binding WorkDone, Converter={sd:InvertBool}}"
+              IsEnabled="{Binding !WorkDone}"
               IsVisible="{Binding IsCancellable}" />
     </StackPanel>
   </Grid>

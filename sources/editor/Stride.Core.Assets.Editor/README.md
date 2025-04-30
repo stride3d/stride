@@ -2,7 +2,7 @@
 
 This project is the base project for the core assets in the editor.
 
-## Depencencies
+## Dependencies
 
 * It can only references *Core.Assets* libraries.
 * It should be platform-agnostic as well as UI-agnostic.

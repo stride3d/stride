@@ -6,7 +6,7 @@ using Avalonia.Metadata;
 
 namespace Stride.Core.Presentation.Avalonia.MarkupExtensions;
 
-public class IntExtension : MarkupExtension
+public sealed class IntExtension : MarkupExtension
 {
     [Content]
     public int Value { get; set; }

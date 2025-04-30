@@ -29,12 +29,19 @@ public sealed class Localize : MarkupExtension, IValueConverter
     /// <summary>
     /// The text to localize.
     /// </summary>
-    public string? Text { get; set; }
+    public required string Text { get; set; }
     
     /// <inheritdoc/>
-    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        var count = ConverterHelper.ConvertToInt32(value, culture);
+        int count = 1;
+        try
+        {
+            count = ConverterHelper.TryConvertToInt32(value, culture) ?? 1;
+        }
+        catch (FormatException)
+        {
+        }
         
         // FIXME xplat-editor original version was attempting to load some assembly.
         //       Why? Was it because classes that were already translated might have changed namespaces?
@@ -42,12 +49,12 @@ public sealed class Localize : MarkupExtension, IValueConverter
         var assembly = Assembly.GetCallingAssembly();
 
         var result = string.IsNullOrEmpty(Context)
-                ? TranslationManager.Instance.GetPluralString(Text, Plural, count, assembly)
-                : TranslationManager.Instance.GetParticularPluralString(Context, Text, Plural, count, assembly);
-        return IsStringFormat ? string.Format(result, count) : result;
+                ? TranslationManager.Instance.GetPluralString(Text, Plural ?? Text, count, assembly)
+                : TranslationManager.Instance.GetParticularPluralString(Context, Text, Plural ?? Text, count, assembly);
+        return IsStringFormat ? string.Format(result, value) : result;
     }
 
-    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
         throw new NotSupportedException();
     }

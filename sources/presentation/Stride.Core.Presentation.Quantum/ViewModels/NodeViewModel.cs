@@ -111,7 +111,7 @@ public class NodeViewModel : DispatcherViewModel, IDynamicMetaObjectProvider
     /// <summary>
     /// Gets or sets the value of the nodes represented by this view model.
     /// </summary>
-    public object NodeValue { get => GetNodeValue(); set => SetNodeValue(ConvertValue(value)); }
+    public object? NodeValue { get => GetNodeValue(); set => SetNodeValue(ConvertValue(value)); }
 
     /// <summary>
     /// Gets the expected type of <see cref="NodeValue"/>.
@@ -298,7 +298,7 @@ public class NodeViewModel : DispatcherViewModel, IDynamicMetaObjectProvider
     /// </summary>
     /// <param name="name">The name of the additionnal data to look for.</param>
     /// <returns>The corresponding additionnal data, or <c>null</c> if no data with the given name exists.</returns>
-    public object GetAssociatedData(string name)
+    public object? GetAssociatedData(string name)
     {
         name = EscapeName(name);
         return AssociatedData.FirstOrDefault(x => x.Key == name).Value;
@@ -313,6 +313,33 @@ public class NodeViewModel : DispatcherViewModel, IDynamicMetaObjectProvider
     {
         name = EscapeName(name);
         return GetChild(name) ?? GetCommand(name) ?? GetAssociatedData(name) ?? null;
+    }
+
+    // FIXME xplat-editor workaround to AvaloniaUI/Avalonia#1949
+    public object? this[string name]
+    {
+        get
+        {
+            if (name.StartsWith(GraphViewModel.HasChildPrefix, StringComparison.Ordinal))
+            {
+                name = name[GraphViewModel.HasChildPrefix.Length..];
+                return GetChild(name) is not null;
+            }
+
+            if (name.StartsWith(GraphViewModel.HasCommandPrefix, StringComparison.Ordinal))
+            {
+                name = name[GraphViewModel.HasCommandPrefix.Length..];
+                return GetCommand(name) is not null;
+            }
+
+            if (name.StartsWith(GraphViewModel.HasAssociatedDataPrefix, StringComparison.Ordinal))
+            {
+                name = name[GraphViewModel.HasAssociatedDataPrefix.Length..];
+                return GetAssociatedData(name) is not null;
+            }
+
+            return GetDynamicObject(name);
+        }
     }
 
     /// <inheritdoc/>
@@ -343,7 +370,7 @@ public class NodeViewModel : DispatcherViewModel, IDynamicMetaObjectProvider
         return new NodePresenterCommandWrapper(ServiceProvider, nodePresenters, command);
     }
 
-    protected virtual object GetNodeValue()
+    protected virtual object? GetNodeValue()
     {
         object? currentValue = null;
         var isFirst = true;
@@ -353,7 +380,7 @@ public class NodeViewModel : DispatcherViewModel, IDynamicMetaObjectProvider
             {
                 currentValue = nodePresenter.Value;
             }
-            else if (nodePresenter.Factory.IsPrimitiveType(nodePresenter.Value?.GetType()))
+            else if (nodePresenter.Factory.IsPrimitiveType(nodePresenter.Value?.GetType() ?? nodePresenter.Type))
             {
                 if (!AreValueEqual(currentValue, nodePresenter.Value))
                     return DifferentValues;
@@ -368,7 +395,7 @@ public class NodeViewModel : DispatcherViewModel, IDynamicMetaObjectProvider
         return currentValue;
     }
 
-    protected virtual void SetNodeValue(object newValue)
+    protected virtual void SetNodeValue(object? newValue)
     {
         foreach (var nodePresenter in NodePresenters)
         {
@@ -516,7 +543,7 @@ public class NodeViewModel : DispatcherViewModel, IDynamicMetaObjectProvider
     /// <param name="value1">The first value to compare.</param>
     /// <param name="value2">The second value to compare.</param>
     /// <returns>True if both values are considered equal, false otherwise.</returns>
-    protected virtual bool AreValueEqual(object value1, object value2)
+    protected virtual bool AreValueEqual(object? value1, object? value2)
     {
         return Equals(value1, value2);
     }
@@ -528,7 +555,7 @@ public class NodeViewModel : DispatcherViewModel, IDynamicMetaObjectProvider
     /// <param name="value1">The first value to compare.</param>
     /// <param name="value2">The second value to compare.</param>
     /// <returns>True if both values are considered equivalent, false otherwise.</returns>
-    protected virtual bool AreValueEquivalent(object value1, object value2)
+    protected virtual bool AreValueEquivalent(object? value1, object? value2)
     {
         return value1?.GetType() == value2?.GetType();
     }
@@ -581,7 +608,7 @@ public class NodeViewModel : DispatcherViewModel, IDynamicMetaObjectProvider
         valueChanging = false;
     }
 
-    private object? ConvertValue(object value)
+    private object? ConvertValue(object? value)
     {
         if (value == null)
             return null;

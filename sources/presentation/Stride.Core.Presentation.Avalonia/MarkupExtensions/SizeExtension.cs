@@ -7,7 +7,7 @@ using Avalonia.Metadata;
 
 namespace Stride.Core.Presentation.Avalonia.MarkupExtensions;
 
-public class SizeExtension : MarkupExtension
+public sealed class SizeExtension : MarkupExtension
 {
     public SizeExtension(double uniformLength)
     {

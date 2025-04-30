@@ -60,5 +60,5 @@ public abstract class AssetsEditorPlugin : AssetsPlugin
 
     public abstract void RegisterPostPasteProcessors(ICollection<IAssetPostPasteProcessor> postePasteProcessors, SessionViewModel session);
 
-    public abstract void RegisterTemplateProviders(ICollection<ITemplateProvider> templateProviders);
+    public abstract void RegisterTemplateProviders(ICollection<TemplateProviderBase> templateProviders);
 }

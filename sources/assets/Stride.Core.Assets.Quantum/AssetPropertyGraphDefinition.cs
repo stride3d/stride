@@ -12,7 +12,7 @@ namespace Stride.Core.Assets.Quantum;
 // ReSharper disable once RequiredBaseTypesIsNotInherited - due to a limitation on how ReSharper checks this requirement (see https://youtrack.jetbrains.com/issue/RSRP-462598)
 public class AssetPropertyGraphDefinition
 {
-    public bool IsObjectReference(NodeAccessor nodeAccessor, object value)
+    public bool IsObjectReference(NodeAccessor nodeAccessor, object? value)
     {
         if (nodeAccessor.IsMember)
             return IsMemberTargetObjectReference((IMemberNode)nodeAccessor.Node, value);
