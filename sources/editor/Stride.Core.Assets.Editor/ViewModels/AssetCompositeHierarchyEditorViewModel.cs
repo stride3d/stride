@@ -103,7 +103,7 @@ public abstract class AssetCompositeHierarchyEditorViewModel<TAssetPartDesign, T
         SelectedContent.AddRange(SelectedItems);
     }
 
-    private async void SelectedContentCollectionChanged(object? sender, NotifyCollectionChangedEventArgs args)
+    private void SelectedContentCollectionChanged(object? sender, NotifyCollectionChangedEventArgs args)
     {
         if (updateSelectionGuard)
             return;
@@ -112,8 +112,8 @@ public abstract class AssetCompositeHierarchyEditorViewModel<TAssetPartDesign, T
         {
             updateSelectionGuard = true;
             SelectedContentCollectionChanged(args.Action);
-            // Refresh the property grid
-            await RefreshEditorProperties();
+            // Refresh the property grid asynchronously
+            RefreshEditorProperties().Forget();
         }
         finally
         {
@@ -121,7 +121,7 @@ public abstract class AssetCompositeHierarchyEditorViewModel<TAssetPartDesign, T
         }
     }
 
-    private async void SelectedItemsCollectionChanged(object? sender, NotifyCollectionChangedEventArgs args)
+    private void SelectedItemsCollectionChanged(object? sender, NotifyCollectionChangedEventArgs args)
     {
         if (updateSelectionGuard)
             return;
@@ -130,8 +130,8 @@ public abstract class AssetCompositeHierarchyEditorViewModel<TAssetPartDesign, T
         {
             updateSelectionGuard = true;
             SelectedItemsCollectionChanged(args.Action);
-            // Refresh the property grid
-            await RefreshEditorProperties();
+            // Refresh the property grid asynchronously
+            RefreshEditorProperties().Forget();
         }
         finally
         {

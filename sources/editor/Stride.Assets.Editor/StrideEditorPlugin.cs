@@ -63,6 +63,7 @@ public sealed class StrideEditorPlugin : AssetsEditorPlugin
         if (session is SessionViewModel sessionVm)
         {
             // commands
+            sessionVm.ActiveProperties.RegisterNodePresenterCommand(new FetchEntityCommand());
             sessionVm.ActiveProperties.RegisterNodePresenterCommand(new SetComponentReferenceCommand());
             sessionVm.ActiveProperties.RegisterNodePresenterCommand(new SetEntityReferenceCommand());
 

@@ -89,7 +89,7 @@
         <UniformGrid Rows="1" DockPanel.Dock="Right">
           <Button IsVisible="{Binding [HasCommand_PickupEntity]}"
                   Command="{Binding [PickupEntity]}"
-                  CommandParameter="{sd:MultiBinding {Binding [OwnerAsset]}, {Binding Source={x:Null}},
+                  CommandParameter="{sd:MultiBinding {Binding [OwnerAsset]}, {Binding Source={x:Static AvaloniaProperty.UnsetValue}},
                                                      Converter={sd:MultiToTuple}}"
                   ToolTip.Tip="{sd:LocalizeString Select an asset, Context=ToolTip}">
             <Image Source="{StaticResource ImagePickup}" Width="16" Height="16"/>
