@@ -2,20 +2,20 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Text;
-using Stride.Core.Transactions;
 using Stride.Core.Presentation.Dirtiables;
 using Stride.Core.Quantum;
+using Stride.Core.Transactions;
 
-namespace Stride.Core.Assets.Editor.Quantum;
+namespace Stride.Core.Assets.Presentation.Quantum;
 
 public class ContentValueChangeOperation : DirtyingOperation, IMergeableOperation
 {
     protected readonly IGraphNode Node;
     protected NodeIndex Index;
-    protected object PreviousValue;
-    protected object NewValue;
+    protected object? PreviousValue;
+    protected object? NewValue;
 
-    public ContentValueChangeOperation(IGraphNode node, ContentChangeType changeType, NodeIndex index, object previousValue, object newValue, IEnumerable<IDirtiable> dirtiables)
+    public ContentValueChangeOperation(IGraphNode node, ContentChangeType changeType, NodeIndex index, object? previousValue, object? newValue, IEnumerable<IDirtiable> dirtiables)
         : base(dirtiables)
     {
         Node = node;
@@ -34,8 +34,7 @@ public class ContentValueChangeOperation : DirtyingOperation, IMergeableOperatio
     /// <inheritdoc/>
     public virtual bool CanMerge(IMergeableOperation otherOperation)
     {
-        var operation = otherOperation as ContentValueChangeOperation;
-        if (operation == null)
+        if (otherOperation is not ContentValueChangeOperation operation)
             return false;
 
         if (ChangeType != ContentChangeType.ValueChange && ChangeType != ContentChangeType.CollectionUpdate)
@@ -105,8 +104,8 @@ public class ContentValueChangeOperation : DirtyingOperation, IMergeableOperatio
     protected override void FreezeContent()
     {
         Index = NodeIndex.Empty;
-        PreviousValue = null;
-        NewValue = null;
+        PreviousValue = null!;
+        NewValue = null!;
     }
 
     /// <inheritdoc/>
@@ -131,29 +130,29 @@ public class ContentValueChangeOperation : DirtyingOperation, IMergeableOperatio
         ApplyUndo(NewValue, PreviousValue, changeType, false);
     }
 
-    protected virtual void ApplyUndo(object oldValue, object newValue, ContentChangeType type, bool isUndo)
+    protected virtual void ApplyUndo(object? oldValue, object? newValue, ContentChangeType type, bool isUndo)
     {
         var memberNode = Node as IMemberNode;
         var objectNode = Node as IObjectNode;
         switch (type)
         {
             case ContentChangeType.ValueChange:
-                memberNode.Update(oldValue);
+                memberNode?.Update(oldValue);
                 break;
             case ContentChangeType.CollectionUpdate:
-                objectNode.Update(oldValue, Index);
+                objectNode?.Update(oldValue, Index);
                 break;
             case ContentChangeType.CollectionAdd:
                 // Some Add might have an empty index. In this case we need to retrieve the index from the content to pass it to remove.
-                var index = !Index.IsEmpty ? Index : objectNode.Indices.First(x => Equals(Node.Retrieve(x), newValue));
-                objectNode.Remove(newValue, index);
+                var index = !Index.IsEmpty ? Index : objectNode?.Indices?.First(x => Equals(Node.Retrieve(x), newValue));
+                objectNode?.Remove(newValue, index!.Value);
                 break;
             case ContentChangeType.CollectionRemove:
                 // Some Add might have an empty index.
                 if (!Index.IsEmpty)
-                    objectNode.Add(oldValue, Index);
+                    objectNode?.Add(oldValue, Index);
                 else
-                    objectNode.Add(oldValue);
+                    objectNode?.Add(oldValue);
                 break;
             default:
                 throw new ArgumentOutOfRangeException();
