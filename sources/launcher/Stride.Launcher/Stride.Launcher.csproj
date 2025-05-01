@@ -4,7 +4,7 @@
     <OutputType Condition="'$(Configuration)' == 'Debug'">Exe</OutputType>
     <TargetFramework>net8.0</TargetFramework>
     <DebugType>embedded</DebugType>
-    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <RuntimeIdentifiers>linux-x64;win-x64</RuntimeIdentifiers>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
     <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
