@@ -12,7 +12,7 @@ namespace Stride.BepuPhysics.Constraints;
 [DataContract]
 [DefaultEntityComponentProcessor(typeof(ConstraintProcessor), ExecutionMode = ExecutionMode.Runtime)]
 [ComponentCategory("Physics - Bepu Constraint")]
-public sealed class AreaConstraintComponent : ThreeBodyConstraintComponent<AreaConstraint>
+public sealed class AreaConstraintComponent : ThreeBodyConstraintComponent<AreaConstraint>, ISpring
 {
     public AreaConstraintComponent() => BepuConstraint = new() { SpringSettings = new SpringSettings(30, 5) };
 
@@ -29,6 +29,7 @@ public sealed class AreaConstraintComponent : ThreeBodyConstraintComponent<AreaC
         }
     }
 
+    /// <inheritdoc/>
     public float SpringFrequency
     {
         get
@@ -42,6 +43,7 @@ public sealed class AreaConstraintComponent : ThreeBodyConstraintComponent<AreaC
         }
     }
 
+    /// <inheritdoc/>
     public float SpringDampingRatio
     {
         get

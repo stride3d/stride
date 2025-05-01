@@ -14,7 +14,7 @@ namespace Stride.BepuPhysics.Constraints;
 [DataContract]
 [DefaultEntityComponentProcessor(typeof(ConstraintProcessor), ExecutionMode = ExecutionMode.Runtime)]
 [ComponentCategory("Physics - Bepu Constraint")]
-public sealed class BallSocketServoConstraintComponent : TwoBodyConstraintComponent<BallSocketServo>
+public sealed class BallSocketServoConstraintComponent : TwoBodyConstraintComponent<BallSocketServo>, IServo, ISpring, IWithTwoLocalOffset
 {
     public BallSocketServoConstraintComponent() => BepuConstraint = new()
     {
@@ -22,6 +22,7 @@ public sealed class BallSocketServoConstraintComponent : TwoBodyConstraintCompon
         ServoSettings = new ServoSettings(10, 1, 1000)
     };
 
+    /// <inheritdoc/>
     public Vector3 LocalOffsetA
     {
         get
@@ -35,6 +36,7 @@ public sealed class BallSocketServoConstraintComponent : TwoBodyConstraintCompon
         }
     }
 
+    /// <inheritdoc/>
     public Vector3 LocalOffsetB
     {
         get
@@ -48,6 +50,7 @@ public sealed class BallSocketServoConstraintComponent : TwoBodyConstraintCompon
         }
     }
 
+    /// <inheritdoc/>
     public float SpringFrequency
     {
         get
@@ -61,6 +64,7 @@ public sealed class BallSocketServoConstraintComponent : TwoBodyConstraintCompon
         }
     }
 
+    /// <inheritdoc/>
     public float SpringDampingRatio
     {
         get
@@ -74,6 +78,7 @@ public sealed class BallSocketServoConstraintComponent : TwoBodyConstraintCompon
         }
     }
 
+    /// <inheritdoc/>
     public float ServoMaximumSpeed
     {
         get
@@ -87,6 +92,7 @@ public sealed class BallSocketServoConstraintComponent : TwoBodyConstraintCompon
         }
     }
 
+    /// <inheritdoc/>
     public float ServoBaseSpeed
     {
         get
@@ -100,6 +106,7 @@ public sealed class BallSocketServoConstraintComponent : TwoBodyConstraintCompon
         }
     }
 
+    /// <inheritdoc/>
     public float ServoMaximumForce
     {
         get

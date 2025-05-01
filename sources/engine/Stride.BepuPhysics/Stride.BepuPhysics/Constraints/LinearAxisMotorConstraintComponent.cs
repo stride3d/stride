@@ -14,13 +14,14 @@ namespace Stride.BepuPhysics.Constraints;
 [DataContract]
 [DefaultEntityComponentProcessor(typeof(ConstraintProcessor), ExecutionMode = ExecutionMode.Runtime)]
 [ComponentCategory("Physics - Bepu Constraint")]
-public sealed class LinearAxisMotorConstraintComponent : TwoBodyConstraintComponent<LinearAxisMotor>
+public sealed class LinearAxisMotorConstraintComponent : TwoBodyConstraintComponent<LinearAxisMotor>, IMotor, IWithTwoLocalOffset
 {
     public LinearAxisMotorConstraintComponent() => BepuConstraint = new()
     {
         Settings = new MotorSettings(1000, 10)
     };
 
+    /// <inheritdoc/>
     public Vector3 LocalOffsetA
     {
         get
@@ -34,6 +35,7 @@ public sealed class LinearAxisMotorConstraintComponent : TwoBodyConstraintCompon
         }
     }
 
+    /// <inheritdoc/>
     public Vector3 LocalOffsetB
     {
         get
@@ -73,6 +75,7 @@ public sealed class LinearAxisMotorConstraintComponent : TwoBodyConstraintCompon
         }
     }
 
+    /// <inheritdoc/>
     public float MotorDamping
     {
         get
@@ -86,6 +89,7 @@ public sealed class LinearAxisMotorConstraintComponent : TwoBodyConstraintCompon
         }
     }
 
+    /// <inheritdoc/>
     public float MotorMaximumForce
     {
         get

@@ -22,7 +22,7 @@ namespace Stride.BepuPhysics.Constraints;
 [DataContract]
 [DefaultEntityComponentProcessor(typeof(ConstraintProcessor), ExecutionMode = ExecutionMode.Runtime)]
 [ComponentCategory("Physics - Bepu Constraint")]
-public sealed class CenterDistanceLimitConstraintComponent : TwoBodyConstraintComponent<CenterDistanceLimit>
+public sealed class CenterDistanceLimitConstraintComponent : TwoBodyConstraintComponent<CenterDistanceLimit>, ISpring
 {
     public CenterDistanceLimitConstraintComponent() => BepuConstraint = new() { SpringSettings = new SpringSettings(30, 5) };
 
@@ -52,6 +52,7 @@ public sealed class CenterDistanceLimitConstraintComponent : TwoBodyConstraintCo
         }
     }
 
+    /// <inheritdoc/>
     public float SpringFrequency
     {
         get
@@ -65,6 +66,7 @@ public sealed class CenterDistanceLimitConstraintComponent : TwoBodyConstraintCo
         }
     }
 
+    /// <inheritdoc/>
     public float SpringDampingRatio
     {
         get

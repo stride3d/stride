@@ -14,7 +14,7 @@ namespace Stride.BepuPhysics.Constraints;
 [DataContract]
 [DefaultEntityComponentProcessor(typeof(ConstraintProcessor), ExecutionMode = ExecutionMode.Runtime)]
 [ComponentCategory("Physics - Bepu Constraint")]
-public sealed class PointOnLineServoConstraintComponent : TwoBodyConstraintComponent<PointOnLineServo>
+public sealed class PointOnLineServoConstraintComponent : TwoBodyConstraintComponent<PointOnLineServo>, IServo, ISpring, IWithTwoLocalOffset
 {
     public PointOnLineServoConstraintComponent() => BepuConstraint = new()
     {
@@ -22,6 +22,7 @@ public sealed class PointOnLineServoConstraintComponent : TwoBodyConstraintCompo
         ServoSettings = new ServoSettings(10, 1, 1000)
     };
 
+    /// <inheritdoc/>
     public Vector3 LocalOffsetA
     {
         get
@@ -35,6 +36,7 @@ public sealed class PointOnLineServoConstraintComponent : TwoBodyConstraintCompo
         }
     }
 
+    /// <inheritdoc/>
     public Vector3 LocalOffsetB
     {
         get
@@ -61,6 +63,7 @@ public sealed class PointOnLineServoConstraintComponent : TwoBodyConstraintCompo
         }
     }
 
+    /// <inheritdoc/>
     public float ServoMaximumSpeed
     {
         get
@@ -74,6 +77,7 @@ public sealed class PointOnLineServoConstraintComponent : TwoBodyConstraintCompo
         }
     }
 
+    /// <inheritdoc/>
     public float ServoBaseSpeed
     {
         get
@@ -87,6 +91,7 @@ public sealed class PointOnLineServoConstraintComponent : TwoBodyConstraintCompo
         }
     }
 
+    /// <inheritdoc/>
     public float ServoMaximumForce
     {
         get
@@ -100,6 +105,7 @@ public sealed class PointOnLineServoConstraintComponent : TwoBodyConstraintCompo
         }
     }
 
+    /// <inheritdoc/>
     public float SpringFrequency
     {
         get
@@ -113,6 +119,7 @@ public sealed class PointOnLineServoConstraintComponent : TwoBodyConstraintCompo
         }
     }
 
+    /// <inheritdoc/>
     public float SpringDampingRatio
     {
         get

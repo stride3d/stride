@@ -14,7 +14,7 @@ namespace Stride.BepuPhysics.Constraints;
 [DataContract]
 [DefaultEntityComponentProcessor(typeof(ConstraintProcessor), ExecutionMode = ExecutionMode.Runtime)]
 [ComponentCategory("Physics - Bepu Constraint")]
-public sealed class TwistServoConstraintComponent : TwoBodyConstraintComponent<TwistServo>
+public sealed class TwistServoConstraintComponent : TwoBodyConstraintComponent<TwistServo>, IServo, ISpring
 {
     public TwistServoConstraintComponent() => BepuConstraint = new() { SpringSettings = new SpringSettings(30, 5), ServoSettings = new ServoSettings(10, 1, 1000) };
 
@@ -54,6 +54,7 @@ public sealed class TwistServoConstraintComponent : TwoBodyConstraintComponent<T
         }
     }
 
+    /// <inheritdoc/>
     public float SpringFrequency
     {
         get
@@ -67,6 +68,7 @@ public sealed class TwistServoConstraintComponent : TwoBodyConstraintComponent<T
         }
     }
 
+    /// <inheritdoc/>
     public float SpringDampingRatio
     {
         get
@@ -80,6 +82,7 @@ public sealed class TwistServoConstraintComponent : TwoBodyConstraintComponent<T
         }
     }
 
+    /// <inheritdoc/>
     public float ServoMaximumSpeed
     {
         get
@@ -93,6 +96,7 @@ public sealed class TwistServoConstraintComponent : TwoBodyConstraintComponent<T
         }
     }
 
+    /// <inheritdoc/>
     public float ServoBaseSpeed
     {
         get
@@ -106,6 +110,7 @@ public sealed class TwistServoConstraintComponent : TwoBodyConstraintComponent<T
         }
     }
 
+    /// <inheritdoc/>
     public float ServoMaximumForce
     {
         get

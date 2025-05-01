@@ -12,7 +12,7 @@ namespace Stride.BepuPhysics.Constraints;
 [DataContract]
 [DefaultEntityComponentProcessor(typeof(ConstraintProcessor), ExecutionMode = ExecutionMode.Runtime)]
 [ComponentCategory("Physics - Bepu Constraint")]
-public sealed class VolumeConstraintComponent : FourBodyConstraintComponent<VolumeConstraint>
+public sealed class VolumeConstraintComponent : FourBodyConstraintComponent<VolumeConstraint>, ISpring
 {
     public VolumeConstraintComponent() => BepuConstraint = new() { SpringSettings = new SpringSettings(30, 5) };
 
@@ -26,6 +26,7 @@ public sealed class VolumeConstraintComponent : FourBodyConstraintComponent<Volu
         }
     }
 
+    /// <inheritdoc/>
     public float SpringFrequency
     {
         get
@@ -39,6 +40,7 @@ public sealed class VolumeConstraintComponent : FourBodyConstraintComponent<Volu
         }
     }
 
+    /// <inheritdoc/>
     public float SpringDampingRatio
     {
         get

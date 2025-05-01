@@ -14,7 +14,7 @@ namespace Stride.BepuPhysics.Constraints;
 [DataContract]
 [DefaultEntityComponentProcessor(typeof(ConstraintProcessor), ExecutionMode = ExecutionMode.Runtime)]
 [ComponentCategory("Physics - Bepu Constraint")]
-public sealed class TwistLimitConstraintComponent : TwoBodyConstraintComponent<TwistLimit>
+public sealed class TwistLimitConstraintComponent : TwoBodyConstraintComponent<TwistLimit>, ISpring
 {
     public TwistLimitConstraintComponent() => BepuConstraint = new() { SpringSettings = new SpringSettings(30, 5) };
 
@@ -64,6 +64,7 @@ public sealed class TwistLimitConstraintComponent : TwoBodyConstraintComponent<T
         }
     }
 
+    /// <inheritdoc/>
     public float SpringFrequency
     {
         get
@@ -77,6 +78,7 @@ public sealed class TwistLimitConstraintComponent : TwoBodyConstraintComponent<T
         }
     }
 
+    /// <inheritdoc/>
     public float SpringDampingRatio
     {
         get

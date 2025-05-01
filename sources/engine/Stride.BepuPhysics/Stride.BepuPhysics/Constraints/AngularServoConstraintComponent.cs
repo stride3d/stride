@@ -14,7 +14,7 @@ namespace Stride.BepuPhysics.Constraints;
 [DataContract("AngularServoConstraint")]
 [DefaultEntityComponentProcessor(typeof(ConstraintProcessor), ExecutionMode = ExecutionMode.Runtime)]
 [ComponentCategory("Physics - Bepu Constraint")]
-public sealed class AngularServoConstraintComponent : TwoBodyConstraintComponent<AngularServo>
+public sealed class AngularServoConstraintComponent : TwoBodyConstraintComponent<AngularServo>, IServo, ISpring
 {
     public AngularServoConstraintComponent() => BepuConstraint = new()
     {
@@ -35,6 +35,7 @@ public sealed class AngularServoConstraintComponent : TwoBodyConstraintComponent
         }
     }
 
+    /// <inheritdoc/>
     public float SpringFrequency
     {
         get
@@ -48,6 +49,7 @@ public sealed class AngularServoConstraintComponent : TwoBodyConstraintComponent
         }
     }
 
+    /// <inheritdoc/>
     public float SpringDampingRatio
     {
         get
@@ -61,6 +63,7 @@ public sealed class AngularServoConstraintComponent : TwoBodyConstraintComponent
         }
     }
 
+    /// <inheritdoc/>
     public float ServoMaximumSpeed
     {
         get
@@ -74,6 +77,7 @@ public sealed class AngularServoConstraintComponent : TwoBodyConstraintComponent
         }
     }
 
+    /// <inheritdoc/>
     public float ServoBaseSpeed
     {
         get
@@ -87,6 +91,7 @@ public sealed class AngularServoConstraintComponent : TwoBodyConstraintComponent
         }
     }
 
+    /// <inheritdoc/>
     public float ServoMaximumForce
     {
         get
