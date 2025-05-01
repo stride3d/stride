@@ -3,6 +3,8 @@
 
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Input;
+using Avalonia.Interactivity;
 using Stride.Core.Presentation.Avalonia.Extensions;
 using Stride.Core.Presentation.Collections;
 
@@ -10,6 +12,9 @@ namespace Stride.Core.Presentation.Avalonia.Controls;
 
 public sealed class PropertyViewItem : ExpandableItemsControl
 {
+    private bool isHighlightable = true;
+    private bool isHighlighted;
+    private bool isHovered;
     private readonly ObservableList<PropertyViewItem> properties = [];
 
     static PropertyViewItem()
@@ -20,6 +25,15 @@ public sealed class PropertyViewItem : ExpandableItemsControl
     public static readonly StyledProperty<double> IncrementProperty =
         AvaloniaProperty.Register<PropertyView, double>(nameof(Increment));
 
+    public static readonly DirectProperty<PropertyViewItem, bool> IsHighlightableProperty =
+        AvaloniaProperty.RegisterDirect<PropertyViewItem, bool>(nameof(IsHighlightable), o => o.IsHighlightable);
+
+    public static readonly DirectProperty<PropertyViewItem, bool> IsHighlightedProperty =
+        AvaloniaProperty.RegisterDirect<PropertyViewItem, bool>(nameof(IsHighlighted), o => o.IsHighlighted);
+
+    public static readonly DirectProperty<PropertyViewItem, bool> IsHoveredProperty =
+        AvaloniaProperty.RegisterDirect<PropertyViewItem, bool>(nameof(IsHovered), o => o.IsHovered);
+
     public static readonly StyledProperty<double> OffsetProperty =
         AvaloniaProperty.Register<PropertyView, double>(nameof(Offset));
 
@@ -27,12 +41,32 @@ public sealed class PropertyViewItem : ExpandableItemsControl
     {
         ArgumentNullException.ThrowIfNull(propertyView);
         PropertyView = propertyView;
+
+        AddHandler<PointerEventArgs>(PointerMovedEvent, OnPreviewPointerMoved, RoutingStrategies.Tunnel);
     }
 
     public double Increment
     {
         get => GetValue(IncrementProperty);
         set => SetValue(IncrementProperty, value);
+    }
+
+    public bool IsHighlightable
+    {
+        get => isHighlightable;
+        internal set => SetAndRaise(IsHighlightableProperty, ref isHighlightable, value);
+    }
+
+    public bool IsHighlighted
+    {
+        get => isHighlighted;
+        internal set => SetAndRaise(IsHighlightedProperty, ref isHighlighted, value);
+    }
+
+    public bool IsHovered
+    {
+        get => isHovered;
+        internal set => SetAndRaise(IsHoveredProperty, ref isHovered, value);
     }
 
     public double Offset
@@ -44,6 +78,13 @@ public sealed class PropertyViewItem : ExpandableItemsControl
     public IReadOnlyCollection<PropertyViewItem> Properties => properties;
 
     public PropertyView PropertyView { get; }
+
+    protected override void ClearContainerForItemOverride(Control container)
+    {
+        var property = (PropertyViewItem)container;
+        properties.Remove(property);
+        base.ClearContainerForItemOverride(container);
+    }
 
     protected override Control CreateContainerForItemOverride(object? item, int index, object? recycleKey)
     {
@@ -57,13 +98,6 @@ public sealed class PropertyViewItem : ExpandableItemsControl
         properties.Add(property);
     }
 
-    protected override void ClearContainerForItemOverride(Control container)
-    {
-        var property = (PropertyViewItem)container;
-        properties.Remove(property);
-        base.ClearContainerForItemOverride(container);
-    }
-
     private static void OnIncrementChanged(PropertyViewItem sender, AvaloniaPropertyChangedEventArgs<double> e)
     {
         var delta = e.NewValue.Value - e.OldValue.Value;
@@ -72,5 +106,10 @@ public sealed class PropertyViewItem : ExpandableItemsControl
         {
             subItem.Offset += delta;
         }
+    }
+
+    private void OnPreviewPointerMoved(object? sender, PointerEventArgs e)
+    {
+        PropertyView.ItemMouseMove(this);
     }
 }
