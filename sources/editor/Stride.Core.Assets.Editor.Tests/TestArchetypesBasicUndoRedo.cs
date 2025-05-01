@@ -2,7 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Linq;
-using Stride.Core.Assets.Editor.Quantum;
+using Stride.Core.Assets.Presentation.Quantum;
 using Stride.Core.Assets.Quantum;
 using Stride.Core.Assets.Quantum.Tests;
 using Stride.Core.Presentation.Dirtiables;
