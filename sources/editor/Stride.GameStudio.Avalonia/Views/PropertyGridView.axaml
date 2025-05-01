@@ -47,6 +47,7 @@
       </Setter>
     </ControlTheme>
     <ControlTheme x:Key="{x:Type sd:PropertyViewItem}" TargetType="sd:PropertyViewItem">
+      <Setter Property="Background" Value="Transparent"/>
       <Setter Property="Increment" Value="12"/>
       <Setter Property="HorizontalAlignment" Value="Stretch"/>
       <Setter Property="HeaderTemplate">
@@ -92,6 +93,14 @@
       </Setter>
     </ControlTheme>
   </UserControl.Resources>
+  <UserControl.Styles>
+    <Style Selector="sd|PropertyViewItem[IsHovered=True]">
+      <Setter Property="Background" Value="#FF525252"/>
+    </Style>
+    <Style Selector="sd|PropertyViewItem[IsFocused=True]">
+      <Setter Property="Background" Value="#3E3E40"/>
+    </Style>
+  </UserControl.Styles>
   <DockPanel LastChildFill="True">
     <TextBlock DockPanel.Dock="Top" Text="Property Grid"/>
     <sd:PropertyView ItemsSource="{Binding ViewModel.RootNode.Children}"
