@@ -10,7 +10,7 @@ using Avalonia.Xaml.Interactivity;
 namespace Stride.Core.Presentation.Avalonia.Behaviors;
 
 /// <summary>
-/// Allows the bind the <see cref="Control.ToolTip"/> property of a control to a particular target property when the attached control is hovered by the mouse.
+/// Allows the bind the <see cref="ToolTip.TipProperty"/> of a control to a particular target property when the attached control is hovered by the mouse.
 /// This behavior can be used to display the same message that the tool-tip in a status bar, for example.
 /// </summary>
 /// <remarks>This behavior can be used to display the tool tip of some controls in another place, such as a status bar.</remarks>
@@ -50,7 +50,7 @@ public class BindCurrentToolTipStringBehavior : Behavior<Control>
     protected override void OnAttached()
     {
         base.OnAttached();
-        if (AssociatedObject is { })
+        if (AssociatedObject is not null)
         {
             AssociatedObject.PointerEntered += MouseEnter;
             AssociatedObject.PointerExited += MouseLeave;
@@ -60,7 +60,7 @@ public class BindCurrentToolTipStringBehavior : Behavior<Control>
     /// <inheritdoc/>
     protected override void OnDetaching()
     {
-        if (AssociatedObject is { })
+        if (AssociatedObject is not null)
         {
             AssociatedObject.PointerEntered -= MouseEnter;
             AssociatedObject.PointerExited -= MouseLeave;
@@ -70,7 +70,7 @@ public class BindCurrentToolTipStringBehavior : Behavior<Control>
 
     private void MouseEnter(object? sender, PointerEventArgs e)
     {
-        if (AssociatedObject is { })
+        if (AssociatedObject is not null)
         {
             SetCurrentValue(ToolTipTargetProperty, ToolTip.GetTip(AssociatedObject));
         }

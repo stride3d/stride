@@ -5,6 +5,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Data;
 using Avalonia.Input;
+using Avalonia.Interactivity;
 using Stride.Core.Presentation.Collections;
 
 namespace Stride.Core.Presentation.Avalonia.Controls;
@@ -23,6 +24,20 @@ public sealed class PropertyView : ItemsControl
 
     public static readonly StyledProperty<GridLength> NameColumnSizeProperty =
         AvaloniaProperty.Register<PropertyView, GridLength>(nameof(NameColumnSize), new GridLength(150), defaultBindingMode: BindingMode.TwoWay);
+
+    /// <summary>
+    /// Identifies the ClearPropertyItem event.
+    /// This attached routed event may be raised by the <see cref="PropertyView"/> itself or by a <see cref="PropertyViewItem"/> containing sub items.
+    /// </summary>
+    public static readonly RoutedEvent ClearItemEvent =
+        RoutedEvent.Register<PropertyView, PropertyViewItemEventArgs>(nameof(ClearItem), RoutingStrategies.Bubble);
+
+    /// <summary>
+    /// Identifies the PreparePropertyItem event.
+    /// This attached routed event may be raised by the <see cref="PropertyView"/> itself or by a <see cref="PropertyViewItem"/> containing sub-items.
+    /// </summary>
+    public static readonly RoutedEvent PrepareItemEvent =
+        RoutedEvent.Register<PropertyView, PropertyViewItemEventArgs>(nameof(PrepareItem), RoutingStrategies.Bubble);
 
     public PropertyViewItem? HighlightedItem
     {
@@ -44,9 +59,30 @@ public sealed class PropertyView : ItemsControl
 
     public IReadOnlyCollection<PropertyViewItem> Properties => properties;
 
+    /// <summary>
+    /// This event is raised when a property item is about to be displayed in the <see cref="PropertyView"/>.
+    /// This allow the user to customize the property item just before it is displayed.
+    /// </summary>
+    public event EventHandler<PropertyViewItemEventArgs> PrepareItem
+    {
+        add => AddHandler(PrepareItemEvent, value);
+        remove => RemoveHandler(PrepareItemEvent, value);
+    }
+
+    /// <summary>
+    /// This event is raised when an property item is about to be removed from the display in the <see cref="PropertyView"/>
+    /// This allow the user to remove any attached handler in the <see cref="PrepareItem"/> event.
+    /// </summary>
+    public event EventHandler<PropertyViewItemEventArgs> ClearItem
+    {
+        add => AddHandler(ClearItemEvent, value);
+        remove => RemoveHandler(ClearItemEvent, value);
+    }
+
     protected override void ClearContainerForItemOverride(Control container)
     {
         var property = (PropertyViewItem)container;
+        RaiseEvent(new PropertyViewItemEventArgs(ClearItemEvent, this, property));
         properties.Remove(property);
         base.ClearContainerForItemOverride(container);
     }
@@ -67,6 +103,7 @@ public sealed class PropertyView : ItemsControl
         base.PrepareContainerForItemOverride(container, item, index);
         var property = (PropertyViewItem)container;
         properties.Add(property);
+        RaiseEvent(new PropertyViewItemEventArgs(PrepareItemEvent, this, property));
     }
 
     internal void ItemMouseMove(PropertyViewItem item)
