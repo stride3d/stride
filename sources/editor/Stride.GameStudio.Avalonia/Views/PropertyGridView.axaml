@@ -6,6 +6,7 @@
              xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
              xmlns:aev="using:Stride.Core.Assets.Editor.Avalonia.Views"
              xmlns:pqvm="using:Stride.Core.Presentation.Quantum.ViewModels"
+             xmlns:behaviors="clr-namespace:Stride.Core.Assets.Editor.Avalonia.Behaviors;assembly=Stride.Core.Assets.Editor.Avalonia"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="Stride.GameStudio.Avalonia.Views.PropertyGridView"
              x:DataType="vm:PropertiesViewModel">
@@ -104,6 +105,10 @@
   <DockPanel LastChildFill="True">
     <TextBlock DockPanel.Dock="Top" Text="Property Grid"/>
     <sd:PropertyView ItemsSource="{Binding ViewModel.RootNode.Children}"
-                     IsVisible="{Binding CanDisplayProperties}"/>
+                     IsVisible="{Binding CanDisplayProperties}">
+      <Interaction.Behaviors>
+        <behaviors:PropertyViewAutoExpandNodesBehavior ViewModel="{Binding ViewModel, Mode=OneWay}" />
+      </Interaction.Behaviors>
+    </sd:PropertyView>
   </DockPanel>
 </UserControl>

@@ -42,7 +42,7 @@ public sealed class PropertyViewItem : ExpandableItemsControl
         ArgumentNullException.ThrowIfNull(propertyView);
         PropertyView = propertyView;
 
-        AddHandler<PointerEventArgs>(PointerMovedEvent, OnPreviewPointerMoved, RoutingStrategies.Tunnel);
+        AddHandler(PointerMovedEvent, OnPreviewPointerMoved, RoutingStrategies.Tunnel);
     }
 
     public double Increment
@@ -82,6 +82,7 @@ public sealed class PropertyViewItem : ExpandableItemsControl
     protected override void ClearContainerForItemOverride(Control container)
     {
         var property = (PropertyViewItem)container;
+        RaiseEvent(new PropertyViewItemEventArgs(PropertyView.ClearItemEvent, this, property));
         properties.Remove(property);
         base.ClearContainerForItemOverride(container);
     }
@@ -96,6 +97,7 @@ public sealed class PropertyViewItem : ExpandableItemsControl
         base.PrepareContainerForItemOverride(container, item, index);
         var property = (PropertyViewItem)container;
         properties.Add(property);
+        RaiseEvent(new PropertyViewItemEventArgs(PropertyView.PrepareItemEvent, this, property));
     }
 
     private static void OnIncrementChanged(PropertyViewItem sender, AvaloniaPropertyChangedEventArgs<double> e)
