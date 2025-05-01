@@ -9,7 +9,7 @@ using Stride.Core.Presentation.Quantum.Presenters;
 
 namespace Stride.Core.Assets.Editor.Quantum.NodePresenters.Commands;
 
-public class FetchAssetCommand : NodePresenterCommandBase
+internal sealed class FetchAssetCommand : NodePresenterCommandBase
 {
     /// <summary>
     /// The name of this command.
@@ -18,7 +18,7 @@ public class FetchAssetCommand : NodePresenterCommandBase
     /// <summary>
     /// The current session.
     /// </summary>
-    protected readonly SessionViewModel Session;
+    private readonly SessionViewModel session;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="FetchAssetCommand"/> class.
@@ -26,7 +26,7 @@ public class FetchAssetCommand : NodePresenterCommandBase
     /// <param name="session">The current session.</param>
     public FetchAssetCommand(SessionViewModel session)
     {
-        Session = session;
+        this.session = session;
     }
 
     /// <inheritdoc/>
@@ -38,14 +38,16 @@ public class FetchAssetCommand : NodePresenterCommandBase
     /// <inheritdoc/>
     public override bool CanAttach(INodePresenter nodePresenter)
     {
-        var type = nodePresenter.Descriptor.GetInnerCollectionType();
-        return AssetRegistry.CanBeAssignedToContentTypes(type, checkIsUrlType: true);
+        if (nodePresenter.Descriptor?.GetInnerCollectionType() is { } type)
+            return AssetRegistry.CanBeAssignedToContentTypes(type, checkIsUrlType: true);
+
+        return false;
     }
 
     /// <inheritdoc/>
     public override Task Execute(INodePresenter nodePresenter, object? parameter, object? preExecuteResult)
     {
-        return Fetch(Session, nodePresenter.Value);
+        return Fetch(session, nodePresenter.Value);
     }
 
     /// <summary>
@@ -58,9 +60,7 @@ public class FetchAssetCommand : NodePresenterCommandBase
         var asset = ContentReferenceHelper.GetReferenceTarget(session, content);
         if (asset != null)
         {
-            // FIXME xplat-editor
-            await Task.Yield();
-            //await session.Dispatcher.InvokeAsync(() => session.AssetCollection.SelectAssetCommand.Execute(asset));
+            await session.Dispatcher.InvokeAsync(() => session.AssetCollection.SelectAssetCommand.Execute(asset));
         }
     }
 }

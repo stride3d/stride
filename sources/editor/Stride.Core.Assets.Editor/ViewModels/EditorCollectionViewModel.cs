@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Presentation.ViewModels;
 using Stride.Core.Presentation.Collections;
@@ -8,8 +9,7 @@ using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.ViewModels;
 
-// TODO might not be needed, we can have an OpenedAssets collection in AssetCollectionViewModel
-public sealed class EditorCollectionViewModel : DispatcherViewModel
+public sealed class EditorCollectionViewModel : DispatcherViewModel, IAssetEditorsManager
 {
     private AssetEditorViewModel? activeEditor;
     private readonly ObservableList<AssetEditorViewModel> editors = [];
@@ -19,6 +19,14 @@ public sealed class EditorCollectionViewModel : DispatcherViewModel
         : base(session.ServiceProvider)
     {
         Session = session;
+        ServiceProvider.RegisterService(this);
+    }
+
+    public override void Destroy()
+    {
+        EnsureNotDestroyed(nameof(EditorCollectionViewModel));
+        ServiceProvider.UnregisterService(this);
+        base.Destroy();
     }
 
     public AssetEditorViewModel? ActiveEditor
@@ -47,5 +55,17 @@ public sealed class EditorCollectionViewModel : DispatcherViewModel
             editors.Add(editor);
             ActiveEditor = editor;
         }
+    }
+
+    public bool TryGetAssetEditor<TEditor>(AssetViewModel asset, [MaybeNullWhen(false)] out TEditor assetEditor) where TEditor : AssetEditorViewModel
+    {
+        if (openedAssets.TryGetValue(asset, out var found) && found is TEditor editor)
+        {
+            assetEditor = editor;
+            return true;
+        }
+
+        assetEditor = null;
+        return false;
     }
 }

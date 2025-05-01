@@ -16,7 +16,7 @@ public class ObjectGraphNodeBinding<TTargetType, TContentType> : GraphNodeBindin
 {
     protected IObjectNode Node;
 
-    public ObjectGraphNodeBinding(IObjectNode node, string propertyName, PropertyChangeDelegate propertyChanging, PropertyChangeDelegate propertyChanged, Func<TTargetType?, TContentType?> converter, IUndoRedoService actionService, bool notifyChangesOnly = true)
+    public ObjectGraphNodeBinding(IObjectNode node, string propertyName, PropertyChangeDelegate propertyChanging, PropertyChangeDelegate propertyChanged, Func<TTargetType?, TContentType?> converter, IUndoRedoService? actionService, bool notifyChangesOnly = true)
         : base(propertyName, propertyChanging, propertyChanged, converter, actionService, notifyChangesOnly)
     {
         Node = node;
@@ -67,7 +67,7 @@ public class ObjectGraphNodeBinding<TContentType> : ObjectGraphNodeBinding<TCont
     /// <param name="propertyChanged">The delegate to invoke when the node content has changed.</param>
     /// <param name="actionService"></param>
     /// <param name="notifyChangesOnly">If <c>True</c>, delegates will be invoked only if the content of the node has actually changed. Otherwise, they will be invoked every time the node is updated, even if the new value is equal to the previous one.</param>
-    public ObjectGraphNodeBinding(IObjectNode node, string propertyName, PropertyChangeDelegate propertyChanging, PropertyChangeDelegate propertyChanged, IUndoRedoService actionService, bool notifyChangesOnly = true)
+    public ObjectGraphNodeBinding(IObjectNode node, string propertyName, PropertyChangeDelegate propertyChanging, PropertyChangeDelegate propertyChanged, IUndoRedoService? actionService, bool notifyChangesOnly = true)
         : base(node, propertyName, propertyChanging, propertyChanged, x => x, actionService, notifyChangesOnly)
     {
     }

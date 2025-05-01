@@ -30,6 +30,7 @@ internal sealed class PluginService : IAssetsPluginService
     private readonly Dictionary<Type, Type> editorViewTypes = new();
     private readonly Dictionary<Type, Type> previewViewModelTypes = new();
     private readonly Dictionary<Type, Type> previewViewViewTypes = new();
+    private readonly List<Type> primitiveTypes = [];
 
     public PluginService(IDispatcherService dispatcherService)
     {
@@ -81,6 +82,11 @@ internal sealed class PluginService : IAssetsPluginService
                 AssertType(typeof(IPreviewView), registeredAssetPreviewViewTypes.Select(x => x.Value));
                 previewViewViewTypes.AddRange(registeredAssetPreviewViewTypes);
 
+                // Primitive types
+                var registeredPrimitiveTypes = new List<Type>();
+                editorPlugin.RegisterPrimitiveTypes(registeredPrimitiveTypes);
+                primitiveTypes.AddRange(registeredPrimitiveTypes);
+
                 // Template providers
                 dispatcherService.Invoke(() =>
                 {
@@ -125,6 +131,11 @@ internal sealed class PluginService : IAssetsPluginService
     public Type? GetPreviewViewModelType(Type previewType) => TypeHelpers.TryGetTypeOrBase(previewType, previewViewModelTypes);
 
     public Type? GetPreviewViewType(Type previewType) => TypeHelpers.TryGetTypeOrBase(previewType, previewViewViewTypes);
+
+    public IReadOnlyList<Type> GetPrimitiveTypes()
+    {
+        return primitiveTypes.AsReadOnly();
+    }
 
     private static void AssertType(Type baseType, Type specificType)
     {

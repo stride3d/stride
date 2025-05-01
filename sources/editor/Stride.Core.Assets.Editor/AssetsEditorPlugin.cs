@@ -42,5 +42,7 @@ public abstract class AssetsEditorPlugin : AssetsPlugin
 
     public abstract void RegisterAssetPreviewViewTypes(IDictionary<Type, Type> assetPreviewViewTypes);
 
+    public abstract void RegisterPrimitiveTypes(ICollection<Type> primitiveTypes);
+
     public abstract void RegisterTemplateProviders(ICollection<ITemplateProvider> templateProviders);
 }

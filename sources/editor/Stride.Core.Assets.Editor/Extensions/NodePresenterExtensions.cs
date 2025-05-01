@@ -47,11 +47,11 @@ public static class NodePresenterExtensions
     /// <param name="node">The node that contains the category.</param>
     /// <param name="categoryName">The name of the category.</param>
     /// <returns>The node that corresponds to the given category name, or <c>null</c>.</returns>
-    public static AssetVirtualNodePresenter GetCategory(this INodePresenter node, string categoryName)
+    public static AssetVirtualNodePresenter? GetCategory(this INodePresenter node, string? categoryName)
     {
         var categoryPropertyName = CategoryData.ComputeCategoryNodeName(categoryName);
         var category = node.Children.FirstOrDefault(x => x.Name == categoryPropertyName);
-        return (AssetVirtualNodePresenter)category;
+        return (AssetVirtualNodePresenter?)category;
     }
 
     /// <summary>
