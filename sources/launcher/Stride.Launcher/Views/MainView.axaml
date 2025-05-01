@@ -189,7 +189,7 @@
                             HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                             HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                             Background="{StaticResource BackgroundEmphasis}"
-                            IsEnabled="{Binding !ActiveVersion.IsProcessing}}"
+                            IsEnabled="{Binding !ActiveVersion.IsProcessing}"
                             IsVisible="{Binding ActiveVersion.CanStart}" />
                     <!-- Install specific version -->
                     <Button Command="{Binding ActiveVersion.DownloadCommand}"
@@ -198,8 +198,8 @@
                             HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                             Background="{StaticResource BackgroundEmphasis}"
                             IsEnabled="{Binding !ActiveVersion.IsProcessing}"
-                            IsVisible="{sd:MultiBinding {Binding ActiveVersion.DownloadCommand.IsEnabled}
-                                                        {Binding !ActiveVersion.CanStart}
+                            IsVisible="{sd:MultiBinding {Binding ActiveVersion.DownloadCommand.IsEnabled},
+                                                        {Binding !ActiveVersion.CanStart},
                                                         Converter={sd:AndMulti}}" />
                     <!-- Install latest version (nothing installed) -->
                     <Button Command="{Binding InstallLatestVersionCommand}"
@@ -208,7 +208,7 @@
                             HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                             Background="{StaticResource BackgroundEmphasis}"
                             IsEnabled="{Binding !IsSynchronizing}"
-                            IsVisible="{Binding ActiveVersion, Converter={sd:Chained {sd:ObjectToBool} {sd:InvertBool}}}" />
+                            IsVisible="{Binding ActiveVersion, Converter={sd:Chained {sd:ObjectToBool}, {sd:InvertBool}}}" />
                   </Grid>
                   <ComboBox x:Name="FrameworkSelector" Margin="0,4"
                             HorizontalAlignment="Stretch"
@@ -264,8 +264,8 @@
                       </Grid>
                     </DataTemplate>
                   </StackPanel.DataTemplates>
-                  <ContentControl Grid.Column="0" Margin="2" Content="{Binding VsixPackage2019}"/>
-                  <ContentControl Grid.Column="1" Margin="2" Content="{Binding VsixPackage2022}"/>
+                  <ContentControl Margin="2" Content="{Binding VsixPackage2019}"/>
+                  <ContentControl Margin="2" Content="{Binding VsixPackage2022}"/>
                 </StackPanel>
               </Border>
               <Border DockPanel.Dock="Bottom"
@@ -344,7 +344,7 @@
                               <!-- Update button -->
                               <Button Margin="4,0,0,0" Width="32" Height="32"
                                       Command="{Binding DownloadCommand}"
-                                      IsVisible="{sd:MultiBinding {Binding CanBeDownloaded} {Binding CanDelete} Converter={sd:AndMulti}}"
+                                      IsVisible="{sd:MultiBinding {Binding CanBeDownloaded}, {Binding CanDelete}, Converter={sd:AndMulti}}"
                                       ToolTip.Tip="{Binding ServerVersionFullName, StringFormat={x:Static l:Strings.ToolTipUpdate}}">
                                 <Interaction.Behaviors>
                                   <sd:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding Launcher.CurrentToolTip}"
@@ -356,7 +356,7 @@
                               <!-- Download button -->
                               <Button Margin="4,0,0,0" Width="32" Height="32"
                                       Command="{Binding DownloadCommand}"
-                                      IsVisible="{sd:MultiBinding {Binding CanBeDownloaded} {Binding !CanDelete} Converter={sd:AndMulti}}"
+                                      IsVisible="{sd:MultiBinding {Binding CanBeDownloaded}, {Binding !CanDelete}, Converter={sd:AndMulti}}"
                                       ToolTip.Tip="{Binding FullName, StringFormat={x:Static l:Strings.ToolTipDownload}}">
                                 <Interaction.Behaviors>
                                   <sd:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding Launcher.CurrentToolTip}"
@@ -387,7 +387,7 @@
                                 <Image Source="/Assets/Images/list.png"
                                        Width="20" Height="20" />
                               </ToggleButton>
-                              <Popup IsOpen="{Binding IsChecked, ElementName=Toggle, Mode=TwoWay}" IsLightDismissEnabled="True">
+                              <Popup IsOpen="{Binding #Toggle.IsChecked, Mode=TwoWay}" IsLightDismissEnabled="True">
                                 <Border Margin="4" Background="#434343">
                                   <Border.Effect>
                                     <DropShadowEffect BlurRadius="5" Opacity="0.4" />
@@ -446,10 +446,10 @@
                                            HorizontalAlignment="Left" VerticalAlignment="Center">
                                   <Run Text="{Binding DisplayName, StringFormat={x:Static l:Strings.VersionButton}}"/>
                                   <!-- Careful here, there must not be any space or line-break between the next two Run tags! -->
-                                  <Run Text="{Binding !CanDelete, Converter={sd:BoolToParam} ConverterParameter={x:Static l:Strings.VersionButtonUninstalled}
-                                       }"/><Run Text="{sd:MultiBinding {Binding CanDelete} {Binding CanBeDownloaded} {Binding IsLatestPackageRemote} Converter={sd:MultiChained
-                                       {sd:AndMulti} {sd:BoolToParam} Parameter1={x:Static l:Strings.VersionButtonUpdateAvailable}}}"/><Run Text="{sd:MultiBinding
-                                       {Binding CanDelete} {Binding CanBeDownloaded} {Binding IsLatestPackageLocal} Converter={sd:MultiChained {sd:AndMulti} {sd:BoolToParam},
+                                  <Run Text="{Binding !CanDelete, Converter={sd:BoolToParam}, ConverterParameter={x:Static l:Strings.VersionButtonUninstalled}
+                                       }"/><Run Text="{sd:MultiBinding {Binding CanDelete}, {Binding CanBeDownloaded}, {Binding IsLatestPackageRemote}, Converter={sd:MultiChained
+                                       {sd:AndMulti}, {sd:BoolToParam}, Parameter1={x:Static l:Strings.VersionButtonUpdateAvailable}}}"/><Run Text="{sd:MultiBinding
+                                       {Binding CanDelete}, {Binding CanBeDownloaded}, {Binding IsLatestPackageLocal}, Converter={sd:MultiChained {sd:AndMulti}, {sd:BoolToParam},
                                         Parameter1={x:Static l:Strings.VersionButtonLocalUpdateAvailable}}}"/>
                                 </TextBlock>
                               </Grid>
@@ -472,10 +472,10 @@
                           <TextBlock Text="{x:Static l:Strings.ToggleShowBetaVersions}">
                             <Interaction.Behaviors>
                               <DataTriggerBehavior Binding="{Binding ShowBetaVersions}" Value="True">
-                                <ChangePropertyAction TargetObject="{Binding $self}" PropertyName="Text" Value="{x:Static l:Strings.ToggleHideBetaVersions}" />
+                                <ChangePropertyAction PropertyName="Text" Value="{x:Static l:Strings.ToggleHideBetaVersions}" />
                               </DataTriggerBehavior>
                               <DataTriggerBehavior Binding="{Binding ShowBetaVersions}" Value="False">
-                                <ChangePropertyAction TargetObject="{Binding $self}" PropertyName="Text" Value="{x:Static l:Strings.ToggleShowBetaVersions}" />
+                                <ChangePropertyAction PropertyName="Text" Value="{x:Static l:Strings.ToggleShowBetaVersions}" />
                               </DataTriggerBehavior>
                             </Interaction.Behaviors>
                           </TextBlock>
@@ -554,7 +554,7 @@
                                   <!-- Unknown -->
                                   <TextBlock Text="{x:Static l:Strings.UnknownVersion}"
                                              FontSize="14"
-                                             IsVisible="{Binding StrideVersionName, Converter={sd:Chained {sd:ObjectToBool} {sd:InvertBool}}}" />
+                                             IsVisible="{Binding StrideVersionName, Converter={sd:Chained {sd:ObjectToBool}, {sd:InvertBool}}}" />
                                   <TextBlock Text="{Binding Name}"
                                              FontSize="16" FontWeight="Bold" />
                                 </DockPanel>
