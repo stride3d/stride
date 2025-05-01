@@ -28,7 +28,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\assets\Stride.Core.Packages\Stride.Core.Packages.csproj" />
-    <ProjectReference Include="..\..\xplat-editor\Stride.Core.Presentation.Avalonia\Stride.Core.Presentation.Avalonia.csproj" />
+    <ProjectReference Include="..\..\presentation\Stride.Core.Presentation.Avalonia\Stride.Core.Presentation.Avalonia.csproj" />
   </ItemGroup>
 
   <ItemGroup>
