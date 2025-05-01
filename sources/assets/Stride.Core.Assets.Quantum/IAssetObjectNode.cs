@@ -20,11 +20,11 @@ public interface IAssetObjectNode : IAssetNode, IObjectNode
 
     bool IsItemDeleted(ItemId itemId);
 
-    void Restore(object restoredItem, ItemId id);
+    void Restore(object? restoredItem, ItemId id);
 
-    void Restore(object restoredItem, NodeIndex index, ItemId id);
+    void Restore(object? restoredItem, NodeIndex index, ItemId id);
 
-    void RemoveAndDiscard(object item, NodeIndex itemIndex, ItemId id);
+    void RemoveAndDiscard(object? item, NodeIndex itemIndex, ItemId id);
 
     bool IsItemInherited(NodeIndex index);
 

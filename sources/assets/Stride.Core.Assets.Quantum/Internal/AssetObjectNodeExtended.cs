@@ -120,7 +120,7 @@ internal struct AssetObjectNodeExtended
         return result;
     }
 
-    public void Restore(object restoredItem, ItemId id)
+    public void Restore(object? restoredItem, ItemId id)
     {
         if (TryGetCollectionItemIds(node.Retrieve(), out var ids))
         {
@@ -131,7 +131,7 @@ internal struct AssetObjectNodeExtended
         node.Add(restoredItem);
     }
 
-    public void Restore(object restoredItem, NodeIndex index, ItemId id)
+    public void Restore(object? restoredItem, NodeIndex index, ItemId id)
     {
         restoringId = id;
         node.Add(restoredItem, index);
@@ -143,7 +143,7 @@ internal struct AssetObjectNodeExtended
         }
     }
 
-    public void RemoveAndDiscard(object item, NodeIndex itemIndex, ItemId id)
+    public void RemoveAndDiscard(object? item, NodeIndex itemIndex, ItemId id)
     {
         node.Remove(item, itemIndex);
         if (TryGetCollectionItemIds(node.Retrieve(), out var ids))

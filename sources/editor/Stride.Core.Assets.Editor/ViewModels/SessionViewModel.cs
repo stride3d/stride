@@ -5,6 +5,7 @@ using System.Collections.Concurrent;
 using System.Collections.Specialized;
 using Stride.Core.Assets.Analysis;
 using Stride.Core.Assets.Editor.Components.Properties;
+using Stride.Core.Assets.Editor.Components.Transactions;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Presentation.ViewModels;
 using Stride.Core.Assets.Quantum;
@@ -62,6 +63,7 @@ public sealed partial class SessionViewModel : DispatcherViewModel, ISessionView
         if (ActionService is { } actionService)
         {
             undoRedoStackPage = debugService.CreateUndoRedoDebugPage(actionService, "Undo/redo stack");
+            ActionHistory = new ActionHistoryViewModel(this);
         }
 
         ActiveProperties = AssetCollection.AssetViewProperties;
@@ -127,6 +129,10 @@ public sealed partial class SessionViewModel : DispatcherViewModel, ISessionView
         }
     }
 
+    public ActionHistoryViewModel? ActionHistory { get; }
+
+    public IUndoRedoService? ActionService => ServiceProvider.TryGet<IUndoRedoService>();
+
     public IEnumerable<AssetViewModel> AllAssets => AllPackages.SelectMany(x => x.Assets);
 
     public IEnumerable<PackageViewModel> AllPackages => PackageCategories.Values.SelectMany(x => x.Content);
@@ -181,8 +187,6 @@ public sealed partial class SessionViewModel : DispatcherViewModel, ISessionView
 
     public ICommandBase PreviousSelectionCommand { get; }
 
-    internal IUndoRedoService? ActionService => ServiceProvider.TryGet<IUndoRedoService>();
-
     internal PackageSession PackageSession => session;
 
     internal IAssetsPluginService PluginService => ServiceProvider.Get<IAssetsPluginService>();
@@ -193,6 +197,11 @@ public sealed partial class SessionViewModel : DispatcherViewModel, ISessionView
     /// Raised when some assets are modified.
     /// </summary>
     public event EventHandler<AssetChangedEventArgs>? AssetPropertiesChanged;
+
+    /// <summary>
+    /// Raised when some assets are deleted or undeleted.
+    /// </summary>
+    public event EventHandler<NotifyCollectionChangedEventArgs?> DeletedAssetsChanged;
 
     /// <summary>
     /// Raised when the session state changed (e.g. current package).
@@ -211,6 +220,7 @@ public sealed partial class SessionViewModel : DispatcherViewModel, ISessionView
     {
         EnsureNotDestroyed(nameof(SessionViewModel));
 
+        ActionHistory?.Destroy();
         AssetLog.Destroy();
         Thumbnails.Destroy();
 
@@ -339,9 +349,14 @@ public sealed partial class SessionViewModel : DispatcherViewModel, ISessionView
 
     private void PackageCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
-        // FIXME xplat-editor
-        //e.NewItems?.Cast<PackageViewModel>().ForEach(x => x.DeletedAssets.CollectionChanged += DeletedAssetChanged);
-        //e.OldItems?.Cast<PackageViewModel>().ForEach(x => x.DeletedAssets.CollectionChanged -= DeletedAssetChanged);
+        e.NewItems?.Cast<PackageViewModel>().ForEach(x => x.DeletedAssets.CollectionChanged += DeletedAssetChanged);
+        e.OldItems?.Cast<PackageViewModel>().ForEach(x => x.DeletedAssets.CollectionChanged -= DeletedAssetChanged);
+        return;
+
+        void DeletedAssetChanged(object? _, NotifyCollectionChangedEventArgs ev)
+        {
+            DeletedAssetsChanged?.Invoke(this, ev);
+        }
     }
 
     private async Task ProcessAddedPackages(IEnumerable<PackageViewModel> packages)
@@ -364,7 +379,7 @@ public sealed partial class SessionViewModel : DispatcherViewModel, ISessionView
         CurrentProject = project;
         AllAssets.ForEach(x => x.Dependencies.NotifyRootAssetChange(false));
         // FIXME xplat-editor
-        //SelectionIsRoot = ActiveAssetView.SelectedAssets.All(x => x.Dependencies.IsRoot);
+        //SelectionIsRoot = AssetCollection.SelectedAssets.All(x => x.Dependencies.IsRoot);
     }
 
     private void UpdateCurrentProject(ProjectViewModel? oldValue, ProjectViewModel? newValue)

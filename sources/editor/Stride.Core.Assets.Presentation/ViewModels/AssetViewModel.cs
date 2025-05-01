@@ -3,9 +3,10 @@
 
 using System.Reflection;
 using Stride.Core.Assets.Presentation.Components.Properties;
+using Stride.Core.Assets.Presentation.Quantum;
 using Stride.Core.Assets.Quantum;
+using Stride.Core.Presentation.Dirtiables;
 using Stride.Core.Presentation.Quantum;
-using Stride.Core.Presentation.Services;
 using Stride.Core.Quantum;
 
 namespace Stride.Core.Assets.Presentation.ViewModels;
@@ -50,6 +51,12 @@ public abstract class AssetViewModel : SessionObjectViewModel, IAssetPropertyPro
 
         name = Path.GetFileName(assetItem.Location);
         PropertyGraph = Session.GraphContainer.TryGetGraph(assetItem.Id);
+        if (PropertyGraph is not null)
+        {
+            PropertyGraph.BaseContentChanged += BaseContentChanged;
+            PropertyGraph.Changed += AssetPropertyChanged;
+            PropertyGraph.ItemChanged += AssetPropertyChanged;
+        }
         Initializing = false;
     }
 
@@ -120,9 +127,6 @@ public abstract class AssetViewModel : SessionObjectViewModel, IAssetPropertyPro
 
     protected Package Package => Directory.Package.Package;
 
-    // FIXME xplat-editor
-    protected internal IUndoRedoService? UndoRedoService => ServiceProvider.TryGet<IUndoRedoService>();
-
     /// <summary>
     /// Initializes this asset. This method is guaranteed to be called once every other assets are loaded in the session.
     /// </summary>
@@ -187,6 +191,45 @@ public abstract class AssetViewModel : SessionObjectViewModel, IAssetPropertyPro
     {
         var result = new HashSet<AssetViewModel>(assets.SelectMany(x => x.Dependencies.RecursiveReferencedAssets));
         return result;
+    }
+    
+    private void BaseContentChanged(INodeChangeEventArgs e, IGraphNode node)
+    {
+        // FIXME xplat-editor
+        // Ignore base change if we are fixing up assets.
+        //if (Session.IsInFixupAssetContext)
+        //    return;
+
+        if (!UndoRedoService.UndoRedoInProgress)
+        {
+            // Ensure this asset will be marked as dirty
+            UndoRedoService.PushOperation(new EmptyDirtyingOperation(Dirtiables));
+        }
+    }
+
+    private void AssetPropertyChanged(object? sender, INodeChangeEventArgs e)
+    {
+        // FIXME xplat-editor
+        // Ignore asset property change if we are fixing up assets.
+        //if (Session.IsInFixupAssetContext)
+        //    return;
+
+        var index = (e as ItemChangeEventArgs)?.Index ?? NodeIndex.Empty;
+        var assetNodeChange = (IAssetNodeChangeEventArgs)e;
+        var node = (IAssetNode)e.Node;
+        if (UndoRedoService?.UndoRedoInProgress == false)
+        {
+            // Don't create action items if the change comes from the Base
+            if (!PropertyGraph!.UpdatingPropertyFromBase)
+            {
+                var overrideChange = new AssetContentValueChangeOperation(node, e.ChangeType, index, e.OldValue, e.NewValue, assetNodeChange.PreviousOverride, assetNodeChange.NewOverride, assetNodeChange.ItemId, Dirtiables);
+                UndoRedoService.PushOperation(overrideChange);
+            }
+        }
+
+        // FIXME xplat-editor this method was marked as obsolete
+        //var memberName = (node as IMemberNode)?.Name;
+        //OnAssetPropertyChanged(memberName, node, index, e.OldValue, e.NewValue);
     }
 
     AssetViewModel IAssetPropertyProviderViewModel.RelatedAsset => this;

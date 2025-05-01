@@ -51,7 +51,7 @@ public class ArrayDescriptor : ObjectDescriptor
         return ((Array)array).GetValue(index);
     }
 
-    public void SetValue(object array, int index, object value)
+    public void SetValue(object array, int index, object? value)
     {
         ((Array)array).SetValue(value, index);
     }

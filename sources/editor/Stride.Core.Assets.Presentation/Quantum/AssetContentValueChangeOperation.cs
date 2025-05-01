@@ -3,12 +3,12 @@
 
 using System.Text;
 using Stride.Core.Assets.Quantum;
-using Stride.Core.Reflection;
-using Stride.Core.Transactions;
 using Stride.Core.Presentation.Dirtiables;
 using Stride.Core.Quantum;
+using Stride.Core.Reflection;
+using Stride.Core.Transactions;
 
-namespace Stride.Core.Assets.Editor.Quantum;
+namespace Stride.Core.Assets.Presentation.Quantum;
 
 public class AssetContentValueChangeOperation : ContentValueChangeOperation
 {
@@ -16,7 +16,7 @@ public class AssetContentValueChangeOperation : ContentValueChangeOperation
     private readonly OverrideType previousOverride;
     private readonly ItemId itemId;
 
-    public AssetContentValueChangeOperation(IAssetNode node, ContentChangeType changeType, NodeIndex index, object oldValue, object newValue, OverrideType previousOverride, OverrideType newOverride, ItemId itemId, IEnumerable<IDirtiable> dirtiables)
+    public AssetContentValueChangeOperation(IAssetNode node, ContentChangeType changeType, NodeIndex index, object? oldValue, object? newValue, OverrideType previousOverride, OverrideType newOverride, ItemId itemId, IEnumerable<IDirtiable> dirtiables)
         : base(node, changeType, index, oldValue, newValue, dirtiables)
     {
         this.previousOverride = previousOverride;
@@ -91,7 +91,7 @@ public class AssetContentValueChangeOperation : ContentValueChangeOperation
         }
         base.Undo();
         // If this undo restored inheritance from the base, we have extra-work to do to cancel the override information.
-        if (!previousOverride.HasFlag(OverrideType.New) && Node.BaseNode != null)
+        if (!previousOverride.HasFlag(OverrideType.New) && Node.BaseNode is not null)
         {
             if (ChangeType != ContentChangeType.CollectionAdd)
             {
@@ -119,7 +119,7 @@ public class AssetContentValueChangeOperation : ContentValueChangeOperation
     protected override void Redo()
     {
         base.Redo();
-        if (!newOverride.HasFlag(OverrideType.New) && Node.BaseNode != null)
+        if (!newOverride.HasFlag(OverrideType.New) && Node.BaseNode is not null)
         {
             if (Index != NodeIndex.Empty)
                 ((IAssetObjectNode)Node).ResetOverrideRecursively(Index);
@@ -128,7 +128,7 @@ public class AssetContentValueChangeOperation : ContentValueChangeOperation
         }
     }
 
-    protected override void ApplyUndo(object oldValue, object newValue, ContentChangeType type, bool isUndo)
+    protected override void ApplyUndo(object? oldValue, object? newValue, ContentChangeType type, bool isUndo)
     {
         var memberNode = Node as IAssetMemberNode;
         var objectNode = Node as IAssetObjectNode;
