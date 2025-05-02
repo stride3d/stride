@@ -9,7 +9,7 @@
              xmlns:behaviors="clr-namespace:Stride.Core.Assets.Editor.Avalonia.Behaviors;assembly=Stride.Core.Assets.Editor.Avalonia"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="Stride.GameStudio.Avalonia.Views.PropertyGridView"
-             x:DataType="vm:PropertiesViewModel">
+             x:DataType="vm:SessionObjectPropertiesViewModel">
   <UserControl.Resources>
     <ControlTheme x:Key="PropertyExpanderTheme" TargetType="Expander">
       <Setter Property="Padding" Value="10,0,0,0"/>
@@ -47,7 +47,8 @@
         </ControlTemplate>
       </Setter>
     </ControlTheme>
-    <ControlTheme x:Key="{x:Type sd:PropertyViewItem}" TargetType="sd:PropertyViewItem">
+    <ControlTheme x:Key="{x:Type sd:PropertyViewItem}" TargetType="sd:PropertyViewItem"
+                  x:DataType="pqvm:NodeViewModel">
       <Setter Property="Background" Value="Transparent"/>
       <Setter Property="Increment" Value="12"/>
       <Setter Property="HorizontalAlignment" Value="Stretch"/>
@@ -68,7 +69,7 @@
                                   Content="{TemplateBinding HeaderedContentControl.Header}"
                                   ContentTemplate="{TemplateBinding HeaderTemplate}"
                                   HorizontalAlignment="{TemplateBinding Control.HorizontalAlignment}"
-                                  IsVisible="{sd:MultiBinding {Binding !$parent[sd:PropertyView].DataContext.ShowOverridesOnly, FallbackValue={sd:True}},
+                                  IsVisible="{sd:MultiBinding {Binding !$parent[sd:PropertyView].((vm:SessionObjectPropertiesViewModel)DataContext).ShowOverridesOnly, FallbackValue={sd:True}},
                                                                {Binding [IsOverridden]},
                                                                {Binding ![HasBase]},
                                                                Converter={sd:OrMulti}}"/>
@@ -82,7 +83,7 @@
                                     Content="{TemplateBinding HeaderedContentControl.Header}"
                                     ContentTemplate="{x:Static aev:PropertyViewHelper.FooterProviders}"
                                     HorizontalAlignment="{TemplateBinding Control.HorizontalAlignment}"
-                                    IsVisible="{sd:MultiBinding {Binding !$parent[sd:PropertyView].DataContext.ShowOverridesOnly, FallbackValue={sd:True}},
+                                    IsVisible="{sd:MultiBinding {Binding !$parent[sd:PropertyView].((vm:SessionObjectPropertiesViewModel)DataContext).ShowOverridesOnly, FallbackValue={sd:True}},
                                                                 {Binding [IsOverridden]},
                                                                 {Binding ![HasBase]},
                                                                 Converter={sd:OrMulti}}"/>

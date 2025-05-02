@@ -48,7 +48,7 @@
           </Button>
         </UniformGrid>
         <TextBox x:Name="TextBox" IsReadOnly="True" Margin="5"
-                 Text="{Binding NodeValue.Entity.Name, Mode=OneWay}"/>
+                 Text="{Binding ((engine:EntityComponent)NodeValue).Entity.Name, Mode=OneWay, FallbackValue={x:Null}}"/>
       </DockPanel>
     </DataTemplate>
   </aev:EntityComponentReferenceTemplateProvider>
@@ -108,7 +108,7 @@
           </Button>
         </UniformGrid>
         <TextBox x:Name="TextBox" IsReadOnly="True" Margin="5"
-                 Text="{Binding NodeValue.Name, Mode=OneWay}"/>
+                 Text="{Binding ((engine:Entity)NodeValue).Name, Mode=OneWay, FallbackValue={x:Null}}"/>
       </DockPanel>
     </DataTemplate>
   </aev:EntityReferenceTemplateProvider>
