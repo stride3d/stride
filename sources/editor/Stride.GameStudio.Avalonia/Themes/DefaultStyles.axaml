@@ -96,7 +96,7 @@
                    Text="{Binding Value, Converter={sd:ColorConverter}, RelativeSource={RelativeSource TemplatedParent}}"
                    Watermark="{TemplateBinding Watermark}"/>
           <Popup Grid.Column="0"
-                 IsOpen="{Binding #PickerToggleButton.IsChecked}" IsLightDismissEnabled="True">
+                 IsOpen="{Binding #PickerToggleButton.IsChecked, Mode=TwoWay}" IsLightDismissEnabled="True">
             <Grid MinWidth="200" MinHeight="200"
                   MaxWidth="400" MaxHeight="400">
               <TabControl>
@@ -154,7 +154,7 @@
                    Text="{Binding Value, Converter={sd:ColorConverter}, RelativeSource={RelativeSource TemplatedParent}}"
                    Watermark="{TemplateBinding Watermark}"/>
           <Popup Grid.Column="0"
-                 IsOpen="{Binding #PickerToggleButton.IsChecked}" IsLightDismissEnabled="True">
+                 IsOpen="{Binding #PickerToggleButton.IsChecked, Mode=TwoWay}" IsLightDismissEnabled="True">
             <Grid MinWidth="200" MinHeight="200"
                   MaxWidth="400" MaxHeight="400">
               <TabControl>
@@ -212,7 +212,7 @@
                    Text="{Binding Value, Converter={sd:ColorConverter}, RelativeSource={RelativeSource TemplatedParent}}"
                    Watermark="{TemplateBinding Watermark}"/>
           <Popup Grid.Column="0"
-                 IsOpen="{Binding #PickerToggleButton.IsChecked}" IsLightDismissEnabled="True">
+                 IsOpen="{Binding #PickerToggleButton.IsChecked, Mode=TwoWay}" IsLightDismissEnabled="True">
             <Grid MinWidth="200" MinHeight="200"
                   MaxWidth="400" MaxHeight="400">
               <TabControl>

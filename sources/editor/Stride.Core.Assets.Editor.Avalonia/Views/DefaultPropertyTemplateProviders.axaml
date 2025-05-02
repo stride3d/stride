@@ -1254,7 +1254,7 @@
         </ToggleButton>
         <Popup Grid.Column="0"
                IsLightDismissEnabled="True"
-               IsOpen="{Binding Path=#ToggleButton2.IsChecked}">
+               IsOpen="{Binding #ToggleButton2.IsChecked, Mode=TwoWay}">
           <Grid MinWidth="200" MaxWidth="400" MaxHeight="200">
             <DockPanel>
               <UniformGrid DockPanel.Dock="Bottom"
