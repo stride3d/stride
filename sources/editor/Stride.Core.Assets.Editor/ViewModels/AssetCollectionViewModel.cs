@@ -12,6 +12,37 @@ using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.ViewModels;
 
+public enum DisplayAssetMode
+{
+    AssetInSelectedFolderOnly,
+    AssetInSelectedFolderAndSubFolder,
+    AssetAndFolderInSelectedFolder,
+}
+
+public enum FilterCategory
+{
+    AssetName,
+    AssetTag,
+    AssetType,
+}
+
+public enum SortRule
+{
+    Name,
+    TypeOrderThenName,
+    DirtyThenName,
+    ModificationDateThenName,
+}
+
+[DataContract(nameof(AssetFilterViewModelData))]
+public sealed class AssetFilterViewModelData
+{
+    public string DisplayName = "";
+    public string Filter = "";
+    public bool IsActive = false;
+    public FilterCategory category = FilterCategory.AssetName;
+}
+
 public sealed class AssetCollectionViewModel : DispatcherViewModel
 {
     private readonly ObservableSet<AssetViewModel> assets = [];
