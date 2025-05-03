@@ -2,7 +2,6 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using BepuPhysics.Constraints;
-using Stride.BepuPhysics.Definitions;
 using Stride.BepuPhysics.Systems;
 using Stride.Core;
 using Stride.Core.Mathematics;

@@ -2,7 +2,6 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using BepuPhysics.Constraints;
-using Stride.BepuPhysics.Definitions;
 using Stride.BepuPhysics.Systems;
 using Stride.Core;
 using Stride.Core.Mathematics;
@@ -18,6 +17,12 @@ public sealed class TwistMotorConstraintComponent : TwoBodyConstraintComponent<T
 {
     public TwistMotorConstraintComponent() => BepuConstraint = new() { Settings = new MotorSettings(1000, 10) };
 
+    /// <summary>
+    /// Local twist axis attached to body A
+    /// </summary>
+    /// <userdoc>
+    /// Local twist axis attached to body A
+    /// </userdoc>
     public Vector3 LocalAxisA
     {
         get
@@ -31,6 +36,12 @@ public sealed class TwistMotorConstraintComponent : TwoBodyConstraintComponent<T
         }
     }
 
+    /// <summary>
+    /// Local twist axis attached to body B
+    /// </summary>
+    /// <userdoc>
+    /// Local twist axis attached to body B
+    /// </userdoc>
     public Vector3 LocalAxisB
     {
         get
@@ -44,6 +55,12 @@ public sealed class TwistMotorConstraintComponent : TwoBodyConstraintComponent<T
         }
     }
 
+    /// <summary>
+    /// Goal relative twist velocity around the body axes
+    /// </summary>
+    /// <userdoc>
+    /// Goal relative twist velocity around the body axes
+    /// </userdoc>
     public float TargetVelocity
     {
         get { return BepuConstraint.TargetVelocity; }

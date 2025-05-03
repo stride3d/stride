@@ -2,7 +2,6 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using BepuPhysics.Constraints;
-using Stride.BepuPhysics.Definitions;
 using Stride.BepuPhysics.Systems;
 using Stride.Core;
 using Stride.Core.Mathematics;
@@ -44,6 +43,7 @@ public sealed class SwingLimitConstraintComponent : TwoBodyConstraintComponent<S
         }
     }
 
+    [DataMemberIgnore]
     public float MinimumDot
     {
         get { return BepuConstraint.MinimumDot; }
@@ -54,6 +54,10 @@ public sealed class SwingLimitConstraintComponent : TwoBodyConstraintComponent<S
         }
     }
 
+    /// <remarks>
+    /// This is just a shortcut to <see cref="MinimumDot"/> were the value is in radians
+    /// </remarks>
+    /// <userdoc> In radians </userdoc>
     public float MaximumSwingAngle
     {
         get { return (float)Math.Acos(MinimumDot); }

@@ -16,6 +16,12 @@ public sealed class VolumeConstraintComponent : FourBodyConstraintComponent<Volu
 {
     public VolumeConstraintComponent() => BepuConstraint = new() { SpringSettings = new SpringSettings(30, 5) };
 
+    /// <summary>
+    /// 6 times the target volume of the tetrahedra. Computed from (ab x ac) * ad; this may be negative depending on the winding of the tetrahedron.
+    /// </summary>
+    /// <userdoc>
+    /// 6 times the target volume of the tetrahedra. Computed from (ab x ac) * ad; this may be negative depending on the winding of the tetrahedron.
+    /// </userdoc>
     public float TargetScaledVolume
     {
         get { return BepuConstraint.TargetScaledVolume; }

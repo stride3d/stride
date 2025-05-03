@@ -2,7 +2,6 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using BepuPhysics.Constraints;
-using Stride.BepuPhysics.Definitions;
 using Stride.BepuPhysics.Systems;
 using Stride.Core;
 using Stride.Core.Mathematics;
@@ -11,6 +10,12 @@ using Stride.Engine.Design;
 
 namespace Stride.BepuPhysics.Constraints;
 
+/// <summary>
+/// Constrains two bodies' position to a plane local to the first body
+/// </summary>
+/// <userdoc>
+/// Constrains two bodies' position to a plane local to the first body
+/// </userdoc>
 [DataContract]
 [DefaultEntityComponentProcessor(typeof(ConstraintProcessor), ExecutionMode = ExecutionMode.Runtime)]
 [ComponentCategory("Physics - Bepu Constraint")]
@@ -50,6 +55,12 @@ public sealed class LinearAxisServoConstraintComponent : TwoBodyConstraintCompon
         }
     }
 
+    /// <summary>
+    /// Direction of the plane normal in the local space of body A
+    /// </summary>
+    /// <userdoc>
+    /// Direction of the plane normal in the local space of body A
+    /// </userdoc>
     public Vector3 LocalPlaneNormal
     {
         get
@@ -63,6 +74,12 @@ public sealed class LinearAxisServoConstraintComponent : TwoBodyConstraintCompon
         }
     }
 
+    /// <summary>
+    /// Target offset from A's plane anchor to B's anchor along the plane normal
+    /// </summary>
+    /// <userdoc>
+    /// Target offset from A's plane anchor to B's anchor along the plane normal
+    /// </userdoc>
     public float TargetOffset
     {
         get
