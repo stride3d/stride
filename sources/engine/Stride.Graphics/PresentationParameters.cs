@@ -75,7 +75,7 @@ namespace Stride.Graphics
         public ColorSpace ColorSpace;
 
         /// <summary>
-        /// The colorspace type used for the swapchain output.
+        /// The colorspace type used for the swapchain output. Currently only supported by the DirectX backend.
         /// </summary>
         public ColorSpaceType OutputColorSpace;
         

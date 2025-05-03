@@ -160,7 +160,7 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        /// Sets the output color space of the presenter and the format for the backbuffer.
+        /// Sets the output color space of the presenter and the format for the backbuffer. Currently only supported by the DirectX backend.
         /// Use the following compinations: <br />
         /// Render to SDR Display with gamma 2.2: <see cref="ColorSpaceType.RgbFullG22NoneP709"/> with <see cref="PixelFormat.R8G8B8A8_UNorm"/>, <see cref="PixelFormat.R8G8B8A8_UNorm_SRgb"/>, <see cref="PixelFormat.B8G8R8A8_UNorm"/>, <see cref="PixelFormat.B8G8R8A8_UNorm"/>. <br />
         /// Render to HDR Display in scRGB (standard linear), windows DWM will do the color conversion: <see cref="ColorSpaceType.RgbFullG10NoneP709"/> with <see cref="PixelFormat.R16G16B16A16_Float"/> <br />

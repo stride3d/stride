@@ -96,7 +96,7 @@ namespace Stride.Games
         }
 
         /// <summary>
-        /// Gets or sets the preferred presenter output color space. Can be used to render to HDR monitors.
+        /// Gets or sets the preferred presenter output color space. Can be used to render to HDR monitors. Currently only supported by the DirectX backend.
         /// See: https://learn.microsoft.com/en-us/windows/win32/direct3darticles/high-dynamic-range
         /// </summary>
         /// <value>The preferred presenter output color space.</value>
