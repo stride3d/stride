@@ -11,6 +11,7 @@ using Stride.Graphics;
 using Form = System.Windows.Forms.Form;
 using Point = System.Drawing.Point;
 using Size = System.Drawing.Size;
+using Color = Stride.Core.Mathematics.Color;
 
 namespace Stride.Games
 {
@@ -271,6 +272,12 @@ namespace Stride.Games
                 Control.Visible = value;
             }
         }
+
+        /// <inheritdoc />
+        public override float Opacity { get; set; }
+
+        /// <inheritdoc />
+        public override Color BackgroundColor { get; set; }
 
         public override Int2 Position
         {
