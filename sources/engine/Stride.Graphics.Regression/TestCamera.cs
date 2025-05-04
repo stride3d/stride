@@ -5,6 +5,7 @@ using System;
 using System.Threading.Tasks;
 using Stride.Core.Mathematics;
 using Stride.Engine;
+using Stride.Games;
 using Stride.Input;
 using Stride.Rendering.Compositing;
 
@@ -161,7 +162,8 @@ namespace Stride.Graphics.Regression
 
         public override async Task Execute()
         {
-            Game.Window.ClientSizeChanged += OnClientSizeChanged;
+            var window = Game.Services.GetService<IWindowedPlatform>();
+            window.MainWindow.ClientSizeChanged += OnClientSizeChanged;
 
             SetCamera();
 

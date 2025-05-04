@@ -14,11 +14,12 @@ using Stride.Engine.Design;
 using Stride.Graphics;
 using Stride.Rendering.Compositing;
 using Stride.Shaders.Compiler;
+using Stride.Games;
 
 namespace Stride.Editor.Preview
 {
     /// <summary>
-    /// A <see cref="Game"/> instance specialized to render previews and create thumbnails
+    /// A <see cref="DefaultGame"/> instance specialized to render previews and create thumbnails
     /// </summary>
     public class PreviewGame : EditorGame.Game.EditorServiceGame
     {
@@ -43,7 +44,7 @@ namespace Stride.Editor.Preview
 
         private Scene previewScene;
 
-        public PreviewGame(IEffectCompiler effectCompiler)
+        public PreviewGame(IEffectCompiler effectCompiler, GamePlatform gamePlatform) : base(gamePlatform)
         {
             this.effectCompiler = effectCompiler;
         }

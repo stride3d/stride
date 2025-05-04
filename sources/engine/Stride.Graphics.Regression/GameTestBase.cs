@@ -22,7 +22,7 @@ using System.Text.RegularExpressions;
 
 namespace Stride.Graphics.Regression
 {
-    public abstract class GameTestBase : Game
+    public abstract class GameTestBase : DefaultGame
     {
         public static bool ForceInteractiveMode;
 
@@ -56,9 +56,11 @@ namespace Stride.Graphics.Regression
         {
             ConsoleLogMode = ConsoleLogMode.Always;
 
+            Services.AddService(this.GamePlatform);
+
             // Override the default graphic device manager
             GraphicsDeviceManager.Dispose();
-            GraphicsDeviceManager = new TestGraphicsDeviceManager(this)
+            GraphicsDeviceManager = new TestGraphicsDeviceManager(Services)
             {
                 PreferredBackBufferWidth = 800,
                 PreferredBackBufferHeight = 480,

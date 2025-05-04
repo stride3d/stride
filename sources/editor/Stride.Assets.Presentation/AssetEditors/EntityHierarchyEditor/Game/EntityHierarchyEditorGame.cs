@@ -48,12 +48,12 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
         private Material fallbackColorMaterial;
         private Material fallbackTextureMaterial;
 
-        protected EntityHierarchyEditorGame(TaskCompletionSource<bool> gameContentLoadedTaskSource, IEffectCompiler effectCompiler, string effectLogPath)
+        protected EntityHierarchyEditorGame(TaskCompletionSource<bool> gameContentLoadedTaskSource, IEffectCompiler effectCompiler, string effectLogPath, GamePlatform gamePlatform = null)
+            : base(gamePlatform)
         {
             this.gameContentLoadedTaskSource = gameContentLoadedTaskSource;
             this.effectCompiler = effectCompiler;
             this.effectLogPath = effectLogPath;
-            CreateScenePipeline();
         }
 
         /// <summary>
@@ -217,6 +217,12 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
                 return;
 
             throw new InvalidOperationException($"The {nameof(ContentScene)} has not been initialized yet.");
+        }
+
+        protected override void RunInit()
+        {
+            base.RunInit();
+            CreateScenePipeline();
         }
 
         /// <inheritdoc />

@@ -244,12 +244,12 @@ namespace Stride.Assets.Presentation.Preview
                     if (Input.HasDownMouseButtons)
                     {
                         Input.LockMousePosition();
-                        Game.IsMouseVisible = false;
+                        //Game.IsMouseVisible = false;
                     }
                     else
                     {
                         Input.UnlockMousePosition();
-                        Game.IsMouseVisible = true;
+                        //Game.IsMouseVisible = true;
                     }
                 }
 

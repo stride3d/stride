@@ -5,15 +5,16 @@ using System.Linq;
 
 using Xunit;
 
-using Stride.Games;
+using Stride.Core;
+using Stride.Games.Systems;
 
 namespace Stride.Graphics.Regression
 {
-    public class TestGraphicsDeviceManager : GraphicsDeviceManager
+    public class TestGraphicsDeviceManager : GraphicsDeviceComponent
     {
-        public TestGraphicsDeviceManager(GameBase game)
-            : base(game)
+        public TestGraphicsDeviceManager(IServiceRegistry services)
         {
+            Initialize(services);
         }
 
         protected override bool IsPreferredProfileAvailable(GraphicsProfile[] preferredProfiles, out GraphicsProfile availableProfile)
