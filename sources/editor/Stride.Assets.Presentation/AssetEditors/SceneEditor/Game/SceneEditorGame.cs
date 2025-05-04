@@ -13,6 +13,7 @@ using Stride.Assets.Presentation.AssetEditors.Gizmos;
 using Stride.Editor.Engine;
 using Stride.Engine;
 using Stride.Shaders.Compiler;
+using Stride.Games;
 
 namespace Stride.Assets.Presentation.AssetEditors.SceneEditor.Game
 {
@@ -20,8 +21,8 @@ namespace Stride.Assets.Presentation.AssetEditors.SceneEditor.Game
     {
         private readonly Dictionary<Guid, Scene> scenes = new Dictionary<Guid, Scene>();
 
-        public SceneEditorGame(TaskCompletionSource<bool> gameContentLoadedTaskSource, IEffectCompiler effectCompiler, string effectLogPath)
-            : base(gameContentLoadedTaskSource, effectCompiler, effectLogPath)
+        public SceneEditorGame(TaskCompletionSource<bool> gameContentLoadedTaskSource, IEffectCompiler effectCompiler, string effectLogPath, GamePlatform gamePlatform)
+            : base(gameContentLoadedTaskSource, effectCompiler, effectLogPath, gamePlatform)
         {
 
         }
