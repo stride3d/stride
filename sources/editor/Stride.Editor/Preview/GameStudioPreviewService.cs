@@ -6,12 +6,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using Stride.Core.Assets;
-using Stride.Core.Assets.Analysis;
 using Stride.Core.Assets.Compiler;
-using Stride.Core.Assets.Editor.Extensions;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
-using Stride.Core.BuildEngine;
 using Stride.Core;
 using Stride.Core.Diagnostics;
 using Stride.Core.Extensions;
@@ -53,6 +50,8 @@ namespace Stride.Editor.Preview
 
         private readonly GameSettingsAsset previewGameSettings;
         private readonly GameSettingsProviderService gameSettingsProvider;
+
+        private GamePlatformDesktop platform;
 
         public GameStudioPreviewService(SessionViewModel session)
         {
@@ -137,8 +136,10 @@ namespace Stride.Editor.Preview
 
             initializationSignal.Set();
 
-            PreviewGame = new PreviewGame(AssetBuilderService.EffectCompiler);
             var context = new GameContextWinforms(gameForm) { InitializeDatabase = false };
+            var gamePlatform = new EmbeddedGamePlatform(context);
+
+            PreviewGame = new PreviewGame(AssetBuilderService.EffectCompiler, gamePlatform);
 
             // Wait for shaders to be loaded
             AssetBuilderService.WaitForShaders();
@@ -148,7 +149,7 @@ namespace Stride.Editor.Preview
             if (!DisablePreview)
             {
                 PreviewGame.GraphicsDeviceManager.DeviceCreated += GraphicsDeviceManagerDeviceCreated;
-                //PreviewGame.Run(context);
+                PreviewGame.Run();
                 throw new NotImplementedException("Game.Run(context) is not implemented");
                 PreviewGame.Dispose();
             }

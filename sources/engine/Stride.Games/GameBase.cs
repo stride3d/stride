@@ -151,7 +151,7 @@ namespace Stride.Games
         /// <summary>
         /// Gets the <see cref="ContentManager"/>.
         /// </summary>
-        public ContentManager Content { get; private set; }
+        public ContentManager Content { get; protected set; }
 
         /// <summary>
         /// Gets the game components registered by this game.

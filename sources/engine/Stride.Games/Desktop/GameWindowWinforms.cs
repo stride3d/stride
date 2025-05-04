@@ -38,8 +38,9 @@ namespace Stride.Games
         private bool allowUserResizing;
         private bool isBorderLess;
 
-        internal GameWindowWinforms()
+        internal GameWindowWinforms(GameForm gameForm = null)
         {
+            Control = gameForm;
         }
 
         public override WindowHandle NativeWindow

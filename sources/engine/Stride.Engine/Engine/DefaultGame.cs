@@ -63,7 +63,7 @@ namespace Stride.Engine
         /// Please note that it will be populated during initialization
         /// It will be ok to read them after the GameStarted event or after initialization
         /// </summary>
-        public GameSettings Settings { get; private set; } // for easy transfer from PrepareContext to Initialize
+        public GameSettings Settings { get; protected set; } // for easy transfer from PrepareContext to Initialize
 
         /// <summary>
         /// Gets the graphics device manager.

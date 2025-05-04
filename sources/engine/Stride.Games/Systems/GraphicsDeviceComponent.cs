@@ -24,9 +24,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
-using Microsoft.Win32;
 using Stride.Core;
-using Stride.Core.Annotations;
 using Stride.Core.Diagnostics;
 using Stride.Graphics;
 

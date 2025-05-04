@@ -6,8 +6,10 @@ using Stride.Core.Annotations;
 using Stride.Core.BuildEngine;
 using Stride.Core.IO;
 using Stride.Core.Mathematics;
+using Stride.Core.Serialization.Contents;
 using Stride.Editor.Build;
 using Stride.Editor.Engine;
+using Stride.Engine.Design;
 using Stride.Games;
 using Stride.Games.Time;
 using Stride.Graphics;
@@ -53,6 +55,10 @@ namespace Stride.Editor.EditorGame.Game
         private bool isEditorHidden = false;
         private bool prevForceOneUpdatePerDraw;
         private bool isFirstDrawCall = true;    // We need to call BeginDraw at least once to ensure graphics context is generated
+
+        protected EditorServiceGame(GamePlatform gamePlatform) : base(gamePlatform)
+        {
+        }
 
         public EditorGameServiceRegistry EditorServices { get; private set; }
 
@@ -139,7 +145,10 @@ namespace Stride.Editor.EditorGame.Game
             Services.RemoveService<IDatabaseFileProviderService>();
             Services.AddService(MicrothreadLocalDatabases.ProviderService);
 
-            base.PrepareContext();
+            // Content manager
+            Content = new ContentManager(Services);
+            Services.AddService<IContentManager>(Content);
+            Services.AddService(Content);
         }
 
         /// <inheritdoc />
