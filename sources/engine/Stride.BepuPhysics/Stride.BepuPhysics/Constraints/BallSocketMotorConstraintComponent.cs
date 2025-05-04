@@ -2,7 +2,6 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using BepuPhysics.Constraints;
-using Stride.BepuPhysics.Definitions;
 using Stride.BepuPhysics.Systems;
 using Stride.Core;
 using Stride.Core.Mathematics;
@@ -14,7 +13,7 @@ namespace Stride.BepuPhysics.Constraints;
 [DataContract]
 [DefaultEntityComponentProcessor(typeof(ConstraintProcessor), ExecutionMode = ExecutionMode.Runtime)]
 [ComponentCategory("Physics - Bepu Constraint")]
-public sealed class BallSocketMotorConstraintComponent : TwoBodyConstraintComponent<BallSocketMotor>
+public sealed class BallSocketMotorConstraintComponent : TwoBodyConstraintComponent<BallSocketMotor>, IMotor
 {
     public BallSocketMotorConstraintComponent() => BepuConstraint = new()
     {
@@ -47,6 +46,7 @@ public sealed class BallSocketMotorConstraintComponent : TwoBodyConstraintCompon
         }
     }
 
+    /// <inheritdoc/>
     public float MotorDamping
     {
         get
@@ -60,6 +60,7 @@ public sealed class BallSocketMotorConstraintComponent : TwoBodyConstraintCompon
         }
     }
 
+    /// <inheritdoc/>
     public float MotorMaximumForce
     {
         get

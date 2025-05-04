@@ -24,13 +24,11 @@ namespace Stride.BepuPhysics.Constraints;
 [DataContract]
 [DefaultEntityComponentProcessor(typeof(ConstraintProcessor), ExecutionMode = ExecutionMode.Runtime)]
 [ComponentCategory("Physics - Bepu Constraint")]
-public sealed class DistanceLimitConstraintComponent : TwoBodyConstraintComponent<DistanceLimit>
+public sealed class DistanceLimitConstraintComponent : TwoBodyConstraintComponent<DistanceLimit>, ISpring, IWithTwoLocalOffset
 {
     public DistanceLimitConstraintComponent() => BepuConstraint = new() { SpringSettings = new SpringSettings(30, 5) };
 
-    /// <summary>
-    /// Local offset from the center of body A to its attachment point.
-    /// </summary>
+    /// <inheritdoc/>
     public Vector3 LocalOffsetA
     {
         get
@@ -44,9 +42,7 @@ public sealed class DistanceLimitConstraintComponent : TwoBodyConstraintComponen
         }
     }
 
-    /// <summary>
-    /// Local offset from the center of body B to its attachment point.
-    /// </summary>
+    /// <inheritdoc/>
     public Vector3 LocalOffsetB
     {
         get
@@ -92,6 +88,7 @@ public sealed class DistanceLimitConstraintComponent : TwoBodyConstraintComponen
         }
     }
 
+    /// <inheritdoc/>
     public float SpringFrequency
     {
         get
@@ -105,6 +102,7 @@ public sealed class DistanceLimitConstraintComponent : TwoBodyConstraintComponen
         }
     }
 
+    /// <inheritdoc/>
     public float SpringDampingRatio
     {
         get

@@ -2,7 +2,6 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using BepuPhysics.Constraints;
-using Stride.BepuPhysics.Definitions;
 using Stride.BepuPhysics.Systems;
 using Stride.Core;
 using Stride.Core.Mathematics;
@@ -14,7 +13,7 @@ namespace Stride.BepuPhysics.Constraints;
 [DataContract]
 [DefaultEntityComponentProcessor(typeof(ConstraintProcessor), ExecutionMode = ExecutionMode.Runtime)]
 [ComponentCategory("Physics - Bepu Constraint")]
-public sealed class OneBodyLinearServoConstraintComponent : OneBodyConstraintComponent<OneBodyLinearServo>
+public sealed class OneBodyLinearServoConstraintComponent : OneBodyConstraintComponent<OneBodyLinearServo>, IServo, ISpring, IOneBody
 {
     public OneBodyLinearServoConstraintComponent() => BepuConstraint = new()
     {
@@ -48,6 +47,7 @@ public sealed class OneBodyLinearServoConstraintComponent : OneBodyConstraintCom
         }
     }
 
+    /// <inheritdoc/>
     public float SpringFrequency
     {
         get
@@ -61,6 +61,7 @@ public sealed class OneBodyLinearServoConstraintComponent : OneBodyConstraintCom
         }
     }
 
+    /// <inheritdoc/>
     public float SpringDampingRatio
     {
         get
@@ -74,6 +75,7 @@ public sealed class OneBodyLinearServoConstraintComponent : OneBodyConstraintCom
         }
     }
 
+    /// <inheritdoc/>
     public float ServoMaximumSpeed
     {
         get
@@ -87,6 +89,7 @@ public sealed class OneBodyLinearServoConstraintComponent : OneBodyConstraintCom
         }
     }
 
+    /// <inheritdoc/>
     public float ServoBaseSpeed
     {
         get
@@ -100,6 +103,7 @@ public sealed class OneBodyLinearServoConstraintComponent : OneBodyConstraintCom
         }
     }
 
+    /// <inheritdoc/>
     public float ServoMaximumForce
     {
         get
