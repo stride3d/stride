@@ -21,11 +21,6 @@ namespace Stride.UI.Controls
         private Matrix contentWorldMatrix;
         private UIElement content;
 
-        public ContentPresenter()
-        {
-            DepthAlignment = DepthAlignment.Stretch;
-        }
-
         /// <summary>
         /// Gets or sets the content of the presenter.
         /// </summary>
@@ -60,10 +55,10 @@ namespace Stride.UI.Controls
                 yield return Content;
         }
 
-        protected override Vector3 MeasureOverride(Vector3 availableSizeWithoutMargins)
+        protected override Size2F MeasureOverride(Size2F availableSizeWithoutMargins)
         {
             // measure size desired by the children
-            var childDesiredSizeWithMargins = Vector3.Zero;
+            var childDesiredSizeWithMargins = Size2F.Zero;
             if (Content != null)
             {
                 Content.Measure(availableSizeWithoutMargins);
@@ -73,7 +68,7 @@ namespace Stride.UI.Controls
             return childDesiredSizeWithMargins;
         }
 
-        protected override Vector3 ArrangeOverride(Vector3 finalSizeWithoutMargins)
+        protected override Size2F ArrangeOverride(Size2F finalSizeWithoutMargins)
         {
             // arrange child elements
             Content?.Arrange(finalSizeWithoutMargins, IsCollapsed);
@@ -92,7 +87,7 @@ namespace Stride.UI.Controls
                 if (contentWorldMatrixChanged)
                 {
                     contentWorldMatrix = WorldMatrixInternal;
-                    var contentMatrix = Matrix.Translation(-RenderSize / 2);
+                    var contentMatrix = Matrix.Translation(-new Vector3(RenderSize.Width, RenderSize.Height, 0) / 2);
                     Matrix.Multiply(ref contentMatrix, ref WorldMatrixInternal, out contentWorldMatrix);
                 }
 
