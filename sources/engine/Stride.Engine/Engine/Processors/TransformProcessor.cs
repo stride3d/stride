@@ -1,9 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.Linq;
 using Stride.Core.Collections;
 using Stride.Core.Threading;
@@ -135,20 +133,20 @@ namespace Stride.Engine.Processors
             var sceneInstance = EntityManager as SceneInstance;
             if (sceneInstance?.RootScene != null)
             {
-                UpdateTransfromationsRecursive(sceneInstance.RootScene);
+                UpdateTransformationsRecursive(sceneInstance.RootScene);
             }
 
             // Special roots are already filtered out
             UpdateTransformations(notSpecialRootComponents);
         }
 
-        private static void UpdateTransfromationsRecursive(Scene scene)
+        private static void UpdateTransformationsRecursive(Scene scene)
         {
             scene.UpdateWorldMatrixInternal(false);
 
             foreach (var childScene in scene.Children)
             {
-                UpdateTransfromationsRecursive(childScene);
+                UpdateTransformationsRecursive(childScene);
             }
         }
         
