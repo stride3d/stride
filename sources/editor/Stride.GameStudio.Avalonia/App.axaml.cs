@@ -5,6 +5,7 @@ using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
+using Stride.Core.Assets.Editor.Avalonia;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.IO;
 using Stride.Core.Presentation.Avalonia.Services;
@@ -31,7 +32,7 @@ public partial class App : Application
 
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            desktop.MainWindow = new MainWindow();
+            desktop.MainWindow = new ProjectSelectionWindow();
         }
         else if (ApplicationLifetime is ISingleViewApplicationLifetime singleViewPlatform)
         {
@@ -54,11 +55,12 @@ public partial class App : Application
         }
     }
 
-    private static MainViewModel InitializeMainViewModel(UFile? initialPath)
+    private static object InitializeMainViewModel(UFile? initialPath)
     {
-        var viewmodel = new MainViewModel(InitializeServiceProvider());
-        if (initialPath is not null)
-            viewmodel.OpenCommand.Execute(initialPath);
+        //Switch viewmodel depending the program arguments
+        var viewmodel = new NewOrOpenSessionTemplateCollectionViewModel(InitializeServiceProvider());
+        // if (initialPath is not null)
+        //     vm.OpenCommand.Execute(initialPath);
         return viewmodel;
     }
 
