@@ -1,6 +1,9 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
+        xmlns:math="using:Stride.Core.Mathematics"
+        xmlns:s="using:System"
+        xmlns:scg="using:System.Collections.Generic"
         x:Class="Stride.GameStudio.Avalonia.Themes.DefaultStyles">
   <Styles.Resources>
     <!-- FIXME xplat-editor move those resources (they should be theme-dependent) -->
@@ -93,7 +96,7 @@
                    Text="{Binding Value, Converter={sd:ColorConverter}, RelativeSource={RelativeSource TemplatedParent}}"
                    Watermark="{TemplateBinding Watermark}"/>
           <Popup Grid.Column="0"
-                 IsOpen="{Binding #PickerToggleButton.IsChecked}" IsLightDismissEnabled="True">
+                 IsOpen="{Binding #PickerToggleButton.IsChecked, Mode=TwoWay}" IsLightDismissEnabled="True">
             <Grid MinWidth="200" MinHeight="200"
                   MaxWidth="400" MaxHeight="400">
               <TabControl>
@@ -104,9 +107,12 @@
                   <ListBox ItemsSource="{TemplateBinding Palette}"
                            SelectedItem="{TemplateBinding SelectedPaletteColor, Mode=TwoWay}"
                            SelectedValue="{Binding Value, RelativeSource={RelativeSource TemplatedParent}}"
-                           SelectedValueBinding="{Binding Value}">
+                           SelectedValueBinding="{ReflectionBinding Value}">
                     <ListBox.ItemTemplate>
                       <DataTemplate>
+                        <DataTemplate.DataType>
+                          <x:Type TypeName="scg:KeyValuePair" x:TypeArguments="s:String,math:Color4"/>
+                        </DataTemplate.DataType>
                         <DockPanel>
                           <Rectangle DockPanel.Dock="Left"
                                      Stroke="Black" StrokeThickness="1"
@@ -148,7 +154,7 @@
                    Text="{Binding Value, Converter={sd:ColorConverter}, RelativeSource={RelativeSource TemplatedParent}}"
                    Watermark="{TemplateBinding Watermark}"/>
           <Popup Grid.Column="0"
-                 IsOpen="{Binding #PickerToggleButton.IsChecked}" IsLightDismissEnabled="True">
+                 IsOpen="{Binding #PickerToggleButton.IsChecked, Mode=TwoWay}" IsLightDismissEnabled="True">
             <Grid MinWidth="200" MinHeight="200"
                   MaxWidth="400" MaxHeight="400">
               <TabControl>
@@ -159,9 +165,12 @@
                   <ListBox ItemsSource="{TemplateBinding Palette}"
                            SelectedItem="{TemplateBinding SelectedPaletteColor, Mode=TwoWay}"
                            SelectedValue="{Binding Value, RelativeSource={RelativeSource TemplatedParent}}"
-                           SelectedValueBinding="{Binding Value}">
+                           SelectedValueBinding="{ReflectionBinding Value}">
                     <ListBox.ItemTemplate>
                       <DataTemplate>
+                        <DataTemplate.DataType>
+                          <x:Type TypeName="scg:KeyValuePair" x:TypeArguments="s:String,math:Color4"/>
+                        </DataTemplate.DataType>
                         <DockPanel>
                           <Rectangle DockPanel.Dock="Left"
                                      Stroke="Black" StrokeThickness="1"
@@ -203,7 +212,7 @@
                    Text="{Binding Value, Converter={sd:ColorConverter}, RelativeSource={RelativeSource TemplatedParent}}"
                    Watermark="{TemplateBinding Watermark}"/>
           <Popup Grid.Column="0"
-                 IsOpen="{Binding #PickerToggleButton.IsChecked}" IsLightDismissEnabled="True">
+                 IsOpen="{Binding #PickerToggleButton.IsChecked, Mode=TwoWay}" IsLightDismissEnabled="True">
             <Grid MinWidth="200" MinHeight="200"
                   MaxWidth="400" MaxHeight="400">
               <TabControl>
@@ -216,9 +225,12 @@
                   <ListBox ItemsSource="{TemplateBinding Palette}"
                            SelectedItem="{TemplateBinding SelectedPaletteColor, Mode=TwoWay}"
                            SelectedValue="{Binding Value, RelativeSource={RelativeSource TemplatedParent}}"
-                           SelectedValueBinding="{Binding Value}">
+                           SelectedValueBinding="{ReflectionBinding Value}">
                     <ListBox.ItemTemplate>
                       <DataTemplate>
+                        <DataTemplate.DataType>
+                          <x:Type TypeName="scg:KeyValuePair" x:TypeArguments="s:String,math:Color4"/>
+                        </DataTemplate.DataType>
                         <DockPanel>
                           <Rectangle DockPanel.Dock="Left"
                                      Stroke="Black" StrokeThickness="1"
