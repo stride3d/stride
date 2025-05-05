@@ -456,8 +456,11 @@ public class BodyComponent : CollidableComponent
 
         if (BoundConstraints is not null)
         {
-            foreach (var constraint in BoundConstraints)
-                constraint.TryReattachConstraint();
+            // Reverse for loop as the constraints remove themselves from this list
+            for (int i = BoundConstraints.Count - 1; i >= 0; i--)
+            {
+                BoundConstraints[i].TryReattachConstraint();
+            }
         }
     }
 
