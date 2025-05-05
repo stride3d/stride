@@ -136,9 +136,7 @@ public class PackageViewModel : SessionObjectViewModel, IComparable<PackageViewM
             {
                 directory = GetOrCreateAssetDirectory(url.GetFullDirectory());
             }
-            var assetViewModel = CreateAsset(asset, directory);
-            directory.AddAsset(assetViewModel);
-
+            CreateAsset(asset, directory, false);
             progress++;
         }
 
@@ -197,7 +195,7 @@ public class PackageViewModel : SessionObjectViewModel, IComparable<PackageViewM
     }
 
     // FIXME xplat-editor: most method here should be moved to an utility in the editor project (asset project should have minimum capability)
-    public AssetViewModel CreateAsset(AssetItem assetItem, DirectoryBaseViewModel directory, ILogger? logger = null)
+    public AssetViewModel CreateAsset(AssetItem assetItem, DirectoryBaseViewModel directory, bool canUndoRedoCreation, ILogger? logger = null)
     {
         AssetCollectionItemIdHelper.GenerateMissingItemIds(assetItem.Asset);
         Session.GraphContainer.InitializeAsset(assetItem, logger);
@@ -206,7 +204,7 @@ public class PackageViewModel : SessionObjectViewModel, IComparable<PackageViewM
         {
             assetViewModelType = assetViewModelType.MakeGenericType(assetItem.Asset.GetType());
         }
-        return (AssetViewModel)Activator.CreateInstance(assetViewModelType, new ConstructorParameters(assetItem, directory, false))!;
+        return (AssetViewModel)Activator.CreateInstance(assetViewModelType, new ConstructorParameters(assetItem, directory, canUndoRedoCreation))!;
     }
 
     private void FillRootAssetCollection()

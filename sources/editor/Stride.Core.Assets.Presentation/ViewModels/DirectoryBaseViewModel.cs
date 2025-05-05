@@ -87,9 +87,19 @@ public abstract class DirectoryBaseViewModel : SessionObjectViewModel
         return result;
     }
 
-    internal void AddAsset(AssetViewModel asset)
+    internal void AddAsset(AssetViewModel asset, bool canUndoRedo)
     {
-        assets.Add(asset);
+        if (canUndoRedo)
+        {
+            assets.Add(asset);
+        }
+        else
+        {
+            using (SuspendNotificationForCollectionChange(nameof(Assets)))
+            {
+                assets.Add(asset);
+            }
+        }
     }
 
     internal void RemoveAsset(AssetViewModel asset)

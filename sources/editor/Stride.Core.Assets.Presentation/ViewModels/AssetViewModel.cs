@@ -57,6 +57,8 @@ public abstract class AssetViewModel : SessionObjectViewModel, IAssetPropertyPro
             PropertyGraph.Changed += AssetPropertyChanged;
             PropertyGraph.ItemChanged += AssetPropertyChanged;
         }
+        // Add to directory after asset node has been created, so that listener to directory changes can retrieve it
+        directory.AddAsset(this, parameters.CanUndoRedoCreation);
         Initializing = false;
     }
 
