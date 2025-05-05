@@ -250,7 +250,7 @@ namespace Stride.Physics
         {
             byte[] output;
             var bufRef = AttachedReferenceManager.GetAttachedReference(buffer);
-            if (bufRef.Data != null && (output = ((BufferData)bufRef.Data).Content) != null)
+            if (bufRef?.Data != null && (output = ((BufferData)bufRef.Data).Content) != null)
                 return output;
             
             // Editor-specific workaround, we can't load assets when the file provider is null,
