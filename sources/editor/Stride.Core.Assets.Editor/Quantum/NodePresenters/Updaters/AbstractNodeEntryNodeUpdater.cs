@@ -17,15 +17,33 @@ public sealed class AbstractNodeEntryNodeUpdater : AssetNodePresenterUpdaterBase
     {
         var type = node.Descriptor.GetInnerCollectionType();
 
-        IEnumerable<AbstractNodeEntry> abstractNodeMatchingEntries = AbstractNodeType.GetInheritedInstantiableTypes(type);
-
-        if (abstractNodeMatchingEntries != null)
+        var abstractNodeMatchingEntries = AbstractNodeType.GetInheritedInstantiableTypes(type);
+        IEnumerable<AbstractNodeEntry> abstractNodeMatchingEntries2 = [];
+        foreach (var nodeType in abstractNodeMatchingEntries)
         {
-            // Prepend the value that will allow to set the value to null, if this command is allowed.
-            if (IsAllowingNull(node))
-                abstractNodeMatchingEntries = AbstractNodeValue.Null.Yield().Concat(abstractNodeMatchingEntries);
+            AbstractNodeEntry nodeEntry = IsEntityComponent(nodeType.Type) ? new AbstractNodeValue(null, nodeType.Type.Name, 0) : nodeType;
+            abstractNodeMatchingEntries2 = abstractNodeMatchingEntries2.Append(nodeEntry);
         }
-        return abstractNodeMatchingEntries;
+
+        // Prepend the value that will allow to set the value to null, if this command is allowed.
+        if (IsAllowingNull(node))
+            abstractNodeMatchingEntries2 = AbstractNodeValue.Null.Yield().Concat(abstractNodeMatchingEntries2)!;
+
+        return abstractNodeMatchingEntries2;
+
+        static bool IsEntityComponent(Type type)
+        {
+            for (var t = type; t != null; t = t.BaseType)
+            {
+                // TODO: Workaround for internal engine issue when selecting a component type from the type dropdown generated, see #2719
+                if (t is { Name: "EntityComponent", FullName: "Stride.Engine.EntityComponent" })
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
     }
 
     /// <summary>

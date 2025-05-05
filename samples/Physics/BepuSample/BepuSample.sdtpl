@@ -1,0 +1,11 @@
+!TemplateSample
+Id: b65d1a7b-2503-46a8-a454-6dc79fb9f193
+Name: "Sample: Bepu physics"
+Scope: Session
+Description: Demonstrates physics constraints using the Bepu physics library
+FullDescription: This sample project demonstrates how to use constraints, raycasting, and character controllers.
+Group: Samples/Physics
+Icon: ../.sdtpl/NewPhysics.png
+DefaultOutputName: BepuSample
+Screenshots:
+    - .sdtpl/screenshot_small.png

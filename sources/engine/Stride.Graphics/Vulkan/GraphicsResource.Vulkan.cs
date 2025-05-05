@@ -70,7 +70,7 @@ namespace Stride.Graphics
                 if ((typeBits & 1) == 1)
                 {
                     // Type is available, does it match user properties?
-                    var memoryType = *(&physicalDeviceMemoryProperties.memoryTypes_0 + i);
+                    var memoryType = *(&physicalDeviceMemoryProperties.memoryTypes[0] + i);
                     if ((memoryType.propertyFlags & memoryProperties) == memoryProperties)
                     {
                         allocateInfo.memoryTypeIndex = i;

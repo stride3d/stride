@@ -97,6 +97,11 @@ public class DictionaryWithIdsSerializer : CollectionWithIdsSerializerBase
             throw new InvalidOperationException("The given container does not match the expected type.");
         var identifier = CollectionItemIdHelper.GetCollectionItemIds(targetCollection);
         identifier.Clear();
+
+        // The collection may contain some initial data from its containing instance's ctor,
+        // let's replace the existing data with the data we have serialized
+        dictionaryDescriptor.Clear(targetCollection);
+
         var enumerator = container.GetEnumerator();
         while (enumerator.MoveNext())
         {

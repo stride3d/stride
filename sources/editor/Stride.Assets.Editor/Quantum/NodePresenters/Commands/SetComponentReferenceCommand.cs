@@ -3,6 +3,7 @@
 
 using Stride.Assets.Presentation.ViewModels;
 using Stride.Core.Assets.Editor.Quantum.NodePresenters.Commands;
+using Stride.Core.Extensions;
 using Stride.Core.Presentation.Quantum.Presenters;
 using Stride.Engine;
 
@@ -23,7 +24,7 @@ internal sealed class SetComponentReferenceCommand : ChangeValueCommandBase
     /// <inheritdoc/>
     public override bool CanAttach(INodePresenter nodePresenter)
     {
-        return typeof(EntityComponent).IsAssignableFrom(nodePresenter.Type);
+        return typeof(EntityComponent).IsAssignableFrom(nodePresenter.Type) || nodePresenter.Type.IsInterface && nodePresenter.Type.IsImplementedOnAny<EntityComponent>();
     }
 
     /// <inheritdoc/>

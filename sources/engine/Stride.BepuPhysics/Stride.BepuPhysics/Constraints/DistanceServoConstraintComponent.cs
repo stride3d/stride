@@ -25,7 +25,7 @@ namespace Stride.BepuPhysics.Constraints;
 [DataContract]
 [DefaultEntityComponentProcessor(typeof(ConstraintProcessor), ExecutionMode = ExecutionMode.Runtime)]
 [ComponentCategory("Physics - Bepu Constraint")]
-public sealed class DistanceServoConstraintComponent : TwoBodyConstraintComponent<DistanceServo>
+public sealed class DistanceServoConstraintComponent : TwoBodyConstraintComponent<DistanceServo>, IServo, ISpring, IWithTwoLocalOffset
 {
     public DistanceServoConstraintComponent() => BepuConstraint = new()
     {
@@ -33,9 +33,7 @@ public sealed class DistanceServoConstraintComponent : TwoBodyConstraintComponen
         ServoSettings = new ServoSettings(10, 1, 1000)
     };
 
-    /// <summary>
-    /// Local offset from the center of body A to its attachment point.
-    /// </summary>
+    /// <inheritdoc/>
     public Vector3 LocalOffsetA
     {
         get
@@ -49,9 +47,7 @@ public sealed class DistanceServoConstraintComponent : TwoBodyConstraintComponen
         }
     }
 
-    /// <summary>
-    /// Local offset from the center of body B to its attachment point.
-    /// </summary>
+    /// <inheritdoc/>
     public Vector3 LocalOffsetB
     {
         get
@@ -81,6 +77,7 @@ public sealed class DistanceServoConstraintComponent : TwoBodyConstraintComponen
         }
     }
 
+    /// <inheritdoc/>
     public float SpringFrequency
     {
         get
@@ -94,6 +91,7 @@ public sealed class DistanceServoConstraintComponent : TwoBodyConstraintComponen
         }
     }
 
+    /// <inheritdoc/>
     public float SpringDampingRatio
     {
         get
@@ -107,6 +105,7 @@ public sealed class DistanceServoConstraintComponent : TwoBodyConstraintComponen
         }
     }
 
+    /// <inheritdoc/>
     public float ServoMaximumSpeed
     {
         get
@@ -120,6 +119,7 @@ public sealed class DistanceServoConstraintComponent : TwoBodyConstraintComponen
         }
     }
 
+    /// <inheritdoc/>
     public float ServoBaseSpeed
     {
         get
@@ -133,6 +133,7 @@ public sealed class DistanceServoConstraintComponent : TwoBodyConstraintComponen
         }
     }
 
+    /// <inheritdoc/>
     public float ServoMaximumForce
     {
         get

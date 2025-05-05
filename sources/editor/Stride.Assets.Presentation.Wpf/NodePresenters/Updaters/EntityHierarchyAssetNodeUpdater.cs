@@ -14,7 +14,6 @@ using Stride.Assets.Entities;
 using Stride.Assets.Presentation.NodePresenters.Keys;
 using Stride.Assets.Presentation.ViewModel;
 using Stride.Engine;
-using Stride.Core.Presentation.Core;
 
 namespace Stride.Assets.Presentation.NodePresenters.Updaters
 {
@@ -55,7 +54,7 @@ namespace Stride.Assets.Presentation.NodePresenters.Updaters
                 node.AttachedProperties.Add(EntityHierarchyData.EntityComponentAvailableTypesKey, types);
 
                 //TODO: Choose a better grouping method.
-                var typeGroups =                     
+                var typeGroups =
                     types.GroupBy(t => ComponentCategoryAttribute.GetCategory(t.Type))
                     .OrderBy(g => g.Key)
                     .Select(g => new AbstractNodeTypeGroup(g.Key, g.ToArray())).ToArray();
@@ -78,7 +77,8 @@ namespace Stride.Assets.Presentation.NodePresenters.Updaters
                     componentCount[type] = ++count;
                 }
             }
-            if (typeof(EntityComponent).IsAssignableFrom(node.Type))
+            if (typeof(EntityComponent).IsAssignableFrom(node.Type)
+                || node.Type.IsInterface && node.Type.IsImplementedOnAny<EntityComponent>())
             {
                 node.AttachedProperties.Add(ReferenceData.Key, new ComponentReferenceViewModel());
             }

@@ -292,7 +292,7 @@ public sealed class BepuSimulation : IDisposable
         #warning Consider wrapping stride's threadpool/dispatcher into an IThreadDispatcher and passing that over to bepu instead of using their dispatcher
         _threadDispatcher = new ThreadDispatcher(targetThreadCount);
         BufferPool = new BufferPool();
-        ContactEvents = new ContactEventsManager(BufferPool, this);
+        ContactEvents = new ContactEventsManager(BufferPool, this, targetThreadCount);
 
         var strideNarrowPhaseCallbacks = new StrideNarrowPhaseCallbacks(this, ContactEvents, CollidableMaterials);
         var stridePoseIntegratorCallbacks = new StridePoseIntegratorCallbacks(CollidableMaterials);

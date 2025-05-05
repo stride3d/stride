@@ -2,7 +2,6 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using BepuPhysics.Constraints;
-using Stride.BepuPhysics.Definitions;
 using Stride.BepuPhysics.Systems;
 using Stride.Core;
 using Stride.Core.Mathematics;
@@ -11,10 +10,16 @@ using Stride.Engine.Design;
 
 namespace Stride.BepuPhysics.Constraints;
 
+/// <summary>
+/// Constrains two bodies' position to a plane local to the first body
+/// </summary>
+/// <userdoc>
+/// Constrains two bodies' position to a plane local to the first body
+/// </userdoc>
 [DataContract]
 [DefaultEntityComponentProcessor(typeof(ConstraintProcessor), ExecutionMode = ExecutionMode.Runtime)]
 [ComponentCategory("Physics - Bepu Constraint")]
-public sealed class LinearAxisServoConstraintComponent : TwoBodyConstraintComponent<LinearAxisServo>
+public sealed class LinearAxisServoConstraintComponent : TwoBodyConstraintComponent<LinearAxisServo>, IServo, ISpring, IWithTwoLocalOffset
 {
     public LinearAxisServoConstraintComponent() => BepuConstraint = new()
     {
@@ -22,6 +27,7 @@ public sealed class LinearAxisServoConstraintComponent : TwoBodyConstraintCompon
         ServoSettings = new ServoSettings(10, 1, 1000)
     };
 
+    /// <inheritdoc/>
     public Vector3 LocalOffsetA
     {
         get
@@ -35,6 +41,7 @@ public sealed class LinearAxisServoConstraintComponent : TwoBodyConstraintCompon
         }
     }
 
+    /// <inheritdoc/>
     public Vector3 LocalOffsetB
     {
         get
@@ -48,6 +55,12 @@ public sealed class LinearAxisServoConstraintComponent : TwoBodyConstraintCompon
         }
     }
 
+    /// <summary>
+    /// Direction of the plane normal in the local space of body A
+    /// </summary>
+    /// <userdoc>
+    /// Direction of the plane normal in the local space of body A
+    /// </userdoc>
     public Vector3 LocalPlaneNormal
     {
         get
@@ -61,6 +74,12 @@ public sealed class LinearAxisServoConstraintComponent : TwoBodyConstraintCompon
         }
     }
 
+    /// <summary>
+    /// Target offset from A's plane anchor to B's anchor along the plane normal
+    /// </summary>
+    /// <userdoc>
+    /// Target offset from A's plane anchor to B's anchor along the plane normal
+    /// </userdoc>
     public float TargetOffset
     {
         get
@@ -74,6 +93,7 @@ public sealed class LinearAxisServoConstraintComponent : TwoBodyConstraintCompon
         }
     }
 
+    /// <inheritdoc/>
     public float ServoMaximumSpeed
     {
         get
@@ -87,6 +107,7 @@ public sealed class LinearAxisServoConstraintComponent : TwoBodyConstraintCompon
         }
     }
 
+    /// <inheritdoc/>
     public float ServoBaseSpeed
     {
         get
@@ -100,6 +121,7 @@ public sealed class LinearAxisServoConstraintComponent : TwoBodyConstraintCompon
         }
     }
 
+    /// <inheritdoc/>
     public float ServoMaximumForce
     {
         get
@@ -113,6 +135,7 @@ public sealed class LinearAxisServoConstraintComponent : TwoBodyConstraintCompon
         }
     }
 
+    /// <inheritdoc/>
     public float SpringFrequency
     {
         get
@@ -126,6 +149,7 @@ public sealed class LinearAxisServoConstraintComponent : TwoBodyConstraintCompon
         }
     }
 
+    /// <inheritdoc/>
     public float SpringDampingRatio
     {
         get

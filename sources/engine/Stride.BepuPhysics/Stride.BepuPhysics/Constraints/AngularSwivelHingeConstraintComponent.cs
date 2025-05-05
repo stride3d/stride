@@ -2,7 +2,6 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using BepuPhysics.Constraints;
-using Stride.BepuPhysics.Definitions;
 using Stride.BepuPhysics.Systems;
 using Stride.Core;
 using Stride.Core.Mathematics;
@@ -14,7 +13,7 @@ namespace Stride.BepuPhysics.Constraints;
 [DataContract]
 [DefaultEntityComponentProcessor(typeof(ConstraintProcessor), ExecutionMode = ExecutionMode.Runtime)]
 [ComponentCategory("Physics - Bepu Constraint")]
-public sealed class AngularSwivelHingeConstraintComponent : TwoBodyConstraintComponent<AngularSwivelHinge>
+public sealed class AngularSwivelHingeConstraintComponent : TwoBodyConstraintComponent<AngularSwivelHinge>, ISpring
 {
     public AngularSwivelHingeConstraintComponent() => BepuConstraint = new() { SpringSettings = new SpringSettings(30, 5) };
 
@@ -44,6 +43,7 @@ public sealed class AngularSwivelHingeConstraintComponent : TwoBodyConstraintCom
         }
     }
 
+    /// <inheritdoc/>
     public float SpringFrequency
     {
         get
@@ -57,6 +57,7 @@ public sealed class AngularSwivelHingeConstraintComponent : TwoBodyConstraintCom
         }
     }
 
+    /// <inheritdoc/>
     public float SpringDampingRatio
     {
         get

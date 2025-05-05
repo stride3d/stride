@@ -32,16 +32,14 @@ internal unsafe struct RayHitsStackHandler(HitInfoStack* Ptr, int Length, BepuSi
                 indexOfMax = Head;
             }
 
-            Ptr[Head++] = GenerateHitInfo((ray.Origin + ray.Direction * t), normal, t, collidable, sim, childIndex);
+            Ptr[Head++] = GenerateHitInfo(ray.Origin + ray.Direction * t, normal, t, collidable, sim, childIndex);
 
             if (Head == Length) // Once the array is filled up, ignore all hits that occur further away than the furthest hit in the array
                 maximumT = storedMax;
         }
         else
         {
-            Debug.Assert(t > storedMax, "maximumT should have prevented this hit from being returned, if this is hit it means that we need to change the above into an 'else if (distance < StoredMax)'");
-
-            Ptr[indexOfMax] = GenerateHitInfo((ray.Origin + ray.Direction * t), normal, t, collidable, sim, childIndex);
+            Ptr[indexOfMax] = GenerateHitInfo(ray.Origin + ray.Direction * t, normal, t, collidable, sim, childIndex);
 
             // Re-scan to find the new max now that the last one was replaced
             storedMax = float.NegativeInfinity;
@@ -75,8 +73,6 @@ internal unsafe struct RayHitsStackHandler(HitInfoStack* Ptr, int Length, BepuSi
         }
         else
         {
-            Debug.Assert(t > storedMax, "maximumT should have prevented this hit from being returned, if this is hit it means that we need to change the above into an 'else if (distance < StoredMax)'");
-
             Ptr[indexOfMax] = GenerateHitInfo(hitLocation, normal, t, collidable, sim, -1);
 
             // Re-scan to find the new max now that the last one was replaced

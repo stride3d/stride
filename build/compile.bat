@@ -2,7 +2,7 @@
 
 setlocal
 
-set STARTTIME=%TIME%
+set STARTTIME=%TIME: =0%
 set __SkipTestBuild=true
 set __BuildType=Debug
 set __BuildVerbosity=n
@@ -115,7 +115,7 @@ goto :eof
 
 :exit
 
-set ENDTIME=%TIME%
+set ENDTIME=%TIME: =0%
 
 echo.
 echo Starting time was: %STARTTIME%
@@ -130,7 +130,7 @@ rem calculating the duration is easy
 set /A DURATION=%ENDTIME%-%STARTTIME%
 
 rem we might have measured the time inbetween days
-if %ENDTIME% LSS %STARTTIME% set set /A DURATION=%STARTTIME%-%ENDTIME%
+if %ENDTIME% LSS %STARTTIME% set /A DURATION=%STARTTIME%-%ENDTIME%
 
 set /A DURATION=%DURATION%/1000
 

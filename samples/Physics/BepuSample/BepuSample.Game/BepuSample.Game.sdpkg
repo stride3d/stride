@@ -1,0 +1,26 @@
+!Package
+SerializedVersion: {Assets: 3.1.0.0}
+Meta:
+    Name: BepuSample.Game
+    Version: 1.0.0
+    Authors: []
+    Owners: []
+    Dependencies: null
+AssetFolders:
+    -   Path: !dir ../Assets/Shared
+    -   Path: !dir Effects
+ResourceFolders:
+    - !dir ../Resources
+OutputGroupDirectories: {}
+ExplicitFolders: []
+Bundles: []
+TemplateFolders: []
+RootAssets:
+    - 1534e89e-d5de-4e57-97c8-acbe1ea9bded:Scenes/Colliders
+    - 1bd2dca5-6e73-443e-8613-afd501bfdd05:Scenes/MainScene
+    - 6f113a3b-3bfd-4a33-8775-7a44cc88bccc:Scenes/Constraint
+    - 6f2b7463-a14b-4dbd-88c2-9230bc45bc53:Scenes/Cube Mixer
+    - 7afd942c-0aff-4677-8158-84d944e85d67:Scenes/Ropes
+    - 7cb13063-abc0-4ef8-8a34-f62408d295c3:Scenes/Convex And Mesh Collider
+    - d25e2b43-7e2e-4f5e-a50e-8a7784bb3e03:Scenes/Cube Fountain
+    - d6936be1-c5a5-4841-abbe-434854c720ef:Scenes/Material Properties

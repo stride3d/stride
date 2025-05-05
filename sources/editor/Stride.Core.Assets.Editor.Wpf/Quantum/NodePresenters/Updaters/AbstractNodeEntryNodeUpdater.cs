@@ -1,15 +1,12 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using System;
-using System.Collections.Generic;
-using System.Linq;
+
 using Stride.Core.Assets.Editor.Quantum.NodePresenters.Commands;
 using Stride.Core.Assets.Editor.Quantum.NodePresenters.Keys;
 using Stride.Core.Annotations;
 using Stride.Core.Extensions;
 using Stride.Core.Reflection;
 using Stride.Core.Presentation.Quantum.Presenters;
-using Stride.Core.Serialization;
 
 namespace Stride.Core.Assets.Editor.Quantum.NodePresenters.Updaters
 {
@@ -19,15 +16,35 @@ namespace Stride.Core.Assets.Editor.Quantum.NodePresenters.Updaters
         {
             var type = node.Descriptor.GetInnerCollectionType();
 
-            IEnumerable<AbstractNodeEntry> abstractNodeMatchingEntries = AbstractNodeType.GetInheritedInstantiableTypes(type);
+            var abstractNodeMatchingEntries = AbstractNodeType.GetInheritedInstantiableTypes(type);
+            IEnumerable<AbstractNodeEntry> abstractNodeMatchingEntries2 = [];
+            foreach (var nodeType in abstractNodeMatchingEntries)
+            {
+                AbstractNodeEntry nodeEntry = IsEntityComponent(nodeType.Type) ? new AbstractNodeValue(null, nodeType.Type.Name, 0) : nodeType;
+                abstractNodeMatchingEntries2 = abstractNodeMatchingEntries2.Append(nodeEntry);
+            }
 
-            if (abstractNodeMatchingEntries != null)
+            if (abstractNodeMatchingEntries2 != null)
             {
                 // Prepend the value that will allow to set the value to null, if this command is allowed.
                 if (IsAllowingNull(node))
-                    abstractNodeMatchingEntries = AbstractNodeValue.Null.Yield().Concat(abstractNodeMatchingEntries);
+                    abstractNodeMatchingEntries2 = AbstractNodeValue.Null.Yield().Concat(abstractNodeMatchingEntries2);
             }
-            return abstractNodeMatchingEntries;
+            return abstractNodeMatchingEntries2;
+
+            static bool IsEntityComponent(Type type)
+            {
+                for (var t = type; t != null; t = t.BaseType)
+                {
+                    // TODO: Workaround for internal engine issue when selecting a component type from the type dropdown generated, see #2719
+                    if (t.Name == "EntityComponent" && t.FullName == "Stride.Engine.EntityComponent")
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
         }
 
         /// <summary>
