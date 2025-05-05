@@ -17,7 +17,7 @@ class AssetInitialDirectoryProvider : IInitialDirectoryProvider
 
     public UDirectory? GetInitialDirectory(UDirectory? currentPath)
     {
-        if (session != null && session.AssetCollection.SelectedAssets.Count == 1 && currentPath != null)
+        if (session is { AssetCollection.SelectedAssets.Count: 1 } && currentPath != null)
         {
             var asset = session.AssetCollection.SelectedAssets[0];
             var projectPath = asset.Directory.Package.PackagePath;

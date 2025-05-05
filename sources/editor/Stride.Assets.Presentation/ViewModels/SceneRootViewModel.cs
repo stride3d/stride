@@ -21,5 +21,9 @@ public sealed class SceneRootViewModel : EntityHierarchyRootViewModel
     /// <inheritdoc/>
     public override AbsoluteId Id => new(Asset.Id, sceneId);
 
+    /// <inheritdoc/>
     public override string? Name { get => "SceneRoot"; set => throw new NotSupportedException($"Cannot change the name of a {nameof(SceneRootViewModel)} object."); }
+
+    /// <inheritdoc/>
+    public override SceneViewModel Asset => (SceneViewModel)base.Asset;
 }

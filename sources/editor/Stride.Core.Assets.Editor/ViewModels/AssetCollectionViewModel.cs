@@ -12,7 +12,7 @@ using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.ViewModels;
 
-public sealed class AssetCollectionViewModel : DispatcherViewModel
+public sealed partial class AssetCollectionViewModel : DispatcherViewModel
 {
     private readonly ObservableSet<AssetViewModel> assets = [];
     private readonly HashSet<DirectoryBaseViewModel> monitoredDirectories = [];
@@ -27,6 +27,14 @@ public sealed class AssetCollectionViewModel : DispatcherViewModel
 
         // Initialize the view model that will manage the properties of the assets selected on the main asset view
         AssetViewProperties = new SessionObjectPropertiesViewModel(session);
+
+        CopyAssetsRecursivelyCommand = new AnonymousTaskCommand(ServiceProvider, CopySelectedAssetsRecursively, CanCopy);
+        CopyAssetUrlCommand = new AnonymousTaskCommand(ServiceProvider, CopyAssetUrl, CanCopy);
+        CopyContentCommand = new AnonymousTaskCommand(ServiceProvider, CopySelectedContent, CanCopy);
+        CopyLocationsCommand = new AnonymousTaskCommand(ServiceProvider, CopySelectedLocations, CanCopy);
+        CutContentCommand = new AnonymousTaskCommand(ServiceProvider, CutSelectedContent, CanCopy);
+        CutLocationsCommand = new AnonymousTaskCommand(ServiceProvider, CutSelectedLocations, CanCopy);
+        PasteCommand = new AnonymousTaskCommand(ServiceProvider, Paste, CanPaste);
 
         SelectAssetCommand = new AnonymousCommand<AssetViewModel>(ServiceProvider, x => SelectAssets(x.Yield()!));
 
@@ -190,6 +198,8 @@ public sealed class AssetCollectionViewModel : DispatcherViewModel
             }
         }
 
+        UpdateCommands();
+
         AssetViewProperties.UpdateTypeAndName(SelectedAssets, x => x.TypeDisplayName, x => x.Url, "assets");
         await AssetViewProperties.GenerateSelectionPropertiesAsync(SelectedAssets);
     }
@@ -197,11 +207,17 @@ public sealed class AssetCollectionViewModel : DispatcherViewModel
     private void SelectedLocationCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
         UpdateLocations();
+        UpdateCommands();
     }
 
     private void SubDirectoriesCollectionInDirectoryChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
         UpdateLocations();
+    }
+
+    public void ClearSelection()
+    {
+        selectedContent.Clear();
     }
 
     private void UpdateAssetsCollection(ICollection<AssetViewModel> newAssets, bool clearMonitoredDirectory)

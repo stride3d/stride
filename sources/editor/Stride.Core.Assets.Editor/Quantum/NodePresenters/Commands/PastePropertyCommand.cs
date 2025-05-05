@@ -6,7 +6,7 @@ using Stride.Core.Presentation.Quantum.Presenters;
 
 namespace Stride.Core.Assets.Editor.Quantum.NodePresenters.Commands;
 
-public class PastePropertyCommand : PastePropertyCommandBase
+public sealed class PastePropertyCommand : PastePropertyCommandBase
 {
     /// <summary>
     /// The name of this command.

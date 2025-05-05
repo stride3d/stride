@@ -15,7 +15,7 @@ partial class SessionViewModel
 {
     private static SessionViewModel? instance;
     private static readonly SemaphoreSlim semaphore = new(1, 1);
-    
+
     /// <summary>
     /// The current instance of <see cref="SessionViewModel"/>.
     /// </summary>
@@ -92,7 +92,17 @@ partial class SessionViewModel
 
         }, token);
 
-        sessionViewModel?.AutoSelectCurrentProject();
+        if (sessionViewModel == null || cancellationSource.IsCancellationRequested)
+        {
+            sessionViewModel?.Destroy();
+            sessionResult.OperationCancelled = cancellationSource.IsCancellationRequested;
+            return null;
+        }
+
+        // Register the node container to the copy/paste service.
+        copyPasteService.PropertyGraphContainer = sessionViewModel.GraphContainer;
+
+        sessionViewModel.AutoSelectCurrentProject();
 
         // Now resize the undo stack to the correct size.
         actionService.Resize(200);
@@ -101,24 +111,21 @@ partial class SessionViewModel
         sessionViewModel.ActionHistory?.Initialize();
 
         // Copy the result of the asset loading to the log panel.
-        sessionViewModel?.AssetLog.AddLogger(LogKey.Get("Session"), sessionResult);
+        sessionViewModel.AssetLog.AddLogger(LogKey.Get("Session"), sessionResult);
 
         // Notify that the task is finished
         sessionResult.OperationCancelled = token.IsCancellationRequested;
         await workProgress.NotifyWorkFinished(token.IsCancellationRequested, sessionResult.HasErrors);
 
         // Update the singleton instance
-        if (sessionViewModel is not null)
+        await semaphore.WaitAsync(token);
+        try
         {
-            await semaphore.WaitAsync(token);
-            try
-            {
-                instance = sessionViewModel;
-            }
-            finally
-            {
-                semaphore.Release();
-            }
+            instance = sessionViewModel;
+        }
+        finally
+        {
+            semaphore.Release();
         }
 
         return sessionViewModel;

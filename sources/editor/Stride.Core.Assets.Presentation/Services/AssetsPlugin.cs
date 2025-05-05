@@ -6,7 +6,7 @@ using Stride.Core.Assets.Presentation.Annotations;
 using Stride.Core.Assets.Presentation.ViewModels;
 using Stride.Core.Diagnostics;
 
-namespace Stride.Core.Assets.Presentation;
+namespace Stride.Core.Assets.Presentation.Services;
 
 public abstract class AssetsPlugin
 {

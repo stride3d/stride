@@ -20,7 +20,7 @@ public abstract class AssetPostPasteProcessorBase<TAsset> : IAssetPostPasteProce
     /// <inheritdoc />
     void IAssetPostPasteProcessor.PostPasteDeserialization(Asset asset)
     {
-        if (asset is not TAsset) throw new ArgumentException("Incompatible type of asset", nameof(asset));
-        PostPasteDeserialization((TAsset)asset);
+        if (asset is not TAsset tasset) throw new ArgumentException("Incompatible type of asset", nameof(asset));
+        PostPasteDeserialization(tasset);
     }
 }

@@ -43,7 +43,7 @@ public partial class App : Application
     }
 
     public void Restart(UFile? initialPath = null)
-    {        
+    {
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             desktop.MainWindow!.DataContext = InitializeMainViewModel(initialPath);
@@ -81,11 +81,15 @@ public partial class App : Application
         var services = new object[]
         {
             dispatcherService,
-            new PluginService(dispatcherService)
+            new PluginService(dispatcherService),
         };
         var serviceProvider = new ViewModelServiceProvider(services);
         serviceProvider.RegisterService(new EditorDebugService(serviceProvider));
         serviceProvider.RegisterService(new EditorDialogService(serviceProvider));
+        if (DialogService.MainWindow?.Clipboard is { } clipboard)
+        {
+            serviceProvider.RegisterService(new ClipboardService(clipboard));
+        }
         return serviceProvider;
     }
 }

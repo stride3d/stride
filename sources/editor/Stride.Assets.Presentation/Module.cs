@@ -3,7 +3,7 @@
 
 using System.Runtime.CompilerServices;
 using Stride.Assets.Materials;
-using Stride.Core.Assets.Presentation;
+using Stride.Core.Assets.Presentation.Services;
 using Stride.Core.Assets.Quantum;
 using Stride.Core.Reflection;
 

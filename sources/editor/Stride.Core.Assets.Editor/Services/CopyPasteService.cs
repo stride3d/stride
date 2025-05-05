@@ -10,7 +10,7 @@ using Stride.Core.Yaml.Events;
 
 namespace Stride.Core.Assets.Editor.Services;
 
-internal class CopyPasteService : ICopyPasteService
+internal sealed class CopyPasteService : ICopyPasteService
 {
     private readonly List<ICopyProcessor> copyProcessors = [];
     private readonly List<IPasteProcessor> pasteProcessors = [];
@@ -228,6 +228,7 @@ internal class CopyPasteService : ICopyPasteService
     {
         pasteProcessors.Add(processor);
     }
+
     /// <inheritdoc/>
     public void RegisterProcessor(IAssetPostPasteProcessor processor)
     {

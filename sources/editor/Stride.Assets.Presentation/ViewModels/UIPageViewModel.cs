@@ -19,5 +19,5 @@ public class UIPageViewModel : UIBaseViewModel, IAssetViewModel<UIPageAsset>
     }
 
     /// <inheritdoc />
-    public new UIPageAsset Asset => (UIPageAsset)base.Asset;
+    public override UIPageAsset Asset => (UIPageAsset)base.Asset;
 }

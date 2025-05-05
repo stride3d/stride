@@ -56,7 +56,7 @@ public class PackageViewModel : SessionObjectViewModel, IComparable<PackageViewM
 
     public IEnumerable<MountPointViewModel> MountPoints => Content.OfType<MountPointViewModel>();
 
-    internal ObservableList<AssetViewModel> DeletedAssetsInternal { get; } = new ObservableList<AssetViewModel>();
+    internal ObservableList<AssetViewModel> DeletedAssetsInternal { get; } = [];
 
     /// <summary>
     /// Gets or sets the name of this package.
@@ -90,7 +90,7 @@ public class PackageViewModel : SessionObjectViewModel, IComparable<PackageViewM
     /// <summary>
     /// Gets the collection of root assets for this package.
     /// </summary>
-    public ObservableSet<AssetViewModel> RootAssets { get; } = new ObservableSet<AssetViewModel>();
+    public ObservableSet<AssetViewModel> RootAssets { get; } = [];
 
     public UDirectory RootDirectory => Package.RootDirectory;
 
@@ -112,6 +112,7 @@ public class PackageViewModel : SessionObjectViewModel, IComparable<PackageViewM
     /// Creates the view models for each asset, directory, profile, project and reference of this package.
     /// </summary>
     /// <param name="token">A cancellation token to cancel the load process. Can be <c>null</c>.</param>
+    // FIXME xplat-editor: most method here should be moved to an utility in the editor project (asset project should have minimum capability)
     public void LoadPackageInformation(IProgressViewModel? progressVM, ref double progress, CancellationToken token = default)
     {
         if (token.IsCancellationRequested)
@@ -135,9 +136,7 @@ public class PackageViewModel : SessionObjectViewModel, IComparable<PackageViewM
             {
                 directory = GetOrCreateAssetDirectory(url.GetFullDirectory());
             }
-            var assetViewModel = CreateAsset(asset, directory);
-            directory.AddAsset(assetViewModel);
-
+            CreateAsset(asset, directory, false);
             progress++;
         }
 
@@ -195,7 +194,8 @@ public class PackageViewModel : SessionObjectViewModel, IComparable<PackageViewM
         throw new InvalidOperationException("Unable to sort the given items for the Content collection of PackageViewModel");
     }
 
-    private AssetViewModel CreateAsset(AssetItem assetItem, DirectoryBaseViewModel directory, ILogger? logger = null)
+    // FIXME xplat-editor: most method here should be moved to an utility in the editor project (asset project should have minimum capability)
+    public AssetViewModel CreateAsset(AssetItem assetItem, DirectoryBaseViewModel directory, bool canUndoRedoCreation, ILogger? logger = null)
     {
         AssetCollectionItemIdHelper.GenerateMissingItemIds(assetItem.Asset);
         Session.GraphContainer.InitializeAsset(assetItem, logger);
@@ -204,7 +204,7 @@ public class PackageViewModel : SessionObjectViewModel, IComparable<PackageViewM
         {
             assetViewModelType = assetViewModelType.MakeGenericType(assetItem.Asset.GetType());
         }
-        return (AssetViewModel)Activator.CreateInstance(assetViewModelType, new ConstructorParameters(assetItem, directory, false))!;
+        return (AssetViewModel)Activator.CreateInstance(assetViewModelType, new ConstructorParameters(assetItem, directory, canUndoRedoCreation))!;
     }
 
     private void FillRootAssetCollection()

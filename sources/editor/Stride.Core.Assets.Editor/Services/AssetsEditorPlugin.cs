@@ -5,10 +5,10 @@ using System.Reflection;
 using Stride.Core.Assets.Editor.Annotations;
 using Stride.Core.Assets.Editor.Editors;
 using Stride.Core.Assets.Editor.ViewModels;
-using Stride.Core.Assets.Presentation;
+using Stride.Core.Assets.Presentation.Services;
 using Stride.Core.Presentation.Views;
 
-namespace Stride.Core.Assets.Editor;
+namespace Stride.Core.Assets.Editor.Services;
 
 public abstract class AssetsEditorPlugin : AssetsPlugin
 {

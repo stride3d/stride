@@ -15,6 +15,21 @@ public partial class MainView : UserControl
     }
 
     /// <summary>
+    /// Gets a platform-specific <see cref="KeyGesture"/> for the Copy action
+    /// </summary>
+    public static KeyGesture? CopyGesture => Application.Current?.PlatformSettings?.HotkeyConfiguration.Copy.FirstOrDefault();
+
+    /// <summary>
+    /// Gets a platform-specific <see cref="KeyGesture"/> for the Cut action
+    /// </summary>
+    public static KeyGesture? CutGesture => Application.Current?.PlatformSettings?.HotkeyConfiguration.Cut.FirstOrDefault();
+
+    /// <summary>
+    /// Gets a platform-specific <see cref="KeyGesture"/> for the Paste action
+    /// </summary>
+    public static KeyGesture? PasteGesture => Application.Current?.PlatformSettings?.HotkeyConfiguration.Paste.FirstOrDefault();
+
+    /// <summary>
     /// Gets a platform-specific <see cref="KeyGesture"/> for the Redo action
     /// </summary>
     public static KeyGesture? RedoGesture => Application.Current?.PlatformSettings?.HotkeyConfiguration.Redo.FirstOrDefault();

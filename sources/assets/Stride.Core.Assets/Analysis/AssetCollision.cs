@@ -27,7 +27,7 @@ public static class AssetCollision
     /// assetResolver
     /// </exception>
     /// <exception cref="System.ArgumentException">List cannot contain null items;inputItems</exception>
-    public static void Clean(Package package, ICollection<AssetItem> inputItems, ICollection<AssetItem> outputItems, AssetResolver assetResolver, bool cloneInput, bool removeUnloadableObjects)
+    public static void Clean(Package? package, ICollection<AssetItem> inputItems, ICollection<AssetItem> outputItems, AssetResolver assetResolver, bool cloneInput, bool removeUnloadableObjects)
     {
         ArgumentNullException.ThrowIfNull(inputItems);
         ArgumentNullException.ThrowIfNull(outputItems);

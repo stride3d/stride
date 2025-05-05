@@ -3,11 +3,25 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
-             xmlns:vm="using:Stride.Assets.Editor.ViewModels"
-             xmlns:vm2="using:Stride.Assets.Presentation.ViewModels"
+             xmlns:aevm="using:Stride.Assets.Editor.ViewModels"
+             xmlns:apvm="using:Stride.Assets.Presentation.ViewModels"
+             xmlns:cpc="using:Stride.Core.Presentation.Commands"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="Stride.Assets.Editor.Avalonia.Views.EntityHierarchyEditorView"
-             x:DataType="vm:EntityHierarchyEditorViewModel">
+             x:DataType="aevm:EntityHierarchyEditorViewModel">
+  <UserControl.Resources>
+    <ContextMenu x:Key="TreeViewItemContextMenu">
+      <Separator/>
+      <MenuItem Header="{sd:LocalizeString Cut, Context=Menu}"
+                Command="{Binding $parent[UserControl].DataContext.CutCommand, FallbackValue={x:Static cpc:DisabledCommand.Instance}}"/>
+      <MenuItem Header="{sd:LocalizeString Copy, Context=Menu}"
+                Command="{Binding $parent[UserControl].DataContext.CopyCommand, FallbackValue={x:Static cpc:DisabledCommand.Instance}}"/>
+      <MenuItem Header="{sd:LocalizeString Paste, Context=Menu}"
+                Command="{Binding $parent[UserControl].DataContext.PasteCommand, FallbackValue={x:Static cpc:DisabledCommand.Instance}}"/>
+      <MenuItem Header="{sd:LocalizeString Delete, Context=Menu}"
+                Command="{Binding $parent[UserControl].DataContext.DeleteCommand, FallbackValue={x:Static cpc:DisabledCommand.Instance}}"/>
+    </ContextMenu>
+  </UserControl.Resources>
   <Grid ColumnDefinitions="*, 4, 3*">
     <DockPanel Grid.Column="0">
       <TreeView ItemsSource="{Binding HierarchyRoot, Mode=OneWay, Converter={sd:Yield}}"
@@ -15,12 +29,12 @@
                 SelectionMode="Multiple">
         <Control.DataTemplates>
           <!-- Default template -->
-          <TreeDataTemplate DataType="{x:Type vm2:EntityHierarchyItemViewModel}"
+          <TreeDataTemplate DataType="{x:Type apvm:EntityHierarchyItemViewModel}"
                             ItemsSource="{Binding Children}">
             <TextBlock Text="{Binding Name}" />
           </TreeDataTemplate>
           <!-- Entity template -->
-          <TreeDataTemplate DataType="{x:Type vm2:EntityViewModel}"
+          <TreeDataTemplate DataType="{x:Type apvm:EntityViewModel}"
                             ItemsSource="{Binding Children}">
             <StackPanel Orientation="Horizontal">
               <!-- TODO icon -->
@@ -28,7 +42,7 @@
             </StackPanel>
           </TreeDataTemplate>
           <!-- Scene template -->
-          <TreeDataTemplate DataType="{x:Type vm2:SceneRootViewModel}"
+          <TreeDataTemplate DataType="{x:Type apvm:SceneRootViewModel}"
                             ItemsSource="{Binding Children}">
             <StackPanel Orientation="Horizontal">
               <!-- TODO icon -->
@@ -38,6 +52,7 @@
         </Control.DataTemplates>
         <StyledElement.Styles>
           <Style Selector="TreeViewItem">
+            <Setter Property="ContextMenu" Value="{StaticResource TreeViewItemContextMenu}"/>
             <Setter Property="IsExpanded" Value="True"/>
           </Style>
         </StyledElement.Styles>

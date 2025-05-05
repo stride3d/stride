@@ -19,5 +19,5 @@ public sealed class PrefabViewModel : EntityHierarchyViewModel, IAssetViewModel<
     }
 
     /// <inheritdoc />
-    public new PrefabAsset Asset => (PrefabAsset)base.Asset;
+    public override PrefabAsset Asset => (PrefabAsset)base.Asset;
 }

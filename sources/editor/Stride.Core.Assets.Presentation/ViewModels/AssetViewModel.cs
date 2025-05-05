@@ -25,8 +25,8 @@ public class AssetViewModel<TAsset> : AssetViewModel, IAssetViewModel<TAsset>
     {
     }
 
-    /// <inheritdoc />
-    public new TAsset Asset => (TAsset)base.Asset;
+    /// <inheritdoc cref="IAssetViewModel{TAsset}" />
+    public override TAsset Asset => (TAsset)base.Asset;
 }
 
 public abstract class AssetViewModel : SessionObjectViewModel, IAssetPropertyProviderViewModel
@@ -57,10 +57,12 @@ public abstract class AssetViewModel : SessionObjectViewModel, IAssetPropertyPro
             PropertyGraph.Changed += AssetPropertyChanged;
             PropertyGraph.ItemChanged += AssetPropertyChanged;
         }
+        // Add to directory after asset node has been created, so that listener to directory changes can retrieve it
+        directory.AddAsset(this, parameters.CanUndoRedoCreation);
         Initializing = false;
     }
 
-    public Asset Asset => AssetItem.Asset;
+    public virtual Asset Asset => AssetItem.Asset;
 
     public AssetItem AssetItem
     {
@@ -192,7 +194,7 @@ public abstract class AssetViewModel : SessionObjectViewModel, IAssetPropertyPro
         var result = new HashSet<AssetViewModel>(assets.SelectMany(x => x.Dependencies.RecursiveReferencedAssets));
         return result;
     }
-    
+
     private void BaseContentChanged(INodeChangeEventArgs e, IGraphNode node)
     {
         // FIXME xplat-editor

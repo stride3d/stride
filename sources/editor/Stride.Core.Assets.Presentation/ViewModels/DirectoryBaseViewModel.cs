@@ -25,7 +25,7 @@ public abstract class DirectoryBaseViewModel : SessionObjectViewModel
     /// Gets the package containing this directory.
     /// </summary>
     public abstract PackageViewModel Package { get; }
-    
+
     /// <summary>
     /// Gets or sets the parent directory of this directory.
     /// </summary>
@@ -46,6 +46,27 @@ public abstract class DirectoryBaseViewModel : SessionObjectViewModel
     /// </summary>
     public ReadOnlyObservableCollection<DirectoryViewModel> SubDirectories { get; }
 
+    /// <summary>
+    /// Retrieves the directory corresponding to the given path.
+    /// </summary>
+    /// <param name="path">The path to the directory.</param>
+    /// <returns>The directory corresponding to the given path if found, otherwise <c>null</c>.</returns>
+    /// <remarks>The path should correspond to a directory, not an asset.</remarks>
+    public DirectoryBaseViewModel? GetDirectory(string path)
+    {
+        ArgumentNullException.ThrowIfNull(path);
+
+        var directoryNames = path.Split(Separator.ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
+        DirectoryBaseViewModel? currentDirectory = this;
+        foreach (var directoryName in directoryNames)
+        {
+            currentDirectory = currentDirectory.SubDirectories.FirstOrDefault(x => string.Equals(directoryName, x.Name, StringComparison.InvariantCultureIgnoreCase));
+            if (currentDirectory is null)
+                return null;
+        }
+        return currentDirectory;
+    }
+
     public IReadOnlyCollection<DirectoryBaseViewModel> GetDirectoryHierarchy()
     {
         var hierarchy = new List<DirectoryBaseViewModel> { this };
@@ -55,7 +76,8 @@ public abstract class DirectoryBaseViewModel : SessionObjectViewModel
 
     public DirectoryBaseViewModel GetOrCreateDirectory(string path)
     {
-        if (path == null) throw new ArgumentNullException(nameof(path));
+        ArgumentNullException.ThrowIfNull(path);
+
         DirectoryBaseViewModel result = this;
         if (!string.IsNullOrEmpty(path))
         {
@@ -65,9 +87,19 @@ public abstract class DirectoryBaseViewModel : SessionObjectViewModel
         return result;
     }
 
-    internal void AddAsset(AssetViewModel asset)
+    internal void AddAsset(AssetViewModel asset, bool canUndoRedo)
     {
-        assets.Add(asset);
+        if (canUndoRedo)
+        {
+            assets.Add(asset);
+        }
+        else
+        {
+            using (SuspendNotificationForCollectionChange(nameof(Assets)))
+            {
+                assets.Add(asset);
+            }
+        }
     }
 
     internal void RemoveAsset(AssetViewModel asset)

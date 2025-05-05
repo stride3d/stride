@@ -19,5 +19,5 @@ public class UILibraryViewModel : UIBaseViewModel, IAssetViewModel<UILibraryAsse
     }
 
     /// <inheritdoc />
-    public new UILibraryAsset Asset => (UILibraryAsset)base.Asset;
+    public override UILibraryAsset Asset => (UILibraryAsset)base.Asset;
 }

@@ -12,7 +12,7 @@ using Stride.Engine;
 
 namespace Stride.Assets.Presentation.ViewModels;
 
-public sealed class EntityViewModel : EntityHierarchyItemViewModel, IAssetPropertyProviderViewModel
+public sealed class EntityViewModel : EntityHierarchyItemViewModel, IPartDesignViewModel<EntityDesign, Entity>, IAssetPropertyProviderViewModel
 {
     private readonly MemberGraphNodeBinding<string> nameNodeBinding;
     private readonly ObjectGraphNodeBinding<EntityComponentCollection> componentsNodeBinding;
@@ -20,16 +20,17 @@ public sealed class EntityViewModel : EntityHierarchyItemViewModel, IAssetProper
     public EntityViewModel(EntityHierarchyViewModel asset, EntityDesign entityDesign)
         : base(asset, GetOrCreateChildPartDesigns((EntityHierarchyAssetBase)asset.Asset, entityDesign))
     {
-        EntityDesign = entityDesign;
+        PartDesign = entityDesign;
 
         var assetNode = asset.Session.AssetNodeContainer.GetOrCreateNode(entityDesign.Entity);
         nameNodeBinding = new MemberGraphNodeBinding<string>(assetNode[nameof(Entity.Name)], nameof(Name), OnPropertyChanging, OnPropertyChanged, ServiceProvider.TryGet<IUndoRedoService>());
         componentsNodeBinding = new ObjectGraphNodeBinding<EntityComponentCollection>(assetNode[nameof(Entity.Components)].Target!, nameof(Components), OnPropertyChanging, OnPropertyChanged, ServiceProvider.TryGet<IUndoRedoService>(), false);
     }
 
-    public IEnumerable<EntityComponent> Components => componentsNodeBinding.GetNodeValue();
+    public Entity AssetSideEntity => PartDesign.Entity;
 
-    public Entity AssetSideEntity => EntityDesign.Entity;
+
+    public IEnumerable<EntityComponent> Components => componentsNodeBinding.GetNodeValue();
 
     /// <inheritdoc/>
     public override AbsoluteId Id => new(Asset.Id, AssetSideEntity.Id);
@@ -44,7 +45,8 @@ public sealed class EntityViewModel : EntityHierarchyItemViewModel, IAssetProper
         set => nameNodeBinding.Value = value;
     }
 
-    internal EntityDesign EntityDesign { get; }
+    /// <inheritdoc/>
+    public EntityDesign PartDesign { get; }
 
     bool IPropertyProviderViewModel.CanProvidePropertiesViewModel => true;
 
@@ -59,7 +61,7 @@ public sealed class EntityViewModel : EntityHierarchyItemViewModel, IAssetProper
         path.PushMember(nameof(EntityHierarchy.Hierarchy.Parts));
         path.PushTarget();
         path.PushIndex(new NodeIndex(Id.ObjectId));
-        path.PushMember(nameof(EntityDesign.Entity));
+        path.PushMember(nameof(PartDesign.Entity));
         path.PushTarget();
         return path;
     }

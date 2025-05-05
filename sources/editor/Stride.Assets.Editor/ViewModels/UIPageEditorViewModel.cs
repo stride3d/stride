@@ -13,14 +13,15 @@ public sealed class UIPageEditorViewModel : UIEditorBaseViewModel, IAssetEditorV
     public UIPageEditorViewModel(UIPageViewModel asset)
         : base(asset)
     {
+        RootPart = new UIPageRootViewModel(Asset);
     }
 
     /// <inheritdoc />
     public override UIPageViewModel Asset => (UIPageViewModel)base.Asset;
 
     /// <inheritdoc />
-    protected override UIPageRootViewModel CreateRootPartViewModel()
+    protected override Task Delete()
     {
-        return new UIPageRootViewModel(Asset);
+        throw new NotImplementedException();
     }
 }
