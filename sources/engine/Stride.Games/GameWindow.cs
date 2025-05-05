@@ -132,7 +132,7 @@ namespace Stride.Games
         /// Gets or sets the opacity of the window.
         /// </summary>
         /// <value> 1.0f is fully opaque, 0.0f is fully transparent.</value>
-        public abstract float Opacity { get; set; }
+        public abstract double Opacity { get; set; }
         
         /// <summary>
         /// Gets or sets the background color of the window.

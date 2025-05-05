@@ -274,7 +274,7 @@ namespace Stride.Games
         }
 
         /// <inheritdoc />
-        public override float Opacity { get; set; }
+        public override double Opacity { get; set; }
 
         /// <inheritdoc />
         public override Color BackgroundColor { get; set; }
