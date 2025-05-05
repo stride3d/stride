@@ -245,7 +245,20 @@ namespace Stride.Games
         }
 
         /// <inheritdoc />
-        public override double Opacity { get; set; }
+        public override double Opacity
+        {
+            get
+            {
+                return window?.Opacity ?? 1.0d;
+            }
+            set
+            {
+                if (window != null)
+                {
+                    window.Opacity = (float)value;
+                }
+            }
+        }
 
         /// <inheritdoc />
         public override Color BackgroundColor { get; set; }
