@@ -5,67 +5,66 @@ using Stride.Engine;
 using Stride.Input;
 using Stride.Physics;
 
-namespace CSharpIntermediate.Code
+namespace CSharpIntermediate.Code;
+
+public class FirstPersonCamera : SyncScript
 {
-    public class FirstPersonCamera : SyncScript
+    public float MouseSpeed = 0.6f;
+    public float MaxLookUpAngle = -50;
+    public float MaxLookDownAngle = 50;
+    public bool InvertMouseY = false;
+
+    private Entity firstPersonCameraPivot;
+    private Vector3 camRotation;
+    private bool isActive = false;
+    private Vector2 maxCameraAnglesRadians;
+    private CharacterComponent character;
+
+    public override void Start()
     {
-        public float MouseSpeed = 0.6f;
-        public float MaxLookUpAngle = -50;
-        public float MaxLookDownAngle = 50;
-        public bool InvertMouseY = false;
+        firstPersonCameraPivot = Entity.FindChild("CameraPivot");
 
-        private Entity firstPersonCameraPivot;
-        private Vector3 camRotation;
-        private bool isActive = false;
-        private Vector2 maxCameraAnglesRadians;
-        private CharacterComponent character;
+        // Convert the Max camera angles from Degress to Radions
+        maxCameraAnglesRadians = new Vector2(MathUtil.DegreesToRadians(MaxLookUpAngle), MathUtil.DegreesToRadians(MaxLookDownAngle));
+        
+        // Store the initial camera rotation
+        camRotation = Entity.Transform.RotationEulerXYZ;
 
-        public override void Start()
+        // Set the mouse to the middle of the screen
+        Input.MousePosition = new Vector2(0.5f, 0.5f);
+
+        isActive = true;
+        Game.IsMouseVisible = false;
+
+        character = Entity.Get<CharacterComponent>();
+    }
+
+
+    public override void Update()
+    {
+        if (Input.IsKeyPressed(Keys.Escape))
         {
-            firstPersonCameraPivot = Entity.FindChild("CameraPivot");
-
-            // Convert the Max camera angles from Degress to Radions
-            maxCameraAnglesRadians = new Vector2(MathUtil.DegreesToRadians(MaxLookUpAngle), MathUtil.DegreesToRadians(MaxLookDownAngle));
-            
-            // Store the initial camera rotation
-            camRotation = Entity.Transform.RotationEulerXYZ;
-
-            // Set the mouse to the middle of the screen
-            Input.MousePosition = new Vector2(0.5f, 0.5f);
-
-            isActive = true;
-            Game.IsMouseVisible = false;
-
-            character = Entity.Get<CharacterComponent>();
+            isActive = !isActive;
+            Game.IsMouseVisible = !isActive;
+            Input.UnlockMousePosition();
         }
 
-
-        public override void Update()
+        if (isActive)
         {
-            if (Input.IsKeyPressed(Keys.Escape))
-            {
-                isActive = !isActive;
-                Game.IsMouseVisible = !isActive;
-                Input.UnlockMousePosition();
-            }
+            Input.LockMousePosition();
+            var mouseMovement = Input.MouseDelta * MouseSpeed;
 
-            if (isActive)
-            {
-                Input.LockMousePosition();
-                var mouseMovement = Input.MouseDelta * MouseSpeed;
+            // Update camera rotation values
+            camRotation.Y += -mouseMovement.X;
+            camRotation.X += InvertMouseY ? -mouseMovement.Y : mouseMovement.Y;
+            camRotation.X = MathUtil.Clamp(camRotation.X, maxCameraAnglesRadians.X, maxCameraAnglesRadians.Y);
 
-                // Update camera rotation values
-                camRotation.Y += -mouseMovement.X;
-                camRotation.X += InvertMouseY ? -mouseMovement.Y : mouseMovement.Y;
-                camRotation.X = MathUtil.Clamp(camRotation.X, maxCameraAnglesRadians.X, maxCameraAnglesRadians.Y);
+            // Apply Y rotation to character entity
+            character.Orientation = Quaternion.RotationY(camRotation.Y);
+            // Entity.Transform.Rotation = Quaternion.RotationY(camRotation.Y);
 
-                // Apply Y rotation to character entity
-                character.Orientation = Quaternion.RotationY(camRotation.Y);
-                // Entity.Transform.Rotation = Quaternion.RotationY(camRotation.Y);
-
-                // Apply X camera rotation to the existing camera rotations
-                firstPersonCameraPivot.Transform.Rotation = Quaternion.RotationX(camRotation.X);
-            }
+            // Apply X camera rotation to the existing camera rotations
+            firstPersonCameraPivot.Transform.Rotation = Quaternion.RotationX(camRotation.X);
         }
     }
 }
