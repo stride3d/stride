@@ -381,7 +381,7 @@ namespace Stride.Assets.Models
                 }
 
                 // split the meshes if necessary
-                prefabModel.Meshes = SplitExtensions.SplitMeshes(prefabModel.Meshes, renderingSettings.DefaultGraphicsProfile > GraphicsProfile.Level_9_3);
+                prefabModel.Meshes = SplitExtensions.SplitMeshes(prefabModel.Meshes);
 
                 //handle boundng box/sphere
                 var modelBoundingBox = prefabModel.BoundingBox;

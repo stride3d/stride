@@ -248,7 +248,7 @@ namespace Stride.Graphics
 
             // Creates the depth stencil buffer.
             var flags = TextureFlags.DepthStencil;
-            if (GraphicsDevice.Features.CurrentProfile >= GraphicsProfile.Level_10_0 && Description.MultisampleCount == MultisampleCount.None)
+            if (Description.MultisampleCount == MultisampleCount.None)
             {
                 flags |= TextureFlags.ShaderResource;
             }
