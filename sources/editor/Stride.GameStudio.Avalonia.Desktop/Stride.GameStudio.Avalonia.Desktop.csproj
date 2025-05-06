@@ -1,11 +1,13 @@
-<Project>
+﻿<Project>
   <Import Project="..\..\targets\Stride.props" />
 
   <PropertyGroup>
     <TargetFramework>$(StrideXplatEditorTargetFramework)</TargetFramework>
+    <RuntimeIdentifiers>linux-x64;win-x64</RuntimeIdentifiers>
     <ImplicitUsings>enable</ImplicitUsings>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
+    <StrideNuGetResolverUI>false</StrideNuGetResolverUI>
   </PropertyGroup>
 
   <ItemGroup>
@@ -43,5 +45,6 @@
     <Compile Include="..\..\launcher\Stride.Launcher\Crash\CrashReportWindow.axaml.cs" Link="Crash\CrashReportWindow.axaml.cs" />
   </ItemGroup>
 
+  <Import Project="..\..\shared\Stride.NuGetResolver.Targets\Stride.NuGetResolver.Targets.projitems" Label="Shared" />
   <Import Project="$(StrideSdkTargets)" />
 </Project>
