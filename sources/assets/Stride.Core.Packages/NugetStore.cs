@@ -143,11 +143,13 @@ public partial class NugetStore : INugetDownloadProgress
     /// List of package Ids under which the main package is known. Usually just one entry, but
     /// we could have several in case there is a product name change.
     /// </summary>
-    public IReadOnlyCollection<string> MainPackageIds { get; } = ["Stride.GameStudio", "Xenko.GameStudio", "Xenko"];
+    // FIXME xplat-editor these names should be parameterized and given to the constructor
+    public IReadOnlyCollection<string> MainPackageIds { get; } = ["Stride.GameStudio.Avalonia.Desktop", "Stride.GameStudio", "Xenko.GameStudio", "Xenko"];
 
     /// <summary>
     /// Package Id of the Visual Studio Integration plugin.
     /// </summary>
+    // FIXME xplat-editor this name should be parameterized and given to the constructor
     public string VsixPackageId { get; } = "Stride.VisualStudio.Package";
 
     /// <summary>
