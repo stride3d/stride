@@ -22,7 +22,7 @@ public abstract class StrideVersionViewModel : PackageVersionViewModel, ICompara
     private bool canStart;
     private string selectedFramework;
 
-    internal StrideVersionViewModel(MainViewModel launcher, NugetStore store, NugetLocalPackage localPackage, string packageId, int major, int minor)
+    internal StrideVersionViewModel(MainViewModel launcher, NugetStore store, NugetLocalPackage? localPackage, string packageId, int major, int minor)
         : base(launcher, store, localPackage)
     {
         PackageSimpleName = packageId.Replace(".GameStudio", string.Empty);
@@ -201,7 +201,7 @@ public abstract class StrideVersionViewModel : PackageVersionViewModel, ICompara
 
         // Otherwise, old-style fallback
         var mainExecutableList = GetMainExecutables();
-        var fullExePath = mainExecutableList.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(x => Path.Combine(InstallPath, x)).FirstOrDefault(File.Exists);
+        var fullExePath = mainExecutableList.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(x => Path.Combine(InstallPath, x)).FirstOrDefault(File.Exists);
         if (fullExePath is null)
             throw new InvalidOperationException("Unable to locate the executable for the selected version");
 

@@ -10,7 +10,7 @@ public class ProgressReport : IDisposable
     private ProgressAction action;
     private int progress;
 
-    public ProgressReport(NugetStore store, NugetPackage package)
+    public ProgressReport(NugetStore store, NugetPackage? package)
     {
         ArgumentNullException.ThrowIfNull(store);
         this.store = store;

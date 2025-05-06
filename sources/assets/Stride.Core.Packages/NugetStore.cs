@@ -450,7 +450,7 @@ public partial class NugetStore : INugetDownloadProgress
     /// </summary>
     /// <remarks>It is safe to call it concurrently be cause we operations are done using the FileLock.</remarks>
     /// <param name="package">Package to uninstall.</param>
-    public async Task UninstallPackage(NugetPackage package, ProgressReport progress)
+    public async Task UninstallPackage(NugetPackage package, ProgressReport? progress)
     {
 #if DEBUG
         var installedPackages = GetPackagesInstalled([package.Id]);
