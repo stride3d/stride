@@ -387,7 +387,8 @@
                                 <Image Source="/Assets/Images/list.png"
                                        Width="20" Height="20" />
                               </ToggleButton>
-                              <Popup IsOpen="{Binding #Toggle.IsChecked, Mode=TwoWay}" IsLightDismissEnabled="True">
+                              <Popup x:Name="Popup"
+                                     IsOpen="{Binding #Toggle.IsChecked, Mode=TwoWay}" IsLightDismissEnabled="True">
                                 <Border Margin="4" Background="#434343">
                                   <Border.Effect>
                                     <DropShadowEffect BlurRadius="5" Opacity="0.4" />
@@ -401,7 +402,7 @@
                                                   HorizontalAlignment="Stretch" HorizontalContentAlignment="Left">
                                             <Interaction.Behaviors>
                                               <EventTriggerBehavior EventName="Click">
-                                                <ChangePropertyAction TargetObject="{Binding #Toggle}" PropertyName="IsChecked" Value="False" />
+                                                <ChangePropertyAction TargetObject="{Binding #Popup}" PropertyName="IsOpen" Value="False" />
                                               </EventTriggerBehavior>
                                             </Interaction.Behaviors>
                                           </Button>
@@ -468,7 +469,7 @@
                                   Content="{Binding}"
                                   Command="{Binding CheckDeprecatedSourcesCommand}">
                       <ToggleButton.ContentTemplate>
-                        <DataTemplate>
+                        <DataTemplate DataType="vm:MainViewModel">
                           <TextBlock Text="{x:Static l:Strings.ToggleShowBetaVersions}">
                             <Interaction.Behaviors>
                               <DataTriggerBehavior Binding="{Binding ShowBetaVersions}" Value="True">
@@ -535,7 +536,7 @@
                                         <ItemsControl.ItemTemplate>
                                           <DataTemplate DataType="{x:Type vm:StrideVersionViewModel}">
                                             <Button Content="{Binding DisplayName, StringFormat={x:Static l:Strings.OpenProjectWithVersion}}"
-                                                    Command="{Binding $parent[ScrollViewer].DataContext.OpenWithCommand}"
+                                                    Command="{Binding $parent[ScrollViewer].((vm:RecentProjectViewModel)DataContext).OpenWithCommand}"
                                                     HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" />
                                           </DataTemplate>
                                         </ItemsControl.ItemTemplate>
