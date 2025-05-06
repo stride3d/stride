@@ -147,11 +147,13 @@ public static partial class NuGetAssemblyResolver
                             // Register the native libraries
                             var nativeLibs = RestoreHelper.ListNativeLibs(result.LockFile);
                             RegisterNativeDependencies(assemblyNameToPath, nativeLibs);
+                            // FIXME xplat-editor we should have a flag to determine whether native libraries need to be pre-loaded.
+                            // At the moment, we have an issue when using the new editor which forces us to preload all of them (not only Avalonia's native dependencies, but also ours like SDL).
+                            LoadNativeDependencies(assemblyNameToPath, nativeLibs);
 
 #if STRIDE_NUGET_RESOLVER_UI
                             if (packageName == AvaloniaPackageName)
                             {
-                                LoadNativeDependencies(assemblyNameToPath, nativeLibs);
                                 avaloniaLoaded.TrySetResult();
                             }
 #endif
