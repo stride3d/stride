@@ -423,11 +423,14 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
             // Inform the user if we just switched offline
             if (IsOffline && !wasOffline)
             {
-                var message = $@"**{Strings.ErrorOfflineMode}**
-### Log
-```
-{LogMessages}
-```";
+                var message = 
+                    $"""
+                    **{Strings.ErrorOfflineMode}**
+                    ### Log
+                    ```
+                    {LogMessages}
+                    ```
+                    """;
                 await ServiceProvider.Get<IDialogService>().MessageBoxAsync(message, MessageBoxButton.OK, MessageBoxImage.Information);
             }
 
@@ -578,7 +581,24 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
             var mainExecutable = ActiveVersion.LocateMainExecutable();
 
             // We set the WorkingDirectory so that global.json is properly resolved
-            Process.Start(new ProcessStartInfo(mainExecutable, argument) { WorkingDirectory = Path.GetDirectoryName(mainExecutable) });
+            switch (Path.GetExtension(mainExecutable))
+            {
+                case ".dll":
+                    argument = $"{mainExecutable} {argument}";
+                    Process.Start(new ProcessStartInfo("dotnet", argument)
+                    {
+                        WorkingDirectory = Path.GetDirectoryName(mainExecutable)
+                    });
+                    break;
+
+                default:
+                    Process.Start(new ProcessStartInfo(mainExecutable, argument)
+                    {
+                        WorkingDirectory = Path.GetDirectoryName(mainExecutable)
+                    });
+                    break;
+            }
+
         }
         catch (Exception e)
         {
