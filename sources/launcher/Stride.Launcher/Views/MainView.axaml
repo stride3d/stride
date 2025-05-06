@@ -445,9 +445,9 @@
                                 </Button>
                                 <TextBlock Margin="16,0" IsHitTestVisible="False"
                                            HorizontalAlignment="Left" VerticalAlignment="Center">
-                                  <Run Text="{Binding DisplayName, StringFormat={x:Static l:Strings.VersionButton}}"/>
+                                  <Run Text="{Binding DisplayName, Mode=OneWay, StringFormat={x:Static l:Strings.VersionButton}}"/>
                                   <!-- Careful here, there must not be any space or line-break between the next two Run tags! -->
-                                  <Run Text="{Binding !CanDelete, Converter={sd:BoolToParam}, ConverterParameter={x:Static l:Strings.VersionButtonUninstalled}
+                                  <Run Text="{Binding !CanDelete, Mode=OneWay, Converter={sd:BoolToParam}, ConverterParameter={x:Static l:Strings.VersionButtonUninstalled}
                                        }"/><Run Text="{sd:MultiBinding {Binding CanDelete}, {Binding CanBeDownloaded}, {Binding IsLatestPackageRemote}, Converter={sd:MultiChained
                                        {sd:AndMulti}, {sd:BoolToParam}, Parameter1={x:Static l:Strings.VersionButtonUpdateAvailable}}}"/><Run Text="{sd:MultiBinding
                                        {Binding CanDelete}, {Binding CanBeDownloaded}, {Binding IsLatestPackageLocal}, Converter={sd:MultiChained {sd:AndMulti}, {sd:BoolToParam},
