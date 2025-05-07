@@ -177,6 +177,7 @@ public abstract class StrideVersionViewModel : PackageVersionViewModel, ICompara
         yield return Path.Combine("lib", "net8.0", $"{GameStudioNames.StrideAvalonia}.dll");
         if (OperatingSystem.IsWindows())
         {
+            yield return @$"lib\net8.0-windows7.0\{GameStudioNames.Stride}.exe";
             yield return @$"lib\net472\{GameStudioNames.Stride}.exe";
             yield return @$"lib\net472\{GameStudioNames.Xenko}.exe";
             yield return @$"Bin\Windows\{GameStudioNames.Xenko}.exe";
@@ -198,7 +199,7 @@ public abstract class StrideVersionViewModel : PackageVersionViewModel, ICompara
                 var gameStudioDirectory = Path.Combine(InstallPath, toplevelFolder, SelectedFramework);
                 string[] executableNames = OperatingSystem.IsWindows()
                     ? [
-                        $"{GameStudioNames.StrideAvalonia}.exe",
+                        $"{GameStudioNames.StrideAvalonia}.dll",
                         $"{GameStudioNames.Stride}.exe",
                         $"{GameStudioNames.Xenko}.exe",
                     ]
