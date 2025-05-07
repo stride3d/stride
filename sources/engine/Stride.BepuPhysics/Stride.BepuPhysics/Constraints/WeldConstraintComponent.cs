@@ -15,7 +15,11 @@ namespace Stride.BepuPhysics.Constraints;
 [ComponentCategory("Physics - Bepu Constraint")]
 public sealed class WeldConstraintComponent : TwoBodyConstraintComponent<Weld>, ISpring
 {
-    public WeldConstraintComponent() => BepuConstraint = new() { SpringSettings = new SpringSettings(30, 5) };
+    public WeldConstraintComponent() => BepuConstraint = new()
+    {
+        LocalOrientation = Quaternion.Identity,
+        SpringSettings = new SpringSettings(30, 5)
+    };
 
     /// <summary>
     /// Offset from body A to body B in the local space of A

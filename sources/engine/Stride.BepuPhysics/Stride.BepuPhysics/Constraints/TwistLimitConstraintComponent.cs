@@ -15,7 +15,12 @@ namespace Stride.BepuPhysics.Constraints;
 [ComponentCategory("Physics - Bepu Constraint")]
 public sealed class TwistLimitConstraintComponent : TwoBodyConstraintComponent<TwistLimit>, ISpring
 {
-    public TwistLimitConstraintComponent() => BepuConstraint = new() { SpringSettings = new SpringSettings(30, 5) };
+    public TwistLimitConstraintComponent() => BepuConstraint = new()
+    {
+        LocalBasisA = Quaternion.Identity,
+        LocalBasisB = Quaternion.Identity,
+        SpringSettings = new SpringSettings(30, 5)
+    };
 
     /// <summary>
     /// Local space basis attached to body A against which to measure body B's transformed axis.

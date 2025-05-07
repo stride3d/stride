@@ -30,6 +30,7 @@ public sealed class OneBodyAngularServoConstraintComponent : OneBodyConstraintCo
 {
     public OneBodyAngularServoConstraintComponent() => BepuConstraint = new()
     {
+        TargetOrientation = Quaternion.Identity,
         ServoSettings = new ServoSettings(),
         SpringSettings = new SpringSettings(30, 5)
     };
