@@ -27,6 +27,8 @@ namespace Stride.GameStudio
         public static SettingsKey<bool> ActionHistoryPanelVisible = new SettingsKey<bool>("Internal/ActionHistoryPanelVisible", SettingsContainer, true);
         public static SettingsKey<bool> AssetLogPanelVisible = new SettingsKey<bool>("Internal/AssetLogPanelVisible", SettingsContainer, true);
         public static SettingsKey<bool> BuildLogPanelVisible = new SettingsKey<bool>("Internal/BuildLogPanelVisible", SettingsContainer, true);
+        public static SettingsKey<bool> GitChangesPanelVisible = new SettingsKey<bool>("Internal/GitChangesPanelVisible", SettingsContainer, true);
+        // TODO: Check and add Internal/GitChangesPanelVisible
 
         /// <summary>
         /// Default Game Studio layout when no editors are opened.

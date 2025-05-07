@@ -19,6 +19,7 @@ namespace Stride.GameStudio.ViewModels
         private bool actionHistoryPanelVisible = true;
         private bool assetLogPanelVisible = true;
         private bool buildLogPanelVisible = true;
+        private bool gitChangesPanelVisible = true;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="EditionPanelViewModel"/> class.
@@ -69,6 +70,11 @@ namespace Stride.GameStudio.ViewModels
         /// </summary>
         public bool BuildLogPanelVisible { get { return buildLogPanelVisible; } set { SetValue(ref buildLogPanelVisible, value, GameStudioInternalSettings.BuildLogPanelVisible); } }
 
+        /// <summary>
+        /// Gets or sets whether the git changes panel is visible.
+        /// </summary>
+        public bool GitChangesPanelVisible { get { return gitChangesPanelVisible; } set { SetValue(ref gitChangesPanelVisible, value, GameStudioInternalSettings.GitChangesPanelVisible); } }
+        
         /// <summary>
         /// Loads the visible/hidden status of each panel from the settings.
         /// </summary>
