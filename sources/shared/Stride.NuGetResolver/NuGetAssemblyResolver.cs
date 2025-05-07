@@ -147,11 +147,11 @@ public static partial class NuGetAssemblyResolver
                             // Register the native libraries
                             var nativeLibs = RestoreHelper.ListNativeLibs(result.LockFile);
                             RegisterNativeDependencies(assemblyNameToPath, nativeLibs);
+                            LoadNativeDependencies(assemblyNameToPath, nativeLibs);
 
 #if STRIDE_NUGET_RESOLVER_UI
                             if (packageName == AvaloniaPackageName)
                             {
-                                LoadNativeDependencies(assemblyNameToPath, nativeLibs);
                                 avaloniaLoaded.TrySetResult();
                             }
 #endif
