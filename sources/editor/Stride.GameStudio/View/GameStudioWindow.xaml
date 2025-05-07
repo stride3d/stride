@@ -271,6 +271,7 @@
 
         <Separator/>
         <MenuItem Header="{sd:Localize Property grid, Context=Menu}" IsCheckable="True" IsChecked="{Binding Panels.PropertyGridPanelVisible, Mode=TwoWay}"/>
+        <MenuItem Header="{sd:Localize Git Changes, Context=Menu}" IsCheckable="True" IsChecked="True"/>
         <MenuItem Header="{sd:Localize Edit history, Context=Menu}" IsCheckable="True" IsChecked="{Binding Panels.ActionHistoryPanelVisible, Mode=TwoWay}"/>
 
         <Separator/>
