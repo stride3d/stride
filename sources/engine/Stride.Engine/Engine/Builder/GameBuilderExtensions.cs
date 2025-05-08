@@ -143,7 +143,7 @@ public static class GameBuilderExtensions
         }
 
         return gameBuilder;
-    }
+        }
 
     public static IGameBuilder UseDefaultContentManager(this IGameBuilder gameBuilder)
     {

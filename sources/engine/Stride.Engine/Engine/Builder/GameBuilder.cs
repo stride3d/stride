@@ -127,7 +127,7 @@ public class GameBuilder : IGameBuilder
         {
             _log.Info($"Setting game context.");
             Game.SetGameContext(Context);
-        }
+    }
 
         if(InputSources.Count > 0)
         {
@@ -138,10 +138,10 @@ public class GameBuilder : IGameBuilder
                 _log.Info("No InputManager found in the game services, creating default.");
                 inputManager = new InputManager();
                 Game.Services.AddService(inputManager);
-            }
+}
 
             foreach (var inputSource in InputSources)
-            {
+{
                 _log.Info($"Adding input source {inputSource.GetType().Name} to the input manager.");
                 inputManager.Sources.Add(inputSource);
             }

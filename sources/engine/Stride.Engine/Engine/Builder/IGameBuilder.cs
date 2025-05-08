@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Stride.Core.Diagnostics;
+using Stride.Core;
 using Stride.Games;
 using System;
 using Microsoft.Extensions.DependencyInjection;
