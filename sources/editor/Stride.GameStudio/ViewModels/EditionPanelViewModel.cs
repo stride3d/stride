@@ -88,6 +88,7 @@ namespace Stride.GameStudio.ViewModels
             ActionHistoryPanelVisible = GameStudioInternalSettings.ActionHistoryPanelVisible.GetValue();
             AssetLogPanelVisible = GameStudioInternalSettings.AssetLogPanelVisible.GetValue();
             BuildLogPanelVisible = GameStudioInternalSettings.BuildLogPanelVisible.GetValue();
+            GitChangesPanelVisible = GameStudioInternalSettings.GitChangesPanelVisible.GetValue();
         }
 
         /// <summary>
@@ -103,6 +104,7 @@ namespace Stride.GameStudio.ViewModels
             ActionHistoryPanelVisible = true;
             AssetLogPanelVisible = true;
             BuildLogPanelVisible = true;
+            GitChangesPanelVisible = true;
         }
 
         private void SetValue(ref bool field, bool value, SettingsKey<bool> settingsKey, [CallerMemberName] string propertyName = null)
