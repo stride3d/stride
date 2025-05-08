@@ -4,7 +4,6 @@ using System;
 
 using Stride.Core;
 using Stride.Core.Serialization.Contents;
-using Stride.Games.Time;
 using Stride.Graphics;
 
 namespace Stride.Games
