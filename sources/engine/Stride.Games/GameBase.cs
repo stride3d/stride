@@ -59,7 +59,7 @@ namespace Stride.Games
 
         private bool isMouseVisible;
 
-        internal object TickLock = new object();
+        internal object TickLock = new();
 
         #endregion
 
@@ -402,7 +402,7 @@ namespace Stride.Games
         /// </summary>
         /// <param name="gameContext">The window Context for this game.</param>
         /// <exception cref="System.InvalidOperationException">Cannot run this instance while it is already running</exception>
-        public void Run(GameContext gameContext = null)
+        public virtual void Run(GameContext gameContext = null)
         {
             if (IsRunning)
             {
