@@ -1753,14 +1753,14 @@
                                                         Foreground="White"
                                                         Text="Введите сообщение &lt;Обязательно&gt;"
                                                         TextWrapping="Wrap" />
-                                                    <Button
+                                                    <!--<Button
                                                         Width="24"
                                                         Height="24"
                                                         Margin="0,5,0,0"
                                                         HorizontalAlignment="Right"
                                                         Background="#FF2D2D30"
                                                         BorderBrush="Gray"
-                                                        Content="+" />
+                                                        Content="+" />-->
                                                 </StackPanel>
 
                                                 <!--  Нижня частина  -->
@@ -1770,8 +1770,13 @@
                                                             Width="200"
                                                             Margin="0,0,10,0"
                                                             Background="#FF2D2D30"
-                                                            Foreground="White">
-                                                            <ComboBoxItem Content="Зафиксировать все" />
+                                                            Foreground="White"
+                                                            IsEnabled="True">
+                                                            <ComboBoxItem Content="Зафиксировать все" IsSelected="True" />
+                                                            <ComboBoxItem Content="Зафиксировать все и отправить" />
+                                                            <ComboBoxItem Content="Зафиксировать все и синхронизировать" />
+                                                            <ComboBoxItem Content="Спрятать все (--include-untracked)" />
+                                                            <ComboBoxItem Content="Спрятать все и сохранить промежуточные данные (--keep-index)" />
                                                         </ComboBox>
                                                         <CheckBox
                                                             VerticalAlignment="Center"
@@ -1783,16 +1788,48 @@
                                                         Margin="0,10,0,0"
                                                         Background="#FF2D2D30"
                                                         Foreground="White"
-                                                        Header="Связанные элементы" />
+                                                        Header="Связанные элементы">
+                                                        <StackPanel Margin="10,5,0,0" Orientation="Vertical">
+                                                            <TextBlock Foreground="Gray" Text="В фиксации не упомянуто ни одного елемента" />
+                                                        </StackPanel>
+                                                    </Expander>
                                                     <Expander
                                                         Margin="0,10,0,0"
                                                         Background="#FF2D2D30"
                                                         Foreground="White"
-                                                        Header="Изменения"
                                                         IsExpanded="True">
                                                         <!--<StackPanel Margin="10,5,0,0" Orientation="Vertical">
-                                                      <TextBlock Foreground="Gray" Text="В рабочей папке нет неподготовленных изменений." />
-                                                  </StackPanel>-->
+                                                          <TextBlock Foreground="Gray" Text="В рабочей папке нет неподготовленных изменений." />
+                                                        </StackPanel>-->
+                                                        <!--  Кастомний заголовок  -->
+                                                        <Expander.Header>
+                                                            <Grid>
+                                                                <Grid.ColumnDefinitions>
+                                                                    <ColumnDefinition />
+                                                                    <ColumnDefinition Width="Auto" />
+                                                                </Grid.ColumnDefinitions>
+
+                                                                <TextBlock
+                                                                    Grid.Column="0"
+                                                                    VerticalAlignment="Center"
+                                                                    FontSize="14"
+                                                                    FontWeight="SemiBold"
+                                                                    Foreground="White"
+                                                                    Text="Изменения" />
+
+                                                                <Button
+                                                                    Grid.Column="1"
+                                                                    Width="24"
+                                                                    Height="24"
+                                                                    Margin="0,0,0,0"
+                                                                    HorizontalAlignment="Right"
+                                                                    VerticalAlignment="Center"
+                                                                    Background="#FF2D2D30"
+                                                                    BorderBrush="Gray"
+                                                                    Content="+"
+                                                                    Foreground="White" />
+                                                            </Grid>
+                                                        </Expander.Header>
                                                         <TreeView Background="#1E1E1E" Foreground="White">
                                                             <TreeView.Resources>
                                                                 <Style TargetType="TreeViewItem">
@@ -1837,9 +1874,43 @@
                                                     </Expander>
                                                     <Expander
                                                         Margin="0,10,0,0"
+                                                        Padding="10"
                                                         Background="#FF2D2D30"
+                                                        FontWeight="SemiBold"
                                                         Foreground="White"
-                                                        Header="Спрятанные изменения" />
+                                                        Header="Спрятанные изменения (2)">
+
+                                                        <StackPanel>
+                                                            <!--  Кнопка "Удалить все"  -->
+                                                            <TextBlock
+                                                                Margin="0,0,0,10"
+                                                                Cursor="Hand"
+                                                                FontWeight="Bold"
+                                                                Foreground="#3DAEE9"
+                                                                Text="Удалить все" />
+
+                                                            <!--  Список скрытых изменений  -->
+                                                            <StackPanel Margin="0,0,0,5" Orientation="Vertical">
+                                                                <StackPanel Margin="0,5" Orientation="Horizontal">
+                                                                    <Image
+                                                                        Width="16"
+                                                                        Height="16"
+                                                                        Margin="0,0,5,0"
+                                                                        Source="/Icons/hidden.png" />
+                                                                    <TextBlock Text="WIP on ui: 960799d02 feat: add Git Changes menu item to View Menu tab in GameStudioWindow" />
+                                                                </StackPanel>
+
+                                                                <StackPanel Margin="0,5" Orientation="Horizontal">
+                                                                    <Image
+                                                                        Width="16"
+                                                                        Height="16"
+                                                                        Margin="0,0,5,0"
+                                                                        Source="/Icons/hidden.png" />
+                                                                    <TextBlock Text="WIP on ui: 960799d02 feat: add Git Changes menu item to View Menu tab in GameStudioWindow" />
+                                                                </StackPanel>
+                                                            </StackPanel>
+                                                        </StackPanel>
+                                                    </Expander>
                                                 </StackPanel>
                                             </Grid>
                                         </DockPanel>
