@@ -48,6 +48,7 @@ namespace Stride.GameStudio.View
         private readonly AssetEditorsManager assetEditorsManager;
         private TaskCompletionSource<bool> closingTask;
 
+
 #if DEBUG
         private const bool TestMenuVisible = true;
 #else

@@ -1830,7 +1830,10 @@
                                                                     Foreground="White" />
                                                             </Grid>
                                                         </Expander.Header>
-                                                        <TreeView Background="#1E1E1E" Foreground="White">
+                                                        <TreeView
+                                                            Background="#1E1E1E"
+                                                            Foreground="White"
+                                                            ItemsSource="{Binding ChangedFiles}">
                                                             <TreeView.Resources>
                                                                 <Style TargetType="TreeViewItem">
                                                                     <Setter Property="HeaderTemplate">
