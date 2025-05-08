@@ -570,13 +570,6 @@
                     IsCheckable="True"
                     IsChecked="{Binding Panels.PropertyGridPanelVisible, Mode=TwoWay}" />
                 <MenuItem
-                    Header="{sd:Localize Edit history,
-                                         Context=Menu}"
-                    IsCheckable="True"
-                    IsChecked="{Binding Panels.ActionHistoryPanelVisible, Mode=TwoWay}" />
-
-                <Separator />
-                <MenuItem
                     Header="{sd:Localize Asset errors,
                                          Context=Menu}"
                     IsCheckable="True"
