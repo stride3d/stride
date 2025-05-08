@@ -554,11 +554,6 @@
 
                 <Separator />
                 <MenuItem
-                    Header="{sd:Localize Property grid,
-                                         Context=Menu}"
-                    IsCheckable="True"
-                    IsChecked="{Binding Panels.PropertyGridPanelVisible, Mode=TwoWay}" />
-                <MenuItem
                     Header="{sd:Localize Git changes,
                                          Context=Menu}"
                     IsCheckable="True"
