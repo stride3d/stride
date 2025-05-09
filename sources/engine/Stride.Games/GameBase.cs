@@ -466,6 +466,28 @@ namespace Stride.Games
         /// </summary>
         private void EnsureGameContextIsSet()
         {
+            // Gets the GameWindow Context
+            if (Context == null)
+            {
+                AppContextType c;
+                if (OperatingSystem.IsWindows())
+                    c = AppContextType.Desktop;
+                else if (OperatingSystem.IsAndroid())
+                    c = AppContextType.Android;
+                else if (OperatingSystem.IsIOS() || OperatingSystem.IsTvOS() || OperatingSystem.IsWatchOS())
+                    c = AppContextType.iOS;
+                else
+                    c = AppContextType.DesktopSDL;
+
+                Context = GameContextFactory.NewGameContext(c);
+            }
+        }
+
+        /// <summary>
+        /// Attempts to get GameContext based on the current platform.
+        /// </summary>
+        private void EnsureGameContextIsSet()
+        {
             // Gets the Game Context
             if (Context == null)
             {

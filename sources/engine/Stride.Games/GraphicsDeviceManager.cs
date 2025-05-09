@@ -100,7 +100,7 @@ namespace Stride.Games
         /// </summary>
         /// <param name="game">The game.</param>
         /// <exception cref="System.ArgumentNullException">The game instance cannot be null.</exception>
-        public GraphicsDeviceManager(GameBase game)
+        public GraphicsDeviceManager(GameBase game, GameContext context = null)
         {
             this.game = game;
             if (this.game == null)
