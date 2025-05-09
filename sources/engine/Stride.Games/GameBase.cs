@@ -419,7 +419,7 @@ namespace Stride.Games
                 throw new InvalidOperationException("No GraphicsDeviceManager found");
             }
 
-            if(gameContext != null)
+            if(Context is not null && gameContext is not null)
             {
                 gameContext.GamePlatform = Context.GamePlatform;
                 Context = gameContext;
@@ -449,7 +449,7 @@ namespace Stride.Games
 
             // Gets the GameWindow Context
             EnsureGameContextIsSet();
-            if(gameContext is null)
+            if(Context is null)
             {
                 throw new InvalidOperationException("No GameContext found");
             }
