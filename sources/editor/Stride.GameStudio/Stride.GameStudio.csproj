@@ -30,6 +30,7 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="LibGit2Sharp" />
     <PackageReference Include="ServiceWire" />
     <PackageReference Include="SharpDX" />
     <PackageReference Include="Stride.Metrics" />
