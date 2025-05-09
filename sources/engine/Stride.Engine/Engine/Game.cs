@@ -188,8 +188,23 @@ namespace Stride.Engine
         /// <summary>
         /// Initializes a new instance of the <see cref="Game"/> class.
         /// </summary>
-        public Game()
+        public Game(GameContext context = null) : base()
         {
+            Context = context ?? DetectDefaultContext();
+            Context.CurrentGame = this;
+
+            // Create Platform
+            Context.GamePlatform = GamePlatform.Create(Context);
+            Context.GamePlatform.Activated += GamePlatform_Activated;
+            Context.GamePlatform.Deactivated += GamePlatform_Deactivated;
+            Context.GamePlatform.Exiting += GamePlatform_Exiting;
+            Context.GamePlatform.WindowCreated += GamePlatformOnWindowCreated;
+
+            // Setup registry
+            Services.AddService<IGame>(this);
+            Services.AddService<IGraphicsDeviceFactory>(Context.GamePlatform);
+            Services.AddService<IGamePlatform>(Context.GamePlatform);
+
             // Register the logger backend before anything else
             logListener = GetLogListener();
 
@@ -227,7 +242,7 @@ namespace Stride.Engine
             Services.AddService(VRDeviceSystem);
 
             // Creates the graphics device manager
-            GraphicsDeviceManager = new GraphicsDeviceManager(this);
+            GraphicsDeviceManager = new GraphicsDeviceManager(this, context);
             Services.AddService<IGraphicsDeviceManager>(GraphicsDeviceManager);
             Services.AddService<IGraphicsDeviceService>(GraphicsDeviceManager);
 
@@ -256,7 +271,7 @@ namespace Stride.Engine
             if (Context.InitializeDatabase)
             {
                 databaseFileProvider = InitializeAssetDatabase();
-                ((DatabaseFileProviderService)Services.GetService<IDatabaseFileProviderService>()).FileProvider = databaseFileProvider;
+                Services.GetService<IDatabaseFileProviderService>().FileProvider = databaseFileProvider;
 
                 var renderingSettings = new RenderingSettings();
                 if (Content.Exists(GameSettings.AssetUrl))

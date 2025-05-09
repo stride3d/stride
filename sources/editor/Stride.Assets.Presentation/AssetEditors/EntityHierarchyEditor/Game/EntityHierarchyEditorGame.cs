@@ -48,7 +48,8 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
         private Material fallbackColorMaterial;
         private Material fallbackTextureMaterial;
 
-        protected EntityHierarchyEditorGame(TaskCompletionSource<bool> gameContentLoadedTaskSource, IEffectCompiler effectCompiler, string effectLogPath)
+        protected EntityHierarchyEditorGame(TaskCompletionSource<bool> gameContentLoadedTaskSource, IEffectCompiler effectCompiler, string effectLogPath, GameContext context = null)
+            : base(context)
         {
             this.gameContentLoadedTaskSource = gameContentLoadedTaskSource;
             this.effectCompiler = effectCompiler;
