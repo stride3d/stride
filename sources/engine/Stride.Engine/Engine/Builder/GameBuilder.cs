@@ -9,7 +9,7 @@ namespace Stride.Engine.Builder;
 /// Helps build the game and preps it to be able to run after built.
 /// </summary>
 /// <typeparam name="T"></typeparam>
-public class GameBuilder<T> : IGameBuilder where T : IGame
+public class GameBuilder : IGameBuilder
 {
     public IServiceRegistry Services { get; protected set; }
 
@@ -21,14 +21,14 @@ public class GameBuilder<T> : IGameBuilder where T : IGame
 
     internal GameBuilder()
     {
-        Game = new MinimalGame();
+        Game = new MinimalGame(null);
         Services = Game.Services;
         GameSystems = Game.GameSystems;
     }
 
-    public static GameBuilder<T> Create()
+    public static GameBuilder Create()
     {
-        return new GameBuilder<T>();
+        return new GameBuilder();
     }
 
     public virtual GameBase Build()
@@ -40,12 +40,4 @@ public class GameBuilder<T> : IGameBuilder where T : IGame
 
         return Game; 
     }
-}
-
-/// <summary>
-/// Creates a default GameBuilder for a <see cref="MinimalGame"/>.
-/// </summary>
-public class GameBuilder : GameBuilder<MinimalGame>
-{
-
 }

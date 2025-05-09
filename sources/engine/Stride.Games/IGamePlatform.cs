@@ -1,5 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+using System;
+
 namespace Stride.Games
 {
     /// <summary>
@@ -17,6 +19,7 @@ namespace Stride.Games
         /// Gets the main window.
         /// </summary>
         /// <value>The main window.</value>
+        [Obsolete("Use GameContext.MainWindow instead. This property will be removed in a future version.")]
         GameWindow MainWindow { get; }
 
         /// <summary>

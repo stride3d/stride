@@ -704,7 +704,8 @@ namespace Stride.Input
 #endif
                     break;
                 default:
-                    throw new InvalidOperationException("GameContext type is not supported by the InputManager");
+                    Logger.Warning("GameContext type is not supported by the InputManager. Register your own for input to be handled properly.");
+                    break;
             }
         }
 

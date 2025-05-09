@@ -99,6 +99,11 @@ namespace Stride.Editor.EditorGame.Game
 
         public event EventHandler<ExceptionThrownEventArgs> ExceptionThrown;
 
+        public EditorServiceGame(GameContext context) : base(context)
+        {
+
+        }
+
         /// <summary>
         /// Calculates and returns the position of the mouse in the scene.
         /// </summary>
