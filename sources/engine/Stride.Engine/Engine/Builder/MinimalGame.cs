@@ -1,6 +1,7 @@
 using System;
+using Stride.Core.Diagnostics;
 using Stride.Core.Serialization;
-using Stride.Core.Streaming;
+using Stride.Core.Serialization.Contents;
 using Stride.Games;
 using Stride.Graphics;
 
@@ -14,10 +15,25 @@ public class MinimalGame : GameBase
     /// <value>The graphics device manager.</value>
     public GraphicsDeviceManager GraphicsDeviceManager { get; internal set; }
 
-    public MinimalGame()
+    public MinimalGame(GameContext gameContext) : base()
     {
+        Context = gameContext ?? DetectDefaultContext();
+        Context.CurrentGame = this;
+
+        // Create Platform
+        Context.GamePlatform = GamePlatform.Create(Context);
+        Context.GamePlatform.Activated += GamePlatform_Activated;
+        Context.GamePlatform.Deactivated += GamePlatform_Deactivated;
+        Context.GamePlatform.Exiting += GamePlatform_Exiting;
+        Context.GamePlatform.WindowCreated += GamePlatformOnWindowCreated;
+
+        // Setup registry
+        Services.AddService<IGame>(this);
+        Services.AddService<IGraphicsDeviceFactory>(Context.GamePlatform);
+        Services.AddService<IGamePlatform>(Context.GamePlatform);
+
         // Creates the graphics device manager
-        GraphicsDeviceManager = new GraphicsDeviceManager(this);
+        GraphicsDeviceManager = new GraphicsDeviceManager(this, gameContext);
         Services.AddService<IGraphicsDeviceManager>(GraphicsDeviceManager);
         Services.AddService<IGraphicsDeviceService>(GraphicsDeviceManager);
     }
@@ -39,5 +55,21 @@ public class MinimalGame : GameBase
         base.Initialize();
 
         Content.Serializer.LowLevelSerializerSelector = new SerializerSelector("Default", "Content");
+    }
+
+    protected override void PrepareContext()
+    {
+        //Allow the user to add their own ContentManager
+        var contentManager = Services.GetService<ContentManager>();
+
+        if (contentManager is null)
+        {
+            Log.Info("No ContentManager found, creating default ContentManager");
+            contentManager = new ContentManager(Services);
+            Services.AddService<IContentManager>(contentManager);
+            Services.AddService(contentManager);
+        }
+
+        Content = contentManager;
     }
 }

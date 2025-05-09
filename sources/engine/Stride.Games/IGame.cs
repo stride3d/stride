@@ -139,5 +139,9 @@ namespace Stride.Games
         /// </summary>
         /// <value>The window.</value>
         GameWindow Window { get; }
+
+        public void SetWindow(GameWindow window);
+
+        public void SetGameContext(GameContext context);
     }
 }

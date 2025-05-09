@@ -3,6 +3,7 @@
 
 using Stride.Core.Diagnostics;
 using Stride.Engine;
+using Stride.Games;
 using Stride.Graphics;
 
 namespace Stride.Editor.Engine
@@ -17,7 +18,7 @@ namespace Stride.Editor.Engine
         /// </summary>
         public static bool DebugMode { get; set; }
 
-        public EmbeddedGame()
+        public EmbeddedGame(GameContext context) : base(context)
         {
             GraphicsDeviceManager.PreferredGraphicsProfile = new [] { GraphicsProfile.Level_11_0, GraphicsProfile.Level_10_1, GraphicsProfile.Level_10_0 };
             GraphicsDeviceManager.PreferredBackBufferWidth = 64;

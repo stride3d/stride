@@ -1,6 +1,8 @@
 using System;
+using Stride.Core;
 using Stride.Core.Diagnostics;
 using Stride.Core.IO;
+using Stride.Core.Serialization.Contents;
 using Stride.Core.Storage;
 using Stride.Games;
 using Stride.Rendering;
@@ -27,6 +29,12 @@ public static class GameBuilderExtensions
         return gameBuilder;
     }
 
+    /// <summary>
+    /// Allows the user to add a custom database file provider to the game.
+    /// </summary>
+    /// <param name="gameBuilder"></param>
+    /// <param name="provider"></param>
+    /// <returns></returns>
     public static IGameBuilder AddDbFileProvider(this IGameBuilder gameBuilder, DatabaseFileProvider provider)
     {
         // Gets initialized by the GameBase constructor.
@@ -36,6 +44,11 @@ public static class GameBuilderExtensions
         return gameBuilder;
     }
 
+    /// <summary>
+    /// Creates a default database to be used in the game.
+    /// </summary>
+    /// <param name="gameBuilder"></param>
+    /// <returns></returns>
     public static IGameBuilder UseDefaultDb(this IGameBuilder gameBuilder)
     {
         using (Profiler.Begin(GameProfilingKeys.ObjectDatabaseInitialize))
@@ -53,6 +66,22 @@ public static class GameBuilderExtensions
         return gameBuilder;
     }
 
+    public static IGameBuilder UseDefaultContentManager(this IGameBuilder gameBuilder)
+    {
+        var services = gameBuilder.Services;
+        var content = new ContentManager(services);
+        services.AddService<IContentManager>(content);
+        services.AddService(content);
+        return gameBuilder;
+    }
+
+    /// <summary>
+    /// Adds a default effect compiler to the game. This is used to compile shaders and effects.
+    /// </summary>
+    /// <param name="effectCompiler"></param>
+    /// <param name="fileProvider"></param>
+    /// <returns></returns>
+    /// <exception cref="ArgumentException"></exception>
     public static EffectSystem AddDefaultEffectCompiler(this EffectSystem effectCompiler, IVirtualFileProvider fileProvider)
     {
         EffectCompilerBase compiler = new EffectCompiler(fileProvider)
@@ -67,6 +96,13 @@ public static class GameBuilderExtensions
         }
 
         throw new ArgumentException("The file provider must be a DatabaseFileProvider", nameof(fileProvider));
+    }
+
+    public static IGameBuilder UseGameContext(this IGameBuilder gameBuilder, GameContext context)
+    {
+        gameBuilder.Game.SetGameContext(context);
+
+        return gameBuilder;
     }
 
 }

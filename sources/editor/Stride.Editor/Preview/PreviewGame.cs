@@ -14,6 +14,7 @@ using Stride.Engine.Design;
 using Stride.Graphics;
 using Stride.Rendering.Compositing;
 using Stride.Shaders.Compiler;
+using Stride.Games;
 
 namespace Stride.Editor.Preview
 {
@@ -43,7 +44,7 @@ namespace Stride.Editor.Preview
 
         private Scene previewScene;
 
-        public PreviewGame(IEffectCompiler effectCompiler)
+        public PreviewGame(IEffectCompiler effectCompiler, GameContext context) : base(context)
         {
             this.effectCompiler = effectCompiler;
         }
