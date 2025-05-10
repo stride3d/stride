@@ -49,7 +49,7 @@ namespace Stride.Games
 
         private readonly object lockDeviceCreation;
 
-        private GameBase game;
+        private readonly GameBase game;
 
         private bool deviceSettingsChanged;
 
@@ -100,12 +100,12 @@ namespace Stride.Games
         /// </summary>
         /// <param name="game">The game.</param>
         /// <exception cref="System.ArgumentNullException">The game instance cannot be null.</exception>
-        public GraphicsDeviceManager(GameBase game, GameContext context = null)
+        public GraphicsDeviceManager(GameBase game)
         {
             this.game = game;
             if (this.game == null)
             {
-                throw new ArgumentNullException("game");
+                throw new ArgumentNullException(nameof(game));
             }
 
             lockDeviceCreation = new object();
@@ -119,8 +119,8 @@ namespace Stride.Games
             preferredBackBufferHeight = DefaultBackBufferHeight;
             preferredRefreshRate = new Rational(60, 1);
             PreferredMultisampleCount = MultisampleCount.None;
-            PreferredGraphicsProfile = new[]
-                {
+            PreferredGraphicsProfile =
+                [
                     GraphicsProfile.Level_11_1, 
                     GraphicsProfile.Level_11_0, 
                     GraphicsProfile.Level_10_1, 
@@ -128,7 +128,7 @@ namespace Stride.Games
                     GraphicsProfile.Level_9_3, 
                     GraphicsProfile.Level_9_2, 
                     GraphicsProfile.Level_9_1, 
-                };
+                ];
 
             graphicsDeviceFactory = game.Services.GetService<IGraphicsDeviceFactory>();
             if (graphicsDeviceFactory == null)

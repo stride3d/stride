@@ -4,8 +4,13 @@ using Stride.Core.Serialization;
 using Stride.Core.Serialization.Contents;
 using Stride.Games;
 using Stride.Graphics;
+using Stride.Input;
 
 namespace Stride.Engine.Builder;
+
+/// <summary>
+/// A game class with no registered systems by default.
+/// </summary>
 public class MinimalGame : GameBase
 {
 
@@ -17,7 +22,7 @@ public class MinimalGame : GameBase
 
     public MinimalGame(GameContext gameContext) : base()
     {
-        Context = gameContext ?? DetectDefaultContext();
+        Context = gameContext ?? GetDefaultContext();
         Context.CurrentGame = this;
 
         // Create Platform
@@ -33,7 +38,7 @@ public class MinimalGame : GameBase
         Services.AddService<IGamePlatform>(Context.GamePlatform);
 
         // Creates the graphics device manager
-        GraphicsDeviceManager = new GraphicsDeviceManager(this, gameContext);
+        GraphicsDeviceManager = new GraphicsDeviceManager(this);
         Services.AddService<IGraphicsDeviceManager>(GraphicsDeviceManager);
         Services.AddService<IGraphicsDeviceService>(GraphicsDeviceManager);
     }
@@ -55,6 +60,14 @@ public class MinimalGame : GameBase
         base.Initialize();
 
         Content.Serializer.LowLevelSerializerSelector = new SerializerSelector("Default", "Content");
+
+        // Add window specific input source
+        var inputManager = Services.GetService<InputManager>();
+        if (inputManager is not null)
+        {
+            var windowInputSource = InputSourceFactory.NewWindowInputSource(Context);
+            inputManager.Sources.Add(windowInputSource);
+        }
     }
 
     protected override void PrepareContext()
