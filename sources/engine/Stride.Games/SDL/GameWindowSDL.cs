@@ -11,6 +11,7 @@ using Cursor = Stride.Graphics.SDL.Cursor;
 using DisplayOrientation = Stride.Graphics.DisplayOrientation;
 using Point = Stride.Core.Mathematics.Point;
 using Window = Stride.Graphics.SDL.Window;
+using Color = Stride.Core.Mathematics.Color;
 
 namespace Stride.Games
 {
@@ -242,6 +243,25 @@ namespace Stride.Games
                 window.Visible = value;
             }
         }
+
+        /// <inheritdoc />
+        public override double Opacity
+        {
+            get
+            {
+                return window?.Opacity ?? 1.0d;
+            }
+            set
+            {
+                if (window != null)
+                {
+                    window.Opacity = (float)value;
+                }
+            }
+        }
+
+        /// <inheritdoc />
+        public override Color BackgroundColor { get; set; }
 
         public override Int2 Position
         {
