@@ -98,7 +98,7 @@ namespace Stride.Games
             IsActive = true;
         }
 
-        protected static GameContext DetectDefaultContext()
+        protected static GameContext GetDefaultContext()
         {
 #if STRIDE_PLATFORM_UWP
             return GameContextFactory.NewGameContextUWPXaml();
@@ -302,9 +302,9 @@ namespace Stride.Games
         {
             get
             {
-                if (gamePlatform != null)
+                if (Context != null)
                 {
-                    return gamePlatform.MainWindow;
+                    return Context.GameWindow;
                 }
                 return null;
             }
@@ -419,35 +419,7 @@ namespace Stride.Games
                 throw new InvalidOperationException("No GraphicsDeviceManager found");
             }
 
-            if(Context is not null && gameContext is not null)
-            {
-                gameContext.GamePlatform = Context.GamePlatform;
-                Context = gameContext;
-                Context.CurrentGame = this;
-
-                // Overwrite Platform
-                if (gamePlatform != null)
-                {
-                    Context.GamePlatform.Activated -= GamePlatform_Activated;
-                    Context.GamePlatform.Deactivated -= GamePlatform_Deactivated;
-                    Context.GamePlatform.Exiting -= GamePlatform_Exiting;
-                    Context.GamePlatform.WindowCreated -= GamePlatformOnWindowCreated;
-
-                    Services.RemoveService<IGraphicsDeviceFactory>();
-                    Services.RemoveService<IGamePlatform>();
-                }
-
-                Context.GamePlatform = GamePlatform.Create(gameContext);
-                Context.GamePlatform.Activated += GamePlatform_Activated;
-                Context.GamePlatform.Deactivated += GamePlatform_Deactivated;
-                Context.GamePlatform.Exiting += GamePlatform_Exiting;
-                Context.GamePlatform.WindowCreated += GamePlatformOnWindowCreated;
-
-                Services.AddService<IGraphicsDeviceFactory>(Context.GamePlatform);
-                Services.AddService<IGamePlatform>(Context.GamePlatform);
-            }
-
-            // Gets the GameWindow Context
+            SetGameContext(gameContext);
             EnsureGameContextIsSet();
             if(Context is null)
             {
@@ -494,7 +466,7 @@ namespace Stride.Games
         /// </summary>
         private void EnsureGameContextIsSet()
         {
-            // Gets the GameWindow Context
+            // Gets the Game Context
             if (Context == null)
             {
                 AppContextType c;
@@ -555,24 +527,44 @@ namespace Stride.Games
             }
         }
 
-        public virtual void SetWindow(GameWindow window)
-        {
-            if (IsRunning)
-            {
-                throw new InvalidOperationException("Cannot set the game window while the game is running");
-            }
-
-            Context.GameWindow = window;
-            //Window = window;
-        }
-
         public virtual void SetGameContext(GameContext context)
         {
             if(IsRunning)
             {
                 throw new InvalidOperationException("Cannot set the game context while the game is running");
             }
-            Context = context;
+
+            if (Context is not null && context is not null)
+            {
+                context.GamePlatform = Context.GamePlatform;
+                Context = context;
+                Context.CurrentGame = this;
+
+                // Overwrite Platform
+                if (gamePlatform != null)
+                {
+                    Context.GamePlatform.Activated -= GamePlatform_Activated;
+                    Context.GamePlatform.Deactivated -= GamePlatform_Deactivated;
+                    Context.GamePlatform.Exiting -= GamePlatform_Exiting;
+                    Context.GamePlatform.WindowCreated -= GamePlatformOnWindowCreated;
+
+                    Services.RemoveService<IGraphicsDeviceFactory>();
+                    Services.RemoveService<IGamePlatform>();
+                }
+
+                Context.GamePlatform = GamePlatform.Create(context);
+                Context.GamePlatform.Activated += GamePlatform_Activated;
+                Context.GamePlatform.Deactivated += GamePlatform_Deactivated;
+                Context.GamePlatform.Exiting += GamePlatform_Exiting;
+                Context.GamePlatform.WindowCreated += GamePlatformOnWindowCreated;
+
+                Services.AddService<IGraphicsDeviceFactory>(Context.GamePlatform);
+                Services.AddService<IGamePlatform>(Context.GamePlatform);
+            }
+            else if (context is not null)
+            {
+                Context = context;
+            }
         }
 
         /// <summary>
