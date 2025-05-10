@@ -18,7 +18,7 @@ namespace Stride.Input
     /// <summary>
     /// Provides support for mouse and keyboard input on windows forms
     /// </summary>
-    internal class InputSourceWinforms : InputSourceBase
+    public class InputSourceWinforms : InputSourceBase
     {
         private readonly HashSet<WinFormsKeys> heldKeys = new HashSet<WinFormsKeys>();
         private readonly List<WinFormsKeys> keysToRelease = new List<WinFormsKeys>();

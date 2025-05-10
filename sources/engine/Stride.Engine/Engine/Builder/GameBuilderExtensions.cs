@@ -1,10 +1,10 @@
 using System;
-using Stride.Core;
 using Stride.Core.Diagnostics;
 using Stride.Core.IO;
 using Stride.Core.Serialization.Contents;
 using Stride.Core.Storage;
 using Stride.Games;
+using Stride.Input;
 using Stride.Rendering;
 using Stride.Shaders.Compiler;
 
@@ -29,6 +29,12 @@ public static class GameBuilderExtensions
         return gameBuilder;
     }
 
+    public static IGameBuilder SetGameContext(this IGameBuilder gameBuilder, GameContext context)
+    {
+        gameBuilder.Game.SetGameContext(context);
+        return gameBuilder;
+    }
+
     /// <summary>
     /// Allows the user to add a custom database file provider to the game.
     /// </summary>
@@ -39,8 +45,7 @@ public static class GameBuilderExtensions
     {
         // Gets initialized by the GameBase constructor.
         var dataBase = gameBuilder.Services.GetService<IDatabaseFileProviderService>();
-        // There should probably be a change to the interface to avoid the below casting.
-        ((DatabaseFileProviderService)dataBase).FileProvider = provider;
+        dataBase.FileProvider = provider;
         return gameBuilder;
     }
 
@@ -101,6 +106,20 @@ public static class GameBuilderExtensions
     public static IGameBuilder UseGameContext(this IGameBuilder gameBuilder, GameContext context)
     {
         gameBuilder.Game.SetGameContext(context);
+
+        return gameBuilder;
+    }
+
+    public static IGameBuilder AddInput(this IGameBuilder gameBuilder, IInputSource inputSource)
+    {
+        var inputManager = gameBuilder.Services.GetService<InputManager>();
+
+        if (inputManager == null)
+        {
+            throw new InvalidOperationException("InputManager is not registered in the service registry.");
+        }
+
+        inputManager.Sources.Add(inputSource);
 
         return gameBuilder;
     }

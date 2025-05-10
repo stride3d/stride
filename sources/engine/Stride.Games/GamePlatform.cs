@@ -106,7 +106,6 @@ namespace Stride.Games
                 window.PreferredFullscreenSize = requestedSize;
 
                 window.Initialize(gameContext);
-                context.GameWindow = window;
                 return window;
             }
 
@@ -123,7 +122,8 @@ namespace Stride.Games
         {
             IsBlockingRun = !context.IsUserManagingRun;
 
-            context.GameWindow = CreateWindow(context);
+            // Create the game window if not already created manually
+            context.GameWindow ??= CreateWindow(context);
 
             // Register on Activated 
             gameWindow.Activated += OnActivated;

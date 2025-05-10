@@ -140,8 +140,10 @@ namespace Stride.Games
         /// <value>The window.</value>
         GameWindow Window { get; }
 
-        public void SetWindow(GameWindow window);
-
+        /// <summary>
+        /// Sets the game context.
+        /// </summary>
+        /// <param name="context"></param>
         public void SetGameContext(GameContext context);
     }
 }
