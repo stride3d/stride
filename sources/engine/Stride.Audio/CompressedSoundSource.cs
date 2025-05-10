@@ -234,14 +234,14 @@ namespace Stride.Audio
 
                 bool endingPacket = byteBufferCurrentPosition == bufferLen;
 
-                var bufferType = AudioLayer.BufferType.None;
+                var bufferType = BufferType.None;
                 if (endingPacket)
                 {
-                    bufferType = looped ? AudioLayer.BufferType.EndOfLoop : AudioLayer.BufferType.EndOfStream;
+                    bufferType = looped ? BufferType.EndOfLoop : BufferType.EndOfStream;
                 }
                 else if (begin)
                 {
-                    bufferType = AudioLayer.BufferType.BeginOfStream;
+                    bufferType = BufferType.BeginOfStream;
                     begin = false;
                 }
 
@@ -281,14 +281,14 @@ namespace Stride.Audio
                 var finalPtr = new IntPtr(bufferPtr + (startingPacket ? startPktSampleIndex : 0));
                 var finalSize = (offset - (startingPacket ? startPktSampleIndex : 0) - (endingPacket ? endPktSampleIndex : 0)) * sizeof(short);
 
-                var bufferType = AudioLayer.BufferType.None;
+                var bufferType = BufferType.None;
                 if (endingPacket)
                 {
-                    bufferType = looped ? AudioLayer.BufferType.EndOfLoop : AudioLayer.BufferType.EndOfStream;
+                    bufferType = looped ? BufferType.EndOfLoop : BufferType.EndOfStream;
                 }
                 else if (begin)
                 {
-                    bufferType = AudioLayer.BufferType.BeginOfStream;
+                    bufferType = BufferType.BeginOfStream;
                     begin = false;
                 }
                 FillBuffer(finalPtr, finalSize, bufferType);
