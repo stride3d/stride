@@ -41,7 +41,7 @@ public class MinimalGame : GameBase, IHostedService
         Services.AddService<IGamePlatform>(Context.GamePlatform);
 
         // Creates the graphics device manager
-        GraphicsDeviceManager = new GraphicsDeviceManager(this, gameContext);
+        GraphicsDeviceManager = new GraphicsDeviceManager(this);
         Services.AddService<IGraphicsDeviceManager>(GraphicsDeviceManager);
         Services.AddService<IGraphicsDeviceService>(GraphicsDeviceManager);
     }

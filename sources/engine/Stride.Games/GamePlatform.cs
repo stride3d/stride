@@ -106,7 +106,6 @@ namespace Stride.Games
                 window.PreferredFullscreenSize = requestedSize;
 
                 window.Initialize(gameContext);
-                context.GameWindow = window;
                 return window;
             }
 

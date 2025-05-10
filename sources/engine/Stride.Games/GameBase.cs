@@ -466,7 +466,7 @@ namespace Stride.Games
         /// </summary>
         private void EnsureGameContextIsSet()
         {
-            // Gets the GameWindow Context
+            // Gets the Game Context
             if (Context == null)
             {
                 AppContextType c;

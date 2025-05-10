@@ -243,7 +243,7 @@ namespace Stride.Engine
             Services.AddService(VRDeviceSystem);
 
             // Creates the graphics device manager
-            GraphicsDeviceManager = new GraphicsDeviceManager(this, context);
+            GraphicsDeviceManager = new GraphicsDeviceManager(this);
             Services.AddService<IGraphicsDeviceManager>(GraphicsDeviceManager);
             Services.AddService<IGraphicsDeviceService>(GraphicsDeviceManager);
 

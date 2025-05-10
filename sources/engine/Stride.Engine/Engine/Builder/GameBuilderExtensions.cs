@@ -83,6 +83,12 @@ public static class GameBuilderExtensions
         return gameBuilder;
     }
 
+    public static IGameBuilder SetGameContext(this IGameBuilder gameBuilder, GameContext context)
+    {
+        gameBuilder.Game.SetGameContext(context);
+        return gameBuilder;
+    }
+
     /// <summary>
     /// Adds the Stride input system to the game with no sources.
     /// </summary>

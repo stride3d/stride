@@ -632,7 +632,7 @@ namespace Stride.Input
         public void ResetSources()
         {
             Sources.Clear();
-            AddSources();
+            //AddSources();
         }
         
         /// <summary>
