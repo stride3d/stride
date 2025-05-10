@@ -13,15 +13,8 @@ using NRigidPose = BepuPhysics.RigidPose;
 namespace Stride.BepuPhysics.Definitions.Colliders;
 
 /// <summary>
-/// Represents a compound collider that combines multiple child colliders into a single entity.
+/// Represents a compound collider that combines multiple child colliders into a single collider.
 /// </summary>
-/// <remarks>
-/// This class facilitates the creation of complex colliders by aggregating simpler colliders.
-/// It provides methods to manage child colliders, compute local transforms, and handle
-/// attachment and detachment within a physics simulation.
-/// The <see cref="Colliders"/> collection contains each child collider along with
-/// its local position, rotation, and scale.
-/// </remarks>
 [DataContract]
 public sealed class CompoundCollider : ICollider
 {
