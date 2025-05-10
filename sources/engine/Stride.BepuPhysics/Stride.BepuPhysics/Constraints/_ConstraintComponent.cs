@@ -20,42 +20,28 @@ public abstract class ConstraintComponent<T> : ConstraintComponentBase where T :
     internal override void Activate(BepuConfiguration bepuConfig)
     {
         _bepuConfig = bepuConfig;
-
-        foreach (var component in Bodies)
-        {
-            if (component is null)
-                continue;
-
-            component.BoundConstraints ??= new();
-            component.BoundConstraints.Add(this);
-            _attachedBodies.Add(component);
-        }
-
-        TryReattachConstraint();
+        BodiesChanged();
     }
 
     internal override void Deactivate()
     {
-        foreach (var component in Bodies)
-        {
-            if (component is null)
-                continue;
+        foreach (var component in _attachedBodies)
+            component.BoundConstraints!.Remove(this);
 
-            component.BoundConstraints ??= new();
-            component.BoundConstraints.Add(this);
-            _attachedBodies.Add(component);
-        }
+        _attachedBodies.Clear();
 
         DetachConstraint();
+        _bepuConfig = null;
     }
 
     protected override void BodiesChanged()
     {
+        if (_bepuConfig is null)
+            return;
+
         foreach (var component in _attachedBodies)
-        {
-            Debug.Assert(component.BoundConstraints is not null);
-            component.BoundConstraints.Remove(this);
-        }
+            component.BoundConstraints!.Remove(this);
+
         _attachedBodies.Clear();
 
         foreach (var component in Bodies)
@@ -77,7 +63,6 @@ public abstract class ConstraintComponent<T> : ConstraintComponentBase where T :
 
         if (_bepuConfig is null)
             return ConstraintState.ConstraintNotInScene;
-
 
         if (!Enabled)
             return ConstraintState.ConstraintDisabled;
