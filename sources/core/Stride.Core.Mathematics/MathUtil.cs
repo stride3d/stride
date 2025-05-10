@@ -34,7 +34,7 @@ namespace Stride.Core.Mathematics;
 /// <summary>
 /// Common utility methods for math operations.
 /// </summary>
-public static class MathUtil
+public static partial class MathUtil
 {
     /// <summary>
     /// The value for which all absolute numbers smaller than are considered equal to zero.
@@ -74,8 +74,8 @@ public static class MathUtil
     /// <param name="b">The right value to compare.</param>
     /// <returns><c>true</c> if a almost equal to b, <c>false</c> otherwise</returns>
     /// <remarks>
-    /// The code is using the technique described by Bruce Dawson in
-    /// <a href="http://randomascii.wordpress.com/2012/02/25/comparing-floating-point-numbers-2012-edition/">Comparing Floating point numbers 2012 edition</a>.
+    /// The code is using the technique described by Bruce Dawson in 
+    /// <a href="http://randomascii.wordpress.com/2012/02/25/comparing-floating-point-numbers-2012-edition/">Comparing Floating point numbers 2012 edition</a>. 
     /// </remarks>
     public static unsafe bool NearEqual(float a, float b)
     {
@@ -407,7 +407,7 @@ public static class MathUtil
     {
         return (amount <= 0) ? 0
             : (amount >= 1) ? 1
-            : amount * amount * amount * ((amount * ((amount * 6) - 15)) + 10);
+        : amount * amount * amount * ((amount * ((amount * 6) - 15)) + 10);
     }
 
     /// <summary>
@@ -614,8 +614,8 @@ public static class MathUtil
         if (gap == 0)
             return value;
         return new Vector2(
-            MathF.Round(value.X / gap, MidpointRounding.AwayFromZero) * gap,
-            MathF.Round(value.Y / gap, MidpointRounding.AwayFromZero) * gap);
+        MathF.Round(value.X / gap, MidpointRounding.AwayFromZero) * gap,
+        MathF.Round(value.Y / gap, MidpointRounding.AwayFromZero) * gap);
     }
 
     /// <summary>
@@ -629,9 +629,9 @@ public static class MathUtil
         if (gap == 0)
             return value;
         return new Vector3(
-            MathF.Round(value.X / gap, MidpointRounding.AwayFromZero) * gap,
-            MathF.Round(value.Y / gap, MidpointRounding.AwayFromZero) * gap,
-            MathF.Round(value.Z / gap, MidpointRounding.AwayFromZero) * gap);
+        MathF.Round(value.X / gap, MidpointRounding.AwayFromZero) * gap,
+        MathF.Round(value.Y / gap, MidpointRounding.AwayFromZero) * gap,
+        MathF.Round(value.Z / gap, MidpointRounding.AwayFromZero) * gap);
     }
 
     /// <summary>
@@ -645,10 +645,10 @@ public static class MathUtil
         if (gap == 0)
             return value;
         return new Vector4(
-            MathF.Round(value.X / gap, MidpointRounding.AwayFromZero) * gap,
-            MathF.Round(value.Y / gap, MidpointRounding.AwayFromZero) * gap,
-            MathF.Round(value.Z / gap, MidpointRounding.AwayFromZero) * gap,
-            MathF.Round(value.W / gap, MidpointRounding.AwayFromZero) * gap);
+        MathF.Round(value.X / gap, MidpointRounding.AwayFromZero) * gap,
+        MathF.Round(value.Y / gap, MidpointRounding.AwayFromZero) * gap,
+        MathF.Round(value.Z / gap, MidpointRounding.AwayFromZero) * gap,
+        MathF.Round(value.W / gap, MidpointRounding.AwayFromZero) * gap);
     }
 
     /// <summary>
@@ -663,8 +663,8 @@ public static class MathUtil
     }
 
     /// <summary>
-    /// Exponential damping.
-    /// Alternative to
+    /// Exponential damping. 
+    /// Alternative to 
     /// <c>a = lerp(a, b, damping * dt)</c>
     /// using the exponential function flipped around the Y axis: e^(-t)
     /// </summary>
@@ -679,8 +679,8 @@ public static class MathUtil
     }
 
     /// <summary>
-    /// Exponential damping.
-    /// Alternative to
+    /// Exponential damping. 
+    /// Alternative to 
     /// <c>a = lerp(a, b, damping * dt)</c>
     /// using the exponential function flipped around the Y axis: e^(-t)
     /// </summary>
