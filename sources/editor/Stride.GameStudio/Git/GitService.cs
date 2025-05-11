@@ -14,7 +14,7 @@ namespace Stride.GameStudio.Git
         public GitService()
         {
             string projectDir = AppDomain.CurrentDomain.BaseDirectory;
-            
+
             string repoPath = Repository.Discover(projectDir);
 
             if (repoPath != null && Repository.IsValid(repoPath))
@@ -43,7 +43,7 @@ namespace Stride.GameStudio.Git
                 resultFiles.Add(new GitFile
                 {
                     RelativeFilePath = entry.FilePath,
-                    Status = entry.State,
+                    Status = MapFileStatus(entry.State),
                     IsStaged = IsFileStaged(entry.State)
                 });
             }
@@ -257,6 +257,22 @@ namespace Stride.GameStudio.Git
                 || status.HasFlag(FileStatus.DeletedFromIndex)
                 || status.HasFlag(FileStatus.TypeChangeInIndex)
                 || status.HasFlag(FileStatus.RenamedInIndex);
+        }
+        private static GitFileStatus MapFileStatus(FileStatus status)
+        {
+            if (status.HasFlag(FileStatus.NewInIndex) || status.HasFlag(FileStatus.NewInWorkdir))
+                return GitFileStatus.Added;
+
+            if (status.HasFlag(FileStatus.DeletedFromIndex) || status.HasFlag(FileStatus.DeletedFromWorkdir))
+                return GitFileStatus.Deleted;
+
+            if (status.HasFlag(FileStatus.ModifiedInIndex) || status.HasFlag(FileStatus.ModifiedInWorkdir))
+                return GitFileStatus.Modified;
+
+            if (status.HasFlag(FileStatus.Ignored) || status.HasFlag(FileStatus.Unaltered))
+                return GitFileStatus.Untracked;
+
+            return GitFileStatus.Untracked;
         }
 
         public void Dispose()
