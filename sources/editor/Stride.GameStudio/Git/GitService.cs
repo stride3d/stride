@@ -163,7 +163,20 @@ namespace Stride.GameStudio.Git
 
         public GitResult<bool> PushChanges()
         {
-            throw new NotImplementedException();
+            if (_repository == null)
+                return GitResult<bool>.Fail("Repository not found.");
+
+            try
+            {
+                var remote = _repository.Network.Remotes["origin"];
+                var options = new PushOptions();
+                _repository.Network.Push(remote, @"refs/heads/" + _repository.Head.FriendlyName, options);
+                return GitResult<bool>.Ok(true);
+            }
+            catch
+            {
+                return GitResult<bool>.Fail("Failed to push changes.");
+            }
         }
 
         public GitResult<bool> PullChanges()
