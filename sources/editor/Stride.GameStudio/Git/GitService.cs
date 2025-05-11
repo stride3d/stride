@@ -72,6 +72,27 @@ namespace Stride.GameStudio.Git
                 return GitResult<bool>.Fail($"Failed to commit changes: {ex.Message}");
             }
         }
+        public GitResult<string> GetCurrentBranch()
+        {
+            if (_repository == null)
+                return GitResult<string>.Fail("Repository not found.");
+            var branch = _repository.Head;
+            if (branch == null)
+                return GitResult<string>.Fail("No current branch found.");
+            return GitResult<string>.Ok(branch.FriendlyName);
+        }
+        public GitResult<bool> CheckoutBranch(string branchName)
+        {
+            if (_repository == null)
+                return GitResult<bool>.Fail("Repository not found.");
+
+            var branch = _repository.Branches[branchName];
+            if (branch == null)
+                return GitResult<bool>.Fail($"Branch '{branchName}' not found.");
+
+            Commands.Checkout(_repository, branch);
+            return GitResult<bool>.Ok(true);
+        }
 
         private static bool IsFileStaged(FileStatus status)
         {
