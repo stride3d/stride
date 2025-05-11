@@ -48,6 +48,31 @@ namespace Stride.GameStudio.Git
 
             return GitResult<IEnumerable<GitFile>>.Ok(resultFiles);
         }
+        public GitResult<bool> CommitChanges(string commitMessage)
+        {
+            if (_repository == null)
+                return GitResult<bool>.Fail("Repository not found.");
+
+            var config = _repository.Config;
+            var name = config.Get<string>("user.name")?.Value;
+            var email = config.Get<string>("user.email")?.Value;
+
+            if (string.IsNullOrWhiteSpace(name) || string.IsNullOrWhiteSpace(email))
+                return GitResult<bool>.Fail("Git user name or email not configured.");
+
+            var signature = new Signature(name, email, DateTimeOffset.Now);
+
+            try
+            {
+                _repository.Commit(commitMessage, signature, signature);
+                return GitResult<bool>.Ok(true);
+            }
+            catch (Exception ex)
+            {
+                return GitResult<bool>.Fail($"Failed to commit changes: {ex.Message}");
+            }
+        }
+
         private static bool IsFileStaged(FileStatus status)
         {
             return status.HasFlag(FileStatus.NewInIndex)
