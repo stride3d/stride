@@ -1833,7 +1833,7 @@
                                                         <TreeView
                                                             Background="#1E1E1E"
                                                             Foreground="White"
-                                                            ItemsSource="{Binding ChangedFiles}">
+                                                            ItemsSource="{Binding GitChanges.ChangedFiles}">
                                                             <TreeView.Resources>
                                                                 <Style TargetType="TreeViewItem">
                                                                     <Setter Property="HeaderTemplate">
@@ -1867,12 +1867,16 @@
                                                                     </Setter>
                                                                 </Style>
                                                             </TreeView.Resources>
-
-                                                            <TreeViewItem Header="Z:\Documents\Programmin..." IsExpanded="True">
+                                                            <TreeView.ItemTemplate>
+                                                                <DataTemplate>
+                                                                    <TextBlock Foreground="White" Text="{Binding}" />
+                                                                </DataTemplate>
+                                                            </TreeView.ItemTemplate>
+                                                            <!--<TreeViewItem Header="Z:\Documents\Programmin..." IsExpanded="True">
                                                                 <TreeViewItem Header="📁 GitUserControlUI" IsExpanded="True">
                                                                     <TreeViewItem Header="📄 MainWindow.xaml" />
                                                                 </TreeViewItem>
-                                                            </TreeViewItem>
+                                                            </TreeViewItem>-->
                                                         </TreeView>
                                                     </Expander>
                                                     <Expander
