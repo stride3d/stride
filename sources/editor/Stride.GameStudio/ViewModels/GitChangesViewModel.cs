@@ -23,7 +23,11 @@ namespace Stride.GameStudio.ViewModels
         }
 
         public ICommandBase RefreshCommand { get; }
-        public ObservableList<string> ChangedFiles { get; } = new();
+        public ObservableList<string> ChangedFiles { get; } = new()
+            { "../sources/editor/Stride.GameStudio/ViewModels/GitChangesViewModel.cs",
+            "../sources/editor/Stride.GameStudio/ViewModels/GitChangesViewModel.cs",
+            "../sources/editor/Stride.GameStudio/ViewModels/GitChangesViewModel.cs",
+            "../sources/editor/Stride.GameStudio/ViewModels/GitChangesViewModel.cs"};
 
         private void RefreshGitStatus()
         {             
