@@ -111,12 +111,36 @@ namespace Stride.GameStudio.Git
 
         public GitResult<bool> RemoveFileFromStaged(string filePath)
         {
-            throw new NotImplementedException();
+            if (_repository == null)
+                return GitResult<bool>.Fail("Repository not found.");
+            try
+            {
+                Commands.Unstage(_repository, filePath);
+                return GitResult<bool>.Ok(true);
+            }
+            catch
+            {
+                return GitResult<bool>.Fail($"Failed to unstage file: {filePath}");
+            }
         }
 
         public GitResult<bool> AddFilesToStaged(IEnumerable<string> filePath)
         {
-            throw new NotImplementedException();
+            if (_repository == null)
+                return GitResult<bool>.Fail("Repository not found.");
+
+            try
+            {
+                foreach (var file in filePath)
+                {
+                    Commands.Stage(_repository, file);
+                }
+                return GitResult<bool>.Ok(true);
+            }
+            catch
+            {
+                return GitResult<bool>.Fail($"Failed to stage files: {string.Join(", ", filePath)}");
+            }
         }
 
         public GitResult<bool> RemoveFilesFromStaged(IEnumerable<string> filePath)
