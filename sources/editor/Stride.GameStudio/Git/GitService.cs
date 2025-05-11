@@ -6,7 +6,7 @@ using LibGit2Sharp;
 namespace Stride.GameStudio.Git
 {
     /// <summary>
-    /// An interface that can manage git operations.
+    /// an implementation of <see cref="IGitService"/> that uses LibGit2Sharp to manage git operations.
     /// </summary>
     public class GitService : IGitService
     {
@@ -25,10 +25,38 @@ namespace Stride.GameStudio.Git
             _repository = new Repository(repoPath);
         }
 
-        public async Task<IEnumerable<GitFile>> GetChangedFiles()
+        public GitResult<IEnumerable<GitFile>> GetChangedFiles()
         {
-            return [];
+            var resultFiles = new List<GitFile>();
+            if (_repository == null)
+                return GitResult<IEnumerable<GitFile>>.Fail("Repository not found.");
+
+            var status = _repository.RetrieveStatus();
+
+            foreach (var entry in status)
+            {
+                if (entry.State == FileStatus.Ignored || entry.State == FileStatus.Unaltered)
+                    continue;
+
+                resultFiles.Add(new GitFile
+                {
+                    RelativeFilePath = entry.FilePath,
+                    Status = entry.State,
+                    IsStaged = IsFileStaged(entry.State)
+                });
+            }
+
+            return GitResult<IEnumerable<GitFile>>.Ok(resultFiles);
         }
+        private static bool IsFileStaged(FileStatus status)
+        {
+            return status.HasFlag(FileStatus.NewInIndex)
+                || status.HasFlag(FileStatus.ModifiedInIndex)
+                || status.HasFlag(FileStatus.DeletedFromIndex)
+                || status.HasFlag(FileStatus.TypeChangeInIndex)
+                || status.HasFlag(FileStatus.RenamedInIndex);
+        }
+
         public void Dispose()
         {
             _repository.Dispose();
