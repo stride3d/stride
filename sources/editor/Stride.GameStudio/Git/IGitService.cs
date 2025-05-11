@@ -8,17 +8,17 @@ namespace Stride.GameStudio.Git
     /// </summary>
     public interface IGitService : IDisposable
     {
-        public Task<IEnumerable<GitFile>> GetChangedFiles();
-        public Task<bool> CommitChanges(string commitMessage);
-        public Task<string> GetCurrentBranch();
-        public Task<bool> CheckoutBranch(string branchName);
-        public Task<bool> AddFileToStaged(string filePath);
-        public Task<bool> RemoveFileFromStaged(string filePath);
-        public Task<bool> AddFilesToStaged(IEnumerable<string> filePath);
-        public Task<bool> RemoveFilesFromStaged(IEnumerable<string> filePath);
-        public Task<bool> PushChanges();
-        public Task<bool> PullChanges();
-        public Task<bool> StashChanges();
-        public Task<bool> StashPopChanges();
+        public GitResult<IEnumerable<GitFile>> GetChangedFiles();
+        public GitResult<bool> CommitChanges(string commitMessage);
+        public GitResult<string> GetCurrentBranch();
+        public GitResult<bool> CheckoutBranch(string branchName);
+        public GitResult<bool> AddFileToStaged(string filePath);
+        public GitResult<bool> RemoveFileFromStaged(string filePath);
+        public GitResult<bool> AddFilesToStaged(IEnumerable<string> filePath);
+        public GitResult<bool> RemoveFilesFromStaged(IEnumerable<string> filePath);
+        public GitResult<bool> PushChanges();
+        public GitResult<bool> PullChanges();
+        public GitResult<bool> StashChanges();
+        public GitResult<bool> StashPopChanges();
     }
 }
