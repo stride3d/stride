@@ -94,6 +94,55 @@ namespace Stride.GameStudio.Git
             return GitResult<bool>.Ok(true);
         }
 
+        public GitResult<bool> AddFileToStaged(string filePath)
+        {
+            if (_repository == null)
+                return GitResult<bool>.Fail("Repository not found.");
+            try
+            {
+                Commands.Stage(_repository, filePath);
+                return GitResult<bool>.Ok(true);
+            }
+            catch
+            {
+                return GitResult<bool>.Fail($"Failed to stage file: {filePath}");
+            }
+        }
+
+        public GitResult<bool> RemoveFileFromStaged(string filePath)
+        {
+            throw new NotImplementedException();
+        }
+
+        public GitResult<bool> AddFilesToStaged(IEnumerable<string> filePath)
+        {
+            throw new NotImplementedException();
+        }
+
+        public GitResult<bool> RemoveFilesFromStaged(IEnumerable<string> filePath)
+        {
+            throw new NotImplementedException();
+        }
+
+        public GitResult<bool> PushChanges()
+        {
+            throw new NotImplementedException();
+        }
+
+        public GitResult<bool> PullChanges()
+        {
+            throw new NotImplementedException();
+        }
+
+        public GitResult<bool> StashChanges()
+        {
+            throw new NotImplementedException();
+        }
+
+        public GitResult<bool> StashPopChanges()
+        {
+            throw new NotImplementedException();
+        }
         private static bool IsFileStaged(FileStatus status)
         {
             return status.HasFlag(FileStatus.NewInIndex)
