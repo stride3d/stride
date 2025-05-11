@@ -16,6 +16,7 @@ using Stride.Editor.Build;
 using Stride.Editor.Preview;
 using Stride.Editor.Thumbnails;
 using Stride.GameStudio.Debugging;
+using Stride.GameStudio.Git;
 using Stride.GameStudio.Helpers;
 using Stride.GameStudio.ViewModels;
 
@@ -84,6 +85,9 @@ namespace Stride.GameStudio.Plugin
 
             var strideDebugService = new StrideDebugService(session.ServiceProvider);
             session.ServiceProvider.RegisterService(strideDebugService);
+
+            var gitService = new GitService();
+            session.ServiceProvider.RegisterService(gitService);
 
             GameStudioViewModel.GameStudio.Preview = new PreviewViewModel(session);
             GameStudioViewModel.GameStudio.Debugging = new DebuggingViewModel(GameStudioViewModel.GameStudio, strideDebugService);
