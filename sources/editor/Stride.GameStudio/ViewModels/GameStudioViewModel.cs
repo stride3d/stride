@@ -28,6 +28,7 @@ namespace Stride.GameStudio.ViewModels
     {
         private PreviewViewModel preview;
         private DebuggingViewModel debugging;
+        private GitChangesViewModel gitChanges;
         private string restartArguments;
         private readonly List<IDEInfo> availableIDEs;
 
@@ -35,6 +36,7 @@ namespace Stride.GameStudio.ViewModels
             : base(serviceProvider, mru, StrideGameStudio.EditorName, StrideGameStudio.EditorVersionMajor)
         {
             Panels = new EditionPanelViewModel(ServiceProvider);
+            GitChanges = new GitChangesViewModel(ServiceProvider);
             availableIDEs = [IDEInfo.DefaultIDE];
             availableIDEs.AddRange(IDEInfoVersions.AvailableIDEs());
             NewSessionCommand = new AnonymousCommand(serviceProvider, RestartAndCreateNewSession);
@@ -53,6 +55,8 @@ namespace Stride.GameStudio.ViewModels
         public PreviewViewModel Preview { get => preview; set => SetValue(ref preview, value); }
 
         public DebuggingViewModel Debugging { get => debugging; set => SetValue(ref debugging, value); }
+
+        public GitChangesViewModel GitChanges { get => gitChanges; set => SetValue(ref gitChanges, value); }
 
         [NotNull]
         public IReadOnlyList<IDEInfo> AvailableIDEs => availableIDEs;

@@ -532,6 +532,11 @@ msgctxt "Menu"
 msgid "Asset preview"
 msgstr ""
 
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:258
+msgctxt "Menu"
+msgid "Git changes"
+msgstr ""
+
 #: ../editor/Stride.GameStudio/GameStudioWindow.xaml:261
 msgctxt "Menu"
 msgid "Property grid"
@@ -795,6 +800,11 @@ msgstr ""
 #: ../editor/Stride.GameStudio/GameStudioWindow.xaml:879
 msgctxt "View"
 msgid "Asset preview"
+msgstr ""
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:879
+msgctxt "View"
+msgid "Git changes"
 msgstr ""
 
 #: ../editor/Stride.GameStudio/GameStudioWindow.xaml:887
