@@ -235,7 +235,18 @@ namespace Stride.GameStudio.Git
 
         public GitResult<bool> StashPopChanges()
         {
-            throw new NotImplementedException();
+            if (_repository == null || _repository.Stashes.Count() == 0)
+                return GitResult<bool>.Fail("Repository not found or no stashes available.");
+
+            try
+            {
+                _repository.Stashes.Pop(0);
+                return GitResult<bool>.Ok(true);
+            }
+            catch
+            {
+                return GitResult<bool>.Fail("Failed to pop stash changes.");
+            }
         }
         private static bool IsFileStaged(FileStatus status)
         {
