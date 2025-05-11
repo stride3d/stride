@@ -344,9 +344,9 @@ namespace Stride.Graphics.SDL
         }
         
         /// <summary>
-        /// Opacity of the window.
+        /// The opacity of the window.
         /// </summary>
-        /// <remarks> Value should be between 0.0f and 1.0f. will automatically clamp to this range.</remarks>
+        /// <remarks>The value should be between 0.0f and 1.0f. It will automatically be clamped to this range.</remarks>
         public float Opacity
         {
             get
