@@ -14,15 +14,17 @@ namespace Stride.GameStudio.Git
         public GitService()
         {
             string projectDir = AppDomain.CurrentDomain.BaseDirectory;
-
+            
             string repoPath = Repository.Discover(projectDir);
 
-            if (repoPath == null)
+            if (repoPath != null && Repository.IsValid(repoPath))
             {
-                throw new InvalidOperationException("Git repository not found.");
+                _repository = new Repository(repoPath);
             }
+            else
+            {
 
-            _repository = new Repository(repoPath);
+            }
         }
 
         public GitResult<IEnumerable<GitFile>> GetChangedFiles()
@@ -259,7 +261,7 @@ namespace Stride.GameStudio.Git
 
         public void Dispose()
         {
-            _repository.Dispose();
+            _repository?.Dispose();
         }
     }
 }
