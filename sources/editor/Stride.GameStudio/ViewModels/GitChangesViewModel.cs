@@ -44,8 +44,23 @@ namespace Stride.GameStudio.ViewModels
         public ICommandBase StashChangesCommand { get; private set; }
         public ICommandBase StashPopChangesCommand { get; private set; }
 
-        public ObservableList<GitFile> StagedFiles { get; } = new();
-        public ObservableList<GitFile> UnstagedFiles { get; } = new();
+        private string currentBranch = "main";
+        public string CurrentBranch
+        {
+            get => currentBranch;
+            set
+            {
+                if (currentBranch != value)
+                {
+                    currentBranch = value;
+                    OnPropertyChanged(nameof(CurrentBranch));
+                }
+            }
+        }
+
+        public ObservableList<string> Branches { get; private set; } = new(){"main", "develop", "ui"};
+        public ObservableList<GitFile> StagedFiles { get; private set; } = new();
+        public ObservableList<GitFile> UnstagedFiles { get; private set; } = new();
 
         private void RefreshGitStatus()
         {
