@@ -10,26 +10,18 @@ namespace Stride.GameStudio.Git
     /// </summary>
     public class GitService : IGitService
     {
-        private readonly Repository _repository;
+        private Repository repository;
         public GitService()
         {
-            string projectDir = AppDomain.CurrentDomain.BaseDirectory;
-
-            string repoPath = Repository.Discover(projectDir);
-
-            if (repoPath != null && Repository.IsValid(repoPath))
-            {
-                _repository = new Repository(repoPath);
-            }
         }
 
         public GitResult<IEnumerable<GitFile>> GetChangedFiles()
         {
             var resultFiles = new List<GitFile>();
-            if (_repository == null)
+            if (repository == null)
                 return GitResult<IEnumerable<GitFile>>.Fail("Repository not found.");
 
-            var status = _repository.RetrieveStatus();
+            var status = repository.RetrieveStatus();
 
             foreach (var entry in status)
             {
@@ -48,10 +40,10 @@ namespace Stride.GameStudio.Git
         }
         public GitResult<bool> CommitChanges(string commitMessage)
         {
-            if (_repository == null)
+            if (repository == null)
                 return GitResult<bool>.Fail("Repository not found.");
 
-            var config = _repository.Config;
+            var config = repository.Config;
             var name = config.Get<string>("user.name")?.Value;
             var email = config.Get<string>("user.email")?.Value;
 
@@ -62,7 +54,7 @@ namespace Stride.GameStudio.Git
 
             try
             {
-                _repository.Commit(commitMessage, signature, signature);
+                repository.Commit(commitMessage, signature, signature);
                 return GitResult<bool>.Ok(true);
             }
             catch (Exception ex)
@@ -72,33 +64,33 @@ namespace Stride.GameStudio.Git
         }
         public GitResult<string> GetCurrentBranch()
         {
-            if (_repository == null)
+            if (repository == null)
                 return GitResult<string>.Fail("Repository not found.");
-            var branch = _repository.Head;
+            var branch = repository.Head;
             if (branch == null)
                 return GitResult<string>.Fail("No current branch found.");
             return GitResult<string>.Ok(branch.FriendlyName);
         }
         public GitResult<bool> CheckoutBranch(string branchName)
         {
-            if (_repository == null)
+            if (repository == null)
                 return GitResult<bool>.Fail("Repository not found.");
 
-            var branch = _repository.Branches[branchName];
+            var branch = repository.Branches[branchName];
             if (branch == null)
                 return GitResult<bool>.Fail($"Branch '{branchName}' not found.");
 
-            Commands.Checkout(_repository, branch);
+            Commands.Checkout(repository, branch);
             return GitResult<bool>.Ok(true);
         }
 
         public GitResult<bool> AddFileToStaged(string filePath)
         {
-            if (_repository == null)
+            if (repository == null)
                 return GitResult<bool>.Fail("Repository not found.");
             try
             {
-                Commands.Stage(_repository, filePath);
+                Commands.Stage(repository, filePath);
                 return GitResult<bool>.Ok(true);
             }
             catch
@@ -109,11 +101,11 @@ namespace Stride.GameStudio.Git
 
         public GitResult<bool> RemoveFileFromStaged(string filePath)
         {
-            if (_repository == null)
+            if (repository == null)
                 return GitResult<bool>.Fail("Repository not found.");
             try
             {
-                Commands.Unstage(_repository, filePath);
+                Commands.Unstage(repository, filePath);
                 return GitResult<bool>.Ok(true);
             }
             catch
@@ -124,14 +116,14 @@ namespace Stride.GameStudio.Git
 
         public GitResult<bool> AddFilesToStaged(IEnumerable<string> filePath)
         {
-            if (_repository == null)
+            if (repository == null)
                 return GitResult<bool>.Fail("Repository not found.");
 
             try
             {
                 foreach (var file in filePath)
                 {
-                    Commands.Stage(_repository, file);
+                    Commands.Stage(repository, file);
                 }
                 return GitResult<bool>.Ok(true);
             }
@@ -143,13 +135,13 @@ namespace Stride.GameStudio.Git
 
         public GitResult<bool> RemoveFilesFromStaged(IEnumerable<string> filePath)
         {
-            if (_repository == null)
+            if (repository == null)
                 return GitResult<bool>.Fail("Repository not found.");
             try
             {
                 foreach (var file in filePath)
                 {
-                    Commands.Unstage(_repository, file);
+                    Commands.Unstage(repository, file);
                 }
                 return GitResult<bool>.Ok(true);
             }
@@ -161,14 +153,14 @@ namespace Stride.GameStudio.Git
 
         public GitResult<bool> PushChanges()
         {
-            if (_repository == null)
+            if (repository == null)
                 return GitResult<bool>.Fail("Repository not found.");
 
             try
             {
-                var remote = _repository.Network.Remotes["origin"];
+                var remote = repository.Network.Remotes["origin"];
                 var options = new PushOptions();
-                _repository.Network.Push(remote, @"refs/heads/" + _repository.Head.FriendlyName, options);
+                repository.Network.Push(remote, @"refs/heads/" + repository.Head.FriendlyName, options);
                 return GitResult<bool>.Ok(true);
             }
             catch
@@ -179,10 +171,10 @@ namespace Stride.GameStudio.Git
 
         public GitResult<bool> PullChanges()
         {
-            if (_repository == null)
+            if (repository == null)
                 return GitResult<bool>.Fail("Repository not found.");
 
-            var config = _repository.Config;
+            var config = repository.Config;
             var name = config.Get<string>("user.name")?.Value;
             var email = config.Get<string>("user.email")?.Value;
 
@@ -197,7 +189,7 @@ namespace Stride.GameStudio.Git
                 {
                     FetchOptions = new FetchOptions()
                 };
-                Commands.Pull(_repository, signature, options);
+                Commands.Pull(repository, signature, options);
                 return GitResult<bool>.Ok(true);
             }
             catch
@@ -208,10 +200,10 @@ namespace Stride.GameStudio.Git
 
         public GitResult<bool> StashChanges()
         {
-            if (_repository == null)
+            if (repository == null)
                 return GitResult<bool>.Fail("Repository not found.");
 
-            var config = _repository.Config;
+            var config = repository.Config;
             var name = config.Get<string>("user.name")?.Value;
             var email = config.Get<string>("user.email")?.Value;
 
@@ -222,7 +214,7 @@ namespace Stride.GameStudio.Git
 
             try
             {
-                _repository.Stashes.Add(signature, null, StashModifiers.Default);
+                repository.Stashes.Add(signature, null, StashModifiers.Default);
                 return GitResult<bool>.Ok(true);
             }
             catch
@@ -233,12 +225,12 @@ namespace Stride.GameStudio.Git
 
         public GitResult<bool> StashPopChanges()
         {
-            if (_repository == null || _repository.Stashes.Count() == 0)
+            if (repository == null || repository.Stashes.Count() == 0)
                 return GitResult<bool>.Fail("Repository not found or no stashes available.");
 
             try
             {
-                _repository.Stashes.Pop(0);
+                repository.Stashes.Pop(0);
                 return GitResult<bool>.Ok(true);
             }
             catch
@@ -270,10 +262,35 @@ namespace Stride.GameStudio.Git
 
             return GitFileStatus.Untracked;
         }
+        public bool InitializeForSession(string solutionDir)
+        {
+            if (string.IsNullOrWhiteSpace(solutionDir))
+                return false;
+            try
+            {
+                repository?.Dispose();
+                repository = null;
+
+                var repoPath = Repository.Discover(solutionDir);
+                if (repoPath != null && Repository.IsValid(repoPath))
+                {
+                    repository = new Repository(repoPath);
+                    return true;
+                }
+
+                Repository.Init(solutionDir);
+                repository = new Repository(solutionDir);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
 
         public void Dispose()
         {
-            _repository?.Dispose();
+            repository?.Dispose();
         }
     }
 }
