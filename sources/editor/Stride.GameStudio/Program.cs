@@ -48,6 +48,7 @@ using Stride.GameStudio.Plugin;
 using Stride.GameStudio.Services;
 using Stride.Core.Presentation.ViewModels;
 using Stride.Core.Presentation.Services;
+using Stride.GameStudio.Git;
 
 namespace Stride.GameStudio;
 
@@ -234,6 +235,7 @@ public static class Program
             // We use a MRU that contains the older version projects to display in the editor
             var mru = new MostRecentlyUsedFileCollection(InternalSettings.LoadProfileCopy, InternalSettings.MostRecentlyUsedSessions, InternalSettings.WriteFile);
             mru.LoadFromSettings();
+            serviceProvider.RegisterService(new GitService());
             var editor = new GameStudioViewModel(serviceProvider, mru);
             AssetsPlugin.RegisterPlugin(typeof(StrideDefaultAssetsPlugin));
             AssetsPlugin.RegisterPlugin(typeof(StrideEditorPlugin));
