@@ -1726,6 +1726,7 @@
                                                         Margin="0,0,2,0"
                                                         Background="#FF2D2D30"
                                                         BorderBrush="Gray"
+                                                        Command="{Binding GitChanges.RefreshCommand}"
                                                         Content="⟳"
                                                         Foreground="White"
                                                         ToolTip="Refresh" />
