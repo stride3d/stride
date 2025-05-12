@@ -18,6 +18,7 @@ namespace Stride.GameStudio.ViewModels
             RefreshCommand = new AnonymousCommand(serviceProvider, RefreshGitStatus);
             CommitChangesCommand = new AnonymousCommand<string>(serviceProvider, CommitChanges);
             GetCurrentBranchCommand = new AnonymousCommand(serviceProvider, GetCurrentBranch);
+            GetBranchesCommand = new AnonymousCommand(serviceProvider, GetBranches);
             CheckoutBranchCommand = new AnonymousCommand<string>(serviceProvider, CheckoutBranch);
             AddFileToStagedCommand = new AnonymousCommand<string>(serviceProvider, AddFileToStaged);
             RemoveFileFromStagedCommand = new AnonymousCommand<string>(serviceProvider, RemoveFileFromStaged);
@@ -29,11 +30,14 @@ namespace Stride.GameStudio.ViewModels
             StashPopChangesCommand = new AnonymousCommand(serviceProvider, StashPopChanges);
 
             RefreshCommand.Execute();
+            GetBranchesCommand.Execute();
+            GetCurrentBranchCommand.Execute();
         }
 
         public ICommandBase RefreshCommand { get; private set; }
         public ICommandBase CommitChangesCommand { get; private set; }
         public ICommandBase GetCurrentBranchCommand { get; private set; }
+        public ICommandBase GetBranchesCommand { get; private set; }
         public ICommandBase CheckoutBranchCommand { get; private set; }
         public ICommandBase AddFileToStagedCommand { get; private set; }
         public ICommandBase RemoveFileFromStagedCommand { get; private set; }
@@ -44,35 +48,40 @@ namespace Stride.GameStudio.ViewModels
         public ICommandBase StashChangesCommand { get; private set; }
         public ICommandBase StashPopChangesCommand { get; private set; }
 
-        private string currentBranch = "main";
+        private string currentBranch = string.Empty;
         public string CurrentBranch
         {
             get => currentBranch;
             set
             {
-                if (currentBranch != value)
+                if (currentBranch != value && Branches.Contains(value))
                 {
+                    OnPropertyChanging(nameof(CurrentBranch));
                     currentBranch = value;
                     OnPropertyChanged(nameof(CurrentBranch));
+
+                    if (CheckoutBranchCommand?.CanExecute(value) == true)
+                    {
+                        CheckoutBranchCommand.Execute(value);
+                    }
                 }
             }
         }
 
-        public ObservableList<string> Branches { get; private set; } = new(){"main", "develop", "ui"};
+        public ObservableList<string> Branches { get; private set; } = new();
         public ObservableList<GitFile> StagedFiles { get; private set; } = new();
         public ObservableList<GitFile> UnstagedFiles { get; private set; } = new();
 
         private void RefreshGitStatus()
         {
-            StagedFiles.Clear();
-            UnstagedFiles.Clear();
-
             var result = gitService.GetChangedFiles();
             if(!result.Success)
             {
                 return;
             }
 
+            StagedFiles.Clear();
+            UnstagedFiles.Clear();
             var changedFiles = result.Data;
             foreach (var file in changedFiles)
             {
@@ -104,7 +113,23 @@ namespace Stride.GameStudio.ViewModels
             {
                 return;
             }
-            var currentBranch = result.Data;
+            CurrentBranch = result.Data;
+        }
+
+        private void GetBranches()
+        {
+            var result = gitService.GetBranches();
+            if (!result.Success)
+            {
+                return;
+            }
+
+            Branches.Clear();
+            var branches = result.Data;
+            foreach (var branch in branches)
+            {
+                Branches.Add(branch);
+            }
         }
 
         private void CheckoutBranch(string branchName)
