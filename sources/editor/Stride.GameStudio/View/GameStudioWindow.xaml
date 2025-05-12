@@ -1818,19 +1818,42 @@
                                                             Background="#1E1E1E"
                                                             Foreground="White"
                                                             ItemsSource="{Binding GitChanges.StagedFiles}">
-                                                            <TreeView.ItemTemplate>
-                                                                <DataTemplate>
-                                                                    <StackPanel Margin="2" Orientation="Horizontal">
-                                                                        <TextBlock Foreground="White" Text="{Binding RelativeFilePath}" />
-                                                                        <TextBlock
-                                                                            Margin="4,0,0,0"
-                                                                            Foreground="Gray"
-                                                                            Text=" [" />
-                                                                        <TextBlock Foreground="LightGreen" Text="{Binding Status}" />
-                                                                        <TextBlock Foreground="Gray" Text="]" />
-                                                                    </StackPanel>
-                                                                </DataTemplate>
-                                                            </TreeView.ItemTemplate>
+                                                            
+                                                        <TreeView.ItemTemplate>
+                                                              <DataTemplate>
+                                                                  <DockPanel Margin="2" LastChildFill="True">
+                                                                      <!--  Кнопка справа  -->
+                                                                      <Button
+                                                                          Width="24"
+                                                                          Height="24"
+                                                                          Margin="4,0,0,0"
+                                                                          HorizontalAlignment="Right"
+                                                                          VerticalAlignment="Center"
+                                                                          Command="{Binding Source={x:Static vm:GameStudioViewModel.GameStudio}, Path=GitChanges.RemoveFileFromStagedCommand}"
+                                                                          CommandParameter="{Binding RelativeFilePath}"
+                                                                          Content="-"
+                                                                          DockPanel.Dock="Right" />
+
+                                                                      <!--  Посилання + статус зліва  -->
+                                                                      <StackPanel Orientation="Horizontal">
+                                                                          <!--  Посилання без можливості виділення  -->
+                                                                          <TextBlock
+                                                                              Cursor="Hand"
+                                                                              Foreground="White"
+                                                                              IsHitTestVisible="True"
+                                                                              Text="{Binding RelativeFilePath}"
+                                                                              TextTrimming="CharacterEllipsis" />
+
+                                                                          <TextBlock
+                                                                              Margin="4,0,0,0"
+                                                                              Foreground="Gray"
+                                                                              Text=" [" />
+                                                                          <TextBlock Foreground="LightGreen" Text="{Binding Status}" />
+                                                                          <TextBlock Foreground="Gray" Text="]" />
+                                                                      </StackPanel>
+                                                                  </DockPanel>
+                                                              </DataTemplate>
+                                                          </TreeView.ItemTemplate>
                                                         </TreeView>
                                                     </Expander>
                                                     <Expander
