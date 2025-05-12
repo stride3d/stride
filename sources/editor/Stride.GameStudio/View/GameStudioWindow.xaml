@@ -1788,7 +1788,35 @@
                                                         Margin="0,10,0,0"
                                                         Background="#FF2D2D30"
                                                         Foreground="White"
-                                                        Header="Связанные элементы">
+                                                        IsExpanded="True">
+                                                        <Expander.Header>
+                                                            <Grid>
+                                                                <Grid.ColumnDefinitions>
+                                                                    <ColumnDefinition />
+                                                                    <ColumnDefinition Width="Auto" />
+                                                                </Grid.ColumnDefinitions>
+
+                                                                <TextBlock
+                                                                    Grid.Column="0"
+                                                                    VerticalAlignment="Center"
+                                                                    FontSize="14"
+                                                                    FontWeight="SemiBold"
+                                                                    Foreground="White"
+                                                                    Text="Связанные элементы" />
+
+                                                                <Button
+                                                                    Grid.Column="1"
+                                                                    Width="24"
+                                                                    Height="24"
+                                                                    Margin="0,0,0,0"
+                                                                    HorizontalAlignment="Right"
+                                                                    VerticalAlignment="Center"
+                                                                    Background="#FF2D2D30"
+                                                                    BorderBrush="Gray"
+                                                                    Content="+"
+                                                                    Foreground="White" />
+                                                            </Grid>
+                                                        </Expander.Header>
                                                         <!--<StackPanel Margin="10,5,0,0" Orientation="Vertical">
                                                             <TextBlock Foreground="Gray" Text="В фиксации не упомянуто ни одного елемента" />
                                                         </StackPanel>-->
@@ -1796,40 +1824,6 @@
                                                             Background="#1E1E1E"
                                                             Foreground="White"
                                                             ItemsSource="{Binding GitChanges.StagedFiles}">
-                                                            <!--<TreeView.Resources>
-                                                                <Style TargetType="TreeViewItem">
-                                                                    <Setter Property="HeaderTemplate">
-                                                                        <Setter.Value>
-                                                                            <DataTemplate>
-                                                                                <StackPanel Orientation="Horizontal">
-                                                                                    <TextBlock Foreground="White" Text="{Binding}" />
-                                                                                    <StackPanel
-                                                                                        x:Name="HoverPanel"
-                                                                                        Margin="5,0,0,0"
-                                                                                        Orientation="Horizontal"
-                                                                                        Visibility="Collapsed">
-                                                                                        <TextBlock
-                                                                                            Margin="0,0,5,0"
-                                                                                            Foreground="White"
-                                                                                            Text="↺" />
-                                                                                        <TextBlock
-                                                                                            Margin="0,0,5,0"
-                                                                                            Foreground="White"
-                                                                                            Text="+" />
-                                                                                        <TextBlock Foreground="White" Text="M" />
-                                                                                    </StackPanel>
-                                                                                </StackPanel>
-                                                                                <DataTemplate.Triggers>
-                                                                                    <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=TreeViewItem}, Path=IsMouseOver}" Value="True">
-                                                                                        <Setter TargetName="HoverPanel" Property="Visibility" Value="Visible" />
-                                                                                    </DataTrigger>
-                                                                                </DataTemplate.Triggers>
-                                                                            </DataTemplate>
-                                                                        </Setter.Value>
-                                                                    </Setter>
-                                                                </Style>
-                                                            </TreeView.Resources>-->
-
                                                             <TreeView.ItemTemplate>
                                                                 <DataTemplate>
                                                                     <StackPanel Margin="2" Orientation="Horizontal">
@@ -1938,10 +1932,35 @@
                                                         Margin="0,10,0,0"
                                                         Padding="10"
                                                         Background="#FF2D2D30"
-                                                        FontWeight="SemiBold"
-                                                        Foreground="White"
-                                                        Header="Спрятанные изменения (2)">
+                                                        Foreground="White">
+                                                        <Expander.Header>
+                                                            <Grid>
+                                                                <Grid.ColumnDefinitions>
+                                                                    <ColumnDefinition />
+                                                                    <ColumnDefinition Width="Auto" />
+                                                                </Grid.ColumnDefinitions>
 
+                                                                <TextBlock
+                                                                    Grid.Column="0"
+                                                                    VerticalAlignment="Center"
+                                                                    FontSize="14"
+                                                                    FontWeight="SemiBold"
+                                                                    Foreground="White"
+                                                                    Text="Спрятанные изменения (2)" />
+
+                                                                <Button
+                                                                    Grid.Column="1"
+                                                                    Width="24"
+                                                                    Height="24"
+                                                                    Margin="0,0,0,0"
+                                                                    HorizontalAlignment="Right"
+                                                                    VerticalAlignment="Center"
+                                                                    Background="#FF2D2D30"
+                                                                    BorderBrush="Gray"
+                                                                    Content="+"
+                                                                    Foreground="White" />
+                                                            </Grid>
+                                                        </Expander.Header>
                                                         <StackPanel>
                                                             <!--  Кнопка "Удалить все"  -->
                                                             <TextBlock
