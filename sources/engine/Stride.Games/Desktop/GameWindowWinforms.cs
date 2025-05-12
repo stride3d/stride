@@ -283,7 +283,7 @@ namespace Stride.Games
             {
                 if (form != null)
                 {
-                    form.Opacity = (float)value;
+                    form.Opacity = value;
                 }
             }
         }
