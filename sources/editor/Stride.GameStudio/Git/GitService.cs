@@ -21,10 +21,6 @@ namespace Stride.GameStudio.Git
             {
                 _repository = new Repository(repoPath);
             }
-            else
-            {
-
-            }
         }
 
         public GitResult<IEnumerable<GitFile>> GetChangedFiles()
