@@ -1695,7 +1695,6 @@
                                                         Background="#FF2D2D30"
                                                         Foreground="White"
                                                         ItemsSource="{Binding GitChanges.Branches}"
-                                                        SelectedIndex="0"
                                                         SelectedItem="{Binding GitChanges.CurrentBranch, Mode=TwoWay}">
                                                         <ComboBox.ItemTemplate>
                                                             <DataTemplate>
