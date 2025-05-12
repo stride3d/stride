@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.ComponentModel;
+using System.Text;
 using Stride.Core.Presentation.Collections;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.ViewModels;
@@ -28,10 +29,12 @@ namespace Stride.GameStudio.ViewModels
             PullChangesCommand = new AnonymousCommand(serviceProvider, PullChanges);
             StashChangesCommand = new AnonymousCommand(serviceProvider, StashChanges);
             StashPopChangesCommand = new AnonymousCommand(serviceProvider, StashPopChanges);
+            GetStashesCommand = new AnonymousCommand(serviceProvider, GetStashes);
 
             RefreshCommand.Execute();
             GetBranchesCommand.Execute();
             GetCurrentBranchCommand.Execute();
+            GetStashesCommand.Execute();
         }
 
         public ICommandBase RefreshCommand { get; private set; }
@@ -47,6 +50,7 @@ namespace Stride.GameStudio.ViewModels
         public ICommandBase PullChangesCommand { get; private set; }
         public ICommandBase StashChangesCommand { get; private set; }
         public ICommandBase StashPopChangesCommand { get; private set; }
+        public ICommandBase GetStashesCommand { get; private set; }
 
         private string commitMessage = string.Empty;
         public string CommitMessage
@@ -83,9 +87,7 @@ namespace Stride.GameStudio.ViewModels
         public ObservableList<string> Branches { get; private set; } = new();
         public ObservableList<GitFile> StagedFiles { get; private set; } = new();
         public ObservableList<GitFile> UnstagedFiles { get; private set; } = new();
-        public ObservableList<string> StashedFiles { get; private set; } = new() 
-        { "WIP on ui: 960799d02 feat: add Git Changes menu item to View Menu tab in GameStudioWindow",
-        "WIP on ui: 960799d02 feat: add Git Changes menu item to View Menu tab in GameStudioWindow"};
+        public ObservableList<string> StashedFiles { get; private set; } = new();
 
         private void ExecuteGitAction<T>(Func<GitResult<T>> action, bool refresh = true)
         {
@@ -99,7 +101,7 @@ namespace Stride.GameStudio.ViewModels
         private void RefreshGitStatus()
         {
             var result = gitService.GetChangedFiles();
-            if(!result.Success)
+            if (!result.Success)
             {
                 return;
             }
@@ -109,7 +111,7 @@ namespace Stride.GameStudio.ViewModels
             var changedFiles = result.Data;
             foreach (var file in changedFiles)
             {
-                if(file.IsStaged)
+                if (file.IsStaged)
                 {
                     StagedFiles.Add(file);
                 }
@@ -127,7 +129,8 @@ namespace Stride.GameStudio.ViewModels
 
         private void GetCurrentBranch()
         {
-            ExecuteGitAction(() => {
+            ExecuteGitAction(() =>
+            {
                 var result = gitService.GetCurrentBranch();
                 if (!result.Success)
                 {
@@ -141,7 +144,8 @@ namespace Stride.GameStudio.ViewModels
 
         private void GetBranches()
         {
-            ExecuteGitAction(() => {
+            ExecuteGitAction(() =>
+            {
                 var result = gitService.GetBranches();
                 if (!result.Success)
                 {
@@ -203,6 +207,26 @@ namespace Stride.GameStudio.ViewModels
         private void StashPopChanges()
         {
             ExecuteGitAction(gitService.StashPopChanges);
+        }
+
+        private void GetStashes()
+        {
+            ExecuteGitAction(() =>
+            {
+                var result = gitService.GetStashes();
+                if (!result.Success)
+                {
+                    return result;
+                }
+
+                StashedFiles.Clear();
+                var stashes = result.Data;
+                foreach (var stash in stashes)
+                {
+                    StashedFiles.Add(stash);
+                }
+                return result;
+            });
         }
     }
 }
