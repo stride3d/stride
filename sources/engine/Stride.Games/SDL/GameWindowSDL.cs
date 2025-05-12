@@ -260,9 +260,6 @@ namespace Stride.Games
             }
         }
 
-        /// <inheritdoc />
-        public override Color BackgroundColor { get; set; }
-
         public override Int2 Position
         {
             get
