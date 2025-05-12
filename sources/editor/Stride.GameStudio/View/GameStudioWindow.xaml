@@ -1917,7 +1917,7 @@
                                                                             Margin="4,0,0,0"
                                                                             HorizontalAlignment="Right"
                                                                             VerticalAlignment="Center"
-                                                                            Command="{Binding DataContext.AddFileToStagedCommand, RelativeSource={RelativeSource AncestorType=xcad:LayoutAnchorable}}"
+                                                                            Command="{Binding Source={x:Static vm:GameStudioViewModel.GameStudio}, Path=GitChanges.AddFileToStagedCommand}"
                                                                             CommandParameter="{Binding RelativeFilePath}"
                                                                             Content="+"
                                                                             DockPanel.Dock="Right" />
