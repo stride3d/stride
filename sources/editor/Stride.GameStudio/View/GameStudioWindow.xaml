@@ -1869,14 +1869,17 @@
                                                             </TreeView.Resources>
                                                             <TreeView.ItemTemplate>
                                                                 <DataTemplate>
-                                                                    <TextBlock Foreground="White" Text="{Binding}" />
+                                                                    <StackPanel Margin="2" Orientation="Horizontal">
+                                                                        <TextBlock Foreground="White" Text="{Binding RelativeFilePath}" />
+                                                                        <TextBlock
+                                                                            Margin="4,0,0,0"
+                                                                            Foreground="Gray"
+                                                                            Text=" [" />
+                                                                        <TextBlock Foreground="LightGreen" Text="{Binding Status}" />
+                                                                        <TextBlock Foreground="Gray" Text="]" />
+                                                                    </StackPanel>
                                                                 </DataTemplate>
                                                             </TreeView.ItemTemplate>
-                                                            <!--<TreeViewItem Header="Z:\Documents\Programmin..." IsExpanded="True">
-                                                                <TreeViewItem Header="📁 GitUserControlUI" IsExpanded="True">
-                                                                    <TreeViewItem Header="📄 MainWindow.xaml" />
-                                                                </TreeViewItem>
-                                                            </TreeViewItem>-->
                                                         </TreeView>
                                                     </Expander>
                                                     <Expander
