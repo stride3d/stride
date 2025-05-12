@@ -48,6 +48,15 @@ public interface IServiceRegistry
     void AddService<T>(T service) where T : class;
 
     /// <summary>
+    /// Adds a service to this <see cref="ServiceRegistry"/>.
+    /// </summary>
+    /// <param name="service">The service to add.</param>
+    /// <param name="type">The type to register as.</param>
+    /// <exception cref="ArgumentNullException">Thrown when the provided service is null.</exception>
+    /// <exception cref="ArgumentException">Thrown when a service of the same type is already registered.</exception>
+    void AddService(object service, Type type);
+
+    /// <summary>
     /// Gets the service object of the specified type.
     /// </summary>
     /// <remarks>The generic type provided must match the generic type of your initial call to <see cref="AddService{T}"/></remarks>

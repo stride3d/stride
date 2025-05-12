@@ -1,12 +1,20 @@
 using System;
+using Microsoft.Extensions.DependencyInjection;
+using Stride.Audio;
+using Stride.Core;
 using Stride.Core.Diagnostics;
 using Stride.Core.IO;
 using Stride.Core.Serialization.Contents;
 using Stride.Core.Storage;
+using Stride.Engine.Processors;
 using Stride.Games;
 using Stride.Input;
+using Stride.Profiling;
 using Stride.Rendering;
+using Stride.Rendering.Fonts;
+using Stride.Rendering.Sprites;
 using Stride.Shaders.Compiler;
+using Stride.Streaming;
 
 namespace Stride.Engine.Builder;
 public static class GameBuilderExtensions
@@ -19,13 +27,35 @@ public static class GameBuilderExtensions
 
     public static IGameBuilder AddService<T>(this IGameBuilder gameBuilder, T service) where T : class
     {
-        gameBuilder.Services.AddService(service);
+        gameBuilder.Services.Add(typeof(T), service);
+        gameBuilder.DiServices.AddSingleton<T>(service);
+        return gameBuilder;
+    }
+
+    public static IGameBuilder AddService<T>(this IGameBuilder gameBuilder) where T : class
+    {
+        gameBuilder.Services.Add(typeof(T), null);
+        gameBuilder.DiServices.AddSingleton<T>();
         return gameBuilder;
     }
 
     public static IGameBuilder AddLogListener(this IGameBuilder gameBuilder, LogListener logListener)
     {
         gameBuilder.LogListeners.Add(logListener);
+        return gameBuilder;
+    }
+
+    public static IGameBuilder AddStrideInput(this IGameBuilder gameBuilder)
+    {
+        var services = gameBuilder.Services[typeof(IServiceRegistry)] as IServiceRegistry;
+
+        var inputSystem = new InputSystem(services);
+
+        gameBuilder
+            .AddGameSystem(inputSystem)
+            .AddService(inputSystem)
+            .AddService(inputSystem.Manager);
+
         return gameBuilder;
     }
 
@@ -44,8 +74,7 @@ public static class GameBuilderExtensions
     public static IGameBuilder AddDbFileProvider(this IGameBuilder gameBuilder, DatabaseFileProvider provider)
     {
         // Gets initialized by the GameBase constructor.
-        var dataBase = gameBuilder.Services.GetService<IDatabaseFileProviderService>();
-        dataBase.FileProvider = provider;
+        gameBuilder.DatabaseFileProvider = provider;
         return gameBuilder;
     }
 
@@ -73,7 +102,7 @@ public static class GameBuilderExtensions
 
     public static IGameBuilder UseDefaultContentManager(this IGameBuilder gameBuilder)
     {
-        var services = gameBuilder.Services;
+        var services = gameBuilder.Game.Services;
         var content = new ContentManager(services);
         services.AddService<IContentManager>(content);
         services.AddService(content);
@@ -106,22 +135,12 @@ public static class GameBuilderExtensions
     public static IGameBuilder UseGameContext(this IGameBuilder gameBuilder, GameContext context)
     {
         gameBuilder.Game.SetGameContext(context);
-
         return gameBuilder;
     }
 
     public static IGameBuilder AddInput(this IGameBuilder gameBuilder, IInputSource inputSource)
     {
-        var inputManager = gameBuilder.Services.GetService<InputManager>();
-
-        if (inputManager == null)
-        {
-            throw new InvalidOperationException("InputManager is not registered in the service registry.");
-        }
-
-        inputManager.Sources.Add(inputSource);
-
+        gameBuilder.InputSources.Add(inputSource);
         return gameBuilder;
     }
-
 }
