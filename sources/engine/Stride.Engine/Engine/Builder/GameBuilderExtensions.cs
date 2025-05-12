@@ -5,15 +5,10 @@ using Stride.Core.Diagnostics;
 using Stride.Core.IO;
 using Stride.Core.Serialization.Contents;
 using Stride.Core.Storage;
-using Stride.Engine.Processors;
 using Stride.Games;
 using Stride.Input;
-using Stride.Profiling;
 using Stride.Rendering;
-using Stride.Rendering.Fonts;
-using Stride.Rendering.Sprites;
 using Stride.Shaders.Compiler;
-using Stride.Streaming;
 
 namespace Stride.Engine.Builder;
 public static class GameBuilderExtensions
@@ -88,7 +83,12 @@ public static class GameBuilderExtensions
         return gameBuilder;
     }
 
-    public static IGameBuilder AddStrideInput(this IGameBuilder gameBuilder)
+    /// <summary>
+    /// Adds the Stride input system to the game with no sources.
+    /// </summary>
+    /// <param name="gameBuilder"></param>
+    /// <returns></returns>
+    public static IGameBuilder UseStrideInput(this IGameBuilder gameBuilder)
     {
         var services = gameBuilder.Services[typeof(IServiceRegistry)] as IServiceRegistry;
 
@@ -104,7 +104,7 @@ public static class GameBuilderExtensions
 
     public static IGameBuilder SetGameContext(this IGameBuilder gameBuilder, GameContext context)
     {
-        gameBuilder.Game.SetGameContext(context);
+        gameBuilder.Context = context;
         return gameBuilder;
     }
 

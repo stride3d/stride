@@ -76,6 +76,21 @@ public class GameBuilder : IGameBuilder
                 if (service.Value == null)
                 {
                     var instance = provider.GetService(service.Key);
+
+                    if(instance == null)
+                    {
+                        //check if the type is inherited from another instance in the services.
+                        foreach (var kvp in Services)
+                        {
+                            if (kvp.Key.IsAssignableFrom(service.Key) && kvp.Value != null)
+                            {
+                                instance = provider.GetService(kvp.Key);
+                                if(instance is not null)
+                                    break;
+                            }
+                        }
+                    }
+
                     Game.Services.AddService(instance, service.Key);
                     Services[service.Key] = instance;
                 }
