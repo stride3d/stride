@@ -22,8 +22,8 @@ namespace Stride.GameStudio.ViewModels
             CheckoutBranchCommand = new AnonymousCommand<string>(serviceProvider, CheckoutBranch);
             AddFileToStagedCommand = new AnonymousCommand<string>(serviceProvider, AddFileToStaged);
             RemoveFileFromStagedCommand = new AnonymousCommand<string>(serviceProvider, RemoveFileFromStaged);
-            AddFilesToStagedCommand = new AnonymousCommand<IEnumerable<string>>(serviceProvider, AddFilesToStaged);
-            RemoveFilesFromStagedCommand = new AnonymousCommand<IEnumerable<string>>(serviceProvider, RemoveFilesFromStaged);
+            AddFilesToStagedCommand = new AnonymousCommand(serviceProvider, AddFilesToStaged);
+            RemoveFilesFromStagedCommand = new AnonymousCommand(serviceProvider, RemoveFilesFromStaged);
             PushChangesCommand = new AnonymousCommand(serviceProvider, PushChanges);
             PullChangesCommand = new AnonymousCommand(serviceProvider, PullChanges);
             StashChangesCommand = new AnonymousCommand(serviceProvider, StashChanges);
@@ -183,24 +183,28 @@ namespace Stride.GameStudio.ViewModels
             RefreshGitStatus();
         }
 
-        private void AddFilesToStaged(IEnumerable<string> filePaths)
+        private void AddFilesToStaged()
         {
+            IEnumerable<string> filePaths = UnstagedFiles.Select(gitFile => gitFile.RelativeFilePath);
             var result = gitService.AddFilesToStaged(filePaths);
             if (!result.Success)
             {
                 return;
             }
             var areAdded = result.Data;
+            RefreshGitStatus();
         }
 
-        private void RemoveFilesFromStaged(IEnumerable<string> filePaths)
+        private void RemoveFilesFromStaged()
         {
+            IEnumerable<string> filePaths = StagedFiles.Select(gitFile => gitFile.RelativeFilePath);
             var result = gitService.RemoveFilesFromStaged(filePaths);
             if (!result.Success)
             {
                 return;
             }
             var areRemoved = result.Data;
+            RefreshGitStatus();
         }
 
         private void PushChanges()
