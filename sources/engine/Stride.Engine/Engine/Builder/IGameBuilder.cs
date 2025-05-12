@@ -21,7 +21,7 @@ public interface IGameBuilder
 
     DatabaseFileProvider DatabaseFileProvider { get; set; }
 
-    GameBase Game { get; }
+    GameBase Game { get; set; }
 
-    GameContext Context { get; }
+    GameContext Context { get; set; }
 }
