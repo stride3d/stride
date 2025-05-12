@@ -11,7 +11,6 @@ using Stride.Graphics;
 using Form = System.Windows.Forms.Form;
 using Point = System.Drawing.Point;
 using Size = System.Drawing.Size;
-using Color = Stride.Core.Mathematics.Color;
 
 namespace Stride.Games
 {

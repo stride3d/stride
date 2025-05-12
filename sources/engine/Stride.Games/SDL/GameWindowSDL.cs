@@ -11,7 +11,6 @@ using Cursor = Stride.Graphics.SDL.Cursor;
 using DisplayOrientation = Stride.Graphics.DisplayOrientation;
 using Point = Stride.Core.Mathematics.Point;
 using Window = Stride.Graphics.SDL.Window;
-using Color = Stride.Core.Mathematics.Color;
 
 namespace Stride.Games
 {
