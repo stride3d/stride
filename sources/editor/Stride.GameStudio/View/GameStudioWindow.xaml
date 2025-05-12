@@ -1807,7 +1807,7 @@
                                                                     VerticalAlignment="Center"
                                                                     Background="#FF2D2D30"
                                                                     BorderBrush="Gray"
-                                                                    Content="+"
+                                                                    Content="-"
                                                                     Command="{Binding GitChanges.RemoveFilesFromStagedCommand}"
                                                                     Foreground="White"/>
                                                             </Grid>
