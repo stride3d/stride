@@ -1709,7 +1709,8 @@
                                                         Background="#FF2D2D30"
                                                         BorderBrush="Gray"
                                                         Content="↑"
-                                                        Foreground="White" />
+                                                        Foreground="White"
+                                                        ToolTip="Push" />
                                                     <Button
                                                         Width="24"
                                                         Height="24"
@@ -1717,7 +1718,8 @@
                                                         Background="#FF2D2D30"
                                                         BorderBrush="Gray"
                                                         Content="↓"
-                                                        Foreground="White" />
+                                                        Foreground="White"
+                                                        ToolTip="Pull" />
                                                     <Button
                                                         Width="24"
                                                         Height="24"
@@ -1725,14 +1727,16 @@
                                                         Background="#FF2D2D30"
                                                         BorderBrush="Gray"
                                                         Content="⟳"
-                                                        Foreground="White" />
+                                                        Foreground="White"
+                                                        ToolTip="Refresh" />
                                                     <Button
                                                         Width="24"
                                                         Height="24"
                                                         Background="#FF2D2D30"
                                                         BorderBrush="Gray"
                                                         Content="⋯"
-                                                        Foreground="White" />
+                                                        Foreground="White"
+                                                        ToolTip="Additional operations" />
                                                 </StackPanel>
 
                                                 <!--  Лічильник і перегляд фіксацій  -->
