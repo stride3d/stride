@@ -759,6 +759,11 @@ msgstr "プロパティグリッド"
 msgid "Add new tag"
 msgstr ""
 
+#. Translation must not be longer that the english words
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:677
+msgid "Enter message &lt;Required&gt;"
+msgstr ""
+
 #: ../editor/Stride.GameStudio/GameStudioWindow.xaml:687
 msgctxt "ToolTip"
 msgid "Previous selection"
