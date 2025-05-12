@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Text;
 using LibGit2Sharp;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.TreeView;
 
@@ -264,7 +265,7 @@ namespace Stride.GameStudio.Git
         {
             if (repository == null)
                 return GitResult<IEnumerable<string>>.Fail("Repository not found.");
-            var stashes = repository.Stashes.Select(s => s.CanonicalName).ToList();
+            var stashes = repository.Stashes.Select((s, i) => $"{{{i}}} WIP {s.Message}: {s.Base.Id} {s.Base.Message}").ToList();
             return GitResult<IEnumerable<string>>.Ok(stashes);
         }
         private static bool IsFileStaged(FileStatus status)
