@@ -772,6 +772,11 @@ msgstr "Grille de propriétés"
 msgid "Add new tag"
 msgstr "Ajouter une nouvelle étiquette"
 
+#. Translation must not be longer that the english words
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:677
+msgid "Enter message &lt;Required&gt;"
+msgstr "Saisissez un message &lt;Obligatoire&gt;"
+
 #: ../editor/Stride.GameStudio/GameStudioWindow.xaml:687
 msgctxt "ToolTip"
 msgid "Previous selection"
