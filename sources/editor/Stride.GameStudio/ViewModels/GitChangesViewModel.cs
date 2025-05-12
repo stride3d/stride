@@ -18,12 +18,23 @@ namespace Stride.GameStudio.ViewModels
     public class GitChangesViewModel : DispatcherViewModel, INotifyPropertyChanged
     {
         private readonly IGitService gitService;
-        public GitChangesViewModel(IViewModelServiceProvider serviceProvider)
-            : base(serviceProvider)
+        public GitChangesViewModel(IViewModelServiceProvider serviceProvider) : base(serviceProvider)
         {
             gitService = serviceProvider.Get<GitService>();
+
             RefreshCommand = new AnonymousCommand(serviceProvider, RefreshGitStatus);
-            CommitChangesCommand = new AnonymousCommand(serviceProvider, () => CommitChanges("Initial commit"));
+            CommitChangesCommand = new AnonymousCommand<string>(serviceProvider, CommitChanges);
+            GetCurrentBranchCommand = new AnonymousCommand(serviceProvider, GetCurrentBranch);
+            CheckoutBranchCommand = new AnonymousCommand<string>(serviceProvider, CheckoutBranch);
+            AddFileToStagedCommand = new AnonymousCommand<string>(serviceProvider, AddFileToStaged);
+            RemoveFileFromStagedCommand = new AnonymousCommand<string>(serviceProvider, RemoveFileFromStaged);
+            AddFilesToStagedCommand = new AnonymousCommand<IEnumerable<string>>(serviceProvider, AddFilesToStaged);
+            RemoveFilesFromStagedCommand = new AnonymousCommand<IEnumerable<string>>(serviceProvider, RemoveFilesFromStaged);
+            PushChangesCommand = new AnonymousCommand(serviceProvider, PushChanges);
+            PullChangesCommand = new AnonymousCommand(serviceProvider, PullChanges);
+            StashChangesCommand = new AnonymousCommand(serviceProvider, StashChanges);
+            StashPopChangesCommand = new AnonymousCommand(serviceProvider, StashPopChanges);
+
             RefreshCommand.Execute();
         }
 
