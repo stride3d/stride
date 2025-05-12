@@ -86,9 +86,6 @@ namespace Stride.GameStudio.Plugin
             var strideDebugService = new StrideDebugService(session.ServiceProvider);
             session.ServiceProvider.RegisterService(strideDebugService);
 
-            var gitService = new GitService();
-            session.ServiceProvider.RegisterService(gitService);
-
             GameStudioViewModel.GameStudio.Preview = new PreviewViewModel(session);
             GameStudioViewModel.GameStudio.Debugging = new DebuggingViewModel(GameStudioViewModel.GameStudio, strideDebugService);
         }
