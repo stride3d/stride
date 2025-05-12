@@ -64,6 +64,10 @@ namespace Stride.GameStudio.ViewModels
                     {
                         CheckoutBranchCommand.Execute(value);
                     }
+                    if (RefreshCommand?.CanExecute(value) == true)
+                    {
+                        RefreshCommand.Execute(value);
+                    }
                 }
             }
         }
