@@ -16,7 +16,7 @@ namespace Stride.GameStudio.ViewModels
             gitService = serviceProvider.Get<GitService>();
 
             RefreshCommand = new AnonymousCommand(serviceProvider, RefreshGitStatus);
-            CommitChangesCommand = new AnonymousCommand<string>(serviceProvider, CommitChanges);
+            CommitChangesCommand = new AnonymousCommand(serviceProvider, CommitChanges);
             GetCurrentBranchCommand = new AnonymousCommand(serviceProvider, GetCurrentBranch);
             GetBranchesCommand = new AnonymousCommand(serviceProvider, GetBranches);
             CheckoutBranchCommand = new AnonymousCommand<string>(serviceProvider, CheckoutBranch);
@@ -47,6 +47,17 @@ namespace Stride.GameStudio.ViewModels
         public ICommandBase PullChangesCommand { get; private set; }
         public ICommandBase StashChangesCommand { get; private set; }
         public ICommandBase StashPopChangesCommand { get; private set; }
+
+        private string commitMessage = string.Empty;
+        public string CommitMessage
+        {
+            get => commitMessage;
+            set
+            {
+                commitMessage = value;
+                OnPropertyChanged(nameof(CommitMessage));
+            }
+        }
 
         private string currentBranch = string.Empty;
         public string CurrentBranch
@@ -96,9 +107,13 @@ namespace Stride.GameStudio.ViewModels
             }
         }
 
-        private void CommitChanges(string commitMessage)
+        private void CommitChanges()
         {
-            var result = gitService.CommitChanges(commitMessage);
+            if (string.IsNullOrWhiteSpace(CommitMessage))
+            {
+                return;
+            }
+            var result = gitService.CommitChanges(CommitMessage);
             if (!result.Success)
             {
                 return;
