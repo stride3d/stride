@@ -11,33 +11,34 @@ using System.Threading.Tasks;
 using Stride.Core.Presentation.Collections;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.ViewModels;
+using Stride.GameStudio.Git;
 
 namespace Stride.GameStudio.ViewModels
 {
     public class GitChangesViewModel : DispatcherViewModel, INotifyPropertyChanged
     {
+        private readonly IGitService gitService;
         public GitChangesViewModel(IViewModelServiceProvider serviceProvider)
             : base(serviceProvider)
         {
+            gitService = serviceProvider.Get<GitService>();
             RefreshCommand = new AnonymousCommand(serviceProvider, RefreshGitStatus);
+            RefreshCommand.Execute();
         }
 
         public ICommandBase RefreshCommand { get; }
-        public ObservableList<string> ChangedFiles { get; } = new()
-            { "../sources/editor/Stride.GameStudio/ViewModels/GitChangesViewModel.cs",
-            "../sources/editor/Stride.GameStudio/ViewModels/GitChangesViewModel.cs",
-            "../sources/editor/Stride.GameStudio/ViewModels/GitChangesViewModel.cs",
-            "../sources/editor/Stride.GameStudio/ViewModels/GitChangesViewModel.cs"};
+        public ObservableList<GitFile> ChangedFiles { get; } = new();
 
         private void RefreshGitStatus()
         {             
             ChangedFiles.Clear();
-            // TODO: Implement the logic to get the changed files from the git repository.
-            var changedFiles = new List<string>()
-            { "../sources/editor/Stride.GameStudio/ViewModels/GitChangesViewModel.cs",
-            "../sources/editor/Stride.GameStudio/ViewModels/GitChangesViewModel.cs",
-            "../sources/editor/Stride.GameStudio/ViewModels/GitChangesViewModel.cs",
-            "../sources/editor/Stride.GameStudio/ViewModels/GitChangesViewModel.cs"};
+            var result = gitService.GetChangedFiles();
+            if(!result.Success)
+            {
+                return;
+            }
+
+            var changedFiles = result.Data;
             foreach (var file in changedFiles)
             {
                 ChangedFiles.Add(file);
