@@ -76,7 +76,7 @@ namespace Stride.GameStudio.Git
         {
             if (repository == null)
                 return GitResult<IEnumerable<string>>.Fail("Repository not found.");
-            var branches = repository.Branches.Select(b => b.FriendlyName).ToList();
+            var branches = repository.Branches.Where(b=>!b.IsRemote).Select(b => b.FriendlyName).ToList();
             if (branches.Count == 0)
             {
                 var currentBranch = repository.Head;
