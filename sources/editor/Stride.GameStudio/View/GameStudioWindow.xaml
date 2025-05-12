@@ -1708,6 +1708,7 @@
                                                         Margin="0,0,2,0"
                                                         Background="#FF2D2D30"
                                                         BorderBrush="Gray"
+                                                        Command="{Binding GitChanges.PushChangesCommand}"
                                                         Content="↑"
                                                         Foreground="White"
                                                         ToolTip="Push" />
@@ -1717,6 +1718,7 @@
                                                         Margin="0,0,2,0"
                                                         Background="#FF2D2D30"
                                                         BorderBrush="Gray"
+                                                        Command="{Binding GitChanges.PullChangesCommand}"
                                                         Content="↓"
                                                         Foreground="White"
                                                         ToolTip="Pull" />
@@ -1746,48 +1748,30 @@
                                                     Margin="0,8,0,0"
                                                     Foreground="LightGray"
                                                     Text="↑ 0 / 0   " />
-                                                <TextBlock
-                                                    Grid.Row="1"
-                                                    Margin="60,8,0,0"
-                                                    Cursor="Hand"
-                                                    Foreground="#FF3794FF"
-                                                    Text="Просмотреть все фиксации" />
 
                                                 <!--  Поле повідомлення  -->
                                                 <StackPanel Grid.Row="2" Margin="0,10,0,0">
-                                                    <TextBox
+                                                    <sd:TextBox
                                                         Height="60"
                                                         AcceptsReturn="True"
                                                         Background="#FF1E1E1E"
                                                         BorderBrush="Gray"
                                                         Foreground="White"
-                                                        Text="Введите сообщение &lt;Обязательно&gt;"
-                                                        TextWrapping="Wrap" />
-                                                    <!--<Button
-                                                        Width="24"
-                                                        Height="24"
-                                                        Margin="0,5,0,0"
-                                                        HorizontalAlignment="Right"
-                                                        Background="#FF2D2D30"
-                                                        BorderBrush="Gray"
-                                                        Content="+" />-->
+                                                        Text="{Binding CommitMessage, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                        TextWrapping="Wrap"
+                                                        WatermarkContent="{sd:Localize Enter message &lt;Required&gt;}" />
                                                 </StackPanel>
 
                                                 <!--  Нижня частина  -->
                                                 <StackPanel Grid.Row="3" Margin="0,10,0,0">
                                                     <StackPanel Orientation="Horizontal">
-                                                        <ComboBox
+                                                        <Button
                                                             Width="200"
                                                             Margin="0,0,10,0"
                                                             Background="#FF2D2D30"
-                                                            Foreground="White"
-                                                            IsEnabled="True">
-                                                            <ComboBoxItem Content="Зафиксировать все" IsSelected="True" />
-                                                            <ComboBoxItem Content="Зафиксировать все и отправить" />
-                                                            <ComboBoxItem Content="Зафиксировать все и синхронизировать" />
-                                                            <ComboBoxItem Content="Спрятать все (--include-untracked)" />
-                                                            <ComboBoxItem Content="Спрятать все и сохранить промежуточные данные (--keep-index)" />
-                                                        </ComboBox>
+                                                            Command="{Binding GitChanges.CommitChangesCommand}"
+                                                            Content="Зафиксировать все"
+                                                            Foreground="White" />
                                                         <CheckBox
                                                             VerticalAlignment="Center"
                                                             Content="Исправить"
