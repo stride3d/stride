@@ -243,6 +243,22 @@ namespace Stride.Games
             }
         }
 
+        /// <inheritdoc />
+        public override double Opacity
+        {
+            get
+            {
+                return window?.Opacity ?? 1.0d;
+            }
+            set
+            {
+                if (window != null)
+                {
+                    window.Opacity = (float)value;
+                }
+            }
+        }
+
         public override Int2 Position
         {
             get

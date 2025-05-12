@@ -342,6 +342,28 @@ namespace Stride.Graphics.SDL
             }
             set { SDL.SetWindowSize(sdlHandle, value.Width, value.Height); }
         }
+        
+        /// <summary>
+        /// The opacity of the window.
+        /// </summary>
+        /// <remarks>The value should be between 0.0f and 1.0f. It will automatically be clamped to this range.</remarks>
+        public float Opacity
+        {
+            get
+            {
+                var opacity = 1.0f;
+                SDL.GetWindowOpacity(sdlHandle,ref opacity);
+                return opacity;
+            }
+            set
+            {
+                if (value is < 0.0f or > 1.0f)
+                {
+                    value = Math.Clamp(value, 0.0f, 1.0f);
+                }
+                SDL.SetWindowOpacity(sdlHandle,value);
+            }
+        }
 
         /// <summary>
         /// Size of the client area of a window.

@@ -127,6 +127,13 @@ namespace Stride.Games
         /// </summary>
         /// <value><c>true</c> if visible; otherwise, <c>false</c>.</value>
         public abstract bool Visible { get; set; }
+        
+        /// <summary>
+        /// Gets or sets the opacity of the window.
+        /// </summary>
+        /// <value>1.0d is fully opaque, 0.0d is fully transparent. The value will automatically be clamped to [0.0d, 1.0d].</value>
+        /// <remarks>The default value, if the window is null, is considered fully opaque (1.0d).</remarks>
+        public abstract double Opacity { get; set; }
 
         /// <summary>
         /// Gets or sets the position of the window on the screen.
