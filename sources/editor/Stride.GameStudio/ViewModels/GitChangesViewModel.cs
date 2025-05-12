@@ -26,7 +26,19 @@ namespace Stride.GameStudio.ViewModels
             RefreshCommand.Execute();
         }
 
-        public ICommandBase RefreshCommand { get; }
+        public ICommandBase RefreshCommand { get; private set; }
+        public ICommandBase CommitChangesCommand { get; private set; }
+        public ICommandBase GetCurrentBranchCommand { get; private set; }
+        public ICommandBase CheckoutBranchCommand { get; private set; }
+        public ICommandBase AddFileToStagedCommand { get; private set; }
+        public ICommandBase RemoveFileFromStagedCommand { get; private set; }
+        public ICommandBase AddFilesToStagedCommand { get; private set; }
+        public ICommandBase RemoveFilesFromStagedCommand { get; private set; }
+        public ICommandBase PushChangesCommand { get; private set; }
+        public ICommandBase PullChangesCommand { get; private set; }
+        public ICommandBase StashChangesCommand { get; private set; }
+        public ICommandBase StashPopChangesCommand { get; private set; }
+
         public ObservableList<GitFile> ChangedFiles { get; } = new();
 
         private void RefreshGitStatus()
