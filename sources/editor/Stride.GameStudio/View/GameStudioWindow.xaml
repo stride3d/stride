@@ -1789,9 +1789,61 @@
                                                         Background="#FF2D2D30"
                                                         Foreground="White"
                                                         Header="Связанные элементы">
-                                                        <StackPanel Margin="10,5,0,0" Orientation="Vertical">
+                                                        <!--<StackPanel Margin="10,5,0,0" Orientation="Vertical">
                                                             <TextBlock Foreground="Gray" Text="В фиксации не упомянуто ни одного елемента" />
-                                                        </StackPanel>
+                                                        </StackPanel>-->
+                                                        <TreeView
+                                                            Background="#1E1E1E"
+                                                            Foreground="White"
+                                                            ItemsSource="{Binding GitChanges.StagedFiles}">
+                                                            <!--<TreeView.Resources>
+                                                                <Style TargetType="TreeViewItem">
+                                                                    <Setter Property="HeaderTemplate">
+                                                                        <Setter.Value>
+                                                                            <DataTemplate>
+                                                                                <StackPanel Orientation="Horizontal">
+                                                                                    <TextBlock Foreground="White" Text="{Binding}" />
+                                                                                    <StackPanel
+                                                                                        x:Name="HoverPanel"
+                                                                                        Margin="5,0,0,0"
+                                                                                        Orientation="Horizontal"
+                                                                                        Visibility="Collapsed">
+                                                                                        <TextBlock
+                                                                                            Margin="0,0,5,0"
+                                                                                            Foreground="White"
+                                                                                            Text="↺" />
+                                                                                        <TextBlock
+                                                                                            Margin="0,0,5,0"
+                                                                                            Foreground="White"
+                                                                                            Text="+" />
+                                                                                        <TextBlock Foreground="White" Text="M" />
+                                                                                    </StackPanel>
+                                                                                </StackPanel>
+                                                                                <DataTemplate.Triggers>
+                                                                                    <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=TreeViewItem}, Path=IsMouseOver}" Value="True">
+                                                                                        <Setter TargetName="HoverPanel" Property="Visibility" Value="Visible" />
+                                                                                    </DataTrigger>
+                                                                                </DataTemplate.Triggers>
+                                                                            </DataTemplate>
+                                                                        </Setter.Value>
+                                                                    </Setter>
+                                                                </Style>
+                                                            </TreeView.Resources>-->
+
+                                                            <TreeView.ItemTemplate>
+                                                                <DataTemplate>
+                                                                    <StackPanel Margin="2" Orientation="Horizontal">
+                                                                        <TextBlock Foreground="White" Text="{Binding RelativeFilePath}" />
+                                                                        <TextBlock
+                                                                            Margin="4,0,0,0"
+                                                                            Foreground="Gray"
+                                                                            Text=" [" />
+                                                                        <TextBlock Foreground="LightGreen" Text="{Binding Status}" />
+                                                                        <TextBlock Foreground="Gray" Text="]" />
+                                                                    </StackPanel>
+                                                                </DataTemplate>
+                                                            </TreeView.ItemTemplate>
+                                                        </TreeView>
                                                     </Expander>
                                                     <Expander
                                                         Margin="0,10,0,0"
@@ -1833,7 +1885,7 @@
                                                         <TreeView
                                                             Background="#1E1E1E"
                                                             Foreground="White"
-                                                            ItemsSource="{Binding GitChanges.ChangedFiles}">
+                                                            ItemsSource="{Binding GitChanges.UnstagedFiles}">
                                                             <TreeView.Resources>
                                                                 <Style TargetType="TreeViewItem">
                                                                     <Setter Property="HeaderTemplate">
