@@ -26,8 +26,10 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Hosting" />
     <PackageReference Include="System.ValueTuple" />
     <PackageReference Include="System.Threading.Tasks.Dataflow" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" />
     <ProjectReference Include="..\Stride.Audio\Stride.Audio.csproj" />
     <ProjectReference Include="..\Stride.Rendering\Stride.Rendering.csproj" />
     <ProjectReference Include="..\Stride.VirtualReality\Stride.VirtualReality.csproj" />

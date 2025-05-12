@@ -1,4 +1,7 @@
 using System;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Hosting;
 using Stride.Core.Diagnostics;
 using Stride.Core.Serialization;
 using Stride.Core.Serialization.Contents;
@@ -11,7 +14,7 @@ namespace Stride.Engine.Builder;
 /// <summary>
 /// A game class with no registered systems by default.
 /// </summary>
-public class MinimalGame : GameBase
+public class MinimalGame : GameBase, IHostedService
 {
 
     /// <summary>
@@ -85,4 +88,17 @@ public class MinimalGame : GameBase
 
         Content = contentManager;
     }
+
+    public Task StartAsync(CancellationToken cancellationToken = default)
+    {
+        Run();
+        return Task.CompletedTask;
+    }
+
+    public Task StopAsync(CancellationToken cancellationToken = default)
+    {
+        Exit();
+        return Task.CompletedTask;
+    }
+
 }
