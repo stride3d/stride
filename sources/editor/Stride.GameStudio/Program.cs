@@ -235,7 +235,8 @@ public static class Program
             // We use a MRU that contains the older version projects to display in the editor
             var mru = new MostRecentlyUsedFileCollection(InternalSettings.LoadProfileCopy, InternalSettings.MostRecentlyUsedSessions, InternalSettings.WriteFile);
             mru.LoadFromSettings();
-            serviceProvider.RegisterService(new GitService());
+            var gitService = new GitService();
+            serviceProvider.RegisterService(gitService);
             var editor = new GameStudioViewModel(serviceProvider, mru);
             AssetsPlugin.RegisterPlugin(typeof(StrideDefaultAssetsPlugin));
             AssetsPlugin.RegisterPlugin(typeof(StrideEditorPlugin));
@@ -285,6 +286,12 @@ public static class Program
             else
             {
                 completed = true;
+            }
+
+            if (completed == true)
+            {
+                var directoryPath = editor.Session.SolutionPath.GetFullDirectory();
+                completed = gitService.InitializeForSession(directoryPath);
             }
 
             if (completed != true)
@@ -345,7 +352,7 @@ public static class Program
         var dispatcherService = new DispatcherService(Dispatcher.CurrentDispatcher);
         var dialogService = new StrideDialogService(dispatcherService, StrideGameStudio.EditorName);
         var pluginService = new PluginService();
-        var services = new List<object>{ new DispatcherService(Dispatcher.CurrentDispatcher), dialogService, pluginService };
+        var services = new List<object> { new DispatcherService(Dispatcher.CurrentDispatcher), dialogService, pluginService };
         if (renderDocManager != null)
             services.Add(renderDocManager);
         var serviceProvider = new ViewModelServiceProvider(services);
