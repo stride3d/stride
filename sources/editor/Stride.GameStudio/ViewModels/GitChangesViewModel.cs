@@ -1,13 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.IO;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 using Stride.Core.Presentation.Collections;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.ViewModels;
@@ -51,11 +44,14 @@ namespace Stride.GameStudio.ViewModels
         public ICommandBase StashChangesCommand { get; private set; }
         public ICommandBase StashPopChangesCommand { get; private set; }
 
-        public ObservableList<GitFile> ChangedFiles { get; } = new();
+        public ObservableList<GitFile> StagedFiles { get; } = new();
+        public ObservableList<GitFile> UnstagedFiles { get; } = new();
 
         private void RefreshGitStatus()
-        {             
-            ChangedFiles.Clear();
+        {
+            StagedFiles.Clear();
+            UnstagedFiles.Clear();
+
             var result = gitService.GetChangedFiles();
             if(!result.Success)
             {
@@ -65,7 +61,14 @@ namespace Stride.GameStudio.ViewModels
             var changedFiles = result.Data;
             foreach (var file in changedFiles)
             {
-                ChangedFiles.Add(file);
+                if(file.IsStaged)
+                {
+                    StagedFiles.Add(file);
+                }
+                else
+                {
+                    UnstagedFiles.Add(file);
+                }
             }
         }
 
