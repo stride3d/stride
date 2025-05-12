@@ -169,6 +169,7 @@ namespace Stride.GameStudio.ViewModels
                 return;
             }
             var isAdded = result.Data;
+            RefreshGitStatus();
         }
 
         private void RemoveFileFromStaged(string filePath)
@@ -179,6 +180,7 @@ namespace Stride.GameStudio.ViewModels
                 return;
             }
             var isRemoved = result.Data;
+            RefreshGitStatus();
         }
 
         private void AddFilesToStaged(IEnumerable<string> filePaths)
