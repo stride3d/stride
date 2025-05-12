@@ -54,6 +54,7 @@ namespace Stride.GameStudio.ViewModels
             get => commitMessage;
             set
             {
+                OnPropertyChanging(nameof(CommitMessage));
                 commitMessage = value;
                 OnPropertyChanged(nameof(CommitMessage));
             }
@@ -75,10 +76,6 @@ namespace Stride.GameStudio.ViewModels
                     {
                         CheckoutBranchCommand.Execute(value);
                     }
-                    if (RefreshCommand?.CanExecute(value) == true)
-                    {
-                        RefreshCommand.Execute(value);
-                    }
                 }
             }
         }
@@ -86,6 +83,18 @@ namespace Stride.GameStudio.ViewModels
         public ObservableList<string> Branches { get; private set; } = new();
         public ObservableList<GitFile> StagedFiles { get; private set; } = new();
         public ObservableList<GitFile> UnstagedFiles { get; private set; } = new();
+        public ObservableList<string> StashedFiles { get; private set; } = new() 
+        { "WIP on ui: 960799d02 feat: add Git Changes menu item to View Menu tab in GameStudioWindow",
+        "WIP on ui: 960799d02 feat: add Git Changes menu item to View Menu tab in GameStudioWindow"};
+
+        private void ExecuteGitAction<T>(Func<GitResult<T>> action, bool refresh = true)
+        {
+            var result = action();
+            if (result.Success && refresh)
+            {
+                RefreshGitStatus();
+            }
+        }
 
         private void RefreshGitStatus()
         {
@@ -113,138 +122,87 @@ namespace Stride.GameStudio.ViewModels
 
         private void CommitChanges()
         {
-            if (string.IsNullOrWhiteSpace(CommitMessage))
-            {
-                return;
-            }
-            var result = gitService.CommitChanges(CommitMessage);
-            if (!result.Success)
-            {
-                return;
-            }
-            var isCommitted = result.Data;
+            ExecuteGitAction(() => gitService.CommitChanges(CommitMessage));
         }
 
         private void GetCurrentBranch()
         {
-            var result = gitService.GetCurrentBranch();
-            if (!result.Success)
-            {
-                return;
-            }
-            CurrentBranch = result.Data;
+            ExecuteGitAction(() => {
+                var result = gitService.GetCurrentBranch();
+                if (!result.Success)
+                {
+                    return result;
+                }
+
+                CurrentBranch = result.Data;
+                return result;
+            }, false);
         }
 
         private void GetBranches()
         {
-            var result = gitService.GetBranches();
-            if (!result.Success)
-            {
-                return;
-            }
+            ExecuteGitAction(() => {
+                var result = gitService.GetBranches();
+                if (!result.Success)
+                {
+                    return result;
+                }
 
-            Branches.Clear();
-            var branches = result.Data;
-            foreach (var branch in branches)
-            {
-                Branches.Add(branch);
-            }
+                Branches.Clear();
+                var branches = result.Data;
+                foreach (var branch in branches)
+                {
+                    Branches.Add(branch);
+                }
+                return result;
+            }, false);
         }
 
         private void CheckoutBranch(string branchName)
         {
-            var result = gitService.CheckoutBranch(branchName);
-            if (!result.Success)
-            {
-                return;
-            }
-            var isCheckedOut = result.Data;
+            ExecuteGitAction(() => gitService.CheckoutBranch(branchName));
         }
 
         private void AddFileToStaged(string filePath)
         {
-            var result = gitService.AddFileToStaged(filePath);
-            if (!result.Success)
-            {
-                return;
-            }
-            var isAdded = result.Data;
-            RefreshGitStatus();
+            ExecuteGitAction(() => gitService.AddFileToStaged(filePath));
         }
 
         private void RemoveFileFromStaged(string filePath)
         {
-            var result = gitService.RemoveFileFromStaged(filePath);
-            if (!result.Success)
-            {
-                return;
-            }
-            var isRemoved = result.Data;
-            RefreshGitStatus();
+            ExecuteGitAction(() => gitService.RemoveFileFromStaged(filePath));
         }
 
         private void AddFilesToStaged()
         {
             IEnumerable<string> filePaths = UnstagedFiles.Select(gitFile => gitFile.RelativeFilePath);
-            var result = gitService.AddFilesToStaged(filePaths);
-            if (!result.Success)
-            {
-                return;
-            }
-            var areAdded = result.Data;
-            RefreshGitStatus();
+            ExecuteGitAction(() => gitService.AddFilesToStaged(filePaths));
         }
 
         private void RemoveFilesFromStaged()
         {
             IEnumerable<string> filePaths = StagedFiles.Select(gitFile => gitFile.RelativeFilePath);
-            var result = gitService.RemoveFilesFromStaged(filePaths);
-            if (!result.Success)
-            {
-                return;
-            }
-            var areRemoved = result.Data;
-            RefreshGitStatus();
+            ExecuteGitAction(() => gitService.RemoveFilesFromStaged(filePaths));
         }
 
         private void PushChanges()
         {
-            var result = gitService.PushChanges();
-            if (!result.Success)
-            {
-                return;
-            }
-            var isPushed = result.Data;
+            ExecuteGitAction(gitService.PushChanges, false);
         }
 
         private void PullChanges()
         {
-            var result = gitService.PullChanges();
-            if (!result.Success)
-            {
-                return;
-            }
-            var isPulled = result.Data;
+            ExecuteGitAction(gitService.PullChanges, false);
         }
 
         private void StashChanges()
         {
-            var result = gitService.StashChanges();
-            if (!result.Success)
-            {
-                return;
-            }
-            var isStashed = result.Data;
+            ExecuteGitAction(gitService.StashChanges);
         }
 
         private void StashPopChanges()
         {
-            var result = gitService.StashPopChanges();
-            if (!result.Success)
-            {
-                return;
-            }
-            var isStashPopped = result.Data;
+            ExecuteGitAction(gitService.StashPopChanges);
         }
     }
 }
