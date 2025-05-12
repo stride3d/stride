@@ -18,11 +18,10 @@ namespace Stride.Extensions
         /// Transform a vertex buffer positions, normals, tangents and bitangents using the given matrix.
         /// </summary>
         /// <param name="meshDrawDatas">The mesh draw datas.</param>
-        /// <param name="can32BitIndex">A flag stating if 32 bit index buffers.</param>
-        public static unsafe MeshDraw MergeDrawData(IList<MeshDraw> meshDrawDatas, bool can32BitIndex)
+        public static unsafe MeshDraw MergeDrawData(IList<MeshDraw> meshDrawDatas)
         {
             if (meshDrawDatas.Count == 0)
-                throw new ArgumentException("Need at least 1 MeshDrawData.", "meshDrawDatas");
+                throw new ArgumentException("Need at least 1 MeshDrawData.", nameof(meshDrawDatas));
 
             if (meshDrawDatas.Count == 1)
                 return meshDrawDatas[0];
@@ -99,7 +98,7 @@ namespace Stride.Extensions
 
             if (hasIndexBuffer)
             {
-                var use32BitIndex = can32BitIndex && totalVertexCount > ushort.MaxValue; // 65535 = 0xFFFF is kept for primitive restart in strip
+                var use32BitIndex = totalVertexCount > ushort.MaxValue; // 65535 = 0xFFFF is kept for primitive restart in strip
 
                 // Allocate index buffer
                 destBufferData = new byte[(use32BitIndex ? sizeof(uint) : sizeof(ushort)) * totalIndexCount];
@@ -195,9 +194,8 @@ namespace Stride.Extensions
         /// Create group of MeshDrawData that will be merged.
         /// </summary>
         /// <param name="meshDrawDatas">List of MehsDrawData to merge.</param>
-        /// <param name="can32BitIndex">A flag stating if 32 bit index buffers are allowed.</param>
         /// <returns>A List of groups to merge internally.</returns>
-        public static List<List<MeshDraw>> CreateOptimizedMergeGroups(IList<MeshDraw> meshDrawDatas, bool can32BitIndex)
+        public static List<List<MeshDraw>> CreateOptimizedMergeGroups(IList<MeshDraw> meshDrawDatas)
         {
             if (meshDrawDatas.Count == 0)
                 return new List<List<MeshDraw>>();
@@ -209,7 +207,7 @@ namespace Stride.Extensions
             // vertices count is the higher possible value for an index
             var mergingLists = new List<KeyValuePair<int, List<MeshDraw>>>();
 
-            var maxVerticesCount = can32BitIndex ? uint.MaxValue : ushort.MaxValue;
+            var maxVerticesCount = uint.MaxValue;
 
             foreach (var drawData in meshDrawDatas)
             {
@@ -329,13 +327,12 @@ namespace Stride.Extensions
         /// Group the meshes.
         /// </summary>
         /// <param name="meshDrawDatas">The list of meshes to group.</param>
-        /// <param name="can32BitIndex">A flag stating if 32 bit index buffers are allowed</param>
         /// <returns>The list of merged meshes.</returns>
-        public static List<MeshDraw> GroupDrawData(this IList<MeshDraw> meshDrawDatas, bool can32BitIndex)
+        public static List<MeshDraw> GroupDrawData(this IList<MeshDraw> meshDrawDatas)
         {
             var declGroups = CreateDeclarationMergeGroup(meshDrawDatas);
-            var groups = declGroups.SelectMany(x => CreateOptimizedMergeGroups(x, can32BitIndex)).ToList();
-            return groups.Select(x => MergeDrawData(x, can32BitIndex)).ToList();
+            var groups = declGroups.SelectMany(x => CreateOptimizedMergeGroups(x)).ToList();
+            return groups.Select(x => MergeDrawData(x)).ToList();
         }
     }
 }
