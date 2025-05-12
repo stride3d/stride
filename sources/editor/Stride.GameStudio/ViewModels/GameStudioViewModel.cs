@@ -36,7 +36,6 @@ namespace Stride.GameStudio.ViewModels
             : base(serviceProvider, mru, StrideGameStudio.EditorName, StrideGameStudio.EditorVersionMajor)
         {
             Panels = new EditionPanelViewModel(ServiceProvider);
-            GitChanges = new GitChangesViewModel(ServiceProvider);
             availableIDEs = [IDEInfo.DefaultIDE];
             availableIDEs.AddRange(IDEInfoVersions.AvailableIDEs());
             NewSessionCommand = new AnonymousCommand(serviceProvider, RestartAndCreateNewSession);

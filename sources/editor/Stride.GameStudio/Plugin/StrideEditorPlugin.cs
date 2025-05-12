@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using Microsoft.CodeAnalysis.Differencing;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.Settings;
 using Stride.Core.Assets.Editor.ViewModel;
@@ -86,8 +87,16 @@ namespace Stride.GameStudio.Plugin
             var strideDebugService = new StrideDebugService(session.ServiceProvider);
             session.ServiceProvider.RegisterService(strideDebugService);
 
+            var gitService = new GitService();
+
+            var directoryPath = session.SolutionPath.GetFullDirectory();
+            gitService.InitializeForSession(directoryPath);
+            session.ServiceProvider.RegisterService(gitService);
+
             GameStudioViewModel.GameStudio.Preview = new PreviewViewModel(session);
             GameStudioViewModel.GameStudio.Debugging = new DebuggingViewModel(GameStudioViewModel.GameStudio, strideDebugService);
+            GameStudioViewModel.GameStudio.GitChanges = new GitChangesViewModel(session.ServiceProvider);
+
         }
 
         public override void RegisterAssetPreviewViewTypes(IDictionary<Type, Type> assetPreviewViewTypes)
