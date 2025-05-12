@@ -31,6 +31,17 @@ public abstract class StrideVersionViewModel : PackageVersionViewModel, ICompara
         launcher.PropertyChanged += (s, e) => { if (e.PropertyName == nameof(MainViewModel.ShowBetaVersions)) UpdateStatus(); };
     }
 
+    protected static string[] GetExecutableNames()
+    {
+        return OperatingSystem.IsWindows()
+            ? [
+                $"{GameStudioNames.StrideAvalonia}.exe",
+                $"{GameStudioNames.Stride}.exe",
+                $"{GameStudioNames.Xenko}.exe",
+            ]
+            : [$"{GameStudioNames.StrideAvalonia}.dll"];
+    }
+
     protected void UpdateFrameworks()
     {
         Frameworks.Clear();
@@ -45,14 +56,16 @@ public abstract class StrideVersionViewModel : PackageVersionViewModel, ICompara
 
             foreach (var frameworkPath in Directory.EnumerateDirectories(libDirectory))
             {
-                if (File.Exists(Path.Combine(frameworkPath, Major >= 4
-                        ? $"{GameStudioNames.Stride}.exe"
-                        : $"{GameStudioNames.Xenko}.exe")))
+                foreach (var gameStudioExecutable in GetExecutableNames())
                 {
-                    Frameworks.Add(new DirectoryInfo(frameworkPath).Name);
+                    if (File.Exists(Path.Combine(frameworkPath, gameStudioExecutable)))
+                    {
+                        Frameworks.Add(new DirectoryInfo(frameworkPath).Name);
+                    }
                 }
             }
         }
+        UpdateSelectedFramework();
     }
 
     internal void UpdateSelectedFramework()
@@ -64,7 +77,9 @@ public abstract class StrideVersionViewModel : PackageVersionViewModel, ICompara
                 // If preferred framework exists in our list, select it
                 var preferredFramework = LauncherSettings.PreferredFramework;
                 if (Frameworks.Contains(preferredFramework))
+                {
                     SelectedFramework = preferredFramework;
+                }
                 else
                 {
                     // Otherwise, try to find a framework of the same kind (.NET Core or .NET Framework)
@@ -168,42 +183,21 @@ public abstract class StrideVersionViewModel : PackageVersionViewModel, ICompara
     }
 
     /// <summary>
-    /// Name of main executable of current store.
-    /// </summary>
-    /// <returns>Name of the executable.</returns>
-    public IEnumerable<string> GetMainExecutables()
-    {
-        // first return Avalonia version
-        yield return Path.Combine("lib", "net8.0", $"{GameStudioNames.StrideAvalonia}.dll");
-        if (OperatingSystem.IsWindows())
-        {
-            yield return @$"lib\net472\{GameStudioNames.Stride}.exe";
-            yield return @$"lib\net472\{GameStudioNames.Xenko}.exe";
-            yield return @$"Bin\Windows\{GameStudioNames.Xenko}.exe";
-            yield return @$"Bin\Windows-Direct3D11\{GameStudioNames.Xenko}.exe";
-        }
-    }
-
-    /// <summary>
     /// Locate the main executable from a given package installation path. It throws exceptions if not found.
     /// </summary>
     /// <returns>The main executable.</returns>
-    public string LocateMainExecutable()
+    public string? LocateMainExecutable()
     {
+        if (InstallPath is null)
+            return null;
+
         // First, try to use the selected framework
         if (SelectedFramework is not null)
         {
             foreach (var toplevelFolder in new[] { "tools", "lib" })
             {
                 var gameStudioDirectory = Path.Combine(InstallPath, toplevelFolder, SelectedFramework);
-                string[] executableNames = OperatingSystem.IsWindows()
-                    ? [
-                        $"{GameStudioNames.StrideAvalonia}.exe",
-                        $"{GameStudioNames.Stride}.exe",
-                        $"{GameStudioNames.Xenko}.exe",
-                    ]
-                    : [$"{GameStudioNames.StrideAvalonia}.dll"];
-                foreach (var gameStudioExecutable in executableNames)
+                foreach (var gameStudioExecutable in GetExecutableNames())
                 {
                     var gameStudioPath = Path.Combine(gameStudioDirectory, gameStudioExecutable);
                     if (File.Exists(gameStudioPath))
@@ -213,13 +207,21 @@ public abstract class StrideVersionViewModel : PackageVersionViewModel, ICompara
         }
 
         // Otherwise, old-style fallback
-        var fullExePath = GetMainExecutables().Select(x => Path.Combine(InstallPath, x)).FirstOrDefault(File.Exists);
-        if (fullExePath is null)
-            throw new InvalidOperationException("Unable to locate the executable for the selected version");
+        return GetMainExecutables().Select(x => Path.Combine(InstallPath, x)).FirstOrDefault(File.Exists)
+            ?? throw new InvalidOperationException("Unable to locate the executable for the selected version");
 
-        return fullExePath;
+        static IEnumerable<string> GetMainExecutables()
+        {
+            // some old paths used in previous versions
+            if (OperatingSystem.IsWindows())
+            {
+                yield return @$"lib\net472\{GameStudioNames.Stride}.exe";
+                yield return @$"lib\net472\{GameStudioNames.Xenko}.exe";
+                yield return @$"Bin\Windows\{GameStudioNames.Xenko}.exe";
+                yield return @$"Bin\Windows-Direct3D11\{GameStudioNames.Xenko}.exe";
+            }
+        }
     }
-
 
     public int CompareTo(StrideVersionViewModel? other)
     {

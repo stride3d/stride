@@ -100,7 +100,7 @@ public sealed class StrideStoreVersionViewModel : StrideVersionViewModel
     /// Updates the local package of this version.
     /// </summary>
     /// <param name="package">The local package corresponding to this version.</param>
-    internal void UpdateLocalPackage(NugetLocalPackage package, IEnumerable<NugetLocalPackage>? alternateVersions)
+    internal void UpdateLocalPackage(NugetLocalPackage? package, IEnumerable<NugetLocalPackage>? alternateVersions)
     {
         OnPropertyChanging(nameof(FullName), nameof(Version));
         LocalPackage = package;

@@ -109,7 +109,6 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
         {
             if (SetValue(ref activeVersion, value))
             {
-                activeVersion?.UpdateSelectedFramework();
                 Dispatcher.InvokeAsync(() => StartStudioCommand.IsEnabled = value?.CanStart ?? false);
             }
         }
@@ -598,7 +597,6 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
                     });
                     break;
             }
-
         }
         catch (Exception e)
         {
