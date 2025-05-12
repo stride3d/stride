@@ -23,6 +23,7 @@ namespace Stride.GameStudio.Git
         public GitResult<bool> PullChanges();
         public GitResult<bool> StashChanges();
         public GitResult<bool> StashPopChanges();
+        public GitResult<bool> HasRemoteOrigin();
         public bool InitializeForSession(string solutionDir);
     }
 }

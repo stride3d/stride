@@ -253,6 +253,13 @@ namespace Stride.GameStudio.Git
                 return GitResult<bool>.Fail("Failed to pop stash changes.");
             }
         }
+        public GitResult<bool> HasRemoteOrigin()
+        {
+            if (repository == null)
+                return GitResult<bool>.Fail("Repository not found.");
+            var remote = repository.Network.Remotes["origin"];
+            return GitResult<bool>.Ok(remote != null);
+        }
         private static bool IsFileStaged(FileStatus status)
         {
             return status.HasFlag(FileStatus.NewInIndex)
