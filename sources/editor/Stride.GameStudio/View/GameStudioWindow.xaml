@@ -1683,7 +1683,6 @@
                                                 <Grid.RowDefinitions>
                                                     <RowDefinition Height="Auto" />
                                                     <RowDefinition Height="Auto" />
-                                                    <RowDefinition Height="Auto" />
                                                     <RowDefinition Height="*" />
                                                 </Grid.RowDefinitions>
 
@@ -1735,6 +1734,26 @@
                                                     <Button
                                                         Width="24"
                                                         Height="24"
+                                                        Margin="0,0,2,0"
+                                                        Background="#FF2D2D30"
+                                                        BorderBrush="Gray"
+                                                        Command="{Binding GitChanges.StashChangesCommand}"
+                                                        Content="📥"
+                                                        Foreground="White"
+                                                        ToolTip="Stash changes" />
+                                                    <Button
+                                                        Width="24"
+                                                        Height="24"
+                                                        Margin="0,0,2,0"
+                                                        Background="#FF2D2D30"
+                                                        BorderBrush="Gray"
+                                                        Command="{Binding GitChanges.StashPopChangesCommand}"
+                                                        Content="📤"
+                                                        Foreground="White"
+                                                        ToolTip="Pop stashed changes" />
+                                                    <Button
+                                                        Width="24"
+                                                        Height="24"
                                                         Background="#FF2D2D30"
                                                         BorderBrush="Gray"
                                                         Content="⋯"
@@ -1742,28 +1761,21 @@
                                                         ToolTip="Additional operations" />
                                                 </StackPanel>
 
-                                                <!--  Лічильник і перегляд фіксацій  -->
-                                                <TextBlock
-                                                    Grid.Row="1"
-                                                    Margin="0,8,0,0"
-                                                    Foreground="LightGray"
-                                                    Text="↑ 0 / 0   " />
-
                                                 <!--  Поле повідомлення  -->
-                                                <StackPanel Grid.Row="2" Margin="0,10,0,0">
+                                                <StackPanel Grid.Row="1" Margin="0,10,0,0">
                                                     <sd:TextBox
                                                         Height="60"
                                                         AcceptsReturn="True"
                                                         Background="#FF1E1E1E"
                                                         BorderBrush="Gray"
                                                         Foreground="White"
-                                                        Text="{Binding CommitMessage, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                        Text="{Binding GitChanges.CommitMessage, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                                         TextWrapping="Wrap"
                                                         WatermarkContent="{sd:Localize Enter message &lt;Required&gt;}" />
                                                 </StackPanel>
 
                                                 <!--  Нижня частина  -->
-                                                <StackPanel Grid.Row="3" Margin="0,10,0,0">
+                                                <StackPanel Grid.Row="2" Margin="0,10,0,0">
                                                     <StackPanel Orientation="Horizontal">
                                                         <Button
                                                             Width="200"
@@ -1771,10 +1783,6 @@
                                                             Background="#FF2D2D30"
                                                             Command="{Binding GitChanges.CommitChangesCommand}"
                                                             Content="Зафиксировать все"
-                                                            Foreground="White" />
-                                                        <CheckBox
-                                                            VerticalAlignment="Center"
-                                                            Content="Исправить"
                                                             Foreground="White" />
                                                     </StackPanel>
 
@@ -1807,9 +1815,9 @@
                                                                     VerticalAlignment="Center"
                                                                     Background="#FF2D2D30"
                                                                     BorderBrush="Gray"
-                                                                    Content="-"
                                                                     Command="{Binding GitChanges.RemoveFilesFromStagedCommand}"
-                                                                    Foreground="White"/>
+                                                                    Content="-"
+                                                                    Foreground="White" />
                                                             </Grid>
                                                         </Expander.Header>
                                                         <!--<StackPanel Margin="10,5,0,0" Orientation="Vertical">
@@ -1819,42 +1827,42 @@
                                                             Background="#1E1E1E"
                                                             Foreground="White"
                                                             ItemsSource="{Binding GitChanges.StagedFiles}">
-                                                            
-                                                        <TreeView.ItemTemplate>
-                                                              <DataTemplate>
-                                                                  <DockPanel Margin="2" LastChildFill="True">
-                                                                      <!--  Кнопка справа  -->
-                                                                      <Button
-                                                                          Width="24"
-                                                                          Height="24"
-                                                                          Margin="4,0,0,0"
-                                                                          HorizontalAlignment="Right"
-                                                                          VerticalAlignment="Center"
-                                                                          Command="{Binding Source={x:Static vm:GameStudioViewModel.GameStudio}, Path=GitChanges.RemoveFileFromStagedCommand}"
-                                                                          CommandParameter="{Binding RelativeFilePath}"
-                                                                          Content="-"
-                                                                          DockPanel.Dock="Right" />
 
-                                                                      <!--  Посилання + статус зліва  -->
-                                                                      <StackPanel Orientation="Horizontal">
-                                                                          <!--  Посилання без можливості виділення  -->
-                                                                          <TextBlock
-                                                                              Cursor="Hand"
-                                                                              Foreground="White"
-                                                                              IsHitTestVisible="True"
-                                                                              Text="{Binding RelativeFilePath}"
-                                                                              TextTrimming="CharacterEllipsis" />
+                                                            <TreeView.ItemTemplate>
+                                                                <DataTemplate>
+                                                                    <DockPanel Margin="2" LastChildFill="True">
+                                                                        <!--  Кнопка справа  -->
+                                                                        <Button
+                                                                            Width="24"
+                                                                            Height="24"
+                                                                            Margin="4,0,0,0"
+                                                                            HorizontalAlignment="Right"
+                                                                            VerticalAlignment="Center"
+                                                                            Command="{Binding Source={x:Static vm:GameStudioViewModel.GameStudio}, Path=GitChanges.RemoveFileFromStagedCommand}"
+                                                                            CommandParameter="{Binding RelativeFilePath}"
+                                                                            Content="-"
+                                                                            DockPanel.Dock="Right" />
 
-                                                                          <TextBlock
-                                                                              Margin="4,0,0,0"
-                                                                              Foreground="Gray"
-                                                                              Text=" [" />
-                                                                          <TextBlock Foreground="LightGreen" Text="{Binding Status}" />
-                                                                          <TextBlock Foreground="Gray" Text="]" />
-                                                                      </StackPanel>
-                                                                  </DockPanel>
-                                                              </DataTemplate>
-                                                          </TreeView.ItemTemplate>
+                                                                        <!--  Посилання + статус зліва  -->
+                                                                        <StackPanel Orientation="Horizontal">
+                                                                            <!--  Посилання без можливості виділення  -->
+                                                                            <TextBlock
+                                                                                Cursor="Hand"
+                                                                                Foreground="White"
+                                                                                IsHitTestVisible="True"
+                                                                                Text="{Binding RelativeFilePath}"
+                                                                                TextTrimming="CharacterEllipsis" />
+
+                                                                            <TextBlock
+                                                                                Margin="4,0,0,0"
+                                                                                Foreground="Gray"
+                                                                                Text=" [" />
+                                                                            <TextBlock Foreground="LightGreen" Text="{Binding Status}" />
+                                                                            <TextBlock Foreground="Gray" Text="]" />
+                                                                        </StackPanel>
+                                                                    </DockPanel>
+                                                                </DataTemplate>
+                                                            </TreeView.ItemTemplate>
                                                         </TreeView>
                                                     </Expander>
                                                     <Expander
@@ -1890,8 +1898,8 @@
                                                                     VerticalAlignment="Center"
                                                                     Background="#FF2D2D30"
                                                                     BorderBrush="Gray"
-                                                                    Content="+"
                                                                     Command="{Binding GitChanges.AddFilesToStagedCommand}"
+                                                                    Content="+"
                                                                     Foreground="White" />
                                                             </Grid>
                                                         </Expander.Header>
@@ -2012,25 +2020,15 @@
                                                                 Text="Удалить все" />
 
                                                             <!--  Список скрытых изменений  -->
-                                                            <StackPanel Margin="0,0,0,5" Orientation="Vertical">
-                                                                <StackPanel Margin="0,5" Orientation="Horizontal">
-                                                                    <Image
-                                                                        Width="16"
-                                                                        Height="16"
-                                                                        Margin="0,0,5,0"
-                                                                        Source="/Icons/hidden.png" />
-                                                                    <TextBlock Text="WIP on ui: 960799d02 feat: add Git Changes menu item to View Menu tab in GameStudioWindow" />
-                                                                </StackPanel>
-
-                                                                <StackPanel Margin="0,5" Orientation="Horizontal">
-                                                                    <Image
-                                                                        Width="16"
-                                                                        Height="16"
-                                                                        Margin="0,0,5,0"
-                                                                        Source="/Icons/hidden.png" />
-                                                                    <TextBlock Text="WIP on ui: 960799d02 feat: add Git Changes menu item to View Menu tab in GameStudioWindow" />
-                                                                </StackPanel>
-                                                            </StackPanel>
+                                                            <ItemsControl ItemsSource="{Binding GitChanges.StashedFiles}">
+                                                                <ItemsControl.ItemTemplate>
+                                                                    <DataTemplate>
+                                                                        <StackPanel Margin="0,5" Orientation="Horizontal">
+                                                                            <TextBlock Text="{Binding}" />
+                                                                        </StackPanel>
+                                                                    </DataTemplate>
+                                                                </ItemsControl.ItemTemplate>
+                                                            </ItemsControl>
                                                         </StackPanel>
                                                     </Expander>
                                                 </StackPanel>
