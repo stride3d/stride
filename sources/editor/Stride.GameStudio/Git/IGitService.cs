@@ -13,6 +13,7 @@ namespace Stride.GameStudio.Git
         public GitResult<IEnumerable<GitFile>> GetChangedFiles();
         public GitResult<bool> CommitChanges(string commitMessage);
         public GitResult<string> GetCurrentBranch();
+        public GitResult<IEnumerable<string>> GetBranches();
         public GitResult<bool> CheckoutBranch(string branchName);
         public GitResult<bool> AddFileToStaged(string filePath);
         public GitResult<bool> RemoveFileFromStaged(string filePath);

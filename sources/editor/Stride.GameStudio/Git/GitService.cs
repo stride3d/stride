@@ -71,6 +71,13 @@ namespace Stride.GameStudio.Git
                 return GitResult<string>.Fail("No current branch found.");
             return GitResult<string>.Ok(branch.FriendlyName);
         }
+        public GitResult<IEnumerable<string>> GetBranches()
+        {
+            if (repository == null)
+                return GitResult<IEnumerable<string>>.Fail("Repository not found.");
+            var branches = repository.Branches.Select(b => b.FriendlyName);
+            return GitResult<IEnumerable<string>>.Ok(branches);
+        }
         public GitResult<bool> CheckoutBranch(string branchName)
         {
             if (repository == null)
