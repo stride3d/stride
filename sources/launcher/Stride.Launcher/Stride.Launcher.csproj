@@ -8,6 +8,7 @@
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <UseWPF>true</UseWPF>
     <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
+    <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -31,6 +32,9 @@
     <_StrideLauncherNuSpecLines>$([System.IO.File]::ReadAllText('$(MSBuildThisFileDirectory)Stride.Launcher.nuspec'))</_StrideLauncherNuSpecLines>
     <Version>$([System.Text.RegularExpressions.Regex]::Match($(_StrideLauncherNuSpecLines), `<version>(.*)</version>`).Groups[1].Value)</Version>
   </PropertyGroup>
+  <ItemGroup>
+    <Using Include="System.IO" />
+  </ItemGroup>
   <ItemGroup>
     <None Remove="Resources\list-26.png" />
   </ItemGroup>
