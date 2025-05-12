@@ -1709,6 +1709,7 @@
                                                         BorderBrush="Gray"
                                                         Command="{Binding GitChanges.PushChangesCommand}"
                                                         Content="↑"
+                                                        Cursor="Hand"
                                                         Foreground="White"
                                                         ToolTip="Push" />
                                                     <Button
@@ -1719,6 +1720,7 @@
                                                         BorderBrush="Gray"
                                                         Command="{Binding GitChanges.PullChangesCommand}"
                                                         Content="↓"
+                                                        Cursor="Hand"
                                                         Foreground="White"
                                                         ToolTip="Pull" />
                                                     <Button
@@ -1729,6 +1731,7 @@
                                                         BorderBrush="Gray"
                                                         Command="{Binding GitChanges.RefreshCommand}"
                                                         Content="⟳"
+                                                        Cursor="Hand"
                                                         Foreground="White"
                                                         ToolTip="Refresh" />
                                                     <Button
@@ -1739,6 +1742,7 @@
                                                         BorderBrush="Gray"
                                                         Command="{Binding GitChanges.StashChangesCommand}"
                                                         Content="📥"
+                                                        Cursor="Hand"
                                                         Foreground="White"
                                                         ToolTip="Stash changes" />
                                                     <Button
@@ -1749,6 +1753,7 @@
                                                         BorderBrush="Gray"
                                                         Command="{Binding GitChanges.StashPopChangesCommand}"
                                                         Content="📤"
+                                                        Cursor="Hand"
                                                         Foreground="White"
                                                         ToolTip="Pop stashed changes" />
                                                     <Button
@@ -1757,6 +1762,7 @@
                                                         Background="#FF2D2D30"
                                                         BorderBrush="Gray"
                                                         Content="⋯"
+                                                        Cursor="Hand"
                                                         Foreground="White"
                                                         ToolTip="Additional operations" />
                                                 </StackPanel>
@@ -1783,6 +1789,7 @@
                                                             Background="#FF2D2D30"
                                                             Command="{Binding GitChanges.CommitChangesCommand}"
                                                             Content="Зафиксировать все"
+                                                            Cursor="Hand"
                                                             Foreground="White" />
                                                     </StackPanel>
 
@@ -1817,53 +1824,58 @@
                                                                     BorderBrush="Gray"
                                                                     Command="{Binding GitChanges.RemoveFilesFromStagedCommand}"
                                                                     Content="-"
+                                                                    Cursor="Hand"
                                                                     Foreground="White" />
                                                             </Grid>
                                                         </Expander.Header>
                                                         <!--<StackPanel Margin="10,5,0,0" Orientation="Vertical">
                                                             <TextBlock Foreground="Gray" Text="В фиксации не упомянуто ни одного елемента" />
                                                         </StackPanel>-->
-                                                        <TreeView
-                                                            Background="#1E1E1E"
-                                                            Foreground="White"
-                                                            ItemsSource="{Binding GitChanges.StagedFiles}">
+                                                        <Grid Height="300">
+                                                            <TreeView
+                                                                Background="#1E1E1E"
+                                                                Foreground="White"
+                                                                ItemsSource="{Binding GitChanges.StagedFiles}"
+                                                                ScrollViewer.VerticalScrollBarVisibility="Auto">
 
-                                                            <TreeView.ItemTemplate>
-                                                                <DataTemplate>
-                                                                    <DockPanel Margin="2" LastChildFill="True">
-                                                                        <!--  Кнопка справа  -->
-                                                                        <Button
-                                                                            Width="24"
-                                                                            Height="24"
-                                                                            Margin="4,0,0,0"
-                                                                            HorizontalAlignment="Right"
-                                                                            VerticalAlignment="Center"
-                                                                            Command="{Binding Source={x:Static vm:GameStudioViewModel.GameStudio}, Path=GitChanges.RemoveFileFromStagedCommand}"
-                                                                            CommandParameter="{Binding RelativeFilePath}"
-                                                                            Content="-"
-                                                                            DockPanel.Dock="Right" />
-
-                                                                        <!--  Посилання + статус зліва  -->
-                                                                        <StackPanel Orientation="Horizontal">
-                                                                            <!--  Посилання без можливості виділення  -->
-                                                                            <TextBlock
-                                                                                Cursor="Hand"
-                                                                                Foreground="White"
-                                                                                IsHitTestVisible="True"
-                                                                                Text="{Binding RelativeFilePath}"
-                                                                                TextTrimming="CharacterEllipsis" />
-
-                                                                            <TextBlock
+                                                                <TreeView.ItemTemplate>
+                                                                    <DataTemplate>
+                                                                        <DockPanel Margin="2" LastChildFill="True">
+                                                                            <!--  Кнопка справа  -->
+                                                                            <Button
+                                                                                Width="24"
+                                                                                Height="24"
                                                                                 Margin="4,0,0,0"
-                                                                                Foreground="Gray"
-                                                                                Text=" [" />
-                                                                            <TextBlock Foreground="LightGreen" Text="{Binding Status}" />
-                                                                            <TextBlock Foreground="Gray" Text="]" />
-                                                                        </StackPanel>
-                                                                    </DockPanel>
-                                                                </DataTemplate>
-                                                            </TreeView.ItemTemplate>
-                                                        </TreeView>
+                                                                                HorizontalAlignment="Right"
+                                                                                VerticalAlignment="Center"
+                                                                                Command="{Binding Source={x:Static vm:GameStudioViewModel.GameStudio}, Path=GitChanges.RemoveFileFromStagedCommand}"
+                                                                                CommandParameter="{Binding RelativeFilePath}"
+                                                                                Content="-"
+                                                                                Cursor="Hand"
+                                                                                DockPanel.Dock="Right" />
+
+                                                                            <!--  Посилання + статус зліва  -->
+                                                                            <StackPanel Orientation="Horizontal">
+                                                                                <!--  Посилання без можливості виділення  -->
+                                                                                <TextBlock
+                                                                                    Cursor="Hand"
+                                                                                    Foreground="White"
+                                                                                    IsHitTestVisible="True"
+                                                                                    Text="{Binding RelativeFilePath}"
+                                                                                    TextTrimming="CharacterEllipsis" />
+
+                                                                                <TextBlock
+                                                                                    Margin="4,0,0,0"
+                                                                                    Foreground="Gray"
+                                                                                    Text=" [" />
+                                                                                <TextBlock Foreground="LightGreen" Text="{Binding Status}" />
+                                                                                <TextBlock Foreground="Gray" Text="]" />
+                                                                            </StackPanel>
+                                                                        </DockPanel>
+                                                                    </DataTemplate>
+                                                                </TreeView.ItemTemplate>
+                                                            </TreeView>
+                                                        </Grid>
                                                     </Expander>
                                                     <Expander
                                                         Margin="0,10,0,0"
@@ -1900,82 +1912,87 @@
                                                                     BorderBrush="Gray"
                                                                     Command="{Binding GitChanges.AddFilesToStagedCommand}"
                                                                     Content="+"
+                                                                    Cursor="Hand"
                                                                     Foreground="White" />
                                                             </Grid>
                                                         </Expander.Header>
-                                                        <TreeView
-                                                            Background="#1E1E1E"
-                                                            Foreground="White"
-                                                            ItemsSource="{Binding GitChanges.UnstagedFiles}">
-                                                            <TreeView.Resources>
-                                                                <Style TargetType="TreeViewItem">
-                                                                    <Setter Property="HeaderTemplate">
-                                                                        <Setter.Value>
-                                                                            <DataTemplate>
-                                                                                <StackPanel Orientation="Horizontal">
-                                                                                    <TextBlock Foreground="White" Text="{Binding}" />
-                                                                                    <StackPanel
-                                                                                        x:Name="HoverPanel"
-                                                                                        Margin="5,0,0,0"
-                                                                                        Orientation="Horizontal"
-                                                                                        Visibility="Collapsed">
-                                                                                        <TextBlock
-                                                                                            Margin="0,0,5,0"
-                                                                                            Foreground="White"
-                                                                                            Text="↺" />
-                                                                                        <TextBlock
-                                                                                            Margin="0,0,5,0"
-                                                                                            Foreground="White"
-                                                                                            Text="+" />
-                                                                                        <TextBlock Foreground="White" Text="M" />
+                                                        <Grid Height="300">
+                                                            <TreeView
+                                                                Background="#1E1E1E"
+                                                                Foreground="White"
+                                                                ItemsSource="{Binding GitChanges.UnstagedFiles}"
+                                                                ScrollViewer.VerticalScrollBarVisibility="Auto">
+                                                                <TreeView.Resources>
+                                                                    <Style TargetType="TreeViewItem">
+                                                                        <Setter Property="HeaderTemplate">
+                                                                            <Setter.Value>
+                                                                                <DataTemplate>
+                                                                                    <StackPanel Orientation="Horizontal">
+                                                                                        <TextBlock Foreground="White" Text="{Binding}" />
+                                                                                        <StackPanel
+                                                                                            x:Name="HoverPanel"
+                                                                                            Margin="5,0,0,0"
+                                                                                            Orientation="Horizontal"
+                                                                                            Visibility="Collapsed">
+                                                                                            <TextBlock
+                                                                                                Margin="0,0,5,0"
+                                                                                                Foreground="White"
+                                                                                                Text="↺" />
+                                                                                            <TextBlock
+                                                                                                Margin="0,0,5,0"
+                                                                                                Foreground="White"
+                                                                                                Text="+" />
+                                                                                            <TextBlock Foreground="White" Text="M" />
+                                                                                        </StackPanel>
                                                                                     </StackPanel>
-                                                                                </StackPanel>
-                                                                                <DataTemplate.Triggers>
-                                                                                    <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=TreeViewItem}, Path=IsMouseOver}" Value="True">
-                                                                                        <Setter TargetName="HoverPanel" Property="Visibility" Value="Visible" />
-                                                                                    </DataTrigger>
-                                                                                </DataTemplate.Triggers>
-                                                                            </DataTemplate>
-                                                                        </Setter.Value>
-                                                                    </Setter>
-                                                                </Style>
-                                                            </TreeView.Resources>
-                                                            <TreeView.ItemTemplate>
-                                                                <DataTemplate>
-                                                                    <DockPanel Margin="2" LastChildFill="True">
-                                                                        <!--  Кнопка справа  -->
-                                                                        <Button
-                                                                            Width="24"
-                                                                            Height="24"
-                                                                            Margin="4,0,0,0"
-                                                                            HorizontalAlignment="Right"
-                                                                            VerticalAlignment="Center"
-                                                                            Command="{Binding Source={x:Static vm:GameStudioViewModel.GameStudio}, Path=GitChanges.AddFileToStagedCommand}"
-                                                                            CommandParameter="{Binding RelativeFilePath}"
-                                                                            Content="+"
-                                                                            DockPanel.Dock="Right" />
-
-                                                                        <!--  Посилання + статус зліва  -->
-                                                                        <StackPanel Orientation="Horizontal">
-                                                                            <!--  Посилання без можливості виділення  -->
-                                                                            <TextBlock
-                                                                                Cursor="Hand"
-                                                                                Foreground="White"
-                                                                                IsHitTestVisible="True"
-                                                                                Text="{Binding RelativeFilePath}"
-                                                                                TextTrimming="CharacterEllipsis" />
-
-                                                                            <TextBlock
+                                                                                    <DataTemplate.Triggers>
+                                                                                        <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=TreeViewItem}, Path=IsMouseOver}" Value="True">
+                                                                                            <Setter TargetName="HoverPanel" Property="Visibility" Value="Visible" />
+                                                                                        </DataTrigger>
+                                                                                    </DataTemplate.Triggers>
+                                                                                </DataTemplate>
+                                                                            </Setter.Value>
+                                                                        </Setter>
+                                                                    </Style>
+                                                                </TreeView.Resources>
+                                                                <TreeView.ItemTemplate>
+                                                                    <DataTemplate>
+                                                                        <DockPanel Margin="2" LastChildFill="True">
+                                                                            <!--  Кнопка справа  -->
+                                                                            <Button
+                                                                                Width="24"
+                                                                                Height="24"
                                                                                 Margin="4,0,0,0"
-                                                                                Foreground="Gray"
-                                                                                Text=" [" />
-                                                                            <TextBlock Foreground="LightGreen" Text="{Binding Status}" />
-                                                                            <TextBlock Foreground="Gray" Text="]" />
-                                                                        </StackPanel>
-                                                                    </DockPanel>
-                                                                </DataTemplate>
-                                                            </TreeView.ItemTemplate>
-                                                        </TreeView>
+                                                                                HorizontalAlignment="Right"
+                                                                                VerticalAlignment="Center"
+                                                                                Command="{Binding Source={x:Static vm:GameStudioViewModel.GameStudio}, Path=GitChanges.AddFileToStagedCommand}"
+                                                                                CommandParameter="{Binding RelativeFilePath}"
+                                                                                Content="+"
+                                                                                Cursor="Hand"
+                                                                                DockPanel.Dock="Right" />
+
+                                                                            <!--  Посилання + статус зліва  -->
+                                                                            <StackPanel Orientation="Horizontal">
+                                                                                <!--  Посилання без можливості виділення  -->
+                                                                                <TextBlock
+                                                                                    Cursor="Hand"
+                                                                                    Foreground="White"
+                                                                                    IsHitTestVisible="True"
+                                                                                    Text="{Binding RelativeFilePath}"
+                                                                                    TextTrimming="CharacterEllipsis" />
+
+                                                                                <TextBlock
+                                                                                    Margin="4,0,0,0"
+                                                                                    Foreground="Gray"
+                                                                                    Text=" [" />
+                                                                                <TextBlock Foreground="LightGreen" Text="{Binding Status}" />
+                                                                                <TextBlock Foreground="Gray" Text="]" />
+                                                                            </StackPanel>
+                                                                        </DockPanel>
+                                                                    </DataTemplate>
+                                                                </TreeView.ItemTemplate>
+                                                            </TreeView>
+                                                        </Grid>
                                                     </Expander>
                                                     <Expander
                                                         Margin="0,10,0,0"
@@ -1995,7 +2012,7 @@
                                                                     FontSize="14"
                                                                     FontWeight="SemiBold"
                                                                     Foreground="White"
-                                                                    Text="Спрятанные изменения (2)" />
+                                                                    Text="Спрятанные изменения" />
 
                                                                 <Button
                                                                     Grid.Column="1"
@@ -2007,29 +2024,32 @@
                                                                     Background="#FF2D2D30"
                                                                     BorderBrush="Gray"
                                                                     Content="+"
+                                                                    Cursor="Hand"
                                                                     Foreground="White" />
                                                             </Grid>
                                                         </Expander.Header>
-                                                        <StackPanel>
-                                                            <!--  Кнопка "Удалить все"  -->
-                                                            <TextBlock
-                                                                Margin="0,0,0,10"
-                                                                Cursor="Hand"
-                                                                FontWeight="Bold"
-                                                                Foreground="#3DAEE9"
-                                                                Text="Удалить все" />
+                                                        <Grid Height="300">
+                                                            <StackPanel ScrollViewer.VerticalScrollBarVisibility="Auto">
+                                                                <!--  Кнопка "Удалить все"  -->
+                                                                <TextBlock
+                                                                    Margin="0,0,0,10"
+                                                                    Cursor="Hand"
+                                                                    FontWeight="Bold"
+                                                                    Foreground="#3DAEE9"
+                                                                    Text="Удалить все" />
 
-                                                            <!--  Список скрытых изменений  -->
-                                                            <ItemsControl ItemsSource="{Binding GitChanges.StashedFiles}">
-                                                                <ItemsControl.ItemTemplate>
-                                                                    <DataTemplate>
-                                                                        <StackPanel Margin="0,5" Orientation="Horizontal">
-                                                                            <TextBlock Text="{Binding}" />
-                                                                        </StackPanel>
-                                                                    </DataTemplate>
-                                                                </ItemsControl.ItemTemplate>
-                                                            </ItemsControl>
-                                                        </StackPanel>
+                                                                <!--  Список скрытых изменений  -->
+                                                                <ItemsControl ItemsSource="{Binding GitChanges.StashedFiles}">
+                                                                    <ItemsControl.ItemTemplate>
+                                                                        <DataTemplate>
+                                                                            <StackPanel Margin="0,5" Orientation="Horizontal">
+                                                                                <TextBlock Text="{Binding}" />
+                                                                            </StackPanel>
+                                                                        </DataTemplate>
+                                                                    </ItemsControl.ItemTemplate>
+                                                                </ItemsControl>
+                                                            </StackPanel>
+                                                        </Grid>
                                                     </Expander>
                                                 </StackPanel>
                                             </Grid>
