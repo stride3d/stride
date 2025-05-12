@@ -1,6 +1,8 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using Microsoft.CodeAnalysis.Differencing;
+
 namespace Stride.GameStudio.Git
 {
     /// <summary>
@@ -20,5 +22,6 @@ namespace Stride.GameStudio.Git
         public GitResult<bool> PullChanges();
         public GitResult<bool> StashChanges();
         public GitResult<bool> StashPopChanges();
+        public bool InitializeForSession(string solutionDir);
     }
 }
