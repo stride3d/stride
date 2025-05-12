@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using LibGit2Sharp;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.TreeView;
 
 namespace Stride.GameStudio.Git
 {
@@ -75,7 +76,14 @@ namespace Stride.GameStudio.Git
         {
             if (repository == null)
                 return GitResult<IEnumerable<string>>.Fail("Repository not found.");
-            var branches = repository.Branches.Select(b => b.FriendlyName);
+            var branches = repository.Branches.Select(b => b.FriendlyName).ToList();
+            if (branches.Count == 0)
+            {
+                var currentBranch = repository.Head;
+                if (currentBranch == null)
+                    return GitResult<IEnumerable<string>>.Fail("No current branch found.");
+                branches.Add(currentBranch.FriendlyName);
+            }
             return GitResult<IEnumerable<string>>.Ok(branches);
         }
         public GitResult<bool> CheckoutBranch(string branchName)
