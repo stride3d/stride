@@ -1693,9 +1693,15 @@
                                                         Width="150"
                                                         Margin="0,0,5,0"
                                                         Background="#FF2D2D30"
-                                                        Foreground="Black"
-                                                        SelectedIndex="0">
-                                                        <ComboBoxItem Content="main" />
+                                                        Foreground="White"
+                                                        ItemsSource="{Binding GitChanges.Branches}"
+                                                        SelectedIndex="0"
+                                                        SelectedItem="{Binding GitChanges.CurrentBranch, Mode=TwoWay}">
+                                                        <ComboBox.ItemTemplate>
+                                                            <DataTemplate>
+                                                                <TextBlock FontWeight="Bold" Text="{Binding}" />
+                                                            </DataTemplate>
+                                                        </ComboBox.ItemTemplate>
                                                     </ComboBox>
                                                     <Button
                                                         Width="24"
@@ -1788,10 +1794,56 @@
                                                         Margin="0,10,0,0"
                                                         Background="#FF2D2D30"
                                                         Foreground="White"
-                                                        Header="Связанные элементы">
-                                                        <StackPanel Margin="10,5,0,0" Orientation="Vertical">
+                                                        IsExpanded="True">
+                                                        <Expander.Header>
+                                                            <Grid>
+                                                                <Grid.ColumnDefinitions>
+                                                                    <ColumnDefinition />
+                                                                    <ColumnDefinition Width="Auto" />
+                                                                </Grid.ColumnDefinitions>
+
+                                                                <TextBlock
+                                                                    Grid.Column="0"
+                                                                    VerticalAlignment="Center"
+                                                                    FontSize="14"
+                                                                    FontWeight="SemiBold"
+                                                                    Foreground="White"
+                                                                    Text="Связанные элементы" />
+
+                                                                <Button
+                                                                    Grid.Column="1"
+                                                                    Width="24"
+                                                                    Height="24"
+                                                                    Margin="0,0,0,0"
+                                                                    HorizontalAlignment="Right"
+                                                                    VerticalAlignment="Center"
+                                                                    Background="#FF2D2D30"
+                                                                    BorderBrush="Gray"
+                                                                    Content="+"
+                                                                    Foreground="White" />
+                                                            </Grid>
+                                                        </Expander.Header>
+                                                        <!--<StackPanel Margin="10,5,0,0" Orientation="Vertical">
                                                             <TextBlock Foreground="Gray" Text="В фиксации не упомянуто ни одного елемента" />
-                                                        </StackPanel>
+                                                        </StackPanel>-->
+                                                        <TreeView
+                                                            Background="#1E1E1E"
+                                                            Foreground="White"
+                                                            ItemsSource="{Binding GitChanges.StagedFiles}">
+                                                            <TreeView.ItemTemplate>
+                                                                <DataTemplate>
+                                                                    <StackPanel Margin="2" Orientation="Horizontal">
+                                                                        <TextBlock Foreground="White" Text="{Binding RelativeFilePath}" />
+                                                                        <TextBlock
+                                                                            Margin="4,0,0,0"
+                                                                            Foreground="Gray"
+                                                                            Text=" [" />
+                                                                        <TextBlock Foreground="LightGreen" Text="{Binding Status}" />
+                                                                        <TextBlock Foreground="Gray" Text="]" />
+                                                                    </StackPanel>
+                                                                </DataTemplate>
+                                                            </TreeView.ItemTemplate>
+                                                        </TreeView>
                                                     </Expander>
                                                     <Expander
                                                         Margin="0,10,0,0"
@@ -1833,7 +1885,7 @@
                                                         <TreeView
                                                             Background="#1E1E1E"
                                                             Foreground="White"
-                                                            ItemsSource="{Binding GitChanges.ChangedFiles}">
+                                                            ItemsSource="{Binding GitChanges.UnstagedFiles}">
                                                             <TreeView.Resources>
                                                                 <Style TargetType="TreeViewItem">
                                                                     <Setter Property="HeaderTemplate">
@@ -1886,10 +1938,35 @@
                                                         Margin="0,10,0,0"
                                                         Padding="10"
                                                         Background="#FF2D2D30"
-                                                        FontWeight="SemiBold"
-                                                        Foreground="White"
-                                                        Header="Спрятанные изменения (2)">
+                                                        Foreground="White">
+                                                        <Expander.Header>
+                                                            <Grid>
+                                                                <Grid.ColumnDefinitions>
+                                                                    <ColumnDefinition />
+                                                                    <ColumnDefinition Width="Auto" />
+                                                                </Grid.ColumnDefinitions>
 
+                                                                <TextBlock
+                                                                    Grid.Column="0"
+                                                                    VerticalAlignment="Center"
+                                                                    FontSize="14"
+                                                                    FontWeight="SemiBold"
+                                                                    Foreground="White"
+                                                                    Text="Спрятанные изменения (2)" />
+
+                                                                <Button
+                                                                    Grid.Column="1"
+                                                                    Width="24"
+                                                                    Height="24"
+                                                                    Margin="0,0,0,0"
+                                                                    HorizontalAlignment="Right"
+                                                                    VerticalAlignment="Center"
+                                                                    Background="#FF2D2D30"
+                                                                    BorderBrush="Gray"
+                                                                    Content="+"
+                                                                    Foreground="White" />
+                                                            </Grid>
+                                                        </Expander.Header>
                                                         <StackPanel>
                                                             <!--  Кнопка "Удалить все"  -->
                                                             <TextBlock
