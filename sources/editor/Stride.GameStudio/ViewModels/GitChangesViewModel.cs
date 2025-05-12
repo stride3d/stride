@@ -23,6 +23,7 @@ namespace Stride.GameStudio.ViewModels
         {
             gitService = serviceProvider.Get<GitService>();
             RefreshCommand = new AnonymousCommand(serviceProvider, RefreshGitStatus);
+            CommitChangesCommand = new AnonymousCommand(serviceProvider, () => CommitChanges("Initial commit"));
             RefreshCommand.Execute();
         }
 
@@ -55,6 +56,116 @@ namespace Stride.GameStudio.ViewModels
             {
                 ChangedFiles.Add(file);
             }
+        }
+
+        private void CommitChanges(string commitMessage)
+        {
+            var result = gitService.CommitChanges(commitMessage);
+            if (!result.Success)
+            {
+                return;
+            }
+            var isCommitted = result.Data;
+        }
+
+        private void GetCurrentBranch()
+        {
+            var result = gitService.GetCurrentBranch();
+            if (!result.Success)
+            {
+                return;
+            }
+            var currentBranch = result.Data;
+        }
+
+        private void CheckoutBranch(string branchName)
+        {
+            var result = gitService.CheckoutBranch(branchName);
+            if (!result.Success)
+            {
+                return;
+            }
+            var isCheckedOut = result.Data;
+        }
+
+        private void AddFileToStaged(string filePath)
+        {
+            var result = gitService.AddFileToStaged(filePath);
+            if (!result.Success)
+            {
+                return;
+            }
+            var isAdded = result.Data;
+        }
+
+        private void RemoveFileFromStaged(string filePath)
+        {
+            var result = gitService.RemoveFileFromStaged(filePath);
+            if (!result.Success)
+            {
+                return;
+            }
+            var isRemoved = result.Data;
+        }
+
+        private void AddFilesToStaged(IEnumerable<string> filePaths)
+        {
+            var result = gitService.AddFilesToStaged(filePaths);
+            if (!result.Success)
+            {
+                return;
+            }
+            var areAdded = result.Data;
+        }
+
+        private void RemoveFilesFromStaged(IEnumerable<string> filePaths)
+        {
+            var result = gitService.RemoveFilesFromStaged(filePaths);
+            if (!result.Success)
+            {
+                return;
+            }
+            var areRemoved = result.Data;
+        }
+
+        private void PushChanges()
+        {
+            var result = gitService.PushChanges();
+            if (!result.Success)
+            {
+                return;
+            }
+            var isPushed = result.Data;
+        }
+
+        private void PullChanges()
+        {
+            var result = gitService.PullChanges();
+            if (!result.Success)
+            {
+                return;
+            }
+            var isPulled = result.Data;
+        }
+
+        private void StashChanges()
+        {
+            var result = gitService.StashChanges();
+            if (!result.Success)
+            {
+                return;
+            }
+            var isStashed = result.Data;
+        }
+
+        private void StashPopChanges()
+        {
+            var result = gitService.StashPopChanges();
+            if (!result.Success)
+            {
+                return;
+            }
+            var isStashPopped = result.Data;
         }
     }
 }
