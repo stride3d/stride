@@ -1808,7 +1808,8 @@
                                                                     Background="#FF2D2D30"
                                                                     BorderBrush="Gray"
                                                                     Content="+"
-                                                                    Foreground="White" />
+                                                                    Command="{Binding GitChanges.RemoveFilesFromStagedCommand}"
+                                                                    Foreground="White"/>
                                                             </Grid>
                                                         </Expander.Header>
                                                         <!--<StackPanel Margin="10,5,0,0" Orientation="Vertical">
@@ -1890,6 +1891,7 @@
                                                                     Background="#FF2D2D30"
                                                                     BorderBrush="Gray"
                                                                     Content="+"
+                                                                    Command="{Binding GitChanges.AddFilesToStagedCommand}"
                                                                     Foreground="White" />
                                                             </Grid>
                                                         </Expander.Header>
