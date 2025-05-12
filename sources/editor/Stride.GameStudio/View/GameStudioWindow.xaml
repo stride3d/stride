@@ -1693,9 +1693,15 @@
                                                         Width="150"
                                                         Margin="0,0,5,0"
                                                         Background="#FF2D2D30"
-                                                        Foreground="Black"
-                                                        SelectedIndex="0">
-                                                        <ComboBoxItem Content="main" />
+                                                        Foreground="White"
+                                                        ItemsSource="{Binding GitChanges.Branches}"
+                                                        SelectedIndex="0"
+                                                        SelectedItem="{Binding GitChanges.CurrentBranch, Mode=TwoWay}">
+                                                        <ComboBox.ItemTemplate>
+                                                            <DataTemplate>
+                                                                <TextBlock FontWeight="Bold" Text="{Binding}" />
+                                                            </DataTemplate>
+                                                        </ComboBox.ItemTemplate>
                                                     </ComboBox>
                                                     <Button
                                                         Width="24"
