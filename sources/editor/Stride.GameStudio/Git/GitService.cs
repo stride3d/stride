@@ -253,6 +253,20 @@ namespace Stride.GameStudio.Git
                 return GitResult<bool>.Fail("Failed to pop stash changes.");
             }
         }
+        public GitResult<bool> HasRemoteOrigin()
+        {
+            if (repository == null)
+                return GitResult<bool>.Fail("Repository not found.");
+            var remote = repository.Network.Remotes["origin"];
+            return GitResult<bool>.Ok(remote != null);
+        }
+        public GitResult<IEnumerable<string>> GetStashes()
+        {
+            if (repository == null)
+                return GitResult<IEnumerable<string>>.Fail("Repository not found.");
+            var stashes = repository.Stashes.Select(s => s.CanonicalName).ToList();
+            return GitResult<IEnumerable<string>>.Ok(stashes);
+        }
         private static bool IsFileStaged(FileStatus status)
         {
             return status.HasFlag(FileStatus.NewInIndex)
