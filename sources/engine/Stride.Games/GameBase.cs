@@ -22,6 +22,7 @@
 // THE SOFTWARE.
 
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 using System.Threading;
 using Stride.Core;
@@ -41,25 +42,26 @@ namespace Stride.Games
     {
         #region Fields
 
-        private readonly GamePlatform gamePlatform;
+        public GamePlatform GamePlatform;
+
         private IGraphicsDeviceService graphicsDeviceService;
         protected IGraphicsDeviceManager graphicsDeviceManager;
         private ResumeManager resumeManager;
-        private bool isEndRunRequired;
-        private bool suppressDraw;
+        protected bool suppressDraw;
         private bool beginDrawOk;
 
-        private readonly TimeSpan maximumElapsedTime;
-        private TimeSpan accumulatedElapsedGameTime;
-        private bool forceElapsedTimeToZero;
+        protected readonly TimeSpan maximumElapsedTime;
+        protected TimeSpan accumulatedElapsedGameTime;
+        protected bool forceElapsedTimeToZero;
 
-        private readonly TimerTick autoTickTimer;
+        protected readonly TimerTick autoTickTimer;
 
         protected readonly ILogger Log;
+        protected bool isEndRunRequired;
 
-        private bool isMouseVisible;
+        internal object TickLock = new();
 
-        internal object TickLock = new object();
+        public List<GameComponent> Components = [];
 
         #endregion
 
@@ -83,8 +85,6 @@ namespace Stride.Games
             WindowMinimumUpdateRate = new ThreadThrottler(TimeSpan.FromSeconds(0d));
             MinimizedMinimumUpdateRate = new ThreadThrottler(15); // by default 15 updates per second while minimized
 
-            isMouseVisible = true;
-
             // Externals
             Services = new ServiceRegistry();
 
@@ -95,17 +95,8 @@ namespace Stride.Games
             GameSystems = new GameSystemCollection(Services);
             Services.AddService<IGameSystemCollection>(GameSystems);
 
-            // Create Platform
-            gamePlatform = GamePlatform.Create(this);
-            gamePlatform.Activated += GamePlatform_Activated;
-            gamePlatform.Deactivated += GamePlatform_Deactivated;
-            gamePlatform.Exiting += GamePlatform_Exiting;
-            gamePlatform.WindowCreated += GamePlatformOnWindowCreated;
-
             // Setup registry
             Services.AddService<IGame>(this);
-            Services.AddService<IGraphicsDeviceFactory>(gamePlatform);
-            Services.AddService<IGamePlatform>(gamePlatform);
 
             IsActive = true;
         }
@@ -128,11 +119,6 @@ namespace Stride.Games
         /// Occurs when [exiting].
         /// </summary>
         public event EventHandler<EventArgs> Exiting;
-
-        /// <summary>
-        /// Occurs when [window created].
-        /// </summary>
-        public event EventHandler<EventArgs> WindowCreated;
 
         public event EventHandler<GameUnhandledExceptionEventArgs> UnhandledException;
 
@@ -165,19 +151,13 @@ namespace Stride.Games
         /// <summary>
         /// Gets the <see cref="ContentManager"/>.
         /// </summary>
-        public ContentManager Content { get; private set; }
+        public ContentManager Content { get; protected set; }
 
         /// <summary>
         /// Gets the game components registered by this game.
         /// </summary>
         /// <value>The game components.</value>
         public GameSystemCollection GameSystems { get; private set; }
-
-        /// <summary>
-        /// Gets the game context.
-        /// </summary>
-        /// <value>The game context.</value>
-        public GameContext Context { get; private set; }
 
         /// <summary>
         /// Gets the graphics device.
@@ -197,7 +177,7 @@ namespace Stride.Games
         /// Gets a value indicating whether this instance is active.
         /// </summary>
         /// <value><c>true</c> if this instance is active; otherwise, <c>false</c>.</value>
-        public bool IsActive { get; private set; }
+        public bool IsActive { get; protected set; }
 
         /// <summary>
         /// Gets a value indicating whether this instance is exiting.
@@ -225,27 +205,6 @@ namespace Stride.Games
         public bool IsDrawDesynchronized { get; set; }
 
         /// <summary>
-        /// Gets or sets a value indicating whether the mouse should be visible.
-        /// </summary>
-        /// <value><c>true</c> if the mouse should be visible; otherwise, <c>false</c>.</value>
-        public bool IsMouseVisible
-        {
-            get
-            {
-                return Window?.IsMouseVisible ?? isMouseVisible;
-            }
-            set
-            {
-                isMouseVisible = value;
-                var window = Window;
-                if (window != null)
-                {
-                    window.IsMouseVisible = value;
-                }
-            }
-        }
-
-        /// <summary>
         /// Gets the launch parameters.
         /// </summary>
         /// <value>The launch parameters.</value>
@@ -254,7 +213,7 @@ namespace Stride.Games
         /// <summary>
         /// Gets a value indicating whether this instance is running.
         /// </summary>
-        public bool IsRunning { get; private set; }
+        public bool IsRunning { get; protected set; }
 
         /// <summary>
         /// Gets the service container.
@@ -291,28 +250,7 @@ namespace Stride.Games
         /// </summary>
         public bool DrawWhileMinimized { get; set; }
 
-        /// <summary>
-        /// Gets the abstract window.
-        /// </summary>
-        /// <value>The window.</value>
-        public GameWindow Window
-        {
-            get
-            {
-                if (gamePlatform != null)
-                {
-                    return gamePlatform.MainWindow;
-                }
-                return null;
-            }
-        }
-
         public abstract void ConfirmRenderingSettings(bool gameCreation);
-
-        /// <summary>
-        /// Gets the full name of the device this game is running if available
-        /// </summary>
-        public string FullPlatformName => gamePlatform.FullName;
 
         #endregion
 
@@ -329,7 +267,12 @@ namespace Stride.Games
         public void Exit()
         {
             IsExiting = true;
-            gamePlatform.Exit();
+            OnExit();
+        }
+
+        protected virtual void OnExit()
+        {
+
         }
 
         /// <summary>
@@ -346,6 +289,8 @@ namespace Stride.Games
             {
                 using (var profile = Profiler.Begin(GameProfilingKeys.GameInitialize))
                 {
+                    PreGameInitialization();
+
                     // Initialize this instance and all game systems before trying to create the device.
                     Initialize();
 
@@ -398,66 +343,19 @@ namespace Stride.Games
         }
 
         /// <summary>
-        /// Call this method to initialize the game, begin running the game loop, and start processing events for the game.
+        /// Update this method with the games running logic. This runs after the core initialization of the <seealso cref="GameComponent"/>s
         /// </summary>
-        /// <param name="gameContext">The window Context for this game.</param>
-        /// <exception cref="System.InvalidOperationException">Cannot run this instance while it is already running</exception>
-        public void Run(GameContext gameContext = null)
+        protected virtual void RunInit()
         {
-            if (IsRunning)
-            {
-                throw new InvalidOperationException("Cannot run this instance while it is already running");
-            }
-
             // Gets the graphics device manager
             graphicsDeviceManager = Services.GetService<IGraphicsDeviceManager>();
-            if (graphicsDeviceManager == null)
-            {
-                throw new InvalidOperationException("No GraphicsDeviceManager found");
-            }
-
-            // Gets the GameWindow Context
-            if (gameContext == null)
-            {
-                AppContextType c;
-                if (OperatingSystem.IsWindows())
-                    c = AppContextType.Desktop;
-                else if (OperatingSystem.IsAndroid())
-                    c = AppContextType.Android;
-                else if (OperatingSystem.IsIOS() || OperatingSystem.IsTvOS() || OperatingSystem.IsWatchOS())
-                    c = AppContextType.iOS;
-                else
-                    c = AppContextType.DesktopSDL;
-                gameContext = GameContextFactory.NewGameContext(c);
-            }
-            
-            Context = gameContext;
+            ArgumentNullException.ThrowIfNull(graphicsDeviceManager, nameof(graphicsDeviceManager));
 
             PrepareContext();
 
             try
             {
-                // TODO temporary workaround as the engine doesn't support yet resize
-                var graphicsDeviceManagerImpl = (GraphicsDeviceManager)graphicsDeviceManager;
-                Context.RequestedWidth = graphicsDeviceManagerImpl.PreferredBackBufferWidth;
-                Context.RequestedHeight = graphicsDeviceManagerImpl.PreferredBackBufferHeight;
-                Context.RequestedBackBufferFormat = graphicsDeviceManagerImpl.PreferredBackBufferFormat;
-                Context.RequestedDepthStencilFormat = graphicsDeviceManagerImpl.PreferredDepthStencilFormat;
-                Context.RequestedGraphicsProfile = graphicsDeviceManagerImpl.PreferredGraphicsProfile;
-                Context.DeviceCreationFlags = graphicsDeviceManagerImpl.DeviceCreationFlags;
-
-                gamePlatform.Run(Context);
-
-                if (gamePlatform.IsBlockingRun)
-                {
-                    // If the previous call was blocking, then we can call Endrun
-                    EndRun();
-                }
-                else
-                {
-                    // EndRun will be executed on Game.Exit
-                    isEndRunRequired = true;
-                }
+                EndRun();
             }
             finally
             {
@@ -466,6 +364,26 @@ namespace Stride.Games
                     IsRunning = false;
                 }
             }
+        }
+
+        /// <summary>
+        /// Call this method to initialize the game, begin running the game loop, and start processing events for the game.
+        /// </summary>
+        /// <param name="gameContext">The window Context for this game.</param>
+        /// <exception cref="System.InvalidOperationException">Cannot run this instance while it is already running</exception>
+        public void Run()
+        {
+            if (IsRunning)
+            {
+                throw new InvalidOperationException("Cannot run this instance while it is already running");
+            }
+
+            foreach (var component in Components)
+            {
+                component.Initialize(Services);
+            }
+
+            RunInit();
         }
 
         /// <summary>
@@ -540,7 +458,7 @@ namespace Stride.Games
                 var singleFrameElapsedTime = elapsedAdjustedTime;
                 var drawLag = 0L;
 
-                if (suppressDraw || Window.IsMinimized && DrawWhileMinimized == false)
+                if (suppressDraw)
                 {
                     drawFrame = false;
                     suppressDraw = false;
@@ -585,19 +503,6 @@ namespace Stride.Games
                 }
 
                 RawTick(singleFrameElapsedTime, updateCount, drawLag / (float)TargetElapsedTime.Ticks, drawFrame);
-
-                var window = gamePlatform.MainWindow;
-                if (gamePlatform.IsBlockingRun) // throttle fps if Game.Tick() called from internal main loop
-                {
-                    if (window.IsMinimized || window.Visible == false || (window.Focused == false && TreatNotFocusedLikeMinimized))
-                    {
-                        MinimizedMinimumUpdateRate.Throttle(out long _);
-                    }
-                    else
-                    {
-                        WindowMinimumUpdateRate.Throttle(out long _);
-                    }
-                }
             }
             catch (Exception ex)
             {
@@ -653,8 +558,7 @@ namespace Stride.Games
                     var profilingDraw = Profiler.Begin(GameProfilingKeys.GameDrawFPS);
                     var profiler = Profiler.Begin(GameProfilingKeys.GameDraw);
 
-                    GraphicsDevice.FrameTriangleCount = 0;
-                    GraphicsDevice.FrameDrawCalls = 0;
+                    GraphicsDevice.ResetFrameCounters();
 
                     Draw(DrawTime);
 
@@ -701,23 +605,21 @@ namespace Stride.Games
         {
         }
 
+        protected virtual void PreGameInitialization()
+        {
+        }
+
         protected override void Destroy()
         {
             base.Destroy();
 
             lock (this)
             {
-                if (Window != null && Window.IsActivated) // force the window to be in an correct state during destroy (Deactivated events are sometimes dropped on windows)
-                {
-                    Window.OnPause();
-                }
-
                 var array = new IGameSystemBase[GameSystems.Count];
                 GameSystems.CopyTo(array, 0);
                 for (int i = 0; i < array.Length; i++)
                 {
-                    var disposable = array[i] as IDisposable;
-                    if (disposable != null)
+                    if (array[i] is IDisposable disposable)
                     {
                         disposable.Dispose();
                     }
@@ -726,18 +628,12 @@ namespace Stride.Games
                 // Reset graphics context
                 GraphicsContext = null;
 
-                var disposableGraphicsManager = graphicsDeviceManager as IDisposable;
-                if (disposableGraphicsManager != null)
+                if (graphicsDeviceManager is IDisposable disposableGraphicsManager)
                 {
                     disposableGraphicsManager.Dispose();
                 }
 
                 DisposeGraphicsDeviceEvents();
-
-                if (gamePlatform != null)
-                {
-                    gamePlatform.Release();
-                }
             }
         }
 
@@ -883,17 +779,6 @@ namespace Stride.Games
             Exiting?.Invoke(this, args);
         }
 
-        protected virtual void OnWindowCreated()
-        {
-            WindowCreated?.Invoke(this, EventArgs.Empty);
-        }
-
-        private void GamePlatformOnWindowCreated(object sender, EventArgs eventArgs)
-        {
-            Window.IsMouseVisible = isMouseVisible;
-            OnWindowCreated();
-        }
-
         /// <summary>
         /// This is used to display an error message if there is no suitable graphics device or sound card.
         /// </summary>
@@ -912,27 +797,54 @@ namespace Stride.Games
             GameSystems.UnloadContent();
         }
 
-        private void GamePlatform_Activated(object sender, EventArgs e)
+        protected void OnRunCallback()
         {
-            if (!IsActive)
+            // If/else outside of try-catch to separate user-unhandled exceptions properly
+            var unhandledException = UnhandledExceptionInternal;
+            if (unhandledException != null)
             {
-                IsActive = true;
-                OnActivated(this, EventArgs.Empty);
+                // Catch exceptions and transmit them to UnhandledException event
+                try
+                {
+                    Tick();
+                }
+                catch (Exception e)
+                {
+                    // Some system was listening for exceptions
+                    unhandledException(this, new GameUnhandledExceptionEventArgs(e, false));
+                    //Notify subscribers that the game is exiting
+                    Exiting?.Invoke(this, EventArgs.Empty);
+                }
+            }
+            else
+            {
+                Tick();
             }
         }
 
-        private void GamePlatform_Deactivated(object sender, EventArgs e)
+        protected void OnInitCallback()
         {
-            if (IsActive)
+            // If/else outside of try-catch to separate user-unhandled exceptions properly
+            var unhandledException = UnhandledExceptionInternal;
+            if (unhandledException != null)
             {
-                IsActive = false;
-                OnDeactivated(this, EventArgs.Empty);
+                // Catch exceptions and transmit them to UnhandledException event
+                try
+                {
+                    InitializeBeforeRun();
+                }
+                catch (Exception e)
+                {
+                    // Some system was listening for exceptions
+                    unhandledException(this, new GameUnhandledExceptionEventArgs(e, false));
+                    //Notify subscribers that the game is exiting
+                    Exiting.Invoke(this, EventArgs.Empty);
+                }
             }
-        }
-
-        private void GamePlatform_Exiting(object sender, EventArgs e)
-        {
-            OnExiting(this, EventArgs.Empty);
+            else
+            {
+                InitializeBeforeRun();
+            }
         }
 
         private void SetupGraphicsDeviceEvents()

@@ -49,7 +49,10 @@ namespace Stride.Games
 
         private readonly object lockDeviceCreation;
 
-        private GameBase game;
+        private GamePlatform _platform;
+        private IWindowedPlatform _windowedPlatform;
+
+        private IServiceRegistry _services;
 
         private bool deviceSettingsChanged;
 
@@ -98,15 +101,17 @@ namespace Stride.Games
         /// <summary>
         /// Initializes a new instance of the <see cref="GraphicsDeviceManager" /> class.
         /// </summary>
-        /// <param name="game">The game.</param>
+        /// <param name="platform">The game.</param>
         /// <exception cref="System.ArgumentNullException">The game instance cannot be null.</exception>
-        internal GraphicsDeviceManager(GameBase game)
+        public GraphicsDeviceManager(IServiceRegistry services)
         {
-            this.game = game;
-            if (this.game == null)
-            {
-                throw new ArgumentNullException("game");
-            }
+            _services = services;
+            var platform = services.GetSafeServiceAs<GamePlatform>();
+
+            _platform = platform;
+            _windowedPlatform = platform as IWindowedPlatform;
+            ArgumentNullException.ThrowIfNull(_platform);
+            ArgumentNullException.ThrowIfNull(_windowedPlatform);
 
             lockDeviceCreation = new object();
 
@@ -119,8 +124,8 @@ namespace Stride.Games
             preferredBackBufferHeight = DefaultBackBufferHeight;
             preferredRefreshRate = new Rational(60, 1);
             PreferredMultisampleCount = MultisampleCount.None;
-            PreferredGraphicsProfile = new[]
-                {
+            PreferredGraphicsProfile =
+                [
                     GraphicsProfile.Level_11_1, 
                     GraphicsProfile.Level_11_0, 
                     GraphicsProfile.Level_10_1, 
@@ -128,22 +133,25 @@ namespace Stride.Games
                     GraphicsProfile.Level_9_3, 
                     GraphicsProfile.Level_9_2, 
                     GraphicsProfile.Level_9_1, 
-                };
+                ];
 
-            graphicsDeviceFactory = game.Services.GetService<IGraphicsDeviceFactory>();
+            graphicsDeviceFactory = services.GetService<IGraphicsDeviceFactory>();
             if (graphicsDeviceFactory == null)
             {
                 throw new InvalidOperationException("IGraphicsDeviceFactory is not registered as a service");
             }
 
-            game.WindowCreated += GameOnWindowCreated;
+            _windowedPlatform.WindowCreated += GameOnWindowCreated;
+
+            services.AddService<IGraphicsDeviceManager>(this);
+            services.AddService<IGraphicsDeviceService>(this);
         }
 
         private void GameOnWindowCreated(object sender, EventArgs eventArgs)
         {
-            game.Window.ClientSizeChanged += Window_ClientSizeChanged;
-            game.Window.OrientationChanged += Window_OrientationChanged;
-            game.Window.FullscreenChanged += Window_FullscreenChanged;
+            _windowedPlatform.MainWindow.ClientSizeChanged += Window_ClientSizeChanged;
+            _windowedPlatform.MainWindow.OrientationChanged += Window_OrientationChanged;
+            _windowedPlatform.MainWindow.FullscreenChanged += Window_FullscreenChanged;
         }
 
         #endregion
@@ -568,22 +576,22 @@ namespace Stride.Games
 
         protected override void Destroy()
         {
-            if (game != null)
+            if (_platform != null)
             {
-                if (game.Services.GetService<IGraphicsDeviceService>() == this)
+                if (_services.GetService<IGraphicsDeviceService>() == this)
                 {
-                    game.Services.RemoveService<IGraphicsDeviceService>();
+                    _services.RemoveService<IGraphicsDeviceService>();
                 }
-                if (game.Services.GetService<IGraphicsDeviceManager>() == this)
+                if (_services.GetService<IGraphicsDeviceManager>() == this)
                 {
-                    game.Services.RemoveService<IGraphicsDeviceManager>();
+                    _services.RemoveService<IGraphicsDeviceManager>();
                 }
 
-                game.WindowCreated -= GameOnWindowCreated;
-                if (game.Window != null)
+                _windowedPlatform.WindowCreated -= GameOnWindowCreated;
+                if (_windowedPlatform is IWindowedPlatform windowedPlatform)
                 {
-                    game.Window.ClientSizeChanged -= Window_ClientSizeChanged;
-                    game.Window.OrientationChanged -= Window_OrientationChanged;
+                    windowedPlatform.MainWindow.ClientSizeChanged -= Window_ClientSizeChanged;
+                    windowedPlatform.MainWindow.OrientationChanged -= Window_OrientationChanged;
                 }
             }
 
@@ -885,10 +893,10 @@ namespace Stride.Games
 
         private void Window_ClientSizeChanged(object sender, EventArgs e)
         {
-            if (!isChangingDevice && ((game.Window.ClientBounds.Height != 0) || (game.Window.ClientBounds.Width != 0)))
+            if (!isChangingDevice && ((_windowedPlatform.MainWindow.ClientBounds.Height != 0) || (_windowedPlatform.MainWindow.ClientBounds.Width != 0)))
             {
-                resizedBackBufferWidth = game.Window.ClientBounds.Width;
-                resizedBackBufferHeight = game.Window.ClientBounds.Height;
+                resizedBackBufferWidth = _windowedPlatform.MainWindow.ClientBounds.Width;
+                resizedBackBufferHeight = _windowedPlatform.MainWindow.ClientBounds.Height;
                 isBackBufferToResize = true;
                 if (GraphicsDevice != null)
                 {
@@ -899,10 +907,10 @@ namespace Stride.Games
 
         private void Window_OrientationChanged(object sender, EventArgs e)
         {
-            if ((!isChangingDevice && ((game.Window.ClientBounds.Height != 0) || (game.Window.ClientBounds.Width != 0))) && (game.Window.CurrentOrientation != currentWindowOrientation))
+            if ((!isChangingDevice && ((_windowedPlatform.MainWindow.ClientBounds.Height != 0) || (_windowedPlatform.MainWindow.ClientBounds.Width != 0))) && (_windowedPlatform.MainWindow.CurrentOrientation != currentWindowOrientation))
             {
-                if ((game.Window.ClientBounds.Height > game.Window.ClientBounds.Width && preferredBackBufferWidth > preferredBackBufferHeight) ||
-                    (game.Window.ClientBounds.Width > game.Window.ClientBounds.Height && preferredBackBufferHeight > preferredBackBufferWidth))
+                if ((_windowedPlatform.MainWindow.ClientBounds.Height > _windowedPlatform.MainWindow.ClientBounds.Width && preferredBackBufferWidth > preferredBackBufferHeight) ||
+                    (_windowedPlatform.MainWindow.ClientBounds.Width > _windowedPlatform.MainWindow.ClientBounds.Height && preferredBackBufferHeight > preferredBackBufferWidth))
                 {
                     //Client size and Back Buffer size are different things
                     //in this case all we care is if orientation changed, if so we swap width and height
@@ -995,18 +1003,16 @@ namespace Stride.Games
             {
                 using (Profiler.Begin(GraphicsDeviceManagerProfilingKeys.CreateDevice))
                 {
-                    game.ConfirmRenderingSettings(GraphicsDevice == null); //if Device is null we assume we are still at game creation phase
-
                     isChangingDevice = true;
-                    var width = game.Window.ClientBounds.Width;
-                    var height = game.Window.ClientBounds.Height;
+                    var width = _windowedPlatform.MainWindow.ClientBounds.Width;
+                    var height = _windowedPlatform.MainWindow.ClientBounds.Height;
 
                     //If the orientation is free to be changed from portrait to landscape we actually need this check now, 
                     //it is mostly useful only at initialization actually tho because Window_OrientationChanged does the same logic on runtime change
-                    if (game.Window.CurrentOrientation != currentWindowOrientation)
+                    if (_windowedPlatform.MainWindow.CurrentOrientation != currentWindowOrientation)
                     {
-                        if ((game.Window.ClientBounds.Height > game.Window.ClientBounds.Width && preferredBackBufferWidth > preferredBackBufferHeight) ||
-                            (game.Window.ClientBounds.Width > game.Window.ClientBounds.Height && preferredBackBufferHeight > preferredBackBufferWidth))
+                        if ((_windowedPlatform.MainWindow.ClientBounds.Height > _windowedPlatform.MainWindow.ClientBounds.Width && preferredBackBufferWidth > preferredBackBufferHeight) ||
+                            (_windowedPlatform.MainWindow.ClientBounds.Width > _windowedPlatform.MainWindow.ClientBounds.Height && preferredBackBufferHeight > preferredBackBufferWidth))
                         {
                             //Client size and Back Buffer size are different things
                             //in this case all we care is if orientation changed, if so we swap width and height
@@ -1021,14 +1027,14 @@ namespace Stride.Games
                     {
                         // Notifies the game window for the new orientation
                         var orientation = SelectOrientation(supportedOrientations, PreferredBackBufferWidth, PreferredBackBufferHeight, true);
-                        game.Window.SetSupportedOrientations(orientation);
+                        _windowedPlatform.MainWindow.SetSupportedOrientations(orientation);
 
                         var graphicsDeviceInformation = FindBestDevice(forceCreate);
 
                         OnPreparingDeviceSettings(this, new PreparingDeviceSettingsEventArgs(graphicsDeviceInformation));
 
                         isFullScreen = graphicsDeviceInformation.PresentationParameters.IsFullScreen;
-                        game.Window.BeginScreenDeviceChange(graphicsDeviceInformation.PresentationParameters.IsFullScreen);
+                        _windowedPlatform.MainWindow.BeginScreenDeviceChange(graphicsDeviceInformation.PresentationParameters.IsFullScreen);
                         isBeginScreenDeviceChange = true;
                         bool needToCreateNewDevice = true;
 
@@ -1090,11 +1096,11 @@ namespace Stride.Games
                     {
                         if (isBeginScreenDeviceChange)
                         {
-                            game.Window.EndScreenDeviceChange(width, height);
-                            game.Window.SetIsReallyFullscreen(isReallyFullScreen);
+                            _windowedPlatform.MainWindow.EndScreenDeviceChange(width, height);
+                            _windowedPlatform.MainWindow.SetIsReallyFullscreen(isReallyFullScreen);
                         }
 
-                        currentWindowOrientation = game.Window.CurrentOrientation;
+                        currentWindowOrientation = _windowedPlatform.MainWindow.CurrentOrientation;
                         isChangingDevice = false;
                     }
                 }

@@ -64,6 +64,7 @@ namespace Stride.Input
         public override string Name => "Windows Mouse";
         public override Guid Id { get; }
         public override bool IsPositionLocked => isPositionLocked;
+        public override bool IsMouseVisible { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
         public override void Update(List<InputEvent> inputEvents)
         {

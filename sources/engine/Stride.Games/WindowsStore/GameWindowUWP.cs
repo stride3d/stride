@@ -356,7 +356,7 @@ namespace Stride.Games
             }
         }
 
-        internal override void Resize(int width, int height)
+        public override void Resize(int width, int height)
         {
             currentWidth = width;
             currentHeight = height;

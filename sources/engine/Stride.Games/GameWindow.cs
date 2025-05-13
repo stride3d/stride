@@ -98,6 +98,8 @@ namespace Stride.Games
         /// <value>The current orientation.</value>
         public abstract DisplayOrientation CurrentOrientation { get; }
 
+        public WindowState CurrentWindowState;
+
         /// <summary>
         /// Gets a value indicating whether this instance is minimized.
         /// </summary>
@@ -109,12 +111,6 @@ namespace Stride.Games
         /// </summary>
         /// <value><c>true</c> if this instance is in focus; otherwise, <c>false</c>.</value>
         public abstract bool Focused { get; }
-
-        /// <summary>
-        /// Gets or sets a value indicating whether the mouse pointer is visible over this window.
-        /// </summary>
-        /// <value><c>true</c> if this instance is mouse visible; otherwise, <c>false</c>.</value>
-        public abstract bool IsMouseVisible { get; set; }
 
         /// <summary>
         /// Gets the native window.
@@ -225,19 +221,17 @@ namespace Stride.Games
 
         #region Methods
 
-        protected internal abstract void Initialize(GameContext gameContext);
+        public bool Exiting;
 
-        internal bool Exiting;
+        public Action InitCallback;
 
-        internal Action InitCallback;
+        public Action RunCallback;
 
-        internal Action RunCallback;
-
-        internal Action ExitCallback;
+        public Action ExitCallback;
         
         private bool isFullscreen;
 
-        internal abstract void Run();
+        public abstract void Run();
 
         /// <summary>
         /// Sets the size of the client area and triggers the <see cref="ClientSizeChanged"/> event.
@@ -253,7 +247,7 @@ namespace Stride.Games
         /// Only used internally by the device managers when they adapt the window size to the backbuffer size.
         /// Resizes the window, without sending the resized event.
         /// </summary>
-        internal abstract void Resize(int width, int height);
+        public abstract void Resize(int width, int height);
 
         public virtual IMessageLoop CreateUserManagedMessageLoop()
         {
@@ -261,7 +255,7 @@ namespace Stride.Games
             throw new PlatformNotSupportedException();
         }
 
-        internal IServiceRegistry Services { get; set; }
+        public IServiceRegistry Services { get; set; }
 
         protected internal abstract void SetSupportedOrientations(DisplayOrientation orientations);
 
@@ -328,26 +322,7 @@ namespace Stride.Games
         {
             OnActivated(this, EventArgs.Empty);
         }
-    }
 
-    public abstract class GameWindow<TK> : GameWindow
-    {
-        protected internal sealed override void Initialize(GameContext gameContext)
-        {
-            var context = gameContext as GameContext<TK>;
-            if (context != null)
-            {
-                GameContext = context;
-                Initialize(context);
-            }
-            else
-            {
-                throw new InvalidOperationException("Invalid context for current game.");
-            }
-        }
-
-        internal GameContext<TK> GameContext;
-
-        protected abstract void Initialize(GameContext<TK> context);
+        public abstract void CreateWindow(int width, int height);
     }
 }
