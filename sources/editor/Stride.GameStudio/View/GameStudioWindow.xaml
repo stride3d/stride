@@ -1686,8 +1686,11 @@
                                                     <RowDefinition Height="*" />
                                                 </Grid.RowDefinitions>
 
-                                                <!--  Верхній рядок  -->
-                                                <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
+                                                <!--  Top row  -->
+                                                <StackPanel
+                                                    Margin="4,0,0,0"
+                                                    VerticalAlignment="Center"
+                                                    Orientation="Horizontal">
                                                     <ComboBox
                                                         Width="150"
                                                         Margin="0,0,5,0"
@@ -1767,8 +1770,8 @@
                                                         ToolTip="Additional operations" />
                                                 </StackPanel>
 
-                                                <!--  Поле повідомлення  -->
-                                                <StackPanel Grid.Row="1" Margin="0,10,0,0">
+                                                <!--  Message field  -->
+                                                <StackPanel Grid.Row="1" Margin="4,10,0,0">
                                                     <sd:TextBox
                                                         Height="60"
                                                         AcceptsReturn="True"
@@ -1780,16 +1783,18 @@
                                                         WatermarkContent="{sd:Localize Enter message &lt;Required&gt;}" />
                                                 </StackPanel>
 
-                                                <!--  Нижня частина  -->
-                                                <StackPanel Grid.Row="2" Margin="0,10,0,0">
+                                                <!--  Bottom part  -->
+                                                <StackPanel Grid.Row="2" Margin="4,10,0,0">
                                                     <StackPanel Orientation="Horizontal">
                                                         <Button
-                                                            Width="200"
+                                                            Width="175"
+                                                            Height="30"
                                                             Margin="0,0,10,0"
                                                             Background="#FF2D2D30"
                                                             Command="{Binding GitChanges.CommitChangesCommand}"
-                                                            Content="Зафиксировать все"
+                                                            Content="Fix everything"
                                                             Cursor="Hand"
+                                                            FontWeight="Black"
                                                             Foreground="White" />
                                                     </StackPanel>
 
@@ -1811,7 +1816,7 @@
                                                                     FontSize="14"
                                                                     FontWeight="SemiBold"
                                                                     Foreground="White"
-                                                                    Text="Связанные элементы" />
+                                                                    Text="Related items" />
 
                                                                 <Button
                                                                     Grid.Column="1"
@@ -1828,9 +1833,6 @@
                                                                     Foreground="White" />
                                                             </Grid>
                                                         </Expander.Header>
-                                                        <!--<StackPanel Margin="10,5,0,0" Orientation="Vertical">
-                                                            <TextBlock Foreground="Gray" Text="В фиксации не упомянуто ни одного елемента" />
-                                                        </StackPanel>-->
                                                         <Grid Height="300">
                                                             <TreeView
                                                                 Background="#1E1E1E"
@@ -1841,7 +1843,7 @@
                                                                 <TreeView.ItemTemplate>
                                                                     <DataTemplate>
                                                                         <DockPanel Margin="2" LastChildFill="True">
-                                                                            <!--  Кнопка справа  -->
+                                                                            <!--  Button on the right  -->
                                                                             <Button
                                                                                 Width="24"
                                                                                 Height="24"
@@ -1854,9 +1856,9 @@
                                                                                 Cursor="Hand"
                                                                                 DockPanel.Dock="Right" />
 
-                                                                            <!--  Посилання + статус зліва  -->
+                                                                            <!--  Link + status on the left  -->
                                                                             <StackPanel Orientation="Horizontal">
-                                                                                <!--  Посилання без можливості виділення  -->
+                                                                                <!--  Non-selectable links  -->
                                                                                 <TextBlock
                                                                                     Cursor="Hand"
                                                                                     Foreground="White"
@@ -1882,10 +1884,7 @@
                                                         Background="#FF2D2D30"
                                                         Foreground="White"
                                                         IsExpanded="True">
-                                                        <!--<StackPanel Margin="10,5,0,0" Orientation="Vertical">
-                                                          <TextBlock Foreground="Gray" Text="В рабочей папке нет неподготовленных изменений." />
-                                                        </StackPanel>-->
-                                                        <!--  Кастомний заголовок  -->
+                                                        <!--  Custom header  -->
                                                         <Expander.Header>
                                                             <Grid>
                                                                 <Grid.ColumnDefinitions>
@@ -1899,7 +1898,7 @@
                                                                     FontSize="14"
                                                                     FontWeight="SemiBold"
                                                                     Foreground="White"
-                                                                    Text="Изменения" />
+                                                                    Text="Changes" />
 
                                                                 <Button
                                                                     Grid.Column="1"
@@ -1958,7 +1957,7 @@
                                                                 <TreeView.ItemTemplate>
                                                                     <DataTemplate>
                                                                         <DockPanel Margin="2" LastChildFill="True">
-                                                                            <!--  Кнопка справа  -->
+                                                                            <!--  Button on the right  -->
                                                                             <Button
                                                                                 Width="24"
                                                                                 Height="24"
@@ -1971,9 +1970,9 @@
                                                                                 Cursor="Hand"
                                                                                 DockPanel.Dock="Right" />
 
-                                                                            <!--  Посилання + статус зліва  -->
+                                                                            <!--  Link + status on the left  -->
                                                                             <StackPanel Orientation="Horizontal">
-                                                                                <!--  Посилання без можливості виділення  -->
+                                                                                <!--  Non-selectable links  -->
                                                                                 <TextBlock
                                                                                     Cursor="Hand"
                                                                                     Foreground="White"
@@ -2012,7 +2011,7 @@
                                                                     FontSize="14"
                                                                     FontWeight="SemiBold"
                                                                     Foreground="White"
-                                                                    Text="Спрятанные изменения" />
+                                                                    Text="Hidden changes" />
 
                                                                 <Button
                                                                     Grid.Column="1"
@@ -2029,16 +2028,8 @@
                                                             </Grid>
                                                         </Expander.Header>
                                                         <Grid Height="300">
-                                                            <StackPanel ScrollViewer.VerticalScrollBarVisibility="Auto">
-                                                                <!--  Кнопка "Удалить все"  -->
-                                                                <TextBlock
-                                                                    Margin="0,0,0,10"
-                                                                    Cursor="Hand"
-                                                                    FontWeight="Bold"
-                                                                    Foreground="#3DAEE9"
-                                                                    Text="Удалить все" />
-
-                                                                <!--  Список скрытых изменений  -->
+                                                            <StackPanel Background="#FF2D2D30" ScrollViewer.VerticalScrollBarVisibility="Auto">
+                                                                <!--  List of hidden changes  -->
                                                                 <ItemsControl ItemsSource="{Binding GitChanges.StashedFiles}">
                                                                     <ItemsControl.ItemTemplate>
                                                                         <DataTemplate>
@@ -2054,9 +2045,6 @@
                                                 </StackPanel>
                                             </Grid>
                                         </DockPanel>
-                                        <!--<DockPanel LastChildFill="True">
-                                            <ContentPresenter Content="{Binding Preview.PreviewObject}" />
-                                        </DockPanel>-->
                                     </xcad:LayoutAnchorable>
                                     <!--  EDIT HISTORY  -->
                                     <xcad:LayoutAnchorable
