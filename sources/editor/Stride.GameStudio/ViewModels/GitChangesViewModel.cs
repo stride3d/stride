@@ -83,6 +83,17 @@ namespace Stride.GameStudio.ViewModels
                 }
             }
         }
+        private bool hasRemoteOrigin = false;
+        public bool HasRemoteOrigin
+        {
+            get => hasRemoteOrigin;
+            set
+            {
+                OnPropertyChanging(nameof(CurrentBranch));
+                hasRemoteOrigin = value;
+                OnPropertyChanged(nameof(CurrentBranch));
+            }
+        }
 
         public ObservableList<string> Branches { get; private set; } = new();
         public ObservableList<GitFile> StagedFiles { get; private set; } = new();
@@ -119,6 +130,15 @@ namespace Stride.GameStudio.ViewModels
                 {
                     UnstagedFiles.Add(file);
                 }
+            }
+            var hasRemoteResult = gitService.HasRemoteOrigin();
+            if (hasRemoteResult.Success)
+            {
+                HasRemoteOrigin = hasRemoteResult.Data;
+            }
+            else
+            {
+                HasRemoteOrigin = false;
             }
         }
 
