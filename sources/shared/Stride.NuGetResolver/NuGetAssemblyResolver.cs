@@ -257,7 +257,9 @@ public static partial class NuGetAssemblyResolver
         var registerDependencyMethod = nativeLibraryHelperType.GetMethod("RegisterDependency")
             ?? throw new InvalidOperationException($"Couldn't find method 'RegisterDependency' in {nativeLibraryHelperType}");
         foreach (var lib in nativeLibs)
+        {
             registerDependencyMethod.Invoke(null, [lib]);
+        } 
     }
 
     /// <summary>
