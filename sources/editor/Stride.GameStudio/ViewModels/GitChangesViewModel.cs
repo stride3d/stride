@@ -78,7 +78,7 @@ namespace Stride.GameStudio.ViewModels
 
                     if (CheckoutBranchCommand?.CanExecute(value) == true)
                     {
-                        CheckoutBranchCommand.Execute(value);
+                        CheckoutBranch(value);
                     }
                 }
             }
@@ -185,7 +185,16 @@ namespace Stride.GameStudio.ViewModels
 
         private void CheckoutBranch(string branchName)
         {
-            ExecuteGitAction(() => gitService.CheckoutBranch(branchName));
+            ExecuteGitAction(() =>
+            {
+                var result = gitService.CheckoutBranch(branchName);
+                if (!result.Success)
+                {
+                    return result;
+                }
+                CurrentBranch = branchName;
+                return result;
+            });
         }
 
         private void AddFileToStaged(string filePath)
