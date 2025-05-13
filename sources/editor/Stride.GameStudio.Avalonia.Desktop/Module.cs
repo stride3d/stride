@@ -9,7 +9,23 @@ internal static class Module
     public static void Initialize()
     {
         // Override import resolution for Avalonia native dependencies
-        NativeLibrary.SetDllImportResolver(typeof(HarfBuzzSharp.ContentType).Assembly, (name, _, _) => NativeLibraryHelper.PreloadLibrary(name, typeof(HarfBuzzSharp.ContentType)));
-        NativeLibrary.SetDllImportResolver(typeof(SkiaSharp.GRBackend).Assembly, (name, _, _) => NativeLibraryHelper.PreloadLibrary(name, typeof(SkiaSharp.GRBackend)));
+        OverrideImportResolution<HarfBuzzSharp.ContentType>();
+        OverrideImportResolution<SkiaSharp.GRBackend>();
+        return;
+
+        static void OverrideImportResolution<T>()
+        {
+            NativeLibrary.SetDllImportResolver(typeof(T).Assembly, (name, _, _) =>
+            {
+                try
+                {
+                    return NativeLibraryHelper.PreloadLibrary(name, typeof(T));
+                }
+                catch (Exception)
+                {
+                    return nint.Zero;
+                }
+            });
+        }
     }
 }
