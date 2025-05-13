@@ -334,6 +334,8 @@ namespace Stride.Games
                 }
             }
         }
+        
+        public override bool IsBackGroundTransparent { get; set; }
 
         private void UpdateFormBorder()
         {

@@ -114,7 +114,7 @@ namespace Stride.Games
         /// Gets or sets a value indicating whether the mouse pointer is visible over this window.
         /// </summary>
         /// <value><c>true</c> if this instance is mouse visible; otherwise, <c>false</c>.</value>
-        public abstract bool IsMouseVisible { get; set; }
+        public abstract bool IsMouseVisible { get; set; } 
 
         /// <summary>
         /// Gets the native window.
@@ -127,6 +127,7 @@ namespace Stride.Games
         /// </summary>
         /// <value><c>true</c> if visible; otherwise, <c>false</c>.</value>
         public abstract bool Visible { get; set; }
+        
 
         /// <summary>
         /// Gets or sets the position of the window on the screen.
@@ -138,6 +139,12 @@ namespace Stride.Games
         /// </summary>
         /// <value><c>true</c> if this window has a border; otherwise, <c>false</c>.</value>
         public abstract bool IsBorderLess { get; set; }
+        
+        /// <summary>
+        /// Gets or sets a value indicating whether this window background is transparent.
+        /// </summary>
+        /// <value><c>true</c> if this window background is transparent; otherwise, <c>false</c>.</value>
+        public abstract bool IsBackGroundTransparent { get; set; }
 
         /// <summary>
         /// Gets or sets the title of the window.
