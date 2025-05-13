@@ -131,6 +131,7 @@ namespace Stride.GameStudio.ViewModels
                     UnstagedFiles.Add(file);
                 }
             }
+
             var hasRemoteResult = gitService.HasRemoteOrigin();
             if (hasRemoteResult.Success)
             {
