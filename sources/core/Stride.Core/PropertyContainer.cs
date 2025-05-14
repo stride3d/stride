@@ -3,7 +3,6 @@
 #pragma warning disable SA1402 // File may only contain a single class
 
 using System.Collections;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using Stride.Core.Serialization;
@@ -521,7 +520,10 @@ public struct PropertyContainer : IDictionary<PropertyKey, object>, IReadOnlyDic
                 }
                 catch(ArgumentException ex)
                 {
-                    Debugger.Break();
+                    if (System.Diagnostics.Debugger.IsAttached)
+                    {
+                        System.Diagnostics.Debugger.Break();
+                    }
                 }
             }
             else
