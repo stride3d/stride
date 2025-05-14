@@ -3,6 +3,7 @@
 #pragma warning disable SA1402 // File may only contain a single class
 
 using System.Collections;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using Stride.Core.Serialization;
@@ -513,7 +514,16 @@ public struct PropertyContainer : IDictionary<PropertyKey, object>, IReadOnlyDic
         else
         {
             if (tryToAdd)
-                properties.Add(propertyKey, valueToSet);
+            {
+                try
+                {
+                    properties.Add(propertyKey, valueToSet);
+                }
+                catch(ArgumentException ex)
+                {
+                    Debugger.Break();
+                }
+            }
             else
                 properties[propertyKey] = valueToSet;
         }
