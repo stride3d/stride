@@ -45,7 +45,7 @@ public abstract class VectorEditorBase<T> : VectorEditorBase
 
     static VectorEditorBase()
     {
-        ValueProperty.Changed.AddClassHandler<VectorEditorBase<T>>(OnValueValueChanged);
+        ValueProperty.Changed.AddClassHandler<VectorEditorBase<T>>(OnValuePropertyChanged);
     }
 
     public static readonly StyledProperty<T> ValueProperty =
@@ -107,7 +107,7 @@ public abstract class VectorEditorBase<T> : VectorEditorBase
     /// <summary>
     /// Raised when the <see cref="Value"/> property is modified.
     /// </summary>
-    private void OnValueValueChanged()
+    private void OnValuePropertyChanged()
     {
         var isInitializing = !templateApplied && initializingProperty is null;
         if (isInitializing)
@@ -172,8 +172,8 @@ public abstract class VectorEditorBase<T> : VectorEditorBase
         return decimalPlaces < 0 ? basevalue : MathF.Round(basevalue.Value, decimalPlaces);
     }
 
-    private static void OnValueValueChanged(VectorEditorBase<T> sender, AvaloniaPropertyChangedEventArgs e)
+    private static void OnValuePropertyChanged(VectorEditorBase<T> sender, AvaloniaPropertyChangedEventArgs e)
     {
-        sender.OnValueValueChanged();
+        sender.OnValuePropertyChanged();
     }
 }
