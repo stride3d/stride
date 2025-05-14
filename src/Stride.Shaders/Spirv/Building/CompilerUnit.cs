@@ -1,4 +1,7 @@
+using System.Text;
 using Stride.Shaders.Parsing.SDSL.AST;
+using Stride.Shaders.Spirv.Core.Buffers;
+using Stride.Shaders.Spirv.Tools;
 
 namespace Stride.Shaders.Spirv.Building;
 
@@ -32,5 +35,16 @@ public class CompilerUnit : IDisposable
     {
         Builder.Dispose();
         Context.Dispose();
+    }
+
+    public override string ToString()
+    {
+        var builder = new StringBuilder();
+        builder
+            .AppendLine("Context : ")
+            .AppendLine(new SpirvDis<SpirvBuffer>(Context.Buffer).Disassemble())
+            .AppendLine("Functions : ")
+            .AppendLine(new SpirvDis<SpirvBuffer>(Builder.Buffer).Disassemble());
+        return builder.ToString();
     }
 }

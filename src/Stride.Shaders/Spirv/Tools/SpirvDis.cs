@@ -23,6 +23,8 @@ public partial struct SpirvDis<TBuffer>
     public SpirvDis(TBuffer buff, bool useNames = false)
     {
         buffer = buff;
+        if(buff.InstructionSpan.Length == 0)
+            return;
         writer = new();
         UseNames = useNames;
         IdOffset = 9;
@@ -71,6 +73,9 @@ public partial struct SpirvDis<TBuffer>
                 .AppendLine($"; Bound: {header.Bound}")
                 .AppendLine($"; Schema: {header.Schema}");
         }
+        
+        if(buffer.InstructionSpan.Length == 0)
+            return "";
 
         foreach (var e in buffer)
         {
@@ -129,7 +134,7 @@ public partial struct SpirvDis<TBuffer>
         else if (instruction.OpCode == SDSLOp.OpTypeFloat)
         {
             var size = instruction.Operands[1];
-            nameTable[instruction.ResultId!.Value] = new(size == 16 ? "half" : size == 64 ? "double" : "float");
+            nameTable[instruction.ResultId!.Value] = new(size switch {16 => "half", 32 => "float", 64 => "double", _ => throw new NotImplementedException()});
         }
         else if (instruction.OpCode == SDSLOp.OpTypeVector)
         {

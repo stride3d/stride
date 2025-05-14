@@ -1,6 +1,7 @@
 using Stride.Shaders.Core;
 using Stride.Shaders.Spirv.Core;
 using Stride.Shaders.Spirv.Core.Buffers;
+using Stride.Shaders.Spirv.Tools;
 
 namespace Stride.Shaders.Spirv.Building;
 
@@ -63,4 +64,8 @@ public partial class SpirvBuilder() : IDisposable
     }
 
     public void Dispose() => Buffer.Dispose();
+    public override string ToString()
+    {
+        return new SpirvDis<SpirvBuffer>(Buffer).Disassemble();
+    }
 }

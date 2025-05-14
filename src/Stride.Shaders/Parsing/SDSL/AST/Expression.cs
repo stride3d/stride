@@ -160,7 +160,7 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
         }
 
         var resultType = context.GetOrRegister(Type);
-        var result = context.Buffer.InsertOpAccessChain(builder.Position, variable, resultType, source.Id, indexes);
+        var result = builder.Buffer.InsertOpAccessChain(builder.Position, variable, resultType, source.Id, indexes);
         builder.Position += result.WordCount;
         return new(result, resultType);
     }

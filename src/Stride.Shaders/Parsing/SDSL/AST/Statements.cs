@@ -161,7 +161,7 @@ public class Declare(TypeName typename, TextLocation info) : Declaration(typenam
         foreach (var d in Variables)
         {
             var variable = context.Bound++;
-            var instruction = context.Buffer.InsertOpVariable(builder.Position, variable, registeredType, Spv.Specification.StorageClass.Function, null);
+            var instruction = builder.Buffer.InsertOpVariable(builder.Position, variable, registeredType, Spv.Specification.StorageClass.Function, null);
             builder.Position += instruction.WordCount;
             context.AddName(variable, d.Variable);
 
@@ -194,7 +194,7 @@ public class Assign(TextLocation info) : Statement(info)
         {
             var target = variable.Variable.Compile(table, shader, compiler);
             var source = variable.Value!.Compile(table, shader, compiler);
-            var instruction = context.Buffer.InsertOpStore(builder.Position, target.Id, source.Id, null);
+            var instruction = builder.Buffer.InsertOpStore(builder.Position, target.Id, source.Id, null);
             builder.Position += instruction.WordCount;
         }
     }
