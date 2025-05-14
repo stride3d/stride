@@ -1,0 +1,15 @@
+namespace Stride.Shaders.Tests;
+
+shader TestStruct
+{
+    struct A
+    {
+        int B;
+    };
+
+    void VSMain()
+    {
+        A a;
+        a.B = 3;
+    }
+}

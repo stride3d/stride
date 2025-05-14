@@ -107,23 +107,8 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
             table.CurrentFunctionSymbols.Add(table.Streams);
             streamVar.ProcessSymbol(table, entrypoint, io);
             Type = streamVar.Type;
-            // If has more, dive into the type definition
-            // First case none
-            if (Accessors.Count > 1)
-            {
-                foreach (var accessor in Accessors[1..])
-                {
-                    if (Type is not null && Type.TryAccess(accessor, out var type))
-                    {
-                        Type = type;
-                        accessor.Type = type;
-                    }
-                    else throw new NotImplementedException($"Cannot access {accessor.GetType().Name} from {Type}");
 
-                    if(accessor is not Identifier)
-                        accessor.ProcessSymbol(table, entrypoint, io ?? StreamIO.Input);
-                }
-            }
+            ProcessAccessors();
 
             table.Pop();
             table.RootSymbols.StreamUsages.Add(new(streamVar, SymbolKind.Variable, Storage.Stream), new(entrypoint ?? EntryPoint.None, io ?? StreamIO.Output));
@@ -132,7 +117,12 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
         {
             Source.ProcessSymbol(table, entrypoint, io ?? StreamIO.Output);
             Type = Source.Type;
-            foreach (var accessor in Accessors[1..])
+            ProcessAccessors();
+        }
+
+        void ProcessAccessors()
+        {
+            foreach (var accessor in Accessors)
             {
                 if (Type is not null && Type.TryAccess(accessor, out var type))
                 {
@@ -147,7 +137,32 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
     }
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
-        throw new NotImplementedException();
+        var (builder, context, _) = compiler;
+        var source = Source.Compile(table, shader, compiler);
+        var variable = context.Bound++;
+
+        if (Source is Identifier { Name: "streams" } streams && Accessors[0] is Identifier streamVar)
+            throw new NotImplementedException();
+
+        var currentType = Source.Type;
+        Span<IdRef> indexes = stackalloc IdRef[Accessors.Count - 1];
+        foreach (var accessor in Accessors)
+        {
+            if (currentType is StructType s && accessor is Identifier field)
+            {
+                var index = s.TryGetFieldIndex(field);
+                if (index == -1)
+                    throw new InvalidOperationException($"field {accessor} not found in struct type {s}");
+            }
+            else throw new NotImplementedException($"unknown accessor {accessor} in expression {this}");
+
+            currentType = accessor.Type;
+        }
+
+        var resultType = context.GetOrRegister(Type);
+        var result = context.Buffer.InsertOpAccessChain(builder.Position, variable, resultType, source.Id, indexes);
+        builder.Position += result.WordCount;
+        return new(result, resultType);
     }
 
     public override string ToString()

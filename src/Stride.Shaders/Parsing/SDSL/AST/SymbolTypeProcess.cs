@@ -28,10 +28,11 @@ public static class SymbolTypeProcessExtension
         }
         else if(symbol is StructType s && expression is Identifier field)
         {
-            if(s.Fields.TryGetValue(field, out var ft))
+            if(s.TryGetFieldType(field, out var ft))
             {
                 type = ft;
                 field.Type = ft;
+                return true;
             }
             else throw new NotImplementedException($"field {field} not found in type {s}");
         }

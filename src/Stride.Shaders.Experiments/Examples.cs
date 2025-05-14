@@ -142,7 +142,7 @@ public static partial class Examples
             }
             else
             {
-                // Console.WriteLine(f);
+                Console.WriteLine(f);
             }
         }
         Console.ForegroundColor = ConsoleColor.White;
@@ -212,7 +212,7 @@ public static partial class Examples
 
     public static void CompileSDSL()
     {
-        var text = MonoGamePreProcessor.OpenAndRun("./assets/SDSL/TestBasic.sdsl");
+        var text = MonoGamePreProcessor.OpenAndRun("./assets/SDSL/TestStruct.sdsl");
 
         var sdslc = new SDSLC();
         sdslc.Compile(text, out var bytecode);

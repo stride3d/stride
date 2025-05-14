@@ -172,15 +172,19 @@ public class ShaderStruct(Identifier typename, TextLocation info) : ShaderElemen
 
     public override void ProcessSymbol(SymbolTable table)
     {
-        var sym = new Symbol(new(TypeName.ToString() ?? "", SymbolKind.Struct), new StructType(TypeName.ToString() ?? "", []));
-        table.DeclaredTypes.TryAdd(sym.ToString(), sym.Type);
-        table.RootSymbols.Add(new(TypeName.ToString() ?? "", SymbolKind.Struct), sym);
+        var fields = new List<(string Name, SymbolType Type)>();
         foreach (var smem in Members)
         {
             smem.TypeName.ProcessSymbol(table);
             smem.Type = smem.TypeName.Type;
             table.DeclaredTypes.TryAdd(smem.Type.ToString(), smem.Type);
+
+            fields.Add((smem.Name, smem.Type));
         }
+
+        var sym = new Symbol(new(TypeName.ToString() ?? "", SymbolKind.Struct), new StructType(TypeName.ToString() ?? "", fields));
+        table.DeclaredTypes.TryAdd(TypeName.ToString(), sym.Type);
+        table.RootSymbols.Add(new(TypeName.ToString() ?? "", SymbolKind.Struct), sym);
     }
 
     public override string ToString()

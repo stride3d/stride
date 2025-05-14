@@ -12,7 +12,7 @@ public partial class SpirvBuilder() : IDisposable
     public SpirvBuffer Buffer { get; init; } = new();
     public SpirvFunction? CurrentFunction { get; private set; }
     public SpirvBlock? CurrentBlock { get; private set; }
-    public int Position { get; private set; } = 5;
+    public int Position { get; internal set; } = 5;
 
     public void SetPositionTo<TBlock>(TBlock block, bool beggining = false)
         where TBlock : IInstructionBlock

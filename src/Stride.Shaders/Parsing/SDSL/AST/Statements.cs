@@ -150,13 +150,24 @@ public class Declare(TypeName typename, TextLocation info) : Declaration(typenam
             foreach (var d in Variables)
             {
                 d.Value?.ProcessSymbol(table, entrypoint, io);
-                table.CurrentFrame.Add(new(d.Variable, SymbolKind.Variable), new(new(d.Variable, SymbolKind.Variable), Type));
+                table.CurrentFrame.Add(new(d.Variable, SymbolKind.Variable, Storage.Function), new(new(d.Variable, SymbolKind.Variable), Type));
             }
         }
     }
     public override void Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
-        throw new NotImplementedException();
+        var (builder, context, _) = compiler;
+        var registeredType = context.GetOrRegister(new PointerType(Type!));
+        foreach (var d in Variables)
+        {
+            var variable = context.Bound++;
+            var instruction = context.Buffer.InsertOpVariable(builder.Position, variable, registeredType, Spv.Specification.StorageClass.Function, null);
+            builder.Position += instruction.WordCount;
+            context.AddName(variable, d.Variable);
+
+            if (builder.CurrentFunction is SpirvFunction f)
+                f.Variables.Add(d.Variable, new(variable, registeredType, d.Variable));
+        }
     }
     public override string ToString()
     {
@@ -171,18 +182,21 @@ public class Assign(TextLocation info) : Statement(info)
     public override void ProcessSymbol(SymbolTable table, ShaderMethod method, EntryPoint? entrypoint = null, StreamIO? io = null)
     {
         foreach (var variable in Variables)
+        {
             variable.Variable.ProcessSymbol(table, entrypoint, io);
+            variable.Value!.ProcessSymbol(table, entrypoint, io);
+        }
     }
     public override void Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
-        var (builder, _, _) = compiler;
+        var (builder, context, _) = compiler;
         foreach (var variable in Variables)
         {
             var target = variable.Variable.Compile(table, shader, compiler);
-            var source = variable.Value.Compile(table, shader, compiler);
-            builder.Buffer.InsertOpStore(builder.Position, target.Id, source.Id, null);
+            var source = variable.Value!.Compile(table, shader, compiler);
+            var instruction = context.Buffer.InsertOpStore(builder.Position, target.Id, source.Id, null);
+            builder.Position += instruction.WordCount;
         }
-        throw new NotImplementedException();
     }
     public override string ToString()
     {

@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 
 namespace Stride.Shaders.Core;
@@ -65,9 +66,36 @@ public sealed record ArrayType(SymbolType BaseType, int Size) : SymbolType()
 {
     public override string ToString() => $"{BaseType}[{Size}]";
 }
-public sealed record StructType(string Name, SortedList<string, SymbolType> Fields) : SymbolType()
+public sealed record StructType(string Name, List<(string Name, SymbolType Type)> Fields) : SymbolType()
 {
-    public override string ToString() => $"{Name}{{{string.Join(", ", Fields.Select(x => $"{x.Value} {x.Key}"))}}}";
+    public override string ToString() => $"{Name}{{{string.Join(", ", Fields.Select(x => $"{x.Type} {x.Name}"))}}}";
+
+    public bool TryGetFieldType(string name, [MaybeNullWhen(false)] out SymbolType type)
+    {
+        foreach (var field in Fields)
+        {
+            if (field.Name == name)
+            {
+                type = field.Type;
+                return true;
+            }
+        }
+
+        type = null;
+        return false;
+    }
+    public int TryGetFieldIndex(string name)
+    {
+        for (var index = 0; index < Fields.Count; index++)
+        {
+            var field = Fields[index];
+            if (field.Name == name)
+                return index;
+        }
+
+        return -1;
+    }
+
 }
 public sealed record BufferType(SymbolType BaseType, int Size) : SymbolType()
 {

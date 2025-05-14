@@ -138,6 +138,7 @@ public class SpirvContext(SpirvModule module) : IDisposable
                 ArrayType a => Buffer.AddOpTypeArray(Bound++, GetOrRegister(a.BaseType), a.Size),
                 StructType st => RegisterStruct(st),
                 FunctionType f => RegisterFunctionType(f),
+                PointerType p => RegisterPointerType(p),
                 // TextureSymbol t => Buffer.AddOpTypeImage(Bound++, Register(t.BaseType), t.),
                 // StructSymbol st => RegisterStruct(st),
                 _ => throw new NotImplementedException($"Can't add type {type}")
@@ -154,8 +155,8 @@ public class SpirvContext(SpirvModule module) : IDisposable
         int tmp = 0;
         foreach (var f in structSymbol.Fields)
         {
-            types[tmp] = GetOrRegister(f.Value);
-            AddMemberName(types[tmp], tmp, f.Key);
+            types[tmp] = GetOrRegister(f.Type);
+            AddMemberName(types[tmp], tmp, f.Name);
         }
         var result = Buffer.AddOpTypeStruct(Bound++, types);
         AddName(result, structSymbol.Name);
@@ -170,6 +171,14 @@ public class SpirvContext(SpirvModule module) : IDisposable
             types[tmp] = GetOrRegister(f);
         var result = Buffer.AddOpTypeFunction(Bound++, GetOrRegister(functionType.ReturnType), types);
         AddName(result, functionType.ToString());
+        return result;
+    }
+
+    IdRef RegisterPointerType(PointerType pointerType)
+    {
+        var baseType = GetOrRegister(pointerType.BaseType);
+        var result = Buffer.AddOpTypePointer(Bound++, Spv.Specification.StorageClass.Function, baseType);
+        AddName(result, pointerType.ToString());
         return result;
     }
 
