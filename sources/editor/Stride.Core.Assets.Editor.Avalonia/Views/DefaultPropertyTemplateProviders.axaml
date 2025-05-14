@@ -837,34 +837,32 @@
         <TextBox Grid.Column="0" Margin="2" Width="40" TextAlignment="Center"
                  Text="{Binding NodeValue, Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:CharToString}}}"
                  ToolTip.Tip="{sd:LocalizeString Character, Context=ToolTip}"/>
-        <NumericUpDown x:Name="NumericUpDown"
-                       Grid.Column="1" Margin="2"
-                       Value="{Binding NodeValue, Converter={sd:CharToUnicode}}"
-                       ToolTip.Tip="{sd:LocalizeString Unicode value, Context=ToolTip}"
-                       ShowButtonSpinner="False">
+        <sd:NumericTextBox x:Name="NumericTextBox"
+                           Grid.Column="1" Margin="2"
+                           Value="{Binding NodeValue, Converter={sd:CharToUnicode}, UpdateSourceTrigger=Explicit}"
+                           ToolTip.Tip="{sd:LocalizeString Unicode value, Context=ToolTip}">
           <Interaction.Behaviors>
             <DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
               <ChangePropertyAction PropertyName="Watermark" Value="{sd:LocalizeString (Different values)}"/>
             </DataTriggerBehavior>
           </Interaction.Behaviors>
-        </NumericUpDown>
+        </sd:NumericTextBox>
       </Grid>
     </DataTemplate>
   </caev:TypeMatchTemplateProvider>
 
   <!-- Providers for floating-point number -->
   <DataTemplate x:Key="FloatEditorTemplate" DataType="cpqvm:NodeViewModel">
-    <NumericUpDown x:Name="NumericUpDown"
-                   Value="{Binding NodeValue, Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDecimal}}}"
-                   Minimum="{Binding [Minimum], Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDecimal}}, FallbackValue={x:Static s:Decimal.MinValue}}"
-                   Maximum="{Binding [Maximum], Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDecimal}}, FallbackValue={x:Static s:Decimal.MaxValue}}"
-                   ShowButtonSpinner="False">
+    <sd:NumericTextBox x:Name="NumericTextBox"
+                       Value="{Binding NodeValue, Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDecimal}}, UpdateSourceTrigger=Explicit}"
+                       Minimum="{Binding [Minimum], Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDecimal}}, FallbackValue={x:Static s:Decimal.MinValue}}"
+                       Maximum="{Binding [Maximum], Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDecimal}}, FallbackValue={x:Static s:Decimal.MaxValue}}">
       <Interaction.Behaviors>
         <DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
           <ChangePropertyAction PropertyName="Watermark" Value="{sd:LocalizeString (Different values)}"/>
         </DataTriggerBehavior>
       </Interaction.Behaviors>
-    </NumericUpDown>
+    </sd:NumericTextBox>
   </DataTemplate>
   <caev:TypeMatchTemplateProvider x:Key="FloatPropertyTemplateProvider" Type="{x:Type s:Single}" caev:PropertyViewHelper.TemplateCategory="PropertyEditor"
                                   Template="{StaticResource FloatEditorTemplate}"/>
@@ -873,17 +871,16 @@
 
   <!-- Providers for fixed-point number -->
   <DataTemplate x:Key="IntEditorTemplate" DataType="cpqvm:NodeViewModel">
-    <NumericUpDown x:Name="NumericUpDown"
-                   Value="{Binding NodeValue, Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDecimal}}}"
-                   Minimum="{Binding [Minimum], Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDecimal}}, FallbackValue={x:Static s:Decimal.MinValue}}"
-                   Maximum="{Binding [Maximum], Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDecimal}}, FallbackValue={x:Static s:Decimal.MaxValue}}"
-                   ShowButtonSpinner="False">
+    <sd:NumericTextBox x:Name="NumericTextBox"
+                       Value="{Binding NodeValue, Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDecimal}}, UpdateSourceTrigger=Explicit}"
+                       Minimum="{Binding [Minimum], Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDecimal}}, FallbackValue={x:Static s:Decimal.MinValue}}"
+                       Maximum="{Binding [Maximum], Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDecimal}}, FallbackValue={x:Static s:Decimal.MaxValue}}">
       <Interaction.Behaviors>
         <DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
           <ChangePropertyAction PropertyName="Watermark" Value="{sd:LocalizeString (Different values)}"/>
         </DataTriggerBehavior>
       </Interaction.Behaviors>
-    </NumericUpDown>
+    </sd:NumericTextBox>
   </DataTemplate>
   <caev:TypeMatchTemplateProvider x:Key="Int8PropertyTemplateProvider" Type="{x:Type s:SByte}" caev:PropertyViewHelper.TemplateCategory="PropertyEditor"
                                   Template="{StaticResource IntEditorTemplate}"/>
@@ -919,18 +916,17 @@
                 Maximum="{Binding [Maximum], Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDouble}}, FallbackValue={x:Static s:Double.MaxValue}}"
                 SmallChange="{Binding [SmallStep], Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDouble}}}"
                 LargeChange="{Binding [LargeStep], Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDouble}}}"/>
-        <NumericUpDown Grid.Column="1"
-                       Margin="6,2,2,2"
-                       Value="{Binding NodeValue, Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDecimal}}}"
-                       Minimum="{Binding [Minimum], Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDecimal}}, FallbackValue={x:Static s:Decimal.MinValue}}"
-                       Maximum="{Binding [Maximum], Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDecimal}}, FallbackValue={x:Static s:Decimal.MaxValue}}"
-                       ShowButtonSpinner="False">
+        <sd:NumericTextBox Grid.Column="1"
+                           Margin="6,2,2,2"
+                           Value="{Binding NodeValue, Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDecimal}}, UpdateSourceTrigger=Explicit}"
+                           Minimum="{Binding [Minimum], Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDecimal}}, FallbackValue={x:Static s:Decimal.MinValue}}"
+                           Maximum="{Binding [Maximum], Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDecimal}}, FallbackValue={x:Static s:Decimal.MaxValue}}">
           <Interaction.Behaviors>
             <DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
               <ChangePropertyAction PropertyName="Watermark" Value="{sd:LocalizeString (Different values)}"/>
             </DataTriggerBehavior>
           </Interaction.Behaviors>
-        </NumericUpDown>
+        </sd:NumericTextBox>
       </Grid>
     </DataTemplate>
   </caev:RangedValueTemplateProvider>
@@ -1166,15 +1162,14 @@
   <!-- Provider for AngleSingle -->
   <caev:TypeMatchTemplateProvider x:Key="AnglePropertyTemplateProvider" Type="{x:Type math:AngleSingle}" caev:PropertyViewHelper.TemplateCategory="PropertyEditor">
     <DataTemplate DataType="cpqvm:NodeViewModel">
-      <NumericUpDown Value="{Binding NodeValue, Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:AngleSingleToDegrees}}}"
-                     ShowButtonSpinner="False"
-                     ToolTip.Tip="{sd:LocalizeString Angle in degrees, Context=Tooltip}">
+      <sd:NumericTextBox Value="{Binding NodeValue, Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:AngleSingleToDegrees}}, UpdateSourceTrigger=Explicit}"
+                         ToolTip.Tip="{sd:LocalizeString Angle in degrees, Context=Tooltip}">
         <Interaction.Behaviors>
           <DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
             <ChangePropertyAction PropertyName="Watermark" Value="{sd:LocalizeString (Different values)}"/>
           </DataTriggerBehavior>
         </Interaction.Behaviors>
-      </NumericUpDown>
+      </sd:NumericTextBox>
     </DataTemplate>
   </caev:TypeMatchTemplateProvider>
 
