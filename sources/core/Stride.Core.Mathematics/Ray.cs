@@ -26,8 +26,9 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 * THE SOFTWARE.
 */
-using System;
-using System.Globalization;
+
+using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace Stride.Core.Mathematics;
@@ -37,7 +38,7 @@ namespace Stride.Core.Mathematics;
 /// </summary>
 [DataContract]
 [StructLayout(LayoutKind.Sequential, Pack = 4)]
-public struct Ray : IEquatable<Ray>, IFormattable
+public struct Ray : IEquatable<Ray>, ISpanFormattable
 {
     /// <summary>
     /// The position in three dimensional space where the ray starts.
@@ -267,35 +268,7 @@ public struct Ray : IEquatable<Ray>, IFormattable
     /// <returns>
     /// A <see cref="string"/> that represents this instance.
     /// </returns>
-    public override readonly string ToString()
-    {
-        return string.Format(CultureInfo.CurrentCulture, "Position:{0} Direction:{1}", Position.ToString(), Direction.ToString());
-    }
-
-    /// <summary>
-    /// Returns a <see cref="string"/> that represents this instance.
-    /// </summary>
-    /// <param name="format">The format.</param>
-    /// <returns>
-    /// A <see cref="string"/> that represents this instance.
-    /// </returns>
-    public readonly string ToString(string? format)
-    {
-        return string.Format(CultureInfo.CurrentCulture, "Position:{0} Direction:{1}", Position.ToString(format, CultureInfo.CurrentCulture),
-            Direction.ToString(format, CultureInfo.CurrentCulture));
-    }
-
-    /// <summary>
-    /// Returns a <see cref="string"/> that represents this instance.
-    /// </summary>
-    /// <param name="formatProvider">The format provider.</param>
-    /// <returns>
-    /// A <see cref="string"/> that represents this instance.
-    /// </returns>
-    public readonly string ToString(IFormatProvider? formatProvider)
-    {
-        return string.Format(formatProvider, "Position:{0} Direction:{1}", Position.ToString(), Direction.ToString());
-    }
+    public override readonly string ToString() => $"{this}";
 
     /// <summary>
     /// Returns a <see cref="string"/> that represents this instance.
@@ -305,10 +278,25 @@ public struct Ray : IEquatable<Ray>, IFormattable
     /// <returns>
     /// A <see cref="string"/> that represents this instance.
     /// </returns>
-    public readonly string ToString(string? format, IFormatProvider? formatProvider)
+    public readonly string ToString([StringSyntax(StringSyntaxAttribute.NumericFormat)] string? format, IFormatProvider? formatProvider)
     {
-        return string.Format(formatProvider, "Position:{0} Direction:{1}", Position.ToString(format, formatProvider),
-            Direction.ToString(format, formatProvider));
+        var handler = new DefaultInterpolatedStringHandler(20, 2, formatProvider);
+        handler.AppendLiteral("Position:");
+        handler.AppendFormatted(Position, format);
+        handler.AppendLiteral(" Direction:");
+        handler.AppendFormatted(Direction, format);
+        return handler.ToStringAndClear();
+    }
+
+    bool ISpanFormattable.TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
+    {
+        var format1 = format.Length > 0 ? format.ToString() : null;
+        var handler = new MemoryExtensions.TryWriteInterpolatedStringHandler(20, 2, destination, provider, out _);
+        handler.AppendLiteral("Position:");
+        handler.AppendFormatted(Position, format1);
+        handler.AppendLiteral(" Direction:");
+        handler.AppendFormatted(Direction, format1);
+        return destination.TryWrite(ref handler, out charsWritten);
     }
 
     /// <summary>
