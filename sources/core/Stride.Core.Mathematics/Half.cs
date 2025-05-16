@@ -22,7 +22,6 @@
 // THE SOFTWARE.
 
 using System.Diagnostics.CodeAnalysis;
-using System.Globalization;
 using System.Runtime.InteropServices;
 
 namespace Stride.Core.Mathematics;
@@ -32,7 +31,7 @@ namespace Stride.Core.Mathematics;
 /// </summary>
 [DataContract]
 [StructLayout(LayoutKind.Sequential, Pack = 2)]
-public struct Half
+public struct Half : ISpanFormattable
 {
     /// <summary>
     ///   Number of decimal digits of precision.
@@ -184,13 +183,31 @@ public struct Half
     }
 
     /// <summary>
-    ///   Converts the value of the object to its equivalent string representation.
+    /// Returns a <see cref="string"/> that represents this instance.
     /// </summary>
-    /// <returns>The string representation of the value of this instance.</returns>
-    public override readonly string ToString()
+    /// <returns>
+    /// A <see cref="string"/> that represents this instance.
+    /// </returns>
+    public override readonly string ToString() => $"{this}";
+
+    /// <summary>
+    /// Returns a <see cref="string"/> that represents this instance.
+    /// </summary>
+    /// <param name="format">The format.</param>
+    /// <param name="formatProvider">The format provider.</param>
+    /// <returns>
+    /// A <see cref="string"/> that represents this instance.
+    /// </returns>
+    public readonly string ToString([StringSyntax(StringSyntaxAttribute.NumericFormat)] string? format, IFormatProvider? formatProvider)
     {
         float num = this;
-        return num.ToString(CultureInfo.CurrentCulture);
+        return num.ToString(format, formatProvider);
+    }
+
+    bool ISpanFormattable.TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
+    {
+        float num = this;
+        return num.TryFormat(destination, out charsWritten, format, provider);
     }
 
     /// <summary>

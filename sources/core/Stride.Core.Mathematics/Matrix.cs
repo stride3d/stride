@@ -43,7 +43,7 @@ namespace Stride.Core.Mathematics;
 [DataContract("float4x4")]
 [DataStyle(DataStyle.Compact)]
 [StructLayout(LayoutKind.Sequential, Pack = 4)]
-public struct Matrix : IEquatable<Matrix>, IFormattable
+public struct Matrix : IEquatable<Matrix>, ISpanFormattable
 {
     /// <summary> Are matrix row or column major </summary>
     /// <remarks>
@@ -3187,46 +3187,7 @@ public struct Matrix : IEquatable<Matrix>, IFormattable
     /// <returns>
     /// A <see cref="string"/> that represents this instance.
     /// </returns>
-    public override readonly string ToString()
-    {
-        return string.Format(CultureInfo.CurrentCulture, "[M11:{0} M12:{1} M13:{2} M14:{3}] [M21:{4} M22:{5} M23:{6} M24:{7}] [M31:{8} M32:{9} M33:{10} M34:{11}] [M41:{12} M42:{13} M43:{14} M44:{15}]",
-            M11, M12, M13, M14, M21, M22, M23, M24, M31, M32, M33, M34, M41, M42, M43, M44);
-    }
-
-    /// <summary>
-    /// Returns a <see cref="string"/> that represents this instance.
-    /// </summary>
-    /// <param name="format">The format.</param>
-    /// <returns>
-    /// A <see cref="string"/> that represents this instance.
-    /// </returns>
-    public readonly string ToString(string? format)
-    {
-        if (format == null)
-            return ToString();
-
-        return string.Format(format, CultureInfo.CurrentCulture, "[M11:{0} M12:{1} M13:{2} M14:{3}] [M21:{4} M22:{5} M23:{6} M24:{7}] [M31:{8} M32:{9} M33:{10} M34:{11}] [M41:{12} M42:{13} M43:{14} M44:{15}]",
-            M11.ToString(format, CultureInfo.CurrentCulture), M12.ToString(format, CultureInfo.CurrentCulture), M13.ToString(format, CultureInfo.CurrentCulture), M14.ToString(format, CultureInfo.CurrentCulture),
-            M21.ToString(format, CultureInfo.CurrentCulture), M22.ToString(format, CultureInfo.CurrentCulture), M23.ToString(format, CultureInfo.CurrentCulture), M24.ToString(format, CultureInfo.CurrentCulture),
-            M31.ToString(format, CultureInfo.CurrentCulture), M32.ToString(format, CultureInfo.CurrentCulture), M33.ToString(format, CultureInfo.CurrentCulture), M34.ToString(format, CultureInfo.CurrentCulture),
-            M41.ToString(format, CultureInfo.CurrentCulture), M42.ToString(format, CultureInfo.CurrentCulture), M43.ToString(format, CultureInfo.CurrentCulture), M44.ToString(format, CultureInfo.CurrentCulture));
-    }
-
-    /// <summary>
-    /// Returns a <see cref="string"/> that represents this instance.
-    /// </summary>
-    /// <param name="formatProvider">The format provider.</param>
-    /// <returns>
-    /// A <see cref="string"/> that represents this instance.
-    /// </returns>
-    public readonly string ToString(IFormatProvider? formatProvider)
-    {
-        return string.Format(formatProvider, "[M11:{0} M12:{1} M13:{2} M14:{3}] [M21:{4} M22:{5} M23:{6} M24:{7}] [M31:{8} M32:{9} M33:{10} M34:{11}] [M41:{12} M42:{13} M43:{14} M44:{15}]",
-            M11.ToString(formatProvider), M12.ToString(formatProvider), M13.ToString(formatProvider), M14.ToString(formatProvider),
-            M21.ToString(formatProvider), M22.ToString(formatProvider), M23.ToString(formatProvider), M24.ToString(formatProvider),
-            M31.ToString(formatProvider), M32.ToString(formatProvider), M33.ToString(formatProvider), M34.ToString(formatProvider),
-            M41.ToString(formatProvider), M42.ToString(formatProvider), M43.ToString(formatProvider), M44.ToString(formatProvider));
-    }
+    public override readonly string ToString() => $"{this}";
 
     /// <summary>
     /// Returns a <see cref="string"/> that represents this instance.
@@ -3238,14 +3199,81 @@ public struct Matrix : IEquatable<Matrix>, IFormattable
     /// </returns>
     public readonly string ToString(string? format, IFormatProvider? formatProvider)
     {
-        if (format == null)
-            return ToString(formatProvider);
+        DefaultInterpolatedStringHandler handler = new DefaultInterpolatedStringHandler(87, 16, formatProvider);
+        handler.AppendLiteral("[M11:");
+        handler.AppendFormatted(M11, format);
+        handler.AppendLiteral(" M12:");
+        handler.AppendFormatted(M12, format);
+        handler.AppendLiteral(" M13:");
+        handler.AppendFormatted(M13, format);
+        handler.AppendLiteral(" M14:");
+        handler.AppendFormatted(M14, format);
+        handler.AppendLiteral("] [M21:");
+        handler.AppendFormatted(M21, format);
+        handler.AppendLiteral(" M22:");
+        handler.AppendFormatted(M22, format);
+        handler.AppendLiteral(" M23:");
+        handler.AppendFormatted(M23, format);
+        handler.AppendLiteral(" M24:");
+        handler.AppendFormatted(M24, format);
+        handler.AppendLiteral("] [M31:");
+        handler.AppendFormatted(M31, format);
+        handler.AppendLiteral(" M32:");
+        handler.AppendFormatted(M32, format);
+        handler.AppendLiteral(" M33:");
+        handler.AppendFormatted(M33, format);
+        handler.AppendLiteral(" M34:");
+        handler.AppendFormatted(M34, format);
+        handler.AppendLiteral("] [M41:");
+        handler.AppendFormatted(M41, format);
+        handler.AppendLiteral(" M42:");
+        handler.AppendFormatted(M42, format);
+        handler.AppendLiteral(" M43:");
+        handler.AppendFormatted(M43, format);
+        handler.AppendLiteral(" M44:");
+        handler.AppendFormatted(M44, format);
+        handler.AppendLiteral("]");
+        return handler.ToStringAndClear();
+    }
 
-        return string.Format(format, formatProvider, "[M11:{0} M12:{1} M13:{2} M14:{3}] [M21:{4} M22:{5} M23:{6} M24:{7}] [M31:{8} M32:{9} M33:{10} M34:{11}] [M41:{12} M42:{13} M43:{14} M44:{15}]",
-            M11.ToString(format, formatProvider), M12.ToString(format, formatProvider), M13.ToString(format, formatProvider), M14.ToString(format, formatProvider),
-            M21.ToString(format, formatProvider), M22.ToString(format, formatProvider), M23.ToString(format, formatProvider), M24.ToString(format, formatProvider),
-            M31.ToString(format, formatProvider), M32.ToString(format, formatProvider), M33.ToString(format, formatProvider), M34.ToString(format, formatProvider),
-            M41.ToString(format, formatProvider), M42.ToString(format, formatProvider), M43.ToString(format, formatProvider), M44.ToString(format, formatProvider));
+    bool ISpanFormattable.TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
+    {
+        var format1 = format.Length > 0 ? format.ToString() : null;
+        var handler = new MemoryExtensions.TryWriteInterpolatedStringHandler(87, 16, destination, provider, out _);
+        handler.AppendLiteral("[M11:");
+        handler.AppendFormatted(M11, format1);
+        handler.AppendLiteral(" M12:");
+        handler.AppendFormatted(M12, format1);
+        handler.AppendLiteral(" M13:");
+        handler.AppendFormatted(M13, format1);
+        handler.AppendLiteral(" M14:");
+        handler.AppendFormatted(M14, format1);
+        handler.AppendLiteral("] [M21:");
+        handler.AppendFormatted(M21, format1);
+        handler.AppendLiteral(" M22:");
+        handler.AppendFormatted(M22, format1);
+        handler.AppendLiteral(" M23:");
+        handler.AppendFormatted(M23, format1);
+        handler.AppendLiteral(" M24:");
+        handler.AppendFormatted(M24, format1);
+        handler.AppendLiteral("] [M31:");
+        handler.AppendFormatted(M31, format1);
+        handler.AppendLiteral(" M32:");
+        handler.AppendFormatted(M32, format1);
+        handler.AppendLiteral(" M33:");
+        handler.AppendFormatted(M33, format1);
+        handler.AppendLiteral(" M34:");
+        handler.AppendFormatted(M34, format1);
+        handler.AppendLiteral("] [M41:");
+        handler.AppendFormatted(M41, format1);
+        handler.AppendLiteral(" M42:");
+        handler.AppendFormatted(M42, format1);
+        handler.AppendLiteral(" M43:");
+        handler.AppendFormatted(M43, format1);
+        handler.AppendLiteral(" M44:");
+        handler.AppendFormatted(M44, format1);
+        handler.AppendLiteral("]");
+        return destination.TryWrite(ref handler, out charsWritten);
     }
 
     /// <summary>

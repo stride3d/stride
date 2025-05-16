@@ -33,7 +33,7 @@ namespace Stride.Core.Mathematics;
 /// </summary>
 [DataContract]
 [StructLayout(LayoutKind.Sequential, Pack = 2)]
-public struct Half2 : IEquatable<Half2>
+public struct Half2 : IEquatable<Half2>, ISpanFormattable
 {
     /// <summary>
     /// The size of the <see cref="Half2"/> type, in bytes.
@@ -154,17 +154,42 @@ public struct Half2 : IEquatable<Half2>
     {
         return !Equals(ref left, ref right);
     }
-
+    
     /// <summary>
     /// Returns a <see cref="string"/> that represents this instance.
     /// </summary>
     /// <returns>
     /// A <see cref="string"/> that represents this instance.
     /// </returns>
-    public override readonly string ToString()
+    public override readonly string ToString() => $"{this}";
+
+    /// <summary>
+    /// Returns a <see cref="string"/> that represents this instance.
+    /// </summary>
+    /// <param name="format">The format.</param>
+    /// <param name="formatProvider">The format provider.</param>
+    /// <returns>
+    /// A <see cref="string"/> that represents this instance.
+    /// </returns>
+    public readonly string ToString([StringSyntax(StringSyntaxAttribute.NumericFormat)] string? format, IFormatProvider? formatProvider)
     {
-        CultureInfo culture = CultureInfo.CurrentCulture;
-        return string.Format(culture, "{0}{1} {2}", X.ToString(), culture.TextInfo.ListSeparator, Y.ToString());
+        var separator = $"{((formatProvider as CultureInfo) ?? CultureInfo.CurrentCulture).TextInfo.ListSeparator} ";
+        var handler = new DefaultInterpolatedStringHandler(separator.Length, 3, formatProvider);
+        handler.AppendFormatted(X, format);
+        handler.AppendLiteral(separator);
+        handler.AppendFormatted(Y, format);
+        return handler.ToStringAndClear();
+    }
+
+    bool ISpanFormattable.TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
+    {
+        var separator = $"{((provider as CultureInfo) ?? CultureInfo.CurrentCulture).TextInfo.ListSeparator} ";
+        var format1 = format.Length > 0 ? format.ToString() : null;
+        var handler = new MemoryExtensions.TryWriteInterpolatedStringHandler(separator.Length, 3, destination, provider, out _);
+        handler.AppendFormatted(X, format1);
+        handler.AppendLiteral(separator);
+        handler.AppendFormatted(Y, format1);
+        return destination.TryWrite(ref handler, out charsWritten);
     }
 
     /// <summary>

@@ -26,8 +26,9 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 * THE SOFTWARE.
 */
-using System;
-using System.Globalization;
+
+using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace Stride.Core.Mathematics;
@@ -37,7 +38,7 @@ namespace Stride.Core.Mathematics;
 /// </summary>
 [DataContract]
 [StructLayout(LayoutKind.Sequential, Pack = 4)]
-public struct Plane : IEquatable<Plane>, IFormattable, IIntersectableWithRay
+public struct Plane : IEquatable<Plane>, ISpanFormattable, IIntersectableWithRay
 {
     /// <summary>
     /// The normal vector of the plane.
@@ -720,35 +721,7 @@ public struct Plane : IEquatable<Plane>, IFormattable, IIntersectableWithRay
     /// <returns>
     /// A <see cref="string"/> that represents this instance.
     /// </returns>
-    public override readonly string ToString()
-    {
-        return string.Format(CultureInfo.CurrentCulture, "A:{0} B:{1} C:{2} D:{3}", Normal.X, Normal.Y, Normal.Z, D);
-    }
-
-    /// <summary>
-    /// Returns a <see cref="string"/> that represents this instance.
-    /// </summary>
-    /// <param name="format">The format.</param>
-    /// <returns>
-    /// A <see cref="string"/> that represents this instance.
-    /// </returns>
-    public readonly string ToString(string? format)
-    {
-        return string.Format(CultureInfo.CurrentCulture, "A:{0} B:{1} C:{2} D:{3}", Normal.X.ToString(format, CultureInfo.CurrentCulture),
-            Normal.Y.ToString(format, CultureInfo.CurrentCulture), Normal.Z.ToString(format, CultureInfo.CurrentCulture), D.ToString(format, CultureInfo.CurrentCulture));
-    }
-
-    /// <summary>
-    /// Returns a <see cref="string"/> that represents this instance.
-    /// </summary>
-    /// <param name="formatProvider">The format provider.</param>
-    /// <returns>
-    /// A <see cref="string"/> that represents this instance.
-    /// </returns>
-    public readonly string ToString(IFormatProvider? formatProvider)
-    {
-        return string.Format(formatProvider, "A:{0} B:{1} C:{2} D:{3}", Normal.X, Normal.Y, Normal.Z, D);
-    }
+    public override readonly string ToString() => $"{this}";
 
     /// <summary>
     /// Returns a <see cref="string"/> that represents this instance.
@@ -758,10 +731,33 @@ public struct Plane : IEquatable<Plane>, IFormattable, IIntersectableWithRay
     /// <returns>
     /// A <see cref="string"/> that represents this instance.
     /// </returns>
-    public readonly string ToString(string? format, IFormatProvider? formatProvider)
+    public readonly string ToString([StringSyntax(StringSyntaxAttribute.NumericFormat)] string? format, IFormatProvider? formatProvider)
     {
-        return string.Format(formatProvider, "A:{0} B:{1} C:{2} D:{3}", Normal.X.ToString(format, formatProvider),
-            Normal.Y.ToString(format, formatProvider), Normal.Z.ToString(format, formatProvider), D.ToString(format, formatProvider));
+        var handler = new DefaultInterpolatedStringHandler(11, 4, formatProvider);
+        handler.AppendLiteral("A:");
+        handler.AppendFormatted(Normal.X, format);
+        handler.AppendLiteral(" B:");
+        handler.AppendFormatted(Normal.Y, format);
+        handler.AppendLiteral(" C:");
+        handler.AppendFormatted(Normal.Z, format);
+        handler.AppendLiteral(" D:");
+        handler.AppendFormatted(D, format);
+        return handler.ToStringAndClear();
+    }
+
+    bool ISpanFormattable.TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
+    {
+        var format1 = format.Length > 0 ? format.ToString() : null;
+        var handler = new MemoryExtensions.TryWriteInterpolatedStringHandler(11, 4, destination, provider, out _);
+        handler.AppendLiteral("A:");
+        handler.AppendFormatted(Normal.X, format1);
+        handler.AppendLiteral(" B:");
+        handler.AppendFormatted(Normal.Y, format1);
+        handler.AppendLiteral(" C:");
+        handler.AppendFormatted(Normal.Z, format1);
+        handler.AppendLiteral(" D:");
+        handler.AppendFormatted(D, format1);
+        return destination.TryWrite(ref handler, out charsWritten);
     }
 
     /// <summary>

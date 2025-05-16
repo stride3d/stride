@@ -1,7 +1,8 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using System.Globalization;
+using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace Stride.Core.Mathematics;
@@ -12,10 +13,8 @@ namespace Stride.Core.Mathematics;
 [DataContract("ColorBGRA")]
 [DataStyle(DataStyle.Compact)]
 [StructLayout(LayoutKind.Sequential, Size = 4)]
-public struct ColorBGRA : IEquatable<ColorBGRA>, IFormattable
+public struct ColorBGRA : IEquatable<ColorBGRA>, ISpanFormattable
 {
-    private const string ToStringFormat = "A:{0} R:{1} G:{2} B:{3}";
-
     /// <summary>
     /// The blue component of the color.
     /// </summary>
@@ -984,60 +983,50 @@ public struct ColorBGRA : IEquatable<ColorBGRA>, IFormattable
     {
         return new ColorBGRA(value);
     }
-
+    
     /// <summary>
     /// Returns a <see cref="string"/> that represents this instance.
     /// </summary>
     /// <returns>
     /// A <see cref="string"/> that represents this instance.
     /// </returns>
-    public override readonly string ToString()
-    {
-        return ToString(CultureInfo.CurrentCulture);
-    }
+    public override readonly string ToString() => $"{this}";
 
     /// <summary>
     /// Returns a <see cref="string"/> that represents this instance.
     /// </summary>
-    /// <param name="format">The format to apply to each channel (byte).</param>
-    /// <returns>
-    /// A <see cref="string"/> that represents this instance.
-    /// </returns>
-    public readonly string ToString(string? format)
-    {
-        return ToString(format, CultureInfo.CurrentCulture);
-    }
-
-    /// <summary>
-    /// Returns a <see cref="string"/> that represents this instance.
-    /// </summary>
+    /// <param name="format">The format.</param>
     /// <param name="formatProvider">The format provider.</param>
     /// <returns>
     /// A <see cref="string"/> that represents this instance.
     /// </returns>
-    public readonly string ToString(IFormatProvider? formatProvider)
+    public readonly string ToString([StringSyntax(StringSyntaxAttribute.NumericFormat)] string? format, IFormatProvider? formatProvider)
     {
-        return string.Format(formatProvider, ToStringFormat, A, R, G, B);
+        var handler = new DefaultInterpolatedStringHandler(11, 4, formatProvider);
+        handler.AppendLiteral("A:");
+        handler.AppendFormatted(A, format);
+        handler.AppendLiteral(" R:");
+        handler.AppendFormatted(R, format);
+        handler.AppendLiteral(" G:");
+        handler.AppendFormatted(G, format);
+        handler.AppendLiteral(" B:");
+        handler.AppendFormatted(B, format);
+        return handler.ToStringAndClear();
     }
 
-    /// <summary>
-    /// Returns a <see cref="string"/> that represents this instance.
-    /// </summary>
-    /// <param name="format">The format to apply to each channel (byte).</param>
-    /// <param name="formatProvider">The format provider.</param>
-    /// <returns>
-    /// A <see cref="string"/> that represents this instance.
-    /// </returns>
-    public readonly string ToString(string? format, IFormatProvider? formatProvider)
+    bool ISpanFormattable.TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
     {
-        if (format == null)
-            return ToString(formatProvider);
-
-        return string.Format(formatProvider, ToStringFormat,
-                             A.ToString(format, formatProvider),
-                             R.ToString(format, formatProvider),
-                             G.ToString(format, formatProvider),
-                             B.ToString(format, formatProvider));
+        var format1 = format.Length > 0 ? format.ToString() : null;
+        var handler = new MemoryExtensions.TryWriteInterpolatedStringHandler(11, 4, destination, provider, out _);
+        handler.AppendLiteral("A:");
+        handler.AppendFormatted(A, format1);
+        handler.AppendLiteral(" R:");
+        handler.AppendFormatted(R, format1);
+        handler.AppendLiteral(" G:");
+        handler.AppendFormatted(G, format1);
+        handler.AppendLiteral(" B:");
+        handler.AppendFormatted(B, format1);
+        return destination.TryWrite(ref handler, out charsWritten);
     }
 
     /// <summary>

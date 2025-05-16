@@ -28,7 +28,7 @@
 */
 
 using System.Diagnostics.CodeAnalysis;
-using System.Globalization;
+using System.Runtime.CompilerServices;
 
 namespace Stride.Core.Mathematics;
 
@@ -38,7 +38,7 @@ namespace Stride.Core.Mathematics;
 /// </summary>
 [DataStyle(DataStyle.Compact)]
 [DataContract]
-public struct AngleSingle : IComparable, IComparable<AngleSingle>, IEquatable<AngleSingle>, IFormattable
+public struct AngleSingle : IComparable, IComparable<AngleSingle>, IEquatable<AngleSingle>, ISpanFormattable
 {
     /// <summary>
     /// A value that specifies the size of a single degree.
@@ -680,37 +680,7 @@ public struct AngleSingle : IComparable, IComparable<AngleSingle>, IEquatable<An
     /// <returns>
     /// A <see cref="string"/> that represents this instance.
     /// </returns>
-    public override readonly string ToString()
-    {
-        return string.Format(CultureInfo.CurrentCulture, MathUtil.RadiansToDegrees(Radians).ToString("0.##°"));
-    }
-
-    /// <summary>
-    /// Returns a <see cref="string"/> that represents this instance.
-    /// </summary>
-    /// <param name="format">The format.</param>
-    /// <returns>
-    /// A <see cref="string"/> that represents this instance.
-    /// </returns>
-    public readonly string ToString(string? format)
-    {
-        if (format == null)
-            return ToString();
-
-        return string.Format(CultureInfo.CurrentCulture, "{0}°", MathUtil.RadiansToDegrees(Radians).ToString(format, CultureInfo.CurrentCulture));
-    }
-
-    /// <summary>
-    /// Returns a <see cref="string"/> that represents this instance.
-    /// </summary>
-    /// <param name="formatProvider">The format provider.</param>
-    /// <returns>
-    /// A <see cref="string"/> that represents this instance.
-    /// </returns>
-    public readonly string ToString(IFormatProvider? formatProvider)
-    {
-        return string.Format(formatProvider, MathUtil.RadiansToDegrees(Radians).ToString("0.##°"));
-    }
+    public override readonly string ToString() => $"{this}";
 
     /// <summary>
     /// Returns a <see cref="string"/> that represents this instance.
@@ -720,12 +690,21 @@ public struct AngleSingle : IComparable, IComparable<AngleSingle>, IEquatable<An
     /// <returns>
     /// A <see cref="string"/> that represents this instance.
     /// </returns>
-    public readonly string ToString(string? format, IFormatProvider? formatProvider)
+    public readonly string ToString([StringSyntax(StringSyntaxAttribute.NumericFormat)] string? format, IFormatProvider? formatProvider)
     {
-        if (format == null)
-            return ToString(formatProvider);
+        var handler = new DefaultInterpolatedStringHandler(1, 1, formatProvider);
+        handler.AppendFormatted(MathUtil.RadiansToDegrees(Radians), format ?? "0.##");
+        handler.AppendLiteral("°");
+        return handler.ToStringAndClear();
+    }
 
-        return string.Format(formatProvider, "{0}°", MathUtil.RadiansToDegrees(Radians).ToString(format, CultureInfo.CurrentCulture));
+    bool ISpanFormattable.TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
+    {
+        var format1 = format.Length > 0 ? format.ToString() : "0.##";
+        var handler = new MemoryExtensions.TryWriteInterpolatedStringHandler(1, 1, destination, provider, out _);
+        handler.AppendFormatted(MathUtil.RadiansToDegrees(Radians), format1);
+        handler.AppendLiteral("°");
+        return destination.TryWrite(ref handler, out charsWritten);
     }
 
     /// <summary>

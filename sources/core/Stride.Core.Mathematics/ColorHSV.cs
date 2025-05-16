@@ -2,7 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Diagnostics.CodeAnalysis;
-using System.Globalization;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace Stride.Core.Mathematics;
@@ -12,10 +12,8 @@ namespace Stride.Core.Mathematics;
 /// </summary>
 [DataContract("ColorHSV")]
 [StructLayout(LayoutKind.Sequential, Pack = 4)]
-public struct ColorHSV : IEquatable<ColorHSV>, IFormattable
+public struct ColorHSV : IEquatable<ColorHSV>, ISpanFormattable
 {
-    private const string ToStringFormat = "Hue:{0} Saturation:{1} Value:{2} Alpha:{3}";
-
     /// <summary>
     /// The Hue of the color.
     /// </summary>
@@ -129,41 +127,14 @@ public struct ColorHSV : IEquatable<ColorHSV>, IFormattable
     {
         return HashCode.Combine(H, S, V, A);
     }
-
+    
     /// <summary>
     /// Returns a <see cref="string"/> that represents this instance.
     /// </summary>
     /// <returns>
     /// A <see cref="string"/> that represents this instance.
     /// </returns>
-    public override readonly string ToString()
-    {
-        return ToString(CultureInfo.CurrentCulture);
-    }
-
-    /// <summary>
-    /// Returns a <see cref="string"/> that represents this instance.
-    /// </summary>
-    /// <param name="format">The format.</param>
-    /// <returns>
-    /// A <see cref="string"/> that represents this instance.
-    /// </returns>
-    public readonly string ToString(string? format)
-    {
-        return ToString(format, CultureInfo.CurrentCulture);
-    }
-
-    /// <summary>
-    /// Returns a <see cref="string"/> that represents this instance.
-    /// </summary>
-    /// <param name="formatProvider">The format provider.</param>
-    /// <returns>
-    /// A <see cref="string"/> that represents this instance.
-    /// </returns>
-    public readonly string ToString(IFormatProvider? formatProvider)
-    {
-        return string.Format(formatProvider, ToStringFormat, H, S, V, A);
-    }
+    public override readonly string ToString() => $"{this}";
 
     /// <summary>
     /// Returns a <see cref="string"/> that represents this instance.
@@ -173,16 +144,33 @@ public struct ColorHSV : IEquatable<ColorHSV>, IFormattable
     /// <returns>
     /// A <see cref="string"/> that represents this instance.
     /// </returns>
-    public readonly string ToString(string? format, IFormatProvider? formatProvider)
+    public readonly string ToString([StringSyntax(StringSyntaxAttribute.NumericFormat)] string? format, IFormatProvider? formatProvider)
     {
-        if (format == null)
-            return ToString(formatProvider);
+        var handler = new DefaultInterpolatedStringHandler(30, 4, formatProvider);
+        handler.AppendLiteral("Hue:");
+        handler.AppendFormatted(H, format);
+        handler.AppendLiteral(" Saturation:");
+        handler.AppendFormatted(S, format);
+        handler.AppendLiteral(" Value:");
+        handler.AppendFormatted(V, format);
+        handler.AppendLiteral(" Alpha:");
+        handler.AppendFormatted(A, format);
+        return handler.ToStringAndClear();
+    }
 
-        return string.Format(formatProvider, ToStringFormat,
-                             H.ToString(format, formatProvider),
-                             S.ToString(format, formatProvider),
-                             V.ToString(format, formatProvider),
-                             A.ToString(format, formatProvider));
+    bool ISpanFormattable.TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
+    {
+        var format1 = format.Length > 0 ? format.ToString() : null;
+        var handler = new MemoryExtensions.TryWriteInterpolatedStringHandler(30, 4, destination, provider, out _);
+        handler.AppendLiteral("Hue:");
+        handler.AppendFormatted(H, format1);
+        handler.AppendLiteral(" Saturation:");
+        handler.AppendFormatted(S, format1);
+        handler.AppendLiteral(" Value:");
+        handler.AppendFormatted(V, format1);
+        handler.AppendLiteral(" Alpha:");
+        handler.AppendFormatted(A, format1);
+        return destination.TryWrite(ref handler, out charsWritten);
     }
 
     /// <summary>
