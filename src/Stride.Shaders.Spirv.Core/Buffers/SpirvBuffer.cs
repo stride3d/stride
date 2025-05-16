@@ -156,8 +156,8 @@ public class SpirvBuffer : IMutSpirvBuffer, IDisposable
         buff.Add(left);
         buff.Add(right);
         foreach (var e in buff)
-            if (e.ResultId is int r && buff.Header.Bound < r)
-                buff.Header = buff.Header with { Bound = r };
+            if (e.ResultId is int r && buff.Header.Bound < r + 1)
+                buff.Header = buff.Header with { Bound = r + 1 };
         return buff;
     }
 
