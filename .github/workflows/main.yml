@@ -23,3 +23,11 @@ jobs:
     secrets: inherit
     with:
       build-type: Debug
+
+  Windows-Tests:
+    needs: Setup
+    uses: ./.github/workflows/test-windows.yml
+    secrets: inherit
+    with:
+      build-type: Release
+      test-category: Simple
