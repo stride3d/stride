@@ -50,7 +50,7 @@ jobs:
   Linux-Runtime:
     if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'workflow_call' || github.event.pull_request.draft == false }}
     name: Build (${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}, ${{ github.event.inputs.graphics-api || inputs.graphics-api || 'OpenGL' }})
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
@@ -58,14 +58,16 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
-      - uses: microsoft/setup-msbuild@v2
+      - name: Install dependencies
+        run: |
+          sudo apt-get install clang lld
       - name: Build
         run: |
-          msbuild build\Stride.Runtime.sln `
-            -restore -m:1 -nr:false `
-            -v:m -p:WarningLevel=0 `
-            -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} `
-            -p:StridePlatforms=Linux `
-            -p:StrideGraphicsApis=${{ github.event.inputs.graphics-api || inputs.graphics-api || 'OpenGL' }} `
-            -p:StrideSkipUnitTests=true `
+          dotnet build build/Stride.Runtime.sln \
+            -m:1 -nr:false \
+            -v:m -p:WarningLevel=0 \
+            -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} \
+            -p:StridePlatforms=Linux \
+            -p:StrideGraphicsApis=${{ github.event.inputs.graphics-api || inputs.graphics-api || 'OpenGL' }} \
+            -p:StrideSkipUnitTests=true \
             -p:StrideSkipAutoPack=true
