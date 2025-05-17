@@ -1,0 +1,41 @@
+name: Build Assembly Processor
+
+on:
+  workflow_dispatch:
+    inputs:
+      build-type:
+        description: Build Configuration?
+        default: Debug
+        type: choice
+        options:
+          - Debug
+          - Release
+  workflow_call:
+    inputs:
+      build-type:
+        default: Debug
+        type: string
+
+jobs:
+  #
+  # Build Assembly Processor
+  #
+  Assembly-Processor:
+    name: Build (${{ github.event.inputs.build-type || inputs.build-type }})
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - name: Build
+        run: |
+          dotnet build build\Stride.AssemblyProcessor.sln `
+            -restore -m:1 -nr:false `
+            -v:m -p:WarningLevel=0 `
+            -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type }} `
+            -p:StrideSkipUnitTests=true `
+            -p:StrideSkipAutoPack=true `
+            -p:StrideEnableCodeAnalysis=true
