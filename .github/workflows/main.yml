@@ -35,6 +35,13 @@ jobs:
     steps:
       - run: exit 0
 
+  Linux-Debug:
+    needs: Setup
+    uses: ./.github/workflows/build-linux.yml
+    secrets: inherit
+    with:
+      build-type: Debug
+
   Windows-Debug:
     needs: Setup
     uses: ./.github/workflows/build-windows.yml
