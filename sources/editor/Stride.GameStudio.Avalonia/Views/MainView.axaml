@@ -6,16 +6,16 @@
              xmlns:caec="using:Stride.Core.Assets.Editor.Avalonia.Controls"
              xmlns:caect="using:Stride.Core.Assets.Editor.Components.Transactions"
              xmlns:cpc="using:Stride.Core.Presentation.Commands"
-             xmlns:gh="using:Stride.GameStudio.Avalonia.Helpers"
-             xmlns:gvm="using:Stride.GameStudio.Avalonia.ViewModels"
-             xmlns:gvw="using:Stride.GameStudio.Avalonia.Views"
+             xmlns:gsh="using:Stride.GameStudio.Avalonia.Helpers"
+             xmlns:gsvm="using:Stride.GameStudio.Avalonia.ViewModels"
+             xmlns:gsvw="using:Stride.GameStudio.Avalonia.Views"
              mc:Ignorable="d" d:DesignWidth="1024" d:DesignHeight="768"
              x:Class="Stride.GameStudio.Avalonia.Views.MainView"
-             x:DataType="gvm:MainViewModel">
+             x:DataType="gsvm:MainViewModel">
   <Design.DataContext>
     <!-- This only sets the DataContext for the previewer in an IDE,
          to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
-    <gvm:MainViewModel/>
+    <gsvm:MainViewModel/>
   </Design.DataContext>
   <UserControl.Resources>
     <ResourceDictionary>
@@ -46,26 +46,26 @@
       <MenuItem Header="{sd:LocalizeString Edit, Context=Menu}">
         <MenuItem Header="{sd:LocalizeString Undo, Context=Menu}"
                   Command="{Binding Session.ActionHistory.UndoCommand, FallbackValue={x:Static cpc:DisabledCommand.Instance}}"
-                  HotKey="{x:Static gvw:MainView.UndoGesture}" InputGesture="{Binding $self.HotKey, Mode=OneTime}"/>
+                  HotKey="{x:Static gsvw:MainView.UndoGesture}" InputGesture="{Binding $self.HotKey, Mode=OneTime}"/>
         <MenuItem Header="{sd:LocalizeString Redo, Context=Menu}"
                   Command="{Binding Session.ActionHistory.RedoCommand, FallbackValue={x:Static cpc:DisabledCommand.Instance}}"
-                  HotKey="{x:Static gvw:MainView.RedoGesture}" InputGesture="{Binding $self.HotKey, Mode=OneTime}"/>
+                  HotKey="{x:Static gsvw:MainView.RedoGesture}" InputGesture="{Binding $self.HotKey, Mode=OneTime}"/>
       </MenuItem>
       <!-- Help menu -->
       <MenuItem Header="{sd:LocalizeString _Help, Context=Menu}">
         <MenuItem Header="{sd:LocalizeString Online documentation, Context=Menu}"
             Command="{Binding OpenWebPageCommand}"
-            CommandParameter="{x:Static gh:StrideGameStudio.DocumentationUrl}"/>
+            CommandParameter="{x:Static gsh:StrideGameStudio.DocumentationUrl}"/>
         <Separator/>
         <MenuItem Header="{sd:LocalizeString Questions and answers, Context=Menu}"
                   Command="{Binding OpenWebPageCommand}"
-                  CommandParameter="{x:Static gh:StrideGameStudio.AnswersUrl}"/>
+                  CommandParameter="{x:Static gsh:StrideGameStudio.AnswersUrl}"/>
         <MenuItem Header="{sd:LocalizeString Report an issue..., Context=Menu}"
                   Command="{Binding OpenWebPageCommand}"
-                  CommandParameter="{x:Static gh:StrideGameStudio.ReportIssueUrl}"/>
+                  CommandParameter="{x:Static gsh:StrideGameStudio.ReportIssueUrl}"/>
         <MenuItem Header="{sd:LocalizeString Discord forum, Context=Menu}"
                   Command="{Binding OpenWebPageCommand}"
-                  CommandParameter="{x:Static gh:StrideGameStudio.ForumsUrl}"/>
+                  CommandParameter="{x:Static gsh:StrideGameStudio.ForumsUrl}"/>
         <Separator/>
         <MenuItem Header="{sd:LocalizeString Show debug window, Context=Menu}"
                   Command="{Binding OpenDebugWindowCommand}"/>
@@ -84,7 +84,7 @@
       <Grid Grid.Row="0"
             ColumnDefinitions="2*, 2, *">
         <!-- Editors -->
-        <gvw:EditorCollectionView Grid.Column="0"
+        <gsvw:EditorCollectionView Grid.Column="0"
                                  BorderThickness="2"
                                  BorderBrush="Red"
                                  Padding="2"
@@ -102,7 +102,7 @@
                     HotKey="Alt+Right" ToolTip.Tip="{Binding $self.HotKey, Mode=OneTime}"/>
           </StackPanel>
           <!-- Property Grid -->
-          <gvw:PropertyGridView Grid.Row="1"
+          <gsvw:PropertyGridView Grid.Row="1"
                                BorderThickness="2"
                                BorderBrush="Orange"
                                Padding="2"
@@ -113,7 +113,7 @@
       <Grid Grid.Row="2"
             ColumnDefinitions="*, 2, 2*, 2, *">
         <!-- Solution Explorer -->
-        <gvw:SolutionExplorerView Grid.Column="0"
+        <gsvw:SolutionExplorerView Grid.Column="0"
                                  BorderThickness="2"
                                  BorderBrush="Black"
                                  Padding="2"
@@ -122,7 +122,7 @@
         <!-- Asset view and logs -->
         <TabControl Grid.Column="2">
           <TabItem Header="Asset view">
-            <gvw:AssetExplorerView BorderThickness="2"
+            <gsvw:AssetExplorerView BorderThickness="2"
                                   BorderBrush="Blue"
                                   Padding="2"
                                   DataContext="{Binding Session.AssetCollection, FallbackValue={x:Null}}"/>
@@ -138,7 +138,7 @@
         <!-- Asset preview, history and references -->
         <TabControl Grid.Column="4">
           <TabItem Header="Asset preview">
-            <gvw:AssetPreviewView BorderThickness="2"
+            <gsvw:AssetPreviewView BorderThickness="2"
                                  BorderBrush="Cyan"
                                  Padding="2"/>
           </TabItem>

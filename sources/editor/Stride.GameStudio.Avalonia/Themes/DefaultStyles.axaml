@@ -1,6 +1,9 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
+        xmlns:math="using:Stride.Core.Mathematics"
+        xmlns:s="using:System"
+        xmlns:scg="using:System.Collections.Generic"
         x:Class="Stride.GameStudio.Avalonia.Themes.DefaultStyles">
   <Styles.Resources>
     <!-- FIXME xplat-editor move those resources (they should be theme-dependent) -->
@@ -11,6 +14,20 @@
     <SolidColorBrush x:Key="TransparentBrush" Color="Transparent"/>
     <SolidColorBrush x:Key="WhiteBrush" Color="White"/>
   </Styles.Resources>
+
+  <!-- FIXME xplat-editor should styles be moved to a default theme in Core.Presentation.Avalonia? -->
+
+  <!-- Style for NumericTextBox -->
+  <Style Selector="sd|NumericTextBox">
+    <Setter Property="Template">
+      <ControlTemplate TargetType="sd:NumericTextBox">
+        <TextBox x:Name="PART_TextBox"
+                 Text="{TemplateBinding Text}"
+                 TextAlignment="{TemplateBinding TextAlignment}"
+                 Watermark="{TemplateBinding Watermark}"/>
+      </ControlTemplate>
+    </Setter>
+  </Style>
 
   <!-- Style for DateTime editor -->
   <Style Selector="sd|DateTimeEditor">
@@ -34,35 +51,35 @@
     <Setter Property="Template">
       <ControlTemplate TargetType="sd:TimeSpanEditor">
         <Grid ColumnDefinitions="2*, Auto, 2*, Auto, 2*, Auto, 3*, Auto">
-          <NumericUpDown Grid.Column="0"
-                         Margin="-1" TextAlignment="Right" ShowButtonSpinner="False"
-                         Minimum="0"
-                         Value="{Binding Days, RelativeSource={RelativeSource TemplatedParent}}"
-                         Watermark="{TemplateBinding Watermark}"/>
+          <sd:NumericTextBox Grid.Column="0"
+                             Margin="-1" TextAlignment="Right"
+                             Minimum="0"
+                             Value="{Binding Days, RelativeSource={RelativeSource TemplatedParent}, UpdateSourceTrigger=Explicit}"
+                             Watermark="{TemplateBinding Watermark}"/>
           <Label Grid.Column="1"
                  Margin="2" HorizontalAlignment="Center" VerticalAlignment="Center"
                  Content=" d "/>
-          <NumericUpDown Grid.Column="2"
-                         Margin="-1" TextAlignment="Right" ShowButtonSpinner="False"
-                         Minimum="0" Maximum="23"
-                         Value="{Binding Hours, RelativeSource={RelativeSource TemplatedParent}}"
-                         Watermark="{TemplateBinding Watermark}"/>
+          <sd:NumericTextBox Grid.Column="2"
+                             Margin="-1" TextAlignment="Right"
+                             Minimum="0" Maximum="23"
+                             Value="{Binding Hours, RelativeSource={RelativeSource TemplatedParent}, UpdateSourceTrigger=Explicit}"
+                             Watermark="{TemplateBinding Watermark}"/>
           <Label Grid.Column="3"
                  Margin="2" HorizontalAlignment="Center" VerticalAlignment="Center"
                  Content=" h "/>
-          <NumericUpDown Grid.Column="4"
-                         Margin="-1" TextAlignment="Right" ShowButtonSpinner="False"
-                         Minimum="0" Maximum="59"
-                         Value="{Binding Minutes, RelativeSource={RelativeSource TemplatedParent}}"
-                         Watermark="{TemplateBinding Watermark}"/>
+          <sd:NumericTextBox Grid.Column="4"
+                             Margin="-1" TextAlignment="Right"
+                             Minimum="0" Maximum="59"
+                             Value="{Binding Minutes, RelativeSource={RelativeSource TemplatedParent}, UpdateSourceTrigger=Explicit}"
+                             Watermark="{TemplateBinding Watermark}"/>
           <Label Grid.Column="5"
                  Margin="2" HorizontalAlignment="Center" VerticalAlignment="Center"
                  Content=" min "/>
-          <NumericUpDown Grid.Column="6"
-                         Margin="-1" TextAlignment="Right" ShowButtonSpinner="False"
-                         Minimum="0.0000000" Maximum="59.9999999"
-                         Value="{Binding Seconds, RelativeSource={RelativeSource TemplatedParent}}"
-                         Watermark="{TemplateBinding Watermark}"/>
+          <sd:NumericTextBox Grid.Column="6"
+                             Margin="-1" TextAlignment="Right"
+                             Minimum="0.0000000" Maximum="59.9999999"
+                             Value="{Binding Seconds, RelativeSource={RelativeSource TemplatedParent}, UpdateSourceTrigger=Explicit}"
+                             Watermark="{TemplateBinding Watermark}"/>
           <Label Grid.Column="7"
                  Margin="2" HorizontalAlignment="Center" VerticalAlignment="Center"
                  Content=" s "/>
@@ -93,7 +110,7 @@
                    Text="{Binding Value, Converter={sd:ColorConverter}, RelativeSource={RelativeSource TemplatedParent}}"
                    Watermark="{TemplateBinding Watermark}"/>
           <Popup Grid.Column="0"
-                 IsOpen="{Binding #PickerToggleButton.IsChecked}" IsLightDismissEnabled="True">
+                 IsOpen="{Binding #PickerToggleButton.IsChecked, Mode=TwoWay}" IsLightDismissEnabled="True">
             <Grid MinWidth="200" MinHeight="200"
                   MaxWidth="400" MaxHeight="400">
               <TabControl>
@@ -104,9 +121,12 @@
                   <ListBox ItemsSource="{TemplateBinding Palette}"
                            SelectedItem="{TemplateBinding SelectedPaletteColor, Mode=TwoWay}"
                            SelectedValue="{Binding Value, RelativeSource={RelativeSource TemplatedParent}}"
-                           SelectedValueBinding="{Binding Value}">
+                           SelectedValueBinding="{ReflectionBinding Value}">
                     <ListBox.ItemTemplate>
                       <DataTemplate>
+                        <DataTemplate.DataType>
+                          <x:Type TypeName="scg:KeyValuePair" x:TypeArguments="s:String,math:Color4"/>
+                        </DataTemplate.DataType>
                         <DockPanel>
                           <Rectangle DockPanel.Dock="Left"
                                      Stroke="Black" StrokeThickness="1"
@@ -148,7 +168,7 @@
                    Text="{Binding Value, Converter={sd:ColorConverter}, RelativeSource={RelativeSource TemplatedParent}}"
                    Watermark="{TemplateBinding Watermark}"/>
           <Popup Grid.Column="0"
-                 IsOpen="{Binding #PickerToggleButton.IsChecked}" IsLightDismissEnabled="True">
+                 IsOpen="{Binding #PickerToggleButton.IsChecked, Mode=TwoWay}" IsLightDismissEnabled="True">
             <Grid MinWidth="200" MinHeight="200"
                   MaxWidth="400" MaxHeight="400">
               <TabControl>
@@ -159,9 +179,12 @@
                   <ListBox ItemsSource="{TemplateBinding Palette}"
                            SelectedItem="{TemplateBinding SelectedPaletteColor, Mode=TwoWay}"
                            SelectedValue="{Binding Value, RelativeSource={RelativeSource TemplatedParent}}"
-                           SelectedValueBinding="{Binding Value}">
+                           SelectedValueBinding="{ReflectionBinding Value}">
                     <ListBox.ItemTemplate>
                       <DataTemplate>
+                        <DataTemplate.DataType>
+                          <x:Type TypeName="scg:KeyValuePair" x:TypeArguments="s:String,math:Color4"/>
+                        </DataTemplate.DataType>
                         <DockPanel>
                           <Rectangle DockPanel.Dock="Left"
                                      Stroke="Black" StrokeThickness="1"
@@ -203,7 +226,7 @@
                    Text="{Binding Value, Converter={sd:ColorConverter}, RelativeSource={RelativeSource TemplatedParent}}"
                    Watermark="{TemplateBinding Watermark}"/>
           <Popup Grid.Column="0"
-                 IsOpen="{Binding #PickerToggleButton.IsChecked}" IsLightDismissEnabled="True">
+                 IsOpen="{Binding #PickerToggleButton.IsChecked, Mode=TwoWay}" IsLightDismissEnabled="True">
             <Grid MinWidth="200" MinHeight="200"
                   MaxWidth="400" MaxHeight="400">
               <TabControl>
@@ -216,9 +239,12 @@
                   <ListBox ItemsSource="{TemplateBinding Palette}"
                            SelectedItem="{TemplateBinding SelectedPaletteColor, Mode=TwoWay}"
                            SelectedValue="{Binding Value, RelativeSource={RelativeSource TemplatedParent}}"
-                           SelectedValueBinding="{Binding Value}">
+                           SelectedValueBinding="{ReflectionBinding Value}">
                     <ListBox.ItemTemplate>
                       <DataTemplate>
+                        <DataTemplate.DataType>
+                          <x:Type TypeName="scg:KeyValuePair" x:TypeArguments="s:String,math:Color4"/>
+                        </DataTemplate.DataType>
                         <DockPanel>
                           <Rectangle DockPanel.Dock="Left"
                                      Stroke="Black" StrokeThickness="1"
@@ -251,10 +277,9 @@
                   BorderThickness="1" BorderBrush="{StaticResource TransparentBrush}">
             <DockPanel>
               <TextBlock Text="X" Margin="3,0" MinWidth="12" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource WhiteBrush}"/>
-              <NumericUpDown Margin="-1" TextAlignment="Center"
-                             ShowButtonSpinner="False"
-                             Value="{Binding X, RelativeSource={RelativeSource TemplatedParent}}"
-                             Watermark="{TemplateBinding Watermark}"/>
+              <sd:NumericTextBox Margin="-1" TextAlignment="Center"
+                                 Value="{Binding X, RelativeSource={RelativeSource TemplatedParent}, UpdateSourceTrigger=Explicit}"
+                                 Watermark="{TemplateBinding Watermark}"/>
             </DockPanel>
           </Border>
           <!-- Y component -->
@@ -264,10 +289,9 @@
                   BorderThickness="1" BorderBrush="{StaticResource TransparentBrush}">
             <DockPanel>
               <TextBlock Text="Y" Margin="3,0" MinWidth="12" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource WhiteBrush}"/>
-              <NumericUpDown Margin="-1" TextAlignment="Center"
-                             ShowButtonSpinner="False"
-                             Value="{Binding Y, RelativeSource={RelativeSource TemplatedParent}}"
-                             Watermark="{TemplateBinding Watermark}"/>
+              <sd:NumericTextBox Margin="-1" TextAlignment="Center"
+                                 Value="{Binding Y, RelativeSource={RelativeSource TemplatedParent}, UpdateSourceTrigger=Explicit}"
+                                 Watermark="{TemplateBinding Watermark}"/>
             </DockPanel>
           </Border>
         </Grid>
@@ -288,10 +312,9 @@
                   BorderThickness="1" BorderBrush="{StaticResource TransparentBrush}">
             <DockPanel>
               <TextBlock Text="X" Margin="3,0" MinWidth="12" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource WhiteBrush}"/>
-              <NumericUpDown Margin="-1" TextAlignment="Center"
-                             ShowButtonSpinner="False"
-                             Value="{Binding X, RelativeSource={RelativeSource TemplatedParent}}"
-                             Watermark="{TemplateBinding Watermark}"/>
+              <sd:NumericTextBox Margin="-1" TextAlignment="Center"
+                                 Value="{Binding X, RelativeSource={RelativeSource TemplatedParent}, UpdateSourceTrigger=Explicit}"
+                                 Watermark="{TemplateBinding Watermark}"/>
             </DockPanel>
           </Border>
           <!-- Y component -->
@@ -301,10 +324,9 @@
                   BorderThickness="1" BorderBrush="{StaticResource TransparentBrush}">
             <DockPanel>
               <TextBlock Text="Y" Margin="3,0" MinWidth="12" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource WhiteBrush}"/>
-              <NumericUpDown Margin="-1" TextAlignment="Center"
-                             ShowButtonSpinner="False"
-                             Value="{Binding Y, RelativeSource={RelativeSource TemplatedParent}}"
-                             Watermark="{TemplateBinding Watermark}"/>
+              <sd:NumericTextBox Margin="-1" TextAlignment="Center"
+                                 Value="{Binding Y, RelativeSource={RelativeSource TemplatedParent}, UpdateSourceTrigger=Explicit}"
+                                 Watermark="{TemplateBinding Watermark}"/>
             </DockPanel>
           </Border>
           <!-- Z component -->
@@ -314,10 +336,9 @@
                   BorderThickness="1" BorderBrush="{StaticResource TransparentBrush}">
             <DockPanel>
               <TextBlock Text="Z" Margin="3,0" MinWidth="12" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource WhiteBrush}"/>
-              <NumericUpDown Margin="-1" TextAlignment="Center"
-                             ShowButtonSpinner="False"
-                             Value="{Binding Z, RelativeSource={RelativeSource TemplatedParent}}"
-                             Watermark="{TemplateBinding Watermark}"/>
+              <sd:NumericTextBox Margin="-1" TextAlignment="Center"
+                                 Value="{Binding Z, RelativeSource={RelativeSource TemplatedParent}, UpdateSourceTrigger=Explicit}"
+                                 Watermark="{TemplateBinding Watermark}"/>
             </DockPanel>
           </Border>
         </Grid>
@@ -338,10 +359,9 @@
                   BorderThickness="1" BorderBrush="{StaticResource TransparentBrush}">
             <DockPanel>
               <TextBlock Text="X" Margin="3,0" MinWidth="12" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource WhiteBrush}"/>
-              <NumericUpDown Margin="-1" TextAlignment="Center"
-                             ShowButtonSpinner="False"
-                             Value="{Binding X, RelativeSource={RelativeSource TemplatedParent}}"
-                             Watermark="{TemplateBinding Watermark}"/>
+              <sd:NumericTextBox Margin="-1" TextAlignment="Center"
+                                 Value="{Binding X, RelativeSource={RelativeSource TemplatedParent}, UpdateSourceTrigger=Explicit}"
+                                 Watermark="{TemplateBinding Watermark}"/>
             </DockPanel>
           </Border>
           <!-- Y component -->
@@ -351,10 +371,9 @@
                   BorderThickness="1" BorderBrush="{StaticResource TransparentBrush}">
             <DockPanel>
               <TextBlock Text="Y" Margin="3,0" MinWidth="12" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource WhiteBrush}"/>
-              <NumericUpDown Margin="-1" TextAlignment="Center"
-                             ShowButtonSpinner="False"
-                             Value="{Binding Y, RelativeSource={RelativeSource TemplatedParent}}"
-                             Watermark="{TemplateBinding Watermark}"/>
+              <sd:NumericTextBox Margin="-1" TextAlignment="Center"
+                                 Value="{Binding Y, RelativeSource={RelativeSource TemplatedParent}, UpdateSourceTrigger=Explicit}"
+                                 Watermark="{TemplateBinding Watermark}"/>
             </DockPanel>
           </Border>
           <!-- Z component -->
@@ -364,10 +383,9 @@
                   BorderThickness="1" BorderBrush="{StaticResource TransparentBrush}">
             <DockPanel>
               <TextBlock Text="Z" Margin="3,0" MinWidth="12" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource WhiteBrush}"/>
-              <NumericUpDown Margin="-1" TextAlignment="Center"
-                             ShowButtonSpinner="False"
-                             Value="{Binding Z, RelativeSource={RelativeSource TemplatedParent}}"
-                             Watermark="{TemplateBinding Watermark}"/>
+              <sd:NumericTextBox Margin="-1" TextAlignment="Center"
+                                 Value="{Binding Z, RelativeSource={RelativeSource TemplatedParent}, UpdateSourceTrigger=Explicit}"
+                                 Watermark="{TemplateBinding Watermark}"/>
             </DockPanel>
           </Border>
           <!-- W component -->
@@ -377,10 +395,9 @@
                   BorderThickness="1" BorderBrush="{StaticResource TransparentBrush}">
             <DockPanel>
               <TextBlock Text="W" Margin="3,0" MinWidth="12" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource WhiteBrush}"/>
-              <NumericUpDown Margin="-1" TextAlignment="Center"
-                             ShowButtonSpinner="False"
-                             Value="{Binding W, RelativeSource={RelativeSource TemplatedParent}}"
-                             Watermark="{TemplateBinding Watermark}"/>
+              <sd:NumericTextBox Margin="-1" TextAlignment="Center"
+                                 Value="{Binding W, RelativeSource={RelativeSource TemplatedParent}, UpdateSourceTrigger=Explicit}"
+                                 Watermark="{TemplateBinding Watermark}"/>
             </DockPanel>
           </Border>
         </Grid>
@@ -401,10 +418,9 @@
                   BorderThickness="1" BorderBrush="{StaticResource TransparentBrush}">
             <DockPanel>
               <TextBlock Text="X" Margin="3,0" MinWidth="12" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource WhiteBrush}"/>
-              <NumericUpDown Margin="-1" TextAlignment="Center"
-                             ShowButtonSpinner="False"
-                             Value="{Binding X, RelativeSource={RelativeSource TemplatedParent}}"
-                             Watermark="{TemplateBinding Watermark}"/>
+              <sd:NumericTextBox Margin="-1" TextAlignment="Center"
+                                 Value="{Binding X, RelativeSource={RelativeSource TemplatedParent}, UpdateSourceTrigger=Explicit}"
+                                 Watermark="{TemplateBinding Watermark}"/>
             </DockPanel>
           </Border>
           <!-- Y component -->
@@ -414,10 +430,9 @@
                   BorderThickness="1" BorderBrush="{StaticResource TransparentBrush}">
             <DockPanel>
               <TextBlock Text="Y" Margin="3,0" MinWidth="12" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource WhiteBrush}"/>
-              <NumericUpDown Margin="-1" TextAlignment="Center"
-                             ShowButtonSpinner="False"
-                             Value="{Binding Y, RelativeSource={RelativeSource TemplatedParent}}"
-                             Watermark="{TemplateBinding Watermark}"/>
+              <sd:NumericTextBox Margin="-1" TextAlignment="Center"
+                                 Value="{Binding Y, RelativeSource={RelativeSource TemplatedParent}, UpdateSourceTrigger=Explicit}"
+                                 Watermark="{TemplateBinding Watermark}"/>
             </DockPanel>
           </Border>
         </Grid>
@@ -438,10 +453,9 @@
                   BorderThickness="1" BorderBrush="{StaticResource TransparentBrush}">
             <DockPanel>
               <TextBlock Text="X" Margin="3,0" MinWidth="12" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource WhiteBrush}"/>
-              <NumericUpDown Margin="-1" TextAlignment="Center"
-                             ShowButtonSpinner="False"
-                             Value="{Binding X, RelativeSource={RelativeSource TemplatedParent}}"
-                             Watermark="{TemplateBinding Watermark}"/>
+              <sd:NumericTextBox Margin="-1" TextAlignment="Center"
+                                 Value="{Binding X, RelativeSource={RelativeSource TemplatedParent}, UpdateSourceTrigger=Explicit}"
+                                 Watermark="{TemplateBinding Watermark}"/>
             </DockPanel>
           </Border>
           <!-- Y component -->
@@ -451,10 +465,9 @@
                   BorderThickness="1" BorderBrush="{StaticResource TransparentBrush}">
             <DockPanel>
               <TextBlock Text="Y" Margin="3,0" MinWidth="12" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource WhiteBrush}"/>
-              <NumericUpDown Margin="-1" TextAlignment="Center"
-                             ShowButtonSpinner="False"
-                             Value="{Binding Y, RelativeSource={RelativeSource TemplatedParent}}"
-                             Watermark="{TemplateBinding Watermark}"/>
+              <sd:NumericTextBox Margin="-1" TextAlignment="Center"
+                                 Value="{Binding Y, RelativeSource={RelativeSource TemplatedParent}, UpdateSourceTrigger=Explicit}"
+                                 Watermark="{TemplateBinding Watermark}"/>
             </DockPanel>
           </Border>
           <!-- Z component -->
@@ -464,10 +477,9 @@
                   BorderThickness="1" BorderBrush="{StaticResource TransparentBrush}">
             <DockPanel>
               <TextBlock Text="Z" Margin="3,0" MinWidth="12" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource WhiteBrush}"/>
-              <NumericUpDown Margin="-1" TextAlignment="Center"
-                             ShowButtonSpinner="False"
-                             Value="{Binding Z, RelativeSource={RelativeSource TemplatedParent}}"
-                             Watermark="{TemplateBinding Watermark}"/>
+              <sd:NumericTextBox Margin="-1" TextAlignment="Center"
+                                 Value="{Binding Z, RelativeSource={RelativeSource TemplatedParent}, UpdateSourceTrigger=Explicit}"
+                                 Watermark="{TemplateBinding Watermark}"/>
             </DockPanel>
           </Border>
         </Grid>
@@ -488,10 +500,9 @@
                   BorderThickness="1" BorderBrush="{StaticResource TransparentBrush}">
             <DockPanel>
               <TextBlock Text="X" Margin="3,0" MinWidth="12" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource WhiteBrush}"/>
-              <NumericUpDown Margin="-1" TextAlignment="Center"
-                             ShowButtonSpinner="False"
-                             Value="{Binding X, RelativeSource={RelativeSource TemplatedParent}}"
-                             Watermark="{TemplateBinding Watermark}"/>
+              <sd:NumericTextBox Margin="-1" TextAlignment="Center"
+                                 Value="{Binding X, RelativeSource={RelativeSource TemplatedParent}, UpdateSourceTrigger=Explicit}"
+                                 Watermark="{TemplateBinding Watermark}"/>
             </DockPanel>
           </Border>
           <!-- Y component -->
@@ -501,10 +512,9 @@
                   BorderThickness="1" BorderBrush="{StaticResource TransparentBrush}">
             <DockPanel>
               <TextBlock Text="Y" Margin="3,0" MinWidth="12" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource WhiteBrush}"/>
-              <NumericUpDown Margin="-1" TextAlignment="Center"
-                             ShowButtonSpinner="False"
-                             Value="{Binding Y, RelativeSource={RelativeSource TemplatedParent}}"
-                             Watermark="{TemplateBinding Watermark}"/>
+              <sd:NumericTextBox Margin="-1" TextAlignment="Center"
+                                 Value="{Binding Y, RelativeSource={RelativeSource TemplatedParent}, UpdateSourceTrigger=Explicit}"
+                                 Watermark="{TemplateBinding Watermark}"/>
             </DockPanel>
           </Border>
           <!-- Z component -->
@@ -514,10 +524,9 @@
                   BorderThickness="1" BorderBrush="{StaticResource TransparentBrush}">
             <DockPanel>
               <TextBlock Text="Z" Margin="3,0" MinWidth="12" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource WhiteBrush}"/>
-              <NumericUpDown Margin="-1" TextAlignment="Center"
-                             ShowButtonSpinner="False"
-                             Value="{Binding Z, RelativeSource={RelativeSource TemplatedParent}}"
-                             Watermark="{TemplateBinding Watermark}"/>
+              <sd:NumericTextBox Margin="-1" TextAlignment="Center"
+                                 Value="{Binding Z, RelativeSource={RelativeSource TemplatedParent}, UpdateSourceTrigger=Explicit}"
+                                 Watermark="{TemplateBinding Watermark}"/>
             </DockPanel>
           </Border>
           <!-- W component -->
@@ -527,10 +536,9 @@
                   BorderThickness="1" BorderBrush="{StaticResource TransparentBrush}">
             <DockPanel>
               <TextBlock Text="W" Margin="3,0" MinWidth="12" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource WhiteBrush}"/>
-              <NumericUpDown Margin="-1" TextAlignment="Center"
-                             ShowButtonSpinner="False"
-                             Value="{Binding W, RelativeSource={RelativeSource TemplatedParent}}"
-                             Watermark="{TemplateBinding Watermark}"/>
+              <sd:NumericTextBox Margin="-1" TextAlignment="Center"
+                                 Value="{Binding W, RelativeSource={RelativeSource TemplatedParent}, UpdateSourceTrigger=Explicit}"
+                                 Watermark="{TemplateBinding Watermark}"/>
             </DockPanel>
           </Border>
         </Grid>
@@ -550,10 +558,9 @@
                   BorderThickness="1" BorderBrush="{StaticResource TransparentBrush}">
             <DockPanel>
               <TextBlock Text="X" Margin="3,0" MinWidth="12" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource WhiteBrush}"/>
-              <NumericUpDown Margin="-1" TextAlignment="Center"
-                             ShowButtonSpinner="False"
-                             Value="{Binding RectX, RelativeSource={RelativeSource TemplatedParent}}"
-                             Watermark="{TemplateBinding Watermark}"/>
+              <sd:NumericTextBox Margin="-1" TextAlignment="Center"
+                                 Value="{Binding RectX, RelativeSource={RelativeSource TemplatedParent}, UpdateSourceTrigger=Explicit}"
+                                 Watermark="{TemplateBinding Watermark}"/>
             </DockPanel>
           </Border>
           <Border Grid.Column="1"
@@ -562,10 +569,9 @@
                   BorderThickness="1" BorderBrush="{StaticResource TransparentBrush}">
             <DockPanel>
               <TextBlock Text="Y" Margin="3,0" MinWidth="12" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource WhiteBrush}"/>
-              <NumericUpDown Margin="-1" TextAlignment="Center"
-                             ShowButtonSpinner="False"
-                             Value="{Binding RectY, RelativeSource={RelativeSource TemplatedParent}}"
-                             Watermark="{TemplateBinding Watermark}"/>
+              <sd:NumericTextBox Margin="-1" TextAlignment="Center"
+                                 Value="{Binding RectY, RelativeSource={RelativeSource TemplatedParent}, UpdateSourceTrigger=Explicit}"
+                                 Watermark="{TemplateBinding Watermark}"/>
             </DockPanel>
           </Border>
           <Border Grid.Column="1"
@@ -574,10 +580,9 @@
                   BorderThickness="1" BorderBrush="{StaticResource TransparentBrush}">
             <DockPanel>
               <TextBlock Text="W" Margin="3,0" MinWidth="12" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource WhiteBrush}"/>
-              <NumericUpDown Margin="-1" TextAlignment="Center"
-                             ShowButtonSpinner="False"
-                             Value="{Binding RectWidth, RelativeSource={RelativeSource TemplatedParent}}"
-                             Watermark="{TemplateBinding Watermark}"/>
+              <sd:NumericTextBox Margin="-1" TextAlignment="Center"
+                                 Value="{Binding RectWidth, RelativeSource={RelativeSource TemplatedParent}, UpdateSourceTrigger=Explicit}"
+                                 Watermark="{TemplateBinding Watermark}"/>
             </DockPanel>
           </Border>
           <Border Grid.Column="7"
@@ -586,10 +591,9 @@
                   BorderThickness="1" BorderBrush="{StaticResource TransparentBrush}">
             <DockPanel>
               <TextBlock Text="H" Margin="3,0" MinWidth="12" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource WhiteBrush}"/>
-              <NumericUpDown Margin="-1" TextAlignment="Center"
-                             ShowButtonSpinner="False"
-                             Value="{Binding RectHeight, RelativeSource={RelativeSource TemplatedParent}}"
-                             Watermark="{TemplateBinding Watermark}"/>
+              <sd:NumericTextBox Margin="-1" TextAlignment="Center"
+                                 Value="{Binding RectHeight, RelativeSource={RelativeSource TemplatedParent}, UpdateSourceTrigger=Explicit}"
+                                 Watermark="{TemplateBinding Watermark}"/>
             </DockPanel>
           </Border>
         </Grid>
@@ -609,10 +613,9 @@
                   BorderThickness="1" BorderBrush="{StaticResource TransparentBrush}">
             <DockPanel>
               <TextBlock Text="X" Margin="3,0" MinWidth="12" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource WhiteBrush}"/>
-              <NumericUpDown Margin="-1" TextAlignment="Center"
-                             ShowButtonSpinner="False"
-                             Value="{Binding RectX, RelativeSource={RelativeSource TemplatedParent}}"
-                             Watermark="{TemplateBinding Watermark}"/>
+              <sd:NumericTextBox Margin="-1" TextAlignment="Center"
+                                 Value="{Binding RectX, RelativeSource={RelativeSource TemplatedParent}, UpdateSourceTrigger=Explicit}"
+                                 Watermark="{TemplateBinding Watermark}"/>
             </DockPanel>
           </Border>
           <Border Grid.Column="1"
@@ -621,10 +624,9 @@
                   BorderThickness="1" BorderBrush="{StaticResource TransparentBrush}">
             <DockPanel>
               <TextBlock Text="Y" Margin="3,0" MinWidth="12" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource WhiteBrush}"/>
-              <NumericUpDown Margin="-1" TextAlignment="Center"
-                             ShowButtonSpinner="False"
-                             Value="{Binding RectY, RelativeSource={RelativeSource TemplatedParent}}"
-                             Watermark="{TemplateBinding Watermark}"/>
+              <sd:NumericTextBox Margin="-1" TextAlignment="Center"
+                                 Value="{Binding RectY, RelativeSource={RelativeSource TemplatedParent}, UpdateSourceTrigger=Explicit}"
+                                 Watermark="{TemplateBinding Watermark}"/>
             </DockPanel>
           </Border>
           <Border Grid.Column="1"
@@ -633,10 +635,9 @@
                   BorderThickness="1" BorderBrush="{StaticResource TransparentBrush}">
             <DockPanel>
               <TextBlock Text="W" Margin="3,0" MinWidth="12" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource WhiteBrush}"/>
-              <NumericUpDown Margin="-1" TextAlignment="Center"
-                             ShowButtonSpinner="False"
-                             Value="{Binding RectWidth, RelativeSource={RelativeSource TemplatedParent}}"
-                             Watermark="{TemplateBinding Watermark}"/>
+              <sd:NumericTextBox Margin="-1" TextAlignment="Center"
+                                 Value="{Binding RectWidth, RelativeSource={RelativeSource TemplatedParent}, UpdateSourceTrigger=Explicit}"
+                                 Watermark="{TemplateBinding Watermark}"/>
             </DockPanel>
           </Border>
           <Border Grid.Column="7"
@@ -645,10 +646,9 @@
                   BorderThickness="1" BorderBrush="{StaticResource TransparentBrush}">
             <DockPanel>
               <TextBlock Text="H" Margin="3,0" MinWidth="12" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource WhiteBrush}"/>
-              <NumericUpDown Margin="-1" TextAlignment="Center"
-                             ShowButtonSpinner="False"
-                             Value="{Binding RectHeight, RelativeSource={RelativeSource TemplatedParent}}"
-                             Watermark="{TemplateBinding Watermark}"/>
+              <sd:NumericTextBox Margin="-1" TextAlignment="Center"
+                                 Value="{Binding RectHeight, RelativeSource={RelativeSource TemplatedParent}, UpdateSourceTrigger=Explicit}"
+                                 Watermark="{TemplateBinding Watermark}"/>
             </DockPanel>
           </Border>
         </Grid>
@@ -670,10 +670,9 @@
                   BorderThickness="1" BorderBrush="{StaticResource TransparentBrush}">
             <DockPanel>
               <TextBlock Text="X" Margin="3,0" MinWidth="12" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource WhiteBrush}"/>
-              <NumericUpDown Margin="-1" TextAlignment="Center"
-                             ShowButtonSpinner="False"
-                             Value="{Binding X, RelativeSource={RelativeSource TemplatedParent}}"
-                             Watermark="{TemplateBinding Watermark}"/>
+              <sd:NumericTextBox Margin="-1" TextAlignment="Center"
+                                 Value="{Binding X, RelativeSource={RelativeSource TemplatedParent}, UpdateSourceTrigger=Explicit}"
+                                 Watermark="{TemplateBinding Watermark}"/>
             </DockPanel>
           </Border>
           <!-- Y component -->
@@ -683,10 +682,9 @@
                   BorderThickness="1" BorderBrush="{StaticResource TransparentBrush}">
             <DockPanel>
               <TextBlock Text="Y" Margin="3,0" MinWidth="12" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource WhiteBrush}"/>
-              <NumericUpDown Margin="-1" TextAlignment="Center"
-                             ShowButtonSpinner="False"
-                             Value="{Binding Y, RelativeSource={RelativeSource TemplatedParent}}"
-                             Watermark="{TemplateBinding Watermark}"/>
+              <sd:NumericTextBox Margin="-1" TextAlignment="Center"
+                                 Value="{Binding Y, RelativeSource={RelativeSource TemplatedParent}, UpdateSourceTrigger=Explicit}"
+                                 Watermark="{TemplateBinding Watermark}"/>
             </DockPanel>
           </Border>
           <!-- Z component -->
@@ -696,10 +694,9 @@
                   BorderThickness="1" BorderBrush="{StaticResource TransparentBrush}">
             <DockPanel>
               <TextBlock Text="Z" Margin="3,0" MinWidth="12" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource WhiteBrush}"/>
-              <NumericUpDown Margin="-1" TextAlignment="Center"
-                             ShowButtonSpinner="False"
-                             Value="{Binding Z, RelativeSource={RelativeSource TemplatedParent}}"
-                             Watermark="{TemplateBinding Watermark}"/>
+              <sd:NumericTextBox Margin="-1" TextAlignment="Center"
+                                 Value="{Binding Z, RelativeSource={RelativeSource TemplatedParent}, UpdateSourceTrigger=Explicit}"
+                                 Watermark="{TemplateBinding Watermark}"/>
             </DockPanel>
           </Border>
         </Grid>
@@ -714,73 +711,57 @@
       <ControlTemplate TargetType="sd:MatrixEditor">
         <UniformGrid Rows="4" Columns="4">
           <!-- first row -->
-          <NumericUpDown Margin="2" TextAlignment="Center"
-                         ShowButtonSpinner="False"
-                         Value="{Binding M11, RelativeSource={RelativeSource TemplatedParent}}"
-                         Watermark="{TemplateBinding Watermark}"/>
-          <NumericUpDown Margin="2" TextAlignment="Center"
-                         ShowButtonSpinner="False"
-                         Value="{Binding M12, RelativeSource={RelativeSource TemplatedParent}}"
-                         Watermark="{TemplateBinding Watermark}"/>
-          <NumericUpDown Margin="2" TextAlignment="Center"
-                         ShowButtonSpinner="False"
-                         Value="{Binding M13, RelativeSource={RelativeSource TemplatedParent}}"
-                         Watermark="{TemplateBinding Watermark}"/>
-          <NumericUpDown Margin="2" TextAlignment="Center"
-                         ShowButtonSpinner="False"
-                         Value="{Binding M14, RelativeSource={RelativeSource TemplatedParent}}"
-                         Watermark="{TemplateBinding Watermark}"/>
+          <sd:NumericTextBox Margin="2" TextAlignment="Center"
+                             Value="{Binding M11, RelativeSource={RelativeSource TemplatedParent}, UpdateSourceTrigger=Explicit}"
+                             Watermark="{TemplateBinding Watermark}"/>
+          <sd:NumericTextBox Margin="2" TextAlignment="Center"
+                             Value="{Binding M12, RelativeSource={RelativeSource TemplatedParent}, UpdateSourceTrigger=Explicit}"
+                             Watermark="{TemplateBinding Watermark}"/>
+          <sd:NumericTextBox Margin="2" TextAlignment="Center"
+                             Value="{Binding M13, RelativeSource={RelativeSource TemplatedParent}, UpdateSourceTrigger=Explicit}"
+                             Watermark="{TemplateBinding Watermark}"/>
+          <sd:NumericTextBox Margin="2" TextAlignment="Center"
+                             Value="{Binding M14, RelativeSource={RelativeSource TemplatedParent}, UpdateSourceTrigger=Explicit}"
+                             Watermark="{TemplateBinding Watermark}"/>
           <!-- second row -->
-          <NumericUpDown Margin="2" TextAlignment="Center"
-                         ShowButtonSpinner="False"
-                         Value="{Binding M21, RelativeSource={RelativeSource TemplatedParent}}"
-                         Watermark="{TemplateBinding Watermark}"/>
-          <NumericUpDown Margin="2" TextAlignment="Center"
-                         ShowButtonSpinner="False"
-                         Value="{Binding M22, RelativeSource={RelativeSource TemplatedParent}}"
-                         Watermark="{TemplateBinding Watermark}"/>
-          <NumericUpDown Margin="2" TextAlignment="Center"
-                         ShowButtonSpinner="False"
-                         Value="{Binding M23, RelativeSource={RelativeSource TemplatedParent}}"
-                         Watermark="{TemplateBinding Watermark}"/>
-          <NumericUpDown Margin="2" TextAlignment="Center"
-                         ShowButtonSpinner="False"
-                         Value="{Binding M24, RelativeSource={RelativeSource TemplatedParent}}"
-                         Watermark="{TemplateBinding Watermark}"/>
+          <sd:NumericTextBox Margin="2" TextAlignment="Center"
+                             Value="{Binding M21, RelativeSource={RelativeSource TemplatedParent}, UpdateSourceTrigger=Explicit}"
+                             Watermark="{TemplateBinding Watermark}"/>
+          <sd:NumericTextBox Margin="2" TextAlignment="Center"
+                             Value="{Binding M22, RelativeSource={RelativeSource TemplatedParent}, UpdateSourceTrigger=Explicit}"
+                             Watermark="{TemplateBinding Watermark}"/>
+          <sd:NumericTextBox Margin="2" TextAlignment="Center"
+                             Value="{Binding M23, RelativeSource={RelativeSource TemplatedParent}, UpdateSourceTrigger=Explicit}"
+                             Watermark="{TemplateBinding Watermark}"/>
+          <sd:NumericTextBox Margin="2" TextAlignment="Center"
+                             Value="{Binding M24, RelativeSource={RelativeSource TemplatedParent}, UpdateSourceTrigger=Explicit}"
+                             Watermark="{TemplateBinding Watermark}"/>
           <!-- third row -->
-          <NumericUpDown Margin="2" TextAlignment="Center"
-                         ShowButtonSpinner="False"
-                         Value="{Binding M31, RelativeSource={RelativeSource TemplatedParent}}"
-                         Watermark="{TemplateBinding Watermark}"/>
-          <NumericUpDown Margin="2" TextAlignment="Center"
-                         ShowButtonSpinner="False"
-                         Value="{Binding M32, RelativeSource={RelativeSource TemplatedParent}}"
-                         Watermark="{TemplateBinding Watermark}"/>
-          <NumericUpDown Margin="2" TextAlignment="Center"
-                         ShowButtonSpinner="False"
-                         Value="{Binding M33, RelativeSource={RelativeSource TemplatedParent}}"
-                         Watermark="{TemplateBinding Watermark}"/>
-          <NumericUpDown Margin="2" TextAlignment="Center"
-                         ShowButtonSpinner="False"
-                         Value="{Binding M34, RelativeSource={RelativeSource TemplatedParent}}"
-                         Watermark="{TemplateBinding Watermark}"/>
+          <sd:NumericTextBox Margin="2" TextAlignment="Center"
+                             Value="{Binding M31, RelativeSource={RelativeSource TemplatedParent}, UpdateSourceTrigger=Explicit}"
+                             Watermark="{TemplateBinding Watermark}"/>
+          <sd:NumericTextBox Margin="2" TextAlignment="Center"
+                             Value="{Binding M32, RelativeSource={RelativeSource TemplatedParent}, UpdateSourceTrigger=Explicit}"
+                             Watermark="{TemplateBinding Watermark}"/>
+          <sd:NumericTextBox Margin="2" TextAlignment="Center"
+                             Value="{Binding M33, RelativeSource={RelativeSource TemplatedParent}, UpdateSourceTrigger=Explicit}"
+                             Watermark="{TemplateBinding Watermark}"/>
+          <sd:NumericTextBox Margin="2" TextAlignment="Center"
+                             Value="{Binding M34, RelativeSource={RelativeSource TemplatedParent}, UpdateSourceTrigger=Explicit}"
+                             Watermark="{TemplateBinding Watermark}"/>
           <!-- fourth row -->
-          <NumericUpDown Margin="2" TextAlignment="Center"
-                         ShowButtonSpinner="False"
-                         Value="{Binding M41, RelativeSource={RelativeSource TemplatedParent}}"
-                         Watermark="{TemplateBinding Watermark}"/>
-          <NumericUpDown Margin="2" TextAlignment="Center"
-                         ShowButtonSpinner="False"
-                         Value="{Binding M42, RelativeSource={RelativeSource TemplatedParent}}"
-                         Watermark="{TemplateBinding Watermark}"/>
-          <NumericUpDown Margin="2" TextAlignment="Center"
-                         ShowButtonSpinner="False"
-                         Value="{Binding M43, RelativeSource={RelativeSource TemplatedParent}}"
-                         Watermark="{TemplateBinding Watermark}"/>
-          <NumericUpDown Margin="2" TextAlignment="Center"
-                         ShowButtonSpinner="False"
-                         Value="{Binding M44, RelativeSource={RelativeSource TemplatedParent}}"
-                         Watermark="{TemplateBinding Watermark}"/>
+          <sd:NumericTextBox Margin="2" TextAlignment="Center"
+                             Value="{Binding M41, RelativeSource={RelativeSource TemplatedParent}, UpdateSourceTrigger=Explicit}"
+                             Watermark="{TemplateBinding Watermark}"/>
+          <sd:NumericTextBox Margin="2" TextAlignment="Center"
+                             Value="{Binding M42, RelativeSource={RelativeSource TemplatedParent}, UpdateSourceTrigger=Explicit}"
+                             Watermark="{TemplateBinding Watermark}"/>
+          <sd:NumericTextBox Margin="2" TextAlignment="Center"
+                             Value="{Binding M43, RelativeSource={RelativeSource TemplatedParent}, UpdateSourceTrigger=Explicit}"
+                             Watermark="{TemplateBinding Watermark}"/>
+          <sd:NumericTextBox Margin="2" TextAlignment="Center"
+                             Value="{Binding M44, RelativeSource={RelativeSource TemplatedParent}, UpdateSourceTrigger=Explicit}"
+                             Watermark="{TemplateBinding Watermark}"/>
         </UniformGrid>
       </ControlTemplate>
     </Setter>

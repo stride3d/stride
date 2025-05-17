@@ -5,6 +5,7 @@
         xmlns:md="https://github.com/whistyun/Markdown.Avalonia.Tight"
         xmlns:cvt="using:Stride.Core.Presentation.Avalonia.Converters"
         xmlns:local="using:Stride.Core.Presentation.Windows"
+        xmlns:windows="using:Stride.Core.Presentation.Avalonia.Windows"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         MinHeight="120" MinWidth="320" MaxHeight="768"
         SizeToContent="WidthAndHeight" CanResize="False"
@@ -28,7 +29,7 @@
         <!--  buttons -->
         <ItemsControl DockPanel.Dock="Bottom"
                       HorizontalAlignment="Right"
-                      ItemsSource="{Binding $parent[Window].ButtonsSource}">
+                      ItemsSource="{Binding $parent[windows:MessageBox].ButtonsSource}">
           <ItemsControl.ItemsPanel>
             <ItemsPanelTemplate>
               <UniformGrid Rows="1" />
@@ -38,7 +39,7 @@
             <DataTemplate DataType="{x:Type local:DialogButtonInfo}">
               <Button Margin="4,0" Padding="16,4" MinWidth="80"
                       HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
-                      Command="{Binding $parent[Window].ButtonCommand}"
+                      Command="{Binding $parent[windows:MessageBox].ButtonCommand}"
                       CommandParameter="{Binding Result}"
                       Content="{Binding Content}"
                       IsCancel="{Binding IsCancel}" IsDefault="{Binding IsDefault}" />
@@ -46,16 +47,16 @@
           </ItemsControl.ItemTemplate>
         </ItemsControl>
         <!-- content -->
-        <ContentPresenter Content="{Binding}">
+        <ContentPresenter Content="{Binding $parent[ContentControl].Content}">
           <ContentPresenter.ContentTemplate>
             <DataTemplate>
               <DockPanel LastChildFill="True">
                 <Image DockPanel.Dock="Left"
-                       Source="{Binding $parent[Window].Image}"
+                       Source="{Binding $parent[windows:MessageBox].Image}"
                        HorizontalAlignment="Left" VerticalAlignment="Top"
                        Height="32" Width="32" Margin="4"
-                       IsVisible="{Binding $parent[Window].Image, Converter={cvt:ObjectToBool}}" />
-                <md:MarkdownScrollViewer Markdown="{Binding}" VerticalAlignment="Center" />
+                       IsVisible="{Binding $parent[windows:MessageBox].Image, Converter={cvt:ObjectToBool}}" />
+                <md:MarkdownScrollViewer Markdown="{ReflectionBinding}" VerticalAlignment="Center" />
               </DockPanel>
             </DataTemplate>
           </ContentPresenter.ContentTemplate>

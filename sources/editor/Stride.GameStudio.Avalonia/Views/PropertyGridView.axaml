@@ -2,13 +2,14 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:vm="using:Stride.Core.Assets.Editor.Components.Properties"
              xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
-             xmlns:aev="using:Stride.Core.Assets.Editor.Avalonia.Views"
-             xmlns:pqvm="using:Stride.Core.Presentation.Quantum.ViewModels"
+             xmlns:caeb="using:Stride.Core.Assets.Editor.Avalonia.Behaviors"
+             xmlns:caecp="using:Stride.Core.Assets.Editor.Components.Properties"
+             xmlns:caev="using:Stride.Core.Assets.Editor.Avalonia.Views"
+             xmlns:cpqvm="using:Stride.Core.Presentation.Quantum.ViewModels"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="Stride.GameStudio.Avalonia.Views.PropertyGridView"
-             x:DataType="vm:PropertiesViewModel">
+             x:DataType="caecp:SessionObjectPropertiesViewModel">
   <UserControl.Resources>
     <ControlTheme x:Key="PropertyExpanderTheme" TargetType="Expander">
       <Setter Property="Padding" Value="10,0,0,0"/>
@@ -46,13 +47,15 @@
         </ControlTemplate>
       </Setter>
     </ControlTheme>
-    <ControlTheme x:Key="{x:Type sd:PropertyViewItem}" TargetType="sd:PropertyViewItem">
+    <ControlTheme x:Key="{x:Type sd:PropertyViewItem}" TargetType="sd:PropertyViewItem"
+                  x:DataType="cpqvm:NodeViewModel">
+      <Setter Property="Background" Value="Transparent"/>
       <Setter Property="Increment" Value="12"/>
       <Setter Property="HorizontalAlignment" Value="Stretch"/>
       <Setter Property="HeaderTemplate">
-        <TreeDataTemplate ItemsSource="{Binding Children, Mode=OneWay}" DataType="pqvm:NodeViewModel">
+        <TreeDataTemplate ItemsSource="{Binding Children, Mode=OneWay}" DataType="cpqvm:NodeViewModel">
           <ContentPresenter Content="{Binding}"
-                            ContentTemplate="{x:Static aev:PropertyViewHelper.HeaderProviders}"/>
+                            ContentTemplate="{x:Static caev:PropertyViewHelper.HeaderProviders}"/>
         </TreeDataTemplate>
       </Setter>
       <Setter Property="Template">
@@ -66,7 +69,7 @@
                                   Content="{TemplateBinding HeaderedContentControl.Header}"
                                   ContentTemplate="{TemplateBinding HeaderTemplate}"
                                   HorizontalAlignment="{TemplateBinding Control.HorizontalAlignment}"
-                                  IsVisible="{sd:MultiBinding {Binding !$parent[sd:PropertyView].DataContext.ShowOverridesOnly, FallbackValue={sd:True}},
+                                  IsVisible="{sd:MultiBinding {Binding !$parent[sd:PropertyView].((caecp:SessionObjectPropertiesViewModel)DataContext).ShowOverridesOnly, FallbackValue={sd:True}},
                                                                {Binding [IsOverridden]},
                                                                {Binding ![HasBase]},
                                                                Converter={sd:OrMulti}}"/>
@@ -78,9 +81,9 @@
                   <ItemsPresenter Name="ItemsHost"/>
                   <ContentPresenter Name="PART_Footer"
                                     Content="{TemplateBinding HeaderedContentControl.Header}"
-                                    ContentTemplate="{x:Static aev:PropertyViewHelper.FooterProviders}"
+                                    ContentTemplate="{x:Static caev:PropertyViewHelper.FooterProviders}"
                                     HorizontalAlignment="{TemplateBinding Control.HorizontalAlignment}"
-                                    IsVisible="{sd:MultiBinding {Binding !$parent[sd:PropertyView].DataContext.ShowOverridesOnly, FallbackValue={sd:True}},
+                                    IsVisible="{sd:MultiBinding {Binding !$parent[sd:PropertyView].((caecp:SessionObjectPropertiesViewModel)DataContext).ShowOverridesOnly, FallbackValue={sd:True}},
                                                                 {Binding [IsOverridden]},
                                                                 {Binding ![HasBase]},
                                                                 Converter={sd:OrMulti}}"/>
@@ -92,9 +95,21 @@
       </Setter>
     </ControlTheme>
   </UserControl.Resources>
+  <UserControl.Styles>
+    <Style Selector="sd|PropertyViewItem[IsHovered=True]">
+      <Setter Property="Background" Value="#FF525252"/>
+    </Style>
+    <Style Selector="sd|PropertyViewItem[IsFocused=True]">
+      <Setter Property="Background" Value="#3E3E40"/>
+    </Style>
+  </UserControl.Styles>
   <DockPanel LastChildFill="True">
     <TextBlock DockPanel.Dock="Top" Text="Property Grid"/>
     <sd:PropertyView ItemsSource="{Binding ViewModel.RootNode.Children}"
-                     IsVisible="{Binding CanDisplayProperties}"/>
+                     IsVisible="{Binding CanDisplayProperties}">
+      <Interaction.Behaviors>
+        <caeb:PropertyViewAutoExpandNodesBehavior ViewModel="{Binding ViewModel, Mode=OneWay}" />
+      </Interaction.Behaviors>
+    </sd:PropertyView>
   </DockPanel>
 </UserControl>

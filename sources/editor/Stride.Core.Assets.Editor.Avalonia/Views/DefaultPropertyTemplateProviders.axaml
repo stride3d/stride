@@ -4,7 +4,9 @@
                     xmlns:caec="using:Stride.Core.Assets.Editor.Avalonia.Converters"
                     xmlns:caeqnpc="using:Stride.Core.Assets.Editor.Quantum.NodePresenters.Commands"
                     xmlns:caev="using:Stride.Core.Assets.Editor.Avalonia.Views"
+                    xmlns:capvm="using:Stride.Core.Assets.Presentation.ViewModels"
                     xmlns:cpqvm="using:Stride.Core.Presentation.Quantum.ViewModels"
+                    xmlns:yaml="using:Stride.Core.Yaml"
                     xmlns:io="using:Stride.Core.IO"
                     xmlns:math="using:Stride.Core.Mathematics"
                     xmlns:s="using:System"
@@ -27,7 +29,8 @@
     <Setter Property="Width" Value="16"/>
     <Setter Property="Height" Value="16"/>
   </ControlTheme>
-  <ControlTheme x:Key="AddNewItemButtonTheme" TargetType="Button" BasedOn="{StaticResource ImageButtonTheme}">
+  <ControlTheme x:Key="AddNewItemButtonTheme" TargetType="Button" BasedOn="{StaticResource ImageButtonTheme}"
+                x:DataType="cpqvm:NodeViewModel">
     <Setter Property="IsVisible"
             Value="{sd:MultiBinding {Binding [HasCommand_AddNewItem]}, {Binding HasCollection},
                                     {Binding [HasAssociatedData_ReadOnlyCollection], Converter={sd:InvertBool}},
@@ -41,7 +44,8 @@
       </DataTemplate>
     </Setter>
   </ControlTheme>
-  <ControlTheme x:Key="RemoveItemButtonTheme" TargetType="Button" BasedOn="{StaticResource ImageButtonTheme}">
+  <ControlTheme x:Key="RemoveItemButtonTheme" TargetType="Button" BasedOn="{StaticResource ImageButtonTheme}"
+                x:DataType="cpqvm:NodeViewModel">
     <Setter Property="IsVisible"
             Value="{sd:MultiBinding {Binding [HasCommand_RemoveItem]},
                                     {Binding [HasAssociatedData_ReadOnlyCollection], Converter={sd:InvertBool}},
@@ -56,7 +60,8 @@
   </ControlTheme>
 
   <!-- Themes for ComboBox -->
-  <ControlTheme x:Key="AbstractTypeSelectionComboBoxTheme" TargetType="ComboBox" BasedOn="{StaticResource {x:Type ComboBox}}">
+  <ControlTheme x:Key="AbstractTypeSelectionComboBoxTheme" TargetType="ComboBox" BasedOn="{StaticResource {x:Type ComboBox}}"
+                x:DataType="cpqvm:NodeViewModel">
     <Setter Property="IsTextSearchEnabled" Value="False"/>
     <Setter Property="ToolTip.Tip" Value="{sd:LocalizeString Replace..., Context=ToolTip}"/>
     <Setter Property="IsVisible"
@@ -120,7 +125,8 @@
       </ControlTemplate>
     </Setter>
   </ControlTheme>
-  <ControlTheme x:Key="AddItemComboBoxTheme" TargetType="ComboBox" BasedOn="{StaticResource AbstractTypeSelectionComboBoxTheme}">
+  <ControlTheme x:Key="AddItemComboBoxTheme" TargetType="ComboBox" BasedOn="{StaticResource AbstractTypeSelectionComboBoxTheme}"
+                x:DataType="cpqvm:NodeViewModel">
     <Setter Property="Width" Value="18"/>
     <Setter Property="Height" Value="16"/>
     <Setter Property="BorderBrush" Value="Transparent"/>
@@ -132,12 +138,13 @@
     <Setter Property="ToolTip.Tip" Value="{sd:LocalizeString Add..., Context=ToolTip}"/>
     <Setter Property="Tag" Value="{StaticResource ImageAdd}"/>
   </ControlTheme>
-  <ControlTheme x:Key="EnumComboBoxTheme" TargetType="ComboBox" BasedOn="{StaticResource {x:Type ComboBox}}">
+  <ControlTheme x:Key="EnumComboBoxTheme" TargetType="ComboBox" BasedOn="{StaticResource {x:Type ComboBox}}"
+                x:DataType="cpqvm:NodeViewModel">
     <Setter Property="Margin" Value="2"/>
     <Setter Property="SelectedItem" Value="{Binding NodeValue}"/>
     <Setter Property="ItemsSource" Value="{Binding Type, Converter={sd:EnumValues}, Mode=OneWay}"/>
     <Setter Property="ItemTemplate">
-      <DataTemplate>
+      <DataTemplate DataType="cpqvm:NodeViewModel">
         <TextBlock Text="{Binding Converter={sd:EnumToDisplayName}}"/>
       </DataTemplate>
     </Setter>
@@ -232,8 +239,8 @@
           </TextBox>
           <CheckBox Grid.Column="3"
                     Margin="2,0" HorizontalAlignment="Left" VerticalAlignment="Center"
-                    IsChecked="{Binding [Enabled].NodeValue, Converter={caec:DifferentValuesToParam}, ConverterParameter={x:Null}, FallbackValue={x:False}, TargetNullValue={x:False}}"
-                    IsThreeState="{Binding [Enabled].NodeValue, Converter={sd:IsEqualToParam}, ConverterParameter={x:Static cpqvm:NodeViewModel.DifferentValues}, FallbackValue={x:False}, TargetNullValue={x:False}}"
+                    IsChecked="{ReflectionBinding [Enabled].NodeValue, Converter={caec:DifferentValuesToParam}, ConverterParameter={x:Null}, FallbackValue={x:False}, TargetNullValue={x:False}}"
+                    IsThreeState="{ReflectionBinding [Enabled].NodeValue, Converter={sd:IsEqualToParam}, ConverterParameter={x:Static cpqvm:NodeViewModel.DifferentValues}, FallbackValue={x:False}, TargetNullValue={x:False}}"
                     IsVisible="{Binding [HasChild_Enabled], FallbackValue={x:False}}"/>
           <Interaction.Behaviors>
             <DataTriggerBehavior Binding="{sd:MultiBinding {Binding ConverterParameter=[IsOverridden], Converter={caec:NodePathToObject}},
@@ -302,8 +309,8 @@
         <StackPanel Orientation="Horizontal" Margin="8,0,0,0">
           <CheckBox Margin="4,0" VerticalAlignment="Center"
                     IsVisible="{Binding [HasChild_Enabled]}"
-                    IsChecked="{Binding [Enabled].NodeValue, Converter={caec:DifferentValuesToParam}, ConverterParameter={x:Null}, FallbackValue={x:False}, TargetNullValue={x:False}}"
-                    IsThreeState="{Binding [Enabled].NodeValue, Converter={sd:IsEqualToParam}, ConverterParameter={x:Static cpqvm:NodeViewModel.DifferentValues}, FallbackValue={x:False}, TargetNullValue={x:False}}"/>
+                    IsChecked="{ReflectionBinding [Enabled].NodeValue, Converter={caec:DifferentValuesToParam}, ConverterParameter={x:Null}, FallbackValue={x:False}, TargetNullValue={x:False}}"
+                    IsThreeState="{ReflectionBinding [Enabled].NodeValue, Converter={sd:IsEqualToParam}, ConverterParameter={x:Static cpqvm:NodeViewModel.DifferentValues}, FallbackValue={x:False}, TargetNullValue={x:False}}"/>
           <Image Source="{Binding NodeValue, Converter={sd:Chained {sd:ObjectToType}, {caec:TypeToResource}}}"
                  MaxWidth="16" MaxHeight="16" Margin="0,0,4,0"/>
           <TextBlock x:Name="HeaderTextBlock" FontSize="16" TextTrimming="CharacterEllipsis"
@@ -421,7 +428,7 @@
 
   <!-- Provider for List item -->
   <caev:ListItemTemplateProvider x:Key="ListItemPropertyTemplateProvider" OverrideRule="Most" caev:PropertyViewHelper.TemplateCategory="PropertyEditor">
-    <DataTemplate>
+    <DataTemplate DataType="cpqvm:NodeViewModel">
       <DockPanel>
         <Button DockPanel.Dock="Right" Theme="{StaticResource RemoveItemButtonTheme}"/>
         <ContentControl Content="{Binding}" ContentTemplate="{x:Static caev:PropertyViewHelper.EditorProviders}"/>
@@ -508,7 +515,7 @@
 
   <!-- Provider for Array item -->
   <caev:ArrayItemTemplateProvider x:Key="ArrayItemPropertyTemplateProvider" OverrideRule="Most" caev:PropertyViewHelper.TemplateCategory="PropertyEditor">
-    <DataTemplate>
+    <DataTemplate DataType="cpqvm:NodeViewModel">
       <DockPanel>
         <ContentControl Content="{Binding}" ContentTemplate="{x:Static caev:PropertyViewHelper.EditorProviders}"/>
       </DockPanel>
@@ -830,34 +837,32 @@
         <TextBox Grid.Column="0" Margin="2" Width="40" TextAlignment="Center"
                  Text="{Binding NodeValue, Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:CharToString}}}"
                  ToolTip.Tip="{sd:LocalizeString Character, Context=ToolTip}"/>
-        <NumericUpDown x:Name="NumericUpDown"
-                       Grid.Column="1" Margin="2"
-                       Value="{Binding NodeValue, Converter={sd:CharToUnicode}}"
-                       ToolTip.Tip="{sd:LocalizeString Unicode value, Context=ToolTip}"
-                       ShowButtonSpinner="False">
+        <sd:NumericTextBox x:Name="NumericTextBox"
+                           Grid.Column="1" Margin="2"
+                           Value="{Binding NodeValue, Converter={sd:CharToUnicode}, UpdateSourceTrigger=Explicit}"
+                           ToolTip.Tip="{sd:LocalizeString Unicode value, Context=ToolTip}">
           <Interaction.Behaviors>
             <DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
               <ChangePropertyAction PropertyName="Watermark" Value="{sd:LocalizeString (Different values)}"/>
             </DataTriggerBehavior>
           </Interaction.Behaviors>
-        </NumericUpDown>
+        </sd:NumericTextBox>
       </Grid>
     </DataTemplate>
   </caev:TypeMatchTemplateProvider>
 
   <!-- Providers for floating-point number -->
   <DataTemplate x:Key="FloatEditorTemplate" DataType="cpqvm:NodeViewModel">
-    <NumericUpDown x:Name="NumericUpDown"
-                   Value="{Binding NodeValue, Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDecimal}}}"
-                   Minimum="{Binding [Minimum], Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDecimal}}, FallbackValue={x:Static s:Decimal.MinValue}}"
-                   Maximum="{Binding [Maximum], Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDecimal}}, FallbackValue={x:Static s:Decimal.MaxValue}}"
-                   ShowButtonSpinner="False">
+    <sd:NumericTextBox x:Name="NumericTextBox"
+                       Value="{Binding NodeValue, Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDecimal}}, UpdateSourceTrigger=Explicit}"
+                       Minimum="{Binding [Minimum], Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDecimal}}, FallbackValue={x:Static s:Decimal.MinValue}}"
+                       Maximum="{Binding [Maximum], Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDecimal}}, FallbackValue={x:Static s:Decimal.MaxValue}}">
       <Interaction.Behaviors>
         <DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
           <ChangePropertyAction PropertyName="Watermark" Value="{sd:LocalizeString (Different values)}"/>
         </DataTriggerBehavior>
       </Interaction.Behaviors>
-    </NumericUpDown>
+    </sd:NumericTextBox>
   </DataTemplate>
   <caev:TypeMatchTemplateProvider x:Key="FloatPropertyTemplateProvider" Type="{x:Type s:Single}" caev:PropertyViewHelper.TemplateCategory="PropertyEditor"
                                   Template="{StaticResource FloatEditorTemplate}"/>
@@ -866,17 +871,16 @@
 
   <!-- Providers for fixed-point number -->
   <DataTemplate x:Key="IntEditorTemplate" DataType="cpqvm:NodeViewModel">
-    <NumericUpDown x:Name="NumericUpDown"
-                   Value="{Binding NodeValue, Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDecimal}}}"
-                   Minimum="{Binding [Minimum], Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDecimal}}, FallbackValue={x:Static s:Decimal.MinValue}}"
-                   Maximum="{Binding [Maximum], Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDecimal}}, FallbackValue={x:Static s:Decimal.MaxValue}}"
-                   ShowButtonSpinner="False">
+    <sd:NumericTextBox x:Name="NumericTextBox"
+                       Value="{Binding NodeValue, Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDecimal}}, UpdateSourceTrigger=Explicit}"
+                       Minimum="{Binding [Minimum], Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDecimal}}, FallbackValue={x:Static s:Decimal.MinValue}}"
+                       Maximum="{Binding [Maximum], Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDecimal}}, FallbackValue={x:Static s:Decimal.MaxValue}}">
       <Interaction.Behaviors>
         <DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
           <ChangePropertyAction PropertyName="Watermark" Value="{sd:LocalizeString (Different values)}"/>
         </DataTriggerBehavior>
       </Interaction.Behaviors>
-    </NumericUpDown>
+    </sd:NumericTextBox>
   </DataTemplate>
   <caev:TypeMatchTemplateProvider x:Key="Int8PropertyTemplateProvider" Type="{x:Type s:SByte}" caev:PropertyViewHelper.TemplateCategory="PropertyEditor"
                                   Template="{StaticResource IntEditorTemplate}"/>
@@ -912,18 +916,17 @@
                 Maximum="{Binding [Maximum], Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDouble}}, FallbackValue={x:Static s:Double.MaxValue}}"
                 SmallChange="{Binding [SmallStep], Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDouble}}}"
                 LargeChange="{Binding [LargeStep], Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDouble}}}"/>
-        <NumericUpDown Grid.Column="1"
-                       Margin="6,2,2,2"
-                       Value="{Binding NodeValue, Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDecimal}}}"
-                       Minimum="{Binding [Minimum], Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDecimal}}, FallbackValue={x:Static s:Decimal.MinValue}}"
-                       Maximum="{Binding [Maximum], Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDecimal}}, FallbackValue={x:Static s:Decimal.MaxValue}}"
-                       ShowButtonSpinner="False">
+        <sd:NumericTextBox Grid.Column="1"
+                           Margin="6,2,2,2"
+                           Value="{Binding NodeValue, Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDecimal}}, UpdateSourceTrigger=Explicit}"
+                           Minimum="{Binding [Minimum], Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDecimal}}, FallbackValue={x:Static s:Decimal.MinValue}}"
+                           Maximum="{Binding [Maximum], Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDecimal}}, FallbackValue={x:Static s:Decimal.MaxValue}}">
           <Interaction.Behaviors>
             <DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
               <ChangePropertyAction PropertyName="Watermark" Value="{sd:LocalizeString (Different values)}"/>
             </DataTriggerBehavior>
           </Interaction.Behaviors>
-        </NumericUpDown>
+        </sd:NumericTextBox>
       </Grid>
     </DataTemplate>
   </caev:RangedValueTemplateProvider>
@@ -1159,15 +1162,14 @@
   <!-- Provider for AngleSingle -->
   <caev:TypeMatchTemplateProvider x:Key="AnglePropertyTemplateProvider" Type="{x:Type math:AngleSingle}" caev:PropertyViewHelper.TemplateCategory="PropertyEditor">
     <DataTemplate DataType="cpqvm:NodeViewModel">
-      <NumericUpDown Value="{Binding NodeValue, Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:AngleSingleToDegrees}}}"
-                     ShowButtonSpinner="False"
-                     ToolTip.Tip="{sd:LocalizeString Angle in degrees, Context=Tooltip}">
+      <sd:NumericTextBox Value="{Binding NodeValue, Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:AngleSingleToDegrees}}, UpdateSourceTrigger=Explicit}"
+                         ToolTip.Tip="{sd:LocalizeString Angle in degrees, Context=Tooltip}">
         <Interaction.Behaviors>
           <DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
             <ChangePropertyAction PropertyName="Watermark" Value="{sd:LocalizeString (Different values)}"/>
           </DataTriggerBehavior>
         </Interaction.Behaviors>
-      </NumericUpDown>
+      </sd:NumericTextBox>
     </DataTemplate>
   </caev:TypeMatchTemplateProvider>
 
@@ -1247,7 +1249,7 @@
         </ToggleButton>
         <Popup Grid.Column="0"
                IsLightDismissEnabled="True"
-               IsOpen="{Binding Path=#ToggleButton2.IsChecked}">
+               IsOpen="{Binding #ToggleButton2.IsChecked, Mode=TwoWay}">
           <Grid MinWidth="200" MaxWidth="400" MaxHeight="200">
             <DockPanel>
               <UniformGrid DockPanel.Dock="Bottom"
@@ -1359,7 +1361,8 @@
   </caev:EnumTemplateProvider>
 
   <!-- Providers for content reference -->
-  <ContextMenu x:Key="ReferenceContextMenu">
+  <ContextMenu x:Key="ReferenceContextMenu"
+               x:DataType="cpqvm:NodeViewModel">
     <MenuItem Header="{sd:LocalizeString Select an asset}"
               IsVisible="{Binding [HasCommand_PickupAsset]}"
               Command="{Binding [PickupAsset]}"
@@ -1431,7 +1434,7 @@
                     ToolTip.Tip="{sd:LocalizeString Select the referenced asset, Context=ToolTip}">
               <Image x:Name="ThumbnailImage"
                      Width="64" Height="64"
-                     DataContext="{Binding NodeValue, Converter={caec:ContentReferenceToAsset}}"
+                     DataContext="{Binding ((capvm:AssetViewModel)NodeValue), Converter={caec:ContentReferenceToAsset}}"
                      Source="{Binding ThumbnailData.Presenter, Mode=OneWay}"/>
               <Interaction.Behaviors>
                 <!-- FIXME only on pointer down -->
@@ -1441,7 +1444,7 @@
               </Interaction.Behaviors>
             </Border>
             <ProgressBar Width="16" Height="4" IsIndeterminate="True"
-                         DataContext="{Binding NodeValue, Converter={caec:ContentReferenceToAsset}}"
+                         DataContext="{Binding ((capvm:AssetViewModel)NodeValue), Converter={caec:ContentReferenceToAsset}}"
                          IsVisible="{Binding ThumbnailData, Converter={sd:Chained {sd:ObjectToBool}, {sd:InvertBool}}, FallbackValue={sd:False}}"/>
             <Border Width="64" Height="64"
                     Background="Transparent"
@@ -1529,13 +1532,13 @@
                        Foreground="Orange"
                        TextTrimming="CharacterEllipsis" TextWrapping="WrapWithOverflow">
               <MultiBinding StringFormat="{sd:LocalizeString Unable to load the object of type {0} from assembly {1}}">
-                <Binding Path="NodeValue.TypeName"/>
-                <Binding Path="NodeValue.AssemblyName"/>
+                <Binding Path="((yaml:IUnloadable)NodeValue).TypeName" FallbackValue=""/>
+                <Binding Path="((yaml:IUnloadable)NodeValue).AssemblyName" FallbackValue=""/>
               </MultiBinding>
             </TextBlock>
             <TextBlock Margin="8"
                        TextTrimming="CharacterEllipsis" TextWrapping="WrapWithOverflow"
-                       Text="{Binding NodeValue.Error}"/>
+                       Text="{Binding ((yaml:IUnloadable)NodeValue).Error, FallbackValue={x:Null}}"/>
           </StackPanel>
         </Border>
       </DockPanel>

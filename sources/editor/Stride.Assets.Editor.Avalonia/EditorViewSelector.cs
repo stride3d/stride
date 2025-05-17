@@ -9,7 +9,6 @@ using Stride.Core.Assets.Editor.ViewModels;
 
 namespace Stride.Assets.Editor.Avalonia;
 
-// TODO xplat-editor consider moving this class to Stride.Assets.Editor.Avalonia
 public sealed class EditorViewSelector : AvaloniaObject, IDataTemplate
 {
     private SessionViewModel? session;
