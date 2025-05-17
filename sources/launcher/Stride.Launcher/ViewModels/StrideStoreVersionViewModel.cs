@@ -29,7 +29,7 @@ public sealed class StrideStoreVersionViewModel : StrideVersionViewModel
     /// <param name="localPackage"></param>
     /// <param name="major"></param>
     /// <param name="minor"></param>
-    internal StrideStoreVersionViewModel(MainViewModel launcher, NugetStore store, NugetLocalPackage localPackage, string packageId, int major, int minor)
+    internal StrideStoreVersionViewModel(MainViewModel launcher, NugetStore store, NugetLocalPackage? localPackage, string packageId, int major, int minor)
         : base(launcher, store, localPackage, packageId, major, minor)
     {
         FetchReleaseNotes();
@@ -100,7 +100,7 @@ public sealed class StrideStoreVersionViewModel : StrideVersionViewModel
     /// Updates the local package of this version.
     /// </summary>
     /// <param name="package">The local package corresponding to this version.</param>
-    internal void UpdateLocalPackage(NugetLocalPackage package, IEnumerable<NugetLocalPackage>? alternateVersions)
+    internal void UpdateLocalPackage(NugetLocalPackage? package, IEnumerable<NugetLocalPackage>? alternateVersions)
     {
         OnPropertyChanging(nameof(FullName), nameof(Version));
         LocalPackage = package;
@@ -119,7 +119,7 @@ public sealed class StrideStoreVersionViewModel : StrideVersionViewModel
                 });
             });
         }
-        Dispatcher.Invoke(() => UpdateFrameworks());
+        Dispatcher.Invoke(UpdateFrameworks);
     }
 
     /// <summary>
@@ -165,7 +165,7 @@ public sealed class StrideStoreVersionViewModel : StrideVersionViewModel
             if (index < 0)
             {
                 // If not, add it
-                alternateVersionViewModel = new StrideStoreAlternateVersionViewModel(this);
+                alternateVersionViewModel = new(this);
                 AlternateVersions.Add(alternateVersionViewModel);
             }
             else
@@ -206,7 +206,7 @@ public sealed class StrideStoreVersionViewModel : StrideVersionViewModel
                 try
                 {
                     var prerequisitesInstallerProcess = Process.Start(prerequisitesInstallerPath);
-                    prerequisitesInstallerProcess?.WaitForExit();
+                    await prerequisitesInstallerProcess?.WaitForExitAsync();
                     prerequisitesInstalled = true;
                 }
                 catch
@@ -280,14 +280,14 @@ public sealed class StrideStoreVersionViewModel : StrideVersionViewModel
     internal async void FetchDocumentation()
     {
         var pages = await DocumentationPageViewModel.FetchGettingStartedPages(ServiceProvider, $"{Major}.{Minor}");
-        Dispatcher.Invoke(() => { DocumentationPages.Clear(); DocumentationPages.AddRange(pages); });
+        await Dispatcher.InvokeAsync(() => { DocumentationPages.Clear(); DocumentationPages.AddRange(pages); });
     }
 
     internal void FetchReleaseNotes()
     {
         Dispatcher.Invoke(() =>
         {
-            ReleaseNotes = new ReleaseNotesViewModel(Launcher, $"{Major}.{Minor}");
+            ReleaseNotes = new(Launcher, $"{Major}.{Minor}");
             ReleaseNotes.FetchReleaseNotes();
         });
     }

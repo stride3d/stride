@@ -47,8 +47,8 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
 
         DisplayReleaseAnnouncement();
 
-        VsixPackage2019 = new VsixVersionViewModel(this, store, store.VsixPackageId, NugetStore.VsixSupportedVsVersion.VS2019);
-        VsixPackage2022 = new VsixVersionViewModel(this, store, store.VsixPackageId, NugetStore.VsixSupportedVsVersion.VS2022);
+        VsixPackage2019 = new(this, store, store.VsixPackageId, NugetStore.VsixSupportedVsVersion.VS2019);
+        VsixPackage2022 = new(this, store, store.VsixPackageId, NugetStore.VsixSupportedVsVersion.VS2022);
         // Commands
         InstallLatestVersionCommand = new AnonymousTaskCommand(ServiceProvider, InstallLatestVersion) { IsEnabled = false };
         OpenUrlCommand = new AnonymousTaskCommand<string>(ServiceProvider, OpenUrl);
@@ -83,7 +83,7 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
         }
         FetchOnlineData().Forget();
         LoadRecentProjects();
-        uninstallHelper = new UninstallHelper(serviceProvider, store);
+        uninstallHelper = new(serviceProvider, store);
         GameStudioSettings.RecentProjectsUpdated += (sender, e) => Dispatcher.InvokeAsync(LoadRecentProjects).Forget();
     }
 
@@ -109,7 +109,6 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
         {
             if (SetValue(ref activeVersion, value))
             {
-                activeVersion?.UpdateSelectedFramework();
                 Dispatcher.InvokeAsync(() => StartStudioCommand.IsEnabled = value?.CanStart ?? false);
             }
         }
@@ -139,7 +138,7 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
             {
                 if (logMessages.Count == 0)
                     return "Empty";
-                return string.Join(Environment.NewLine, logMessages.Select(x => $"[{x.Time.ToString("HH:mm:ss")}] {x.Level}: {x.Message}"));
+                return string.Join(Environment.NewLine, logMessages.Select(x => $"[{x.Time:HH:mm:ss}] {x.Level}: {x.Message}"));
             }
         }
     }
@@ -212,7 +211,7 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
             RecentProjects.Clear();
             foreach (var mruFile in GameStudioSettings.GetMostRecentlyUsed())
             {
-                RecentProjects.Add(new RecentProjectViewModel(this, mruFile));
+                RecentProjects.Add(new(this, mruFile));
             }
         }
     }
@@ -243,7 +242,7 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
     private async Task RemoveUnusedPackages(IEnumerable<NugetLocalPackage> mainPackages)
     {
         var previousReferencedPackages = referencedPackages;
-        referencedPackages = new HashSet<NugetLocalPackage>(ReferencedPackageEqualityComparer.Instance);
+        referencedPackages = new(ReferencedPackageEqualityComparer.Instance);
         foreach (var mainPackage in mainPackages)
         {
             await FindReferencedPackages(mainPackage);
@@ -264,11 +263,11 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
                 continue;
             }
             NugetLocalPackage dependencyPackage = store.FindLocalPackage(dependency.Item1, dependency.Item2);
-            if (dependencyPackage is null || referencedPackages.Contains(dependencyPackage))
+            if (dependencyPackage is null || !referencedPackages.Add(dependencyPackage))
             {
                 continue;
             }
-            referencedPackages.Add(dependencyPackage);
+
             await FindReferencedPackages(dependencyPackage);
         }
     }
@@ -278,7 +277,7 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
         List<RecentProjectViewModel> currentRecentProjects;
         lock (RecentProjects)
         {
-            currentRecentProjects = new List<RecentProjectViewModel>(RecentProjects);
+            currentRecentProjects = new(RecentProjects);
         }
         try
         {
@@ -315,7 +314,7 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
                         if (index < 0)
                         {
                             // If not, add it
-                            version = new StrideStoreVersionViewModel(this, store, localPackage, localPackage.Id, localPackage.Version.Version.Major, localPackage.Version.Version.Minor);
+                            version = new(this, store, localPackage, localPackage.Id, localPackage.Version.Version.Major, localPackage.Version.Version.Minor);
                             Dispatcher.Invoke(() => strideVersions.Add(version));
                         }
                         else
@@ -357,7 +356,7 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
                 {
                     var realPath = store.GetRealPath(package);
                     var version = new StrideDevVersionViewModel(this, store, package, realPath, true);
-                    Dispatcher.Invoke(() => strideVersions.Add(version));
+                    await Dispatcher.InvokeAsync(() => strideVersions.Add(version));
                 }
                 catch (Exception e)
                 {
@@ -372,7 +371,7 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
         }
         finally
         {
-            Dispatcher.Invoke(() =>
+            await Dispatcher.InvokeAsync(() =>
             {
                 foreach (var project in currentRecentProjects)
                 {
@@ -387,7 +386,7 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
                         if (version is StrideDevVersionViewModel)
                             project.CompatibleVersions.Add(version);
 
-                        if (version is StrideStoreVersionViewModel storeVersion && storeVersion.CanDelete)
+                        if (version is StrideStoreVersionViewModel { CanDelete: true } storeVersion)
                         {
                             // Discard the version that matches the recent project version
                             if (project.StrideVersion == new Version(storeVersion.Version.Version.Major, storeVersion.Version.Version.Minor))
@@ -423,11 +422,14 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
             // Inform the user if we just switched offline
             if (IsOffline && !wasOffline)
             {
-                var message = $@"**{Strings.ErrorOfflineMode}**
-### Log
-```
-{LogMessages}
-```";
+                var message =
+                    $"""
+                    **{Strings.ErrorOfflineMode}**
+                    ### Log
+                    ```
+                    {LogMessages}
+                    ```
+                    """;
                 await ServiceProvider.Get<IDialogService>().MessageBoxAsync(message, MessageBoxButton.OK, MessageBoxImage.Information);
             }
 
@@ -452,7 +454,7 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
                         if (index < 0)
                         {
                             // If not, add it
-                            version = new StrideStoreVersionViewModel(this, store, null, serverPackage.Id, serverPackage.Version.Version.Major, serverPackage.Version.Version.Minor);
+                            version = new(this, store, null, serverPackage.Id, serverPackage.Version.Version.Major, serverPackage.Version.Version.Minor);
                             Dispatcher.Invoke(() => strideVersions.Add(version));
                         }
                         else
@@ -472,7 +474,7 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
         }
         finally
         {
-            Dispatcher.Invoke(() =>
+            await Dispatcher.InvokeAsync(() =>
             {
                 // Allow to install the latest version if any version is found
                 var latestVersion = strideVersions.FirstOrDefault();
@@ -480,7 +482,7 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
                 {
                     // Latest version not installed and can be downloaded
                     if (latestVersion.CanBeDownloaded)
-                        InstallLatestVersionCommand.IsEnabled = !latestVersion.CanDelete && latestVersion.CanBeDownloaded;
+                        InstallLatestVersionCommand.IsEnabled = latestVersion is { CanDelete: false, CanBeDownloaded: true };
                 }
 
                 OnPropertyChanging(nameof(ActiveDocumentationPages));
@@ -515,7 +517,7 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
                     await versionToInstall.Download(true);
 
                     // if VS2022 is installed (version 17.x)
-                    if (!VsixPackage2022.IsLatestVersionInstalled && VsixPackage2022.CanBeDownloaded && VisualStudioVersions.AvailableInstances.Any(ide => ide.InstallationVersion.Major == 17))
+                    if (VsixPackage2022 is { IsLatestVersionInstalled: false, CanBeDownloaded: true } && VisualStudioVersions.AvailableInstances.Any(ide => ide.InstallationVersion.Major == 17))
                     {
                         result = await ServiceProvider.Get<IDialogService>().MessageBoxAsync(string.Format(Strings.AskInstallVSIX, "2022"), MessageBoxButton.YesNo, MessageBoxImage.Question);
                         if (result == MessageBoxResult.Yes)
@@ -525,7 +527,7 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
                     }
 
                     // if VS2019 is installed (version 16.x)
-                    if (!VsixPackage2019.IsLatestVersionInstalled && VsixPackage2019.CanBeDownloaded && VisualStudioVersions.AvailableInstances.Any(ide => ide.InstallationVersion.Major == 16))
+                    if (VsixPackage2019 is { IsLatestVersionInstalled: false, CanBeDownloaded: true } && VisualStudioVersions.AvailableInstances.Any(ide => ide.InstallationVersion.Major == 16))
                     {
                         result = await ServiceProvider.Get<IDialogService>().MessageBoxAsync(string.Format(Strings.AskInstallVSIX, "2019"), MessageBoxButton.YesNo, MessageBoxImage.Question);
                         if (result == MessageBoxResult.Yes)
@@ -578,7 +580,23 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
             var mainExecutable = ActiveVersion.LocateMainExecutable();
 
             // We set the WorkingDirectory so that global.json is properly resolved
-            Process.Start(new ProcessStartInfo(mainExecutable, argument) { WorkingDirectory = Path.GetDirectoryName(mainExecutable) });
+            switch (Path.GetExtension(mainExecutable))
+            {
+                case ".dll":
+                    argument = $"{mainExecutable} {argument}";
+                    Process.Start(new ProcessStartInfo("dotnet", argument)
+                    {
+                        WorkingDirectory = Path.GetDirectoryName(mainExecutable)
+                    });
+                    break;
+
+                default:
+                    Process.Start(new ProcessStartInfo(mainExecutable, argument)
+                    {
+                        WorkingDirectory = Path.GetDirectoryName(mainExecutable)
+                    });
+                    break;
+            }
         }
         catch (Exception e)
         {
@@ -587,7 +605,7 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
         }
 
         await Task.Delay(5000);
-        Dispatcher.Invoke(() =>
+        await Dispatcher.InvokeAsync(() =>
         {
             StartStudioCommand.IsEnabled = ActiveVersion is not null && ActiveVersion.CanStart;
             //Save settings because launcher maybe have not been closed
@@ -629,26 +647,36 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
     {
         var pages = await NewsPageViewModel.FetchNewsPages(ServiceProvider, 30);
         var sortedPages = pages.OrderBy(x => x.Date).Reverse().ToList();
-        Dispatcher.Invoke(() => NewsPages = new ObservableList<NewsPageViewModel>(sortedPages));
+        Dispatcher.Invoke(() => NewsPages = new(sortedPages));
     }
 
     public static bool HasDoneTask(string taskName)
     {
-        var localMachine32 = RegistryKey.OpenBaseKey(RegistryHive.CurrentUser, RegistryView.Registry32);
-        using var subkey = localMachine32.OpenSubKey(@"SOFTWARE\Stride\");
-        if (subkey is not null)
+        // FIXME xplat-editor get that information from a config file on Linux (e.g. under /etc) and MacOS
+        if (OperatingSystem.IsWindows())
         {
-            var value = (string?)subkey.GetValue(taskName);
-            return value is not null && value.ToLowerInvariant() == "true";
+            var localMachine32 = RegistryKey.OpenBaseKey(RegistryHive.CurrentUser, RegistryView.Registry32);
+            using var subkey = localMachine32.OpenSubKey(@"SOFTWARE\Stride\");
+            if (subkey is not null)
+            {
+                var value = (string?)subkey.GetValue(taskName);
+                return string.Equals(value, "true", StringComparison.OrdinalIgnoreCase);
+            }
+            return false;
         }
-        return false;
+
+        return true;
     }
 
     public static void SaveTaskAsDone(string taskName)
     {
-        var localMachine32 = RegistryKey.OpenBaseKey(RegistryHive.CurrentUser, RegistryView.Registry32);
-        using var subkey = localMachine32.CreateSubKey(@"SOFTWARE\Stride\");
-        subkey?.SetValue(taskName, "True");
+        // FIXME xplat-editor store that information to a config file on Linux (e.g. under /etc) and MacOS
+        if (OperatingSystem.IsWindows())
+        {
+            var localMachine32 = RegistryKey.OpenBaseKey(RegistryHive.CurrentUser, RegistryView.Registry32);
+            using var subkey = localMachine32.CreateSubKey(@"SOFTWARE\Stride\");
+            subkey?.SetValue(taskName, "True");
+        }
     }
 
     private void DisplayReleaseAnnouncement()

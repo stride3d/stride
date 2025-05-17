@@ -1857,6 +1857,7 @@ Global
 		SolutionGuid = {FF877973-604D-4EA7-B5F5-A129961F9EF2}
 	EndGlobalSection
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		..\sources\shared\Stride.NuGetResolver.Targets\Stride.NuGetResolver.Targets.projitems*{19838bc4-e889-422b-b234-b94a3996a4aa}*SharedItemsImports = 5
 		..\sources\assets\Stride.Core.Assets.Yaml\Stride.Core.Assets.Yaml.projitems*{1e54a9a2-4439-4444-ae57-6d2ed3c0dc47}*SharedItemsImports = 5
 		..\sources\shared\Stride.Core.ShellHelper\Stride.Core.ShellHelper.projitems*{1e54a9a2-4439-4444-ae57-6d2ed3c0dc47}*SharedItemsImports = 5
 		..\sources\shared\Stride.NuGetResolver.Targets\Stride.NuGetResolver.Targets.projitems*{2fc40214-a4aa-45dc-9c93-72ed800c40b0}*SharedItemsImports = 5

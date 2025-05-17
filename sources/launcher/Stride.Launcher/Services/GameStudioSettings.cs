@@ -83,7 +83,7 @@ public static class GameStudioSettings
         List<UFile> result;
         lock (LockObject)
         {
-            result = new List<UFile>(mostRecentlyUsed ?? Enumerable.Empty<UFile>());
+            result = new(mostRecentlyUsed ?? Enumerable.Empty<UFile>());
         }
         return result;
     }

@@ -7,6 +7,7 @@ using System.Text.RegularExpressions;
 using Avalonia;
 using Avalonia.Controls;
 using Stride.Core;
+using Stride.Core.Extensions;
 using Stride.Core.Packages;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.ViewModels;
@@ -59,7 +60,7 @@ public static class SelfUpdater
             }
             catch (Exception)
             {
-                dispatcher.Invoke(() => selfUpdateWindow?.ForceClose());
+                await dispatcher.InvokeAsync(() => selfUpdateWindow?.ForceClose());
                 throw;
             }
         });
@@ -72,7 +73,7 @@ public static class SelfUpdater
             // Display progress window
             await dispatcher.InvokeAsync(() =>
             {
-                selfUpdateWindow = new SelfUpdateWindow();
+                selfUpdateWindow = new();
                 selfUpdateWindow.LockWindow();
                 if (Application.Current is App { MainWindow: Window window })
                 {
@@ -88,7 +89,7 @@ public static class SelfUpdater
 
                 await using var responseStream = await response.Content.ReadAsStreamAsync();
                 await using var fileStream = File.Create(strideInstaller);
-                responseStream.CopyTo(fileStream);
+                await responseStream.CopyToAsync(fileStream);
             }
 
             var startInfo = new ProcessStartInfo(strideInstaller)
@@ -117,16 +118,16 @@ public static class SelfUpdater
         var version = new PackageVersion(Version);
         var productAttribute = (typeof(SelfUpdater).Assembly).GetCustomAttribute<AssemblyProductAttribute>();
         var packageId = productAttribute!.Product;
-        var packages = (await store.GetUpdates(new PackageName(packageId, version), true, true, cancellationToken)).OrderBy(x => x.Version);
+        var packages = (await store.GetUpdates(new(packageId, version), true, true, cancellationToken)).OrderBy(x => x.Version);
 
         try
         {
             // First, check if there is a package forcing us to download new installer
-            const string ReinstallUrlPattern = @"force-reinstall:\s*(\S+)\s*(\S+)";
-            var reinstallPackage = packages.LastOrDefault(x => x.Version > version && Regex.IsMatch(x.Description, ReinstallUrlPattern));
+            const string reinstallUrlPattern = @"force-reinstall:\s*(\S+)\s*(\S+)";
+            var reinstallPackage = packages.LastOrDefault(x => x.Version > version && Regex.IsMatch(x.Description, reinstallUrlPattern));
             if (reinstallPackage is not null)
             {
-                var regexMatch = Regex.Match(reinstallPackage.Description, ReinstallUrlPattern);
+                var regexMatch = Regex.Match(reinstallPackage.Description, reinstallUrlPattern);
                 var minimumVersion = PackageVersion.Parse(regexMatch.Groups[1].Value);
                 if (version < minimumVersion)
                 {
@@ -153,7 +154,7 @@ public static class SelfUpdater
         // Display progress window
         await dispatcher.InvokeAsync(() =>
         {
-            selfUpdateWindow = new SelfUpdateWindow();
+            selfUpdateWindow = new();
             selfUpdateWindow.LockWindow();
             if (Application.Current is App { MainWindow: Window window })
             {
@@ -163,7 +164,7 @@ public static class SelfUpdater
             {
                 throw new ApplicationException("Update requested without a Launcher Window. Cannot continue!");
             }
-        });
+        }, cancellationToken);
 
         var movedFiles = new List<string>();
 
@@ -237,7 +238,8 @@ public static class SelfUpdater
         // Clean cache from files obtain via package.GetFiles above.
         store.PurgeCache();
         // Restart
-        dispatcher.Invoke(RestartApplication);
+        dispatcher.InvokeAsync(RestartApplication, cancellationToken).Forget();
+        return;
 
         static void EnsureDirectory(string filePath)
         {

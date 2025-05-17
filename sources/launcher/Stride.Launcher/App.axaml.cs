@@ -31,7 +31,7 @@ public partial class App : Application
 
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            desktop.MainWindow = MainWindow = new MainWindow
+            desktop.MainWindow = MainWindow = new()
             {
                 DataContext = InitializeMainViewModel()
             };
@@ -50,7 +50,7 @@ public partial class App : Application
 
     private static MainViewModel InitializeMainViewModel()
     {
-        return new MainViewModel(InitializeServiceProvider());
+        return new(InitializeServiceProvider());
     }
 
     private static IViewModelServiceProvider InitializeServiceProvider()
