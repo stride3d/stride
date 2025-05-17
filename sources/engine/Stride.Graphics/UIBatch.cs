@@ -510,11 +510,22 @@ namespace Stride.Graphics
             }
         }
 
+        /// <summary>
+        /// Returns +x when this rect is facing towards the camera, -x otherwise
+        /// </summary>
+        private static unsafe float FacingDirection(UIImageDrawInfo* drawInfo)
+        {
+            // Effectively -Vector3.Cross(drawInfo->UnitXWorld.XYZ(), drawInfo->UnitYWorld.XYZ()).Z
+            var left = drawInfo->UnitXWorld;
+            var right = drawInfo->UnitYWorld;
+            return (left.Y * right.X) - (left.X * right.Y);
+        }
+
         private static unsafe void CalculateCubeVertices(UIImageDrawInfo* drawInfo, VertexPositionColorTextureSwizzle* vertex)
         {
             const int VertexCountPerAxis = 2;
 
-            var depthBiasMultiplier = drawInfo->DepthBias * DepthBiasShiftOneUnit;
+            var depthBiasMultiplier = MathF.CopySign(drawInfo->DepthBias * DepthBiasShiftOneUnit, FacingDirection(drawInfo));
             var colorScale = drawInfo->ColorScale.ToColor4();
             var colorAdd = drawInfo->ColorAdd.ToColor4();
             var swizzle = (float)drawInfo->Swizzle;
@@ -604,7 +615,7 @@ namespace Stride.Graphics
 
             const int VertexCountPerAxis = 4;
 
-            var depthBiasMultiplier = drawInfo->DepthBias * DepthBiasShiftOneUnit;
+            var depthBiasMultiplier = MathF.CopySign(drawInfo->DepthBias * DepthBiasShiftOneUnit, FacingDirection(drawInfo));
             var colorScale = drawInfo->ColorScale.ToColor4();
             var colorAdd = drawInfo->ColorAdd.ToColor4();
             var swizzle = (float)drawInfo->Swizzle;
@@ -679,7 +690,7 @@ namespace Stride.Graphics
                 }
             }
 
-            var depthBiasMultiplier = drawInfo->DepthBias * DepthBiasShiftOneUnit;
+            var depthBiasMultiplier = MathF.CopySign(drawInfo->DepthBias * DepthBiasShiftOneUnit, FacingDirection(drawInfo));
             var colorScale = drawInfo->ColorScale.ToColor4();
             var colorAdd = drawInfo->ColorAdd.ToColor4();
             var swizzle = (float)drawInfo->Swizzle;
