@@ -4,9 +4,27 @@ on:
   push:
     branches:
       - master
+    paths:
+      - '.github/workflows/**'
+      - 'build/**'
+      - 'deps/**'
+      - 'sources/**'
+      - '!**/.all-contributorsrc'
+      - '!**/.editorconfig'
+      - '!**/.gitignore'
+      - '!**/*.md'
   pull_request:
     branches:
       - master
+    paths:
+      - '.github/workflows/**'
+      - 'build/**'
+      - 'deps/**'
+      - 'sources/**'
+      - '!**/.all-contributorsrc'
+      - '!**/.editorconfig'
+      - '!**/.gitignore'
+      - '!**/*.md'
     types: [opened, synchronize, reopened, ready_for_review]
   workflow_dispatch:
 
