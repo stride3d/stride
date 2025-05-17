@@ -1,4 +1,4 @@
-name: Test (Windows)
+name: Test Windows
 
 on:
   workflow_dispatch:
@@ -46,5 +46,5 @@ jobs:
         with:
           dotnet-version: '8.0.x'
       - uses: microsoft/setup-msbuild@v2
-      - name: Test Stride
+      - name: Test
         run: msbuild build\Stride.build -t:RunTestsWindows -m:1 -nr:false -v:m -p:WarningLevel=0 -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type }} -p:StrideTestCategories=${{ github.event.inputs.test-category || inputs.test-category }} -p:StrideGraphicsApis=Direct3D11 
