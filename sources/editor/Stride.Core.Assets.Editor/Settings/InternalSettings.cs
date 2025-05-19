@@ -18,7 +18,7 @@ public static class InternalSettings
     public static SettingsContainer SettingsContainer { get; } = new();
 
     /// <summary>
-    /// Loads a copy of the internal settings from the file.
+    /// Loads the settings from the file.
     /// </summary>
     /// <returns></returns>
     private static SettingsProfile LoadProfile(bool registerProfile)
