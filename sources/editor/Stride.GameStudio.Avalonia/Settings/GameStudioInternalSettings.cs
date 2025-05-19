@@ -18,19 +18,19 @@ internal static class GameStudioInternalSettings
     public static readonly SettingsKey<int> WorkAreaWidth = new("Internal/WorkAreaWidth", SettingsContainer, (int)WorkArea.Value.Width);
     public static readonly SettingsKey<int> WorkAreaHeight = new("Internal/WorkAreaHeight", SettingsContainer, (int)WorkArea.Value.Height);
 
-    private static Lazy<Rect> WorkArea => new(GetWorkArea);
+    private static Lazy<Rect> WorkArea => new(() => GetWorkArea().area);
 
     // FIXME xplat-editor move to helper class (WindowHelper?)
-    public static Rect GetWorkArea()
+    public static (Rect area, double scaling) GetWorkArea()
     {
         if (DialogService.MainWindow is { } mainWindow)
         {
             if (mainWindow.Screens.ScreenFromWindow(mainWindow) is { } screen)
             {
-                return screen.WorkingArea.ToRect(screen.Scaling);
+                return (screen.WorkingArea.ToRect(screen.Scaling), screen.Scaling);
             }
         }
         // fallback to a reasonable value
-        return new Rect(0, 0, 800, 600);
+        return (new Rect(0, 0, 800, 600), 1);
     }
 }

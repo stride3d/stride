@@ -65,7 +65,7 @@ public partial class MainWindow : Window
             var previousWorkAreaWidth = GameStudioInternalSettings.WorkAreaWidth.GetValue();
             var previousWorkAreaHeight = GameStudioInternalSettings.WorkAreaHeight.GetValue();
             var wasWindowMaximized = GameStudioInternalSettings.WindowMaximized.GetValue();
-            var workArea = GameStudioInternalSettings.GetWorkArea();
+            var (workArea, scaling) = GameStudioInternalSettings.GetWorkArea();
 
             if (wasWindowMaximized || previousWorkAreaWidth > workArea.Width || previousWorkAreaHeight > workArea.Height)
             {
@@ -90,14 +90,15 @@ public partial class MainWindow : Window
 
             void CenterToArea(Rect area)
             {
-                Position = new PixelPoint((int)Math.Abs(area.Width - Width) / 2, (int)Math.Abs(area.Height - Height) / 2) + new PixelPoint((int)area.Position.X, (int)area.Position.Y);
+                var position = new Point(Math.Abs(area.Width - Width) / 2, Math.Abs(area.Height - Height) / 2) + area.Position;
+                Position = PixelPoint.FromPoint(position, scaling);
             }
 
             void FillArea(Rect area)
             {
                 Width = area.Width;
                 Height = area.Height;
-                Position = new PixelPoint((int)area.Position.X, (int)area.Position.Y);
+                Position = PixelPoint.FromPoint(area.Position, scaling);
             }
         }
     }
@@ -139,7 +140,7 @@ public partial class MainWindow : Window
 
         void SaveInternalSettings()
         {
-            var workArea = GameStudioInternalSettings.GetWorkArea();
+            var (workArea, _) = GameStudioInternalSettings.GetWorkArea();
             // Save state
             GameStudioInternalSettings.WorkAreaWidth.SetValue((int)workArea.Width);
             GameStudioInternalSettings.WorkAreaHeight.SetValue((int)workArea.Height);
