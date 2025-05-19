@@ -3,16 +3,54 @@
 
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Interactivity;
+using Avalonia.Threading;
+using Stride.Core.Assets.Editor.Settings;
+using Stride.Core.Extensions;
 using Stride.GameStudio.Avalonia.Settings;
 
 namespace Stride.GameStudio.Avalonia.Views;
 
 public partial class MainWindow : Window
 {
+    private TaskCompletionSource<bool>? closingTask;
+
     public MainWindow()
     {
         InitializeComponent();
+        if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
+        {
+            lifetime.ShutdownRequested += OnShutdownRequested;
+        }
+
+        return;
+
+        void OnShutdownRequested(object? sender, ShutdownRequestedEventArgs e)
+        {
+            // We need to run async stuff before closing, so let's always cancel the shutdown at first.
+            e.Cancel = true;
+            // This method will shutdown the application if the session has been successfully closed.
+            SaveAndClose().Forget();
+        }
+    }
+
+    protected override void OnClosing(WindowClosingEventArgs e)
+    {
+        base.OnClosing(e);
+        switch (e.CloseReason)
+        {
+            case WindowCloseReason.ApplicationShutdown:
+            case WindowCloseReason.OSShutdown:
+                return;
+
+            default:
+                // We need to run async stuff before closing, so let's always cancel the close at first.
+                e.Cancel = true;
+                // This method will shutdown the application if the session has been successfully closed.
+                SaveAndClose().Forget();
+                break;
+        }
     }
 
     protected override void OnLoaded(RoutedEventArgs _)
@@ -59,6 +97,56 @@ public partial class MainWindow : Window
                 Width = area.Width;
                 Height = area.Height;
                 Position = new PixelPoint((int)area.Position.X, (int)area.Position.Y);
+            }
+        }
+    }
+
+    private async Task SaveAndClose()
+    {
+        try
+        {
+            // TODO asks editors to save their modified assets
+            // if cancel: closingTask?.SetResult(false); return;
+
+            // TODO force all editors and secondary windows to close
+
+            // Internal settings
+            SaveInternalSettings();
+
+            closingTask?.SetResult(true);
+            // Shutdown after all other operations have completed
+            await Dispatcher.UIThread.InvokeAsync(Shutdown, DispatcherPriority.ContextIdle);
+        }
+        finally
+        {
+            closingTask = null;
+        }
+
+        return;
+
+        void SaveInternalSettings()
+        {
+            var workArea = GameStudioInternalSettings.GetWorkArea();
+            // Save state
+            GameStudioInternalSettings.WorkAreaWidth.SetValue((int)workArea.Width);
+            GameStudioInternalSettings.WorkAreaHeight.SetValue((int)workArea.Height);
+            GameStudioInternalSettings.WindowWidth.SetValue((int)Math.Max(800, /*WindowState == WindowState.Maximized ? RestoreBounds.Width : */Bounds.Width));
+            GameStudioInternalSettings.WindowHeight.SetValue((int)Math.Max(600, /*WindowState == WindowState.Maximized ? RestoreBounds.Height : */Bounds.Height));
+            GameStudioInternalSettings.WindowMaximized.SetValue(WindowState == WindowState.Maximized);
+            // Write the settings file
+            InternalSettings.SaveProfile();
+        }
+
+        static void Shutdown()
+        {
+            if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
+            {
+                // Force shutdown
+                lifetime.Shutdown();
+            }
+            else
+            {
+                Environment.Exit(0);
             }
         }
     }
