@@ -15,6 +15,7 @@ namespace Stride.GameStudio.Avalonia.Views;
 public partial class MainWindow : Window
 {
     private TaskCompletionSource<bool>? closingTask;
+    private Size restoreBounds;
 
     public MainWindow()
     {
@@ -101,6 +102,18 @@ public partial class MainWindow : Window
         }
     }
 
+    protected override void OnResized(WindowResizedEventArgs e)
+    {
+        base.OnResized(e);
+        switch (e.Reason)
+        {
+            case WindowResizeReason.Layout:
+            case WindowResizeReason.User:
+                restoreBounds = e.ClientSize;
+                break;
+        }
+    }
+
     private async Task SaveAndClose()
     {
         try
@@ -130,8 +143,8 @@ public partial class MainWindow : Window
             // Save state
             GameStudioInternalSettings.WorkAreaWidth.SetValue((int)workArea.Width);
             GameStudioInternalSettings.WorkAreaHeight.SetValue((int)workArea.Height);
-            GameStudioInternalSettings.WindowWidth.SetValue((int)Math.Max(800, /*WindowState == WindowState.Maximized ? RestoreBounds.Width : */Bounds.Width));
-            GameStudioInternalSettings.WindowHeight.SetValue((int)Math.Max(600, /*WindowState == WindowState.Maximized ? RestoreBounds.Height : */Bounds.Height));
+            GameStudioInternalSettings.WindowWidth.SetValue((int)Math.Max(800, WindowState == WindowState.Maximized ? restoreBounds.Width : Bounds.Width));
+            GameStudioInternalSettings.WindowHeight.SetValue((int)Math.Max(600, WindowState == WindowState.Maximized ? restoreBounds.Height : Bounds.Height));
             GameStudioInternalSettings.WindowMaximized.SetValue(WindowState == WindowState.Maximized);
             // Write the settings file
             InternalSettings.SaveProfile();
