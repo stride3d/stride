@@ -8,6 +8,7 @@ using Avalonia.Interactivity;
 using Avalonia.Threading;
 using Stride.Core.Assets.Editor.Settings;
 using Stride.Core.Extensions;
+using Stride.Core.Presentation.Avalonia.Extensions;
 using Stride.GameStudio.Avalonia.Settings;
 
 namespace Stride.GameStudio.Avalonia.Views;
@@ -65,12 +66,12 @@ public partial class MainWindow : Window
             var previousWorkAreaWidth = GameStudioInternalSettings.WorkAreaWidth.GetValue();
             var previousWorkAreaHeight = GameStudioInternalSettings.WorkAreaHeight.GetValue();
             var wasWindowMaximized = GameStudioInternalSettings.WindowMaximized.GetValue();
-            var (workArea, scaling) = GameStudioInternalSettings.GetWorkArea();
+            var (workArea, scaling) = this.GetWorkingArea();
 
             if (wasWindowMaximized || previousWorkAreaWidth > workArea.Width || previousWorkAreaHeight > workArea.Height)
             {
                 // Resolution has changed (and is now smaller), let's make the window fill all available space.
-                FillArea(workArea);
+                this.FillArea(workArea, scaling);
                 WindowState = WindowState.Maximized;
             }
             else
@@ -82,23 +83,8 @@ public partial class MainWindow : Window
                 Width = Math.Min(previousWindowWidth, workArea.Width);
                 Height = Math.Min(previousWindowHeight, workArea.Height);
                 // Window is centered by default
-                CenterToArea(workArea);
+                this.CenterToArea(workArea, scaling);
                 WindowState = WindowState.Normal;
-            }
-
-            return;
-
-            void CenterToArea(Rect area)
-            {
-                var position = new Point(Math.Abs(area.Width - Width) / 2, Math.Abs(area.Height - Height) / 2) + area.Position;
-                Position = PixelPoint.FromPoint(position, scaling);
-            }
-
-            void FillArea(Rect area)
-            {
-                Width = area.Width;
-                Height = area.Height;
-                Position = PixelPoint.FromPoint(area.Position, scaling);
             }
         }
     }
@@ -140,7 +126,7 @@ public partial class MainWindow : Window
 
         void SaveInternalSettings()
         {
-            var (workArea, _) = GameStudioInternalSettings.GetWorkArea();
+            var (workArea, _) = this.GetWorkingArea();
             // Save state
             GameStudioInternalSettings.WorkAreaWidth.SetValue((int)workArea.Width);
             GameStudioInternalSettings.WorkAreaHeight.SetValue((int)workArea.Height);

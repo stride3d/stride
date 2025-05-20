@@ -3,6 +3,7 @@
 
 using Avalonia;
 using Stride.Core.Assets.Editor.Settings;
+using Stride.Core.Presentation.Avalonia.Extensions;
 using Stride.Core.Presentation.Avalonia.Services;
 using Stride.Core.Settings;
 
@@ -18,19 +19,14 @@ internal static class GameStudioInternalSettings
     public static readonly SettingsKey<int> WorkAreaWidth = new("Internal/WorkAreaWidth", SettingsContainer, (int)WorkArea.Value.Width);
     public static readonly SettingsKey<int> WorkAreaHeight = new("Internal/WorkAreaHeight", SettingsContainer, (int)WorkArea.Value.Height);
 
-    private static Lazy<Rect> WorkArea => new(() => GetWorkArea().area);
-
-    // FIXME xplat-editor move to helper class (WindowHelper?)
-    public static (Rect area, double scaling) GetWorkArea()
+    private static Lazy<Rect> WorkArea => new(() =>
     {
         if (DialogService.MainWindow is { } mainWindow)
         {
-            if (mainWindow.Screens.ScreenFromWindow(mainWindow) is { } screen)
-            {
-                return (screen.WorkingArea.ToRect(screen.Scaling), screen.Scaling);
-            }
+            return mainWindow.GetWorkingArea().area;
         }
+        
         // fallback to a reasonable value
-        return (new Rect(0, 0, 800, 600), 1);
-    }
+        return new Rect(0, 0, 800, 600);
+    });
 }
