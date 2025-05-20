@@ -1,0 +1,58 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - '.github/workflows/**'
+      - 'build/**'
+      - 'deps/**'
+      - 'sources/**'
+      - '!**/.all-contributorsrc'
+      - '!**/.editorconfig'
+      - '!**/.gitignore'
+      - '!**/*.md'
+  pull_request:
+    branches:
+      - master
+    paths:
+      - '.github/workflows/**'
+      - 'build/**'
+      - 'deps/**'
+      - 'sources/**'
+      - '!**/.all-contributorsrc'
+      - '!**/.editorconfig'
+      - '!**/.gitignore'
+      - '!**/*.md'
+    types: [opened, synchronize, reopened, ready_for_review]
+  workflow_dispatch:
+
+jobs:
+  Setup:
+    if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' || github.event.pull_request.draft == false }}
+    runs-on: ubuntu-latest
+    steps:
+      - run: exit 0
+
+  Linux-Debug:
+    needs: Setup
+    uses: ./.github/workflows/build-linux.yml
+    secrets: inherit
+    with:
+      build-type: Debug
+
+  Windows-Debug:
+    needs: Setup
+    uses: ./.github/workflows/build-windows.yml
+    secrets: inherit
+    with:
+      build-type: Debug
+
+  Windows-Tests:
+    needs: Setup
+    uses: ./.github/workflows/test-windows.yml
+    secrets: inherit
+    with:
+      build-type: Release
+      test-category: Simple

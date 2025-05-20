@@ -1,0 +1,60 @@
+name: Test Windows
+
+on:
+  workflow_dispatch:
+    inputs:
+      build-type:
+        description: Build in Release or Debug?
+        required: true
+        default: Release
+        type: choice
+        options:
+          - Debug
+          - Release
+      test-category:
+        description: Which category of tests?
+        required: false
+        default: Simple
+        type: choice
+        options:
+          - Simple
+          - Game
+          - VSPackage
+  workflow_call:
+    inputs:
+      build-type:
+        required: true
+        default: Release
+        type: string
+      test-category:
+        required: false
+        default: Simple
+        type: string
+
+jobs:
+  #
+  # Test Stride on Windows
+  #
+  Windows:
+    name: Test (${{ github.event.inputs.test-category || inputs.test-category }}, ${{ github.event.inputs.build-type || inputs.build-type }})
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - uses: microsoft/setup-msbuild@v2
+      - name: Build
+        run: |
+          msbuild build\Stride.Tests.${{ github.event.inputs.test-category || inputs.test-category }}.slnf `
+            -restore -m:1 -nr:false `
+            -v:m -p:WarningLevel=0 `
+            -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type }} `
+            -p:StrideGraphicsApis=Direct3D11
+      - name: Test
+        run: |
+          dotnet test build\Stride.Tests.${{ github.event.inputs.test-category || inputs.test-category }}.slnf `
+            --no-build `
+            -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type }}

@@ -1,0 +1,42 @@
+name: Build Visual Studio Package
+
+on:
+  workflow_dispatch:
+    inputs:
+      build-type:
+        description: Build Configuration?
+        default: Debug
+        type: choice
+        options:
+          - Debug
+          # - Release # has a bug and cannot build
+  workflow_call:
+    inputs:
+      build-type:
+        default: Debug
+        type: string
+
+jobs:
+  #
+  # Build Visual Studio Package
+  #
+  VS-Package:
+    name: Build (${{ github.event.inputs.build-type || inputs.build-type }})
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - uses: microsoft/setup-msbuild@v2
+      - name: Build
+        run: |
+          msbuild build\Stride.VisualStudio.sln `
+            -restore -m:1 -nr:false `
+            -v:m -p:WarningLevel=0 `
+            -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type }} `
+            -p:StrideSkipUnitTests=true `
+            -p:StrideSkipAutoPack=true `
+            -p:StrideEnableCodeAnalysis=true
