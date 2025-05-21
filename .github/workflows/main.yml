@@ -16,21 +16,36 @@ on:
   workflow_dispatch:
 
 jobs:
-  Linux-Debug:
-    uses: ./.github/workflows/build-linux.yml
+  Linux-Runtime:
+    strategy:
+      matrix:
+        build-type: [Release]
+        graphics-api: [OpenGL, Vulkan]
+    uses: ./.github/workflows/build-linux-runtime.yml
     secrets: inherit
     with:
-      build-type: Debug
+      build-type: ${{ matrix.build-type }}
+      graphics-api: ${{ matrix.graphics-api }}
 
-  Windows-Debug:
-    uses: ./.github/workflows/build-windows.yml
+  Windows-Runtime:
+    strategy:
+      matrix:
+        build-type: [Release]
+        graphics-api: [Direct3D11, Direct3D12, OpenGL, OpenGLES, Vulkan]
+    uses: ./.github/workflows/build-windows-runtime.yml
     secrets: inherit
     with:
-      build-type: Debug
+      build-type: ${{ matrix.build-type }}
+      graphics-api: ${{ matrix.graphics-api }}
 
   Windows-Tests:
+    needs: Windows-Runtime
+    strategy:
+      matrix:
+        build-type: [Release]
+        test-category: [Simple]
     uses: ./.github/workflows/test-windows.yml
     secrets: inherit
     with:
-      build-type: Release
-      test-category: Simple
+      build-type: ${{ matrix.build-type }}
+      test-category: ${{ matrix.test-category }}

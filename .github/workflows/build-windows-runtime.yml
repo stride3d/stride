@@ -1,4 +1,4 @@
-name: Build Windows
+name: Build Windows Runtime
 
 on:
   workflow_dispatch:
@@ -10,18 +10,31 @@ on:
         options:
           - Debug
           - Release
+      graphics-api:
+        description: Graphics API
+        default: Direct3D11
+        type: choice
+        options:
+          - Direct3D11
+          - Direct3D12
+          - OpenGL
+          - OpenGLES
+          - Vulkan
   workflow_call:
     inputs:
       build-type:
         default: Debug
         type: string
+      graphics-api:
+        default: Direct3D11
+        type: string
 
 jobs:
   #
-  # Build Stride for Windows
+  # Build Stride Runtime for Windows
   #
-  Windows:
-    name: Build (${{ github.event.inputs.build-type || inputs.build-type }})
+  Windows-Runtime:
+    name: Build (${{ github.event.inputs.build-type || inputs.build-type }}, ${{ github.event.inputs.graphics-api || inputs.graphics-api }})
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -33,10 +46,11 @@ jobs:
       - uses: microsoft/setup-msbuild@v2
       - name: Build
         run: |
-          msbuild build\Stride.sln `
+          msbuild build\Stride.Runtime.sln `
             -restore -m:1 -nr:false `
             -v:m -p:WarningLevel=0 `
             -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type }} `
             -p:StridePlatforms=Windows `
+            -p:StrideGraphicsApis=${{ github.event.inputs.graphics-api || inputs.graphics-api }} `
             -p:StrideSkipUnitTests=true `
             -p:StrideSkipAutoPack=true

@@ -1,4 +1,4 @@
-name: Build Linux
+name: Build Linux Runtime
 
 on:
   workflow_dispatch:
@@ -28,9 +28,9 @@ on:
 
 jobs:
   #
-  # Build Stride for Linux
+  # Build Stride Runtime for Linux
   #
-  Linux:
+  Linux-Runtime:
     name: Build (${{ github.event.inputs.build-type || inputs.build-type }}, ${{ github.event.inputs.graphics-api || inputs.graphics-api }})
     runs-on: windows-latest
     steps:
