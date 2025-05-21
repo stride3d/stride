@@ -36,6 +36,24 @@ jobs:
       build-type: ${{ matrix.build-type }}
 
   ### Runtimes ###
+  Android-Runtime:
+    strategy:
+      matrix:
+        build-type: [Release]
+    uses: ./.github/workflows/build-android.yml
+    secrets: inherit
+    with:
+      build-type: ${{ matrix.build-type }}
+
+  iOS-Runtime:
+    strategy:
+      matrix:
+        build-type: [Release]
+    uses: ./.github/workflows/build-ios.yml
+    secrets: inherit
+    with:
+      build-type: ${{ matrix.build-type }}
+
   Linux-Runtime:
     strategy:
       matrix:
