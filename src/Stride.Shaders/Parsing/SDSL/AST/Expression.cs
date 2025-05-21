@@ -24,6 +24,12 @@ public class MethodCall(Identifier name, ShaderExpressionList parameters, TextLo
     public Identifier Name = name;
     public ShaderExpressionList Parameters = parameters;
 
+    public override void ProcessSymbol(SymbolTable table, EntryPoint? entrypoint = null, StreamIO? io = null)
+    {
+        foreach (var p in parameters.Values)
+            p.ProcessSymbol(table, entrypoint, io);
+    }
+
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         var (builder, context, module) = compiler;

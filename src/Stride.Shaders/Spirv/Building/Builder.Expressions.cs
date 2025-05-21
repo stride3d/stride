@@ -110,8 +110,8 @@ public partial class SpirvBuilder
     }
     public SpirvValue CallFunction(SpirvContext context, string name, Span<IdRef> parameters)
     {
-        var func = context.Module.Functions[name];
-        var fcall = Buffer.InsertOpFunctionCall(Position, context.Bound++, func.Id, context.GetOrRegister(func.FunctionType.ReturnType), parameters);
+        var func = context.Module.Functions.First(x => x.Name == name);
+        var fcall = Buffer.InsertOpFunctionCall(Position, context.Bound++, context.GetOrRegister(func.FunctionType.ReturnType), func.Id, parameters);
         Position += fcall.WordCount;
         return new(fcall, func.Name);
     }
