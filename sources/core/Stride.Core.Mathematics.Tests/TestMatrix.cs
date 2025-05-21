@@ -1,5 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 using Xunit;
 
 namespace Stride.Core.Mathematics.Tests;
@@ -112,5 +113,45 @@ public class TestMatrix
 
         System.Numerics.Matrix4x4 numericsMatrix = matrix;
         Assert.Equal(baseNumericseMatrix, numericsMatrix);
+    }
+
+    [Fact]
+    public void TestMathUtil_Orthogonalize()
+    {
+        var matrix = new Matrix(
+            1, 2, 3, 4,
+            5, 6, 7, 8,
+            9, 10, 11, 12,
+            13, 14, 15, 16);
+
+        Matrix result = MathUtil.Orthogonalize(matrix);
+        Matrix expected = Matrix.Orthogonalize(matrix);
+        Assert.Equal(expected, result);
+    }
+
+    [Fact]
+    public void TestMathUtil_Invert()
+    {
+        var matrix = new Matrix(
+            1, 2, 3, 4,
+            5, 6, 7, 8,
+            9, 10, 11, 12,
+            13, 14, 15, 16);
+        Matrix result = MathUtil.Invert(matrix);
+        Matrix expected = Matrix.Invert(matrix);
+        Assert.Equal(expected, result);
+    }
+
+    [Fact]
+    public void TestMathUtil_Orthonomolize()
+    {
+        var matrix = new Matrix(
+            1, 2, 3, 4,
+            5, 6, 7, 8,
+            9, 10, 11, 12,
+            13, 14, 15, 16);
+        Matrix result = MathUtil.Orthonormalize(matrix);
+        Matrix expected = Matrix.Orthonormalize(matrix);
+        Assert.Equal(expected, result);
     }
 }

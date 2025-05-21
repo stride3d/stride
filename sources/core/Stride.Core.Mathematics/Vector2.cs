@@ -26,7 +26,7 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 * THE SOFTWARE.
 */
-using System;
+
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -1458,46 +1458,46 @@ public struct Vector2 : IEquatable<Vector2>, IFormattable
     }
 
 #if WPFInterop
-    /// <summary>
-    /// Performs an implicit conversion from <see cref="Stride.Core.Mathematics.Vector2"/> to <see cref="System.Windows.Point"/>.
-    /// </summary>
-    /// <param name="value">The value.</param>
-    /// <returns>The result of the conversion.</returns>
-    public static implicit operator System.Windows.Point(Vector2 value)
-    {
-        return new System.Windows.Point(value.X, value.Y);
-    }
+        /// <summary>
+        /// Performs an implicit conversion from <see cref="Stride.Core.Mathematics.Vector2"/> to <see cref="System.Windows.Point"/>.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <returns>The result of the conversion.</returns>
+        public static implicit operator System.Windows.Point(Vector2 value)
+        {
+            return new System.Windows.Point(value.X, value.Y);
+        }
 
-    /// <summary>
-    /// Performs an explicit conversion from <see cref="System.Windows.Point"/> to <see cref="Stride.Core.Mathematics.Vector2"/>.
-    /// </summary>
-    /// <param name="value">The value.</param>
-    /// <returns>The result of the conversion.</returns>
-    public static explicit operator Vector2(System.Windows.Point value)
-    {
-        return new Vector2((float)value.X, (float)value.Y);
-    }
+        /// <summary>
+        /// Performs an explicit conversion from <see cref="System.Windows.Point"/> to <see cref="Stride.Core.Mathematics.Vector2"/>.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <returns>The result of the conversion.</returns>
+        public static explicit operator Vector2(System.Windows.Point value)
+        {
+            return new Vector2((float)value.X, (float)value.Y);
+        }
 #endif
 
 #if XnaInterop
-    /// <summary>
-    /// Performs an implicit conversion from <see cref="Stride.Core.Mathematics.Vector2"/> to <see cref="Microsoft.Xna.Framework.Vector2"/>.
-    /// </summary>
-    /// <param name="value">The value.</param>
-    /// <returns>The result of the conversion.</returns>
-    public static implicit operator Microsoft.Xna.Framework.Vector2(Vector2 value)
-    {
-        return new Microsoft.Xna.Framework.Vector2(value.X, value.Y);
-    }
+        /// <summary>
+        /// Performs an implicit conversion from <see cref="Stride.Core.Mathematics.Vector2"/> to <see cref="Microsoft.Xna.Framework.Vector2"/>.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <returns>The result of the conversion.</returns>
+        public static implicit operator Microsoft.Xna.Framework.Vector2(Vector2 value)
+        {
+            return new Microsoft.Xna.Framework.Vector2(value.X, value.Y);
+        }
 
-    /// <summary>
-    /// Performs an implicit conversion from <see cref="Microsoft.Xna.Framework.Vector2"/> to <see cref="Stride.Core.Mathematics.Vector2"/>.
-    /// </summary>
-    /// <param name="value">The value.</param>
-    /// <returns>The result of the conversion.</returns>
-    public static implicit operator Vector2(Microsoft.Xna.Framework.Vector2 value)
-    {
-        return new Vector2(value.X, value.Y);
-    }
+        /// <summary>
+        /// Performs an implicit conversion from <see cref="Microsoft.Xna.Framework.Vector2"/> to <see cref="Stride.Core.Mathematics.Vector2"/>.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <returns>The result of the conversion.</returns>
+        public static implicit operator Vector2(Microsoft.Xna.Framework.Vector2 value)
+        {
+            return new Vector2(value.X, value.Y);
+        }
 #endif
 }

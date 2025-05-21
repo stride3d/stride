@@ -545,7 +545,7 @@ public struct Quaternion : IEquatable<Quaternion>, IFormattable
     /// <returns>The conjugated quaternion.</returns>
     public static Quaternion Conjugate(in Quaternion value)
     {
-        return new Quaternion( -value.X, -value.Y, -value.Z, value.W );
+        return new Quaternion(-value.X, -value.Y, -value.Z, value.W);
     }
 
     /// <summary>
@@ -698,9 +698,15 @@ public struct Quaternion : IEquatable<Quaternion>, IFormattable
         var orthoUp = Vector3.Cross(forward, right);
         var m = new Matrix
         {
-            M11 = right.X, M12 = right.Y, M13 = right.Z,
-            M21 = orthoUp.X, M22 = orthoUp.Y, M23 = orthoUp.Z,
-            M31 = forward.X, M32 = forward.Y, M33 = forward.Z,
+            M11 = right.X,
+            M12 = right.Y,
+            M13 = right.Z,
+            M21 = orthoUp.X,
+            M22 = orthoUp.Y,
+            M23 = orthoUp.Z,
+            M31 = forward.X,
+            M32 = forward.Y,
+            M33 = forward.Z,
         };
         RotationMatrix(ref m, out var lQuaternion);
         return lQuaternion;

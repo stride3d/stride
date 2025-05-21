@@ -20,7 +20,7 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-using System;
+
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -187,7 +187,7 @@ public struct UInt4 : IEquatable<UInt4>, IFormattable
     /// Casts from System.Numerics to Stride.Maths vectors
     /// </summary>
     /// <param name="v">Value to cast</param>
-    public static explicit operator UInt4(System.Numerics.Vector4 v) => new((uint)v.X, (uint)v.Y,(uint)v.Z,(uint)v.W);
+    public static explicit operator UInt4(System.Numerics.Vector4 v) => new((uint)v.X, (uint)v.Y, (uint)v.Z, (uint)v.W);
 
     /// <summary>
     /// Casts from Stride.Maths to System.Numerics vectors

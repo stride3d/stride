@@ -525,6 +525,7 @@ public struct Matrix : IEquatable<Matrix>, IFormattable
     /// Inverts the matrix.
     /// If the matrix cannot be inverted (eg. Determinant was zero), then the matrix will be set equivalent to <see cref="Zero"/>.
     /// </summary>
+    [Obsolete("Use MathUtil.Invert instead. This method will be removed in future versions.")]
     public void Invert()
     {
         Invert(ref this, out this);
@@ -533,6 +534,7 @@ public struct Matrix : IEquatable<Matrix>, IFormattable
     /// <summary>
     /// Transposes the matrix.
     /// </summary>
+    [Obsolete("Use Matri4x4.Transpose instead. This method will be removed in future versions.")]
     public void Transpose()
     {
         (M21, M12) = (M12, M21);
@@ -559,6 +561,7 @@ public struct Matrix : IEquatable<Matrix>, IFormattable
     /// If you wish for this operation to be performed on the columns, first transpose the
     /// input and then transpose the output.</para>
     /// </remarks>
+    [Obsolete("Use MathUtil.Orthogonalize instead. This method will be removed in future versions.")]
     public void Orthogonalize()
     {
         Orthogonalize(ref this, out this);
@@ -903,6 +906,7 @@ public struct Matrix : IEquatable<Matrix>, IFormattable
     /// <param name="left">The first matrix to add.</param>
     /// <param name="right">The second matrix to add.</param>
     /// <param name="result">When the method completes, contains the sum of the two matrices.</param>
+    [Obsolete("Use System.Numerics.Matrix4x4.Add instead. This method will be removed in future versions.")]
     public static void Add(ref readonly Matrix left, ref readonly Matrix right, out Matrix result)
     {
         result.M11 = left.M11 + right.M11;
@@ -929,6 +933,7 @@ public struct Matrix : IEquatable<Matrix>, IFormattable
     /// <param name="left">The first matrix to add.</param>
     /// <param name="right">The second matrix to add.</param>
     /// <returns>The sum of the two matrices.</returns>
+    [Obsolete("Use System.Numerics.Matrix4x4.Add instead. This method will be removed in future versions.")]
     public static Matrix Add(Matrix left, Matrix right)
     {
         Add(ref left, ref right, out var result);
@@ -941,6 +946,7 @@ public struct Matrix : IEquatable<Matrix>, IFormattable
     /// <param name="left">The first matrix to subtract.</param>
     /// <param name="right">The second matrix to subtract.</param>
     /// <param name="result">When the method completes, contains the difference between the two matrices.</param>
+    [Obsolete("Use System.Numerics.Matrix4x4.Subtract instead. This method will be removed in future versions.")]
     public static void Subtract(ref readonly Matrix left, ref readonly Matrix right, out Matrix result)
     {
         result.M11 = left.M11 - right.M11;
@@ -967,6 +973,7 @@ public struct Matrix : IEquatable<Matrix>, IFormattable
     /// <param name="left">The first matrix to subtract.</param>
     /// <param name="right">The second matrix to subtract.</param>
     /// <returns>The difference between the two matrices.</returns>
+    [Obsolete("Use System.Numerics.Matrix4x4.Subtract instead. This method will be removed in future versions.")]
     public static Matrix Subtract(Matrix left, Matrix right)
     {
         Subtract(ref left, ref right, out var result);
@@ -979,6 +986,7 @@ public struct Matrix : IEquatable<Matrix>, IFormattable
     /// <param name="left">The matrix to scale.</param>
     /// <param name="right">The amount by which to scale.</param>
     /// <param name="result">When the method completes, contains the scaled matrix.</param>
+    [Obsolete("Use System.Numerics.Matrix4x4.Multiply instead. This method will be removed in future versions.")]
     public static void Multiply(ref readonly Matrix left, float right, out Matrix result)
     {
         result.M11 = left.M11 * right;
@@ -1005,6 +1013,7 @@ public struct Matrix : IEquatable<Matrix>, IFormattable
     /// <param name="left">The matrix to scale.</param>
     /// <param name="right">The amount by which to scale.</param>
     /// <returns>The scaled matrix.</returns>
+    [Obsolete("Use System.Numerics.Matrix4x4.Multiply instead. This method will be removed in future versions.")]
     public static Matrix Multiply(Matrix left, float right)
     {
         Multiply(ref left, right, out var result);
@@ -1019,6 +1028,7 @@ public struct Matrix : IEquatable<Matrix>, IFormattable
     /// <param name="left">The first matrix to multiply.</param>
     /// <param name="right">The second matrix to multiply.</param>
     /// <param name="result">The product of the two matrices.</param>
+    [Obsolete("Use System.Numerics.Matrix4x4.Multiply instead. This method will be removed in future versions.")]
     public static void Multiply(ref readonly Matrix left, ref readonly Matrix right, out Matrix result)
     {
         ref readonly MatrixDotnet l = ref UnsafeReadonlyRefAsDotNet(in left);
@@ -1035,6 +1045,7 @@ public struct Matrix : IEquatable<Matrix>, IFormattable
     /// <param name="left">The first matrix to multiply.</param>
     /// <param name="right">The second matrix to multiply.</param>
     /// <param name="result">The product of the two matrices.</param>
+    [Obsolete("Use System.Numerics.Matrix4x4.Multiply instead. This method will be removed in future versions.")]
     public static void MultiplyIn(in Matrix left, in Matrix right, out Matrix result)
     {
         ref readonly MatrixDotnet l = ref UnsafeReadonlyRefAsDotNet(in left);
@@ -1049,6 +1060,7 @@ public struct Matrix : IEquatable<Matrix>, IFormattable
     /// <param name="left">The first matrix to multiply.</param>
     /// <param name="right">The second matrix to multiply.</param>
     /// <returns>The product of the two matrices.</returns>
+    [Obsolete("Use System.Numerics.Matrix4x4.Multiply instead. This method will be removed in future versions.")]
     public static Matrix Multiply(in Matrix left, in Matrix right) => left * right;
 
     /// <summary>
@@ -1192,6 +1204,7 @@ public struct Matrix : IEquatable<Matrix>, IFormattable
     /// </summary>
     /// <param name="value">The matrix to be negated.</param>
     /// <param name="result">When the method completes, contains the negated matrix.</param>
+    [Obsolete("Use System.Numerics.Matrix4x4.Negate instead. This method will be removed in future versions.")]
     public static void Negate(ref readonly Matrix value, out Matrix result)
     {
         result.M11 = -value.M11;
@@ -1217,6 +1230,7 @@ public struct Matrix : IEquatable<Matrix>, IFormattable
     /// </summary>
     /// <param name="value">The matrix to be negated.</param>
     /// <returns>The negated matrix.</returns>
+    [Obsolete("Use System.Numerics.Matrix4x4.Negate instead. This method will be removed in future versions.")]
     public static Matrix Negate(Matrix value)
     {
         Negate(ref value, out var result);
@@ -1235,6 +1249,7 @@ public struct Matrix : IEquatable<Matrix>, IFormattable
     /// <c>start + (end - start) * amount</c>
     /// Passing <paramref name="amount"/> a value of 0 will cause <paramref name="start"/> to be returned; a value of 1 will cause <paramref name="end"/> to be returned.
     /// </remarks>
+    [Obsolete("Use System.Numerics.Matrix4x4.Lerp instead. This method will be removed in future versions.")]
     public static void Lerp(ref readonly Matrix start, ref readonly Matrix end, float amount, out Matrix result)
     {
         result.M11 = start.M11 + ((end.M11 - start.M11) * amount);
@@ -1267,6 +1282,7 @@ public struct Matrix : IEquatable<Matrix>, IFormattable
     /// <c>start + (end - start) * amount</c>
     /// Passing <paramref name="amount"/> a value of 0 will cause <paramref name="start"/> to be returned; a value of 1 will cause <paramref name="end"/> to be returned.
     /// </remarks>
+    [Obsolete("Use System.Numerics.Matrix4x4.Lerp instead. This method will be removed in future versions.")]
     public static Matrix Lerp(Matrix start, Matrix end, float amount)
     {
         Lerp(ref start, ref end, amount, out var result);
@@ -1321,6 +1337,7 @@ public struct Matrix : IEquatable<Matrix>, IFormattable
     /// </summary>
     /// <param name="value">The matrix whose transpose is to be calculated.</param>
     /// <param name="result">When the method completes, contains the transpose of the specified matrix.</param>
+    [Obsolete("Use System.Numerics.Matrix4x4.Transpose instead. This method will be removed in future versions.")]
     public static void Transpose(ref readonly Matrix value, out Matrix result)
     {
         result = new Matrix(
@@ -1347,6 +1364,7 @@ public struct Matrix : IEquatable<Matrix>, IFormattable
     /// </summary>
     /// <param name="value">The matrix whose transpose is to be calculated.</param>
     /// <returns>The transpose of the specified matrix.</returns>
+    [Obsolete("Use Matri4x4.Transpose instead. This method will be removed in future versions.")]
     public static Matrix Transpose(in Matrix value)
     {
         value.Transpose();
@@ -1359,6 +1377,7 @@ public struct Matrix : IEquatable<Matrix>, IFormattable
     /// </summary>
     /// <param name="value">The matrix whose inverse is to be calculated.</param>
     /// <param name="result">When the method completes, contains the inverse of the specified matrix.</param>
+    [Obsolete("Use MathUtil.Invert instead. This method will be removed in future versions.")]
     public static void Invert(ref readonly Matrix value, out Matrix result)
     {
         // Invert works the same in row and column major, no need to transpose
@@ -1375,6 +1394,7 @@ public struct Matrix : IEquatable<Matrix>, IFormattable
     /// </summary>
     /// <param name="value">The matrix whose inverse is to be calculated.</param>
     /// <returns>The inverse of the specified matrix.</returns>
+    [Obsolete("Use MathUtil.Invert instead. This method will be removed in future versions.")]
     public static Matrix Invert(Matrix value)
     {
         value.Invert();
@@ -1397,6 +1417,7 @@ public struct Matrix : IEquatable<Matrix>, IFormattable
     /// If you wish for this operation to be performed on the columns, first transpose the
     /// input and than transpose the output.</para>
     /// </remarks>
+    [Obsolete("Use MathUtil.Orthogonalize instead. This method will be removed in future versions.")]
     public static void Orthogonalize(ref readonly Matrix value, out Matrix result)
     {
         //Uses the modified Gram-Schmidt process.
@@ -1443,6 +1464,7 @@ public struct Matrix : IEquatable<Matrix>, IFormattable
     /// If you wish for this operation to be performed on the columns, first transpose the
     /// input and than transpose the output.</para>
     /// </remarks>
+    [Obsolete("Use MathUtil.Orthogonalize instead. This method will be removed in future versions.")]
     public static Matrix Orthogonalize(Matrix value)
     {
         Orthogonalize(ref value, out var result);
@@ -1467,6 +1489,7 @@ public struct Matrix : IEquatable<Matrix>, IFormattable
     /// If you wish for this operation to be performed on the columns, first transpose the
     /// input and than transpose the output.</para>
     /// </remarks>
+    [Obsolete("Use MathUtil.Orthonormalize instead. This method will be removed in future versions.")]
     public static void Orthonormalize(ref readonly Matrix value, out Matrix result)
     {
         //Uses the modified Gram-Schmidt process.
@@ -1522,6 +1545,7 @@ public struct Matrix : IEquatable<Matrix>, IFormattable
     /// If you wish for this operation to be performed on the columns, first transpose the
     /// input and than transpose the output.</para>
     /// </remarks>
+    [Obsolete("Use MathUtil.Orthonormalize instead. This method will be removed in future versions.")]
     public static Matrix Orthonormalize(Matrix value)
     {
         Orthonormalize(ref value, out var result);
@@ -1894,6 +1918,7 @@ public struct Matrix : IEquatable<Matrix>, IFormattable
     /// <param name="cameraUpVector">The up vector of the camera.</param>
     /// <param name="cameraForwardVector">The forward vector of the camera.</param>
     /// <param name="result">When the method completes, contains the created billboard matrix.</param>
+    [Obsolete("Use System.Numerics.Matrix4x4.CreateBillboard instead. This method will be removed in future versions.")]
     public static void Billboard(ref readonly Vector3 objectPosition, ref readonly Vector3 cameraPosition, ref readonly Vector3 cameraUpVector, ref readonly Vector3 cameraForwardVector, out Matrix result)
     {
         Vector3 difference = objectPosition - cameraPosition;
@@ -1934,6 +1959,7 @@ public struct Matrix : IEquatable<Matrix>, IFormattable
     /// <param name="cameraUpVector">The up vector of the camera.</param>
     /// <param name="cameraForwardVector">The forward vector of the camera.</param>
     /// <returns>The created billboard matrix.</returns>
+    [Obsolete("Use System.Numerics.Matrix4x4.CreateBillboard instead. This method will be removed in future versions.")]
     public static Matrix Billboard(Vector3 objectPosition, Vector3 cameraPosition, Vector3 cameraUpVector, Vector3 cameraForwardVector)
     {
         Billboard(ref objectPosition, ref cameraPosition, ref cameraUpVector, ref cameraForwardVector, out var result);
@@ -1947,6 +1973,7 @@ public struct Matrix : IEquatable<Matrix>, IFormattable
     /// <param name="target">The camera look-at target.</param>
     /// <param name="up">The camera's up vector.</param>
     /// <param name="result">When the method completes, contains the created look-at matrix.</param>
+    [Obsolete("Use System.Numerics.Matrix4x4.CreateLookAtLeftHanded instead. This method will be removed in future versions.")]
     public static void LookAtLH(ref readonly Vector3 eye, ref readonly Vector3 target, ref readonly Vector3 up, out Matrix result)
     {
         Vector3.Subtract(in target, in eye, out var zaxis); zaxis.Normalize();
@@ -1974,6 +2001,7 @@ public struct Matrix : IEquatable<Matrix>, IFormattable
     /// <param name="target">The camera look-at target.</param>
     /// <param name="up">The camera's up vector.</param>
     /// <returns>The created look-at matrix.</returns>
+    [Obsolete("Use System.Numerics.Matrix4x4.CreateLookAtLeftHanded instead. This method will be removed in future versions.")]
     public static Matrix LookAtLH(Vector3 eye, Vector3 target, Vector3 up)
     {
         LookAtLH(ref eye, ref target, ref up, out var result);
@@ -1987,6 +2015,7 @@ public struct Matrix : IEquatable<Matrix>, IFormattable
     /// <param name="target">The camera look-at target.</param>
     /// <param name="up">The camera's up vector.</param>
     /// <param name="result">When the method completes, contains the created look-at matrix.</param>
+    [Obsolete("Use System.Numerics.Matrix4x4.CreateLookAt instead. This method will be removed in future versions.")]
     public static void LookAtRH(ref readonly Vector3 eye, ref readonly Vector3 target, ref readonly Vector3 up, out Matrix result)
     {
         Vector3.Subtract(in eye, in target, out var zaxis); zaxis.Normalize();
@@ -2014,6 +2043,7 @@ public struct Matrix : IEquatable<Matrix>, IFormattable
     /// <param name="target">The camera look-at target.</param>
     /// <param name="up">The camera's up vector.</param>
     /// <returns>The created look-at matrix.</returns>
+    [Obsolete("Use System.Numerics.Matrix4x4.CreateLookAtLeftHanded instead. This method will be removed in future versions.")]
     public static Matrix LookAtRH(Vector3 eye, Vector3 target, Vector3 up)
     {
         LookAtRH(ref eye, ref target, ref up, out var result);
@@ -2028,6 +2058,7 @@ public struct Matrix : IEquatable<Matrix>, IFormattable
     /// <param name="znear">Minimum z-value of the viewing volume.</param>
     /// <param name="zfar">Maximum z-value of the viewing volume.</param>
     /// <param name="result">When the method completes, contains the created projection matrix.</param>
+    [Obsolete("Use System.Numerics.Matrix4x4.CreateOrthographicLeftHanded instead. This method will be removed in future versions.")]
     public static void OrthoLH(float width, float height, float znear, float zfar, out Matrix result)
     {
         float halfWidth = width * 0.5f;
@@ -2044,6 +2075,7 @@ public struct Matrix : IEquatable<Matrix>, IFormattable
     /// <param name="znear">Minimum z-value of the viewing volume.</param>
     /// <param name="zfar">Maximum z-value of the viewing volume.</param>
     /// <returns>The created projection matrix.</returns>
+    [Obsolete("Use System.Numerics.Matrix4x4.CreateOrthographicLeftHanded instead. This method will be removed in future versions.")]
     public static Matrix OrthoLH(float width, float height, float znear, float zfar)
     {
         OrthoLH(width, height, znear, zfar, out var result);
@@ -2058,6 +2090,7 @@ public struct Matrix : IEquatable<Matrix>, IFormattable
     /// <param name="znear">Minimum z-value of the viewing volume.</param>
     /// <param name="zfar">Maximum z-value of the viewing volume.</param>
     /// <param name="result">When the method completes, contains the created projection matrix.</param>
+    [Obsolete("Use System.Numerics.Matrix4x4.CreateOrthographic instead. This method will be removed in future versions.")]
     public static void OrthoRH(float width, float height, float znear, float zfar, out Matrix result)
     {
         float halfWidth = width * 0.5f;
@@ -2074,6 +2107,7 @@ public struct Matrix : IEquatable<Matrix>, IFormattable
     /// <param name="znear">Minimum z-value of the viewing volume.</param>
     /// <param name="zfar">Maximum z-value of the viewing volume.</param>
     /// <returns>The created projection matrix.</returns>
+    [Obsolete("Use System.Numerics.Matrix4x4.CreateOrthographic instead. This method will be removed in future versions.")]
     public static Matrix OrthoRH(float width, float height, float znear, float zfar)
     {
         OrthoRH(width, height, znear, zfar, out var result);
@@ -2090,6 +2124,7 @@ public struct Matrix : IEquatable<Matrix>, IFormattable
     /// <param name="znear">Minimum z-value of the viewing volume.</param>
     /// <param name="zfar">Maximum z-value of the viewing volume.</param>
     /// <param name="result">When the method completes, contains the created projection matrix.</param>
+    [Obsolete("Use System.Numerics.Matrix4x4.CreateOrthographicOffCenterLeftHanded instead. This method will be removed in future versions.")]
     public static void OrthoOffCenterLH(float left, float right, float bottom, float top, float znear, float zfar, out Matrix result)
     {
         float zRange = 1.0f / (zfar - znear);
@@ -2113,6 +2148,7 @@ public struct Matrix : IEquatable<Matrix>, IFormattable
     /// <param name="znear">Minimum z-value of the viewing volume.</param>
     /// <param name="zfar">Maximum z-value of the viewing volume.</param>
     /// <returns>The created projection matrix.</returns>
+    [Obsolete("Use System.Numerics.Matrix4x4.CreateOrthographicOffCenterLeftHanded instead. This method will be removed in future versions.")]
     public static Matrix OrthoOffCenterLH(float left, float right, float bottom, float top, float znear, float zfar)
     {
         OrthoOffCenterLH(left, right, bottom, top, znear, zfar, out var result);
@@ -2129,6 +2165,7 @@ public struct Matrix : IEquatable<Matrix>, IFormattable
     /// <param name="znear">Minimum z-value of the viewing volume.</param>
     /// <param name="zfar">Maximum z-value of the viewing volume.</param>
     /// <param name="result">When the method completes, contains the created projection matrix.</param>
+    [Obsolete("Use System.Numerics.Matrix4x4.CreateOrthographicOffCenter instead. This method will be removed in future versions.")]
     public static void OrthoOffCenterRH(float left, float right, float bottom, float top, float znear, float zfar, out Matrix result)
     {
         OrthoOffCenterLH(left, right, bottom, top, znear, zfar, out result);
@@ -2145,6 +2182,7 @@ public struct Matrix : IEquatable<Matrix>, IFormattable
     /// <param name="znear">Minimum z-value of the viewing volume.</param>
     /// <param name="zfar">Maximum z-value of the viewing volume.</param>
     /// <returns>The created projection matrix.</returns>
+    [Obsolete("Use System.Numerics.Matrix4x4.CreateOrthographicOffCenter instead. This method will be removed in future versions.")]
     public static Matrix OrthoOffCenterRH(float left, float right, float bottom, float top, float znear, float zfar)
     {
         OrthoOffCenterRH(left, right, bottom, top, znear, zfar, out var result);
@@ -2159,6 +2197,7 @@ public struct Matrix : IEquatable<Matrix>, IFormattable
     /// <param name="znear">Minimum z-value of the viewing volume.</param>
     /// <param name="zfar">Maximum z-value of the viewing volume.</param>
     /// <param name="result">When the method completes, contains the created projection matrix.</param>
+    [Obsolete("Use System.Numerics.Matrix4x4.CreatePerspectiveLeftHanded instead. This method will be removed in future versions.")]
     public static void PerspectiveLH(float width, float height, float znear, float zfar, out Matrix result)
     {
         float halfWidth = width * 0.5f;
@@ -2175,6 +2214,7 @@ public struct Matrix : IEquatable<Matrix>, IFormattable
     /// <param name="znear">Minimum z-value of the viewing volume.</param>
     /// <param name="zfar">Maximum z-value of the viewing volume.</param>
     /// <returns>The created projection matrix.</returns>
+    [Obsolete("Use System.Numerics.Matrix4x4.CreatePerspectiveLeftHanded instead. This method will be removed in future versions.")]
     public static Matrix PerspectiveLH(float width, float height, float znear, float zfar)
     {
         PerspectiveLH(width, height, znear, zfar, out var result);
@@ -2189,6 +2229,7 @@ public struct Matrix : IEquatable<Matrix>, IFormattable
     /// <param name="znear">Minimum z-value of the viewing volume.</param>
     /// <param name="zfar">Maximum z-value of the viewing volume.</param>
     /// <param name="result">When the method completes, contains the created projection matrix.</param>
+    [Obsolete("Use System.Numerics.Matrix4x4.CreatePerspective instead. This method will be removed in future versions.")]
     public static void PerspectiveRH(float width, float height, float znear, float zfar, out Matrix result)
     {
         float halfWidth = width * 0.5f;
@@ -2205,6 +2246,7 @@ public struct Matrix : IEquatable<Matrix>, IFormattable
     /// <param name="znear">Minimum z-value of the viewing volume.</param>
     /// <param name="zfar">Maximum z-value of the viewing volume.</param>
     /// <returns>The created projection matrix.</returns>
+    [Obsolete("Use System.Numerics.Matrix4x4.CreatePerspective instead. This method will be removed in future versions.")]
     public static Matrix PerspectiveRH(float width, float height, float znear, float zfar)
     {
         PerspectiveRH(width, height, znear, zfar, out var result);
@@ -2219,6 +2261,7 @@ public struct Matrix : IEquatable<Matrix>, IFormattable
     /// <param name="znear">Minimum z-value of the viewing volume.</param>
     /// <param name="zfar">Maximum z-value of the viewing volume.</param>
     /// <param name="result">When the method completes, contains the created projection matrix.</param>
+    [Obsolete("Use System.Numerics.Matrix4x4.CreatePerspectiveFieldOfViewLeftHanded instead. This method will be removed in future versions.")]
     public static void PerspectiveFovLH(float fov, float aspect, float znear, float zfar, out Matrix result)
     {
         float yScale = (float)(1.0 / Math.Tan(fov * 0.5f));
@@ -2238,6 +2281,7 @@ public struct Matrix : IEquatable<Matrix>, IFormattable
     /// <param name="znear">Minimum z-value of the viewing volume.</param>
     /// <param name="zfar">Maximum z-value of the viewing volume.</param>
     /// <returns>The created projection matrix.</returns>
+    [Obsolete("Use System.Numerics.Matrix4x4.CreatePerspectiveFieldOfViewLeftHanded instead. This method will be removed in future versions.")]
     public static Matrix PerspectiveFovLH(float fov, float aspect, float znear, float zfar)
     {
         PerspectiveFovLH(fov, aspect, znear, zfar, out var result);
@@ -2252,6 +2296,7 @@ public struct Matrix : IEquatable<Matrix>, IFormattable
     /// <param name="znear">Minimum z-value of the viewing volume.</param>
     /// <param name="zfar">Maximum z-value of the viewing volume.</param>
     /// <param name="result">When the method completes, contains the created projection matrix.</param>
+    [Obsolete("Use System.Numerics.Matrix4x4.CreatePerspectiveFieldOfView instead. This method will be removed in future versions.")]
     public static void PerspectiveFovRH(float fov, float aspect, float znear, float zfar, out Matrix result)
     {
         float yScale = (float)(1.0 / Math.Tan(fov * 0.5f));
@@ -2271,6 +2316,7 @@ public struct Matrix : IEquatable<Matrix>, IFormattable
     /// <param name="znear">Minimum z-value of the viewing volume.</param>
     /// <param name="zfar">Maximum z-value of the viewing volume.</param>
     /// <returns>The created projection matrix.</returns>
+    [Obsolete("Use System.Numerics.Matrix4x4.CreatePerspectiveFieldOfView instead. This method will be removed in future versions.")]
     public static Matrix PerspectiveFovRH(float fov, float aspect, float znear, float zfar)
     {
         PerspectiveFovRH(fov, aspect, znear, zfar, out var result);
@@ -2287,6 +2333,7 @@ public struct Matrix : IEquatable<Matrix>, IFormattable
     /// <param name="znear">Minimum z-value of the viewing volume.</param>
     /// <param name="zfar">Maximum z-value of the viewing volume.</param>
     /// <param name="result">When the method completes, contains the created projection matrix.</param>
+    [Obsolete("Use System.Numerics.Matrix4x4.CreatePerspectiveOffCenterLeftHanded instead. This method will be removed in future versions.")]
     public static void PerspectiveOffCenterLH(float left, float right, float bottom, float top, float znear, float zfar, out Matrix result)
     {
         float zRange = zfar / (zfar - znear);
@@ -2313,6 +2360,7 @@ public struct Matrix : IEquatable<Matrix>, IFormattable
     /// <param name="znear">Minimum z-value of the viewing volume.</param>
     /// <param name="zfar">Maximum z-value of the viewing volume.</param>
     /// <returns>The created projection matrix.</returns>
+    [Obsolete("Use System.Numerics.Matrix4x4.CreatePerspectiveOffCenterLeftHanded instead. This method will be removed in future versions.")]
     public static Matrix PerspectiveOffCenterLH(float left, float right, float bottom, float top, float znear, float zfar)
     {
         PerspectiveOffCenterLH(left, right, bottom, top, znear, zfar, out var result);
@@ -2329,6 +2377,7 @@ public struct Matrix : IEquatable<Matrix>, IFormattable
     /// <param name="znear">Minimum z-value of the viewing volume.</param>
     /// <param name="zfar">Maximum z-value of the viewing volume.</param>
     /// <param name="result">When the method completes, contains the created projection matrix.</param>
+    [Obsolete("Use System.Numerics.Matrix4x4.CreatePerspectiveOffCenter instead. This method will be removed in future versions.")]
     public static void PerspectiveOffCenterRH(float left, float right, float bottom, float top, float znear, float zfar, out Matrix result)
     {
         PerspectiveOffCenterLH(left, right, bottom, top, znear, zfar, out result);
@@ -2348,6 +2397,7 @@ public struct Matrix : IEquatable<Matrix>, IFormattable
     /// <param name="znear">Minimum z-value of the viewing volume.</param>
     /// <param name="zfar">Maximum z-value of the viewing volume.</param>
     /// <returns>The created projection matrix.</returns>
+    [Obsolete("Use System.Numerics.Matrix4x4.CreatePerspectiveOffCenter instead. This method will be removed in future versions.")]
     public static Matrix PerspectiveOffCenterRH(float left, float right, float bottom, float top, float znear, float zfar)
     {
         PerspectiveOffCenterRH(left, right, bottom, top, znear, zfar, out var result);
@@ -2359,6 +2409,7 @@ public struct Matrix : IEquatable<Matrix>, IFormattable
     /// </summary>
     /// <param name="plane">The plane for which the reflection occurs. This parameter is assumed to be normalized.</param>
     /// <param name="result">When the method completes, contains the reflection matrix.</param>
+    [Obsolete("Use System.Numerics.Matrix4x4.CreateReflection instead. This method will be removed in future versions.")]
     public static void Reflection(ref readonly Plane plane, out Matrix result)
     {
         float x = plane.Normal.X;
@@ -2391,6 +2442,7 @@ public struct Matrix : IEquatable<Matrix>, IFormattable
     /// </summary>
     /// <param name="plane">The plane for which the reflection occurs. This parameter is assumed to be normalized.</param>
     /// <returns>The reflection matrix.</returns>
+    [Obsolete("Use System.Numerics.Matrix4x4.CreateReflection instead. This method will be removed in future versions.")]
     public static Matrix Reflection(Plane plane)
     {
         Reflection(ref plane, out var result);
@@ -2404,6 +2456,7 @@ public struct Matrix : IEquatable<Matrix>, IFormattable
     /// W component is 1, the light is a point light.</param>
     /// <param name="plane">The plane onto which to project the geometry as a shadow. This parameter is assumed to be normalized.</param>
     /// <param name="result">When the method completes, contains the shadow matrix.</param>
+    [Obsolete("Use System.Numerics.Matrix4x4.CreateShadow instead. This method will be removed in future versions.")]
     public static void Shadow(ref readonly Vector4 light, ref readonly Plane plane, out Matrix result)
     {
         float dot = (plane.Normal.X * light.X) + (plane.Normal.Y * light.Y) + (plane.Normal.Z * light.Z) + (plane.D * light.W);
@@ -2437,6 +2490,7 @@ public struct Matrix : IEquatable<Matrix>, IFormattable
     /// W component is 1, the light is a point light.</param>
     /// <param name="plane">The plane onto which to project the geometry as a shadow. This parameter is assumed to be normalized.</param>
     /// <returns>The shadow matrix.</returns>
+    [Obsolete("Use System.Numerics.Matrix4x4.CreateShadow instead. This method will be removed in future versions.")]
     public static Matrix Shadow(Vector4 light, Plane plane)
     {
         Shadow(ref light, ref plane, out var result);
@@ -2448,6 +2502,7 @@ public struct Matrix : IEquatable<Matrix>, IFormattable
     /// </summary>
     /// <param name="scale">Scaling factor for all three axes.</param>
     /// <param name="result">When the method completes, contains the created scaling matrix.</param>
+    [Obsolete("Use System.Numerics.Matrix4x4.CreateScale instead. This method will be removed in future versions.")]
     public static void Scaling(ref readonly Vector3 scale, out Matrix result)
     {
         Scaling(scale.X, scale.Y, scale.Z, out result);
@@ -2458,6 +2513,7 @@ public struct Matrix : IEquatable<Matrix>, IFormattable
     /// </summary>
     /// <param name="scale">Scaling factor for all three axes.</param>
     /// <returns>The created scaling matrix.</returns>
+    [Obsolete("Use System.Numerics.Matrix4x4.CreateScale instead. This method will be removed in future versions.")]
     public static Matrix Scaling(Vector3 scale)
     {
         Scaling(ref scale, out var result);
@@ -2471,6 +2527,7 @@ public struct Matrix : IEquatable<Matrix>, IFormattable
     /// <param name="y">Scaling factor that is applied along the y-axis.</param>
     /// <param name="z">Scaling factor that is applied along the z-axis.</param>
     /// <param name="result">When the method completes, contains the created scaling matrix.</param>
+    [Obsolete("Use System.Numerics.Matrix4x4.CreateScale instead. This method will be removed in future versions.")]
     public static void Scaling(float x, float y, float z, out Matrix result)
     {
         result = Identity;
@@ -2486,6 +2543,7 @@ public struct Matrix : IEquatable<Matrix>, IFormattable
     /// <param name="y">Scaling factor that is applied along the y-axis.</param>
     /// <param name="z">Scaling factor that is applied along the z-axis.</param>
     /// <returns>The created scaling matrix.</returns>
+    [Obsolete("Use System.Numerics.Matrix4x4.CreateScale instead. This method will be removed in future versions.")]
     public static Matrix Scaling(float x, float y, float z)
     {
         Scaling(x, y, z, out var result);
@@ -2497,6 +2555,7 @@ public struct Matrix : IEquatable<Matrix>, IFormattable
     /// </summary>
     /// <param name="scale">The uniform scale that is applied along all axis.</param>
     /// <param name="result">When the method completes, contains the created scaling matrix.</param>
+    [Obsolete("Use System.Numerics.Matrix4x4.CreateScale instead. This method will be removed in future versions.")]
     public static void Scaling(float scale, out Matrix result)
     {
         result = Identity;
@@ -2508,6 +2567,7 @@ public struct Matrix : IEquatable<Matrix>, IFormattable
     /// </summary>
     /// <param name="scale">The uniform scale that is applied along all axis.</param>
     /// <returns>The created scaling matrix.</returns>
+    [Obsolete("Use System.Numerics.Matrix4x4.CreateScale instead. This method will be removed in future versions.")]
     public static Matrix Scaling(float scale)
     {
         Scaling(scale, out var result);
@@ -2519,6 +2579,7 @@ public struct Matrix : IEquatable<Matrix>, IFormattable
     /// </summary>
     /// <param name="angle">Angle of rotation in radians. Angles are measured clockwise when looking along the rotation axis toward the origin.</param>
     /// <param name="result">When the method completes, contains the created rotation matrix.</param>
+    [Obsolete("Use System.Numerics.Matrix4x4.CreateRotationX instead. This method will be removed in future versions.")]
     public static void RotationX(float angle, out Matrix result)
     {
         float cos = MathF.Cos(angle);
@@ -2536,6 +2597,7 @@ public struct Matrix : IEquatable<Matrix>, IFormattable
     /// </summary>
     /// <param name="angle">Angle of rotation in radians. Angles are measured clockwise when looking along the rotation axis toward the origin.</param>
     /// <returns>The created rotation matrix.</returns>
+    [Obsolete("Use System.Numerics.Matrix4x4.CreateRotationX instead. This method will be removed in future versions.")]
     public static Matrix RotationX(float angle)
     {
         RotationX(angle, out var result);
@@ -2547,6 +2609,7 @@ public struct Matrix : IEquatable<Matrix>, IFormattable
     /// </summary>
     /// <param name="angle">Angle of rotation in radians. Angles are measured clockwise when looking along the rotation axis toward the origin.</param>
     /// <param name="result">When the method completes, contains the created rotation matrix.</param>
+    [Obsolete("Use System.Numerics.Matrix4x4.CreateRotationY instead. This method will be removed in future versions.")]
     public static void RotationY(float angle, out Matrix result)
     {
         float cos = MathF.Cos(angle);
@@ -2564,6 +2627,7 @@ public struct Matrix : IEquatable<Matrix>, IFormattable
     /// </summary>
     /// <param name="angle">Angle of rotation in radians. Angles are measured clockwise when looking along the rotation axis toward the origin.</param>
     /// <returns>The created rotation matrix.</returns>
+    [Obsolete("Use System.Numerics.Matrix4x4.CreateRotationY instead. This method will be removed in future versions.")]
     public static Matrix RotationY(float angle)
     {
         RotationY(angle, out var result);
@@ -2575,6 +2639,7 @@ public struct Matrix : IEquatable<Matrix>, IFormattable
     /// </summary>
     /// <param name="angle">Angle of rotation in radians. Angles are measured clockwise when looking along the rotation axis toward the origin.</param>
     /// <param name="result">When the method completes, contains the created rotation matrix.</param>
+    [Obsolete("Use System.Numerics.Matrix4x4.CreateRotationZ instead. This method will be removed in future versions.")]
     public static void RotationZ(float angle, out Matrix result)
     {
         float cos = MathF.Cos(angle);
@@ -2592,6 +2657,7 @@ public struct Matrix : IEquatable<Matrix>, IFormattable
     /// </summary>
     /// <param name="angle">Angle of rotation in radians. Angles are measured clockwise when looking along the rotation axis toward the origin.</param>
     /// <returns>The created rotation matrix.</returns>
+    [Obsolete("Use System.Numerics.Matrix4x4.CreateRotationZ instead. This method will be removed in future versions.")]
     public static Matrix RotationZ(float angle)
     {
         RotationZ(angle, out var result);
@@ -2782,6 +2848,7 @@ public struct Matrix : IEquatable<Matrix>, IFormattable
     /// </summary>
     /// <param name="value">The offset for all three coordinate planes.</param>
     /// <param name="result">When the method completes, contains the created translation matrix.</param>
+    [Obsolete("Use System.Numerics.Matrix4x4.CreateTranslation instead. This method will be removed in future versions.")]
     public static void Translation(ref readonly Vector3 value, out Matrix result)
     {
         Translation(value.X, value.Y, value.Z, out result);
@@ -2792,6 +2859,7 @@ public struct Matrix : IEquatable<Matrix>, IFormattable
     /// </summary>
     /// <param name="value">The offset for all three coordinate planes.</param>
     /// <returns>The created translation matrix.</returns>
+    [Obsolete("Use System.Numerics.Matrix4x4.CreateTranslation instead. This method will be removed in future versions.")]
     public static Matrix Translation(Vector3 value)
     {
         Translation(ref value, out var result);
@@ -2805,6 +2873,7 @@ public struct Matrix : IEquatable<Matrix>, IFormattable
     /// <param name="y">Y-coordinate offset.</param>
     /// <param name="z">Z-coordinate offset.</param>
     /// <param name="result">When the method completes, contains the created translation matrix.</param>
+    [Obsolete("Use System.Numerics.Matrix4x4.CreateTranslation instead. This method will be removed in future versions.")]
     public static void Translation(float x, float y, float z, out Matrix result)
     {
         result = Identity;
@@ -2820,6 +2889,7 @@ public struct Matrix : IEquatable<Matrix>, IFormattable
     /// <param name="y">Y-coordinate offset.</param>
     /// <param name="z">Z-coordinate offset.</param>
     /// <returns>The created translation matrix.</returns>
+    [Obsolete("Use System.Numerics.Matrix4x4.CreateTranslation instead. This method will be removed in future versions.")]
     public static Matrix Translation(float x, float y, float z)
     {
         Translation(x, y, z, out var result);
@@ -3274,23 +3344,23 @@ public struct Matrix : IEquatable<Matrix>, IFormattable
     public readonly bool Equals(Matrix other)
     {
         return MathF.Abs(other.M11 - M11) < MathUtil.ZeroTolerance &&
-            MathF.Abs(other.M12 - M12) < MathUtil.ZeroTolerance &&
-            MathF.Abs(other.M13 - M13) < MathUtil.ZeroTolerance &&
-            MathF.Abs(other.M14 - M14) < MathUtil.ZeroTolerance &&
+                MathF.Abs(other.M12 - M12) < MathUtil.ZeroTolerance &&
+                MathF.Abs(other.M13 - M13) < MathUtil.ZeroTolerance &&
+                MathF.Abs(other.M14 - M14) < MathUtil.ZeroTolerance &&
 
-            MathF.Abs(other.M21 - M21) < MathUtil.ZeroTolerance &&
-            MathF.Abs(other.M22 - M22) < MathUtil.ZeroTolerance &&
-            MathF.Abs(other.M23 - M23) < MathUtil.ZeroTolerance &&
-            MathF.Abs(other.M24 - M24) < MathUtil.ZeroTolerance &&
+                MathF.Abs(other.M21 - M21) < MathUtil.ZeroTolerance &&
+                MathF.Abs(other.M22 - M22) < MathUtil.ZeroTolerance &&
+                MathF.Abs(other.M23 - M23) < MathUtil.ZeroTolerance &&
+                MathF.Abs(other.M24 - M24) < MathUtil.ZeroTolerance &&
 
-            MathF.Abs(other.M31 - M31) < MathUtil.ZeroTolerance &&
-            MathF.Abs(other.M32 - M32) < MathUtil.ZeroTolerance &&
-            MathF.Abs(other.M33 - M33) < MathUtil.ZeroTolerance &&
-            MathF.Abs(other.M34 - M34) < MathUtil.ZeroTolerance &&
+                MathF.Abs(other.M31 - M31) < MathUtil.ZeroTolerance &&
+                MathF.Abs(other.M32 - M32) < MathUtil.ZeroTolerance &&
+                MathF.Abs(other.M33 - M33) < MathUtil.ZeroTolerance &&
+                MathF.Abs(other.M34 - M34) < MathUtil.ZeroTolerance &&
 
-            MathF.Abs(other.M41 - M41) < MathUtil.ZeroTolerance &&
-            MathF.Abs(other.M42 - M42) < MathUtil.ZeroTolerance &&
-            MathF.Abs(other.M43 - M43) < MathUtil.ZeroTolerance &&
+                MathF.Abs(other.M41 - M41) < MathUtil.ZeroTolerance &&
+                MathF.Abs(other.M42 - M42) < MathUtil.ZeroTolerance &&
+                MathF.Abs(other.M43 - M43) < MathUtil.ZeroTolerance &&
             MathF.Abs(other.M44 - M44) < MathUtil.ZeroTolerance;
     }
 
@@ -3307,104 +3377,104 @@ public struct Matrix : IEquatable<Matrix>, IFormattable
     }
 
 #if SlimDX1xInterop
-    /// <summary>
-    /// Performs an implicit conversion from <see cref="Stride.Core.Mathematics.Matrix"/> to <see cref="SlimDX.Matrix"/>.
-    /// </summary>
-    /// <param name="value">The value.</param>
-    /// <returns>The result of the conversion.</returns>
-    public static implicit operator SlimDX.Matrix(Matrix value)
-    {
-        return new SlimDX.Matrix()
+        /// <summary>
+        /// Performs an implicit conversion from <see cref="Stride.Core.Mathematics.Matrix"/> to <see cref="SlimDX.Matrix"/>.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <returns>The result of the conversion.</returns>
+        public static implicit operator SlimDX.Matrix(Matrix value)
         {
-            M11 = value.M11, M12 = value.M12, M13 = value.M13, M14 = value.M14,
-            M21 = value.M21, M22 = value.M22, M23 = value.M23, M24 = value.M24,
-            M31 = value.M31, M32 = value.M32, M33 = value.M33, M34 = value.M34,
-            M41 = value.M41, M42 = value.M42, M43 = value.M43, M44 = value.M44
-        };
-    }
+            return new SlimDX.Matrix()
+            {
+                M11 = value.M11, M12 = value.M12, M13 = value.M13, M14 = value.M14,
+                M21 = value.M21, M22 = value.M22, M23 = value.M23, M24 = value.M24,
+                M31 = value.M31, M32 = value.M32, M33 = value.M33, M34 = value.M34,
+                M41 = value.M41, M42 = value.M42, M43 = value.M43, M44 = value.M44
+            };
+        }
 
-    /// <summary>
-    /// Performs an implicit conversion from <see cref="SlimDX.Matrix"/> to <see cref="Stride.Core.Mathematics.Matrix"/>.
-    /// </summary>
-    /// <param name="value">The value.</param>
-    /// <returns>The result of the conversion.</returns>
-    public static implicit operator Matrix(SlimDX.Matrix value)
-    {
-        return new Matrix()
+        /// <summary>
+        /// Performs an implicit conversion from <see cref="SlimDX.Matrix"/> to <see cref="Stride.Core.Mathematics.Matrix"/>.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <returns>The result of the conversion.</returns>
+        public static implicit operator Matrix(SlimDX.Matrix value)
         {
-            M11 = value.M11, M12 = value.M12, M13 = value.M13, M14 = value.M14,
-            M21 = value.M21, M22 = value.M22, M23 = value.M23, M24 = value.M24,
-            M31 = value.M31, M32 = value.M32, M33 = value.M33, M34 = value.M34,
-            M41 = value.M41, M42 = value.M42, M43 = value.M43, M44 = value.M44
-        };
-    }
+            return new Matrix()
+            {
+                M11 = value.M11, M12 = value.M12, M13 = value.M13, M14 = value.M14,
+                M21 = value.M21, M22 = value.M22, M23 = value.M23, M24 = value.M24,
+                M31 = value.M31, M32 = value.M32, M33 = value.M33, M34 = value.M34,
+                M41 = value.M41, M42 = value.M42, M43 = value.M43, M44 = value.M44
+            };
+        }
 #endif
 
 #if WPFInterop
-    /// <summary>
-    /// Performs an implicit conversion from <see cref="Stride.Core.Mathematics.Matrix"/> to <see cref="System.Windows.Media.Media3D.Matrix3D"/>.
-    /// </summary>
-    /// <param name="value">The value.</param>
-    /// <returns>The result of the conversion.</returns>
-    public static implicit operator System.Windows.Media.Media3D.Matrix3D(Matrix value)
-    {
-        return new System.Windows.Media.Media3D.Matrix3D()
+        /// <summary>
+        /// Performs an implicit conversion from <see cref="Stride.Core.Mathematics.Matrix"/> to <see cref="System.Windows.Media.Media3D.Matrix3D"/>.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <returns>The result of the conversion.</returns>
+        public static implicit operator System.Windows.Media.Media3D.Matrix3D(Matrix value)
         {
-            M11 = value.M11, M12 = value.M12, M13 = value.M13, M14 = value.M14,
-            M21 = value.M21, M22 = value.M22, M23 = value.M23, M24 = value.M24,
-            M31 = value.M31, M32 = value.M32, M33 = value.M33, M34 = value.M34,
-            OffsetX = value.M41, OffsetY = value.M42, OffsetZ = value.M43, M44 = value.M44
-        };
-    }
+            return new System.Windows.Media.Media3D.Matrix3D()
+            {
+                M11 = value.M11, M12 = value.M12, M13 = value.M13, M14 = value.M14,
+                M21 = value.M21, M22 = value.M22, M23 = value.M23, M24 = value.M24,
+                M31 = value.M31, M32 = value.M32, M33 = value.M33, M34 = value.M34,
+                OffsetX = value.M41, OffsetY = value.M42, OffsetZ = value.M43, M44 = value.M44
+            };
+        }
 
-    /// <summary>
-    /// Performs an explicit conversion from <see cref="System.Windows.Media.Media3D.Matrix3D"/> to <see cref="Stride.Core.Mathematics.Matrix"/>.
-    /// </summary>
-    /// <param name="value">The value.</param>
-    /// <returns>The result of the conversion.</returns>
-    public static explicit operator Matrix(System.Windows.Media.Media3D.Matrix3D value)
-    {
-        return new Matrix()
+        /// <summary>
+        /// Performs an explicit conversion from <see cref="System.Windows.Media.Media3D.Matrix3D"/> to <see cref="Stride.Core.Mathematics.Matrix"/>.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <returns>The result of the conversion.</returns>
+        public static explicit operator Matrix(System.Windows.Media.Media3D.Matrix3D value)
         {
-            M11 = (float)value.M11, M12 = (float)value.M12, M13 = (float)value.M13, M14 = (float)value.M14,
-            M21 = (float)value.M21, M22 = (float)value.M22, M23 = (float)value.M23, M24 = (float)value.M24,
-            M31 = (float)value.M31, M32 = (float)value.M32, M33 = (float)value.M33, M34 = (float)value.M34,
-            M41 = (float)value.OffsetX, M42 = (float)value.OffsetY, M43 = (float)value.OffsetZ, M44 = (float)value.M44
-        };
-    }
+            return new Matrix()
+            {
+                M11 = (float)value.M11, M12 = (float)value.M12, M13 = (float)value.M13, M14 = (float)value.M14,
+                M21 = (float)value.M21, M22 = (float)value.M22, M23 = (float)value.M23, M24 = (float)value.M24,
+                M31 = (float)value.M31, M32 = (float)value.M32, M33 = (float)value.M33, M34 = (float)value.M34,
+                M41 = (float)value.OffsetX, M42 = (float)value.OffsetY, M43 = (float)value.OffsetZ, M44 = (float)value.M44
+            };
+        }
 #endif
 
 #if XnaInterop
-    /// <summary>
-    /// Performs an implicit conversion from <see cref="Stride.Core.Mathematics.Matrix"/> to <see cref="Microsoft.Xna.Framework.Matrix"/>.
-    /// </summary>
-    /// <param name="value">The value.</param>
-    /// <returns>The result of the conversion.</returns>
-    public static implicit operator Microsoft.Xna.Framework.Matrix(Matrix value)
-    {
-        return new Microsoft.Xna.Framework.Matrix()
+        /// <summary>
+        /// Performs an implicit conversion from <see cref="Stride.Core.Mathematics.Matrix"/> to <see cref="Microsoft.Xna.Framework.Matrix"/>.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <returns>The result of the conversion.</returns>
+        public static implicit operator Microsoft.Xna.Framework.Matrix(Matrix value)
         {
-            M11 = value.M11, M12 = value.M12, M13 = value.M13, M14 = value.M14,
-            M21 = value.M21, M22 = value.M22, M23 = value.M23, M24 = value.M24,
-            M31 = value.M31, M32 = value.M32, M33 = value.M33, M34 = value.M34,
-            M41 = value.M41, M42 = value.M42, M43 = value.M43, M44 = value.M44
-        };
-    }
+            return new Microsoft.Xna.Framework.Matrix()
+            {
+                M11 = value.M11, M12 = value.M12, M13 = value.M13, M14 = value.M14,
+                M21 = value.M21, M22 = value.M22, M23 = value.M23, M24 = value.M24,
+                M31 = value.M31, M32 = value.M32, M33 = value.M33, M34 = value.M34,
+                M41 = value.M41, M42 = value.M42, M43 = value.M43, M44 = value.M44
+            };
+        }
 
-            /// <summary>
-    /// Performs an implicit conversion from <see cref="Microsoft.Xna.Framework.Matrix"/> to <see cref="Stride.Core.Mathematics.Matrix"/>.
-    /// </summary>
-    /// <param name="value">The value.</param>
-    /// <returns>The result of the conversion.</returns>
-    public static implicit operator Matrix(Microsoft.Xna.Framework.Matrix value)
-    {
-        return new Matrix()
+                /// <summary>
+        /// Performs an implicit conversion from <see cref="Microsoft.Xna.Framework.Matrix"/> to <see cref="Stride.Core.Mathematics.Matrix"/>.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <returns>The result of the conversion.</returns>
+        public static implicit operator Matrix(Microsoft.Xna.Framework.Matrix value)
         {
-            M11 = value.M11, M12 = value.M12, M13 = value.M13, M14 = value.M14,
-            M21 = value.M21, M22 = value.M22, M23 = value.M23, M24 = value.M24,
-            M31 = value.M31, M32 = value.M32, M33 = value.M33, M34 = value.M34,
-            M41 = value.M41, M42 = value.M42, M43 = value.M43, M44 = value.M44
-        };
-    }
+            return new Matrix()
+            {
+                M11 = value.M11, M12 = value.M12, M13 = value.M13, M14 = value.M14,
+                M21 = value.M21, M22 = value.M22, M23 = value.M23, M24 = value.M24,
+                M31 = value.M31, M32 = value.M32, M33 = value.M33, M34 = value.M34,
+                M41 = value.M41, M42 = value.M42, M43 = value.M43, M44 = value.M44
+            };
+        }
 #endif
 }
