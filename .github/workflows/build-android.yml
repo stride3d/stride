@@ -1,6 +1,23 @@
 name: Build Android Runtime
 
 on:
+  pull_request:
+    paths:
+      - '.github/workflows/build-android.yml'
+      - 'build/Stride.Android.sln'
+      - 'deps/**'
+      - 'sources/core/**'
+      - 'sources/engine/**'
+      - 'sources/native/**'
+      - 'sources/shaders/**'
+      - 'sources/shared/**'
+      - 'sources/targets/**'
+      - '!**/.all-contributorsrc'
+      - '!**/.editorconfig'
+      - '!**/.gitignore'
+      - '!**/*.md'
+      - '!crowdin.yml'
+    types: [opened, synchronize, reopened, ready_for_review]
   workflow_dispatch:
     inputs:
       build-type:
@@ -21,7 +38,7 @@ jobs:
   # Build Stride Runtime for Android
   #
   Android-Runtime:
-    name: Build (${{ github.event.inputs.build-type || inputs.build-type }})
+    name: Build (${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }})
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -36,7 +53,7 @@ jobs:
           msbuild build\Stride.Android.sln `
             -restore -m:1 -nr:false `
             -v:m -p:WarningLevel=0 `
-            -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type }} `
+            -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} `
             -p:StridePlatforms=Android `
             -p:StrideSkipUnitTests=true `
             -p:StrideSkipAutoPack=true

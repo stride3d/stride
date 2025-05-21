@@ -1,6 +1,18 @@
 name: Build Windows (Full)
 
 on:
+  pull_request:
+    paths:
+      - '.github/workflows/build-windows-full.yml'
+      - 'build/Stride.sln'
+      - 'deps/**'
+      - 'sources/**'
+      - '!**/.all-contributorsrc'
+      - '!**/.editorconfig'
+      - '!**/.gitignore'
+      - '!**/*.md'
+      - '!crowdin.yml'
+    types: [opened, synchronize, reopened, ready_for_review]
   workflow_dispatch:
     inputs:
       build-type:
@@ -21,7 +33,7 @@ jobs:
   # Build Stride for Windows
   #
   Windows:
-    name: Build (${{ github.event.inputs.build-type || inputs.build-type }})
+    name: Build (${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }})
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -36,7 +48,7 @@ jobs:
           msbuild build\Stride.sln `
             -restore -m:1 -nr:false `
             -v:m -p:WarningLevel=0 `
-            -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type }} `
+            -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} `
             -p:StridePlatforms=Windows `
             -p:StrideGraphicsApiDependentBuildAll=true `
             -p:StrideSkipUnitTests=true `

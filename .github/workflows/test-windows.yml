@@ -32,7 +32,7 @@ jobs:
   # Test Stride on Windows
   #
   Windows-Tests:
-    name: Test (${{ github.event.inputs.build-type || inputs.build-type }}, ${{ github.event.inputs.test-category || inputs.test-category }})
+    name: Test (${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}, ${{ github.event.inputs.test-category || inputs.test-category || 'Simple' }})
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -44,14 +44,14 @@ jobs:
       - uses: microsoft/setup-msbuild@v2
       - name: Build
         run: |
-          msbuild build\Stride.Tests.${{ github.event.inputs.test-category || inputs.test-category }}.slnf `
+          msbuild build\Stride.Tests.${{ github.event.inputs.test-category || inputs.test-category || 'Simple' }}.slnf `
             -restore -m:1 -nr:false `
             -v:m -p:WarningLevel=0 `
-            -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type }} `
+            -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} `
             -p:StridePlatforms=Windows `
             -p:StrideGraphicsApis=Direct3D11
       - name: Test
         run: |
-          dotnet test build\Stride.Tests.${{ github.event.inputs.test-category || inputs.test-category }}.slnf `
+          dotnet test build\Stride.Tests.${{ github.event.inputs.test-category || inputs.test-category || 'Simple' }}.slnf `
             --no-build `
-            -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type }}
+            -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}

@@ -1,6 +1,23 @@
 name: Build Windows Runtime
 
 on:
+  pull_request:
+    paths:
+      - '.github/workflows/build-windows-runtime.yml'
+      - 'build/Stride.Runtime.sln'
+      - 'deps/**'
+      - 'sources/core/**'
+      - 'sources/engine/**'
+      - 'sources/native/**'
+      - 'sources/shaders/**'
+      - 'sources/shared/**'
+      - 'sources/targets/**'
+      - '!**/.all-contributorsrc'
+      - '!**/.editorconfig'
+      - '!**/.gitignore'
+      - '!**/*.md'
+      - '!crowdin.yml'
+    types: [opened, synchronize, reopened, ready_for_review]
   workflow_dispatch:
     inputs:
       build-type:
@@ -34,7 +51,7 @@ jobs:
   # Build Stride Runtime for Windows
   #
   Windows-Runtime:
-    name: Build (${{ github.event.inputs.build-type || inputs.build-type }}, ${{ github.event.inputs.graphics-api || inputs.graphics-api }})
+    name: Build (${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}, ${{ github.event.inputs.graphics-api || inputs.graphics-api || 'Direct3D11' }})
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -49,8 +66,8 @@ jobs:
           msbuild build\Stride.Runtime.sln `
             -restore -m:1 -nr:false `
             -v:m -p:WarningLevel=0 `
-            -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type }} `
+            -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} `
             -p:StridePlatforms=Windows `
-            -p:StrideGraphicsApis=${{ github.event.inputs.graphics-api || inputs.graphics-api }} `
+            -p:StrideGraphicsApis=${{ github.event.inputs.graphics-api || inputs.graphics-api || 'Direct3D11' }} `
             -p:StrideSkipUnitTests=true `
             -p:StrideSkipAutoPack=true

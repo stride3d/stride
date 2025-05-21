@@ -1,6 +1,18 @@
 name: Build Visual Studio Package
 
 on:
+  pull_request:
+    paths:
+      - '.github/workflows/build-vs-package.yml'
+      - 'build/Stride.VisualStudio.sln'
+      - 'sources/tools/Stride.VisualStudio.*/**'
+      - 'sources/targets/**'
+      - '!**/.all-contributorsrc'
+      - '!**/.editorconfig'
+      - '!**/.gitignore'
+      - '!**/*.md'
+      - '!crowdin.yml'
+    types: [opened, synchronize, reopened, ready_for_review]
   workflow_dispatch:
     inputs:
       build-type:
@@ -21,7 +33,7 @@ jobs:
   # Build Visual Studio Package
   #
   VS-Package:
-    name: Build (${{ github.event.inputs.build-type || inputs.build-type }})
+    name: Build (${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }})
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -36,6 +48,6 @@ jobs:
           msbuild build\Stride.VisualStudio.sln `
             -restore -m:1 -nr:false `
             -v:m -p:WarningLevel=0 `
-            -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type }} `
+            -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} `
             -p:StrideSkipUnitTests=true `
             -p:StrideSkipAutoPack=true

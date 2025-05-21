@@ -1,6 +1,19 @@
 name: Build Assembly Processor
 
 on:
+  pull_request:
+    paths:
+      - '.github/workflows/build-assembly-processor.yml'
+      - 'build/Stride.AssemblyProcessor.sln'
+      - 'sources/core/Stride.Core/**'
+      - 'sources/core/Stride.Core.AssemblyProcessor/**'
+      - 'sources/core/Stride.Core.AssemblyProcessor.Tests/**'
+      - '!**/.all-contributorsrc'
+      - '!**/.editorconfig'
+      - '!**/.gitignore'
+      - '!**/*.md'
+      - '!crowdin.yml'
+    types: [opened, synchronize, reopened, ready_for_review]
   workflow_dispatch:
     inputs:
       build-type:
@@ -21,7 +34,7 @@ jobs:
   # Build Assembly Processor
   #
   Assembly-Processor:
-    name: Build (${{ github.event.inputs.build-type || inputs.build-type }})
+    name: Build (${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }})
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -35,6 +48,6 @@ jobs:
           dotnet build build\Stride.AssemblyProcessor.sln `
             -restore -m:1 -nr:false `
             -v:m -p:WarningLevel=0 `
-            -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type }} `
+            -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} `
             -p:StrideSkipUnitTests=true `
             -p:StrideSkipAutoPack=true
