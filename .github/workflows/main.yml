@@ -16,6 +16,26 @@ on:
   workflow_dispatch:
 
 jobs:
+  ### Misc. ###
+  Assembly-Processor:
+    strategy:
+      matrix:
+        build-type: [Release]
+    uses: ./.github/workflows/build-assembly-processor.yml
+    secrets: inherit
+    with:
+      build-type: ${{ matrix.build-type }}
+
+  VS-Package:
+    strategy:
+      matrix:
+        build-type: [Debug] # Release has a bug and cannot build
+    uses: ./.github/workflows/build-vs-package.yml
+    secrets: inherit
+    with:
+      build-type: ${{ matrix.build-type }}
+
+  ### Runtimes ###
   Linux-Runtime:
     strategy:
       matrix:
@@ -38,6 +58,7 @@ jobs:
       build-type: ${{ matrix.build-type }}
       graphics-api: ${{ matrix.graphics-api }}
 
+  ### Tests ###
   Windows-Tests:
     needs: Windows-Runtime
     strategy:
