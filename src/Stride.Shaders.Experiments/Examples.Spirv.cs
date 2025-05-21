@@ -41,6 +41,7 @@ public static partial class Examples
             function.Parameters["a"], Operator.Plus, function.Parameters["b"]
         );
         builder.Return(v);
+        builder.EndFunction(context);
         context.Buffer.Sort();
         var dis = new SpirvDis<SpirvBuffer>(SpirvBuffer.Merge(context.Buffer, builder.Buffer), useNames: true);
         dis.Disassemble(true);

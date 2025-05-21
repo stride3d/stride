@@ -15,9 +15,13 @@ public partial class SpirvBuilder
         Position += func.WordCount;
         context.AddName(func, name);
         var result = new SpirvFunction(func.ResultId!.Value, name, ftype);
-        Buffer.InsertOpFunctionEnd(Position);
         CurrentFunction = result;
         return result;
+    }
+
+    public void EndFunction(SpirvContext context)
+    {
+        Position += Buffer.InsertOpFunctionEnd(Position).WordCount;
     }
 
     public SpirvValue AddFunctionParameter(SpirvContext context, string name, SymbolType type)
@@ -37,7 +41,6 @@ public partial class SpirvBuilder
         if(!variables.IsEmpty)
             foreach(var p in variables)
                 context.AddName(context.Variables[p.Id.Name], p.Id.Name);
-        Position += Buffer.InsertOpFunctionEnd(Position).WordCount;
         CurrentFunction = result;
         return result;
     }

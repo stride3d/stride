@@ -31,7 +31,6 @@ public partial class SpirvBuilder
         {
             var size = Buffer.Span[Position] >> 16;
             Buffer.Remove(Position);
-            Position -= size;
         }
     }
 }

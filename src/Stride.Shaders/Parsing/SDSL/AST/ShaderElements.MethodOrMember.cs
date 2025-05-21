@@ -193,6 +193,7 @@ public class ShaderMethod(
                 foreach(var s in body)
                     s.Compile(table, shader, compiler);
             }
+            builder.EndFunction(context);
         }
         else throw new NotImplementedException();
     }
