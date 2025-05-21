@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       build-type:
-        description: Build Configuration?
+        description: Build Configuration
         default: Debug
         type: choice
         options:
@@ -37,5 +37,4 @@ jobs:
             -v:m -p:WarningLevel=0 `
             -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type }} `
             -p:StrideSkipUnitTests=true `
-            -p:StrideSkipAutoPack=true `
-            -p:StrideEnableCodeAnalysis=true
+            -p:StrideSkipAutoPack=true

@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       build-type:
-        description: Build Configuration?
+        description: Build Configuration
         default: Debug
         type: choice
         options:
@@ -50,5 +50,4 @@ jobs:
             -p:StridePlatforms=Linux `
             -p:StrideGraphicsApis=${{ github.event.inputs.graphics-api || inputs.graphics-api }} `
             -p:StrideSkipUnitTests=true `
-            -p:StrideSkipAutoPack=true `
-            -p:StrideEnableCodeAnalysis=true
+            -p:StrideSkipAutoPack=true

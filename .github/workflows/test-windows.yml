@@ -4,16 +4,14 @@ on:
   workflow_dispatch:
     inputs:
       build-type:
-        description: Build in Release or Debug?
-        required: true
+        description: Build 
         default: Release
         type: choice
         options:
           - Debug
           - Release
       test-category:
-        description: Which category of tests?
-        required: false
+        description: Category of tests
         default: Simple
         type: choice
         options:
@@ -23,11 +21,9 @@ on:
   workflow_call:
     inputs:
       build-type:
-        required: true
         default: Release
         type: string
       test-category:
-        required: false
         default: Simple
         type: string
 
@@ -35,8 +31,8 @@ jobs:
   #
   # Test Stride on Windows
   #
-  Windows:
-    name: Test (${{ github.event.inputs.test-category || inputs.test-category }}, ${{ github.event.inputs.build-type || inputs.build-type }})
+  Windows-Tests:
+    name: Test (${{ github.event.inputs.build-type || inputs.build-type }}, ${{ github.event.inputs.test-category || inputs.test-category }})
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -52,6 +48,7 @@ jobs:
             -restore -m:1 -nr:false `
             -v:m -p:WarningLevel=0 `
             -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type }} `
+            -p:StridePlatforms=Windows `
             -p:StrideGraphicsApis=Direct3D11
       - name: Test
         run: |
