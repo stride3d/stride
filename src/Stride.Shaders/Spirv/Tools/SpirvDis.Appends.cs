@@ -122,7 +122,7 @@ public partial struct SpirvDis<TBuffer>
     {
         if (o.Kind == OperandKind.IdRef)
             foreach (var e in o.Words)
-                Append(new IdRef(e), instruction.OpCode == SDSLOp.OpName);
+                Append(new IdRef(e), false);
         else if (o.Kind == OperandKind.IdResultType)
             foreach (var e in o.Words)
                 Append((IdResultType)e);
