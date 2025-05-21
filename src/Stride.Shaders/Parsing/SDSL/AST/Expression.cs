@@ -130,9 +130,12 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
                     accessor.Type = type;
                 }
                 else throw new NotImplementedException($"Cannot access {accessor.GetType().Name} from {Type}");
+
                 if(accessor is not Identifier)
                     accessor.ProcessSymbol(table, entrypoint, io ?? StreamIO.Input);
             }
+            // AccessorChain always end up with a pointer type
+            Type = new PointerType(Type);
         }
     }
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
@@ -144,19 +147,24 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
         if (Source is Identifier { Name: "streams" } streams && Accessors[0] is Identifier streamVar)
             throw new NotImplementedException();
 
-        var currentType = Source.Type;
-        Span<IdRef> indexes = stackalloc IdRef[Accessors.Count - 1];
-        foreach (var accessor in Accessors)
+        var currentValueType = Source.Type;
+        Span<IdRef> indexes = stackalloc IdRef[Accessors.Count];
+        for (var i = 0; i < Accessors.Count; i++)
         {
-            if (currentType is StructType s && accessor is Identifier field)
+            var accessor = Accessors[i];
+            if (currentValueType is StructType s && accessor is Identifier field)
             {
                 var index = s.TryGetFieldIndex(field);
                 if (index == -1)
                     throw new InvalidOperationException($"field {accessor} not found in struct type {s}");
+                //indexes[i] = builder.CreateConstant(context, shader, new IntegerLiteral(new(32, false, true), index, new())).Id;
+                var indexLiteral = new IntegerLiteral(new(32, false, true), index, new());
+                indexLiteral.ProcessSymbol(table);
+                indexes[i] = context.CreateConstant(shader, indexLiteral).Id;
             }
             else throw new NotImplementedException($"unknown accessor {accessor} in expression {this}");
 
-            currentType = accessor.Type;
+            currentValueType = accessor.Type;
         }
 
         var resultType = context.GetOrRegister(Type);

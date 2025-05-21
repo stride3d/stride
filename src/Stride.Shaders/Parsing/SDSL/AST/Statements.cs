@@ -1,4 +1,5 @@
 using System.Text;
+using Spv;
 using Stride.Shaders.Core;
 using Stride.Shaders.Parsing.Analysis;
 using Stride.Shaders.Spirv.Building;
@@ -185,8 +186,11 @@ public class Assign(TextLocation info) : Statement(info)
         {
             variable.Variable.ProcessSymbol(table, entrypoint, io);
             variable.Value!.ProcessSymbol(table, entrypoint, io);
+
+            if (variable.Variable.Type is not PointerType)
+                throw new InvalidOperationException("can only assign to pointer type");
         }
-    }
+    } 
     public override void Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         var (builder, context, _) = compiler;
@@ -194,6 +198,14 @@ public class Assign(TextLocation info) : Statement(info)
         {
             var target = variable.Variable.Compile(table, shader, compiler);
             var source = variable.Value!.Compile(table, shader, compiler);
+            if (variable.Value!.Type is PointerType p)
+            {
+                var sourceLoad = context.Bound++;
+                var underlyingType = context.GetOrRegister(p.BaseType);
+                builder.Position += builder.Buffer.InsertOpLoad(builder.Position, sourceLoad, underlyingType, source.Id, Specification.MemoryAccessMask.MaskNone).WordCount;
+                source = new(sourceLoad, underlyingType);
+            }
+
             var instruction = builder.Buffer.InsertOpStore(builder.Position, target.Id, source.Id, null);
             builder.Position += instruction.WordCount;
         }

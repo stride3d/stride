@@ -116,31 +116,6 @@ public partial class SpirvBuilder
         return new(fcall, func.Name);
     }
 
-    public SpirvValue CreateConstant(SpirvContext context, ShaderClass shader, Literal literal)
-    {
-        var instruction = literal switch
-        {
-            BoolLiteral lit => lit.Value switch
-            {
-                true => Buffer.InsertOpConstantTrue(Position, context.Bound++, context.GetOrRegister(lit.Type)),
-                false => Buffer.InsertOpConstantFalse(Position, context.Bound++, context.GetOrRegister(lit.Type))
-            },
-            IntegerLiteral lit => lit.Suffix.Size switch
-            {
-                > 32 => Buffer.InsertOpConstant<LiteralInteger>(Position, context.Bound++, context.GetOrRegister(lit.Type), lit.LongValue),
-                _ => Buffer.InsertOpConstant<LiteralInteger>(Position, context.Bound++, context.GetOrRegister(lit.Type), lit.IntValue),
-            },
-            FloatLiteral lit => lit.Suffix.Size switch
-            {
-                > 32 => Buffer.InsertOpConstant<LiteralFloat>(Position, context.Bound++, context.GetOrRegister(lit.Type), lit.DoubleValue),
-                _ => Buffer.InsertOpConstant<LiteralFloat>(Position, context.Bound++, context.GetOrRegister(lit.Type), (float)lit.DoubleValue),
-            },
-            _ => throw new NotImplementedException()
-        };
-        Position += instruction.WordCount;
-        return new(instruction);
-    }
-
     public SpirvValue CompositeConstruct(SpirvContext context, CompositeLiteral literal, Span<IdRef> values)
     {
         var instruction = Buffer.InsertOpCompositeConstruct(Position, context.Bound++, context.GetOrRegister(literal.Type), values);

@@ -18,6 +18,7 @@ public class SpirvContext(SpirvModule module) : IDisposable
     public SortedList<string, int> Variables { get; } = [];
     public Dictionary<SymbolType, int> Types { get; } = [];
     public Dictionary<int, SymbolType> ReverseTypes { get; } = [];
+    public Dictionary<(SymbolType Type, object Value), SpirvValue> LiteralConstants { get; } = [];
     public SpirvBuffer Buffer { get; set; } = new();
 
     public void PutMixinName(string name)
@@ -25,7 +26,8 @@ public class SpirvContext(SpirvModule module) : IDisposable
         if (Name is null)
         {
             Name = name;
-            Buffer.InsertOpSDSLMixinName(5, name);
+            // temporary removed for testing SPIRV cross
+            //Buffer.InsertOpSDSLMixinName(5, name);
         }
         else throw new NotImplementedException();
     }
@@ -153,14 +155,14 @@ public class SpirvContext(SpirvModule module) : IDisposable
     IdRef RegisterStruct(StructType structSymbol)
     {
         Span<IdRef> types = stackalloc IdRef[structSymbol.Fields.Count];
-        int tmp = 0;
-        foreach (var f in structSymbol.Fields)
-        {
-            types[tmp] = GetOrRegister(f.Type);
-            AddMemberName(types[tmp], tmp, f.Name);
-        }
+        for (var index = 0; index < structSymbol.Fields.Count; index++)
+            types[index] = GetOrRegister(structSymbol.Fields[index].Type);
+
         var result = Buffer.AddOpTypeStruct(Bound++, types);
         AddName(result, structSymbol.Name);
+        for (var index = 0; index < structSymbol.Fields.Count; index++)
+            AddMemberName(result, index, structSymbol.Fields[index].Name);
+
         return result;
     }
 
@@ -171,7 +173,8 @@ public class SpirvContext(SpirvModule module) : IDisposable
         foreach (var f in functionType.ParameterTypes)
             types[tmp] = GetOrRegister(f);
         var result = Buffer.AddOpTypeFunction(Bound++, GetOrRegister(functionType.ReturnType), types);
-        AddName(result, functionType.ToString());
+        // disabled for now: currently it generates name with {}, not working with most SPIRV tools
+        //AddName(result, functionType.ToString());
         return result;
     }
 
@@ -180,6 +183,57 @@ public class SpirvContext(SpirvModule module) : IDisposable
         var baseType = GetOrRegister(pointerType.BaseType);
         var result = Buffer.AddOpTypePointer(Bound++, Spv.Specification.StorageClass.Function, baseType);
         AddName(result, pointerType.ToString());
+        return result;
+    }
+
+    public SpirvValue CreateConstant(ShaderClass shader, Literal literal)
+    {
+        object literalValue = literal switch
+        {
+            BoolLiteral lit => lit.Value,
+            IntegerLiteral lit => lit.Suffix.Size switch
+            {
+                > 32 => lit.LongValue,
+                _ => lit.IntValue,
+            },
+            FloatLiteral lit => lit.Suffix.Size switch
+            {
+                > 32 => lit.DoubleValue,
+                _ => (float)lit.DoubleValue,
+            },
+        };
+
+        if (LiteralConstants.TryGetValue((literal.Type, literalValue), out var result))
+            return result;
+
+        var instruction = literal switch
+        {
+            BoolLiteral lit => lit.Value switch
+            {
+                true => Buffer.AddOpConstantTrue(Bound++, GetOrRegister(lit.Type)),
+                false => Buffer.AddOpConstantFalse(Bound++, GetOrRegister(lit.Type))
+            },
+            IntegerLiteral lit => lit.Suffix.Size switch
+            {
+                > 32 => Buffer.AddOpConstant<LiteralInteger>(Bound++, GetOrRegister(lit.Type), lit.LongValue),
+                _ => Buffer.AddOpConstant<LiteralInteger>(Bound++, GetOrRegister(lit.Type), lit.IntValue),
+            },
+            FloatLiteral lit => lit.Suffix.Size switch
+            {
+                > 32 => Buffer.AddOpConstant<LiteralFloat>(Bound++, GetOrRegister(lit.Type), lit.DoubleValue),
+                _ => Buffer.AddOpConstant<LiteralFloat>(Bound++, GetOrRegister(lit.Type), (float)lit.DoubleValue),
+            },
+            _ => throw new NotImplementedException()
+        };
+
+        result = new(instruction);
+        LiteralConstants.Add((literal.Type, literalValue), result);
+        AddName(result.Id, literal switch
+            {
+                BoolLiteral lit => $"{lit.Type}_{lit.Value}",
+                IntegerLiteral lit => $"{lit.Type}_{lit.Value}",
+                FloatLiteral lit => $"{lit.Type}_{lit.Value}",
+            });
         return result;
     }
 

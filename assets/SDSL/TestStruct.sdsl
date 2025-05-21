@@ -5,11 +5,13 @@ shader TestStruct
     struct A
     {
         int B;
+        int C;
     };
 
     void VSMain()
     {
         A a;
-        a.B = 3;
+        a.C = 3;
+        a.B = a.C;
     }
 }
