@@ -1,4 +1,5 @@
 using System.Text;
+using CommunityToolkit.HighPerformance;
 using Silk.NET.Shaderc;
 using Silk.NET.SPIRV.Cross;
 using Stride.Shaders.Compilers;
@@ -216,6 +217,8 @@ public static partial class Examples
 
         var sdslc = new SDSLC();
         sdslc.Compile(text, out var bytecode);
+        var code = new SpirvTranslator(bytecode.AsMemory().Cast<byte, uint>());
+        Console.WriteLine(code.Translate(Backend.Hlsl));
     }
 }
 

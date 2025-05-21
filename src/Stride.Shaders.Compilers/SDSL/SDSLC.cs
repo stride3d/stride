@@ -25,6 +25,17 @@ public record struct SDSLC() : ICompiler
             using var compiler = new CompilerUnit();
             shader.Compile(compiler, table);
 
+            // temp hack to add entry point (last function)
+            var context = compiler.Context;
+            if (context.Module.Functions.Count > 0)
+            {
+                var lastFunction = context.Module.Functions[^1];
+                context.Buffer.AddOpCapability(Spv.Specification.Capability.Shader);
+                context.Buffer.AddOpMemoryModel(Spv.Specification.AddressingModel.Logical, Spv.Specification.MemoryModel.GLSL450);
+                context.SetEntryPoint(Spv.Specification.ExecutionModel.Vertex, lastFunction.Id, lastFunction.Name, []);
+            }
+
+
             compiler.Context.Buffer.Sort();
             var merged = SpirvBuffer.Merge(compiler.Context.Buffer, compiler.Builder.Buffer);
             var dis = new SpirvDis<SpirvBuffer>(merged, true);

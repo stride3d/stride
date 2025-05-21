@@ -8,10 +8,19 @@ shader TestStruct
         int C;
     };
 
-    void VSMain()
+    void Test1(int p1, int p2)
+    {
+        A a;
+        a.C = p1 + p2;
+        return;
+    }
+
+    float4 VSMain()
     {
         A a;
         a.C = 3;
         a.B = a.C;
+        Test1(3, a.B);
+        return float4(1.0, 1.0, 1.0, 1.0);
     }
 }
