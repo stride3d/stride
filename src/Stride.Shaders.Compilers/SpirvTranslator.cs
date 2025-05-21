@@ -26,12 +26,19 @@ public record struct SpirvTranslator(ReadOnlyMemory<uint> Words)
                 if (cross.ContextParseSpirv(context, w, (nuint)Words.Length, &ir) != Result.Success)
                     throw new Exception($"{cross.ContextParseSpirv(context, w, (nuint)Words.Length, &ir)} : Could not parse spirv");
 
+            cross.ContextSetErrorCallback(context, new((void* userData, byte* errorData) =>
+            {
+                var error = Marshal.PtrToStringAnsi((IntPtr)errorData);
+                Console.WriteLine(error);
+            }), null);
+
             if (cross.ContextCreateCompiler(context, backend, ir, CaptureMode.Copy, &compiler) != Result.Success)
                 throw new Exception($"{cross.ContextCreateCompiler(context, backend, ir, CaptureMode.Copy, &compiler)} : could not create compiler");
             if (cross.CompilerCreateShaderResources(compiler, &resources) != Result.Success)
                 throw new Exception($"{cross.CompilerCreateShaderResources(compiler, &resources)} : could not create shader resources");
             if (cross.CompilerCompile(compiler, &translated) != Result.Success)
                 throw new Exception($"{cross.CompilerCompile(compiler, &translated)} : could not compile code");
+
             translatedCode = SilkMarshal.PtrToString((nint)translated);
             cross.ContextReleaseAllocations(context);
             cross.ContextDestroy(context);
