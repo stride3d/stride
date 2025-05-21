@@ -1,6 +1,18 @@
 name: Test Windows
 
 on:
+  pull_request:
+    paths:
+      - '.github/workflows/test-windows.yml'
+      - 'build/Stride.Tests.*.slnf'
+      - 'deps/**'
+      - 'sources/**'
+      - '!**/.all-contributorsrc'
+      - '!**/.editorconfig'
+      - '!**/.gitignore'
+      - '!**/*.md'
+      - '!crowdin.yml'
+    types: [opened, synchronize, reopened, ready_for_review]
   workflow_dispatch:
     inputs:
       build-type:
@@ -32,6 +44,7 @@ jobs:
   # Test Stride on Windows
   #
   Windows-Tests:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'workflow_call' || github.event.pull_request.draft == false }}
     name: Test (${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}, ${{ github.event.inputs.test-category || inputs.test-category || 'Simple' }})
     runs-on: windows-latest
     steps:

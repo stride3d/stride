@@ -31,6 +31,7 @@ jobs:
   # Test Stride on Linux
   #
   Linux-Tests:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'workflow_call' || github.event.pull_request.draft == false }}
     name: Test (${{ github.event.inputs.build-type || inputs.build-type }}, ${{ github.event.inputs.test-category || inputs.test-category }})
     runs-on: ubuntu-latest
     steps:

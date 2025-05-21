@@ -34,6 +34,7 @@ jobs:
   # Build Assembly Processor
   #
   Assembly-Processor:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'workflow_call' || github.event.pull_request.draft == false }}
     name: Build (${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }})
     runs-on: windows-latest
     steps:
