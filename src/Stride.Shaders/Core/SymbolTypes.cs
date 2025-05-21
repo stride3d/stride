@@ -7,6 +7,12 @@ namespace Stride.Shaders.Core;
 
 public abstract record SymbolType()
 {
+    /// <summary>
+    /// Converts to an identifier compatible with <see cref="Spirv.Core.SDSLOp.OpName"/>.
+    /// </summary>
+    /// <returns></returns>
+    public virtual string ToId() => ToString();
+
     public static bool TryGetNumeric(string name, out SymbolType? result)
     {
         if(ScalarType.Types.TryGetValue(name, out var s))
@@ -47,6 +53,7 @@ public sealed record UndefinedType(string TypeName) : SymbolType()
 
 public sealed record PointerType(SymbolType BaseType) : SymbolType()
 {
+    public override string ToId() => $"ptr_{BaseType.ToId()}";
     public override string ToString() => $"*{BaseType}";
 }
 
@@ -68,6 +75,7 @@ public sealed record ArrayType(SymbolType BaseType, int Size) : SymbolType()
 }
 public sealed record StructType(string Name, List<(string Name, SymbolType Type)> Fields) : SymbolType()
 {
+    public override string ToId() => Name;
     public override string ToString() => $"{Name}{{{string.Join(", ", Fields.Select(x => $"{x.Type} {x.Name}"))}}}";
 
     public bool TryGetFieldType(string name, [MaybeNullWhen(false)] out SymbolType type)
@@ -143,6 +151,18 @@ public sealed record FunctionType(SymbolType ReturnType, List<SymbolType> Parame
             hash = hash * 31 + item.GetHashCode();
         }
         return hash;
+    }
+
+    public override string ToId()
+    {
+        var builder = new StringBuilder();
+        builder.Append($"fn_");
+        for (int i = 0; i < ParameterTypes.Count; i++)
+        {
+            builder.Append(ParameterTypes[i].ToId());
+                builder.Append('_');
+        }
+        return builder.Append(ReturnType.ToId()).ToString();
     }
 
     public override string ToString()

@@ -159,7 +159,7 @@ public class SpirvContext(SpirvModule module) : IDisposable
             types[index] = GetOrRegister(structSymbol.Fields[index].Type);
 
         var result = Buffer.AddOpTypeStruct(Bound++, types);
-        AddName(result, structSymbol.Name);
+        AddName(result, structSymbol.ToId());
         for (var index = 0; index < structSymbol.Fields.Count; index++)
             AddMemberName(result, index, structSymbol.Fields[index].Name);
 
@@ -174,7 +174,7 @@ public class SpirvContext(SpirvModule module) : IDisposable
             types[tmp] = GetOrRegister(f);
         var result = Buffer.AddOpTypeFunction(Bound++, GetOrRegister(functionType.ReturnType), types);
         // disabled for now: currently it generates name with {}, not working with most SPIRV tools
-        //AddName(result, functionType.ToString());
+        AddName(result, functionType.ToId());
         return result;
     }
 
@@ -182,7 +182,7 @@ public class SpirvContext(SpirvModule module) : IDisposable
     {
         var baseType = GetOrRegister(pointerType.BaseType);
         var result = Buffer.AddOpTypePointer(Bound++, Spv.Specification.StorageClass.Function, baseType);
-        AddName(result, pointerType.ToString());
+        AddName(result, pointerType.ToId());
         return result;
     }
 

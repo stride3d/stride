@@ -32,6 +32,8 @@ public partial struct SpirvDis<TBuffer>
     public readonly void Append<T>(T value) where T : Enum
     {
         var name = Enum.GetName(typeof(T), value);
+        if (name == "MaskNone")
+            name = "None";
         writer.Append(' ').Append(name);
     }
     public readonly void Append(IdRef id, bool ignoreName = false)
