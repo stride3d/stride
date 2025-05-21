@@ -77,10 +77,15 @@ public partial struct SpirvDis<TBuffer>
         if(buffer.InstructionSpan.Length == 0)
             return "";
 
+        // First pass: scan names
         foreach (var e in buffer)
         {
             CheckNameTable(e);
+        }
 
+        // Second pass: disassemble
+        foreach (var e in buffer)
+        {
             if (UseNames && e.ResultId is int id && nameTable.TryGetValue(id, out var nid))
                 Append(nid);
             else
