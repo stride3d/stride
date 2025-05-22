@@ -129,6 +129,8 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
 
     public bool IsSynchronizing { get { return isSynchronizing; } set { SetValue(ref isSynchronizing, value); } }
 
+    public bool IsVisualStudioAvailable { get { return OperatingSystem.IsWindows(); } }
+
     public string CurrentToolTip { get { return currentToolTip; } set { SetValue(ref currentToolTip, value); } }
 
     public string LogMessages

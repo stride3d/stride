@@ -240,6 +240,7 @@
               </Border>
               <!-- Visual studio extensions -->
               <Border DockPanel.Dock="Bottom"
+                      IsVisible="{Binding IsVisualStudioAvailable}"
                       BorderBrush="{StaticResource TileBorderBrush}" BorderThickness="{StaticResource BorderThicknessTile}">
                 <StackPanel>
                   <StackPanel.DataTemplates>
@@ -269,6 +270,7 @@
                 </StackPanel>
               </Border>
               <Border DockPanel.Dock="Bottom"
+                      IsVisible="{Binding IsVisualStudioAvailable}"
                       BorderBrush="{StaticResource BorderBrushTile}">
                 <DockPanel Margin="4,0">
                   <Button Classes="TransparentButton"
@@ -284,6 +286,7 @@
                 </DockPanel>
               </Border>
               <Border DockPanel.Dock="Bottom"
+                      IsVisible="{Binding IsVisualStudioAvailable}"
                       BorderBrush="{StaticResource BorderBrushTile}" BorderThickness="12,0,0,0">
                 <DockPanel Height="32" Margin="4,0">
                   <Image Source="/Assets/Images/visual-studio.png"
