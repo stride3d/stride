@@ -1,0 +1,111 @@
+name: Build Avalonia Editor
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/build-avalonia-editor.yml'
+      - 'build/Stride.Editor.Avalonia.slnf'
+      - 'sources/assets/**'
+      - 'sources/core/**'
+      - 'sources/editor/**'
+      - 'sources/presentation/**'
+      - 'sources/shared/**'
+      - 'sources/targets/**'
+      - '!**/.all-contributorsrc'
+      - '!**/.editorconfig'
+      - '!**/.gitignore'
+      - '!**/*.md'
+      - '!crowdin.yml'
+    types: [opened, synchronize, reopened, ready_for_review]
+  workflow_dispatch:
+    inputs:
+      build-type:
+        description: Build Configuration
+        default: Debug
+        type: choice
+        options:
+          - Debug
+          - Release
+      platform:
+        description: Platform
+        default: Windows
+        type: choice
+        options:
+          - Windows
+          - Linux
+  workflow_call:
+    inputs:
+      build-type:
+        default: Debug
+        type: string
+      platform:
+        default: Windows
+        type: string
+
+jobs:
+  Setup:
+    runs-on: ubuntu-latest
+    outputs:
+      build-type: ${{ steps.setup.outputs.build-type }}
+      platform: ${{ steps.setup.outputs.platform }}
+    steps:
+      - id: setup
+        run: |
+          echo "build-type=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}" >> $GITHUB_OUTPUT
+          echo "platform=${{ github.event.inputs.platform || inputs.platform || 'Windows' }}" >> $GITHUB_OUTPUT
+
+  #
+  # Build Avalonia Editor on Linux
+  #
+  Linux:
+    needs: Setup
+    if: ${{ needs.Setup.outputs.platform == 'Linux' }} 
+    name: Linux (${{ needs.Setup.outputs.build-type }})
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - name: Install dependencies
+        run: |
+          sudo apt-get install clang lld
+      - name: Build
+        run: |
+          dotnet build build/Stride.Editor.Avalonia.slnf
+            -m:1 -nr:false \
+            -v:m -p:WarningLevel=0 \
+            -p:Configuration=${{ needs.Setup.outputs.build-type }} \
+            -p:StridePlatforms=Linux \
+            -p:StrideGraphicsApis=OpenGL \
+            -p:StrideSkipUnitTests=true \
+            -p:StrideSkipAutoPack=true
+
+  #
+  # Build Avalonia Editor on Windows
+  #
+  Windows:
+    needs: Setup
+    if: ${{ needs.Setup.outputs.platform == 'Windows' }} 
+    name: Windows (${{ needs.Setup.outputs.build-type }})
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - uses: microsoft/setup-msbuild@v2
+      - name: Build
+        run: |
+          msbuild build\Stride.Editor.Avalonia.slnf `
+            -restore -m:1 -nr:false `
+            -v:m -p:WarningLevel=0 `
+            -p:Configuration=${{ needs.Setup.outputs.build-type }} `
+            -p:StridePlatforms=Windows `
+            -p:StrideGraphicsApis=Direct3D11 `
+            -p:StrideSkipUnitTests=true `
+            -p:StrideSkipAutoPack=true
