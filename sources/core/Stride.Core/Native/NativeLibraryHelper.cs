@@ -9,7 +9,7 @@ namespace Stride.Core;
 public static class NativeLibraryHelper
 {
     private const string UNIX_LIB_PREFIX = "lib";
-    private static readonly Dictionary<string, IntPtr> LoadedLibraries = new(StringComparer.OrdinalIgnoreCase);
+    private static readonly Dictionary<string, nint> LoadedLibraries = new(StringComparer.OrdinalIgnoreCase);
     private static readonly Dictionary<string, string> NativeDependencies = new(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>
@@ -19,15 +19,15 @@ public static class NativeLibraryHelper
     /// <param name="libraryName">Name of the library, without the extension.</param>
     /// <param name="owner">Type whose assembly location is related to the native library (we can't use GetCallingAssembly as it might be wrong due to optimizations).</param>
     /// <exception cref="System.InvalidOperationException">Library could not be loaded.</exception>
-    public static void PreloadLibrary(string libraryName, Type owner)
+    public static nint PreloadLibrary(string libraryName, Type owner)
     {
 #if STRIDE_PLATFORM_DESKTOP
         lock (LoadedLibraries)
         {
             // If already loaded, just exit as we want to load it just once
-            if (LoadedLibraries.ContainsKey(libraryName))
+            if (LoadedLibraries.TryGetValue(libraryName, out var handle))
             {
-                return;
+                return handle;
             }
 
             // Was the dependency registered beforehand?
@@ -35,7 +35,7 @@ public static class NativeLibraryHelper
                 if (NativeDependencies.TryGetValue(libraryName, out var path) && NativeLibrary.TryLoad(path, out var result))
                 {
                     LoadedLibraries.Add(libraryName, result);
-                    return;
+                    return result;
                 }
             }
 
@@ -44,7 +44,7 @@ public static class NativeLibraryHelper
                 if (NativeLibrary.TryLoad(libraryName, owner.Assembly, searchPath: null, out var result))
                 {
                     LoadedLibraries.Add(libraryName, result);
-                    return;
+                    return result;
                 }
             }
 
@@ -75,13 +75,13 @@ public static class NativeLibraryHelper
                 if (NativeLibrary.TryLoad(libraryNameWithExtension, out var result))
                 {
                     LoadedLibraries.Add(libraryName, result);
-                    return;
+                    return result;
                 }
                 else if (!libraryName.StartsWith(UNIX_LIB_PREFIX, StringComparison.Ordinal)
                     && NativeLibrary.TryLoad(UNIX_LIB_PREFIX + libraryNameWithExtension, out result))
                 {
                     LoadedLibraries.Add(libraryName, result);
-                    return;
+                    return result;
                 }
             }
 
@@ -102,7 +102,7 @@ public static class NativeLibraryHelper
                     if (NativeLibrary.TryLoad(libraryFilename, out var result))
                     {
                         LoadedLibraries.Add(libraryName, result);
-                        return;
+                        return result;
                     }
                 }
             }
@@ -114,7 +114,7 @@ public static class NativeLibraryHelper
                 if (NativeLibrary.TryLoad(libraryFilename, out var result))
                 {
                     LoadedLibraries.Add(libraryName, result);
-                    return;
+                    return result;
                 }
             }
 
