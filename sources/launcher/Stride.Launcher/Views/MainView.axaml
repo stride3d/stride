@@ -395,7 +395,7 @@
                                   <Border.Effect>
                                     <DropShadowEffect BlurRadius="5" Opacity="0.4" />
                                   </Border.Effect>
-                                  <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="128">
+                                  <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="400">
                                     <ItemsControl ItemsSource="{Binding AlternateVersions}">
                                       <ItemsControl.ItemTemplate>
                                         <DataTemplate DataType="{x:Type vm:StrideStoreAlternateVersionViewModel}">
