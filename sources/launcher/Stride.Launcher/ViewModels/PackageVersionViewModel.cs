@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp) 
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Diagnostics;
 using Stride.Core.Extensions;
 using Stride.Core.Packages;
 using Stride.Core.Presentation.Commands;
@@ -15,8 +16,8 @@ namespace Stride.Launcher.ViewModels;
 /// </summary>
 public abstract class PackageVersionViewModel : DispatcherViewModel
 {
-    protected NugetLocalPackage LocalPackage;
-    protected NugetServerPackage ServerPackage;
+    protected NugetLocalPackage? LocalPackage;
+    protected NugetServerPackage? ServerPackage;
     private ProgressAction currentProgressAction;
     private int currentProgress;
     private bool isProcessing;
@@ -30,7 +31,7 @@ public abstract class PackageVersionViewModel : DispatcherViewModel
     /// <param name="launcher">The parent <see cref="MainViewModel"/> instance.</param>
     /// <param name="store">The related <see cref="NugetStore"/> instance.</param>
     /// <param name="localPackage">The local package of this version, if a local package exists.</param>
-    internal PackageVersionViewModel(MainViewModel launcher, NugetStore store, NugetLocalPackage localPackage)
+    internal PackageVersionViewModel(MainViewModel launcher, NugetStore store, NugetLocalPackage? localPackage)
         : base(launcher.SafeArgument(nameof(launcher)).ServiceProvider)
     {
         ArgumentNullException.ThrowIfNull(launcher);
@@ -176,6 +177,7 @@ public abstract class PackageVersionViewModel : DispatcherViewModel
         return Task.Run(async () =>
         {
             IsProcessing = true;
+            Debug.Assert(ServerPackage is not null);
 
             // Uninstall previous version first, if it exists
             if (LocalPackage is not null)
@@ -279,6 +281,7 @@ public abstract class PackageVersionViewModel : DispatcherViewModel
     private async Task DeleteInternal(bool displayErrorMessage)
     {
         IsProcessing = true;
+        Debug.Assert(LocalPackage is not null);
         try
         {
             using var progressReport = new ProgressReport(Store, ServerPackage);

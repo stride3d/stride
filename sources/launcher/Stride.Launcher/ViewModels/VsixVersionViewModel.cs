@@ -57,7 +57,7 @@ public sealed class VsixVersionViewModel : PackageVersionViewModel
     {
         Dispatcher.Invoke(() => Status = FormatStatus(Strings.ReportChecking));
         await UpdateVersionsFromStore();
-        Dispatcher.Invoke(UpdateStatus);
+        await Dispatcher.InvokeAsync(UpdateStatus);
     }
 
     /// <inheritdoc/>
