@@ -510,76 +510,76 @@
                   </DockPanel>
                 </Border>
                 <Grid ColumnDefinitions="*">
-                <Border Grid.Column="0"
-                        BorderBrush="{StaticResource BorderBrushTile}" BorderThickness="{StaticResource BorderThicknessTile}"
-                        Background="{StaticResource BackgroundTileAlpha}"
-                        IsVisible="{Binding !RecentProjects.Count, FallbackValue={x:False}}"
-                        VerticalAlignment="Top">
-                  <TextBlock Text="{x:Static l:Strings.NoProjectCreated}"
-                             FontSize="16" Margin="20"
-                             TextAlignment="Center" VerticalAlignment="Center" />
-                </Border>
-                <Border Grid.Column="0"
-                        BorderBrush="{StaticResource BorderBrushTile}" BorderThickness="{StaticResource BorderThicknessTile}">
-                  <ScrollViewer VerticalScrollBarVisibility="Auto">
-                    <ItemsControl ItemsSource="{Binding RecentProjects}">
-                      <ItemsControl.ItemTemplate>
-                        <DataTemplate DataType="{x:Type vm:RecentProjectViewModel}">
-                          <Border BorderBrush="{StaticResource BorderBrushTile}" BorderThickness="{StaticResource BorderThicknessTileList}">
-                            <Button Command="{Binding OpenCommand}"
-                                    IsEnabled="{Binding Launcher.StartStudioCommand.IsEnabled}"
-                                    HorizontalAlignment="Stretch"
-                                    HorizontalContentAlignment="Stretch">
-                              <DockPanel Margin="8,4">
-                                <DockPanel DockPanel.Dock="Bottom">
-                                  <!-- Update dropdown -->
-                                  <ToggleButton DockPanel.Dock="Right" x:Name="Toggle"
-                                                IsVisible="{Binding CompatibleVersions.Count}"/>
-                                  <Popup IsOpen="{Binding ElementName=Toggle, Path=IsChecked}"
-                                         PlacementTarget="{Binding ElementName=Toggle}">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto">
-                                      <ItemsControl ItemsSource="{Binding CompatibleVersions}">
-                                        <ItemsControl.ItemTemplate>
-                                          <DataTemplate DataType="{x:Type vm:StrideVersionViewModel}">
-                                            <Button Content="{Binding DisplayName, StringFormat={x:Static l:Strings.OpenProjectWithVersion}}"
-                                                    Command="{Binding $parent[ScrollViewer].DataContext.OpenWithCommand}"
-                                                    HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" />
-                                          </DataTemplate>
-                                        </ItemsControl.ItemTemplate>
-                                      </ItemsControl>
-                                    </ScrollViewer>
-                                  </Popup>
-                                  <TextBlock DockPanel.Dock="Bottom"
-                                             Text="{Binding FullPath}"
-                                             FontStyle="Italic" />
+                  <Border Grid.Column="0"
+                          BorderBrush="{StaticResource BorderBrushTile}" BorderThickness="{StaticResource BorderThicknessTile}"
+                          Background="{StaticResource BackgroundTileAlpha}"
+                          IsVisible="{Binding !RecentProjects.Count, FallbackValue={x:False}}"
+                          VerticalAlignment="Top">
+                    <TextBlock Text="{x:Static l:Strings.NoProjectCreated}"
+                               FontSize="16" Margin="20"
+                               TextAlignment="Center" VerticalAlignment="Center" />
+                  </Border>
+                  <Border Grid.Column="0"
+                          BorderBrush="{StaticResource BorderBrushTile}" BorderThickness="{StaticResource BorderThicknessTile}">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                      <ItemsControl ItemsSource="{Binding RecentProjects}">
+                        <ItemsControl.ItemTemplate>
+                          <DataTemplate DataType="{x:Type vm:RecentProjectViewModel}">
+                            <Border BorderBrush="{StaticResource BorderBrushTile}" BorderThickness="{StaticResource BorderThicknessTileList}">
+                              <Button Command="{Binding OpenCommand}"
+                                      IsEnabled="{Binding Launcher.StartStudioCommand.IsEnabled}"
+                                      HorizontalAlignment="Stretch"
+                                      HorizontalContentAlignment="Stretch">
+                                <DockPanel Margin="8,4">
+                                  <DockPanel DockPanel.Dock="Bottom">
+                                    <!-- Update dropdown -->
+                                    <ToggleButton DockPanel.Dock="Right" x:Name="Toggle"
+                                                  IsVisible="{Binding CompatibleVersions.Count}"/>
+                                    <Popup IsOpen="{Binding ElementName=Toggle, Path=IsChecked}"
+                                           PlacementTarget="{Binding ElementName=Toggle}">
+                                      <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                        <ItemsControl ItemsSource="{Binding CompatibleVersions}">
+                                          <ItemsControl.ItemTemplate>
+                                            <DataTemplate DataType="{x:Type vm:StrideVersionViewModel}">
+                                              <Button Content="{Binding DisplayName, StringFormat={x:Static l:Strings.OpenProjectWithVersion}}"
+                                                      Command="{Binding $parent[ScrollViewer].DataContext.OpenWithCommand}"
+                                                      HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" />
+                                            </DataTemplate>
+                                          </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                      </ScrollViewer>
+                                    </Popup>
+                                    <TextBlock DockPanel.Dock="Bottom"
+                                               Text="{Binding FullPath}"
+                                               FontStyle="Italic" />
+                                  </DockPanel>
+                                  <DockPanel>
+                                    <!-- Discovering -->
+                                    <TextBlock Text="{Binding StrideVersionName}"
+                                               FontSize="14"
+                                               IsVisible="{Binding StrideVersionName, Converter={sd:ObjectToBool}}" />
+                                    <!-- Unknown -->
+                                    <TextBlock Text="{x:Static l:Strings.UnknownVersion}"
+                                               FontSize="14"
+                                               IsVisible="{Binding StrideVersionName, Converter={sd:Chained {sd:ObjectToBool}, {sd:InvertBool}}}" />
+                                    <TextBlock Text="{Binding Name}"
+                                               FontSize="16" FontWeight="Bold" />
+                                  </DockPanel>
                                 </DockPanel>
-                                <DockPanel>
-                                  <!-- Discovering -->
-                                  <TextBlock Text="{Binding StrideVersionName}"
-                                             FontSize="14"
-                                             IsVisible="{Binding StrideVersionName, Converter={sd:ObjectToBool}}" />
-                                  <!-- Unknown -->
-                                  <TextBlock Text="{x:Static l:Strings.UnknownVersion}"
-                                             FontSize="14"
-                                             IsVisible="{Binding StrideVersionName, Converter={sd:Chained {sd:ObjectToBool}, {sd:InvertBool}}}" />
-                                  <TextBlock Text="{Binding Name}"
-                                             FontSize="16" FontWeight="Bold" />
-                                </DockPanel>
-                              </DockPanel>
-                            </Button>
-                            <Border.ContextMenu>
-                              <ContextMenu>
-                                <MenuItem Header="{x:Static l:Strings.ShowInExplorer}" Command="{Binding ExploreCommand}" />
-                                <MenuItem Header="{x:Static l:Strings.RemoveFromList}" Command="{Binding RemoveCommand}" />
-                              </ContextMenu>
-                            </Border.ContextMenu>
-                          </Border>
-                        </DataTemplate>
-                      </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                  </ScrollViewer>
-                </Border>
-              </Grid>
+                              </Button>
+                              <Border.ContextMenu>
+                                <ContextMenu>
+                                  <MenuItem Header="{x:Static l:Strings.ShowInExplorer}" Command="{Binding ExploreCommand}" />
+                                  <MenuItem Header="{x:Static l:Strings.RemoveFromList}" Command="{Binding RemoveCommand}" />
+                                </ContextMenu>
+                              </Border.ContextMenu>
+                            </Border>
+                          </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                      </ItemsControl>
+                    </ScrollViewer>
+                  </Border>
+                </Grid>
               </DockPanel>
             </Border>
 
