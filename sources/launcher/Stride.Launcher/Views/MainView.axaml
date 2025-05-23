@@ -509,14 +509,18 @@
                                FontSize="24" TextAlignment="Left" VerticalAlignment="Center" />
                   </DockPanel>
                 </Border>
-                <Border BorderBrush="{StaticResource BorderBrushTile}" BorderThickness="{StaticResource BorderThicknessTile}"
+                <Grid ColumnDefinitions="*">
+                <Border Grid.Column="0"
+                        BorderBrush="{StaticResource BorderBrushTile}" BorderThickness="{StaticResource BorderThicknessTile}"
                         Background="{StaticResource BackgroundTileAlpha}"
-                        IsVisible="{Binding !RecentProjects.Count, FallbackValue={x:False}}">
+                        IsVisible="{Binding !RecentProjects.Count, FallbackValue={x:False}}"
+                        VerticalAlignment="Top">
                   <TextBlock Text="{x:Static l:Strings.NoProjectCreated}"
                              FontSize="16" Margin="20"
                              TextAlignment="Center" VerticalAlignment="Center" />
                 </Border>
-                <Border BorderBrush="{StaticResource BorderBrushTile}" BorderThickness="{StaticResource BorderThicknessTile}">
+                <Border Grid.Column="0"
+                        BorderBrush="{StaticResource BorderBrushTile}" BorderThickness="{StaticResource BorderThicknessTile}">
                   <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <ItemsControl ItemsSource="{Binding RecentProjects}">
                       <ItemsControl.ItemTemplate>
@@ -575,6 +579,7 @@
                     </ItemsControl>
                   </ScrollViewer>
                 </Border>
+              </Grid>
               </DockPanel>
             </Border>
 
