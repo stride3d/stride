@@ -16,7 +16,6 @@ internal sealed class CrashReportViewModel : ViewModelBase
     private readonly string applicationName;
     private readonly CancellationTokenSource exitToken;
     private readonly Func<string?, Task> setClipboard;
-    private readonly CrashReportData report;
 
     private bool isReportVisible;
 
@@ -31,7 +30,7 @@ internal sealed class CrashReportViewModel : ViewModelBase
         ServiceProvider.RegisterService(dispatcher);
         ServiceProvider.RegisterService(new DialogService(dispatcher) { ApplicationName = applicationName });
 
-        report = ComputeReport(args);
+        Report = ComputeReport(args);
 
         CopyReportCommand = new AnonymousTaskCommand(ServiceProvider, OnCopyReport);
         CloseCommand = new AnonymousCommand(ServiceProvider, OnClose);
@@ -47,10 +46,7 @@ internal sealed class CrashReportViewModel : ViewModelBase
         set => SetValue(ref isReportVisible, value);
     }
 
-    public CrashReportData Report
-    {
-        get => report;
-    }
+    public CrashReportData Report { get; }
 
     public ICommandBase CopyReportCommand { get; }
     public ICommandBase CloseCommand { get; }
@@ -93,7 +89,7 @@ internal sealed class CrashReportViewModel : ViewModelBase
 
     private CrashReportData ComputeReport(CrashReportArgs args)
     {
-        return new CrashReportData
+        return new()
         {
             ["Application"] = applicationName,
             ["ThreadName"] = args.ThreadName,

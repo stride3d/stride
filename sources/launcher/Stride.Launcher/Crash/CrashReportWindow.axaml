@@ -20,7 +20,7 @@
                Width="64" Margin="0,0,8,8"
                Source="/Assets/CrashReportImage.png"/>
         <TextBlock TextWrapping="WrapWithOverflow">
-          Unfortunately, <Run Text="{Binding ApplicationName}" /> has crashed.
+          Unfortunately, <Run Text="{Binding ApplicationName, Mode=OneWay}" /> has crashed.
           Please help us improve Stride by sending information about this crash through Github Issues.
         </TextBlock>
       </DockPanel>
