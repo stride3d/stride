@@ -1,0 +1,140 @@
+! παιδιά UI.Page
+Id:c22d8fc0-119e-4de0-9617-d1395f0ed8f7
+DefaultProfile: !UI.Profile
+    Id:00000000-0000-0000-0000-000000000000
+    SharedConfigs: {}
+    Children: []
+RootElement: !UI.Grid
+    Id:e4e1f9f3-27ed-4f65-8f02-43a700a40584
+    Margin: {Left: 0, Top: 0, Right: 0, Bottom: 0}
+    Children:
+        - !UI.Grid # Hotbar Panel
+            Id:a1b2c3d4-e5f6-7890-1234-567890abcdef
+            HorizontalAlignment: Center
+            VerticalAlignment: Bottom
+            Margin: {Left: 0, Top: 0, Right: 0, Bottom: 20} # 20 pixels from bottom
+            Children:
+                - !UI.StackPanel
+                    Id:h0tba2-0001-0002-0003-000000000001
+                    Orientation: Horizontal
+                    Spacing: 5 # Spacing between hotbar slots
+                    Children:
+                        - !UI.Border # Slot 1
+                            Id:hs0000-0001-0000-0000-000000000001
+                            Width: 50
+                            Height: 50
+                            BorderThickness: {Left: 2, Top: 2, Right: 2, Bottom: 2}
+                            BorderBrush: !UI.BrushColorValue {Color: Gray}
+                            Background: !UI.BrushColorValue {Color: "#80808080"} # Semi-transparent dark gray
+                        - !UI.Border # Slot 2
+                            Id:hs0000-0002-0000-0000-000000000002
+                            Width: 50
+                            Height: 50
+                            BorderThickness: {Left: 2, Top: 2, Right: 2, Bottom: 2}
+                            BorderBrush: !UI.BrushColorValue {Color: Gray}
+                            Background: !UI.BrushColorValue {Color: "#80808080"}
+                        - !UI.Border # Slot 3
+                            Id:hs0000-0003-0000-0000-000000000003
+                            Width: 50
+                            Height: 50
+                            BorderThickness: {Left: 2, Top: 2, Right: 2, Bottom: 2}
+                            BorderBrush: !UI.BrushColorValue {Color: Gray}
+                            Background: !UI.BrushColorValue {Color: "#80808080"}
+                        - !UI.Border # Slot 4
+                            Id:hs0000-0004-0000-0000-000000000004
+                            Width: 50
+                            Height: 50
+                            BorderThickness: {Left: 2, Top: 2, Right: 2, Bottom: 2}
+                            BorderBrush: !UI.BrushColorValue {Color: Gray}
+                            Background: !UI.BrushColorValue {Color: "#80808080"}
+                        - !UI.Border # Slot 5
+                            Id:hs0000-0005-0000-0000-000000000005
+                            Width: 50
+                            Height: 50
+                            BorderThickness: {Left: 2, Top: 2, Right: 2, Bottom: 2}
+                            BorderBrush: !UI.BrushColorValue {Color: Gray}
+                            Background: !UI.BrushColorValue {Color: "#80808080"}
+                        - !UI.Border # Slot 6
+                            Id:hs0000-0006-0000-0000-000000000006
+                            Width: 50
+                            Height: 50
+                            BorderThickness: {Left: 2, Top: 2, Right: 2, Bottom: 2}
+                            BorderBrush: !UI.BrushColorValue {Color: Gray}
+                            Background: !UI.BrushColorValue {Color: "#80808080"}
+                        - !UI.Border # Slot 7
+                            Id:hs0000-0007-0000-0000-000000000007
+                            Width: 50
+                            Height: 50
+                            BorderThickness: {Left: 2, Top: 2, Right: 2, Bottom: 2}
+                            BorderBrush: !UI.BrushColorValue {Color: Gray}
+                            Background: !UI.BrushColorValue {Color: "#80808080"}
+                        - !UI.Border # Slot 8
+                            Id:hs0000-0008-0000-0000-000000000008
+                            Width: 50
+                            Height: 50
+                            BorderThickness: {Left: 2, Top: 2, Right: 2, Bottom: 2}
+                            BorderBrush: !UI.BrushColorValue {Color: Gray}
+                            Background: !UI.BrushColorValue {Color: "#80808080"}
+                        - !UI.Border # Slot 9
+                            Id:hs0000-0009-0000-0000-000000000009
+                            Width: 50
+                            Height: 50
+                            BorderThickness: {Left: 2, Top: 2, Right: 2, Bottom: 2}
+                            BorderBrush: !UI.BrushColorValue {Color: Gray}
+                            Background: !UI.BrushColorValue {Color: "#80808080"}
+                        - !UI.Border # Slot 10
+                            Id:hs0000-0010-0000-0000-000000000010
+                            Width: 50
+                            Height: 50
+                            BorderThickness: {Left: 2, Top: 2, Right: 2, Bottom: 2}
+                            BorderBrush: !UI.BrushColorValue {Color: Gray}
+                            Background: !UI.BrushColorValue {Color: "#80808080"}
+                    Properties: {}
+            Properties: {}
+        - !UI.Grid # Inventory Panel
+            Id:b1c2d3e4-f5g6-h7i8-j9k0-lmnopqrstuvw
+            HorizontalAlignment: Center
+            VerticalAlignment: Center
+            Width: 300 # 5 slots * (50 width + 5 spacing) + 2*padding approx
+            Height: 250 # 4 slots * (50 height + 5 spacing) + 2*padding approx
+            Background: !UI.BrushColorValue {Color: "#A0202020"} # Semi-transparent dark background
+            Visibility: Visible # Can be changed to Hidden or controlled by script
+            Children:
+                - !UI.UniformGrid # Using UniformGrid for easy row/column setup
+                    Id:invgrd-0001-0002-0003-000000000001
+                    Rows: 4
+                    Columns: 5
+                    Margin: {Left: 10, Top: 10, Right: 10, Bottom: 10} # Padding inside inventory panel
+                    Spacing: {X: 5, Y: 5} # Spacing between inventory slots
+                    Children:
+                        # Row 1
+                        - !UI.Border {Id:is0101, BorderThickness: {Left: 1, Top: 1, Right: 1, Bottom: 1}, BorderBrush: !UI.BrushColorValue {Color: DimGray}, Background: !UI.BrushColorValue {Color: "#80808080"}}
+                        - !UI.Border {Id:is0102, BorderThickness: {Left: 1, Top: 1, Right: 1, Bottom: 1}, BorderBrush: !UI.BrushColorValue {Color: DimGray}, Background: !UI.BrushColorValue {Color: "#80808080"}}
+                        - !UI.Border {Id:is0103, BorderThickness: {Left: 1, Top: 1, Right: 1, Bottom: 1}, BorderBrush: !UI.BrushColorValue {Color: DimGray}, Background: !UI.BrushColorValue {Color: "#80808080"}}
+                        - !UI.Border {Id:is0104, BorderThickness: {Left: 1, Top: 1, Right: 1, Bottom: 1}, BorderBrush: !UI.BrushColorValue {Color: DimGray}, Background: !UI.BrushColorValue {Color: "#80808080"}}
+                        - !UI.Border {Id:is0105, BorderThickness: {Left: 1, Top: 1, Right: 1, Bottom: 1}, BorderBrush: !UI.BrushColorValue {Color: DimGray}, Background: !UI.BrushColorValue {Color: "#80808080"}}
+                        # Row 2
+                        - !UI.Border {Id:is0201, BorderThickness: {Left: 1, Top: 1, Right: 1, Bottom: 1}, BorderBrush: !UI.BrushColorValue {Color: DimGray}, Background: !UI.BrushColorValue {Color: "#80808080"}}
+                        - !UI.Border {Id:is0202, BorderThickness: {Left: 1, Top: 1, Right: 1, Bottom: 1}, BorderBrush: !UI.BrushColorValue {Color: DimGray}, Background: !UI.BrushColorValue {Color: "#80808080"}}
+                        - !UI.Border {Id:is0203, BorderThickness: {Left: 1, Top: 1, Right: 1, Bottom: 1}, BorderBrush: !UI.BrushColorValue {Color: DimGray}, Background: !UI.BrushColorValue {Color: "#80808080"}}
+                        - !UI.Border {Id:is0204, BorderThickness: {Left: 1, Top: 1, Right: 1, Bottom: 1}, BorderBrush: !UI.BrushColorValue {Color: DimGray}, Background: !UI.BrushColorValue {Color: "#80808080"}}
+                        - !UI.Border {Id:is0205, BorderThickness: {Left: 1, Top: 1, Right: 1, Bottom: 1}, BorderBrush: !UI.BrushColorValue {Color: DimGray}, Background: !UI.BrushColorValue {Color: "#80808080"}}
+                        # Row 3
+                        - !UI.Border {Id:is0301, BorderThickness: {Left: 1, Top: 1, Right: 1, Bottom: 1}, BorderBrush: !UI.BrushColorValue {Color: DimGray}, Background: !UI.BrushColorValue {Color: "#80808080"}}
+                        - !UI.Border {Id:is0302, BorderThickness: {Left: 1, Top: 1, Right: 1, Bottom: 1}, BorderBrush: !UI.BrushColorValue {Color: DimGray}, Background: !UI.BrushColorValue {Color: "#80808080"}}
+                        - !UI.Border {Id:is0303, BorderThickness: {Left: 1, Top: 1, Right: 1, Bottom: 1}, BorderBrush: !UI.BrushColorValue {Color: DimGray}, Background: !UI.BrushColorValue {Color: "#80808080"}}
+                        - !UI.Border {Id:is0304, BorderThickness: {Left: 1, Top: 1, Right: 1, Bottom: 1}, BorderBrush: !UI.BrushColorValue {Color: DimGray}, Background: !UI.BrushColorValue {Color: "#80808080"}}
+                        - !UI.Border {Id:is0305, BorderThickness: {Left: 1, Top: 1, Right: 1, Bottom: 1}, BorderBrush: !UI.BrushColorValue {Color: DimGray}, Background: !UI.BrushColorValue {Color: "#80808080"}}
+                        # Row 4
+                        - !UI.Border {Id:is0401, BorderThickness: {Left: 1, Top: 1, Right: 1, Bottom: 1}, BorderBrush: !UI.BrushColorValue {Color: DimGray}, Background: !UI.BrushColorValue {Color: "#80808080"}}
+                        - !UI.Border {Id:is0402, BorderThickness: {Left: 1, Top: 1, Right: 1, Bottom: 1}, BorderBrush: !UI.BrushColorValue {Color: DimGray}, Background: !UI.BrushColorValue {Color: "#80808080"}}
+                        - !UI.Border {Id:is0403, BorderThickness: {Left: 1, Top: 1, Right: 1, Bottom: 1}, BorderBrush: !UI.BrushColorValue {Color: DimGray}, Background: !UI.BrushColorValue {Color: "#80808080"}}
+                        - !UI.Border {Id:is0404, BorderThickness: {Left: 1, Top: 1, Right: 1, Bottom: 1}, BorderBrush: !UI.BrushColorValue {Color: DimGray}, Background: !UI.BrushColorValue {Color: "#80808080"}}
+                        - !UI.Border {Id:is0405, BorderThickness: {Left: 1, Top: 1, Right: 1, Bottom: 1}, BorderBrush: !UI.BrushColorValue {Color: DimGray}, Background: !UI.BrushColorValue {Color: "#80808080"}}
+                    Properties: {}
+            Properties: {}
+    Properties: {}
+Profiles: []
+NextUniqueId: 123 # Example, actual IDs are GUIDs
+SerializationVersion: {Major: 1, Minor: 1, Revision: 0, Build: 0}
+ पोज: []

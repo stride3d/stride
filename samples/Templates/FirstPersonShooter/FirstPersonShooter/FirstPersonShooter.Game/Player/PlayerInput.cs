@@ -23,6 +23,8 @@ namespace FirstPersonShooter.Player
 
         public static readonly EventKey<bool> ReloadEventKey = new EventKey<bool>();                    // This can be made non-static and require specific binding to the scripts instead
 
+        public static readonly EventKey SwitchCameraModeEventKey = new EventKey();               // Event for camera mode switch
+
         public float DeadZone { get; set; } = 0.25f;
 
         public CameraComponent Camera { get; set; }
@@ -32,15 +34,17 @@ namespace FirstPersonShooter.Player
         /// </summary>
         public float MouseSensitivity { get; set; } = 100.0f;
 
-        public List<Keys> KeysLeft { get; } = new List<Keys>();
+        public List<Keys> KeysLeft { get; set; } = new List<Keys>() { Keys.A, Keys.Left };
 
-        public List<Keys> KeysRight { get; } = new List<Keys>();
+        public List<Keys> KeysRight { get; set; } = new List<Keys>() { Keys.D, Keys.Right };
 
-        public List<Keys> KeysUp { get; } = new List<Keys>();
+        public List<Keys> KeysUp { get; set; } = new List<Keys>() { Keys.W, Keys.Up };
 
-        public List<Keys> KeysDown { get; } = new List<Keys>();
+        public List<Keys> KeysDown { get; set; } = new List<Keys>() { Keys.S, Keys.Down };
 
-        public List<Keys> KeysReload { get; } = new List<Keys>();
+        public List<Keys> KeysReload { get; set; } = new List<Keys>() { Keys.R };
+
+        public List<Keys> KeysSwitchCamera { get; set; } = new List<Keys>() { Keys.T }; // Keys for switching camera
 
         public PlayerInput()
         {
@@ -139,6 +143,14 @@ namespace FirstPersonShooter.Player
                     isReloading = true;
 
                 ReloadEventKey.Broadcast(isReloading);
+            }
+
+            // Camera mode switch
+            {
+                if (KeysSwitchCamera.Any(key => Input.IsKeyPressed(key)))
+                {
+                    SwitchCameraModeEventKey.Broadcast();
+                }
             }
         }
     }
