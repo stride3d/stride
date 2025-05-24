@@ -2,12 +2,16 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Stride.Engine;
+using Stride.Engine.Events; // For EventReceiver
 using FirstPersonShooter.Weapons; // For BaseWeapon
+// Assuming PlayerInput is in FirstPersonShooter.Player namespace
+// using FirstPersonShooter.Player; 
 
 namespace FirstPersonShooter.Player
 {
     /// <summary>
     /// Manages the equipment of a player, specifically their current weapon.
+    /// Also handles relaying input actions to the equipped weapon.
     /// </summary>
     public class PlayerEquipment : ScriptComponent
     {
@@ -15,6 +19,40 @@ namespace FirstPersonShooter.Player
         /// Gets the currently equipped weapon.
         /// </summary>
         public BaseWeapon CurrentWeapon { get; private set; }
+
+        private EventReceiver<bool> shootEventReceiver;
+        private EventReceiver<bool> reloadEventReceiver;
+
+        public override void Start()
+        {
+            base.Start(); // Good practice
+
+            // Initialize event receivers. PlayerInput must exist for these static keys.
+            shootEventReceiver = new EventReceiver<bool>(PlayerInput.ShootEventKey);
+            reloadEventReceiver = new EventReceiver<bool>(PlayerInput.ReloadEventKey);
+        }
+
+        public override void Update()
+        {
+            // Check for shoot action
+            if (shootEventReceiver.TryReceive(out bool shootPressed) && shootPressed)
+            {
+                TriggerCurrentWeaponPrimary();
+            }
+
+            // Check for reload action
+            if (reloadEventReceiver.TryReceive(out bool reloadPressed) && reloadPressed)
+            {
+                if (CurrentWeapon != null && !CurrentWeapon.IsBroken) // Check if weapon exists and isn't broken
+                {
+                    CurrentWeapon.Reload();
+                }
+                else if (CurrentWeapon != null && CurrentWeapon.IsBroken)
+                {
+                     Log.Info($"PlayerEquipment: Cannot reload, {CurrentWeapon.GetEntity()?.Name ?? "Current weapon"} is broken.");
+                }
+            }
+        }
 
         /// <summary>
         /// Equips a new weapon. If a weapon is already equipped, it will be unequipped first.
@@ -71,5 +109,46 @@ namespace FirstPersonShooter.Player
         //         CurrentWeapon.PrimaryAction();
         //     }
         // }
+
+        /// <summary>
+        /// Triggers the primary action of the currently equipped weapon.
+        /// </summary>
+        public void TriggerCurrentWeaponPrimary()
+        {
+            if (CurrentWeapon == null)
+            {
+                // Log.Warning("PlayerEquipment: No weapon equipped to trigger primary action."); // Optional: for debugging if no weapon is normal
+                return;
+            }
+
+            if (CurrentWeapon.IsBroken)
+            {
+                Log.Info($"PlayerEquipment: Cannot use primary action, {CurrentWeapon.GetEntity()?.Name ?? "Current weapon"} is broken.");
+                // Potentially broadcast an event here too, e.g. "AttemptedToUseBrokenWeapon"
+                return;
+            }
+
+            CurrentWeapon.PrimaryAction();
+        }
+
+        /// <summary>
+        /// Triggers the secondary action of the currently equipped weapon.
+        /// </summary>
+        public void TriggerCurrentWeaponSecondary()
+        {
+            if (CurrentWeapon == null)
+            {
+                // Log.Warning("PlayerEquipment: No weapon equipped to trigger secondary action.");
+                return;
+            }
+
+            if (CurrentWeapon.IsBroken)
+            {
+                Log.Info($"PlayerEquipment: Cannot use secondary action, {CurrentWeapon.GetEntity()?.Name ?? "Current weapon"} is broken.");
+                return;
+            }
+
+            CurrentWeapon.SecondaryAction();
+        }
     }
 }
