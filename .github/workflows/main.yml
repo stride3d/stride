@@ -13,46 +13,79 @@ on:
       - '!**/.editorconfig'
       - '!**/.gitignore'
       - '!**/*.md'
-  pull_request:
-    branches:
-      - master
-    paths:
-      - '.github/workflows/**'
-      - 'build/**'
-      - 'deps/**'
-      - 'sources/**'
-      - '!**/.all-contributorsrc'
-      - '!**/.editorconfig'
-      - '!**/.gitignore'
-      - '!**/*.md'
-    types: [opened, synchronize, reopened, ready_for_review]
+      - '!crowdin.yml'
   workflow_dispatch:
 
 jobs:
-  Setup:
-    if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' || github.event.pull_request.draft == false }}
-    runs-on: ubuntu-latest
-    steps:
-      - run: exit 0
-
-  Linux-Debug:
-    needs: Setup
-    uses: ./.github/workflows/build-linux.yml
+  ### Misc. ###
+  Assembly-Processor:
+    strategy:
+      matrix:
+        build-type: [Release]
+    uses: ./.github/workflows/build-assembly-processor.yml
     secrets: inherit
     with:
-      build-type: Debug
+      build-type: ${{ matrix.build-type }}
 
-  Windows-Debug:
-    needs: Setup
-    uses: ./.github/workflows/build-windows.yml
+  VS-Package:
+    strategy:
+      matrix:
+        build-type: [Debug] # Release has a bug and cannot build
+    uses: ./.github/workflows/build-vs-package.yml
     secrets: inherit
     with:
-      build-type: Debug
+      build-type: ${{ matrix.build-type }}
 
+  ### Runtimes ###
+  # Android-Runtime:
+  #   strategy:
+  #     matrix:
+  #       build-type: [Release]
+  #   uses: ./.github/workflows/build-android.yml
+  #   secrets: inherit
+  #   with:
+  #     build-type: ${{ matrix.build-type }}
+
+  iOS-Runtime:
+    strategy:
+      matrix:
+        build-type: [Release]
+    uses: ./.github/workflows/build-ios.yml
+    secrets: inherit
+    with:
+      build-type: ${{ matrix.build-type }}
+
+  Linux-Runtime:
+    strategy:
+      matrix:
+        build-type: [Release]
+        graphics-api: [OpenGL, Vulkan]
+    uses: ./.github/workflows/build-linux-runtime.yml
+    secrets: inherit
+    with:
+      build-type: ${{ matrix.build-type }}
+      graphics-api: ${{ matrix.graphics-api }}
+
+  Windows-Runtime:
+    strategy:
+      matrix:
+        build-type: [Release]
+        graphics-api: [Direct3D11, Direct3D12, OpenGL, OpenGLES, Vulkan]
+    uses: ./.github/workflows/build-windows-runtime.yml
+    secrets: inherit
+    with:
+      build-type: ${{ matrix.build-type }}
+      graphics-api: ${{ matrix.graphics-api }}
+
+  ### Tests ###
   Windows-Tests:
-    needs: Setup
+    needs: Windows-Runtime
+    strategy:
+      matrix:
+        build-type: [Release]
+        test-category: [Simple]
     uses: ./.github/workflows/test-windows.yml
     secrets: inherit
     with:
-      build-type: Release
-      test-category: Simple
+      build-type: ${{ matrix.build-type }}
+      test-category: ${{ matrix.test-category }}

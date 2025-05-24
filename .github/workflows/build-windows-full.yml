@@ -1,10 +1,10 @@
-name: Test Windows
+name: Build Windows (Full)
 
 on:
   pull_request:
     paths:
-      - '.github/workflows/test-windows.yml'
-      - 'build/Stride.Tests.*.slnf'
+      - '.github/workflows/build-windows-full.yml'
+      - 'build/Stride.sln'
       - 'deps/**'
       - 'sources/**'
       - '!**/.all-contributorsrc'
@@ -16,36 +16,25 @@ on:
   workflow_dispatch:
     inputs:
       build-type:
-        description: Build 
-        default: Release
+        description: Build Configuration
+        default: Debug
         type: choice
         options:
           - Debug
           - Release
-      test-category:
-        description: Category of tests
-        default: Simple
-        type: choice
-        options:
-          - Simple
-          - Game
-          - VSPackage
   workflow_call:
     inputs:
       build-type:
-        default: Release
-        type: string
-      test-category:
-        default: Simple
+        default: Debug
         type: string
 
 jobs:
   #
-  # Test Stride on Windows
+  # Build Stride for Windows
   #
-  Windows-Tests:
+  Windows:
     if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'workflow_call' || github.event.pull_request.draft == false }}
-    name: Test (${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}, ${{ github.event.inputs.test-category || inputs.test-category || 'Simple' }})
+    name: Build (${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }})
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -57,14 +46,11 @@ jobs:
       - uses: microsoft/setup-msbuild@v2
       - name: Build
         run: |
-          msbuild build\Stride.Tests.${{ github.event.inputs.test-category || inputs.test-category || 'Simple' }}.slnf `
+          msbuild build\Stride.sln `
             -restore -m:1 -nr:false `
             -v:m -p:WarningLevel=0 `
             -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} `
             -p:StridePlatforms=Windows `
-            -p:StrideGraphicsApis=Direct3D11
-      - name: Test
-        run: |
-          dotnet test build\Stride.Tests.${{ github.event.inputs.test-category || inputs.test-category || 'Simple' }}.slnf `
-            --no-build `
-            -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
+            -p:StrideGraphicsApiDependentBuildAll=true `
+            -p:StrideSkipUnitTests=true `
+            -p:StrideSkipAutoPack=true

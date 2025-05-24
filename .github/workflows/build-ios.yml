@@ -1,13 +1,17 @@
-name: Build Assembly Processor
+name: Build iOS Runtime
 
 on:
   pull_request:
     paths:
-      - '.github/workflows/build-assembly-processor.yml'
-      - 'build/Stride.AssemblyProcessor.sln'
-      - 'sources/core/Stride.Core/**'
-      - 'sources/core/Stride.Core.AssemblyProcessor/**'
-      - 'sources/core/Stride.Core.AssemblyProcessor.Tests/**'
+      - '.github/workflows/build-ios.yml'
+      - 'build/Stride.iOS.sln'
+      - 'deps/**'
+      - 'sources/core/**'
+      - 'sources/engine/**'
+      - 'sources/native/**'
+      - 'sources/shaders/**'
+      - 'sources/shared/**'
+      - 'sources/targets/**'
       - '!**/.all-contributorsrc'
       - '!**/.editorconfig'
       - '!**/.gitignore'
@@ -31,9 +35,9 @@ on:
 
 jobs:
   #
-  # Build Assembly Processor
+  # Build Stride Runtime for iOS
   #
-  Assembly-Processor:
+  iOS-Runtime:
     if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'workflow_call' || github.event.pull_request.draft == false }}
     name: Build (${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }})
     runs-on: windows-latest
@@ -44,11 +48,13 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
+      - uses: microsoft/setup-msbuild@v2
       - name: Build
         run: |
-          dotnet build build\Stride.AssemblyProcessor.sln `
+          msbuild build\Stride.iOS.sln `
             -restore -m:1 -nr:false `
             -v:m -p:WarningLevel=0 `
             -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} `
+            -p:StridePlatforms=iOS `
             -p:StrideSkipUnitTests=true `
             -p:StrideSkipAutoPack=true

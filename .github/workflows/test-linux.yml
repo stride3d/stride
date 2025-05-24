@@ -1,0 +1,56 @@
+name: Test Linux
+
+on:
+  workflow_dispatch:
+    inputs:
+      build-type:
+        description: Build Configuration
+        default: Release
+        type: choice
+        options:
+          - Debug
+          - Release
+      test-category:
+        description: Category of tests
+        default: Simple
+        type: choice
+        options:
+          - Simple
+          - Game
+  workflow_call:
+    inputs:
+      build-type:
+        default: Release
+        type: string
+      test-category:
+        default: Simple
+        type: string
+
+jobs:
+  #
+  # Test Stride on Linux
+  #
+  Linux-Tests:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'workflow_call' || github.event.pull_request.draft == false }}
+    name: Test (${{ github.event.inputs.build-type || inputs.build-type }}, ${{ github.event.inputs.test-category || inputs.test-category }})
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - name: Build
+        run: |
+          dotnet build build\Stride.Tests.${{ github.event.inputs.test-category || inputs.test-category }}.slnf `
+            -restore -m:1 -nr:false `
+            -v:m -p:WarningLevel=0 `
+            -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type }} `
+            -p:StridePlatforms=Linux `
+            -p:StrideGraphicsApis=OpenGL
+      - name: Test
+        run: |
+          dotnet test build\Stride.Tests.${{ github.event.inputs.test-category || inputs.test-category }}.slnf `
+            --no-build `
+            -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type }}
