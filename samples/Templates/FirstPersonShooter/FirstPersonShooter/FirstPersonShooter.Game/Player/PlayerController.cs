@@ -6,10 +6,11 @@ using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Engine.Events;
 using Stride.Physics;
+using FirstPersonShooter.Core; // For ITargetable
 
 namespace FirstPersonShooter.Player
 {
-    public class PlayerController : SyncScript
+    public class PlayerController : SyncScript, ITargetable
     {
         [Display("Run Speed")]
         public float MaxRunSpeed { get; set; } = 5;
@@ -52,5 +53,18 @@ namespace FirstPersonShooter.Player
             // Broadcast normalized speed
             RunSpeedEventKey.Broadcast(moveDirection.Length());
         }
+
+        #region ITargetable Implementation
+        public Vector3 GetTargetPosition()
+        {
+            // Return a point roughly in the center of the character model
+            return Entity.Transform.Position + new Vector3(0, 1.0f, 0); // Assuming player origin is at feet, target is 1m up.
+        }
+
+        public Entity GetEntity()
+        {
+            return this.Entity;
+        }
+        #endregion
     }
 }

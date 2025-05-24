@@ -278,11 +278,39 @@ namespace FirstPersonShooter.Building
                         this.Entity.Scene.Entities.Add(newBuildingPieceEntity);
                         Log.Info($"Placed {currentSelectedItem.Name} at {newBuildingPieceEntity.Transform.Position}.");
 
-                        if (newlyPlacedPieceScript != null && lastSnappedToPiece != null)
+                        if (newlyPlacedPieceScript != null)
                         {
-                            newlyPlacedPieceScript.AddConnection(lastSnappedToPiece);
-                            lastSnappedToPiece.AddConnection(newlyPlacedPieceScript);
-                            Log.Info($"Connected {newlyPlacedPieceScript.Entity.Name} with {lastSnappedToPiece.Entity.Name}.");
+                            // Initial Anchor Check for ground pieces placed on "terrain" (i.e., not snapped)
+                            if (newlyPlacedPieceScript.IsGroundPiece && lastSnappedToPiece == null)
+                            {
+                                newlyPlacedPieceScript.IsAnchored = true;
+                                Log.Info($"{newlyPlacedPieceScript.Entity.Name} is directly anchored as it's a ground piece placed on terrain/nothing.");
+                            }
+                            // Or, if snapped to an already anchored piece, it also becomes anchored.
+                            else if (lastSnappedToPiece != null && lastSnappedToPiece.IsAnchored)
+                            {
+                                newlyPlacedPieceScript.IsAnchored = true;
+                                Log.Info($"{newlyPlacedPieceScript.Entity.Name} is anchored by connecting to an anchored piece: {lastSnappedToPiece.Entity.Name}.");
+                            }
+
+
+                            // Establish connections
+                            if (lastSnappedToPiece != null)
+                            {
+                                newlyPlacedPieceScript.AddConnection(lastSnappedToPiece);
+                                lastSnappedToPiece.AddConnection(newlyPlacedPieceScript);
+                                Log.Info($"Connected {newlyPlacedPieceScript.Entity.Name} with {lastSnappedToPiece.Entity.Name}.");
+                            }
+                            
+                            // Update anchor status for the entire structure this piece is now part of
+                            if (StructureIntegrityManager.Instance != null)
+                            {
+                                StructureIntegrityManager.Instance.UpdateAnchorStatusForStructure(newlyPlacedPieceScript);
+                            }
+                            else
+                            {
+                                Log.Warning("StructureIntegrityManager.Instance is null. Cannot update anchor status.");
+                            }
                         }
                         return true; 
                     }

@@ -31,6 +31,17 @@ namespace FirstPersonShooter.Building.Pieces
         /// </summary>
         public abstract void InitializeSnapPoints();
 
+        /// <summary>
+        /// Indicates if this building piece is currently considered anchored to the ground or a ground-anchored structure.
+        /// </summary>
+        public bool IsAnchored { get; set; } = false;
+
+        /// <summary>
+        /// Defines if this type of piece can be considered a ground anchor if placed on terrain.
+        /// E.g., Foundations are ground pieces, Walls are not.
+        /// </summary>
+        public bool IsGroundPiece { get; set; } = false;
+
         public List<BaseBuildingPiece> ConnectedPieces { get; private set; } = new List<BaseBuildingPiece>();
 
         public override void Start()
@@ -70,12 +81,37 @@ namespace FirstPersonShooter.Building.Pieces
             foreach (var piece in piecesToNotify)
             {
                 piece.RemoveConnection(this);
-                // Future: piece.CheckStructuralIntegrity(); or similar
+                // Note: piece.CheckStructuralIntegrity() was a future comment, now handled by UpdateAnchorStatusForStructure
             }
             ConnectedPieces.Clear();
+
+            // After notifying direct connections they are no longer connected to *this* piece,
+            // trigger a structure integrity check for each of them starting from themselves.
+            // This will re-evaluate their anchor status and potentially lead to collapses.
+            Log.Info($"OnPieceDestroyed for {this.Entity?.Name ?? GetType().Name}: Triggering integrity checks for {piecesToNotify.Count} former neighbors.");
+            foreach (var neighborPiece in piecesToNotify)
+            {
+                if (neighborPiece != null && neighborPiece.Entity != null && neighborPiece.Entity.Scene != null)
+                {
+                    // Ensure StructureIntegrityManager.Instance is available.
+                    // This might not be the case if the scene is shutting down or manager not set up.
+                    if (Building.StructureIntegrityManager.Instance != null)
+                    {
+                        Log.Info($"Triggering integrity check for neighbor {neighborPiece.Entity.Name} after {this.Entity?.Name ?? "OriginalPiece"} was destroyed.");
+                        Building.StructureIntegrityManager.Instance.UpdateAnchorStatusForStructure(neighborPiece);
+                    }
+                    else
+                    {
+                        Log.Warning($"StructureIntegrityManager.Instance is null. Cannot trigger integrity check for neighbor {neighborPiece.Entity.Name}.");
+                    }
+                }
+                else
+                {
+                    Log.Info($"Neighbor {neighborPiece?.Entity?.Name ?? "Unknown"} no longer valid or in scene, skipping integrity check for it.");
+                }
+            }
             // Future: This is where structural integrity checks would begin if this piece was a support.
-            // For example, if this piece was foundational and now has no support itself,
-            // it might trigger a cascade of checks on pieces it was supporting.
+            // The logic above now handles this by re-checking neighbors.
         }
 
         public void Debug_ForceDestroy()

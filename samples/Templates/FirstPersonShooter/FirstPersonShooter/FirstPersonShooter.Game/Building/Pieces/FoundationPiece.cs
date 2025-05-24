@@ -14,6 +14,11 @@ namespace FirstPersonShooter.Building.Pieces
         private float health = 500f;
         private MaterialType structureMaterialType = MaterialType.Wood;
 
+        public FoundationPiece() // Constructor
+        {
+            this.IsGroundPiece = true; // Foundations can be ground anchors
+        }
+
         public override float Health
         {
             get => health;
