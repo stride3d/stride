@@ -501,6 +501,9 @@ namespace Stride.Physics
                         Normal = point.m_normalWorldOnB,
                         PositionOnA = point.m_positionWorldOnA,
                         PositionOnB = point.m_positionWorldOnB,
+                        AppliedImpulse = point.m_appliedImpulse,
+                        AppliedImpulseLateral1 = point.m_appliedImpulseLateral1,
+                        AppliedImpulseLateral2 = point.m_appliedImpulseLateral2
                     });
                 }
             }
