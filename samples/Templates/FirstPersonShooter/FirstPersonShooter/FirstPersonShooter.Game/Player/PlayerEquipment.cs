@@ -22,34 +22,92 @@ namespace FirstPersonShooter.Player
 
         private EventReceiver<bool> shootEventReceiver;
         private EventReceiver<bool> reloadEventReceiver;
+        private EventReceiver shootReleasedEventReceiver; 
+        // Event receivers for building mode
+        private EventReceiver toggleBuildModeEventReceiver;
+        private EventReceiver rotateBuildLeftEventReceiver;
+        private EventReceiver rotateBuildRightEventReceiver;
+
+        private BuildingPlacementController buildingPlacementController; // Reference to the building controller
 
         public override void Start()
         {
             base.Start(); // Good practice
 
-            // Initialize event receivers. PlayerInput must exist for these static keys.
+            // Initialize event receivers for weapon actions
             shootEventReceiver = new EventReceiver<bool>(PlayerInput.ShootEventKey);
             reloadEventReceiver = new EventReceiver<bool>(PlayerInput.ReloadEventKey);
+            shootReleasedEventReceiver = new EventReceiver(PlayerInput.ShootReleasedEventKey);
+            
+            // Initialize event receivers for building actions
+            toggleBuildModeEventReceiver = new EventReceiver(PlayerInput.ToggleBuildModeEventKey);
+            rotateBuildLeftEventReceiver = new EventReceiver(PlayerInput.RotateBuildActionLeftEventKey);
+            rotateBuildRightEventReceiver = new EventReceiver(PlayerInput.RotateBuildActionRightEventKey);
+            
+            // Get BuildingPlacementController, assuming it's on the same entity
+            buildingPlacementController = Entity.Get<BuildingPlacementController>();
+            if (buildingPlacementController == null)
+            {
+                Log.Warning("PlayerEquipment: BuildingPlacementController not found on this entity. Building mode will not function.");
+            }
         }
 
         public override void Update()
         {
-            // Check for shoot action
+            // Handle Building Mode Toggle and Rotation Inputs
+            if (buildingPlacementController != null)
+            {
+                if (toggleBuildModeEventReceiver.TryReceive())
+                {
+                    buildingPlacementController.ToggleBuildingMode();
+                }
+
+                // Only process rotation if building mode is active
+                if (buildingPlacementController.IsBuildingModeActive)
+                {
+                    if (rotateBuildLeftEventReceiver.TryReceive())
+                    {
+                        buildingPlacementController.RotateGhost(false); // false for counter-clockwise / left
+                    }
+                    if (rotateBuildRightEventReceiver.TryReceive())
+                    {
+                        buildingPlacementController.RotateGhost(true); // true for clockwise / right
+                    }
+                }
+            }
+
+            // Handle Primary Action (Shoot / Place Building)
             if (shootEventReceiver.TryReceive(out bool shootPressed) && shootPressed)
             {
+                // TriggerCurrentWeaponPrimary will check if in build mode first
                 TriggerCurrentWeaponPrimary();
             }
 
-            // Check for reload action
+            // Handle Shoot Release (for Bows, only if not in build mode)
+            if (shootReleasedEventReceiver.TryReceive()) 
+            {
+                if (buildingPlacementController == null || !buildingPlacementController.IsBuildingModeActive)
+                {
+                    if (CurrentWeapon is Weapons.Ranged.BaseBowWeapon bowWeapon)
+                    {
+                        bowWeapon.OnPrimaryActionReleased();
+                    }
+                }
+            }
+
+            // Handle Reload (only if not in build mode)
             if (reloadEventReceiver.TryReceive(out bool reloadPressed) && reloadPressed)
             {
-                if (CurrentWeapon != null && !CurrentWeapon.IsBroken) // Check if weapon exists and isn't broken
+                if (buildingPlacementController == null || !buildingPlacementController.IsBuildingModeActive)
                 {
-                    CurrentWeapon.Reload();
-                }
-                else if (CurrentWeapon != null && CurrentWeapon.IsBroken)
-                {
-                     Log.Info($"PlayerEquipment: Cannot reload, {CurrentWeapon.GetEntity()?.Name ?? "Current weapon"} is broken.");
+                    if (CurrentWeapon != null && !CurrentWeapon.IsBroken) 
+                    {
+                        CurrentWeapon.Reload();
+                    }
+                    else if (CurrentWeapon != null && CurrentWeapon.IsBroken)
+                    {
+                         Log.Info($"PlayerEquipment: Cannot reload, {CurrentWeapon.GetEntity()?.Name ?? "Current weapon"} is broken.");
+                    }
                 }
             }
         }
@@ -111,20 +169,27 @@ namespace FirstPersonShooter.Player
         // }
 
         /// <summary>
-        /// Triggers the primary action of the currently equipped weapon.
+        /// Triggers the primary action of the currently equipped weapon or places a building.
         /// </summary>
         public void TriggerCurrentWeaponPrimary()
         {
+            // If building mode is active and controller exists, attempt to place building.
+            if (buildingPlacementController != null && buildingPlacementController.IsBuildingModeActive)
+            {
+                buildingPlacementController.TryPlaceBuilding();
+                return; // Do not proceed to weapon actions if in build mode.
+            }
+
+            // If not in build mode, or no controller, proceed with weapon action.
             if (CurrentWeapon == null)
             {
-                // Log.Warning("PlayerEquipment: No weapon equipped to trigger primary action."); // Optional: for debugging if no weapon is normal
+                // Log.Warning("PlayerEquipment: No weapon equipped to trigger primary action."); // Optional
                 return;
             }
 
             if (CurrentWeapon.IsBroken)
             {
                 Log.Info($"PlayerEquipment: Cannot use primary action, {CurrentWeapon.GetEntity()?.Name ?? "Current weapon"} is broken.");
-                // Potentially broadcast an event here too, e.g. "AttemptedToUseBrokenWeapon"
                 return;
             }
 

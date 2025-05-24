@@ -24,6 +24,10 @@ namespace FirstPersonShooter.Player
         public static readonly EventKey<bool> ReloadEventKey = new EventKey<bool>();                    // This can be made non-static and require specific binding to the scripts instead
 
         public static readonly EventKey SwitchCameraModeEventKey = new EventKey();               // Event for camera mode switch
+        public static readonly EventKey ShootReleasedEventKey = new EventKey();                  // Event for when shooting input is released (e.g., for bows)
+        public static readonly EventKey ToggleBuildModeEventKey = new EventKey();                // Event for toggling building mode
+        public static readonly EventKey RotateBuildActionLeftEventKey = new EventKey();          // Event for rotating build preview left
+        public static readonly EventKey RotateBuildActionRightEventKey = new EventKey();         // Event for rotating build preview right
 
         public float DeadZone { get; set; } = 0.25f;
 
@@ -45,6 +49,11 @@ namespace FirstPersonShooter.Player
         public List<Keys> KeysReload { get; set; } = new List<Keys>() { Keys.R };
 
         public List<Keys> KeysSwitchCamera { get; set; } = new List<Keys>() { Keys.T }; // Keys for switching camera
+        
+        public List<Keys> KeysToggleBuildMode { get; set; } = new List<Keys>() { Keys.B };
+        public List<Keys> KeysRotateBuildLeft { get; set; } = new List<Keys>() { Keys.OemComma }; // ',' or '<' key
+        public List<Keys> KeysRotateBuildRight { get; set; } = new List<Keys>() { Keys.OemPeriod }; // '.' or '>' key
+
 
         public PlayerInput()
         {
@@ -134,6 +143,26 @@ namespace FirstPersonShooter.Player
                     didShoot = true;
 
                 ShootEventKey.Broadcast(didShoot);
+
+                // Check for shoot release
+                bool didShootRelease = false;
+                if (Input.HasMouse && Input.IsMouseButtonReleased(MouseButton.Left))
+                    didShootRelease = true;
+                
+                // Pointer events are not "released" in the same way as mouse buttons or keys.
+                // A common pattern for touch is to check for PointerEventType.Released.
+                // However, PointerEvents is a list of events that occurred *this frame*.
+                // For simplicity, matching game controller trigger release.
+                if (Input.IsTriggerReleasedAny(0.2f)) // Check if any trigger was released (using same threshold as GetRightTriggerAny)
+                    didShootRelease = true;
+                
+                // If other input types are used for "didShoot", their release should be checked here too.
+                // e.g. Tap events don't have a "release" in the same frame typically, they are discrete.
+
+                if (didShootRelease)
+                {
+                    ShootReleasedEventKey.Broadcast();
+                }
             }
 
             {
@@ -150,6 +179,22 @@ namespace FirstPersonShooter.Player
                 if (KeysSwitchCamera.Any(key => Input.IsKeyPressed(key)))
                 {
                     SwitchCameraModeEventKey.Broadcast();
+                }
+            }
+
+            // Building mode toggle and rotation
+            {
+                if (KeysToggleBuildMode.Any(key => Input.IsKeyPressed(key)))
+                {
+                    ToggleBuildModeEventKey.Broadcast();
+                }
+                if (KeysRotateBuildLeft.Any(key => Input.IsKeyPressed(key)))
+                {
+                    RotateBuildActionLeftEventKey.Broadcast();
+                }
+                if (KeysRotateBuildRight.Any(key => Input.IsKeyPressed(key)))
+                {
+                    RotateBuildActionRightEventKey.Broadcast();
                 }
             }
         }
