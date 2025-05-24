@@ -1,7 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using System.Globalization;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -13,7 +13,7 @@ namespace Stride.Core.Mathematics;
 [DataContract("double2")]
 [DataStyle(DataStyle.Compact)]
 [StructLayout(LayoutKind.Sequential, Pack = 4)]
-public struct Double2 : IEquatable<Double2>, IFormattable
+public struct Double2 : IEquatable<Double2>, ISpanFormattable
 {
     /// <summary>
     /// The size of the <see cref="Double2"/> type, in bytes.
@@ -1333,37 +1333,7 @@ public struct Double2 : IEquatable<Double2>, IFormattable
     /// <returns>
     /// A <see cref="string"/> that represents this instance.
     /// </returns>
-    public override readonly string ToString()
-    {
-        return string.Format(CultureInfo.CurrentCulture, "X:{0} Y:{1}", X, Y);
-    }
-
-    /// <summary>
-    /// Returns a <see cref="string"/> that represents this instance.
-    /// </summary>
-    /// <param name="format">The format.</param>
-    /// <returns>
-    /// A <see cref="string"/> that represents this instance.
-    /// </returns>
-    public readonly string ToString(string? format)
-    {
-        if (format == null)
-            return ToString();
-
-        return string.Format(CultureInfo.CurrentCulture, "X:{0} Y:{1}", X.ToString(format, CultureInfo.CurrentCulture), Y.ToString(format, CultureInfo.CurrentCulture));
-    }
-
-    /// <summary>
-    /// Returns a <see cref="string"/> that represents this instance.
-    /// </summary>
-    /// <param name="formatProvider">The format provider.</param>
-    /// <returns>
-    /// A <see cref="string"/> that represents this instance.
-    /// </returns>
-    public readonly string ToString(IFormatProvider? formatProvider)
-    {
-        return string.Format(formatProvider, "X:{0} Y:{1}", X, Y);
-    }
+    public override readonly string ToString() => $"{this}";
 
     /// <summary>
     /// Returns a <see cref="string"/> that represents this instance.
@@ -1373,12 +1343,25 @@ public struct Double2 : IEquatable<Double2>, IFormattable
     /// <returns>
     /// A <see cref="string"/> that represents this instance.
     /// </returns>
-    public readonly string ToString(string? format, IFormatProvider? formatProvider)
+    public readonly string ToString([StringSyntax(StringSyntaxAttribute.NumericFormat)] string? format, IFormatProvider? formatProvider)
     {
-        if (format == null)
-            ToString(formatProvider);
+        var handler = new DefaultInterpolatedStringHandler(5, 2, formatProvider);
+        handler.AppendLiteral("X:");
+        handler.AppendFormatted(X, format);
+        handler.AppendLiteral(" Y:");
+        handler.AppendFormatted(Y, format);
+        return handler.ToStringAndClear();
+    }
 
-        return string.Format(formatProvider, "X:{0} Y:{1}", X.ToString(format, formatProvider), Y.ToString(format, formatProvider));
+    bool ISpanFormattable.TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
+    {
+        var format1 = format.Length > 0 ? format.ToString() : null;
+        var handler = new MemoryExtensions.TryWriteInterpolatedStringHandler(5, 2, destination, provider, out _);
+        handler.AppendLiteral("X:");
+        handler.AppendFormatted(X, format1);
+        handler.AppendLiteral(" Y:");
+        handler.AppendFormatted(Y, format1);
+        return destination.TryWrite(ref handler, out charsWritten);
     }
 
     /// <summary>

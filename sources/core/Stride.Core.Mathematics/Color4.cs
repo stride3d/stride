@@ -27,7 +27,8 @@
 * THE SOFTWARE.
 */
 
-using System.Globalization;
+using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace Stride.Core.Mathematics;
@@ -38,10 +39,8 @@ namespace Stride.Core.Mathematics;
 [DataContract("Color4")]
 [DataStyle(DataStyle.Compact)]
 [StructLayout(LayoutKind.Sequential, Pack = 4)]
-public struct Color4 : IEquatable<Color4>, IFormattable
+public struct Color4 : IEquatable<Color4>, ISpanFormattable
 {
-    private const string ToStringFormat = "A:{0} R:{1} G:{2} B:{3}";
-
     /// <summary>
     /// The Black color (0, 0, 0, 1).
     /// </summary>
@@ -901,53 +900,43 @@ public struct Color4 : IEquatable<Color4>, IFormattable
     /// <returns>
     /// A <see cref="string"/> that represents this instance.
     /// </returns>
-    public override readonly string ToString()
-    {
-        return ToString(CultureInfo.CurrentCulture);
-    }
-
+    public override readonly string ToString() => $"{this}";
+    
     /// <summary>
     /// Returns a <see cref="string"/> that represents this instance.
     /// </summary>
-    /// <param name="format">The format to apply to each channel (float).</param>
-    /// <returns>
-    /// A <see cref="string"/> that represents this instance.
-    /// </returns>
-    public readonly string ToString(string? format)
-    {
-        return ToString(format, CultureInfo.CurrentCulture);
-    }
-
-    /// <summary>
-    /// Returns a <see cref="string"/> that represents this instance.
-    /// </summary>
+    /// <param name="format">The format.</param>
     /// <param name="formatProvider">The format provider.</param>
     /// <returns>
     /// A <see cref="string"/> that represents this instance.
     /// </returns>
-    public readonly string ToString(IFormatProvider? formatProvider)
+    public readonly string ToString([StringSyntax(StringSyntaxAttribute.NumericFormat)] string? format, IFormatProvider? formatProvider)
     {
-        return string.Format(formatProvider, ToStringFormat, A, R, G, B);
+        var handler = new DefaultInterpolatedStringHandler(11, 4, formatProvider);
+        handler.AppendLiteral("A:");
+        handler.AppendFormatted(A, format);
+        handler.AppendLiteral(" R:");
+        handler.AppendFormatted(R, format);
+        handler.AppendLiteral(" G:");
+        handler.AppendFormatted(G, format);
+        handler.AppendLiteral(" B:");
+        handler.AppendFormatted(B, format);
+        return handler.ToStringAndClear();
     }
 
-    /// <summary>
-    /// Returns a <see cref="string"/> that represents this instance.
-    /// </summary>
-    /// <param name="format">The format to apply to each channel (float).</param>
-    /// <param name="formatProvider">The format provider.</param>
-    /// <returns>
-    /// A <see cref="string"/> that represents this instance.
-    /// </returns>
-    public readonly string ToString(string? format, IFormatProvider? formatProvider)
+    bool ISpanFormattable.TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
     {
-        if (format == null)
-            return ToString(formatProvider);
-
-        return string.Format(formatProvider, ToStringFormat,
-                             A.ToString(format, formatProvider),
-                             R.ToString(format, formatProvider),
-                             G.ToString(format, formatProvider),
-                             B.ToString(format, formatProvider));
+        var format1 = format.Length > 0 ? format.ToString() : null;
+        var handler = new MemoryExtensions.TryWriteInterpolatedStringHandler(11, 4, destination, provider, out _);
+        handler.AppendLiteral("A:");
+        handler.AppendFormatted(A, format1);
+        handler.AppendLiteral(" R:");
+        handler.AppendFormatted(R, format1);
+        handler.AppendLiteral(" G:");
+        handler.AppendFormatted(G, format1);
+        handler.AppendLiteral(" B:");
+        handler.AppendFormatted(B, format1);
+        return destination.TryWrite(ref handler, out charsWritten);
     }
 
     /// <summary>

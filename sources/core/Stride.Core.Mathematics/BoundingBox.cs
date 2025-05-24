@@ -27,7 +27,7 @@
 * THE SOFTWARE.
 */
 
-using System.Globalization;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace Stride.Core.Mathematics;
@@ -37,7 +37,7 @@ namespace Stride.Core.Mathematics;
 /// </summary>
 [DataContract]
 [StructLayout(LayoutKind.Sequential, Pack = 4)]
-public struct BoundingBox : IEquatable<BoundingBox>, IFormattable, IIntersectableWithRay, IIntersectableWithPlane
+public struct BoundingBox : IEquatable<BoundingBox>, ISpanFormattable, IIntersectableWithRay, IIntersectableWithPlane
 {
     /// <summary>
     /// A <see cref="BoundingBox"/> which represents an empty space.
@@ -369,38 +369,7 @@ public struct BoundingBox : IEquatable<BoundingBox>, IFormattable, IIntersectabl
     /// <returns>
     /// A <see cref="string"/> that represents this instance.
     /// </returns>
-    public override readonly string ToString()
-    {
-        return string.Format(CultureInfo.CurrentCulture, "Minimum:{0} Maximum:{1}", Minimum.ToString(), Maximum.ToString());
-    }
-
-    /// <summary>
-    /// Returns a <see cref="string"/> that represents this instance.
-    /// </summary>
-    /// <param name="format">The format.</param>
-    /// <returns>
-    /// A <see cref="string"/> that represents this instance.
-    /// </returns>
-    public readonly string ToString(string? format)
-    {
-        if (format == null)
-            return ToString();
-
-        return string.Format(CultureInfo.CurrentCulture, "Minimum:{0} Maximum:{1}", Minimum.ToString(format, CultureInfo.CurrentCulture),
-            Maximum.ToString(format, CultureInfo.CurrentCulture));
-    }
-
-    /// <summary>
-    /// Returns a <see cref="string"/> that represents this instance.
-    /// </summary>
-    /// <param name="formatProvider">The format provider.</param>
-    /// <returns>
-    /// A <see cref="string"/> that represents this instance.
-    /// </returns>
-    public readonly string ToString(IFormatProvider? formatProvider)
-    {
-        return string.Format(formatProvider, "Minimum:{0} Maximum:{1}", Minimum.ToString(), Maximum.ToString());
-    }
+    public override readonly string ToString() => $"{this}";
 
     /// <summary>
     /// Returns a <see cref="string"/> that represents this instance.
@@ -412,11 +381,23 @@ public struct BoundingBox : IEquatable<BoundingBox>, IFormattable, IIntersectabl
     /// </returns>
     public readonly string ToString(string? format, IFormatProvider? formatProvider)
     {
-        if (format == null)
-            return ToString(formatProvider);
+        var handler = new DefaultInterpolatedStringHandler(17, 2, formatProvider);
+        handler.AppendLiteral("Minimum:");
+        handler.AppendFormatted(Minimum, format);
+        handler.AppendLiteral(" Maximum:");
+        handler.AppendFormatted(Maximum, format);
+        return handler.ToStringAndClear();
+    }
 
-        return string.Format(formatProvider, "Minimum:{0} Maximum:{1}", Minimum.ToString(format, formatProvider),
-            Maximum.ToString(format, formatProvider));
+    bool ISpanFormattable.TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
+    {
+        var format1 = format.Length > 0 ? format.ToString() : null;
+        var handler = new MemoryExtensions.TryWriteInterpolatedStringHandler(17, 2, destination, provider, out _);
+        handler.AppendLiteral("Minimum:");
+        handler.AppendFormatted(Minimum, format1);
+        handler.AppendLiteral(" Maximum:");
+        handler.AppendFormatted(Maximum, format1);
+        return destination.TryWrite(ref handler, out charsWritten);
     }
 
     /// <summary>
