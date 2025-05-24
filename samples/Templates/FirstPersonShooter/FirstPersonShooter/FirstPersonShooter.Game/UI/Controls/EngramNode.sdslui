@@ -1,0 +1,21 @@
+<Button xmlns="http://schemas.stride3d.net/xaml/presentation"
+        xmlns:x="http://schemas.stride3d.net/xaml"
+        Name="EngramNodeButton" Width="150" Height="50" 
+        Background="#FF454545" MouseOverBackground="#FF555555" PressedBackground="#FF606060" ClickMode="Press">
+    <!-- Canvas.Left and Canvas.Top will be set by code if parent is Canvas -->
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/> <!-- Icon -->
+            <ColumnDefinition Width="*"/>   <!-- Name -->
+        </Grid.ColumnDefinitions>
+
+        <Image Name="EngramIconImage" Grid.Column="0" Width="32" Height="32" Margin="4" Stretch="Uniform"/>
+        <TextBlock Name="EngramNameText" Grid.Column="1" Text="Engram Name" 
+                   VerticalAlignment="Center" HorizontalAlignment="Left" Margin="4,0,4,0" 
+                   TextColor="#FFE0E0E0" FontSize="12" TextWrapping="Wrap"/>
+        
+        <!-- Optional Status Indicator -->
+        <Border Name="StatusIndicator" Grid.Column="0" Grid.ColumnSpan="2" BorderBrush="#FF202020" BorderThickness="1" 
+                Width="10" Height="10" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="2" Background="Gray"/>
+    </Grid>
+</Button>

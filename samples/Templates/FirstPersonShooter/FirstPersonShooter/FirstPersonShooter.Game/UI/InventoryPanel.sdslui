@@ -1,0 +1,74 @@
+<Grid xmlns="http://schemas.stride3d.net/xaml/presentation"
+      xmlns:x="http://schemas.stride3d.net/xaml"
+      Name="MainPanel" Background="#FF303030">
+    <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="0.3*"/> <!-- Player Preview -->
+        <ColumnDefinition Width="0.7*"/> <!-- Inventory Area -->
+    </Grid.ColumnDefinitions>
+
+    <!-- Player Preview Section -->
+    <Grid Name="PlayerPreviewPanel" Grid.Column="0" Background="#FF3A3A3A" Margin="5">
+        <StackPanel Orientation="Vertical">
+            <TextBlock Text="Player Model Placeholder" HorizontalAlignment="Center" Margin="10" FontSize="16" TextColor="White"/>
+            <Border BorderBrush="Gray" BorderThickness="1" Height="150" Margin="10">
+                <!-- Actual player model would go here, maybe using a Viewport or Image -->
+            </Border>
+            
+            <TextBlock Text="Equipment" HorizontalAlignment="Center" Margin="0,10,0,5" FontSize="14" TextColor="White"/>
+            <StackPanel Name="EquipmentSlotsPanel" Margin="10,0,10,0">
+                <TextBlock Text="Helmet Slot" Margin="2" TextColor="LightGray"/>
+                <TextBlock Text="Chest Slot" Margin="2" TextColor="LightGray"/>
+                <TextBlock Text="Weapon Slot" Margin="2" TextColor="LightGray"/>
+                <!-- More equipment slots as needed -->
+            </StackPanel>
+            
+            <TextBlock Text="Stats" HorizontalAlignment="Center" Margin="0,20,0,5" FontSize="14" TextColor="White"/>
+            <StackPanel Name="PlayerStatsPanel" Margin="10,0,10,0">
+                <TextBlock Text="Health: 100/100" Margin="2" TextColor="LightGray"/>
+                <TextBlock Text="Weight: 0/50 kg" Margin="2" TextColor="LightGray"/>
+                <!-- More stats as needed -->
+            </StackPanel>
+        </StackPanel>
+    </Grid>
+
+    <!-- Inventory Area Section -->
+    <Grid Name="InventoryAreaPanel" Grid.Column="1" Margin="5">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/> <!-- Filters/Sort -->
+            <RowDefinition Height="*"/>    <!-- Inventory Grid -->
+            <RowDefinition Height="Auto"/> <!-- Hotbar -->
+        </Grid.RowDefinitions>
+
+        <TextBlock Name="FilterSortPlaceholder" Text="Filters / Sort Placeholder" Grid.Row="0" HorizontalAlignment="Center" Margin="5" FontSize="14" TextColor="White"/>
+
+        <Border Grid.Row="1" BorderBrush="Gray" BorderThickness="1" Margin="5">
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                 <UniformGrid Name="InventoryGrid" Rows="6" Columns="8" Margin="5"/>
+                 <!-- ItemSlots will be added here from code -->
+            </ScrollViewer>
+        </Border>
+        
+        <StackPanel Name="HotbarPanel" Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center" Margin="5">
+            <!-- ItemSlots for hotbar will be added here from code -->
+            <!-- Placeholder for visual representation if needed in XAML, e.g. -->
+            <TextBlock Text="Hotbar Area (e.g., 10 slots)" TextColor="DarkGray" Margin="10"/>
+        </StackPanel>
+    </Grid>
+
+    <!-- Item Tooltip Panel -->
+    <Border Name="TooltipPanel" Background="#D0202020" BorderBrush="Gray" BorderThickness="1" Padding="8" 
+            Visibility="Collapsed" Panel.ZIndex="100" MaxWidth="250">
+        <StackPanel Orientation="Vertical">
+            <TextBlock Name="ItemNameText" Text="Item Name" FontSize="16" FontStyle="Bold" TextColor="White" Margin="0,0,0,4"/>
+            <TextBlock Name="ItemTypeText" Text="Item Type" FontSize="12" FontStyle="Italic" TextColor="LightGray" Margin="0,0,0,6"/>
+            <TextBlock Name="ItemDescriptionText" Text="This is a detailed description of the item, explaining its uses and properties." 
+                       FontSize="14" TextColor="White" TextWrapping="Wrap" Margin="0,0,0,4"/>
+            <!-- Optional Stats Panel -->
+            <StackPanel Name="ItemStatsPanel" Orientation="Vertical" Visibility="Collapsed">
+                <!-- Stats TextBlocks would be added here by code or be predefined if common -->
+                <TextBlock Text="Damage: 10-12" TextColor="Khaki" Margin="0,2,0,0"/> 
+                <TextBlock Text="Weight: 1.5 kg" TextColor="Khaki" Margin="0,2,0,0"/>
+            </StackPanel>
+        </StackPanel>
+    </Border>
+</Grid>

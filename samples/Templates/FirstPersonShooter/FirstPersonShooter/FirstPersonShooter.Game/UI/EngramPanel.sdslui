@@ -1,0 +1,68 @@
+<Grid xmlns="http://schemas.stride3d.net/xaml/presentation"
+      xmlns:x="http://schemas.stride3d.net/xaml"
+      Name="MainEngramPanel" Background="#FF2D2D2D">
+    <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="0.7*"/> <!-- Engram Tree Area -->
+        <ColumnDefinition Width="0.3*"/> <!-- Selected Engram Details Area -->
+    </Grid.ColumnDefinitions>
+
+    <!-- Engram Tree Area -->
+    <Grid Name="EngramTreeArea" Grid.Column="0" Margin="5">
+        <StackPanel Orientation="Vertical">
+            <TextBlock Text="Engram Tree / Tech Tree" FontSize="18" HorizontalAlignment="Center" Margin="5" TextColor="White"/>
+            <Border BorderBrush="Gray" BorderThickness="1" Margin="5">
+                <ScrollViewer Name="EngramTreeScrollViewer" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" Background="#FF353535">
+                    <!-- MinWidth/MinHeight on Canvas ensure it can expand beyond ScrollViewer's initial viewport -->
+                    <Canvas Name="EngramTreeCanvas" MinWidth="1000" MinHeight="800" Background="#FF3C3C3C">
+                        <!-- EngramNode instances will be added here by code and positioned using Canvas.Left/Top -->
+                    </Canvas>
+                </ScrollViewer>
+            </Border>
+        </StackPanel>
+    </Grid>
+
+    <!-- Selected Engram Details Area -->
+    <Grid Name="SelectedEngramDetailsPanel" Grid.Column="1" Margin="5" Background="#FF3A3A3A">
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <StackPanel Orientation="Vertical" Margin="10">
+                <Image Name="SelectedEngramIcon" Width="80" Height="80" Stretch="Uniform" Margin="5,5,5,10" HorizontalAlignment="Center"/>
+                <TextBlock Name="SelectedEngramNameText" Text="Engram Name" FontSize="18" HorizontalAlignment="Center" Margin="5" TextColor="White" TextWrapping="Wrap"/>
+                <TextBlock Name="SelectedEngramDescriptionText" Text="Engram Description..." FontSize="14" TextWrapping="Wrap" Margin="5,0,5,10" TextColor="LightGray"/>
+                
+                <Grid Margin="5,0,5,5">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="Cost: " FontSize="14" TextColor="White" VerticalAlignment="Center"/>
+                    <TextBlock Name="EngramCostText" Grid.Column="1" Text="X EP" FontSize="14" TextColor="Cyan" VerticalAlignment="Center"/>
+                </Grid>
+
+                <Grid Margin="5,0,5,10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="Requires Level: " FontSize="14" TextColor="White" VerticalAlignment="Center"/>
+                    <TextBlock Name="RequiredLevelText" Grid.Column="1" Text="Lvl Y" FontSize="14" TextColor="Orange" VerticalAlignment="Center"/>
+                </Grid>
+
+                <TextBlock Text="Prerequisites:" FontSize="14" Margin="5,0,5,5" TextColor="White" Visibility="Collapsed" Name="PrerequisitesHeader"/>
+                <StackPanel Name="PrerequisitesPanel" Margin="15,0,5,10">
+                    <!-- Prerequisite names will be added here by code -->
+                </StackPanel>
+                
+                <Button Name="UnlockEngramButton" Content="Unlock" Height="40" Margin="10,15,10,5" Background="#FF4CAF50"/>
+                
+                <Grid Margin="5,10,5,5">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="Available Engram Points: " FontSize="14" TextColor="White" VerticalAlignment="Center"/>
+                    <TextBlock Name="EngramPointsText" Grid.Column="1" Text="Z Points" FontSize="14" TextColor="Gold" VerticalAlignment="Center"/>
+                </Grid>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</Grid>

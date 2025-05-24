@@ -1,0 +1,49 @@
+<Grid xmlns="http://schemas.stride3d.net/xaml/presentation"
+      xmlns:x="http://schemas.stride3d.net/xaml"
+      Name="MainCraftingPanel" Background="#FF383838">
+    <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="0.4*"/> <!-- Recipe List Area -->
+        <ColumnDefinition Width="0.6*"/> <!-- Selected Recipe Details Area -->
+    </Grid.ColumnDefinitions>
+
+    <!-- Recipe List Area -->
+    <Grid Name="RecipeListArea" Grid.Column="0" Margin="5" Background="#FF404040">
+        <StackPanel Orientation="Vertical">
+            <TextBlock Text="Recipes" FontSize="18" HorizontalAlignment="Center" Margin="5" TextColor="White"/>
+            <Border BorderBrush="Gray" BorderThickness="1" Margin="5">
+                <ScrollViewer Name="RecipeListScrollViewer" VerticalScrollBarVisibility="Auto" Height="400">
+                    <StackPanel Name="RecipeListPanel" Orientation="Vertical"/>
+                    <!-- RecipeListItem instances will be added here by code -->
+                </ScrollViewer>
+            </Border>
+        </StackPanel>
+    </Grid>
+
+    <!-- Selected Recipe Details Area -->
+    <Grid Name="SelectedRecipeDetailsGrid" Grid.Column="1" Margin="5" Background="#FF404040">
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <StackPanel Orientation="Vertical" Margin="10">
+                <Image Name="SelectedItemIcon" Width="128" Height="128" Stretch="Uniform" Margin="10" HorizontalAlignment="Center"/>
+                <TextBlock Name="SelectedItemNameText" Text="Item Name" FontSize="20" HorizontalAlignment="Center" Margin="5" TextColor="White"/>
+                <TextBlock Name="SelectedItemDescriptionText" Text="Item Description..." FontSize="14" TextWrapping="Wrap" Margin="5,5,5,15" TextColor="LightGray"/>
+                
+                <TextBlock Text="Required Resources:" FontSize="16" Margin="5,10,5,5" TextColor="White"/>
+                <Border BorderBrush="Gray" BorderThickness="1" MinHeight="50" Padding="5">
+                    <StackPanel Name="RequiredResourcesPanel" Orientation="Vertical"/>
+                    <!-- RequiredResource items will be listed here by code -->
+                </Border>
+
+                <TextBlock Name="CraftingTimeText" Text="Crafting Time: X sec" FontSize="14" Margin="5,10,5,5" TextColor="White"/>
+                
+                <Button Name="CraftButton" Content="Craft" Height="40" Margin="10,20,10,10" Background="#FF507050"/>
+                
+                <!-- Optional: Crafting Queue -->
+                <TextBlock Text="Crafting Queue:" FontSize="16" Margin="5,20,5,5" Visibility="Collapsed" TextColor="White"/>
+                <Border BorderBrush="Gray" BorderThickness="1" MinHeight="30" Padding="5" Visibility="Collapsed">
+                     <StackPanel Name="CraftingQueuePanel" Orientation="Vertical"/>
+                     <!-- Crafting queue items would be listed here -->
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</Grid>

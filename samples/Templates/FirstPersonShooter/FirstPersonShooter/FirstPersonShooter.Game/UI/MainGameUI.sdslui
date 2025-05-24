@@ -1,0 +1,154 @@
+<Canvas xmlns="http://schemas.stride3d.net/xaml/presentation"
+        xmlns:x="http://schemas.stride3d.net/xaml">
+
+    <!-- Inventory Panel Host -->
+    <Grid Name="InventoryPanelHost" Visibility="Collapsed" Background="#A0303030" BorderBrush="#FF555555" BorderThickness="1">
+        <!-- Content from InventoryPanel.sdslui, with its original root name "MainPanel" -->
+        <Grid Name="MainPanel" Background="#FF303030"> <!-- This background will override the host's if opaque -->
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="0.3*"/> <!-- Player Preview -->
+                <ColumnDefinition Width="0.7*"/> <!-- Inventory Area -->
+            </Grid.ColumnDefinitions>
+
+            <!-- Player Preview Section -->
+            <Grid Name="PlayerPreviewPanel" Grid.Column="0" Background="#A0353535" Margin="5">
+                <StackPanel Orientation="Vertical">
+                    <TextBlock Text="Player Model Placeholder" HorizontalAlignment="Center" Margin="10" FontSize="16" TextColor="#FFE0E0E0"/>
+                    <Border BorderBrush="Gray" BorderThickness="1" Height="150" Margin="10"/>
+                    <TextBlock Text="Equipment" HorizontalAlignment="Center" Margin="0,10,0,5" FontSize="14" TextColor="#FFE0E0E0"/>
+                    <StackPanel Name="EquipmentSlotsPanel" Margin="10,0,10,0">
+                        <TextBlock Text="Helmet Slot" Margin="2" TextColor="#FFE0E0E0"/>
+                        <TextBlock Text="Chest Slot" Margin="2" TextColor="#FFE0E0E0"/>
+                        <TextBlock Text="Weapon Slot" Margin="2" TextColor="#FFE0E0E0"/>
+                    </StackPanel>
+                    <TextBlock Text="Stats" HorizontalAlignment="Center" Margin="0,20,0,5" FontSize="14" TextColor="#FFE0E0E0"/>
+                    <StackPanel Name="PlayerStatsPanel" Margin="10,0,10,0">
+                        <TextBlock Text="Health: 100/100" Margin="2" TextColor="#FFE0E0E0"/>
+                        <TextBlock Text="Weight: 0/50 kg" Margin="2" TextColor="#FFE0E0E0"/>
+                    </StackPanel>
+                </StackPanel>
+            </Grid>
+
+            <!-- Inventory Area Section -->
+            <Grid Name="InventoryAreaPanel" Grid.Column="1" Margin="5">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <TextBlock Name="FilterSortPlaceholder" Text="Filters / Sort Placeholder" Grid.Row="0" HorizontalAlignment="Center" Margin="5" FontSize="14" TextColor="White"/>
+                <Border Grid.Row="1" BorderBrush="Gray" BorderThickness="1" Margin="5">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                         <UniformGrid Name="InventoryGrid" Rows="6" Columns="8" Margin="5" Background="Transparent"/>
+                    </ScrollViewer>
+                </Border>
+                <StackPanel Name="HotbarPanel" Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center" Margin="5" Background="Transparent">
+                    <TextBlock Text="Hotbar Area (e.g., 10 slots)" TextColor="#FF808080" Margin="10"/> <!-- DarkGray to #FF808080 -->
+                </StackPanel>
+            </Grid>
+
+            <!-- Item Tooltip Panel (relative to MainPanel) -->
+            <Border Name="TooltipPanel" Background="#D0202020" BorderBrush="Gray" BorderThickness="1" Padding="8" 
+                    Visibility="Collapsed" Panel.ZIndex="100" MaxWidth="250">
+                <StackPanel Orientation="Vertical">
+                    <TextBlock Name="ItemNameText" Text="Item Name" FontSize="16" FontStyle="Bold" TextColor="White" Margin="0,0,0,4"/>
+                    <TextBlock Name="ItemTypeText" Text="Item Type" FontSize="12" FontStyle="Italic" TextColor="LightGray" Margin="0,0,0,6"/>
+                    <TextBlock Name="ItemDescriptionText" Text="This is a detailed description of the item..." 
+                               FontSize="14" TextColor="White" TextWrapping="Wrap" Margin="0,0,0,4"/>
+                    <StackPanel Name="ItemStatsPanel" Orientation="Vertical" Visibility="Collapsed">
+                        <TextBlock Text="Damage: 10-12" TextColor="Khaki" Margin="0,2,0,0"/> 
+                        <TextBlock Text="Weight: 1.5 kg" TextColor="Khaki" Margin="0,2,0,0"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Grid>
+    </Grid>
+
+    <!-- Crafting Panel Host -->
+    <Grid Name="CraftingPanelHost" Visibility="Collapsed" Background="#A0303030" BorderBrush="#FF555555" BorderThickness="1">
+        <!-- Content from CraftingPanel.sdslui, with its original root name "MainCraftingPanel" -->
+        <Grid Name="MainCraftingPanel" Background="#FF383838"> <!-- This background will override the host's -->
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="0.4*"/>
+                <ColumnDefinition Width="0.6*"/>
+            </Grid.ColumnDefinitions>
+            <Grid Name="RecipeListArea" Grid.Column="0" Margin="5" Background="#FF404040">
+                <StackPanel Orientation="Vertical">
+                    <TextBlock Text="Recipes" FontSize="18" HorizontalAlignment="Center" Margin="5" TextColor="#FFD0D0D0"/>
+                    <Border BorderBrush="Gray" BorderThickness="1" Margin="5">
+                        <ScrollViewer Name="RecipeListScrollViewer" VerticalScrollBarVisibility="Auto" Height="400">
+                            <StackPanel Name="RecipeListPanel" Orientation="Vertical"/>
+                        </ScrollViewer>
+                    </Border>
+                </StackPanel>
+            </Grid>
+            <Grid Name="SelectedRecipeDetailsGrid" Grid.Column="1" Margin="5" Background="#FF404040">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Orientation="Vertical" Margin="10">
+                        <Image Name="SelectedItemIcon" Width="128" Height="128" Stretch="Uniform" Margin="10" HorizontalAlignment="Center"/>
+                        <TextBlock Name="SelectedItemNameText" Text="Item Name" FontSize="22" HorizontalAlignment="Center" Margin="5" TextColor="#FFFFFFFF"/>
+                        <TextBlock Name="SelectedItemDescriptionText" Text="Item Description..." FontSize="14" TextWrapping="Wrap" Margin="5,5,5,15" TextColor="#FFB0B0B0"/>
+                        <TextBlock Text="Required Resources:" FontSize="16" Margin="5,10,5,5" TextColor="#FFD0D0D0"/>
+                        <Border BorderBrush="Gray" BorderThickness="1" MinHeight="50" Padding="5">
+                            <StackPanel Name="RequiredResourcesPanel" Orientation="Vertical"/>
+                        </Border>
+                        <TextBlock Name="CraftingTimeText" Text="Crafting Time: X sec" FontSize="14" Margin="5,10,5,5" TextColor="#FFE0E0E0"/> <!-- Standard light text -->
+                        <Button Name="CraftButton" Content="Craft" Height="40" Margin="10,20,10,10" Background="#FF407040" ForegroundColor="#FFFFFFFF"/>
+                        <TextBlock Text="Crafting Queue:" FontSize="16" Margin="5,20,5,5" Visibility="Collapsed" TextColor="#FFD0D0D0"/>
+                        <Border BorderBrush="Gray" BorderThickness="1" MinHeight="30" Padding="5" Visibility="Collapsed">
+                             <StackPanel Name="CraftingQueuePanel" Orientation="Vertical"/>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </Grid>
+        </Grid>
+    </Grid>
+
+    <!-- Engram Panel Host -->
+    <Grid Name="EngramPanelHost" Visibility="Collapsed" Background="#A0303030" BorderBrush="#FF555555" BorderThickness="1">
+        <!-- Content from EngramPanel.sdslui, with its original root name "MainEngramPanel" -->
+        <Grid Name="MainEngramPanel" Background="#FF2D2D2D"> <!-- This background will override the host's -->
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="0.7*"/>
+                <ColumnDefinition Width="0.3*"/>
+            </Grid.ColumnDefinitions>
+            <Grid Name="EngramTreeArea" Grid.Column="0" Margin="5">
+                <StackPanel Orientation="Vertical">
+                    <TextBlock Text="Engram Tree / Tech Tree" FontSize="18" HorizontalAlignment="Center" Margin="5" TextColor="#FFD0D0D0"/>
+                    <Border BorderBrush="Gray" BorderThickness="1" Margin="5">
+                        <ScrollViewer Name="EngramTreeScrollViewer" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" Background="#FF353535">
+                            <Canvas Name="EngramTreeCanvas" MinWidth="1000" MinHeight="800" Background="#FF3C3C3C"/>
+                        </ScrollViewer>
+                    </Border>
+                </StackPanel>
+            </Grid>
+            <Grid Name="SelectedEngramDetailsPanel" Grid.Column="1" Margin="5" Background="#FF3A3A3A">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Orientation="Vertical" Margin="10">
+                        <Image Name="SelectedEngramIcon" Width="80" Height="80" Stretch="Uniform" Margin="5,5,5,10" HorizontalAlignment="Center"/>
+                        <TextBlock Name="SelectedEngramNameText" Text="Engram Name" FontSize="22" HorizontalAlignment="Center" Margin="5" TextColor="#FFFFFFFF" TextWrapping="Wrap"/>
+                        <TextBlock Name="SelectedEngramDescriptionText" Text="Engram Description..." FontSize="14" TextWrapping="Wrap" Margin="5,0,5,10" TextColor="#FFB0B0B0"/> <!-- Standard light gray for description -->
+                        <Grid Margin="5,0,5,5">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Cost: " FontSize="14" TextColor="#FFD0D0D0" VerticalAlignment="Center"/>
+                            <TextBlock Name="EngramCostText" Grid.Column="1" Text="X EP" FontSize="14" TextColor="Cyan" VerticalAlignment="Center"/>
+                        </Grid>
+                        <Grid Margin="5,0,5,10">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Requires Level: " FontSize="14" TextColor="#FFD0D0D0" VerticalAlignment="Center"/>
+                            <TextBlock Name="RequiredLevelText" Grid.Column="1" Text="Lvl Y" FontSize="14" TextColor="Orange" VerticalAlignment="Center"/>
+                        </Grid>
+                        <TextBlock Text="Prerequisites:" FontSize="14" Margin="5,0,5,5" TextColor="#FFD0D0D0" Visibility="Collapsed" Name="PrerequisitesHeader"/>
+                        <StackPanel Name="PrerequisitesPanel" Margin="15,0,5,10"/>
+                        <Button Name="UnlockEngramButton" Content="Unlock" Height="40" Margin="10,15,10,5" Background="#FF406080" ForegroundColor="#FFFFFFFF"/>
+                        <Grid Margin="5,10,5,5">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Available Engram Points: " FontSize="14" TextColor="#FFD0D0D0" VerticalAlignment="Center"/>
+                            <TextBlock Name="EngramPointsText" Grid.Column="1" Text="Z Points" FontSize="14" TextColor="#FFFFFFE0" VerticalAlignment="Center"/>
+                        </Grid>
+                    </StackPanel>
+                </ScrollViewer>
+            </Grid>
+        </Grid>
+    </Grid>
+</Canvas>

@@ -1,0 +1,15 @@
+<Button xmlns="http://schemas.stride3d.net/xaml/presentation"
+        xmlns:x="http://schemas.stride3d.net/xaml"
+        Name="RecipeButton" Height="50" HorizontalAlignment="Stretch" 
+        Background="#FF454545" MouseOverBackground="#FF555555" PressedBackground="#FF606060" ClickMode="Press">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/> <!-- Icon -->
+            <ColumnDefinition Width="*"/>   <!-- Name -->
+        </Grid.ColumnDefinitions>
+
+        <Image Name="ItemIconImage" Grid.Column="0" Width="32" Height="32" Margin="4" Stretch="Uniform"/>
+        <TextBlock Name="ItemNameText" Grid.Column="1" Text="Craftable Item Name" 
+                   VerticalAlignment="Center" Margin="4,0,0,0" TextColor="#FFE0E0E0" FontSize="14"/>
+    </Grid>
+</Button>
