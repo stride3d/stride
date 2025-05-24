@@ -390,7 +390,8 @@
                                 <Image Source="/Assets/Images/list.png"
                                        Width="20" Height="20" />
                               </ToggleButton>
-                              <Popup IsOpen="{Binding #Toggle.IsChecked, Mode=TwoWay}" IsLightDismissEnabled="True">
+                              <Popup x:Name="Popup"
+                                     IsOpen="{Binding #Toggle.IsChecked, Mode=TwoWay}" IsLightDismissEnabled="True">
                                 <Border Margin="4" Background="#434343">
                                   <Border.Effect>
                                     <DropShadowEffect BlurRadius="5" Opacity="0.4" />
@@ -404,7 +405,7 @@
                                                   HorizontalAlignment="Stretch" HorizontalContentAlignment="Left">
                                             <Interaction.Behaviors>
                                               <EventTriggerBehavior EventName="Click">
-                                                <ChangePropertyAction TargetObject="{Binding #Toggle}" PropertyName="IsChecked" Value="False" />
+                                                <ChangePropertyAction TargetObject="{Binding #Popup}" PropertyName="IsOpen" Value="False" />
                                               </EventTriggerBehavior>
                                             </Interaction.Behaviors>
                                           </Button>
@@ -447,9 +448,9 @@
                                 </Button>
                                 <TextBlock Margin="16,0" IsHitTestVisible="False"
                                            HorizontalAlignment="Left" VerticalAlignment="Center">
-                                  <Run Text="{Binding DisplayName, StringFormat={x:Static l:Strings.VersionButton}}"/>
+                                  <Run Text="{Binding DisplayName, Mode=OneWay, StringFormat={x:Static l:Strings.VersionButton}}"/>
                                   <!-- Careful here, there must not be any space or line-break between the next two Run tags! -->
-                                  <Run Text="{Binding !CanDelete, Converter={sd:BoolToParam}, ConverterParameter={x:Static l:Strings.VersionButtonUninstalled}
+                                  <Run Text="{Binding !CanDelete, Mode=OneWay, Converter={sd:BoolToParam}, ConverterParameter={x:Static l:Strings.VersionButtonUninstalled}
                                        }"/><Run Text="{sd:MultiBinding {Binding CanDelete}, {Binding CanBeDownloaded}, {Binding IsLatestPackageRemote}, Converter={sd:MultiChained
                                        {sd:AndMulti}, {sd:BoolToParam}, Parameter1={x:Static l:Strings.VersionButtonUpdateAvailable}}}"/><Run Text="{sd:MultiBinding
                                        {Binding CanDelete}, {Binding CanBeDownloaded}, {Binding IsLatestPackageLocal}, Converter={sd:MultiChained {sd:AndMulti}, {sd:BoolToParam},
@@ -471,7 +472,7 @@
                                   Content="{Binding}"
                                   Command="{Binding CheckDeprecatedSourcesCommand}">
                       <ToggleButton.ContentTemplate>
-                        <DataTemplate>
+                        <DataTemplate DataType="vm:MainViewModel">
                           <TextBlock Text="{x:Static l:Strings.ToggleShowBetaVersions}">
                             <Interaction.Behaviors>
                               <DataTriggerBehavior Binding="{Binding ShowBetaVersions}" Value="True">
@@ -542,7 +543,7 @@
                                           <ItemsControl.ItemTemplate>
                                             <DataTemplate DataType="{x:Type vm:StrideVersionViewModel}">
                                               <Button Content="{Binding DisplayName, StringFormat={x:Static l:Strings.OpenProjectWithVersion}}"
-                                                      Command="{Binding $parent[ScrollViewer].DataContext.OpenWithCommand}"
+                                                      Command="{Binding $parent[ScrollViewer].((vm:RecentProjectViewModel)DataContext).OpenWithCommand}"
                                                       HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" />
                                             </DataTemplate>
                                           </ItemsControl.ItemTemplate>
