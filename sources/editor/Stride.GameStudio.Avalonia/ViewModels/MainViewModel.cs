@@ -45,7 +45,7 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
         OpenCommand = new AnonymousTaskCommand<UFile?>(serviceProvider, OnOpen);
         OpenDebugWindowCommand = new AnonymousTaskCommand(serviceProvider, OnOpenDebugWindow, () => DialogService.HasMainWindow);
         OpenWebPageCommand = new AnonymousTaskCommand<string>(serviceProvider, OnOpenWebPage);
-        RunCurrentProjectCommand = new AnonymousCommand(serviceProvider, RunCurrentProject);
+        RunCurrentProjectCommand = new AnonymousTaskCommand(serviceProvider, RunCurrentProject);
 
         Status = new StatusViewModel(ServiceProvider);
         Status.PushStatus("Ready");
@@ -178,7 +178,7 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
 
 
 
-    private async void RunCurrentProject()
+    private async Task RunCurrentProject()
     {
         var mainProjectPath = Session?.CurrentProject?.RootDirectory;
         if (mainProjectPath == null) return;
