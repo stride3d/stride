@@ -4,6 +4,7 @@
 using Stride.Engine;
 using Stride.Engine.Events; // For EventKey
 using FirstPersonShooter.Items; // For IEquippable
+using FirstPersonShooter.Core; // For MaterialType // MOVED TO TOP
 
 namespace FirstPersonShooter.Weapons
 {
@@ -34,42 +35,13 @@ namespace FirstPersonShooter.Weapons
         /// </summary>
         public float Damage { get; set; } = 10.0f;
 
-using FirstPersonShooter.Core; // For MaterialType
-
-namespace FirstPersonShooter.Weapons
-{
-    public abstract class BaseWeapon : ScriptComponent, IEquippable
-    {
-        /// <summary>
-        /// Event broadcast when a weapon breaks.
-        /// </summary>
-        public static readonly EventKey WeaponBrokeEventKey = new EventKey();
-
-        /// <summary>
-        /// The durability of the weapon.
-        /// </summary>
-        public float Durability { get; set; } = 100.0f;
-
-        /// <summary>
-        /// Indicates if the weapon is broken and unusable.
-        /// </summary>
-        public bool IsBroken { get; private set; } = false;
-
-        /// <summary>
-        /// The rate at which the weapon can perform its primary action, in attacks per second.
-        /// </summary>
-        public float AttackRate { get; set; } = 1.0f;
-
-        /// <summary>
-        /// The damage dealt by the weapon's primary action.
-        /// </summary>
-        public float Damage { get; set; } = 10.0f;
-
+        // This property was in the second (duplicated) block
         /// <summary>
         /// The material type of this weapon, used for impact sound determination.
         /// </summary>
         public MaterialType WeaponMaterial { get; set; } = MaterialType.Metal;
 
+        // This property was in the second (duplicated) block
         /// <summary>
         /// The entity that has equipped this weapon.
         /// </summary>

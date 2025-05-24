@@ -1,0 +1,31 @@
+<Canvas xmlns="http://schemas.stride3d.net/xaml/presentation"
+        xmlns:x="http://schemas.stride3d.net/xaml"
+        Name="FullMapRoot"
+        Visibility="Collapsed" 
+        Background="#D0202020" 
+        Width="90%" Height="90%" 
+        HorizontalAlignment="Center" VerticalAlignment="Center">
+
+    <!-- The large map texture that will be panned/zoomed -->
+    <!-- Positioned at (0,0) of FullMapRoot initially, script will center it -->
+    <Image Name="FullMapTextureImage" Stretch="Fill">
+        <!-- Width and Height will be set from script based on MapTexturePixelSize -->
+        <!-- Canvas.Left and Canvas.Top will be set from script -->
+    </Image>
+
+    <!-- Player's icon, positioned on top of the map image -->
+    <!-- Its Canvas.Left/Top will be updated by script relative to FullMapRoot's coordinate space,
+         which effectively places it on the map image if map image is also positioned at (0,0) or adjusted accordingly. -->
+    <Image Name="FullMapPlayerIcon" Width="24" Height="24"
+           BackgroundColor="Blue"> <!-- Placeholder: Blue square, replace with actual icon texture -->
+           <Image.RenderTransform>
+               <RotateTransform Angle="0"/>
+           </Image.RenderTransform>
+           <Image.RenderTransformOrigin>0.5,0.5</Image.RenderTransformOrigin>
+    </Image>
+
+    <!-- Optional Close Button -->
+    <Button Name="CloseMapButton" Width="30" Height="30" Content="X" 
+            Canvas.Top="10" Canvas.Right="10" 
+            Background="#80FF0000" ForegroundColor="White"/>
+</Canvas>

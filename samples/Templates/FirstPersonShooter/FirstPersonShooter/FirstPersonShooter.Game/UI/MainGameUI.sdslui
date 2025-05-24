@@ -151,4 +151,29 @@
             </Grid>
         </Grid>
     </Grid>
+
+    <!-- Full Map Panel Host -->
+    <Grid Name="FullMapPanelHost" Visibility="Collapsed" Background="#A0101010" BorderBrush="#FF555555" BorderThickness="1">
+        <!-- Content from FullMapPanel.sdslui, with its original root name "FullMapRoot" -->
+        <Canvas Name="FullMapRoot"
+                Visibility="Visible" <!-- Host controls visibility, so this should be Visible or default -->
+                Background="#D0202020" 
+                Width="90%" Height="90%" 
+                HorizontalAlignment="Center" VerticalAlignment="Center">
+
+            <Image Name="FullMapTextureImage" Stretch="Fill"/>
+
+            <Image Name="FullMapPlayerIcon" Width="24" Height="24"
+                   BackgroundColor="Blue"> 
+                   <Image.RenderTransform>
+                       <RotateTransform Angle="0"/>
+                   </Image.RenderTransform>
+                   <Image.RenderTransformOrigin>0.5,0.5</Image.RenderTransformOrigin>
+            </Image>
+
+            <Button Name="CloseMapButton" Width="30" Height="30" Content="X" 
+                    Canvas.Top="10" Canvas.Right="10" 
+                    Background="#80FF0000" ForegroundColor="White"/>
+        </Canvas>
+    </Grid>
 </Canvas>

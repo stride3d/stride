@@ -303,6 +303,26 @@ namespace FirstPersonShooter.UI.Scripts
                 hotbarSlots[1].SetItemData(null, 10, 0.5f, 
                     new MockInventoryItem("Health Potion", "Consumable", "Restores a small amount of health. Durability indicates charges."));
                 
+            // Using null for textures for now. The ItemSlotScript handles null textures for the icon itself.
+            // MockInventoryItem constructor also handles null texture for its Icon property.
+
+            if (inventorySlots.Count > 0 && inventorySlots[0] != null)
+                inventorySlots[0].SetItemData(null, 50, null, 
+                    new MockInventoryItem("Wood", "Resource", "A sturdy piece of wood."));
+            if (inventorySlots.Count > 1 && inventorySlots[1] != null)
+                inventorySlots[1].SetItemData(null, 100, null, 
+                    new MockInventoryItem("Stone", "Resource", "A common grey stone."));
+            if (inventorySlots.Count > 3 && inventorySlots[3] != null)
+                inventorySlots[3].SetItemData(null, 1, 0.75f, 
+                    new MockInventoryItem("Iron Axe", "Tool", "A basic axe for chopping wood. Durability: 75%"));
+
+            if (hotbarSlots.Count > 0 && hotbarSlots[0] != null)
+                hotbarSlots[0].SetItemData(null, 1, 0.75f, 
+                    new MockInventoryItem("Iron Axe", "Tool", "A basic axe for chopping wood. Durability: 75%"));
+            if (hotbarSlots.Count > 1 && hotbarSlots[1] != null)
+                hotbarSlots[1].SetItemData(null, 10, 0.5f, 
+                    new MockInventoryItem("Health Potion", "Consumable", "Restores a small amount of health. Durability indicates charges."));
+                
             Log.Info("InventoryPanelScript: Populated with mock item data (using MockInventoryItem instances).");
         }
 

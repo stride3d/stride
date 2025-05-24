@@ -14,6 +14,7 @@ namespace FirstPersonShooter.UI.Scripts
         public UIElement InventoryPanelHost { get; set; }
         public UIElement CraftingPanelHost { get; set; }
         public UIElement EngramPanelHost { get; set; }
+        public UIElement FullMapPanelHost { get; set; } // Added
 
         private List<UIElement> allPanels;
         private UIElement currentlyVisiblePanel = null;
@@ -30,15 +31,18 @@ namespace FirstPersonShooter.UI.Scripts
             InventoryPanelHost = rootElement.FindName<UIElement>("InventoryPanelHost");
             CraftingPanelHost = rootElement.FindName<UIElement>("CraftingPanelHost");
             EngramPanelHost = rootElement.FindName<UIElement>("EngramPanelHost");
+            FullMapPanelHost = rootElement.FindName<UIElement>("FullMapPanelHost"); // Added
 
             if (InventoryPanelHost == null) Log.Error("MainGameUIScript: InventoryPanelHost not found in UI.");
             if (CraftingPanelHost == null) Log.Error("MainGameUIScript: CraftingPanelHost not found in UI.");
             if (EngramPanelHost == null) Log.Error("MainGameUIScript: EngramPanelHost not found in UI.");
+            if (FullMapPanelHost == null) Log.Error("MainGameUIScript: FullMapPanelHost not found in UI."); // Added
             
             allPanels = new List<UIElement>();
             if (InventoryPanelHost != null) allPanels.Add(InventoryPanelHost);
             if (CraftingPanelHost != null) allPanels.Add(CraftingPanelHost);
             if (EngramPanelHost != null) allPanels.Add(EngramPanelHost);
+            if (FullMapPanelHost != null) allPanels.Add(FullMapPanelHost); // Added
 
             // Ensure all panels are initially hidden
             foreach (var panel in allPanels)
@@ -65,6 +69,10 @@ namespace FirstPersonShooter.UI.Scripts
             else if (Input.IsKeyPressed(Keys.N))
             {
                 TogglePanelVisibility(EngramPanelHost);
+            }
+            else if (Input.IsKeyPressed(Keys.M)) // Added
+            {
+                TogglePanelVisibility(FullMapPanelHost);
             }
             else if (Input.IsKeyPressed(Keys.Escape))
             {
@@ -118,6 +126,16 @@ namespace FirstPersonShooter.UI.Scripts
             {
                 Input.IsMousePositionLocked = true;
                 Game.IsMouseVisible = false;
+            }
+        }
+
+        // Method to be called by child panels (like FullMapPanelScript's close button)
+        public void CloseCurrentPanel()
+        {
+            if (currentlyVisiblePanel != null)
+            {
+                HideAllPanels();
+                SetMouseState(false); // Return to game mode
             }
         }
     }

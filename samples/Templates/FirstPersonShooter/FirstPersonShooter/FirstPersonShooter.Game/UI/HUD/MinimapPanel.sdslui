@@ -1,0 +1,26 @@
+<Canvas xmlns="http://schemas.stride3d.net/xaml/presentation"
+        xmlns:x="http://schemas.stride3d.net/xaml"
+        Name="MinimapRoot"
+        Width="150" Height="150"
+        ClipToBounds="true"
+        HorizontalAlignment="Right" VerticalAlignment="Top" Margin="10"
+        Background="#80000000"> <!-- Semi-transparent black background for the minimap area -->
+
+    <!-- The large map texture that will be panned -->
+    <Image Name="MapTextureImage" Stretch="Fill">
+        <!-- Width and Height will be set from script based on MapTexturePixelSize -->
+        <!-- Canvas.Left and Canvas.Top will be set from script to pan -->
+    </Image>
+
+    <!-- Player's icon, centered on the minimap panel -->
+    <Image Name="PlayerMapIcon" Width="16" Height="16"
+           HorizontalAlignment="Center" VerticalAlignment="Center"
+           BackgroundColor="Red"> <!-- Placeholder: Red square, replace with actual icon texture -->
+        <!-- This icon stays fixed in the center of MinimapRoot. -->
+        <!-- Canvas.Left/Top will be (MinimapRoot.Width/2 - PlayerMapIcon.Width/2) if set explicitly -->
+        <!-- HorizontalAlignment/VerticalAlignment="Center" on a Canvas child positions it relative to Canvas itself. -->
+    </Image>
+
+    <!-- Optional: Border around the minimap -->
+    <Border BorderBrush="Gray" BorderThickness="1"/>
+</Canvas>

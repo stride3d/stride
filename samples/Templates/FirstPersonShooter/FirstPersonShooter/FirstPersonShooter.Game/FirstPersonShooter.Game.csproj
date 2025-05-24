@@ -15,4 +15,89 @@
     <ProjectReference Include="..\..\..\Packs\mannequinModel\mannequinModel.csproj" />
     <ProjectReference Include="..\..\..\Packs\SamplesAssetPackage\SamplesAssetPackage.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <!-- Core Gameplay & Systems -->
+    <Compile Include="Core\IDamageable.cs" />
+    <Compile Include="Core\ITargetable.cs" />
+    <Compile Include="Core\MaterialType.cs" />
+    <Compile Include="Core\Utils.cs" />
+    <Compile Include="Core\InputManagerExtensions.cs" />
+    <Compile Include="Audio\SoundManager.cs" />
+    <Compile Include="EffectController.cs" />
+    <Compile Include="FpsCamera.cs" />
+    <Compile Include="PlayerCamera.cs" />
+    <!-- Player Components -->
+    <Compile Include="Player\AnimationController.cs" />
+    <Compile Include="Player\PlayerController.cs" />
+    <Compile Include="Player\PlayerEquipment.cs" />
+    <Compile Include="Player\PlayerInput.cs" />
+    <Compile Include="Player\WeaponScript.cs" />
+    <Compile Include="Player\PlayerMarkerComponent.cs" />
+    <!-- AI Components -->
+    <Compile Include="AI\CreatureMarkerComponent.cs" />
+    <!-- Items & Inventory -->
+    <Compile Include="Items\IEquippable.cs" />
+    <Compile Include="Items\MockInventoryItem.cs" />
+    <Compile Include="Items\Crafting\RequiredResource.cs" />
+    <Compile Include="Items\Crafting\CraftingRecipe.cs" />
+    <Compile Include="Items\Engrams\EngramEntry.cs" />
+    <!-- Building System -->
+    <Compile Include="Building\BuildingPlacementController.cs" />
+    <Compile Include="Building\SnapPoint.cs" />
+    <Compile Include="Building\StructureIntegrityManager.cs" />
+    <Compile Include="Building\Pieces\BaseBuildingPiece.cs" />
+    <Compile Include="Building\Pieces\CeilingPiece.cs" />
+    <Compile Include="Building\Pieces\FoundationPiece.cs" />
+    <Compile Include="Building\Pieces\TurretPiece.cs" />
+    <Compile Include="Building\Pieces\WallPiece.cs" />
+    <!-- Defenses -->
+    <Compile Include="Building\Defenses\TurretTargetingSystem.cs" />
+    <Compile Include="Building\Defenses\TurretWeaponSystem.cs" />
+    <Compile Include="Building\Defenses\Strategies\ITurretFireStrategy.cs" />
+    <Compile Include="Building\Defenses\Strategies\ProjectileFireStrategy.cs" />
+    <Compile Include="Building\Defenses\Traps\SpikeTrap.cs" />
+    <Compile Include="Building\Defenses\Traps\ExplosiveTrap.cs" />
+    <Compile Include="Building\Defenses\ForcefieldGenerator.cs" />
+    <!-- Weapons -->
+    <Compile Include="Weapons\BaseWeapon.cs" />
+    <Compile Include="Weapons\Melee\Hatchet.cs" />
+    <Compile Include="Weapons\Projectiles\ArrowProjectile.cs" />
+    <Compile Include="Weapons\Projectiles\BasicTurretProjectile.cs" />
+    <Compile Include="Weapons\Projectiles\GrenadeProjectile.cs" />
+    <Compile Include="Weapons\Ranged\BaseBowWeapon.cs" />
+    <Compile Include="Weapons\Ranged\GrenadeWeapon.cs" />
+    <Compile Include="Weapons\Ranged\Pistol.cs" />
+    <Compile Include="Weapons\Ranged\WoodenBow.cs" />
+    <!-- World & Resources -->
+    <Compile Include="World\IResourceNode.cs" />
+    <Compile Include="World\SurfaceMaterial.cs" />
+    <Compile Include="World\TreeResource.cs" />
+    <Compile Include="World\POIData.cs" />
+    <!-- UI Scripts -->
+    <Compile Include="UI\Scripts\ItemSlotScript.cs" />
+    <Compile Include="UI\Scripts\InventoryPanelScript.cs" />
+    <Compile Include="UI\Scripts\RecipeListItemScript.cs" />
+    <Compile Include="UI\Scripts\CraftingPanelScript.cs" />
+    <Compile Include="UI\Scripts\EngramNodeScript.cs" />
+    <Compile Include="UI\Scripts\EngramPanelScript.cs" />
+    <Compile Include="UI\Scripts\MainGameUIScript.cs" />
+    <Compile Include="UI\Scripts\MinimapPanelScript.cs" />
+    <Compile Include="UI\Scripts\FullMapPanelScript.cs" />
+    <!-- Triggers -->
+    <Compile Include="Trigger\TriggerEvent.cs" />
+    <Compile Include="Trigger\TriggerGroup.cs" />
+    <Compile Include="Trigger\TriggerGroupException.cs" />
+    <Compile Include="Trigger\TriggerScript.cs" />
+    <!-- Tests (usually in a separate test project, but included here as per current structure) -->
+    <Compile Include="Tests\MockDamageableTarget.cs" />
+    <Compile Include="Tests\PlayerCameraTests.cs" />
+    <Compile Include="Tests\PlayerEquipmentTests.cs" />
+    <Compile Include="Tests\TurretTests.cs" />
+    <Compile Include="Tests\Defenses\ExplosiveTrapTests.cs" />
+    <Compile Include="Tests\Defenses\ForcefieldGeneratorTests.cs" />
+    <Compile Include="Tests\Defenses\SpikeTrapTests.cs" />
+    <Compile Include="Tests\UI\InventoryPanelTests.cs" />
+    <Compile Include="Tests\UI\CraftingPanelTests.cs" />
+    <Compile Include="Tests\UI\EngramPanelTests.cs" />
+  </ItemGroup>
 </Project>

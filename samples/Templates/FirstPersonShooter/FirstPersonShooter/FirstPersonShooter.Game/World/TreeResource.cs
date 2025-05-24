@@ -2,24 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Stride.Engine;
-
-namespace FirstPersonShooter.World
-{
-    public class TreeResource : ScriptComponent, IResourceNode
-    {
-        /// <summary>
-        /// The current health or remaining resources of the tree.
-        /// </summary>
-        public float Health { get; set; } = 100f;
-
-        /// <summary>
-        /// The type of resource this tree provides.
-        /// </summary>
-        public string ResourceType { get; set; } = "Wood";
-
-        private bool depleted = false;
-
-using FirstPersonShooter.Core; // For MaterialType
+using FirstPersonShooter.Core; // For MaterialType // MOVED TO TOP
 
 namespace FirstPersonShooter.World
 {
@@ -39,7 +22,7 @@ namespace FirstPersonShooter.World
         /// The material type of this tree for impact effects.
         /// Can be configured in the editor if desired, defaults to Wood.
         /// </summary>
-        public MaterialType TreeMaterialType { get; set; } = MaterialType.Wood;
+        public MaterialType TreeMaterialType { get; set; } = MaterialType.Wood; // From duplicated block
 
         private bool depleted = false;
 
