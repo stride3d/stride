@@ -5,13 +5,23 @@ using System.Collections.Generic;
 using Stride.Engine;
 using Stride.Physics;
 using FirstPersonShooter.Core; // For ITargetable
+using FirstPersonShooter.Player; // For PlayerMarkerComponent
+using FirstPersonShooter.AI;     // For CreatureMarkerComponent
 
 namespace FirstPersonShooter.Building.Defenses
 {
+    public enum TargetFilter
+    {
+        All,
+        Players,
+        Creatures
+    }
+
     public class TurretTargetingSystem : SyncScript
     {
         public float TargetingRange { get; set; } = 15f;
         public float ScanInterval { get; set; } = 0.5f; // Seconds
+        public TargetFilter CurrentTargetFilter { get; set; } = TargetFilter.All;
         public Entity CurrentTarget { get; private set; }
 
         private float scanTimer = 0f;
@@ -60,13 +70,36 @@ namespace FirstPersonShooter.Building.Defenses
                 var targetable = hitEntity.Get<ITargetable>();
                 if (targetable != null)
                 {
+                    // Apply target type filter
+                    bool passesFilter = false;
+                    switch (CurrentTargetFilter)
+                    {
+                        case TargetFilter.All:
+                            passesFilter = true;
+                            break;
+                        case TargetFilter.Players:
+                            if (hitEntity.Get<PlayerMarkerComponent>() != null)
+                                passesFilter = true;
+                            break;
+                        case TargetFilter.Creatures:
+                            if (hitEntity.Get<CreatureMarkerComponent>() != null)
+                                passesFilter = true;
+                            break;
+                    }
+
+                    if (!passesFilter)
+                        continue; // Skip this target if it doesn't pass the filter
+
                     // Additional checks: Line of sight (raycast), team affiliation (if applicable)
-                    // For now, just take the closest ITargetable
+                    // For now, just take the closest ITargetable that passes filters
                     float distanceSq = Vector3.DistanceSquared(Entity.Transform.Position, hitEntity.Transform.Position);
                     if (distanceSq < closestDistanceSquared)
                     {
                         // Basic Line of Sight Check (optional, but good for realism)
-                        var losHitResult = simulation.Raycast(Entity.Transform.Position, targetable.GetTargetPosition(), CollisionFilterGroups.DefaultFilter, CollisionFilterGroupFlags.DefaultFilter & ~CollisionFilterGroupFlags.CharacterFilter); // Hit anything *but* characters
+                        // Target position for LOS should be the ITargetable's GetTargetPosition()
+                        Vector3 targetPositionForLOS = targetable.GetTargetPosition();
+                        var losHitResult = simulation.Raycast(Entity.Transform.Position, targetPositionForLOS, CollisionFilterGroups.DefaultFilter, CollisionFilterGroupFlags.DefaultFilter & ~CollisionFilterGroupFlags.CharacterFilter); // Hit anything *but* characters/projectiles etc. that should not block LOS
+                        
                         if (!losHitResult.Succeeded || losHitResult.Collider.Entity == hitEntity) // If nothing hit, or hit the target itself
                         {
                             closestDistanceSquared = distanceSq;
@@ -74,7 +107,7 @@ namespace FirstPersonShooter.Building.Defenses
                         }
                         else
                         {
-                             // Log.Info($"TurretTargetingSystem: Target {hitEntity.Name} found by sphere but LOS blocked by {losHitResult.Collider.Entity.Name}");
+                             // Log.Info($"TurretTargetingSystem: Target {hitEntity.Name} (filter: {CurrentTargetFilter}) found by sphere but LOS blocked by {losHitResult.Collider.Entity.Name}");
                         }
                     }
                 }

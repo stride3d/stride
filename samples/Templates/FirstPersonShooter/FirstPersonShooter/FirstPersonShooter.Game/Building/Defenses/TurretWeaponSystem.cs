@@ -4,16 +4,14 @@
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using FirstPersonShooter.Core; // For ITargetable
+using FirstPersonShooter.Building.Defenses.Strategies; // For ITurretFireStrategy
 
 namespace FirstPersonShooter.Building.Defenses
 {
     public class TurretWeaponSystem : SyncScript
     {
-        public float FireRate { get; set; } = 2f; // Shots per second
         public Entity MuzzlePointEntity { get; set; } // Assign in editor: child entity representing muzzle
-        // public Prefab ProjectilePrefab { get; set; } // For future projectile firing
-
-        private float fireCooldownRemaining = 0f;
+        public ITurretFireStrategy FireStrategy { get; private set; }
 
         public override void Start()
         {
@@ -21,30 +19,30 @@ namespace FirstPersonShooter.Building.Defenses
             {
                 Log.Warning($"TurretWeaponSystem on {Entity.Name}: MuzzlePointEntity is not assigned. Using this entity's transform as fallback.");
             }
+
+            // Attempt to get the FireStrategy component
+            FireStrategy = Entity.Get<ITurretFireStrategy>() ?? Entity.GetComponentInChildren<ITurretFireStrategy>();
+            if (FireStrategy == null)
+            {
+                Log.Error($"TurretWeaponSystem on {Entity.Name}: No ITurretFireStrategy component found on this entity or its children.");
+            }
         }
 
         public override void Update()
         {
-            if (fireCooldownRemaining > 0f)
-            {
-                fireCooldownRemaining -= (float)Game.UpdateTime.Elapsed.TotalSeconds;
-                if (fireCooldownRemaining < 0f)
-                {
-                    fireCooldownRemaining = 0f;
-                }
-            }
+            FireStrategy?.UpdateCooldown((float)Game.UpdateTime.Elapsed.TotalSeconds);
         }
 
         /// <summary>
-        /// Attempts to fire at the target entity.
+        /// Attempts to fire at the target entity using the assigned FireStrategy.
         /// </summary>
         /// <param name="targetEntity">The entity to fire at.</param>
-        /// <returns>True if a shot was fired, false otherwise.</returns>
+        /// <returns>True if a shot was attempted/fired, false otherwise.</returns>
         public bool FireAt(Entity targetEntity)
         {
-            if (fireCooldownRemaining > 0f)
+            if (FireStrategy == null)
             {
-                // Log.Info($"TurretWeaponSystem on {Entity.Name}: On cooldown."); // Can be verbose
+                Log.Error($"TurretWeaponSystem on {Entity.Name}: FireStrategy is not assigned or found.");
                 return false;
             }
 
@@ -54,40 +52,13 @@ namespace FirstPersonShooter.Building.Defenses
                 return false;
             }
 
-            Vector3 targetPos = targetEntity.Transform.Position; // Default if not ITargetable
-            var targetable = targetEntity.Get<ITargetable>();
-            if (targetable != null)
-            {
-                targetPos = targetable.GetTargetPosition();
-            }
-
-            Vector3 spawnPos = MuzzlePointEntity?.Transform.WorldMatrix.TranslationVector ?? Entity.Transform.WorldMatrix.TranslationVector;
-
-            Log.Info($"TurretWeaponSystem on {Entity.Name}: Firing at {targetEntity.Name} (target pos {targetPos}) from weapon system (muzzle pos {spawnPos}).");
+            // Determine muzzle position and rotation
+            Vector3 muzzlePosition = MuzzlePointEntity?.Transform.WorldMatrix.TranslationVector ?? Entity.Transform.WorldMatrix.TranslationVector;
+            Quaternion muzzleRotation = MuzzlePointEntity?.Transform.WorldMatrix.RotationQuaternion ?? Entity.Transform.WorldMatrix.RotationQuaternion;
             
-            // Future: Instantiate ProjectilePrefab, aim it from spawnPos to targetPos.
-            // Example:
-            // if (ProjectilePrefab != null)
-            // {
-            //     var projectileInstance = ProjectilePrefab.Instantiate().FirstOrDefault();
-            //     if (projectileInstance != null)
-            //     {
-            //         projectileInstance.Transform.Position = spawnPos;
-            //         // Aiming logic:
-            //         var direction = Vector3.Normalize(targetPos - spawnPos);
-            //         projectileInstance.Transform.Rotation = Quaternion.LookRotation(direction, Vector3.UnitY); 
-            //         // Add to scene:
-            //         Entity.Scene.Entities.Add(projectileInstance);
-            //         // Configure projectile (speed, damage etc.)
-            //         // var projScript = projectileInstance.Get<YourProjectileScript>();
-            //         // if (projScript != null) { projScript.Velocity = direction * ProjSpeed; }
-            //     }
-            // }
-            // else { Log.Error($"TurretWeaponSystem on {Entity.Name}: ProjectilePrefab not set!"); }
+            // Log.Info($"TurretWeaponSystem on {Entity.Name}: Attempting to fire at {targetEntity.Name} via strategy.");
 
-
-            fireCooldownRemaining = 1.0f / FireRate;
-            return true;
+            return FireStrategy.Fire(this.Entity, targetEntity, muzzlePosition, muzzleRotation, (float)Game.UpdateTime.Elapsed.TotalSeconds);
         }
     }
 }

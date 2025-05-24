@@ -22,6 +22,12 @@ namespace FirstPersonShooter.Building.Pieces
         public Entity TurretPitchPart { get; set; } // Rotates around X-axis (local)
         public float RotationSpeed { get; set; } = 90f; // Degrees per second
 
+        /// <summary>
+        /// Determines if the turret has power and can operate.
+        /// In a full system, this would be managed by a power grid or generator connection.
+        /// </summary>
+        public bool IsPowered { get; set; } = true;
+
         public TurretPiece()
         {
             // Turrets are typically not ground pieces themselves, they sit on foundations/ceilings.
@@ -71,9 +77,21 @@ namespace FirstPersonShooter.Building.Pieces
         {
             base.Update(); // BaseBuildingPiece.Update() if it ever has logic
 
+            if (!IsPowered)
+            {
+                if (TargetingSystem != null && TargetingSystem.CurrentTarget != null)
+                {
+                    TargetingSystem.CurrentTarget = null; // Stop targeting
+                    Log.Info($"TurretPiece '{Entity?.Name ?? "Unnamed"}' lost power, clearing target.");
+                }
+                // Optionally, add logic here to return turret to an idle/default rotation.
+                // For now, it will just stop where it is.
+                return; // Stop all turret operations if not powered
+            }
+
             if (TargetingSystem?.CurrentTarget == null || WeaponSystem == null || TurretYawPart == null || TurretPitchPart == null)
             {
-                // Optionally, return turret to a default orientation if no target
+                // Optionally, return turret to a default orientation if no target and powered
                 return;
             }
 
