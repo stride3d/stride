@@ -28,6 +28,9 @@ namespace FirstPersonShooter.Player
         public static readonly EventKey ToggleBuildModeEventKey = new EventKey();                // Event for toggling building mode
         public static readonly EventKey RotateBuildActionLeftEventKey = new EventKey();          // Event for rotating build preview left
         public static readonly EventKey RotateBuildActionRightEventKey = new EventKey();         // Event for rotating build preview right
+        public static readonly EventKey CycleBuildableNextEventKey = new EventKey();             // Event for cycling to next buildable item
+        public static readonly EventKey CycleBuildablePrevEventKey = new EventKey();             // Event for cycling to previous buildable item
+        public static readonly EventKey DebugDestroyEventKey = new EventKey();                   // Event for debug destroying a building piece
 
         public float DeadZone { get; set; } = 0.25f;
 
@@ -53,6 +56,11 @@ namespace FirstPersonShooter.Player
         public List<Keys> KeysToggleBuildMode { get; set; } = new List<Keys>() { Keys.B };
         public List<Keys> KeysRotateBuildLeft { get; set; } = new List<Keys>() { Keys.OemComma }; // ',' or '<' key
         public List<Keys> KeysRotateBuildRight { get; set; } = new List<Keys>() { Keys.OemPeriod }; // '.' or '>' key
+        
+        // Using Keys.PageUp and Keys.PageDown as example, can be changed. Mouse wheel handled separately.
+        public List<Keys> KeysCycleBuildableNext { get; set; } = new List<Keys>() { Keys.PageUp }; 
+        public List<Keys> KeysCycleBuildablePrev { get; set; } = new List<Keys>() { Keys.PageDown };
+        public List<Keys> KeysDebugDestroy { get; set; } = new List<Keys>() { Keys.K };
 
 
         public PlayerInput()
@@ -195,6 +203,35 @@ namespace FirstPersonShooter.Player
                 if (KeysRotateBuildRight.Any(key => Input.IsKeyPressed(key)))
                 {
                     RotateBuildActionRightEventKey.Broadcast();
+                }
+                
+                // Cycle buildable items with mouse wheel
+                var mouseWheelDelta = Input.MouseWheelDelta;
+                if (mouseWheelDelta > 0) // Positive delta for scroll up/forward
+                {
+                    CycleBuildableNextEventKey.Broadcast();
+                }
+                else if (mouseWheelDelta < 0) // Negative delta for scroll down/backward
+                {
+                    CycleBuildablePrevEventKey.Broadcast();
+                }
+
+                // Cycle buildable items with keys
+                if (KeysCycleBuildableNext.Any(key => Input.IsKeyPressed(key)))
+                {
+                    CycleBuildableNextEventKey.Broadcast();
+                }
+                if (KeysCycleBuildablePrev.Any(key => Input.IsKeyPressed(key)))
+                {
+                    CycleBuildablePrevEventKey.Broadcast();
+                }
+            }
+            
+            // Debug Destroy
+            {
+                if (KeysDebugDestroy.Any(key => Input.IsKeyPressed(key)))
+                {
+                    DebugDestroyEventKey.Broadcast();
                 }
             }
         }

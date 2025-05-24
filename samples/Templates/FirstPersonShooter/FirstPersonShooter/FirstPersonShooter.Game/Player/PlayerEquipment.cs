@@ -27,6 +27,9 @@ namespace FirstPersonShooter.Player
         private EventReceiver toggleBuildModeEventReceiver;
         private EventReceiver rotateBuildLeftEventReceiver;
         private EventReceiver rotateBuildRightEventReceiver;
+        private EventReceiver cycleBuildableNextEventReceiver;
+        private EventReceiver cycleBuildablePrevEventReceiver;
+        private EventReceiver debugDestroyEventReceiver;
 
         private BuildingPlacementController buildingPlacementController; // Reference to the building controller
 
@@ -43,6 +46,9 @@ namespace FirstPersonShooter.Player
             toggleBuildModeEventReceiver = new EventReceiver(PlayerInput.ToggleBuildModeEventKey);
             rotateBuildLeftEventReceiver = new EventReceiver(PlayerInput.RotateBuildActionLeftEventKey);
             rotateBuildRightEventReceiver = new EventReceiver(PlayerInput.RotateBuildActionRightEventKey);
+            cycleBuildableNextEventReceiver = new EventReceiver(PlayerInput.CycleBuildableNextEventKey);
+            cycleBuildablePrevEventReceiver = new EventReceiver(PlayerInput.CycleBuildablePrevEventKey);
+            debugDestroyEventReceiver = new EventReceiver(PlayerInput.DebugDestroyEventKey);
             
             // Get BuildingPlacementController, assuming it's on the same entity
             buildingPlacementController = Entity.Get<BuildingPlacementController>();
@@ -72,6 +78,16 @@ namespace FirstPersonShooter.Player
                     if (rotateBuildRightEventReceiver.TryReceive())
                     {
                         buildingPlacementController.RotateGhost(true); // true for clockwise / right
+                    }
+
+                    // Handle cycling buildable items
+                    if (cycleBuildableNextEventReceiver.TryReceive())
+                    {
+                        buildingPlacementController.CycleBuildableItem(true); // true for next
+                    }
+                    if (cycleBuildablePrevEventReceiver.TryReceive())
+                    {
+                        buildingPlacementController.CycleBuildableItem(false); // false for previous
                     }
                 }
             }
@@ -110,7 +126,66 @@ namespace FirstPersonShooter.Player
                     }
                 }
             }
+
+            // Handle Debug Destroy action
+            if (debugDestroyEventReceiver.TryReceive())
+            {
+                if (buildingPlacementController == null || !buildingPlacementController.IsBuildingModeActive)
+                {
+                    DebugAttemptDestroyTarget();
+                }
+                else
+                {
+                    Log.Info("Debug Destroy action ignored: In building mode.");
+                }
+            }
         }
+
+        private void DebugAttemptDestroyTarget()
+        {
+            var playerInput = Entity.Get<PlayerInput>(); // Need this to get the camera
+            if (playerInput == null || playerInput.Camera == null)
+            {
+                Log.Error("PlayerEquipment.DebugAttemptDestroyTarget: PlayerInput or Camera not found.");
+                return;
+            }
+
+            var camera = playerInput.Camera;
+            var simulation = this.GetSimulation();
+            if (simulation == null)
+            {
+                Log.Error("PlayerEquipment.DebugAttemptDestroyTarget: Physics simulation not found.");
+                return;
+            }
+
+            Matrix cameraWorldMatrix = camera.Entity.Transform.WorldMatrix;
+            Vector3 raycastStart = cameraWorldMatrix.TranslationVector;
+            Vector3 raycastForward = cameraWorldMatrix.Forward;
+            float raycastDistance = 15f; // Max distance for debug destroy
+
+            var hitResult = simulation.Raycast(raycastStart, raycastStart + raycastForward * raycastDistance);
+
+            if (hitResult.Succeeded && hitResult.Collider != null)
+            {
+                var hitEntity = hitResult.Collider.Entity;
+                var pieceToDestroy = hitEntity?.Get<FirstPersonShooter.Building.Pieces.BaseBuildingPiece>(); // Fully qualify
+
+                if (pieceToDestroy != null)
+                {
+                    Log.Info($"Debug: Attempting to force destroy {hitEntity.Name}.");
+                    pieceToDestroy.Debug_ForceDestroy();
+                }
+                else
+                {
+                    Log.Info($"Debug: Raycast hit {hitEntity?.Name ?? "Unknown"}, but it's not a BaseBuildingPiece.");
+                }
+            }
+            else
+            {
+                Log.Info("Debug: Destroy raycast hit nothing.");
+            }
+        }
+
 
         /// <summary>
         /// Equips a new weapon. If a weapon is already equipped, it will be unequipped first.

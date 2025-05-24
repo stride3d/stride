@@ -54,5 +54,19 @@ namespace FirstPersonShooter.Audio
         //    // e.g., if (weaponMaterial == MaterialType.Metal && surfaceMaterial == MaterialType.Wood) return "Sounds/Impacts/MetalOnWood";
         //    return null; // Placeholder
         // }
+
+        /// <summary>
+        /// Plays an explosion sound at the given position.
+        /// Currently logs the intended sound playback.
+        /// </summary>
+        /// <param name="position">The world position of the explosion.</param>
+        public static void PlayExplosionSound(Vector3 position)
+        {
+            // Actual audio playback logic will be implemented in a future task.
+            Log.Info($"SoundManager: PlayExplosionSound at {position}");
+            // Example future logic:
+            // var sound = Content.Load<Sound>("Sounds/Explosions/GenericExplosion");
+            // if (sound != null) { sound.Play(position); } // Or use a SoundEmitter
+        }
     }
 }
