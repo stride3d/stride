@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
              xmlns:md="https://github.com/whistyun/Markdown.Avalonia.Tight"
+             xmlns:p="using:Stride.Core.Presentation.Avalonia.Services"
              xmlns:l="using:Stride.Launcher.Assets.Localization"
              xmlns:srv="using:Stride.Launcher.Services"
              xmlns:vm="using:Stride.Launcher.ViewModels"
@@ -240,7 +241,7 @@
               </Border>
               <!-- Visual studio extensions -->
               <Border DockPanel.Dock="Bottom"
-                      IsVisible="{Binding Source={x:Static srv:OperatingSystemHelper.IsWindows}, Mode=OneTime}"
+                      IsVisible="{Binding Source={x:Static p:OperatingSystemHelper.IsWindows}, Mode=OneTime}"
                       BorderBrush="{StaticResource TileBorderBrush}" BorderThickness="{StaticResource BorderThicknessTile}">
                 <StackPanel>
                   <StackPanel.DataTemplates>
@@ -270,7 +271,7 @@
                 </StackPanel>
               </Border>
               <Border DockPanel.Dock="Bottom"
-                      IsVisible="{Binding Source={x:Static srv:OperatingSystemHelper.IsWindows}, Mode=OneTime}"
+                      IsVisible="{Binding Source={x:Static p:OperatingSystemHelper.IsWindows}, Mode=OneTime}"
                       BorderBrush="{StaticResource BorderBrushTile}">
                 <DockPanel Margin="4,0">
                   <Button Classes="TransparentButton"
@@ -286,7 +287,7 @@
                 </DockPanel>
               </Border>
               <Border DockPanel.Dock="Bottom"
-                      IsVisible="{Binding Source={x:Static srv:OperatingSystemHelper.IsWindows}, Mode=OneTime}"
+                      IsVisible="{Binding Source={x:Static p:OperatingSystemHelper.IsWindows}, Mode=OneTime}"
                       BorderBrush="{StaticResource BorderBrushTile}" BorderThickness="12,0,0,0">
                 <DockPanel Height="32" Margin="4,0">
                   <Image Source="/Assets/Images/visual-studio.png"
@@ -510,9 +511,8 @@
                                FontSize="24" TextAlignment="Left" VerticalAlignment="Center" />
                   </DockPanel>
                 </Border>
-                <Grid ColumnDefinitions="*">
-                  <Border Grid.Column="0"
-                          BorderBrush="{StaticResource BorderBrushTile}" BorderThickness="{StaticResource BorderThicknessTile}"
+                <Grid>
+                  <Border BorderBrush="{StaticResource BorderBrushTile}" BorderThickness="{StaticResource BorderThicknessTile}"
                           Background="{StaticResource BackgroundTileAlpha}"
                           IsVisible="{Binding !RecentProjects.Count, FallbackValue={x:False}}"
                           VerticalAlignment="Top">
@@ -520,8 +520,7 @@
                                FontSize="16" Margin="20"
                                TextAlignment="Center" VerticalAlignment="Center" />
                   </Border>
-                  <Border Grid.Column="0"
-                          BorderBrush="{StaticResource BorderBrushTile}" BorderThickness="{StaticResource BorderThicknessTile}">
+                  <Border BorderBrush="{StaticResource BorderBrushTile}" BorderThickness="{StaticResource BorderThicknessTile}">
                     <ScrollViewer VerticalScrollBarVisibility="Auto">
                       <ItemsControl ItemsSource="{Binding RecentProjects}">
                         <ItemsControl.ItemTemplate>

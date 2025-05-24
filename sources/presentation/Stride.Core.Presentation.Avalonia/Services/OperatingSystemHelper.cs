@@ -1,4 +1,4 @@
-namespace Stride.Launcher.Services;
+namespace Stride.Core.Presentation.Avalonia.Services;
 
 public static class OperatingSystemHelper
 {
