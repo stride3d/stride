@@ -68,7 +68,7 @@ namespace Stride.Rendering.Lights
             spotGroup.Reset();
         }
 
-        public override void SetViews(FastList<RenderView> views)
+        public override void SetViews(List<RenderView> views)
         {
             base.SetViews(views);
 
@@ -202,7 +202,7 @@ namespace Stride.Rendering.Lights
             }
 
             /// <inheritdoc/>
-            public override void SetViews(FastList<RenderView> views)
+            public override void SetViews(List<RenderView> views)
             {
                 base.SetViews(views);
 

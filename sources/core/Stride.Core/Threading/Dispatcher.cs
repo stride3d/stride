@@ -345,11 +345,6 @@ public static class Dispatcher
         Sort(collection.Items, 0, collection.Count, comparer);
     }
 
-    public static void Sort<T>(FastList<T> collection, IComparer<T> comparer)
-    {
-        Sort(collection.Items, 0, collection.Count, comparer);
-    }
-
     public static void Sort<T>(T[] collection, int index, int length, IComparer<T> comparer)
     {
         using var _ = Profiler.Begin(DispatcherSortKey);

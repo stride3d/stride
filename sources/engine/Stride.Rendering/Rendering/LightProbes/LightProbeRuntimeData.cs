@@ -31,8 +31,8 @@ namespace Stride.Rendering.LightProbes
         // Computed data
         public Vector3[] Vertices;
         public int UserVertexCount;
-        public FastList<BowyerWatsonTetrahedralization.Tetrahedron> Tetrahedra;
-        public FastList<BowyerWatsonTetrahedralization.Face> Faces;
+        public List<BowyerWatsonTetrahedralization.Tetrahedron> Tetrahedra;
+        public List<BowyerWatsonTetrahedralization.Face> Faces;
 
         // Data to upload to GPU
         public Color3[] Coefficients;

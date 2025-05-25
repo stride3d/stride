@@ -5,19 +5,18 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Stride.Core.Assets.Editor.Services;
+using System.Collections.Generic;
 using Stride.Core.Annotations;
-using Stride.Core.Collections;
 using Stride.Core.Extensions;
 using Stride.Core.Mathematics;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Services;
+using Stride.Core.Presentation.ViewModels;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Services;
 using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
 using Stride.Engine;
 using Stride.Graphics;
 using Stride.Rendering.LightProbes;
-using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels
 {
@@ -71,7 +70,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewMode
                     {
                         // Find this light probe in Quantum
                         var assetNode = editor.NodeContainer.GetOrCreateNode(lightProbe);
-                        var zeroCoefficients = new FastList<Color3>();
+                        var zeroCoefficients = new List<Color3>();
                         for (int i = 0; i < LightProbeGenerator.LambertHamonicOrder * LightProbeGenerator.LambertHamonicOrder; ++i)
                             zeroCoefficients.Add(default(Color3));
                         assetNode[nameof(LightProbeComponent.Coefficients)].Update(zeroCoefficients);

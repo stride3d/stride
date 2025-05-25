@@ -80,7 +80,7 @@ namespace Stride.Rendering.Lights
         // Preallocted for CollectVisibleLights
         private readonly HashSet<RenderView> processedRenderViews = new HashSet<RenderView>();
 
-        private readonly FastList<RenderView> renderViews = new FastList<RenderView>();
+        private readonly List<RenderView> renderViews = [];
 
         private readonly Dictionary<ShaderSourceCollection, ShaderSourceCollection> shaderSourcesReadonlyCache = new Dictionary<ShaderSourceCollection, ShaderSourceCollection>();
 
@@ -613,7 +613,7 @@ namespace Stride.Rendering.Lights
             processedRenderViews.Clear();
         }
 
-        private void PrepareLightGroups(RenderDrawContext context, FastList<RenderView> renderViews, RenderView renderView, RenderViewLightData renderViewData, IShadowMapRenderer shadowMapRenderer, RenderGroup group)
+        private void PrepareLightGroups(RenderDrawContext context, List<RenderView> renderViews, RenderView renderView, RenderViewLightData renderViewData, IShadowMapRenderer shadowMapRenderer, RenderGroup group)
         {
             var viewIndex = renderViews.IndexOf(renderView);
 
