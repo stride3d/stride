@@ -49,7 +49,6 @@ namespace Stride.Rendering.Lights
             LightCurrentCount = 0;
         }
 
-        public virtual void SetViews(FastList<RenderView> views)
         public virtual void SetViews(List<RenderView> views)
         {
             Array.Resize(ref lightRanges, views.Count);
