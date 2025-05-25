@@ -1,12 +1,17 @@
-name: Test Windows
+name: Build Windows Runtime
 
 on:
   pull_request:
     paths:
-      - '.github/workflows/test-windows.yml'
-      - 'build/Stride.Tests.*.slnf'
+      - '.github/workflows/build-windows-runtime.yml'
+      - 'build/Stride.Runtime.sln'
       - 'deps/**'
-      - 'sources/**'
+      - 'sources/core/**'
+      - 'sources/engine/**'
+      - 'sources/native/**'
+      - 'sources/shaders/**'
+      - 'sources/shared/**'
+      - 'sources/targets/**'
       - '!**/.all-contributorsrc'
       - '!**/.editorconfig'
       - '!**/.gitignore'
@@ -16,36 +21,38 @@ on:
   workflow_dispatch:
     inputs:
       build-type:
-        description: Build 
-        default: Release
+        description: Build Configuration
+        default: Debug
         type: choice
         options:
           - Debug
           - Release
-      test-category:
-        description: Category of tests
-        default: Simple
+      graphics-api:
+        description: Graphics API
+        default: Direct3D11
         type: choice
         options:
-          - Simple
-          - Game
-          - VSPackage
+          - Direct3D11
+          - Direct3D12
+          - OpenGL
+          - OpenGLES
+          - Vulkan
   workflow_call:
     inputs:
       build-type:
-        default: Release
+        default: Debug
         type: string
-      test-category:
-        default: Simple
+      graphics-api:
+        default: Direct3D11
         type: string
 
 jobs:
   #
-  # Test Stride on Windows
+  # Build Stride Runtime for Windows
   #
-  Windows-Tests:
+  Windows-Runtime:
     if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'workflow_call' || github.event.pull_request.draft == false }}
-    name: Test (${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}, ${{ github.event.inputs.test-category || inputs.test-category || 'Simple' }})
+    name: Build (${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}, ${{ github.event.inputs.graphics-api || inputs.graphics-api || 'Direct3D11' }})
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -57,14 +64,11 @@ jobs:
       - uses: microsoft/setup-msbuild@v2
       - name: Build
         run: |
-          msbuild build\Stride.Tests.${{ github.event.inputs.test-category || inputs.test-category || 'Simple' }}.slnf `
+          msbuild build\Stride.Runtime.sln `
             -restore -m:1 -nr:false `
             -v:m -p:WarningLevel=0 `
             -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} `
             -p:StridePlatforms=Windows `
-            -p:StrideGraphicsApis=Direct3D11
-      - name: Test
-        run: |
-          dotnet test build\Stride.Tests.${{ github.event.inputs.test-category || inputs.test-category || 'Simple' }}.slnf `
-            --no-build `
-            -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
+            -p:StrideGraphicsApis=${{ github.event.inputs.graphics-api || inputs.graphics-api || 'Direct3D11' }} `
+            -p:StrideSkipUnitTests=true `
+            -p:StrideSkipAutoPack=true
