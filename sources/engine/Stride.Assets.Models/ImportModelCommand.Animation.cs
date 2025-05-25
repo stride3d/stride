@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using Stride.Core.BuildEngine;
 using Stride.Core.Collections;
 using Stride.Core.Extensions;
@@ -241,11 +242,12 @@ namespace Stride.Assets.Models
                                 {
                                     // Translate node with parent 0 using PivotPosition
                                     var keyFrames = ((AnimationCurve<Vector3>)curve).KeyFrames;
+                                    var leyFramesSpan = CollectionsMarshal.AsSpan(keyFrames);
                                     for (int i = 0; i < keyFrames.Count; ++i)
                                     {
                                         if (parentNodeIndex == 0)
-                                            keyFrames.Items[i].Value -= PivotPosition;
-                                        keyFrames.Items[i].Value *= ScaleImport;
+                                            leyFramesSpan[i].Value -= PivotPosition;
+                                        leyFramesSpan[i].Value *= ScaleImport;
                                     }
                                 }
                                 animationClip.AddCurve($"[ModelComponent.Key].Skeleton.NodeTransformations[{skeletonMapping.SourceToTarget[nodeIndex]}]." + channelName, curve);

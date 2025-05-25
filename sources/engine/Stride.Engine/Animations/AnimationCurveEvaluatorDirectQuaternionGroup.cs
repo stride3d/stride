@@ -3,20 +3,21 @@
 
 using System;
 using Stride.Core.Mathematics;
+using System.Runtime.InteropServices;
 
 namespace Stride.Animations
 {
     public class AnimationCurveEvaluatorDirectQuaternionGroup : AnimationCurveEvaluatorDirectBlittableGroupBase<Quaternion>
     {
-        protected unsafe override void ProcessChannel(ref Channel channel, CompressedTimeSpan newTime, IntPtr location)
+        protected override unsafe void ProcessChannel(ref Channel channel, CompressedTimeSpan newTime, IntPtr location)
         {
             SetTime(ref channel, newTime);
 
             var currentTime = channel.CurrentTime;
             var currentIndex = channel.CurrentIndex;
 
-            var keyFrames = channel.Curve.KeyFrames;
-            var keyFramesItems = keyFrames.Items;
+            var keyFrames      = channel.Curve.KeyFrames;
+            var keyFramesItems = CollectionsMarshal.AsSpan(keyFrames);
             var keyFramesCount = keyFrames.Count;
 
             // Extract data
