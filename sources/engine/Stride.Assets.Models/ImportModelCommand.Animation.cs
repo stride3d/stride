@@ -159,7 +159,7 @@ namespace Stride.Assets.Models
                             var animationKeys = animationKeysSet.ToList();
                             animationKeys.Sort();
 
-                            var animationOperations = new FastList<AnimationOperation>();
+                            var animationOperations = new List<AnimationOperation>();
 
                             var combinedAnimationClip = new AnimationClip();
 
@@ -242,12 +242,12 @@ namespace Stride.Assets.Models
                                 {
                                     // Translate node with parent 0 using PivotPosition
                                     var keyFrames = ((AnimationCurve<Vector3>)curve).KeyFrames;
-                                    var leyFramesSpan = CollectionsMarshal.AsSpan(keyFrames);
+                                    var keyFramesSpan = CollectionsMarshal.AsSpan(keyFrames);
                                     for (int i = 0; i < keyFrames.Count; ++i)
                                     {
                                         if (parentNodeIndex == 0)
-                                            leyFramesSpan[i].Value -= PivotPosition;
-                                        leyFramesSpan[i].Value *= ScaleImport;
+                                            keyFramesSpan[i].Value -= PivotPosition;
+                                        keyFramesSpan[i].Value *= ScaleImport;
                                     }
                                 }
                                 animationClip.AddCurve($"[ModelComponent.Key].Skeleton.NodeTransformations[{skeletonMapping.SourceToTarget[nodeIndex]}]." + channelName, curve);

@@ -299,7 +299,7 @@ namespace Stride.Graphics
         /// <param name="renderTargetViewCount">The number of render target in <paramref name="renderTargetViews"/>.</param>
         /// <param name="renderTargetViews">A set of render target views to bind.</param>
         /// <exception cref="System.ArgumentNullException">renderTargetViews</exception>
-        public void SetRenderTargets(Texture depthStencilView, int renderTargetViewCount, Texture[] renderTargetViews)
+        public void SetRenderTargets(Texture depthStencilView, int renderTargetViewCount, IReadOnlyList<Texture> renderTargetViews)
         {
             depthStencilBuffer = depthStencilView;
 

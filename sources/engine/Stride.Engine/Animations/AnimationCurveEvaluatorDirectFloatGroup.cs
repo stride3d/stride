@@ -19,7 +19,7 @@ namespace Stride.Animations
             var currentTime = channel.CurrentTime;
             var currentIndex = channel.CurrentIndex;
 
-            var keyFrames      = channel.Curve.KeyFrames;
+            var keyFrames = channel.Curve.KeyFrames;
             var keyFramesItems = CollectionsMarshal.AsSpan(keyFrames);
             var keyFramesCount = keyFrames.Count;
 
