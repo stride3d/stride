@@ -12,7 +12,7 @@ namespace Stride.Core.Mathematics;
 /// </summary>
 [DataContract]
 [StructLayout(LayoutKind.Sequential, Pack = 4)]
-public struct BoundingBoxExt : IEquatable<BoundingBoxExt>
+public struct BoundingBoxExt : IEquatable<BoundingBoxExt>, ISpanFormattable
 {
     /// <summary>
     /// A <see cref="BoundingBoxExt"/> which represents an empty space.
@@ -129,6 +129,43 @@ public struct BoundingBoxExt : IEquatable<BoundingBoxExt>
     public override readonly bool Equals([NotNullWhen(true)] object? obj)
     {
         return obj is BoundingBoxExt boundingBoxExt && Equals(boundingBoxExt);
+    }
+
+    /// <summary>
+    /// Returns a <see cref="string"/> that represents this instance.
+    /// </summary>
+    /// <returns>
+    /// A <see cref="string"/> that represents this instance.
+    /// </returns>
+    public override readonly string ToString() => $"{this}";
+
+    /// <summary>
+    /// Returns a <see cref="string"/> that represents this instance.
+    /// </summary>
+    /// <param name="format">The format.</param>
+    /// <param name="formatProvider">The format provider.</param>
+    /// <returns>
+    /// A <see cref="string"/> that represents this instance.
+    /// </returns>
+    public readonly string ToString(string? format, IFormatProvider? formatProvider)
+    {
+        var handler = new DefaultInterpolatedStringHandler(15, 2, formatProvider);
+        handler.AppendLiteral("Center:");
+        handler.AppendFormatted(Center, format);
+        handler.AppendLiteral(" Extent:");
+        handler.AppendFormatted(Extent, format);
+        return handler.ToStringAndClear();
+    }
+
+    bool ISpanFormattable.TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
+    {
+        var format1 = format.Length > 0 ? format.ToString() : null;
+        var handler = new MemoryExtensions.TryWriteInterpolatedStringHandler(15, 2, destination, provider, out _);
+        handler.AppendLiteral("Center:");
+        handler.AppendFormatted(Center, format1);
+        handler.AppendLiteral(" Extent:");
+        handler.AppendFormatted(Extent, format1);
+        return destination.TryWrite(ref handler, out charsWritten);
     }
 
     /// <inheritdoc/>

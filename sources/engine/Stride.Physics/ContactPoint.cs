@@ -17,6 +17,21 @@ namespace Stride.Physics
         public Vector3 PositionOnA;
         public Vector3 PositionOnB;
 
+        /// <summary>
+        /// The normal impulse applied to resolve a collision between two bodies
+        /// </summary>
+        public float AppliedImpulse;
+
+        /// <summary>
+        /// Tangential impulse to contact point of <see cref="AppliedImpulse"/>
+        /// </summary>
+        public float AppliedImpulseLateral1;
+
+        /// <summary>
+        /// Perpendicular impulse to both <see cref="AppliedImpulse"/> and <see cref="AppliedImpulseLateral1"/>
+        /// </summary>
+        public float AppliedImpulseLateral2;
+
 
         public bool Equals(ContactPoint other)
         {
@@ -25,7 +40,10 @@ namespace Stride.Physics
                    && Distance == other.Distance
                    && Normal == other.Normal
                    && PositionOnA == other.PositionOnA
-                   && PositionOnB == other.PositionOnB;
+                   && PositionOnB == other.PositionOnB
+                   && AppliedImpulse == other.AppliedImpulse
+                   && AppliedImpulseLateral1 == other.AppliedImpulseLateral1
+                   && AppliedImpulseLateral2 == other.AppliedImpulseLateral2;
         }
 
 
@@ -34,7 +52,17 @@ namespace Stride.Physics
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(ColliderA, ColliderB, Distance, Normal, PositionOnA, PositionOnB);
+            var hash = new HashCode();
+            hash.Add(ColliderA);
+            hash.Add(ColliderB);
+            hash.Add(Distance);
+            hash.Add(Normal);
+            hash.Add(PositionOnA);
+            hash.Add(PositionOnB);
+            hash.Add(AppliedImpulse);
+            hash.Add(AppliedImpulseLateral1);
+            hash.Add(AppliedImpulseLateral2);
+            return hash.ToHashCode();
         }
     }
 }

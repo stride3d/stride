@@ -15,7 +15,13 @@ namespace Stride.BepuPhysics.Constraints;
 [ComponentCategory("Physics - Bepu Constraint")]
 public sealed class TwistServoConstraintComponent : TwoBodyConstraintComponent<TwistServo>, IServo, ISpring
 {
-    public TwistServoConstraintComponent() => BepuConstraint = new() { SpringSettings = new SpringSettings(30, 5), ServoSettings = new ServoSettings(10, 1, 1000) };
+    public TwistServoConstraintComponent() => BepuConstraint = new()
+    {
+        LocalBasisA = Quaternion.Identity,
+        LocalBasisB = Quaternion.Identity,
+        SpringSettings = new SpringSettings(30, 5),
+        ServoSettings = new ServoSettings(10, 1, 1000)
+    };
 
     /// <summary>
     /// Local space basis attached to body A against which to measure body B's transformed axis.

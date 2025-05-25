@@ -51,8 +51,8 @@ Our [Roadmap](https://doc.stride3d.net/latest/en/contributors/roadmap.html) comm
    - **.NET desktop development** with **.NET Framework 4.7.2 targeting pack** *(should be enabled by default)*
    - **Desktop development with C++** with:
      - **Windows 11 SDK (10.0.22621.0)** or a later version *(should be enabled by default)*
-     - **MSVC v143 - VS2022 C++ x64/x86 build tools (Latest)** *(should be enabled by default)*
-     - **MSVC v143 - VS2022 C++ ARM64/ARM64EC build tools (Latest)** *(not enabled by default, click Individual components tab to select or search)*
+     - **MSVC v143 - VS 2022 C++ x64/x86 build tools (Latest)** *(should be enabled by default)*
+     - **MSVC v143 - VS 2022 C++ ARM64/ARM64EC build tools (Latest)** *(not enabled by default, click Individual components tab to select or search)*
      - **C++/CLI support for v143 build tools (Latest)** *(not enabled by default)*
    - *Optional* (to target iOS/Android): **.NET Multi-platform App UI development** and the **Android SDK setup** individual component (enabled by default). Then, in Visual Studio, go to `Tools > Android > Android SDK Manager` and install **NDK** (version 20.1+) from the `Tools` tab.
    - *Optional* (to build the VSIX package): **Visual Studio extension development**
@@ -282,3 +282,4 @@ Thanks to all these wonderful people who have contributed to Stride!
 <!-- ALL-CONTRIBUTORS-LIST:END -->
 
 This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification. Contributions of any kind welcome!
+

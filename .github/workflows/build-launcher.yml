@@ -1,0 +1,58 @@
+name: Build Launcher
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/build-launcher.yml'
+      - 'build/Stride.Launcher.sln'
+      - 'sources/core/**'
+      - 'sources/launcher/**'
+      - 'sources/presentation/**'
+      - 'sources/shared/**'
+      - 'sources/targets/**'
+      - '!**/.all-contributorsrc'
+      - '!**/.editorconfig'
+      - '!**/.gitignore'
+      - '!**/*.md'
+      - '!crowdin.yml'
+    types: [opened, synchronize, reopened, ready_for_review]
+  workflow_dispatch:
+    inputs:
+      build-type:
+        description: Build Configuration
+        default: Debug
+        type: choice
+        options:
+          - Debug
+          - Release
+  workflow_call:
+    inputs:
+      build-type:
+        default: Debug
+        type: string
+
+jobs:
+  #
+  # Build Stride Runtime for Windows
+  #
+  Launcher:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'workflow_call' || github.event.pull_request.draft == false }}
+    name: Build (${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }})
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - uses: microsoft/setup-msbuild@v2
+      - name: Build
+        run: |
+          msbuild build\Stride.Launcher.sln `
+            -restore -m:1 -nr:false `
+            -v:m -p:WarningLevel=0 `
+            -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} `
+            -p:StridePlatforms=Windows `
+            -p:StrideSkipUnitTests=true `
+            -p:StrideSkipAutoPack=true

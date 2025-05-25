@@ -98,10 +98,12 @@ public class TestTypeConverter
     private static void TestConversionMultipleCultures<T>(T testValue)
         where T : struct
     {
-        Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
-        TestConversion(testValue);
-        Thread.CurrentThread.CurrentCulture = new CultureInfo("fr-FR");
-        TestConversion(testValue);
+        string[] supportedLanguages = ["de-DE", "en-US", "es-ES", "fr-FR", "it-IT", "ja-JP", "ko-KR", "ru-RU", "zh-Hans"];
+        foreach (var lang in supportedLanguages)
+        {
+            Thread.CurrentThread.CurrentCulture = CultureInfo.GetCultureInfo(lang);
+            TestConversion(testValue);
+        }
     }
 
     private static void TestConversion<T>(T testValue)
@@ -109,11 +111,15 @@ public class TestTypeConverter
     {
         var converter = TypeDescriptor.GetConverter(typeof(T));
         Assert.NotNull(converter);
+
+        // Initial conversion
         Assert.True(converter.CanConvertTo(typeof(string)));
         var value = converter.ConvertTo(testValue, typeof(string));
         Assert.Equal(testValue.ToString(), value);
+
+        // Reverse conversion
         Assert.True(converter.CanConvertFrom(typeof(string)));
-        var result = converter.ConvertFrom(value);
+        var result = converter.ConvertFrom(value!);
         Assert.Equal(testValue, result);
     }
 }
