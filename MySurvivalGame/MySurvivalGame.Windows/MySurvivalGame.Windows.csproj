@@ -1,0 +1,26 @@
+<Project Sdk="Stride.Sdk.Windows">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework> <!-- Or net7.0, net8.0 as compatible -->
+    <OutputType>WinExe</OutputType>
+    <RootNamespace>MySurvivalGame</RootNamespace>
+    <AssemblyName>MySurvivalGame</AssemblyName>
+    <StrideBuildTags>Windows</StrideBuildTags>
+    <StrideOutputFolder>Windows</StrideOutputFolder> <!-- Optional: Specifies the output folder within bin -->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\MySurvivalGame.Game\MySurvivalGame.Game.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Stride.Games" Version="4.2.0.2381" />
+    <PackageReference Include="Stride.Startup" Version="4.2.0.2381" />
+    <PackageReference Include="Stride.Engine" Version="4.2.0.2381" />
+    <PackageReference Include="Stride.Core.Assets.CompilerApp" Version="4.2.0.2381" />
+  </ItemGroup>
+
+</Project>

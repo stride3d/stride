@@ -1,0 +1,24 @@
+!GameSettings
+Id: ffffffff-ffff-ffff-ffff-fffffffffffe # Placeholder GameSettings ID
+DefaultScene: !SceneReference
+  Id: ffffffff-ffff-ffff-ffff-ffffffffffff # Matches BasicScene.sdscene ID
+  Location: Scenes/BasicScene.sdscene
+GraphicsCompositor: !GraphicsCompositor
+  Cameras:
+    - !SceneCameraSlot
+      Id: ffffffff-0000-0000-0000-000000000001 # Placeholder Camera Slot ID
+      Name: MainCameraSlot 
+      RenderMask: 0xFFFFFFFF # Render everything
+  Renderers:
+    - !ForwardRenderer
+      ColorTarget: !ColorTargetOutputDescription {}
+      DepthTarget: !DepthTargetOutputDescription {}
+  RenderStages:
+    - !RenderStage
+      Name: Main
+      EffectSlotName: Main
+      SortMode: BackToFrontTransparent # Typical sort mode
+      Filter: null # Render everything
+  Output: !DisplayOutputDescription {}
+StereoOutput: !StereoOutputDescription {}
+PlatformSpecifics: {}

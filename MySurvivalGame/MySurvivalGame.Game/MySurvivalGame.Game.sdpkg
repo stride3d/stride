@@ -1,0 +1,23 @@
+!Package
+Id: 00000000-0000-0000-0000-000000000000
+Meta:
+    Name: MySurvivalGame.Game
+    Version: 1.0.0
+    Authors: []
+    Owners: []
+    Dependencies: null
+Profiles:
+    -   Name: Shared
+        Platform: Shared
+        InheritProfiles: []
+        AssetFolders:
+            - Path: Assets/Shared
+            - Path: MySurvivalGame.Game/Effects
+        ResourceFolders:
+            - Path: Resources
+        OutputGroupDirectories: {}
+        ProjectReferences: []
+ExplicitFolders: []
+Bundles: []
+TemplateFolders: []
+OutputGroups: []

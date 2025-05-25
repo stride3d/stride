@@ -1,0 +1,8 @@
+<Grid xmlns="http://schemas.stride3d.net/xaml/presentation"
+      xmlns:x="http://schemas.stride3d.net/xaml"
+      Name="RootPanel" Width="64" Height="64" Background="#FF404040">
+    <Border BorderBrush="#FF606060" BorderThickness="1"/>
+    <Image Name="ItemIconImage" Stretch="Uniform" Margin="4"/>
+    <TextBlock Name="QuantityText" Text="99" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="2,2,4,2" FontSize="12" TextColor="#FFE0E0E0"/>
+    <ProgressBar Name="DurabilityBar" Height="5" VerticalAlignment="Bottom" Margin="2,2,2,2" Value="0.75" Minimum="0" Maximum="1.0" Visibility="Collapsed" BackgroundColor="#FF202020" ForegroundColor="#FF50A050"/>
+</Grid>

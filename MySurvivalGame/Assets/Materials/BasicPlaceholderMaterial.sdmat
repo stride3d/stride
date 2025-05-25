@@ -1,0 +1,16 @@
+!MaterialAsset
+Id: ffffffff-ffff-ffff-0000-000000000002 # Matches the ID used in BasicScene.sdscene
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Attributes:
+  Diffuse: !MaterialDiffuseMapFeature
+    DiffuseMap: !ComputeColor
+      Value: {R: 0.6, G: 0.6, B: 0.8, A: 1.0} # A light bluish-grey color
+  DiffuseModel: !MaterialDiffuseLambertModelFeature {}
+  Overrides:
+    UVScale: {X: 1.0, Y: 1.0}
+Layers: {}
+Parameters: {}
+BlendMode: AlphaBlend
+CullMode: Back
+ sélectionné: false

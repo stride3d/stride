@@ -1,0 +1,22 @@
+<Project Sdk="Stride.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework> <!-- Or net7.0, net8.0 as compatible -->
+    <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
+    <StrideAssemblyProcessorOptions>--auto-module-initializer --serialization</StrideAssemblyProcessorOptions>
+    <StrideBuildTags>Windows</StrideBuildTags> <!-- Adjust if targeting other platforms -->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Stride.Engine" Version="4.2.0.2381" />
+    <PackageReference Include="Stride.Core" Version="4.2.0.2381" />
+    <PackageReference Include="Stride.Input" Version="4.2.0.2381" />
+    <PackageReference Include="Stride.Physics" Version="4.2.0.2381" />
+    <PackageReference Include="Stride.Navigation" Version="4.2.0.2381" />
+    <!-- Add other Stride packages as needed, e.g., Stride.Particles, Stride.UI -->
+  </ItemGroup>
+
+</Project>

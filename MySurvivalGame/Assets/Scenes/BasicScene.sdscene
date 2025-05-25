@@ -1,0 +1,190 @@
+!Scene
+Id: ffffffff-ffff-ffff-ffff-ffffffffffff # Placeholder Scene ID
+Entities:
+  - Id: 10000000-0000-0000-0000-000000000001 # Player Entity ID
+    Name: Player
+    Components:
+      - !ScriptComponent # PlayerInput Script
+        Id: 10000000-0000-0000-0001-000000000001 # ScriptComponent ID for PlayerInput
+        ScriptType: MySurvivalGame.Game.PlayerInput, MySurvivalGame.Game, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
+        Parameters:
+          Camera: !EntityReference # Link to the Camera entity's CameraComponent
+            Id: 10000000-0000-0000-0000-000000000002 # Camera Entity ID
+            ComponentName: !IdReference { Id: 10000000-0000-0000-0002-000000000002 } # CameraComponent ID on Camera Entity
+          DeadZone: 0.25
+          MouseSensitivity: 100.0 # This is for PlayerInput's own mouse handling.
+      - !CharacterComponent # Stride CharacterComponent
+        Id: 10000000-0000-0000-0001-000000000002 # New Component ID for CharacterComponent
+        MaxSlope: 0.785398 # Radians (45 degrees)
+        JumpSpeed: 6.0
+        FallSpeed: 10.0 # Max fall speed
+        Gravity: {X: 0.0, Y: -20.0, Z: 0.0}
+        MaxIterations: 4
+        ProcessCollisions: true
+        CollisionGroup: CharacterFilter
+        CollisionMask: DefaultFilter
+        ColliderShapes:
+          - !CapsuleColliderShapeDesc
+            Radius: 0.4
+            Length: 1.2 # Cylindrical part height
+            LocalOffset: {X: 0.0, Y: 0.95, Z: 0.0} # Offset to position base at Y=0
+            Orientation: !Quaternion {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0} # Default orientation (Y-axis up)
+      - !ScriptComponent # PlayerController Script
+        Id: 10000000-0000-0000-0001-000000000003 # New Component ID for PlayerController
+        ScriptType: MySurvivalGame.Game.PlayerController, MySurvivalGame.Game, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
+        Parameters:
+          MaxRunSpeed: 5.0
+      - !ScriptComponent # PlayerHotbarManager Script
+        Id: 10000000-0000-0000-0001-000000000004 # New Component ID for PlayerHotbarManager
+        ScriptType: MySurvivalGame.Game.Player.PlayerHotbarManager, MySurvivalGame.Game, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
+        Parameters: {} # No parameters to set for now
+      - !ScriptComponent # PlayerInventoryComponent Script
+        Id: 10000000-0000-0000-0001-000000000005 # New Component ID for PlayerInventoryComponent
+        ScriptType: MySurvivalGame.Game.Player.PlayerInventoryComponent, MySurvivalGame.Game, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
+        Parameters: {} # No parameters to set for now
+      - !ScriptComponent # PlayerEquipment Script
+        Id: 10000000-0000-0000-0001-000000000006 # New Component ID for PlayerEquipment
+        ScriptType: MySurvivalGame.Game.Player.PlayerEquipment, MySurvivalGame.Game, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
+        Parameters: {} # No parameters to set for now
+    Children:
+      - Id: 10000000-0000-0000-0000-000000000005 # PlayerModel Entity ID (formerly PlayerModelPlaceholder)
+        Name: PlayerModel # MODIFIED: Renamed from PlayerModelPlaceholder
+        Components:
+          - !ModelComponent
+            Id: 10000000-0000-0000-0005-000000000001 # ModelComponent ID for Placeholder
+            Model: !CubeModel {} # Simple Cube
+            MaterialInstance: !MaterialInstance # Optional: add a basic material if needed
+              Material: !MaterialReference # Placeholder material, can be created later
+                Id: ffffffff-ffff-ffff-0000-000000000002 
+                Location: ../Materials/BasicPlaceholderMaterial.sdmat
+          - !AnimationComponent # Stride AnimationComponent
+            Id: 10000000-0000-0000-0005-000000000002 # New Component ID for AnimationComponent
+            Animations: {} # Animations dictionary remains empty as FBX files were not found.
+            BlendOperation: Additive 
+            DefaultRetargeting: Root 
+          - !ScriptComponent # PlayerAnimationController Script
+            Id: 10000000-0000-0000-0005-000000000003 # New Component ID for PlayerAnimationController
+            ScriptType: MySurvivalGame.Game.PlayerAnimationController, MySurvivalGame.Game, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
+            Parameters:
+              TargetAnimationComponent: !EntityReference # MODIFIED: Parameter name updated from AnimComponent
+                Id: 10000000-0000-0000-0000-000000000005 # PlayerModel Entity ID
+                ComponentName: !IdReference { Id: 10000000-0000-0000-0005-000000000002 } # AnimationComponent ID
+              Character: !EntityReference # Link to the CharacterComponent on the parent Player entity
+                Id: 10000000-0000-0000-0000-000000000001 # Player Entity ID
+                ComponentName: !IdReference { Id: 10000000-0000-0000-0001-000000000002 } # CharacterComponent ID
+        Transform:
+          Position: [0.0, 0.0, 0.0] # Position relative to Player root
+          Rotation: [0.0, 0.0, 0.0, 1.0]
+          Scale: [0.5, 1.0, 0.5] # Example dimensions for a player-like shape
+      - Id: 10000000-0000-0000-0000-000000000002 # Camera Entity ID
+        Name: Camera
+        Components:
+          - !CameraComponent # Stride CameraComponent
+            Id: 10000000-0000-0000-0002-000000000002 # CameraComponent ID
+            Slot: MainCameraSlot
+            UseCustomAspectRatio: false
+            NearClipPlane: 0.1
+            FarClipPlane: 1000.0
+            FieldOfView: 45.0 # Degrees
+            OrthographicSize: 10.0 # Not used for perspective
+          - !ScriptComponent # PlayerCamera Script
+            Id: 10000000-0000-0000-0002-000000000003 # ScriptComponent ID for PlayerCamera (reused from MyFpsCamera for simplicity)
+            ScriptType: MySurvivalGame.Game.PlayerCamera, MySurvivalGame.Game, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
+            Parameters:
+              Player: !EntityReference 
+                Id: 10000000-0000-0000-0000-000000000001 # Link to Player Entity
+                ComponentName: # No specific component, just the entity itself
+              PlayerInput: !EntityReference
+                Id: 10000000-0000-0000-0000-000000000001 # Link to Player Entity
+                ComponentName: !IdReference { Id: 10000000-0000-0000-0001-000000000001 } # Link to PlayerInput script on Player Entity
+              FpsTargetHeight: 1.6
+              DefaultTpsDistance: 4.0
+              DefaultTpsHeightOffset: 1.8
+              TpsCollisionMargin: 0.2
+              CameraSensitivity: 1.0 # PlayerInput already applies sensitivity, so this should be 1.0 or adjusted based on PlayerInput's MouseSensitivity
+              RotationXMin: -70.0
+              RotationXMax: 70.0
+        Transform:
+          Position: [0.0, 1.6, 0.0] # Initial position, PlayerCamera script will control this
+          Rotation: [0.0, 0.0, 0.0, 1.0] # Initial rotation, PlayerCamera script will control this
+          Scale: [1.0, 1.0, 1.0]
+
+  - Id: 10000000-0000-0000-0000-000000000003 # Ground Entity ID
+    Name: Ground
+    Components:
+      - !ModelComponent
+        Id: 10000000-0000-0000-0003-000000000001 # ModelComponent ID for Ground
+        Model: !PlaneModel # Basic plane
+          Size: {X: 20.0, Y: 20.0}
+        MaterialInstance: !MaterialInstance
+          Material: !MaterialReference
+            Id: ffffffff-ffff-ffff-0000-000000000001 # Placeholder material ID
+            Location: BasicGroundMaterial # Will need a BasicGroundMaterial.sdmat
+      - !StaticColliderComponent
+        Id: 10000000-0000-0000-0003-000000000002
+        Shapes:
+          - !ColliderShapeAsset 
+            Shape: !PlaneColliderShapeDesc {}
+    Transform:
+      Position: [0.0, 0.0, 0.0]
+      Rotation: [0.0, 0.0, 0.0, 1.0]
+      Scale: [1.0, 1.0, 1.0]
+
+  - Id: 10000000-0000-0000-0000-000000000004 # Directional Light Entity ID
+    Name: DirectionalLight
+    Components:
+      - !LightComponent
+        Id: 10000000-0000-0000-0004-000000000001 # LightComponent ID
+        Type: !DirectionalLight {}
+        Intensity: 1.0
+        Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+    Transform:
+      Position: [0.0, 5.0, 0.0]
+      Rotation: [-0.382683432, 0.0, 0.0, 0.9238795] # Angled down
+      Scale: [1.0, 1.0, 1.0]
+
+Settings:
+  SceneUserData: {}
+Parent: null
+Children: []
+AssetReferences:
+  - Id: ffffffff-ffff-ffff-0000-000000000001
+    Location: ../Materials/BasicGroundMaterial.sdmat # Reference to the ground material
+    Type: Material
+  - Id: ffffffff-ffff-ffff-0000-000000000002 # Asset reference for placeholder material
+    Location: ../Materials/BasicPlaceholderMaterial.sdmat
+    Type: Material
+  - Id: ffffffff-ffff-ffff-0000-000000000003 # Asset reference for InventoryPanel UI Page
+    Location: UI/InventoryPanel.sdslui # Path relative to Assets folder
+    Type: UIPage
+  - Id: ffffffff-ffff-ffff-0000-000000000004 # Asset reference for ItemSlot UI Prefab
+    Location: UI/ItemSlot.sdslui # Path relative to Assets folder
+    Type: UIPage # UI Prefabs are often also UIPage assets if they are self-contained scenes
+Dependencies: []
+SharedDependencies: []
+PlatformSpecifics: {}
+---
+# New InventoryUI Entity
+  - Id: 10000000-0000-0000-0000-000000000006 # InventoryUI Entity ID
+    Name: InventoryUI
+    Components:
+      - !UIComponent
+        Id: 10000000-0000-0000-0006-000000000001 # UIComponent ID for InventoryUI
+        Page: !UIPageAssetReference # Reference to InventoryPanel.sdslui
+          Id: ffffffff-ffff-ffff-0000-000000000003 # Matches AssetReference ID above
+          Location: UI/InventoryPanel.sdslui
+        RenderGroup: Group0 # Default UI render group
+        IsFullScreen: true # Assume it's a full screen UI for now
+        Resolution: {X: 1920.0, Y: 1080.0} # Virtual resolution
+        ResolutionStretch: Fit # How to handle aspect ratio differences
+      - !ScriptComponent # InventoryPanelScript
+        Id: 10000000-0000-0000-0006-000000000002 # ScriptComponent ID for InventoryPanelScript
+        ScriptType: MySurvivalGame.Game.UI.Scripts.InventoryPanelScript, MySurvivalGame.Game, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
+        Parameters:
+          ItemSlotPrefab: !PrefabReference # Reference to ItemSlot.sdslui (treated as a Prefab)
+            Id: ffffffff-ffff-ffff-0000-000000000004 # Matches AssetReference ID above
+            Location: UI/ItemSlot.sdslui 
+    Transform: # Default transform, UI positioning is handled within the UI system
+      Position: [0.0, 0.0, 0.0]
+      Rotation: [0.0, 0.0, 0.0, 1.0]
+      Scale: [1.0, 1.0, 1.0]
