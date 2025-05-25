@@ -7,9 +7,6 @@ using System.Runtime.InteropServices;
 
 namespace Stride.Animations
 {
-
-
-
     public class AnimationCurveEvaluatorDirectFloatGroup : AnimationCurveEvaluatorDirectBlittableGroupBase<float>
     {
         protected override unsafe void ProcessChannel(ref Channel channel, CompressedTimeSpan newTime, IntPtr location)
