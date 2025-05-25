@@ -16,6 +16,7 @@ namespace Stride.Animations
             var currentIndex = channel.CurrentIndex;
 
             var keyFrames = channel.Curve.KeyFrames;
+            var keyFramesItems = keyFrames.Items;
             var keyFramesCount = keyFrames.Count;
 
             // Extract data
@@ -27,32 +28,21 @@ namespace Stride.Animations
 
             if (channel.InterpolationType == AnimationCurveInterpolationType.Cubic)
             {
-                //TODO: because the cubic quaternion interpolation is not implemented yet;
-                throw new NotImplementedException();
-                
-                // Interpolator.Quaternion.Cubic(
-                //     ref keyFrames[currentIndex > 0 ? currentIndex - 1 : 0].Value,
-                //     ref keyFrames[currentIndex].Value,
-                //     ref keyFrames[currentIndex + 1].Value,
-                //     ref keyFrames[currentIndex + 2 >= keyFramesCount ? currentIndex + 1 : currentIndex + 2].Value,
-                //     t,
-                //     out *(Quaternion*)(location + channel.Offset));
+                Interpolator.Quaternion.Cubic(
+                    ref keyFramesItems[currentIndex > 0 ? currentIndex - 1 : 0].Value,
+                    ref keyFramesItems[currentIndex].Value,
+                    ref keyFramesItems[currentIndex + 1].Value,
+                    ref keyFramesItems[currentIndex + 2 >= keyFramesCount ? currentIndex + 1 : currentIndex + 2].Value,
+                    t,
+                    out *(Quaternion*)(location + channel.Offset));
             }
             else if (channel.InterpolationType == AnimationCurveInterpolationType.Linear)
             {
-                // Using spherical linear interpolation for quaternions
-                
-                var frameData1 = keyFrames[currentIndex].Value;
-                var frameData2 = keyFrames[currentIndex + 1].Value;
-                
                 Interpolator.Quaternion.SphericalLinear(
-                    ref frameData1,
-                    ref frameData2,
+                    ref keyFramesItems[currentIndex].Value,
+                    ref keyFramesItems[currentIndex + 1].Value,
                     t,
                     out *(Quaternion*)(location + channel.Offset));
-
-                keyFrames[currentIndex] = keyFrames[currentIndex] with { Value = frameData1 };
-                keyFrames[currentIndex + 1] = keyFrames[currentIndex + 1] with { Value = frameData2 };
             }
             else if (channel.InterpolationType == AnimationCurveInterpolationType.Constant)
             {

@@ -16,6 +16,7 @@ namespace Stride.Animations
             var currentIndex = channel.CurrentIndex;
 
             var keyFrames = channel.Curve.KeyFrames;
+            var keyFramesItems = keyFrames.Items;
             var keyFramesCount = keyFrames.Count;
 
             // Extract data
@@ -27,46 +28,21 @@ namespace Stride.Animations
 
             if (channel.InterpolationType == AnimationCurveInterpolationType.Cubic)
             {
-                var index01 = currentIndex > 0 ? currentIndex - 1 : 0;
-                var index02 = currentIndex;
-                var index03 = currentIndex + 1;
-                var index04 = currentIndex + 2 >= keyFramesCount ? currentIndex + 1 : currentIndex + 2;
-                
-                var keyFrameData01 = keyFrames[index01].Value;
-                var keyFrameData02 = keyFrames[index02].Value;
-                var keyFrameData03 = keyFrames[index03].Value;
-                var keyFrameData04 = keyFrames[index04].Value;
-                
-                Interpolator.Vector3.Cubic(ref keyFrameData01,
-                                           ref keyFrameData02,
-                                           ref keyFrameData03,
-                                           ref keyFrameData04,
-                                           t,
-                                           out *(Vector3*)(location + channel.Offset));
-                
-                keyFrames[index01] = keyFrames[index01] with { Value = keyFrameData01 };
-                keyFrames[index02] = keyFrames[index02] with { Value = keyFrameData02 };
-                keyFrames[index03] = keyFrames[index03] with { Value = keyFrameData03 };
-                keyFrames[index04] = keyFrames[index04] with { Value = keyFrameData04 };
-                
-                
+                Interpolator.Vector3.Cubic(
+                    ref keyFramesItems[currentIndex > 0 ? currentIndex - 1 : 0].Value,
+                    ref keyFramesItems[currentIndex].Value,
+                    ref keyFramesItems[currentIndex + 1].Value,
+                    ref keyFramesItems[currentIndex + 2 >= keyFramesCount ? currentIndex + 1 : currentIndex + 2].Value,
+                    t,
+                    out *(Vector3*)(location + channel.Offset));
             }
             else if (channel.InterpolationType == AnimationCurveInterpolationType.Linear)
             {
-                var index01 = currentIndex;
-                var index02 = currentIndex + 1;
-                
-                var keyFrameData01 = keyFrames[index01].Value;
-                var keyFrameData02 = keyFrames[index02].Value;
-                
                 Interpolator.Vector3.Linear(
-                    ref keyFrameData01,
-                    ref keyFrameData02,
+                    ref keyFramesItems[currentIndex].Value,
+                    ref keyFramesItems[currentIndex + 1].Value,
                     t,
                     out *(Vector3*)(location + channel.Offset));
-                
-                keyFrames[index01] = keyFrames[index01] with { Value = keyFrameData01 };
-                keyFrames[index02] = keyFrames[index02] with { Value = keyFrameData02 };
             }
             else if (channel.InterpolationType == AnimationCurveInterpolationType.Constant)
             {

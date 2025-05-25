@@ -16,6 +16,7 @@ namespace Stride.Animations
             var currentIndex = channel.CurrentIndex;
 
             var keyFrames = channel.Curve.KeyFrames;
+            var keyFramesItems = keyFrames.Items;
             var keyFramesCount = keyFrames.Count;
 
             // Extract data
@@ -28,15 +29,15 @@ namespace Stride.Animations
             if (channel.InterpolationType == AnimationCurveInterpolationType.Cubic)
             {
                 *(float*)(location + channel.Offset) = Interpolator.Cubic(
-                    keyFrames[currentIndex > 0 ? currentIndex - 1 : 0].Value,
-                    keyFrames[currentIndex].Value,
-                    keyFrames[currentIndex + 1].Value,
-                    keyFrames[currentIndex + 2 >= keyFramesCount ? currentIndex + 1 : currentIndex + 2].Value,
+                    keyFramesItems[currentIndex > 0 ? currentIndex - 1 : 0].Value,
+                    keyFramesItems[currentIndex].Value,
+                    keyFramesItems[currentIndex + 1].Value,
+                    keyFramesItems[currentIndex + 2 >= keyFramesCount ? currentIndex + 1 : currentIndex + 2].Value,
                     t);
             }
             else if (channel.InterpolationType == AnimationCurveInterpolationType.Linear)
             {
-                *(float*)(location + channel.Offset) = MathUtil.Lerp(keyFrames[currentIndex].Value, keyFrames[currentIndex + 1].Value, t);
+                *(float*)(location + channel.Offset) = MathUtil.Lerp(keyFramesItems[currentIndex].Value, keyFramesItems[currentIndex + 1].Value, t);
             }
             else if (channel.InterpolationType == AnimationCurveInterpolationType.Constant)
             {

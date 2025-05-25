@@ -66,24 +66,24 @@ namespace Stride.Animations
             var currentIndex = channel.CurrentIndex;
             var keyFrames = channel.Curve.KeyFrames;
 
-            
+            var keyFramesItems = keyFrames.Items;
             var keyFramesCount = keyFrames.Count;
 
             if (newTime > currentTime)
             {
-                while (currentIndex + 1 < keyFramesCount - 1 && newTime >= keyFrames[currentIndex + 1].Time)
+                while (currentIndex + 1 < keyFramesCount - 1 && newTime >= keyFramesItems[currentIndex + 1].Time)
                 {
                     ++currentIndex;
                 }
             }
-            else if (newTime <= keyFrames[0].Time)
+            else if (newTime <= keyFramesItems[0].Time)
             {
                 // Special case: fast rewind to beginning of animation
                 currentIndex = 0;
             }
             else // newTime < currentTime
             {
-                while (currentIndex - 1 >= 0 && newTime < keyFrames[currentIndex].Time)
+                while (currentIndex - 1 >= 0 && newTime < keyFramesItems[currentIndex].Time)
                 {
                     --currentIndex;
                 }
@@ -139,7 +139,7 @@ namespace Stride.Animations
             var keyFrames = channel.Curve.KeyFrames;
             var currentIndex = channel.CurrentIndex;
 
-            objects[channel.Offset].Value = keyFrames[currentIndex].Value;
+            objects[channel.Offset].Value = keyFrames.Items[currentIndex].Value;
         }
     }
 }
