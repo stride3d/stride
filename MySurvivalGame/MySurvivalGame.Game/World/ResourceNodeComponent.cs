@@ -2,6 +2,7 @@ using Stride.Engine;
 using Stride.Core; // For [DataMember]
 using MySurvivalGame.Game.Items; // For MockInventoryItem, WeaponToolData, SpecialBonusType, EquipmentType
 using MySurvivalGame.Game.Player; // For PlayerInventoryComponent
+using MySurvivalGame.Game.Audio; // ADDED for GameSoundManager
 // Potentially System.Linq if FirstOrDefault or similar is used later.
 
 namespace MySurvivalGame.Game.World
@@ -123,6 +124,15 @@ namespace MySurvivalGame.Game.World
             if (playerInventory.AddItem(itemInstanceToAdd))
             {
                 Log.Info($"Harvested {actualHarvestAmount} '{itemName}' from '{this.Entity.Name}'. Remaining: {TotalResources}");
+                // ADDED: Play sound on successful harvest
+                string hitSoundName = "Hit_Generic";
+                switch (NodeType)
+                {
+                    case ResourceNodeType.Wood: hitSoundName = "Hit_Wood"; break;
+                    case ResourceNodeType.Stone: hitSoundName = "Hit_Stone"; break;
+                    case ResourceNodeType.MetalOre: hitSoundName = "Hit_MetalOre"; break;
+                }
+                GameSoundManager.PlaySound(hitSoundName, this.Entity.Transform.WorldMatrix.TranslationVector);
             }
             else
             {
@@ -134,8 +144,9 @@ namespace MySurvivalGame.Game.World
             if (TotalResources <= 0)
             {
                 Log.Info($"Node '{this.Entity.Name}' depleted.");
+                GameSoundManager.PlaySound("Node_Depleted", this.Entity.Transform.WorldMatrix.TranslationVector); // ADDED
                 // Optional: Deactivate or remove the node entity
-                this.Entity.Enabled = false; // MODIFIED: Disable the entity to make it disappear
+                this.Entity.Enabled = false; 
             }
             // Return a copy of what was added to inventory (or the original if AddItem modified it and returned a reference to it)
             // For safety, returning the instance that was successfully processed by AddItem (if it handles stacking internally and returns a reference)

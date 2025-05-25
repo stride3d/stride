@@ -1,8 +1,8 @@
 using Stride.Engine;
 using Stride.Core.Mathematics; // For Matrix, Vector3 for camera access
-// Manually adding required using statements based on class content:
 using MySurvivalGame.Game.Player; 
 using MySurvivalGame.Game.Items;  
+using MySurvivalGame.Game.Audio; // ADDED for GameSoundManager
 
 namespace MySurvivalGame.Game.Weapons.Ranged
 {
@@ -33,12 +33,13 @@ namespace MySurvivalGame.Game.Weapons.Ranged
                     
                     ShootRaycast(raycastStart, raycastDirection, range);
                 }
-                // Future: Play sound, muzzle flash
+                GameSoundManager.PlaySound("Pistol_Shoot", this.Entity.Transform.WorldMatrix.TranslationVector);
+                // Future: muzzle flash
             }
             else
             {
                 Log.Info($"{this.Entity.Name}: Pistol click (empty).");
-                // Future: Play empty click sound
+                GameSoundManager.PlaySound("Pistol_EmptyClick", this.Entity.Transform.WorldMatrix.TranslationVector);
             }
         }
 
@@ -58,7 +59,8 @@ namespace MySurvivalGame.Game.Weapons.Ranged
                 ActualCurrentAmmoInClip += ammoToTakeFromReserve;
                 ActualReserveAmmo -= ammoToTakeFromReserve;
                 Log.Info($"{this.Entity.Name}: Pistol Reloaded. Ammo: {ActualCurrentAmmoInClip}/{ClipSize}. Reserve: {ActualReserveAmmo}");
-                // Future: Play reload sound, animation
+                GameSoundManager.PlaySound("Pistol_Reload", this.Entity.Transform.WorldMatrix.TranslationVector);
+                // Future: Play animation
             }
             else
             {

@@ -22,9 +22,10 @@ namespace MySurvivalGame.Game.Items
         public bool IsBroken { get; private set; } 
 
         // Ammo properties - relevant if CurrentEquipmentType is a ranged weapon
-        public int ClipSize { get; set; } = 0;
-        public int CurrentAmmoInClip { get; set; } 
-        public int ReserveAmmo { get; set; }     
+        public int ClipSize { get; set; } = 0; // Standard clip capacity for this weapon type
+        public int CurrentAmmoInClip_Persisted { get; set; } = 0; // Ammo in clip when unequipped
+        public int ReserveAmmo_Persisted { get; set; } = 0;     // Reserve ammo when unequipped
+        public string RequiredAmmoName { get; set; } = string.Empty; // ADDED: E.g., "Arrow", "9mm Bullet"
 
         // Constructor
         public WeaponToolData(
@@ -43,8 +44,9 @@ namespace MySurvivalGame.Game.Items
             float? initialDurability = null,
             // Ammo related parameters - only relevant for certain types
             int clipSize = 0, 
-            int currentAmmoInClip = 0, 
-            int reserveAmmo = 0
+            int currentAmmoInClipPersisted = 0, 
+            int reserveAmmoPersisted = 0,
+            string requiredAmmoName = "" // ADDED: Constructor parameter
         ) : base(name, itemType, description, icon, quantity, (initialDurability ?? maxDurability) / maxDurability, maxStackSize, equipmentType) 
         {
             Damage = damage;
@@ -54,11 +56,12 @@ namespace MySurvivalGame.Game.Items
             MaxDurabilityPoints = maxDurability;
             DurabilityPoints = initialDurability ?? maxDurability; 
             
-            if (equipmentType == EquipmentType.Weapon) // Could be more specific like RangedWeapon if enum expands
+            if (equipmentType == EquipmentType.Weapon) 
             {
-                this.ClipSize = clipSize;
-                this.CurrentAmmoInClip = currentAmmoInClip;
-                this.ReserveAmmo = reserveAmmo;
+                this.ClipSize = clipSize; 
+                this.CurrentAmmoInClip_Persisted = currentAmmoInClipPersisted; 
+                this.ReserveAmmo_Persisted = reserveAmmoPersisted; 
+                this.RequiredAmmoName = requiredAmmoName; // ADDED: Assign to property
             }
             
             UpdateBaseDurability();

@@ -14,6 +14,48 @@ namespace MySurvivalGame.Game.Player
     {
         public List<MockInventoryItem> AllPlayerItems { get; private set; } = new List<MockInventoryItem>();
 
+        // This Start method is for testing purposes, to populate initial inventory
+        public override void Start()
+        {
+            base.Start();
+            if (AllPlayerItems.Count == 0) // Only add if inventory is empty
+            {
+                // Existing items
+                AddItem(new MockInventoryItem("Wood", "Resource", "A sturdy piece of wood.", null, 30, null, 64, EquipmentType.None));
+                AddItem(new MockInventoryItem("Stone", "Resource", "A common grey stone.", null, 90, null, 64, EquipmentType.None));
+                
+                // Updated Iron Axe to have SpecialBonusType.None
+                AddItem(new WeaponToolData("Iron Axe", "Tool", "A basic axe.", EquipmentType.Tool, 
+                                           damage: 15f, fireRate: 1.0f, range: 1.5f, maxDurability: 120f, 
+                                           bonusType: SpecialBonusType.None, // Explicitly set to None
+                                           initialDurability: 120f,
+                                           clipSize: 0, currentAmmoInClipPersisted: 0, reserveAmmoPersisted: 0)); // Non-ammo weapon
+
+                AddItem(new MockInventoryItem("Health Potion", "Consumable", "Restores health.", null, 5, null, 10, EquipmentType.Consumable));
+                
+                // Updated "Old Pistol" with ammo data
+                AddItem(new WeaponToolData("Old Pistol", "Weapon", "An old pistol.", EquipmentType.Weapon,
+                                           damage: 20f, fireRate: 2.0f, range: 25f, maxDurability: 80f,
+                                           bonusType: SpecialBonusType.Combat, 
+                                           clipSize: 7, 
+                                           currentAmmoInClipPersisted: 7, 
+                                           reserveAmmoPersisted: 21));
+
+                // New Test Tool Items
+                AddItem(new WeaponToolData("Logging Axe", "Tool", "An axe specialized for felling trees.", EquipmentType.Tool, 
+                                           damage: 12f, fireRate: 0.8f, range: 1.7f, maxDurability: 100f, 
+                                           bonusType: SpecialBonusType.Woodcutting, 
+                                           initialDurability: 100f,
+                                           clipSize: 0, currentAmmoInClipPersisted: 0, reserveAmmoPersisted: 0)); // Non-ammo weapon
+                                           
+                AddItem(new WeaponToolData("Stone Pickaxe", "Tool", "A pickaxe for mining stone and ore.", EquipmentType.Tool, 
+                                           damage: 10f, fireRate: 0.7f, range: 1.8f, maxDurability: 150f, 
+                                           bonusType: SpecialBonusType.Mining, 
+                                           initialDurability: 150f,
+                                           clipSize: 0, currentAmmoInClipPersisted: 0, reserveAmmoPersisted: 0)); // Non-ammo weapon
+            }
+        }
+
         public bool AddItem(MockInventoryItem itemToAdd)
         {
             if (itemToAdd == null || itemToAdd.Quantity <= 0) return false;
