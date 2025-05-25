@@ -243,9 +243,16 @@ namespace Stride.Assets.Models
                                     var keyFrames = ((AnimationCurve<Vector3>)curve).KeyFrames;
                                     for (int i = 0; i < keyFrames.Count; ++i)
                                     {
+                                        Vector3 newValue;
+                                        
                                         if (parentNodeIndex == 0)
-                                            keyFrames.Items[i].Value -= PivotPosition;
-                                        keyFrames.Items[i].Value *= ScaleImport;
+                                        {
+                                             newValue = keyFrames[i].Value - PivotPosition;
+                                            keyFrames[i] = keyFrames[i] with { Value = newValue };
+                                        }
+                                        
+                                        newValue = keyFrames[i].Value * ScaleImport;
+                                        keyFrames[i] = keyFrames[i] with { Value = newValue };
                                     }
                                 }
                                 animationClip.AddCurve($"[ModelComponent.Key].Skeleton.NodeTransformations[{skeletonMapping.SourceToTarget[nodeIndex]}]." + channelName, curve);
