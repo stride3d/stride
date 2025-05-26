@@ -68,7 +68,8 @@
                   CommandParameter="{x:Static gsh:StrideGameStudio.ForumsUrl}"/>
         <Separator/>
         <MenuItem Header="{sd:LocalizeString Show debug window, Context=Menu}"
-                  Command="{Binding OpenDebugWindowCommand}"/>
+                  Command="{Binding OpenDebugWindowCommand}"
+                  HotKey="Ctrl+Shift+D" InputGesture="{Binding $self.HotKey, Mode=OneTime}"/>
         <Separator/>
         <MenuItem Header="{sd:LocalizeString _About..., Context=Menu}"
                   Command="{Binding AboutCommand}"/>
