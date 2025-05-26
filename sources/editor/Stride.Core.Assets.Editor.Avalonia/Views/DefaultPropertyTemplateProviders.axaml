@@ -854,9 +854,9 @@
   <!-- Providers for floating-point number -->
   <DataTemplate x:Key="FloatEditorTemplate" DataType="cpqvm:NodeViewModel">
     <sd:NumericTextBox x:Name="NumericTextBox"
-                       Value="{Binding NodeValue, Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDecimal}}, UpdateSourceTrigger=Explicit}"
-                       Minimum="{Binding [Minimum], Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDecimal}}, FallbackValue={x:Static s:Decimal.MinValue}}"
-                       Maximum="{Binding [Maximum], Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDecimal}}, FallbackValue={x:Static s:Decimal.MaxValue}}">
+                       Value="{Binding NodeValue, Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDouble}}, UpdateSourceTrigger=Explicit}"
+                       Minimum="{Binding [Minimum], Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDouble}}, FallbackValue={x:Static s:Decimal.MinValue}}"
+                       Maximum="{Binding [Maximum], Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDouble}}, FallbackValue={x:Static s:Decimal.MaxValue}}">
       <Interaction.Behaviors>
         <DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
           <ChangePropertyAction PropertyName="Watermark" Value="{sd:LocalizeString (Different values)}"/>
@@ -872,9 +872,9 @@
   <!-- Providers for fixed-point number -->
   <DataTemplate x:Key="IntEditorTemplate" DataType="cpqvm:NodeViewModel">
     <sd:NumericTextBox x:Name="NumericTextBox"
-                       Value="{Binding NodeValue, Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDecimal}}, UpdateSourceTrigger=Explicit}"
-                       Minimum="{Binding [Minimum], Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDecimal}}, FallbackValue={x:Static s:Decimal.MinValue}}"
-                       Maximum="{Binding [Maximum], Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDecimal}}, FallbackValue={x:Static s:Decimal.MaxValue}}">
+                       Value="{Binding NodeValue, Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDouble}}, UpdateSourceTrigger=Explicit}"
+                       Minimum="{Binding [Minimum], Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDouble}}, FallbackValue={x:Static s:Decimal.MinValue}}"
+                       Maximum="{Binding [Maximum], Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDouble}}, FallbackValue={x:Static s:Decimal.MaxValue}}">
       <Interaction.Behaviors>
         <DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
           <ChangePropertyAction PropertyName="Watermark" Value="{sd:LocalizeString (Different values)}"/>
@@ -918,9 +918,9 @@
                 LargeChange="{Binding [LargeStep], Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDouble}}}"/>
         <sd:NumericTextBox Grid.Column="1"
                            Margin="6,2,2,2"
-                           Value="{Binding NodeValue, Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDecimal}}, UpdateSourceTrigger=Explicit}"
-                           Minimum="{Binding [Minimum], Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDecimal}}, FallbackValue={x:Static s:Decimal.MinValue}}"
-                           Maximum="{Binding [Maximum], Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDecimal}}, FallbackValue={x:Static s:Decimal.MaxValue}}">
+                           Value="{Binding NodeValue, Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDouble}}, UpdateSourceTrigger=Explicit}"
+                           Minimum="{Binding [Minimum], Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDouble}}, FallbackValue={x:Static s:Decimal.MinValue}}"
+                           Maximum="{Binding [Maximum], Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDouble}}, FallbackValue={x:Static s:Decimal.MaxValue}}">
           <Interaction.Behaviors>
             <DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
               <ChangePropertyAction PropertyName="Watermark" Value="{sd:LocalizeString (Different values)}"/>
