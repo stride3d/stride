@@ -6,41 +6,40 @@ using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Input;
 
-namespace CSharpIntermediate.Code
+namespace CSharpIntermediate.Code;
+
+public class AudioDemo : SyncScript
 {
-    public class AudioDemo : SyncScript
+    public Sound UkuleleSound;
+
+    private SoundInstance ukuleleInstance;
+    private AudioEmitterComponent audioEmitterComponent;
+    private AudioEmitterSoundController gunSoundEmitter;
+
+    public override void Start()
     {
-        public Sound UkuleleSound;
+        // We need to create an instance of Sound object in order to play them
+        ukuleleInstance = UkuleleSound.CreateInstance();
 
-        private SoundInstance ukuleleInstance;
-        private AudioEmitterComponent audioEmitterComponent;
-        private AudioEmitterSoundController gunSoundEmitter;
+        audioEmitterComponent = Entity.Get<AudioEmitterComponent>();
+        gunSoundEmitter = audioEmitterComponent["Gun"];
+    }
 
-        public override void Start()
+    public override void Update()
+    {
+        // Play a sound
+        DebugText.Print($"U to play the Ukelele once", new Int2(200, 580));
+        if (Input.IsKeyPressed(Keys.U))
         {
-            // We need to create an instance of Sound object in order to play them
-            ukuleleInstance = UkuleleSound.CreateInstance();
-
-            audioEmitterComponent = Entity.Get<AudioEmitterComponent>();
-            gunSoundEmitter = audioEmitterComponent["Gun"];
+            ukuleleInstance.Stop();
+            ukuleleInstance.Play();
         }
 
-        public override void Update()
+        // Press right mouse button for gun fire sound
+        DebugText.Print($"Press right mouse button fire gun", new Int2(200, 640));
+        if (Input.IsMouseButtonPressed(MouseButton.Right))
         {
-            // Play a sound
-            DebugText.Print($"U to play the Ukelele once", new Int2(200, 580));
-            if (Input.IsKeyPressed(Keys.U))
-            {
-                ukuleleInstance.Stop();
-                ukuleleInstance.Play();
-            }
-
-            // Press right mouse button for gun fire sound
-            DebugText.Print($"Press right mouse button fire gun", new Int2(200, 640));
-            if (Input.IsMouseButtonPressed(MouseButton.Right))
-            {
-                gunSoundEmitter.Play();
-            }
+            gunSoundEmitter.Play();
         }
     }
 }
