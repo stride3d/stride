@@ -33,12 +33,16 @@ public class DebugAssetNodeViewModel : DispatcherViewModel
 
     private string GetContentType()
     {
-        if (Node is IMemberNode) return "Member";
-        if (Node is BoxedNode) return "Object (boxed)";
-        if (Node is IObjectNode) return "Object";
-        return "Unknown";
+        return Node switch
+        {
+            IMemberNode => "Member",
+            BoxedNode => "Object (boxed)",
+            IObjectNode => "Object",
+            _ => "Unknown"
+        };
     }
 
+    // ReSharper disable once MemberCanBeMadeStatic.Local
     private void Break()
     {
         if (Debugger.IsAttached)
