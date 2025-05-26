@@ -20,8 +20,10 @@ public sealed class AssetCollectionViewModel : DispatcherViewModel
     private readonly ObservableSet<object> selectedContent = [];
     private object? singleSelectedContent;
 
+    private bool discardSelectionChanges;
+
     public AssetCollectionViewModel(SessionViewModel session)
-        : base(session.ServiceProvider)
+        : base(session.SafeArgument().ServiceProvider)
     {
         Session = session;
 
@@ -128,6 +130,11 @@ public sealed class AssetCollectionViewModel : DispatcherViewModel
         return result.ToList();
     }
 
+    internal void UpdateAssetsCollection(ICollection<AssetViewModel> newAssets)
+    {
+        UpdateAssetsCollection(newAssets, true);
+    }
+
     private void AssetsCollectionInDirectoryChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
         // If the changes are too important, rebuild completely the collection.
@@ -190,6 +197,9 @@ public sealed class AssetCollectionViewModel : DispatcherViewModel
             }
         }
 
+        if (discardSelectionChanges)
+            return;
+
         AssetViewProperties.UpdateTypeAndName(SelectedAssets, x => x.TypeDisplayName, x => x.Url, "assets");
         await AssetViewProperties.GenerateSelectionPropertiesAsync(SelectedAssets);
     }
@@ -219,7 +229,7 @@ public sealed class AssetCollectionViewModel : DispatcherViewModel
         // If the selection can be restored as it is currently, prevent the CollectionChanged handler to rebuild the view model for nothing.
         if (previousSelection.Count == SelectedAssets.Count)
         {
-            //discardSelectionChanges = true;
+            discardSelectionChanges = true;
         }
 
         assets.Clear();
@@ -233,7 +243,7 @@ public sealed class AssetCollectionViewModel : DispatcherViewModel
 
         //RefreshFilters();
 
-        //discardSelectionChanges = false;
+        discardSelectionChanges = false;
     }
 
     private void UpdateLocations()
