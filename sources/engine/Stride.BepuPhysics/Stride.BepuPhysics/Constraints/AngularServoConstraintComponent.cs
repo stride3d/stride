@@ -17,6 +17,7 @@ public sealed class AngularServoConstraintComponent : TwoBodyConstraintComponent
 {
     public AngularServoConstraintComponent() => BepuConstraint = new()
     {
+        TargetRelativeRotationLocalA = Quaternion.Identity,
         SpringSettings = new SpringSettings(30, 5),
         ServoSettings = new ServoSettings(10, 1, 1000)
     };

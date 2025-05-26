@@ -26,8 +26,8 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 * THE SOFTWARE.
 */
-using System;
-using System.Globalization;
+
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -39,7 +39,7 @@ namespace Stride.Core.Mathematics;
 [DataContract("float3")]
 [DataStyle(DataStyle.Compact)]
 [StructLayout(LayoutKind.Sequential, Pack = 4)]
-public struct Vector3 : IEquatable<Vector3>, IFormattable
+public struct Vector3 : IEquatable<Vector3>, ISpanFormattable
 {
     /// <summary>
     /// The size of the <see cref="Stride.Core.Mathematics.Vector3"/> type, in bytes.
@@ -1652,45 +1652,14 @@ public struct Vector3 : IEquatable<Vector3>, IFormattable
                 MathUtil.WithinEpsilon(left.Y, right.Y, epsilon.Y) &&
                 MathUtil.WithinEpsilon(left.Z, right.Z, epsilon.Z);
     }
-
+    
     /// <summary>
     /// Returns a <see cref="string"/> that represents this instance.
     /// </summary>
     /// <returns>
     /// A <see cref="string"/> that represents this instance.
     /// </returns>
-    public override readonly string ToString()
-    {
-        return string.Format(CultureInfo.CurrentCulture, "X:{0} Y:{1} Z:{2}", X, Y, Z);
-    }
-
-    /// <summary>
-    /// Returns a <see cref="string"/> that represents this instance.
-    /// </summary>
-    /// <param name="format">The format.</param>
-    /// <returns>
-    /// A <see cref="string"/> that represents this instance.
-    /// </returns>
-    public readonly string ToString(string? format)
-    {
-        if (format == null)
-            return ToString();
-
-        return string.Format(CultureInfo.CurrentCulture, "X:{0} Y:{1} Z:{2}", X.ToString(format, CultureInfo.CurrentCulture),
-            Y.ToString(format, CultureInfo.CurrentCulture), Z.ToString(format, CultureInfo.CurrentCulture));
-    }
-
-    /// <summary>
-    /// Returns a <see cref="string"/> that represents this instance.
-    /// </summary>
-    /// <param name="formatProvider">The format provider.</param>
-    /// <returns>
-    /// A <see cref="string"/> that represents this instance.
-    /// </returns>
-    public readonly string ToString(IFormatProvider? formatProvider)
-    {
-        return string.Format(formatProvider, "X:{0} Y:{1} Z:{2}", X, Y, Z);
-    }
+    public override readonly string ToString() => $"{this}";
 
     /// <summary>
     /// Returns a <see cref="string"/> that represents this instance.
@@ -1700,13 +1669,29 @@ public struct Vector3 : IEquatable<Vector3>, IFormattable
     /// <returns>
     /// A <see cref="string"/> that represents this instance.
     /// </returns>
-    public readonly string ToString(string? format, IFormatProvider? formatProvider)
+    public readonly string ToString([StringSyntax(StringSyntaxAttribute.NumericFormat)] string? format, IFormatProvider? formatProvider)
     {
-        if (format == null)
-            return ToString(formatProvider);
+        var handler = new DefaultInterpolatedStringHandler(8, 3, formatProvider);
+        handler.AppendLiteral("X:");
+        handler.AppendFormatted(X, format);
+        handler.AppendLiteral(" Y:");
+        handler.AppendFormatted(Y, format);
+        handler.AppendLiteral(" Z:");
+        handler.AppendFormatted(Z, format);
+        return handler.ToStringAndClear();
+    }
 
-        return string.Format(formatProvider, "X:{0} Y:{1} Z:{2}", X.ToString(format, formatProvider),
-            Y.ToString(format, formatProvider), Z.ToString(format, formatProvider));
+    bool ISpanFormattable.TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
+    {
+        var format1 = format.Length > 0 ? format.ToString() : null;
+        var handler = new MemoryExtensions.TryWriteInterpolatedStringHandler(8, 3, destination, provider, out _);
+        handler.AppendLiteral("X:");
+        handler.AppendFormatted(X, format1);
+        handler.AppendLiteral(" Y:");
+        handler.AppendFormatted(Y, format1);
+        handler.AppendLiteral(" Z:");
+        handler.AppendFormatted(Z, format1);
+        return destination.TryWrite(ref handler, out charsWritten);
     }
 
     /// <summary>

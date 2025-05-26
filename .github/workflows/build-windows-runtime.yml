@@ -1,0 +1,74 @@
+name: Build Windows Runtime
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/build-windows-runtime.yml'
+      - 'build/Stride.Runtime.sln'
+      - 'deps/**'
+      - 'sources/core/**'
+      - 'sources/engine/**'
+      - 'sources/native/**'
+      - 'sources/shaders/**'
+      - 'sources/shared/**'
+      - 'sources/targets/**'
+      - '!**/.all-contributorsrc'
+      - '!**/.editorconfig'
+      - '!**/.gitignore'
+      - '!**/*.md'
+      - '!crowdin.yml'
+    types: [opened, synchronize, reopened, ready_for_review]
+  workflow_dispatch:
+    inputs:
+      build-type:
+        description: Build Configuration
+        default: Debug
+        type: choice
+        options:
+          - Debug
+          - Release
+      graphics-api:
+        description: Graphics API
+        default: Direct3D11
+        type: choice
+        options:
+          - Direct3D11
+          - Direct3D12
+          - OpenGL
+          - OpenGLES
+          - Vulkan
+  workflow_call:
+    inputs:
+      build-type:
+        default: Debug
+        type: string
+      graphics-api:
+        default: Direct3D11
+        type: string
+
+jobs:
+  #
+  # Build Stride Runtime for Windows
+  #
+  Windows-Runtime:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'workflow_call' || github.event.pull_request.draft == false }}
+    name: Build (${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}, ${{ github.event.inputs.graphics-api || inputs.graphics-api || 'Direct3D11' }})
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - uses: microsoft/setup-msbuild@v2
+      - name: Build
+        run: |
+          msbuild build\Stride.Runtime.sln `
+            -restore -m:1 -nr:false `
+            -v:m -p:WarningLevel=0 `
+            -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} `
+            -p:StridePlatforms=Windows `
+            -p:StrideGraphicsApis=${{ github.event.inputs.graphics-api || inputs.graphics-api || 'Direct3D11' }} `
+            -p:StrideSkipUnitTests=true `
+            -p:StrideSkipAutoPack=true

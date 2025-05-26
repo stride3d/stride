@@ -27,7 +27,6 @@
 * THE SOFTWARE.
 */
 
-using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -38,7 +37,7 @@ namespace Stride.Core.Mathematics;
 /// </summary>
 [DataContract]
 [StructLayout(LayoutKind.Sequential, Pack = 4)]
-public struct BoundingSphere : IEquatable<BoundingSphere>, IFormattable, IIntersectableWithRay, IIntersectableWithPlane
+public struct BoundingSphere : IEquatable<BoundingSphere>, ISpanFormattable, IIntersectableWithRay, IIntersectableWithPlane
 {
     /// <summary>
     /// An empty bounding sphere (Center = 0 and Radius = 0).
@@ -397,38 +396,7 @@ public struct BoundingSphere : IEquatable<BoundingSphere>, IFormattable, IInters
     /// <returns>
     /// A <see cref="string"/> that represents this instance.
     /// </returns>
-    public override readonly string ToString()
-    {
-        return string.Format(CultureInfo.CurrentCulture, "Center:{0} Radius:{1}", Center.ToString(), Radius.ToString());
-    }
-
-    /// <summary>
-    /// Returns a <see cref="string"/> that represents this instance.
-    /// </summary>
-    /// <param name="format">The format.</param>
-    /// <returns>
-    /// A <see cref="string"/> that represents this instance.
-    /// </returns>
-    public readonly string ToString(string? format)
-    {
-        if (format == null)
-            return ToString();
-
-        return string.Format(CultureInfo.CurrentCulture, "Center:{0} Radius:{1}", Center.ToString(format, CultureInfo.CurrentCulture),
-            Radius.ToString(format, CultureInfo.CurrentCulture));
-    }
-
-    /// <summary>
-    /// Returns a <see cref="string"/> that represents this instance.
-    /// </summary>
-    /// <param name="formatProvider">The format provider.</param>
-    /// <returns>
-    /// A <see cref="string"/> that represents this instance.
-    /// </returns>
-    public readonly string ToString(IFormatProvider? formatProvider)
-    {
-        return string.Format(formatProvider, "Center:{0} Radius:{1}", Center.ToString(), Radius.ToString());
-    }
+    public override readonly string ToString() => $"{this}";
 
     /// <summary>
     /// Returns a <see cref="string"/> that represents this instance.
@@ -440,11 +408,23 @@ public struct BoundingSphere : IEquatable<BoundingSphere>, IFormattable, IInters
     /// </returns>
     public readonly string ToString(string? format, IFormatProvider? formatProvider)
     {
-        if (format == null)
-            return ToString(formatProvider);
+        var handler = new DefaultInterpolatedStringHandler(15, 2, formatProvider);
+        handler.AppendLiteral("Center:");
+        handler.AppendFormatted(Center, format);
+        handler.AppendLiteral(" Radius:");
+        handler.AppendFormatted(Radius, format);
+        return handler.ToStringAndClear();
+    }
 
-        return string.Format(formatProvider, "Center:{0} Radius:{1}", Center.ToString(format, formatProvider),
-            Radius.ToString(format, formatProvider));
+    bool ISpanFormattable.TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
+    {
+        var format1 = format.Length > 0 ? format.ToString() : null;
+        var handler = new MemoryExtensions.TryWriteInterpolatedStringHandler(15, 2, destination, provider, out _);
+        handler.AppendLiteral("Center:");
+        handler.AppendFormatted(Center, format1);
+        handler.AppendLiteral(" Radius:");
+        handler.AppendFormatted(Radius, format1);
+        return destination.TryWrite(ref handler, out charsWritten);
     }
 
     /// <summary>
