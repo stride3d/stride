@@ -44,6 +44,7 @@ on:
 
 jobs:
   Setup:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'workflow_call' || github.event.pull_request.draft == false }}
     runs-on: ubuntu-latest
     outputs:
       build-type: ${{ steps.setup.outputs.build-type }}
