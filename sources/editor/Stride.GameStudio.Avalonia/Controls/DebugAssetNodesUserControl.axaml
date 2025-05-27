@@ -32,7 +32,7 @@
           <DockPanel>
             <Button DockPanel.Dock="Right" Command="{Binding BreakCommand}" Theme="{StaticResource BreakButonTheme}"/>
             <TextBlock x:Name="TextBlock">
-              [<Run Text="{Binding AssetType.Name, Mode=OneWay}"/>]
+              [<Run Text="{Binding AssetType?.Name, Mode=OneWay}"/>]
               <Run Text="{Binding AssetName, Mode=OneWay}" FontWeight="Bold" Foreground="Gold"/>
             </TextBlock>
           </DockPanel>
@@ -46,7 +46,7 @@
               <Run Text="Base:" FontWeight="Bold" Foreground="Orchid"/>
               <Run Text="{Binding Name, Mode=OneWay}" FontWeight="Bold" Foreground="Gold"/>
               = <Run Text="{Binding Value, Mode=OneWay}" FontWeight="Bold" Foreground="PowderBlue"/>
-              from <Run Text="{Binding Asset.Url, Mode=OneWay}"/>
+              from <Run Text="{Binding Asset?.Url, Mode=OneWay}"/>
             </TextBlock>
           </DockPanel>
         </DataTemplate>
@@ -60,7 +60,7 @@
               <Run Text="{Binding ItemId, StringFormat=[{0}], Mode=OneWay}" x:Name="ItemIdRun" Foreground="LightCyan"/>
               <Run Text="{Binding Name, Mode=OneWay}" FontWeight="Bold" Foreground="Gold"/>
               = <Run Text="{Binding Value, Mode=OneWay}" FontWeight="Bold" Foreground="PowderBlue"/>
-              <Run Text="{Binding Type.Name, StringFormat=({0}), Mode=OneWay}"/>
+              <Run Text="{Binding Type?.Name, StringFormat=({0}), Mode=OneWay}"/>
             </TextBlock>
             <Button DockPanel.Dock="Right" Command="{Binding BreakCommand}" Theme="{StaticResource BreakButonTheme}"/>
             <ContentControl Content="{Binding Base}"/>
