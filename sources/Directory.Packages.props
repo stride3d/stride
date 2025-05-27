@@ -115,7 +115,7 @@
   <!-- Avalonia dependencies -->
   <PropertyGroup>
     <AvaloniaVersion>11.3.1</AvaloniaVersion>
-    <AvaloniaBehaviorVersion>11.2.7.3</AvaloniaBehaviorVersion>
+    <AvaloniaBehaviorVersion>11.3.0.10</AvaloniaBehaviorVersion>
   </PropertyGroup>
   <ItemGroup>
     <PackageVersion Include="Avalonia" Version="$(AvaloniaVersion)" />
@@ -124,8 +124,8 @@
     <PackageVersion Include="Avalonia.Diagnostics" Version="$(AvaloniaVersion)" />
     <PackageVersion Include="Avalonia.Fonts.Inter" Version="$(AvaloniaVersion)" />
     <PackageVersion Include="Avalonia.Themes.Fluent" Version="$(AvaloniaVersion)" />
-    <PackageVersion Include="Avalonia.Xaml.Behaviors " Version="$(AvaloniaBehaviorVersion)" />
-    <PackageVersion Include="Avalonia.Xaml.Interactions" Version="$(AvaloniaBehaviorVersion)" />
+    <PackageVersion Include="Xaml.Behaviors.Avalonia" Version="$(AvaloniaBehaviorVersion)" />
+    <PackageVersion Include="Xaml.Behaviors.Interactions" Version="$(AvaloniaBehaviorVersion)" />
     <PackageVersion Include="Markdown.Avalonia.Tight" Version="11.0.2" />
   </ItemGroup>
   <!-- Windows/WPF dependencies -->
