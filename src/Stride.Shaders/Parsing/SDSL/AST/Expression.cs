@@ -110,25 +110,30 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
     {
         if (Source is Identifier { Name: "streams" } streams && Accessors[0] is Identifier streamVar)
         {
-            table.CurrentFunctionSymbols.Add(table.Streams);
+            //table.CurrentFunctionSymbols.Add(table.Streams);
             streamVar.ProcessSymbol(table, entrypoint, io);
             Type = streamVar.Type;
 
-            ProcessAccessors();
+            if (Accessors.Count > 1)
+            {
+                ProcessAccessors(1);
 
-            table.Pop();
-            table.RootSymbols.StreamUsages.Add(new(streamVar, SymbolKind.Variable, Storage.Stream), new(entrypoint ?? EntryPoint.None, io ?? StreamIO.Output));
+                table.RootSymbols.StreamUsages.Add(new(streamVar, SymbolKind.Variable, Storage.Stream), new(entrypoint ?? EntryPoint.None, io ?? StreamIO.Output));
+            }
         }
         else
         {
             Source.ProcessSymbol(table, entrypoint, io ?? StreamIO.Output);
             Type = Source.Type;
-            ProcessAccessors();
+            ProcessAccessors(0);
         }
 
-        void ProcessAccessors()
+        // AccessorChain always end up with a pointer type
+        Type = new PointerType(Type);
+
+        void ProcessAccessors(int firstIndex)
         {
-            foreach (var accessor in Accessors)
+            foreach (var accessor in Accessors[firstIndex..])
             {
                 if (Type is not null && Type.TryAccess(accessor, out var type))
                 {
@@ -140,22 +145,28 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
                 if(accessor is not Identifier)
                     accessor.ProcessSymbol(table, entrypoint, io ?? StreamIO.Input);
             }
-            // AccessorChain always end up with a pointer type
-            Type = new PointerType(Type);
         }
     }
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         var (builder, context, _) = compiler;
-        var source = Source.Compile(table, shader, compiler);
+        SpirvValue source;
         var variable = context.Bound++;
 
+        int firstIndex = 0;
         if (Source is Identifier { Name: "streams" } streams && Accessors[0] is Identifier streamVar)
-            throw new NotImplementedException();
+        {
+            source = streamVar.Compile(table, shader, compiler);
+            firstIndex = 1;
+        }
+        else
+        {
+            source = Source.Compile(table, shader, compiler);
+        }
 
         var currentValueType = Source.Type;
         Span<IdRef> indexes = stackalloc IdRef[Accessors.Count];
-        for (var i = 0; i < Accessors.Count; i++)
+        for (var i = firstIndex; i < Accessors.Count; i++)
         {
             var accessor = Accessors[i];
             if (currentValueType is StructType s && accessor is Identifier field)
@@ -166,12 +177,16 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
                 //indexes[i] = builder.CreateConstant(context, shader, new IntegerLiteral(new(32, false, true), index, new())).Id;
                 var indexLiteral = new IntegerLiteral(new(32, false, true), index, new());
                 indexLiteral.ProcessSymbol(table);
-                indexes[i] = context.CreateConstant(shader, indexLiteral).Id;
+                indexes[i] = context.CreateConstant(indexLiteral).Id;
             }
             else throw new NotImplementedException($"unknown accessor {accessor} in expression {this}");
 
             currentValueType = accessor.Type;
         }
+
+        // Do we need the OpAccessChain? (if we have streams.StreamVar, we can return StreamVar as is)
+        if (firstIndex == Accessors.Count)
+            return source;
 
         var resultType = context.GetOrRegister(Type);
         var result = builder.Buffer.InsertOpAccessChain(builder.Position, variable, resultType, source.Id, indexes);

@@ -2,8 +2,28 @@ namespace Stride.Shaders.Tests;
 
 shader TestBasic
 {
-    int Add(int a, int b)
+    stream float4 InputPosition : POSITION;
+    stream float4 Position : SV_POSITION;
+    stream float4 ExtraColor : COLOR;
+    stream float4 ColorTarget : SV_Target0;
+
+    void VSMain()
     {
-        return a + b;
+        streams.Position = streams.InputPosition;
+        return;
+    }
+
+    void Test()
+    {
+        streams.ColorTarget = streams.ExtraColor;
+        return;
+    }
+
+    void PSMain()
+    {
+        streams.ColorTarget = float4(1.0, 1.0, 1.0, 1.0);
+        streams.ColorTarget = streams.ExtraColor;
+        //Test();
+        return;
     }
 }

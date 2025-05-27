@@ -15,7 +15,7 @@ public class SpirvContext(SpirvModule module) : IDisposable
     public int Bound { get; internal set; } = 1;
     public string? Name { get; private set; }
     public SpirvModule Module { get; } = module;
-    public SortedList<string, int> Variables { get; } = [];
+    public SortedList<string, SpirvValue> Variables { get; } = [];
     public Dictionary<SymbolType, int> Types { get; } = [];
     public Dictionary<int, SymbolType> ReverseTypes { get; } = [];
     public Dictionary<(SymbolType Type, object Value), SpirvValue> LiteralConstants { get; } = [];
@@ -103,7 +103,7 @@ public class SpirvContext(SpirvModule module) : IDisposable
         Span<IdRef> pvariables = stackalloc IdRef[variables.Length];
         int pos = 0;
         foreach (var v in variables)
-            pvariables[pos++] = Variables[v.Id.Name];
+            pvariables[pos++] = Variables[v.Id.Name].Id;
         Buffer.AddOpEntryPoint(model, function, name, pvariables);
     }
 
@@ -186,7 +186,7 @@ public class SpirvContext(SpirvModule module) : IDisposable
         return result;
     }
 
-    public SpirvValue CreateConstant(ShaderClass shader, Literal literal)
+    public SpirvValue CreateConstant(Literal literal)
     {
         object literalValue = literal switch
         {

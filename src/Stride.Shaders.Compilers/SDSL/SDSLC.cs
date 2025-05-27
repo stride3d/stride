@@ -6,6 +6,8 @@ using Stride.Shaders.Core;
 using Stride.Shaders.Spirv.Tools;
 using Stride.Shaders.Spirv.Core.Buffers;
 using System.Runtime.InteropServices;
+using Stride.Shaders.Spirv.Core;
+using Stride.Shaders.Spirv.Processing;
 
 namespace Stride.Shaders.Compilers.SDSL;
 
@@ -29,12 +31,13 @@ public record struct SDSLC() : ICompiler
             var context = compiler.Context;
             if (context.Module.Functions.Count > 0)
             {
-                var lastFunction = context.Module.Functions[^1];
+                var entryPoint = context.Module.Functions[^1];
                 context.Buffer.AddOpCapability(Spv.Specification.Capability.Shader);
                 context.Buffer.AddOpMemoryModel(Spv.Specification.AddressingModel.Logical, Spv.Specification.MemoryModel.GLSL450);
-                context.SetEntryPoint(Spv.Specification.ExecutionModel.Vertex, lastFunction.Id, lastFunction.Name, []);
-            }
+                context.SetEntryPoint(Spv.Specification.ExecutionModel.Vertex, entryPoint.Id, entryPoint.Name, []);
 
+                new StreamAnalyzer().Process(table, compiler, entryPoint);
+            }
 
             compiler.Context.Buffer.Sort();
             var merged = SpirvBuffer.Merge(compiler.Context.Buffer, compiler.Builder.Buffer);

@@ -25,10 +25,22 @@ public class SpirvBuffer : IMutSpirvBuffer, IDisposable
             value.Words.CopyTo(Header.Words);
         }
     }
+
     public Span<int> InstructionSpan => Span[5..];
     public Memory<int> InstructionMemory => Memory[5..];
 
     public int InstructionCount => new SpirvReader(Memory).Count;
+
+    public RefInstruction FindInstructionByResultId(int resultId)
+    {
+        foreach (var instruction in this)
+        {
+            if (instruction.ResultId == resultId)
+                return instruction;
+        }
+
+        throw new InvalidOperationException();
+    }
 
     public Instruction this[int index]
     {

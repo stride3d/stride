@@ -41,7 +41,7 @@ public partial class SpirvBuilder
         var result = new SpirvFunction(func.ResultId!.Value, name, type);
         if(!variables.IsEmpty)
             foreach(var p in variables)
-                context.AddName(context.Variables[p.Id.Name], p.Id.Name);
+                context.AddName(context.Variables[p.Id.Name].Id, p.Id.Name);
         CurrentFunction = result;
         return result;
     }

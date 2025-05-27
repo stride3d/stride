@@ -210,16 +210,12 @@ public class Identifier(string name, TextLocation info) : Literal(info)
         Span<Storage> sOrder = [Storage.Function, Storage.Stream, Storage.Uniform, Storage.UniformConstant, Storage.Generic];
         foreach (var storage in sOrder)
         {
-            if (table.CurrentFunctionSymbols is null)
+            if (table.CurrentFunctionSymbols is not null)
             {
-                if (table.RootSymbols.TryGetValue(Name, SymbolKind.Variable, storage, out var symbol))
-                    Type = symbol.Type;
-            }
-            else
-            {
-                for (int i = table.CurrentFunctionSymbols.Count - 1; i >= 0; i -= 1)
+                for (int i = table.CurrentFunctionSymbols.Count - 1; i >= 0; --i)
                 {
-                    if (table.CurrentFunctionSymbols![i].TryGetValue(Name, SymbolKind.Variable, storage, out var symbol))
+                    if (table.CurrentFunctionSymbols![i]
+                        .TryGetValue(Name, SymbolKind.Variable, storage, out var symbol))
                     {
                         if (symbol.Type is not UndefinedType and not null)
                             Type = symbol.Type;
@@ -228,11 +224,12 @@ public class Identifier(string name, TextLocation info) : Literal(info)
                         return;
                     }
                 }
-                if (table.CurrentFunctionSymbols is null)
-                {
-                    if (table.RootSymbols.TryGetValue(Name, SymbolKind.Variable, storage, out var rootSymbol))
-                        Type = rootSymbol.Type;
-                }
+            }
+
+            if (table.RootSymbols.TryGetValue(Name, SymbolKind.Variable, storage, out var rootSymbol))
+            {
+                Type = rootSymbol.Type;
+                return;
             }
 
         }
@@ -249,6 +246,9 @@ public class Identifier(string name, TextLocation info) : Literal(info)
             else if(f.Parameters.TryGetValue(Name, out var paramVar))
                 return paramVar;
         }
+
+        if (compiler.Context.Variables.TryGetValue(Name, out var variable))
+            return variable;
         throw new NotImplementedException();
     }
 

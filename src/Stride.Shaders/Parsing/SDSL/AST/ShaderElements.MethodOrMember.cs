@@ -1,3 +1,4 @@
+using Spv;
 using Stride.Shaders.Core;
 using Stride.Shaders.Core.Analysis;
 using Stride.Shaders.Parsing.Analysis;
@@ -84,7 +85,9 @@ public sealed class ShaderMember(
         var (builder, context, _) = compiler;
         var registeredType = context.GetOrRegister(Type);
         var variable = context.Bound++;
-        context.Buffer.AddOpVariable(variable, registeredType, Spv.Specification.StorageClass.Function, null);
+        // TODO: Add a StreamSDSL storage class?
+        context.Buffer.AddOpVariable(variable, registeredType, Spv.Specification.StorageClass.Private, null);
+        context.Variables.Add(Name, new(variable, registeredType, Name));
         if (Semantic != null)
             context.Buffer.AddOpSDSLDecorateSemantic(variable, Semantic.Name);
         context.AddName(variable, Name);
@@ -190,7 +193,7 @@ public class ShaderMethod(
             if(Body is BlockStatement body)
             {
                 builder.CreateBlock(context);
-                foreach(var s in body)
+                foreach (var s in body)
                     s.Compile(table, shader, compiler);
             }
             builder.EndFunction(context);

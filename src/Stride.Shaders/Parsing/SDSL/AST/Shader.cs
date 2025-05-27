@@ -53,11 +53,11 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
                         }
                     );
                 var symbol = new Symbol(sid, svar.Type);
-                if (sid.Storage == Storage.Stream)
-                {
-                    table.Streams.Add(sid, symbol);
-                }
-                else
+                //if (sid.Storage == Storage.Stream)
+                //{
+                //    table.Streams.Add(sid, symbol);
+                //}
+                //else
                 {
                     table.RootSymbols.Add(sid, symbol);
                 }
@@ -65,14 +65,14 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
             }
         }
 
-        var streams =
+        /*var streams =
             new SymbolID
             (
                 "streams",
                 SymbolKind.Variable,
                 Storage.None
             );
-        table.RootSymbols.Add(streams, new(streams, new StreamsSymbol()));
+        table.RootSymbols.Add(streams, new(streams, new StreamsSymbol()));*/
 
         foreach (var member in Elements)
         {
