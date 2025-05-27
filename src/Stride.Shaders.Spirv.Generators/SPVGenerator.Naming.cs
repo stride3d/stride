@@ -31,39 +31,41 @@ public partial class SPVGenerator
     public List<string> ConvertOperandsToParameters(InstructionData op)
     {
         var opname = op.OpName;
-        var operands = op.Operands;
         List<string> parameters = [];
-        foreach (var e in operands)
+        if (op.Operands is EquatableArray<OperandData> operands)
         {
-            var kind = e.Kind;
-            var realKind = ConvertKind(kind!);
-            if (e.Quantifier is not null)
+            foreach (var e in operands)
             {
-                if (e.Name is string name)
+                var kind = e.Kind;
+                var realKind = ConvertKind(kind!);
+                if (e.Quantifier is not null)
                 {
-                    if (e.Quantifier == "?")
-                        parameters.AddUnique(realKind + "? " + ConvertOperandName(name));
-                    else if (e.Quantifier == "*")
-                        parameters.AddUnique("Span<" + realKind + "> values");
+                    if (e.Name is string name)
+                    {
+                        if (e.Quantifier == "?")
+                            parameters.AddUnique(realKind + "? " + ConvertOperandName(name));
+                        else if (e.Quantifier == "*")
+                            parameters.AddUnique("Span<" + realKind + "> values");
+                    }
+                    else
+                    {
+                        if (e.Quantifier == "?")
+                            parameters.AddUnique(realKind + "? " + ConvertKindToName(kind!));
+                        else if (e.Quantifier == "*")
+                            parameters.AddUnique("Span<" + realKind + "> values");
+                    }
                 }
                 else
                 {
-                    if (e.Quantifier == "?")
-                        parameters.AddUnique(realKind + "? " + ConvertKindToName(kind!));
-                    else if (e.Quantifier == "*")
-                        parameters.AddUnique("Span<" + realKind + "> values");
+                    if (e.Name is not null)
+                        parameters.AddUnique(realKind + " " + ConvertOperandName(e.Name));
+                    else if (kind == "IdResult" && opname == "OpExtInst")
+                        parameters.AddUnique(realKind + "? " + ConvertKindToName(kind));
+                    else if (kind == "IdResultType" && opname == "OpExtInst")
+                        parameters.AddUnique(realKind + "? " + ConvertKindToName(kind));
+                    else
+                        parameters.AddUnique(realKind + " " + ConvertKindToName(kind!));
                 }
-            }
-            else
-            {
-                if (e.Name is not null)
-                    parameters.AddUnique(realKind + " " + ConvertOperandName(e.Name));
-                else if (kind == "IdResult" && opname == "OpExtInst")
-                    parameters.AddUnique(realKind + "? " + ConvertKindToName(kind));
-                else if (kind == "IdResultType" && opname == "OpExtInst")
-                    parameters.AddUnique(realKind + "? " + ConvertKindToName(kind));
-                else
-                    parameters.AddUnique(realKind + " " + ConvertKindToName(kind!));
             }
         }
         if (parameters.Any(x => x.Contains("resultType")) && parameters.Any(x => x.Contains("resultId")))
@@ -80,36 +82,37 @@ public partial class SPVGenerator
     {
         var opname = op.OpName;
         var operands = op.Operands;
-        List<string> parameters = new(op.Operands.Count);
-        foreach (var e in operands)
-        {
-            var kind = e.Kind;
-            var realKind = ConvertKind(kind!);
-            if (e.Quantifier is string quant)
+        List<string> parameters = new(op.Operands?.Count ?? 0);
+        if (operands is not null)
+            foreach (var e in operands)
             {
-                if (e.Name is string name)
+                var kind = e.Kind;
+                var realKind = ConvertKind(kind!);
+                if (e.Quantifier is string quant)
                 {
-                    if (quant == "?")
+                    if (e.Name is string name)
+                    {
+                        if (quant == "?")
+                            parameters.AddUnique(ConvertOperandName(name));
+                        else if (quant == "*")
+                            parameters.AddUnique("values");
+                    }
+                    else
+                    {
+                        if (quant == "?")
+                            parameters.AddUnique(ConvertKindToName(kind!));
+                        else if (quant == "*")
+                            parameters.AddUnique("values");
+                    }
+                }
+                else
+                {
+                    if (e.Name is string name)
                         parameters.AddUnique(ConvertOperandName(name));
-                    else if (quant == "*")
-                        parameters.AddUnique("values");
-                }
-                else
-                {
-                    if (quant == "?")
-                        parameters.AddUnique(ConvertKindToName(kind!));
-                    else if (quant == "*")
-                        parameters.AddUnique("values");
+                    else
+                        parameters.AddUnique(ConvertKindToName(kind));
                 }
             }
-            else
-            {
-                if (e.Name is string name)
-                    parameters.AddUnique(ConvertOperandName(name));
-                else
-                    parameters.AddUnique(ConvertKindToName(kind));
-            }
-        }
         return parameters;
     }
 
@@ -122,31 +125,35 @@ public partial class SPVGenerator
             ("LiteralInteger", _) => "LiteralInteger",
             ("LiteralFloat", _) => "LiteralFloat",
             ("LiteralString", _) => "LiteralString",
-            ( _ , "BitEnum") => kind + "Mask", 
+            (_, "BitEnum") => kind + "Mask",
             ("LiteralExtInstInteger", _) => "LiteralInteger",
             ("LiteralSpecConstantOpInteger", _) => "Op",
             _ => kind
         };
     }
 
-    public static string ConvertKindToName(string kind)
+    public static string ConvertKindToName(string kind, bool lower = true)
     {
-        return kind switch
+        return (kind, lower) switch
         {
-            "IdRef" => "id",
-            "IdResult" => "resultId",
-            "IdResultType" => "resultType",
-            _ => kind.ToLower()
+            ("IdRef", true) => "id",
+            ("IdResult", true) => "resultId",
+            ("IdResultType", true) => "resultType",
+            ("IdRef", false) => "Id",
+            ("IdResult", false) => "ResultId",
+            ("IdResultType", false) => "ResultType",
+            (_, true) => kind.ToLower(),
+            (_, false) => kind
         };
     }
 
-    public static string ConvertOperandName(string input, string? quant = null)
+    public static string ConvertOperandName(string input, string? quant = null, bool lower = true)
     {
         if (string.IsNullOrEmpty(input))
         {
             return string.Empty;
         }
-        var result = "";
+        var result = new StringBuilder();
         bool firstLetterHit = false;
         for (int i = 0; i < input.Length; i++)
         {
@@ -156,14 +163,17 @@ public partial class SPVGenerator
                 if (!firstLetterHit)
                 {
                     firstLetterHit = true;
-                    result += char.ToLowerInvariant(input[i]);
+                    if (lower)
+                        result.Append(char.ToLowerInvariant(input[i]));
+                    else
+                        result.Append(input[i]);
                 }
                 else
-                    result += input[i];
+                    result.Append(input[i]);
             }
 
         }
-        return (result, quant) switch
+        return (result.ToString(), quant) switch
         {
             ("event", _) => "eventId",
             ("string", _) => "value",
@@ -182,7 +192,7 @@ public partial class SPVGenerator
             ("ImageFormat", _) => "",
             ("ExecutionMode", _) => "",
             ("ExecutionModel", _) => "",
-            _ => result
+            (string v, _) => v
         };
     }
 }

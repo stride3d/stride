@@ -63,7 +63,7 @@ public struct LiteralInteger : ILiteralNumber, IFromSpirv<LiteralInteger>
 
     public LiteralInteger(Span<int> value)
     {
-        if(value.Length == 2)
+        if (value.Length == 2)
         {
             Size = sizeof(long) * 8;
             Words = value[0] << 32 | value[1];
@@ -111,11 +111,13 @@ public struct LiteralInteger : ILiteralNumber, IFromSpirv<LiteralInteger>
 
     public readonly SpanOwner<int> AsSpanOwner()
     {
-        Span<int> span = WordCount == 1 ? [ (int)Words ] : [ (int)(Words >> 32), (int)(Words & 0xFFFFFFFF) ];
+        Span<int> span = WordCount == 1 ? [(int)Words] : [(int)(Words >> 32), (int)(Words & 0xFFFFFFFF)];
         var owner = SpanOwner<int>.Allocate(span.Length, AllocationMode.Clear);
         span.CopyTo(owner.Span);
         return owner;
     }
+
+    public override readonly string ToString() => $"{Words}";
 }
 
 

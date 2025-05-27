@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 namespace Stride.Shaders.Spirv.Generators;
 
 
-public struct OpKind
+public record struct OpKind
 {
     [JsonPropertyName("kind")]
     public string Kind { get; set; }
@@ -12,7 +12,7 @@ public struct OpKind
 }
 
 
-public struct OperandData
+public record struct OperandData
 {
     [JsonPropertyName("kind")]
     public string Kind { get; set; }
@@ -20,9 +20,10 @@ public struct OperandData
     public string? Name { get; set; }
     [JsonPropertyName("quantifier")]
     public string? Quantifier { get; set; }
+    public string? Class { get; set; }
 }
 
-public struct InstructionData
+public record struct InstructionData
 {
     [JsonPropertyName("opname")]
     public string OpName { get; set; }
@@ -31,7 +32,7 @@ public struct InstructionData
     [JsonPropertyName("opcode")]
     public int OpCode { get; set; }
     [JsonPropertyName("operands")]
-    public List<OperandData> Operands { get; set; }
+    public EquatableArray<OperandData>? Operands { get; set; }
     [JsonPropertyName("version")]
     public string Version { get; set; }
 }

@@ -3,6 +3,7 @@ using Stride.Shaders.Spirv.Core;
 using Stride.Shaders.Spirv.Core.Parsing;
 using System.Drawing;
 using System.Numerics;
+using System.Runtime.InteropServices;
 
 
 namespace Stride.Shaders.Spirv.Core;
@@ -69,7 +70,7 @@ public struct LiteralFloat : ILiteralNumber, IFromSpirv<LiteralFloat>
             return false;
         }
     }
-    public readonly  bool TryCast(out float value)
+    public readonly bool TryCast(out float value)
     {
         Span<int> span =
         [
@@ -87,7 +88,7 @@ public struct LiteralFloat : ILiteralNumber, IFromSpirv<LiteralFloat>
             return false;
         }
     }
-    public readonly  bool TryCast(out double value)
+    public readonly bool TryCast(out double value)
     {
         if (size == 64)
         {
@@ -124,9 +125,20 @@ public struct LiteralFloat : ILiteralNumber, IFromSpirv<LiteralFloat>
     }
     public readonly SpanOwner<int> AsSpanOwner()
     {
-        Span<int> span = WordCount == 1 ? [ (int)Words ] : [ (int)(Words >> 32), (int)(Words & 0xFFFFFFFF) ];
+        Span<int> span = WordCount == 1 ? [(int)Words] : [(int)(Words >> 32), (int)(Words & 0xFFFFFFFF)];
         var owner = SpanOwner<int>.Allocate(span.Length, AllocationMode.Clear);
         span.CopyTo(owner.Span);
         return owner;
+    }
+
+    public override string ToString()
+    {
+        return size switch
+        {
+            16 => $"{BitConverter.UInt16BitsToHalf((ushort)(Words & 0xFFFF))}",
+            32 => $"{BitConverter.Int32BitsToSingle((int)(Words & 0xFFFFFFFF))}",
+            64 => $"{BitConverter.Int64BitsToDouble(Words)}",
+            _ => throw new NotImplementedException()
+        };
     }
 }

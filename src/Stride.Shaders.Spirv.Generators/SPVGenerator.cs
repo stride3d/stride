@@ -23,6 +23,8 @@ public partial class SPVGenerator : IIncrementalGenerator
 
     Dictionary<string, OpKind> operandKinds = [];
 
+    static readonly JsonSerializerOptions options = new();
+
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         // #if DEBUG
@@ -48,13 +50,15 @@ public partial class SPVGenerator : IIncrementalGenerator
         string resourceGlslRegistryName =
             assembly.GetManifestResourceNames()
             .Single(str => str.EndsWith("GLSL.std.450.html"));
+        
+        if (!options.Converters.Any(x => x is EquatableArrayJsonConverter<OperandData>))
+            options.Converters.Add(new EquatableArrayJsonConverter<OperandData>());
 
+        spirvCore = JsonSerializer.Deserialize<SpirvGrammar>(new StreamReader(assembly.GetManifestResourceStream(resourceCoreName)).ReadToEnd(), options);
+        spirvGlsl = JsonSerializer.Deserialize<SpirvGrammar>(new StreamReader(assembly.GetManifestResourceStream(resourceGlslName)).ReadToEnd(), options);
+        spirvSDSL = JsonSerializer.Deserialize<SpirvGrammar>(new StreamReader(assembly.GetManifestResourceStream(resourceSDSLName)).ReadToEnd(), options);
 
-
-
-        spirvCore = JsonSerializer.Deserialize<SpirvGrammar>(new StreamReader(assembly.GetManifestResourceStream(resourceCoreName)).ReadToEnd());
-        spirvGlsl = JsonSerializer.Deserialize<SpirvGrammar>(new StreamReader(assembly.GetManifestResourceStream(resourceGlslName)).ReadToEnd());
-        spirvSDSL = JsonSerializer.Deserialize<SpirvGrammar>(new StreamReader(assembly.GetManifestResourceStream(resourceSDSLName)).ReadToEnd());
+        GenerateStructs(context);
 
         var config = Configuration.Default.WithDefaultLoader();
         var htmlContext = BrowsingContext.New(config);
@@ -201,7 +205,7 @@ public partial class SPVGenerator : IIncrementalGenerator
                 .AppendLine("}");
         }
 
-        else if (op.Operands is not null && op.Operands.Count > 0)
+        else if (op.Operands is EquatableArray<OperandData> operands && operands.Count > 0)
         {
             var parameters = ConvertOperandsToParameters(op);
             var parameterNames = ConvertOperandsToParameterNames(op);

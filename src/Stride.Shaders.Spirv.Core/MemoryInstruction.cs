@@ -39,6 +39,8 @@ public record struct Instruction(ISpirvBuffer Buffer, Memory<int> Words, int Ind
     public bool IsEmpty => Words.IsEmpty;
 
     public readonly RefInstruction AsRef() => RefInstruction.ParseRef(Words.Span);
+    public readonly TWrapper UnsafeAs<TWrapper>() where TWrapper : struct, IWrapperInstruction, allows ref struct
+        => RefInstruction.ParseRef(Words.Span).UnsafeAs<TWrapper>();
 
     public readonly T? GetOperand<T>(string name) where T : struct, IFromSpirv<T>
         => AsRef().GetOperand<T>(name);

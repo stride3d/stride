@@ -88,7 +88,7 @@ public partial class SPVGenerator
             code.AppendLine("Instance.Register(SDSLOp.OpExtInst, OperandKind.LiteralInteger, OperandQuantifier.One, \"instruction\", \"GLSL\");");
             code.AppendLine("Instance.Register(SDSLOp.OpExtInst, OperandKind.IdRef, OperandQuantifier.ZeroOrMore, \"values\", \"GLSL\");");
         }
-        else if (op.Operands is List<OperandData> operands)
+        else if (op.Operands is EquatableArray<OperandData> operands)
         {
             foreach (var operand in operands)
             {
