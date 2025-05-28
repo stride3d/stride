@@ -15,17 +15,24 @@ using Stride.Core.Presentation.Collections;
 
 namespace Stride.Core.Presentation.Avalonia.Controls;
 
-[TemplatePart(Name = "PART_LogText", Type = typeof(TextBlock))]
+[TemplatePart(Name = "PART_LogText", Type = typeof(SelectableTextBlock))]
 [TemplatePart(Name = "PART_ClearLog", Type = typeof(Button))]
 [TemplatePart(Name = "PART_PreviousResult", Type = typeof(Button))]
 [TemplatePart(Name = "PART_NextResult", Type = typeof(Button))]
 public sealed class TextLogViewer : TemplatedControl
 {
     private IObservableCollection<ILogMessage>? messages;
-    private TextBlock? textBlock;
+    private SelectableTextBlock? textBlock;
+    private readonly List<SearchRange> searchMatches = [];
+    private SearchRange previousRange;
+    private int currentResult;
 
     static TextLogViewer()
     {
+        SearchTokenProperty.Changed.AddClassHandler<TextLogViewer>(OnSearchTokenChanged);
+        SearchMatchCaseProperty.Changed.AddClassHandler<TextLogViewer>(OnSearchTokenChanged);
+        SearchMatchWordProperty.Changed.AddClassHandler<TextLogViewer>(OnSearchTokenChanged);
+
         DebugBrushProperty.Changed.AddClassHandler<TextLogViewer>(OnTextPropertyChanged);
         VerboseBrushProperty.Changed.AddClassHandler<TextLogViewer>(OnTextPropertyChanged);
         InfoBrushProperty.Changed.AddClassHandler<TextLogViewer>(OnTextPropertyChanged);
@@ -71,6 +78,24 @@ public sealed class TextLogViewer : TemplatedControl
     /// </summary>
     public static readonly StyledProperty<bool> CanSearchLogProperty =
         AvaloniaProperty.Register<TextLogViewer, bool>(nameof(CanSearchLog), true);
+
+    /// <summary>
+    /// Identifies the <see cref="SearchToken"/> dependency property.
+    /// </summary>
+    public static readonly StyledProperty<string> SearchTokenProperty =
+        AvaloniaProperty.Register<TextLogViewer, string>(nameof(SearchToken));
+
+    /// <summary>
+    /// Identifies the <see cref="SearchMatchCase"/> dependency property.
+    /// </summary>
+    public static readonly StyledProperty<bool> SearchMatchCaseProperty =
+        AvaloniaProperty.Register<TextLogViewer, bool>(nameof(SearchMatchCase));
+
+    /// <summary>
+    /// Identifies the <see cref="SearchMatchWord"/> dependency property.
+    /// </summary>
+    public static readonly StyledProperty<bool> SearchMatchWordProperty =
+        AvaloniaProperty.Register<TextLogViewer, bool>(nameof(SearchMatchWord));
 
     /// <summary>
     /// Identifies the <see cref="DebugBrush"/> dependency property.
@@ -196,6 +221,33 @@ public sealed class TextLogViewer : TemplatedControl
     }
 
     /// <summary>
+    /// Gets or sets the current search token.
+    /// </summary>
+    public string SearchToken
+    {
+        get => GetValue(SearchTokenProperty);
+        set => SetValue(SearchTokenProperty, value);
+    }
+
+    /// <summary>
+    /// Gets or sets whether the search result should match the case.
+    /// </summary>
+    public bool SearchMatchCase
+    {
+        get => GetValue(SearchMatchCaseProperty);
+        set => SetValue(SearchMatchCaseProperty, value);
+    }
+
+    /// <summary>
+    /// Gets or sets whether the search result should match whole words only.
+    /// </summary>
+    public bool SearchMatchWord
+    {
+        get => GetValue(SearchMatchWordProperty);
+        set => SetValue(SearchMatchWordProperty, value);
+    }
+
+    /// <summary>
     /// Gets or sets the brush used to emphasize debug messages.
     /// </summary>
     public Brush DebugBrush
@@ -317,7 +369,7 @@ public sealed class TextLogViewer : TemplatedControl
     {
         base.OnApplyTemplate(e);
 
-        textBlock = e.NameScope.Find<TextBlock>("PART_LogText");
+        textBlock = e.NameScope.Find<SelectableTextBlock>("PART_LogText");
 
         if (e.NameScope.Find<Button>("PART_ClearLog") is { } clearLogButton)
         {
@@ -353,6 +405,8 @@ public sealed class TextLogViewer : TemplatedControl
         if (textBlock?.Inlines == null) return;
 
         var sb = new StringBuilder();
+        var stringComparison = SearchMatchCase ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
+        var searchToken = SearchToken;
         foreach (var message in logMessages.Where(x => ShouldDisplayMessage(x.Type)))
         {
             sb.Clear();
@@ -376,11 +430,63 @@ public sealed class TextLogViewer : TemplatedControl
             }
             sb.AppendLine();
 
-            var lineText = sb.ToString();
+            var lineText = sb.ToString().AsSpan();
             var logColor = GetLogColor(message.Type);
-            textBlock.Inlines.Add(new Run(lineText) { Foreground = logColor });
+            if (string.IsNullOrEmpty(searchToken))
+            {
+                textBlock.Inlines.Add(new Run(lineText.ToString()) { Foreground = logColor });
+            }
+            else
+            {
+                do
+                {
+                    var tokenIndex = lineText.IndexOf(searchToken, stringComparison);
+                    if (tokenIndex == -1)
+                    {
+                        textBlock.Inlines.Add(new Run(lineText.ToString()) { Foreground = logColor });
+                        previousRange = new SearchRange(previousRange.End, lineText.Length);
+                        break;
+                    }
 
-            // FIXME xplat-editor search
+                    var acceptResult = true;
+                    if (SearchMatchWord && lineText.Length > 1)
+                    {
+                        if (tokenIndex > 0)
+                        {
+                            var c = lineText[tokenIndex - 1];
+                            if (c is >= 'A' and <= 'Z' or >= 'a' and <= 'z')
+                                acceptResult = false;
+                        }
+                        if (tokenIndex + searchToken.Length < lineText.Length)
+                        {
+                            var c = lineText[tokenIndex + searchToken.Length];
+                            if (c is >= 'A' and <= 'Z' or >= 'a' and <= 'z')
+                                acceptResult = false;
+                        }
+                    }
+
+                    if (acceptResult)
+                    {
+                        if (tokenIndex > 0)
+                        {
+                            textBlock.Inlines.Add(new Run(lineText[..tokenIndex].ToString()) { Foreground = logColor });
+                            previousRange = new SearchRange(previousRange.End, tokenIndex);
+                        }
+
+                        var tokenRun = new Run(lineText[tokenIndex..(tokenIndex + searchToken.Length)].ToString()) { Foreground = Brushes.LightSteelBlue };
+                        textBlock.Inlines.Add(tokenRun);
+                        var tokenRange = new SearchRange(previousRange.End, searchToken.Length);
+                        searchMatches.Add(tokenRange);
+                        previousRange = tokenRange;
+                    }
+                    else
+                    {
+                        textBlock.Inlines.Add(new Run(lineText[..(tokenIndex + searchToken.Length)].ToString()) { Foreground = logColor });
+                        previousRange = new SearchRange(previousRange.End, tokenIndex + searchToken.Length);
+                    }
+                    lineText = lineText[(tokenIndex + searchToken.Length)..];
+                } while (lineText.Length > 0);
+            }
         }
     }
 
@@ -466,8 +572,7 @@ public sealed class TextLogViewer : TemplatedControl
     {
         if (textBlock == null) return;
 
-        // FIXME xplat-editor search
-        //ClearSearchResults();
+        ClearSearchResults();
         textBlock.Inlines?.Clear();
         if (LogMessages != null)
         {
@@ -477,14 +582,47 @@ public sealed class TextLogViewer : TemplatedControl
         }
     }
 
+    private void ClearSearchResults()
+    {
+        searchMatches.Clear();
+        previousRange = default;
+    }
+
+    private void SelectFirstOccurrence()
+    {
+        if (searchMatches.Count > 0)
+        {
+            SelectSearchResult(0);
+        }
+    }
+
     private void SelectPreviousOccurrence()
     {
-        // FIXME xplat-editor search
+        var count = searchMatches.Count;
+        if (count > 0)
+        {
+            var previousResult = (count + currentResult - 1) % count;
+            SelectSearchResult(previousResult);
+        }
     }
 
     private void SelectNextOccurrence()
     {
-        // FIXME xplat-editor search
+        var count = searchMatches.Count;
+        if (count > 0)
+        {
+            var nextResult = (currentResult + 1) % count;
+            SelectSearchResult(nextResult);
+        }
+    }
+
+    private void SelectSearchResult(int resultIndex)
+    {
+        var result = searchMatches[resultIndex];
+        textBlock!.SelectionStart = result.Start;
+        textBlock!.SelectionEnd = result.End;
+        currentResult = resultIndex;
+        // FIXME xplat-editor scroll into view
     }
 
     private bool ShouldDisplayMessage(LogMessageType type)
@@ -501,8 +639,19 @@ public sealed class TextLogViewer : TemplatedControl
         };
     }
 
+    private static void OnSearchTokenChanged(TextLogViewer sender, AvaloniaPropertyChangedEventArgs _)
+    {
+        sender.ResetText();
+        sender.SelectFirstOccurrence();
+    }
+
     private static void OnTextPropertyChanged(TextLogViewer sender, AvaloniaPropertyChangedEventArgs _)
     {
         sender.ResetText();
+    }
+
+    private readonly record struct SearchRange(int Start, int Length)
+    {
+        public int End => Start + Length;
     }
 }
