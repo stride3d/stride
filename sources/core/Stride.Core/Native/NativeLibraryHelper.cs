@@ -120,6 +120,8 @@ public static class NativeLibraryHelper
 
             throw new InvalidOperationException($"Could not load native library {libraryName} using CPU architecture {cpu}.");
         }
+#else
+        return default;
 #endif
     }
 
