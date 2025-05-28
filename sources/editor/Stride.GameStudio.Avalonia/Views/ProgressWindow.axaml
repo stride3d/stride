@@ -19,6 +19,7 @@
                    Value="{Binding ProgressValue}" />
     </DockPanel>
     <sd:TextLogViewer Grid.Row="1"
+                      CanClearLog="False"
                       LogMessages="{Binding Log.Messages}" />
     <StackPanel Grid.Row="2"
                 Orientation="Horizontal" HorizontalAlignment="Right">

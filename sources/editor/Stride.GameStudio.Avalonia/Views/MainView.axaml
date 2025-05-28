@@ -128,10 +128,11 @@
                                   DataContext="{Binding Session.AssetCollection, FallbackValue={x:Null}}"/>
           </TabItem>
           <TabItem Header="Asset errors">
-            <sd:TextLogViewer LogMessages="{Binding Session.AssetLog.FilteredMessages, FallbackValue={x:Null}}"/>
+            <sd:TextLogViewer LogMessages="{Binding Session.AssetLog.FilteredMessages, FallbackValue={x:Null}}"
+                              ShowDebugMessages="False" ShowVerboseMessages="False" ShowInfoMessages="False"/>
           </TabItem>
           <TabItem Header="Output">
-
+            <sd:TextLogViewer ShowDebugMessages="False" ShowVerboseMessages="False"/>
           </TabItem>
         </TabControl>
         <GridSplitter Grid.Column="3" ResizeDirection="Auto"/>

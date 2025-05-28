@@ -24,11 +24,53 @@ public sealed class TextLogViewer : TemplatedControl
     private IObservableCollection<ILogMessage>? messages;
     private TextBlock? textBlock;
 
+    static TextLogViewer()
+    {
+        DebugBrushProperty.Changed.AddClassHandler<TextLogViewer>(OnTextPropertyChanged);
+        VerboseBrushProperty.Changed.AddClassHandler<TextLogViewer>(OnTextPropertyChanged);
+        InfoBrushProperty.Changed.AddClassHandler<TextLogViewer>(OnTextPropertyChanged);
+        WarningBrushProperty.Changed.AddClassHandler<TextLogViewer>(OnTextPropertyChanged);
+        ErrorBrushProperty.Changed.AddClassHandler<TextLogViewer>(OnTextPropertyChanged);
+        FatalBrushProperty.Changed.AddClassHandler<TextLogViewer>(OnTextPropertyChanged);
+
+        ShowDebugMessagesProperty.Changed.AddClassHandler<TextLogViewer>(OnTextPropertyChanged);
+        ShowVerboseMessagesProperty.Changed.AddClassHandler<TextLogViewer>(OnTextPropertyChanged);
+        ShowInfoMessagesProperty.Changed.AddClassHandler<TextLogViewer>(OnTextPropertyChanged);
+        ShowWarningMessagesProperty.Changed.AddClassHandler<TextLogViewer>(OnTextPropertyChanged);
+        ShowErrorMessagesProperty.Changed.AddClassHandler<TextLogViewer>(OnTextPropertyChanged);
+        ShowFatalMessagesProperty.Changed.AddClassHandler<TextLogViewer>(OnTextPropertyChanged);
+        ShowStacktraceProperty.Changed.AddClassHandler<TextLogViewer>(OnTextPropertyChanged);
+    }
+
     /// <summary>
     /// Identifies the <see cref="LogMessages"/> dependency property.
     /// </summary>
     public static readonly DirectProperty<TextLogViewer, IObservableCollection<ILogMessage>?> LogMessagesProperty =
         AvaloniaProperty.RegisterDirect<TextLogViewer, IObservableCollection<ILogMessage>?>(nameof(LogMessages), o => o.LogMessages, (o, v) => o.LogMessages = v);
+
+    /// <summary>
+    /// Identifies the <see cref="IsToolBarVisible"/> dependency property.
+    /// </summary>
+    public static readonly StyledProperty<bool> IsToolBarVisibleProperty =
+        AvaloniaProperty.Register<TextLogViewer, bool>(nameof(IsToolBarVisible), true);
+
+    /// <summary>
+    /// Identifies the <see cref="CanClearLog"/> dependency property.
+    /// </summary>
+    public static readonly StyledProperty<bool> CanClearLogProperty =
+        AvaloniaProperty.Register<TextLogViewer, bool>(nameof(CanClearLog), true);
+
+    /// <summary>
+    /// Identifies the <see cref="CanFilterLog"/> dependency property.
+    /// </summary>
+    public static readonly StyledProperty<bool> CanFilterLogProperty =
+        AvaloniaProperty.Register<TextLogViewer, bool>(nameof(CanFilterLog), true);
+
+    /// <summary>
+    /// Identifies the <see cref="CanSearchLog"/> dependency property.
+    /// </summary>
+    public static readonly StyledProperty<bool> CanSearchLogProperty =
+        AvaloniaProperty.Register<TextLogViewer, bool>(nameof(CanSearchLog), true);
 
     /// <summary>
     /// Identifies the <see cref="DebugBrush"/> dependency property.
@@ -115,6 +157,42 @@ public sealed class TextLogViewer : TemplatedControl
     {
         get => messages;
         set => SetAndRaise(LogMessagesProperty, ref messages, value);
+    }
+
+    /// <summary>
+    /// Gets or sets whether the tool bar should be visible.
+    /// </summary>
+    public bool IsToolBarVisible
+    {
+        get => GetValue(IsToolBarVisibleProperty);
+        set => SetValue(IsToolBarVisibleProperty, value);
+    }
+
+    /// <summary>
+    /// Gets or sets whether it is possible to clear the log text.
+    /// </summary>
+    public bool CanClearLog
+    {
+        get => GetValue(CanClearLogProperty);
+        set => SetValue(CanClearLogProperty, value);
+    }
+
+    /// <summary>
+    /// Gets or sets whether it is possible to filter the log text.
+    /// </summary>
+    public bool CanFilterLog
+    {
+        get => GetValue(CanFilterLogProperty);
+        set => SetValue(CanFilterLogProperty, value);
+    }
+
+    /// <summary>
+    /// Gets or sets whether it is possible to search the log text.
+    /// </summary>
+    public bool CanSearchLog
+    {
+        get => GetValue(CanSearchLogProperty);
+        set => SetValue(CanSearchLogProperty, value);
     }
 
     /// <summary>
@@ -398,7 +476,7 @@ public sealed class TextLogViewer : TemplatedControl
             AppendText(logMessages);
         }
     }
-    
+
     private void SelectPreviousOccurrence()
     {
         // FIXME xplat-editor search
@@ -421,5 +499,10 @@ public sealed class TextLogViewer : TemplatedControl
             LogMessageType.Fatal => ShowFatalMessages,
             _ => throw new ArgumentOutOfRangeException(nameof(type)),
         };
+    }
+
+    private static void OnTextPropertyChanged(TextLogViewer sender, AvaloniaPropertyChangedEventArgs _)
+    {
+        sender.ResetText();
     }
 }
