@@ -166,7 +166,7 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
             process.Start();
             process.BeginOutputReadLine();
             process.BeginErrorReadLine();
-            process.WaitForExit();
+            process.WaitForExitAsync();
             return process.ExitCode == 0;
         }
         catch (Exception ex)
