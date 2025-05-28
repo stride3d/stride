@@ -18,6 +18,8 @@ public partial struct SpirvDis<TBuffer>
     int IdOffset { get; init; }
     bool UseNames { get; init; }
 
+    // avoid name collisions
+    private HashSet<string> usedNames = [];
     SortedList<int, NameId> nameTable = [];
 
     public SpirvDis(TBuffer buff, bool useNames = false)
@@ -114,12 +116,12 @@ public partial struct SpirvDis<TBuffer>
             && instruction.TryGetOperand("name", out LiteralString? name) && name is LiteralString n
             )
         {
-            nameTable[t] = new(n.Value);
+            UpdateNameTable(t, n.Value);
         }
         else if (instruction.OpCode == SDSLOp.OpTypeVoid)
-            nameTable[instruction.ResultId!.Value] = new("void");
+            UpdateNameTable(instruction.ResultId!.Value, "void");
         else if (instruction.OpCode == SDSLOp.OpTypeBool)
-            nameTable[instruction.ResultId!.Value] = new("bool");
+            UpdateNameTable(instruction.ResultId!.Value, "bool");
         else if (instruction.OpCode == SDSLOp.OpTypeInt)
         {
             var type = instruction.Operands[1..] switch
@@ -134,21 +136,33 @@ public partial struct SpirvDis<TBuffer>
                 [64, 1] => "long",
                 _ => "int"
             };
-            nameTable[instruction.ResultId!.Value] = new(type);
+            UpdateNameTable(instruction.ResultId!.Value, type);
         }
         else if (instruction.OpCode == SDSLOp.OpTypeFloat)
         {
             var size = instruction.Operands[1];
-            nameTable[instruction.ResultId!.Value] = new(size switch {16 => "half", 32 => "float", 64 => "double", _ => throw new NotImplementedException()});
+            UpdateNameTable(instruction.ResultId!.Value, size switch {16 => "half", 32 => "float", 64 => "double", _ => throw new NotImplementedException()});
         }
         else if (instruction.OpCode == SDSLOp.OpTypeVector)
         {
-            nameTable[instruction.ResultId!.Value] = new(nameTable[instruction.Operands[1]].Name + instruction.Operands[2]);
+            UpdateNameTable(instruction.ResultId!.Value, nameTable[instruction.Operands[1]].Name + instruction.Operands[2]);
         }
 
 
     }
 
+    private readonly void UpdateNameTable(int id, string name)
+    {
+        if (!usedNames.Add(name))
+        {
+            int extraId = 0;
+            var tentativeName = name;
+            while (!usedNames.Add(tentativeName))
+                tentativeName = $"{name}_{extraId++}";
+            name = tentativeName;
+        }
+        nameTable[id] = new(name);
+    }
 
     public readonly override string ToString()
     {
