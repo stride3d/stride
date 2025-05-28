@@ -29,15 +29,9 @@ public record struct SDSLC() : ICompiler
 
             // temp hack to add entry point (last function)
             var context = compiler.Context;
-            if (context.Module.Functions.Count > 0)
-            {
-                var entryPoint = context.Module.Functions[^1];
-                context.Buffer.AddOpCapability(Spv.Specification.Capability.Shader);
-                context.Buffer.AddOpMemoryModel(Spv.Specification.AddressingModel.Logical, Spv.Specification.MemoryModel.GLSL450);
-                context.SetEntryPoint(Spv.Specification.ExecutionModel.Vertex, entryPoint.Id, entryPoint.Name, []);
-
-                new StreamAnalyzer().Process(table, compiler, entryPoint);
-            }
+            context.Buffer.AddOpCapability(Spv.Specification.Capability.Shader);
+            context.Buffer.AddOpMemoryModel(Spv.Specification.AddressingModel.Logical, Spv.Specification.MemoryModel.GLSL450);
+            new StreamAnalyzer().Process(table, compiler);
 
             compiler.Context.Buffer.Sort();
             var merged = SpirvBuffer.Merge(compiler.Context.Buffer, compiler.Builder.Buffer);
