@@ -21,14 +21,14 @@ namespace Stride.Core.Assets.Editor.Avalonia.Controls;
 [TemplatePart(Name = "PART_NextResult", Type = typeof(Button))]
 public sealed class TextLogViewer : TemplatedControl
 {
-    private IObservableCollection<ILogMessage> messages;
+    private IObservableCollection<ILogMessage>? messages;
     private TextBlock? textBlock;
 
     /// <summary>
     /// Identifies the <see cref="LogMessages"/> dependency property.
     /// </summary>
-    public static readonly DirectProperty<TextLogViewer, IObservableCollection<ILogMessage>> LogMessagesProperty =
-        AvaloniaProperty.RegisterDirect<TextLogViewer, IObservableCollection<ILogMessage>>(nameof(LogMessages), o => o.LogMessages, (o, v) => o.LogMessages = v);
+    public static readonly DirectProperty<TextLogViewer, IObservableCollection<ILogMessage>?> LogMessagesProperty =
+        AvaloniaProperty.RegisterDirect<TextLogViewer, IObservableCollection<ILogMessage>?>(nameof(LogMessages), o => o.LogMessages, (o, v) => o.LogMessages = v);
 
     /// <summary>
     /// Identifies the <see cref="DebugBrush"/> dependency property.
@@ -111,7 +111,7 @@ public sealed class TextLogViewer : TemplatedControl
     /// <summary>
     /// Gets or sets the collection of <see cref="ILogMessage"/> to display.
     /// </summary>
-    public IObservableCollection<ILogMessage> LogMessages
+    public IObservableCollection<ILogMessage>? LogMessages
     {
         get => messages;
         set => SetAndRaise(LogMessagesProperty, ref messages, value);
@@ -122,8 +122,8 @@ public sealed class TextLogViewer : TemplatedControl
     /// </summary>
     public Brush DebugBrush
     {
-        get { return GetValue(DebugBrushProperty); }
-        set { SetValue(DebugBrushProperty, value); }
+        get => GetValue(DebugBrushProperty);
+        set => SetValue(DebugBrushProperty, value);
     }
 
     /// <summary>
@@ -131,8 +131,8 @@ public sealed class TextLogViewer : TemplatedControl
     /// </summary>
     public Brush VerboseBrush
     {
-        get { return GetValue(VerboseBrushProperty); }
-        set { SetValue(VerboseBrushProperty, value); }
+        get => GetValue(VerboseBrushProperty);
+        set => SetValue(VerboseBrushProperty, value);
     }
 
     /// <summary>
@@ -140,8 +140,8 @@ public sealed class TextLogViewer : TemplatedControl
     /// </summary>
     public Brush InfoBrush
     {
-        get { return GetValue(InfoBrushProperty); }
-        set { SetValue(InfoBrushProperty, value); }
+        get => GetValue(InfoBrushProperty);
+        set => SetValue(InfoBrushProperty, value);
     }
 
     /// <summary>
@@ -149,8 +149,8 @@ public sealed class TextLogViewer : TemplatedControl
     /// </summary>
     public Brush WarningBrush
     {
-        get { return GetValue(WarningBrushProperty); }
-        set { SetValue(WarningBrushProperty, value); }
+        get => GetValue(WarningBrushProperty);
+        set => SetValue(WarningBrushProperty, value);
     }
 
     /// <summary>
@@ -158,8 +158,8 @@ public sealed class TextLogViewer : TemplatedControl
     /// </summary>
     public Brush ErrorBrush
     {
-        get { return GetValue(ErrorBrushProperty); }
-        set { SetValue(ErrorBrushProperty, value); }
+        get => GetValue(ErrorBrushProperty);
+        set => SetValue(ErrorBrushProperty, value);
     }
 
     /// <summary>
@@ -167,8 +167,8 @@ public sealed class TextLogViewer : TemplatedControl
     /// </summary>
     public Brush FatalBrush
     {
-        get { return GetValue(FatalBrushProperty); }
-        set { SetValue(FatalBrushProperty, value); }
+        get => GetValue(FatalBrushProperty);
+        set => SetValue(FatalBrushProperty, value);
     }
 
     /// <summary>
@@ -230,8 +230,8 @@ public sealed class TextLogViewer : TemplatedControl
     /// </summary>
     public bool ShowStacktrace
     {
-        get { return GetValue(ShowStacktraceProperty); }
-        set { SetValue(ShowStacktraceProperty, value); }
+        get => GetValue(ShowStacktraceProperty);
+        set => SetValue(ShowStacktraceProperty, value);
     }
 
     /// <inheritdoc />
@@ -241,17 +241,17 @@ public sealed class TextLogViewer : TemplatedControl
 
         textBlock = e.NameScope.Find<TextBlock>("PART_LogText");
 
-        if (e.NameScope.Find<Button>("PART_ClearLog") is Button clearLogButton)
+        if (e.NameScope.Find<Button>("PART_ClearLog") is { } clearLogButton)
         {
             clearLogButton.Click += ClearLog;
         }
 
-        if (e.NameScope.Find<Button>("PART_PreviousResult") is Button previousResultButton)
+        if (e.NameScope.Find<Button>("PART_PreviousResult") is { } previousResultButton)
         {
             previousResultButton.Click += PreviousResultClicked;
         }
 
-        if (e.NameScope.Find<Button>("PART_NextResult") is Button nextResultButton)
+        if (e.NameScope.Find<Button>("PART_NextResult") is { } nextResultButton)
         {
             nextResultButton.Click += NextResultClicked;
         }
@@ -280,16 +280,16 @@ public sealed class TextLogViewer : TemplatedControl
             sb.Clear();
             if (message.Module != null)
             {
-                sb.AppendFormat("[{0}]: ", message.Module);
+                sb.Append($"[{message.Module}]: ");
             }
 
-            sb.AppendFormat("{0}: {1}", message.Type, message.Text);
+            sb.Append($"{message.Type}: {message.Text}");
             var ex = message.ExceptionInfo;
             if (ex != null)
             {
                 if (ShowStacktrace)
                 {
-                    sb.AppendFormat("{0}{1}{0}", Environment.NewLine, ex);
+                    sb.Append($"{Environment.NewLine}{ex}{Environment.NewLine}");
                 }
                 else
                 {
@@ -308,7 +308,7 @@ public sealed class TextLogViewer : TemplatedControl
 
     private void ClearLog(object? sender, RoutedEventArgs e)
     {
-        LogMessages.Clear();
+        LogMessages?.Clear();
     }
 
     private Brush GetLogColor(LogMessageType type)
