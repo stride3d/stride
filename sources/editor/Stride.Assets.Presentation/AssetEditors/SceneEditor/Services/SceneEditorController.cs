@@ -19,6 +19,7 @@ using Stride.Assets.Presentation.AssetEditors.SceneEditor.ViewModels;
 using Stride.Editor.EditorGame.Game;
 using Stride.Engine;
 using Stride.Shaders.Compiler;
+using Stride.Games;
 
 namespace Stride.Assets.Presentation.AssetEditors.SceneEditor.Services
 {
@@ -247,7 +248,8 @@ namespace Stride.Assets.Presentation.AssetEditors.SceneEditor.Services
         [NotNull]
         private static SceneEditorGame CreateEditorGame(TaskCompletionSource<bool> gameContentLoadedTaskSource, IEffectCompiler effectCompiler, string effectLogPath)
         {
-            return new SceneEditorGame(gameContentLoadedTaskSource, effectCompiler, effectLogPath);
+            var gamePlatform = new GamePlatformDesktop();
+            return new SceneEditorGame(gameContentLoadedTaskSource, effectCompiler, effectLogPath, gamePlatform);
         }
     }
 }
