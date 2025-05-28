@@ -13,7 +13,7 @@ using Avalonia.Media;
 using Stride.Core.Diagnostics;
 using Stride.Core.Presentation.Collections;
 
-namespace Stride.Core.Assets.Editor.Avalonia.Controls;
+namespace Stride.Core.Presentation.Avalonia.Controls;
 
 [TemplatePart(Name = "PART_LogText", Type = typeof(TextBlock))]
 [TemplatePart(Name = "PART_ClearLog", Type = typeof(Button))]

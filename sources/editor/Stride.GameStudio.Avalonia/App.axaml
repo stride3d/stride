@@ -1,7 +1,6 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
-             xmlns:ctrl="using:Stride.Core.Assets.Editor.Avalonia.Controls"
              xmlns:themes="using:Stride.GameStudio.Avalonia.Themes"
              x:Class="Stride.GameStudio.Avalonia.App"
              RequestedThemeVariant="Default">
@@ -20,7 +19,7 @@
     <FluentTheme />
     <themes:DefaultStyles />
     <sd:HyperlinkStyle />
-    <Style Selector="ctrl|TextLogViewer">
+    <Style Selector="sd|TextLogViewer">
       <Setter Property="DebugBrush">
         <SolidColorBrush Color="DarkGray"/>
       </Setter>

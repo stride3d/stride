@@ -3,7 +3,6 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
-             xmlns:caec="using:Stride.Core.Assets.Editor.Avalonia.Controls"
              xmlns:caect="using:Stride.Core.Assets.Editor.Components.Transactions"
              xmlns:cpc="using:Stride.Core.Presentation.Commands"
              xmlns:gsh="using:Stride.GameStudio.Avalonia.Helpers"
@@ -129,7 +128,7 @@
                                   DataContext="{Binding Session.AssetCollection, FallbackValue={x:Null}}"/>
           </TabItem>
           <TabItem Header="Asset errors">
-            <caec:TextLogViewer LogMessages="{Binding Session.AssetLog.FilteredMessages, FallbackValue={x:Null}}"/>
+            <sd:TextLogViewer LogMessages="{Binding Session.AssetLog.FilteredMessages, FallbackValue={x:Null}}"/>
           </TabItem>
           <TabItem Header="Output">
 
