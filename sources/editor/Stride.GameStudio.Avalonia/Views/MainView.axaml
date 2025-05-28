@@ -78,7 +78,13 @@
         <MenuItem Header="Simulate a crash"
                   Command="{Binding CrashCommand}"/>
       </MenuItem>
-    </Menu>
+	  <Button Width="32" Height="32"
+			  ToolTip.Tip="Start (F5)"
+			  Command="{Binding RunCurrentProjectCommand}" HotKey="F5">
+		 <Image Source="{StaticResource ImageStart}" Width="16" Height="16"/>
+	  </Button>
+	</Menu>
+	  
     <Grid Grid.Row="1"
           RowDefinitions="2*, 2, *">
       <Grid Grid.Row="0"
