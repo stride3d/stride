@@ -48,23 +48,32 @@ namespace Stride.Shaders.Spirv.Processing
 
             var streams = CreateStreams(compiler);
 
+            // Expected at the end of pixel shader
             foreach (var stream in streams)
             {
                 if (stream.Value.Stream.Semantic is { } semantic && (semantic.StartsWith("SV_Target") || semantic == "SV_Depth"))
                     stream.Value.Stream.Output = true;
             }
-            ProcessMethod(table, compiler, entryPointPS.Id, streams);
-
             GenerateStreamWrapper(table, compiler, Specification.ExecutionModel.Fragment, entryPointPS.Id, entryPointPS.Name, streams);
+
+            // Those semantic variables are implicit in pixel shader, no need to forward them from previous stages
+            foreach (var stream in streams)
+            {
+                if (stream.Value.Stream.Semantic is { } semantic && (semantic == "SV_Coverage" || semantic == "SV_IsFrontFace" || semantic == "VFACE"))
+                    stream.Value.Stream.Read = false;
+            }
+            PropagateStreamsFromPreviousStage(streams);
+            GenerateStreamWrapper(table, compiler, Specification.ExecutionModel.Vertex, entryPointVS.Id, entryPointVS.Name, streams);
+        }
+
+        private static void PropagateStreamsFromPreviousStage(SortedList<int, (StreamInfo Stream, bool IsDirect)> streams)
+        {
             foreach (var stream in streams)
             {
                 stream.Value.Stream.Output = stream.Value.Stream.Read;
                 stream.Value.Stream.Read = false;
                 stream.Value.Stream.Write = false;
             }
-            ProcessMethod(table, compiler, entryPointVS.Id, streams);
-
-            GenerateStreamWrapper(table, compiler, Specification.ExecutionModel.Vertex, entryPointVS.Id, entryPointVS.Name, streams);
         }
 
         private SortedList<int, (StreamInfo Stream, bool IsDirect)> CreateStreams(CompilerUnit compiler)
@@ -119,6 +128,8 @@ namespace Stride.Shaders.Spirv.Processing
 
         private void GenerateStreamWrapper(SymbolTable table, CompilerUnit compiler, Specification.ExecutionModel executionModel, int entryPointId, string entryPointName, SortedList<int, (StreamInfo Stream, bool IsDirect)> streams)
         {
+            ProcessMethod(table, compiler, entryPointId, streams);
+
             var stage = executionModel switch
             {
                 Specification.ExecutionModel.Fragment => "PS",
