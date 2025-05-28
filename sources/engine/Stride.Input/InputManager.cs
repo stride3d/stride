@@ -318,8 +318,6 @@ namespace Stride.Input
         {
             this.gameContext = gameContext ?? throw new ArgumentNullException(nameof(gameContext));
 
-            //AddSources();
-
             // After adding initial devices, reassign gamepad id's
             // this creates a beter index assignment in the case where you have both an xbox controller and another controller at startup
             var sortedGamePads = GamePads.OrderBy(x => x.CanChangeIndex);
@@ -630,11 +628,11 @@ namespace Stride.Input
         /// <summary>
         /// Resets the <see cref="Sources"/> collection back to it's default values
         /// </summary>
-        [Obsolete]
+        [Obsolete("This should be managed manually instead by using the Sources collection")]
         public void ResetSources()
         {
             Sources.Clear();
-            //AddSources();
+            AddSources();
         }
         
         /// <summary>
