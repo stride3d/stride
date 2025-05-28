@@ -90,3 +90,16 @@ jobs:
     with:
       build-type: ${{ matrix.build-type }}
       test-category: ${{ matrix.test-category }}
+
+  ### Editor ###
+  Editor:
+    needs: [Linux-Runtime, Windows-Runtime]
+    strategy:
+      matrix:
+        build-type: [Release]
+        platform: [Linux, Windows]
+    uses: ./.github/workflows/build-avalonia-editor.yml
+    secrets: inherit
+    with:
+      build-type: ${{ matrix.build-type }}
+      platform: ${{ matrix.platform }}
