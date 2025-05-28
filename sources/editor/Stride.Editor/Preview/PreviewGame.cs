@@ -15,7 +15,6 @@ using Stride.Games;
 using Stride.Graphics;
 using Stride.Rendering.Compositing;
 using Stride.Shaders.Compiler;
-using Stride.Games;
 
 namespace Stride.Editor.Preview
 {
