@@ -75,7 +75,7 @@
                   Command="{Binding AboutCommand}"/>
       </MenuItem>
       <MenuItem Header="Debug"
-                IsVisible="{Binding CrashCommand.IsEnabled, Mode=OneWay}">
+                IsVisible="{sd:IsDebug}">
         <MenuItem Header="Simulate a crash"
                   Command="{Binding CrashCommand}"/>
       </MenuItem>
