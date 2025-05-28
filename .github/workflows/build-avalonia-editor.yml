@@ -75,7 +75,7 @@ jobs:
           sudo apt-get install clang lld
       - name: Build
         run: |
-          dotnet build build/Stride.Editor.Avalonia.slnf
+          dotnet build build/Stride.Editor.Avalonia.slnf \
             -m:1 -nr:false \
             -v:m -p:WarningLevel=0 \
             -p:Configuration=${{ needs.Setup.outputs.build-type }} \
