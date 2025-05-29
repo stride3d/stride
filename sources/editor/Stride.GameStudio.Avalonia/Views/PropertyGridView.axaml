@@ -105,7 +105,7 @@
   </UserControl.Styles>
   <DockPanel LastChildFill="True">
     <TextBlock DockPanel.Dock="Top" Text="Property Grid"/>
-    <sd:PropertyView ItemsSource="{Binding ViewModel.RootNode.Children}"
+    <sd:PropertyView ItemsSource="{Binding ViewModel?.RootNode.Children}"
                      IsVisible="{Binding CanDisplayProperties}">
       <Interaction.Behaviors>
         <caeb:PropertyViewAutoExpandNodesBehavior ViewModel="{Binding ViewModel, Mode=OneWay}" />
