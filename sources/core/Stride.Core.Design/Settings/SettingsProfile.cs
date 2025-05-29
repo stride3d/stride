@@ -19,7 +19,7 @@ public class SettingsProfile : IDisposable
     internal bool Saving;
     private readonly SortedList<UFile, SettingsEntry> settings = [];
     private readonly HashSet<UFile> modifiedSettings = [];
-    private readonly SettingsProfile parentProfile;
+    private readonly SettingsProfile? parentProfile;
     private FileSystemWatcher fileWatcher;
     private UFile filePath;
     private bool monitorFileModification;
@@ -29,7 +29,7 @@ public class SettingsProfile : IDisposable
     /// </summary>
     /// <param name="container">The <see cref="SettingsContainer"/> containing this profile.</param>
     /// <param name="parentProfile">The parent profile.</param>
-    internal SettingsProfile(SettingsContainer container, SettingsProfile parentProfile)
+    internal SettingsProfile(SettingsContainer container, SettingsProfile? parentProfile)
     {
         Container = container;
         this.parentProfile = parentProfile;
