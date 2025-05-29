@@ -3,7 +3,6 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
-        xmlns:ctrl="using:Stride.Core.Assets.Editor.Avalonia.Controls"
         xmlns:vm="using:Stride.Core.Assets.Editor.ViewModels"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="Stride.GameStudio.Avalonia.Views.ProgressWindow"
@@ -19,8 +18,9 @@
                    IsIndeterminate="{Binding IsIndeterminate}"
                    Value="{Binding ProgressValue}" />
     </DockPanel>
-    <ctrl:TextLogViewer Grid.Row="1"
-                        LogMessages="{Binding Log.Messages}" />
+    <sd:TextLogViewer Grid.Row="1"
+                      CanClearLog="False"
+                      LogMessages="{Binding Log.Messages}" />
     <StackPanel Grid.Row="2"
                 Orientation="Horizontal" HorizontalAlignment="Right">
       <Button Content="{sd:LocalizeString Close, Context=Button}"
