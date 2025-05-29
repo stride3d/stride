@@ -26,13 +26,17 @@ on:
         default: Simple
         type: string
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}-${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}-${{ github.event.inputs.test-category || inputs.test-category || 'Simple' }}
+  cancel-in-progress: true
+
 jobs:
   #
   # Test Stride on Linux
   #
   Linux-Tests:
     if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'workflow_call' || github.event.pull_request.draft == false }}
-    name: Test (${{ github.event.inputs.build-type || inputs.build-type }}, ${{ github.event.inputs.test-category || inputs.test-category }})
+    name: Test (${{ github.event.inputs.build-type || inputs.build-type }}, ${{ github.event.inputs.test-category || inputs.test-category || 'Simple' }})
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -43,7 +47,7 @@ jobs:
           dotnet-version: '8.0.x'
       - name: Build
         run: |
-          dotnet build build\Stride.Tests.${{ github.event.inputs.test-category || inputs.test-category }}.slnf `
+          dotnet build build\Stride.Tests.${{ github.event.inputs.test-category || inputs.test-category || 'Simple' }}.slnf `
             -restore -m:1 -nr:false `
             -v:m -p:WarningLevel=0 `
             -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type }} `
@@ -51,6 +55,6 @@ jobs:
             -p:StrideGraphicsApis=OpenGL
       - name: Test
         run: |
-          dotnet test build\Stride.Tests.${{ github.event.inputs.test-category || inputs.test-category }}.slnf `
+          dotnet test build\Stride.Tests.${{ github.event.inputs.test-category || inputs.test-category || 'Simple' }}.slnf `
             --no-build `
             -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type }}
