@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection;
 using Stride.Core;
 using Stride.Core.Diagnostics;
-using Stride.Core.IO;
 using Stride.Games;
 using Stride.Input;
 
@@ -26,7 +25,7 @@ public class GameBuilder : IGameBuilder
     public IServiceCollection Services { get; internal set; } = new ServiceCollection();
 
     /// <summary>
-    /// This is a direct reference to the game systems collection of the game.
+    /// This is a direct reference to the game systems collection of the <see cref="GameBase"/>.
     /// </summary>
     public GameSystemCollection GameSystems { get; internal set; }
 
@@ -40,11 +39,11 @@ public class GameBuilder : IGameBuilder
     /// </summary>
     public List<IInputSource> InputSources { get; internal set; } = [];
 
-    public DatabaseFileProvider DatabaseFileProvider { get; set; }
-
     public GameBase Game { get; set; }
 
     public GameContext Context { get; set; }
+
+    private static Logger _log => GlobalLogger.GetLogger("GameBuilder");
 
     internal GameBuilder(GameBase game)
     {
@@ -96,18 +95,20 @@ public class GameBuilder : IGameBuilder
                         }
                     }
 
+                    _log.Info($"Registering service {service.Key.Name}.");
                     Game.Services.AddService(instance, service.Key);
                     InternalServices[service.Key] = instance;
                 }
                 else
                 {
+                    _log.Info($"Registering service {service.Key.Name}.");
                     Game.Services.AddService(service.Value, service.Key);
                 }
             }
             catch (Exception ex)
             {
                 // TODO: check if service is already registered first.'
-                GlobalLogger.GetLogger("GameBuilder").Error($"Failed to register service {service.Key.Name}.\n\n", ex);
+                _log.Error($"Failed to register service {service.Key.Name}.\n\n", ex);
             }
         }
 
@@ -117,26 +118,34 @@ public class GameBuilder : IGameBuilder
             var system = provider.GetService(service.Key);
             if (system is IGameSystemBase gameSystem && !Game.GameSystems.Contains(gameSystem))
             {
+                _log.Info($"Adding game system {gameSystem.GetType().Name} to the game systems collection.");
                 Game.GameSystems.Add(gameSystem);
             }
         }
 
         if (Context != null)
         {
+            _log.Info($"Setting game context.");
             Game.SetGameContext(Context);
         }
 
         if(InputSources.Count > 0)
         {
-            var inputManager = Game.Services.GetService<InputManager>() ?? throw new InvalidOperationException("InputManager is not registered in the service registry.");
+            var inputManager = Game.Services.GetService<InputManager>();
+
+            if (inputManager is null)
+            {
+                _log.Info("No InputManager found in the game services, creating default.");
+                inputManager = new InputManager();
+                Game.Services.AddService(inputManager);
+            }
+
             foreach (var inputSource in InputSources)
             {
+                _log.Info($"Adding input source {inputSource.GetType().Name} to the input manager.");
                 inputManager.Sources.Add(inputSource);
             }
         }
-
-        var dataBase = Game.Services.GetService<IDatabaseFileProviderService>();
-        dataBase.FileProvider = DatabaseFileProvider;
 
         return Game; 
     }

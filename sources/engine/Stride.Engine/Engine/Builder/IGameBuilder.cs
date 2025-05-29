@@ -19,8 +19,6 @@ public interface IGameBuilder
 
     List<IInputSource> InputSources { get; }
 
-    DatabaseFileProvider DatabaseFileProvider { get; set; }
-
     GameBase Game { get; set; }
 
     GameContext Context { get; set; }

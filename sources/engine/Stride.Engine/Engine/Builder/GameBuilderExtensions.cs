@@ -117,7 +117,9 @@ public static class GameBuilderExtensions
     public static IGameBuilder SetDbFileProvider(this IGameBuilder gameBuilder, DatabaseFileProvider provider)
     {
         // Gets initialized by the GameBase constructor.
-        gameBuilder.DatabaseFileProvider = provider;
+        var fileProviderService = gameBuilder.Game.Services.GetService<IDatabaseFileProviderService>();
+
+        fileProviderService.FileProvider = provider;
         return gameBuilder;
     }
 
