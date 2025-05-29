@@ -10,7 +10,7 @@ using Stride.Input;
 namespace Stride.Engine.Builder;
 
 /// <summary>
-/// Helps build the game and preps it to be able to run after built.
+/// Helps build the game and preps it to be able to run after <see cref="Build"/>.
 /// </summary>
 /// <typeparam name="T"></typeparam>
 public class GameBuilder : IGameBuilder
@@ -25,10 +25,19 @@ public class GameBuilder : IGameBuilder
     /// </summary>
     public IServiceCollection Services { get; internal set; } = new ServiceCollection();
 
+    /// <summary>
+    /// This is a direct reference to the game systems collection of the game.
+    /// </summary>
     public GameSystemCollection GameSystems { get; internal set; }
 
+    /// <summary>
+    /// Adds log listeners to the game on <see cref="Build"/>. This is registered first so it will log build errors if they occur."/>
+    /// </summary>
     public List<LogListener> LogListeners { get; internal set; } = [];
 
+    /// <summary>
+    /// Adds input sources to the game on <see cref="Build"/>.
+    /// </summary>
     public List<IInputSource> InputSources { get; internal set; } = [];
 
     public DatabaseFileProvider DatabaseFileProvider { get; set; }
@@ -37,17 +46,21 @@ public class GameBuilder : IGameBuilder
 
     public GameContext Context { get; set; }
 
-    internal GameBuilder()
+    internal GameBuilder(GameBase game)
     {
-        Game = new MinimalGame(null);
+        Game = game ?? new MinimalGame(null);
         GameSystems = Game.GameSystems;
         Services.AddSingleton<IServiceRegistry>(Game.Services);
         InternalServices.Add(typeof(IServiceRegistry), Game.Services);
     }
 
-    public static GameBuilder Create()
+    /// <summary>
+    /// Creates a new instance of the <see cref="GameBuilder"/> class.
+    /// </summary>
+    /// <returns></returns>
+    public static GameBuilder Create(GameBase game = null)
     {
-        return new GameBuilder();
+        return new GameBuilder(game);
     }
 
     public virtual GameBase Build()
