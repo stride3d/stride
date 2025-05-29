@@ -4,6 +4,7 @@
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core.Plugins;
+using Avalonia.Input;
 using Avalonia.Markup.Xaml;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.IO;
