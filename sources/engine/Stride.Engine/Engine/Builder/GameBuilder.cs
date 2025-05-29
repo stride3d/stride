@@ -46,6 +46,12 @@ public class GameBuilder : IGameBuilder
 
     public virtual GameBase Build()
     {
+
+        foreach (var logListener in LogListeners)
+        {
+            GlobalLogger.GlobalMessageLogged += logListener;
+        }
+
         var provider = DiServices.BuildServiceProvider();
         foreach (var service in Services)
         {
@@ -82,7 +88,8 @@ public class GameBuilder : IGameBuilder
             }
             catch (Exception ex)
             {
-                // TODO: check if service is already registered first.
+                // TODO: check if service is already registered first.'
+                GlobalLogger.GetLogger("GameBuilder").Error($"Failed to register service {service.Key.Name}.\n\n", ex);
             }
         }
 
@@ -94,11 +101,6 @@ public class GameBuilder : IGameBuilder
             {
                 Game.GameSystems.Add(gameSystem);
             }
-        }
-
-        foreach (var logListener in LogListeners)
-        {
-            GlobalLogger.GlobalMessageLogged += logListener;
         }
 
         if (Context != null)

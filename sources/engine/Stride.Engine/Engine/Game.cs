@@ -11,10 +11,12 @@ using Stride.Core.Diagnostics;
 using Stride.Core.IO;
 using Stride.Core.Mathematics;
 using Stride.Core.Storage;
+using Stride.Core.Streaming;
 using Stride.Engine.Design;
 using Stride.Engine.Processors;
 using Stride.Games;
 using Stride.Graphics;
+using Stride.Graphics.Data;
 using Stride.Graphics.Font;
 using Stride.Input;
 using Stride.Profiling;
@@ -220,6 +222,7 @@ namespace Stride.Engine
             Services.AddService(SceneSystem);
 
             Streaming = new StreamingManager(Services);
+            Services.AddService(Streaming);
 
             Audio = new AudioSystem(Services);
             Services.AddService(Audio);
