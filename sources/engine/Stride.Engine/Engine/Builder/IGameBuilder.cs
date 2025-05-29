@@ -9,9 +9,9 @@ using Stride.Core.IO;
 namespace Stride.Engine.Builder;
 public interface IGameBuilder
 {
-    Dictionary<Type, object> Services { get; }
+    Dictionary<Type, object> InternalServices { get; }
 
-    IServiceCollection DiServices { get; }
+    IServiceCollection Services { get; }
 
     GameSystemCollection GameSystems { get; }
 
