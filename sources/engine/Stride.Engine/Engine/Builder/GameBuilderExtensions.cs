@@ -36,8 +36,8 @@ public static class GameBuilderExtensions
     /// <returns></returns>
     public static IGameBuilder AddService<T>(this IGameBuilder gameBuilder, T service) where T : class
     {
-        gameBuilder.Services.Add(typeof(T), service);
-        gameBuilder.DiServices.AddSingleton<T>(service);
+        gameBuilder.InternalServices.Add(typeof(T), service);
+        gameBuilder.Services.AddSingleton<T>(service);
         return gameBuilder;
     }
 
@@ -49,8 +49,8 @@ public static class GameBuilderExtensions
     /// <returns></returns>
     public static IGameBuilder AddService<T>(this IGameBuilder gameBuilder) where T : class
     {
-        gameBuilder.Services.Add(typeof(T), null);
-        gameBuilder.DiServices.AddSingleton<T>();
+        gameBuilder.InternalServices.Add(typeof(T), null);
+        gameBuilder.Services.AddSingleton<T>();
         return gameBuilder;
     }
 
@@ -65,9 +65,9 @@ public static class GameBuilderExtensions
     {
         // This is a work around to allow DI to work the same way as the ServiceRegistry expects.
         // Without registering both the interface and the class, the DI will not be able to resolve the interface on build.
-        gameBuilder.Services.Add(typeof(TInterface), null);
-        gameBuilder.Services.Add(typeof(TClass), null);
-        gameBuilder.DiServices.AddSingleton<TInterface, TClass>();
+        gameBuilder.InternalServices.Add(typeof(TInterface), null);
+        gameBuilder.InternalServices.Add(typeof(TClass), null);
+        gameBuilder.Services.AddSingleton<TInterface, TClass>();
         return gameBuilder;
     }
 
@@ -90,7 +90,7 @@ public static class GameBuilderExtensions
     /// <returns></returns>
     public static IGameBuilder UseStrideInput(this IGameBuilder gameBuilder)
     {
-        var services = gameBuilder.Services[typeof(IServiceRegistry)] as IServiceRegistry;
+        var services = gameBuilder.InternalServices[typeof(IServiceRegistry)] as IServiceRegistry;
 
         var inputSystem = new InputSystem(services);
 
