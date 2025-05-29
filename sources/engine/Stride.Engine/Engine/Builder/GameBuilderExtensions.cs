@@ -15,7 +15,7 @@ public static class GameBuilderExtensions
 {
 
     /// <summary>
-    /// Adds cire systems to the game. Does not register the systems into the <see cref="IServiceRegistry"/>
+    /// Adds core systems to the game. Does not register the systems into the <see cref="IServiceRegistry"/>
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <param name="gameBuilder"></param>
