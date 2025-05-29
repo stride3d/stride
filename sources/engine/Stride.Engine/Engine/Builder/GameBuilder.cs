@@ -65,14 +65,13 @@ public class GameBuilder : IGameBuilder
 
     public virtual GameBase Build()
     {
-
         foreach (var logListener in LogListeners)
         {
             GlobalLogger.GlobalMessageLogged += logListener;
         }
 
-        var provider = DiServices.BuildServiceProvider();
-        foreach (var service in Services)
+        var provider = Services.BuildServiceProvider();
+        foreach (var service in InternalServices)
         {
             if (service.Key == typeof(IServiceRegistry) || service.Key == typeof(IServiceProvider))
                 continue;
@@ -86,7 +85,7 @@ public class GameBuilder : IGameBuilder
                     if(instance == null)
                     {
                         //check if the type is inherited from another instance in the services.
-                        foreach (var kvp in Services)
+                        foreach (var kvp in InternalServices)
                         {
                             if (kvp.Key.IsAssignableFrom(service.Key) && kvp.Value != null)
                             {
@@ -98,7 +97,7 @@ public class GameBuilder : IGameBuilder
                     }
 
                     Game.Services.AddService(instance, service.Key);
-                    Services[service.Key] = instance;
+                    InternalServices[service.Key] = instance;
                 }
                 else
                 {
@@ -113,7 +112,7 @@ public class GameBuilder : IGameBuilder
         }
 
         // Add all game systems to the game.
-        foreach (var service in Services)
+        foreach (var service in InternalServices)
         {
             var system = provider.GetService(service.Key);
             if (system is IGameSystemBase gameSystem && !Game.GameSystems.Contains(gameSystem))

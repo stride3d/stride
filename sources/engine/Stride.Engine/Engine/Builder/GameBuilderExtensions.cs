@@ -90,7 +90,7 @@ public static class GameBuilderExtensions
     /// <returns></returns>
     public static IGameBuilder UseStrideInput(this IGameBuilder gameBuilder)
     {
-        var services = gameBuilder.Services[typeof(IServiceRegistry)] as IServiceRegistry;
+        var services = gameBuilder.InternalServices[typeof(IServiceRegistry)] as IServiceRegistry;
 
         var inputSystem = new InputSystem(services);
 
