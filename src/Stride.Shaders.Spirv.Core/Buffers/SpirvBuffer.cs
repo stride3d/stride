@@ -76,6 +76,7 @@ public class SpirvBuffer : IMutSpirvBuffer, IDisposable
             MagicNumber = Spv.Specification.MagicNumber,
             VersionNumber = new(1, 3)
         };
+        Length = _owner.Length;
     }
     public SpirvBuffer(Span<int> span)
     {
@@ -86,6 +87,7 @@ public class SpirvBuffer : IMutSpirvBuffer, IDisposable
             MagicNumber = Spv.Specification.MagicNumber,
             VersionNumber = new(1, 3)
         };
+        Length = _owner.Length;
     }
 
 
