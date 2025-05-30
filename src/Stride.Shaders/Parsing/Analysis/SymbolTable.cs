@@ -39,16 +39,14 @@ public partial class SymbolTable : ISymbolProvider
             RootSymbols.Add(name, symbol);
     }
 
-    public bool TryFind(string name, SymbolKind kind, out Symbol symbol)
+    public bool TryFind(string name, out Symbol symbol)
     {
 
-        if(CurrentFunctionSymbols is null)
-            return RootSymbols.TryGetValue(name, kind, out symbol);
-        
-        for (int i = CurrentFunctionSymbols.Count - 1; i >= 0; i--)
-            if (CurrentFunctionSymbols[i].TryGetValue(name, kind, out symbol))
-                return true;
-        return RootSymbols.TryGetValue(name, kind, out symbol);
+        if (CurrentFunctionSymbols is not null)
+            for (int i = CurrentFunctionSymbols.Count - 1; i >= 0; i--)
+                if (CurrentFunctionSymbols[i].TryGetValue(name, out symbol))
+                    return true;
+        return RootSymbols.TryGetValue(name, out symbol);
     }
 
 

@@ -207,31 +207,26 @@ public class Identifier(string name, TextLocation info) : Literal(info)
 
     public override void ProcessSymbol(SymbolTable table)
     {
-        Span<Storage> sOrder = [Storage.Function, Storage.Stream, Storage.Uniform, Storage.UniformConstant, Storage.Generic];
-        foreach (var storage in sOrder)
+        if (table.CurrentFunctionSymbols is not null)
         {
-            if (table.CurrentFunctionSymbols is not null)
+            for (int i = table.CurrentFunctionSymbols.Count - 1; i >= 0; --i)
             {
-                for (int i = table.CurrentFunctionSymbols.Count - 1; i >= 0; --i)
+                if (table.CurrentFunctionSymbols![i]
+                    .TryGetValue(Name, out var symbol))
                 {
-                    if (table.CurrentFunctionSymbols![i]
-                        .TryGetValue(Name, SymbolKind.Variable, storage, out var symbol))
-                    {
-                        if (symbol.Type is not UndefinedType and not null)
-                            Type = symbol.Type;
-                        else
-                            Type = symbol.Type ?? new UndefinedType(Name);
-                        return;
-                    }
+                    if (symbol.Type is not UndefinedType and not null)
+                        Type = symbol.Type;
+                    else
+                        Type = symbol.Type ?? new UndefinedType(Name);
+                    return;
                 }
             }
+        }
 
-            if (table.RootSymbols.TryGetValue(Name, SymbolKind.Variable, storage, out var rootSymbol))
-            {
-                Type = rootSymbol.Type;
-                return;
-            }
-
+        if (table.RootSymbols.TryGetValue(Name, out var rootSymbol))
+        {
+            Type = rootSymbol.Type;
+            return;
         }
         throw new NotImplementedException($"Cannot find symbol {Name}.");
     }

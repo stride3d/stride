@@ -90,6 +90,8 @@ public sealed class ShaderMember(
         context.Variables.Add(Name, new(variable, registeredType, Name));
         if (Semantic != null)
             context.Buffer.AddOpSDSLDecorateSemantic(variable, Semantic.Name);
+        //if (Semantic != null)
+        //    context.Buffer.AddOpDecorateString(variable, Specification.Decoration.UserSemantic, null, null, Semantic.Name);
         context.AddName(variable, Name);
     }
 
@@ -166,7 +168,7 @@ public class ShaderMethod(
             arg.TypeName.ProcessSymbol(table);
             var argSym = arg.TypeName.Type;
             table.DeclaredTypes.TryAdd(argSym.ToString(), argSym);
-            table.CurrentFrame.Add(new(arg.Name, SymbolKind.Variable, Core.Storage.Function), new(new(arg.Name, SymbolKind.Variable, Core.Storage.Function), arg.Type));
+            table.CurrentFrame.Add(arg.Name, new(new(arg.Name, SymbolKind.Variable, Core.Storage.Function), arg.Type));
             arg.Type = argSym;
 
         }

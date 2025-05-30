@@ -88,7 +88,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
                     var variableType = types[variableInstruction.ResultType];
 
                     var sid = new SymbolID(variableName, SymbolKind.Variable, Storage.Stream);
-                    table.RootSymbols.Add(sid, new(sid, variableType));
+                    table.RootSymbols.Add(sid.Name, new(sid, variableType));
                 }
             }
         }
@@ -109,7 +109,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
                 }
                 func.Type = ftype;
 
-                table.RootSymbols.Add(new(func.Name, SymbolKind.Method), new(new(func.Name, SymbolKind.Method), func.Type));
+                table.RootSymbols.Add(func.Name, new(new(func.Name, SymbolKind.Method), func.Type));
                 table.DeclaredTypes.TryAdd(func.Type.ToString(), func.Type);
             }
             else if (member is ShaderMember svar)
@@ -134,7 +134,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
                 //}
                 //else
                 {
-                    table.RootSymbols.Add(sid, symbol);
+                    table.RootSymbols.Add(sid.Name, symbol);
                 }
                 table.DeclaredTypes.TryAdd(svar.Type.ToString(), svar.Type);
             }

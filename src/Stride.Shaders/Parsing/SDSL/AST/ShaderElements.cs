@@ -140,7 +140,7 @@ public abstract class ShaderBuffer(List<Identifier> name, TextLocation info) : S
             RGroup => SymbolKind.RGroup,
             _ => throw new NotSupportedException()
         };
-        table.RootSymbols.Add(new(Name.ToString() ?? "", kind), sym);
+        table.RootSymbols.Add(Name.ToString() ?? "", sym);
         foreach (var cbmem in Members)
         {
             cbmem.TypeName.ProcessSymbol(table);
@@ -184,7 +184,7 @@ public class ShaderStruct(Identifier typename, TextLocation info) : ShaderElemen
 
         var sym = new Symbol(new(TypeName.ToString() ?? "", SymbolKind.Struct), new StructType(TypeName.ToString() ?? "", fields));
         table.DeclaredTypes.TryAdd(TypeName.ToString(), sym.Type);
-        table.RootSymbols.Add(new(TypeName.ToString() ?? "", SymbolKind.Struct), sym);
+        table.RootSymbols.Add(sym.Id.Name, sym);
     }
 
     public override string ToString()

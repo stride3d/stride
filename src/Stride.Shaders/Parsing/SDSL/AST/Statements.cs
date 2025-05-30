@@ -151,7 +151,7 @@ public class Declare(TypeName typename, TextLocation info) : Declaration(typenam
             foreach (var d in Variables)
             {
                 d.Value?.ProcessSymbol(table);
-                table.CurrentFrame.Add(new(d.Variable, SymbolKind.Variable, Storage.Function), new(new(d.Variable, SymbolKind.Variable), Type));
+                table.CurrentFrame.Add(d.Variable, new(new(d.Variable, SymbolKind.Variable), Type));
             }
         }
     }
