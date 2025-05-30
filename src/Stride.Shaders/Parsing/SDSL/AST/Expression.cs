@@ -117,8 +117,6 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
             if (Accessors.Count > 1)
             {
                 ProcessAccessors(1);
-
-                table.RootSymbols.StreamUsages.Add(new(streamVar, SymbolKind.Variable, Storage.Stream), new(entrypoint ?? EntryPoint.None, io ?? StreamIO.Output));
             }
         }
         else

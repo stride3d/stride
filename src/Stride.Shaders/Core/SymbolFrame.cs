@@ -35,5 +35,4 @@ public class SymbolFrame()
 
 public sealed class RootSymbolFrame : SymbolFrame
 {
-    public StreamUsage StreamUsages { get; } = new();
 }
