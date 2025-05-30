@@ -9,8 +9,8 @@ namespace Stride.Shaders.Parsing.SDSL.AST;
 
 public abstract class Statement(TextLocation info) : ValueNode(info)
 {
-    public override void ProcessSymbol(SymbolTable table) => ProcessSymbol(table, null!, null);
-    public virtual void ProcessSymbol(SymbolTable table, ShaderMethod method, EntryPoint? entrypoint = null, StreamIO? io = null) => throw new NotImplementedException($"Symbol table cannot process type : {GetType().Name}");
+    public override void ProcessSymbol(SymbolTable table) => ProcessSymbol(table, null!);
+    public virtual void ProcessSymbol(SymbolTable table, ShaderMethod method) => throw new NotImplementedException($"Symbol table cannot process type : {GetType().Name}");
     public abstract void Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler);
 }
 
@@ -26,9 +26,9 @@ public class ExpressionStatement(Expression expression, TextLocation info) : Sta
     public override SymbolType? Type { get => Expression.Type; set { } }
     public Expression Expression { get; set; } = expression;
 
-    public override void ProcessSymbol(SymbolTable table, ShaderMethod method, EntryPoint? entrypoint = null, StreamIO? io = null)
+    public override void ProcessSymbol(SymbolTable table, ShaderMethod method)
     {
-        Expression.ProcessSymbol(table, entrypoint, io);
+        Expression.ProcessSymbol(table);
         Type = ScalarType.From("void");
     }
     public override void Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
@@ -46,9 +46,9 @@ public class Return(TextLocation info, Expression? expression = null) : Statemen
     public override SymbolType? Type { get => Value?.Type ?? ScalarType.From("void"); set { } }
     public Expression? Value { get; set; } = expression;
 
-    public override void ProcessSymbol(SymbolTable table, ShaderMethod method, EntryPoint? entrypoint = null, StreamIO? io = null)
+    public override void ProcessSymbol(SymbolTable table, ShaderMethod method)
     {
-        Value?.ProcessSymbol(table, entrypoint, io);
+        Value?.ProcessSymbol(table);
         Type = Value?.Type ?? ScalarType.From("void");
     }
 
@@ -99,11 +99,11 @@ public class DeclaredVariableAssign(Identifier variable, bool isConst, TextLocat
         set => TypeName.ArraySize = value;
     }
 
-    public override void ProcessSymbol(SymbolTable table, ShaderMethod method, EntryPoint? entrypoint = null, StreamIO? io = null)
+    public override void ProcessSymbol(SymbolTable table, ShaderMethod method)
     {
-        TypeName.ProcessSymbol(table, entrypoint, io);
+        TypeName.ProcessSymbol(table);
         Variable.Type = TypeName.Type;
-        Value?.ProcessSymbol(table, entrypoint, io);
+        Value?.ProcessSymbol(table);
         if (Value is not null && Value.Type != Variable.Type)
             table.Errors.Add(new(TypeName.Info, "wrong type"));
     }
@@ -131,13 +131,13 @@ public class Declare(TypeName typename, TextLocation info) : Declaration(typenam
 {
     public List<DeclaredVariableAssign> Variables { get; set; } = [];
 
-    public override void ProcessSymbol(SymbolTable table, ShaderMethod method, EntryPoint? entrypoint = null, StreamIO? io = null)
+    public override void ProcessSymbol(SymbolTable table, ShaderMethod method)
     {
         if (TypeName == "var")
         {
             if (Variables.Count == 1 && Variables[0].Value is not null)
             {
-                Variables[0].Value?.ProcessSymbol(table, entrypoint, io);
+                Variables[0].Value?.ProcessSymbol(table);
                 Type = Variables[0].Value!.Type;
             }
             else
@@ -145,12 +145,12 @@ public class Declare(TypeName typename, TextLocation info) : Declaration(typenam
         }
         else
         {
-            TypeName.ProcessSymbol(table, entrypoint, io);
+            TypeName.ProcessSymbol(table);
             Type = TypeName.Type;
             table.DeclaredTypes.TryAdd(TypeName.ToString(), Type);
             foreach (var d in Variables)
             {
-                d.Value?.ProcessSymbol(table, entrypoint, io);
+                d.Value?.ProcessSymbol(table);
                 table.CurrentFrame.Add(new(d.Variable, SymbolKind.Variable, Storage.Function), new(new(d.Variable, SymbolKind.Variable), Type));
             }
         }
@@ -180,12 +180,12 @@ public class Assign(TextLocation info) : Statement(info)
 {
     public List<VariableAssign> Variables { get; set; } = [];
 
-    public override void ProcessSymbol(SymbolTable table, ShaderMethod method, EntryPoint? entrypoint = null, StreamIO? io = null)
+    public override void ProcessSymbol(SymbolTable table, ShaderMethod method)
     {
         foreach (var variable in Variables)
         {
-            variable.Variable.ProcessSymbol(table, entrypoint, io);
-            variable.Value!.ProcessSymbol(table, entrypoint, io);
+            variable.Variable.ProcessSymbol(table);
+            variable.Value!.ProcessSymbol(table);
 
             if (variable.Variable.Type is not PointerType)
                 throw new InvalidOperationException("can only assign to pointer type");
@@ -222,10 +222,10 @@ public class BlockStatement(TextLocation info) : Statement(info)
 {
     public List<Statement> Statements { get; set; } = [];
 
-    public override void ProcessSymbol(SymbolTable table, ShaderMethod method, EntryPoint? entrypoint = null, StreamIO? io = null)
+    public override void ProcessSymbol(SymbolTable table, ShaderMethod method)
     {
         foreach (var s in Statements)
-            s.ProcessSymbol(table, method, entrypoint, io);
+            s.ProcessSymbol(table, method);
     }
 
     public override void Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)

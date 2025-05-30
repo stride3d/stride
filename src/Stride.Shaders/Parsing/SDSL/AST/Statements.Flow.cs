@@ -9,7 +9,7 @@ public abstract class Flow(TextLocation info) : Statement(info);
 public abstract class Loop(TextLocation info) : Flow(info);
 public class Break(TextLocation info) : Statement(info)
 {
-    public override void ProcessSymbol(SymbolTable table, ShaderMethod method, EntryPoint? entrypoint, StreamIO? io) { }
+    public override void ProcessSymbol(SymbolTable table, ShaderMethod method) { }
 
     public override void Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
@@ -18,7 +18,7 @@ public class Break(TextLocation info) : Statement(info)
 }
 public class Discard(TextLocation info) : Statement(info)
 {
-    public override void ProcessSymbol(SymbolTable table, ShaderMethod method, EntryPoint? entrypoint, StreamIO? io) { }
+    public override void ProcessSymbol(SymbolTable table, ShaderMethod method) { }
 
     public override void Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
@@ -27,7 +27,7 @@ public class Discard(TextLocation info) : Statement(info)
 }
 public class Continue(TextLocation info) : Statement(info)
 {
-    public override void ProcessSymbol(SymbolTable table, ShaderMethod method, EntryPoint? entrypoint, StreamIO? io) { }
+    public override void ProcessSymbol(SymbolTable table, ShaderMethod method) { }
 
     public override void Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
@@ -43,7 +43,7 @@ public class ForEach(TypeName typename, Identifier variable, Expression collecti
     public Expression Collection { get; set; } = collection;
     public Statement Body { get; set; } = body;
 
-    public override void ProcessSymbol(SymbolTable table, ShaderMethod method, EntryPoint? entrypoint, StreamIO? io)
+    public override void ProcessSymbol(SymbolTable table, ShaderMethod method)
     {
         Collection.ProcessSymbol(table);
         if(Collection.Type is ArrayType arrSym)
@@ -71,7 +71,7 @@ public class While(Expression condition, Statement body, TextLocation info, Shad
     public Statement Body { get; set; } = body;
     public ShaderAttribute? Attribute { get; internal set; } = attribute;
 
-    public override void ProcessSymbol(SymbolTable table, ShaderMethod method, EntryPoint? entrypoint, StreamIO? io)
+    public override void ProcessSymbol(SymbolTable table, ShaderMethod method)
     {
         Condition.ProcessSymbol(table);
         Body.ProcessSymbol(table);

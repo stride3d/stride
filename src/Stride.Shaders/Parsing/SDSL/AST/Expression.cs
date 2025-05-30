@@ -14,8 +14,6 @@ namespace Stride.Shaders.Parsing.SDSL.AST;
 /// </summary>
 public abstract class Expression(TextLocation info) : ValueNode(info)
 {
-    public override void ProcessSymbol(SymbolTable table) => ProcessSymbol(table, null, null);
-    public virtual void ProcessSymbol(SymbolTable table, EntryPoint? entrypoint = null, StreamIO? io = null) => throw new NotImplementedException($"Symbol table cannot process type : {GetType().Name}");
     public abstract SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler);
 }
 
@@ -24,10 +22,10 @@ public class MethodCall(Identifier name, ShaderExpressionList parameters, TextLo
     public Identifier Name = name;
     public ShaderExpressionList Parameters = parameters;
 
-    public override void ProcessSymbol(SymbolTable table, EntryPoint? entrypoint = null, StreamIO? io = null)
+    public override void ProcessSymbol(SymbolTable table)
     {
         foreach (var p in parameters.Values)
-            p.ProcessSymbol(table, entrypoint, io);
+            p.ProcessSymbol(table);
     }
 
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
@@ -106,12 +104,12 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
     public Expression Source { get; set; } = source;
     public List<Expression> Accessors { get; set; } = [];
 
-    public override void ProcessSymbol(SymbolTable table, EntryPoint? entrypoint = null, StreamIO? io = null)
+    public override void ProcessSymbol(SymbolTable table)
     {
         if (Source is Identifier { Name: "streams" } streams && Accessors[0] is Identifier streamVar)
         {
             //table.CurrentFunctionSymbols.Add(table.Streams);
-            streamVar.ProcessSymbol(table, entrypoint, io);
+            streamVar.ProcessSymbol(table);
             Type = streamVar.Type;
 
             if (Accessors.Count > 1)
@@ -121,7 +119,7 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
         }
         else
         {
-            Source.ProcessSymbol(table, entrypoint, io ?? StreamIO.Output);
+            Source.ProcessSymbol(table);
             Type = Source.Type;
             ProcessAccessors(0);
         }
@@ -141,7 +139,7 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
                 else throw new NotImplementedException($"Cannot access {accessor.GetType().Name} from {Type}");
 
                 if(accessor is not Identifier)
-                    accessor.ProcessSymbol(table, entrypoint, io ?? StreamIO.Input);
+                    accessor.ProcessSymbol(table);
             }
         }
     }
@@ -212,10 +210,10 @@ public class BinaryExpression(Expression left, Operator op, Expression right, Te
     public Expression Left { get; set; } = left;
     public Expression Right { get; set; } = right;
 
-    public override void ProcessSymbol(SymbolTable table, EntryPoint? entrypoint, StreamIO? io)
+    public override void ProcessSymbol(SymbolTable table)
     {
-        Left.ProcessSymbol(table, entrypoint, io);
-        Right.ProcessSymbol(table, entrypoint, io);
+        Left.ProcessSymbol(table);
+        Right.ProcessSymbol(table);
         if (
             OperatorTable.BinaryOperationResultingType(
                 Left.Type ?? throw new NotImplementedException("Missing type"),
