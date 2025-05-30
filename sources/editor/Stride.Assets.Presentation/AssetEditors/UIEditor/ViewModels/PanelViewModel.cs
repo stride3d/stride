@@ -112,18 +112,6 @@ namespace Stride.Assets.Presentation.AssetEditors.UIEditor.ViewModels
                             pinOrigin.Y = 1.0f;
                             break;
 
-                        case PanelCommandMode.PinFront:
-                            pinOrigin.Z = 1.0f;
-                            break;
-
-                        case PanelCommandMode.PinMiddle:
-                            pinOrigin.Z = 0.5f;
-                            break;
-
-                        case PanelCommandMode.PinBack:
-                            pinOrigin.Z = 0.0f;
-                            break;
-
                         default:
                             throw new ArgumentException($"{mode} is not a supported mode.", nameof(mode));
                     }
@@ -156,16 +144,6 @@ namespace Stride.Assets.Presentation.AssetEditors.UIEditor.ViewModels
 
                         case PanelCommandMode.MoveRight:
                             propertyKey = GridBase.ColumnPropertyKey;
-                            offset = 1;
-                            break;
-
-                        case PanelCommandMode.MoveBack:
-                            propertyKey = GridBase.LayerPropertyKey;
-                            offset = -1;
-                            break;
-
-                        case PanelCommandMode.MoveFront:
-                            propertyKey = GridBase.LayerPropertyKey;
                             offset = 1;
                             break;
 
@@ -262,14 +240,12 @@ namespace Stride.Assets.Presentation.AssetEditors.UIEditor.ViewModels
                 {
                     // from a StackPanel to a Grid or UniformGrid:
                     //   - if the StackPanel's orientation was horizontal, put each element in a different column
-                    //   - if the StackPanel's orientation was in-depth, put each element in a different layer
                     //   - if the StackPanel's orientation was vertical, put each element in a different row
                     //   - use StripType.Auto for the Strip definitions of the Grid
                     if (typeof(GridBase).IsAssignableFrom(targetType))
                     {
                         var colums = 1;
                         var rows = 1;
-                        var layers = 1;
                         var childrenCount = stackPanel.Children.Count;
                         if (childrenCount > 0)
                         {
@@ -283,10 +259,6 @@ namespace Stride.Assets.Presentation.AssetEditors.UIEditor.ViewModels
                                     rows = childrenCount;
                                     break;
 
-                                case Orientation.InDepth:
-                                    layers = childrenCount;
-                                    break;
-
                                 default:
                                     throw new ArgumentOutOfRangeException();
                             }
@@ -294,11 +266,11 @@ namespace Stride.Assets.Presentation.AssetEditors.UIEditor.ViewModels
 
                         if (typeof(Grid).IsAssignableFrom(targetType))
                         {
-                            targetPanel = CreateGrid(colums, rows, layers, StripType.Auto);
+                            targetPanel = CreateGrid(colums, rows, StripType.Auto);
                         }
                         else if (typeof(UniformGrid).IsAssignableFrom(targetType))
                         {
-                            targetPanel = CreateUniformGrid(colums, rows, layers);
+                            targetPanel = CreateUniformGrid(colums, rows);
                         }
 
                         if (targetPanel != null)
@@ -314,10 +286,6 @@ namespace Stride.Assets.Presentation.AssetEditors.UIEditor.ViewModels
 
                                 case Orientation.Vertical:
                                     propertyKey = GridBase.RowPropertyKey;
-                                    break;
-
-                                case Orientation.InDepth:
-                                    propertyKey = GridBase.LayerPropertyKey;
                                     break;
 
                                 default:
@@ -343,20 +311,20 @@ namespace Stride.Assets.Presentation.AssetEditors.UIEditor.ViewModels
                     if (typeof(StackPanel).IsAssignableFrom(targetType))
                     {
                         // from a GridBase to a StackPanel
-                        //   - determine the StackPanel's orientation from the GridBase largest dimension (Colums, Rows, Layers)
-                        //   - order elements by Rows, Colums and Layers
+                        //   - determine the StackPanel's orientation from the GridBase largest dimension (Columns, Rows)
+                        //   - order elements by Rows, and Columns
                         if (grid != null)
                         {
                             targetPanel = new StackPanel
                             {
-                                Orientation = GetOrientation(grid.ColumnDefinitions.Count, grid.RowDefinitions.Count, grid.LayerDefinitions.Count),
+                                Orientation = GetOrientation(grid.ColumnDefinitions.Count, grid.RowDefinitions.Count),
                             };
                         }
                         else if (uniformGrid != null)
                         {
                             targetPanel = new StackPanel
                             {
-                                Orientation = GetOrientation(uniformGrid.Columns, uniformGrid.Rows, uniformGrid.Layers),
+                                Orientation = GetOrientation(uniformGrid.Columns, uniformGrid.Rows),
                             };
                         }
                         else
@@ -365,7 +333,7 @@ namespace Stride.Assets.Presentation.AssetEditors.UIEditor.ViewModels
                             targetPanel = new StackPanel();
                         }
                         // Order children in Western reading order: left to right, top to bottom, front to back)
-                        CopySwapExchange(this, new UIElementDesign(targetPanel), x => x.OrderBy(e => e.AssetSideUIElement.DependencyProperties.Get(GridBase.RowPropertyKey)).ThenBy(e => e.AssetSideUIElement.DependencyProperties.Get(GridBase.ColumnPropertyKey)).ThenBy(e => e.AssetSideUIElement.DependencyProperties.Get(GridBase.LayerPropertyKey)));
+                        CopySwapExchange(this, new UIElementDesign(targetPanel), x => x.OrderBy(e => e.AssetSideUIElement.DependencyProperties.Get(GridBase.RowPropertyKey)).ThenBy(e => e.AssetSideUIElement.DependencyProperties.Get(GridBase.ColumnPropertyKey)));
                         // Remove the GridBase related dependency properties
                         foreach (var child in targetPanel.Children)
                         {
@@ -373,25 +341,23 @@ namespace Stride.Assets.Presentation.AssetEditors.UIEditor.ViewModels
                             RemoveDependencyProperty(child, GridBase.ColumnSpanPropertyKey);
                             RemoveDependencyProperty(child, GridBase.RowPropertyKey);
                             RemoveDependencyProperty(child, GridBase.RowSpanPropertyKey);
-                            RemoveDependencyProperty(child, GridBase.LayerPropertyKey);
-                            RemoveDependencyProperty(child, GridBase.LayerSpanPropertyKey);
                         }
                     }
                     else if (typeof(Grid).IsAssignableFrom(targetType) && uniformGrid != null)
                     {
                         // from a Grid to a UniformGrid
-                        //   - keep the same column/layer/row dependency properties
-                        //   - create ColumDefinitions, RowDefinitions, LayerDefinitions from Colums, Rows, Layers resp.
+                        //   - keep the same column/row dependency properties
+                        //   - create ColumDefinitions, RowDefinitions, from Columns, Rows resp.
                         //   - use StripType.Star
-                        targetPanel = CreateGrid(uniformGrid.Columns, uniformGrid.Rows, uniformGrid.Layers, StripType.Star);
+                        targetPanel = CreateGrid(uniformGrid.Columns, uniformGrid.Rows, StripType.Star);
                         CopySwapExchange(this, new UIElementDesign(targetPanel));
                     }
                     else if (typeof(UniformGrid).IsAssignableFrom(targetType) && grid != null)
                     {
                         // from a UniformGrid to a Grid
-                        //   - keep the same column/layer/row dependency properties
-                        //   - set Colums, Rows, Layers by counting ColumDefinitions, RowDefinitions, LayerDefinitions resp.
-                        targetPanel = CreateUniformGrid(grid.ColumnDefinitions.Count, grid.RowDefinitions.Count, grid.LayerDefinitions.Count);
+                        //   - keep the same column/row dependency properties
+                        //   - set Colums, Rows, by counting ColumnDefinitions, RowDefinitions resp.
+                        targetPanel = CreateUniformGrid(grid.ColumnDefinitions.Count, grid.RowDefinitions.Count);
                         CopySwapExchange(this, new UIElementDesign(targetPanel));
                     }
                     else if (typeof(Canvas).IsAssignableFrom(targetType))
@@ -408,8 +374,6 @@ namespace Stride.Assets.Presentation.AssetEditors.UIEditor.ViewModels
                             RemoveDependencyProperty(child, GridBase.ColumnSpanPropertyKey);
                             RemoveDependencyProperty(child, GridBase.RowPropertyKey);
                             RemoveDependencyProperty(child, GridBase.RowSpanPropertyKey);
-                            RemoveDependencyProperty(child, GridBase.LayerPropertyKey);
-                            RemoveDependencyProperty(child, GridBase.LayerSpanPropertyKey);
                         }
                         // fallback to default case (for now)
                     }
@@ -581,42 +545,39 @@ namespace Stride.Assets.Presentation.AssetEditors.UIEditor.ViewModels
         }
 
         [NotNull]
-        private static Grid CreateGrid(int colums, int rows, int layers, StripType stripType)
+        private static Grid CreateGrid(int colums, int rows, StripType stripType)
         {
             var generator = (Func<StripDefinition>)(() => new StripDefinition { Type = stripType });
             var grid = new Grid();
             grid.ColumnDefinitions.AddRange(generator.Repeat(colums));
             grid.RowDefinitions.AddRange(generator.Repeat(rows));
-            grid.LayerDefinitions.AddRange(generator.Repeat(layers));
             return grid;
         }
 
         [NotNull]
-        private static UniformGrid CreateUniformGrid(int colums, int rows, int layers)
+        private static UniformGrid CreateUniformGrid(int colums, int rows)
         {
             return new UniformGrid
             {
                 Columns = Math.Max(1, colums),
                 Rows = Math.Max(1, rows),
-                Layers = Math.Max(1, layers),
             };
         }
 
         /// <summary>
-        /// Gets a <see cref="Orientation"/> depending of the numbers of <paramref name="colums"/>, <paramref name="rows"/> and <paramref name="layers"/>.
+        /// Gets a <see cref="Orientation"/> depending of the numbers of <paramref name="colums"/>, and <paramref name="rows"/>.
         /// </summary>
-        /// <remarks><see cref="Orientation.Vertical"/> is favored over <see cref="Orientation.Horizontal"/> which in turn is favored over <see cref="Orientation.InDepth"/>.</remarks>
+        /// <remarks><see cref="Orientation.Vertical"/> is favored over <see cref="Orientation.Horizontal"/>.</remarks>
         /// <param name="colums">The number of colums.</param>
         /// <param name="rows">The number of rows.</param>
-        /// <param name="layers">The number of layers.</param>
         /// <returns></returns>
-        private static Orientation GetOrientation(int colums, int rows, int layers)
+        private static Orientation GetOrientation(int colums, int rows)
         {
             if (colums > rows)
             {
-                return layers > colums ? Orientation.InDepth : Orientation.Horizontal;
+                return Orientation.Horizontal;
             }
-            return layers > rows ? Orientation.InDepth : Orientation.Vertical;
+            return Orientation.Vertical;
         }
 
         /// <summary>

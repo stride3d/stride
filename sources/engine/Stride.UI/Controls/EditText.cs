@@ -118,7 +118,7 @@ namespace Stride.UI.Controls
 
             CanBeHitByUser = true;
             IsSelectionActive = false;
-            Padding = new Thickness(8, 4, 0, 8, 8, 0);
+            Padding = new Thickness(8, 4, 8, 8);
             DrawLayerNumber += 4; // ( 1: image, 2: selection, 3: Text, 4:Cursor) 
             CaretWidth = 1f;
             CaretFrequency = 1f;
@@ -771,7 +771,7 @@ namespace Stride.UI.Controls
                 return Vector2.Zero;
 
             var sizeRatio = LayoutingContext.RealVirtualResolutionRatio;
-            var measureFontSize = new Vector2(ActualTextSize * sizeRatio.Y); // we don't want letters non-uniform ratio
+            var measureFontSize = new Vector2(ActualTextSize * sizeRatio.Height); // we don't want letters non-uniform ratio
             var realSize = Font.MeasureString(textToMeasure, measureFontSize);
 
             // force pre-generation if synchronous generation is required
@@ -781,8 +781,8 @@ namespace Stride.UI.Controls
             if (Font.FontType == SpriteFontType.Dynamic)
             {
                 // rescale the real size to the virtual size
-                realSize.X /= sizeRatio.X;
-                realSize.Y /= sizeRatio.Y;
+                realSize.X /= sizeRatio.Width;
+                realSize.Y /= sizeRatio.Height;
             }
 
             if (Font.FontType == SpriteFontType.SDF)
@@ -795,32 +795,31 @@ namespace Stride.UI.Controls
             return realSize;
         }
 
-        protected override Vector3 MeasureOverride(Vector3 availableSizeWithoutMargins)
+        protected override Size2F MeasureOverride(Size2F availableSizeWithoutMargins)
         {
-            var desiredSize = Vector3.Zero;
+            var desiredSize = Size2F.Zero;
             if (Font != null)
             {
                 // take the maximum between the text size and the minimum visible line size as text desired size
                 var fontLineSpacing = Font.GetTotalLineSpacing(ActualTextSize);
                 if (Font.FontType == SpriteFontType.SDF)
                     fontLineSpacing *= ActualTextSize / Font.Size;
-                var currentTextSize = new Vector3(CalculateTextSize(), 0);
-                desiredSize = new Vector3(currentTextSize.X, Math.Min(Math.Max(currentTextSize.Y, fontLineSpacing * MinLines), fontLineSpacing * MaxLines), currentTextSize.Z);
+                var currentTextSize = CalculateTextSize();
+                desiredSize = new Size2F(currentTextSize.X, Math.Min(Math.Max(currentTextSize.Y, fontLineSpacing * MinLines), fontLineSpacing * MaxLines));
             }
 
             // add the padding to the text desired size
-            var desiredSizeWithPadding = CalculateSizeWithThickness(ref desiredSize, ref padding);
+            var desiredSizeWithPadding = desiredSize + padding;
 
             return desiredSizeWithPadding;
         }
 
-        protected override Vector3 ArrangeOverride(Vector3 finalSizeWithoutMargins)
+        protected override Size2F ArrangeOverride(Size2F finalSizeWithoutMargins)
         {
             // get the maximum between the final size and the desired size
-            var returnSize = new Vector3(
-                Math.Max(finalSizeWithoutMargins.X, DesiredSize.X),
-                Math.Max(finalSizeWithoutMargins.Y, DesiredSize.Y),
-                Math.Max(finalSizeWithoutMargins.Z, DesiredSize.Z));
+            var returnSize = new Size2F(
+                Math.Max(finalSizeWithoutMargins.Width, DesiredSize.Width),
+                Math.Max(finalSizeWithoutMargins.Height, DesiredSize.Height));
 
             return returnSize;
         }
