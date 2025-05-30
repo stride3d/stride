@@ -107,7 +107,7 @@ public class GameBuilder : IGameBuilder
             }
             catch (Exception ex)
             {
-                // TODO: check if service is already registered first.'
+                // TODO: check if service is already registered first.
                 _log.Error($"Failed to register service {service.Key.Name}.\n\n", ex);
             }
         }
@@ -147,6 +147,6 @@ public class GameBuilder : IGameBuilder
             }
         }
 
-        return Game; 
+        return Game;
     }
 }
