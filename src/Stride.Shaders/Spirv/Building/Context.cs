@@ -8,6 +8,11 @@ using static Spv.Specification;
 
 namespace Stride.Shaders.Spirv.Building;
 
+public interface IExternalShaderLoader
+{
+    public bool LoadExternalReference(string name, out byte[] bytecode);
+}
+
 // Should contain internal data not seen by the client but helpful for the generation like type symbols and other 
 // SPIR-V parameters
 public class SpirvContext(SpirvModule module) : IDisposable

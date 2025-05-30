@@ -1,6 +1,7 @@
-using System.Runtime.InteropServices;
 using Stride.Shaders.Core;
 using Stride.Shaders.Parsing.SDSL.AST;
+using Stride.Shaders.Spirv.Building;
+using System.Runtime.InteropServices;
 
 namespace Stride.Shaders.Parsing.Analysis;
 
@@ -20,6 +21,8 @@ public partial class SymbolTable : ISymbolProvider
     public List<SymbolFrame>? CurrentFunctionSymbols { get; internal set; }
 
     public void Push() => CurrentFunctionSymbols?.Add(new());
+
+    public IExternalShaderLoader ShaderLoader { get; set; }
 
     public SymbolFrame? Pop()
     {

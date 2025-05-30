@@ -2,6 +2,9 @@ using Stride.Shaders.Core;
 using Stride.Shaders.Core.Analysis;
 using Stride.Shaders.Parsing.Analysis;
 using Stride.Shaders.Spirv.Building;
+using Stride.Shaders.Spirv.Core.Buffers;
+using System.Runtime.InteropServices;
+using Stride.Shaders.Spirv.Core;
 
 namespace Stride.Shaders.Parsing.SDSL.AST;
 
@@ -15,9 +18,81 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
     public ShaderParameterDeclarations? Generics { get; set; }
     public List<Mixin> Mixins { get; set; } = [];
 
+    public Dictionary<int, SymbolType> ProcessNameAndTypes(SpirvBuffer buffer, out Dictionary<int, string> names, out Dictionary<int, SymbolType> types)
+    {
+        var memberNames = new Dictionary<(int, int), string>();
+        names = new Dictionary<int, string>();
+        types = new Dictionary<int, SymbolType>();
+        foreach (var instruction in buffer)
+        {
+            if (instruction.OpCode == SDSLOp.OpName)
+            {
+                var nameInstruction = instruction.UnsafeAs<RefOpName>();
+                names.Add(nameInstruction.Target, nameInstruction.Name.Value);
+            }
+            else if (instruction.OpCode == SDSLOp.OpMemberName)
+            {
+                var nameInstruction = instruction.UnsafeAs<RefOpMemberName>();
+                memberNames.Add((nameInstruction.Type, (int)nameInstruction.Member.Words), nameInstruction.Name.Value);
+            }
+            else if (instruction.OpCode == SDSLOp.OpTypeFloat)
+            {
+                var floatInstruction = instruction.UnsafeAs<RefOpTypeFloat>();
+                if (floatInstruction.FloatingPointEncoding != 0)
+                    throw new InvalidOperationException();
+
+                types.Add(floatInstruction.ResultId, floatInstruction.Width.Words switch
+                {
+                    16 => ScalarType.From("half"),
+                    32 => ScalarType.From("float"),
+                    64 => ScalarType.From("double"),
+                });
+            }
+            else if (instruction.OpCode == SDSLOp.OpTypeVoid)
+            {
+                types.Add(instruction.ResultId!.Value, ScalarType.From("void"));
+            }
+            else if (instruction.OpCode == SDSLOp.OpTypeVector)
+            {
+                var vectorInstruction = instruction.UnsafeAs<RefOpTypeVector>();
+                var innerType = (ScalarType)types[vectorInstruction.ComponentType];
+                types.Add(instruction.ResultId!.Value, new VectorType(innerType, (int)vectorInstruction.ComponentCount.Words));
+            }
+            else if (instruction.OpCode == SDSLOp.OpTypeStruct)
+            {
+                var structInstruction = instruction.UnsafeAs<RefOpTypeStruct>();
+                var structName = names[instruction.ResultId!.Value];
+                var fields = new List<(string Name, SymbolType Type)>();
+                throw new NotImplementedException();
+                types.Add(instruction.ResultId!.Value, new StructType(structName, fields));
+            }
+        }
+
+        return types;
+    }
 
     public override void ProcessSymbol(SymbolTable table)
     {
+        foreach (var mixin in Mixins)
+        {
+            table.ShaderLoader.LoadExternalReference(mixin.Name, out var bytecode);
+            var buffer = new SpirvBuffer(MemoryMarshal.Cast<byte, int>(bytecode));
+
+            ProcessNameAndTypes(buffer, out var names, out var types);
+            foreach (var instruction in buffer)
+            {
+                if (instruction.OpCode == SDSLOp.OpVariable)
+                {
+                    var variableInstruction = instruction.UnsafeAs<RefOpVariable>();
+                    var variableName = names[variableInstruction.ResultId.Value];
+                    var variableType = types[variableInstruction.ResultType];
+
+                    var sid = new SymbolID(variableName, SymbolKind.Variable, Storage.Stream);
+                    table.RootSymbols.Add(sid, new(sid, variableType));
+                }
+            }
+        }
+
         foreach (var member in Elements)
         {
             if (member is ShaderMethod func)

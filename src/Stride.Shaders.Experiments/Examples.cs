@@ -8,6 +8,7 @@ using Stride.Shaders.Compilers.Direct3D;
 using Stride.Shaders.Parsing;
 using Stride.Shaders.Parsing.Analysis;
 using Stride.Shaders.Parsing.SDSL.AST;
+using Stride.Shaders.Spirv.Building;
 
 namespace Stride.Shaders.Experiments;
 
@@ -211,11 +212,23 @@ public static partial class Examples
         return false;
     }
 
+    class ShaderLoader : IExternalShaderLoader
+    {
+        public bool LoadExternalReference(string name, out byte[] bytecode)
+        {
+            var text = MonoGamePreProcessor.OpenAndRun($"./assets/SDSL/{name}.sdsl");
+            var sdslc = new SDSLC();
+            sdslc.ShaderLoader = this;
+            return sdslc.Compile(text, out bytecode);
+        }
+    }
+
     public static void CompileSDSL()
     {
-        var text = MonoGamePreProcessor.OpenAndRun("./assets/SDSL/TestStruct.sdsl");
+        var text = MonoGamePreProcessor.OpenAndRun("./assets/SDSL/TestBasic.sdsl");
 
         var sdslc = new SDSLC();
+        sdslc.ShaderLoader = new ShaderLoader();
         sdslc.Compile(text, out var bytecode);
         var code = new SpirvTranslator(bytecode.AsMemory().Cast<byte, uint>());
         Console.WriteLine(code.Translate(Backend.Hlsl));

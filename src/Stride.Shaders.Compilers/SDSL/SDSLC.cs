@@ -11,7 +11,7 @@ using Stride.Shaders.Spirv.Processing;
 
 namespace Stride.Shaders.Compilers.SDSL;
 
-public record struct SDSLC() : ICompiler
+public record struct SDSLC(IExternalShaderLoader ShaderLoader) : ICompiler
 {
     public readonly bool Compile(string code, out byte[] compiled)
     {
@@ -20,6 +20,7 @@ public record struct SDSLC() : ICompiler
         {
             SymbolTable table = new();
             var shader = sf.Namespaces.First().Declarations.OfType<ShaderClass>().First();
+            table.ShaderLoader = ShaderLoader;
             shader.ProcessSymbol(table);
 
             if(table.Errors.Count > 0)
@@ -28,15 +29,15 @@ public record struct SDSLC() : ICompiler
             shader.Compile(compiler, table);
 
             // temp hack to add entry point (last function)
-            var context = compiler.Context;
-            context.Buffer.AddOpCapability(Spv.Specification.Capability.Shader);
-            context.Buffer.AddOpMemoryModel(Spv.Specification.AddressingModel.Logical, Spv.Specification.MemoryModel.GLSL450);
-            new StreamAnalyzer().Process(table, compiler);
+            //var context = compiler.Context;
+            //context.Buffer.AddOpCapability(Spv.Specification.Capability.Shader);
+            //context.Buffer.AddOpMemoryModel(Spv.Specification.AddressingModel.Logical, Spv.Specification.MemoryModel.GLSL450);
+            //new StreamAnalyzer().Process(table, compiler);
 
             compiler.Context.Buffer.Sort();
             var merged = SpirvBuffer.Merge(compiler.Context.Buffer, compiler.Builder.Buffer);
-            var dis = new SpirvDis<SpirvBuffer>(merged, true);
-            dis.Disassemble(true);
+            //var dis = new SpirvDis<SpirvBuffer>(merged, true);
+            //dis.Disassemble(true);
             compiled = MemoryMarshal.AsBytes(merged.Span).ToArray();
             return true;
         }
