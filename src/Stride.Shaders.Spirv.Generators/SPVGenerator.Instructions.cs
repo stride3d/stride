@@ -64,8 +64,74 @@ public partial class SPVGenerator : IIncrementalGenerator
             .SelectMany((grammar, _) => grammar!.Instructions ?? [])
             .Where(instruction => !instruction.OpName.StartsWith("OpCopyMemory"));
 
+        IncrementalValuesProvider<InstructionData> glslInstructionsData =
+            context.AdditionalTextsProvider
+            .Where(file => Path.GetFileName(file.Path) == "extinst.glsl.std.450.grammar.json" )
+            .Select((file, _) => file.GetText()?.ToString())
+            .Where(text => text is not null)
+            .Select((text, _) =>
+                {
+                    var result = JsonSerializer.Deserialize<SpirvGrammar>(text!, options);
+                    if (result is SpirvGrammar grammar)
+                    {
+                        var list = new List<OperandData>(24);
+                        var dict = spirvCore!.OperandKinds.ToDictionary(x => x.Kind, x => x.Category);
+                        if (grammar.Instructions is List<InstructionData> instructions)
+                        {
+                            for (int i = 0; i < instructions.Count; i++)
+                            {
+                                list.Clear();
+                                if (instructions[i].Operands is EquatableArray<OperandData> operands)
+                                {
+                                    foreach (var op in operands)
+                                        list.Add(op with { Class = dict[op.Kind] });
+                                    instructions[i] = instructions[i] with { Operands = list };
+                                }
+                            }
+                        }
+                    }
+                    return result;
+                })
+            .SelectMany((grammar, _) => grammar!.Instructions ?? [])
+            .Where(instruction => !instruction.OpName.StartsWith("OpCopyMemory"));
+
+        IncrementalValuesProvider<InstructionData> sdslInstructionsData =
+            context.AdditionalTextsProvider
+            .Where(file => Path.GetFileName(file.Path) == "spirv.sdsl.grammar-ext.json")
+            .Select((file, _) => file.GetText()?.ToString())
+            .Where(text => text is not null)
+            .Select((text, _) =>
+                {
+                    var result = JsonSerializer.Deserialize<SpirvGrammar>(text!, options);
+                    if (result is SpirvGrammar grammar)
+                    {
+                        var list = new List<OperandData>(24);
+                        var dict = spirvCore!.OperandKinds.ToDictionary(x => x.Kind, x => x.Category);
+                        if (grammar.Instructions is List<InstructionData> instructions)
+                        {
+                            for (int i = 0; i < instructions.Count; i++ )
+                            {
+                                list.Clear();
+                                if (instructions[i].Operands is EquatableArray<OperandData> operands)
+                                {
+                                    foreach (var op in operands)
+                                        list.Add(op with { Class = dict[op.Kind] });
+                                    instructions[i] = instructions[i] with { Operands = list };
+                                }
+                            }
+                        }
+                    }
+                    return result;
+                })
+            .SelectMany((grammar, _) => grammar!.Instructions ?? [])
+            .Where(instruction => !instruction.OpName.StartsWith("OpCopyMemory"));
+
 
         context.RegisterImplementationSourceOutput(instructionsData,
+            static (spc, source) => Execute(source, spc));
+        context.RegisterImplementationSourceOutput(glslInstructionsData,
+            static (spc, source) => Execute(source, spc));
+        context.RegisterImplementationSourceOutput(sdslInstructionsData,
             static (spc, source) => Execute(source, spc));
 
     }
@@ -82,40 +148,47 @@ public partial class SPVGenerator : IIncrementalGenerator
         .AppendLine($"public ref struct Ref{instruction.OpName} : IWrapperInstruction")
         .AppendLine("{")
         .AppendLine("public RefInstruction Inner { get; set; }");
-        if (instruction.Operands != null)
+        try
         {
-            foreach (var operand in instruction.Operands)
+            if (instruction.Operands != null)
             {
-                string fieldName;
-                string operandName = ConvertOperandName(operand.Name ?? ConvertKindToName(operand.Kind), operand.Quantifier);
-                if (operand.Name is null or "")
-                    fieldName = ConvertKindToName(operand.Kind, false);
-                else
+                foreach (var operand in instruction.Operands)
                 {
-                    var nameBuilder = new StringBuilder();
-                    bool first = true;
-                    foreach (var c in operand.Name)
+                    string fieldName;
+                    string operandName = ConvertOperandName(operand.Name ?? ConvertKindToName(operand.Kind), operand.Quantifier);
+                    if (operand.Name is null or "")
+                        fieldName = ConvertKindToName(operand.Kind, false);
+                    else
                     {
-                        if (char.IsLetterOrDigit(c) || c == '_')
+                        var nameBuilder = new StringBuilder();
+                        bool first = true;
+                        foreach (var c in operand.Name)
                         {
-                            nameBuilder.Append(first ? char.ToUpperInvariant(c) : c);
-                            first &= false;
-                        }
+                            if (char.IsLetterOrDigit(c) || c == '_')
+                            {
+                                nameBuilder.Append(first ? char.ToUpperInvariant(c) : c);
+                                first &= false;
+                            }
 
+                        }
+                        fieldName = nameBuilder.ToString();
                     }
-                    fieldName = nameBuilder.ToString();
+                    if (operand.Kind == "LiteralContextDependentNumber")
+                        continue;
+                    else if (operand.Kind == "LiteralInteger" || operand.Kind == "LiteralExtInstInteger" || operand.Kind == "LiteralSpecConstantOpInteger")
+                        builder.AppendLine($"public LiteralInteger {fieldName} => Inner.GetOperand<LiteralInteger>(\"{operandName}\") ?? default;");
+                    else if (operand.Class == "BitEnum")
+                        builder.AppendLine($"public {operand.Kind}Mask {fieldName} => Inner.GetEnumOperand<{operand.Kind}Mask>(\"{operandName}\");");
+                    else if (operand.Class == "ValueEnum")
+                        builder.AppendLine($"public {operand.Kind} {fieldName} => Inner.GetEnumOperand<{operand.Kind}>(\"{operandName}\");");
+                    else
+                        builder.AppendLine($"public {operand.Kind} {fieldName} => Inner.GetOperand<{operand.Kind}>(\"{operandName}\") ?? default;");
                 }
-                if (operand.Kind == "LiteralContextDependentNumber")
-                    continue;
-                else if (operand.Kind == "LiteralInteger" || operand.Kind == "LiteralExtInstInteger" || operand.Kind == "LiteralSpecConstantOpInteger")
-                    builder.AppendLine($"public LiteralInteger {fieldName} => Inner.GetOperand<LiteralInteger>(\"{operandName}\") ?? default;");
-                else if (operand.Class == "BitEnum")
-                    builder.AppendLine($"public {operand.Kind}Mask {fieldName} => Inner.GetEnumOperand<{operand.Kind}Mask>(\"{operandName}\");");
-                else if (operand.Class == "ValueEnum")
-                    builder.AppendLine($"public {operand.Kind} {fieldName} => Inner.GetEnumOperand<{operand.Kind}>(\"{operandName}\");");
-                else
-                    builder.AppendLine($"public {operand.Kind} {fieldName} => Inner.GetOperand<{operand.Kind}>(\"{operandName}\") ?? default;");
             }
+        }
+        catch (Exception e)
+        {
+            builder.Append("/*").Append(e.Message).Append(" ").Append(e.StackTrace).AppendLine("*/");
         }
 
 

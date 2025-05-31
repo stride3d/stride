@@ -50,7 +50,7 @@ public partial class SPVGenerator : IIncrementalGenerator
         string resourceGlslRegistryName =
             assembly.GetManifestResourceNames()
             .Single(str => str.EndsWith("GLSL.std.450.html"));
-        
+
         if (!options.Converters.Any(x => x is EquatableArrayJsonConverter<OperandData>))
             options.Converters.Add(new EquatableArrayJsonConverter<OperandData>());
 
@@ -58,7 +58,6 @@ public partial class SPVGenerator : IIncrementalGenerator
         spirvGlsl = JsonSerializer.Deserialize<SpirvGrammar>(new StreamReader(assembly.GetManifestResourceStream(resourceGlslName)).ReadToEnd(), options);
         spirvSDSL = JsonSerializer.Deserialize<SpirvGrammar>(new StreamReader(assembly.GetManifestResourceStream(resourceSDSLName)).ReadToEnd(), options);
 
-        GenerateStructs(context);
 
         var config = Configuration.Default.WithDefaultLoader();
         var htmlContext = BrowsingContext.New(config);
@@ -74,6 +73,7 @@ public partial class SPVGenerator : IIncrementalGenerator
 
         CreateInfo(context);
         CreateSDSLOp(context);
+
 
         var code = new StringBuilder();
 
@@ -100,6 +100,9 @@ public partial class SPVGenerator : IIncrementalGenerator
                 "SpirvBufferExtensions.gen.cs",
                 code.ToSourceText());
         });
+        
+        GenerateStructs(context);
+
     }
 
     public static string AddDocComment(IHtmlCollection<IElement>? cells)

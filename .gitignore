@@ -8,4 +8,4 @@ obj/
 log*.txt
 *.vsix
 *.fsx
-src/Stride.Shaders.Spirv.Core/Generated/Stride.Shaders.Spirv.Generators/Stride.Shaders.Spirv.Generators.SPVGenerator/Op*.Instruction.g.cs
+src/Stride.Shaders.Spirv.Core/Generated/Stride.Shaders.Spirv.Generators/Stride.Shaders.Spirv.Generators.SPVGenerator/*.Instruction.g.cs
