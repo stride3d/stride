@@ -5,5 +5,5 @@ namespace Stride.Core.IO;
 
 public interface IDatabaseFileProviderService
 {
-    DatabaseFileProvider FileProvider { get; }
+    DatabaseFileProvider FileProvider { get; set; }
 }
