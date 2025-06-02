@@ -44,7 +44,7 @@ on:
         type: string
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}-${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}-${{ github.event.inputs.graphics-api || inputs.graphics-api || 'OpenGL' }}
+  group: build-linux-runtime-${{ github.event.pull_request.number || github.ref }}-${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}-${{ github.event.inputs.graphics-api || inputs.graphics-api || 'OpenGL' }}
   cancel-in-progress: true
 
 jobs:
