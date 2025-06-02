@@ -27,7 +27,7 @@ on:
         type: string
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}-${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}-${{ github.event.inputs.test-category || inputs.test-category || 'Simple' }}
+  group: test-linux-${{ github.event.pull_request.number || github.ref }}-${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}-${{ github.event.inputs.test-category || inputs.test-category || 'Simple' }}
   cancel-in-progress: true
 
 jobs:
