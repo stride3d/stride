@@ -138,11 +138,10 @@ public ref struct RefInstruction
 
     public int? GetResultId()
     {
-        foreach (var o in this)
-            if (o.Kind == OperandKind.IdResult)
-                return o.Words[0];
-        return null;
+        TryGetOperand<IdResult>("resultId", out var resultId);
+        return resultId;
     }
+
     public void SetResultId(int? value)
     {
         foreach (var o in this)
@@ -151,10 +150,8 @@ public ref struct RefInstruction
     }
     public int? GetResultType()
     {
-        foreach (var o in this)
-            if (o.Kind == OperandKind.IdResultType)
-                return o.Words[0];
-        return null;
+        TryGetOperand<IdResult>("resultType", out var resultId);
+        return resultId;
     }
     public void SetResultType(int? value)
     {

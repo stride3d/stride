@@ -2,6 +2,7 @@ using System.Text;
 using Stride.Shaders.Spirv.Core.Buffers;
 using Stride.Shaders.Spirv.Core;
 using static Spv.Specification;
+using System.Runtime.CompilerServices;
 
 namespace Stride.Shaders.Spirv.Tools;
 
@@ -12,7 +13,7 @@ public partial struct SpirvDis<TBuffer>
     where TBuffer : ISpirvBuffer
 
 {
-    public readonly static int MAX_OFFSET = 16; 
+    public readonly static int MAX_OFFSET = 16;
     TBuffer buffer;
     DisWriter writer = new();
     int IdOffset { get; init; }
