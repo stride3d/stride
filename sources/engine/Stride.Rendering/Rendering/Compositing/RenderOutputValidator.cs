@@ -15,7 +15,7 @@ namespace Stride.Rendering.Compositing
     /// </summary>
     public sealed class RenderOutputValidator
     {
-        private readonly FastList<RenderTargetDescription> renderTargets = new FastList<RenderTargetDescription>();
+        private readonly List<RenderTargetDescription> renderTargets = [];
         private readonly RenderStage renderStage;
 
         private int validatedTargetCount;
@@ -79,8 +79,8 @@ namespace Stride.Rendering.Compositing
         {
             if (validatedTargetCount < renderTargets.Count || hasChanged)
             {
-                renderTargets.Resize(validatedTargetCount, false);
-
+                renderTargets.Clear();
+                renderTargets.Capacity = validatedTargetCount;
                 // Recalculate shader sources
                 ShaderSource = new ShaderMixinSource();
                 ShaderSource.Macros.Add(new ShaderMacro("STRIDE_RENDER_TARGET_COUNT", renderTargets.Count));
