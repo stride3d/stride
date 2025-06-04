@@ -1,16 +1,17 @@
-using System.Numerics;
 using Stride.Shaders.Core;
 using Stride.Shaders.Parsing.SDSL.AST;
 using Stride.Shaders.Spirv.Core;
 using Stride.Shaders.Spirv.Core.Buffers;
 using Stride.Shaders.Spirv.Tools;
+using System.Diagnostics.CodeAnalysis;
+using System.Numerics;
 using static Spv.Specification;
 
 namespace Stride.Shaders.Spirv.Building;
 
 public interface IExternalShaderLoader
 {
-    public bool LoadExternalReference(string name, out byte[] bytecode);
+    public bool LoadExternalReference(string name, [MaybeNullWhen(false)] out byte[] bytecode);
 }
 
 // Should contain internal data not seen by the client but helpful for the generation like type symbols and other 
@@ -26,13 +27,12 @@ public class SpirvContext(SpirvModule module) : IDisposable
     public Dictionary<(SymbolType Type, object Value), SpirvValue> LiteralConstants { get; } = [];
     public SpirvBuffer Buffer { get; set; } = new();
 
-    public void PutMixinName(string name)
+    public void PutShaderName(string name)
     {
         if (Name is null)
         {
             Name = name;
-            // temporary removed for testing SPIRV cross
-            //Buffer.InsertOpSDSLMixinName(5, name);
+            Buffer.InsertOpSDSLShader(5, name);
         }
         else throw new NotImplementedException();
     }

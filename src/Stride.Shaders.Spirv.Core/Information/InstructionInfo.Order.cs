@@ -25,9 +25,8 @@ public partial class InstructionInfo
         int group = 0;
         Span<SDSLOp> initSDSL = [
             SDSLOp.OpNop,
-            SDSLOp.OpSDSLMixinName,
+            SDSLOp.OpSDSLShader,
             SDSLOp.OpCapability,
-            SDSLOp.OpSDSLMixinOffset,
             SDSLOp.OpSDSLMixinInherit,
             SDSLOp.OpSDSLCompose
         ];
@@ -89,7 +88,7 @@ public partial class InstructionInfo
             OrderGroup[(e, null)] = group;
         OrderGroup[(SDSLOp.OpVariable, StorageClass.Function)] = group;
         group++;
-        OrderGroup[(SDSLOp.OpSDSLMixinEnd, null)] = group;
+        OrderGroup[(SDSLOp.OpSDSLShaderEnd, null)] = group;
     }
     /// <summary>
     /// Gets the order group for a given instruction, useful for sorting instructions according to the specification.

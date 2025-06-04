@@ -16,7 +16,7 @@ public partial class SpirvBuilder
         context.AddName(func, name);
         var result = new SpirvFunction(func.ResultId!.Value, name, ftype);
         CurrentFunction = result;
-        context.Module.Functions.Add(result);
+        context.Module.Functions.Add(name, result);
         return result;
     }
 

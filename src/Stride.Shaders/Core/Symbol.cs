@@ -5,8 +5,7 @@ namespace Stride.Shaders.Core;
 
 public enum SymbolKind
 {
-    MixinParent,
-    MixinChild,
+    Shader,
     Struct,
     Method,
     Variable,

@@ -108,7 +108,7 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
     {
         if (Source is Identifier { Name: "streams" } streams && Accessors[0] is Identifier streamVar)
         {
-            //table.CurrentFunctionSymbols.Add(table.Streams);
+            //table.CurrentSymbols.Add(table.Streams);
             streamVar.ProcessSymbol(table);
             Type = streamVar.Type;
 

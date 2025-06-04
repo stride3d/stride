@@ -161,8 +161,7 @@ public class ShaderMethod(
 
     public override void ProcessSymbol(SymbolTable table)
     {
-        table.FunctionSymbols[Name] = [new()];
-        table.CurrentFunctionSymbols = table.FunctionSymbols[Name];
+        table.Push();
         foreach (var arg in Parameters)
         {
             arg.TypeName.ProcessSymbol(table);
@@ -182,6 +181,7 @@ public class ShaderMethod(
                     s.ProcessSymbol(table, this);
             table.Pop();
         }
+        table.Pop();
     }
 
     public void Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)

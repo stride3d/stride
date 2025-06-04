@@ -1,14 +1,18 @@
-using System.Text;
 using CommunityToolkit.HighPerformance;
 using Silk.NET.Shaderc;
 using Silk.NET.SPIRV.Cross;
 using Stride.Shaders.Compilers;
-using Stride.Shaders.Compilers.SDSL;
 using Stride.Shaders.Compilers.Direct3D;
+using Stride.Shaders.Compilers.SDSL;
 using Stride.Shaders.Parsing;
 using Stride.Shaders.Parsing.Analysis;
 using Stride.Shaders.Parsing.SDSL.AST;
 using Stride.Shaders.Spirv.Building;
+using Stride.Shaders.Spirv.Core.Buffers;
+using System.Diagnostics.CodeAnalysis;
+using System.Runtime.InteropServices;
+using System.Text;
+using Stride.Shaders.Spirv.Processing;
 
 namespace Stride.Shaders.Experiments;
 
@@ -76,6 +80,7 @@ public static partial class Examples
         unsafe
         {
             var code = new SpirvTranslator(words.AsMemory());
+            File.WriteAllBytes("shader.bin", words.SelectMany(x => BitConverter.GetBytes(x).Reverse()).ToArray());
             Console.WriteLine(code.Translate(Backend.Hlsl));
         }
     }
@@ -214,8 +219,14 @@ public static partial class Examples
 
     class ShaderLoader : IExternalShaderLoader
     {
-        public bool LoadExternalReference(string name, out byte[] bytecode)
+        public bool LoadExternalReference(string name, [MaybeNullWhen(false)] out byte[] bytecode)
         {
+            var filename = $"./assets/SDSL/{name}.sdsl";
+            if (!File.Exists(filename))
+            {
+                bytecode = null;
+                return false;
+            }
             var text = MonoGamePreProcessor.OpenAndRun($"./assets/SDSL/{name}.sdsl");
             var sdslc = new SDSLC();
             sdslc.ShaderLoader = this;
@@ -230,8 +241,26 @@ public static partial class Examples
         var sdslc = new SDSLC();
         sdslc.ShaderLoader = new ShaderLoader();
         sdslc.Compile(text, out var bytecode);
+
+        File.WriteAllBytes("shader.bin", bytecode);
+        var test = bytecode.AsMemory().Cast<byte, uint>().ToArray();
         var code = new SpirvTranslator(bytecode.AsMemory().Cast<byte, uint>());
-        Console.WriteLine(code.Translate(Backend.Hlsl));
+        //Console.WriteLine(code.Translate(Backend.Hlsl));
+
+    }
+
+    public static void MergeSDSL()
+    {
+        CompileSDSL();
+
+        new ShaderLoader().LoadExternalReference("TestBasic", out var bytecode);
+        var buffer = new SpirvBuffer(MemoryMarshal.Cast<byte, int>(bytecode));
+
+
+        //var context = compiler.Context;
+        //context.Buffer.AddOpCapability(Spv.Specification.Capability.Shader);
+        //context.Buffer.AddOpMemoryModel(Spv.Specification.AddressingModel.Logical, Spv.Specification.MemoryModel.GLSL450);
+        //new StreamAnalyzer().Process(table, compiler);
     }
 }
 

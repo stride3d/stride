@@ -207,39 +207,34 @@ public class Identifier(string name, TextLocation info) : Literal(info)
 
     public override void ProcessSymbol(SymbolTable table)
     {
-        if (table.CurrentFunctionSymbols is not null)
+        for (int i = table.CurrentSymbols.Count - 1; i >= 0; --i)
         {
-            for (int i = table.CurrentFunctionSymbols.Count - 1; i >= 0; --i)
+            if (table.CurrentSymbols![i]
+                .TryGetValue(Name, out var symbol))
             {
-                if (table.CurrentFunctionSymbols![i]
-                    .TryGetValue(Name, out var symbol))
-                {
-                    if (symbol.Type is not UndefinedType and not null)
-                        Type = symbol.Type;
-                    else
-                        Type = symbol.Type ?? new UndefinedType(Name);
-                    return;
-                }
+                if (symbol.Type is not UndefinedType and not null)
+                    Type = symbol.Type;
+                else
+                    Type = symbol.Type ?? new UndefinedType(Name);
+                return;
             }
         }
 
-        if (table.RootSymbols.TryGetValue(Name, out var rootSymbol))
-        {
-            Type = rootSymbol.Type;
-            return;
-        }
         throw new NotImplementedException($"Cannot find symbol {Name}.");
     }
 
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
-        var (builder, _, _) = compiler;
+        var (builder, context, _) = compiler;
         if(builder.CurrentFunction is SpirvFunction f)
         {
             if(f.Variables.TryGetValue(Name, out var resultVar))
                 return resultVar;
             else if(f.Parameters.TryGetValue(Name, out var paramVar))
                 return paramVar;
+
+            if (context.Module.InheritedVariables.TryGetValue(Name, out var externalVar))
+                return externalVar;
         }
 
         if (compiler.Context.Variables.TryGetValue(Name, out var variable))

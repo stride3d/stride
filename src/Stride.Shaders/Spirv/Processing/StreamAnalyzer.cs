@@ -43,8 +43,8 @@ namespace Stride.Shaders.Spirv.Processing
         {
             var context = compiler.Context;
 
-            var entryPointVS = context.Module.Functions.Find(x => x.Name == "VSMain");
-            var entryPointPS = context.Module.Functions.Find(x => x.Name == "PSMain");
+            var entryPointVS = context.Module.Functions["VSMain"];
+            var entryPointPS = context.Module.Functions["PSMain"];
 
             var streams = CreateStreams(compiler);
 
@@ -128,7 +128,7 @@ namespace Stride.Shaders.Spirv.Processing
 
         private void GenerateStreamWrapper(SymbolTable table, CompilerUnit compiler, Specification.ExecutionModel executionModel, int entryPointId, string entryPointName, SortedList<int, (StreamInfo Stream, bool IsDirect)> streams)
         {
-            ProcessMethod(table, compiler, entryPointId, streams);
+            ProcessMethod(compiler, entryPointId, streams);
 
             var stage = executionModel switch
             {
@@ -235,7 +235,7 @@ namespace Stride.Shaders.Spirv.Processing
         /// <summary>
         /// Figure out (recursively) which streams are being read from and written to.
         /// </summary>
-        private void ProcessMethod(SymbolTable table, CompilerUnit compiler, int functionId, SortedList<int, (StreamInfo Stream, bool IsDirect)> streams)
+        private void ProcessMethod(CompilerUnit compiler, int functionId, SortedList<int, (StreamInfo Stream, bool IsDirect)> streams)
         {
             var methodStart = FindMethodStart(compiler, functionId);
             var enumerator = new RefMutableFunctionInstructionEnumerator(compiler.Builder.Buffer, methodStart);
@@ -274,7 +274,7 @@ namespace Stride.Shaders.Spirv.Processing
                 {
                     // Process call
                     var calledFunctionId = instruction.Operands[2];
-                    ProcessMethod(table, compiler, calledFunctionId, streams);
+                    ProcessMethod(compiler, calledFunctionId, streams);
                 }
             }
         }

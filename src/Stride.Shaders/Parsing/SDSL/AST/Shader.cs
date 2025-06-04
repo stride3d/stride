@@ -60,37 +60,76 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
             }
             else if (instruction.OpCode == SDSLOp.OpTypeStruct)
             {
-                var structInstruction = instruction.UnsafeAs<RefOpTypeStruct>();
+                var typeStructInstruction = instruction.UnsafeAs<RefOpTypeStruct>();
                 var structName = names[instruction.ResultId!.Value];
                 var fields = new List<(string Name, SymbolType Type)>();
                 throw new NotImplementedException();
                 types.Add(instruction.ResultId!.Value, new StructType(structName, fields));
+            }
+            else if (instruction.OpCode == SDSLOp.OpTypeFunction)
+            {
+                var typeFunctionInstruction = instruction.UnsafeAs<RefOpTypeFunction>();
+                var returnType = types[typeFunctionInstruction.ReturnType];
+                var parameterTypes = new List<SymbolType>();
+                foreach (var operand in instruction.Operands[2..])
+                {
+                    parameterTypes.Add(types[operand]);
+                }
+                types.Add(instruction.ResultId!.Value, new FunctionType(returnType, parameterTypes));
             }
         }
 
         return types;
     }
 
+    private ShaderSymbol LoadShader(IExternalShaderLoader externalShaderLoader, Mixin mixin)
+    {
+        externalShaderLoader.LoadExternalReference(mixin.Name, out var bytecode);
+        var buffer = new SpirvBuffer(MemoryMarshal.Cast<byte, int>(bytecode));
+
+        ProcessNameAndTypes(buffer, out var names, out var types);
+
+        var symbols = new List<Symbol>();
+        foreach (var instruction in buffer)
+        {
+            if (instruction.OpCode == SDSLOp.OpVariable)
+            {
+                var variableInstruction = instruction.UnsafeAs<RefOpVariable>();
+                var variableName = names[variableInstruction.ResultId.Value];
+                var variableType = types[variableInstruction.ResultType];
+
+                var sid = new SymbolID(variableName, SymbolKind.Variable, Storage.Stream);
+                symbols.Add(new(sid, variableType));
+            }
+
+            if (instruction.OpCode == SDSLOp.OpFunction)
+            {
+                var functionInstruction = instruction.UnsafeAs<RefOpFunction>();
+                var functionName = names[functionInstruction.ResultId.Value];
+                var functionType = types[functionInstruction.FunctionType];
+
+                var sid = new SymbolID(functionName, SymbolKind.Method);
+                symbols.Add(new(sid, functionType));
+            }
+        }
+
+        var shaderType = new ShaderSymbol(mixin.Name, symbols);
+        return shaderType;
+    }
+
     public override void ProcessSymbol(SymbolTable table)
     {
+        table.Push();
         foreach (var mixin in Mixins)
         {
-            table.ShaderLoader.LoadExternalReference(mixin.Name, out var bytecode);
-            var buffer = new SpirvBuffer(MemoryMarshal.Cast<byte, int>(bytecode));
+            var shaderType = LoadShader(table.ShaderLoader, mixin);
 
-            ProcessNameAndTypes(buffer, out var names, out var types);
-            foreach (var instruction in buffer)
-            {
-                if (instruction.OpCode == SDSLOp.OpVariable)
-                {
-                    var variableInstruction = instruction.UnsafeAs<RefOpVariable>();
-                    var variableName = names[variableInstruction.ResultId.Value];
-                    var variableType = types[variableInstruction.ResultType];
+            var sid2 = new SymbolID(mixin.Name, SymbolKind.Shader);
+            table.RootSymbols.Add(mixin.Name, new(new SymbolID(mixin.Name, SymbolKind.Shader), shaderType));
 
-                    var sid = new SymbolID(variableName, SymbolKind.Variable, Storage.Stream);
-                    table.RootSymbols.Add(sid.Name, new(sid, variableType));
-                }
-            }
+            // Register members
+            foreach (var symbol in shaderType.Components)
+                table.CurrentFrame.Add(symbol.Id.Name, symbol);
         }
 
         foreach (var member in Elements)
@@ -154,13 +193,46 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
             if (member is not ShaderMember)
                 member.ProcessSymbol(table);
         }
+        table.Pop();
     }
 
 
     public void Compile(CompilerUnit compiler, SymbolTable table)
     {
-        compiler.Context.PutMixinName(Name);
-        foreach(var member in Elements.OfType<ShaderMember>())
+        var (builder, context, _) = compiler;
+        context.PutShaderName(Name);
+
+        foreach (var mixin in Mixins)
+        {
+            // Import types and variables/functions
+            var shader = context.Buffer.AddOpSDSLImportShader(context.Bound++, new(mixin.Name));
+
+            var shaderType = (ShaderSymbol)table.RootSymbols[mixin.Name].Type;
+
+            foreach (var c in shaderType.Components)
+            {
+                if (c.Id.Kind == SymbolKind.Variable)
+                {
+                    var variableTypeId = context.GetOrRegister(c.Type);
+                    var variable = context.Buffer.AddOpSDSLImportVariable(context.Bound++, variableTypeId, c.Id.Name, shader);
+                    context.Module.InheritedVariables.Add(c.Id.Name, new(variable, c.Id.Name));
+                }
+                else if (c.Id.Kind == SymbolKind.Method)
+                {
+                    var functionType = (FunctionType)c.Type;
+
+                    var functionReturnTypeId = context.GetOrRegister(functionType.ReturnType);
+                    var function = context.Buffer.AddOpSDSLImportFunction(context.Bound++, functionReturnTypeId, c.Id.Name, shader);
+                    context.Module.InheritedFunctions.Add(c.Id.Name, new(function.ResultId.Value, c.Id.Name, functionType));
+                }
+            }
+
+            // Mark inherit
+            context.Buffer.AddOpSDSLMixinInherit(shader);
+            context.Module.InheritedMixins.Add(shaderType);
+        }
+
+        foreach (var member in Elements.OfType<ShaderMember>())
             member.Compile(table, this, compiler);
         foreach(var method in Elements.OfType<ShaderMethod>())
             method.Compile(table, this, compiler);

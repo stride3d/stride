@@ -15,36 +15,26 @@
       ]
     },
     {
-      "opname": "OpSDSLMixinName",
+      "opname": "OpSDSLShader",
       "class": "Miscellaneous",
       "operands": [
         {
           "kind": "LiteralString",
-          "name": "mixinName"
+          "name": "shaderName"
         }
       ]
     },
     {
-      "opname": "OpSDSLMixinEnd",
+      "opname": "OpSDSLShaderEnd",
       "class": "Miscellaneous"
-    },
-    {
-      "opname": "OpSDSLMixinOffset",
-      "class": "Miscellaneous",
-      "operands": [
-        {
-          "kind": "LiteralInteger",
-          "name": "mixinName"
-        }
-      ]
     },
     {
       "opname": "OpSDSLMixinInherit",
       "class": "Miscellaneous",
       "operands": [
         {
-          "kind": "LiteralString",
-          "name": "mixinName"
+          "kind": "IdRef",
+          "name": "shader"
         }
       ]
     },
@@ -73,7 +63,7 @@
       ]
     },
     {
-      "opname": "OpSDSLImportFunction",
+      "opname": "OpSDSLImportShader",
       "class": "Miscellaneous",
       "operands": [
         {
@@ -81,19 +71,23 @@
         },
         {
           "kind": "LiteralString",
+          "name": "shaderName"
+        }
+      ]
+    },
+    {
+      "opname": "OpSDSLImportFunction",
+      "class": "Miscellaneous",
+      "operands": [
+        { "kind": "IdResultType" },
+        { "kind": "IdResult" },
+        {
+          "kind": "LiteralString",
           "name": "functionName"
         },
         {
-          "kind": "LiteralString",
-          "name": "mixinName"
-        },
-        {
-          "kind": "LiteralInteger",
-          "name": "id"
-        },
-        {
-          "kind": "LiteralInteger",
-          "name": "typeId"
+          "kind": "IdRef",
+          "name": "shader"
         }
       ]
     },
@@ -101,37 +95,15 @@
       "opname": "OpSDSLImportVariable",
       "class": "Miscellaneous",
       "operands": [
-        {
-          "kind": "IdResult"
-        },
+        { "kind": "IdResultType" },
+        { "kind": "IdResult" },
         {
           "kind": "LiteralString",
           "name": "variableName"
         },
         {
-          "kind": "LiteralString",
-          "name": "mixinName"
-        },
-        {
-          "kind": "LiteralInteger",
-          "name": "id"
-        }
-      ]
-    },
-    {
-      "opname": "OpSDSLImportIdRef",
-      "class": "Miscellaneous",
-      "operands": [
-        {
-          "kind": "IdResult"
-        },
-        {
-          "kind": "LiteralString",
-          "name": "mixinName"
-        },
-        {
-          "kind": "LiteralInteger",
-          "name": "id"
+          "kind": "IdRef",
+          "name": "shader"
         }
       ]
     },
