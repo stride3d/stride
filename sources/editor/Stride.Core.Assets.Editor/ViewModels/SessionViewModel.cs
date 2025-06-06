@@ -83,6 +83,9 @@ public sealed partial class SessionViewModel : DispatcherViewModel, ISessionView
         // Initialize logs
         AssetLog = new AssetLogViewModel(ServiceProvider, this);
 
+        // Initialize the reference view model related to the main asset view
+        References = new ReferencesViewModel(this);
+
         // Construct package categories
         var localPackageName = session.SolutionPath != null ? string.Format(Tr._(@"Solution '{0}'"), session.SolutionPath.GetFileNameWithoutExtension()) : LocalPackageCategoryName;
         packageCategories.Add(LocalPackageCategoryName, new PackageCategoryViewModel(localPackageName, this));
@@ -172,6 +175,8 @@ public sealed partial class SessionViewModel : DispatcherViewModel, ISessionView
     public IMainViewModel Main { get; }
 
     public IReadOnlyDictionary<string, PackageCategoryViewModel> PackageCategories => packageCategories;
+
+    public ReferencesViewModel References { get; }
 
     public UFile SolutionPath => session.SolutionPath;
 
