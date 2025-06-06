@@ -99,7 +99,7 @@
               <StackPanel x:Name="ToolBarSearch" Orientation="Horizontal"
                           IsVisible="{TemplateBinding CanSearchLog}">
                 <TextBox x:Name="TextBoxSearch"
-                         Text="{TemplateBinding SearchToken, Mode=TwoWay}"
+                         Text="{Binding SearchToken, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay, Delay=300}"
                          Width="256"
                          Watermark="Search"></TextBox>
                 <Button x:Name="PART_PreviousResult"

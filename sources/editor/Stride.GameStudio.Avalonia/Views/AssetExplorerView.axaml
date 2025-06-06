@@ -31,7 +31,7 @@
             </Interaction.Behaviors>
             <TextBlock Text="Asset: " />
             <TextBlock Text="{Binding Name}" />
-            <Image Source="{Binding ThumbnailData.Presenter, Converter={gscv:StrideImage}, FallbackValue={x:Static AvaloniaProperty.UnsetValue}}"
+            <Image Source="{Binding ThumbnailData?.Presenter, Converter={gscv:StrideImage}}"
                    Width="64" Height="64"/>
           </StackPanel>
         </DataTemplate>

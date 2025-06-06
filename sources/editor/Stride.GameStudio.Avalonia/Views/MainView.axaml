@@ -47,10 +47,10 @@
       <!-- Edit menu -->
       <MenuItem Header="{sd:LocalizeString Edit, Context=Menu}">
         <MenuItem Header="{sd:LocalizeString Undo, Context=Menu}"
-                  Command="{Binding Session.ActionHistory.UndoCommand, FallbackValue={x:Static cpc:DisabledCommand.Instance}}"
+                  Command="{Binding Session?.ActionHistory?.UndoCommand, TargetNullValue={x:Static cpc:DisabledCommand.Instance}}"
                   HotKey="{x:Static gsvw:MainView.UndoGesture}" InputGesture="{Binding $self.HotKey, Mode=OneTime}"/>
         <MenuItem Header="{sd:LocalizeString Redo, Context=Menu}"
-                  Command="{Binding Session.ActionHistory.RedoCommand, FallbackValue={x:Static cpc:DisabledCommand.Instance}}"
+                  Command="{Binding Session?.ActionHistory?.RedoCommand, TargetNullValue={x:Static cpc:DisabledCommand.Instance}}"
                   HotKey="{x:Static gsvw:MainView.RedoGesture}" InputGesture="{Binding $self.HotKey, Mode=OneTime}"/>
       </MenuItem>
       <!-- Help menu -->
@@ -91,17 +91,17 @@
                                  BorderThickness="2"
                                  BorderBrush="Red"
                                  Padding="2"
-                                 DataContext="{Binding Session.EditorCollection}"/>
+                                 DataContext="{Binding Session?.EditorCollection}"/>
         <GridSplitter Grid.Column="1" ResizeDirection="Auto"/>
         <Grid Grid.Column="2"
               RowDefinitions="Auto, *">
           <StackPanel Grid.Row="0"
                       Orientation="Horizontal">
             <Button Content="{sd:LocalizeString Previous, Context=Button}"
-                    Command="{Binding Session.PreviousSelectionCommand, FallbackValue={x:Static cpc:DisabledCommand.Instance}}"
+                    Command="{Binding Session?.PreviousSelectionCommand, TargetNullValue={x:Static cpc:DisabledCommand.Instance}}"
                     HotKey="Alt+Left" ToolTip.Tip="{Binding $self.HotKey, Mode=OneTime}"/>
             <Button Content="{sd:LocalizeString Next, Context=Button}"
-                    Command="{Binding Session.NextSelectionCommand, FallbackValue={x:Static cpc:DisabledCommand.Instance}}"
+                    Command="{Binding Session?.NextSelectionCommand, TargetNullValue={x:Static cpc:DisabledCommand.Instance}}"
                     HotKey="Alt+Right" ToolTip.Tip="{Binding $self.HotKey, Mode=OneTime}"/>
           </StackPanel>
           <!-- Property Grid -->
@@ -109,7 +109,7 @@
                                BorderThickness="2"
                                BorderBrush="Orange"
                                Padding="2"
-                               DataContext="{Binding Session.ActiveProperties, FallbackValue={x:Null}}"/>
+                               DataContext="{Binding Session?.ActiveProperties}"/>
         </Grid>
       </Grid>
       <GridSplitter Grid.Row="1" ResizeDirection="Auto"/>
@@ -128,10 +128,10 @@
             <gsvw:AssetExplorerView BorderThickness="2"
                                   BorderBrush="Blue"
                                   Padding="2"
-                                  DataContext="{Binding Session.AssetCollection, FallbackValue={x:Null}}"/>
+                                  DataContext="{Binding Session?.AssetCollection}"/>
           </TabItem>
           <TabItem Header="Asset errors">
-            <sd:TextLogViewer LogMessages="{Binding Session.AssetLog.FilteredMessages, FallbackValue={x:Null}}"
+            <sd:TextLogViewer LogMessages="{Binding Session?.AssetLog.FilteredMessages}"
                               ShowDebugMessages="False" ShowVerboseMessages="False" ShowInfoMessages="False"/>
           </TabItem>
           <TabItem Header="Output">
@@ -147,7 +147,7 @@
                                  Padding="2"/>
           </TabItem>
           <TabItem Header="Edit history">
-            <ListBox ItemsSource="{Binding Session.ActionHistory.Transactions, FallbackValue={x:Null}}"
+            <ListBox ItemsSource="{Binding Session?.ActionHistory?.Transactions}"
                      HorizontalAlignment="Stretch">
               <ListBox.ItemTemplate>
                 <DataTemplate DataType="caect:TransactionViewModel">
@@ -224,8 +224,8 @@
       <TextBlock Grid.Column="2"
                  Margin="8,0"
                  VerticalAlignment="Center">
-        <Run Text="{Binding Session.AssetCollection.SelectedContent.Count, Mode=OneWay, Converter={sd:Localize Text={}{0} item, Plural={}{0} items, IsStringFormat=True, Context=StatusBar}, FallbackValue={x:Null}}"/>
-        <Run Text="{Binding Session.AssetCollection.SelectedContent.Count, Mode=OneWay, Converter={sd:Localize Text=({0} selected), Plural=({0} selected), IsStringFormat=True, Context=StatusBar}, FallbackValue={x:Null}}"/>
+        <Run Text="{Binding Session?.AssetCollection.SelectedContent.Count, Mode=OneWay, Converter={sd:Localize Text={}{0} item, Plural={}{0} items, IsStringFormat=True, Context=StatusBar}}"/>
+        <Run Text="{Binding Session?.AssetCollection.SelectedContent.Count, Mode=OneWay, Converter={sd:Localize Text=({0} selected), Plural=({0} selected), IsStringFormat=True, Context=StatusBar}}"/>
       </TextBlock>
       <Border Grid.Column="3"
               Margin="2"
@@ -235,16 +235,15 @@
                  Margin="8,0"
                  HorizontalAlignment="Right"
                  VerticalAlignment="Center"
-                 Text="{Binding Status.CurrentJob.Message, FallbackValue={x:Null}}"/>
+                 Text="{Binding Status.CurrentJob?.Message}"/>
       <ProgressBar Grid.Column="5"
                    IsVisible="{Binding Status.CurrentJob, Converter={sd:ObjectToBool}}"
                    Margin="0,2"
                    VerticalAlignment="Stretch"
                    HorizontalAlignment="Left"
-                   IsIndeterminate="{Binding Status.CurrentJob.IsIndeterminate, FallbackValue={x:Null}}"
-                   Maximum="{Binding Status.CurrentJob.Total, FallbackValue={x:Null}}"
-                   Value="{Binding Status.CurrentJob.Current, FallbackValue={x:Null}}"/>
+                   IsIndeterminate="{Binding Status.CurrentJob?.IsIndeterminate, TargetNullValue={sd:True}}"
+                   Maximum="{Binding Status.CurrentJob?.Total, TargetNullValue={sd:Double 0}}"
+                   Value="{Binding Status.CurrentJob?.Current, TargetNullValue={sd:Double 0}}"/>
     </Grid>
   </Grid>
-
 </UserControl>
