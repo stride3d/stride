@@ -20,12 +20,10 @@ public ref struct OperandEnumerator
         Decoration? decoration = instruction.OpCode switch
         {
             SDSLOp.OpDecorateString
-            or SDSLOp.OpDecorateStringGOOGLE
             or SDSLOp.OpDecorate
             or SDSLOp.OpDecorateId => (Decoration)instruction.Operands[1],
             SDSLOp.OpMemberDecorate
-            or SDSLOp.OpMemberDecorateString
-            or SDSLOp.OpMemberDecorateStringGOOGLE => (Decoration)instruction.Operands[2],
+            or SDSLOp.OpMemberDecorateString => (Decoration)instruction.Operands[2],
             _ => null
         };
         logicalOperands = InstructionInfo.GetInfo(new(instruction.OpCode, decoration));

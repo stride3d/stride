@@ -21,6 +21,7 @@ public record struct OperandData
     [JsonPropertyName("quantifier")]
     public string? Quantifier { get; set; }
     public string? Class { get; set; }
+    public string? TypeName { get; set; }
 }
 
 public record struct InstructionData
@@ -35,12 +36,13 @@ public record struct InstructionData
     public EquatableArray<OperandData>? Operands { get; set; }
     [JsonPropertyName("version")]
     public string Version { get; set; }
+    public string Documentation { get; set; }
 }
 
-public class SpirvGrammar
+public record struct SpirvGrammar
 {
     [JsonPropertyName("magic_number")]
-    public string MagicNumber { get; set; } = "";
+    public string MagicNumber { get; set; }
     [JsonPropertyName("major_version")]
     public int MajorVersion { get; set; }
     [JsonPropertyName("minor_version")]
@@ -49,8 +51,23 @@ public class SpirvGrammar
     public int Revision { get; set; }
 
     [JsonPropertyName("instructions")]
-    public List<InstructionData> Instructions { get; set; } = [];
+    public EquatableArray<InstructionData>? Instructions { get; set; }
 
     [JsonPropertyName("operand_kinds")]
-    public List<OpKind> OperandKinds { get; set; } = [];
+    public EquatableArray<OpKind>? OperandKinds { get; set; }
+    public string CoreDoc { get; set; }
+    public string GLSLDoc { get; set; }
+
+    public SpirvGrammar()
+    {
+        MagicNumber = "";
+        MajorVersion = 0;
+        MinorVersion = 0;
+        Revision = 0;
+        Instructions = [];
+        OperandKinds = [];
+        CoreDoc = "";
+        GLSLDoc = "";
+    }
+
 }

@@ -7,132 +7,22 @@ using System.Text.Json;
 
 namespace Stride.Shaders.Spirv.Generators;
 
-
-public record struct SpirvInstructionData
-{
-    public string Name { get; }
-    public string OpCode { get; }
-    public string Category { get; }
-    public string Description { get; }
-    public EquatableArray<string> Operands { get; }
-    public EquatableArray<string> Returns { get; }
-
-    public SpirvInstructionData(string name, string opcode, string category, string description, string[] operands, string[] returns)
-    {
-        Name = name;
-        OpCode = opcode;
-        Category = category;
-        Description = description;
-        Operands = new(operands);
-        Returns = new(returns);
-    }
-}
-
-
 public partial class SPVGenerator : IIncrementalGenerator
 {
-    public void GenerateStructs(IncrementalGeneratorInitializationContext context)
+    public void GenerateStructs(IncrementalGeneratorInitializationContext context, IncrementalValueProvider<SpirvGrammar> grammarProvider)
     {
-        IncrementalValuesProvider<InstructionData> instructionsData =
-            context.AdditionalTextsProvider
-            .Where(file => Path.GetFileName(file.Path) == "spirv.core.grammar.json")
-            .Select((file, _) => file.GetText()?.ToString())
-            .Where(text => text is not null)
-            .Select((text, _) =>
-                {
-                    var result = JsonSerializer.Deserialize<SpirvGrammar>(text!, options);
-                    if (result is SpirvGrammar grammar)
-                    {
-                        var list = new List<OperandData>(24);
-                        var dict = grammar.OperandKinds.ToDictionary(x => x.Kind, x => x.Category);
-                        if (grammar.Instructions is List<InstructionData> instructions)
-                        {
-                            for (int i = 0; i < instructions.Count; i++)
-                            {
-                                list.Clear();
-                                if (instructions[i].Operands is EquatableArray<OperandData> operands)
-                                {
-                                    foreach (var op in operands)
-                                        list.Add(op with { Class = dict[op.Kind] });
-                                    instructions[i] = instructions[i] with { Operands = list };
-                                }
-                            }
-                        }
-                    }
-                    return result;
-                })
-            .SelectMany((grammar, _) => grammar!.Instructions ?? [])
-            .Where(instruction => !instruction.OpName.StartsWith("OpCopyMemory"));
+        var sdslInstructionsData =
+            grammarProvider
+            .Select(static (grammar, _) => grammar.Instructions);
 
-        IncrementalValuesProvider<InstructionData> glslInstructionsData =
-            context.AdditionalTextsProvider
-            .Where(file => Path.GetFileName(file.Path) == "extinst.glsl.std.450.grammar.json" )
-            .Select((file, _) => file.GetText()?.ToString())
-            .Where(text => text is not null)
-            .Select((text, _) =>
-                {
-                    var result = JsonSerializer.Deserialize<SpirvGrammar>(text!, options);
-                    if (result is SpirvGrammar grammar)
-                    {
-                        var list = new List<OperandData>(24);
-                        var dict = spirvCore!.OperandKinds.ToDictionary(x => x.Kind, x => x.Category);
-                        if (grammar.Instructions is List<InstructionData> instructions)
-                        {
-                            for (int i = 0; i < instructions.Count; i++)
-                            {
-                                list.Clear();
-                                if (instructions[i].Operands is EquatableArray<OperandData> operands)
-                                {
-                                    foreach (var op in operands)
-                                        list.Add(op with { Class = dict[op.Kind] });
-                                    instructions[i] = instructions[i] with { Operands = list };
-                                }
-                            }
-                        }
-                    }
-                    return result;
-                })
-            .SelectMany((grammar, _) => grammar!.Instructions ?? [])
-            .Where(instruction => !instruction.OpName.StartsWith("OpCopyMemory"));
-
-        IncrementalValuesProvider<InstructionData> sdslInstructionsData =
-            context.AdditionalTextsProvider
-            .Where(file => Path.GetFileName(file.Path) == "spirv.sdsl.grammar-ext.json")
-            .Select((file, _) => file.GetText()?.ToString())
-            .Where(text => text is not null)
-            .Select((text, _) =>
-                {
-                    var result = JsonSerializer.Deserialize<SpirvGrammar>(text!, options);
-                    if (result is SpirvGrammar grammar)
-                    {
-                        var list = new List<OperandData>(24);
-                        var dict = spirvCore!.OperandKinds.ToDictionary(x => x.Kind, x => x.Category);
-                        if (grammar.Instructions is List<InstructionData> instructions)
-                        {
-                            for (int i = 0; i < instructions.Count; i++ )
-                            {
-                                list.Clear();
-                                if (instructions[i].Operands is EquatableArray<OperandData> operands)
-                                {
-                                    foreach (var op in operands)
-                                        list.Add(op with { Class = dict[op.Kind] });
-                                    instructions[i] = instructions[i] with { Operands = list };
-                                }
-                            }
-                        }
-                    }
-                    return result;
-                })
-            .SelectMany((grammar, _) => grammar!.Instructions ?? [])
-            .Where(instruction => !instruction.OpName.StartsWith("OpCopyMemory"));
-
-
-        context.RegisterImplementationSourceOutput(instructionsData,
-            static (spc, source) => Execute(source, spc));
-        context.RegisterImplementationSourceOutput(glslInstructionsData,
-            static (spc, source) => Execute(source, spc));
         context.RegisterImplementationSourceOutput(sdslInstructionsData,
-            static (spc, source) => Execute(source, spc));
+            static (spc, source) =>
+            {
+                foreach (var instruction in source!)
+                    if(!instruction.OpName.Contains("OpCopyMemory"))
+                        Execute(instruction, spc);
+            }
+        );
 
     }
 
