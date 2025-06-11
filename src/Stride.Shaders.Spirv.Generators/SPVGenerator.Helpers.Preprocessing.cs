@@ -76,12 +76,11 @@ public partial class SPVGenerator
             // foreach (var instruction in grammar.Instructions)
             {
                 var instruction = grammar.Instructions.Value.AsArray()![i]!;
-                if(!instruction.OpName.StartsWith("Op"))
-                    instruction.OpName = $"Op{instruction.OpName}";
+                
                 // setup the documentation
                     var cells = instruction.OpName switch
                 {
-                    string v when v.StartsWith("GLSL") => glslDoc.QuerySelectorAll($"p.tableblock:has(strong:contains(\"{instruction.OpName}\"))"),
+                    string v when !v.StartsWith("Op") => glslDoc.QuerySelectorAll($"p.tableblock:has(strong:contains(\"{instruction.OpName.Replace("GLSL", "")}\"))"),
                     string v when v.Contains("SDSL") => null, // SDSL does not have documentation
                     string => coreDoc!.QuerySelectorAll($"p.tableblock:has(#{instruction.OpName})"),
                 };
@@ -101,7 +100,9 @@ public partial class SPVGenerator
                     }
                     instruction.Documentation = builder.ToString();
                 }
-
+                
+                if (!instruction.OpName.StartsWith("Op"))
+                    instruction.OpName = $"GLSL{instruction.OpName}";
 
                 // A reusable buffer
                 var buffer = new List<(string, string)>(24);
