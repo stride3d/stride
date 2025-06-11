@@ -77,42 +77,5 @@ public partial class SPVGenerator
 
         );
 
-        // var code = new StringBuilder();
-        // var nsProvider = context
-        //     .SyntaxProvider
-        //     .CreateSyntaxProvider(
-        //         predicate: (node, _) => node is NamespaceDeclarationSyntax ns && ns.Name.ToString().StartsWith("Spv"),
-        //         transform: (node, _) => (NamespaceDeclarationSyntax)node.Node
-        //     );
-        // context.RegisterImplementationSourceOutput(nsProvider, (ctx, nds) =>
-        // {
-        //     var eds = nds.ChildNodes().OfType<ClassDeclarationSyntax>().First(x => x.Identifier.Text == "Specification").ChildNodes().OfType<EnumDeclarationSyntax>().First(x => x.Identifier.Text == "Op");
-        //     var members = eds.Members.Where(x => x.Identifier.Text != "Max").ToDictionary(x => x.Identifier.Text, y => ParseInteger(y.EqualsValue!.Value.ToString()));
-        //     var lastnum = eds.Members.Where(x => x.Identifier.Text != "Max").Select(x => ParseInteger(x.EqualsValue!.Value.ToString())).Max();
-
-        //     foreach (var e in spirvSDSL!.Instructions.Select(x => x.OpName))
-        //         members.Add(e!, ++lastnum);
-
-        //     code
-        //         .AppendLine("namespace Stride.Shaders.Spirv.Core;")
-        //         .AppendLine("")
-        //         .AppendLine("public enum SDSLOp : int")
-        //         .AppendLine("{");
-        //     foreach (var e in members)
-        //         code.Append(e.Key).Append(" = ").Append(e.Value).AppendLine(",");
-        //     code
-        //         .AppendLine("}");
-
-
-        //     ctx.AddSource("SDSLOp.gen.cs", code.ToSourceText());
-        // });
-
-    }
-    public static int ParseInteger(string text)
-    {
-        if (text.StartsWith("0x"))
-            return int.Parse(text.Substring(2), System.Globalization.NumberStyles.HexNumber);
-        else
-            return int.Parse(text);
     }
 }

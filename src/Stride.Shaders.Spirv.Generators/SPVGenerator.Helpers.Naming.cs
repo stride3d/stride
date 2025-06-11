@@ -22,12 +22,87 @@ public static class ListExtensions
         else
             list.Add(name);
     }
+    public static void AddUnique(this List<(string Name, string Type)> list, string name, string type)
+    {
+        if (list.Any(x => x.Name == name))
+            list.Add(($"{name}{list.Where(x => x.Name.StartsWith(name)).Count()}", type));
+        else
+            list.Add((name, type));
+    }
 }
 
 public partial class SPVGenerator
 {
+    public static string ConvertQuantifier(string quant)
+    {
+        if (quant == "*")
+            return "ZeroOrMore";
+        else if (quant == "?")
+            return "ZeroOrOne";
+        else return "One";
+    }
+    public static string ConvertNameQuantToName(string name, string quant)
+    {
+        return (name, quant) switch
+        {
+            (_, "*") => "values",
+            ("event", _) => "eventId",
+            ("string", _) => "value",
+            ("base", _) => "baseId",
+            ("object", _) => "objectId",
+            ("default", _) => "defaultId",
+            _ => name.Replace("'", "").ToLowerInvariant()
+        };
+    }
+
+    public static void PreProcessOperands(InstructionData op, Dictionary<string, OpKind> operandKinds, List<(string Name, string Type)> parameters)
+    {
+        var opname = op.OpName;
+        if (op.Operands?.AsArray() is OperandData[] operands)
+        {
+            for (int i = 0; i < operands.Length; i++)
+            {
+                var e = operands[i];
+                var kind = e.Kind;
+                var realKind = ConvertKind(kind!, operandKinds);
+                if (e.Quantifier is not null)
+                {
+                    if (e.Name is string name)
+                    {
+                        if (e.Quantifier == "?")
+                            parameters.AddUnique(ConvertOperandName(name), $"{realKind}?");
+                        else if (e.Quantifier == "*")
+                            parameters.AddUnique("values", $"Span<{realKind}>");
+                    }
+                    else
+                    {
+                        if (e.Quantifier == "?")
+                            parameters.AddUnique(ConvertKindToName(kind!), $"{realKind}?");
+                        else if (e.Quantifier == "*")
+                            parameters.AddUnique("values", $"Span<{realKind}>");
+                    }
+                }
+                else
+                {
+                    if (e.Name is not null)
+                        parameters.AddUnique(ConvertOperandName(e.Name), realKind);
+                    else if (kind == "IdResult" && opname == "OpExtInst")
+                        parameters.AddUnique(ConvertKindToName(kind), $"{realKind}?");
+                    else if (kind == "IdResultType" && opname == "OpExtInst")
+                        parameters.AddUnique(ConvertKindToName(kind), $"{realKind}?");
+                    else
+                        parameters.AddUnique(ConvertKindToName(kind!), realKind);
+                }
+                e.TypeName = parameters.Last().Type;
+                e.Name = parameters.Last().Name;
+                e.Class = operandKinds[kind!].Category;
+                operands[i] = e;
+            }
+        }
+    }
 
 
+    // TODO: Include this in the preprocessing of instructions
     public static List<string> ConvertOperandsToParameters(InstructionData op, Dictionary<string, OpKind> operandKinds)
     {
         var opname = op.OpName;
@@ -78,6 +153,7 @@ public partial class SPVGenerator
         return parameters;
     }
 
+    // TODO: Include this in the preprocessing of instructions
     public static List<string> ConvertOperandsToParameterNames(InstructionData op, Dictionary<string, OpKind> operandKinds)
     {
         var opname = op.OpName;
@@ -195,5 +271,6 @@ public partial class SPVGenerator
             (string v, _) => v
         };
     }
+
 }
 

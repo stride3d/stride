@@ -27,70 +27,40 @@ public partial class SPVGenerator
         var infoProvider = grammarProvider
             .Select(static (grammar, _) => grammar.Instructions!.Value);
 
-        context.RegisterImplementationSourceOutput(infoProvider,
-            static (spc, instructions) =>
-            {
-                var code = new StringBuilder();
-                code
-                    .AppendLine("using static Spv.Specification;")
-                    .AppendLine("")
-                    .AppendLine("namespace Stride.Shaders.Spirv.Core;")
-                    .AppendLine("")
-                    .AppendLine("public partial class InstructionInfo")
-                    .AppendLine("{")
-                    .AppendLine("static InstructionInfo()")
-                    .AppendLine("{");
-                foreach (var instruction in instructions)
-                    GenerateInfo(instruction, code);
+        context.RegisterImplementationSourceOutput(
+            infoProvider,
+            GenerateInstructionInformation
+        );
+    }
+    static void GenerateInstructionInformation(SourceProductionContext spc, EquatableArray<InstructionData> instructions)
+    {
+        var code = new StringBuilder();
+        code
+            .AppendLine("using static Spv.Specification;")
+            .AppendLine("")
+            .AppendLine("namespace Stride.Shaders.Spirv.Core;")
+            .AppendLine("")
+            .AppendLine("public partial class InstructionInfo")
+            .AppendLine("{")
+            .AppendLine("static InstructionInfo()")
+            .AppendLine("{");
+        foreach (var instruction in instructions)
+            GenerateInfo(instruction, code);
 
-                code
-                    .AppendLine("Instance.InitOrder();")
-                    .AppendLine("}")
-                    .AppendLine("}");
-                spc.AddSource(
-                    "InstructionInfo.gen.cs",
-                    SourceText.From(
-                        SyntaxFactory
-                        .ParseCompilationUnit(code.ToString())
-                        .NormalizeWhitespace()
-                        .ToFullString(),
-                        Encoding.UTF8
-                    )
-                );
-            })
-        ;
-
-        // var code = new StringBuilder();
-
-        // code
-        // .AppendLine("using static Spv.Specification;")
-        // .AppendLine("")
-        // .AppendLine("namespace Stride.Shaders.Spirv.Core;")
-        // .AppendLine("")
-        // .AppendLine("public partial class InstructionInfo")
-        // .AppendLine("{")
-
-        // .AppendLine("static InstructionInfo()")
-        // .AppendLine("{")
-        // ;
-
-
-        // foreach (var instruction in spirvCore!.Instructions)
-        // {
-        //     GenerateInfo(instruction, code);
-        // }
-        // foreach (var instruction in spirvSDSL!.Instructions)
-        // {
-        //     GenerateInfo(instruction, code);
-        // }
-        // code
-        // .AppendLine("Instance.InitOrder();")
-
-        // .AppendLine("}")
-
-        // .AppendLine("}");
-
-        // context.RegisterPostInitializationOutput(ctx => ctx.AddSource("InstructionInfo.gen.cs", code.ToSourceText()));
+        code
+            .AppendLine("Instance.InitOrder();")
+            .AppendLine("}")
+            .AppendLine("}");
+        spc.AddSource(
+            "InstructionInfo.gen.cs",
+            SourceText.From(
+                SyntaxFactory
+                .ParseCompilationUnit(code.ToString())
+                .NormalizeWhitespace()
+                .ToFullString(),
+                Encoding.UTF8
+            )
+        );
     }
 
     private void GenerateKinds(IncrementalGeneratorInitializationContext context, IncrementalValueProvider<SpirvGrammar> grammarProvider)
