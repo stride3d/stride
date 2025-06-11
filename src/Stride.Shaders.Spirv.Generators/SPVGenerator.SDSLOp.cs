@@ -24,7 +24,11 @@ public partial class SPVGenerator
 
         var instructionsProvider =
             grammarProvider
-            .Select((x, _) => x!.Instructions!.Value);
+            .SelectMany(static (grammar, _) => grammar.Instructions!.Value)
+            .Where(static x => x.OpName is not null && !x.OpName.Contains("GLSL"))
+            .Collect()
+            .Select(static (arr, _) => new EquatableArray<InstructionData>([.. arr]));
+
         context.RegisterImplementationSourceOutput(
             instructionsProvider,
             (ctx, instructionArray) =>
@@ -43,8 +47,6 @@ public partial class SPVGenerator
                     int lastnum = members.Values.Max();
                     foreach (var instruction in instructionArray)
                     {
-                        if (instruction.OpName is null)
-                            continue;
                         if (members.TryGetValue(instruction.OpName, out var value))
                         {
                             if (instruction.OpName.Contains("SDSL") && value <= 0)

@@ -4,6 +4,7 @@
 // </copyright>
 
 using System.Collections;
+using System.Collections.Immutable;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -136,4 +137,5 @@ public readonly struct EquatableArray<T> : IEquatable<EquatableArray<T>>, IEnume
 
     public static implicit operator EquatableArray<T>(T[] arr) => new(arr);
     public static implicit operator EquatableArray<T>(List<T> list) => new([.. list]);
+    public static implicit operator EquatableArray<T>(ImmutableArray<T> list) => new([.. list]);
 }

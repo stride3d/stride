@@ -24,8 +24,12 @@ public partial class SPVGenerator
 
         GenerateKinds(context, grammarProvider);
 
-        var infoProvider = grammarProvider
-            .Select(static (grammar, _) => grammar.Instructions!.Value);
+        IncrementalValueProvider<EquatableArray<InstructionData>> infoProvider =
+            grammarProvider
+            .SelectMany(static (grammar, _) => grammar.Instructions!.Value)
+            .Where(static x => x.OpName is not null && !x.OpName.Contains("GLSL"))
+            .Collect()
+            .Select(static (arr, _) => new EquatableArray<InstructionData>([.. arr]));
 
         context.RegisterImplementationSourceOutput(
             infoProvider,
@@ -109,6 +113,7 @@ public partial class SPVGenerator
 
     public static void GenerateInfo(InstructionData op, StringBuilder code)
     {
+
         var opname = op.OpName;
         var spvClass = op.Class;
         if (opname == "OpExtInst")
