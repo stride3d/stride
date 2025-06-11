@@ -28,7 +28,7 @@ public partial class SPVGenerator
 {
 
 
-    public List<string> ConvertOperandsToParameters(InstructionData op)
+    public static List<string> ConvertOperandsToParameters(InstructionData op, Dictionary<string, OpKind> operandKinds)
     {
         var opname = op.OpName;
         List<string> parameters = [];
@@ -37,7 +37,7 @@ public partial class SPVGenerator
             foreach (var e in operands)
             {
                 var kind = e.Kind;
-                var realKind = ConvertKind(kind!);
+                var realKind = ConvertKind(kind!, operandKinds);
                 if (e.Quantifier is not null)
                 {
                     if (e.Name is string name)
@@ -78,7 +78,7 @@ public partial class SPVGenerator
         return parameters;
     }
 
-    public List<string> ConvertOperandsToParameterNames(InstructionData op)
+    public static List<string> ConvertOperandsToParameterNames(InstructionData op, Dictionary<string, OpKind> operandKinds)
     {
         var opname = op.OpName;
         var operands = op.Operands;
@@ -87,7 +87,7 @@ public partial class SPVGenerator
             foreach (var e in operands)
             {
                 var kind = e.Kind;
-                var realKind = ConvertKind(kind!);
+                var realKind = ConvertKind(kind!, operandKinds);
                 if (e.Quantifier is string quant)
                 {
                     if (e.Name is string name)
@@ -116,7 +116,7 @@ public partial class SPVGenerator
         return parameters;
     }
 
-    public string ConvertKind(string kind)
+    public static string ConvertKind(string kind, Dictionary<string, OpKind> operandKinds)
     {
         var opKind = operandKinds[kind];
 

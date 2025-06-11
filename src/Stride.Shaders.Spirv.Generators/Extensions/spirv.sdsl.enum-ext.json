@@ -1,0 +1,13 @@
+{
+    "extensions": [
+        {
+            "name": "ExecutionModel",
+            "values": [
+                {
+                    "name": "SDSL",
+                    "description": "SDSL execution model"
+                }
+            ]
+        }
+    ]
+}

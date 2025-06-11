@@ -36,13 +36,13 @@ public readonly struct EquatableArray<T> : IEquatable<EquatableArray<T>>, IEnume
     /// <summary>
     /// The underlying <typeparamref name="T"/> array.
     /// </summary>
-    private readonly T[]? _array;
+    private readonly T[]? _array = [];
 
     /// <summary>
     /// Initializes a new instance of the <see cref="EquatableArray{T}"/> struct.
     /// </summary>
     /// <param name="array">The input array to wrap.</param>
-    public EquatableArray(T[] array)
+    public EquatableArray(T[]? array)
     {
         _array = array;
     }
@@ -134,5 +134,6 @@ public readonly struct EquatableArray<T> : IEquatable<EquatableArray<T>>, IEnume
         return ((IEnumerable<T>)(_array ?? [])).GetEnumerator();
     }
 
+    public static implicit operator EquatableArray<T>(T[] arr) => new(arr);
     public static implicit operator EquatableArray<T>(List<T> list) => new([.. list]);
 }

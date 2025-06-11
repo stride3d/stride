@@ -19,7 +19,7 @@
 
 
 	<ItemGroup>
-		<AdditionalFiles Include="Extensions\spirv.sdsl.grammar-ext.json" />
+		<AdditionalFiles Include="..\Stride.Shaders.Spirv.Generators\Extensions\spirv.sdsl.grammar-ext.json" />
 		<AdditionalFiles Include="..\..\submodules\SpirvHeaders\include\spirv\unified1\spirv.core.grammar.json" />
 		<AdditionalFiles Include="..\..\submodules\SpirvHeaders\include\spirv\unified1\extinst.glsl.std.450.grammar.json" />
 		<AdditionalFiles Include="..\..\submodules\SpirvHeaders\include\spirv\unified1\extinst.opencl.std.100.grammar.json" />
