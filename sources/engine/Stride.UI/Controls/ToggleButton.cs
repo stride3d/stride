@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 
 using Stride.Core;
+using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.UI.Attributes;
 using Stride.UI.Events;
@@ -99,6 +100,15 @@ namespace Stride.UI.Controls
                 OnToggleImageInvalidated();
             }
         }
+
+        /// <summary>
+        /// Gets or set the color used to tint the image. Default value is White.
+        /// </summary>
+        /// <remarks>The initial image color is multiplied by this color.</remarks>
+        /// <userdoc>The color used to tint the image. The default value is white.</userdoc>
+        [DataMember]
+        [Display(category: AppearanceCategory)]
+        public Color Color { get; set; } = Color.White;
 
         /// <summary>
         /// Determines whether the control supports two or three states.
