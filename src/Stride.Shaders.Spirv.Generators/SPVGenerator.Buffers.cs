@@ -189,7 +189,7 @@ public partial class SPVGenerator
             // var comment = AddDocComment(cells);
             code.AppendLine(op.Documentation);
             code
-                .Append("public static Instruction AddGLSL")
+                .Append("public static Instruction Add")
                 .Append(opname)
                 .Append("(this SpirvBuffer buffer, IdResultType resultType, int resultId, ")
                 .Append(string.Join(", ", normalParameters))
@@ -207,7 +207,7 @@ public partial class SPVGenerator
 
             code.AppendLine(op.Documentation);
             code
-                .Append("public static Instruction InsertGLSL")
+                .Append("public static Instruction Insert")
                 .Append(opname)
                 .Append("(this SpirvBuffer buffer, int position, IdResultType resultType, int resultId, ")
                 .Append(string.Join(", ", normalParameters))

@@ -1,14 +1,58 @@
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace Stride.Shaders.Spirv.Generators;
 
 
+public class EnumerantValueConverter : JsonConverter<int>
+{
+    public override int Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        if (reader.TokenType == JsonTokenType.Number)
+            return reader.GetInt32();
+        else if (reader.TokenType == JsonTokenType.String)
+        {
+            var value = reader.GetString();
+            if (value != null && value.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
+            {
+                return int.Parse(value.Substring(2), System.Globalization.NumberStyles.HexNumber);
+            }
+            else
+            {
+                return int.Parse(value);
+            }
+        }
+        else throw new Exception($"Unexpected token type {reader.TokenType} for Enumerant value.");
+    }
+
+    public override void Write(Utf8JsonWriter writer, int value, JsonSerializerOptions options)
+    {
+        writer.WriteNumberValue(value);
+    }
+}
+
+
+public record struct Enumerant
+{
+    [JsonPropertyName("enumerant")]
+    public string Name { get; set; }
+    [JsonPropertyName("value")]
+    [JsonConverter(typeof(EnumerantValueConverter))]
+    public int Value { get; set; }
+    [JsonPropertyName("capabilities")]
+    public EquatableArray<string>? Capabilities { get; set; }
+    [JsonPropertyName("version")]
+    public string Version { get; set; }
+}
 public record struct OpKind
 {
     [JsonPropertyName("kind")]
     public string Kind { get; set; }
     [JsonPropertyName("category")]
     public string Category { get; set; }
+
+    [JsonPropertyName("enumerants")]
+    public EquatableArray<Enumerant>? Enumerants { get; set; }
 }
 
 
@@ -38,6 +82,8 @@ public record struct InstructionData
     public string Version { get; set; }
     public string Documentation { get; set; }
 }
+
+public record struct AdditionalEnum(string Original, string New);
 
 public record struct SpirvGrammar
 {
