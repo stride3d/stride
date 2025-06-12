@@ -52,7 +52,7 @@ public ref struct SpirvReader
     }
 
 
-    public readonly RefInstructionEnumerator GetEnumerator() => new(buffer.Span, HasHeader);
+    public readonly InstructionEnumerator GetEnumerator() => new(buffer.Memory, HasHeader);
 
     public readonly int GetInstructionCount()
     {

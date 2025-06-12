@@ -113,7 +113,7 @@ public class SpirvBuffer : IMutSpirvBuffer, IDisposable
     public Instruction Add(Span<int> instruction)
     {
         var result = Insert(Length, instruction);
-        if (RefInstruction.ParseRef(instruction).ResultId is int resultId && resultId >= Header.Bound)
+        if (result.ResultId is int resultId && resultId >= Header.Bound)
             Header = Header with { Bound = resultId + 1 };
         return result;
     }

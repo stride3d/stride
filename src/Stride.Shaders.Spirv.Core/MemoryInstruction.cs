@@ -36,7 +36,6 @@ public record struct Instruction(Memory<int> Memory)
 
     public bool IsEmpty => Words.IsEmpty;
 
-    public readonly RefInstruction AsRef() => RefInstruction.ParseRef(Memory.Span);
     public TWrapper UnsafeAs<TWrapper>()
         where TWrapper : struct, IWrapperInstruction, allows ref struct
     {

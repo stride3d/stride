@@ -95,20 +95,11 @@ public partial class InstructionInfo
     /// </summary>
     /// <param name="instruction"></param>
     /// <returns></returns>
-    public static int GetGroupOrder(RefInstruction instruction)
-    {
-        return GetGroupOrder(instruction.OpCode, instruction.OpCode == SDSLOp.OpVariable ? (StorageClass)instruction.Words[3] : null);
-    }
-    
-    /// <summary>
-    /// Gets the order group for a given instruction, useful for sorting instructions according to the specification.
-    /// </summary>
-    /// <param name="instruction"></param>
-    /// <returns></returns>
     public static int GetGroupOrder(Instruction instruction)
     {
         return GetGroupOrder(instruction.OpCode, instruction.OpCode == SDSLOp.OpVariable ? (StorageClass)instruction.Words[3] : null);
     }
+    
     /// <summary>
     /// Gets the order group for a given instruction and Storage class, useful for sorting instructions according to the specification.
     /// </summary>
