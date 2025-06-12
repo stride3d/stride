@@ -15,8 +15,7 @@ public ref struct RefMutableFunctionInstructionEnumerator
     public readonly RefInstruction Current => 
         RefInstruction.ParseRef(
             buffer.Span.Slice(wordIndex, buffer.Span[wordIndex] >> 16), 
-            wordIndex,
-            index
+            wordIndex
         );
 
     public RefMutableFunctionInstructionEnumerator(SpirvBuffer buffer, int methodStart)

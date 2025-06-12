@@ -9,25 +9,21 @@ namespace Stride.Shaders.Spirv.Core;
 /// </summary>
 /// <param name="Buffer"></param>
 /// <param name="Words"></param>
-/// <param name="Index"></param>
-/// <param name="WordIndex"></param>
-public record struct Instruction(ISpirvBuffer Buffer, Memory<int> Words, int Index, int WordIndex)
+public record struct Instruction(ISpirvBuffer Buffer, Memory<int> Words)
 {
-    public static Instruction Empty { get; } = new(null!, Memory<int>.Empty, 0, 0);
+    public static Instruction Empty { get; } = new(null!, Memory<int>.Empty);
 
     public static implicit operator IdRef(Instruction i) => new(i.ResultId ?? throw new Exception("Instruction has no result id"));
     public static implicit operator IdResultType(Instruction i) => new(i.ResultId ?? throw new Exception("Instruction has no result id"));
 
 
-    public Instruction(ISpirvBuffer buffer, int index) : this(buffer, Memory<int>.Empty, index, 0)
+    public Instruction(ISpirvBuffer buffer, int index) : this(buffer, Memory<int>.Empty)
     {
         Buffer = buffer;
-        Index = index;
         var wid = 0;
         for (int i = 0; i < index; i += 1)
             wid += buffer.InstructionSpan[wid] >> 16;
         Words = buffer.InstructionMemory.Slice(wid, buffer.InstructionSpan[wid] >> 16);
-        WordIndex = wid;
     }
 
     public SDSLOp OpCode => AsRef().OpCode;

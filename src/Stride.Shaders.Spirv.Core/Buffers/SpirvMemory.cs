@@ -23,7 +23,7 @@ public readonly struct SpirvMemory(Memory<int> memory) : ISpirvBuffer
                 wid += Span[wid] >> 16;
                 id++;
             }
-            return new Instruction(this, Memory.Slice(wid, Span[wid] >> 16), index, wid);
+            return new Instruction(this, Memory.Slice(wid, Span[wid] >> 16));
         }
     }
     public readonly Span<int> Span => Memory.Span;

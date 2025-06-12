@@ -13,8 +13,7 @@ public ref struct RefInstructionEnumerator
     public readonly RefInstruction Current => 
         RefInstruction.ParseRef(
             words.Slice(wordIndex, words[wordIndex] >> 16), 
-            wordIndex + (hasHeader ? 5 : 0), 
-            index
+            wordIndex + (hasHeader ? 5 : 0)
         );
 
     public RefInstructionEnumerator(Span<int> words, bool hasHeader)

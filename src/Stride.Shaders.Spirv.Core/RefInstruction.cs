@@ -33,7 +33,6 @@ public ref struct RefInstruction
     public int? ResultType { get => GetResultType(); set => SetResultType(value); }
     public Span<int> Operands { get; init; }
     public Memory<int>? Slice { get; init; }
-    public int InstructionIndex { get; set; }
     public int WordIndex { get; set; }
     public Span<int> Words { get; init; }
 
@@ -104,14 +103,13 @@ public ref struct RefInstruction
         return false;
     }
 
-    public static RefInstruction Parse(Memory<int> owner, int ownerIndex, int index)
+    public static RefInstruction Parse(Memory<int> owner, int ownerIndex)
     {
         var words = owner.Span.Slice(ownerIndex, owner.Span[ownerIndex] >> 16);
         return new RefInstruction()
         {
             Operands = words[1..],
             WordIndex = ownerIndex,
-            InstructionIndex = index,
             Slice = owner,
             Words = words
         };
@@ -124,13 +122,12 @@ public ref struct RefInstruction
     //         Words = words,
     //     };
     // }
-    public static RefInstruction ParseRef(Span<int> words, int? wordIndex = null, int? index = null)
+    public static RefInstruction ParseRef(Span<int> words, int? wordIndex = null)
     {
         return new RefInstruction()
         {
             Words = words,
             WordIndex = wordIndex ?? -1,
-            InstructionIndex = index ?? -1,
             Operands = words[1..]
         };
     }
@@ -184,8 +181,7 @@ public ref struct RefInstruction
 
     public readonly Instruction ToOwned(SpirvBuffer buffer)
     {
-        if (InstructionIndex == -1) throw new Exception("Instruction not found");
-        return new(buffer, buffer.Memory[WordIndex..(WordIndex + WordCount)], InstructionIndex, WordIndex);
+        return new(buffer, buffer.Memory[WordIndex..(WordIndex + WordCount)]);
     }
 
     public override string ToString()

@@ -53,7 +53,7 @@ public class SpirvBuffer : IMutSpirvBuffer, IDisposable
                 wid += Span[wid] >> 16;
                 id++;
             }
-            return new Instruction(this, Memory.Slice(wid, Span[wid] >> 16), index, wid);
+            return new Instruction(this, Memory.Slice(wid, Span[wid] >> 16));
         }
     }
 
@@ -138,7 +138,7 @@ public class SpirvBuffer : IMutSpirvBuffer, IDisposable
             words.CopyTo(_owner.Span.Slice(start, words.Length));
         }
         Length += words.Length;
-        return new(this, Memory[start..(start + words.Length)], InstructionCount - 1, Length - words.Length);
+        return new(this, Memory[start..(start + words.Length)]);
     }
 
     void Expand(int size)
