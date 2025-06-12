@@ -73,11 +73,11 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
 
     public ICommandBase OpenCommand { get; }
 
+    public ICommandBase OpenDebugWindowCommand { get; }
+
     public ICommandBase OpenWebPageCommand { get; }
 
     private EditorDialogService DialogService => ServiceProvider.Get<EditorDialogService>();
-
-    public ICommandBase OpenDebugWindowCommand { get; }
 
     public async Task<bool?> OpenSession(UFile? filePath, CancellationToken token = default)
     {
@@ -143,6 +143,11 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
         await OpenSession(initialPath);
     }
 
+    private async Task OnOpenDebugWindow()
+    {
+        await DialogService.ShowDebugWindowAsync();
+    }
+
     private async Task OnOpenWebPage(string url)
     {
         try
@@ -155,10 +160,5 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
             var message = $"{Tr._p("Message", "An error occurred while opening the file.")}{ex.FormatSummary(true)}";
             await ServiceProvider.Get<IDialogService>().MessageBoxAsync(message, MessageBoxButton.OK, MessageBoxImage.Error);
         }
-    }
-
-    private async Task OnOpenDebugWindow()
-    {
-        await DialogService.ShowDebugWindowAsync();
     }
 }

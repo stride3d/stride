@@ -24,7 +24,7 @@ internal class EditorDialogService : DialogService, IEditorDialogService
 
     public async Task ShowAboutWindowAsync()
     {
-        if (MainWindow == null) return;
+        if (MainWindow is null) return;
 
         await Dispatcher.InvokeTask(async () =>
         {
@@ -36,9 +36,12 @@ internal class EditorDialogService : DialogService, IEditorDialogService
     {
         await Dispatcher.InvokeAsync(() =>
         {
-            if (debugWindow == null)
+            if (debugWindow is null)
             {
-                debugWindow = new DebugWindow(new DebugWindowViewModel(serviceProvider));
+                debugWindow = new DebugWindow
+                {
+                    ViewModel = new DebugWindowViewModel(serviceProvider)
+                };
                 debugWindow.Show();
                 debugWindow.Closed += (_, _) => debugWindow = null;
             }
@@ -63,15 +66,15 @@ internal class EditorDialogService : DialogService, IEditorDialogService
                 {
                     DataContext = workProgress
                 };
-                workProgress.WorkFinished += (s, e) =>
+                workProgress.WorkFinished += (_, _) =>
                 {
                     if (!workProgress.ShouldStayOpen()) progressWindow.Close();
                 };
-                progressWindow.Closing += (s, e) =>
+                progressWindow.Closing += (_, e) =>
                 {
                     if (!workProgress.WorkDone) e.Cancel = true;
                 };
-                progressWindow.Closed += (s, e) =>
+                progressWindow.Closed += (_, _) =>
                 {
                     workProgress.NotifyWindowClosed();
                 };

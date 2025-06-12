@@ -3,6 +3,7 @@
 
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Interactivity;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModels;
 
@@ -10,17 +11,21 @@ namespace Stride.GameStudio.Avalonia.Views;
 
 internal sealed partial class DebugWindow : Window
 {
-    private readonly DebugWindowViewModel viewModel;
+    private readonly DebugWindowViewModel viewModel = null!;
 
-    public DebugWindow(DebugWindowViewModel viewModel)
+    public DebugWindow()
     {
-        DataContext = this.viewModel = viewModel;
         InitializeComponent();
     }
 
-    protected override void OnInitialized()
+    public required DebugWindowViewModel ViewModel
     {
-        base.OnInitialized();
+        init => DataContext = viewModel = value;
+    }
+
+    protected override void OnLoaded(RoutedEventArgs e)
+    {
+        base.OnLoaded(e);
         EditorDebugService.RegisterDebugWindow(viewModel);
     }
 
