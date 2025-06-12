@@ -61,5 +61,5 @@ public interface ISpirvBuffer
     /// Gets Instruction enumerator
     /// </summary>
     /// <returns>Instruction enumerator</returns>
-    public RefInstructionEnumerator GetEnumerator();
+    public InstructionEnumerator GetEnumerator();
 }

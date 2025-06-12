@@ -8,12 +8,6 @@ using static Spv.Specification;
 
 namespace Stride.Shaders.Spirv.Core;
 
-public interface IWrapperInstruction
-{
-    RefInstruction Inner { get; set; }
-}
-
-
 /// <summary>
 /// A ref struct representation of an instruction in a buffer.
 /// </summary>
@@ -40,7 +34,7 @@ public ref struct RefInstruction
 
 
 
-    public OperandEnumerator GetEnumerator() => new(this);
+    public RefOperandEnumerator GetEnumerator() => new(this);
 
 
     public T? GetOperand<T>(string name)
@@ -191,14 +185,5 @@ public ref struct RefInstruction
             builder.Append(o.ToString()).Append(' ');
         }
         return builder.ToString();
-    }
-
-    public TWrapper UnsafeAs<TWrapper>()
-        where TWrapper : struct, IWrapperInstruction, allows ref struct
-    {
-        return new TWrapper()
-        {
-            Inner = this
-        };
     }
 }

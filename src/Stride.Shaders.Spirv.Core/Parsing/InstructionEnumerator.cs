@@ -6,12 +6,11 @@ namespace Stride.Shaders.Spirv.Core.Parsing;
 /// <summary>
 /// A simple SPIR-V instruction enumerator without sorting
 /// </summary>
-public ref struct InstructionEnumerator(ISpirvBuffer buffer)
+public ref struct InstructionEnumerator(Memory<int> InstructionMemory, bool HasHeader)
 {
     int wordIndex = 0;
     int index;
     bool started = false;
-    readonly ISpirvBuffer buffer = buffer;
 
     public int ResultIdReplacement { get; set; } = 0;
 
@@ -26,12 +25,12 @@ public ref struct InstructionEnumerator(ISpirvBuffer buffer)
         }
         else
         {
-            if (wordIndex >= buffer.InstructionSpan.Length)
+            if (wordIndex >= InstructionMemory.Span.Length)
                 return false;
-            var sizeToStep = buffer.InstructionSpan[wordIndex] >> 16;
+            var sizeToStep = InstructionMemory.Span[wordIndex] >> 16;
             wordIndex += sizeToStep;
             index += 1;
-            if (wordIndex >= buffer.InstructionSpan.Length)
+            if (wordIndex >= InstructionMemory.Span.Length)
                 return false;
             return true;
         }
@@ -41,7 +40,7 @@ public ref struct InstructionEnumerator(ISpirvBuffer buffer)
 
     public readonly Instruction ParseCurrentInstruction()
     {
-        var count = buffer.InstructionSpan[wordIndex] >> 16;
-        return new Instruction(buffer.InstructionMemory[wordIndex..(wordIndex + count)]);
+        var count = InstructionMemory.Span[wordIndex] >> 16;
+        return new Instruction(InstructionMemory[wordIndex..(wordIndex + count)]);
     }
 }

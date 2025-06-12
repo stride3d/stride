@@ -5,16 +5,16 @@ namespace Stride.Shaders.Spirv.Core.Parsing;
 /// <summary>
 /// An instruction operands enumerator, useful for parsing instructions
 /// </summary>
-public ref struct OperandEnumerator
+public ref struct RefOperandEnumerator
 {
     static OperandKind[] pairs { get; } = Enum.GetValues<OperandKind>().Where(x => x.ToString().StartsWith("Pair")).ToArray();
-    Instruction instruction;
+    RefInstruction instruction;
     Span<int> operands => instruction.Operands;
     readonly LogicalOperandArray logicalOperands;
     int wid;
     int oid;
 
-    public OperandEnumerator(Instruction instruction)
+    public RefOperandEnumerator(RefInstruction instruction)
     {
         this.instruction = instruction;
         Decoration? decoration = instruction.OpCode switch

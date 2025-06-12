@@ -41,5 +41,5 @@ public readonly ref struct SpirvSpan(Span<int> words) : ISpirvBuffer
 
     public readonly SpirvSpan AsSpan() => this;
 
-    public RefInstructionEnumerator GetEnumerator() => new(Span, HasHeader);
+    public InstructionEnumerator GetEnumerator() => new(InstructionMemory, HasHeader);
 }

@@ -108,7 +108,7 @@ public partial struct SpirvDis<TBuffer>
     }
 
     // TODO :  add other names
-    public readonly void CheckNameTable(RefInstruction instruction)
+    public readonly void CheckNameTable(Instruction instruction)
     {
         if (
             UseNames

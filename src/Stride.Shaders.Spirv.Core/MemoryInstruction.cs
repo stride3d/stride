@@ -1,4 +1,5 @@
-﻿using Stride.Shaders.Spirv.Core.Buffers;
+﻿using System.Runtime.CompilerServices;
+using Stride.Shaders.Spirv.Core.Buffers;
 using Stride.Shaders.Spirv.Core.Parsing;
 
 
@@ -25,30 +26,136 @@ public record struct Instruction(Memory<int> Memory)
         Memory = buffer.InstructionMemory.Slice(wid, buffer.InstructionSpan[wid] >> 16);
     }
 
-    public SDSLOp OpCode => AsRef().OpCode;
-    public readonly int? ResultId { get => AsRef().ResultId; set => AsRef().SetResultId(value); }
-    public readonly int? ResultType { get => AsRef().ResultType; set => AsRef().SetResultType(value); }
+    public readonly SDSLOp OpCode => (SDSLOp)(Words[0] & 0xFFFF);
+    public int? ResultId { get => GetResultId(); set => SetResultId(value); }
+    public int? ResultType { get => GetResultType(); set => SetResultType(value); }
     public readonly int WordCount => Words.Length;
-    public readonly Memory<int> Operands => Memory[1..];
+    public readonly Span<int> Operands => Memory[1..].Span;
 
     public readonly Span<int> Words => Memory.Span;
 
     public bool IsEmpty => Words.IsEmpty;
 
     public readonly RefInstruction AsRef() => RefInstruction.ParseRef(Memory.Span);
-    public readonly TWrapper UnsafeAs<TWrapper>() where TWrapper : struct, IWrapperInstruction, allows ref struct
-        => RefInstruction.ParseRef(Memory.Span).UnsafeAs<TWrapper>();
+    public TWrapper UnsafeAs<TWrapper>()
+        where TWrapper : struct, IWrapperInstruction, allows ref struct
+    {
+        return new TWrapper()
+        {
+            Inner = this
+        };
+    }
 
-    public readonly T? GetOperand<T>(string name) where T : struct, IFromSpirv<T>
-        => AsRef().GetOperand<T>(name);
+    public T? GetOperand<T>(string name)
+        where T : struct, IFromSpirv<T>
+    {
+        var info = InstructionInfo.GetInfo(OpCode);
+        var infoEnumerator = info.GetEnumerator();
+        var operandEnumerator = GetEnumerator();
+        while (infoEnumerator.MoveNext())
+        {
+            if (operandEnumerator.MoveNext())
+            {
+                if (infoEnumerator.Current.Name == name)
+                {
+                    return operandEnumerator.Current.To<T>();
+                }
+            }
+        }
+        return null;
+    }
 
-    public readonly bool TryGetOperand<T>(string name, out T? operand) where T : struct, IFromSpirv<T>
-        => AsRef().TryGetOperand(name, out operand);
+    internal T? GetEnumOperand<T>(string name)
+        where T : Enum
+    {
+        var info = InstructionInfo.GetInfo(OpCode);
+        var infoEnumerator = info.GetEnumerator();
+        var operandEnumerator = GetEnumerator();
+        while (infoEnumerator.MoveNext())
+        {
+            if (operandEnumerator.MoveNext())
+            {
+                if (infoEnumerator.Current.Name == name)
+                {
+                    var curr = operandEnumerator.Current;
+                    return Unsafe.As<int, T>(ref curr.Words[0]);
+                }
+            }
+        }
+        return default;
+    }
 
-    public readonly OperandEnumerator GetEnumerator() => AsRef().GetEnumerator();
+    public readonly OperandEnumerator GetEnumerator() => new(this);
 
     public override string ToString()
     {
         return (ResultId == null ? "" : $"%{ResultId} = ") + $"{OpCode} {string.Join(" ", Operands.ToArray().Select(x => x.ToString()))}";
+    }
+
+        public int? GetResultId()
+    {
+        TryGetOperand<IdResult>("resultId", out var resultId);
+        return resultId;
+    }
+
+    public void SetResultId(int? value)
+    {
+        foreach (var o in this)
+            if (o.Kind == OperandKind.IdResult)
+                o.Words[0] = value ?? -1;
+    }
+    public int? GetResultType()
+    {
+        TryGetOperand<IdResult>("resultType", out var resultId);
+        return resultId;
+    }
+    public void SetResultType(int? value)
+    {
+        foreach (var o in this)
+            if (o.Kind == OperandKind.IdResultType)
+                o.Words[0] = value ?? -1;
+    }
+
+    public bool TryGetOperand<T>(string name, out T? operand)
+        where T : struct, IFromSpirv<T>
+    {
+        var info = InstructionInfo.GetInfo(OpCode);
+        var infoEnumerator = info.GetEnumerator();
+        var operandEnumerator = GetEnumerator();
+        while (infoEnumerator.MoveNext())
+        {
+            if (operandEnumerator.MoveNext())
+            {
+                if (infoEnumerator.Current.Name == name)
+                {
+                    operand = operandEnumerator.Current.To<T>();
+                    return true;
+                }
+            }
+        }
+        operand = null;
+        return false;
+    }
+
+    public void OffsetIds(int offset)
+    {
+        foreach (var o in this)
+        {
+            if (o.Kind == OperandKind.IdRef)
+                o.Words[0] += offset;
+            else if (o.Kind == OperandKind.IdResult)
+                o.Words[0] += offset;
+            else if (o.Kind == OperandKind.IdResultType)
+                o.Words[0] += offset;
+            else if (o.Kind == OperandKind.PairIdRefLiteralInteger)
+                o.Words[0] += offset;
+            else if (o.Kind == OperandKind.PairLiteralIntegerIdRef)
+                o.Words[1] += offset;
+            else if (o.Kind == OperandKind.PairIdRefIdRef)
+            {
+                o.Words[0] += offset;
+                o.Words[1] += offset;
+            }
+        }
     }
 }

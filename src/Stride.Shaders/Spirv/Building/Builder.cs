@@ -2,6 +2,7 @@ using Stride.Shaders.Core;
 using Stride.Shaders.Spirv.Core;
 using Stride.Shaders.Spirv.Core.Buffers;
 using Stride.Shaders.Spirv.Tools;
+using System;
 
 namespace Stride.Shaders.Spirv.Building;
 
@@ -31,6 +32,7 @@ public partial class SpirvBuilder() : IDisposable
             (int)SDSLOp.OpUnreachable,
             (int)SDSLOp.OpTerminateInvocation
         ];
+        var wid = 0;
         foreach (var e in Buffer)
         {
             if (e.ResultId is int id && id == block.Id)
@@ -39,20 +41,22 @@ public partial class SpirvBuilder() : IDisposable
                 // In case we want to top at the beginning of the block
                 if(beggining)
                 {
-                    Position = e.WordIndex + e.WordCount;
+                    Position = wid + e.WordCount;
                     return;
                 }
             }
             if (block is SpirvBlock && blockFound && blockTermination.Contains((int)e.OpCode))
             {
-                Position = e.WordIndex;
+                Position = wid;
                 return;
             }
             else if (block is SpirvFunction && blockFound && e.OpCode == SDSLOp.OpFunctionEnd)
             {
-                Position = e.WordIndex;
+                Position = wid;
                 return;
             }
+
+            wid += e.WordCount;
         }
         Position = Buffer.Length;
     }

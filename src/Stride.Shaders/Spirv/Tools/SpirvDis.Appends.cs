@@ -120,7 +120,7 @@ public partial struct SpirvDis<TBuffer>
     }
     public readonly void AppendLine() => writer.AppendLine();
 
-    public readonly void Append(in SpvOperand o, in RefInstruction instruction)
+    public readonly void Append(in SpvOperand o, in Instruction instruction)
     {
         if (o.Kind == OperandKind.IdRef)
             foreach (var e in o.Words)

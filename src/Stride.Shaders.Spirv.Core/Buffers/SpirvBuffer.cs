@@ -31,7 +31,7 @@ public class SpirvBuffer : IMutSpirvBuffer, IDisposable
 
     public int InstructionCount => new SpirvReader(Memory).Count;
 
-    public RefInstruction FindInstructionByResultId(int resultId)
+    public Instruction FindInstructionByResultId(int resultId)
     {
         foreach (var instruction in this)
         {
@@ -91,7 +91,7 @@ public class SpirvBuffer : IMutSpirvBuffer, IDisposable
     }
 
 
-    public RefInstructionEnumerator GetEnumerator() => new(InstructionSpan, HasHeader);
+    public InstructionEnumerator GetEnumerator() => new(InstructionMemory, HasHeader);
 
     public void Sort()
     {

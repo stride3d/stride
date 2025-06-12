@@ -53,5 +53,5 @@ public readonly struct SpirvMemory(Memory<int> memory) : ISpirvBuffer
 
     public readonly SpirvSpan AsSpan() => new(Span);
 
-    public RefInstructionEnumerator GetEnumerator() => new(InstructionSpan, HasHeader);
+    public InstructionEnumerator GetEnumerator() => new(InstructionMemory, HasHeader);
 }

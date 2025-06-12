@@ -6,19 +6,15 @@ namespace Stride.Shaders.Spirv.Core.Parsing;
 /// <summary>
 /// Instruction enumerator returning RefInstruction
 /// </summary>
-public ref struct RefMutableFunctionInstructionEnumerator
+public ref struct MutableFunctionInstructionEnumerator
 {
     int wordIndex;
     int index;
     readonly SpirvBuffer buffer;
 
-    public readonly RefInstruction Current => 
-        RefInstruction.ParseRef(
-            buffer.Span.Slice(wordIndex, buffer.Span[wordIndex] >> 16), 
-            wordIndex
-        );
+    public Instruction Current => ParseCurrentInstruction();
 
-    public RefMutableFunctionInstructionEnumerator(SpirvBuffer buffer, int methodStart)
+    public MutableFunctionInstructionEnumerator(SpirvBuffer buffer, int methodStart)
     {
         wordIndex = methodStart;
         index = -1;
@@ -42,5 +38,11 @@ public ref struct RefMutableFunctionInstructionEnumerator
             index += 1;
             return true;
         }
+    }
+
+    public readonly Instruction ParseCurrentInstruction()
+    {
+        var count = buffer.InstructionMemory.Span[wordIndex] >> 16;
+        return new Instruction(buffer.InstructionMemory[wordIndex..(wordIndex + count)]);
     }
 }
