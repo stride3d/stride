@@ -308,9 +308,15 @@ namespace Stride.Graphics
                 depthClamp = true,
             };
 
-            if (graphicsProfiles.Any(x => x >= GraphicsProfile.Level_11_0))
+            vkGetPhysicalDeviceFeatures(NativePhysicalDevice, out var deviceFeatures);
+
+            if (deviceFeatures.shaderStorageImageReadWithoutFormat)
             {
                 enabledFeature.shaderStorageImageReadWithoutFormat = true;
+            }
+
+            if (deviceFeatures.shaderStorageImageWriteWithoutFormat)
+            {
                 enabledFeature.shaderStorageImageWriteWithoutFormat = true;
             }
 
