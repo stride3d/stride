@@ -25,7 +25,7 @@ public ref struct OrderedEnumerator(ISpirvBuffer buffer)
     readonly ISpirvBuffer wbuff = buffer;
     readonly Span<int> InstructionWords => wbuff.InstructionSpan;
 
-    public readonly Instruction Current => new(wbuff, wbuff.InstructionMemory.Slice(wordIndex, wbuff.InstructionSpan[wordIndex] >> 16));
+    public readonly Instruction Current => new(wbuff.InstructionMemory.Slice(wordIndex, wbuff.InstructionSpan[wordIndex] >> 16));
 
     public bool MoveNext()
     {

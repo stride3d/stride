@@ -107,7 +107,7 @@ public partial class InstructionInfo
     /// <returns></returns>
     public static int GetGroupOrder(Instruction instruction)
     {
-        return GetGroupOrder(instruction.OpCode, instruction.OpCode == SDSLOp.OpVariable ? (StorageClass)instruction.Words.Span[3] : null);
+        return GetGroupOrder(instruction.OpCode, instruction.OpCode == SDSLOp.OpVariable ? (StorageClass)instruction.Words[3] : null);
     }
     /// <summary>
     /// Gets the order group for a given instruction and Storage class, useful for sorting instructions according to the specification.

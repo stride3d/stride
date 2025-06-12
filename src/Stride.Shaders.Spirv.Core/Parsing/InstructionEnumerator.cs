@@ -42,6 +42,6 @@ public ref struct InstructionEnumerator(ISpirvBuffer buffer)
     public readonly Instruction ParseCurrentInstruction()
     {
         var count = buffer.InstructionSpan[wordIndex] >> 16;
-        return new Instruction(buffer, buffer.InstructionMemory[wordIndex..(wordIndex + count)]);
+        return new Instruction(buffer.InstructionMemory[wordIndex..(wordIndex + count)]);
     }
 }

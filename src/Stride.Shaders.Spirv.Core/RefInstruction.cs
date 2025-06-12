@@ -32,7 +32,6 @@ public ref struct RefInstruction
     public int? ResultId { get => GetResultId(); set => SetResultId(value); }
     public int? ResultType { get => GetResultType(); set => SetResultType(value); }
     public Span<int> Operands { get; init; }
-    public Memory<int>? Slice { get; init; }
     public int WordIndex { get; set; }
     public Span<int> Words { get; init; }
 
@@ -110,7 +109,6 @@ public ref struct RefInstruction
         {
             Operands = words[1..],
             WordIndex = ownerIndex,
-            Slice = owner,
             Words = words
         };
     }
@@ -181,7 +179,7 @@ public ref struct RefInstruction
 
     public readonly Instruction ToOwned(SpirvBuffer buffer)
     {
-        return new(buffer, buffer.Memory[WordIndex..(WordIndex + WordCount)]);
+        return new(buffer.Memory[WordIndex..(WordIndex + WordCount)]);
     }
 
     public override string ToString()
