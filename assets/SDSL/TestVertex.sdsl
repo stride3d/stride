@@ -2,10 +2,19 @@ namespace Stride.Shaders.Tests;
 
 shader TestVertex
 {
-    stream float4 Position : SV_POSITION;
+    float4 Pos2;
+    //stream float4 Position : SV_POSITION;
+    //stream float4 Test : INPUT1;
+    stream float4 ColorTarget : SV_Target0;
 
     void VSMain()
     {
-        streams.Position *= float4(1,1,1,0.5f);
+        Pos2 = Pos2;
+        streams.Position = streams.Test;
+    }
+
+    void PSMain()
+    {
+        streams.ColorTarget = float4(1.0, 1.0, 1.0, 1.0);
     }
 }

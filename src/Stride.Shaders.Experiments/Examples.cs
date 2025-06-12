@@ -10,9 +10,12 @@ using Stride.Shaders.Parsing.SDSL.AST;
 using Stride.Shaders.Spirv.Building;
 using Stride.Shaders.Spirv.Core.Buffers;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
+using Stride.Shaders.Spirv.Core;
 using Stride.Shaders.Spirv.Processing;
+using Stride.Shaders.Spirv.Tools;
 
 namespace Stride.Shaders.Experiments;
 
@@ -249,18 +252,114 @@ public static partial class Examples
 
     }
 
+    public abstract class ShaderSource
+    {
+    }
+
+    public struct ShaderMacro
+    {
+        public string Name;
+        public string Definition;
+    }
+
+    public class ShaderMixinSource : ShaderSource
+    {
+        public List<ShaderClassCode> Mixins { get; } = [];
+
+        public SortedList<string, ShaderSource> Compositions { get; } = [];
+
+        public List<ShaderMacro> Macros { get; } = [];
+    }
+
+    public sealed class ShaderClassCode(string className) : ShaderSource
+    {
+        public string ClassName { get; } = className;
+    }
+
+    static Dictionary<string, SpirvBuffer> loadedShaders = new();
+
+    static SpirvBuffer GetOrLoadShader(string name)
+    {
+        if (loadedShaders.TryGetValue(name, out var buffer))
+            return buffer;
+
+        new ShaderLoader().LoadExternalReference(name, out var bytecode);
+        buffer = new SpirvBuffer(MemoryMarshal.Cast<byte, int>(bytecode));
+
+        loadedShaders.Add(name, buffer);
+
+        return buffer;
+    }
+
     public static void MergeSDSL()
     {
         CompileSDSL();
 
-        new ShaderLoader().LoadExternalReference("TestBasic", out var bytecode);
-        var buffer = new SpirvBuffer(MemoryMarshal.Cast<byte, int>(bytecode));
+        var shaderMixin = new ShaderMixinSource { Mixins = { new ShaderClassCode("TestBasic") } };
 
+        var buffer = GetOrLoadShader("TestBasic");
+
+        // Step: expand "for"
+        // TODO
+
+        // Step: build mixins: top level and (TODO) compose
+        var inheritanceList = new List<string>();
+        BuildInheritanceList(buffer, inheritanceList);
+        inheritanceList.Add("TestBasic");
+
+        var temp = new SpirvBuffer();
+        var offset = 0;
+        var nextOffset = 0;
+        foreach (var shaderName in inheritanceList)
+        {
+            var shader = GetOrLoadShader(shaderName);
+            offset += nextOffset;
+            foreach (var i in shader)
+            {
+                temp.Add(i.Words);
+
+                if (i.ResultId != null)
+                    nextOffset = i.ResultId.Value;
+                i.OffsetIds(offset);
+            }
+        }
+
+        var dis = new SpirvDis<SpirvBuffer>(temp, true);
+        dis.Disassemble(true);
+
+        // Step: merge mixins
+        //       start from most-derived class and import on demand
+        // Step: analyze streams and generate in/out variables
 
         //var context = compiler.Context;
         //context.Buffer.AddOpCapability(Spv.Specification.Capability.Shader);
         //context.Buffer.AddOpMemoryModel(Spv.Specification.AddressingModel.Logical, Spv.Specification.MemoryModel.GLSL450);
         //new StreamAnalyzer().Process(table, compiler);
+    }
+
+    private static void BuildInheritanceList(SpirvBuffer buffer, List<string> inheritanceList)
+    {
+        // Build shader name mapping
+        var shaderMapping = new Dictionary<int, string>();
+        foreach (var i in buffer)
+        {
+            if (i.OpCode == SDSLOp.OpSDSLImportShader)
+            {
+                shaderMapping[i.ResultId!.Value] = i.GetOperand<LiteralString>("shaderName")!.Value.Value;
+            }
+        }
+
+        // Check inheritance
+        foreach (var i in buffer)
+        {
+            if (i.OpCode == SDSLOp.OpSDSLMixinInherit)
+            {
+                var shaderName = shaderMapping[i.Words[1]];
+                var shader = GetOrLoadShader(shaderName);
+                BuildInheritanceList(shader, inheritanceList);
+                inheritanceList.Add(shaderName);
+            }
+        }
     }
 }
 

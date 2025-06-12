@@ -5,7 +5,7 @@ shader GenericClass<
     SamplerState Sampler,// = Texturing.Sampler,
     Semantic NAME, // = TEXCOORD0
     LinkType myLink,
-    unorm float constFloat,
+    float constFloat,
     int2 constInt2,
     uint3 constUInt3,
     float4 constUNormFloat4,

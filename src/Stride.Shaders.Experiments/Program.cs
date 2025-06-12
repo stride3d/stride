@@ -8,7 +8,8 @@ using Stride.Shaders.Spirv.Core.Buffers;
 using Stride.Shaders.Spirv.Tools;
 using static Spv.Specification;
 
-// Examples.CompileSDSL();
+//Examples.CompileSDSL();
+Examples.MergeSDSL();
 // Examples.TryAllFiles();
 Examples.CreateShader();
 
