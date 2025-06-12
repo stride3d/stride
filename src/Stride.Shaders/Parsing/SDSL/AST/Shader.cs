@@ -27,17 +27,17 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
         {
             if (instruction.OpCode == SDSLOp.OpName)
             {
-                var nameInstruction = instruction.UnsafeAs<RefOpName>();
+                var nameInstruction = instruction.UnsafeAs<InstOpName>();
                 names.Add(nameInstruction.Target, nameInstruction.Name.Value);
             }
             else if (instruction.OpCode == SDSLOp.OpMemberName)
             {
-                var nameInstruction = instruction.UnsafeAs<RefOpMemberName>();
+                var nameInstruction = instruction.UnsafeAs<InstOpMemberName>();
                 memberNames.Add((nameInstruction.Type, (int)nameInstruction.Member.Words), nameInstruction.Name.Value);
             }
             else if (instruction.OpCode == SDSLOp.OpTypeFloat)
             {
-                var floatInstruction = instruction.UnsafeAs<RefOpTypeFloat>();
+                var floatInstruction = instruction.UnsafeAs<InstOpTypeFloat>();
                 if (floatInstruction.FloatingPointEncoding != 0)
                     throw new InvalidOperationException();
 
@@ -54,13 +54,13 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
             }
             else if (instruction.OpCode == SDSLOp.OpTypeVector)
             {
-                var vectorInstruction = instruction.UnsafeAs<RefOpTypeVector>();
+                var vectorInstruction = instruction.UnsafeAs<InstOpTypeVector>();
                 var innerType = (ScalarType)types[vectorInstruction.ComponentType];
                 types.Add(instruction.ResultId!.Value, new VectorType(innerType, (int)vectorInstruction.ComponentCount.Words));
             }
             else if (instruction.OpCode == SDSLOp.OpTypeStruct)
             {
-                var typeStructInstruction = instruction.UnsafeAs<RefOpTypeStruct>();
+                var typeStructInstruction = instruction.UnsafeAs<InstOpTypeStruct>();
                 var structName = names[instruction.ResultId!.Value];
                 var fields = new List<(string Name, SymbolType Type)>();
                 throw new NotImplementedException();
@@ -68,7 +68,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
             }
             else if (instruction.OpCode == SDSLOp.OpTypeFunction)
             {
-                var typeFunctionInstruction = instruction.UnsafeAs<RefOpTypeFunction>();
+                var typeFunctionInstruction = instruction.UnsafeAs<InstOpTypeFunction>();
                 var returnType = types[typeFunctionInstruction.ReturnType];
                 var parameterTypes = new List<SymbolType>();
                 foreach (var operand in instruction.Operands[2..])
@@ -94,7 +94,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
         {
             if (instruction.OpCode == SDSLOp.OpVariable)
             {
-                var variableInstruction = instruction.UnsafeAs<RefOpVariable>();
+                var variableInstruction = instruction.UnsafeAs<InstOpVariable>();
                 var variableName = names[variableInstruction.ResultId.Value];
                 var variableType = types[variableInstruction.ResultType];
 
@@ -104,7 +104,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
 
             if (instruction.OpCode == SDSLOp.OpFunction)
             {
-                var functionInstruction = instruction.UnsafeAs<RefOpFunction>();
+                var functionInstruction = instruction.UnsafeAs<InstOpFunction>();
                 var functionName = names[functionInstruction.ResultId.Value];
                 var functionType = types[functionInstruction.FunctionType];
 

@@ -38,7 +38,7 @@ public partial class SPVGenerator : IIncrementalGenerator
             {
 
                 builder
-                .AppendLine($"public ref struct Ref{instruction.OpName} : IWrapperInstruction")
+                .AppendLine($"public ref struct Inst{instruction.OpName} : IWrapperInstruction")
                 .AppendLine("{")
                 .AppendLine("public Instruction Inner { get; set; }");
                 try
@@ -87,7 +87,7 @@ public partial class SPVGenerator : IIncrementalGenerator
 
                 builder
                 .AppendLine()
-                .AppendLine($"public Ref{instruction.OpName}(Instruction instruction) => Inner = instruction;");
+                .AppendLine($"public Inst{instruction.OpName}(Instruction instruction) => Inner = instruction;");
 
 
                 builder
