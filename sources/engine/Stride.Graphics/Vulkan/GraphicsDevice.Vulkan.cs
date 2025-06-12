@@ -48,7 +48,7 @@ namespace Stride.Graphics
 
         internal HeapPool DescriptorPools;
         internal const uint MaxDescriptorSetCount = 256;
-        internal uint[] MaxDescriptorTypeCounts =
+        internal readonly uint[] MaxDescriptorTypeCounts =
         [
             256, // Sampler
             0, // CombinedImageSampler

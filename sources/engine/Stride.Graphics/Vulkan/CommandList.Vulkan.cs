@@ -1327,12 +1327,6 @@ namespace Stride.Graphics
                     throw new InvalidOperationException();
             }
 
-            // Maybe it just works if removed?
-            //if (mapMode == MapMode.WriteDiscard)
-            //{
-            //    throw new InvalidOperationException("Can't use WriteDiscard on Graphics API that doesn't support renaming");
-            //}
-
             if (mapMode != MapMode.WriteNoOverwrite && mapMode != MapMode.Write)
             {
                 // Need to wait?
