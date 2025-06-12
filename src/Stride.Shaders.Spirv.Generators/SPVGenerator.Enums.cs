@@ -6,29 +6,28 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Stride.Shaders.Spirv.Generators;
 
-
 public partial class SPVGenerator
 {
     public void CreateSpecification(IncrementalGeneratorInitializationContext context, IncrementalValueProvider<SpirvGrammar> grammarProvider)
     {
         var sdsloProvider = grammarProvider
-            .Select(static (grammar, _) => grammar.OperandKinds!.Value);
+            .Select(static (grammar, _) => grammar.OperandKinds ?? new([]));
 
         context.RegisterImplementationSourceOutput(
             sdsloProvider,
             GenerateSDSLSpecification
         );
     }
-    public void GenerateSDSLSpecification(SourceProductionContext spc, EquatableArray<OpKind> operandKinds)
+    public void GenerateSDSLSpecification(SourceProductionContext spc, EquatableDictionary<string, OpKind> operandKinds)
     {
         var code = new StringBuilder();
         code
             .AppendLine("namespace Stride.Shaders.Spirv;")
             .AppendLine("")
-            .AppendLine("public static class Specification")
+            .AppendLine("public static partial class Specification")
             .AppendLine("{");
 
-        foreach (var op in operandKinds)
+        foreach (var op in operandKinds.AsDictionary()!.Values)
         {
             if (op.Category == "BitEnum")
             {
@@ -36,10 +35,13 @@ public partial class SPVGenerator
                 .AppendLine($"[Flags]");
             }
             code
-                .AppendLine($"public enum {op.Kind}")
+                .AppendLine($"public enum {op.Kind}{(op.Category == "BitEnum" ? "Mask" : "")}")
                 .AppendLine("{");
-            foreach (var enumerant in op.Enumerants!.Value)
-                code.AppendLine($"    {enumerant.Name} = {enumerant.Value},");
+            if (op.Enumerants?.AsList() is List<Enumerant> enumerants)
+            {
+                foreach (var enumerant in enumerants)
+                    code.AppendLine($"    {(char.IsDigit(enumerant.Name[0]) ? op.Kind : "")}{enumerant.Name} = {enumerant.Value},");
+            }
             code.AppendLine("}");
             code.AppendLine();
         }

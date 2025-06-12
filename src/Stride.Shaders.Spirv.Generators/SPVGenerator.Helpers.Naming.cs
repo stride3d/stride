@@ -58,9 +58,9 @@ public partial class SPVGenerator
     public static void PreProcessOperands(InstructionData op, Dictionary<string, OpKind> operandKinds, List<(string Name, string Type)> parameters)
     {
         var opname = op.OpName;
-        if (op.Operands?.AsArray() is OperandData[] operands)
+        if (op.Operands?.AsList() is List<OperandData> operands)
         {
-            for (int i = 0; i < operands.Length; i++)
+            for (int i = 0; i < operands.Count; i++)
             {
                 var e = operands[i];
                 var kind = e.Kind;
@@ -107,7 +107,7 @@ public partial class SPVGenerator
     {
         var opname = op.OpName;
         List<string> parameters = [];
-        if (op.Operands is EquatableArray<OperandData> operands)
+        if (op.Operands is EquatableList<OperandData> operands)
         {
             foreach (var e in operands)
             {

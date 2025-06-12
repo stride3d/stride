@@ -31,6 +31,28 @@ public class EnumerantValueConverter : JsonConverter<int>
     }
 }
 
+public class OperandKindConverter : JsonConverter<EquatableDictionary<string, OpKind>>
+{
+    public override EquatableDictionary<string, OpKind> Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        if (reader.TokenType != JsonTokenType.StartArray)
+            return [];
+        else
+        {
+            var array = JsonSerializer.Deserialize<OpKind[]>(ref reader, options) ?? [];
+            return array.ToDictionary(
+                x => x.Kind,
+                x => x
+            );
+        }
+    }
+
+    public override void Write(Utf8JsonWriter writer, EquatableDictionary<string, OpKind> value, JsonSerializerOptions options)
+    {
+        JsonSerializer.Serialize(writer, value.AsDictionary()?.Values.ToArray() ?? [], options);
+    }
+}
+
 
 public record struct Enumerant
 {
@@ -40,7 +62,7 @@ public record struct Enumerant
     [JsonConverter(typeof(EnumerantValueConverter))]
     public int Value { get; set; }
     [JsonPropertyName("capabilities")]
-    public EquatableArray<string>? Capabilities { get; set; }
+    public EquatableList<string>? Capabilities { get; set; }
     [JsonPropertyName("version")]
     public string Version { get; set; }
 }
@@ -52,7 +74,7 @@ public record struct OpKind
     public string Category { get; set; }
 
     [JsonPropertyName("enumerants")]
-    public EquatableArray<Enumerant>? Enumerants { get; set; }
+    public EquatableList<Enumerant>? Enumerants { get; set; }
 }
 
 
@@ -77,7 +99,7 @@ public record struct InstructionData
     [JsonPropertyName("opcode")]
     public int OpCode { get; set; }
     [JsonPropertyName("operands")]
-    public EquatableArray<OperandData>? Operands { get; set; }
+    public EquatableList<OperandData>? Operands { get; set; }
     [JsonPropertyName("version")]
     public string Version { get; set; }
     public string Documentation { get; set; }
@@ -97,10 +119,12 @@ public record struct SpirvGrammar
     public int Revision { get; set; }
 
     [JsonPropertyName("instructions")]
-    public EquatableArray<InstructionData>? Instructions { get; set; }
+    public EquatableList<InstructionData>? Instructions { get; set; }
 
+    // public EquatableList<OpKind>? OperandKinds { get; set; }
     [JsonPropertyName("operand_kinds")]
-    public EquatableArray<OpKind>? OperandKinds { get; set; }
+    [JsonConverter(typeof(OperandKindConverter))]
+    public EquatableDictionary<string, OpKind>? OperandKinds { get; set; }
     public string CoreDoc { get; set; }
     public string GLSLDoc { get; set; }
 
@@ -110,8 +134,8 @@ public record struct SpirvGrammar
         MajorVersion = 0;
         MinorVersion = 0;
         Revision = 0;
-        Instructions = [];
-        OperandKinds = [];
+        Instructions = new([]);
+        OperandKinds = new([]);
         CoreDoc = "";
         GLSLDoc = "";
     }

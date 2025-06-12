@@ -17,17 +17,17 @@ public partial class SPVGenerator : IIncrementalGenerator
 
         context.RegisterImplementationSourceOutput(
             sdslInstructionsData,
-            GenerateInstructionStructs
+            (source, instructions) => GenerateInstructionStructs(source, instructions)
         );
 
     }
 
-    public static void GenerateInstructionStructs(SourceProductionContext spc, EquatableArray<InstructionData>? instructions)
+    public static void GenerateInstructionStructs(SourceProductionContext spc, EquatableList<InstructionData>? instructions)
     {
 
         StringBuilder builder = new();
         builder
-            .AppendLine("using static Spv.Specification;")
+            .AppendLine("using static Stride.Shaders.Spirv.Specification;")
             .AppendLine()
             .AppendLine("namespace Stride.Shaders.Spirv.Core;")
             .AppendLine()
@@ -75,7 +75,7 @@ public partial class SPVGenerator : IIncrementalGenerator
                             else if (operand.Class == "ValueEnum")
                                 builder.AppendLine($"public {operand.Kind} {fieldName} => Inner.GetEnumOperand<{operand.Kind}>(\"{operandName}\");");
                             else
-                                builder.AppendLine($"public {operand.Kind} {fieldName} => Inner.GetOperand<{operand.Kind}>(\"{operandName}\") ?? default;");
+                                builder.AppendLine($"public {operand.Kind} {fieldName} => Inner.GetOperand<{operand.Kind}/*{operand.Class}*/>(\"{operandName}\") ?? default;");
                         }
                     }
                 }

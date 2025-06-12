@@ -2,6 +2,7 @@ using System.Collections.Immutable;
 using System.Text;
 using System.Text.Json;
 using AngleSharp;
+using AngleSharp.Common;
 using AngleSharp.Dom;
 using Microsoft.CodeAnalysis;
 
@@ -42,13 +43,22 @@ public partial class SPVGenerator
                 }
                 if (parsed.Instructions is not null)
                 {
-                    InstructionData[] instructions = [.. grammar.Instructions, .. parsed.Instructions];
-                    grammar.Instructions = instructions;
+
+                    grammar.Instructions?.AsList()?.AddRange(parsed.Instructions?.AsList() ?? []);
                 }
-                if (parsed.OperandKinds is not null)
+                if (parsed.OperandKinds?.AsDictionary() is Dictionary<string, OpKind> parsedKinds && grammar.OperandKinds?.AsDictionary() is Dictionary<string, OpKind> grammarKinds)
                 {
-                    OpKind[] operandKinds = [.. grammar.OperandKinds, .. parsed.OperandKinds];
-                    grammar.OperandKinds = operandKinds;
+                    foreach (var pk in parsedKinds)
+                    {
+                        if (grammarKinds.ContainsKey(pk.Key))
+                        {
+                            grammarKinds[pk.Key].Enumerants?.AsList()?.AddRange(pk.Value.Enumerants?.AsList() ?? []);
+                            if (grammarKinds[pk.Key].Category is null || grammarKinds[pk.Key].Category.Length == 0)
+                                grammarKinds[pk.Key] = grammarKinds[pk.Key] with { Category = pk.Value.Category};
+                        }
+                        else
+                            grammarKinds[pk.Key] = pk.Value;
+                    }
                 }
 
             }
@@ -58,7 +68,6 @@ public partial class SPVGenerator
 
     public SpirvGrammar PreProcessInstructions(SpirvGrammar grammar, CancellationToken _)
     {
-        var operandKinds = grammar.OperandKinds?.AsArray().ToDictionary(x => x.Kind, x => x);
         var config = Configuration.Default.WithDefaultLoader();
         var htmlContext = BrowsingContext.New(config);
         var coreTask = htmlContext.OpenAsync(req => req.Content(grammar.CoreDoc));
@@ -70,15 +79,15 @@ public partial class SPVGenerator
 
         var builder = new StringBuilder();
         // var buffer = new List<OperandData>(24);
-        if (grammar.Instructions?.AsArray() is InstructionData[] instructions)
+        if (grammar.Instructions?.AsList() is List<InstructionData> instructions)
         {
-            for (int i = 0; i < instructions.Length; i++)
+            for (int i = 0; i < instructions.Count; i++)
             // foreach (var instruction in grammar.Instructions)
             {
-                var instruction = grammar.Instructions.Value.AsArray()![i]!;
-                
+                var instruction = grammar.Instructions.Value.AsList()![i]!;
+
                 // setup the documentation
-                    var cells = instruction.OpName switch
+                var cells = instruction.OpName switch
                 {
                     string v when !v.StartsWith("Op") => glslDoc.QuerySelectorAll($"p.tableblock:has(strong:contains(\"{instruction.OpName.Replace("GLSL", "")}\"))"),
                     string v when v.Contains("SDSL") => null, // SDSL does not have documentation
@@ -100,15 +109,15 @@ public partial class SPVGenerator
                     }
                     instruction.Documentation = builder.ToString();
                 }
-                
+
                 if (!instruction.OpName.StartsWith("Op"))
                     instruction.OpName = $"GLSL{instruction.OpName}";
 
                 // A reusable buffer
                 var buffer = new List<(string, string)>(24);
 
-                if (instruction.Operands?.AsArray() is OperandData[] operands)
-                    PreProcessOperands(instruction, operandKinds!, buffer);
+                if (instruction.Operands?.AsList() is List<OperandData> operands)
+                    PreProcessOperands(instruction, grammar.OperandKinds?.AsDictionary()!, buffer);
 
                 instructions[i] = instruction;
 

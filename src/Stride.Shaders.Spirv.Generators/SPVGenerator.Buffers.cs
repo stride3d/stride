@@ -88,7 +88,7 @@ public partial class SPVGenerator
                 .AppendLine("}");
         }
 
-        else if (op.Operands is EquatableArray<OperandData> operands && operands.Count > 0)
+        else if (op.Operands is EquatableList<OperandData> operands && operands.Count > 0)
         {
             var parameters = ConvertOperandsToParameters(op, operandKinds);
             var parameterNames = ConvertOperandsToParameterNames(op, operandKinds);
