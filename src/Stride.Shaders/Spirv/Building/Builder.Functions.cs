@@ -1,13 +1,13 @@
 using Stride.Shaders.Core;
 using Stride.Shaders.Spirv.Core;
 using Stride.Shaders.Spirv.Core.Buffers;
-using static Spv.Specification;
+using static Stride.Shaders.Spirv.Specification;
 
 namespace Stride.Shaders.Spirv.Building;
 
 public partial class SpirvBuilder
 {
-    public SpirvFunction CreateFunction(SpirvContext context, string name, FunctionType ftype, FunctionControlMask mask = FunctionControlMask.MaskNone)
+    public SpirvFunction CreateFunction(SpirvContext context, string name, FunctionType ftype, FunctionControlMask mask = FunctionControlMask.None)
     {
         foreach(var t in ftype.ParameterTypes)
             context.GetOrRegister(t);
@@ -28,7 +28,7 @@ public partial class SpirvBuilder
         CurrentFunction!.Value.Parameters.Add(name, new(p, name));
         return new(p, name);
     }
-    public SpirvFunction CreateEntryPoint(SpirvContext context, ExecutionModel execModel, string name, FunctionType type, ReadOnlySpan<Symbol> variables, FunctionControlMask mask = FunctionControlMask.MaskNone)
+    public SpirvFunction CreateEntryPoint(SpirvContext context, ExecutionModel execModel, string name, FunctionType type, ReadOnlySpan<Symbol> variables, FunctionControlMask mask = FunctionControlMask.None)
     {
         var func = Buffer.AddOpFunction(context.Bound++, context.GetOrRegister(type.ReturnType), mask, context.GetOrRegister(type));
         context.AddName(func, name);

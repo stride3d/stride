@@ -29,6 +29,8 @@ public partial class SPVGenerator
 
         foreach (var op in operandKinds.AsDictionary()!.Values)
         {
+            if (op.Category == "Literal" || op.Category == "Id" || op.Category == "Composite")
+                continue;
             if (op.Category == "BitEnum")
             {
                 code

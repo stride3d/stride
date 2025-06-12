@@ -2,7 +2,7 @@ using CommunityToolkit.HighPerformance.Buffers;
 using Stride.Shaders.Spirv.Core.Parsing;
 using System.Runtime.InteropServices;
 using System.Text;
-using static Spv.Specification;
+using static Stride.Shaders.Spirv.Specification;
 
 namespace Stride.Shaders.Spirv.Core;
 

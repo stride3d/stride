@@ -93,7 +93,7 @@ public partial class SPVGenerator
             }
         );
         // var code = new StringBuilder()
-        // .AppendLine("using static Spv.Specification;")
+        // .AppendLine("using static Stride.Shaders.Spirv.Specification;")
         // .AppendLine("")
         // .AppendLine("namespace Stride.Shaders.Spirv.Core;")
         // .AppendLine("\n\n")

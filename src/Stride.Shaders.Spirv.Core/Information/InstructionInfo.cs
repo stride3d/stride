@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static Spv.Specification;
+using static Stride.Shaders.Spirv.Specification;
 
 namespace Stride.Shaders.Spirv.Core;
 
@@ -46,7 +46,7 @@ public partial class InstructionInfo
         Info.Add(new(SDSLOp.OpDecorate, Decoration.SecondaryViewportRelativeNV), new(null, [new(OperandKind.IdRef, OperandQuantifier.One, "target"), new(OperandKind.Decoration, OperandQuantifier.One, "decoration"), new(OperandKind.LiteralInteger, OperandQuantifier.One, "viewportIndex")]));
         Info.Add(new(SDSLOp.OpDecorate, Decoration.CounterBuffer), new(null, [new(OperandKind.IdRef, OperandQuantifier.One, "target"), new(OperandKind.Decoration, OperandQuantifier.One, "decoration"), new(OperandKind.IdRef, OperandQuantifier.One, "counterBufferId")]));
         Info.Add(new(SDSLOp.OpDecorate, Decoration.FuncParamAttr), new(null, [new(OperandKind.IdRef, OperandQuantifier.One, "target"), new(OperandKind.Decoration, OperandQuantifier.One, "decoration"), new(OperandKind.FunctionParameterAttribute, OperandQuantifier.One, "functionParameterAttribute")]));
-        Info.Add(new(SDSLOp.OpDecorate, Decoration.HlslSemanticGOOGLE), new(null, [new(OperandKind.IdRef, OperandQuantifier.One, "target"), new(OperandKind.Decoration, OperandQuantifier.One, "decoration"), new(OperandKind.LiteralString, OperandQuantifier.One, "semanticName")]));
+        // Info.Add(new(SDSLOp.OpDecorate, Decoration.HlslSemanticGOOGLE), new(null, [new(OperandKind.IdRef, OperandQuantifier.One, "target"), new(OperandKind.Decoration, OperandQuantifier.One, "decoration"), new(OperandKind.LiteralString, OperandQuantifier.One, "semanticName")]));
 
         Info.Add(new(SDSLOp.OpMemberDecorate, Decoration.SpecId), new(null, [new(OperandKind.IdRef, OperandQuantifier.One, "target"), new(OperandKind.LiteralInteger, OperandQuantifier.One, "accessor"), new(OperandKind.Decoration, OperandQuantifier.One, "decoration"), new(OperandKind.IdRef, OperandQuantifier.One, "specId")]));
         Info.Add(new(SDSLOp.OpMemberDecorate, Decoration.ArrayStride), new(null, [new(OperandKind.IdRef, OperandQuantifier.One, "target"), new(OperandKind.LiteralInteger, OperandQuantifier.One, "accessor"), new(OperandKind.Decoration, OperandQuantifier.One, "decoration"), new(OperandKind.LiteralInteger, OperandQuantifier.One, "arrayStride")]));
@@ -71,7 +71,7 @@ public partial class InstructionInfo
         Info.Add(new(SDSLOp.OpMemberDecorate, Decoration.SecondaryViewportRelativeNV), new(null, [new(OperandKind.IdRef, OperandQuantifier.One, "target"), new(OperandKind.LiteralInteger, OperandQuantifier.One, "accessor"), new(OperandKind.Decoration, OperandQuantifier.One, "decoration"), new(OperandKind.LiteralInteger, OperandQuantifier.One, "viewportIndex")]));
         Info.Add(new(SDSLOp.OpMemberDecorate, Decoration.CounterBuffer), new(null, [new(OperandKind.IdRef, OperandQuantifier.One, "target"), new(OperandKind.LiteralInteger, OperandQuantifier.One, "accessor"), new(OperandKind.Decoration, OperandQuantifier.One, "decoration"), new(OperandKind.IdRef, OperandQuantifier.One, "counterBufferId")]));
         Info.Add(new(SDSLOp.OpMemberDecorate, Decoration.FuncParamAttr), new(null, [new(OperandKind.IdRef, OperandQuantifier.One, "target"), new(OperandKind.LiteralInteger, OperandQuantifier.One, "accessor"), new(OperandKind.Decoration, OperandQuantifier.One, "decoration"), new(OperandKind.FunctionParameterAttribute, OperandQuantifier.One, "functionParameterAttribute")]));
-        Info.Add(new(SDSLOp.OpMemberDecorate, Decoration.HlslSemanticGOOGLE), new(null, [new(OperandKind.IdRef, OperandQuantifier.One, "target"), new(OperandKind.LiteralInteger, OperandQuantifier.One, "accessor"), new(OperandKind.Decoration, OperandQuantifier.One, "decoration"), new(OperandKind.LiteralString, OperandQuantifier.One, "semanticName")]));
+        // Info.Add(new(SDSLOp.OpMemberDecorate, Decoration.HlslSemanticGOOGLE), new(null, [new(OperandKind.IdRef, OperandQuantifier.One, "target"), new(OperandKind.LiteralInteger, OperandQuantifier.One, "accessor"), new(OperandKind.Decoration, OperandQuantifier.One, "decoration"), new(OperandKind.LiteralString, OperandQuantifier.One, "semanticName")]));
 
     }
     /// <summary>

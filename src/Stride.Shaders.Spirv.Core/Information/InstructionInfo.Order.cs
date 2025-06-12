@@ -5,7 +5,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static Spv.Specification;
+using static Stride.Shaders.Spirv.Specification;
 
 namespace Stride.Shaders.Spirv.Core;
 

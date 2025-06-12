@@ -1,7 +1,7 @@
 ﻿// using Stride.Shaders.Spirv.Core;
 // using Stride.Shaders.Spirv.Core.Buffers;
 // using Stride.Shaders.Spirv.Core.Parsing;
-// using static Spv.Specification;
+// using static Stride.Shaders.Spirv.Specification;
 
 // namespace Stride.Shaders.Spirv.Processing;
 

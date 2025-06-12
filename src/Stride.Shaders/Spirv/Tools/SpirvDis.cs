@@ -1,7 +1,7 @@
 using System.Text;
 using Stride.Shaders.Spirv.Core.Buffers;
 using Stride.Shaders.Spirv.Core;
-using static Spv.Specification;
+using static Stride.Shaders.Spirv.Specification;
 using System.Runtime.CompilerServices;
 
 namespace Stride.Shaders.Spirv.Tools;
