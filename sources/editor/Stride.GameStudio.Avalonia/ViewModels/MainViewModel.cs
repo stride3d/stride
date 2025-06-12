@@ -43,6 +43,7 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
         ExitCommand = new AnonymousCommand(serviceProvider, OnExit, () => DialogService.HasMainWindow);
         OpenCommand = new AnonymousTaskCommand<UFile?>(serviceProvider, OnOpen);
         OpenDebugWindowCommand = new AnonymousTaskCommand(serviceProvider, OnOpenDebugWindow, () => DialogService.HasMainWindow);
+        OpenSettingsWindowCommand = new AnonymousTaskCommand(serviceProvider, OnOpenSettingsWindow, () => DialogService.HasMainWindow);
         OpenWebPageCommand = new AnonymousTaskCommand<string>(serviceProvider, OnOpenWebPage);
 
         Status = new StatusViewModel(ServiceProvider);
@@ -74,6 +75,8 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
     public ICommandBase OpenCommand { get; }
 
     public ICommandBase OpenDebugWindowCommand { get; }
+
+    public ICommandBase OpenSettingsWindowCommand { get; }
 
     public ICommandBase OpenWebPageCommand { get; }
 
@@ -146,6 +149,11 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
     private async Task OnOpenDebugWindow()
     {
         await DialogService.ShowDebugWindowAsync();
+    }
+
+    private async Task OnOpenSettingsWindow()
+    {
+        await DialogService.ShowSettingsWindowAsync();
     }
 
     private async Task OnOpenWebPage(string url)

@@ -3,6 +3,7 @@
 
 using Avalonia.Controls;
 using Stride.Core.Assets.Editor.Services;
+using Stride.Core.Assets.Editor.Settings;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Presentation.Avalonia.Services;
 using Stride.Core.Presentation.Services;
@@ -88,5 +89,18 @@ internal class EditorDialogService : DialogService, IEditorDialogService
         {
             workProgress.NotifyWindowClosed();
         }
+    }
+
+    public async Task ShowSettingsWindowAsync()
+    {
+        if (MainWindow is null) return;
+
+        await Dispatcher.InvokeTask(async () =>
+        {
+            await new SettingsWindow
+            {
+                DataContext = new SettingsViewModel(serviceProvider, EditorSettings.SettingsContainer.CurrentProfile)
+            }.ShowDialog(MainWindow);
+        });
     }
 }

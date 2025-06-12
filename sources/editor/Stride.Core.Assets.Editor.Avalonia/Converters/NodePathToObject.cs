@@ -55,6 +55,7 @@ public sealed class NodePathToObject : OneWayValueConverter<NodePathToObject>
                 nameof(NodeViewModel.IsVisible) => node.IsVisible,
                 nameof(NodeViewModel.Name) => node.Name,
                 nameof(NodeViewModel.NodeValue) => node.NodeValue,
+                nameof(NodeViewModel.Parent) => node.Parent,
                 nameof(NodeViewModel.Root) => node.Root,
                 nameof(NodeViewModel.VisibleChildrenCount) => node.VisibleChildrenCount,
                 _ => throw new ArgumentException($"Unsupported {name} property.")
