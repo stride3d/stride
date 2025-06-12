@@ -15,6 +15,6 @@ public sealed class OrMulti : MultiValueConverterBase<OrMulti>
     {
         if (values.Count < 2) return AvaloniaProperty.UnsetValue;
 
-        return values.Any(x => x != AvaloniaProperty.UnsetValue && x is bool b && b).Box();
+        return values.Any(x => x is true).Box();
     }
 }

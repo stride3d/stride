@@ -15,9 +15,9 @@ namespace Stride.Core.Presentation.ValueConverters
         {
             if (values.Length < 2)
                 throw new InvalidOperationException("This multi converter must be invoked with at least two elements");
-
-            var result = values.Skip(1).Aggregate((bool)values[0], (current, value) => current ^ (bool)value);
-            return result.Box();
+            
+            var seed = values[0] is true;
+            return values.Skip(1).Aggregate(seed, (current, value) => current ^ value is true).Box();
         }
     }
 }

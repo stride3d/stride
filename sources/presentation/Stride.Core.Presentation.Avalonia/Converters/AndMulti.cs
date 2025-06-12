@@ -14,7 +14,7 @@ public sealed class AndMulti : MultiValueConverterBase<AndMulti>
     public override object Convert(IList<object?> values, Type targetType, object? parameter, CultureInfo culture)
     {
         if (values.Count < 2) return AvaloniaProperty.UnsetValue;
-
-        return values.All(x => x != AvaloniaProperty.UnsetValue && x is bool b && b).Box();
+        
+        return values.All(x => x is true).Box();
     }
 }

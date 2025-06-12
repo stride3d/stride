@@ -254,6 +254,7 @@
             <DataTriggerBehavior Binding="{sd:MultiBinding {Binding ConverterParameter=[HasBase], Converter={caec:NodePathToObject}, FallbackValue={sd:False}},
                                                            {Binding ConverterParameter=[IsInherited], Converter={caec:NodePathToObject}, FallbackValue={sd:True}},
                                                            {Binding ConverterParameter=[Enabled].[IsInherited], Converter={caec:NodePathToObject}, FallbackValue={sd:True}},
+                                                           {Binding ConverterParameter=[InlinedProperty].[IsInherited], Converter={caec:NodePathToObject}, FallbackValue={sd:True}},
                                                            Converter={sd:AndMulti}}"
                                     Value="{sd:True}">
               <ChangePropertyAction TargetObject="PropertyNameBlock" PropertyName="Opacity" Value="{sd:Double 0.5}"/>
@@ -327,6 +328,7 @@
             <DataTriggerBehavior Binding="{sd:MultiBinding {Binding ConverterParameter=[HasBase], Converter={caec:NodePathToObject}, FallbackValue={sd:False}},
                                                            {Binding ConverterParameter=[IsInherited], Converter={caec:NodePathToObject}, FallbackValue={sd:True}},
                                                            {Binding ConverterParameter=[Enabled].[IsInherited], Converter={caec:NodePathToObject}, FallbackValue={sd:True}},
+                                                           {Binding ConverterParameter=[InlinedProperty].[IsInherited], Converter={caec:NodePathToObject}, FallbackValue={sd:True}},
                                                            Converter={sd:AndMulti}}"
                                     Value="{sd:True}">
               <ChangePropertyAction TargetObject="HeaderTextBlock" PropertyName="Opacity" Value="{sd:Double 0.5}"/>
