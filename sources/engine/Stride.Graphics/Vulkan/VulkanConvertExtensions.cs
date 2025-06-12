@@ -277,11 +277,11 @@ namespace Stride.Graphics
                     break;
 
                 case PixelFormat.R10G10B10A2_UInt:
-                    format = VkFormat.A2R10G10B10UIntPack32;
+                    format = VkFormat.A2R10G10B10UintPack32;
                     pixelSize = 4;
                     break;
                 case PixelFormat.R10G10B10A2_UNorm:
-                    format = VkFormat.A2R10G10B10UNormPack32;
+                    format = VkFormat.A2R10G10B10UnormPack32;
                     pixelSize = 4;
                     break;
 
@@ -406,7 +406,7 @@ namespace Stride.Graphics
                     pixelSize = 4;
                     break;
                 case PixelFormat.D32_Float_S8X24_UInt:
-                    format = VkFormat.D32SFloatS8UInt;
+                    format = VkFormat.D32SfloatS8Uint;
                     pixelSize = 8;
                     break;
 

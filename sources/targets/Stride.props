@@ -15,7 +15,7 @@
     <!-- When working in a specific API in the Stride Runtime or in the Stride solution (not in a game or app),
          you can uncomment this property and set its value to the name of that graphics API so it becomes
          the active one that Visual Studio and IntelliSense takes into account -->
-    <StrideDefaultGraphicsApiDesignTime>Vulkan</StrideDefaultGraphicsApiDesignTime>
+    <!--StrideDefaultGraphicsApiDesignTime>Vulkan</StrideDefaultGraphicsApiDesignTime-->
 
     <StrideGraphicsApis Condition="('$(StrideGraphicsApis)' == '' Or '$(StrideGraphicsApiDependentBuildAll)' == 'true') And ('$(TargetFramework)' == '$(StrideFramework)' Or '$(TargetFramework)' == '$(StrideFrameworkWindows)')">Direct3D11;Direct3D12;OpenGL;OpenGLES;Vulkan</StrideGraphicsApis>
 
