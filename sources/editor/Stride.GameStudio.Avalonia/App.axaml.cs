@@ -6,6 +6,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
 using Stride.Core.Assets.Editor.Services;
+using Stride.Core.Assets.Editor.Settings;
 using Stride.Core.IO;
 using Stride.Core.Presentation.Avalonia.Services;
 using Stride.Core.Presentation.ViewModels;
@@ -21,6 +22,7 @@ public partial class App : Application
     {
         AvaloniaXamlLoader.Load(this);
         InitializePlugins();
+        EditorSettings.Initialize();
     }
 
     public override void OnFrameworkInitializationCompleted()
