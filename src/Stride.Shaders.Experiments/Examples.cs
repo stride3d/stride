@@ -314,7 +314,7 @@ public static partial class Examples
         {
             var shader = GetOrLoadShader(shaderName);
             offset += nextOffset;
-            foreach (var i in shader)
+            foreach (var i in shader.Instructions)
             {
                 temp.Add(i.Words);
 
@@ -341,7 +341,7 @@ public static partial class Examples
     {
         // Build shader name mapping
         var shaderMapping = new Dictionary<int, string>();
-        foreach (var i in buffer)
+        foreach (var i in buffer.Instructions)
         {
             if (i.OpCode == SDSLOp.OpSDSLImportShader)
             {
@@ -350,7 +350,7 @@ public static partial class Examples
         }
 
         // Check inheritance
-        foreach (var i in buffer)
+        foreach (var i in buffer.Instructions)
         {
             if (i.OpCode == SDSLOp.OpSDSLMixinInherit)
             {

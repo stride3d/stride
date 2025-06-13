@@ -9,7 +9,7 @@ namespace Stride.Shaders.Spirv.Building;
 public abstract class CompilerArgument;
 
 
-public class CompilerUnit : IDisposable
+public class CompilerUnit
 {
     public SpirvModule Module { get; }
     public SpirvContext Context { get; }
@@ -29,12 +29,6 @@ public class CompilerUnit : IDisposable
         builder = Builder;
         context = Context;
         module = Module;
-    }
-
-    public void Dispose()
-    {
-        Builder.Dispose();
-        Context.Dispose();
     }
 
     public override string ToString()

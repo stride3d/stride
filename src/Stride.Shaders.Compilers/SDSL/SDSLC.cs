@@ -25,7 +25,7 @@ public record struct SDSLC(IExternalShaderLoader ShaderLoader) : ICompiler
 
             if(table.Errors.Count > 0)
                 throw new Exception("Some parse errors");
-            using var compiler = new CompilerUnit();
+            var compiler = new CompilerUnit();
             shader.Compile(compiler, table);
 
             // temp hack to add entry point (last function)
@@ -38,7 +38,7 @@ public record struct SDSLC(IExternalShaderLoader ShaderLoader) : ICompiler
             var merged = SpirvBuffer.Merge(compiler.Context.Buffer, compiler.Builder.Buffer);
             var dis = new SpirvDis<SpirvBuffer>(merged, true);
             dis.Disassemble(true);
-            compiled = MemoryMarshal.AsBytes(merged.Span).ToArray();
+            compiled = MemoryMarshal.AsBytes(merged.ToBuffer().AsSpan()).ToArray();
             return true;
         }
         else

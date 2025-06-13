@@ -23,7 +23,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
         var memberNames = new Dictionary<(int, int), string>();
         names = new Dictionary<int, string>();
         types = new Dictionary<int, SymbolType>();
-        foreach (var instruction in buffer)
+        foreach (var instruction in buffer.Instructions)
         {
             if (instruction.OpCode == SDSLOp.OpName)
             {
@@ -90,7 +90,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
         ProcessNameAndTypes(buffer, out var names, out var types);
 
         var symbols = new List<Symbol>();
-        foreach (var instruction in buffer)
+        foreach (var instruction in buffer.Instructions)
         {
             if (instruction.OpCode == SDSLOp.OpVariable)
             {

@@ -84,7 +84,7 @@ namespace Stride.Shaders.Spirv.Processing
             // Build name table
             SortedList<int, NameId> nameTable = [];
             SortedList<int, string> semanticTable = [];
-            foreach (var instruction in context.Buffer)
+            foreach (var instruction in context.Buffer.Instructions)
             {
                 {
                     if ((instruction.OpCode == SDSLOp.OpName || instruction.OpCode == SDSLOp.OpMemberName)
@@ -109,7 +109,7 @@ namespace Stride.Shaders.Spirv.Processing
 
 
             // Analyze streams
-            foreach (var instruction in compiler.Context.Buffer)
+            foreach (var instruction in compiler.Context.Buffer.Instructions)
             {
                 if (instruction.OpCode == SDSLOp.OpVariable
                     && (Specification.StorageClass)instruction.Operands[2] == Specification.StorageClass.Private)
@@ -238,12 +238,9 @@ namespace Stride.Shaders.Spirv.Processing
         private void ProcessMethod(CompilerUnit compiler, int functionId, SortedList<int, (StreamInfo Stream, bool IsDirect)> streams)
         {
             var methodStart = FindMethodStart(compiler, functionId);
-            var enumerator = new MutableFunctionInstructionEnumerator(compiler.Builder.Buffer, methodStart);
-
-            while (enumerator.MoveNext())
+            for (var index = methodStart; index < compiler.Builder.Buffer.Instructions.Count; index++)
             {
-                var instruction = enumerator.Current;
-
+                var instruction = compiler.Builder.Buffer.Instructions[index];
                 if (instruction.OpCode == SDSLOp.OpFunctionEnd)
                     break;
 
@@ -282,15 +279,14 @@ namespace Stride.Shaders.Spirv.Processing
         public int FindMethodStart(CompilerUnit compiler, int functionId)
         {
             int? start = null;
-            var wid = 0;
-            foreach (var instruction in compiler.Builder.Buffer)
+            for (var index = 0; index < compiler.Builder.Buffer.Instructions.Count; index++)
             {
+                var instruction = compiler.Builder.Buffer.Instructions[index];
                 if (instruction.OpCode == SDSLOp.OpFunction
                     && instruction.ResultId == functionId)
                 {
-                    return wid;
+                    return index;
                 }
-                wid += instruction.WordCount;
             }
 
             throw new NotImplementedException();

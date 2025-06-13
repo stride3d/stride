@@ -26,7 +26,7 @@ public partial struct SpirvDis<TBuffer>
     public SpirvDis(TBuffer buff, bool useNames = false)
     {
         buffer = buff;
-        if(buff.InstructionSpan.Length == 0)
+        if(buff.InstructionsSpan.Length == 0)
             return;
         writer = new();
         UseNames = useNames;
@@ -44,7 +44,7 @@ public partial struct SpirvDis<TBuffer>
         else
         {
             var maxName = 0;
-            foreach (var i in buffer)
+            foreach (var i in buffer.InstructionsSpan)
             {
                 if (
                     (i.OpCode == SDSLOp.OpName || i.OpCode == SDSLOp.OpMemberName)
@@ -77,17 +77,17 @@ public partial struct SpirvDis<TBuffer>
                 .AppendLine($"; Schema: {header.Schema}");
         }
         
-        if(buffer.InstructionSpan.Length == 0)
+        if(buffer.InstructionsSpan.Length == 0)
             return "";
 
         // First pass: scan names
-        foreach (var e in buffer)
+        foreach (var e in buffer.InstructionsSpan)
         {
             CheckNameTable(e);
         }
 
         // Second pass: disassemble
-        foreach (var e in buffer)
+        foreach (var e in buffer.InstructionsSpan)
         {
             if (UseNames && e.ResultId is int id && nameTable.TryGetValue(id, out var nid))
                 Append(nid);

@@ -14,16 +14,15 @@ public ref struct SpirvReader
         
         var span = MemoryMarshal.Cast<byte, int>(byteCode.AsSpan());
         var data = new SpirvBuffer(span);
-        foreach (var instruction in data)
+        foreach (var instruction in data.Instructions)
             instructions.Add(instruction);
     }
 
 
 
 
-    SpirvSpan buffer;
+    SpirvBuffer buffer;
     public int Count => GetInstructionCount();
-    public int WordCount => buffer.Length;
     public bool HasHeader { get; init; }
 
     public SpirvReader(byte[] byteCode, bool hasHeader = false)
@@ -45,24 +44,12 @@ public ref struct SpirvReader
         buffer = new(slice.Span);
         //data = slice;
     }
-    public SpirvReader(SpirvSpan span)
+    public SpirvReader(SpirvBuffer span)
     {
         buffer = span;
         //data = slice;
     }
 
 
-    public readonly InstructionEnumerator GetEnumerator() => new(buffer.Memory, HasHeader);
-
-    public readonly int GetInstructionCount()
-    {
-        var count = 0;
-        var index = 0;
-        while(index < buffer.Length) 
-        {
-            count += 1;
-            index += buffer.Span[index] >> 16;
-        }
-        return count;
-    }
+    public readonly int GetInstructionCount() => buffer.Instructions.Count;
 }

@@ -16,7 +16,7 @@ public interface IExternalShaderLoader
 
 // Should contain internal data not seen by the client but helpful for the generation like type symbols and other 
 // SPIR-V parameters
-public class SpirvContext(SpirvModule module) : IDisposable
+public class SpirvContext(SpirvModule module)
 {
     public int Bound { get; internal set; } = 1;
     public string? Name { get; private set; }
@@ -32,7 +32,7 @@ public class SpirvContext(SpirvModule module) : IDisposable
         if (Name is null)
         {
             Name = name;
-            Buffer.InsertOpSDSLShader(5, name);
+            Buffer.InsertOpSDSLShader(0, name);
         }
         else throw new NotImplementedException();
     }
@@ -241,8 +241,6 @@ public class SpirvContext(SpirvModule module) : IDisposable
             });
         return result;
     }
-
-    public void Dispose() => Buffer.Dispose();
 
     public override string ToString()
     {

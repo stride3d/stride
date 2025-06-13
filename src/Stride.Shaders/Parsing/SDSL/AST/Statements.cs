@@ -163,8 +163,7 @@ public class Declare(TypeName typename, TextLocation info) : Declaration(typenam
         foreach (var d in Variables)
         {
             var variable = context.Bound++;
-            var instruction = builder.Buffer.InsertOpVariable(builder.Position, variable, registeredType, Specification.StorageClass.Function, null);
-            builder.Position += instruction.WordCount;
+            var instruction = builder.Buffer.InsertOpVariable(builder.Position++, variable, registeredType, Specification.StorageClass.Function, null);
             context.AddName(variable, d.Variable);
 
             if (builder.CurrentFunction is SpirvFunction f)
@@ -203,12 +202,11 @@ public class Assign(TextLocation info) : Statement(info)
             {
                 var sourceLoad = context.Bound++;
                 var underlyingType = context.GetOrRegister(p.BaseType);
-                builder.Position += builder.Buffer.InsertOpLoad(builder.Position, sourceLoad, underlyingType, source.Id, Specification.MemoryAccessMask.None).WordCount;
+                builder.Buffer.InsertOpLoad(builder.Position++, sourceLoad, underlyingType, source.Id, Specification.MemoryAccessMask.None);
                 source = new(sourceLoad, underlyingType);
             }
 
-            var instruction = builder.Buffer.InsertOpStore(builder.Position, target.Id, source.Id, null);
-            builder.Position += instruction.WordCount;
+            var instruction = builder.Buffer.InsertOpStore(builder.Position++, target.Id, source.Id, null);
         }
     }
     public override string ToString()

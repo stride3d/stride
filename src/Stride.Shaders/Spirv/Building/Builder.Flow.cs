@@ -8,8 +8,7 @@ public partial class SpirvBuilder
 {
     public SpirvBlock CreateBlock(SpirvContext context, string? name = null)
     {
-        var i = Buffer.InsertOpLabel(Position, context.Bound++);
-        Position += i.WordCount;
+        var i = Buffer.InsertOpLabel(Position++, context.Bound++);
         Buffer.InsertOpUnreachable(Position);
         var result = new SpirvBlock(i, CurrentFunction ?? throw new NotImplementedException(), name);
         return result;
@@ -17,20 +16,19 @@ public partial class SpirvBuilder
 
     public void Return(in SpirvValue? value = null)
     {
-        Position += value switch
+        _ = value switch
         {
-            SpirvValue v => Buffer.InsertOpReturnValue(Position, v.Id).WordCount,
-            _ => Buffer.InsertOpReturn(Position).WordCount
+            SpirvValue v => Buffer.InsertOpReturnValue(Position++, v.Id).WordCount,
+            _ => Buffer.InsertOpReturn(Position++).WordCount
         };
         CleanBlock();
     }
 
     public void CleanBlock()
     {
-        if ((Buffer.Span[Position] & 0xFFFF) == (int)SDSLOp.OpUnreachable)
+        if (Buffer.Instructions[Position].OpCode == SDSLOp.OpUnreachable)
         {
-            var size = Buffer.Span[Position] >> 16;
-            Buffer.Remove(Position);
+            Buffer.Instructions.RemoveAt(Position);
         }
     }
 }

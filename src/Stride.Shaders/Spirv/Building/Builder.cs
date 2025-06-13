@@ -9,12 +9,12 @@ namespace Stride.Shaders.Spirv.Building;
 
 
 // Should have utility functions to add instruction to the buffer
-public partial class SpirvBuilder() : IDisposable
+public partial class SpirvBuilder()
 {
     public SpirvBuffer Buffer { get; init; } = new();
     public SpirvFunction? CurrentFunction { get; private set; }
     public SpirvBlock? CurrentBlock { get; private set; }
-    public int Position { get; internal set; } = 5;
+    public int Position { get; internal set; } = 0;
 
     public void SetPositionTo<TBlock>(TBlock block, bool beggining = false)
         where TBlock : IInstructionBlock
@@ -33,7 +33,7 @@ public partial class SpirvBuilder() : IDisposable
             (int)SDSLOp.OpTerminateInvocation
         ];
         var wid = 0;
-        foreach (var e in Buffer)
+        foreach (var e in Buffer.Instructions)
         {
             if (e.ResultId is int id && id == block.Id)
             {
@@ -58,7 +58,7 @@ public partial class SpirvBuilder() : IDisposable
 
             wid += e.WordCount;
         }
-        Position = Buffer.Length;
+        Position = Buffer.Instructions.Count;
     }
 
     public SpirvBuffer Build(SpirvContext context)
@@ -67,7 +67,6 @@ public partial class SpirvBuilder() : IDisposable
         return SpirvBuffer.Merge(context.Buffer, Buffer);
     }
 
-    public void Dispose() => Buffer.Dispose();
     public override string ToString()
     {
         return new SpirvDis<SpirvBuffer>(Buffer).Disassemble();

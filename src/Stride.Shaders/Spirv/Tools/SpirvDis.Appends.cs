@@ -58,7 +58,7 @@ public partial struct SpirvDis<TBuffer>
     public readonly void AppendConst(int typeId, Span<int> words)
     {
         writer.Append(' ');
-        foreach (var e in buffer)
+        foreach (var e in buffer.InstructionsSpan)
         {
             if (e.ResultId is int rid && rid == typeId)
             {

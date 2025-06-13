@@ -16,8 +16,8 @@ public static partial class Examples
     public static void GenerateSpirv()
     {
         var module = new SpirvModule();
-        using var context = new SpirvContext(new());
-        using var builder = new SpirvBuilder();
+        var context = new SpirvContext(new());
+        var builder = new SpirvBuilder();
 
         context.GetOrRegister(new MatrixType(ScalarType.From("float"), 4, 3));
         context.GetOrRegister(ScalarType.From("int"));
@@ -178,7 +178,7 @@ public static partial class Examples
         dis.Disassemble(writeToConsole: true);
         File.WriteAllBytes(
             "test.spv",
-            MemoryMarshal.Cast<int, byte>(buffer.Span)
+            MemoryMarshal.Cast<int, byte>(buffer.ToBuffer().AsSpan())
         );
     }
 

@@ -12,7 +12,7 @@ public partial class SpirvBuilder
         foreach(var t in ftype.ParameterTypes)
             context.GetOrRegister(t);
         var func = Buffer.AddOpFunction(context.Bound++, context.GetOrRegister(ftype.ReturnType), mask, context.GetOrRegister(ftype));
-        Position += func.WordCount;
+        Position = Buffer.Instructions.Count;
         context.AddName(func, name);
         var result = new SpirvFunction(func.ResultId!.Value, name, ftype);
         CurrentFunction = result;
@@ -22,13 +22,12 @@ public partial class SpirvBuilder
 
     public void EndFunction(SpirvContext context)
     {
-        Position += Buffer.InsertOpFunctionEnd(Position).WordCount;
+        Buffer.InsertOpFunctionEnd(Position++);
     }
 
     public SpirvValue AddFunctionParameter(SpirvContext context, string name, SymbolType type)
     {
-        var p = Buffer.InsertOpFunctionParameter(Position, context.Bound++, context.GetOrRegister(type));
-        Position += p.WordCount;
+        var p = Buffer.InsertOpFunctionParameter(Position++, context.Bound++, context.GetOrRegister(type));
         context.AddName(p, name);
         CurrentFunction!.Value.Parameters.Add(name, new(p, name));
         return new(p, name);

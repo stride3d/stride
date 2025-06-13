@@ -18,14 +18,6 @@ public record struct Instruction(Memory<int> Memory)
     public static implicit operator IdResultType(Instruction i) => new(i.ResultId ?? throw new Exception("Instruction has no result id"));
 
 
-    public Instruction(ISpirvBuffer buffer, int index) : this(Memory<int>.Empty)
-    {
-        var wid = 0;
-        for (int i = 0; i < index; i += 1)
-            wid += buffer.InstructionSpan[wid] >> 16;
-        Memory = buffer.InstructionMemory.Slice(wid, buffer.InstructionSpan[wid] >> 16);
-    }
-
     public readonly SDSLOp OpCode => (SDSLOp)(Words[0] & 0xFFFF);
     public int? ResultId { get => GetResultId(); set => SetResultId(value); }
     public int? ResultType { get => GetResultType(); set => SetResultType(value); }

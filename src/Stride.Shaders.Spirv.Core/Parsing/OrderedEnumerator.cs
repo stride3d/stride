@@ -1,11 +1,11 @@
 ﻿using CommunityToolkit.HighPerformance.Buffers;
+using Stride.Shaders.Spirv.Core.Buffers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
-using Stride.Shaders.Spirv.Core.Buffers;
-
 using static Stride.Shaders.Spirv.Specification;
 
 namespace Stride.Shaders.Spirv.Core.Parsing;
@@ -17,77 +17,60 @@ namespace Stride.Shaders.Spirv.Core.Parsing;
 /// </summary>
 public ref struct OrderedEnumerator(ISpirvBuffer buffer)
 {
-    int index = 0;
-    int wordIndex = 0;
+    int currentPosition = 0;
     bool started = false;
     
 
-    readonly ISpirvBuffer wbuff = buffer;
-    readonly Span<int> InstructionWords => wbuff.InstructionSpan;
-
-    public readonly Instruction Current => new(wbuff.InstructionMemory.Slice(wordIndex, wbuff.InstructionSpan[wordIndex] >> 16));
+    public readonly Instruction Current => buffer.InstructionsSpan[currentPosition];
 
     public bool MoveNext()
     {
         // The first time find the lowest group and index 
         if (!started)
         {
-            (var firstGroup, var firstPos) = (int.MaxValue, int.MaxValue);
-            var wid = 0;
-            var idx = 0;
-            while(wid < InstructionWords.Length)
+            var firstGroup = int.MaxValue;
+            var firstPos = int.MaxValue;
+            for (var index = 0; index < buffer.InstructionsSpan.Length; index++)
             {
-                var group = GetGroupOrder(wid);
-                if(group < firstGroup)
+                var instruction = buffer.InstructionsSpan[index];
+                var group = GetGroupOrder(instruction);
+                if (group < firstGroup)
                 {
                     firstGroup = group;
-                    firstPos = wid;
-                    index = idx;
+                    firstPos = index;
                 }
-                idx += 1;
-                wid += InstructionWords[wid] >> 16;
             }
-            wordIndex = firstPos;
+
+            currentPosition = firstPos;
             started = true;
             return true;
         }
         else
         {
             // We start from the current group since we've established there is no other below this one
-            var currentGroup = GetGroupOrder(wordIndex);
+            var currentGroup = GetGroupOrder(buffer.InstructionsSpan[currentPosition]);
             for (int group = currentGroup; group < 15; group += 1)
             {
                 if(group == currentGroup)
                 {
-                    var offset = InstructionWords[wordIndex] >> 16;
-                    var idx = index + 1;
-                    while(wordIndex + offset <  InstructionWords.Length)
+                    for (int i = currentPosition + 1; i < buffer.InstructionsSpan.Length; ++i)
                     {
-                        if(GetGroupOrder(wordIndex + offset) == group && idx > index)
+                        if (GetGroupOrder(buffer.InstructionsSpan[i]) == group)
                         {
-                            wordIndex += offset;
-                            index = idx;
+                            currentPosition = i;
                             return true;
                         }
-                        offset += InstructionWords[wordIndex + offset] >> 16;
-                        idx += 1;
                     }
                 }
                 else
                 {
-                    var wid = 0;
-                    var idx = 0;
-                    while (wid < InstructionWords.Length)
+                    for (int i = 0; i < buffer.InstructionsSpan.Length; ++i)
                     {
-                        var g = GetGroupOrder(wid);
-                        if (g == group)
+                        if (GetGroupOrder(buffer.InstructionsSpan[i]) == group)
                         {
-                            wordIndex = wid;
-                            index = idx;
+                            currentPosition = i;
                             return true;
                         }
-                        idx += 1;
-                        wid += InstructionWords[wid] >> 16;
                     }
                 }
             }
@@ -96,9 +79,8 @@ public ref struct OrderedEnumerator(ISpirvBuffer buffer)
 
     }
 
-    readonly int GetGroupOrder(int wid)
+    readonly int GetGroupOrder(Instruction instruction)
     {
-        var op = (SDSLOp)(InstructionWords[wid] & 0xFFFF);
-        return InstructionInfo.GetGroupOrder(op, op == SDSLOp.OpVariable ? (StorageClass)InstructionWords[wid + 3] : null);
+        return InstructionInfo.GetGroupOrder(instruction.OpCode, instruction.OpCode == SDSLOp.OpVariable ? (StorageClass)instruction.Words[3] : null);
     }
 }
