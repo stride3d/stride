@@ -1,0 +1,90 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
+                    xmlns:caecp="using:Stride.Core.Assets.Editor.Components.Properties"
+                    xmlns:caev="using:Stride.Core.Assets.Editor.Avalonia.Views"
+                    xmlns:cpqvm="using:Stride.Core.Presentation.Quantum.ViewModels">
+  <ControlTheme x:Key="PropertyExpanderTheme" TargetType="Expander">
+    <Setter Property="Padding" Value="10,0,0,0"/>
+    <Setter Property="Template">
+      <ControlTemplate TargetType="Expander">
+        <Border BorderThickness="0" Margin="0" Padding="0"
+                HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+          <ContentPresenter Content="{TemplateBinding Content}"
+                            ContentTemplate="{TemplateBinding ContentTemplate}"
+                            HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                            VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                            IsVisible="{TemplateBinding IsExpanded}"
+                            Focusable="False"/>
+        </Border>
+      </ControlTemplate>
+    </Setter>
+  </ControlTheme>
+  <ControlTheme x:Key="{x:Type sd:PropertyView}" TargetType="sd:PropertyView" BasedOn="{StaticResource {x:Type ItemsControl}}">
+    <Setter Property="HorizontalAlignment" Value="Stretch"/>
+    <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto" />
+    <Setter Property="Template">
+      <ControlTemplate TargetType="sd:PropertyView">
+        <Border Padding="{TemplateBinding Padding}"
+                Background="{TemplateBinding Background}"
+                BorderBrush="{TemplateBinding BorderBrush}"
+                BorderThickness="{TemplateBinding BorderThickness}"
+                CornerRadius="{TemplateBinding CornerRadius}">
+          <ScrollViewer AllowAutoHide="False"
+                        HorizontalScrollBarVisibility="{TemplateBinding ScrollViewer.HorizontalScrollBarVisibility}"
+                        VerticalScrollBarVisibility="{TemplateBinding ScrollViewer.VerticalScrollBarVisibility}" >
+            <ItemsPresenter Name="PART_ItemsPresenter"
+                            ItemsPanel="{TemplateBinding ItemsPanel}" />
+          </ScrollViewer>
+        </Border>
+      </ControlTemplate>
+    </Setter>
+  </ControlTheme>
+  <ControlTheme x:Key="{x:Type sd:PropertyViewItem}" TargetType="sd:PropertyViewItem"
+                x:DataType="cpqvm:NodeViewModel">
+    <Setter Property="Background" Value="Transparent"/>
+    <Setter Property="Increment" Value="12"/>
+    <Setter Property="HorizontalAlignment" Value="Stretch"/>
+    <Setter Property="HeaderTemplate">
+      <TreeDataTemplate ItemsSource="{Binding Children, Mode=OneWay}" DataType="cpqvm:NodeViewModel">
+        <ContentPresenter Content="{Binding}"
+                          ContentTemplate="{x:Static caev:PropertyViewHelper.HeaderProviders}"/>
+      </TreeDataTemplate>
+    </Setter>
+    <Setter Property="Template">
+      <ControlTemplate TargetType="sd:PropertyViewItem">
+        <Border BorderBrush="{TemplateBinding Border.BorderBrush}"
+                BorderThickness="{TemplateBinding Border.BorderThickness}"
+                IsVisible="{Binding IsVisible}">
+          <DockPanel>
+            <Border DockPanel.Dock="Top" Background="{TemplateBinding Background}">
+              <ContentPresenter Name="PART_Header"
+                                Content="{TemplateBinding HeaderedContentControl.Header}"
+                                ContentTemplate="{TemplateBinding HeaderTemplate}"
+                                HorizontalAlignment="{TemplateBinding Control.HorizontalAlignment}"
+                                IsVisible="{sd:MultiBinding {Binding !$parent[sd:PropertyView].((caecp:SessionObjectPropertiesViewModel)DataContext).ShowOverridesOnly, FallbackValue={sd:True}},
+                                                               {Binding [IsOverridden]},
+                                                               {Binding ![HasBase]},
+                                                               Converter={sd:OrMulti}}"/>
+            </Border>
+            <Expander IsEnabled="True" IsExpanded="{Binding IsExpanded, RelativeSource={RelativeSource TemplatedParent}}"
+                      HorizontalAlignment="Stretch"
+                      Theme="{StaticResource PropertyExpanderTheme}">
+              <StackPanel>
+                <ItemsPresenter Name="ItemsHost"/>
+                <ContentPresenter Name="PART_Footer"
+                                  Content="{TemplateBinding HeaderedContentControl.Header}"
+                                  ContentTemplate="{x:Static caev:PropertyViewHelper.FooterProviders}"
+                                  HorizontalAlignment="{TemplateBinding Control.HorizontalAlignment}"
+                                  IsVisible="{sd:MultiBinding {Binding !$parent[sd:PropertyView].((caecp:SessionObjectPropertiesViewModel)DataContext).ShowOverridesOnly, FallbackValue={sd:True}},
+                                                                {Binding [IsOverridden]},
+                                                                {Binding ![HasBase]},
+                                                                Converter={sd:OrMulti}}"/>
+              </StackPanel>
+            </Expander>
+          </DockPanel>
+        </Border>
+      </ControlTemplate>
+    </Setter>
+  </ControlTheme>
+</ResourceDictionary>
