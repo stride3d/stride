@@ -6,7 +6,7 @@ using Stride.Shaders.Parsing.SDSL.AST;
 using Stride.Shaders.Spirv.Core;
 using Stride.Shaders.Spirv.Core.Buffers;
 using Stride.Shaders.Spirv.Tools;
-using static Spv.Specification;
+using static Stride.Shaders.Spirv.Specification;
 
 //Examples.CompileSDSL();
 Examples.MergeSDSL();

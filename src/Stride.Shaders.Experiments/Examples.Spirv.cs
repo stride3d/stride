@@ -6,7 +6,7 @@ using Stride.Shaders.Spirv.Core.Buffers;
 using Stride.Shaders.Spirv.Core.Parsing;
 using Stride.Shaders.Spirv.Tools;
 using Stride.Shaders.Spirv.Building;
-using static Spv.Specification;
+using static Stride.Shaders.Spirv.Specification;
 
 namespace Stride.Shaders.Experiments;
 
@@ -150,7 +150,7 @@ public static partial class Examples
         buffer.AddOpMemberName(t_struct, 1, "v");
         buffer.AddOpMemberName(t_struct, 2, "i");
 
-        var add = buffer.AddOpFunction(id++, t_int, FunctionControlMask.MaskNone, t_func_add);
+        var add = buffer.AddOpFunction(id++, t_int, FunctionControlMask.None, t_func_add);
         var a = buffer.AddOpFunctionParameter(id++, t_int);
         var b = buffer.AddOpFunctionParameter(id++, t_int);
         buffer.AddOpLabel(id++);
@@ -158,7 +158,7 @@ public static partial class Examples
         buffer.AddOpReturnValue(res);
         buffer.AddOpFunctionEnd();
 
-        var main = buffer.AddOpFunction(id++, t_void, FunctionControlMask.MaskNone, t_func);
+        var main = buffer.AddOpFunction(id++, t_void, FunctionControlMask.None, t_func);
         buffer.AddOpEntryPoint(ExecutionModel.Fragment, main, "PSMain", [v_output, v_input, v_input_2, v_input_3]);
         buffer.AddOpExecutionMode(main, ExecutionMode.OriginLowerLeft);
 

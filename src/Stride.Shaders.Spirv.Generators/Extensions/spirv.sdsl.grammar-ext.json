@@ -128,9 +128,15 @@
       "opname": "OpSDSLVariable",
       "class": "Memory",
       "operands": [
-        { "kind": "IdResultType" },
-        { "kind": "IdResult" },
-        { "kind": "StorageClass" },
+        {
+          "kind": "IdResultType"
+        },
+        {
+          "kind": "IdResult"
+        },
+        {
+          "kind": "StorageClass"
+        },
         {
           "kind": "LiteralString",
           "name": "name"
@@ -146,8 +152,12 @@
       "opname": "OpSDSLFunctionParameter",
       "class": "Function",
       "operands": [
-        { "kind": "IdResultType" },
-        { "kind": "IdResult" },
+        {
+          "kind": "IdResultType"
+        },
+        {
+          "kind": "IdResult"
+        },
         {
           "kind": "LiteralString",
           "name": "name"
@@ -158,10 +168,18 @@
       "opname": "OpSDSLIOVariable",
       "class": "Memory",
       "operands": [
-        { "kind": "IdResultType" },
-        { "kind": "IdResult" },
-        { "kind": "StorageClass" },
-        { "kind": "ExecutionModel" },
+        {
+          "kind": "IdResultType"
+        },
+        {
+          "kind": "IdResult"
+        },
+        {
+          "kind": "StorageClass"
+        },
+        {
+          "kind": "ExecutionModel"
+        },
         {
           "kind": "LiteralString",
           "name": "name"
@@ -181,9 +199,15 @@
       "opname": "OpSDSLFunction",
       "class": "Function",
       "operands": [
-        { "kind": "IdResultType" },
-        { "kind": "IdResult" },
-        { "kind": "FunctionControl" },
+        {
+          "kind": "IdResultType"
+        },
+        {
+          "kind": "IdResult"
+        },
+        {
+          "kind": "FunctionControl"
+        },
         {
           "kind": "IdRef",
           "name": "'Function Type'"
@@ -191,6 +215,17 @@
         {
           "kind": "LiteralString",
           "name": "functionName"
+        }
+      ]
+    }
+  ],
+  "operand_kinds": [
+    {
+      "kind": "ExecutionModel",
+      "enumerants": [
+        {
+          "enumerant": "Mixin",
+          "value": 5367
         }
       ]
     }

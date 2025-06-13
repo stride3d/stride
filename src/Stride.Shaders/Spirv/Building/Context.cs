@@ -5,7 +5,7 @@ using Stride.Shaders.Spirv.Core.Buffers;
 using Stride.Shaders.Spirv.Tools;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
-using static Spv.Specification;
+using static Stride.Shaders.Spirv.Specification;
 
 namespace Stride.Shaders.Spirv.Building;
 
@@ -186,7 +186,7 @@ public class SpirvContext(SpirvModule module) : IDisposable
     IdRef RegisterPointerType(PointerType pointerType)
     {
         var baseType = GetOrRegister(pointerType.BaseType);
-        var result = Buffer.AddOpTypePointer(Bound++, Spv.Specification.StorageClass.Function, baseType);
+        var result = Buffer.AddOpTypePointer(Bound++, Specification.StorageClass.Function, baseType);
         AddName(result, pointerType.ToId());
         return result;
     }

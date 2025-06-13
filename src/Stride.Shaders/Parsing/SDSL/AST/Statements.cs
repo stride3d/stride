@@ -1,7 +1,7 @@
 using System.Text;
-using Spv;
 using Stride.Shaders.Core;
 using Stride.Shaders.Parsing.Analysis;
+using Stride.Shaders.Spirv;
 using Stride.Shaders.Spirv.Building;
 using Stride.Shaders.Spirv.Core;
 using Stride.Shaders.Spirv.Core.Buffers;
@@ -163,7 +163,7 @@ public class Declare(TypeName typename, TextLocation info) : Declaration(typenam
         foreach (var d in Variables)
         {
             var variable = context.Bound++;
-            var instruction = builder.Buffer.InsertOpVariable(builder.Position, variable, registeredType, Spv.Specification.StorageClass.Function, null);
+            var instruction = builder.Buffer.InsertOpVariable(builder.Position, variable, registeredType, Specification.StorageClass.Function, null);
             builder.Position += instruction.WordCount;
             context.AddName(variable, d.Variable);
 
@@ -203,7 +203,7 @@ public class Assign(TextLocation info) : Statement(info)
             {
                 var sourceLoad = context.Bound++;
                 var underlyingType = context.GetOrRegister(p.BaseType);
-                builder.Position += builder.Buffer.InsertOpLoad(builder.Position, sourceLoad, underlyingType, source.Id, Specification.MemoryAccessMask.MaskNone).WordCount;
+                builder.Position += builder.Buffer.InsertOpLoad(builder.Position, sourceLoad, underlyingType, source.Id, Specification.MemoryAccessMask.None).WordCount;
                 source = new(sourceLoad, underlyingType);
             }
 

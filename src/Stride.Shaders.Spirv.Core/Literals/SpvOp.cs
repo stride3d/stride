@@ -1,6 +1,6 @@
 using System.Runtime.CompilerServices;
 using System;
-using static Spv.Specification;
+using static Stride.Shaders.Spirv.Specification;
 
 namespace Stride.Shaders.Spirv.Core;
 

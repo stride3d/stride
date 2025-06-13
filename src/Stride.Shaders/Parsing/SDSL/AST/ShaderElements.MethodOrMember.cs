@@ -1,7 +1,7 @@
-using Spv;
 using Stride.Shaders.Core;
 using Stride.Shaders.Core.Analysis;
 using Stride.Shaders.Parsing.Analysis;
+using Stride.Shaders.Spirv;
 using Stride.Shaders.Spirv.Building;
 using Stride.Shaders.Spirv.Core;
 using Stride.Shaders.Spirv.Tools;
@@ -87,7 +87,7 @@ public sealed class ShaderMember(
         var registeredType = context.GetOrRegister(Type);
         var variable = context.Bound++;
         // TODO: Add a StreamSDSL storage class?
-        context.Buffer.AddOpVariable(variable, registeredType, Spv.Specification.StorageClass.Private, null);
+        context.Buffer.AddOpVariable(variable, registeredType, Specification.StorageClass.Private, null);
         context.Variables.Add(Name, new(variable, registeredType, Name));
         if (Semantic != null)
             context.Buffer.AddOpSDSLDecorateSemantic(variable, Semantic.Name);

@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Stride.Shaders.Spirv.Core.Buffers;
 
-using static Spv.Specification;
+using static Stride.Shaders.Spirv.Specification;
 
 namespace Stride.Shaders.Spirv.Core.Parsing;
 

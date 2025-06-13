@@ -179,7 +179,7 @@ namespace Stride.Shaders.Spirv.Processing
 
             // Add new entry point wrapper
             var newEntryPointFunctionType = context.Buffer.AddOpTypeFunction(context.Bound++, outputStructId, MemoryMarshal.CreateSpan(ref inputStructPtrId, 1));
-            var newEntryPointFunction = compiler.Builder.Buffer.AddOpFunction(context.Bound++, outputStructId, Specification.FunctionControlMask.MaskNone, newEntryPointFunctionType);
+            var newEntryPointFunction = compiler.Builder.Buffer.AddOpFunction(context.Bound++, outputStructId, Specification.FunctionControlMask.None, newEntryPointFunctionType);
             context.AddName(newEntryPointFunction, $"{entryPointName}_Wrapper");
 
             {
