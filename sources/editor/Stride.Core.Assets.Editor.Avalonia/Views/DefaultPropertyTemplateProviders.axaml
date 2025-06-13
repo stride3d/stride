@@ -239,8 +239,8 @@
           </TextBox>
           <CheckBox Grid.Column="3"
                     Margin="2,0" HorizontalAlignment="Left" VerticalAlignment="Center"
-                    IsChecked="{ReflectionBinding [Enabled].NodeValue, Converter={caec:DifferentValuesToParam}, ConverterParameter={x:Null}, FallbackValue={x:False}, TargetNullValue={x:False}}"
-                    IsThreeState="{ReflectionBinding [Enabled].NodeValue, Converter={sd:IsEqualToParam}, ConverterParameter={x:Static cpqvm:NodeViewModel.DifferentValues}, FallbackValue={x:False}, TargetNullValue={x:False}}"
+                    IsChecked="{ReflectionBinding [Enabled]?.NodeValue, Converter={caec:DifferentValuesToParam}, ConverterParameter={x:Null}, TargetNullValue={x:False}}"
+                    IsThreeState="{ReflectionBinding [Enabled]?.NodeValue, Converter={sd:IsEqualToParam}, ConverterParameter={x:Static cpqvm:NodeViewModel.DifferentValues}, TargetNullValue={x:False}}"
                     IsVisible="{Binding [HasChild_Enabled], FallbackValue={x:False}}"/>
           <Interaction.Behaviors>
             <DataTriggerBehavior Binding="{sd:MultiBinding {Binding ConverterParameter=[IsOverridden], Converter={caec:NodePathToObject}},
@@ -310,8 +310,8 @@
         <StackPanel Orientation="Horizontal" Margin="8,0,0,0">
           <CheckBox Margin="4,0" VerticalAlignment="Center"
                     IsVisible="{Binding [HasChild_Enabled]}"
-                    IsChecked="{ReflectionBinding [Enabled].NodeValue, Converter={caec:DifferentValuesToParam}, ConverterParameter={x:Null}, FallbackValue={x:False}, TargetNullValue={x:False}}"
-                    IsThreeState="{ReflectionBinding [Enabled].NodeValue, Converter={sd:IsEqualToParam}, ConverterParameter={x:Static cpqvm:NodeViewModel.DifferentValues}, FallbackValue={x:False}, TargetNullValue={x:False}}"/>
+                    IsChecked="{ReflectionBinding [Enabled]?.NodeValue, Converter={caec:DifferentValuesToParam}, ConverterParameter={x:Null}, TargetNullValue={x:False}}"
+                    IsThreeState="{ReflectionBinding [Enabled]?.NodeValue, Converter={sd:IsEqualToParam}, ConverterParameter={x:Static cpqvm:NodeViewModel.DifferentValues}, TargetNullValue={x:False}}"/>
           <Image Source="{Binding NodeValue, Converter={sd:Chained {sd:ObjectToType}, {caec:TypeToResource}}}"
                  MaxWidth="16" MaxHeight="16" Margin="0,0,4,0"/>
           <TextBlock x:Name="HeaderTextBlock" FontSize="16" TextTrimming="CharacterEllipsis"
@@ -1437,7 +1437,7 @@
               <Image x:Name="ThumbnailImage"
                      Width="64" Height="64"
                      DataContext="{Binding ((capvm:AssetViewModel)NodeValue), Converter={caec:ContentReferenceToAsset}}"
-                     Source="{Binding ThumbnailData.Presenter, Mode=OneWay}"/>
+                     Source="{Binding ThumbnailData?.Presenter, Mode=OneWay}"/>
               <Interaction.Behaviors>
                 <!-- FIXME only on pointer down -->
                 <EventTriggerBehavior EventName="PointerPressed" >

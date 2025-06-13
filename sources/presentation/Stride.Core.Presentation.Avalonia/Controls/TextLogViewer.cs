@@ -586,6 +586,7 @@ public sealed class TextLogViewer : TemplatedControl
     {
         searchMatches.Clear();
         previousRange = default;
+        textBlock!.ClearSelection();
     }
 
     private void SelectFirstOccurrence()
