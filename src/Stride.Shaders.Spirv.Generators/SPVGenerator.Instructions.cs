@@ -75,7 +75,7 @@ public partial class SPVGenerator : IIncrementalGenerator
                             else if (operand.Class == "ValueEnum")
                                 builder.AppendLine($"public {operand.Kind} {fieldName} => Inner.GetEnumOperand<{operand.Kind}>(\"{operandName}\");");
                             else
-                                builder.AppendLine($"public {operand.Kind} {fieldName} => Inner.GetOperand<{operand.Kind}/*{operand.Class}*/>(\"{operandName}\") ?? default;");
+                                builder.AppendLine($"public {operand.Kind} {fieldName} => Inner.GetOperand<{operand.Kind}>(\"{operandName}\") ?? default;");
                         }
                     }
                 }
