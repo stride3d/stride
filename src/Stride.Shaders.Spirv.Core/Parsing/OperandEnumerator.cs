@@ -17,16 +17,7 @@ public ref struct OperandEnumerator
     public OperandEnumerator(Instruction instruction)
     {
         this.instruction = instruction;
-        Decoration? decoration = instruction.OpCode switch
-        {
-            SDSLOp.OpDecorateString
-            or SDSLOp.OpDecorate
-            or SDSLOp.OpDecorateId => (Decoration)instruction.Operands[1],
-            SDSLOp.OpMemberDecorate
-            or SDSLOp.OpMemberDecorateString => (Decoration)instruction.Operands[2],
-            _ => null
-        };
-        logicalOperands = InstructionInfo.GetInfo(new(instruction.OpCode, decoration));
+        logicalOperands = InstructionInfo.GetInfo(instruction);
         oid = -1;
         wid = 0;
     }

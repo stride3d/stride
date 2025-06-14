@@ -40,7 +40,7 @@ public record struct Instruction(Memory<int> Memory)
     public T? GetOperand<T>(string name)
         where T : struct, IFromSpirv<T>
     {
-        var info = InstructionInfo.GetInfo(OpCode);
+        var info = InstructionInfo.GetInfo(this);
         var infoEnumerator = info.GetEnumerator();
         var operandEnumerator = GetEnumerator();
         while (infoEnumerator.MoveNext())
@@ -59,7 +59,7 @@ public record struct Instruction(Memory<int> Memory)
     internal T? GetEnumOperand<T>(string name)
         where T : Enum
     {
-        var info = InstructionInfo.GetInfo(OpCode);
+        var info = InstructionInfo.GetInfo(this);
         var infoEnumerator = info.GetEnumerator();
         var operandEnumerator = GetEnumerator();
         while (infoEnumerator.MoveNext())
@@ -110,7 +110,7 @@ public record struct Instruction(Memory<int> Memory)
     public bool TryGetOperand<T>(string name, out T? operand)
         where T : struct, IFromSpirv<T>
     {
-        var info = InstructionInfo.GetInfo(OpCode);
+        var info = InstructionInfo.GetInfo(this);
         var infoEnumerator = info.GetEnumerator();
         var operandEnumerator = GetEnumerator();
         while (infoEnumerator.MoveNext())

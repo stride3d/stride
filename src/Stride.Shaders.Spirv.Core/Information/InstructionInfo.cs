@@ -46,7 +46,7 @@ public partial class InstructionInfo
         Info.Add(new(SDSLOp.OpDecorate, Decoration.SecondaryViewportRelativeNV), new(null, [new(OperandKind.IdRef, OperandQuantifier.One, "target"), new(OperandKind.Decoration, OperandQuantifier.One, "decoration"), new(OperandKind.LiteralInteger, OperandQuantifier.One, "viewportIndex")]));
         Info.Add(new(SDSLOp.OpDecorate, Decoration.CounterBuffer), new(null, [new(OperandKind.IdRef, OperandQuantifier.One, "target"), new(OperandKind.Decoration, OperandQuantifier.One, "decoration"), new(OperandKind.IdRef, OperandQuantifier.One, "counterBufferId")]));
         Info.Add(new(SDSLOp.OpDecorate, Decoration.FuncParamAttr), new(null, [new(OperandKind.IdRef, OperandQuantifier.One, "target"), new(OperandKind.Decoration, OperandQuantifier.One, "decoration"), new(OperandKind.FunctionParameterAttribute, OperandQuantifier.One, "functionParameterAttribute")]));
-        Info.Add(new(SDSLOp.OpDecorate, Decoration.UserSemantic), new(null, [new(OperandKind.IdRef, OperandQuantifier.One, "target"), new(OperandKind.Decoration, OperandQuantifier.One, "decoration"), new(OperandKind.LiteralString, OperandQuantifier.One, "semanticName")]));
+        Info.Add(new(SDSLOp.OpDecorateString, Decoration.UserSemantic), new(null, [new(OperandKind.IdRef, OperandQuantifier.One, "target"), new(OperandKind.Decoration, OperandQuantifier.One, "decoration"), new(OperandKind.LiteralString, OperandQuantifier.One, "semanticName")]));
 
         Info.Add(new(SDSLOp.OpMemberDecorate, Decoration.SpecId), new(null, [new(OperandKind.IdRef, OperandQuantifier.One, "target"), new(OperandKind.LiteralInteger, OperandQuantifier.One, "accessor"), new(OperandKind.Decoration, OperandQuantifier.One, "decoration"), new(OperandKind.IdRef, OperandQuantifier.One, "specId")]));
         Info.Add(new(SDSLOp.OpMemberDecorate, Decoration.ArrayStride), new(null, [new(OperandKind.IdRef, OperandQuantifier.One, "target"), new(OperandKind.LiteralInteger, OperandQuantifier.One, "accessor"), new(OperandKind.Decoration, OperandQuantifier.One, "decoration"), new(OperandKind.LiteralInteger, OperandQuantifier.One, "arrayStride")]));
@@ -71,7 +71,7 @@ public partial class InstructionInfo
         Info.Add(new(SDSLOp.OpMemberDecorate, Decoration.SecondaryViewportRelativeNV), new(null, [new(OperandKind.IdRef, OperandQuantifier.One, "target"), new(OperandKind.LiteralInteger, OperandQuantifier.One, "accessor"), new(OperandKind.Decoration, OperandQuantifier.One, "decoration"), new(OperandKind.LiteralInteger, OperandQuantifier.One, "viewportIndex")]));
         Info.Add(new(SDSLOp.OpMemberDecorate, Decoration.CounterBuffer), new(null, [new(OperandKind.IdRef, OperandQuantifier.One, "target"), new(OperandKind.LiteralInteger, OperandQuantifier.One, "accessor"), new(OperandKind.Decoration, OperandQuantifier.One, "decoration"), new(OperandKind.IdRef, OperandQuantifier.One, "counterBufferId")]));
         Info.Add(new(SDSLOp.OpMemberDecorate, Decoration.FuncParamAttr), new(null, [new(OperandKind.IdRef, OperandQuantifier.One, "target"), new(OperandKind.LiteralInteger, OperandQuantifier.One, "accessor"), new(OperandKind.Decoration, OperandQuantifier.One, "decoration"), new(OperandKind.FunctionParameterAttribute, OperandQuantifier.One, "functionParameterAttribute")]));
-        Info.Add(new(SDSLOp.OpMemberDecorate, Decoration.UserSemantic), new(null, [new(OperandKind.IdRef, OperandQuantifier.One, "target"), new(OperandKind.LiteralInteger, OperandQuantifier.One, "accessor"), new(OperandKind.Decoration, OperandQuantifier.One, "decoration"), new(OperandKind.LiteralString, OperandQuantifier.One, "semanticName")]));
+        Info.Add(new(SDSLOp.OpMemberDecorateString, Decoration.UserSemantic), new(null, [new(OperandKind.IdRef, OperandQuantifier.One, "target"), new(OperandKind.LiteralInteger, OperandQuantifier.One, "accessor"), new(OperandKind.Decoration, OperandQuantifier.One, "decoration"), new(OperandKind.LiteralString, OperandQuantifier.One, "semanticName")]));
 
     }
     /// <summary>
@@ -99,5 +99,18 @@ public partial class InstructionInfo
         if(op.Decoration is not null && !Instance.Info.ContainsKey(op))
             return Instance.Info[op with { Decoration = null }];
         return Instance.Info[op];
+    }
+    public static LogicalOperandArray GetInfo(Instruction instruction)
+    {
+        Decoration? decoration = instruction.OpCode switch
+        {
+            SDSLOp.OpDecorateString
+                or SDSLOp.OpDecorate
+                or SDSLOp.OpDecorateId => (Decoration)instruction.Operands[1],
+            SDSLOp.OpMemberDecorate
+                or SDSLOp.OpMemberDecorateString => (Decoration)instruction.Operands[2],
+            _ => null
+        };
+        return GetInfo(new OperandKey(instruction.OpCode, decoration));
     }
 }
