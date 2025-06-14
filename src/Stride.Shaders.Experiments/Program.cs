@@ -14,3 +14,7 @@ Examples.MergeSDSL();
 Examples.CreateShader();
 
 var buffer = new SpirvBuffer(32);
+var t_int = buffer.AddOpTypeInt(1, 32, 0);
+buffer.AddOpTypeStruct(2, [t_int, t_int]);
+
+new SpirvDis<SpirvBuffer>(buffer).Disassemble(true);

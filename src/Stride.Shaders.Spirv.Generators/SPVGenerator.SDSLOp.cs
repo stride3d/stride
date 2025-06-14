@@ -49,7 +49,7 @@ public partial class SPVGenerator
                 .AppendLine("public enum SDSLOp : int")
                 .AppendLine("{");
 
-        Dictionary<string, int> members = instructionArray?.Where(x => !x.OpName.Contains("SDSL")).ToDictionary(x => x.OpName, y => y.OpCode)!;
+        Dictionary<string, int> members = instructionArray.Where(x => !x.OpName.Contains("SDSL")).ToDictionary(x => x.OpName, y => y.OpCode)!;
         int lastnum = members.Values.Max();
         foreach (var instruction in instructionArray!)
         {
