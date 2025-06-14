@@ -90,9 +90,7 @@ public sealed class ShaderMember(
         context.Buffer.AddOpVariable(variable, registeredType, Specification.StorageClass.Private, null);
         context.Variables.Add(Name, new(variable, registeredType, Name));
         if (Semantic != null)
-            context.Buffer.AddOpSDSLDecorateSemantic(variable, Semantic.Name);
-        //if (Semantic != null)
-        //    context.Buffer.AddOpDecorateString(variable, Specification.Decoration.UserSemantic, null, null, Semantic.Name);
+            context.Buffer.AddOpDecorateString(variable, Specification.Decoration.UserSemantic, null, null, Semantic.Name);
         context.AddName(variable, Name);
     }
 

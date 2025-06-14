@@ -97,9 +97,10 @@ namespace Stride.Shaders.Spirv.Processing
                 }
 
                 {
-                    if (instruction.OpCode == SDSLOp.OpSDSLDecorateSemantic
+                    if (instruction.OpCode == SDSLOp.OpDecorateString
+                        && instruction.UnsafeAs<InstOpDecorateString>().Decoration == Specification.Decoration.UserSemantic
                         && instruction.TryGetOperand("target", out IdRef? target) && target is IdRef t
-                        && instruction.TryGetOperand("semantic", out LiteralString? name) && name is LiteralString n
+                        && instruction.TryGetOperand("semanticName", out LiteralString? name) && name is LiteralString n
                        )
                     {
                         semanticTable[t] = n.Value;

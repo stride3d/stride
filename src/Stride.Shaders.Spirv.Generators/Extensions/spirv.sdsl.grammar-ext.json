@@ -1,20 +1,6 @@
 {
   "instructions": [
     {
-      "opname": "OpSDSLDecorateSemantic",
-      "class": "Miscellaneous",
-      "operands": [
-        {
-          "kind": "IdRef",
-          "name": "'Target'"
-        },
-        {
-          "kind": "LiteralString",
-          "name": "semantic"
-        }
-      ]
-    },
-    {
       "opname": "OpSDSLShader",
       "class": "Miscellaneous",
       "operands": [
