@@ -88,6 +88,7 @@ public record struct OperandData
     public string? Quantifier { get; set; }
     public string? Class { get; set; }
     public string? TypeName { get; set; }
+    public bool IsIndexKnown { get; set; }
 }
 
 public record struct InstructionData

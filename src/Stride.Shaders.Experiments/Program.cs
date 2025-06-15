@@ -9,12 +9,13 @@ using Stride.Shaders.Spirv.Tools;
 using static Stride.Shaders.Spirv.Specification;
 
 //Examples.CompileSDSL();
-Examples.MergeSDSL();
+// Examples.MergeSDSL();
 // Examples.TryAllFiles();
-Examples.CreateShader();
+// Examples.CreateShader();
 
 var buffer = new SpirvBuffer(32);
 var t_int = buffer.AddOpTypeInt(1, 32, 0);
-buffer.AddOpTypeStruct(2, [t_int, t_int]);
-
-new SpirvDis<SpirvBuffer>(buffer).Disassemble(true);
+InstOpTypeStruct tstr = buffer.AddOpTypeStruct(3, [t_int, t_int]);
+InstOpExecutionMode tmode = buffer.AddOpExecutionMode(4, ExecutionMode.LocalSize);
+tmode.Mode = ExecutionMode.Invocations;
+Console.WriteLine(tmode.Mode);
