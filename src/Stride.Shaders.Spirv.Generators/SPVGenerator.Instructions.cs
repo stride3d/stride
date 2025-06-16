@@ -13,16 +13,16 @@ public partial class SPVGenerator : IIncrementalGenerator
     {
         var sdslInstructionsData =
             grammarProvider
-            .Select(static (grammar, _) => grammar.Instructions);
+            .Select(static (grammar, _) => grammar.Instructions ?? new([]));
 
         context.RegisterImplementationSourceOutput(
             sdslInstructionsData,
-            (source, instructions) => GenerateInstructionStructs(source, instructions)
+            GenerateInstructionStructs
         );
 
     }
 
-    public static void GenerateInstructionStructs(SourceProductionContext spc, EquatableList<InstructionData>? instructions)
+    public static void GenerateInstructionStructs(SourceProductionContext spc, EquatableList<InstructionData> instructions)
     {
 
         StringBuilder builder = new();
@@ -32,40 +32,66 @@ public partial class SPVGenerator : IIncrementalGenerator
             .AppendLine("namespace Stride.Shaders.Spirv.Core;")
             .AppendLine()
             .AppendLine();
-        if (instructions is not null)
+
+        foreach (var instruction in instructions)
         {
-            foreach (var instruction in instructions)
+
+            builder
+            .AppendLine($"public ref struct Inst{instruction.OpName} : IWrapperInstruction")
+            .AppendLine("{")
+            .AppendLine("public Instruction Inner { get; set; }");
+            try
             {
-
-                builder
-                .AppendLine($"public ref struct Inst{instruction.OpName} : IWrapperInstruction")
-                .AppendLine("{")
-                .AppendLine("public Instruction Inner { get; set; }");
-                try
+                if (instruction.Operands?.AsList() is List<OperandData> operands && operands.Count > 0)
                 {
-                    if (instruction.Operands != null)
+                    var tmp = 1;
+                    foreach (var operand in operands)
                     {
-                        foreach (var operand in instruction.Operands)
+                        string fieldName;
+                        string operandName = ConvertOperandName(operand.Name ?? ConvertKindToName(operand.Kind), operand.Quantifier);
+                        if (operand.Name is null or "")
+                            fieldName = ConvertKindToName(operand.Kind, false);
+                        else
                         {
-                            string fieldName;
-                            string operandName = ConvertOperandName(operand.Name ?? ConvertKindToName(operand.Kind), operand.Quantifier);
-                            if (operand.Name is null or "")
-                                fieldName = ConvertKindToName(operand.Kind, false);
-                            else
+                            var nameBuilder = new StringBuilder();
+                            bool first = true;
+                            foreach (var c in operand.Name)
                             {
-                                var nameBuilder = new StringBuilder();
-                                bool first = true;
-                                foreach (var c in operand.Name)
+                                if (char.IsLetterOrDigit(c) || c == '_')
                                 {
-                                    if (char.IsLetterOrDigit(c) || c == '_')
-                                    {
-                                        nameBuilder.Append(first ? char.ToUpperInvariant(c) : c);
-                                        first &= false;
-                                    }
-
+                                    nameBuilder.Append(first ? char.ToUpperInvariant(c) : c);
+                                    first &= false;
                                 }
-                                fieldName = nameBuilder.ToString();
+
                             }
+                            fieldName = nameBuilder.ToString();
+                        }
+
+                        if (operand.IsIndexKnown && operand.Class == "Id" || operand.Class == "BitEnum" || operand.Class == "ValueEnum" || operand.Kind == "LiteralExtInstInteger" || operand.Kind == "LiteralSpecConstantOpInteger")
+                        {
+                            if (operand.Kind == "LiteralExtInstInteger" || operand.Kind == "LiteralSpecConstantOpInteger")
+                            {
+                                builder.AppendLine($"public int {fieldName} {{get => Inner.Memory.Span[{tmp}]; set => Inner.Memory.Span[{tmp}] = value;}}");
+                                tmp += 1;
+                            }
+                            else if (operand.Class == "BitEnum")
+                            {
+                                builder.AppendLine($"public {operand.Kind}Mask {fieldName} {{get => ({operand.Kind}Mask)Inner.Memory.Span[{tmp}]; set => Inner.Memory.Span[{tmp}] = (int)value;}}");
+                                tmp += 1;
+                            }
+                            else if (operand.Class == "ValueEnum")
+                            {
+                                builder.AppendLine($"public {operand.Kind} {fieldName} {{get => ({operand.Kind})Inner.Memory.Span[{tmp}]; set => Inner.Memory.Span[{tmp}] = (int)value;}}");
+                                tmp += 1;
+                            }
+                            else if (operand.Class == "Id")
+                            {
+                                builder.AppendLine($"public {operand.Kind} {fieldName} {{get => new {operand.Kind}(Inner.Memory.Span[{tmp}]); set => Inner.Memory.Span[{tmp}] = value;}}");
+                                tmp += 1;
+                            }
+                        }
+                        else
+                        {
                             if (operand.Kind == "LiteralContextDependentNumber")
                                 continue;
                             else if (operand.Kind == "LiteralInteger" || operand.Kind == "LiteralExtInstInteger" || operand.Kind == "LiteralSpecConstantOpInteger")
@@ -75,26 +101,28 @@ public partial class SPVGenerator : IIncrementalGenerator
                             else if (operand.Class == "ValueEnum")
                                 builder.AppendLine($"public {operand.Kind} {fieldName} => Inner.GetEnumOperand<{operand.Kind}>(\"{operandName}\");");
                             else
-                                builder.AppendLine($"public {operand.Kind} {fieldName} => Inner.GetOperand<{operand.Kind}/*{operand.Class}*/>(\"{operandName}\") ?? default;");
+                                builder.AppendLine($"public {operand.Kind} {fieldName} => Inner.GetOperand<{operand.Kind}>(\"{operandName}\") ?? default;");
                         }
                     }
                 }
-                catch (Exception e)
-                {
-                    builder.Append("/*").Append(e.Message).Append(" ").Append(e.StackTrace).AppendLine("*/");
-                }
-
-
-                builder
-                .AppendLine()
-                .AppendLine($"public Inst{instruction.OpName}(Instruction instruction) => Inner = instruction;");
-
-
-                builder
-                .AppendLine("}")
-                .AppendLine();
             }
+            catch (Exception e)
+            {
+                builder.Append("/*").Append(e.Message).Append(" ").Append(e.StackTrace).AppendLine("*/");
+            }
+
+
+            builder
+            .AppendLine()
+            .AppendLine($"public Inst{instruction.OpName}(Instruction instruction) => Inner = instruction;")
+            .AppendLine($"public static implicit operator Inst{instruction.OpName}(Instruction instruction) => new(instruction);");
+
+
+            builder
+            .AppendLine("}")
+            .AppendLine();
         }
+
         spc.AddSource(
             $"InstructionStructs.gen.cs",
             SourceText.From(

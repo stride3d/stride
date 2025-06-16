@@ -171,7 +171,7 @@ public ref struct OperandEnumerator
             if (pairs.Contains(logOp.Kind ?? OperandKind.None))
                 return new(logOp.Kind ?? OperandKind.None, logOp.Quantifier ?? OperandQuantifier.One, operands.Slice(wid, 2));
             else
-                return new(logOp.Kind ?? OperandKind.None, logOp.Quantifier ?? OperandQuantifier.One, operands.Slice(wid, 1));
+                return new(logOp.Kind ?? OperandKind.None, logOp.Quantifier ?? OperandQuantifier.One, operands[wid..]);
         }
     }
 

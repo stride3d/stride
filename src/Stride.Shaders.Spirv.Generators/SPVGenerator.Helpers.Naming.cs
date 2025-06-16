@@ -60,9 +60,17 @@ public partial class SPVGenerator
         var opname = op.OpName;
         if (op.Operands?.AsList() is List<OperandData> operands)
         {
+            bool computable = true;
             for (int i = 0; i < operands.Count; i++)
             {
                 var e = operands[i];
+                e.IsIndexKnown = computable;
+                computable = (computable, e.Kind, e.Quantifier) switch
+                {
+                    (true, _, "*" or "+") => false,
+                    (true, "LiteralString", _) => false,
+                    _ => computable
+                };
                 var kind = e.Kind;
                 var realKind = ConvertKind(kind!, operandKinds);
                 if (e.Quantifier is not null)

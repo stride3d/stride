@@ -38,8 +38,8 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
             else if (instruction.OpCode == SDSLOp.OpTypeFloat)
             {
                 var floatInstruction = instruction.UnsafeAs<InstOpTypeFloat>();
-                if (floatInstruction.FloatingPointEncoding != 0)
-                    throw new InvalidOperationException();
+                //if (floatInstruction.FloatingPointEncoding != 0)
+                //    throw new InvalidOperationException();
 
                 types.Add(floatInstruction.ResultId, floatInstruction.Width.Words switch
                 {
