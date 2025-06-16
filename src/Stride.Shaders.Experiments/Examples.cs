@@ -4,18 +4,21 @@ using Silk.NET.SPIRV.Cross;
 using Stride.Shaders.Compilers;
 using Stride.Shaders.Compilers.Direct3D;
 using Stride.Shaders.Compilers.SDSL;
+using Stride.Shaders.Core;
 using Stride.Shaders.Parsing;
 using Stride.Shaders.Parsing.Analysis;
 using Stride.Shaders.Parsing.SDSL.AST;
+using Stride.Shaders.Spirv;
 using Stride.Shaders.Spirv.Building;
+using Stride.Shaders.Spirv.Core;
 using Stride.Shaders.Spirv.Core.Buffers;
+using Stride.Shaders.Spirv.Processing;
+using Stride.Shaders.Spirv.Tools;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
-using Stride.Shaders.Spirv.Core;
-using Stride.Shaders.Spirv.Processing;
-using Stride.Shaders.Spirv.Tools;
+using static Silk.NET.Core.Native.WinString;
 
 namespace Stride.Shaders.Experiments;
 
@@ -291,6 +294,12 @@ public static partial class Examples
         return buffer;
     }
 
+    class ShaderInfo
+    {
+        public Dictionary<string, int> Functions { get; } = new();
+        public Dictionary<string, int> Variables { get; } = new();
+    }
+
     public static void MergeSDSL()
     {
         CompileSDSL();
@@ -310,31 +319,182 @@ public static partial class Examples
         var temp = new SpirvBuffer();
         var offset = 0;
         var nextOffset = 0;
+
         foreach (var shaderName in inheritanceList)
         {
             var shader = GetOrLoadShader(shaderName);
             offset += nextOffset;
+            nextOffset = 0;
             foreach (var i in shader.Instructions)
             {
-                temp.Add(i.Words);
+                var i2 = temp.Add(i.Words);
 
-                if (i.ResultId != null)
+                if (i.ResultId != null && i.ResultId.Value > nextOffset)
                     nextOffset = i.ResultId.Value;
-                i.OffsetIds(offset);
+                i2.OffsetIds(offset);
             }
         }
 
-        var dis = new SpirvDis<SpirvBuffer>(temp, true);
-        dis.Disassemble(true);
+        var shaders = new Dictionary<string, ShaderInfo>();
+        ShaderInfo? currentShader = null;
+
+        var names = new Dictionary<int, string>();
+        var importedShaders = new Dictionary<int, ShaderInfo>();
+        var idRemapping = new Dictionary<int, int>();
+        foreach (var i in temp.Instructions)
+        {
+            if (i.OpCode == SDSLOp.OpName)
+            {
+                var nameInstruction = i.UnsafeAs<InstOpName>();
+                names.Add(nameInstruction.Target, nameInstruction.Name.Value);
+            }
+            else if (i.OpCode == SDSLOp.OpSDSLShader)
+            {
+                currentShader = new ShaderInfo();
+                var shaderName = i.UnsafeAs<InstOpSDSLShader>().ShaderName.Value;
+                shaders.Add(shaderName, currentShader);
+                SetOpNop(i.Words);
+            }
+            else if (i.OpCode == SDSLOp.OpSDSLShaderEnd)
+            {
+                currentShader = null;
+                importedShaders.Clear();
+                SetOpNop(i.Words);
+            }
+            else if (i.OpCode == SDSLOp.OpSDSLMixinInherit)
+            {
+                SetOpNop(i.Words);
+            }
+
+            if (i.OpCode == SDSLOp.OpFunction)
+            {
+                var function = i.UnsafeAs<InstOpFunction>();
+                var functionName = names[function.ResultId.Value];
+                currentShader!.Functions.Add(functionName, i.ResultId!.Value);
+
+                //temp.Remove(i.Position);
+                //temp.InsertOpFunction(i.Position, i.ResultId.Value, i.ResultType!.Value, function.Functioncontrol, function.FunctionType);
+            }
+
+            if (i.OpCode == SDSLOp.OpVariable)
+            {
+                var variable = i.UnsafeAs<InstOpVariable>();
+                var variableName = names[variable.ResultId.Value];
+                currentShader!.Variables.Add(variableName, i.ResultId!.Value);
+            }
+
+            if (i.OpCode == SDSLOp.OpSDSLImportShader)
+            {
+                var importShader = i.UnsafeAs<InstOpSDSLImportShader>();
+
+                importedShaders.Add(importShader.ResultId.Value, shaders[importShader.ShaderName.Value]);
+
+                SetOpNop(i.Words);
+            }
+            else if (i.OpCode == SDSLOp.OpSDSLImportVariable)
+            {
+                var importVariable = i.UnsafeAs<InstOpSDSLImportVariable>();
+                var importedShader = importedShaders[importVariable.Shader];
+
+                var importedVariable = importedShader.Variables[importVariable.VariableName.Value];
+
+                idRemapping.Add(importVariable.ResultId.Value, importedVariable);
+
+                SetOpNop(i.Words);
+            }
+            else if (i.OpCode == SDSLOp.OpSDSLImportFunction)
+            {
+                var importFunction = i.UnsafeAs<InstOpSDSLImportFunction>();
+
+                var importedShader = importedShaders[importFunction.Shader];
+                var importedFunction = importedShader.Functions[importFunction.FunctionName.Value];
+                idRemapping.Add(importFunction.ResultId.Value, importedFunction);
+
+                SetOpNop(i.Words);
+            }
+
+            foreach (var op in i)
+            {
+                if ((op.Kind == OperandKind.IdRef
+                        || op.Kind == OperandKind.IdResultType
+                        || op.Kind == OperandKind.PairIdRefLiteralInteger
+                        || op.Kind == OperandKind.PairIdRefIdRef)
+                    && idRemapping.TryGetValue(op.Words[0], out var to1))
+                    op.Words[0] = to1;
+                if ((op.Kind == OperandKind.PairLiteralIntegerIdRef
+                     || op.Kind == OperandKind.PairIdRefIdRef)
+                    && idRemapping.TryGetValue(op.Words[1], out var to2))
+                    op.Words[1] = to2;
+            }
+        }
 
         // Step: merge mixins
         //       start from most-derived class and import on demand
         // Step: analyze streams and generate in/out variables
 
-        //var context = compiler.Context;
-        //context.Buffer.AddOpCapability(Spv.Specification.Capability.Shader);
-        //context.Buffer.AddOpMemoryModel(Spv.Specification.AddressingModel.Logical, Spv.Specification.MemoryModel.GLSL450);
-        //new StreamAnalyzer().Process(table, compiler);
+        new TypeDuplicateRemover().Apply(temp);
+
+        var context = new SpirvContext(new());
+        context.Bound = offset + nextOffset + 1;
+        ShaderClass.ProcessNameAndTypes(temp, out var names2, out var types);
+        foreach (var i in temp.Instructions)
+        {
+            if (i.OpCode == SDSLOp.OpFunction)
+            {
+                var function = i.UnsafeAs<InstOpFunction>();
+                var functionName = names2[i.ResultId.Value];
+                context.Module.Functions.Add(functionName, new SpirvFunction(i.ResultId.Value, functionName, (FunctionType)types[function.FunctionType]));
+            }
+        }
+
+        foreach (var type in types)
+        {
+            context.Types.Add(type.Value, type.Key);
+            context.ReverseTypes.Add(type.Key, type.Value);
+        }
+
+        context.Buffer.AddOpCapability(Specification.Capability.Shader);
+        context.Buffer.AddOpMemoryModel(Specification.AddressingModel.Logical, Specification.MemoryModel.GLSL450);
+        new StreamAnalyzer().Process(temp, context);
+
+        temp.Instructions.AddRange(context.Buffer.Instructions);
+
+        new TypeDuplicateRemover().Apply(temp);
+
+        var dis = new SpirvDis<SpirvBuffer>(temp, true);
+        var source = dis.Disassemble(true);
+
+        File.WriteAllText("test.spvdis", source);
+    }
+
+    static void ReplaceRefs(int from, int to, Instruction i)
+    {
+        var opcode = i.OpCode;
+        foreach (var op in i)
+        {
+            if (op.Kind == OperandKind.IdRef && op.Words[0] == from)
+                op.Words[0] = to;
+            else if (op.Kind == OperandKind.IdResultType && op.Words[0] == from)
+                op.Words[0] = to;
+            else if (op.Kind == OperandKind.PairIdRefLiteralInteger && op.Words[0] == from)
+                op.Words[0] = op.Words[0] == from ? to : op.Words[0];
+            else if (op.Kind == OperandKind.PairLiteralIntegerIdRef && op.Words[1] == from)
+                op.Words[1] = op.Words[1] == from ? to : op.Words[1];
+            else if (op.Kind == OperandKind.PairIdRefIdRef)
+            {
+                if (op.Words[0] == from || op.Words[1] == from)
+                {
+                    op.Words[0] = op.Words[0] == from ? to : op.Words[0];
+                    op.Words[1] = op.Words[1] == from ? to : op.Words[1];
+                }
+            }
+        }
+    }
+
+    static void SetOpNop(Span<int> words)
+    {
+        words[0] = words.Length << 16;
+        words[1..].Clear();
     }
 
     private static void BuildInheritanceList(SpirvBuffer buffer, List<string> inheritanceList)

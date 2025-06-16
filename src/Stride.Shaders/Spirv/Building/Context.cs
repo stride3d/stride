@@ -18,7 +18,7 @@ public interface IExternalShaderLoader
 // SPIR-V parameters
 public class SpirvContext(SpirvModule module)
 {
-    public int Bound { get; internal set; } = 1;
+    public int Bound { get; set; } = 1;
     public string? Name { get; private set; }
     public SpirvModule Module { get; } = module;
     public SortedList<string, SpirvValue> Variables { get; } = [];

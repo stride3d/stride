@@ -18,7 +18,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
     public ShaderParameterDeclarations? Generics { get; set; }
     public List<Mixin> Mixins { get; set; } = [];
 
-    public Dictionary<int, SymbolType> ProcessNameAndTypes(SpirvBuffer buffer, out Dictionary<int, string> names, out Dictionary<int, SymbolType> types)
+    public static Dictionary<int, SymbolType> ProcessNameAndTypes(SpirvBuffer buffer, out Dictionary<int, string> names, out Dictionary<int, SymbolType> types)
     {
         var memberNames = new Dictionary<(int, int), string>();
         names = new Dictionary<int, string>();
@@ -82,7 +82,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
         return types;
     }
 
-    private ShaderSymbol LoadShader(IExternalShaderLoader externalShaderLoader, Mixin mixin)
+    private static ShaderSymbol LoadShader(IExternalShaderLoader externalShaderLoader, Mixin mixin)
     {
         externalShaderLoader.LoadExternalReference(mixin.Name, out var bytecode);
         var buffer = new SpirvBuffer(MemoryMarshal.Cast<byte, int>(bytecode));

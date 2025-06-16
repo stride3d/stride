@@ -1,19 +1,8 @@
-﻿using Spv;
-using Stride.Shaders.Core;
-using Stride.Shaders.Parsing.Analysis;
-using Stride.Shaders.Parsing.SDSL.AST;
+﻿using Stride.Shaders.Core;
 using Stride.Shaders.Spirv.Building;
 using Stride.Shaders.Spirv.Core;
 using Stride.Shaders.Spirv.Core.Buffers;
-using Stride.Shaders.Spirv.Core.Parsing;
 using Stride.Shaders.Spirv.Tools;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Stride.Shaders.Spirv.Processing
 {
@@ -39,14 +28,12 @@ namespace Stride.Shaders.Spirv.Processing
             public override string ToString() => $"{Type} {Name} {(Read ? "R" : "")} {(Write ? "W" : "")}";
         }
 
-        public void Process(SymbolTable table, CompilerUnit compiler)
+        public void Process(SpirvBuffer buffer, SpirvContext context)
         {
-            var context = compiler.Context;
-
             var entryPointVS = context.Module.Functions["VSMain"];
             var entryPointPS = context.Module.Functions["PSMain"];
 
-            var streams = CreateStreams(compiler);
+            var streams = CreateStreams(buffer, context);
 
             // Expected at the end of pixel shader
             foreach (var stream in streams)
@@ -54,7 +41,7 @@ namespace Stride.Shaders.Spirv.Processing
                 if (stream.Value.Stream.Semantic is { } semantic && (semantic.StartsWith("SV_Target") || semantic == "SV_Depth"))
                     stream.Value.Stream.Output = true;
             }
-            GenerateStreamWrapper(table, compiler, Specification.ExecutionModel.Fragment, entryPointPS.Id, entryPointPS.Name, streams);
+            GenerateStreamWrapper(buffer, context, Specification.ExecutionModel.Fragment, entryPointPS.Id, entryPointPS.Name, streams);
 
             // Those semantic variables are implicit in pixel shader, no need to forward them from previous stages
             foreach (var stream in streams)
@@ -63,7 +50,7 @@ namespace Stride.Shaders.Spirv.Processing
                     stream.Value.Stream.Read = false;
             }
             PropagateStreamsFromPreviousStage(streams);
-            GenerateStreamWrapper(table, compiler, Specification.ExecutionModel.Vertex, entryPointVS.Id, entryPointVS.Name, streams);
+            GenerateStreamWrapper(buffer, context, Specification.ExecutionModel.Vertex, entryPointVS.Id, entryPointVS.Name, streams);
         }
 
         private static void PropagateStreamsFromPreviousStage(SortedList<int, (StreamInfo Stream, bool IsDirect)> streams)
@@ -76,15 +63,14 @@ namespace Stride.Shaders.Spirv.Processing
             }
         }
 
-        private SortedList<int, (StreamInfo Stream, bool IsDirect)> CreateStreams(CompilerUnit compiler)
+        private SortedList<int, (StreamInfo Stream, bool IsDirect)> CreateStreams(SpirvBuffer buffer, SpirvContext context)
         {
-            var context = compiler.Context;
             var streams = new SortedList<int, (StreamInfo Stream, bool IsDirect)>();
 
             // Build name table
             SortedList<int, NameId> nameTable = [];
             SortedList<int, string> semanticTable = [];
-            foreach (var instruction in context.Buffer.Instructions)
+            foreach (var instruction in buffer.Instructions)
             {
                 {
                     if ((instruction.OpCode == SDSLOp.OpName || instruction.OpCode == SDSLOp.OpMemberName)
@@ -110,7 +96,7 @@ namespace Stride.Shaders.Spirv.Processing
 
 
             // Analyze streams
-            foreach (var instruction in compiler.Context.Buffer.Instructions)
+            foreach (var instruction in buffer.Instructions)
             {
                 if (instruction.OpCode == SDSLOp.OpVariable
                     && (Specification.StorageClass)instruction.Operands[2] == Specification.StorageClass.Private)
@@ -118,7 +104,7 @@ namespace Stride.Shaders.Spirv.Processing
                     var name = nameTable.TryGetValue(instruction.Operands[1], out var nameId)
                         ? nameId.Name
                         : $"unnamed_{instruction.Operands[1]}";
-                    var type = compiler.Context.ReverseTypes[instruction.Operands[0]];
+                    var type = context.ReverseTypes[instruction.Operands[0]];
                     semanticTable.TryGetValue(instruction.Operands[1], out var semantic);
                     streams.Add(instruction.ResultId!.Value, (new StreamInfo(semantic, name, type, instruction.ResultId!.Value), true));
                 }
@@ -127,18 +113,17 @@ namespace Stride.Shaders.Spirv.Processing
             return streams;
         }
 
-        private void GenerateStreamWrapper(SymbolTable table, CompilerUnit compiler, Specification.ExecutionModel executionModel, int entryPointId, string entryPointName, SortedList<int, (StreamInfo Stream, bool IsDirect)> streams)
+        private void GenerateStreamWrapper(SpirvBuffer buffer, SpirvContext context, Specification.ExecutionModel executionModel, int entryPointId, string entryPointName, SortedList<int, (StreamInfo Stream, bool IsDirect)> streams)
         {
-            ProcessMethod(compiler, entryPointId, streams);
+            ProcessMethod(buffer, entryPointId, streams);
 
             var stage = executionModel switch
             {
                 Specification.ExecutionModel.Fragment => "PS",
                 Specification.ExecutionModel.Vertex => "VS",
             };
-            var context = compiler.Context;
-            List<StreamInfo> inputStreams = [];
-            List<StreamInfo> outputStreams = [];
+            List<(StreamInfo Info, int Id)> inputStreams = [];
+            List<(StreamInfo Info, int Id)> outputStreams = [];
             foreach (var stream in streams)
             {
                 // Only direct access to global variables (not temporary variables created within function)
@@ -146,102 +131,75 @@ namespace Stride.Shaders.Spirv.Processing
                     continue;
 
                 if (stream.Value.Stream.Input)
-                    inputStreams.Add(stream.Value.Stream);
-                // TODO: filter with previous stage
+                {
+                    var pointerType = (IdRef)context.Buffer.AddOpTypePointer(context.Bound++, Specification.StorageClass.Input, context.Types[stream.Value.Stream.Type]);
+                    var variable = context.Buffer.AddOpVariable(context.Bound++, pointerType, Specification.StorageClass.Input, null);
+                    context.AddName(variable, $"in_{stream.Value.Stream.Name}");
+
+                    if (stream.Value.Stream.Semantic != null)
+                        context.Buffer.AddOpDecorateString(variable, Specification.Decoration.UserSemantic, null, null, stream.Value.Stream.Semantic);
+
+                    inputStreams.Add((stream.Value.Stream, variable.ResultId.Value));
+                }
+
                 if (stream.Value.Stream.Output)
-                    outputStreams.Add(stream.Value.Stream);
+                {
+                    var pointerType = (IdRef)context.Buffer.AddOpTypePointer(context.Bound++, Specification.StorageClass.Output, context.Types[stream.Value.Stream.Type]);
+                    var variable = context.Buffer.AddOpVariable(context.Bound++, pointerType, Specification.StorageClass.Output, null);
+                    context.AddName(variable, $"out_{stream.Value.Stream.Name}");
+
+                    if (stream.Value.Stream.Semantic != null)
+                        context.Buffer.AddOpDecorateString(variable, Specification.Decoration.UserSemantic, null, null, stream.Value.Stream.Semantic);
+
+                    outputStreams.Add((stream.Value.Stream, variable.ResultId.Value));
+                }
             }
 
             var voidTypeId = context.Buffer.AddOpTypeVoid(context.Bound++);
 
-            Span<IdRef> inputFields = stackalloc IdRef[inputStreams.Count];
-            int inputFieldIndex = 0;
-            var inputStructId = context.Bound++;
-            foreach (var stream in inputStreams)
-            {
-                inputFields[inputFieldIndex] = context.Types[stream.Type];
-                context.Buffer.AddOpMemberName(inputStructId, inputFieldIndex++, stream.Name);
-            }
-            context.Buffer.AddOpTypeStruct(inputStructId, inputFields);
-            context.AddName(inputStructId, $"{stage}_INPUT");
-            var inputStructPtrId = (IdRef)context.Buffer.AddOpTypePointer(context.Bound++, Specification.StorageClass.Function, inputStructId);
-
-            Span<IdRef> outputFields = stackalloc IdRef[outputStreams.Count];
-            int outputFieldIndex = 0;
-            var outputStructId = context.Bound++;
-            foreach (var stream in outputStreams)
-            {
-                outputFields[outputFieldIndex] = context.Types[stream.Type];
-                context.Buffer.AddOpMemberName(outputStructId, outputFieldIndex++, stream.Name);
-            }
-            context.Buffer.AddOpTypeStruct(outputStructId, outputFields);
-            context.AddName(outputStructId, $"{stage}_OUTPUT");
-            var outputStructPtrId = context.Buffer.AddOpTypePointer(context.Bound++, Specification.StorageClass.Function, outputStructId);
-
             // Add new entry point wrapper
-            var newEntryPointFunctionType = context.Buffer.AddOpTypeFunction(context.Bound++, outputStructId, MemoryMarshal.CreateSpan(ref inputStructPtrId, 1));
-            var newEntryPointFunction = compiler.Builder.Buffer.AddOpFunction(context.Bound++, outputStructId, Specification.FunctionControlMask.None, newEntryPointFunctionType);
+            var newEntryPointFunctionType = context.Buffer.AddOpTypeFunction(context.Bound++, voidTypeId, []);
+            var newEntryPointFunction = buffer.AddOpFunction(context.Bound++, voidTypeId, Specification.FunctionControlMask.None, newEntryPointFunctionType);
+            buffer.AddOpLabel(context.Bound++);
             context.AddName(newEntryPointFunction, $"{entryPointName}_Wrapper");
 
             {
-                // Add INPUT (as a function parameter)
-                var inputParameter = compiler.Builder.Buffer.AddOpFunctionParameter(context.Bound++, inputStructPtrId);
-                context.AddName(inputParameter, "input");
-
-                compiler.Builder.Buffer.AddOpLabel(context.Bound++);
-
-                // Add OUTPUT (as a local variable)
-                var outputParameter = compiler.Builder.Buffer.AddOpVariable(context.Bound++, outputStructPtrId.ResultId.Value, Specification.StorageClass.Function, null);
-                context.AddName(outputParameter, "output");
-
                 // Copy read variables from streams
-                inputFieldIndex = 0;
                 foreach (var stream in inputStreams)
                 {
-                    var typeId = compiler.Context.GetOrRegister(stream.Type);
-                    var typePtrId = compiler.Context.GetOrRegister(new PointerType(stream.Type));
-                    var indexLiteral = new IntegerLiteral(new(32, false, true), inputFieldIndex++, new());
-                    indexLiteral.ProcessSymbol(table);
-                    IdRef indexIdRef = compiler.Context.CreateConstant(indexLiteral).Id;
-                    var accessChain = compiler.Builder.Buffer.AddOpAccessChain(compiler.Context.Bound++, typeId, inputParameter.ResultId!.Value, MemoryMarshal.CreateSpan(ref indexIdRef, 1));
-                    var loadedValue = compiler.Builder.Buffer.AddOpLoad(context.Bound++, context.Types[stream.Type], accessChain, null);
-
-                    compiler.Builder.Buffer.AddOpStore(stream.Id, loadedValue.ResultId!.Value, null);
+                    var loadedValue = buffer.AddOpLoad(context.Bound++, context.Types[stream.Info.Type], stream.Id, null);
+                    buffer.AddOpStore(stream.Info.Id, loadedValue.ResultId!.Value, null);
                 }
 
-                compiler.Builder.Buffer.AddOpFunctionCall(context.Bound++, voidTypeId, entryPointId, Span<IdRef>.Empty);
+                buffer.AddOpFunctionCall(context.Bound++, voidTypeId, entryPointId, Span<IdRef>.Empty);
 
-                inputFieldIndex = 0;
                 foreach (var stream in outputStreams)
                 {
-                    var loadedValue = compiler.Builder.Buffer.AddOpLoad(context.Bound++, context.Types[stream.Type], stream.Id, null);
-                    var typeId = compiler.Context.GetOrRegister(stream.Type);
-                    var typePtrId = compiler.Context.GetOrRegister(new PointerType(stream.Type));
-                    var indexLiteral = new IntegerLiteral(new(32, false, true), inputFieldIndex++, new());
-                    indexLiteral.ProcessSymbol(table);
-                    IdRef indexIdRef = compiler.Context.CreateConstant(indexLiteral).Id;
-                    var accessChain = compiler.Builder.Buffer.AddOpAccessChain(compiler.Context.Bound++, typeId, outputParameter.ResultId!.Value, MemoryMarshal.CreateSpan(ref indexIdRef, 1));
-
-                    compiler.Builder.Buffer.AddOpStore(accessChain.ResultId!.Value, loadedValue.ResultId!.Value, null);
+                    var loadedValue = buffer.AddOpLoad(context.Bound++, context.Types[stream.Info.Type], stream.Info.Id, null);
+                    buffer.AddOpStore(stream.Id, loadedValue.ResultId!.Value, null);
                 }
 
-                var outputResult = compiler.Builder.Buffer.AddOpLoad(context.Bound++, outputStructId, outputParameter, null);
-                compiler.Builder.Buffer.AddOpReturnValue(outputResult);
-                compiler.Builder.Buffer.AddOpFunctionEnd();
-            }
+                buffer.AddOpReturn();
+                buffer.AddOpFunctionEnd();
 
-            context.SetEntryPoint(executionModel, newEntryPointFunction, $"{entryPointName}_Wrapper", []);
+                Span<IdRef> pvariables = stackalloc IdRef[inputStreams.Count + outputStreams.Count];
+                for (int i = 0; i < inputStreams.Count; i++)
+                    pvariables[i] = inputStreams[i].Id;
+                for (int i = 0; i < outputStreams.Count; i++)
+                    pvariables[inputStreams.Count + i] = outputStreams[i].Id;
+                context.Buffer.AddOpEntryPoint(executionModel, newEntryPointFunction, $"{entryPointName}_Wrapper", pvariables);
+            }
         }
 
         /// <summary>
         /// Figure out (recursively) which streams are being read from and written to.
         /// </summary>
-        private void ProcessMethod(CompilerUnit compiler, int functionId, SortedList<int, (StreamInfo Stream, bool IsDirect)> streams)
+        private void ProcessMethod(SpirvBuffer buffer, int functionId, SortedList<int, (StreamInfo Stream, bool IsDirect)> streams)
         {
-            var methodStart = FindMethodStart(compiler, functionId);
-            for (var index = methodStart; index < compiler.Builder.Buffer.Instructions.Count; index++)
+            var methodStart = FindMethodStart(buffer, functionId);
+            for (var index = methodStart; index < buffer.Instructions.Count; index++)
             {
-                var instruction = compiler.Builder.Buffer.Instructions[index];
+                var instruction = buffer.Instructions[index];
                 if (instruction.OpCode == SDSLOp.OpFunctionEnd)
                     break;
 
@@ -272,17 +230,17 @@ namespace Stride.Shaders.Spirv.Processing
                 {
                     // Process call
                     var calledFunctionId = instruction.Operands[2];
-                    ProcessMethod(compiler, calledFunctionId, streams);
+                    ProcessMethod(buffer, calledFunctionId, streams);
                 }
             }
         }
 
-        public int FindMethodStart(CompilerUnit compiler, int functionId)
+        public int FindMethodStart(SpirvBuffer buffer, int functionId)
         {
             int? start = null;
-            for (var index = 0; index < compiler.Builder.Buffer.Instructions.Count; index++)
+            for (var index = 0; index < buffer.Instructions.Count; index++)
             {
-                var instruction = compiler.Builder.Buffer.Instructions[index];
+                var instruction = buffer.Instructions[index];
                 if (instruction.OpCode == SDSLOp.OpFunction
                     && instruction.ResultId == functionId)
                 {

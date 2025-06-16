@@ -9,7 +9,7 @@ using Stride.Shaders.Spirv.Tools;
 using static Stride.Shaders.Spirv.Specification;
 
 //Examples.CompileSDSL();
-// Examples.MergeSDSL();
+Examples.MergeSDSL();
 // Examples.TryAllFiles();
 // Examples.CreateShader();
 
