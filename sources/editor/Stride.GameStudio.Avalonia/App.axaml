@@ -16,7 +16,12 @@
     </ResourceDictionary>
   </Application.Resources>
   <Application.Styles>
-    <FluentTheme />
+    <FluentTheme>
+      <FluentTheme.Palettes>
+        <ColorPaletteResources x:Key="Dark"/>
+        <ColorPaletteResources x:Key="Light"/>
+      </FluentTheme.Palettes>
+    </FluentTheme>
     <themes:DefaultStyles />
     <sd:HyperlinkStyle />
     <!-- FIXME xplat-editor move to theme -->

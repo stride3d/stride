@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using Stride.Core.Mathematics;
 using Stride.Core.Settings;
 using Stride.Core.Translation;
 
@@ -20,9 +21,22 @@ public static class EditorSettings
         {
             DisplayName = $"{Interface}/{Tr._p("Settings", "Language")}",
         };
+        ThemeAccent = new SettingsKey<Color>("Interface/Theme/Accent", SettingsContainer, default(Color))
+        {
+            DisplayName = $"{Interface}/{Tr._p("Settings", "Theme Accent")}",
+        };
+        ThemeVariant = new SettingsKey<string>("Interface/Theme/Variant", SettingsContainer, "Default")
+        {
+            DisplayName = $"{Interface}/{Tr._p("Settings", "Theme Variant")}",
+            GetAcceptableValues = () => ["Default", "Dark", "Light"],
+        };
     }
 
     public static SettingsKey<string> Language { get; }
+
+    public static SettingsKey<Color> ThemeAccent { get; }
+
+    public static SettingsKey<string> ThemeVariant { get; }
 
     public static bool NeedRestart { get; set; }
 
