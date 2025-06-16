@@ -132,20 +132,24 @@ public record struct Instruction(Memory<int> Memory)
     {
         foreach (var o in this)
         {
-            if (o.Kind == OperandKind.IdRef)
-                o.Words[0] += offset;
-            else if (o.Kind == OperandKind.IdResult)
-                o.Words[0] += offset;
-            else if (o.Kind == OperandKind.IdResultType)
-                o.Words[0] += offset;
-            else if (o.Kind == OperandKind.PairIdRefLiteralInteger)
-                o.Words[0] += offset;
-            else if (o.Kind == OperandKind.PairLiteralIntegerIdRef)
-                o.Words[1] += offset;
-            else if (o.Kind == OperandKind.PairIdRefIdRef)
+            if (o.Kind == OperandKind.IdRef
+                || o.Kind == OperandKind.IdResult
+                || o.Kind == OperandKind.IdResultType)
             {
-                o.Words[0] += offset;
-                o.Words[1] += offset;
+                for (int i = 0; i < o.Words.Length; ++i)
+                    o.Words[i] += offset;
+            }
+            else if (o.Kind == OperandKind.PairIdRefLiteralInteger
+                || o.Kind == OperandKind.PairLiteralIntegerIdRef
+                || o.Kind == OperandKind.PairIdRefIdRef)
+            {
+                for (int i = 0; i < o.Words.Length; i += 2)
+                {
+                    if (o.Kind == OperandKind.PairIdRefLiteralInteger || o.Kind == OperandKind.PairIdRefIdRef)
+                        o.Words[i * 2 + 0] += offset;
+                    if (o.Kind == OperandKind.PairLiteralIntegerIdRef || o.Kind == OperandKind.PairIdRefIdRef)
+                        o.Words[i * 2 + 1] += offset;
+                }
             }
         }
     }
