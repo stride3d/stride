@@ -52,6 +52,10 @@
         <MenuItem Header="{sd:LocalizeString Redo, Context=Menu}"
                   Command="{Binding Session?.ActionHistory?.RedoCommand, TargetNullValue={x:Static cpc:DisabledCommand.Instance}}"
                   HotKey="{x:Static gsvw:MainView.RedoGesture}" InputGesture="{Binding $self.HotKey, Mode=OneTime}"/>
+        <Separator/>
+        <MenuItem Header="{sd:LocalizeString _Settings..., Context=Menu}"
+                  Command="{Binding OpenSettingsWindowCommand}"
+                  IsEnabled="{Binding Session, Mode=OneWay, Converter={sd:ObjectToBool}}"/>
       </MenuItem>
       <!-- Help menu -->
       <MenuItem Header="{sd:LocalizeString _Help, Context=Menu}">

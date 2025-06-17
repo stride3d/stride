@@ -1493,7 +1493,7 @@
     </DataTemplate>
   </caev:ContentReferenceTemplateProvider>
 
-  <!-- Provider for nulable struct -->
+  <!-- Provider for nullable struct -->
   <caev:NullableTemplateProvider x:Key="NullableStructPropertyTemplateProvider" caev:PropertyViewHelper.TemplateCategory="PropertyEditor">
     <DataTemplate DataType="cpqvm:NodeViewModel">
       <DockPanel>
@@ -1522,6 +1522,16 @@
       </DockPanel>
     </DataTemplate>
   </caev:NullableTemplateProvider>
+
+  <caev:SettingsStringFromAcceptableValuesTemplateProvider x:Key="StringFromAcceptableValuesEditorTemplate" OverrideRule="All" caev:PropertyViewHelper.TemplateCategory="PropertyEditor">
+    <DataTemplate DataType="cpqvm:NodeViewModel">
+      <Border>
+        <ComboBox Margin="2"
+                  ItemsSource="{Binding ConverterParameter=Parent.[AcceptableValues], Converter={caec:NodePathToObject}}"
+                  SelectedItem="{Binding NodeValue}"/>
+      </Border>
+    </DataTemplate>
+  </caev:SettingsStringFromAcceptableValuesTemplateProvider>
 
   <!-- Provider for unloadable object -->
   <caev:UnloadableObjectTemplateProvider x:Key="YamlProxyTemplateProvider" OverrideRule="All" caev:PropertyViewHelper.TemplateCategory="PropertyHeader">
