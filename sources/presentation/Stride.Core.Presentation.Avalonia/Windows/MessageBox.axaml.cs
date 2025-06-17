@@ -12,18 +12,18 @@ namespace Stride.Core.Presentation.Avalonia.Windows;
 
 public partial class MessageBox : MessageDialogBase
 {
-    public static readonly StyledProperty<IImageBrushSource?> ImageProperty =
-        AvaloniaProperty.Register<MessageBox, IImageBrushSource?>(nameof(Image));
+    public static readonly StyledProperty<Geometry?> GeometryProperty =
+        AvaloniaProperty.Register<MessageBox, Geometry?>(nameof(Geometry));
 
     public MessageBox()
     {
         InitializeComponent();
     }
 
-    public IImageBrushSource? Image
+    public Geometry? Geometry
     {
-        get { return GetValue(ImageProperty); }
-        set { SetValue(ImageProperty, value); }
+        get { return GetValue(GeometryProperty); }
+        set { SetValue(GeometryProperty, value); }
     }
 
     public static async Task<int> ShowAsync(string caption, string message, IReadOnlyCollection<DialogButtonInfo> buttons, MessageBoxImage image = MessageBoxImage.None, Window? owner = null)
@@ -34,7 +34,7 @@ public partial class MessageBox : MessageDialogBase
             Content = message,
             Title = caption,
         };
-        SetImage(messageBox, image);
+        SetGeometry(messageBox, image);
         SetKeyBindings(messageBox, buttons);
         if (owner is not null)
         {
@@ -67,21 +67,21 @@ public partial class MessageBox : MessageDialogBase
         }
     }
 
-    protected static void SetImage(MessageBox messageBox, MessageBoxImage image)
+    protected static void SetGeometry(MessageBox messageBox, MessageBoxImage image)
     {
-        var imageKey = image switch
+        var key = image switch
         {
             MessageBoxImage.None => null,
-            MessageBoxImage.Error => "ImageErrorDialog",
-            MessageBoxImage.Question => "ImageQuestionDialog",
-            MessageBoxImage.Warning => "ImageWarningDialog",
-            MessageBoxImage.Information => "ImageInformationDialog",
+            MessageBoxImage.Error => "GeometryError",
+            MessageBoxImage.Question => "GeometryQuestion",
+            MessageBoxImage.Warning => "GeometryWarning",
+            MessageBoxImage.Information => "GeometryInformation",
             _ => throw new ArgumentOutOfRangeException(nameof(image), image, null),
         };
-        if (imageKey is not null)
+        if (key is not null)
         {
-            messageBox.TryGetResource(imageKey, null, out var bitmap);
-            messageBox.Image = (bitmap as ImageBrush)?.Source;
+            messageBox.TryGetResource(key, null, out var geometry);
+            messageBox.Geometry = geometry as Geometry;
         }
     }
 }

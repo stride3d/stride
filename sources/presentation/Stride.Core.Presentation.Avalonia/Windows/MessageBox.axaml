@@ -14,10 +14,9 @@
         x:Class="Stride.Core.Presentation.Avalonia.Windows.MessageBox">
   <Window.Resources>
     <ResourceDictionary>
-      <ImageBrush x:Key="ImageErrorDialog" Source="/Assets/Images/error-32.png" />
-      <ImageBrush x:Key="ImageInformationDialog" Source="/Assets/Images/info-32.png" />
-      <ImageBrush x:Key="ImageQuestionDialog" Source="/Assets/Images/question-32.png" />
-      <ImageBrush x:Key="ImageWarningDialog" Source="/Assets/Images/warning-32.png" />
+      <ResourceDictionary.MergedDictionaries>
+        <ResourceInclude Source="avares://Stride.Core.Presentation.Avalonia/Windows/GeometryResources.axaml"/>
+      </ResourceDictionary.MergedDictionaries>
     </ResourceDictionary>
   </Window.Resources>
   <Window.ContentTemplate>
@@ -48,11 +47,12 @@
           <ContentPresenter.ContentTemplate>
             <DataTemplate>
               <DockPanel LastChildFill="True">
-                <Image DockPanel.Dock="Left"
-                       Source="{Binding $parent[windows:MessageBox].Image}"
-                       HorizontalAlignment="Left" VerticalAlignment="Top"
-                       Height="32" Width="32" Margin="4"
-                       IsVisible="{Binding $parent[windows:MessageBox].Image, Converter={cvt:ObjectToBool}}" />
+                <Path DockPanel.Dock="Left"
+                      HorizontalAlignment="Left" VerticalAlignment="Top"
+                      Height="32" Width="32" Margin="4"
+                      Stretch="Uniform" Fill="{DynamicResource SystemAccentColor}"
+                      Data="{Binding $parent[windows:MessageBox].Geometry}"
+                      IsVisible="{Binding $parent[windows:MessageBox].Geometry, Converter={cvt:ObjectToBool}}" />
                 <md:MarkdownScrollViewer Markdown="{ReflectionBinding}" VerticalAlignment="Center" />
               </DockPanel>
             </DataTemplate>
