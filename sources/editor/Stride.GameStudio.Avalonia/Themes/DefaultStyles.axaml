@@ -6,11 +6,17 @@
         xmlns:scg="using:System.Collections.Generic"
         x:Class="Stride.GameStudio.Avalonia.Themes.DefaultStyles">
   <Styles.Resources>
-    <!-- FIXME xplat-editor move those resources (they should be theme-dependent) -->
-    <SolidColorBrush x:Key="AlphaBrush" Color="#FFBCBCBC"/>
-    <SolidColorBrush x:Key="BlueBrush" Color="#FF3F74D1"/>
-    <SolidColorBrush x:Key="GreenBrush" Color="#FF65C36A"/>
-    <SolidColorBrush x:Key="RedBrush" Color="#FFDC4E4E"/>
+    <ResourceDictionary>
+      <ResourceDictionary.ThemeDictionaries>
+        <ResourceDictionary x:Key="Default">
+          <SolidColorBrush x:Key="AlphaBrush" Color="#FFBCBCBC"/>
+          <SolidColorBrush x:Key="BlueBrush" Color="#FF3F74D1"/>
+          <SolidColorBrush x:Key="GreenBrush" Color="#FF65C36A"/>
+          <SolidColorBrush x:Key="RedBrush" Color="#FFDC4E4E"/>
+        </ResourceDictionary>
+      </ResourceDictionary.ThemeDictionaries>
+    </ResourceDictionary>
+
     <SolidColorBrush x:Key="TransparentBrush" Color="Transparent"/>
     <SolidColorBrush x:Key="WhiteBrush" Color="White"/>
   </Styles.Resources>
@@ -273,7 +279,7 @@
           <!-- X component -->
           <Border Grid.Column="1"
                   CornerRadius="4" Margin="2,0,0,0"
-                  Background="{StaticResource RedBrush}"
+                  Background="{DynamicResource RedBrush}"
                   BorderThickness="1" BorderBrush="{StaticResource TransparentBrush}">
             <DockPanel>
               <TextBlock Text="X" Margin="3,0" MinWidth="12" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource WhiteBrush}"/>
@@ -285,7 +291,7 @@
           <!-- Y component -->
           <Border Grid.Column="3"
                   CornerRadius="4" Margin="2,0,0,0"
-                  Background="{StaticResource GreenBrush}"
+                  Background="{DynamicResource GreenBrush}"
                   BorderThickness="1" BorderBrush="{StaticResource TransparentBrush}">
             <DockPanel>
               <TextBlock Text="Y" Margin="3,0" MinWidth="12" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource WhiteBrush}"/>
@@ -308,7 +314,7 @@
           <!-- X component -->
           <Border Grid.Column="1"
                   CornerRadius="4" Margin="2,0,0,0"
-                  Background="{StaticResource RedBrush}"
+                  Background="{DynamicResource RedBrush}"
                   BorderThickness="1" BorderBrush="{StaticResource TransparentBrush}">
             <DockPanel>
               <TextBlock Text="X" Margin="3,0" MinWidth="12" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource WhiteBrush}"/>
@@ -320,7 +326,7 @@
           <!-- Y component -->
           <Border Grid.Column="3"
                   CornerRadius="4" Margin="2,0,0,0"
-                  Background="{StaticResource GreenBrush}"
+                  Background="{DynamicResource GreenBrush}"
                   BorderThickness="1" BorderBrush="{StaticResource TransparentBrush}">
             <DockPanel>
               <TextBlock Text="Y" Margin="3,0" MinWidth="12" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource WhiteBrush}"/>
@@ -332,7 +338,7 @@
           <!-- Z component -->
           <Border Grid.Column="5"
                   CornerRadius="4" Margin="2,0,0,0"
-                  Background="{StaticResource BlueBrush}"
+                  Background="{DynamicResource BlueBrush}"
                   BorderThickness="1" BorderBrush="{StaticResource TransparentBrush}">
             <DockPanel>
               <TextBlock Text="Z" Margin="3,0" MinWidth="12" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource WhiteBrush}"/>
@@ -355,7 +361,7 @@
           <!-- X component -->
           <Border Grid.Column="1"
                   CornerRadius="4" Margin="2,0,0,0"
-                  Background="{StaticResource RedBrush}"
+                  Background="{DynamicResource RedBrush}"
                   BorderThickness="1" BorderBrush="{StaticResource TransparentBrush}">
             <DockPanel>
               <TextBlock Text="X" Margin="3,0" MinWidth="12" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource WhiteBrush}"/>
@@ -367,7 +373,7 @@
           <!-- Y component -->
           <Border Grid.Column="3"
                   CornerRadius="4" Margin="2,0,0,0"
-                  Background="{StaticResource GreenBrush}"
+                  Background="{DynamicResource GreenBrush}"
                   BorderThickness="1" BorderBrush="{StaticResource TransparentBrush}">
             <DockPanel>
               <TextBlock Text="Y" Margin="3,0" MinWidth="12" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource WhiteBrush}"/>
@@ -379,7 +385,7 @@
           <!-- Z component -->
           <Border Grid.Column="5"
                   CornerRadius="4" Margin="2,0,0,0"
-                  Background="{StaticResource BlueBrush}"
+                  Background="{DynamicResource BlueBrush}"
                   BorderThickness="1" BorderBrush="{StaticResource TransparentBrush}">
             <DockPanel>
               <TextBlock Text="Z" Margin="3,0" MinWidth="12" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource WhiteBrush}"/>
@@ -391,7 +397,7 @@
           <!-- W component -->
           <Border Grid.Column="5"
                   CornerRadius="4" Margin="2,0,0,0"
-                  Background="{StaticResource AlphaBrush}"
+                  Background="{DynamicResource AlphaBrush}"
                   BorderThickness="1" BorderBrush="{StaticResource TransparentBrush}">
             <DockPanel>
               <TextBlock Text="W" Margin="3,0" MinWidth="12" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource WhiteBrush}"/>
@@ -414,7 +420,7 @@
           <!-- X component -->
           <Border Grid.Column="1"
                   CornerRadius="4" Margin="2,0,0,0"
-                  Background="{StaticResource RedBrush}"
+                  Background="{DynamicResource RedBrush}"
                   BorderThickness="1" BorderBrush="{StaticResource TransparentBrush}">
             <DockPanel>
               <TextBlock Text="X" Margin="3,0" MinWidth="12" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource WhiteBrush}"/>
@@ -426,7 +432,7 @@
           <!-- Y component -->
           <Border Grid.Column="3"
                   CornerRadius="4" Margin="2,0,0,0"
-                  Background="{StaticResource GreenBrush}"
+                  Background="{DynamicResource GreenBrush}"
                   BorderThickness="1" BorderBrush="{StaticResource TransparentBrush}">
             <DockPanel>
               <TextBlock Text="Y" Margin="3,0" MinWidth="12" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource WhiteBrush}"/>
@@ -449,7 +455,7 @@
           <!-- X component -->
           <Border Grid.Column="1"
                   CornerRadius="4" Margin="2,0,0,0"
-                  Background="{StaticResource RedBrush}"
+                  Background="{DynamicResource RedBrush}"
                   BorderThickness="1" BorderBrush="{StaticResource TransparentBrush}">
             <DockPanel>
               <TextBlock Text="X" Margin="3,0" MinWidth="12" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource WhiteBrush}"/>
@@ -461,7 +467,7 @@
           <!-- Y component -->
           <Border Grid.Column="3"
                   CornerRadius="4" Margin="2,0,0,0"
-                  Background="{StaticResource GreenBrush}"
+                  Background="{DynamicResource GreenBrush}"
                   BorderThickness="1" BorderBrush="{StaticResource TransparentBrush}">
             <DockPanel>
               <TextBlock Text="Y" Margin="3,0" MinWidth="12" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource WhiteBrush}"/>
@@ -473,7 +479,7 @@
           <!-- Z component -->
           <Border Grid.Column="5"
                   CornerRadius="4" Margin="2,0,0,0"
-                  Background="{StaticResource BlueBrush}"
+                  Background="{DynamicResource BlueBrush}"
                   BorderThickness="1" BorderBrush="{StaticResource TransparentBrush}">
             <DockPanel>
               <TextBlock Text="Z" Margin="3,0" MinWidth="12" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource WhiteBrush}"/>
@@ -496,7 +502,7 @@
           <!-- X component -->
           <Border Grid.Column="1"
                   CornerRadius="4" Margin="2,0,0,0"
-                  Background="{StaticResource RedBrush}"
+                  Background="{DynamicResource RedBrush}"
                   BorderThickness="1" BorderBrush="{StaticResource TransparentBrush}">
             <DockPanel>
               <TextBlock Text="X" Margin="3,0" MinWidth="12" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource WhiteBrush}"/>
@@ -508,7 +514,7 @@
           <!-- Y component -->
           <Border Grid.Column="3"
                   CornerRadius="4" Margin="2,0,0,0"
-                  Background="{StaticResource GreenBrush}"
+                  Background="{DynamicResource GreenBrush}"
                   BorderThickness="1" BorderBrush="{StaticResource TransparentBrush}">
             <DockPanel>
               <TextBlock Text="Y" Margin="3,0" MinWidth="12" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource WhiteBrush}"/>
@@ -520,7 +526,7 @@
           <!-- Z component -->
           <Border Grid.Column="5"
                   CornerRadius="4" Margin="2,0,0,0"
-                  Background="{StaticResource BlueBrush}"
+                  Background="{DynamicResource BlueBrush}"
                   BorderThickness="1" BorderBrush="{StaticResource TransparentBrush}">
             <DockPanel>
               <TextBlock Text="Z" Margin="3,0" MinWidth="12" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource WhiteBrush}"/>
@@ -532,7 +538,7 @@
           <!-- W component -->
           <Border Grid.Column="5"
                   CornerRadius="4" Margin="2,0,0,0"
-                  Background="{StaticResource AlphaBrush}"
+                  Background="{DynamicResource AlphaBrush}"
                   BorderThickness="1" BorderBrush="{StaticResource TransparentBrush}">
             <DockPanel>
               <TextBlock Text="W" Margin="3,0" MinWidth="12" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource WhiteBrush}"/>
@@ -554,7 +560,7 @@
         <Grid ColumnDefinitions="Auto, *, Auto, *, Auto, *, Auto, *">
           <Border Grid.Column="1"
                   CornerRadius="4" Margin="2,0,0,0"
-                  Background="{StaticResource AlphaBrush}"
+                  Background="{DynamicResource AlphaBrush}"
                   BorderThickness="1" BorderBrush="{StaticResource TransparentBrush}">
             <DockPanel>
               <TextBlock Text="X" Margin="3,0" MinWidth="12" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource WhiteBrush}"/>
@@ -565,7 +571,7 @@
           </Border>
           <Border Grid.Column="1"
                   CornerRadius="4" Margin="2,0,0,0"
-                  Background="{StaticResource AlphaBrush}"
+                  Background="{DynamicResource AlphaBrush}"
                   BorderThickness="1" BorderBrush="{StaticResource TransparentBrush}">
             <DockPanel>
               <TextBlock Text="Y" Margin="3,0" MinWidth="12" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource WhiteBrush}"/>
@@ -576,7 +582,7 @@
           </Border>
           <Border Grid.Column="1"
                   CornerRadius="4" Margin="2,0,0,0"
-                  Background="{StaticResource AlphaBrush}"
+                  Background="{DynamicResource AlphaBrush}"
                   BorderThickness="1" BorderBrush="{StaticResource TransparentBrush}">
             <DockPanel>
               <TextBlock Text="W" Margin="3,0" MinWidth="12" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource WhiteBrush}"/>
@@ -609,7 +615,7 @@
         <Grid ColumnDefinitions="Auto, *, Auto, *, Auto, *, Auto, *">
           <Border Grid.Column="1"
                   CornerRadius="4" Margin="2,0,0,0"
-                  Background="{StaticResource AlphaBrush}"
+                  Background="{DynamicResource AlphaBrush}"
                   BorderThickness="1" BorderBrush="{StaticResource TransparentBrush}">
             <DockPanel>
               <TextBlock Text="X" Margin="3,0" MinWidth="12" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource WhiteBrush}"/>
@@ -620,7 +626,7 @@
           </Border>
           <Border Grid.Column="1"
                   CornerRadius="4" Margin="2,0,0,0"
-                  Background="{StaticResource AlphaBrush}"
+                  Background="{DynamicResource AlphaBrush}"
                   BorderThickness="1" BorderBrush="{StaticResource TransparentBrush}">
             <DockPanel>
               <TextBlock Text="Y" Margin="3,0" MinWidth="12" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource WhiteBrush}"/>
@@ -631,7 +637,7 @@
           </Border>
           <Border Grid.Column="1"
                   CornerRadius="4" Margin="2,0,0,0"
-                  Background="{StaticResource AlphaBrush}"
+                  Background="{DynamicResource AlphaBrush}"
                   BorderThickness="1" BorderBrush="{StaticResource TransparentBrush}">
             <DockPanel>
               <TextBlock Text="W" Margin="3,0" MinWidth="12" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource WhiteBrush}"/>
@@ -642,7 +648,7 @@
           </Border>
           <Border Grid.Column="7"
                   CornerRadius="4" Margin="2,0,0,0"
-                  Background="{StaticResource AlphaBrush}"
+                  Background="{DynamicResource AlphaBrush}"
                   BorderThickness="1" BorderBrush="{StaticResource TransparentBrush}">
             <DockPanel>
               <TextBlock Text="H" Margin="3,0" MinWidth="12" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource WhiteBrush}"/>
@@ -666,7 +672,7 @@
           <!-- X component -->
           <Border Grid.Column="1"
                   CornerRadius="4" Margin="2,0,0,0"
-                  Background="{StaticResource RedBrush}"
+                  Background="{DynamicResource RedBrush}"
                   BorderThickness="1" BorderBrush="{StaticResource TransparentBrush}">
             <DockPanel>
               <TextBlock Text="X" Margin="3,0" MinWidth="12" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource WhiteBrush}"/>
@@ -678,7 +684,7 @@
           <!-- Y component -->
           <Border Grid.Column="3"
                   CornerRadius="4" Margin="2,0,0,0"
-                  Background="{StaticResource GreenBrush}"
+                  Background="{DynamicResource GreenBrush}"
                   BorderThickness="1" BorderBrush="{StaticResource TransparentBrush}">
             <DockPanel>
               <TextBlock Text="Y" Margin="3,0" MinWidth="12" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource WhiteBrush}"/>
@@ -690,7 +696,7 @@
           <!-- Z component -->
           <Border Grid.Column="5"
                   CornerRadius="4" Margin="2,0,0,0"
-                  Background="{StaticResource BlueBrush}"
+                  Background="{DynamicResource BlueBrush}"
                   BorderThickness="1" BorderBrush="{StaticResource TransparentBrush}">
             <DockPanel>
               <TextBlock Text="Z" Margin="3,0" MinWidth="12" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource WhiteBrush}"/>
