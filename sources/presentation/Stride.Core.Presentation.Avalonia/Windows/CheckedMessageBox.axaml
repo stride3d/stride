@@ -12,9 +12,6 @@
         WindowStartupLocation="CenterOwner"
         Padding="8,0" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Center"
         x:Class="Stride.Core.Presentation.Avalonia.Windows.CheckedMessageBox">
-  <Window.Styles>
-    <FluentTheme />
-  </Window.Styles>
   <Window.Resources>
     <ResourceDictionary>
       <ImageBrush x:Key="ImageErrorDialog" Source="/Assets/Images/error-32.png" />
