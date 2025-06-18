@@ -12,8 +12,26 @@
              mc:Ignorable="d" d:DesignWidth="1024" d:DesignHeight="768"
              x:Class="Stride.Launcher.Views.MainView"
              x:DataType="vm:MainViewModel">
+  <UserControl.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.ThemeDictionaries>
+        <ResourceDictionary x:Key="Default">
+          <ImageBrush x:Key="ImageBackground"/>
+        </ResourceDictionary>
+        <ResourceDictionary x:Key="Dark">
+          <ImageBrush x:Key="ImageBackground"
+                      Source="/Assets/Images/robot.png" Stretch="UniformToFill"/>
+        </ResourceDictionary>
+        <ResourceDictionary x:Key="Light">
+          <!-- FIXME xplat-editor find a background image working better with the light variant -->
+          <ImageBrush x:Key="ImageBackground"
+                      Source="/Assets/Images/robot.png" Stretch="UniformToFill" Opacity="0.4"/>
+        </ResourceDictionary>
+      </ResourceDictionary.ThemeDictionaries>
+    </ResourceDictionary>
+  </UserControl.Resources>
   <UserControl.Background>
-    <ImageBrush Source="/Assets/Images/robot.png" Stretch="UniformToFill"/>
+    <DynamicResource ResourceKey="ImageBackground"/>
   </UserControl.Background>
 
   <Grid>
