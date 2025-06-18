@@ -56,7 +56,6 @@ public partial class InstructionInfo
 
         group++;
         OrderGroup[(SDSLOp.OpName, null)] = group;
-        OrderGroup[(SDSLOp.OpSDSLMixinVariable, null)] = group;
         OrderGroup[(SDSLOp.OpMemberName, null)] = group;
 
         group++;
@@ -74,7 +73,6 @@ public partial class InstructionInfo
 
         foreach (var e in Enum.GetValues<StorageClass>().Where(x => x != StorageClass.Function))
             OrderGroup[(SDSLOp.OpVariable, e)] = group;
-        OrderGroup[(SDSLOp.OpSDSLIOVariable, null)] = group;
 
         OrderGroup[(SDSLOp.OpUndef, null)] = group;
 
