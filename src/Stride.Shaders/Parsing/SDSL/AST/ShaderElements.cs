@@ -8,6 +8,10 @@ namespace Stride.Shaders.Parsing.SDSL.AST;
 public abstract class ShaderElement(TextLocation info) : Node(info)
 {
     public SymbolType? Type { get; set; }
+
+    public virtual void ProcessSymbol(SymbolTable table)
+    {
+    }
 }
 
 
@@ -143,7 +147,7 @@ public abstract class ShaderBuffer(List<Identifier> name, TextLocation info) : S
         table.RootSymbols.Add(Name.ToString() ?? "", sym);
         foreach (var cbmem in Members)
         {
-            cbmem.TypeName.ProcessSymbol(table);
+            cbmem.TypeName.ProcessType(table);
             cbmem.Type = cbmem.Type;
             table.DeclaredTypes.TryAdd(cbmem.Type.ToString(), cbmem.Type);
         }
@@ -175,7 +179,7 @@ public class ShaderStruct(Identifier typename, TextLocation info) : ShaderElemen
         var fields = new List<(string Name, SymbolType Type)>();
         foreach (var smem in Members)
         {
-            smem.TypeName.ProcessSymbol(table);
+            smem.TypeName.ProcessType(table);
             smem.Type = smem.TypeName.Type;
             table.DeclaredTypes.TryAdd(smem.Type.ToString(), smem.Type);
 

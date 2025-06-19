@@ -11,7 +11,6 @@ namespace Stride.Shaders.Parsing;
 public abstract class Node(TextLocation info)
 {
     public TextLocation Info { get; set; } = info;
-    public virtual void ProcessSymbol(SymbolTable table) => throw new NotImplementedException($"Symbol table cannot process type : {GetType().Name}");
 }
 
 /// <summary>
@@ -20,6 +19,8 @@ public abstract class Node(TextLocation info)
 public class ValueNode(TextLocation info) : Node(info)
 {
     public virtual SymbolType? Type { get; set; } = null;
+
+    public virtual void ProcessType(SymbolTable table) => throw new NotImplementedException($"Symbol table cannot process type : {GetType().Name}");
 }
 
 /// <summary>
@@ -41,14 +42,6 @@ public class ShaderFile(TextLocation info) : Node(info)
 {
     public List<ShaderDeclaration> RootDeclarations { get; set; } = [];
     public List<ShaderNamespace> Namespaces { get; set; } = [];
-
-    public override void ProcessSymbol(SymbolTable table)
-    {
-        foreach (var e in RootDeclarations)
-            e.ProcessSymbol(table);
-        foreach (var ns in Namespaces)
-            ns.ProcessSymbol(table);
-    }
 
     public override string ToString()
     {
@@ -72,12 +65,6 @@ public class ShaderNamespace(TextLocation info) : Node(info)
     public List<Identifier> NamespacePath { get; set; } = [];
     public Identifier? Namespace { get; set; }
     public List<ShaderDeclaration> Declarations { get; set; } = [];
-
-    public override void ProcessSymbol(SymbolTable table)
-    {
-        foreach(var d in Declarations)
-            d.ProcessSymbol(table);
-    }
 
     public override string ToString()
     {

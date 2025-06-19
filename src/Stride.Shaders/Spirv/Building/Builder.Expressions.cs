@@ -109,11 +109,17 @@ public partial class SpirvBuilder
     }
     public SpirvValue CallFunction(SpirvContext context, string name, Span<IdRef> parameters)
     {
-        if (!context.Module.Functions.TryGetValue(name, out var func))
-            context.Module.InheritedFunctions.TryGetValue(name, out func);
+        var func = FindFunction(context, name);
 
         var fcall = Buffer.InsertOpFunctionCall(Position++, context.Bound++, context.GetOrRegister(func.FunctionType.ReturnType), func.Id, parameters);
         return new(fcall, func.Name);
+    }
+
+    private static SpirvFunction FindFunction(SpirvContext context, string name)
+    {
+        if (!context.Module.Functions.TryGetValue(name, out var func))
+            context.Module.InheritedFunctions.TryGetValue(name, out func);
+        return func;
     }
 
     public SpirvValue CompositeConstruct(SpirvContext context, CompositeLiteral literal, Span<IdRef> values)

@@ -126,13 +126,6 @@ public static partial class Examples
             foreach (var e in parsed.Errors)
                 Console.WriteLine(e);
         }
-        else
-        {
-            var table = new SymbolTable();
-            parsed.AST?.ProcessSymbol(table);
-            foreach (var e in table.Errors)
-                Console.WriteLine(e);
-        }
     }
 
     public static void TryAllFiles()

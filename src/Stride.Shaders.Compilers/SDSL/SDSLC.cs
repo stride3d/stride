@@ -21,12 +21,12 @@ public record struct SDSLC(IExternalShaderLoader ShaderLoader) : ICompiler
             SymbolTable table = new();
             var shader = sf.Namespaces.First().Declarations.OfType<ShaderClass>().First();
             table.ShaderLoader = ShaderLoader;
-            shader.ProcessSymbol(table);
 
-            if(table.Errors.Count > 0)
-                throw new Exception("Some parse errors");
             var compiler = new CompilerUnit();
             shader.Compile(compiler, table);
+
+            if (table.Errors.Count > 0)
+                throw new Exception("Some parse errors");
 
             // temp hack to add entry point (last function)
             //var context = compiler.Context;

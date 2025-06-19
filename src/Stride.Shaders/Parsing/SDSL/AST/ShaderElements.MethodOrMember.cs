@@ -158,33 +158,18 @@ public class ShaderMethod(
 
     public BlockStatement? Body { get; set; }
 
-    public override void ProcessSymbol(SymbolTable table)
+    public void Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         table.Push();
         foreach (var arg in Parameters)
         {
-            arg.TypeName.ProcessSymbol(table);
+            arg.TypeName.ProcessType(table);
             var argSym = arg.TypeName.Type;
             table.DeclaredTypes.TryAdd(argSym.ToString(), argSym);
             table.CurrentFrame.Add(arg.Name, new(new(arg.Name, SymbolKind.Variable, Core.Storage.Function), arg.Type));
             arg.Type = argSym;
-
         }
-        if (Body is not null)
-        {
-            table.Push();
-            foreach (var s in Body.Statements)
-                if (EntryPoint == 0)
-                    s.ProcessSymbol(table);
-                else
-                    s.ProcessSymbol(table, this);
-            table.Pop();
-        }
-        table.Pop();
-    }
-
-    public void Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
-    {
+        
         var (builder, context, _) = compiler;
         if (Type is FunctionType ftype)
         {
@@ -193,13 +178,19 @@ public class ShaderMethod(
                 builder.AddFunctionParameter(context, p.Name, p.Type);
             if(Body is BlockStatement body)
             {
+                table.Push();
                 builder.CreateBlock(context);
+                foreach (var s in Body.Statements)
+                    s.ProcessType(table);
                 foreach (var s in body)
                     s.Compile(table, shader, compiler);
+                table.Pop();
             }
             builder.EndFunction(context);
         }
         else throw new NotImplementedException();
+
+        table.Pop();
     }
 
     public override string ToString()

@@ -54,7 +54,7 @@ public abstract class NumberLiteral<T>(Suffix suffix, T value, TextLocation info
 
 public class IntegerLiteral(Suffix suffix, long value, TextLocation info) : NumberLiteral<long>(suffix, value, info)
 {
-    public override void ProcessSymbol(SymbolTable table)
+    public override void ProcessType(SymbolTable table)
     {
         Type = Suffix switch
         {
@@ -86,7 +86,7 @@ public sealed class FloatLiteral(Suffix suffix, double value, int? exponent, Tex
     public int? Exponent { get; set; } = exponent;
     public static implicit operator FloatLiteral(double v) => new(new(), v, null, new());
 
-    public override void ProcessSymbol(SymbolTable table)
+    public override void ProcessType(SymbolTable table)
     {
         Type = Suffix.Size switch
         {
@@ -110,7 +110,7 @@ public sealed class FloatLiteral(Suffix suffix, double value, int? exponent, Tex
 
 public sealed class HexLiteral(ulong value, TextLocation info) : IntegerLiteral(new(32, false, false), (long)value, info)
 {
-    public override void ProcessSymbol(SymbolTable table)
+    public override void ProcessType(SymbolTable table)
         => Type = ScalarType.From("long");
 }
 
@@ -118,7 +118,7 @@ public sealed class HexLiteral(ulong value, TextLocation info) : IntegerLiteral(
 public class BoolLiteral(bool value, TextLocation info) : ScalarLiteral(info)
 {
     public bool Value { get; set; } = value;
-    public override void ProcessSymbol(SymbolTable table)
+    public override void ProcessType(SymbolTable table)
         => Type = ScalarType.From("bool");
 
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
@@ -158,14 +158,14 @@ public class VectorLiteral(TypeName typeName, TextLocation info) : CompositeLite
 {
     public TypeName TypeName { get; set; } = typeName;
 
-    public override void ProcessSymbol(SymbolTable table)
+    public override void ProcessType(SymbolTable table)
     {
-        TypeName.ProcessSymbol(table);
+        TypeName.ProcessType(table);
         Type = TypeName.Type;
         var tmp = (Core.VectorType)Type! ?? throw new NotImplementedException();
         foreach (var v in Values)
         {
-            v.ProcessSymbol(table);
+            v.ProcessType(table);
             if (
                 v.Type is ScalarType st && tmp.BaseType != st
                 || (v.Type is Core.VectorType vt && vt.BaseType != tmp.BaseType)
@@ -205,7 +205,7 @@ public class Identifier(string name, TextLocation info) : Literal(info)
 
     public static implicit operator string(Identifier identifier) => identifier.Name;
 
-    public override void ProcessSymbol(SymbolTable table)
+    public override void ProcessType(SymbolTable table)
     {
         for (int i = table.CurrentSymbols.Count - 1; i >= 0; --i)
         {
@@ -288,7 +288,7 @@ public class TypeName(string name, TextLocation info, bool isArray) : Literal(in
     public List<Expression>? ArraySize { get; set; }
     public List<TypeName> Generics { get; set; } = [];
 
-    public override void ProcessSymbol(SymbolTable table)
+    public override void ProcessType(SymbolTable table)
     {
         if (!IsArray && Generics.Count == 0)
         {

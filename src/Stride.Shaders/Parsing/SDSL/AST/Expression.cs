@@ -22,10 +22,10 @@ public class MethodCall(Identifier name, ShaderExpressionList parameters, TextLo
     public Identifier Name = name;
     public ShaderExpressionList Parameters = parameters;
 
-    public override void ProcessSymbol(SymbolTable table)
+    public override void ProcessType(SymbolTable table)
     {
-        foreach (var p in parameters.Values)
-            p.ProcessSymbol(table);
+        Name.ProcessType(table);
+        Type = ((FunctionType)Name.Type).ReturnType;
     }
 
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
@@ -104,12 +104,12 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
     public Expression Source { get; set; } = source;
     public List<Expression> Accessors { get; set; } = [];
 
-    public override void ProcessSymbol(SymbolTable table)
+    public override void ProcessType(SymbolTable table)
     {
         if (Source is Identifier { Name: "streams" } streams && Accessors[0] is Identifier streamVar)
         {
             //table.CurrentSymbols.Add(table.Streams);
-            streamVar.ProcessSymbol(table);
+            streamVar.ProcessType(table);
             Type = streamVar.Type;
 
             if (Accessors.Count > 1)
@@ -117,7 +117,7 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
         }
         else if ((Source is Identifier { Name: "base" } || Source is Identifier { Name: "this" }) && Accessors[0] is MethodCall methodCall)
         {
-            methodCall.ProcessSymbol(table);
+            methodCall.ProcessType(table);
             Type = methodCall.Type;
 
             if (Accessors.Count > 1)
@@ -125,7 +125,7 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
         }
         else
         {
-            Source.ProcessSymbol(table);
+            Source.ProcessType(table);
             Type = Source.Type;
             ProcessAccessors(0);
         }
@@ -145,7 +145,7 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
                 else throw new NotImplementedException($"Cannot access {accessor.GetType().Name} from {Type}");
 
                 if(accessor is not Identifier)
-                    accessor.ProcessSymbol(table);
+                    accessor.ProcessType(table);
             }
         }
     }
@@ -178,7 +178,7 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
                     throw new InvalidOperationException($"field {accessor} not found in struct type {s}");
                 //indexes[i] = builder.CreateConstant(context, shader, new IntegerLiteral(new(32, false, true), index, new())).Id;
                 var indexLiteral = new IntegerLiteral(new(32, false, true), index, new());
-                indexLiteral.ProcessSymbol(table);
+                indexLiteral.ProcessType(table);
                 indexes[i] = context.CreateConstant(indexLiteral).Id;
             }
             else throw new NotImplementedException($"unknown accessor {accessor} in expression {this}");
@@ -215,10 +215,10 @@ public class BinaryExpression(Expression left, Operator op, Expression right, Te
     public Expression Left { get; set; } = left;
     public Expression Right { get; set; } = right;
 
-    public override void ProcessSymbol(SymbolTable table)
+    public override void ProcessType(SymbolTable table)
     {
-        Left.ProcessSymbol(table);
-        Right.ProcessSymbol(table);
+        Left.ProcessType(table);
+        Right.ProcessType(table);
         if (
             OperatorTable.BinaryOperationResultingType(
                 Left.Type ?? throw new NotImplementedException("Missing type"),
@@ -252,11 +252,11 @@ public class TernaryExpression(Expression cond, Expression left, Expression righ
     public Expression Left { get; set; } = left;
     public Expression Right { get; set; } = right;
 
-    public override void ProcessSymbol(SymbolTable table)
+    public override void ProcessType(SymbolTable table)
     {
-        Condition.ProcessSymbol(table);
-        Left.ProcessSymbol(table);
-        Right.ProcessSymbol(table);
+        Condition.ProcessType(table);
+        Left.ProcessType(table);
+        Right.ProcessType(table);
         if (Condition.Type is not ScalarType { TypeName: "bool" })
             table.Errors.Add(new(Condition.Info, SDSLErrorMessages.SDSL0106));
         if (Left.Type != Right.Type)

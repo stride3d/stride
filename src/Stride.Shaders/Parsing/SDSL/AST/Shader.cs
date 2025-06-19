@@ -118,7 +118,18 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
         return shaderType;
     }
 
-    public override void ProcessSymbol(SymbolTable table)
+    private static void RegisterShaderType(SymbolTable table, ShaderSymbol shaderType)
+    {
+        var sid = new SymbolID(shaderType.Name, SymbolKind.Shader);
+        table.RootSymbols.Add(shaderType.Name, new(sid, shaderType));
+
+        // Register members
+        foreach (var symbol in shaderType.Components)
+            table.CurrentFrame.Add(symbol.Id.Name, symbol);
+    }
+
+
+    public void Compile(CompilerUnit compiler, SymbolTable table)
     {
         table.Push();
         foreach (var mixin in Mixins)
@@ -133,11 +144,11 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
         {
             if (member is ShaderMethod func)
             {
-                func.ReturnTypeName.ProcessSymbol(table);
+                func.ReturnTypeName.ProcessType(table);
                 var ftype = new FunctionType(func.ReturnTypeName.Type, []);
                 foreach (var arg in func.Parameters)
                 {
-                    arg.TypeName.ProcessSymbol(table);
+                    arg.TypeName.ProcessType(table);
                     var argSym = arg.TypeName.Type;
                     table.DeclaredTypes.TryAdd(argSym.ToString(), argSym);
                     arg.Type = argSym;
@@ -152,9 +163,9 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
             }
             else if (member is ShaderMember svar)
             {
-                svar.TypeName.ProcessSymbol(table);
+                svar.TypeName.ProcessType(table);
                 svar.Type = svar.TypeName.Type;
-                var sid = 
+                var sid =
                     new SymbolID
                     (
                         svar.Name,
@@ -179,26 +190,9 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
         table.CurrentShader = currentShader;
         foreach (var member in Elements)
         {
-            if (member is not ShaderMember)
-                member.ProcessSymbol(table);
+            member.ProcessSymbol(table);
         }
-        table.CurrentShader = null;
-        table.Pop();
-    }
 
-    private static void RegisterShaderType(SymbolTable table, ShaderSymbol shaderType)
-    {
-        var sid = new SymbolID(shaderType.Name, SymbolKind.Shader);
-        table.RootSymbols.Add(shaderType.Name, new(sid, shaderType));
-
-        // Register members
-        foreach (var symbol in shaderType.Components)
-            table.CurrentFrame.Add(symbol.Id.Name, symbol);
-    }
-
-
-    public void Compile(CompilerUnit compiler, SymbolTable table)
-    {
         var (builder, context, _) = compiler;
         context.PutShaderName(Name);
 
@@ -232,15 +226,13 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
             context.Module.InheritedMixins.Add(shaderType);
         }
 
-        var currentShader = (ShaderSymbol)table.RootSymbols[Name].Type;
-        table.CurrentShader = currentShader;
-
         foreach (var member in Elements.OfType<ShaderMember>())
             member.Compile(table, this, compiler);
         foreach(var method in Elements.OfType<ShaderMethod>())
             method.Compile(table, this, compiler);
 
         table.CurrentShader = null;
+        table.Pop();
     }
 
 
