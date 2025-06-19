@@ -17,10 +17,10 @@
   </UserControl.Resources>
   <UserControl.Styles>
     <Style Selector="sd|PropertyViewItem[IsHovered=True]">
-      <Setter Property="Background" Value="#FF525252"/>
+      <Setter Property="Background" Value="{DynamicResource PropertyHoveredBackground}"/>
     </Style>
     <Style Selector="sd|PropertyViewItem[IsFocused=True]">
-      <Setter Property="Background" Value="#3E3E40"/>
+      <Setter Property="Background" Value="{DynamicResource PropertyFocusedBackground}"/>
     </Style>
   </UserControl.Styles>
   <DockPanel LastChildFill="True">

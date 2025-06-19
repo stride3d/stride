@@ -89,6 +89,7 @@
                 <Border x:Name="Border"
                         Width="16" Height="16" Margin="2,0" Background="Transparent" Focusable="False">
                   <Image Source="{TemplateBinding Tag}" Width="16" Height="16"/>
+                  <!-- FIXME xplat-editor use style selectors instead -->
                   <Interaction.Behaviors>
                     <DataTriggerBehavior Binding="{TemplateBinding IsPointerOver}" Value="{sd:True}">
                       <ChangePropertyAction PropertyName="Background" TargetObject="Border" Value="#FFAAAAAA"/>
@@ -154,10 +155,10 @@
   <ControlTemplate x:Key="TreeExpanderToggleButton" TargetType="{x:Type ToggleButton}">
     <Grid Background="Transparent">
       <Path x:Name="Up_Arrow" IsVisible="{Binding !IsChecked, RelativeSource={RelativeSource TemplatedParent}}"
-            HorizontalAlignment="Center" VerticalAlignment="Center" Fill="#FFD1D1D1"
+            HorizontalAlignment="Center" VerticalAlignment="Center" Fill="{DynamicResource SystemBaseHighColor}"
             Data="M 0 6 V 0 l 5 3 z" RenderTransformOrigin="0.5,0.5" Stretch="Uniform" StrokeThickness="0"/>
       <Path x:Name="Down_Arrow" IsVisible="{Binding IsChecked, RelativeSource={RelativeSource TemplatedParent}}"
-            HorizontalAlignment="Center" VerticalAlignment="Center" Fill="#FFD1D1D1"
+            HorizontalAlignment="Center" VerticalAlignment="Center" Fill="{DynamicResource SystemBaseHighColor}"
             Data="M 0 0 H 6 L 3 6 Z" RenderTransformOrigin="0.5,0.5" Stretch="Uniform" StrokeThickness="0"/>
     </Grid>
   </ControlTemplate>
@@ -280,7 +281,7 @@
           IsVisible="{Binding IsVisible}"
           Margin="{Binding $parent[sd:PropertyViewItem].Offset, Mode=OneWay, Converter={sd:NumericToThickness}, ConverterParameter={sd:Thickness 1,0,0,0}}">
       <Border x:Name="PART_Name"
-              Background="#316B8F"
+              Background="{DynamicResource PropertyHeaderBackground}"
               MinHeight="20" Margin="6" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"
               ToolTip.Tip="{Binding [Documentation]}"/>
       <DockPanel x:Name="HeaderDockPanel"
@@ -315,8 +316,7 @@
           <Image Source="{Binding NodeValue, Converter={sd:Chained {sd:ObjectToType}, {caec:TypeToResource}}}"
                  MaxWidth="16" MaxHeight="16" Margin="0,0,4,0"/>
           <TextBlock x:Name="HeaderTextBlock" FontSize="16" TextTrimming="CharacterEllipsis"
-                     Text="{Binding DisplayName, Mode=OneWay}" HorizontalAlignment="Left" VerticalAlignment="Center"
-                     Foreground="#E6E6E6"/>
+                     Text="{Binding DisplayName, Mode=OneWay}" HorizontalAlignment="Left" VerticalAlignment="Center"/>
           <Interaction.Behaviors>
             <DataTriggerBehavior Binding="{sd:MultiBinding {Binding ConverterParameter=[IsOverridden], Converter={caec:NodePathToObject}},
                                                            {Binding ConverterParameter=[Enabled].[IsOverridden], Converter={caec:NodePathToObject}},

@@ -54,10 +54,11 @@
                                Source="avares://Stride.GameStudio.Avalonia/Assets/BACKERS.md">
         <Control.Styles>
           <Style Selector="ctxt|CHyperlink">
+            <Setter Property="Foreground" Value="{DynamicResource SystemAccentColor}" />
             <Setter Property="IsUnderline" Value="False"/>
           </Style>
           <Style Selector="ctxt|CHyperlink:pointerover">
-            <Setter Property="Foreground" Value="#00A0FF" />
+            <Setter Property="Foreground" Value="{DynamicResource SystemAccentColor}" />
             <Setter Property="IsUnderline" Value="True"/>
           </Style>
         </Control.Styles>
