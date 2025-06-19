@@ -113,9 +113,15 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
             Type = streamVar.Type;
 
             if (Accessors.Count > 1)
-            {
                 ProcessAccessors(1);
-            }
+        }
+        else if ((Source is Identifier { Name: "base" } || Source is Identifier { Name: "this" }) && Accessors[0] is MethodCall methodCall)
+        {
+            methodCall.ProcessSymbol(table);
+            Type = methodCall.Type;
+
+            if (Accessors.Count > 1)
+                ProcessAccessors(1);
         }
         else
         {

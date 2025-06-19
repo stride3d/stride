@@ -1,10 +1,11 @@
 using Stride.Shaders.Core;
 using Stride.Shaders.Core.Analysis;
 using Stride.Shaders.Parsing.Analysis;
+using Stride.Shaders.Spirv;
 using Stride.Shaders.Spirv.Building;
+using Stride.Shaders.Spirv.Core;
 using Stride.Shaders.Spirv.Core.Buffers;
 using System.Runtime.InteropServices;
-using Stride.Shaders.Spirv.Core;
 
 namespace Stride.Shaders.Parsing.SDSL.AST;
 
@@ -124,14 +125,10 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
         {
             var shaderType = LoadShader(table.ShaderLoader, mixin);
 
-            var sid2 = new SymbolID(mixin.Name, SymbolKind.Shader);
-            table.RootSymbols.Add(mixin.Name, new(new SymbolID(mixin.Name, SymbolKind.Shader), shaderType));
-
-            // Register members
-            foreach (var symbol in shaderType.Components)
-                table.CurrentFrame.Add(symbol.Id.Name, symbol);
+            RegisterShaderType(table, shaderType);
         }
 
+        var symbols = new List<Symbol>();
         foreach (var member in Elements)
         {
             if (member is ShaderMethod func)
@@ -148,8 +145,10 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
                 }
                 func.Type = ftype;
 
-                table.RootSymbols.Add(func.Name, new(new(func.Name, SymbolKind.Method), func.Type));
                 table.DeclaredTypes.TryAdd(func.Type.ToString(), func.Type);
+
+                var symbol = new Symbol(new(func.Name, SymbolKind.Method), func.Type);
+                symbols.Add(symbol);
             }
             else if (member is ShaderMember svar)
             {
@@ -166,34 +165,35 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
                             _ => Storage.None
                         }
                     );
-                var symbol = new Symbol(sid, svar.Type);
-                //if (sid.Storage == Storage.Stream)
-                //{
-                //    table.Streams.Add(sid, symbol);
-                //}
-                //else
-                {
-                    table.RootSymbols.Add(sid.Name, symbol);
-                }
+
                 table.DeclaredTypes.TryAdd(svar.Type.ToString(), svar.Type);
+
+                var symbol = new Symbol(sid, svar.Type);
+                symbols.Add(symbol);
             }
         }
 
-        /*var streams =
-            new SymbolID
-            (
-                "streams",
-                SymbolKind.Variable,
-                Storage.None
-            );
-        table.RootSymbols.Add(streams, new(streams, new StreamsSymbol()));*/
+        var currentShader = new ShaderSymbol(Name, symbols);
+        RegisterShaderType(table, currentShader);
 
+        table.CurrentShader = currentShader;
         foreach (var member in Elements)
         {
             if (member is not ShaderMember)
                 member.ProcessSymbol(table);
         }
+        table.CurrentShader = null;
         table.Pop();
+    }
+
+    private static void RegisterShaderType(SymbolTable table, ShaderSymbol shaderType)
+    {
+        var sid = new SymbolID(shaderType.Name, SymbolKind.Shader);
+        table.RootSymbols.Add(shaderType.Name, new(sid, shaderType));
+
+        // Register members
+        foreach (var symbol in shaderType.Components)
+            table.CurrentFrame.Add(symbol.Id.Name, symbol);
     }
 
 
@@ -232,10 +232,15 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
             context.Module.InheritedMixins.Add(shaderType);
         }
 
+        var currentShader = (ShaderSymbol)table.RootSymbols[Name].Type;
+        table.CurrentShader = currentShader;
+
         foreach (var member in Elements.OfType<ShaderMember>())
             member.Compile(table, this, compiler);
         foreach(var method in Elements.OfType<ShaderMethod>())
             method.Compile(table, this, compiler);
+
+        table.CurrentShader = null;
     }
 
 

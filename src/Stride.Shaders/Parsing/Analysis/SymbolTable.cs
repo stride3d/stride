@@ -19,6 +19,8 @@ public partial class SymbolTable : ISymbolProvider
 
     public List<SymbolFrame> CurrentSymbols { get; } = new();
 
+    public ShaderSymbol? CurrentShader { get; set; }
+
     public SymbolTable()
     {
         Push(RootSymbols);

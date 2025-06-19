@@ -232,11 +232,10 @@ public class Identifier(string name, TextLocation info) : Literal(info)
                 return resultVar;
             else if(f.Parameters.TryGetValue(Name, out var paramVar))
                 return paramVar;
-
-            if (context.Module.InheritedVariables.TryGetValue(Name, out var externalVar))
-                return externalVar;
         }
 
+        if (context.Module.InheritedVariables.TryGetValue(Name, out var externalVar))
+            return externalVar;
         if (compiler.Context.Variables.TryGetValue(Name, out var variable))
             return variable;
         throw new NotImplementedException();
