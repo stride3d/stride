@@ -89,7 +89,6 @@ public class AssemblyProcessorProgram
             { "p|platform=", "The platform (Windows, Android, iOS)", v => app.Platform = (PlatformType)Enum.Parse(typeof(PlatformType), v) },
             { "parameter-key", "Automatically initialize parameter keys in module static constructor", _ => app.ParameterKey = true },
             { "rename-assembly=", "Rename assembly", v => app.NewAssemblyName = v },
-            { "auto-module-initializer", "Execute function tagged with [ModuleInitializer] at module initialization (automatically enabled)", _ => app.ModuleInitializer = true },
             { "serialization", "Generate serialiation assembly", _ => app.SerializationAssembly = true },
             { "docfile=", "Generate user documentation from XML file", v => app.DocumentationFile = v },
             { "d|directory=", "Additional search directory for assemblies", app.SearchDirectories.Add },
