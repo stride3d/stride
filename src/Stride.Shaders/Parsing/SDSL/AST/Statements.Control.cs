@@ -16,17 +16,12 @@ public class ConditionalFlow(If first, TextLocation info) : Flow(info)
     public Else? Else { get; set; }
     public ShaderAttributeList? Attributes { get; set; }
 
-    public override void ProcessType(SymbolTable table)
-    {
-        If.ProcessType(table);
-        foreach (var ei in ElseIfs)
-            ei.ProcessType(table);
-        Else?.ProcessType(table);
-
-    }
-    
     public override void Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
+        If.Compile(table, shader, compiler);
+        foreach (var ei in ElseIfs)
+            ei.Compile(table, shader, compiler);
+        Else?.Compile(table, shader, compiler);
         throw new NotImplementedException();
     }
 
@@ -40,15 +35,12 @@ public class If(Expression condition, Statement body, TextLocation info) : Flow(
     public Expression Condition { get; set; } = condition;
     public Statement Body { get; set; } = body;
 
-    public override void ProcessType(SymbolTable table)
-    {
-        Condition.ProcessType(table);
-        Body.ProcessType(table);
-        if(Condition.Type != ScalarType.From("bool"))
-            table.Errors.Add(new(Condition.Info, "not a boolean"));
-    }
     public override void Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
+        Condition.Compile(table, shader, compiler);
+        Body.Compile(table, shader, compiler);
+        if (Condition.Type != ScalarType.From("bool"))
+            table.Errors.Add(new(Condition.Info, "not a boolean"));
         throw new NotImplementedException();
     }
 
@@ -60,15 +52,12 @@ public class If(Expression condition, Statement body, TextLocation info) : Flow(
 
 public class ElseIf(Expression condition, Statement body, TextLocation info) : If(condition, body, info)
 {
-    public override void ProcessType(SymbolTable table)
-    {
-        Condition.ProcessType(table);
-        Body.ProcessType(table);
-        if(Condition.Type != ScalarType.From("bool"))
-            table.Errors.Add(new(Condition.Info, "not a boolean"));
-    }
     public override void Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
+        Condition.Compile(table, shader, compiler);
+        Body.Compile(table, shader, compiler);
+        if (Condition.Type != ScalarType.From("bool"))
+            table.Errors.Add(new(Condition.Info, "not a boolean"));
         throw new NotImplementedException();
     }
     public override string ToString()
@@ -81,13 +70,9 @@ public class Else(Statement body, TextLocation info) : Flow(info)
 {
     public Statement Body { get; set; } = body;
 
-    public override void ProcessType(SymbolTable table)
-    {
-        Body.ProcessType(table);
-    }
     public override void Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
-        throw new NotImplementedException();
+        Body.Compile(table, shader, compiler);
     }
     public override string ToString()
     {

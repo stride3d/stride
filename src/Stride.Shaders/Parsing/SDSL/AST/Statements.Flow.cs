@@ -9,8 +9,6 @@ public abstract class Flow(TextLocation info) : Statement(info);
 public abstract class Loop(TextLocation info) : Flow(info);
 public class Break(TextLocation info) : Statement(info)
 {
-    public override void ProcessType(SymbolTable table) { }
-
     public override void Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         throw new NotImplementedException();
@@ -18,8 +16,6 @@ public class Break(TextLocation info) : Statement(info)
 }
 public class Discard(TextLocation info) : Statement(info)
 {
-    public override void ProcessType(SymbolTable table) { }
-
     public override void Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         throw new NotImplementedException();
@@ -27,8 +23,6 @@ public class Discard(TextLocation info) : Statement(info)
 }
 public class Continue(TextLocation info) : Statement(info)
 {
-    public override void ProcessType(SymbolTable table) { }
-
     public override void Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         throw new NotImplementedException();
@@ -43,18 +37,15 @@ public class ForEach(TypeName typename, Identifier variable, Expression collecti
     public Expression Collection { get; set; } = collection;
     public Statement Body { get; set; } = body;
 
-    public override void ProcessType(SymbolTable table)
-    {
-        Collection.ProcessType(table);
-        if(Collection.Type is ArrayType arrSym)
-        {
-            var btype = arrSym.BaseType;
-            TypeName.ProcessType(table);
-        }
-    }
 
     public override void Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
+        Collection.Compile(table, shader, compiler);
+        if (Collection.Type is ArrayType arrSym)
+        {
+            var btype = arrSym.BaseType;
+            TypeName.Compile(table, shader, compiler);
+        }
         throw new NotImplementedException();
     }
 
@@ -71,14 +62,10 @@ public class While(Expression condition, Statement body, TextLocation info, Shad
     public Statement Body { get; set; } = body;
     public ShaderAttribute? Attribute { get; internal set; } = attribute;
 
-    public override void ProcessType(SymbolTable table)
-    {
-        Condition.ProcessType(table);
-        Body.ProcessType(table);
-    }
-
     public override void Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
+        Condition.Compile(table, shader, compiler);
+        Body.Compile(table, shader, compiler);
         throw new NotImplementedException();
     }
 

@@ -22,14 +22,11 @@ public class MethodCall(Identifier name, ShaderExpressionList parameters, TextLo
     public Identifier Name = name;
     public ShaderExpressionList Parameters = parameters;
 
-    public override void ProcessType(SymbolTable table)
-    {
-        Name.ProcessType(table);
-        Type = ((FunctionType)Name.Type).ReturnType;
-    }
-
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
+        var functionType = (FunctionType)Name.ResolveType(table);
+        Type = functionType.ReturnType;
+
         var (builder, context, module) = compiler;
         var list = parameters.Values;
         Span<IdRef> compiledParams = stackalloc IdRef[list.Count];
@@ -104,51 +101,6 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
     public Expression Source { get; set; } = source;
     public List<Expression> Accessors { get; set; } = [];
 
-    public override void ProcessType(SymbolTable table)
-    {
-        if (Source is Identifier { Name: "streams" } streams && Accessors[0] is Identifier streamVar)
-        {
-            //table.CurrentSymbols.Add(table.Streams);
-            streamVar.ProcessType(table);
-            Type = streamVar.Type;
-
-            if (Accessors.Count > 1)
-                ProcessAccessors(1);
-        }
-        else if ((Source is Identifier { Name: "base" } || Source is Identifier { Name: "this" }) && Accessors[0] is MethodCall methodCall)
-        {
-            methodCall.ProcessType(table);
-            Type = methodCall.Type;
-
-            if (Accessors.Count > 1)
-                ProcessAccessors(1);
-        }
-        else
-        {
-            Source.ProcessType(table);
-            Type = Source.Type;
-            ProcessAccessors(0);
-        }
-
-        // AccessorChain always end up with a pointer type
-        Type = new PointerType(Type);
-
-        void ProcessAccessors(int firstIndex)
-        {
-            foreach (var accessor in Accessors[firstIndex..])
-            {
-                if (Type is not null && Type.TryAccess(accessor, out var type))
-                {
-                    Type = type;
-                    accessor.Type = type;
-                }
-                else throw new NotImplementedException($"Cannot access {accessor.GetType().Name} from {Type}");
-
-                if(accessor is not Identifier)
-                    accessor.ProcessType(table);
-            }
-        }
-    }
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         var (builder, context, _) = compiler;
@@ -156,17 +108,25 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
         var variable = context.Bound++;
 
         int firstIndex = 0;
+        SymbolType currentValueType;
         if (Source is Identifier { Name: "streams" } streams && Accessors[0] is Identifier streamVar)
         {
             source = streamVar.Compile(table, shader, compiler);
+            currentValueType = streamVar.Type;
+            firstIndex = 1;
+        }
+        else if ((Source is Identifier { Name: "base" } || Source is Identifier { Name: "this" }) && Accessors[0] is MethodCall methodCall)
+        {
+            source = methodCall.Compile(table, shader, compiler);
+            currentValueType = methodCall.Type;
             firstIndex = 1;
         }
         else
         {
             source = Source.Compile(table, shader, compiler);
+            currentValueType = Source.Type;
         }
 
-        var currentValueType = Source.Type;
         Span<IdRef> indexes = stackalloc IdRef[Accessors.Count];
         for (var i = firstIndex; i < Accessors.Count; i++)
         {
@@ -178,13 +138,14 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
                     throw new InvalidOperationException($"field {accessor} not found in struct type {s}");
                 //indexes[i] = builder.CreateConstant(context, shader, new IntegerLiteral(new(32, false, true), index, new())).Id;
                 var indexLiteral = new IntegerLiteral(new(32, false, true), index, new());
-                indexLiteral.ProcessType(table);
                 indexes[i] = context.CreateConstant(indexLiteral).Id;
             }
             else throw new NotImplementedException($"unknown accessor {accessor} in expression {this}");
 
             currentValueType = accessor.Type;
         }
+
+        Type = new PointerType(currentValueType);
 
         // Do we need the OpAccessChain? (if we have streams.StreamVar, we can return StreamVar as is)
         if (firstIndex == Accessors.Count)
@@ -215,10 +176,10 @@ public class BinaryExpression(Expression left, Operator op, Expression right, Te
     public Expression Left { get; set; } = left;
     public Expression Right { get; set; } = right;
 
-    public override void ProcessType(SymbolTable table)
+    public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
-        Left.ProcessType(table);
-        Right.ProcessType(table);
+        var left = Left.Compile(table, shader, compiler);
+        var right = Right.Compile(table, shader, compiler);
         if (
             OperatorTable.BinaryOperationResultingType(
                 Left.Type ?? throw new NotImplementedException("Missing type"),
@@ -230,12 +191,7 @@ public class BinaryExpression(Expression left, Operator op, Expression right, Te
             Type = t;
         else
             table.Errors.Add(new(Info, SDSLErrorMessages.SDSL0104));
-    }
 
-    public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
-    {
-        var left = Left.Compile(table, shader, compiler);
-        var right = Right.Compile(table, shader, compiler);
         var (builder, context, _) = compiler;
         return builder.BinaryOperation(context, context.GetOrRegister(Type), left, Op, right);
     }
@@ -252,19 +208,15 @@ public class TernaryExpression(Expression cond, Expression left, Expression righ
     public Expression Left { get; set; } = left;
     public Expression Right { get; set; } = right;
 
-    public override void ProcessType(SymbolTable table)
+    public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
-        Condition.ProcessType(table);
-        Left.ProcessType(table);
-        Right.ProcessType(table);
+        Condition.Compile(table, shader, compiler);
+        Left.Compile(table, shader, compiler);
+        Right.Compile(table, shader, compiler);
         if (Condition.Type is not ScalarType { TypeName: "bool" })
             table.Errors.Add(new(Condition.Info, SDSLErrorMessages.SDSL0106));
         if (Left.Type != Right.Type)
             table.Errors.Add(new(Condition.Info, SDSLErrorMessages.SDSL0106));
-    }
-
-    public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
-    {
         throw new NotImplementedException(); 
     }
 

@@ -13,7 +13,7 @@ public abstract record SymbolType()
     /// <returns></returns>
     public virtual string ToId() => ToString();
 
-    public static bool TryGetNumeric(string name, out SymbolType? result)
+    public static bool TryGetNumeric(string name, [MaybeNullWhen(false)] out SymbolType result)
     {
         if(ScalarType.Types.TryGetValue(name, out var s))
         {
@@ -38,7 +38,7 @@ public abstract record SymbolType()
         else
         {
             result = null;
-            return true;
+            return false;
         }
     }
 }

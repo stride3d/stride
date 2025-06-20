@@ -163,8 +163,7 @@ public class ShaderMethod(
         table.Push();
         foreach (var arg in Parameters)
         {
-            arg.TypeName.ProcessType(table);
-            var argSym = arg.TypeName.Type;
+            var argSym = arg.TypeName.ResolveType(table);
             table.DeclaredTypes.TryAdd(argSym.ToString(), argSym);
             table.CurrentFrame.Add(arg.Name, new(new(arg.Name, SymbolKind.Variable, Core.Storage.Function), arg.Type));
             arg.Type = argSym;
@@ -180,8 +179,6 @@ public class ShaderMethod(
             {
                 table.Push();
                 builder.CreateBlock(context);
-                foreach (var s in Body.Statements)
-                    s.ProcessType(table);
                 foreach (var s in body)
                     s.Compile(table, shader, compiler);
                 table.Pop();

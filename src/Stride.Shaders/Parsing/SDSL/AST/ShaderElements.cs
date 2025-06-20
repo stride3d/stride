@@ -147,8 +147,7 @@ public abstract class ShaderBuffer(List<Identifier> name, TextLocation info) : S
         table.RootSymbols.Add(Name.ToString() ?? "", sym);
         foreach (var cbmem in Members)
         {
-            cbmem.TypeName.ProcessType(table);
-            cbmem.Type = cbmem.Type;
+            cbmem.Type = cbmem.TypeName.ResolveType(table);
             table.DeclaredTypes.TryAdd(cbmem.Type.ToString(), cbmem.Type);
         }
     }
@@ -179,8 +178,7 @@ public class ShaderStruct(Identifier typename, TextLocation info) : ShaderElemen
         var fields = new List<(string Name, SymbolType Type)>();
         foreach (var smem in Members)
         {
-            smem.TypeName.ProcessType(table);
-            smem.Type = smem.TypeName.Type;
+            smem.Type = smem.TypeName.ResolveType(table);
             table.DeclaredTypes.TryAdd(smem.Type.ToString(), smem.Type);
 
             fields.Add((smem.Name, smem.Type));

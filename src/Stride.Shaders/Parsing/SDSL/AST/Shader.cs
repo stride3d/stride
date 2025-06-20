@@ -144,12 +144,10 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
         {
             if (member is ShaderMethod func)
             {
-                func.ReturnTypeName.ProcessType(table);
-                var ftype = new FunctionType(func.ReturnTypeName.Type, []);
+                var ftype = new FunctionType(func.ReturnTypeName.ResolveType(table), []);
                 foreach (var arg in func.Parameters)
                 {
-                    arg.TypeName.ProcessType(table);
-                    var argSym = arg.TypeName.Type;
+                    var argSym = arg.TypeName.ResolveType(table);
                     table.DeclaredTypes.TryAdd(argSym.ToString(), argSym);
                     arg.Type = argSym;
                     ftype.ParameterTypes.Add(arg.Type);
@@ -163,8 +161,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
             }
             else if (member is ShaderMember svar)
             {
-                svar.TypeName.ProcessType(table);
-                svar.Type = svar.TypeName.Type;
+                svar.Type = svar.TypeName.ResolveType(table);
                 var sid =
                     new SymbolID
                     (

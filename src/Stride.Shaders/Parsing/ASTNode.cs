@@ -19,8 +19,6 @@ public abstract class Node(TextLocation info)
 public class ValueNode(TextLocation info) : Node(info)
 {
     public virtual SymbolType? Type { get; set; } = null;
-
-    public virtual void ProcessType(SymbolTable table) => throw new NotImplementedException($"Symbol table cannot process type : {GetType().Name}");
 }
 
 /// <summary>

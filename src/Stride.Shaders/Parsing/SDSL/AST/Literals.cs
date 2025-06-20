@@ -54,7 +54,7 @@ public abstract class NumberLiteral<T>(Suffix suffix, T value, TextLocation info
 
 public class IntegerLiteral(Suffix suffix, long value, TextLocation info) : NumberLiteral<long>(suffix, value, info)
 {
-    public override void ProcessType(SymbolTable table)
+    public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         Type = Suffix switch
         {
@@ -68,9 +68,7 @@ public class IntegerLiteral(Suffix suffix, long value, TextLocation info) : Numb
             { Signed: false, Size: 64 } => ScalarType.From("ulong"),
             _ => throw new NotImplementedException("Unsupported integer suffix")
         };
-    }
-    public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
-    {
+
         var i = (Type, Suffix) switch
         {
             (ScalarType, { Size: > 32 }) => compiler.Context.Buffer.AddOpConstant<LiteralInteger>(compiler.Context.Bound++, compiler.Context.GetOrRegister(Type), LongValue),
@@ -86,7 +84,7 @@ public sealed class FloatLiteral(Suffix suffix, double value, int? exponent, Tex
     public int? Exponent { get; set; } = exponent;
     public static implicit operator FloatLiteral(double v) => new(new(), v, null, new());
 
-    public override void ProcessType(SymbolTable table)
+    public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         Type = Suffix.Size switch
         {
@@ -95,9 +93,6 @@ public sealed class FloatLiteral(Suffix suffix, double value, int? exponent, Tex
             64 => ScalarType.From("double"),
             _ => throw new NotImplementedException("Unsupported float")
         };
-    }
-    public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
-    {
         var i = (Type, Suffix) switch
         {
             (ScalarType, { Size: > 32 }) => compiler.Context.Buffer.AddOpConstant<LiteralFloat>(compiler.Context.Bound++, compiler.Context.GetOrRegister(Type), DoubleValue),
@@ -110,16 +105,14 @@ public sealed class FloatLiteral(Suffix suffix, double value, int? exponent, Tex
 
 public sealed class HexLiteral(ulong value, TextLocation info) : IntegerLiteral(new(32, false, false), (long)value, info)
 {
-    public override void ProcessType(SymbolTable table)
-        => Type = ScalarType.From("long");
+    public override SymbolType? Type => ScalarType.From("long");
 }
 
 
 public class BoolLiteral(bool value, TextLocation info) : ScalarLiteral(info)
 {
     public bool Value { get; set; } = value;
-    public override void ProcessType(SymbolTable table)
-        => Type = ScalarType.From("bool");
+    public override SymbolType? Type => ScalarType.From("bool");
 
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
@@ -144,6 +137,8 @@ public abstract class CompositeLiteral(TextLocation info) : ValueLiteral(info)
         return true;
     }
 
+    public abstract SymbolType GenerateType(SymbolTable table);
+
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
         var (builder, context, module) = compiler;
@@ -151,6 +146,9 @@ public abstract class CompositeLiteral(TextLocation info) : ValueLiteral(info)
         int tmp = 0;
         foreach (var v in Values)
             values[tmp++] = v.Compile(table, shader, compiler).Id;
+
+        Type = GenerateType(table);
+
         return builder.CompositeConstruct(context, this, values);
     }
 }
@@ -158,14 +156,13 @@ public class VectorLiteral(TypeName typeName, TextLocation info) : CompositeLite
 {
     public TypeName TypeName { get; set; } = typeName;
 
-    public override void ProcessType(SymbolTable table)
+    public override SymbolType GenerateType(SymbolTable table)
     {
-        TypeName.ProcessType(table);
-        Type = TypeName.Type;
-        var tmp = (Core.VectorType)Type! ?? throw new NotImplementedException();
+        var result = TypeName.ResolveType(table);
+
+        var tmp = (Core.VectorType)result ?? throw new NotImplementedException();
         foreach (var v in Values)
         {
-            v.ProcessType(table);
             if (
                 v.Type is ScalarType st && tmp.BaseType != st
                 || (v.Type is Core.VectorType vt && vt.BaseType != tmp.BaseType)
@@ -173,7 +170,10 @@ public class VectorLiteral(TypeName typeName, TextLocation info) : CompositeLite
             )
                 table.Errors.Add(new(v.Info, SDSLErrorMessages.SDSL0106));
         }
+
+        return result;
     }
+
     public override string ToString()
     {
         return $"{TypeName}({string.Join(", ", Values.Select(x => x.ToString()))})";
@@ -187,6 +187,11 @@ public class MatrixLiteral(TypeName typeName, int rows, int cols, TextLocation i
     public int Rows { get; set; } = rows;
     public int Cols { get; set; } = cols;
 
+    public override SymbolType GenerateType(SymbolTable table)
+    {
+        throw new NotImplementedException();
+    }
+
     public override string ToString()
     {
         return $"{TypeName}{Values.Count}({string.Join(", ", Values.Select(x => x.ToString()))})";
@@ -195,6 +200,11 @@ public class MatrixLiteral(TypeName typeName, int rows, int cols, TextLocation i
 
 public class ArrayLiteral(TextLocation info) : CompositeLiteral(info)
 {
+    public override SymbolType GenerateType(SymbolTable table)
+    {
+        throw new NotImplementedException();
+    }
+
     public override string ToString()
         => $"{Values.Count}({string.Join(", ", Values.Select(x => x.ToString()))})";
 }
@@ -205,7 +215,7 @@ public class Identifier(string name, TextLocation info) : Literal(info)
 
     public static implicit operator string(Identifier identifier) => identifier.Name;
 
-    public override void ProcessType(SymbolTable table)
+    public SymbolType ResolveType(SymbolTable table)
     {
         for (int i = table.CurrentSymbols.Count - 1; i >= 0; --i)
         {
@@ -213,10 +223,9 @@ public class Identifier(string name, TextLocation info) : Literal(info)
                 .TryGetValue(Name, out var symbol))
             {
                 if (symbol.Type is not UndefinedType and not null)
-                    Type = symbol.Type;
+                    return symbol.Type;
                 else
-                    Type = symbol.Type ?? new UndefinedType(Name);
-                return;
+                    return symbol.Type ?? new UndefinedType(Name);
             }
         }
 
@@ -225,6 +234,7 @@ public class Identifier(string name, TextLocation info) : Literal(info)
 
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
+        Type = ResolveType(table);
         var (builder, context, _) = compiler;
         if(builder.CurrentFunction is SpirvFunction f)
         {
@@ -288,16 +298,16 @@ public class TypeName(string name, TextLocation info, bool isArray) : Literal(in
     public List<Expression>? ArraySize { get; set; }
     public List<TypeName> Generics { get; set; } = [];
 
-    public override void ProcessType(SymbolTable table)
+    public SymbolType ResolveType(SymbolTable table)
     {
         if (!IsArray && Generics.Count == 0)
         {
             if (table.DeclaredTypes.TryGetValue(Name, out var type))
-                Type = type;
+                return type;
             else if (SymbolType.TryGetNumeric(Name, out var numeric))
             {
-                Type = numeric;
-                table.DeclaredTypes.Add(Type!.ToString(), Type);
+                table.DeclaredTypes.Add(numeric.ToString(), numeric);
+                return numeric;
             }
             else throw new NotImplementedException();
         }
