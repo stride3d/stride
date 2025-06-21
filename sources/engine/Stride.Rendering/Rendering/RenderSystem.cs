@@ -287,7 +287,7 @@ namespace Stride.Rendering
 
                         // Fast clear, since it's cleared properly in Reset()
                         sortedRenderNodes.Clear();
-                        sortedRenderNodes.Capacity = renderViewStage.RenderNodes.Count;
+                        sortedRenderNodes.EnsureCapacity(renderNodes.Count);
 
                         if (renderStage.SortMode != null)
                         {

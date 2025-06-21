@@ -723,17 +723,6 @@ namespace Stride.Rendering.Lights
 
         public class LightShaderPermutationEntry
         {
-            public LightShaderPermutationEntry()
-            {
-                DirectLightGroups = new FastListStruct<LightShaderGroup>(8);
-                EnvironmentLights = new FastListStruct<LightShaderGroup>(8);
-
-                PermutationLightGroups = new FastListStruct<LightShaderGroup>(2);
-
-                DirectLightShaders = new ShaderSourceCollection();
-                EnvironmentLightShaders = new ShaderSourceCollection();
-            }
-
             public void Reset()
             {
                 DirectLightGroups.Clear();
@@ -745,18 +734,18 @@ namespace Stride.Rendering.Lights
                 PermutationLightGroups.Clear();
             }
 
-            public FastListStruct<LightShaderGroup> DirectLightGroups;
+            public FastListStruct<LightShaderGroup> DirectLightGroups = new(8);
 
-            public readonly ShaderSourceCollection DirectLightShaders;
+            public readonly ShaderSourceCollection DirectLightShaders = new();
 
-            public FastListStruct<LightShaderGroup> EnvironmentLights;
+            public FastListStruct<LightShaderGroup> EnvironmentLights = new(8);
 
-            public readonly ShaderSourceCollection EnvironmentLightShaders;
+            public readonly ShaderSourceCollection EnvironmentLightShaders = new();
 
             /// <summary>
             /// Light groups that have <see cref="LightShaderGroup.HasEffectPermutations"/>.
             /// </summary>
-            public FastListStruct<LightShaderGroup> PermutationLightGroups;
+            public FastListStruct<LightShaderGroup> PermutationLightGroups = new(2);
         }
 
         internal struct ActiveLightGroupRenderer

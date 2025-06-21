@@ -473,7 +473,7 @@ namespace Stride.Rendering.Compositing
         {
             // Resolve render targets
             currentRenderTargetsNonMSAA.Clear();
-            currentRenderTargetsNonMSAA.Capacity = currentRenderTargets.Count;
+            currentRenderTargetsNonMSAA.EnsureCapacity(currentRenderTargets.Count);
             
             for (int index = 0; index < currentRenderTargets.Count; index++)
             {
@@ -843,6 +843,7 @@ namespace Stride.Rendering.Compositing
             var renderTargets = OpaqueRenderStage.OutputValidator.RenderTargets;
 
             currentRenderTargets.Clear();
+            currentRenderTargets.EnsureCapacity(renderTargets.Count);
 
             for (int index = 0; index < renderTargets.Count; index++)
             {

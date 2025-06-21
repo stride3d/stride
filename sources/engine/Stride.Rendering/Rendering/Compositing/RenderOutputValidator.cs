@@ -80,7 +80,7 @@ namespace Stride.Rendering.Compositing
             if (validatedTargetCount < renderTargets.Count || hasChanged)
             {
                 renderTargets.Clear();
-                renderTargets.Capacity = validatedTargetCount;
+                renderTargets.EnsureCapacity(renderTargets.Count);
                 // Recalculate shader sources
                 ShaderSource = new ShaderMixinSource();
                 ShaderSource.Macros.Add(new ShaderMacro("STRIDE_RENDER_TARGET_COUNT", renderTargets.Count));
