@@ -294,13 +294,13 @@ namespace Stride.Animations
         /// </summary>
         /// <param name="animationOperations">The animation operations to perform.</param>
         /// <param name="result">The optional result (if not null, it expects the final stack to end up with this element).</param>
-        public void Compute(FastList<AnimationOperation> animationOperations, ref AnimationClipResult result)
+        public void Compute(List<AnimationOperation> animationOperations, ref AnimationClipResult result)
         {
             // Clear animation stack
             animationStack.Clear();
 
             // Apply first operation (should be a push), directly into result (considered first item in the stack)
-            var animationOperation0 = animationOperations.Items[0];
+            var animationOperation0 = animationOperations[0];
 
             if (animationOperation0.Type != AnimationOperationType.Push)
                 throw new InvalidOperationException("First operation should be a push");
@@ -335,7 +335,7 @@ namespace Stride.Animations
 
             for (int index = 1; index < animationOperations.Count; index++)
             {
-                var animationOperation = animationOperations.Items[index];
+                var animationOperation = animationOperations[index];
 
                 ApplyAnimationOperation(ref animationOperation);
             }

@@ -46,7 +46,7 @@ namespace Stride.Rendering.LightProbes
             lightprobeGroup.Reset();
         }
 
-        public override void SetViews(FastList<RenderView> views)
+        public override void SetViews(List<RenderView> views)
         {
             base.SetViews(views);
 

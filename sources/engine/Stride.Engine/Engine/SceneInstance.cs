@@ -135,7 +135,7 @@ namespace Stride.Engine
         {
             if (scene.Entities.Count > 0)
             {
-                var entitiesToAdd = new FastList<Entity>();
+                var entitiesToAdd = new List<Entity>();
                 // Reverse order, we're adding and removing from the tail to 
                 // avoid forcing the list to move all items when removing at [0]
                 for (int i = scene.Entities.Count -1; i >= 0; i-- )
@@ -166,7 +166,7 @@ namespace Stride.Engine
 
             if (scene.Children.Count > 0)
             {
-                var scenesToAdd = new FastList<Scene>();
+                var scenesToAdd = new List<Scene>();
                 // Reverse order, we're adding and removing from the tail to 
                 // avoid forcing the list to move all items when removing at [0]
                 for (int i = scene.Children.Count - 1; i >= 0; i--)

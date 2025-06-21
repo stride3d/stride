@@ -5,8 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
-using Stride.Core;
-using Stride.Core.Collections;
 using Stride.Core.Mathematics;
 using Stride.Core.Serialization;
 
@@ -21,15 +19,15 @@ namespace Stride.Rendering.LightProbes
         // TODO: Make this customizable
         public const float ExtrapolationDistance = 100.0f;
 
-        private readonly List<int> badTetrahedra = new List<int>();
-        private readonly FastList<HoleFace> holeFaces = new FastList<HoleFace>();
-        private readonly List<HoleEdge> edges = new List<HoleEdge>();
-        private readonly List<int> freeTetrahedra = new List<int>();
+        private readonly List<int> badTetrahedra = [];
+        private readonly List<HoleFace> holeFaces = [];
+        private readonly List<HoleEdge> edges = [];
+        private readonly List<int> freeTetrahedra = [];
         private readonly Predicates predicates = new();
 
         private Vector3[] vertices;
 
-        private FastList<Tetrahedron> tetrahedralization;
+        private List<Tetrahedron> tetrahedralization;
 
         public struct Result
         {
@@ -38,8 +36,8 @@ namespace Stride.Rendering.LightProbes
             /// Any vertex in <see cref="Vertices"/> after this index are added automatically for boundaries.
             /// </summary>
             public int UserVertexCount;
-            public FastList<Tetrahedron> Tetrahedra;
-            public FastList<Face> Faces;
+            public List<Tetrahedron> Tetrahedra;
+            public List<Face> Faces;
         }
 
         [DataSerializer(typeof(Face.Serializer))]
@@ -112,7 +110,7 @@ namespace Stride.Rendering.LightProbes
             // TODO: Another approach would be to receive a IList/Array directly and have a method GetVertexAtIndex(i) with special care for i in [vertices.Length; vertices.Length + 4[ range.
             this.vertices = vertices.Concat(new Vector3[4]).ToArray();
 
-            tetrahedralization = new FastList<Tetrahedron>();
+            tetrahedralization = [];
             freeTetrahedra.Clear();
 
             // Create super-tetrahedra that encompass everything
@@ -151,9 +149,11 @@ namespace Stride.Rendering.LightProbes
             var outerVertexNormals = new Vector3[vertices.Length];
 
             var extraVertices = new List<Vector3>();
+            
+            var tetrahedralizationSpan = CollectionsMarshal.AsSpan(tetrahedralization);
 
             // Sum normals on outer vertices
-            fixed (Tetrahedron* tetrahedra = tetrahedralization.Items)
+            fixed (Tetrahedron* tetrahedra = tetrahedralizationSpan)
             {
                 for (int index = 0; index < tetrahedralization.Count; index++)
                 {
@@ -221,12 +221,14 @@ namespace Stride.Rendering.LightProbes
         /// <summary>
         /// Generate faces info and normal.
         /// </summary>
-        private unsafe FastList<Face> GenerateFaces()
+        private unsafe List<Face> GenerateFaces()
         {
-            var faces = new FastList<Face>();
+            var faces = new List<Face>();
             var currentFace = new Face();
+            var tetrahedralizationSpan = CollectionsMarshal.AsSpan(tetrahedralization);
+            var facesSpan = CollectionsMarshal.AsSpan(faces);
 
-            fixed (Tetrahedron* tetrahedra = tetrahedralization.Items)
+            fixed (Tetrahedron* tetrahedra = tetrahedralizationSpan)
             {
                 for (int index = 0; index < tetrahedralization.Count; index++)
                 {
@@ -254,8 +256,8 @@ namespace Stride.Rendering.LightProbes
                                     // We store the bitwise complement since normal is opposite
                                     var oppositeFaceIndex = neighbourTetrahedron->Faces[j];
                                     currentTetrahedron->Faces[i] = ~oppositeFaceIndex;
-                                    faces.Items[oppositeFaceIndex].BackTetrahedron = index;
-                                    faces.Items[oppositeFaceIndex].BackFace = (sbyte)i;
+                                    facesSpan[oppositeFaceIndex].BackTetrahedron = index;
+                                    facesSpan[oppositeFaceIndex].BackFace = (sbyte)i;
                                     break;
                                 }
                             }
@@ -296,11 +298,13 @@ namespace Stride.Rendering.LightProbes
         /// </summary>
         private unsafe void CleanupUnusedTetrahedra()
         {
-            fixed (Tetrahedron* tetrahedra = tetrahedralization.Items)
+            var tetrahedralizationSpan = CollectionsMarshal.AsSpan(tetrahedralization);
+            
+            fixed (Tetrahedron* tetrahedra = tetrahedralizationSpan)
             {
                 for (int index = 0; index < tetrahedralization.Count; index++)
                 {
-                    if (!IsTetrahedronAllocated(index))
+                    if (!IsTetrahedronAllocated(index, tetrahedralizationSpan))
                     {
                         // This is an unused tetrahedra, let's remove it
                         var currentTetrahedron = &tetrahedra[index];
@@ -309,7 +313,7 @@ namespace Stride.Rendering.LightProbes
                         int lastIndex = tetrahedralization.Count - 1;
                         if (index < lastIndex)
                         {
-                            if (IsTetrahedronAllocated(lastIndex))
+                            if (IsTetrahedronAllocated(lastIndex, tetrahedralizationSpan))
                             {
                                 *currentTetrahedron = tetrahedra[lastIndex];
 
@@ -350,11 +354,13 @@ namespace Stride.Rendering.LightProbes
         /// </summary>
         private unsafe void RemoveSuperTetrahedron(int startVertex, int endVertex)
         {
-            fixed (Tetrahedron* tetrahedra = tetrahedralization.Items)
+            var tetrahedralizationSpan = CollectionsMarshal.AsSpan(tetrahedralization);
+            
+            fixed (Tetrahedron* tetrahedra = tetrahedralizationSpan)
             {
                 for (int index = 0; index < tetrahedralization.Count; index++)
                 {
-                    if (!IsTetrahedronAllocated(index))
+                    if (!IsTetrahedronAllocated(index, tetrahedralizationSpan))
                         continue;
 
                     var tetrahedron = &tetrahedra[index];
@@ -364,7 +370,7 @@ namespace Stride.Rendering.LightProbes
                     {
                         if (tetrahedron->Vertices[i] >= startVertex && tetrahedron->Vertices[i] < endVertex)
                         {
-                            FreeTetrahedron(index);
+                            FreeTetrahedron(index, tetrahedralizationSpan);
                             break;
                         }
                     }
@@ -373,7 +379,7 @@ namespace Stride.Rendering.LightProbes
                 // Remove invalid neighbour (pointing to nodes that were just deleted)
                 for (int index = 0; index < tetrahedralization.Count; index++)
                 {
-                    if (!IsTetrahedronAllocated(index))
+                    if (!IsTetrahedronAllocated(index, tetrahedralizationSpan))
                         continue;
 
                     var tetrahedron = &tetrahedra[index];
@@ -382,7 +388,7 @@ namespace Stride.Rendering.LightProbes
                     for (int i = 0; i < 4; ++i)
                     {
                         var neighbour = tetrahedron->Neighbours[i];
-                        if (neighbour != -1 && !IsTetrahedronAllocated(neighbour))
+                        if (neighbour != -1 && !IsTetrahedronAllocated(neighbour, tetrahedralizationSpan))
                             tetrahedron->Neighbours[i] = -1;
                     }
                 }
@@ -446,14 +452,16 @@ namespace Stride.Rendering.LightProbes
             edges.Clear();
 
             var vertex = vertices[vertexIndex];
+            var tetrahedralizationSpan = CollectionsMarshal.AsSpan(tetrahedralization);
+            var holeFacesSpan = CollectionsMarshal.AsSpan(holeFaces);
 
-            fixed (Tetrahedron* tetrahedra = tetrahedralization.Items)
+            fixed (Tetrahedron* tetrahedra = tetrahedralizationSpan)
             {
                 // First, find all the triangles that are no longer valid due to the insertion
                 // TODO: Currently O(N^2); "By using the connectivity of the triangulation to efficiently locate triangles to remove, the algorithm can take O(N log N)"
                 for (int index = 0; index < tetrahedralization.Count; index++)
                 {
-                    if (IsTetrahedronAllocated(index) && IsPointInCircumsphere(ref vertex, vertices, ref tetrahedra[index]))
+                    if (IsTetrahedronAllocated(index, tetrahedralizationSpan) && IsPointInCircumsphere(ref vertex, vertices, ref tetrahedra[index]))
                         badTetrahedra.Add(index);
                 }
 
@@ -509,12 +517,14 @@ namespace Stride.Rendering.LightProbes
                 // Remove bad tetrahedra (by marking them invalid)
                 foreach (var tetrahedronIndex in badTetrahedra)
                 {
-                    FreeTetrahedron(tetrahedronIndex);
+                    FreeTetrahedron(tetrahedronIndex, tetrahedralizationSpan);
                 }
             }
+            
+           
 
             // Allocate tetrahedron, and build edge list
-            fixed (HoleFace* facesPointer = holeFaces.Items)
+            fixed (HoleFace* facesPointer = holeFacesSpan)
             {
                 for (int index = 0; index < holeFaces.Count; index++)
                 {
@@ -543,7 +553,7 @@ namespace Stride.Rendering.LightProbes
                 // This should be outside of "fixed" statement since triangulation list might grow
                 var tetrahedronIndex = face.Tetrahedron;
 
-                fixed (Tetrahedron* tetrahedra = tetrahedralization.Items)
+                fixed (Tetrahedron* tetrahedra = tetrahedralizationSpan)
                 {
                     var newTetrahedron = &tetrahedra[tetrahedronIndex];
 
@@ -583,12 +593,13 @@ namespace Stride.Rendering.LightProbes
 
         private unsafe void CheckConnectivity()
         {
+            var tetrahedralizationSpan = CollectionsMarshal.AsSpan(tetrahedralization);
             // Check connectivity
-            fixed (Tetrahedron* tetrahedra = tetrahedralization.Items)
+            fixed (Tetrahedron* tetrahedra = tetrahedralizationSpan)
             {
                 for (int index = 0; index < tetrahedralization.Count; index++)
                 {
-                    if (!IsTetrahedronAllocated(index))
+                    if (!IsTetrahedronAllocated(index, tetrahedralizationSpan))
                         continue;
 
                     var tetrahedron = &tetrahedra[index];
@@ -633,18 +644,18 @@ namespace Stride.Rendering.LightProbes
             return tetrahedralization.Count - 1;
         }
 
-        private unsafe bool IsTetrahedronAllocated(int index)
+        private unsafe bool IsTetrahedronAllocated(int index, Span<Tetrahedron> tetrahedronSpan)
         {
-            fixed (Tetrahedron* tetrahedron = &tetrahedralization.Items[index])
+            fixed (Tetrahedron* tetrahedron = &tetrahedronSpan[index])
             {
                 return tetrahedron->Vertices[0] != -1;
             }
         }
 
-        private unsafe void FreeTetrahedron(int index)
+        private unsafe void FreeTetrahedron(int index, Span<Tetrahedron> tetrahedronSpan)
         {
             // Mark it as "unused"
-            fixed (Tetrahedron* tetrahedron = &tetrahedralization.Items[index])
+            fixed (Tetrahedron* tetrahedron = &tetrahedronSpan[index])
             {
                 tetrahedron->Vertices[0] = -1;
 

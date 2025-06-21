@@ -2,9 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
-using Stride.Core.Collections;
-using Stride.Core.Mathematics;
-using Stride.Core.Storage;
+using System.Collections.Generic;
 using Stride.Engine;
 
 namespace Stride.Rendering.LightProbes
@@ -35,7 +33,7 @@ namespace Stride.Rendering.LightProbes
             try
             {
                 // Collect LightProbes
-                var lightProbes = new FastList<LightProbeComponent>();
+                var lightProbes = new List<LightProbeComponent>();
 
                 foreach (var lightProbe in ComponentDatas)
                 {

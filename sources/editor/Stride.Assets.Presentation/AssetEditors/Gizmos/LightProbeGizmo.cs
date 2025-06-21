@@ -1,12 +1,12 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
+using System.Runtime.InteropServices;
 using Stride.Core.Mathematics;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game;
 using Stride.Engine;
 using Stride.Engine.Gizmos;
 using Stride.Extensions;
-using Stride.Graphics;
 using Stride.Graphics.GeometricPrimitives;
 using Stride.Rendering;
 using Stride.Rendering.LightProbes;
@@ -77,7 +77,10 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
             base.Update();
 
             if (Component.Coefficients != null)
-                lightProbeMaterial.Passes[0].Parameters.Set(ComputeSphericalHarmonicsKeys.SphericalColors, Component.Coefficients.Count, ref Component.Coefficients.Items[0]);
+            {
+                var coefficientsSpan = CollectionsMarshal.AsSpan(Component.Coefficients);
+                lightProbeMaterial.Passes[0].Parameters.Set(ComputeSphericalHarmonicsKeys.SphericalColors, Component.Coefficients.Count, ref coefficientsSpan[0]);
+            }
         }
 
         class ComputeSphericalHarmonics : ComputeValueBase<Color4>, IComputeColor
