@@ -18,7 +18,7 @@ public sealed class DoubleExtension : MarkupExtension
         Value = 0.0;
     }
 
-    public DoubleExtension(string value)
+    public DoubleExtension(object value)
     {
         Value = Convert.ToDouble(value, CultureInfo.InvariantCulture);
     }
