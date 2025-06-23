@@ -33,6 +33,10 @@ on:
         default: Debug
         type: string
 
+concurrency:
+  group: build-ios-${{ github.event.pull_request.number || github.ref }}-${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
+  cancel-in-progress: true
+
 jobs:
   #
   # Build Stride Runtime for iOS

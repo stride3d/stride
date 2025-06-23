@@ -22,8 +22,8 @@ public sealed class AssetLogViewModel : LoggerViewModel
         MinLevel = LogMessageType.Warning;
         this.session = session;
         FilteredMessages = [];
-        session.AssetCollection.SelectedAssets.CollectionChanged += (s, e) => RefreshFilteredMessages();
-        Messages.CollectionChanged += (s, e) => RefreshFilteredMessages();
+        session.AssetCollection.SelectedAssets.CollectionChanged += (_, _) => RefreshFilteredMessages();
+        Messages.CollectionChanged += (_, _) => RefreshFilteredMessages();
 
         // Listen if IBuildService gets registered
         ServiceProvider.ServiceRegistered += ServiceRegistered;

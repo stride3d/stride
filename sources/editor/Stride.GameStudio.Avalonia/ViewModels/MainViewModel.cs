@@ -44,6 +44,7 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
         ExitCommand = new AnonymousCommand(serviceProvider, OnExit, () => DialogService.HasMainWindow);
         OpenCommand = new AnonymousTaskCommand<UFile?>(serviceProvider, OnOpen);
         OpenDebugWindowCommand = new AnonymousTaskCommand(serviceProvider, OnOpenDebugWindow, () => DialogService.HasMainWindow);
+        OpenSettingsWindowCommand = new AnonymousTaskCommand(serviceProvider, OnOpenSettingsWindow, () => DialogService.HasMainWindow);
         OpenWebPageCommand = new AnonymousTaskCommand<string>(serviceProvider, OnOpenWebPage);
         RunCurrentProjectCommand = new AnonymousTaskCommand(serviceProvider, RunCurrentProject);
 
@@ -75,13 +76,15 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
 
     public ICommandBase OpenCommand { get; }
 
+    public ICommandBase OpenDebugWindowCommand { get; }
+
+    public ICommandBase OpenSettingsWindowCommand { get; }
+
     public ICommandBase OpenWebPageCommand { get; }
 
     private EditorDialogService DialogService => ServiceProvider.Get<EditorDialogService>();
 
-    public ICommandBase OpenDebugWindowCommand { get; }
-
-    public ICommandBase RunCurrentProjectCommand {  get; }
+    public ICommandBase RunCurrentProjectCommand { get; }
 
     public async Task<bool?> OpenSession(UFile? filePath, CancellationToken token = default)
     {
@@ -246,7 +249,7 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
                 UseShellExecute = false,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
-                CreateNoWindow = false, 
+                CreateNoWindow = false,
             }
         };
 
@@ -281,6 +284,16 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
         await OpenSession(initialPath);
     }
 
+    private async Task OnOpenDebugWindow()
+    {
+        await DialogService.ShowDebugWindowAsync();
+    }
+
+    private async Task OnOpenSettingsWindow()
+    {
+        await DialogService.ShowSettingsWindowAsync();
+    }
+
     private async Task OnOpenWebPage(string url)
     {
         try
@@ -293,12 +306,5 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
             var message = $"{Tr._p("Message", "An error occurred while opening the file.")}{ex.FormatSummary(true)}";
             await ServiceProvider.Get<IDialogService>().MessageBoxAsync(message, MessageBoxButton.OK, MessageBoxImage.Error);
         }
-    }
-
-    
-
-    private async Task OnOpenDebugWindow()
-    {
-        await DialogService.ShowDebugWindowAsync();
     }
 }

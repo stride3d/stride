@@ -44,7 +44,7 @@ public partial class CheckedMessageBox : MessageBox
             CheckedMessage = checkedMessage,
             IsChecked = isChecked,
         };
-        SetImage(messageBox, image);
+        SetGeometry(messageBox, image);
         SetKeyBindings(messageBox, buttons);
         if (owner is not null)
         {

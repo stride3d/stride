@@ -13,22 +13,89 @@ using Avalonia.Media;
 using Stride.Core.Diagnostics;
 using Stride.Core.Presentation.Collections;
 
-namespace Stride.Core.Assets.Editor.Avalonia.Controls;
+namespace Stride.Core.Presentation.Avalonia.Controls;
 
-[TemplatePart(Name = "PART_LogText", Type = typeof(TextBlock))]
+[TemplatePart(Name = "PART_LogText", Type = typeof(SelectableTextBlock))]
 [TemplatePart(Name = "PART_ClearLog", Type = typeof(Button))]
 [TemplatePart(Name = "PART_PreviousResult", Type = typeof(Button))]
 [TemplatePart(Name = "PART_NextResult", Type = typeof(Button))]
 public sealed class TextLogViewer : TemplatedControl
 {
-    private IObservableCollection<ILogMessage> messages;
-    private TextBlock? textBlock;
+    private IObservableCollection<ILogMessage>? messages;
+    private SelectableTextBlock? textBlock;
+    private readonly List<SearchRange> searchMatches = [];
+    private SearchRange previousRange;
+    private int currentResult;
+
+    static TextLogViewer()
+    {
+        SearchTokenProperty.Changed.AddClassHandler<TextLogViewer>(OnSearchTokenChanged);
+        SearchMatchCaseProperty.Changed.AddClassHandler<TextLogViewer>(OnSearchTokenChanged);
+        SearchMatchWordProperty.Changed.AddClassHandler<TextLogViewer>(OnSearchTokenChanged);
+
+        DebugBrushProperty.Changed.AddClassHandler<TextLogViewer>(OnTextPropertyChanged);
+        VerboseBrushProperty.Changed.AddClassHandler<TextLogViewer>(OnTextPropertyChanged);
+        InfoBrushProperty.Changed.AddClassHandler<TextLogViewer>(OnTextPropertyChanged);
+        WarningBrushProperty.Changed.AddClassHandler<TextLogViewer>(OnTextPropertyChanged);
+        ErrorBrushProperty.Changed.AddClassHandler<TextLogViewer>(OnTextPropertyChanged);
+        FatalBrushProperty.Changed.AddClassHandler<TextLogViewer>(OnTextPropertyChanged);
+
+        ShowDebugMessagesProperty.Changed.AddClassHandler<TextLogViewer>(OnTextPropertyChanged);
+        ShowVerboseMessagesProperty.Changed.AddClassHandler<TextLogViewer>(OnTextPropertyChanged);
+        ShowInfoMessagesProperty.Changed.AddClassHandler<TextLogViewer>(OnTextPropertyChanged);
+        ShowWarningMessagesProperty.Changed.AddClassHandler<TextLogViewer>(OnTextPropertyChanged);
+        ShowErrorMessagesProperty.Changed.AddClassHandler<TextLogViewer>(OnTextPropertyChanged);
+        ShowFatalMessagesProperty.Changed.AddClassHandler<TextLogViewer>(OnTextPropertyChanged);
+        ShowStacktraceProperty.Changed.AddClassHandler<TextLogViewer>(OnTextPropertyChanged);
+    }
 
     /// <summary>
     /// Identifies the <see cref="LogMessages"/> dependency property.
     /// </summary>
-    public static readonly DirectProperty<TextLogViewer, IObservableCollection<ILogMessage>> LogMessagesProperty =
-        AvaloniaProperty.RegisterDirect<TextLogViewer, IObservableCollection<ILogMessage>>(nameof(LogMessages), o => o.LogMessages, (o, v) => o.LogMessages = v);
+    public static readonly DirectProperty<TextLogViewer, IObservableCollection<ILogMessage>?> LogMessagesProperty =
+        AvaloniaProperty.RegisterDirect<TextLogViewer, IObservableCollection<ILogMessage>?>(nameof(LogMessages), o => o.LogMessages, (o, v) => o.LogMessages = v);
+
+    /// <summary>
+    /// Identifies the <see cref="IsToolBarVisible"/> dependency property.
+    /// </summary>
+    public static readonly StyledProperty<bool> IsToolBarVisibleProperty =
+        AvaloniaProperty.Register<TextLogViewer, bool>(nameof(IsToolBarVisible), true);
+
+    /// <summary>
+    /// Identifies the <see cref="CanClearLog"/> dependency property.
+    /// </summary>
+    public static readonly StyledProperty<bool> CanClearLogProperty =
+        AvaloniaProperty.Register<TextLogViewer, bool>(nameof(CanClearLog), true);
+
+    /// <summary>
+    /// Identifies the <see cref="CanFilterLog"/> dependency property.
+    /// </summary>
+    public static readonly StyledProperty<bool> CanFilterLogProperty =
+        AvaloniaProperty.Register<TextLogViewer, bool>(nameof(CanFilterLog), true);
+
+    /// <summary>
+    /// Identifies the <see cref="CanSearchLog"/> dependency property.
+    /// </summary>
+    public static readonly StyledProperty<bool> CanSearchLogProperty =
+        AvaloniaProperty.Register<TextLogViewer, bool>(nameof(CanSearchLog), true);
+
+    /// <summary>
+    /// Identifies the <see cref="SearchToken"/> dependency property.
+    /// </summary>
+    public static readonly StyledProperty<string> SearchTokenProperty =
+        AvaloniaProperty.Register<TextLogViewer, string>(nameof(SearchToken));
+
+    /// <summary>
+    /// Identifies the <see cref="SearchMatchCase"/> dependency property.
+    /// </summary>
+    public static readonly StyledProperty<bool> SearchMatchCaseProperty =
+        AvaloniaProperty.Register<TextLogViewer, bool>(nameof(SearchMatchCase));
+
+    /// <summary>
+    /// Identifies the <see cref="SearchMatchWord"/> dependency property.
+    /// </summary>
+    public static readonly StyledProperty<bool> SearchMatchWordProperty =
+        AvaloniaProperty.Register<TextLogViewer, bool>(nameof(SearchMatchWord));
 
     /// <summary>
     /// Identifies the <see cref="DebugBrush"/> dependency property.
@@ -111,10 +178,73 @@ public sealed class TextLogViewer : TemplatedControl
     /// <summary>
     /// Gets or sets the collection of <see cref="ILogMessage"/> to display.
     /// </summary>
-    public IObservableCollection<ILogMessage> LogMessages
+    public IObservableCollection<ILogMessage>? LogMessages
     {
         get => messages;
         set => SetAndRaise(LogMessagesProperty, ref messages, value);
+    }
+
+    /// <summary>
+    /// Gets or sets whether the tool bar should be visible.
+    /// </summary>
+    public bool IsToolBarVisible
+    {
+        get => GetValue(IsToolBarVisibleProperty);
+        set => SetValue(IsToolBarVisibleProperty, value);
+    }
+
+    /// <summary>
+    /// Gets or sets whether it is possible to clear the log text.
+    /// </summary>
+    public bool CanClearLog
+    {
+        get => GetValue(CanClearLogProperty);
+        set => SetValue(CanClearLogProperty, value);
+    }
+
+    /// <summary>
+    /// Gets or sets whether it is possible to filter the log text.
+    /// </summary>
+    public bool CanFilterLog
+    {
+        get => GetValue(CanFilterLogProperty);
+        set => SetValue(CanFilterLogProperty, value);
+    }
+
+    /// <summary>
+    /// Gets or sets whether it is possible to search the log text.
+    /// </summary>
+    public bool CanSearchLog
+    {
+        get => GetValue(CanSearchLogProperty);
+        set => SetValue(CanSearchLogProperty, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the current search token.
+    /// </summary>
+    public string SearchToken
+    {
+        get => GetValue(SearchTokenProperty);
+        set => SetValue(SearchTokenProperty, value);
+    }
+
+    /// <summary>
+    /// Gets or sets whether the search result should match the case.
+    /// </summary>
+    public bool SearchMatchCase
+    {
+        get => GetValue(SearchMatchCaseProperty);
+        set => SetValue(SearchMatchCaseProperty, value);
+    }
+
+    /// <summary>
+    /// Gets or sets whether the search result should match whole words only.
+    /// </summary>
+    public bool SearchMatchWord
+    {
+        get => GetValue(SearchMatchWordProperty);
+        set => SetValue(SearchMatchWordProperty, value);
     }
 
     /// <summary>
@@ -122,8 +252,8 @@ public sealed class TextLogViewer : TemplatedControl
     /// </summary>
     public Brush DebugBrush
     {
-        get { return GetValue(DebugBrushProperty); }
-        set { SetValue(DebugBrushProperty, value); }
+        get => GetValue(DebugBrushProperty);
+        set => SetValue(DebugBrushProperty, value);
     }
 
     /// <summary>
@@ -131,8 +261,8 @@ public sealed class TextLogViewer : TemplatedControl
     /// </summary>
     public Brush VerboseBrush
     {
-        get { return GetValue(VerboseBrushProperty); }
-        set { SetValue(VerboseBrushProperty, value); }
+        get => GetValue(VerboseBrushProperty);
+        set => SetValue(VerboseBrushProperty, value);
     }
 
     /// <summary>
@@ -140,8 +270,8 @@ public sealed class TextLogViewer : TemplatedControl
     /// </summary>
     public Brush InfoBrush
     {
-        get { return GetValue(InfoBrushProperty); }
-        set { SetValue(InfoBrushProperty, value); }
+        get => GetValue(InfoBrushProperty);
+        set => SetValue(InfoBrushProperty, value);
     }
 
     /// <summary>
@@ -149,8 +279,8 @@ public sealed class TextLogViewer : TemplatedControl
     /// </summary>
     public Brush WarningBrush
     {
-        get { return GetValue(WarningBrushProperty); }
-        set { SetValue(WarningBrushProperty, value); }
+        get => GetValue(WarningBrushProperty);
+        set => SetValue(WarningBrushProperty, value);
     }
 
     /// <summary>
@@ -158,8 +288,8 @@ public sealed class TextLogViewer : TemplatedControl
     /// </summary>
     public Brush ErrorBrush
     {
-        get { return GetValue(ErrorBrushProperty); }
-        set { SetValue(ErrorBrushProperty, value); }
+        get => GetValue(ErrorBrushProperty);
+        set => SetValue(ErrorBrushProperty, value);
     }
 
     /// <summary>
@@ -167,8 +297,8 @@ public sealed class TextLogViewer : TemplatedControl
     /// </summary>
     public Brush FatalBrush
     {
-        get { return GetValue(FatalBrushProperty); }
-        set { SetValue(FatalBrushProperty, value); }
+        get => GetValue(FatalBrushProperty);
+        set => SetValue(FatalBrushProperty, value);
     }
 
     /// <summary>
@@ -230,8 +360,8 @@ public sealed class TextLogViewer : TemplatedControl
     /// </summary>
     public bool ShowStacktrace
     {
-        get { return GetValue(ShowStacktraceProperty); }
-        set { SetValue(ShowStacktraceProperty, value); }
+        get => GetValue(ShowStacktraceProperty);
+        set => SetValue(ShowStacktraceProperty, value);
     }
 
     /// <inheritdoc />
@@ -239,19 +369,19 @@ public sealed class TextLogViewer : TemplatedControl
     {
         base.OnApplyTemplate(e);
 
-        textBlock = e.NameScope.Find<TextBlock>("PART_LogText");
+        textBlock = e.NameScope.Find<SelectableTextBlock>("PART_LogText");
 
-        if (e.NameScope.Find<Button>("PART_ClearLog") is Button clearLogButton)
+        if (e.NameScope.Find<Button>("PART_ClearLog") is { } clearLogButton)
         {
             clearLogButton.Click += ClearLog;
         }
 
-        if (e.NameScope.Find<Button>("PART_PreviousResult") is Button previousResultButton)
+        if (e.NameScope.Find<Button>("PART_PreviousResult") is { } previousResultButton)
         {
             previousResultButton.Click += PreviousResultClicked;
         }
 
-        if (e.NameScope.Find<Button>("PART_NextResult") is Button nextResultButton)
+        if (e.NameScope.Find<Button>("PART_NextResult") is { } nextResultButton)
         {
             nextResultButton.Click += NextResultClicked;
         }
@@ -275,21 +405,23 @@ public sealed class TextLogViewer : TemplatedControl
         if (textBlock?.Inlines == null) return;
 
         var sb = new StringBuilder();
+        var stringComparison = SearchMatchCase ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
+        var searchToken = SearchToken;
         foreach (var message in logMessages.Where(x => ShouldDisplayMessage(x.Type)))
         {
             sb.Clear();
             if (message.Module != null)
             {
-                sb.AppendFormat("[{0}]: ", message.Module);
+                sb.Append($"[{message.Module}]: ");
             }
 
-            sb.AppendFormat("{0}: {1}", message.Type, message.Text);
+            sb.Append($"{message.Type}: {message.Text}");
             var ex = message.ExceptionInfo;
             if (ex != null)
             {
                 if (ShowStacktrace)
                 {
-                    sb.AppendFormat("{0}{1}{0}", Environment.NewLine, ex);
+                    sb.Append($"{Environment.NewLine}{ex}{Environment.NewLine}");
                 }
                 else
                 {
@@ -298,17 +430,69 @@ public sealed class TextLogViewer : TemplatedControl
             }
             sb.AppendLine();
 
-            var lineText = sb.ToString();
+            var lineText = sb.ToString().AsSpan();
             var logColor = GetLogColor(message.Type);
-            textBlock.Inlines.Add(new Run(lineText) { Foreground = logColor });
+            if (string.IsNullOrEmpty(searchToken))
+            {
+                textBlock.Inlines.Add(new Run(lineText.ToString()) { Foreground = logColor });
+            }
+            else
+            {
+                do
+                {
+                    var tokenIndex = lineText.IndexOf(searchToken, stringComparison);
+                    if (tokenIndex == -1)
+                    {
+                        textBlock.Inlines.Add(new Run(lineText.ToString()) { Foreground = logColor });
+                        previousRange = new SearchRange(previousRange.End, lineText.Length);
+                        break;
+                    }
 
-            // FIXME xplat-editor search
+                    var acceptResult = true;
+                    if (SearchMatchWord && lineText.Length > 1)
+                    {
+                        if (tokenIndex > 0)
+                        {
+                            var c = lineText[tokenIndex - 1];
+                            if (c is >= 'A' and <= 'Z' or >= 'a' and <= 'z')
+                                acceptResult = false;
+                        }
+                        if (tokenIndex + searchToken.Length < lineText.Length)
+                        {
+                            var c = lineText[tokenIndex + searchToken.Length];
+                            if (c is >= 'A' and <= 'Z' or >= 'a' and <= 'z')
+                                acceptResult = false;
+                        }
+                    }
+
+                    if (acceptResult)
+                    {
+                        if (tokenIndex > 0)
+                        {
+                            textBlock.Inlines.Add(new Run(lineText[..tokenIndex].ToString()) { Foreground = logColor });
+                            previousRange = new SearchRange(previousRange.End, tokenIndex);
+                        }
+
+                        var tokenRun = new Run(lineText[tokenIndex..(tokenIndex + searchToken.Length)].ToString()) { Foreground = Brushes.LightSteelBlue };
+                        textBlock.Inlines.Add(tokenRun);
+                        var tokenRange = new SearchRange(previousRange.End, searchToken.Length);
+                        searchMatches.Add(tokenRange);
+                        previousRange = tokenRange;
+                    }
+                    else
+                    {
+                        textBlock.Inlines.Add(new Run(lineText[..(tokenIndex + searchToken.Length)].ToString()) { Foreground = logColor });
+                        previousRange = new SearchRange(previousRange.End, tokenIndex + searchToken.Length);
+                    }
+                    lineText = lineText[(tokenIndex + searchToken.Length)..];
+                } while (lineText.Length > 0);
+            }
         }
     }
 
     private void ClearLog(object? sender, RoutedEventArgs e)
     {
-        LogMessages.Clear();
+        LogMessages?.Clear();
     }
 
     private Brush GetLogColor(LogMessageType type)
@@ -388,8 +572,7 @@ public sealed class TextLogViewer : TemplatedControl
     {
         if (textBlock == null) return;
 
-        // FIXME xplat-editor search
-        //ClearSearchResults();
+        ClearSearchResults();
         textBlock.Inlines?.Clear();
         if (LogMessages != null)
         {
@@ -398,15 +581,49 @@ public sealed class TextLogViewer : TemplatedControl
             AppendText(logMessages);
         }
     }
-    
+
+    private void ClearSearchResults()
+    {
+        searchMatches.Clear();
+        previousRange = default;
+        textBlock!.ClearSelection();
+    }
+
+    private void SelectFirstOccurrence()
+    {
+        if (searchMatches.Count > 0)
+        {
+            SelectSearchResult(0);
+        }
+    }
+
     private void SelectPreviousOccurrence()
     {
-        // FIXME xplat-editor search
+        var count = searchMatches.Count;
+        if (count > 0)
+        {
+            var previousResult = (count + currentResult - 1) % count;
+            SelectSearchResult(previousResult);
+        }
     }
 
     private void SelectNextOccurrence()
     {
-        // FIXME xplat-editor search
+        var count = searchMatches.Count;
+        if (count > 0)
+        {
+            var nextResult = (currentResult + 1) % count;
+            SelectSearchResult(nextResult);
+        }
+    }
+
+    private void SelectSearchResult(int resultIndex)
+    {
+        var result = searchMatches[resultIndex];
+        textBlock!.SelectionStart = result.Start;
+        textBlock!.SelectionEnd = result.End;
+        currentResult = resultIndex;
+        // FIXME xplat-editor scroll into view
     }
 
     private bool ShouldDisplayMessage(LogMessageType type)
@@ -421,5 +638,21 @@ public sealed class TextLogViewer : TemplatedControl
             LogMessageType.Fatal => ShowFatalMessages,
             _ => throw new ArgumentOutOfRangeException(nameof(type)),
         };
+    }
+
+    private static void OnSearchTokenChanged(TextLogViewer sender, AvaloniaPropertyChangedEventArgs _)
+    {
+        sender.ResetText();
+        sender.SelectFirstOccurrence();
+    }
+
+    private static void OnTextPropertyChanged(TextLogViewer sender, AvaloniaPropertyChangedEventArgs _)
+    {
+        sender.ResetText();
+    }
+
+    private readonly record struct SearchRange(int Start, int Length)
+    {
+        public int End => Start + Length;
     }
 }

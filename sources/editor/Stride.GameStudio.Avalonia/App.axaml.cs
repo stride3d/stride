@@ -6,10 +6,16 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core.Plugins;
 using Avalonia.Input;
 using Avalonia.Markup.Xaml;
+using Avalonia.Media;
+using Avalonia.Styling;
+using Avalonia.Themes.Fluent;
 using Stride.Core.Assets.Editor.Services;
+using Stride.Core.Assets.Editor.Settings;
 using Stride.Core.IO;
+using Stride.Core.Presentation.Avalonia.Extensions;
 using Stride.Core.Presentation.Avalonia.Services;
 using Stride.Core.Presentation.ViewModels;
+using Stride.Core.Settings;
 using Stride.GameStudio.Avalonia.Services;
 using Stride.GameStudio.Avalonia.ViewModels;
 using Stride.GameStudio.Avalonia.Views;
@@ -21,7 +27,72 @@ public partial class App : Application
     public override void Initialize()
     {
         AvaloniaXamlLoader.Load(this);
+
         InitializePlugins();
+
+        EditorSettings.Initialize();
+        SetAccent(EditorSettings.ThemeAccent.GetValue().ToAvaloniaColor());
+        SetVariant(EditorSettings.ThemeVariant.GetValue());
+        EditorSettings.ThemeAccent.ChangesValidated += ThemeAccent_ChangesValidated;
+        EditorSettings.ThemeVariant.ChangesValidated += ThemeVariant_ChangesValidated;
+        return;
+
+        void ThemeAccent_ChangesValidated(object? sender, ChangesValidatedEventArgs _)
+        {
+            if (sender is SettingsKey<Core.Mathematics.Color> setting)
+            {
+                SetAccent(setting.GetValue().ToAvaloniaColor());
+            }
+        }
+
+        void ThemeVariant_ChangesValidated(object? sender, ChangesValidatedEventArgs _)
+        {
+            if (sender is SettingsKey<string> setting)
+            {
+                var accent = GetPalette()?.Accent ?? default;
+                switch (setting.GetValue())
+                {
+                    case nameof(ThemeVariant.Dark):
+                        SetAccent(accent, ThemeVariant.Dark);
+                        SetVariant(nameof(ThemeVariant.Dark));
+                        break;
+                    case nameof(ThemeVariant.Light):
+                        SetAccent(accent, ThemeVariant.Light);
+                        SetVariant(nameof(ThemeVariant.Light));
+                        break;
+                    default:
+                        // we don't know which variant is the system one
+                        SetAccent(accent, ThemeVariant.Dark);
+                        SetAccent(accent, ThemeVariant.Light);
+                        SetVariant(nameof(ThemeVariant.Default));
+                        break;
+                }
+            }
+        }
+
+        ColorPaletteResources? GetPalette(ThemeVariant? variant = null)
+        {
+            var theme = Styles.OfType<FluentTheme>().FirstOrDefault();
+            return theme?.Palettes[variant ?? ActualThemeVariant];
+        }
+
+        void SetAccent(Color accent, ThemeVariant? variant = null)
+        {
+            if (GetPalette(variant) is { } palette)
+            {
+                palette.Accent = accent;
+            }
+        }
+
+        void SetVariant(string variant)
+        {
+            RequestedThemeVariant = variant switch
+            {
+                nameof(ThemeVariant.Dark) => ThemeVariant.Dark,
+                nameof(ThemeVariant.Light) => ThemeVariant.Light,
+                _ => ThemeVariant.Default
+            };
+        }
     }
 
     public override void OnFrameworkInitializationCompleted()
@@ -44,7 +115,7 @@ public partial class App : Application
     }
 
     public void Restart(UFile? initialPath = null)
-    {        
+    {
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             desktop.MainWindow!.DataContext = InitializeMainViewModel(initialPath);

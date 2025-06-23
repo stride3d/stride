@@ -1,7 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using Stride.Core.Annotations;
 using Stride.Core.Extensions;
 using Stride.Core.IO;
 using Stride.Core.Yaml;
@@ -78,7 +77,7 @@ public abstract class SettingsKey
     /// <summary>
     /// Gets or sets the description of this <see cref="SettingsKey"/>.
     /// </summary>
-    public string Description { get; set; }
+    public string? Description { get; set; }
 
     /// <summary>
     /// Gets an enumeration of acceptable values for this <see cref="SettingsKey"/>.
@@ -94,7 +93,7 @@ public abstract class SettingsKey
     /// <summary>
     /// Raised when the value of the settings key has been modified and the method <see cref="SettingsProfile.ValidateSettingsChanges"/> has been invoked.
     /// </summary>
-    public event EventHandler<ChangesValidatedEventArgs> ChangesValidated;
+    public event EventHandler<ChangesValidatedEventArgs>? ChangesValidated;
 
     /// <summary>
     /// Converts a value of a different type to the type associated with this <see cref="SettingsKey"/>. If the conversion is not possible,
@@ -166,21 +165,20 @@ public class SettingsKey<T> : SettingsKey
     }
 
     /// <inheritdoc/>
-    [NotNull]
     public override Type Type { get { return typeof(T); } }
 
     /// <summary>
     /// Gets the default value of this settings key.
     /// </summary>
-    public T DefaultValue { get { return DefaultObjectValueCallback != null ? (T)DefaultObjectValueCallback() : (T)DefaultObjectValue; } }
+    public T DefaultValue { get { return DefaultObjectValueCallback?.Invoke() is T value ? value : (T)DefaultObjectValue; } }
 
     /// <summary>
     /// Gets or sets a function that returns an enumation of acceptable values for this <see cref="SettingsKey{T}"/>.
     /// </summary>
-    public Func<IEnumerable<T>> GetAcceptableValues { get; set; }
+    public Func<IEnumerable<T>>? GetAcceptableValues { get; set; }
 
     /// <inheritdoc/>
-    public override IEnumerable<object> AcceptableValues { get { return GetAcceptableValues != null ? (IEnumerable<object>)GetAcceptableValues() : Enumerable.Empty<object>(); } }
+    public override IEnumerable<object> AcceptableValues { get { return (IEnumerable<object>?)GetAcceptableValues?.Invoke() ?? []; } }
 
     /// <summary>
     /// Gets the value of this settings key in the given profile.
@@ -191,9 +189,8 @@ public class SettingsKey<T> : SettingsKey
     /// <exception cref="KeyNotFoundException">No value can be found in the given profile matching this settings key.</exception>
     public T GetValue(SettingsProfile profile, bool searchInParentProfile)
     {
-        object value;
         profile = ResolveProfile(profile);
-        if (profile.GetValue(Name, out value, searchInParentProfile, false))
+        if (profile.GetValue(Name, out var value, searchInParentProfile, false))
         {
             try
             {

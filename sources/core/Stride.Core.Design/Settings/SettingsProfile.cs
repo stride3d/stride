@@ -1,7 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using Stride.Core.Annotations;
+using System.Diagnostics.CodeAnalysis;
 using Stride.Core.IO;
 using Stride.Core.Serialization;
 using Stride.Core.Transactions;
@@ -19,8 +19,8 @@ public class SettingsProfile : IDisposable
     internal bool Saving;
     private readonly SortedList<UFile, SettingsEntry> settings = [];
     private readonly HashSet<UFile> modifiedSettings = [];
-    private readonly SettingsProfile parentProfile;
-    private FileSystemWatcher fileWatcher;
+    private readonly SettingsProfile? parentProfile;
+    private FileSystemWatcher? fileWatcher;
     private UFile filePath;
     private bool monitorFileModification;
 
@@ -29,7 +29,7 @@ public class SettingsProfile : IDisposable
     /// </summary>
     /// <param name="container">The <see cref="SettingsContainer"/> containing this profile.</param>
     /// <param name="parentProfile">The parent profile.</param>
-    internal SettingsProfile(SettingsContainer container, SettingsProfile parentProfile)
+    internal SettingsProfile(SettingsContainer container, SettingsProfile? parentProfile)
     {
         Container = container;
         this.parentProfile = parentProfile;
@@ -53,7 +53,7 @@ public class SettingsProfile : IDisposable
     /// <summary>
     /// Raised when the file corresponding to this profile is modified on the disk, and <see cref="MonitorFileModification"/> is <c>true</c>.
     /// </summary>
-    public event EventHandler<FileModifiedEventArgs> FileModified;
+    public event EventHandler<FileModifiedEventArgs>? FileModified;
 
     /// <summary>
     /// Gets the collection of <see cref="SettingsEntry"/> currently existing in this <see cref="SettingsProfile"/>.
@@ -208,7 +208,7 @@ public class SettingsProfile : IDisposable
     /// <param name="searchInParent">Indicates whether to search in the parent profile, if the name is not found in this profile.</param>
     /// <param name="createInCurrentProfile">If true, the list will be created in the current profile, from the value of its parent profile.</param>
     /// <returns><c>true</c> if an entry matching the name is found, <c>false</c> otherwise.</returns>
-    internal bool GetValue(UFile name, out object? value, bool searchInParent, bool createInCurrentProfile)
+    internal bool GetValue(UFile name, [MaybeNullWhen(false)] out object value, bool searchInParent, bool createInCurrentProfile)
     {
 #if NET6_0_OR_GREATER
         ArgumentNullException.ThrowIfNull(name);

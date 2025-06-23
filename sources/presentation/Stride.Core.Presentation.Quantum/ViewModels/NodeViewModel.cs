@@ -44,8 +44,6 @@ public class NodeViewModel : DispatcherViewModel, IDynamicMetaObjectProvider
 
     public static readonly object DifferentValues = new DifferentValuesObject();
 
-    public static object UnsetValue;
-
     static NodeViewModel()
     {
         typeof(NodeViewModel).GetProperties().Select(x => x.Name).ForEach(x => ReservedNames.Add(x));

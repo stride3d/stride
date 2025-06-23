@@ -1,7 +1,7 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="Stride.Launcher.App"
-             RequestedThemeVariant="Dark">
+             RequestedThemeVariant="Default">
   <Application.Resources>
     <ResourceDictionary>
       <Image x:Key="ImageFacebook"
@@ -16,18 +16,33 @@
       <Image x:Key="ImageTwitter"
              Height="24" Width="24"
              Source="/Assets/Images/xtwitter.png" />
-
-      <SolidColorBrush x:Key="BackgroundEmphasis" Color="#900520" />
-      <SolidColorBrush x:Key="BackgroundTileAlpha" Color="#C0434343" />
-      <SolidColorBrush x:Key="BorderBrushTile" Color="Transparent" />
-
+      <ResourceDictionary.ThemeDictionaries>
+        <ResourceDictionary x:Key="Default">
+          <SolidColorBrush x:Key="BackgroundEmphasis" Color="#900520" />
+          <SolidColorBrush x:Key="BackgroundTileAlpha" Color="#C0434343" />
+          <SolidColorBrush x:Key="BorderBrushTile" Color="Transparent" />
+        </ResourceDictionary>
+        <ResourceDictionary x:Key="Dark">
+          <SolidColorBrush x:Key="BackgroundEmphasis" Color="{DynamicResource SystemAccentColorDark1}" />
+          <SolidColorBrush x:Key="BackgroundTileAlpha" Color="#C0434343" />
+        </ResourceDictionary>
+        <ResourceDictionary x:Key="Light">
+          <SolidColorBrush x:Key="BackgroundEmphasis" Color="{DynamicResource SystemAccentColorLight1}" />
+          <SolidColorBrush x:Key="BackgroundTileAlpha" Color="#C0BCBCBC" />
+        </ResourceDictionary>
+      </ResourceDictionary.ThemeDictionaries>
       <Thickness x:Key="BorderThicknessTile">12</Thickness>
       <Thickness x:Key="BorderThicknessTileList">0,0,0,20</Thickness>
     </ResourceDictionary>
   </Application.Resources>
 
   <Application.Styles>
-    <FluentTheme />
+    <FluentTheme>
+      <FluentTheme.Palettes>
+        <ColorPaletteResources x:Key="Dark"/>
+        <ColorPaletteResources x:Key="Light"/>
+      </FluentTheme.Palettes>
+    </FluentTheme>
 
     <Style Selector="Button.MediaButton">
       <Setter Property="Margin" Value="2" />

@@ -15,7 +15,7 @@ public sealed class XOrMulti : MultiValueConverterBase<XOrMulti>
     {
         if (values.Count < 2) return AvaloniaProperty.UnsetValue;
 
-        var seed = values[0] is bool b && b;
-        return values.Skip(1).Aggregate(seed, (current, value) => current ^ (value is bool b && b)).Box();
+        var seed = values[0] is true;
+        return values.Skip(1).Aggregate(seed, (current, value) => current ^ value is true).Box();
     }
 }

@@ -12,15 +12,33 @@
              mc:Ignorable="d" d:DesignWidth="1024" d:DesignHeight="768"
              x:Class="Stride.Launcher.Views.MainView"
              x:DataType="vm:MainViewModel">
+  <UserControl.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.ThemeDictionaries>
+        <ResourceDictionary x:Key="Default">
+          <ImageBrush x:Key="ImageBackground"/>
+        </ResourceDictionary>
+        <ResourceDictionary x:Key="Dark">
+          <ImageBrush x:Key="ImageBackground"
+                      Source="/Assets/Images/robot.png" Stretch="UniformToFill"/>
+        </ResourceDictionary>
+        <ResourceDictionary x:Key="Light">
+          <!-- FIXME xplat-editor find a background image working better with the light variant -->
+          <ImageBrush x:Key="ImageBackground"
+                      Source="/Assets/Images/robot.png" Stretch="UniformToFill" Opacity="0.4"/>
+        </ResourceDictionary>
+      </ResourceDictionary.ThemeDictionaries>
+    </ResourceDictionary>
+  </UserControl.Resources>
   <UserControl.Background>
-    <ImageBrush Source="/Assets/Images/robot.png" Stretch="UniformToFill"/>
+    <DynamicResource ResourceKey="ImageBackground"/>
   </UserControl.Background>
 
   <Grid>
     <DockPanel>
       <!-- Status -->
       <Border DockPanel.Dock="Bottom"
-              Background="{StaticResource BackgroundEmphasis}"
+              Background="{DynamicResource BackgroundEmphasis}"
               Padding="8,4">
         <Grid ColumnDefinitions="3*, *, Auto">
           <TextBlock Grid.Column="0"
@@ -47,7 +65,7 @@
           <DockPanel Grid.Column="0" Width="400">
             <Border DockPanel.Dock="Bottom"
                     BorderBrush="{StaticResource BorderBrushTile}" BorderThickness="{StaticResource BorderThicknessTile}"
-                    Background="{StaticResource BackgroundTileAlpha}">
+                    Background="{DynamicResource BackgroundTileAlpha}">
               <DockPanel Margin="10">
                 <!-- Media buttons -->
                 <StackPanel DockPanel.Dock="Bottom" Margin="10"
@@ -189,7 +207,7 @@
                             Content="{Binding ActiveVersion.FullName, StringFormat={x:Static l:Strings.StartVersion}}" FontSize="24"
                             HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                             HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
-                            Background="{StaticResource BackgroundEmphasis}"
+                            Background="{DynamicResource BackgroundEmphasis}"
                             IsEnabled="{Binding !ActiveVersion.IsProcessing}"
                             IsVisible="{Binding ActiveVersion.CanStart}" />
                     <!-- Install specific version -->
@@ -197,7 +215,7 @@
                             Content="{Binding ActiveVersion.FullName, StringFormat={x:Static l:Strings.InstallVersion}}" FontSize="24"
                             HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                             HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
-                            Background="{StaticResource BackgroundEmphasis}"
+                            Background="{DynamicResource BackgroundEmphasis}"
                             IsEnabled="{Binding !ActiveVersion.IsProcessing}"
                             IsVisible="{sd:MultiBinding {Binding ActiveVersion.DownloadCommand.IsEnabled},
                                                         {Binding !ActiveVersion.CanStart},
@@ -207,7 +225,7 @@
                             Content="{x:Static l:Strings.InstallLatestVersion}" FontSize="24"
                             HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                             HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
-                            Background="{StaticResource BackgroundEmphasis}"
+                            Background="{DynamicResource BackgroundEmphasis}"
                             IsEnabled="{Binding !IsSynchronizing}"
                             IsVisible="{Binding ActiveVersion, Converter={sd:Chained {sd:ObjectToBool}, {sd:InvertBool}}}" />
                   </Grid>
@@ -307,7 +325,7 @@
                       <ItemsControl.DataTemplates>
                         <DataTemplate DataType="{x:Type vm:StrideDevVersionViewModel}">
                           <DockPanel Height="32" Margin="0,2"
-                                     Background="{StaticResource BackgroundTileAlpha}"
+                                     Background="{DynamicResource BackgroundTileAlpha}"
                                      IsVisible="{Binding IsVisible}">
                             <StackPanel DockPanel.Dock="Right"
                                         MinWidth="32" Orientation="Horizontal"
@@ -340,7 +358,7 @@
                         </DataTemplate>
                         <DataTemplate DataType="{x:Type vm:StrideStoreVersionViewModel}">
                           <DockPanel Height="32" Margin="0,2"
-                                     Background="{StaticResource BackgroundTileAlpha}"
+                                     Background="{DynamicResource BackgroundTileAlpha}"
                                      IsVisible="{Binding IsVisible}">
                             <StackPanel DockPanel.Dock="Right"
                                         MinWidth="32" Orientation="Horizontal"
@@ -393,7 +411,7 @@
                               </ToggleButton>
                               <Popup x:Name="Popup"
                                      IsOpen="{Binding #Toggle.IsChecked, Mode=TwoWay}" IsLightDismissEnabled="True">
-                                <Border Margin="4" Background="#434343">
+                                <Border Margin="4" Background="{DynamicResource SystemChromeMediumLowColor}">
                                   <Border.Effect>
                                     <DropShadowEffect BlurRadius="5" Opacity="0.4" />
                                   </Border.Effect>
@@ -513,7 +531,7 @@
                 </Border>
                 <Grid>
                   <Border BorderBrush="{StaticResource BorderBrushTile}" BorderThickness="{StaticResource BorderThicknessTile}"
-                          Background="{StaticResource BackgroundTileAlpha}"
+                          Background="{DynamicResource BackgroundTileAlpha}"
                           IsVisible="{Binding !RecentProjects.Count, FallbackValue={x:False}}"
                           VerticalAlignment="Top">
                     <TextBlock Text="{x:Static l:Strings.NoProjectCreated}"
@@ -630,7 +648,7 @@
                 <TabItem Header="{x:Static l:Strings.TabNews}">
                   <ScrollViewer>
                     <StackPanel>
-                      <Border Background="{StaticResource BackgroundTileAlpha}"
+                      <Border Background="{DynamicResource BackgroundTileAlpha}"
                               IsVisible="{Binding !NewsPages.Count, FallbackValue={x:False}}">
                         <TextBlock Text="{x:Static l:Strings.NoNews}"
                                    FontSize="16" Margin="20"
