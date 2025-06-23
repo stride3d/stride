@@ -202,11 +202,12 @@ public class BlockStatement(TextLocation info) : Statement(info)
 
     public override void Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
+        table.Push();
         var (builder, context, _) = compiler;
         builder.CreateBlock(context);
         foreach (var s in Statements)
             s.Compile(table, shader, compiler);
-
+        table.Pop();
     }
 
     public List<Statement>.Enumerator GetEnumerator() => Statements.GetEnumerator();
