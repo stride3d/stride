@@ -4,7 +4,6 @@
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Avalonia;
-//using Microsoft.Build.Utilities;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.Components.Status;
 using Stride.Core.Assets.Editor.ViewModels;
@@ -82,9 +81,9 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
 
     public ICommandBase OpenWebPageCommand { get; }
 
-    private EditorDialogService DialogService => ServiceProvider.Get<EditorDialogService>();
-
     public ICommandBase RunCurrentProjectCommand { get; }
+
+    private EditorDialogService DialogService => ServiceProvider.Get<EditorDialogService>();
 
     public async Task<bool?> OpenSession(UFile? filePath, CancellationToken token = default)
     {
@@ -145,41 +144,37 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
         DialogService.Exit();
     }
 
-    private bool BuildProject(string projectPath, string framework, string workingDirectory)
+    private static async Task<bool> BuildProject(string projectPath, string framework, string workingDirectory)
     {
-        var process = new Process
+        using var process = new Process();
+        process.StartInfo = new ProcessStartInfo
         {
-            StartInfo = new ProcessStartInfo
-            {
-                FileName = "dotnet",
-                Arguments = $"build \"{projectPath}\" --framework {framework}",
-                WorkingDirectory = workingDirectory,
-                UseShellExecute = false,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                CreateNoWindow = true,
-            }
+            FileName = "dotnet",
+            Arguments = $"build \"{projectPath}\" --framework {framework}",
+            WorkingDirectory = workingDirectory,
+            UseShellExecute = false,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            CreateNoWindow = true,
         };
 
-        process.OutputDataReceived += (s, e) => { if (e.Data != null) Console.WriteLine("[build] " + e.Data); };
-        process.ErrorDataReceived += (s, e) => { if (e.Data != null) Console.Error.WriteLine("[build-err] " + e.Data); };
+        process.OutputDataReceived += (_, e) => { if (e.Data != null) Console.Out.WriteLine("[build] " + e.Data); };
+        process.ErrorDataReceived += (_, e) => { if (e.Data != null) Console.Error.WriteLine("[build-err] " + e.Data); };
 
         try
         {
             process.Start();
             process.BeginOutputReadLine();
             process.BeginErrorReadLine();
-            process.WaitForExitAsync();
+            await process.WaitForExitAsync();
             return process.ExitCode == 0;
         }
         catch (Exception ex)
         {
-            Console.Error.WriteLine("Build process failed: " + ex);
+            await Console.Error.WriteLineAsync("Build process failed: " + ex);
             return false;
         }
     }
-
-
 
     private async Task RunCurrentProject()
     {
@@ -216,8 +211,8 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
 
         var platformProjectName = $"{projectBaseName}.{platformSuffix}.csproj";
         var platformProjectPath = Path.Combine(projectDir, $"{projectBaseName}.{platformSuffix}", platformProjectName);
-        var ExecPath = Path.Combine(projectDir, "Bin", platformSuffix, "Debug", platformRuntime);
-        var dllPath = Path.Combine(ExecPath, $"{projectBaseName}.{platformSuffix}.dll");
+        var execPath = Path.Combine(projectDir, "Bin", platformSuffix, "Debug", platformRuntime);
+        var dllPath = Path.Combine(execPath, $"{projectBaseName}.{platformSuffix}.dll");
 
 
         if (!File.Exists(platformProjectPath))
@@ -227,18 +222,18 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
         }
 
         Status.PushStatus("Building project...");
-        Console.WriteLine("Building project...");
+        await Console.Out.WriteLineAsync("Building project...");
         bool buildSuccess = await Task.Run(() => BuildProject(platformProjectPath, framework, projectDir));
         if (!buildSuccess)
         {
             Status.PushStatus("Build failed.");
-            Console.WriteLine("Build failed.");
+            await Console.Out.WriteLineAsync("Build failed.");
             await ShowError("Build failed. See output for details.");
             return;
         }
 
         Status.PushStatus("Running project...");
-        Console.WriteLine("Running project...");
+        await Console.Out.WriteLineAsync("Running project...");
         var process = new Process
         {
             StartInfo = new ProcessStartInfo
@@ -253,8 +248,8 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
             }
         };
 
-        process.OutputDataReceived += (s, e) => { if (e.Data != null) Console.WriteLine("[run] " + e.Data); };
-        process.ErrorDataReceived += (s, e) => { if (e.Data != null) Console.Error.WriteLine("[run-err] " + e.Data); };
+        process.OutputDataReceived += (_, e) => { if (e.Data != null) Console.Out.WriteLine("[run] " + e.Data); };
+        process.ErrorDataReceived += (_, e) => { if (e.Data != null) Console.Error.WriteLine("[run-err] " + e.Data); };
 
         try
         {
@@ -264,20 +259,12 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
         }
         catch (Exception ex)
         {
-            Console.Error.WriteLine("Run process failed: " + ex);
+            await Console.Error.WriteLineAsync("Run process failed: " + ex);
             await ShowError("Failed to start the game process. See output for details.");
         }
+
+        // FIXME: should we wait for process end?
     }
-
-
-
-
-    private async Task ShowError(string message)
-    {
-        await ServiceProvider.Get<IDialogService>().MessageBoxAsync(message, MessageBoxButton.OK, MessageBoxImage.Error);
-    }
-
-
 
     private async Task OnOpen(UFile? initialPath)
     {
@@ -306,5 +293,10 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
             var message = $"{Tr._p("Message", "An error occurred while opening the file.")}{ex.FormatSummary(true)}";
             await ServiceProvider.Get<IDialogService>().MessageBoxAsync(message, MessageBoxButton.OK, MessageBoxImage.Error);
         }
+    }
+
+    private async Task ShowError(string message)
+    {
+        await ServiceProvider.Get<IDialogService>().MessageBoxAsync(message, MessageBoxButton.OK, MessageBoxImage.Error);
     }
 }
