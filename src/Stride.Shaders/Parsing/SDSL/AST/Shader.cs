@@ -120,8 +120,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
 
     private static void RegisterShaderType(SymbolTable table, ShaderSymbol shaderType)
     {
-        var sid = new SymbolID(shaderType.Name, SymbolKind.Shader);
-        table.RootSymbols.Add(shaderType.Name, new(sid, shaderType));
+        table.DeclaredTypes.Add(shaderType.Name, shaderType);
 
         // Register members
         foreach (var symbol in shaderType.Components)
@@ -207,7 +206,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
             // Import types and variables/functions
             var shader = context.Buffer.AddOpSDSLImportShader(context.Bound++, new(mixin.Name));
 
-            var shaderType = (ShaderSymbol)table.RootSymbols[mixin.Name].Type;
+            var shaderType = (ShaderSymbol)table.DeclaredTypes[mixin.Name];
 
             foreach (var c in shaderType.Components)
             {
