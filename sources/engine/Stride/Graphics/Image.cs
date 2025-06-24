@@ -72,6 +72,7 @@
 // cannot change. To the extent permitted under your local laws, the
 // contributors exclude the implied warranties of merchantability, fitness for a
 // particular purpose and non-infringement.
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -101,7 +102,7 @@ namespace Stride.Graphics
         private List<int> mipMapToZIndex;
         private int zBufferCountPerArraySlice;
         private MipMapDescription[] mipmapDescriptions;
-        private static List<LoadSaveDelegate> loadSaveDelegates = new List<LoadSaveDelegate>();
+        private static readonly List<LoadSaveDelegate> loadSaveDelegates = [];
 
         /// <summary>
         /// Provides access to all pixel buffers.
@@ -171,7 +172,7 @@ namespace Stride.Graphics
         /// <param name="offset">The offset from the beginning of the data buffer.</param>
         /// <param name="handle">The handle (optionnal).</param>
         /// <param name="bufferIsDisposable">if set to <c>true</c> [buffer is disposable].</param>
-        /// <exception cref="System.InvalidOperationException">If the format is invalid, or width/height/depth/arraysize is invalid with respect to the dimension.</exception>
+        /// <exception cref="InvalidOperationException">If the format is invalid, or width/height/depth/arraysize is invalid with respect to the dimension.</exception>
         internal unsafe Image(ImageDescription description, IntPtr dataPointer, int offset, GCHandle? handle, bool bufferIsDisposable, PitchFlags pitchFlags = PitchFlags.None, int rowStride = 0)
         {
             Initialize(description, dataPointer, offset, handle, bufferIsDisposable, pitchFlags, rowStride);
@@ -213,18 +214,18 @@ namespace Stride.Graphics
         /// </summary>
         /// <param name="arrayOrZSliceIndex">For 3D image, the parameter is the Z slice, otherwise it is an index into the texture array.</param>
         /// <param name="mipmap">The mipmap.</param>
-        /// <returns>A <see cref="Stride.Graphics.PixelBuffer"/>.</returns>
-        /// <exception cref="System.ArgumentException">If arrayOrZSliceIndex or mipmap are out of range.</exception>
+        /// <returns>A <see cref="Graphics.PixelBuffer"/>.</returns>
+        /// <exception cref="ArgumentException">If arrayOrZSliceIndex or mipmap are out of range.</exception>
         public PixelBuffer GetPixelBuffer(int arrayOrZSliceIndex, int mipmap)
         {
             // Check for parameters, as it is easy to mess up things...
             if (mipmap > Description.MipLevels)
-                throw new ArgumentException("Invalid mipmap level", "mipmap");
+                throw new ArgumentException("Invalid mipmap level", nameof(mipmap));
 
             if (Description.Dimension == TextureDimension.Texture3D)
             {
                 if (arrayOrZSliceIndex > Description.Depth)
-                    throw new ArgumentException("Invalid z slice index", "arrayOrZSliceIndex");
+                    throw new ArgumentException("Invalid z slice index", nameof(arrayOrZSliceIndex));
 
                 // For 3D textures
                 return GetPixelBufferUnsafe(0, arrayOrZSliceIndex, mipmap);
@@ -232,7 +233,7 @@ namespace Stride.Graphics
 
             if (arrayOrZSliceIndex > Description.ArraySize)
             {
-                throw new ArgumentException("Invalid array slice index", "arrayOrZSliceIndex");
+                throw new ArgumentException("Invalid array slice index", nameof(arrayOrZSliceIndex));
             }
 
             // For 1D, 2D textures
@@ -245,21 +246,21 @@ namespace Stride.Graphics
         /// <param name="arrayIndex">Index into the texture array. Must be set to 0 for 3D images.</param>
         /// <param name="zIndex">Z index for 3D image. Must be set to 0 for all 1D/2D images.</param>
         /// <param name="mipmap">The mipmap.</param>
-        /// <returns>A <see cref="Stride.Graphics.PixelBuffer"/>.</returns>
-        /// <exception cref="System.ArgumentException">If arrayIndex, zIndex or mipmap are out of range.</exception>
+        /// <returns>A <see cref="Graphics.PixelBuffer"/>.</returns>
+        /// <exception cref="ArgumentException">If arrayIndex, zIndex or mipmap are out of range.</exception>
         public PixelBuffer GetPixelBuffer(int arrayIndex, int zIndex, int mipmap)
         {
             // Check for parameters, as it is easy to mess up things...
             if (mipmap > Description.MipLevels)
-                throw new ArgumentException("Invalid mipmap level", "mipmap");
+                throw new ArgumentException("Invalid mipmap level", nameof(mipmap));
 
             if (arrayIndex > Description.ArraySize)
-                throw new ArgumentException("Invalid array slice index", "arrayIndex");
+                throw new ArgumentException("Invalid array slice index", nameof(arrayIndex));
 
             if (zIndex > Description.Depth)
-                throw new ArgumentException("Invalid z slice index", "zIndex");
+                throw new ArgumentException("Invalid Z slice index", nameof(zIndex));
 
-            return this.GetPixelBufferUnsafe(arrayIndex, zIndex, mipmap);
+            return GetPixelBufferUnsafe(arrayIndex, zIndex, mipmap);
         }
 
         /// <summary>
@@ -268,12 +269,12 @@ namespace Stride.Graphics
         /// <param name="type">The file type (use integer and explicit casting to <see cref="ImageFileType"/> to register other fileformat.</param>
         /// <param name="loader">The loader delegate (can be null).</param>
         /// <param name="saver">The saver delegate (can be null).</param>
-        /// <exception cref="System.ArgumentException"></exception>
+        /// <exception cref="ArgumentException"></exception>
         public static void Register(ImageFileType type, ImageLoadDelegate loader, ImageSaveDelegate saver)
         {
             // If reference equals, then it is null
             if (ReferenceEquals(loader, saver))
-                throw new ArgumentNullException("Can set both loader and saver to null", "loader/saver");
+                throw new ArgumentNullException("loader/saver", "Can set both loader and saver to null");
 
             var newDelegate = new LoadSaveDelegate(type, loader, saver);
             for (int i = 0; i < loadSaveDelegates.Count; i++)
@@ -294,7 +295,7 @@ namespace Stride.Graphics
         /// <value>A pointer to the image buffer in memory.</value>
         public IntPtr DataPointer
         {
-            get { return this.buffer; }
+            get { return buffer; }
         }
 
         /// <summary>
@@ -339,7 +340,7 @@ namespace Stride.Graphics
                 for (int mipIndex = 0; mipIndex < Description.MipLevels; mipIndex++)
                 {
                     // Get the first z-slize (A DataBox for a Texture3D is pointing to the whole texture).
-                    var pixelBuffer = this.GetPixelBufferUnsafe(arrayIndex, 0, mipIndex);
+                    var pixelBuffer = GetPixelBufferUnsafe(arrayIndex, 0, mipIndex);
 
                     dataBoxArray[i].DataPointer = pixelBuffer.DataPointer;
                     dataBoxArray[i].RowPitch = pixelBuffer.RowStride;
@@ -432,7 +433,7 @@ namespace Stride.Graphics
         /// <param name="offset">The offset from the beginning of the data buffer.</param>
         /// <param name="handle">The handle (optionnal).</param>
         /// <param name="bufferIsDisposable">if set to <c>true</c> [buffer is disposable].</param>
-        /// <exception cref="System.InvalidOperationException">If the format is invalid, or width/height/depth/arraysize is invalid with respect to the dimension.</exception>
+        /// <exception cref="InvalidOperationException">If the format is invalid, or width/height/depth/arraysize is invalid with respect to the dimension.</exception>
         public static Image New(ImageDescription description, IntPtr dataPointer, int offset, GCHandle? handle, bool bufferIsDisposable)
         {
             return new Image(description, dataPointer, offset, handle, bufferIsDisposable);
@@ -549,8 +550,7 @@ namespace Stride.Graphics
         /// <remarks>This method support the following format: <c>dds, bmp, jpg, png, gif, tiff, wmp, tga</c>.</remarks>
         public static unsafe Image Load(byte[] buffer, bool loadAsSRGB = false)
         {
-            if (buffer == null)
-                throw new ArgumentNullException("buffer");
+            ArgumentNullException.ThrowIfNull(buffer);
 
             // If buffer is allocated on Larget Object Heap, then we are going to pin it instead of making a copy.
             if (buffer.Length > (85 * 1024))
@@ -574,8 +574,9 @@ namespace Stride.Graphics
         /// <remarks>This method support the following format: <c>dds, bmp, jpg, png, gif, tiff, wmp, tga</c>.</remarks>
         public static Image Load(Stream imageStream, bool loadAsSRGB = false)
         {
-            if (imageStream == null) throw new ArgumentNullException("imageStream");
-            // Read the whole stream into memory.
+            ArgumentNullException.ThrowIfNull(imageStream);
+
+            // Read the whole stream into memory
             return Load(Utilities.ReadStream(imageStream), loadAsSRGB);
         }
 
@@ -587,8 +588,9 @@ namespace Stride.Graphics
         /// <remarks>This method support the following format: <c>dds, bmp, jpg, png, gif, tiff, wmp, tga</c>.</remarks>
         public void Save(Stream imageStream, ImageFileType fileType)
         {
-            if (imageStream == null) throw new ArgumentNullException("imageStream");
-            Save(PixelBuffers, this.PixelBuffers.Length, Description, imageStream, fileType);
+            ArgumentNullException.ThrowIfNull(imageStream);
+
+            Save(PixelBuffers, PixelBuffers.Length, Description, imageStream, fileType);
         }
 
         /// <summary>
@@ -691,7 +693,7 @@ namespace Stride.Graphics
         /// <param name="handle">The handle.</param>
         /// <param name="loadAsSRGB">Indicate if the image should be loaded as an sRGB texture</param>
         /// <returns></returns>
-        /// <exception cref="System.NotSupportedException"></exception>
+        /// <exception cref="NotSupportedException"></exception>
         private static Image Load(IntPtr dataPointer, int dataSize, bool makeACopy, GCHandle? handle, bool loadAsSRGB = true)
         {
             foreach (var loadSaveDelegate in loadSaveDelegates)
@@ -858,11 +860,11 @@ namespace Stride.Graphics
         [Flags]
         internal enum PitchFlags
         {
-            None = 0x0,      // Normal operation
-            LegacyDword = 0x1,      // Assume pitch is DWORD aligned instead of BYTE aligned
-            Bpp24 = 0x10000,  // Override with a legacy 24 bits-per-pixel format size
-            Bpp16 = 0x20000,  // Override with a legacy 16 bits-per-pixel format size
-            Bpp8 = 0x40000,  // Override with a legacy 8 bits-per-pixel format size
+            None = 0,           // Normal operation
+            LegacyDword = 0x1,  // Assume pitch is DWORD aligned instead of BYTE aligned
+            Bpp24 = 0x10000,    // Override with a legacy 24 bits-per-pixel format size
+            Bpp16 = 0x20000,    // Override with a legacy 16 bits-per-pixel format size
+            Bpp8 = 0x40000      // Override with a legacy 8 bits-per-pixel format size
         }
 
         internal static void ComputePitch(PixelFormat format, int width, int height, out int rowPitch, out int slicePitch, out int widthPacked, out int heightPacked, PitchFlags flags = PitchFlags.None)
@@ -1065,7 +1067,7 @@ namespace Stride.Graphics
                     {
                         // Check that stride is ok
                         if (rowStride < rowPitch)
-                            throw new InvalidOperationException(string.Format("Invalid stride [{0}]. Value can't be lower than actual stride [{1}]", rowStride, rowPitch));
+                            throw new InvalidOperationException($"Invalid stride [{rowStride}]. Value can't be lower than actual stride [{rowPitch}]");
 
                         if (widthPacked != w || heightPacked != h)
                             throw new InvalidOperationException("Custom strides is not supported with packed PixelFormats");
