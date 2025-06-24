@@ -2,17 +2,17 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 //
 // Copyright (c) 2010-2012 SharpDX - Alexandre Mutel
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -21,14 +21,10 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-using System;
+namespace Stride.Graphics;
 
-using Stride.Core;
-
-namespace Stride.Graphics
+public partial class Texture
 {
-    public partial class Texture 
-    {
         /// <summary>
         /// Creates a new 2D <see cref="Texture" /> with a single mipmap.
         /// </summary>
@@ -40,10 +36,10 @@ namespace Stride.Graphics
         /// <param name="arraySize">Size of the texture 2D array, default to 1.</param>
         /// <param name="usage">The usage.</param>
         /// <returns>A new instance of 2D <see cref="Texture" /> class.</returns>
-        public static Texture New2D(GraphicsDevice device, int width, int height, PixelFormat format, TextureFlags textureFlags = TextureFlags.ShaderResource, int arraySize = 1, GraphicsResourceUsage usage = GraphicsResourceUsage.Default, TextureOptions options = TextureOptions.None)
-        {
-            return New2D(device, width, height, false, format, textureFlags, arraySize, usage, options);
-        }
+    public static Texture New2D(GraphicsDevice device, int width, int height, PixelFormat format, TextureFlags textureFlags = TextureFlags.ShaderResource, int arraySize = 1, GraphicsResourceUsage usage = GraphicsResourceUsage.Default, TextureOptions options = TextureOptions.None)
+    {
+        return New2D(device, width, height, MipMapCount.One, format, textureFlags, arraySize, usage, options);
+    }
 
         /// <summary>
         /// Creates a new 2D <see cref="Texture" />.
@@ -57,10 +53,9 @@ namespace Stride.Graphics
         /// <param name="arraySize">Size of the texture 2D array, default to 1.</param>
         /// <param name="usage">The usage.</param>
         /// <returns>A new instance of 2D <see cref="Texture" /> class.</returns>
-        public static Texture New2D(GraphicsDevice device, int width, int height, MipMapCount mipCount, PixelFormat format, TextureFlags textureFlags = TextureFlags.ShaderResource, int arraySize = 1, GraphicsResourceUsage usage = GraphicsResourceUsage.Default, TextureOptions options = TextureOptions.None)
-        {
-            return new Texture(device).InitializeFrom(TextureDescription.New2D(width, height, mipCount, format, textureFlags, arraySize, usage, MultisampleCount.None, options));
-        }
+    public static Texture New2D(GraphicsDevice device, int width, int height, MipMapCount mipCount, PixelFormat format, TextureFlags textureFlags = TextureFlags.ShaderResource, int arraySize = 1, GraphicsResourceUsage usage = GraphicsResourceUsage.Default, TextureOptions options = TextureOptions.None)
+    {
+        var description = TextureDescription.New2D(width, height, mipCount, format, textureFlags, arraySize, usage, MultisampleCount.None, options);
 
         /// <summary>
         /// Creates a new 2D <see cref="Texture" /> with a single level of mipmap.
@@ -77,11 +72,8 @@ namespace Stride.Graphics
         /// <remarks>
         /// Each value in textureData is a pixel in the destination texture.
         /// </remarks>
-        public static unsafe Texture New2D<T>(GraphicsDevice device, int width, int height, PixelFormat format, T[] textureData, TextureFlags textureFlags = TextureFlags.ShaderResource, GraphicsResourceUsage usage = GraphicsResourceUsage.Immutable, TextureOptions options = TextureOptions.None) where T : unmanaged
-        {
-            fixed (T* texture = textureData)
-                return New2D(device, width, height, 1, format, new[] { GetDataBox(format, width, height, 1, textureData, (nint)texture) }, textureFlags, 1, usage, MultisampleCount.None, options);
-        }
+        return new Texture(device).InitializeFrom(description);
+    }
 
         /// <summary>
         /// Creates a new 2D <see cref="Texture" />.
@@ -100,20 +92,32 @@ namespace Stride.Graphics
         /// <returns>
         /// A new instance of 2D <see cref="Texture" /> class.
         /// </returns>
-        public static Texture New2D(
-            GraphicsDevice device,
-            int width,
-            int height,
-            MipMapCount mipCount,
-            PixelFormat format,
-            DataBox[] textureData,
-            TextureFlags textureFlags = TextureFlags.ShaderResource,
-            int arraySize = 1,
-            GraphicsResourceUsage usage = GraphicsResourceUsage.Default,
-            MultisampleCount multisampleCount = MultisampleCount.None,
-            TextureOptions options = TextureOptions.None)
+    public static unsafe Texture New2D<T>(GraphicsDevice device, int width, int height, PixelFormat format, T[] textureData, TextureFlags textureFlags = TextureFlags.ShaderResource, GraphicsResourceUsage usage = GraphicsResourceUsage.Immutable, TextureOptions options = TextureOptions.None) where T : unmanaged
+    {
+        fixed (T* texture = textureData)
         {
-            return new Texture(device).InitializeFrom(TextureDescription.New2D(width, height, mipCount, format, textureFlags, arraySize, usage, multisampleCount, options), textureData);
+            var dataBox = GetDataBox(format, width, height, depth: 1, textureData, (nint) texture);
+            var description = TextureDescription.New1D(width, format, textureFlags, usage);
+
+            return New2D(device, width, height, MipMapCount.One, format, [dataBox], textureFlags, arraySize: 1, usage, MultisampleCount.None, options);
         }
+    }
+
+    public static Texture New2D(
+        GraphicsDevice device,
+        int width,
+        int height,
+        MipMapCount mipCount,
+        PixelFormat format,
+        DataBox[] textureData,
+        TextureFlags textureFlags = TextureFlags.ShaderResource,
+        int arraySize = 1,
+        GraphicsResourceUsage usage = GraphicsResourceUsage.Default,
+        MultisampleCount multisampleCount = MultisampleCount.None,
+        TextureOptions options = TextureOptions.None)
+    {
+        var description = TextureDescription.New2D(width, height, mipCount, format, textureFlags, arraySize, usage, multisampleCount, options);
+
+        return new Texture(device).InitializeFrom(description, textureData);
     }
 }

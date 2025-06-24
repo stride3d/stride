@@ -1,8 +1,11 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-namespace Stride.Graphics
+
+namespace Stride.Graphics;
+
+public partial struct TextureDescription
 {
-    public partial struct TextureDescription
+    public static TextureDescription New2D(int width, int height, PixelFormat format, TextureFlags textureFlags = TextureFlags.ShaderResource, int arraySize = 1, GraphicsResourceUsage usage = GraphicsResourceUsage.Default, TextureOptions textureOptions = TextureOptions.None)
     {
         /// <summary>
         /// Creates a new <see cref="TextureDescription" /> with a single mipmap.
@@ -14,10 +17,8 @@ namespace Stride.Graphics
         /// <param name="arraySize">Size of the texture 2D array, default to 1.</param>
         /// <param name="usage">The usage.</param>
         /// <returns>A new instance of <see cref="TextureDescription" /> class.</returns>
-        public static TextureDescription New2D(int width, int height, PixelFormat format, TextureFlags textureFlags = TextureFlags.ShaderResource, int arraySize = 1, GraphicsResourceUsage usage = GraphicsResourceUsage.Default, TextureOptions textureOptions = TextureOptions.None)
-        {
-            return New2D(width, height, false, format, textureFlags, arraySize, usage, MultisampleCount.None, textureOptions);
-        }
+        return New2D(width, height, MipMapCount.One, format, textureFlags, arraySize, usage, MultisampleCount.None, textureOptions);
+    }
 
         /// <summary>
         /// Creates a new <see cref="TextureDescription" />.
@@ -31,31 +32,30 @@ namespace Stride.Graphics
         /// <param name="usage">The usage.</param>
         /// <param name="multisampleCount">The multisample count.</param>
         /// <returns>A new instance of <see cref="TextureDescription" /> class.</returns>
-        public static TextureDescription New2D(int width, int height, MipMapCount mipCount, PixelFormat format, TextureFlags textureFlags = TextureFlags.ShaderResource, int arraySize = 1, GraphicsResourceUsage usage = GraphicsResourceUsage.Default, MultisampleCount multisampleCount = MultisampleCount.None, TextureOptions textureOptions = TextureOptions.None)
-        {
-            return New2D(width, height, format, textureFlags, mipCount, arraySize, usage, multisampleCount, textureOptions);
-        }
+    public static TextureDescription New2D(int width, int height, MipMapCount mipCount, PixelFormat format, TextureFlags textureFlags = TextureFlags.ShaderResource, int arraySize = 1, GraphicsResourceUsage usage = GraphicsResourceUsage.Default, MultisampleCount multisampleCount = MultisampleCount.None, TextureOptions textureOptions = TextureOptions.None)
+    {
+        return New2D(width, height, format, textureFlags, mipCount, arraySize, usage, multisampleCount, textureOptions);
+    }
 
-        private static TextureDescription New2D(int width, int height, PixelFormat format, TextureFlags textureFlags, int mipCount, int arraySize, GraphicsResourceUsage usage, MultisampleCount multisampleCount, TextureOptions textureOptions = TextureOptions.None)
-        {
-            if ((textureFlags & TextureFlags.UnorderedAccess) != 0)
-                usage = GraphicsResourceUsage.Default;
+    private static TextureDescription New2D(int width, int height, PixelFormat format, TextureFlags textureFlags, int mipCount, int arraySize, GraphicsResourceUsage usage, MultisampleCount multisampleCount, TextureOptions textureOptions = TextureOptions.None)
+    {
+        if (textureFlags.HasFlag(TextureFlags.UnorderedAccess))
+            usage = GraphicsResourceUsage.Default;
 
-            var desc = new TextureDescription
-            {
-                Dimension = TextureDimension.Texture2D,
-                Width = width,
-                Height = height,
-                Depth = 1,
-                ArraySize = arraySize,
-                MultisampleCount = multisampleCount,
-                Flags = textureFlags,
-                Format = format,
-                MipLevels = Texture.CalculateMipMapCount(mipCount, width, height),
-                Usage = Texture.GetUsageWithFlags(usage, textureFlags),
-                Options = textureOptions
-            };
-            return desc;
-        }
+        var desc = new TextureDescription
+        {
+            Dimension = TextureDimension.Texture2D,
+            Width = width,
+            Height = height,
+            Depth = 1,
+            ArraySize = arraySize,
+            MultisampleCount = multisampleCount,
+            Flags = textureFlags,
+            Format = format,
+            MipLevelCount = Texture.CalculateMipMapCount(mipCount, width, height),
+            Usage = Texture.GetUsageWithFlags(usage, textureFlags),
+            Options = textureOptions
+        };
+        return desc;
     }
 }

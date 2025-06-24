@@ -2,8 +2,13 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 
-namespace Stride.Graphics
+namespace Stride.Graphics;
+
+[Flags]
+public enum TextureOptions
 {
+    None = 0,
+
     /// <summary>
     /// Resource options for textures.
     /// </summary>
@@ -11,13 +16,10 @@ namespace Stride.Graphics
     /// This enumeration is used in TextureDescription.The TextureOptions
     ///     must be 'None' when creating textures with CPU access flags.   
     /// </remarks>
-    [Flags]
-    public enum TextureOptions
-    {
         /// <summary>
         /// None. The default.
         /// </summary>
-        None = 0,
+    Shared = 2,
 
         /// <summary>
         /// Enables resource data sharing between two or more Direct3D devices.    
@@ -33,7 +35,6 @@ namespace Stride.Graphics
         ///     using a combination of the SharpDX.Direct3D11.ResourceOptionFlags.SharedNthandle
         ///     and SharpDX.Direct3D11.ResourceOptionFlags.SharedKeyedmutex flags instead.
         /// </remarks>
-        Shared = 2,
 #if STRIDE_GRAPHICS_API_DIRECT3D11
         /// <summary>
         ///     Enables the resource to be synchronized by using the SharpDX.DXGI.KeyedMutex.Acquire(System.Int64,System.Int32)
@@ -61,7 +62,7 @@ namespace Stride.Graphics
         ///     return an E_OUTOFMEMORY error code. Note?? Starting with Windows?8, WARP devices
         ///     fully support shared resources.
         /// </remarks>
-        SharedKeyedmutex = 256,
+    SharedKeyedMutex = 256,  // TODO: Support KeyedMutex from Texture
 
         /// <summary>
         ///  Set this flag to enable the use of NT HANDLE values when you create a shared
@@ -79,7 +80,6 @@ namespace Stride.Graphics
         ///     of much of the Direct3D API might be undefined and might vary from driver to
         ///     driver. Direct3D 11 and earlier: This value is not supported until Direct3D 11.1.
         /// </remarks>
-        SharedNthandle = 2048,
+    SharedNtHandle = 2048
 #endif
-    }
 }

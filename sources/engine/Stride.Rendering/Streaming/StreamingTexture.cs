@@ -114,7 +114,7 @@ namespace Stride.Streaming
         public PixelFormat Format => description.Format;
 
         /// <summary>
-        /// Gets index of the highest resident mip map (may be equal to MipLevels if no mip has been uploaded). Note: mip=0 is the highest (top quality)
+        /// Gets index of the highest resident mip map (may be equal to MipLevelCount if no mip has been uploaded). Note: mip=0 is the highest (top quality)
         /// </summary>
         /// <returns>Mip index</returns>
         public int HighestResidentMipIndex => TotalMipLevels - residentMips;
@@ -126,7 +126,7 @@ namespace Stride.Streaming
         public override int CurrentResidency => residentMips;
 
         /// <inheritdoc />
-        public override int AllocatedResidency => Texture.MipLevels;
+        public override int AllocatedResidency => Texture.MipLevelCount;
 
         /// <inheritdoc />
         public override int MaxResidency => description.MipLevels;
@@ -300,8 +300,8 @@ namespace Stride.Streaming
                 // Setup texture description
                 TextureDescription newDesc = description;
                 var newHighestResidentMipIndex = TotalMipLevels - mipsCount;
-                newDesc.MipLevels = mipsCount;
-                var topMip = mipInfos[description.MipLevels - newDesc.MipLevels];
+                newDesc.MipLevelCount = mipsCount;
+                var topMip = mipInfos[description.MipLevels - newDesc.MipLevelCount];
                 newDesc.Width = topMip.Width;
                 newDesc.Height = topMip.Height;
 
@@ -329,7 +329,7 @@ namespace Stride.Streaming
 
                 // Get data boxes
                 var dataBoxIndex = 0;
-                var dataBoxes = new DataBox[newDesc.MipLevels * newDesc.ArraySize];
+                var dataBoxes = new DataBox[newDesc.MipLevelCount * newDesc.ArraySize];
                 for (var arrayIndex = 0; arrayIndex < newDesc.ArraySize; arrayIndex++)
                 {
                     for (var mipIndex = 0; mipIndex < mipsCount; mipIndex++)
@@ -351,7 +351,7 @@ namespace Stride.Streaming
                 textureToSync = Texture.New(texture.GraphicsDevice, newDesc, new TextureViewDescription(), dataBoxes);
                 textureToSync.FullQualitySize = texture.FullQualitySize;
 
-                residentMips = newDesc.MipLevels;
+                residentMips = newDesc.MipLevelCount;
             }
             finally
             {

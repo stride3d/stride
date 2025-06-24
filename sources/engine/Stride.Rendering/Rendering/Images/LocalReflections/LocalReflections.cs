@@ -503,7 +503,7 @@ namespace Stride.Rendering.Images
                 int colorBuffer1MipOffset = 1; // For colorBuffer1 we could use one mip less (optimized)
 
                 // Cache per color buffer mip views
-                int colorBuffer0Mips = colorBuffer0.MipLevels;
+                int colorBuffer0Mips = colorBuffer0.MipLevelCount;
                 if (cachedColorBuffer0Mips == null || cachedColorBuffer0Mips.Length != colorBuffer0Mips || cachedColorBuffer0Mips[0].ParentTexture != colorBuffer0)
                 {
                     cachedColorBuffer0Mips?.ForEach(view => view?.Dispose());
@@ -513,7 +513,7 @@ namespace Stride.Rendering.Images
                         cachedColorBuffer0Mips[mipIndex] = colorBuffer0.ToTextureView(ViewType.Single, 0, mipIndex);
                     }
                 }
-                int colorBuffer1Mips = colorBuffer1.MipLevels;
+                int colorBuffer1Mips = colorBuffer1.MipLevelCount;
                 if (cachedColorBuffer1Mips == null || cachedColorBuffer1Mips.Length != colorBuffer1Mips || cachedColorBuffer1Mips[0].ParentTexture != colorBuffer1)
                 {
                     cachedColorBuffer1Mips?.ForEach(view => view?.Dispose());

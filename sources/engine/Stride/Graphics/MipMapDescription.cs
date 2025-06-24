@@ -23,12 +23,62 @@
 
 using System;
 
-namespace Stride.Graphics
+namespace Stride.Graphics;
+
+public readonly struct MipMapDescription(int width, int height, int depth, int rowStride, int depthStride, int widthPacked, int heightPacked)
+    : IEquatable<MipMapDescription>
 {
     /// <summary>
     /// Describes a mipmap.
+    public readonly int Width = width;
+
+    public readonly int Height = height;
+
+    public readonly int WidthPacked = widthPacked;
+
+    public readonly int HeightPacked = heightPacked;
+
+    public readonly int Depth = depth;
+
+    public readonly int RowStride = rowStride;
+
     /// </summary>
-    public class MipMapDescription : IEquatable<MipMapDescription>
+    public readonly int DepthStride = depthStride;
+
+    public readonly int MipmapSize = depthStride * depth;
+
+
+    public bool Equals(MipMapDescription other)
+    {
+        return Width == other.Width
+            && Height == other.Height
+            && WidthPacked == other.WidthPacked
+            && HeightPacked == other.HeightPacked
+            && Depth == other.Depth
+            && RowStride == other.RowStride
+            && MipmapSize == other.MipmapSize
+            && DepthStride == other.DepthStride;
+    }
+
+    public override bool Equals(object obj)
+    {
+        if (obj is null)
+            return false;
+
+        return obj is MipMapDescription mipMapDescription && Equals(mipMapDescription);
+    }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(Width, Height, WidthPacked, HeightPacked, Depth, RowStride, MipmapSize, DepthStride);
+    }
+
+    public static bool operator ==(MipMapDescription left, MipMapDescription right)
+    {
+        return Equals(left, right);
+    }
+
+    public static bool operator !=(MipMapDescription left, MipMapDescription right)
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="MipMapDescription" /> class.
@@ -38,114 +88,42 @@ namespace Stride.Graphics
         /// <param name="depth">The depth.</param>
         /// <param name="rowStride">The row stride.</param>
         /// <param name="depthStride">The depth stride.</param>
-        public MipMapDescription(int width, int height, int depth, int rowStride, int depthStride, int widthPacked, int heightPacked)
-        {
-            Width = width;
-            Height = height;
-            Depth = depth;
-            RowStride = rowStride;
-            DepthStride = depthStride;
-            MipmapSize = depthStride * depth;
-            WidthPacked = widthPacked;
-            HeightPacked = heightPacked;
-        }
-
         /// <summary>
         /// Width of this mipmap.
         /// </summary>
-        public readonly int Width;
-
         /// <summary>
         /// Height of this mipmap.
         /// </summary>
-        public readonly int Height;
-
         /// <summary>
         /// Width of this mipmap.
         /// </summary>
-        public readonly int WidthPacked;
-
         /// <summary>
         /// Height of this mipmap.
         /// </summary>
-        public readonly int HeightPacked;
-
         /// <summary>
         /// Depth of this mipmap.
         /// </summary>
-        public readonly int Depth;
-
         /// <summary>
         /// RowStride of this mipmap (number of bytes per row).
         /// </summary>
-        public readonly int RowStride;
-
         /// <summary>
         /// DepthStride of this mipmap (number of bytes per depth slice).
         /// </summary>
-        public readonly int DepthStride;
-
         /// <summary>
         /// Size in bytes of this whole mipmap.
         /// </summary>
-        public readonly int MipmapSize;
-
-        public bool Equals(MipMapDescription other)
-        {
-            if (ReferenceEquals(null, other))
-                return false;
-            if (ReferenceEquals(this, other))
-                return true;
-            return this.Width == other.Width && this.Height == other.Height && this.WidthPacked == other.WidthPacked && this.HeightPacked == other.HeightPacked && this.Depth == other.Depth && this.RowStride == other.RowStride && this.MipmapSize == other.MipmapSize && this.DepthStride == other.DepthStride;
-        }
-
-        public override bool Equals(object obj)
-        {
-            if (ReferenceEquals(null, obj))
-                return false;
-            if (ReferenceEquals(this, obj))
-                return true;
-            if (obj.GetType() != this.GetType())
-                return false;
-            return Equals((MipMapDescription)obj);
-        }
-
-        public override int GetHashCode()
-        {
-            unchecked
-            {
-                int hashCode = this.Width;
-                hashCode = (hashCode * 397) ^ this.Height;
-                hashCode = (hashCode * 397) ^ this.WidthPacked;
-                hashCode = (hashCode * 397) ^ this.HeightPacked;
-                hashCode = (hashCode * 397) ^ this.Depth;
-                hashCode = (hashCode * 397) ^ this.RowStride;
-                hashCode = (hashCode * 397) ^ this.MipmapSize;
-                hashCode = (hashCode * 397) ^ this.DepthStride;
-                return hashCode;
-            }
-        }
-
         /// <summary>
         /// Implements the ==.
         /// </summary>
         /// <param name="left">The left.</param>
         /// <param name="right">The right.</param>
         /// <returns>The result of the operator.</returns>
-        public static bool operator ==(MipMapDescription left, MipMapDescription right)
-        {
-            return Equals(left, right);
-        }
-
         /// <summary>
         /// Implements the !=.
         /// </summary>
         /// <param name="left">The left.</param>
         /// <param name="right">The right.</param>
         /// <returns>The result of the operator.</returns>
-        public static bool operator !=(MipMapDescription left, MipMapDescription right)
-        {
-            return !Equals(left, right);
-        }
+        return !Equals(left, right);
     }
 }
