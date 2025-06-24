@@ -48,7 +48,7 @@
       </FluentTheme.Palettes>
     </FluentTheme>
     <!-- FIXME xplat-editor aggregate all custom styles into a single style/theme -->
-    <StyleInclude Source="avares://Stride.GameStudio.Avalonia/Themes/DefaultStyles.axaml"/>
+    <StyleInclude Source="avares://Stride.Core.Presentation.Avalonia/Themes/EditorStyles.axaml"/>
     <StyleInclude Source="avares://Stride.Core.Presentation.Avalonia/Themes/HyperlinkStyle.axaml"/>
     <!-- FIXME xplat-editor move to theme -->
     <Style Selector="sd|TextLogViewer">
