@@ -26,119 +26,163 @@ using System.Runtime.InteropServices;
 
 namespace Stride.Graphics;
 
+/// <summary>
+///   A structure providing a common description for all kinds of <see cref="Texture"/>s.
+/// </summary>
 [StructLayout(LayoutKind.Sequential)]
 public partial struct TextureDescription : IEquatable<TextureDescription>
 {
     /// <summary>
-    /// A Common description for all textures.
+    ///   The dimension (type) of the Texture.
     /// </summary>
-        /// <summary>
-        /// The dimension of a texture.
-        /// </summary>
     public TextureDimension Dimension;
 
-        /// <summary>
-        /// <dd> <p>Texture width (in texels). The  range is from 1 to <see cref="SharpDX.Direct3D11.Resource.MaximumTexture1DSize"/> (16384). However, the range is actually constrained by the feature level at which you create the rendering device. For more information about restrictions, see Remarks.</p> </dd>
-        /// </summary>
-        /// <remarks>
-        /// This field is valid for all textures: <see cref="TextureDimension.Texture1D"/>, <see cref="TextureDimension.Texture2D"/>, <see cref="TextureDimension.Texture3D"/> and <see cref="TextureDimension.TextureCube"/>.
-        /// </remarks>
+    /// <summary>
+    ///   The Texture width in texels.
+    /// </summary>
+    /// <remarks>
+    ///   <para>
+    ///     The range of this value is from 1 to the maximum supported size, which is constrained by the graphics profile of the device.
+    ///   </para>
+    ///   <para>
+    ///     This field is valid for all textures: <see cref="TextureDimension.Texture1D"/>, <see cref="TextureDimension.Texture2D"/>, <see cref="TextureDimension.Texture3D"/>,
+    ///     and <see cref="TextureDimension.TextureCube"/>.
+    ///   </para>
+    /// </remarks>
+    /// <seealso cref="GraphicsDeviceFeatures.MaximumTexture1DSize"/>
+    /// <seealso cref="GraphicsDeviceFeatures.MaximumTexture2DSize"/>
+    /// <seealso cref="GraphicsDeviceFeatures.MaximumTexture3DSize"/>
+    /// <seealso cref="GraphicsDeviceFeatures.MaximumTextureCubeSize"/>
     public int Width;
 
-        /// <summary>
-        /// <dd> <p>Texture height (in texels). The  range is from 1 to <see cref="SharpDX.Direct3D11.Resource.MaximumTexture3DSize"/> (2048). However, the range is actually constrained by the feature level at which you create the rendering device. For more information about restrictions, see Remarks.</p> </dd>
-        /// </summary>
-        /// <remarks>
-        /// This field is only valid for <see cref="TextureDimension.Texture2D"/>, <see cref="TextureDimension.Texture3D"/> and <see cref="TextureDimension.TextureCube"/>.
-        /// </remarks>
+    /// <summary>
+    ///   The Texture height in texels.
+    /// </summary>
+    /// <remarks>
+    ///   <para>
+    ///     The range of this value is from 1 to the maximum supported size, which is constrained by the graphics profile of the device.
+    ///   </para>
+    ///   <para>
+    ///     This field is valid for <see cref="TextureDimension.Texture2D"/>, <see cref="TextureDimension.Texture3D"/>, and <see cref="TextureDimension.TextureCube"/>.
+    ///   </para>
+    /// </remarks>
+    /// <seealso cref="GraphicsDeviceFeatures.MaximumTexture2DSize"/>
+    /// <seealso cref="GraphicsDeviceFeatures.MaximumTexture3DSize"/>
+    /// <seealso cref="GraphicsDeviceFeatures.MaximumTextureCubeSize"/>
     public int Height;
 
-        /// <summary>
-        /// <dd> <p>Texture depth (in texels). The  range is from 1 to <see cref="SharpDX.Direct3D11.Resource.MaximumTexture3DSize"/> (2048). However, the range is actually constrained by the feature level at which you create the rendering device. For more information about restrictions, see Remarks.</p> </dd>
-        /// </summary>
-        /// <remarks>
-        /// This field is only valid for <see cref="TextureDimension.Texture3D"/>.
-        /// </remarks>
+    /// <summary>
+    ///   The Texture depth in texels.
+    /// </summary>
+    /// <remarks>
+    ///   <para>
+    ///     The range of this value is from 1 to the maximum supported size, which is constrained by the graphics profile of the device.
+    ///   </para>
+    ///   <para>
+    ///     This field is valid for <see cref="TextureDimension.Texture3D"/>.
+    ///   </para>
+    /// </remarks>
+    /// <seealso cref="GraphicsDeviceFeatures.MaximumTexture3DSize"/>
     public int Depth;
 
-        /// <summary>
-        /// <dd> <p>Number of textures in the array. The  range is from 1 to <see cref="SharpDX.Direct3D11.Resource.MaximumTexture1DArraySize"/> (2048). However, the range is actually constrained by the feature level at which you create the rendering device. For more information about restrictions, see Remarks.</p> </dd>
-        /// </summary>
-        /// <remarks>
-        /// This field is only valid for <see cref="TextureDimension.Texture1D"/>, <see cref="TextureDimension.Texture2D"/> and <see cref="TextureDimension.TextureCube"/>
-        /// </remarks>
-        /// <remarks>
-        /// This field is only valid for textures: <see cref="TextureDimension.Texture1D"/>, <see cref="TextureDimension.Texture2D"/> and <see cref="TextureDimension.TextureCube"/>.
-        /// </remarks>
+    /// <summary>
+    ///   The number of Textures in the Texture Array.
+    /// </summary>
+    /// <remarks>
+    ///   <para>
+    ///     The range of this value is from 1 to the maximum supported array size, which is constrained by the graphics profile of the device.
+    ///   </para>
+    ///   <para>
+    ///     This field is valid for <see cref="TextureDimension.Texture1D"/>, <see cref="TextureDimension.Texture2D"/>, and <see cref="TextureDimension.TextureCube"/>.
+    ///   </para>
+    /// </remarks>
+    /// <seealso cref="GraphicsDeviceFeatures.MaximumTexture1DArraySize"/>
+    /// <seealso cref="GraphicsDeviceFeatures.MaximumTexture2DArraySize"/>
     public int ArraySize;
 
-        /// <summary>
-        /// <dd> <p>The maximum number of mipmap levels in the texture. See the remarks in <strong><see cref="SharpDX.Direct3D11.ShaderResourceViewDescription.Texture1DResource"/></strong>. Use 1 for a multisampled texture; or 0 to generate a full set of subtextures.</p> </dd>
-        /// </summary>
+    /// <summary>
+    ///   The number of mipmap levels in the Texture.
+    /// </summary>
+    /// <remarks>
+    ///   <para>
+    ///     The range of this value is from 1 to <see cref="GraphicsDeviceFeatures.MaximumMipLevels"/>, which is constrained by the graphics profile of the device.
+    ///   </para>
+    ///   <para>
+    ///     Use 1 for a multisampled Texture; or 0 to generate a full set of subtextures.
+    ///   </para>
+    /// </remarks>
+    /// <seealso cref="GraphicsDeviceFeatures.MaximumMipLevels"/>
     public int MipLevelCount;
 
-        /// <summary>
-        /// <dd> <p>Texture format (see <strong><see cref="SharpDX.DXGI.Format"/></strong>).</p> </dd>
-        /// </summary>
+    /// <summary>
+    ///   The format of the Texture.
+    /// </summary>
     public PixelFormat Format;
 
-        /// <summary>
-        /// <dd> <p>Structure that specifies multisampling parameters for the texture. See <strong><see cref="SharpDX.DXGI.SampleDescription"/></strong>.</p> </dd>
-        /// </summary>
-        /// <remarks>
-        /// This field is only valid for <see cref="TextureDimension.Texture2D"/>.
-        /// </remarks>
+    /// <summary>
+    ///   The level of multisampling for the Texture.
+    /// </summary>
+    /// <remarks>
+    ///   This field is only valid for <see cref="TextureDimension.Texture2D"/>.
+    /// </remarks>
     public MultisampleCount MultisampleCount;
 
-        /// <summary>
-        /// <dd> <p>Value that identifies how the texture is to be read from and written to. The most common value is <see cref="SharpDX.Direct3D11.ResourceUsage.Default"/>; see <strong><see cref="SharpDX.Direct3D11.ResourceUsage"/></strong> for all possible values.</p> </dd>
-        /// </summary>
+    /// <summary>
+    ///   A value that indicates how the Texture is to be read from and written to.
+    /// </summary>
+    /// <remarks>
+    ///    The most common value is <see cref="GraphicsResourceUsage.Default"/>.
+    /// </remarks>
     public GraphicsResourceUsage Usage;
 
-        /// <summary>
-        /// <dd> <p>Flags (see <strong><see cref="SharpDX.Direct3D11.BindFlags"/></strong>) for binding to pipeline stages. The flags can be combined by a logical OR. For a 1D texture, the allowable values are: <see cref="SharpDX.Direct3D11.BindFlags.ShaderResource"/>, <see cref="SharpDX.Direct3D11.BindFlags.RenderTarget"/> and <see cref="SharpDX.Direct3D11.BindFlags.DepthStencil"/>.</p> </dd>
-        /// </summary>
+    /// <summary>
+    ///   A combination of flags describing how the Texture is to be bound to the stages of the graphics pipeline.
+    /// </summary>
     public TextureFlags Flags;
 
-        /// <summary>
-        /// Resource options for DirectX 11 textures.
-        /// </summary>
+    /// <summary>
+    ///   A combination of flags specifying options for Textures, like creating them as shared resources.
+    /// </summary>
+    /// <remarks>
+    ///   This field must be <see cref="TextureOptions.None"/> when creating Textures with CPU access flags.
+    /// </remarks>
     public TextureOptions Options;
 
-        /// <summary>
-        /// Gets a value indicating whether this instance is a render target.
-        /// </summary>
-        /// <value><c>true</c> if this instance is render target; otherwise, <c>false</c>.</value>
+    /// <summary>
+    ///   Gets a value indicating whether the Texture is a <strong>Render Target</strong>.
+    /// </summary>
+    /// <value><see langword="true"/> if the Texture is a Render Target; otherwise, <see langword="false"/>.</value>
     public readonly bool IsRenderTarget => Flags.HasFlag(TextureFlags.RenderTarget);
 
-        /// <summary>
-        /// Gets a value indicating whether this instance is a depth stencil.
-        /// </summary>
-        /// <value><c>true</c> if this instance is a depth stencil; otherwise, <c>false</c>.</value>
+    /// <summary>
+    ///   Gets a value indicating whether the Texture is a <strong>Depth-Stencil buffer</strong>.
+    /// </summary>
+    /// <value><see langword="true"/> if the Texture is a Depth-Stencil buffer; otherwise, <see langword="false"/>.</value>
     public readonly bool IsDepthStencil => Flags.HasFlag(TextureFlags.DepthStencil);
 
-        /// <summary>
-        /// Gets a value indicating whether this instance is a shader resource.
-        /// </summary>
-        /// <value><c>true</c> if this instance is a shader resource; otherwise, <c>false</c>.</value>
+    /// <summary>
+    ///   Gets a value indicating whether the Texture is a <strong>Shader Resource</strong>.
+    /// </summary>
+    /// <value><see langword="true"/> if the Texture is a Shader Resource; otherwise, <see langword="false"/>.</value>
     public readonly bool IsShaderResource => Flags.HasFlag(TextureFlags.ShaderResource);
 
-        /// <summary>
-        /// Gets a value indicating whether this instance is a shader resource.
-        /// </summary>
-        /// <value><c>true</c> if this instance is a shader resource; otherwise, <c>false</c>.</value>
+    /// <summary>
+    ///   Gets a value indicating whether the Texture is a created to allow <strong>Unordered Access</strong>
+    ///   when used as Shader Resource.
+    /// </summary>
+    /// <value><see langword="true"/> if the Texture allows Unordered Access; otherwise, <see langword="false"/>.</value>
     public readonly bool IsUnorderedAccess => Flags.HasFlag(TextureFlags.UnorderedAccess);
 
-        /// <summary>
-        /// Gets a value indicating whether this instance is a multi sample texture.
-        /// </summary>
-        /// <value><c>true</c> if this instance is multi sample texture; otherwise, <c>false</c>.</value>
+    /// <summary>
+    ///   Gets a value indicating whether the Texture is a <strong>multi-sampled</strong> Texture.
+    /// </summary>
+    /// <value><see langword="true"/> if the Texture is multi-sampled; otherwise, <see langword="false"/>.</value>
     public readonly bool IsMultiSampled => MultisampleCount > MultisampleCount.None;
 
-        /// <summary>
-        /// Gets the staging description for this instance..
-        /// </summary>
-        /// <returns>A Staging description</returns>
+    /// <summary>
+    ///   Returns a copy of this Texture Description modified to describe a <strong>staging Texture</strong>.
+    /// </summary>
+    /// <returns>A staging Texture Description.</returns>
     public readonly TextureDescription ToStagingDescription()
     {
         return this with
@@ -148,10 +192,11 @@ public partial struct TextureDescription : IEquatable<TextureDescription>
         };
     }
 
-        /// <summary>
-        /// Gets a clone description of this instance (if texture is immutable, it is switched to default).
-        /// </summary>
-        /// <returns>A clone of this instance.</returns>
+    /// <summary>
+    ///   Returns a copy of this Texture Description modified so if the Texture is <see cref="GraphicsResourceUsage.Immutable"/>,
+    ///   it is switched to <see cref="GraphicsResourceUsage.Default"/>.
+    /// </summary>
+    /// <returns>A modified copy of this Texture Description.</returns>
     public readonly TextureDescription ToCloneableDescription()
     {
         return this with
@@ -161,6 +206,13 @@ public partial struct TextureDescription : IEquatable<TextureDescription>
     }
 
 
+    /// <summary>
+    ///   Creates a new description from another description but overrides <see cref="Flags"/> and <see cref="Usage"/>.
+    /// </summary>
+    /// <param name="description">The Texture Description to copy.</param>
+    /// <param name="textureFlags">The new Texture flags.</param>
+    /// <param name="usage">The new usage.</param>
+    /// <returns>A modified copy of the specified <paramref name="description"/>.</returns>
     public static TextureDescription FromDescription(TextureDescription description, TextureFlags textureFlags, GraphicsResourceUsage usage)
     {
         return description with
@@ -172,6 +224,11 @@ public partial struct TextureDescription : IEquatable<TextureDescription>
         };
     }
 
+    /// <summary>
+    ///   Performs an explicit conversion from <see cref="ImageDescription"/> to <see cref="TextureDescription"/>.
+    /// </summary>
+    /// <param name="description">The Image Description to convert.</param>
+    /// <returns>The result of the conversion.</returns>
     public static implicit operator TextureDescription(ImageDescription description)
     {
         return new TextureDescription
@@ -188,6 +245,11 @@ public partial struct TextureDescription : IEquatable<TextureDescription>
         };
     }
 
+    /// <summary>
+    ///   Performs an implicit conversion from <see cref="TextureDescription"/> to <see cref="ImageDescription"/>.
+    /// </summary>
+    /// <param name="description">The Texture Description to convert.</param>
+    /// <returns>The result of the conversion.</returns>
     public static implicit operator ImageDescription(TextureDescription description)
     {
         return new ImageDescription
@@ -202,6 +264,7 @@ public partial struct TextureDescription : IEquatable<TextureDescription>
         };
     }
 
+    /// <inheritdoc/>
     public readonly bool Equals(TextureDescription other)
     {
         return Dimension == other.Dimension
@@ -216,6 +279,7 @@ public partial struct TextureDescription : IEquatable<TextureDescription>
             && Flags == other.Flags;
     }
 
+    /// <inheritdoc/>
     public override readonly bool Equals(object obj)
     {
         if (obj is null)
@@ -224,6 +288,7 @@ public partial struct TextureDescription : IEquatable<TextureDescription>
         return obj is TextureDescription description && Equals(description);
     }
 
+    /// <inheritdoc/>
     public override readonly int GetHashCode()
     {
         var hash = new HashCode();

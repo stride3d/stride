@@ -8,6 +8,23 @@ namespace Stride.Graphics;
 
 public static class TextureExtensions
 {
+    /// <summary>
+    ///   Creates a Shader Resource View for a <see cref="Texture"/>.
+    /// </summary>
+    /// <param name="texture">The Texture to create a Shader Resource View for.</param>
+    /// <param name="viewType">
+    ///   One of the values of <see cref="ViewType"/> indicating which sub-resources from the Texture's mip hierarchy
+    ///   and array slices (if a Texture Array) the Shader Resource View can access.
+    /// </param>
+    /// <param name="arraySlice">
+    ///   The index of the array slice. It is zero-based, so the first index is 0.
+    ///   If the Texture is not a Texture Array, specify 0.
+    /// </param>
+    /// <param name="mipLevel">
+    ///   The index of the mip level. It is zero-based, so the first index is 0.
+    ///   If the Texture has no mip-chain, specify 0.
+    /// </param>
+    /// <returns>A new <see cref="Texture"/> representing the Texture View bound to <paramref name="texture"/>.</returns>
     public static Texture ToTextureView(this Texture texture, ViewType viewType, int arraySlice, int mipLevel)
     {
         var viewDescription = texture.ViewDescription;
@@ -17,10 +34,11 @@ public static class TextureExtensions
         return texture.ToTextureView(viewDescription);
     }
 
-        /// <summary>
-        /// Gets a view on this depth stencil texture as a readonly depth stencil texture.
-        /// </summary>
-        /// <returns>A new texture object that is bouded to the requested view.</returns>
+    /// <summary>
+    ///   Creates a Shader Resource View that is read-only on a Depth-Stencil Texture.
+    /// </summary>
+    /// <param name="texture">The Texture to create a read-only Depth-Stencil Texture View for.</param>
+    /// <returns>A new <see cref="Texture"/> representing the Texture View bound to <paramref name="texture"/>.</returns>
     public static Texture ToDepthStencilReadOnlyTexture(this Texture texture)
     {
         if (!texture.IsDepthStencil)
@@ -31,10 +49,11 @@ public static class TextureExtensions
         return texture.ToTextureView(viewDescription);
     }
 
-        /// <summary>
-        /// Creates a new texture that can be used as a ShaderResource from an existing depth texture.
-        /// </summary>
-        /// <returns></returns>
+    /// <summary>
+    ///   Creates a Shader Resource View on a Depth-Stencil Texture.
+    /// </summary>
+    /// <param name="texture">The Texture to create a Depth-Stencil Texture View for.</param>
+    /// <returns>A new <see cref="Texture"/> representing the Texture View bound to <paramref name="texture"/>.</returns>
     public static Texture CreateDepthTextureCompatible(this Texture texture)
     {
         if (!texture.IsDepthStencil)
@@ -49,6 +68,12 @@ public static class TextureExtensions
         return Texture.New(texture.GraphicsDevice, description);
     }
 
+    /// <summary>
+    ///   Verifies that a given <see cref="Texture"/> is a Render Target.
+    /// </summary>
+    /// <param name="texture"></param>
+    /// <returns></returns>
+    /// <exception cref="ArgumentException"></exception>
     public static Texture EnsureRenderTarget(this Texture texture)
     {
         if (texture is not null && !texture.IsRenderTarget)
@@ -58,12 +83,12 @@ public static class TextureExtensions
         return texture;
     }
 
-        /// <summary>
-        /// Creates a texture from an image file data (png, dds, ...).
-        /// </summary>
-        /// <param name="graphicsDevice">The graphics device in which to create the texture</param>
-        /// <param name="data">The image file data</param>
-        /// <returns>The texture</returns>
+    /// <summary>
+    ///   Creates a <see cref="Texture"/> from image file data.
+    /// </summary>
+    /// <param name="graphicsDevice">The graphics device in which to create the Texture.</param>
+    /// <param name="data">The image file data.</param>
+    /// <returns>The created Texture.</returns>
     public static Texture FromFileData(GraphicsDevice graphicsDevice, byte[] data)
     {
         Texture result;
