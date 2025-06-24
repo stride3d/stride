@@ -140,10 +140,6 @@ public class Declare(TypeName typename, TextLocation info) : Declaration(typenam
         {
             Type = TypeName.ResolveType(table);
             table.DeclaredTypes.TryAdd(TypeName.ToString(), Type);
-            foreach (var d in Variables)
-            {
-                table.CurrentFrame.Add(d.Variable, new(new(d.Variable, SymbolKind.Variable), Type));
-            }
         }
 
         var (builder, context, _) = compiler;
@@ -153,6 +149,8 @@ public class Declare(TypeName typename, TextLocation info) : Declaration(typenam
             var variable = context.Bound++;
             var instruction = builder.Buffer.InsertOpVariable(builder.Position++, variable, registeredType, Specification.StorageClass.Function, null);
             context.AddName(variable, d.Variable);
+
+            table.CurrentFrame.Add(d.Variable, new(new(d.Variable, variable, SymbolKind.Variable), Type));
 
             if (builder.CurrentFunction is SpirvFunction f)
                 f.Variables.Add(d.Variable, new(variable, registeredType, d.Variable));

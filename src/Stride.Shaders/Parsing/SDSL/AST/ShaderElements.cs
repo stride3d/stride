@@ -147,9 +147,7 @@ public abstract class ShaderBuffer(string name, TextLocation info) : ShaderEleme
         }
 
         Type = new ConstantBufferSymbol(Name, fields);
-        var sym = new Symbol(new(Name, SymbolKind.CBuffer), Type);
-
-        table.DeclaredTypes.TryAdd(sym.ToString(), sym.Type);
+        table.DeclaredTypes.TryAdd(Name, Type);
         var kind = this switch
         {
             CBuffer => SymbolKind.CBuffer,
@@ -157,7 +155,6 @@ public abstract class ShaderBuffer(string name, TextLocation info) : ShaderEleme
             RGroup => SymbolKind.RGroup,
             _ => throw new NotSupportedException()
         };
-        table.RootSymbols.Add(Name, sym);
     }
 }
 
@@ -192,9 +189,8 @@ public class ShaderStruct(Identifier typename, TextLocation info) : ShaderElemen
             fields.Add((smem.Name, smem.Type));
         }
 
-        var sym = new Symbol(new(TypeName.ToString() ?? "", SymbolKind.Struct), new StructType(TypeName.ToString() ?? "", fields));
-        table.DeclaredTypes.TryAdd(TypeName.ToString(), sym.Type);
-        table.RootSymbols.Add(sym.Id.Name, sym);
+        Type = new StructType(TypeName.ToString() ?? "", fields);
+        table.DeclaredTypes.TryAdd(TypeName.ToString(), Type);
     }
 
     public override string ToString()

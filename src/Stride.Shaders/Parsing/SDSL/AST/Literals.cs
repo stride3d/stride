@@ -215,8 +215,23 @@ public class Identifier(string name, TextLocation info) : Literal(info)
 
     public static implicit operator string(Identifier identifier) => identifier.Name;
 
+    public Symbol ResolveSymbol(SymbolTable table)
+    {
+        for (int i = table.CurrentSymbols.Count - 1; i >= 0; --i)
+        {
+            if (table.CurrentSymbols![i]
+                .TryGetValue(Name, out var symbol))
+            {
+                return symbol;
+            }
+        }
+
+        throw new NotImplementedException($"Cannot find symbol {Name}.");
+    }
+
     public SymbolType ResolveType(SymbolTable table)
     {
+        return ResolveSymbol(table).Type;
         for (int i = table.CurrentSymbols.Count - 1; i >= 0; --i)
         {
             if (table.CurrentSymbols![i]
@@ -234,21 +249,12 @@ public class Identifier(string name, TextLocation info) : Literal(info)
 
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
-        Type = ResolveType(table);
-        var (builder, context, _) = compiler;
-        if(builder.CurrentFunction is SpirvFunction f)
-        {
-            if(f.Variables.TryGetValue(Name, out var resultVar))
-                return resultVar;
-            else if(f.Parameters.TryGetValue(Name, out var paramVar))
-                return paramVar;
-        }
+        var symbol = ResolveSymbol(table);
+        Type = symbol.Type;
 
-        if (context.Module.InheritedVariables.TryGetValue(Name, out var externalVar))
-            return externalVar;
-        if (compiler.Context.Variables.TryGetValue(Name, out var variable))
-            return variable;
-        throw new NotImplementedException();
+        var (builder, context, _) = compiler;
+        var resultType = context.GetOrRegister(Type);
+        return new SpirvValue(symbol.Id.IdRef, resultType, Name);
     }
 
     public override string ToString()

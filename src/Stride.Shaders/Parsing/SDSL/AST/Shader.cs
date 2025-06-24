@@ -99,7 +99,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
                 var variableName = names[variableInstruction.ResultId.Value];
                 var variableType = types[variableInstruction.ResultType];
 
-                var sid = new SymbolID(variableName, SymbolKind.Variable, Storage.Stream);
+                var sid = new SymbolID(variableName, variableInstruction.ResultId, SymbolKind.Variable, Storage.Stream);
                 symbols.Add(new(sid, variableType));
             }
 
@@ -109,7 +109,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
                 var functionName = names[functionInstruction.ResultId.Value];
                 var functionType = types[functionInstruction.FunctionType];
 
-                var sid = new SymbolID(functionName, SymbolKind.Method);
+                var sid = new SymbolID(functionName, functionInstruction.ResultId, SymbolKind.Method);
                 symbols.Add(new(sid, functionType));
             }
         }
@@ -121,10 +121,6 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
     private static void RegisterShaderType(SymbolTable table, ShaderSymbol shaderType)
     {
         table.DeclaredTypes.Add(shaderType.Name, shaderType);
-
-        // Register members
-        foreach (var symbol in shaderType.Components)
-            table.CurrentFrame.Add(symbol.Id.Name, symbol);
     }
 
 
@@ -154,37 +150,19 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
                 func.Type = ftype;
 
                 table.DeclaredTypes.TryAdd(func.Type.ToString(), func.Type);
-
-                var symbol = new Symbol(new(func.Name, SymbolKind.Method), func.Type);
-                symbols.Add(symbol);
             }
             else if (member is ShaderMember svar)
             {
                 svar.Type = svar.TypeName.ResolveType(table);
-                var sid =
-                    new SymbolID
-                    (
-                        svar.Name,
-                        svar.TypeModifier == TypeModifier.Const ? SymbolKind.Constant : SymbolKind.Variable,
-                        svar.StreamKind switch
-                        {
-                            StreamKind.Stream or StreamKind.PatchStream => Storage.Stream,
-                            _ => Storage.None
-                        }
-                    );
-
                 table.DeclaredTypes.TryAdd(svar.Type.ToString(), svar.Type);
-
-                var symbol = new Symbol(sid, svar.Type);
-                symbols.Add(symbol);
             }
             else if (member is CBuffer cb)
             {
                 foreach (var cbMember in cb.Members)
                 {
                     cbMember.Type = cbMember.TypeName.ResolveType(table);
-                    var symbol = new Symbol(new(cbMember.Name, SymbolKind.CBuffer), cbMember.Type);
-                    symbols.Add(symbol);
+                    //var symbol = new Symbol(new(cbMember.Name, SymbolKind.CBuffer), cbMember.Type);
+                    //symbols.Add(symbol);
                 }
             }
         }
@@ -215,6 +193,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
                     var variableTypeId = context.GetOrRegister(c.Type);
                     var variable = context.Buffer.AddOpSDSLImportVariable(context.Bound++, variableTypeId, c.Id.Name, shader);
                     context.Module.InheritedVariables.Add(c.Id.Name, new(variable, c.Id.Name));
+                    table.CurrentFrame.Add(c.Id.Name, c with { Id = c.Id with { IdRef = variable.ResultId.Value } });
                 }
                 else if (c.Id.Kind == SymbolKind.Method)
                 {
@@ -223,6 +202,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
                     var functionReturnTypeId = context.GetOrRegister(functionType.ReturnType);
                     var function = context.Buffer.AddOpSDSLImportFunction(context.Bound++, functionReturnTypeId, c.Id.Name, shader);
                     context.Module.InheritedFunctions.Add(c.Id.Name, new(function.ResultId.Value, c.Id.Name, functionType));
+                    table.CurrentFrame.Add(c.Id.Name, c with { Id = c.Id with { IdRef = function.ResultId.Value } });
                 }
             }
 

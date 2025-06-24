@@ -4,8 +4,8 @@ using Stride.Shaders.Parsing.Analysis;
 using Stride.Shaders.Spirv;
 using Stride.Shaders.Spirv.Building;
 using Stride.Shaders.Spirv.Core;
-using Stride.Shaders.Spirv.Tools;
 using Stride.Shaders.Spirv.Core.Buffers;
+using Stride.Shaders.Spirv.Tools;
 
 namespace Stride.Shaders.Parsing.SDSL.AST;
 
@@ -92,6 +92,22 @@ public sealed class ShaderMember(
         if (Semantic != null)
             context.Buffer.AddOpDecorateString(variable, Specification.Decoration.UserSemantic, null, null, Semantic.Name);
         context.AddName(variable, Name);
+
+        var sid =
+            new SymbolID
+            (
+                Name,
+                variable,
+                TypeModifier == TypeModifier.Const ? SymbolKind.Constant : SymbolKind.Variable,
+                StreamKind switch
+                {
+                    StreamKind.Stream or StreamKind.PatchStream => Storage.Stream,
+                    _ => Storage.None
+                }
+            );
+        var symbol = new Symbol(sid, Type);
+        table.CurrentShader.Components.Add(symbol);
+        table.CurrentFrame.Add(Name, symbol);
     }
 
     public override string ToString()
@@ -165,17 +181,21 @@ public class ShaderMethod(
         {
             var argSym = arg.TypeName.ResolveType(table);
             table.DeclaredTypes.TryAdd(argSym.ToString(), argSym);
-            table.CurrentFrame.Add(arg.Name, new(new(arg.Name, SymbolKind.Variable, Core.Storage.Function), arg.Type));
             arg.Type = argSym;
         }
         
         var (builder, context, _) = compiler;
+        SpirvFunction function;
         if (Type is FunctionType ftype)
         {
-            builder.CreateFunction(context, Name, ftype);
+            function = builder.CreateFunction(context, Name, ftype);
             foreach (var p in Parameters)
-                builder.AddFunctionParameter(context, p.Name, p.Type);
-            if(Body is BlockStatement body)
+            {
+                var paramValue = builder.AddFunctionParameter(context, p.Name, p.Type);
+                table.CurrentFrame.Add(p.Name, new(new(p.Name, paramValue.Id, SymbolKind.Variable), p.Type));
+            }
+
+            if (Body is BlockStatement body)
             {
                 table.Push();
                 builder.CreateBlock(context);
@@ -188,6 +208,10 @@ public class ShaderMethod(
         else throw new NotImplementedException();
 
         table.Pop();
+
+        var symbol = new Symbol(new(Name, function.Id, SymbolKind.Method), Type);
+        table.CurrentShader.Components.Add(symbol);
+        table.CurrentFrame.Add(Name, symbol);
     }
 
     public override string ToString()

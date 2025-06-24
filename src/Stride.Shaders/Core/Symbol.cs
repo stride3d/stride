@@ -33,7 +33,7 @@ public enum StreamIO : byte
     Output
 }
 
-public record struct SymbolID(string Name, SymbolKind Kind, Storage Storage = 0);
+public record struct SymbolID(string Name, int IdRef, SymbolKind Kind, Storage Storage = 0);
 public record struct StreamInfo(ushort EntryPoint, StreamIO Stream);
 public record struct Symbol(SymbolID Id, SymbolType Type, object? Data = null);
 
