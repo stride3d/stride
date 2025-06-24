@@ -24,38 +24,33 @@
 using System;
 using System.Collections.Generic;
 
-using Stride.Core;
+using static Stride.Graphics.PixelFormat;
 
 namespace Stride.Graphics
 {
     /// <summary>
-    /// Extensions to <see cref="PixelFormat"/>.
+    ///   Provides extensions for <see cref="PixelFormat"/> to help in conversions between formats, querying format
+    ///   information, calculating sizes, pitches, etc.
     /// </summary>
     public static class PixelFormatExtensions
     {
-        private struct PixelFormatSizeInfo
-        {
-            public byte IsCompressed;
-            public byte BlockWidth;
-            public byte BlockHeight;
-            public byte BlockSize;
-        }
+        private readonly record struct PixelFormatSizeInfo(byte IsCompressed, byte BlockWidth, byte BlockHeight, byte BlockSize);
 
         private static readonly PixelFormatSizeInfo[] sizeInfos = new PixelFormatSizeInfo[256];
         private static readonly bool[] srgbFormats = new bool[256];
         private static readonly bool[] hdrFormats = new bool[256];
         private static readonly bool[] alpha32Formats = new bool[256];
         private static readonly bool[] typelessFormats = new bool[256];
-        private static readonly Dictionary<PixelFormat, PixelFormat> sRgbConvertion;
+        private static readonly Dictionary<PixelFormat, PixelFormat> sRgbConversion;
         
         private static int GetIndex(PixelFormat format)
         {
             // DirectX official pixel formats (0..115 use 0..127 in the arrays)
             // Custom pixel formats (1024..1151? use 128..255 in the array)
-            if ((int)format >= 1024)
-                return (int)format - 1024 + 128;
+            if ((int) format >= 1024)
+                return (int) format - 1024 + 128;
 
-            return (int)format;
+            return (int) format;
         }
 
         public static int BlockSize(this PixelFormat format)
@@ -81,7 +76,7 @@ namespace Stride.Graphics
         public static int SizeInBytes(this PixelFormat format)
         {
             var sizeInfo = sizeInfos[GetIndex(format)];
-            return (int)sizeInfo.BlockSize / ((int)sizeInfo.BlockWidth * (int)sizeInfo.BlockHeight);
+            return sizeInfo.BlockSize / (sizeInfo.BlockWidth * sizeInfo.BlockHeight);
         }
 
         /// <summary>
@@ -92,7 +87,7 @@ namespace Stride.Graphics
         public static int SizeInBits(this PixelFormat format)
         {
             var sizeInfo = sizeInfos[GetIndex(format)];
-            return (int)sizeInfo.BlockSize * 8 / ((int)sizeInfo.BlockWidth * (int)sizeInfo.BlockHeight); ;
+            return sizeInfo.BlockSize * 8 / (sizeInfo.BlockWidth * sizeInfo.BlockHeight);
         }
 
         /// <summary>
@@ -104,69 +99,69 @@ namespace Stride.Graphics
         {
             switch (format)
             {
-                case PixelFormat.R32G32B32A32_Typeless:
-                case PixelFormat.R32G32B32A32_Float:
-                case PixelFormat.R32G32B32A32_UInt:
-                case PixelFormat.R32G32B32A32_SInt:
+                case R32G32B32A32_Typeless:
+                case R32G32B32A32_Float:
+                case R32G32B32A32_UInt:
+                case R32G32B32A32_SInt:
                     return 32;
 
-                case PixelFormat.R16G16B16A16_Typeless:
-                case PixelFormat.R16G16B16A16_Float:
-                case PixelFormat.R16G16B16A16_UNorm:
-                case PixelFormat.R16G16B16A16_UInt:
-                case PixelFormat.R16G16B16A16_SNorm:
-                case PixelFormat.R16G16B16A16_SInt:
+                case R16G16B16A16_Typeless:
+                case R16G16B16A16_Float:
+                case R16G16B16A16_UNorm:
+                case R16G16B16A16_UInt:
+                case R16G16B16A16_SNorm:
+                case R16G16B16A16_SInt:
                     return 16;
 
-                case PixelFormat.R10G10B10A2_Typeless:
-                case PixelFormat.R10G10B10A2_UNorm:
-                case PixelFormat.R10G10B10A2_UInt:
-                case PixelFormat.R10G10B10_Xr_Bias_A2_UNorm:
+                case R10G10B10A2_Typeless:
+                case R10G10B10A2_UNorm:
+                case R10G10B10A2_UInt:
+                case R10G10B10_Xr_Bias_A2_UNorm:
                     return 2;
 
-                case PixelFormat.R8G8B8A8_Typeless:
-                case PixelFormat.R8G8B8A8_UNorm:
-                case PixelFormat.R8G8B8A8_UNorm_SRgb:
-                case PixelFormat.R8G8B8A8_UInt:
-                case PixelFormat.R8G8B8A8_SNorm:
-                case PixelFormat.R8G8B8A8_SInt:
-                case PixelFormat.B8G8R8A8_UNorm:
-                case PixelFormat.B8G8R8A8_Typeless:
-                case PixelFormat.B8G8R8A8_UNorm_SRgb:
-                case PixelFormat.A8_UNorm:
+                case R8G8B8A8_Typeless:
+                case R8G8B8A8_UNorm:
+                case R8G8B8A8_UNorm_SRgb:
+                case R8G8B8A8_UInt:
+                case R8G8B8A8_SNorm:
+                case R8G8B8A8_SInt:
+                case B8G8R8A8_UNorm:
+                case B8G8R8A8_Typeless:
+                case B8G8R8A8_UNorm_SRgb:
+                case A8_UNorm:
                     return 8;
 
-                case (PixelFormat)115: // DXGI_FORMAT_B4G4R4A4_UNORM
+                case (PixelFormat) 115: // DXGI_FORMAT_B4G4R4A4_UNORM
                     return 4;
 
-                case PixelFormat.B5G5R5A1_UNorm:
+                case B5G5R5A1_UNorm:
                     return 1;
 
-                case PixelFormat.BC1_Typeless:
-                case PixelFormat.BC1_UNorm:
-                case PixelFormat.BC1_UNorm_SRgb:
+                case BC1_Typeless:
+                case BC1_UNorm:
+                case BC1_UNorm_SRgb:
                     return 1;  // or 0
 
-                case PixelFormat.BC2_Typeless:
-                case PixelFormat.BC2_UNorm:
-                case PixelFormat.BC2_UNorm_SRgb:
+                case BC2_Typeless:
+                case BC2_UNorm:
+                case BC2_UNorm_SRgb:
                     return 4;
 
-                case PixelFormat.BC3_Typeless:
-                case PixelFormat.BC3_UNorm:
-                case PixelFormat.BC3_UNorm_SRgb:
+                case BC3_Typeless:
+                case BC3_UNorm:
+                case BC3_UNorm_SRgb:
                     return 8;
 
-                case PixelFormat.BC7_Typeless:
-                case PixelFormat.BC7_UNorm:
-                case PixelFormat.BC7_UNorm_SRgb:
+                case BC7_Typeless:
+                case BC7_UNorm:
+                case BC7_UNorm_SRgb:
                     return 8;  // or 0
 
-                case PixelFormat.ETC2_RGBA:
-                case PixelFormat.ETC2_RGBA_SRgb:
+                case ETC2_RGBA:
+                case ETC2_RGBA_SRgb:
                     return 8;
 
-                case PixelFormat.ETC2_RGB_A1:
+                case ETC2_RGB_A1:
                     return 1;
             }
             return 0;
@@ -179,78 +174,78 @@ namespace Stride.Graphics
         /// <returns>True if the <see cref="PixelFormat"/> is valid.</returns>
         public static bool IsValid(this PixelFormat format)
         {
-            return ((int)format >= 1 && (int)format <= 115) // DirectX formats
-                || ((int)format >= 1088 && (int)format <= 1097); // ETC formats
+            return ((int) format >= 1    && (int) format <= 115)   // DirectX formats
+                || ((int) format >= 1088 && (int) format <= 1097); // ETC formats
         }
 
         /// <summary>
         /// Returns true if the <see cref="PixelFormat"/> is a compressed format.
         /// </summary>
-        /// <param name="fmt">The format to check for compressed.</param>
+        /// <param name="format">The format to check for compressed.</param>
         /// <returns>True if the <see cref="PixelFormat"/> is a compressed format</returns>
-        public static bool IsCompressed(this PixelFormat fmt)
+        public static bool IsCompressed(this PixelFormat format)
         {
-            return sizeInfos[GetIndex(fmt)].IsCompressed == 1;
+            return sizeInfos[GetIndex(format)].IsCompressed == 1;
         }
 
         /// <summary>
-        /// Returns true if the <see cref="PixelFormat"/> is an uncompressed 32 bit color with an Alpha channel.
+        /// Returns true if the <see cref="PixelFormat"/> is an uncompressed 32-bit color with an Alpha channel.
         /// </summary>
-        /// <param name="fmt">The format to check for an uncompressed 32 bit color with an Alpha channel.</param>
-        /// <returns>True if the <see cref="PixelFormat"/> is an uncompressed 32 bit color with an Alpha channel</returns>
-        public static bool HasAlpha32Bits(this PixelFormat fmt)
+        /// <param name="format">The format to check for an uncompressed 32-bit color with an Alpha channel.</param>
+        /// <returns>True if the <see cref="PixelFormat"/> is an uncompressed 32-bit color with an Alpha channel</returns>
+        public static bool HasAlpha32Bits(this PixelFormat format)
         {
-            return alpha32Formats[GetIndex(fmt)];
+            return alpha32Formats[GetIndex(format)];
         }
 
         /// <summary>
         /// Returns true if the <see cref="PixelFormat"/> has an Alpha channel.
         /// </summary>
-        /// <param name="fmt">The format to check for an Alpha channel.</param>
+        /// <param name="format">The format to check for an Alpha channel.</param>
         /// <returns>True if the <see cref="PixelFormat"/> has an Alpha channel</returns>
-        public static bool HasAlpha(this PixelFormat fmt)
+        public static bool HasAlpha(this PixelFormat format)
         {
-            return AlphaSizeInBits(fmt) != 0;
+            return AlphaSizeInBits(format) != 0;
         }
 
         /// <summary>
         /// Determines whether the specified <see cref="PixelFormat"/> is packed.
         /// </summary>
-        /// <param name="fmt">The DXGI Format.</param>
+        /// <param name="format">The DXGI Format.</param>
         /// <returns><c>true</c> if the specified <see cref="PixelFormat"/> is packed; otherwise, <c>false</c>.</returns>
-        public static bool IsPacked(this PixelFormat fmt)
+        public static bool IsPacked(this PixelFormat format)
         {
-            return ((fmt == PixelFormat.R8G8_B8G8_UNorm) || (fmt == PixelFormat.G8R8_G8B8_UNorm));
+            return format is R8G8_B8G8_UNorm or G8R8_G8B8_UNorm;
         }
 
         /// <summary>
         /// Determines whether the specified <see cref="PixelFormat"/> is video.
         /// </summary>
-        /// <param name="fmt">The <see cref="PixelFormat"/>.</param>
+        /// <param name="format">The <see cref="PixelFormat"/>.</param>
         /// <returns><c>true</c> if the specified <see cref="PixelFormat"/> is video; otherwise, <c>false</c>.</returns>
-        public static bool IsVideo(this PixelFormat fmt)
+        public static bool IsVideo(this PixelFormat format)
         {
 #if DIRECTX11_1
-            switch ( fmt )
+            switch (format)
             {
-                case Format.AYUV:
-                case Format.Y410:
-                case Format.Y416:
-                case Format.NV12:
-                case Format.P010:
-                case Format.P016:
-                case Format.YUY2:
-                case Format.Y210:
-                case Format.Y216:
-                case Format.NV11:
+                case PixelFormat.AYUV:
+                case PixelFormat.Y410:
+                case PixelFormat.Y416:
+                case PixelFormat.NV12:
+                case PixelFormat.P010:
+                case PixelFormat.P016:
+                case PixelFormat.YUY2:
+                case PixelFormat.Y210:
+                case PixelFormat.Y216:
+                case PixelFormat.NV11:
                     // These video formats can be used with the 3D pipeline through special view mappings
                     return true;
 
-                case Format.Opaque420:
-                case Format.AI44:
-                case Format.IA44:
-                case Format.P8:
-                case Format.A8P8:
+                case PixelFormat.Opaque420:
+                case PixelFormat.AI44:
+                case PixelFormat.IA44:
+                case PixelFormat.P8:
+                case PixelFormat.A8P8:
                     // These are limited use video formats not usable in any way by the 3D pipeline
                     return true;
 
@@ -266,36 +261,36 @@ namespace Stride.Graphics
         /// <summary>
         /// Determines whether the specified <see cref="PixelFormat"/> is a SRGB format.
         /// </summary>
-        /// <param name="fmt">The <see cref="PixelFormat"/>.</param>
+        /// <param name="format">The <see cref="PixelFormat"/>.</param>
         /// <returns><c>true</c> if the specified <see cref="PixelFormat"/> is a SRGB format; otherwise, <c>false</c>.</returns>
-        public static bool IsSRgb(this PixelFormat fmt)
+        public static bool IsSRgb(this PixelFormat format)
         {
-            return srgbFormats[GetIndex(fmt)];
+            return srgbFormats[GetIndex(format)];
         }
 
         /// <summary>
         /// Determines whether the specified <see cref="PixelFormat"/> is HDR (either 16 or 32bits float)
         /// </summary>
-        /// <param name="fmt">The FMT.</param>
+        /// <param name="format">The FMT.</param>
         /// <returns><c>true</c> if the specified pixel format is HDR (floating point); otherwise, <c>false</c>.</returns>
-        public static bool IsHDR(this PixelFormat fmt)
+        public static bool IsHDR(this PixelFormat format)
         {
-            return hdrFormats[GetIndex(fmt)];
+            return hdrFormats[GetIndex(format)];
         }
 
         /// <summary>
         /// Determines whether the specified <see cref="PixelFormat"/> is typeless.
         /// </summary>
-        /// <param name="fmt">The <see cref="PixelFormat"/>.</param>
+        /// <param name="format">The <see cref="PixelFormat"/>.</param>
         /// <returns><c>true</c> if the specified <see cref="PixelFormat"/> is typeless; otherwise, <c>false</c>.</returns>
-        public static bool IsTypeless(this PixelFormat fmt)
+        public static bool IsTypeless(this PixelFormat format)
         {
-            return typelessFormats[GetIndex(fmt)];
+            return typelessFormats[GetIndex(format)];
         }
 
-        public static void ComputePitch(this PixelFormat fmt, int width, int height, out int rowPitch, out int slicePitch)
+        public static void ComputePitch(this PixelFormat format, int width, int height, out int rowPitch, out int slicePitch)
         {
-            var sizeInfo = sizeInfos[GetIndex(fmt)];
+            var sizeInfo = sizeInfos[GetIndex(format)];
 
             rowPitch = ((width + sizeInfo.BlockWidth - 1) / sizeInfo.BlockWidth) * sizeInfo.BlockSize;
             slicePitch = rowPitch * ((height + sizeInfo.BlockHeight - 1) / sizeInfo.BlockHeight);
@@ -309,9 +304,9 @@ namespace Stride.Graphics
         public static bool HasSRgbEquivalent(this PixelFormat format)
         {
             if (format.IsSRgb())
-                throw new ArgumentException("The '{0}' format is already an sRGB format".ToFormat(format));
+                throw new ArgumentException($"'{format}' is already an sRGB pixel format", nameof(format));
 
-            return sRgbConvertion.ContainsKey(format);
+            return sRgbConversion.ContainsKey(format);
         }
 
         /// <summary>
@@ -322,9 +317,9 @@ namespace Stride.Graphics
         public static bool HasNonSRgbEquivalent(this PixelFormat format)
         {
             if (!format.IsSRgb())
-                throw new ArgumentException("The provided format is not a sRGB format");
+                throw new ArgumentException($"'{format}' is not a sRGB format", nameof(format));
 
-            return sRgbConvertion.ContainsKey(format);
+            return sRgbConversion.ContainsKey(format);
         }
 
         /// <summary>
@@ -336,10 +331,10 @@ namespace Stride.Graphics
         /// </returns>
         public static PixelFormat ToSRgb(this PixelFormat format)
         {
-            if (format.IsSRgb() || !sRgbConvertion.ContainsKey(format))
+            if (format.IsSRgb() || !sRgbConversion.TryGetValue(format, out var srgbFormat))
                 return format;
 
-            return sRgbConvertion[format];
+            return srgbFormat;
         }
 
         /// <summary>
@@ -351,76 +346,78 @@ namespace Stride.Graphics
         /// </returns>
         public static PixelFormat ToNonSRgb(this PixelFormat format)
         {
-            if (!format.IsSRgb() || !sRgbConvertion.ContainsKey(format))
+            if (!format.IsSRgb() || !sRgbConversion.TryGetValue(format, out var nonSrgbFormat))
                 return format;
 
-            return sRgbConvertion[format];
+            return nonSrgbFormat;
         }
 
         /// <summary>
-        /// Determines whether the specified format is in RGBA order.
+        /// Determines whether the specified format has components in the RGBA order.
         /// </summary>
         /// <param name="format">The format.</param>
         /// <returns>
-        ///   <c>true</c> if the specified format is in RGBA order; otherwise, <c>false</c>.
+        ///   <c>true</c> if the specified format has components in the RGBA order; otherwise, <c>false</c>.
         /// </returns>
-        public static bool IsRGBAOrder(this PixelFormat format)
+        public static bool IsRgbaOrder(this PixelFormat format)
         {
             switch (format)
             {
-                case PixelFormat.R32G32B32A32_Typeless:
-                case PixelFormat.R32G32B32A32_Float:
-                case PixelFormat.R32G32B32A32_UInt:
-                case PixelFormat.R32G32B32A32_SInt:
-                case PixelFormat.R32G32B32_Typeless:
-                case PixelFormat.R32G32B32_Float:
-                case PixelFormat.R32G32B32_UInt:
-                case PixelFormat.R32G32B32_SInt:
-                case PixelFormat.R16G16B16A16_Typeless:
-                case PixelFormat.R16G16B16A16_Float:
-                case PixelFormat.R16G16B16A16_UNorm:
-                case PixelFormat.R16G16B16A16_UInt:
-                case PixelFormat.R16G16B16A16_SNorm:
-                case PixelFormat.R16G16B16A16_SInt:
-                case PixelFormat.R32G32_Typeless:
-                case PixelFormat.R32G32_Float:
-                case PixelFormat.R32G32_UInt:
-                case PixelFormat.R32G32_SInt:
-                case PixelFormat.R32G8X24_Typeless:
-                case PixelFormat.R10G10B10A2_Typeless:
-                case PixelFormat.R10G10B10A2_UNorm:
-                case PixelFormat.R10G10B10A2_UInt:
-                case PixelFormat.R11G11B10_Float:
-                case PixelFormat.R8G8B8A8_Typeless:
-                case PixelFormat.R8G8B8A8_UNorm:
-                case PixelFormat.R8G8B8A8_UNorm_SRgb:
-                case PixelFormat.R8G8B8A8_UInt:
-                case PixelFormat.R8G8B8A8_SNorm:
-                case PixelFormat.R8G8B8A8_SInt:
+                case R32G32B32A32_Typeless:
+                case R32G32B32A32_Float:
+                case R32G32B32A32_UInt:
+                case R32G32B32A32_SInt:
+                case R32G32B32_Typeless:
+                case R32G32B32_Float:
+                case R32G32B32_UInt:
+                case R32G32B32_SInt:
+                case R16G16B16A16_Typeless:
+                case R16G16B16A16_Float:
+                case R16G16B16A16_UNorm:
+                case R16G16B16A16_UInt:
+                case R16G16B16A16_SNorm:
+                case R16G16B16A16_SInt:
+                case R32G32_Typeless:
+                case R32G32_Float:
+                case R32G32_UInt:
+                case R32G32_SInt:
+                case R32G8X24_Typeless:
+                case R10G10B10A2_Typeless:
+                case R10G10B10A2_UNorm:
+                case R10G10B10A2_UInt:
+                case R11G11B10_Float:
+                case R8G8B8A8_Typeless:
+                case R8G8B8A8_UNorm:
+                case R8G8B8A8_UNorm_SRgb:
+                case R8G8B8A8_UInt:
+                case R8G8B8A8_SNorm:
+                case R8G8B8A8_SInt:
                     return true;
+                
                 default:
                     return false;
             }
         }
 
         /// <summary>
-        /// Determines whether the specified format is in BGRA order.
+        /// Determines whether the specified format has components in the BGRA order.
         /// </summary>
         /// <param name="format">The format.</param>
         /// <returns>
-        ///   <c>true</c> if the specified format is in BGRA order; otherwise, <c>false</c>.
+        ///   <c>true</c> if the specified format has components in the BGRA order; otherwise, <c>false</c>.
         /// </returns>
-        public static bool IsBGRAOrder(this PixelFormat format)
+        public static bool IsBgraOrder(this PixelFormat format)
         {
             switch (format)
             {
-                case PixelFormat.B8G8R8A8_UNorm:
-                case PixelFormat.B8G8R8X8_UNorm:
-                case PixelFormat.B8G8R8A8_Typeless:
-                case PixelFormat.B8G8R8A8_UNorm_SRgb:
-                case PixelFormat.B8G8R8X8_Typeless:
-                case PixelFormat.B8G8R8X8_UNorm_SRgb:
+                case B8G8R8A8_UNorm:
+                case B8G8R8X8_UNorm:
+                case B8G8R8A8_Typeless:
+                case B8G8R8A8_UNorm_SRgb:
+                case B8G8R8X8_Typeless:
+                case B8G8R8X8_UNorm_SRgb:
                     return true;
+                
                 default:
                     return false;
             }
@@ -431,275 +428,279 @@ namespace Stride.Graphics
         /// </summary>
         static PixelFormatExtensions()
         {
-            InitFormat(new[]
-            {
-                PixelFormat.A8_UNorm,
-                PixelFormat.R8_SInt,
-                PixelFormat.R8_SNorm,
-                PixelFormat.R8_Typeless,
-                PixelFormat.R8_UInt,
-                PixelFormat.R8_UNorm
-            }, 1);
+            InitFormat(
+            [
+                A8_UNorm,
+                R8_SInt,
+                R8_SNorm,
+                R8_Typeless,
+                R8_UInt,
+                R8_UNorm
+            ],
+            pixelSize: 1);
 
-            InitFormat(new[]
-            { 
-                PixelFormat.B5G5R5A1_UNorm,
-                PixelFormat.B5G6R5_UNorm,
-                PixelFormat.D16_UNorm,
-                PixelFormat.R16_Float,
-                PixelFormat.R16_SInt,
-                PixelFormat.R16_SNorm,
-                PixelFormat.R16_Typeless,
-                PixelFormat.R16_UInt,
-                PixelFormat.R16_UNorm,
-                PixelFormat.R8G8_SInt,
-                PixelFormat.R8G8_SNorm,
-                PixelFormat.R8G8_Typeless,
-                PixelFormat.R8G8_UInt,
-                PixelFormat.R8G8_UNorm,
+            InitFormat(
+            [
+                B5G5R5A1_UNorm,
+                B5G6R5_UNorm,
+                D16_UNorm,
+                R16_Float,
+                R16_SInt,
+                R16_SNorm,
+                R16_Typeless,
+                R16_UInt,
+                R16_UNorm,
+                R8G8_SInt,
+                R8G8_SNorm,
+                R8G8_Typeless,
+                R8G8_UInt,
+                R8G8_UNorm,
 #if DIRECTX11_1
-                PixelFormat.B4G4R4A4_UNorm,
+                B4G4R4A4_UNorm
 #endif
-            }, 2);
+            ],
+            pixelSize: 2);
 
-            InitFormat(new[]
-            { 
-                PixelFormat.B8G8R8X8_Typeless,
-                PixelFormat.B8G8R8X8_UNorm,
-                PixelFormat.B8G8R8X8_UNorm_SRgb,
-                PixelFormat.D24_UNorm_S8_UInt,
-                PixelFormat.D32_Float,
-                PixelFormat.D32_Float_S8X24_UInt,
-                PixelFormat.R10G10B10_Xr_Bias_A2_UNorm,
-                PixelFormat.R10G10B10A2_Typeless,
-                PixelFormat.R10G10B10A2_UInt,
-                PixelFormat.R10G10B10A2_UNorm,
-                PixelFormat.R11G11B10_Float,
-                PixelFormat.R16G16_Float,
-                PixelFormat.R16G16_SInt,
-                PixelFormat.R16G16_SNorm,
-                PixelFormat.R16G16_Typeless,
-                PixelFormat.R16G16_UInt,
-                PixelFormat.R16G16_UNorm,
-                PixelFormat.R24_UNorm_X8_Typeless,
-                PixelFormat.R24G8_Typeless,
-                PixelFormat.R32_Float,
-                PixelFormat.R32_Float_X8X24_Typeless,
-                PixelFormat.R32_SInt,
-                PixelFormat.R32_Typeless,
-                PixelFormat.R32_UInt,
-                PixelFormat.R8G8B8A8_SInt,
-                PixelFormat.R8G8B8A8_SNorm,
-                PixelFormat.R8G8B8A8_Typeless,
-                PixelFormat.R8G8B8A8_UInt,
-                PixelFormat.R8G8B8A8_UNorm,
-                PixelFormat.R8G8B8A8_UNorm_SRgb,
-                PixelFormat.B8G8R8A8_Typeless,
-                PixelFormat.B8G8R8A8_UNorm,
-                PixelFormat.B8G8R8A8_UNorm_SRgb,
-                PixelFormat.R9G9B9E5_Sharedexp,
-                PixelFormat.X24_Typeless_G8_UInt,
-                PixelFormat.X32_Typeless_G8X24_UInt,
-            }, 4);
+            InitFormat(
+            [
+                B8G8R8X8_Typeless,
+                B8G8R8X8_UNorm,
+                B8G8R8X8_UNorm_SRgb,
+                D24_UNorm_S8_UInt,
+                D32_Float,
+                D32_Float_S8X24_UInt,
+                R10G10B10_Xr_Bias_A2_UNorm,
+                R10G10B10A2_Typeless,
+                R10G10B10A2_UInt,
+                R10G10B10A2_UNorm,
+                R11G11B10_Float,
+                R16G16_Float,
+                R16G16_SInt,
+                R16G16_SNorm,
+                R16G16_Typeless,
+                R16G16_UInt,
+                R16G16_UNorm,
+                R24_UNorm_X8_Typeless,
+                R24G8_Typeless,
+                R32_Float,
+                R32_Float_X8X24_Typeless,
+                R32_SInt,
+                R32_Typeless,
+                R32_UInt,
+                R8G8B8A8_SInt,
+                R8G8B8A8_SNorm,
+                R8G8B8A8_Typeless,
+                R8G8B8A8_UInt,
+                R8G8B8A8_UNorm,
+                R8G8B8A8_UNorm_SRgb,
+                B8G8R8A8_Typeless,
+                B8G8R8A8_UNorm,
+                B8G8R8A8_UNorm_SRgb,
+                R9G9B9E5_Sharedexp,
+                X24_Typeless_G8_UInt,
+                X32_Typeless_G8X24_UInt
+            ],
+            pixelSize: 4);
 
-            InitFormat(new[]
-            { 
-                PixelFormat.R16G16B16A16_Float,
-                PixelFormat.R16G16B16A16_SInt,
-                PixelFormat.R16G16B16A16_SNorm,
-                PixelFormat.R16G16B16A16_Typeless,
-                PixelFormat.R16G16B16A16_UInt,
-                PixelFormat.R16G16B16A16_UNorm,
-                PixelFormat.R32G32_Float,
-                PixelFormat.R32G32_SInt,
-                PixelFormat.R32G32_Typeless,
-                PixelFormat.R32G32_UInt,
-                PixelFormat.R32G8X24_Typeless,
-            }, 8);
+            InitFormat(
+            [
+                R16G16B16A16_Float,
+                R16G16B16A16_SInt,
+                R16G16B16A16_SNorm,
+                R16G16B16A16_Typeless,
+                R16G16B16A16_UInt,
+                R16G16B16A16_UNorm,
+                R32G32_Float,
+                R32G32_SInt,
+                R32G32_Typeless,
+                R32G32_UInt,
+                R32G8X24_Typeless
+            ],
+            pixelSize: 8);
 
-            InitFormat(new[]
-            { 
-                PixelFormat.R32G32B32_Float,
-                PixelFormat.R32G32B32_SInt,
-                PixelFormat.R32G32B32_Typeless,
-                PixelFormat.R32G32B32_UInt,
-            }, 12);
+            InitFormat(
+            [
+                R32G32B32_Float,
+                R32G32B32_SInt,
+                R32G32B32_Typeless,
+                R32G32B32_UInt
+            ],
+            pixelSize: 12);
 
-            InitFormat(new[]
-            { 
-                PixelFormat.R32G32B32A32_Float,
-                PixelFormat.R32G32B32A32_SInt,
-                PixelFormat.R32G32B32A32_Typeless,
-                PixelFormat.R32G32B32A32_UInt,
-            }, 16);
+            InitFormat(
+            [
+                R32G32B32A32_Float,
+                R32G32B32A32_SInt,
+                R32G32B32A32_Typeless,
+                R32G32B32A32_UInt
+            ],
+            pixelSize: 16);
 
-            // Init compressed formats
-            InitBlockFormat(new[]
-            { 
-                PixelFormat.BC1_Typeless,
-                PixelFormat.BC1_UNorm,
-                PixelFormat.BC1_UNorm_SRgb,
-                PixelFormat.BC4_SNorm,
-                PixelFormat.BC4_Typeless,
-                PixelFormat.BC4_UNorm,
-                PixelFormat.ETC1,
-                PixelFormat.ETC2_RGB,
-                PixelFormat.ETC2_RGB_SRgb,
-                PixelFormat.ETC2_RGB_A1,
-                PixelFormat.EAC_R11_Unsigned,
-                PixelFormat.EAC_R11_Signed,
-            }, 8, 4, 4);
+            // Compressed formats
+            InitBlockFormat(
+            [
+                BC1_Typeless,
+                BC1_UNorm,
+                BC1_UNorm_SRgb,
+                BC4_SNorm,
+                BC4_Typeless,
+                BC4_UNorm,
+                ETC1,
+                ETC2_RGB,
+                ETC2_RGB_SRgb,
+                ETC2_RGB_A1,
+                EAC_R11_Unsigned,
+                EAC_R11_Signed
+            ],
+            blockSize: 8, blockWidth: 4, blockHeight: 4);
 
-            InitBlockFormat(new[]
-            { 
-                PixelFormat.BC2_Typeless,
-                PixelFormat.BC2_UNorm,
-                PixelFormat.BC2_UNorm_SRgb,
-                PixelFormat.BC3_Typeless,
-                PixelFormat.BC3_UNorm,
-                PixelFormat.BC3_UNorm_SRgb,
-                PixelFormat.BC5_SNorm,
-                PixelFormat.BC5_Typeless,
-                PixelFormat.BC5_UNorm,
-                PixelFormat.BC6H_Sf16,
-                PixelFormat.BC6H_Typeless,
-                PixelFormat.BC6H_Uf16,
-                PixelFormat.BC7_Typeless,
-                PixelFormat.BC7_UNorm,
-                PixelFormat.BC7_UNorm_SRgb,
-                PixelFormat.ETC2_RGBA,
-                PixelFormat.EAC_RG11_Unsigned,
-                PixelFormat.EAC_RG11_Signed,
-                PixelFormat.ETC2_RGBA_SRgb,
-            }, 16, 4, 4);
+            InitBlockFormat(
+            [
+                BC2_Typeless,
+                BC2_UNorm,
+                BC2_UNorm_SRgb,
+                BC3_Typeless,
+                BC3_UNorm,
+                BC3_UNorm_SRgb,
+                BC5_SNorm,
+                BC5_Typeless,
+                BC5_UNorm,
+                BC6H_Sf16,
+                BC6H_Typeless,
+                BC6H_Uf16,
+                BC7_Typeless,
+                BC7_UNorm,
+                BC7_UNorm_SRgb,
+                ETC2_RGBA,
+                EAC_RG11_Unsigned,
+                EAC_RG11_Signed,
+                ETC2_RGBA_SRgb
+            ],
+            blockSize: 16, blockWidth: 4, blockHeight: 4);
 
-            InitBlockFormat(new[]
+            InitBlockFormat(
+            [
+                R8G8_B8G8_UNorm,
+                G8R8_G8B8_UNorm
+            ],
+            blockSize: 4, blockWidth: 2, blockHeight: 1);
+
+            InitBlockFormat(
+            [
+                R1_UNorm
+            ],
+            blockSize: 1, blockWidth: 8, blockHeight: 1);
+
+            // sRGB formats
+            InitDefaults(
+            [
+                R8G8B8A8_UNorm_SRgb,
+                BC1_UNorm_SRgb,
+                BC2_UNorm_SRgb,
+                BC3_UNorm_SRgb,
+                B8G8R8A8_UNorm_SRgb,
+                B8G8R8X8_UNorm_SRgb,
+                BC7_UNorm_SRgb,
+                ETC2_RGBA_SRgb,
+                ETC2_RGB_SRgb
+            ], 
+            outputArray: srgbFormats);
+
+            // Alpha formats
+            InitDefaults(
+            [
+                R8G8B8A8_UNorm,
+                R8G8B8A8_UNorm_SRgb,
+                B8G8R8A8_UNorm,
+                B8G8R8A8_UNorm_SRgb
+            ],
+            outputArray: alpha32Formats);
+
+            // HDR formats
+            InitDefaults(
+            [
+                R16G16B16A16_Float,
+                R32G32B32A32_Float,
+                R16G16B16A16_Float,
+                R16G16_Float,
+                R16_Float,
+                BC6H_Sf16,
+                BC6H_Uf16
+            ], 
+            outputArray: hdrFormats);
+
+            // Typeless formats
+            InitDefaults(
+            [
+                R32G32B32A32_Typeless,
+                R32G32B32_Typeless,
+                R16G16B16A16_Typeless,
+                R32G32_Typeless,
+                R32G8X24_Typeless,
+                R32_Float_X8X24_Typeless,
+                X32_Typeless_G8X24_UInt,
+                R10G10B10A2_Typeless,
+                R8G8B8A8_Typeless,
+                R16G16_Typeless,
+                R32_Typeless,
+                R24G8_Typeless,
+                R24_UNorm_X8_Typeless,
+                X24_Typeless_G8_UInt,
+                R8G8_Typeless,
+                R16_Typeless,
+                R8_Typeless,
+                BC1_Typeless,
+                BC2_Typeless,
+                BC3_Typeless,
+                BC4_Typeless,
+                BC5_Typeless,
+                B8G8R8A8_Typeless,
+                B8G8R8X8_Typeless,
+                BC6H_Typeless,
+                BC7_Typeless
+            ],
+            outputArray: typelessFormats);
+
+            sRgbConversion = new Dictionary<PixelFormat, PixelFormat>
             {
-                PixelFormat.R8G8_B8G8_UNorm,
-                PixelFormat.G8R8_G8B8_UNorm,
-            }, 4, 2, 1);
-
-            InitBlockFormat(new[]
-            {
-                PixelFormat.R1_UNorm,
-            }, 1, 8, 1);
-
-            // Init srgb formats
-            InitDefaults(new[]
-                {
-                    PixelFormat.R8G8B8A8_UNorm_SRgb,
-                    PixelFormat.BC1_UNorm_SRgb,
-                    PixelFormat.BC2_UNorm_SRgb,
-                    PixelFormat.BC3_UNorm_SRgb,
-                    PixelFormat.B8G8R8A8_UNorm_SRgb,
-                    PixelFormat.B8G8R8X8_UNorm_SRgb,
-                    PixelFormat.BC7_UNorm_SRgb,
-                    PixelFormat.ETC2_RGBA_SRgb,
-                    PixelFormat.ETC2_RGB_SRgb,
-                }, srgbFormats);
-
-            // Init srgb formats
-            InitDefaults(new[]
-                {
-                    PixelFormat.R8G8B8A8_UNorm,
-                    PixelFormat.R8G8B8A8_UNorm_SRgb,
-                    PixelFormat.B8G8R8A8_UNorm,
-                    PixelFormat.B8G8R8A8_UNorm_SRgb,
-                }, alpha32Formats);
-
-            InitDefaults(new[]
-            {
-                    PixelFormat.R16G16B16A16_Float,
-                    PixelFormat.R32G32B32A32_Float,
-                    PixelFormat.R16G16B16A16_Float,
-                    PixelFormat.R16G16_Float,
-                    PixelFormat.R16_Float,
-                    PixelFormat.BC6H_Sf16,
-                    PixelFormat.BC6H_Uf16,
-            }, hdrFormats);
-
-            // Init typeless formats
-            InitDefaults(new[]
-                {
-                    PixelFormat.R32G32B32A32_Typeless,
-                    PixelFormat.R32G32B32_Typeless,
-                    PixelFormat.R16G16B16A16_Typeless,
-                    PixelFormat.R32G32_Typeless,
-                    PixelFormat.R32G8X24_Typeless,
-                    PixelFormat.R32_Float_X8X24_Typeless,
-                    PixelFormat.X32_Typeless_G8X24_UInt,
-                    PixelFormat.R10G10B10A2_Typeless,
-                    PixelFormat.R8G8B8A8_Typeless,
-                    PixelFormat.R16G16_Typeless,
-                    PixelFormat.R32_Typeless,
-                    PixelFormat.R24G8_Typeless,
-                    PixelFormat.R24_UNorm_X8_Typeless,
-                    PixelFormat.X24_Typeless_G8_UInt,
-                    PixelFormat.R8G8_Typeless,
-                    PixelFormat.R16_Typeless,
-                    PixelFormat.R8_Typeless,
-                    PixelFormat.BC1_Typeless,
-                    PixelFormat.BC2_Typeless,
-                    PixelFormat.BC3_Typeless,
-                    PixelFormat.BC4_Typeless,
-                    PixelFormat.BC5_Typeless,
-                    PixelFormat.B8G8R8A8_Typeless,
-                    PixelFormat.B8G8R8X8_Typeless,
-                    PixelFormat.BC6H_Typeless,
-                    PixelFormat.BC7_Typeless,
-                }, typelessFormats);
-
-            sRgbConvertion = new Dictionary<PixelFormat, PixelFormat>
-            {
-                { PixelFormat.R8G8B8A8_UNorm_SRgb, PixelFormat.R8G8B8A8_UNorm },
-                { PixelFormat.R8G8B8A8_UNorm, PixelFormat.R8G8B8A8_UNorm_SRgb },
-                { PixelFormat.BC1_UNorm_SRgb, PixelFormat.BC1_UNorm },
-                { PixelFormat.BC1_UNorm, PixelFormat.BC1_UNorm_SRgb },
-                { PixelFormat.BC2_UNorm_SRgb, PixelFormat.BC2_UNorm },
-                { PixelFormat.BC2_UNorm, PixelFormat.BC2_UNorm_SRgb },
-                { PixelFormat.BC3_UNorm_SRgb, PixelFormat.BC3_UNorm },
-                { PixelFormat.BC3_UNorm, PixelFormat.BC3_UNorm_SRgb },
-                { PixelFormat.B8G8R8A8_UNorm_SRgb, PixelFormat.B8G8R8A8_UNorm },
-                { PixelFormat.B8G8R8A8_UNorm, PixelFormat.B8G8R8A8_UNorm_SRgb },
-                { PixelFormat.B8G8R8X8_UNorm_SRgb, PixelFormat.B8G8R8X8_UNorm },
-                { PixelFormat.B8G8R8X8_UNorm, PixelFormat.B8G8R8X8_UNorm_SRgb },
-                { PixelFormat.BC7_UNorm_SRgb, PixelFormat.BC7_UNorm },
-                { PixelFormat.BC7_UNorm, PixelFormat.BC7_UNorm_SRgb },
-                { PixelFormat.ETC2_RGBA_SRgb, PixelFormat.ETC2_RGBA },
-                { PixelFormat.ETC2_RGBA, PixelFormat.ETC2_RGBA_SRgb },
-                { PixelFormat.ETC2_RGB_SRgb, PixelFormat.ETC2_RGB },
-                { PixelFormat.ETC2_RGB, PixelFormat.ETC2_RGB_SRgb },
+                { R8G8B8A8_UNorm_SRgb,  R8G8B8A8_UNorm },
+                { R8G8B8A8_UNorm,       R8G8B8A8_UNorm_SRgb },
+                { BC1_UNorm_SRgb,       BC1_UNorm },
+                { BC1_UNorm,            BC1_UNorm_SRgb },
+                { BC2_UNorm_SRgb,       BC2_UNorm },
+                { BC2_UNorm,            BC2_UNorm_SRgb },
+                { BC3_UNorm_SRgb,       BC3_UNorm },
+                { BC3_UNorm,            BC3_UNorm_SRgb },
+                { B8G8R8A8_UNorm_SRgb,  B8G8R8A8_UNorm },
+                { B8G8R8A8_UNorm,       B8G8R8A8_UNorm_SRgb },
+                { B8G8R8X8_UNorm_SRgb,  B8G8R8X8_UNorm },
+                { B8G8R8X8_UNorm,       B8G8R8X8_UNorm_SRgb },
+                { BC7_UNorm_SRgb,       BC7_UNorm },
+                { BC7_UNorm,            BC7_UNorm_SRgb },
+                { ETC2_RGBA_SRgb,       ETC2_RGBA },
+                { ETC2_RGBA,            ETC2_RGBA_SRgb },
+                { ETC2_RGB_SRgb,        ETC2_RGB },
+                { ETC2_RGB,             ETC2_RGB_SRgb }
             };
-        }
+            return;
 
-        private static void InitBlockFormat(IEnumerable<PixelFormat> formats, byte blockSize, byte blockWidth, byte blockHeight)
-        {
-            foreach (var format in formats)
-                sizeInfos[GetIndex(format)] = new PixelFormatSizeInfo
-                {
-                    BlockSize = blockSize,
-                    BlockWidth = blockWidth,
-                    BlockHeight = blockHeight,
-                    IsCompressed = 1,
-                };
-        }
-
-        private static void InitFormat(IEnumerable<PixelFormat> formats, byte pixelSize)
-        {
-            foreach (var format in formats)
-                sizeInfos[GetIndex(format)] = new PixelFormatSizeInfo
-                {
-                    BlockSize = pixelSize,
-                    BlockWidth = 1,
-                    BlockHeight = 1,
-                    IsCompressed = 0,
-                };
-        }
-
-        private static void InitDefaults(IEnumerable<PixelFormat> formats, bool[] outputArray)
-        {
-            foreach (var format in formats)
-                outputArray[GetIndex(format)] = true;
+            static void InitFormat(ReadOnlySpan<PixelFormat> formats, byte pixelSize)
+            {
+                foreach (var format in formats)
+                    sizeInfos[GetIndex(format)] = new PixelFormatSizeInfo(BlockSize: pixelSize, BlockWidth: 1, BlockHeight: 1, IsCompressed: 0);
+            }
+            
+            static void InitBlockFormat(ReadOnlySpan<PixelFormat> formats, byte blockSize, byte blockWidth, byte blockHeight)
+            {
+                foreach (var format in formats)
+                    sizeInfos[GetIndex(format)] = new PixelFormatSizeInfo(BlockSize: blockSize, BlockWidth: blockWidth, BlockHeight: blockHeight, IsCompressed: 1);
+            }
+            
+            static void InitDefaults(ReadOnlySpan<PixelFormat> formats, bool[] outputArray)
+            {
+                foreach (var format in formats)
+                    outputArray[GetIndex(format)] = true;
+            }
         }
     }
 }
