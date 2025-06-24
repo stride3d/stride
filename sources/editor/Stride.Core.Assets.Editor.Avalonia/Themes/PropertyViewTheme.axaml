@@ -7,7 +7,7 @@
   <ControlTheme x:Key="PropertyExpanderTheme" TargetType="Expander">
     <Setter Property="Padding" Value="10,0,0,0"/>
     <Setter Property="Template">
-      <ControlTemplate TargetType="Expander">
+      <ControlTemplate>
         <Border BorderThickness="0" Margin="0" Padding="0"
                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
           <ContentPresenter Content="{TemplateBinding Content}"
@@ -24,7 +24,7 @@
     <Setter Property="HorizontalAlignment" Value="Stretch"/>
     <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto" />
     <Setter Property="Template">
-      <ControlTemplate TargetType="sd:PropertyView">
+      <ControlTemplate>
         <Border Padding="{TemplateBinding Padding}"
                 Background="{TemplateBinding Background}"
                 BorderBrush="{TemplateBinding BorderBrush}"
@@ -52,7 +52,7 @@
       </TreeDataTemplate>
     </Setter>
     <Setter Property="Template">
-      <ControlTemplate TargetType="sd:PropertyViewItem">
+      <ControlTemplate>
         <Border BorderBrush="{TemplateBinding Border.BorderBrush}"
                 BorderThickness="{TemplateBinding Border.BorderThickness}"
                 IsVisible="{Binding IsVisible}">
@@ -63,9 +63,9 @@
                                 ContentTemplate="{TemplateBinding HeaderTemplate}"
                                 HorizontalAlignment="{TemplateBinding Control.HorizontalAlignment}"
                                 IsVisible="{sd:MultiBinding {Binding !$parent[sd:PropertyView].((caecp:SessionObjectPropertiesViewModel)DataContext).ShowOverridesOnly, FallbackValue={sd:True}},
-                                                               {Binding [IsOverridden]},
-                                                               {Binding ![HasBase]},
-                                                               Converter={sd:OrMulti}}"/>
+                                                            {Binding [IsOverridden]},
+                                                            {Binding ![HasBase]},
+                                                            Converter={sd:OrMulti}}"/>
             </Border>
             <Expander IsEnabled="True" IsExpanded="{Binding IsExpanded, RelativeSource={RelativeSource TemplatedParent}}"
                       HorizontalAlignment="Stretch"
@@ -77,9 +77,9 @@
                                   ContentTemplate="{x:Static caev:PropertyViewHelper.FooterProviders}"
                                   HorizontalAlignment="{TemplateBinding Control.HorizontalAlignment}"
                                   IsVisible="{sd:MultiBinding {Binding !$parent[sd:PropertyView].((caecp:SessionObjectPropertiesViewModel)DataContext).ShowOverridesOnly, FallbackValue={sd:True}},
-                                                                {Binding [IsOverridden]},
-                                                                {Binding ![HasBase]},
-                                                                Converter={sd:OrMulti}}"/>
+                                                              {Binding [IsOverridden]},
+                                                              {Binding ![HasBase]},
+                                                              Converter={sd:OrMulti}}"/>
               </StackPanel>
             </Expander>
           </DockPanel>

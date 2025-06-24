@@ -1,7 +1,6 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
-             xmlns:themes="using:Stride.GameStudio.Avalonia.Themes"
              x:Class="Stride.GameStudio.Avalonia.App"
              RequestedThemeVariant="Default">
   <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
@@ -48,8 +47,9 @@
         <ColorPaletteResources x:Key="Light"/>
       </FluentTheme.Palettes>
     </FluentTheme>
-    <themes:DefaultStyles />
-    <sd:HyperlinkStyle />
+    <!-- FIXME xplat-editor aggregate all custom styles into a single style/theme -->
+    <StyleInclude Source="avares://Stride.GameStudio.Avalonia/Themes/DefaultStyles.axaml"/>
+    <StyleInclude Source="avares://Stride.Core.Presentation.Avalonia/Themes/HyperlinkStyle.axaml"/>
     <!-- FIXME xplat-editor move to theme -->
     <Style Selector="sd|TextLogViewer">
       <Style.Resources>

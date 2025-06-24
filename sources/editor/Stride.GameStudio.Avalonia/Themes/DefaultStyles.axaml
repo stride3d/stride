@@ -3,8 +3,7 @@
         xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
         xmlns:math="using:Stride.Core.Mathematics"
         xmlns:s="using:System"
-        xmlns:scg="using:System.Collections.Generic"
-        x:Class="Stride.GameStudio.Avalonia.Themes.DefaultStyles">
+        xmlns:scg="using:System.Collections.Generic">
   <Styles.Resources>
     <ResourceDictionary>
       <ResourceDictionary.ThemeDictionaries>

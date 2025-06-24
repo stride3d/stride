@@ -10,5 +10,5 @@
         Icon="/Assets/GameStudio.ico"
         Title="{Binding Title}"
         Width="1280" Height="900">
-        <gsvw:MainView />
+  <gsvw:MainView />
 </Window>
