@@ -2,17 +2,17 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 //
 // Copyright (c) 2010-2012 SharpDX - Alexandre Mutel
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -21,13 +21,11 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-using System;
+namespace Stride.Graphics;
 
-using Stride.Core;
-
-namespace Stride.Graphics
+public partial class Texture
 {
-    public partial class Texture 
+    public static Texture New3D(GraphicsDevice device, int width, int height, int depth, PixelFormat format, TextureFlags textureFlags = TextureFlags.ShaderResource, GraphicsResourceUsage usage = GraphicsResourceUsage.Default)
     {
         /// <summary>
         /// Creates a new 3D <see cref="Texture"/> with a single mipmap.
@@ -42,10 +40,8 @@ namespace Stride.Graphics
         /// <returns>
         /// A new instance of 3D <see cref="Texture"/> class.
         /// </returns>
-        public static Texture New3D(GraphicsDevice device, int width, int height, int depth, PixelFormat format, TextureFlags textureFlags = TextureFlags.ShaderResource, GraphicsResourceUsage usage = GraphicsResourceUsage.Default)
-        {
-            return New3D(device, width, height, depth, false, format, textureFlags, usage);
-        }
+        return New3D(device, width, height, depth, MipMapCount.One, format, textureFlags, usage);
+    }
 
         /// <summary>
         /// Creates a new 3D <see cref="Texture"/>.
@@ -61,10 +57,9 @@ namespace Stride.Graphics
         /// <returns>
         /// A new instance of 3D <see cref="Texture"/> class.
         /// </returns>
-        public static Texture New3D(GraphicsDevice device, int width, int height, int depth, MipMapCount mipCount, PixelFormat format, TextureFlags textureFlags = TextureFlags.ShaderResource, GraphicsResourceUsage usage = GraphicsResourceUsage.Default)
-        {
-            return new Texture(device).InitializeFrom(TextureDescription.New3D(width, height, depth, mipCount, format, textureFlags, usage));
-        }
+    public static Texture New3D(GraphicsDevice device, int width, int height, int depth, MipMapCount mipCount, PixelFormat format, TextureFlags textureFlags = TextureFlags.ShaderResource, GraphicsResourceUsage usage = GraphicsResourceUsage.Default)
+    {
+        var description = TextureDescription.New3D(width, height, depth, mipCount, format, textureFlags, usage);
 
         /// <summary>
         /// Creates a new 3D <see cref="Texture" /> with texture data for the firs map.
@@ -82,11 +77,8 @@ namespace Stride.Graphics
         /// <remarks>
         /// The first dimension of mipMapTextures describes the number of is an array ot Texture3D Array
         /// </remarks>
-        public static unsafe Texture New3D<T>(GraphicsDevice device, int width, int height, int depth, PixelFormat format, T[] textureData, TextureFlags textureFlags = TextureFlags.ShaderResource, GraphicsResourceUsage usage = GraphicsResourceUsage.Immutable) where T : unmanaged
-        {
-            fixed (T* texture = textureData)
-                return New3D(device, width, height, depth, 1, format, new[] { GetDataBox(format, width, height, depth, textureData, (nint)texture) }, textureFlags, usage);
-        }
+        return new Texture(device).InitializeFrom(description);
+    }
 
         /// <summary>
         /// Creates a new 3D <see cref="Texture"/>.
@@ -102,9 +94,20 @@ namespace Stride.Graphics
         /// <returns>
         /// A new instance of 3D <see cref="Texture"/> class.
         /// </returns>
-        public static Texture New3D(GraphicsDevice device, int width, int height, int depth, MipMapCount mipCount, PixelFormat format, DataBox[] textureData, TextureFlags textureFlags = TextureFlags.ShaderResource, GraphicsResourceUsage usage = GraphicsResourceUsage.Default)
+    public static unsafe Texture New3D<T>(GraphicsDevice device, int width, int height, int depth, PixelFormat format, T[] textureData, TextureFlags textureFlags = TextureFlags.ShaderResource, GraphicsResourceUsage usage = GraphicsResourceUsage.Immutable) where T : unmanaged
+    {
+        fixed (T* texture = textureData)
         {
-            return new Texture(device).InitializeFrom(TextureDescription.New3D(width, height, depth, mipCount, format, textureFlags, usage), textureData);
+            var dataBox = GetDataBox(format, width, height, depth, textureData, (nint) texture);
+
+            return New3D(device, width, height, depth, MipMapCount.One, format, [dataBox], textureFlags, usage);
         }
+    }
+
+    public static Texture New3D(GraphicsDevice device, int width, int height, int depth, MipMapCount mipCount, PixelFormat format, DataBox[] textureData, TextureFlags textureFlags = TextureFlags.ShaderResource, GraphicsResourceUsage usage = GraphicsResourceUsage.Default)
+    {
+        var description = TextureDescription.New3D(width, height, depth, mipCount, format, textureFlags, usage);
+
+        return new Texture(device).InitializeFrom(description, textureData);
     }
 }

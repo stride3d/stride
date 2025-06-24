@@ -678,7 +678,7 @@ namespace Stride.Graphics
         public static int CalculateMipSize(int width, int mipLevel)
         {
             mipLevel = Math.Min(mipLevel, CountMips(width));
-            width = width >> mipLevel;
+            width >>= mipLevel;
             return width > 0 ? width : 1;
         }
 
@@ -790,10 +790,9 @@ namespace Stride.Graphics
             }
 
             // Calculate mipmaps
-            int pixelBufferCount;
-            this.mipMapToZIndex = CalculateImageArray(description, pitchFlags, rowStride, out pixelBufferCount, out totalSizeInBytes);
-            this.mipmapDescriptions = CalculateMipMapDescription(description, pitchFlags);
-            zBufferCountPerArraySlice = this.mipMapToZIndex[this.mipMapToZIndex.Count - 1];
+            mipMapToZIndex = CalculateImageArray(description, pitchFlags, rowStride, out var pixelBufferCount, out totalSizeInBytes);
+            mipmapDescriptions = CalculateMipMapDescription(description);
+            zBufferCountPerArraySlice = mipMapToZIndex[^1];
 
             // Allocate all pixel buffers
             PixelBuffers = new PixelBuffer[pixelBufferCount];
@@ -802,7 +801,7 @@ namespace Stride.Graphics
             // Setup all pointers
             // only release buffer that is not pinned and is asked to be disposed.
             this.bufferIsDisposable = !handle.HasValue && bufferIsDisposable;
-            this.buffer = dataPointer;
+            buffer = dataPointer;
 
             if (dataPointer == IntPtr.Zero)
             {
@@ -811,7 +810,7 @@ namespace Stride.Graphics
                 this.bufferIsDisposable = true;
             }
 
-            SetupImageArray((IntPtr)((byte*)buffer + offset), totalSizeInBytes, rowStride, description, pitchFlags, PixelBuffers);
+            SetupImageArray((IntPtr)((byte*)buffer + offset), rowStride, description, pitchFlags, PixelBuffers);
 
             Description = description;
 
@@ -837,23 +836,23 @@ namespace Stride.Graphics
 
         private PixelBuffer GetPixelBufferUnsafe(int arrayIndex, int zIndex, int mipmap)
         {
-            var depthIndex = this.mipMapToZIndex[mipmap];
-            var pixelBufferIndex = arrayIndex * this.zBufferCountPerArraySlice + depthIndex + zIndex;
+            var depthIndex = mipMapToZIndex[mipmap];
+            var pixelBufferIndex = arrayIndex * zBufferCountPerArraySlice + depthIndex + zIndex;
             return PixelBuffers[pixelBufferIndex];
         }
 
         private static ImageDescription CreateDescription(TextureDimension dimension, int width, int height, int depth, MipMapCount mipMapCount, PixelFormat format, int arraySize)
         {
             return new ImageDescription()
-                       {
-                           Width = width,
-                           Height = height,
-                           Depth = depth,
-                           ArraySize = arraySize,
-                           Dimension = dimension,
-                           Format = format,
-                           MipLevels = mipMapCount,
-                       };
+            {
+                Width = width,
+                Height = height,
+                Depth = depth,
+                ArraySize = arraySize,
+                Dimension = dimension,
+                Format = format,
+                MipLevels = mipMapCount
+            };
         }
 
         [Flags]
@@ -866,42 +865,38 @@ namespace Stride.Graphics
             Bpp8 = 0x40000,  // Override with a legacy 8 bits-per-pixel format size
         }
 
-        internal static void ComputePitch(PixelFormat fmt, int width, int height, out int rowPitch, out int slicePitch, out int widthCount, out int heightCount, PitchFlags flags = PitchFlags.None)
+        internal static void ComputePitch(PixelFormat format, int width, int height, out int rowPitch, out int slicePitch, out int widthPacked, out int heightPacked, PitchFlags flags = PitchFlags.None)
         {
-            widthCount = width;
-            heightCount = height;
+            widthPacked = width;
+            heightPacked = height;
 
-            if (fmt.IsCompressed())
+            if (format.IsCompressed())
             {
                 int minWidth = 1;
                 int minHeight = 1;
-                int bpb = 8;
 
-                switch (fmt)
+                var bytesPerBlock = format switch
                 {
-                    case PixelFormat.BC1_Typeless:
-                    case PixelFormat.BC1_UNorm:
-                    case PixelFormat.BC1_UNorm_SRgb:
-                    case PixelFormat.BC4_Typeless:
-                    case PixelFormat.BC4_UNorm:
-                    case PixelFormat.BC4_SNorm:
-                    case PixelFormat.ETC1:
-                    case PixelFormat.ETC2_RGB:
-                    case PixelFormat.ETC2_RGB_SRgb:
-                        bpb = 8;
-                        break;
-                    default:
-                        bpb = 16;
-                        break;
-                }
+                    PixelFormat.BC1_Typeless
+                    or PixelFormat.BC1_UNorm
+                    or PixelFormat.BC1_UNorm_SRgb
+                    or PixelFormat.BC4_Typeless
+                    or PixelFormat.BC4_UNorm
+                    or PixelFormat.BC4_SNorm
+                    or PixelFormat.ETC1
+                    or PixelFormat.ETC2_RGB
+                    or PixelFormat.ETC2_RGB_SRgb => 8,
 
-                widthCount = Math.Max(1, (Math.Max(minWidth, width) + 3)) / 4;
-                heightCount = Math.Max(1, (Math.Max(minHeight, height) + 3)) / 4;
-                rowPitch = widthCount * bpb;
+                    _ => 16
+                };
 
-                slicePitch = rowPitch * heightCount;
+                widthPacked = Math.Max(1, (Math.Max(minWidth, width) + 3)) / 4;
+                heightPacked = Math.Max(1, (Math.Max(minHeight, height) + 3)) / 4;
+                rowPitch = widthPacked * bytesPerBlock;
+
+                slicePitch = rowPitch * heightPacked;
             }
-            else if (fmt.IsPacked())
+            else if (format.IsPacked())
             {
                 rowPitch = ((width + 1) >> 1) * 4;
 
@@ -909,77 +904,72 @@ namespace Stride.Graphics
             }
             else
             {
-                int bpp;
+                int bitsPerPixel;
 
-                if ((flags & PitchFlags.Bpp24) != 0)
-                    bpp = 24;
-                else if ((flags & PitchFlags.Bpp16) != 0)
-                    bpp = 16;
-                else if ((flags & PitchFlags.Bpp8) != 0)
-                    bpp = 8;
+                if (flags.HasFlag(PitchFlags.Bpp24))
+                    bitsPerPixel = 24;
+                else if (flags.HasFlag(PitchFlags.Bpp16))
+                    bitsPerPixel = 16;
+                else if (flags.HasFlag(PitchFlags.Bpp8))
+                    bitsPerPixel = 8;
                 else
-                    bpp = fmt.SizeInBits();
+                    bitsPerPixel = format.SizeInBits();
 
-                if ((flags & PitchFlags.LegacyDword) != 0)
+                if (flags.HasFlag(PitchFlags.LegacyDword))
                 {
                     // Special computation for some incorrectly created DDS files based on
                     // legacy DirectDraw assumptions about pitch alignment
-                    rowPitch = ((width * bpp + 31) / 32) * sizeof(int);
+                    rowPitch = ((width * bitsPerPixel + 31) / 32) * sizeof(int);
                     slicePitch = rowPitch * height;
                 }
                 else
                 {
-                    rowPitch = (width * bpp + 7) / 8;
+                    rowPitch = (width * bitsPerPixel + 7) / 8;
                     slicePitch = rowPitch * height;
                 }
             }
         }
 
-        internal static MipMapDescription[] CalculateMipMapDescription(ImageDescription metadata, PitchFlags cpFlags = PitchFlags.None)
+        internal static MipMapDescription[] CalculateMipMapDescription(ImageDescription metadata)
         {
-            int nImages;
-            int pixelSize;
-            return CalculateMipMapDescription(metadata, cpFlags, out nImages, out pixelSize);
+            return CalculateMipMapDescription(metadata, out _, out _);
         }
 
-        internal static MipMapDescription[] CalculateMipMapDescription(ImageDescription metadata, PitchFlags cpFlags, out int nImages, out int pixelSize)
+        internal static MipMapDescription[] CalculateMipMapDescription(ImageDescription metadata, out int nImages, out int pixelSize)
         {
             pixelSize = 0;
             nImages = 0;
 
-            int w = metadata.Width;
-            int h = metadata.Height;
-            int d = metadata.Depth;
+            int width = metadata.Width;
+            int height = metadata.Height;
+            int depth = metadata.Depth;
 
             var mipmaps = new MipMapDescription[metadata.MipLevels];
 
             for (int level = 0; level < metadata.MipLevels; ++level)
             {
-                int rowPitch, slicePitch;
-                int widthPacked;
-                int heightPacked;
-                ComputePitch(metadata.Format, w, h, out rowPitch, out slicePitch, out widthPacked, out heightPacked, PitchFlags.None);
+                ComputePitch(metadata.Format, width, height, out var rowPitch, out var slicePitch, out var widthPacked, out var heightPacked, PitchFlags.None);
 
                 mipmaps[level] = new MipMapDescription(
-                    w,
-                    h,
-                    d,
+                    width,
+                    height,
+                    depth,
                     rowPitch,
                     slicePitch,
                     widthPacked,
                     heightPacked);
 
-                pixelSize += d * slicePitch;
-                nImages += d;
+                pixelSize += depth * slicePitch;
+                nImages += depth;
 
-                if (h > 1)
-                    h >>= 1;
+                if (height > 1)
+                    height >>= 1;
 
-                if (w > 1)
-                    w >>= 1;
+                if (width > 1)
+                    width >>= 1;
 
-                if (d > 1)
-                    d >>= 1;
+                if (depth > 1)
+                    depth >>= 1;
             }
             return mipmaps;
         }
@@ -1006,10 +996,7 @@ namespace Stride.Graphics
 
                 for (int i = 0; i < imageDesc.MipLevels; i++)
                 {
-                    int rowPitch, slicePitch;
-                    int widthPacked;
-                    int heightPacked;
-                    ComputePitch(imageDesc.Format, w, h, out rowPitch, out slicePitch, out widthPacked, out heightPacked, pitchFlags);
+                    ComputePitch(imageDesc.Format, w, h, out var rowPitch, out var slicePitch, out var widthPacked, out var heightPacked, pitchFlags);
 
                     if (rowStride > 0)
                     {
@@ -1060,7 +1047,7 @@ namespace Stride.Graphics
         /// <param name="imageDesc"></param>
         /// <param name="pitchFlags"></param>
         /// <param name="output"></param>
-        private static unsafe void SetupImageArray(IntPtr buffer, int pixelSize, int rowStride, ImageDescription imageDesc, PitchFlags pitchFlags, PixelBuffer[] output)
+        private static unsafe void SetupImageArray(IntPtr buffer, int rowStride, ImageDescription imageDesc, PitchFlags pitchFlags, PixelBuffer[] output)
         {
             int index = 0;
             var pixels = (byte*)buffer;
@@ -1072,10 +1059,7 @@ namespace Stride.Graphics
 
                 for (uint level = 0; level < imageDesc.MipLevels; ++level)
                 {
-                    int rowPitch, slicePitch;
-                    int widthPacked;
-                    int heightPacked;
-                    ComputePitch(imageDesc.Format, w, h, out rowPitch, out slicePitch, out widthPacked, out heightPacked, pitchFlags);
+                    ComputePitch(imageDesc.Format, w, h, out var rowPitch, out var slicePitch, out var widthPacked, out var heightPacked, pitchFlags);
 
                     if (rowStride > 0)
                     {
@@ -1173,20 +1157,12 @@ namespace Stride.Graphics
             return mipLevels;
         }
 
-        private class LoadSaveDelegate
+        private class LoadSaveDelegate(ImageFileType fileType, ImageLoadDelegate load, ImageSaveDelegate save)
         {
-            public LoadSaveDelegate(ImageFileType fileType, ImageLoadDelegate load, ImageSaveDelegate save)
-            {
-                FileType = fileType;
-                Load = load;
-                Save = save;
-            }
+            public ImageFileType FileType = fileType;
 
-            public ImageFileType FileType;
-
-            public ImageLoadDelegate Load;
-
-            public ImageSaveDelegate Save;
+            public ImageLoadDelegate Load = load;
+            public ImageSaveDelegate Save = save;
         }
    }
 }
