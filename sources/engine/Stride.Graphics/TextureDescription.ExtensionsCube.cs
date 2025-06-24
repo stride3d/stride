@@ -1,8 +1,11 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-namespace Stride.Graphics
+
+namespace Stride.Graphics;
+
+public partial struct TextureDescription
 {
-    public partial struct TextureDescription
+    public static TextureDescription NewCube(int size, PixelFormat format, TextureFlags textureFlags = TextureFlags.ShaderResource, GraphicsResourceUsage usage = GraphicsResourceUsage.Default)
     {
         /// <summary>
         /// Creates a new Cube <see cref="TextureDescription" />.
@@ -12,10 +15,8 @@ namespace Stride.Graphics
         /// <param name="textureFlags">The texture flags.</param>
         /// <param name="usage">The usage.</param>
         /// <returns>A new instance of <see cref="TextureDescription" /> class.</returns>
-        public static TextureDescription NewCube(int size, PixelFormat format, TextureFlags textureFlags = TextureFlags.ShaderResource, GraphicsResourceUsage usage = GraphicsResourceUsage.Default)
-        {
-            return NewCube(size, false, format, textureFlags, usage);
-        }
+        return NewCube(size, MipMapCount.One, format, textureFlags, usage);
+    }
 
         /// <summary>
         /// Creates a new Cube <see cref="TextureDescription"/>.
@@ -26,16 +27,15 @@ namespace Stride.Graphics
         /// <param name="textureFlags">The texture flags.</param>
         /// <param name="usage">The usage.</param>
         /// <returns>A new instance of <see cref="TextureDescription"/> class.</returns>
-        public static TextureDescription NewCube(int size, MipMapCount mipCount, PixelFormat format, TextureFlags textureFlags = TextureFlags.ShaderResource, GraphicsResourceUsage usage = GraphicsResourceUsage.Default)
-        {
-            return NewCube(size, format, textureFlags, mipCount, usage);
-        }
+    public static TextureDescription NewCube(int size, MipMapCount mipCount, PixelFormat format, TextureFlags textureFlags = TextureFlags.ShaderResource, GraphicsResourceUsage usage = GraphicsResourceUsage.Default)
+    {
+        return NewCube(size, format, textureFlags, mipCount, usage);
+    }
 
-        private static TextureDescription NewCube(int size, PixelFormat format, TextureFlags textureFlags, int mipCount, GraphicsResourceUsage usage)
-        {
-            var desc = New2D(size, size, format, textureFlags, mipCount, 6, usage, MultisampleCount.None);
-            desc.Dimension = TextureDimension.TextureCube;
-            return desc;
-        }
+    private static TextureDescription NewCube(int size, PixelFormat format, TextureFlags textureFlags, int mipCount, GraphicsResourceUsage usage)
+    {
+        var desc = New2D(size, size, format, textureFlags, mipCount, arraySize: 6, usage, MultisampleCount.None);
+        desc.Dimension = TextureDimension.TextureCube;
+        return desc;
     }
 }

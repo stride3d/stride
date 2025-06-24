@@ -2,17 +2,17 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 //
 // Copyright (c) 2010-2012 SharpDX - Alexandre Mutel
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -23,11 +23,11 @@
 
 using System;
 
-using Stride.Core;
+namespace Stride.Graphics;
 
-namespace Stride.Graphics
+public partial class Texture
 {
-    public partial class Texture
+    public static Texture New1D(GraphicsDevice device, int width, PixelFormat format, TextureFlags textureFlags = TextureFlags.ShaderResource, int arraySize = 1, GraphicsResourceUsage usage = GraphicsResourceUsage.Default)
     {
         /// <summary>
         /// Creates a new 1D <see cref="Texture"/> with a single mipmap.
@@ -41,10 +41,8 @@ namespace Stride.Graphics
         /// <returns>
         /// A new instance of 1D <see cref="Texture"/> class.
         /// </returns>
-        public static Texture New1D(GraphicsDevice device, int width, PixelFormat format, TextureFlags textureFlags = TextureFlags.ShaderResource, int arraySize = 1, GraphicsResourceUsage usage = GraphicsResourceUsage.Default)
-        {
-            return New1D(device, width, false, format, textureFlags, arraySize, usage);
-        }
+        return New1D(device, width, MipMapCount.One, format, textureFlags, arraySize, usage);
+    }
 
         /// <summary>
         /// Creates a new 1D <see cref="Texture"/>.
@@ -59,10 +57,9 @@ namespace Stride.Graphics
         /// <returns>
         /// A new instance of 1D <see cref="Texture"/> class.
         /// </returns>
-        public static Texture New1D(GraphicsDevice device, int width, MipMapCount mipCount, PixelFormat format, TextureFlags textureFlags = TextureFlags.ShaderResource, int arraySize = 1, GraphicsResourceUsage usage = GraphicsResourceUsage.Default)
-        {
-            return New(device, TextureDescription.New1D(width, mipCount, format, textureFlags, arraySize, usage));
-        }
+    public static Texture New1D(GraphicsDevice device, int width, MipMapCount mipCount, PixelFormat format, TextureFlags textureFlags = TextureFlags.ShaderResource, int arraySize = 1, GraphicsResourceUsage usage = GraphicsResourceUsage.Default)
+    {
+        var description = TextureDescription.New1D(width, mipCount, format, textureFlags, arraySize, usage);
 
         /// <summary>
         /// Creates a new 1D <see cref="Texture" /> with a single level of mipmap.
@@ -78,11 +75,8 @@ namespace Stride.Graphics
         /// <remarks>
         /// The first dimension of mipMapTextures describes the number of array (Texture Array), second dimension is the mipmap, the third is the texture data for a particular mipmap.
         /// </remarks>
-        public static unsafe Texture New1D<T>(GraphicsDevice device, int width, PixelFormat format, T[] textureData, TextureFlags textureFlags = TextureFlags.ShaderResource, GraphicsResourceUsage usage = GraphicsResourceUsage.Immutable) where T : unmanaged
-        {
-            fixed (T* texture = textureData)
-                return New(device, TextureDescription.New1D(width, format, textureFlags, usage), new[] { GetDataBox(format, width, 1, 1, textureData, (nint)texture) });
-        }
+        return New(device, description);
+    }
 
         /// <summary>
         /// Creates a new 1D <see cref="Texture" /> with a single level of mipmap.
@@ -95,9 +89,22 @@ namespace Stride.Graphics
         /// <param name="usage">The usage.</param>
         /// <returns>A new instance of 1D <see cref="Texture" /> class.</returns>
         /// <remarks>The first dimension of mipMapTextures describes the number of array (Texture Array), second dimension is the mipmap, the third is the texture data for a particular mipmap.</remarks>
-        public static Texture New1D(GraphicsDevice device, int width, PixelFormat format, IntPtr dataPtr, TextureFlags textureFlags = TextureFlags.ShaderResource, GraphicsResourceUsage usage = GraphicsResourceUsage.Immutable)
+    public static unsafe Texture New1D<T>(GraphicsDevice device, int width, PixelFormat format, T[] textureData, TextureFlags textureFlags = TextureFlags.ShaderResource, GraphicsResourceUsage usage = GraphicsResourceUsage.Immutable) where T : unmanaged
+    {
+        fixed (T* texture = textureData)
         {
-            return New(device, TextureDescription.New1D(width, format, textureFlags, usage), new[] { new DataBox(dataPtr, 0, 0), });
+            var dataBox = GetDataBox(format, width, height: 1, depth: 1, textureData, (nint) texture);
+            var description = TextureDescription.New1D(width, format, textureFlags, usage);
+
+            return New(device, description, [dataBox]);
         }
+    }
+
+    public static Texture New1D(GraphicsDevice device, int width, PixelFormat format, IntPtr dataPtr, TextureFlags textureFlags = TextureFlags.ShaderResource, GraphicsResourceUsage usage = GraphicsResourceUsage.Immutable)
+    {
+        var dataBox = new DataBox(dataPtr, rowPitch: 0, slicePitch: 0);
+        var description = TextureDescription.New1D(width, format, textureFlags, usage);
+
+        return New(device, description, [dataBox]);
     }
 }

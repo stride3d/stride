@@ -2,17 +2,17 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 //
 // Copyright (c) 2010-2012 SharpDX - Alexandre Mutel
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -23,12 +23,10 @@
 
 using System;
 
-using Stride.Core;
+namespace Stride.Graphics;
 
-namespace Stride.Graphics
+public partial class Texture
 {
-    public partial class Texture
-    {
         /// <summary>
         /// Creates a new Cube <see cref="Texture" />.
         /// </summary>
@@ -38,10 +36,10 @@ namespace Stride.Graphics
         /// <param name="textureFlags">The texture flags.</param>
         /// <param name="usage">The usage.</param>
         /// <returns>A new instance of 2D <see cref="Texture" /> class.</returns>
-        public static Texture NewCube(GraphicsDevice device, int size, PixelFormat format, TextureFlags textureFlags = TextureFlags.ShaderResource, GraphicsResourceUsage usage = GraphicsResourceUsage.Default)
-        {
-            return NewCube(device, size, false, format, textureFlags, usage);
-        }
+    public static Texture NewCube(GraphicsDevice device, int size, PixelFormat format, TextureFlags textureFlags = TextureFlags.ShaderResource, GraphicsResourceUsage usage = GraphicsResourceUsage.Default)
+    {
+        return NewCube(device, size, MipMapCount.One, format, textureFlags, usage);
+    }
 
         /// <summary>
         /// Creates a new Cube <see cref="Texture" />.
@@ -53,10 +51,12 @@ namespace Stride.Graphics
         /// <param name="textureFlags">The texture flags.</param>
         /// <param name="usage">The usage.</param>
         /// <returns>A new instance of 2D <see cref="Texture" /> class.</returns>
-        public static Texture NewCube(GraphicsDevice device, int size, MipMapCount mipCount, PixelFormat format, TextureFlags textureFlags = TextureFlags.ShaderResource, GraphicsResourceUsage usage = GraphicsResourceUsage.Default)
-        {
-            return new Texture(device).InitializeFrom(TextureDescription.NewCube(size, mipCount, format, textureFlags, usage));
-        }
+    public static Texture NewCube(GraphicsDevice device, int size, MipMapCount mipCount, PixelFormat format, TextureFlags textureFlags = TextureFlags.ShaderResource, GraphicsResourceUsage usage = GraphicsResourceUsage.Default)
+    {
+        var description = TextureDescription.NewCube(size, mipCount, format, textureFlags, usage);
+
+        return new Texture(device).InitializeFrom(description);
+    }
 
         /// <summary>
         /// Creates a new Cube <see cref="Texture" /> from a initial data..
@@ -71,21 +71,23 @@ namespace Stride.Graphics
         /// <returns>A new instance of Cube <see cref="Texture" /> class.</returns>
         /// <exception cref="System.ArgumentException">Invalid texture datas. First dimension must be equal to 6;textureData</exception>
         /// <remarks>The first dimension of mipMapTextures describes the number of array (TextureCube Array), the second is the texture data for a particular cube face.</remarks>
-        public static unsafe Texture NewCube<T>(GraphicsDevice device, int size, PixelFormat format, T[][] textureData, TextureFlags textureFlags = TextureFlags.ShaderResource, GraphicsResourceUsage usage = GraphicsResourceUsage.Immutable) where T : unmanaged
+    public static unsafe Texture NewCube<T>(GraphicsDevice device, int size, PixelFormat format, T[][] textureData, TextureFlags textureFlags = TextureFlags.ShaderResource, GraphicsResourceUsage usage = GraphicsResourceUsage.Immutable) where T : unmanaged
+    {
+        if (textureData.Length != 6)
+            throw new ArgumentException("Invalid texture datas. First dimension must be equal to 6", nameof(textureData));
+
+        var dataBoxes = new DataBox[6];
+
+        for (var i = 0; i < 6; i++)
         {
-            if (textureData.Length != 6)
-                throw new ArgumentException("Invalid texture datas. First dimension must be equal to 6", "textureData");
-
-            var dataBoxes = new DataBox[6];
-
-            for (var i = 0; i < 6; i++)
-            {
-                fixed (void* texture = textureData[i])
-                    dataBoxes[i] = GetDataBox(format, size, size, 1, textureData[0], (nint)texture);
-            }
-
-            return new Texture(device).InitializeFrom(TextureDescription.NewCube(size, format, textureFlags, usage), dataBoxes);
+            fixed (void* texture = textureData[i])
+                dataBoxes[i] = GetDataBox(format, size, size, 1, textureData[0], (nint)texture);
         }
+
+        var description = TextureDescription.NewCube(size, format, textureFlags, usage);
+
+        return new Texture(device).InitializeFrom(description, dataBoxes);
+    }
 
         /// <summary>
         /// Creates a new Cube <see cref="Texture" /> from a initial data..
@@ -99,12 +101,13 @@ namespace Stride.Graphics
         /// <returns>A new instance of Cube <see cref="Texture" /> class.</returns>
         /// <exception cref="System.ArgumentException">Invalid texture datas. First dimension must be equal to 6;textureData</exception>
         /// <remarks>The first dimension of mipMapTextures describes the number of array (TextureCube Array), the second is the texture data for a particular cube face.</remarks>
-        public static Texture NewCube(GraphicsDevice device, int size, PixelFormat format, DataBox[] textureData, TextureFlags textureFlags = TextureFlags.ShaderResource, GraphicsResourceUsage usage = GraphicsResourceUsage.Immutable)
-        {
-            if (textureData.Length != 6)
-                throw new ArgumentException("Invalid texture datas. First dimension must be equal to 6", "textureData");
+    public static Texture NewCube(GraphicsDevice device, int size, PixelFormat format, DataBox[] textureData, TextureFlags textureFlags = TextureFlags.ShaderResource, GraphicsResourceUsage usage = GraphicsResourceUsage.Immutable)
+    {
+        if (textureData.Length != 6)
+            throw new ArgumentException("Invalid texture datas. First dimension must be equal to 6", nameof(textureData));
 
-            return new Texture(device).InitializeFrom(TextureDescription.NewCube(size, format, textureFlags, usage), textureData);
-        }
+        var description = TextureDescription.NewCube(size, format, textureFlags, usage);
+
+        return new Texture(device).InitializeFrom(description, textureData);
     }
 }

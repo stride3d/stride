@@ -74,7 +74,7 @@ namespace Stride.Graphics.Tests
                     var texture = Texture.New1D(device, 256, true, PixelFormat.R8_UNorm, TextureFlags.ShaderResource | TextureFlags.RenderTarget);
 
                     // Verify the number of mipmap levels
-                    Assert.Equal(texture.MipLevels, Math.Log(data.Length, 2) + 1);
+                    Assert.Equal(texture.MipLevelCount, Math.Log(data.Length, 2) + 1);
 
                     // Get a render target on the mipmap 1 (128) with value 1 and get back the data
                     var renderTarget1 = texture.ToTextureView(ViewType.Single, 0, 1);
@@ -144,7 +144,7 @@ namespace Stride.Graphics.Tests
                     var texture = Texture.New2D(device, 256, 256, 1, PixelFormat.R8_UNorm, TextureFlags.ShaderResource | TextureFlags.RenderTarget, 4);
 
                     // Verify the number of mipmap levels
-                    Assert.Equal(1, texture.MipLevels);
+                    Assert.Equal(1, texture.MipLevelCount);
 
                     // Get a render target on the array 1 (128) with value 1 and get back the data
                     var renderTarget1 = texture.ToTextureView(ViewType.Single, 1, 0);
@@ -436,7 +436,7 @@ namespace Stride.Graphics.Tests
                     // Load an image from a file and dispose it.
                     Texture texture;
                     using (var inStream = game.Content.OpenAsStream(filePath, StreamFlags.None))
-                        texture = Texture.Load(device, inStream, loadAsSRGB: true);
+                        texture = Texture.Load(device, inStream, loadAsSrgb: true);
 
                     game.GraphicsContext.DrawTexture(texture, BlendStates.AlphaBlend);
                 },

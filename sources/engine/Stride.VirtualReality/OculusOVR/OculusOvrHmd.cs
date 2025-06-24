@@ -78,7 +78,7 @@ namespace Stride.VirtualReality
                 }
 
                 textures[i] = new Texture(device);
-                textures[i].InitializeFromImpl((ID3D11Texture2D*) ptr, isSrgb: false);
+                textures[i].InitializeFromImpl((ID3D11Texture2D*) ptr, treatAsSrgb: false);
             }
 
             ActualRenderFrameSize = new Size2(textures[0].Width, textures[0].Height);

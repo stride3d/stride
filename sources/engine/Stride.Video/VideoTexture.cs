@@ -56,7 +56,7 @@ namespace Stride.Video
 
             // Create a mip mapped texture with the same size as our video
             // Only generate up to "MaxMipMapCount" number of mip maps
-            var mipMapCount = Math.Min(Texture.CountMips(Math.Max(width, height)), maxMipMapCount + 1);
+            var mipMapCount = Math.Min(Texture.CountMipLevels(Math.Max(width, height)), maxMipMapCount + 1);
             var textureDescription = TextureDescription.New2D(width, height, mipMapCount, PixelFormat.R8G8B8A8_UNorm_SRgb, TextureFlags.ShaderResource | TextureFlags.RenderTarget, 1, GraphicsResourceUsage.Dynamic);
             renderTargetTexture = Texture.New(graphicsDevice, textureDescription, null); // Supply no data. Create an empty texture.
         }
@@ -199,7 +199,7 @@ namespace Stride.Video
             // Create a texture view for every mip map of the texture that we use for displaying the video in the scene:
             DeallocateTextureViewsForMipMaps();
 
-            for (int i = 0; i < parentTexture.MipLevels; ++i)
+            for (int i = 0; i < parentTexture.MipLevelCount; ++i)
             {
                 var renderTargetMipMapTextureViewDescription = new TextureViewDescription
                 {
