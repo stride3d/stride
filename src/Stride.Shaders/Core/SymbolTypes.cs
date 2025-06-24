@@ -73,14 +73,14 @@ public sealed record ArrayType(SymbolType BaseType, int Size) : SymbolType()
 {
     public override string ToString() => $"{BaseType}[{Size}]";
 }
-public sealed record StructType(string Name, List<(string Name, SymbolType Type)> Fields) : SymbolType()
+public record StructuredType(string Name, List<(string Name, SymbolType Type)> Members) : SymbolType()
 {
     public override string ToId() => Name;
-    public override string ToString() => $"{Name}{{{string.Join(", ", Fields.Select(x => $"{x.Type} {x.Name}"))}}}";
+    public override string ToString() => $"{Name}{{{string.Join(", ", Members.Select(x => $"{x.Type} {x.Name}"))}}}";
 
     public bool TryGetFieldType(string name, [MaybeNullWhen(false)] out SymbolType type)
     {
-        foreach (var field in Fields)
+        foreach (var field in Members)
         {
             if (field.Name == name)
             {
@@ -94,9 +94,9 @@ public sealed record StructType(string Name, List<(string Name, SymbolType Type)
     }
     public int TryGetFieldIndex(string name)
     {
-        for (var index = 0; index < Fields.Count; index++)
+        for (var index = 0; index < Members.Count; index++)
         {
-            var field = Fields[index];
+            var field = Members[index];
             if (field.Name == name)
                 return index;
         }
@@ -105,6 +105,8 @@ public sealed record StructType(string Name, List<(string Name, SymbolType Type)
     }
 
 }
+
+public sealed record StructType(string Name, List<(string Name, SymbolType Type)> Members) : StructuredType(Name, Members);
 public sealed record BufferType(SymbolType BaseType, int Size) : SymbolType()
 {
     public override string ToString() => $"Buffer<{BaseType}, {Size}>";
@@ -181,9 +183,9 @@ public sealed record FunctionType(SymbolType ReturnType, List<SymbolType> Parame
 
 public sealed record StreamsSymbol : SymbolType;
 
-public sealed record ConstantBufferSymbol(string Name, List<Symbol> Symbols) : SymbolType;
-public sealed record ParamsSymbol(string Name, List<Symbol> Symbols) : SymbolType;
-public sealed record EffectSymbol(string Name, List<Symbol> Symbols) : SymbolType;
+public sealed record ConstantBufferSymbol(string Name, List<(string Name, SymbolType Type)> Members) : StructuredType(Name, Members);
+public sealed record ParamsSymbol(string Name, List<(string Name, SymbolType Type)> Symbols) : SymbolType;
+public sealed record EffectSymbol(string Name, List<(string Name, SymbolType Type)> Symbols) : SymbolType;
 public sealed record ShaderSymbol(string Name, List<Symbol> Components) : SymbolType
 {
     public Symbol Get(string name, SymbolKind kind)

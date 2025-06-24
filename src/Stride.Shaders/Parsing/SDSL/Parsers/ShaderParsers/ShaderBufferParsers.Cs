@@ -160,9 +160,9 @@ public record struct BufferParsers : IParser<ShaderBuffer>
         return Parsers.Exit(ref scanner, result, out parsed, position, orError);
     }
 
-    public static bool BufferName<TScanner>(ref TScanner scanner, ParseResult result, out List<Identifier> parsed, in ParseError? orError = null)
+    public static bool BufferName<TScanner>(ref TScanner scanner, ParseResult result, out Identifier parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
     {
-        return Parsers.Repeat(ref scanner, result, LiteralsParser.Identifier, out parsed, 1, withSpaces: true, separator: ".");
+        return LiteralsParser.Identifier(ref scanner, result, out parsed, orError);
     }
 }

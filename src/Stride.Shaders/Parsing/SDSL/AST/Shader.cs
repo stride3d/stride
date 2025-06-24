@@ -179,6 +179,15 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
                 var symbol = new Symbol(sid, svar.Type);
                 symbols.Add(symbol);
             }
+            else if (member is CBuffer cb)
+            {
+                foreach (var cbMember in cb.Members)
+                {
+                    cbMember.Type = cbMember.TypeName.ResolveType(table);
+                    var symbol = new Symbol(new(cbMember.Name, SymbolKind.CBuffer), cbMember.Type);
+                    symbols.Add(symbol);
+                }
+            }
         }
 
         var currentShader = new ShaderSymbol(Name, symbols);
@@ -223,6 +232,8 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
             context.Module.InheritedMixins.Add(shaderType);
         }
 
+        foreach (var member in Elements.OfType<CBuffer>())
+            member.Compile(table, this, compiler);
         foreach (var member in Elements.OfType<ShaderMember>())
             member.Compile(table, this, compiler);
         foreach(var method in Elements.OfType<ShaderMethod>())

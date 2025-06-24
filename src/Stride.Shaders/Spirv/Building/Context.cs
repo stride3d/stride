@@ -144,7 +144,8 @@ public class SpirvContext(SpirvModule module)
                 VectorType v => Buffer.AddOpTypeVector(Bound++, GetOrRegister(v.BaseType), v.Size),
                 MatrixType m => Buffer.AddOpTypeVector(Bound++, GetOrRegister(new VectorType(m.BaseType, m.Rows)), m.Columns),
                 ArrayType a => Buffer.AddOpTypeArray(Bound++, GetOrRegister(a.BaseType), a.Size),
-                StructType st => RegisterStruct(st),
+                StructType st => RegisterStructuredType(st.ToId(), st),
+                ConstantBufferSymbol cb => RegisterStructuredType($"type.{cb.ToId()}", cb),
                 FunctionType f => RegisterFunctionType(f),
                 PointerType p => RegisterPointerType(p),
                 // TextureSymbol t => Buffer.AddOpTypeImage(Bound++, Register(t.BaseType), t.),
@@ -157,19 +158,20 @@ public class SpirvContext(SpirvModule module)
         }
     }
 
-    IdRef RegisterStruct(StructType structSymbol)
+    IdRef RegisterStructuredType(string name, StructuredType structSymbol)
     {
-        Span<IdRef> types = stackalloc IdRef[structSymbol.Fields.Count];
-        for (var index = 0; index < structSymbol.Fields.Count; index++)
-            types[index] = GetOrRegister(structSymbol.Fields[index].Type);
+        Span<IdRef> types = stackalloc IdRef[structSymbol.Members.Count];
+        for (var index = 0; index < structSymbol.Members.Count; index++)
+            types[index] = GetOrRegister(structSymbol.Members[index].Type);
 
         var result = Buffer.AddOpTypeStruct(Bound++, types);
-        AddName(result, structSymbol.ToId());
-        for (var index = 0; index < structSymbol.Fields.Count; index++)
-            AddMemberName(result, index, structSymbol.Fields[index].Name);
+        AddName(result, name);
+        for (var index = 0; index < structSymbol.Members.Count; index++)
+            AddMemberName(result, index, structSymbol.Members[index].Name);
 
         return result;
     }
+
 
     IdRef RegisterFunctionType(FunctionType functionType)
     {

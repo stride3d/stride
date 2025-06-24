@@ -1,6 +1,9 @@
 using Stride.Shaders.Core;
 using Stride.Shaders.Core.Analysis;
 using Stride.Shaders.Parsing.Analysis;
+using Stride.Shaders.Spirv;
+using Stride.Shaders.Spirv.Building;
+using Stride.Shaders.Spirv.Core;
 
 namespace Stride.Shaders.Parsing.SDSL.AST;
 
@@ -127,14 +130,24 @@ public class TypeDef(TypeName type, Identifier name, TextLocation info) : Shader
     }
 }
 
-public abstract class ShaderBuffer(List<Identifier> name, TextLocation info) : ShaderElement(info)
+public abstract class ShaderBuffer(string name, TextLocation info) : ShaderElement(info)
 {
-    public List<Identifier> Name { get; set; } = name;
+    public string Name { get; set; } = name;
     public List<ShaderMember> Members { get; set; } = [];
 
     public override void ProcessSymbol(SymbolTable table)
     {
-        var sym = new Symbol(new(Name.ToString() ?? "", SymbolKind.CBuffer), new ConstantBufferSymbol(Name.ToString() ?? "", []));
+        var fields = new List<(string Name, SymbolType Type)>();
+        foreach (var smem in Members)
+        {
+            smem.Type = smem.TypeName.ResolveType(table);
+            table.DeclaredTypes.TryAdd(smem.Type.ToString(), smem.Type);
+
+            fields.Add((smem.Name, smem.Type));
+        }
+
+        Type = new ConstantBufferSymbol(Name, fields);
+        var sym = new Symbol(new(Name, SymbolKind.CBuffer), Type);
 
         table.DeclaredTypes.TryAdd(sym.ToString(), sym.Type);
         var kind = this switch
@@ -144,12 +157,7 @@ public abstract class ShaderBuffer(List<Identifier> name, TextLocation info) : S
             RGroup => SymbolKind.RGroup,
             _ => throw new NotSupportedException()
         };
-        table.RootSymbols.Add(Name.ToString() ?? "", sym);
-        foreach (var cbmem in Members)
-        {
-            cbmem.Type = cbmem.TypeName.ResolveType(table);
-            table.DeclaredTypes.TryAdd(cbmem.Type.ToString(), cbmem.Type);
-        }
+        table.RootSymbols.Add(Name, sym);
     }
 }
 
@@ -196,6 +204,20 @@ public class ShaderStruct(Identifier typename, TextLocation info) : ShaderElemen
 }
 
 
-public sealed class CBuffer(List<Identifier> name, TextLocation info) : ShaderBuffer(name, info);
-public sealed class RGroup(List<Identifier> name, TextLocation info) : ShaderBuffer(name, info);
-public sealed class TBuffer(List<Identifier> name, TextLocation info) : ShaderBuffer(name, info);
+public sealed class CBuffer(string name, TextLocation info) : ShaderBuffer(name, info)
+{
+    public void Compile(SymbolTable table, ShaderClass shaderClass, CompilerUnit compiler)
+    {
+        var (builder, context, _) = compiler;
+        var registeredType = context.GetOrRegister(Type);
+        var variable = context.Bound++;
+        // TODO: Add a StreamSDSL storage class?
+        var pointerType = context.Buffer.AddOpTypePointer(context.Bound++, Specification.StorageClass.Uniform, registeredType.Value);
+        context.Buffer.AddOpVariable(variable, pointerType, Specification.StorageClass.Uniform, null);
+        //context.Variables.Add(Name, new(variable, registeredType, Name));
+        context.AddName(variable, Name);
+    }
+}
+
+public sealed class RGroup(string name, TextLocation info) : ShaderBuffer(name, info);
+public sealed class TBuffer(string name, TextLocation info) : ShaderBuffer(name, info);
