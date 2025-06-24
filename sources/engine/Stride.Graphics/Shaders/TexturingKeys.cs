@@ -9,6 +9,9 @@ using Stride.Graphics;
 
 namespace Stride.Rendering;
 
+/// <summary>
+///   Common keys used for texturing in Stride rendering.
+/// </summary>
 public partial class TexturingKeys
 {
     static TexturingKeys()
@@ -56,25 +59,28 @@ public partial class TexturingKeys
         ]);
     }
 
-        /// <summary>
-        /// Default textures used by this class (<see cref="Texture0"/>, <see cref="Texture1"/>...etc.)
-        /// </summary>
 
-        /// <summary>
-        /// The cube textures used by this class (<see cref="TextureCube0"/>, <see cref="TextureCube1"/>...etc.)
-        /// </summary>
+    /// <summary>
+    ///   Parameter keys for the default Textures (<see cref="Texture0"/>, <see cref="Texture1"/>...etc.)
+    /// </summary>
     public static readonly IReadOnlyList<ObjectParameterKey<Texture>> DefaultTextures;
 
-        /// <summary>
-        /// The 3d textures used by this class (<see cref="Texture3D0"/>, <see cref="Texture3D1"/>...etc.)
-        /// </summary>
+    /// <summary>
+    ///   Parameter keys for the Cube Textures (<see cref="TextureCube0"/>, <see cref="TextureCube1"/>...etc.)
+    /// </summary>
     public static readonly IReadOnlyList<ObjectParameterKey<Texture>> TextureCubes;
 
-        /// <summary>
-        /// Default textures size used by this class (<see cref="Texture0TexelSize"/>, <see cref="Texture1TexelSize"/>...etc.)
-        /// </summary>
-    }
+    /// <summary>
+    ///   Parameter keys for the 3D Textures (<see cref="Texture3D0"/>, <see cref="Texture3D1"/>...etc.)
+    /// </summary>
     public static readonly IReadOnlyList<ObjectParameterKey<Texture>> Textures3D;
 
+    /// <summary>
+    ///   Parameter keys for the texel size for the default Textures (<see cref="Texture0TexelSize"/>, <see cref="Texture1TexelSize"/>...etc.)
+    /// </summary>
+    /// <remarks>
+    ///   The <strong>texel size</strong> is a vector that contains the width and height of a pixel of a Texture in UV space,
+    ///   i.e. <c>(1.0 / sizeOfTheTexture)</c>.
+    /// </remarks>
     public static readonly IReadOnlyList<ValueParameterKey<Vector2>> TexturesTexelSize;
 }
