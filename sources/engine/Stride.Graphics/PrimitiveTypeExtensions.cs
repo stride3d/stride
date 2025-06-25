@@ -5,14 +5,23 @@ using System;
 
 namespace Stride.Graphics;
 
+/// <summary>
+///   Defines extensions and helpers for <see cref="PrimitiveType"/>.
+/// </summary>
 public static class PrimitiveTypeExtensions
 {
+    /// <summary>
+    ///   Interpret the input vertex data type as a <strong>patch list</strong> for tesselation with a
+    ///   specific number of <strong>control points</strong>.
+    /// </summary>
+    /// <param name="controlPoints">The number of control points. It must be a value in the range 1 to 32, inclusive.</param>
+    /// <returns>
+    ///   A <see cref="PrimitiveType"/> value that represents a patch list with the specified number of control points.
+    /// </returns>
+    /// <exception cref="ArgumentException">Control points apply only to <see cref="PrimitiveType.PatchList"/>.</exception>
+    /// <exception cref="ArgumentOutOfRangeException"><paramref name="controlPoints"/> must be in the range 1 to 32, inclusive.</exception>"
     public static PrimitiveType ControlPointCount(this PrimitiveType primitiveType, int controlPoints)
     {
-        /// <summary>
-        /// Interpret the vertex data as a patch list.
-        /// </summary>
-        /// <param name="controlPoints">Number of control points. Value must be in the range 1 to 32.</param>
         if (primitiveType != PrimitiveType.PatchList)
             throw new ArgumentException($"Control points apply only to {nameof(PrimitiveType)}.{nameof(PrimitiveType.PatchList)}", nameof(primitiveType));
 
