@@ -97,7 +97,6 @@ public sealed class ShaderMember(
             new SymbolID
             (
                 Name,
-                variable,
                 TypeModifier == TypeModifier.Const ? SymbolKind.Constant : SymbolKind.Variable,
                 StreamKind switch
                 {
@@ -105,7 +104,7 @@ public sealed class ShaderMember(
                     _ => Storage.None
                 }
             );
-        var symbol = new Symbol(sid, Type);
+        var symbol = new Symbol(sid, Type, variable);
         table.CurrentShader.Components.Add(symbol);
         table.CurrentFrame.Add(Name, symbol);
     }
@@ -193,7 +192,7 @@ public class ShaderMethod(
             {
                 var parameterType = new PointerType(p.Type, Specification.StorageClass.Function);
                 var paramValue = builder.AddFunctionParameter(context, p.Name, parameterType);
-                table.CurrentFrame.Add(p.Name, new(new(p.Name, paramValue.Id, SymbolKind.Variable), parameterType));
+                table.CurrentFrame.Add(p.Name, new(new(p.Name, SymbolKind.Variable), parameterType, paramValue.Id));
             }
 
             if (Body is BlockStatement body)
@@ -210,7 +209,7 @@ public class ShaderMethod(
 
         table.Pop();
 
-        var symbol = new Symbol(new(Name, function.Id, SymbolKind.Method), Type);
+        var symbol = new Symbol(new(Name, SymbolKind.Method), Type, function.Id);
         table.CurrentShader.Components.Add(symbol);
         table.CurrentFrame.Add(Name, symbol);
     }

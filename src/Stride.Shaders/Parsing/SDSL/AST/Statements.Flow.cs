@@ -64,8 +64,10 @@ public class While(Expression condition, Statement body, TextLocation info, Shad
 
     public override void Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
-        Condition.Compile(table, shader, compiler);
+        Condition.CompileAsValue(table, shader, compiler);
         Body.Compile(table, shader, compiler);
+        if (Condition.ValueType != ScalarType.From("bool"))
+            table.Errors.Add(new(Condition.Info, "not a boolean"));
         throw new NotImplementedException();
     }
 

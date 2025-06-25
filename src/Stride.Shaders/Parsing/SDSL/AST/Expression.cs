@@ -16,6 +16,22 @@ namespace Stride.Shaders.Parsing.SDSL.AST;
 public abstract class Expression(TextLocation info) : ValueNode(info)
 {
     public abstract SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler);
+
+    public SymbolType? ValueType => Type is PointerType pointerType ? pointerType.BaseType : Type;
+
+    public SpirvValue CompileAsValue(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
+    {
+        var result = Compile(table, shader, compiler);
+        var type = compiler.Context.ReverseTypes[result.TypeId];
+        if (type is PointerType pointerType)
+        {
+            type = pointerType.BaseType;
+            var inst = compiler.Builder.Buffer.InsertOpLoad(compiler.Builder.Position++, compiler.Context.Bound++, compiler.Context.Types[type], result.Id, null);
+            result = new(inst.ResultId.Value, inst.ResultType.Value);
+        }
+
+        return result;
+    }
 }
 
 public class MethodCall(Identifier name, ShaderExpressionList parameters, TextLocation info) : Expression(info)
@@ -132,13 +148,14 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
         for (var i = firstIndex; i < Accessors.Count; i++)
         {
             var accessor = Accessors[i];
-            if (currentValueType is StructType s && accessor is Identifier field)
+            if (currentValueType is PointerType p && p.BaseType is StructType s && accessor is Identifier field)
             {
                 var index = s.TryGetFieldIndex(field);
                 if (index == -1)
                     throw new InvalidOperationException($"field {accessor} not found in struct type {s}");
                 //indexes[i] = builder.CreateConstant(context, shader, new IntegerLiteral(new(32, false, true), index, new())).Id;
                 var indexLiteral = new IntegerLiteral(new(32, false, true), index, new());
+                indexLiteral.Compile(table, shader, compiler);
                 indexes[i] = context.CreateConstant(indexLiteral).Id;
             }
             else throw new NotImplementedException($"unknown accessor {accessor} in expression {this}");
@@ -149,7 +166,7 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
         if (currentValueType is not PointerType)
             throw new InvalidOperationException();
 
-        Type = new PointerType(currentValueType, Specification.StorageClass.Uniform);
+        Type = currentValueType;
 
         // Do we need the OpAccessChain? (if we have streams.StreamVar, we can return StreamVar as is)
         if (firstIndex == Accessors.Count)
@@ -182,12 +199,12 @@ public class BinaryExpression(Expression left, Operator op, Expression right, Te
 
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
-        var left = Left.Compile(table, shader, compiler);
-        var right = Right.Compile(table, shader, compiler);
+        var left = Left.CompileAsValue(table, shader, compiler);
+        var right = Right.CompileAsValue(table, shader, compiler);
         if (
             OperatorTable.BinaryOperationResultingType(
-                Left.Type ?? throw new NotImplementedException("Missing type"),
-                Right.Type ?? throw new NotImplementedException("Missing type"),
+                Left.ValueType ?? throw new NotImplementedException("Missing type"),
+                Right.ValueType ?? throw new NotImplementedException("Missing type"),
                 Op,
                 out var t
             )
@@ -214,12 +231,12 @@ public class TernaryExpression(Expression cond, Expression left, Expression righ
 
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
-        Condition.Compile(table, shader, compiler);
-        Left.Compile(table, shader, compiler);
-        Right.Compile(table, shader, compiler);
-        if (Condition.Type is not ScalarType { TypeName: "bool" })
+        Condition.CompileAsValue(table, shader, compiler);
+        Left.CompileAsValue(table, shader, compiler);
+        Right.CompileAsValue(table, shader, compiler);
+        if (Condition.ValueType is not ScalarType { TypeName: "bool" })
             table.Errors.Add(new(Condition.Info, SDSLErrorMessages.SDSL0106));
-        if (Left.Type != Right.Type)
+        if (Left.ValueType != Right.ValueType)
             table.Errors.Add(new(Condition.Info, SDSLErrorMessages.SDSL0106));
         throw new NotImplementedException(); 
     }

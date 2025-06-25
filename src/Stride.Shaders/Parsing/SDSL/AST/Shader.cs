@@ -69,8 +69,15 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
             {
                 var typeStructInstruction = instruction.UnsafeAs<InstOpTypeStruct>();
                 var structName = names[instruction.ResultId!.Value];
+                var fieldsData = instruction.Memory.Span[2..];
                 var fields = new List<(string Name, SymbolType Type)>();
-                throw new NotImplementedException();
+                for (var index = 0; index < fieldsData.Length; index++)
+                {
+                    var fieldData = fieldsData[index];
+                    var type = types[fieldData];
+                    var name = memberNames[(typeStructInstruction.ResultId.Value, index)];
+                    fields.Add((name, type));
+                }
                 types.Add(instruction.ResultId!.Value, new StructType(structName, fields));
             }
             else if (instruction.OpCode == SDSLOp.OpTypeFunction)
@@ -105,8 +112,8 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
                 var variableName = names[variableInstruction.ResultId.Value];
                 var variableType = types[variableInstruction.ResultType];
 
-                var sid = new SymbolID(variableName, variableInstruction.ResultId, SymbolKind.Variable, Storage.Stream);
-                symbols.Add(new(sid, variableType));
+                var sid = new SymbolID(variableName, SymbolKind.Variable, Storage.Stream);
+                symbols.Add(new(sid, variableType, variableInstruction.ResultId));
             }
 
             if (instruction.OpCode == SDSLOp.OpFunction)
@@ -115,8 +122,8 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
                 var functionName = names[functionInstruction.ResultId.Value];
                 var functionType = types[functionInstruction.FunctionType];
 
-                var sid = new SymbolID(functionName, functionInstruction.ResultId, SymbolKind.Method);
-                symbols.Add(new(sid, functionType));
+                var sid = new SymbolID(functionName, SymbolKind.Method);
+                symbols.Add(new(sid, functionType, functionInstruction.ResultId));
             }
         }
 
@@ -199,7 +206,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
                     var variableTypeId = context.GetOrRegister(c.Type);
                     var variable = context.Buffer.AddOpSDSLImportVariable(context.Bound++, variableTypeId, c.Id.Name, shader);
                     context.Module.InheritedVariables.Add(c.Id.Name, new(variable, c.Id.Name));
-                    table.CurrentFrame.Add(c.Id.Name, c with { Id = c.Id with { IdRef = variable.ResultId.Value } });
+                    table.CurrentFrame.Add(c.Id.Name, c with { IdRef = variable.ResultId.Value });
                 }
                 else if (c.Id.Kind == SymbolKind.Method)
                 {
@@ -208,7 +215,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
                     var functionReturnTypeId = context.GetOrRegister(functionType.ReturnType);
                     var function = context.Buffer.AddOpSDSLImportFunction(context.Bound++, functionReturnTypeId, c.Id.Name, shader);
                     context.Module.InheritedFunctions.Add(c.Id.Name, new(function.ResultId.Value, c.Id.Name, functionType));
-                    table.CurrentFrame.Add(c.Id.Name, c with { Id = c.Id with { IdRef = function.ResultId.Value } });
+                    table.CurrentFrame.Add(c.Id.Name, c with { IdRef = function.ResultId.Value });
                 }
             }
 

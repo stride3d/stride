@@ -38,7 +38,7 @@ public class SpirvContext(SpirvModule module)
     }
 
     public void AddName(IdRef target, string name)
-        => Buffer.AddOpName(target, name);
+        => Buffer.AddOpName(target, name.Replace('.', '_'));
 
     public void AddMemberName(IdRef target, int accessor, string name)
         => Buffer.AddOpMemberName(target, accessor, name);
@@ -145,7 +145,7 @@ public class SpirvContext(SpirvModule module)
                 MatrixType m => Buffer.AddOpTypeVector(Bound++, GetOrRegister(new VectorType(m.BaseType, m.Rows)), m.Columns),
                 ArrayType a => Buffer.AddOpTypeArray(Bound++, GetOrRegister(a.BaseType), a.Size),
                 StructType st => RegisterStructuredType(st.ToId(), st),
-                ConstantBufferSymbol cb => RegisterStructuredType($"type.{cb.ToId()}", cb),
+                ConstantBufferSymbol cb => RegisterCBuffer(cb),
                 FunctionType f => RegisterFunctionType(f),
                 PointerType p => RegisterPointerType(p),
                 // TextureSymbol t => Buffer.AddOpTypeImage(Bound++, Register(t.BaseType), t.),
@@ -156,6 +156,22 @@ public class SpirvContext(SpirvModule module)
             ReverseTypes[instruction] = type;
             return instruction;
         }
+    }
+
+    private IdRef RegisterCBuffer(ConstantBufferSymbol cb)
+    {
+        var result = RegisterStructuredType($"type.{cb.ToId()}", cb);
+
+        Buffer.AddOpDecorate(result, Decoration.Block);
+        for (var index = 0; index < cb.Members.Count; index++)
+        {
+            var member = cb.Members[index];
+            if (index > 0)
+                throw new NotImplementedException("Offset");
+            Buffer.AddOpMemberDecorate(result, index, Decoration.Offset, 0);
+        }
+
+        return result;
     }
 
     IdRef RegisterStructuredType(string name, StructuredType structSymbol)

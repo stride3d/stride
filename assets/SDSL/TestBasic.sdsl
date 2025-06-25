@@ -6,6 +6,11 @@ shader TestBasic : TestBase
     stream float4 Position : SV_POSITION;
     stream float4 ExtraColor : COLOR;
 
+    cbuffer Test123
+    {
+        float4 CBufferValue1;
+    }
+
     void VSMain()
     {
         streams.Position = streams.InputPosition;
@@ -22,7 +27,7 @@ shader TestBasic : TestBase
     void PSMain()
     {
         streams.ColorTarget = float4(1.0, 1.0, 1.0, 1.0);
-        streams.ColorTarget = streams.ExtraColor;
+        streams.ColorTarget = streams.ExtraColor * CBufferValue1;
         //Test();
         return;
     }

@@ -1,10 +1,11 @@
-using System.Numerics;
-using System.Text;
 using Stride.Shaders.Core;
 using Stride.Shaders.Parsing.Analysis;
 using Stride.Shaders.Spirv.Building;
 using Stride.Shaders.Spirv.Core;
 using Stride.Shaders.Spirv.Core.Buffers;
+using System;
+using System.Numerics;
+using System.Text;
 
 namespace Stride.Shaders.Parsing.SDSL.AST;
 
@@ -254,7 +255,18 @@ public class Identifier(string name, TextLocation info) : Literal(info)
 
         var (builder, context, _) = compiler;
         var resultType = context.GetOrRegister(Type);
-        return new SpirvValue(symbol.Id.IdRef, resultType, Name);
+        var result = new SpirvValue(symbol.IdRef, resultType, Name);
+
+        if (symbol.AccessChain is int accessChainIndex)
+        {
+            Span<IdRef> indexes = stackalloc IdRef[1];
+            var indexLiteral = new IntegerLiteral(new(32, false, true), accessChainIndex, new());
+            indexLiteral.Compile(table, shader, compiler);
+            indexes[0] = context.CreateConstant(indexLiteral).Id;
+            result.Id = compiler.Builder.Buffer.InsertOpAccessChain(compiler.Builder.Position++, compiler.Context.Bound++, resultType, symbol.IdRef, indexes).ResultId.Value;
+        }
+
+        return result;
     }
 
     public override string ToString()

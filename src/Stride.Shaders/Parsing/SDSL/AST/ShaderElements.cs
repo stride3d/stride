@@ -211,6 +211,14 @@ public sealed class CBuffer(string name, TextLocation info) : ShaderBuffer(name,
         context.Buffer.AddOpVariable(variable, pointerType, Specification.StorageClass.Uniform, null);
         //context.Variables.Add(Name, new(variable, registeredType, Name));
         context.AddName(variable, Name);
+
+        for (var index = 0; index < Members.Count; index++)
+        {
+            var member = Members[index];
+            var sid = new SymbolID(member.Name, SymbolKind.CBuffer, Storage.Uniform);
+            var symbol = new Symbol(sid, new PointerType(member.Type, Specification.StorageClass.Uniform), variable, index);
+            table.CurrentFrame.Add(member.Name, symbol);
+        }
     }
 }
 

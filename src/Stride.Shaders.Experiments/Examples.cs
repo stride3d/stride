@@ -446,13 +446,15 @@ public static partial class Examples
             context.ReverseTypes.Add(type.Key, type.Value);
         }
 
-        context.Buffer.AddOpCapability(Specification.Capability.Shader);
-        context.Buffer.AddOpMemoryModel(Specification.AddressingModel.Logical, Specification.MemoryModel.GLSL450);
+        context.Buffer.InsertOpCapability(0, Specification.Capability.Shader);
+        context.Buffer.InsertOpMemoryModel(1, Specification.AddressingModel.Logical, Specification.MemoryModel.GLSL450);
+        context.Buffer.InsertOpExtension(2, "SPV_GOOGLE_hlsl_functionality1");
         new StreamAnalyzer().Process(temp, context);
 
         temp.Instructions.AddRange(context.Buffer.Instructions);
 
         new TypeDuplicateRemover().Apply(temp);
+        temp.Instructions.RemoveAll(x => x.OpCode == SDSLOp.OpNop);
 
         var dis = new SpirvDis<SpirvBuffer>(temp, true);
         var source = dis.Disassemble(true);

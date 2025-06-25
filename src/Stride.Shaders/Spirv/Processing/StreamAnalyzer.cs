@@ -167,7 +167,8 @@ namespace Stride.Shaders.Spirv.Processing
                 // Copy read variables from streams
                 foreach (var stream in inputStreams)
                 {
-                    var loadedValue = buffer.AddOpLoad(context.Bound++, context.Types[stream.Info.Type], stream.Id, null);
+                    var baseType = ((PointerType)stream.Info.Type).BaseType;
+                    var loadedValue = buffer.AddOpLoad(context.Bound++, context.Types[baseType], stream.Id, null);
                     buffer.AddOpStore(stream.Info.Id, loadedValue.ResultId!.Value, null);
                 }
 
@@ -175,7 +176,8 @@ namespace Stride.Shaders.Spirv.Processing
 
                 foreach (var stream in outputStreams)
                 {
-                    var loadedValue = buffer.AddOpLoad(context.Bound++, context.Types[stream.Info.Type], stream.Info.Id, null);
+                    var baseType = ((PointerType)stream.Info.Type).BaseType;
+                    var loadedValue = buffer.AddOpLoad(context.Bound++, context.Types[baseType], stream.Info.Id, null);
                     buffer.AddOpStore(stream.Id, loadedValue.ResultId!.Value, null);
                 }
 

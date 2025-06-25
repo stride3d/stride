@@ -150,7 +150,7 @@ public class Declare(TypeName typename, TextLocation info) : Declaration(typenam
             var instruction = builder.Buffer.InsertOpVariable(builder.Position++, variable, registeredType, Specification.StorageClass.Function, null);
             context.AddName(variable, d.Variable);
 
-            table.CurrentFrame.Add(d.Variable, new(new(d.Variable, variable, SymbolKind.Variable), Type));
+            table.CurrentFrame.Add(d.Variable, new(new(d.Variable, SymbolKind.Variable), Type, variable));
 
             if (builder.CurrentFunction is SpirvFunction f)
                 f.Variables.Add(d.Variable, new(variable, registeredType, d.Variable));

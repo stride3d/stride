@@ -37,9 +37,9 @@ public class If(Expression condition, Statement body, TextLocation info) : Flow(
 
     public override void Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
-        Condition.Compile(table, shader, compiler);
+        Condition.CompileAsValue(table, shader, compiler);
         Body.Compile(table, shader, compiler);
-        if (Condition.Type != ScalarType.From("bool"))
+        if (Condition.ValueType != ScalarType.From("bool"))
             table.Errors.Add(new(Condition.Info, "not a boolean"));
         throw new NotImplementedException();
     }
@@ -54,9 +54,9 @@ public class ElseIf(Expression condition, Statement body, TextLocation info) : I
 {
     public override void Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
-        Condition.Compile(table, shader, compiler);
+        Condition.CompileAsValue(table, shader, compiler);
         Body.Compile(table, shader, compiler);
-        if (Condition.Type != ScalarType.From("bool"))
+        if (Condition.ValueType != ScalarType.From("bool"))
             table.Errors.Add(new(Condition.Info, "not a boolean"));
         throw new NotImplementedException();
     }
