@@ -3,6 +3,9 @@
 
 namespace Stride.Graphics;
 
+/// <summary>
+///   Defines a set of built-in <see cref="DepthStencilStateDescription"/>s for common depth and stencil testing configurations.
+/// </summary>
 public static class DepthStencilStates
 {
     static DepthStencilStates()
@@ -14,28 +17,27 @@ public static class DepthStencilStates
 
 
     /// <summary>
-    /// Known values for <see cref="DepthStencilStateDescription"/>.
+    ///   A built-in Depth-Stencil State object with default settings.
     /// </summary>
-        /// <summary>
-        /// A built-in state object with default settings for using a depth stencil buffer.
-        /// </summary>
+    /// <inheritdoc cref="DepthStencilStateDescription.SetDefaults" path="/remarks"/>
     public static readonly DepthStencilStateDescription Default;
 
-        /// <summary>
-        /// A built-in state object with default settings using greater comparison for Z.
-        /// </summary>
+    /// <summary>
+    ///   A built-in Depth-Stencil State object with default settings using <see cref="CompareFunction.GreaterEqual"/>
+    ///   function when comparing depth values.
+    /// </summary>
     public static readonly DepthStencilStateDescription DefaultInverse = new(depthEnable: true, depthWriteEnable: true)
     {
         DepthBufferFunction = CompareFunction.GreaterEqual
     };
 
-        /// <summary>
-        /// A built-in state object with settings for enabling a read-only depth stencil buffer.
-        /// </summary>
+    /// <summary>
+    ///   A built-in Depth-Stencil State object with settings for enabling a read-only Depth-Stencil Buffer.
+    /// </summary>
     public static readonly DepthStencilStateDescription DepthRead = new(depthEnable: true, depthWriteEnable: false);
 
-        /// <summary>
-        /// A built-in state object with settings for not using a depth stencil buffer.
-        /// </summary>
+    /// <summary>
+    ///   A built-in Depth-Stencil State object with settings for not using a Depth-Stencil Buffer.
+    /// </summary>
     public static readonly DepthStencilStateDescription None = new(depthEnable: false, depthWriteEnable: false);
 }

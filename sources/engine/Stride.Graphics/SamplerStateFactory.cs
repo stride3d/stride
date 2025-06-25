@@ -5,17 +5,18 @@ using Stride.Core;
 
 namespace Stride.Graphics;
 
+/// <summary>
+///   A factory for creating <see cref="SamplerState"/> instances.
+///   Contains pre-created Sampler States for commonly used configurations.
+/// </summary>
 public class SamplerStateFactory : GraphicsResourceFactoryBase
 {
     /// <summary>
-    /// Base factory for <see cref="SamplerState"/>.
+    ///   Initializes a new instance of the <see cref="SamplerStateFactory"/> class.
     /// </summary>
+    /// <param name="device">The Graphics Device.</param>
     internal SamplerStateFactory(GraphicsDevice device) : base(device)
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="SamplerStateFactory"/> class.
-        /// </summary>
-        /// <param name="device">The device.</param>
         PointWrap = CreateSamplerState("SamplerState.PointWrap", TextureFilter.Point, TextureAddressMode.Wrap);
         PointClamp = CreateSamplerState("SamplerState.PointClamp", TextureFilter.Point, TextureAddressMode.Clamp);
         LinearWrap = CreateSamplerState("SamplerState.LinearWrap", TextureFilter.Linear, TextureAddressMode.Wrap);
@@ -33,35 +34,34 @@ public class SamplerStateFactory : GraphicsResourceFactoryBase
         }
     }
 
-        /// <summary>
-        /// Default state for point filtering with texture coordinate wrapping.
-        /// </summary>
 
-        /// <summary>
-        /// Default state for point filtering with texture coordinate clamping.
-        /// </summary>
+    /// <summary>
+    ///   Default Sampler State for <strong>point filtering</strong> with texture coordinate <strong>wrapping</strong>.
+    /// </summary>
     public readonly SamplerState PointWrap;
 
-        /// <summary>
-        /// Default state for linear filtering with texture coordinate wrapping.
-        /// </summary>
+    /// <summary>
+    ///   Default Sampler State for <strong>point filtering</strong> with texture coordinate <strong>clamping</strong>.
+    /// </summary>
     public readonly SamplerState PointClamp;
 
+    /// <summary>
+    ///   Default Sampler State for <strong>linear filtering</strong> with texture coordinate <strong>wrapping</strong>.
+    /// </summary>
     public readonly SamplerState LinearWrap;
 
-        /// <summary>
-        /// Default state for linear filtering with texture coordinate clamping.
-        /// </summary>
+    /// <summary>
+    ///   Default Sampler State for <strong>linear filtering</strong> with texture coordinate <strong>clamping</strong>.
+    /// </summary>
     public readonly SamplerState LinearClamp;
 
-        /// <summary>
-        /// Default state for anisotropic filtering with texture coordinate wrapping.
-        /// </summary>
+    /// <summary>
+    ///   Default Sampler State for <strong>anisotropic filtering</strong> with texture coordinate <strong>wrapping</strong>.
+    /// </summary>
     public readonly SamplerState AnisotropicWrap;
 
-        /// <summary>
-        /// Default state for anisotropic filtering with texture coordinate clamping.
-        /// </summary>
-    }
+    /// <summary>
+    ///   Default Sampler State for <strong>anisotropic filtering</strong> with texture coordinate <strong>clamping</strong>.
+    /// </summary>
     public readonly SamplerState AnisotropicClamp;
 }
