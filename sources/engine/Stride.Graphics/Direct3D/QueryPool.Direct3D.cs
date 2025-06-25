@@ -7,69 +7,65 @@ using System;
 using Silk.NET.Core.Native;
 using Silk.NET.Direct3D11;
 
-using QueryPtr = Stride.Core.UnsafeExtensions.Pointer<Silk.NET.Direct3D11.ID3D11Query>;
+namespace Stride.Graphics;
 
-namespace Stride.Graphics
+public unsafe partial class QueryPool
 {
-    public unsafe partial class QueryPool
+    private ComPtr<ID3D11Query>[] nativeQueries;
+
+    internal Span<ComPtr<ID3D11Query>> NativeQueries => nativeQueries;
+
+
+    public bool TryGetData(long[] dataArray)
     {
-        internal QueryPtr[] NativeQueries;
+        var deviceContext = GraphicsDevice.NativeDeviceContext;
 
-        public bool TryGetData(long[] dataArray)
+        var queryCount = QueryCount;
+        for (var index = 0; index < queryCount; index++)
         {
-            var deviceContext = GraphicsDevice.NativeDeviceContext;
+            HResult result = deviceContext.GetData(nativeQueries[index], ref dataArray[index], sizeof(long), GetDataFlags: 0);
 
-            for (var index = 0; index < NativeQueries.Length; index++)
-            {
-                var query = (ID3D11Asynchronous*) NativeQueries[index].Value;
-
-                HResult result = deviceContext->GetData(query, ref dataArray[index], sizeof(long), GetDataFlags: 0);
-
-                if (result.IsFailure)
-                    return false;
-            }
-
-            return true;
+            if (result.IsFailure)
+                return false;
         }
 
         /// <inheritdoc/>
-        protected internal override void OnDestroyed()
-        {
-            for (var i = 0; i < QueryCount; i++)
-            {
-                NativeQueries[i].Value->Release();
-                NativeQueries[i] = null;
-            }
-            NativeQueries = null;
+        return true;
+    }
 
-            base.OnDestroyed();
+    protected internal override void OnDestroyed()
+    {
+        for (var i = 0; i < QueryCount; i++)
+        {
+            ComPtrHelpers.SafeRelease(ref nativeQueries[i]);
         }
+        nativeQueries = null;
 
-        private void Recreate()
+        base.OnDestroyed();
+    }
+
+    private partial void Recreate()
+    {
+        var queryDescription = new QueryDesc
         {
-            var queryDescription = new QueryDesc();
-
-            switch (QueryType)
+            Query = QueryType switch
             {
-                case QueryType.Timestamp:
-                    queryDescription.Query = Query.Timestamp;
-                    break;
+                QueryType.Timestamp => Query.Timestamp,
 
-                default:
-                    throw new NotImplementedException();
+                _ => throw new NotImplementedException($"Query type {QueryType} not supported")
             }
+        };
 
-            NativeQueries = new QueryPtr[QueryCount];
-            for (var i = 0; i < QueryCount; i++)
-            {
-                ID3D11Query* query;
-                HResult result = NativeDevice->CreateQuery(in queryDescription, &query);
+        nativeQueries = new ComPtr<ID3D11Query>[QueryCount];
+        for (var i = 0; i < QueryCount; i++)
+        {
+            ComPtr<ID3D11Query> query = default;
+            HResult result = NativeDevice.CreateQuery(in queryDescription, ref query);
 
-                if (result.IsFailure)
-                    result.Throw();
+            if (result.IsFailure)
+                result.Throw();
 
-                NativeQueries[i] = query;
-            }
+            nativeQueries[i] = query;
         }
     }
 }

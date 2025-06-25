@@ -381,8 +381,8 @@ namespace Stride.TextureConverter.TexLibraries
                 FreeImage.Unload(redChannel);
             }
 
-            if (image.Format.IsBGRAOrder())
-                image.Format = Graphics.PixelFormat.R8G8B8A8_UNorm;
+            if (image.Format.IsBgraOrder())
+                image.Format = PixelFormat.R8G8B8A8_UNorm;
             else
                 image.Format = Graphics.PixelFormat.B8G8R8A8_UNorm;
         }
@@ -507,7 +507,7 @@ namespace Stride.TextureConverter.TexLibraries
                 throw new TextureToolsException("Not implemented.");
             }
 
-            if (!image.Format.IsBGRAOrder())
+            if (!image.Format.IsBgraOrder())
             {
                 SwitchChannels(image, libraryData, new SwitchingBRChannelsRequest());
             }
