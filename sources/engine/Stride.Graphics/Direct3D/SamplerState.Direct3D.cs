@@ -3,86 +3,89 @@
 
 #if STRIDE_GRAPHICS_API_DIRECT3D11
 
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using Silk.NET.Core.Native;
 using Silk.NET.Direct3D11;
 using Stride.Core.Mathematics;
 
-namespace Stride.Graphics
+namespace Stride.Graphics;
+
+public unsafe partial class SamplerState
 {
+    private ID3D11SamplerState* samplerState;
+
     /// <summary>
     /// Describes a sampler state used for texture sampling.
     /// </summary>
-    public unsafe partial class SamplerState
+    internal ComPtr<ID3D11SamplerState> NativeSamplerState => ComPtrHelpers.ToComPtr(samplerState);
+
+
+    private SamplerState(GraphicsDevice device, SamplerStateDescription description) : base(device)
     {
         /// <summary>
         ///   Gets the native Direct3D 11 sampler state object.
         /// </summary>
-        internal ID3D11SamplerState* NativeSamplerState { get; private set; }
-
-
         /// <summary>
         /// Initializes a new instance of the <see cref="SamplerState"/> class.
         /// </summary>
         /// <param name="device">The device.</param>
         /// <param name="name">The name.</param>
         /// <param name="samplerStateDescription">The sampler state description.</param>
-        private SamplerState(GraphicsDevice device, SamplerStateDescription samplerStateDescription) : base(device)
-        {
-            Description = samplerStateDescription;
+        Description = description;
 
-            CreateNativeDeviceChild();
-        }
+        CreateNativeSamplerState();
+    }
 
         /// <inheritdoc/>
-        protected internal override bool OnRecreate()
-        {
-            base.OnRecreate();
+    protected internal override bool OnRecreate()
+    {
+        base.OnRecreate();
 
-            CreateNativeDeviceChild();
-            return true;
+        CreateNativeSamplerState();
+        return true;
+    }
+
+    private unsafe void CreateNativeSamplerState()
+    {
+        var samplerDescription = new SamplerDesc
+        {
+            AddressU = (Silk.NET.Direct3D11.TextureAddressMode) Description.AddressU,
+            AddressV = (Silk.NET.Direct3D11.TextureAddressMode) Description.AddressV,
+            AddressW = (Silk.NET.Direct3D11.TextureAddressMode) Description.AddressW,
+            ComparisonFunc = (ComparisonFunc) Description.CompareFunction,
+            Filter = (Filter) Description.Filter,
+            MaxAnisotropy = (uint) Description.MaxAnisotropy,
+            MaxLOD = (uint) Description.MaxMipLevel,
+            MinLOD = (uint) Description.MinMipLevel,
+            MipLODBias = Description.MipMapLevelOfDetailBias
+        };
+        Debug.Assert(sizeof(Color4) == (4 * sizeof(float)));
+        Unsafe.AsRef<Color4>(samplerDescription.BorderColor) = Description.BorderColor;
+
+        // For 9.1, anisotropy cannot be larger than 2.
+        // Mirror once is not supported either.
+        if (GraphicsDevice.Features.CurrentProfile == GraphicsProfile.Level_9_1)
+        {
+            // TODO: Min with user-value instead?
+            samplerDescription.MaxAnisotropy = 2;
+
+            if (samplerDescription.AddressU == Silk.NET.Direct3D11.TextureAddressMode.MirrorOnce)
+                samplerDescription.AddressU = Silk.NET.Direct3D11.TextureAddressMode.Mirror;
+            if (samplerDescription.AddressV == Silk.NET.Direct3D11.TextureAddressMode.MirrorOnce)
+                samplerDescription.AddressV = Silk.NET.Direct3D11.TextureAddressMode.Mirror;
+            if (samplerDescription.AddressW == Silk.NET.Direct3D11.TextureAddressMode.MirrorOnce)
+                samplerDescription.AddressW = Silk.NET.Direct3D11.TextureAddressMode.Mirror;
         }
 
-        private unsafe void CreateNativeDeviceChild()
-        {
-            var nativeDescription = new SamplerDesc
-            {
-                AddressU = (Silk.NET.Direct3D11.TextureAddressMode) Description.AddressU,
-                AddressV = (Silk.NET.Direct3D11.TextureAddressMode) Description.AddressV,
-                AddressW = (Silk.NET.Direct3D11.TextureAddressMode) Description.AddressW,
-                ComparisonFunc = (ComparisonFunc)Description.CompareFunction,
-                Filter = (Filter) Description.Filter,
-                MaxAnisotropy = (uint) Description.MaxAnisotropy,
-                MaxLOD = (uint) Description.MaxMipLevel,
-                MinLOD = (uint) Description.MinMipLevel,
-                MipLODBias = Description.MipMapLevelOfDetailBias
-            };
-            Unsafe.AsRef<Color4>(nativeDescription.BorderColor) = Description.BorderColor;
+        ID3D11SamplerState* samplerState;
+        HResult result = NativeDevice.CreateSamplerState(in samplerDescription, &samplerState);
 
-            // For 9.1, anisotropy cannot be larger than 2.
-            // Mirror once is not supported either.
-            if (GraphicsDevice.Features.CurrentProfile == GraphicsProfile.Level_9_1)
-            {
-                // TODO: Min with user-value instead?
-                nativeDescription.MaxAnisotropy = 2;
+        if (result.IsFailure)
+            result.Throw();
 
-                if (nativeDescription.AddressU == Silk.NET.Direct3D11.TextureAddressMode.MirrorOnce)
-                    nativeDescription.AddressU = Silk.NET.Direct3D11.TextureAddressMode.Mirror;
-                if (nativeDescription.AddressV == Silk.NET.Direct3D11.TextureAddressMode.MirrorOnce)
-                    nativeDescription.AddressV = Silk.NET.Direct3D11.TextureAddressMode.Mirror;
-                if (nativeDescription.AddressW == Silk.NET.Direct3D11.TextureAddressMode.MirrorOnce)
-                    nativeDescription.AddressW = Silk.NET.Direct3D11.TextureAddressMode.Mirror;
-            }
-
-            ID3D11SamplerState* samplerState;
-            HResult result = NativeDevice->CreateSamplerState(in nativeDescription, &samplerState);
-
-            if (result.IsFailure)
-                result.Throw();
-
-            NativeSamplerState = samplerState;
-            NativeDeviceChild = (ID3D11DeviceChild*) samplerState;
-        }
+        this.samplerState = samplerState;
+        NativeDeviceChild = NativeSamplerState.AsDeviceChild();
     }
 }
 
