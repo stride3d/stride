@@ -4,135 +4,127 @@
 using System;
 using Stride.Shaders;
 
-namespace Stride.Graphics
+namespace Stride.Graphics;
+
+public class PipelineStateDescription : IEquatable<PipelineStateDescription>
 {
-    public class PipelineStateDescription : IEquatable<PipelineStateDescription>
+    public RootSignature RootSignature;
+
+    public EffectBytecode EffectBytecode;
+
+    public BlendStateDescription BlendState;
+
+    public uint SampleMask = 0xFFFFFFFF;
+
+    public RasterizerStateDescription RasterizerState;
+
+    public DepthStencilStateDescription DepthStencilState;
+
+
+    public InputElementDescription[] InputElements;
+
+    public PrimitiveType PrimitiveType;
+
+
+    public RenderOutputDescription Output;
+
+
+    public unsafe PipelineStateDescription Clone()
     {
-        // Root Signature
-        public RootSignature RootSignature;
-
-        // Effect/Shader
-        public EffectBytecode EffectBytecode;
-
-        // Rendering States
-        public BlendStateDescription BlendState;
-        public uint SampleMask = 0xFFFFFFFF;
-        public RasterizerStateDescription RasterizerState;
-        public DepthStencilStateDescription DepthStencilState;
-
-        // Input layout
-        public InputElementDescription[] InputElements;
-
-        public PrimitiveType PrimitiveType;
-
-        public RenderOutputDescription Output;
-
-        public unsafe PipelineStateDescription Clone()
+        return new PipelineStateDescription
         {
-            InputElementDescription[] inputElements;
-            if (InputElements != null)
-            {
-                inputElements = new InputElementDescription[InputElements.Length];
-                for (int i = 0; i < inputElements.Length; ++i)
-                    inputElements[i] = InputElements[i];
-            }
-            else
-            {
-                inputElements = null;
-            }
+            RootSignature = RootSignature,
+            EffectBytecode = EffectBytecode,
+            BlendState = BlendState,
+            SampleMask = SampleMask,
+            RasterizerState = RasterizerState,
+            DepthStencilState = DepthStencilState,
 
-            return new PipelineStateDescription
-            {
-                RootSignature = RootSignature,
-                EffectBytecode = EffectBytecode,
-                BlendState = BlendState,
-                SampleMask = SampleMask,
-                RasterizerState = RasterizerState,
-                DepthStencilState = DepthStencilState,
+            InputElements = (InputElementDescription[]) InputElements.Clone(),
 
-                InputElements = inputElements,
+            PrimitiveType = PrimitiveType,
 
-                PrimitiveType = PrimitiveType,
+            Output = Output
+        };
+    }
 
-                Output = Output,
-            };
-        }
+    public void SetDefaults()
+    {
+        BlendState.SetDefaults();
+        RasterizerState.SetDefaults();
+        DepthStencilState.SetDefaults();
+    }
 
-        public void SetDefaults()
-        {
-            BlendState.SetDefaults();
-            RasterizerState.SetDefault();
-            DepthStencilState.SetDefault();
-        }
 
-        public bool Equals(PipelineStateDescription other)
-        {
-            if (ReferenceEquals(null, other)) return false;
-            if (ReferenceEquals(this, other)) return true;
-            if (!(RootSignature == other.RootSignature
-                && EffectBytecode == other.EffectBytecode
-                && BlendState.Equals(other.BlendState)
-                && SampleMask == other.SampleMask
-                && RasterizerState.Equals(other.RasterizerState)
-                && DepthStencilState.Equals(other.DepthStencilState)
-                && PrimitiveType == other.PrimitiveType
-                && Output == other.Output))
-                return false;
+    public bool Equals(PipelineStateDescription other)
+    {
+        if (other is null)
+            return false;
 
-            if ((InputElements != null) != (other.InputElements != null))
-                return false;
-            if (InputElements != null)
-            {
-                if (InputElements.Length != other.InputElements.Length)
-                    return false;
-                for (int i = 0; i < InputElements.Length; ++i)
-                {
-                    if (!InputElements[i].Equals(other.InputElements[i]))
-                        return false;
-                }
-            }
-
+        if (ReferenceEquals(this, other))
             return true;
-        }
 
-        public override bool Equals(object obj)
-        {
-            if (ReferenceEquals(null, obj)) return false;
-            if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != this.GetType()) return false;
-            return Equals((PipelineStateDescription)obj);
-        }
+        if (!(RootSignature == other.RootSignature
+            && EffectBytecode == other.EffectBytecode
+            && BlendState.Equals(other.BlendState)
+            && SampleMask == other.SampleMask
+            && RasterizerState.Equals(other.RasterizerState)
+            && DepthStencilState.Equals(other.DepthStencilState)
+            && PrimitiveType == other.PrimitiveType
+            && Output == other.Output))
+            return false;
 
-        public override int GetHashCode()
+        if ((InputElements is not null) != (other.InputElements is not null))
+            return false;
+
+        if (InputElements is not null)
         {
-            unchecked
+            if (InputElements.Length != other.InputElements.Length)
+                return false;
+
+            for (int i = 0; i < InputElements.Length; ++i)
             {
-                var hashCode = RootSignature != null ? RootSignature.GetHashCode() : 0;
-                hashCode = (hashCode * 397) ^ (EffectBytecode != null ? EffectBytecode.GetHashCode() : 0);
-                hashCode = (hashCode * 397) ^ BlendState.GetHashCode();
-                hashCode = (hashCode * 397) ^ (int)SampleMask;
-                hashCode = (hashCode * 397) ^ RasterizerState.GetHashCode();
-                hashCode = (hashCode * 397) ^ DepthStencilState.GetHashCode();
-                if (InputElements != null)
-                {
-                    foreach (var inputElement in InputElements)
-                        hashCode = (hashCode * 397) ^ inputElement.GetHashCode();
-                }
-
-                hashCode = (hashCode * 397) ^ (int)PrimitiveType;
-                hashCode = (hashCode * 397) ^ Output.GetHashCode();
-                return hashCode;
+                if (!InputElements[i].Equals(other.InputElements[i]))
+                    return false;
             }
         }
 
-        public static bool operator ==(PipelineStateDescription left, PipelineStateDescription right)
+        return true;
+    }
+
+    public override bool Equals(object obj)
+    {
+        return obj is PipelineStateDescription pipelineStateDescription && Equals(pipelineStateDescription);
+    }
+
+    public override int GetHashCode()
+    {
+        HashCode hashCode1 = new();
+        hashCode1.Add(RootSignature);
+        hashCode1.Add(EffectBytecode);
+        hashCode1.Add(BlendState);
+        hashCode1.Add(SampleMask);
+        hashCode1.Add(RasterizerState);
+        hashCode1.Add(DepthStencilState);
+
+        if (InputElements is not null)
         {
-            return Equals(left, right);
+            foreach (var inputElement in InputElements)
+                hashCode1.Add(inputElement);
         }
 
-        public static bool operator !=(PipelineStateDescription left, PipelineStateDescription right)
-        {
-            return !Equals(left, right);
-        }
+        hashCode1.Add(PrimitiveType);
+        hashCode1.Add(Output);
+        return hashCode1.ToHashCode();
+    }
+
+    public static bool operator ==(PipelineStateDescription left, PipelineStateDescription right)
+    {
+        return Equals(left, right);
+    }
+
+    public static bool operator !=(PipelineStateDescription left, PipelineStateDescription right)
+    {
+        return !Equals(left, right);
     }
 }

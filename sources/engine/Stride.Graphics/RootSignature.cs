@@ -1,33 +1,31 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using Stride.Shaders;
 
-namespace Stride.Graphics
+namespace Stride.Graphics;
+
+public class RootSignature : GraphicsResourceBase
 {
     /// <summary>
     /// Describes how <see cref="DescriptorSet"/> will be bound together.
     /// </summary>
-    public class RootSignature : GraphicsResourceBase
+    internal EffectDescriptorSetReflection EffectDescriptorSetReflection { get; }
+
+
+    public static RootSignature New(GraphicsDevice graphicsDevice, EffectDescriptorSetReflection effectDescriptorSetReflection)
     {
-        internal readonly EffectDescriptorSetReflection EffectDescriptorSetReflection;
+        return new RootSignature(graphicsDevice, effectDescriptorSetReflection);
+    }
 
-        public static RootSignature New(GraphicsDevice graphicsDevice, EffectDescriptorSetReflection effectDescriptorSetReflection)
-        {
-            return new RootSignature(graphicsDevice, effectDescriptorSetReflection);
-        }
+    private RootSignature(GraphicsDevice graphicsDevice, EffectDescriptorSetReflection effectDescriptorSetReflection)
+        : base(graphicsDevice)
+    {
+        EffectDescriptorSetReflection = effectDescriptorSetReflection;
+    }
 
-        private RootSignature(GraphicsDevice graphicsDevice, EffectDescriptorSetReflection effectDescriptorSetReflection)
-            : base(graphicsDevice)
-        {
-            this.EffectDescriptorSetReflection = effectDescriptorSetReflection;
-        }
 
-        protected internal override bool OnRecreate()
-        {
-            return true;
-        }
+    /// <inheritdoc/>
+    protected internal override bool OnRecreate()
+    {
+        return true;
     }
 }

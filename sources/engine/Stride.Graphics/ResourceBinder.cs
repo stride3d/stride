@@ -1,11 +1,13 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 #if STRIDE_GRAPHICS_API_DIRECT3D11 || STRIDE_GRAPHICS_API_OPENGL
+
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using Stride.Core;
+
 using Stride.Shaders;
 
 namespace Stride.Graphics
@@ -14,13 +16,14 @@ namespace Stride.Graphics
     {
         private BindingOperation[][] descriptorSetBindings;
 
-        public void Compile(GraphicsDevice graphicsDevice, EffectDescriptorSetReflection descriptorSetLayouts, EffectBytecode effectBytecode)
+        public void Compile(EffectDescriptorSetReflection descriptorSetLayouts, EffectBytecode effectBytecode)
         {
             descriptorSetBindings = new BindingOperation[descriptorSetLayouts.Layouts.Count][];
+
             for (int setIndex = 0; setIndex < descriptorSetLayouts.Layouts.Count; setIndex++)
             {
                 var layout = descriptorSetLayouts.Layouts[setIndex].Layout;
-                if (layout == null)
+                if (layout is null)
                     continue;
 
                 var bindingOperations = new List<BindingOperation>();
@@ -43,7 +46,7 @@ namespace Stride.Graphics
                                 Class = resourceBinding.Class,
                                 Stage = resourceBinding.Stage,
                                 SlotStart = resourceBinding.SlotStart,
-                                ImmutableSampler = layoutEntry.ImmutableSampler,
+                                ImmutableSampler = layoutEntry.ImmutableSampler
                             });
                         }
                     }
@@ -52,52 +55,52 @@ namespace Stride.Graphics
                 descriptorSetBindings[setIndex] = bindingOperations.Count > 0 ? bindingOperations.ToArray() : null;
             }
         }
-        public void BindResources(CommandList commandList, DescriptorSet[] descriptorSets)
+
+        public readonly void BindResources(CommandList commandList, DescriptorSet[] descriptorSets)
         {
             for (int setIndex = 0; setIndex < descriptorSetBindings.Length; setIndex++)
             {
                 var bindingOperations = descriptorSetBindings[setIndex];
-                if (bindingOperations == null)
+                if (bindingOperations is null)
                     continue;
 
                 var descriptorSet = descriptorSets[setIndex];
 
                 ref var bindingOperation = ref MemoryMarshal.GetArrayDataReference(bindingOperations);
                 ref var end = ref Unsafe.Add(ref bindingOperation, bindingOperations.Length);
+
                 for (; Unsafe.IsAddressLessThan(ref bindingOperation, ref end); bindingOperation = ref Unsafe.Add(ref bindingOperation, 1))
                 {
                     var value = descriptorSet.HeapObjects[descriptorSet.DescriptorStartOffset + bindingOperation.EntryIndex];
+
                     switch (bindingOperation.Class)
                     {
                         case EffectParameterClass.ConstantBuffer:
-                            {
-                                commandList.SetConstantBuffer(bindingOperation.Stage, bindingOperation.SlotStart, (Buffer)value.Value);
-                                break;
-                            }
+                            commandList.SetConstantBuffer(bindingOperation.Stage, bindingOperation.SlotStart, (Buffer) value.Value);
+                            break;
+
                         case EffectParameterClass.Sampler:
-                            {
-                                commandList.SetSamplerState(bindingOperation.Stage, bindingOperation.SlotStart, bindingOperation.ImmutableSampler ?? (SamplerState)value.Value);
-                                break;
-                            }
+                            commandList.SetSamplerState(bindingOperation.Stage, bindingOperation.SlotStart, bindingOperation.ImmutableSampler ?? (SamplerState) value.Value);
+                            break;
+
                         case EffectParameterClass.ShaderResourceView:
-                            {
-                                commandList.UnsetUnorderedAccessView(value.Value as GraphicsResource);
-                                commandList.SetShaderResourceView(bindingOperation.Stage, bindingOperation.SlotStart, (GraphicsResource)value.Value);
-                                break;
-                            }
+                            commandList.UnsetUnorderedAccessView(value.Value as GraphicsResource);
+                            commandList.SetShaderResourceView(bindingOperation.Stage, bindingOperation.SlotStart, (GraphicsResource) value.Value);
+                            break;
+
                         case EffectParameterClass.UnorderedAccessView:
-                            {
-                                commandList.SetUnorderedAccessView(bindingOperation.Stage, bindingOperation.SlotStart, (GraphicsResource)value.Value, value.Offset);
-                                break;
-                            }
+                            commandList.SetUnorderedAccessView(bindingOperation.Stage, bindingOperation.SlotStart, (GraphicsResource) value.Value, value.Offset);
+                            break;
+
                         default:
-                            throw new ArgumentOutOfRangeException();
+                            throw new NotSupportedException($"Binding operation on an unsupported Effect parameter type [{bindingOperation.Class}]");
                     }
                 }
             }
         }
 
-        internal struct BindingOperation
+
+        private struct BindingOperation
         {
             public int EntryIndex;
             public EffectParameterClass Class;
@@ -107,4 +110,5 @@ namespace Stride.Graphics
         }
     }
 }
+
 #endif
