@@ -1,7 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 using System;
-using System.Globalization;
 using System.Runtime.InteropServices;
 using Stride.Core.Mathematics;
 
@@ -81,15 +81,15 @@ namespace Stride.Graphics
             X = bounds.X;
             Y = bounds.Y;
             Width = bounds.Width;
-            Height = bounds.Height; 
+            Height = bounds.Height;
             MinDepth = 0;
-            MaxDepth = 1;            
+            MaxDepth = 1;
         }
 
         /// <summary>Gets the size of this resource.</summary>
         public Rectangle Bounds
         {
-            get { return new Rectangle((int)X, (int)Y, (int)Width, (int)Height); }
+            readonly get => new((int) X, (int) Y, (int) Width, (int) Height);
             set
             {
                 X = value.X;
@@ -99,30 +99,31 @@ namespace Stride.Graphics
             }
         }
 
-        public bool Equals(Viewport other)
+        public readonly float AspectRatio => Width != 0 && Height != 0 ? Width / Height : 0;
+
+        public readonly Vector2 Size => new(Width, Height);
+
+        public readonly bool Equals(Viewport other)
         {
-            return other.X.Equals(X) && other.Y.Equals(Y) && other.Width.Equals(Width) && other.Height.Equals(Height) && other.MinDepth.Equals(MinDepth) && other.MaxDepth.Equals(MaxDepth);
+            return other.X.Equals(X)
+                && other.Y.Equals(Y)
+                && other.Width.Equals(Width)
+                && other.Height.Equals(Height)
+                && other.MinDepth.Equals(MinDepth)
+                && other.MaxDepth.Equals(MaxDepth);
         }
 
-        public override bool Equals(object obj)
+        public override readonly bool Equals(object obj)
         {
-            if (ReferenceEquals(null, obj)) return false;
-            if (obj.GetType() != typeof(Viewport)) return false;
-            return Equals((Viewport)obj);
+            if (obj is null)
+                return false;
+
+            return obj is Viewport viewport && Equals(viewport);
         }
 
-        public override int GetHashCode()
+        public override readonly int GetHashCode()
         {
-            unchecked
-            {
-                int result = X.GetHashCode();
-                result = (result * 397) ^ Y.GetHashCode();
-                result = (result * 397) ^ Width.GetHashCode();
-                result = (result * 397) ^ Height.GetHashCode();
-                result = (result * 397) ^ MinDepth.GetHashCode();
-                result = (result * 397) ^ MaxDepth.GetHashCode();
-                return result;
-            }
+            return HashCode.Combine(X, Y, Width, Height, MinDepth, MaxDepth);
         }
 
         public static bool operator ==(Viewport left, Viewport right)
@@ -136,15 +137,15 @@ namespace Stride.Graphics
         }
 
         /// <summary>Retrieves a string representation of this object.</summary>
-        public override string ToString()
+        public override readonly string ToString()
         {
-            return string.Format(CultureInfo.CurrentCulture, "{{X:{0} Y:{1} Width:{2} Height:{3} MinDepth:{4} MaxDepth:{5}}}", new object[] { X, Y, Width, Height, MinDepth, MaxDepth });
+            return FormattableString.CurrentCulture($"{{X:{X} Y:{Y} Width:{Width} Height:{Height} MinDepth:{MinDepth} MaxDepth:{MaxDepth}}}");
         }
 
         private static bool WithinEpsilon(float a, float b)
         {
-            float num = a - b;
-            return ((num >= -1.401298E-45f) && (num <= float.Epsilon));
+            float difference = a - b;
+            return (difference >= -1.401298E-45f) && (difference <= float.Epsilon);
         }
 
         /// <summary>Projects a 3D vector from object space into screen space.</summary>
@@ -152,17 +153,18 @@ namespace Stride.Graphics
         /// <param name="projection">The projection matrix.</param>
         /// <param name="view">The view matrix.</param>
         /// <param name="world">The world matrix.</param>
-        public Vector3 Project(Vector3 source, Matrix projection, Matrix view, Matrix world)
+        public readonly Vector3 Project(Vector3 source, Matrix projection, Matrix view, Matrix world)
         {
-            Matrix matrix = Matrix.Multiply(Matrix.Multiply(world, view), projection);
-            Vector4 vector = Vector3.Transform(source, matrix);
-            float a = (((source.X * matrix.M14) + (source.Y * matrix.M24)) + (source.Z * matrix.M34)) + matrix.M44;
-            if (!WithinEpsilon(a, 1f))
+            Matrix worldViewProj = Matrix.Multiply(Matrix.Multiply(world, view), projection);
+            Vector4 vector = Vector3.Transform(source, worldViewProj);
+
+            float w = (source.X * worldViewProj.M14) + (source.Y * worldViewProj.M24) + (source.Z * worldViewProj.M34) + worldViewProj.M44;
+            if (!WithinEpsilon(w, 1))
             {
-                vector = (vector / a);
+                vector /= w;
             }
-            vector.X = (((vector.X + 1f) * 0.5f) * Width) + X;
-            vector.Y = (((-vector.Y + 1f) * 0.5f) * Height) + Y;
+            vector.X = ((vector.X + 1) * 0.5f * Width) + X;
+            vector.Y = ((-vector.Y + 1) * 0.5f * Height) + Y;
             vector.Z = (vector.Z * (MaxDepth - MinDepth)) + MinDepth;
             return new Vector3(vector.X, vector.Y, vector.Z);
         }
@@ -174,45 +176,28 @@ namespace Stride.Graphics
         /// <param name="world">The world matrix.</param>
         public Vector3 Unproject(Vector3 source, Matrix projection, Matrix view, Matrix world)
         {
-            Matrix matrix = Matrix.Multiply(Matrix.Multiply(world, view), projection);
-            return Unproject(source, ref matrix);
+            Matrix worldViewProj = Matrix.Multiply(Matrix.Multiply(world, view), projection);
+            return Unproject(source, in worldViewProj);
         }
 
         /// <summary>Converts a screen space point into a corresponding point in world space.</summary>
         /// <param name="source">The vector to project.</param>
         /// <param name="worldViewProjection">The World-View-Projection matrix.</param>
-        public Vector3 Unproject(Vector3 source, ref Matrix worldViewProjection)
+        public readonly Vector3 Unproject(Vector3 source, ref readonly Matrix worldViewProjection)
         {
-            Matrix matrix = Matrix.Invert(worldViewProjection);
+            Matrix invWorldViewProj = Matrix.Invert(worldViewProjection);
 
-            source.X = (((source.X - X) / Width) * 2f) - 1f;
-            source.Y = -((((source.Y - Y) / Height) * 2f) - 1f);
+            source.X = ((source.X - X) / Width * 2) - 1;
+            source.Y = -(((source.Y - Y) / Height * 2) - 1);
             source.Z = (source.Z - MinDepth) / (MaxDepth - MinDepth);
-            Vector4 vector = Vector3.Transform(source, matrix);
-            float a = (((source.X * matrix.M14) + (source.Y * matrix.M24)) + (source.Z * matrix.M34)) + matrix.M44;
-            if (!WithinEpsilon(a, 1f))
+            Vector4 vector = Vector3.Transform(source, invWorldViewProj);
+
+            float w = (source.X * invWorldViewProj.M14) + (source.Y * invWorldViewProj.M24) + (source.Z * invWorldViewProj.M34) + invWorldViewProj.M44;
+            if (!WithinEpsilon(w, 1))
             {
-                vector = vector / a;
+                vector /= w;
             }
             return new Vector3(vector.X, vector.Y, vector.Z);
         }
-
-        /// <summary>Gets the aspect ratio used by the viewport</summary>
-        public float AspectRatio
-        {
-            get
-            {
-                if (Width != 0 && Height != 0)
-                {
-                    return Width / Height;
-                }
-                return 0f;
-            }
-        }
-
-        /// <summary>
-        /// Gets the size of the viewport (Width, Height).
-        /// </summary>
-        public Vector2 Size => new Vector2(Width, Height);
     }
 }

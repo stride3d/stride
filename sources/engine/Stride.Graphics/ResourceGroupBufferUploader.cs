@@ -75,13 +75,13 @@ namespace Stride.Graphics
                     {
                         if (hasResourceRenaming)
                         {
-                            var mappedConstantBuffer = commandList.MapSubresource(preallocatedBuffer, 0, MapMode.WriteDiscard);
-                            Utilities.CopyWithAlignmentFallback((void*)mappedConstantBuffer.DataBox.DataPointer, (void*)resourceGroup.ConstantBuffer.Data, (uint)resourceGroup.ConstantBuffer.Size);
-                            commandList.UnmapSubresource(mappedConstantBuffer);
+                            var mappedConstantBuffer = commandList.MapSubResource(preallocatedBuffer, 0, MapMode.WriteDiscard);
+                            Utilities.CopyWithAlignmentFallback((void*) mappedConstantBuffer.DataBox.DataPointer, (void*) resourceGroup.ConstantBuffer.Data, (uint) resourceGroup.ConstantBuffer.Size);
+                            commandList.UnmapSubResource(mappedConstantBuffer);
                         }
                         else
                         {
-                            commandList.UpdateSubresource(preallocatedBuffer, 0, new DataBox(resourceGroup.ConstantBuffer.Data, resourceGroup.ConstantBuffer.Size, 0));
+                            commandList.UpdateSubResource(preallocatedBuffer, 0, new DataBox(resourceGroup.ConstantBuffer.Data, resourceGroup.ConstantBuffer.Size, 0));
                         }
                     }
 

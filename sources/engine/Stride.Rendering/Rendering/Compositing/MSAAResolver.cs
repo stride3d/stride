@@ -167,7 +167,7 @@ namespace Stride.Rendering.Compositing
                 FilterType == FilterTypes.Default)
             {
                 // We currently only support the default hardware MSAA resolve on OpenGL and OpenGL ES.
-                drawContext.CommandList.CopyMultisample(input, 0, output, 0);
+                drawContext.CommandList.CopyMultiSampled(input, 0, output, 0);
             }
             else if (input.IsDepthStencil)
             {

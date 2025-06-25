@@ -183,7 +183,7 @@ namespace Stride.Rendering.SubsurfaceScattering
             {
                 DataBox dataBox = new DataBox((IntPtr)dataPtr, 0, 0);
                 ResourceRegion resourceRegion = new ResourceRegion(0, 0, 0, bufferSize, 1, 1);  // TODO: PERFORMANCE: Only upload the actual number of elements active in the buffer?
-                context.CommandList.UpdateSubresource(materialScatteringKernelBuffer, 0, dataBox, resourceRegion);
+                context.CommandList.UpdateSubResource(materialScatteringKernelBuffer, 0, dataBox, resourceRegion);
             }
 
             SetValueParameterForBothShaders(SubsurfaceScatteringBlurShaderKeys.KernelBuffer, materialScatteringKernelBuffer);
