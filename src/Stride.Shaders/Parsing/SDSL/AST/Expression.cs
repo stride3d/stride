@@ -1,6 +1,7 @@
 using System.Text;
 using Stride.Shaders.Core;
 using Stride.Shaders.Parsing.Analysis;
+using Stride.Shaders.Spirv;
 using Stride.Shaders.Spirv.Building;
 using Stride.Shaders.Spirv.Core;
 using Stride.Shaders.Spirv.Core.Buffers;
@@ -145,7 +146,10 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
             currentValueType = accessor.Type;
         }
 
-        Type = new PointerType(currentValueType);
+        if (currentValueType is not PointerType)
+            throw new InvalidOperationException();
+
+        Type = new PointerType(currentValueType, Specification.StorageClass.Uniform);
 
         // Do we need the OpAccessChain? (if we have streams.StreamVar, we can return StreamVar as is)
         if (firstIndex == Accessors.Count)

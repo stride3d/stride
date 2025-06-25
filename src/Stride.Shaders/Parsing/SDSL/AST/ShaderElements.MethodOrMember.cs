@@ -191,8 +191,9 @@ public class ShaderMethod(
             function = builder.CreateFunction(context, Name, ftype);
             foreach (var p in Parameters)
             {
-                var paramValue = builder.AddFunctionParameter(context, p.Name, p.Type);
-                table.CurrentFrame.Add(p.Name, new(new(p.Name, paramValue.Id, SymbolKind.Variable), p.Type));
+                var parameterType = new PointerType(p.Type, Specification.StorageClass.Function);
+                var paramValue = builder.AddFunctionParameter(context, p.Name, parameterType);
+                table.CurrentFrame.Add(p.Name, new(new(p.Name, paramValue.Id, SymbolKind.Variable), parameterType));
             }
 
             if (Body is BlockStatement body)

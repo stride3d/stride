@@ -49,6 +49,12 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
                     64 => ScalarType.From("double"),
                 });
             }
+            else if (instruction.OpCode == SDSLOp.OpTypePointer)
+            {
+                var pointerInstruction = instruction.UnsafeAs<InstOpTypePointer>();
+                var innerType = types[pointerInstruction.Type];
+                types.Add(instruction.ResultId!.Value, new PointerType(innerType, pointerInstruction.Storageclass));
+            }
             else if (instruction.OpCode == SDSLOp.OpTypeVoid)
             {
                 types.Add(instruction.ResultId!.Value, ScalarType.From("void"));
@@ -153,7 +159,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
             }
             else if (member is ShaderMember svar)
             {
-                svar.Type = svar.TypeName.ResolveType(table);
+                svar.Type = new PointerType(svar.TypeName.ResolveType(table), Specification.StorageClass.Private);
                 table.DeclaredTypes.TryAdd(svar.Type.ToString(), svar.Type);
             }
             else if (member is CBuffer cb)

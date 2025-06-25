@@ -188,7 +188,7 @@ public class SpirvContext(SpirvModule module)
     IdRef RegisterPointerType(PointerType pointerType)
     {
         var baseType = GetOrRegister(pointerType.BaseType);
-        var result = Buffer.AddOpTypePointer(Bound++, Specification.StorageClass.Function, baseType);
+        var result = Buffer.AddOpTypePointer(Bound++, pointerType.StorageClass, baseType);
         AddName(result, pointerType.ToId());
         return result;
     }

@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
+using Stride.Shaders.Spirv;
 
 namespace Stride.Shaders.Core;
 
@@ -51,9 +52,9 @@ public sealed record UndefinedType(string TypeName) : SymbolType()
     }
 }
 
-public sealed record PointerType(SymbolType BaseType) : SymbolType()
+public sealed record PointerType(SymbolType BaseType, Specification.StorageClass StorageClass) : SymbolType()
 {
-    public override string ToId() => $"ptr_{BaseType.ToId()}";
+    public override string ToId() => $"ptr_{StorageClass}_{BaseType.ToId()}";
     public override string ToString() => $"*{BaseType}";
 }
 

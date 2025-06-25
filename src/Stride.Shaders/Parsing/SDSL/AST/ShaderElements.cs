@@ -205,10 +205,9 @@ public sealed class CBuffer(string name, TextLocation info) : ShaderBuffer(name,
     public void Compile(SymbolTable table, ShaderClass shaderClass, CompilerUnit compiler)
     {
         var (builder, context, _) = compiler;
-        var registeredType = context.GetOrRegister(Type);
+        var pointerType = context.GetOrRegister(new PointerType(Type, Specification.StorageClass.Uniform));
         var variable = context.Bound++;
         // TODO: Add a StreamSDSL storage class?
-        var pointerType = context.Buffer.AddOpTypePointer(context.Bound++, Specification.StorageClass.Uniform, registeredType.Value);
         context.Buffer.AddOpVariable(variable, pointerType, Specification.StorageClass.Uniform, null);
         //context.Variables.Add(Name, new(variable, registeredType, Name));
         context.AddName(variable, Name);

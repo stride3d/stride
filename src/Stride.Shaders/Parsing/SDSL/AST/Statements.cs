@@ -143,7 +143,7 @@ public class Declare(TypeName typename, TextLocation info) : Declaration(typenam
         }
 
         var (builder, context, _) = compiler;
-        var registeredType = context.GetOrRegister(new PointerType(Type!));
+        var registeredType = context.GetOrRegister(new PointerType(Type!, Specification.StorageClass.Function));
         foreach (var d in Variables)
         {
             var variable = context.Bound++;

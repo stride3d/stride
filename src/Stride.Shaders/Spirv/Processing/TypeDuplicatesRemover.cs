@@ -20,17 +20,20 @@ public struct TypeDuplicateRemover : INanoPass
 
     public readonly void Apply(SpirvBuffer buffer)
     {
-        foreach (var i in buffer.Instructions)
+        for (var index = 0; index < buffer.Instructions.Count; index++)
         {
+            var i = buffer.Instructions[index];
             if (i.OpCode == SDSLOp.OpTypeVoid || i.OpCode == SDSLOp.OpTypeInt || i.OpCode == SDSLOp.OpTypeFloat)
             {
-                foreach (var j in buffer.Instructions)
+                for (var index2 = index + 1; index2 < buffer.Instructions.Count; index2++)
                 {
+                    var j = buffer.Instructions[index2];
                     if (
-                        (j.OpCode == SDSLOp.OpTypeVoid || j.OpCode == SDSLOp.OpTypeInt || j.OpCode == SDSLOp.OpTypeFloat)
+                        (j.OpCode == SDSLOp.OpTypeVoid || j.OpCode == SDSLOp.OpTypeInt ||
+                         j.OpCode == SDSLOp.OpTypeFloat)
                         && i.ResultId != j.ResultId
                         && MemoryExtensions.SequenceEqual(i.Operands[1..], j.Operands[1..])
-                        )
+                    )
                     {
                         ReplaceRefs(j.ResultId ?? -1, i.ResultId ?? -1, buffer);
                         SetOpNop(j.Words);
@@ -38,12 +41,15 @@ public struct TypeDuplicateRemover : INanoPass
                 }
             }
         }
-        foreach (var i in buffer.Instructions)
+
+        for (var index = 0; index < buffer.Instructions.Count; index++)
         {
+            var i = buffer.Instructions[index];
             if (i.OpCode == SDSLOp.OpTypeVector)
             {
-                foreach (var j in buffer.Instructions)
+                for (var index2 = index + 1; index2 < buffer.Instructions.Count; index2++)
                 {
+                    var j = buffer.Instructions[index2];
                     if (
                         j.OpCode == SDSLOp.OpTypeVector
                         && i.ResultId != j.ResultId
@@ -56,17 +62,59 @@ public struct TypeDuplicateRemover : INanoPass
                 }
             }
         }
-        foreach (var i in buffer.Instructions)
+        for (var index = 0; index < buffer.Instructions.Count; index++)
         {
+            var i = buffer.Instructions[index];
             if (i.OpCode == SDSLOp.OpTypeMatrix)
             {
-                foreach (var j in buffer.Instructions)
+                for (var index2 = index + 1; index2 < buffer.Instructions.Count; index2++)
                 {
+                    var j = buffer.Instructions[index2];
                     if (
                         j.OpCode == SDSLOp.OpTypeMatrix
                         && i.ResultId != j.ResultId
                         && MemoryExtensions.SequenceEqual(i.Operands[1..], j.Operands[1..])
                         )
+                    {
+                        ReplaceRefs(j.ResultId ?? -1, i.ResultId ?? -1, buffer);
+                        SetOpNop(j.Words);
+                    }
+                }
+            }
+        }
+        for (var index = 0; index < buffer.Instructions.Count; index++)
+        {
+            var i = buffer.Instructions[index];
+            if (i.OpCode == SDSLOp.OpTypePointer)
+            {
+                for (var index2 = index + 1; index2 < buffer.Instructions.Count; index2++)
+                {
+                    var j = buffer.Instructions[index2];
+                    if (
+                        j.OpCode == SDSLOp.OpTypePointer
+                        && i.ResultId != j.ResultId
+                        && MemoryExtensions.SequenceEqual(i.Operands[1..], j.Operands[1..])
+                    )
+                    {
+                        ReplaceRefs(j.ResultId ?? -1, i.ResultId ?? -1, buffer);
+                        SetOpNop(j.Words);
+                    }
+                }
+            }
+        }
+        for (var index = 0; index < buffer.Instructions.Count; index++)
+        {
+            var i = buffer.Instructions[index];
+            if (i.OpCode == SDSLOp.OpName)
+            {
+                for (var index2 = index + 1; index2 < buffer.Instructions.Count; index2++)
+                {
+                    var j = buffer.Instructions[index2];
+                    if (
+                        j.OpCode == SDSLOp.OpName
+                        && i.Operands[0] == j.Operands[0]
+                        && MemoryExtensions.SequenceEqual(i.Operands[1..], j.Operands[1..])
+                    )
                     {
                         ReplaceRefs(j.ResultId ?? -1, i.ResultId ?? -1, buffer);
                         SetOpNop(j.Words);
