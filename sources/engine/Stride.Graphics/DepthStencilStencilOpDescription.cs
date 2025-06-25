@@ -6,63 +6,58 @@ using System.Runtime.InteropServices;
 
 using Stride.Core;
 
-namespace Stride.Graphics
+namespace Stride.Graphics;
+
+[DataContract]
+[StructLayout(LayoutKind.Sequential)]
+public struct DepthStencilStencilOpDescription : IEquatable<DepthStencilStencilOpDescription>
 {
-    [DataContract]
-    [StructLayout(LayoutKind.Sequential)]
-    public struct DepthStencilStencilOpDescription : IEquatable<DepthStencilStencilOpDescription>
-    {
         /// <summary>
         /// Gets or sets the stencil operation to perform if the stencil test fails. The default is StencilOperation.Keep.
         /// </summary>
-        public StencilOperation StencilFail { get; set; }
+    public StencilOperation StencilFail;
 
         /// <summary>
         /// Gets or sets the stencil operation to perform if the stencil test passes and the depth-test fails. The default is StencilOperation.Keep.
         /// </summary>
-        public StencilOperation StencilDepthBufferFail { get; set; }
-        
         /// <summary>
         /// Gets or sets the stencil operation to perform if the stencil test passes. The default is StencilOperation.Keep.
         /// </summary>
-        public StencilOperation StencilPass { get; set; }
-        
         /// <summary>
         /// Gets or sets the comparison function for the stencil test. The default is CompareFunction.Always.
         /// </summary>
-        public CompareFunction StencilFunction { get; set; }
+    public StencilOperation StencilDepthBufferFail;
 
-        public bool Equals(DepthStencilStencilOpDescription other)
-        {
-            return StencilFail == other.StencilFail && StencilDepthBufferFail == other.StencilDepthBufferFail && StencilPass == other.StencilPass && StencilFunction == other.StencilFunction;
-        }
+    public StencilOperation StencilPass;
 
-        public override bool Equals(object obj)
-        {
-            if (ReferenceEquals(null, obj)) return false;
-            return obj is DepthStencilStencilOpDescription && Equals((DepthStencilStencilOpDescription)obj);
-        }
+    public CompareFunction StencilFunction;
 
-        public override int GetHashCode()
-        {
-            unchecked
-            {
-                var hashCode = (int)StencilFail;
-                hashCode = (hashCode * 397) ^ (int)StencilDepthBufferFail;
-                hashCode = (hashCode * 397) ^ (int)StencilPass;
-                hashCode = (hashCode * 397) ^ (int)StencilFunction;
-                return hashCode;
-            }
-        }
 
-        public static bool operator ==(DepthStencilStencilOpDescription left, DepthStencilStencilOpDescription right)
-        {
-            return left.Equals(right);
-        }
+    public readonly bool Equals(DepthStencilStencilOpDescription other)
+    {
+        return StencilFail == other.StencilFail
+            && StencilDepthBufferFail == other.StencilDepthBufferFail
+            && StencilPass == other.StencilPass
+            && StencilFunction == other.StencilFunction;
+    }
 
-        public static bool operator !=(DepthStencilStencilOpDescription left, DepthStencilStencilOpDescription right)
-        {
-            return !left.Equals(right);
-        }
+    public override readonly bool Equals(object obj)
+    {
+        return obj is DepthStencilStencilOpDescription dssOp && Equals(dssOp);
+    }
+
+    public static bool operator ==(DepthStencilStencilOpDescription left, DepthStencilStencilOpDescription right)
+    {
+        return left.Equals(right);
+    }
+
+    public static bool operator !=(DepthStencilStencilOpDescription left, DepthStencilStencilOpDescription right)
+    {
+        return !left.Equals(right);
+    }
+
+    public override readonly int GetHashCode()
+    {
+        return HashCode.Combine(StencilFail, StencilDepthBufferFail, StencilPass, StencilFunction);
     }
 }
