@@ -137,7 +137,8 @@ namespace Stride.Graphics
             /// The vertex buffer
             /// </summary>
             public readonly VertexBufferBinding VertexBuffer;
-            
+
+            // TODO: This is not a quad, but a fullscreen triangle! Maybe this class should be renamed?
             private static readonly VertexPositionNormalTexture[] QuadsVertices =
             {
                 new VertexPositionNormalTexture(new Vector3(-1,  1, 0), new Vector3(0, 0, 1), new Vector2(0, 0)),
@@ -148,7 +149,7 @@ namespace Stride.Graphics
             public SharedData(GraphicsDevice device)
             {
                 var vertexBuffer = Buffer.Vertex.New(device, QuadsVertices).DisposeBy(this);
-                
+
                 // Register reload
                 vertexBuffer.Reload = (graphicsResource, services) => ((Buffer)graphicsResource).Recreate(QuadsVertices);
 

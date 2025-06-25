@@ -522,7 +522,7 @@ namespace Stride.Rendering.Lights
                 if (renderViewInfo.LightClusters != null && renderViewInfo.LightClusters.Length > 0)
                 {
                     fixed (Int2* dataPtr = renderViewInfo.LightClusters)
-                        context.CommandList.UpdateSubresource(clusteredGroupRenderer.lightClusters, 0, new DataBox((IntPtr)dataPtr, sizeof(Int2) * renderViewInfo.ClusterCount.X, sizeof(Int2) * renderViewInfo.ClusterCount.X * renderViewInfo.ClusterCount.Y),
+                        context.CommandList.UpdateSubResource(clusteredGroupRenderer.lightClusters, 0, new DataBox((IntPtr)dataPtr, sizeof(Int2) * renderViewInfo.ClusterCount.X, sizeof(Int2) * renderViewInfo.ClusterCount.X * renderViewInfo.ClusterCount.Y),
                             new ResourceRegion(0, 0, 0, renderViewInfo.ClusterCount.X, renderViewInfo.ClusterCount.Y, ClusterSlices));
                 }
 
@@ -530,7 +530,7 @@ namespace Stride.Rendering.Lights
                 if (renderViewInfo.PointLights.Count > 0)
                 {
                     fixed (PointLightData* pointLightsPtr = renderViewInfo.PointLights.Items)
-                        context.CommandList.UpdateSubresource(clusteredGroupRenderer.pointLightsBuffer, 0, new DataBox((IntPtr)pointLightsPtr, 0, 0), new ResourceRegion(0, 0, 0, renderViewInfo.PointLights.Count * sizeof(PointLightData), 1, 1));
+                        context.CommandList.UpdateSubResource(clusteredGroupRenderer.pointLightsBuffer, 0, new DataBox((IntPtr)pointLightsPtr, 0, 0), new ResourceRegion(0, 0, 0, renderViewInfo.PointLights.Count * sizeof(PointLightData), 1, 1));
                 }
                 // macOS doesn't like when we provide a null Buffer or if it is not sufficiently allocated.
                 // It would cause an inifite loop. So for now we just create one with one element but not initializing it.
@@ -545,7 +545,7 @@ namespace Stride.Rendering.Lights
                 if (renderViewInfo.SpotLights.Count > 0)
                 {
                     fixed (SpotLightData* spotLightsPtr = renderViewInfo.SpotLights.Items)
-                        context.CommandList.UpdateSubresource(clusteredGroupRenderer.spotLightsBuffer, 0, new DataBox((IntPtr)spotLightsPtr, 0, 0), new ResourceRegion(0, 0, 0, renderViewInfo.SpotLights.Count * sizeof(SpotLightData), 1, 1));
+                        context.CommandList.UpdateSubResource(clusteredGroupRenderer.spotLightsBuffer, 0, new DataBox((IntPtr)spotLightsPtr, 0, 0), new ResourceRegion(0, 0, 0, renderViewInfo.SpotLights.Count * sizeof(SpotLightData), 1, 1));
                 }
                 // See previous macOS comment.
                 else if (Platform.Type == PlatformType.macOS
@@ -559,7 +559,7 @@ namespace Stride.Rendering.Lights
                 if (renderViewInfo.LightIndices.Count > 0)
                 {
                     fixed (int* lightIndicesPtr = renderViewInfo.LightIndices.Items)
-                        context.CommandList.UpdateSubresource(clusteredGroupRenderer.lightIndicesBuffer, 0, new DataBox((IntPtr)lightIndicesPtr, 0, 0), new ResourceRegion(0, 0, 0, renderViewInfo.LightIndices.Count * sizeof(int), 1, 1));
+                        context.CommandList.UpdateSubResource(clusteredGroupRenderer.lightIndicesBuffer, 0, new DataBox((IntPtr)lightIndicesPtr, 0, 0), new ResourceRegion(0, 0, 0, renderViewInfo.LightIndices.Count * sizeof(int), 1, 1));
                 }
                 // See previous macOS comment.
                 else if (Platform.Type == PlatformType.macOS
