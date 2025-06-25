@@ -46,6 +46,12 @@ namespace Stride.Graphics
 
         // NOTE: No need to store RTV/DSV formats
 
+
+        /// <summary>
+        ///   Initializes a new instance of the <see cref="PipelineState"/> class.
+        /// </summary>
+        /// <param name="graphicsDevice">The Graphics Device.</param>
+        /// <param name="pipelineStateDescription">A description of the Pipeline State to create.</param>
         internal PipelineState(GraphicsDevice graphicsDevice, PipelineStateDescription pipelineStateDescription)
             : base(graphicsDevice)
         {
@@ -75,6 +81,11 @@ namespace Stride.Graphics
             primitiveTopology = (D3DPrimitiveTopology) pipelineStateDescription.PrimitiveType;
         }
 
+        /// <summary>
+        ///   Applies the current Pipeline State to the specified Command List, if it has changed since the last time it was applied.
+        /// </summary>
+        /// <param name="commandList">The Command List.</param>
+        /// <param name="previousPipeline">The previous state of the graphics pipeline.</param>
         internal void Apply(CommandList commandList, PipelineState previousPipeline)
         {
             var nativeDeviceContext = commandList.NativeDeviceContext;
@@ -148,6 +159,7 @@ namespace Stride.Graphics
             }
         }
 
+        /// <inheritdoc/>
         protected internal override void OnDestroyed()
         {
             var pipelineStateCache = GetPipelineStateCache();
@@ -178,6 +190,18 @@ namespace Stride.Graphics
             base.OnDestroyed();
         }
 
+        /// <summary>
+        ///   Creates a ID3D11InputLayout for the graphics pipeline based on the provided Input Element Descriptions.
+        /// </summary>
+        /// <param name="inputElements">
+        ///   <para>
+        ///     An array of <see cref="InputElementDescription"/> objects that define the input elements for the layout.
+        ///     Each element specifies the semantic name, index, format, input slot, and byte offset for a vertex attribute.
+        ///   </para>
+        ///   <para>
+        ///     If this parameter is <see langword="null"/>, the method exits without performing any operations.
+        ///   </para>
+        /// </param>
         private void CreateInputLayout(InputElementDescription[] inputElements)
         {
             if (inputElements is null)
@@ -214,6 +238,14 @@ namespace Stride.Graphics
             inputLayout = tempInputLayout;
         }
 
+        /// <summary>
+        ///   Creates and initializes the Shaders for the current Effect set in the graphics pipeline, and
+        ///   caches them in the specified Pipeline State cache.
+        /// </summary>
+        /// <param name="pipelineStateCache">
+        ///   The cache used to store and retrieve Pipeline State objects, including Shader instances.
+        ///   If the Effect bytecode is <see langword="null"/>, the method exits without performing any operations.
+        /// </param>
         private void CreateShaders(DevicePipelineStateCache pipelineStateCache)
         {
             if (effectBytecode is null)
@@ -300,11 +332,10 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        ///   Small helper to cache Direct3D graphics objects.
+        ///   Gets the shared <see cref="DevicePipelineStateCache"/> for the current Graphics Device, or
+        ///   creates a new one if it does not exist.
         /// </summary>
-        /// <typeparam name="TSource"></typeparam>
-        /// <typeparam name="TKey"></typeparam>
-        /// <typeparam name="TValue"></typeparam>
+        /// <returns>A Pipeline State cache shared for the current Graphics Device.</returns>
         private DevicePipelineStateCache GetPipelineStateCache()
         {
             return GraphicsDevice.GetOrCreateSharedData(typeof(DevicePipelineStateCache), device => new DevicePipelineStateCache(device));
@@ -312,6 +343,14 @@ namespace Stride.Graphics
 
         #region Pipeline State cache
 
+        /// <summary>
+        ///   Provides a caching mechanism for Direct3D 11 Pipeline State objects and Shaders.
+        /// </summary>
+        /// <remarks>
+        ///   The <see cref="DevicePipelineStateCache"/> class manages caches for various Direct3D 11 Pipeline State objects,
+        ///   including Shaders and State descriptions. This allows efficient reuse of Pipeline State objects and
+        ///   reduces overhead associated with their creation.
+        /// </remarks>
         private unsafe class DevicePipelineStateCache : IDisposable
         {
             // Shaders
@@ -328,6 +367,13 @@ namespace Stride.Graphics
             public readonly GraphicsCache<DepthStencilStateDescription, DepthStencilStateDescription, ComPtr<ID3D11DepthStencilState>> DepthStencilStateCache;
 
 
+            /// <summary>
+            ///   Initializes a new instance of the <see cref="DevicePipelineStateCache"/> class.
+            /// </summary>
+            /// <param name="graphicsDevice">
+            ///   The Graphics Device associated with this cache. This is used to create and manage
+            ///   Pipeline State objects and Shaders.
+            /// </param>
             public DevicePipelineStateCache(GraphicsDevice graphicsDevice)
             {
                 var nativeDevice = graphicsDevice.NativeDevice;
@@ -348,11 +394,17 @@ namespace Stride.Graphics
                 DepthStencilStateCache = new(static state => state, CreateDepthStencilState, static dss => dss.Release());
 
 
+                //
+                // Gets the unique identifier for a Shader bytecode.
+                //
                 static ObjectId GetShaderId(ShaderBytecode shader)
                 {
                     return shader.Id;
                 }
 
+                //
+                // Creates a Direct3D 11 Vertex Shader from the provided Shader bytecode.
+                //
                 ComPtr<ID3D11VertexShader> CreateVertexShader(ShaderBytecode source)
                 {
                     ComPtr<ID3D11VertexShader> vertexShader = default;
@@ -365,6 +417,9 @@ namespace Stride.Graphics
                     return vertexShader;
                 }
 
+                //
+                // Creates a Direct3D 11 Hull Shader from the provided Shader bytecode.
+                //
                 ComPtr<ID3D11HullShader> CreateHullShader(ShaderBytecode source)
                 {
                     ComPtr<ID3D11HullShader> hullShader = default;
@@ -377,6 +432,9 @@ namespace Stride.Graphics
                     return hullShader;
                 }
 
+                //
+                // Creates a Direct3D 11 Domain Shader from the provided Shader bytecode.
+                //
                 ComPtr<ID3D11DomainShader> CreateDomainShader(ShaderBytecode source)
                 {
                     ComPtr<ID3D11DomainShader> domainShader = default;
@@ -389,6 +447,9 @@ namespace Stride.Graphics
                     return domainShader;
                 }
 
+                //
+                // Creates a Direct3D 11 Pixel Shader from the provided Shader bytecode.
+                //
                 ComPtr<ID3D11PixelShader> CreatePixelShader(ShaderBytecode source)
                 {
                     ComPtr<ID3D11PixelShader> pixelShader = default;
@@ -401,6 +462,9 @@ namespace Stride.Graphics
                     return pixelShader;
                 }
 
+                //
+                // Creates a Direct3D 11 Compute Shader from the provided Shader bytecode.
+                //
                 ComPtr<ID3D11ComputeShader> CreateComputeShader(ShaderBytecode source)
                 {
                     ComPtr<ID3D11ComputeShader> computeShader = default;
@@ -413,6 +477,9 @@ namespace Stride.Graphics
                     return computeShader;
                 }
 
+                //
+                // Creates a Direct3D 11 Geometry Shader from the provided Shader bytecode.
+                //
                 ComPtr<ID3D11GeometryShader> CreateGeometryShader(ShaderBytecode source)
                 {
                     ComPtr<ID3D11GeometryShader> geometryShader = default;
@@ -425,6 +492,9 @@ namespace Stride.Graphics
                     return geometryShader;
                 }
 
+                //
+                // Creates a Direct3D 11 Blend State from the provided description.
+                //
                 ComPtr<ID3D11BlendState> CreateBlendState(BlendStateDescription description)
                 {
                     var nativeDescription = new BlendDesc
@@ -460,6 +530,9 @@ namespace Stride.Graphics
                     return blendState;
                 }
 
+                //
+                // Creates a Direct3D 11 Rasterizer State from the provided description.
+                //
                 ComPtr<ID3D11RasterizerState> CreateRasterizerState(RasterizerStateDescription description)
                 {
                     var nativeDescription = new RasterizerDesc
@@ -486,6 +559,9 @@ namespace Stride.Graphics
                     return rasterizerState;
                 }
 
+                //
+                // Creates a Direct3D 11 Depth-Stencil State from the provided description.
+                //
                 ComPtr<ID3D11DepthStencilState> CreateDepthStencilState(DepthStencilStateDescription description)
                 {
                     var nativeDescription = new DepthStencilDesc
@@ -525,6 +601,7 @@ namespace Stride.Graphics
                 }
             }
 
+            /// <inheritdoc/>
             public void Dispose()
             {
                 VertexShaderCache.Dispose();
@@ -543,6 +620,15 @@ namespace Stride.Graphics
 
         #region GraphicsCache
 
+        /// <summary>
+        ///   Small helper class to cache Direct3D graphics objects.
+        /// </summary>
+        /// <typeparam name="TSource">The type of the source object for which to cache the Direct3D object.</typeparam>
+        /// <typeparam name="TKey">The type of the key used to uniquely identify the cached object.</typeparam>
+        /// <typeparam name="TValue">The type of the cached Direct3D object.</typeparam>
+        /// <param name="computeKey">A function to compute the key from the source object.</param>
+        /// <param name="computeValue">A function to compute the Direct3D object from the source object.</param>
+        /// <param name="releaseValue">Optional action to release the cached Direct3D object when it is no longer needed.</param>
         private class GraphicsCache<TSource, TKey, TValue>(
             Func<TSource, TKey> computeKey,
             Func<TSource, TValue> computeValue,
@@ -560,6 +646,19 @@ namespace Stride.Graphics
             private readonly Action<TValue> releaseValue = releaseValue;
 
 
+            /// <summary>
+            ///   Instantiates a new value or retrieves an existing one based on the specified source.
+            /// </summary>
+            /// <param name="source">The source object to cache, along with its associated Direct3D object.</param>
+            /// <returns>The Direct3D object associated with the provided source object to cache.</returns>
+            /// <remarks>
+            ///   This method ensures thread-safe access to the underlying storage.
+            ///   <para>
+            ///     If the key corresponding to the source does not exist, a new value is computed, added to the storage, and its reference count is initialized to 1.
+            ///     <br/>
+            ///     If the key already exists, the reference count of the associated value is incremented.
+            ///   </para>
+            /// </remarks>
             public TValue Instantiate(TSource source)
             {
                 lock (lockObject)
@@ -568,6 +667,7 @@ namespace Stride.Graphics
 
                     if (!storage.TryGetValue(key, out var value))
                     {
+                        // New value: Add it to the cache
                         value = computeValue(source);
 
                         storage.Add(key, value);
@@ -576,6 +676,7 @@ namespace Stride.Graphics
                     }
                     else
                     {
+                        // Old value: Increment reference count
                         ref int refCount = ref CollectionsMarshal.GetValueRefOrNullRef(referenceCount, value);
                         if (!Unsafe.IsNullRef(ref refCount))
                             refCount++;
@@ -585,6 +686,15 @@ namespace Stride.Graphics
                 }
             }
 
+            /// <summary>
+            ///   Releases a reference to the specified Direct3D object, potentially removing it from the cache if no references remain.
+            /// </summary>
+            /// <param name="value">The Direct3D object to release. Must be a valid value that exists in the cache.</param>
+            /// <remarks>
+            ///   This method decreases the reference count for the given value. If the reference count reaches zero, the value
+            ///   is removed from the cache, along with any associated keys. If a release action is defined, it will be invoked
+            ///   for the value being removed.
+            /// </remarks>
             public void Release(TValue value)
             {
                 lock (lockObject)
@@ -594,6 +704,7 @@ namespace Stride.Graphics
                     if (Unsafe.IsNullRef(ref refCount))
                         return;
 
+                    // If the reference count reaches 0, no one is using this value anymore. We can remove it from the cache
                     if (--refCount == 0)
                     {
                         referenceCount.Remove(value);
@@ -608,6 +719,7 @@ namespace Stride.Graphics
                 }
             }
 
+            /// <inheritdoc/>
             public void Dispose()
             {
                 lock (lockObject)

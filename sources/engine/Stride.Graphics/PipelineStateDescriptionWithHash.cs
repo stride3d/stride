@@ -5,12 +5,19 @@ using System;
 
 namespace Stride.Graphics;
 
+/// <summary>
+///   Utility structure encapsulating the description for a <see cref="PipelineState"/> and a hash that allows
+///   Stride to easily determine equality.
+/// </summary>
+/// <seealso cref="PipelineState"/>
+/// <seealso cref="PipelineStateDescription"/>
 internal readonly struct PipelineStateDescriptionWithHash(in PipelineStateDescription state) : IEquatable<PipelineStateDescriptionWithHash>
 {
     public readonly int Hash = state.GetHashCode();
     public readonly PipelineStateDescription State = state;
 
 
+    /// <inheritdoc/>
     public bool Equals(PipelineStateDescriptionWithHash other)
     {
         return Hash == other.Hash
@@ -18,11 +25,13 @@ internal readonly struct PipelineStateDescriptionWithHash(in PipelineStateDescri
             && (State?.Equals(other.State) ?? true);
     }
 
+    /// <inheritdoc/>
     public override bool Equals(object obj)
     {
         return obj is PipelineStateDescriptionWithHash other && Equals(other);
     }
 
+    /// <inheritdoc/>
     public override int GetHashCode() => Hash;
 
     public static bool operator ==(PipelineStateDescriptionWithHash left, PipelineStateDescriptionWithHash right)

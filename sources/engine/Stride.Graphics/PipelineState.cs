@@ -5,12 +5,24 @@ using Stride.Core.ReferenceCounting;
 
 namespace Stride.Graphics;
 
+/// <summary>
+///   A <strong>Pipeline State</strong> object encapsulates the complete graphics pipeline configuration,
+///   including Shaders, input layout, Render States, and output settings.
+///   It represents an atomic, immutable collection of states that can be efficiently bound and unbound as
+///   a single unit during rendering operations.
+/// </summary>
 public partial class PipelineState : GraphicsResourceBase
 {
     // TODO: Unused? Vulkan backend has 'inputBindingCount', but does not write to this property.
     public int InputBindingCount { get; private set; }
 
 
+    /// <summary>
+    ///   Creates a new <strong>Pipeline State</strong> object from the provided description.
+    /// </summary>
+    /// <param name="graphicsDevice">The Graphics Device.</param>
+    /// <param name="pipelineStateDescription">A description of the desired graphics pipeline configuration.</param>
+    /// <returns>A new instance of <see cref="PipelineState"/>.</returns>
     public static PipelineState New(GraphicsDevice graphicsDevice, in PipelineStateDescription pipelineStateDescription)
     {
         // Hash the current state
