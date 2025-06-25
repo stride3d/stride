@@ -5,19 +5,20 @@ using System;
 
 namespace Stride.Graphics;
 
+/// <summary>
+///   Flags that specify what parts of a Depth-Stencil Buffer to clear when calling
+///   <see cref="CommandList.Clear(Texture, DepthStencilClearOptions, float, byte)"/>.
+/// </summary>
 [Flags]
 public enum DepthStencilClearOptions
 {
     /// <summary>
-    /// Specifies the buffer to use when calling Clear.
+    ///   Selects the Depth Buffer.
     /// </summary>
-        /// <summary>
-        /// A depth buffer.
-        /// </summary>
-        /// <summary>
-        /// A stencil buffer.
-        /// </summary>
     DepthBuffer = 1,
 
+    /// <summary>
+    ///   Selects the Stencil Buffer.
+    /// </summary>
     Stencil = 2
 }

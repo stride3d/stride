@@ -8,41 +8,52 @@ using Stride.Core.Mathematics;
 namespace Stride.Graphics
 {
     /// <summary>
-    /// Defines the window dimensions of a render-target surface onto which a 3D volume projects.
+    ///   Defines the viewport dimensions of a render-target surface onto which a 3D volume projects.
     /// </summary>
     [StructLayout(LayoutKind.Sequential, Pack = 4)]
     public struct Viewport : IEquatable<Viewport>
     {
         /// <summary>
-        /// Empty value for an undefined viewport.
+        ///   Empty value for an undefined viewport.
         /// </summary>
         public static readonly Viewport Empty;
 
         /// <summary>
-        /// Gets or sets the pixel coordinate of the upper-left corner of the viewport on the render-target surface.
+        ///   X coordinate of the upper-left corner of the viewport on the render-target surface, in pixels.
         /// </summary>
         public float X;
 
-        /// <summary>Gets or sets the pixel coordinate of the upper-left corner of the viewport on the render-target surface.</summary>
+        /// <summary>
+        ///   Y coordinate of the upper-left corner of the viewport on the render-target surface, in pixels.
+        /// </summary>
         public float Y;
 
-        /// <summary>Gets or sets the width dimension of the viewport on the render-target surface, in pixels.</summary>
+        /// <summary>
+        ///   Width dimension of the viewport on the render-target surface, in pixels.
+        /// </summary>
         public float Width;
 
-        /// <summary>Gets or sets the height dimension of the viewport on the render-target surface, in pixels.</summary>
+        /// <summary>
+        ///   Height dimension of the viewport on the render-target surface, in pixels.
+        /// </summary>
         public float Height;
 
-        /// <summary>Gets or sets the minimum depth of the clip volume.</summary>
+        /// <summary>
+        ///   Minimum depth of the clip volume.
+        /// </summary>
         public float MinDepth;
 
-        /// <summary>Gets or sets the maximum depth of the clip volume.</summary>
+        /// <summary>
+        ///   Maximum depth of the clip volume.
+        /// </summary>
         public float MaxDepth;
 
+
         /// <summary>
-        /// Initializes a new instance of the <see cref="Viewport"/> struct.
+        ///   Initializes a new instance of the <see cref="Viewport"/> struct.
         /// </summary>
-        /// <param name="x">The x coordinate of the upper-left corner of the viewport in pixels.</param>
-        /// <param name="y">The y coordinate of the upper-left corner of the viewport in pixels.</param>
+        /// <param name="x">The X coordinate of the upper-left corner of the viewport in pixels.</param>
+        /// <param name="y">The Y coordinate of the upper-left corner of the viewport in pixels.</param>
         /// <param name="width">The width of the viewport in pixels.</param>
         /// <param name="height">The height of the viewport in pixels.</param>
         public Viewport(int x, int y, int width, int height)
@@ -56,10 +67,10 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="Viewport"/> struct.
+        ///   Initializes a new instance of the <see cref="Viewport"/> struct.
         /// </summary>
-        /// <param name="x">The x coordinate of the upper-left corner of the viewport in pixels.</param>
-        /// <param name="y">The y coordinate of the upper-left corner of the viewport in pixels.</param>
+        /// <param name="x">The X coordinate of the upper-left corner of the viewport in pixels.</param>
+        /// <param name="y">The Y coordinate of the upper-left corner of the viewport in pixels.</param>
         /// <param name="width">The width of the viewport in pixels.</param>
         /// <param name="height">The height of the viewport in pixels.</param>
         public Viewport(float x, float y, float width, float height)
@@ -73,9 +84,9 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="Viewport"/> struct.
+        ///   Initializes a new instance of the <see cref="Viewport"/> struct.
         /// </summary>
-        /// <param name="bounds">A bounding box that defines the location and size of the viewport in a render target.</param>
+        /// <param name="bounds">A rectangle that defines the location and size of the viewport in a render target.</param>
         public Viewport(Rectangle bounds)
         {
             X = bounds.X;
@@ -86,7 +97,10 @@ namespace Stride.Graphics
             MaxDepth = 1;
         }
 
-        /// <summary>Gets the size of this resource.</summary>
+
+        /// <summary>
+        ///   Gets a rectangle with the location and size of the viewport.
+        /// </summary>
         public Rectangle Bounds
         {
             readonly get => new((int) X, (int) Y, (int) Width, (int) Height);
@@ -99,10 +113,17 @@ namespace Stride.Graphics
             }
         }
 
+        /// <summary>
+        ///   Gets the aspect ratio of the viewport, i.e. <c>Width / Height</c>.
+        /// </summary>
         public readonly float AspectRatio => Width != 0 && Height != 0 ? Width / Height : 0;
 
+        /// <summary>
+        ///   Gets the size of the viewport.
+        /// </summary>
         public readonly Vector2 Size => new(Width, Height);
 
+        /// <inheritdoc/>
         public readonly bool Equals(Viewport other)
         {
             return other.X.Equals(X)
@@ -113,6 +134,7 @@ namespace Stride.Graphics
                 && other.MaxDepth.Equals(MaxDepth);
         }
 
+        /// <inheritdoc/>
         public override readonly bool Equals(object obj)
         {
             if (obj is null)
@@ -121,6 +143,7 @@ namespace Stride.Graphics
             return obj is Viewport viewport && Equals(viewport);
         }
 
+        /// <inheritdoc/>
         public override readonly int GetHashCode()
         {
             return HashCode.Combine(X, Y, Width, Height, MinDepth, MaxDepth);
@@ -136,7 +159,9 @@ namespace Stride.Graphics
             return !left.Equals(right);
         }
 
-        /// <summary>Retrieves a string representation of this object.</summary>
+        /// <summary>
+        ///   Returns a string representation of this viewport.
+        /// </summary>
         public override readonly string ToString()
         {
             return FormattableString.CurrentCulture($"{{X:{X} Y:{Y} Width:{Width} Height:{Height} MinDepth:{MinDepth} MaxDepth:{MaxDepth}}}");
@@ -148,7 +173,9 @@ namespace Stride.Graphics
             return (difference >= -1.401298E-45f) && (difference <= float.Epsilon);
         }
 
-        /// <summary>Projects a 3D vector from object space into screen space.</summary>
+        /// <summary>
+        ///   Projects a 3D vector from object space into screen space.
+        /// </summary>
         /// <param name="source">The vector to project.</param>
         /// <param name="projection">The projection matrix.</param>
         /// <param name="view">The view matrix.</param>
@@ -169,8 +196,10 @@ namespace Stride.Graphics
             return new Vector3(vector.X, vector.Y, vector.Z);
         }
 
-        /// <summary>Converts a screen space point into a corresponding point in world space.</summary>
-        /// <param name="source">The vector to project.</param>
+        /// <summary>
+        ///   Converts a screen space point into a corresponding point in world space.
+        /// </summary>
+        /// <param name="source">The vector to unproject.</param>
         /// <param name="projection">The projection matrix.</param>
         /// <param name="view">The view matrix.</param>
         /// <param name="world">The world matrix.</param>
@@ -180,8 +209,10 @@ namespace Stride.Graphics
             return Unproject(source, in worldViewProj);
         }
 
-        /// <summary>Converts a screen space point into a corresponding point in world space.</summary>
-        /// <param name="source">The vector to project.</param>
+        /// <summary>
+        ///   Converts a screen space point into a corresponding point in world space.
+        /// </summary>
+        /// <param name="source">The vector to unproject.</param>
         /// <param name="worldViewProjection">The World-View-Projection matrix.</param>
         public readonly Vector3 Unproject(Vector3 source, ref readonly Matrix worldViewProjection)
         {

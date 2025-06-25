@@ -3,7 +3,14 @@
 
 namespace Stride.Graphics;
 
+/// <summary>
+///   Defines the types of a GPU query.
+/// </summary>
 public enum QueryType
 {
+    /// <summary>
+    ///   Represents a timestamp value, typically used to indicate a point in time.
+    ///   Used for measuring the time taken by GPU operations.
+    /// </summary>
     Timestamp = 0
 }

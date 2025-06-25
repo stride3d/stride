@@ -3,35 +3,41 @@
 
 namespace Stride.Graphics;
 
+/// <summary>
+///   A pool holding asynchronous GPU Queries of a specific type.
+/// </summary>
+/// <seealso cref="Graphics.QueryType"/>
 public partial class QueryPool : GraphicsResourceBase
 {
     /// <summary>
-    /// A pool holding queries with a specific <see cref="QueryType"/>.
+    ///   Gets the types of asynchronous GPU Queries in the pool.
     /// </summary>
     public QueryType QueryType { get; }
 
+    /// <summary>
+    ///   Gets the capacity of the pool.
+    /// </summary>
     public int QueryCount { get; }
 
 
+    /// <summary>
+    ///   Creates a new <see cref="QueryPool"/>.
+    /// </summary>
+    /// <param name="graphicsDevice">The Graphics Device.</param>
+    /// <param name="queryType">The type of GPU Queries to contain in the pool.</param>
+    /// <param name="queryCount">The capacity of the pool.</param>
+    /// <returns>An new instance of <see cref="QueryPool"/> of the specified <paramref name="queryType"/>.</returns>
     public static QueryPool New(GraphicsDevice graphicsDevice, QueryType queryType, int queryCount)
     {
-        /// <summary>
-        /// <see cref="QueryType"/> for this pool.
-        /// </summary>
-        /// <summary>
-        /// Capacity of this pool.
-        /// </summary>
-        /// <summary>
-        /// Creates a new <see cref="QueryPool" /> instance.
-        /// </summary>
-        /// <param name="graphicsDevice">The <see cref="GraphicsDevice"/>.</param>
-        /// <param name="queryType">The <see cref="QueryType"/> of the pool.</param>
-        /// <param name="queryCount">The capacity of the pool.</param>
-        /// <returns>An instance of a new <see cref="QueryPool" /></returns>
-        /// <inheritdoc/>
         return new QueryPool(graphicsDevice, queryType, queryCount);
     }
 
+    /// <summary>
+    ///   Initializes a new instance of the <see cref="QueryPool"/> class.
+    /// </summary>
+    /// <param name="graphicsDevice">The Graphics Device.</param>
+    /// <param name="queryType">The type of GPU Queries to contain in the pool.</param>
+    /// <param name="queryCount">The capacity of the pool.</param>
     protected QueryPool(GraphicsDevice graphicsDevice, QueryType queryType, int queryCount) : base(graphicsDevice)
     {
         QueryType = queryType;
@@ -40,6 +46,7 @@ public partial class QueryPool : GraphicsResourceBase
         Recreate();
     }
 
+    /// <inheritdoc/>
     protected internal override bool OnRecreate()
     {
         base.OnRecreate();
@@ -48,5 +55,8 @@ public partial class QueryPool : GraphicsResourceBase
         return true;
     }
 
+    /// <summary>
+    ///   Platform-specific implementation that recreates the queries in the pool.
+    /// </summary>
     private partial void Recreate();
 }

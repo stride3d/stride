@@ -8,7 +8,7 @@ using Stride.Core.Mathematics;
 namespace Stride.Graphics
 {
     /// <summary>
-    /// Performs resource bindings and primitive-based rendering. See the <see cref="GraphicsDevice"/> class to learn more about the class.
+    ///   Represents a list of graphics commands for playback, which can include resource binding, primitive-based rendering, etc.
     /// </summary>
     public partial class CommandList : GraphicsResourceBase
     {
@@ -39,9 +39,9 @@ namespace Stride.Graphics
         public int ViewportCount => boundViewportCount;
 
         /// <summary>
-        /// Sets a viewport.
+        ///   Binds a single viewport to the rasterizer stage of the pipeline.
         /// </summary>
-        /// <value>The viewport.</value>
+        /// <value>The viewport to set.</value>
         public void SetViewport(Viewport viewport)
         {
             viewportDirty |= boundViewportCount != 1;
@@ -55,18 +55,24 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        /// Sets the viewports.
+        ///   Binds an array of viewports to the rasterizer stage of the pipeline.
         /// </summary>
-        /// <value>The viewport.</value>
+        /// <param name="viewports">The array of viewports to set.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="viewports"/> is <see langword="null"/>.</exception>
         public void SetViewports(Viewport[] viewports)
         {
             SetViewports(viewports.Length, viewports);
         }
 
         /// <summary>
-        /// Sets the viewports.
+        ///   Binds an array of viewports to the rasterizer stage of the pipeline.
         /// </summary>
-        /// <value>The viewport.</value>
+        /// <param name="viewportCount">The number of viewports to set.</param>
+        /// <param name="viewports">The array of viewports to set.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="viewports"/> is <see langword="null"/>.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///   <paramref name="viewportCount"/> is greater than the number of items in <paramref name="viewports"/>.
+        /// </exception>
         public void SetViewports(int viewportCount, Viewport[] viewports)
         {
             ArgumentNullException.ThrowIfNull(viewports);
@@ -104,11 +110,8 @@ namespace Stride.Graphics
         public Rectangle Scissor => scissors[0];
 
         /// <summary>
-        /// Binds a single scissor rectangle to the rasterizer stage.
-        /// See <see href="https://doc.stride3d.net/latest/en/manual/graphics/low-level-api/textures-and-render-textures.html#code-set-the-scissor">Set the scissor</see>
-        /// in the manual for more information.
+        ///   Gets the array of scissor rectangles bound to the rasterizer stage of the pipeline.
         /// </summary>
-        /// <param name="rectangle">The scissor rectangle.</param>
         public Rectangle[] Scissors => scissors;
 
         /// <summary>
@@ -116,6 +119,14 @@ namespace Stride.Graphics
         /// </summary>
         public int ScissorCount => boundScissorCount;
 
+        /// <summary>
+        ///   Binds a single scissor rectangle to the rasterizer stage.
+        /// </summary>
+        /// <param name="rectangle">The scissor rectangle to set.</param>
+        /// <remarks>
+        ///   See <see href="https://doc.stride3d.net/latest/en/manual/graphics/low-level-api/textures-and-render-textures.html#code-set-the-scissor">Set the scissor</see>
+        ///   in the manual for more information.
+        /// </remarks>
         public void SetScissorRectangle(Rectangle rectangle)
         {
             scissorsDirty = true;
@@ -125,23 +136,32 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        /// Binds a set of scissor rectangles to the rasterizer stage.
-        /// See <see href="https://doc.stride3d.net/latest/en/manual/graphics/low-level-api/textures-and-render-textures.html#code-set-the-scissor">Set the scissor</see>
-        /// in the manual for more information.
+        ///   Binds a set of scissor rectangles to the rasterizer stage.
         /// </summary>
         /// <param name="scissorRectangles">The set of scissor rectangles to bind.</param>
+        /// <remarks>
+        ///   See <see href="https://doc.stride3d.net/latest/en/manual/graphics/low-level-api/textures-and-render-textures.html#code-set-the-scissor">Set the scissor</see>
+        ///   in the manual for more information.
+        /// </remarks>
+        /// <exception cref="ArgumentNullException"><paramref name="scissorRectangles"/> is <see langword="null"/>.</exception>
         public void SetScissorRectangles(Rectangle[] scissorRectangles)
         {
             SetScissorRectangles(scissorRectangles.Length, scissorRectangles);
         }
 
         /// <summary>
-        /// Binds a set of scissor rectangles to the rasterizer stage.
-        /// See <see href="https://doc.stride3d.net/latest/en/manual/graphics/low-level-api/textures-and-render-textures.html#code-set-the-scissor">Set the scissor</see>
-        /// in the manual for more information.
+        ///   Binds a set of scissor rectangles to the rasterizer stage.
         /// </summary>
         /// <param name="scissorCount">The number of scissor rectangles to bind.</param>
         /// <param name="scissorRectangles">The set of scissor rectangles to bind.</param>
+        /// <remarks>
+        ///   See <see href="https://doc.stride3d.net/latest/en/manual/graphics/low-level-api/textures-and-render-textures.html#code-set-the-scissor">Set the scissor</see>
+        ///   in the manual for more information.
+        /// </remarks>
+        /// <exception cref="ArgumentNullException"><paramref name="scissorRectangles"/> is <see langword="null"/>.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///   <paramref name="scissorCount"/> is greater than the number of items in <paramref name="scissorRectangles"/>.
+        /// </exception>
         public void SetScissorRectangles(int scissorCount, Rectangle[] scissorRectangles)
         {
             ArgumentNullException.ThrowIfNull(scissorRectangles);
@@ -156,12 +176,18 @@ namespace Stride.Graphics
             SetScissorRectanglesImpl(scissorCount, scissorRectangles);
         }
 
+
+        /// <summary>
+        ///   Platform-specific implementation that sets a scissor rectangle to the rasterizer stage.
+        /// </summary>
+        /// <param name="scissorRectangle">The scissor rectangle to set.</param>
         private unsafe partial void SetScissorRectangleImpl(ref Rectangle scissorRectangle);
 
         /// <summary>
-        /// Binds a depth-stencil buffer and a single render target to the output-merger stage.
-        /// See <see href="https://doc.stride3d.net/latest/en/manual/graphics/low-level-api/textures-and-render-textures.html#code-use-a-render-target">Use a render target</see>
-        /// in the manual for more information.
+        ///   Platform-specific implementation that sets one or more scissor rectangles to the rasterizer stage.
+        /// </summary>
+        /// <param name="scissorCount">The number of scissor rectangles to bind.</param>
+        /// <param name="scissorRectangles">The set of scissor rectangles to bind.</param>
         private unsafe partial void SetScissorRectanglesImpl(int scissorCount, Rectangle[] scissorRectangles);
 
         #endregion
@@ -195,9 +221,9 @@ namespace Stride.Graphics
         public int RenderTargetCount => renderTargetCount;
 
 
+        /// <summary>
+        ///   Unbinds all the Render Targets and the Depth-Stencil Buffer from the output-merger stage.
         /// </summary>
-        /// <param name="depthStencilView">A view of the depth-stencil buffer to bind.</param>
-        /// <param name="renderTargetView">A view of the render target to bind.</param>
         public void ResetTargets()
         {
             ResetTargetsImpl();
@@ -207,6 +233,22 @@ namespace Stride.Graphics
                 renderTargets[i] = null;
         }
 
+        /// <summary>
+        ///   Binds a Depth-Stencil Buffer and a single Render Target to the output-merger stage,
+        ///   setting also the viewport according to their dimensions.
+        /// </summary>
+        /// <param name="depthStencilView">
+        ///   A view of the Depth-Stencil Buffer to bind.
+        ///   Specify <see langword="null"/> to unbind the currently bound Depth-Stencil Buffer.
+        /// </param>
+        /// <param name="renderTargetView">
+        ///   A view of the Render Target to bind.
+        ///   Specify <see langword="null"/> to unbind the currently bound Render Targets.
+        /// </param>
+        /// <remarks>
+        ///   See <see href="https://doc.stride3d.net/latest/en/manual/graphics/low-level-api/textures-and-render-textures.html#code-use-a-render-target">Use a Render Target</see>
+        ///   in the manual for more information.
+        /// </remarks>
         public void SetRenderTargetAndViewport(Texture depthStencilView, Texture renderTargetView)
         {
             depthStencilBuffer = depthStencilView;
@@ -216,6 +258,26 @@ namespace Stride.Graphics
             CommonSetRenderTargetsAndViewport(depthStencilBuffer, renderTargetCount, renderTargets);
         }
 
+        /// <summary>
+        ///   Binds a Depth-Stencil Buffer and two Render Targets to the output-merger stage,
+        ///   setting also the viewport according to their dimensions.
+        /// </summary>
+        /// <param name="depthStencilView">
+        ///   A view of the Depth-Stencil Buffer to bind.
+        ///   Specify <see langword="null"/> to unbind the currently bound Depth-Stencil Buffer.
+        /// </param>
+        /// <param name="renderTargetView">
+        ///   A view of the first Render Target to bind.
+        ///   Specify <see langword="null"/> to unbind the currently bound first Render Target.
+        /// </param>
+        /// <param name="secondRenderTarget">
+        ///   A view of a second Render Target to bind.
+        ///   Specify <see langword="null"/> to unbind the currently bound second Render Target.
+        /// </param>
+        /// <remarks>
+        ///   See <see href="https://doc.stride3d.net/latest/en/manual/graphics/low-level-api/textures-and-render-textures.html#code-use-a-render-target">Use a Render Target</see>
+        ///   in the manual for more information.
+        /// </remarks>
         public void SetRenderTargetAndViewport(Texture depthStencilView, Texture renderTargetView, Texture secondRenderTarget)
         {
             depthStencilBuffer = depthStencilView;
@@ -230,21 +292,48 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        ///     <p>Bind one or more render targets atomically and the depth-stencil buffer to the output-merger stage. See <see cref="Textures+and+render+targets"/> to learn how to use it.</p>
+        ///   Binds one or more Render Targets atomically to the output-merger stage,
+        ///   setting also the viewport according to their dimensions. Also unbinds the current Depth-Stencil Buffer.
         /// </summary>
-        /// <param name="renderTargetViews">A set of render target views to bind.</param>
+        /// <param name="renderTargetViews">
+        ///   A set of Render Targets to bind.
+        ///   Specify <see langword="null"/> or an empty array to unbind the currently bound Render Targets.
+        /// </param>
+        /// <remarks>
+        ///   See <see href="https://doc.stride3d.net/latest/en/manual/graphics/low-level-api/textures-and-render-textures.html#code-use-a-render-target">Use a Render Target</see>
+        ///   in the manual for more information.
+        /// </remarks>
         public void SetRenderTargetsAndViewport(Texture[] renderTargetViews)
         {
             SetRenderTargetsAndViewport(depthStencilView: null, renderTargetViews);
         }
 
         /// <summary>
-        /// Binds a depth-stencil buffer and a set of render targets to the output-merger stage. See <see cref="Textures+and+render+targets"/> to learn how to use it.
+        ///   Binds a Depth-Stencil Buffer and one or more Render Targets atomically to the output-merger stage,
+        ///   setting also the viewport according to their dimensions.
         /// </summary>
-        /// <param name="depthStencilView">A view of the depth-stencil buffer to bind.</param>
-        /// <param name="renderTargetViewCount">The number of render target in <paramref name="renderTargetViews"/>.</param>
-        /// <param name="renderTargetViews">A set of render target views to bind.</param>
-        /// <exception cref="System.ArgumentNullException">renderTargetViews</exception>
+        /// <param name="depthStencilView">
+        ///   A view of the Depth-Stencil Buffer to bind.
+        ///   Specify <see langword="null"/> to unbind the currently bound Depth-Stencil Buffer.
+        /// </param>
+        /// <param name="renderTargetViewCount">
+        ///   The current number of Render Targets to bind.
+        ///   Specify <c>0</c> to unbind the currently bound Render Targets.
+        /// </param>
+        /// <param name="renderTargetViews">
+        ///   A set of Render Targets to bind.
+        ///   Specify <see langword="null"/> or an empty array to unbind the currently bound Render Targets.
+        /// </param>
+        /// <remarks>
+        ///   See <see href="https://doc.stride3d.net/latest/en/manual/graphics/low-level-api/textures-and-render-textures.html#code-use-a-render-target">Use a Render Target</see>
+        ///   in the manual for more information.
+        /// </remarks>
+        /// <exception cref="ArgumentNullException">
+        ///   <paramref name="renderTargetViewCount"/> is not zero, but <paramref name="renderTargetViews"/> is <see langword="null"/>.
+        /// </exception>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///   <paramref name="renderTargetViews"/> has less elements than what <paramref name="renderTargetViewCount"/> specifies.
+        /// </exception>
         public void SetRenderTargetsAndViewport(Texture depthStencilView, int renderTargetViewCount, Texture[] renderTargetViews)
         {
             depthStencilBuffer = depthStencilView;
@@ -259,11 +348,21 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        /// Binds a depth-stencil buffer and a set of render targets to the output-merger stage. See <see cref="Textures+and+render+targets"/> to learn how to use it.
+        ///   Binds a Depth-Stencil Buffer and one or more Render Targets atomically to the output-merger stage,
+        ///   setting also the viewport according to their dimensions.
         /// </summary>
-        /// <param name="depthStencilView">A view of the depth-stencil buffer to bind.</param>
-        /// <param name="renderTargetViews">A set of render target views to bind.</param>
-        /// <exception cref="System.ArgumentNullException">renderTargetViews</exception>
+        /// <param name="depthStencilView">
+        ///   A view of the Depth-Stencil Buffer to bind.
+        ///   Specify <see langword="null"/> to unbind the currently bound Depth-Stencil Buffer.
+        /// </param>
+        /// <param name="renderTargetViews">
+        ///   A set of Render Targets to bind.
+        ///   Specify <see langword="null"/> or an empty array to unbind the currently bound Render Targets.
+        /// </param>
+        /// <remarks>
+        ///   See <see href="https://doc.stride3d.net/latest/en/manual/graphics/low-level-api/textures-and-render-textures.html#code-use-a-render-target">Use a Render Target</see>
+        ///   in the manual for more information.
+        /// </remarks>
         public void SetRenderTargetsAndViewport(Texture depthStencilView, Texture[] renderTargetViews)
         {
             depthStencilBuffer = depthStencilView;
@@ -285,10 +384,20 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        /// Binds a depth-stencil buffer and a single render target to the output-merger stage. See <see cref="Textures+and+render+targets"/> to learn how to use it.
+        ///   Binds a Depth-Stencil Buffer and a single Render Target to the output-merger stage.
         /// </summary>
-        /// <param name="depthStencilView">A view of the depth-stencil buffer to bind.</param>
-        /// <param name="renderTargetView">A view of the render target to bind.</param>
+        /// <param name="depthStencilView">
+        ///   A view of the Depth-Stencil Buffer to bind.
+        ///   Specify <see langword="null"/> to unbind the currently bound Depth-Stencil Buffer.
+        /// </param>
+        /// <param name="renderTargetView">
+        ///   A view of the Render Target to bind.
+        ///   Specify <see langword="null"/> to unbind the currently bound Render Targets.
+        /// </param>
+        /// <remarks>
+        ///   See <see href="https://doc.stride3d.net/latest/en/manual/graphics/low-level-api/textures-and-render-textures.html#code-use-a-render-target">Use a Render Target</see>
+        ///   in the manual for more information.
+        /// </remarks>
         public void SetRenderTarget(Texture depthStencilView, Texture renderTargetView)
         {
             depthStencilBuffer = depthStencilView;
@@ -299,22 +408,49 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        ///     <p>Bind one or more render targets atomically and the depth-stencil buffer to the output-merger stage. See <see cref="Textures+and+render+targets"/> to learn how to use it.</p>
+        ///   Binds one or more Render Targets atomically to the output-merger stage, and unbinds any Depth-Stencil Buffer.
         /// </summary>
-        /// <param name="renderTargetViews">A set of render target views to bind.</param>
+        /// <param name="renderTargetViews">
+        ///   A set of Render Targets to bind.
+        ///   Specify <see langword="null"/> or an empty array to unbind the currently bound Render Targets.
+        /// </param>
+        /// <remarks>
+        ///   See <see href="https://doc.stride3d.net/latest/en/manual/graphics/low-level-api/textures-and-render-textures.html#code-use-a-render-target">Use a Render Target</see>
+        ///   in the manual for more information.
+        /// </remarks>
         public void SetRenderTargets(Texture[] renderTargetViews)
         {
             SetRenderTargets(depthStencilView: null, renderTargetViews);
         }
 
         /// <summary>
-        /// Binds a depth-stencil buffer and a set of render targets to the output-merger stage. See <see cref="Textures+and+render+targets"/> to learn how to use it.
+        ///   Binds a Depth-Stencil Buffer and one or more Render Targets atomically to the output-merger stage.
         /// </summary>
-        /// <param name="depthStencilView">A view of the depth-stencil buffer to bind.</param>
-        /// <param name="renderTargetViewCount">The number of render target in <paramref name="renderTargetViews"/>.</param>
-        /// <param name="renderTargetViews">A set of render target views to bind.</param>
+        /// <param name="depthStencilView">
+        ///   A view of the Depth-Stencil Buffer to bind.
+        ///   Specify <see langword="null"/> to unbind the currently bound Depth-Stencil Buffer.
+        /// </param>
+        /// <param name="renderTargetViewCount">
+        ///   The current number of Render Targets to bind.
+        ///   Specify <c>0</c> to unbind the currently bound Render Targets.
+        /// </param>
+        /// <param name="renderTargetViews">
+        ///   A set of Render Targets to bind.
+        ///   Specify <see langword="null"/> or an empty array to unbind the currently bound Render Targets.
+        /// </param>
+        /// <remarks>
+        ///   See <see href="https://doc.stride3d.net/latest/en/manual/graphics/low-level-api/textures-and-render-textures.html#code-use-a-render-target">Use a Render Target</see>
+        ///   in the manual for more information.
+        /// </remarks>
+        /// <exception cref="ArgumentNullException">
+        ///   <paramref name="currentRenderTargetCount"/> is not zero, but <paramref name="renderTargetViews"/> is <see langword="null"/>.
+        /// </exception>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///   <paramref name="renderTargetViews"/> has less elements than what <paramref name="currentRenderTargetCount"/> specifies.
+        /// </exception>
+        public void SetRenderTargets(Texture depthStencilView, int renderTargetViewCount, Texture[] renderTargetViews)
         /// <exception cref="System.ArgumentNullException">renderTargetViews</exception>
-        public void SetRenderTargets(Texture depthStencilView, int renderTargetViewCount, Span<Texture> renderTargetViews)
+        //public void SetRenderTargets(Texture depthStencilView, int renderTargetViewCount, Span<Texture> renderTargetViews)
         {
             depthStencilBuffer = depthStencilView;
 
@@ -334,11 +470,20 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        /// Binds a depth-stencil buffer and a set of render targets to the output-merger stage. See <see cref="Textures+and+render+targets"/> to learn how to use it.
+        ///   Binds a Depth-Stencil Buffer and one or more Render Targets atomically to the output-merger stage.
         /// </summary>
-        /// <param name="depthStencilView">A view of the depth-stencil buffer to bind.</param>
-        /// <param name="renderTargetViews">A set of render target views to bind.</param>
-        /// <exception cref="System.ArgumentNullException">renderTargetViews</exception>
+        /// <param name="depthStencilView">
+        ///   A view of the Depth-Stencil Buffer to bind.
+        ///   Specify <see langword="null"/> to unbind the currently bound Depth-Stencil Buffer.
+        /// </param>
+        /// <param name="renderTargetViews">
+        ///   A set of Render Targets to bind.
+        ///   Specify <see langword="null"/> or an empty array to unbind the currently bound Render Targets.
+        /// </param>
+        /// <remarks>
+        ///   See <see href="https://doc.stride3d.net/latest/en/manual/graphics/low-level-api/textures-and-render-textures.html#code-use-a-render-target">Use a Render Target</see>
+        ///   in the manual for more information.
+        /// </remarks>
         public void SetRenderTargets(Texture depthStencilView, Texture[] renderTargetViews)
         {
             depthStencilBuffer = depthStencilView;
@@ -359,6 +504,22 @@ namespace Stride.Graphics
             SetRenderTargetsImpl(depthStencilBuffer, renderTargetCount, renderTargets);
         }
 
+        /// <summary>
+        ///   Binds a Depth-Stencil Buffer and one or more Render Targets atomically to the output-merger stage,
+        ///   setting also the viewport according to their dimensions.
+        /// </summary>
+        /// <param name="depthStencilView">
+        ///   A view of the Depth-Stencil Buffer to bind.
+        ///   Specify <see langword="null"/> to unbind the currently bound Depth-Stencil Buffer.
+        /// </param>
+        /// <param name="currentRenderTargetCount">
+        ///   The current number of Render Targets to bind.
+        ///   Specify <c>0</c> to unbind the currently bound Render Targets.
+        /// </param>
+        /// <param name="renderTargetViews">
+        ///   A set of Render Targets to bind.
+        ///   Specify <see langword="null"/> or an empty array to unbind the currently bound Render Targets.
+        /// </param>
         private void CommonSetRenderTargetsAndViewport(Texture depthStencilView, int currentRenderTargetCount, Texture[] renderTargetViews)
         {
             if (depthStencilView is not null)
@@ -380,12 +541,28 @@ namespace Stride.Graphics
 
         #endregion
 
+        /// <summary>
+        ///   Resets a Command List back to its initial state as if a new Command List was just created.
+        /// </summary>
         public partial void Reset();
 
+        /// <summary>
+        ///   Closes and executes the Command List.
+        /// </summary>
         public partial void Flush();
 
+        /// <summary>
+        ///   Indicates that recording to the Command List has finished.
+        /// </summary>
+        /// <returns>
+        ///   A <see cref="CompiledCommandList"/> representing the frozen list of recorded commands
+        ///   that can be executed at a later time.
+        /// </returns>
         public partial CompiledCommandList Close();
 
+        /// <summary>
+        ///   Clears and restores the state of the Graphics Device.
+        /// </summary>
         public void ClearState()
         {
             ClearStateImpl();
@@ -405,6 +582,9 @@ namespace Stride.Graphics
             SetRenderTargetAndViewport(deviceDepthStencilBuffer, deviceBackBuffer);
         }
 
+        /// <summary>
+        ///   Platform-specific implementation that clears and restores the state of the Graphics Device.
+        /// </summary>
         private partial void ClearStateImpl();
     }
 }
