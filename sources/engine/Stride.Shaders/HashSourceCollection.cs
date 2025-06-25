@@ -9,25 +9,21 @@ using Stride.Core.Storage;
 
 namespace Stride.Shaders;
 
+/// <summary>
+///   A collection associating the Shader source URLs and their corresponding <see cref="ObjectId"/>s.
+/// </summary>
 [DataContract]
 public class HashSourceCollection : Dictionary<string, ObjectId>, IEquatable<HashSourceCollection>
 {
     /// <summary>
-    /// A dictionary of associations betweens asset shader urls and <see cref="ObjectId"/>
+    ///   Initializes a new instance of the <see cref="HashSourceCollection"/> class.
     /// </summary>
     public HashSourceCollection() { }
 
 
+    /// <inheritdoc/>
     public bool Equals(HashSourceCollection other)
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="HashSourceCollection"/> class.
-        /// </summary>
-        /// <summary>
-        /// Indicates whether the current object is equal to another object of the same type.
-        /// </summary>
-        /// <param name="other">An object to compare with this object.</param>
-        /// <returns>true if the current object is equal to the <paramref name="other" /> parameter; otherwise, false.</returns>
         if (other is null)
             return false;
         if (ReferenceEquals(this, other))
@@ -36,11 +32,13 @@ public class HashSourceCollection : Dictionary<string, ObjectId>, IEquatable<Has
         return Utilities.Compare(this, other);
     }
 
+    /// <inheritdoc/>
     public override bool Equals(object obj)
     {
         return obj is HashSourceCollection other && Equals(other);
     }
 
+    /// <inheritdoc/>
     public override int GetHashCode()
     {
         return Utilities.GetHashCode(this);

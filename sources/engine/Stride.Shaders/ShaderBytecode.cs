@@ -8,75 +8,75 @@ using Stride.Core.Storage;
 
 namespace Stride.Shaders;
 
+/// <summary>
+///   Represents a compiled Shader bytecode.
+/// </summary>
 [DataContract]
 public partial class ShaderBytecode
 {
     /// <summary>
-    /// The bytecode of an effect.
+    ///   The stage of this Shader bytecode.
     /// </summary>
-        /// <summary>
-        /// The stage of this Bytecode.
-        /// </summary>
     public ShaderStage Stage;
 
-        /// <summary>
-        /// Hash of the Data.
-        /// </summary>
+    /// <summary>
+    ///   Gets or sets an unique identifier for the Shader bytecode.
+    /// </summary>
     public ObjectId Id { get; set; } // TODO: Public set?
 
+    /// <summary>
+    ///   Gets or sets the compiled Shader bytecode data that should be used to create the Shader.
+    /// </summary>
     public byte[] Data { get; set; }
 
-        /// <summary>
-        /// Gets the shader data that should be used to create the <see cref="Shader"/>.
-        /// </summary>
-        /// <value>
-        /// The shader data.
-        /// </value>
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="ShaderBytecode"/> class.
-        /// </summary>
+    /// <summary>
+    ///   Initializes a new instance of the <see cref="ShaderBytecode"/> class.
+    /// </summary>
     public ShaderBytecode() { }
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="ShaderBytecode"/> class.
-        /// </summary>
-        /// <param name="data">The data.</param>
+    /// <summary>
+    ///   Initializes a new instance of the <see cref="ShaderBytecode"/> class.
+    /// </summary>
+    /// <param name="id">An unique identifier for the compiled Shader bytecode data.</param>
+    /// <param name="data">The compiled Shader bytecode data.</param>
     public ShaderBytecode(ObjectId id, byte[] data)
     {
         Id = id;
         Data = data;
     }
 
-        /// <summary>
-        /// Shallow clones this instance.
-        /// </summary>
-        /// <returns>ShaderBytecode.</returns>
 
-        /// <summary>
-        /// Performs an implicit conversion from <see cref="ShaderBytecode"/> to <see cref="System.Byte[][]"/>.
-        /// </summary>
-        /// <param name="shaderBytecode">The shader bytecode.</param>
-        /// <returns>The result of the conversion.</returns>
+    /// <summary>
+    ///   Creates a shallow copy of the current <see cref="ShaderBytecode"/>.
+    /// </summary>
+    /// <returns>A shallow copy of the current instance.</returns>
     public ShaderBytecode Clone()
     {
         return (ShaderBytecode) MemberwiseClone();
     }
 
+    /// <summary>
+    ///   Performs an implicit conversion from <see cref="ShaderBytecode"/> to <see cref="byte[]"/>, returning
+    ///   the compiled Shader data.
+    /// </summary>
+    /// <param name="shaderBytecode">The compiled Shader bytecode.</param>
+    /// <returns>The compiled Shader bytecode data converted to a byte array.</returns>
     public static implicit operator byte[](ShaderBytecode shaderBytecode)
     {
         return shaderBytecode.Data;
     }
 
+    /// <summary>
+    ///   Gets the Shader data as a <see langword="string"/>. In some platforms (e.g. OpenGL), the data
+    ///   represents the GLSL source code, instead of compiled bytecode.
+    /// </summary>
+    /// <returns>The Shader data as GLSL source code.</returns>
     public string GetDataAsString()
     {
         // TODO: This is a workaround for OpenGL, where the shader bytecode is actually GLSL source code.
         //       But the class is still called ShaderBytecode!
 
-        /// <summary>
-        /// Gets the data as a string.
-        /// </summary>
-        /// <returns>System.String.</returns>
         return Encoding.UTF8.GetString(Data);
     }
 }
