@@ -8,108 +8,109 @@ using System.Diagnostics;
 using Silk.NET.Core.Native;
 using Silk.NET.Direct3D11;
 
-using static Stride.Graphics.DebugHelpers;
+namespace Stride.Graphics;
 
-namespace Stride.Graphics
+public abstract unsafe partial class GraphicsResourceBase
 {
+    private ID3D11DeviceChild* nativeDeviceChild;
+    private ID3D11Resource* nativeResource;
+
     /// <summary>
     /// GraphicsResource class
     /// </summary>
-    public abstract unsafe partial class GraphicsResourceBase
-    {
-        private ID3D11DeviceChild* nativeDeviceChild;
-        private ID3D11Resource* nativeResource;
-
-        protected internal ID3D11Resource* NativeResource => nativeResource;
+    protected internal ComPtr<ID3D11Resource> NativeResource => ComPtrHelpers.ToComPtr(nativeResource);
 
         /// <summary>
         /// Gets or sets the device child.
         /// </summary>
         /// <value>The device child.</value>
-        protected internal ID3D11DeviceChild* NativeDeviceChild
+    protected internal ComPtr<ID3D11DeviceChild> NativeDeviceChild
+    {
+        get => ComPtrHelpers.ToComPtr(nativeDeviceChild);
+        set
         {
-            get => nativeDeviceChild;
-            set
+            if (nativeDeviceChild == value.Handle)
+                return;
+
+            var oldDeviceChild = nativeDeviceChild;
+            if (oldDeviceChild != null)
             {
-                if (nativeDeviceChild == value)
-                    return;
-
-                var oldDeviceChild = nativeDeviceChild;
-                if (oldDeviceChild != null)
-                    oldDeviceChild->Release();
-
-                nativeDeviceChild = value;
-                if (nativeDeviceChild != null)
-                    nativeDeviceChild->AddRef();
-                else
-                    return;
-
-                Debug.Assert(nativeDeviceChild != null);
-
-                HResult result = nativeDeviceChild->QueryInterface(out ComPtr<ID3D11Resource> d3dResource);
-
-                // The device child can be something that is not a Direct3D resource actually,
-                // like a Sampler State, for example
-                if (result.IsSuccess)
-                {
-                    nativeResource = (ID3D11Resource*) d3dResource;
-                }
-
-                SetDebugName(nativeDeviceChild, Name);
+                oldDeviceChild->Release();
             }
-        }
 
-        protected ID3D11Device* NativeDevice => GraphicsDevice != null ? GraphicsDevice.NativeDevice : null;
+            nativeDeviceChild = value.Handle;
+            if (nativeDeviceChild != null)
+            {
+                nativeDeviceChild->AddRef();
+            }
+            else return;
 
-        private void Initialize()
-        {
+            Debug.Assert(nativeDeviceChild != null);
+
+            HResult result = nativeDeviceChild->QueryInterface(out ComPtr<ID3D11Resource> d3dResource);
+
+            // The device child can be something that is not a Direct3D resource actually,
+            // like a Sampler State, for example
+            if (result.IsSuccess)
+            {
+                nativeResource = d3dResource.Handle;
+            }
+
+            NativeDeviceChild.SetDebugName(Name);
         }
+    }
 
         /// <summary>
         /// Called when graphics device has been detected to be internally destroyed.
         /// </summary>
-        protected internal virtual void OnDestroyed()
+    protected ComPtr<ID3D11Device> NativeDevice => GraphicsDevice?.NativeDevice ?? default;
+
+
+    // No Direct3D-specific initialization
+    private partial void Initialize() { }
+
+    protected internal virtual partial void OnDestroyed()
+    {
+        Destroyed?.Invoke(this, EventArgs.Empty);
+
+        if (nativeDeviceChild != null)
         {
-            Destroyed?.Invoke(this, EventArgs.Empty);
-
-            if (nativeDeviceChild != null)
-                nativeDeviceChild->Release();
-
+            nativeDeviceChild->Release();
             nativeDeviceChild = null;
-
-            if (nativeResource != null)
-                nativeResource->Release();
-
-            nativeResource = null;
         }
-
         /// <summary>
         /// Called when graphics device has been recreated.
         /// </summary>
         /// <returns>True if item transitioned to a <see cref="GraphicsResourceLifetimeState.Active"/> state.</returns>
-        protected internal virtual bool OnRecreate()
+        if (nativeResource != null)
         {
-            return false;
+            nativeResource->Release();
+            nativeResource = null;
         }
+    }
 
         /// <summary>
         ///   Gets the CPU access flags from the intended resource usage.
         /// </summary>
         /// <param name="usage">The usage.</param>
         /// <returns>A combination of one or more <see cref="CpuAccessFlag"/> flags.</returns>
-        internal static CpuAccessFlag GetCpuAccessFlagsFromUsage(GraphicsResourceUsage usage)
-        {
-            return usage switch
-            {
-                GraphicsResourceUsage.Dynamic => CpuAccessFlag.Write,
-                GraphicsResourceUsage.Staging => CpuAccessFlag.Read | CpuAccessFlag.Write,
-                GraphicsResourceUsage.Immutable => CpuAccessFlag.None,
-
-                _ => CpuAccessFlag.Read
-            };
-        }
-
+    protected internal virtual bool OnRecreate()
+    {
+        return false;
     }
+
+    internal static CpuAccessFlag GetCpuAccessFlagsFromUsage(GraphicsResourceUsage usage)
+    {
+        return usage switch
+        {
+            GraphicsResourceUsage.Dynamic => CpuAccessFlag.Write,
+            GraphicsResourceUsage.Staging => CpuAccessFlag.Read | CpuAccessFlag.Write,
+            GraphicsResourceUsage.Immutable => CpuAccessFlag.None,
+
+            _ => CpuAccessFlag.Read
+        };
+    }
+
 }
 
 #endif
