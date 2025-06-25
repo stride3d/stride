@@ -25,14 +25,21 @@ using Stride.Core;
 
 namespace Stride.Graphics;
 
+/// <summary>
+///   Base class for all Graphics Resource factories.
+/// </summary>
 public abstract class GraphicsResourceFactoryBase : ComponentBase
 {
     /// <summary>
-    /// Base factory for all Graphics resources.
+    ///   Gets or sets the Graphics Device the created resources depend on.
     /// </summary>
     protected internal GraphicsDevice GraphicsDevice { get; set; }
 
 
+    /// <summary>
+    ///   Initializes a new instance of the <see cref="GraphicsResourceFactoryBase"/> class.
+    /// </summary>
+    /// <param name="device">The Graphics Device.</param>
     protected internal GraphicsResourceFactoryBase(GraphicsDevice device)
     {
         GraphicsDevice = device;

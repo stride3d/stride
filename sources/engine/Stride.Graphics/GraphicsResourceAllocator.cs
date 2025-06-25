@@ -24,10 +24,10 @@ namespace Stride.Graphics
 
 
     /// <summary>
-    /// A <see cref="GraphicsResource"/> allocator tracking usage reference and allowing to recycle unused resources based on a recycle policy. 
+    ///   A <see cref="GraphicsResource"/> allocator tracking usage references and allowing to recycle unused resources based on a recycle policy.
     /// </summary>
     /// <remarks>
-    /// This class is threadsafe. Accessing a member will lock globally this instance.
+    ///   This class is thread-safe. Accessing any member will acquire a global lock on this instance.
     /// </remarks>
     public class GraphicsResourceAllocator : ComponentBase
     {
@@ -36,12 +36,39 @@ namespace Stride.Graphics
 
         #region Internal types
 
+        /// <summary>
+        ///   Internal type for a cache of Graphics Resources associated with their description.
+        /// </summary>
+        /// <typeparam name="TResourceDesc">The type of an object that describes the characteristics of the cached Graphics Resource.</typeparam>
         protected internal sealed class ResourceCache<TResourceDesc> : Dictionary<TResourceDesc, List<GraphicsResourceLink>>;
 
+        /// <summary>
+        ///   A description of a GPU queries pool.
+        /// </summary>
+        /// <param name="QueryType">The type of the pooled GPU queries.</param>
+        /// <param name="QueryCount">The number of queries in the pool.</param>
         protected internal record struct QueryPoolDescription(QueryType QueryType, int QueryCount);
 
+        /// <summary>
+        ///   Represents a method that creates a Graphics Resource of type <typeparamref name="TResource"/> based on the specified
+        ///   description and pixel format.
+        /// </summary>
+        /// <typeparam name="TResource">The type of the Graphics Resource to be created.</typeparam>
+        /// <typeparam name="TDescription">The type of the description used to define the Graphics Resource.</typeparam>
+        /// <param name="description">The description that specifies the details of the Graphics Resource to be created.</param>
+        /// <param name="viewFormat">The data format to be used for SRVs on the Graphics Resource.</param>
+        /// <returns>
+        ///   A new instance of <typeparamref name="TResource"/> created based on the provided description and SRV data format.
+        /// </returns>
         protected internal delegate TResource CreateResourceDelegate<TResource, TDescription>(TDescription description, PixelFormat viewFormat);
 
+        /// <summary>
+        ///   Represents a method that retrieves a description of a Graphics Resource.
+        /// </summary>
+        /// <typeparam name="TResource">The type of the Graphics Resource for which the description is retrieved.</typeparam>
+        /// <typeparam name="TDescription">The type of the description returned for the Graphics Resource.</typeparam>
+        /// <param name="resource">The Graphics Resource for which the description is to be retrieved.</param>
+        /// <returns>The description of the specified Graphics Resource.</returns>
         protected internal delegate TDescription GetDescriptionDelegate<TResource, TDescription>(TResource resource);
 
         #endregion
@@ -58,13 +85,16 @@ namespace Stride.Graphics
 
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="GraphicsResourceAllocator" /> class.
+        ///   Initializes a new instance of the <see cref="GraphicsResourceAllocator"/> class.
         /// </summary>
-        /// <param name="graphicsDevice">The graphics device.</param>
+        /// <param name="graphicsDevice">The Graphics Device.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="graphicsDevice"/> is <see langword="null"/>.</exception>
         public GraphicsResourceAllocator(GraphicsDevice graphicsDevice)
         {
             GraphicsDevice = graphicsDevice ?? throw new ArgumentNullException(nameof(graphicsDevice));
 
+            // We cache the delegates to avoid allocations on each call. They can't be static because they
+            // can be overridden in derived classes
             createTextureDelegate = CreateTexture;
             createBufferDelegate = CreateBuffer;
             createQueryPoolDelegate = CreateQueryPool;
@@ -72,29 +102,44 @@ namespace Stride.Graphics
 
 
         /// <summary>
-        /// Gets or sets the graphics device.
+        ///   Gets or sets the Graphics Device.
         /// </summary>
-        /// <value>The graphics device.</value>
         private GraphicsDevice GraphicsDevice { get; }
 
         /// <summary>
-        /// Gets the services registry.
+        ///   Gets the services registry.
         /// </summary>
-        /// <value>The services registry.</value>
         public IServiceRegistry Services { get; private set; } // TODO: Never set, never read, remove this property?
 
         /// <summary>
-        /// Gets or sets the default recycle policy. Default is always recycle no matter the state of the resources.
+        ///   Gets or sets the default recycle policy.
         /// </summary>
-        /// <value>The default recycle policy.</value>
+        /// <value>The recycle policy to apply by default by the Graphics Resource Allocator.</value>
+        /// <remarks>
+        ///   <para>
+        ///     A recycle policy is a delegate that inspects a Graphics Resource and some allocation and access
+        ///     information, and determines if it should be recycled (disposed) or not.
+        ///   </para>
+        ///   <para>
+        ///     The default recycle policy (<see cref="DefaultRecyclePolicy"/>) is to always recycle a Graphics Resource
+        ///     irrespective of its state.
+        ///   </para>
+        /// </remarks>
         public GraphicsResourceRecyclePolicyDelegate RecyclePolicy { get; set; } = DefaultRecyclePolicy;
 
         /// <summary>
-        /// Recycles unused resources (with a  <see cref="GraphicsResourceLink.ReferenceCount"/> == 0 ) with the <see cref="RecyclePolicy"/>. By Default, no recycle policy installed.
+        ///   The default recycle policy that always removes all allocated Graphics Resources.
         /// </summary>
         private static bool DefaultRecyclePolicy(GraphicsResourceLink resourceLink) => true;
 
 
+        /// <summary>
+        ///   Recycles unused resources (those with a <see cref="GraphicsResourceLink.ReferenceCount"/> of 0)
+        ///   with the <see cref="RecyclePolicy"/>.
+        /// </summary>
+        /// <remarks>
+        ///   If no recycle policy is set (it is <see langword="null"/>), this method does not recycle anything.
+        /// </remarks>
         public void Recycle()
         {
             if (RecyclePolicy is not null)
@@ -104,21 +149,25 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        /// Recycles unused resource with the specified recycle policy. 
+        ///   Recycles unused resources (those with a <see cref="GraphicsResourceLink.ReferenceCount"/> of 0)
+        ///   with the specified recycle policy.
         /// </summary>
         /// <param name="recyclePolicy">The recycle policy.</param>
-        /// <exception cref="System.ArgumentNullException">recyclePolicy</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="recyclePolicy"/> is <see langword="null"/>.</exception>
         public void Recycle(GraphicsResourceRecyclePolicyDelegate recyclePolicy)
         {
             ArgumentNullException.ThrowIfNull(recyclePolicy);
 
-            // Global lock to be threadsafe
+            // Global lock to be thread-safe
             lock (thisLock)
             {
                 Recycle(textureCache, recyclePolicy);
                 Recycle(bufferCache, recyclePolicy);
             }
 
+            /// <summary>
+            ///   Recycles the specified cache.
+            /// </summary>
             static void Recycle<TKey>(ResourceCache<TKey> cache, GraphicsResourceRecyclePolicyDelegate recyclePolicy)
             {
                 foreach (var resourceList in cache.Values)
@@ -143,18 +192,27 @@ namespace Stride.Graphics
 
 
         /// <summary>
-        /// Gets a texture for the specified description.
+        ///   Returns a description for a specified <see cref="Buffer"/>.
         /// </summary>
-        /// <param name="description">The description.</param>
-        /// <returns>A texture</returns>
         private static BufferDescription GetBufferDescription(Buffer buffer) => buffer.Description;
+        /// <summary>
+        ///   Returns a description for a specified <see cref="Texture"/>.
+        /// </summary>
         private static TextureDescription GetTextureDescription(Texture texture) => texture.Description;
+        /// <summary>
+        ///   Returns a description for a specified <see cref="QueryPool"/>.
+        /// </summary>
         private static QueryPoolDescription GetQueryPoolDescription(QueryPool queryPool) => new(queryPool.QueryType, queryPool.QueryCount);
 
 
+        /// <summary>
+        ///   Gets a temporary Texture with the specified description.
+        /// </summary>
+        /// <param name="description">A description of the needed characteristics of the Texture.</param>
+        /// <returns>A temporary Texture with the specified <paramref name="description"/>.</returns>
         public Texture GetTemporaryTexture(TextureDescription description)
         {
-            // Global lock to be threadsafe
+            // Global lock to be thread-safe
             lock (thisLock)
             {
                 return GetTemporaryResource(textureCache, description, createTextureDelegate, GetTextureDescription, PixelFormat.None);
@@ -162,36 +220,49 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        /// Gets a texture for the specified description.
+        ///   Gets a temporary Buffer with the specified description.
         /// </summary>
-        /// <param name="description">The description.</param>
-        /// <param name="viewFormat">The pixel format seen by the shader</param>
-        /// <returns>A texture</returns>
+        /// <param name="description">A description of the needed characteristics of the Buffer.</param>
+        /// <param name="viewFormat">
+        ///   The data format for the View that will be seen by Shaders.
+        ///   Specify <see cref="PixelFormat.None"/> to use the default format of the Buffer.
+        /// </param>
+        /// <returns>A temporary Buffer with the specified <paramref name="description"/>.</returns>
         public Buffer GetTemporaryBuffer(BufferDescription description, PixelFormat viewFormat = PixelFormat.None)
         {
-            // Global lock to be threadsafe
+            // Global lock to be thread-safe
             lock (thisLock)
             {
                 return GetTemporaryResource(bufferCache, description, createBufferDelegate, GetBufferDescription, viewFormat);
             }
         }
 
+        /// <summary>
+        ///   Gets a Query Pool for a specific number of GPU Queries of a given type.
+        /// </summary>
+        /// <param name="queryType">The type of the Queries.</param>
+        /// <param name="queryCount">The needed number of Queries.</param>
+        /// <returns>A temporary Query Pool with the specified types and count.</returns>
         public QueryPool GetQueryPool(QueryType queryType, int queryCount)
         {
-            // Global lock to be threadsafe
+            // Global lock to be thread-safe
             lock (thisLock)
             {
                 return GetTemporaryResource(queryPoolCache, new QueryPoolDescription(queryType, queryCount), createQueryPoolDelegate, GetQueryPoolDescription, PixelFormat.None);
             }
         }
 
+
         /// <summary>
-        /// Increments the reference to a temporary resource.
+        ///   Adds a reference to a Graphics Resource tracked by this allocator.
         /// </summary>
-        /// <param name="resource"></param>
+        /// <param name="resource">The Graphics Resource. It's internal reference count will be increased.</param>
+        /// <exception cref="ArgumentException">
+        ///   Thrown if <paramref name="resource"/> was not allocated by this allocator.
+        /// </exception>
         public void AddReference(GraphicsResource resource)
         {
-            // Global lock to be threadsafe
+            // Global lock to be thread-safe
             lock (thisLock)
             {
                 UpdateReference(resource, +1);
@@ -199,45 +270,67 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        /// Decrements the reference to a temporary resource.
+        ///   Removes a reference to a Graphics Resource tracked by this allocator.
         /// </summary>
-        /// <param name="resource"></param>
+        /// <param name="resource">The Graphics Resource. It's internal reference count will be decreased.</param>
+        /// <exception cref="ArgumentException">
+        ///   Thrown if <paramref name="resource"/> was not allocated by this allocator.
+        /// </exception>
         public void ReleaseReference(GraphicsResourceBase resource)
         {
-            // Global lock to be threadsafe
+            // Global lock to be thread-safe
             lock (thisLock)
             {
                 UpdateReference(resource, -1);
             }
         }
 
+
         /// <summary>
-        /// Creates a texture for output.
+        ///   Creates a Texture.
         /// </summary>
-        /// <param name="description">The description.</param>
-        /// <param name="viewFormat">The pixel format seen by the shader</param>
-        /// <returns>Texture.</returns>
+        /// <param name="description">A description of the needed characteristics of the Texture.</param>
+        /// <param name="viewFormat">
+        ///   The pixel format for the View that will be seen by Shaders.
+        ///   Specify <see cref="PixelFormat.None"/> to use the default format of the Texture.
+        /// </param>
+        /// <returns>A Texture with the specified <paramref name="description"/>.</returns>
         protected virtual Texture CreateTexture(TextureDescription description, PixelFormat viewFormat)
         {
             return Texture.New(GraphicsDevice, description);
         }
 
         /// <summary>
-        /// Creates a temporary buffer.
+        ///   Creates a Buffer.
         /// </summary>
-        /// <param name="description">The description.</param>
-        /// <param name="viewFormat">The shader view format on the buffer</param>
-        /// <returns>Buffer.</returns>
+        /// <param name="description">A description of the needed characteristics of the Buffer.</param>
+        /// <param name="viewFormat">
+        ///   The data format for the View that will be seen by Shaders.
+        ///   Specify <see cref="PixelFormat.None"/> to use the default format of the Buffer.
+        /// </param>
+        /// <returns>A Buffer with the specified <paramref name="description"/>.</returns>
         protected virtual Buffer CreateBuffer(BufferDescription description, PixelFormat viewFormat)
         {
             return Buffer.New(GraphicsDevice, description, viewFormat);
         }
 
+        /// <summary>
+        ///   Creates a Query Pool for a specific number of GPU Queries of a given type.
+        /// </summary>
+        /// <param name="description">
+        ///   A description of the needed characteristics of the Query Pool, like the number of GPU Queries and their type.
+        /// </param>
+        /// <param name="viewFormat">Ignored for Query Pools, as they do not have a format.</param>
+        /// <returns>A Query Pool with the specified types and count.</returns>
         protected virtual QueryPool CreateQueryPool(QueryPoolDescription description, PixelFormat viewFormat)
         {
             return QueryPool.New(GraphicsDevice, description.QueryType, description.QueryCount);
         }
 
+
+        /// <summary>
+        ///   Disposes the current Graphics Resource allocator by disposing all the associated resources and clearing all the caches.
+        /// </summary>
         protected override void Destroy()
         {
             lock (thisLock)
@@ -249,6 +342,9 @@ namespace Stride.Graphics
 
             base.Destroy();
 
+            /// <summary>
+            ///   Disposes and removes all the resources in a resource cache.
+            /// </summary>
             static void DisposeCache<TKey>(ResourceCache<TKey> cache)
             {
                 foreach (var resourceList in cache.Values)
@@ -261,6 +357,27 @@ namespace Stride.Graphics
         }
 
 
+        /// <summary>
+        ///   Gets a temporary Graphics Resource with the specified description.
+        /// </summary>
+        /// <typeparam name="TResource">The type of the Graphics Resource.</typeparam>
+        /// <typeparam name="TDescription">The type of an object that describes the characteristics of the Graphics Resource.</typeparam>
+        /// <param name="cache">The cache of allocated Graphics Resources of the intended type.</param>
+        /// <param name="description">A description of the needed characteristics of the Graphics Resource.</param>
+        /// <param name="createResource">
+        ///   A delegate that creates a Graphics Resource given a description and a data format for SRVs.
+        ///   See <see cref="CreateTexture"/>, <see cref="CreateBuffer"/>, or <see cref="CreateQueryPool"/> for examples.
+        /// </param>
+        /// <param name="getDescription">
+        ///   A delegate that retrieves the actual description of a Graphics Resource.
+        ///   See <see cref="GetTextureDescription"/>, <see cref="GetBufferDescription"/>, or <see cref="GetQueryPoolDescription"/> for examples.
+        /// </param>
+        /// <param name="viewFormat">
+        ///   The data format for the View that will be seen by Shaders.
+        ///   Specify <see cref="PixelFormat.None"/> to use the default format of the Graphics Resource.
+        ///   Some Graphics Resources may not have a View Format, like Query Pools.
+        /// </param>
+        /// <returns>A temporary Graphics Resource with the specified <paramref name="description"/>.</returns>
         private TResource GetTemporaryResource<TResource, TDescription>(
             ResourceCache<TDescription> cache,
             TDescription description,
@@ -284,7 +401,7 @@ namespace Stride.Graphics
                 }
             }
 
-            // If no resources are available, then creates a new one
+            // If no resources are available, then create a new one
             var newResource = createResource(description, viewFormat);
 
             string allocatorName = string.IsNullOrWhiteSpace(Name) ? string.Empty : $"{Name}-";
@@ -307,6 +424,9 @@ namespace Stride.Graphics
 
             return newResource;
 
+            //
+            // Gets or creates a cache for allocated Graphics Resources matching the specified description.
+            //
             List<GraphicsResourceLink> GetOrCreateCache(TDescription description)
             {
                 // For a specific description, get allocated resources
@@ -321,11 +441,22 @@ namespace Stride.Graphics
 
 
         /// <summary>
-        /// Recycles the specified cache.
+        ///   Updates the reference count for a specified Graphics Resource.
         /// </summary>
-        /// <typeparam name="TKey">The type of the t key.</typeparam>
-        /// <param name="cache">The cache.</param>
-        /// <param name="recyclePolicy">The recycle policy.</param>
+        /// <param name="resource">
+        ///   The Graphics Resource whose reference count is to be updated.
+        ///   Must be a <see cref="Texture"/>, <see cref="Buffer"/>, or <see cref="QueryPool"/>.
+        /// </param>
+        /// <param name="referenceDelta">
+        ///   The change in the reference count. Positive values increase the count, while negative values decrease it.
+        /// </param>
+        /// <exception cref="ArgumentException">
+        ///   Thrown if <paramref name="resource"/> is not a <see cref="Texture"/>, <see cref="Buffer"/>, or <see cref="QueryPool"/>,
+        ///   or if the Graphics Resource was not allocated by this allocator.
+        /// </exception>
+        /// <exception cref="ArgumentException">
+        ///   The <paramref name="referenceDelta"/> is invalid. It cannot make the reference count of the <paramref name="resource"/> negative.
+        /// </exception>
         private void UpdateReference(GraphicsResourceBase resource, int referenceDelta)
         {
             if (resource is null)
@@ -339,13 +470,33 @@ namespace Stride.Graphics
                 Buffer buffer => UpdateReferenceCount(bufferCache, buffer, GetBufferDescription, referenceDelta),
                 QueryPool queryPool => UpdateReferenceCount(queryPoolCache, queryPool, GetQueryPoolDescription, referenceDelta),
 
-                _ => throw new ArgumentException("Unsupported graphics resource. Only Textures, Buffers and QueryPools are supported", nameof(resource))
+                _ => throw new ArgumentException("Unsupported Graphics Resource. Only Textures, Buffers and QueryPools are supported", nameof(resource))
             };
 
             if (!resourceFound)
-                throw new ArgumentException("The resource was not allocated by this allocator");
+                throw new ArgumentException("The Graphics Resource was not allocated by this allocator", nameof(resource));
         }
 
+        /// <summary>
+        ///   Updates the reference count for a specified Graphics Resource.
+        /// </summary>
+        /// <typeparam name="TResource">The type of the Graphics Resource.</typeparam>
+        /// <typeparam name="TDescription">The type of an object that describes the characteristics of the Graphics Resource.</typeparam>
+        /// <param name="cache">The cache of allocated Graphics Resources of the intended type.</param>
+        /// <param name="resource">The Graphics Resource whose reference count is to be updated.</param>
+        /// <param name="getDescription">
+        ///   A delegate that retrieves the actual description of a Graphics Resource.
+        ///   See <see cref="GetTextureDescription"/>, <see cref="GetBufferDescription"/>, or <see cref="GetQueryPoolDescription"/> for examples.
+        /// </param>
+        /// <param name="referenceDelta">
+        ///   The change in the reference count. Positive values increase the count, while negative values decrease it.
+        /// </param>
+        /// <returns>
+        ///   <see langword="true"/> if the reference count for <paramref name="resource"/> was updated; <see langword="false"/> otherwise.
+        /// </returns>
+        /// <exception cref="ArgumentException">
+        ///   The <paramref name="referenceDelta"/> is invalid. It cannot make the reference count of the <paramref name="resource"/> negative.
+        /// </exception>
         private bool UpdateReferenceCount<TDescription, TResource>(
             ResourceCache<TDescription> cache,
             TResource resource,
@@ -360,6 +511,7 @@ namespace Stride.Graphics
                 return false;
             }
 
+            // Check if the resource is known by this allocator
             if (cache.TryGetValue(getDescription(resource), out List<GraphicsResourceLink> resourceLinks))
             {
                 foreach (var resourceLink in resourceLinks)
@@ -371,14 +523,26 @@ namespace Stride.Graphics
                     }
                 }
             }
+            // Resource not found in the cache
             return false;
         }
 
+        /// <summary>
+        ///   Updates the reference count for a specified Graphics Resource.
+        /// </summary>
+        /// <param name="resourceLink">The Graphics Resource whose reference count is to be updated.</param>
+        /// <param name="referenceDelta">
+        ///   The change in the reference count. Positive values increase the count, while negative values decrease it.
+        /// </param>
+        /// <exception cref="ArgumentException">
+        ///   The <paramref name="referenceDelta"/> is invalid. It cannot make the reference count of the <paramref name="resource"/> negative.
+        /// </exception>
         private void UpdateCounter(GraphicsResourceLink resourceLink, int referenceDelta)
         {
             if ((resourceLink.ReferenceCount + referenceDelta) < 0)
             {
-                throw new InvalidOperationException("Invalid decrement on reference count (must be >=0 after decrement). Current reference count: [{0}] Decrement: [{1}]".ToFormat(resourceLink.ReferenceCount, deltaCount));
+                throw new ArgumentException("Invalid delta on reference count. It must be non-negative after updating. " +
+                    $"Current reference count: [{resourceLink.ReferenceCount}] Delta: [{referenceDelta}]");
             }
 
             resourceLink.ReferenceCount += referenceDelta;
@@ -386,6 +550,7 @@ namespace Stride.Graphics
             resourceLink.AccessCountSinceLastRecycle++;
             resourceLink.LastAccessTime = DateTime.Now;
 
+            // If no alive references are left, we can tag the resource for discarding on next Map
             if (resourceLink.ReferenceCount == 0)
                 GraphicsDevice.TagResource(resourceLink);
         }
