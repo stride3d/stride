@@ -1,59 +1,55 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 using System;
 
-namespace Stride.Graphics
+namespace Stride.Graphics;
+
+public struct InputElementDescription : IEquatable<InputElementDescription>
 {
-    public struct InputElementDescription : IEquatable<InputElementDescription>
+    public string SemanticName;
+
+    public int SemanticIndex;
+
+    public PixelFormat Format;
+
+    public int InputSlot;
+
+    public int AlignedByteOffset;
+
+    public InputClassification InputSlotClass;
+
+    public int InstanceDataStepRate;
+
+
+    public readonly bool Equals(InputElementDescription other)
     {
-        public string SemanticName;
-        public int SemanticIndex;
-        public PixelFormat Format;
-        public int InputSlot;
-        public int AlignedByteOffset;
-        public InputClassification InputSlotClass;
-        public int InstanceDataStepRate;
+        return string.Equals(SemanticName, other.SemanticName)
+               && SemanticIndex == other.SemanticIndex
+               && Format == other.Format
+               && InputSlot == other.InputSlot
+               && AlignedByteOffset == other.AlignedByteOffset
+               && InputSlotClass == other.InputSlotClass
+               && InstanceDataStepRate == other.InstanceDataStepRate;
+    }
 
-        public bool Equals(InputElementDescription other)
-        {
-            return string.Equals(SemanticName, other.SemanticName)
-                   && SemanticIndex == other.SemanticIndex
-                   && Format == other.Format
-                   && InputSlot == other.InputSlot
-                   && AlignedByteOffset == other.AlignedByteOffset
-                   && InputSlotClass == other.InputSlotClass
-                   && InstanceDataStepRate == other.InstanceDataStepRate;
-        }
+    public override readonly bool Equals(object obj)
+    {
+        return obj is InputElementDescription iedesc && Equals(iedesc);
+    }
 
-        public override bool Equals(object obj)
-        {
-            if (ReferenceEquals(null, obj)) return false;
-            return obj is InputElementDescription && Equals((InputElementDescription)obj);
-        }
+    public static bool operator ==(InputElementDescription left, InputElementDescription right)
+    {
+        return left.Equals(right);
+    }
 
-        public override int GetHashCode()
-        {
-            unchecked
-            {
-                var hashCode = SemanticName.GetHashCode();
-                hashCode = (hashCode * 397) ^ SemanticIndex;
-                hashCode = (hashCode * 397) ^ (int)Format;
-                hashCode = (hashCode * 397) ^ InputSlot;
-                hashCode = (hashCode * 397) ^ AlignedByteOffset;
-                hashCode = (hashCode * 397) ^ (int)InputSlotClass;
-                hashCode = (hashCode * 397) ^ InstanceDataStepRate;
-                return hashCode;
-            }
-        }
+    public static bool operator !=(InputElementDescription left, InputElementDescription right)
+    {
+        return !left.Equals(right);
+    }
 
-        public static bool operator ==(InputElementDescription left, InputElementDescription right)
-        {
-            return left.Equals(right);
-        }
-
-        public static bool operator !=(InputElementDescription left, InputElementDescription right)
-        {
-            return !left.Equals(right);
-        }
+    public override readonly int GetHashCode()
+    {
+        return HashCode.Combine(SemanticName, SemanticIndex, Format, InputSlot, AlignedByteOffset, InputSlotClass, InstanceDataStepRate);
     }
 }

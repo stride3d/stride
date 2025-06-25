@@ -616,7 +616,7 @@ namespace Stride.Rendering
                                 renderEffectReflection = new RenderEffectReflection();
 
                                 // Build root signature automatically from reflection
-                                renderEffectReflection.DescriptorReflection = EffectDescriptorSetReflection.New(RenderSystem.GraphicsDevice, effect.Bytecode, effectDescriptorSetSlots, "PerFrame");
+                                renderEffectReflection.DescriptorReflection = EffectDescriptorSetReflection.New(RenderSystem.GraphicsDevice, effect.Bytecode, effectDescriptorSetSlots, defaultSetSlot: "PerFrame");
                                 renderEffectReflection.ResourceGroupDescriptions = new ResourceGroupDescription[renderEffectReflection.DescriptorReflection.Layouts.Count];
 
                                 // Compute ResourceGroup hashes
@@ -797,7 +797,7 @@ namespace Stride.Rendering
                     renderNode.EffectObjectNode = new EffectObjectNodeReference(effectObjectNodeIndex);
 
                     renderNode.RenderEffect = renderEffect;
-                    
+
                     // Bind well-known descriptor sets
                     var descriptorSetPoolOffset = ComputeResourceGroupOffset(renderNodeReference);
                     ResourceGroupPool[descriptorSetPoolOffset + perFrameDescriptorSetSlot.Index] = frameLayout?.Entry.Resources;
