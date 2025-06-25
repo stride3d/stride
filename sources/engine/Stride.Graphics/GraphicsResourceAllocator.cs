@@ -8,6 +8,21 @@ using Stride.Core;
 
 namespace Stride.Graphics
 {
+    #region Convenience aliases
+
+    // Convenience aliases to aid readability and reduce verbosity
+
+    using TextureCache = GraphicsResourceAllocator.ResourceCache<TextureDescription>;
+    using BufferCache = GraphicsResourceAllocator.ResourceCache<BufferDescription>;
+    using QueryPoolCache = GraphicsResourceAllocator.ResourceCache<GraphicsResourceAllocator.QueryPoolDescription>;
+
+    using CreateTextureDelegate = GraphicsResourceAllocator.CreateResourceDelegate<Texture, TextureDescription>;
+    using CreateBufferDelegate = GraphicsResourceAllocator.CreateResourceDelegate<Buffer, BufferDescription>;
+    using CreateQueryPoolDelegate = GraphicsResourceAllocator.CreateResourceDelegate<QueryPool, GraphicsResourceAllocator.QueryPoolDescription>;
+
+    #endregion
+
+
     /// <summary>
     /// A <see cref="GraphicsResource"/> allocator tracking usage reference and allowing to recycle unused resources based on a recycle policy. 
     /// </summary>
@@ -19,16 +34,28 @@ namespace Stride.Graphics
         // TODO: Check if we should introduce an enum for the kind of scope (per DrawCore, per Frame...etc.)
         // TODO: Add statistics method (number of objects allocated...etc.)
 
-        private readonly object thisLock = new object();
-        private readonly Dictionary<TextureDescription, List<GraphicsResourceLink>> textureCache = new Dictionary<TextureDescription, List<GraphicsResourceLink>>();
-        private readonly Dictionary<BufferDescription, List<GraphicsResourceLink>> bufferCache = new Dictionary<BufferDescription, List<GraphicsResourceLink>>();
-        private readonly Dictionary<QueryPoolDescription, List<GraphicsResourceLink>> queryPoolCache = new Dictionary<QueryPoolDescription, List<GraphicsResourceLink>>();
-        private readonly Func<Texture, TextureDescription> getTextureDefinitionDelegate;
-        private readonly Func<Buffer, BufferDescription> getBufferDescriptionDelegate;
-        private readonly Func<QueryPool, QueryPoolDescription> getQueryPoolDescriptionDelegate;
-        private readonly Func<TextureDescription, PixelFormat, Texture> createTextureDelegate;
-        private readonly Func<BufferDescription, PixelFormat, Buffer> createBufferDelegate;
-        private readonly Func<QueryPoolDescription, PixelFormat, QueryPool> createQueryPoolDelegate;
+        #region Internal types
+
+        protected internal sealed class ResourceCache<TResourceDesc> : Dictionary<TResourceDesc, List<GraphicsResourceLink>>;
+
+        protected internal record struct QueryPoolDescription(QueryType QueryType, int QueryCount);
+
+        protected internal delegate TResource CreateResourceDelegate<TResource, TDescription>(TDescription description, PixelFormat viewFormat);
+
+        protected internal delegate TDescription GetDescriptionDelegate<TResource, TDescription>(TResource resource);
+
+        #endregion
+
+        private readonly object thisLock = new();
+
+        private readonly TextureCache textureCache = [];      // Cache for Textures by their TextureDescription
+        private readonly BufferCache bufferCache = [];        // Cache for Buffers by their BufferDescription
+        private readonly QueryPoolCache queryPoolCache = [];  // Cache for QueryPools by their QueryPoolDescription
+
+        private readonly CreateTextureDelegate createTextureDelegate;
+        private readonly CreateBufferDelegate createBufferDelegate;
+        private readonly CreateQueryPoolDelegate createQueryPoolDelegate;
+
 
         /// <summary>
         /// Initializes a new instance of the <see cref="GraphicsResourceAllocator" /> class.
@@ -38,39 +65,39 @@ namespace Stride.Graphics
         {
             GraphicsDevice = graphicsDevice ?? throw new ArgumentNullException(nameof(graphicsDevice));
 
-            getTextureDefinitionDelegate = GetTextureDefinition;
-            getBufferDescriptionDelegate = GetBufferDescription;
-            getQueryPoolDescriptionDelegate = GetQueryPoolDefinition;
             createTextureDelegate = CreateTexture;
             createBufferDelegate = CreateBuffer;
             createQueryPoolDelegate = CreateQueryPool;
-            RecyclePolicy = DefaultRecyclePolicy;
         }
+
 
         /// <summary>
         /// Gets or sets the graphics device.
         /// </summary>
         /// <value>The graphics device.</value>
-        private GraphicsDevice GraphicsDevice { get; set; }
+        private GraphicsDevice GraphicsDevice { get; }
 
         /// <summary>
         /// Gets the services registry.
         /// </summary>
         /// <value>The services registry.</value>
-        public IServiceRegistry Services { get; private set; }
+        public IServiceRegistry Services { get; private set; } // TODO: Never set, never read, remove this property?
 
         /// <summary>
         /// Gets or sets the default recycle policy. Default is always recycle no matter the state of the resources.
         /// </summary>
         /// <value>The default recycle policy.</value>
-        public GraphicsResourceRecyclePolicyDelegate RecyclePolicy { get; set; }
+        public GraphicsResourceRecyclePolicyDelegate RecyclePolicy { get; set; } = DefaultRecyclePolicy;
 
         /// <summary>
         /// Recycles unused resources (with a  <see cref="GraphicsResourceLink.ReferenceCount"/> == 0 ) with the <see cref="RecyclePolicy"/>. By Default, no recycle policy installed.
         /// </summary>
+        private static bool DefaultRecyclePolicy(GraphicsResourceLink resourceLink) => true;
+
+
         public void Recycle()
         {
-            if (RecyclePolicy != null)
+            if (RecyclePolicy is not null)
             {
                 Recycle(RecyclePolicy);
             }
@@ -83,27 +110,54 @@ namespace Stride.Graphics
         /// <exception cref="System.ArgumentNullException">recyclePolicy</exception>
         public void Recycle(GraphicsResourceRecyclePolicyDelegate recyclePolicy)
         {
-            if (recyclePolicy == null) throw new ArgumentNullException("recyclePolicy");
+            ArgumentNullException.ThrowIfNull(recyclePolicy);
 
-            // Global lock to be threadsafe. 
+            // Global lock to be threadsafe
             lock (thisLock)
             {
                 Recycle(textureCache, recyclePolicy);
                 Recycle(bufferCache, recyclePolicy);
             }
+
+            static void Recycle<TKey>(ResourceCache<TKey> cache, GraphicsResourceRecyclePolicyDelegate recyclePolicy)
+            {
+                foreach (var resourceList in cache.Values)
+                {
+                    for (int i = resourceList.Count - 1; i >= 0; i--)
+                    {
+                        var resourceLink = resourceList[i];
+                        if (resourceLink.ReferenceCount == 0)
+                        {
+                            if (recyclePolicy(resourceLink))
+                            {
+                                resourceLink.Resource.Dispose();
+                                resourceList.RemoveAt(i);
+                            }
+                            // Reset the access count
+                            resourceLink.AccessCountSinceLastRecycle = 0;
+                        }
+                    }
+                }
+            }
         }
+
 
         /// <summary>
         /// Gets a texture for the specified description.
         /// </summary>
         /// <param name="description">The description.</param>
         /// <returns>A texture</returns>
+        private static BufferDescription GetBufferDescription(Buffer buffer) => buffer.Description;
+        private static TextureDescription GetTextureDescription(Texture texture) => texture.Description;
+        private static QueryPoolDescription GetQueryPoolDescription(QueryPool queryPool) => new(queryPool.QueryType, queryPool.QueryCount);
+
+
         public Texture GetTemporaryTexture(TextureDescription description)
         {
-            // Global lock to be threadsafe. 
+            // Global lock to be threadsafe
             lock (thisLock)
             {
-                return GetTemporaryResource(textureCache, description, createTextureDelegate, getTextureDefinitionDelegate, PixelFormat.None);
+                return GetTemporaryResource(textureCache, description, createTextureDelegate, GetTextureDescription, PixelFormat.None);
             }
         }
 
@@ -115,19 +169,19 @@ namespace Stride.Graphics
         /// <returns>A texture</returns>
         public Buffer GetTemporaryBuffer(BufferDescription description, PixelFormat viewFormat = PixelFormat.None)
         {
-            // Global lock to be threadsafe. 
+            // Global lock to be threadsafe
             lock (thisLock)
             {
-                return GetTemporaryResource(bufferCache, description, createBufferDelegate, getBufferDescriptionDelegate, viewFormat);
+                return GetTemporaryResource(bufferCache, description, createBufferDelegate, GetBufferDescription, viewFormat);
             }
         }
 
         public QueryPool GetQueryPool(QueryType queryType, int queryCount)
         {
-            // Global lock to be threadsafe. 
+            // Global lock to be threadsafe
             lock (thisLock)
             {
-                return GetTemporaryResource(queryPoolCache, new QueryPoolDescription(queryType, queryCount), createQueryPoolDelegate, getQueryPoolDescriptionDelegate, PixelFormat.None);
+                return GetTemporaryResource(queryPoolCache, new QueryPoolDescription(queryType, queryCount), createQueryPoolDelegate, GetQueryPoolDescription, PixelFormat.None);
             }
         }
 
@@ -137,10 +191,10 @@ namespace Stride.Graphics
         /// <param name="resource"></param>
         public void AddReference(GraphicsResource resource)
         {
-            // Global lock to be threadsafe. 
+            // Global lock to be threadsafe
             lock (thisLock)
             {
-                UpdateReference(resource, 1);
+                UpdateReference(resource, +1);
             }
         }
 
@@ -150,7 +204,7 @@ namespace Stride.Graphics
         /// <param name="resource"></param>
         public void ReleaseReference(GraphicsResourceBase resource)
         {
-            // Global lock to be threadsafe. 
+            // Global lock to be threadsafe
             lock (thisLock)
             {
                 UpdateReference(resource, -1);
@@ -188,92 +242,83 @@ namespace Stride.Graphics
         {
             lock (thisLock)
             {
-                DisposeCache(textureCache, true);
-                DisposeCache(bufferCache, true);
-                DisposeCache(queryPoolCache, true);
+                DisposeCache(textureCache);
+                DisposeCache(bufferCache);
+                DisposeCache(queryPoolCache);
             }
 
             base.Destroy();
-        }
 
-        private void DisposeCache<TKey>(Dictionary<TKey, List<GraphicsResourceLink>> cache, bool clearKeys)
-        {
-            foreach (var resourceList in cache.Values)
+            static void DisposeCache<TKey>(ResourceCache<TKey> cache)
             {
+                foreach (var resourceList in cache.Values)
                 foreach (var resource in resourceList)
                 {
                     resource.Resource.Dispose();
                 }
-                if (!clearKeys)
-                {
-                    resourceList.Clear();
-                }
-            }
-            if (clearKeys)
-            {
                 cache.Clear();
             }
         }
 
-        private BufferDescription GetBufferDescription(Buffer buffer)
-        {
-            return buffer.Description;
-        }
 
-        private TextureDescription GetTextureDefinition(Texture texture)
-        {
-            return texture.Description;
-        }
+        private TResource GetTemporaryResource<TResource, TDescription>(
+            ResourceCache<TDescription> cache,
+            TDescription description,
+            CreateResourceDelegate<TResource, TDescription> createResource,
+            GetDescriptionDelegate<TResource, TDescription> getDescription,
+            PixelFormat viewFormat)
 
-        private QueryPoolDescription GetQueryPoolDefinition(QueryPool queryPool)
-        {
-            return new QueryPoolDescription(queryPool.QueryType, queryPool.QueryCount);
-        }
-
-        private TResource GetTemporaryResource<TResource, TKey>(Dictionary<TKey, List<GraphicsResourceLink>> cache, TKey description, Func<TKey, PixelFormat, TResource> creator, Func<TResource, TKey> getDefinition, PixelFormat viewFormat)
             where TResource : GraphicsResourceBase
-            where TKey : struct
+            where TDescription : struct
         {
-            // For a specific description, get allocated textures
-            List<GraphicsResourceLink> resourceLinks;
-            if (!cache.TryGetValue(description, out resourceLinks))
-            {
-                resourceLinks = new List<GraphicsResourceLink>();
-                cache.Add(description, resourceLinks);
-            }
+            // For a specific description, get allocated resources
+            List<GraphicsResourceLink> resourceLinks = GetOrCreateCache(description);
 
-            // Find a texture available
+            // Find an available resource (non-referenced, but not disposed)
             foreach (var resourceLink in resourceLinks)
             {
                 if (resourceLink.ReferenceCount == 0)
                 {
-                    UpdateCounter(resourceLink, 1);
-                    return (TResource)resourceLink.Resource;
+                    UpdateCounter(resourceLink, +1);
+                    return (TResource) resourceLink.Resource;
                 }
             }
 
-            // If no texture available, then creates a new one
-            var newResource = creator(description, viewFormat);
-            newResource.Name = string.Format("{0}{1}-{2}", Name == null ? string.Empty : string.Format("{0}-", Name), newResource.Name == null ? newResource.GetType().Name : Name, resourceLinks.Count);
+            // If no resources are available, then creates a new one
+            var newResource = createResource(description, viewFormat);
 
-            // Description may be altered when creating a resource (based on HW limitations...etc.) so we get the actual description
-            var realDescription = getDefinition(newResource);
+            string allocatorName = string.IsNullOrWhiteSpace(Name) ? string.Empty : $"{Name}-";
+            string resourceName = string.IsNullOrWhiteSpace(newResource.Name) ? newResource.GetType().Name : Name;
 
-            // For a specific description, get allocated textures
-            if (!cache.TryGetValue(realDescription, out resourceLinks))
-            {
-                resourceLinks = new List<GraphicsResourceLink>();
-                cache.Add(description, resourceLinks);
-            }
+            newResource.Name = $"{allocatorName}{resourceName}-{resourceLinks.Count}";
 
-            // Add the texture to the allocated textures
-            // Start RefCount == 1, because we don't want this texture to be available if a post FxProcessor is calling
-            // several times this GetTemporaryTexture method.
+            // Description may be altered when creating a resource (based on hardware limitations, etc.)
+            // We get here its actual final description
+            var realDescription = getDescription(newResource);
+
+            // Get or create the resource cache for the new description
+            resourceLinks = GetOrCreateCache(realDescription);
+
+            // Add the resource to the allocated resources
+            //   Start with RefCount == 1, because we don't want this resource to be available if a post-FX processor is calling
+            //   several times this GetTemporaryTexture method.
             var newResourceLink = new GraphicsResourceLink(newResource) { ReferenceCount = 1 };
             resourceLinks.Add(newResourceLink);
 
             return newResource;
+
+            List<GraphicsResourceLink> GetOrCreateCache(TDescription description)
+            {
+                // For a specific description, get allocated resources
+                if (!cache.TryGetValue(description, out List<GraphicsResourceLink> resourceLinks))
+                {
+                    // If no resources are allocated for this description, create a new list
+                    cache.Add(description, resourceLinks = []);
+                }
+                return resourceLinks;
+            }
         }
+
 
         /// <summary>
         /// Recycles the specified cache.
@@ -281,77 +326,47 @@ namespace Stride.Graphics
         /// <typeparam name="TKey">The type of the t key.</typeparam>
         /// <param name="cache">The cache.</param>
         /// <param name="recyclePolicy">The recycle policy.</param>
-        private void Recycle<TKey>(Dictionary<TKey, List<GraphicsResourceLink>> cache, GraphicsResourceRecyclePolicyDelegate recyclePolicy)
-        {
-            foreach (var resourceList in cache.Values)
-            {
-                for (int i = resourceList.Count - 1; i >= 0; i--)
-                {
-                    var resourceLink = resourceList[i];
-                    if (resourceLink.ReferenceCount == 0)
-                    {
-                        if (recyclePolicy(resourceLink))
-                        {
-                            resourceLink.Resource.Dispose();
-                            resourceList.RemoveAt(i);
-                        }
-                        // Reset the access count
-                        resourceLink.AccessCountSinceLastRecycle = 0;
-                    }
-                }
-            }
-        }
-
         private void UpdateReference(GraphicsResourceBase resource, int referenceDelta)
         {
-            if (resource == null)
-            {
+            if (resource is null)
                 return;
-            }
 
             bool resourceFound = false;
 
-            switch (resource)
+            resourceFound = resource switch
             {
-                case Texture texture:
-                    resourceFound = UpdateReferenceCount(textureCache, texture, getTextureDefinitionDelegate, referenceDelta);
-                    break;
+                Texture texture => UpdateReferenceCount(textureCache, texture, GetTextureDescription, referenceDelta),
+                Buffer buffer => UpdateReferenceCount(bufferCache, buffer, GetBufferDescription, referenceDelta),
+                QueryPool queryPool => UpdateReferenceCount(queryPoolCache, queryPool, GetQueryPoolDescription, referenceDelta),
 
-                case Buffer buffer:
-                    resourceFound = UpdateReferenceCount(bufferCache, buffer, getBufferDescriptionDelegate, referenceDelta);
-                    break;
-
-                case QueryPool queryPool:
-                    resourceFound = UpdateReferenceCount(queryPoolCache, queryPool, getQueryPoolDescriptionDelegate, referenceDelta);
-                    break;
-
-                default:
-                    throw new ArgumentException("Unsupported graphics resource. Only Textures, Buffers and QueryPools are supported", nameof(resource));
-            }
+                _ => throw new ArgumentException("Unsupported graphics resource. Only Textures, Buffers and QueryPools are supported", nameof(resource))
+            };
 
             if (!resourceFound)
-            {
                 throw new ArgumentException("The resource was not allocated by this allocator");
-            }
         }
 
-        private bool UpdateReferenceCount<TKey, TResource>(Dictionary<TKey, List<GraphicsResourceLink>> cache, TResource resource, Func<TResource, TKey> getDefinition, int deltaCount)
+        private bool UpdateReferenceCount<TDescription, TResource>(
+            ResourceCache<TDescription> cache,
+            TResource resource,
+            GetDescriptionDelegate<TResource, TDescription> getDescription,
+            int referenceDelta)
+
             where TResource : GraphicsResourceBase
-            where TKey : struct
+            where TDescription : struct
         {
-            if (resource == null)
+            if (resource is null || referenceDelta == 0)
             {
                 return false;
             }
 
-            List<GraphicsResourceLink> resourceLinks;
-            if (cache.TryGetValue(getDefinition(resource), out resourceLinks))
+            if (cache.TryGetValue(getDescription(resource), out List<GraphicsResourceLink> resourceLinks))
             {
                 foreach (var resourceLink in resourceLinks)
                 {
                     if (resourceLink.Resource == resource)
                     {
-                        UpdateCounter(resourceLink, deltaCount);
+                        UpdateCounter(resourceLink, referenceDelta);
                         return true;
                     }
                 }
@@ -359,72 +374,20 @@ namespace Stride.Graphics
             return false;
         }
 
-        private void UpdateCounter(GraphicsResourceLink resourceLink, int deltaCount)
+        private void UpdateCounter(GraphicsResourceLink resourceLink, int referenceDelta)
         {
-            if ((resourceLink.ReferenceCount + deltaCount) < 0)
+            if ((resourceLink.ReferenceCount + referenceDelta) < 0)
             {
                 throw new InvalidOperationException("Invalid decrement on reference count (must be >=0 after decrement). Current reference count: [{0}] Decrement: [{1}]".ToFormat(resourceLink.ReferenceCount, deltaCount));
             }
 
-            resourceLink.ReferenceCount += deltaCount;
+            resourceLink.ReferenceCount += referenceDelta;
             resourceLink.AccessTotalCount++;
             resourceLink.AccessCountSinceLastRecycle++;
             resourceLink.LastAccessTime = DateTime.Now;
 
             if (resourceLink.ReferenceCount == 0)
                 GraphicsDevice.TagResource(resourceLink);
-        }
-
-        /// <summary>
-        /// The default recycle policy is always going to remove all allocated textures.
-        /// </summary>
-        /// <param name="resourceLink">The resource link.</param>
-        /// <returns><c>true</c> if XXXX, <c>false</c> otherwise.</returns>
-        private static bool DefaultRecyclePolicy(GraphicsResourceLink resourceLink)
-        {
-            return true;
-        }
-
-        protected struct QueryPoolDescription : IEquatable<QueryPoolDescription>
-        {
-            public QueryType QueryType;
-
-            public int QueryCount;
-
-            public QueryPoolDescription(QueryType queryType, int queryCount)
-            {
-                QueryType = queryType;
-                QueryCount = queryCount;
-            }
-
-            public bool Equals(QueryPoolDescription other)
-            {
-                return QueryType == other.QueryType && QueryCount == other.QueryCount;
-            }
-
-            public override bool Equals(object obj)
-            {
-                if (ReferenceEquals(null, obj)) return false;
-                return obj is QueryPoolDescription && Equals((QueryPoolDescription)obj);
-            }
-
-            public override int GetHashCode()
-            {
-                unchecked
-                {
-                    return ((int)QueryType * 397) ^ QueryCount;
-                }
-            }
-
-            public static bool operator ==(QueryPoolDescription left, QueryPoolDescription right)
-            {
-                return left.Equals(right);
-            }
-
-            public static bool operator !=(QueryPoolDescription left, QueryPoolDescription right)
-            {
-                return !left.Equals(right);
-            }
         }
     }
 }
