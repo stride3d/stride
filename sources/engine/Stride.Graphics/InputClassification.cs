@@ -3,9 +3,19 @@
 
 namespace Stride.Graphics;
 
+/// <summary>
+///   Specifies whether the data of a Input Element is <strong>per-vertex</strong> or <strong>per-instance</strong>.
+/// </summary>
 public enum InputClassification
 {
+    /// <summary>
+    ///   The data is per-vertex, meaning it represents a standard vertex attribute.
+    /// </summary>
     Vertex,
 
+    /// <summary>
+    ///   The data is per-instance, meaning it represents information about a particular geometry instance
+    ///   in an <em>instancing</em> scenario.
+    /// </summary>
     Instance
 }

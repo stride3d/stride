@@ -5,8 +5,22 @@ using System;
 
 namespace Stride.Graphics;
 
+/// <summary>
+///   Provides methods for validating and calculating properties of Vertex Elements used to define
+///   the layout of Vertex Declarations.
+/// </summary>
+/// <seealso cref="VertexElement"/>
+/// <seealso cref="VertexDeclaration"/>
 internal static class VertexElementValidator
 {
+    /// <summary>
+    ///   Calculates the total stride, in bytes, of a vertex based on its elements.
+    /// </summary>
+    /// <param name="elements">
+    ///   An array of <see cref="VertexElement"/>s representing the components of the vertex. Each element
+    ///   defines a format and size.
+    /// </param>
+    /// <returns>The total stride, in bytes, of the vertex, calculated as the sum of the sizes of all elements.</returns>
     internal static int GetVertexStride(VertexElement[] elements)
     {
         int stride = 0;
@@ -17,6 +31,32 @@ internal static class VertexElementValidator
         return stride;
     }
 
+    /// <summary>
+    ///   Validates the configuration of vertex elements that form a Vertex Declaration.
+    /// </summary>
+    /// <param name="vertexStride">The size, in bytes, of a single vertex. Must be a positive value and a multiple of 4.</param>
+    /// <param name="elements">
+    ///   An array of <see cref="VertexElement"/> objects representing the layout of vertex attributes. Cannot contain
+    ///   overlapping elements or duplicate semantic names and indices.
+    /// </param>
+    /// <remarks>
+    ///   This method ensures that the Vertex Declaration adheres to alignment and size constraints
+    ///   required for proper rendering. It checks for overlapping elements, duplicate semantic names and indices,
+    ///   and ensures that all offsets are aligned to 4-byte boundaries.
+    /// </remarks>
+    /// <exception cref="ArgumentOutOfRangeException">
+    ///   <paramref name="vertexStride"/> is not a positive number greater than zero.
+    /// </exception>
+    /// <exception cref="ArgumentException">
+    ///   Thrown if:
+    ///   <list type="bullet">
+    ///     <item><paramref name="vertexStride"/> is not a multiple of 4 bytes.</item>
+    ///     <item>Any Vertex Element extends beyond the bounds of the vertex stride.</item>
+    ///     <item>Any Vertex Element has an offset that is not a multiple of 4 bytes.</item>
+    ///     <item>Duplicate Vertex Elements are found with the same semantic name and index.</item>
+    ///     <item>Any Vertex Element overlaps with another element.</item>
+    ///   </list>
+    /// </exception>
     internal static void Validate(int vertexStride, VertexElement[] elements)
     {
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(vertexStride);

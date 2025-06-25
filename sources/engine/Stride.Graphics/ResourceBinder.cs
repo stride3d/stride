@@ -12,10 +12,32 @@ using Stride.Shaders;
 
 namespace Stride.Graphics
 {
+    /// <summary>
+    ///   Provides functionality for compiling and binding Shader resource bindings to Descriptor Sets.
+    /// </summary>
+    /// <remarks>
+    ///   The <see cref="ResourceBinder"/> structure is used to process Descriptor Set layouts and Effect bytecode
+    ///   to generate binding operations that map Shader resources to Descriptor Set entries.
+    ///   These binding operations can then be used to bind Graphics Resources to the graphics pipeline during rendering.
+    /// </remarks>
     internal struct ResourceBinder
     {
+        // Binding operations organized by Descriptor Sets:
+        //   Each element corresponds to a Descriptor Set, and each Descriptor Set contains an array of binding operations.
         private BindingOperation[][] descriptorSetBindings;
 
+
+        /// <summary>
+        ///   Processes the Descriptor Set layouts and an <see cref="EffectBytecode"/> object to generate
+        ///   binding operations that map Shader Resource bindings to Descriptor Set entries.
+        ///   <br/>
+        ///   The resulting bindings are stored internally and can be used for rendering operations.
+        /// </summary>
+        /// <param name="descriptorSetLayouts">
+        ///   An <see cref="EffectDescriptorSetReflection"/> object containing reflection data for the Descriptor Set layouts,
+        ///   which provides information about the layout structure.
+        /// </param>
+        /// <param name="effectBytecode">The bytecode of the Effect, including reflection data for resource bindings.</param>
         public void Compile(EffectDescriptorSetReflection descriptorSetLayouts, EffectBytecode effectBytecode)
         {
             descriptorSetBindings = new BindingOperation[descriptorSetLayouts.Layouts.Count][];
@@ -40,6 +62,7 @@ namespace Stride.Graphics
 
                         if (resourceBinding.KeyInfo.Key == layoutEntry.Key)
                         {
+                            // Create a binding operation for this resource (Descriptor)
                             bindingOperations.Add(new BindingOperation
                             {
                                 EntryIndex = resourceIndex,
@@ -52,10 +75,28 @@ namespace Stride.Graphics
                     }
                 }
 
+                // Store the binding operations for this Descriptor Set
                 descriptorSetBindings[setIndex] = bindingOperations.Count > 0 ? bindingOperations.ToArray() : null;
             }
         }
 
+        /// <summary>
+        ///   Binds the resources from the specified Descriptor Sets to the graphics pipeline.
+        /// </summary>
+        /// <param name="commandList">The Command List.</param>
+        /// <param name="descriptorSets">
+        ///   An array of Descriptor Sets containing the Graphics Resources to bind.
+        ///   Each Descriptor Set corresponds to a set of binding operations. They must have been compiled
+        ///   previously using <see cref="Compile(EffectDescriptorSetReflection, EffectBytecode)"/>.
+        /// </param>
+        /// <exception cref="NotSupportedException">
+        ///   Thrown if a binding operation specifies an unsupported effect parameter type.
+        /// </exception>
+        /// <remarks>
+        ///   This method iterates through the Descriptor Sets and performs the binding operations needed
+        ///   to bind the Descriptors (like Constant Buffers, Samplers, Shader Resource Views, and Unordered Access Views)
+        ///   to the graphics pipeline.
+        /// </remarks>
         public readonly void BindResources(CommandList commandList, DescriptorSet[] descriptorSets)
         {
             for (int setIndex = 0; setIndex < descriptorSetBindings.Length; setIndex++)
@@ -100,6 +141,9 @@ namespace Stride.Graphics
         }
 
 
+        /// <summary>
+        ///   Represents a binding operation used to configure shader parameters and resources.
+        /// </summary>
         private struct BindingOperation
         {
             public int EntryIndex;
