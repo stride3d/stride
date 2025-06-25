@@ -7,29 +7,71 @@ using Stride.Core;
 
 namespace Stride.Graphics;
 
+/// <summary>
+///   A description of a <strong>Blend State</strong> for a Render Target, which defines how colors are blended when rendering.
+///   <br/>
+/// </summary>
+/// <remarks>
+///   This structure controls transparency, color mixing, and blend modes for a Render Target. Modify this to achieve effects
+///   like alpha blending, additive blending, or custom shader-based blends.
+/// </remarks>
 [DataContract]
 public struct BlendStateRenderTargetDescription : IEquatable<BlendStateRenderTargetDescription>
 {
     /// <summary>
-    /// Describes the blend state for a render target.
+    ///   A value indicating whether to enable or disable blending.
     /// </summary>
     public bool BlendEnable;
 
+    /// <summary>
+    ///   Specifies the first color (RGB) data source and includes an optional pre-blend operation.
+    /// </summary>
+    /// <seealso cref="Blend"/>
     public Blend ColorSourceBlend;
 
+    /// <summary>
+    ///   Specifies the second color (RGB) data source and includes an optional pre-blend operation.
+    /// </summary>
+    /// <seealso cref="Blend"/>
     public Blend ColorDestinationBlend;
 
+    /// <summary>
+    ///   Defines the function used to combine the color (RGB) data sources.
+    /// </summary>
+    /// <seealso cref="BlendFunction"/>
     public BlendFunction ColorBlendFunction;
 
+    /// <summary>
+    ///   Specifies the first alpha data source and includes an optional pre-blend operation.
+    /// </summary>
+    /// <seealso cref="Blend"/>
+    /// <remarks>
+    ///   <see cref="Blend"/> options that end in <c>Color</c> are not allowed.
+    /// </remarks>
     public Blend AlphaSourceBlend;
 
+    /// <summary>
+    ///   Specifies the second alpha data source and includes an optional pre-blend operation.
+    /// </summary>
+    /// <seealso cref="Blend"/>
+    /// <remarks>
+    ///   <see cref="Blend"/> options that end in <c>Color</c> are not allowed.
+    /// </remarks>
     public Blend AlphaDestinationBlend;
 
+    /// <summary>
+    ///   Defines the function used to combine the alpha data sources.
+    /// </summary>
+    /// <seealso cref="BlendFunction"/>
     public BlendFunction AlphaBlendFunction;
 
+    /// <summary>
+    ///   A combination of flags that specify which color channels (Red, Green, Blue, Alpha) can be written to the Render Target when blending.
+    /// </summary>
     public ColorWriteChannels ColorWriteChannels;
 
 
+    /// <inheritdoc/>
     public readonly bool Equals(BlendStateRenderTargetDescription other)
     {
         return BlendEnable == other.BlendEnable
@@ -42,11 +84,13 @@ public struct BlendStateRenderTargetDescription : IEquatable<BlendStateRenderTar
             && ColorWriteChannels == other.ColorWriteChannels;
     }
 
+    /// <inheritdoc/>
     public override readonly bool Equals(object obj)
     {
         return obj is BlendStateRenderTargetDescription description && Equals(description);
     }
 
+    /// <inheritdoc/>
     public override readonly int GetHashCode()
     {
         return HashCode.Combine(BlendEnable, ColorSourceBlend, ColorDestinationBlend, ColorBlendFunction, AlphaSourceBlend, AlphaDestinationBlend, AlphaBlendFunction, ColorWriteChannels);
@@ -59,30 +103,6 @@ public struct BlendStateRenderTargetDescription : IEquatable<BlendStateRenderTar
 
     public static bool operator !=(BlendStateRenderTargetDescription left, BlendStateRenderTargetDescription right)
     {
-        /// <summary>
-        /// Enable (or disable) blending. 
-        /// </summary>
-        /// <summary>
-        /// This <see cref="Blend"/> specifies the first RGB data source and includes an optional pre-blend operation. 
-        /// </summary>
-        /// <summary>
-        /// This <see cref="Blend"/> specifies the second RGB data source and includes an optional pre-blend operation. 
-        /// </summary>
-        /// <summary>
-        /// This <see cref="BlendFunction"/> defines how to combine the RGB data sources. 
-        /// </summary>
-        /// <summary>
-        /// This <see cref="Blend"/> specifies the first alpha data source and includes an optional pre-blend operation. Blend options that end in _COLOR are not allowed. 
-        /// </summary>
-        /// <summary>
-        /// This <see cref="Blend"/> specifies the second alpha data source and includes an optional pre-blend operation. Blend options that end in _COLOR are not allowed. 
-        /// </summary>
-        /// <summary>
-        /// This <see cref="BlendFunction"/> defines how to combine the alpha data sources. 
-        /// </summary>
-        /// <summary>
-        /// A write mask. 
-        /// </summary>
         return !left.Equals(right);
     }
 }

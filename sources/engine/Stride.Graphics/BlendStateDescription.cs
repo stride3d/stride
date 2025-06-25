@@ -9,20 +9,27 @@ using Stride.Core;
 
 namespace Stride.Graphics;
 
+/// <summary>
+///   A description of a <strong>Blend State</strong>, which defines how colors are blended when rendering to one
+///   or multiple Render Targets.
+/// </summary>
+/// <remarks>
+///   This structure controls transparency, color mixing, and blend modes across all the Render Targets. Modify this to achieve effects
+///   like alpha blending, additive blending, or custom shader-based blends.
+///   It also controls whether to use <em>alpha-to-coverage</em> as a multi-sampling technique when writing a pixel to a Render Target.
+/// </remarks>
+/// <seealso cref="BlendStates"/>
 [DataContract]
 [StructLayout(LayoutKind.Sequential)]
 public struct BlendStateDescription : IEquatable<BlendStateDescription>
 {
     /// <summary>
-    /// Describes a blend state.
+    ///   Initializes a new instance of the <see cref="BlendStateDescription"/> structure.
     /// </summary>
+    /// <param name="sourceBlend">The source blend.</param>
+    /// <param name="destinationBlend">The destination blend.</param>
     public BlendStateDescription(Blend sourceBlend, Blend destinationBlend) : this()
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="BlendStateDescription"/> class.
-        /// </summary>
-        /// <param name="sourceBlend">The source blend.</param>
-        /// <param name="destinationBlend">The destination blend.</param>
         SetDefaults();
         RenderTargets[0].BlendEnable = true;
         RenderTargets[0].ColorSourceBlend = sourceBlend;
@@ -31,17 +38,28 @@ public struct BlendStateDescription : IEquatable<BlendStateDescription>
         RenderTargets[0].AlphaDestinationBlend = destinationBlend;
     }
 
-        /// <summary>
-        /// Setup this blend description with defaults value.
-        /// </summary>
+    /// <summary>
+    ///   Sets default values for this Blend State Description.
+    /// </summary>
+    /// <remarks>
+    ///   The default values are:
+    ///   <list type="bullet">
+    ///     <item>
+    ///       <term>Alpha-to-Coverage</term>
+    ///       <description>Disabled</description>
+    ///     </item>
+    ///     <item>
+    ///       <term>Independent Blending</term>
+    ///       <description>Disabled. Only enable blend for the first Render Target</description>
+    ///     </item>
+    ///     <item>Disable blending for all the Render Targets.</item>
+    ///   </list>
+    /// </remarks>
     public void SetDefaults()
     {
         AlphaToCoverageEnable = false;
         IndependentBlendEnable = false;
 
-        /// <summary>
-        /// Gets default values for this instance.
-        /// </summary>
         for (int i = 0; i < RenderTargets.Count; i++)
         {
             ref var renderTarget = ref RenderTargets[i];
@@ -59,25 +77,51 @@ public struct BlendStateDescription : IEquatable<BlendStateDescription>
         }
     }
 
-        /// <summary>
-        /// Determines whether or not to use alpha-to-coverage as a multisampling technique when setting a pixel to a rendertarget. 
-        /// </summary>
 
+    /// <summary>
+    ///   A value that determines whether or not to use <strong>alpha-to-coverage</strong> as a multi-sampling technique
+    ///   when writing a pixel to a Render Target.
+    /// </summary>
+    /// <remarks>
+    ///   Alpha-to-coverage is a technique that uses the alpha value of a pixel to determine how much coverage it should have
+    ///   in a multi-sampled anti-aliasing (MSAA) scenario.
+    ///   This can help achieve smoother edges in transparent textures by blending the coverage of the pixel based on its alpha value.
+    /// </remarks>
     public bool AlphaToCoverageEnable;
 
+    /// <summary>
+    ///   A value indicating whether to enable <strong>independent blending</strong> in simultaneous Render Targets,
+    ///   meaning per-Render Target blending settings.
+    /// </summary>
+    /// <remarks>
+    ///   <para>
+    ///     If set to <see langword="true"/>, each of the <see cref="RenderTargets"/> can have its own blend settings.
+    ///   </para>
+    ///   <para>
+    ///     If set to <see langword="false"/>, only the first Render Target (<see cref="RenderTarget0"/>) is taken into account.
+    ///     The others (<see cref="RenderTarget1"/> to <see cref="RenderTarget7"/>) are ignored.
+    ///   </para>
+    /// </remarks>
     public bool IndependentBlendEnable;
 
+    /// <summary>
+    ///   An array of Render Target blend descriptions (see <see cref="BlendStateRenderTargetDescription"/>);
+    ///   these correspond to the eight Render Targets that can be set to the output-merger stage at one time.
+    /// </summary>
     public RenderTargetBlendStates RenderTargets;
 
     #region Render Targets inline array
 
+    /// <summary>
+    ///   A structure that contains an inline array of <see cref="BlendStateRenderTargetDescription"/> for up to eight render targets.
+    /// </summary>
     [System.Runtime.CompilerServices.InlineArray(SIMULTANEOUS_RENDERTARGET_COUNT)]
     public struct RenderTargetBlendStates
     {
         private const int SIMULTANEOUS_RENDERTARGET_COUNT = 8;
 
         /// <summary>
-        /// Set to true to enable independent blending in simultaneous render targets.  If set to false, only the RenderTarget[0] members are used. RenderTarget[1..7] are ignored. 
+        ///   Gets the number of Render Target blend descriptions in a Blend State Description.
         /// </summary>
         public readonly int Count => SIMULTANEOUS_RENDERTARGET_COUNT;
 
@@ -85,16 +129,19 @@ public struct BlendStateDescription : IEquatable<BlendStateDescription>
 
 
         /// <summary>
-        /// An array of render-target-blend descriptions (see <see cref="BlendStateRenderTargetDescription"/>); these correspond to the eight rendertargets  that can be set to the output-merger stage at one time. 
+        ///   Returns a writable span of <see cref="BlendStateRenderTargetDescription"/> for the Render Targets.
         /// </summary>
-        /// <inheritdoc/>
+        /// <returns>A <see cref="Span{T}"/> of Blend State descriptions for the Render Targets.</returns>
         [UnscopedRef]
         public Span<BlendStateRenderTargetDescription> AsSpan()
         {
             return MemoryMarshal.CreateSpan(ref _renderTarget0, SIMULTANEOUS_RENDERTARGET_COUNT);
         }
 
-        /// <inheritdoc/>
+        /// <summary>
+        ///   Returns a read-only span of <see cref="BlendStateRenderTargetDescription"/> for the Render Targets.
+        /// </summary>
+        /// <returns>A <see cref="ReadOnlySpan{T}"/> of Blend State descriptions for the Render Targets.</returns>
         [UnscopedRef]
         public readonly ReadOnlySpan<BlendStateRenderTargetDescription> AsReadOnlySpan()
         {
@@ -105,7 +152,7 @@ public struct BlendStateDescription : IEquatable<BlendStateDescription>
     #endregion
 
 
-        /// <inheritdoc/>
+    /// <inheritdoc/>
     public readonly bool Equals(BlendStateDescription other)
     {
         if (AlphaToCoverageEnable != other.AlphaToCoverageEnable ||
@@ -115,6 +162,7 @@ public struct BlendStateDescription : IEquatable<BlendStateDescription>
         return RenderTargets.AsReadOnlySpan().SequenceEqual(other.RenderTargets);
     }
 
+    /// <inheritdoc/>
     public override readonly bool Equals(object obj)
     {
         return obj is BlendStateDescription description && Equals(description);
@@ -130,6 +178,7 @@ public struct BlendStateDescription : IEquatable<BlendStateDescription>
         return !left.Equals(right);
     }
 
+    /// <inheritdoc/>
     public override readonly int GetHashCode()
     {
         var hash = new HashCode();

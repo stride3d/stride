@@ -16,28 +16,31 @@ public unsafe partial class SamplerState
     private ID3D11SamplerState* samplerState;
 
     /// <summary>
-    /// Describes a sampler state used for texture sampling.
+    ///   Gets the internal Direct3D 11 Sampler State object.
     /// </summary>
+    /// <remarks>
+    ///   If the reference is going to be kept, use <see cref="ComPtr{T}.AddRef()"/> to increment the internal
+    ///   reference count, and <see cref="ComPtr{T}.Dispose()"/> when no longer needed to release the object.
+    /// </remarks>
     internal ComPtr<ID3D11SamplerState> NativeSamplerState => ComPtrHelpers.ToComPtr(samplerState);
 
 
+    /// <summary>
+    ///   Initializes a new instance of the <see cref="SamplerState"/> class.
+    /// </summary>
+    /// <param name="device">The <see cref="GraphicsDevice"/>.</param>
+    /// <param name="description">
+    ///   A <see cref="SamplerStateDescription"/> structure describing the Sampler State
+    ///   object to create.
+    /// </param>
     private SamplerState(GraphicsDevice device, SamplerStateDescription description) : base(device)
     {
-        /// <summary>
-        ///   Gets the native Direct3D 11 sampler state object.
-        /// </summary>
-        /// <summary>
-        /// Initializes a new instance of the <see cref="SamplerState"/> class.
-        /// </summary>
-        /// <param name="device">The device.</param>
-        /// <param name="name">The name.</param>
-        /// <param name="samplerStateDescription">The sampler state description.</param>
         Description = description;
 
         CreateNativeSamplerState();
     }
 
-        /// <inheritdoc/>
+    /// <inheritdoc/>
     protected internal override bool OnRecreate()
     {
         base.OnRecreate();

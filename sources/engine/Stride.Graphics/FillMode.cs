@@ -5,22 +5,22 @@ using Stride.Core;
 
 namespace Stride.Graphics;
 
+/// <summary>
+///   Determines the <strong>fill mode</strong> to use when rendering triangles.
+/// </summary>
+/// <remarks>
+///   This enumeration is part of a Rasterizer State object description (see <see cref="RasterizerStateDescription"/>).
+/// </remarks>
 [DataContract]
 public enum FillMode : int
 {
     /// <summary>
-    /// <p>Determines the fill mode to use when rendering triangles.</p>
+    ///   Draw lines connecting the vertices.
     /// </summary>
-    /// <remarks>
-    /// <p>This enumeration is part of a rasterizer-state object description (see <strong><see cref="RasterizerStateDescription"/></strong>).</p>
-    /// </remarks>
-        /// <summary>
-        /// <dd> <p>Draw lines connecting the vertices. Adjacent vertices are not drawn.</p> </dd>
-        /// </summary>
     Wireframe = 2,
 
-        /// <summary>
-        /// <dd> <p>Fill the triangles formed by the vertices. Adjacent vertices are not drawn.</p> </dd>
-        /// </summary>
+    /// <summary>
+    ///   Fill the triangles formed by the vertices.
+    /// </summary>
     Solid = 3
 }

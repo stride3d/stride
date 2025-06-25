@@ -9,82 +9,98 @@ using Stride.Core.Mathematics;
 
 namespace Stride.Graphics;
 
+/// <summary>
+///   Describes a <strong>Sampler State</strong> object, which determines how to sample Texture data.
+/// </summary>
+/// <seealso cref="SamplerState"/>
 [DataContract]
 [StructLayout(LayoutKind.Sequential)]
 public struct SamplerStateDescription : IEquatable<SamplerStateDescription>
 {
     /// <summary>
-    /// Describes a sampler state.
+    ///   Initializes a new instance of the <see cref="SamplerStateDescription"/> structure.
     /// </summary>
+    /// <param name="filter">The Texture filtering mode.</param>
+    /// <param name="addressMode">The Texture addressing mode for U, V, and W coordinates.</param>
     public SamplerStateDescription(TextureFilter filter, TextureAddressMode addressMode) : this()
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="SamplerStateDescription"/> class.
-        /// </summary>
-        /// <param name="filter">The filter.</param>
-        /// <param name="addressMode">The address mode.</param>
         SetDefaults();
 
-        /// <summary>
-        /// Gets or sets filtering method to use when sampling a texture (see <see cref="TextureFilter"/>).
-        /// </summary>
-        /// <summary>
-        /// Gets or sets method to use for resolving a u texture coordinate that is outside the 0 to 1 range (see <see cref="TextureAddressMode"/>).
-        /// </summary>
-        /// <summary>
-        /// Gets or sets method to use for resolving a v texture coordinate that is outside the 0 to 1 range.
-        /// </summary>
-        /// <summary>
-        /// Gets or sets method to use for resolving a w texture coordinate that is outside the 0 to 1 range.
-        /// </summary>
-        /// <summary>
-        /// Gets or sets offset from the calculated mipmap level.
-        /// For example, if Direct3D calculates that a texture should be sampled at mipmap level 3 and MipLODBias is 2, then the texture will be sampled at mipmap level 5.
-        /// </summary>
-        /// <summary>
-        /// Gets or sets clamping value used if Anisotropy or ComparisonAnisotropy is specified in Filter. Valid values are between 1 and 16.
-        /// </summary>
-        /// <summary>
-        /// Gets or sets a function that compares sampled data against existing sampled data. The function options are listed in <see cref="CompareFunction"/>.
-        /// </summary>
-        /// <summary>
-        /// Gets or sets border color to use if <see cref="TextureAddressMode.Border"/> is specified for AddressU, AddressV, or AddressW. Range must be between 0.0 and 1.0 inclusive.
-        /// </summary>
-        /// <summary>
-        /// Gets or sets lower end of the mipmap range to clamp access to, where 0 is the largest and most detailed mipmap level and any level higher than that is less detailed.
-        /// </summary>
-        /// <summary>
-        /// Gets or sets upper end of the mipmap range to clamp access to, where 0 is the largest and most detailed mipmap level and any level higher than that is less detailed. This value must be greater than or equal to MinLOD. To have no upper limit on LOD set this to a large value such as D3D11_FLOAT32_MAX.
-        /// </summary>
-        /// <summary>
-        /// Gets default values for this instance.
-        /// </summary>
         Filter = filter;
         AddressU = AddressV = AddressW = addressMode;
     }
 
 
+    /// <summary>
+    ///   The filtering method to use when sampling a Texture.
+    /// </summary>
     public TextureFilter Filter;
 
+    /// <summary>
+    ///   The method to use for resolving a U texture coordinate that is outside the [0, 1] range.
+    /// </summary>
     public TextureAddressMode AddressU;
 
+    /// <summary>
+    ///   The method to use for resolving a V texture coordinate that is outside the [0, 1] range.
+    /// </summary>
     public TextureAddressMode AddressV;
 
+    /// <summary>
+    ///   The method to use for resolving a W texture coordinate that is outside the [0, 1] range.
+    /// </summary>
     public TextureAddressMode AddressW;
 
+    /// <summary>
+    ///   The offset to apply from the calculated mipmap level.
+    /// </summary>
+    /// <remarks>
+    ///   For example, if a Texture should be sampled at mipmap level 3 and <see cref="MipMapLevelOfDetailBias"/>
+    ///   is 2, then the Texture will be sampled at mipmap level 5.
+    /// </remarks>
     public float MipMapLevelOfDetailBias;
 
+    /// <summary>
+    ///   The clamping value used if <see cref="TextureFilter.Anisotropic"/> or <see cref="TextureFilter.ComparisonAnisotropic"/>
+    ///   is specified in <see cref="Filter"/>. Valid values are between 1 and 16.
+    /// </summary>
     public int MaxAnisotropy;
 
+    /// <summary>
+    ///   A function that compares sampled data against existing sampled data.
+    /// </summary>
+    /// <remarks>
+    ///   This function will be used when specifying one of the comparison filtering modes in
+    ///   <see cref="Filter"/>.
+    /// </remarks>
     public CompareFunction CompareFunction;
 
+    /// <summary>
+    ///   The border color to use if <see cref="TextureAddressMode.Border"/> is specified for
+    ///   <see cref="AddressU"/>, <see cref="AddressV"/>, or <see cref="AddressW"/>.
+    /// </summary>
     public Color4 BorderColor;
 
+    /// <summary>
+    ///   The lower end of the mipmap range to clamp access to, where 0 is the largest and most detailed mipmap
+    ///   level and any level higher than that is less detailed.
+    /// </summary>
     public float MinMipLevel;
 
+    /// <summary>
+    ///   The upper end of the mipmap range to clamp access to, where 0 is the largest and most detailed mipmap
+    ///   level and any level higher than that is less detailed.
+    /// </summary>
+    /// <remarks>
+    ///   This value must be greater than or equal to <see cref="MinMipLevel"/>.
+    ///   To have no upper limit set this to a large value such as <see cref="float.MaxValue"/>.
+    /// </remarks>
     public float MaxMipLevel;
 
 
+    /// <summary>
+    ///   Returns a <see cref="SamplerStateDescription"/> with default values.
+    /// </summary>
     public static SamplerStateDescription Default
     {
         get
@@ -106,6 +122,7 @@ public struct SamplerStateDescription : IEquatable<SamplerStateDescription>
         return !(left == right);
     }
 
+    /// <inheritdoc/>
     public bool Equals(SamplerStateDescription other)
     {
         return Filter == other.Filter
@@ -120,11 +137,13 @@ public struct SamplerStateDescription : IEquatable<SamplerStateDescription>
             && MaxMipLevel.Equals(other.MaxMipLevel);
     }
 
+    /// <inheritdoc/>
     public override bool Equals(object obj)
     {
         return obj is SamplerStateDescription description && Equals(description);
     }
 
+    /// <inheritdoc/>
     public override readonly int GetHashCode()
     {
         var hash = new HashCode();
@@ -141,6 +160,9 @@ public struct SamplerStateDescription : IEquatable<SamplerStateDescription>
         return hash.ToHashCode();
     }
 
+    /// <summary>
+    ///   Sets the default values for this instance.
+    /// </summary>
     private void SetDefaults()
     {
         Filter = TextureFilter.Linear;
