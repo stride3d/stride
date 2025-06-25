@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Globalization;
 using Avalonia.Markup.Xaml;
 using Avalonia.Metadata;
 
@@ -18,7 +19,7 @@ public sealed class IntExtension : MarkupExtension
 
     public IntExtension(object value)
     {
-        Value = Convert.ToInt32(value);
+        Value = Convert.ToInt32(value, CultureInfo.InvariantCulture);
     }
     
     /// <inheritdoc/>
