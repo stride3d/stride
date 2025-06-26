@@ -353,7 +353,7 @@ namespace Stride.Games
         public virtual void RecreateDevice(GraphicsDevice currentDevice, GraphicsDeviceInformation deviceInformation)
         {
             currentDevice.ColorSpace = deviceInformation.PresentationParameters.ColorSpace;
-            currentDevice.Recreate(deviceInformation.Adapter ?? GraphicsAdapterFactory.Default, new[] { deviceInformation.GraphicsProfile }, deviceInformation.DeviceCreationFlags, gameWindow.NativeWindow);
+            currentDevice.Recreate(deviceInformation.Adapter ?? GraphicsAdapterFactory.DefaultAdapter, new[] { deviceInformation.GraphicsProfile }, deviceInformation.DeviceCreationFlags, gameWindow.NativeWindow);
         }
 
         public virtual void DeviceChanged(GraphicsDevice currentDevice, GraphicsDeviceInformation deviceInformation)

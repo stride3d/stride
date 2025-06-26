@@ -2,17 +2,17 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 //
 // Copyright (c) 2010-2013 SharpDX - Alexandre Mutel
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -21,11 +21,11 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-using System;
 using Stride.Core;
-using Stride.Core.ReferenceCounting;
 
-namespace Stride.Graphics
+namespace Stride.Graphics;
+
+public abstract class GraphicsPresenter : ComponentBase
 {
     /// <summary>
     /// This class is a frontend to <see cref="SharpDX.DXGI.SwapChain" /> and <see cref="SharpDX.DXGI.SwapChain1" />.
@@ -33,232 +33,213 @@ namespace Stride.Graphics
     /// <remarks>
     /// In order to create a new <see cref="GraphicsPresenter"/>, a <see cref="GraphicsDevice"/> should have been initialized first.
     /// </remarks>
-    public abstract class GraphicsPresenter : ComponentBase
-    {
         /// <summary>
         /// If not null the given interval will be used during a <see cref="Present"/> operation. 
         /// </summary>
         /// <remarks>
         /// This is currently only supported by the Direct3D graphics implementation.
         /// </remarks>
-        internal static readonly PropertyKey<PresentInterval?> ForcedPresentInterval = new PropertyKey<PresentInterval?>(nameof(ForcedPresentInterval), typeof(GraphicsDevice));
-
-        private Texture depthStencilBuffer;
-
         /// <summary>
         /// Initializes a new instance of the <see cref="GraphicsPresenter" /> class.
         /// </summary>
         /// <param name="device">The device.</param>
         /// <param name="presentationParameters"> </param>
-        protected GraphicsPresenter(GraphicsDevice device, PresentationParameters presentationParameters)
-        {
-            GraphicsDevice = device;
-            var description = presentationParameters.Clone();
+    internal static readonly PropertyKey<PresentInterval?> ForcedPresentInterval = new(name: nameof(ForcedPresentInterval), ownerType: typeof(GraphicsDevice));
 
-            description.BackBufferFormat = NormalizeBackBufferFormat(description.BackBufferFormat);
 
-            Description = description;
-
-            ProcessPresentationParameters();
-
-            // Creates a default DepthStencilBuffer.
-            CreateDepthStencilBuffer();
-        }
+    protected GraphicsPresenter(GraphicsDevice device, PresentationParameters presentationParameters)
+    {
+        GraphicsDevice = device;
+        var description = presentationParameters.Clone();
 
         /// <summary>
         /// Gets the graphics device.
         /// </summary>
         /// <value>The graphics device.</value>
-        public GraphicsDevice GraphicsDevice { get; private set; }
+        description.BackBufferFormat = NormalizeBackBufferFormat(description.BackBufferFormat);
 
         /// <summary>
         /// Gets the description of this presenter.
         /// </summary>
-        public PresentationParameters Description { get; private set; }
+        Description = description;
 
         /// <summary>
         /// Gets the default back buffer for this presenter.
         /// </summary>
-        public abstract Texture BackBuffer { get; }
+        ProcessPresentationParameters();
 
-        // Temporarily here until we can move WindowsMixedRealityGraphicsPresenter to Stride.VirtualReality (currently not possible because Stride.Games creates it)
-        // This allows to keep Stride.Engine platform-independent
-        internal Texture LeftEyeBuffer { get; set; }
+        // Creates a default Depth-Stencil Buffer
+        CreateDepthStencilBuffer();
+    }
 
-        internal Texture RightEyeBuffer { get; set; }
 
         /// <summary>
         /// Gets the default depth stencil buffer for this presenter.
         /// </summary>
-        public Texture DepthStencilBuffer
-        {
-            get
-            {
-                return depthStencilBuffer;
-            }
-
-            protected set
-            {
-                depthStencilBuffer = value;
-            }
-        }
 
         /// <summary>
         /// Gets the underlying native presenter (can be a <see cref="SharpDX.DXGI.SwapChain"/> or <see cref="SharpDX.DXGI.SwapChain1"/> or null, depending on the platform).
         /// </summary>
         /// <value>The native presenter.</value>
-        public abstract object NativePresenter { get; }
-
         /// <summary>
         /// Gets or sets fullscreen mode for this presenter.
         /// </summary>
         /// <value><c>true</c> if this instance is full screen; otherwise, <c>false</c>.</value>
         /// <remarks>This method is only valid on Windows Desktop and has no effect on Windows Metro.</remarks>
-        public abstract bool IsFullScreen { get; set; }
-
         /// <summary>
         /// Gets or sets the <see cref="PresentInterval"/>. Default is to wait for one vertical blanking.
         /// </summary>
         /// <value>The present interval.</value>
-        public PresentInterval PresentInterval
-        {
-            get { return Description.PresentationInterval; }
-            set { Description.PresentationInterval = value; }
-        }
-
-        public virtual void BeginDraw(CommandList commandList)
-        {
-        }
-
-        public virtual void EndDraw(CommandList commandList, bool present)
-        {
-        }
 
         /// <summary>
         /// Presents the Backbuffer to the screen.
         /// </summary>
-        public abstract void Present();
-
         /// <summary>
         /// Resizes the current presenter, by resizing the back buffer and the depth stencil buffer.
         /// </summary>
         /// <param name="width"></param>
         /// <param name="height"></param>
         /// <param name="format"></param>
-        public void Resize(int width, int height, PixelFormat format)
+    public GraphicsDevice GraphicsDevice { get; private set; }
+
+    public PresentationParameters Description { get; private set; }
+
+    public abstract Texture BackBuffer { get; }
+
+    internal Texture LeftEyeBuffer { get; set; }
+    internal Texture RightEyeBuffer { get; set; }
+
+    public Texture DepthStencilBuffer { get; protected set; }
+
+    public abstract object NativePresenter { get; }
+
+    public abstract bool IsFullScreen { get; set; }
+
+    public PresentInterval PresentInterval
+    {
+        get => Description.PresentationInterval;
+        set => Description.PresentationInterval = value;
+    }
+
+    public virtual void BeginDraw(CommandList commandList)
+    {
+    }
+
+    public virtual void EndDraw(CommandList commandList, bool present)
+    {
+    }
+
+    public abstract void Present();
+
+    public void Resize(int width, int height, PixelFormat format)
+    {
+        GraphicsDevice.Begin();
+
+        Description.BackBufferWidth = width;
+        Description.BackBufferHeight = height;
+        Description.BackBufferFormat = NormalizeBackBufferFormat(format);
+
+        ResizeBackBuffer(width, height, format);
+        ResizeDepthStencilBuffer(width, height, format);
+
+        GraphicsDevice.End();
+    }
+
+    /// <summary>
+    /// Sets the output color space of the presenter and the format for the backbuffer. Currently only supported by the DirectX backend.
+    /// Use the following combinations: <br />
+    /// Render to SDR Display with gamma 2.2: <see cref="ColorSpaceType.RgbFullG22NoneP709"/> with <see cref="PixelFormat.R8G8B8A8_UNorm"/>, <see cref="PixelFormat.R8G8B8A8_UNorm_SRgb"/>, <see cref="PixelFormat.B8G8R8A8_UNorm"/>, <see cref="PixelFormat.B8G8R8A8_UNorm"/>. <br />
+    /// Render to HDR Display in scRGB (standard linear), windows DWM will do the color conversion: <see cref="ColorSpaceType.RgbFullG10NoneP709"/> with <see cref="PixelFormat.R16G16B16A16_Float"/> <br />
+    /// Render to HDR Display in HDR10/BT.2100, no windows DWM conversion, rendering needs to be in the Display color space: <see cref="ColorSpaceType.RgbFullG2084NoneP2020"/> with <see cref="PixelFormat.R10G10B10A2_UNorm"/> <br />
+    /// </summary>
+    /// <param name="colorSpace"></param>
+    /// <param name="format"></param>
+    public void SetOutputColorSpace(ColorSpaceType colorSpace, PixelFormat format)
+    {
+        GraphicsDevice.Begin();
+
+        Description.BackBufferFormat = NormalizeBackBufferFormat(format);
+
+        // new resources
+        ResizeBackBuffer(Description.BackBufferWidth, Description.BackBufferHeight, format);
+        ResizeDepthStencilBuffer(Description.BackBufferWidth, Description.BackBufferHeight, depthStencilBuffer.ViewFormat);
+
+        // recreate swapchain
+        OnDestroyed();
+        Description.OutputColorSpace = colorSpace;
+        OnRecreated();
+
+        GraphicsDevice.End();
+    }
+
+    private PixelFormat NormalizeBackBufferFormat(PixelFormat backBufferFormat)
+    {
+        if (GraphicsDevice.Features.HasSRgb && GraphicsDevice.ColorSpace == ColorSpace.Linear)
         {
-            GraphicsDevice.Begin();
-
-            Description.BackBufferWidth = width;
-            Description.BackBufferHeight = height;
-            Description.BackBufferFormat = NormalizeBackBufferFormat(format);
-
-            ResizeBackBuffer(width, height, format);
-            ResizeDepthStencilBuffer(width, height, format);
-
-            GraphicsDevice.End();
+            // If the device support sRGB and ColorSpace is linear, we use automatically a sRGB backbuffer
+            return backBufferFormat.ToSRgb();
         }
-
-        /// <summary>
-        /// Sets the output color space of the presenter and the format for the backbuffer. Currently only supported by the DirectX backend.
-        /// Use the following combinations: <br />
-        /// Render to SDR Display with gamma 2.2: <see cref="ColorSpaceType.RgbFullG22NoneP709"/> with <see cref="PixelFormat.R8G8B8A8_UNorm"/>, <see cref="PixelFormat.R8G8B8A8_UNorm_SRgb"/>, <see cref="PixelFormat.B8G8R8A8_UNorm"/>, <see cref="PixelFormat.B8G8R8A8_UNorm"/>. <br />
-        /// Render to HDR Display in scRGB (standard linear), windows DWM will do the color conversion: <see cref="ColorSpaceType.RgbFullG10NoneP709"/> with <see cref="PixelFormat.R16G16B16A16_Float"/> <br />
-        /// Render to HDR Display in HDR10/BT.2100, no windows DWM conversion, rendering needs to be in the Display color space: <see cref="ColorSpaceType.RgbFullG2084NoneP2020"/> with <see cref="PixelFormat.R10G10B10A2_UNorm"/> <br />
-        /// </summary>
-        /// <param name="colorSpace"></param>
-        /// <param name="format"></param>
-        public void SetOutputColorSpace(ColorSpaceType colorSpace, PixelFormat format)
-        {
-            GraphicsDevice.Begin();
-
-            Description.BackBufferFormat = NormalizeBackBufferFormat(format);
- 
-            // new resources
-            ResizeBackBuffer(Description.BackBufferWidth, Description.BackBufferHeight, format);
-            ResizeDepthStencilBuffer(Description.BackBufferWidth, Description.BackBufferHeight, depthStencilBuffer.ViewFormat);
-
-            // recreate swapchain
-            OnDestroyed();
-            Description.OutputColorSpace = colorSpace;
-            OnRecreated();
-
-            GraphicsDevice.End();
-        }
-
-        private PixelFormat NormalizeBackBufferFormat(PixelFormat backBufferFormat)
-        {
-            // If we are creating a GraphicsPresenter with
-            if (GraphicsDevice.Features.HasSRgb && GraphicsDevice.ColorSpace == ColorSpace.Linear)
-            {
-                // If the device support SRgb and ColorSpace is linear, we use automatically a SRgb backbuffer
-                return backBufferFormat.ToSRgb();
-            }
-            else
-            {
-                // If the device does not support SRgb or the ColorSpace is Gamma, but the backbuffer format asked is SRgb, convert it to non SRgb
-                return backBufferFormat.ToNonSRgb();
-            }
-        }
-
-        protected abstract void ResizeBackBuffer(int width, int height, PixelFormat format);
-
-        protected abstract void ResizeDepthStencilBuffer(int width, int height, PixelFormat format);
-
-        protected void ReleaseCurrentDepthStencilBuffer()
-        {
-            if (DepthStencilBuffer != null)
-            {
-                depthStencilBuffer.RemoveDisposeBy(this);
-            }
-        }
-
-        protected override void Destroy()
-        {
-            OnDestroyed();
-            base.Destroy();
-        }
-        
         /// <summary>
         /// Called when [destroyed].
         /// </summary>
-        protected internal virtual void OnDestroyed()
+        else
         {
+            // If the device does not support sRGB or the ColorSpace is Gamma, but the backbuffer format asked is sRGB, convert it to non sRGB
+            return backBufferFormat.ToNonSRgb();
         }
+    }
 
         /// <summary>
         /// Called when [recreated].
         /// </summary>
-        public virtual void OnRecreated()
-        {
-        }
+    protected abstract void ResizeBackBuffer(int width, int height, PixelFormat format);
 
-        protected virtual void ProcessPresentationParameters()
-        {
-        }
+    protected abstract void ResizeDepthStencilBuffer(int width, int height, PixelFormat format);
+
+    protected void ReleaseCurrentDepthStencilBuffer()
+    {
+        DepthStencilBuffer?.RemoveDisposeBy(this);
+    }
+
+    protected override void Destroy()
+    {
+        OnDestroyed();
+        base.Destroy();
+    }
+
+    protected internal virtual void OnDestroyed()
+    {
+    }
 
         /// <summary>
         /// Creates the depth stencil buffer.
         /// </summary>
-        protected virtual void CreateDepthStencilBuffer()
+    public virtual void OnRecreated()
+    {
+    }
+
+    protected virtual void ProcessPresentationParameters()
+    {
+    }
+
+    protected virtual void CreateDepthStencilBuffer()
+    {
+        // If no Depth-Stencil Buffer, just return
+        if (Description.DepthStencilFormat == PixelFormat.None)
+            return;
+
+        // Creates the Depth-Stencil Buffer
+        var flags = TextureFlags.DepthStencil;
+        if (GraphicsDevice.Features.CurrentProfile >= GraphicsProfile.Level_10_0 &&
+            Description.MultisampleCount == MultisampleCount.None)
         {
-            // If no depth stencil buffer, just return
-            if (Description.DepthStencilFormat == PixelFormat.None)
-                return;
-
-            // Creates the depth stencil buffer.
-            var flags = TextureFlags.DepthStencil;
-            if (GraphicsDevice.Features.CurrentProfile >= GraphicsProfile.Level_10_0 && Description.MultisampleCount == MultisampleCount.None)
-            {
-                flags |= TextureFlags.ShaderResource;
-            }
-
-            // Create texture description
-            var depthTextureDescription = TextureDescription.New2D(Description.BackBufferWidth, Description.BackBufferHeight, Description.DepthStencilFormat, flags);
-            depthTextureDescription.MultisampleCount = Description.MultisampleCount;
-
-            var depthTexture = Texture.New(GraphicsDevice, depthTextureDescription);
-            DepthStencilBuffer = depthTexture.DisposeBy(this);
+            flags |= TextureFlags.ShaderResource;
         }
+
+        var depthTextureDescription = TextureDescription.New2D(Description.BackBufferWidth, Description.BackBufferHeight, Description.DepthStencilFormat, flags);
+        depthTextureDescription.MultisampleCount = Description.MultisampleCount;
+
+        var depthTexture = Texture.New(GraphicsDevice, depthTextureDescription);
+        DepthStencilBuffer = depthTexture.DisposeBy(this);
     }
 }

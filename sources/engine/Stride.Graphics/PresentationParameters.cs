@@ -1,37 +1,119 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using System;
-using Stride.Core.Mathematics;
 
-namespace Stride.Graphics
+using System;
+
+namespace Stride.Graphics;
+
+public class PresentationParameters : IEquatable<PresentationParameters>
 {
+    #region Default values
+
+    private const int DefaultBackBufferWidth = 800;
+    private const int DefaultBackBufferHeight = 480;
+    private const PixelFormat DefaultBackBufferFormat = PixelFormat.R8G8B8A8_UNorm;
+    private const PixelFormat DefaultDepthStencilFormat = PixelFormat.D24_UNorm_S8_UInt;
+    private const MultisampleCount DefaultMultisampleCount = MultisampleCount.None;
+    private const PresentInterval DefaultPresentationInterval = PresentInterval.Immediate;
+    private const bool DefaultIsFullScreen = false;
+    private const int DefaultRefreshRate = 60; // Hz
+    private const ColorSpace DefaultColorSpace = ColorSpace.Linear;
+
+    #endregion
+
     /// <summary>
     ///   Describess how data will be displayed to the screen.
     /// </summary>
-    public class PresentationParameters : IEquatable<PresentationParameters>
-    {
-        #region Fields
+    public PixelFormat BackBufferFormat;
 
+    public int BackBufferHeight;
+
+    public int BackBufferWidth;
+
+    public PixelFormat DepthStencilFormat;
+
+    public WindowHandle DeviceWindowHandle;
+
+    public bool IsFullScreen;
+
+    public MultisampleCount MultisampleCount;
+
+    public PresentInterval PresentationInterval;
+
+    public Rational RefreshRate;
+
+    public int PreferredFullScreenOutputIndex;
+
+    public ColorSpace ColorSpace;
+
+
+    public PresentationParameters()
+    {
+        BackBufferWidth = DefaultBackBufferWidth;
+        BackBufferHeight = DefaultBackBufferHeight;
+        BackBufferFormat = DefaultBackBufferFormat;
+        PresentationInterval = DefaultPresentationInterval;
+        DepthStencilFormat = DefaultDepthStencilFormat;
+        MultisampleCount = DefaultMultisampleCount;
+        IsFullScreen = DefaultIsFullScreen;
+        RefreshRate = DefaultRefreshRate;
+        ColorSpace = DefaultColorSpace;
+    }
+
+    public PresentationParameters(int backBufferWidth, int backBufferHeight, WindowHandle windowHandle)
+        : this(backBufferWidth, backBufferHeight, windowHandle, PixelFormat.R8G8B8A8_UNorm)
+    {
+    }
+
+    public PresentationParameters(int backBufferWidth, int backBufferHeight, WindowHandle windowHandle, PixelFormat backBufferFormat)
+        : this()
+    {
+        BackBufferWidth = backBufferWidth;
+        BackBufferHeight = backBufferHeight;
+        DeviceWindowHandle = windowHandle;
+        BackBufferFormat = backBufferFormat;
+    }
+
+
+    public PresentationParameters Clone()
+    {
+        return (PresentationParameters) MemberwiseClone();
+    }
+
+    public bool Equals(PresentationParameters other)
+    {
+        if (other is null)
+            return false;
+        if (ReferenceEquals(this, other))
+            return true;
+
+        return BackBufferFormat == other.BackBufferFormat
+            && BackBufferHeight == other.BackBufferHeight
+            && BackBufferWidth == other.BackBufferWidth
+            && DepthStencilFormat == other.DepthStencilFormat
+            && Equals(DeviceWindowHandle, other.DeviceWindowHandle)
+            && IsFullScreen == other.IsFullScreen
+            && MultisampleCount == other.MultisampleCount
+            && PresentationInterval == other.PresentationInterval
+            && RefreshRate.Equals(other.RefreshRate)
+            && PreferredFullScreenOutputIndex == other.PreferredFullScreenOutputIndex
+            && ColorSpace == other.ColorSpace;
+    }
+
+    public override bool Equals(object obj)
+    {
         /// <summary>
         ///   A <strong><see cref="SharpDX.DXGI.Format" /></strong> structure describing the display format.
         /// </summary>
-        public PixelFormat BackBufferFormat;
-
         /// <summary>
         ///   A value that describes the resolution height.
         /// </summary>
-        public int BackBufferHeight;
-
         /// <summary>
         ///   A value that describes the resolution width.
         /// </summary>
-        public int BackBufferWidth;
-
         /// <summary>
         /// Gets or sets the depth stencil format
         /// </summary>
-        public PixelFormat DepthStencilFormat;
-
         /// <summary>
         ///   A Window object. See remarks.
         /// </summary>
@@ -42,76 +124,33 @@ namespace Stride.Graphics
         ///     <li>On Windows Metro: This could be SwapChainBackgroundPanel or SwapChainPanel object.</li>
         ///   </ul>
         /// </remarks>
-        public WindowHandle DeviceWindowHandle;
-
         /// <summary>
         ///   Gets or sets a value indicating whether the application is in full screen mode.
         /// </summary>
-        public bool IsFullScreen;
-
         /// <summary>
         ///   Gets or sets a value indicating the number of sample locations during multisampling.
         /// </summary>
-        public MultisampleCount MultisampleCount;
-
         /// <summary>
         ///   Gets or sets the maximum rate at which the swap chain's back buffers can be presented to the front buffer.
         /// </summary>
-        public PresentInterval PresentationInterval;
-
         /// <summary>
         ///   A structure describing the refresh rate in hertz
         /// </summary>
-        public Rational RefreshRate;
-
         /// <summary>
         /// The output (monitor) index to use when switching to fullscreen mode. Doesn't have any effect when windowed mode is used.
         /// </summary>
-        public int PreferredFullScreenOutputIndex;
-
         /// <summary>
-        /// The colorspace of the rendering pipeline.
+        /// The colorspace used.
         /// </summary>
-        public ColorSpace ColorSpace;
-
-        /// <summary>
-        /// The colorspace type used for the swapchain output. Currently only supported by the DirectX backend.
-        /// </summary>
-        public ColorSpaceType OutputColorSpace;
-        
-
-        #endregion
-
-        #region Constructors and Destructors
-
         /// <summary>
         /// Initializes a new instance of the <see cref="PresentationParameters" /> class with default values.
         /// </summary>
-        public PresentationParameters()
-        {
-            BackBufferWidth = 800;
-            BackBufferHeight = 480;
-            BackBufferFormat = PixelFormat.R8G8B8A8_UNorm;
-            PresentationInterval = PresentInterval.Immediate;
-            DepthStencilFormat = PixelFormat.D24_UNorm_S8_UInt;
-            MultisampleCount = MultisampleCount.None;
-            IsFullScreen = false;
-            RefreshRate = new Rational(60, 1); // by default
-            ColorSpace = ColorSpace.Linear;
-            OutputColorSpace = ColorSpaceType.RgbFullG22NoneP709; // default rgb output for monitors with a standard gamma of 2.2
-        }
-
         /// <summary>
         /// Initializes a new instance of the <see cref="PresentationParameters" /> class with <see cref="PixelFormat.R8G8B8A8_UNorm"/>.
         /// </summary>
         /// <param name="backBufferWidth">Width of the back buffer.</param>
         /// <param name="backBufferHeight">Height of the back buffer.</param>
         /// <param name="deviceWindowHandle">The device window handle.</param>
-        public PresentationParameters(int backBufferWidth, int backBufferHeight, WindowHandle deviceWindowHandle)
-            : this(backBufferWidth, backBufferHeight, deviceWindowHandle, PixelFormat.R8G8B8A8_UNorm)
-        {
-        }
-
         /// <summary>
         /// Initializes a new instance of the <see cref="PresentationParameters" /> class.
         /// </summary>
@@ -119,68 +158,33 @@ namespace Stride.Graphics
         /// <param name="backBufferHeight">Height of the back buffer.</param>
         /// <param name="deviceWindowHandle">The device window handle.</param>
         /// <param name="backBufferFormat">The back buffer format.</param>
-        public PresentationParameters(int backBufferWidth, int backBufferHeight, WindowHandle deviceWindowHandle, PixelFormat backBufferFormat)
-            : this()
-        {
-            BackBufferWidth = backBufferWidth;
-            BackBufferHeight = backBufferHeight;
-            DeviceWindowHandle = deviceWindowHandle;
-            BackBufferFormat = backBufferFormat;
-        }
+        return obj is PresentationParameters parameters && Equals(parameters);
+    }
 
-        #endregion
+    public override int GetHashCode()
+    {
+        var hash = new HashCode();
+        hash.Add(BackBufferFormat);
+        hash.Add(BackBufferHeight);
+        hash.Add(BackBufferWidth);
+        hash.Add(DepthStencilFormat);
+        hash.Add(DeviceWindowHandle);
+        hash.Add(IsFullScreen);
+        hash.Add(MultisampleCount);
+        hash.Add(PresentationInterval);
+        hash.Add(RefreshRate);
+        hash.Add(PreferredFullScreenOutputIndex);
+        hash.Add(ColorSpace);
+        return hash.ToHashCode();
+    }
 
-        #region Methods
+    public static bool operator ==(PresentationParameters left, PresentationParameters right)
+    {
+        return Equals(left, right);
+    }
 
-        public PresentationParameters Clone()
-        {
-            return (PresentationParameters)MemberwiseClone();
-        }
-
-        public bool Equals(PresentationParameters other)
-        {
-            if (ReferenceEquals(null, other)) return false;
-            if (ReferenceEquals(this, other)) return true;
-            return BackBufferFormat == other.BackBufferFormat && BackBufferHeight == other.BackBufferHeight && BackBufferWidth == other.BackBufferWidth && DepthStencilFormat == other.DepthStencilFormat && Equals(DeviceWindowHandle, other.DeviceWindowHandle) && IsFullScreen == other.IsFullScreen && MultisampleCount == other.MultisampleCount && PresentationInterval == other.PresentationInterval && RefreshRate.Equals(other.RefreshRate) && PreferredFullScreenOutputIndex == other.PreferredFullScreenOutputIndex && ColorSpace == other.ColorSpace;
-        }
-
-        public override bool Equals(object obj)
-        {
-            if (ReferenceEquals(null, obj)) return false;
-            if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != this.GetType()) return false;
-            return Equals((PresentationParameters)obj);
-        }
-
-        public override int GetHashCode()
-        {
-            unchecked
-            {
-                var hashCode = (int)BackBufferFormat;
-                hashCode = (hashCode * 397) ^ BackBufferHeight;
-                hashCode = (hashCode * 397) ^ BackBufferWidth;
-                hashCode = (hashCode * 397) ^ (int)DepthStencilFormat;
-                hashCode = (hashCode * 397) ^ (DeviceWindowHandle != null ? DeviceWindowHandle.GetHashCode() : 0);
-                hashCode = (hashCode * 397) ^ IsFullScreen.GetHashCode();
-                hashCode = (hashCode * 397) ^ (int)MultisampleCount;
-                hashCode = (hashCode * 397) ^ (int)PresentationInterval;
-                hashCode = (hashCode * 397) ^ RefreshRate.GetHashCode();
-                hashCode = (hashCode * 397) ^ PreferredFullScreenOutputIndex;
-                hashCode = (hashCode * 397) ^ (int)ColorSpace;
-                return hashCode;
-            }
-        }
-
-        public static bool operator ==(PresentationParameters left, PresentationParameters right)
-        {
-            return Equals(left, right);
-        }
-
-        public static bool operator !=(PresentationParameters left, PresentationParameters right)
-        {
-            return !Equals(left, right);
-        }
-
-        #endregion
+    public static bool operator !=(PresentationParameters left, PresentationParameters right)
+    {
+        return !Equals(left, right);
     }
 }

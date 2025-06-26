@@ -32,7 +32,7 @@ namespace Stride.Graphics
         /// </summary>
         /// <param name="description">The DXGI <see cref="ModeDesc"/> structure.</param>
         /// <returns>A corresponding <see cref="DisplayMode"/>.</returns>
-        internal static DisplayMode FromDescription(ModeDesc description)
+        internal static DisplayMode FromDescription(ref readonly ModeDesc description)
         {
             return new DisplayMode((PixelFormat) description.Format, (int) description.Width, (int) description.Height, new Rational((int) description.RefreshRate.Numerator, (int) description.RefreshRate.Denominator));
         }
@@ -42,7 +42,7 @@ namespace Stride.Graphics
         /// </summary>
         /// <param name="description">The DXGI <see cref="ModeDesc1"/> structure.</param>
         /// <returns>A corresponding <see cref="DisplayMode"/>.</returns>
-        internal static DisplayMode FromDescription(ModeDesc1 description)
+        internal static DisplayMode FromDescription(ref readonly ModeDesc1 description)
         {
             return new DisplayMode((PixelFormat) description.Format, (int) description.Width, (int) description.Height, new Rational((int) description.RefreshRate.Numerator, (int) description.RefreshRate.Denominator));
         }

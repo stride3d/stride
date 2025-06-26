@@ -2,17 +2,17 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 //
 // Copyright (c) 2010-2013 SharpDX - Alexandre Mutel
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -21,88 +21,74 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-namespace Stride.Graphics
+using System;
+
+namespace Stride.Graphics;
+
+public class RenderTargetGraphicsPresenter : GraphicsPresenter
 {
+    private Texture backBuffer;
+
+
     /// <summary>
     /// Graphics presenter for SwapChain.
     /// </summary>
-    public class RenderTargetGraphicsPresenter : GraphicsPresenter
+    public RenderTargetGraphicsPresenter(GraphicsDevice device, Texture renderTarget, PixelFormat depthFormat = PixelFormat.None)
+        : base(device, CreatePresentationParameters(renderTarget, depthFormat))
     {
-        private Texture backBuffer;
+        PresentInterval = Description.PresentationInterval;
 
-        public RenderTargetGraphicsPresenter(GraphicsDevice device, Texture renderTarget, PixelFormat depthFormat = PixelFormat.None)
-            : base(device, CreatePresentationParameters(renderTarget, depthFormat))
-        {
-            PresentInterval = Description.PresentationInterval;
-            // Initialize the swap chain
-            SetBackBuffer(renderTarget);
-        }
+        // Initialize the swap-chain
+        SetBackBuffer(renderTarget);
+    }
 
-        private static PresentationParameters CreatePresentationParameters(Texture renderTarget2D, PixelFormat depthFormat)
+    private static PresentationParameters CreatePresentationParameters(Texture renderTarget2D, PixelFormat depthFormat)
+    {
+        return new PresentationParameters
         {
-            return new PresentationParameters()
-                {
-                    BackBufferWidth = renderTarget2D.Width,
-                    BackBufferHeight = renderTarget2D.Height,
-                    BackBufferFormat = renderTarget2D.ViewFormat,
-                    DepthStencilFormat = depthFormat,
-                    DeviceWindowHandle = null,
-                    IsFullScreen = true,
-                    MultisampleCount = renderTarget2D.MultisampleCount,
-                    PresentationInterval = PresentInterval.One,
-                    RefreshRate = new Rational(60, 1),
-                };
-        }
+            BackBufferWidth = renderTarget2D.Width,
+            BackBufferHeight = renderTarget2D.Height,
+            BackBufferFormat = renderTarget2D.ViewFormat,
+            DepthStencilFormat = depthFormat,
+            DeviceWindowHandle = null,
+            IsFullScreen = true,
+            MultisampleCount = renderTarget2D.MultisampleCount,
+            PresentationInterval = PresentInterval.One,
+            RefreshRate = 60
+        };
+    }
 
-        public override Texture BackBuffer
-        {
-            get
-            {
-                return backBuffer;
-            }
-        }
 
         /// <summary>
         /// Sets the back buffer.
         /// </summary>
         /// <param name="backBuffer">The back buffer.</param>
-        public void SetBackBuffer(Texture backBuffer)
-        {
-            this.backBuffer = backBuffer.EnsureRenderTarget();
-        }
+    public override Texture BackBuffer => backBuffer;
 
-        public override object NativePresenter
-        {
-            get
-            {
-                return backBuffer;
-            }
-        }
+    public void SetBackBuffer(Texture backBuffer)
+    {
+        this.backBuffer = backBuffer.EnsureRenderTarget();
+    }
 
-        public override bool IsFullScreen
-        {
-            get
-            {
-                return true;
-            }
+    public override object NativePresenter => backBuffer;
 
-            set
-            {
-            }
-        }
+    public override bool IsFullScreen
+    {
+        get => true;
+        set { }
+    }
 
-        public override void Present()
-        {
-        }
+    public override void Present()
+    {
+    }
 
-        protected override void ResizeBackBuffer(int width, int height, PixelFormat format)
-        {
-            throw new System.NotImplementedException();
-        }
+    protected override void ResizeBackBuffer(int width, int height, PixelFormat format)
+    {
+        throw new NotImplementedException();
+    }
 
-        protected override void ResizeDepthStencilBuffer(int width, int height, PixelFormat format)
-        {
-            throw new System.NotImplementedException();
-        }
+    protected override void ResizeDepthStencilBuffer(int width, int height, PixelFormat format)
+    {
+        throw new NotImplementedException();
     }
 }
