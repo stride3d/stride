@@ -27,9 +27,45 @@ using Stride.Graphics;
 
 namespace Stride.Games;
 
+/// <summary>
+///   Base interface for a factory that creates <see cref="GraphicsDevice"/> instances.
+/// </summary>
+/// <remarks>
+///   <para>
+///     The implementers of <see cref="IGraphicsDeviceFactory"/> are responsible for creating
+///     <see cref="GraphicsDevice"/> instances, and for selecting the best device based on the
+///     preferred configuration.
+///   </para>
+///   <para>
+///     A good example of a factory is the <see cref="GamePlatform"/> class, which not only
+///     abstracts the platform, but also the windowing system and the Graphics Device creation.
+///   </para>
+/// </remarks>
 public interface IGraphicsDeviceFactory
 {
+    /// <summary>
+    ///   Returns a list of <see cref="GraphicsDeviceInformation"/> instances, representing
+    ///   the best found graphics adapters and their corresponding configuration based on the
+    ///   given graphics parameters.
+    /// </summary>
+    /// <param name="graphicsParameters">The preferred graphics configuration.</param>
+    /// <returns>
+    ///   A list of the best found adapters, devices, and configurations found.
+    /// </returns>
     List<GraphicsDeviceInformation> FindBestDevices(GameGraphicsParameters graphicsParameters);
 
+    /// <summary>
+    ///   Changes an existing Graphics Device or creates a new one with the specified
+    ///   configuration.
+    /// </summary>
+    /// <param name="currentDevice">
+    ///   An optional <see cref="GraphicsDevice"/> instance to reconfigure.
+    ///   Specify <see langword="null"/> to create a new device.
+    /// </param>
+    /// <param name="deviceInformation">
+    ///   A <see cref="GraphicsDeviceInformation"/> specifying the intended graphics adapter and
+    ///   its configuration
+    /// </param>
+    /// <returns>The created (or changed) Graphics Device.</returns>
     GraphicsDevice ChangeOrCreateDevice(GraphicsDevice? currentDevice, GraphicsDeviceInformation deviceInformation);
 }

@@ -36,14 +36,6 @@ using static Stride.Graphics.GraphicsProfile;
 
 namespace Stride.Graphics
 {
-    /// <summary>
-    ///   Contains information about the general features supported by a <see cref="GraphicsDevice"/>, as well as
-    ///   supported features specific to a particular pixel format or data format.
-    /// </summary>
-    /// <remarks>
-    ///   To obtain information about the supported features for a particular format, use the operator
-    ///   <see cref="this[PixelFormat]"/>.
-    /// </remarks>
     public unsafe partial struct GraphicsDeviceFeatures
     {
         private static readonly Format[] ObsoleteFormatsToExclude =
@@ -209,7 +201,7 @@ namespace Stride.Graphics
             }
 
             /// <summary>
-            ///   Check if the Direct3D device does support compute shaders for the specified format.
+            ///   Check if the Direct3D device does support Compute Shaders for the specified format.
             /// </summary>
             /// <returns>Flags indicating usage contexts in which the specified format is supported.</returns>
             ComputeShaderFormatSupport CheckComputeShaderFormatSupport(Format format)

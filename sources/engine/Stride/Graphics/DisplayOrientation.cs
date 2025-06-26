@@ -26,31 +26,30 @@ using Stride.Core;
 
 namespace Stride.Graphics;
 
+/// <summary>
+///   Describes the orientation of the display.
+/// </summary>
 [Flags]
 [DataContract("DisplayOrientation")]
 public enum DisplayOrientation
 {
     /// <summary>
-    /// Describes the orientation of the display.
+    ///   The default value for the orientation.
     /// </summary>
-        /// <summary>
-        /// The default value for the orientation.
-        /// </summary>
     Default = 0,
 
-        /// <summary>
-        /// Displays in landscape mode to the left.
-        /// </summary>
+    /// <summary>
+    ///   Displays in landscape mode to the left.
+    /// </summary>
     LandscapeLeft = 1,
 
-        /// <summary>
-        /// Displays in landscape mode to the right.
-        /// </summary>
+    /// <summary>
+    ///   Displays in landscape mode to the right.
+    /// </summary>
     LandscapeRight = 2,
 
-        /// <summary>
-        /// Displays in portrait mode.
-        /// </summary>
-    }
+    /// <summary>
+    ///   Displays in portrait mode.
+    /// </summary>
     Portrait = 4
 }

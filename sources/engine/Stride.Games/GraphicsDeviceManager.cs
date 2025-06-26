@@ -34,16 +34,17 @@ using static Stride.Graphics.GraphicsProfile;
 namespace Stride.Games
 {
     /// <summary>
-    /// Manages the <see cref="GraphicsDevice"/> lifecycle.
+    ///   Manages the <see cref="GraphicsDevice"/> life-cycle, providing access to it and events that can be
+    ///   subscribed to be notified of when the device is created, reset, or disposed.
     /// </summary>
     public class GraphicsDeviceManager : ComponentBase, IGraphicsDeviceManager, IGraphicsDeviceService
     {
         /// <summary>
-        /// Default width for the back buffer.
+        ///   Default width for the Back-Buffer.
         /// </summary>
         public static readonly int DefaultBackBufferWidth = 1280;
         /// <summary>
-        /// Default height for the back buffer.
+        ///   Default height for the Back-Buffer.
         /// </summary>
         public static readonly int DefaultBackBufferHeight = 720;
 
@@ -82,10 +83,13 @@ namespace Stride.Games
 
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="GraphicsDeviceManager" /> class.
+        ///   Initializes a new instance of the <see cref="GraphicsDeviceManager"/> class.
         /// </summary>
-        /// <param name="game">The game.</param>
-        /// <exception cref="System.ArgumentNullException">The game instance cannot be null.</exception>
+        /// <param name="game">The Game that needs to manage the Graphics Device.</param>
+        /// <exception cref="ArgumentNullException">The <paramref name="game"/> cannot be <see langword="null"/>.</exception>
+        /// <exception cref="InvalidOperationException">
+        ///   Could not get the required <see cref="IGraphicsDeviceFactory"/> service from the <paramref name="game"/>'s services.
+        /// </exception>
         internal GraphicsDeviceManager(GameBase game)
         {
             ArgumentNullException.ThrowIfNull(game);
@@ -103,14 +107,33 @@ namespace Stride.Games
         }
 
 
+        /// <summary>
+        ///   Occurs when a new Graphics Device is successfully created.
+        /// </summary>
         public event EventHandler<EventArgs> DeviceCreated;
+        /// <summary>
+        ///   Occurs when the Graphics Device is being disposed.
+        /// </summary>
         public event EventHandler<EventArgs> DeviceDisposing;
 
+        /// <summary>
+        ///   Occurs when the Graphics Device is being reset.
+        /// </summary>
         public event EventHandler<EventArgs> DeviceReset;
+        /// <summary>
+        ///   Occurs when the Graphics Device is being reset, but before it is actually reset.
+        /// </summary>
         public event EventHandler<EventArgs> DeviceResetting;
 
+        /// <summary>
+        ///   Occurs when the Graphics Device is being initialized to give a chance to the application at
+        ///   adjusting the final settings for the device creation.
+        /// </summary>
         public event EventHandler<PreparingDeviceSettingsEventArgs> PreparingDeviceSettings;
 
+        /// <summary>
+        ///   Method called when the game window is created. It subscribes to the resizing and orientation events.
+        /// </summary>
         private void GameOnWindowCreated(object sender, EventArgs eventArgs)
         {
             game.Window.ClientSizeChanged += Window_ClientSizeChanged;
@@ -119,46 +142,48 @@ namespace Stride.Games
         }
 
 
+        /// <summary>
+        ///   Gets the Graphics Device associated with this manager.
+        /// </summary>
         public GraphicsDevice GraphicsDevice { get; internal set; }
 
         /// <summary>
-        /// Gets or sets the list of graphics profile to select from the best feature to the lower feature. See remarks.
+        ///   Gets or sets the graphics profiles that are going to be tested when initializing the Graphics Device,
+        ///   in order of preference.
         /// </summary>
-        /// <value>The graphics profile.</value>
         /// <remarks>
-        /// By default, the PreferredGraphicsProfile is set to { <see cref="GraphicsProfile.Level_11_1"/>, 
-        /// <see cref="GraphicsProfile.Level_11_0"/>,
-        /// <see cref="GraphicsProfile.Level_10_1"/>,
-        /// <see cref="GraphicsProfile.Level_10_0"/>,
-        /// <see cref="GraphicsProfile.Level_9_3"/>,
-        /// <see cref="GraphicsProfile.Level_9_2"/>,
-        /// <see cref="GraphicsProfile.Level_9_1"/>}
+        ///   By default, the preferred graphics profiles are, in order of preference, better first:
+        ///   <see cref="Level_11_1"/>, <see cref="Level_11_0"/>, <see cref="Level_10_1"/>, <see cref="Level_10_0"/>,
+        ///   <see cref="Level_9_3"/>, <see cref="Level_9_2"/>, and <see cref="Level_9_1"/>.
         /// </remarks>
         public GraphicsProfile[] PreferredGraphicsProfile { get; set; } = [ Level_11_1, Level_11_0, Level_10_1, Level_10_0, Level_9_3, Level_9_2, Level_9_1 ];
 
         /// <summary>
-        /// Gets or sets the shader graphics profile that will be used to compile shaders. See remarks.
+        ///   Gets or sets the Shader graphics profile that will be used to compile shaders.
         /// </summary>
-        /// <value>The shader graphics profile.</value>
-        /// <remarks>If this property is not set, the profile used to compile the shader will be taken from the <see cref="GraphicsDevice"/> 
-        /// based on the list provided by <see cref="PreferredGraphicsProfile"/></remarks>
+        /// <remarks>
+        ///   If this property is not set, the profile used to compile Shaders will be taken from the Graphics Device.
+        ///   based on the list provided by <see cref="PreferredGraphicsProfile"/>.
+        /// </remarks>
         public GraphicsProfile? ShaderProfile { get; set; }
 
         /// <summary>
-        /// Gets or sets the device creation flags that will be used to create the <see cref="GraphicsDevice"/>
+        ///   Gets or sets the device creation flags that will be used to create the Graphics Device.
         /// </summary>
-        /// <value>The device creation flags.</value>
         public DeviceCreationFlags DeviceCreationFlags { get; set; }
 
         /// <summary>
-        /// If populated the engine will try to initialize the device with the same unique id
+        ///   Gets or sets the unique identifier of the Graphis Adapter that should be used to create the Graphics Device.
         /// </summary>
+        /// <value>
+        ///   If this property is set to a non-<see langword="null"/> <see langword="string"/> the engine will try to
+        ///   initialize the Graphics Device to present to an adapter with the same unique Id
+        /// </value>
         public string RequiredAdapterUid { get; set; }
 
         /// <summary>
-        /// Gets or sets the default color space.
+        ///   Gets or sets the preferred color space for the Back-Buffers.
         /// </summary>
-        /// <value>The default color space.</value>
         public ColorSpace PreferredColorSpace
         {
             get => preferredColorSpace;
@@ -173,14 +198,12 @@ namespace Stride.Games
         }
 
         /// <summary>
-        /// Sets the preferred graphics profile.
+        ///   Gets or sets a value indicating whether the Graphics Device should present in full-screen mode.
         /// </summary>
-        /// <param name="levels">The levels.</param>
-        /// <seealso cref="PreferredGraphicsProfile"/>
-        /// <summary>
-        /// Gets or sets a value indicating whether this instance is full screen.
-        /// </summary>
-        /// <value><c>true</c> if this instance is full screen; otherwise, <c>false</c>.</value>
+        /// <value>
+        ///   <see langword="true"/> if the device should render is full screen;
+        ///   otherwise, <see langword="false"/>.
+        /// </value>
         public bool IsFullScreen
         {
             get => isFullScreen;
@@ -195,9 +218,8 @@ namespace Stride.Games
         }
 
         /// <summary>
-        /// Gets or sets a value indicating whether [prefer multi sampling].
+        ///   Gets or sets the level of multisampling for the Back-Buffers.
         /// </summary>
-        /// <value><c>true</c> if [prefer multi sampling]; otherwise, <c>false</c>.</value>
         public MultisampleCount PreferredMultisampleCount
         {
             get => preferredMultisampleCount;
@@ -212,9 +234,14 @@ namespace Stride.Games
         }
 
         /// <summary>
-        /// Gets or sets the preferred back buffer format.
+        ///   Gets or sets the preferred pixel format for the Back-Buffers.
         /// </summary>
-        /// <value>The preferred back buffer format.</value>
+        /// <remarks>
+        ///   Not all pixel formats are supported for Back-Buffers by all Graphics Devices. Typical formats
+        ///   are <see cref="PixelFormat.R8G8B8A8_UNorm"/> or <see cref="PixelFormat.B8G8R8A8_UNorm"/>,
+        ///   although there are some more advanced formats depending on the Graphics Device capabilities
+        ///   and intended use (e.g. <see cref="PixelFormat.R16G16B16A16_Float"/> for HDR rendering).
+        /// </remarks>
         public PixelFormat PreferredBackBufferFormat
         {
             get => preferredBackBufferFormat;
@@ -229,9 +256,8 @@ namespace Stride.Games
         }
 
         /// <summary>
-        /// Gets or sets the height of the preferred back buffer.
+        ///   Gets or sets the preferred height of the Back-Buffer, in pixels.
         /// </summary>
-        /// <value>The height of the preferred back buffer.</value>
         public int PreferredBackBufferHeight
         {
             get => preferredBackBufferHeight;
@@ -247,9 +273,8 @@ namespace Stride.Games
         }
 
         /// <summary>
-        /// Gets or sets the width of the preferred back buffer.
+        ///   Gets or sets the preferred width of the Back-Buffer, in pixels.
         /// </summary>
-        /// <value>The width of the preferred back buffer.</value>
         public int PreferredBackBufferWidth
         {
             get => preferredBackBufferWidth;
@@ -265,9 +290,19 @@ namespace Stride.Games
         }
 
         /// <summary>
-        /// Gets or sets the preferred depth stencil format.
+        ///   Gets or sets the preferred format for the Depth-Stencil Buffer.
         /// </summary>
-        /// <value>The preferred depth stencil format.</value>
+        /// <remarks>
+        ///   <para>
+        ///     Not all formats are supported for Depth-Stencil Buffers by all Graphics Devices.
+        ///     Typical formats are <see cref="PixelFormat.D24_UNorm_S8_UInt"/> or <see cref="PixelFormat.D32_Float_S8X24_UInt"/>.
+        ///   </para>
+        ///   <para>
+        ///     The format also determines the number of bits used for the depth and stencil buffers. For example.
+        ///     the <see cref="PixelFormat.D24_UNorm_S8_UInt"/> format uses 24 bits for the Depth-Buffer and 8 bits for the Stencil-Buffer,
+        ///     while <see cref="PixelFormat.D32_Float"/> uses 32 bits for the Depth-Buffer and no Stencil-Buffer.
+        ///   </para>
+        /// </remarks>
         public PixelFormat PreferredDepthStencilFormat
         {
             get => preferredDepthStencilFormat;
@@ -282,9 +317,13 @@ namespace Stride.Games
         }
 
         /// <summary>
-        /// Gets or sets the preferred refresh rate.
+        ///   Gets or sets the preferred refresh rate, in hertz (number of frames per second).
         /// </summary>
-        /// <value>The preferred refresh rate.</value>
+        /// <value>
+        ///   The preferred refresh rate as a <see cref="Rational"/> value, where the numerator is the number of frames per second
+        ///   and the denominator is usually 1 (e.g., 60 frames per second is represented as <c>60 / 1</c>). However, some adapters
+        ///   may support fractional refresh rates, such as 59.94 Hz, which would be represented as <c>5994 / 100</c>.
+        /// </value>
         public Rational PreferredRefreshRate
         {
             get => preferredRefreshRate;
@@ -299,7 +338,8 @@ namespace Stride.Games
         }
 
         /// <summary>
-        /// The output (monitor) index to use when switching to fullscreen mode. Doesn't have any effect when windowed mode is used.
+        ///   Gets or sets the preferred output (monitor) index to use when switching to fullscreen mode.
+        ///   Doesn't have any effect when windowed mode is used.
         /// </summary>
         public int PreferredFullScreenOutputIndex
         {
@@ -315,9 +355,8 @@ namespace Stride.Games
         }
 
         /// <summary>
-        /// Gets or sets the supported orientations.
+        ///   Gets or sets the supported orientations for displaying the Back-Buffers.
         /// </summary>
-        /// <value>The supported orientations.</value>
         public DisplayOrientation SupportedOrientations
         {
             get => supportedOrientations;
@@ -332,9 +371,14 @@ namespace Stride.Games
         }
 
         /// <summary>
-        /// Gets or sets a value indicating whether [synchronize with vertical retrace].
+        ///   Gets or sets a value indicating whether the Graphics Device should synchronize with the vertical retrace,
+        ///   commonly known as <strong>VSync</strong>.
         /// </summary>
-        /// <value><c>true</c> if [synchronize with vertical retrace]; otherwise, <c>false</c>.</value>
+        /// <value>
+        ///   <see langword="true"/> to synchronize with the vertical retrace, which can help prevent screen tearing
+        ///   and ensure smoother animations by waiting for the monitor to finish displaying the current frame;
+        ///   <see langword="false"/> to not synchronize, which may result in faster frame rates but can lead to screen tearing.
+        /// </value>
         public bool SynchronizeWithVerticalRetrace
         {
             get => synchronizeWithVerticalRetrace;
@@ -350,8 +394,14 @@ namespace Stride.Games
 
 
         /// <summary>
-        /// Applies the changes from this instance and change or create the <see cref="GraphicsDevice"/> according to the new values.
+        ///   Applies the changes in the graphics settings and changes or recreates the <see cref="GraphicsDevice"/>
+        ///   according to the new values.
+        ///   <br/>
+        ///   Does not have any effect if the <see cref="GraphicsDevice"/> is <see langword="null"/>.
         /// </summary>
+        /// <exception cref="InvalidOperationException">
+        ///   Thrown if the Graphics Device could not be created or reconfigured.
+        /// </exception>
         public void ApplyChanges()
         {
             if (GraphicsDevice is not null && deviceSettingsChanged)
@@ -360,6 +410,8 @@ namespace Stride.Games
             }
         }
 
+
+        /// <inheritdoc/>
         bool IGraphicsDeviceManager.BeginDraw()
         {
             if (GraphicsDevice is null)
@@ -385,6 +437,9 @@ namespace Stride.Games
 
             return beginDrawOk = true;
 
+            //
+            // Checks the current state of the Graphics Device and handles any necessary actions.
+            //
             bool CheckDeviceState()
             {
                 const int SLEEP_TIME_WHEN_UNAVAILABLE = 20; // milliseconds
@@ -409,11 +464,13 @@ namespace Stride.Games
             }
         }
 
+        /// <inheritdoc/>
         void IGraphicsDeviceManager.CreateDevice()
         {
             ChangeOrCreateDevice(forceCreate: true);
         }
 
+        /// <inheritdoc/>
         void IGraphicsDeviceManager.EndDraw(bool present)
         {
             if (beginDrawOk && GraphicsDevice is not null)
@@ -440,6 +497,9 @@ namespace Stride.Games
                 }
             }
 
+            //
+            // Ends the current drawing.
+            //
             void EndDraw()
             {
                 beginDrawOk = false;
@@ -448,6 +508,28 @@ namespace Stride.Games
         }
 
 
+        /// <summary>
+        ///   Determines the appropriate display orientation based on the specified parameters.
+        /// </summary>
+        /// <param name="orientation">
+        ///   The desired display orientation. If set to <see cref="DisplayOrientation.Default"/>, the orientation will be
+        ///   determined based on the provided dimensions and landscape allowance.
+        /// </param>
+        /// <param name="width">The width of the display area, in pixels.</param>
+        /// <param name="height">The height of the display area, in pixels.</param>
+        /// <param name="allowLandscapeLeftAndRight">
+        ///   A value indicating whether both landscape orientations (<see cref="DisplayOrientation.LandscapeLeft"/> and
+        ///   <see cref="DisplayOrientation.LandscapeRight"/>) are allowed.
+        /// </param>
+        /// <returns>
+        ///   The selected <see cref="DisplayOrientation"/> based on the input parameters.
+        ///   <list type="bullet">
+        ///     <item>Returns <see cref="DisplayOrientation.Portrait"/> if the height is greater than or equal to the width.</item>
+        ///     <item>If landscape is allowed, returns a combination of <see cref="DisplayOrientation.LandscapeLeft"/> and
+        ///           <see cref="DisplayOrientation.LandscapeRight"/>.</item>
+        ///     <item>Otherwise, returns <see cref="DisplayOrientation.LandscapeRight"/>.</item>
+        ///   </list>
+        /// </returns>
         protected static DisplayOrientation SelectOrientation(DisplayOrientation orientation, int width, int height, bool allowLandscapeLeftAndRight)
         {
             if (orientation != DisplayOrientation.Default)
@@ -465,6 +547,8 @@ namespace Stride.Games
             return DisplayOrientation.LandscapeRight;
         }
 
+
+        /// <inheritdoc/>
         protected override void Destroy()
         {
             if (game is not null)
@@ -506,11 +590,17 @@ namespace Stride.Games
             base.Destroy();
         }
 
+
         /// <summary>
-        /// Determines whether this instance is compatible with the the specified new <see cref="GraphicsDeviceInformation"/>.
+        ///   Determines whether the Graphics Device is compatible with the the specified new <see cref="GraphicsDeviceInformation"/>
+        ///   and can be reset with it.
         /// </summary>
-        /// <param name="newDeviceInfo">The new device info.</param>
-        /// <returns><c>true</c> if this instance this instance is compatible with the the specified new <see cref="GraphicsDeviceInformation"/>; otherwise, <c>false</c>.</returns>
+        /// <param name="newDeviceInfo">The new device information to check compatibility with.</param>
+        /// <returns>
+        ///   <see langword="true"/> if the Graphics Device is compatible with <paramref name="newDeviceInfo"/> and can be
+        ///   reinitialized with the new settings;
+        ///   otherwise, <see langword="false"/>.
+        /// </returns>
         protected virtual bool CanResetDevice(GraphicsDeviceInformation newDeviceInfo)
         {
             // By default, a reset is compatible when we stay under the same graphics profile
@@ -518,10 +608,20 @@ namespace Stride.Games
         }
 
         /// <summary>
-        /// Finds the best device that is compatible with the preferences defined in this instance.
+        ///   Finds the best Graphics Device configuration that is compatible with the set preferences.
         /// </summary>
-        /// <param name="anySuitableDevice">if set to <c>true</c> a device can be selected from any existing adapters, otherwise, it will select only from default adapter.</param>
+        /// <param name="anySuitableDevice">
+        ///   A value indicating whether to search for any suitable device on any of the available adapters (<see langword="true"/>)
+        ///   or only from the default adapter (<see langword="false"/>).
+        /// </param>
         /// <returns>The graphics device information.</returns>
+        /// <exception cref="InvalidOperationException">
+        ///   None of the graphics profiles specified in <see cref="PreferredGraphicsProfile"/> are supported.
+        /// </exception>
+        /// <exception cref="InvalidOperationException">
+        ///   A compatible screen mode could not be found based on the current settings. Check the full-screen mode,
+        ///   the preferred Back-Buffer width and height, and the preferred Back-Buffer format.
+        /// </exception>
         protected virtual GraphicsDeviceInformation FindBestDevice(bool anySuitableDevice)  // TODO: anySuitableDevice is not used, remove it?
         {
             // Setup preferred parameters before passing them to the factory
@@ -582,9 +682,9 @@ namespace Stride.Games
         }
 
         /// <summary>
-        /// Ranks a list of <see cref="GraphicsDeviceInformation"/> before creating a new device.
+        ///   Ranks a list of <see cref="GraphicsDeviceInformation"/>s before creating a new Graphics Device.
         /// </summary>
-        /// <param name="foundDevices">The list of devices that can be reorder.</param>
+        /// <param name="foundDevices">A list of possible device configurations to be ranked and reordered.</param>
         protected virtual void RankDevices(List<GraphicsDeviceInformation> foundDevices)
         {
             // Don't sort if there is a single device (mostly for XAML/WP8)
@@ -593,6 +693,9 @@ namespace Stride.Games
 
             foundDevices.Sort(CompareDeviceInformations);
 
+            //
+            // Compares two `GraphicsDeviceInformation` instances to determine their ranking.
+            //
             int CompareDeviceInformations(GraphicsDeviceInformation left, GraphicsDeviceInformation right)
             {
                 var leftParams = left.PresentationParameters;
@@ -660,6 +763,9 @@ namespace Stride.Games
                 return 0;  // If all criteria are equal, consider them equal
             }
 
+            //
+            // Calculates the rank for a given pixel format.
+            //
             int CalculateRankForFormat(PixelFormat format)
             {
                 if (format == PreferredBackBufferFormat)
@@ -673,6 +779,9 @@ namespace Stride.Games
                 return int.MaxValue;  // All other formats are ranked lower
             }
 
+            //
+            // Calculates the size in bits of a given pixel format.
+            //
             int CalculateFormatSizeInBits(PixelFormat format)
             {
                 return format switch
@@ -689,6 +798,9 @@ namespace Stride.Games
                 };
             }
 
+            //
+            // Calculates the pixel count for the left and right Graphiccs Adapters based on their current display modes.
+            //
             (int leftPixelCount, int rightPixelCount) CalculatePixelCount(GraphicsAdapter leftAdapter, GraphicsAdapter rightAdapter)
             {
                 int leftPixelCount, rightPixelCount;
@@ -718,6 +830,23 @@ namespace Stride.Games
             }
         }
 
+        /// <summary>
+        ///   Determines whether any of the preferred graphics profiles is available on the system.
+        /// </summary>
+        /// <param name="preferredProfiles">
+        ///   An array of preferred graphics profiles to check for availability. The profiles should be ordered by
+        ///   preference, with the most preferred profile first.
+        /// </param>
+        /// <param name="availableProfile">
+        ///   When the method returns, contains the highest graphics profile supported by the system that meets or exceeds
+        ///   the preferences specified in <paramref name="preferredProfiles"/>.
+        ///   If no preferred profile is available, this will contain the lowest supported graphics profile.
+        /// </param>
+        /// <returns>
+        ///   <see langword="true"/> if a graphics profile that meets or exceeds one of the preferred profiles is
+        ///   available;
+        ///   otherwise, <see langword="false"/>.
+        /// </returns>
         protected virtual bool IsPreferredProfileAvailable(GraphicsProfile[] preferredProfiles, out GraphicsProfile availableProfile)
         {
             availableProfile = Level_9_1;  // Start from the lowest profile
@@ -744,31 +873,60 @@ namespace Stride.Games
         }
 
 
+        /// <summary>
+        ///   Method called when the Graphics Device is created.
+        ///   Invokes the <see cref="DeviceCreated"/> event.
+        /// </summary>
         protected virtual void OnDeviceCreated(object sender, EventArgs args)
         {
             DeviceCreated?.Invoke(sender, args);
         }
 
+        /// <summary>
+        ///   Method called when the Graphics Device is about to be disposed.
+        ///   Invokes the <see cref="DeviceDisposing"/> event.
+        /// </summary>
         protected virtual void OnDeviceDisposing(object sender, EventArgs args)
         {
             DeviceDisposing?.Invoke(sender, args);
         }
 
+        /// <summary>
+        ///   Method called when the Graphics Device is reset.
+        ///   Invokes the <see cref="DeviceReset"/> event.
+        /// </summary>
         protected virtual void OnDeviceReset(object sender, EventArgs args)
         {
             DeviceReset?.Invoke(sender, args);
         }
 
+        /// <summary>
+        ///   Method called when the Graphics Device is resetting, but before it is actually reset.
+        ///   Invokes the <see cref="DeviceResetting"/> event.
+        /// </summary>
         protected virtual void OnDeviceResetting(object sender, EventArgs args)
         {
             DeviceResetting?.Invoke(sender, args);
         }
 
+        /// <summary>
+        ///   Method called when the Graphics Device is preparing to be created or reset, so the application can
+        ///   examine or modify the device settings before the device is created or reset.
+        ///   Invokes the <see cref="PreparingDeviceSettings"/> event.
+        /// </summary>
         protected virtual void OnPreparingDeviceSettings(object sender, PreparingDeviceSettingsEventArgs args)
         {
             PreparingDeviceSettings?.Invoke(sender, args);
         }
 
+
+        /// <summary>
+        ///   Method called when the Window's client size changes, which may require a device reinitialization
+        ///   with a new Back-Buffer size.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">
+        ///   Thrown if the Graphics Device could not be created or reconfigured.
+        /// </exception>
         private void Window_ClientSizeChanged(object sender, EventArgs e)
         {
             // Ignore changes while we are changing the device
@@ -788,6 +946,10 @@ namespace Stride.Games
             }
         }
 
+        /// <summary>
+        ///   Method called when the Window's orientation changes, which may require a device reinitialization
+        ///   with a new Back-Buffer size if the orientation allows it.
+        /// </summary>
         private void Window_OrientationChanged(object sender, EventArgs e)
         {
             // Ignore changes while we are changing the device
@@ -809,6 +971,9 @@ namespace Stride.Games
             }
         }
 
+        /// <summary>
+        ///   Method called when the Window's fullscreen state changes, whick may require a resize of the Back-Buffer.
+        /// </summary>
         private void Window_FullscreenChanged(object sender, EventArgs eventArgs)
         {
             if (sender is GameWindow window)
@@ -831,26 +996,50 @@ namespace Stride.Games
             }
         }
 
+        /// <summary>
+        ///   Method called when the Graphics Device is being reset, but before it is actually reset.
+        /// </summary>
         private void GraphicsDevice_DeviceResetting(object sender, EventArgs e)
         {
-            // TODO what to do?
+            // TODO: What to do?
         }
 
+        /// <summary>
+        ///   Method called when the Graphics Device has been reset.
+        /// </summary>
         private void GraphicsDevice_DeviceReset(object sender, EventArgs e)
         {
-            // TODO what to do?
+            // TODO: What to do?
         }
 
+        /// <summary>
+        ///   Method called when the Graphics Device has been lost, meaning it is currently unavailable
+        /// </summary>
         private void GraphicsDevice_DeviceLost(object sender, EventArgs e)
         {
-            // TODO what to do?
+            // TODO: What to do?
         }
 
+        /// <summary>
+        ///   Method called when the Graphics Device is being disposed.
+        /// </summary>
         private void GraphicsDevice_Disposing(object sender, EventArgs e)
         {
             OnDeviceDisposing(sender, e);
         }
 
+
+        /// <summary>
+        ///   Changes or creates the Graphics Device based on the current settings.
+        /// </summary>
+        /// <param name="forceCreate">
+        ///   A value indicating whether the Graphics Device should be forcibly recreated.
+        ///   If <see langword="true"/>, a new Graphics Device will be created regardless of the current state.
+        ///   If <see langword="false"/>, the method will attempt to reset and reuse the existing device if possible.
+        /// </param>
+        /// <exception cref="InvalidOperationException">
+        ///   Thrown if the Graphics Device could not be created or is unexpectedly <see langword="null"/> after the operation.
+        /// </exception>
         private void ChangeOrCreateDevice(bool forceCreate)
         {
             // We make sure that we won't be call by an asynchronous event (windows resized)
@@ -862,6 +1051,9 @@ namespace Stride.Games
                 }
             }
 
+            //
+            // Changes or creates the Graphics Device based on the current settings.
+            //
             void ChangeOrCreateDevice()
             {
                 game.ConfirmRenderingSettings(GraphicsDevice is null); // If no device we assume we are still at game creation phase
@@ -964,6 +1156,9 @@ namespace Stride.Games
                 }
             }
 
+            //
+            // Creates a new Graphics Device based on the provided `GraphicsDeviceInformation`.
+            //
             void CreateDevice(GraphicsDeviceInformation newInfo)
             {
                 newInfo.PresentationParameters.IsFullScreen = isFullScreen;
