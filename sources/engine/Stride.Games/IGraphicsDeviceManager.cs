@@ -21,29 +21,30 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
+using System;
+
 using Stride.Graphics;
 
-namespace Stride.Games
+namespace Stride.Games;
+
+public interface IGraphicsDeviceManager
 {
     /// <summary>
     /// Defines the interface for an object that manages a GraphicsDevice.
     /// </summary>
-    public interface IGraphicsDeviceManager
-    {
         /// <summary>
         /// Starts the drawing of a frame.
         /// </summary>
         /// <returns><c>true</c> if XXXX, <c>false</c> otherwise</returns>
-        bool BeginDraw();
+    void CreateDevice();
 
         /// <summary>
         /// Called to ensure that the device manager has created a valid device.
         /// </summary>
-        void CreateDevice();
+    bool BeginDraw();
 
         /// <summary>
         /// Called by the game at the end of drawing; if requested, presents the final rendering.
         /// </summary>
-        void EndDraw(bool present);
-    }
+    void EndDraw(bool present);
 }

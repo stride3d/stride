@@ -657,7 +657,7 @@ namespace Stride.Graphics
             }
         }
 
-        internal void TagResource(GraphicsResourceLink resourceLink)
+        internal partial void TagResourceAsNotAlive(GraphicsResourceLink resourceLink)
         {
             if (resourceLink.Resource is Texture { Usage: GraphicsResourceUsage.Dynamic })
             {

@@ -83,7 +83,7 @@ namespace Stride.Graphics
         private int contextBeginCounter = 0;
 
         // TODO: Use some LRU scheme to clean up FBOs if not used frequently anymore.
-        internal Dictionary<FBOKey, uint> existingFBOs = new Dictionary<FBOKey, uint>(); 
+        internal Dictionary<FBOKey, uint> existingFBOs = new Dictionary<FBOKey, uint>();
 
         private static GraphicsDevice _currentGraphicsDevice = null;
 
@@ -132,7 +132,7 @@ namespace Stride.Graphics
         internal float[] SquareVertices = {
             0.0f, 0.0f,
             1.0f, 0.0f,
-            0.0f, 1.0f, 
+            0.0f, 1.0f,
             1.0f, 1.0f,
         };
 
@@ -805,7 +805,7 @@ namespace Stride.Graphics
             //boundProgram = 0;
         }
 
-        internal void TagResource(GraphicsResourceLink resourceLink)
+        internal partial void TagResourceAsNotAlive(GraphicsResourceLink resourceLink)
         {
             if (resourceLink.Resource is GraphicsResource resource)
                 resource.DiscardNextMap = true;
@@ -941,7 +941,7 @@ namespace Stride.Graphics
 
                 return new FBOTexture(texture, arraySlice, mipLevel);
             }
-            
+
             public bool Equals(FBOTexture other)
             {
                 return Texture == other.Texture && ArraySlice == other.ArraySlice && MipLevel == other.MipLevel;

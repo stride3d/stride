@@ -625,7 +625,7 @@ namespace Stride.Graphics
             nativeResourceCollector.Add(NextFenceValue, nativeResource);
         }
 
-        internal void TagResource(GraphicsResourceLink resourceLink)
+        internal partial void TagResourceAsNotAlive(GraphicsResourceLink resourceLink)
         {
             switch (resourceLink.Resource)
             {
@@ -704,7 +704,7 @@ namespace Stride.Graphics
         protected override void Destroy()
         {
             lock (liveObjects)
-            { 
+            {
                 foreach (var item in liveObjects)
                 {
                     DestroyObject(item.Value);
@@ -923,7 +923,7 @@ namespace Stride.Graphics
             item.Destroy(GraphicsDevice);
         }
     }
-    
+
     internal abstract class TemporaryResourceCollector<T> : IDisposable
     {
         protected readonly GraphicsDevice GraphicsDevice;
