@@ -23,38 +23,42 @@
 
 namespace Stride.Graphics;
 
+/// <summary>
+///   Describes the current status of a <see cref="GraphicsDevice"/>.
+/// </summary>
 public enum GraphicsDeviceStatus
 {
     /// <summary>
-    /// Describes the current status of a <see cref="GraphicsDevice"/>.
+    ///   The Graphics Device is running normally.
     /// </summary>
-        /// <summary>
-        /// The device is running fine.
-        /// </summary>
     Normal,
 
-        /// <summary>
-        /// The video card has been physically removed from the system, or a driver upgrade for the video card has occurred. The application should destroy and recreate the device.
-        /// </summary>
+    /// <summary>
+    ///   The video card has been physically removed from the system, or a driver upgrade for the video card has occurred.
+    ///   The application should destroy and recreate the Graphics Device.
+    /// </summary>
     Removed,
 
-        /// <summary>
-        /// The application's device failed due to badly formed commands sent by the application. This is an design-time issue that should be investigated and fixed.
-        /// </summary>
+    /// <summary>
+    ///   The application's Graphics Device failed due to badly formed commands sent by the application.
+    ///   This is an design-time issue that should be investigated and fixed.
+    /// </summary>
     Hung,
 
-        /// <summary>
-        /// The device failed due to a badly formed command. This is a run-time issue; The application should destroy and recreate the device.
-        /// </summary>
+    /// <summary>
+    ///   The Graphics Device failed due to a badly formed command.
+    ///   This is a run-time issue; The application should destroy and recreate the Graphics Device.
+    /// </summary>
     Reset,
 
-        /// <summary>
-        /// The driver encountered a problem and was put into the device removed state.
-        /// </summary>
+    /// <summary>
+    ///   The driver encountered a problem and was put into the Graphics Device removed state.
+    /// </summary>
     InternalError,
 
-        /// <summary>
-        /// The application provided invalid parameter data; this must be debugged and fixed before the application is released.
-        /// </summary>
+    /// <summary>
+    ///   The application provided invalid parameter data;
+    ///   this must be debugged and fixed before the application is released.
+    /// </summary>
     InvalidCall
 }

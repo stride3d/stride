@@ -23,81 +23,145 @@
 
 namespace Stride.Graphics;
 
+/// <summary>
+///   Contains information about the general features supported by a <see cref="GraphicsDevice"/>, as well as
+///   supported features specific to a particular pixel format or data format.
+/// </summary>
+/// <remarks>
+///   To obtain information about the supported features for a particular format, use the <see cref="this[PixelFormat]">indexer</see>.
+/// </remarks>
 public partial struct GraphicsDeviceFeatures
 {
     private readonly FeaturesPerFormat[] mapFeaturesPerFormat;
 
     /// <summary>
-    /// Features supported by a <see cref="GraphicsDevice"/>.
+    ///   The requested profile when the <see cref="GraphicsDevice"/> was created.
+    /// </summary>
+    /// <seealso cref="GraphicsProfile"/>
     public GraphicsProfile RequestedProfile;
 
+    /// <summary>
+    ///   The current profile of the current <see cref="GraphicsDevice"/>, which determines its supported features.
     /// </summary>
     /// <remarks>
-    /// This class gives also features for a particular format, using the operator this[dxgiFormat] on this structure.
+    ///   This may differ from <see cref="RequestedProfile"/> if the <see cref="GraphicsDevice"/> could not be created
+    ///   with that requested profile. This one represents the closest supported profile.
     /// </remarks>
+    /// <seealso cref="GraphicsProfile"/>
     public GraphicsProfile CurrentProfile;
 
-        /// <summary>
-        /// Features level of the current device.
-        /// </summary>
 
-        /// <summary>
-        /// Features level of the current device.
-        /// </summary>
+    /// <summary>
+    ///   The maximum number of miplevels a Texture can have.
+    /// </summary>
+    /// <seealso cref="Texture"/>
     public readonly int MaximumMipLevels;
 
-        /// <summary>
-        /// Boolean indicating if this device supports compute shaders, unordered access on structured buffers and raw structured buffers.
-        /// </summary>
+    /// <summary>
+    ///   The maximum size of a resource, in megabytes.
+    /// </summary>
+    /// <seealso cref="GraphicsResource"/>
     public readonly int ResourceSizeInMegabytes;
 
-        /// <summary>
-        /// Boolean indicating if this device supports shaders double precision calculations.
-        /// </summary>
+    /// <summary>
+    ///   The maximum number of slices/array elements for a one-dimensional (1D) Texture Array.
+    /// </summary>
+    /// <seealso cref="Texture"/>
     public readonly int MaximumTexture1DArraySize;
 
-        /// <summary>
-        /// Boolean indicating if this device supports concurrent resources in multithreading scenarios.
-        /// </summary>
+    /// <summary>
+    ///   The maximum number of slices/array elements for a two-dimensional (2D) Texture Array.
+    /// </summary>
+    /// <seealso cref="Texture"/>
     public readonly int MaximumTexture2DArraySize;
 
-        /// <summary>
-        /// Boolean indicating if this device supports command lists in multithreading scenarios.
-        /// </summary>
+    /// <summary>
+    ///   The maximum size in texels for a one-dimensional (1D) Texture.
+    /// </summary>
+    /// <seealso cref="Texture"/>
     public readonly int MaximumTexture1DSize;
 
-        /// <summary>
-        /// Boolean indicating if this device supports SRGB texture and render targets.
-        /// </summary>
+    /// <summary>
+    ///   The maximum size (width or height) in texels for a two-dimensional (2D) Texture.
+    /// </summary>
+    /// <seealso cref="Texture"/>
     public readonly int MaximumTexture2DSize;
 
-        /// <summary>
-        /// Boolean indicating if the Depth buffer can also be used as ShaderResourceView for some passes.
-        /// </summary>
+    /// <summary>
+    ///   The maximum size (width, height, or depth) in texels for a three-dimensional (3D) Texture.
+    /// </summary>
+    /// <seealso cref="Texture"/>
     public readonly int MaximumTexture3DSize;
 
+    /// <summary>
+    ///   The maximum size (width or height) in texels for a Texture Cube.
+    /// </summary>
+    /// <seealso cref="Texture"/>
     public readonly int MaximumTextureCubeSize;
 
 
+    /// <summary>
+    ///   A value indicating if the <see cref="GraphicsDevice"/> supports Compute Shaders, unordered access on Structured Buffers,
+    ///   and Raw Structured Buffers.
+    /// </summary>
+    /// <seealso cref="Buffer.Structured"/>
+    /// <seealso cref="Buffer.Raw"/>
     public readonly bool HasComputeShaders;
 
+    /// <summary>
+    ///   A value indicating if the <see cref="GraphicsDevice"/> supports double precision operations in shaders.
+    /// </summary>
     public readonly bool HasDoublePrecision;
 
+    /// <summary>
+    ///   A value indicating if the <see cref="GraphicsDevice"/> supports concurrent Resources in multi-threading scenarios.
+    /// </summary>
     public readonly bool HasMultiThreadingConcurrentResources;
 
+    /// <summary>
+    ///   A value indicating if the <see cref="GraphicsDevice"/> supports Command Lists in multi-threading scenarios.
+    /// </summary>
+    /// <seealso cref="CommandList"/>
     public readonly bool HasDriverCommandLists;
 
+    /// <summary>
+    ///   A value indicating if the <see cref="GraphicsDevice"/> supports sRGB Textures and Render Targets.
+    /// </summary>
+    /// <seealso cref="Texture"/>
     public readonly bool HasSRgb;
 
+    /// <summary>
+    ///   A value indicating if the Depth Buffer can also be used as a Shader Resource View and bound for shader passes.
+    /// </summary>
+    /// <seealso cref="Texture"/>
     public readonly bool HasDepthAsSRV;
 
+    /// <summary>
+    ///   A value indicating if the Depth Buffer can directly be used as a read-only Render Target.
+    /// </summary>
+    /// <seealso cref="Texture"/>
     public readonly bool HasDepthAsReadOnlyRT;
 
+    /// <summary>
+    ///   A value indicating if a multi-sampled Depth Buffer can directly be used as a Shader Resource View.
+    /// </summary>
+    /// <seealso cref="Texture"/>
     public readonly bool HasMultiSampleDepthAsSRV;
 
+    /// <summary>
+    ///   A value indicating if the graphics API supports resource renaming
+    ///   (with either <see cref="MapMode.WriteDiscard"/> or <see cref="CommandList.UpdateSubResource"/> with full size).
+    /// </summary>
     public readonly bool HasResourceRenaming;
 
 
+    /// <summary>
+    ///   Queries the features the <see cref="GraphicsDevice"/> supports for the specified <see cref="PixelFormat"/>.
+    /// </summary>
+    /// <param name="pixelFormat">The pixel format.</param>
+    /// <returns>
+    ///   A <see cref="FeaturesPerFormat"/> structure indicating the features supported for <paramref name="pixelFormat"/>.
+    /// </returns>
     public readonly FeaturesPerFormat this[PixelFormat pixelFormat] => mapFeaturesPerFormat[(int) pixelFormat];
 
 #if STRIDE_GRAPHICS_API_OPENGL
@@ -107,6 +171,9 @@ public partial struct GraphicsDeviceFeatures
     internal System.Collections.Generic.IList<string> SupportedExtensions;
 #endif
 
+    /// <summary>
+    ///   Contains information about the features a <see cref="GraphicsDevice"/> supports for a particular <see cref="PixelFormat"/>.
+    /// </summary>
     public readonly struct FeaturesPerFormat
     {
         internal FeaturesPerFormat(PixelFormat format, MultisampleCount maximumMultisampleCount, ComputeShaderFormatSupport computeShaderFormatSupport, FormatSupport formatSupport)
@@ -118,46 +185,29 @@ public partial struct GraphicsDeviceFeatures
         }
 
         /// <summary>
-        /// Boolean indicating if the Depth buffer can directly be used as a read only RenderTarget
+        ///   The pixel format.
         /// </summary>
         public readonly PixelFormat Format;
 
         /// <summary>
-        /// Boolean indicating if the multi-sampled Depth buffer can directly be used as a ShaderResourceView
+        ///   The maximum sample count when multisampling for a particular <see cref="Format"/>.
         /// </summary>
         public readonly MultisampleCount MultisampleCountMax;
 
         /// <summary>
-        /// Boolean indicating if the graphics API supports resource renaming (with either <see cref="MapMode.WriteDiscard"/> `CommandList.UpdateSubresource` with full size).
+        ///   The unordered resource support options for a Compute Shader resource using the <see cref="Format"/>.
         /// </summary>
         public readonly ComputeShaderFormatSupport ComputeShaderFormatSupport;
 
         /// <summary>
-        /// Gets the <see cref="FeaturesPerFormat" /> for the specified <see cref="SharpDX.DXGI.Format" />.
+        ///   The support flags for a particular <see cref="Format"/>.
         /// </summary>
-        /// <param name="dxgiFormat">The dxgi format.</param>
-        /// <returns>Features for the specific format.</returns>
         public readonly FormatSupport FormatSupport;
 
 
-        /// <summary>
-        /// The features exposed for a particular format.
-        /// </summary>
+        /// <inheritdoc/>
         public override readonly string ToString()
         {
-            /// <summary>
-            /// The <see cref="SharpDX.DXGI.Format"/>.
-            /// </summary>
-            /// <summary>
-            /// Gets the maximum multisample count for a particular <see cref="PixelFormat"/>.
-            /// </summary>
-            /// <summary>
-            /// Gets the unordered resource support options for a compute shader resource.
-            /// </summary>
-            /// <summary>
-            /// Support of a given format on the installed video device.
-            /// </summary>
-            /// <inheritdoc/>
             return $"Format: {Format}, MultisampleCountMax: {MultisampleCountMax}, ComputeShaderFormatSupport: {ComputeShaderFormatSupport}, FormatSupport: {FormatSupport}";
         }
     }

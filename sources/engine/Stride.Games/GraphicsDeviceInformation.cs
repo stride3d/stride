@@ -27,50 +27,50 @@ using Stride.Graphics;
 
 namespace Stride.Games;
 
+/// <summary>
+///   Contains information needed to create a <see cref="GraphicsDevice"/> with a specific
+///   configuration.
+/// </summary>
 public class GraphicsDeviceInformation : IEquatable<GraphicsDeviceInformation>
 {
+    /// <summary>
+    ///   Gets or sets the Graphics Adapter that will do the rendering.
+    /// </summary>
     public GraphicsAdapter Adapter { get; set; }
 
+    /// <summary>
+    ///   Gets or sets the graphics profile to aim for, which determines the hardware and software
+    ///   features that are considered minimum for the Graphics Device.
+    /// </summary>
     public GraphicsProfile GraphicsProfile { get; set; }
 
+    /// <summary>
+    ///   Gets or sets the presentation parameters, which determine how the Graphics Device
+    ///   will present the rendered frame to the screen.
+    /// </summary>
     public PresentationParameters PresentationParameters { get; set; }
 
+    /// <summary>
+    ///   Gets or sets the creation flags.
+    /// </summary>
+    /// <value>
+    ///   A combination of flags specifying which features and modes to request from
+    ///   the created Graphics Device.
+    /// </value>
     public DeviceCreationFlags DeviceCreationFlags { get; set; }
 
 
+    /// <summary>
+    ///   Initializes a new instance of the <see cref="GraphicsDeviceInformation"/> class.
+    /// </summary>
     public GraphicsDeviceInformation()
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="GraphicsDeviceInformation" /> class.
-        /// </summary>
-        /// <summary>
-        /// Gets or sets the adapter.
-        /// </summary>
-        /// <value>The adapter.</value>
-        /// <exception cref="System.ArgumentNullException">if value is null</exception>
-        /// <summary>
-        /// Gets or sets the graphics profile.
-        /// </summary>
-        /// <value>The graphics profile.</value>
-        /// <exception cref="System.ArgumentNullException">if value is null</exception>
-        /// <summary>
-        /// Gets or sets the presentation parameters.
-        /// </summary>
-        /// <value>The presentation parameters.</value>
-        /// <exception cref="System.ArgumentNullException">if value is null</exception>
-        /// <summary>
-        /// Gets or sets the creation flags.
-        /// </summary>
-        /// <value>The creation flags.</value>
-        /// <summary>
-        /// Clones this instance.
-        /// </summary>
-        /// <returns>A new copy-instance of this GraphicsDeviceInformation.</returns>
         Adapter = GraphicsAdapterFactory.DefaultAdapter;
         PresentationParameters = new PresentationParameters();
     }
 
 
+    /// <inheritdoc/>
     public bool Equals(GraphicsDeviceInformation? other)
     {
         if (other is null)
@@ -83,12 +83,14 @@ public class GraphicsDeviceInformation : IEquatable<GraphicsDeviceInformation>
             && Equals(PresentationParameters, other.PresentationParameters);
     }
 
+    /// <inheritdoc/>
     public override bool Equals(object? obj)
     {
         // TODO: Can GraphicsDeviceInformation be sealed? (No GetType())
         return obj?.GetType() != GetType() && Equals((GraphicsDeviceInformation) obj);
     }
 
+    /// <inheritdoc/>
     public override int GetHashCode()
     {
         return HashCode.Combine(Adapter, GraphicsProfile, PresentationParameters);
@@ -104,6 +106,10 @@ public class GraphicsDeviceInformation : IEquatable<GraphicsDeviceInformation>
         return !Equals(left, right);
     }
 
+    /// <summary>
+    ///   Creates a new object that is a copy of the current instance.
+    /// </summary>
+    /// <returns>A new object that is a copy of this instance.</returns>
     public GraphicsDeviceInformation Clone()
     {
         var newValue = (GraphicsDeviceInformation) MemberwiseClone();

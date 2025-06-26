@@ -805,6 +805,13 @@ namespace Stride.Graphics
             //boundProgram = 0;
         }
 
+        /// <summary>
+        ///   Tags a Graphics Resource as no having alive references, meaning it should be safe to dispose it
+        ///   or discard its contents during the next <see cref="CommandList.MapSubResource"/> or <c>SetData</c> operation.
+        /// </summary>
+        /// <param name="resourceLink">
+        ///   A <see cref="GraphicsResourceLink"/> object identifying the Graphics Resource along some related allocation information.
+        /// </param>
         internal partial void TagResourceAsNotAlive(GraphicsResourceLink resourceLink)
         {
             if (resourceLink.Resource is GraphicsResource resource)
