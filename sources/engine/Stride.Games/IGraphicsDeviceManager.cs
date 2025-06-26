@@ -2,17 +2,17 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 //
 // Copyright (c) 2010-2013 SharpDX - Alexandre Mutel
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -27,24 +27,34 @@ using Stride.Graphics;
 
 namespace Stride.Games;
 
+/// <summary>
+///   Defines the interface for an object that manages the Graphics Device lifecycle.
+/// </summary>
 public interface IGraphicsDeviceManager
 {
     /// <summary>
-    /// Defines the interface for an object that manages a GraphicsDevice.
+    ///   Creates a valid Graphics Device ready to draw.
     /// </summary>
-        /// <summary>
-        /// Starts the drawing of a frame.
-        /// </summary>
-        /// <returns><c>true</c> if XXXX, <c>false</c> otherwise</returns>
+    /// <exception cref="InvalidOperationException">
+    ///   Thrown if the Graphics Device could not be created.
+    /// </exception>
     void CreateDevice();
 
-        /// <summary>
-        /// Called to ensure that the device manager has created a valid device.
-        /// </summary>
+    /// <summary>
+    ///   Called by the game at the beginning of drawing.
+    /// </summary>
+    /// <returns>
+    ///   <see langword="true"/> if the Graphics Device is ready to draw;
+    ///   <see langword="false"/> if the Graphics Device is not ready or if the game should skip drawing this frame.
+    /// </returns>
     bool BeginDraw();
 
-        /// <summary>
-        /// Called by the game at the end of drawing; if requested, presents the final rendering.
-        /// </summary>
+    /// <summary>
+    ///   Called by the game at the end of drawing.
+    /// </summary>
+    /// <param name="present">A value indicating whether the game should present the Back-Buffer to the screen.</param>
+    /// <exception cref="GraphicsException">
+    ///   Could not present the Back-Buffer after drawing.
+    /// </exception>
     void EndDraw(bool present);
 }

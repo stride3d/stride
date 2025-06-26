@@ -18,12 +18,18 @@ namespace Stride.Graphics
         internal readonly Dictionary<SamplerStateDescription, SamplerState> CachedSamplerStates = [];
 
         /// <summary>
-        ///   Gets the features supported by this graphics device.
+        ///   Gets the features supported by the Graphics Device.
         /// </summary>
         public GraphicsDeviceFeatures Features;
 
+        /// <summary>
+        ///   The set of Graphics Resources currently managed by the Graphics Device.
+        /// </summary>
         internal HashSet<GraphicsResourceBase> Resources = [];
 
+        /// <summary>
+        ///   The currently active Effect being used by the Graphics Device.
+        /// </summary>
         internal Effect CurrentEffect;
 
         private readonly List<IDisposable> sharedDataToDispose = [];
@@ -31,47 +37,87 @@ namespace Stride.Graphics
 
         private GraphicsPresenter presenter;
 
+        /// <summary>
+        ///   The default Pipeline State object used by the Graphics Device.
+        /// </summary>
         internal PipelineState DefaultPipelineState;
 
+        /// <summary>
+        ///   The main Command List used by the Graphics Device.
+        /// </summary>
         internal CommandList InternalMainCommandList;
 
+        /// <summary>
+        ///   A cached primitive object that can be used to draw quads (rectangles composed of two triangles).
+        /// </summary>
         internal PrimitiveQuad PrimitiveQuad;  // TODO: This is not a quad, but a fullscreen triangle! Maybe this class should be renamed?
 
         private ColorSpace colorSpace;
 
+        /// <summary>
+        ///   The number of triangles drawn in the last frame.
+        /// </summary>
         public uint FrameTriangleCount;  // TODO: Public mutable fields?
+        /// <summary>
+        ///   The number of draw calls made in the last frame.
+        /// </summary>
         public uint FrameDrawCalls;
 
         private long bufferMemory;
         private long textureMemory;
 
         /// <summary>
-        ///   Gets the amount of GPU memory currently allocated to buffers, in bytes.
+        ///   Gets the amount of GPU memory currently allocated to Buffers, in bytes.
         /// </summary>
         public long BuffersMemory => Interlocked.Read(ref bufferMemory);
 
         /// <summary>
-        ///   Gets the amount of GPU memory currently allocated to textures, in bytes.
+        ///   Gets the amount of GPU memory currently allocated to Textures, in bytes.
         /// </summary>
         public long TextureMemory => Interlocked.Read(ref textureMemory);
 
         /// <summary>
-        ///   Gets the platform that graphics device is using.
+        ///   Gets the graphics platform (and the graphics API) the Graphics Device is using.
         /// </summary>
         public static GraphicsPlatform Platform => GraphicPlatform;
 
+        /// <summary>
+        ///   Gets a string that identifies the underlying device used by the Graphics Device to render.
+        /// </summary>
+        /// <remarks>
+        ///   In the case of Direct3D and Vulkan, for example, this will return the name of the Graphics Adapter
+        ///   (e.g. <c>"nVIDIA GeForce RTX 2080"</c>). Other platforms may return a different string.
+        /// </remarks>
         public string RendererName => GetRendererName();
 
+        /// <inheritdoc cref="RendererName"/>
         private partial string GetRendererName();
 
 
         /// <summary>
         ///   Initializes a new instance of the <see cref="GraphicsDevice"/> class.
         /// </summary>
-        /// <param name="adapter">The graphics adapter.</param>
-        /// <param name="graphicsProfiles">The graphics profiles to try, in order of preference.</param>
-        /// <param name="deviceCreationFlags">The device creation flags.</param>
-        /// <param name="windowHandle">The window handle.</param>
+        /// <param name="adapter">The physical Graphics Adapter for which to create a Graphics Device.</param>
+        /// <param name="graphicsProfiles">
+        ///   <para>
+        ///     A list of the graphics profiles to try, in order of preference. This parameter cannot be <see langword="null"/>,
+        ///     but if an empty array is passed, the default fallback profiles will be used.
+        ///   </para>
+        ///   <para>
+        ///     The default fallback profiles are: <see cref="GraphicsProfile.Level_11_0"/>, <see cref="GraphicsProfile.Level_10_1"/>,
+        ///     <see cref="GraphicsProfile.Level_10_0"/>, <see cref="GraphicsProfile.Level_9_3"/>, <see cref="GraphicsProfile.Level_9_2"/>, and
+        ///     <see cref="GraphicsProfile.Level_9_1"/>.
+        ///   </para>
+        /// </param>
+        /// <param name="creationFlags">
+        ///   A combination of <see cref="DeviceCreationFlags"/> flags that determines how the Graphics Device will be created.
+        /// </param>
+        /// <param name="windowHandle">
+        ///   The <see cref="WindowHandle"/> specifying the window the Graphics Device will present to,
+        ///   or <see langword="null"/> if the device should not depend on a window.
+        /// </param>
+        /// <exception cref="ArgumentNullException"><paramref name="adapter"/> is <see langword="null"/>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="graphicsProfiles"/> is <see langword="null"/>.</exception>
         protected GraphicsDevice(GraphicsAdapter adapter, GraphicsProfile[] graphicsProfiles, DeviceCreationFlags creationFlags, WindowHandle windowHandle)
         {
             // Create shared data
@@ -83,16 +129,31 @@ namespace Stride.Graphics
             PrimitiveQuad = new PrimitiveQuad(this);
         }
 
+
         /// <summary>
-        ///   Tries to create or reinitialize the graphics device.
+        ///   Tries to create or reinitialize the Graphics Device.
         /// </summary>
-        /// <param name="adapter">The graphics adapter.</param>
-        /// <param name="graphicsProfiles">The graphics profiles to try, in order of preference.</param>
-        /// <param name="deviceCreationFlags">The device creation flags.</param>
-        /// <param name="windowHandle">The window handle.</param>
-        /// <exception cref="ArgumentNullException">
-        ///   <paramref name="adapter"/> is <see langword="null"/>, or <paramref name="graphicsProfiles"/> is <see langword="null"/>.
-        /// </exception>
+        /// <param name="adapter">The physical Graphics Adapter for which to recreate the Graphics Device.</param>
+        /// <param name="graphicsProfiles">
+        ///   <para>
+        ///     A list of the graphics profiles to try, in order of preference. This parameter cannot be <see langword="null"/>,
+        ///     but if an empty array is passed, the default fallback profiles will be used.
+        ///   </para>
+        ///   <para>
+        ///     The default fallback profiles are: <see cref="GraphicsProfile.Level_11_0"/>, <see cref="GraphicsProfile.Level_10_1"/>,
+        ///     <see cref="GraphicsProfile.Level_10_0"/>, <see cref="GraphicsProfile.Level_9_3"/>, <see cref="GraphicsProfile.Level_9_2"/>, and
+        ///     <see cref="GraphicsProfile.Level_9_1"/>.
+        ///   </para>
+        /// </param>
+        /// <param name="creationFlags">
+        ///   A combination of <see cref="DeviceCreationFlags"/> flags that determines how the Graphics Device will be created.
+        /// </param>
+        /// <param name="windowHandle">
+        ///   The <see cref="WindowHandle"/> specifying the window the Graphics Device will present to,
+        ///   or <see langword="null"/> if the device should not depend on a window.
+        /// </param>
+        /// <exception cref="ArgumentNullException"><paramref name="adapter"/> is <see langword="null"/>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="graphicsProfiles"/> is <see langword="null"/>.</exception>
         public void Recreate(GraphicsAdapter adapter, GraphicsProfile[] graphicsProfiles, DeviceCreationFlags creationFlags, WindowHandle windowHandle)
         {
             ArgumentNullException.ThrowIfNull(adapter);
@@ -122,8 +183,17 @@ namespace Stride.Graphics
             InitializePostFeatures();
         }
 
+        /// <summary>
+        ///   Initialize the platform-specific implementation of the Graphics Device.
+        /// </summary>
+        /// <param name="graphicsProfiles">A non-<see langword="null"/> list of the graphics profiles to try, in order of preference.</param>
+        /// <param name="deviceCreationFlags">The device creation flags.</param>
+        /// <param name="windowHandle">The window handle.</param>
         private partial void InitializePlatformDevice(GraphicsProfile[] graphicsProfiles, DeviceCreationFlags deviceCreationFlags, object windowHandle);
 
+        /// <summary>
+        ///   Initializes the platform-specific features of the Graphics Device once it has been fully initialized.
+        /// </summary>
         private partial void InitializePostFeatures();
 
         /// <inheritdoc/>
@@ -167,6 +237,9 @@ namespace Stride.Graphics
             base.Destroy();
         }
 
+        /// <summary>
+        ///   Releases the platform-specific Graphics Device and all its associated resources.
+        /// </summary>
         protected partial void DestroyPlatformDevice();
 
 
@@ -181,42 +254,42 @@ namespace Stride.Graphics
         /// <typeparam name="T">Type of the data to create.</typeparam>
         /// <returns>A new instance of the data to share.</returns>
         /// <remarks>
-        ///   Because this method is being called from a lock region, this method should not be time consuming.
+        ///   Because this method is being called from a <see langword="lock"/> region, this method should not be time consuming.
         /// </remarks>
         public delegate T CreateSharedData<out T>(GraphicsDevice device) where T : class, IDisposable;
 
         /// <summary>
-        ///   Gets the adapter this instance is attached to.
+        ///   Gets the physical Graphics Adapter the Graphics Device is attached to.
         /// </summary>
         public GraphicsAdapter Adapter { get; private set; }
 
         /// <summary>
-        ///   Gets a value indicating whether this graphics device is in "Debug mode".
+        ///   Gets a value indicating whether the Graphics Device is in "Debug mode".
         /// </summary>
         /// <value>
-        ///   <see langword="true"/> if this graphics device is initialized in "Debug mode"; otherwise, <see langword="false"/>.
+        ///   <see langword="true"/> if the Graphics Device is initialized in "Debug mode"; otherwise, <see langword="false"/>.
         /// </value>
         public bool IsDebugMode { get; private set; }
 
         /// <summary>
-        ///   Gets a value indicating wether this device allows for concurrent building and deferred submission
+        ///   Gets a value indicating wether the Graphics Device allows for concurrent building and deferred submission
         ///   of <see cref="CommandList"/>s.
         /// </summary>
         /// <value>
-        ///   <see langword="true"/> if this graphics device allows deferred execution; otherwise, <see langword="false"/>.
+        ///   <see langword="true"/> if the Graphics Device allows deferred execution; otherwise, <see langword="false"/>.
         /// </value>
         public bool IsDeferred { get; private set; }
 
         /// <summary>
-        ///   Gets a value indicating whether this instance supports GPU markers and profiling.
+        ///   Gets a value indicating whether the Graphics Device supports GPU markers and profiling.
         /// </summary>
         /// <value>
-        ///   <see langword="true"/> if this graphics device allows profiling and creating GPU markers; otherwise, <see langword="false"/>.
+        ///   <see langword="true"/> if the Graphics Device allows profiling and creating GPU markers; otherwise, <see langword="false"/>.
         /// </value>
         public bool IsProfilingSupported { get; private set; }
 
         /// <summary>
-        ///   Gets the default color space of this graphics device.
+        ///   Gets or sets the default color space of the Graphics Device.
         /// </summary>
         /// <value>The default color space.</value>
         public ColorSpace ColorSpace
@@ -226,9 +299,9 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        ///   Gets or sets the current presenter used to display frames with this graphics device.
+        ///   Gets or sets the current presenter used to display frames with the Graphics Device.
         /// </summary>
-        /// <value>The current graphics presenter.</value>
+        /// <value>The current Graphics Presenter.</value>
         public virtual GraphicsPresenter Presenter
         {
             get => presenter;
@@ -236,67 +309,110 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        ///   Gets the <see cref="SamplerStateFactory"/> factory.
+        ///   Gets the factory that can be used to retrieve commonly used Sampler States.
         /// </summary>
-        /// <value>
-        ///   The <see cref="SamplerStateFactory"/> factory.
-        /// </value>
         public SamplerStateFactory SamplerStates { get; private set; }
 
         // TODO: Unused?
         /// <summary>
-        /// Gets the index of the thread.
+        ///   Gets the index of the thread.
         /// </summary>
-        /// <value>The index of the thread.</value>
         public int ThreadIndex { get; internal set; }
 
         /// <summary>
-        ///   Gets the graphics profile this graphics device is using, which determines the available features.
+        ///   Gets the graphics profile the Graphics Device is using, which determines the available features.
         /// </summary>
         /// <value>The graphics profile.</value>
         internal GraphicsProfile? ShaderProfile { get; set; }
 
+
         /// <summary>
-        ///   Initializes a new instance of the <see cref="GraphicsDevice"/> class.
+        ///   Creates a new <see cref="GraphicsDevice"/>.
         /// </summary>
-        /// <param name="creationFlags">A combination of <see cref="DeviceCreationFlags"/> flags that determines how the device will be created.</param>
-        /// <param name="graphicsProfiles">The graphics profiles to try, in order of preference.</param>
+        /// <param name="creationFlags">
+        ///   A combination of <see cref="DeviceCreationFlags"/> flags that determines how the Graphics Device will be created.
+        /// </param>
+        /// <param name="graphicsProfiles">
+        ///   <para>
+        ///     A list of the graphics profiles to try, in order of preference. This parameter cannot be <see langword="null"/>,
+        ///     but if an empty array is passed, the default fallback profiles will be used.
+        ///   </para>
+        ///   <para>
+        ///     The default fallback profiles are: <see cref="GraphicsProfile.Level_11_0"/>, <see cref="GraphicsProfile.Level_10_1"/>,
+        ///     <see cref="GraphicsProfile.Level_10_0"/>, <see cref="GraphicsProfile.Level_9_3"/>, <see cref="GraphicsProfile.Level_9_2"/>, and
+        ///     <see cref="GraphicsProfile.Level_9_1"/>.
+        ///   </para>
+        /// </param>
         /// <returns>The new instance of <see cref="GraphicsDevice"/>.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="graphicsProfiles"/> is <see langword="null"/>.</exception>
         public static GraphicsDevice New(DeviceCreationFlags creationFlags = DeviceCreationFlags.None, params GraphicsProfile[] graphicsProfiles)
         {
             return New(GraphicsAdapterFactory.DefaultAdapter, creationFlags, graphicsProfiles);
         }
 
         /// <summary>
-        ///   Initializes a new instance of the <see cref="GraphicsDevice"/> class.
+        ///   Creates a new <see cref="GraphicsDevice"/>.
         /// </summary>
-        /// <param name="adapter">The graphics adapter the new device will use, or <see langword="null"/> to use the system's default adapter.</param>
-        /// <param name="creationFlags">A combination of <see cref="DeviceCreationFlags"/> flags that determines how the device will be created.</param>
-        /// <param name="graphicsProfiles">The graphics profiles to try, in order of preference.</param>
+        /// <param name="adapter">
+        ///   The Graphics Adapter the new device will use, or <see langword="null"/> to use the system's default adapter.
+        /// </param>
+        /// <param name="creationFlags">
+        ///   A combination of <see cref="DeviceCreationFlags"/> flags that determines how the Graphics Device will be created.
+        /// </param>
+        /// <param name="graphicsProfiles">
+        ///   <para>
+        ///     A list of the graphics profiles to try, in order of preference. This parameter cannot be <see langword="null"/>,
+        ///     but if an empty array is passed, the default fallback profiles will be used.
+        ///   </para>
+        ///   <para>
+        ///     The default fallback profiles are: <see cref="GraphicsProfile.Level_11_0"/>, <see cref="GraphicsProfile.Level_10_1"/>,
+        ///     <see cref="GraphicsProfile.Level_10_0"/>, <see cref="GraphicsProfile.Level_9_3"/>, <see cref="GraphicsProfile.Level_9_2"/>, and
+        ///     <see cref="GraphicsProfile.Level_9_1"/>.
+        ///   </para>
+        /// </param>
         /// <returns>The new instance of <see cref="GraphicsDevice"/>.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="adapter"/> is <see langword="null"/>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="graphicsProfiles"/> is <see langword="null"/>.</exception>
         public static GraphicsDevice New(GraphicsAdapter adapter, DeviceCreationFlags creationFlags = DeviceCreationFlags.None, params GraphicsProfile[] graphicsProfiles)
         {
             return new GraphicsDevice(adapter ?? GraphicsAdapterFactory.DefaultAdapter, graphicsProfiles, creationFlags, windowHandle: null);
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="GraphicsDevice"/> class.
+        ///   Creates a new <see cref="GraphicsDevice"/>.
         /// </summary>
-        /// <param name="adapter">The graphics adapter the new device will use, or <see langword="null"/> to use the system's default adapter.</param>
-        /// <param name="creationFlags">A combination of <see cref="DeviceCreationFlags"/> flags that determines how the device will be created.</param>
+        /// <param name="adapter">
+        ///   The Graphics Adapter the new device will use, or <see langword="null"/> to use the system's default adapter.
+        /// </param>
+        /// <param name="creationFlags">
+        ///   A combination of <see cref="DeviceCreationFlags"/> flags that determines how the Graphics Device will be created.
+        /// </param>
         /// <param name="windowHandle">
-        ///   The <see cref="WindowHandle"/> specifying the window the graphics device will present to,
+        ///   The <see cref="WindowHandle"/> specifying the window the Graphics Device will present to,
         ///   or <see langword="null"/> if the device should not depend on a window.
         /// </param>
-        /// <param name="graphicsProfiles">The graphics profiles to try, in order of preference.</param>
+        /// <param name="graphicsProfiles">
+        ///   <para>
+        ///     A list of the graphics profiles to try, in order of preference. This parameter cannot be <see langword="null"/>,
+        ///     but if an empty array is passed, the default fallback profiles will be used.
+        ///   </para>
+        ///   <para>
+        ///     The default fallback profiles are: <see cref="GraphicsProfile.Level_11_0"/>, <see cref="GraphicsProfile.Level_10_1"/>,
+        ///     <see cref="GraphicsProfile.Level_10_0"/>, <see cref="GraphicsProfile.Level_9_3"/>, <see cref="GraphicsProfile.Level_9_2"/>, and
+        ///     <see cref="GraphicsProfile.Level_9_1"/>.
+        ///   </para>
+        /// </param>
         /// <returns>The new instance of <see cref="GraphicsDevice"/>.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="adapter"/> is <see langword="null"/>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="graphicsProfiles"/> is <see langword="null"/>.</exception>
         public static GraphicsDevice New(GraphicsAdapter adapter, DeviceCreationFlags creationFlags = DeviceCreationFlags.None, WindowHandle windowHandle = null, params GraphicsProfile[] graphicsProfiles)
         {
             return new GraphicsDevice(adapter ?? GraphicsAdapterFactory.DefaultAdapter, graphicsProfiles, creationFlags, windowHandle);
         }
 
+
         /// <summary>
-        ///   Gets a shared data object for this device context with a delegate to create the shared data if it is not present.
+        ///   Gets a shared data object for the Graphics Device context with a delegate to create the shared data if it is not present.
         /// </summary>
         /// <typeparam name="T">Type of the shared data to get or create.</typeparam>
         /// <param name="key">The key that identifies the shared data.</param>
@@ -324,7 +440,7 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        ///   Adds or subtracts to the texture memory amount this graphics device has allocated.
+        ///   Adds or subtracts to the texture memory amount the Graphics Device has allocated.
         /// </summary>
         /// <param name="memoryChange">The texture memory delta: positive to increase, negative to decrease.</param>
         internal void RegisterTextureMemoryUsage(long memoryChange)
@@ -333,15 +449,27 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        ///   Adds or subtracts to the buffer memory amount this graphics device has allocated.
+        ///   Adds or subtracts to the buffer memory amount the Graphics Device has allocated.
         /// </summary>
         /// <param name="memoryChange">The buffer memory delta: positive to increase, negative to decrease.</param>
         internal void RegisterBufferMemoryUsage(long memoryChange)
         {
             Interlocked.Add(ref bufferMemory, memoryChange);
         }
+
+        /// <summary>
+        ///   Makes platform-specific adjustments to the Pipeline State objects created by the Graphics Device.
+        /// </summary>
+        /// <param name="pipelineStateDescription">A Pipeline State description that can be modified and adjusted.</param>
         private partial void AdjustDefaultPipelineStateDescription(ref PipelineStateDescription pipelineStateDescription);
 
+        /// <summary>
+        ///   Tags a Graphics Resource as no having alive references, meaning it should be safe to dispose it
+        ///   or discard its contents during the next <see cref="CommandList.MapSubResource"/> or <c>SetData</c> operation.
+        /// </summary>
+        /// <param name="resourceLink">
+        ///   A <see cref="GraphicsResourceLink"/> object identifying the Graphics Resource along some related allocation information.
+        /// </param>
         internal partial void TagResourceAsNotAlive(GraphicsResourceLink resourceLink);
     }
 }

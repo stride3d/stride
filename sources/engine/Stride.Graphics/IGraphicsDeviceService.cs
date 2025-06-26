@@ -26,34 +26,34 @@ using System;
 namespace Stride.Graphics
 {
     /// <summary>
-    /// Service providing method to access GraphicsDevice life-cycle.
+    ///   Service providing access to the <see cref="GraphicsDevice"/> and events that can be
+    ///   subscribed to be notified of when the device is created, reset, or disposed.
     /// </summary>
     public interface IGraphicsDeviceService
     {
         /// <summary>
-        /// Occurs when a device is created.
+        ///   Occurs when a device is created.
         /// </summary>
         event EventHandler<EventArgs> DeviceCreated;
 
         /// <summary>
-        /// Occurs when a device is disposing.
+        ///   Occurs when a device is being disposed.
         /// </summary>
         event EventHandler<EventArgs> DeviceDisposing;
 
         /// <summary>
-        /// Occurs when a device is reseted.
+        ///   Occurs when a device has been reset.
         /// </summary>
         event EventHandler<EventArgs> DeviceReset;
 
         /// <summary>
-        /// Occurs when a device is resetting.
+        /// Occurs when a device is going to be reset.
         /// </summary>
         event EventHandler<EventArgs> DeviceResetting;
 
         /// <summary>
-        /// Gets the current graphcs device.
+        ///   Gets the current graphcs device.
         /// </summary>
-        /// <value>The graphics device.</value>
         GraphicsDevice GraphicsDevice { get; }
     }
 }

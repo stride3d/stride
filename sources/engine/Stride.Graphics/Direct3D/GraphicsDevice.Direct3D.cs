@@ -32,30 +32,41 @@ namespace Stride.Graphics
         private ID3D11DeviceContext* nativeDeviceContext;
 
         /// <summary>
-        ///   Gets the native Direct3D 11 device.
+        ///   Gets the internal Direct3D 11 Device.
         /// </summary>
+        /// <remarks>
+        ///   If the reference is going to be kept, use <see cref="ComPtr{T}.AddRef()"/> to increment the internal
+        ///   reference count, and <see cref="ComPtr{T}.Dispose()"/> when no longer needed to release the object.
+        /// </remarks>
         public ComPtr<ID3D11Device> NativeDevice => ToComPtr(nativeDevice);
 
         /// <summary>
-        ///   Gets the native Direct3D 11 device context.
+        ///   Gets the internal Direct3D 11 Device Context.
         /// </summary>
+        /// <remarks>
+        ///   If the reference is going to be kept, use <see cref="ComPtr{T}.AddRef()"/> to increment the internal
+        ///   reference count, and <see cref="ComPtr{T}.Dispose()"/> when no longer needed to release the object.
+        /// </remarks>
         internal ComPtr<ID3D11DeviceContext> NativeDeviceContext => ToComPtr(nativeDeviceContext);
 
         private readonly Queue<ComPtr<ID3D11Query>> disjointQueries = new(4);
         private readonly Stack<ComPtr<ID3D11Query>> currentDisjointQueries = new(2);
 
+        /// <summary>
+        ///   The requested graphics profile for the Graphics Device.
+        /// </summary>
         internal GraphicsProfile RequestedProfile;
 
         //private SharpDX.Direct3D11.DeviceCreationFlags creationFlags;
         private CreateDeviceFlag creationFlags;
 
         /// <summary>
-        /// The tick frquency of timestamp queries in Hertz.
+        ///   Gets the tick frquency of timestamp queries, in hertz.
         /// </summary>
         public ulong TimestampFrequency { get; private set; }
 
         /// <summary>
-        ///   Gets the current status of this device.
+        ///   Gets the current status of the Graphics Device.
         /// </summary>
         public GraphicsDeviceStatus GraphicsDeviceStatus
         {
@@ -100,7 +111,7 @@ namespace Stride.Graphics
         #endregion
 
         /// <summary>
-        ///   Marks the graphics device context as active on the current thread.
+        ///   Marks the Graphics Device Context as <strong>active</strong> on the current thread.
         /// </summary>
         public void Begin()
         {
@@ -148,7 +159,7 @@ namespace Stride.Graphics
         public void EnableProfile(bool enabledFlag) { }  // TODO: Implement profiling with PIX markers? Currently, profiling is only implemented for OpenGL
 
         /// <summary>
-        ///   Unmarks the graphics device context as active on the current thread.
+        ///   Marks the Graphics Device Context as <strong>inactive</strong> on the current thread.
         /// </summary>
         public void End()
         {
@@ -159,25 +170,38 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        ///   Executes a deferred command list.
+        ///   Executes a Compiled Command List.
         /// </summary>
-        /// <param name="commandList">The deferred command list to execute.</param>
+        /// <param name="commandList">The Compiled Command List to execute.</param>
+        /// <exception cref="NotImplementedException">Deferred CommandList execution is not implemented for Direct3D 11.</exception>"
+        /// <remarks>
+        ///   A Compiled Command List is a list of commands that have been pre-compiled and optimized for execution on the
+        ///   Graphics Device at a later time. This method executes the commands in the list. This is known as <em>deferred execution</em>.
+        /// </remarks>
         public void ExecuteCommandList(CompiledCommandList commandList) => throw new NotImplementedException();
 
         /// <summary>
-        ///   Executes multiple deferred command lists.
+        ///   Executes multiple Compiled Command Lists.
         /// </summary>
-        /// <param name="commandLists">The deferred command lists to execute.</param>
+        /// <param name="commandLists">The Compiled Command Lists to execute.</param>
+        /// <exception cref="NotImplementedException">Deferred CommandList execution is not implemented for Direct3D 11.</exception>"
+        /// <remarks>
+        ///   A Compiled Command List is a list of commands that have been pre-compiled and optimized for execution on the
+        ///   Graphics Device at a later time. This method executes the commands in the list. This is known as <em>deferred execution</em>.
+        /// </remarks>
         public void ExecuteCommandLists(int count, CompiledCommandList[] commandLists) => throw new NotImplementedException();
 
         /// <summary>
-        ///   Sets the graphics device to simulate a situation in which the device is lost and then reset.
+        ///   Sets the Graphics Device to simulate a situation in which the device is lost and then reset.
         /// </summary>
         public void SimulateReset()
         {
             simulateReset = true;
         }
 
+        /// <summary>
+        ///   Initializes the platform-specific features of the Graphics Device once it has been fully initialized.
+        /// </summary>
         private partial void InitializePostFeatures()
         {
             // Create the main command list
@@ -187,9 +211,9 @@ namespace Stride.Graphics
         private partial string GetRendererName() => rendererName;
 
         /// <summary>
-        ///   Initializes the graphics device.
+        ///   Initialize the platform-specific implementation of the Graphics Device.
         /// </summary>
-        /// <param name="graphicsProfiles">The graphics profiles to try, in order of preference.</param>
+        /// <param name="graphicsProfiles">A non-<see langword="null"/> list of the graphics profiles to try, in order of preference.</param>
         /// <param name="deviceCreationFlags">The device creation flags.</param>
         /// <param name="windowHandle">The window handle.</param>
         private partial void InitializePlatformDevice(GraphicsProfile[] graphicsProfiles, DeviceCreationFlags deviceCreationFlags, object windowHandle)
@@ -271,9 +295,9 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        ///   Makes adjustments to the pipeline state specific to Direct3D 11.
+        ///   Makes Direct3D 11-specific adjustments to the Pipeline State objects created by the Graphics Device.
         /// </summary>
-        /// <param name="pipelineStateDescription">The pipeline state description to modify.</param>
+        /// <param name="pipelineStateDescription">A Pipeline State description that can be modified and adjusted.</param>
         private partial void AdjustDefaultPipelineStateDescription(ref PipelineStateDescription pipelineStateDescription)
         {
             // On D3D, default state is Less instead of our LessEqual
@@ -282,7 +306,7 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        ///   Releases the graphics device and all its associated resources.
+        ///   Releases the platform-specific Graphics Device and all its associated resources.
         /// </summary>
         protected partial void DestroyPlatformDevice()
         {
@@ -290,7 +314,7 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        ///   Disposes the graphics device and all its associated resources.
+        ///   Disposes the Direct3D 11 Device and all its associated resources.
         /// </summary>
         private void ReleaseDevice()
         {
@@ -327,13 +351,20 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        ///   Called when the graphics device is being destroyed.
+        ///   Called when the Graphics Device is being destroyed.
         /// </summary>
         internal void OnDestroyed()
         {
         }
 
 
+        /// <summary>
+        ///   Tags a Graphics Resource as no having alive references, meaning it should be safe to dispose it
+        ///   or discard its contents during the next <see cref="CommandList.MapSubResource"/> or <c>SetData</c> operation.
+        /// </summary>
+        /// <param name="resourceLink">
+        ///   A <see cref="GraphicsResourceLink"/> object identifying the Graphics Resource along some related allocation information.
+        /// </param>
         internal partial void TagResourceAsNotAlive(GraphicsResourceLink resourceLink)
         {
             if (resourceLink.Resource is GraphicsResource resource)
