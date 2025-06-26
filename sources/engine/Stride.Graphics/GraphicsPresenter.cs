@@ -25,47 +25,56 @@ using Stride.Core;
 
 namespace Stride.Graphics;
 
+/// <summary>
+///   Represents an abstraction over a <strong>Swap-Chain</strong>.
+/// </summary>
+/// <remarks>
+///   <para>
+///     A <em>Swap-Chain</em> is a collection of same-sized buffers (one <strong>front-buffer</strong>,
+///     one or more -usually one- <strong>Back-Buffer</strong>, and an optional <strong>Depth-Stencil Buffer</strong>)
+///     that are used to present the final rendered image to the screen.
+///   </para>
+///   <para>
+///     In order to create a new <see cref="GraphicsPresenter"/>, a <see cref="Graphics.GraphicsDevice"/>
+///     should have been initialized first.
+///   </para>
+/// </remarks>
+/// <seealso cref="SwapChainGraphicsPresenter"/>
+/// <seealso cref="RenderTargetGraphicsPresenter"/>
 public abstract class GraphicsPresenter : ComponentBase
 {
     /// <summary>
-    /// This class is a frontend to <see cref="SharpDX.DXGI.SwapChain" /> and <see cref="SharpDX.DXGI.SwapChain1" />.
+    ///   A tag property that allows to override the <see cref="PresentInterval"/> property's value
+    ///   with a forced one.
     /// </summary>
     /// <remarks>
-    /// In order to create a new <see cref="GraphicsPresenter"/>, a <see cref="GraphicsDevice"/> should have been initialized first.
+    ///   <para>
+    ///     If the value of this tag property is not <see langword="null"/> the given interval will be
+    ///     used during a <see cref="Present"/> operation.
+    ///   </para>
+    ///   <para>
+    ///     This is currently only supported by the Direct3D graphics implementation.
+    ///   </para>
     /// </remarks>
-        /// <summary>
-        /// If not null the given interval will be used during a <see cref="Present"/> operation. 
-        /// </summary>
-        /// <remarks>
-        /// This is currently only supported by the Direct3D graphics implementation.
-        /// </remarks>
-        /// <summary>
-        /// Initializes a new instance of the <see cref="GraphicsPresenter" /> class.
-        /// </summary>
-        /// <param name="device">The device.</param>
-        /// <param name="presentationParameters"> </param>
     internal static readonly PropertyKey<PresentInterval?> ForcedPresentInterval = new(name: nameof(ForcedPresentInterval), ownerType: typeof(GraphicsDevice));
 
 
+    /// <summary>
+    ///   Initializes a new instance of the <see cref="GraphicsPresenter"/> class.
+    /// </summary>
+    /// <param name="device">The Graphics Device.</param>
+    /// <param name="presentationParameters">
+    ///   The parameters describing the buffers the <paramref name="device"/> will present to.
+    /// </param>
     protected GraphicsPresenter(GraphicsDevice device, PresentationParameters presentationParameters)
     {
         GraphicsDevice = device;
         var description = presentationParameters.Clone();
 
-        /// <summary>
-        /// Gets the graphics device.
-        /// </summary>
-        /// <value>The graphics device.</value>
         description.BackBufferFormat = NormalizeBackBufferFormat(description.BackBufferFormat);
 
-        /// <summary>
-        /// Gets the description of this presenter.
-        /// </summary>
         Description = description;
 
-        /// <summary>
-        /// Gets the default back buffer for this presenter.
-        /// </summary>
         ProcessPresentationParameters();
 
         // Creates a default Depth-Stencil Buffer
@@ -73,64 +82,117 @@ public abstract class GraphicsPresenter : ComponentBase
     }
 
 
-        /// <summary>
-        /// Gets the default depth stencil buffer for this presenter.
-        /// </summary>
-
-        /// <summary>
-        /// Gets the underlying native presenter (can be a <see cref="SharpDX.DXGI.SwapChain"/> or <see cref="SharpDX.DXGI.SwapChain1"/> or null, depending on the platform).
-        /// </summary>
-        /// <value>The native presenter.</value>
-        /// <summary>
-        /// Gets or sets fullscreen mode for this presenter.
-        /// </summary>
-        /// <value><c>true</c> if this instance is full screen; otherwise, <c>false</c>.</value>
-        /// <remarks>This method is only valid on Windows Desktop and has no effect on Windows Metro.</remarks>
-        /// <summary>
-        /// Gets or sets the <see cref="PresentInterval"/>. Default is to wait for one vertical blanking.
-        /// </summary>
-        /// <value>The present interval.</value>
-
-        /// <summary>
-        /// Presents the Backbuffer to the screen.
-        /// </summary>
-        /// <summary>
-        /// Resizes the current presenter, by resizing the back buffer and the depth stencil buffer.
-        /// </summary>
-        /// <param name="width"></param>
-        /// <param name="height"></param>
-        /// <param name="format"></param>
+    /// <summary>
+    ///   Gets the Graphics Device the Graphics Presenter is associated to.
+    /// </summary>
+    /// <value>
+    ///   The Graphics Device that will be used for managing the Buffers and Textures, and starting/ending a frame.
+    /// </value>
     public GraphicsDevice GraphicsDevice { get; private set; }
 
+    /// <summary>
+    ///   Gets the parameters describing the Resources and behavior of the Graphics Presenter.
+    /// </summary>
     public PresentationParameters Description { get; private set; }
 
+    /// <summary>
+    ///   Gets the default Back-Buffer for the Graphics Presenter.
+    /// </summary>
+    /// <value>
+    ///   The <see cref="Texture"/> where rendering will happen, which will then be presented to the front-buffer.
+    /// </value>
     public abstract Texture BackBuffer { get; }
 
+    // TODO: Temporarily here until we can move WindowsMixedRealityGraphicsPresenter to Stride.VirtualReality (currently not possible because Stride.Games creates it)
+    // This allows to keep Stride.Engine platform-independent
     internal Texture LeftEyeBuffer { get; set; }
     internal Texture RightEyeBuffer { get; set; }
 
+    /// <summary>
+    ///   Gets the default Depth-Stencil Buffer for the Graphics Presenter.
+    /// </summary>
+    /// <value>
+    ///   The <see cref="Texture"/> where depth (Z) values will be written, and optionally also
+    ///   stencil masking values.
+    /// </value>
     public Texture DepthStencilBuffer { get; protected set; }
 
+    /// <summary>
+    ///   Gets the underlying native presenter.
+    /// </summary>
+    /// <value>
+    ///   The native presenter. Depending on platform, for exmaple, it can be a <see cref="Silk.NET.DXGI.IDXGISwapChain"/>
+    ///   or <see cref="Silk.NET.DXGI.IDXGISwapChain1"/> or <see langword="null"/>.
+    /// </value>
     public abstract object NativePresenter { get; }
 
+    /// <summary>
+    ///   Gets or sets a value indicating if the Graphics Presenter is in full-screen mode.
+    /// </summary>
+    /// <value>
+    ///   <see langword="true"/> if the presentation will be in full screen; otherwise, <see langword="false"/>.
+    /// </value>
+    /// <remarks>This property is only valid on Windows Desktop. It has no effect on Windows Metro.</remarks>
     public abstract bool IsFullScreen { get; set; }
 
+    /// <summary>
+    ///   Gets or sets the presentation interval of the Graphics Presenter.
+    /// </summary>
+    /// <value>
+    ///   A value of <see cref="Graphics.PresentInterval"/> indicating how often the display should be updated.
+    ///   The default value is <see cref="PresentInterval.Default"/>, which is to wait for one vertical blanking.
+    /// </value>
     public PresentInterval PresentInterval
     {
         get => Description.PresentationInterval;
         set => Description.PresentationInterval = value;
     }
 
+    /// <summary>
+    ///   Marks the beginning of a frame that will be presented later by the Graphics Presenter.
+    /// </summary>
+    /// <param name="commandList">The Command List where rendering commands will be registered.</param>
+    /// <remarks>
+    ///   When overriden in a derived class, this method should prepare the Graphics Presenter to receive
+    ///   graphics commands to be executed at the beginning of the current frame.
+    /// </remarks>
     public virtual void BeginDraw(CommandList commandList)
     {
     }
 
+    /// <summary>
+    ///   Marks the end of a frame that will be presented later by the Graphics Presenter.
+    /// </summary>
+    /// <param name="commandList">The Command List where rendering commands will be registered.</param>
+    /// <param name="present">
+    ///   A value indicating whether the frame will be presented, i.e. if the Back-Buffer will be shown to the screen.
+    /// </param>
+    /// <remarks>
+    ///   When overriden in a derived class, this method should prepare the Graphics Presenter to receive
+    ///   graphics commands to be executed at the end of the current frame.
+    /// </remarks>
     public virtual void EndDraw(CommandList commandList, bool present)
     {
     }
 
+    /// <summary>
+    ///   Presents the Back-Buffer to the screen.
+    /// </summary>
+    /// <exception cref="GraphicsException">
+    ///   An unexpected error occurred while presenting. Check the status of the Graphics Device
+    ///   for more information.
+    /// </exception>
     public abstract void Present();
 
+    /// <summary>
+    ///   Resizes the Back-Buffer and the Depth-Stencil Buffer.
+    /// </summary>
+    /// <param name="width">The new width of the buffers of the Graphics Presenter, in pixels.</param>
+    /// <param name="height">The new height of the buffers of the Graphics Presenter, in pixels.</param>
+    /// <param name="format">
+    ///   The new preferred pixel format for the Back-Buffer. The specified format may be overriden
+    ///   depending on Graphics Device features and configuration (for example, to use sRGB when appropriate).
+    /// </param>
     public void Resize(int width, int height, PixelFormat format)
     {
         GraphicsDevice.Begin();
@@ -172,6 +234,11 @@ public abstract class GraphicsPresenter : ComponentBase
         GraphicsDevice.End();
     }
 
+    /// <summary>
+    ///   Normalizes the Back-Buffer format to take into account the color space and sRGB format.
+    /// </summary>
+    /// <param name="backBufferFormat">The current Back-Buffer format.</param>
+    /// <returns>The normalized pixel format.</returns>
     private PixelFormat NormalizeBackBufferFormat(PixelFormat backBufferFormat)
     {
         if (GraphicsDevice.Features.HasSRgb && GraphicsDevice.ColorSpace == ColorSpace.Linear)
@@ -179,9 +246,6 @@ public abstract class GraphicsPresenter : ComponentBase
             // If the device support sRGB and ColorSpace is linear, we use automatically a sRGB backbuffer
             return backBufferFormat.ToSRgb();
         }
-        /// <summary>
-        /// Called when [destroyed].
-        /// </summary>
         else
         {
             // If the device does not support sRGB or the ColorSpace is Gamma, but the backbuffer format asked is sRGB, convert it to non sRGB
@@ -189,39 +253,101 @@ public abstract class GraphicsPresenter : ComponentBase
         }
     }
 
-        /// <summary>
-        /// Called when [recreated].
-        /// </summary>
+    /// <summary>
+    ///   Resizes the Back-Buffer.
+    /// </summary>
+    /// <param name="width">The new width of the Back-Buffer, in pixels.</param>
+    /// <param name="height">The new height of the Back-Buffer, in pixels.</param>
+    /// <param name="format">The new pixel format for the Back-Buffer.</param>
+    /// <exception cref="System.NotSupportedException">
+    ///   The specified pixel <paramref name="format"/> or size is not supported by the Graphics Device.
+    /// </exception>
+    /// <remarks>
+    ///   When implementing this method, the derived class should resize the Back-Buffer to the specified
+    ///   size and format.
+    /// </remarks>
     protected abstract void ResizeBackBuffer(int width, int height, PixelFormat format);
 
+    /// <summary>
+    ///   Resizes the Depth-Stencil Buffer.
+    /// </summary>
+    /// <param name="width">The new width of the Depth-Stencil Buffer, in pixels.</param>
+    /// <param name="height">The new height of the Depth-Stencil Buffer, in pixels.</param>
+    /// <param name="format">The new pixel format for the Depth-Stencil Buffer.</param>
+    /// <exception cref="System.NotSupportedException">
+    ///   The specified depth <paramref name="format"/> or size is not supported by the Graphics Device.
+    /// </exception>
+    /// <remarks>
+    ///   When implementing this method, the derived class should resize the Depth-Stencil Buffer to the specified
+    ///   size and format.
+    /// </remarks>
     protected abstract void ResizeDepthStencilBuffer(int width, int height, PixelFormat format);
 
+    /// <summary>
+    ///   Releases the current Depth-Stencil Buffer.
+    /// </summary>
     protected void ReleaseCurrentDepthStencilBuffer()
     {
         DepthStencilBuffer?.RemoveDisposeBy(this);
     }
 
+    /// <inheritdoc/>
     protected override void Destroy()
     {
         OnDestroyed();
         base.Destroy();
     }
 
+    /// <summary>
+    ///   Called when the Graphics Presenter has been destroyed.
+    /// </summary>
+    /// <remarks>
+    ///   When overriden in a derived class, this method allows to perform additional cleanup
+    ///   and release of associated resources.
+    /// </remarks>
     protected internal virtual void OnDestroyed()
     {
     }
 
-        /// <summary>
-        /// Creates the depth stencil buffer.
-        /// </summary>
+    /// <summary>
+    ///   Called when the Graphics Presenter has been reinitialized.
+    /// </summary>
+    /// <remarks>
+    ///   When overriden in a derived class, this method allows to perform additional resource
+    ///   creation, configuration, and initialization.
+    /// </remarks>
+    /// <exception cref="System.InvalidOperationException">
+    ///   <see cref="PresentationParameters.DeviceWindowHandle"/> is <see langword="null"/> or
+    ///   the <see cref="WindowHandle.Handle"/> is invalid or zero.
+    /// </exception>
     public virtual void OnRecreated()
     {
     }
 
+    /// <summary>
+    ///   Processes and adjusts the Presentation Parameters before initializing the Graphics Presenter.
+    /// </summary>
+    /// <remarks>
+    ///   When overriden in a derived class, this method allows to modify the specified Presentation Parameters
+    ///   before initializing the internal buffers and resources.
+    /// </remarks>
     protected virtual void ProcessPresentationParameters()
     {
     }
 
+    /// <summary>
+    ///   Creates the Depth-Stencil Buffer.
+    /// </summary>
+    /// <remarks>
+    ///   <para>
+    ///     When overriden in a derived class, this method allows to create a custom Depth-Stencil Buffer
+    ///     when initializing the Graphics Presenter.
+    ///   </para>
+    ///   <para>
+    ///     By default, if a depth format has been specified, a Depth-Stencil Buffer is created with the same
+    ///     size as the Back-Buffer.
+    ///   </para>
+    /// </remarks>
     protected virtual void CreateDepthStencilBuffer()
     {
         // If no Depth-Stencil Buffer, just return

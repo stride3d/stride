@@ -42,8 +42,10 @@ using static Stride.Graphics.ComPtrHelpers;
 namespace Stride.Graphics
 {
     /// <summary>
-    /// Graphics presenter for SwapChain.
+    ///   A <see cref="GraphicsPresenter"/> wrapping a <strong>DirectX Swap-Chain</strong>
+    ///   (<see cref="IDXGISwapChain"/>).
     /// </summary>
+    /// <inheritdoc path="/remarks"/>
     public unsafe class SwapChainGraphicsPresenter : GraphicsPresenter
     {
         private readonly Texture backBuffer;
@@ -71,6 +73,17 @@ namespace Stride.Graphics
         private uint bufferSwapIndex;
 #endif
 
+        /// <summary>
+        ///   Initializes a new instance of the <see cref="SwapChainGraphicsPresenter"/> class.
+        /// </summary>
+        /// <param name="device">The Graphics Device.</param>
+        /// <param name="presentationParameters">
+        ///   The parameters describing the buffers the <paramref name="device"/> will present to.
+        /// </param>
+        /// <exception cref="InvalidOperationException">
+        ///   <see cref="PresentationParameters.DeviceWindowHandle"/> is <see langword="null"/> or
+        ///   the <see cref="WindowHandle.Handle"/> is invalid or zero.
+        /// </exception>
         public SwapChainGraphicsPresenter(GraphicsDevice device, PresentationParameters presentationParameters)
             : base(device, presentationParameters)
         {
@@ -85,10 +98,13 @@ namespace Stride.Graphics
 
             backBuffer = new Texture(device).InitializeFromImpl(nativeBackBuffer, Description.BackBufferFormat.IsSRgb());
 
-            // Reload should get backbuffer from swapchain as well
+            // Reload should get Back-Buffer from Swap-Chain as well
             // TODO: Stale statement/comment?
             //backBuffer.Reload = graphicsResource => ((Texture)graphicsResource).Recreate(swapChain.GetBackBuffer<SharpDX.Direct3D11.Texture>(0));
 
+            //
+            // Determines if the Graphics Device supports the flip model and tearing.
+            //
             // TODO: Shouldn't these checks be in GraphicsAdapter?
             void CheckDeviceFeatures(out bool supportsFlipModel, out bool supportsTearing)
             {
@@ -111,6 +127,10 @@ namespace Stride.Graphics
             }
 
 #if STRIDE_GRAPHICS_API_DIRECT3D11
+            //
+            // Determines if the DXGI adapter and the system supports the flip model.
+            // From https://github.com/walbourn/directx-vs-templates/blob/main/d3d11game_win32_dr/DeviceResources.cpp#L138
+            //
             static bool CheckFlipModelSupport(ComPtr<IDXGIAdapter1> adapter)
             {
                 HResult result = adapter.GetParent<IDXGIFactory4>(out var dxgiAdapterFactory4);
@@ -122,6 +142,11 @@ namespace Stride.Graphics
                 return supportsFlipModel;
             }
 #endif
+            //
+            // Determines if the DXGI adapter and the system supports tearing, also known as "vsync-off".
+            // This flag is particularly useful for variable refresh rate displays.
+            // From https://learn.microsoft.com/en-us/windows/win32/direct3ddxgi/variable-refresh-rate-displays
+            //
             static unsafe bool CheckTearingSupport(ComPtr<IDXGIAdapter1> adapter)
             {
                 HResult result = adapter.GetParent<IDXGIFactory5>(out var dxgiAdapterFactory5);
@@ -141,12 +166,13 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        ///   Gets one of the swap-chain back buffers.
+        ///   Gets one of the Swap-Chain Back-Buffers.
         /// </summary>
-        /// <typeparam name="TD3DResource">The interface of the surface to resolve from the back buffer.</typeparam>
+        /// <typeparam name="TD3DResource">The interface of the surface to resolve from the Back-Buffer.</typeparam>
         /// <param name="index">
-        ///   A zero-based buffer index. If the swap effect is not DXGI_SWAP_EFFECT_SEQUENTIAL, this method only has
-        ///   access to the first buffer; for this case, set the index to zero.
+        ///   A zero-based buffer index.
+        ///   If the swap effect is not <see cref="SwapEffect.Sequential"/>, this method only has
+        ///   access to the first Buffer; for this case (which is the default), set the index to zero.
         /// </param>
         /// <returns>Returns a reference to a back-buffer interface.</returns>
         private ComPtr<TD3DResource> GetBackBuffer<TD3DResource>(uint index = 0) where TD3DResource : unmanaged, IComVtbl<TD3DResource>
@@ -155,13 +181,23 @@ namespace Stride.Graphics
             return resource;
         }
 
+        /// <inheritdoc/>
         public override Texture BackBuffer => backBuffer;
 
         // TODO: This boxes the ComPtr, which is not ideal
+        /// <inheritdoc/>
         public override object NativePresenter => ToComPtr(swapChain);
 
+        /// <summary>
+        ///   Gets the internal DXGI Swap-Chain.
+        /// </summary>
+        /// <remarks>
+        ///   If the reference is going to be kept, use <see cref="ComPtr{T}.AddRef()"/> to increment the internal
+        ///   reference count, and <see cref="ComPtr{T}.Dispose()"/> when no longer needed to release the object.
+        /// </remarks>
         internal ComPtr<IDXGISwapChain> NativeSwapChain => ToComPtr(swapChain);
 
+        /// <inheritdoc/>
         public override bool IsFullScreen
         {
             get
@@ -186,7 +222,7 @@ namespace Stride.Graphics
 
                 var output = GraphicsDevice.Adapter != null && outputIndex < GraphicsDevice.Adapter.Outputs.Length
                     ? GraphicsDevice.Adapter.Outputs[outputIndex]
-                    // There are no outputs connected to the current graphics adapter
+                    // There are no outputs connected to the current Graphics Adapter
                     : null;
 
                 bool isCurrentlyFullscreen = GetFullScreenState(out var currentOutput);
@@ -244,6 +280,19 @@ namespace Stride.Graphics
             }
         }
 
+        /// <summary>
+        ///   Determines if the Swap-Chain is presenting in fullscreen mode, and to which output.
+        /// </summary>
+        /// <param name="fullScreenOutput">
+        ///   When this method returns,
+        ///   <list type="bullet">
+        ///     <item>If the Swap-Chain is presenting in fullscreen mode, contains the output (screen) to which it is presenting.</item>
+        ///     <item>If the Swap-Chain is presenting to a window, contains a <see langword="null"/> pointer.</item>
+        ///   </list>
+        /// </param>
+        /// <returns>
+        ///   <see langword="true"/> if the Swap-Chain is in fullscreen mode; <see langword="false"/> otherwise.
+        /// </returns>
         private bool GetFullScreenState(out ComPtr<IDXGIOutput> fullScreenOutput)
         {
             int isFullScreen = default;
@@ -253,14 +302,21 @@ namespace Stride.Graphics
             return isFullScreen != 0;
         }
 
+        /// <inheritdoc/>
         public override void BeginDraw(CommandList commandList)
         {
         }
 
+        /// <inheritdoc/>
         public override void EndDraw(CommandList commandList, bool present)
         {
         }
 
+        /// <inheritdoc/>
+        /// <exception cref="GraphicsException">
+        ///   An unexpected error occurred while presenting the Swap-Chain. Check the status of the Graphics Device
+        ///   for more information.
+        /// </exception>
         public override void Present()
         {
             var presentInterval = GraphicsDevice.Tags.Get(ForcedPresentInterval) ?? PresentInterval;
@@ -293,6 +349,7 @@ namespace Stride.Graphics
 #endif
         }
 
+        /// <inheritdoc/>
         protected override void OnNameChanged()
         {
             base.OnNameChanged();
@@ -303,6 +360,7 @@ namespace Stride.Graphics
             }
         }
 
+        /// <inheritdoc/>
         protected internal override void OnDestroyed()
         {
             // Manually update Back-Buffer Texture
@@ -315,6 +373,7 @@ namespace Stride.Graphics
             base.OnDestroyed();
         }
 
+        /// <inheritdoc/>
         public override void OnRecreated()
         {
             base.OnRecreated();
@@ -332,6 +391,7 @@ namespace Stride.Graphics
             backBuffer.LifetimeState = GraphicsResourceLifetimeState.Active;
         }
 
+        /// <inheritdoc/>
         protected override void ResizeBackBuffer(int width, int height, PixelFormat format)
         {
             HResult result;
@@ -397,6 +457,7 @@ namespace Stride.Graphics
             }
         }
 
+        /// <inheritdoc/>
         protected override void ResizeDepthStencilBuffer(int width, int height, PixelFormat format)
         {
             var newTextureDescription = DepthStencilBuffer.Description with
@@ -421,10 +482,10 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        /// Calls <see cref="Texture.OnDestroyed"/> for all children of the specified texture
+        ///   Calls <see cref="Texture.OnDestroyed"/> for all children of the specified Texture.
         /// </summary>
-        /// <param name="parentTexture">Specified parent texture</param>
-        /// <returns>A list of the children textures which were destroyed</returns>
+        /// <param name="parentTexture">The parent Texture whose children are to be destroyed.</param>
+        /// <returns>A list of the children Textures which were destroyed.</returns>
         private List<Texture> DestroyChildrenTextures(Texture parentTexture)
         {
             var childrenTextures = new List<Texture>();
@@ -445,6 +506,14 @@ namespace Stride.Graphics
             return childrenTextures;
         }
 
+        /// <summary>
+        ///   Creates or reinitializes the Swap-Chain with the current configuration.
+        /// </summary>
+        /// <returns>The new or recreated <see cref="IDXGISwapChain"/>.</returns>
+        /// <exception cref="InvalidOperationException">
+        ///   <see cref="PresentationParameters.DeviceWindowHandle"/> is <see langword="null"/> or
+        ///   the <see cref="WindowHandle.Handle"/> is invalid or zero.
+        /// </exception>
         private IDXGISwapChain* CreateSwapChain()
         {
             if (Description.DeviceWindowHandle is null)
@@ -458,6 +527,10 @@ namespace Stride.Graphics
         }
 
 #if STRIDE_PLATFORM_UWP
+        /// <summary>
+        ///   Creates or reinitializes the Swap-Chain on the Universal Windows Platform (UWP).
+        /// </summary>
+        /// <returns>The new or recreated <see cref="IDXGISwapChain"/>.</returns>
         private IDXGISwapChain* CreateSwapChainForUWP()
         {
             bufferCount = 2;
@@ -557,9 +630,13 @@ namespace Stride.Graphics
         }
 #else
         /// <summary>
-        /// Create the SwapChain on Windows.
+        ///   Creates or reinitializes the Swap-Chain on the desktop Windows platform.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>The new or recreated <see cref="IDXGISwapChain"/>.</returns>
+        /// <exception cref="InvalidOperationException">
+        ///   <see cref="PresentationParameters.DeviceWindowHandle"/> is <see langword="null"/> or
+        ///   the <see cref="WindowHandle.Handle"/> is invalid or zero.
+        /// </exception>
         private IDXGISwapChain* CreateSwapChainForWindows()
         {
             var hwndPtr = Description.DeviceWindowHandle.Handle;
@@ -646,6 +723,10 @@ namespace Stride.Graphics
             return newSwapChain;
         }
 
+        /// <summary>
+        ///   Returns the appropriate flags for the Swap-Chain given the configuration and system capabilities.
+        /// </summary>
+        /// <returns>The most appropriate <see cref="SwapChainFlag"/>s.</returns>
         private SwapChainFlag GetSwapChainFlags()
         {
             SwapChainFlag flags = 0;
@@ -663,11 +744,12 @@ namespace Stride.Graphics
 #endif
 
         /// <summary>
-        ///   The flip model does not support certain formats, this method ensures it is in a supported format.
+        ///   Ensures the provided pixel format is supported for a flip model Swap-Chain, as
+        ///   certain formats are not supported when using the flip model.
         /// </summary>
-        /// <param name="pixelFormat">The pixel format to convert to a format supported by the flip model.</param>
+        /// <param name="pixelFormat">The pixel format to convert to a format supported for a flip model Swap-Chain.</param>
         /// <exception cref="ArgumentException">
-        ///   Will throw if the given <paramref name="pixelFormat"/> does not have a direct analog supported by
+        ///   The given <paramref name="pixelFormat"/> does not have a direct analog supported by
         ///   the flip model.
         /// </exception>
         /// <remarks>
