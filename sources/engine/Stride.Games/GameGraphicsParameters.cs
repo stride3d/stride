@@ -2,17 +2,17 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 //
 // Copyright (c) 2010-2013 SharpDX - Alexandre Mutel
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -23,71 +23,70 @@
 
 using Stride.Graphics;
 
-namespace Stride.Games
+namespace Stride.Games;
+
+public class GameGraphicsParameters
 {
     /// <summary>
     ///   Describess how data will be displayed to the screen.
     /// </summary>
-    public class GameGraphicsParameters
-    {
         /// <summary>
         ///   A value that describes the resolution width.
         /// </summary>
-        public int PreferredBackBufferWidth;
+    public int PreferredBackBufferWidth;
 
         /// <summary>
         ///   A value that describes the resolution height.
         /// </summary>
-        public int PreferredBackBufferHeight;
+    public int PreferredBackBufferHeight;
 
         /// <summary>
         ///   A <strong><see cref="SharpDX.DXGI.Format" /></strong> structure describing the display format.
         /// </summary>
-        public PixelFormat PreferredBackBufferFormat;
+    public PixelFormat PreferredBackBufferFormat;
 
         /// <summary>
         /// Gets or sets the depth stencil format
         /// </summary>
-        public PixelFormat PreferredDepthStencilFormat;
+    public PixelFormat PreferredDepthStencilFormat;
 
         /// <summary>
         ///   Gets or sets a value indicating whether the application is in full screen mode.
         /// </summary>
-        public bool IsFullScreen;
+    public bool IsFullScreen;
 
         /// <summary>
         /// The output (monitor) index to use when switching to fullscreen mode. Doesn't have any effect when windowed mode is used.
         /// </summary>
-        public int PreferredFullScreenOutputIndex;
+    public int PreferredFullScreenOutputIndex;
 
         /// <summary>
         /// Gets or sets the minimum graphics profile.
         /// </summary>
-        public GraphicsProfile[] PreferredGraphicsProfile;
+    public GraphicsProfile[] PreferredGraphicsProfile;
 
         /// <summary>
         /// The preferred refresh rate
         /// </summary>
-        public Rational PreferredRefreshRate;
+    public Rational PreferredRefreshRate;
 
         /// <summary>
         ///   Gets or sets a value indicating the number of sample locations during multisampling.
         /// </summary>
-        public MultisampleCount PreferredMultisampleCount;
+    public MultisampleCount PreferredMultisampleCount;
 
         /// <summary>
         /// Gets or sets a value indicating whether to synochrnize present with vertical blanking.
         /// </summary>
-        public bool SynchronizeWithVerticalRetrace;
+    public bool SynchronizeWithVerticalRetrace;
 
         /// <summary>
         /// Gets or sets the colorspace.
         /// </summary>
-        public ColorSpace ColorSpace;
+    public ColorSpace ColorSpace;
 
         /// <summary>
         /// If populated the engine will try to initialize the device with the same unique id
         /// </summary>
-        public string RequiredAdapterUid;
-    }
+    public string? RequiredAdapterUid; // TODO: What happens if invalid or unavailable?
 }
