@@ -106,7 +106,7 @@ namespace Stride.Graphics
 
 #if STRIDE_GRAPHICS_API_DIRECT3D11 || STRIDE_GRAPHICS_API_DIRECT3D12
             if (graphicsDevice != null)
-                devicePointer = (nint) Direct3DInterop.GetNativeDevice(graphicsDevice);
+                devicePointer = (nint) GraphicsMarshal.GetNativeDevice(graphicsDevice);
 #endif
             return devicePointer;
         }
