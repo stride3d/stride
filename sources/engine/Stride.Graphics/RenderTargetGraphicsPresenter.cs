@@ -25,14 +25,27 @@ using System;
 
 namespace Stride.Graphics;
 
+/// <summary>
+///   A simple <see cref="GraphicsPresenter"/> wrapping a Render-Target Texture
+///   where drawing will occur but no actual presentation will happen.
+/// </summary>
+/// <remarks>
+///   This class is useful when configuring an application that will be rendering to a
+///   Texture instead of the screen.
+/// </remarks>
 public class RenderTargetGraphicsPresenter : GraphicsPresenter
 {
     private Texture backBuffer;
 
 
     /// <summary>
-    /// Graphics presenter for SwapChain.
+    ///   Initializes a new instance of the <see cref="RenderTargetGraphicsPresenter"/> class.
     /// </summary>
+    /// <param name="device">The Graphics Device.</param>
+    /// <param name="renderTarget">
+    ///   A two-dimensional Texture that serves as a Render Target to draw into.
+    /// </param>
+    /// <param name="depthFormat">The format of the Depth-Stencil buffer</param>
     public RenderTargetGraphicsPresenter(GraphicsDevice device, Texture renderTarget, PixelFormat depthFormat = PixelFormat.None)
         : base(device, CreatePresentationParameters(renderTarget, depthFormat))
     {
@@ -59,34 +72,48 @@ public class RenderTargetGraphicsPresenter : GraphicsPresenter
     }
 
 
-        /// <summary>
-        /// Sets the back buffer.
-        /// </summary>
-        /// <param name="backBuffer">The back buffer.</param>
+    /// <inheritdoc/>
     public override Texture BackBuffer => backBuffer;
 
+    /// <summary>
+    ///   Sets the Back-Buffer where the frame must be rendered.
+    /// </summary>
+    /// <param name="backBuffer">The Render Target to use as Back-Buffer.</param>
     public void SetBackBuffer(Texture backBuffer)
     {
         this.backBuffer = backBuffer.EnsureRenderTarget();
     }
 
+    /// <inheritdoc/>
     public override object NativePresenter => backBuffer;
 
+    /// <inheritdoc path="/summary"/>
+    /// <value>
+    ///   A <see cref="RenderTargetGraphicsPresenter"/> always returns <see langword="true"/>
+    ///   for this property, and this value cannot be modified.
+    /// </value>
     public override bool IsFullScreen
     {
         get => true;
         set { }
     }
 
+    /// <inheritdoc path="/summary"/>
+    /// <remarks>
+    ///   A <see cref="RenderTargetGraphicsPresenter"/> does nothing for this method; it wraps
+    ///   an internal Render-Target Texture to draw to, and not a swap-chain buffer.
+    /// </remarks>
     public override void Present()
     {
     }
 
+    /// <inheritdoc/>
     protected override void ResizeBackBuffer(int width, int height, PixelFormat format)
     {
         throw new NotImplementedException();
     }
 
+    /// <inheritdoc/>
     protected override void ResizeDepthStencilBuffer(int width, int height, PixelFormat format)
     {
         throw new NotImplementedException();
