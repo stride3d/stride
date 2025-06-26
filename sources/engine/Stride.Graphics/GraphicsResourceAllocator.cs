@@ -552,7 +552,7 @@ namespace Stride.Graphics
 
             // If no alive references are left, we can tag the resource for discarding on next Map
             if (resourceLink.ReferenceCount == 0)
-                GraphicsDevice.TagResource(resourceLink);
+                GraphicsDevice.TagResourceAsNotAlive(resourceLink);
         }
     }
 }

@@ -138,7 +138,7 @@ namespace Stride.Rendering.Compositing
                 actualMultisampleCount = (MultisampleCount)Math.Min((int)actualMultisampleCount, (int)GraphicsDevice.Features[DepthBufferFormat].MultisampleCountMax);
 
                 // Note: we cannot support MSAA on DX10 now
-                if (GraphicsDevice.Features.HasMultisampleDepthAsSRV == false && // TODO: Try enabling MSAA on DX9!
+                if (GraphicsDevice.Features.HasMultiSampleDepthAsSRV == false && // TODO: Try enabling MSAA on DX9!
                     GraphicsDevice.Platform != GraphicsPlatform.OpenGL &&
                     GraphicsDevice.Platform != GraphicsPlatform.OpenGLES)
                 {

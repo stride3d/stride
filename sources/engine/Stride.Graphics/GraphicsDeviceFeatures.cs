@@ -2,17 +2,17 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 //
 // Copyright (c) 2010-2012 SharpDX - Alexandre Mutel
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -21,134 +21,149 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-namespace Stride.Graphics
+namespace Stride.Graphics;
+
+public partial struct GraphicsDeviceFeatures
 {
+    private readonly FeaturesPerFormat[] mapFeaturesPerFormat;
+
     /// <summary>
     /// Features supported by a <see cref="GraphicsDevice"/>.
+    public GraphicsProfile RequestedProfile;
+
     /// </summary>
     /// <remarks>
     /// This class gives also features for a particular format, using the operator this[dxgiFormat] on this structure.
     /// </remarks>
-    public partial struct GraphicsDeviceFeatures
-    {
-        private readonly FeaturesPerFormat[] mapFeaturesPerFormat;
+    public GraphicsProfile CurrentProfile;
 
         /// <summary>
         /// Features level of the current device.
         /// </summary>
-        public GraphicsProfile RequestedProfile;
 
         /// <summary>
         /// Features level of the current device.
         /// </summary>
-        public GraphicsProfile CurrentProfile;
+    public readonly int MaximumMipLevels;
 
         /// <summary>
         /// Boolean indicating if this device supports compute shaders, unordered access on structured buffers and raw structured buffers.
         /// </summary>
-        public readonly bool HasComputeShaders;
+    public readonly int ResourceSizeInMegabytes;
 
         /// <summary>
         /// Boolean indicating if this device supports shaders double precision calculations.
         /// </summary>
-        public readonly bool HasDoublePrecision;
+    public readonly int MaximumTexture1DArraySize;
 
         /// <summary>
         /// Boolean indicating if this device supports concurrent resources in multithreading scenarios.
         /// </summary>
-        public readonly bool HasMultiThreadingConcurrentResources;
+    public readonly int MaximumTexture2DArraySize;
 
         /// <summary>
         /// Boolean indicating if this device supports command lists in multithreading scenarios.
         /// </summary>
-        public readonly bool HasDriverCommandLists;
+    public readonly int MaximumTexture1DSize;
 
         /// <summary>
         /// Boolean indicating if this device supports SRGB texture and render targets.
         /// </summary>
-        public readonly bool HasSRgb;
+    public readonly int MaximumTexture2DSize;
 
         /// <summary>
         /// Boolean indicating if the Depth buffer can also be used as ShaderResourceView for some passes.
         /// </summary>
-        public readonly bool HasDepthAsSRV;
+    public readonly int MaximumTexture3DSize;
+
+    public readonly int MaximumTextureCubeSize;
+
+
+    public readonly bool HasComputeShaders;
+
+    public readonly bool HasDoublePrecision;
+
+    public readonly bool HasMultiThreadingConcurrentResources;
+
+    public readonly bool HasDriverCommandLists;
+
+    public readonly bool HasSRgb;
+
+    public readonly bool HasDepthAsSRV;
+
+    public readonly bool HasDepthAsReadOnlyRT;
+
+    public readonly bool HasMultiSampleDepthAsSRV;
+
+    public readonly bool HasResourceRenaming;
+
+
+    public readonly FeaturesPerFormat this[PixelFormat pixelFormat] => mapFeaturesPerFormat[(int) pixelFormat];
+
+#if STRIDE_GRAPHICS_API_OPENGL
+    // Defined here to avoid CS0282 warning if defined in GraphicsDeviceFeatures.OpenGL.cs
+    internal string Vendor;
+    internal string Renderer;
+    internal System.Collections.Generic.IList<string> SupportedExtensions;
+#endif
+
+    public readonly struct FeaturesPerFormat
+    {
+        internal FeaturesPerFormat(PixelFormat format, MultisampleCount maximumMultisampleCount, ComputeShaderFormatSupport computeShaderFormatSupport, FormatSupport formatSupport)
+        {
+            Format = format;
+            MultisampleCountMax = maximumMultisampleCount;
+            ComputeShaderFormatSupport = computeShaderFormatSupport;
+            FormatSupport = formatSupport;
+        }
 
         /// <summary>
         /// Boolean indicating if the Depth buffer can directly be used as a read only RenderTarget
         /// </summary>
-        public readonly bool HasDepthAsReadOnlyRT;
+        public readonly PixelFormat Format;
 
         /// <summary>
         /// Boolean indicating if the multi-sampled Depth buffer can directly be used as a ShaderResourceView
         /// </summary>
-        public readonly bool HasMultisampleDepthAsSRV;
+        public readonly MultisampleCount MultisampleCountMax;
 
         /// <summary>
         /// Boolean indicating if the graphics API supports resource renaming (with either <see cref="MapMode.WriteDiscard"/> `CommandList.UpdateSubresource` with full size).
         /// </summary>
-        public readonly bool HasResourceRenaming;
+        public readonly ComputeShaderFormatSupport ComputeShaderFormatSupport;
 
         /// <summary>
         /// Gets the <see cref="FeaturesPerFormat" /> for the specified <see cref="SharpDX.DXGI.Format" />.
         /// </summary>
         /// <param name="dxgiFormat">The dxgi format.</param>
         /// <returns>Features for the specific format.</returns>
-        public FeaturesPerFormat this[PixelFormat dxgiFormat]
-        {
-            get { return this.mapFeaturesPerFormat[(int)dxgiFormat]; }
-        }
+        public readonly FormatSupport FormatSupport;
 
-#if STRIDE_GRAPHICS_API_OPENGL
-        // Defined here to avoid CS0282 warning if defined in GraphicsDeviceFeatures.OpenGL.cs
-        internal string Vendor;
-        internal string Renderer;
-        internal IList<string> SupportedExtensions;
-#endif
 
         /// <summary>
         /// The features exposed for a particular format.
         /// </summary>
-        public struct FeaturesPerFormat
+        public override readonly string ToString()
         {
-            internal FeaturesPerFormat(PixelFormat format, MultisampleCount maximumMultisampleCount, ComputeShaderFormatSupport computeShaderFormatSupport, FormatSupport formatSupport)
-            {
-                Format = format;
-                MultisampleCountMax = maximumMultisampleCount;
-                ComputeShaderFormatSupport = computeShaderFormatSupport;
-                FormatSupport = formatSupport;
-            }
-
             /// <summary>
             /// The <see cref="SharpDX.DXGI.Format"/>.
             /// </summary>
-            public readonly PixelFormat Format;
-
             /// <summary>
             /// Gets the maximum multisample count for a particular <see cref="PixelFormat"/>.
             /// </summary>
-            public readonly MultisampleCount MultisampleCountMax;
-
             /// <summary>
             /// Gets the unordered resource support options for a compute shader resource.
             /// </summary>
-            public readonly ComputeShaderFormatSupport ComputeShaderFormatSupport;
-
             /// <summary>
             /// Support of a given format on the installed video device.
             /// </summary>
-            public readonly FormatSupport FormatSupport;
-
-
             /// <inheritdoc/>
-            public override readonly string ToString()
-            {
-                return $"Format: {Format}, MultisampleCountMax: {MultisampleCountMax}, ComputeShaderFormatSupport: {ComputeShaderFormatSupport}, FormatSupport: {FormatSupport}";
-            }
+            return $"Format: {Format}, MultisampleCountMax: {MultisampleCountMax}, ComputeShaderFormatSupport: {ComputeShaderFormatSupport}, FormatSupport: {FormatSupport}";
         }
+    }
 
-        public override string ToString()
-        {
-            return $"Level: {RequestedProfile}, HasComputeShaders: {HasComputeShaders}, HasDoublePrecision: {HasDoublePrecision}, HasMultiThreadingConcurrentResources: {HasMultiThreadingConcurrentResources}, HasDriverCommandLists: {HasDriverCommandLists}";
-        }
+    public override readonly string ToString()
+    {
+        return $"Level: {RequestedProfile}, HasComputeShaders: {HasComputeShaders}, HasDoublePrecision: {HasDoublePrecision}, HasMultiThreadingConcurrentResources: {HasMultiThreadingConcurrentResources}, HasDriverCommandLists: {HasDriverCommandLists}";
     }
 }

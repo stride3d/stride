@@ -32,6 +32,8 @@ using Silk.NET.DXGI;
 
 using Feature = Silk.NET.Direct3D11.Feature;
 
+using static Stride.Graphics.GraphicsProfile;
+
 namespace Stride.Graphics
 {
     /// <summary>
@@ -44,24 +46,24 @@ namespace Stride.Graphics
     /// </remarks>
     public unsafe partial struct GraphicsDeviceFeatures
     {
-        private static readonly Format[] ObsoleteFormatToExcludes = new[]
-        {
+        private static readonly Format[] ObsoleteFormatsToExclude =
+        [
             Format.FormatR1Unorm,
             Format.FormatB5G6R5Unorm,
             Format.FormatB5G5R5A1Unorm
-        };
+        ];
 
-        internal GraphicsDeviceFeatures(GraphicsDevice deviceRoot)
+        internal GraphicsDeviceFeatures(GraphicsDevice device)
         {
-            var nativeDevice = deviceRoot.NativeDevice;
+            var nativeDevice = device.NativeDevice;
 
             HasSRgb = true;
 
             mapFeaturesPerFormat = new FeaturesPerFormat[256];
 
             // Set back the real GraphicsProfile that is used
-            RequestedProfile = deviceRoot.RequestedProfile;
-            CurrentProfile = GraphicsProfileHelper.FromFeatureLevel(nativeDevice->GetFeatureLevel());
+            RequestedProfile = device.RequestedProfile;
+            CurrentProfile = GraphicsProfileHelper.FromFeatureLevel(nativeDevice.GetFeatureLevel());
 
             HasResourceRenaming = true;
 
@@ -69,9 +71,9 @@ namespace Stride.Graphics
             HasDoublePrecision = CheckDoubleOpsInShadersSupport();
             CheckThreadingSupport(out HasMultiThreadingConcurrentResources, out HasDriverCommandLists);
 
-            HasDepthAsSRV = CurrentProfile >= GraphicsProfile.Level_10_0;
-            HasDepthAsReadOnlyRT = CurrentProfile >= GraphicsProfile.Level_11_0;
-            HasMultisampleDepthAsSRV = CurrentProfile >= GraphicsProfile.Level_11_0;
+            HasDepthAsSRV = CurrentProfile >= Level_10_0;
+            HasDepthAsReadOnlyRT = CurrentProfile >= Level_11_0;
+            HasMultiSampleDepthAsSRV = CurrentProfile >= Level_11_0;
 
             // Check features for each DXGI.Format
             foreach (var format in Enum.GetValues<Format>())
@@ -79,13 +81,13 @@ namespace Stride.Graphics
                 if (format == Format.FormatForceUint)
                     continue;
 
-                if (ObsoleteFormatToExcludes.Contains(format))
+                if (ObsoleteFormatsToExclude.Contains(format))
                     continue;
 
-                var maximumMultisampleCount = GetMaximumMultisampleCount(nativeDevice, format);
+                var maximumMultisampleCount = GetMaximumMultisampleCount(format);
 
                 var computeShaderFormatSupport = HasComputeShaders
-                    ? (ComputeShaderFormatSupport) CheckComputeShaderFormatSupport(format)
+                    ? CheckComputeShaderFormatSupport(format)
                     : ComputeShaderFormatSupport.None;
 
                 var formatSupport = CheckFormatSupport(format);
@@ -94,15 +96,56 @@ namespace Stride.Graphics
                 mapFeaturesPerFormat[(int) format] = new FeaturesPerFormat(pixelFormat, maximumMultisampleCount, computeShaderFormatSupport, formatSupport);
             }
 
+            // Sets the max resource sizes, mip counts, etc., for the supported profile
+            switch (CurrentProfile)
+            {
+                case Level_11_2:
+                case Level_11_1:
+                case Level_11_0:
+                    MaximumMipLevels = 15;
+                    ResourceSizeInMegabytes = 128;
+                    MaximumTexture1DArraySize = 2048;
+                    MaximumTexture2DArraySize = 2048;
+                    MaximumTexture1DSize = 16384;
+                    MaximumTexture2DSize = 16384;
+                    MaximumTexture3DSize = 2048;
+                    MaximumTextureCubeSize = 16384;
+                    break;
+
+                case Level_10_1:
+                case Level_10_0:
+                    MaximumMipLevels = 14;
+                    ResourceSizeInMegabytes = 128;
+                    MaximumTexture1DArraySize = 512;
+                    MaximumTexture2DArraySize = 512;
+                    MaximumTexture1DSize = 8192;
+                    MaximumTexture2DSize = 8192;
+                    MaximumTexture3DSize = 2048;
+                    MaximumTextureCubeSize = 8192;
+                    break;
+
+                case Level_9_1:
+                case Level_9_2:
+                case Level_9_3:
+                    MaximumMipLevels = 14;
+                    ResourceSizeInMegabytes = 128;
+                    MaximumTexture1DArraySize = 512;
+                    MaximumTexture2DArraySize = 512;
+                    MaximumTexture1DSize = CurrentProfile < Level_9_3 ? 2048 : 4096;
+                    MaximumTexture2DSize = CurrentProfile < Level_9_3 ? 2048 : 4096;
+                    MaximumTexture3DSize = 256;
+                    MaximumTextureCubeSize = CurrentProfile < Level_9_3 ? 512 : 4096;
+                    break;
+            }
+
             /// <summary>
             ///   Checks if the Direct3D device does support Compute Shaders.
             /// </summary>
             bool CheckComputeShadersSupport()
             {
-                FeatureDataD3D10XHardwareOptions hwOptions;
+                Unsafe.SkipInit(out FeatureDataD3D10XHardwareOptions hwOptions);
 
-                HResult result = nativeDevice->CheckFeatureSupport(Feature.D3D10XHardwareOptions,
-                                                                   &hwOptions, (uint) Unsafe.SizeOf<FeatureDataD3D10XHardwareOptions>());
+                HResult result = nativeDevice.CheckFeatureSupport(Feature.D3D10XHardwareOptions, ref hwOptions, (uint) sizeof(FeatureDataD3D10XHardwareOptions));
 
                 if (result.IsFailure)
                     return false;
@@ -115,10 +158,9 @@ namespace Stride.Graphics
             /// </summary>
             bool CheckDoubleOpsInShadersSupport()
             {
-                FeatureDataDoubles doubles;
+                Unsafe.SkipInit(out FeatureDataDoubles doubles);
 
-                HResult result = nativeDevice->CheckFeatureSupport(Feature.Doubles,
-                                                                   &doubles, (uint) Unsafe.SizeOf<FeatureDataDoubles>());
+                HResult result = nativeDevice.CheckFeatureSupport(Feature.Doubles, ref doubles, (uint) sizeof(FeatureDataDoubles));
 
                 if (result.IsFailure)
                     return false;
@@ -131,10 +173,10 @@ namespace Stride.Graphics
             /// </summary>
             void CheckThreadingSupport(out bool supportsConcurrentResources, out bool supportsCommandLists)
             {
-                FeatureDataThreading featureDataThreading;
+                Unsafe.SkipInit(out FeatureDataThreading featureDataThreading);
 
-                HResult result = nativeDevice->CheckFeatureSupport(Feature.Threading,
-                                                                   &featureDataThreading, (uint) Unsafe.SizeOf<FeatureDataThreading>());
+                HResult result = nativeDevice.CheckFeatureSupport(Feature.Threading, ref featureDataThreading, (uint) sizeof(FeatureDataThreading));
+
                 if (result.IsFailure)
                 {
                     supportsConcurrentResources = false;
@@ -150,15 +192,15 @@ namespace Stride.Graphics
             /// <summary>
             ///   Gets the maximum sample count when enabling multisampling for a particular <see cref="Format"/>.
             /// </summary>
-            MultisampleCount GetMaximumMultisampleCount(ID3D11Device* device, Format pixelFormat)
+            MultisampleCount GetMaximumMultisampleCount(Format pixelFormat)
             {
                 uint maxCount = 1;
 
                 for (uint sampleCount = 1; sampleCount <= 8; sampleCount *= 2)
                 {
-                    uint qualityLevels;
+                    uint qualityLevels = 0;
 
-                    HResult result = device->CheckMultisampleQualityLevels(pixelFormat, sampleCount, &qualityLevels);
+                    HResult result = nativeDevice.CheckMultisampleQualityLevels(pixelFormat, sampleCount, ref qualityLevels);
 
                     if (result.IsSuccess && qualityLevels != 0)
                         maxCount = sampleCount;
@@ -170,17 +212,16 @@ namespace Stride.Graphics
             ///   Check if the Direct3D device does support compute shaders for the specified format.
             /// </summary>
             /// <returns>Flags indicating usage contexts in which the specified format is supported.</returns>
-            FormatSupport2 CheckComputeShaderFormatSupport(Format format)
+            ComputeShaderFormatSupport CheckComputeShaderFormatSupport(Format format)
             {
                 var dataFormatSupport2 = new FeatureDataFormatSupport2(format);
 
-                HResult result = nativeDevice->CheckFeatureSupport(Feature.FormatSupport2,
-                                                                   &dataFormatSupport2, (uint) Unsafe.SizeOf<FeatureDataFormatSupport2>());
+                HResult result = nativeDevice.CheckFeatureSupport(Feature.FormatSupport2, ref dataFormatSupport2, (uint) sizeof(FeatureDataFormatSupport2));
 
                 if (result.IsFailure)
                     return 0;
 
-                return (FormatSupport2) dataFormatSupport2.OutFormatSupport2;
+                return (ComputeShaderFormatSupport) dataFormatSupport2.OutFormatSupport2;
             }
 
             /// <summary>
@@ -191,8 +232,7 @@ namespace Stride.Graphics
             {
                 var dataFormatSupport = new FeatureDataFormatSupport(format);
 
-                HResult result = nativeDevice->CheckFeatureSupport(Feature.FormatSupport,
-                                                                   &dataFormatSupport, (uint) Unsafe.SizeOf<FeatureDataFormatSupport>());
+                HResult result = nativeDevice.CheckFeatureSupport(Feature.FormatSupport, ref dataFormatSupport, (uint) sizeof(FeatureDataFormatSupport));
 
                 if (result.IsFailure)
                     return 0;

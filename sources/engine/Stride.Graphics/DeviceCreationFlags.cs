@@ -1,26 +1,29 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 using System;
 
-namespace Stride.Graphics
+namespace Stride.Graphics;
+
+[Flags]
+public enum DeviceCreationFlags : int
 {
+    None = 0,
+
     /// <summary>
     /// <para>
     /// Describes parameters that are used to create a device.
     /// </para>
     /// </summary>
-    [Flags]
-    public enum DeviceCreationFlags : int
-    {
         /// <summary>
         /// Creates a device that supports the debug layer.
         /// </summary>
-        Debug = unchecked((int)2),
+    Debug = 2,
 
         /// <summary>
         /// Required for Direct2D interoperability with Direct3D resource.
         /// </summary>
-        BgraSupport = unchecked((int)32),
+    BgraSupport = 32,
 
         /// <summary>
         /// <para>Forces the creation of the Direct3D device to fail if the display driver is not implemented to the WDDM for Windows Developer Preview (WDDM 1.2). When the display driver is not implemented to WDDM 1.2, only a Direct3D device that is created with feature level 9.1, 9.2, or 9.3 supports video; therefore, if this flag is set, the runtime creates the Direct3D device only for feature level 9.1, 9.2, or 9.3. We recommend not to specify this flag for applications that want to favor Direct3D capability over video. If feature level 10 and higher is available, the runtime will use that feature level regardless of video support.</para>
@@ -31,11 +34,9 @@ namespace Stride.Graphics
         /// </para> 
         /// <strong>Direct 3D 11:??</strong> - This value is not supported until Direct3D 11.1. 
         /// </summary>
-        VideoSupport = unchecked((int)2048),
 
         /// <summary>
         /// None.
         /// </summary>
-        None = unchecked((int)0),
-    }
+    VideoSupport = 2048
 }
