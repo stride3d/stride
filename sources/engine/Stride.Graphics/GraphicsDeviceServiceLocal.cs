@@ -16,7 +16,8 @@ namespace Stride.Graphics
         /// Initializes a new instance of the <see cref="GraphicsDeviceServiceLocal"/> class.
         /// </summary>
         /// <param name="graphicsDevice">The graphics device.</param>
-        public GraphicsDeviceServiceLocal(GraphicsDevice graphicsDevice) : this(null, graphicsDevice)
+        public GraphicsDeviceServiceLocal(GraphicsDevice graphicsDevice)
+            : this(registry: null, graphicsDevice)
         {
         }
 

@@ -24,7 +24,6 @@ namespace Stride.Graphics
 
         internal HashSet<GraphicsResourceBase> Resources = [];
 
-        internal readonly bool NeedWorkAroundForUpdateSubResource;
         internal Effect CurrentEffect;
 
         private readonly List<IDisposable> sharedDataToDispose = [];
@@ -36,11 +35,13 @@ namespace Stride.Graphics
 
         internal CommandList InternalMainCommandList;
 
-        internal PrimitiveQuad PrimitiveQuad;
+        internal PrimitiveQuad PrimitiveQuad;  // TODO: This is not a quad, but a fullscreen triangle! Maybe this class should be renamed?
+
         private ColorSpace colorSpace;
 
-        public uint FrameTriangleCount;
+        public uint FrameTriangleCount;  // TODO: Public mutable fields?
         public uint FrameDrawCalls;
+
         private long bufferMemory;
         private long textureMemory;
 
@@ -61,6 +62,9 @@ namespace Stride.Graphics
 
         public string RendererName => GetRendererName();
 
+        private partial string GetRendererName();
+
+
         /// <summary>
         ///   Initializes a new instance of the <see cref="GraphicsDevice"/> class.
         /// </summary>
@@ -68,12 +72,12 @@ namespace Stride.Graphics
         /// <param name="graphicsProfiles">The graphics profiles to try, in order of preference.</param>
         /// <param name="deviceCreationFlags">The device creation flags.</param>
         /// <param name="windowHandle">The window handle.</param>
-        protected GraphicsDevice(GraphicsAdapter adapter, GraphicsProfile[] graphicsProfiles, DeviceCreationFlags deviceCreationFlags, WindowHandle windowHandle)
+        protected GraphicsDevice(GraphicsAdapter adapter, GraphicsProfile[] graphicsProfiles, DeviceCreationFlags creationFlags, WindowHandle windowHandle)
         {
             // Create shared data
             sharedDataPerDevice = [];
 
-            Recreate(adapter, graphicsProfiles, deviceCreationFlags, windowHandle);
+            Recreate(adapter, graphicsProfiles, creationFlags, windowHandle);
 
             // Helpers
             PrimitiveQuad = new PrimitiveQuad(this);
@@ -89,34 +93,38 @@ namespace Stride.Graphics
         /// <exception cref="ArgumentNullException">
         ///   <paramref name="adapter"/> is <see langword="null"/>, or <paramref name="graphicsProfiles"/> is <see langword="null"/>.
         /// </exception>
-        public void Recreate(GraphicsAdapter adapter, GraphicsProfile[] graphicsProfiles, DeviceCreationFlags deviceCreationFlags, WindowHandle windowHandle)
+        public void Recreate(GraphicsAdapter adapter, GraphicsProfile[] graphicsProfiles, DeviceCreationFlags creationFlags, WindowHandle windowHandle)
         {
             ArgumentNullException.ThrowIfNull(adapter);
-            ArgumentNullException.ThrowIfNull(graphicsProfiles);
+            ArgumentNullException.ThrowIfNull(graphicsProfiles); // TODO: Why different from Array.Empty?
 
             Adapter = adapter;
-            IsDebugMode = deviceCreationFlags.HasFlag(DeviceCreationFlags.Debug);
+            IsDebugMode = creationFlags.HasFlag(DeviceCreationFlags.Debug);
 
             // Default fallback
             if (graphicsProfiles.Length == 0)
                 graphicsProfiles = [ GraphicsProfile.Level_11_0, GraphicsProfile.Level_10_1, GraphicsProfile.Level_10_0, GraphicsProfile.Level_9_3, GraphicsProfile.Level_9_2, GraphicsProfile.Level_9_1 ];
 
             // Initialize this instance
-            InitializePlatformDevice(graphicsProfiles, deviceCreationFlags, windowHandle);
+            InitializePlatformDevice(graphicsProfiles, creationFlags, windowHandle);
 
-            // Checks the features supported by the new graphics device
+            // Checks the features supported by the new Graphics Device
             Features = new GraphicsDeviceFeatures(this);
 
-            // Initialize the internal states of the new graphics device
+            // Initialize the internal states of the new Graphics Device
             SamplerStates = new SamplerStateFactory(this);
 
             var defaultPipelineStateDescription = new PipelineStateDescription();
             defaultPipelineStateDescription.SetDefaults();
             AdjustDefaultPipelineStateDescription(ref defaultPipelineStateDescription);
-            DefaultPipelineState = PipelineState.New(this, ref defaultPipelineStateDescription);
+            DefaultPipelineState = PipelineState.New(this, defaultPipelineStateDescription);
 
             InitializePostFeatures();
         }
+
+        private partial void InitializePlatformDevice(GraphicsProfile[] graphicsProfiles, DeviceCreationFlags deviceCreationFlags, object windowHandle);
+
+        private partial void InitializePostFeatures();
 
         /// <inheritdoc/>
         protected override void Destroy()
@@ -158,6 +166,9 @@ namespace Stride.Graphics
 
             base.Destroy();
         }
+
+        protected partial void DestroyPlatformDevice();
+
 
         /// <summary>
         ///   Occurs while this component is disposing but before it is disposed.
@@ -232,6 +243,7 @@ namespace Stride.Graphics
         /// </value>
         public SamplerStateFactory SamplerStates { get; private set; }
 
+        // TODO: Unused?
         /// <summary>
         /// Gets the index of the thread.
         /// </summary>
@@ -252,7 +264,7 @@ namespace Stride.Graphics
         /// <returns>The new instance of <see cref="GraphicsDevice"/>.</returns>
         public static GraphicsDevice New(DeviceCreationFlags creationFlags = DeviceCreationFlags.None, params GraphicsProfile[] graphicsProfiles)
         {
-            return New(GraphicsAdapterFactory.Default, creationFlags, graphicsProfiles);
+            return New(GraphicsAdapterFactory.DefaultAdapter, creationFlags, graphicsProfiles);
         }
 
         /// <summary>
@@ -264,7 +276,7 @@ namespace Stride.Graphics
         /// <returns>The new instance of <see cref="GraphicsDevice"/>.</returns>
         public static GraphicsDevice New(GraphicsAdapter adapter, DeviceCreationFlags creationFlags = DeviceCreationFlags.None, params GraphicsProfile[] graphicsProfiles)
         {
-            return new GraphicsDevice(adapter ?? GraphicsAdapterFactory.Default, graphicsProfiles, creationFlags, windowHandle: null);
+            return new GraphicsDevice(adapter ?? GraphicsAdapterFactory.DefaultAdapter, graphicsProfiles, creationFlags, windowHandle: null);
         }
 
         /// <summary>
@@ -280,7 +292,7 @@ namespace Stride.Graphics
         /// <returns>The new instance of <see cref="GraphicsDevice"/>.</returns>
         public static GraphicsDevice New(GraphicsAdapter adapter, DeviceCreationFlags creationFlags = DeviceCreationFlags.None, WindowHandle windowHandle = null, params GraphicsProfile[] graphicsProfiles)
         {
-            return new GraphicsDevice(adapter ?? GraphicsAdapterFactory.Default, graphicsProfiles, creationFlags, windowHandle);
+            return new GraphicsDevice(adapter ?? GraphicsAdapterFactory.DefaultAdapter, graphicsProfiles, creationFlags, windowHandle);
         }
 
         /// <summary>
@@ -328,5 +340,8 @@ namespace Stride.Graphics
         {
             Interlocked.Add(ref bufferMemory, memoryChange);
         }
+        private partial void AdjustDefaultPipelineStateDescription(ref PipelineStateDescription pipelineStateDescription);
+
+        internal partial void TagResourceAsNotAlive(GraphicsResourceLink resourceLink);
     }
 }
