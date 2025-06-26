@@ -5,6 +5,9 @@ using System;
 
 namespace Stride.Graphics;
 
+/// <summary>
+///   Describes how a <see cref="GraphicsDevice"/> will display to the screen.
+/// </summary>
 public class PresentationParameters : IEquatable<PresentationParameters>
 {
     #region Default values
@@ -22,31 +25,196 @@ public class PresentationParameters : IEquatable<PresentationParameters>
     #endregion
 
     /// <summary>
-    ///   Describess how data will be displayed to the screen.
+    ///   A <strong><see cref="PixelFormat"/></strong> specifying the display format.
     /// </summary>
     public PixelFormat BackBufferFormat;
 
+    /// <summary>
+    ///   The height of the back-buffer, in pixels.
+    /// </summary>
+    /// <remarks>
+    ///   Both <see cref="BackBufferWidth"/> and <see cref="BackBufferHeight"/>
+    ///   determine both the screen resolution (if in full-screen mode) or the window size
+    ///   (if in windowed-mode).
+    /// </remarks>
     public int BackBufferHeight;
 
+    /// <summary>
+    ///   The width of the back-buffer, in pixels.
+    /// </summary>
+    /// <remarks>
+    ///   Both <see cref="BackBufferWidth"/> and <see cref="BackBufferHeight"/>
+    ///   determine both the screen resolution (if in full-screen mode) or the window size
+    ///   (if in windowed-mode).
+    /// </remarks>
     public int BackBufferWidth;
 
+    /// <summary>
+    ///   A <strong><see cref="PixelFormat"/></strong> specifying the depth-stencil format.
+    /// </summary>
+    /// <remarks>
+    ///   <para>
+    ///     The <strong>Depth Buffer</strong> (also known as Z-buffer) is used to determine the depth of each pixel
+    ///     so close geometry correctly occludes farther geometry. The format determines the precission
+    ///     of the depth buffer.
+    ///   </para>
+    ///   <para>
+    ///     The <strong>Stencil Buffer</strong> is used to store additional information for each pixel, such as
+    ///     marking or discarding specific pixels for different effects.
+    ///   </para>
+    ///   <para>
+    ///     This format determines both because usually the stencil buffer is a part of the depth buffer
+    ///     reserved for other uses.
+    ///   </para>
+    ///   <para>
+    ///     Some examples are <see cref="PixelFormat.D24_UNorm_S8_UInt"/>, where the depth buffer uses 24 bits
+    ///     and the stencil buffer uses 8 bits, for a total of 32 bits per pixel, or
+    ///     <see cref="PixelFormat.D32_Float"/>, which uses 32 bits for the depth buffer and no bits for the stencil buffer.
+    ///   </para>
+    /// </remarks>
     public PixelFormat DepthStencilFormat;
 
+    /// <summary>
+    ///   The window object or handle where the presentation will occur.
+    /// </summary>
+    /// <remarks>
+    ///   A window object is platform-dependent:
+    ///   <list type="bullet">
+    ///     <item>
+    ///       <term>Windows Desktop</term>
+    ///       <description>
+    ///         This could be a low-level window/control handle (<see cref="IntPtr"/>), or
+    ///         directly a Windows Forms' <c>Form</c> or <c>Control</c> object.
+    ///       </description>
+    ///     </item>
+    ///     <item>
+    ///       <term>Windows Metro</term>
+    ///       <description>
+    ///         This could be a <c>SwapChainBackgroundPanel</c> or <c>SwapChainPanel</c> object.
+    ///       </description>
+    ///     </item>
+    ///   </list>
+    /// </remarks>
     public WindowHandle DeviceWindowHandle;
 
+    /// <summary>
+    ///   A value indicating whether the application must render in full-screen mode (<see langword="true"/>)
+    ///   or inside a window (<see langword="false"/>).
+    /// </summary>
     public bool IsFullScreen;
 
+    /// <summary>
+    ///   A <see cref="MultisampleCount"/> indicating the number of sample locations during multi-sampling.
+    /// </summary>
+    /// <remarks>
+    ///   <para>
+    ///     The multi-sampling is applied to the back-buffer to reduce the aliasing artifacts. This is
+    ///     known as <strong>Multi-Sampling Anti-Aliasing</strong> (MSAA).
+    ///   </para>
+    ///   <para>
+    ///     The higher the number of samples, the aliasing patterns will be less visible, but it will result
+    ///     in more memory being consumed, and costlier rasterization.
+    ///   </para>
+    ///   <para>
+    ///     If <see cref="MultisampleCount.None"/> is selected, no multi-sampling will be applied.
+    ///     Common values include <see cref="MultisampleCount.X2"/> (minimal anti-aliasing) and
+    ///     <see cref="MultisampleCount.X8"/> (high-quality anti-aliasing).
+    ///     Higher values increase GPU workload.
+    ///   </para>
+    /// </remarks>
     public MultisampleCount MultisampleCount;
 
+    /// <summary>
+    ///   A value of <see cref="PresentationInterval"/> determining the maximum rate
+    ///   at which the Swap Chain's back buffers can be presented to the front buffer.
+    /// </summary>
     public PresentInterval PresentationInterval;
 
+    /// <summary>
+    ///   The refresh rate of the screen, in hertz.
+    /// </summary>
+    /// <remarks>
+    ///   <para>
+    ///     The <strong>Refresh Rate</strong> is the number of times per second the screen is refreshed,
+    ///     i.e. the number of frames per second the monitor can display.
+    ///   </para>
+    ///   <para>
+    ///     The value is represented as a <see cref="Rational"/>, so it can represent both usual integer
+    ///     refresh rates (e.g. 60Hz) and fractional refresh rates (e.g. 59.94Hz).
+    ///   </para>
+    ///   <para>
+    ///     Usually, the refresh rate is only respected when rendering in full-screen mode (i.e. when
+    ///     <see cref="IsFullScreen"/> is set to <see langword="true"/>).
+    ///   </para>
+    ///   <para>
+    ///     Common refresh rates include 60Hz, 120Hz, and 144Hz, depending on monitor capabilities.
+    ///   </para>
+    /// </remarks>
     public Rational RefreshRate;
 
+    /// <summary>
+    ///   The index of the preferred output (monitor) to use when switching to full-screen mode.
+    /// </summary>
+    /// <remarks>
+    ///   This parameter does not have any effect when windowed mode is used
+    ///   (<see cref="IsFullScreen"/> is <see langword="false"/>).
+    /// </remarks>
     public int PreferredFullScreenOutputIndex;
 
+    /// <summary>
+    ///   The color space to use for presenting the frame to the screen.
+    /// </summary>
+    /// <remarks>
+    ///   <para>
+    ///     The <strong>Color Space</strong> defines how colors are represented and displayed on the screen.
+    ///     Common values include:
+    ///   </para>
+    ///   <list type="bullet">
+    ///     <item>
+    ///       <term><see cref="ColorSpace.Gamma"/></term>
+    ///       <description>
+    ///         It usually represents sRGB, the standard RGB color space used in most monitors and applications.
+    ///         It offers a limited range of colors suitable for general purposes.
+    ///       </description>
+    ///     </item>
+    ///     <item>
+    ///       <term><see cref="ColorSpace.Linear"/></term>
+    ///       <description>
+    ///         A linear color space suitable for high-dynamic-range color values like HDR10, supporting a wider
+    ///         range of brightness and colors. This is commonly used in modern HDR displays for enhanced image quality.
+    ///       </description>
+    ///     </item>
+    ///   </list>
+    ///   <para>
+    ///     Choosing the appropriate color space affects the visual quality of your application.
+    ///     For example, sRGB is recommended for compatibility, while HDR10 may enhance visuals in
+    ///     games or applications designed for HDR content.
+    ///   </para>
+    /// </remarks>
     public ColorSpace ColorSpace;
 
 
+    /// <summary>
+    ///   Initializes a new instance of the <see cref="PresentationParameters"/> class with default values.
+    /// </summary>
+    /// <remarks>
+    ///   The returned instance will be configured with the following default values:
+    ///   <list type="bullet">
+    ///     <item>
+    ///       A back buffer resolution of 800x480 pixels, with a 32-bits-per-pixel integer format
+    ///       (<see cref="PixelFormat.R8G8B8A8_UNorm"/>).
+    ///     </item>
+    ///     <item>
+    ///       A 24-bit integer depth buffer with an additional 8-bit stencil buffer
+    ///       (<see cref="PixelFormat.D24_UNorm_S8_UInt"/>).
+    ///     </item>
+    ///     <item>No multi-sampling.</item>
+    ///     <item>Assuming a linear color space (<see cref="ColorSpace.Linear"/>).</item>
+    ///     <item>
+    ///       A windowed presentation at 60 Hz with no V-Sync (<see cref="PresentInterval.Immediate"/>).
+    ///     </item>
+    ///   </list>
+    /// </remarks>
     public PresentationParameters()
     {
         BackBufferWidth = DefaultBackBufferWidth;
@@ -60,11 +228,28 @@ public class PresentationParameters : IEquatable<PresentationParameters>
         ColorSpace = DefaultColorSpace;
     }
 
+    /// <summary>
+    ///   Initializes a new instance of the <see cref="PresentationParameters"/> class with default values, but
+    ///   with the specified back buffer size, using <see cref="PixelFormat.R8G8B8A8_UNorm"/>, and window handle.
+    /// </summary>
+    /// <param name="backBufferWidth">The width of the back buffer, in pixels.</param>
+    /// <param name="backBufferHeight">The height of the back buffer, in pixels.</param>
+    /// <param name="windowHandle">The window handle.</param>
+    /// <seealso cref="PresentationParameters()"/>
     public PresentationParameters(int backBufferWidth, int backBufferHeight, WindowHandle windowHandle)
         : this(backBufferWidth, backBufferHeight, windowHandle, PixelFormat.R8G8B8A8_UNorm)
     {
     }
 
+    /// <summary>
+    ///   Initializes a new instance of the <see cref="PresentationParameters"/> class with default values,
+    ///   but with the specified back buffer size, pixel format, and window handle.
+    /// </summary>
+    /// <param name="backBufferWidth">The width of the back buffer, in pixels.</param>
+    /// <param name="backBufferHeight">The height of the back buffer, in pixels.</param>
+    /// <param name="backBufferFormat">The back buffer format.</param>
+    /// <param name="windowHandle">The window handle.</param>
+    /// <seealso cref="PresentationParameters()"/>
     public PresentationParameters(int backBufferWidth, int backBufferHeight, WindowHandle windowHandle, PixelFormat backBufferFormat)
         : this()
     {
@@ -75,11 +260,16 @@ public class PresentationParameters : IEquatable<PresentationParameters>
     }
 
 
+    /// <summary>
+    ///   Creates a new <see cref="PresentationParameters"/> object that is a copy of the current instance.
+    /// </summary>
+    /// <returns>A new <see cref="PresentationParameters"/> object that is a copy of this instance.</returns>
     public PresentationParameters Clone()
     {
         return (PresentationParameters) MemberwiseClone();
     }
 
+    /// <inheritdoc />
     public bool Equals(PresentationParameters other)
     {
         if (other is null)
@@ -100,67 +290,13 @@ public class PresentationParameters : IEquatable<PresentationParameters>
             && ColorSpace == other.ColorSpace;
     }
 
+    /// <inheritdoc />
     public override bool Equals(object obj)
     {
-        /// <summary>
-        ///   A <strong><see cref="SharpDX.DXGI.Format" /></strong> structure describing the display format.
-        /// </summary>
-        /// <summary>
-        ///   A value that describes the resolution height.
-        /// </summary>
-        /// <summary>
-        ///   A value that describes the resolution width.
-        /// </summary>
-        /// <summary>
-        /// Gets or sets the depth stencil format
-        /// </summary>
-        /// <summary>
-        ///   A Window object. See remarks.
-        /// </summary>
-        /// <remarks>
-        ///   A window object is platform dependent:
-        ///   <ul>
-        ///     <li>On Windows Desktop: This could a low level window/control handle (IntPtr), or directly a Winform Control object.</li>
-        ///     <li>On Windows Metro: This could be SwapChainBackgroundPanel or SwapChainPanel object.</li>
-        ///   </ul>
-        /// </remarks>
-        /// <summary>
-        ///   Gets or sets a value indicating whether the application is in full screen mode.
-        /// </summary>
-        /// <summary>
-        ///   Gets or sets a value indicating the number of sample locations during multisampling.
-        /// </summary>
-        /// <summary>
-        ///   Gets or sets the maximum rate at which the swap chain's back buffers can be presented to the front buffer.
-        /// </summary>
-        /// <summary>
-        ///   A structure describing the refresh rate in hertz
-        /// </summary>
-        /// <summary>
-        /// The output (monitor) index to use when switching to fullscreen mode. Doesn't have any effect when windowed mode is used.
-        /// </summary>
-        /// <summary>
-        /// The colorspace used.
-        /// </summary>
-        /// <summary>
-        /// Initializes a new instance of the <see cref="PresentationParameters" /> class with default values.
-        /// </summary>
-        /// <summary>
-        /// Initializes a new instance of the <see cref="PresentationParameters" /> class with <see cref="PixelFormat.R8G8B8A8_UNorm"/>.
-        /// </summary>
-        /// <param name="backBufferWidth">Width of the back buffer.</param>
-        /// <param name="backBufferHeight">Height of the back buffer.</param>
-        /// <param name="deviceWindowHandle">The device window handle.</param>
-        /// <summary>
-        /// Initializes a new instance of the <see cref="PresentationParameters" /> class.
-        /// </summary>
-        /// <param name="backBufferWidth">Width of the back buffer.</param>
-        /// <param name="backBufferHeight">Height of the back buffer.</param>
-        /// <param name="deviceWindowHandle">The device window handle.</param>
-        /// <param name="backBufferFormat">The back buffer format.</param>
         return obj is PresentationParameters parameters && Equals(parameters);
     }
 
+    /// <inheritdoc />
     public override int GetHashCode()
     {
         var hash = new HashCode();
