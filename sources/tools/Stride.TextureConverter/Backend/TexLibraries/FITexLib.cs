@@ -1,17 +1,17 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 using System;
-using System.Collections.Generic;
-using System.Runtime.InteropServices;
 using System.IO;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+
+using FreeImageAPI;
 
 using Stride.Core;
 using Stride.Core.Diagnostics;
 using Stride.Graphics;
 using Stride.TextureConverter.Requests;
-using FreeImageAPI;
-using FreeImageAPI.Plugins;
-using System.Runtime.CompilerServices;
 
 namespace Stride.TextureConverter.TexLibraries
 {
@@ -256,12 +256,12 @@ namespace Stride.TextureConverter.TexLibraries
             image.Dimension = image.Height == 1 ? TexImage.TextureDimension.Texture1D : TexImage.TextureDimension.Texture2D;
             image.Format = loader.LoadAsSRgb? Graphics.PixelFormat.B8G8R8A8_UNorm_SRgb : Graphics.PixelFormat.B8G8R8A8_UNorm;
             image.OriginalAlphaDepth = alphaSize;
-            
+
             int rowPitch, slicePitch;
             Tools.ComputePitch(image.Format, image.Width, image.Height, out rowPitch, out slicePitch);
             image.RowPitch = rowPitch;
             image.SlicePitch = slicePitch;
-            
+
             //Only one image in the SubImageArray, FreeImage is only used to load images, not textures.
             image.SubImageArray[0].Data = image.Data;
             image.SubImageArray[0].DataSize = image.DataSize;
@@ -349,7 +349,7 @@ namespace Stride.TextureConverter.TexLibraries
 
             int rowPitch, slicePitch;
             Tools.ComputePitch(image.Format, width, height, out rowPitch, out slicePitch);
-            
+
             image.RowPitch = rowPitch;
             image.SlicePitch = slicePitch;
             image.MipmapCount = 1;
@@ -382,7 +382,7 @@ namespace Stride.TextureConverter.TexLibraries
             }
 
             if (image.Format.IsBgraOrder())
-                image.Format = PixelFormat.R8G8B8A8_UNorm;
+                image.Format = Graphics.PixelFormat.R8G8B8A8_UNorm;
             else
                 image.Format = Graphics.PixelFormat.B8G8R8A8_UNorm;
         }

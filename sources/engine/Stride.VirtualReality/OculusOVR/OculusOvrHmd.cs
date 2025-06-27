@@ -56,7 +56,7 @@ namespace Stride.VirtualReality
             ovrSession = OculusOvr.CreateSessionDx(out adapterId);
             //Game.GraphicsDeviceManager.RequiredAdapterUid = adapterId.ToString(); //should not be needed
 
-            if (!OculusOvr.CreateTexturesDx(ovrSession, (IntPtr) device.NativeDevice, out var texturesCount, RenderFrameScaling, requireMirror ? mirrorWidth : 0, requireMirror ? mirrorHeight : 0))
+            if (!OculusOvr.CreateTexturesDx(ovrSession, (nint) device.NativeDevice.Handle, out var texturesCount, RenderFrameScaling, requireMirror ? mirrorWidth : 0, requireMirror ? mirrorHeight : 0))
             {
                 throw new Exception(OculusOvr.GetError());
             }

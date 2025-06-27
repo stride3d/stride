@@ -3,18 +3,14 @@
 
 #if STRIDE_GRAPHICS_API_DIRECT3D11 || STRIDE_GRAPHICS_API_DIRECT3D12
 
-using System;
-using System.Diagnostics;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
+
 using Silk.NET.Core.Native;
 #if STRIDE_GRAPHICS_API_DIRECT3D11
 using Silk.NET.Direct3D11;
 #elif STRIDE_GRAPHICS_API_DIRECT3D12
 using Silk.NET.Direct3D12;
 #endif
-using Silk.NET.DXGI;
-using Stride.Core;
 
 namespace Stride.Graphics;
 
@@ -65,6 +61,22 @@ internal static unsafe class ComPtrHelpers
         where T : unmanaged, IComVtbl<T>
     {
         return comPtr.Handle != null;
+    }
+
+    /// <summary>
+    ///  Indicates whether two COM pointers are equal (i.e. point to the same COM object).
+    /// </summary>
+    /// <typeparam name="T">The type of the COM pointer.</typeparam>
+    /// <param name="left">The first COM pointer to compare.</param>
+    /// <param name="right">The second COM pointer to compare.</param>
+    /// <returns>
+    ///   <see langword="true"/> if the two COM pointer are equal; otherwise, <see langword="false"/>.
+    /// </returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool EqualsComPtr<T>(this ComPtr<T> left, ComPtr<T> right)
+        where T : unmanaged, IComVtbl<T>
+    {
+        return left.Handle == right.Handle;
     }
 
     /// <summary>

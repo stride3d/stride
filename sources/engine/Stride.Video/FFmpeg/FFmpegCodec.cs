@@ -134,13 +134,13 @@ namespace Stride.Video.FFmpeg
 #if STRIDE_GRAPHICS_API_DIRECT3D11
         private void CreateHarwareAccelerationContext(GraphicsDevice graphicsDevice, AVCodecContext* pAVCodecContext, AVCodec* pCodec)
         {
-            if (graphicsDevice is null || graphicsDevice.NativeDevice == null || graphicsDevice.NativeDeviceContext == null)
+            if (graphicsDevice is null || graphicsDevice.NativeDevice.IsNull() || graphicsDevice.NativeDeviceContext.IsNull())
                 return;
 
-            graphicsDevice.NativeDevice->QueryInterface(out ComPtr<ID3D11VideoDevice1> videoDevice);
-            graphicsDevice.NativeDeviceContext->QueryInterface(out ComPtr<ID3D11VideoContext1> videoContext);
+            graphicsDevice.NativeDevice.QueryInterface(out ComPtr<ID3D11VideoDevice1> videoDevice);
+            graphicsDevice.NativeDeviceContext.QueryInterface(out ComPtr<ID3D11VideoContext1> videoContext);
 
-            if (videoDevice.Handle == null || videoContext.Handle == null)
+            if (videoDevice.IsNull() || videoContext.IsNull())
                 return;
 
             foreach (var profile in FindVideoFormatCompatibleProfiles(videoDevice))
