@@ -1,3 +1,6 @@
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 using System;
 using System.Collections.Generic;
 using Stride.Core;
@@ -81,7 +84,7 @@ namespace Stride.Video
             if (originalTargetTexture == newTargetTexture) // the target content is already set to the video stream
                 return;  // -> nothing to do
 
-            if (originalTargetTexture != null) // the target Texture changed, we need to revert the previous one 
+            if (originalTargetTexture != null) // the target Texture changed, we need to revert the previous one
                 SetTargetContentToOriginalPlaceholder();
 
             if (newTargetTexture == null)
@@ -108,8 +111,8 @@ namespace Stride.Video
         {
             // "videoComponent.Target" contains the mip mapped video texture at this point.
             // We now copy the new video frame directly into the video texture's first mip level:
-            var dataPointer = new Span<byte>((void*)image.Buffer, image.BufferSize);
-            renderTargetMipMaps[0].SetData(context.CommandList, dataPointer, 0, 0);
+            var dataPointer = new ReadOnlySpan<byte>((void*)image.Buffer, image.BufferSize);
+            renderTargetMipMaps[0].SetData(context.CommandList, dataPointer, arrayIndex: 0, mipLevel: 0);
         }
 
         public void CopyDecoderOutputToTopLevelMipmap(GraphicsContext context, Texture decoderOutputTexture)
