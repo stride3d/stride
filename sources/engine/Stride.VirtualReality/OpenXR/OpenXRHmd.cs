@@ -203,6 +203,8 @@ namespace Stride.VirtualReality
             renderSize.Width = (int)Math.Round(viewconfig_views[0].RecommendedImageRectWidth * RenderFrameScaling) * 2; // 2 views in one frame
             renderSize.Height = (int)Math.Round(viewconfig_views[0].RecommendedImageRectHeight * RenderFrameScaling);
 
+            SessionCreateInfo session_create_info;
+
 #if STRIDE_GRAPHICS_API_DIRECT3D11
             Logger.Debug("Initializing DX11 graphics device: ");
             var dx11 = new GraphicsRequirementsD3D11KHR { Type = StructureType.GraphicsRequirementsD3D11Khr };
@@ -224,7 +226,7 @@ namespace Stride.VirtualReality
                 Device = baseDevice.NativeDevice,
                 Next = null
             };
-            var session_create_info= new SessionCreateInfo()
+            session_create_info = new SessionCreateInfo()
             {
                 Type = StructureType.SessionCreateInfo,
                 Next = &graphics_binding_dx11,
@@ -294,7 +296,7 @@ namespace Stride.VirtualReality
                 };
 
                 ID3D11RenderTargetView* rtv;
-                HResult result = baseDevice.NativeDevice->CreateRenderTargetView((ID3D11Resource*) texture, target_desc, &rtv);
+                HResult result = baseDevice.NativeDevice.CreateRenderTargetView((ID3D11Resource*) texture, target_desc, &rtv);
 
                 if (result.IsFailure)
                     result.Throw();
@@ -552,16 +554,16 @@ namespace Stride.VirtualReality
             if (swapImageCollected)
             {
 #if STRIDE_GRAPHICS_API_DIRECT3D11
-                Debug.Assert(commandList.NativeDeviceContext == baseDevice.NativeDeviceContext);
+                Debug.Assert(commandList.NativeDeviceContext.EqualsComPtr(baseDevice.NativeDeviceContext));
 
                 // Logger.Warning("Blit render target");
                 ID3D11Resource* renderFrameResource;
-                renderFrame.NativeRenderTargetView->GetResource(&renderFrameResource);
+                renderFrame.NativeRenderTargetView.GetResource(&renderFrameResource);
 
                 ID3D11Resource* swapChainRenderTargetResource;
                 render_targets[swapchainPointer]->GetResource(&swapChainRenderTargetResource);
 
-                baseDevice.NativeDeviceContext->CopyResource(renderFrameResource, swapChainRenderTargetResource);
+                baseDevice.NativeDeviceContext.CopyResource(renderFrameResource, swapChainRenderTargetResource);
 #endif
 
                 // Release the swapchain image

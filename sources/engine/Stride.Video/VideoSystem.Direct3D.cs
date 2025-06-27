@@ -28,7 +28,7 @@ namespace Stride.Video
             DxgiDeviceManager.ResetDevice(d3d11DeviceSharpDX);
 
             // Add multi-thread protection on the device
-            HResult result = graphicsDevice.NativeDevice->QueryInterface(out ComPtr<ID3D11Multithread> multiThread);
+            HResult result = graphicsDevice.NativeDevice.QueryInterface(out ComPtr<ID3D11Multithread> multiThread);
 
             if (result.IsFailure)
                 result.Throw();

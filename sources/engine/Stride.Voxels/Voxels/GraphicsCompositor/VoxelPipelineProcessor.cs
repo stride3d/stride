@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Sean Boettger <sean@whypenguins.com>
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Sean Boettger <sean@whypenguins.com>
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -27,7 +27,7 @@ namespace Stride.Rendering.Voxels
                 pipelineState.DepthStencilState.StencilEnable = false;
                 pipelineState.DepthStencilState.StencilWriteMask = 0;
                 pipelineState.DepthStencilState.StencilMask = 0;
-                pipelineState.BlendState.RenderTarget0.BlendEnable = false;
+                pipelineState.BlendState.RenderTargets[0].BlendEnable = false;
                 pipelineState.BlendState.IndependentBlendEnable = false;
             }
         }

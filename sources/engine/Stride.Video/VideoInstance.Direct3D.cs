@@ -10,6 +10,7 @@ using System.Runtime.CompilerServices;
 using SharpDX.MediaFoundation;
 using Silk.NET.Core.Native;
 using Silk.NET.DXGI;
+using Silk.NET.Direct3D11;
 using Stride.Core;
 using Stride.Core.Serialization;
 using Stride.Graphics;
@@ -213,7 +214,7 @@ namespace Stride.Video
             //Get DXGI surface to be used by our media engine
             videoOutputTexture = Texture.New2D(GraphicsDevice, videoWidth, videoHeight, 1, PixelFormat.B8G8R8A8_UNorm, TextureFlags.ShaderResource | TextureFlags.RenderTarget);
 
-            HResult result = videoOutputTexture.NativeResource->QueryInterface(out ComPtr<IDXGISurface> outputSurface);
+            HResult result = videoOutputTexture.NativeResource.QueryInterface(out ComPtr<IDXGISurface> outputSurface);
 
             if (result.IsFailure)
                 result.Throw();
