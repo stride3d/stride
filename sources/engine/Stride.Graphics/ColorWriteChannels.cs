@@ -8,7 +8,7 @@ using Stride.Core;
 namespace Stride.Graphics;
 
 /// <summary>
-///   Identifies which components of each pixel of a Render Target can be written during blending.
+///   Identifies which components of each pixel of a Render Target can be written to during blending.
 /// </summary>
 /// <remarks>
 ///   These flags can be combined with a bitwise OR and set in <see cref="BlendStateDescription"/> and <see cref="BlendStateRenderTargetDescription"/>.

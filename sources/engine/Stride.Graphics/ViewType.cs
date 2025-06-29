@@ -23,8 +23,6 @@
 
 namespace Stride.Graphics;
 
-// TODO: The [Nuaj by Patapom] URL is broken
-
 /// <summary>
 ///   Defines what sub-resources (mip-levels, array elements) from a <see cref="GraphicsResource"/> are
 ///   selected by a View.
