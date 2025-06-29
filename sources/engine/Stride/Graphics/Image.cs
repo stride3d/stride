@@ -264,17 +264,32 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        /// Registers a loader/saver for a specified image file type.
+        ///   Registers a loader / saver for a specified Image file type.
         /// </summary>
-        /// <param name="type">The file type (use integer and explicit casting to <see cref="ImageFileType"/> to register other fileformat.</param>
-        /// <param name="loader">The loader delegate (can be null).</param>
-        /// <param name="saver">The saver delegate (can be null).</param>
-        /// <exception cref="ArgumentException"></exception>
-        public static void Register(ImageFileType type, ImageLoadDelegate loader, ImageSaveDelegate saver)
+        /// <param name="type">
+        ///   The file type. Use an integer and explicit casting to <see cref="ImageFileType"/> to register other file formats.
+        /// </param>
+        /// <param name="loader">
+        ///   A delegate that will be invoked to load an Image of the specified <paramref name="type"/>.
+        ///   Specify <see langword="null"/> to register no loading delegate for this type.
+        /// </param>
+        /// <param name="saver">
+        ///   A delegate that will be invoked to save an Image of the specified <paramref name="type"/>.
+        ///   Specify <see langword="null"/> to register no saving delegate for this type.
+        /// </param>
+        /// <exception cref="ArgumentNullException">
+        ///   The application can register a <paramref name="loader"/> (and set the <paramref name="saver"/> to <see langword="null"/>),
+        ///   or a <paramref name="saver"/> (and set the <paramref name="loader"/> to <see langword="null"/>), or both,
+        ///   but <strong>cannot set both of them to <see langword="null"/></strong>.
+        /// </exception>
+        /// <remarks>
+        ///   Not both <paramref name="loader"/> and <paramref name="saver"/> have to be specified. But at least one of them
+        ///   must be (i.e. not both of them can be <see langword="null"/>).
+        /// </remarks>
+        public static void Register(ImageFileType type, ImageLoadDelegate? loader, ImageSaveDelegate? saver)
         {
-            // If reference equals, then it is null
-            if (ReferenceEquals(loader, saver))
-                throw new ArgumentNullException("loader/saver", "Can set both loader and saver to null");
+            if (loader is null && ReferenceEquals(loader, saver))
+                throw new ArgumentNullException($"{nameof(loader)}/{nameof(saver)}", $"Cannot set both '{nameof(loader)}' and '{nameof(saver)}' to null");
 
             var newDelegate = new LoadSaveDelegate(type, loader, saver);
             for (int i = 0; i < loadSaveDelegates.Count; i++)

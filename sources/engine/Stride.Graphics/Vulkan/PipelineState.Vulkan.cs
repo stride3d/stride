@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using Vortice.Vulkan;
 using static Vortice.Vulkan.Vulkan;
 using Stride.Shaders;

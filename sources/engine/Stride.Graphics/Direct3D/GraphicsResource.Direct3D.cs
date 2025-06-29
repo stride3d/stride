@@ -33,12 +33,12 @@ public abstract unsafe partial class GraphicsResource
 
         if (IsDebugMode)
         {
-            if (shaderResourceView != null)
+            if (shaderResourceView is not null)
             {
                 using var srv = shaderResourceView->QueryInterface<ID3D11DeviceChild>();
                 srv.SetDebugName(Name is null ? null : $"{Name} SRV");
             }
-            if (unorderedAccessView != null)
+            if (unorderedAccessView is not null)
             {
                 using var uav = unorderedAccessView->QueryInterface<ID3D11DeviceChild>();
                 uav.SetDebugName(Name is null ? null : $"{Name} UAV");

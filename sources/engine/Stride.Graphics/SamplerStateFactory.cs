@@ -29,7 +29,7 @@ public class SamplerStateFactory : GraphicsResourceFactoryBase
         {
             var description = new SamplerStateDescription(filter, addressMode);
             var samplerState = SamplerState.New(device, description).DisposeBy(this);
-            AnisotropicClamp.Name = name;
+            samplerState.Name = name;
             return samplerState;
         }
     }

@@ -20,7 +20,7 @@ public unsafe partial class QueryPool
     ///   If any of the references is going to be kept, use <see cref="ComPtr{T}.AddRef()"/> to increment the internal
     ///   reference count, and <see cref="ComPtr{T}.Dispose()"/> when no longer needed to release the object.
     /// </remarks>
-    internal Span<ComPtr<ID3D11Query>> NativeQueries => nativeQueries;
+    internal ReadOnlySpan<ComPtr<ID3D11Query>> NativeQueries => nativeQueries;
 
 
     /// <summary>

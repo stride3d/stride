@@ -11,7 +11,7 @@ namespace Stride.Graphics;
 /// </summary>
 /// <seealso cref="PipelineState"/>
 /// <seealso cref="PipelineStateDescription"/>
-internal readonly struct PipelineStateDescriptionWithHash(in PipelineStateDescription state) : IEquatable<PipelineStateDescriptionWithHash>
+internal readonly struct PipelineStateDescriptionWithHash(PipelineStateDescription state) : IEquatable<PipelineStateDescriptionWithHash>
 {
     public readonly int Hash = state.GetHashCode();
     public readonly PipelineStateDescription State = state;

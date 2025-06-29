@@ -23,7 +23,7 @@ public partial class PipelineState : GraphicsResourceBase
     /// <param name="graphicsDevice">The Graphics Device.</param>
     /// <param name="pipelineStateDescription">A description of the desired graphics pipeline configuration.</param>
     /// <returns>A new instance of <see cref="PipelineState"/>.</returns>
-    public static PipelineState New(GraphicsDevice graphicsDevice, in PipelineStateDescription pipelineStateDescription)
+    public static PipelineState New(GraphicsDevice graphicsDevice, PipelineStateDescription pipelineStateDescription)
     {
         // Hash the current state
         var hashedState = new PipelineStateDescriptionWithHash(pipelineStateDescription);

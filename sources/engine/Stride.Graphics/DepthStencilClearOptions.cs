@@ -13,6 +13,11 @@ namespace Stride.Graphics;
 public enum DepthStencilClearOptions
 {
     /// <summary>
+    ///   Neither the Depth Buffer nor the Stencil Buffer will be cleared.
+    /// </summary>
+    None = 0,
+
+    /// <summary>
     ///   Selects the Depth Buffer.
     /// </summary>
     DepthBuffer = 1,

@@ -169,7 +169,7 @@ namespace Stride.Shaders.Compiler.Direct3D
             /// </summary>
             static string GetTextFromBlob(ID3D10Blob* blob)
             {
-                return blob != null
+                return blob is not null
                     ? blob->Buffer.As<byte, sbyte>().GetString()
                     : null;
             }
@@ -243,7 +243,7 @@ namespace Stride.Shaders.Compiler.Direct3D
 
                 }
 
-                if (linkKeyName == null)
+                if (linkKeyName is null)
                 {
                     log.Error($"Resource [{resourceName}] has no link");
                 }
@@ -298,19 +298,20 @@ namespace Stride.Shaders.Compiler.Direct3D
 
                 case D3DShaderInputType.D3DSitTexture:
                     paramClass = EffectParameterClass.ShaderResourceView;
-                    switch (bindingDescriptionRaw.Dimension)
+                    paramType = bindingDescriptionRaw.Dimension switch
                     {
-                        case D3DSrvDimension.D3DSrvDimensionBuffer:           paramType = EffectParameterType.Buffer;                     break;
-                        case D3DSrvDimension.D3DSrvDimensionTexture1D:        paramType = EffectParameterType.Texture1D;                  break;
-                        case D3DSrvDimension.D3DSrvDimensionTexture1Darray:   paramType = EffectParameterType.Texture1DArray;             break;
-                        case D3DSrvDimension.D3DSrvDimensionTexture2D:        paramType = EffectParameterType.Texture2D;                  break;
-                        case D3DSrvDimension.D3DSrvDimensionTexture2Darray:   paramType = EffectParameterType.Texture2DArray;             break;
-                        case D3DSrvDimension.D3DSrvDimensionTexture2Dms:      paramType = EffectParameterType.Texture2DMultisampled;      break;
-                        case D3DSrvDimension.D3DSrvDimensionTexture2Dmsarray: paramType = EffectParameterType.Texture2DMultisampledArray; break;
-                        case D3DSrvDimension.D3DSrvDimensionTexture3D:        paramType = EffectParameterType.Texture3D;                  break;
-                        case D3DSrvDimension.D3DSrvDimensionTexturecube:      paramType = EffectParameterType.TextureCube;                break;
-                        case D3DSrvDimension.D3DSrvDimensionTexturecubearray: paramType = EffectParameterType.TextureCubeArray;           break;
-                    }
+                        D3DSrvDimension.D3DSrvDimensionBuffer => EffectParameterType.Buffer,
+                        D3DSrvDimension.D3DSrvDimensionTexture1D => EffectParameterType.Texture1D,
+                        D3DSrvDimension.D3DSrvDimensionTexture1Darray => EffectParameterType.Texture1DArray,
+                        D3DSrvDimension.D3DSrvDimensionTexture2D => EffectParameterType.Texture2D,
+                        D3DSrvDimension.D3DSrvDimensionTexture2Darray => EffectParameterType.Texture2DArray,
+                        D3DSrvDimension.D3DSrvDimensionTexture2Dms => EffectParameterType.Texture2DMultisampled,
+                        D3DSrvDimension.D3DSrvDimensionTexture2Dmsarray => EffectParameterType.Texture2DMultisampledArray,
+                        D3DSrvDimension.D3DSrvDimensionTexture3D => EffectParameterType.Texture3D,
+                        D3DSrvDimension.D3DSrvDimensionTexturecube => EffectParameterType.TextureCube,
+                        D3DSrvDimension.D3DSrvDimensionTexturecubearray => EffectParameterType.TextureCubeArray,
+                        _ => EffectParameterType.Void
+                    };
                     break;
 
                 case D3DShaderInputType.D3DSitStructured:
@@ -325,15 +326,16 @@ namespace Stride.Shaders.Compiler.Direct3D
 
                 case D3DShaderInputType.D3DSitUavRwtyped:
                     paramClass = EffectParameterClass.UnorderedAccessView;
-                    switch (bindingDescriptionRaw.Dimension)
+                    paramType = bindingDescriptionRaw.Dimension switch
                     {
-                        case D3DSrvDimension.D3DSrvDimensionBuffer:         paramType = EffectParameterType.RWBuffer;         break;
-                        case D3DSrvDimension.D3DSrvDimensionTexture1D:      paramType = EffectParameterType.RWTexture1D;      break;
-                        case D3DSrvDimension.D3DSrvDimensionTexture1Darray: paramType = EffectParameterType.RWTexture1DArray; break;
-                        case D3DSrvDimension.D3DSrvDimensionTexture2D:      paramType = EffectParameterType.RWTexture2D;      break;
-                        case D3DSrvDimension.D3DSrvDimensionTexture2Darray: paramType = EffectParameterType.RWTexture2DArray; break;
-                        case D3DSrvDimension.D3DSrvDimensionTexture3D:      paramType = EffectParameterType.RWTexture3D;      break;
-                    }
+                        D3DSrvDimension.D3DSrvDimensionBuffer => EffectParameterType.RWBuffer,
+                        D3DSrvDimension.D3DSrvDimensionTexture1D => EffectParameterType.RWTexture1D,
+                        D3DSrvDimension.D3DSrvDimensionTexture1Darray => EffectParameterType.RWTexture1DArray,
+                        D3DSrvDimension.D3DSrvDimensionTexture2D => EffectParameterType.RWTexture2D,
+                        D3DSrvDimension.D3DSrvDimensionTexture2Darray => EffectParameterType.RWTexture2DArray,
+                        D3DSrvDimension.D3DSrvDimensionTexture3D => EffectParameterType.RWTexture3D,
+                        _ => EffectParameterType.Void
+                    };
                     break;
 
                 case D3DShaderInputType.D3DSitUavRwstructured:
@@ -564,20 +566,19 @@ namespace Stride.Shaders.Compiler.Direct3D
 
         private static int ComputeTypeSize(EffectParameterType type)
         {
-            switch (type)
+            return type switch
             {
-                case EffectParameterType.Bool:
-                case EffectParameterType.Float:
-                case EffectParameterType.Int:
-                case EffectParameterType.UInt:
-                    return 4;
-                case EffectParameterType.Double:
-                    return 8;
-                case EffectParameterType.Void:
-                    return 0;
-                default:
-                    throw new NotImplementedException();
-            }
+                EffectParameterType.Bool or
+                EffectParameterType.Float or
+                EffectParameterType.Int or
+                EffectParameterType.UInt => 4,
+
+                EffectParameterType.Double => 8,
+
+                EffectParameterType.Void => 0,
+
+                _ => throw new NotImplementedException()
+            };
         }
 
         private static string ShaderStageToString(ShaderStage stage)
@@ -610,24 +611,30 @@ namespace Stride.Shaders.Compiler.Direct3D
             };
         }
 
-        private static readonly Dictionary<D3DShaderVariableType, EffectParameterType> MapTypes = new()
+        private static EffectParameterType ConvertVariableValueType(D3DShaderVariableType type, LoggerResult log)
         {
-            { D3DShaderVariableType.D3DSvtVoid   , EffectParameterType.Void   },
-            { D3DShaderVariableType.D3DSvtBool   , EffectParameterType.Bool   },
-            { D3DShaderVariableType.D3DSvtInt    , EffectParameterType.Int    },
-            { D3DShaderVariableType.D3DSvtFloat  , EffectParameterType.Float  },
-            { D3DShaderVariableType.D3DSvtUint   , EffectParameterType.UInt   },
-            { D3DShaderVariableType.D3DSvtUint8  , EffectParameterType.UInt8  },
-            { D3DShaderVariableType.D3DSvtDouble , EffectParameterType.Double },
-        };
-
-        private EffectParameterType ConvertVariableValueType(D3DShaderVariableType type, LoggerResult log)
-        {
-            if (!MapTypes.TryGetValue(type, out var effectParameterType))
+            if (MapType(type) is not EffectParameterType effectParameterType)
             {
                 log.Error($"Type [{type}] from D3DCompiler not supported");
+                return default;
             }
-            return effectParameterType;
+            else return effectParameterType;
+
+            static EffectParameterType? MapType(D3DShaderVariableType type)
+            {
+                return type switch
+                {
+                    D3DShaderVariableType.D3DSvtVoid => EffectParameterType.Void,
+                    D3DShaderVariableType.D3DSvtBool => EffectParameterType.Bool,
+                    D3DShaderVariableType.D3DSvtInt => EffectParameterType.Int,
+                    D3DShaderVariableType.D3DSvtFloat => EffectParameterType.Float,
+                    D3DShaderVariableType.D3DSvtUint => EffectParameterType.UInt,
+                    D3DShaderVariableType.D3DSvtUint8 => EffectParameterType.UInt8,
+                    D3DShaderVariableType.D3DSvtDouble => EffectParameterType.Double,
+
+                    _ => null
+                };
+            }
         }
     }
 }
