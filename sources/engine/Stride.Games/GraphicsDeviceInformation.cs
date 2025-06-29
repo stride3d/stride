@@ -87,7 +87,7 @@ public class GraphicsDeviceInformation : IEquatable<GraphicsDeviceInformation>
     public override bool Equals(object? obj)
     {
         // TODO: Can GraphicsDeviceInformation be sealed? (No GetType())
-        return obj?.GetType() != GetType() && Equals((GraphicsDeviceInformation) obj);
+        return obj?.GetType() == GetType() && Equals((GraphicsDeviceInformation) obj);
     }
 
     /// <inheritdoc/>

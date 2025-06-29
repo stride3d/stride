@@ -30,21 +30,6 @@ namespace Stride.Graphics
 {
     internal class ColorHelper
     {
-        //public static unsafe RawColor4 Convert(Color4 color)
-        //{
-        //    return *(RawColor4*)&color;
-        //}
-
-        //public static unsafe Color4 Convert(RawColor4 color)
-        //{
-        //    return *(Color4*)&color;
-        //}
-
-        //public static unsafe RawVector4 ConvertToVector4(Color4 color)
-        //{
-        //    return *(RawVector4*)&color;
-        //}
-
 #if STRIDE_GRAPHICS_API_DIRECT3D12
         public static unsafe Silk.NET.Direct3D12.StaticBorderColor ConvertToStaticBorderColor(Color4 color)
         {
