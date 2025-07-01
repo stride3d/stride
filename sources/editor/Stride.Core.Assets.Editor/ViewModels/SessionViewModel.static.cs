@@ -98,7 +98,7 @@ partial class SessionViewModel
         actionService.Resize(200);
 
         // And initialize the actions view model
-        sessionViewModel.ActionHistory?.Initialize();
+        sessionViewModel?.ActionHistory?.Initialize();
 
         // Copy the result of the asset loading to the log panel.
         sessionViewModel?.AssetLog.AddLogger(LogKey.Get("Session"), sessionResult);

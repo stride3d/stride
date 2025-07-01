@@ -29,6 +29,7 @@
 
   <Grid RowDefinitions="Auto, *, 25"
         Background="Transparent">
+    <!-- Menus -->
     <Menu Grid.Row="0" Grid.Column="0"
           VerticalAlignment="Top">
       <!-- File menu -->
@@ -86,6 +87,8 @@
                   Command="{Binding CrashCommand}"/>
       </MenuItem>
     </Menu>
+
+    <!-- Session area -->
     <Grid Grid.Row="1"
           RowDefinitions="2*, 2, *">
       <Grid Grid.Row="0"
@@ -169,10 +172,12 @@
           </TabItem>
           <TabItem Header="References">
             <DockPanel>
-              <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
+              <!-- Toolbar -->
+              <sd:ToolBar DockPanel.Dock="Top">
                 <ToggleButton IsChecked="{Binding !Session.References.ShowReferencers}" Content="{sd:LocalizeString References}" MinWidth="80"/>
                 <ToggleButton IsChecked="{Binding Session.References.ShowReferencers}" Content="{sd:LocalizeString Referenced by}" MinWidth="80"/>
-              </StackPanel>
+              </sd:ToolBar>
+              <!-- Asset references -->
               <Border DockPanel.Dock="Bottom"
                       Padding="8,4">
                 <TextBlock Text="{Binding Session.References.TypeCountersAsText}"
@@ -213,7 +218,7 @@
       </Grid>
     </Grid>
 
-    <!-- Status Bar -->
+    <!-- Status bar -->
     <Grid Grid.Row="2"
           IsVisible="{Binding Session, Converter={sd:ObjectToBool}}"
           ColumnDefinitions="2*, Auto, *, Auto, *, 100">
