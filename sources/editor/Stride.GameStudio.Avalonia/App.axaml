@@ -50,5 +50,6 @@
     <StyleInclude Source="avares://Stride.Core.Presentation.Avalonia/Themes/EditorStyles.axaml"/>
     <StyleInclude Source="avares://Stride.Core.Presentation.Avalonia/Themes/HyperlinkStyle.axaml"/>
     <StyleInclude Source="avares://Stride.Core.Presentation.Avalonia/Themes/TextLogViewerStyle.axaml"/>
+    <StyleInclude Source="avares://Stride.Core.Presentation.Avalonia/Themes/ToolBarStyle.axaml"/>
   </Application.Styles>
 </Application>

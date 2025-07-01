@@ -173,10 +173,10 @@
           <TabItem Header="References">
             <DockPanel>
               <!-- Toolbar -->
-              <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
+              <sd:ToolBar DockPanel.Dock="Top">
                 <ToggleButton IsChecked="{Binding !Session.References.ShowReferencers}" Content="{sd:LocalizeString References}" MinWidth="80"/>
                 <ToggleButton IsChecked="{Binding Session.References.ShowReferencers}" Content="{sd:LocalizeString Referenced by}" MinWidth="80"/>
-              </StackPanel>
+              </sd:ToolBar>
               <!-- Asset references -->
               <Border DockPanel.Dock="Bottom"
                       Padding="8,4">
