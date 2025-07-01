@@ -212,7 +212,9 @@ namespace Stride.Games
         /// <param name="isReallyFullscreen"></param>
         internal void SetIsReallyFullscreen(bool isReallyFullscreen)
         {
+            #if !STRIDE_GRAPHICS_API_OPENGL && !STRIDE_GRAPHICS_API_VULKAN
             isFullscreen = isReallyFullscreen;
+            #endif
         }
 
         #endregion
