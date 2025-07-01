@@ -11,7 +11,7 @@ namespace Stride.Graphics;
 ///   This includes Shaders, input layout, Render States, and output settings.
 /// </summary>
 /// <seealso cref="PipelineState"/>
-public class PipelineStateDescription : IEquatable<PipelineStateDescription>
+public sealed class PipelineStateDescription : IEquatable<PipelineStateDescription>
 {
     // Root Signature
 

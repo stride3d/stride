@@ -13,7 +13,7 @@ namespace Stride.Shaders;
 ///   A collection associating the Shader source URLs and their corresponding <see cref="ObjectId"/>s.
 /// </summary>
 [DataContract]
-public class HashSourceCollection : Dictionary<string, ObjectId>, IEquatable<HashSourceCollection>
+public sealed class HashSourceCollection : Dictionary<string, ObjectId>, IEquatable<HashSourceCollection>
 {
     /// <summary>
     ///   Initializes a new instance of the <see cref="HashSourceCollection"/> class.

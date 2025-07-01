@@ -14,7 +14,7 @@ namespace Stride.Graphics;
 /// </summary>
 [DataContract]
 [DataSerializer(typeof(Serializer))]
-public class VertexDeclaration : IEquatable<VertexDeclaration>
+public sealed class VertexDeclaration : IEquatable<VertexDeclaration>
 {
     private readonly VertexElement[] elements;
     private readonly int instanceCount;  // TODO: InstanceCount is not used in any place. Consider removing it or using it in a meaningful way

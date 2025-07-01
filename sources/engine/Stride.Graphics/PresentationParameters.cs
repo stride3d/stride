@@ -8,7 +8,7 @@ namespace Stride.Graphics;
 /// <summary>
 ///   Describes how a <see cref="GraphicsDevice"/> will display to the screen.
 /// </summary>
-public class PresentationParameters : IEquatable<PresentationParameters>
+public sealed class PresentationParameters : IEquatable<PresentationParameters>
 {
     #region Default values
 
