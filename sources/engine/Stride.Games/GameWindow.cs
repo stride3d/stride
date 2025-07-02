@@ -206,17 +206,6 @@ namespace Stride.Games
             }
         }
 
-        /// <summary>
-        /// Allow the GraphicsDeviceManager to set the actual window state after applying the device changes.
-        /// </summary>
-        /// <param name="isReallyFullscreen"></param>
-        internal void SetIsReallyFullscreen(bool isReallyFullscreen)
-        {
-            #if !STRIDE_GRAPHICS_API_OPENGL && !STRIDE_GRAPHICS_API_VULKAN
-            isFullscreen = isReallyFullscreen;
-            #endif
-        }
-
         #endregion
 
         #region Public Methods and Operators
