@@ -1,6 +1,10 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+// This source file is adapted from the Windows Presentation Foundation project. 
+// (https://github.com/dotnet/wpf/)
+// Licensed under MIT license, courtesy of The .NET Foundation.
+
 using System.Collections.ObjectModel;
 using Avalonia;
 using Avalonia.Controls;
@@ -19,13 +23,16 @@ public sealed class ToolBarTray : Control, IAddChild<ToolBar>
 
     static ToolBarTray()
     {
-        OrientationProperty.Changed.AddClassHandler<ToolBarTray>((tray, _) =>
+        OrientationProperty.Changed.AddClassHandler<ToolBarTray>(OnOrientationChanged);
+        return;
+
+        static void OnOrientationChanged(ToolBarTray tray, AvaloniaPropertyChangedEventArgs _)
         {
             foreach (var toolBar in tray.ToolBars)
             {
                 toolBar.CoerceValue(ToolBar.OrientationProperty);
             }
-        });
+        }
     }
 
     private readonly ToolBarCollection toolBars;
@@ -48,7 +55,7 @@ public sealed class ToolBarTray : Control, IAddChild<ToolBar>
         ToolBars.Add(child);
     }
 
-    // Note: for now follow a similar layouting than StackPanel
+    // note: for now follow a similar layouting than StackPanel
     protected override Size MeasureOverride(Size availableSize)
     {
         Size trayDesiredSize = new();
@@ -60,11 +67,11 @@ public sealed class ToolBarTray : Control, IAddChild<ToolBar>
 
         foreach (var toolBar in toolBars)
         {
-            // Measure the toolbar
+            // measure the toolbar
             toolBar.Measure(toolBarConstraint);
             var toolBarDesiredSize = toolBar.DesiredSize;
 
-            // Accumulate the size
+            // accumulate the size
             if (isHorizontal)
             {
                 trayDesiredSize = trayDesiredSize.WithWidth(trayDesiredSize.Width + toolBarDesiredSize.Width);
@@ -80,7 +87,7 @@ public sealed class ToolBarTray : Control, IAddChild<ToolBar>
         return trayDesiredSize;
     }
 
-    // Note: for now follow a similar layouting than StackPanel
+    // note: for now follow a similar layouting than StackPanel
     protected override Size ArrangeOverride(Size finalSize)
     {
         bool isHorizontal = Orientation == Orientation.Horizontal;
