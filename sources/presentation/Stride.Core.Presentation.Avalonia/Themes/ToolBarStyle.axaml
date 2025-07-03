@@ -9,13 +9,8 @@
                 BorderThickness="{TemplateBinding BorderThickness}"
                 CornerRadius="{TemplateBinding CornerRadius}"
                 Padding="{TemplateBinding Padding}">
-          <ItemsPresenter x:Name="PART_ItemsPresenter">
-            <ItemsPresenter.ItemsPanel>
-              <ItemsPanelTemplate>
-                <StackPanel Orientation="{Binding $parent[sd:ToolBar].Orientation}"/>
-              </ItemsPanelTemplate>
-            </ItemsPresenter.ItemsPanel>
-          </ItemsPresenter>
+          <sd:ToolBarPanel x:Name="PART_ToolBarPanel"
+                           Orientation="{TemplateBinding Orientation}"/>
         </Border>
       </ControlTemplate>
     </Setter>
