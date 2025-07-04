@@ -14,6 +14,9 @@ namespace Stride.Graphics;
 
 public unsafe partial class GraphicsDevice
 {
+    /// <summary>
+    ///   Allocate descriptor handles.
+    /// </summary>
     internal class DescriptorAllocator(GraphicsDevice device, DescriptorHeapType descriptorHeapType) : IDisposable
     {
         // TODO: For now this is a simple bump alloc, but at some point we will have to make a real allocator with free
@@ -31,12 +34,23 @@ public unsafe partial class GraphicsDevice
         private int remainingHandles;
 
 
+        /// <inheritdoc/>
         public void Dispose()
         {
             SafeRelease(ref currentHeap);
         }
 
 
+        /// <summary>
+        ///   Allocates a specified number of Descriptors from the current descriptor heap.
+        /// </summary>
+        /// <param name="count">
+        ///   The number of Descriptors to allocate. The default value is 1. Must be a positive integer.</param>
+        /// <returns>A <see cref="CpuDescriptorHandle"/> pointing to the first allocated Descriptor.</returns>
+        /// <remarks>
+        ///   If the current Descriptor heap does not have enough remaining handles to satisfy the
+        ///   allocation, a new Descriptor heap is automatically created.
+        /// </remarks>
         public CpuDescriptorHandle Allocate(int count = 1)
         {
             Debug.Assert(count > 0, "Count must be a positive integer.");
@@ -55,6 +69,9 @@ public unsafe partial class GraphicsDevice
 
             return resultHandle;
 
+            //
+            // Creates a new Descriptor heap.
+            //
             void CreateNewHeap()
             {
                 Debug.Assert(device is not null, "Graphics Device must not be null.");

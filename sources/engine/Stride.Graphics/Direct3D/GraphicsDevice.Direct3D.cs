@@ -158,19 +158,20 @@ namespace Stride.Graphics
         /// <param name="commandList">The Compiled Command List to execute.</param>
         /// <exception cref="NotImplementedException">Deferred CommandList execution is not implemented for Direct3D 11.</exception>"
         /// <remarks>
-        ///   A Compiled Command List is a list of commands that have been pre-compiled and optimized for execution on the
-        ///   Graphics Device at a later time. This method executes the commands in the list. This is known as <em>deferred execution</em>.
+        ///   A Compiled Command List is a list of commands that have been recorded for execution on the Graphics Device
+        ///   at a later time. This method executes the commands in the list. This is known as <em>deferred execution</em>.
         /// </remarks>
         public void ExecuteCommandList(CompiledCommandList commandList) => throw new NotImplementedException();
 
         /// <summary>
         ///   Executes multiple Compiled Command Lists.
         /// </summary>
+        /// <param name="count">The number of Compiled Command Lists to execute.</param>
         /// <param name="commandLists">The Compiled Command Lists to execute.</param>
         /// <exception cref="NotImplementedException">Deferred CommandList execution is not implemented for Direct3D 11.</exception>"
         /// <remarks>
-        ///   A Compiled Command List is a list of commands that have been pre-compiled and optimized for execution on the
-        ///   Graphics Device at a later time. This method executes the commands in the list. This is known as <em>deferred execution</em>.
+        ///   A Compiled Command List is a list of commands that have been recorded for execution on the Graphics Device
+        ///   at a later time. This method executes the commands in the list. This is known as <em>deferred execution</em>.
         /// </remarks>
         public void ExecuteCommandLists(int count, CompiledCommandList[] commandLists) => throw new NotImplementedException();
 
