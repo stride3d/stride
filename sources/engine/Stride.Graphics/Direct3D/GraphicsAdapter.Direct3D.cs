@@ -41,8 +41,10 @@ namespace Stride.Graphics
         private readonly uint adapterOrdinal;
         private readonly AdapterDesc1 adapterDesc;
 
+#if STRIDE_GRAPHICS_API_DIRECT3D11
         private GraphicsProfile minimumUnsupportedProfile = (GraphicsProfile) int.MaxValue;
         private GraphicsProfile maximumSupportedProfile;
+#endif
 
         /// <summary>
         ///   Gets the native DXGI adapter.
@@ -87,7 +89,7 @@ namespace Stride.Graphics
             if (result.IsFailure)
                 result.Throw();
 
-            this.adapterDesc = dxgiAdapterDesc;
+            adapterDesc = dxgiAdapterDesc;
             Name = Description = SilkMarshal.PtrToString((nint) dxgiAdapterDesc.Description, NativeStringEncoding.LPWStr);
             AdapterUid = dxgiAdapterDesc.AdapterLuid.BitCast<Luid, long>();
 

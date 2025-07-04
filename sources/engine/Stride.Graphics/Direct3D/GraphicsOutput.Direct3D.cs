@@ -29,12 +29,15 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using Silk.NET.Core.Native;
-using Silk.NET.Direct3D11;
-using Silk.NET.DXGI;
+
 using Silk.NET.Maths;
+using Silk.NET.Core.Native;
+using Silk.NET.DXGI;
+using Silk.NET.Direct3D11;
+
 using Stride.Core.Mathematics;
 using Stride.Core.UnsafeExtensions;
+
 using Rectangle = Stride.Core.Mathematics.Rectangle;
 
 namespace Stride.Graphics
@@ -74,7 +77,7 @@ namespace Stride.Graphics
         {
             ArgumentNullException.ThrowIfNull(adapter);
 
-            Debug.Assert(!nativeOutput.IsNull());
+            Debug.Assert(nativeOutput.IsNotNull());
 
             this.outputIndex = outputIndex;
             dxgiOutput = nativeOutput;

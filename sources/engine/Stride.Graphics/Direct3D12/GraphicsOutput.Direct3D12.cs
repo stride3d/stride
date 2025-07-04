@@ -26,30 +26,38 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+
+using Silk.NET.Maths;
 using Silk.NET.Core.Native;
-using Silk.NET.Direct3D12;
 using Silk.NET.DXGI;
+using Silk.NET.Direct3D12;
+
 using Stride.Core.Mathematics;
+using Stride.Core.UnsafeExtensions;
+
+using Rectangle = Stride.Core.Mathematics.Rectangle;
 
 namespace Stride.Graphics
 {
     public unsafe partial class GraphicsOutput
     {
+        private IDXGIOutput* dxgiOutput;
         private readonly uint outputIndex;
+
+        private readonly OutputDesc outputDescription;
 
         /// <summary>
         ///   Gets the native DXGI output.
         /// </summary>
-        internal ComPtr<IDXGIOutput> NativeOutput { get; }
-
-        private readonly OutputDesc outputDescription;
 
         /// <summary>
         ///   Gets the handle of the monitor associated with this <see cref="GraphicsOutput"/>.
         /// </summary>
         public nint MonitorHandle => outputDescription.Monitor;
+
 
         /// <summary>
         ///   Initializes a new instance of <see cref="GraphicsOutput" />.
@@ -61,32 +69,39 @@ namespace Stride.Graphics
         {
             ArgumentNullException.ThrowIfNull(adapter);
 
-            Debug.Assert(nativeOutput.Handle != null);
+            Debug.Assert(nativeOutput.IsNotNull());
 
             this.outputIndex = outputIndex;
+            dxgiOutput = nativeOutput;
+
             Adapter = adapter;
 
-            // The received IDXGIOutput's lifetime is already tracked by GraphicsAdapter
-            NativeOutput = nativeOutput;
-
             Unsafe.SkipInit(out OutputDesc outputDesc);
-            HResult result = NativeOutput.GetDesc(ref outputDesc);
+            HResult result = nativeOutput.GetDesc(ref outputDesc);
 
             if (result.IsFailure)
                 result.Throw();
 
             Name = SilkMarshal.PtrToString((nint) outputDesc.DeviceName, NativeStringEncoding.LPWStr);
 
-            var rectangle = outputDesc.DesktopCoordinates;
-            DesktopBounds = new()
+            ref var rectangle = ref outputDesc.DesktopCoordinates;
+            DesktopBounds = new Rectangle
             {
-                Location = *(Point*) &rectangle.Min,
+                Location = rectangle.Min.BitCast<Vector2D<int>, Point>(),
                 Width = rectangle.Size.X,
                 Height = rectangle.Size.Y
             };
 
             outputDescription = outputDesc;
         }
+
+        protected override void Destroy()
+        {
+            base.Destroy();
+
+            ComPtrHelpers.SafeRelease(ref dxgiOutput);
+        }
+
 
         /// <summary>
         ///   Finds the display mode that most closely matches the requested display mode.
@@ -130,37 +145,37 @@ namespace Stride.Graphics
         ///     desktop settings for this output.
         ///   </para>
         /// </remarks>
-        public DisplayMode FindClosestMatchingDisplayMode(GraphicsProfile[] targetProfiles, DisplayMode modeToMatch)
+        public DisplayMode FindClosestMatchingDisplayMode(ReadOnlySpan<GraphicsProfile> targetProfiles, DisplayMode modeToMatch)
         {
-            ArgumentNullException.ThrowIfNull(targetProfiles);
+            if (targetProfiles.IsEmpty)
+                throw new ArgumentNullException(nameof(targetProfiles));
 
             var d3d12 = D3D12.GetApi();
 
             // NOTE: Assume the same underlying integer type
             Debug.Assert(sizeof(GraphicsProfile) == sizeof(D3DFeatureLevel));
-            var featureLevels = MemoryMarshal.Cast<GraphicsProfile, D3DFeatureLevel>(targetProfiles);
+            var featureLevels = targetProfiles.Cast<GraphicsProfile, D3DFeatureLevel>();
 
-            HResult result;
+            HResult result = default;
 
-            IUnknown* nativeAdapter = (IUnknown*) Adapter.NativeAdapter.Handle;
-            ID3D12Device* deviceTemp = null;
+            var nativeAdapter = Adapter.NativeAdapter.AsIUnknown();
+            ComPtr<ID3D12Device> deviceTemp = null;
 
-            for (int i = 0; i < targetProfiles.Length; i++)
+            for (int i = 0; i < featureLevels.Length; i++)
             {
-                var featureLevelToTry = (D3DFeatureLevel) targetProfiles[i];
+                var featureLevelToTry = featureLevels[i];
 
                 // Create Device D3D12 with feature Level based on profile
-                result = d3d12.CreateDevice(nativeAdapter, featureLevelToTry, SilkMarshal.GuidPtrOf<ID3D12Device>(),
-                                            (void**) &deviceTemp);
+                result = d3d12.CreateDevice(nativeAdapter, featureLevelToTry, out deviceTemp);
 
                 if (result.IsSuccess)
                     break;
             }
 
-            if (deviceTemp == null)
-                throw new InvalidOperationException("Could not create D3D12 graphics device");
+            if (deviceTemp.IsNull() && result.IsFailure)
+                ThrowNoCompatibleProfile(result, Adapter, targetProfiles);
 
-            ModeDesc closestDescription;
+            Unsafe.SkipInit(out ModeDesc closestDescription);
             ModeDesc modeDescription = new()
             {
                 Width = (uint) modeToMatch.Width,
@@ -171,14 +186,22 @@ namespace Stride.Graphics
                 ScanlineOrdering = ModeScanlineOrder.Unspecified
             };
 
-            result = NativeOutput.FindClosestMatchingMode(in modeDescription, &closestDescription, (IUnknown*) deviceTemp);
+            result = dxgiOutput->FindClosestMatchingMode(in modeDescription, ref closestDescription, deviceTemp);
 
             if (result.IsFailure)
                 result.Throw();
 
-            deviceTemp->Release();
+            deviceTemp.Release();
 
-            return DisplayMode.FromDescription(closestDescription);
+            return DisplayMode.FromDescription(in closestDescription);
+
+            [DoesNotReturn]
+            static void ThrowNoCompatibleProfile(HResult result, GraphicsAdapter adapter, ReadOnlySpan<GraphicsProfile> targetProfiles)
+            {
+                var exception = Marshal.GetExceptionForHR(result.Value)!;
+                Log.Error($"Failed to create Direct3D device using adapter '{adapter.Description}' with profiles: {string.Join(", ", targetProfiles.ToArray())}.\nException: {exception}");
+                throw exception;
+            }
         }
 
         /// <summary>
@@ -192,7 +215,7 @@ namespace Stride.Graphics
             var knownModes = new Dictionary<int, DisplayMode>();
 
 #if DIRECTX11_1
-            using ComPtr<IDXGIOutput1> output1 = NativeOutput.QueryInterface<IDXGIOutput1>();
+            using ComPtr<IDXGIOutput1> output1 = dxgiOutput->QueryInterface<IDXGIOutput1>();
 #endif
             const uint DisplayModeEnumerationFlags = DXGI.EnumModesInterlaced | DXGI.EnumModesScaling;
 
@@ -205,7 +228,7 @@ namespace Stride.Graphics
 #if DIRECTX11_1
                 result = output1.GetDisplayModeList1(format, DisplayModeEnumerationFlags, ref displayModeCount, null);
 #else
-                result = NativeOutput.GetDisplayModeList(format, DisplayModeEnumerationFlags, ref displayModeCount, null);
+                result = dxgiOutput->GetDisplayModeList(format, DisplayModeEnumerationFlags, ref displayModeCount, null);
 #endif
                 if (result.IsFailure && result.Code != DxgiConstants.ErrorNotCurrentlyAvailable)
                     result.Throw();
@@ -217,24 +240,24 @@ namespace Stride.Graphics
                 result = output1.GetDisplayModeList1(format, DisplayModeEnumerationFlags, ref displayModeCount, ref displayModes[0]);
 #else
                 Span<ModeDesc> displayModes = stackalloc ModeDesc[(int) displayModeCount];
-                result = NativeOutput.GetDisplayModeList(format, DisplayModeEnumerationFlags, ref displayModeCount, ref displayModes[0]);
+                result = dxgiOutput->GetDisplayModeList(format, DisplayModeEnumerationFlags, ref displayModeCount, ref displayModes[0]);
 #endif
 
                 for (int i = 0; i < displayModeCount; i++)
                 {
-                    var mode = displayModes[i];
+                    ref var mode = ref displayModes[i];
 
-                    if (mode.Scaling == ModeScaling.Unspecified)
+                    if (mode.Scaling != ModeScaling.Unspecified)
+                        continue;
+
+                    var modeKey = HashCode.Combine(format, mode.Width, mode.Height, mode.RefreshRate.Numerator, mode.RefreshRate.Denominator);
+
+                    if (!knownModes.ContainsKey(modeKey))
                     {
-                        var modeKey = HashCode.Combine(format, mode.Width, mode.Height, mode.RefreshRate.Numerator, mode.RefreshRate.Denominator);
+                        var displayMode = DisplayMode.FromDescription(in mode);
 
-                        if (!knownModes.ContainsKey(modeKey))
-                        {
-                            var displayMode = DisplayMode.FromDescription(mode);
-
-                            knownModes.Add(modeKey, displayMode);
-                            modesAvailable.Add(displayMode);
-                        }
+                        knownModes.Add(modeKey, displayMode);
+                        modesAvailable.Add(displayMode);
                     }
                 }
             }
@@ -251,8 +274,10 @@ namespace Stride.Graphics
         /// </remarks>
         private void InitializeCurrentDisplayMode()
         {
-            currentDisplayMode = TryFindMatchingDisplayMode(Format.FormatR8G8B8A8Unorm) ??
+            currentDisplayMode = GetCurrentDisplayMode() ??
+                                 TryFindMatchingDisplayMode(Format.FormatR8G8B8A8Unorm) ??
                                  TryFindMatchingDisplayMode(Format.FormatB8G8R8A8Unorm);
+        }
 
             /// <summary>
             ///   Tries to find a display mode with the specified format that has the same size as the current desktop size
@@ -260,27 +285,65 @@ namespace Stride.Graphics
             /// </summary>
             /// <param name="format">The format to match with.</param>
             /// <returns>A matched <see cref="DisplayMode"/>, or <see langword="null"/> if nothing is found.</returns>
-            private DisplayMode? TryFindMatchingDisplayMode(Format format)
+        private DisplayMode? GetCurrentDisplayMode()
+        {
+            var d3d12 = D3D12.GetApi();
+
+            // Try to create a dummy ID3D12Device with no consideration to Graphics Profiles, etc.
+            // We only want to get missing information about the current display irrespective of graphics profiles
+            var unspecifiedAdapter = ComPtrHelpers.NullComPtr<IUnknown>();
+            D3DFeatureLevel selectedLevel = 0;
+            HResult result = d3d12.CreateDevice(unspecifiedAdapter, selectedLevel, out ComPtr<ID3D12Device> deviceTemp);
+
+            if (result.IsFailure)
             {
-                var desktopBounds = outputDescription.DesktopCoordinates;
-
-                foreach (var supportedDisplayMode in SupportedDisplayModes)
-                {
-                    var width = desktopBounds.Size.X;
-                    var height = desktopBounds.Size.Y;
-                    var matchingFormat = (PixelFormat) format;
-
-                    if (supportedDisplayMode.Width == width &&
-                        supportedDisplayMode.Height == height &&
-                        supportedDisplayMode.Format == matchingFormat)
-                    {
-                        // TODO: DXGI, there is no way to get the DXGI.Format, nor the refresh rate
-                        return new DisplayMode(matchingFormat, width, height, supportedDisplayMode.RefreshRate);
-                    }
-                }
-
+                var exception = Marshal.GetExceptionForHR(result.Value)!;
+                Log.Error($"Failed to create Direct3D device using adapter '{Adapter.Description}'.\nException: {exception}");
                 return null;
             }
+
+            Unsafe.SkipInit(out ModeDesc closestMatch);
+            var modeDesc = new ModeDesc
+            {
+                Width = (uint) DesktopBounds.Width,
+                Height = (uint) DesktopBounds.Height,
+                // Format and RefreshRate will be automatically filled if we pass reference to the Direct3D 12 device
+                Format = Format.FormatUnknown
+            };
+
+            result = dxgiOutput->FindClosestMatchingMode(in modeDesc, ref closestMatch, deviceTemp);
+
+            if (result.IsFailure)
+            {
+                var exception = Marshal.GetExceptionForHR(result.Value)!;
+                Log.Error($"Failed to get current display mode. The resolution ({modeDesc.Width}x{modeDesc.Height}) " +
+                          $"taken from the output is not correct.\nException: {exception}");
+                return null;
+            }
+
+            return DisplayMode.FromDescription(in closestMatch);
+        }
+
+        private DisplayMode? TryFindMatchingDisplayMode(Format format)
+        {
+            var desktopBounds = outputDescription.DesktopCoordinates;
+
+            foreach (var supportedDisplayMode in SupportedDisplayModes)
+            {
+                var width = desktopBounds.Size.X;
+                var height = desktopBounds.Size.Y;
+                var matchingFormat = (PixelFormat) format;
+
+                if (supportedDisplayMode.Width == width &&
+                    supportedDisplayMode.Height == height &&
+                    supportedDisplayMode.Format == matchingFormat)
+                {
+                    // TODO: DXGI, there is no way to get the DXGI.Format, nor the refresh rate
+                    return new DisplayMode(matchingFormat, width, height, supportedDisplayMode.RefreshRate);
+                }
+            }
+
+            return null;
         }
     }
 }
