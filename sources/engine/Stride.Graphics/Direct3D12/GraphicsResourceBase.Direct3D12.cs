@@ -13,20 +13,27 @@ using static Stride.Graphics.ComPtrHelpers;
 
 namespace Stride.Graphics
 {
-    /// <summary>
-    /// GraphicsResource class
-    /// </summary>
     public abstract unsafe partial class GraphicsResourceBase
     {
         private ID3D12DeviceChild* nativeDeviceChild;
         private ID3D12Resource* nativeResource;
 
+        /// <summary>
+        ///   Gets the internal Direct3D 11 Resource.
+        /// </summary>
+        /// <remarks>
+        ///   If the reference is going to be kept, use <see cref="ComPtr{T}.AddRef()"/> to increment the internal
+        ///   reference count, and <see cref="ComPtr{T}.Dispose()"/> when no longer needed to release the object.
+        /// </remarks>
         protected internal ComPtr<ID3D12Resource> NativeResource => ToComPtr(nativeResource);
 
         /// <summary>
-        /// Gets or sets the device child.
+        ///   Gets the internal Direct3D 12 Device Child.
         /// </summary>
-        /// <value>The device child.</value>
+        /// <remarks>
+        ///   If the reference is going to be kept, use <see cref="ComPtr{T}.AddRef()"/> to increment the internal
+        ///   reference count, and <see cref="ComPtr{T}.Dispose()"/> when no longer needed to release the object.
+        /// </remarks>
         protected internal ComPtr<ID3D12DeviceChild> NativeDeviceChild
         {
             get => ToComPtr(nativeDeviceChild);
@@ -61,6 +68,10 @@ namespace Stride.Graphics
             }
         }
 
+        /// <summary>
+        ///   Sets the internal Direct3D 12 Device Child to <see langword="null"/> without releasing it.
+        ///   This is used when the Graphics Device is being destroyed, but the resource is a View.
+        /// </summary>
         protected internal void ForgetNativeChildWithoutReleasing()
         {
             nativeDeviceChild = null;
@@ -68,8 +79,13 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        /// Associates the private data to the device child, useful to get the name in PIX debugger.
+        ///   Gets the internal Direct3D 11 device (<see cref="ID3D11Device"/>) if the resource is attached to
+        ///   a <see cref="Graphics.GraphicsDevice"/>, or <see langword="null"/> if not.
         /// </summary>
+        /// <remarks>
+        ///   If the reference is going to be kept, use <see cref="ComPtr{T}.AddRef()"/> to increment the internal
+        ///   reference count, and <see cref="ComPtr{T}.Dispose()"/> when no longer needed to release the object.
+        /// </remarks>
         protected ComPtr<ID3D12Device> NativeDevice => GraphicsDevice?.NativeDevice ?? default;
 
 
@@ -77,8 +93,12 @@ namespace Stride.Graphics
         private partial void Initialize() { }
 
         /// <summary>
-        /// Called when graphics device has been detected to be internally destroyed.
+        ///   Called when the <see cref="GraphicsDevice"/> has been detected to be internally destroyed,
+        ///   or when the <see cref="Destroy"/> methad has been called. Raises the <see cref="Destroyed"/> event.
         /// </summary>
+        /// <remarks>
+        ///   This method releases the underlying native resources (<see cref="ID3D12Resource"/> and <see cref="ID3D12DeviceChild"/>).
+        /// </remarks>
         protected internal virtual partial void OnDestroyed()
         {
             Destroyed?.Invoke(this, EventArgs.Empty);
@@ -94,9 +114,11 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        /// Called when graphics device has been recreated.
+        ///   Called when the <see cref="GraphicsDevice"/> has been recreated.
         /// </summary>
-        /// <returns>True if item transitioned to a <see cref="GraphicsResourceLifetimeState.Active"/> state.</returns>
+        /// <returns>
+        ///   <see langword="true"/> if resource has transitioned to the <see cref="GraphicsResourceLifetimeState.Active"/> state.
+        /// </returns>
         protected internal virtual bool OnRecreate()
         {
             return false;
