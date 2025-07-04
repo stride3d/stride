@@ -556,7 +556,7 @@ namespace Stride.Graphics
         /// <param name="blendFactor">
         ///   <para>
         ///     A <see cref="Color4"/> representing the blend factors for each RGBA component.
-        ///     The blend factors modulate values for the pixel shader, Render Target, or both.
+        ///     The blend factors modulate values for the pixel Shader, Render Target, or both.
         ///   </para>
         ///   <para>
         ///     If you have configured the Blend-State object with <see cref="Blend.BlendFactor"/> or <see cref="Blend.InverseBlendFactor"/>,
@@ -655,7 +655,7 @@ namespace Stride.Graphics
         ///   making shader resources available for rendering operations.
         /// </summary>
         /// <param name="index">
-        ///   The starting slot where the descriptor sets will be bound. This is not used in the Direct3D 11 implementation.
+        ///   The starting slot where the Descriptor Sets will be bound. This is not used in the Direct3D 11 implementation.
         /// </param>
         /// <param name="descriptorSets">
         ///   An array of Descriptor Sets containing resource bindings (such as Textures, Samplers, and Constant Buffers)
@@ -680,7 +680,6 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        ///   Dispatches the specified indirect buffer.
         ///   Dispatches a Compute Shader workload using an Indirect Buffer, allowing the thread group count to be determined at runtime.
         /// </summary>
         /// <param name="indirectBuffer">
@@ -854,7 +853,7 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        ///   Marks the end of a profile section previously started by a call to <see cref="BeginProfile(Color4, string)"/>.
+        ///   Marks the end of a profile section previously started by a call to <see cref="BeginProfile"/>.
         /// </summary>
         /// <inheritdoc cref="BeginProfile(Color4, string)" path="/remarks"/>
         public void EndProfile()
@@ -1023,14 +1022,15 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        ///   Copies the data from a multi-sampled Texture to another.
-        ///   The multi-sampled is resolved.
+        ///   Copies the data from a multi-sampled Texture (which is resolved) to another Texture.
         /// </summary>
         /// <param name="sourceMultiSampledTexture">The source multi-sampled Texture.</param>
         /// <param name="sourceSubResourceIndex">The sub-resource index of the source Texture.</param>
         /// <param name="destinationTexture">The destination Texture.</param>
         /// <param name="destinationSubResourceIndex">The sub-resource index of the destination Texture.</param>
-        /// <param name="format">A DXGI_FORMAT that indicates how the multisampled resource will be resolved to a single-sampled resource.</param>
+        /// <param name="format">
+        ///   A <see cref="PixelFormat"/> that indicates how the multi-sampled Texture will be resolved to a single-sampled resource.
+        /// </param>
         /// <exception cref="ArgumentException"><paramref name="sourceMultiSampledTexture"/> is not a multi-sampled Texture.</exception>
         /// <exception cref="ArgumentNullException"><paramref name="sourceMultiSampledTexture"/> is <see langword="null"/>.</exception>
         /// <exception cref="ArgumentNullException"><paramref name="destinationTexture"/> is <see langword="null"/>.</exception>
@@ -1095,7 +1095,7 @@ namespace Stride.Graphics
         ///   Copies a region from a source Graphics Resource to a destination Graphics Resource.
         /// </summary>
         /// <param name="source">The source Graphics Resource to copy from.</param>
-        /// <param name="sourceSubResource">The index of the sub-resource of <paramref name="source"/> to copy from.</param>
+        /// <param name="sourceSubResourceIndex">The index of the sub-resource of <paramref name="source"/> to copy from.</param>
         /// <param name="sourceRegion">
         ///   <para>
         ///     An optional <see cref="ResourceRegion"/> that defines the source sub-resource to copy from.
@@ -1108,7 +1108,7 @@ namespace Stride.Graphics
         ///   </para>
         /// </param>
         /// <param name="destination">The destination Graphics Resource to copy to.</param>
-        /// <param name="destinationSubResource">The index of the sub-resource of <paramref name="destination"/> to copy to.</param>
+        /// <param name="destinationSubResourceIndex">The index of the sub-resource of <paramref name="destination"/> to copy to.</param>
         /// <param name="dstX">The X-coordinate of the upper left corner of the destination region.</param>
         /// <param name="dstY">The Y-coordinate of the upper left corner of the destination region. For a 1D sub-resource, this must be zero.</param>
         /// <param name="dstZ">The Z-coordinate of the upper left corner of the destination region. For a 1D or 2D sub-resource, this must be zero.</param>
@@ -1117,8 +1117,8 @@ namespace Stride.Graphics
         /// <remarks>
         ///   <para>
         ///     The <paramref name="sourceRegion"/> must be within the size of the source resource.
-        ///     The destination offsets, (<paramref name="dstX"/>, <paramref name="dstY"/>, and <paramref name="dstZ"/>), allow the source region
-        ///     to be offset when writing into the destination resource;
+        ///     The destination offsets, (<paramref name="dstX"/>, <paramref name="dstY"/>, and <paramref name="dstZ"/>),
+        ///     allow the source region to be offset when writing into the destination resource;
         ///     however, the dimensions of the source region and the offsets must be within the size of the resource.
         ///   </para>
         ///   <para>
@@ -1323,7 +1323,7 @@ namespace Stride.Graphics
         ///   The length in bytes of the memory to map from the sub-resource.
         ///   Defaults to 0, which means the entire sub-resource is mapped.
         /// </param>
-        /// <returns>Pointer to the sub resource to map.</returns>
+        /// <returns>A <see cref="MappedResource"/> structure pointing to the GPU resource mapped for CPU access.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="resource"/> is <see langword="null"/>.</exception>
         /// <remarks>
         ///   For <see cref="Buffer"/>s:
