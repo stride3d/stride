@@ -52,6 +52,11 @@ namespace Stride.Graphics
         /// <summary>
         ///   Gets the native DXGI output.
         /// </summary>
+        /// <remarks>
+        ///   If the reference is going to be kept, use <see cref="ComPtr{T}.AddRef()"/> to increment the internal
+        ///   reference count, and <see cref="ComPtr{T}.Dispose()"/> when no longer needed to release the object.
+        /// </remarks>
+        internal ComPtr<IDXGIOutput> NativeOutput => ComPtrHelpers.ToComPtr(dxgiOutput);
 
         /// <summary>
         ///   Gets the handle of the monitor associated with this <see cref="GraphicsOutput"/>.
@@ -60,10 +65,14 @@ namespace Stride.Graphics
 
 
         /// <summary>
-        ///   Initializes a new instance of <see cref="GraphicsOutput" />.
+        ///   Initializes a new instance of <see cref="GraphicsOutput"/>.
         /// </summary>
-        /// <param name="adapter">The graphics adapter this output is attached to.</param>
-        /// <param name="outputIndex">Index of the output.</param>
+        /// <param name="adapter">The Graphics Adapter this output is attached to.</param>
+        /// <param name="nativeOutput">
+        ///   A COM pointer to the native <see cref="IDXGIOutput"/> interface.
+        ///   The ownership is transferred to this instance, so the reference count is not incremented.
+        /// </param>
+        /// <param name="outputIndex">The index of the output.</param>
         /// <exception cref="ArgumentNullException"><paramref name="adapter"/> is <see langword="null"/>.</exception>
         internal GraphicsOutput(GraphicsAdapter adapter, ComPtr<IDXGIOutput> nativeOutput, uint outputIndex)
         {
@@ -95,6 +104,7 @@ namespace Stride.Graphics
             outputDescription = outputDesc;
         }
 
+        /// <inheritdoc/>
         protected override void Destroy()
         {
             base.Destroy();
@@ -124,11 +134,15 @@ namespace Stride.Graphics
         ///   </para>
         /// </param>
         /// <returns>Returns the mode that most closely matches <paramref name="modeToMatch"/>.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="targetProfiles"/> is empty and does not specify any graphics profile to test.</exception>
+        /// <exception cref="InvalidOperationException">
+        ///   Coult not create a device with any of the profiles specified in <paramref name="targetProfiles"/>.
+        /// </exception>
         /// <remarks>
         ///   Direct3D devices require UNORM pixel formats.
         ///   <para>
         ///     Unspecified fields are lower priority than specified fields and will be resolved later than specified fields.
-        ///     Similarly ranked fields (i.e. all specified, or all unspecified, etc) are resolved in the following order: <c>Format</c>, <c>Width</c>, <c>Height</c>, <c>RefreshRate</c>.
+        ///     Similarly ranked fields (i.e. all specified, or all unspecified, etc.) are resolved in the following order: <c>Format</c>, <c>Width</c>, <c>Height</c>, <c>RefreshRate</c>.
         ///   </para>
         ///   <para>
         ///     When determining the closest value for a particular field, previously matched fields are used to filter the display mode list choices, and other fields are ignored.
@@ -195,6 +209,9 @@ namespace Stride.Graphics
 
             return DisplayMode.FromDescription(in closestDescription);
 
+            /// <summary>
+            ///   Logs and throws an exception reporting that no compatible profile was found among the specified ones.
+            /// </summary>
             [DoesNotReturn]
             static void ThrowNoCompatibleProfile(HResult result, GraphicsAdapter adapter, ReadOnlySpan<GraphicsProfile> targetProfiles)
             {
@@ -266,12 +283,10 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        /// Initializes <see cref="CurrentDisplayMode"/> with the most appropiate mode from <see cref="SupportedDisplayModes"/>.
+        ///   Initializes <see cref="CurrentDisplayMode"/> with the current <see cref="DisplayMode"/>,
+        ///   the closest matching mode with the common formats <see cref="PixelFormat.R8G8B8A8_UNorm"/> or <see cref="PixelFormat.B8G8R8A8_UNorm"/>),
+        ///   or <see langword="null"/> in no matching mode could be found.
         /// </summary>
-        /// <remarks>
-        /// It checks first for a mode with <see cref="Format.FormatR8G8B8A8Unorm"/>.
-        /// If it is not found, it checks for <see cref="Format.FormatB8G8R8A8Unorm"/>.
-        /// </remarks>
         private void InitializeCurrentDisplayMode()
         {
             currentDisplayMode = GetCurrentDisplayMode() ??
@@ -279,12 +294,10 @@ namespace Stride.Graphics
                                  TryFindMatchingDisplayMode(Format.FormatB8G8R8A8Unorm);
         }
 
-            /// <summary>
-            ///   Tries to find a display mode with the specified format that has the same size as the current desktop size
-            ///   of this <see cref="GraphicsOutput"/>.
-            /// </summary>
-            /// <param name="format">The format to match with.</param>
-            /// <returns>A matched <see cref="DisplayMode"/>, or <see langword="null"/> if nothing is found.</returns>
+        /// <summary>
+        ///   Tries to get the current <see cref="DisplayMode"/> based on the <see cref="DesktopBounds"/>.
+        /// </summary>
+        /// <returns>The current <see cref="DisplayMode"/> of the output, or <see langword="null"/> if couldn't be determined.</returns>
         private DisplayMode? GetCurrentDisplayMode()
         {
             var d3d12 = D3D12.GetApi();
@@ -324,6 +337,12 @@ namespace Stride.Graphics
             return DisplayMode.FromDescription(in closestMatch);
         }
 
+        /// <summary>
+        ///   Tries to find a display mode with the specified format that has the same size as the current desktop size
+        ///   of this <see cref="GraphicsOutput"/>.
+        /// </summary>
+        /// <param name="format">The format to match with.</param>
+        /// <returns>A matched <see cref="DisplayMode"/>, or <see langword="null"/> if nothing is found.</returns>
         private DisplayMode? TryFindMatchingDisplayMode(Format format)
         {
             var desktopBounds = outputDescription.DesktopCoordinates;
