@@ -10,7 +10,13 @@ namespace Stride.Graphics;
 
 public readonly unsafe partial struct MappedResource
 {
+    /// <summary>
+    ///   The Direct3D 12 Resource that has been mapped.
+    /// </summary>
     internal readonly ComPtr<ID3D12Resource> UploadResource;
+    /// <summary>
+    ///   The pointer to the mapped data in the Direct3D 12 Resource.
+    /// </summary>
     internal readonly int UploadOffset;
 }
 
