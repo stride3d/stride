@@ -45,6 +45,9 @@ namespace Stride.Graphics
         private ID3D11RenderTargetView* renderTargetView;
         private ID3D11DepthStencilView* depthStencilView;
 
+        /// <summary>
+        ///   A value indicating whether the Texture is a Depth-Stencil Buffer with a stencil component.
+        /// </summary>
         internal bool HasStencil;
 
         /// <summary>
@@ -1084,7 +1087,7 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        ///   Checks a <see cref="TextureDescription"/> for invalid mip-levels and the description if necessary.
+        ///   Checks a <see cref="TextureDescription"/> for invalid mip-levels and modifies the description if necessary.
         /// </summary>
         /// <param name="device">The graphics device.</param>
         /// <param name="description">The Texture description to check.</param>
