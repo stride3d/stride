@@ -152,30 +152,6 @@ internal static unsafe class ComPtrHelpers
         return new ComPtr<IUnknown> { Handle = (IUnknown*) comPtr.Handle };
     }
 
-#if STRIDE_GRAPHICS_API_DIRECT3D11
-    ///// <summary>
-    /////   Returns a <see cref="ComPtr{T}"/> reinterpreting a COM pointer to a <see cref="ID3D11DeviceContext"/> as a
-    /////   COM pointer to a <see cref="ID3D11DeviceChild"/>.
-    ///// </summary>
-    ///// <param name="deviceContext">The COM pointer of a <see cref="ID3D11DeviceContext"/>.</param>
-    ///// <returns>The COM pointer reinterpreted as a <see cref="ID3D11DeviceChild"/>.</returns>
-    //public static ComPtr<ID3D11DeviceChild> AsDeviceChild(this ComPtr<ID3D11DeviceContext> deviceContext)
-    //{
-    //    return new ComPtr<ID3D11DeviceChild> { Handle = (ID3D11DeviceChild*) deviceContext.Handle };
-    //}
-
-    /// <summary>
-    ///   Returns a <see cref="ComPtr{T}"/> reinterpreting a COM pointer to a Direct3D 11 device child as a
-    ///   COM pointer to a <see cref="ID3D11DeviceChild"/>.
-    /// </summary>
-    /// <param name="comPtr">The COM pointer of a Direct3D 11 device child.</param>
-    /// <returns>The COM pointer reinterpreted as a <see cref="ID3D11DeviceChild"/>.</returns>
-    public static ComPtr<ID3D11DeviceChild> AsDeviceChild<T>(this ComPtr<T> comPtr)
-        where T : unmanaged, IComVtbl<ID3D11DeviceChild>, IComVtbl<T>
-    {
-        return new ComPtr<ID3D11DeviceChild> { Handle = (ID3D11DeviceChild*) comPtr.Handle };
-    }
-
     /// <summary>
     ///   Reinterprets a <see cref="ComPtr{T}"/> to an interface of type <typeparamref name="TFrom"/> as a
     ///   COM pointer to an interface of type <typeparamref name="TTo"/> which it inherits from.
@@ -188,10 +164,33 @@ internal static unsafe class ComPtrHelpers
     {
         return new ComPtr<TTo> { Handle = (TTo*) comPtr.Handle };
     }
+
+#if STRIDE_GRAPHICS_API_DIRECT3D11
+    /// <summary>
+    ///   Returns a <see cref="ComPtr{T}"/> reinterpreting a COM pointer to a Direct3D 11 device child as a
+    ///   COM pointer to a <see cref="ID3D11DeviceChild"/>.
+    /// </summary>
+    /// <param name="comPtr">The COM pointer of a Direct3D 11 device child.</param>
+    /// <returns>The COM pointer reinterpreted as a <see cref="ID3D11DeviceChild"/>.</returns>
+    public static ComPtr<ID3D11DeviceChild> AsDeviceChild<T>(this ComPtr<T> comPtr)
+        where T : unmanaged, IComVtbl<ID3D11DeviceChild>, IComVtbl<T>
+    {
+        return new ComPtr<ID3D11DeviceChild> { Handle = (ID3D11DeviceChild*) comPtr.Handle };
+    }
 #endif
 
 #if STRIDE_GRAPHICS_API_DIRECT3D12
-
+    /// <summary>
+    ///   Returns a <see cref="ComPtr{T}"/> reinterpreting a COM pointer to a Direct3D 12 device child as a
+    ///   COM pointer to a <see cref="ID3D12DeviceChild"/>.
+    /// </summary>
+    /// <param name="comPtr">The COM pointer of a Direct3D 12 device child.</param>
+    /// <returns>The COM pointer reinterpreted as a <see cref="ID3D12DeviceChild"/>.</returns>
+    public static ComPtr<ID3D12DeviceChild> AsDeviceChild<T>(this ComPtr<T> comPtr)
+        where T : unmanaged, IComVtbl<ID3D12DeviceChild>, IComVtbl<T>
+    {
+        return new ComPtr<ID3D12DeviceChild> { Handle = (ID3D12DeviceChild*) comPtr.Handle };
+    }
 #endif
 }
 

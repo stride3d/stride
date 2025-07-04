@@ -4,9 +4,10 @@
 #if STRIDE_GRAPHICS_API_DIRECT3D11
 
 using System;
+
 using Silk.NET.Core.Native;
-using Silk.NET.Direct3D11;
 using Silk.NET.DXGI;
+using Silk.NET.Direct3D11;
 
 using static Stride.Graphics.ComPtrHelpers;
 
@@ -158,20 +159,20 @@ namespace Stride.Graphics
             /// <summary>
             ///   Determines the number of elements and the element format depending on the type of buffer and intended view format.
             /// </summary>
-            void InitCountAndViewFormat(out int count, ref PixelFormat format)
+            void InitCountAndViewFormat(out int count, ref PixelFormat viewFormat)
             {
                 if (Description.StructureByteStride == 0)
                 {
                     // TODO: The way to calculate the count is not always correct depending on the ViewFlags...etc.
                     count = ViewFlags.HasFlag(BufferFlags.RawBuffer) ? Description.SizeInBytes / sizeof(int) :
-                            ViewFlags.HasFlag(BufferFlags.ShaderResource) ? Description.SizeInBytes / format.SizeInBytes() :
+                            ViewFlags.HasFlag(BufferFlags.ShaderResource) ? Description.SizeInBytes / viewFormat.SizeInBytes() :
                             0;
                 }
                 else
                 {
-                    // Structured buffer
+                    // Structured Buffer
                     count = Description.SizeInBytes / Description.StructureByteStride;
-                    format = PixelFormat.None;
+                    viewFormat = PixelFormat.None;
                 }
             }
         }
