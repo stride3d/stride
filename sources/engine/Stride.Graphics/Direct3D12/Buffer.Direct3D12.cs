@@ -14,7 +14,6 @@ using D3D12Range = Silk.NET.Direct3D12.Range;
 using Stride.Core.Mathematics;
 
 using static System.Runtime.CompilerServices.Unsafe;
-using static Stride.Graphics.ComPtrHelpers;
 
 namespace Stride.Graphics
 {
@@ -200,11 +199,9 @@ namespace Stride.Graphics
             //if (hasInitData)
             //    initialResourceState = ResourceStates.CopyDest;
 
-            var buffer = NullComPtr<ID3D12Resource>();
-
-            HResult result = GraphicsDevice.NativeDevice->CreateCommittedResource(in heap, HeapFlags.None, in nativeDescription,
-                                                                                  initialResourceState, pOptimizedClearValue: null,
-                                                                                  out buffer);
+            HResult result = GraphicsDevice.NativeDevice.CreateCommittedResource(in heap, HeapFlags.None, in nativeDescription,
+                                                                                 initialResourceState, pOptimizedClearValue: null,
+                                                                                 out ComPtr<ID3D12Resource> buffer);
             if (result.IsFailure)
                 result.Throw();
 
@@ -236,14 +233,15 @@ namespace Stride.Graphics
 					Core.Utilities.CopyWithAlignmentFallback((void*) uploadMemory, (void*) dataPointer, (uint) SizeInBytes);
 
                     // TODO: D3D12: Lock NativeCopyCommandList usages
+                    scoped ref var nullPipelineState = ref NullRef<ID3D12PipelineState>();
                     var commandList = GraphicsDevice.NativeCopyCommandList;
-                    result = commandList->Reset(GraphicsDevice.NativeCopyCommandAllocator, pInitialState: null);
+                    result = commandList.Reset(GraphicsDevice.NativeCopyCommandAllocator, pInitialState: ref nullPipelineState);
 
                     if (result.IsFailure)
                         result.Throw();
 
                     // Copy from upload heap to actual resource
-                    commandList->CopyBufferRegion(NativeResource, DstOffset: 0, uploadResource, (ulong) uploadOffset, (ulong) SizeInBytes);
+                    commandList.CopyBufferRegion(NativeResource, DstOffset: 0, uploadResource, (ulong) uploadOffset, (ulong) SizeInBytes);
 
                     // Once initialized, transition the buffer to its final state
                     var resourceBarrier = new ResourceBarrier { Type = ResourceBarrierType.Transition };
@@ -252,9 +250,9 @@ namespace Stride.Graphics
                     resourceBarrier.Transition.StateBefore = initialResourceState;
                     resourceBarrier.Transition.StateAfter = NativeResourceState;
 
-                    commandList->ResourceBarrier(NumBarriers: 1, in resourceBarrier);
+                    commandList.ResourceBarrier(NumBarriers: 1, in resourceBarrier);
 
-                    result = commandList->Close();
+                    result = commandList.Close();
 
                     if (result.IsFailure)
                         result.Throw();

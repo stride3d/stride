@@ -12,6 +12,7 @@ using Silk.NET.Core.Native;
 using Silk.NET.DXGI;
 using Silk.NET.Direct3D12;
 using Stride.Shaders;
+using Stride.Core.Mathematics;
 
 namespace Stride.Graphics
 {
@@ -208,7 +209,7 @@ namespace Stride.Graphics
                                 RegisterSpace = 0,
                                 Filter = (Filter) layoutBuilderEntry.ImmutableSampler.Description.Filter,
                                 ComparisonFunc = (ComparisonFunc) layoutBuilderEntry.ImmutableSampler.Description.CompareFunction,
-                                BorderColor = ColorHelper.ConvertToStaticBorderColor(layoutBuilderEntry.ImmutableSampler.Description.BorderColor),
+                                BorderColor = ConvertToStaticBorderColor(layoutBuilderEntry.ImmutableSampler.Description.BorderColor),
                                 AddressU = (Silk.NET.Direct3D12.TextureAddressMode) layoutBuilderEntry.ImmutableSampler.Description.AddressU,
                                 AddressV = (Silk.NET.Direct3D12.TextureAddressMode) layoutBuilderEntry.ImmutableSampler.Description.AddressV,
                                 AddressW = (Silk.NET.Direct3D12.TextureAddressMode) layoutBuilderEntry.ImmutableSampler.Description.AddressW,
@@ -471,6 +472,27 @@ namespace Stride.Graphics
                     SilkMarshal.Free(bufferPtr);
 
                 tempMemoryAllocations.Clear();
+            }
+
+            //
+            // Converts a Color4 to its corresponding StaticBorderColor for a Sampler's border color.
+            //
+            static StaticBorderColor ConvertToStaticBorderColor(Color4 color)
+            {
+                if (color == Color4.Black)
+                {
+                    return StaticBorderColor.OpaqueBlack;
+                }
+                else if (color == Color4.White)
+                {
+                    return StaticBorderColor.OpaqueWhite;
+                }
+                else if (color == Color4.TransparentBlack)
+                {
+                    return StaticBorderColor.TransparentBlack;
+                }
+
+                throw new NotSupportedException("Static Samplers can only have opaque black, opaque white or transparent black as border color.");
             }
         }
 

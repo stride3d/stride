@@ -11,6 +11,7 @@ namespace Stride.Graphics
     public readonly unsafe partial struct DescriptorSet
     {
         internal readonly GraphicsDevice Device;
+
         internal readonly int[] BindingOffsets;
         internal readonly DescriptorSetLayout Description;
 
@@ -84,8 +85,8 @@ namespace Stride.Graphics
                 return;
 
             var destDescriptorRangeStart = new CpuDescriptorHandle(SrvStart.Ptr + (nuint) BindingOffsets[slot]);
-            Device.NativeDevice->CopyDescriptorsSimple(NumDescriptors: 1, destDescriptorRangeStart,
-                                                       shaderResourceView.NativeShaderResourceView, DescriptorHeapType.CbvSrvUav);
+            Device.NativeDevice.CopyDescriptorsSimple(NumDescriptors: 1, destDescriptorRangeStart,
+                                                      shaderResourceView.NativeShaderResourceView, DescriptorHeapType.CbvSrvUav);
         }
 
         /// <summary>
@@ -102,8 +103,8 @@ namespace Stride.Graphics
                 return;
 
             var destDescriptorRangeStart = new CpuDescriptorHandle(SamplerStart.Ptr + (nuint) bindingSlot);
-            Device.NativeDevice->CopyDescriptorsSimple(NumDescriptors: 1, destDescriptorRangeStart,
-                                                       samplerState.NativeSampler, DescriptorHeapType.Sampler);
+            Device.NativeDevice.CopyDescriptorsSimple(NumDescriptors: 1, destDescriptorRangeStart,
+                                                      samplerState.NativeSampler, DescriptorHeapType.Sampler);
         }
 
         /// <summary>
@@ -126,7 +127,7 @@ namespace Stride.Graphics
             };
 
             var destDescriptorHandle = new CpuDescriptorHandle(SrvStart.Ptr + (nuint) BindingOffsets[slot]);
-            Device.NativeDevice->CreateConstantBufferView(cbufferViewDesc, destDescriptorHandle);
+            Device.NativeDevice.CreateConstantBufferView(in cbufferViewDesc, destDescriptorHandle);
         }
 
         /// <summary>
@@ -140,8 +141,8 @@ namespace Stride.Graphics
                 throw new ArgumentException($"Resource \'{unorderedAccessView}\' has missing Unordered Access View.");
 
             var destDescriptorRangeStart = new CpuDescriptorHandle(SrvStart.Ptr + (nuint) BindingOffsets[slot]);
-            Device.NativeDevice->CopyDescriptorsSimple(NumDescriptors: 1, destDescriptorRangeStart,
-                                                       unorderedAccessView.NativeUnorderedAccessView, DescriptorHeapType.CbvSrvUav);
+            Device.NativeDevice.CopyDescriptorsSimple(NumDescriptors: 1, destDescriptorRangeStart,
+                                                      unorderedAccessView.NativeUnorderedAccessView, DescriptorHeapType.CbvSrvUav);
         }
     }
 }
