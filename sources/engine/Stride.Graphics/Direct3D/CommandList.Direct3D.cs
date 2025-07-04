@@ -5,15 +5,18 @@
 
 using System;
 using System.Diagnostics;
+
 using Silk.NET.Core.Native;
-using Silk.NET.Direct3D11;
 using Silk.NET.DXGI;
+using Silk.NET.Direct3D11;
+
 using Stride.Core.Mathematics;
 using Stride.Core.UnsafeExtensions;
 using Stride.Shaders;
 
 using SilkBox2I = Silk.NET.Maths.Box2D<int>;
-using SilkViewport = Silk.NET.Direct3D11.Viewport;
+using D3D11Viewport = Silk.NET.Direct3D11.Viewport;
+using D3D11Box = Silk.NET.Direct3D11.Box;
 
 using static Stride.Graphics.ComPtrHelpers;
 
@@ -253,7 +256,7 @@ namespace Stride.Graphics
             viewportDirty = false;
 
             uint viewportCount = renderTargetCount > 0 ? (uint) renderTargetCount : 1;
-            var viewportsToSet = viewports.AsSpan<Viewport, SilkViewport>();
+            var viewportsToSet = viewports.AsSpan<Viewport, D3D11Viewport>();
 
             nativeDeviceContext->RSSetViewports(viewportCount, in viewportsToSet[0]);
         }
@@ -1081,7 +1084,7 @@ namespace Stride.Graphics
             ArgumentNullException.ThrowIfNull(destinationTexture);
 
             if (!sourceMultiSampledTexture.IsMultiSampled)
-                throw new ArgumentOutOfRangeException(nameof(sourceMultiSampledTexture), "Source Texture is not a Multi-Sampled Texture");
+                throw new ArgumentException("Source Texture is not a MSAA Texture", nameof(sourceMultiSampledTexture));
 
             nativeDeviceContext->ResolveSubresource(destinationTexture.NativeResource, (uint) destinationSubResourceIndex,
                                                     sourceMultiSampledTexture.NativeResource, (uint) sourceSubResourceIndex,
@@ -1139,24 +1142,25 @@ namespace Stride.Graphics
         ///     <see cref="CopyRegion"/> only supports copy; it doesn't support any stretch, color key, or blend.
         ///   </para>
         /// </remarks>
-        public void CopyRegion(GraphicsResource source, int sourceSubResource, ResourceRegion? sourceRegion,
-                               GraphicsResource destination, int destinationSubResource, int dstX = 0, int dstY = 0, int dstZ = 0)
+        public void CopyRegion(GraphicsResource source, int sourceSubResourceIndex, ResourceRegion? sourceRegion,
+                               GraphicsResource destination, int destinationSubResourceIndex, int dstX = 0, int dstY = 0, int dstZ = 0)
         {
             ArgumentNullException.ThrowIfNull(source);
             ArgumentNullException.ThrowIfNull(destination);
 
-            if (sourceRegion.HasValue)
+            if (sourceRegion is ResourceRegion srcResourceRegion)
             {
-                var value = sourceRegion.Value;
-                var pSourceBox = (Box*) &value;
+                // NOTE: We assume the same layout and size as D3D11_BOX
+                Debug.Assert(sizeof(D3D11Box) == sizeof(ResourceRegion));
+                var sourceBox = srcResourceRegion.BitCast<ResourceRegion, D3D11Box>();
 
-                nativeDeviceContext->CopySubresourceRegion(destination.NativeResource, (uint) destinationSubResource, (uint) dstX, (uint) dstY, (uint) dstZ,
-                                                           source.NativeResource, (uint)sourceSubResource, pSourceBox);
+                nativeDeviceContext->CopySubresourceRegion(destination.NativeResource, (uint) destinationSubResourceIndex, (uint) dstX, (uint) dstY, (uint) dstZ,
+                                                           source.NativeResource, (uint) sourceSubResourceIndex, in sourceBox);
             }
             else
             {
-                nativeDeviceContext->CopySubresourceRegion(destination.NativeResource, (uint) destinationSubResource, (uint) dstX, (uint) dstY, (uint) dstZ,
-                                                           source.NativeResource, (uint) sourceSubResource, pSrcBox: null);
+                nativeDeviceContext->CopySubresourceRegion(destination.NativeResource, (uint) destinationSubResourceIndex, (uint) dstX, (uint) dstY, (uint) dstZ,
+                                                           source.NativeResource, (uint) sourceSubResourceIndex, pSrcBox: null);
             }
         }
 
