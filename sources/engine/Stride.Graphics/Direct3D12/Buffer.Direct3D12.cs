@@ -27,12 +27,23 @@ namespace Stride.Graphics
 
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="Buffer" /> class.
+        ///   Initializes this <see cref="Buffer"/> instance with the provided options.
         /// </summary>
-        /// <param name="description">The description.</param>
-        /// <param name="viewFlags">Type of the buffer.</param>
-        /// <param name="viewFormat">The view format.</param>
-        /// <param name="dataPointer">The data pointer.</param>
+        /// <param name="description">A <see cref="BufferDescription"/> structure describing the buffer characteristics.</param>
+        /// <param name="viewFlags">A combination of flags determining how the Views over this buffer should behave.</param>
+        /// <param name="viewFormat">
+        ///   View format used if the buffer is used as a Shader Resource View,
+        ///   or <see cref="PixelFormat.None"/> if not.
+        /// </param>
+        /// <param name="dataPointer">The data pointer to the data to initialize the buffer with.</param>
+        /// <returns>This same instance of <see cref="Buffer"/> already initialized.</returns>
+        /// <exception cref="ArgumentException">
+        ///   The Buffer is a Structured Buffer, but <c>StructureByteStride</c> is less than or equal to 0.
+        /// </exception>
+        /// <exception cref="InvalidOperationException">
+        ///   A Buffer with <see cref="GraphicsResourceUsage.Staging"/> cannot be created with initial data
+        ///   (<paramref name="dataPointer"/> is not <see cref="IntPtr.Zero"/>).
+        /// </exception>
         protected partial Buffer InitializeFromImpl(ref readonly BufferDescription description, BufferFlags bufferFlags, PixelFormat viewFormat, IntPtr dataPointer)
         {
             bufferDescription = description;
@@ -48,6 +59,9 @@ namespace Stride.Graphics
 
             return this;
 
+            /// <summary>
+            ///   Returns a Direct3D 12 Resource Description for the Buffer.
+            /// </summary>
             static ResourceDesc ConvertToNativeDescription(ref readonly BufferDescription bufferDescription)
             {
                 var flags = ResourceFlags.None;
@@ -76,6 +90,9 @@ namespace Stride.Graphics
                 };
             }
 
+            /// <summary>
+            ///   Determines the number of elements and the element format depending on the type of buffer and intended view format.
+            /// </summary>
             void InitCountAndViewFormat(out int count, ref PixelFormat viewFormat)
             {
                 if (Description.StructureByteStride == 0)
@@ -116,10 +133,19 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        /// Explicitly recreate buffer with given data. Usually called after a <see cref="GraphicsDevice"/> reset.
+        ///   Recreates this buffer explicitly with the provided data. Usually called after the <see cref="GraphicsDevice"/> has been reset.
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="dataPointer"></param>
+        /// <param name="dataPointer">
+        ///   The data pointer to the data to use to recreate the buffer with.
+        ///   Specify <see cref="IntPtr.Zero"/> if no initial data is needed.
+        /// </param>
+        /// <exception cref="ArgumentException">
+        ///   The Buffer is a Structured Buffer, but <c>StructureByteStride</c> is less than or equal to 0.
+        /// </exception>
+        /// <exception cref="InvalidOperationException">
+        ///   A Buffer with <see cref="GraphicsResourceUsage.Staging"/> cannot be created with initial data
+        ///   (<paramref name="dataPointer"/> is not <see cref="IntPtr.Zero"/>).
+        /// </exception>
         public void Recreate(IntPtr dataPointer)
         {
             bool hasInitData = dataPointer != IntPtr.Zero;
@@ -242,13 +268,14 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        /// Gets a <see cref="ShaderResourceView"/> for a particular <see cref="PixelFormat"/>.
+        ///   Gets a <see cref="CpuDescriptorHandle"/> for a Shader Resource View over this Buffer
+        ///   for a particular <see cref="PixelFormat"/>.
         /// </summary>
         /// <param name="viewFormat">The view format.</param>
-        /// <returns>A <see cref="ShaderResourceView"/> for the particular view format.</returns>
+        /// <returns>A <see cref="CpuDescriptorHandle"/> for the Shader Resource View.</returns>
         /// <remarks>
-        /// The buffer must have been declared with <see cref="Graphics.BufferFlags.ShaderResource"/>.
-        /// The ShaderResourceView instance is kept by this buffer and will be disposed when this buffer is disposed.
+        ///   The <see cref="Buffer"/> must have been declared with <see cref="BufferFlags.ShaderResource"/>.
+        ///   The Shader Resource View is kept by this Buffer and will be disposed when this Buffer is disposed.
         /// </remarks>
         internal CpuDescriptorHandle GetShaderResourceView(PixelFormat viewFormat)
         {
@@ -279,6 +306,16 @@ namespace Stride.Graphics
             return srv;
         }
 
+        /// <summary>
+        ///   Gets a <see cref="CpuDescriptorHandle"/> for a Unordered Access View over this Buffer
+        ///   for a particular <see cref="PixelFormat"/>.
+        /// </summary>
+        /// <param name="pixelFormat">The view format.</param>
+        /// <returns>A <see cref="CpuDescriptorHandle"/> for the Unordered Access View.</returns>
+        /// <remarks>
+        ///   The <see cref="Buffer"/> must have been declared with <see cref="BufferFlags.UnorderedAccess"/>.
+        ///   The Render Target View is kept by this Buffer and will be disposed when this Buffer is disposed.
+        /// </remarks>
         internal CpuDescriptorHandle GetUnorderedAccessView(PixelFormat viewFormat)
         {
             CpuDescriptorHandle uav = default;

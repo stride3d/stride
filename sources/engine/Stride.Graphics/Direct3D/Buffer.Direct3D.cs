@@ -213,7 +213,10 @@ namespace Stride.Graphics
         /// <summary>
         ///   Recreates this buffer explicitly with the provided data. Usually called after the <see cref="GraphicsDevice"/> has been reset.
         /// </summary>
-        /// <param name="dataPointer">The data pointer to the data to use to recreate the buffer with.</param>
+        /// <param name="dataPointer">
+        ///   The data pointer to the data to use to recreate the buffer with.
+        ///   Specify <see cref="IntPtr.Zero"/> if no initial data is needed.
+        /// </param>
         public void Recreate(IntPtr dataPointer)
         {
             var buffer = NullComPtr<ID3D11Buffer>();
@@ -236,13 +239,13 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        ///   Gets a <see cref="ID3D11ShaderResourceView"/> for this buffer for a particular <see cref="PixelFormat"/>.
+        ///   Gets a <see cref="ID3D11ShaderResourceView"/> for this Buffer for a particular <see cref="PixelFormat"/>.
         /// </summary>
         /// <param name="viewFormat">The view format.</param>
         /// <returns>A <see cref="ID3D11ShaderResourceView"/> for the particular view format.</returns>
         /// <remarks>
         ///   The <see cref="Buffer"/> must have been declared with <see cref="BufferFlags.ShaderResource"/>.
-        ///   The Shader Resource View is kept by this buffer and will be disposed when this buffer is disposed.
+        ///   The Shader Resource View is kept by this Buffer and will be disposed when this Buffer is disposed.
         /// </remarks>
         internal ComPtr<ID3D11ShaderResourceView> GetShaderResourceView(PixelFormat viewFormat)
         {
@@ -280,14 +283,14 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        ///   Gets a <see cref="ID3D11RenderTargetView" /> for this buffer for a particular <see cref="PixelFormat"/>.
+        ///   Gets a <see cref="ID3D11RenderTargetView" /> for this Buffer for a particular <see cref="PixelFormat"/>.
         /// </summary>
         /// <param name="pixelFormat">The view format.</param>
         /// <param name="width">The width in pixels of the Render Target View.</param>
         /// <returns>A <see cref="ID3D11RenderTargetView" /> for the particular view format.</returns>
         /// <remarks>
         ///   The <see cref="Buffer"/> must have been declared with <see cref="BufferFlags.RenderTarget"/>.
-        ///   The Render Target View is kept by this buffer and will be disposed when this buffer is disposed.
+        ///   The Render Target View is kept by this Buffer and will be disposed when this Buffer is disposed.
         /// </remarks>
         internal ComPtr<ID3D11RenderTargetView> GetRenderTargetView(PixelFormat pixelFormat, int width)
         {
