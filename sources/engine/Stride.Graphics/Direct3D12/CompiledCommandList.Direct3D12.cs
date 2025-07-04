@@ -4,20 +4,23 @@
 #if STRIDE_GRAPHICS_API_DIRECT3D12
 
 using System.Collections.Generic;
+
 using Silk.NET.Core.Native;
 using Silk.NET.Direct3D12;
 
-namespace Stride.Graphics
+namespace Stride.Graphics;
+
+public unsafe partial struct CompiledCommandList
 {
-    public unsafe partial struct CompiledCommandList
-    {
-        internal CommandList Builder;
-        internal ID3D12GraphicsCommandList* NativeCommandList;
-        internal ID3D12CommandAllocator* NativeCommandAllocator;
-        internal List<ComPtr<ID3D12DescriptorHeap>> SrvHeaps;
-        internal List<ComPtr<ID3D12DescriptorHeap>> SamplerHeaps;
-        internal List<GraphicsResource> StagingResources;
-    }
+    internal CommandList Builder;
+
+    internal ComPtr<ID3D12GraphicsCommandList> NativeCommandList;
+    internal ComPtr<ID3D12CommandAllocator> NativeCommandAllocator;
+
+    internal List<ComPtr<ID3D12DescriptorHeap>> SrvHeaps;
+    internal List<ComPtr<ID3D12DescriptorHeap>> SamplerHeaps;
+
+    internal List<GraphicsResource> StagingResources;
 }
 
 #endif
