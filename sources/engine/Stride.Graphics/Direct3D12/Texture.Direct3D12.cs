@@ -44,22 +44,55 @@ namespace Stride.Graphics
 
         private int TexturePixelSize => Format.SizeInBytes();
 
+        /// <summary>
+        ///   A handle to the CPU-accessible Render Target View (RTV) Descriptor.
+        /// </summary>
         internal CpuDescriptorHandle NativeRenderTargetView;
+        /// <summary>
+        ///   A handle to the CPU-accessible Depth-Stencil View (DSV) Descriptor.
+        /// </summary>
         internal CpuDescriptorHandle NativeDepthStencilView;
 
+        /// <summary>
+        ///   A value indicating whether the Texture is a Depth-Stencil Buffer with a stencil component.
+        /// </summary>
         public bool HasStencil;
 
 
+        /// <summary>
+        ///   Recreates this Texture explicitly with the provided data. Usually called after the <see cref="GraphicsDevice"/> has been reset.
+        /// </summary>
+        /// <param name="dataBoxes">
+        ///   An array of <see cref="DataBox"/> structures that contain the initial data for the Texture's
+        ///   sub-resources (the mip-levels in the mipmap chain).
+        ///   Specify <see langword="null"/> if no initial data is needed.
+        /// </param>
+        /// <exception cref="NotSupportedException">
+        ///   The Texture is initialized with <see cref="GraphicsResourceUsage.Staging"/> and staging Textures
+        ///   cannot be created with initial data (<paramref name="dataBoxes"/> must be <see langword="null"/> or empty).
+        /// </exception>
         public void Recreate(DataBox[] dataBoxes = null)
         {
             InitializeFromImpl(dataBoxes);
         }
 
+        /// <summary>
+        ///   Determines if a Graphics Device supports read-only Depth-Stencil Buffers.
+        /// </summary>
+        /// <param name="device">The Graphics Device to check.</param>
+        /// <returns>
+        ///   <see langword="true"/> if the Graphics Device supports read-only Depth-Stencil Buffers;
+        ///   <see langword="false"/> otherwise.
+        /// </returns>
         public static bool IsDepthStencilReadOnlySupported(GraphicsDevice device)
         {
             return device.Features.CurrentProfile >= GraphicsProfile.Level_11_0;
         }
 
+        /// <summary>
+        ///   Swaps the Texture's internal data with another Texture.
+        /// </summary>
+        /// <param name="other">The other Texture.</param>
         internal partial void SwapInternal(Texture other)
         {
             (NativeDeviceChild, other.NativeDeviceChild) = (other.NativeDeviceChild, NativeDeviceChild);
@@ -76,9 +109,14 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        /// Initializes from a native SharpDX.Texture
+        ///   Initializes the <see cref="Texture"/> from a native <see cref="ID3D12Resource"/>.
         /// </summary>
-        /// <param name="texture">The texture.</param>
+        /// <param name="texture">The underlying native Texture.</param>
+        /// <param name="treatAsSrgb">
+        ///   <see langword="true"/> to treat the Texture's pixel format as if it were an sRGB format, even if it was created as non-sRGB;
+        ///   <see langword="false"/> to respect the Texture's original pixel format.
+        /// </param>
+        /// <returns>This Texture after being initialized.</returns>
         internal Texture InitializeFromImpl(ID3D12Resource* texture, bool treatAsSrgb)
         {
             var ptrTexture = ToComPtr(texture);
@@ -94,6 +132,9 @@ namespace Stride.Graphics
             return InitializeFrom(newTextureDescription);
 
 
+            //
+            // Converts a Silk.NET's ResourceDesc structure to a TextureDescription.
+            //
             static TextureDescription ConvertFromNativeDescription(ResourceDesc description, bool isShaderResource = false)
             {
                 var desc = new TextureDescription()
@@ -124,8 +165,43 @@ namespace Stride.Graphics
             }
         }
 
+        /// <summary>
+        ///   Initializes the Texture with no initial data.
+        /// </summary>
+        /// <exception cref="ArgumentOutOfRangeException">Invalid Texture share options (<see cref="TextureOptions"/>) specified.</exception>
+        /// <exception cref="NotSupportedException">Multi-sampling is only supported for 2D Textures.</exception>
+        /// <exception cref="NotSupportedException">A Texture Cube must have an array size greater than 1.</exception>
+        /// <exception cref="NotSupportedException">Texture Arrays are not supported for 3D Textures.</exception>
+        /// <exception cref="NotSupportedException"><see cref="ViewType.MipBand"/> is not supported for Render Targets.</exception>
+        /// <exception cref="NotSupportedException">Multi-sampling is not supported for Unordered Access Views.</exception>
+        /// <exception cref="NotSupportedException">The Depth-Stencil format specified is not supported.</exception>
+        /// <exception cref="NotSupportedException">Cannot create a read-only Depth-Stencil View because the device does not support it.</exception>
         private void InitializeFromImpl() => InitializeFromImpl(dataBoxes: null);
 
+        /// <summary>
+        ///   Initializes the Texture from the specified data.
+        /// </summary>
+        /// <param name="dataBoxes">
+        ///   An array of <see cref="DataBox"/> structures pointing to the data for all the subresources to
+        ///   initialize for the Texture.
+        /// </param>
+        /// <exception cref="ArgumentOutOfRangeException">Invalid Texture share options (<see cref="TextureOptions"/>) specified.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">Invalid Texture dimension (<see cref="TextureDimension"/>) specified.</exception>
+        /// <exception cref="NotSupportedException">Multi-sampling is only supported for 2D Textures.</exception>
+        /// <exception cref="NotSupportedException">A Texture Cube must have an array size greater than 1.</exception>
+        /// <exception cref="NotSupportedException">Texture Arrays are not supported for 3D Textures.</exception>
+        /// <exception cref="NotSupportedException"><see cref="ViewType.MipBand"/> is not supported for Render Targets.</exception>
+        /// <exception cref="NotSupportedException">Multi-sampling is not supported for Unordered Access Views.</exception>
+        /// <exception cref="NotSupportedException">The Depth-Stencil format specified is not supported.</exception>
+        /// <exception cref="NotSupportedException">Cannot create a read-only Depth-Stencil View because the device does not support it.</exception>
+        /// <exception cref="NotSupportedException">
+        ///   For a <see cref="GraphicsProfile"/> lower than <see cref="GraphicsProfile.Level_10_0"/>, creating Shader Resource Views
+        ///   for Depth-Stencil Textures is not supported,
+        /// </exception>
+        /// <exception cref="NotSupportedException">
+        ///   The Texture is initialized with <see cref="GraphicsResourceUsage.Staging"/> and staging Textures
+        ///   cannot be created with initial data (<paramref name="dataBoxes"/> must be <see langword="null"/> or empty).
+        /// </exception>
         private partial void InitializeFromImpl(DataBox[] dataBoxes)
         {
             // If this is a view, get the underlying resource to copy data to
@@ -162,6 +238,10 @@ namespace Stride.Graphics
             NativeUnorderedAccessView = GetUnorderedAccessView(ViewType, ArraySlice, MipLevel);
 
 
+            //
+            // Initializes the Texture as a staging texture, which in Direct3D 12 is essentially a Buffer,
+            // and copies the initialization data to that Buffer.
+            //
             void InitializeStagingTexture()
             {
                 NativeResourceState = ResourceStates.CopyDest;
@@ -179,6 +259,10 @@ namespace Stride.Graphics
                 NativeDeviceChild = stagingTextureResource.AsDeviceChild();
             }
 
+            //
+            // Initializes the Texture as a regular texture resource and copies the initial data
+            // to that new texture.
+            //
             void InitializeTexture(DataBox[] initialData)
             {
                 bool hasClearValue = GetClearValue(out ClearValue clearValue);
@@ -285,6 +369,10 @@ namespace Stride.Graphics
                 NativeResourceState = initialResourceState;
             }
 
+            //
+            // Gets the most appropriate clear value for the resource, or no clear value if the
+            // resource does not need one.
+            //
             bool GetClearValue(out ClearValue clearValue)
             {
                 if (IsDepthStencil)
@@ -314,6 +402,9 @@ namespace Stride.Graphics
                 }
             }
 
+            //
+            // Constructs the appropriate Direct3D 12 resource description for the specified texture type.
+            //
             ResourceDesc GetTextureDescription(TextureDimension textureDimension)
             {
                 return textureDimension switch
@@ -329,6 +420,9 @@ namespace Stride.Graphics
                 };
             }
 
+            //
+            // Creates a description for a Buffer with the specified size.
+            //
             ResourceDesc CreateDescriptionForBuffer(ulong bufferSize)
             {
                 return new ResourceDesc
@@ -348,13 +442,9 @@ namespace Stride.Graphics
                 };
             }
 
-        /// <summary>
-        /// Gets a specific <see cref="ShaderResourceView" /> from this texture.
-        /// </summary>
-        /// <param name="viewType">Type of the view slice.</param>
-        /// <param name="arrayOrDepthSlice">The texture array slice index.</param>
-        /// <param name="mipIndex">The mip map slice index.</param>
-        /// <returns>An <see cref="ShaderResourceView" /></returns>
+            //
+            // Gets a specific Shader Resource View from the Texture.
+            //
             CpuDescriptorHandle GetShaderResourceView(ViewType viewType, int arrayOrDepthSlice, int mipIndex)
             {
                 if (!IsShaderResource)
@@ -446,6 +536,9 @@ namespace Stride.Graphics
                 return descriptorHandle;
             }
 
+            //
+            // Gets a specific Render Target View from the Texture.
+            //
             CpuDescriptorHandle GetRenderTargetView(ViewType viewType, int arrayOrDepthSlice, int mipIndex)
             {
                 if (!IsRenderTarget)
@@ -530,14 +623,9 @@ namespace Stride.Graphics
                 return descriptorHandle;
             }
 
-        /// <summary>
-        /// Gets a specific <see cref="RenderTargetView" /> from this texture.
-        /// </summary>
-        /// <param name="viewType">Type of the view slice.</param>
-        /// <param name="arrayOrDepthSlice">The texture array slice index.</param>
-        /// <param name="mipIndex">Index of the mip.</param>
-        /// <returns>An <see cref="RenderTargetView" /></returns>
-        /// <exception cref="NotSupportedException">ViewSlice.MipBand is not supported for render targets</exception>
+            //
+            // Gets a Depth-Stencil View from the Texture.
+            //
             CpuDescriptorHandle GetDepthStencilView(out bool hasStencil)
             {
                 hasStencil = false;
@@ -592,6 +680,9 @@ namespace Stride.Graphics
                 return descriptorHandle;
             }
 
+            //
+            // Gets a specific Unordered Access View from the Texture.
+            //
             CpuDescriptorHandle GetUnorderedAccessView(ViewType viewType, int arrayOrDepthSlice, int mipIndex)
             {
                 if (!IsUnorderedAccess)
@@ -674,6 +765,9 @@ namespace Stride.Graphics
                 return viewFormat;
             }
 
+            //
+            // Given a pixel format, returns the corresponding Silk.NET's depth format.
+            //
             static Format ComputeDepthViewFormatFromTextureFormat(PixelFormat format)
             {
                 var viewFormat = format switch
@@ -688,6 +782,9 @@ namespace Stride.Graphics
                 return viewFormat;
             }
 
+            //
+            // Determines if a format is a Depth-Stencil format that also contains Stencil data.
+            //
             static bool IsStencilFormat(PixelFormat format)
             {
                 return format switch
@@ -702,6 +799,18 @@ namespace Stride.Graphics
             }
         }
 
+        /// <inheritdoc cref="GraphicsResourceBase.OnDestroyed" path="/summary"/>
+        /// <remarks>
+        ///   This method releases all the native resources associated with the Texture:
+        ///   <list type="bullet">
+        ///     <item>
+        ///       If it is a <strong>Texture</strong>, this releases the underlying native texture resource and also the associated Views.
+        ///     </item>
+        ///     <item>
+        ///       If it is a <strong>Texture View</strong>, it releases only the resources related to the View, not the parent Texture's.
+        ///     </item>
+        ///   </list>
+        /// </remarks>
         protected internal override void OnDestroyed()
         {
             // If it was a View, do not release reference
@@ -717,6 +826,17 @@ namespace Stride.Graphics
             base.OnDestroyed();
         }
 
+        /// <summary>
+        ///   Perform Direct3D 12-specific recreation of the Texture.
+        /// </summary>
+        /// <exception cref="ArgumentOutOfRangeException">Invalid Texture share options (<see cref="TextureOptions"/>) specified.</exception>
+        /// <exception cref="NotSupportedException">Multi-sampling is only supported for 2D Textures.</exception>
+        /// <exception cref="NotSupportedException">A Texture Cube must have an array size greater than 1.</exception>
+        /// <exception cref="NotSupportedException">Texture Arrays are not supported for 3D Textures.</exception>
+        /// <exception cref="NotSupportedException"><see cref="ViewType.MipBand"/> is not supported for Render Targets.</exception>
+        /// <exception cref="NotSupportedException">Multi-sampling is not supported for Unordered Access Views.</exception>
+        /// <exception cref="NotSupportedException">The Depth-Stencil format specified is not supported.</exception>
+        /// <exception cref="NotSupportedException">Cannot create a read-only Depth-Stencil View because the device does not support it.</exception>
         private partial void OnRecreateImpl()
         {
             // Dependency: Wait for underlying texture to be recreated
@@ -736,6 +856,11 @@ namespace Stride.Graphics
             InitializeFromImpl();
         }
 
+        /// <summary>
+        ///   Converts the specified <see cref="TextureFlags"/> to Silk.NET's <see cref="BindFlag"/>.
+        /// </summary>
+        /// <param name="flags">The flags to convert.</param>
+        /// <returns>The corresponding <see cref="BindFlag"/>.</returns>
         private static ResourceFlags GetBindFlagsFromTextureFlags(TextureFlags flags)
         {
             var result = ResourceFlags.None;
@@ -756,11 +881,22 @@ namespace Stride.Graphics
             return result;
         }
 
+        /// <summary>
+        ///   Indicates if the Texture is flipped vertically, i.e. if the rows are ordered bottom-to-top instead of top-to-bottom.
+        /// </summary>
+        /// <returns><see langword="true"/> if the Texture is flipped; <see langword="false"/> otherwise.</returns>
+        /// <remarks>
+        ///   For Direct3D, Textures are not flipped, meaning the first row is at the top and the last row is at the bottom.
+        /// </remarks>
         private partial bool IsFlipped()
         {
             return false;
         }
 
+        /// <summary>
+        ///   Returns a native <see cref="ResourceDesc"/> describing a 1D Texture from the current <see cref="TextureDescription"/>.
+        /// </summary>
+        /// <returns>A Silk.NET's <see cref="ResourceDesc"/> describing the Texture.</returns>
         internal ResourceDesc ConvertToNativeDescription1D()
         {
             return new ResourceDesc
@@ -780,6 +916,17 @@ namespace Stride.Graphics
             };
         }
 
+        /// <summary>
+        ///   Returns a native <see cref="ResourceDesc"/> describing a 2D Texture from the current <see cref="TextureDescription"/>.
+        /// </summary>
+        /// <returns>A Silk.NET's <see cref="ResourceDesc"/> describing the Texture.</returns>
+        /// <exception cref="NotSupportedException">
+        ///   For a <see cref="GraphicsProfile"/> lower than <see cref="GraphicsProfile.Level_10_0"/>, creating Shader Resource Views
+        ///   for Depth-Stencil Textures is not supported,
+        /// </exception>
+        /// <exception cref="NotSupportedException">
+        ///   The specified pixel format is not supported for Depth-Stencil Textures.
+        /// </exception>
         internal ResourceDesc ConvertToNativeDescription2D()
         {
             var format = (Format) textureDescription.Format;
@@ -839,6 +986,14 @@ namespace Stride.Graphics
             };
         }
 
+        /// <summary>
+        ///   Given a Depth Texture format, returns the corresponding Shader Resource View format.
+        /// </summary>
+        /// <param name="depthFormat">The depth format.</param>
+        /// <returns>
+        ///   The View format corresponding to <paramref name="depthFormat"/>,
+        ///   or <see cref="PixelFormat.None"/> if no compatible format could be computed.
+        /// </returns>
         internal static PixelFormat ComputeShaderResourceFormatFromDepthFormat(PixelFormat format)
         {
             var viewFormat = format switch
@@ -853,6 +1008,10 @@ namespace Stride.Graphics
             return viewFormat;
         }
 
+        /// <summary>
+        ///   Returns a native <see cref="ResourceDesc"/> describing a 3D Texture from the current <see cref="TextureDescription"/>.
+        /// </summary>
+        /// <returns>A Silk.NET's <see cref="ResourceDesc"/> describing the Texture.</returns>
         internal ResourceDesc ConvertToNativeDescription3D()
         {
             return new ResourceDesc
@@ -873,11 +1032,15 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        /// Check and modify if necessary the mipmap levels of the image (Troubles with DXT images whose resolution in less than 4x4 in DX9.x).
+        ///   Checks a <see cref="TextureDescription"/> for invalid mip-levels and modifies the description if necessary.
         /// </summary>
         /// <param name="device">The graphics device.</param>
-        /// <param name="description">The texture description.</param>
-        /// <returns>The updated texture description.</returns>
+        /// <param name="description">The Texture description to check.</param>
+        /// <returns>The updated Texture description.</returns>
+        /// <remarks>
+        ///   This check is to prevent issues with Direct3D 9.x where the driver may not be able to create mipmaps
+        ///   whose resolution in less than 4x4 pixels.
+        /// </remarks>
         private static TextureDescription CheckMipLevels(GraphicsDevice device, ref TextureDescription description)
         {
             // Troubles with DXT images whose resolution in less than 4x4 in DX9.x
@@ -892,12 +1055,15 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        /// Calculates the mip level from a specified size.
+        ///   Calculates the number of mip-levels that can be created for a specified size, taking into account
+        ///   a minimum mip-level size.
         /// </summary>
-        /// <param name="size">The size.</param>
-        /// <param name="minimumSizeLastMip">The minimum size of the last mip.</param>
-        /// <returns>The mip level.</returns>
-        /// <exception cref="ArgumentOutOfRangeException">Value must be > 0;size</exception>
+        /// <param name="size">The size in pixels.</param>
+        /// <param name="minimumSizeLastMip">The minimum size of the last mip-level. By default, this is 4 pixels.</param>
+        /// <returns>The number of possible mip-levels.</returns>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///   Both <paramref name="size"/> and <paramref name="minimumSizeLastMip"/> must be greater than 0.
+        /// </exception>
         private static int CalculateMipCountFromSize(int size, int minimumSizeLastMip = 4)
         {
             ArgumentOutOfRangeException.ThrowIfNegativeOrZero(size);
@@ -913,13 +1079,17 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        /// Calculates the mip level from a specified width,height,depth.
+        ///   Calculates the number of mip-levels that can be created for a specified size, taking into account
+        ///   a minimum mip-level size.
         /// </summary>
-        /// <param name="width">The width.</param>
-        /// <param name="height">The height.</param>
-        /// <param name="minimumSizeLastMip">The minimum size of the last mip.</param>
-        /// <returns>The mip level.</returns>
-        /// <exception cref="ArgumentOutOfRangeException">Value must be &gt; 0;size</exception>
+        /// <param name="width">The width in pixels.</param>
+        /// <param name="height">The height in pixels.</param>
+        /// <param name="minimumSizeLastMip">The minimum size of the last mip-level. By default, this is 4 pixels.</param>
+        /// <returns>The number of possible mip-levels.</returns>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///   <paramref name="width"/> and <paramref name="height"/> must be greater than 0, and
+        ///   <paramref name="minimumSizeLastMip"/> must also be greater than 0.
+        /// </exception>
         private static int CalculateMipCount(int width, int height, int minimumSizeLastMip = 4)
         {
             return Math.Min(CalculateMipCountFromSize(width, minimumSizeLastMip), CalculateMipCountFromSize(height, minimumSizeLastMip));
