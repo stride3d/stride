@@ -16,11 +16,14 @@ namespace Stride.Graphics
 
         internal ulong? StagingFenceValue;
         internal CommandList StagingBuilder;
+
         internal CpuDescriptorHandle NativeShaderResourceView;
         internal CpuDescriptorHandle NativeUnorderedAccessView;
+
         internal ResourceStates NativeResourceState;
 
-        protected bool IsDebugMode => GraphicsDevice != null && GraphicsDevice.IsDebugMode;
+        protected bool IsDebugMode => GraphicsDevice?.IsDebugMode == true;
+
 
         /// <summary>
         /// Returns true if resource state transition is needed in order to use resource in given state
@@ -30,8 +33,9 @@ namespace Stride.Graphics
         internal bool IsTransitionNeeded(ResourceStates targeState)
         {
             // If 'targeState' is a subset of 'before', then there's no need for a transition
-            // Note: COMMON is an oddball state that doesn't follow the RESOURE_STATE pattern of
-            // having exactly one bit set so we need to special case these
+
+            // NOTE: ResourceStates.Common is an oddball state that doesn't follow the ResourceStates
+            //       pattern of having exactly one bit set so we need to special case these
             return NativeResourceState != targeState &&
                 ((NativeResourceState | targeState) != NativeResourceState || targeState == ResourceStates.Common);
         }

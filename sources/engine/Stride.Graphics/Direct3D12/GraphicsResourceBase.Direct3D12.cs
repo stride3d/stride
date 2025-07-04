@@ -5,10 +5,11 @@
 
 using System;
 using System.Diagnostics;
+
 using Silk.NET.Core.Native;
 using Silk.NET.Direct3D12;
-using Stride.Core;
-using Stride.Core.UnsafeExtensions;
+
+using static Stride.Graphics.ComPtrHelpers;
 
 namespace Stride.Graphics
 {
@@ -18,77 +19,78 @@ namespace Stride.Graphics
     public abstract unsafe partial class GraphicsResourceBase
     {
         private ID3D12DeviceChild* nativeDeviceChild;
+        private ID3D12Resource* nativeResource;
 
-        protected internal ID3D12Resource* NativeResource { get; private set; }
+        protected internal ComPtr<ID3D12Resource> NativeResource => ToComPtr(nativeResource);
 
         /// <summary>
         /// Gets or sets the device child.
         /// </summary>
         /// <value>The device child.</value>
-        protected internal ID3D12DeviceChild* NativeDeviceChild
+        protected internal ComPtr<ID3D12DeviceChild> NativeDeviceChild
         {
-            get => nativeDeviceChild;
+            get => ToComPtr(nativeDeviceChild);
 
             set
             {
-                if (nativeDeviceChild == value)
+                if (nativeDeviceChild == value.Handle)
                     return;
 
                 var oldDeviceChild = nativeDeviceChild;
-                if (oldDeviceChild != null)
+                if (oldDeviceChild is not null)
                     oldDeviceChild->Release();
 
                 nativeDeviceChild = value;
-                if (nativeDeviceChild != null)
+                if (nativeDeviceChild is not null)
                     nativeDeviceChild->AddRef();
                 else
                     return;
 
-                Debug.Assert(nativeDeviceChild != null);
+                Debug.Assert(nativeDeviceChild is not null);
 
-                ID3D12Resource* d3d12Resource;
-                HResult result = nativeDeviceChild->QueryInterface(SilkMarshal.GuidPtrOf<ID3D12Resource>(), (void**) &d3d12Resource);
+                HResult result = nativeDeviceChild->QueryInterface(out ComPtr<ID3D12Resource> d3d12Resource);
 
                 // The device child can be something that is not a Direct3D resource actually,
                 // like a Sampler State, for example
                 if (result.IsSuccess)
                 {
-                    NativeResource = d3d12Resource;
+                    nativeResource = d3d12Resource.Handle;
                 }
 
-                // Associate PrivateData to this DeviceResource
-                SetDebugName(GraphicsDevice, nativeDeviceChild, Name);
+                NativeDeviceChild.SetDebugName(Name);
             }
         }
 
-        protected ID3D12Device* NativeDevice => GraphicsDevice != null ? GraphicsDevice.NativeDevice : null;
-
-        private void Initialize()
+        protected internal void ForgetNativeChildWithoutReleasing()
         {
+            nativeDeviceChild = null;
+            nativeResource = null;
         }
 
         /// <summary>
         /// Associates the private data to the device child, useful to get the name in PIX debugger.
         /// </summary>
-        internal static void SetDebugName(GraphicsDevice graphicsDevice, ID3D12DeviceChild* deviceChild, string name)
-        {
-            DebugHelpers.SetDebugName(deviceChild, name);
-        }
+        protected ComPtr<ID3D12Device> NativeDevice => GraphicsDevice?.NativeDevice ?? default;
+
+
+        // No Direct3D-specific initialization
+        private partial void Initialize() { }
 
         /// <summary>
         /// Called when graphics device has been detected to be internally destroyed.
         /// </summary>
-        protected internal virtual void OnDestroyed()
+        protected internal virtual partial void OnDestroyed()
         {
             Destroyed?.Invoke(this, EventArgs.Empty);
 
-            if (nativeDeviceChild != null)
+            if (nativeDeviceChild is not null)
             {
                 // Schedule the resource for destruction (as soon as we are done with it)
-                GraphicsDevice.TemporaryResources.Enqueue((GraphicsDevice.NextFenceValue, new Pointer<ID3D12Resource>(NativeResource)));
+                GraphicsDevice.TemporaryResources.Enqueue((GraphicsDevice.NextFenceValue, NativeResource));
                 nativeDeviceChild = null;
             }
-            NativeResource = null;
+
+            SafeRelease(ref nativeResource);
         }
 
         /// <summary>
