@@ -57,7 +57,6 @@ namespace Stride.Graphics
         /// </summary>
         internal GraphicsProfile RequestedProfile;
 
-        //private SharpDX.Direct3D11.DeviceCreationFlags creationFlags;
         private CreateDeviceFlag creationFlags;
 
         /// <summary>
@@ -93,22 +92,6 @@ namespace Stride.Graphics
                 };
             }
         }
-
-        #region Graphics device status codes
-
-        // From DXGI_ERROR constants in Winerror.h
-        private enum DeviceRemoveReason : int
-        {
-            None = 0,   // S_OK -- No error
-
-            DeviceHung = unchecked((int) 0x887A0006),           // DEVICE_HUNG
-            DeviceRemoved = unchecked((int) 0x887A0005),        // DEVICE_REMOVED
-            DeviceReset = unchecked((int) 0x887A0007),          // DEVICE_RESET
-            DriverInternalError = unchecked((int) 0x887A0020),  // DRIVER_INTERNAL_ERROR
-            InvalidCall = unchecked((int) 0x887A0001)           // INVALID_CALL
-        }
-
-        #endregion
 
         /// <summary>
         ///   Marks the Graphics Device Context as <strong>active</strong> on the current thread.
@@ -218,7 +201,7 @@ namespace Stride.Graphics
         /// <param name="windowHandle">The window handle.</param>
         private partial void InitializePlatformDevice(GraphicsProfile[] graphicsProfiles, DeviceCreationFlags deviceCreationFlags, object windowHandle)
         {
-            if (nativeDevice != null)
+            if (nativeDevice is not null)
             {
                 // Destroy previous device
                 ReleaseDevice();
@@ -231,28 +214,28 @@ namespace Stride.Graphics
 
             creationFlags = (CreateDeviceFlag) deviceCreationFlags;
 
+            var d3d11 = D3D11.GetApi(window: null);
+
             // Create D3D11 Device with feature Level based on profile
             for (int index = 0; index < graphicsProfiles.Length; index++)
             {
                 // Map GraphicsProfiles to D3D11 FeatureLevels
                 var graphicsProfile = graphicsProfiles[index];
-                var level = graphicsProfile.ToFeatureLevel();
+                var featureLevel = graphicsProfile.ToFeatureLevel();
 
                 // INTEL workaround: it seems Intel driver doesn't support properly feature level 9.x. Fallback to 10.
                 if (Adapter.VendorId == 0x8086)
                 {
                     // TODO: This is relevant still? Newer Intel Arc HW and drivers should have better support for 9.x
-                    if (level < D3DFeatureLevel.Level100)
-                        level = D3DFeatureLevel.Level100;
+                    if (featureLevel < D3DFeatureLevel.Level100)
+                        featureLevel = D3DFeatureLevel.Level100;
                 }
 
                 if (Core.Platform.Type == PlatformType.Windows && GetModuleHandle("renderdoc.dll") != IntPtr.Zero)
                 {
-                    if (level < D3DFeatureLevel.Level110)
-                        level = D3DFeatureLevel.Level110;
+                    if (featureLevel < D3DFeatureLevel.Level110)
+                        featureLevel = D3DFeatureLevel.Level110;
                 }
-
-                var d3d11 = D3D11.GetApi(window: null);
 
                 var adapter = Adapter.NativeAdapter.AsComPtr<IDXGIAdapter1, IDXGIAdapter>();
                 ComPtr<ID3D11Device> device = default;
@@ -260,7 +243,7 @@ namespace Stride.Graphics
                 D3DFeatureLevel usedFeatureLevel = 0;
 
                 HResult result = d3d11.CreateDevice(adapter, D3DDriverType.Unknown, Software: 0, (uint) creationFlags,
-                                                    in level, FeatureLevels: 1, D3D11.SdkVersion,
+                                                    in featureLevel, FeatureLevels: 1, D3D11.SdkVersion,
                                                     ref device, ref usedFeatureLevel, ref deviceContext);
                 if (result.IsFailure)
                 {

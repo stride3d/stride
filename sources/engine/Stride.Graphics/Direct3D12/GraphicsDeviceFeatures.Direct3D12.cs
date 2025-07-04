@@ -25,96 +25,82 @@
 
 using System;
 using System.Linq;
-using System.Runtime.CompilerServices;
+
 using Silk.NET.Core.Native;
 using Silk.NET.Direct3D12;
 
-using Format = Silk.NET.DXGI.Format;
-
-namespace Stride.Graphics
-{
     /// <summary>
     /// Features supported by a <see cref="GraphicsDevice"/>.
     /// </summary>
     /// <remarks>
     /// This class gives also features for a particular format, using the operator this[dxgiFormat] on this structure.
     /// </remarks>
-    public unsafe partial struct GraphicsDeviceFeatures
+using DXGIFormat = Silk.NET.DXGI.Format;
+
+using static System.Runtime.CompilerServices.Unsafe;
+
+namespace Stride.Graphics;
+
+public unsafe partial struct GraphicsDeviceFeatures
+{
+    private static readonly DXGIFormat[] ObsoleteFormatToExclude =
+    [
+        DXGIFormat.FormatR1Unorm,
+        DXGIFormat.FormatB5G6R5Unorm,
+        DXGIFormat.FormatB5G5R5A1Unorm
+    ];
+
+    internal GraphicsDeviceFeatures(GraphicsDevice device)
     {
-        private static readonly Format[] ObsoleteFormatToExcludes =
+        var nativeDevice = device.NativeDevice;
+
+        HasSRgb = true;
+
+        mapFeaturesPerFormat = new FeaturesPerFormat[256];
+
+        // Set back the real GraphicsProfile that is used
+        // TODO D3D12
+        RequestedProfile = device.RequestedProfile;
+        CurrentProfile = GraphicsProfileHelper.FromFeatureLevel(device.CurrentFeatureLevel);
+
+        // TODO D3D12
+        HasComputeShaders = true;
+
+        SkipInit(out FeatureDataD3D12Options d3D12Options);
+        HResult result = nativeDevice.CheckFeatureSupport(Feature.D3D12Options, ref d3D12Options, (uint) SizeOf<FeatureDataD3D12Options>());
+
+        if (result.IsFailure)
+            result.Throw();
+
+        HasDoublePrecision = d3D12Options.DoublePrecisionFloatShaderOps;
+
+        // TODO D3D12 Confirm these are correct
+        // Some docs: https://msdn.microsoft.com/en-us/library/windows/desktop/ff476876(v=vs.85).aspx
+        HasDepthAsSRV = true;
+        HasDepthAsReadOnlyRT = true;
+        HasMultiSampleDepthAsSRV = true;
+
+        HasResourceRenaming = false;
+
+        HasMultiThreadingConcurrentResources = true;
+        HasDriverCommandLists = true;
+
+        // Check features for each DXGI.Format
+        foreach (var format in Enum.GetValues<DXGIFormat>())
         {
-            Format.FormatR1Unorm,
-            Format.FormatB5G6R5Unorm,
-            Format.FormatB5G5R5A1Unorm
-        };
+            if (format == DXGIFormat.FormatForceUint)
+                continue;
 
-        internal GraphicsDeviceFeatures(GraphicsDevice deviceRoot)
-        {
-            var nativeDevice = deviceRoot.NativeDevice;
+            var maximumMultisampleCount = MultisampleCount.None;
+            var formatSupport = FormatSupport.None;
+            var csFormatSupport = ComputeShaderFormatSupport.None;
 
-            HasSRgb = true;
-
-            mapFeaturesPerFormat = new FeaturesPerFormat[256];
-
-            // Set back the real GraphicsProfile that is used
-            // TODO D3D12
-            RequestedProfile = deviceRoot.RequestedProfile;
-            CurrentProfile = GraphicsProfileHelper.FromFeatureLevel(deviceRoot.CurrentFeatureLevel);
-
-            // TODO D3D12
-            HasComputeShaders = true;
-
-            FeatureDataD3D12Options d3D12Options;
-            HResult result = nativeDevice->CheckFeatureSupport(Feature.D3D12Options, &d3D12Options, (uint) Unsafe.SizeOf<FeatureDataD3D12Options>());
-
-            if (result.IsFailure)
-                result.Throw();
-
-            HasDoublePrecision = d3D12Options.DoublePrecisionFloatShaderOps;
-
-            // TODO D3D12 Confirm these are correct
-            // Some docs: https://msdn.microsoft.com/en-us/library/windows/desktop/ff476876(v=vs.85).aspx
-            HasDepthAsSRV = true;
-            HasDepthAsReadOnlyRT = true;
-            HasMultisampleDepthAsSRV = true;
-
-            HasResourceRenaming = false;
-
-            HasMultiThreadingConcurrentResources = true;
-            HasDriverCommandLists = true;
-
-            // Check features for each DXGI.Format
-            foreach (var format in Enum.GetValues<Format>())
+            if (!ObsoleteFormatToExclude.Contains(format))
             {
-                if (format == Format.FormatForceUint)
-                    continue;
-
-                var maximumMultisampleCount = MultisampleCount.None;
-                var formatSupport = FormatSupport.None;
-                var csFormatSupport = ComputeShaderFormatSupport.None;
-
-                if (!ObsoleteFormatToExcludes.Contains(format))
-                {
-                    FeatureDataFormatSupport formatSupportData = new()
-                    {
-                        Format = format,
-                        Support1 = FormatSupport1.None,
-                        Support2 = FormatSupport2.None
-                    };
-
-                    result = nativeDevice->CheckFeatureSupport(Feature.FormatSupport, &formatSupportData, (uint) Unsafe.SizeOf<FeatureDataFormatSupport>());
-
-                    if (result.IsFailure)
-                        result.Throw();
-
-                    formatSupport = (FormatSupport) formatSupportData.Support1;
-                    csFormatSupport = (ComputeShaderFormatSupport) formatSupportData.Support2;
-
-                    maximumMultisampleCount = GetMaximumMultisampleCount(nativeDevice, format);
-                }
-
-                mapFeaturesPerFormat[(int) format] = new((PixelFormat) format, maximumMultisampleCount, csFormatSupport, formatSupport);
+                CheckFormatSupport(format, out formatSupport, out csFormatSupport, out maximumMultisampleCount);
             }
+
+            mapFeaturesPerFormat[(int) format] = new((PixelFormat) format, maximumMultisampleCount, csFormatSupport, formatSupport);
         }
 
         /// <summary>
@@ -123,7 +109,7 @@ namespace Stride.Graphics
         /// <param name="device">The device.</param>
         /// <param name="pixelFormat">The pixelFormat.</param>
         /// <returns>The maximum multisample count for this pixel pixelFormat</returns>
-        private static MultisampleCount GetMaximumMultisampleCount(ID3D12Device* device, Format pixelFormat)
+        MultisampleCount GetMaximumMultisampleCount(DXGIFormat pixelFormat)
         {
             FeatureDataMultisampleQualityLevels qualityLevels = new()
             {
@@ -131,14 +117,14 @@ namespace Stride.Graphics
                 Flags = MultisampleQualityLevelFlags.None,
                 NumQualityLevels = 0
             };
-            var sizeInBytes = (uint) Unsafe.SizeOf<FeatureDataMultisampleQualityLevels>();
+            var sizeInBytes = (uint) SizeOf<FeatureDataMultisampleQualityLevels>();
 
             uint maxCount = 1;
             for (uint i = 8; i >= 1; i /= 2)
             {
                 qualityLevels.SampleCount = i;
 
-                HResult result = device->CheckFeatureSupport(Feature.MultisampleQualityLevels, &qualityLevels, sizeInBytes);
+                HResult result = nativeDevice.CheckFeatureSupport(Feature.MultisampleQualityLevels, ref qualityLevels, sizeInBytes);
 
                 if (result.IsSuccess)
                 {
@@ -147,6 +133,37 @@ namespace Stride.Graphics
                 }
             }
             return (MultisampleCount) maxCount;
+        }
+
+        void CheckFormatSupport(DXGIFormat format,
+                                out FormatSupport formatSupport,
+                                out ComputeShaderFormatSupport csFormatSupport,
+                                out MultisampleCount maximumMultisampleCount)
+        {
+            FeatureDataFormatSupport formatSupportData = new()
+            {
+                Format = format,
+                Support1 = FormatSupport1.None,
+                Support2 = FormatSupport2.None
+            };
+
+            HResult result = nativeDevice.CheckFeatureSupport(Feature.FormatSupport, ref formatSupportData, (uint) SizeOf<FeatureDataFormatSupport>());
+
+            if (result.IsFailure)
+            {
+                // Format not supported
+                formatSupport = FormatSupport.None;
+                csFormatSupport = ComputeShaderFormatSupport.None;
+
+                maximumMultisampleCount = MultisampleCount.None;
+            }
+            else
+            {
+                formatSupport = (FormatSupport) formatSupportData.Support1;
+                csFormatSupport = (ComputeShaderFormatSupport) formatSupportData.Support2;
+
+                maximumMultisampleCount = GetMaximumMultisampleCount(format);
+            }
         }
     }
 }
