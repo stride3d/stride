@@ -65,11 +65,12 @@ namespace Stride.Graphics
 
 
         /// <summary>
-        ///   Initializes a new instance of <see cref="GraphicsOutput" />.
+        ///   Initializes a new instance of <see cref="GraphicsOutput"/>.
         /// </summary>
-        /// <param name="adapter">The graphics adapter this output is attached to.</param>
+        /// <param name="adapter">The Graphics Adapter this output is attached to.</param>
         /// <param name="nativeOutput">
-        ///   A COM pointer to the native <see cref="IDXGIOutput"/> interface. The ownership is transferred to this instance, so the reference count is not incremented.
+        ///   A COM pointer to the native <see cref="IDXGIOutput"/> interface.
+        ///   The ownership is transferred to this instance, so the reference count is not incremented.
         /// </param>
         /// <param name="outputIndex">The index of the output.</param>
         /// <exception cref="ArgumentNullException"><paramref name="adapter"/> is <see langword="null"/>.</exception>
