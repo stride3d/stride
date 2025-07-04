@@ -16,7 +16,7 @@ namespace Stride.Graphics
     public sealed partial class GraphicsAdapter : ComponentBase
     {
         private readonly GraphicsOutput[] graphicsOutputs;
-        
+
         /// <summary>
         ///   Gets the <see cref="GraphicsOutput"/>s attached to this adapter.
         /// </summary>
