@@ -26,23 +26,26 @@
 using System;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+
 using Silk.NET.Core.Native;
-using Silk.NET.Direct3D11;
 using Silk.NET.DXGI;
+using Silk.NET.Direct3D11;
+
 using Stride.Core.UnsafeExtensions;
 
 namespace Stride.Graphics
 {
     public unsafe partial class Texture
     {
+        private const int TextureRowPitchAlignment = 1;
+        private const int TextureSubresourceAlignment = 1;
+
+        private int TexturePixelSize => Format.SizeInBytes();
+
         private ID3D11RenderTargetView* renderTargetView;
         private ID3D11DepthStencilView* depthStencilView;
 
         internal bool HasStencil;
-
-        private int TexturePixelSize => Format.SizeInBytes();
-        private const int TextureRowPitchAlignment = 1;
-        private const int TextureSubresourceAlignment = 1;
 
         /// <summary>
         ///   Gets the internal Direct3D 11 Depth-Stencil View attached to this Texture resource.
@@ -234,7 +237,7 @@ namespace Stride.Graphics
         /// <exception cref="NotSupportedException">Multi-sampling is not supported for Unordered Access Views.</exception>
         /// <exception cref="NotSupportedException">The Depth-Stencil format specified is not supported.</exception>
         /// <exception cref="NotSupportedException">Cannot create a read-only Depth-Stencil View because the device does not support it.</exception>
-        private void InitializeFromImpl() => InitializeFromImpl(null as DataBox[]);
+        private void InitializeFromImpl() => InitializeFromImpl(dataBoxes: null);
 
         /// <summary>
         ///   Initializes the Texture from the specified data.

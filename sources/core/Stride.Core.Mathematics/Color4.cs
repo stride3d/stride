@@ -44,12 +44,17 @@ public struct Color4 : IEquatable<Color4>, ISpanFormattable
     /// <summary>
     /// The Black color (0, 0, 0, 1).
     /// </summary>
-    public static readonly Color4 Black = new(0.0f, 0.0f, 0.0f);
+    public static readonly Color4 Black = new(red: 0, green: 0, blue: 0);
 
     /// <summary>
     /// The White color (1, 1, 1, 1).
     /// </summary>
-    public static readonly Color4 White = new(1.0f, 1.0f, 1.0f);
+    public static readonly Color4 White = new(red: 1, green: 1, blue: 1);
+
+    /// <summary>
+    /// The transparent black color (0, 0, 0, 0).
+    /// </summary>
+    public static readonly Color4 TransparentBlack = default;
 
     /// <summary>
     /// The red component of the color.
