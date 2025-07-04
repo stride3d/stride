@@ -3,15 +3,15 @@
 
 #if STRIDE_GRAPHICS_API_DIRECT3D12
 
+using Silk.NET.Core.Native;
 using Silk.NET.Direct3D12;
 
-namespace Stride.Graphics
+namespace Stride.Graphics;
+
+public readonly unsafe partial struct MappedResource
 {
-    public readonly unsafe partial struct MappedResource
-    {
-        internal readonly ID3D12Resource* UploadResource;
-        internal readonly int UploadOffset;
-    }
+    internal readonly ComPtr<ID3D12Resource> UploadResource;
+    internal readonly int UploadOffset;
 }
 
 #endif

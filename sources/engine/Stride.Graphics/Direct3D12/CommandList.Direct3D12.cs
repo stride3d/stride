@@ -5,36 +5,48 @@
 
 using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
+using System.Diagnostics;
+
 using Silk.NET.Core.Native;
-using Silk.NET.Maths;
 using Silk.NET.DXGI;
 using Silk.NET.Direct3D12;
-using Stride.Core;
-using Stride.Core.UnsafeExtensions;
+
 using Stride.Core.Mathematics;
+using Stride.Core.UnsafeExtensions;
+
+using D3D12Box = Silk.NET.Direct3D12.Box;
+using D3D12Range = Silk.NET.Direct3D12.Range;
+using D3D12Viewport = Silk.NET.Direct3D12.Viewport;
+using SilkBox2I = Silk.NET.Maths.Box2D<int>;
+
+using static System.Runtime.CompilerServices.Unsafe;
 
 namespace Stride.Graphics
 {
     public unsafe partial class CommandList
     {
-        private DescriptorHeapCache srvHeap;
+        // Descriptor heap for Shader Resource Views (SRV), Constant Buffers (CBV), and Unordered Access Views (UAV)
+        private DescriptorHeapWrapper srvHeap;
         private int srvHeapOffset = GraphicsDevice.SrvHeapSize;
-        private DescriptorHeapCache samplerHeap;
+
+        // Descriptor heap for Samplers
+        private DescriptorHeapWrapper samplerHeap;
         private int samplerHeapOffset = GraphicsDevice.SamplerHeapSize;
 
         private PipelineState boundPipelineState;
         private readonly ID3D12DescriptorHeap*[] descriptorHeaps = new ID3D12DescriptorHeap*[2];
         private readonly List<ResourceBarrier> resourceBarriers = new(16);
 
-        private readonly Dictionary<nuint, GpuDescriptorHandle> srvMapping = new();
-        private readonly Dictionary<nuint, GpuDescriptorHandle> samplerMapping = new();
+        // Mappings from CPU-side Descriptor Handles to GPU-side Descriptor Handles
+        private readonly Dictionary<nuint, GpuDescriptorHandle> srvMapping = [];
+        private readonly Dictionary<nuint, GpuDescriptorHandle> samplerMapping = [];
 
-        internal readonly Queue<Pointer<ID3D12GraphicsCommandList>> NativeCommandLists = new();
+        internal readonly Queue<ComPtr<ID3D12GraphicsCommandList>> NativeCommandLists = new();
 
         private CompiledCommandList currentCommandList;
 
         private bool IsComputePipelineStateBound => boundPipelineState?.IsCompute is true;
+
 
         public static CommandList New(GraphicsDevice device)
         {
@@ -46,33 +58,6 @@ namespace Stride.Graphics
             Reset();
         }
 
-        private void ResetCommandList()
-        {
-            if (NativeCommandLists.Count > 0)
-            {
-                currentCommandList.NativeCommandList = NativeCommandLists.Dequeue();
-
-                HResult result = currentCommandList.NativeCommandList->Reset(currentCommandList.NativeCommandAllocator, pInitialState: null);
-
-                if (result.IsFailure)
-                    result.Throw();
-            }
-            else
-            {
-                ID3D12GraphicsCommandList* commandList;
-                var commandAllocator = currentCommandList.NativeCommandAllocator;
-                HResult result = NativeDevice->CreateCommandList(nodeMask: 0, CommandListType.Direct, commandAllocator,
-                                                                 pInitialState: null, SilkMarshal.GuidPtrOf<ID3D12GraphicsCommandList>(),
-                                                                 (void**) &commandList);
-                if (result.IsFailure)
-                    result.Throw();
-
-                currentCommandList.NativeCommandList = commandList;
-            }
-
-            currentCommandList.NativeCommandList->SetDescriptorHeaps(NumDescriptorHeaps: 2, in descriptorHeaps[0]);
-        }
-
         /// <inheritdoc/>
         protected internal override void OnDestroyed()
         {
@@ -82,13 +67,13 @@ namespace Stride.Graphics
 
             // Available right now (NextFenceValue - 1)
             // TODO: Note that it won't be available right away because CommandAllocators is currently not using a PriorityQueue but a simple Queue
-            if (currentCommandList.NativeCommandAllocator != null)
+            if (currentCommandList.NativeCommandAllocator.IsNotNull())
             {
                 GraphicsDevice.CommandAllocators.RecycleObject(GraphicsDevice.NextFenceValue - 1, currentCommandList.NativeCommandAllocator);
                 currentCommandList.NativeCommandAllocator = null;
             }
 
-            if (currentCommandList.NativeCommandList != null)
+            if (currentCommandList.NativeCommandList.IsNotNull())
             {
                 NativeCommandLists.Enqueue(currentCommandList.NativeCommandList);
                 currentCommandList.NativeCommandList = null;
@@ -96,16 +81,17 @@ namespace Stride.Graphics
 
             while (NativeCommandLists.Count > 0)
             {
-                var commandList = NativeCommandLists.Dequeue().Value;
-                commandList->Release();
+                var commandList = NativeCommandLists.Dequeue();
+                commandList.Release();
             }
 
             base.OnDestroyed();
         }
 
-        public void Reset()
+
+        public partial void Reset()
         {
-            if (currentCommandList.Builder != null)
+            if (currentCommandList.Builder is not null)
                 return;
 
             FlushResourceBarriers();
@@ -126,17 +112,50 @@ namespace Stride.Graphics
             ResetCommandList();
 
             boundPipelineState = null;
+
+            void ResetCommandList()
+            {
+                scoped ref var nullInitialPipelineState = ref NullRef<ID3D12PipelineState>();
+
+                if (NativeCommandLists.TryDequeue(out ComPtr<ID3D12GraphicsCommandList> nativeCommandList))
+                {
+                    currentCommandList.NativeCommandList = nativeCommandList;
+
+                    HResult result = currentCommandList.NativeCommandList.Reset(currentCommandList.NativeCommandAllocator, ref nullInitialPipelineState);
+
+                    if (result.IsFailure)
+                        result.Throw();
+                }
+                else
+                {
+                    var commandAllocator = currentCommandList.NativeCommandAllocator;
+                    HResult result = NativeDevice.CreateCommandList(nodeMask: 0, CommandListType.Direct, commandAllocator, ref nullInitialPipelineState,
+                                                                    out ComPtr<ID3D12GraphicsCommandList> commandList);
+                    if (result.IsFailure)
+                        result.Throw();
+
+                    currentCommandList.NativeCommandList = commandList;
+                }
+
+                currentCommandList.NativeCommandList.SetDescriptorHeaps(NumDescriptorHeaps: 2, in descriptorHeaps[0]);
+            }
+        }
+
+        public void Flush()
+        {
+            var commandList = Close();
+            GraphicsDevice.ExecuteCommandList(commandList);
         }
 
         /// <summary>
         /// Closes the command list for recording and returns an executable token.
         /// </summary>
         /// <returns>The executable command list.</returns>
-        public CompiledCommandList Close()
+        public partial CompiledCommandList Close()
         {
             FlushResourceBarriers();
 
-            HResult result = currentCommandList.NativeCommandList->Close();
+            HResult result = currentCommandList.NativeCommandList.Close();
 
             if (result.IsFailure)
                 result.Throw();
@@ -159,11 +178,7 @@ namespace Stride.Graphics
         /// <summary>
         /// Closes and executes the command list.
         /// </summary>
-        public void Flush()
-        {
-            var commandList = Close();
-            GraphicsDevice.ExecuteCommandList(commandList);
-        }
+
 
         private void FlushInternal(bool wait)
         {
@@ -176,23 +191,19 @@ namespace Stride.Graphics
             Reset();
 
             // Restore states
-            if (boundPipelineState != null)
+            if (boundPipelineState is not null)
                 SetPipelineState(boundPipelineState);
 
-            currentCommandList.NativeCommandList->SetDescriptorHeaps(NumDescriptorHeaps: 2, in descriptorHeaps[0]);
+            currentCommandList.NativeCommandList.SetDescriptorHeaps(NumDescriptorHeaps: 2, in descriptorHeaps[0]);
             SetRenderTargetsImpl(depthStencilBuffer, renderTargetCount, renderTargets);
         }
 
-        private void ClearStateImpl()
-        {
-        }
+        private partial void ClearStateImpl() { }
 
         /// <summary>
         /// Unbinds all depth-stencil buffer and render targets from the output-merger stage.
         /// </summary>
-        private void ResetTargetsImpl()
-        {
-        }
+        private void ResetTargetsImpl() { }
 
         /// <summary>
         /// Binds a depth-stencil buffer and a set of render targets to the output-merger stage. See <see cref="Textures+and+render+targets"/> to learn how to use it.
@@ -202,6 +213,8 @@ namespace Stride.Graphics
         /// <exception cref="ArgumentNullException">renderTargetViews</exception>
         private void SetRenderTargetsImpl(Texture depthStencilBuffer, int renderTargetCount, Texture[] renderTargets)
         {
+            bool hasRenderTargetsToSet = renderTargetCount > 0 && renderTargets is { Length: > 0 };
+
             var renderTargetHandles = stackalloc CpuDescriptorHandle[renderTargetCount];
 
             for (int i = 0; i < renderTargetCount; ++i)
@@ -209,11 +222,14 @@ namespace Stride.Graphics
                 renderTargetHandles[i] = renderTargets[i].NativeRenderTargetView;
             }
 
-            var depthStencilView = depthStencilBuffer is null ? default : depthStencilBuffer.NativeDepthStencilView;
+            bool hasDepthStencilTargetToSet = depthStencilBuffer is not null;
+            scoped ref var depthStencilView = ref hasDepthStencilTargetToSet
+                ? ref depthStencilBuffer.NativeDepthStencilView
+                : ref NullRef<CpuDescriptorHandle>();
 
-            currentCommandList.NativeCommandList->OMSetRenderTargets(NumRenderTargetDescriptors: (uint) renderTargetCount, renderTargetHandles,
-                                                                     RTsSingleHandleToDescriptorRange: false,
-                                                                     depthStencilView);
+            currentCommandList.NativeCommandList.OMSetRenderTargets((uint) renderTargetCount, in renderTargetHandles[0],
+                                                                    RTsSingleHandleToDescriptorRange: false,
+                                                                    in depthStencilView);
         }
 
         /// <summary>
@@ -222,6 +238,7 @@ namespace Stride.Graphics
         /// <param name="buffers">The buffers.</param>
         public void SetStreamTargets(params Buffer[] buffers)
         {
+            // TODO: Implement stream output buffers
         }
 
         /// <summary>
@@ -233,20 +250,22 @@ namespace Stride.Graphics
             if (!viewportDirty && !scissorsDirty)
                 return;
 
-            ref var viewport = ref viewports[0];
+            scoped ref var viewport = ref viewports[0];
 
             if (viewportDirty)
             {
                 // NOTE: We assume the same layout and size as DIRECT3D12_VIEWPORT struct
-                ref var d3dViewport = ref Unsafe.As<Viewport, Silk.NET.Direct3D12.Viewport>(ref viewport);
-                currentCommandList.NativeCommandList->RSSetViewports(NumViewports: 1, in d3dViewport);
+                Debug.Assert(sizeof(Viewport) == sizeof(D3D12Viewport));
+                scoped ref var d3dViewport = ref As<Viewport, D3D12Viewport>(ref viewport);
 
-                var scissorRect = new Box2D<int>
+                currentCommandList.NativeCommandList.RSSetViewports(NumViewports: 1, in d3dViewport);
+
+                var scissorRect = new SilkBox2I
                 {
                     Min = { X = (int) viewport.X, Y = (int) viewport.Y },
                     Max = { X = (int) (viewport.X + viewport.Width), Y = (int) (viewport.Y + viewport.Height) }
                 };
-                currentCommandList.NativeCommandList->RSSetScissorRects(NumRects: 1, scissorRect);
+                currentCommandList.NativeCommandList.RSSetScissorRects(NumRects: 1, in scissorRect);
                 viewportDirty = false;
             }
 
@@ -255,25 +274,25 @@ namespace Stride.Graphics
                 if (scissorsDirty)
                 {
                     // Use manual scissor
-                    ref var scissor = ref scissors[0];
-                    var scissorRect = new Box2D<int>
+                    scoped ref var scissor = ref scissors[0];
+                    var scissorRect = new SilkBox2I
                     {
                         Min = { X = scissor.X, Y = scissor.Y },
                         Max = { X = scissor.Right, Y = scissor.Bottom }
                     };
-                    currentCommandList.NativeCommandList->RSSetScissorRects(NumRects: 1, scissorRect);
+                    currentCommandList.NativeCommandList.RSSetScissorRects(NumRects: 1, in scissorRect);
                 }
             }
             else
             {
                 // Use viewport
                 // Always update, because either scissor or viewport was dirty and we use viewport size
-                var scissorRect = new Box2D<int>
+                var scissorRect = new SilkBox2I
                 {
                     Min = { X = (int) viewport.X, Y = (int) viewport.Y },
                     Max = { X = (int) (viewport.X + viewport.Width), Y = (int) (viewport.Y + viewport.Height) }
                 };
-                currentCommandList.NativeCommandList->RSSetScissorRects(NumRects: 1, scissorRect);
+                currentCommandList.NativeCommandList.RSSetScissorRects(NumRects: 1, in scissorRect);
             }
 
             scissorsDirty = false;
@@ -291,32 +310,33 @@ namespace Stride.Graphics
 
         public void SetStencilReference(int stencilReference)
         {
-            currentCommandList.NativeCommandList->OMSetStencilRef((uint) stencilReference);
+            currentCommandList.NativeCommandList.OMSetStencilRef((uint) stencilReference);
         }
 
         public void SetBlendFactor(Color4 blendFactor)
         {
-            var pBlendFactor = (float*) &blendFactor;
-            currentCommandList.NativeCommandList->OMSetBlendFactor(pBlendFactor);
+            scoped Span<float> blendFactorFloats = blendFactor.AsSpan<Color4, float>();
+
+            currentCommandList.NativeCommandList.OMSetBlendFactor(blendFactorFloats);
         }
 
         public void SetPipelineState(PipelineState pipelineState)
         {
             if (boundPipelineState != pipelineState &&
-                pipelineState != null && pipelineState.CompiledState != null)
+                pipelineState is { CompiledState: not null })
             {
                 // If scissor state changed, force a refresh
                 scissorsDirty |= (boundPipelineState?.HasScissorEnabled ?? false) != pipelineState.HasScissorEnabled;
 
-                currentCommandList.NativeCommandList->SetPipelineState(pipelineState.CompiledState);
+                currentCommandList.NativeCommandList.SetPipelineState(pipelineState.CompiledState);
 
                 if (pipelineState.IsCompute)
-                    currentCommandList.NativeCommandList->SetComputeRootSignature(pipelineState.RootSignature);
+                    currentCommandList.NativeCommandList.SetComputeRootSignature(pipelineState.RootSignature);
                 else
-                    currentCommandList.NativeCommandList->SetGraphicsRootSignature(pipelineState.RootSignature);
+                    currentCommandList.NativeCommandList.SetGraphicsRootSignature(pipelineState.RootSignature);
 
                 boundPipelineState = pipelineState;
-                currentCommandList.NativeCommandList->IASetPrimitiveTopology(pipelineState.PrimitiveTopology);
+                currentCommandList.NativeCommandList.IASetPrimitiveTopology(pipelineState.PrimitiveTopology);
             }
         }
 
@@ -324,40 +344,47 @@ namespace Stride.Graphics
         {
             if (buffer is null)
             {
-                currentCommandList.NativeCommandList->IASetVertexBuffers(StartSlot: (uint) index, NumViews: 1, null);
+                scoped ref var nullVertexBufferView = ref NullRef<VertexBufferView>();
+
+                // Unset the Vertex Buffer from the slot
+                currentCommandList.NativeCommandList.IASetVertexBuffers(StartSlot: (uint) index, NumViews: 1, in nullVertexBufferView);
                 return;
             }
 
-            VertexBufferView vbView = new()
+            var vertexBufferView = new VertexBufferView
             {
-                BufferLocation = buffer.NativeResource->GetGPUVirtualAddress() + (ulong) offset,
+                BufferLocation = buffer.NativeResource.GetGPUVirtualAddress() + (ulong) offset,
                 StrideInBytes = (uint) stride,
                 SizeInBytes = (uint) (buffer.SizeInBytes - offset)
             };
-            currentCommandList.NativeCommandList->IASetVertexBuffers(StartSlot: (uint) index, NumViews: 1, in vbView);
+            currentCommandList.NativeCommandList.IASetVertexBuffers(StartSlot: (uint) index, NumViews: 1, in vertexBufferView);
         }
 
-        public void SetIndexBuffer(Buffer buffer, int offset, bool is32Bits)
+        public void SetIndexBuffer(Buffer buffer, int offset, bool is32Bits) // TODO: Use IndexElementSize?
         {
             if (buffer is null)
             {
-                currentCommandList.NativeCommandList->IASetIndexBuffer(null);
+                scoped ref var nullIndexBufferView = ref NullRef<IndexBufferView>();
+
+                currentCommandList.NativeCommandList.IASetIndexBuffer(in nullIndexBufferView);
                 return;
             }
 
-            IndexBufferView ibView = new()
+            var indexBufferView = new IndexBufferView
             {
-                BufferLocation = buffer.NativeResource->GetGPUVirtualAddress() + (ulong) offset,
+                BufferLocation = buffer.NativeResource.GetGPUVirtualAddress() + (ulong) offset,
                 Format = is32Bits ? Format.FormatR32Uint : Format.FormatR16Uint,
                 SizeInBytes = (uint) (buffer.SizeInBytes - offset)
             };
-            currentCommandList.NativeCommandList->IASetIndexBuffer(ibView);
+            currentCommandList.NativeCommandList.IASetIndexBuffer(in indexBufferView);
         }
 
         public void ResourceBarrierTransition(GraphicsResource resource, GraphicsResourceState newState)
         {
+            Debug.Assert(resource is not null, "Resource must not be null.");
+
             // Find parent resource
-            if (resource.ParentResource != null)
+            if (resource.ParentResource is not null)
                 resource = resource.ParentResource;
 
             var targetState = (ResourceStates) newState;
@@ -389,13 +416,12 @@ namespace Stride.Graphics
             if (count == 0)
                 return;
 
-            var barriers = stackalloc ResourceBarrier[count];
-            for (int i = 0; i < count; i++)
-                barriers[i] = resourceBarriers[i];
+            scoped Span<ResourceBarrier> barriers = stackalloc ResourceBarrier[count];
+            resourceBarriers.CopyTo(barriers);
 
             resourceBarriers.Clear();
 
-            currentCommandList.NativeCommandList->ResourceBarrier(NumBarriers: (uint) count, barriers);
+            currentCommandList.NativeCommandList.ResourceBarrier(NumBarriers: (uint) count, barriers);
         }
 
         public void SetDescriptorSets(int index, DescriptorSet[] descriptorSets)
@@ -406,15 +432,16 @@ namespace Stride.Graphics
             for (int i = 0; i < descriptorSets.Length; ++i)
             {
                 // Find what is already mapped
-                ref var descriptorSet = ref descriptorSets[i];
+                scoped ref var descriptorSet = ref descriptorSets[i];
 
                 var srvBindCount = boundPipelineState.SrvBindCounts[i];
                 var samplerBindCount = boundPipelineState.SamplerBindCounts[i];
 
+                // Descriptors for SRVs, UAVs, and CBVs
                 if (srvBindCount > 0 && descriptorSet.SrvStart.Ptr != 0)
                 {
-                    // Check if we need to copy them to shader visible descriptor heap
-                    if (!srvMapping.TryGetValue(descriptorSet.SrvStart.Ptr, out var gpuSrvStart))
+                    // Check if we need to copy them to Shader-visible Descriptor heap
+                    if (!srvMapping.TryGetValue(descriptorSet.SrvStart.Ptr, out GpuDescriptorHandle gpuSrvStart))
                     {
                         var srvCount = descriptorSet.Description.SrvCount;
 
@@ -423,7 +450,7 @@ namespace Stride.Graphics
                         {
                             ResetSrvHeap(createNewHeap: true);
 
-                            currentCommandList.NativeCommandList->SetDescriptorHeaps(NumDescriptorHeaps: 2, in descriptorHeaps[0]);
+                            currentCommandList.NativeCommandList.SetDescriptorHeaps(NumDescriptorHeaps: 2, in descriptorHeaps[0]);
                             goto RestartWithNewHeap;
                         }
 
@@ -431,7 +458,7 @@ namespace Stride.Graphics
                         var destHandle = new CpuDescriptorHandle(srvHeap.CPUDescriptorHandleForHeapStart.Ptr +
                                                                  (nuint) (srvHeapOffset * GraphicsDevice.SrvHandleIncrementSize));
 
-                        NativeDevice->CopyDescriptorsSimple((uint) srvCount, destHandle, descriptorSet.SrvStart, DescriptorHeapType.CbvSrvUav);
+                        NativeDevice.CopyDescriptorsSimple((uint) srvCount, destHandle, descriptorSet.SrvStart, DescriptorHeapType.CbvSrvUav);
 
                         // Store mapping
                         gpuSrvStart = new GpuDescriptorHandle(srvHeap.GPUDescriptorHandleForHeapStart.Ptr +
@@ -443,22 +470,24 @@ namespace Stride.Graphics
                         srvHeapOffset += srvCount;
                     }
 
-                    // Bind resource tables (note: once per using stage, until we solve how to choose shader registers effect-wide at compile time)
+                    // Bind resource tables
+                    // NOTE: Done once per stage, until we solve how to choose shader registers effect-wide at compile time (TODO)
                     if (IsComputePipelineStateBound)
                     {
                         for (int j = 0; j < srvBindCount; ++j)
-                            currentCommandList.NativeCommandList->SetComputeRootDescriptorTable((uint) descriptorTableIndex++, gpuSrvStart);
+                            currentCommandList.NativeCommandList.SetComputeRootDescriptorTable((uint) descriptorTableIndex++, gpuSrvStart);
                     }
                     else
                     {
                         for (int j = 0; j < srvBindCount; ++j)
-                            currentCommandList.NativeCommandList->SetGraphicsRootDescriptorTable((uint) descriptorTableIndex++, gpuSrvStart);
+                            currentCommandList.NativeCommandList.SetGraphicsRootDescriptorTable((uint) descriptorTableIndex++, gpuSrvStart);
                     }
                 }
 
+                // Descriptors for Samplers
                 if (samplerBindCount > 0 && descriptorSet.SamplerStart.Ptr != 0)
                 {
-                    // Check if we need to copy them to shader visible descriptor heap
+                    // Check if we need to copy them to Shader-visible Descriptor heap
                     if (!samplerMapping.TryGetValue(descriptorSet.SamplerStart.Ptr, out var gpuSamplerStart))
                     {
                         var samplerCount = descriptorSet.Description.SamplerCount;
@@ -468,7 +497,7 @@ namespace Stride.Graphics
                         {
                             ResetSamplerHeap(createNewHeap: true);
 
-                            currentCommandList.NativeCommandList->SetDescriptorHeaps(NumDescriptorHeaps: 2, in descriptorHeaps[0]);
+                            currentCommandList.NativeCommandList.SetDescriptorHeaps(NumDescriptorHeaps: 2, in descriptorHeaps[0]);
                             goto RestartWithNewHeap;
                         }
 
@@ -476,7 +505,7 @@ namespace Stride.Graphics
                         var destHandle = new CpuDescriptorHandle(samplerHeap.CPUDescriptorHandleForHeapStart.Ptr +
                                                                  (nuint) (samplerHeapOffset * GraphicsDevice.SamplerHandleIncrementSize));
 
-                        NativeDevice->CopyDescriptorsSimple((uint) samplerCount, destHandle, descriptorSet.SamplerStart, DescriptorHeapType.Sampler);
+                        NativeDevice.CopyDescriptorsSimple((uint) samplerCount, destHandle, descriptorSet.SamplerStart, DescriptorHeapType.Sampler);
 
                         // Store mapping
                         gpuSamplerStart = new GpuDescriptorHandle(samplerHeap.GPUDescriptorHandleForHeapStart.Ptr +
@@ -488,16 +517,17 @@ namespace Stride.Graphics
                         samplerHeapOffset += samplerCount;
                     }
 
-                    // Bind resource tables (note: once per using stage, until we solve how to choose shader registers effect-wide at compile time)
+                    // Bind resource tables
+                    // NOTE: Done once per stage, until we solve how to choose shader registers effect-wide at compile time (TODO)
                     if (IsComputePipelineStateBound)
                     {
                         for (int j = 0; j < samplerBindCount; ++j)
-                            currentCommandList.NativeCommandList->SetComputeRootDescriptorTable((uint) descriptorTableIndex++, gpuSamplerStart);
+                            currentCommandList.NativeCommandList.SetComputeRootDescriptorTable((uint) descriptorTableIndex++, gpuSamplerStart);
                     }
                     else
                     {
                         for (int j = 0; j < samplerBindCount; ++j)
-                            currentCommandList.NativeCommandList->SetGraphicsRootDescriptorTable((uint) descriptorTableIndex++, gpuSamplerStart);
+                            currentCommandList.NativeCommandList.SetGraphicsRootDescriptorTable((uint) descriptorTableIndex++, gpuSamplerStart);
                     }
                 }
             }
@@ -505,46 +535,52 @@ namespace Stride.Graphics
 
         private void ResetSrvHeap(bool createNewHeap)
         {
-            if (srvHeap.Heap != null)
+            // If there is currently a heap, recycle it
+            if (srvHeap.Heap.IsNotNull())
             {
-                currentCommandList.SrvHeaps.Add(srvHeap.Heap);
-                srvHeap.Heap = null;
+                currentCommandList.SrvHeaps.Add(srvHeap);
+                srvHeap.Heap = default;
             }
 
+            // If we need to create a new heap, get one from the pool
             if (createNewHeap)
             {
-                srvHeap = new DescriptorHeapCache(GraphicsDevice.SrvHeaps.GetObject());
+                srvHeap = GraphicsDevice.SrvHeaps.GetObject();
                 srvHeapOffset = 0;
                 srvMapping.Clear();
             }
 
+            // Update the Descriptor heap array to reference the new active SRV heap
             descriptorHeaps[0] = srvHeap.Heap;
         }
 
         private void ResetSamplerHeap(bool createNewHeap)
         {
-            if (samplerHeap.Heap != null)
+            // If there is currently a heap, recycle it
+            if (samplerHeap.Heap.IsNotNull())
             {
-                currentCommandList.SamplerHeaps.Add(samplerHeap.Heap);
-                samplerHeap.Heap = null;
+                currentCommandList.SamplerHeaps.Add(samplerHeap);
+                samplerHeap.Heap = default;
             }
 
+            // If we need to create a new heap, get one from the pool
             if (createNewHeap)
             {
-                samplerHeap = new DescriptorHeapCache(GraphicsDevice.SamplerHeaps.GetObject());
+                samplerHeap = GraphicsDevice.SamplerHeaps.GetObject();
                 samplerHeapOffset = 0;
                 samplerMapping.Clear();
             }
 
+            // Update the Descriptor heap array to reference the new active Samplers heap
             descriptorHeaps[1] = samplerHeap.Heap;
         }
 
         /// <inheritdoc />
         public void Dispatch(int threadCountX, int threadCountY, int threadCountZ)
         {
-            PrepareDraw();
+            PrepareDraw(); // TODO: PrepareDraw for Compute dispatch?
 
-            currentCommandList.NativeCommandList->Dispatch((uint) threadCountX, (uint) threadCountY, (uint) threadCountZ);
+            currentCommandList.NativeCommandList.Dispatch((uint) threadCountX, (uint) threadCountY, (uint) threadCountZ);
         }
 
         /// <summary>
@@ -554,7 +590,7 @@ namespace Stride.Graphics
         /// <param name="offsetInBytes">The offset information bytes.</param>
         public void Dispatch(Buffer indirectBuffer, int offsetInBytes)
         {
-            throw new NotImplementedException();
+            throw new NotImplementedException(); // TODO: Implement DispatchIndirect
         }
 
         /// <summary>
@@ -566,8 +602,8 @@ namespace Stride.Graphics
         {
             PrepareDraw();
 
-            currentCommandList.NativeCommandList->DrawInstanced((uint) vertexCount, InstanceCount: 1,
-                                                                (uint) startVertexLocation, StartInstanceLocation: 0);
+            currentCommandList.NativeCommandList.DrawInstanced((uint) vertexCount, InstanceCount: 1,
+                                                               (uint) startVertexLocation, StartInstanceLocation: 0);
 
             GraphicsDevice.FrameTriangleCount += (uint)vertexCount;
             GraphicsDevice.FrameDrawCalls++;
@@ -580,7 +616,7 @@ namespace Stride.Graphics
         {
             PrepareDraw();
 
-            throw new NotImplementedException();
+            throw new NotImplementedException(); // TODO: Implement DrawAuto
         }
 
         /// <summary>
@@ -593,9 +629,9 @@ namespace Stride.Graphics
         {
             PrepareDraw();
 
-            currentCommandList.NativeCommandList->DrawIndexedInstanced((uint) indexCount, InstanceCount: 1,
-                                                                       (uint) startIndexLocation, baseVertexLocation,
-                                                                       StartInstanceLocation: 0);
+            currentCommandList.NativeCommandList.DrawIndexedInstanced((uint) indexCount, InstanceCount: 1,
+                                                                      (uint) startIndexLocation, baseVertexLocation,
+                                                                      StartInstanceLocation: 0);
             GraphicsDevice.FrameDrawCalls++;
             GraphicsDevice.FrameTriangleCount += (uint) indexCount;
         }
@@ -612,10 +648,10 @@ namespace Stride.Graphics
         {
             PrepareDraw();
 
-            currentCommandList.NativeCommandList->DrawIndexedInstanced((uint) indexCountPerInstance,
-                                                                       (uint) instanceCount,
-                                                                       (uint) startIndexLocation, baseVertexLocation,
-                                                                       (uint) startInstanceLocation);
+            currentCommandList.NativeCommandList.DrawIndexedInstanced((uint) indexCountPerInstance,
+                                                                      (uint) instanceCount,
+                                                                      (uint) startIndexLocation, baseVertexLocation,
+                                                                      (uint) startInstanceLocation);
             GraphicsDevice.FrameDrawCalls++;
             GraphicsDevice.FrameTriangleCount += (uint) (indexCountPerInstance * instanceCount);
         }
@@ -632,7 +668,7 @@ namespace Stride.Graphics
             PrepareDraw();
 
             //NativeDeviceContext.DrawIndexedInstancedIndirect(argumentsBuffer.NativeBuffer, alignedByteOffsetForArgs);
-            throw new NotImplementedException();
+            throw new NotImplementedException(); // TODO: Implement DrawIndexedInstancedIndirect
 
             GraphicsDevice.FrameDrawCalls++;
         }
@@ -648,8 +684,8 @@ namespace Stride.Graphics
         {
             PrepareDraw();
 
-            currentCommandList.NativeCommandList->DrawInstanced((uint) vertexCountPerInstance, (uint) instanceCount,
-                                                                (uint) startVertexLocation, (uint) startInstanceLocation);
+            currentCommandList.NativeCommandList.DrawInstanced((uint) vertexCountPerInstance, (uint) instanceCount,
+                                                               (uint) startVertexLocation, (uint) startInstanceLocation);
             GraphicsDevice.FrameDrawCalls++;
             GraphicsDevice.FrameTriangleCount += (uint) (vertexCountPerInstance * instanceCount);
         }
@@ -666,7 +702,7 @@ namespace Stride.Graphics
             PrepareDraw();
 
             //NativeDeviceContext.DrawIndexedInstancedIndirect(argumentsBuffer.NativeBuffer, alignedByteOffsetForArgs);
-            throw new NotImplementedException();
+            throw new NotImplementedException(); // TODO: Implement DrawInstancedIndirect
 
             GraphicsDevice.FrameDrawCalls++;
         }
@@ -676,17 +712,19 @@ namespace Stride.Graphics
         /// </summary>
         /// <param name="profileColor">Color of the profile.</param>
         /// <param name="name">The name.</param>
-        public void BeginProfile(Color4 profileColor, string name)
+        public void WriteTimestamp(QueryPool queryPool, int index)
         {
-            //currentCommandList.NativeCommandList.BeginEvent();
+            currentCommandList.NativeCommandList.EndQuery(queryPool.NativeQueryHeap, Silk.NET.Direct3D12.QueryType.Timestamp, (uint) index);
+
+            queryPool.PendingValue = queryPool.CompletedValue + 1;
         }
 
         /// <summary>
         /// Ends profiling.
         /// </summary>
-        public void EndProfile()
+        public void BeginProfile(Color4 profileColor, string name)
         {
-            //currentCommandList.NativeCommandList.EndEvent();
+            //currentCommandList.NativeCommandList.BeginEvent();  // TODO: Implement profiling
         }
 
         /// <summary>
@@ -694,13 +732,12 @@ namespace Stride.Graphics
         /// </summary>
         /// <param name="queryPool">The QueryPool owning the query.</param>
         /// <param name="index">The query index.</param>
-        public void WriteTimestamp(QueryPool queryPool, int index)
+        public void EndProfile()
         {
-            currentCommandList.NativeCommandList->EndQuery(queryPool.NativeQueryHeap, Silk.NET.Direct3D12.QueryType.Timestamp, (uint) index);
-
-            queryPool.PendingValue = queryPool.CompletedValue + 1;
+            //currentCommandList.NativeCommandList.EndEvent();  // TODO: Implement profiling
         }
 
+        // TODO: Unused, remove?
         public void ResetQueryPool(QueryPool queryPool)
         {
         }
@@ -715,12 +752,23 @@ namespace Stride.Graphics
         /// <exception cref="InvalidOperationException"></exception>
         public void Clear(Texture depthStencilBuffer, DepthStencilClearOptions options, float depth = 1, byte stencil = 0)
         {
+            ArgumentNullException.ThrowIfNull(depthStencilBuffer);
+
             ResourceBarrierTransition(GraphicsDevice.Presenter.DepthStencilBuffer, GraphicsResourceState.DepthWrite);
             FlushResourceBarriers();
 
-            currentCommandList.NativeCommandList->ClearDepthStencilView(depthStencilBuffer.NativeDepthStencilView,
-                                                                        (ClearFlags) options, depth, stencil,
-                                                                        NumRects: 0, pRects: null);
+            // Check that the Depth-Stencil Buffer has a Stencil if Clear Stencil is requested
+            if (options.HasFlag(DepthStencilClearOptions.Stencil))
+            {
+                if (!depthStencilBuffer.HasStencil)
+                    throw new InvalidOperationException(string.Format(FrameworkResources.NoStencilBufferForDepthFormat, depthStencilBuffer.ViewFormat));
+            }
+
+            scoped ref SilkBox2I nullRect = ref NullRef<SilkBox2I>();
+
+            currentCommandList.NativeCommandList.ClearDepthStencilView(depthStencilBuffer.NativeDepthStencilView,
+                                                                       (ClearFlags) options, depth, stencil,
+                                                                       NumRects: 0, in nullRect);
         }
 
         /// <summary>
@@ -731,13 +779,16 @@ namespace Stride.Graphics
         /// <exception cref="ArgumentNullException">renderTarget</exception>
         public void Clear(Texture renderTarget, Color4 color)
         {
+            ArgumentNullException.ThrowIfNull(renderTarget);
+
             ResourceBarrierTransition(renderTarget, GraphicsResourceState.RenderTarget);
             FlushResourceBarriers();
 
-            var clearColor = (float*) &color;
+            scoped ref SilkBox2I nullRect = ref NullRef<SilkBox2I>();
+            scoped ref var clearColorFloats = ref color.AsSpan<Color4, float>()[0];
 
-            currentCommandList.NativeCommandList->ClearRenderTargetView(renderTarget.NativeRenderTargetView, clearColor,
-                                                                        NumRects: 0, pRects: null);
+            currentCommandList.NativeCommandList.ClearRenderTargetView(renderTarget.NativeRenderTargetView, ref clearColorFloats,
+                                                                        NumRects: 0, in nullRect);
         }
 
         /// <summary>
@@ -752,15 +803,16 @@ namespace Stride.Graphics
             ArgumentNullException.ThrowIfNull(buffer);
 
             if (buffer.NativeUnorderedAccessView.Ptr == 0)
-                throw new ArgumentException("Expecting buffer supporting UAV", nameof(buffer));
+                throw new ArgumentException("Expecting a Buffer supporting UAV", nameof(buffer));
 
             var cpuHandle = buffer.NativeUnorderedAccessView;
             var gpuHandle = GetGpuDescriptorHandle(cpuHandle);
 
-            var clearValue = (float*) &value;
+            scoped ref SilkBox2I nullRect = ref NullRef<SilkBox2I>();
+            scoped ref var clearValue = ref value.AsSpan<Vector4, float>()[0];
 
-            currentCommandList.NativeCommandList->ClearUnorderedAccessViewFloat(gpuHandle, cpuHandle, buffer.NativeResource,
-                                                                                clearValue, NumRects: 0, pRects: null);
+            currentCommandList.NativeCommandList.ClearUnorderedAccessViewFloat(gpuHandle, cpuHandle, buffer.NativeResource,
+                                                                               ref clearValue, NumRects: 0, in nullRect);
         }
 
         /// <summary>
@@ -775,15 +827,16 @@ namespace Stride.Graphics
             ArgumentNullException.ThrowIfNull(buffer);
 
             if (buffer.NativeUnorderedAccessView.Ptr == 0)
-                throw new ArgumentException("Expecting buffer supporting UAV", nameof(buffer));
+                throw new ArgumentException("Expecting a Buffer supporting UAV", nameof(buffer));
 
             var cpuHandle = buffer.NativeUnorderedAccessView;
             var gpuHandle = GetGpuDescriptorHandle(cpuHandle);
 
-            var clearValue = (uint*) &value;
+            scoped ref SilkBox2I nullRect = ref NullRef<SilkBox2I>();
+            scoped ref var clearValue = ref value.AsSpan<Int4, uint>()[0];
 
-            currentCommandList.NativeCommandList->ClearUnorderedAccessViewUint(gpuHandle, cpuHandle, buffer.NativeResource,
-                                                                               clearValue, NumRects: 0, pRects: null);
+            currentCommandList.NativeCommandList.ClearUnorderedAccessViewUint(gpuHandle, cpuHandle, buffer.NativeResource,
+                                                                              ref clearValue, NumRects: 0, in nullRect);
         }
 
         /// <summary>
@@ -798,15 +851,16 @@ namespace Stride.Graphics
             ArgumentNullException.ThrowIfNull(buffer);
 
             if (buffer.NativeUnorderedAccessView.Ptr == 0)
-                throw new ArgumentException("Expecting buffer supporting UAV", nameof(buffer));
+                throw new ArgumentException("Expecting a Buffer supporting UAV", nameof(buffer));
 
             var cpuHandle = buffer.NativeUnorderedAccessView;
             var gpuHandle = GetGpuDescriptorHandle(cpuHandle);
 
-            var clearValue = (uint*) &value;
+            scoped ref SilkBox2I nullRect = ref NullRef<SilkBox2I>();
+            scoped ref var clearValue = ref value.AsSpan<UInt4, uint>()[0];
 
-            currentCommandList.NativeCommandList->ClearUnorderedAccessViewUint(gpuHandle, cpuHandle, buffer.NativeResource,
-                                                                               clearValue, NumRects: 0, pRects: null);
+            currentCommandList.NativeCommandList.ClearUnorderedAccessViewUint(gpuHandle, cpuHandle, buffer.NativeResource,
+                                                                              ref clearValue, NumRects: 0, in nullRect);
         }
 
         /// <summary>
@@ -826,10 +880,11 @@ namespace Stride.Graphics
             var cpuHandle = texture.NativeUnorderedAccessView;
             var gpuHandle = GetGpuDescriptorHandle(cpuHandle);
 
-            var clearValue = (float*) &value;
+            scoped ref SilkBox2I nullRect = ref NullRef<SilkBox2I>();
+            scoped ref var clearValue = ref value.AsSpan<Vector4, float>()[0];
 
-            currentCommandList.NativeCommandList->ClearUnorderedAccessViewFloat(gpuHandle, cpuHandle, texture.NativeResource,
-                                                                                clearValue, NumRects: 0, pRects: null);
+            currentCommandList.NativeCommandList.ClearUnorderedAccessViewFloat(gpuHandle, cpuHandle, texture.NativeResource,
+                                                                               ref clearValue, NumRects: 0, in nullRect);
         }
 
         /// <summary>
@@ -849,10 +904,11 @@ namespace Stride.Graphics
             var cpuHandle = texture.NativeUnorderedAccessView;
             var gpuHandle = GetGpuDescriptorHandle(cpuHandle);
 
-            var clearValue = (uint*) &value;
+            scoped ref SilkBox2I nullRect = ref NullRef<SilkBox2I>();
+            scoped ref var clearValue = ref value.AsSpan<Int4, uint>()[0];
 
-            currentCommandList.NativeCommandList->ClearUnorderedAccessViewUint(gpuHandle, cpuHandle, texture.NativeResource,
-                                                                               clearValue, NumRects: 0, pRects: null);
+            currentCommandList.NativeCommandList.ClearUnorderedAccessViewUint(gpuHandle, cpuHandle, texture.NativeResource,
+                                                                              ref clearValue, NumRects: 0, in nullRect);
         }
 
         /// <summary>
@@ -872,10 +928,11 @@ namespace Stride.Graphics
             var cpuHandle = texture.NativeUnorderedAccessView;
             var gpuHandle = GetGpuDescriptorHandle(cpuHandle);
 
-            var clearValue = (uint*) &value;
+            scoped ref SilkBox2I nullRect = ref NullRef<SilkBox2I>();
+            scoped ref var clearValue = ref value.AsSpan<UInt4, uint>()[0];
 
-            currentCommandList.NativeCommandList->ClearUnorderedAccessViewUint(gpuHandle, cpuHandle, texture.NativeResource,
-                                                                               clearValue, NumRects: 0, pRects: null);
+            currentCommandList.NativeCommandList.ClearUnorderedAccessViewUint(gpuHandle, cpuHandle, texture.NativeResource,
+                                                                              ref clearValue, NumRects: 0, in nullRect);
         }
 
         private GpuDescriptorHandle GetGpuDescriptorHandle(CpuDescriptorHandle cpuHandle)
@@ -889,18 +946,18 @@ namespace Stride.Graphics
                 {
                     ResetSrvHeap(createNewHeap: true);
 
-                    currentCommandList.NativeCommandList->SetDescriptorHeaps(NumDescriptorHeaps: 2, in descriptorHeaps[0]);
+                    currentCommandList.NativeCommandList.SetDescriptorHeaps(NumDescriptorHeaps: 2, in descriptorHeaps[0]);
                 }
 
                 // Copy
                 var destHandle = new CpuDescriptorHandle(srvHeap.CPUDescriptorHandleForHeapStart.Ptr +
                                                          (nuint) (srvHeapOffset * GraphicsDevice.SrvHandleIncrementSize));
 
-                NativeDevice->CopyDescriptorsSimple((uint) srvCount, destHandle, cpuHandle, DescriptorHeapType.CbvSrvUav);
+                NativeDevice.CopyDescriptorsSimple((uint) srvCount, destHandle, cpuHandle, DescriptorHeapType.CbvSrvUav);
 
                 // Store mapping
                 resultGpuHandle = new GpuDescriptorHandle(srvHeap.GPUDescriptorHandleForHeapStart.Ptr +
-                                         (nuint) (srvHeapOffset * GraphicsDevice.SrvHandleIncrementSize));
+                                                          (nuint) (srvHeapOffset * GraphicsDevice.SrvHandleIncrementSize));
 
                 srvMapping.Add(cpuHandle.Ptr, resultGpuHandle);
 
@@ -913,79 +970,39 @@ namespace Stride.Graphics
 
         public void Copy(GraphicsResource source, GraphicsResource destination)
         {
-            // Copy texture -> texture
+            ArgumentNullException.ThrowIfNull(source);
+            ArgumentNullException.ThrowIfNull(destination);
+
+            // Copy Texture -> Texture
             if (source is Texture sourceTexture &&
                 destination is Texture destinationTexture)
             {
+                CopyBetweenTextures(sourceTexture, destinationTexture);
+            }
+            // Copy Buffer -> Buffer
+            else if (source is Buffer sourceBuffer &&
+                     destination is Buffer destinationBuffer)
+            {
+                CopyBetweenBuffers(sourceBuffer, destinationBuffer);
+            }
+            else throw new InvalidOperationException($"Cannot copy data between GraphicsResources of types [{source.GetType()}] and [{destination.GetType()}].");
+
+            void CopyBetweenTextures(Texture sourceTexture, Texture destinationTexture)
+            {
+                // Get the parent Textures in case these are Texture Views
                 var sourceParent = sourceTexture.ParentTexture ?? sourceTexture;
                 var destinationParent = destinationTexture.ParentTexture ?? destinationTexture;
 
                 if (destinationTexture.Usage == GraphicsResourceUsage.Staging)
                 {
-                    // Copy staging texture -> staging texture
+                    // Copy staging Texture -> staging Texture
                     if (sourceTexture.Usage == GraphicsResourceUsage.Staging)
                     {
-                        var size = destinationTexture.ComputeBufferTotalSize();
-
-                        void* destinationMapped;
-                        HResult result = destinationTexture.NativeResource->Map(Subresource: 0, pReadRange: null, &destinationMapped);
-
-                        if (result.IsFailure)
-                            result.Throw();
-
-                        void* sourceMapped;
-                        var sourceRange = new Silk.NET.Direct3D12.Range { Begin = 0, End = (nuint) size };
-                        result = sourceTexture.NativeResource->Map(Subresource: 0, sourceRange, &sourceMapped);
-
-                        if (result.IsFailure)
-                            result.Throw();
-
-                        Core.Utilities.CopyWithAlignmentFallback(destinationMapped, sourceMapped, (uint) size);
-
-                        sourceTexture.NativeResource->Unmap(Subresource: 0, pWrittenRange: null);
-                        destinationTexture.NativeResource->Unmap(Subresource: 0, pWrittenRange: null);
+                        CopyStagingTextureToStagingTexture(sourceTexture, destinationTexture);
                     }
-                    else
+                    else // Copy Texture -> staging Texture
                     {
-                        ResourceBarrierTransition(sourceTexture, GraphicsResourceState.CopySource);
-                        ResourceBarrierTransition(destinationTexture, GraphicsResourceState.CopyDestination);
-                        FlushResourceBarriers();
-
-                        int copyOffset = 0;
-                        for (int arraySlice = 0; arraySlice < sourceParent.ArraySize; ++arraySlice)
-                        {
-                            for (int mipLevel = 0; mipLevel < sourceParent.MipLevels; ++mipLevel)
-                            {
-                                var destRegion = new TextureCopyLocation
-                                {
-                                    PResource = destinationTexture.NativeResource,
-                                    Type = TextureCopyType.PlacedFootprint,
-                                    PlacedFootprint = new()
-                                    {
-                                        Offset = (ulong) copyOffset,
-                                        Footprint =
-                                        {
-                                            Width = (uint) Texture.CalculateMipSize(destinationTexture.Width, mipLevel),
-                                            Height = (uint) Texture.CalculateMipSize(destinationTexture.Height, mipLevel),
-                                            Depth = (uint) Texture.CalculateMipSize(destinationTexture.Depth, mipLevel),
-                                            Format = (Format) destinationTexture.Format,
-                                            RowPitch = (uint) destinationTexture.ComputeRowPitch(mipLevel)
-                                        }
-                                    }
-                                };
-                                var srcRegion = new TextureCopyLocation
-                                {
-                                    PResource = sourceTexture.NativeResource,
-                                    Type = TextureCopyType.SubresourceIndex,
-                                    SubresourceIndex = (uint) (arraySlice * sourceParent.MipLevels + mipLevel)
-                                };
-
-                                currentCommandList.NativeCommandList->CopyTextureRegion(destRegion, DstX: 0, DstY: 0, DstZ: 0,
-                                                                                        srcRegion, pSrcBox: null);
-
-                                copyOffset += destinationTexture.ComputeSubresourceSize(mipLevel);
-                            }
-                        }
+                        CopyTextureToStagingTexture(sourceTexture, sourceParent, destinationTexture);
                     }
 
                     // Fence for host access
@@ -993,24 +1010,96 @@ namespace Stride.Graphics
                     destinationParent.StagingBuilder = this;
                     currentCommandList.StagingResources.Add(destinationParent);
                 }
-                else
+                else // Copy Texture -> Texture
                 {
-                    ResourceBarrierTransition(sourceTexture, GraphicsResourceState.CopySource);
-                    ResourceBarrierTransition(destinationTexture, GraphicsResourceState.CopyDestination);
-                    FlushResourceBarriers();
-
-                    currentCommandList.NativeCommandList->CopyResource(destinationTexture.NativeResource, sourceTexture.NativeResource);
+                    CopyTextureToTexture(sourceTexture, destinationTexture);
                 }
             }
-            // Copy buffer -> buffer
-            else if (source is Buffer sourceBuffer &&
-                     destination is Buffer destinationBuffer)
+
+            void CopyStagingTextureToStagingTexture(Texture sourceTexture, Texture destinationTexture)
+            {
+                var size = destinationTexture.ComputeBufferTotalSize();
+
+                scoped ref var fullRange = ref NullRef<D3D12Range>();
+
+                void* destinationMapped = null;
+                HResult result = destinationTexture.NativeResource.Map(Subresource: 0, in fullRange, ref destinationMapped);
+
+                if (result.IsFailure)
+                    result.Throw();
+
+                void* sourceMapped = null;
+                var sourceRange = new D3D12Range { Begin = 0, End = (nuint) size };
+                result = sourceTexture.NativeResource.Map(Subresource: 0, in sourceRange, ref sourceMapped);
+
+                if (result.IsFailure)
+                    result.Throw();
+
+                Core.Utilities.CopyWithAlignmentFallback(destinationMapped, sourceMapped, (uint) size);
+
+                sourceTexture.NativeResource.Unmap(Subresource: 0, ref fullRange);
+                destinationTexture.NativeResource.Unmap(Subresource: 0, ref fullRange);
+            }
+
+            void CopyTextureToStagingTexture(Texture sourceTexture, Texture sourceParent, Texture destinationTexture)
+            {
+                ResourceBarrierTransition(sourceTexture, GraphicsResourceState.CopySource);
+                ResourceBarrierTransition(destinationTexture, GraphicsResourceState.CopyDestination);
+                FlushResourceBarriers();
+
+                int copyOffset = 0;
+                for (int arraySlice = 0; arraySlice < sourceParent.ArraySize; ++arraySlice)
+                {
+                    for (int mipLevel = 0; mipLevel < sourceParent.MipLevelCount; ++mipLevel)
+                    {
+                        var destRegion = new TextureCopyLocation
+                        {
+                            PResource = destinationTexture.NativeResource,
+                            Type = TextureCopyType.PlacedFootprint,
+                            PlacedFootprint = new()
+                            {
+                                Offset = (ulong) copyOffset,
+                                Footprint =
+                                        {
+                                            Width = (uint) Texture.CalculateMipSize(destinationTexture.Width, mipLevel),
+                                            Height = (uint) Texture.CalculateMipSize(destinationTexture.Height, mipLevel),
+                                            Depth = (uint) Texture.CalculateMipSize(destinationTexture.Depth, mipLevel),
+                                            Format = (Format) destinationTexture.Format,
+                                            RowPitch = (uint) destinationTexture.ComputeRowPitch(mipLevel)
+                                        }
+                            }
+                        };
+                        var srcRegion = new TextureCopyLocation
+                        {
+                            PResource = sourceTexture.NativeResource,
+                            Type = TextureCopyType.SubresourceIndex,
+                            SubresourceIndex = (uint) (arraySlice * sourceParent.MipLevelCount + mipLevel)
+                        };
+
+                        currentCommandList.NativeCommandList.CopyTextureRegion(in destRegion, DstX: 0, DstY: 0, DstZ: 0,
+                                                                               in srcRegion, pSrcBox: null);
+
+                        copyOffset += destinationTexture.ComputeSubResourceSize(mipLevel);
+                    }
+                }
+            }
+
+            void CopyTextureToTexture(Texture sourceTexture, Texture destinationTexture)
+            {
+                ResourceBarrierTransition(sourceTexture, GraphicsResourceState.CopySource);
+                ResourceBarrierTransition(destinationTexture, GraphicsResourceState.CopyDestination);
+                FlushResourceBarriers();
+
+                currentCommandList.NativeCommandList.CopyResource(destinationTexture.NativeResource, sourceTexture.NativeResource);
+            }
+
+            void CopyBetweenBuffers(Buffer sourceBuffer, Buffer destinationBuffer)
             {
                 ResourceBarrierTransition(sourceBuffer, GraphicsResourceState.CopySource);
                 ResourceBarrierTransition(destinationBuffer, GraphicsResourceState.CopyDestination);
                 FlushResourceBarriers();
 
-                currentCommandList.NativeCommandList->CopyResource(destinationBuffer.NativeResource, sourceBuffer.NativeResource);
+                currentCommandList.NativeCommandList.CopyResource(destinationBuffer.NativeResource, sourceBuffer.NativeResource);
 
                 if (destinationBuffer.Usage == GraphicsResourceUsage.Staging)
                 {
@@ -1020,34 +1109,44 @@ namespace Stride.Graphics
                     currentCommandList.StagingResources.Add(destinationBuffer);
                 }
             }
-            else
-            {
-                throw new NotImplementedException();
-            }
         }
 
-        public void CopyMultisample(Texture sourceMultisampleTexture, int sourceSubResource, Texture destTexture, int destSubResource, PixelFormat format = PixelFormat.None)
+        public void CopyMultisample(Texture sourceMultiSampledTexture, int sourceSubResourceIndex,
+                                    Texture destinationTexture, int destinationSubResourceIndex,
+                                    PixelFormat format = PixelFormat.None)
         {
-            ArgumentNullException.ThrowIfNull(sourceMultisampleTexture);
-            ArgumentNullException.ThrowIfNull(destTexture);
+            ArgumentNullException.ThrowIfNull(sourceMultiSampledTexture);
+            ArgumentNullException.ThrowIfNull(destinationTexture);
 
-            if (!sourceMultisampleTexture.IsMultisample)
-                throw new ArgumentOutOfRangeException(nameof(sourceMultisampleTexture), "Source texture is not a MSAA texture");
+            if (!sourceMultiSampledTexture.IsMultiSampled)
+                throw new ArgumentException("Source Texture is not a MSAA Texture", nameof(sourceMultiSampledTexture));
 
-            currentCommandList.NativeCommandList->ResolveSubresource(sourceMultisampleTexture.NativeResource, (uint) sourceSubResource,
-                                                                     destTexture.NativeResource, (uint) destSubResource,
-                                                                     (Format)(format == PixelFormat.None ? destTexture.Format : format));
+            currentCommandList.NativeCommandList.ResolveSubresource(sourceMultiSampledTexture.NativeResource, (uint) sourceSubResourceIndex,
+                                                                    destinationTexture.NativeResource, (uint) destinationSubResourceIndex,
+                                                                    (Format)(format == PixelFormat.None ? destinationTexture.Format : format));
         }
 
-        public void CopyRegion(GraphicsResource source, int sourceSubresource, ResourceRegion? sourceRegion, GraphicsResource destination, int destinationSubresource, int dstX = 0, int dstY = 0, int dstZ = 0)
+        public void CopyRegion(GraphicsResource source, int sourceSubResourceIndex, ResourceRegion? sourceRegion,
+                               GraphicsResource destination, int destinationSubResourceIndex, int dstX = 0, int dstY = 0, int dstZ = 0)
         {
             if (source is Texture sourceTexture &&
                 destination is Texture destinationTexture)
             {
+                CopyBetweenTextures(sourceTexture, destinationTexture);
+            }
+            else if (source is Buffer sourceBuffer &&
+                     destination is Buffer destinationBuffer)
+            {
+                CopyBetweenBuffers(sourceBuffer, destinationBuffer);
+            }
+            else throw new InvalidOperationException("Cannot copy data between Buffers and Textures.");
+
+            void CopyBetweenTextures(Texture sourceTexture, Texture destinationTexture)
+            {
                 if (sourceTexture.Usage == GraphicsResourceUsage.Staging ||
                     destinationTexture.Usage == GraphicsResourceUsage.Staging)
                 {
-                    throw new NotImplementedException("Copy region of staging resources is not supported yet");
+                    throw new NotImplementedException("Copy region of staging resources is not supported yet"); // TODO: Implement copy region for staging resources
                 }
 
                 ResourceBarrierTransition(source, GraphicsResourceState.CopySource);
@@ -1058,60 +1157,71 @@ namespace Stride.Graphics
                 {
                     PResource = destination.NativeResource,
                     Type = TextureCopyType.SubresourceIndex,
-                    SubresourceIndex = (uint) destinationSubresource
+                    SubresourceIndex = (uint) destinationSubResourceIndex
                 };
                 var srcRegion = new TextureCopyLocation
                 {
                     PResource = source.NativeResource,
                     Type = TextureCopyType.SubresourceIndex,
-                    SubresourceIndex = (uint) sourceSubresource
+                    SubresourceIndex = (uint) sourceSubResourceIndex
                 };
 
                 if (sourceRegion is ResourceRegion srcResourceRegion)
                 {
                     // NOTE: We assume the same layout and size as D3D12_BOX
-                    var srcBox = (Box*) &srcResourceRegion;
+                    Debug.Assert(sizeof(D3D12Box) == sizeof(ResourceRegion));
+                    var sourceBox = srcResourceRegion.BitCast<ResourceRegion, D3D12Box>();
 
-                    currentCommandList.NativeCommandList->CopyTextureRegion(destRegion, (uint)dstX, (uint)dstY, (uint)dstZ,
-                                                        srcRegion, srcBox);
+                    currentCommandList.NativeCommandList.CopyTextureRegion(in destRegion, (uint) dstX, (uint) dstY, (uint) dstZ,
+                                                                           in srcRegion, in sourceBox);
                 }
                 else
                 {
-                    currentCommandList.NativeCommandList->CopyTextureRegion(destRegion, (uint) dstX, (uint) dstY, (uint) dstZ,
-                                                                            srcRegion, pSrcBox: null);
+                    currentCommandList.NativeCommandList.CopyTextureRegion(in destRegion, (uint) dstX, (uint) dstY, (uint) dstZ,
+                                                                           in srcRegion, pSrcBox: null);
                 }
             }
-            else if (source is Buffer sourceBuffer &&
-                     destination is Buffer)
+
+            void CopyBetweenBuffers(Buffer sourceBuffer, Buffer destinationBuffer)
             {
                 ResourceBarrierTransition(source, GraphicsResourceState.CopySource);
                 ResourceBarrierTransition(destination, GraphicsResourceState.CopyDestination);
                 FlushResourceBarriers();
 
-                currentCommandList.NativeCommandList->CopyBufferRegion(destination.NativeResource, (ulong) dstX,
-                                                                       source.NativeResource,
-                                                                       SrcOffset: (ulong) (sourceRegion?.Left ?? 0),
-                                                                       NumBytes: sourceRegion.HasValue
-                                                                        ? (ulong) (sourceRegion.Value.Right - sourceRegion.Value.Left)
+                currentCommandList.NativeCommandList.CopyBufferRegion(destinationBuffer.NativeResource, (ulong)dstX,
+                                                                      sourceBuffer.NativeResource,
+                                                                      SrcOffset: (ulong)(sourceRegion?.Left ?? 0),
+                                                                      NumBytes: sourceRegion.HasValue
+                                                                        ? (ulong)(sourceRegion.Value.Right - sourceRegion.Value.Left)
                                                                         : (ulong) sourceBuffer.SizeInBytes);
-            }
-            else
-            {
-                throw new InvalidOperationException("Cannot copy data between buffer and texture.");
             }
         }
 
         /// <inheritdoc />
-        public void CopyCount(Buffer sourceBuffer, Buffer destBuffer, int offsetInBytes)
+        public void CopyCount(Buffer sourceBuffer, Buffer destinationBuffer, int destinationOffsetInBytes)
         {
             ArgumentNullException.ThrowIfNull(sourceBuffer);
-            ArgumentNullException.ThrowIfNull(destBuffer);
+            ArgumentNullException.ThrowIfNull(destinationBuffer);
 
-            currentCommandList.NativeCommandList->CopyBufferRegion(destBuffer.NativeResource, (ulong) offsetInBytes,
-                                                                   sourceBuffer.NativeResource, SrcOffset: 0, NumBytes: sizeof(uint));
+            currentCommandList.NativeCommandList.CopyBufferRegion(destinationBuffer.NativeResource, (ulong) destinationOffsetInBytes,
+                                                                  sourceBuffer.NativeResource, SrcOffset: 0, NumBytes: sizeof(uint));
         }
 
-        internal void UpdateSubresource(GraphicsResource resource, int subresourceIndex, DataBox databox)
+        internal unsafe void UpdateSubResource(GraphicsResource resource, int subResourceIndex, ReadOnlySpan<byte> sourceData)
+        {
+            ArgumentNullException.ThrowIfNull(resource);
+
+            if (sourceData.IsEmpty)
+                return;
+
+            fixed (byte* sourceDataPtr = sourceData)
+            {
+                var sourceDataBox = new DataBox((nint) sourceDataPtr, rowPitch: 0, slicePitch: 0);
+                UpdateSubResource(resource, subResourceIndex, sourceDataBox);
+            }
+        }
+
+        internal void UpdateSubResource(GraphicsResource resource, int subResourceIndex, DataBox sourceData)
         {
             ResourceRegion region = resource switch
             {
@@ -1121,18 +1231,42 @@ namespace Stride.Graphics
                 _ => throw new InvalidOperationException("Unknown resource type")
             };
 
-            UpdateSubresource(resource, subresourceIndex, databox, region);
+            UpdateSubResource(resource, subResourceIndex, sourceData, region);
         }
 
-        internal unsafe void UpdateSubresource(GraphicsResource resource, int subresourceIndex, DataBox databox, ResourceRegion region)
+        internal void UpdateSubResource(GraphicsResource resource, int subResourceIndex, ReadOnlySpan<byte> sourceData, ResourceRegion region)
+        {
+            ArgumentNullException.ThrowIfNull(resource);
+
+            if (sourceData.IsEmpty)
+                return;
+
+            fixed (byte* sourceDataPtr = sourceData)
+            {
+                var sourceDataBox = new DataBox((nint) sourceDataPtr, rowPitch: 0, slicePitch: 0);
+                UpdateSubResource(resource, subResourceIndex, sourceDataBox, region);
+            }
+        }
+
+        internal unsafe void UpdateSubResource(GraphicsResource resource, int subResourceIndex, DataBox sourceData, ResourceRegion region)
         {
             if (resource is Texture texture)
+            {
+                UpdateTexture(texture);
+            }
+            else if (resource is Buffer)
+            {
+                UpdateBuffer();
+            }
+            else throw new InvalidOperationException("Unknown type of Graphics Resource");
+
+            void UpdateTexture(Texture texture)
             {
                 var width = region.Right - region.Left;
                 var height = region.Bottom - region.Top;
                 var depth = region.Back - region.Front;
 
-                ResourceDesc resourceDescription;
+                SkipInit(out ResourceDesc resourceDescription);
                 switch (texture.Dimension)
                 {
                     case TextureDimension.Texture1D:
@@ -1160,7 +1294,7 @@ namespace Stride.Graphics
                         break;
 
                     default:
-                        throw new ArgumentOutOfRangeException();
+                        throw new ArgumentOutOfRangeException(nameof(texture), "The Graphics Resource is a Texture, but its dimension is not one of the supported types.");
                 }
 
                 // TODO D3D12 allocate in upload heap (placed resources?)
@@ -1173,18 +1307,19 @@ namespace Stride.Graphics
                     Type = HeapType.Custom
                 };
 
-                ID3D12Resource* nativeUploadTexture;
-                HResult result = NativeDevice->CreateCommittedResource(heap, HeapFlags.None,
-                                                                       resourceDescription, ResourceStates.GenericRead,
-                                                                       pOptimizedClearValue: null, SilkMarshal.GuidPtrOf<ID3D12Resource>(),
-                                                                       (void**) &nativeUploadTexture);
+                HResult result = NativeDevice.CreateCommittedResource(in heap, HeapFlags.None,
+                                                                      in resourceDescription, ResourceStates.GenericRead,
+                                                                      pOptimizedClearValue: null,
+                                                                      out ComPtr<ID3D12Resource> nativeUploadTexture);
                 if (result.IsFailure)
                     result.Throw();
 
-                GraphicsDevice.TemporaryResources.Enqueue((GraphicsDevice.NextFenceValue, new Pointer<ID3D12Resource>(nativeUploadTexture)));
+                GraphicsDevice.TemporaryResources.Enqueue((GraphicsDevice.NextFenceValue, nativeUploadTexture));
 
-                result = nativeUploadTexture->WriteToSubresource(DstSubresource: 0, pDstBox: null,
-                                                                 (void*) databox.DataPointer, (uint) databox.RowPitch, (uint) databox.SlicePitch);
+                scoped ref var fullBox = ref NullRef<D3D12Box>();
+
+                result = nativeUploadTexture.WriteToSubresource(DstSubresource: 0, in fullBox,
+                                                                (void*) sourceData.DataPointer, (uint) sourceData.RowPitch, (uint) sourceData.SlicePitch);
                 if (result.IsFailure)
                     result.Throw();
 
@@ -1196,7 +1331,7 @@ namespace Stride.Graphics
                 {
                     PResource = resource.NativeResource,
                     Type = TextureCopyType.SubresourceIndex,
-                    SubresourceIndex = (uint) subresourceIndex
+                    SubresourceIndex = (uint) subResourceIndex
                 };
                 var srcRegion = new TextureCopyLocation
                 {
@@ -1204,40 +1339,22 @@ namespace Stride.Graphics
                     Type = TextureCopyType.SubresourceIndex,
                     SubresourceIndex = 0
                 };
-                currentCommandList.NativeCommandList->CopyTextureRegion(destRegion, (uint) region.Left, (uint) region.Top, (uint) region.Front,
-                                                                        srcRegion, pSrcBox: null);
+                currentCommandList.NativeCommandList.CopyTextureRegion(in destRegion, (uint) region.Left, (uint) region.Top, (uint) region.Front,
+                                                                       in srcRegion, in fullBox);
             }
-            else if (resource is Buffer)
+
+            void UpdateBuffer()
             {
                 var uploadSize = region.Right - region.Left;
-                var uploadMemory = GraphicsDevice.AllocateUploadBuffer(region.Right - region.Left, out var uploadResource, out var uploadOffset);
+                var uploadMemory = GraphicsDevice.AllocateUploadBuffer(uploadSize, out var uploadResource, out var uploadOffset);
 
-                Unsafe.CopyBlockUnaligned((void*) uploadMemory, (void*) databox.DataPointer, (uint) uploadSize);
+                Core.Utilities.CopyWithAlignmentFallback((void*) uploadMemory, (void*) sourceData.DataPointer, (uint) uploadSize);
 
                 ResourceBarrierTransition(resource, GraphicsResourceState.CopyDestination);
                 FlushResourceBarriers();
 
-                currentCommandList.NativeCommandList->CopyBufferRegion(pDstBuffer: resource.NativeResource, DstOffset: (ulong) region.Left,
-                                                                       uploadResource, (ulong) uploadOffset, (ulong) uploadSize);
-            }
-            else
-            {
-                if (resource is Buffer)
-                {
-                    var uploadSize = region.Right - region.Left;
-                    var uploadMemory = GraphicsDevice.AllocateUploadBuffer(uploadSize, out var uploadResource, out var uploadOffset);
-
-                    Core.Utilities.CopyWithAlignmentFallback((void*) uploadMemory, (void*) databox.DataPointer, (uint) uploadSize);
-
-                    ResourceBarrierTransition(resource, GraphicsResourceState.CopyDestination);
-                    FlushResourceBarriers();
-
-                    currentCommandList.NativeCommandList.CopyBufferRegion(resource.NativeResource, region.Left, uploadResource, uploadOffset, uploadSize);
-                }
-                else
-                {
-                    throw new InvalidOperationException("Unknown resource type");
-                }
+                currentCommandList.NativeCommandList.CopyBufferRegion(pDstBuffer: resource.NativeResource, DstOffset: (ulong)region.Left,
+                                                                      uploadResource, (ulong)uploadOffset, (ulong)uploadSize);
             }
         }
 
@@ -1252,7 +1369,7 @@ namespace Stride.Graphics
         /// <param name="offsetInBytes">The offset information in bytes.</param>
         /// <param name="lengthInBytes">The length information in bytes.</param>
         /// <returns>Pointer to the sub resource to map.</returns>
-        public MappedResource MapSubresource(GraphicsResource resource, int subresourceIndex, MapMode mapMode, bool doNotWait = false, int offsetInBytes = 0, int lengthInBytes = 0)
+        public MappedResource MapSubResource(GraphicsResource resource, int subResourceIndex, MapMode mapMode, bool doNotWait = false, int offsetInBytes = 0, int lengthInBytes = 0)
         {
             ArgumentNullException.ThrowIfNull(resource);
 
@@ -1265,16 +1382,16 @@ namespace Stride.Graphics
                 usage = texture.Usage;
 
                 if (lengthInBytes == 0)
-                    lengthInBytes = texture.ComputeSubresourceSize(subresourceIndex);
+                    lengthInBytes = texture.ComputeSubResourceSize(subResourceIndex);
 
-                rowPitch = texture.ComputeRowPitch(subresourceIndex % texture.MipLevels);
-                depthStride = texture.ComputeSlicePitch(subresourceIndex % texture.MipLevels);
+                rowPitch = texture.ComputeRowPitch(subResourceIndex % texture.MipLevelCount);
+                depthStride = texture.ComputeSlicePitch(subResourceIndex % texture.MipLevelCount);
 
                 if (usage == GraphicsResourceUsage.Staging)
                 {
-                    // Internally it's a buffer, so adapt resource index and offset
-                    offsetInBytes = texture.ComputeBufferOffset(subresourceIndex, depthSlice: 0);
-                    subresourceIndex = 0;
+                    // Internally it's a Buffer, so adapt resource index and offset
+                    offsetInBytes = texture.ComputeBufferOffset(subResourceIndex, depthSlice: 0);
+                    subResourceIndex = 0;
                 }
             }
             else if (resource is Buffer buffer)
@@ -1284,16 +1401,17 @@ namespace Stride.Graphics
                 if (lengthInBytes == 0)
                     lengthInBytes = buffer.SizeInBytes;
             }
+            else throw new ArgumentException("Only Buffers and Textures can be mapped", nameof(resource));
 
             if (mapMode is MapMode.Read or MapMode.ReadWrite or MapMode.Write)
             {
                 // Is non-staging ever possible for Read/Write?
                 if (usage != GraphicsResourceUsage.Staging)
-                    throw new InvalidOperationException();
+                    throw new ArgumentException("Read/Write/ReadWrite is only supported for staging resources", nameof(mapMode));
             }
             else if (mapMode == MapMode.WriteDiscard)
             {
-                throw new InvalidOperationException("Can't use WriteDiscard on Graphics API that don't support renaming");
+                throw new ArgumentException($"Can't use {nameof(MapMode)}.{nameof(MapMode.WriteDiscard)} on Graphics APIs that don't support renaming", nameof(mapMode));
             }
 
             if (mapMode != MapMode.WriteNoOverwrite)
@@ -1303,55 +1421,70 @@ namespace Stride.Graphics
                 {
                     if (doNotWait)
                     {
-                        return new MappedResource(resource, subresourceIndex, dataBox: default);
+                        return new MappedResource(resource, subResourceIndex, dataBox: default);
                     }
 
                     // Need to flush? (i.e. part of)
                     if (resource.StagingBuilder == this)
                         FlushInternal(false);
 
-                    if (!resource.StagingFenceValue.HasValue)
+                    // If the resource is not being updated by this command list, we need to wait for the fence
+                    if (resource.StagingFenceValue is null)
                         throw new InvalidOperationException("CommandList updating the staging resource has not been submitted");
 
                     GraphicsDevice.WaitForFenceInternal(resource.StagingFenceValue.Value);
                 }
             }
 
-            void* mappedMemory;
-            HResult result = resource.NativeResource->Map((uint) subresourceIndex, pReadRange: null, &mappedMemory);
+            scoped ref var fullRange = ref NullRef<D3D12Range>();
+
+            void* mappedMemory = null;
+            HResult result = resource.NativeResource.Map((uint) subResourceIndex, pReadRange: in fullRange, ref mappedMemory);
 
             if (result.IsFailure)
                 result.Throw();
 
             var mappedData = new DataBox((IntPtr)((byte*) mappedMemory + offsetInBytes), rowPitch, depthStride);
-            return new MappedResource(resource, subresourceIndex, mappedData, offsetInBytes, lengthInBytes);
+            return new MappedResource(resource, subResourceIndex, mappedData, offsetInBytes, lengthInBytes);
         }
 
         // TODO GRAPHICS REFACTOR what should we do with this?
-        public void UnmapSubresource(MappedResource unmapped)
+        public void UnmapSubResource(MappedResource unmapped)
         {
-            unmapped.Resource.NativeResource->Unmap((uint) unmapped.SubResourceIndex, pWrittenRange: null);
+            scoped ref var fullRange = ref NullRef<D3D12Range>();
+
+            unmapped.Resource.NativeResource.Unmap((uint) unmapped.SubResourceIndex, pWrittenRange: in fullRange);
         }
+
+        #region DescriptorHeapWrapper structure
 
         /// <summary>
         ///   Contains a DescriptorHeap and cache its GPU and CPU pointers.
         /// </summary>
-        private struct DescriptorHeapCache
+        private struct DescriptorHeapWrapper
         {
-            public DescriptorHeapCache(ID3D12DescriptorHeap* heap) : this()
+            public ComPtr<ID3D12DescriptorHeap> Heap;
+
+            public CpuDescriptorHandle CPUDescriptorHandleForHeapStart;
+            public GpuDescriptorHandle GPUDescriptorHandleForHeapStart;
+
+
+            public DescriptorHeapWrapper(ComPtr<ID3D12DescriptorHeap> heap)
             {
                 Heap = heap;
-                if (heap != null)
+
+                if (heap.IsNotNull())
                 {
-                    CPUDescriptorHandleForHeapStart = heap->GetCPUDescriptorHandleForHeapStart();
-                    GPUDescriptorHandleForHeapStart = heap->GetGPUDescriptorHandleForHeapStart();
+                    CPUDescriptorHandleForHeapStart = heap.GetCPUDescriptorHandleForHeapStart();
+                    GPUDescriptorHandleForHeapStart = heap.GetGPUDescriptorHandleForHeapStart();
                 }
             }
 
-            public ID3D12DescriptorHeap* Heap;
-            public CpuDescriptorHandle CPUDescriptorHandleForHeapStart;
-            public GpuDescriptorHandle GPUDescriptorHandleForHeapStart;
+            public static implicit operator ComPtr<ID3D12DescriptorHeap>(DescriptorHeapWrapper wrapper) => wrapper.Heap;
+            public static implicit operator DescriptorHeapWrapper(ComPtr<ID3D12DescriptorHeap> heap) => new DescriptorHeapWrapper(heap);
         }
+
+        #endregion
     }
 }
 
