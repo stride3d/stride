@@ -29,12 +29,6 @@ using System.Linq;
 using Silk.NET.Core.Native;
 using Silk.NET.Direct3D12;
 
-    /// <summary>
-    /// Features supported by a <see cref="GraphicsDevice"/>.
-    /// </summary>
-    /// <remarks>
-    /// This class gives also features for a particular format, using the operator this[dxgiFormat] on this structure.
-    /// </remarks>
 using DXGIFormat = Silk.NET.DXGI.Format;
 
 using static System.Runtime.CompilerServices.Unsafe;
@@ -104,11 +98,8 @@ public unsafe partial struct GraphicsDeviceFeatures
         }
 
         /// <summary>
-        /// Gets the maximum multisample count for a particular <see cref="PixelFormat" />.
+        ///   Gets the maximum sample count when enabling multi-sampling for a particular <see cref="Format"/>.
         /// </summary>
-        /// <param name="device">The device.</param>
-        /// <param name="pixelFormat">The pixelFormat.</param>
-        /// <returns>The maximum multisample count for this pixel pixelFormat</returns>
         MultisampleCount GetMaximumMultisampleCount(DXGIFormat pixelFormat)
         {
             FeatureDataMultisampleQualityLevels qualityLevels = new()
@@ -135,6 +126,9 @@ public unsafe partial struct GraphicsDeviceFeatures
             return (MultisampleCount) maxCount;
         }
 
+        /// <summary>
+        ///   Check the support the Direct3D device has for the specified format.
+        /// </summary>
         void CheckFormatSupport(DXGIFormat format,
                                 out FormatSupport formatSupport,
                                 out ComputeShaderFormatSupport csFormatSupport,
