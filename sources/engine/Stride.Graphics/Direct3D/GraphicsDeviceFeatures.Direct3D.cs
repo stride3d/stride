@@ -182,7 +182,7 @@ namespace Stride.Graphics
             }
 
             /// <summary>
-            ///   Gets the maximum sample count when enabling multisampling for a particular <see cref="Format"/>.
+            ///   Gets the maximum sample count when enabling multi-sampling for a particular <see cref="Format"/>.
             /// </summary>
             MultisampleCount GetMaximumMultisampleCount(Format pixelFormat)
             {
