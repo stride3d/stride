@@ -15,6 +15,7 @@ using Silk.NET.Direct3D11;
 using Stride.Core;
 
 using static Stride.Graphics.ComPtrHelpers;
+using static Stride.Graphics.DxgiConstants;
 
 
 namespace Stride.Graphics

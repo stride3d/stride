@@ -296,7 +296,8 @@ namespace Stride.Graphics
                 if (hasInitData)
                 {
                     var commandList = GraphicsDevice.NativeCopyCommandList;
-                    result = commandList->Reset(GraphicsDevice.NativeCopyCommandAllocator, pInitialState: null);
+                    scoped ref var nullPipelineState = ref NullRef<ID3D12PipelineState>();
+                    result = commandList.Reset(GraphicsDevice.NativeCopyCommandAllocator, pInitialState: ref nullPipelineState);
 
                     if (result.IsFailure)
                         result.Throw();
@@ -344,7 +345,7 @@ namespace Stride.Graphics
                         var dest = new TextureCopyLocation { Type = TextureCopyType.SubresourceIndex, PResource = NativeResource, SubresourceIndex = (uint) i };
                         var src = new TextureCopyLocation { Type = TextureCopyType.PlacedFootprint, PResource = uploadResource, PlacedFootprint = placedSubresources[i] };
 
-                        commandList->CopyTextureRegion(in dest, DstX: 0, DstY: 0, DstZ: 0, in src, pSrcBox: in NullRef<Box>());
+                        commandList.CopyTextureRegion(in dest, DstX: 0, DstY: 0, DstZ: 0, in src, pSrcBox: in NullRef<Box>());
                     }
 
                     const uint D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES = 0xFFFFFFFF;
@@ -356,9 +357,9 @@ namespace Stride.Graphics
                     resourceBarrier.Transition.StateBefore = ResourceStates.CopyDest;
                     resourceBarrier.Transition.StateAfter = initialResourceState;
 
-                    commandList->ResourceBarrier(1, in resourceBarrier);
+                    commandList.ResourceBarrier(1, in resourceBarrier);
 
-                    result = commandList->Close();
+                    result = commandList.Close();
 
                     if (result.IsFailure)
                         result.Throw();
