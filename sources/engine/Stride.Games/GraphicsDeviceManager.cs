@@ -87,6 +87,10 @@ namespace Stride.Games
 
         private IGraphicsDeviceFactory graphicsDeviceFactory;
 
+#if STRIDE_GRAPHICS_API_DIRECT3D
+        private bool isReallyFullScreen;
+#endif
+
         private ColorSpace preferredColorSpace;
 
         #endregion
@@ -1072,6 +1076,9 @@ namespace Stride.Games
                         }
 
                         var presentationParameters = GraphicsDevice.Presenter.Description;
+#if STRIDE_GRAPHICS_API_DIRECT3D
+                        isReallyFullScreen = presentationParameters.IsFullScreen;
+#endif
                         if (presentationParameters.BackBufferWidth != 0)
                         {
                             width = presentationParameters.BackBufferWidth;
@@ -1088,6 +1095,9 @@ namespace Stride.Games
                         if (isBeginScreenDeviceChange)
                         {
                             game.Window.EndScreenDeviceChange(width, height);
+#if STRIDE_GRAPHICS_API_DIRECT3D
+                            game.Window.SetIsReallyFullscreen(isReallyFullScreen);
+#endif
                         }
 
                         currentWindowOrientation = game.Window.CurrentOrientation;

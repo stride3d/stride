@@ -206,6 +206,20 @@ namespace Stride.Games
             }
         }
 
+#if STRIDE_GRAPHICS_API_DIRECT3D
+        /// <summary>
+        /// Allow the GraphicsDeviceManager to set the actual window state after applying the device changes.
+        /// </summary>
+        /// <remarks>
+        /// Applies only to the Direct3D graphics API
+        /// </remarks>
+        /// <param name="isReallyFullscreen"></param>
+        internal void SetIsReallyFullscreen(bool isReallyFullscreen)
+        {
+            isFullscreen = isReallyFullscreen;
+        }
+#endif
+
         #endregion
 
         #region Public Methods and Operators
