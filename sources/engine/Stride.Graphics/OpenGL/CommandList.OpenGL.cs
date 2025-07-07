@@ -1222,11 +1222,6 @@ namespace Stride.Graphics
                 // ensure size is coherent
                 var expectedWidth = renderTargets[0].Width;
                 var expectedHeight = renderTargets[0].Height;
-                if (depthStencilBuffer != null)
-                {
-                    if (expectedWidth != depthStencilBuffer.Width || expectedHeight != depthStencilBuffer.Height)
-                        throw new Exception("Depth buffer is not the same size as the render target");
-                }
                 for (int i = 1; i < renderTargetCount; ++i)
                 {
                     if (renderTargets[i] != null && (expectedWidth != renderTargets[i].Width || expectedHeight != renderTargets[i].Height))
