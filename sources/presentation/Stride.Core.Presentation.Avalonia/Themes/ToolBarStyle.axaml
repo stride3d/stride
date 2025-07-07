@@ -1,18 +1,98 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:sd="http://schemas.stride3d.net/xaml/presentation">
+  <Styles.Resources>
+    <ControlTheme x:Key="HorizontalToolBarOverflowButton" TargetType="ToggleButton" BasedOn="{StaticResource {x:Type ToggleButton}}">
+      <Setter Property="HorizontalAlignment" Value="Left" />
+      <Setter Property="VerticalAlignment" Value="Stretch" />
+      <Setter Property="ContentTemplate">
+        <DataTemplate>
+          <Path Data="M 0 0 H 6 L 3 6 Z"
+                Width="6"
+                HorizontalAlignment="Stretch" VerticalAlignment="Bottom" Stretch="Uniform"
+                Fill="{DynamicResource ToggleButtonForeground}"/>
+        </DataTemplate>
+      </Setter>
+    </ControlTheme>
+    <ControlTheme x:Key="VerticalToolBarOverflowButton" TargetType="ToggleButton" BasedOn="{StaticResource {x:Type ToggleButton}}">
+      <Setter Property="HorizontalAlignment" Value="Stretch" />
+      <Setter Property="VerticalAlignment" Value="Top" />
+      <Setter Property="ContentTemplate">
+        <DataTemplate>
+          <Path Data="M 0 6 V 0 L 6 3 Z"
+                Height="6"
+                HorizontalAlignment="Right" VerticalAlignment="Stretch" Stretch="Uniform"
+                Fill="{DynamicResource ToggleButtonForeground}"/>
+        </DataTemplate>
+      </Setter>
+    </ControlTheme>
+  </Styles.Resources>
   <Style Selector="sd|ToolBar">
+    <Setter Property="Margin" Value="4 0 0 0"/>
     <Setter Property="Template">
       <ControlTemplate>
-        <Border Background="{TemplateBinding Background}"
-                BorderBrush="{TemplateBinding BorderBrush}"
-                BorderThickness="{TemplateBinding BorderThickness}"
-                CornerRadius="{TemplateBinding CornerRadius}"
-                Padding="{TemplateBinding Padding}">
-          <sd:ToolBarPanel x:Name="PART_ToolBarPanel"
-                           Orientation="{TemplateBinding Orientation}"/>
-        </Border>
+        <Grid x:Name="Grid"
+              Margin="{TemplateBinding Margin}">
+          <!-- overflow -->
+          <Grid x:Name="OverflowGrid"
+                HorizontalAlignment="Right">
+            <ToggleButton x:Name="OverflowToggleButton"
+                          ClickMode="Press"
+                          IsChecked="{TemplateBinding IsOverflowOpen, Mode=TwoWay}"
+                          IsEnabled="{TemplateBinding HasOverflowItems}"
+                          IsVisible="{TemplateBinding HasOverflowItems}"
+                          Padding="2"
+                          Theme="{StaticResource HorizontalToolBarOverflowButton}"/>
+            <Popup x:Name="OverflowPopup"
+                   PlacementTarget="OverflowToggleButton" Placement="BottomEdgeAlignedLeft"
+                   IsOpen="{Binding #OverflowToggleButton.IsChecked, Mode=TwoWay}"
+                   IsLightDismissEnabled="True">
+              <sd:ToolBarOverflowPanel x:Name="PART_ToolBarOverflowPanel"
+                                       Background="{DynamicResource SystemRegionColor}"
+                                       WrapWidth="256"/>
+            </Popup>
+          </Grid>
+          <!-- main panel -->
+          <Border x:Name="MainPanelBorder"
+                  Background="{TemplateBinding Background}"
+                  BorderBrush="{TemplateBinding BorderBrush}"
+                  BorderThickness="{TemplateBinding BorderThickness}"
+                  CornerRadius="{TemplateBinding CornerRadius}"
+                  Padding="{TemplateBinding Padding}"
+                  Margin="0">
+            <sd:ToolBarPanel x:Name="PART_ToolBarPanel"
+                             Orientation="{TemplateBinding Orientation}"/>
+          </Border>
+        </Grid>
       </ControlTemplate>
     </Setter>
+
+    <Style Selector="^[HasOverflowItems=True]">
+      <Style Selector="^ /template/ Border#MainPanelBorder">
+        <Setter Property="Margin" Value="0 0 13 0"/>
+      </Style>
+    </Style>
+
+    <Style Selector="^[Orientation=Vertical]">
+      <Style Selector="^ /template/ Grid#Grid">
+        <Setter Property="Margin" Value="0 4 0 0" />
+      </Style>
+      <Style Selector="^/template/ Grid#OverflowGrid">
+        <Setter Property="HorizontalAlignment" Value="Stretch"/>
+        <Setter Property="VerticalAlignment" Value="Bottom"/>
+      </Style>
+      <Style Selector="^/template/ ToggleButton#OverflowToggleButton">
+        <Setter Property="Theme" Value="{StaticResource VerticalToolBarOverflowButton}"/>
+      </Style>
+      <Style Selector="^/template/ Popup#OverflowPopup">
+        <Setter Property="Placement" Value="RightEdgeAlignedTop"/>
+      </Style>
+
+      <Style Selector="^[HasOverflowItems=True]">
+        <Style Selector="^ /template/ Border#MainPanelBorder">
+          <Setter Property="Margin" Value="0 0 0 13"/>
+        </Style>
+      </Style>
+    </Style>
   </Style>
 </Styles>

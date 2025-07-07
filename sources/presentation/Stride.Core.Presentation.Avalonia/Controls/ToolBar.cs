@@ -14,20 +14,45 @@ using Avalonia.Layout;
 
 namespace Stride.Core.Presentation.Avalonia.Controls;
 
+public enum OverflowMode
+{
+    /// <summary>
+    /// The item moves between the main and the overflow panels as space permits.
+    /// </summary>
+    AsNeeded,
+
+    /// <summary>
+    /// The item is always placed in the overflow panel.
+    /// </summary>
+    Always,
+
+    /// <summary>
+    /// The item is never placed in the overflow panel.
+    /// </summary>
+    Never
+}
+
 [TemplatePart("PART_ToolBarPanel", typeof(ToolBarPanel), IsRequired = true)]
+[TemplatePart("PART_ToolBarOverflowPanel", typeof(ToolBarOverflowPanel), IsRequired = false)]
 public sealed class ToolBar : ItemsControl
 {
     /// <summary>
-    /// Defines the <see cref="Band"/> Property
+    /// Defines the <see cref="Band"/> property.
     /// </summary>
     public static readonly StyledProperty<int> BandProperty =
         AvaloniaProperty.Register<ToolBar, int>(nameof(Band));
 
     /// <summary>
-    /// Defines the <see cref="BandIndex"/> Property
+    /// Defines the <see cref="BandIndex"/> property.
     /// </summary>
     public static readonly StyledProperty<int> BandIndexProperty =
         AvaloniaProperty.Register<ToolBar, int>(nameof(BandIndex));
+
+    public static readonly StyledProperty<bool> HasOverflowItemsProperty =
+        AvaloniaProperty.Register<ToolBar, bool>(nameof(HasOverflowItems));
+
+    public static readonly StyledProperty<bool> IsOverflowOpenProperty =
+        AvaloniaProperty.Register<ToolBar, bool>(nameof(IsOverflowOpen));
 
     /// <summary>
     /// Defines the <see cref="Orientation"/> property.
@@ -35,10 +60,62 @@ public sealed class ToolBar : ItemsControl
     public static readonly StyledProperty<Orientation> OrientationProperty =
         AvaloniaProperty.Register<ToolBar, Orientation>(nameof(Orientation), coerce: CoerceOrientation);
 
+    /// <summary>
+    /// Defines the IsOverflowItem attached property.
+    /// </summary>
+    /// <seealso cref="GetIsOverflowItem"/>
+    /// <seealso cref="SetIsOverflowItem"/>
+    public static readonly StyledProperty<bool> IsOverflowItemProperty =
+        AvaloniaProperty.RegisterAttached<ToolBar, Control, bool>("IsOverflowItem");
+
+    public static bool GetIsOverflowItem(AvaloniaObject control)
+    {
+        return control.GetValue(IsOverflowItemProperty);
+    }
+
+    internal static void SetIsOverflowItem(AvaloniaObject control, bool value)
+    {
+        control.SetValue(IsOverflowItemProperty, value);
+    }
+
     private static Orientation CoerceOrientation(AvaloniaObject d, Orientation value)
     {
         ToolBarTray? toolBarTray = ((ToolBar)d).ToolBarTray;
         return toolBarTray?.Orientation ?? value;
+    }
+
+    /// <summary>
+    /// Defines the OverflowMode attached property.
+    /// </summary>
+    /// <seealso cref="GetOverflowMode"/>
+    /// <seealso cref="SetOverflowMode"/>
+    public static readonly StyledProperty<OverflowMode> OverflowModeProperty =
+        AvaloniaProperty.RegisterAttached<ToolBar, Control, OverflowMode>("OverflowMode", validate: IsOverflowModeValid);
+
+    private static bool IsOverflowModeValid(OverflowMode value)
+    {
+        return value is OverflowMode.AsNeeded or OverflowMode.Always or OverflowMode.Never;
+    }
+
+    public static OverflowMode GetOverflowMode(AvaloniaObject control)
+    {
+        return control.GetValue(OverflowModeProperty);
+    }
+
+    public static void SetOverflowMode(AvaloniaObject control, OverflowMode mode)
+    {
+        control.SetValue(OverflowModeProperty, mode);
+    }
+
+    static ToolBar()
+    {
+        OverflowModeProperty.Changed.AddClassHandler<ToolBar>(OnOverflowModeChanged);
+        return;
+
+        static void OnOverflowModeChanged(ToolBar? toolBar, AvaloniaPropertyChangedEventArgs e)
+        {
+            toolBar?.InvalidateLayout();
+        }
     }
 
     public ToolBar()
@@ -64,6 +141,17 @@ public sealed class ToolBar : ItemsControl
         set => SetValue(BandIndexProperty, value);
     }
 
+    public bool HasOverflowItems
+    {
+        get => GetValue(HasOverflowItemsProperty);
+    }
+
+    public bool IsOverflowOpen
+    {
+        get => GetValue(IsOverflowOpenProperty);
+        set => SetValue(IsOverflowOpenProperty, value);
+    }
+
     public Orientation Orientation
     {
         get => GetValue(OrientationProperty);
@@ -72,6 +160,8 @@ public sealed class ToolBar : ItemsControl
     internal double MaxLength { get; private set; }
 
     internal double MinLength { get; private set; }
+
+    internal ToolBarOverflowPanel? ToolBarOverflowPanel { get; private set; }
 
     internal ToolBarPanel? ToolBarPanel { get; private set; }
 
@@ -102,6 +192,8 @@ public sealed class ToolBar : ItemsControl
 
         ToolBarPanel = e.NameScope.Find<ToolBarPanel>("PART_ToolBarPanel");
         ArgumentNullException.ThrowIfNull(ToolBarPanel);
+
+        ToolBarOverflowPanel = e.NameScope.Find<ToolBarOverflowPanel>("PART_ToolBarOverflowPanel");
     }
 
     protected override void OnInitialized()
@@ -127,6 +219,7 @@ public sealed class ToolBar : ItemsControl
     {
         // Invalidate template references
         ToolBarPanel = null;
+        ToolBarOverflowPanel = null;
 
         base.OnTemplateChanged(e);
     }

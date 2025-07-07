@@ -7,11 +7,11 @@
 
 using System.Collections;
 using System.Collections.Specialized;
-using System.Diagnostics;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Layout;
 using Avalonia.VisualTree;
+using Stride.Core.Presentation.Avalonia.Internal;
 
 namespace Stride.Core.Presentation.Avalonia.Controls;
 
@@ -37,65 +37,41 @@ public sealed class ToolBarPanel : Panel
 
     internal ToolBar? ToolBar => TemplatedParent as ToolBar;
 
+    private ToolBarOverflowPanel? ToolBarOverflowPanel => ToolBar?.ToolBarOverflowPanel;
+
     protected override Size MeasureOverride(Size availableSize)
     {
         var desiredSize = new Size();
-        var childSlotSize = availableSize;
-        bool isHorizontal = Orientation is Orientation.Horizontal;
-        childSlotSize = isHorizontal
-            ? childSlotSize.WithWidth(double.PositiveInfinity)
-            : childSlotSize.WithHeight(double.PositiveInfinity);
 
-        var childrenCount = Children.Count;
-        var childrenIndex = 0;
+        var isHorizontal = Orientation is Orientation.Horizontal;
+        var childrenSlotSize = isHorizontal
+            ? availableSize.WithWidth(double.PositiveInfinity)
+            : availableSize.WithHeight(double.PositiveInfinity);
+        var maxExtent = isHorizontal
+            ? availableSize.Width
+            : availableSize.Height;
 
-        foreach (var child in GeneratedItems!)
-        {
-            var visualParent = child.GetVisualParent();
-
-            child.Measure(childSlotSize);
-            var childDesiredSize = child.DesiredSize;
-
-            // accumulate the size
-            if (isHorizontal)
-            {
-                desiredSize = desiredSize.WithWidth(desiredSize.Width + childDesiredSize.Width);
-                desiredSize = desiredSize.WithHeight(Math.Max(desiredSize.Height, childDesiredSize.Height));
-            }
-            else
-            {
-                desiredSize = desiredSize.WithWidth(Math.Max(desiredSize.Width, childDesiredSize.Width));
-                desiredSize = desiredSize.WithHeight(desiredSize.Height + childDesiredSize.Height);
-            }
-
-            if (visualParent != this)
-            {
-                if (childrenIndex < childrenCount)
-                {
-                    Children.Insert(childrenIndex, child);
-                }
-                else
-                {
-                    Children.Add(child);
-                }
-                childrenCount++;
-            }
-
-            Debug.Assert(Children[childrenIndex] == child, "Children is out of sync with generatedItems.");
-            childrenIndex++;
-        }
+        // first pass measure all the non as-needed items (i.e. we know whether they go to the main bar of the overflow)
+        var hasAlwaysOverflowItems = MeasureGeneratedItems(checkAsNeeded: false, childrenSlotSize, isHorizontal, maxExtent, ref desiredSize, out _);
 
         MinLength = isHorizontal ? desiredSize.Width : desiredSize.Height;
-        MaxLength = isHorizontal ? desiredSize.Width : desiredSize.Height; // will be different when we have overflow
+
+        // second pass will measure all the as-needed items and place them accordingly
+        var hasAsNeededOverflowItems = MeasureGeneratedItems(checkAsNeeded: true, childrenSlotSize, isHorizontal, maxExtent, ref desiredSize, out var overflowExtent);
+
+        // the measurement is now complete, and the max size is the desired size plus the extent
+        MaxLength = (isHorizontal ? desiredSize.Width : desiredSize.Height) + overflowExtent;
+
+        ToolBar?.SetValue(ToolBar.HasOverflowItemsProperty, hasAlwaysOverflowItems || hasAsNeededOverflowItems);
 
         return desiredSize;
     }
 
     protected override Size ArrangeOverride(Size finalSize)
     {
-        bool isHorizontal = Orientation is Orientation.Horizontal;
-        Rect rectChild = new(finalSize);
-        double previousDimension = 0.0;
+        var isHorizontal = Orientation is Orientation.Horizontal;
+        var rectChild = new Rect(finalSize);
+        var previousDimension = 0.0;
 
         foreach (var child in Children)
         {
@@ -261,5 +237,135 @@ public sealed class ToolBarPanel : Panel
         toolBar.AddLogicalChild(container);
         GeneratedItems.Insert(index, container);
         generator.ItemContainerPrepared(container, item, index);
+    }
+
+    private bool MeasureGeneratedItems(bool checkAsNeeded, Size availableSize, bool isHorizontal, double maxExtent, ref Size desiredSize, out double overflowExtent)
+    {
+        overflowExtent = 0.0;
+
+        if (GeneratedItems is null)
+            return false;
+
+        var hasOverflowItems = false;
+        var shouldInvalidateOverflow = false;
+        var shouldSendToOverflow = false;
+
+        var childrenCount = Children.Count;
+        var childIndex = 0;
+
+        foreach (var child in GeneratedItems)
+        {
+            var mode = ToolBar.GetOverflowMode(child);
+            var isModeAsNeeded = mode is OverflowMode.AsNeeded;
+
+            if (isModeAsNeeded == checkAsNeeded)
+            {
+                var visualParent = child.GetVisualParent();
+
+                // in this mode, measure for placement in the main bar
+                if (mode is not OverflowMode.Always && !shouldSendToOverflow)
+                {
+                    ToolBar.SetIsOverflowItem(child, false);
+                    child.Measure(availableSize);
+                    var childSize = child.DesiredSize;
+
+                    if (isModeAsNeeded)
+                    {
+                        var newExtent = isHorizontal
+                            ? childSize.Width + desiredSize.Width
+                            : childSize.Height + desiredSize.Height;
+
+                        if (DoubleUtil.GreaterThan(newExtent, maxExtent))
+                        {
+                            shouldSendToOverflow = true;
+                        }
+                    }
+
+                    if (!shouldSendToOverflow)
+                    {
+                        // accumulate the size
+                        if (isHorizontal)
+                        {
+                            desiredSize = desiredSize.WithWidth(desiredSize.Width + childSize.Width);
+                            desiredSize = desiredSize.WithHeight(Math.Max(desiredSize.Height, childSize.Height));
+                        }
+                        else
+                        {
+                            desiredSize = desiredSize.WithWidth(Math.Max(desiredSize.Width, childSize.Width));
+                            desiredSize = desiredSize.WithHeight(desiredSize.Height + childSize.Height);
+                        }
+                        
+                        if (visualParent != this)
+                        {
+                            if (visualParent == ToolBarOverflowPanel)
+                            {
+                                ToolBarOverflowPanel?.Children.Remove(child);
+                            }
+
+                            if (childIndex < childrenCount)
+                            {
+                                Children.Insert(childIndex, child);
+                            }
+                            else
+                            {
+                                Children.Add(child);
+                            }
+                            childrenCount++;
+                        }
+                        
+                        childIndex++;
+                    }
+                }
+
+                // in this mode, the child goes to the overflow
+                if (mode is OverflowMode.Always || shouldSendToOverflow)
+                {
+                    hasOverflowItems |= mode is OverflowMode.Always || (shouldSendToOverflow && child is not Separator);
+
+                    var childSize = child.DesiredSize;
+                    if (isHorizontal)
+                    {
+                        overflowExtent += childSize.Width;
+                        desiredSize = desiredSize.WithHeight(Math.Max(desiredSize.Height, childSize.Height));
+                    }
+                    else
+                    {
+                        overflowExtent += childSize.Height;
+                        desiredSize = desiredSize.WithWidth(Math.Max(desiredSize.Width, childSize.Width));
+                    }
+
+                    ToolBar.SetIsOverflowItem(child, true);
+
+                    // if the child was in the main panel, remove it
+                    if (visualParent == this)
+                    {
+                        Children.Remove(child);
+                        childrenCount--;
+                        shouldInvalidateOverflow = true;
+                    }
+                    // if the child isn't in the visual tree yet
+                    else if (visualParent is null)
+                    {
+                        shouldInvalidateOverflow = true;
+                    }
+                }
+            }
+            else
+            {
+                if (childIndex < childrenCount && Children[childIndex] == child)
+                {
+                    // this child is ignored during the current pass
+                    childIndex++;
+                }
+            }
+        }
+
+        // a child was added to the overflow panel
+        if (shouldInvalidateOverflow)
+        {
+            ToolBarOverflowPanel?.InvalidateMeasure();
+        }
+
+        return hasOverflowItems;
     }
 }

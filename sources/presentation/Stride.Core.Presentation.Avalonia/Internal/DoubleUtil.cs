@@ -23,6 +23,16 @@ internal static class DoubleUtil
         return (a - b) is < Epsilon and > -Epsilon;
     }
 
+    public static bool GreaterThan(double value1, double value2)
+    {
+        return (value1 > value2) && !AreClose(value1, value2);
+    }
+
+    public static bool GreaterThanOrClose(double value1, double value2)
+    {
+        return (value1 > value2) || AreClose(value1, value2);
+    }
+
     public static bool LessThan(double a, double b)
     {
         return (a < b) && !AreClose(a, b);
