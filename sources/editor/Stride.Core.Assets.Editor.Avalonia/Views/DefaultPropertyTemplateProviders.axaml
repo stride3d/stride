@@ -156,7 +156,7 @@
     <Grid Background="Transparent">
       <Path x:Name="Up_Arrow" IsVisible="{Binding !IsChecked, RelativeSource={RelativeSource TemplatedParent}}"
             HorizontalAlignment="Center" VerticalAlignment="Center" Fill="{DynamicResource SystemBaseHighColor}"
-            Data="M 0 6 V 0 l 5 3 z" RenderTransformOrigin="0.5,0.5" Stretch="Uniform" StrokeThickness="0"/>
+            Data="M 0 6 V 0 L 6 3 Z" RenderTransformOrigin="0.5,0.5" Stretch="Uniform" StrokeThickness="0"/>
       <Path x:Name="Down_Arrow" IsVisible="{Binding IsChecked, RelativeSource={RelativeSource TemplatedParent}}"
             HorizontalAlignment="Center" VerticalAlignment="Center" Fill="{DynamicResource SystemBaseHighColor}"
             Data="M 0 0 H 6 L 3 6 Z" RenderTransformOrigin="0.5,0.5" Stretch="Uniform" StrokeThickness="0"/>

@@ -53,15 +53,16 @@
           <sd:ToolBarTray DockPanel.Dock="Top" x:Name="ToolBarTray"
                           IsVisible="{TemplateBinding IsToolBarVisible}">
             <sd:ToolBar x:Name="ToolBarClear"
-                        IsVisible="{TemplateBinding CanClearLog}">
+                        IsVisible="{TemplateBinding CanClearLog}"
+                        Margin="0">
               <Button x:Name="PART_ClearLog"
                       ToolTip.Tip="{sd:LocalizeString Clear Log, Context=ToolTip}">
                 <Path Width="12" Height="12" Stretch="Uniform" Fill="{StaticResource TextBrush}" Data="{StaticResource GeometryDelete}"/>
               </Button>
-              <Border Background="Transparent" Width="12" />
             </sd:ToolBar>
             <sd:ToolBar x:Name="ToolBarFilter"
-                        IsVisible="{TemplateBinding CanFilterLog}">
+                        IsVisible="{TemplateBinding CanFilterLog}"
+                        Margin="8 0 0 0">
               <ToggleButton IsChecked="{TemplateBinding ShowDebugMessages, Mode=TwoWay}"
                             ToolTip.Tip="{sd:LocalizeString Toggle Debug, Context=ToolTip}">
                 <Path Width="12" Height="12" Stretch="Uniform" Fill="{DynamicResource TextLogDebugBrush}" Data="{StaticResource GeometryDebugMessage}"/>
@@ -90,10 +91,10 @@
                             ToolTip.Tip="{sd:LocalizeString Toggle Exception Stack Trace, Context=ToolTip}">
                 <TextBlock Width="16" Height="12" Text="(...)" FontSize="10" />
               </ToggleButton>
-              <Border Background="Transparent" Width="12" />
             </sd:ToolBar>
             <sd:ToolBar x:Name="ToolBarSearch"
-                        IsVisible="{TemplateBinding CanSearchLog}">
+                        IsVisible="{TemplateBinding CanSearchLog}"
+                        Margin="8 0 0 0">
               <TextBox x:Name="TextBoxSearch"
                        Text="{Binding SearchToken, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay, Delay=300}"
                        Width="256"
