@@ -4,58 +4,71 @@
 #if STRIDE_GRAPHICS_API_DIRECT3D12
 
 using System;
+using System.Diagnostics;
+
+using Silk.NET.Core.Native;
 using Silk.NET.Direct3D12;
 
 namespace Stride.Graphics
 {
     public readonly unsafe partial struct DescriptorSet
     {
-        internal readonly GraphicsDevice Device;
+        private readonly ComPtr<ID3D12Device> nativeDevice;
 
-        internal readonly int[] BindingOffsets;
-        internal readonly DescriptorSetLayout Description;
+        // Mapping of binding slot -> offset from start handle
+        private readonly ReadOnlySpan<int> BindingOffsets => IsValid ? Description!.BindingOffsets : default;
+
+        internal readonly DescriptorSetLayout? Description;
+
+        public readonly bool IsValid => Description is not null;
 
         internal readonly CpuDescriptorHandle SrvStart;
         internal readonly CpuDescriptorHandle SamplerStart;
 
-        public readonly bool IsValid => Description != null;
 
-        private DescriptorSet(GraphicsDevice graphicsDevice, DescriptorPool pool, DescriptorSetLayout desc)
+        private DescriptorSet(GraphicsDevice graphicsDevice, DescriptorPool pool, DescriptorSetLayout layout)
         {
-            if (pool.SrvOffset + desc.SrvCount > pool.SrvCount ||
-                pool.SamplerOffset + desc.SamplerCount > pool.SamplerCount)
+            Debug.Assert(pool is not null);
+            Debug.Assert(layout is not null);
+
+            // Not enough space in the pool for the new Descriptor Set?
+            if (pool.SrvOffset + layout.SrvCount > pool.SrvCount ||
+                pool.SamplerOffset + layout.SamplerCount > pool.SamplerCount)
             {
-                // Early exit if OOM, IsValid should return false (TODO: different mechanism?)
-                Device = null;
-                BindingOffsets = null;
+                // Early exit if OOM, IsValid should return false
+                // TODO: different mechanism?
+                nativeDevice = null;
                 Description = null;
-                SrvStart = new CpuDescriptorHandle();
-                SamplerStart = new CpuDescriptorHandle();
+                SrvStart = default;
+                SamplerStart = default;
                 return;
             }
 
-            Device = graphicsDevice;
-            BindingOffsets = desc.BindingOffsets;
-            Description = desc;
+            Debug.Assert(graphicsDevice is not null);
 
-            // Store start CpuDescriptorHandle
-            var startHandle = desc.SrvCount > 0
+            nativeDevice = graphicsDevice.NativeDevice;
+            Description = layout;
+
+            // Store starting CpuDescriptorHandle for SRVs, UAVs, etc.
+            var startHandle = layout.SrvCount > 0
                 ? pool.SrvStart.Ptr + (nuint) (graphicsDevice.SrvHandleIncrementSize * pool.SrvOffset)
                 : 0;
 
             SrvStart = new CpuDescriptorHandle(startHandle);
 
-            startHandle = desc.SamplerCount > 0
+            // Store starting CpuDescriptorHandle for Samplers
+            startHandle = layout.SamplerCount > 0
                 ? pool.SamplerStart.Ptr + (nuint) (graphicsDevice.SamplerHandleIncrementSize * pool.SamplerOffset)
                 : 0;
 
             SamplerStart = new CpuDescriptorHandle(startHandle);
 
             // Allocation is done, bump offsets
-            // TODO D3D12 thread safety?
-            pool.SrvOffset += desc.SrvCount;
-            pool.SamplerOffset += desc.SamplerCount;
+            // TODO: D3D12: Thread safety?
+            pool.SrvOffset += layout.SrvCount;
+            pool.SamplerOffset += layout.SamplerCount;
         }
+
 
         /// <summary>
         /// Sets a descriptor.
@@ -85,8 +98,9 @@ namespace Stride.Graphics
                 return;
 
             var destDescriptorRangeStart = new CpuDescriptorHandle(SrvStart.Ptr + (nuint) BindingOffsets[slot]);
-            Device.NativeDevice.CopyDescriptorsSimple(NumDescriptors: 1, destDescriptorRangeStart,
-                                                      shaderResourceView.NativeShaderResourceView, DescriptorHeapType.CbvSrvUav);
+
+            nativeDevice.CopyDescriptorsSimple(NumDescriptors: 1, destDescriptorRangeStart,
+                                               shaderResourceView.NativeShaderResourceView, DescriptorHeapType.CbvSrvUav);
         }
 
         /// <summary>
@@ -96,15 +110,16 @@ namespace Stride.Graphics
         /// <param name="samplerState">The sampler state.</param>
         public void SetSamplerState(int slot, SamplerState samplerState)
         {
-            // For now, immutable samplers appears in the descriptor set and should be ignored
-            // TODO GRAPHICS REFACTOR can't we just hide them somehow?
+            // For now, immutable Samplers appears in the Descriptor Set and should be ignored
+            // TODO: GRAPHICS REFACTOR: Can't we just hide them somehow?
             var bindingSlot = BindingOffsets[slot];
-            if (bindingSlot == -1)
+            if (bindingSlot == DescriptorSetLayout.IMMUTABLE_SAMPLER_BINDING_OFFSET)
                 return;
 
             var destDescriptorRangeStart = new CpuDescriptorHandle(SamplerStart.Ptr + (nuint) bindingSlot);
-            Device.NativeDevice.CopyDescriptorsSimple(NumDescriptors: 1, destDescriptorRangeStart,
-                                                      samplerState.NativeSampler, DescriptorHeapType.Sampler);
+
+            nativeDevice.CopyDescriptorsSimple(NumDescriptors: 1, destDescriptorRangeStart,
+                                               samplerState.NativeSampler, DescriptorHeapType.Sampler);
         }
 
         /// <summary>
@@ -116,18 +131,19 @@ namespace Stride.Graphics
         /// <param name="size">The constant buffer view size.</param>
         public void SetConstantBuffer(int slot, Buffer buffer, int offset, int size)
         {
-            var constantBufferDataPlacementAlignment = D3D12.ConstantBufferDataPlacementAlignment;
+            // TODO: We should validate whether offset + size fits inside the Constant Buffer memory
 
             var cbufferViewDesc = new ConstantBufferViewDesc
             {
                 BufferLocation = buffer.GPUVirtualAddress + (ulong) offset,
 
-                // CB size needs to be 256-byte aligned
-                SizeInBytes = (uint) ((size + constantBufferDataPlacementAlignment) / constantBufferDataPlacementAlignment * constantBufferDataPlacementAlignment)
+                // Constant Buffer size needs to be 256-byte aligned
+                SizeInBytes = (uint) ((size + D3D12.ConstantBufferDataPlacementAlignment) / D3D12.ConstantBufferDataPlacementAlignment * D3D12.ConstantBufferDataPlacementAlignment)
             };
 
             var destDescriptorHandle = new CpuDescriptorHandle(SrvStart.Ptr + (nuint) BindingOffsets[slot]);
-            Device.NativeDevice.CreateConstantBufferView(in cbufferViewDesc, destDescriptorHandle);
+
+            nativeDevice.CreateConstantBufferView(in cbufferViewDesc, destDescriptorHandle);
         }
 
         /// <summary>
@@ -137,12 +153,15 @@ namespace Stride.Graphics
         /// <param name="unorderedAccessView">The unordered access view.</param>
         public void SetUnorderedAccessView(int slot, GraphicsResource unorderedAccessView)
         {
+            // TODO: Why this throws, but the SRVs just return?
+
             if (unorderedAccessView.NativeUnorderedAccessView.Ptr == 0)
-                throw new ArgumentException($"Resource \'{unorderedAccessView}\' has missing Unordered Access View.");
+                throw new ArgumentException($"Resource '{unorderedAccessView}' has missing Unordered Access View.");
 
             var destDescriptorRangeStart = new CpuDescriptorHandle(SrvStart.Ptr + (nuint) BindingOffsets[slot]);
-            Device.NativeDevice.CopyDescriptorsSimple(NumDescriptors: 1, destDescriptorRangeStart,
-                                                      unorderedAccessView.NativeUnorderedAccessView, DescriptorHeapType.CbvSrvUav);
+
+            nativeDevice.CopyDescriptorsSimple(NumDescriptors: 1, destDescriptorRangeStart,
+                                               unorderedAccessView.NativeUnorderedAccessView, DescriptorHeapType.CbvSrvUav);
         }
     }
 }

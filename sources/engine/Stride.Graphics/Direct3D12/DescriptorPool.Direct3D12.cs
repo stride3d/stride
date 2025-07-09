@@ -5,28 +5,30 @@
 
 using Silk.NET.Core.Native;
 using Silk.NET.Direct3D12;
+
 using Stride.Shaders;
+
+using static Stride.Graphics.ComPtrHelpers;
 
 namespace Stride.Graphics
 {
     public unsafe partial class DescriptorPool
     {
-        internal ID3D12DescriptorHeap* SrvHeap;
-        internal ID3D12DescriptorHeap* SamplerHeap;
+        private ID3D12DescriptorHeap* nativeSrvHeap;
+        private ID3D12DescriptorHeap* nativeSamplerHeap;
 
-        internal CpuDescriptorHandle SrvStart;
-        internal int SrvOffset;
-        internal int SrvCount;
+        protected internal ComPtr<ID3D12DescriptorHeap> SrvHeap => ToComPtr(nativeSrvHeap);
 
-        internal CpuDescriptorHandle SamplerStart;
-        internal int SamplerOffset;
-        internal int SamplerCount;
+        protected internal ComPtr<ID3D12DescriptorHeap> SamplerHeap => ToComPtr(nativeSamplerHeap);
 
-        public void Reset()
-        {
-            SrvOffset = 0;
-            SamplerOffset = 0;
-        }
+        internal CpuDescriptorHandle SrvStart;  // CPU handle to the start of the Shader Resource View heap
+        internal int SrvOffset;                 // Offset in the SRV heap from SrvStart
+        internal int SrvCount;                  // Number of SRVs allocated in the pool
+
+        internal CpuDescriptorHandle SamplerStart;  // CPU handle to the start of the Sampler heap
+        internal int SamplerOffset;                 // Offset in the Sampler heap from SamplerStart
+        internal int SamplerCount;                  // Number of Samplers allocated in the pool
+
 
         private DescriptorPool(GraphicsDevice graphicsDevice, DescriptorTypeCount[] counts) : base(graphicsDevice)
         {
@@ -48,15 +50,13 @@ namespace Stride.Graphics
                     Type = DescriptorHeapType.CbvSrvUav
                 };
 
-                ID3D12DescriptorHeap* descriptorHeap;
-                HResult result = graphicsDevice.NativeDevice->CreateDescriptorHeap(descriptorHeapDesc,
-                                                                                   SilkMarshal.GuidPtrOf<ID3D12DescriptorHeap>(),
-                                                                                   (void**) &descriptorHeap);
+                HResult result = graphicsDevice.NativeDevice.CreateDescriptorHeap(in descriptorHeapDesc,
+                                                                                  out ComPtr<ID3D12DescriptorHeap> descriptorHeap);
                 if (result.IsFailure)
                     result.Throw();
 
-                SrvHeap = descriptorHeap;
-                SrvStart = SrvHeap->GetCPUDescriptorHandleForHeapStart();
+                nativeSrvHeap = descriptorHeap;
+                SrvStart = SrvHeap.GetCPUDescriptorHandleForHeapStart();
             }
 
             if (SamplerCount > 0)
@@ -68,31 +68,28 @@ namespace Stride.Graphics
                     Type = DescriptorHeapType.Sampler
                 };
 
-                ID3D12DescriptorHeap* descriptorHeap;
-                HResult result = graphicsDevice.NativeDevice->CreateDescriptorHeap(descriptorHeapDesc,
-                                                                                   SilkMarshal.GuidPtrOf<ID3D12DescriptorHeap>(),
-                                                                                   (void**) &descriptorHeap);
+                HResult result = graphicsDevice.NativeDevice.CreateDescriptorHeap(in descriptorHeapDesc,
+                                                                                  out ComPtr<ID3D12DescriptorHeap> descriptorHeap);
                 if (result.IsFailure)
                     result.Throw();
 
-                SamplerHeap = descriptorHeap;
-                SamplerStart = SamplerHeap->GetCPUDescriptorHandleForHeapStart();
+                nativeSamplerHeap = descriptorHeap;
+                SamplerStart = SamplerHeap.GetCPUDescriptorHandleForHeapStart();
             }
         }
 
         protected internal override void OnDestroyed()
         {
-            if (SrvHeap != null)
-                SrvHeap->Release();
-
-            SrvHeap = null;
-
-            if (SamplerHeap != null)
-                SamplerHeap->Release();
-
-            SamplerHeap = null;
+            SafeRelease(ref nativeSrvHeap);
+            SafeRelease(ref nativeSamplerHeap);
 
             base.OnDestroyed();
+        }
+
+        public void Reset()
+        {
+            SrvOffset = 0;
+            SamplerOffset = 0;
         }
     }
 }

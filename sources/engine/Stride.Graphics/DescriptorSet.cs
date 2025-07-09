@@ -13,13 +13,13 @@ public readonly partial struct DescriptorSet
     /// </summary>
     /// <param name="graphicsDevice">The Graphics Device.</param>
     /// <param name="pool">The pool where Descriptor Sets are allocated.</param>
-    /// <param name="desc">A description of the Graphics Resources in the Descriptor Set and their layout.</param>
+    /// <param name="layout">A description of the Graphics Resources in the Descriptor Set and their layout.</param>
     /// <returns>
     ///   The new Descriptor Set.
     /// </returns>
-    public static DescriptorSet New(GraphicsDevice graphicsDevice, DescriptorPool pool, DescriptorSetLayout desc)
+    public static DescriptorSet New(GraphicsDevice graphicsDevice, DescriptorPool pool, DescriptorSetLayout layout)
     {
-        return new DescriptorSet(graphicsDevice, pool, desc);
+        return new DescriptorSet(graphicsDevice, pool, layout);
     }
 
 #if STRIDE_GRAPHICS_API_DIRECT3D11 || STRIDE_GRAPHICS_API_OPENGL || (STRIDE_GRAPHICS_API_VULKAN && STRIDE_GRAPHICS_NO_DESCRIPTOR_COPIES)
