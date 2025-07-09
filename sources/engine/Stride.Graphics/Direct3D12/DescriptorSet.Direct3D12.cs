@@ -16,16 +16,47 @@ namespace Stride.Graphics
         private readonly ComPtr<ID3D12Device> nativeDevice;
 
         // Mapping of binding slot -> offset from start handle
+        /// <inheritdoc cref="DescriptorSetLayout.BindingOffsets"/>
         private readonly ReadOnlySpan<int> BindingOffsets => IsValid ? Description!.BindingOffsets : default;
 
+        /// <summary>
+        ///   The description of the Descriptors in the Descriptor Set, their layout, and other associated metadata.
+        /// </summary>
         internal readonly DescriptorSetLayout? Description;
 
+        /// <summary>
+        ///   Gets a value indicating if the Descriptor Set is valid.
+        /// </summary>
+        /// <remarks>
+        ///   A Descriptor Set is considered valid if it is allocated in a Descriptor Pool.
+        /// </remarks>
         public readonly bool IsValid => Description is not null;
 
+        /// <summary>
+        ///   A CPU-accessible handle to the Descriptors for Shader Resource Views (SRVs), Unordered Access Views (UAVs),
+        ///   and Constant Buffer Views (CBVs), in the Descriptor Set.
+        /// </summary>
+        /// <remarks>
+        ///   The handle points to the first allocated Descriptor. If more than one Descriptor is allocated, they will
+        ///   be contiguous to the first one.
+        /// </remarks>
         internal readonly CpuDescriptorHandle SrvStart;
+        /// <summary>
+        ///   A CPU-accessible handle to the Descriptors for Samplers in the Descriptor Set.
+        /// </summary>
+        /// <remarks>
+        ///   The handle points to the first allocated Descriptor. If more than one Descriptor is allocated, they will
+        ///   be contiguous to the first one.
+        /// </remarks>
         internal readonly CpuDescriptorHandle SamplerStart;
 
 
+        /// <summary>
+        ///   Initializes a new instance of the <see cref="DescriptorSet"/> structure.
+        /// </summary>
+        /// <param name="graphicsDevice">The Graphics Device.</param>
+        /// <param name="pool">The pool where Descriptor Sets are allocated.</param>
+        /// <param name="layout">A description of the Graphics Resources in the Descriptor Set and their layout.</param>
         private DescriptorSet(GraphicsDevice graphicsDevice, DescriptorPool pool, DescriptorSetLayout layout)
         {
             Debug.Assert(pool is not null);
@@ -71,10 +102,10 @@ namespace Stride.Graphics
 
 
         /// <summary>
-        /// Sets a descriptor.
+        ///   Sets the Descriptor in a specific slot.
         /// </summary>
         /// <param name="slot">The slot.</param>
-        /// <param name="value">The descriptor.</param>
+        /// <param name="value">The Descriptor to set.</param>
         public void SetValue(int slot, object value)
         {
             if (value is GraphicsResource srv)
@@ -88,10 +119,10 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        /// Sets a shader resource view descriptor.
+        ///   Sets a Shader Resource View (SRV) Descriptor in a specific slot.
         /// </summary>
         /// <param name="slot">The slot.</param>
-        /// <param name="shaderResourceView">The shader resource view.</param>
+        /// <param name="shaderResourceView">The Shader Resource View (SRV) to set.</param>
         public void SetShaderResourceView(int slot, GraphicsResource shaderResourceView)
         {
             if (shaderResourceView.NativeShaderResourceView.Ptr == 0)
@@ -104,10 +135,10 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        /// Sets a sampler state descriptor.
+        ///   Sets a Sampler State Descriptor in a specific slot.
         /// </summary>
         /// <param name="slot">The slot.</param>
-        /// <param name="samplerState">The sampler state.</param>
+        /// <param name="samplerState">The Sampler State to set.</param>
         public void SetSamplerState(int slot, SamplerState samplerState)
         {
             // For now, immutable Samplers appears in the Descriptor Set and should be ignored
@@ -123,12 +154,12 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        /// Sets a constant buffer view descriptor.
+        ///   Sets a Constant Buffer View (CBV) Descriptor in a specific slot.
         /// </summary>
         /// <param name="slot">The slot.</param>
-        /// <param name="buffer">The constant buffer.</param>
-        /// <param name="offset">The constant buffer view start offset.</param>
-        /// <param name="size">The constant buffer view size.</param>
+        /// <param name="buffer">The Constant Buffer View to set.</param>
+        /// <param name="offset">The offset from the start of the Constant Buffer to create the View with.</param>
+        /// <param name="size">The size of the Constant Buffer View.</param>
         public void SetConstantBuffer(int slot, Buffer buffer, int offset, int size)
         {
             // TODO: We should validate whether offset + size fits inside the Constant Buffer memory
@@ -147,10 +178,11 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        /// Sets an unordered access view descriptor.
+        ///   Sets a Unordered Access View (UAV) Descriptor in a specific slot.
         /// </summary>
         /// <param name="slot">The slot.</param>
-        /// <param name="unorderedAccessView">The unordered access view.</param>
+        /// <param name="buffer">The Unordered Access View to set.</param>
+        /// <exception cref="ArgumentException">The Graphics Resource does not have an Unordered Access View.</exception>
         public void SetUnorderedAccessView(int slot, GraphicsResource unorderedAccessView)
         {
             // TODO: Why this throws, but the SRVs just return?
