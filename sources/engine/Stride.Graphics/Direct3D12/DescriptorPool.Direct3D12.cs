@@ -17,8 +17,22 @@ namespace Stride.Graphics
         private ID3D12DescriptorHeap* nativeSrvHeap;
         private ID3D12DescriptorHeap* nativeSamplerHeap;
 
+        /// <summary>
+        ///   Gets the internal Direct3D 12 Descriptor Heap for Shader Resource Views.
+        /// </summary>
+        /// <remarks>
+        ///   If the reference is going to be kept, use <see cref="ComPtr{T}.AddRef()"/> to increment the internal
+        ///   reference count, and <see cref="ComPtr{T}.Dispose()"/> when no longer needed to release the object.
+        /// </remarks>
         protected internal ComPtr<ID3D12DescriptorHeap> SrvHeap => ToComPtr(nativeSrvHeap);
 
+        /// <summary>
+        ///   Gets the internal Direct3D 12 Descriptor Heap for Samplers.
+        /// </summary>
+        /// <remarks>
+        ///   If the reference is going to be kept, use <see cref="ComPtr{T}.AddRef()"/> to increment the internal
+        ///   reference count, and <see cref="ComPtr{T}.Dispose()"/> when no longer needed to release the object.
+        /// </remarks>
         protected internal ComPtr<ID3D12DescriptorHeap> SamplerHeap => ToComPtr(nativeSamplerHeap);
 
         internal CpuDescriptorHandle SrvStart;  // CPU handle to the start of the Shader Resource View heap
@@ -78,6 +92,7 @@ namespace Stride.Graphics
             }
         }
 
+        /// <inheritdoc/>
         protected internal override void OnDestroyed()
         {
             SafeRelease(ref nativeSrvHeap);
@@ -86,6 +101,9 @@ namespace Stride.Graphics
             base.OnDestroyed();
         }
 
+        /// <summary>
+        ///   Clears the Descriptor Pool, resetting all allocated Descriptors.
+        /// </summary>
         public void Reset()
         {
             SrvOffset = 0;
