@@ -32,9 +32,14 @@ public class EffectDescriptorSetReflection
     /// </summary>
     /// <param name="graphicsDevice">The Graphics Device used to create Sampler States and manage bindings.</param>
     /// <param name="effectBytecode">The Effect / Shader bytecode containing reflection data for resource bindings and Sampler States.</param>
-    /// <param name="effectDescriptorSetSlots">A list of Descriptor Set slot names to be processed.</param>
+    /// <param name="effectDescriptorSetSlots">
+    ///   A list of Descriptor Set slot names to be processed.
+    ///   This usually comes from the resource groups (<c>rgroup</c>s) in the Effects / Shaders, plus a <c>"Globals"</c> slot
+    ///   for those Descriptor Set layouts that have no specified a slot / group name.
+    /// </param>
     /// <param name="defaultSetSlot">
     ///   The default Descriptor Set slot name used for the Graphics Resources in this Effect / Shader when no slot name is specified.
+    ///   Usually, this is <c>"Globals"</c>.
     /// </param>
     /// <returns>
     ///   The new instance of <see cref="EffectDescriptorSetReflection"/> containing the Descriptor Set layouts and default set
