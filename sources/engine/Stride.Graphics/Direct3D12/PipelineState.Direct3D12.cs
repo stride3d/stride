@@ -30,24 +30,91 @@ namespace Stride.Graphics
         private ID3D12PipelineState* compiledPipelineState;
         private ID3D12RootSignature* nativeRootSignature;
 
+        /// <summary>
+        ///   Gets the internal Direct3D 12 Pipeline State that was compiled from the provided
+        ///   <see cref="PipelineStateDescription"/>.
+        /// </summary>
+        /// <remarks>
+        ///   If the reference is going to be kept, use <see cref="ComPtr{T}.AddRef()"/> to increment the internal
+        ///   reference count, and <see cref="ComPtr{T}.Dispose()"/> when no longer needed to release the object.
+        /// </remarks>
         internal ComPtr<ID3D12PipelineState> CompiledState => ToComPtr(compiledPipelineState);
 
+        /// <summary>
+        ///   Gets the internal Direct3D 12 Root Signature.
+        /// </summary>
+        /// <remarks>
+        ///   If the reference is going to be kept, use <see cref="ComPtr{T}.AddRef()"/> to increment the internal
+        ///   reference count, and <see cref="ComPtr{T}.Dispose()"/> when no longer needed to release the object.
+        /// </remarks>
         internal ComPtr<ID3D12RootSignature> RootSignature => ToComPtr(nativeRootSignature);
 
+        /// <summary>
+        ///   Gets the Direct3D 12 <see cref="D3DPrimitiveTopology"/> indicating how vertices in the rendered geometry
+        ///   are to be interpreted to form primitives.
+        /// </summary>
         internal D3DPrimitiveTopology PrimitiveTopology { get; }
 
+        /// <summary>
+        ///   Gets a value indicating whether to enables scissor testing.
+        ///   Pixels outside the active scissor rectangles are culled.
+        /// </summary>
+        /// <remarks>
+        ///   When enabled, only pixels inside the active scissor rectangles configured in the <see cref="CommandList"/> are rendered.
+        ///   This is commonly used for UI rendering, partial redraws, or performance optimization.
+        /// </remarks>
         internal bool HasScissorEnabled { get; }
 
+        /// <summary>
+        ///   Gets a value indicating whether the Pipeline State represents the state of the compute pipeline.
+        /// </summary>
+        /// <value>
+        ///   <see langword="true"/> if the Pipeline State represents the state of the compute pipeline;
+        ///   <see langword="false"/> if it represents the state of the graphics pipeline.
+        /// </value>
         internal bool IsCompute { get; }
 
         // Counts of Root Parameters to bind for each Descriptor Set layout
         private readonly int[] srvBindCountPerLayout;
         private readonly int[] samplerBindCountPerLayout;
 
+        /// <summary>
+        ///   A map of the number of Root Parameters to bind for each Descriptor Set layout
+        ///   (corresponding to Graphics Resource groups (<c>rgroup</c>s) in Effects / Shaders) for
+        ///   Descriptors of Shader Resource Views (SRVs).
+        /// </summary>
         internal ReadOnlySpan<int> SrvBindCountPerLayout => srvBindCountPerLayout;
+        /// <summary>
+        ///   A map of the number of Root Parameters to bind for each Descriptor Set layout
+        ///   (corresponding to Graphics Resource groups (<c>rgroup</c>s) in Effects / Shaders) for
+        ///   Descriptors of Samplers.
+        /// </summary>
         internal ReadOnlySpan<int> SamplerBindCountPerLayout => samplerBindCountPerLayout;
 
 
+        /// <summary>
+        ///   Initializes a new instance of the <see cref="PipelineState"/> class.
+        /// </summary>
+        /// <param name="graphicsDevice">The Graphics Device.</param>
+        /// <param name="pipelineStateDescription">A description of the desired graphics pipeline configuration.</param>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///   The reflected Effect bytecode in <paramref name="pipelineStateDescription"/> specifies a Shader stage that is invalid.
+        /// </exception>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///   <paramref name="pipelineStateDescription"/> specifies a <see cref="PrimitiveType"/> that is invalid.
+        /// </exception>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///   When configuring the Descriptors for the reflected Effect bytecode in <paramref name="pipelineStateDescription"/>,
+        ///   an invalid <see cref="ShaderStage"/> was found.
+        /// </exception>
+        /// <exception cref="NotSupportedException">
+        ///   Static Samplers can only have opaque black, opaque white or transparent black as border color.
+        /// </exception>
+        /// <exception cref="NotImplementedException">
+        ///   The reflected Effect bytecode in <paramref name="pipelineStateDescription"/> specifies an <see cref="EffectParameterClass"/>
+        ///   of an unsupported type. Only Shader Resource Views, Unordered Access Views, and Constant Buffer Views
+        ///   are supported.
+        /// </exception>
         internal PipelineState(GraphicsDevice graphicsDevice, PipelineStateDescription pipelineStateDescription) : base(graphicsDevice)
         {
             Debug.Assert(pipelineStateDescription is not null);
@@ -203,9 +270,9 @@ namespace Stride.Graphics
 
             FreeAllTempMemoryAllocations();
 
-            /// <summary>
-            ///   Analyzes the shader reflection data to find matching resource bindings.
-            /// </summary>
+            //
+            // Analyzes the shader reflection data to find matching resource bindings.
+            //
             void FindMatchingResourceBindings(DescriptorSetLayoutBuilder.Entry layoutBuilderEntry, bool isSampler,
                                               DescriptorRangesByShaderStageMap srvDescriptorRanges,
                                               ref int descriptorSrvOffset,
@@ -286,9 +353,9 @@ namespace Stride.Graphics
                 }
             }
 
-            /// <summary>
-            ///   Prepares a set of root parameters of the root signature.
-            /// </summary>
+            //
+            // Prepares a set of root parameters of the Root Signature.
+            //
             void PrepareDescriptorRanges(DescriptorRangesByShaderStageMap descriptionRangesToPrepare,
                                          ref int layoutBindCount)
             {
@@ -321,10 +388,10 @@ namespace Stride.Graphics
                 }
             }
 
-            /// <summary>
-            ///   Copies the <see cref="DescriptorRange"/> entries to the specified buffer to be passed to
-            ///   the pipeline state description structure.
-            /// </summary>
+            //
+            // Copies the `DescriptorRange` entries to the specified buffer to be passed to
+            // the Pipeline State description structure.
+            //
             static void CopyDescriptorRanges(List<DescriptorRange> descriptorRanges,
                                              nint destDescriptorRangesBuffer, int destDescriptorRangesBufferSize)
             {
@@ -336,9 +403,9 @@ namespace Stride.Graphics
                 descriptorRangesData.CopyTo(destSpan);
             }
 
-            /// <summary>
-            ///   Prepares the description structure needed to create the root signature.
-            /// </summary>
+            //
+            // Prepares the description structure needed to create the Root Signature.
+            //
             void PrepareRootSignatureDescription(List<RootParameter> rootParameters,
                                                  List<StaticSamplerDesc> immutableSamplers,
                                                  out RootSignatureDesc desc)
@@ -363,10 +430,10 @@ namespace Stride.Graphics
                 };
             }
 
-            /// <summary>
-            ///   Copies the <see cref="DescriptorRange"/> entries to the specified buffer to be passed to
-            ///   the pipeline state description structure.
-            /// </summary>
+            //
+            // Copies the `RootParameter` entries to the specified buffer to be passed to
+            // the Pipeline State description structure.
+            //
             static void CopyRootParameters(List<RootParameter> rootParameters,
                                            nint rootParametersBuffer, int rootParametersBufferSize)
             {
@@ -378,10 +445,10 @@ namespace Stride.Graphics
                 rootParametersData.CopyTo(destSpan);
             }
 
-            /// <summary>
-            ///   Copies the <see cref="DescriptorRange"/> entries to the specified buffer to be passed to
-            ///   the pipeline state description structure.
-            /// </summary>
+            //
+            // Copies the `StaticSamplerDesc` entries to the specified buffer to be passed to
+            // the Pipeline State description structure.
+            //
             static void CopyStaticSamplers(List<StaticSamplerDesc> staticSamplers,
                                            nint destStaticSamplersBuffer, int destStaticSamplersBufferSize)
             {
@@ -393,10 +460,9 @@ namespace Stride.Graphics
                 staticSamplersData.CopyTo(destSpan);
             }
 
-            /// <summary>
-            ///   Returns a <see cref="Silk.NET.Direct3D12.ShaderBytecode"/> structure for the corresponding
-            ///   shader bytecode bytes.
-            /// </summary>
+            //
+            // Returns a Direct3D 12 Shader Bytecode for the corresponding Shader bytecode bytes.
+            //
             Silk.NET.Direct3D12.ShaderBytecode GetShaderBytecode(byte[] bytes)
             {
                 var bytecodeBuffer = AllocateTempMemory(bytes.Length);
@@ -411,9 +477,9 @@ namespace Stride.Graphics
                 };
             }
 
-            /// <summary>
-            ///   Gets the corresponding Direct3D 12 primitive topology type from a Stride PrimitiveType.
-            /// </summary>
+            //
+            // Gets the corresponding Direct3D 12 primitive topology type from a Stride PrimitiveType.
+            //
             static PrimitiveTopologyType GetPrimitiveTopologyType(PrimitiveType primitiveType)
             {
                 return primitiveType switch
@@ -438,9 +504,9 @@ namespace Stride.Graphics
                 };
             }
 
-            /// <summary>
-            ///   Prepares the input layout description from the input elements.
-            /// </summary>
+            //
+            // Prepares the input layout description from the input elements.
+            //
             InputLayoutDesc PrepareInputLayout(InputElementDescription[] inputElements)
             {
                 if (inputElements is null || inputElements.Length == 0)
@@ -479,10 +545,9 @@ namespace Stride.Graphics
                 };
             }
 
-            /// <summary>
-            ///   Allocates a temporary block of memory of the specified size that must be freed by the
-            ///   end of the <see cref="PipelineState"/> constructor calling <see cref="FreeAllTempMemoryAllocations()"/>.
-            /// </summary>
+            //
+            // Creates a Direct3D 12 Blend State description from the provided description.
+            //
             BlendDesc CreateBlendState(BlendStateDescription description)
             {
                 var nativeDescription = new BlendDesc
@@ -510,6 +575,9 @@ namespace Stride.Graphics
                 return nativeDescription;
             }
 
+            //
+            // Creates a Direct3D 12 Rasterizer State description from the provided description.
+            //
             RasterizerDesc CreateRasterizerState(RasterizerStateDescription description)
             {
                 RasterizerDesc nativeDescription = new()
@@ -531,6 +599,9 @@ namespace Stride.Graphics
                 return nativeDescription;
             }
 
+            //
+            // Creates a Direct3D 12 Depth-Stencil State from the provided description.
+            //
             DepthStencilDesc CreateDepthStencilState(DepthStencilStateDescription description)
             {
                 DepthStencilDesc nativeDescription = new()
@@ -562,6 +633,10 @@ namespace Stride.Graphics
                 return nativeDescription;
             }
 
+            //
+            // Allocates a temporary block of memory of the specified size that must be freed by the
+            // end of the <see cref="PipelineState"/> constructor calling <see cref="FreeAllTempMemoryAllocations()"/>.
+            //
             nint AllocateTempMemory(int byteCount)
             {
                 var allocatedBuffer = SilkMarshal.Allocate(byteCount);
@@ -570,10 +645,10 @@ namespace Stride.Graphics
                 return allocatedBuffer;
             }
 
-            /// <summary>
-            ///   Frees all the temporary memory blocks allocated during the creation and configuration of the
-            ///   pipeline state object.
-            /// </summary>
+            //
+            // Frees all the temporary memory blocks allocated during the creation and configuration of the
+            // pipeline state object.
+            //
             void FreeAllTempMemoryAllocations()
             {
                 foreach (var bufferPtr in tempMemoryAllocations)
@@ -603,6 +678,9 @@ namespace Stride.Graphics
                 throw new NotSupportedException("Static Samplers can only have opaque black, opaque white or transparent black as border color.");
             }
 
+            //
+            // Returns the Direct3D 12 Shader Visibility for a Stride's ShaderStage.
+            //
             static ShaderVisibility GetShaderVisibilityForStage(ShaderStage stage)
             {
                 return stage switch
@@ -619,6 +697,7 @@ namespace Stride.Graphics
             }
         }
 
+        /// <inheritdoc/>
         protected internal override void OnDestroyed()
         {
             SafeRelease(ref nativeRootSignature);
