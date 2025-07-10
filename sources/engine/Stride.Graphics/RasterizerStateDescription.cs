@@ -108,6 +108,8 @@ public struct RasterizerStateDescription : IEquatable<RasterizerStateDescription
     /// </remarks>
     public bool DepthClipEnable;
 
+    // TODO: D3D12: In Direct3D 12, Scissor rectangles are set through the Command List dynamically, not through immutable Render States
+
     /// <summary>
     ///   Enables scissor testing. Pixels outside the active scissor rectangle are culled.
     /// </summary>
