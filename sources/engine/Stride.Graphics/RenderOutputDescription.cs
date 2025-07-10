@@ -11,7 +11,7 @@ using Stride.Core.UnsafeExtensions;
 namespace Stride.Graphics
 {
     /// <summary>
-    /// Describes render targets and depth stencil output formats.
+    ///   Describes the output formats of the Render Targets and the Depth-Stencil Buffer.
     /// </summary>
     [DataContract]
     [StructLayout(LayoutKind.Sequential)] // Sequential so RenderTargetFormats are all contiguous
@@ -20,52 +20,132 @@ namespace Stride.Graphics
         #region Default values
 
         /// <summary>
-        /// Enable scissor-rectangle culling. All pixels ouside an active scissor rectangle are culled.
+        ///   Default value for <see cref="RenderTargetCount"/>.
         /// </summary>
         public const int DefaultRenderTargetCount = 0;
+        /// <summary>
+        ///   Default value for the Render Targets pixel formats (<see cref="RenderTargetFormat0"/> to <see cref="RenderTargetFormat7"/>).
+        /// </summary>
         public const PixelFormat DefaultRenderTargetFormat = PixelFormat.None;
+        /// <summary>
+        ///   Default value for <see cref="DepthStencilFormat"/>.
+        /// </summary>
         public const PixelFormat DefaultDepthStencilFormat = PixelFormat.None;
+        /// <summary>
+        ///   Default value for <see cref="MultisampleCount"/>.
+        /// </summary>
         public const Graphics.MultisampleCount DefaultMultiSampleCount = Graphics.MultisampleCount.None;
+        /// <summary>
+        ///   Default value for <see cref="ScissorTestEnable"/>.
+        /// </summary>
         public const bool DefaultScissorTestEnable = false;
 
         #endregion
 
+        /// <summary>
+        ///   The maximum number of Render Targets configurable by the graphics pipeline.
+        /// </summary>
         public const int MaximumRenderTargetCount = 8;
 
+        /// <summary>
+        ///   The number of Render Targets.
+        /// </summary>
         [DefaultValue(DefaultRenderTargetCount)]
         public int RenderTargetCount = DefaultRenderTargetCount;
 
+        /// <summary>
+        ///   Gets the pixel formats of the Render Targets.
+        /// </summary>
+        /// <remarks>
+        ///   There is a maximum of eight Render Targets.
+        ///   If a Render Target is set to <see cref="PixelFormat.None"/>, it is considered disabled.
+        /// </remarks>
         public readonly Span<PixelFormat> RenderTargetFormats
             // Trickery so the compiler allows us to return a non-readonly Span<> from a readonly property
             => MemoryMarshal.CreateReadOnlySpan(in RenderTargetFormat0, MaximumRenderTargetCount).AsSpan();
 
+        /// <summary>
+        ///   The pixel format of the Render Target at index 0.
+        /// </summary>
         [DefaultValue(DefaultRenderTargetFormat)]
         public PixelFormat RenderTargetFormat0 = DefaultRenderTargetFormat;
+        /// <summary>
+        ///   The pixel format of the Render Target at index 1.
+        /// </summary>
         [DefaultValue(DefaultRenderTargetFormat)]
         public PixelFormat RenderTargetFormat1 = DefaultRenderTargetFormat;
+        /// <summary>
+        ///   The pixel format of the Render Target at index 2.
+        /// </summary>
         [DefaultValue(DefaultRenderTargetFormat)]
         public PixelFormat RenderTargetFormat2 = DefaultRenderTargetFormat;
+        /// <summary>
+        ///   The pixel format of the Render Target at index 3.
+        /// </summary>
         [DefaultValue(DefaultRenderTargetFormat)]
         public PixelFormat RenderTargetFormat3 = DefaultRenderTargetFormat;
+        /// <summary>
+        ///   The pixel format of the Render Target at index 4.
+        /// </summary>
         [DefaultValue(DefaultRenderTargetFormat)]
         public PixelFormat RenderTargetFormat4 = DefaultRenderTargetFormat;
+        /// <summary>
+        ///   The pixel format of the Render Target at index 5.
+        /// </summary>
         [DefaultValue(DefaultRenderTargetFormat)]
         public PixelFormat RenderTargetFormat5 = DefaultRenderTargetFormat;
+        /// <summary>
+        ///   The pixel format of the Render Target at index 6.
+        /// </summary>
         [DefaultValue(DefaultRenderTargetFormat)]
         public PixelFormat RenderTargetFormat6 = DefaultRenderTargetFormat;
+        /// <summary>
+        ///   The pixel format of the Render Target at index 7.
+        /// </summary>
         [DefaultValue(DefaultRenderTargetFormat)]
         public PixelFormat RenderTargetFormat7 = DefaultRenderTargetFormat;
 
+        /// <summary>
+        ///   The depth format of the Depth-Stencil Buffer.
+        /// </summary>
+        /// <remarks>
+        ///   Specify <see cref="PixelFormat.None"/> to disable the Depth-Stencil Buffer.
+        /// </remarks>
         [DefaultValue(DefaultDepthStencilFormat)]
         public PixelFormat DepthStencilFormat = DefaultDepthStencilFormat;
 
+        /// <summary>
+        ///   The number of samples to use when multi-sampling.
+        /// </summary>
+        /// <remarks>
+        ///   Specify <see cref="MultisampleCount.None"/> to disable multi-sampling.
+        /// </remarks>
         [DefaultValue(DefaultMultiSampleCount)]
         public MultisampleCount MultisampleCount = DefaultMultiSampleCount;
 
+        /// <summary>
+        ///   A value indicating whether to enable scissor-rectangle culling.
+        ///   All pixels ouside an active scissor rectangle are culled.
+        /// </summary>
         [DefaultValue(DefaultScissorTestEnable)]
         public bool ScissorTestEnable = DefaultScissorTestEnable;
 
 
+        /// <summary>
+        ///   Initializes a new instance of the <see cref="RenderOutputDescription"/> structure.
+        /// </summary>
+        /// <param name="renderTargetFormat">
+        ///   The pixel format of the Render Target.
+        ///   Specify <see cref="PixelFormat.None"/> to disable the Render Targets.
+        /// </param>
+        /// <param name="depthStencilFormat">
+        ///   The depth format of the Depth-Stencil Buffer.
+        ///   Specify <see cref="PixelFormat.None"/> to disable the Depth-Stencil Buffer.
+        /// </param>
+        /// <param name="multisampleCount">
+        ///   The number of samples to use when multi-sampling.
+        ///   Specify <see cref="MultisampleCount.None"/> to disable multi-sampling.
+        /// </param>
         public RenderOutputDescription(PixelFormat renderTargetFormat,
                                        PixelFormat depthStencilFormat = PixelFormat.None,
                                        MultisampleCount multisampleCount = MultisampleCount.None)
@@ -77,6 +157,25 @@ namespace Stride.Graphics
             MultisampleCount = multisampleCount;
         }
 
+        /// <summary>
+        ///   Initializes a new instance of the <see cref="RenderOutputDescription"/> structure.
+        /// </summary>
+        /// <param name="renderTargetFormats">
+        ///   The pixel formats for up to 8 Render Targets.
+        ///   If a Render Target is set to <see cref="PixelFormat.None"/>, it is considered disabled.
+        ///   Specify an empty span or all set to <see cref="PixelFormat.None"/> to disable the Render Targets.
+        /// </param>
+        /// <param name="depthStencilFormat">
+        ///   The depth format of the Depth-Stencil Buffer.
+        ///   Specify <see cref="PixelFormat.None"/> to disable the Depth-Stencil Buffer.
+        /// </param>
+        /// <param name="multisampleCount">
+        ///   The number of samples to use when multi-sampling.
+        ///   Specify <see cref="MultisampleCount.None"/> to disable multi-sampling.
+        /// </param>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///   Cannot specify the format for more than 8 Render Targets in <paramref name="renderTargetFormats"/>.
+        /// </exception>
         public RenderOutputDescription(ReadOnlySpan<PixelFormat> renderTargetFormats,
                                        PixelFormat depthStencilFormat = PixelFormat.None,
                                        MultisampleCount multisampleCount = MultisampleCount.None)
@@ -97,6 +196,10 @@ namespace Stride.Graphics
         }
 
 
+        /// <summary>
+        ///   Captures the description of the pipeline render output from a Command List.
+        /// </summary>
+        /// <param name="commandList">The Command List from which to capture the pipeline render output configuration.</param>
         public unsafe void CaptureState(CommandList commandList)
         {
             DepthStencilFormat = commandList.DepthStencilBuffer?.ViewFormat ?? PixelFormat.None;
@@ -114,6 +217,7 @@ namespace Stride.Graphics
         }
 
 
+        /// <inheritdoc/>
         public readonly bool Equals(RenderOutputDescription other)
         {
             return RenderTargetCount == other.RenderTargetCount
@@ -122,11 +226,13 @@ namespace Stride.Graphics
                 && ScissorTestEnable == other.ScissorTestEnable;
         }
 
+        /// <inheritdoc/>
         public override readonly bool Equals(object obj)
         {
             return obj is RenderOutputDescription description && Equals(description);
         }
 
+        /// <inheritdoc/>
         public override readonly int GetHashCode()
         {
             var hashCode = new HashCode();

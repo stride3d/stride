@@ -6,10 +6,16 @@ using Stride.Core.ReferenceCounting;
 namespace Stride.Graphics;
 
 /// <summary>
-///   A <strong>Pipeline State</strong> object encapsulates the complete graphics pipeline configuration,
-///   including Shaders, input layout, Render States, and output settings.
-///   It represents an atomic, immutable collection of states that can be efficiently bound and unbound as
-///   a single unit during rendering operations.
+///   <para>
+///     A <strong>Pipeline State</strong> object encapsulates the complete pipeline configuration,
+///     including Shaders, input layout, Render States, and output settings.
+///     It represents an atomic, immutable collection of states that can be efficiently bound and unbound as
+///     a single unit during rendering operations.
+///   </para>
+///   <para>
+///     An instance of this class can represent either the state of the <strong>graphics pipeline</strong>,
+///     or the state of the <strong>compute pipeline</strong> (in the platforms that support compute).
+///   </para>
 /// </summary>
 public partial class PipelineState : GraphicsResourceBase
 {
