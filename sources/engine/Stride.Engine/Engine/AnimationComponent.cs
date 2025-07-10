@@ -30,7 +30,7 @@ namespace Stride.Engine
         /// Gets the animations associated to the component.
         /// </summary>
         /// <userdoc>The list of the animation associated to the entity.</userdoc>
-        public Dictionary<string, AnimationClip> Animations { get; } = new();
+        public Dictionary<string, AnimationClip> Animations { get; set; } = new();
 
         /// <summary>
         /// Gets list of active animations. Use this to customize startup animations.
