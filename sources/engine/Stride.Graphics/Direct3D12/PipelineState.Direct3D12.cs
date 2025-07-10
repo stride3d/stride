@@ -4,30 +4,53 @@
 #if STRIDE_GRAPHICS_API_DIRECT3D12
 
 using System;
+using System.Diagnostics;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using System.Runtime.CompilerServices;
 using System.Linq;
+
 using Silk.NET.Core.Native;
 using Silk.NET.DXGI;
 using Silk.NET.Direct3D12;
-using Stride.Shaders;
+
+using Stride.Core.UnsafeExtensions;
 using Stride.Core.Mathematics;
+using Stride.Shaders;
+
+using static Stride.Graphics.ComPtrHelpers;
 
 namespace Stride.Graphics
 {
+    // Type aliases to aid readability in this file
+    using DescriptorRangesByShaderStageMap = Dictionary<ShaderStage, List<DescriptorRange>>;
+
+
     public unsafe partial class PipelineState
     {
-        internal ID3D12PipelineState* CompiledState;
-        internal ID3D12RootSignature* RootSignature;
-        internal D3DPrimitiveTopology PrimitiveTopology;
-        internal bool HasScissorEnabled;
-        internal bool IsCompute;
-        internal int[] SrvBindCounts;
-        internal int[] SamplerBindCounts;
+        private ID3D12PipelineState* compiledPipelineState;
+        private ID3D12RootSignature* nativeRootSignature;
+
+        internal ComPtr<ID3D12PipelineState> CompiledState => ToComPtr(compiledPipelineState);
+
+        internal ComPtr<ID3D12RootSignature> RootSignature => ToComPtr(nativeRootSignature);
+
+        internal D3DPrimitiveTopology PrimitiveTopology { get; }
+
+        internal bool HasScissorEnabled { get; }
+
+        internal bool IsCompute { get; }
+
+        // Counts of Root Parameters to bind for each Descriptor Set layout
+        private readonly int[] srvBindCountPerLayout;
+        private readonly int[] samplerBindCountPerLayout;
+
+        internal ReadOnlySpan<int> SrvBindCountPerLayout => srvBindCountPerLayout;
+        internal ReadOnlySpan<int> SamplerBindCountPerLayout => samplerBindCountPerLayout;
+
 
         internal PipelineState(GraphicsDevice graphicsDevice, PipelineStateDescription pipelineStateDescription) : base(graphicsDevice)
         {
+            Debug.Assert(pipelineStateDescription is not null);
             if (pipelineStateDescription.RootSignature is null)
                 return;
 
@@ -36,23 +59,26 @@ namespace Stride.Graphics
             var effectReflection = pipelineStateDescription.EffectBytecode.Reflection;
 
             var computeShader = pipelineStateDescription.EffectBytecode.Stages.FirstOrDefault(e => e.Stage == ShaderStage.Compute);
-            IsCompute = computeShader != null;
+            IsCompute = computeShader is not null;
+
+            var effectDescriptorSetLayouts = pipelineStateDescription.RootSignature.EffectDescriptorSetReflection.Layouts;
 
             var rootSignatureParameters = new List<RootParameter>();
             var immutableSamplers = new List<StaticSamplerDesc>();
-            SrvBindCounts = new int[pipelineStateDescription.RootSignature.EffectDescriptorSetReflection.Layouts.Count];
-            SamplerBindCounts = new int[pipelineStateDescription.RootSignature.EffectDescriptorSetReflection.Layouts.Count];
+            srvBindCountPerLayout = new int[effectDescriptorSetLayouts.Count];
+            samplerBindCountPerLayout = new int[effectDescriptorSetLayouts.Count];
 
-            for (int layoutIndex = 0; layoutIndex < pipelineStateDescription.RootSignature.EffectDescriptorSetReflection.Layouts.Count; layoutIndex++)
+            // For each Descriptor Set layout in the reflected Shader / Effect bytecode, which should correspond to rgroups or to "Globals"
+            for (int layoutIndex = 0; layoutIndex < effectDescriptorSetLayouts.Count; layoutIndex++)
             {
-                var layout = pipelineStateDescription.RootSignature.EffectDescriptorSetReflection.Layouts[layoutIndex];
-                if (layout.Layout == null)
+                var layout = effectDescriptorSetLayouts[layoutIndex];
+                if (layout.Layout is null)
                     continue;
 
-                // TODO D3D12 for now, we don't control register so we simply generate one resource table per shader stage and per descriptor set layout
-                //            we should switch to a model where we make sure VS/PS don't overlap for common descriptors so that they can be shared
-                var srvDescriptorRanges = new Dictionary<ShaderStage, List<DescriptorRange>>();
-                var samplerDescriptorRanges = new Dictionary<ShaderStage, List<DescriptorRange>>();
+                // TODO: D3D12: For now, we don't control registers, so we simply generate one resource table per Shader stage and per Descriptor Set layout.
+                //              We should switch to a model where we make sure VS/PS don't overlap for common Descriptors so that they can be shared
+                var srvDescriptorRanges = new DescriptorRangesByShaderStageMap();
+                var samplerDescriptorRanges = new DescriptorRangesByShaderStageMap();
 
                 int descriptorSrvOffset = 0;
                 int descriptorSamplerOffset = 0;
@@ -68,7 +94,7 @@ namespace Stride.Graphics
                     // Move to next element (mirror what is done in DescriptorSetLayout)
                     if (isSampler)
                     {
-                        if (layoutBuilderEntry.ImmutableSampler == null)
+                        if (layoutBuilderEntry.ImmutableSampler is null)
                             descriptorSamplerOffset += layoutBuilderEntry.ArraySize;
                     }
                     else
@@ -77,23 +103,27 @@ namespace Stride.Graphics
                     }
                 }
 
-                PrepareDescriptorRanges(srvDescriptorRanges, SrvBindCounts, layoutIndex);
-                PrepareDescriptorRanges(samplerDescriptorRanges, SamplerBindCounts, layoutIndex);
+                // Prepare the Root Parameters for the Descriptor Tables containing the Descriptors for this layout,
+                // and update the count of the number of Root Parameters to bind for the layout for each of the
+                // Descriptor types (SRVs, UAVs, CBVs, etc., or Samplers)
+                PrepareDescriptorRanges(srvDescriptorRanges, ref srvBindCountPerLayout[layoutIndex]);
+                PrepareDescriptorRanges(samplerDescriptorRanges, ref samplerBindCountPerLayout[layoutIndex]);
             }
 
             PrepareRootSignatureDescription(rootSignatureParameters, immutableSamplers, out RootSignatureDesc rootSignatureDesc);
 
             var d3d12 = D3D12.GetApi();
 
-            ID3D10Blob* rootSignatureBytes, errorMessagesBlob;
-            HResult result = d3d12.SerializeRootSignature(rootSignatureDesc, D3DRootSignatureVersion.Version1,
-                                                          &rootSignatureBytes, &errorMessagesBlob);
+            using ComPtr<ID3D10Blob> rootSignatureBytes = default;
+            using ComPtr<ID3D10Blob> errorMessagesBlob = default;
+
+            HResult result = d3d12.SerializeRootSignature(in rootSignatureDesc, D3DRootSignatureVersion.Version1,
+                                                          ref rootSignatureBytes.GetPinnableReference(), ref errorMessagesBlob.GetPinnableReference());
             if (result.IsFailure)
                 result.Throw();
 
-            ID3D12RootSignature* rootSignature;
-            result = NativeDevice->CreateRootSignature(nodeMask: 0, rootSignatureBytes->GetBufferPointer(), rootSignatureBytes->GetBufferSize(),
-                                                       SilkMarshal.GuidPtrOf<ID3D12RootSignature>(), (void**) &rootSignature);
+            result = NativeDevice.CreateRootSignature(nodeMask: 0, rootSignatureBytes.GetBufferPointer(), rootSignatureBytes.GetBufferSize(),
+                                                      out ComPtr<ID3D12RootSignature> rootSignature);
             if (result.IsFailure)
                 result.Throw();
 
@@ -107,15 +137,14 @@ namespace Stride.Graphics
                     PRootSignature = rootSignature
                 };
 
-                ID3D12PipelineState* pipelineState;
-                result = NativeDevice->CreateComputePipelineState(nativePipelineStateDescription, SilkMarshal.GuidPtrOf<ID3D12PipelineState>(),
-                                                                  (void**) &pipelineState);
+                result = NativeDevice.CreateComputePipelineState(in nativePipelineStateDescription, out ComPtr<ID3D12PipelineState> pipelineState);
+
                 if (result.IsFailure)
                     result.Throw();
 
-                CompiledState = pipelineState;
+                compiledPipelineState = pipelineState;
             }
-            else
+            else // Graphics Pipeline State
             {
                 var nativePipelineStateDescription = new GraphicsPipelineStateDesc
                 {
@@ -127,23 +156,21 @@ namespace Stride.Graphics
                     DSVFormat = (Format) pipelineStateDescription.Output.DepthStencilFormat,
                     DepthStencilState = CreateDepthStencilState(pipelineStateDescription.DepthStencilState),
                     NumRenderTargets = (uint) pipelineStateDescription.Output.RenderTargetCount,
-                    // TODO D3D12 hardcoded
+                    // TODO: D3D12: Hardcoded Stream-Output in PipelineState
                     StreamOutput = new StreamOutputDesc(),
                     PrimitiveTopologyType = GetPrimitiveTopologyType(pipelineStateDescription.PrimitiveType),
-                    // TODO D3D12 hardcoded
+                    // TODO: D3D12: Hardcoded no Multi-Sampling in PipelineState
                     SampleDesc = new SampleDesc(1, 0)
                 };
 
-                // Disable depth buffer if no format specified
+                // Disable Depth Buffer if no format specified
                 if (nativePipelineStateDescription.DSVFormat == Format.FormatUnknown)
                     nativePipelineStateDescription.DepthStencilState.DepthEnable = false;
 
                 var rtvFormats = nativePipelineStateDescription.RTVFormats.AsSpan();
-                var renderTargetFormats = MemoryMarshal.CreateReadOnlySpan(ref pipelineStateDescription.Output.RenderTargetFormat0,
-                                                                           pipelineStateDescription.Output.RenderTargetCount);
-
-                for (int i = 0; i < renderTargetFormats.Length; ++i)
-                    rtvFormats[i] = (Format) renderTargetFormats[i];
+                Debug.Assert(sizeof(PixelFormat) == sizeof(Format));
+                Debug.Assert(rtvFormats.Length == pipelineStateDescription.Output.RenderTargetFormats.Length);
+                pipelineStateDescription.Output.RenderTargetFormats.As<PixelFormat, Format>().CopyTo(rtvFormats);
 
                 foreach (var stage in pipelineStateDescription.EffectBytecode.Stages)
                 {
@@ -158,20 +185,19 @@ namespace Stride.Graphics
                         case ShaderStage.Pixel:    nativePipelineStateDescription.PS = shaderBytecode; break;
 
                         default:
-                            throw new ArgumentOutOfRangeException();
+                            throw new ArgumentOutOfRangeException(nameof(pipelineStateDescription), "Invalid Shader stage specified in the Effect bytecode.");
                     }
                 }
 
-                ID3D12PipelineState* pipelineState;
-                result = NativeDevice->CreateGraphicsPipelineState(nativePipelineStateDescription, SilkMarshal.GuidPtrOf<ID3D12PipelineState>(),
-                                                                   (void**) &pipelineState);
+                result = NativeDevice.CreateGraphicsPipelineState(in nativePipelineStateDescription, out ComPtr<ID3D12PipelineState> pipelineState);
+
                 if (result.IsFailure)
                     result.Throw();
 
-                CompiledState = pipelineState;
+                compiledPipelineState = pipelineState;
             }
 
-            RootSignature = rootSignature;
+            nativeRootSignature = rootSignature;
             PrimitiveTopology = (D3DPrimitiveTopology) pipelineStateDescription.PrimitiveType;
             HasScissorEnabled = pipelineStateDescription.RasterizerState.ScissorTestEnable;
 
@@ -181,9 +207,9 @@ namespace Stride.Graphics
             ///   Analyzes the shader reflection data to find matching resource bindings.
             /// </summary>
             void FindMatchingResourceBindings(DescriptorSetLayoutBuilder.Entry layoutBuilderEntry, bool isSampler,
-                                              Dictionary<ShaderStage, List<DescriptorRange>> srvDescriptorRanges,
+                                              DescriptorRangesByShaderStageMap srvDescriptorRanges,
                                               ref int descriptorSrvOffset,
-                                              Dictionary<ShaderStage, List<DescriptorRange>> samplerDescriptorRanges,
+                                              DescriptorRangesByShaderStageMap samplerDescriptorRanges,
                                               ref int descriptorSamplerOffset)
             {
                 foreach (var binding in effectReflection.ResourceBindings)
@@ -194,16 +220,16 @@ namespace Stride.Graphics
                     var descriptorRangesDictionary = isSampler ? samplerDescriptorRanges : srvDescriptorRanges;
                     if (descriptorRangesDictionary.TryGetValue(binding.Stage, out var descriptorRanges) == false)
                     {
-                        descriptorRanges = descriptorRangesDictionary[binding.Stage] = new List<DescriptorRange>();
+                        descriptorRanges = descriptorRangesDictionary[binding.Stage] = [];
                     }
 
                     if (isSampler)
                     {
-                        if (layoutBuilderEntry.ImmutableSampler != null)
+                        if (layoutBuilderEntry.ImmutableSampler is not null)
                         {
                             StaticSamplerDesc samplerDesc = new()
                             {
-                                // TODO D3D12 ImmutableSampler should only be a state description instead of a GPU object?
+                                // TODO: D3D12: ImmutableSampler should only be a state description instead of a GPU object?
                                 ShaderVisibility = GetShaderVisibilityForStage(binding.Stage),
                                 ShaderRegister = (uint) binding.SlotStart,
                                 RegisterSpace = 0,
@@ -221,7 +247,7 @@ namespace Stride.Graphics
 
                             immutableSamplers.Add(samplerDesc);
                         }
-                        else
+                        else // Normal Sampler State
                         {
                             // Add descriptor range
                             var descriptorRange = new DescriptorRange
@@ -235,7 +261,7 @@ namespace Stride.Graphics
                             descriptorRanges.Add(descriptorRange);
                         }
                     }
-                    else
+                    else // Other bindings: SRVs, UAVs, or CBVs
                     {
                         var descriptorRangeType = binding.Class switch
                         {
@@ -243,7 +269,7 @@ namespace Stride.Graphics
                             EffectParameterClass.ShaderResourceView => DescriptorRangeType.Srv,
                             EffectParameterClass.UnorderedAccessView => DescriptorRangeType.Uav,
 
-                            _ => throw new NotImplementedException()
+                            _ => throw new NotImplementedException("Only SRVs, UAVs, and CBVs are supported.")
                         };
 
                         // Add descriptor range
@@ -263,32 +289,35 @@ namespace Stride.Graphics
             /// <summary>
             ///   Prepares a set of root parameters of the root signature.
             /// </summary>
-            void PrepareDescriptorRanges(Dictionary<ShaderStage, List<DescriptorRange>> descriptionRangesToPrepare,
-                                         int[] bindCounts, int layoutIndex)
+            void PrepareDescriptorRanges(DescriptorRangesByShaderStageMap descriptionRangesToPrepare,
+                                         ref int layoutBindCount)
             {
-                foreach (var (stage, descriptorRanges) in descriptionRangesToPrepare)
+                foreach ((ShaderStage stage, List<DescriptorRange> descriptorRanges) in descriptionRangesToPrepare)
                 {
-                    if (descriptorRanges.Count > 0)
+                    if (descriptorRanges.Count <= 0)
+                        continue;
+
+                    // Allocate a Descriptor Table and copy the Descriptors for this ShaderStage
+                    var descriptorTableSize = descriptorRanges.Count * sizeof(DescriptorRange);
+                    var descriptorTableRanges = AllocateTempMemory(descriptorTableSize);
+
+                    CopyDescriptorRanges(descriptorRanges, descriptorTableRanges, descriptorTableSize);
+
+                    // Create a Root Parameter to reference the Descriptor Table
+                    var rootParam = new RootParameter
                     {
-                        var descriptorTableSize = descriptorRanges.Count * Unsafe.SizeOf<DescriptorRange>();
-                        var descriptorTableRanges = AllocateTempMemory(descriptorTableSize);
-
-                        CopyDescriptorRanges(descriptorRanges, descriptorTableRanges, descriptorTableSize);
-
-                        var rootParam = new RootParameter
+                        ShaderVisibility = GetShaderVisibilityForStage(stage),
+                        ParameterType = RootParameterType.TypeDescriptorTable,
+                        DescriptorTable = new()
                         {
-                            ShaderVisibility = GetShaderVisibilityForStage(stage),
-                            ParameterType = RootParameterType.TypeDescriptorTable,
-                            DescriptorTable = new()
-                            {
-                                NumDescriptorRanges = (uint) descriptorRanges.Count,
-                                PDescriptorRanges = (DescriptorRange*) descriptorTableRanges
-                            }
-                        };
+                            NumDescriptorRanges = (uint) descriptorRanges.Count,
+                            PDescriptorRanges = (DescriptorRange*) descriptorTableRanges
+                        }
+                    };
+                    rootSignatureParameters.Add(rootParam);
 
-                        rootSignatureParameters.Add(rootParam);
-                        bindCounts[layoutIndex]++;
-                    }
+                    // Count how many Root Parameters we need to bind for the current layout and Descriptor type (Sampler, SRVs, etc.)
+                    layoutBindCount++;
                 }
             }
 
@@ -300,7 +329,7 @@ namespace Stride.Graphics
                                              nint destDescriptorRangesBuffer, int destDescriptorRangesBufferSize)
             {
                 var descriptorRangesItems = CollectionsMarshal.AsSpan(descriptorRanges);
-                var descriptorRangesData = MemoryMarshal.Cast<DescriptorRange, byte>(descriptorRangesItems);
+                var descriptorRangesData = descriptorRangesItems.Cast<DescriptorRange, byte>();
 
                 var destSpan = new Span<byte>((void*) destDescriptorRangesBuffer, destDescriptorRangesBufferSize);
 
@@ -314,12 +343,12 @@ namespace Stride.Graphics
                                                  List<StaticSamplerDesc> immutableSamplers,
                                                  out RootSignatureDesc desc)
             {
-                var rootParamsBufferSize = rootSignatureParameters.Count * Unsafe.SizeOf<RootParameter>();
+                var rootParamsBufferSize = rootSignatureParameters.Count * sizeof(RootParameter);
                 var rootParamsBuffer = AllocateTempMemory(rootParamsBufferSize);
 
                 CopyRootParameters(rootSignatureParameters, rootParamsBuffer, rootParamsBufferSize);
 
-                var staticSamplersBufferSize = rootSignatureParameters.Count * Unsafe.SizeOf<StaticSamplerDesc>();
+                var staticSamplersBufferSize = rootSignatureParameters.Count * sizeof(StaticSamplerDesc);
                 var staticSamplersBuffer = AllocateTempMemory(staticSamplersBufferSize);
 
                 CopyStaticSamplers(immutableSamplers, staticSamplersBuffer, staticSamplersBufferSize);
@@ -342,7 +371,7 @@ namespace Stride.Graphics
                                            nint rootParametersBuffer, int rootParametersBufferSize)
             {
                 var rootParametersItems = CollectionsMarshal.AsSpan(rootParameters);
-                var rootParametersData = MemoryMarshal.Cast<RootParameter, byte>(rootParametersItems);
+                var rootParametersData = rootParametersItems.Cast<RootParameter, byte>();
 
                 var destSpan = new Span<byte>((void*) rootParametersBuffer, rootParametersBufferSize);
 
@@ -357,7 +386,7 @@ namespace Stride.Graphics
                                            nint destStaticSamplersBuffer, int destStaticSamplersBufferSize)
             {
                 var staticSamplersItems = CollectionsMarshal.AsSpan(staticSamplers);
-                var staticSamplersData = MemoryMarshal.Cast<StaticSamplerDesc, byte>(staticSamplersItems);
+                var staticSamplersData = staticSamplersItems.Cast<StaticSamplerDesc, byte>();
 
                 var destSpan = new Span<byte>((void*) destStaticSamplersBuffer, destStaticSamplersBufferSize);
 
@@ -405,7 +434,7 @@ namespace Stride.Graphics
 
                     >= PrimitiveType.PatchList and < PrimitiveType.PatchList + 32 => PrimitiveTopologyType.Patch,
 
-                    _ => throw new ArgumentOutOfRangeException("pipelineStateDescription.PrimitiveType")
+                    _ => throw new ArgumentOutOfRangeException(nameof(primitiveType), "Invalid PrimitiveType in PipelineStateDescription.")
                 };
             }
 
@@ -419,7 +448,7 @@ namespace Stride.Graphics
                     return default;
                 }
 
-                var inputElementsBufferSize = inputElements.Length * Unsafe.SizeOf<InputElementDesc>();
+                var inputElementsBufferSize = inputElements.Length * sizeof(InputElementDesc);
                 var inputElementsBuffer = AllocateTempMemory(inputElementsBufferSize);
 
                 var dstInputElements = (InputElementDesc*) inputElementsBuffer;
@@ -454,6 +483,85 @@ namespace Stride.Graphics
             ///   Allocates a temporary block of memory of the specified size that must be freed by the
             ///   end of the <see cref="PipelineState"/> constructor calling <see cref="FreeAllTempMemoryAllocations()"/>.
             /// </summary>
+            BlendDesc CreateBlendState(BlendStateDescription description)
+            {
+                var nativeDescription = new BlendDesc
+                {
+                    AlphaToCoverageEnable = description.AlphaToCoverageEnable,
+                    IndependentBlendEnable = description.IndependentBlendEnable
+                };
+
+                var renderTargets = description.RenderTargets;
+                for (int i = 0; i < 8; ++i)
+                {
+                    ref var renderTarget = ref renderTargets[i];
+                    ref var nativeRenderTarget = ref nativeDescription.RenderTarget[i];
+
+                    nativeRenderTarget.BlendEnable = renderTarget.BlendEnable;
+                    nativeRenderTarget.SrcBlend = (Silk.NET.Direct3D12.Blend)renderTarget.ColorSourceBlend;
+                    nativeRenderTarget.DestBlend = (Silk.NET.Direct3D12.Blend)renderTarget.ColorDestinationBlend;
+                    nativeRenderTarget.BlendOp = (BlendOp)renderTarget.ColorBlendFunction;
+                    nativeRenderTarget.SrcBlendAlpha = (Silk.NET.Direct3D12.Blend)renderTarget.AlphaSourceBlend;
+                    nativeRenderTarget.DestBlendAlpha = (Silk.NET.Direct3D12.Blend)renderTarget.AlphaDestinationBlend;
+                    nativeRenderTarget.BlendOpAlpha = (BlendOp)renderTarget.AlphaBlendFunction;
+                    nativeRenderTarget.RenderTargetWriteMask = (byte)renderTarget.ColorWriteChannels;
+                }
+
+                return nativeDescription;
+            }
+
+            RasterizerDesc CreateRasterizerState(RasterizerStateDescription description)
+            {
+                RasterizerDesc nativeDescription = new()
+                {
+                    CullMode = (Silk.NET.Direct3D12.CullMode) description.CullMode,
+                    FillMode = (Silk.NET.Direct3D12.FillMode) description.FillMode,
+                    FrontCounterClockwise = description.FrontFaceCounterClockwise,
+                    DepthBias = description.DepthBias,
+                    SlopeScaledDepthBias = description.SlopeScaleDepthBias,
+                    DepthBiasClamp = description.DepthBiasClamp,
+                    DepthClipEnable = description.DepthClipEnable,
+                    MultisampleEnable = description.MultisampleCount >= MultisampleCount.None,
+                    AntialiasedLineEnable = description.MultisampleAntiAliasLine,
+
+                    ConservativeRaster = ConservativeRasterizationMode.Off,
+                    ForcedSampleCount = 0
+                };
+
+                return nativeDescription;
+            }
+
+            DepthStencilDesc CreateDepthStencilState(DepthStencilStateDescription description)
+            {
+                DepthStencilDesc nativeDescription = new()
+                {
+                    DepthEnable = description.DepthBufferEnable,
+                    DepthFunc = (ComparisonFunc) description.DepthBufferFunction,
+                    DepthWriteMask = description.DepthBufferWriteEnable ? DepthWriteMask.All : DepthWriteMask.Zero,
+
+                    StencilEnable = description.StencilEnable,
+                    StencilReadMask = description.StencilMask,
+                    StencilWriteMask = description.StencilWriteMask,
+
+                    FrontFace =
+                {
+                    StencilFailOp = (StencilOp) description.FrontFace.StencilFail,
+                    StencilPassOp = (StencilOp) description.FrontFace.StencilPass,
+                    StencilDepthFailOp = (StencilOp) description.FrontFace.StencilDepthBufferFail,
+                    StencilFunc = (ComparisonFunc) description.FrontFace.StencilFunction
+                },
+                    BackFace =
+                {
+                    StencilFailOp = (StencilOp) description.BackFace.StencilFail,
+                    StencilPassOp = (StencilOp) description.BackFace.StencilPass,
+                    StencilDepthFailOp = (StencilOp) description.BackFace.StencilDepthBufferFail,
+                    StencilFunc = (ComparisonFunc) description.BackFace.StencilFunction
+                }
+                };
+
+                return nativeDescription;
+            }
+
             nint AllocateTempMemory(int byteCount)
             {
                 var allocatedBuffer = SilkMarshal.Allocate(byteCount);
@@ -494,115 +602,29 @@ namespace Stride.Graphics
 
                 throw new NotSupportedException("Static Samplers can only have opaque black, opaque white or transparent black as border color.");
             }
+
+            static ShaderVisibility GetShaderVisibilityForStage(ShaderStage stage)
+            {
+                return stage switch
+                {
+                    ShaderStage.Vertex => ShaderVisibility.Vertex,
+                    ShaderStage.Hull => ShaderVisibility.Hull,
+                    ShaderStage.Domain => ShaderVisibility.Domain,
+                    ShaderStage.Geometry => ShaderVisibility.Geometry,
+                    ShaderStage.Pixel => ShaderVisibility.Pixel,
+                    ShaderStage.Compute => ShaderVisibility.All,
+
+                    _ => throw new ArgumentOutOfRangeException(nameof(stage), stage, "Invalid ShaderStage.")
+                };
+            }
         }
 
         protected internal override void OnDestroyed()
         {
-            if (RootSignature != null)
-                RootSignature->Release();
-
-            if (CompiledState != null)
-                CompiledState->Release();
-
-            RootSignature = null;
-            CompiledState = null;
+            SafeRelease(ref nativeRootSignature);
+            SafeRelease(ref compiledPipelineState);
 
             base.OnDestroyed();
-        }
-
-        private unsafe BlendDesc CreateBlendState(BlendStateDescription description)
-        {
-            var nativeDescription = new BlendDesc
-            {
-                AlphaToCoverageEnable = description.AlphaToCoverageEnable,
-                IndependentBlendEnable = description.IndependentBlendEnable
-            };
-
-            var renderTargets = &description.RenderTarget0;
-            for (int i = 0; i < 8; ++i)
-            {
-                ref var renderTarget = ref renderTargets[i];
-                ref var nativeRenderTarget = ref nativeDescription.RenderTarget[i];
-
-                nativeRenderTarget.BlendEnable = renderTarget.BlendEnable;
-                nativeRenderTarget.SrcBlend = (Silk.NET.Direct3D12.Blend) renderTarget.ColorSourceBlend;
-                nativeRenderTarget.DestBlend = (Silk.NET.Direct3D12.Blend) renderTarget.ColorDestinationBlend;
-                nativeRenderTarget.BlendOp = (BlendOp) renderTarget.ColorBlendFunction;
-                nativeRenderTarget.SrcBlendAlpha = (Silk.NET.Direct3D12.Blend) renderTarget.AlphaSourceBlend;
-                nativeRenderTarget.DestBlendAlpha = (Silk.NET.Direct3D12.Blend) renderTarget.AlphaDestinationBlend;
-                nativeRenderTarget.BlendOpAlpha = (BlendOp) renderTarget.AlphaBlendFunction;
-                nativeRenderTarget.RenderTargetWriteMask = (byte) renderTarget.ColorWriteChannels;
-            }
-
-            return nativeDescription;
-        }
-
-        private RasterizerDesc CreateRasterizerState(RasterizerStateDescription description)
-        {
-            RasterizerDesc nativeDescription = new()
-            {
-                CullMode = (Silk.NET.Direct3D12.CullMode) description.CullMode,
-                FillMode = (Silk.NET.Direct3D12.FillMode) description.FillMode,
-                FrontCounterClockwise = description.FrontFaceCounterClockwise,
-                DepthBias = description.DepthBias,
-                SlopeScaledDepthBias = description.SlopeScaleDepthBias,
-                DepthBiasClamp = description.DepthBiasClamp,
-                DepthClipEnable = description.DepthClipEnable,
-                //IsScissorEnabled = description.ScissorTestEnable,
-                MultisampleEnable = description.MultisampleCount >= MultisampleCount.None,
-                AntialiasedLineEnable = description.MultisampleAntiAliasLine,
-
-                ConservativeRaster = ConservativeRasterizationMode.Off,
-                ForcedSampleCount = 0
-            };
-
-            return nativeDescription;
-        }
-
-        private DepthStencilDesc CreateDepthStencilState(DepthStencilStateDescription description)
-        {
-            DepthStencilDesc nativeDescription = new()
-            {
-                DepthEnable = description.DepthBufferEnable,
-                DepthFunc = (ComparisonFunc) description.DepthBufferFunction,
-                DepthWriteMask = description.DepthBufferWriteEnable ? DepthWriteMask.All : DepthWriteMask.Zero,
-
-                StencilEnable = description.StencilEnable,
-                StencilReadMask = description.StencilMask,
-                StencilWriteMask = description.StencilWriteMask,
-
-                FrontFace =
-                {
-                    StencilFailOp = (StencilOp) description.FrontFace.StencilFail,
-                    StencilPassOp = (StencilOp) description.FrontFace.StencilPass,
-                    StencilDepthFailOp = (StencilOp) description.FrontFace.StencilDepthBufferFail,
-                    StencilFunc = (ComparisonFunc) description.FrontFace.StencilFunction
-                },
-                BackFace =
-                {
-                    StencilFailOp = (StencilOp) description.BackFace.StencilFail,
-                    StencilPassOp = (StencilOp) description.BackFace.StencilPass,
-                    StencilDepthFailOp = (StencilOp) description.BackFace.StencilDepthBufferFail,
-                    StencilFunc = (ComparisonFunc) description.BackFace.StencilFunction
-                }
-            };
-
-            return nativeDescription;
-        }
-
-        private static ShaderVisibility GetShaderVisibilityForStage(ShaderStage stage)
-        {
-            return stage switch
-            {
-                ShaderStage.Vertex => ShaderVisibility.Vertex,
-                ShaderStage.Hull => ShaderVisibility.Hull,
-                ShaderStage.Domain => ShaderVisibility.Domain,
-                ShaderStage.Geometry => ShaderVisibility.Geometry,
-                ShaderStage.Pixel => ShaderVisibility.Pixel,
-                ShaderStage.Compute => ShaderVisibility.All,
-
-                _ => throw new ArgumentOutOfRangeException(nameof(stage), stage, null)
-            };
         }
     }
 }

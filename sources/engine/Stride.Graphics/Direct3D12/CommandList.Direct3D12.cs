@@ -535,8 +535,8 @@ namespace Stride.Graphics
                 // Find what is already mapped
                 scoped ref var descriptorSet = ref descriptorSets[i];
 
-                var srvBindCount = boundPipelineState.SrvBindCounts[i];
-                var samplerBindCount = boundPipelineState.SamplerBindCounts[i];
+                var srvBindCount = boundPipelineState.SrvBindCountPerLayout[i];
+                var samplerBindCount = boundPipelineState.SamplerBindCountPerLayout[i];
 
                 // Descriptors for SRVs, UAVs, and CBVs
                 if (srvBindCount > 0 && descriptorSet.SrvStart.Ptr != 0)
