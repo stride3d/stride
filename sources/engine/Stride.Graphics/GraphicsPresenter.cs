@@ -178,9 +178,9 @@ public abstract class GraphicsPresenter : ComponentBase
     /// <summary>
     ///   Presents the Back-Buffer to the screen.
     /// </summary>
-    /// <exception cref="GraphicsException">
+    /// <exception cref="GraphicsDeviceException">
     ///   An unexpected error occurred while presenting. Check the status of the Graphics Device
-    ///   for more information.
+    ///   for more information (<see cref="GraphicsDeviceException.Status"/>).
     /// </exception>
     public abstract void Present();
 
