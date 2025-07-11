@@ -5,10 +5,14 @@
 
 using System;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
+
 using Silk.NET.Core.Native;
 using Silk.NET.DXGI;
 using Silk.NET.Direct3D12;
+
+using Stride.Core.UnsafeExtensions;
+
+using static Stride.Graphics.ComPtrHelpers;
 
 namespace Stride.Graphics
 {
@@ -17,9 +21,13 @@ namespace Stride.Graphics
         private ID3D12Resource* readbackBuffer;
         private ID3D12Fence* readbackFence;
 
+        private ID3D12QueryHeap* nativeQueryHeap;
+
+        internal ComPtr<ID3D12QueryHeap> NativeQueryHeap => ToComPtr(nativeQueryHeap);
+
         internal ulong CompletedValue;
         internal ulong PendingValue;
-        internal ID3D12QueryHeap* NativeQueryHeap;
+
 
         public unsafe bool TryGetData(long[] dataArray)
         {
@@ -31,14 +39,14 @@ namespace Stride.Graphics
                 CompletedValue = PendingValue;
 
                 Silk.NET.Direct3D12.Range range = default;
-                void* mappedData;
+                void* mappedData = null;
 
-                result = readbackBuffer->Map(Subresource: 0, in range, &mappedData);
+                result = readbackBuffer->Map(Subresource: 0, in range, ref mappedData);
 
                 if (result.IsFailure)
                     result.Throw();
 
-                ref var destData = ref MemoryMarshal.Cast<long, byte>(dataArray.AsSpan())[0];
+                ref var destData = ref dataArray.AsSpan().Cast<long, byte>()[0];
                 ref var srcData = ref Unsafe.AsRef<byte>(mappedData);
 
                 //Unsafe.CopyBlockUnaligned(ref destData, ref srcData, byteCount: (uint) QueryCount * sizeof(long));
@@ -51,23 +59,25 @@ namespace Stride.Graphics
             // Otherwise, queue readback
             var commandList = GraphicsDevice.NativeCopyCommandList;
 
-            result = commandList->Reset(GraphicsDevice.NativeCopyCommandAllocator, pInitialState: null);
+            ref var nullPipelineState = ref Unsafe.NullRef<ID3D12PipelineState>();
+            result = commandList.Reset(GraphicsDevice.NativeCopyCommandAllocator, pInitialState: ref nullPipelineState);
 
             if (result.IsFailure)
                 result.Throw();
 
-            commandList->ResolveQueryData(NativeQueryHeap, Silk.NET.Direct3D12.QueryType.Timestamp,
-                                          StartIndex: 0, (uint) QueryCount, readbackBuffer, AlignedDestinationBufferOffset: 0);
+            commandList.ResolveQueryData(nativeQueryHeap, Silk.NET.Direct3D12.QueryType.Timestamp,
+                                         StartIndex: 0, (uint) QueryCount, readbackBuffer, AlignedDestinationBufferOffset: 0);
 
-            result = commandList->Close();
+            result = commandList.Close();
 
             if (result.IsFailure)
                 result.Throw();
 
+            var copyCommandList = commandList.AsComPtr<ID3D12GraphicsCommandList, ID3D12CommandList>();
             var commandQueue = GraphicsDevice.NativeCommandQueue;
-            commandQueue->ExecuteCommandLists(NumCommandLists: 1, (ID3D12CommandList**) GraphicsDevice.NativeCopyCommandList);
+            commandQueue.ExecuteCommandLists(NumCommandLists: 1, ref copyCommandList);
 
-            result = commandQueue->Signal(readbackFence, PendingValue);
+            result = commandQueue.Signal(readbackFence, PendingValue);
 
             if (result.IsFailure)
                 result.Throw();
@@ -75,7 +85,7 @@ namespace Stride.Graphics
             return false;
         }
 
-        private void Recreate()
+        private partial void Recreate()
         {
             var description = new QueryHeapDesc
             {
@@ -83,15 +93,17 @@ namespace Stride.Graphics
                 Type = QueryType switch
                 {
                     QueryType.Timestamp => QueryHeapType.Timestamp,
-                    _ => throw new NotImplementedException()
+
+                    _ => throw new NotImplementedException($"Query type {QueryType} not supported")
                 }
             };
 
-            ID3D12QueryHeap* queryHeap;
-            HResult result = NativeDevice->CreateQueryHeap(description, SilkMarshal.GuidPtrOf<ID3D12QueryHeap>(), (void**) &queryHeap);
+            HResult result = NativeDevice.CreateQueryHeap(in description, out ComPtr<ID3D12QueryHeap> queryHeap);
 
             if (result.IsFailure)
                 result.Throw();
+
+            nativeQueryHeap = queryHeap;
 
             var readbackBufferDesc = new ResourceDesc
             {
@@ -109,19 +121,16 @@ namespace Stride.Graphics
                 Flags = ResourceFlags.None
             };
 
-            ID3D12Resource* resource;
             var heap = new HeapProperties { Type = HeapType.Readback };
-            result = NativeDevice->CreateCommittedResource(heap, HeapFlags.None, readbackBufferDesc, ResourceStates.CopyDest,
-                                                           pOptimizedClearValue: null, SilkMarshal.GuidPtrOf<ID3D12Resource>(),
-                                                           (void**) &resource);
+            result = NativeDevice.CreateCommittedResource(in heap, HeapFlags.None, in readbackBufferDesc, ResourceStates.CopyDest,
+                                                          pOptimizedClearValue: null, out ComPtr<ID3D12Resource> resource);
             if (result.IsFailure)
                 result.Throw();
 
             readbackBuffer = resource;
 
-            ID3D12Fence* fence;
-            result = NativeDevice->CreateFence(InitialValue: 0, FenceFlags.None, SilkMarshal.GuidPtrOf<ID3D12Fence>(),
-                                               (void**) &fence);
+            result = NativeDevice.CreateFence(InitialValue: 0, FenceFlags.None, out ComPtr<ID3D12Fence> fence);
+
             if (result.IsFailure)
                 result.Throw();
 
@@ -134,14 +143,9 @@ namespace Stride.Graphics
         /// <inheritdoc/>
         protected internal override void OnDestroyed()
         {
-            if (NativeQueryHeap is not null)
-                NativeQueryHeap->Release();
-
-            if (readbackBuffer is not null)
-                readbackBuffer->Release();
-
-            if (readbackFence is not null)
-                readbackFence->Release();
+            SafeRelease(ref nativeQueryHeap);
+            SafeRelease(ref readbackBuffer);
+            SafeRelease(ref readbackFence);
 
             base.OnDestroyed();
         }
