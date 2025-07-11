@@ -41,20 +41,23 @@ public interface IGraphicsDeviceManager
     void CreateDevice();
 
     /// <summary>
-    ///   Called by the game at the beginning of drawing.
+    ///   Called by the Game at the beginning of drawing.
     /// </summary>
     /// <returns>
     ///   <see langword="true"/> if the Graphics Device is ready to draw;
-    ///   <see langword="false"/> if the Graphics Device is not ready or if the game should skip drawing this frame.
+    ///   <see langword="false"/> if the Graphics Device is not ready or if the Game should skip drawing this frame.
     /// </returns>
     bool BeginDraw();
 
     /// <summary>
-    ///   Called by the game at the end of drawing.
+    ///   Called by the Game at the end of drawing.
     /// </summary>
-    /// <param name="present">A value indicating whether the game should present the Back-Buffer to the screen.</param>
+    /// <param name="present">A value indicating whether the Game should present the Back-Buffer to the screen.</param>
     /// <exception cref="GraphicsException">
     ///   Could not present the Back-Buffer after drawing.
+    /// </exception>
+    /// <exception cref="GraphicsDeviceException">
+    ///   The Game Device is not in a valid state to end drawing, or it is not available.
     /// </exception>
     void EndDraw(bool present);
 }

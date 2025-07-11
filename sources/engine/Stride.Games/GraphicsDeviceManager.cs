@@ -482,7 +482,7 @@ namespace Stride.Games
                     {
                         GraphicsDevice.Presenter.Present();
                     }
-                    catch (GraphicsException ex) when (ex.Status is not GraphicsDeviceStatus.Removed and not GraphicsDeviceStatus.Reset)
+                    catch (GraphicsDeviceException ex) when (ex.Status is not GraphicsDeviceStatus.Removed and not GraphicsDeviceStatus.Reset)
                     {
                         throw;
                     }

@@ -22,6 +22,7 @@
 // THE SOFTWARE.
 
 using System;
+
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Graphics;
@@ -271,12 +272,9 @@ namespace Stride.Games
                 {
                     Presenter.Present();
                 }
-                catch (GraphicsException ex)
+                catch (GraphicsDeviceException ex) when (ex.Status is not GraphicsDeviceStatus.Removed and not GraphicsDeviceStatus.Reset)
                 {
-                    if (ex.Status != GraphicsDeviceStatus.Removed && ex.Status != GraphicsDeviceStatus.Reset)
-                    {
-                        throw;
-                    }
+                    throw;
                 }
 
                 if (savedPresenter != null)
