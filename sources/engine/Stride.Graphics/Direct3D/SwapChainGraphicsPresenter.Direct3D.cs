@@ -341,8 +341,8 @@ namespace Stride.Graphics
             }
 
 #if STRIDE_GRAPHICS_API_DIRECT3D12
-            // Manually swap back buffer
-            backBuffer.NativeResource->Release();
+            // Manually swap the Back-Buffers
+            backBuffer.NativeResource.Release();
             bufferSwapIndex = (uint)((++bufferSwapIndex) % bufferCount);
             var nextBackBuffer = GetBackBuffer<BackBufferResourceType>(bufferSwapIndex);
             backBuffer.InitializeFromImpl(nextBackBuffer, Description.BackBufferFormat.IsSRgb());
