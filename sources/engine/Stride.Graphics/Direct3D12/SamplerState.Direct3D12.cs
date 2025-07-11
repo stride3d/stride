@@ -3,8 +3,11 @@
 
 #if STRIDE_GRAPHICS_API_DIRECT3D12
 
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
+
 using Silk.NET.Direct3D12;
+
 using Stride.Core.Mathematics;
 
 namespace Stride.Graphics
@@ -16,12 +19,13 @@ namespace Stride.Graphics
     {
         internal CpuDescriptorHandle NativeSampler;
 
+
         /// <summary>
         /// Initializes a new instance of the <see cref="SamplerState"/> class.
         /// </summary>
         /// <param name="device">The device.</param>
         /// <param name="samplerStateDescription">The sampler state description.</param>
-        private SamplerState(GraphicsDevice device, SamplerStateDescription samplerStateDescription) : base(device)
+        private SamplerState(GraphicsDevice device, ref readonly SamplerStateDescription samplerStateDescription) : base(device)
         {
             Description = samplerStateDescription;
 
@@ -51,10 +55,11 @@ namespace Stride.Graphics
                 MinLOD = Description.MinMipLevel,
                 MipLODBias = Description.MipMapLevelOfDetailBias
             };
+            Debug.Assert(sizeof(Color4) == (4 * sizeof(float)));
             Unsafe.AsRef<Color4>(nativeDescription.BorderColor) = Description.BorderColor;
 
-            NativeSampler = GraphicsDevice.SamplerAllocator.Allocate(1);
-            NativeDevice->CreateSampler(nativeDescription, NativeSampler);
+            NativeSampler = GraphicsDevice.SamplerAllocator.Allocate();
+            NativeDevice.CreateSampler(in nativeDescription, NativeSampler);
         }
     }
 }
