@@ -313,9 +313,9 @@ namespace Stride.Graphics
         }
 
         /// <inheritdoc/>
-        /// <exception cref="GraphicsException">
+        /// <exception cref="GraphicsDeviceException">
         ///   An unexpected error occurred while presenting the Swap-Chain. Check the status of the Graphics Device
-        ///   for more information.
+        ///   for more information (<see cref="GraphicsDeviceException.Status"/>).
         /// </exception>
         public override void Present()
         {
@@ -337,7 +337,7 @@ namespace Stride.Graphics
                 var deviceStatus = GraphicsDevice.GraphicsDeviceStatus;
 
                 var exception = Marshal.GetExceptionForHR(result);
-                throw new GraphicsException($"Unexpected error on Present (device status: {deviceStatus})", exception, deviceStatus);
+                throw new GraphicsDeviceException($"Unexpected error on Present (device status: {deviceStatus})", exception, deviceStatus);
             }
 
 #if STRIDE_GRAPHICS_API_DIRECT3D12
