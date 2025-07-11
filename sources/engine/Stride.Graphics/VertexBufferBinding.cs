@@ -8,7 +8,7 @@ using Stride.Core.Serialization;
 namespace Stride.Graphics;
 
 /// <summary>
-///   Binding structure that specifies a Vertex Buffer and other per-vertex parameters (such as offset and instancing) for a graphics device.
+///   Binding structure that specifies a Vertex Buffer and other per-vertex parameters (such as offset and instancing) for a Graphics Device.
 /// </summary>
 [DataSerializer(typeof(VertexBufferBinding.Serializer))]
 public readonly struct VertexBufferBinding : IEquatable<VertexBufferBinding>
