@@ -5,8 +5,10 @@
 
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+
 using Silk.NET.Core.Native;
 using Silk.NET.Direct3D11;
+
 using Stride.Core.Mathematics;
 
 namespace Stride.Graphics;
@@ -33,7 +35,7 @@ public unsafe partial class SamplerState
     ///   A <see cref="SamplerStateDescription"/> structure describing the Sampler State
     ///   object to create.
     /// </param>
-    private SamplerState(GraphicsDevice device, SamplerStateDescription description) : base(device)
+    private SamplerState(GraphicsDevice device, ref readonly SamplerStateDescription description) : base(device)
     {
         Description = description;
 

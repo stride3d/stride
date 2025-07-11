@@ -39,7 +39,7 @@ public partial class SamplerState : GraphicsResourceBase
             }
             else
             {
-                samplerState = new SamplerState(device, description);
+                samplerState = new SamplerState(device, in description);
                 device.CachedSamplerStates.Add(description, samplerState);
             }
         }
