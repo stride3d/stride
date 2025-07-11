@@ -23,12 +23,32 @@ namespace Stride.Graphics
 
         private ID3D12QueryHeap* nativeQueryHeap;
 
+        /// <summary>
+        ///   Gets the internal Direct3D 12 Query Heap.
+        /// </summary>
+        /// <remarks>
+        ///   If any of the references is going to be kept, use <see cref="ComPtr{T}.AddRef()"/> to increment the internal
+        ///   reference count, and <see cref="ComPtr{T}.Dispose()"/> when no longer needed to release the object.
+        /// </remarks>
         internal ComPtr<ID3D12QueryHeap> NativeQueryHeap => ToComPtr(nativeQueryHeap);
 
         internal ulong CompletedValue;
         internal ulong PendingValue;
 
 
+        /// <summary>
+        ///   Attempts to retrieve data from the in-flight GPU queries.
+        /// </summary>
+        /// <param name="dataArray">
+        ///   An array of <see langword="long"/> values to be populated with the retrieved data. The array must have a length
+        ///   equal to the number of queries performed (<see cref="QueryCount"/>).
+        /// </param>
+        /// <returns><see langword="true"/> if all data queries succeed; otherwise, <see langword="false"/>.</returns>
+        /// <remarks>
+        ///   This method tries to perform reads for the multiple GPU queries in the pool and populates the provided array
+        ///   with the results. If any query fails, the method returns <see langword="false"/> and the array may contain
+        ///   partial or uninitialized data.
+        /// </remarks>
         public unsafe bool TryGetData(long[] dataArray)
         {
             HResult result;
@@ -85,6 +105,12 @@ namespace Stride.Graphics
             return false;
         }
 
+        /// <summary>
+        ///   Implementation in Direct3D 12 that recreates the queries in the pool.
+        /// </summary>
+        /// <exception cref="NotImplementedException">
+        ///   Only GPU queries of type <see cref="QueryType.Timestamp"/> are supported.
+        /// </exception>
         private partial void Recreate()
         {
             var description = new QueryHeapDesc
@@ -150,6 +176,9 @@ namespace Stride.Graphics
             base.OnDestroyed();
         }
 
+        /// <summary>
+        ///   Resets the internal state to ensure the completed value is ahead of the current readback fence value.
+        /// </summary>
         internal void ResetInternal()
         {
             if (CompletedValue <= readbackFence->GetCompletedValue())

@@ -68,7 +68,7 @@ public unsafe partial class QueryPool
     ///   Implementation in Direct3D 11 that recreates the queries in the pool.
     /// </summary>
     /// <exception cref="NotImplementedException">
-    ///   Only GPU queries of type <see cref="Query.Timestamp"/> are supported.
+    ///   Only GPU queries of type <see cref="QueryType.Timestamp"/> are supported.
     /// </exception>
     private partial void Recreate()
     {
