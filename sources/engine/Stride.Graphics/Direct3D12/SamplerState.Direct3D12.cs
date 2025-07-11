@@ -12,19 +12,22 @@ using Stride.Core.Mathematics;
 
 namespace Stride.Graphics
 {
-    /// <summary>
-    /// Describes a sampler state used for texture sampling.
-    /// </summary>
     public unsafe partial class SamplerState
     {
+        /// <summary>
+        ///   Gets the internal Direct3D 12 CPU-accessible handle to the Sampler State object.
+        /// </summary>
         internal CpuDescriptorHandle NativeSampler;
 
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="SamplerState"/> class.
+        ///   Initializes a new instance of the <see cref="SamplerState"/> class.
         /// </summary>
-        /// <param name="device">The device.</param>
-        /// <param name="samplerStateDescription">The sampler state description.</param>
+        /// <param name="device">The Graphics Device.</param>
+        /// <param name="description">
+        ///   A <see cref="SamplerStateDescription"/> structure describing the Sampler State
+        ///   object to create.
+        /// </param>
         private SamplerState(GraphicsDevice device, ref readonly SamplerStateDescription samplerStateDescription) : base(device)
         {
             Description = samplerStateDescription;

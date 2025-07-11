@@ -30,7 +30,7 @@ public unsafe partial class SamplerState
     /// <summary>
     ///   Initializes a new instance of the <see cref="SamplerState"/> class.
     /// </summary>
-    /// <param name="device">The <see cref="GraphicsDevice"/>.</param>
+    /// <param name="device">The Graphics Device.</param>
     /// <param name="description">
     ///   A <see cref="SamplerStateDescription"/> structure describing the Sampler State
     ///   object to create.
