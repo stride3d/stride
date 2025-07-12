@@ -22,6 +22,11 @@ using static Stride.Core.UnsafeExtensions.StringMarshal;
 
 namespace Stride.Shaders.Compiler.Direct3D
 {
+    /// <summary>
+    ///   Provides functionality to compile Shader source code into bytecode for various Shader stages
+    ///   using the Direct3D compiler APIs (<c>fxc</c>).
+    ///   It also handles Shader reflection to provide metadata about the compiled Shaders.
+    /// </summary>
     internal unsafe class ShaderCompiler : IShaderCompiler
     {
         // D3DCOMPILE constants from d3dcompiler.h in the Windows SDK for Windows 10.0.22621.0
@@ -34,6 +39,33 @@ namespace Stride.Shaders.Compiler.Direct3D
         public const uint D3DCOMPILE_OPTIMIZATION_LEVEL3 = (1 << 15);
 
 
+        /// <summary>
+        ///   Compiles the specified Shader source code into byte-code for a given shader stage
+        ///   using the Direct3D Compiler APIs (<c>fxc</c>).
+        /// </summary>
+        /// <param name="shaderSource">The source code of the Shader to compile.</param>
+        /// <param name="entryPoint">The entry point function name within the Shader source.</param>
+        /// <param name="stage">
+        ///   The Shader stage for which the byte-code is being compiled
+        ///   (e.g., <see cref="ShaderStage.Vertex"/>, <see cref="ShaderStage.Pixel"/>).
+        /// </param>
+        /// <param name="effectParameters">
+        ///   A set of parameters that influence the compilation process, such as debug and optimization settings.
+        /// </param>
+        /// <param name="reflection">An object to be updated with reflection data from the compiled Shader.</param>
+        /// <param name="sourceFilename">The optional filename of the Shader source, used for error reporting.</param>
+        /// <returns>
+        ///   A <see cref="ShaderBytecodeResult"/> containing the compiled Shader byte-code and any warnings or errors
+        ///   encountered during compilation.
+        /// </returns>
+        /// <exception cref="ArgumentException">The specified Shader <paramref name="stage"/> is not supported.</exception>
+        /// <exception cref="ArgumentException">
+        ///   The specified <see cref="EffectCompilerParameters.Profile"/> in <paramref name="effectParameters"/> is not supported.
+        /// </exception>
+        /// <exception cref="NotImplementedException">
+        ///   During reflection, if an unsupported <see cref="EffectParameterClass"/> or <see cref="EffectParameterType"/>
+        ///   is encountered.
+        /// </exception>
         public ShaderBytecodeResult Compile(string shaderSource, string entryPoint, ShaderStage stage,
                                             EffectCompilerParameters effectParameters, EffectReflection reflection,
                                             string? sourceFilename = null)
@@ -95,10 +127,10 @@ namespace Stride.Shaders.Compiler.Direct3D
 
             return byteCodeResult;
 
-            /// <summary>
-            ///   Compiles shader source code to bytecode for the specified shader model.
-            /// </summary>
 
+            //
+            // Returns a string representation of the Shader stage.
+            //
             static string ShaderStageToString(ShaderStage stage)
             {
                 return stage switch
@@ -114,6 +146,9 @@ namespace Stride.Shaders.Compiler.Direct3D
                 };
             }
 
+            //
+            // Returns the Shader profile string based on the specified Graphics Profile.
+            //
             static string ShaderProfileFromGraphicsProfile(GraphicsProfile graphicsProfile)
             {
                 return graphicsProfile switch
@@ -130,6 +165,9 @@ namespace Stride.Shaders.Compiler.Direct3D
             }
 
 
+            //
+            // Compiles the Shader source code to byte-code for the specified Shader Model.
+            //
             HResult Compile()
             {
                 var shaderSourceSpan = shaderSource.GetAsciiSpan();
@@ -161,9 +199,9 @@ namespace Stride.Shaders.Compiler.Direct3D
                 return result;
             }
 
-            /// <summary>
-            ///   Disassembles a blob of shader bytecode to its textual equivalent in HLSL code.
-            /// </summary>
+            //
+            // Disassembles a blob of Shader byte-code to its textual equivalent in HLSL code.
+            //
             string Disassemble(ComPtr<ID3D10Blob> byteCode)
             {
                 ref var noComments = ref Unsafe.NullRef<byte>();
@@ -179,9 +217,9 @@ namespace Stride.Shaders.Compiler.Direct3D
                 return shaderDisassembly;
             }
 
-            /// <summary>
-            ///   Gets a blob of shader bytecode with debug and reflection data stripped out.
-            /// </summary>
+            //
+            // Gets a blob of Shader byte-code with debug and reflection data stripped out.
+            //
             ComPtr<ID3D10Blob> Strip(ComPtr<ID3D10Blob> byteCode)
             {
                 const uint StripDebugAndReflection = (uint) (CompilerStripFlags.ReflectionData | CompilerStripFlags.DebugInfo);
@@ -199,16 +237,13 @@ namespace Stride.Shaders.Compiler.Direct3D
                 return strippedByteCode;
             }
 
-            /// <summary>
-            ///   Gets text data from a <see cref="ID3D10Blob"/> as a <see cref="string"/>.
-            /// </summary>
+            //
+            // Updates the reflection information for a Shader byte-code.
+            //
             void UpdateReflection(ShaderBytecode shaderBytecode, EffectReflection effectReflection, LoggerResult log)
             {
                 var byteCode = shaderBytecode.Data;
 
-            /// <summary>
-            ///   Releases a DirectX Blob safely.
-            /// </summary>
                 ComPtr<ID3D11ShaderReflection> shaderReflection = Reflect(byteCode);
 
                 SkipInit(out ShaderDesc shaderReflectionDesc);
@@ -280,6 +315,9 @@ namespace Stride.Shaders.Compiler.Direct3D
 
                 shaderReflection.Dispose();
 
+                //
+                // Gets reflection information about a Shader from its byte-code.
+                //
                 ComPtr<ID3D11ShaderReflection> Reflect(byte[] byteCode)
                 {
                     HResult result = d3dCompiler.Reflect(in byteCode[0], (nuint) byteCode.Length,
@@ -289,10 +327,11 @@ namespace Stride.Shaders.Compiler.Direct3D
 
                     return shaderReflection;
                 }
-            /// <summary>
-            ///   Gets reflection information about a shader from its shader bytecode.
-            /// </summary>
 
+                //
+                // Given a Constant Buffer description, updates the sizes and offsets of its members,
+                // as well as its total size (aligned to 16 bytes).
+                //
                 void UpdateConstantBufferReflection(EffectConstantBufferDescription reflectionConstantBuffer)
                 {
                     // Used to compute Constant Buffer size and member offsets (std140 rule)
@@ -319,6 +358,9 @@ namespace Stride.Shaders.Compiler.Direct3D
                     reflectionConstantBuffer.Size = (constantBufferOffset + 15) / 16 * 16;
                 }
 
+                //
+                // Validates the reflection of a Constant Buffer against the expected description.
+                //
                 void ValidateConstantBufferReflection(ComPtr<ID3D11ShaderReflectionConstantBuffer> constantBufferRaw,
                                                       ref ShaderBufferDesc constantBufferRawDesc,
                                                       EffectConstantBufferDescription constantBuffer,
@@ -403,6 +445,10 @@ namespace Stride.Shaders.Compiler.Direct3D
                     }
                 }
 
+                //
+                // Computes the size of a member type, including its alignment and array size.
+                // It does so recursively for structs, and handles different parameter classes.
+                //
                 static int ComputeMemberSize(ref EffectTypeDescription memberType, ref int constantBufferOffset)
                 {
                     var elementSize = ComputeTypeSize(memberType.Type);
@@ -475,6 +521,9 @@ namespace Stride.Shaders.Compiler.Direct3D
                     return size;
                 }
 
+                //
+                // Computes the size of a type based on its EffectParameterType.
+                //
                 static int ComputeTypeSize(EffectParameterType type)
                 {
                     return type switch
@@ -492,6 +541,9 @@ namespace Stride.Shaders.Compiler.Direct3D
                     };
                 }
 
+                //
+                // Creates a resource binding description from a Shader input binding description.
+                //
                 EffectResourceBindingDescription GetResourceBinding(ref readonly ShaderInputBindDesc bindingDescriptionRaw, string name)
                 {
                     var paramClass = EffectParameterClass.Object;
@@ -595,6 +647,9 @@ namespace Stride.Shaders.Compiler.Direct3D
                     return binding;
                 }
 
+                //
+                // Converts a D3DShaderVariableType to an EffectParameterType.
+                //
                 static EffectParameterType ConvertVariableValueType(D3DShaderVariableType type, LoggerResult log)
                 {
                     if (MapType(type) is EffectParameterType effectParameterType)
@@ -603,6 +658,10 @@ namespace Stride.Shaders.Compiler.Direct3D
                     log.Error($"Type [{type}] from D3DCompiler not supported");
                     return default;
 
+                    //
+                    // Maps a D3DShaderVariableType to an EffectParameterType.
+                    // Returns null if the type is not supported.
+                    //
                     static EffectParameterType? MapType(D3DShaderVariableType type)
                     {
                         return type switch
@@ -621,6 +680,9 @@ namespace Stride.Shaders.Compiler.Direct3D
                 }
             }
 
+            //
+            // Gets text data from a ID3D10Blob as a string.
+            //
             static string GetTextFromBlob(ComPtr<ID3D10Blob> blob)
             {
                 if (blob.Handle is null)
@@ -630,6 +692,14 @@ namespace Stride.Shaders.Compiler.Direct3D
                 return blobBuffer.GetString();
             }
 
+            //
+            // Creates a wrapping ComPtr from the unsafe pointer to a COM object, but without calling AddRef()
+            // in the process.
+            // This is a convenience method to avoid unnecessary reference counting, as implicit conversions
+            // in the ComPtr<T> class will call AddRef() automatically.
+            //
+            // NOTE: This is a mirror from the ComPtrHelpers type.
+            //
             static ComPtr<T> ToComPtr<T>(T* comPtr) where T : unmanaged, IComVtbl<T>
             {
                 return new ComPtr<T> { Handle = comPtr };
