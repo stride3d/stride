@@ -9,7 +9,7 @@ namespace Stride.Audio
         /// Based on compilation setting, returns the proper instance of sounds.
         /// </summary>
         /// <returns>A platform specific instance of <see cref="AudioEngine"/></returns>
-        public static AudioEngine NewAudioEngine(AudioDevice device = null, AudioLayer.DeviceFlags deviceFlags = AudioLayer.DeviceFlags.None)
+        public static AudioEngine NewAudioEngine(AudioDevice device = null, DeviceFlags deviceFlags = DeviceFlags.None)
         {
             AudioEngine engine = null;
 #if STRIDE_PLATFORM_IOS
