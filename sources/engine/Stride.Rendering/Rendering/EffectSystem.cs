@@ -63,9 +63,8 @@ namespace Stride.Rendering
         {
             base.Initialize();
 
-
             // Get graphics device service
-            base.InitGraphicsDeviceService();
+            InitializeGraphicsDeviceService();
 
 #if STRIDE_PLATFORM_DESKTOP
             Enabled = true;
@@ -127,7 +126,7 @@ namespace Stride.Rendering
                 return cachedEffects.ContainsKey(effect.Bytecode);
             }
         }
-        
+
         /// <summary>
         /// Loads the effect.
         /// </summary>
@@ -226,7 +225,7 @@ namespace Stride.Rendering
                                 {
                                     filePath = reader.ReadToEnd();
                                 }
-                            }                            
+                            }
                         }
                         if (filePath != null)
                             directoryWatcher.Track(filePath);
@@ -365,7 +364,7 @@ namespace Stride.Rendering
                     return null;
 
                 // Compiler Parameters are supposed to be created in the same order every time, so we just check if they were created in the same order (ParameterKeyInfos) with same values (ObjectValues)
-                
+
                 // TODO GRAPHICS REFACTOR we could probably compute a hash for faster lookup
                 foreach (var compiledResults in compilerResultsList)
                 {

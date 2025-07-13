@@ -696,17 +696,16 @@ namespace Stride.Graphics
                 result.Throw();
 
             // We need a IDXGISwapChain3 to enable output color space setting to support HDR outputs
-            IDXGISwapChain3* swapChain3;
-            result = newSwapChain->QueryInterface(SilkMarshal.GuidPtrOf<IDXGISwapChain3>(), (void**) &swapChain3);
+            result = newSwapChain.QueryInterface(out ComPtr<IDXGISwapChain3> swapChain3);
 
             if (result.IsSuccess)
             {
-                swapChain3->SetColorSpace1((Silk.NET.DXGI.ColorSpaceType) Description.OutputColorSpace);
-                swapChain3->Release();
+                swapChain3.SetColorSpace1((Silk.NET.DXGI.ColorSpaceType) Description.OutputColorSpace);
+                swapChain3.Release();
             }
 
-            // Prevent switching between windowed and full screen modes by pressing Alt+ENTER
-            GraphicsAdapterFactory.NativeFactory.MakeWindowAssociation(handle, DxgiConstants.WindowAssociation_NoAltEnter);
+            // Prevent switching between windowed and fullscreen modes by pressing Alt+ENTER
+            nativeFactory.MakeWindowAssociation(handle, DxgiConstants.WindowAssociation_NoAltEnter);
 
             if (Description.IsFullScreen)
             {

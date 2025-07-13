@@ -21,6 +21,7 @@ public sealed class PresentationParameters : IEquatable<PresentationParameters>
     private const bool DefaultIsFullScreen = false;
     private const int DefaultRefreshRate = 60; // Hz
     private const ColorSpace DefaultColorSpace = ColorSpace.Linear;
+    private const ColorSpaceType DefaultOutputColorSpace = ColorSpaceType.Rgb_Full_G22_None_P709; // Default RGB output for monitors with a standard gamma of 2.2
 
     #endregion
 
@@ -193,6 +194,22 @@ public sealed class PresentationParameters : IEquatable<PresentationParameters>
     /// </remarks>
     public ColorSpace ColorSpace;
 
+    /// <summary>
+    ///   The color space type used for the Graphics Presenter output.
+    /// </summary>
+    /// <remarks>
+    ///   <para>
+    ///     The output color space can be used to render to HDR monitors.
+    ///     Consult the documentation of the <see cref="ColorSpaceType"/> enum for more details.
+    ///   </para>
+    ///   <para>
+    ///     Note that this is currently only supported in Stride when using the Direct3D Graphics API.
+    ///     For more information about High Dynamic Range (HDR) rendering, see
+    ///     <see href="https://learn.microsoft.com/en-us/windows/win32/direct3darticles/high-dynamic-range"/>.
+    ///   </para>
+    /// </remarks>
+    public ColorSpaceType OutputColorSpace;
+
 
     /// <summary>
     ///   Initializes a new instance of the <see cref="PresentationParameters"/> class with default values.
@@ -209,7 +226,11 @@ public sealed class PresentationParameters : IEquatable<PresentationParameters>
     ///       (<see cref="PixelFormat.D24_UNorm_S8_UInt"/>).
     ///     </item>
     ///     <item>No multi-sampling.</item>
-    ///     <item>Assuming a linear color space (<see cref="ColorSpace.Linear"/>).</item>
+    ///     <item>
+    ///       Assuming a linear color space (<see cref="ColorSpace.Linear"/>) and an output color space
+    ///       <see cref="ColorSpaceType.RgbFullG22NoneP709"/>, which is the default RGB output for monitors
+    ///       with a standard gamma of 2.2.
+    ///     </item>
     ///     <item>
     ///       A windowed presentation at 60 Hz with no V-Sync (<see cref="PresentInterval.Immediate"/>).
     ///     </item>
@@ -226,6 +247,7 @@ public sealed class PresentationParameters : IEquatable<PresentationParameters>
         IsFullScreen = DefaultIsFullScreen;
         RefreshRate = DefaultRefreshRate;
         ColorSpace = DefaultColorSpace;
+        OutputColorSpace = DefaultOutputColorSpace;
     }
 
     /// <summary>

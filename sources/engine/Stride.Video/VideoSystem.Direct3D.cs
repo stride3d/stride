@@ -22,7 +22,7 @@ namespace Stride.Video
             var graphicsDevice = Services.GetService<IGame>().GraphicsDevice;
 
             var d3d11Device = graphicsDevice.NativeDevice;
-            var d3d11DeviceSharpDX = new SharpDX.ComObject((IntPtr) d3d11Device);
+            var d3d11DeviceSharpDX = new SharpDX.ComObject((IntPtr) d3d11Device.Handle);
 
             DxgiDeviceManager = new DXGIDeviceManager();
             DxgiDeviceManager.ResetDevice(d3d11DeviceSharpDX);
