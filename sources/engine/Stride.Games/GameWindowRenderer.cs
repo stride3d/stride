@@ -40,8 +40,7 @@ namespace Stride.Games
         private PixelFormat preferredBackBufferFormat;
         private int preferredBackBufferHeight;
         private int preferredBackBufferWidth;
-        private PixelFormat preferredDepthStencilFormat;
-        private ColorSpaceType preferredOutputColorSpace;
+        private ColorSpaceType preferredOutputColorSpace = ColorSpaceType.Rgb_Full_G22_None_P709;
 
         private GraphicsPresenter savedPresenter;
 
@@ -59,7 +58,6 @@ namespace Stride.Games
         public GameWindowRenderer(IServiceRegistry registry, GameContext gameContext) : base(registry)
         {
             GameContext = gameContext;
-            preferredOutputColorSpace = ColorSpaceType.RgbFullG22NoneP709;
         }
 
 
@@ -95,17 +93,21 @@ namespace Stride.Games
         }
 
         /// <summary>
-        /// Gets or sets the preferred presenter output color space. Can be used to render to HDR monitors. Currently only supported by the DirectX backend.
-        /// See: https://learn.microsoft.com/en-us/windows/win32/direct3darticles/high-dynamic-range
+        ///   Gets or sets the preferred output color space the <see cref="Presenter"/> should use.
         /// </summary>
-        /// <value>The preferred presenter output color space.</value>
+        /// <remarks>
+        ///   <para>
+        ///     The output color space can be used to render to HDR monitors.
+        ///   </para>
+        ///   <para>
+        ///     Note that this is currently only supported in Stride when using the Direct3D Graphics API.
+        ///     For more information about High Dynamic Range (HDR) rendering, see
+        ///     <see href="https://learn.microsoft.com/en-us/windows/win32/direct3darticles/high-dynamic-range"/>.
+        ///   </para>
+        /// </remarks>
         public ColorSpaceType PreferredOutputColorSpace
         {
-            get
-            {
-                return preferredOutputColorSpace;
-            }
-
+            get => preferredOutputColorSpace;
             set
             {
                 if (preferredOutputColorSpace != value)

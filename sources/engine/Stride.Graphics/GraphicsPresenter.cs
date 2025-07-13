@@ -193,6 +193,9 @@ public abstract class GraphicsPresenter : ComponentBase
     ///   The new preferred pixel format for the Back-Buffer. The specified format may be overriden
     ///   depending on Graphics Device features and configuration (for example, to use sRGB when appropriate).
     /// </param>
+    /// <exception cref="System.NotSupportedException">
+    ///   The specified pixel <paramref name="format"/> or size is not supported by the Graphics Device.
+    /// </exception>
     public void Resize(int width, int height, PixelFormat format)
     {
         GraphicsDevice.Begin();
@@ -202,31 +205,66 @@ public abstract class GraphicsPresenter : ComponentBase
         Description.BackBufferFormat = NormalizeBackBufferFormat(format);
 
         ResizeBackBuffer(width, height, format);
-        ResizeDepthStencilBuffer(width, height, format);
+        ResizeDepthStencilBuffer(width, height, DepthStencilBuffer.ViewFormat);
 
         GraphicsDevice.End();
     }
 
     /// <summary>
-    /// Sets the output color space of the presenter and the format for the backbuffer. Currently only supported by the DirectX backend.
-    /// Use the following combinations: <br />
-    /// Render to SDR Display with gamma 2.2: <see cref="ColorSpaceType.RgbFullG22NoneP709"/> with <see cref="PixelFormat.R8G8B8A8_UNorm"/>, <see cref="PixelFormat.R8G8B8A8_UNorm_SRgb"/>, <see cref="PixelFormat.B8G8R8A8_UNorm"/>, <see cref="PixelFormat.B8G8R8A8_UNorm"/>. <br />
-    /// Render to HDR Display in scRGB (standard linear), windows DWM will do the color conversion: <see cref="ColorSpaceType.RgbFullG10NoneP709"/> with <see cref="PixelFormat.R16G16B16A16_Float"/> <br />
-    /// Render to HDR Display in HDR10/BT.2100, no windows DWM conversion, rendering needs to be in the Display color space: <see cref="ColorSpaceType.RgbFullG2084NoneP2020"/> with <see cref="PixelFormat.R10G10B10A2_UNorm"/> <br />
+    ///   Sets the output color space of the Graphics Presenter and the pixel format to use for the Back-Buffer.
     /// </summary>
-    /// <param name="colorSpace"></param>
-    /// <param name="format"></param>
+    /// <param name="colorSpace">The output color space the Graphics Presenter should use.</param>
+    /// <param name="format">The pixel format to use for the Back-Buffer.</param>
+    /// <remarks>
+    ///   <para>
+    ///     The output color space can be used to render to HDR monitors.
+    ///   </para>
+    ///   <para>
+    ///     Use the following combinations:
+    ///     <list type="table">
+    ///       <item>
+    ///         <term>For rendering to a SDR display with gamma 2.2</term>
+    ///         <description>
+    ///           Set a color space of <see cref="ColorSpaceType.RgbFullG22NoneP709"/> with a Back-Buffer format <see cref="PixelFormat.R8G8B8A8_UNorm"/>,
+    ///           <see cref="PixelFormat.R8G8B8A8_UNorm_SRgb"/>, <see cref="PixelFormat.B8G8R8A8_UNorm"/>, or <see cref="PixelFormat.B8G8R8A8_UNorm"/>.
+    ///         </description>
+    ///       </item>
+    ///       <item>
+    ///         <term>For rendering to a HDR display in scRGB (standard linear), and letting the Windows DWM do the color conversion</term>
+    ///         <description>
+    ///           Set a color space of <see cref="ColorSpaceType.RgbFullG10NoneP709"/> with a Back-Buffer format <see cref="PixelFormat.R16G16B16A16_Float"/>.
+    ///         </description>
+    ///       </item>
+    ///       <item>
+    ///         <term>
+    ///           For rendering to a HDR display in HDR10 / BT.2100, with no color conversion by the Windows DWM, rendering needs to happen in the
+    ///           same color space as the display.
+    ///         </term>
+    ///         <description>
+    ///           Set a color space of <see cref="ColorSpaceType.RgbFullG2084NoneP2020"/> with a Back-Buffer format <see cref="PixelFormat.R10G10B10A2_UNorm"/>.
+    ///         </description>
+    ///       </item>
+    ///     </list>
+    ///   </para>
+    ///   <para>
+    ///     Note that this is currently only supported in Stride when using the Direct3D Graphics API.
+    ///     For more information about High Dynamic Range (HDR) rendering, see
+    ///     <see href="https://learn.microsoft.com/en-us/windows/win32/direct3darticles/high-dynamic-range"/>.
+    ///   </para>
+    /// </remarks>
+    /// <exception cref="System.NotSupportedException">
+    ///   The specified pixel <paramref name="format"/> or size is not supported by the Graphics Device.
+    /// </exception>
     public void SetOutputColorSpace(ColorSpaceType colorSpace, PixelFormat format)
     {
         GraphicsDevice.Begin();
 
         Description.BackBufferFormat = NormalizeBackBufferFormat(format);
 
-        // new resources
         ResizeBackBuffer(Description.BackBufferWidth, Description.BackBufferHeight, format);
-        ResizeDepthStencilBuffer(Description.BackBufferWidth, Description.BackBufferHeight, depthStencilBuffer.ViewFormat);
+        ResizeDepthStencilBuffer(Description.BackBufferWidth, Description.BackBufferHeight, DepthStencilBuffer.ViewFormat);
 
-        // recreate swapchain
+        // We need to recreate the Swap Chain
         OnDestroyed();
         Description.OutputColorSpace = colorSpace;
         OnRecreated();
