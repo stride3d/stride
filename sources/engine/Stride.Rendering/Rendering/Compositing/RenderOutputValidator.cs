@@ -4,7 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Stride.Core.Collections;
+using System.Runtime.InteropServices;
 using Stride.Graphics;
 using Stride.Shaders;
 
@@ -77,10 +77,15 @@ namespace Stride.Rendering.Compositing
 
         public unsafe void EndCustomValidation()
         {
-            if (validatedTargetCount < renderTargets.Count || hasChanged)
+            var renderTargetsCount = renderTargets.Count;
+            
+            if (validatedTargetCount < renderTargetsCount || hasChanged)
             {
-                renderTargets.Clear();
-                renderTargets.EnsureCapacity(renderTargets.Count);
+                var renderTargetsSpan = CollectionsMarshal.AsSpan(renderTargets);
+                var sliceToClear = renderTargetsSpan.Slice(validatedTargetCount, renderTargetsCount - validatedTargetCount);
+                
+                sliceToClear.Clear();
+                
                 // Recalculate shader sources
                 ShaderSource = new ShaderMixinSource();
                 ShaderSource.Macros.Add(new ShaderMacro("STRIDE_RENDER_TARGET_COUNT", renderTargets.Count));

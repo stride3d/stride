@@ -345,6 +345,12 @@ public static class Dispatcher
         Sort(collection.Items, 0, collection.Count, comparer);
     }
 
+    [Obsolete(".NET Lists can be faster in the latest .NET versions.Please use the overload with T[] instead.")]
+    public static void Sort <T>(FastList<T> collection, IComparer<T> comparer)
+    {
+        Sort(collection.Items, 0, collection.Count, comparer);
+    }
+
     public static void Sort<T>(T[] collection, int index, int length, IComparer<T> comparer)
     {
         using var _ = Profiler.Begin(DispatcherSortKey);

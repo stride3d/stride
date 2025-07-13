@@ -7,7 +7,6 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using Stride.Core;
 using Stride.Core.Annotations;
-using Stride.Core.Collections;
 using Stride.Core.Diagnostics;
 using Stride.Core.Mathematics;
 using Stride.Core.Storage;
@@ -472,8 +471,17 @@ namespace Stride.Rendering.Compositing
         private void ResolveMSAA(RenderDrawContext drawContext)
         {
             // Resolve render targets
-            currentRenderTargetsNonMSAA.Clear();
-            currentRenderTargetsNonMSAA.EnsureCapacity(currentRenderTargets.Count);
+            var currentRenderTargetsCount = currentRenderTargets.Count;
+            var currentRenderTargetsNonMSAACount = currentRenderTargetsNonMSAA.Count;
+            
+            currentRenderTargetsNonMSAA.EnsureCapacity(currentRenderTargetsCount);
+            
+            if (currentRenderTargetsNonMSAACount > currentRenderTargetsCount)
+            {
+                var currentRenderTargetsNonMSAASpan = CollectionsMarshal.AsSpan(currentRenderTargetsNonMSAA);
+                var sliceToClear = currentRenderTargetsNonMSAASpan.Slice(currentRenderTargetsCount, currentRenderTargetsNonMSAACount - currentRenderTargetsCount);
+                sliceToClear.Clear();
+            }
             
             for (int index = 0; index < currentRenderTargets.Count; index++)
             {
@@ -842,8 +850,17 @@ namespace Stride.Rendering.Compositing
 
             var renderTargets = OpaqueRenderStage.OutputValidator.RenderTargets;
 
-            currentRenderTargets.Clear();
-            currentRenderTargets.EnsureCapacity(renderTargets.Count);
+            var renderTargetsCount = renderTargets.Count;
+            var currentRenderTargetsCount = currentRenderTargets.Count;
+            
+            currentRenderTargets.EnsureCapacity(renderTargetsCount);
+            
+            if (renderTargetsCount < currentRenderTargetsCount)
+            {
+                var currentRenderTargetsSpan = CollectionsMarshal.AsSpan(currentRenderTargets);
+                var sliceToClear = currentRenderTargetsSpan.Slice(renderTargetsCount,currentRenderTargetsCount - renderTargetsCount);
+                sliceToClear.Clear();
+            }
 
             for (int index = 0; index < renderTargets.Count; index++)
             {

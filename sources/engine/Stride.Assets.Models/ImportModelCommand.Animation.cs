@@ -243,7 +243,7 @@ namespace Stride.Assets.Models
                                     // Translate node with parent 0 using PivotPosition
                                     var keyFrames = ((AnimationCurve<Vector3>)curve).KeyFrames;
                                     var keyFramesSpan = CollectionsMarshal.AsSpan(keyFrames);
-                                    for (int i = 0; i < keyFrames.Count; ++i)
+                                    for (int i = 0; i < keyFramesSpan.Length; ++i)
                                     {
                                         if (parentNodeIndex == 0)
                                             keyFramesSpan[i].Value -= PivotPosition;

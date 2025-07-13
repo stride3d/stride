@@ -107,7 +107,7 @@ namespace Stride.Graphics
             var resourceBindingsSpan = CollectionsMarshal.AsSpan(reflection.ResourceBindings);
             
             // prepare resource bindings used internally
-            for (int i = 0; i < reflection.ResourceBindings.Count; i++)
+            for (int i = 0; i < resourceBindingsSpan.Length; i++)
             {
                 // it is fine if multiple threads do this at the same time (same result)
                 // we use ref to avoid reassigning to the list (which cause a Collection modified during enumeration exception)
