@@ -43,7 +43,7 @@ namespace Stride.Graphics
 
             var rootSignature = pipelineStateDescription.RootSignature;
             if (rootSignature != null && effectBytecode != null)
-                ResourceBinder.Compile(graphicsDevice, rootSignature.EffectDescriptorSetReflection, effectBytecode);
+                ResourceBinder.Compile(rootSignature.EffectDescriptorSetReflection, effectBytecode);
 
             // Vertex attributes
             if (pipelineStateDescription.InputElements != null)
@@ -107,12 +107,6 @@ namespace Stride.Graphics
 
             public bool Equals(VertexAttribsKey other)
             {
-                if (other is null)
-                    return false;
-
-                if (ReferenceEquals(this, other))
-                    return true;
-
                 return Hash == other.Hash && ArrayExtensions.ArraysEqual(Attribs, other.Attribs);
             }
 

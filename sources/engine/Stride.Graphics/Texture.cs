@@ -509,6 +509,11 @@ namespace Stride.Graphics
         }
 
         /// <summary>
+        ///   Initializes the Texture with no initial data.
+        /// </summary>
+        private void InitializeFromImpl() => InitializeFromImpl(dataBoxes: null);
+
+        /// <summary>
         ///   Performs platform-dependent initialization of the Texture.
         /// </summary>
         /// <param name="dataBoxes">

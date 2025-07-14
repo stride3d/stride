@@ -114,7 +114,7 @@ namespace Stride.Graphics
 
             HasDepthAsSRV = true;
             HasDepthAsReadOnlyRT = true;
-            HasMultisampleDepthAsSRV = true;
+            HasMultiSampleDepthAsSRV = true;
 
             deviceRoot.HasDepthClamp = SupportedExtensions.Contains("GL_ARB_depth_clamp");
 
@@ -133,7 +133,7 @@ namespace Stride.Graphics
 
             HasDepthAsSRV = true;
             HasDepthAsReadOnlyRT = true;
-            HasMultisampleDepthAsSRV = true;
+            HasMultiSampleDepthAsSRV = true;
 
             deviceRoot.HasDepthClamp = true;
 

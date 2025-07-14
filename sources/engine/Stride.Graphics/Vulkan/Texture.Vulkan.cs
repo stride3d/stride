@@ -45,7 +45,11 @@ namespace Stride.Graphics
             return true;
         }
 
-        internal void SwapInternal(Texture other)
+        /// <summary>
+        ///   Swaps the Texture's internal data with another Texture.
+        /// </summary>
+        /// <param name="other">The other Texture.</param>
+        internal partial void SwapInternal(Texture other)
         {
             (NativeImage, other.NativeImage)                             = (other.NativeImage, NativeImage);
             (NativeBuffer, other.NativeBuffer)                           = (other.NativeBuffer, NativeBuffer);
@@ -86,7 +90,7 @@ namespace Stride.Graphics
             NativeColorAttachmentView = attachmentView;
         }
 
-        private void InitializeFromImpl(DataBox[] dataBoxes = null)
+        private partial void InitializeFromImpl(DataBox[] dataBoxes = null)
         {
             NativeFormat = VulkanConvertExtensions.ConvertPixelFormat(ViewFormat);
             HasStencil = IsStencilFormat(ViewFormat);
@@ -223,7 +227,7 @@ namespace Stride.Graphics
                 sType = VkStructureType.ImageCreateInfo,
                 arrayLayers = (uint) ArraySize,
                 extent = new VkExtent3D(Width, Height, Depth),
-                mipLevels = (uint) MipLevels,
+                mipLevels = (uint) MipLevelCount,
                 samples = VkSampleCountFlags.Count1,
                 format = NativeFormat,
                 flags = VkImageCreateFlags.None,
@@ -332,8 +336,8 @@ namespace Stride.Graphics
                 {
                     var slicePitch = dataBoxes[i].SlicePitch;
 
-                    int arraySlice = i / MipLevels;
-                    int mipSlice = i % MipLevels;
+                    int arraySlice = i / MipLevelCount;
+                    int mipSlice = i % MipLevelCount;
                     var mipMapDescription = GetMipMapDescription(mipSlice);
 
                     var alignment = ((uploadOffset + alignmentMask) & ~alignmentMask) - uploadOffset;
@@ -348,7 +352,7 @@ namespace Stride.Graphics
                         {
                             srcOffset = (ulong) uploadOffset,
                             dstOffset = (ulong) ComputeBufferOffset(i, depthSlice: 0),
-                            size = (uint) ComputeSubresourceSize(i)
+                            size = (uint) ComputeSubResourceSize(i)
                         };
 
                         vkCmdCopyBuffer(commandBuffer, uploadResource, NativeBuffer, regionCount: 1, &copy);
@@ -463,7 +467,10 @@ namespace Stride.Graphics
             base.OnDestroyed();
         }
 
-        private void OnRecreateImpl()
+        /// <summary>
+        ///   Perform Vulkan-specific recreation of the Texture.
+        /// </summary>
+        private partial void OnRecreateImpl()
         {
             // Dependency: wait for underlying texture to be recreated
             if (ParentTexture != null && ParentTexture.LifetimeState != GraphicsResourceLifetimeState.Active)
@@ -504,12 +511,12 @@ namespace Stride.Graphics
                 subresourceRange = new VkImageSubresourceRange(IsDepthStencil ? VkImageAspectFlags.Depth : VkImageAspectFlags.Color, (uint) mipIndex, (uint) mipCount, (uint) arrayOrDepthSlice, (uint) layerCount) // TODO VULKAN: Select between depth and stencil?
             };
 
-            if (IsMultisample)
+            if (IsMultiSampled)
                 throw new NotImplementedException();
 
             if (this.ArraySize > 1)
             {
-                if (IsMultisample && Dimension != TextureDimension.Texture2D)
+                if (IsMultiSampled && Dimension != TextureDimension.Texture2D)
                     throw new NotSupportedException("Multisample is only supported for 2D Textures");
 
                 if (Dimension == TextureDimension.Texture3D)
@@ -532,7 +539,7 @@ namespace Stride.Graphics
             }
             else
             {
-                if (IsMultisample && Dimension != TextureDimension.Texture2D)
+                if (IsMultiSampled && Dimension != TextureDimension.Texture2D)
                     throw new NotSupportedException("Multisample is only supported for 2D RenderTarget Textures");
 
                 if (Dimension == TextureDimension.TextureCube)
@@ -575,12 +582,12 @@ namespace Stride.Graphics
                 subresourceRange = new VkImageSubresourceRange(VkImageAspectFlags.Color, (uint) mipIndex, (uint) mipCount, (uint) arrayOrDepthSlice, 1)
             };
 
-            if (IsMultisample)
+            if (IsMultiSampled)
                 throw new NotImplementedException();
 
             if (this.ArraySize > 1)
             {
-                if (IsMultisample && Dimension != TextureDimension.Texture2D)
+                if (IsMultiSampled && Dimension != TextureDimension.Texture2D)
                     throw new NotSupportedException("Multisample is only supported for 2D Textures");
 
                 if (Dimension == TextureDimension.Texture3D)
@@ -588,7 +595,7 @@ namespace Stride.Graphics
             }
             else
             {
-                if (IsMultisample && Dimension != TextureDimension.Texture2D)
+                if (IsMultiSampled && Dimension != TextureDimension.Texture2D)
                     throw new NotSupportedException("Multisample is only supported for 2D RenderTarget Textures");
 
                 if (Dimension == TextureDimension.TextureCube)
@@ -634,7 +641,11 @@ namespace Stride.Graphics
             return imageView;
         }
 
-        private bool IsFlipped()
+        /// <summary>
+        ///   Indicates if the Texture is flipped vertically, i.e. if the rows are ordered bottom-to-top instead of top-to-bottom.
+        /// </summary>
+        /// <returns><see langword="true"/> if the Texture is flipped; <see langword="false"/> otherwise.</returns>
+        private partial bool IsFlipped()
         {
             return false;
         }
@@ -654,7 +665,7 @@ namespace Stride.Graphics
         {
             if (device.Features.CurrentProfile < GraphicsProfile.Level_10_0 && (description.Flags & TextureFlags.DepthStencil) == 0 && description.Format.IsCompressed())
             {
-                description.MipLevels = Math.Min(CalculateMipCount(description.Width, description.Height), description.MipLevels);
+                description.MipLevelCount = Math.Min(CalculateMipCount(description.Width, description.Height), description.MipLevelCount);
             }
             return description;
         }

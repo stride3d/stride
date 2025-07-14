@@ -20,14 +20,14 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="GraphicsOutput" />.
+        ///   Initializes a new instance of <see cref="GraphicsOutput"/>.
         /// </summary>
-        /// <param name="adapter">The adapter.</param>
-        /// <param name="displayIndex">Index of the output.</param>
-        /// <exception cref="System.ArgumentNullException">output</exception>
+        /// <param name="adapter">The Graphics Adapter the output depends on.</param>
+        /// <param name="displayIndex">The index of the output.</param>
+        /// <exception cref="System.ArgumentNullException"><paramref cref="output"/> is <see langword="null"/>.</exception>
         internal GraphicsOutput(GraphicsAdapter adapter, int displayIndex)
         {
-            if (adapter == null) throw new ArgumentNullException("adapter");
+            ArgumentNullException.ThrowIfNull(adapter);
             
             this.adapter = adapter;
             this.displayIndex = displayIndex;

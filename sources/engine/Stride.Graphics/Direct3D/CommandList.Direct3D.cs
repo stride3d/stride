@@ -113,7 +113,7 @@ namespace Stride.Graphics
         /// <remarks>
         ///   Deferred execution of Command Lists is not supported for Direct3D 11. This method does nothing.
         /// </remarks>
-        public partial void Reset()
+        public unsafe partial void Reset()
         {
         }
 
@@ -1294,7 +1294,7 @@ namespace Stride.Graphics
         /// </param>
         /// <exception cref="ArgumentNullException"><paramref name="resource"/> is <see langword="null"/>.</exception>
         /// <inheritdoc cref="UpdateSubResource(GraphicsResource, int, ReadOnlySpan{byte})" path="/remarks" />
-        internal void UpdateSubResource(GraphicsResource resource, int subResourceIndex, DataBox sourceData, ResourceRegion region)
+        internal unsafe partial void UpdateSubResource(GraphicsResource resource, int subResourceIndex, DataBox sourceData, ResourceRegion region)
         {
             ArgumentNullException.ThrowIfNull(resource);
 
@@ -1396,7 +1396,7 @@ namespace Stride.Graphics
         ///
         ///   After updating the <paramref name="resource"/>, call <see cref="UnmapSubResource"/> to release the CPU pointer and allow the GPU to access the updated data.
         /// </remarks>
-        public MappedResource MapSubResource(GraphicsResource resource, int subResourceIndex, MapMode mapMode, bool doNotWait = false, int offsetInBytes = 0, int lengthInBytes = 0)
+        public unsafe partial MappedResource MapSubResource(GraphicsResource resource, int subResourceIndex, MapMode mapMode, bool doNotWait = false, int offsetInBytes = 0, int lengthInBytes = 0)
         {
             // TODO: D3D 11 does not support lengthInBytes, we should throw an exception if it is not 0?
             // TODO: Also, even if not used, as we are returning it in MappedResource, shouldn't we compute it the same as in D3D 12?
@@ -1436,7 +1436,7 @@ namespace Stride.Graphics
         /// <param name="mappedResource">
         ///   A <see cref="MappedResource"/> structure identifying the sub-resource to unmap.
         /// </param>
-        public void UnmapSubResource(MappedResource mappedResource)
+        public unsafe partial void UnmapSubResource(MappedResource mappedResource)
         {
             nativeDeviceContext->Unmap(mappedResource.Resource.NativeResource, (uint) mappedResource.SubResourceIndex);
         }

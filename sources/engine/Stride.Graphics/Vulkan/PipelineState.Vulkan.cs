@@ -258,7 +258,7 @@ namespace Stride.Graphics
             var colorAttachmentReferences = new VkAttachmentReference[renderTargetCount];
 
             fixed (PixelFormat* renderTargetFormat = &pipelineStateDescription.Output.RenderTargetFormat0)
-            fixed (BlendStateRenderTargetDescription* blendDescription = &pipelineStateDescription.BlendState.RenderTarget0)
+            fixed (BlendStateRenderTargetDescription* blendDescription = &pipelineStateDescription.BlendState.RenderTargets[0])
             {
                 for (int i = 0; i < renderTargetCount; i++)
                 {

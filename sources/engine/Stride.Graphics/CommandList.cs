@@ -196,7 +196,7 @@ namespace Stride.Graphics
 
         private Texture depthStencilBuffer;
 
-        private Texture[] renderTargets = new Texture[MaxRenderTargetCount];
+        private readonly Texture[] renderTargets = new Texture[MaxRenderTargetCount];
         private int renderTargetCount;
 
 
@@ -544,7 +544,7 @@ namespace Stride.Graphics
         /// <summary>
         ///   Resets a Command List back to its initial state as if a new Command List was just created.
         /// </summary>
-        public partial void Reset();
+        public unsafe partial void Reset();
 
         /// <summary>
         ///   Closes and executes the Command List.
@@ -586,5 +586,137 @@ namespace Stride.Graphics
         ///   Platform-specific implementation that clears and restores the state of the Graphics Device.
         /// </summary>
         private partial void ClearStateImpl();
+
+
+        // TODO GRAPHICS REFACTOR what should we do with this?
+        /// <summary>
+        ///   Copies data from memory to a sub-resource created in non-mappable memory.
+        /// </summary>
+        /// <param name="resource">The destination Graphics Resource to copy data to.</param>
+        /// <param name="subResourceIndex">The sub-resource index of <paramref name="resource"/> to copy data to.</param>
+        /// <param name="sourceData">The source data in CPU memory to copy.</param>
+        /// <param name="region">
+        ///   <para>
+        ///     A <see cref="ResourceRegion"/> that defines the portion of the destination sub-resource to copy the resource data into.
+        ///     Coordinates are in bytes for Buffers and in texels for Textures.
+        ///     The dimensions of the source must fit the destination.
+        ///   </para>
+        ///   <para>
+        ///     An empty region makes this method to not perform a copy operation.
+        ///     It is considered empty if the top value is greater than or equal to the bottom value,
+        ///     or the left value is greater than or equal to the right value, or the front value is greater than or equal to the back value.
+        ///   </para>
+        /// </param>
+        /// <exception cref="ArgumentNullException"><paramref name="resource"/> is <see langword="null"/>.</exception
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///   <paramref name="resource"/> is a <see cref="Texture"/>, but its <see cref="Texture.Dimension"/> is not one of the supported types.
+        /// </exception
+        /// <exception cref="InvalidOperationException"><paramref name="resource"/> is of an unknown type and cannot be updated.</exception>
+        /// <inheritdoc cref="UpdateSubResource(GraphicsResource, int, ReadOnlySpan{byte}, ResourceRegion)" path="/remarks" />
+        internal unsafe partial void UpdateSubResource(GraphicsResource resource, int subResourceIndex, DataBox sourceData, ResourceRegion region);
+
+        // TODO GRAPHICS REFACTOR what should we do with this?
+        /// <summary>
+        ///   Maps a sub-resource of a Graphics Resource to be accessible from CPU memory, and in the process denies the GPU access to that sub-resource.
+        /// </summary>
+        /// <param name="resource">The Graphics Resource to map to CPU memory.</param>
+        /// <param name="subResourceIndex">The index of the sub-resource to get access to.</param>
+        /// <param name="mapMode">A value of <see cref="MapMode"/> indicating the way the Graphics Resource should be mapped to CPU memory.</param>
+        /// <param name="doNotWait">
+        ///   A value indicating if this method will return immediately if the Graphics Resource is still being used by the GPU for writing
+        ///   <see langword="true"/>. The default value is <see langword="false"/>, which means the method will wait until the GPU is done.
+        /// </param>
+        /// <param name="offsetInBytes">
+        ///   The offset in bytes from the beginning of the mapped memory of the sub-resource.
+        ///   Defaults to 0, which means it is mapped from the beginning.
+        /// </param>
+        /// <param name="lengthInBytes">
+        ///   The length in bytes of the memory to map from the sub-resource.
+        ///   Defaults to 0, which means the entire sub-resource is mapped.
+        /// </param>
+        /// <returns>A <see cref="MappedResource"/> structure pointing to the GPU resource mapped for CPU access.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="resource"/> is <see langword="null"/>.</exception>
+        /// <remarks>
+        ///   For <see cref="Buffer"/>s:
+        ///   <para>
+        ///     Usage Instructions:
+        ///     <list type="bullet">
+        ///       <item>
+        ///         Ensure the <paramref name="resource"/> was created with the correct usage.
+        ///         For example, you should specify <see cref="GraphicsResourceUsage.Dynamic"/> if you plan to update its contents frequently.
+        ///       </item>
+        ///       <item>This method can be called multiple times, and nested calls are supported.</item>
+        ///       <item>
+        ///         Use appropriate <see cref="MapMode"/> values when calling <see cref="MapSubResource"/>.
+        ///         For example, <see cref="MapMode.WriteDiscard"/> indicates that the old data in the Buffer can be discarded.
+        ///       </item>
+        ///     </list>
+        ///   </para>
+        ///   <para>
+        ///     Restrictions:
+        ///     <list type="bullet">
+        ///       <item>
+        ///         The <see cref="MappedResource"/> returned by <see cref="MapSubResource"/> is not guaranteed to be consistent across different calls.
+        ///         Applications should not rely on the address being the same unless <see cref="MapSubResource"/> is persistently nested.
+        ///       </item>
+        ///       <item><see cref="MapSubResource"/> may invalidate the CPU cache to ensure that CPU reads reflect any modifications made by the GPU.</item>
+        ///       <item>If your graphics API supports them, use fences for synchronization to ensure proper coordination between the CPU and GPU.</item>
+        ///       <item>Ensure that the Buffer data is properly aligned to meet the requirements of your graphics API.</item>
+        ///       <item>
+        ///         Stick to simple usage models (e.g., <see cref="GraphicsResourceUsage.Dynamic"/> for <strong>upload</strong>, <see cref="GraphicsResourceUsage.Default"/>,
+        ///         <see cref="GraphicsResourceUsage.Staging"/> for <strong>readback</strong>) unless advanced models are necessary for your application.
+        ///       </item>
+        ///     </list>
+        ///   </para>
+        ///
+        ///   For <see cref="Texture"/>s:
+        ///   <para>
+        ///     Usage Instructions:
+        ///     <list type="bullet">
+        ///       <item>
+        ///         Ensure to use the correct data format when writing data to the Texture.
+        ///       </item>
+        ///       <item>Textures can have multiple mipmap levels. You must specify which level you want to map with <paramref name="subResourceIndex"/>.</item>
+        ///       <item>
+        ///         Use appropriate <see cref="MapMode"/> values when calling <see cref="MapSubResource"/>.
+        ///         For example, <see cref="MapMode.WriteDiscard"/> is usually used to update dynamic Textures.
+        ///       </item>
+        ///     </list>
+        ///   </para>
+        ///   <para>
+        ///     Restrictions:
+        ///     <list type="bullet">
+        ///       <item>
+        ///         Not all <see cref="PixelFormat"/>s are compatible with mapping operations.
+        ///       </item>
+        ///       <item>Concurrent access to a Texture both from the CPU and the GPU may not be allowed and might require careful synchronization.</item>
+        ///       <item>Ensure that the Texture data is properly aligned to meet the requirements of your graphics API and the <see cref="Texture.Format"/>.</item>
+        ///     </list>
+        ///   </para>
+        ///
+        ///   For <strong>State Objects</strong> (like <see cref="PipelineState"/>, <see cref="SamplerState"/>, etc):
+        ///   <para>
+        ///     Restrictions:
+        ///     <list type="bullet">
+        ///       <item>
+        ///         State Objects are not usually mapped nor directly updated. They are created with specific configurations and are treated
+        ///         as immutable from now on. Instead, if you need changes, you can create a new State Object with the updated settings.
+        ///       </item>
+        ///     </list>
+        ///   </para>
+        ///
+        ///   After updating the <paramref name="resource"/>, call <see cref="UnmapSubResource"/> to release the CPU pointer and allow the GPU to access the updated data.
+        /// </remarks>
+        public unsafe partial MappedResource MapSubResource(GraphicsResource resource, int subResourceIndex, MapMode mapMode, bool doNotWait = false, int offsetInBytes = 0, int lengthInBytes = 0);
+
+        // TODO GRAPHICS REFACTOR what should we do with this?
+        /// <summary>
+        ///   Unmaps a sub-resource of a Graphics Resource, which was previously mapped to CPU memory with <see cref="MapSubResource"/>,
+        ///   and in the process re-enables the GPU access to that sub-resource.
+        /// </summary>
+        /// <param name="mappedResource">
+        ///   A <see cref="MappedResource"/> structure identifying the sub-resource to unmap.
+        /// </param>
+        public unsafe partial void UnmapSubResource(MappedResource mappedResource);
     }
 }
