@@ -107,13 +107,19 @@ namespace Stride.Graphics
 
             public bool Equals(VertexAttribsKey other)
             {
+                if (other is null)
+                    return false;
+
+                if (ReferenceEquals(this, other))
+                    return true;
+
                 return Hash == other.Hash && ArrayExtensions.ArraysEqual(Attribs, other.Attribs);
             }
 
             public override bool Equals(object obj)
             {
                 if (ReferenceEquals(null, obj)) return false;
-                return obj is VertexAttribsKey && Equals((VertexAttribsKey)obj);
+                return obj is VertexAttribsKey vertexAttribsKey && Equals(vertexAttribsKey);
             }
 
             public override int GetHashCode()

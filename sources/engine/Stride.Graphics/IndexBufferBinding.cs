@@ -67,6 +67,12 @@ namespace Stride.Graphics
         /// <inheritdoc/>
         public bool Equals(IndexBufferBinding other)
         {
+            if (other is null)
+                return false;
+
+            if (ReferenceEquals(this, other))
+                return true;
+
             return Buffer.Equals(other.Buffer)
                 && Offset == other.Offset
                 && Count == other.Count

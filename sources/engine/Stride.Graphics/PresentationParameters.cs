@@ -296,6 +296,7 @@ public sealed class PresentationParameters : IEquatable<PresentationParameters>
     {
         if (other is null)
             return false;
+
         if (ReferenceEquals(this, other))
             return true;
 

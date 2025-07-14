@@ -18,7 +18,7 @@ internal readonly struct PipelineStateDescriptionWithHash(PipelineStateDescripti
 
 
     /// <inheritdoc/>
-    public bool Equals(PipelineStateDescriptionWithHash other)
+    public readonly bool Equals(PipelineStateDescriptionWithHash other)
     {
         return Hash == other.Hash
             && (State is null) == (other.State is null)
@@ -26,13 +26,13 @@ internal readonly struct PipelineStateDescriptionWithHash(PipelineStateDescripti
     }
 
     /// <inheritdoc/>
-    public override bool Equals(object obj)
+    public override readonly bool Equals(object obj)
     {
         return obj is PipelineStateDescriptionWithHash other && Equals(other);
     }
 
     /// <inheritdoc/>
-    public override int GetHashCode() => Hash;
+    public override readonly int GetHashCode() => Hash;
 
     public static bool operator ==(PipelineStateDescriptionWithHash left, PipelineStateDescriptionWithHash right)
     {
