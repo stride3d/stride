@@ -36,7 +36,7 @@ namespace Stride.Graphics
 
             HasDepthAsSRV = true;
             HasDepthAsReadOnlyRT = true;
-            HasMultisampleDepthAsSRV = true;
+            HasMultiSampleDepthAsSRV = true;
 
             HasResourceRenaming = false;
 

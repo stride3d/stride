@@ -101,7 +101,7 @@ namespace Stride.Graphics
         /// <summary>
         ///   Resets a Command List back to its initial state as if a new Command List was just created.
         /// </summary>
-        public partial void Reset()
+        public unsafe partial void Reset()
         {
             if (currentCommandList.Builder is not null)
                 return;
@@ -159,7 +159,7 @@ namespace Stride.Graphics
         /// <summary>
         ///   Closes and executes the Command List.
         /// </summary>
-        public void Flush()
+        public partial void Flush()
         {
             var commandList = Close();
             GraphicsDevice.ExecuteCommandList(commandList);
@@ -196,8 +196,18 @@ namespace Stride.Graphics
             return commandList;
         }
 
-
-
+        /// <summary>
+        ///   Flushes the current Command List and optionally waits for its completion.
+        /// </summary>
+        /// <param name="wait">
+        ///   A value indicating whether to wait for the Command List execution to complete.
+        ///   <see langword="true"/> to wait for completion; otherwise, <see langword="false"/>.
+        /// </param>
+        /// <remarks>
+        ///   This method finalizes the current Command List, submits it for execution, and resets
+        ///   the state for future commands. If <paramref name="wait"/> is <see langword="true"/>,
+        ///   the method will block until the Command List execution is finished.
+        /// </remarks>
         private void FlushInternal(bool wait)
         {
             var commandList = Close();
@@ -322,6 +332,25 @@ namespace Stride.Graphics
         }
 
         /// <summary>
+        ///   Direct3D 12 implementation that sets a scissor rectangle to the rasterizer stage.
+        /// </summary>
+        /// <param name="scissorRectangle">The scissor rectangle to set.</param>
+        private unsafe partial void SetScissorRectangleImpl(ref Rectangle scissorRectangle)
+        {
+            // Do nothing. Direct3D 12 already sets the scissor rectangle as part of PrepareDraw()
+        }
+
+        /// <summary>
+        ///   Direct3D 12 implementation that sets one or more scissor rectangles to the rasterizer stage.
+        /// </summary>
+        /// <param name="scissorCount">The number of scissor rectangles to bind.</param>
+        /// <param name="scissorRectangles">The set of scissor rectangles to bind.</param>
+        private unsafe partial void SetScissorRectanglesImpl(int scissorCount, Rectangle[] scissorRectangles)
+        {
+            // Do nothing. Direct3D 12 already sets the scissor rectangles as part of PrepareDraw()
+        }
+
+        /// <summary>
         ///   Prepares the Command List for a subsequent draw command.
         /// </summary>
         /// <remarks>
@@ -374,7 +403,7 @@ namespace Stride.Graphics
         public void SetPipelineState(PipelineState pipelineState)
         {
             if (boundPipelineState != pipelineState &&
-                pipelineState is { CompiledState: not null })
+                pipelineState is { CompiledState.Handle: not null })
             {
                 // If scissor state changed, force a refresh
                 scissorsDirty |= (boundPipelineState?.HasScissorEnabled ?? false) != pipelineState.HasScissorEnabled;
@@ -1664,7 +1693,7 @@ namespace Stride.Graphics
         /// </exception
         /// <exception cref="InvalidOperationException"><paramref name="resource"/> is of an unknown type and cannot be updated.</exception>
         /// <inheritdoc cref="UpdateSubResource(GraphicsResource, int, ReadOnlySpan{byte}, ResourceRegion)" path="/remarks" />
-        internal unsafe void UpdateSubResource(GraphicsResource resource, int subResourceIndex, DataBox sourceData, ResourceRegion region)
+        internal unsafe partial void UpdateSubResource(GraphicsResource resource, int subResourceIndex, DataBox sourceData, ResourceRegion region)
         {
             if (resource is Texture texture)
             {
@@ -1885,7 +1914,7 @@ namespace Stride.Graphics
         ///
         ///   After updating the <paramref name="resource"/>, call <see cref="UnmapSubResource"/> to release the CPU pointer and allow the GPU to access the updated data.
         /// </remarks>
-        public MappedResource MapSubResource(GraphicsResource resource, int subResourceIndex, MapMode mapMode, bool doNotWait = false, int offsetInBytes = 0, int lengthInBytes = 0)
+        public unsafe partial MappedResource MapSubResource(GraphicsResource resource, int subResourceIndex, MapMode mapMode, bool doNotWait = false, int offsetInBytes = 0, int lengthInBytes = 0)
         {
             ArgumentNullException.ThrowIfNull(resource);
 
@@ -1942,7 +1971,7 @@ namespace Stride.Graphics
 
                     // Need to flush? (i.e. part of)
                     if (resource.StagingBuilder == this)
-                        FlushInternal(false);
+                        FlushInternal(wait: false);
 
                     // If the resource is not being updated by this command list, we need to wait for the fence
                     if (resource.StagingFenceValue is null)
@@ -1972,7 +2001,7 @@ namespace Stride.Graphics
         /// <param name="mappedResource">
         ///   A <see cref="MappedResource"/> structure identifying the sub-resource to unmap.
         /// </param>
-        public void UnmapSubResource(MappedResource unmapped)
+        public unsafe partial void UnmapSubResource(MappedResource unmapped)
         {
             scoped ref var fullRange = ref NullRef<D3D12Range>();
 

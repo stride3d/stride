@@ -53,7 +53,7 @@ namespace Stride.Graphics
             //outputs = new GraphicsOutput[displayProperties.Length];
             //for (var i = 0; i < outputs.Length; i++)
             //    outputs[i] = new GraphicsOutput(this, displayProperties[i], i).DisposeBy(this);
-            Outputs = new[] { new GraphicsOutput() };
+            graphicsOutputs = [ new GraphicsOutput() ];
         }
 
         /// <summary>

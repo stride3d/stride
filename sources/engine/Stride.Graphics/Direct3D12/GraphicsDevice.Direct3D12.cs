@@ -316,7 +316,7 @@ namespace Stride.Graphics
         /// <summary>
         ///   Initializes the platform-specific features of the Graphics Device once it has been fully initialized.
         /// </summary>
-        private partial void InitializePostFeatures() { }
+        private unsafe partial void InitializePostFeatures() { }
 
         private partial string GetRendererName() => rendererName;
 
@@ -326,7 +326,7 @@ namespace Stride.Graphics
         /// <param name="graphicsProfiles">A non-<see langword="null"/> list of the graphics profiles to try, in order of preference.</param>
         /// <param name="deviceCreationFlags">The device creation flags.</param>
         /// <param name="windowHandle">The window handle.</param>
-        private partial void InitializePlatformDevice(GraphicsProfile[] graphicsProfiles, DeviceCreationFlags deviceCreationFlags, object windowHandle)
+        private unsafe partial void InitializePlatformDevice(GraphicsProfile[] graphicsProfiles, DeviceCreationFlags deviceCreationFlags, object windowHandle)
         {
             Debug.Assert(graphicsProfiles is not null && graphicsProfiles.Length > 0, "Graphics profiles must be provided and cannot be empty.");
 

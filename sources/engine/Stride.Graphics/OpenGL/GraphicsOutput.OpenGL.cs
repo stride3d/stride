@@ -8,6 +8,9 @@ namespace Stride.Graphics
 {
     public partial class GraphicsOutput
     {
+        // TODO OpenGL: Implement GraphicsOutput for OpenGL
+        internal GraphicsOutput() { } // Needed by GraphicsAdapter.OpenGL for creating a Graphics Output without arguments
+
         public DisplayMode FindClosestMatchingDisplayMode(GraphicsProfile[] targetProfiles, DisplayMode mode)
         {
             return mode;

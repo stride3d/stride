@@ -83,18 +83,16 @@ namespace Stride.Graphics
             ClearState();
         }
 
-        public void Reset()
-        {
-        }
+        // No OpenGL-specific implementation
+        public unsafe partial void Reset() { }
 
-        public void Flush()
-        {
+        // No OpenGL-specific implementation
+        public partial void Flush() { }
 
-        }
-
-        public CompiledCommandList Close()
+        // No OpenGL-specific implementation
+        public partial CompiledCommandList Close()
         {
-            return default(CompiledCommandList);
+            return default;
         }
 
         public void Clear(Texture depthStencilBuffer, DepthStencilClearOptions options, float depth = 1, byte stencil = 0)
@@ -280,7 +278,10 @@ namespace Stride.Graphics
 #endif
         }
 
-        private void ClearStateImpl()
+        /// <summary>
+        ///   OpenGL-specific implementation that clears and restores the state of the Graphics Device.
+        /// </summary>
+        private partial void ClearStateImpl()
         {
 #if DEBUG
             GraphicsDevice.EnsureContextActive();
@@ -322,7 +323,7 @@ namespace Stride.Graphics
         /// <param name="regionSource">The region of the source <see cref="GraphicsResource"/> to copy.</param>
         /// <param name="destination">The destination into which to copy the data</param>
         /// <remarks>This might alter some states such as currently bound texture.</remarks>
-        public unsafe void CopyRegion(GraphicsResource source, int sourceSubresource, ResourceRegion? regionSource, GraphicsResource destination, int destinationSubResource, int dstX = 0, int dstY = 0, int dstZ = 0)
+        public unsafe void CopyRegion(GraphicsResource source, int sourceSubResource, ResourceRegion? regionSource, GraphicsResource destination, int destinationSubResource, int dstX = 0, int dstY = 0, int dstZ = 0)
         {
 #if DEBUG
             GraphicsDevice.EnsureContextActive();
@@ -341,9 +342,9 @@ namespace Stride.Graphics
             if (destTexture.ParentTexture != null)
                 destTexture = sourceTexture.ParentTexture;
 
-            var sourceWidth = Texture.CalculateMipSize(sourceTexture.Description.Width, sourceSubresource % sourceTexture.MipLevels);
-            var sourceHeight = Texture.CalculateMipSize(sourceTexture.Description.Height, sourceSubresource % sourceTexture.MipLevels);
-            var sourceDepth = Texture.CalculateMipSize(sourceTexture.Description.Depth, sourceSubresource % sourceTexture.MipLevels);
+            var sourceWidth = Texture.CalculateMipSize(sourceTexture.Description.Width, sourceSubResource % sourceTexture.MipLevelCount);
+            var sourceHeight = Texture.CalculateMipSize(sourceTexture.Description.Height, sourceSubResource % sourceTexture.MipLevelCount);
+            var sourceDepth = Texture.CalculateMipSize(sourceTexture.Description.Depth, sourceSubResource % sourceTexture.MipLevelCount);
 
             var sourceRegion = regionSource.HasValue ? regionSource.Value : new ResourceRegion(0, 0, 0, sourceWidth, sourceHeight, sourceDepth);
             var sourceRectangle = new Rectangle(sourceRegion.Left, sourceRegion.Top, sourceRegion.Right - sourceRegion.Left, sourceRegion.Bottom - sourceRegion.Top);
@@ -366,9 +367,9 @@ namespace Stride.Graphics
                     GL.BindBuffer(BufferTargetARB.CopyReadBuffer, sourceTexture.PixelBufferObjectId);
                     GL.BindBuffer(BufferTargetARB.CopyWriteBuffer, destTexture.PixelBufferObjectId);
                     GL.CopyBufferSubData(CopyBufferSubDataTarget.CopyReadBuffer, CopyBufferSubDataTarget.CopyWriteBuffer,
-                        (IntPtr)sourceTexture.ComputeBufferOffset(sourceSubresource, 0),
+                        (IntPtr)sourceTexture.ComputeBufferOffset(sourceSubResource, 0),
                         (IntPtr)destTexture.ComputeBufferOffset(destinationSubResource, 0),
-                        (UIntPtr)destTexture.ComputeSubresourceSize(destinationSubResource));
+                        (UIntPtr)destTexture.ComputeSubResourceSize(destinationSubResource));
                 }
                 else
                 {
@@ -385,7 +386,7 @@ namespace Stride.Graphics
 
                     for (int depthSlice = sourceRegion.Front; depthSlice < sourceRegion.Back; ++depthSlice)
                     {
-                        attachmentType = GraphicsDevice.UpdateFBO(FramebufferTarget.Framebuffer, new GraphicsDevice.FBOTexture(sourceTexture, sourceSubresource / sourceTexture.MipLevels + depthSlice, sourceSubresource % sourceTexture.MipLevels));
+                        attachmentType = GraphicsDevice.UpdateFBO(FramebufferTarget.Framebuffer, new GraphicsDevice.FBOTexture(sourceTexture, sourceSubResource / sourceTexture.MipLevelCount + depthSlice, sourceSubResource % sourceTexture.MipLevelCount));
 
                         GL.BindBuffer(BufferTargetARB.PixelPackBuffer, destTexture.PixelBufferObjectId);
                         GL.ReadPixels(sourceRectangle.Left, sourceRectangle.Top, (uint)sourceRectangle.Width, (uint)sourceRectangle.Height, destTexture.TextureFormat, destTexture.TextureType, (void*)destTexture.ComputeBufferOffset(destinationSubResource, depthSlice));
@@ -426,10 +427,10 @@ namespace Stride.Graphics
                 for (int depthSlice = sourceRegion.Front; depthSlice < sourceRegion.Back; ++depthSlice)
                 {
                     // Note: In practice, either it's a 2D texture array and its arrayslice can be non zero, or it's a 3D texture and it's depthslice can be non-zero, but not both at the same time
-                    attachmentType = GraphicsDevice.UpdateFBO(FramebufferTarget.Framebuffer, new GraphicsDevice.FBOTexture(sourceTexture, sourceSubresource / sourceTexture.MipLevels + depthSlice, sourceSubresource % sourceTexture.MipLevels));
+                    attachmentType = GraphicsDevice.UpdateFBO(FramebufferTarget.Framebuffer, new GraphicsDevice.FBOTexture(sourceTexture, sourceSubResource / sourceTexture.MipLevelCount + depthSlice, sourceSubResource % sourceTexture.MipLevelCount));
 
-                    var arraySlice = destinationSubResource / destTexture.MipLevels;
-                    var mipLevel = destinationSubResource % destTexture.MipLevels;
+                    var arraySlice = destinationSubResource / destTexture.MipLevelCount;
+                    var mipLevel = destinationSubResource % destTexture.MipLevelCount;
 
                     switch (destTexture.TextureTarget)
                     {
@@ -642,7 +643,7 @@ namespace Stride.Graphics
             var sourceTexture = source as Texture;
             if (sourceTexture != null)
             {
-                subresourceCount = sourceTexture.ArraySize * sourceTexture.MipLevels;
+                subresourceCount = sourceTexture.ArraySize * sourceTexture.MipLevelCount;
             }
 
             // Copy each subresource
@@ -909,7 +910,7 @@ namespace Stride.Graphics
         {
         }
 
-        public unsafe MappedResource MapSubresource(GraphicsResource resource, int subResourceIndex, MapMode mapMode, bool doNotWait = false, int offsetInBytes = 0, int lengthInBytes = 0)
+        public unsafe partial MappedResource MapSubResource(GraphicsResource resource, int subResourceIndex, MapMode mapMode, bool doNotWait = false, int offsetInBytes = 0, int lengthInBytes = 0)
         {
 #if DEBUG
             GraphicsDevice.EnsureContextActive();
@@ -946,14 +947,14 @@ namespace Stride.Graphics
             if (resource is Texture texture)
             {
                 if (lengthInBytes == 0)
-                    lengthInBytes = texture.ComputeSubresourceSize(subResourceIndex);
+                    lengthInBytes = texture.ComputeSubResourceSize(subResourceIndex);
 
                 if (mapMode == MapMode.Read)
                 {
                     if (texture.Description.Usage != GraphicsResourceUsage.Staging)
                         throw new NotSupportedException("Only staging textures can be mapped.");
 
-                    var mipLevel = subResourceIndex % texture.MipLevels;
+                    var mipLevel = subResourceIndex % texture.MipLevelCount;
 
                     if (doNotWait)
                     {
@@ -973,16 +974,16 @@ namespace Stride.Graphics
 
                     // Create a temporary unpack pixel buffer
                     // TODO: Pool/allocator? (it's an upload buffer basically)
-                    var pixelBufferObjectId = texture.GeneratePixelBufferObject(BufferTargetARB.PixelUnpackBuffer, PixelStoreParameter.UnpackAlignment, BufferUsageARB.DynamicCopy, texture.ComputeSubresourceSize(subResourceIndex));
+                    var pixelBufferObjectId = texture.GeneratePixelBufferObject(BufferTargetARB.PixelUnpackBuffer, PixelStoreParameter.UnpackAlignment, BufferUsageARB.DynamicCopy, texture.ComputeSubResourceSize(subResourceIndex));
 
                     return MapTexture(texture, false, BufferTargetARB.PixelUnpackBuffer, pixelBufferObjectId, subResourceIndex, mapMode, offsetInBytes, lengthInBytes);
                 }
             }
 
-            throw new NotSupportedException("MapSubresource not implemented for type " + resource.GetType());
+            throw new NotSupportedException("MapSubResource not implemented for type " + resource.GetType());
         }
 
-        public void UnmapSubresource(MappedResource unmapped)
+        public unsafe partial void UnmapSubResource(MappedResource unmapped)
         {
 #if DEBUG
             GraphicsDevice.EnsureContextActive();
@@ -1010,8 +1011,8 @@ namespace Stride.Graphics
 
                     GL.BindTexture(texture.TextureTarget, texture.TextureId);
 
-                    var mipLevel = unmapped.SubResourceIndex % texture.MipLevels;
-                    var arraySlice = unmapped.SubResourceIndex / texture.MipLevels;
+                    var mipLevel = unmapped.SubResourceIndex % texture.MipLevelCount;
+                    var arraySlice = unmapped.SubResourceIndex / texture.MipLevelCount;
 
                     // Bind buffer to texture
                     switch (texture.TextureTarget)
@@ -1056,17 +1057,17 @@ namespace Stride.Graphics
                 }
                 else // neither texture nor buffer
                 {
-                    throw new NotImplementedException("UnmapSubresource not implemented for type " + unmapped.Resource.GetType());
+                    throw new NotImplementedException("UnmapSubResource not implemented for type " + unmapped.Resource.GetType());
                 }
             }
         }
 
-        private unsafe MappedResource MapTexture(Texture texture, bool adjustOffsetForSubresource, BufferTargetARB bufferTarget, uint pixelBufferObjectId, int subResourceIndex, MapMode mapMode, int offsetInBytes, int lengthInBytes)
+        private unsafe MappedResource MapTexture(Texture texture, bool adjustOffsetForSubResource, BufferTargetARB bufferTarget, uint pixelBufferObjectId, int subResourceIndex, MapMode mapMode, int offsetInBytes, int lengthInBytes)
         {
-            int mipLevel = subResourceIndex % texture.MipLevels;
+            int mipLevel = subResourceIndex % texture.MipLevelCount;
 
             GL.BindBuffer(bufferTarget, pixelBufferObjectId);
-            var mapResult = (IntPtr)GL.MapBufferRange(bufferTarget, (IntPtr)offsetInBytes + (adjustOffsetForSubresource ? texture.ComputeBufferOffset(subResourceIndex, 0) : 0), (UIntPtr)lengthInBytes, mapMode.ToOpenGLMask());
+            var mapResult = (IntPtr)GL.MapBufferRange(bufferTarget, (IntPtr)offsetInBytes + (adjustOffsetForSubResource ? texture.ComputeBufferOffset(subResourceIndex, 0) : 0), (UIntPtr)lengthInBytes, mapMode.ToOpenGLMask());
             GL.BindBuffer(bufferTarget, 0);
 
             return new MappedResource(texture, subResourceIndex, new DataBox { DataPointer = mapResult, SlicePitch = texture.ComputeSlicePitch(mipLevel), RowPitch = texture.ComputeRowPitch(mipLevel) }, offsetInBytes, lengthInBytes)
@@ -1180,7 +1181,7 @@ namespace Stride.Graphics
                         if (samplerStateChanged && texture != null)
                         {
                             // TODO: Include hasMipmap in samplerStateChanged
-                            bool hasMipmap = texture.Description.MipLevels > 1;
+                            bool hasMipmap = texture.Description.MipLevelCount > 1;
 
                             samplerState.Apply(hasMipmap, boundSamplerState, texture.TextureTarget);
                             texture.BoundSamplerState = samplerState;
@@ -1268,7 +1269,7 @@ namespace Stride.Graphics
             samplerStates[slot] = samplerState;
         }
 
-        unsafe partial void SetScissorRectangleImpl(ref Rectangle scissorRectangle)
+        private unsafe partial void SetScissorRectangleImpl(ref Rectangle scissorRectangle)
         {
 #if DEBUG
             GraphicsDevice.EnsureContextActive();
@@ -1276,7 +1277,7 @@ namespace Stride.Graphics
             GL.Scissor(scissorRectangle.Left, scissorRectangle.Top, (uint)scissorRectangle.Width, (uint)scissorRectangle.Height);
         }
 
-        unsafe partial void SetScissorRectanglesImpl(int scissorCount, Rectangle[] scissorRectangles)
+        private unsafe partial void SetScissorRectanglesImpl(int scissorCount, Rectangle[] scissorRectangles)
         {
 #if DEBUG
             GraphicsDevice.EnsureContextActive();
@@ -1353,7 +1354,7 @@ namespace Stride.Graphics
 #if DEBUG
             GraphicsDevice.EnsureContextActive();
 #endif
-            
+
             //throw new NotImplementedException();
         }
 
@@ -1475,7 +1476,45 @@ namespace Stride.Graphics
             SetRenderTargets(null, null);
         }
 
-        internal unsafe void UpdateSubresource(GraphicsResource resource, int subResourceIndex, DataBox databox)
+        /// <summary>
+        ///   Copies data from memory to a sub-resource created in non-mappable memory.
+        /// </summary>
+        /// <param name="resource">The destination Graphics Resource to copy data to.</param>
+        /// <param name="subResourceIndex">The sub-resource index of <paramref name="resource"/> to copy data to.</param>
+        /// <param name="sourceData">The source data in CPU memory to copy.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="resource"/> is <see langword="null"/>.</exception>
+        /// <remarks>
+        ///   <para>
+        ///     If <paramref name="resource"/> is a Constant Buffer, it must be updated in full.
+        ///     It is not possible to use this method to partially update a Constant Buffer.
+        ///   </para>
+        ///   <para>
+        ///     A Graphics Resource cannot be used as a destination if:
+        ///     <list type="bullet">
+        ///       <item>The resource was created with <see cref="GraphicsResourceUsage.Immutable"/> or <see cref="GraphicsResourceUsage.Dynamic"/>.</item>
+        ///       <item>The resource was created as a Depth-Stencil Buffer.</item>
+        ///       <item>The resource is a Texture created with multi-sampling capability (see <see cref="TextureDescription.MultisampleCount"/>).</item>
+        ///     </list>
+        ///   </para>
+        ///   <para>
+        ///     When <see cref="UpdateSubResource"/> returns, the application is free to change or even free the data pointed to by
+        ///     <paramref name="sourceData"/> because the method has already copied/snapped away the original contents.
+        ///   </para>
+        /// </remarks>
+        internal unsafe void UpdateSubResource(GraphicsResource resource, int subResourceIndex, ReadOnlySpan<byte> sourceData)
+        {
+            ArgumentNullException.ThrowIfNull(resource);
+
+            if (sourceData.IsEmpty)
+                return;
+
+            fixed (byte* sourceDataPtr = sourceData)
+            {
+                UpdateSubResource(resource, subResourceIndex, new DataBox((nint) sourceDataPtr, sourceData.Length, 0));
+            }
+        }
+
+        internal unsafe void UpdateSubResource(GraphicsResource resource, int subResourceIndex, DataBox databox)
         {
 #if DEBUG
             GraphicsDevice.EnsureContextActive();
@@ -1495,7 +1534,7 @@ namespace Stride.Graphics
                     GL.BindTexture(buffer.TextureTarget, buffer.TextureId);
                     boundShaderResourceViews[0] = null; // bound active texture 0 has changed
 
-                    buffer.UpdateTextureSubresource(databox.DataPointer, 0, 0, buffer.ElementCount);
+                    buffer.UpdateTextureSubResource(databox.DataPointer, 0, 0, buffer.ElementCount);
                 }
                 else
                 {
@@ -1520,8 +1559,8 @@ namespace Stride.Graphics
                     boundShaderResourceViews[0] = null; // bound active texture 0 has changed
 
                     var desc = texture.Description;
-                    var mipLevel = subResourceIndex % texture.MipLevels;
-                    var arraySlice = subResourceIndex / texture.MipLevels;
+                    var mipLevel = subResourceIndex % texture.MipLevelCount;
+                    var arraySlice = subResourceIndex / texture.MipLevelCount;
                     switch (texture.TextureTarget)
                     {
 #if !STRIDE_GRAPHICS_API_OPENGLES
@@ -1542,18 +1581,51 @@ namespace Stride.Graphics
                             GL.TexSubImage2D(Texture.GetTextureTargetForDataSet2D(texture.TextureTarget, arraySlice), mipLevel, 0, 0, (uint)desc.Width, (uint)desc.Height, texture.TextureFormat, texture.TextureType, (void*)databox.DataPointer);
                             break;
                         default:
-                            throw new NotImplementedException("UpdateSubresource not implemented for texture target " + texture.TextureTarget);
+                            throw new NotImplementedException("UpdateSubResource not implemented for texture target " + texture.TextureTarget);
                             break;
                     }
                 }
                 else // neither texture nor buffer
                 {
-                    throw new NotImplementedException("UpdateSubresource not implemented for type " + resource.GetType());
+                    throw new NotImplementedException("UpdateSubResource not implemented for type " + resource.GetType());
                 }
             }
         }
 
-        internal unsafe void UpdateSubresource(GraphicsResource resource, int subResourceIndex, DataBox databox, ResourceRegion region)
+        /// <summary>
+        ///   Copies data from memory to a sub-resource created in non-mappable memory.
+        /// </summary>
+        /// <param name="resource">The destination Graphics Resource to copy data to.</param>
+        /// <param name="subResourceIndex">The sub-resource index of <paramref name="resource"/> to copy data to.</param>
+        /// <param name="sourceData">The source data in CPU memory to copy.</param>
+        /// <param name="region">
+        ///   <para>
+        ///     A <see cref="ResourceRegion"/> that defines the portion of the destination sub-resource to copy the resource data into.
+        ///     Coordinates are in bytes for Buffers and in texels for Textures.
+        ///     The dimensions of the source must fit the destination.
+        ///   </para>
+        ///   <para>
+        ///     An empty region makes this method to not perform a copy operation.
+        ///     It is considered empty if the top value is greater than or equal to the bottom value,
+        ///     or the left value is greater than or equal to the right value, or the front value is greater than or equal to the back value.
+        ///   </para>
+        /// </param>
+        /// <exception cref="ArgumentNullException"><paramref name="resource"/> is <see langword="null"/>.</exception>
+        /// <inheritdoc cref="UpdateSubResource(GraphicsResource, int, ReadOnlySpan{byte})" path="/remarks" />
+        internal unsafe void UpdateSubResource(GraphicsResource resource, int subResourceIndex, ReadOnlySpan<byte> sourceData, ResourceRegion region)
+        {
+            ArgumentNullException.ThrowIfNull(resource);
+
+            if (sourceData.IsEmpty)
+                return;
+
+            fixed (byte* sourceDataPtr = sourceData)
+            {
+                UpdateSubResource(resource, subResourceIndex, new DataBox((nint)sourceDataPtr, sourceData.Length, 0), region);
+            }
+        }
+
+        internal unsafe partial void UpdateSubResource(GraphicsResource resource, int subResourceIndex, DataBox databox, ResourceRegion region)
         {
 #if DEBUG
             GraphicsDevice.EnsureContextActive();
@@ -1639,7 +1711,7 @@ namespace Stride.Graphics
                         GL.BindTexture(buffer.TextureTarget, buffer.TextureId);
                         boundShaderResourceViews[0] = null; // bound active texture 0 has changed
 
-                        buffer.UpdateTextureSubresource(databox.DataPointer, 0, region.Left, region.Right - region.Left);
+                        buffer.UpdateTextureSubResource(databox.DataPointer, 0, region.Left, region.Right - region.Left);
                     }
                     else
                     {

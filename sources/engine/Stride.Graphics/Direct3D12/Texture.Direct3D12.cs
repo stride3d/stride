@@ -166,19 +166,6 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        ///   Initializes the Texture with no initial data.
-        /// </summary>
-        /// <exception cref="ArgumentOutOfRangeException">Invalid Texture share options (<see cref="TextureOptions"/>) specified.</exception>
-        /// <exception cref="NotSupportedException">Multi-sampling is only supported for 2D Textures.</exception>
-        /// <exception cref="NotSupportedException">A Texture Cube must have an array size greater than 1.</exception>
-        /// <exception cref="NotSupportedException">Texture Arrays are not supported for 3D Textures.</exception>
-        /// <exception cref="NotSupportedException"><see cref="ViewType.MipBand"/> is not supported for Render Targets.</exception>
-        /// <exception cref="NotSupportedException">Multi-sampling is not supported for Unordered Access Views.</exception>
-        /// <exception cref="NotSupportedException">The Depth-Stencil format specified is not supported.</exception>
-        /// <exception cref="NotSupportedException">Cannot create a read-only Depth-Stencil View because the device does not support it.</exception>
-        private void InitializeFromImpl() => InitializeFromImpl(dataBoxes: null);
-
-        /// <summary>
         ///   Initializes the Texture from the specified data.
         /// </summary>
         /// <param name="dataBoxes">

@@ -70,7 +70,7 @@ public unsafe partial class QueryPool
     /// <exception cref="NotImplementedException">
     ///   Only GPU queries of type <see cref="QueryType.Timestamp"/> are supported.
     /// </exception>
-    private partial void Recreate()
+    private unsafe partial void Recreate()
     {
         var queryDescription = new QueryDesc
         {

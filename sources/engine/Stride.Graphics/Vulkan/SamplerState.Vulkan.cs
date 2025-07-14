@@ -22,7 +22,7 @@ namespace Stride.Graphics
         /// <param name="device">The device.</param>
         /// <param name="name">The name.</param>
         /// <param name="samplerStateDescription">The sampler state description.</param>
-        private SamplerState(GraphicsDevice device, SamplerStateDescription samplerStateDescription) : base(device)
+        private SamplerState(GraphicsDevice device, ref readonly SamplerStateDescription samplerStateDescription) : base(device)
         {
             Description = samplerStateDescription;
 
@@ -198,5 +198,5 @@ namespace Stride.Graphics
             }
         }
     }
-} 
+}
 #endif

@@ -58,5 +58,5 @@ public partial class QueryPool : GraphicsResourceBase
     /// <summary>
     ///   Platform-specific implementation that recreates the queries in the pool.
     /// </summary>
-    private partial void Recreate();
+    private unsafe partial void Recreate();
 }

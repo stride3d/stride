@@ -21,7 +21,8 @@ namespace Stride.Graphics
 
         internal GraphicsAdapter()
         {
-            Outputs = new [] { new GraphicsOutput() };
+            // TODO OpenGL: Implement GraphicsOutput for OpenGL
+            graphicsOutputs = [ new GraphicsOutput() ];
 
             // set default values
             int detectedVersion = 100;
