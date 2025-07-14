@@ -4,9 +4,11 @@
 #if STRIDE_GRAPHICS_API_DIRECT3D11
 
 using System;
-using System.Diagnostics;
+
 using Silk.NET.Core.Native;
 using Silk.NET.Direct3D11;
+
+using static Stride.Graphics.ComPtrHelpers;
 
 namespace Stride.Graphics;
 
@@ -22,7 +24,7 @@ public abstract unsafe partial class GraphicsResourceBase
     ///   If the reference is going to be kept, use <see cref="ComPtr{T}.AddRef()"/> to increment the internal
     ///   reference count, and <see cref="ComPtr{T}.Dispose()"/> when no longer needed to release the object.
     /// </remarks>
-    protected internal ComPtr<ID3D11Resource> NativeResource => ComPtrHelpers.ToComPtr(nativeResource);
+    protected internal ComPtr<ID3D11Resource> NativeResource => ToComPtr(nativeResource);
 
     /// <summary>
     ///   Gets or sets the internal <see cref="ID3D11DeviceChild"/>.
@@ -33,26 +35,22 @@ public abstract unsafe partial class GraphicsResourceBase
     /// </remarks>
     protected internal ComPtr<ID3D11DeviceChild> NativeDeviceChild
     {
-        get => ComPtrHelpers.ToComPtr(nativeDeviceChild);
+        get => ToComPtr(nativeDeviceChild);
         set
         {
             if (nativeDeviceChild == value.Handle)
                 return;
 
             var oldDeviceChild = nativeDeviceChild;
-            if (oldDeviceChild != null)
-            {
+            if (oldDeviceChild is not null)
                 oldDeviceChild->Release();
-            }
 
             nativeDeviceChild = value.Handle;
-            if (nativeDeviceChild != null)
-            {
-                nativeDeviceChild->AddRef();
-            }
-            else return;
 
-            Debug.Assert(nativeDeviceChild != null);
+            if (nativeDeviceChild is null)
+                return;
+
+            nativeDeviceChild->AddRef();
 
             HResult result = nativeDeviceChild->QueryInterface(out ComPtr<ID3D11Resource> d3dResource);
 
@@ -92,16 +90,8 @@ public abstract unsafe partial class GraphicsResourceBase
     {
         Destroyed?.Invoke(this, EventArgs.Empty);
 
-        if (nativeDeviceChild != null)
-        {
-            nativeDeviceChild->Release();
-            nativeDeviceChild = null;
-        }
-        if (nativeResource != null)
-        {
-            nativeResource->Release();
-            nativeResource = null;
-        }
+        SafeRelease(ref nativeDeviceChild);
+        SafeRelease(ref nativeResource);
     }
 
     /// <summary>

@@ -6,6 +6,8 @@
 using Silk.NET.Core.Native;
 using Silk.NET.Direct3D11;
 
+using static Stride.Graphics.ComPtrHelpers;
+
 namespace Stride.Graphics;
 
 public abstract unsafe partial class GraphicsResource
@@ -35,12 +37,12 @@ public abstract unsafe partial class GraphicsResource
         {
             if (shaderResourceView is not null)
             {
-                using var srv = shaderResourceView->QueryInterface<ID3D11DeviceChild>();
+                var srv = ToComPtr(shaderResourceView).AsDeviceChild();
                 srv.SetDebugName(Name is null ? null : $"{Name} SRV");
             }
             if (unorderedAccessView is not null)
             {
-                using var uav = unorderedAccessView->QueryInterface<ID3D11DeviceChild>();
+                var uav = ToComPtr(unorderedAccessView).AsDeviceChild();
                 uav.SetDebugName(Name is null ? null : $"{Name} UAV");
             }
         }
@@ -59,21 +61,25 @@ public abstract unsafe partial class GraphicsResource
     /// </remarks>
     protected internal ComPtr<ID3D11ShaderResourceView> NativeShaderResourceView
     {
-        get => ComPtrHelpers.ToComPtr(shaderResourceView);
+        get => ToComPtr(shaderResourceView);
         set
         {
+            if (shaderResourceView == value.Handle)
+                return;
+
             var previousShaderResourceView = shaderResourceView;
 
             shaderResourceView = value.Handle;
 
             if (shaderResourceView != previousShaderResourceView)
             {
-                previousShaderResourceView->Release();
+                if (previousShaderResourceView is not null)
+                    previousShaderResourceView->Release();
             }
 
-            if (IsDebugMode && shaderResourceView != null)
+            if (IsDebugMode && shaderResourceView is not null)
             {
-                var srv = ComPtrHelpers.ToComPtr<ID3D11DeviceChild, ID3D11ShaderResourceView>(shaderResourceView);
+                var srv = ToComPtr(shaderResourceView).AsDeviceChild();
                 srv.SetDebugName(Name is null ? null : $"{Name} SRV");
             }
         }
@@ -89,21 +95,25 @@ public abstract unsafe partial class GraphicsResource
     /// </remarks>
     protected internal ComPtr<ID3D11UnorderedAccessView> NativeUnorderedAccessView
     {
-        get => ComPtrHelpers.ToComPtr(unorderedAccessView);
+        get => ToComPtr(unorderedAccessView);
         set
         {
+            if (unorderedAccessView == value.Handle)
+                return;
+
             var previousUnorderedAccessView = unorderedAccessView;
 
             unorderedAccessView = value.Handle;
 
             if (unorderedAccessView != previousUnorderedAccessView)
             {
-                previousUnorderedAccessView->Release();
+                if (previousUnorderedAccessView is not null)
+                    previousUnorderedAccessView->Release();
             }
 
-            if (IsDebugMode && unorderedAccessView != null)
+            if (IsDebugMode && unorderedAccessView is not null)
             {
-                var uav = ComPtrHelpers.ToComPtr<ID3D11DeviceChild, ID3D11UnorderedAccessView>(unorderedAccessView);
+                var uav = ToComPtr(unorderedAccessView).AsDeviceChild();
                 uav.SetDebugName(Name is null ? null : $"{Name} UAV");
             }
         }
@@ -116,8 +126,8 @@ public abstract unsafe partial class GraphicsResource
     /// </remarks>
     protected internal override void OnDestroyed()
     {
-        ComPtrHelpers.SafeRelease(ref shaderResourceView);
-        ComPtrHelpers.SafeRelease(ref unorderedAccessView);
+        SafeRelease(ref shaderResourceView);
+        SafeRelease(ref unorderedAccessView);
 
         base.OnDestroyed();
     }

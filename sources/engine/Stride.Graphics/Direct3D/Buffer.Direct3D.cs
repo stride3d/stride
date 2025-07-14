@@ -38,15 +38,14 @@ namespace Stride.Graphics
                     return;
 
                 var oldNativeBuffer = nativeBuffer;
-                if (oldNativeBuffer != null)
-                {
+
+                if (oldNativeBuffer is not null)
                     oldNativeBuffer->Release();
-                }
+
                 nativeBuffer = value.Handle;
-                if (nativeBuffer != null)
-                {
+
+                if (nativeBuffer is not null)
                     nativeBuffer->AddRef();
-                }
             }
         }
 

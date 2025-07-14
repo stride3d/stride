@@ -4,7 +4,6 @@
 #if STRIDE_GRAPHICS_API_DIRECT3D12
 
 using System;
-using System.Diagnostics;
 
 using Silk.NET.Core.Native;
 using Silk.NET.Direct3D12;
@@ -37,7 +36,6 @@ namespace Stride.Graphics
         protected internal ComPtr<ID3D12DeviceChild> NativeDeviceChild
         {
             get => ToComPtr(nativeDeviceChild);
-
             set
             {
                 if (nativeDeviceChild == value.Handle)
@@ -47,13 +45,12 @@ namespace Stride.Graphics
                 if (oldDeviceChild is not null)
                     oldDeviceChild->Release();
 
-                nativeDeviceChild = value;
-                if (nativeDeviceChild is not null)
-                    nativeDeviceChild->AddRef();
-                else
+                nativeDeviceChild = value.Handle;
+
+                if (nativeDeviceChild is null)
                     return;
 
-                Debug.Assert(nativeDeviceChild is not null);
+                nativeDeviceChild->AddRef();
 
                 HResult result = nativeDeviceChild->QueryInterface(out ComPtr<ID3D12Resource> d3d12Resource);
 

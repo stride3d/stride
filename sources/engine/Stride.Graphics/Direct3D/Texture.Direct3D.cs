@@ -25,13 +25,15 @@
 
 using System;
 using System.Diagnostics;
-using System.Runtime.CompilerServices;
 
 using Silk.NET.Core.Native;
 using Silk.NET.DXGI;
 using Silk.NET.Direct3D11;
 
 using Stride.Core.UnsafeExtensions;
+
+using static System.Runtime.CompilerServices.Unsafe;
+using static Stride.Graphics.ComPtrHelpers;
 
 namespace Stride.Graphics
 {
@@ -59,7 +61,7 @@ namespace Stride.Graphics
         /// </remarks>
         internal ComPtr<ID3D11DepthStencilView> NativeDepthStencilView
         {
-            get => ComPtrHelpers.ToComPtr(depthStencilView);
+            get => ToComPtr(depthStencilView);
 
             private set
             {
@@ -67,6 +69,9 @@ namespace Stride.Graphics
                 // and disposed by us.
                 // If in the future we need this to be public/internal/protected and it can be assigned from other
                 // places, this should manage the ComPtr lifetime appropriately.
+
+                if (value.Handle == depthStencilView)
+                    return;
 
                 depthStencilView = value.Handle;
 
@@ -86,7 +91,7 @@ namespace Stride.Graphics
         /// </remarks>
         internal ComPtr<ID3D11RenderTargetView> NativeRenderTargetView
         {
-            get => ComPtrHelpers.ToComPtr(renderTargetView);
+            get => ToComPtr(renderTargetView);
 
             private set
             {
@@ -94,6 +99,9 @@ namespace Stride.Graphics
                 // and disposed by us.
                 // If in the future we need this to be public/internal/protected and it can be assigned from other
                 // places, this should manage the ComPtr lifetime appropriately.
+
+                if (value.Handle == renderTargetView)
+                    return;
 
                 renderTargetView = value.Handle;
 
@@ -143,10 +151,10 @@ namespace Stride.Graphics
         /// <returns>This Texture after being initialized.</returns>
         internal Texture InitializeFromImpl(ID3D11Texture2D* texture, bool treatAsSrgb)
         {
-            var ptrTexture = ComPtrHelpers.ToComPtr(texture);
+            var ptrTexture = ToComPtr(texture);
             NativeDeviceChild = ptrTexture.AsDeviceChild();
 
-            Unsafe.SkipInit(out Texture2DDesc textureDesc);
+            SkipInit(out Texture2DDesc textureDesc);
             ptrTexture.GetDesc(ref textureDesc);
 
             var newTextureDescription = ConvertFromNativeDescription(textureDesc);
@@ -170,26 +178,26 @@ namespace Stride.Graphics
         /// </exception>
         internal Texture InitializeFromImpl(ID3D11ShaderResourceView* srv)
         {
-            Unsafe.SkipInit(out ShaderResourceViewDesc srvDescription);
+            SkipInit(out ShaderResourceViewDesc srvDescription);
             srv->GetDesc(ref srvDescription);
 
             if (srvDescription.ViewDimension == D3DSrvDimension.D3D101SrvDimensionTexture2D)
             {
                 NativeShaderResourceView = srv; // Implicit conversion to ComPtr calls AddRef()
 
-                ID3D11Resource* resource;
-                srv->GetResource(&resource);
+                ComPtr<ID3D11Resource> resource = default;
+                srv->GetResource(ref resource);
 
-                HResult result = resource->QueryInterface(out ComPtr<ID3D11Texture2D> texture);
-
-                using var _ = texture; // Release the resource when done
+                HResult result = resource.QueryInterface(out ComPtr<ID3D11Texture2D> texture);
 
                 if (result.IsFailure)
                     result.Throw();
 
+                resource.Release();
+
                 NativeDeviceChild = texture.AsDeviceChild();
 
-                Unsafe.SkipInit(out Texture2DDesc textureDesc);
+                SkipInit(out Texture2DDesc textureDesc);
                 texture.GetDesc(ref textureDesc);
 
                 var newTextureDescription = ConvertFromNativeDescription(textureDesc);
@@ -296,7 +304,7 @@ namespace Stride.Graphics
                 GraphicsDevice.RegisterTextureMemoryUsage(SizeInBytes);
             }
 
-            if (NativeShaderResourceView.Handle == null)
+            if (NativeShaderResourceView.IsNull())
                 NativeShaderResourceView = GetShaderResourceView(ViewType, ArraySlice, MipLevel);
 
             NativeUnorderedAccessView = GetUnorderedAccessView(ViewType, ArraySlice, MipLevel);
@@ -313,18 +321,19 @@ namespace Stride.Graphics
             {
                 HResult result = NativeDeviceChild.QueryInterface(out ComPtr<IDXGIResource1> sharedResource1);
 
-                using var _ = sharedResource1; // Release the resource when done
-
                 if (result.IsFailure)
                     result.Throw();
 
                 var uniqueName = $"Stride:{Guid.NewGuid()}";
 
-                void* sharedHandle;
-                result = sharedResource1.CreateSharedHandle(pAttributes: (SecurityAttributes*) null, dwAccess: DxgiConstants.SharedAccessResourceWrite, uniqueName, &sharedHandle);
-
+                void* sharedHandle = null;
+                result = sharedResource1.CreateSharedHandle(pAttributes: in NullRef<SecurityAttributes>(),
+                                                            dwAccess: DxgiConstants.SharedAccessResourceWrite,
+                                                            uniqueName, ref sharedHandle);
                 if (result.IsFailure)
                     result.Throw();
+
+                sharedResource1.Release();
 
                 SharedHandle = new(sharedHandle);
                 SharedNtHandleName = uniqueName;
@@ -334,23 +343,23 @@ namespace Stride.Graphics
             {
                 HResult result = NativeDeviceChild.QueryInterface(out ComPtr<IDXGIResource> sharedResource);
 
-                using var _ = sharedResource; // Release the resource when done
+                if (result.IsFailure)
+                    result.Throw();
+
+                void* sharedHandle = null;
+                result = sharedResource.GetSharedHandle(ref sharedHandle);
 
                 if (result.IsFailure)
                     result.Throw();
 
-                void* sharedHandle;
-                result = sharedResource.GetSharedHandle(&sharedHandle);
-
-                if (result.IsFailure)
-                    result.Throw();
+                sharedResource.Release();
 
                 SharedHandle = new(sharedHandle);
             }
             else
             {
                 // Argument `textureDescription` comes from the constructor
-                throw new ArgumentOutOfRangeException("textureDescription.Options");
+                throw new ArgumentOutOfRangeException("textureDescription.Options", "The options specified for the Texture are not valid.");
             }
 
             //
@@ -358,19 +367,19 @@ namespace Stride.Graphics
             //
             ComPtr<ID3D11Texture1D> CreateTexture1D(DataBox[] initialData)
             {
-                ID3D11Texture1D* texture1D;
+                ComPtr<ID3D11Texture1D> texture1D = default;
 
                 Texture1DDesc description = ConvertToNativeDescription1D();
                 ReadOnlySpan<SubresourceData> initiatDataPerSubresource = ConvertDataBoxes(initialData);
 
                 HResult result = initiatDataPerSubresource.IsEmpty
-                    ? NativeDevice.CreateTexture1D(in description, pInitialData: null, &texture1D)
-                    : NativeDevice.CreateTexture1D(in description, in initiatDataPerSubresource[0], &texture1D);
+                    ? NativeDevice.CreateTexture1D(in description, pInitialData: null, ref texture1D)
+                    : NativeDevice.CreateTexture1D(in description, in initiatDataPerSubresource[0], ref texture1D);
 
                 if (result.IsFailure)
                     result.Throw();
 
-                return ComPtrHelpers.ToComPtr(texture1D);
+                return texture1D;
             }
 
             //
@@ -378,19 +387,19 @@ namespace Stride.Graphics
             //
             ComPtr<ID3D11Texture2D> CreateTexture2D(DataBox[] initialData)
             {
-                ID3D11Texture2D* texture2D;
+                ComPtr<ID3D11Texture2D> texture2D = default;
 
                 Texture2DDesc description = ConvertToNativeDescription2D();
                 ReadOnlySpan<SubresourceData> initiatDataPerSubresource = ConvertDataBoxes(initialData);
 
                 HResult result = initiatDataPerSubresource.IsEmpty
-                    ? NativeDevice.CreateTexture2D(in description, pInitialData: null, &texture2D)
-                    : NativeDevice.CreateTexture2D(in description, in initiatDataPerSubresource[0], &texture2D);
+                    ? NativeDevice.CreateTexture2D(in description, pInitialData: null, ref texture2D)
+                    : NativeDevice.CreateTexture2D(in description, in initiatDataPerSubresource[0], ref texture2D);
 
                 if (result.IsFailure)
                     result.Throw();
 
-                return ComPtrHelpers.ToComPtr(texture2D);
+                return texture2D;
             }
 
             //
@@ -398,19 +407,19 @@ namespace Stride.Graphics
             //
             ComPtr<ID3D11Texture3D> CreateTexture3D(DataBox[] initialData)
             {
-                ID3D11Texture3D* texture3D;
+                ComPtr<ID3D11Texture3D> texture3D = default;
 
                 Texture3DDesc description = ConvertToNativeDescription3D();
                 ReadOnlySpan<SubresourceData> initiatDataPerSubresource = ConvertDataBoxes(initialData);
 
                 HResult result = initiatDataPerSubresource.IsEmpty
-                    ? NativeDevice.CreateTexture3D(in description, pInitialData: null, &texture3D)
-                    : NativeDevice.CreateTexture3D(in description, in initiatDataPerSubresource[0], &texture3D);
+                    ? NativeDevice.CreateTexture3D(in description, pInitialData: null, ref texture3D)
+                    : NativeDevice.CreateTexture3D(in description, in initiatDataPerSubresource[0], ref texture3D);
 
                 if (result.IsFailure)
                     result.Throw();
 
-                return ComPtrHelpers.ToComPtr(texture3D);
+                return texture3D;
             }
         }
 
@@ -438,13 +447,8 @@ namespace Stride.Graphics
                 GraphicsDevice?.RegisterTextureMemoryUsage(-SizeInBytes);
             }
 
-            if (depthStencilView is not null)
-                depthStencilView->Release();
-            depthStencilView = null;
-
-            if (renderTargetView is not null)
-                renderTargetView->Release();
-            renderTargetView = null;
+            SafeRelease(ref depthStencilView);
+            SafeRelease(ref renderTargetView);
 
             base.OnDestroyed();
         }
@@ -568,13 +572,13 @@ namespace Stride.Graphics
                 }
             }
 
-            ID3D11ShaderResourceView* srv;
-            HResult result = NativeDevice.CreateShaderResourceView(NativeResource, &srvDescription, &srv);
+            ComPtr<ID3D11ShaderResourceView> srv = default;
+            HResult result = NativeDevice.CreateShaderResourceView(NativeResource, in srvDescription, ref srv);
 
             if (result.IsFailure)
                 result.Throw();
 
-            return ComPtrHelpers.ToComPtr(srv);
+            return srv;
         }
 
         /// <summary>
@@ -669,13 +673,13 @@ namespace Stride.Graphics
                 }
             }
 
-            ID3D11RenderTargetView* rtv;
-            HResult result = NativeDevice.CreateRenderTargetView(NativeResource, &rtvDescription, &rtv);
+            ComPtr<ID3D11RenderTargetView> rtv = default;
+            HResult result = NativeDevice.CreateRenderTargetView(NativeResource, &rtvDescription, ref rtv);
 
             if (result.IsFailure)
                 result.Throw();
 
-            return ComPtrHelpers.ToComPtr(rtv);
+            return rtv;
         }
 
         /// <summary>
@@ -747,13 +751,13 @@ namespace Stride.Graphics
                 }
             }
 
-            ID3D11UnorderedAccessView* uav;
-            HResult result = NativeDevice.CreateUnorderedAccessView(NativeResource, &uavDescription, &uav);
+            ComPtr<ID3D11UnorderedAccessView> uav = default;
+            HResult result = NativeDevice.CreateUnorderedAccessView(NativeResource, &uavDescription, ref uav);
 
             if (result.IsFailure)
                 result.Throw();
 
-            return ComPtrHelpers.ToComPtr(uav);
+            return uav;
         }
 
         /// <summary>
@@ -813,13 +817,13 @@ namespace Stride.Graphics
                     dsvDescription.Flags |= (uint) DsvFlag.Stencil;
             }
 
-            ID3D11DepthStencilView* dsv;
-            HResult result = NativeDevice.CreateDepthStencilView(NativeResource, &dsvDescription, &dsv);
+            ComPtr<ID3D11DepthStencilView> dsv = default;
+            HResult result = NativeDevice.CreateDepthStencilView(NativeResource, &dsvDescription, ref dsv);
 
             if (result.IsFailure)
                 result.Throw();
 
-            return ComPtrHelpers.ToComPtr(dsv);
+            return dsv;
         }
 
         /// <summary>
