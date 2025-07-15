@@ -13,10 +13,18 @@ using Silk.NET.Direct3D12;
 using Silk.NET.DXGI;
 using Stride.Core.UnsafeExtensions;
 
+using static Stride.Graphics.ComPtrHelpers;
+
 namespace Stride.Graphics;
 
 internal static unsafe class DebugHelpers
 {
+    /// <summary>
+    ///   A flag indicating whether to log debug names for Direct3D objects whenever they are set.
+    /// </summary>
+    public const bool LogDebugNames = true;
+
+
     // From d3dcommon.h in Windows SDK (WKPDID_D3DDebugObjectName)
     public static Guid* DebugObjectName
     {
@@ -54,28 +62,40 @@ internal static unsafe class DebugHelpers
     public static void SetDebugName<T>(this ComPtr<T> comPtr, string name)
         where T : unmanaged, IComVtbl<T>
     {
-        using var nameMemory = SilkMarshal.StringToMemory(name, NativeStringEncoding.LPWStr);
+#if !STRIDE_GRAPHICS_API_DIRECT3D12
+        var nameSpan = name.GetAsciiSpan();
+        var nameSpanLength = (uint) nameSpan.Length;
+#endif
 
-        switch (comPtr)
+        var comPtrVtbl = *comPtr.Handle;
+
+        switch (comPtrVtbl)
         {
             case IComVtbl<IDXGIObject>:
-                var dxgiObject = comPtr.BitCast<ComPtr<T>, ComPtr<IDXGIObject>>();
-                dxgiObject.SetPrivateData(DebugObjectName, (uint) nameMemory.Length, nameMemory.AsPtr<char>());
+                var dxgiObject = CastComPtr<T, IDXGIObject>(comPtr);
+                dxgiObject.SetPrivateData(DebugObjectName, nameSpanLength, nameSpan);
                 break;
 
 #if STRIDE_GRAPHICS_API_DIRECT3D11
             case IComVtbl<ID3D11DeviceChild>:
-                var d3d11DeviceChild = comPtr.BitCast<ComPtr<T>, ComPtr<ID3D11DeviceChild>>();
-                d3d11DeviceChild.SetPrivateData(DebugObjectName, (uint) nameMemory.Length, nameMemory.AsPtr<char>());
+                var d3d11DeviceChild = CastComPtr<T, ID3D11DeviceChild>(comPtr);
+                d3d11DeviceChild.SetPrivateData(DebugObjectName, nameSpanLength, nameSpan);
                 break;
 #elif STRIDE_GRAPHICS_API_DIRECT3D12
             case IComVtbl<ID3D12DeviceChild>:
-                var d3d12DeviceChild = comPtr.BitCast<ComPtr<T>, ComPtr<ID3D12DeviceChild>>();
-                d3d12DeviceChild.SetName(nameMemory.AsPtr<char>());
+                var d3d12DeviceChild = CastComPtr<T, ID3D12DeviceChild>(comPtr);
+                d3d12DeviceChild.SetName(name);
                 break;
 #endif
             default:
                 throw new NotSupportedException("The specified COM pointer type is not supported.");
+        }
+
+        if (LogDebugNames)
+        {
+            // Log the debug name for the object
+            var typeName = typeof(T).Name;
+            Debug.WriteLine($"Changed or set the debug name for {typeName} to '{name}'.");
         }
     }
 }

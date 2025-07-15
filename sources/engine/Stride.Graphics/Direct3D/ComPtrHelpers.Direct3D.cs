@@ -80,6 +80,25 @@ internal static unsafe class ComPtrHelpers
     }
 
     /// <summary>
+    ///   Casts a COM pointer from one interface type to another.
+    /// </summary>
+    /// <typeparam name="TFrom">The source interface type.</typeparam>
+    /// <typeparam name="TTo">The target interface type.</typeparam>
+    /// <param name="comPtr">The COM pointer to be cast.</param>
+    /// <returns>A new <see cref="ComPtr{TTo}"/> representing the casted COM pointer.</returns>
+    /// <remarks>
+    ///   This method performs a direct cast of the underlying pointer. It is the caller's responsibility
+    ///   to ensure that the cast is valid.
+    /// </remarks>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static ComPtr<TTo> CastComPtr<TFrom, TTo>(ComPtr<TFrom> comPtr)
+        where TFrom : unmanaged, IComVtbl<TFrom>
+        where TTo : unmanaged, IComVtbl<TTo>
+    {
+        return new ComPtr<TTo> { Handle = (TTo*) comPtr.Handle };
+    }
+
+    /// <summary>
     ///   Returns a new <see cref="ComPtr{T}"/> instance wrapping the specified native COM pointer without
     ///   altering its reference count.
     /// </summary>
