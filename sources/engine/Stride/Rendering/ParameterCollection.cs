@@ -158,7 +158,7 @@ namespace Stride.Rendering
             var parameterKeyInfosSpan = CollectionsMarshal.AsSpan(parameterKeyInfos);
             
             // Find existing first
-            for (int i = 0; i < parameterKeyInfos.Count; ++i)
+            for (int i = 0; i < parameterKeyInfosSpan.Length; ++i)
             {
                 if (parameterKeyInfosSpan[i].Key == parameterKey)
                 {
@@ -562,7 +562,7 @@ namespace Stride.Rendering
             var newParameterKeyInfos = new List<ParameterKeyInfo>(Math.Max(1, parameterKeyInfos.Count));
             var newParameterKeyInfosSpan = CollectionsMarshal.AsSpan(newParameterKeyInfos);
             newParameterKeyInfos.AddRange(parameterKeyInfos);
-            var processedParameters = new bool[parameterKeyInfos.Count];
+            var processedParameters = new bool[newParameterKeyInfosSpan.Length];
 
             var bufferSize = collectionLayout.BufferSize;
             var resourceCount = collectionLayout.ResourceCount;
@@ -691,7 +691,7 @@ namespace Stride.Rendering
         {
             var parameterKeyInfosSpan = CollectionsMarshal.AsSpan(parameterKeyInfos);
             // Find existing first
-            for (int i = 0; i < parameterKeyInfos.Count; ++i)
+            for (int i = 0; i < parameterKeyInfosSpan.Length; ++i)
             {
                 if (parameterKeyInfosSpan[i].Key == parameterKey)
                 {
