@@ -2,12 +2,13 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using Stride.Core.Mathematics;
+using System.Runtime.InteropServices;
 
 namespace Stride.Animations
 {
     public class AnimationCurveEvaluatorDirectVector4Group : AnimationCurveEvaluatorDirectBlittableGroupBase<Vector4>
     {
-        protected unsafe override void ProcessChannel(ref Channel channel, CompressedTimeSpan newTime, IntPtr location)
+        protected override unsafe void ProcessChannel(ref Channel channel, CompressedTimeSpan newTime, IntPtr location)
         {
             SetTime(ref channel, newTime);
 
@@ -15,7 +16,7 @@ namespace Stride.Animations
             var currentIndex = channel.CurrentIndex;
 
             var keyFrames = channel.Curve.KeyFrames;
-            var keyFramesItems = keyFrames.Items;
+            var keyFramesItems = CollectionsMarshal.AsSpan(keyFrames);
             var keyFramesCount = keyFrames.Count;
 
             // Extract data
