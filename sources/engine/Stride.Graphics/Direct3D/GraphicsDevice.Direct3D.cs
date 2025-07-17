@@ -5,15 +5,16 @@
 
 using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
-
+using System.Runtime.InteropServices;
+using System.Threading;
+using System.Threading.Tasks;
 using Silk.NET.Core.Native;
-using Silk.NET.DXGI;
 using Silk.NET.Direct3D11;
-
+using Silk.NET.DXGI;
 using Stride.Core;
-
+using Stride.Core.UnsafeExtensions;
 using static Stride.Graphics.ComPtrHelpers;
 using static Stride.Graphics.DxgiConstants;
 
@@ -31,6 +32,8 @@ namespace Stride.Graphics
 
         private ID3D11Device* nativeDevice;
         private ID3D11DeviceContext* nativeDeviceContext;
+
+        private ID3D11InfoQueue* nativeInfoQueue;
 
         /// <summary>
         ///   Gets the internal Direct3D 11 Device.
@@ -151,6 +154,12 @@ namespace Stride.Graphics
             var currentDisjointQuery = currentDisjointQueries.Pop();
             nativeDeviceContext->End(currentDisjointQuery);
             disjointQueries.Enqueue(currentDisjointQuery);
+
+            if (IsDebugMode)
+            {
+                // Process any messages in the InfoQueue
+                ProcessInfoQueueMessages();
+            }
         }
 
         /// <summary>
@@ -275,9 +284,81 @@ namespace Stride.Graphics
 
             if (IsDebugMode)
             {
-                NativeDeviceContext.SetDebugName("ImmediateContext");
+                HResult result = nativeDevice->QueryInterface(out ComPtr<ID3D11InfoQueue> infoQueue);
+
+                if (result.IsSuccess && infoQueue.IsNotNull())
+                {
+                    nativeInfoQueue = infoQueue;
+
+                    infoQueue.SetMessageCountLimit(1000);
+                    infoQueue.SetBreakOnSeverity(MessageSeverity.Corruption, true);
+                    infoQueue.SetBreakOnSeverity(MessageSeverity.Error, true);
+                    infoQueue.SetBreakOnSeverity(MessageSeverity.Warning, false);
+                }
             }
         }
+
+        private void OnDeviceInfoQueueMessage(ref readonly Message message)
+        {
+            var eventHandler = DeviceInfoQueueMessage;
+            if (eventHandler is null)
+                return;
+
+            var descriptionSpan = new ReadOnlySpan<byte>(message.PDescription, (int) message.DescriptionByteLength);
+            var description = descriptionSpan.GetString();
+
+            eventHandler(in message, description);
+        }
+
+        internal void ProcessInfoQueueMessages()
+        {
+            Debug.Assert(nativeInfoQueue is not null, "NativeInfoQueue is null. Ensure that the Graphics Device is initialized with the Debug flag.");
+
+            var numMessages = nativeInfoQueue->GetNumStoredMessages();
+            if (numMessages == 0)
+                return;
+
+            // If no event handler is registered, just clear the messages
+            var eventHandler = DeviceInfoQueueMessage;
+            if (eventHandler is null)
+            {
+                nativeInfoQueue->ClearStoredMessages();
+                return;
+            }
+
+            for (var i = 0ul; i < numMessages; i++)
+            {
+                ProcessMessage(i);
+            }
+
+            nativeInfoQueue->ClearStoredMessages();
+
+            //
+            // Retrieves a message from the InfoQueue and invokes the event handler.
+            //
+            void ProcessMessage(ulong index)
+            {
+                nuint messageLength = default;
+                HResult result = nativeInfoQueue->GetMessageA(index, pMessage: null, ref messageLength);
+
+                if (result.IsFailure)
+                    result.Throw();
+
+                Span<byte> messageBytes = stackalloc byte[(int) messageLength];
+
+                ref var message = ref Unsafe.As<byte, Message>(ref messageBytes[0]);
+                result = nativeInfoQueue->GetMessageA(index, ref message, ref messageLength);
+
+                if (result.IsFailure)
+                    result.Throw();
+
+                OnDeviceInfoQueueMessage(in message);
+            }
+        }
+
+        public delegate void GraphicsDeviceInfoMessageHandler(ref readonly Message message, string? description);
+
+        public event GraphicsDeviceInfoMessageHandler? DeviceInfoQueueMessage;
 
         /// <summary>
         ///   Makes Direct3D 11-specific adjustments to the Pipeline State objects created by the Graphics Device.
@@ -318,9 +399,9 @@ namespace Stride.Graphics
             immediateContext.Release();
             nativeDeviceContext = null;
 
-            // Display D3D11 ref counting info
             if (IsDebugMode)
             {
+                // Display D3D11 ref counting info
                 HResult result = nativeDevice->QueryInterface(out ComPtr<ID3D11Debug> debugDevice);
 
                 if (result.IsSuccess && debugDevice.IsNotNull())
@@ -328,6 +409,13 @@ namespace Stride.Graphics
                     debugDevice.ReportLiveDeviceObjects(RldoFlags.Detail);
                     debugDevice.Release();
                 }
+
+                // Process any messages in the InfoQueue before releasing the device
+                ProcessInfoQueueMessages();
+
+                // Release the InfoQueue
+                nativeInfoQueue->ClearStoredMessages();
+                SafeRelease(ref nativeInfoQueue);
             }
 
             NativeDevice.RemoveDisposeBy(this);
