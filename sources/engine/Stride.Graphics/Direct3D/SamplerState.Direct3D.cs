@@ -35,7 +35,9 @@ public unsafe partial class SamplerState
     ///   A <see cref="SamplerStateDescription"/> structure describing the Sampler State
     ///   object to create.
     /// </param>
-    private SamplerState(GraphicsDevice device, ref readonly SamplerStateDescription description) : base(device)
+    /// <param name="name">An optional name that can be used to identify the Sampler State.</param>
+    private SamplerState(GraphicsDevice device, ref readonly SamplerStateDescription description, string? name = null)
+        : base(device, name)
     {
         Description = description;
 

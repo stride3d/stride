@@ -62,30 +62,36 @@ internal static unsafe class DebugHelpers
     public static void SetDebugName<T>(this ComPtr<T> comPtr, string name)
         where T : unmanaged, IComVtbl<T>
     {
-#if !STRIDE_GRAPHICS_API_DIRECT3D12
-        var nameSpan = name.GetAsciiSpan();
-        var nameSpanLength = (uint) nameSpan.Length;
-#endif
-
         var comPtrVtbl = *comPtr.Handle;
 
         switch (comPtrVtbl)
         {
             case IComVtbl<IDXGIObject>:
+            {
+                var nameSpan = name.GetAsciiSpan();
+                var nameSpanLength = (uint) nameSpan.Length;
+
                 var dxgiObject = CastComPtr<T, IDXGIObject>(comPtr);
                 dxgiObject.SetPrivateData(DebugObjectName, nameSpanLength, nameSpan);
                 break;
-
+            }
 #if STRIDE_GRAPHICS_API_DIRECT3D11
             case IComVtbl<ID3D11DeviceChild>:
+            {
+                var nameSpan = name.GetAsciiSpan();
+                var nameSpanLength = (uint) nameSpan.Length;
+
                 var d3d11DeviceChild = CastComPtr<T, ID3D11DeviceChild>(comPtr);
                 d3d11DeviceChild.SetPrivateData(DebugObjectName, nameSpanLength, nameSpan);
                 break;
+            }
 #elif STRIDE_GRAPHICS_API_DIRECT3D12
             case IComVtbl<ID3D12DeviceChild>:
+            {
                 var d3d12DeviceChild = CastComPtr<T, ID3D12DeviceChild>(comPtr);
                 d3d12DeviceChild.SetName(name);
                 break;
+            }
 #endif
             default:
                 throw new NotSupportedException("The specified COM pointer type is not supported.");

@@ -28,7 +28,8 @@ namespace Stride.Graphics
         private DepthFunction compareFunc;
         private TextureCompareMode compareMode;
 
-        private SamplerState(GraphicsDevice device, ref readonly SamplerStateDescription samplerStateDescription) : base(device)
+        private SamplerState(GraphicsDevice device, ref readonly SamplerStateDescription samplerStateDescription, string? name = null)
+            : base(device, name)
         {
             Description = samplerStateDescription;
 

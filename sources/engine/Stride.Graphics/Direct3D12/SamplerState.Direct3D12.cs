@@ -28,7 +28,9 @@ namespace Stride.Graphics
         ///   A <see cref="SamplerStateDescription"/> structure describing the Sampler State
         ///   object to create.
         /// </param>
-        private SamplerState(GraphicsDevice device, ref readonly SamplerStateDescription samplerStateDescription) : base(device)
+        /// <param name="name">An optional name that can be used to identify the Sampler State.</param>
+        private SamplerState(GraphicsDevice device, ref readonly SamplerStateDescription samplerStateDescription, string? name = null)
+            : base(device, name)
         {
             Description = samplerStateDescription;
 
