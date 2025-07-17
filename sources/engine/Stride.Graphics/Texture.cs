@@ -559,6 +559,17 @@ namespace Stride.Graphics
         /// </summary>
         /// <param name="viewDescription">The description of the Texture View to create.</param>
         /// <returns>A new <see cref="Texture"/> that represents the requested Texture View.</returns>
+        /// <exception cref="NotSupportedException">
+        ///   <para>
+        ///     The Texture's <see cref="Flags"/> and the <see cref="ViewFlags"/> are not compatible. The parent Texture must include all
+        ///     the flags defined by the Texture View, or
+        ///   </para>
+        ///   <para>
+        ///     The <see cref="MultisampleCount"/> is not supported for the specified <see cref="Format"/>. Check the
+        ///     <see cref="GraphicsDevice.Features"/> for information about supported pixel formats and the compatible
+        ///     multi-sample counts.
+        ///   </para>
+        /// </exception>
         public Texture ToTextureView(TextureViewDescription viewDescription)
         {
             var texture = GraphicsDevice.IsDebugMode
@@ -1612,7 +1623,18 @@ namespace Stride.Graphics
         ///   An optional array of <see cref="DataBox"/> structures describing the initial data for all the sub-Resources of the new Texture.
         /// </param>
         /// <returns>The new Texture.</returns>
-        /// <exception cref="ArgumentNullException">graphicsDevice</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="graphicsDevice"/> is <see langword="null"/>.</exception>
+        /// <exception cref="NotSupportedException">
+        ///   <para>
+        ///     The Texture's <see cref="Flags"/> and the <see cref="ViewFlags"/> are not compatible. The parent Texture must include all
+        ///     the flags defined by the Texture View, or
+        ///   </para>
+        ///   <para>
+        ///     The <see cref="MultisampleCount"/> is not supported for the specified <see cref="Format"/>. Check the
+        ///     <see cref="GraphicsDevice.Features"/> for information about supported pixel formats and the compatible
+        ///     multi-sample counts.
+        ///   </para>
+        /// </exception>
         public static Texture New(GraphicsDevice graphicsDevice, TextureDescription description, TextureViewDescription viewDescription, params DataBox[] boxes)
         {
             ArgumentNullException.ThrowIfNull(graphicsDevice);

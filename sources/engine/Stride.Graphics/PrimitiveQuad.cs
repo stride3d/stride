@@ -8,7 +8,9 @@ using Stride.Rendering;
 namespace Stride.Graphics
 {
     /// <summary>
-    /// Primitive quad use to draw an effect on a quad (fullscreen by default). This is directly accessible from the <see cref="GraphicsDeviceExtensions.DrawQuad"/> method.
+    ///   A primitive triangle that can be used to draw a Texture or an Effect,
+    ///   commonly used to draw full-screen.
+    ///   This is directly accessible from the <see cref="GraphicsDeviceExtensions.DrawQuad"/> method.
     /// </summary>
     public class PrimitiveQuad : ComponentBase
     {
@@ -17,15 +19,20 @@ namespace Stride.Graphics
         private readonly EffectInstance simpleEffect;
         private readonly SharedData sharedData;
 
+        /// <summary>
+        ///   The definition of the layout of the vertices used to draw the triangle.
+        /// </summary>
         public static readonly VertexDeclaration VertexDeclaration = VertexPositionNormalTexture.Layout;
+        /// <summary>
+        ///   The type of primitives used to draw the triangle.
+        /// </summary>
         public static readonly PrimitiveType PrimitiveType = PrimitiveType.TriangleList;
 
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="PrimitiveQuad" /> class.
+        ///   Initializes a new instance of the <see cref="PrimitiveQuad"/> class.
         /// </summary>
-        /// <param name="graphicsDevice">The graphics device.</param>
-        /// <param name="effect">The effect.</param>
+        /// <param name="graphicsDevice">The Graphics Device.</param>
         public PrimitiveQuad(GraphicsDevice graphicsDevice)
         {
             GraphicsDevice = graphicsDevice;
@@ -44,22 +51,24 @@ namespace Stride.Graphics
 
 
         /// <summary>
-        /// Gets the graphics device.
+        ///   Gets the Graphics Device.
         /// </summary>
-        /// <value>The graphics device.</value>
         public GraphicsDevice GraphicsDevice { get; }
 
         /// <summary>
-        /// Gets the parameters used.
+        ///   Gets the parameters used by the default Effect used to draw.
         /// </summary>
-        /// <value>The parameters.</value>
         public ParameterCollection Parameters => simpleEffect.Parameters;
 
 
         /// <summary>
-        /// Draws a quad. The effect must have been applied before calling this method with pixel shader having the signature float2:TEXCOORD.
+        ///   Draws a full-screen triangle.
         /// </summary>
-        /// <param name="texture"></param>
+        /// <param name="commandList">The Command List to use for drawing.</param>
+        /// <remarks>
+        ///   An Effect with a Pixel Shader having the signature <c>float2 : TEXCOORD</c>
+        ///   must have been applied before calling this method.
+        /// </remarks>
         public void Draw(CommandList commandList)
         {
             commandList.SetVertexBuffer(index: 0, sharedData.VertexBuffer.Buffer, sharedData.VertexBuffer.Offset, sharedData.VertexBuffer.Stride);
@@ -67,9 +76,13 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        /// Draws a quad. The effect must have been applied before calling this method with pixel shader having the signature float2:TEXCOORD.
+        ///   Draws a full-screen triangle.
         /// </summary>
-        /// <param name="texture"></param>
+        /// <param name="graphicsContext">The graphics context to use for drawing.</param>
+        /// <param name="effectInstance">
+        ///   The Effect instance to use for drawing.
+        ///   It must define a Pixel Shader having the signature <c>float2 : TEXCOORD</c>.
+        /// </param>
         public void Draw(GraphicsContext graphicsContext, EffectInstance effectInstance)
         {
             effectInstance.UpdateEffect(GraphicsDevice);
@@ -88,23 +101,38 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        /// Draws a quad with a texture. This Draw method is using the current effect bound to this instance.
+        ///   Draws a full-screen triangle with a Texture.
         /// </summary>
-        /// <param name="texture">The texture.</param>
-        /// <param name="applyEffectStates">The flag to apply effect states.</param>
+        /// <param name="graphicsContext">The graphics context to use for drawing.</param>
+        /// <param name="texture">The Texture to draw.</param>
+        /// <param name="blendState">
+        ///   An optional Blend State to use when drawing the Texture.
+        ///   Specify <see langword="null"/> to use <see cref="BlendStates.Default"/>.
+        /// </param>
+        /// <remarks>
+        ///   The Texture will be sampled using the default Sampler State <see cref="SamplerStateFactory.LinearClamp"/>.
+        /// </remarks>
         public void Draw(GraphicsContext graphicsContext, Texture texture, BlendStateDescription? blendState = null)
         {
             Draw(graphicsContext, texture, samplerState: null, Color.White, blendState);
         }
 
         /// <summary>
-        /// Draws a quad with a texture. This Draw method is using a simple pixel shader that is sampling the texture.
+        ///   Draws a full-screen triangle with a tinted Texture.
         /// </summary>
-        /// <param name="texture">The texture to draw.</param>
-        /// <param name="samplerState">State of the sampler. If null, default sampler is <see cref="SamplerStateFactory.LinearClamp" />.</param>
-        /// <param name="color">The color.</param>
-        /// <param name="applyEffectStates">The flag to apply effect states.</param>
-        /// <exception cref="System.ArgumentException">Expecting a Texture;texture</exception>
+        /// <param name="graphicsContext">The graphics context to use for drawing.</param>
+        /// <param name="texture">The Texture to draw.</param>
+        /// <param name="samplerState">
+        ///   The Sampler State to use for sampling the texture.
+        ///   Specify <see langword="null"/> to use the default Sampler State <see cref="SamplerStateFactory.LinearClamp"/>.
+        /// </param>
+        /// <param name="color">
+        ///   The color to tint the Texture with. The final color will be the texture color multiplied by the specified color.
+        /// </param>
+        /// <param name="blendState">
+        ///   An optional Blend State to use when drawing the Texture.
+        ///   Specify <see langword="null"/> to use <see cref="BlendStates.Default"/>.
+        /// </param>
         public void Draw(GraphicsContext graphicsContext, Texture texture, SamplerState samplerState, Color4 color, BlendStateDescription? blendState = null)
         {
             pipelineState.State.RootSignature = simpleEffect.RootSignature;
@@ -129,16 +157,20 @@ namespace Stride.Graphics
 
 
         /// <summary>
-        /// Internal structure used to store VertexBuffer and VertexInputLayout.
+        ///   Internal class used to store the Vertex Buffer and Vertex Input Layout.
         /// </summary>
         private class SharedData : ComponentBase
         {
             public const string SharedDataKey = "PrimitiveQuad::VertexBuffer";
+
             /// <summary>
-            /// The vertex buffer
+            ///   The Vertex Buffer.
             /// </summary>
             public readonly VertexBufferBinding VertexBuffer;
 
+            /// <summary>
+            ///   The number of vertices in the triangle.
+            /// </summary>
             public const int VertexCount = 3;
 
             // TODO: This is not a quad, but a fullscreen triangle! Maybe this class should be renamed?
@@ -151,6 +183,10 @@ namespace Stride.Graphics
             ];
 
 
+            /// <summary>
+            ///   Initializes a new instance of the <see cref="SharedData"/> class.
+            /// </summary>
+            /// <param name="device">The Graphics Device.</param>
             public SharedData(GraphicsDevice device) : base(name: SharedDataKey)
             {
                 var vertexBuffer = Buffer.Vertex.New(device, TriangleVertices).DisposeBy(this);
