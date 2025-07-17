@@ -25,8 +25,9 @@ public partial class SamplerState : GraphicsResourceBase
     ///   A <see cref="SamplerStateDescription"/> structure describing the Sampler State
     ///   object to create.
     /// </param>
+    /// <param name="name">An optional name that can be used to identify the Sampler State.</param>
     /// <returns>A new Sampler State object.</returns>
-    public static SamplerState New(GraphicsDevice device, SamplerStateDescription description)
+    public static SamplerState New(GraphicsDevice device, ref readonly SamplerStateDescription description, string? name = null)
     {
         // Store SamplerState in a cache (D3D seems to have quite bad concurrency when using CreateSampler while rendering)
         SamplerState samplerState;
@@ -39,7 +40,7 @@ public partial class SamplerState : GraphicsResourceBase
             }
             else
             {
-                samplerState = new SamplerState(device, in description);
+                samplerState = new SamplerState(device, in description, name);
                 device.CachedSamplerStates.Add(description, samplerState);
             }
         }

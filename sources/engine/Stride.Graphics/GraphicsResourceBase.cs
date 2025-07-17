@@ -51,8 +51,11 @@ public partial class GraphicsResourceBase : ComponentBase
     ///   Initializes a new instance of the <see cref="GraphicsResourceBase"/> class.
     /// </summary>
     /// <param name="device">The graphics device.</param>
-    /// <param name="name">A name that can be used to identify the Graphics Resource.</param>
-    protected GraphicsResourceBase(GraphicsDevice device, string name) : base(name)
+    /// <param name="name">
+    ///   A name that can be used to identify the Graphics Resource.
+    ///   Specify <see langword="null"/> to use the type's name instead.
+    /// </param>
+    protected GraphicsResourceBase(GraphicsDevice device, string? name) : base(name)
     {
         AttachToGraphicsDevice(device);
     }

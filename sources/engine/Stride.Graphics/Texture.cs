@@ -318,6 +318,16 @@ namespace Stride.Graphics
         /// <param name="device">The graphics device.</param>
         internal Texture(GraphicsDevice device) : base(device) { }
 
+        /// <summary>
+        ///   Initializes a new instance of the <see cref="Texture"/> class.
+        /// </summary>
+        /// <param name="device">The graphics device.</param>
+        /// <param name="name">
+        ///   A name that can be used to identify the Texture.
+        ///   Specify <see langword="null"/> to use the type's name instead.
+        /// </param>
+        internal Texture(GraphicsDevice device, string? name) : base(device, name) { }
+
 
         /// <inheritdoc/>
         protected override void Destroy()
@@ -365,7 +375,8 @@ namespace Stride.Graphics
         /// <exception cref="NotSupportedException">Cannot create a read-only Depth-Stencil View because the device does not support it.</exception>
         internal Texture InitializeFrom(TextureDescription description, DataBox[] textureDatas = null)
         {
-            return InitializeFrom(parentTexture: null, description, new TextureViewDescription(), textureDatas);
+            var viewDescription = new TextureViewDescription();
+            return InitializeFrom(parentTexture: null, in description, in viewDescription, textureDatas);
         }
 
 #if STRIDE_PLATFORM_ANDROID //&& USE_GLES_EXT_OES_TEXTURE
@@ -397,9 +408,11 @@ namespace Stride.Graphics
         ///     multi-sample counts.
         ///   </para>
         /// </exception>
-        internal Texture InitializeFrom(TextureDescription description, TextureViewDescription viewDescription, DataBox[] textureDatas = null)
+        internal Texture InitializeFrom(ref readonly TextureDescription description,
+                                        ref readonly TextureViewDescription viewDescription,
+                                        DataBox[] textureDatas = null)
         {
-            return InitializeFrom(parentTexture: null, description, viewDescription, textureDatas);
+            return InitializeFrom(parentTexture: null, in description, in viewDescription, textureDatas);
         }
 
         /// <summary>
@@ -422,9 +435,9 @@ namespace Stride.Graphics
         ///     multi-sample counts.
         ///   </para>
         /// </exception>
-        internal Texture InitializeFrom(Texture parentTexture, TextureViewDescription viewDescription, DataBox[] textureDatas = null)
+        internal Texture InitializeFrom(Texture parentTexture, ref readonly TextureViewDescription viewDescription, DataBox[] textureDatas = null)
         {
-            return InitializeFrom(parentTexture, parentTexture.Description, viewDescription, textureDatas);
+            return InitializeFrom(parentTexture, in parentTexture.Description, in viewDescription, textureDatas);
         }
 
         /// <summary>
@@ -460,7 +473,10 @@ namespace Stride.Graphics
         /// <exception cref="NotSupportedException">Multi-sampling is not supported for Unordered Access Views.</exception>
         /// <exception cref="NotSupportedException">The Depth-Stencil format specified is not supported.</exception>
         /// <exception cref="NotSupportedException">Cannot create a read-only Depth-Stencil View because the device does not support it.</exception>
-        internal Texture InitializeFrom(Texture parentTexture, TextureDescription description, TextureViewDescription viewDescription, DataBox[] textureDatas = null)
+        internal Texture InitializeFrom(Texture parentTexture,
+                                        ref readonly TextureDescription description,
+                                        ref readonly TextureViewDescription viewDescription,
+                                        DataBox[] textureDatas = null)
         {
             ParentTexture = parentTexture;
             ParentTexture?.AddReferenceInternal();
@@ -530,12 +546,13 @@ namespace Stride.Graphics
             OnDestroyed();
 
             // Clean description
-            textureDescription = new TextureDescription();
-            textureViewDescription = new TextureViewDescription();
+            textureDescription = default;
+            textureViewDescription = default;
             ViewWidth = ViewHeight = ViewDepth = 0;
             SizeInBytes = 0;
             mipmapDescriptions = null;
         }
+
 
         /// <summary>
         ///   Gets a Texture View on this Texture.
@@ -544,7 +561,11 @@ namespace Stride.Graphics
         /// <returns>A new <see cref="Texture"/> that represents the requested Texture View.</returns>
         public Texture ToTextureView(TextureViewDescription viewDescription)
         {
-            return new Texture(GraphicsDevice).InitializeFrom(ParentTexture ?? this, viewDescription);
+            var texture = GraphicsDevice.IsDebugMode
+                ? new Texture(GraphicsDevice, Name + " " + GetViewDebugName(in viewDescription))
+                : new Texture(GraphicsDevice);
+
+            return texture.InitializeFrom(ParentTexture ?? this, in viewDescription);
         }
 
         /// <summary>
@@ -839,6 +860,148 @@ namespace Stride.Graphics
                  * CalculateMipSize(Height, mipLevel)
                  * CalculateMipSize(Depth, mipLevel);
         }
+
+        #region Debug
+
+        /// <summary>
+        ///   Generates a debug-friendly name for the Texture based on its usage, flags, etc.
+        /// </summary>
+        /// <param name="textureDescription">The description of the Texture.</param>
+        /// <returns>A string representing the debug name of the Texture.</returns>
+        private static string GetDebugName(ref readonly TextureDescription textureDescription)
+        {
+            var textureUsage = textureDescription.Usage;
+            var arraySize = textureDescription.ArraySize;
+            var textureDimension = textureDescription.Dimension;
+            var multiSampleCount = textureDescription.MultisampleCount;
+            var flags = textureDescription.Flags;
+            var width = textureDescription.Width;
+            var height = textureDescription.Height;
+            var depth = textureDescription.Depth;
+            var format = textureDescription.Format;
+
+            return GetDebugName(textureUsage, textureDimension, width, height, depth, arraySize, flags, format, multiSampleCount);
+        }
+
+        /// <summary>
+        ///   Generates a debug-friendly name for the Texture based on its usage, flags, etc.
+        /// </summary>
+        /// <param name="textureUsage">The usage of the Texture.</param>
+        /// <param name="textureDimension">The dimension of the Texture.</param>
+        /// <param name="width">The width of the Texture.</param>
+        /// <param name="height">The height of the Texture.</param>
+        /// <param name="depth">The depth of the Texture.</param>
+        /// <param name="arraySize">The number of array slices in the Texture.</param>
+        /// <param name="textureFlags">The flags of the Texture.</param>
+        /// <param name="format">The pixel format of the Texture.</param>
+        /// <param name="multiSampleCount">The multi-sample count of the Texture.</param>
+        /// <returns>A string representing the debug name of the Texture.</returns>
+        private static string GetDebugName(GraphicsResourceUsage textureUsage, TextureDimension textureDimension,
+                                           int width, int height = 1, int depth = 1, int arraySize = 1,
+                                           TextureFlags textureFlags = TextureFlags.None, PixelFormat format = PixelFormat.None,
+                                           MultisampleCount multiSampleCount = MultisampleCount.None)
+        {
+            var usage = textureUsage != GraphicsResourceUsage.Default
+                ? $"{textureUsage} "
+                : string.Empty;
+
+            var dimension = textureDimension switch
+            {
+                TextureDimension.Texture1D when arraySize > 1 => $"1D Texture Array ({arraySize} elements)",
+                TextureDimension.Texture1D => "1D Texture",
+                TextureDimension.Texture2D when arraySize > 1 => $"2D Texture Array ({arraySize} elements)",
+                TextureDimension.Texture2D => "2D Texture",
+                TextureDimension.Texture3D => "3D Texture",
+                TextureDimension.TextureCube when arraySize > 1 => $"Cube Texture Array ({arraySize} elements)",
+                TextureDimension.TextureCube => "Cube Texture",
+
+                _ => "Texture"
+            };
+
+            var msaa = multiSampleCount > MultisampleCount.None
+                ? $" MSAA {multiSampleCount}"
+                : string.Empty;
+
+            var flags = textureFlags switch
+            {
+                TextureFlags.ShaderResource => "SRV ",
+                TextureFlags.RenderTarget => "Render Target ",
+                TextureFlags.UnorderedAccess => "UAV ",
+                TextureFlags.DepthStencil => "Depth-Stencil ",
+
+                _ => string.Empty
+            };
+
+            var size = string.Empty;
+            if (textureDimension is TextureDimension.Texture1D)
+                size = $"{width}";
+            else if (textureDimension is TextureDimension.Texture2D or TextureDimension.TextureCube)
+                size = $"{width}x{height}";
+            else if (textureDimension is TextureDimension.Texture3D)
+                size = $"{width}x{height}x{depth}";
+
+            return $"{usage}{flags}{dimension}{msaa} ({size}, {format})";
+        }
+
+        /// <summary>
+        ///   Generates a debug-friendly name for a View on a Texture based on its type, flags, etc.
+        /// </summary>
+        /// <param name="textureDescription">The description of the Texture View.</param>
+        /// <returns>A string representing the debug name of the Texture View.</returns>
+        private static string GetViewDebugName(ref readonly TextureViewDescription viewDescription)
+        {
+            var viewType = viewDescription.Type;
+            var flags = viewDescription.Flags;
+            var format = viewDescription.Format;
+            var arraySlice = viewDescription.ArraySlice;
+            var mipLevel = viewDescription.MipLevel;
+
+            return GetViewDebugName(viewType, flags, format, arraySlice, mipLevel);
+        }
+
+        /// <summary>
+        ///   Generates a debug-friendly name for a View on a Texture based on its type, flags, etc.
+        /// </summary>
+        /// <param name="viewType">The type of the Texture View.</param>
+        /// <param name="viewFlags">Flags describing how the Texture View can be bound to the graphics pipeline.</param>
+        /// <param name="format">The pixel format of the Texture View.</param>
+        /// <param name="arraySlice">The index of the array slice the Texture View is referencing.</param>
+        /// <param name="mipLevel">The index of the mip-level the Texture View is referencing.</param>
+        /// <returns>A string representing the debug name of the Texture View.</returns>
+        private static string GetViewDebugName(ViewType viewType, TextureFlags viewFlags, PixelFormat format, int arraySlice, int mipLevel)
+        {
+            var type = viewType switch
+            {
+                ViewType.Full => "Full ",
+                ViewType.MipBand => "Mip Band ",
+                ViewType.ArrayBand => "Array Band ",
+                ViewType.Single => "Single ",
+
+                _ => string.Empty
+            };
+
+            var flags = viewFlags switch
+            {
+                TextureFlags.ShaderResource => "SRV",
+                TextureFlags.RenderTarget => "RTV",
+                TextureFlags.UnorderedAccess => "UAV",
+                TextureFlags.DepthStencil => "DSV",
+
+                _ => string.Empty
+            };
+
+            var mipAndSlice = viewType != ViewType.Full
+                ? $" (Mip {mipLevel}, Slice {arraySlice})"
+                : string.Empty;
+
+            var viewFormat = format != PixelFormat.None
+                ? $" [{format}]"
+                : string.Empty;
+
+            return $"{type}{flags}{mipAndSlice}{viewFormat}";
+        }
+
+        #endregion
 
         #region GetData: Reading data from the Texture
 
@@ -1346,7 +1509,13 @@ namespace Stride.Graphics
         /// </remarks>
         public Texture Clone()
         {
-            return new Texture(GraphicsDevice).InitializeFrom(textureDescription.ToCloneableDescription(), ViewDescription);
+            var cloneableDescription = textureDescription.ToCloneableDescription();
+
+            var texture = GraphicsDevice.IsDebugMode
+                ? new Texture(GraphicsDevice, Name)
+                : new Texture(GraphicsDevice);
+
+            return texture.InitializeFrom(in cloneableDescription, in ViewDescription);
         }
 
         /// <summary>
@@ -1355,7 +1524,14 @@ namespace Stride.Graphics
         /// <returns>The equivalent staging Texture.</returns>
         public Texture ToStaging()
         {
-            return new Texture(GraphicsDevice).InitializeFrom(textureDescription.ToStagingDescription(), ViewDescription.ToStagingDescription());
+            var stagingDescription = textureDescription.ToStagingDescription();
+            var stagingViewDescription = ViewDescription.ToStagingDescription();
+
+            var texture = GraphicsDevice.IsDebugMode
+                ? new Texture(GraphicsDevice, Name)
+                : new Texture(GraphicsDevice);
+
+            return texture.InitializeFrom(in stagingDescription, in stagingViewDescription);
         }
 
         /// <summary>
@@ -1441,7 +1617,11 @@ namespace Stride.Graphics
         {
             ArgumentNullException.ThrowIfNull(graphicsDevice);
 
-            return new Texture(graphicsDevice).InitializeFrom(description, viewDescription, boxes);
+            var texture = graphicsDevice.IsDebugMode
+                ? new Texture(graphicsDevice, GetDebugName(in description) + " " + GetViewDebugName(in viewDescription))
+                : new Texture(graphicsDevice);
+
+            return texture.InitializeFrom(in description, in viewDescription, boxes);
         }
 
 #if STRIDE_PLATFORM_ANDROID //&& USE_GLES_EXT_OES_TEXTURE

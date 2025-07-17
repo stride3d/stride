@@ -9,6 +9,9 @@ namespace Stride.Graphics;
 ///   A factory for creating <see cref="SamplerState"/> instances.
 ///   Contains pre-created Sampler States for commonly used configurations.
 /// </summary>
+/// <remarks>
+///   To access these default Sampler States, you can access them through <see cref="GraphicsDevice.SamplerStates"/>.
+/// </remarks>
 public class SamplerStateFactory : GraphicsResourceFactoryBase
 {
     /// <summary>
@@ -28,8 +31,7 @@ public class SamplerStateFactory : GraphicsResourceFactoryBase
         SamplerState CreateSamplerState(string name, TextureFilter filter, TextureAddressMode addressMode)
         {
             var description = new SamplerStateDescription(filter, addressMode);
-            var samplerState = SamplerState.New(device, description).DisposeBy(this);
-            samplerState.Name = name;
+            var samplerState = SamplerState.New(device, in description, name).DisposeBy(this);
             return samplerState;
         }
     }

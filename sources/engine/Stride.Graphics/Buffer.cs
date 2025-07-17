@@ -24,6 +24,7 @@
 using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+
 using Stride.Core.Serialization;
 using Stride.Core.Serialization.Contents;
 using Stride.Core.UnsafeExtensions;
@@ -70,6 +71,16 @@ namespace Stride.Graphics
         /// </summary>
         /// <param name="device">The <see cref="GraphicsDevice"/> the Buffer belongs to.</param>
         protected Buffer(GraphicsDevice device) : base(device) { }
+
+        /// <summary>
+        ///   Initializes a new instance of the <see cref="Buffer"/> class.
+        /// </summary>
+        /// <param name="device">The <see cref="GraphicsDevice"/> the Buffer belongs to.</param>
+        /// <param name="name">
+        ///   A string to use as a name for identifying the Buffer. Useful when debugging.
+        ///   Specify <see langword="null"/> to use the type's name instead.
+        /// </param>
+        protected Buffer(GraphicsDevice device, string? name) : base(device, name) { }
 
 
         /// <summary>
@@ -141,7 +152,12 @@ namespace Stride.Graphics
         public Buffer ToStaging()
         {
             var stagingDesc = Description with { Usage = GraphicsResourceUsage.Staging, BufferFlags = BufferFlags.None };
-            return new Buffer(GraphicsDevice).InitializeFromImpl(stagingDesc, BufferFlags.None, ViewFormat, dataPointer: IntPtr.Zero);
+
+            var buffer = GraphicsDevice.IsDebugMode
+                ? new Buffer(GraphicsDevice, GetDebugName(in stagingDesc, elementType: null, ElementCount))
+                : new Buffer(GraphicsDevice, Name);
+
+            return buffer.InitializeFromImpl(in stagingDesc, BufferFlags.None, ViewFormat, dataPointer: IntPtr.Zero);
         }
 
         /// <summary>
@@ -150,7 +166,7 @@ namespace Stride.Graphics
         /// <returns>A clone of the Buffer.</returns>
         public Buffer Clone()
         {
-            return new Buffer(GraphicsDevice).InitializeFromImpl(in bufferDescription, ViewFlags, ViewFormat, dataPointer: IntPtr.Zero);
+            return new Buffer(GraphicsDevice, Name).InitializeFromImpl(in bufferDescription, ViewFlags, ViewFormat, dataPointer: IntPtr.Zero);
         }
 
         #region Initialization
@@ -167,6 +183,56 @@ namespace Stride.Graphics
         /// <param name="dataPointer">The data pointer to the data to initialize the Buffer with.</param>
         /// <returns>This same instance of <see cref="Buffer"/> already initialized.</returns>
         protected partial Buffer InitializeFromImpl(ref readonly BufferDescription description, BufferFlags viewFlags, PixelFormat viewFormat, IntPtr dataPointer);
+
+        #endregion
+
+        #region Debug
+
+        /// <summary>
+        ///   Generates a debug-friendly name for the Buffer based on its usage, flags, and size.
+        /// </summary>
+        /// <param name="bufferDescription">The description of the Buffer.</param>
+        /// <param name="elementType">The name of the type of the elements in the Buffer.</param>
+        /// <param name="elementSize">The size in bytes of an element in the Buffer.</param>
+        /// <returns>A string representing the debug name of the Buffer.</returns>
+        private static string GetDebugName(ref readonly BufferDescription bufferDescription, string? elementType = null, int elementSize = 0)
+        {
+            return GetDebugName(bufferDescription.Usage, bufferDescription.BufferFlags, bufferDescription.SizeInBytes, elementType, elementSize);
+        }
+
+        /// <summary>
+        ///   Generates a debug-friendly name for the Buffer based on its usage, flags, and size.
+        /// </summary>
+        /// <param name="bufferDescription">The description of the Buffer.</param>
+        /// <param name="elementType">The name of the type of the elements in the Buffer.</param>
+        /// <param name="elementSize">The size in bytes of an element in the Buffer.</param>
+        /// <returns>A string representing the debug name of the Buffer.</returns>
+        private static string GetDebugName(GraphicsResourceUsage bufferUsage, BufferFlags bufferFlags, int sizeInBytes, string? elementType = null, int elementSize = 0)
+        {
+            var usage = bufferUsage != GraphicsResourceUsage.Default
+                ? $"{bufferUsage} "
+                : string.Empty;
+
+            var flags = bufferFlags switch
+            {
+                BufferFlags.ConstantBuffer => "Constant Buffer",
+                BufferFlags.IndexBuffer => "Index Buffer",
+                BufferFlags.VertexBuffer => "Vertex Buffer",
+                BufferFlags.ArgumentBuffer => "Argument Buffer",
+                BufferFlags.RawBuffer => "Raw Buffer",
+                BufferFlags.StructuredAppendBuffer => "Structured Append Buffer",
+                BufferFlags.StructuredCounterBuffer => "Structured Counter Buffer",
+
+                _ => "Buffer"
+            };
+            var typeOfElement = elementType is not null ? $" of {elementType}" : string.Empty;
+            var elementCount = elementSize > 0 && elementSize < sizeInBytes
+                ? sizeInBytes / elementSize
+                : 0;
+            var elements = elementCount > 0 ? $", {elementCount} elements" : string.Empty;
+
+            return $"{usage}{flags}{typeOfElement} ({sizeInBytes} bytes{elements})";
+        }
 
         #endregion
 
@@ -471,7 +537,12 @@ namespace Stride.Graphics
         public static Buffer New(GraphicsDevice device, BufferDescription description, PixelFormat viewFormat = PixelFormat.None)
         {
             var bufferType = description.BufferFlags;
-            return new Buffer(device).InitializeFromImpl(in description, bufferType, viewFormat, dataPointer: IntPtr.Zero);
+
+            var buffer = device.IsDebugMode
+                ? new Buffer(device, GetDebugName(in description))
+                : new Buffer(device);
+
+            return buffer.InitializeFromImpl(in description, bufferType, viewFormat, dataPointer: IntPtr.Zero);
         }
 
         /// <summary>
@@ -502,6 +573,7 @@ namespace Stride.Graphics
             int bufferSize = elementSize * elementCount;
 
             var description = NewDescription(bufferSize, elementSize, bufferFlags, usage);
+
             return new Buffer<T>(device, description, bufferFlags, viewFormat: PixelFormat.None, dataPointer: IntPtr.Zero);
         }
 
@@ -554,7 +626,12 @@ namespace Stride.Graphics
             viewFormat = CheckPixelFormat(bufferFlags, elementSize, viewFormat);
 
             var description = NewDescription(bufferSize, elementSize, bufferFlags, usage);
-            return new Buffer(device).InitializeFromImpl(description, bufferFlags, viewFormat, dataPointer: IntPtr.Zero);
+
+            var buffer = device.IsDebugMode
+                ? new Buffer(device, GetDebugName(in description, elementType: null, elementSize))
+                : new Buffer(device);
+
+            return buffer.InitializeFromImpl(in description, bufferFlags, viewFormat, dataPointer: IntPtr.Zero);
         }
 
         /// <summary>
@@ -593,8 +670,11 @@ namespace Stride.Graphics
             viewFormat = CheckPixelFormat(bufferFlags, elementSize, viewFormat);
 
             var description = NewDescription(bufferSize, elementSize, bufferFlags, usage);
+
             fixed (T* ptrValue = &value)
-                return new Buffer<T>(device, description, bufferFlags, viewFormat, (nint) ptrValue);
+                return device.IsDebugMode
+                    ? new Buffer<T>(device, description, bufferFlags, viewFormat, (nint) ptrValue, GetDebugName(in description, typeof(T).Name, elementSize))
+                    : new Buffer<T>(device, description, bufferFlags, viewFormat, (nint) ptrValue);
         }
 
         /// <summary>
@@ -626,7 +706,7 @@ namespace Stride.Graphics
         /// <returns>A new instance of <see cref="Buffer"/>.</returns>
         public static Buffer<T> New<T>(GraphicsDevice device, T[] initialValue, BufferFlags bufferFlags, PixelFormat viewFormat = PixelFormat.None, GraphicsResourceUsage usage = GraphicsResourceUsage.Default) where T : unmanaged
         {
-            return New(device, (ReadOnlySpan<T>)initialValue.AsSpan(), bufferFlags, viewFormat, usage);
+            return New(device, (ReadOnlySpan<T>) initialValue.AsSpan(), bufferFlags, viewFormat, usage);
         }
 
         /// <summary>
@@ -650,8 +730,11 @@ namespace Stride.Graphics
             viewFormat = CheckPixelFormat(bufferFlags, elementSize, viewFormat);
 
             var description = NewDescription(bufferSize, elementSize, bufferFlags, usage);
+
             fixed (void* ptrInitialValue = initialValues)
-                return new Buffer<T>(device, description, bufferFlags, viewFormat, (nint) ptrInitialValue);
+                return device.IsDebugMode
+                    ? new Buffer<T>(device, description, bufferFlags, viewFormat, (nint) ptrInitialValue, GetDebugName(in description, typeof(T).Name, elementSize))
+                    : new Buffer<T>(device, description, bufferFlags, viewFormat, (nint) ptrInitialValue);
         }
 
         /// <summary>
@@ -676,7 +759,11 @@ namespace Stride.Graphics
         /// <returns>A new instance of <see cref="Buffer"/>.</returns>
         public static Buffer New(GraphicsDevice device, ReadOnlySpan<byte> initialValues, int elementSize, BufferFlags bufferFlags, PixelFormat viewFormat = PixelFormat.None, GraphicsResourceUsage usage = GraphicsResourceUsage.Immutable)
         {
-            return new Buffer(device).InitializeFrom(initialValues, elementSize, bufferFlags, viewFormat, usage);
+            var buffer = device.IsDebugMode
+                ? new Buffer(device, GetDebugName(GraphicsResourceUsage.Default, bufferFlags, initialValues.Length, elementType: null, elementSize))
+                : new Buffer(device);
+
+            return buffer.InitializeFrom(initialValues, elementSize, bufferFlags, viewFormat, usage);
         }
 
         /// <summary>
@@ -729,7 +816,12 @@ namespace Stride.Graphics
             viewFormat = CheckPixelFormat(bufferFlags, elementSize, viewFormat);
 
             var description = NewDescription(bufferSize, elementSize, bufferFlags, usage);
-            return new Buffer(device).InitializeFromImpl(description, bufferFlags, viewFormat, dataPointer.Pointer);
+
+            var buffer = device.IsDebugMode
+                ? new Buffer(device, GetDebugName(in description, elementType: null, elementSize))
+                : new Buffer(device);
+
+            return new Buffer(device).InitializeFromImpl(in description, bufferFlags, viewFormat, dataPointer.Pointer);
         }
 
         /// <summary>
@@ -888,9 +980,17 @@ namespace Stride.Graphics
         ///   or <see cref="PixelFormat.None"/> if not.
         /// </param>
         /// <param name="dataPointer">The data pointer to the initial data the Buffer will contain.</param>
-        protected internal Buffer(GraphicsDevice device, BufferDescription description, BufferFlags bufferFlags, PixelFormat viewFormat, IntPtr dataPointer) : base(device)
+        /// <param name="name">
+        ///   A name for the Buffer, used for debugging purposes.
+        ///   Specify <see langword="null"/> to not set a name and use the name of the type instead.
+        /// </param>
+        protected internal Buffer(GraphicsDevice device,
+                                  BufferDescription description, BufferFlags bufferFlags, PixelFormat viewFormat,
+                                  IntPtr dataPointer,
+                                  string? name = null)
+            : base(device, name)
         {
-            InitializeFromImpl(description, bufferFlags, viewFormat, dataPointer);
+            InitializeFromImpl(in description, bufferFlags, viewFormat, dataPointer);
 
             ElementSize = Unsafe.SizeOf<T>();
             ElementCount = SizeInBytes / ElementSize;

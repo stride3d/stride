@@ -23,7 +23,10 @@ namespace Stride.Graphics
         ///   Initializes a new instance of the <see cref="GraphicsResource"/> class attached to a graphics device.
         /// </summary>
         /// <param name="device">The <see cref="GraphicsDevice"/> this resource belongs to.</param>
-        /// <param name="name">A string to use as a name for identifying the resource. Useful when debugging.</param>
-        protected GraphicsResource(GraphicsDevice device, string name) : base(device, name) { }
+        /// <param name="name">
+        ///   A string to use as a name for identifying the resource. Useful when debugging.
+        ///   Specify <see langword="null"/> to use the type's name instead.
+        /// </param>
+        protected GraphicsResource(GraphicsDevice device, string? name) : base(device, name) { }
     }
 }

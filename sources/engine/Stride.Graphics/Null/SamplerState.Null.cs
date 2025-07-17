@@ -7,7 +7,7 @@ namespace Stride.Graphics
 {
     public partial class SamplerState
     {
-        private SamplerState(GraphicsDevice graphicsDevice, ref readonly SamplerStateDescription samplerStateDescription)
+        private SamplerState(GraphicsDevice graphicsDevice, ref readonly SamplerStateDescription samplerStateDescription, string? name = null)
         {
             NullHelper.ToImplement();
         }
