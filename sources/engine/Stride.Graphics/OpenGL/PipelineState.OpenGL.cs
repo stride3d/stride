@@ -43,7 +43,7 @@ namespace Stride.Graphics
 
             var rootSignature = pipelineStateDescription.RootSignature;
             if (rootSignature != null && effectBytecode != null)
-                ResourceBinder.Compile(graphicsDevice, rootSignature.EffectDescriptorSetReflection, effectBytecode);
+                ResourceBinder.Compile(rootSignature.EffectDescriptorSetReflection, effectBytecode);
 
             // Vertex attributes
             if (pipelineStateDescription.InputElements != null)
@@ -113,7 +113,7 @@ namespace Stride.Graphics
             public override bool Equals(object obj)
             {
                 if (ReferenceEquals(null, obj)) return false;
-                return obj is VertexAttribsKey && Equals((VertexAttribsKey)obj);
+                return obj is VertexAttribsKey vertexAttribsKey && Equals(vertexAttribsKey);
             }
 
             public override int GetHashCode()

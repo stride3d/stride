@@ -170,7 +170,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
 
             public unsafe void RebuildVertexBuffer(CommandList commandList, CameraParameters parameters)
             {
-                var mappedVertices = commandList.MapSubresource(vertexBuffer, 0, MapMode.WriteDiscard);
+                var mappedVertices = commandList.MapSubResource(vertexBuffer, 0, MapMode.WriteDiscard);
                 var vertexPointer = mappedVertices.DataBox.DataPointer;
 
                 var vertex = (VertexPositionNormalTexture*)vertexPointer;
@@ -191,7 +191,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
                     ++vertex;
                 }
 
-                commandList.UnmapSubresource(mappedVertices);
+                commandList.UnmapSubResource(mappedVertices);
             }
         }
     }

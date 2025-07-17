@@ -46,7 +46,10 @@ namespace Stride.Graphics
             base.OnDestroyed();
         }
 
-        private void Recreate()
+        /// <summary>
+        ///   Platform-specific implementation that recreates the queries in the pool.
+        /// </summary>
+        private unsafe partial void Recreate()
         {
             switch (QueryType)
             {

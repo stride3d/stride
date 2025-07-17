@@ -1,49 +1,48 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using Stride.Core;
-using Stride.Core.Serialization;
 
-namespace Stride.Shaders
+using Stride.Core;
+
+namespace Stride.Shaders;
+
+/// <summary>
+///   Specifies a particular shader stage.
+/// </summary>
+[DataContract]
+public enum ShaderStage
 {
     /// <summary>
-    /// Enum to specify shader stage.
+    ///   No shader stage defined.
     /// </summary>
-    [DataContract]
-    public enum ShaderStage
-    {
-        /// <summary>
-        /// No shader stage defined.
-        /// </summary>
-        None = 0,
+    None = 0,
 
-        /// <summary>
-        /// The vertex shader stage.
-        /// </summary>
-        Vertex = 1,
+    /// <summary>
+    ///   The Vertex Shader stage.
+    /// </summary>
+    Vertex = 1,
 
-        /// <summary>
-        /// The Hull shader stage.
-        /// </summary>
-        Hull = 2,
+    /// <summary>
+    ///   The Hull Shader stage.
+    /// </summary>
+    Hull = 2,
 
-        /// <summary>
-        /// The domain shader stage.
-        /// </summary>
-        Domain = 3,
+    /// <summary>
+    ///   The Domain Shader stage.
+    /// </summary>
+    Domain = 3,
 
-        /// <summary>
-        /// The geometry shader stage.
-        /// </summary>
-        Geometry = 4,
+    /// <summary>
+    ///   The Geometry Shader stage.
+    /// </summary>
+    Geometry = 4,
 
-        /// <summary>
-        /// The pixel shader stage.
-        /// </summary>
-        Pixel = 5,
+    /// <summary>
+    ///   The Pixel Shader stage.
+    /// </summary>
+    Pixel = 5,
 
-        /// <summary>
-        /// The compute shader stage.
-        /// </summary>
-        Compute = 6,
-    }
+    /// <summary>
+    ///   The Compute Shader stage.
+    /// </summary>
+    Compute = 6
 }
