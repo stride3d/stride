@@ -298,6 +298,11 @@ namespace Stride.Graphics
             }
         }
 
+        /// <summary>
+        ///   Called when a message is received from the Direct3D 11 InfoQueue.
+        ///   This method calls the <see cref="DeviceInfoQueueMessage"/> event handler.
+        /// </summary>
+        /// <param name="message">The message received from the InfoQueue.</param>
         private void OnDeviceInfoQueueMessage(ref readonly Message message)
         {
             var eventHandler = DeviceInfoQueueMessage;
@@ -310,6 +315,10 @@ namespace Stride.Graphics
             eventHandler(in message, description);
         }
 
+        /// <summary>
+        ///   Processes all messages stored in the information queue, and invokes the <see cref="DeviceInfoQueueMessage"/> event handler
+        ///   for each message.
+        /// </summary>
         internal void ProcessInfoQueueMessages()
         {
             Debug.Assert(nativeInfoQueue is not null, "NativeInfoQueue is null. Ensure that the Graphics Device is initialized with the Debug flag.");
@@ -356,8 +365,26 @@ namespace Stride.Graphics
             }
         }
 
+        /// <summary>
+        ///   Represents a method that handles messages related to Graphics Device information.
+        /// </summary>
+        /// <param name="message">A reference to the message containing graphics device information. This parameter is read-only.</param>
+        /// <param name="description">An optional description providing additional context about the message. Can be <see langword="null"/>.</param>
         public delegate void GraphicsDeviceInfoMessageHandler(ref readonly Message message, string? description);
 
+        /// <summary>
+        ///   Occurs when a message is received in the Graphics Device information queue.
+        /// </summary>
+        /// <remarks>
+        ///   <para>
+        ///     This event is triggered when the Direct3D 11 InfoQueue receives a message.
+        ///     This only happens if the Graphics Device was created with the <see cref="DeviceCreationFlags.Debug"/> flag.
+        ///   </para>
+        ///   <para>
+        ///     Subscribe to this event to handle messages related to Graphics Device information.
+        ///     The event handler receives an argument of type <see cref="Message"/>, which contains the message data.
+        ///   </para>
+        /// </remarks>
         public event GraphicsDeviceInfoMessageHandler? DeviceInfoQueueMessage;
 
         /// <summary>
