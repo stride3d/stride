@@ -763,7 +763,7 @@ namespace Stride.TextureConverter
             // check that we support the format
             var format = texture.Format;
             var pixelSize = format.SizeInBytes();
-            if (texture.Dimension != TexImage.TextureDimension.Texture2D || !(format.IsRGBAOrder() || format.IsBGRAOrder() || pixelSize != 4))
+            if (texture.Dimension != TexImage.TextureDimension.Texture2D || !(format.IsRgbaOrder() || format.IsBgraOrder() || pixelSize != 4))
             {
                 var guessedAlphaLevel = alphaDepth > 0 ? AlphaLevels.InterpolatedAlpha : AlphaLevels.NoAlpha;
                 logger?.Debug($"Unable to find alpha levels for texture type {format}. Returning default alpha level '{guessedAlphaLevel}'.");
@@ -781,7 +781,7 @@ namespace Stride.TextureConverter
 
             if (tranparencyColor.HasValue) // specific case when using a transparency color
             {
-                var transparencyValue = format.IsRGBAOrder() ? tranparencyColor.Value.ToRgba() : tranparencyColor.Value.ToBgra();
+                var transparencyValue = format.IsRgbaOrder() ? tranparencyColor.Value.ToRgba() : tranparencyColor.Value.ToBgra();
                 
                 for (int y = 0; y < region.Height; ++y)
                 {
@@ -838,7 +838,7 @@ namespace Stride.TextureConverter
             if (texture == null) throw new ArgumentNullException(nameof(texture));
 
             var format = texture.Format;
-            if (texture.Dimension != TexImage.TextureDimension.Texture2D || !(format.IsRGBAOrder() || format.IsBGRAOrder() || format.SizeInBytes() != 4))
+            if (texture.Dimension != TexImage.TextureDimension.Texture2D || !(format.IsRgbaOrder() || format.IsBgraOrder() || format.SizeInBytes() != 4))
                 throw new NotImplementedException();
 
             // check that the pixel is inside the texture
@@ -850,7 +850,7 @@ namespace Stride.TextureConverter
             var stride = texture.RowPitch / 4;
 
             var pixelColorInt = ptr[stride*pixel.Y + pixel.X];
-            var pixelColor = format.IsRGBAOrder() ? Color.FromRgba(pixelColorInt) : Color.FromBgra(pixelColorInt);
+            var pixelColor = format.IsRgbaOrder() ? Color.FromRgba(pixelColorInt) : Color.FromBgra(pixelColorInt);
 
             return pixelColor;
         }
@@ -869,12 +869,12 @@ namespace Stride.TextureConverter
             if (texture == null) throw new ArgumentNullException(nameof(texture));
 
             var format = texture.Format;
-            if (texture.Dimension != TexImage.TextureDimension.Texture2D || !(format.IsRGBAOrder() || format.IsBGRAOrder() || format.SizeInBytes() != 4))
+            if (texture.Dimension != TexImage.TextureDimension.Texture2D || !(format.IsRgbaOrder() || format.IsBgraOrder() || format.SizeInBytes() != 4))
                 throw new NotImplementedException();
 
             // adjust the separator color the mask depending on the color format.
             var separator = (uint)(separatorColor ?? Color.Transparent).ToRgba();
-            if (texture.Format.IsBGRAOrder())
+            if (texture.Format.IsBgraOrder())
             {
                 separator = RgbaToBgra(separator);
                 separatorMask = RgbaToBgra(separatorMask);
@@ -1443,7 +1443,7 @@ namespace Stride.TextureConverter
                 ITexLibrary library;
                 if ((library = FindLibrary(image, request)) != null)
                 {
-                    if (image.Format.IsBGRAOrder() && !library.SupportBGRAOrder())
+                    if (image.Format.IsBgraOrder() && !library.SupportBGRAOrder())
                     {
                         SwitchChannel(image);
                     }
@@ -1488,7 +1488,7 @@ namespace Stride.TextureConverter
                     }
 
                     // Both libraries for intermediate processing were found, preceeding with the request
-                    if (image.Format.IsBGRAOrder() && !library.SupportBGRAOrder())
+                    if (image.Format.IsBgraOrder() && !library.SupportBGRAOrder())
                     {
                         SwitchChannel(image);
                     }

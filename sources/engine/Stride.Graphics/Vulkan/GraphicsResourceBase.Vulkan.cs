@@ -14,15 +14,15 @@ namespace Stride.Graphics
     /// </summary>
     public abstract partial class GraphicsResourceBase
     {
-        private void Initialize()
-        {
-        }
+        // No Vulkan-specific initialization
+        private partial void Initialize() { }
 
 
         /// <summary>
-        /// Called when graphics device has been detected to be internally destroyed.
+        ///   Called when the <see cref="GraphicsDevice"/> has been detected to be internally destroyed,
+        ///   or when the <see cref="Destroy"/> methad has been called. Raises the <see cref="Destroyed"/> event.
         /// </summary>
-        protected internal virtual void OnDestroyed()
+        protected internal virtual partial void OnDestroyed()
         {
             Destroyed?.Invoke(this, EventArgs.Empty);
         }
@@ -37,5 +37,5 @@ namespace Stride.Graphics
         }
     }
 }
- 
+
 #endif

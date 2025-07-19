@@ -1,71 +1,107 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 #if STRIDE_GRAPHICS_API_DIRECT3D11
-using System;
-using SharpDX;
+
+using System.Diagnostics;
+using System.Runtime.CompilerServices;
+
+using Silk.NET.Core.Native;
+using Silk.NET.Direct3D11;
 
 using Stride.Core.Mathematics;
 
-namespace Stride.Graphics
+namespace Stride.Graphics;
+
+public unsafe partial class SamplerState
 {
+    private ID3D11SamplerState* samplerState;
+
     /// <summary>
-    /// Describes a sampler state used for texture sampling.
+    ///   Gets the internal Direct3D 11 Sampler State object.
     /// </summary>
-    public partial class SamplerState
+    /// <remarks>
+    ///   If the reference is going to be kept, use <see cref="ComPtr{T}.AddRef()"/> to increment the internal
+    ///   reference count, and <see cref="ComPtr{T}.Dispose()"/> when no longer needed to release the object.
+    /// </remarks>
+    internal ComPtr<ID3D11SamplerState> NativeSamplerState => ComPtrHelpers.ToComPtr(samplerState);
+
+
+    /// <summary>
+    ///   Initializes a new instance of the <see cref="SamplerState"/> class.
+    /// </summary>
+    /// <param name="device">The Graphics Device.</param>
+    /// <param name="description">
+    ///   A <see cref="SamplerStateDescription"/> structure describing the Sampler State
+    ///   object to create.
+    /// </param>
+    /// <param name="name">An optional name that can be used to identify the Sampler State.</param>
+    private SamplerState(GraphicsDevice device, ref readonly SamplerStateDescription description, string? name = null)
+        : base(device, name)
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="SamplerState"/> class.
-        /// </summary>
-        /// <param name="device">The device.</param>
-        /// <param name="name">The name.</param>
-        /// <param name="samplerStateDescription">The sampler state description.</param>
-        private SamplerState(GraphicsDevice device, SamplerStateDescription samplerStateDescription) : base(device)
-        {
-            Description = samplerStateDescription;
+        Description = description;
 
-            CreateNativeDeviceChild();
-        }
-
-        /// <inheritdoc/>
-        protected internal override bool OnRecreate()
-        {
-            base.OnRecreate();
-            CreateNativeDeviceChild();
-            return true;
-        }
-
-        private void CreateNativeDeviceChild()
-        {
-            SharpDX.Direct3D11.SamplerStateDescription nativeDescription;
-
-            nativeDescription.AddressU = (SharpDX.Direct3D11.TextureAddressMode)Description.AddressU;
-            nativeDescription.AddressV = (SharpDX.Direct3D11.TextureAddressMode)Description.AddressV;
-            nativeDescription.AddressW = (SharpDX.Direct3D11.TextureAddressMode)Description.AddressW;
-            nativeDescription.BorderColor = ColorHelper.Convert(Description.BorderColor);
-            nativeDescription.ComparisonFunction = (SharpDX.Direct3D11.Comparison)Description.CompareFunction;
-            nativeDescription.Filter = (SharpDX.Direct3D11.Filter)Description.Filter;
-            nativeDescription.MaximumAnisotropy = Description.MaxAnisotropy;
-            nativeDescription.MaximumLod = Description.MaxMipLevel;
-            nativeDescription.MinimumLod = Description.MinMipLevel;
-            nativeDescription.MipLodBias = Description.MipMapLevelOfDetailBias;
-
-            // For 9.1, anisotropy cannot be larger then 2
-            // mirror once is not supported either
-            if (GraphicsDevice.Features.CurrentProfile == GraphicsProfile.Level_9_1)
-            {
-                // TODO: Min with user-value instead?
-                nativeDescription.MaximumAnisotropy = 2;
-
-                if (nativeDescription.AddressU == SharpDX.Direct3D11.TextureAddressMode.MirrorOnce)
-                    nativeDescription.AddressU = SharpDX.Direct3D11.TextureAddressMode.Mirror;
-                if (nativeDescription.AddressV == SharpDX.Direct3D11.TextureAddressMode.MirrorOnce)
-                    nativeDescription.AddressV = SharpDX.Direct3D11.TextureAddressMode.Mirror;
-                if (nativeDescription.AddressW == SharpDX.Direct3D11.TextureAddressMode.MirrorOnce)
-                    nativeDescription.AddressW = SharpDX.Direct3D11.TextureAddressMode.Mirror;
-            }
-
-            NativeDeviceChild = new SharpDX.Direct3D11.SamplerState(NativeDevice, nativeDescription);
-        }
+        CreateNativeSamplerState();
     }
-} 
+
+    /// <inheritdoc/>
+    protected internal override bool OnRecreate()
+    {
+        base.OnRecreate();
+
+        CreateNativeSamplerState();
+        return true;
+    }
+
+    /// <inheritdoc/>
+    protected internal override void OnDestroyed()
+    {
+        ComPtrHelpers.SafeRelease(ref samplerState);
+
+        base.OnDestroyed();
+    }
+
+    private unsafe void CreateNativeSamplerState()
+    {
+        var samplerDescription = new SamplerDesc
+        {
+            AddressU = (Silk.NET.Direct3D11.TextureAddressMode) Description.AddressU,
+            AddressV = (Silk.NET.Direct3D11.TextureAddressMode) Description.AddressV,
+            AddressW = (Silk.NET.Direct3D11.TextureAddressMode) Description.AddressW,
+            ComparisonFunc = (ComparisonFunc) Description.CompareFunction,
+            Filter = (Filter) Description.Filter,
+            MaxAnisotropy = (uint) Description.MaxAnisotropy,
+            MaxLOD = (uint) Description.MaxMipLevel,
+            MinLOD = (uint) Description.MinMipLevel,
+            MipLODBias = Description.MipMapLevelOfDetailBias
+        };
+        Debug.Assert(sizeof(Color4) == (4 * sizeof(float)));
+        Unsafe.AsRef<Color4>(samplerDescription.BorderColor) = Description.BorderColor;
+
+        // For 9.1, anisotropy cannot be larger than 2.
+        // Mirror once is not supported either.
+        if (GraphicsDevice.Features.CurrentProfile == GraphicsProfile.Level_9_1)
+        {
+            // TODO: Min with user-value instead?
+            samplerDescription.MaxAnisotropy = 2;
+
+            if (samplerDescription.AddressU == Silk.NET.Direct3D11.TextureAddressMode.MirrorOnce)
+                samplerDescription.AddressU = Silk.NET.Direct3D11.TextureAddressMode.Mirror;
+            if (samplerDescription.AddressV == Silk.NET.Direct3D11.TextureAddressMode.MirrorOnce)
+                samplerDescription.AddressV = Silk.NET.Direct3D11.TextureAddressMode.Mirror;
+            if (samplerDescription.AddressW == Silk.NET.Direct3D11.TextureAddressMode.MirrorOnce)
+                samplerDescription.AddressW = Silk.NET.Direct3D11.TextureAddressMode.Mirror;
+        }
+
+        ID3D11SamplerState* samplerState;
+        HResult result = NativeDevice.CreateSamplerState(in samplerDescription, &samplerState);
+
+        if (result.IsFailure)
+            result.Throw();
+
+        this.samplerState = samplerState;
+        NativeDeviceChild = NativeSamplerState.AsDeviceChild();
+    }
+}
+
 #endif

@@ -1,41 +1,42 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 using Stride.Core;
 
-namespace Stride.Graphics
+namespace Stride.Graphics;
+
+/// <summary>
+///   Defines a function for color blending.
+/// </summary>
+/// <remarks>
+///   The runtime implements color (RGB) blending and alpha blending separately. Therefore, a Blend State requires separate blend operations
+///   for RGB data and alpha data. These blend operations are specified in a <see cref="BlendStateDescription"/> and in a <see cref="BlendStateRenderTargetDescription"/>.
+/// </remarks>
+[DataContract]
+public enum BlendFunction
 {
     /// <summary>
-    /// RGB or alpha blending operation.
+    ///   The function adds destination to the source: <c>(srcColor * srcBlend) + (destColor * destBlend)</c>
     /// </summary>
-    /// <remarks>
-    /// The runtime implements RGB blending and alpha blending separately. Therefore, blend state requires separate blend operations for RGB data and alpha data. These blend operations are specified in a <see cref="BlendStateDescription"/> and in a <see cref="BlendStateRenderTargetDescription"/>.
-    /// </remarks>
-    [DataContract]
-    public enum BlendFunction
-    {
-        /// <summary>
-        /// Add source 1 and source 2. 
-        /// </summary>
-        Add = 1,
+    Add = 1,
 
-        /// <summary>
-        /// Subtract source 1 from source 2. 
-        /// </summary>
-        Subtract = 2,
+    /// <summary>
+    ///   The function subtracts destination from source: <c>(srcColor * srcBlend) − (destColor * destBlend)</c>
+    /// </summary>
+    Subtract = 2,
 
-        /// <summary>
-        /// Subtract source 2 from source 1. 
-        /// </summary>
-        ReverseSubtract = 3,
+    /// <summary>
+    ///   The function subtracts source from destination: <c>(destColor * destBlend) - (srcColor * srcBlend)</c>
+    /// </summary>
+    ReverseSubtract = 3,
 
-        /// <summary>
-        /// Find the minimum of source 1 and source 2. 
-        /// </summary>
-        Min = 4,
+    /// <summary>
+    ///   The function finds the minimum of the source and destination: <c>min( (srcColor * srcBlend), (destColor * destBlend) )</c>
+    /// </summary>
+    Min = 4,
 
-        /// <summary>
-        /// Find the maximum of source 1 and source 2. 
-        /// </summary>
-        Max = 5,
-    }
+    /// <summary>
+    ///   The function finds the maximum of the source and destination: <c>max( (srcColor * srcBlend), (destColor * destBlend) )</c>
+    /// </summary>
+    Max = 5
 }

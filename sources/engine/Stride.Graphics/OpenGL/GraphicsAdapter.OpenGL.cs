@@ -2,7 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 #if STRIDE_GRAPHICS_API_OPENGL
-using System.Linq;
+
 using Silk.NET.SDL;
 using Stride.Graphics.OpenGL;
 
@@ -21,7 +21,8 @@ namespace Stride.Graphics
 
         internal GraphicsAdapter()
         {
-            outputs = new [] { new GraphicsOutput() };
+            // TODO OpenGL: Implement GraphicsOutput for OpenGL
+            graphicsOutputs = [ new GraphicsOutput() ];
 
             // set default values
             int detectedVersion = 100;

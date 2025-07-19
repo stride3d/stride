@@ -3,8 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using Stride.Core.Collections;
 using Stride.Core.Diagnostics;
 using Stride.Core.Mathematics;
 using Stride.Graphics;
@@ -25,7 +23,7 @@ namespace Stride.Rendering
         private const int TimestampQueryPoolCapacity = 64;
 
         private readonly CommandList commandList;
-        private readonly GraphicsResourceAllocator allocator;      
+        private readonly GraphicsResourceAllocator allocator;
         private readonly long[] queryResults = new long[TimestampQueryPoolCapacity];
         private readonly Queue<QueryEvent> queryEvents = new Queue<QueryEvent>();
         private readonly Stack<QueryEvent> queries = new Stack<QueryEvent>();
@@ -54,7 +52,7 @@ namespace Stride.Rendering
 
             EnsureQueryPoolSize();
 
-            // Push the current query range onto the stack 
+            // Push the current query range onto the stack
             var query = new QueryEvent
             {
                 ProfilingKey = profilingKey,
@@ -143,10 +141,10 @@ namespace Stride.Rendering
 
                 // Profile
                 // An event with a key is a begin event
-                if (query.ProfilingKey != null)
+                if (query.ProfilingKey is not null)
                 {
                     var profilingState = Profiler.New(query.ProfilingKey);
-                    profilingState.TickFrequency = commandList.GraphicsDevice.TimestampFrequency;
+                    profilingState.TickFrequency = (long) commandList.GraphicsDevice.TimestampFrequency;
                     profilingState.BeginGpu(queryResults[query.Index]);
                     profilingStates.Push(profilingState);
                 }

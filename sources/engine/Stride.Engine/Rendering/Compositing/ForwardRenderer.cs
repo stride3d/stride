@@ -115,7 +115,7 @@ namespace Stride.Rendering.Compositing
         /// </summary>
         /// <remarks>
         /// This is needed by some effects such as particles soft edges.
-        /// 
+        ///
         /// On recent platforms that can bind depth buffer as read-only (<see cref="GraphicsDeviceFeatures.HasDepthAsReadOnlyRT"/>), depth buffer will be used as is. Otherwise, a copy will be generated.
         /// </remarks>
         [DefaultValue(true)]
@@ -139,7 +139,7 @@ namespace Stride.Rendering.Compositing
                 actualMultisampleCount = (MultisampleCount)Math.Min((int)actualMultisampleCount, (int)GraphicsDevice.Features[DepthBufferFormat].MultisampleCountMax);
 
                 // Note: we cannot support MSAA on DX10 now
-                if (GraphicsDevice.Features.HasMultisampleDepthAsSRV == false && // TODO: Try enabling MSAA on DX9!
+                if (GraphicsDevice.Features.HasMultiSampleDepthAsSRV == false && // TODO: Try enabling MSAA on DX9!
                     GraphicsDevice.Platform != GraphicsPlatform.OpenGL &&
                     GraphicsDevice.Platform != GraphicsPlatform.OpenGLES)
                 {
@@ -202,7 +202,7 @@ namespace Stride.Rendering.Compositing
                         {
                             if (overlay != null && overlay.Texture != null)
                             {
-                                overlay.Overlay = VRSettings.VRDevice.CreateOverlay(overlay.Texture.Width, overlay.Texture.Height, overlay.Texture.MipLevels, (int)overlay.Texture.MultisampleCount);
+                                overlay.Overlay = VRSettings.VRDevice.CreateOverlay(overlay.Texture.Width, overlay.Texture.Height, overlay.Texture.MipLevelCount, (int)overlay.Texture.MultisampleCount);
                             }
                         }
                     }
@@ -795,7 +795,8 @@ namespace Stride.Rendering.Compositing
                 }
             }
 
-            context.CommandList.SetRenderTargets(null, context.CommandList.RenderTargetCount, context.CommandList.RenderTargets);
+            context.CommandList.SetRenderTargets(depthStencilView: null,
+                                                 context.CommandList.RenderTargetCount, context.CommandList.RenderTargets);
 
             var depthStencilROCached = context.Resolver.GetDepthStencilAsRenderTarget(depthStencil, this.depthStencilROCached);
             if (depthStencilROCached != this.depthStencilROCached)
