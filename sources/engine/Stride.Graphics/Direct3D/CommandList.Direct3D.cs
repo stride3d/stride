@@ -98,6 +98,8 @@ namespace Stride.Graphics
         /// <inheritdoc/>
         protected internal override void OnDestroyed()
         {
+            SafeRelease(ref nativeDeviceContext);
+            SafeRelease(ref nativeDeviceContext1);
             SafeRelease(ref nativeDeviceProfiler);
 
             base.OnDestroyed();

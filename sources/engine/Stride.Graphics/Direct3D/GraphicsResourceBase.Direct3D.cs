@@ -66,6 +66,47 @@ public abstract unsafe partial class GraphicsResourceBase
     }
 
     /// <summary>
+    ///   Internal method to detach the internal <see cref="ID3D11DeviceChild"/> without incrementing or decrementing
+    ///   the reference count.
+    /// </summary>
+    protected internal void UnsetNativeDeviceChild()
+    {
+        nativeDeviceChild = default;
+    }
+
+    /// <summary>
+    ///   Internal method to set the internal <see cref="ID3D11DeviceChild"/> without incrementing or decrementing
+    ///   the reference count.
+    /// </summary>
+    protected internal void SetNativeDeviceChild(ComPtr<ID3D11DeviceChild> deviceChild)
+    {
+        nativeDeviceChild = deviceChild.Handle;
+
+        // The device child can be something that is not a Direct3D resource actually,
+        // like a Sampler State, for example
+        nativeResource = TryGetResource();
+
+        NativeDeviceChild.SetDebugName(Name);
+    }
+
+    /// <summary>
+    ///   Attempts to retrieve the Direct3D 11 resource associated with the current device child.
+    /// </summary>
+    /// <returns>
+    ///   A <see cref="ComPtr{ID3D11Resource}"/> representing the Direct3D 11 resource if the operation is successful;
+    ///   otherwise, the a <see langword="null"/> COM pointer.
+    /// </returns>
+    private ComPtr<ID3D11Resource> TryGetResource()
+    {
+        HResult result = nativeDeviceChild->QueryInterface(out ComPtr<ID3D11Resource> d3dResource);
+        if (result.IsSuccess)
+        {
+            return d3dResource;
+        }
+        return default;
+    }
+
+    /// <summary>
     ///   Gets the internal Direct3D 11 device (<see cref="ID3D11Device"/>) if the resource is attached to
     ///   a <see cref="Graphics.GraphicsDevice"/>, or <see langword="null"/> if not.
     /// </summary>

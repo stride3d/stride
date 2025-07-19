@@ -199,7 +199,7 @@ namespace Stride.Graphics
         private unsafe partial void InitializePostFeatures()
         {
             // Create the main command list
-            InternalMainCommandList = new CommandList(this);
+            InternalMainCommandList = new CommandList(this).DisposeBy(this);
         }
 
         private partial string GetRendererName() => rendererName;
@@ -264,11 +264,8 @@ namespace Stride.Graphics
                         continue;
                 }
 
-                nativeDevice = device.DisposeBy(this);
-                nativeDeviceContext = deviceContext.DisposeBy(this);
-
-                // We keep one reference so that it doesn't disappear with InternalMainCommandList
-                nativeDeviceContext->AddRef();
+                nativeDevice = device;
+                nativeDeviceContext = deviceContext;
 
                 // INTEL workaround: force ShaderProfile to be 10+ as well
                 if (Adapter.VendorId == 0x8086)
@@ -411,20 +408,14 @@ namespace Stride.Graphics
         /// </summary>
         private void ReleaseDevice()
         {
-            foreach (var queryPtr in disjointQueries)
+            foreach (var query in disjointQueries)
             {
-                queryPtr.Release();
+                query.Release();
             }
             disjointQueries.Clear();
 
-            ComPtr<ID3D11DeviceContext> immediateContext = default;
-            nativeDevice->GetImmediateContext(ref immediateContext);
-
-            NativeDeviceContext.RemoveDisposeBy(this);
-            immediateContext.ClearState();
-            immediateContext.Flush();
-            immediateContext.Release();
-            nativeDeviceContext = null;
+            nativeDeviceContext->ClearState();
+            nativeDeviceContext->Flush();
 
             if (IsDebugMode)
             {
@@ -445,9 +436,7 @@ namespace Stride.Graphics
                 SafeRelease(ref nativeInfoQueue);
             }
 
-            NativeDevice.RemoveDisposeBy(this);
-            NativeDevice.Dispose();
-            nativeDevice = null;
+            SafeRelease(ref nativeDevice);
         }
 
         /// <summary>

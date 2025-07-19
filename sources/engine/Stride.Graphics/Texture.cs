@@ -957,7 +957,7 @@ namespace Stride.Graphics
         /// <summary>
         ///   Generates a debug-friendly name for a View on a Texture based on its type, flags, etc.
         /// </summary>
-        /// <param name="textureDescription">The description of the Texture View.</param>
+        /// <param name="viewDescription">The description of the Texture View.</param>
         /// <returns>A string representing the debug name of the Texture View.</returns>
         private static string GetViewDebugName(ref readonly TextureViewDescription viewDescription)
         {
@@ -983,7 +983,6 @@ namespace Stride.Graphics
         {
             var type = viewType switch
             {
-                ViewType.Full => "Full ",
                 ViewType.MipBand => "Mip Band ",
                 ViewType.ArrayBand => "Array Band ",
                 ViewType.Single => "Single ",
@@ -993,10 +992,10 @@ namespace Stride.Graphics
 
             var flags = viewFlags switch
             {
-                TextureFlags.ShaderResource => "SRV",
-                TextureFlags.RenderTarget => "RTV",
-                TextureFlags.UnorderedAccess => "UAV",
-                TextureFlags.DepthStencil => "DSV",
+                TextureFlags.ShaderResource => "ShaderResourceView",
+                TextureFlags.RenderTarget => "RenderTargetView",
+                TextureFlags.UnorderedAccess => "UnorderedAccessView",
+                TextureFlags.DepthStencil => "DepthStencilView",
 
                 _ => string.Empty
             };
@@ -1010,6 +1009,23 @@ namespace Stride.Graphics
                 : string.Empty;
 
             return $"{type}{flags}{mipAndSlice}{viewFormat}";
+        }
+
+        /// <summary>
+        ///   Generates a debug-friendly name for a View on a Texture based on its type, flags, etc.
+        /// </summary>
+        /// <param name="textureDescription">The description of the Texture.</param>
+        /// <param name="viewDescription">The description of the Texture View.</param>
+        /// <returns>A string representing the debug name of the Texture View.</returns>
+        private static string GetViewDebugName(ref readonly TextureDescription textureDescription,
+                                               ref readonly TextureViewDescription viewDescription)
+        {
+            var debugName = GetDebugName(in textureDescription);
+            var viewDebugName = GetViewDebugName(in viewDescription);
+
+            return string.IsNullOrWhiteSpace(viewDebugName)
+                ? debugName
+                : debugName + " " + viewDebugName;
         }
 
         #endregion
@@ -1640,7 +1656,7 @@ namespace Stride.Graphics
             ArgumentNullException.ThrowIfNull(graphicsDevice);
 
             var texture = graphicsDevice.IsDebugMode
-                ? new Texture(graphicsDevice, GetDebugName(in description) + " " + GetViewDebugName(in viewDescription))
+                ? new Texture(graphicsDevice, GetViewDebugName(in description, in viewDescription))
                 : new Texture(graphicsDevice);
 
             return texture.InitializeFrom(in description, in viewDescription, boxes);

@@ -101,7 +101,8 @@ internal static unsafe class DebugHelpers
         {
             // Log the debug name for the object
             var typeName = typeof(T).Name;
-            Debug.WriteLine($"Changed or set the debug name for {typeName} to '{name}'.");
+            var ptr = (nint) comPtr.Handle;
+            Debug.WriteLine($"Changed or set the debug name for {typeName} at 0x{ptr:X8} to '{name}'.");
         }
     }
 }
