@@ -53,6 +53,14 @@ public unsafe partial class SamplerState
         return true;
     }
 
+    /// <inheritdoc/>
+    protected internal override void OnDestroyed()
+    {
+        ComPtrHelpers.SafeRelease(ref samplerState);
+
+        base.OnDestroyed();
+    }
+
     private unsafe void CreateNativeSamplerState()
     {
         var samplerDescription = new SamplerDesc

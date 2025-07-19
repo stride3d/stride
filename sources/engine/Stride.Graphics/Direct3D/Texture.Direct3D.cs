@@ -143,7 +143,10 @@ namespace Stride.Graphics
         /// <summary>
         ///   Initializes the <see cref="Texture"/> from a native <see cref="ID3D11Texture2D"/>.
         /// </summary>
-        /// <param name="texture">The underlying native Texture.</param>
+        /// <param name="texture">
+        ///   The underlying native Texture.
+        ///   Its reference count will be incremented by this method.
+        /// </param>
         /// <param name="treatAsSrgb">
         ///   <see langword="true"/> to treat the Texture's pixel format as if it were an sRGB format, even if it was created as non-sRGB;
         ///   <see langword="false"/> to respect the Texture's original pixel format.
@@ -163,6 +166,11 @@ namespace Stride.Graphics
             // behave like it is (specially for the View and Render Target)
             if (treatAsSrgb)
                 newTextureDescription.Format = newTextureDescription.Format.ToSRgb();
+
+            if (GraphicsDevice.IsDebugMode)
+            {
+                Name += " " + GetDebugName(in newTextureDescription);
+            }
 
             return InitializeFrom(newTextureDescription);
         }
@@ -195,7 +203,7 @@ namespace Stride.Graphics
 
                 resource.Release();
 
-                NativeDeviceChild = texture.AsDeviceChild();
+                SetNativeDeviceChild(texture.AsDeviceChild());
 
                 SkipInit(out Texture2DDesc textureDesc);
                 texture.GetDesc(ref textureDesc);
@@ -258,9 +266,10 @@ namespace Stride.Graphics
         /// </exception>
         private partial void InitializeFromImpl(DataBox[] dataBoxes)
         {
+            // If it is a View, we point to the parent resource
             if (ParentTexture is not null)
             {
-                NativeDeviceChild = ParentTexture.NativeDeviceChild;
+                SetNativeDeviceChild(ParentTexture.NativeDeviceChild);
             }
 
             if (NativeDeviceChild.IsNull())
@@ -270,20 +279,20 @@ namespace Stride.Graphics
                     case TextureDimension.Texture1D:
                     {
                         ComPtr<ID3D11Texture1D> texture1D = CreateTexture1D(dataBoxes);
-                        NativeDeviceChild = texture1D.AsDeviceChild();
+                        SetNativeDeviceChild(texture1D.AsDeviceChild());
                         break;
                     }
                     case TextureDimension.Texture2D:
                     case TextureDimension.TextureCube:
                     {
                         ComPtr<ID3D11Texture2D> texture2D = CreateTexture2D(dataBoxes);
-                        NativeDeviceChild = texture2D.AsDeviceChild();
+                        SetNativeDeviceChild(texture2D.AsDeviceChild());
                         break;
                     }
                     case TextureDimension.Texture3D:
                     {
                         ComPtr<ID3D11Texture3D> texture3D = CreateTexture3D(dataBoxes);
-                        NativeDeviceChild = texture3D.AsDeviceChild();
+                        SetNativeDeviceChild(texture3D.AsDeviceChild());
                         break;
                     }
                 }
@@ -427,7 +436,7 @@ namespace Stride.Graphics
             // If it was a View, do not release reference, just forget it
             if (ParentTexture is not null)
             {
-                NativeDeviceChild = null;
+                UnsetNativeDeviceChild();
             }
             else
             {

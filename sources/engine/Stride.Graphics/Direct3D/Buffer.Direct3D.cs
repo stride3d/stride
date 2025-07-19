@@ -29,25 +29,8 @@ namespace Stride.Graphics
         ///   If the reference is going to be kept, use <see cref="ComPtr{T}.AddRef()"/> to increment the internal
         ///   reference count, and <see cref="ComPtr{T}.Dispose()"/> when no longer needed to release the object.
         /// </remarks>
-        internal ComPtr<ID3D11Buffer> NativeBuffer
-        {
-            get => ToComPtr(nativeBuffer);
-            set
-            {
-                if (nativeBuffer == value.Handle)
-                    return;
+        internal ComPtr<ID3D11Buffer> NativeBuffer => ToComPtr(nativeBuffer);
 
-                var oldNativeBuffer = nativeBuffer;
-
-                if (oldNativeBuffer is not null)
-                    oldNativeBuffer->Release();
-
-                nativeBuffer = value.Handle;
-
-                if (nativeBuffer is not null)
-                    nativeBuffer->AddRef();
-            }
-        }
 
         /// <summary>
         ///   Initializes this <see cref="Buffer"/> instance with the provided options.
@@ -82,15 +65,16 @@ namespace Stride.Graphics
                 result.Throw();
 
             nativeBuffer = buffer.Handle;
-            NativeDeviceChild = buffer.AsDeviceChild();
+            SetNativeDeviceChild(buffer.AsDeviceChild());
 
             // Staging resource don't have any views
             if (nativeDescription.Usage != Silk.NET.Direct3D11.Usage.Staging)
                 InitializeViews();
 
-            GraphicsDevice?.RegisterBufferMemoryUsage(SizeInBytes);
+            GraphicsDevice.RegisterBufferMemoryUsage(SizeInBytes);
 
             return this;
+
 
             /// <summary>
             ///   Returns a <see cref="BufferDesc"/> from the buffer's description.
@@ -179,7 +163,10 @@ namespace Stride.Graphics
         /// <inheritdoc/>
         protected internal override void OnDestroyed()
         {
-            GraphicsDevice?.RegisterBufferMemoryUsage(-SizeInBytes);
+            SafeRelease(ref nativeBuffer);
+            UnsetNativeDeviceChild();
+
+            GraphicsDevice.RegisterBufferMemoryUsage(-SizeInBytes);
 
             base.OnDestroyed();
         }
@@ -200,7 +187,7 @@ namespace Stride.Graphics
                 result.Throw();
 
             nativeBuffer = buffer.Handle;
-            NativeDeviceChild = buffer.AsDeviceChild();
+            SetNativeDeviceChild(buffer.AsDeviceChild());
 
             // Staging resource don't have any views
             if (nativeDescription.Usage != Silk.NET.Direct3D11.Usage.Staging)
@@ -230,7 +217,7 @@ namespace Stride.Graphics
                 result.Throw();
 
             nativeBuffer = buffer.Handle;
-            NativeDeviceChild = buffer.AsDeviceChild();
+            SetNativeDeviceChild(buffer.AsDeviceChild());
 
             // Staging resource don't have any views
             if (nativeDescription.Usage != Silk.NET.Direct3D11.Usage.Staging)

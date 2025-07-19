@@ -80,10 +80,13 @@ namespace Stride.Graphics
         /// <param name="presentationParameters">
         ///   The parameters describing the buffers the <paramref name="device"/> will present to.
         /// </param>
+        /// <exception cref="ArgumentNullException"><paramref name="device"/> is <see langword="null"/>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="presentationParameters"/> is <see langword="null"/>.</exception>
         /// <exception cref="InvalidOperationException">
         ///   <see cref="PresentationParameters.DeviceWindowHandle"/> is <see langword="null"/> or
         ///   the <see cref="WindowHandle.Handle"/> is invalid or zero.
         /// </exception>
+        /// <exception cref="NotSupportedException">The Depth-Stencil format specified is not supported.</exception>
         public SwapChainGraphicsPresenter(GraphicsDevice device, PresentationParameters presentationParameters)
             : base(device, presentationParameters)
         {
@@ -96,7 +99,11 @@ namespace Stride.Graphics
 
             var nativeBackBuffer = GetBackBuffer<BackBufferResourceType>();
 
-            backBuffer = new Texture(device).InitializeFromImpl(nativeBackBuffer, Description.BackBufferFormat.IsSRgb());
+            backBuffer = GraphicsDevice.IsDebugMode
+                ? new Texture(device, "SwapChain Back-Buffer")
+                : new Texture(device);
+
+            backBuffer.InitializeFromImpl(nativeBackBuffer, Description.BackBufferFormat.IsSRgb());
 
             // Reload should get Back-Buffer from Swap-Chain as well
             // TODO: Stale statement/comment?
@@ -177,6 +184,9 @@ namespace Stride.Graphics
         /// <returns>Returns a reference to a back-buffer interface.</returns>
         private ComPtr<TD3DResource> GetBackBuffer<TD3DResource>(uint index = 0) where TD3DResource : unmanaged, IComVtbl<TD3DResource>
         {
+            // NOTE: The Swap-Chain Back-Buffer is a COM object, so this AddRef()s.
+            //       It must be released when swapping or discarding the reference.
+
             swapChain->GetBuffer(index, out ComPtr<TD3DResource> resource);
             return resource;
         }
@@ -186,7 +196,7 @@ namespace Stride.Graphics
 
         // TODO: This boxes the ComPtr, which is not ideal
         /// <inheritdoc/>
-        public override object NativePresenter => ToComPtr(swapChain);
+        public override object NativePresenter => NativeSwapChain;
 
         /// <summary>
         ///   Gets the internal DXGI Swap-Chain.
@@ -343,8 +353,10 @@ namespace Stride.Graphics
 #if STRIDE_GRAPHICS_API_DIRECT3D12
             // Manually swap the Back-Buffers
             backBuffer.NativeResource.Release();
+
             bufferSwapIndex = (uint)((++bufferSwapIndex) % bufferCount);
             var nextBackBuffer = GetBackBuffer<BackBufferResourceType>(bufferSwapIndex);
+
             backBuffer.InitializeFromImpl(nextBackBuffer, Description.BackBufferFormat.IsSRgb());
 #endif
         }
@@ -367,8 +379,7 @@ namespace Stride.Graphics
             backBuffer.OnDestroyed();
             backBuffer.LifetimeState = GraphicsResourceLifetimeState.Destroyed;
 
-            swapChain->Release();
-            swapChain = null;
+            SafeRelease(ref swapChain);
 
             base.OnDestroyed();
         }
@@ -399,7 +410,7 @@ namespace Stride.Graphics
             // Manually update the Back-Buffer Texture
             backBuffer.OnDestroyed();
 
-            // Manually update all children Textures
+            // Manually update all children Textures (Views)
             var childrenTextures = DestroyChildrenTextures(backBuffer);
 
 #if STRIDE_PLATFORM_UWP

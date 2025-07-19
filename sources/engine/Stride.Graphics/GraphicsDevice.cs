@@ -199,17 +199,14 @@ namespace Stride.Graphics
         /// <inheritdoc/>
         protected override void Destroy()
         {
-            // Clear shared data
-            for (int index = sharedDataToDispose.Count - 1; index >= 0; index--)
-                sharedDataToDispose[index].Dispose();
-            sharedDataPerDevice.Clear();
-
             SamplerStates.Dispose();
             SamplerStates = null;
 
             DefaultPipelineState.Dispose();
 
             PrimitiveQuad.Dispose();
+
+            DisposeSharedData();
 
             // Notify listeners
             Disposing?.Invoke(this, EventArgs.Empty);
@@ -232,9 +229,23 @@ namespace Stride.Graphics
                 Resources.Clear();
             }
 
+            // Destroy all the associated resources first (Command Lists, Pipeline States, etc)
+            base.Destroy();
+
             DestroyPlatformDevice();
 
-            base.Destroy();
+            //
+            // Disposes all the shared data created by this Graphics Device.
+            //
+            void DisposeSharedData()
+            {
+                // Disposes in reverse order so that the last created data is disposed first
+                for (int index = sharedDataToDispose.Count - 1; index >= 0; index--)
+                    sharedDataToDispose[index].Dispose();
+
+                sharedDataToDispose.Clear();
+                sharedDataPerDevice.Clear();
+            }
         }
 
         /// <summary>

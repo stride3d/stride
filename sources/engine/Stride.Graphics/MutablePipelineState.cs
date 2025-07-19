@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 using Stride.Core;
 
@@ -93,6 +94,7 @@ namespace Stride.Graphics
         /// <summary>
         ///   A cache of compiled Pipeline States identified by their description (hashed).
         /// </summary>
+        [DebuggerDisplay("", Name = $"{nameof(MutablePipelineState)}::{nameof(PipelineStateCache)}")]
         private class PipelineStateCache : DictionaryOfPipelineStatesByDescription, IDisposable
         {
             /// <inheritdoc/>

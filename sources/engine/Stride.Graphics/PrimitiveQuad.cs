@@ -39,7 +39,8 @@ namespace Stride.Graphics
 
             sharedData = graphicsDevice.GetOrCreateSharedData(SharedData.SharedDataKey, static device => new SharedData(device));
 
-            simpleEffect = new EffectInstance(new Effect(graphicsDevice, SpriteEffect.Bytecode));
+            var spriteEffect = new Effect(graphicsDevice, SpriteEffect.Bytecode).DisposeBy(this);
+            simpleEffect = new EffectInstance(spriteEffect).DisposeBy(this);
             simpleEffect.Parameters.Set(SpriteBaseKeys.MatrixTransform, Matrix.Identity);
             simpleEffect.UpdateEffect(graphicsDevice);
 
@@ -161,7 +162,7 @@ namespace Stride.Graphics
         /// </summary>
         private class SharedData : ComponentBase
         {
-            public const string SharedDataKey = "PrimitiveQuad::VertexBuffer";
+            public const string SharedDataKey = $"{nameof(PrimitiveQuad)}::VertexBuffer";
 
             /// <summary>
             ///   The Vertex Buffer.

@@ -322,9 +322,15 @@ public abstract class GraphicsPresenter : ComponentBase
     protected abstract void ResizeDepthStencilBuffer(int width, int height, PixelFormat format);
 
     /// <summary>
-    ///   Releases the current Depth-Stencil Buffer.
+    ///   Detaches the current Depth-Stencil Buffer from the Graphics Presenter.
     /// </summary>
-    protected void ReleaseCurrentDepthStencilBuffer()
+    /// <remarks>
+    ///   If <see cref="DepthStencilBuffer"/> is the Depth-Stencil Buffer created by this Graphics Presenter,
+    ///   it is attached to it its lifetime is managed by this instance.
+    ///   If a derived class needs to set a custom Depth-Stencil Buffer, it should first call this method
+    ///   to detach the current one.
+    /// </remarks>
+    protected void DetachDepthStencilBuffer()
     {
         DepthStencilBuffer?.RemoveDisposeBy(this);
     }
@@ -403,7 +409,11 @@ public abstract class GraphicsPresenter : ComponentBase
         var depthTextureDescription = TextureDescription.New2D(Description.BackBufferWidth, Description.BackBufferHeight, Description.DepthStencilFormat, flags);
         depthTextureDescription.MultisampleCount = Description.MultisampleCount;
 
-        var depthTexture = Texture.New(GraphicsDevice, depthTextureDescription);
+        var depthTexture = GraphicsDevice.IsDebugMode
+            ? new Texture(GraphicsDevice, name: "Depth-Stencil Buffer")
+            : new Texture(GraphicsDevice);
+
+        depthTexture.InitializeFrom(depthTextureDescription);
         DepthStencilBuffer = depthTexture.DisposeBy(this);
     }
 }
