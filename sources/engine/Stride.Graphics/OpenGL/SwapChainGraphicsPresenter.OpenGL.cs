@@ -1,9 +1,10 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #if STRIDE_GRAPHICS_API_OPENGL
+using Stride.Core.Collections;
 using Rectangle = Stride.Core.Mathematics.Rectangle;
-using WindowState = Stride.Graphics.SDL.FormWindowState;
 using Window = Stride.Graphics.SDL.Window;
+using WindowState = Stride.Graphics.SDL.FormWindowState;
 
 namespace Stride.Graphics
 {
@@ -77,8 +78,15 @@ namespace Stride.Graphics
             // Manually update the texture
             backBuffer.OnDestroyed();
 
+            var fastList = DestroyChildrenTextures(backBuffer);
+
             // Put it in our back buffer texture
             backBuffer.InitializeFrom(newTextureDescrition);
+
+            foreach (var texture in fastList)
+            {
+                texture.InitializeFrom(backBuffer, texture.ViewDescription);
+            }
         }
 
         protected override void ResizeDepthStencilBuffer(int width, int height, PixelFormat format)
@@ -90,8 +98,36 @@ namespace Stride.Graphics
             // Manually update the texture
             DepthStencilBuffer.OnDestroyed();
 
+            var fastList = DestroyChildrenTextures(DepthStencilBuffer);
+
             // Put it in our back buffer texture
             DepthStencilBuffer.InitializeFrom(newTextureDescrition);
+
+            foreach (var texture in fastList)
+            {
+                texture.InitializeFrom(DepthStencilBuffer, texture.ViewDescription);
+            }
+        }
+
+        /// <summary>
+        /// Calls <see cref="Texture.OnDestroyed"/> for all children of the specified texture
+        /// </summary>
+        /// <param name="parentTexture">Specified parent texture</param>
+        /// <returns>A list of the children textures which were destroyed</returns>
+        private FastList<Texture> DestroyChildrenTextures(Texture parentTexture)
+        {
+            var fastList = new FastList<Texture>();
+            foreach (var resource in GraphicsDevice.Resources)
+            {
+                var texture = resource as Texture;
+                if (texture != null && texture.ParentTexture == parentTexture)
+                {
+                    texture.OnDestroyed();
+                    fastList.Add(texture);
+                }
+            }
+
+            return fastList;
         }
     }
 }

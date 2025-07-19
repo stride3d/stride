@@ -124,6 +124,14 @@ namespace Stride.Games
             isUserResizing = true;
             cachedSize = Size;
             PauseRendering?.Invoke(this, EventArgs.Empty);
+
+            //This is a temporary workaround
+            //How this should work, is that after resizing, SDL invokes
+            //ResizeBeginActions and ResizeEndActions. Currently on linux
+            //these methods are called in the opposite order every frame,
+            //so we just call the second method here to fix that
+            if (OperatingSystem.IsLinux())
+                GameForm_ResizeEndActions(new WindowEvent());
         }
 
         private void GameForm_ResizeEndActions(WindowEvent e)
