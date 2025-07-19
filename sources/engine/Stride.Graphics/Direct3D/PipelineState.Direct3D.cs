@@ -5,18 +5,22 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 
 using Silk.NET.Core.Native;
-using Silk.NET.DXGI;
 using Silk.NET.Direct3D11;
+using Silk.NET.DXGI;
 
 using Stride.Core.Mathematics;
 using Stride.Core.Storage;
 using Stride.Core.UnsafeExtensions;
 using Stride.Shaders;
+
+using static System.Runtime.CompilerServices.Unsafe;
+using static Stride.Graphics.ComPtrHelpers;
 
 namespace Stride.Graphics
 {
@@ -118,16 +122,11 @@ namespace Stride.Graphics
 
             if (blendState != previousPipeline.blendState || sampleMask != previousPipeline.sampleMask)
             {
-                ID3D11BlendState* tempBlendState;
-                Color4 blendFactor;
-                uint tempSampleMask;
+                SkipInit(out Color4 blendFactor);
+                var blendFactorFloats = blendFactor.AsSpan<Color4, float>(4);
 
-                nativeDeviceContext.OMGetBlendState(&tempBlendState, (float*) &blendFactor, &tempSampleMask);
-
-                if (tempBlendState is not null)
-                    tempBlendState->Release();
-
-                nativeDeviceContext.OMSetBlendState(blendState, (float*) &blendFactor, sampleMask);
+                nativeDeviceContext.OMGetBlendState(ppBlendState: null, blendFactorFloats, pSampleMask: (uint*) null);
+                nativeDeviceContext.OMSetBlendState(blendState, blendFactorFloats, sampleMask);
             }
 
             if (rasterizerState != previousPipeline.rasterizerState)
@@ -137,14 +136,9 @@ namespace Stride.Graphics
 
             if (depthStencilState != previousPipeline.depthStencilState)
             {
-                ID3D11DepthStencilState* tempDepthStencilState;
-                uint stencilRef;
+                SkipInit(out uint stencilRef);
 
-                nativeDeviceContext.OMGetDepthStencilState(&tempDepthStencilState, &stencilRef);
-
-                if (tempDepthStencilState is not null)
-                    tempDepthStencilState->Release();
-
+                nativeDeviceContext.OMGetDepthStencilState(ppDepthStencilState: null, ref stencilRef);
                 nativeDeviceContext.OMSetDepthStencilState(depthStencilState, stencilRef);
             }
 
@@ -227,11 +221,10 @@ namespace Stride.Graphics
                 };
             }
 
-            ID3D11InputLayout* tempInputLayout;
+            ComPtr<ID3D11InputLayout> tempInputLayout = default;
 
             HResult result = NativeDevice.CreateInputLayout(nativeInputElements, NumElements: (uint) inputElements.Length,
-                                                            in inputSignature[0], (uint) inputSignature.Length, &tempInputLayout);
-
+                                                            in inputSignature[0], (uint) inputSignature.Length, ref tempInputLayout);
             if (result.IsFailure)
                 result.Throw();
 
@@ -256,6 +249,7 @@ namespace Stride.Graphics
                 var reflection = effectBytecode.Reflection;
 
                 // TODO: CACHE Shaders with a bytecode hash
+                // TODO: Stale comment? Is it not what GraphicsCache does?
                 switch (shaderBytecode.Stage)
                 {
                     case ShaderStage.Vertex:

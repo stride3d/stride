@@ -61,7 +61,7 @@ namespace Stride.Graphics
         /// <exception cref="ArgumentNullException"><paramref name="viewports"/> is <see langword="null"/>.</exception>
         public void SetViewports(Viewport[] viewports)
         {
-            SetViewports(viewports.Length, viewports);
+            SetViewports(viewports?.Length ?? 0, viewports);
         }
 
         /// <summary>
@@ -146,7 +146,7 @@ namespace Stride.Graphics
         /// <exception cref="ArgumentNullException"><paramref name="scissorRectangles"/> is <see langword="null"/>.</exception>
         public void SetScissorRectangles(Rectangle[] scissorRectangles)
         {
-            SetScissorRectangles(scissorRectangles.Length, scissorRectangles);
+            SetScissorRectangles(scissorRectangles?.Length ?? 0, scissorRectangles);
         }
 
         /// <summary>
@@ -169,10 +169,8 @@ namespace Stride.Graphics
 
             scissorsDirty = true;
             boundScissorCount = scissorCount;
-            for (int i = 0; i < scissorCount; ++i)
-            {
-                scissors[i] = scissorRectangles[i];
-            }
+            scissorRectangles.AsSpan(..scissorCount).CopyTo(scissors);
+
             SetScissorRectanglesImpl(scissorCount, scissorRectangles);
         }
 
@@ -229,8 +227,7 @@ namespace Stride.Graphics
             ResetTargetsImpl();
 
             depthStencilBuffer = null;
-            for (int i = 0; i < renderTargets.Length; i++)
-                renderTargets[i] = null;
+            renderTargets.AsSpan().Clear();
         }
 
         /// <summary>
@@ -255,7 +252,7 @@ namespace Stride.Graphics
             renderTargets[0] = renderTargetView;
             renderTargetCount = renderTargetView is not null ? 1 : 0;
 
-            CommonSetRenderTargetsAndViewport(depthStencilBuffer, renderTargetCount, renderTargets);
+            SetRenderTargetsAndViewportImpl(depthStencilBuffer, renderTargetCount, renderTargets);
         }
 
         /// <summary>
@@ -288,7 +285,7 @@ namespace Stride.Graphics
             if (secondRenderTarget is not null)
                 ++renderTargetCount;
 
-            CommonSetRenderTargetsAndViewport(depthStencilBuffer, renderTargetCount, renderTargets);
+            SetRenderTargetsAndViewportImpl(depthStencilBuffer, renderTargetCount, renderTargets);
         }
 
         /// <summary>
@@ -334,17 +331,17 @@ namespace Stride.Graphics
         /// <exception cref="ArgumentOutOfRangeException">
         ///   <paramref name="renderTargetViews"/> has less elements than what <paramref name="renderTargetViewCount"/> specifies.
         /// </exception>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///   <paramref name="renderTargetViewCount"/> indicates too many Render Targets to set.
+        /// </exception>
         public void SetRenderTargetsAndViewport(Texture depthStencilView, int renderTargetViewCount, Texture[] renderTargetViews)
         {
             depthStencilBuffer = depthStencilView;
 
             renderTargetCount = renderTargetViewCount;
-            for (int i = 0; i < renderTargetCount; i++)
-            {
-                renderTargets[i] = renderTargetViews[i];
-            }
+            renderTargetViews.AsSpan(..renderTargetCount).CopyTo(renderTargets);
 
-            CommonSetRenderTargetsAndViewport(depthStencilBuffer, renderTargetCount, renderTargets);
+            SetRenderTargetsAndViewportImpl(depthStencilBuffer, renderTargetCount, renderTargets);
         }
 
         /// <summary>
@@ -359,6 +356,9 @@ namespace Stride.Graphics
         ///   A set of Render Targets to bind.
         ///   Specify <see langword="null"/> or an empty array to unbind the currently bound Render Targets.
         /// </param>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///   <paramref name="renderTargetViews"/> contains too many Render Targets.
+        /// </exception>
         /// <remarks>
         ///   See <see href="https://doc.stride3d.net/latest/en/manual/graphics/low-level-api/textures-and-render-textures.html#code-use-a-render-target">Use a Render Target</see>
         ///   in the manual for more information.
@@ -370,17 +370,14 @@ namespace Stride.Graphics
             if (renderTargetViews is not null)
             {
                 renderTargetCount = renderTargetViews.Length;
-                for (int i = 0; i < renderTargetViews.Length; i++)
-                {
-                    renderTargets[i] = renderTargetViews[i];
-                }
+                renderTargetViews.AsSpan().CopyTo(renderTargets);
             }
             else
             {
                 renderTargetCount = 0;
             }
 
-            CommonSetRenderTargetsAndViewport(depthStencilBuffer, renderTargetCount, renderTargets);
+            SetRenderTargetsAndViewportImpl(depthStencilBuffer, renderTargetCount, renderTargets);
         }
 
         /// <summary>
@@ -446,25 +443,24 @@ namespace Stride.Graphics
         ///   <paramref name="currentRenderTargetCount"/> is not zero, but <paramref name="renderTargetViews"/> is <see langword="null"/>.
         /// </exception>
         /// <exception cref="ArgumentOutOfRangeException">
-        ///   <paramref name="renderTargetViews"/> has less elements than what <paramref name="currentRenderTargetCount"/> specifies.
+        ///   <paramref name="renderTargetViews"/> has less elements than what <paramref name="renderTargetViewCount"/> specifies.
+        /// </exception>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///   <paramref name="renderTargetViewCount"/> indicates too many Render Targets to set.
         /// </exception>
         public void SetRenderTargets(Texture depthStencilView, int renderTargetViewCount, Texture[] renderTargetViews)
         /// <exception cref="System.ArgumentNullException">renderTargetViews</exception>
         //public void SetRenderTargets(Texture depthStencilView, int renderTargetViewCount, Span<Texture> renderTargetViews)
         {
+            ArgumentOutOfRangeException.ThrowIfGreaterThan(renderTargetViewCount, renderTargetViews?.Length ?? 0);
+            if (renderTargetViewCount > 0)
+                ArgumentNullException.ThrowIfNull(renderTargetViews);
+            ArgumentOutOfRangeException.ThrowIfGreaterThan(renderTargetViewCount, MaxRenderTargetCount);
+
             depthStencilBuffer = depthStencilView;
 
             renderTargetCount = renderTargetViewCount;
-            if (renderTargetViewCount > 0)
-            {
-                ArgumentNullException.ThrowIfNull(renderTargetViews);
-                ArgumentOutOfRangeException.ThrowIfLessThan(renderTargetViews.Length, renderTargetViewCount);
-
-                for (int i = 0; i < renderTargetCount; i++)
-                {
-                    renderTargets[i] = renderTargetViews[i];
-                }
-            }
+            renderTargetViews.AsSpan(..renderTargetCount).CopyTo(renderTargets);
 
             SetRenderTargetsImpl(depthStencilBuffer, renderTargetCount, renderTargets);
         }
@@ -480,21 +476,23 @@ namespace Stride.Graphics
         ///   A set of Render Targets to bind.
         ///   Specify <see langword="null"/> or an empty array to unbind the currently bound Render Targets.
         /// </param>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///   <paramref name="renderTargetViews"/> contains too many Render Targets to set.
+        /// </exception>
         /// <remarks>
         ///   See <see href="https://doc.stride3d.net/latest/en/manual/graphics/low-level-api/textures-and-render-textures.html#code-use-a-render-target">Use a Render Target</see>
         ///   in the manual for more information.
         /// </remarks>
         public void SetRenderTargets(Texture depthStencilView, Texture[] renderTargetViews)
         {
+            ArgumentOutOfRangeException.ThrowIfGreaterThan(renderTargetViews?.Length ?? 0, MaxRenderTargetCount);
+
             depthStencilBuffer = depthStencilView;
 
             if (renderTargetViews is not null)
             {
                 renderTargetCount = renderTargetViews.Length;
-                for (var i = 0; i < renderTargetViews.Length; i++)
-                {
-                    renderTargets[i] = renderTargetViews[i];
-                }
+                renderTargetViews.AsSpan().CopyTo(renderTargets);
             }
             else
             {
@@ -520,7 +518,16 @@ namespace Stride.Graphics
         ///   A set of Render Targets to bind.
         ///   Specify <see langword="null"/> or an empty array to unbind the currently bound Render Targets.
         /// </param>
-        private void CommonSetRenderTargetsAndViewport(Texture depthStencilView, int currentRenderTargetCount, Texture[] renderTargetViews)
+        /// <exception cref="ArgumentNullException">
+        ///   <paramref name="renderTargetViewCount"/> is not zero, but <paramref name="renderTargetViews"/> is <see langword="null"/>.
+        /// </exception>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///   <paramref name="renderTargetViews"/> has less elements than what <paramref name="renderTargetViewCount"/> specifies.
+        /// </exception>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///   <paramref name="renderTargetViewCount"/> indicates too many Render Targets to set.
+        /// </exception>
+        private void SetRenderTargetsAndViewportImpl(Texture depthStencilView, int currentRenderTargetCount, Texture[] renderTargetViews)
         {
             if (depthStencilView is not null)
             {
@@ -530,6 +537,7 @@ namespace Stride.Graphics
             {
                 ArgumentNullException.ThrowIfNull(renderTargetViews);
                 ArgumentOutOfRangeException.ThrowIfLessThan(renderTargetViews.Length, currentRenderTargetCount);
+                ArgumentOutOfRangeException.ThrowIfGreaterThan(currentRenderTargetCount, MaxRenderTargetCount);
 
                 // Setup the viewport from the Render Target View
                 var rtv = renderTargetViews[0];
@@ -568,15 +576,13 @@ namespace Stride.Graphics
             ClearStateImpl();
 
             // Setup empty viewports
-            for (int i = 0; i < viewports.Length; i++)
-                viewports[i] = new Viewport();
+            Array.Clear(viewports);
 
             // Setup empty scissors
             scissorsDirty = true;
-            for (int i = 0; i < scissors.Length; i++)
-                scissors[i] = new Rectangle();
+            Array.Clear(scissors);
 
-            // Setup the default Render Target
+            // Setup the default Render Target and Depth-Stencil Buffer
             var deviceDepthStencilBuffer = GraphicsDevice.Presenter?.DepthStencilBuffer;
             var deviceBackBuffer = GraphicsDevice.Presenter?.BackBuffer;
             SetRenderTargetAndViewport(deviceDepthStencilBuffer, deviceBackBuffer);

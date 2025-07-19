@@ -25,7 +25,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 using Silk.NET.Core.Native;
@@ -37,6 +36,7 @@ using BackBufferResourceType = Silk.NET.Direct3D11.ID3D11Texture2D;
 using BackBufferResourceType = Silk.NET.Direct3D12.ID3D12Resource;
 #endif
 
+using static System.Runtime.CompilerServices.Unsafe;
 using static Stride.Graphics.ComPtrHelpers;
 
 namespace Stride.Graphics
@@ -215,10 +215,7 @@ namespace Stride.Graphics
 #if STRIDE_PLATFORM_UWP
                 return false;
 #else
-                bool isFullScreen = GetFullScreenState(out var output);
-                SafeRelease(ref output);
-
-                return isFullScreen;
+                return GetFullScreenState();
 #endif
             }
 
@@ -312,6 +309,20 @@ namespace Stride.Graphics
             return isFullScreen != 0;
         }
 
+        /// <summary>
+        ///   Determines if the Swap-Chain is presenting in fullscreen mode.
+        /// </summary>
+        /// <returns>
+        ///   <see langword="true"/> if the Swap-Chain is in fullscreen mode; <see langword="false"/> otherwise.
+        /// </returns>
+        private bool GetFullScreenState()
+        {
+            SkipInit(out int isFullScreen);
+            swapChain->GetFullscreenState(ref isFullScreen, ppTarget: null);
+
+            return isFullScreen != 0;
+        }
+
         /// <inheritdoc/>
         public override void BeginDraw(CommandList commandList)
         {
@@ -366,7 +377,7 @@ namespace Stride.Graphics
         {
             base.OnNameChanged();
 
-            if (Name is not null && GraphicsDevice is not null && GraphicsDevice.IsDebugMode && swapChain is not null)
+            if (GraphicsDevice.IsDebugMode is true && Name is not null && swapChain is not null)
             {
                 ToComPtr(swapChain).SetDebugName(Name);
             }
@@ -442,7 +453,7 @@ namespace Stride.Graphics
             //          I've added the flip model check above because the previous logic wasn't enough, see issue #1770
             //          Testing against swapChain format instead of the backbuffer as they may not match.
 
-            Unsafe.SkipInit(out SwapChainDesc swapChainDesc);
+            SkipInit(out SwapChainDesc swapChainDesc);
             result = swapChain->GetDesc(ref swapChainDesc);
 
             if (result.IsFailure)
@@ -464,7 +475,7 @@ namespace Stride.Graphics
 
             foreach (var childTexture in childrenTextures)
             {
-                childTexture.InitializeFrom(parentTexture: backBuffer, childTexture.ViewDescription);
+                childTexture.InitializeFrom(parentTexture: backBuffer, in childTexture.ViewDescription);
             }
         }
 
@@ -477,18 +488,18 @@ namespace Stride.Graphics
                 Height = height
             };
 
-            // Manually update the Depth-Stencil Texture
+            // Manually update the Depth-Stencil Buffer
             DepthStencilBuffer.OnDestroyed();
 
-            // Manually update all children Textures
+            // Manually update all children Textures (Views)
             var childrenTextures = DestroyChildrenTextures(DepthStencilBuffer);
 
-            // Put it in our Back-Buffer Texture
+            // Put it in our Depth-Stencil Buffer
             DepthStencilBuffer.InitializeFrom(newTextureDescription);
 
             foreach (var childTexture in childrenTextures)
             {
-                childTexture.InitializeFrom(parentTexture: DepthStencilBuffer, childTexture.ViewDescription);
+                childTexture.InitializeFrom(parentTexture: DepthStencilBuffer, in childTexture.ViewDescription);
             }
         }
 
@@ -697,7 +708,6 @@ namespace Stride.Graphics
             ComPtr<IDXGISwapChain> newSwapChain = default;
             var nativeFactory = GraphicsAdapterFactory.NativeFactory;
 
-
 #if STRIDE_GRAPHICS_API_DIRECT3D11
             HResult result = nativeFactory.CreateSwapChain(GraphicsDevice.NativeDevice.AsIUnknown(), ref description, ref newSwapChain);
 #elif STRIDE_GRAPHICS_API_DIRECT3D12
@@ -724,10 +734,14 @@ namespace Stride.Graphics
                 newSwapChain.ResizeTarget(in description.BufferDesc);
 
                 // Switch to fullscreen
-                newSwapChain.SetFullscreenState(Fullscreen: 1, (IDXGIOutput*) null);
+                newSwapChain.SetFullscreenState(Fullscreen: 1, ref NullRef<IDXGIOutput>());
 
                 // It's really important to call ResizeBuffers AFTER switching to IsFullScreen
-                newSwapChain.ResizeBuffers((uint) bufferCount, (uint) Description.BackBufferWidth, (uint) Description.BackBufferHeight, NewFormat: default, description.Flags);
+                newSwapChain.ResizeBuffers((uint) bufferCount,
+                                           (uint) Description.BackBufferWidth,
+                                           (uint) Description.BackBufferHeight,
+                                           NewFormat: default,
+                                           description.Flags);
             }
 
             return newSwapChain;

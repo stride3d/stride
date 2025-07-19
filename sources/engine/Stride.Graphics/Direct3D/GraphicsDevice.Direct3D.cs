@@ -8,16 +8,16 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Threading;
-using System.Threading.Tasks;
+
 using Silk.NET.Core.Native;
-using Silk.NET.Direct3D11;
 using Silk.NET.DXGI;
+using Silk.NET.Direct3D11;
+
 using Stride.Core;
 using Stride.Core.UnsafeExtensions;
+
 using static Stride.Graphics.ComPtrHelpers;
 using static Stride.Graphics.DxgiConstants;
-
 
 namespace Stride.Graphics
 {

@@ -18,6 +18,7 @@ using SilkBox2I = Silk.NET.Maths.Box2D<int>;
 using D3D11Viewport = Silk.NET.Direct3D11.Viewport;
 using D3D11Box = Silk.NET.Direct3D11.Box;
 
+using static System.Runtime.CompilerServices.Unsafe;
 using static Stride.Graphics.ComPtrHelpers;
 
 namespace Stride.Graphics
@@ -76,7 +77,7 @@ namespace Stride.Graphics
         internal CommandList(GraphicsDevice device) : base(device)
         {
             nativeDeviceContext = device.NativeDeviceContext.Handle;
-            NativeDeviceChild = NativeDeviceContext.AsDeviceChild();
+            SetNativeDeviceChild(NativeDeviceContext.AsDeviceChild());
 
             HResult result = nativeDeviceContext->QueryInterface(out ComPtr<ID3D11DeviceContext1> _);
 
@@ -105,9 +106,6 @@ namespace Stride.Graphics
             base.OnDestroyed();
         }
 
-
-        // TODO: Unused?
-        internal ComPtr<ID3D11DeviceContext> ShaderStages => nativeDeviceContext;
 
         /// <summary>
         ///   Resets a Command List back to its initial state as if a new Command List was just created.
@@ -187,9 +185,7 @@ namespace Stride.Graphics
 
             nativeDeviceContext->OMSetRenderTargets(NumViews: (uint) renderTargetCount,
                                                     ppRenderTargetViews: ref currentRenderTargetViews[0],
-                                                    pDepthStencilView: depthStencilBuffer is not null
-                                                        ? depthStencilBuffer.NativeDepthStencilView
-                                                        : NullComPtr<ID3D11DepthStencilView>());
+                                                    pDepthStencilView: depthStencilBuffer?.NativeDepthStencilView ?? NullComPtr<ID3D11DepthStencilView>());
         }
 
         /// <summary>
@@ -268,7 +264,10 @@ namespace Stride.Graphics
         /// </summary>
         public void UnsetRenderTargets()
         {
-            nativeDeviceContext->OMSetRenderTargets(NumViews: 0, ppRenderTargetViews: null, pDepthStencilView: (ID3D11DepthStencilView*) null);
+            var noRenderTargets = NullComPtr<ID3D11RenderTargetView>();
+            var noDepthBuffer = NullComPtr<ID3D11DepthStencilView>();
+
+            nativeDeviceContext->OMSetRenderTargets(NumViews: 0, ppRenderTargetViews: ref noRenderTargets, noDepthBuffer);
         }
 
         /// <summary>
@@ -545,11 +544,10 @@ namespace Stride.Graphics
         /// <seealso cref="SetPipelineState(PipelineState)"/>
         public void SetStencilReference(int stencilReference)
         {
-            var depthStencilState = NullComPtr<ID3D11DepthStencilState>();
-            uint stencilRef = 0;
+            SkipInit(out uint stencilRef);
 
-            nativeDeviceContext->OMGetDepthStencilState(ref depthStencilState, ref stencilRef);
-            nativeDeviceContext->OMSetDepthStencilState(depthStencilState, (uint) stencilReference);
+            nativeDeviceContext->OMGetDepthStencilState(ppDepthStencilState: null, ref stencilRef);
+            nativeDeviceContext->OMSetDepthStencilState(pDepthStencilState: null, (uint) stencilReference);
         }
 
         /// <summary>
@@ -572,11 +570,10 @@ namespace Stride.Graphics
             var blendState = NullComPtr<ID3D11BlendState>();
 
             scoped Span<float> blendFactorFloats = blendFactor.AsSpan<Color4, float>();
-            scoped Span<float> prevBlendFactor = stackalloc float[4];
-            uint sampleMask = 0;
+            SkipInit(out uint sampleMask);
 
-            nativeDeviceContext->OMGetBlendState(ref blendState, ref prevBlendFactor[0], ref sampleMask);
-            nativeDeviceContext->OMSetBlendState(blendState, ref blendFactorFloats[0], sampleMask);
+            nativeDeviceContext->OMGetBlendState(ppBlendState: null, BlendFactor: null, ref sampleMask);
+            nativeDeviceContext->OMSetBlendState(pBlendState: null, ref blendFactorFloats[0], sampleMask);
         }
 
         /// <summary>

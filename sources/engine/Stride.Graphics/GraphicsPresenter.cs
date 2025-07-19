@@ -21,6 +21,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
+using System;
 using Stride.Core;
 
 namespace Stride.Graphics;
@@ -66,8 +67,14 @@ public abstract class GraphicsPresenter : ComponentBase
     /// <param name="presentationParameters">
     ///   The parameters describing the buffers the <paramref name="device"/> will present to.
     /// </param>
+    /// <exception cref="ArgumentNullException"><paramref name="device"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="presentationParameters"/> is <see langword="null"/>.</exception>
+    /// <exception cref="NotSupportedException">The Depth-Stencil format specified is not supported.</exception>
     protected GraphicsPresenter(GraphicsDevice device, PresentationParameters presentationParameters)
     {
+        ArgumentNullException.ThrowIfNull(device);
+        ArgumentNullException.ThrowIfNull(presentationParameters);
+
         GraphicsDevice = device;
         var description = presentationParameters.Clone();
 
@@ -88,12 +95,12 @@ public abstract class GraphicsPresenter : ComponentBase
     /// <value>
     ///   The Graphics Device that will be used for managing the Buffers and Textures, and starting/ending a frame.
     /// </value>
-    public GraphicsDevice GraphicsDevice { get; private set; }
+    public GraphicsDevice GraphicsDevice { get; }
 
     /// <summary>
     ///   Gets the parameters describing the Resources and behavior of the Graphics Presenter.
     /// </summary>
-    public PresentationParameters Description { get; private set; }
+    public PresentationParameters Description { get; }
 
     /// <summary>
     ///   Gets the default Back-Buffer for the Graphics Presenter.
@@ -115,6 +122,12 @@ public abstract class GraphicsPresenter : ComponentBase
     ///   The <see cref="Texture"/> where depth (Z) values will be written, and optionally also
     ///   stencil masking values.
     /// </value>
+    /// <remarks>
+    ///   If the Depth-Stencil Buffer is the one created by this Graphics Presenter, it is attached to it its lifetime
+    ///   is managed by this instance.
+    ///   If a derived class needs to set a custom Depth-Stencil Buffer, it should first call
+    ///   <see cref="DetachDepthStencilBuffer"/> to release the current one.
+    /// </remarks>
     public Texture DepthStencilBuffer { get; protected set; }
 
     /// <summary>
@@ -297,7 +310,7 @@ public abstract class GraphicsPresenter : ComponentBase
     /// <param name="width">The new width of the Back-Buffer, in pixels.</param>
     /// <param name="height">The new height of the Back-Buffer, in pixels.</param>
     /// <param name="format">The new pixel format for the Back-Buffer.</param>
-    /// <exception cref="System.NotSupportedException">
+    /// <exception cref="NotSupportedException">
     ///   The specified pixel <paramref name="format"/> or size is not supported by the Graphics Device.
     /// </exception>
     /// <remarks>
@@ -312,7 +325,7 @@ public abstract class GraphicsPresenter : ComponentBase
     /// <param name="width">The new width of the Depth-Stencil Buffer, in pixels.</param>
     /// <param name="height">The new height of the Depth-Stencil Buffer, in pixels.</param>
     /// <param name="format">The new pixel format for the Depth-Stencil Buffer.</param>
-    /// <exception cref="System.NotSupportedException">
+    /// <exception cref="NotSupportedException">
     ///   The specified depth <paramref name="format"/> or size is not supported by the Graphics Device.
     /// </exception>
     /// <remarks>
@@ -360,7 +373,7 @@ public abstract class GraphicsPresenter : ComponentBase
     ///   When overriden in a derived class, this method allows to perform additional resource
     ///   creation, configuration, and initialization.
     /// </remarks>
-    /// <exception cref="System.InvalidOperationException">
+    /// <exception cref="InvalidOperationException">
     ///   <see cref="PresentationParameters.DeviceWindowHandle"/> is <see langword="null"/> or
     ///   the <see cref="WindowHandle.Handle"/> is invalid or zero.
     /// </exception>
@@ -382,6 +395,7 @@ public abstract class GraphicsPresenter : ComponentBase
     /// <summary>
     ///   Creates the Depth-Stencil Buffer.
     /// </summary>
+    /// <exception cref="NotSupportedException">The Depth-Stencil format specified is not supported.</exception>
     /// <remarks>
     ///   <para>
     ///     When overriden in a derived class, this method allows to create a custom Depth-Stencil Buffer
