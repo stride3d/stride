@@ -239,7 +239,7 @@ namespace Stride.Graphics
         ///   The cache used to store and retrieve Pipeline State objects, including Shader instances.
         ///   If the Effect bytecode is <see langword="null"/>, the method exits without performing any operations.
         /// </param>
-        private void CreateShaders(DevicePipelineStateCache pipelineStateCache)
+        private void CreateShaders(PipelineStateCache pipelineStateCache)
         {
             if (effectBytecode is null)
                 return;
@@ -326,13 +326,13 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        ///   Gets the shared <see cref="DevicePipelineStateCache"/> for the current Graphics Device, or
+        ///   Gets the shared <see cref="PipelineStateCache"/> for the current Graphics Device, or
         ///   creates a new one if it does not exist.
         /// </summary>
         /// <returns>A Pipeline State cache shared for the current Graphics Device.</returns>
-        private DevicePipelineStateCache GetPipelineStateCache()
+        private PipelineStateCache GetPipelineStateCache()
         {
-            return GraphicsDevice.GetOrCreateSharedData(typeof(DevicePipelineStateCache), device => new DevicePipelineStateCache(device));
+            return GraphicsDevice.GetOrCreateSharedData(typeof(PipelineStateCache), device => new PipelineStateCache(device));
         }
 
         #region Pipeline State cache
@@ -341,39 +341,40 @@ namespace Stride.Graphics
         ///   Provides a caching mechanism for Direct3D 11 Pipeline State objects and Shaders.
         /// </summary>
         /// <remarks>
-        ///   The <see cref="DevicePipelineStateCache"/> class manages caches for various Direct3D 11 Pipeline State objects,
+        ///   The <see cref="PipelineStateCache"/> class manages caches for various Direct3D 11 Pipeline State objects,
         ///   including Shaders and State descriptions. This allows efficient reuse of Pipeline State objects and
         ///   reduces overhead associated with their creation.
         /// </remarks>
-        private unsafe class DevicePipelineStateCache : IDisposable
+        [DebuggerDisplay("", Name = $"{nameof(GraphicsDevice)}::{nameof(PipelineStateCache)}")]
+        private unsafe class PipelineStateCache : IDisposable
         {
             // Shaders
-            public readonly GraphicsCache<ShaderBytecode, ObjectId, ComPtr<ID3D11VertexShader>> VertexShaderCache;
-            public readonly GraphicsCache<ShaderBytecode, ObjectId, ComPtr<ID3D11PixelShader>> PixelShaderCache;
-            public readonly GraphicsCache<ShaderBytecode, ObjectId, ComPtr<ID3D11GeometryShader>> GeometryShaderCache;
-            public readonly GraphicsCache<ShaderBytecode, ObjectId, ComPtr<ID3D11HullShader>> HullShaderCache;
-            public readonly GraphicsCache<ShaderBytecode, ObjectId, ComPtr<ID3D11DomainShader>> DomainShaderCache;
-            public readonly GraphicsCache<ShaderBytecode, ObjectId, ComPtr<ID3D11ComputeShader>> ComputeShaderCache;
+            public readonly GraphicsCache<ShaderBytecode, ObjectId, ID3D11VertexShader> VertexShaderCache;
+            public readonly GraphicsCache<ShaderBytecode, ObjectId, ID3D11PixelShader> PixelShaderCache;
+            public readonly GraphicsCache<ShaderBytecode, ObjectId, ID3D11GeometryShader> GeometryShaderCache;
+            public readonly GraphicsCache<ShaderBytecode, ObjectId, ID3D11HullShader> HullShaderCache;
+            public readonly GraphicsCache<ShaderBytecode, ObjectId, ID3D11DomainShader> DomainShaderCache;
+            public readonly GraphicsCache<ShaderBytecode, ObjectId, ID3D11ComputeShader> ComputeShaderCache;
 
             // States
-            public readonly GraphicsCache<BlendStateDescription, BlendStateDescription, ComPtr<ID3D11BlendState>> BlendStateCache;
-            public readonly GraphicsCache<RasterizerStateDescription, RasterizerStateDescription, ComPtr<ID3D11RasterizerState>> RasterizerStateCache;
-            public readonly GraphicsCache<DepthStencilStateDescription, DepthStencilStateDescription, ComPtr<ID3D11DepthStencilState>> DepthStencilStateCache;
+            public readonly GraphicsCache<BlendStateDescription, BlendStateDescription, ID3D11BlendState> BlendStateCache;
+            public readonly GraphicsCache<RasterizerStateDescription, RasterizerStateDescription, ID3D11RasterizerState> RasterizerStateCache;
+            public readonly GraphicsCache<DepthStencilStateDescription, DepthStencilStateDescription, ID3D11DepthStencilState> DepthStencilStateCache;
 
 
             /// <summary>
-            ///   Initializes a new instance of the <see cref="DevicePipelineStateCache"/> class.
+            ///   Initializes a new instance of the <see cref="PipelineStateCache"/> class.
             /// </summary>
             /// <param name="graphicsDevice">
             ///   The Graphics Device associated with this cache. This is used to create and manage
             ///   Pipeline State objects and Shaders.
             /// </param>
-            public DevicePipelineStateCache(GraphicsDevice graphicsDevice)
+            public PipelineStateCache(GraphicsDevice graphicsDevice)
             {
                 var nativeDevice = graphicsDevice.NativeDevice;
 
                 // Shaders
-                var nullClassLinkage = ComPtrHelpers.NullComPtr<ID3D11ClassLinkage>();
+                var nullClassLinkage = NullComPtr<ID3D11ClassLinkage>();
 
                 VertexShaderCache   = new(GetShaderId, CreateVertexShader,   static vs => vs.Release());
                 PixelShaderCache    = new(GetShaderId, CreatePixelShader,    static ps => ps.Release());
@@ -625,19 +626,26 @@ namespace Stride.Graphics
         /// <param name="releaseValue">Optional action to release the cached Direct3D object when it is no longer needed.</param>
         private class GraphicsCache<TSource, TKey, TValue>(
             Func<TSource, TKey> computeKey,
-            Func<TSource, TValue> computeValue,
-            Action<TValue> releaseValue = null) : IDisposable
+            Func<TSource, ComPtr<TValue>> computeValue,
+            Action<ComPtr<TValue>> releaseValue = null) : IDisposable
+
+            where TKey : notnull
+            where TSource : notnull
+            where TValue : unmanaged, IComVtbl<TValue>, IComVtbl<ID3D11DeviceChild>
         {
             private readonly object lockObject = new();
 
-            private readonly Dictionary<TKey, TValue> storage = [];   // Instantiated objects
-            private readonly Dictionary<TValue, TKey> reverse = [];   // Reverse lookup for quick removal
+            // Instantiated objects
+            private readonly Dictionary<TKey, ComPtr<TValue>> storage = [];
+            // Reverse lookup for quick removal
+            private readonly Dictionary<ComPtr<TValue>, TKey> reverse = new(comparer: ComPtrEqualityComparer<TValue>.Default);
 
-            private readonly Dictionary<TValue, int> referenceCount = [];
+            // Reference count for each cached object
+            private readonly Dictionary<ComPtr<TValue>, int> referenceCount = new(comparer: ComPtrEqualityComparer<TValue>.Default);
 
             private readonly Func<TSource, TKey> computeKey = computeKey;
-            private readonly Func<TSource, TValue> computeValue = computeValue;
-            private readonly Action<TValue> releaseValue = releaseValue;
+            private readonly Func<TSource, ComPtr<TValue>> computeValue = computeValue;
+            private readonly Action<ComPtr<TValue>> releaseValue = releaseValue;
 
 
             /// <summary>
@@ -653,13 +661,13 @@ namespace Stride.Graphics
             ///     If the key already exists, the reference count of the associated value is incremented.
             ///   </para>
             /// </remarks>
-            public TValue Instantiate(TSource source)
+            public ComPtr<TValue> Instantiate(TSource source)
             {
                 lock (lockObject)
                 {
                     var key = computeKey(source);
 
-                    if (!storage.TryGetValue(key, out var value))
+                    if (!storage.TryGetValue(key, out ComPtr<TValue> value))
                     {
                         // New value: Add it to the cache
                         value = computeValue(source);
@@ -689,7 +697,12 @@ namespace Stride.Graphics
             ///   is removed from the cache, along with any associated keys. If a release action is defined, it will be invoked
             ///   for the value being removed.
             /// </remarks>
-            public void Release(TValue value)
+            public void Release(TValue* value)
+                // NOTE: We use ToComPtr to ensure that the reference count is not incremented inadvertently by the implicit conversion to ComPtr<T>
+                => Release(ToComPtr(value));
+
+            /// <inheritdoc cref="Release(TValue*)"/>
+            public void Release(ComPtr<TValue> value)
             {
                 lock (lockObject)
                 {
@@ -702,7 +715,7 @@ namespace Stride.Graphics
                     if (--refCount == 0)
                     {
                         referenceCount.Remove(value);
-                        if (reverse.TryGetValue(value, out var key))
+                        if (reverse.TryGetValue(value, out TKey key))
                         {
                             storage.Remove(key);
                         }
@@ -720,9 +733,9 @@ namespace Stride.Graphics
                 {
                     // Release everything
                     if (releaseValue is not null)
-                        foreach (var entry in reverse)
+                        foreach ((ComPtr<TValue> value, _) in reverse)
                         {
-                            releaseValue(entry.Key);
+                            releaseValue(value);
                         }
 
                     reverse.Clear();
