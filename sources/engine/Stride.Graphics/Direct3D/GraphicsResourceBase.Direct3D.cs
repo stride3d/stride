@@ -52,14 +52,9 @@ public abstract unsafe partial class GraphicsResourceBase
 
             nativeDeviceChild->AddRef();
 
-            HResult result = nativeDeviceChild->QueryInterface(out ComPtr<ID3D11Resource> d3dResource);
-
             // The device child can be something that is not a Direct3D resource actually,
             // like a Sampler State, for example
-            if (result.IsSuccess)
-            {
-                nativeResource = d3dResource.Handle;
-            }
+            nativeResource = TryGetResource();
 
             NativeDeviceChild.SetDebugName(Name);
         }

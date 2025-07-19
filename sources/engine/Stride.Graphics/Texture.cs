@@ -274,7 +274,7 @@ namespace Stride.Graphics
         ///   Gets a value indicating if the Texture is a using a block compress format (BC1, BC2, BC3, BC4, BC5, BC6H, BC7).
         /// </summary>
         /// <seealso cref="Format"/>
-        public bool IsBlockCompressed { get; private set; }
+        public bool IsBlockCompressed => Description.Format.IsCompressed();
 
         /// <summary>
         ///   Gets the largestSize of the Texture or Texture View.
@@ -483,7 +483,6 @@ namespace Stride.Graphics
 
             textureDescription = description;
             textureViewDescription = viewDescription;
-            IsBlockCompressed = description.Format.IsCompressed();
             RowStride = ComputeRowPitch(0);
             mipmapDescriptions = Image.CalculateMipMapDescription(description);
             SizeInBytes = ArraySize * mipmapDescriptions?.Sum(mip => mip.MipmapSize) ?? 0;

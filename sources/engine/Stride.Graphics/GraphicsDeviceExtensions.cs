@@ -2,8 +2,10 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
+using System.Runtime.CompilerServices;
 
 using Stride.Core.Mathematics;
+
 using Stride.Rendering;
 
 namespace Stride.Graphics;
@@ -124,15 +126,28 @@ public static class GraphicsDeviceExtensions
         //
         // Creates a 2x2 white Texture that can be shared across multiple graphics contexts.
         //
-        static Texture CreateWhiteTexture(GraphicsDevice device)
+        static unsafe Texture CreateWhiteTexture(GraphicsDevice device)
         {
             const int Size = 2;
 
             Span<Color> textureData = stackalloc Color[Size * Size];
             textureData.Fill(Color.White);
 
-            var texture = Texture.New2D(device, Size, Size, PixelFormat.R8G8B8A8_UNorm, textureData.ToArray());  // TODO: Use the Span<T> overload when available
-            texture.Name = "WhiteTexture";
+            Unsafe.SkipInit(out DataBox dataBox);
+            fixed (Color* textureDataPtr = textureData)
+            {
+                var rowPitch = Size * sizeof(Color);
+                var slicePitch = rowPitch * Size;
+                dataBox = new DataBox((nint) textureDataPtr, rowPitch, slicePitch);
+            }
+
+            var texture = device.IsDebugMode
+                ? new Texture(device, "WhiteTexture")
+                : new Texture(device);
+
+            var textureDescription = TextureDescription.New2D(Size, Size, PixelFormat.R8G8B8A8_UNorm);
+            texture.InitializeFrom(textureDescription, [ dataBox ]); // TODO: Use the Span<T> overload when available
+
             return texture;
         }
     }

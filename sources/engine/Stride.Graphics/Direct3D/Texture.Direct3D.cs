@@ -215,7 +215,7 @@ namespace Stride.Graphics
                     Flags = newTextureDescription.Flags
                 };
 
-                return InitializeFrom(parentTexture: null, newTextureDescription, newTextureViewDescription, textureDatas: null);
+                return InitializeFrom(parentTexture: null, in newTextureDescription, in newTextureViewDescription, textureDatas: null);
             }
             else
             {

@@ -158,4 +158,10 @@ public readonly struct MipMapDescription(int width, int height, int depth, int r
     {
         return !Equals(left, right);
     }
+
+    /// <inheritdoc/>
+    public override string ToString()
+    {
+        return FormattableString.Invariant($"{nameof(MipMapDescription)}: {Width}x{Height}x{Depth}, Size: {MipmapSize} bytes");
+    }
 }
