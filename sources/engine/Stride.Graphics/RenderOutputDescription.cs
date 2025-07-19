@@ -209,7 +209,7 @@ namespace Stride.Graphics
 
             RenderTargetCount = commandList.RenderTargetCount;
 
-            for (int i = 0; i < MaximumRenderTargetCount; ++i)
+            for (int i = 0; i < RenderTargetCount; ++i)
             {
                 RenderTargetFormats[i] = commandList.RenderTargets[i].ViewFormat;
                 MultisampleCount = commandList.RenderTargets[i].MultisampleCount; // Multi-sampling should all be equal
