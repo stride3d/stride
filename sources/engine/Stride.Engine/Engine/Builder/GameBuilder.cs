@@ -43,7 +43,7 @@ public class GameBuilder : IGameBuilder
 
     public GameContext Context { get; set; }
 
-    private static Logger _log => GlobalLogger.GetLogger("GameBuilder");
+    private static Logger _log => GlobalLogger.GetLogger(nameof(GameBuilder));
 
     internal GameBuilder(GameBase game)
     {
