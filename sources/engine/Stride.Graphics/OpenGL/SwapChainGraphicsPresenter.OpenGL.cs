@@ -36,7 +36,7 @@ namespace Stride.Graphics
             set
             {
                 var gameWindow = (Window)Description.DeviceWindowHandle.NativeWindow;
-                if (gameWindow.Exists)
+                if (gameWindow.Exists && value != (gameWindow.WindowState == WindowState.Fullscreen))
                     gameWindow.WindowState = value ? WindowState.Fullscreen : WindowState.Normal;
             }
         }
