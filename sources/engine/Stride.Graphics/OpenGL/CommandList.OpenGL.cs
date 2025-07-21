@@ -1224,14 +1224,13 @@ namespace Stride.Graphics
                 var expectedHeight = renderTargets[0].Height;
                 if (depthStencilBuffer != null)
                 {
-                    System.Diagnostics.Debug.Assert(expectedWidth == depthStencilBuffer.Width && expectedHeight == depthStencilBuffer.Height, "Depth buffer is not the same size as the render target");
+                    if (expectedWidth != depthStencilBuffer.Width || expectedHeight != depthStencilBuffer.Height)
+                        throw new Exception("Depth buffer is not the same size as the render target");
                 }
                 for (int i = 1; i < renderTargetCount; ++i)
                 {
-                    if (renderTargets[i] != null)
-                    {
-                        System.Diagnostics.Debug.Assert(expectedWidth == renderTargets[i].Width && expectedHeight == renderTargets[i].Height, "Render targets do not have the same size");
-                    }
+                    if (renderTargets[i] != null && (expectedWidth != renderTargets[i].Width || expectedHeight != renderTargets[i].Height))
+                        throw new Exception("Render targets do not have the same size");
                 }
             }
 
