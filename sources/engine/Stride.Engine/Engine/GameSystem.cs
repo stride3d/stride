@@ -19,6 +19,6 @@ namespace Stride.Engine
         /// </summary>
         /// <value>The game.</value>
         /// <remarks>This value can be null</remarks>
-        public new Game Game => (Game)base.Game;
+        public new GameBase Game => base.Game;
     }
 }
