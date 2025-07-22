@@ -1,0 +1,50 @@
+<Project>
+  <Import Project="..\..\targets\Stride.props" />
+  
+  <PropertyGroup>
+    <TargetFramework>$(StrideXplatEditorTargetFramework)</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
+      <Link>Properties\SharedAssemblyInfo.cs</Link>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <AvaloniaResource Include="Assets\**" />
+    <AvaloniaResource Include="..\..\..\BACKERS.md" Link="Assets\BACKERS.md" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="..\..\..\LICENSE.md" Link="LICENSE.md">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\..\THIRD PARTY.md" Link="THIRD PARTY.md">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia.Themes.Fluent" />
+    <PackageReference Include="Avalonia.Fonts.Inter" />
+    <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
+    <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" />
+    <PackageReference Include="Xaml.Behaviors.Interactions" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Stride.Editor.Avalonia\Stride.Editor.Avalonia.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- TODO xplat-editor that reference shouldn't be explicit and such assembly should be loaded as external plugins -->
+    <ProjectReference Include="..\Stride.Assets.Editor.Avalonia\Stride.Assets.Editor.Avalonia.csproj" />
+  </ItemGroup>
+
+  <Import Project="$(StrideSdkTargets)" />
+</Project>

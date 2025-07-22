@@ -2,7 +2,6 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Collections;
-using Stride.Core.Annotations;
 using Stride.Core.Diagnostics;
 using Stride.Core.Extensions;
 using Stride.Core.IO;
@@ -68,13 +67,12 @@ public class SettingsContainer
     /// <summary>
     /// Raised when a settings file has been loaded.
     /// </summary>
-    public event EventHandler<SettingsFileLoadedEventArgs> SettingsFileLoaded;
+    public event EventHandler<SettingsFileLoadedEventArgs>? SettingsFileLoaded;
 
     /// <summary>
     /// Gets a list of all registered <see cref="SettingsKey"/> instances.
     /// </summary>
     /// <returns>A list of all registered <see cref="SettingsKey"/> instances.</returns>
-    [NotNull]
     public List<SettingsKey> GetAllSettingsKeys()
     {
         return [.. settingsKeys.Values];
@@ -91,7 +89,6 @@ public class SettingsContainer
     /// If the profile is not registered to the container, it won't be able to receive <see cref="SettingsKey"/> that are registered after its
     /// creation. If the profile is registered to the container, <see cref="UnloadSettingsProfile"/> must be call in order to unregister it.
     /// </remarks>
-    [NotNull]
     public SettingsProfile CreateSettingsProfile(bool setAsCurrent, SettingsProfile? parent = null, bool registerInContainer = true)
     {
         if (setAsCurrent && !registerInContainer) throw new ArgumentException("Cannot set the profile as current if it's not registered to the container", nameof(setAsCurrent));

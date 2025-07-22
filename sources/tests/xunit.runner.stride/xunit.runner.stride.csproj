@@ -7,6 +7,7 @@
     <StrideSkipAutoPack>false</StrideSkipAutoPack>
     <IsPackable>true</IsPackable>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
@@ -14,11 +15,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Avalonia" />
     <PackageReference Include="Avalonia.Desktop" />
     <PackageReference Include="Avalonia.Fonts.Inter" />
     <PackageReference Include="Avalonia.Themes.Fluent" />
-    <PackageReference Include="CommunityToolkit.Mvvm" />
+    <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
+    <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" />
     <PackageReference Include="xunit" />
     <PackageReference Include="xunit.runner.utility" />
   </ItemGroup>

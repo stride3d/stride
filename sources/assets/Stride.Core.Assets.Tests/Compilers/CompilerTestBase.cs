@@ -2,7 +2,7 @@ using Stride.Core.Serialization;
 
 namespace Stride.Core.Assets.Tests.Compilers;
 
-public class CompilerTestBase : IDisposable
+public abstract class CompilerTestBase : TestBase, IDisposable
 {
     public CompilerTestBase()
     {

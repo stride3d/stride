@@ -1,12 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Stride.Core;
-using Stride.Core.Annotations;
 using Stride.Core.Reflection;
 
 namespace Stride.Editor.EditorGame.Game;
@@ -15,14 +9,12 @@ public sealed class EditorGameServiceRegistry : IAsyncDisposable
 {
     public List<IEditorGameService> Services { get; } = [];
 
-    [CanBeNull]
-    public T Get<T>()
+    public T? Get<T>()
     {
         return Services.OfType<T>().FirstOrDefault();
     }
 
-    [CanBeNull]
-    public IEditorGameService Get([NotNull] Type serviceType)
+    public IEditorGameService? Get(Type serviceType)
     {
         if (serviceType == null) throw new ArgumentNullException(nameof(serviceType));
         if (!serviceType.HasInterface(typeof(IEditorGameService)))
@@ -31,8 +23,8 @@ public sealed class EditorGameServiceRegistry : IAsyncDisposable
         return Services.FirstOrDefault(serviceType.IsInstanceOfType);
     }
 
-    public void Add<T>([NotNull] T service)
-        where T : IEditorGameService
+    public void Add<T>(T service)
+            where T : IEditorGameService
     {
         if (service == null) throw new ArgumentNullException(nameof(service));
         Services.Add(service);

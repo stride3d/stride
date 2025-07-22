@@ -7,30 +7,30 @@ namespace xunit.runner.stride.ViewModels;
 
 public abstract class TestNodeViewModel : ViewModelBase
 {
-    public abstract IEnumerable<TestCaseViewModel> EnumerateTestCases();
+        public abstract IEnumerable<TestCaseViewModel> EnumerateTestCases();
 
-    public abstract TestCaseViewModel? LocateTestCase(ITestCase testCase);
+        public abstract TestCaseViewModel? LocateTestCase(ITestCase testCase);
 
-    bool running;
-    public bool Running
-    {
-        get => running;
-        set => SetProperty(ref running, value);
-    }
+        bool running;
+        public bool Running
+        {
+            get => running;
+            set => SetProperty(ref running, value);
+        }
 
-    bool failed;
-    public bool Failed
-    {
-        get => failed;
-        set => SetProperty(ref failed, value);
-    }
+        bool failed;
+        public bool Failed
+        {
+            get => failed;
+            set => SetProperty(ref failed, value);
+        }
 
-    bool succeeded;
-    public bool Succeeded
-    {
-        get => succeeded;
-        set => SetProperty(ref succeeded, value);
-    }
+        bool succeeded;
+        public bool Succeeded
+        {
+            get => succeeded;
+            set => SetProperty(ref succeeded, value);
+        }
 
-    public abstract string DisplayName { get; }
+        public abstract string DisplayName { get; }
 }

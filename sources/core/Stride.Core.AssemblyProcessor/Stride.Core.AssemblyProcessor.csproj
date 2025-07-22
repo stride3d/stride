@@ -40,7 +40,7 @@
     <PackageReference Include="Mono.Cecil" />
     <PackageReference Include="Mono.Options" />
     <PackageReference Include="Microsoft.Build.Utilities.Core" ExcludeAssets="runtime" />
-    <PackageReference Include="Polysharp">
+    <PackageReference Include="PolySharp">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>

@@ -1,70 +1,69 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using System;
+
 using Stride.Core.Assets.Editor.Services;
-using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Assets.Presentation.ViewModels;
 using Stride.Core.Extensions;
 using Stride.Core.Presentation.Quantum;
 using Stride.Core.Presentation.Quantum.Presenters;
 
-namespace Stride.Core.Assets.Editor.Quantum.NodePresenters.Commands
+namespace Stride.Core.Assets.Editor.Quantum.NodePresenters.Commands;
+
+public class SetContentReferenceCommand : ChangeValueCommandBase
 {
-    public class SetContentReferenceCommand : ChangeValueCommandBase
+    /// <summary>
+    /// A structure corresponding to the parameter of this command.
+    /// </summary>
+    public struct Parameter
     {
         /// <summary>
-        /// A structure corresponding to the parameter of this command.
+        /// The target asset of the content reference to create.
         /// </summary>
-        public struct Parameter
-        {
-            /// <summary>
-            /// The target asset of the content reference to create.
-            /// </summary>
-            public AssetViewModel Asset;
-            /// <summary>
-            /// The type of content reference to create.
-            /// </summary>
-            public Type Type;
-        }
-
+        public AssetViewModel Asset;
         /// <summary>
-        /// The name of this command.
+        /// The type of content reference to create.
         /// </summary>
-        public const string CommandName = "SetContentReference";
+        public Type Type;
+    }
 
-        /// <inheritdoc />
-        public override string Name => CommandName;
+    /// <summary>
+    /// The name of this command.
+    /// </summary>
+    public const string CommandName = "SetContentReference";
 
-        /// <inheritdoc />
-        public override CombineMode CombineMode => CombineMode.CombineOnlyForAll;
+    /// <inheritdoc />
+    public override string Name => CommandName;
 
-        /// <inheritdoc />
-        public override bool CanAttach(INodePresenter nodePresenter)
-        {
-            var type = nodePresenter.Descriptor.GetInnerCollectionType();
-            return AssetRegistry.CanBeAssignedToContentTypes(type, checkIsUrlType: true);
-        }
+    /// <inheritdoc />
+    public override CombineMode CombineMode => CombineMode.CombineOnlyForAll;
 
-        /// <inheritdoc />
-        protected override object ChangeValue(object currentValue, object parameter, object preExecuteResult)
-        {
-            var param = (Parameter)parameter;
-            var asset = param.Asset;
-            if (asset == null)
-                return null;
+    /// <inheritdoc />
+    public override bool CanAttach(INodePresenter nodePresenter)
+    {
+        var type = nodePresenter.Descriptor.GetInnerCollectionType();
+        return AssetRegistry.CanBeAssignedToContentTypes(type, checkIsUrlType: true);
+    }
 
-            var newValue = CreateReference(asset, param.Type);
-            return newValue;
-        }
+    /// <inheritdoc />
+    protected override object ChangeValue(object currentValue, object parameter, object preExecuteResult)
+    {
+        var param = (Parameter)parameter;
+        var asset = param.Asset;
+        if (asset == null)
+            return null;
 
-        /// <summary>
-        /// Creates the content reference corresponding to the given asset.
-        /// </summary>
-        /// <param name="asset">The asset for which to create a content reference.</param>
-        /// <param name="referenceType">The type of content reference to create.</param>
-        /// <returns>A content reference corresponding to the given asset.</returns>
-        protected virtual object CreateReference(AssetViewModel asset, Type referenceType)
-        {
-            return ContentReferenceHelper.CreateReference(asset, referenceType);
-        }
+        var newValue = CreateReference(asset, param.Type);
+        return newValue;
+    }
+
+    /// <summary>
+    /// Creates the content reference corresponding to the given asset.
+    /// </summary>
+    /// <param name="asset">The asset for which to create a content reference.</param>
+    /// <param name="referenceType">The type of content reference to create.</param>
+    /// <returns>A content reference corresponding to the given asset.</returns>
+    protected virtual object CreateReference(AssetViewModel asset, Type referenceType)
+    {
+        return ContentReferenceHelper.CreateReference(asset, referenceType);
     }
 }

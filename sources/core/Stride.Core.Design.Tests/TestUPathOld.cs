@@ -3,6 +3,7 @@
 
 using Xunit;
 using Stride.Core.IO;
+using System;
 
 namespace Stride.Core.Design.Tests;
 
@@ -276,65 +277,69 @@ public class TestUPathOld
         Assert.Equal(new StringSpan(3, 1), nameSpan);
 
         // Test drive standard
-        text = UPath.Normalize("C:/a/b/c", out driveSpan, out dirSpan, out nameSpan, out error);
-        Assert.Null(error);
-        Assert.NotNull(text);
-        Assert.Equal("C:/a/b/c", text.ToString());
-        Assert.True(driveSpan.IsValid);
-        Assert.True(dirSpan.IsValid);
-        Assert.True(nameSpan.IsValid);
-        Assert.Equal(new StringSpan(0, 2), driveSpan);
-        Assert.Equal(new StringSpan(2, 5), dirSpan);
-        Assert.Equal(new StringSpan(7, 1), nameSpan);
+        if (OperatingSystem.IsWindows())
+        {
 
-        // Test drive backslash invalid
-        UPath.Normalize("C:..", out driveSpan, out dirSpan, out nameSpan, out error);
-        Assert.NotNull(error);
-        Assert.False(driveSpan.IsValid);
-        Assert.False(dirSpan.IsValid);
-        Assert.False(nameSpan.IsValid);
+            text = UPath.Normalize("C:/a/b/c", out driveSpan, out dirSpan, out nameSpan, out error);
+            Assert.Null(error);
+            Assert.NotNull(text);
+            Assert.Equal("C:/a/b/c", text.ToString());
+            Assert.True(driveSpan.IsValid);
+            Assert.True(dirSpan.IsValid);
+            Assert.True(nameSpan.IsValid);
+            Assert.Equal(new StringSpan(0, 2), driveSpan);
+            Assert.Equal(new StringSpan(2, 5), dirSpan);
+            Assert.Equal(new StringSpan(7, 1), nameSpan);
 
-        // Test drive backslash invalid
-        UPath.Normalize("C:/..", out driveSpan, out dirSpan, out nameSpan, out error);
-        Assert.Null(error);
-        Assert.True(driveSpan.IsValid);
-        Assert.True(dirSpan.IsValid);
-        Assert.False(nameSpan.IsValid);
+            // Test drive backslash invalid
+            UPath.Normalize("C:..", out driveSpan, out dirSpan, out nameSpan, out error);
+            Assert.NotNull(error);
+            Assert.False(driveSpan.IsValid);
+            Assert.False(dirSpan.IsValid);
+            Assert.False(nameSpan.IsValid);
 
-        // Test drive backslash invalid
-        UPath.Normalize("C:/../", out driveSpan, out dirSpan, out nameSpan, out error);
-        Assert.Null(error);
-        Assert.True(driveSpan.IsValid);
-        Assert.True(dirSpan.IsValid);
-        Assert.False(nameSpan.IsValid);
+            // Test drive backslash invalid
+            UPath.Normalize("C:/..", out driveSpan, out dirSpan, out nameSpan, out error);
+            Assert.Null(error);
+            Assert.True(driveSpan.IsValid);
+            Assert.True(dirSpan.IsValid);
+            Assert.False(nameSpan.IsValid);
 
-        // Test drive backslash invalid
-        UPath.Normalize("C:/../..", out driveSpan, out dirSpan, out nameSpan, out error);
-        Assert.Null(error);
-        Assert.True(driveSpan.IsValid);
-        Assert.True(dirSpan.IsValid);
-        Assert.False(nameSpan.IsValid);
+            // Test drive backslash invalid
+            UPath.Normalize("C:/../", out driveSpan, out dirSpan, out nameSpan, out error);
+            Assert.Null(error);
+            Assert.True(driveSpan.IsValid);
+            Assert.True(dirSpan.IsValid);
+            Assert.False(nameSpan.IsValid);
 
-        // Test drive start ':' is invalid
-        UPath.Normalize(":a/b/c", out driveSpan, out dirSpan, out nameSpan, out error);
-        Assert.NotNull(error);
-        Assert.False(driveSpan.IsValid);
-        Assert.False(dirSpan.IsValid);
-        Assert.False(nameSpan.IsValid);
+            // Test drive backslash invalid
+            UPath.Normalize("C:/../..", out driveSpan, out dirSpan, out nameSpan, out error);
+            Assert.Null(error);
+            Assert.True(driveSpan.IsValid);
+            Assert.True(dirSpan.IsValid);
+            Assert.False(nameSpan.IsValid);
 
-        // Test drive in the middle ':' is invalid
-        UPath.Normalize("a/c:a/b/c", out driveSpan, out dirSpan, out nameSpan, out error);
-        Assert.NotNull(error);
-        Assert.False(driveSpan.IsValid);
-        Assert.False(dirSpan.IsValid);
-        Assert.False(nameSpan.IsValid);
+            // Test drive start ':' is invalid
+            UPath.Normalize(":a/b/c", out driveSpan, out dirSpan, out nameSpan, out error);
+            Assert.NotNull(error);
+            Assert.False(driveSpan.IsValid);
+            Assert.False(dirSpan.IsValid);
+            Assert.False(nameSpan.IsValid);
 
-        // Test drive multiple ':' is invalid
-        UPath.Normalize("a:c:a/b/c", out driveSpan, out dirSpan, out nameSpan, out error);
-        Assert.NotNull(error);
-        Assert.False(driveSpan.IsValid);
-        Assert.False(dirSpan.IsValid);
-        Assert.False(nameSpan.IsValid);
+            // Test drive in the middle ':' is invalid
+            UPath.Normalize("a/c:a/b/c", out driveSpan, out dirSpan, out nameSpan, out error);
+            Assert.NotNull(error);
+            Assert.False(driveSpan.IsValid);
+            Assert.False(dirSpan.IsValid);
+            Assert.False(nameSpan.IsValid);
+
+            // Test drive multiple ':' is invalid
+            UPath.Normalize("a:c:a/b/c", out driveSpan, out dirSpan, out nameSpan, out error);
+            Assert.NotNull(error);
+            Assert.False(driveSpan.IsValid);
+            Assert.False(dirSpan.IsValid);
+            Assert.False(nameSpan.IsValid);
+        }
     }
 
     [Fact]
@@ -368,8 +373,12 @@ public class TestUPathOld
         var assetPath = new UDirectory("/a/b/c");
         Assert.Equal("/a/b/c", assetPath.GetDirectory());
         Assert.Equal("/a/b/c", assetPath.FullPath);
-        var directory = new UDirectory("C:/a");
-        Assert.Equal("/a", directory.GetDirectory());
+        UDirectory directory;
+        if (OperatingSystem.IsWindows())
+        {
+            directory = new UDirectory("C:/a");
+            Assert.Equal("/a", directory.GetDirectory());
+        }
         directory = new UDirectory("/a");
         Assert.Equal("/a", directory.GetDirectory());
     }
@@ -511,6 +520,8 @@ public class TestUPathOld
     [Fact]
     public void TestMakeRelativeWithDrive()
     {
+        if (!OperatingSystem.IsWindows()) return;
+
         var dir1 = new UDirectory("C:/a/b/c");
 
         // Test direct relative
@@ -557,6 +568,8 @@ public class TestUPathOld
     [Fact]
     public void TestContains()
     {
+        if (!OperatingSystem.IsWindows()) return;
+
         var dir1 = new UDirectory("C:/a/b/c");
         Assert.True(dir1.Contains(new UFile("C:/a/b/c/d")));
         Assert.True(dir1.Contains(new UFile("C:/a/b/c/d/e")));
@@ -569,6 +582,8 @@ public class TestUPathOld
     [Fact]
     public void TestGetDirectoryName()
     {
+        if (!OperatingSystem.IsWindows()) return;
+
         Assert.Equal("c", new UDirectory("C:/a/b/c").GetDirectoryName());
         Assert.Equal("b", new UDirectory("C:/a/b/").GetDirectoryName());
         Assert.Equal("", new UDirectory("C:/").GetDirectoryName());

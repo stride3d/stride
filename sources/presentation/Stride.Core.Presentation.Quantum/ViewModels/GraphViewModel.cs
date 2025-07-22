@@ -73,7 +73,7 @@ public class GraphViewModel : DispatcherViewModel
             rootNodes.Add(node);
         }
 
-        if (propertyProviders.Count == 0 || type == null) throw new ArgumentException($@"{nameof(propertyProviders)} cannot be empty.", nameof(propertyProviders));
+        if (propertyProviders.Count == 0 || type == null) throw new ArgumentException($"{nameof(propertyProviders)} cannot be empty.", nameof(propertyProviders));
         return new GraphViewModel(serviceProvider, type, rootNodes);
     }
 
@@ -90,7 +90,7 @@ public class GraphViewModel : DispatcherViewModel
     /// <summary>
     /// Gets the <see cref="Logger"/> associated to this view model.
     /// </summary>
-    public Logger Logger { get; private set; }
+    public Logger Logger { get; }
 
     /// <summary>
     /// Raised when the value of an <see cref="NodeViewModel"/> contained into this view model has changed.

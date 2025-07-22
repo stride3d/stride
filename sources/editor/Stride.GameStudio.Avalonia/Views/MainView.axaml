@@ -1,0 +1,249 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
+             xmlns:caect="using:Stride.Core.Assets.Editor.Components.Transactions"
+             xmlns:caevm="using:Stride.Core.Assets.Editor.ViewModels"
+             xmlns:capvm="using:Stride.Core.Assets.Presentation.ViewModels"
+             xmlns:cpc="using:Stride.Core.Presentation.Commands"
+             xmlns:gsc="using:Stride.GameStudio.Avalonia.Converters"
+             xmlns:gsh="using:Stride.GameStudio.Avalonia.Helpers"
+             xmlns:gsvm="using:Stride.GameStudio.Avalonia.ViewModels"
+             xmlns:gsvw="using:Stride.GameStudio.Avalonia.Views"
+             mc:Ignorable="d" d:DesignWidth="1024" d:DesignHeight="768"
+             x:Class="Stride.GameStudio.Avalonia.Views.MainView"
+             x:DataType="gsvm:MainViewModel">
+  <Design.DataContext>
+    <!-- This only sets the DataContext for the previewer in an IDE,
+         to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
+    <gsvm:MainViewModel/>
+  </Design.DataContext>
+  <UserControl.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <ResourceInclude Source="avares://Stride.Core.Assets.Editor.Avalonia/Views/ImageResources.axaml"/>
+      </ResourceDictionary.MergedDictionaries>
+    </ResourceDictionary>
+  </UserControl.Resources>
+
+  <Grid RowDefinitions="Auto, *, 25"
+        Background="Transparent">
+    <Menu Grid.Row="0" Grid.Column="0"
+          VerticalAlignment="Top">
+      <!-- File menu -->
+      <MenuItem Header="{sd:LocalizeString _File, Context=Menu}">
+        <MenuItem Header="{sd:LocalizeString _Open..., Context=Menu}"
+                  Command="{Binding OpenCommand}"
+                  HotKey="Ctrl+O" InputGesture="{Binding $self.HotKey, Mode=OneTime}"/>
+        <MenuItem Header="{sd:LocalizeString _Close, Context=Menu}"
+                  Command="{Binding CloseCommand}"
+                  IsEnabled="{Binding Session, Mode=OneWay, Converter={sd:ObjectToBool}}"/>
+        <Separator/>
+        <MenuItem Header="{sd:LocalizeString E_xit, Context=Menu}"
+                  Command="{Binding ExitCommand}"
+                  HotKey="Alt+F4" InputGesture="{Binding $self.HotKey, Mode=OneTime}"/>
+      </MenuItem>
+      <!-- Edit menu -->
+      <MenuItem Header="{sd:LocalizeString Edit, Context=Menu}">
+        <MenuItem Header="{sd:LocalizeString Undo, Context=Menu}"
+                  Command="{Binding Session?.ActionHistory?.UndoCommand, TargetNullValue={x:Static cpc:DisabledCommand.Instance}}"
+                  HotKey="{x:Static gsvw:MainView.UndoGesture}" InputGesture="{Binding $self.HotKey, Mode=OneTime}"/>
+        <MenuItem Header="{sd:LocalizeString Redo, Context=Menu}"
+                  Command="{Binding Session?.ActionHistory?.RedoCommand, TargetNullValue={x:Static cpc:DisabledCommand.Instance}}"
+                  HotKey="{x:Static gsvw:MainView.RedoGesture}" InputGesture="{Binding $self.HotKey, Mode=OneTime}"/>
+      </MenuItem>
+      <!-- Help menu -->
+      <MenuItem Header="{sd:LocalizeString _Help, Context=Menu}">
+        <MenuItem Header="{sd:LocalizeString Online documentation, Context=Menu}"
+            Command="{Binding OpenWebPageCommand}"
+            CommandParameter="{x:Static gsh:StrideGameStudio.DocumentationUrl}"/>
+        <Separator/>
+        <MenuItem Header="{sd:LocalizeString Questions and answers, Context=Menu}"
+                  Command="{Binding OpenWebPageCommand}"
+                  CommandParameter="{x:Static gsh:StrideGameStudio.AnswersUrl}"/>
+        <MenuItem Header="{sd:LocalizeString Report an issue..., Context=Menu}"
+                  Command="{Binding OpenWebPageCommand}"
+                  CommandParameter="{x:Static gsh:StrideGameStudio.ReportIssueUrl}"/>
+        <MenuItem Header="{sd:LocalizeString Discord forum, Context=Menu}"
+                  Command="{Binding OpenWebPageCommand}"
+                  CommandParameter="{x:Static gsh:StrideGameStudio.ForumsUrl}"/>
+        <Separator/>
+        <MenuItem Header="{sd:LocalizeString Show debug window, Context=Menu}"
+                  Command="{Binding OpenDebugWindowCommand}"
+                  HotKey="Ctrl+Shift+D" InputGesture="{Binding $self.HotKey, Mode=OneTime}"/>
+        <Separator/>
+        <MenuItem Header="{sd:LocalizeString _About..., Context=Menu}"
+                  Command="{Binding AboutCommand}"/>
+      </MenuItem>
+      <MenuItem Header="Debug"
+                IsVisible="{sd:IsDebug}">
+        <MenuItem Header="Simulate a crash"
+                  Command="{Binding CrashCommand}"/>
+      </MenuItem>
+    </Menu>
+    <Grid Grid.Row="1"
+          RowDefinitions="2*, 2, *">
+      <Grid Grid.Row="0"
+            ColumnDefinitions="2*, 2, *">
+        <!-- Editors -->
+        <gsvw:EditorCollectionView Grid.Column="0"
+                                 BorderThickness="2"
+                                 BorderBrush="Red"
+                                 Padding="2"
+                                 DataContext="{Binding Session?.EditorCollection}"/>
+        <GridSplitter Grid.Column="1" ResizeDirection="Auto"/>
+        <Grid Grid.Column="2"
+              RowDefinitions="Auto, *">
+          <StackPanel Grid.Row="0"
+                      Orientation="Horizontal">
+            <Button Content="{sd:LocalizeString Previous, Context=Button}"
+                    Command="{Binding Session?.PreviousSelectionCommand, TargetNullValue={x:Static cpc:DisabledCommand.Instance}}"
+                    HotKey="Alt+Left" ToolTip.Tip="{Binding $self.HotKey, Mode=OneTime}"/>
+            <Button Content="{sd:LocalizeString Next, Context=Button}"
+                    Command="{Binding Session?.NextSelectionCommand, TargetNullValue={x:Static cpc:DisabledCommand.Instance}}"
+                    HotKey="Alt+Right" ToolTip.Tip="{Binding $self.HotKey, Mode=OneTime}"/>
+          </StackPanel>
+          <!-- Property Grid -->
+          <gsvw:PropertyGridView Grid.Row="1"
+                               BorderThickness="2"
+                               BorderBrush="Orange"
+                               Padding="2"
+                               DataContext="{Binding Session?.ActiveProperties}"/>
+        </Grid>
+      </Grid>
+      <GridSplitter Grid.Row="1" ResizeDirection="Auto"/>
+      <Grid Grid.Row="2"
+            ColumnDefinitions="*, 2, 2*, 2, *">
+        <!-- Solution Explorer -->
+        <gsvw:SolutionExplorerView Grid.Column="0"
+                                 BorderThickness="2"
+                                 BorderBrush="Black"
+                                 Padding="2"
+                                 DataContext="{Binding Session}"/>
+        <GridSplitter Grid.Column="1" ResizeDirection="Auto"/>
+        <!-- Asset view and logs -->
+        <TabControl Grid.Column="2">
+          <TabItem Header="Asset view">
+            <gsvw:AssetExplorerView BorderThickness="2"
+                                  BorderBrush="Blue"
+                                  Padding="2"
+                                  DataContext="{Binding Session?.AssetCollection}"/>
+          </TabItem>
+          <TabItem Header="Asset errors">
+            <sd:TextLogViewer LogMessages="{Binding Session?.AssetLog.FilteredMessages}"
+                              ShowDebugMessages="False" ShowVerboseMessages="False" ShowInfoMessages="False"/>
+          </TabItem>
+          <TabItem Header="Output">
+            <sd:TextLogViewer ShowDebugMessages="False" ShowVerboseMessages="False"/>
+          </TabItem>
+        </TabControl>
+        <GridSplitter Grid.Column="3" ResizeDirection="Auto"/>
+        <!-- Asset preview, history and references -->
+        <TabControl Grid.Column="4">
+          <TabItem Header="Asset preview">
+            <gsvw:AssetPreviewView BorderThickness="2"
+                                 BorderBrush="Cyan"
+                                 Padding="2"/>
+          </TabItem>
+          <TabItem Header="Edit history">
+            <ListBox ItemsSource="{Binding Session?.ActionHistory?.Transactions}"
+                     HorizontalAlignment="Stretch">
+              <ListBox.ItemTemplate>
+                <DataTemplate DataType="caect:TransactionViewModel">
+                  <DockPanel>
+                    <TextBlock DockPanel.Dock="Left" x:Name="Text"
+                               Text="{Binding Name}"/>
+                    <Image DockPanel.Dock="Right" x:Name="Image"
+                           HorizontalAlignment="Right"
+                           IsVisible="{Binding IsSavePoint, Mode=OneWay}"
+                           Source="{StaticResource ImageSave}"/>
+                  </DockPanel>
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
+          </TabItem>
+          <TabItem Header="References">
+            <DockPanel>
+              <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
+                <ToggleButton IsChecked="{Binding !Session.References.ShowReferencers}" Content="{sd:LocalizeString References}" MinWidth="80"/>
+                <ToggleButton IsChecked="{Binding Session.References.ShowReferencers}" Content="{sd:LocalizeString Referenced by}" MinWidth="80"/>
+              </StackPanel>
+              <Border DockPanel.Dock="Bottom"
+                      Padding="8,4">
+                <TextBlock Text="{Binding Session.References.TypeCountersAsText}"
+                           TextTrimming="CharacterEllipsis" TextWrapping="NoWrap">
+                  <ToolTip.Tip>
+                    <TextBlock Text="{Binding Session.References.TypeCountersAsText}"
+                               TextTrimming="None" TextWrapping="Wrap"/>
+                  </ToolTip.Tip>
+                </TextBlock>
+              </Border>
+              <ListBox ItemsSource="{Binding Session.References.DisplayedReferences.Assets}"
+                       Margin="4">
+                <ItemsControl.ItemsPanel>
+                  <ItemsPanelTemplate>
+                    <WrapPanel />
+                  </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate DataType="{x:Type capvm:AssetViewModel}">
+                    <StackPanel Orientation="Horizontal">
+                      <Interaction.Behaviors>
+                        <EventTriggerBehavior EventName="DoubleTapped">
+                          <InvokeCommandAction Command="{Binding ((caevm:SessionViewModel)Session).AssetCollection.SelectAssetCommand}"
+                                               CommandParameter="{Binding}"/>
+                        </EventTriggerBehavior>
+                      </Interaction.Behaviors>
+                      <TextBlock Text="Asset: " />
+                      <TextBlock Text="{Binding Name}" />
+                      <Image Source="{Binding ThumbnailData.Presenter, Converter={gsc:StrideImage}, FallbackValue={x:Static AvaloniaProperty.UnsetValue}}"
+                             Width="64" Height="64"/>
+                    </StackPanel>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ListBox>
+            </DockPanel>
+          </TabItem>
+        </TabControl>
+      </Grid>
+    </Grid>
+
+    <!-- Status Bar -->
+    <Grid Grid.Row="2"
+          IsVisible="{Binding Session, Converter={sd:ObjectToBool}}"
+          ColumnDefinitions="2*, Auto, *, Auto, *, 100">
+      <TextBlock Grid.Column="0"
+                 Margin="8,0"
+                 VerticalAlignment="Center"
+                 Text="{Binding Status.CurrentStatus}"/>
+      <Border Grid.Column="1"
+              Margin="2"
+              BorderThickness="1"
+              BorderBrush="Gray"/>
+      <TextBlock Grid.Column="2"
+                 Margin="8,0"
+                 VerticalAlignment="Center">
+        <Run Text="{Binding Session?.AssetCollection.SelectedContent.Count, Mode=OneWay, Converter={sd:Localize Text={}{0} item, Plural={}{0} items, IsStringFormat=True, Context=StatusBar}}"/>
+        <Run Text="{Binding Session?.AssetCollection.SelectedContent.Count, Mode=OneWay, Converter={sd:Localize Text=({0} selected), Plural=({0} selected), IsStringFormat=True, Context=StatusBar}}"/>
+      </TextBlock>
+      <Border Grid.Column="3"
+              Margin="2"
+              BorderThickness="1"
+              BorderBrush="Gray"/>
+      <TextBlock Grid.Column="4"
+                 Margin="8,0"
+                 HorizontalAlignment="Right"
+                 VerticalAlignment="Center"
+                 Text="{Binding Status.CurrentJob?.Message}"/>
+      <ProgressBar Grid.Column="5"
+                   IsVisible="{Binding Status.CurrentJob, Converter={sd:ObjectToBool}}"
+                   Margin="0,2"
+                   VerticalAlignment="Stretch"
+                   HorizontalAlignment="Left"
+                   IsIndeterminate="{Binding Status.CurrentJob?.IsIndeterminate, TargetNullValue={sd:True}}"
+                   Maximum="{Binding Status.CurrentJob?.Total, TargetNullValue={sd:Double 0}}"
+                   Value="{Binding Status.CurrentJob?.Current, TargetNullValue={sd:Double 0}}"/>
+    </Grid>
+  </Grid>
+</UserControl>

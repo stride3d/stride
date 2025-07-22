@@ -51,7 +51,7 @@ public class TestBuildDependencyManager : CompilerTestBase
         var assetBuildResult = assetBuilder.Prepare(context);
         // Since MyAsset2 is a CompileAsset reference, it should not be compiled, so we should have only 1 asset (MyAsset1) to compile.
         Assert.Equal(1, assetBuildResult.BuildSteps.Count);
-        var builder = new Builder(GlobalLogger.GetLogger("Test"), "", "");
+        var builder = new Builder(GlobalLogger.GetLogger("Test"), DirectoryTestBase, "");
         builder.Root.Add(assetBuildResult.BuildSteps);
         builder.Run(Builder.Mode.Build, false);
         RethrowAssertsFromThread(ex);
@@ -99,7 +99,7 @@ public class TestBuildDependencyManager : CompilerTestBase
         var assetBuildResult = assetBuilder.Prepare(context);
         // Since MyAsset3 is a CompileContent reference, it should be compiled, so we should have only 2 asset (MyAsset1 and MyAsset3) to compile.
         Assert.Equal(2, assetBuildResult.BuildSteps.Count);
-        var builder = new Builder(GlobalLogger.GetLogger("Test"), "", "");
+        var builder = new Builder(GlobalLogger.GetLogger("Test"), DirectoryTestBase, "");
         builder.Root.Add(assetBuildResult.BuildSteps);
         builder.Run(Builder.Mode.Build, false);
         RethrowAssertsFromThread(ex);
@@ -148,12 +148,11 @@ public class TestBuildDependencyManager : CompilerTestBase
         var assetBuildResult = assetBuilder.Prepare(context);
         // Since MyAsset4 is a Runtime reference, it should be compiled, so we should have 2 asset (MyAsset1 and MyAsset4) to compile.
         Assert.Equal(2, assetBuildResult.BuildSteps.Count);
-        var builder = new Builder(GlobalLogger.GetLogger("Test"), "", "");
+        var builder = new Builder(GlobalLogger.GetLogger("Test"), DirectoryTestBase, "");
         builder.Root.Add(assetBuildResult.BuildSteps);
         builder.Run(Builder.Mode.Build, false);
         RethrowAssertsFromThread(ex);
     }
-
 
     private static void AssertInThread(ref Exception? ex, Action assert)
     {
@@ -178,31 +177,31 @@ public class TestBuildDependencyManager : CompilerTestBase
     #region Types
 
     [DataContract, ReferenceSerializer, DataSerializerGlobal(typeof(ReferenceSerializer<MyContent1>), Profile = "Content")]
-    public class MyContent1 { }
+    public class MyContent1;
     [DataContract, ReferenceSerializer, DataSerializerGlobal(typeof(ReferenceSerializer<MyContent2>), Profile = "Content")]
-    public class MyContent2 { }
+    public class MyContent2;
     [DataContract, ReferenceSerializer, DataSerializerGlobal(typeof(ReferenceSerializer<MyContent3>), Profile = "Content")]
-    public class MyContent3 { }
+    public class MyContent3;
     [DataContract, ReferenceSerializer, DataSerializerGlobal(typeof(ReferenceSerializer<MyContent4>), Profile = "Content")]
-    public class MyContent4 { }
+    public class MyContent4;
     [DataContract, ReferenceSerializer, DataSerializerGlobal(typeof(ReferenceSerializer<MyContent5>), Profile = "Content")]
-    public class MyContent5 { }
+    public class MyContent5;
     [DataContract, ReferenceSerializer, DataSerializerGlobal(typeof(ReferenceSerializer<MyContent6>), Profile = "Content")]
-    public class MyContent6 { }
+    public class MyContent6;
     [DataContract, ReferenceSerializer, DataSerializerGlobal(typeof(ReferenceSerializer<MyContent7>), Profile = "Content")]
-    public class MyContent7 { }
+    public class MyContent7;
     [DataContract, ReferenceSerializer, DataSerializerGlobal(typeof(ReferenceSerializer<MyContent8>), Profile = "Content")]
-    public class MyContent8 { }
+    public class MyContent8;
     [DataContract, ReferenceSerializer, DataSerializerGlobal(typeof(ReferenceSerializer<MyContent9>), Profile = "Content")]
-    public class MyContent9 { }
+    public class MyContent9;
     [DataContract, ReferenceSerializer, DataSerializerGlobal(typeof(ReferenceSerializer<MyContent10>), Profile = "Content")]
-    public class MyContent10 { }
+    public class MyContent10;
     [DataContract, ReferenceSerializer, DataSerializerGlobal(typeof(ReferenceSerializer<MyContent11>), Profile = "Content")]
-    public class MyContent11 { }
+    public class MyContent11;
     [DataContract, ReferenceSerializer, DataSerializerGlobal(typeof(ReferenceSerializer<MyContent12>), Profile = "Content")]
-    public class MyContent12 { }
+    public class MyContent12;
     [DataContract, ReferenceSerializer, DataSerializerGlobal(typeof(ReferenceSerializer<MyContent13>), Profile = "Content")]
-    public class MyContent13 { }
+    public class MyContent13;
 
     [DataContract, AssetDescription(".sdmytest"), AssetContentType(typeof(MyContent1))]
     public class MyAsset1 : Asset
@@ -237,23 +236,23 @@ public class TestBuildDependencyManager : CompilerTestBase
     }
 
     [DataContract, AssetDescription(".sdmytest"), AssetContentType(typeof(MyContent5))]
-    public class MyAsset5 : Asset { }
+    public class MyAsset5 : Asset;
     [DataContract, AssetDescription(".sdmytest"), AssetContentType(typeof(MyContent6))]
-    public class MyAsset6 : Asset { }
+    public class MyAsset6 : Asset;
     [DataContract, AssetDescription(".sdmytest"), AssetContentType(typeof(MyContent7))]
-    public class MyAsset7 : Asset { }
+    public class MyAsset7 : Asset;
     [DataContract, AssetDescription(".sdmytest"), AssetContentType(typeof(MyContent8))]
-    public class MyAsset8 : Asset { }
+    public class MyAsset8 : Asset;
     [DataContract, AssetDescription(".sdmytest"), AssetContentType(typeof(MyContent9))]
-    public class MyAsset9 : Asset { }
+    public class MyAsset9 : Asset;
     [DataContract, AssetDescription(".sdmytest"), AssetContentType(typeof(MyContent10))]
-    public class MyAsset10 : Asset { }
+    public class MyAsset10 : Asset;
     [DataContract, AssetDescription(".sdmytest"), AssetContentType(typeof(MyContent11))]
-    public class MyAsset11 : Asset { }
+    public class MyAsset11 : Asset;
     [DataContract, AssetDescription(".sdmytest"), AssetContentType(typeof(MyContent12))]
-    public class MyAsset12 : Asset { }
+    public class MyAsset12 : Asset;
     [DataContract, AssetDescription(".sdmytest"), AssetContentType(typeof(MyContent13))]
-    public class MyAsset13 : Asset { }
+    public class MyAsset13 : Asset;
 
     [AssetCompiler(typeof(MyAsset1), typeof(AssetCompilationContext))]
     public class MyAsset1Compiler : TestAssertCompiler<MyAsset1>
@@ -270,29 +269,29 @@ public class TestBuildDependencyManager : CompilerTestBase
     }
 
     [AssetCompiler(typeof(MyAsset2), typeof(AssetCompilationContext))]
-    public class MyAsset2Compiler : TestAssertCompiler<MyAsset2> { }
+    public class MyAsset2Compiler : TestAssertCompiler<MyAsset2>;
     [AssetCompiler(typeof(MyAsset3), typeof(AssetCompilationContext))]
-    public class MyAsset3Compiler : TestAssertCompiler<MyAsset3> { }
+    public class MyAsset3Compiler : TestAssertCompiler<MyAsset3>;
     [AssetCompiler(typeof(MyAsset4), typeof(AssetCompilationContext))]
-    public class MyAsset4Compiler : TestAssertCompiler<MyAsset4> { }
+    public class MyAsset4Compiler : TestAssertCompiler<MyAsset4>;
     [AssetCompiler(typeof(MyAsset5), typeof(AssetCompilationContext))]
-    public class MyAsset5Compiler : TestAssertCompiler<MyAsset5> { }
+    public class MyAsset5Compiler : TestAssertCompiler<MyAsset5>;
     [AssetCompiler(typeof(MyAsset6), typeof(AssetCompilationContext))]
-    public class MyAsset6Compiler : TestAssertCompiler<MyAsset6> { }
+    public class MyAsset6Compiler : TestAssertCompiler<MyAsset6>;
     [AssetCompiler(typeof(MyAsset7), typeof(AssetCompilationContext))]
-    public class MyAsset7Compiler : TestAssertCompiler<MyAsset7> { }
+    public class MyAsset7Compiler : TestAssertCompiler<MyAsset7>;
     [AssetCompiler(typeof(MyAsset8), typeof(AssetCompilationContext))]
-    public class MyAsset8Compiler : TestAssertCompiler<MyAsset8> { }
+    public class MyAsset8Compiler : TestAssertCompiler<MyAsset8>;
     [AssetCompiler(typeof(MyAsset9), typeof(AssetCompilationContext))]
-    public class MyAsset9Compiler : TestAssertCompiler<MyAsset9> { }
+    public class MyAsset9Compiler : TestAssertCompiler<MyAsset9>;
     [AssetCompiler(typeof(MyAsset10), typeof(AssetCompilationContext))]
-    public class MyAsset10Compiler : TestAssertCompiler<MyAsset10> { }
+    public class MyAsset10Compiler : TestAssertCompiler<MyAsset10>;
     [AssetCompiler(typeof(MyAsset11), typeof(AssetCompilationContext))]
-    public class MyAsset11Compiler : TestAssertCompiler<MyAsset11> { }
+    public class MyAsset11Compiler : TestAssertCompiler<MyAsset11>;
     [AssetCompiler(typeof(MyAsset12), typeof(AssetCompilationContext))]
-    public class MyAsset12Compiler : TestAssertCompiler<MyAsset12> { }
+    public class MyAsset12Compiler : TestAssertCompiler<MyAsset12>;
     [AssetCompiler(typeof(MyAsset13), typeof(AssetCompilationContext))]
-    public class MyAsset13Compiler : TestAssertCompiler<MyAsset13> { }
+    public class MyAsset13Compiler : TestAssertCompiler<MyAsset13>;
 
     #endregion Types
 }

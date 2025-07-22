@@ -1,11 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Stride.Core;
-using Stride.Core.Annotations;
 using Stride.Engine;
 
 namespace Stride.Editor.EditorGame.Game;
@@ -28,7 +23,6 @@ public interface IEditorGameService : IAsyncDisposable
     /// <summary>
     /// Gets the type of services that are required for this service to work.
     /// </summary>
-    [ItemNotNull, NotNull]
     IEnumerable<Type> Dependencies { get; }
 
     /// <summary>
@@ -36,17 +30,17 @@ public interface IEditorGameService : IAsyncDisposable
     /// </summary>
     /// <param name="game">The game for which this service is initialized.</param>
     /// <returns>This method is invoked after the game is fully initialized/</returns>
-    Task<bool> InitializeService([NotNull] EditorServiceGame game);
+    Task<bool> InitializeService(EditorServiceGame game);
 
     /// <summary>
     /// Registers the given scene to this service, as the scene containing the objects being edited.
     /// </summary>
     /// <param name="scene">The scene to register.</param>
-    void RegisterScene([NotNull] Scene scene);
+    void RegisterScene(Scene scene);
 
     /// <summary>
     /// Called when the game graphics compositor is updated.
     /// </summary>
     /// <param name="game"></param>
-    void UpdateGraphicsCompositor([NotNull] EditorServiceGame game);
+    void UpdateGraphicsCompositor(EditorServiceGame game);
 }

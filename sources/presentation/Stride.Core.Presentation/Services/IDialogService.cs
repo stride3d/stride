@@ -147,9 +147,6 @@ public interface IDialogService
     /// <summary>
     /// Displays a modal message box and returns a task that completes when the message box is closed.
     /// </summary>
-    /// <param name="message">The text to display as message in the message box.</param>
-    /// <param name="buttons">The buttons to display in the message box.</param>
-    /// <param name="image">The image to display in the message box.</param>
     /// <returns>A <see cref="int"/> value indicating which button the user pressed to close the window.</returns>
     Task<int> MessageBoxAsync(string message, IReadOnlyCollection<DialogButtonInfo> buttons, MessageBoxImage image = MessageBoxImage.None);
 
@@ -169,9 +166,7 @@ public interface IDialogService
     /// </returns>
     Task<IReadOnlyList<UFile>> OpenMultipleFilesPickerAsync(UDirectory? initialPath = null, IReadOnlyList<FilePickerFilter>? filters = null);
 
-    /// <summary>
     /// Creates a modal folder picker dialog.
-    /// </summary>
     /// <returns>
     /// A folder; or <c>null</c> if user canceled the dialog.
     /// </returns>

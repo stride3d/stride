@@ -51,6 +51,7 @@ public class MemberNodePresenter : NodePresenterBase
                 Member.Target.ItemChanged -= OnItemChanged;
             }
         }
+        base.Dispose(disposing);
     }
 
     public override Type Type => Member.Type;
@@ -69,7 +70,7 @@ public class MemberNodePresenter : NodePresenterBase
 
     protected override IObjectNode ParentingNode => Member.Target;
 
-    public override void UpdateValue(object newValue)
+    public override void UpdateValue(object? newValue)
     {
         // Do not update member node presenter value to null if it does not allow null values (related to issue #668).
         // FIXME With the obsoleting of Stride.Core.Annotations.NotNullAttribute, it might become partially broken.
@@ -93,7 +94,7 @@ public class MemberNodePresenter : NodePresenterBase
 
     public override void AddItem(object value)
     {
-        if (Member.Target == null || !Member.Target.IsEnumerable)
+        if (Member.Target?.IsEnumerable != true)
             throw new NodePresenterException($"{nameof(MemberNodePresenter)}.{nameof(AddItem)} cannot be invoked on members that are not collection.");
 
         try
@@ -108,7 +109,7 @@ public class MemberNodePresenter : NodePresenterBase
 
     public override void AddItem(object value, NodeIndex index)
     {
-        if (Member.Target == null || !Member.Target.IsEnumerable)
+        if (Member.Target?.IsEnumerable != true)
             throw new NodePresenterException($"{nameof(MemberNodePresenter)}.{nameof(AddItem)} cannot be invoked on members that are not collection.");
 
         try
@@ -123,7 +124,7 @@ public class MemberNodePresenter : NodePresenterBase
 
     public override void RemoveItem(object value, NodeIndex index)
     {
-        if (Member.Target == null || !Member.Target.IsEnumerable)
+        if (Member.Target?.IsEnumerable != true)
             throw new NodePresenterException($"{nameof(MemberNodePresenter)}.{nameof(RemoveItem)} cannot be invoked on members that are not collection.");
 
         try

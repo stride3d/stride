@@ -1,0 +1,31 @@
+﻿<Project>
+  <Import Project="..\..\targets\Stride.props" />
+
+  <PropertyGroup>
+    <TargetFramework>$(StrideXplatEditorTargetFramework)</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
+      <Link>Properties\SharedAssemblyInfo.cs</Link>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" />
+    <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
+    <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Stride.Assets.Editor\Stride.Assets.Editor.csproj" />
+    <ProjectReference Include="..\Stride.Core.Assets.Editor.Avalonia\Stride.Core.Assets.Editor.Avalonia.csproj" />
+    <ProjectReference Include="..\Stride.Editor.Avalonia\Stride.Editor.Avalonia.csproj" />
+  </ItemGroup>
+
+  <Import Project="$(StrideSdkTargets)" />
+</Project>

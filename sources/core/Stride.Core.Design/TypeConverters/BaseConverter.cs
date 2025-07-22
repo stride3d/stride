@@ -120,7 +120,7 @@ public abstract class BaseConverter : ExpandableObjectConverter
         {
             var split = comp.Split(':');
             if (split.Length != 2)
-                throw new FormatException("The string does not match the expected format.");
+                throw new NotSupportedException("The string does not match the expected format.");
             var property = Properties.Cast<FieldPropertyDescriptor>().First(x => x.Name == split[0]);
             var compValue = converter.ConvertFromString(context, culture, split[1]);
             property.FieldInfo.SetValue(result, compValue);

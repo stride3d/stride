@@ -1,11 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Stride.Core.Annotations;
 using Stride.Engine;
 
 namespace Stride.Editor.EditorGame.Game;
@@ -62,7 +57,7 @@ public abstract class EditorGameServiceBase : IEditorGameService
     /// Checks whether this service has been disposed, and throws an <see cref="ObjectDisposedException"/> if it is the case. 
     /// </summary>
     /// <param name="name">The name to supply to the <see cref="ObjectDisposedException"/>.</param>
-    protected void EnsureNotDestroyed(string name = null)
+    protected void EnsureNotDestroyed(string? name = null)
     {
         if (IsDisposed)
         {
@@ -75,7 +70,7 @@ public abstract class EditorGameServiceBase : IEditorGameService
     /// </summary>
     /// <param name="game"></param>
     /// <returns></returns>
-    protected abstract Task<bool> Initialize([NotNull] EditorServiceGame game);
+    protected abstract Task<bool> Initialize(EditorServiceGame game);
 
     /// <summary>
     /// Called when the game graphics compositor is updated.

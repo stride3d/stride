@@ -1,67 +1,65 @@
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 using Stride.Core;
-using Stride.Core.Annotations;
 using Stride.Core.Packages;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.ViewModels;
 
-namespace Stride.LauncherApp.ViewModels
+namespace Stride.Launcher.ViewModels;
+
+public sealed class StrideStoreAlternateVersionViewModel : DispatcherViewModel
 {
-    internal sealed class StrideStoreAlternateVersionViewModel : DispatcherViewModel
+    internal NugetServerPackage ServerPackage;
+    internal NugetLocalPackage LocalPackage;
+
+    public StrideStoreAlternateVersionViewModel(StrideStoreVersionViewModel strideVersion)
+        : base(strideVersion.ServiceProvider)
     {
-        private StrideStoreVersionViewModel strideVersion;
-        internal NugetServerPackage ServerPackage;
-        internal NugetLocalPackage LocalPackage;
-
-        public StrideStoreAlternateVersionViewModel([NotNull] StrideStoreVersionViewModel strideVersion)
-            : base(strideVersion.ServiceProvider)
+        SetAsActiveCommand = new AnonymousCommand(ServiceProvider, () =>
         {
-            this.strideVersion = strideVersion;
-
-            SetAsActiveCommand = new AnonymousCommand(ServiceProvider, () =>
+            strideVersion.UpdateLocalPackage(LocalPackage, null);
+            if (LocalPackage is null)
             {
-                strideVersion.UpdateLocalPackage(LocalPackage, null);
-                if (LocalPackage == null)
-                {
-                    // If it's a non installed version, offer same version for serverPackage so that it offers to install this specific version
-                    strideVersion.UpdateServerPackage(ServerPackage, null);
-                }
-                else
-                {
-                    // Otherwise, offer latest version for update
-                    strideVersion.UpdateServerPackage(strideVersion.LatestServerPackage, null);
-                }
-
-                strideVersion.Launcher.ActiveVersion = strideVersion;
-            });
-        }
-
-        /// <summary>
-        /// Gets the command that will set the associated version as active.
-        /// </summary>
-        public CommandBase SetAsActiveCommand { get; }
-
-        public string FullName
-        {
-            get
-            {
-                return LocalPackage != null ? $"{LocalPackage.Id} {LocalPackage.Version} (installed)" : $"{ServerPackage.Id} {ServerPackage.Version}";
+                // If it's a non installed version, offer same version for serverPackage so that it offers to install this specific version
+                strideVersion.UpdateServerPackage(ServerPackage, null);
             }
-        }
+            else
+            {
+                // Otherwise, offer latest version for update
+                strideVersion.UpdateServerPackage(strideVersion.LatestServerPackage, null);
+            }
 
-        public PackageVersion Version => LocalPackage?.Version ?? ServerPackage.Version;
+            strideVersion.Launcher.ActiveVersion = strideVersion;
+        });
+    }
 
-        internal void UpdateLocalPackage(NugetLocalPackage package)
+    /// <summary>
+    /// Gets the command that will set the associated version as active.
+    /// </summary>
+    public CommandBase SetAsActiveCommand { get; }
+
+    public string FullName
+    {
+        get
         {
-            OnPropertyChanging(nameof(FullName), nameof(Version));
-            LocalPackage = package;
-            OnPropertyChanged(nameof(FullName), nameof(Version));
+            return LocalPackage is not null ? $"{LocalPackage.Id} {LocalPackage.Version} (installed)" : $"{ServerPackage.Id} {ServerPackage.Version}";
         }
+    }
 
-        internal void UpdateServerPackage(NugetServerPackage package)
-        {
-            OnPropertyChanging(nameof(FullName), nameof(Version));
-            ServerPackage = package;
-            OnPropertyChanged(nameof(FullName), nameof(Version));
-        }
+    public PackageVersion Version => LocalPackage?.Version ?? ServerPackage.Version;
+
+    internal void UpdateLocalPackage(NugetLocalPackage package)
+    {
+        OnPropertyChanging(nameof(FullName), nameof(Version));
+        LocalPackage = package;
+        OnPropertyChanged(nameof(FullName), nameof(Version));
+    }
+
+    internal void UpdateServerPackage(NugetServerPackage package)
+    {
+        OnPropertyChanging(nameof(FullName), nameof(Version));
+        ServerPackage = package;
+        OnPropertyChanged(nameof(FullName), nameof(Version));
     }
 }

@@ -12,11 +12,11 @@ namespace Stride.Core.Presentation.Quantum;
 /// </summary>
 /// <typeparam name="TTargetType">The type of property bound to the graph node.</typeparam>
 /// <typeparam name="TContentType">The type of content in the graph node.</typeparam>
-public class MemberGraphNodeBinding<TTargetType, TContentType> : GraphNodeBinding<TTargetType, TContentType>
+public class MemberGraphNodeBinding<TTargetType, TContentType> : GraphNodeBinding<TTargetType?, TContentType?>
 {
     protected IMemberNode Node;
 
-    public MemberGraphNodeBinding(IMemberNode node, string propertyName, PropertyChangeDelegate propertyChanging, PropertyChangeDelegate propertyChanged, Func<TTargetType, TContentType> converter, IUndoRedoService actionService, bool notifyChangesOnly = true)
+    public MemberGraphNodeBinding(IMemberNode node, string propertyName, PropertyChangeDelegate propertyChanging, PropertyChangeDelegate propertyChanged, Func<TTargetType?, TContentType?> converter, IUndoRedoService? actionService, bool notifyChangesOnly = true)
         : base(propertyName, propertyChanging, propertyChanged, converter, actionService, notifyChangesOnly)
     {
         Node = node;
@@ -24,6 +24,7 @@ public class MemberGraphNodeBinding<TTargetType, TContentType> : GraphNodeBindin
         node.ValueChanging += ValueChanging;
     }
 
+    /// <inheritdoc/>
     protected override void Dispose(bool disposing)
     {
         base.Dispose(disposing);
@@ -35,13 +36,15 @@ public class MemberGraphNodeBinding<TTargetType, TContentType> : GraphNodeBindin
         }
     }
 
-    public override TContentType GetNodeValue()
+    /// <inheritdoc/>
+    public override TContentType? GetNodeValue()
     {
-        var value = (TContentType)Node.Retrieve();
+        var value = (TContentType?)Node.Retrieve();
         return value;
     }
 
-    public override void SetNodeValue(TTargetType value)
+    /// <inheritdoc/>
+    public override void SetNodeValue(TTargetType? value)
     {
         using var transaction = ActionService?.CreateTransaction();
         Node.Update(Converter(value));
@@ -56,7 +59,7 @@ public class MemberGraphNodeBinding<TTargetType, TContentType> : GraphNodeBindin
 /// when the node value is modified.
 /// </summary>
 /// <typeparam name="TContentType">The type of the node content and the property bound to the graph node.</typeparam>
-public class MemberGraphNodeBinding<TContentType> : MemberGraphNodeBinding<TContentType, TContentType>
+public class MemberGraphNodeBinding<TContentType> : MemberGraphNodeBinding<TContentType?, TContentType?>
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="MemberGraphNodeBinding{TContentType}"/> class.
@@ -67,7 +70,7 @@ public class MemberGraphNodeBinding<TContentType> : MemberGraphNodeBinding<TCont
     /// <param name="propertyChanged">The delegate to invoke when the node content has changed.</param>
     /// <param name="actionService"></param>
     /// <param name="notifyChangesOnly">If <c>True</c>, delegates will be invoked only if the content of the node has actually changed. Otherwise, they will be invoked every time the node is updated, even if the new value is equal to the previous one.</param>
-    public MemberGraphNodeBinding(IMemberNode node, string propertyName, PropertyChangeDelegate propertyChanging, PropertyChangeDelegate propertyChanged, IUndoRedoService actionService, bool notifyChangesOnly = true)
+    public MemberGraphNodeBinding(IMemberNode node, string propertyName, PropertyChangeDelegate propertyChanging, PropertyChangeDelegate propertyChanged, IUndoRedoService? actionService, bool notifyChangesOnly = true)
         : base(node, propertyName, propertyChanging, propertyChanged, x => x, actionService, notifyChangesOnly)
     {
     }
@@ -76,5 +79,5 @@ public class MemberGraphNodeBinding<TContentType> : MemberGraphNodeBinding<TCont
     /// Gets or sets the current node value.
     /// </summary>
     /// <remarks>The setter of this property will invoke the delegates passed to the constructor of this instance if the new value is different from the previous one.</remarks>
-    public TContentType Value { get => GetNodeValue(); set => SetNodeValue(value); }
+    public TContentType? Value { get => GetNodeValue(); set => SetNodeValue(value); }
 }

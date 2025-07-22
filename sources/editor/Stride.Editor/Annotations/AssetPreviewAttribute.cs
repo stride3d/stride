@@ -1,14 +1,9 @@
-// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using System;
 using Stride.Core.Assets;
 using Stride.Core.Annotations;
-using Stride.Core.Reflection;
-using Stride.Editor.Preview.View;
 using Stride.Editor.Preview;
-
-#nullable enable
 
 namespace Stride.Editor.Annotations;
 
@@ -32,4 +27,3 @@ public sealed class AssetPreviewAttribute<TAsset> : AssetPreviewAttribute
     /// <inheritdoc />
     public override Type AssetType => typeof(TAsset);
 }
-

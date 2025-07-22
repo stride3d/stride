@@ -1,120 +1,115 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using System;
+
 using Stride.Core.Assets.Compiler;
 using Stride.Core.BuildEngine;
-using Stride.Core.Annotations;
 using Stride.Core.Collections;
 using Stride.Core.Diagnostics;
 using Stride.Core.Mathematics;
 
-namespace Stride.Core.Assets.Editor.Services
+namespace Stride.Core.Assets.Editor.Services;
+
+public class AssetBuilderService : IBuildService, IDisposable
 {
-    public class AssetBuilderService : IBuildService, IDisposable
+    private const string IndexName = "AssetBuilderServiceIndex";
+
+    private readonly object queueLock = new();
+
+    private readonly DynamicBuilder builder;
+    private readonly PriorityNodeQueue<AssetBuildUnit> queue = new();
+
+    // TODO: this is temporary until we have thread local databases (and a better solution for databases used in standard tasks)
+    public static readonly object OutOfMicrothreadDatabaseLock = new();      
+
+    public AssetBuilderService(string buildDirectory)
     {
-        private const string IndexName = "AssetBuilderServiceIndex";
+        // We want at least 2 threads, since one will be used for DynamicBuildStep (which is a special blocking step)
+        var processorCount = Environment.ProcessorCount;
+        var threadCount = MathUtil.Clamp(3*processorCount/4, 2, processorCount - 1);
 
-        private readonly object queueLock = new object();
-
-        private readonly DynamicBuilder builder;
-        private readonly PriorityNodeQueue<AssetBuildUnit> queue = new PriorityNodeQueue<AssetBuildUnit>();
-
-        // TODO: this is temporary until we have thread local databases (and a better solution for databases used in standard tasks)
-        public static readonly object OutOfMicrothreadDatabaseLock = new object();      
-
-        public AssetBuilderService([NotNull] string buildDirectory)
+        // Mount database (otherwise it will be mounted by DynamicBuilder thread, and it might happen too late)
+        Builder.OpenObjectDatabase(buildDirectory, IndexName);
+        
+        var builderInstance = new Builder(GlobalLogger.GetLogger("AssetBuilderService"), buildDirectory, IndexName)
         {
-            if (buildDirectory == null) throw new ArgumentNullException(nameof(buildDirectory));
+            BuilderName = "AssetBuilderService Builder",
+            ThreadCount = threadCount,
+        };
+        builder = new DynamicBuilder(builderInstance, new AnonymousBuildStepProvider(GetNextBuildStep), "Asset Builder service thread.");
+        builder.Start();
+    }
 
-            // We want at least 2 threads, since one will be used for DynamicBuildStep (which is a special blocking step)
-            var processorCount = Environment.ProcessorCount;
-            var threadCount = MathUtil.Clamp(3*processorCount/4, 2, processorCount - 1);
+    public event EventHandler<AssetBuiltEventArgs> AssetBuilt;
 
-            // Mount database (otherwise it will be mounted by DynamicBuilder thread, and it might happen too late)
-            Builder.OpenObjectDatabase(buildDirectory, IndexName);
-            
-            var builderInstance = new Builder(GlobalLogger.GetLogger("AssetBuilderService"), buildDirectory, IndexName)
+    public virtual void Dispose()
+    {
+        builder.Dispose();
+    }
+
+    private BuildStep? GetNextBuildStep(int maxPriority)
+    {
+        while (true)
+        {
+            AssetBuildUnit unit;
+            lock (queueLock)
             {
-                BuilderName = "AssetBuilderService Builder",
-                ThreadCount = threadCount,
-            };
-            builder = new DynamicBuilder(builderInstance, new AnonymousBuildStepProvider(GetNextBuildStep), "Asset Builder service thread.");
-            builder.Start();
-        }
-
-        public event EventHandler<AssetBuiltEventArgs> AssetBuilt;
-
-        public virtual void Dispose()
-        {
-            builder.Dispose();
-        }
-
-        private BuildStep GetNextBuildStep(int maxPriority)
-        {
-            while (true)
-            {
-                AssetBuildUnit unit;
-                lock (queueLock)
+                if (queue.Empty)
                 {
-                    if (queue.Empty)
-                    {
-                        return null;
-                    }
-                    unit = queue.Dequeue();
-                }
-
-                // Check that priority is good enough
-                if (unit.PriorityMajor > maxPriority)
                     return null;
-
-                var buildStep = unit.GetBuildStep();
-                
-                // If this build step couldn't be built, let's find another one
-                if (buildStep == null)
-                    continue;
-
-                // Forward priority to build engine (still very coarse, but should help)
-                buildStep.Priority = unit.PriorityMajor;
-
-                foreach (var step in buildStep.EnumerateRecursively())
-                {
-                    var assetStep = step as AssetBuildStep;
-                    if (assetStep != null)
-                    {
-						assetStep.Priority = unit.PriorityMajor;
-                        assetStep.StepProcessed += (s, e) => NotifyAssetBuilt(assetStep.AssetItem, assetStep.Logger);
-                    }
                 }
-
-                return buildStep;
+                unit = queue.Dequeue();
             }
-        }
 
-        public PriorityQueueNode<AssetBuildUnit> PushBuildUnit(AssetBuildUnit unit)
-        {
-            PriorityQueueNode<AssetBuildUnit> result;
+            // Check that priority is good enough
+            if (unit.PriorityMajor > maxPriority)
+                return null;
 
-            lock (queueLock)
+            var buildStep = unit.GetBuildStep();
+            
+            // If this build step couldn't be built, let's find another one
+            if (buildStep == null)
+                continue;
+
+            // Forward priority to build engine (still very coarse, but should help)
+            buildStep.Priority = unit.PriorityMajor;
+
+            foreach (var step in buildStep.EnumerateRecursively())
             {
-                result = queue.Enqueue(unit);
+                if (step is AssetBuildStep assetStep)
+                {
+                    assetStep.Priority = unit.PriorityMajor;
+                    assetStep.StepProcessed += (s, e) => NotifyAssetBuilt(assetStep.AssetItem, assetStep.Logger);
+                }
             }
 
-            builder.NotifyBuildStepAvailable();
-
-            return result;
+            return buildStep;
         }
+    }
 
-        public void RemoveBuildUnit(PriorityQueueNode<AssetBuildUnit> node)
+    public PriorityQueueNode<AssetBuildUnit> PushBuildUnit(AssetBuildUnit unit)
+    {
+        PriorityQueueNode<AssetBuildUnit> result;
+
+        lock (queueLock)
         {
-            lock (queueLock)
-            {
-                queue.Remove(node);
-            }
+            result = queue.Enqueue(unit);
         }
 
-        private void NotifyAssetBuilt(AssetItem assetItem, LoggerResult buildLog)
+        builder.NotifyBuildStepAvailable();
+
+        return result;
+    }
+
+    public void RemoveBuildUnit(PriorityQueueNode<AssetBuildUnit> node)
+    {
+        lock (queueLock)
         {
-            AssetBuilt?.Invoke(this, new AssetBuiltEventArgs(assetItem, buildLog));
+            queue.Remove(node);
         }
+    }
+
+    private void NotifyAssetBuilt(AssetItem assetItem, LoggerResult buildLog)
+    {
+        AssetBuilt?.Invoke(this, new AssetBuiltEventArgs(assetItem, buildLog));
     }
 }

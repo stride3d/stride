@@ -52,6 +52,8 @@ public class ItemNodePresenter : NodePresenterBase
             Container.ItemChanging -= OnItemChanging;
             Container.ItemChanged -= OnItemChanged;
         }
+
+        base.Dispose(disposing);
     }
 
     public INodePresenter OwnerCollection { get; }
@@ -68,7 +70,7 @@ public class ItemNodePresenter : NodePresenterBase
 
     protected override IObjectNode? ParentingNode => Container.ItemReferences != null ? Container.IndexedTarget(Index) : null;
 
-    public override void UpdateValue(object newValue)
+    public override void UpdateValue(object? newValue)
     {
         try
         {
