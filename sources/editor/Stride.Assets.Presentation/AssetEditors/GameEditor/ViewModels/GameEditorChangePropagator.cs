@@ -201,7 +201,11 @@ namespace Stride.Assets.Presentation.AssetEditors.GameEditor.ViewModels
                                     if (gameSideNode != null)
                                         removedNodes.Add(gameSideNode);
                                 };
-                                visitor.Visit(oldNode);
+
+                                if (oldNode != null)
+                                {
+                                    visitor.Visit(oldNode);
+                                }
 
                                 await Editor.Controller.InvokeTask(async () =>
                                 {
