@@ -371,6 +371,7 @@ namespace Stride.Graphics
             Matrix.Multiply(ref matrix, ref viewProjectionMatrix, out worldViewProjection);
             drawInfo.UnitXWorld = worldViewProjection.Row1;
             drawInfo.UnitYWorld = worldViewProjection.Row2;
+            drawInfo.UnitZWorld = worldViewProjection.Row3;
 
             // rotate origin and unit axis if need.
             var leftTopCorner = vector4LeftTop;

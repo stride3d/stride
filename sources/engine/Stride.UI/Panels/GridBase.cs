@@ -49,24 +49,7 @@ namespace Stride.UI.Panels
         [DataMemberRange(1, 0)]
         [Display(category: LayoutCategory)]
         public static readonly PropertyKey<int> ColumnSpanPropertyKey = DependencyPropertyFactory.RegisterAttached(nameof(ColumnSpanPropertyKey), typeof(GridBase), 1, CoerceSpanValue, InvalidateParentGridMeasure);
-
-        /// <summary>
-        /// The key to the Layer attached dependency property. This defines the layer an item is inserted into.
-        /// </summary>
-        /// <remarks>The value is coerced in the range [0, <see cref="int.MaxValue"/>].</remarks>
-        /// <remarks>First layer has 0 as index</remarks>
-        [DataMemberRange(0, 0)]
-        [Display(category: LayoutCategory)]
-        public static readonly PropertyKey<int> LayerPropertyKey = DependencyPropertyFactory.RegisterAttached(nameof(LayerPropertyKey), typeof(GridBase), 0, CoerceGridPositionsValue, InvalidateParentGridMeasure);
-
-        /// <summary>
-        /// The key to the LayerSpan attached dependency property. This defines the number of layers an item takes.
-        /// </summary>
-        /// <remarks>The value is coerced in the range [1, <see cref="int.MaxValue"/>].</remarks>
-        [DataMemberRange(1, 0)]
-        [Display(category: LayoutCategory)]
-        public static readonly PropertyKey<int> LayerSpanPropertyKey = DependencyPropertyFactory.RegisterAttached(nameof(LayerSpanPropertyKey), typeof(GridBase), 1, CoerceSpanValue, InvalidateParentGridMeasure);
-
+        
         private static void InvalidateParentGridMeasure(object propertyowner, PropertyKey<int> propertykey, int propertyoldvalue)
         {
             var element = (UIElement)propertyowner;
@@ -98,12 +81,11 @@ namespace Stride.UI.Panels
         /// </summary>
         /// <param name="element">The element from which extract the span values</param>
         /// <returns>The span values of the element</returns>
-        protected virtual Int3 GetElementSpanValues(UIElement element)
+        protected virtual Int2 GetElementSpanValues(UIElement element)
         {
-            return new Int3(
+            return new Int2(
                 element.DependencyProperties.Get(ColumnSpanPropertyKey),
-                element.DependencyProperties.Get(RowSpanPropertyKey),
-                element.DependencyProperties.Get(LayerSpanPropertyKey));
+                element.DependencyProperties.Get(RowSpanPropertyKey));
         }
 
         /// <summary>
@@ -111,12 +93,11 @@ namespace Stride.UI.Panels
         /// </summary>
         /// <param name="element">The element from which extract the position values</param>
         /// <returns>The position of the element</returns>
-        protected virtual Int3 GetElementGridPositions(UIElement element)
+        protected virtual Int2 GetElementGridPositions(UIElement element)
         {
-            return new Int3(
+            return new Int2(
                 element.DependencyProperties.Get(ColumnPropertyKey),
-                element.DependencyProperties.Get(RowPropertyKey),
-                element.DependencyProperties.Get(LayerPropertyKey));
+                element.DependencyProperties.Get(RowPropertyKey));
         }
     }
 }

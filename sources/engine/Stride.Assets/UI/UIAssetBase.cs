@@ -27,7 +27,7 @@ namespace Stride.Assets.UI
         {
             [DataMember]
             [Display(category: "Design")]
-            public Vector3 Resolution { get; set; } = new Vector3(UIComponent.DefaultWidth, UIComponent.DefaultHeight, UIComponent.DefaultDepth);
+            public Size2F Resolution { get; set; } = new Size2F(UIComponent.DefaultWidth, UIComponent.DefaultHeight);
         }
 
         [DataMember(10)]
