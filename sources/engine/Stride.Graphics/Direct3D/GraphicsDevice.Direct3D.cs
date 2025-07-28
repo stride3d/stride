@@ -102,6 +102,8 @@ namespace Stride.Graphics
         /// </summary>
         public void Begin()
         {
+            const int S_FALSE = 1;
+
             FrameTriangleCount = 0;
             FrameDrawCalls = 0;
 
@@ -114,29 +116,51 @@ namespace Stride.Graphics
             {
                 currentDisjointQuery = disjointQueries.Peek();
 
-                var asyncQuery = currentDisjointQuery;
                 var dataSize = currentDisjointQuery.GetDataSize();
-                HResult result = nativeDeviceContext->GetData(asyncQuery, ref queryResult, dataSize, (int) AsyncGetdataFlag.Donotflush);
+                HResult result = nativeDeviceContext->GetData(currentDisjointQuery, ref queryResult, dataSize, (int) AsyncGetdataFlag.Donotflush);
 
-                if (result.IsFailure)
+                if (result == S_FALSE)
+                {
+                    // The query is not ready yet, so we cannot reuse it. Create a new one
+                    currentDisjointQuery = CreateQuery();
+                }
+                else if (result.IsFailure)
+                {
+                    // If we failed to get the data, throw an exception
                     result.Throw();
-
-                TimestampFrequency = queryResult.Frequency;
-                currentDisjointQuery = disjointQueries.Dequeue();
+                }
+                else
+                {
+                    // The query is ready, we can reuse it
+                    TimestampFrequency = queryResult.Frequency;
+                    currentDisjointQuery = disjointQueries.Dequeue();
+                }
             }
             else
             {
-                var disjointQueryDescription = new QueryDesc(Query.TimestampDisjoint);
-
-                HResult result = nativeDevice->CreateQuery(in disjointQueryDescription, ref currentDisjointQuery);
-
-                if (result.IsFailure)
-                    result.Throw();
+                // If we have no disjoint queries available, create a new one
+                currentDisjointQuery = CreateQuery();
             }
 
             currentDisjointQueries.Push(currentDisjointQuery);
 
             nativeDeviceContext->Begin(currentDisjointQuery);
+
+            //
+            // Creates a new disjoint query for timestamp profiling.
+            //
+            ComPtr<ID3D11Query> CreateQuery()
+            {
+                var disjointQueryDescription = new QueryDesc(Query.TimestampDisjoint);
+                ComPtr<ID3D11Query> query = default;
+
+                HResult result = nativeDevice->CreateQuery(in disjointQueryDescription, ref query);
+
+                if (result.IsFailure)
+                    result.Throw();
+
+                return query;
+            }
         }
 
         /// <summary>
