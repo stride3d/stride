@@ -22,7 +22,7 @@ public class BodyComponent : CollidableComponent
     private float _sleepThreshold = 0.01f;
     private byte _minimumTimestepCountUnderThreshold = 32;
     private InterpolationMode _interpolationMode = InterpolationMode.None;
-    private BodyInertia _nativeIntertia;
+    private BodyInertia _nativeInertia;
 
     /// <summary> Can be null when it isn't part of a simulation yet/anymore </summary>
     [DataMemberIgnore]
@@ -60,7 +60,7 @@ public class BodyComponent : CollidableComponent
             {
 #warning Norbo: maybe setting bRef.LocalInertia is enough instead of getting and applying description ... ?
                 bRef.GetDescription(out var description);
-                description.LocalInertia = Kinematic ? new BodyInertia() : _nativeIntertia;
+                description.LocalInertia = Kinematic ? new BodyInertia() : _nativeInertia;
                 bRef.ApplyDescription(description);
             }
         }
@@ -422,7 +422,7 @@ public class BodyComponent : CollidableComponent
     {
         Debug.Assert(Simulation is not null);
 
-        _nativeIntertia = shapeInertia;
+        _nativeInertia = shapeInertia;
         if (Kinematic)
             shapeInertia = new BodyInertia();
 
