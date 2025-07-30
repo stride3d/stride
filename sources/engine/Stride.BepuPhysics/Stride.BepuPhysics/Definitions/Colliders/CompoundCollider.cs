@@ -9,6 +9,7 @@ using Stride.Core.Mathematics;
 using Stride.BepuPhysics.Systems;
 using Stride.Core.Annotations;
 using NRigidPose = BepuPhysics.RigidPose;
+using System.Runtime.CompilerServices;
 
 namespace Stride.BepuPhysics.Definitions.Colliders;
 
@@ -18,8 +19,11 @@ namespace Stride.BepuPhysics.Definitions.Colliders;
 [DataContract]
 public sealed class CompoundCollider : ICollider
 {
+#warning This should not be static and should be stored inside the simulation !
+    private static Dictionary<CompoundColliderCacheKey, CachedCompoundData> compoundCache = new();
+
     private readonly ListOfColliders _colliders;
-    private CollidableComponent? _component;
+    private EntityComponentWithTryUpdateFeature? _component;
 
     /// <summary>
     /// Gets the collection of child colliders that make up this compound collider.
@@ -33,17 +37,21 @@ public sealed class CompoundCollider : ICollider
     public int Transforms => _colliders.Count;
 
     [DataMemberIgnore]
-    CollidableComponent? ICollider.Component { get => _component; set => _component = value; }
+    EntityComponentWithTryUpdateFeature? ICollider.Component { get => _component; set => _component = value; }
 
 #warning Norbo: What would be a good heuristic to automatically swap to big, we can provide an override for users if they know what they are doing, but I would like to have it choose automatically by default, I'm guessing it's not just a case of (child > 5) ? big : small
-    public bool IsBig => false;
+    /// <summary>
+    /// Create a bigCompound, this can boost the efficiency for big compounds. Sadly, there is no easy way to know if this should be true of false
+    /// </summary>
+    [DataMember]
+    public bool IsBig { get; set; } = false;
 
     public CompoundCollider()
     {
         _colliders = new() { Owner = this };
     }
 
-    public void GetLocalTransforms(CollidableComponent collidable, Span<ShapeTransform> transforms)
+    public void GetLocalTransforms(EntityComponentWithTryUpdateFeature collidable, Span<ShapeTransform> transforms)
     {
         for (int i = 0; i < _colliders.Count; i++)
         {
@@ -62,7 +70,6 @@ public sealed class CompoundCollider : ICollider
             };
         }
     }
-
     bool ICollider.TryAttach(Shapes shapes, BufferPool pool, ShapeCacheSystem shapeCache, out TypedIndex index, out Vector3 centerOfMass, out BodyInertia inertia)
     {
         if (_colliders.Count == 0)
@@ -71,6 +78,19 @@ public sealed class CompoundCollider : ICollider
             centerOfMass = default;
             inertia = default;
             return false;
+        }
+
+        var key = ComputeKey();
+
+        if (compoundCache.TryGetValue(key, out var cachedData))
+        {
+            var updatedData = cachedData with { RefCount = cachedData.RefCount + 1 };
+            compoundCache[key] = updatedData;
+
+            index = cachedData.TypedIndex;
+            centerOfMass = cachedData.CenterOfMass;
+            inertia = cachedData.Inertia;
+            return true;
         }
 
         var compoundBuilder = new CompoundBuilder(pool, shapes, _colliders.Count);
@@ -89,7 +109,9 @@ public sealed class CompoundCollider : ICollider
             System.Numerics.Vector3 shapeCenter;
             compoundBuilder.BuildDynamicCompound(out compoundChildren, out inertia, out shapeCenter);
 
-            index = IsBig ? shapes.Add(new BigCompound(compoundChildren, shapes, pool)) : shapes.Add(new Compound(compoundChildren));
+            index = IsBig
+                ? shapes.Add(new BigCompound(compoundChildren, shapes, pool))
+                : shapes.Add(new Compound(compoundChildren));
             centerOfMass = shapeCenter.ToStride();
         }
         finally
@@ -97,16 +119,40 @@ public sealed class CompoundCollider : ICollider
             compoundBuilder.Dispose();
         }
 
+        var newCachedData = new CachedCompoundData(index, centerOfMass, inertia, 1);
+        compoundCache[key] = newCachedData;
+
         return true;
     }
-
     void ICollider.Detach(Shapes shapes, BufferPool pool, TypedIndex index)
     {
-        foreach (var collider in _colliders)
-            collider.OnDetach(pool);
-        shapes.RemoveAndDispose(index, pool);
-    }
+        var key = ComputeKey();
 
+        if (compoundCache.TryGetValue(key, out var cachedData))
+        {
+            var newRefCount = cachedData.RefCount - 1;
+            if (newRefCount <= 0)
+            {
+                compoundCache.Remove(key);
+
+                foreach (var collider in _colliders)
+                    collider.OnDetach(pool);
+
+                shapes.RemoveAndDispose(index, pool);
+            }
+            else
+            {
+                var updated = cachedData with { RefCount = newRefCount };
+                compoundCache[key] = updated;
+            }
+        }
+        else
+        {
+            foreach (var collider in _colliders)
+                collider.OnDetach(pool);
+            shapes.RemoveAndDispose(index, pool);
+        }
+    }
     void ICollider.AppendModel(List<BasicMeshBuffers> buffer, ShapeCacheSystem shapeCache, out object? cache)
     {
         cache = null;
@@ -124,4 +170,33 @@ public sealed class CompoundCollider : ICollider
             });
         }
     }
+
+    private CompoundColliderCacheKey ComputeKey()
+    {
+        var signatures = new List<int>(_colliders.Count);
+        signatures.Add(IsBig ? 0 : 1);
+        foreach (var collider in _colliders)
+        {
+            signatures.Add(collider.GetHashCode());
+        }
+
+        return new CompoundColliderCacheKey(signatures);
+    }
+
+    private record CachedCompoundData(
+    TypedIndex TypedIndex,
+    Vector3 CenterOfMass,
+    BodyInertia Inertia,
+    int RefCount
+    );
+    public readonly record struct CompoundColliderCacheKey
+    {
+        public IReadOnlyList<int> ColliderSignatures { get; }
+
+        public CompoundColliderCacheKey(IReadOnlyList<int> colliderSignatures)
+        {
+            ColliderSignatures = colliderSignatures;
+        }
+    }
+
 }
