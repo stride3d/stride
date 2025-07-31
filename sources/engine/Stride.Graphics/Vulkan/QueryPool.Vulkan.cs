@@ -26,7 +26,13 @@ namespace Stride.Graphics
             return true;
         }
 
-        private unsafe void Recreate()
+        /// <summary>
+        ///   Implementation in Vulkan that recreates the queries in the pool.
+        /// </summary>
+        /// <exception cref="NotImplementedException">
+        ///   Only GPU queries of type <see cref="QueryType.Timestamp"/> are supported.
+        /// </exception>
+        private unsafe partial void Recreate()
         {
             var createInfo = new VkQueryPoolCreateInfo
             {

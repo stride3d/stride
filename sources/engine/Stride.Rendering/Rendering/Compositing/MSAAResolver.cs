@@ -149,9 +149,9 @@ namespace Stride.Rendering.Compositing
                 throw new ArgumentNullException(nameof(input));
             if (output == null)
                 throw new ArgumentNullException(nameof(output));
-            if (!input.IsMultisample)
+            if (!input.IsMultiSampled)
                 throw new ArgumentOutOfRangeException(nameof(input), "Source texture is not a MSAA texture.");
-            if (output.IsMultisample)
+            if (output.IsMultiSampled)
                 throw new ArgumentOutOfRangeException(nameof(input), "Destination texture is a MSAA texture.");
 
             // Prepare
@@ -167,7 +167,7 @@ namespace Stride.Rendering.Compositing
                 FilterType == FilterTypes.Default)
             {
                 // We currently only support the default hardware MSAA resolve on OpenGL and OpenGL ES.
-                drawContext.CommandList.CopyMultisample(input, 0, output, 0);
+                drawContext.CommandList.CopyMultiSampled(input, 0, output, 0);
             }
             else if (input.IsDepthStencil)
             {

@@ -501,9 +501,9 @@ namespace Stride.Graphics
                 //else
                 {
                     var mappedIndices = new MappedResource();
-                    var mappedVertices = GraphicsContext.CommandList.MapSubresource(ResourceContext.VertexBuffer, 0, MapMode.WriteNoOverwrite, false, offsetVertexInBytes, vertexCount * vertexStructSize);
+                    var mappedVertices = GraphicsContext.CommandList.MapSubResource(ResourceContext.VertexBuffer, 0, MapMode.WriteNoOverwrite, false, offsetVertexInBytes, vertexCount * vertexStructSize);
                     if (ResourceContext.IsIndexBufferDynamic)
-                        mappedIndices = GraphicsContext.CommandList.MapSubresource(ResourceContext.IndexBuffer, 0, MapMode.WriteNoOverwrite, false, offsetIndexInBytes, indexCount * indexStructSize);
+                        mappedIndices = GraphicsContext.CommandList.MapSubResource(ResourceContext.IndexBuffer, 0, MapMode.WriteNoOverwrite, false, offsetIndexInBytes, indexCount * indexStructSize);
 
                     var vertexPointer = mappedVertices.DataBox.DataPointer;
                     var indexPointer = mappedIndices.DataBox.DataPointer;
@@ -520,9 +520,9 @@ namespace Stride.Graphics
                         indexPointer += indexStructSize * spriteElementInfo.IndexCount;
                     }
 
-                    GraphicsContext.CommandList.UnmapSubresource(mappedVertices);
+                    GraphicsContext.CommandList.UnmapSubResource(mappedVertices);
                     if (ResourceContext.IsIndexBufferDynamic)
-                        GraphicsContext.CommandList.UnmapSubresource(mappedIndices);
+                        GraphicsContext.CommandList.UnmapSubResource(mappedIndices);
                 }
 
                 // Draw from the specified index
