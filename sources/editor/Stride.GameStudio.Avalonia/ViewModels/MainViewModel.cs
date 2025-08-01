@@ -48,6 +48,8 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
 
         Status = new StatusViewModel(ServiceProvider);
         Status.PushStatus("Ready");
+
+        DialogService.ShowProjectSelectionWindow();
     }
 
     public SessionViewModel? Session
