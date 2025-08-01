@@ -5,14 +5,14 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Stride" PrivateAssets="contentfiles;analyzers" Version="4.2.0.1" />
-    <PackageReference Include="Stride.Assets" PrivateAssets="contentfiles;analyzers" Version="4.2.0.1" />
-    <PackageReference Include="Stride.BepuPhysics" PrivateAssets="contentfiles;analyzers" Version="4.2.0.1" />
-    <PackageReference Include="Stride.Core.Assets" PrivateAssets="contentfiles;analyzers" Version="4.2.0.1" />
-    <PackageReference Include="Stride.Engine" PrivateAssets="contentfiles;analyzers" Version="4.2.0.1" />
-    <PackageReference Include="Stride.Video" PrivateAssets="contentfiles;analyzers" Version="4.2.0.1" />
-    <PackageReference Include="Stride.Particles" PrivateAssets="contentfiles;analyzers" Version="4.2.0.1" />
-    <PackageReference Include="Stride.UI" PrivateAssets="contentfiles;analyzers" Version="4.2.0.1" />
-    <PackageReference Include="Stride.Core.Assets.CompilerApp" PrivateAssets="contentfiles;analyzers" Version="4.2.0.1" IncludeAssets="build;buildTransitive" />
+    <PackageReference Include="Stride" PrivateAssets="contentfiles;analyzers" Version="4.2.1.1" />
+    <PackageReference Include="Stride.Assets" PrivateAssets="contentfiles;analyzers" Version="4.2.1.1" />
+    <PackageReference Include="Stride.BepuPhysics" PrivateAssets="contentfiles;analyzers" Version="4.2.1.1" />
+    <PackageReference Include="Stride.Core.Assets" PrivateAssets="contentfiles;analyzers" Version="4.2.1.1" />
+    <PackageReference Include="Stride.Engine" PrivateAssets="contentfiles;analyzers" Version="4.2.1.1" />
+    <PackageReference Include="Stride.Video" PrivateAssets="contentfiles;analyzers" Version="4.2.1.1" />
+    <PackageReference Include="Stride.Particles" PrivateAssets="contentfiles;analyzers" Version="4.2.1.1" />
+    <PackageReference Include="Stride.UI" PrivateAssets="contentfiles;analyzers" Version="4.2.1.1" />
+    <PackageReference Include="Stride.Core.Assets.CompilerApp" PrivateAssets="contentfiles;analyzers" Version="4.2.1.1" IncludeAssets="build;buildTransitive" />
   </ItemGroup>
 </Project>
