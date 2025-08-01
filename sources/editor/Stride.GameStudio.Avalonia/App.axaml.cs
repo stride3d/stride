@@ -103,7 +103,7 @@ public partial class App : Application
 
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            desktop.MainWindow = new ProjectSelectionWindow();
+            desktop.MainWindow = new MainWindow();
         }
         else if (ApplicationLifetime is ISingleViewApplicationLifetime singleViewPlatform)
         {
@@ -126,12 +126,11 @@ public partial class App : Application
         }
     }
 
-    private static object InitializeMainViewModel(UFile? initialPath)
+    private static MainViewModel InitializeMainViewModel(UFile? initialPath)
     {
-        //Switch viewmodel depending the program arguments
-        var viewmodel = new NewOrOpenSessionTemplateCollectionViewModel(InitializeServiceProvider());
-        // if (initialPath is not null)
-        //     vm.OpenCommand.Execute(initialPath);
+        var viewmodel = new MainViewModel(InitializeServiceProvider());
+        if (initialPath is not null)
+            viewmodel.OpenCommand.Execute(initialPath);
         return viewmodel;
     }
 

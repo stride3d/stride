@@ -22,7 +22,7 @@ public class NewOrOpenSessionTemplateCollectionViewModel
         var filePath = await EditorDialogHelper.BrowseForExistingProject(serviceProvider);
         if (filePath != null)
         {
-            SelectedTemplate = new ExistingProjectViewModel(ServiceProvider, filePath, RemoveExistingProjects);
+            //SelectedTemplate = new ExistingProjectViewModel(ServiceProvider, filePath, RemoveExistingProjects);
             dialog?.RequestClose(DialogResult.Ok);
         }
     }
