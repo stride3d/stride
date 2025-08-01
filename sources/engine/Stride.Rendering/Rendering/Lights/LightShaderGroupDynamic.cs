@@ -1,9 +1,9 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
+using System.Collections.Generic;
 using Stride.Core.Collections;
 using Stride.Core.Mathematics;
-using Stride.Engine;
 using Stride.Graphics;
 using Stride.Rendering.Shadows;
 
@@ -49,7 +49,7 @@ namespace Stride.Rendering.Lights
             LightCurrentCount = 0;
         }
 
-        public virtual void SetViews(FastList<RenderView> views)
+        public virtual void SetViews(List<RenderView> views)
         {
             Array.Resize(ref lightRanges, views.Count);
 

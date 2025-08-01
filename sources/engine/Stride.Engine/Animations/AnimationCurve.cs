@@ -85,7 +85,7 @@ namespace Stride.Animations
         /// <value>
         /// The key frames.
         /// </value>
-        public FastList<KeyFrameData<T>> KeyFrames { get; set; }
+        public List<KeyFrameData<T>> KeyFrames { get; set; }
 
         /// <inheritdoc/>
         [DataMemberIgnore]
@@ -107,7 +107,7 @@ namespace Stride.Animations
 
         public AnimationCurve()
         {
-            KeyFrames = new FastList<KeyFrameData<T>>();
+            KeyFrames = [];
         }
 
         /// <summary>
@@ -157,7 +157,7 @@ namespace Stride.Animations
         /// <inheritdoc/>
         public override void ShiftKeys(CompressedTimeSpan shiftTimeSpan)
         {
-            var shiftedKeyFrames = new FastList<KeyFrameData<T>>();
+            var shiftedKeyFrames = new List<KeyFrameData<T>>();
 
             foreach (var keyFrameData in KeyFrames)
             {
