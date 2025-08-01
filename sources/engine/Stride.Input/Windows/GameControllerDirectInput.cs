@@ -37,7 +37,8 @@ namespace Stride.Input
             Id = instance.InstanceGuid;
             ProductId = instance.ProductGuid;
             joystick = new DirectInputJoystick(directInput, instance.InstanceGuid);
-            joystick.SetCooperativeLevel(IntPtr.Zero, CooperativeLevel.NonExclusive | CooperativeLevel.Foreground);
+            var descriptor = RawInput.Win32.GetForegroundWindow();
+            joystick.SetCooperativeLevel(descriptor, CooperativeLevel.NonExclusive | CooperativeLevel.Background);
             var objects = joystick.GetObjects();
 
             int sliderCount = 0;
