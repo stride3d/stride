@@ -513,7 +513,7 @@ namespace Stride.UI.Panels
                 //   1. Finding saturated strips (by min or max)
                 //   2. Determine if size taken by star-sized strip will increase or decrease due to saturated strips.
                 //   3. Updating the total size dedicated of star-sized strips by removing the size taken by min (resp. max) saturated strips
-                //   4. Updating the total remaining star value by removing the star-values of min (resp. max) saturated strips.
+                //   4. Updating the total remaining star value by removing the star-values of min (resp. max) saturated strips
                 //   5. Updating size of 1-star-sized strip.
                 //   6. Removing from the star-sized strip list the min (resp. max) saturated strips.
                 //   7. As new strips can now reach min (resp. max) saturation with the decreased (resp. increase) of the 1-star-sized strip size,

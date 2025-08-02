@@ -29,10 +29,10 @@ namespace Stride.UI.Tests.Layering
         }
 
         /// <summary>
-        /// Test for the <see cref="UniformGrid.GetSurroudingAnchorDistances"/>
+        /// Test for the <see cref="UniformGrid.GetSurroundingAnchorDistances"/>
         /// </summary>
         [Fact]
-        public void TestSurroudingAnchor()
+        public void TestSurroundingAnchor()
         {
             var childSize1 = new Vector3(50, 150, 250);
             var childSize2 = new Vector3(100, 200, 300);
