@@ -161,7 +161,7 @@ namespace Stride.UI.Panels
             //
             // We chose a kind of gross but simple/efficient algorithm. It works as follows:
             // - Initialize the strip sizes with the strip minimum size for star/auto strips and exact final size for fixed strips.
-            // - Remove the minimal strip size as well as the fixed strip size.
+            // - Remove the minimal strip size as well as the fixed strip size and gap sizes.
             // - Use this same remaining size to measure all the auto elements.
             // This algorithm put all the auto elements on an equal footing, but propose more space to the children that the grid really have.
             //
@@ -176,10 +176,13 @@ namespace Stride.UI.Panels
             for (var dim = 0; dim < 3; dim++)
                 InitializeStripDefinitionActualSize(dimensionData[dim].StripDefinitions);
 
-            // calculate size available for all auto elements.
+            // calculate size available for all auto elements, accounting for gaps
             var autoElementAvailableSize = availableSizeWithoutMargins;
             for (var dim = 0; dim < 3; dim++)
             {
+                var totalGapSize = CalculateTotalGapSize(dim, dimensionData[dim].StripDefinitions.Count);
+                autoElementAvailableSize[dim] -= totalGapSize;
+                
                 foreach (var definition in dimensionData[dim].StripDefinitions)
                 {
                     autoElementAvailableSize[dim] -= definition.Type == StripType.Fixed ? definition.ActualSize : definition.MinimumSize;
@@ -193,8 +196,10 @@ namespace Stride.UI.Panels
                 for (var dim = 0; dim < 3; dim++)
                 {
                     var autoAvailableWithMin = autoElementAvailableSize[dim];
-                    var currentDimChildAvailableSize = childAvailableSize[dim];
-                    foreach (var definition in dimensionData[dim].ElementToStripDefinitions[child])
+                    var currentDimChildAvailableSize = 0f;
+                    var elementStripDefinitions = dimensionData[dim].ElementToStripDefinitions[child];
+                    
+                    foreach (var definition in elementStripDefinitions)
                     {
                         autoAvailableWithMin += definition.Type == StripType.Fixed ? definition.ActualSize : definition.MinimumSize;
                         if (definition.Type == StripType.Fixed)
@@ -202,6 +207,11 @@ namespace Stride.UI.Panels
                         else
                             currentDimChildAvailableSize = Math.Min(autoAvailableWithMin, currentDimChildAvailableSize + definition.MaximumSize);
                     }
+                    
+                    // Add gaps for spanned elements
+                    if (elementStripDefinitions.Count > 1)
+                        currentDimChildAvailableSize += GetGapForDimension(dim) * (elementStripDefinitions.Count - 1);
+                        
                     childAvailableSize[dim] = currentDimChildAvailableSize;
                 }
                 child.Measure(childAvailableSize);
@@ -264,6 +274,11 @@ namespace Stride.UI.Panels
                             if (elementStripDefinitions[i] == currentDefinition)
                                 currentDefinitionIndex = i;
                         }
+
+                        // Add gaps for spanned elements
+                        if (elementStripDefinitions.Count > 1)
+                            spaceAvailable += GetGapForDimension(dim) * (elementStripDefinitions.Count - 1);
+                        
                         var spaceNeeded = Math.Max(0, element.DesiredSizeWithMargins[dim] - spaceAvailable);
 
                         // if no space is needed, go check the next element
@@ -287,7 +302,7 @@ namespace Stride.UI.Panels
                 }
             }
 
-            // 5. Calculate the actual size of 1-star strip.
+            // 5. Calculate the actual size of 1-star strip, accounting for gaps
             CalculateStarStripSize(availableSizeWithoutMargins);
 
             // 6. Re-measure all the children, this time with the exact available size.
@@ -295,7 +310,7 @@ namespace Stride.UI.Panels
             {
                 var availableToChildWithMargin = Vector3.Zero;
                 for (var dim = 0; dim < 3; dim++)
-                    availableToChildWithMargin[dim] = SumStripCurrentSize(dimensionData[dim].ElementToStripDefinitions[child]);
+                    availableToChildWithMargin[dim] = SumStripCurrentSizeWithGaps(dimensionData[dim].ElementToStripDefinitions[child], dim);
 
                 child.Measure(availableToChildWithMargin);
             }
@@ -337,6 +352,11 @@ namespace Stride.UI.Panels
                         }
                         availableSpace += def.ActualSize;
                     }
+
+                    // Add gaps for spanned elements
+                    if (elementDefinitions.Count > 1)
+                        availableSpace += GetGapForDimension(dim) * (elementDefinitions.Count - 1);
+
                     var currentNeededSpace = Math.Max(0, element.DesiredSizeWithMargins[dim] - availableSpace);
 
                     // sort the star definition by increasing relative minimum and maximum values
@@ -397,8 +417,8 @@ namespace Stride.UI.Panels
                 foreach (var starDefinition in dimData.StarDefinitions)
                     starDefinition.ActualSize = starDefinition.ClampSizeByMinimumMaximum(oneStarSize * starDefinition.SizeValue);
 
-                // determine to size needed by the grid
-                neededSize[dim] += SumStripCurrentSize(definitions);
+                // determine to size needed by the grid, including gaps
+                neededSize[dim] += SumStripCurrentSize(definitions) + CalculateTotalGapSize(dim, definitions.Count);
             }
 
             return neededSize;
@@ -452,9 +472,9 @@ namespace Stride.UI.Panels
 
                 // calculate the size provided to the child
                 var providedSize = new Vector3(
-                    SumStripCurrentSize(dimensionData[0].ElementToStripDefinitions[child]),
-                    SumStripCurrentSize(dimensionData[1].ElementToStripDefinitions[child]),
-                    SumStripCurrentSize(dimensionData[2].ElementToStripDefinitions[child]));
+                    SumStripCurrentSizeWithGaps(dimensionData[0].ElementToStripDefinitions[child], 0),
+                    SumStripCurrentSizeWithGaps(dimensionData[1].ElementToStripDefinitions[child], 1),
+                    SumStripCurrentSizeWithGaps(dimensionData[2].ElementToStripDefinitions[child], 2));
 
                 // arrange the child
                 child.Arrange(providedSize, IsCollapsed);
@@ -475,8 +495,11 @@ namespace Stride.UI.Panels
                 // compute the size taken by fixed and auto strips
                 var spaceTakenByFixedAndAutoStrips = SumStripAutoAndFixedSize(dimData.StripDefinitions);
 
+                // calculate the total gap size for this dimension
+                var totalGapSize = CalculateTotalGapSize(dim, dimData.StripDefinitions.Count);
+
                 // calculate the size remaining for the start-sized strips
-                var spaceRemainingForStarStrips = Math.Max(0f, finalSizeWithoutMargins[dim] - spaceTakenByFixedAndAutoStrips);
+                var spaceRemainingForStarStrips = Math.Max(0f, finalSizeWithoutMargins[dim] - spaceTakenByFixedAndAutoStrips - totalGapSize);
 
                 // calculate the total value of the stars.
                 var starValuesSum = SumValues(starDefinitionsCopy);
@@ -693,12 +716,13 @@ namespace Stride.UI.Panels
 
         private void RebuildStripPositionCacheData()
         {
-            // rebuild strip begin position cached data
+            // rebuild strip begin position cached data, accounting for gaps
             for (var dim = 0; dim < 3; dim++)
             {
                 ref var dimData = ref dimensionData[dim];
                 var cachedStripIndexToStripPosition = dimData.CachedStripIndexToStripPosition;
                 var stripDefinitions = dimData.StripDefinitions;
+                var gap = GetGapForDimension(dim);
 
                 //clear last cached data
                 cachedStripIndexToStripPosition.Clear();
@@ -709,6 +733,8 @@ namespace Stride.UI.Panels
                 {
                     cachedStripIndexToStripPosition.Add(startPosition);
                     startPosition += stripDefinitions[index].ActualSize;
+                    if (index < stripDefinitions.Count - 1) // Add gap except after the last strip
+                        startPosition += gap;
                 }
                 cachedStripIndexToStripPosition.Add(startPosition);
             }
@@ -722,6 +748,23 @@ namespace Stride.UI.Panels
                 sum += def.ActualSize;
 
             return sum;
+        }
+
+        /// <summary>
+        /// Calculates the total size for spanned elements including gaps.
+        /// </summary>
+        /// <param name="elementStripDefinitions">The strip definitions the element spans</param>
+        /// <param name="dimension">The dimension (0=Column, 1=Row, 2=Layer)</param>
+        /// <returns>The total size including gaps</returns>
+        private float SumStripCurrentSizeWithGaps(List<StripDefinition> elementStripDefinitions, int dimension)
+        {
+            if (elementStripDefinitions.Count <= 1)
+                return SumStripCurrentSize(elementStripDefinitions);
+
+            // For spanned elements: sum of strip sizes + gaps between strips
+            var sum = SumStripCurrentSize(elementStripDefinitions);
+            var gapSize = GetGapForDimension(dimension) * (elementStripDefinitions.Count - 1);
+            return sum + gapSize;
         }
 
         private static float SumStripCurrentSize(List<StripDefinition> definitions)

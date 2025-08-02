@@ -84,11 +84,36 @@ namespace Stride.UI.Panels
             }
         }
 
+        /// <summary>
+        /// Calculates the total size for spanned cells including gaps.
+        /// </summary>
+        /// <param name="cellSize">The size of one cell</param>
+        /// <param name="span">The number of cells spanned</param>
+        /// <param name="dimension">The dimension (0=Column, 1=Row, 2=Layer)</param>
+        /// <returns>The total size including gaps</returns>
+        private float CalculateSpannedSize(float cellSize, int span, int dimension)
+        {
+            if (span <= 1) return cellSize;
+            
+            // For spanned elements: (cellSize * span) + (gap * (span - 1))
+            var gapSize = GetGapForDimension(dimension) * (span - 1);
+            return cellSize * span + gapSize;
+        }
+
         protected override Vector3 MeasureOverride(Vector3 availableSizeWithoutMargins)
         {
-            // compute the size available for one cell
+            // compute the size available for one cell, accounting for gaps
             var gridSize = new Vector3(Columns, Rows, Layers);
-            var availableForOneCell = new Vector3(availableSizeWithoutMargins.X / gridSize.X, availableSizeWithoutMargins.Y / gridSize.Y, availableSizeWithoutMargins.Z / gridSize.Z);
+            var totalGapSize = new Vector3(
+                CalculateTotalGapSize(0, Columns),
+                CalculateTotalGapSize(1, Rows),
+                CalculateTotalGapSize(2, Layers));
+            
+            var availableForCells = availableSizeWithoutMargins - totalGapSize;
+            var availableForOneCell = new Vector3(
+                availableForCells.X / gridSize.X, 
+                availableForCells.Y / gridSize.Y, 
+                availableForCells.Z / gridSize.Z);
 
             // measure all the children
             var neededForOneCell = Vector3.Zero;
@@ -96,7 +121,12 @@ namespace Stride.UI.Panels
             {
                 // compute the size available for the child depending on its spans values
                 var childSpans = GetElementSpanValuesAsFloat(child);
-                var availableForChildWithMargin = Vector3.Modulate(childSpans, availableForOneCell);
+                
+                // Calculate available size including gaps for spanned elements
+                var availableForChildWithMargin = new Vector3(
+                    CalculateSpannedSize(availableForOneCell.X, (int)childSpans.X, 0),
+                    CalculateSpannedSize(availableForOneCell.Y, (int)childSpans.Y, 1),
+                    CalculateSpannedSize(availableForOneCell.Z, (int)childSpans.Z, 2));
 
                 child.Measure(availableForChildWithMargin);
 
@@ -106,25 +136,46 @@ namespace Stride.UI.Panels
                     Math.Max(neededForOneCell.Z, child.DesiredSizeWithMargins.Z / childSpans.Z));
             }
 
-            return Vector3.Modulate(gridSize, neededForOneCell);
+            return Vector3.Modulate(gridSize, neededForOneCell) + totalGapSize;
         }
 
         protected override Vector3 ArrangeOverride(Vector3 finalSizeWithoutMargins)
         {
-            // compute the size available for one cell
+            // compute the size available for one cell, accounting for gaps
             var gridSize = new Vector3(Columns, Rows, Layers);
-            finalForOneCell = new Vector3(finalSizeWithoutMargins.X / gridSize.X, finalSizeWithoutMargins.Y / gridSize.Y, finalSizeWithoutMargins.Z / gridSize.Z);
+            var totalGapSize = new Vector3(
+                CalculateTotalGapSize(0, Columns),
+                CalculateTotalGapSize(1, Rows),
+                CalculateTotalGapSize(2, Layers));
+            
+            var availableForCells = finalSizeWithoutMargins - totalGapSize;
+            finalForOneCell = new Vector3(
+                availableForCells.X / gridSize.X, 
+                availableForCells.Y / gridSize.Y, 
+                availableForCells.Z / gridSize.Z);
+
+            var gaps = new Vector3(ColumnGap, RowGap, LayerGap);
 
             // arrange all the children
             foreach (var child in VisualChildrenCollection)
             {
                 // compute the final size of the child depending on its spans values
                 var childSpans = GetElementSpanValuesAsFloat(child);
-                var finalForChildWithMargin = Vector3.Modulate(childSpans, finalForOneCell);
+                
+                // Calculate final size including gaps for spanned elements
+                var finalForChildWithMargin = new Vector3(
+                    CalculateSpannedSize(finalForOneCell.X, (int)childSpans.X, 0),
+                    CalculateSpannedSize(finalForOneCell.Y, (int)childSpans.Y, 1),
+                    CalculateSpannedSize(finalForOneCell.Z, (int)childSpans.Z, 2));
+
+                // calculate child position accounting for gaps
+                var childGridPosition = GetElementGridPositionsAsFloat(child);
+                var childOffsetWithoutGaps = Vector3.Modulate(childGridPosition, finalForOneCell);
+                var childGapOffset = Vector3.Modulate(childGridPosition, gaps);
+                var childOffset = childOffsetWithoutGaps + childGapOffset;
 
                 // set the arrange matrix of the child
-                var childOffsets = GetElementGridPositionsAsFloat(child);
-                child.DependencyProperties.Set(PanelArrangeMatrixPropertyKey, Matrix.Translation(Vector3.Modulate(childOffsets, finalForOneCell) - finalSizeWithoutMargins / 2));
+                child.DependencyProperties.Set(PanelArrangeMatrixPropertyKey, Matrix.Translation(childOffset - finalSizeWithoutMargins / 2));
 
                 // arrange the child
                 child.Arrange(finalForChildWithMargin, IsCollapsed);
@@ -153,7 +204,13 @@ namespace Stride.UI.Panels
             Vector2 distances;
             var gridElements = new Vector3(Columns, Rows, Layers);
             
-            CalculateDistanceToSurroundingModulo(position, finalForOneCell[(int)direction], gridElements[(int)direction], out distances);
+            // With gaps, anchors are positioned at cell start positions
+            // The distance between anchors is cellSize + gap
+            var cellSize = finalForOneCell[(int)direction];
+            var gap = GetGapForDimension((int)direction);
+            var anchorSpacing = cellSize + gap;
+            
+            CalculateDistanceToSurroundingModulo(position, anchorSpacing, gridElements[(int)direction], out distances);
 
             return distances;
         }

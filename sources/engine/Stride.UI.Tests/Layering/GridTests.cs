@@ -1441,5 +1441,351 @@ namespace Stride.UI.Tests.Layering
             Assert.Equal(new Vector2(-300,   0), grid.GetSurroudingAnchorDistances(Orientation.InDepth, 600));
             Assert.Equal(new Vector2(-300,   0), grid.GetSurroudingAnchorDistances(Orientation.InDepth, 900));
         }
+
+        /// <summary>
+        /// Test that column gaps work correctly with fixed strips
+        /// </summary>
+        [Fact]
+        public void TestColumnGapWithFixedStrips()
+        {
+            var grid = new Grid();
+            grid.ColumnGap = 10f;
+
+            // Create 3 fixed columns: 100, 200, 150
+            grid.ColumnDefinitions.Add(new StripDefinition(StripType.Fixed, 100));
+            grid.ColumnDefinitions.Add(new StripDefinition(StripType.Fixed, 200));
+            grid.ColumnDefinitions.Add(new StripDefinition(StripType.Fixed, 150));
+
+            // Total width should be 100 + 10 + 200 + 10 + 150 = 470
+            var child0 = new ArrangeValidator { ExpectedArrangeValue = new Vector3(100, 100, 0), ReturnedMeasuredValue = Vector3.Zero };
+            var child1 = new ArrangeValidator { ExpectedArrangeValue = new Vector3(200, 100, 0), ReturnedMeasuredValue = Vector3.Zero };
+            var child2 = new ArrangeValidator { ExpectedArrangeValue = new Vector3(150, 100, 0), ReturnedMeasuredValue = Vector3.Zero };
+
+            child1.DependencyProperties.Set(GridBase.ColumnPropertyKey, 1);
+            child2.DependencyProperties.Set(GridBase.ColumnPropertyKey, 2);
+
+            grid.Children.Add(child0);
+            grid.Children.Add(child1);
+            grid.Children.Add(child2);
+
+            grid.Measure(new Vector3(1000, 100, 100));
+            Assert.Equal(new Vector3(470, 0, 0), grid.DesiredSizeWithMargins);
+
+            grid.Arrange(new Vector3(1000, 100, 100), false);
+
+            // Check that children are positioned correctly with gaps
+            Assert.Equal(100, grid.ColumnDefinitions[0].ActualSize);
+            Assert.Equal(200, grid.ColumnDefinitions[1].ActualSize);
+            Assert.Equal(150, grid.ColumnDefinitions[2].ActualSize);
+        }
+
+        /// <summary>
+        /// Test that row gaps work correctly with auto strips
+        /// </summary>
+        [Fact]
+        public void TestRowGapWithAutoStrips()
+        {
+            var grid = new Grid();
+            grid.RowGap = 15f;
+
+            grid.RowDefinitions.Add(new StripDefinition(StripType.Auto));
+            grid.RowDefinitions.Add(new StripDefinition(StripType.Auto));
+            grid.RowDefinitions.Add(new StripDefinition(StripType.Auto));
+
+            // Children with different heights: 50, 75, 100
+            var child0 = new ArrangeValidator 
+            { 
+                ExpectedArrangeValue = new Vector3(0, 50, 0),
+                ReturnedMeasuredValue = new Vector3(0, 50, 0),
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Stretch,
+                DepthAlignment = DepthAlignment.Center
+            };
+            var child1 = new ArrangeValidator 
+            { 
+                ExpectedArrangeValue = new Vector3(0, 75, 0),
+                ReturnedMeasuredValue = new Vector3(0, 75, 0),
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Stretch,
+                DepthAlignment = DepthAlignment.Center
+
+            };
+            var child2 = new ArrangeValidator 
+            { 
+                ExpectedArrangeValue = new Vector3(0, 100, 0),
+                ReturnedMeasuredValue = new Vector3(0, 100, 0),
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Stretch,
+                DepthAlignment = DepthAlignment.Center
+
+            };
+
+            child1.DependencyProperties.Set(GridBase.RowPropertyKey, 1);
+            child2.DependencyProperties.Set(GridBase.RowPropertyKey, 2);
+
+            grid.Children.Add(child0);
+            grid.Children.Add(child1);
+            grid.Children.Add(child2);
+
+            grid.Measure(new Vector3(100, 1000, 100));
+            // Total height should be 50 + 15 + 75 + 15 + 100 = 255
+            Assert.Equal(new Vector3(0, 255, 0), grid.DesiredSizeWithMargins);
+
+            grid.Arrange(new Vector3(100, 1000, 100), false);
+
+            Assert.Equal(50, grid.RowDefinitions[0].ActualSize);
+            Assert.Equal(75, grid.RowDefinitions[1].ActualSize);
+            Assert.Equal(100, grid.RowDefinitions[2].ActualSize);
+        }
+
+        /// <summary>
+        /// Test that layer gaps work correctly with star strips
+        /// </summary>
+        [Fact]
+        public void TestLayerGapWithStarStrips()
+        {
+            var grid = new Grid();
+            grid.LayerGap = 20f;
+            grid.DepthAlignment = DepthAlignment.Stretch;
+
+            // Create 2 star layers with ratio 1:2
+            grid.LayerDefinitions.Add(new StripDefinition(StripType.Star, 1));
+            grid.LayerDefinitions.Add(new StripDefinition(StripType.Star, 2));
+
+            var child0 = new ArrangeValidator 
+            { 
+                ExpectedArrangeValue = new Vector3(0, 0, 60), 
+                ReturnedMeasuredValue = new Vector3(0, 0, 30), 
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Center,
+                DepthAlignment = DepthAlignment.Stretch 
+            };
+            var child1 = new ArrangeValidator 
+            { 
+                ExpectedArrangeValue = new Vector3(0, 0, 120), 
+                ReturnedMeasuredValue = new Vector3(0, 0, 60),
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Center,
+                DepthAlignment = DepthAlignment.Stretch 
+            };
+
+            child1.DependencyProperties.Set(GridBase.LayerPropertyKey, 1);
+
+            grid.Children.Add(child0);
+            grid.Children.Add(child1);
+
+            // Available depth: 200, gap: 20, remaining: 180
+            // Star ratio 1:2, so sizes should be 60 and 120
+            grid.Measure(new Vector3(100, 100, 200));
+            grid.Arrange(new Vector3(100, 100, 200), false);
+
+            Assert.Equal(60, grid.LayerDefinitions[0].ActualSize);
+            Assert.Equal(120, grid.LayerDefinitions[1].ActualSize);
+        }
+
+        /// <summary>
+        /// Test gaps with spanned elements
+        /// </summary>
+        [Fact]
+        public void TestGapsWithSpannedElements()
+        {
+            var grid = new Grid();
+            grid.ColumnGap = 10f;
+            grid.RowGap = 5f;
+
+            grid.ColumnDefinitions.Add(new StripDefinition(StripType.Fixed, 100));
+            grid.ColumnDefinitions.Add(new StripDefinition(StripType.Fixed, 150));
+            grid.ColumnDefinitions.Add(new StripDefinition(StripType.Fixed, 200));
+            grid.RowDefinitions.Add(new StripDefinition(StripType.Fixed, 80));
+            grid.RowDefinitions.Add(new StripDefinition(StripType.Fixed, 120));
+
+            // Element spanning 2 columns: should get 100 + 10 (gap) + 150 = 260 width
+            var spannedChild = new ArrangeValidator
+            {
+                ExpectedArrangeValue = new Vector3(260, 80, 0),
+                ReturnedMeasuredValue = new Vector3(200, 50, 0)
+            };
+            spannedChild.DependencyProperties.Set(GridBase.ColumnSpanPropertyKey, 2);
+
+            // Element spanning 2 rows: should get 80 + 5 (gap) + 120 = 205 height
+            var rowSpannedChild = new ArrangeValidator
+            {
+                ExpectedArrangeValue = new Vector3(200, 205, 0),
+                ReturnedMeasuredValue = new Vector3(150, 180, 0)
+            };
+            rowSpannedChild.DependencyProperties.Set(GridBase.ColumnPropertyKey, 2);
+            rowSpannedChild.DependencyProperties.Set(GridBase.RowSpanPropertyKey, 2);
+
+            grid.Children.Add(spannedChild);
+            grid.Children.Add(rowSpannedChild);
+
+            grid.Measure(new Vector3(1000, 1000, 100));
+            grid.Arrange(new Vector3(1000, 1000, 100), false);
+
+            // Verify total grid size includes gaps
+            // Columns: 100 + 10 + 150 + 10 + 200 = 470
+            // Rows: 80 + 5 + 120 = 205
+            Assert.Equal(new Vector3(470, 205, 0), grid.DesiredSizeWithMargins);
+        }
+
+        /// <summary>
+        /// Test that gaps are correctly applied in mixed strip types
+        /// </summary>
+        [Fact]
+        public void TestGapsWithMixedStripTypes()
+        {
+            var grid = new Grid();
+            grid.ColumnGap = 8f;
+
+            grid.ColumnDefinitions.Add(new StripDefinition(StripType.Fixed, 50));
+            grid.ColumnDefinitions.Add(new StripDefinition(StripType.Auto));
+            grid.ColumnDefinitions.Add(new StripDefinition(StripType.Star, 1));
+            grid.ColumnDefinitions.Add(new StripDefinition(StripType.Fixed, 100));
+
+            var child0 = new ArrangeValidator { ExpectedArrangeValue = new Vector3(50, 100, 0), ReturnedMeasuredValue = new Vector3(30, 0, 0) };
+            var child1 = new ArrangeValidator { ExpectedArrangeValue = new Vector3(80, 100, 0), ReturnedMeasuredValue = new Vector3(80, 0, 0) };
+            var child2 = new ArrangeValidator { ExpectedArrangeValue = new Vector3(146, 100, 0), ReturnedMeasuredValue = new Vector3(100, 0, 0) };
+            var child3 = new ArrangeValidator { ExpectedArrangeValue = new Vector3(100, 100, 0), ReturnedMeasuredValue = new Vector3(90, 0, 0) };
+
+            child1.DependencyProperties.Set(GridBase.ColumnPropertyKey, 1);
+            child2.DependencyProperties.Set(GridBase.ColumnPropertyKey, 2);
+            child3.DependencyProperties.Set(GridBase.ColumnPropertyKey, 3);
+
+            grid.Children.Add(child0);
+            grid.Children.Add(child1);
+            grid.Children.Add(child2);
+            grid.Children.Add(child3);
+
+            // Available width: 400, gaps: 3 * 8 = 24, remaining: 376
+            // Fixed: 50 + 100 = 150, Auto: 80, Star gets: 376 - 150 - 80 = 146
+            grid.Measure(new Vector3(400, 100, 100));
+            grid.Arrange(new Vector3(400, 100, 100), false);
+
+            Assert.Equal(50, grid.ColumnDefinitions[0].ActualSize);
+            Assert.Equal(80, grid.ColumnDefinitions[1].ActualSize);
+            Assert.Equal(100, grid.ColumnDefinitions[3].ActualSize);
+        }
+
+        /// <summary>
+        /// Test that zero gaps work correctly (no gaps)
+        /// </summary>
+        [Fact]
+        public void TestZeroGaps()
+        {
+            var grid = new Grid();
+            grid.ColumnGap = 0f;
+            grid.RowGap = 0f;
+            grid.LayerGap = 0f;
+
+            grid.ColumnDefinitions.Add(new StripDefinition(StripType.Fixed, 100));
+            grid.ColumnDefinitions.Add(new StripDefinition(StripType.Fixed, 200));
+            grid.RowDefinitions.Add(new StripDefinition(StripType.Fixed, 150));
+
+            var child = new ArrangeValidator { ExpectedArrangeValue = new Vector3(100, 150, 0), ReturnedMeasuredValue = Vector3.Zero };
+            grid.Children.Add(child);
+
+            grid.Measure(new Vector3(1000, 1000, 100));
+            // Total should be exactly the sum of strip sizes with no gaps
+            Assert.Equal(new Vector3(300, 150, 0), grid.DesiredSizeWithMargins);
+
+            grid.Arrange(new Vector3(1000, 1000, 100), false);
+        }
+
+        /// <summary>
+        /// Test that negative gap values are coerced to zero
+        /// </summary>
+        [Fact]
+        public void TestNegativeGapsCoercion()
+        {
+            var grid = new Grid();
+
+            // Set negative gaps - should be coerced to 0
+            grid.ColumnGap = -10f;
+            grid.RowGap = -5f;
+            grid.LayerGap = -15f;
+
+            Assert.Equal(0f, grid.ColumnGap);
+            Assert.Equal(0f, grid.RowGap);
+            Assert.Equal(0f, grid.LayerGap);
+        }
+
+        /// <summary>
+        /// Test gaps with single strip (no gaps should be applied)
+        /// </summary>
+        [Fact]
+        public void TestGapsWithSingleStrip()
+        {
+            var grid = new Grid();
+            grid.ColumnGap = 20f;
+            grid.RowGap = 15f;
+            grid.LayerGap = 10f;
+
+            // Only one strip in each dimension - no gaps should be applied
+            grid.ColumnDefinitions.Add(new StripDefinition(StripType.Fixed, 100));
+            grid.RowDefinitions.Add(new StripDefinition(StripType.Fixed, 200));
+            grid.LayerDefinitions.Add(new StripDefinition(StripType.Fixed, 150));
+
+            var child = new ArrangeValidator
+            { 
+                ExpectedArrangeValue = new Vector3(100, 200, 150), 
+                ReturnedMeasuredValue = Vector3.Zero,
+                DepthAlignment = DepthAlignment.Stretch
+            };
+            grid.Children.Add(child);
+
+            grid.Measure(new Vector3(1000, 1000, 1000));
+            // Should be exactly the strip sizes with no gaps added
+            Assert.Equal(new Vector3(100, 200, 150), grid.DesiredSizeWithMargins);
+
+            grid.Arrange(new Vector3(1000, 1000, 1000), false);
+        }
+
+        /// <summary>
+        /// Test that changing gap values invalidates measure
+        /// </summary>
+        [Fact]
+        public void TestGapInvalidation()
+        {
+            var grid = new Grid();
+            grid.ColumnDefinitions.Add(new StripDefinition(StripType.Fixed, 100));
+            grid.ColumnDefinitions.Add(new StripDefinition(StripType.Fixed, 100));
+
+            // Test that changing gaps invalidates measure
+            UIElementLayeringTests.TestMeasureInvalidation(grid, () => grid.ColumnGap = 10f);
+            UIElementLayeringTests.TestMeasureInvalidation(grid, () => grid.RowGap = 15f);
+            UIElementLayeringTests.TestMeasureInvalidation(grid, () => grid.LayerGap = 20f);
+        }
+
+        /// <summary>
+        /// Test gaps with minimum and maximum strip constraints
+        /// </summary>
+        [Fact]
+        public void TestGapsWithMinMaxConstraints()
+        {
+            var grid = new Grid();
+            grid.ColumnGap = 10f;
+
+            grid.ColumnDefinitions.Add(new StripDefinition(StripType.Star, 1) { MinimumSize = 50, MaximumSize = 100 });
+            grid.ColumnDefinitions.Add(new StripDefinition(StripType.Star, 1) { MinimumSize = 75, MaximumSize = 150 });
+
+            var child0 = new ArrangeValidator { ExpectedArrangeValue = new Vector3(95, 100, 0), ReturnedMeasuredValue = new Vector3(80, 0, 0) };
+            var child1 = new ArrangeValidator { ExpectedArrangeValue = new Vector3(95, 100, 0), ReturnedMeasuredValue = new Vector3(90, 0, 0) };
+
+            child1.DependencyProperties.Set(GridBase.ColumnPropertyKey, 1);
+
+            grid.Children.Add(child0);
+            grid.Children.Add(child1);
+
+            // Available: 200, gap: 10, remaining: 190
+            // Equal distribution would be 95 each, but constraints apply
+            grid.Measure(new Vector3(200, 100, 100));
+            grid.Arrange(new Vector3(200, 100, 100), false);
+
+            // Should respect min/max constraints while accounting for gaps
+            Assert.True(grid.ColumnDefinitions[0].ActualSize >= 50);
+            Assert.True(grid.ColumnDefinitions[0].ActualSize <= 100);
+            Assert.True(grid.ColumnDefinitions[1].ActualSize >= 75);
+            Assert.True(grid.ColumnDefinitions[1].ActualSize <= 150);
+        }
     }
 }

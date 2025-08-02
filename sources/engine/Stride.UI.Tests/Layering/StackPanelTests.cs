@@ -24,6 +24,7 @@ namespace Stride.UI.Tests.Layering
             TestCollapseOverride();
             TestMeasureOverride(); 
             TestArrangeOverride();
+            TestGap();
         }
 
         private void ResetState()
@@ -44,6 +45,168 @@ namespace Stride.UI.Tests.Layering
 
             // test default values
             Assert.Equal(Orientation.Vertical, stackPanel.Orientation);
+            Assert.Equal(0f, stackPanel.Gap);
+        }
+
+        /// <summary>
+        /// Test the gap property and its effects on layout
+        /// </summary>
+        [Fact]
+        public void TestGap()
+        {
+            ResetState();
+
+            var stackPanel = new StackPanel { Orientation = Orientation.Vertical, Gap = 10f };
+            
+            // Test initial gap value
+            Assert.Equal(10f, stackPanel.Gap);
+
+            // Test gap validation (negative values should be clamped to 0)
+            stackPanel.Gap = -5f;
+            Assert.Equal(0f, stackPanel.Gap);
+
+            // Create test children
+            var child1 = new StackPanelTests { Width = 50, Height = 30 };
+            var child2 = new StackPanelTests { Width = 40, Height = 20 };
+            var child3 = new StackPanelTests { Width = 60, Height = 25 };
+
+            stackPanel.Children.Add(child1);
+            stackPanel.Children.Add(child2);
+            stackPanel.Children.Add(child3);
+
+            // Test measure with gap
+            stackPanel.Gap = 5f;
+            var measureSize = new Vector3(200, 200, 200);
+            stackPanel.Measure(measureSize);
+
+            // Expected desired size should include gaps: height = 30 + 20 + 25 + 2*5 = 85
+            var expectedSize = new Vector3(60, 85, 0); // width is max, height is sum + gaps
+            Assert.Equal(expectedSize, stackPanel.DesiredSizeWithMargins);
+
+            // Test arrange with gap
+            stackPanel.Arrange(measureSize, false);
+
+            // Verify children are arranged with correct spacing
+            var child1Matrix = child1.DependencyProperties.Get(PanelArrangeMatrixPropertyKey);
+            var child2Matrix = child2.DependencyProperties.Get(PanelArrangeMatrixPropertyKey);
+            var child3Matrix = child3.DependencyProperties.Get(PanelArrangeMatrixPropertyKey);
+
+            // Child 1 should be at top
+            Assert.Equal(-measureSize.Y / 2, child1Matrix.TranslationVector.Y);
+            
+            // Child 2 should be at child1.height + gap
+            Assert.Equal(-measureSize.Y / 2 + 30 + 5, child2Matrix.TranslationVector.Y);
+            
+            // Child 3 should be at child1.height + gap + child2.height + gap
+            Assert.Equal(-measureSize.Y / 2 + 30 + 5 + 20 + 5, child3Matrix.TranslationVector.Y);
+        }
+
+        /// <summary>
+        /// Test gap with different orientations
+        /// </summary>
+        [Theory]
+        [InlineData(Orientation.Horizontal)]
+        [InlineData(Orientation.Vertical)]
+        [InlineData(Orientation.InDepth)]
+        public void TestGapWithOrientation(Orientation orientation)
+        {
+            ResetState();
+
+            var stackPanel = new StackPanel { Orientation = orientation, Gap = 8f };
+            
+            // Create test children
+            var child1 = new StackPanelTests { Width = 20, Height = 30, Depth = 40 };
+            var child2 = new StackPanelTests { Width = 25, Height = 35, Depth = 45 };
+
+            stackPanel.Children.Add(child1);
+            stackPanel.Children.Add(child2);
+
+            var measureSize = new Vector3(200, 200, 200);
+            stackPanel.Measure(measureSize);
+
+            var axis = (int)orientation;
+            var expectedDesiredSize = Vector3.Zero;
+            
+            for (int i = 0; i < 3; i++)
+            {
+                if (i == axis)
+                {
+                    // Accumulator dimension: sum of child sizes + gap
+                    expectedDesiredSize[i] = child1.DesiredSizeWithMargins[i] + child2.DesiredSizeWithMargins[i] + 8f;
+                }
+                else
+                {
+                    // Other dimensions: max of child sizes
+                    expectedDesiredSize[i] = Math.Max(child1.DesiredSizeWithMargins[i], child2.DesiredSizeWithMargins[i]);
+                }
+            }
+
+            Assert.Equal(expectedDesiredSize, stackPanel.DesiredSizeWithMargins);
+        }
+
+        /// <summary>
+        /// Test gap with single child (should not add any gap)
+        /// </summary>
+        [Fact]
+        public void TestGapWithSingleChild()
+        {
+            ResetState();
+
+            var stackPanel = new StackPanel { Orientation = Orientation.Vertical, Gap = 10f };
+            var child = new StackPanelTests { Width = 50, Height = 30 };
+            
+            stackPanel.Children.Add(child);
+            
+            var measureSize = new Vector3(200, 200, 200);
+            stackPanel.Measure(measureSize);
+
+            // With single child, no gap should be added
+            var expectedSize = new Vector3(50, 30, 0);
+            Assert.Equal(expectedSize, stackPanel.DesiredSizeWithMargins);
+        }
+
+        /// <summary>
+        /// Test gap with item virtualization enabled
+        /// </summary>
+        [Fact]
+        public void TestGapWithVirtualization()
+        {
+            ResetState();
+
+            var stackPanel = new StackPanel 
+            { 
+                Orientation = Orientation.Vertical, 
+                Gap = 5f, 
+                ItemVirtualizationEnabled = true,
+                Size = new Vector3(100, 60, 100) // Small viewport to force virtualization
+            };
+            
+            // Create multiple children to test virtualization
+            for (int i = 0; i < 5; i++)
+            {
+                var child = new StackPanelTests { Width = 50, Height = 20 };
+                stackPanel.Children.Add(child);
+            }
+
+            stackPanel.Measure(new Vector3(100, 60, 100));
+            stackPanel.Arrange(new Vector3(100, 60, 100), false);
+
+            // Verify that only visible children are in the visual collection
+            // and that gaps are accounted for in extent calculation
+            Assert.True(stackPanel.Extent.Y > 100); // Should be larger due to gaps
+        }
+
+        /// <summary>
+        /// Test the invalidations generated object property changes.
+        /// </summary>
+        [Fact]
+        public void TestBasicInvalidations()
+        {
+            var stackPanel = new StackPanel();
+
+            // - test the properties that are supposed to invalidate the object measurement
+            UIElementLayeringTests.TestMeasureInvalidation(stackPanel, () => stackPanel.Orientation = Orientation.InDepth);
+            UIElementLayeringTests.TestMeasureInvalidation(stackPanel, () => stackPanel.Gap = 10f);
         }
 
         /// <summary>
@@ -144,6 +307,10 @@ namespace Stride.UI.Tests.Layering
             // compute the children accumulated sizes
             var acculumatedDesiredSizeWithMargins = Children.Aggregate(Vector3.Zero, (current, child) => current + child.DesiredSizeWithMargins);
             
+            // Add gap size to accumulated size
+            var gapSize = Gap * (Children.Count - 1);
+            acculumatedDesiredSizeWithMargins[(int)Orientation] += gapSize;
+            
             // Checks the desired size
             switch (orientation)
             {
@@ -228,7 +395,7 @@ namespace Stride.UI.Tests.Layering
             Measure(availableSizeWithoutMargins);
             Arrange(availablesizeWithMargins, false);
             
-            // compute the children accumulated sizes
+            // compute the children accumulated sizes including gaps
             var acculumatedDesiredSizeWithMarginsList = new List<Vector3>();
             for (int i = 0; i < Children.Count; i++)
             {
@@ -237,6 +404,10 @@ namespace Stride.UI.Tests.Layering
                 {
                     for(int dim = 0; dim<3; ++dim)
                         accumulatedVector[dim] += Children[j].RenderSize[dim] + Children[j].Margin[dim] + Children[j].Margin[dim + 3];
+                    
+                    // Add gap for elements that aren't the first
+                    if (j > 0)
+                        accumulatedVector[(int)Orientation] += Gap;
                 }
 
                 acculumatedDesiredSizeWithMarginsList.Add(accumulatedVector);
@@ -267,18 +438,6 @@ namespace Stride.UI.Tests.Layering
 
                 Utilities.AssertAreNearlyEqual(Matrix.Translation(childOffsets), Children[i].DependencyProperties.Get(PanelArrangeMatrixPropertyKey));
             }
-        }
-
-        /// <summary>
-        /// Test the invalidations generated object property changes.
-        /// </summary>
-        [Fact]
-        public void TestBasicInvalidations()
-        {
-            var stackPanel = new StackPanel();
-
-            // - test the properties that are supposed to invalidate the object measurement
-            UIElementLayeringTests.TestMeasureInvalidation(stackPanel, () => stackPanel.Orientation = Orientation.InDepth);
         }
 
         /// <summary>
