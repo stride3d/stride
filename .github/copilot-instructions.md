@@ -18,7 +18,7 @@ Stride is a game engine project that requires careful code reviews to maintain q
 - Minor style or nit-pick comments are acceptable to maintain consistency.
 - Do not review auto-generated, third-party code, binary files, or assets.
 - If you find a bug or performance issue, suggest a concrete fix in the PR.
-- For large PRs, do not attempt a full review, only highlight critical or blocking issues.
+- For large PRs (20+ C#/*.cs files), do not attempt a full review, only highlight critical or blocking issues.
 - Always consider the context and established patterns in the Stride codebase before making suggestions.
 
 The goal is to minimize noise and maximize helpful, actionable feedback.
