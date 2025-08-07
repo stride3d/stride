@@ -71,6 +71,10 @@ public class VertexBufferHelper
     /// <summary>
     /// Provides custom access to the vertex buffer while having access to the auto-conversion
     /// </summary>
+    /// <param name="destination">
+    /// The destination span your <typeparamref name="TReader"/> <see cref="IReader{TDest}.Read{TConversion, TValue}"/> method receives,
+    /// you may pass <see cref="Span{T}.Empty"/> if you do not need one.
+    /// </param>
     /// <param name="reader">
     /// An implementation of <see cref="IReader{TDestValue}"/>, implement this interface to read directly from the vertex buffer
     /// while making use of the auto-conversion of the <typeparamref name="TSemantic"/> provided <br/>
@@ -172,7 +176,8 @@ public class VertexBufferHelper
     private struct CopyToDest<T> : IReader<T> where T : unmanaged
     {
         public unsafe void Read<TConversion, TSource>(byte* sourcePointer, int elementCount, int stride, Span<T> destination) 
-            where TConversion : IConversion<TSource, T> where TSource : unmanaged
+            where TConversion : IConversion<TSource, T> 
+            where TSource : unmanaged
         {
             if (destination.Length != elementCount)
                 throw new ArgumentException($"{nameof(destination)} length does not match the amount of vertices contained within this vertex buffer ({destination.Length} / {elementCount})");
@@ -218,12 +223,9 @@ public class VertexBufferHelper
     /// </example>
     public interface IReader<TDest>
     {
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="sourcePointer">The pointer already offset by the buffer and element offset</param>
-        /// <param name="elementCount">The amount of vertices, this is not the same as the size of the vertex buffer, or the size in bytes taken by individual vertices</param>
-        /// <param name="stride">The size in bytes taken by individual vertices</param>
+        /// <param name="sourcePointer">Points to the first element in the vertex buffer, read it as a TSource* to retrieve its value</param>
+        /// <param name="elementCount">The amount of vertices. This is not equivalent to the size of the vertex buffer, or the size in bytes taken by individual vertices</param>
+        /// <param name="stride">The size in bytes taken by individual vertices, add it to <paramref name="sourcePointer"/> to point to the next element</param>
         /// <param name="destination">The span passed into the <see cref="Read{TConversion,TSource}"/> method call</param>
         /// <typeparam name="TConversion">A helper to convert between <typeparamref name="TSource"/> and <typeparamref name="TDest"/> properly</typeparam>
         /// <typeparam name="TSource">
