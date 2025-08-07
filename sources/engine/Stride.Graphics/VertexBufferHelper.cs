@@ -86,28 +86,28 @@ public class VertexBufferHelper
     /// </code>
     /// </param>
     /// <typeparam name="TSemantic">The semantic to read, <see cref="PositionSemantic"/> for example</typeparam>
-    /// <typeparam name="TValue">The value type to read, depends on the <typeparamref name="TSemantic"/> used, <see cref="Vector3"/> when your <typeparamref name="TSemantic"/> <see cref="PositionSemantic"/> for example</typeparam>
+    /// <typeparam name="TDest">The value type to read, depends on the <typeparamref name="TSemantic"/> used, <see cref="Vector3"/> when your <typeparamref name="TSemantic"/> <see cref="PositionSemantic"/> for example</typeparam>
     /// <typeparam name="TReader">The type of the reader you're providing</typeparam>
     /// <returns>True when this semantic exists in the vertex buffer, false otherwise</returns>
     /// <exception cref="NotImplementedException">
     /// When the data format for this semantic is too arcane - no conversion logic is implemented for that type
     /// </exception>
     /// <inheritdoc cref="IReader{TDest}"/>
-    public bool Read<TSemantic, TValue, TReader>(Span<TValue> destination, TReader reader, int semanticIndex = 0)
-        where TSemantic : ISemantic<TValue> where TValue : unmanaged
-        where TReader : IReader<TValue>
+    public bool Read<TSemantic, TDest, TReader>(Span<TDest> destination, TReader reader, int semanticIndex = 0)
+        where TSemantic : ISemantic<TDest> where TDest : unmanaged
+        where TReader : IReader<TDest>
     {
         if (Binding.TryGetElement(TSemantic.Name, semanticIndex, out var elementData))
         {
             switch (elementData.VertexElement.Format)
             {
-                case PixelFormat.R32G32_Float: Inner<TSemantic, Vector2>(DataInner, destination, reader, Binding, elementData); break;
-                case PixelFormat.R32G32B32_Float: Inner<TSemantic, Vector3>(DataInner, destination, reader, Binding, elementData); break;
-                case PixelFormat.R32G32B32A32_Float: Inner<TSemantic, Vector4>(DataInner, destination, reader, Binding, elementData); break;
-                case PixelFormat.R16G16_Float: Inner<TSemantic, Half2>(DataInner, destination, reader, Binding, elementData); break;
-                case PixelFormat.R16G16B16A16_Float: Inner<TSemantic, Half4>(DataInner, destination, reader, Binding, elementData); break;
-                case PixelFormat.R16G16B16A16_UInt: Inner<TSemantic, UShort4>(DataInner, destination, reader, Binding, elementData); break;
-                case PixelFormat.R8G8B8A8_UInt: Inner<TSemantic, Byte4>(DataInner, destination, reader, Binding, elementData); break;
+                case PixelFormat.R32G32_Float: Inner<TSemantic, TReader, Vector2, TDest>(destination, reader, elementData); break;
+                case PixelFormat.R32G32B32_Float: Inner<TSemantic, TReader, Vector3, TDest>(destination, reader, elementData); break;
+                case PixelFormat.R32G32B32A32_Float: Inner<TSemantic, TReader, Vector4, TDest>(destination, reader, elementData); break;
+                case PixelFormat.R16G16_Float: Inner<TSemantic, TReader, Half2, TDest>(destination, reader, elementData); break;
+                case PixelFormat.R16G16B16A16_Float: Inner<TSemantic, TReader, Half4, TDest>(destination, reader, elementData); break;
+                case PixelFormat.R16G16B16A16_UInt: Inner<TSemantic, TReader, UShort4, TDest>(destination, reader, elementData); break;
+                case PixelFormat.R8G8B8A8_UInt: Inner<TSemantic, TReader, Byte4, TDest>(destination, reader, elementData); break;
                 default: throw new NotImplementedException($"Unsupported format when converting vertex element ({elementData.VertexElement.Format})");
             }
 
@@ -115,22 +115,24 @@ public class VertexBufferHelper
         }
 
         return false;
+    }
 
-        static unsafe void Inner<TConversion, TSource>(Span<byte> vertexBuffer, Span<TValue> destination, IReader<TValue> reader, VertexBufferBinding binding, VertexElementWithOffset element) 
-            where TConversion : IConversion<TSource, TValue> where TSource : unmanaged
-        {
-            var stride = binding.Declaration.VertexStride;
-            var offset = element.Offset;
-            var count = vertexBuffer.Length / element.Size;
+    private unsafe void Inner<TConversion, TReader, TSource, TDest>(Span<TDest> destination, TReader reader, VertexElementWithOffset element) 
+        where TConversion : IConversion<TSource, TDest> 
+        where TSource : unmanaged
+        where TReader : IReader<TDest>
+    {
+        if (sizeof(TSource) != element.Size)
+            throw new ArgumentException($"{typeof(TSource)} does not match element size ({sizeof(TSource)} != {element.Size})");
 
-            if (sizeof(TSource) != element.Size)
-                throw new ArgumentException($"{typeof(TSource)} does not match element size ({sizeof(TSource)} != {element.Size})");
+        var stride = Binding.Declaration.VertexStride;
+        var offset = element.Offset;
+        var count = Binding.Count;
             
-            fixed (byte* ptrSr = vertexBuffer)
-            {
-                byte* src = ptrSr + offset;
-                reader.Read<TConversion, TSource>(src, count, stride, destination);
-            }
+        fixed (byte* ptrSr = DataInner)
+        {
+            byte* firstElement = ptrSr + offset;
+            reader.Read<TConversion, TSource>(firstElement, count, stride, destination);
         }
     }
 
