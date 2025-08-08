@@ -10,11 +10,13 @@ using BepuPhysics.Trees;
 
 namespace Stride.BepuPhysics.Definitions.Raycast;
 
-internal unsafe struct RayHitsStackHandler(HitInfoStack* Ptr, int Length, BepuSimulation sim, CollisionMask collisionMask) : IRayHitHandler, ISweepHitHandler
+internal unsafe struct RayHitsStackHandler(HitInfoStack* Ptr, int Length, BepuSimulation sim, CollisionMask collisionMask) : IRayHitHandler, ISweepHitHandler, IShapeRayHitHandler
 {
+    public CollidableReference ShapeHandled { get; init; }
+
     public int Head { get; private set; }
-    private float storedMax = float.NegativeInfinity;
-    private int indexOfMax;
+    private float _storedMax = float.NegativeInfinity;
+    private int _indexOfMax;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool AllowTest(CollidableReference collidable) => sim.ShouldPerformPhysicsTest(collisionMask, collidable);
@@ -22,81 +24,67 @@ internal unsafe struct RayHitsStackHandler(HitInfoStack* Ptr, int Length, BepuSi
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool AllowTest(CollidableReference collidable, int childIndex) => true;
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool AllowTest(int childIndex) => true;
+
     public void OnRayHit(in RayData ray, ref float maximumT, float t, Vector3 normal, CollidableReference collidable, int childIndex)
     {
-        if (Head < Length)
-        {
-            if (t > storedMax)
-            {
-                storedMax = t;
-                indexOfMax = Head;
-            }
-
-            Ptr[Head++] = GenerateHitInfo(ray.Origin + ray.Direction * t, normal, t, collidable, sim, childIndex);
-
-            if (Head == Length) // Once the array is filled up, ignore all hits that occur further away than the furthest hit in the array
-                maximumT = storedMax;
-        }
-        else
-        {
-            Ptr[indexOfMax] = GenerateHitInfo(ray.Origin + ray.Direction * t, normal, t, collidable, sim, childIndex);
-
-            // Re-scan to find the new max now that the last one was replaced
-            storedMax = float.NegativeInfinity;
-            for (int i = 0; i < Length; i++)
-            {
-                if (Ptr[i].Distance > storedMax)
-                {
-                    storedMax = Ptr[i].Distance;
-                    indexOfMax = i;
-                }
-            }
-
-            maximumT = storedMax;
-        }
+        InsertHit(ray.Origin + ray.Direction * t, ref maximumT, t, normal, collidable, childIndex);
     }
 
     public void OnHit(ref float maximumT, float t, Vector3 hitLocation, Vector3 normal, CollidableReference collidable)
     {
+        InsertHit(hitLocation, ref maximumT, t, normal, collidable, -1);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void InsertHit(Vector3 hitLocation, ref float maximumT, float t, Vector3 normal, CollidableReference collidable, int childIndex)
+    {
         if (Head < Length)
         {
-            if (t > storedMax)
+            if (t > _storedMax)
             {
-                storedMax = t;
-                indexOfMax = Head;
+                _storedMax = t;
+                _indexOfMax = Head;
             }
 
-            Ptr[Head++] = GenerateHitInfo(hitLocation, normal, t, collidable, sim, -1);
+            Ptr[Head++] = GenerateHitInfo(hitLocation, normal, t, collidable, sim, childIndex);
 
             if (Head == Length) // Once the array is filled up, ignore all hits that occur further away than the furthest hit in the array
-                maximumT = storedMax;
+                maximumT = _storedMax;
         }
         else
         {
-            Ptr[indexOfMax] = GenerateHitInfo(hitLocation, normal, t, collidable, sim, -1);
+            Ptr[_indexOfMax] = GenerateHitInfo(hitLocation, normal, t, collidable, sim, childIndex);
 
             // Re-scan to find the new max now that the last one was replaced
-            storedMax = float.NegativeInfinity;
+            _storedMax = float.NegativeInfinity;
             for (int i = 0; i < Length; i++)
             {
-                if (Ptr[i].Distance > storedMax)
+                if (Ptr[i].Distance > _storedMax)
                 {
-                    storedMax = Ptr[i].Distance;
-                    indexOfMax = i;
+                    _storedMax = Ptr[i].Distance;
+                    _indexOfMax = i;
                 }
             }
 
-            maximumT = storedMax;
+            maximumT = _storedMax;
         }
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    static HitInfoStack GenerateHitInfo(Vector3 location, Vector3 normal, float t, CollidableReference collidable, BepuSimulation sim, int childIndex) => new(new(collidable, sim.GetComponent(collidable).Versioning), location.ToStride(), normal.ToStride(), t, childIndex);
+    private static HitInfoStack GenerateHitInfo(Vector3 location, Vector3 normal, float t, CollidableReference collidable, BepuSimulation sim, int childIndex) => new(new(collidable, sim.GetComponent(collidable).Versioning), location.ToStride(), normal.ToStride(), t, childIndex);
 
     public void OnHitAtZeroT(ref float maximumT, CollidableReference collidable)
     {
         // Right now just ignore the hit;
         // We can't just set info to invalid data, it'll be confusing for users,
         // but we might need to find a way to notify that the shape at its resting pose is already intersecting.
+    }
+
+    public void OnRayHit(in RayData ray, ref float maximumT, float t, Vector3 normal, int childIndex)
+    {
+        Debug.Assert(ShapeHandled.Packed != 0);
+        InsertHit(ray.Origin + ray.Direction * t, ref maximumT, t, normal, ShapeHandled, -1);
     }
 }
