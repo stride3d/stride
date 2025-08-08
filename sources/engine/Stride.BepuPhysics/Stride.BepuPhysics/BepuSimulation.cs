@@ -368,7 +368,7 @@ public sealed class BepuSimulation : IDisposable
     /// </summary>
     /// <param name="origin">The start position for this ray</param>
     /// <param name="dir">The normalized direction the ray is facing</param>
-    /// <param name="maxDistance">The maximum from the origin that hits will be collected</param>
+    /// <param name="maxDistance">The maximum distance from the origin that hits will be collected</param>
     /// <param name="result">An intersection in the world when this method returns true, an undefined value when this method returns false</param>
     /// <param name="collisionMask">Which layer should be hit</param>
     /// <returns>True when the given ray intersects with a shape, false otherwise</returns>
@@ -395,7 +395,7 @@ public sealed class BepuSimulation : IDisposable
     /// </remarks>
     /// <param name="origin">The start position for this ray</param>
     /// <param name="dir">The normalized direction the ray is facing</param>
-    /// <param name="maxDistance">The maximum from the origin that hits will be collected</param>
+    /// <param name="maxDistance">The maximum distance from the origin that hits will be collected</param>
     /// <param name="buffer">
     /// A temporary buffer which is used as a backing array to write to, its length defines the maximum amount of info you want to read.
     /// It is used by the returned enumerator as its backing array from which you read
@@ -417,7 +417,7 @@ public sealed class BepuSimulation : IDisposable
     /// <remarks> There are no guarantees as to the order hits are returned in. </remarks>
     /// <param name="origin">The start position for this ray</param>
     /// <param name="dir">The normalized direction the ray is facing</param>
-    /// <param name="maxDistance">The maximum from the origin that hits will be collected</param>
+    /// <param name="maxDistance">The maximum distance from the origin that hits will be collected</param>
     /// <param name="collection">The collection used to store hits into, the collection is not cleared before usage, hits are appended to it</param>
     /// <param name="collisionMask">Which layer should be hit</param>
     public void RayCastPenetrating(in Vector3 origin, in Vector3 dir, float maxDistance, ICollection<HitInfo> collection, CollisionMask collisionMask = CollisionMask.Everything)

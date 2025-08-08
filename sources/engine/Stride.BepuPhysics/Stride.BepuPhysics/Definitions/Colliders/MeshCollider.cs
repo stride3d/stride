@@ -9,7 +9,10 @@ using Stride.Core.Mathematics;
 using Stride.Core;
 using Stride.Rendering;
 using System.Diagnostics;
+using BepuPhysics.Trees;
 using Stride.BepuPhysics.Systems;
+using Mesh = BepuPhysics.Collidables.Mesh;
+using NRigidPose = BepuPhysics.RigidPose;
 
 namespace Stride.BepuPhysics.Definitions.Colliders;
 
@@ -113,5 +116,11 @@ public sealed class MeshCollider : ICollider
         cache.GetBuffers(out data.Vertices, out data.Indices);
         buffer.Add(data);
         cacheOut = cache;
+    }
+
+    void ICollider.RayTest<TRayHitHandler>(Shapes shapes, TypedIndex shapeIndex, in NRigidPose pose, in RayData ray, ref float maximumT, ref TRayHitHandler hitHandler)
+    {
+        Debug.Assert(shapeIndex.Type == Mesh.TypeId);
+        shapes.GetShape<Mesh>(shapeIndex.Index).RayTest(pose, in ray, ref maximumT, ref hitHandler);
     }
 }

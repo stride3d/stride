@@ -1,8 +1,10 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Diagnostics;
 using BepuPhysics;
 using BepuPhysics.Collidables;
+using BepuPhysics.Trees;
 using BepuUtilities.Memory;
 using Stride.Core;
 using Stride.Core.Mathematics;
@@ -122,6 +124,19 @@ public sealed class CompoundCollider : ICollider
                 ConvexHullCollider con => shapeCache.BorrowHull(con),
                 _ => throw new NotImplementedException($"{nameof(ICollider.AppendModel)} could not handle '{collider.GetType()}', please file an issue or fix this"),
             });
+        }
+    }
+
+    void ICollider.RayTest<TRayHitHandler>(Shapes shapes, TypedIndex shapeIndex, in NRigidPose pose, in RayData ray, ref float maximumT, ref TRayHitHandler hitHandler)
+    {
+        if (shapeIndex.Type == Compound.TypeId)
+        {
+            shapes.GetShape<Compound>(shapeIndex.Index).RayTest(pose, in ray, ref maximumT, shapes, ref hitHandler);
+        }
+        else
+        {
+            Debug.Assert(shapeIndex.Type == BigCompound.TypeId);
+            shapes.GetShape<BigCompound>(shapeIndex.Index).RayTest(pose, in ray, ref maximumT, shapes, ref hitHandler);
         }
     }
 }

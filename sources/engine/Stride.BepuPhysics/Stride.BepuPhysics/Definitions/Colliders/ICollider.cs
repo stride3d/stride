@@ -4,8 +4,10 @@
 using BepuPhysics;
 using Stride.Core.Mathematics;
 using BepuPhysics.Collidables;
+using BepuPhysics.Trees;
 using BepuUtilities.Memory;
 using Stride.BepuPhysics.Systems;
+using NRigidPose = BepuPhysics.RigidPose;
 
 namespace Stride.BepuPhysics.Definitions.Colliders;
 
@@ -24,4 +26,13 @@ public interface ICollider
     internal bool TryAttach(Shapes shapes, BufferPool pool, ShapeCacheSystem shapeCache, out TypedIndex index, out Vector3 centerOfMass, out BodyInertia inertia);
     internal void Detach(Shapes shapes, BufferPool pool, TypedIndex index);
     internal void AppendModel(List<BasicMeshBuffers> buffer, ShapeCacheSystem shapeCache, out object? cache);
+
+    internal void RayTest<TRayHitHandler>(
+        Shapes shapes,
+        TypedIndex shapeIndex,
+        in NRigidPose pose,
+        in RayData ray,
+        ref float maximumT,
+        ref TRayHitHandler hitHandler)
+        where TRayHitHandler : struct, IShapeRayHitHandler;
 }
