@@ -7,14 +7,27 @@ using BepuUtilities.Memory;
 using Stride.BepuPhysics.Systems;
 using Stride.Core;
 using Stride.Core.Mathematics;
+using Stride.Rendering;
 
 namespace Stride.BepuPhysics.Definitions.Colliders;
 
 [DataContract]
-public sealed class EmptyCollider : ICollider
+public sealed class SharedColliderRef : ICollider
 {
+    private EntityComponentWithTryUpdateFeature? _component;
+    private SharedCollidableComponent _sharedRef = null!;
+
     [DataMemberIgnore]
-    EntityComponentWithTryUpdateFeature? ICollider.Component { get; set; }
+    EntityComponentWithTryUpdateFeature? ICollider.Component { get => _component; set => _component = value; }
+    public required SharedCollidableComponent SharedRef
+    {
+        get => _sharedRef; set
+        {
+            _sharedRef = value;
+            _component?.TryUpdateFeatures();
+        }
+    }
+
 
     int ICollider.Transforms => 1; //We don't have collider, but we have a debug render (a sphere of a radius of 0.1 for now)
 
@@ -26,6 +39,7 @@ public sealed class EmptyCollider : ICollider
 
     void ICollider.Detach(Shapes shapes, BufferPool pool, TypedIndex index)
     {
+        SharedRef.Childs.Remove(this);
     }
 
     void ICollider.GetLocalTransforms(EntityComponentWithTryUpdateFeature collidable, Span<ShapeTransform> transforms)
@@ -37,9 +51,12 @@ public sealed class EmptyCollider : ICollider
 
     bool ICollider.TryAttach(Shapes shapes, BufferPool pool, ShapeCacheSystem shapeCache, out TypedIndex index, out Vector3 centerOfMass, out BodyInertia inertia)
     {
-        index = new();
-        centerOfMass = new();
-        inertia = new Sphere(1).ComputeInertia(1);
+        index = SharedRef.ShapeIndex;
+        centerOfMass = SharedRef.CenterOfMass;
+        inertia = SharedRef.ShapeInertia;
+        SharedRef.Childs.Add(this);
         return true;
     }
+
+    internal EntityComponentWithTryUpdateFeature? GetComponent => _component;
 }

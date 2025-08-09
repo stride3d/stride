@@ -10,6 +10,7 @@ using Stride.Core;
 using Stride.Rendering;
 using System.Diagnostics;
 using Stride.BepuPhysics.Systems;
+using Stride.Engine;
 
 namespace Stride.BepuPhysics.Definitions.Colliders;
 
@@ -20,9 +21,11 @@ public sealed class MeshCollider : ICollider
     private bool _closed = true;
     private Model _model = null!; // We have a 'required' guard making sure it is assigned
 
-    private CollidableComponent? _component;
+    private EntityComponentWithTryUpdateFeature? _component;
     private ShapeCacheSystem.Cache? _cache;
-    CollidableComponent? ICollider.Component { get => _component; set => _component = value; }
+
+    [DataMemberIgnore]
+    EntityComponentWithTryUpdateFeature? ICollider.Component { get => _component; set => _component = value; }
 
     [MemberRequired(ReportAs = MemberRequiredReportType.Error)]
     public required Model Model
@@ -66,14 +69,14 @@ public sealed class MeshCollider : ICollider
 
     public int Transforms => 1;
 
-    public void GetLocalTransforms(CollidableComponent collidable, Span<ShapeTransform> transforms)
+    public void GetLocalTransforms(EntityComponentWithTryUpdateFeature collidable, Span<ShapeTransform> transforms)
     {
         transforms[0].PositionLocal = Vector3.Zero;
         transforms[0].RotationLocal = Quaternion.Identity;
         transforms[0].Scale = ComputeMeshScale(collidable);
     }
 
-    public static Vector3 ComputeMeshScale(CollidableComponent collidable)
+    public static Vector3 ComputeMeshScale(EntityComponentWithTryUpdateFeature collidable)
     {
         collidable.Entity.Transform.UpdateWorldMatrix();
         return ShapeCacheSystem.GetClosestToDecomposableScale(collidable.Entity.Transform.WorldMatrix);

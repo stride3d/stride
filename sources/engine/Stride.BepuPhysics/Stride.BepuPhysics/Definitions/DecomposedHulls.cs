@@ -37,6 +37,21 @@ namespace Stride.BepuPhysics.Definitions
             InternalMeshes = meshes;
         }
 
+        public override int GetHashCode()
+        {
+            var hash = new HashCode();
+
+            foreach (var mesh in InternalMeshes)
+            {
+                if (mesh != null)
+                    hash.Add(mesh.GetHashCode());
+                else
+                    hash.Add(0);
+            }
+
+            return hash.ToHashCode();
+        }
+
         [DataContract]
         public class DecomposedMesh
         {
@@ -57,6 +72,19 @@ namespace Stride.BepuPhysics.Definitions
             public DecomposedMesh(Hull[] hulls)
             {
                 InternalHulls = hulls;
+            }
+
+            public override int GetHashCode()
+            {
+                var hash = new HashCode();
+                foreach (var hull in InternalHulls)
+                {
+                    if (hull != null)
+                        hash.Add(hull.GetHashCode());
+                    else
+                        hash.Add(0);
+                }
+                return hash.ToHashCode();
             }
         }
 
@@ -90,6 +118,25 @@ namespace Stride.BepuPhysics.Definitions
             {
                 InternalPoints = points;
                 InternalIndices = indices;
+            }
+
+            public override int GetHashCode()
+            {
+                var hash = new HashCode();
+
+                foreach (var p in InternalPoints)
+                {
+                    hash.Add(p.X);
+                    hash.Add(p.Y);
+                    hash.Add(p.Z);
+                }
+
+                foreach (var idx in InternalIndices)
+                {
+                    hash.Add(idx);
+                }
+
+                return hash.ToHashCode();
             }
         }
     }
