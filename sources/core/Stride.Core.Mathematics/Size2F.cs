@@ -57,6 +57,16 @@ public struct Size2F : IEquatable<Size2F>, ISpanFormattable
     }
 
     /// <summary>
+    /// Initializes a new instance of the <see cref="Size2F"/> struct.
+    /// </summary>
+    /// <param name="uniform">The width and height of the <see cref="Size2F"/>.</param>
+    public Size2F(float uniform)
+    {
+        Width = uniform;
+        Height = uniform;
+    }
+
+    /// <summary>
     /// Width.
     /// </summary>
     [DataMember(0)]
@@ -67,6 +77,35 @@ public struct Size2F : IEquatable<Size2F>, ISpanFormattable
     /// </summary>
     [DataMember(1)]
     public float Height;
+
+    /// <summary>
+    /// Gets or sets the component at the specified index.
+    /// </summary>
+    /// <value>The value of the Width or Height component, depending on the index.</value>
+    /// <param name="index">The index of the component to access. Use 0 for the Width component and 1 for the Height component.</param>
+    /// <returns>The value of the component at the specified index.</returns>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when the <paramref name="index"/> is out of the range [0, 1].</exception>
+    public float this[int index]
+    {
+        readonly get
+        {
+            return index switch
+            {
+                0 => Width,
+                1 => Height,
+                _ => throw new ArgumentOutOfRangeException(nameof(index), "Indices for Size2F run from 0 to 1, inclusive."),
+            };
+        }
+        set
+        {
+            switch (index)
+            {
+                case 0: Width = value; break;
+                case 1: Height = value; break;
+                default: throw new ArgumentOutOfRangeException(nameof(index), "Indices for Size2F run from 0 to 1, inclusive.");
+            }
+        }
+    }
 
     /// <summary>
     /// Determines whether the specified <see cref="object"/> is equal to this instance.
@@ -116,6 +155,124 @@ public struct Size2F : IEquatable<Size2F>, ISpanFormattable
     public static bool operator !=(Size2F left, Size2F right)
     {
         return !left.Equals(right);
+    }
+
+    /// <summary>
+    /// Implements the operator <c>/</c>, component wise.
+    /// </summary>
+    /// <param name="left">The left.</param>
+    /// <param name="right">The right.</param>
+    /// <returns>
+    /// The result of the operator.
+    /// </returns>
+    public static Size2F operator /(Size2F left, Size2F right)
+    {
+        return new Size2F(left.Width / right.Width, left.Height / right.Height);
+    }
+
+    /// <summary>
+    /// Implements the operator <c>/</c>, component wise.
+    /// </summary>
+    /// <param name="left">The left.</param>
+    /// <param name="right">The right.</param>
+    /// <returns>
+    /// The result of the operator.
+    /// </returns>
+    public static Size2F operator /(Size2F left, float right)
+    {
+        return new Size2F(left.Width / right, left.Height / right);
+    }
+
+    /// <summary>
+    /// Implements the operator <c>*</c>, component wise.
+    /// </summary>
+    /// <param name="left">The left.</param>
+    /// <param name="right">The right.</param>
+    /// <returns>
+    /// The result of the operator.
+    /// </returns>
+    public static Size2F operator *(Size2F left, Size2F right)
+    {
+        return new Size2F(left.Width * right.Width, left.Height * right.Height);
+    }
+
+    /// <summary>
+    /// Implements the operator <c>*</c>, component wise.
+    /// </summary>
+    /// <param name="left">The left.</param>
+    /// <param name="right">The right.</param>
+    /// <returns>
+    /// The result of the operator.
+    /// </returns>
+    public static Size2F operator *(Size2F left, float right)
+    {
+        return new Size2F(left.Width * right, left.Height * right);
+    }
+
+    /// <summary>
+    /// Implements the operator <c>+</c>, component wise.
+    /// </summary>
+    /// <param name="left">The left.</param>
+    /// <param name="right">The right.</param>
+    /// <returns>
+    /// The result of the operator.
+    /// </returns>
+    public static Size2F operator +(Size2F left, Size2F right)
+    {
+        return new Size2F(left.Width + right.Width, left.Height + right.Height);
+    }
+
+    /// <summary>
+    /// Implements the operator <c>-</c>, component wise.
+    /// </summary>
+    /// <param name="left">The left.</param>
+    /// <param name="right">The right.</param>
+    /// <returns>
+    /// The result of the operator.
+    /// </returns>
+    public static Size2F operator -(Size2F left, Size2F right)
+    {
+        return new Size2F(left.Width + right.Width, left.Height + right.Height);
+    }
+
+    /// <summary>
+    /// Returns a size containing the largest components of the specified sizes.
+    /// </summary>
+    /// <param name="left">The first source size.</param>
+    /// <param name="right">The second source size.</param>
+    /// <returns>A size containing the largest components of the source size.</returns>
+    public static Size2F Max(Size2F left, Size2F right)
+    {
+        return new Size2F(Math.Max(left.Width, right.Width), Math.Max(left.Height, right.Height));
+    }
+
+    /// <summary>
+    /// Returns a size containing the smallest components of the specified sizes.
+    /// </summary>
+    /// <param name="left">The first source size.</param>
+    /// <param name="right">The second source size.</param>
+    /// <returns>A size containing the smallest components of the source size.</returns>
+    public static Size2F Min(Size2F left, Size2F right)
+    {
+        return new Size2F(Math.Min(left.Width, right.Width), Math.Min(left.Height, right.Height));
+    }
+
+    /// <summary>
+    /// Casts from <see cref="Vector2"/> to <see cref="Size2F"/>.
+    /// </summary>
+    /// <param name="vector">Value to cast.</param>
+    public static explicit operator Size2F(Vector2 vector)
+    {
+        return Unsafe.BitCast<Vector2, Size2F>(vector);
+    }
+
+    /// <summary>
+    /// Casts from <see cref="Size2F"/> to <see cref="Vector2"/>.
+    /// </summary>
+    /// <param name="size">Value to cast.</param>
+    public static explicit operator Vector2(Size2F size)
+    {
+        return Unsafe.BitCast<Size2F, Vector2>(size);
     }
 
     /// <inheritdoc/>

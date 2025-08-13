@@ -64,7 +64,7 @@ namespace Stride.UI.Tests.Regression
                 Content = element3,
                 BackgroundImage = SpriteFromSheet.Create(uiGroup, "BorderButton")
             };
-            element2.DependencyProperties.Set(Canvas.AbsolutePositionPropertyKey, new Vector3(400, 200, 0));
+            element2.DependencyProperties.Set(Canvas.AbsolutePositionPropertyKey, new Vector2(400, 200));
             element2.DependencyProperties.Set(Panel.ZIndexPropertyKey, 1);
 
             element1 = new ContentDecorator

@@ -27,9 +27,7 @@ namespace Stride.Assets.Presentation.AssetEditors.UIEditor.ViewModels
 {
     public enum PanelCommandMode
     {
-        MoveBack,
         MoveDown,
-        MoveFront,
         MoveLeft,
         MoveRight,
         MoveUp,
@@ -41,10 +39,7 @@ namespace Stride.Assets.Presentation.AssetEditors.UIEditor.ViewModels
         PinRight,
         PinBottomLeft,
         PinBottom,
-        PinBottomRight,
-        PinFront,
-        PinMiddle,
-        PinBack,
+        PinBottomRight
     }
 
     /// <summary>

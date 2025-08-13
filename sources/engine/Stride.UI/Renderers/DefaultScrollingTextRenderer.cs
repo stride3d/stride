@@ -41,7 +41,7 @@ namespace Stride.UI.Renderers
             {
                 Color = scrollingText.RenderOpacity * scrollingText.TextColor,
                 DepthBias = context.DepthBias + 1,
-                RealVirtualResolutionRatio = element.LayoutingContext.RealVirtualResolutionRatio,
+                RealVirtualResolutionRatio = (Vector2)element.LayoutingContext.RealVirtualResolutionRatio,
                 RequestedFontSize = scrollingText.ActualTextSize,
                 Batch = Batch,
                 SnapText = context.ShouldSnapText && !scrollingText.DoNotSnapText,
@@ -49,13 +49,15 @@ namespace Stride.UI.Renderers
                 Alignment = TextAlignment.Left,
                 TextBoxSize = new Vector2(scrollingText.ActualWidth, scrollingText.ActualHeight)
             };
+            
+            var size = new Vector3(element.RenderSizeInternal.Width, element.RenderSizeInternal.Height, 1);
 
             // flush the current content of the UI image batch
             Batch.End();
 
             // draw a clipping mask 
             Batch.Begin(context.GraphicsContext, ref context.ViewProjectionMatrix, BlendStates.ColorDisabled, IncreaseStencilValueState, context.StencilTestReferenceValue);
-            Batch.DrawRectangle(ref element.WorldMatrixInternal, ref element.RenderSizeInternal, ref blackColor, context.DepthBias);
+            Batch.DrawRectangle(ref element.WorldMatrixInternal, ref size, ref blackColor, context.DepthBias);
             Batch.End();
 
             // draw the element it-self with stencil test value of "Context.Value + 1"
@@ -72,7 +74,7 @@ namespace Stride.UI.Renderers
 
             // un-draw the clipping mask
             Batch.Begin(context.GraphicsContext, ref context.ViewProjectionMatrix, BlendStates.ColorDisabled, DecreaseStencilValueState, context.StencilTestReferenceValue + 1);
-            Batch.DrawRectangle(ref element.WorldMatrixInternal, ref element.RenderSizeInternal, ref blackColor, context.DepthBias+2);
+            Batch.DrawRectangle(ref element.WorldMatrixInternal, ref size, ref blackColor, context.DepthBias+2);
             Batch.End();
 
             // restart the Batch session

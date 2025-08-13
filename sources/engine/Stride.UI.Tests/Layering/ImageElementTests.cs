@@ -57,7 +57,7 @@ namespace Stride.UI.Tests.Layering
 
             // Fixed sized
             image.StretchType = StretchType.None;
-            image.Measure(rand.NextVector3());
+            image.Measure(rand.NextVector2());
             Assert.Equal(imageSize, image.DesiredSizeWithMargins);
 
             // Uniform sized
@@ -129,7 +129,7 @@ namespace Stride.UI.Tests.Layering
 
             // Fixed sized
             image.StretchType = StretchType.None;
-            image.Arrange(rand.NextVector3(), false);
+            image.Arrange(rand.NextVector2(), false);
             Assert.Equal(imageSize, image.RenderSize);
 
             // Uniform sized

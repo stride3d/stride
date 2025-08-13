@@ -20,7 +20,7 @@ namespace Stride.Assets.Presentation.AssetEditors.UIEditor.Adorners
 
         void Show();
 
-        void Update(Vector3 position);
+        void Update(Vector2 position);
     }
 
     /// <summary>
@@ -77,7 +77,7 @@ namespace Stride.Assets.Presentation.AssetEditors.UIEditor.Adorners
             Visual.Visibility = Visibility.Visible;
         }
 
-        public abstract void Update(Vector3 position);
+        public abstract void Update(Vector2 position);
 
         protected void InitializeAttachedProperties()
         {

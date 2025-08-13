@@ -12,7 +12,7 @@ namespace Stride.UI.Controls
     [DebuggerDisplay("Control - Name={Name}")]
     public abstract class Control : UIElement
     {
-        protected Thickness padding = Thickness.UniformCuboid(0);
+        protected Thickness padding = Thickness.Uniform(0);
 
         /// <summary>
         /// Gets or sets the padding inside a control.

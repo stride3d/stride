@@ -19,7 +19,7 @@ namespace Stride.UI.Controls
 
         public ImageButton()
         {
-            Padding = Thickness.UniformCuboid(0);  // Warning: this must also match in ImageButtonMetadata
+            Padding = Thickness.Uniform(0);  // Warning: this must also match in ImageButtonMetadata
             base.Content = contentImageElement;
 
             MouseOverStateChanged += (sender, args) => UpdateContentImage();

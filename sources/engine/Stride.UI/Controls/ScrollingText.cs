@@ -154,7 +154,7 @@ namespace Stride.UI.Controls
         /// <returns>The size of the text in virtual pixels</returns>
         private float CalculateTextToDisplayWidth()
         {
-            return CalculateTextSize(TextToDisplay).X;
+            return CalculateTextSize(TextToDisplay).Width;
         }
 
         protected override void Update(GameTime time)
@@ -169,7 +169,7 @@ namespace Stride.UI.Controls
 
         private void UpdateAndAdjustDisplayText(GameTime time = null)
         {
-            if (string.IsNullOrEmpty(Text) || Font is null || CalculateTextSize(Text).X <= float.Epsilon)
+            if (string.IsNullOrEmpty(Text) || Font is null || CalculateTextSize(Text).Width <= float.Epsilon)
                 return;
 
             var elapsedSeconds = time != null ? (float)time.Elapsed.TotalSeconds : 0f;
@@ -196,7 +196,7 @@ namespace Stride.UI.Controls
             }
 
             // Check if all the string has finished to scroll, if clear the message
-            if (CalculateTextSize(textToDisplay).X < nextOffsetShift)
+            if (CalculateTextSize(textToDisplay).Width < nextOffsetShift)
                 textToDisplay = "";
 
             // remove characters at the beginning of TextToDisplay as long as possible
@@ -211,14 +211,14 @@ namespace Stride.UI.Controls
             ScrollingOffset = -nextOffsetShift;
         }
 
-        protected override Vector3 MeasureOverride(Vector3 availableSizeWithoutMargins)
+        protected override Size2F MeasureOverride(Size2F availableSizeWithoutMargins)
         {
             return MeasureSize();
         }
 
-        protected override Vector3 ArrangeOverride(Vector3 finalSizeWithoutMargins)
+        protected override Size2F ArrangeOverride(Size2F finalSizeWithoutMargins)
         {
-            elementWidth = finalSizeWithoutMargins.X;
+            elementWidth = finalSizeWithoutMargins.Width;
 
             ScrollingOffset = Math.Min(elementWidth, ScrollingOffset);
 
@@ -231,12 +231,12 @@ namespace Stride.UI.Controls
         /// Measure the size of the <see cref="ScrollingText"/> element.
         /// </summary>
         /// <returns>The size of the element</returns>
-        public Vector3 MeasureSize()
+        public Size2F MeasureSize()
         {
             if (Font == null)
-                return Vector3.Zero;
+                return Size2F.Zero;
 
-            return new Vector3(Font.MeasureString(new string('A', (int)DesiredCharacterNumber)), 0);
+            return (Size2F)Font.MeasureString(new string('A', (int)DesiredCharacterNumber));
         }
     }
 }

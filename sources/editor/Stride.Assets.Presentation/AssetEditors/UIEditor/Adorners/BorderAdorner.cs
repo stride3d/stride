@@ -13,7 +13,7 @@ namespace Stride.Assets.Presentation.AssetEditors.UIEditor.Adorners
     internal abstract class BorderAdorner : AdornerBase<Border>
     {
         private float borderThickness;
-        private Vector3 size;
+        private Size2F size;
 
         protected BorderAdorner(UIEditorGameAdornerService service, UIElement gameSideElement)
             : base(service, gameSideElement)
@@ -50,7 +50,7 @@ namespace Stride.Assets.Presentation.AssetEditors.UIEditor.Adorners
             }
         }
 
-        public Vector3 Size
+        public Size2F Size
         {
             get { return size; }
             set
@@ -64,13 +64,13 @@ namespace Stride.Assets.Presentation.AssetEditors.UIEditor.Adorners
 
         protected virtual void UpdateBorderThickness()
         {
-            Visual.BorderThickness = Thickness.UniformCuboid(borderThickness);
+            Visual.BorderThickness = Thickness.Uniform(borderThickness);
         }
 
         protected virtual void UpdateSize()
         {
             // border thickness is added to the total size
-            Visual.Size = size + new Vector3(BorderThickness*2);
+            Visual.Size = size + new Size2F(BorderThickness*2);
         }
     }
 }

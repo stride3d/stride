@@ -24,8 +24,6 @@ namespace Stride.UI.Renderers
             base.RenderColor(element, context);
 
             var slider = (Slider)element;
-            if (slider.Orientation == Orientation.InDepth)
-                return; // No rendering for in-depth slider for the moment.
 
             var axis = (int)slider.Orientation;
             var axisPrime = (axis + 1) % 2;
@@ -44,7 +42,8 @@ namespace Stride.UI.Renderers
                 var imageOrientation = (ImageOrientation)(axis ^ imageAxis);
                 var worldMatrix = GetAdjustedWorldMatrix(ref slider.WorldMatrixInternal, (axis & imageAxis) == 1);
 
-                Batch.DrawImage(image.Texture, ref worldMatrix, ref image.RegionInternal, ref slider.RenderSizeInternal, ref image.BordersInternal, ref color, context.DepthBias, imageOrientation);
+                var size = new Vector3(element.RenderSizeInternal.Width, element.RenderSizeInternal.Height, 1);
+                Batch.DrawImage(image.Texture, ref worldMatrix, ref image.RegionInternal, ref size, ref image.BordersInternal, ref color, context.DepthBias, imageOrientation);
                 context.DepthBias += 1;
             }
             

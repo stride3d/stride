@@ -253,7 +253,7 @@ namespace Stride.UI.Tests.Layering
             ResetElementState();
 
             // testing that a null thickness return a good value
-            var size = 1000 * rand.NextVector3();
+            var size = 1000 * rand.NextVector2();
             var emptyThickness = Thickness.UniformCuboid(0f);
             AssertAreNearlySame(size, CalculateSizeWithoutThickness(ref size, ref emptyThickness));
 
@@ -270,7 +270,7 @@ namespace Stride.UI.Tests.Layering
             AssertAreNearlySame(expectedSize, CalculateSizeWithoutThickness(ref size, ref thickness));
 
             // test with a over constrained thickness
-            size = 100 * rand.NextVector3();
+            size = 100 * rand.NextVector2();
             thickness = new Thickness(100, 200, 300, 400, 500, 600);
             AssertAreNearlySame(Vector3.Zero, CalculateSizeWithoutThickness(ref size, ref thickness));
         }
@@ -289,8 +289,8 @@ namespace Stride.UI.Tests.Layering
             DepthAlignment = DepthAlignment.Front;
             Margin = rand.NextThickness(10, 20, 30, 40, 50, 60);
             var expectedOffsets = new Vector3(Margin.Left, Margin.Top, Margin.Front);
-            var randV1 = rand.NextVector3();
-            var randV2 = rand.NextVector3();
+            var randV1 = rand.NextVector2();
+            var randV2 = rand.NextVector2();
             AssertAreNearlySame(expectedOffsets, CalculateAdjustmentOffsets(ref MarginInternal, ref randV1, ref randV2));
 
             // test that element is correctly centered 
@@ -298,8 +298,8 @@ namespace Stride.UI.Tests.Layering
             VerticalAlignment = VerticalAlignment.Center;
             DepthAlignment = DepthAlignment.Center;
             Margin = rand.NextThickness(10, 20, 30, 40, 50, 60);
-            var givenSpace = 100 * rand.NextVector3();
-            var usedSpace = 100 * rand.NextVector3();
+            var givenSpace = 100 * rand.NextVector2();
+            var usedSpace = 100 * rand.NextVector2();
             var usedSpaceWithMargins = CalculateSizeWithThickness(ref usedSpace, ref MarginInternal);
             expectedOffsets = new Vector3(Margin.Left, Margin.Top, Margin.Front) + (givenSpace - usedSpaceWithMargins) / 2;
             AssertAreNearlySame(expectedOffsets, CalculateAdjustmentOffsets(ref MarginInternal, ref givenSpace, ref usedSpace));
@@ -315,8 +315,8 @@ namespace Stride.UI.Tests.Layering
             VerticalAlignment = VerticalAlignment.Bottom;
             DepthAlignment = DepthAlignment.Back;
             Margin = rand.NextThickness(10, 20, 30, 40, 50, 60);
-            givenSpace = 100 * rand.NextVector3();
-            usedSpace = 100 * rand.NextVector3();
+            givenSpace = 100 * rand.NextVector2();
+            usedSpace = 100 * rand.NextVector2();
             usedSpaceWithMargins = CalculateSizeWithThickness(ref usedSpace, ref MarginInternal);
             expectedOffsets = new Vector3(Margin.Left, Margin.Top, Margin.Front) + givenSpace - usedSpaceWithMargins;
             AssertAreNearlySame(expectedOffsets, CalculateAdjustmentOffsets(ref MarginInternal, ref givenSpace, ref usedSpace));
@@ -384,7 +384,7 @@ namespace Stride.UI.Tests.Layering
 
         private void MeasuredWithRandomSizeAndCheckThatDesiredSizesAreNull()
         {
-            Measure(10 * Vector3.One + 1000 * rand.NextVector3());
+            Measure(10 * Vector3.One + 1000 * rand.NextVector2());
             Assert.Equal(Vector3.Zero, DesiredSize);
             Assert.Equal(Vector3.Zero, DesiredSizeWithMargins);
             Assert.True(IsMeasureValid);
@@ -421,7 +421,7 @@ namespace Stride.UI.Tests.Layering
             Height = 1000 * rand.NextFloat();
             Depth = 1000 * rand.NextFloat();
             Margin = rand.NextThickness(10, 20, 30, 40, 50, 60);
-            MeasuredAndCheckThatDesiredSizesAreCorrect(100 * rand.NextVector3(), new Vector3(Width, Height, Depth), min, max);
+            MeasuredAndCheckThatDesiredSizesAreCorrect(100 * rand.NextVector2(), new Vector3(Width, Height, Depth), min, max);
 
             // reset fixed size
             Width = float.NaN;
@@ -431,11 +431,11 @@ namespace Stride.UI.Tests.Layering
             // check with MeasureOverride
             var onMeasureOverrideSize = new Vector3(10, 20, 30);
             onMeasureOverride += _ => onMeasureOverrideSize;
-            MeasuredAndCheckThatDesiredSizesAreCorrect(100 * rand.NextVector3(), onMeasureOverrideSize, min, max);
+            MeasuredAndCheckThatDesiredSizesAreCorrect(100 * rand.NextVector2(), onMeasureOverrideSize, min, max);
 
             // check size given to MeasureOverride
             onMeasureOverride = availableSize => availableSize / 2;
-            var providedSize = 100 * rand.NextVector3();
+            var providedSize = 100 * rand.NextVector2();
             var providedSizeWithoutMargin = CalculateSizeWithoutThickness(ref providedSize, ref MarginInternal);
             var expectedSize = new Vector3(Math.Min(providedSizeWithoutMargin.X, max.X), Math.Min(providedSizeWithoutMargin.Y, max.Y), Math.Min(providedSizeWithoutMargin.Z, max.Z)) / 2;
             MeasuredAndCheckThatDesiredSizesAreCorrect(providedSize, expectedSize, min, max);
@@ -446,13 +446,13 @@ namespace Stride.UI.Tests.Layering
             DefaultWidth = expectedSize.X;
             DefaultHeight = expectedSize.Y;
             DefaultDepth = expectedSize.Z;
-            MeasuredAndCheckThatDesiredSizesAreCorrect(100 * rand.NextVector3(), expectedSize, min, max);
+            MeasuredAndCheckThatDesiredSizesAreCorrect(100 * rand.NextVector2(), expectedSize, min, max);
 
             // check blend of all
             onMeasureOverride = _ => new Vector3(0, onMeasureOverrideSize.Y, float.NaN);
             Width = 100 * rand.NextFloat();
             expectedSize = new Vector3(Width, onMeasureOverrideSize.Y, DefaultDepth);
-            MeasuredAndCheckThatDesiredSizesAreCorrect(100 * rand.NextVector3(), expectedSize, min, max);
+            MeasuredAndCheckThatDesiredSizesAreCorrect(100 * rand.NextVector2(), expectedSize, min, max);
         }
 
         private void MeasuredAndCheckThatDesiredSizesAreCorrect(Vector3 availableSize, Vector3 expectedSizeWithoutMargins, Vector3 min, Vector3 max)
@@ -598,7 +598,7 @@ namespace Stride.UI.Tests.Layering
             Assert.True(IsMeasureValid);
 
             // set the default callbacks
-            var desiredSize = 1000 * rand.NextVector3();
+            var desiredSize = 1000 * rand.NextVector2();
             onMeasureOverride = _ => desiredSize;
             onCollapsedOverride = () => collaspedHasBeenCalled = true;
             onArrageOverride = delegate(Vector3 size)
@@ -615,7 +615,7 @@ namespace Stride.UI.Tests.Layering
             Depth = 100 * rand.NextFloat();
             PertubArrangeResultValues();
             expectedProvidedSizeInMeasureOverride = new Vector3(Width, Height, Depth);
-            ArrangeAndPerformsNotCollapsedStateTests(1000 * rand.NextVector3(), expectedProvidedSizeInMeasureOverride);
+            ArrangeAndPerformsNotCollapsedStateTests(1000 * rand.NextVector2(), expectedProvidedSizeInMeasureOverride);
 
             // revert fixed size
             Width = float.NaN;
@@ -624,7 +624,7 @@ namespace Stride.UI.Tests.Layering
 
             // check size and offset when size is not fixed
             PertubArrangeResultValues();
-            var providedSpace = 1000 * rand.NextVector3();
+            var providedSpace = 1000 * rand.NextVector2();
             var providedWithoutMargins = CalculateSizeWithoutThickness(ref providedSpace, ref MarginInternal);
             if (HorizontalAlignment == HorizontalAlignment.Stretch && VerticalAlignment == VerticalAlignment.Stretch && DepthAlignment == DepthAlignment.Stretch)
             {

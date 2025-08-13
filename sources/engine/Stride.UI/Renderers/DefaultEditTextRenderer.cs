@@ -29,7 +29,7 @@ namespace Stride.UI.Renderers
             var font = editText.Font;
 
             // determine the image to draw in background of the edit text
-            var fontScale = editText.LayoutingContext.RealVirtualResolutionRatio;
+            var fontScale = (Vector2)editText.LayoutingContext.RealVirtualResolutionRatio;
             var provider = editText.IsSelectionActive ? editText.ActiveImage : editText.MouseOverState == MouseOverState.MouseOverElement ? editText.MouseOverImage : editText.InactiveImage;
             var image = provider?.GetSprite();
 
@@ -66,7 +66,7 @@ namespace Stride.UI.Renderers
 
             var selectionWorldMatrix = editText.WorldMatrixInternal;
             selectionWorldMatrix.M41 += offsetTextStart + selectionSize / 2 + offsetAlignment;
-            var selectionScaleVector = new Vector3(selectionSize, editText.LineCount * lineSpacing, 0);
+            var selectionScaleVector = new Vector3(selectionSize, editText.LineCount * lineSpacing, 1);
             Batch.DrawRectangle(ref selectionWorldMatrix, ref selectionScaleVector, ref color, context.DepthBias + 1);
         }
 
@@ -84,10 +84,12 @@ namespace Stride.UI.Renderers
             var color = editText.RenderOpacity * Color.White;
             var provider = editText.IsSelectionActive ? editText.ActiveImage : editText.MouseOverState == MouseOverState.MouseOverElement ? editText.MouseOverImage : editText.InactiveImage;
             var image = provider?.GetSprite();
+            
+            var size = new Vector3(element.RenderSizeInternal.Width, element.RenderSizeInternal.Height, 1);
 
             if (image?.Texture != null)
             {
-                Batch.DrawImage(image.Texture, ref editText.WorldMatrixInternal, ref image.RegionInternal, ref editText.RenderSizeInternal, ref image.BordersInternal, ref color, context.DepthBias, image.Orientation);
+                Batch.DrawImage(image.Texture, ref editText.WorldMatrixInternal, ref image.RegionInternal, ref size, ref image.BordersInternal, ref color, context.DepthBias, image.Orientation);
             }
             
             // calculate the size of the text region by removing padding
@@ -119,7 +121,7 @@ namespace Stride.UI.Renderers
             {
                 Color = editText.RenderOpacity * editText.TextColor,
                 DepthBias = context.DepthBias + 2,
-                RealVirtualResolutionRatio = fontScale,
+                RealVirtualResolutionRatio = (Vector2)fontScale,
                 RequestedFontSize = editText.ActualTextSize,
                 Batch = Batch,
                 SnapText = context.ShouldSnapText && !editText.DoNotSnapText,
@@ -150,10 +152,10 @@ namespace Stride.UI.Renderers
                 if (editText.Font.FontType == SpriteFontType.SDF)
                     lineSpacing *= editText.ActualTextSize / font.Size;
 
-                var sizeCaret = editText.CaretWidth / fontScale.X;
+                var sizeCaret = editText.CaretWidth / fontScale.Width;
                 var caretWorldMatrix = element.WorldMatrixInternal;
                 caretWorldMatrix.M41 += offsetTextStart + offsetAlignment + (editText.CaretPosition > editText.SelectionStart? selectionSize: 0);
-                var caretScaleVector = new Vector3(sizeCaret, editText.LineCount * lineSpacing, 0);
+                var caretScaleVector = new Vector3(sizeCaret, editText.LineCount * lineSpacing, 1);
                 Batch.DrawRectangle(ref caretWorldMatrix, ref caretScaleVector, ref caretColor, context.DepthBias + 3);
             }
         }

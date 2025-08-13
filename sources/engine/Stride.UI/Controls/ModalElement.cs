@@ -77,8 +77,8 @@ namespace Stride.UI.Controls
                 return;
 
             var position = args.WorldPosition - new Vector3(WorldMatrixInternal.M41, WorldMatrixInternal.M42, WorldMatrixInternal.M43);
-            if (position.X < 0 || position.X > RenderSize.X
-                || position.Y < 0 || position.Y > RenderSize.Y)
+            if (position.X < 0 || position.X > RenderSize.Width
+                || position.Y < 0 || position.Y > RenderSize.Height)
             {
                 var eventArgs = new RoutedEventArgs(OutsideClickEvent);
                 RaiseEvent(eventArgs);
@@ -99,7 +99,8 @@ namespace Stride.UI.Controls
             var virtualResolution = LayoutingContext.VirtualResolution;
             var worldmatrix = Matrix.Identity;
 
-            return CollisionHelper.RayIntersectsRectangle(ref ray, ref worldmatrix, ref virtualResolution, 2, out intersectionPoint);
+            var size = new Vector3(virtualResolution.Width, virtualResolution.Height, 0);
+            return CollisionHelper.RayIntersectsRectangle(ref ray, ref worldmatrix, ref size, 2, out intersectionPoint);
         }
 
         private class ModalElementMetadata
