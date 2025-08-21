@@ -49,7 +49,7 @@ namespace Stride.Engine
             PlayingAnimations.CollectionChanged += PlayingAnimations_CollectionChanged;
         }
 
-        private void PlayingAnimations_CollectionChanged(object sender, TrackingCollectionChangedEventArgs e)
+        private void PlayingAnimations_CollectionChanged(object sender, TrackingCollectionChangedEventArgs<PlayingAnimation, PlayingAnimation> e)
         {
             var item = (PlayingAnimation)e.Item;
             switch (e.Action)

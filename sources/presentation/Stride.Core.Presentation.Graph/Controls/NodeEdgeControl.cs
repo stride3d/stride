@@ -214,7 +214,7 @@ namespace Stride.Core.Presentation.Graph.Controls
             Visibility = Visibility.Visible;
         }
 
-        private void UpdateSourceConnectors(object sender, TrackingCollectionChangedEventArgs e)
+        private void UpdateSourceConnectors(object sender, TrackingCollectionChangedEventArgs<object, DependencyObject> e)
         {
             // Unregister ourselves
             ((NodeVertexControl)Source).Connectors.CollectionChanged -= UpdateSourceConnectors;
@@ -223,7 +223,7 @@ namespace Stride.Core.Presentation.Graph.Controls
             UpdateEdge();
         }
 
-        private void UpdateTargetConnectors(object sender, TrackingCollectionChangedEventArgs e)
+        private void UpdateTargetConnectors(object sender, TrackingCollectionChangedEventArgs<object, DependencyObject> e)
         {
             // Unregister ourselves
             ((NodeVertexControl)Target).Connectors.CollectionChanged -= UpdateTargetConnectors;

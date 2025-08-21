@@ -152,7 +152,7 @@ namespace Stride.Engine
                 }
                 scene.Entities.CollectionChanged -= DealWithTempChanges;
 
-                void DealWithTempChanges(object sender, TrackingCollectionChangedEventArgs e)
+                void DealWithTempChanges(object sender, TrackingCollectionChangedEventArgs<Entity, Entity> e)
                 {
                     Entity entity = (Entity)e.Item;
                     if (e.Action == NotifyCollectionChangedAction.Remove)
@@ -183,7 +183,7 @@ namespace Stride.Engine
                 }
                 scene.Children.CollectionChanged -= DealWithTempChanges;
 
-                void DealWithTempChanges(object sender, TrackingCollectionChangedEventArgs e)
+                void DealWithTempChanges(object sender, TrackingCollectionChangedEventArgs<Scene, Scene> e)
                 {
                     Scene subScene = (Scene)e.Item;
                     if (e.Action == NotifyCollectionChangedAction.Remove)
@@ -223,7 +223,7 @@ namespace Stride.Engine
             }
         }
 
-        private void Entities_CollectionChanged(object sender, TrackingCollectionChangedEventArgs e)
+        private void Entities_CollectionChanged(object sender, TrackingCollectionChangedEventArgs<Entity, Entity> e)
         {
             switch (e.Action)
             {
@@ -236,7 +236,7 @@ namespace Stride.Engine
             }
         }
 
-        private void Children_CollectionChanged(object sender, TrackingCollectionChangedEventArgs e)
+        private void Children_CollectionChanged(object sender, TrackingCollectionChangedEventArgs<Scene, Scene> e)
         {
             switch (e.Action)
             {
@@ -272,7 +272,7 @@ namespace Stride.Engine
             registeredRenderProcessorTypes.Clear();
         }
 
-        private void VisibilityGroups_CollectionChanged(object sender, TrackingCollectionChangedEventArgs e)
+        private void VisibilityGroups_CollectionChanged(object sender, TrackingCollectionChangedEventArgs<VisibilityGroup, VisibilityGroup> e)
         {
             var visibilityGroup = (VisibilityGroup)e.Item;
 
