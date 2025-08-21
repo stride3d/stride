@@ -238,7 +238,7 @@ namespace Stride.Games
             }
         }
 
-        private void GameSystems_CollectionChanged(object sender, TrackingCollectionChangedEventArgs e)
+        private void GameSystems_CollectionChanged(object sender, TrackingCollectionChangedEventArgs<IGameSystemBase, IGameSystemBase> e)
         {
             if (e.Action == NotifyCollectionChangedAction.Add)
             {
@@ -250,7 +250,7 @@ namespace Stride.Games
             }
         }
 
-        private void GameSystems_ItemAdded(object sender, TrackingCollectionChangedEventArgs e)
+        private void GameSystems_ItemAdded(object sender, TrackingCollectionChangedEventArgs<IGameSystemBase, IGameSystemBase> e)
         {
             var gameSystem = (IGameSystemBase)e.Item;
 
@@ -298,7 +298,7 @@ namespace Stride.Games
             }
         }
 
-        private void GameSystems_ItemRemoved(object sender, TrackingCollectionChangedEventArgs e)
+        private void GameSystems_ItemRemoved(object sender, TrackingCollectionChangedEventArgs<IGameSystemBase, IGameSystemBase> e)
         {
             var gameSystem = (IGameSystemBase)e.Item;
 

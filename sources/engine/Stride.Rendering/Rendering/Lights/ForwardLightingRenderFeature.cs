@@ -686,7 +686,7 @@ namespace Stride.Rendering.Lights
             return lightGroup;
         }
 
-        private void LightRenderers_CollectionChanged(object sender, TrackingCollectionChangedEventArgs e)
+        private void LightRenderers_CollectionChanged(object sender, TrackingCollectionChangedEventArgs<LightGroupRendererBase, LightGroupRendererBase> e)
         {
             switch (e.Action)
             {
