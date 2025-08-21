@@ -189,7 +189,7 @@ namespace Stride.Engine
             }
         }
 
-        private void OnSoundsOnCollectionChanged(object sender, TrackingCollectionChangedEventArgs args)
+        private void OnSoundsOnCollectionChanged(object sender, TrackingCollectionChangedEventArgs<string, Sound> args)
         {
             switch (args.Action)
             {

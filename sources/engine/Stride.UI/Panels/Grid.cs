@@ -72,7 +72,7 @@ namespace Stride.UI.Panels
             LayerDefinitions.CollectionChanged += DefinitionCollectionChanged;
         }
 
-        private void DefinitionCollectionChanged(object sender, TrackingCollectionChangedEventArgs trackingCollectionChangedEventArgs)
+        private void DefinitionCollectionChanged(object sender, TrackingCollectionChangedEventArgs<StripDefinition, StripDefinition> trackingCollectionChangedEventArgs)
         {
             var modifiedElement = (StripDefinition)trackingCollectionChangedEventArgs.Item;
             switch (trackingCollectionChangedEventArgs.Action)
