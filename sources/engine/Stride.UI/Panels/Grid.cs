@@ -74,7 +74,7 @@ namespace Stride.UI.Panels
 
         private void DefinitionCollectionChanged(object sender, TrackingCollectionChangedEventArgs<StripDefinition, StripDefinition> trackingCollectionChangedEventArgs)
         {
-            var modifiedElement = (StripDefinition)trackingCollectionChangedEventArgs.Item;
+            var modifiedElement = trackingCollectionChangedEventArgs.Item;
             switch (trackingCollectionChangedEventArgs.Action)
             {
                 case NotifyCollectionChangedAction.Add:

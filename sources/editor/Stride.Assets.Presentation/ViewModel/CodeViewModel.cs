@@ -105,12 +105,12 @@ namespace Stride.Assets.Presentation.ViewModel
             }
         }
 
-        private void TrackedAssembliesCollectionChanged(object sender, Core.Collections.TrackingCollectionChangedEventArgs e)
+        private void TrackedAssembliesCollectionChanged(object sender, Core.Collections.TrackingCollectionChangedEventArgs<ProjectWatcher.TrackedAssembly, ProjectWatcher.TrackedAssembly> e)
         {
             if (roslynWorkspace == null)
                 return;
 
-            if (((ProjectWatcher.TrackedAssembly)e.Item).Project is { } project)
+            if (e.Item.Project is { } project)
             {
                 switch (e.Action)
                 {

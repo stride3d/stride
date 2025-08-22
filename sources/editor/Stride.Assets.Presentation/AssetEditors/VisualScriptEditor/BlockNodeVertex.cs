@@ -51,7 +51,7 @@ namespace Stride.Assets.Presentation.AssetEditors.VisualScriptEditor
             {
                 case NotifyCollectionChangedAction.Add:
                 {
-                    var slot = (Slot)e.Item;
+                    var slot = e.Item;
                     var slots = slot.Direction == SlotDirection.Input ? InputSlots : OutputSlots;
                     var slotViewModel = new VisualScriptSlotViewModel(ViewModel, slot);
                     slots.Add(slotViewModel);

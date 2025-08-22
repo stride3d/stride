@@ -51,7 +51,7 @@ namespace Stride.Engine
 
         private void PlayingAnimations_CollectionChanged(object sender, TrackingCollectionChangedEventArgs<PlayingAnimation, PlayingAnimation> e)
         {
-            var item = (PlayingAnimation)e.Item;
+            var item = e.Item;
             switch (e.Action)
             {
                 case NotifyCollectionChangedAction.Remove:
