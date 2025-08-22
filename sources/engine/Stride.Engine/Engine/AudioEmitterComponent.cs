@@ -194,10 +194,10 @@ namespace Stride.Engine
             switch (args.Action)
             {
                 case NotifyCollectionChangedAction.Add:
-                    SoundAdded((SoundBase)args.Item);
+                    SoundAdded(args.Item);
                     break;
                 case NotifyCollectionChangedAction.Remove:
-                    SoundRemoved((SoundBase)args.Item);
+                    SoundRemoved(args.Item);
                     break;
             }
         }

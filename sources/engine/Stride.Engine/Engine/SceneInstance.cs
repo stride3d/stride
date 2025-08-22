@@ -153,7 +153,7 @@ namespace Stride.Engine
 
                 void DealWithTempChanges(object sender, TrackingCollectionChangedEventArgs<Entity, Entity> e)
                 {
-                    Entity entity = (Entity)e.Item;
+                    Entity entity = e.Item;
                     if (e.Action == NotifyCollectionChangedAction.Remove)
                     {
                         if (entitiesToAdd.Remove(entity) == false)
@@ -184,7 +184,7 @@ namespace Stride.Engine
 
                 void DealWithTempChanges(object sender, TrackingCollectionChangedEventArgs<Scene, Scene> e)
                 {
-                    Scene subScene = (Scene)e.Item;
+                    Scene subScene = e.Item;
                     if (e.Action == NotifyCollectionChangedAction.Remove)
                     {
                         if (scenesToAdd.Remove(subScene) == false)
@@ -227,10 +227,10 @@ namespace Stride.Engine
             switch (e.Action)
             {
                 case NotifyCollectionChangedAction.Add:
-                    Add((Entity)e.Item);
+                    Add(e.Item);
                     break;
                 case NotifyCollectionChangedAction.Remove:
-                    Remove((Entity)e.Item);
+                    Remove(e.Item);
                     break;
             }
         }
@@ -240,10 +240,10 @@ namespace Stride.Engine
             switch (e.Action)
             {
                 case NotifyCollectionChangedAction.Add:
-                    Add((Scene)e.Item);
+                    Add(e.Item);
                     break;
                 case NotifyCollectionChangedAction.Remove:
-                    Remove((Scene)e.Item);
+                    Remove(e.Item);
                     break;
             }
         }
@@ -273,7 +273,7 @@ namespace Stride.Engine
 
         private void VisibilityGroups_CollectionChanged(object sender, TrackingCollectionChangedEventArgs<VisibilityGroup, VisibilityGroup> e)
         {
-            var visibilityGroup = (VisibilityGroup)e.Item;
+            var visibilityGroup = e.Item;
 
             switch (e.Action)
             {

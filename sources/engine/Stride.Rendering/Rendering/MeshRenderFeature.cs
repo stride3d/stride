@@ -257,7 +257,7 @@ namespace Stride.Rendering
 
         private void RenderFeatures_CollectionChanged(object sender, TrackingCollectionChangedEventArgs<SubRenderFeature, SubRenderFeature> e)
         {
-            var renderFeature = (SubRenderFeature)e.Item;
+            var renderFeature = e.Item;
 
             switch (e.Action)
             {

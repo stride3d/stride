@@ -252,7 +252,7 @@ namespace Stride.Games
 
         private void GameSystems_ItemAdded(object sender, TrackingCollectionChangedEventArgs<IGameSystemBase, IGameSystemBase> e)
         {
-            var gameSystem = (IGameSystemBase)e.Item;
+            var gameSystem = e.Item;
 
             // If the game is already running, then we can initialize the game system now
             if (State >= GameSystemState.Initialized)
@@ -300,7 +300,7 @@ namespace Stride.Games
 
         private void GameSystems_ItemRemoved(object sender, TrackingCollectionChangedEventArgs<IGameSystemBase, IGameSystemBase> e)
         {
-            var gameSystem = (IGameSystemBase)e.Item;
+            var gameSystem = e.Item;
 
             if (State == GameSystemState.None)
             {
