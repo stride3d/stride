@@ -146,9 +146,9 @@ namespace Stride.Rendering
             return result;
         }
 
-        private void Children_CollectionChanged(object sender, TrackingCollectionChangedEventArgs e)
+        private void Children_CollectionChanged(object sender, TrackingCollectionChangedEventArgs<Model, Model> e)
         {
-            var child = (Model)e.Item;
+            var child = e.Item;
             switch (e.Action)
             {
                 case NotifyCollectionChangedAction.Add:
