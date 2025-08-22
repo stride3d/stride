@@ -112,10 +112,10 @@ namespace Stride.Assets.Scripts
             switch (e.Action)
             {
                 case NotifyCollectionChangedAction.Add:
-                    OnSlotAdd((Slot)e.Item);
+                    OnSlotAdd(e.Item);
                     break;
                 case NotifyCollectionChangedAction.Remove:
-                    OnSlotRemove((Slot)e.Item);
+                    OnSlotRemove(e.Item);
                     break;
                 default:
                     throw new NotSupportedException();

@@ -604,7 +604,7 @@ namespace Stride.Input
 
         private void SourcesOnCollectionChanged(object o, TrackingCollectionChangedEventArgs<IInputSource,IInputSource> e)
         {
-            var source = (IInputSource)e.Item;
+            var source = e.Item;
             switch (e.Action)
             {
                 case NotifyCollectionChangedAction.Add:
@@ -753,10 +753,10 @@ namespace Stride.Input
             switch (trackingCollectionChangedEventArgs.Action)
             {
                 case NotifyCollectionChangedAction.Add:
-                    StartGestureRecognition((GestureConfig)trackingCollectionChangedEventArgs.Item);
+                    StartGestureRecognition(trackingCollectionChangedEventArgs.Item);
                     break;
                 case NotifyCollectionChangedAction.Remove:
-                    StopGestureRecognition((GestureConfig)trackingCollectionChangedEventArgs.Item);
+                    StopGestureRecognition(trackingCollectionChangedEventArgs.Item);
                     break;
                 case NotifyCollectionChangedAction.Replace:
                 case NotifyCollectionChangedAction.Reset:
@@ -793,10 +793,10 @@ namespace Stride.Input
             switch (e.Action)
             {
                 case NotifyCollectionChangedAction.Add:
-                    OnInputDeviceAdded(source, (IInputDevice)e.Item);
+                    OnInputDeviceAdded(source, e.Item);
                     break;
                 case NotifyCollectionChangedAction.Remove:
-                    OnInputDeviceRemoved((IInputDevice)e.Item);
+                    OnInputDeviceRemoved(e.Item);
                     break;
                 default:
                     throw new InvalidOperationException("Unsupported collection operation");
