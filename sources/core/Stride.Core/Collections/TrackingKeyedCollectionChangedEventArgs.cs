@@ -7,16 +7,6 @@ namespace Stride.Core.Collections;
 
 public sealed class TrackingKeyedCollectionChangedEventArgs<TKey, TValue> : EventArgs
 {
-    public TrackingKeyedCollectionChangedEventArgs(NotifyCollectionChangedAction action, TValue? item, TValue? oldItem, int index, bool collectionChanged)
-    {
-        Action = action;
-        Item = item;
-        OldItem = oldItem;
-        Key = default;
-        Index = index;
-        CollectionChanged = collectionChanged;
-    }
-
     public TrackingKeyedCollectionChangedEventArgs(NotifyCollectionChangedAction action, TKey key, TValue? item, TValue? oldItem, bool collectionChanged)
     {
         Action = action;
@@ -44,7 +34,7 @@ public sealed class TrackingKeyedCollectionChangedEventArgs<TKey, TValue> : Even
     public TValue? OldItem { get; }
 
     /// <summary>Gets the added or removed key (if dictionary).</summary>
-    public TKey? Key { get; }
+    public TKey Key { get; }
 
     /// <summary>
     /// Gets the index in the collection (if applicable).
