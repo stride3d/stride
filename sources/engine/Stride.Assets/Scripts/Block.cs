@@ -107,7 +107,7 @@ namespace Stride.Assets.Scripts
             slot.Owner = null;
         }
 
-        private void Slots_CollectionChanged(object sender, TrackingCollectionChangedEventArgs<Slot, Slot> e)
+        private void Slots_CollectionChanged(object sender, TrackingCollectionChangedEventArgs<Slot> e)
         {
             switch (e.Action)
             {

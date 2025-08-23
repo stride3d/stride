@@ -114,7 +114,7 @@ namespace Stride.UI.Panels
         /// </summary>
         /// <param name="sender">Sender of the event</param>
         /// <param name="trackingCollectionChangedEventArgs">Argument indicating what changed in the collection</param>
-        protected void LogicalChildrenChanged(object sender, TrackingCollectionChangedEventArgs<UIElement, UIElement> trackingCollectionChangedEventArgs)
+        protected void LogicalChildrenChanged(object sender, TrackingCollectionChangedEventArgs<UIElement> trackingCollectionChangedEventArgs)
         {
             var modifiedElement = trackingCollectionChangedEventArgs.Item;
             var elementIndex = trackingCollectionChangedEventArgs.Index;
