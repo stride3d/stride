@@ -45,7 +45,7 @@ namespace Stride.Assets.Presentation.AssetEditors.VisualScriptEditor
             viewModel.Block.Slots.CollectionChanged += Slots_CollectionChanged;
         }
 
-        private void Slots_CollectionChanged(object sender, TrackingCollectionChangedEventArgs<Slot, Slot> e)
+        private void Slots_CollectionChanged(object sender, TrackingCollectionChangedEventArgs<Slot> e)
         {
             switch (e.Action)
             {

@@ -72,7 +72,7 @@ namespace Stride.Input
 
         private GameContext gameContext;
 
-        private Dictionary<IInputSource, EventHandler<TrackingCollectionChangedEventArgs<Guid, IInputDevice>>> devicesCollectionChangedActions = [];
+        private Dictionary<IInputSource, EventHandler<TrackingKeyedCollectionChangedEventArgs<Guid, IInputDevice>>> devicesCollectionChangedActions = [];
 
 #if STRIDE_INPUT_RAWINPUT
         private bool rawInputEnabled = false;
@@ -587,7 +587,7 @@ namespace Stride.Input
             }
         }
 
-        private void SourcesOnCollectionChanged(object o, TrackingCollectionChangedEventArgs<IInputSource,IInputSource> e)
+        private void SourcesOnCollectionChanged(object o, TrackingCollectionChangedEventArgs<IInputSource> e)
         {
             var source = e.Item;
             switch (e.Action)
@@ -596,7 +596,7 @@ namespace Stride.Input
                     if (Sources.Count(x => x == source) > 1)
                         throw new InvalidOperationException("Input Source already added");
 
-                    EventHandler<TrackingCollectionChangedEventArgs<Guid, IInputDevice>> eventHandler = (sender, args) => InputDevicesOnCollectionChanged(source, args);
+                    EventHandler<TrackingKeyedCollectionChangedEventArgs<Guid, IInputDevice>> eventHandler = (sender, args) => InputDevicesOnCollectionChanged(source, args);
                     devicesCollectionChangedActions.Add(source, eventHandler);
                     source.Devices.CollectionChanged += eventHandler;
                     source.Initialize(this);
@@ -733,7 +733,7 @@ namespace Stride.Input
             }
         }
 
-        private void GesturesOnCollectionChanged(object sender, TrackingCollectionChangedEventArgs<GestureConfig, GestureConfig> trackingCollectionChangedEventArgs)
+        private void GesturesOnCollectionChanged(object sender, TrackingCollectionChangedEventArgs<GestureConfig> trackingCollectionChangedEventArgs)
         {
             switch (trackingCollectionChangedEventArgs.Action)
             {
@@ -773,7 +773,7 @@ namespace Stride.Input
             }
         }
 
-        private void InputDevicesOnCollectionChanged(IInputSource source, TrackingCollectionChangedEventArgs<Guid, IInputDevice> e)
+        private void InputDevicesOnCollectionChanged(IInputSource source, TrackingKeyedCollectionChangedEventArgs<Guid, IInputDevice> e)
         {
             switch (e.Action)
             {

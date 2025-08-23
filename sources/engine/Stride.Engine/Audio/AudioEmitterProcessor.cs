@@ -233,7 +233,7 @@ namespace Stride.Audio
             data.AudioEmitterComponent.ControllerCollectionChanged -= OnSoundControllerListChanged;
         }
 
-        private void OnListenerCollectionChanged(object o, TrackingCollectionChangedEventArgs<AudioListenerComponent, AudioListener> args)
+        private void OnListenerCollectionChanged(object o, TrackingKeyedCollectionChangedEventArgs<AudioListenerComponent, AudioListener> args)
         {
             if (!args.CollectionChanged) // no keys have been added or removed, only one of the values changed
                 return;
