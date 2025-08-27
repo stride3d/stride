@@ -6,6 +6,7 @@ using System.Diagnostics;
 
 using Stride.Core;
 using Stride.Engine;
+using Stride.Graphics;
 using Stride.UI.Attributes;
 using Stride.UI.Events;
 
@@ -33,11 +34,16 @@ namespace Stride.UI.Controls
         private ISpriteProvider checkedImage;
         private ISpriteProvider indeterminateImage;
         private ISpriteProvider uncheckedImage;
+        private ISpriteProvider checkedMouseOverImage;
+        private ISpriteProvider indeterminateMouseOverImage;
+        private ISpriteProvider uncheckedMouseOverImage;
 
         public ToggleButton()
         {
             DrawLayerNumber += 1; // (toggle design image)
             Padding = new Thickness(10, 5, 10, 7);  // Warning: this must also match in ToggleButtonMetadata
+
+            MouseOverStateChanged += (sender, args) => InvalidateToggleImage();
         }
 
         /// <summary>
@@ -72,7 +78,7 @@ namespace Stride.UI.Controls
             get { return uncheckedImage; }
             set
             {
-                if (checkedImage == value)
+                if (uncheckedImage == value)
                     return;
 
                 uncheckedImage = value;
@@ -92,13 +98,101 @@ namespace Stride.UI.Controls
             get { return indeterminateImage; }
             set
             {
-                if (checkedImage == value)
+                if (indeterminateImage == value)
                     return;
 
                 indeterminateImage = value;
                 OnToggleImageInvalidated();
             }
         }
+
+        /// <summary>
+        /// Gets or sets the image displayed when the mouse hovers over the button and it is checked.
+        /// </summary>
+        /// <userdoc>The image displayed when the mouse hovers over the button and it is checked.</userdoc>
+        [DataMember]
+        [Display(category: AppearanceCategory)]
+        [DefaultValue(null)]
+        public ISpriteProvider CheckedMouseOverImage
+        {
+            get { return checkedMouseOverImage; }
+            set
+            {
+                if (checkedMouseOverImage == value)
+                    return;
+
+                checkedMouseOverImage = value;
+                OnToggleImageInvalidated();
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the image displayed when the mouse hovers over the button and it is unchecked.
+        /// </summary>
+        /// <userdoc>The image displayed when the mouse hovers over the button and it is unchecked.</userdoc>
+        [DataMember]
+        [Display(category: AppearanceCategory)]
+        [DefaultValue(null)]
+        public ISpriteProvider UncheckedMouseOverImage
+        {
+            get { return uncheckedMouseOverImage; }
+            set
+            {
+                if (uncheckedMouseOverImage == value)
+                    return;
+
+                uncheckedMouseOverImage = value;
+                OnToggleImageInvalidated();
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the image displayed when the mouse hovers over the button and its state is indeterminate.
+        /// </summary>
+        /// <userdoc>The image displayed when the mouse hovers over the button and its state is indeterminate.</userdoc>
+        [DataMember]
+        [Display(category: AppearanceCategory)]
+        [DefaultValue(null)]
+        public ISpriteProvider IndeterminateMouseOverImage
+        {
+            get { return indeterminateMouseOverImage; }
+            set
+            {
+                if (indeterminateMouseOverImage == value)
+                    return;
+
+                indeterminateMouseOverImage = value;
+                OnToggleImageInvalidated();
+            }
+        }
+
+        /// <summary>
+        /// Gets the sprite provider for the current toggle state, taking into account mouse over state.
+        /// </summary>
+        internal ISpriteProvider ToggleButtonImageProvider
+        {
+            get
+            {
+                var isMouseOver = MouseOverState == MouseOverState.MouseOverElement;
+                
+                switch (State)
+                {
+                    case ToggleState.Checked:
+                        return (isMouseOver && CheckedMouseOverImage != null) ? CheckedMouseOverImage : CheckedImage;
+                    case ToggleState.Indeterminate:
+                        return (isMouseOver && IndeterminateMouseOverImage != null) ? IndeterminateMouseOverImage : IndeterminateImage;
+                    case ToggleState.UnChecked:
+                        return (isMouseOver && UncheckedMouseOverImage != null) ? UncheckedMouseOverImage : UncheckedImage;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets the sprite for the current toggle state, taking into account mouse over state.
+        /// </summary>
+        internal Sprite ToggleButtonImage => ToggleButtonImageProvider?.GetSprite();
 
         /// <summary>
         /// Determines whether the control supports two or three states.
@@ -236,6 +330,11 @@ namespace Stride.UI.Controls
             base.OnClick(args);
 
             GoToNextState();
+        }
+
+        private void InvalidateToggleImage()
+        {
+            OnToggleImageInvalidated();
         }
 
         private class ToggleButtonMetadata
