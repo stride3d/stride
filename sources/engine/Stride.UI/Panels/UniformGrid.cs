@@ -92,8 +92,10 @@ namespace Stride.UI.Panels
         /// <returns>The total size including gaps</returns>
         private Vector3 CalculateSpannedSize(Vector3 cellSize, Vector3 span)
         {
-            var gaps = GetGaps() * (span - 1);
-            return Vector3.Max(cellSize * span + gaps, Vector3.One);
+            // Normalize span to be at least 1 in each dimension
+            var normalizedSpan = Vector3.Max(span, Vector3.One);
+            var gaps = GetGaps() * (normalizedSpan - 1);
+            return cellSize * normalizedSpan + gaps;
         }
 
         protected override Vector3 MeasureOverride(Vector3 availableSizeWithoutMargins)
