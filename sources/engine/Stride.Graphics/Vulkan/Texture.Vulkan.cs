@@ -487,7 +487,7 @@ namespace Stride.Graphics
             if (!IsShaderResource)
                 return VkImageView.Null;
 
-            if (viewType == ViewType.MipBand)
+            if (viewType == ViewType.MipBand && IsRenderTarget)
                 throw new NotSupportedException("ViewSlice.MipBand is not supported for render targets");
 
             GetViewSliceBounds(viewType, ref arrayOrDepthSlice, ref mipIndex, out var arrayOrDepthCount, out var mipCount);
