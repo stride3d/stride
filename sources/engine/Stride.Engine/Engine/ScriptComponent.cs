@@ -56,8 +56,6 @@ namespace Stride.Engine
             graphicsDeviceService = Services.GetSafeServiceAs<IGraphicsDeviceService>();
 
             Game = Services.GetSafeServiceAs<IGame>();
-            Content = (ContentManager)Services.GetSafeServiceAs<IContentManager>();
-            Streaming = Services.GetSafeServiceAs<StreamingManager>();
         }
 
         /// <summary>
@@ -89,10 +87,22 @@ namespace Stride.Engine
         public IGame Game { get; private set; }
 
         [DataMemberIgnore]
-        public ContentManager Content { get; private set; }
+        public GraphicsDevice GraphicsDevice => graphicsDeviceService?.GraphicsDevice;
 
         [DataMemberIgnore]
-        public GraphicsDevice GraphicsDevice => graphicsDeviceService?.GraphicsDevice;
+        public ContentManager Content 
+        { 
+            get
+            {
+                contentManager ??= Services.GetSafeServiceAs<IContentManager>() as ContentManager;
+                return contentManager;
+            }
+            private set
+            {
+                contentManager = value;
+            }
+        }
+        private ContentManager contentManager;
 
         [DataMemberIgnore]
         public GameProfilingSystem GameProfiler 
@@ -219,7 +229,19 @@ namespace Stride.Engine
         /// </summary>
         /// <value>The streaming system.</value>
         [DataMemberIgnore]
-        public StreamingManager Streaming { get; private set; }
+        public StreamingManager Streaming 
+        { 
+            get
+            {
+                streamingManager ??= Services.GetSafeServiceAs<StreamingManager>();
+                return streamingManager;
+            }
+            private set
+            {
+                streamingManager = value;
+            }
+        }
+        private StreamingManager streamingManager;
 
         [DataMemberIgnore]
         protected Logger Log
