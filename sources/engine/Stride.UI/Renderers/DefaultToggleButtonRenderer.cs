@@ -29,7 +29,7 @@ namespace Stride.UI.Renderers
             if (sprite?.Texture == null)
                 return;
             
-            var color = toggleButton.RenderOpacity * Color.White;
+            var color = toggleButton.RenderOpacity * toggleButton.Color;
             Batch.DrawImage(sprite.Texture, ref element.WorldMatrixInternal, ref sprite.RegionInternal, ref element.RenderSizeInternal, ref sprite.BordersInternal, ref color, context.DepthBias, sprite.Orientation);
         }
     }
