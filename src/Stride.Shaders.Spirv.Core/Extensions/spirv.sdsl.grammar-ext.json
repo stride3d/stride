@@ -1,0 +1,108 @@
+{
+  "instructions": [
+    {
+      "opname": "OpSDSLShader",
+      "class": "Miscellaneous",
+      "operands": [
+        {
+          "kind": "LiteralString",
+          "name": "shaderName"
+        }
+      ]
+    },
+    {
+      "opname": "OpSDSLShaderEnd",
+      "class": "Miscellaneous"
+    },
+    {
+      "opname": "OpSDSLMixinInherit",
+      "class": "Miscellaneous",
+      "operands": [
+        {
+          "kind": "IdRef",
+          "name": "shader"
+        }
+      ]
+    },
+    {
+      "opname": "OpSDSLCompose",
+      "class": "Miscellaneous",
+      "operands": [
+        {
+          "kind": "LiteralString",
+          "name": "mixin"
+        },
+        {
+          "kind": "LiteralString",
+          "name": "name"
+        }
+      ]
+    },
+    {
+      "opname": "OpSDSLStage",
+      "class": "Miscellaneous",
+      "operands": [
+        {
+          "kind": "IdRef",
+          "name": "stagedElement"
+        }
+      ]
+    },
+    {
+      "opname": "OpSDSLImportShader",
+      "class": "Miscellaneous",
+      "operands": [
+        {
+          "kind": "IdResult"
+        },
+        {
+          "kind": "LiteralString",
+          "name": "shaderName"
+        }
+      ]
+    },
+    {
+      "opname": "OpSDSLImportFunction",
+      "class": "Miscellaneous",
+      "operands": [
+        { "kind": "IdResultType" },
+        { "kind": "IdResult" },
+        {
+          "kind": "LiteralString",
+          "name": "functionName"
+        },
+        {
+          "kind": "IdRef",
+          "name": "shader"
+        }
+      ]
+    },
+    {
+      "opname": "OpSDSLImportVariable",
+      "class": "Miscellaneous",
+      "operands": [
+        { "kind": "IdResultType" },
+        { "kind": "IdResult" },
+        {
+          "kind": "LiteralString",
+          "name": "variableName"
+        },
+        {
+          "kind": "IdRef",
+          "name": "shader"
+        }
+      ]
+    }
+  ],
+  "operand_kinds": [
+    {
+      "kind": "ExecutionModel",
+      "enumerants": [
+        {
+          "enumerant": "Mixin",
+          "value": 5367
+        }
+      ]
+    }
+  ]
+}

@@ -54,7 +54,7 @@ public partial class SPVGenerator
                 .AppendLine("{")
 
                     .AppendLine("var wordLength = 1 + buffer.GetWordLength(target) + buffer.GetWordLength(decoration) + buffer.GetWordLength(additional1) + buffer.GetWordLength(additional2) + buffer.GetWordLength(additionalString);")
-                    .AppendLine("return buffer.Add([wordLength << 16 | (int)SDSLOp.OpDecorateString, target, ..decoration.AsSpirvSpan(), ..additional1.AsSpirvSpan(), ..additional2.AsSpirvSpan(), ..additionalString.AsSpirvSpan()]);")
+                    .AppendLine("return buffer.Add([wordLength << 16 | (int)SDSLOp.OpDecorate, target, ..decoration.AsSpirvSpan(), ..additional1.AsSpirvSpan(), ..additional2.AsSpirvSpan(), ..additionalString.AsSpirvSpan()]);")
 
                 .AppendLine("}");
             code.AppendLine(op.Documentation);
@@ -63,7 +63,7 @@ public partial class SPVGenerator
                 .AppendLine("{")
 
                     .AppendLine("var wordLength = 1 + buffer.GetWordLength(target) + buffer.GetWordLength(decoration) + buffer.GetWordLength(additional1) + buffer.GetWordLength(additional2) + buffer.GetWordLength(additionalString);")
-                    .AppendLine("return buffer.Insert(position, [wordLength << 16 | (int)SDSLOp.OpDecorateString, target, ..decoration.AsSpirvSpan(), ..additional1.AsSpirvSpan(), ..additional2.AsSpirvSpan(), ..additionalString.AsSpirvSpan()]);")
+                    .AppendLine("return buffer.Insert(position, [wordLength << 16 | (int)SDSLOp.OpDecorate, target, ..decoration.AsSpirvSpan(), ..additional1.AsSpirvSpan(), ..additional2.AsSpirvSpan(), ..additionalString.AsSpirvSpan()]);")
 
                 .AppendLine("}");
         }

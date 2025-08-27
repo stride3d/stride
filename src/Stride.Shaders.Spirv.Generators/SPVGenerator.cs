@@ -1,16 +1,8 @@
-﻿using AngleSharp.Dom;
-using Microsoft.CodeAnalysis;
-using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Runtime.InteropServices.ComTypes;
+﻿using Microsoft.CodeAnalysis;
 using System.Text;
 using System.Text.Json;
-using AngleSharp;
-using System.Net.Http.Headers;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Stride.Shaders.Spirv.Generators;
 
@@ -32,9 +24,6 @@ public partial class SPVGenerator : IIncrementalGenerator
             options.Converters.Add(new EquatableListJsonConverter<Enumerant>());
         if (!options.Converters.Any(x => x is EquatableListJsonConverter<string>))
             options.Converters.Add(new EquatableListJsonConverter<string>());
-
-
-
 
         var grammarData =
             context

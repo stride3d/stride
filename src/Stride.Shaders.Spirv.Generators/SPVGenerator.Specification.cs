@@ -11,14 +11,14 @@ public partial class SPVGenerator
     public void CreateSpecification(IncrementalGeneratorInitializationContext context, IncrementalValueProvider<SpirvGrammar> grammarProvider)
     {
         var sdsloProvider = grammarProvider
-            .Select(static (grammar, _) => grammar.OperandKinds ?? new([]));
+            .Select(static (grammar, _) => grammar);
 
         context.RegisterImplementationSourceOutput(
             sdsloProvider,
             GenerateSDSLSpecification
         );
     }
-    public void GenerateSDSLSpecification(SourceProductionContext spc, EquatableDictionary<string, OpKind> operandKinds)
+    public void GenerateSDSLSpecification(SourceProductionContext spc, SpirvGrammar grammar)
     {
         var code = new StringBuilder();
         code
@@ -27,6 +27,11 @@ public partial class SPVGenerator
             .AppendLine("public static partial class Specification")
             .AppendLine("{");
 
+        code.AppendLine($"public static uint MagicNumber {{ get; }} = {grammar.MagicNumber};");
+        code.AppendLine($"public static uint MajorVersion {{ get; }} = {grammar.MajorVersion};");
+        code.AppendLine($"public static uint MinorVersion {{ get; }} = {grammar.MinorVersion};");
+        code.AppendLine($"public static uint Revision {{ get; }} = {grammar.Revision};");
+        var operandKinds = grammar.OperandKinds ?? new([]);
         foreach (var op in operandKinds.AsDictionary()!.Values)
         {
             if (op.Category == "Literal" || op.Category == "Id" || op.Category == "Composite")

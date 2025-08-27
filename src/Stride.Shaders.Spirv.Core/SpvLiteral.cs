@@ -7,6 +7,7 @@ namespace Stride.Shaders.Spirv.Core;
 /// </summary>
 public ref struct SpvOperand
 {
+    public string? Name { get; init; }
     public OperandKind Kind { get; init; }
     public OperandQuantifier Quantifier { get; init; }
     public Span<int> Words { get; init; }
@@ -20,14 +21,23 @@ public ref struct SpvOperand
         Offset = idRefOffset;
     }
 
+    public SpvOperand(string? name, OperandKind kind, OperandQuantifier quantifier, Span<int> words, int idRefOffset = 0)
+    {
+        Name = name;
+        Kind = kind;
+        Quantifier = quantifier;
+        Words = words;
+        Offset = idRefOffset;
+    }
+
     public void ReplaceIdResult(int replacement)
     {
-        if(Kind == OperandKind.IdResult && replacement > 0)
+        if (Kind == OperandKind.IdResult && replacement > 0)
             Words[0] = replacement;
     }
     public T ToEnum<T>() where T : Enum
     {
-        return Unsafe.As<int,T>(ref Words[0]);
+        return Unsafe.As<int, T>(ref Words[0]);
     }
     public T To<T>() where T : struct, IFromSpirv<T>
     {
@@ -42,7 +52,7 @@ public ref struct SpvOperand
 
     public override string ToString()
     {
-        return Kind switch 
+        return Kind switch
         {
             OperandKind.LiteralString => To<LiteralString>().Value,
             OperandKind.IdRef => $"%{Words[0] + Offset}",

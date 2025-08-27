@@ -4,7 +4,6 @@
 // </copyright>
 
 using System.Collections;
-using System.Collections.Immutable;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -17,8 +16,8 @@ public class EquatableListJsonConverter<T> : JsonConverter<EquatableList<T>>
 {
     public override EquatableList<T> Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
-        var list = JsonSerializer.Deserialize<T[]>(ref reader, options) ?? [];
-        return new EquatableList<T>([..list]);
+        var array = JsonSerializer.Deserialize<T[]>(ref reader, options) ?? [];
+        return new EquatableList<T>([..array]);
     }
 
     public override void Write(Utf8JsonWriter writer, EquatableList<T> value, JsonSerializerOptions options)
@@ -28,25 +27,30 @@ public class EquatableListJsonConverter<T> : JsonConverter<EquatableList<T>>
 }
 
 /// <summary>
-/// An immutable, equatable list. This is equivalent to <see cref="List"/> but with value equality support.
+/// An immutable, equatable array. This is equivalent to <see cref="List"/> but with value equality support.
 /// </summary>
-/// <typeparam name="T">The type of values in the list.</typeparam>
-/// <remarks>
-/// Initializes a new instance of the <see cref="EquatableList{T}"/> struct.
-/// </remarks>
-/// <param name="list">The input list to wrap.</param>
-public readonly struct EquatableList<T>(List<T> list) : IEquatable<EquatableList<T>>, IEnumerable<T>
+/// <typeparam name="T">The type of values in the array.</typeparam>
+public readonly struct EquatableList<T> : IEquatable<EquatableList<T>>, IEnumerable<T>
     where T : IEquatable<T>
 {
     /// <summary>
-    /// The underlying <typeparamref name="T"/> list.
+    /// The underlying <typeparamref name="T"/> array.
     /// </summary>
-    private readonly List<T> _list = list;
+    private readonly List<T>? _list;
 
     /// <summary>
-    /// Gets the length of the list, or 0 if the list is null
+    /// Initializes a new instance of the <see cref="EquatableList{T}"/> struct.
     /// </summary>
-    public int Count => _list.Count;
+    /// <param name="array">The input array to wrap.</param>
+    public EquatableList(List<T> array)
+    {
+        _list = array;
+    }
+
+    /// <summary>
+    /// Gets the length of the array, or 0 if the array is null
+    /// </summary>
+    public int Count => _list?.Count ?? 0;
 
     /// <summary>
     /// Checks whether two <see cref="EquatableList{T}"/> values are the same.
@@ -71,48 +75,36 @@ public readonly struct EquatableList<T>(List<T> list) : IEquatable<EquatableList
     }
 
     /// <inheritdoc/>
-    public bool Equals(EquatableList<T> list)
+    public bool Equals(EquatableList<T> array)
     {
-        if (Count != list.Count)
-            return false;
-        for (int i = 0; i < Count; i++)
-        {
-            if (!_list![i].Equals(list._list![i]))
-                return false;
-        }
-        return true;
+        return AsList().SequenceEqual(array.AsList());
     }
 
     /// <inheritdoc/>
     public override bool Equals(object? obj)
     {
-        return obj is EquatableList<T> list && Equals(this, list);
+        return obj is EquatableList<T> array && Equals(this, array);
     }
 
     /// <inheritdoc/>
     public override int GetHashCode()
     {
-        if (_list is not List<T> list)
-        {
+        if (_list is not List<T> array)
             return 0;
-        }
 
-        HashCode hashCode = default;
-
-        foreach (T item in list)
+        int hash = 17;
+        foreach (T item in array)
         {
-            hashCode.Add(item);
+            hash = hash * 31 + item.GetHashCode();
         }
-
-        return hashCode.ToHashCode();
+        return hash;
     }
 
-
     /// <summary>
-    /// Returns the underlying wrapped list.
+    /// Returns the underlying wrapped array.
     /// </summary>
-    /// <returns>Returns the underlying list.</returns>
-    public List<T> AsList()
+    /// <returns>Returns the underlying array.</returns>
+    public List<T>? AsList()
     {
         return _list;
     }
@@ -120,15 +112,14 @@ public readonly struct EquatableList<T>(List<T> list) : IEquatable<EquatableList
     /// <inheritdoc/>
     IEnumerator<T> IEnumerable<T>.GetEnumerator()
     {
-        return _list.GetEnumerator();
+        return ((IEnumerable<T>)(_list ?? [])).GetEnumerator();
     }
 
     /// <inheritdoc/>
     IEnumerator IEnumerable.GetEnumerator()
     {
-        return _list.GetEnumerator();
+        return ((IEnumerable<T>)(_list ?? [])).GetEnumerator();
     }
-    
+
     public static implicit operator EquatableList<T>(List<T> list) => new([.. list]);
-    public static implicit operator EquatableList<T>(ImmutableList<T> list) => new([.. list]);
 }
