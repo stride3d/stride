@@ -161,6 +161,16 @@ namespace Stride.UI.Panels
             };
         }
 
+        /// <summary>
+        /// Calculates and returns the spacing gaps between columns, rows, and layers.
+        /// </summary>
+        /// <returns>A <see cref="Vector3"/> where the X, Y, and Z components represent the column gap, row gap, and layer gap,
+        /// respectively.</returns>
+        protected Vector3 GetGaps()
+        {
+            return new Vector3(columnGap, rowGap, layerGap);
+        }
+
         private static void InvalidateParentGridMeasure(object propertyowner, PropertyKey<int> propertykey, int propertyoldvalue)
         {
             var element = (UIElement)propertyowner;

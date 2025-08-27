@@ -89,15 +89,11 @@ namespace Stride.UI.Panels
         /// </summary>
         /// <param name="cellSize">The size of one cell</param>
         /// <param name="span">The number of cells spanned</param>
-        /// <param name="dimension">The dimension (0=Column, 1=Row, 2=Layer)</param>
         /// <returns>The total size including gaps</returns>
-        private float CalculateSpannedSize(float cellSize, int span, int dimension)
+        private Vector3 CalculateSpannedSize(Vector3 cellSize, Vector3 span)
         {
-            if (span <= 1) return cellSize;
-            
-            // For spanned elements: (cellSize * span) + (gap * (span - 1))
-            var gapSize = GetGapForDimension(dimension) * (span - 1);
-            return cellSize * span + gapSize;
+            var gaps = GetGaps() * (span - 1);
+            return Vector3.Max(cellSize * span + gaps, Vector3.One);
         }
 
         protected override Vector3 MeasureOverride(Vector3 availableSizeWithoutMargins)
@@ -108,12 +104,9 @@ namespace Stride.UI.Panels
                 CalculateTotalGapSize(0, Columns),
                 CalculateTotalGapSize(1, Rows),
                 CalculateTotalGapSize(2, Layers));
-            
+
             var availableForCells = availableSizeWithoutMargins - totalGapSize;
-            var availableForOneCell = new Vector3(
-                availableForCells.X / gridSize.X, 
-                availableForCells.Y / gridSize.Y, 
-                availableForCells.Z / gridSize.Z);
+            var availableForOneCell = availableForCells / gridSize;
 
             // measure all the children
             var neededForOneCell = Vector3.Zero;
@@ -123,17 +116,11 @@ namespace Stride.UI.Panels
                 var childSpans = GetElementSpanValuesAsFloat(child);
                 
                 // Calculate available size including gaps for spanned elements
-                var availableForChildWithMargin = new Vector3(
-                    CalculateSpannedSize(availableForOneCell.X, (int)childSpans.X, 0),
-                    CalculateSpannedSize(availableForOneCell.Y, (int)childSpans.Y, 1),
-                    CalculateSpannedSize(availableForOneCell.Z, (int)childSpans.Z, 2));
+                var availableForChildWithMargin = CalculateSpannedSize(availableForOneCell, childSpans);
 
                 child.Measure(availableForChildWithMargin);
 
-                neededForOneCell = new Vector3(
-                    Math.Max(neededForOneCell.X, child.DesiredSizeWithMargins.X / childSpans.X),
-                    Math.Max(neededForOneCell.Y, child.DesiredSizeWithMargins.Y / childSpans.Y),
-                    Math.Max(neededForOneCell.Z, child.DesiredSizeWithMargins.Z / childSpans.Z));
+                neededForOneCell = Vector3.Max(neededForOneCell, child.DesiredSizeWithMargins / childSpans);
             }
 
             return Vector3.Modulate(gridSize, neededForOneCell) + totalGapSize;
@@ -149,10 +136,7 @@ namespace Stride.UI.Panels
                 CalculateTotalGapSize(2, Layers));
             
             var availableForCells = finalSizeWithoutMargins - totalGapSize;
-            finalForOneCell = new Vector3(
-                availableForCells.X / gridSize.X, 
-                availableForCells.Y / gridSize.Y, 
-                availableForCells.Z / gridSize.Z);
+            finalForOneCell = availableForCells / gridSize;
 
             var gaps = new Vector3(ColumnGap, RowGap, LayerGap);
 
@@ -163,10 +147,7 @@ namespace Stride.UI.Panels
                 var childSpans = GetElementSpanValuesAsFloat(child);
                 
                 // Calculate final size including gaps for spanned elements
-                var finalForChildWithMargin = new Vector3(
-                    CalculateSpannedSize(finalForOneCell.X, (int)childSpans.X, 0),
-                    CalculateSpannedSize(finalForOneCell.Y, (int)childSpans.Y, 1),
-                    CalculateSpannedSize(finalForOneCell.Z, (int)childSpans.Z, 2));
+                var finalForChildWithMargin = CalculateSpannedSize(finalForOneCell, childSpans);
 
                 // calculate child position accounting for gaps
                 var childGridPosition = GetElementGridPositionsAsFloat(child);
