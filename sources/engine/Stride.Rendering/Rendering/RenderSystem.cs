@@ -285,8 +285,14 @@ namespace Stride.Rendering
                         var renderStage = RenderStages[renderViewStage.Index];
                         var sortedRenderNodes = renderViewStage.SortedRenderNodes;
 
-                        // Fast clear, since it's cleared properly in Reset()
-                        sortedRenderNodes.EnsureCapacity(renderNodes.Count);
+                        if (sortedRenderNodes.Count < renderNodes.Count)
+                        {
+                            sortedRenderNodes.EnsureCapacity(renderNodes.Count);
+                        }
+                        else if (sortedRenderNodes.Count > renderNodes.Count)
+                        {
+                            sortedRenderNodes.RemoveRange(renderNodes.Count, sortedRenderNodes.Count - renderNodes.Count);
+                        }
 
                         if (renderStage.SortMode != null)
                         {

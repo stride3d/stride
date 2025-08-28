@@ -77,15 +77,17 @@ namespace Stride.Rendering.Compositing
 
         public unsafe void EndCustomValidation()
         {
-            var renderTargetsCount = renderTargets.Count;
-            
-            if (validatedTargetCount < renderTargetsCount || hasChanged)
+            if (validatedTargetCount < renderTargets.Count || hasChanged)
             {
-                var renderTargetsSpan = CollectionsMarshal.AsSpan(renderTargets);
-                var sliceToClear = renderTargetsSpan.Slice(validatedTargetCount, renderTargetsCount - validatedTargetCount);
-                
-                sliceToClear.Clear();
-                
+                if (renderTargets.Count < validatedTargetCount)
+                {
+                    renderTargets.EnsureCapacity(validatedTargetCount);
+                }
+                else if (renderTargets.Count > validatedTargetCount)
+                {
+                    renderTargets.RemoveRange(validatedTargetCount, renderTargets.Count - validatedTargetCount);
+                }
+
                 // Recalculate shader sources
                 ShaderSource = new ShaderMixinSource();
                 ShaderSource.Macros.Add(new ShaderMacro("STRIDE_RENDER_TARGET_COUNT", renderTargets.Count));

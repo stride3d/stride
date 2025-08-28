@@ -463,7 +463,19 @@ namespace Stride.Rendering.Compositing
 
             return result;
         }
-
+        
+        private void ResizeFalse<T>(List<T> list, int newSize)
+        {
+            if (list.Count < newSize)
+            {
+                list.EnsureCapacity(newSize);
+            }
+            else if (list.Count > newSize)
+            {
+                list.RemoveRange(newSize, list.Count - newSize);
+            }
+        }
+        
         /// <summary>
         /// Resolves the MSAA textures. Converts MSAA currentRenderTargets and currentDepthStencil into currentRenderTargetsNonMSAA and currentDepthStencilNonMSAA.
         /// </summary>
@@ -471,17 +483,7 @@ namespace Stride.Rendering.Compositing
         private void ResolveMSAA(RenderDrawContext drawContext)
         {
             // Resolve render targets
-            var currentRenderTargetsCount = currentRenderTargets.Count;
-            var currentRenderTargetsNonMSAACount = currentRenderTargetsNonMSAA.Count;
-            
-            currentRenderTargetsNonMSAA.EnsureCapacity(currentRenderTargetsCount);
-            
-            if (currentRenderTargetsNonMSAACount > currentRenderTargetsCount)
-            {
-                var currentRenderTargetsNonMSAASpan = CollectionsMarshal.AsSpan(currentRenderTargetsNonMSAA);
-                var sliceToClear = currentRenderTargetsNonMSAASpan.Slice(currentRenderTargetsCount, currentRenderTargetsNonMSAACount - currentRenderTargetsCount);
-                sliceToClear.Clear();
-            }
+            ResizeFalse(currentRenderTargetsNonMSAA, currentRenderTargets.Count);
             
             for (int index = 0; index < currentRenderTargets.Count; index++)
             {
@@ -850,17 +852,7 @@ namespace Stride.Rendering.Compositing
 
             var renderTargets = OpaqueRenderStage.OutputValidator.RenderTargets;
 
-            var renderTargetsCount = renderTargets.Count;
-            var currentRenderTargetsCount = currentRenderTargets.Count;
-            
-            currentRenderTargets.EnsureCapacity(renderTargetsCount);
-            
-            if (renderTargetsCount < currentRenderTargetsCount)
-            {
-                var currentRenderTargetsSpan = CollectionsMarshal.AsSpan(currentRenderTargets);
-                var sliceToClear = currentRenderTargetsSpan.Slice(renderTargetsCount,currentRenderTargetsCount - renderTargetsCount);
-                sliceToClear.Clear();
-            }
+            ResizeFalse(currentRenderTargets, renderTargets.Count);
 
             for (int index = 0; index < renderTargets.Count; index++)
             {
