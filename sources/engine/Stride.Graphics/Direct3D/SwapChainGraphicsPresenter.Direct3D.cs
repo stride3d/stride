@@ -336,13 +336,17 @@ namespace Stride.Graphics
         private List<Texture> DestroyChildrenTextures(Texture parentTexture)
         {
             var fastList = new List<Texture>();
-            foreach (var resource in GraphicsDevice.Resources)
+            var resources = GraphicsDevice.Resources;
+            lock (resources)
             {
-                var texture = resource as Texture;
-                if (texture != null && texture.ParentTexture == parentTexture)
+                foreach (var resource in resources)
                 {
-                    texture.OnDestroyed();
-                    fastList.Add(texture);
+                    var texture = resource as Texture;
+                    if (texture != null && texture.ParentTexture == parentTexture)
+                    {
+                        texture.OnDestroyed();
+                        fastList.Add(texture);
+                    }
                 }
             }
 

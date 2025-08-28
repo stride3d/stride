@@ -21,8 +21,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace Stride.Core.Mathematics;
@@ -32,7 +32,7 @@ namespace Stride.Core.Mathematics;
 /// </summary>
 [DataContract]
 [StructLayout(LayoutKind.Sequential, Pack = 4)]
-public struct Point : IEquatable<Point>
+public struct Point : IEquatable<Point>, ISpanFormattable
 {
     /// <summary>
     /// A point with (0,0) coordinates.
@@ -111,11 +111,39 @@ public struct Point : IEquatable<Point>
     {
         return !left.Equals(right);
     }
-
+    
     /// <inheritdoc/>
-    public override readonly string ToString()
+    public override readonly string ToString() => $"{this}";
+
+    /// <summary>
+    /// Returns a <see cref="string"/> that represents this instance.
+    /// </summary>
+    /// <param name="format">The format.</param>
+    /// <param name="formatProvider">The format provider.</param>
+    /// <returns>
+    /// A <see cref="string"/> that represents this instance.
+    /// </returns>
+    public readonly string ToString([StringSyntax(StringSyntaxAttribute.NumericFormat)] string? format, IFormatProvider? formatProvider)
     {
-        return string.Format("({0},{1})", X, Y);
+        var handler = new DefaultInterpolatedStringHandler(3, 2, formatProvider);
+        handler.AppendLiteral("(");
+        handler.AppendFormatted(X, format);
+        handler.AppendLiteral(",");
+        handler.AppendFormatted(Y, format);
+        handler.AppendLiteral(")");
+        return handler.ToStringAndClear();
+    }
+
+    bool ISpanFormattable.TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
+    {
+        var format1 = format.Length > 0 ? format.ToString() : null;
+        var handler = new MemoryExtensions.TryWriteInterpolatedStringHandler(3, 2, destination, provider, out _);
+        handler.AppendLiteral("(");
+        handler.AppendFormatted(X, format1);
+        handler.AppendLiteral(",");
+        handler.AppendFormatted(Y, format1);
+        handler.AppendLiteral(")");
+        return destination.TryWrite(ref handler, out charsWritten);
     }
 
     /// <summary>

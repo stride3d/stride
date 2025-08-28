@@ -3,10 +3,12 @@
 
 using BepuPhysics;
 using BepuPhysics.Collidables;
+using BepuPhysics.Trees;
 using BepuUtilities.Memory;
 using Stride.BepuPhysics.Systems;
 using Stride.Core;
 using Stride.Core.Mathematics;
+using NRigidPose = BepuPhysics.RigidPose;
 
 namespace Stride.BepuPhysics.Definitions.Colliders;
 
@@ -14,9 +16,6 @@ namespace Stride.BepuPhysics.Definitions.Colliders;
 public sealed class EmptyCollider : ICollider
 {
     CollidableComponent? ICollider.Component { get; set; }
-
-    [DataMemberIgnore]
-    public Action OnEditCallBack { get; set; } = () => { };
 
     int ICollider.Transforms => 1; //We don't have collider, but we have a debug render (a sphere of a radius of 0.1 for now)
 
@@ -43,5 +42,9 @@ public sealed class EmptyCollider : ICollider
         centerOfMass = new();
         inertia = new Sphere(1).ComputeInertia(1);
         return true;
+    }
+
+    void ICollider.RayTest<TRayHitHandler>(Shapes shapes, TypedIndex shapeIndex, in NRigidPose pose, in RayData ray, ref float maximumT, ref TRayHitHandler hitHandler)
+    {
     }
 }
