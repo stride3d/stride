@@ -78,6 +78,22 @@ public class ServiceRegistry : IServiceRegistry
 
     /// <inheritdoc />
     /// <remarks>
+    /// This implementation triggers the <see cref="ServiceAdded"/> event after a service is successfully added.
+    /// </remarks>
+    public void AddService(object service, Type type)
+    {
+        ArgumentNullException.ThrowIfNull(service);
+
+        lock (registeredService)
+        {
+            if (!registeredService.TryAdd(type, service))
+                throw new ArgumentException("Service is already registered with this type", nameof(type));
+        }
+        OnServiceAdded(new ServiceEventArgs(type, service));
+    }
+
+    /// <inheritdoc />
+    /// <remarks>
     /// This implementation triggers the <see cref="ServiceRemoved"/> event after a service is successfully removed.
     /// If the service type is not found, this method does nothing.
     /// </remarks>
