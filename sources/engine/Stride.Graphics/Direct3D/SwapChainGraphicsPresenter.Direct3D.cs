@@ -23,7 +23,7 @@
 
 #if STRIDE_GRAPHICS_API_DIRECT3D
 using System;
-using System.Reflection;
+using System.Collections.Generic;
 using SharpDX;
 using SharpDX.DXGI;
 using SharpDX.Mathematics.Interop;
@@ -333,9 +333,9 @@ namespace Stride.Graphics
         /// </summary>
         /// <param name="parentTexture">Specified parent texture</param>
         /// <returns>A list of the children textures which were destroyed</returns>
-        private FastList<Texture> DestroyChildrenTextures(Texture parentTexture)
+        private List<Texture> DestroyChildrenTextures(Texture parentTexture)
         {
-            var fastList = new FastList<Texture>();
+            var fastList = new List<Texture>();
             var resources = GraphicsDevice.Resources;
             lock (resources)
             {

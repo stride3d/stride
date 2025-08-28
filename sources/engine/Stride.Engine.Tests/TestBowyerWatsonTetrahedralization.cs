@@ -15,7 +15,7 @@ namespace Stride.Engine.Tests
         public void TestCube()
         {
             // Build cube from (0,0,0) to (1,1,1)
-            var positions = new FastList<Vector3>();
+            var positions = new List<Vector3>();
             for (int i = 0; i < 8; ++i)
             {
                 positions.Add(new Vector3

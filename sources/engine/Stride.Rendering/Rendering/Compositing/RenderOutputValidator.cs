@@ -4,7 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Stride.Core.Collections;
+using System.Runtime.InteropServices;
 using Stride.Graphics;
 using Stride.Shaders;
 
@@ -15,7 +15,7 @@ namespace Stride.Rendering.Compositing
     /// </summary>
     public sealed class RenderOutputValidator
     {
-        private readonly FastList<RenderTargetDescription> renderTargets = new FastList<RenderTargetDescription>();
+        private readonly List<RenderTargetDescription> renderTargets = [];
         private readonly RenderStage renderStage;
 
         private int validatedTargetCount;
@@ -79,7 +79,16 @@ namespace Stride.Rendering.Compositing
         {
             if (validatedTargetCount < renderTargets.Count || hasChanged)
             {
-                renderTargets.Resize(validatedTargetCount, false);
+                if (renderTargets.Count < validatedTargetCount)
+                {
+                    renderTargets.EnsureCapacity(validatedTargetCount);
+                    while (renderTargets.Count != validatedTargetCount)
+                        renderTargets.Add(default);
+                }
+                else if (renderTargets.Count > validatedTargetCount)
+                {
+                    renderTargets.RemoveRange(validatedTargetCount, renderTargets.Count - validatedTargetCount);
+                }
 
                 // Recalculate shader sources
                 ShaderSource = new ShaderMixinSource();
