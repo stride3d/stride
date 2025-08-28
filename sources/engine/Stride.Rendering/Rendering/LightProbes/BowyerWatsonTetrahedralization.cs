@@ -286,6 +286,7 @@ namespace Stride.Rendering.LightProbes
                         currentFace.Normal = faceNormal;
 
                         faces.Add(currentFace);
+                        facesSpan = CollectionsMarshal.AsSpan(faces);
                     }
                 }
             }
@@ -532,6 +533,8 @@ namespace Stride.Rendering.LightProbes
 
             // Sort hole edges to be able to binary search them when reconstructing neighbour information
             edges.Sort();
+
+            tetrahedralizationSpan = CollectionsMarshal.AsSpan(tetrahedralization); // Fetch latest state of the list as a span
 
             // Re-triangulate the polygonal hole
             foreach (var face in holeFaces)
