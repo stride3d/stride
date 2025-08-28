@@ -288,6 +288,8 @@ namespace Stride.Rendering
                         if (sortedRenderNodes.Count < renderNodes.Count)
                         {
                             sortedRenderNodes.EnsureCapacity(renderNodes.Count);
+                            while (sortedRenderNodes.Count != renderNodes.Count)
+                                sortedRenderNodes.Add(default);
                         }
                         else if (sortedRenderNodes.Count > renderNodes.Count)
                         {

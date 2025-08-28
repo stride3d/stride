@@ -560,9 +560,9 @@ namespace Stride.Rendering
 
             // Do a first pass to measure constant buffer size
             var newParameterKeyInfos = new List<ParameterKeyInfo>(Math.Max(1, parameterKeyInfos.Count));
-            var newParameterKeyInfosSpan = CollectionsMarshal.AsSpan(newParameterKeyInfos);
             newParameterKeyInfos.AddRange(parameterKeyInfos);
-            var processedParameters = new bool[newParameterKeyInfosSpan.Length];
+            var newParameterKeyInfosSpan = CollectionsMarshal.AsSpan(newParameterKeyInfos);
+            var processedParameters = new bool[parameterKeyInfos.Count];
 
             var bufferSize = collectionLayout.BufferSize;
             var resourceCount = collectionLayout.ResourceCount;

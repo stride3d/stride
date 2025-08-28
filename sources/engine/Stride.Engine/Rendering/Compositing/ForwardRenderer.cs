@@ -463,19 +463,7 @@ namespace Stride.Rendering.Compositing
 
             return result;
         }
-        
-        private void ResizeFalse<T>(List<T> list, int newSize)
-        {
-            if (list.Count < newSize)
-            {
-                list.EnsureCapacity(newSize);
-            }
-            else if (list.Count > newSize)
-            {
-                list.RemoveRange(newSize, list.Count - newSize);
-            }
-        }
-        
+
         /// <summary>
         /// Resolves the MSAA textures. Converts MSAA currentRenderTargets and currentDepthStencil into currentRenderTargetsNonMSAA and currentDepthStencilNonMSAA.
         /// </summary>
@@ -483,8 +471,17 @@ namespace Stride.Rendering.Compositing
         private void ResolveMSAA(RenderDrawContext drawContext)
         {
             // Resolve render targets
-            ResizeFalse(currentRenderTargetsNonMSAA, currentRenderTargets.Count);
-            
+            if (currentRenderTargetsNonMSAA.Count < currentRenderTargets.Count)
+            {
+                currentRenderTargetsNonMSAA.EnsureCapacity(currentRenderTargets.Count);
+                while (currentRenderTargetsNonMSAA.Count != currentRenderTargets.Count)
+                    currentRenderTargetsNonMSAA.Add(null);
+            }
+            else if (currentRenderTargetsNonMSAA.Count > currentRenderTargets.Count)
+            {
+                currentRenderTargetsNonMSAA.RemoveRange(currentRenderTargets.Count, currentRenderTargetsNonMSAA.Count - currentRenderTargets.Count);
+            }
+
             for (int index = 0; index < currentRenderTargets.Count; index++)
             {
                 var input = currentRenderTargets[index];
@@ -609,7 +606,7 @@ namespace Stride.Rendering.Compositing
                 {
                     // Run post effects
                     // Note: OpaqueRenderStage can't be null otherwise colorTargetIndex would be -1
-                    PostEffects.Draw(drawContext, OpaqueRenderStage.OutputValidator, renderTargets, depthStencil, viewOutputTarget);
+                    PostEffects.Draw(drawContext, OpaqueRenderStage.OutputValidator, CollectionsMarshal.AsSpan(renderTargets), depthStencil, viewOutputTarget);
                 }
                 else
                 {
@@ -699,7 +696,7 @@ namespace Stride.Rendering.Compositing
                                     }
                                 }
 
-                                drawContext.CommandList.SetRenderTargets(currentDepthStencil, currentRenderTargets.Count, currentRenderTargets);
+                                drawContext.CommandList.SetRenderTargets(currentDepthStencil, currentRenderTargets.Count, CollectionsMarshal.AsSpan(currentRenderTargets));
 
                                 if (!hasPostEffects && !isWindowsMixedReality) // need to change the viewport between each eye
                                 {
@@ -758,7 +755,7 @@ namespace Stride.Rendering.Compositing
 
                     using (drawContext.PushRenderTargetsAndRestore())
                     {
-                        drawContext.CommandList.SetRenderTargets(currentDepthStencil, currentRenderTargets.Count, currentRenderTargets);
+                        drawContext.CommandList.SetRenderTargets(currentDepthStencil, currentRenderTargets.Count, CollectionsMarshal.AsSpan(currentRenderTargets));
 
                         // Clear render target and depth stencil
                         Clear?.Draw(drawContext);
@@ -852,7 +849,16 @@ namespace Stride.Rendering.Compositing
 
             var renderTargets = OpaqueRenderStage.OutputValidator.RenderTargets;
 
-            ResizeFalse(currentRenderTargets, renderTargets.Count);
+            if (currentRenderTargets.Count < renderTargets.Count)
+            {
+                currentRenderTargets.EnsureCapacity(renderTargets.Count);
+                while (currentRenderTargets.Count != renderTargets.Count)
+                    currentRenderTargets.Add(null);
+            }
+            else if (currentRenderTargets.Count > renderTargets.Count)
+            {
+                currentRenderTargets.RemoveRange(renderTargets.Count, currentRenderTargets.Count - renderTargets.Count);
+            }
 
             for (int index = 0; index < renderTargets.Count; index++)
             {

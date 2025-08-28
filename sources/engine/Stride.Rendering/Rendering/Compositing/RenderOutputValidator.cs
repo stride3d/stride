@@ -82,6 +82,8 @@ namespace Stride.Rendering.Compositing
                 if (renderTargets.Count < validatedTargetCount)
                 {
                     renderTargets.EnsureCapacity(validatedTargetCount);
+                    while (renderTargets.Count != validatedTargetCount)
+                        renderTargets.Add(default);
                 }
                 else if (renderTargets.Count > validatedTargetCount)
                 {

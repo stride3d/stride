@@ -230,7 +230,7 @@ namespace Stride.Rendering.Images
         {
         }
 
-        public void Draw(RenderDrawContext drawContext, RenderOutputValidator outputValidator, IReadOnlyList<Texture> inputs, Texture inputDepthStencil, Texture outputTarget)
+        public void Draw(RenderDrawContext drawContext, RenderOutputValidator outputValidator, Span<Texture> inputs, Texture inputDepthStencil, Texture outputTarget)
         {
             var colorIndex = outputValidator.Find<ColorTargetSemantic>();
             if (colorIndex < 0)

@@ -345,8 +345,8 @@ public static class Dispatcher
         Sort(collection.Items, 0, collection.Count, comparer);
     }
 
-    [Obsolete(".NET Lists can be faster in the latest .NET versions.Please use the overload with T[] instead.")]
-    public static void Sort <T>(FastList<T> collection, IComparer<T> comparer)
+    [Obsolete("This method will be removed in the future alongside FastList. We will have an alternative using Span<T> which you will be able to fallback to.")]
+    public static void Sort<T>(FastList<T> collection, IComparer<T> comparer)
     {
         Sort(collection.Items, 0, collection.Count, comparer);
     }
