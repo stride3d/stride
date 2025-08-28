@@ -225,9 +225,8 @@ namespace Stride.Rendering.LightProbes
             var currentFace = new Face();
             var tetrahedralizationSpan = CollectionsMarshal.AsSpan(tetrahedralization);
             var facesSpan = CollectionsMarshal.AsSpan(faces);
-            
-            
-            for (int index = 0; index < tetrahedralization.Count; index++)
+
+            for (int index = 0; index < tetrahedralizationSpan.Length; index++)
             {
                 var currentTetrahedron = tetrahedralizationSpan[index];
 
@@ -300,7 +299,7 @@ namespace Stride.Rendering.LightProbes
         {
             var tetrahedralizationSpan = CollectionsMarshal.AsSpan(tetrahedralization);
             
-            for (int index = 0; index < tetrahedralization.Count; index++)
+            for (int index = 0; index < tetrahedralizationSpan.Length; index++)
             {
                 if (!IsTetrahedronAllocated(index, tetrahedralizationSpan))
                 {
@@ -339,6 +338,8 @@ namespace Stride.Rendering.LightProbes
                     }
 
                     tetrahedralization.RemoveAt(lastIndex);
+                    // Reduce length of the span by one given that we just removed an item from the list the span originates from
+                    tetrahedralizationSpan = tetrahedralizationSpan[..^1];
                 }
                 
 
@@ -353,9 +354,7 @@ namespace Stride.Rendering.LightProbes
         private unsafe void RemoveSuperTetrahedron(int startVertex, int endVertex)
         {
             var tetrahedralizationSpan = CollectionsMarshal.AsSpan(tetrahedralization);
-            
-            
-            for (int index = 0; index < tetrahedralization.Count; index++)
+            for (int index = 0; index < tetrahedralizationSpan.Length; index++)
             {
                 if (!IsTetrahedronAllocated(index, tetrahedralizationSpan))
                     continue;
@@ -374,7 +373,7 @@ namespace Stride.Rendering.LightProbes
             }
 
             // Remove invalid neighbour (pointing to nodes that were just deleted)
-            for (int index = 0; index < tetrahedralization.Count; index++)
+            for (int index = 0; index < tetrahedralizationSpan.Length; index++)
             {
                 if (!IsTetrahedronAllocated(index, tetrahedralizationSpan))
                     continue;
@@ -389,7 +388,6 @@ namespace Stride.Rendering.LightProbes
                         tetrahedron.Neighbours[i] = -1;
                 }
             }
-            
         }
 
         /// <summary>
@@ -453,7 +451,7 @@ namespace Stride.Rendering.LightProbes
             
             // First, find all the triangles that are no longer valid due to the insertion
             // TODO: Currently O(N^2); "By using the connectivity of the triangulation to efficiently locate triangles to remove, the algorithm can take O(N log N)"
-            for (int index = 0; index < tetrahedralization.Count; index++)
+            for (int index = 0; index < tetrahedralizationSpan.Length; index++)
             {
                 if (IsTetrahedronAllocated(index, tetrahedralizationSpan) && IsPointInCircumsphere(ref vertex, vertices, ref tetrahedralizationSpan[index]))
                     badTetrahedra.Add(index);
@@ -513,14 +511,12 @@ namespace Stride.Rendering.LightProbes
             {
                 FreeTetrahedron(tetrahedronIndex, tetrahedralizationSpan);
             }
-            
-            
-           
+
             var holeFacesSpan = CollectionsMarshal.AsSpan(holeFaces);
             // Allocate tetrahedron, and build edge list
             for (int index = 0; index < holeFaces.Count; index++)
             {
-                ref var face =ref holeFacesSpan[index];
+                ref var face = ref holeFacesSpan[index];
 
                 var tetrahedronIndex = AllocateTetrahedron();
                 face.Tetrahedron = tetrahedronIndex;
@@ -583,7 +579,7 @@ namespace Stride.Rendering.LightProbes
         {
             var tetrahedralizationSpan = CollectionsMarshal.AsSpan(tetrahedralization);
             // Check connectivity
-            for (int index = 0; index < tetrahedralization.Count; index++)
+            for (int index = 0; index < tetrahedralizationSpan.Length; index++)
             {
                 if (!IsTetrahedronAllocated(index, tetrahedralizationSpan))
                     continue;
