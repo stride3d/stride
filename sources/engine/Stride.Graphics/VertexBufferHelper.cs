@@ -3,6 +3,7 @@
 
 #nullable enable
 using System;
+using System.Runtime.InteropServices;
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Graphics.Semantic;
@@ -19,10 +20,11 @@ namespace Stride.Graphics;
 /// ]]>
 /// </code>
 /// </example>
-public class VertexBufferHelper
+public readonly struct VertexBufferHelper
 {
     /// <summary>
-    /// Full vertex buffer, does not account for the binding offset or length
+    /// Full vertex buffer, the start and end of this buffer may contain data that does not map to this <see cref="Binding"/>,
+    /// use <see cref="DataInner"/> if you want to only read the data that is mapped to this binding.
     /// </summary>
     public readonly byte[] DataOuter;
     public readonly VertexBufferBinding Binding;
@@ -33,10 +35,24 @@ public class VertexBufferHelper
     public Span<byte> DataInner => DataOuter.AsSpan(Binding.Offset, Binding.Count * Binding.Stride);
 
     /// <inheritdoc cref="MeshExtension.AsReadable(VertexBufferBinding, IServiceRegistry, out VertexBufferHelper, out int)"/>
-    public VertexBufferHelper(VertexBufferBinding binding, IServiceRegistry services, out int count)
+    public VertexBufferHelper(VertexBufferBinding binding, IServiceRegistry services, out int count) 
+        : this(binding, MeshExtension.FetchBufferContentOrThrow(binding.Buffer, services), out count)
     {
-        var data = MeshExtension.FetchBufferContentOrThrow(binding.Buffer, services);
-        DataOuter = data;
+    }
+
+    /// <summary>
+    /// Create the helper from existing data instead of trying to fetch the buffer automatically
+    /// </summary>
+    /// <exception cref="ArgumentException">
+    /// <paramref name="dataOuter"/> does not match the binding definition provided,
+    /// <paramref name="dataOuter"/> must be the entire vertex buffer
+    /// </exception>
+    public VertexBufferHelper(VertexBufferBinding binding, byte[] dataOuter, out int count)
+    {
+        if (dataOuter.Length < binding.Offset + binding.Count * binding.Stride)
+            throw new ArgumentException($"{nameof(dataOuter)} does not fit the bindings provided. Make sure that the span provided contains the entirety of the vertex buffer");
+
+        DataOuter = dataOuter;
         Binding = binding;
         count = Binding.Count;
     }
@@ -69,7 +85,101 @@ public class VertexBufferHelper
     }
 
     /// <summary>
-    /// Provides custom access to the vertex buffer while having access to the auto-conversion
+    /// Copies this vertex buffer's data to the vertex-buffer-like span provided.
+    /// Any semantic data present in <paramref name="destination"/> that is not present in this buffer is left untouched.
+    /// </summary>
+    /// <param name="destination">
+    /// The buffer which will be written to, must be of the same length as the amount of vertices in this buffer
+    /// </param>
+    /// <returns>True if every semantic element of <typeparamref name="TDest"/> was written to from this buffers' data, false if at least one semantic was missing</returns>
+    /// <exception cref="NotImplementedException">
+    /// When the data format for this semantic is too arcane - no conversion logic is implemented for that type
+    /// </exception>
+    /// <example>
+    /// Copying a mesh's vertex positions, colors and UVs:
+    /// <code>
+    /// <![CDATA[
+    /// Model.Meshes[0].Draw.VertexBuffers[0].AsReadable(Services, out VertexBufferHelper helper, out int count);
+    /// var vertexPositionsColorsAndUVs = new VertexPositionColorTexture[count];
+    /// helper.Copy(vertexPositionsColorsAndUVs);
+    /// ]]>
+    /// </code>
+    /// </example>
+    public unsafe bool Copy<TDest>(Span<TDest> destination) where TDest : unmanaged, IVertex
+    {
+        bool missing = false;
+        var parameters = new InterleavedParameters(DataInner, MemoryMarshal.Cast<TDest, byte>(destination), Binding.Stride, sizeof(TDest), Binding.Count);
+        foreach (var destDef in default(TDest).GetLayout().EnumerateWithOffsets())
+        {
+            if (Binding.Declaration.TryGetElement(destDef.VertexElement.SemanticName, destDef.VertexElement.SemanticIndex, out var srcDef))
+            {
+                var srcOffset = srcDef.Offset;
+                var destOffset = destDef.Offset;
+
+                var srcFormat = srcDef.VertexElement.Format;
+                switch (destDef.VertexElement.Format)
+                {
+                    // The particular semantic used doesn't matter too much here, we're just abusing the relaxed definition to fit any TDest
+                    case PixelFormat.R32G32_Float: SelectSrcType<Relaxed<PositionSemantic>, Vector2>(parameters, srcOffset, destOffset, srcFormat); break;
+                    case PixelFormat.R32G32B32_Float: SelectSrcType<Relaxed<PositionSemantic>, Vector3>(parameters, srcOffset, destOffset, srcFormat); break;
+                    case PixelFormat.R32G32B32A32_Float: SelectSrcType<Relaxed<PositionSemantic>, Vector4>(parameters, srcOffset, destOffset, srcFormat); break;
+                    case PixelFormat.R16G16_Float: SelectSrcType<Relaxed<PositionSemantic>, Half2>(parameters, srcOffset, destOffset, srcFormat); break;
+                    case PixelFormat.R16G16B16A16_Float: SelectSrcType<Relaxed<PositionSemantic>, Half4>(parameters, srcOffset, destOffset, srcFormat); break;
+                    case PixelFormat.R16G16B16A16_UInt: SelectSrcType<Relaxed<PositionSemantic>, UShort4>(parameters, srcOffset, destOffset, srcFormat); break;
+                    case PixelFormat.R8G8B8A8_UInt: SelectSrcType<Relaxed<PositionSemantic>, Byte4>(parameters, srcOffset, destOffset, srcFormat); break;
+                    default: throw new NotImplementedException($"Unsupported format when converting vertex element ({srcDef.VertexElement.Format})");
+                }
+            }
+            else
+            {
+                missing = true;
+            }
+        }
+
+        return missing;
+
+        static void SelectSrcType<TSemantic, TOutput>(InterleavedParameters param, int srcElemOffset, int destElemOffset, PixelFormat format) 
+            where TSemantic : ISemantic<TOutput>
+            where TOutput : unmanaged
+        {
+            switch (format)
+            {
+                case PixelFormat.R32G32_Float: InterleavedCopy<TSemantic, Vector2, TOutput>(param, srcElemOffset, destElemOffset); break;
+                case PixelFormat.R32G32B32_Float: InterleavedCopy<TSemantic, Vector3, TOutput>(param, srcElemOffset, destElemOffset); break;
+                case PixelFormat.R32G32B32A32_Float: InterleavedCopy<TSemantic, Vector4, TOutput>(param, srcElemOffset, destElemOffset); break;
+                case PixelFormat.R16G16_Float: InterleavedCopy<TSemantic, Half2, TOutput>(param, srcElemOffset, destElemOffset); break;
+                case PixelFormat.R16G16B16A16_Float: InterleavedCopy<TSemantic, Half4, TOutput>(param, srcElemOffset, destElemOffset); break;
+                case PixelFormat.R16G16B16A16_UInt: InterleavedCopy<TSemantic, UShort4, TOutput>(param, srcElemOffset, destElemOffset); break;
+                case PixelFormat.R8G8B8A8_UInt: InterleavedCopy<TSemantic, Byte4, TOutput>(param, srcElemOffset, destElemOffset); break;
+                default: throw new NotImplementedException($"Unsupported format when converting vertex element ({format})");
+            }
+        }
+        
+        static void InterleavedCopy<TConversion, TSourceSemVal, TDestSemVal>(InterleavedParameters param, int srcElemOffset, int destElemOffset) 
+            where TConversion : IConversion<TSourceSemVal, TDestSemVal> 
+            where TSourceSemVal : unmanaged
+            where TDestSemVal : unmanaged
+        {
+            fixed (byte* srcStart = param.Source)
+            fixed (byte* destStart = param.Destination)
+            {
+                for (byte* 
+                     src = srcStart + srcElemOffset,
+                     dest = destStart + destElemOffset,
+                     endSrc = src + param.VertexCount * param.DestStride;
+                     
+                     src < endSrc;
+                     
+                     src += param.SourceStride, dest += param.DestStride)
+                {
+                    TConversion.Convert(*(TSourceSemVal*)src, out *(TDestSemVal*)dest);
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Lower level access to read into the vertex buffer
     /// </summary>
     /// <param name="destination">
     /// The destination span your <typeparamref name="TReader"/> <see cref="IReader{TDest}.Read{TConversion, TValue}"/> method receives,
@@ -101,17 +211,17 @@ public class VertexBufferHelper
         where TSemantic : ISemantic<TDest> where TDest : unmanaged
         where TReader : IReader<TDest>
     {
-        if (Binding.TryGetElement(TSemantic.Name, semanticIndex, out var elementData))
+        if (Binding.Declaration.TryGetElement(TSemantic.Name, semanticIndex, out var elementData))
         {
             switch (elementData.VertexElement.Format)
             {
-                case PixelFormat.R32G32_Float: Inner<TSemantic, TReader, Vector2, TDest>(destination, reader, elementData); break;
-                case PixelFormat.R32G32B32_Float: Inner<TSemantic, TReader, Vector3, TDest>(destination, reader, elementData); break;
-                case PixelFormat.R32G32B32A32_Float: Inner<TSemantic, TReader, Vector4, TDest>(destination, reader, elementData); break;
-                case PixelFormat.R16G16_Float: Inner<TSemantic, TReader, Half2, TDest>(destination, reader, elementData); break;
-                case PixelFormat.R16G16B16A16_Float: Inner<TSemantic, TReader, Half4, TDest>(destination, reader, elementData); break;
-                case PixelFormat.R16G16B16A16_UInt: Inner<TSemantic, TReader, UShort4, TDest>(destination, reader, elementData); break;
-                case PixelFormat.R8G8B8A8_UInt: Inner<TSemantic, TReader, Byte4, TDest>(destination, reader, elementData); break;
+                case PixelFormat.R32G32_Float: InnerRead<TSemantic, TReader, Vector2, TDest>(destination, reader, elementData); break;
+                case PixelFormat.R32G32B32_Float: InnerRead<TSemantic, TReader, Vector3, TDest>(destination, reader, elementData); break;
+                case PixelFormat.R32G32B32A32_Float: InnerRead<TSemantic, TReader, Vector4, TDest>(destination, reader, elementData); break;
+                case PixelFormat.R16G16_Float: InnerRead<TSemantic, TReader, Half2, TDest>(destination, reader, elementData); break;
+                case PixelFormat.R16G16B16A16_Float: InnerRead<TSemantic, TReader, Half4, TDest>(destination, reader, elementData); break;
+                case PixelFormat.R16G16B16A16_UInt: InnerRead<TSemantic, TReader, UShort4, TDest>(destination, reader, elementData); break;
+                case PixelFormat.R8G8B8A8_UInt: InnerRead<TSemantic, TReader, Byte4, TDest>(destination, reader, elementData); break;
                 default: throw new NotImplementedException($"Unsupported format when converting vertex element ({elementData.VertexElement.Format})");
             }
 
@@ -121,7 +231,7 @@ public class VertexBufferHelper
         return false;
     }
 
-    private unsafe void Inner<TConversion, TReader, TSource, TDest>(Span<TDest> destination, TReader reader, VertexElementWithOffset element) 
+    private unsafe void InnerRead<TConversion, TReader, TSource, TDest>(Span<TDest> destination, TReader reader, VertexElementWithOffset element) 
         where TConversion : IConversion<TSource, TDest> 
         where TSource : unmanaged
         where TReader : IReader<TDest>
@@ -137,6 +247,77 @@ public class VertexBufferHelper
         {
             byte* firstElement = ptrSr + offset;
             reader.Read<TConversion, TSource>(firstElement, count, stride, destination);
+        }
+    }
+
+    /// <summary>
+    /// Lower level access to write directly to the vertex buffer
+    /// </summary>
+    /// <param name="writer">
+    /// An implementation of <see cref="IWriter{TDestValue}"/>, implement this interface to write directly into the vertex buffer
+    /// while making use of the auto-conversion of the <typeparamref name="TSemantic"/> provided <br/>
+    /// Preferably as a struct to ensure it is inlined by the JIT
+    /// </param>
+    /// <param name="semanticIndex">
+    /// The semantic to read with that index, starts at zero.<br/>
+    /// For example, to sample the second TextureCoordinate, you would use
+    /// <code>
+    /// <![CDATA[
+    /// helper.Write<TextureCoordinateSemantic, Vector2, YourWriter>(yourWriter, 1);
+    /// ]]>
+    /// </code>
+    /// </param>
+    /// <typeparam name="TSemantic">The semantic to read, <see cref="PositionSemantic"/> for example</typeparam>
+    /// <typeparam name="TDest"> The concrete type this writer will work with </typeparam>
+    /// <typeparam name="TWriter">
+    /// A struct implementing <see cref="IWriter{TDest}"/> which will be called in turn to write
+    /// into this buffer when this method is called.
+    /// </typeparam>
+    /// <returns>True when this semantic exists in the vertex buffer, false otherwise</returns>
+    /// <exception cref="NotImplementedException">
+    /// When the data format for this semantic is too arcane - no conversion logic is implemented for that type
+    /// </exception>
+    /// <inheritdoc cref="IWriter{TDest}"/>
+    public bool Write<TSemantic, TDest, TWriter>(TWriter writer, int semanticIndex = 0)
+        where TSemantic : ISemantic<TDest> where TDest : unmanaged
+        where TWriter : IWriter<TDest>
+    {
+        if (Binding.Declaration.TryGetElement(TSemantic.Name, semanticIndex, out var elementData))
+        {
+            switch (elementData.VertexElement.Format)
+            {
+                case PixelFormat.R32G32_Float: InnerWrite<TSemantic, TWriter, Vector2, TDest>(writer, elementData); break;
+                case PixelFormat.R32G32B32_Float: InnerWrite<TSemantic, TWriter, Vector3, TDest>(writer, elementData); break;
+                case PixelFormat.R32G32B32A32_Float: InnerWrite<TSemantic, TWriter, Vector4, TDest>(writer, elementData); break;
+                case PixelFormat.R16G16_Float: InnerWrite<TSemantic, TWriter, Half2, TDest>(writer, elementData); break;
+                case PixelFormat.R16G16B16A16_Float: InnerWrite<TSemantic, TWriter, Half4, TDest>(writer, elementData); break;
+                case PixelFormat.R16G16B16A16_UInt: InnerWrite<TSemantic, TWriter, UShort4, TDest>(writer, elementData); break;
+                case PixelFormat.R8G8B8A8_UInt: InnerWrite<TSemantic, TWriter, Byte4, TDest>(writer, elementData); break;
+                default: throw new NotImplementedException($"Unsupported format when converting vertex element ({elementData.VertexElement.Format})");
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+    private unsafe void InnerWrite<TConversion, TWriter, TSource, TDest>(TWriter reader, VertexElementWithOffset element) 
+        where TConversion : IConversion<TSource, TDest>, IConversion<TDest, TSource>
+        where TSource : unmanaged
+        where TWriter : IWriter<TDest>
+    {
+        if (sizeof(TSource) != element.Size)
+            throw new ArgumentException($"{typeof(TSource)} does not match element size ({sizeof(TSource)} != {element.Size})");
+
+        var stride = Binding.Declaration.VertexStride;
+        var offset = element.Offset;
+        var count = Binding.Count;
+            
+        fixed (byte* ptrSr = DataInner)
+        {
+            byte* firstElement = ptrSr + offset;
+            reader.Write<TConversion, TSource>(firstElement, count, stride);
         }
     }
 
@@ -192,6 +373,27 @@ public class VertexBufferHelper
         }
     }
 
+    private readonly ref struct InterleavedParameters
+    {
+        public readonly Span<byte> Source, Destination;
+        public readonly int SourceStride, DestStride;
+        public readonly int VertexCount;
+
+        public InterleavedParameters(Span<byte> source, Span<byte> destination, int sourceStride, int destStride, int vertexCount)
+        {
+            if (destination.Length / DestStride != vertexCount)
+                throw new ArgumentException($"The length and stride of {nameof(destination)} does not match the vertices required ({destination.Length / DestStride} / {vertexCount})");
+            if (source.Length / SourceStride != vertexCount)
+                throw new ArgumentException($"The length and stride of {nameof(source)} does not match the vertices required ({source.Length / SourceStride} / {vertexCount})");
+            
+            Source = source;
+            Destination = destination;
+            SourceStride = sourceStride;
+            DestStride = destStride;
+            VertexCount = vertexCount;
+        }
+    }
+
     /// <example>
     /// Implementing <see cref="Copy{TSemantic,TValue}"/> manually:
     /// <code>
@@ -235,5 +437,46 @@ public class VertexBufferHelper
         /// <inheritdoc cref="IReader{TDest}"/>
         unsafe void Read<TConversion, TSource>(byte* sourcePointer, int elementCount, int stride, Span<TDest> destination)
             where TConversion : IConversion<TSource, TDest> where TSource : unmanaged;
+    }
+
+    /// <example>
+    /// Writing directly to mesh color:
+    /// <code>
+    /// <![CDATA[
+    /// Model.Meshes[0].Draw.VertexBuffers[0].AsReadable(Services, out VertexBufferHelper helper, out int count);
+    /// helper.Write<ColorSemantic, Vector4, MultColor>(new MultColor(){ Color = Color.Gray });
+    /// 
+    /// private struct MultColor : VertexBufferHelper.IWriter<Vector4>
+    /// {
+    ///    public Color Color;
+    ///
+    ///    public unsafe void Write<TConversion, TSource>(byte* sourcePointer, int elementCount, int stride)
+    ///        where TConversion : IConversion<TSource, Vector4>, IConversion<Vector4, TSource>
+    ///        where TSource : unmanaged
+    ///    {
+    ///        for (byte* end = sourcePointer + elementCount * stride; sourcePointer < end; sourcePointer += stride)
+    ///        {
+    ///            TConversion.Convert(*(TSource*)sourcePointer, out var val);
+    ///            val *= (Vector4)Color;
+    ///            TConversion.Convert(val, out *(TSource*)sourcePointer);
+    ///        }
+    ///    }
+    /// }
+    /// ]]>
+    /// </code>
+    /// </example>
+    public interface IWriter<TDest>
+    {
+        /// <param name="sourcePointer">Points to the first element in the vertex buffer, read it as a TSource* to retrieve its value</param>
+        /// <param name="elementCount">The amount of vertices. This is not equivalent to the size of the vertex buffer, or the size in bytes taken by individual vertices</param>
+        /// <param name="stride">The size in bytes taken by individual vertices, add it to <paramref name="sourcePointer"/> to point to the next element</param>
+        /// <typeparam name="TConversion">A helper to convert between <typeparamref name="TSource"/> and <typeparamref name="TDest"/> properly</typeparam>
+        /// <typeparam name="TSource">
+        /// The source type this vertex buffer was built with, for example <see cref="Vector2"/> or <see cref="Byte4"/>,
+        /// use <typeparamref name="TConversion"/> to convert it into a <typeparamref name="TDest"/>.
+        /// </typeparam>
+        /// <inheritdoc cref="IWriter{TDest}"/>
+        unsafe void Write<TConversion, TSource>(byte* sourcePointer, int elementCount, int stride)
+            where TConversion : IConversion<TSource, TDest>, IConversion<TDest, TSource> where TSource : unmanaged;
     }
 }

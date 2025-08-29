@@ -20,7 +20,7 @@ public static class MeshExtension
     /// This operation loads the buffer from disk, or directly from the gpu. It is <b>very slow</b>, avoid calling this too often if at all possible.
     /// </remarks>
     /// <param name="binding"> The bindings for this buffer </param>
-    /// <param name="services"> The service used to retrieve the buffer from disk/GPU </param>
+    /// <param name="services"> The service used to retrieve the buffer from disk/GPU if it wasn't found through other means </param>
     /// <param name="helper"> The helper class to interact with the loaded buffer </param>
     /// <param name="count"> The amount of vertices this buffer holds </param>
     /// <inheritdoc cref="VertexBufferHelper"/>
@@ -36,7 +36,7 @@ public static class MeshExtension
     /// This operation loads the buffer from disk, or directly from the gpu. It is <b>very slow</b>, avoid calling this too often if at all possible.
     /// </remarks>
     /// <param name="binding"> The bindings for this buffer </param>
-    /// <param name="services"> The service used to retrieve the buffer from disk/GPU </param>
+    /// <param name="services"> The service used to retrieve the buffer from disk/GPU if it wasn't found through other means </param>
     /// <param name="helper"> The helper class to interact with the loaded buffer </param>
     /// <param name="count"> The amount of indices this buffer holds </param>
     /// <inheritdoc cref="IndexBufferHelper"/>
@@ -48,10 +48,10 @@ public static class MeshExtension
     /// <summary>
     /// Given a semantic and its index, returns its offset and size in the given vertex buffer. Similar to <see cref="VertexDeclaration.EnumerateWithOffsets"/>
     /// </summary>
-    public static bool TryGetElement(this VertexBufferBinding binding, string vertexElementUsage, int semanticIndex, out VertexElementWithOffset result)
+    public static bool TryGetElement(this VertexDeclaration declaration, string vertexElementUsage, int semanticIndex, out VertexElementWithOffset result)
     {
         int offset = 0;
-        foreach (var element in binding.Declaration.VertexElements)
+        foreach (var element in declaration.VertexElements)
         {
             // Get new offset (if specified)
             var currentElementOffset = element.AlignedByteOffset;
