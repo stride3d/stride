@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static Stride.Shaders.Spirv.Specification;
 
 namespace Stride.Shaders.Spirv.Processing;
 
@@ -23,14 +24,14 @@ public struct TypeDuplicateRemover : INanoPass
         for (var index = 0; index < buffer.Instructions.Count; index++)
         {
             var i = buffer.Instructions[index];
-            if (i.OpCode == SDSLOp.OpTypeVoid || i.OpCode == SDSLOp.OpTypeInt || i.OpCode == SDSLOp.OpTypeFloat)
+            if (i.OpCode == Op.OpTypeVoid || i.OpCode == Op.OpTypeInt || i.OpCode == Op.OpTypeFloat)
             {
                 for (var index2 = index + 1; index2 < buffer.Instructions.Count; index2++)
                 {
                     var j = buffer.Instructions[index2];
                     if (
-                        (j.OpCode == SDSLOp.OpTypeVoid || j.OpCode == SDSLOp.OpTypeInt ||
-                         j.OpCode == SDSLOp.OpTypeFloat)
+                        (j.OpCode == Op.OpTypeVoid || j.OpCode == Op.OpTypeInt ||
+                         j.OpCode == Op.OpTypeFloat)
                         && i.ResultId != j.ResultId
                         && MemoryExtensions.SequenceEqual(i.Operands[1..], j.Operands[1..])
                     )
@@ -45,13 +46,13 @@ public struct TypeDuplicateRemover : INanoPass
         for (var index = 0; index < buffer.Instructions.Count; index++)
         {
             var i = buffer.Instructions[index];
-            if (i.OpCode == SDSLOp.OpTypeVector)
+            if (i.OpCode == Op.OpTypeVector)
             {
                 for (var index2 = index + 1; index2 < buffer.Instructions.Count; index2++)
                 {
                     var j = buffer.Instructions[index2];
                     if (
-                        j.OpCode == SDSLOp.OpTypeVector
+                        j.OpCode == Op.OpTypeVector
                         && i.ResultId != j.ResultId
                         && MemoryExtensions.SequenceEqual(i.Operands[1..], j.Operands[1..])
                         )
@@ -65,13 +66,13 @@ public struct TypeDuplicateRemover : INanoPass
         for (var index = 0; index < buffer.Instructions.Count; index++)
         {
             var i = buffer.Instructions[index];
-            if (i.OpCode == SDSLOp.OpTypeMatrix)
+            if (i.OpCode == Op.OpTypeMatrix)
             {
                 for (var index2 = index + 1; index2 < buffer.Instructions.Count; index2++)
                 {
                     var j = buffer.Instructions[index2];
                     if (
-                        j.OpCode == SDSLOp.OpTypeMatrix
+                        j.OpCode == Op.OpTypeMatrix
                         && i.ResultId != j.ResultId
                         && MemoryExtensions.SequenceEqual(i.Operands[1..], j.Operands[1..])
                         )
@@ -85,13 +86,13 @@ public struct TypeDuplicateRemover : INanoPass
         for (var index = 0; index < buffer.Instructions.Count; index++)
         {
             var i = buffer.Instructions[index];
-            if (i.OpCode == SDSLOp.OpTypePointer)
+            if (i.OpCode == Op.OpTypePointer)
             {
                 for (var index2 = index + 1; index2 < buffer.Instructions.Count; index2++)
                 {
                     var j = buffer.Instructions[index2];
                     if (
-                        j.OpCode == SDSLOp.OpTypePointer
+                        j.OpCode == Op.OpTypePointer
                         && i.ResultId != j.ResultId
                         && MemoryExtensions.SequenceEqual(i.Operands[1..], j.Operands[1..])
                     )
@@ -105,13 +106,13 @@ public struct TypeDuplicateRemover : INanoPass
         for (var index = 0; index < buffer.Instructions.Count; index++)
         {
             var i = buffer.Instructions[index];
-            if (i.OpCode == SDSLOp.OpName)
+            if (i.OpCode == Op.OpName)
             {
                 for (var index2 = index + 1; index2 < buffer.Instructions.Count; index2++)
                 {
                     var j = buffer.Instructions[index2];
                     if (
-                        j.OpCode == SDSLOp.OpName
+                        j.OpCode == Op.OpName
                         && i.Operands[0] == j.Operands[0]
                         && MemoryExtensions.SequenceEqual(i.Operands[1..], j.Operands[1..])
                     )

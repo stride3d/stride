@@ -36,7 +36,7 @@
 //         Apply<TypeDuplicateRemover>(buffer);
 //         Apply<MemoryModelDuplicatesRemover>(buffer);
 //         Apply<BoundReducer>(buffer);
-//         Apply<SDSLOpRemover>(buffer);
+//         Apply<OpRemover>(buffer);
 //     }
 
 //     static void Apply<T>(SpirvBuffer buffer)

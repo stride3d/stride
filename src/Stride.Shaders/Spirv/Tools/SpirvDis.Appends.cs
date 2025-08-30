@@ -62,12 +62,12 @@ public partial struct SpirvDis<TBuffer>
         {
             if (e.ResultId is int rid && rid == typeId)
             {
-                if (e.OpCode == SDSLOp.OpTypeInt)
+                if (e.OpCode == Op.OpTypeInt)
                 {
                     writer.Append(words.Length == 1 ? words[0] : words[0] << 32 | words[1], ConsoleColor.Red);
                     return;
                 }
-                else if (e.OpCode == SDSLOp.OpTypeFloat)
+                else if (e.OpCode == Op.OpTypeFloat)
                 {
                     writer.Append(
                         words.Length == 1 ?
@@ -139,7 +139,7 @@ public partial struct SpirvDis<TBuffer>
                 Append(new PairIdRefIdRef((o.Words[i], o.Words[i + 1])));
         else if (
                 o.Kind == OperandKind.LiteralContextDependentNumber
-                && (instruction.OpCode == SDSLOp.OpConstant || instruction.OpCode == SDSLOp.OpSpecConstant)
+                && (instruction.OpCode == Op.OpConstant || instruction.OpCode == Op.OpSpecConstant)
                 && instruction.ResultType is int rtype
             )
         {

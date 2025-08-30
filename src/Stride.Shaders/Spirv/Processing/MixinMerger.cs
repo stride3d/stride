@@ -25,7 +25,7 @@
 //         //var temp = new SpirvBuffer();
 //         //var ordered = new OrderedSpvBuffer(buffer);
 //         //foreach (var e in ordered)
-//         //    if(e.OpCode != SDSLOp.OpNop)
+//         //    if(e.OpCode != Op.OpNop)
 //         //        temp.Add(e.Words.Span);
         
 //         //buffer.Replace(temp, out var dispose);

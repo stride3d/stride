@@ -12,14 +12,14 @@ namespace Stride.Shaders.Spirv.Core.Buffers;
 /// </summary>
 public class SpirvBuffer : IMutSpirvBuffer
 {
-    private SpirvHeader header = new SpirvHeader
+    private SpirvHeader header = new()
     {
         VersionNumber = new(1, 3),
-        MagicNumber = Spv.Specification.MagicNumber,
+        MagicNumber = Specification.MagicNumber,
     };
     private ArrayPool<int> pool = ArrayPool<int>.Shared;
 
-    public List<Instruction> Instructions { get; } = new();
+    public List<Instruction> Instructions { get; } = [];
 
     public Span<Instruction> InstructionsSpan => Instructions.AsSpan();
 

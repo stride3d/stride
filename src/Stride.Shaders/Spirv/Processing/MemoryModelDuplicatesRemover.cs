@@ -22,7 +22,7 @@
 //         var span = buffer.Declarations.InstructionSpan;
 //         while(wid < buffer.Declarations.Length)
 //         {
-//             if ((span[wid] & 0xFFFF) == (int)SDSLOp.OpMemoryModel)
+//             if ((span[wid] & 0xFFFF) == (int)Op.OpMemoryModel)
 //             {
 //                 if (!found)
 //                     found = true;

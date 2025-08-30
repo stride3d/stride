@@ -3,6 +3,7 @@ using Stride.Shaders.Spirv.Building;
 using Stride.Shaders.Spirv.Core;
 using Stride.Shaders.Spirv.Core.Buffers;
 using Stride.Shaders.Spirv.Tools;
+using static Stride.Shaders.Spirv.Specification;
 
 namespace Stride.Shaders.Spirv.Processing
 {
@@ -73,7 +74,7 @@ namespace Stride.Shaders.Spirv.Processing
             foreach (var instruction in buffer.Instructions)
             {
                 {
-                    if ((instruction.OpCode == SDSLOp.OpName || instruction.OpCode == SDSLOp.OpMemberName)
+                    if ((instruction.OpCode == Op.OpName || instruction.OpCode == Op.OpMemberName)
                         && instruction.TryGetOperand("target", out IdRef? target) && target is IdRef t
                         && instruction.TryGetOperand("name", out LiteralString? name) && name is LiteralString n
                        )
@@ -83,14 +84,15 @@ namespace Stride.Shaders.Spirv.Processing
                 }
 
                 {
-                    if (instruction.OpCode == SDSLOp.OpDecorateString
-                        && instruction.UnsafeAs<InstOpDecorateString>().Decoration == Specification.Decoration.UserSemantic
-                        && instruction.TryGetOperand("target", out IdRef? target) && target is IdRef t
-                        && instruction.TryGetOperand("semanticName", out LiteralString? name) && name is LiteralString n
-                       )
-                    {
-                        semanticTable[t] = n.Value;
-                    }
+                    #warning uncomment
+                    // if (instruction.OpCode == Op.OpDecorateString
+                    //     && instruction.UnsafeAs<InstOpDecorateString>().Decoration == Specification.Decoration.UserSemantic
+                    //     && instruction.TryGetOperand("target", out IdRef? target) && target is IdRef t
+                    //     && instruction.TryGetOperand("semanticName", out LiteralString? name) && name is LiteralString n
+                    //    )
+                    // {
+                    //     semanticTable[t] = n.Value;
+                    // }
                 }
             }
 
@@ -98,7 +100,7 @@ namespace Stride.Shaders.Spirv.Processing
             // Analyze streams
             foreach (var instruction in buffer.Instructions)
             {
-                if (instruction.OpCode == SDSLOp.OpVariable
+                if (instruction.OpCode == Op.OpVariable
                     && (Specification.StorageClass)instruction.Operands[2] == Specification.StorageClass.Private)
                 {
                     var name = nameTable.TryGetValue(instruction.Operands[1], out var nameId)
@@ -202,23 +204,23 @@ namespace Stride.Shaders.Spirv.Processing
             for (var index = methodStart; index < buffer.Instructions.Count; index++)
             {
                 var instruction = buffer.Instructions[index];
-                if (instruction.OpCode == SDSLOp.OpFunctionEnd)
+                if (instruction.OpCode == Op.OpFunctionEnd)
                     break;
 
-                if (instruction.OpCode == SDSLOp.OpLoad
-                    || instruction.OpCode == SDSLOp.OpStore)
+                if (instruction.OpCode == Op.OpLoad
+                    || instruction.OpCode == Op.OpStore)
                 {
-                    var operandIndex = instruction.OpCode == SDSLOp.OpLoad ? 2 : 0;
+                    var operandIndex = instruction.OpCode == Op.OpLoad ? 2 : 0;
                     if (streams.TryGetValue(instruction.Operands[operandIndex], out var streamInfo))
                     {
                         // If read after a write (within same shader), we are not reading the variable from previous stage => not marking as Read
-                        if (instruction.OpCode == SDSLOp.OpLoad && !streamInfo.Stream.Write)
+                        if (instruction.OpCode == Op.OpLoad && !streamInfo.Stream.Write)
                             streamInfo.Stream.Read = true;
-                        if (instruction.OpCode == SDSLOp.OpStore)
+                        if (instruction.OpCode == Op.OpStore)
                             streamInfo.Stream.Write = true;
                     }
                 }
-                else if (instruction.OpCode == SDSLOp.OpAccessChain)
+                else if (instruction.OpCode == Op.OpAccessChain)
                 {
                     if (streams.TryGetValue(instruction.Operands[2], out var streamInfo))
                     {
@@ -228,7 +230,7 @@ namespace Stride.Shaders.Spirv.Processing
                         streams.Add(instruction.ResultId!.Value, (streamInfo.Stream, false));
                     }
                 }
-                else if (instruction.OpCode == SDSLOp.OpFunctionCall)
+                else if (instruction.OpCode == Op.OpFunctionCall)
                 {
                     // Process call
                     var calledFunctionId = instruction.Operands[2];
@@ -243,7 +245,7 @@ namespace Stride.Shaders.Spirv.Processing
             for (var index = 0; index < buffer.Instructions.Count; index++)
             {
                 var instruction = buffer.Instructions[index];
-                if (instruction.OpCode == SDSLOp.OpFunction
+                if (instruction.OpCode == Op.OpFunction
                     && instruction.ResultId == functionId)
                 {
                     return index;

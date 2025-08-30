@@ -26,7 +26,7 @@ public partial class SpirvBuilder
 
     public void CleanBlock()
     {
-        if (Buffer.Instructions[Position].OpCode == SDSLOp.OpUnreachable)
+        if (Buffer.Instructions[Position].OpCode == Op.OpUnreachable)
         {
             Buffer.Instructions.RemoveAt(Position);
         }

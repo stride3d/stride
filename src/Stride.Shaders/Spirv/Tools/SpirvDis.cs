@@ -47,7 +47,7 @@ public partial struct SpirvDis<TBuffer>
             foreach (var i in buffer.InstructionsSpan)
             {
                 if (
-                    (i.OpCode == SDSLOp.OpName || i.OpCode == SDSLOp.OpMemberName)
+                    (i.OpCode == Op.OpName || i.OpCode == Op.OpMemberName)
                     && i.TryGetOperand("name", out LiteralString? name)
                     && name is not null
                 )
@@ -112,18 +112,18 @@ public partial struct SpirvDis<TBuffer>
     {
         if (
             UseNames
-            && (instruction.OpCode == SDSLOp.OpName || instruction.OpCode == SDSLOp.OpMemberName)
+            && (instruction.OpCode == Op.OpName || instruction.OpCode == Op.OpMemberName)
             && instruction.TryGetOperand("target", out IdRef? target) && target is IdRef t
             && instruction.TryGetOperand("name", out LiteralString? name) && name is LiteralString n
             )
         {
             UpdateNameTable(t, n.Value);
         }
-        else if (instruction.OpCode == SDSLOp.OpTypeVoid)
+        else if (instruction.OpCode == Op.OpTypeVoid)
             UpdateNameTable(instruction.ResultId!.Value, "void");
-        else if (instruction.OpCode == SDSLOp.OpTypeBool)
+        else if (instruction.OpCode == Op.OpTypeBool)
             UpdateNameTable(instruction.ResultId!.Value, "bool");
-        else if (instruction.OpCode == SDSLOp.OpTypeInt)
+        else if (instruction.OpCode == Op.OpTypeInt)
         {
             var type = instruction.Operands[1..] switch
             {
@@ -139,12 +139,12 @@ public partial struct SpirvDis<TBuffer>
             };
             UpdateNameTable(instruction.ResultId!.Value, type);
         }
-        else if (instruction.OpCode == SDSLOp.OpTypeFloat)
+        else if (instruction.OpCode == Op.OpTypeFloat)
         {
             var size = instruction.Operands[1];
             UpdateNameTable(instruction.ResultId!.Value, size switch {16 => "half", 32 => "float", 64 => "double", _ => throw new NotImplementedException()});
         }
-        else if (instruction.OpCode == SDSLOp.OpTypeVector)
+        else if (instruction.OpCode == Op.OpTypeVector)
         {
             //UpdateNameTable(instruction.ResultId!.Value, nameTable[instruction.Operands[1]].Name + instruction.Operands[2]);
         }

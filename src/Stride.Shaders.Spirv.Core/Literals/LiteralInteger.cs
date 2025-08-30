@@ -4,7 +4,6 @@ using Stride.Shaders.Spirv.Core.Parsing;
 
 namespace Stride.Shaders.Spirv.Core;
 
-
 public struct LiteralInteger : ILiteralNumber, IFromSpirv<LiteralInteger>
 {
     public long Words { get; init; }
@@ -85,6 +84,7 @@ public struct LiteralInteger : ILiteralNumber, IFromSpirv<LiteralInteger>
     public static implicit operator LiteralInteger(uint value) => new(value);
     public static implicit operator LiteralInteger(long value) => new(value);
     public static implicit operator LiteralInteger(ulong value) => new(value);
+    public static implicit operator int(LiteralInteger value) => (int)value.Words;
 
     public readonly void Write(ref SpirvWriter writer)
     {
@@ -121,3 +121,119 @@ public struct LiteralInteger : ILiteralNumber, IFromSpirv<LiteralInteger>
 }
 
 
+
+public struct LiteralExtInstInteger : ILiteralNumber, IFromSpirv<LiteralExtInstInteger>
+{
+    public long Words { get; init; }
+    public int Size { get; init; }
+    public readonly int WordCount => Size / 32;
+
+    public LiteralExtInstInteger(sbyte value)
+    {
+        Words = 0 | value;
+        Size = sizeof(sbyte) * 8;
+    }
+    public LiteralExtInstInteger(byte value)
+    {
+        Words = 0 | value;
+        Size = sizeof(byte) * 8;
+    }
+
+    public LiteralExtInstInteger(short value)
+    {
+        Words = 0 | value;
+        Size = sizeof(short) * 8;
+    }
+    public LiteralExtInstInteger(ushort value)
+    {
+        Words = 0 | value;
+        Size = sizeof(ushort) * 8;
+    }
+
+    public LiteralExtInstInteger(int value)
+    {
+        Words = 0 | value;
+        Size = sizeof(int) * 8;
+    }
+    public LiteralExtInstInteger(int? value)
+    {
+        Words = 0 | value ?? 0;
+        Size = sizeof(int) * 8;
+    }
+    public LiteralExtInstInteger(uint value)
+    {
+        Words = 0 | value;
+        Size = sizeof(uint) * 8;
+
+    }
+    public LiteralExtInstInteger(long value)
+    {
+        Words = 0 | value;
+        Size = sizeof(long) * 8;
+    }
+    public LiteralExtInstInteger(ulong value)
+    {
+        Words = (long)value;
+        Size = sizeof(ulong) * 8;
+
+    }
+
+    public LiteralExtInstInteger(Span<int> value)
+    {
+        if (value.Length == 2)
+        {
+            Size = sizeof(long) * 8;
+            Words = value[0] << 32 | value[1];
+        }
+        else if (value.Length == 1)
+        {
+            Size = sizeof(int) * 8;
+            Words = value[0];
+        }
+    }
+
+
+    public static implicit operator LiteralExtInstInteger(byte value) => new(value);
+    public static implicit operator LiteralExtInstInteger(sbyte value) => new(value);
+    public static implicit operator LiteralExtInstInteger(ushort value) => new(value);
+    public static implicit operator LiteralExtInstInteger(short value) => new(value);
+    public static implicit operator LiteralExtInstInteger(int value) => new(value);
+    public static implicit operator LiteralExtInstInteger(int? value) => new(value);
+    public static implicit operator LiteralExtInstInteger(uint value) => new(value);
+    public static implicit operator LiteralExtInstInteger(long value) => new(value);
+    public static implicit operator LiteralExtInstInteger(ulong value) => new(value);
+    public static implicit operator int(LiteralExtInstInteger value) => (int)value.Words;
+
+    public readonly void Write(ref SpirvWriter writer)
+    {
+        Span<int> span =
+        [
+            (int)(Words >> 32),
+            (int)(Words & 0X000000FF)
+        ];
+        if (Size < 64)
+            writer.Write(span[1]);
+        else
+            writer.Write(span);
+    }
+
+    public static LiteralExtInstInteger From(Span<int> words)
+    {
+        return new(words);
+    }
+
+    public static LiteralExtInstInteger From(string value)
+    {
+        throw new NotImplementedException();
+    }
+
+    public readonly SpanOwner<int> AsSpanOwner()
+    {
+        Span<int> span = WordCount == 1 ? [(int)Words] : [(int)(Words >> 32), (int)(Words & 0xFFFFFFFF)];
+        var owner = SpanOwner<int>.Allocate(span.Length, AllocationMode.Clear);
+        span.CopyTo(owner.Span);
+        return owner;
+    }
+
+    public override readonly string ToString() => $"{Words}";
+}

@@ -1,6 +1,7 @@
 ﻿using System.Runtime.CompilerServices;
 using Stride.Shaders.Spirv.Core.Buffers;
 using Stride.Shaders.Spirv.Core.Parsing;
+using static Stride.Shaders.Spirv.Specification;
 
 
 namespace Stride.Shaders.Spirv.Core;
@@ -18,7 +19,7 @@ public record struct Instruction(Memory<int> Memory)
     public static implicit operator IdResultType(Instruction i) => new(i.ResultId ?? throw new Exception("Instruction has no result id"));
 
 
-    public readonly SDSLOp OpCode => (SDSLOp)(Words[0] & 0xFFFF);
+    public readonly Op OpCode => (Op)(Words[0] & 0xFFFF);
     public int? ResultId { get => GetResultId(); set => SetResultId(value); }
     public int? ResultType { get => GetResultType(); set => SetResultType(value); }
     public readonly int WordCount => Words.Length;

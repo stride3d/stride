@@ -4,6 +4,7 @@ using System.Runtime.InteropServices;
 using CommunityToolkit.HighPerformance;
 using CommunityToolkit.HighPerformance.Buffers;
 using Stride.Shaders.Spirv.Core.Parsing;
+using static Stride.Shaders.Spirv.Specification;
 
 namespace Stride.Shaders.Spirv.Core.Buffers;
 
@@ -11,14 +12,14 @@ namespace Stride.Shaders.Spirv.Core.Buffers;
 public interface IMemoryInstruction
 {
     OpDataIndex? DataIndex { get; set; }
-    MemoryOwner<int> Memory { get; }
-    public void UpdateMemory();
+    MemoryOwner<int> InstructionMemory { get; }
+    public void UpdateInstructionMemory();
 }
 
-public struct OpData : IDisposable
+public struct OpData : IDisposable, IComparable<OpData>
 {
     public MemoryOwner<int> Memory { get; internal set { field?.Dispose(); field = value; } }
-    public readonly SDSLOp Op => (SDSLOp)(Memory.Span[0] & 0xFFFF);
+    public readonly Op Op => (Op)(Memory.Span[0] & 0xFFFF);
 
     public OpData()
     {
@@ -54,6 +55,13 @@ public struct OpData : IDisposable
     }
 
     public readonly OpDataEnumerator GetEnumerator() => new(Memory.Span);
+
+    public readonly int CompareTo(OpData other)
+    {
+        var group = InstructionInfo.GetGroupOrder(this);
+        var otherGroup = InstructionInfo.GetGroupOrder(other);
+        return group.CompareTo(otherGroup);
+    }
 }
 
 
@@ -72,18 +80,29 @@ public class NewSpirvBuffer
     public void Add(OpData data)
         => Memory.Add(data);
 
-    public void Add<T>(ref T instruction) where T : IMemoryInstruction
+    public void AddRef<T>(ref T instruction) where T : IMemoryInstruction
     {
         if (instruction.DataIndex is OpDataIndex odi)
         {
             if (odi.Buffer == this)
                 return;
             else
-                Memory.Add(new(instruction.Memory));
+                Memory.Add(new(instruction.InstructionMemory));
         }
-        else Memory.Add(new(instruction.Memory));
+        else Memory.Add(new(instruction.InstructionMemory));
         instruction.DataIndex = new(Memory.Count - 1, this);
-        
+
+    }
+    public void Add<T>(in T instruction) where T : IMemoryInstruction
+    {
+        if (instruction.DataIndex is OpDataIndex odi)
+        {
+            if (odi.Buffer == this)
+                return;
+            else
+                Memory.Add(new(instruction.InstructionMemory));
+        }
+        else Memory.Add(new(instruction.InstructionMemory));
     }
 
     public void Insert(int index, OpData data)
@@ -123,5 +142,10 @@ public class NewSpirvBuffer
             }
             return false;
         }
+    }
+
+    public void Sort()
+    {
+        Memory.Sort(static (a, b) => a.CompareTo(b));
     }
 }

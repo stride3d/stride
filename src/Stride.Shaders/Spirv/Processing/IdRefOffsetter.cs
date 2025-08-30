@@ -25,7 +25,7 @@
 //         //foreach (var i in buffer)
 //         //{
 //         //    // if we hit a mixin name we reset stuff
-//         //    if (i.OpCode == SDSLOp.OpSDSLMixinName)
+//         //    if (i.OpCode == Op.OpSDSLMixinName)
 //         //    {
 //         //        offset += nextOffset;
 //         //        nextOffset = 0;

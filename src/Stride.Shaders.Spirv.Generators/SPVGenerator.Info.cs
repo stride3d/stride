@@ -119,11 +119,11 @@ public partial class SPVGenerator
         var spvClass = op.Class;
         if (opname == "OpExtInst")
         {
-            code.AppendLine("Instance.Register(SDSLOp.OpExtInst, OperandKind.IdResultType, OperandQuantifier.One, \"resultType\", \"GLSL\");");
-            code.AppendLine("Instance.Register(SDSLOp.OpExtInst, OperandKind.IdResult, OperandQuantifier.One, \"resultId\", \"GLSL\");");
-            code.AppendLine("Instance.Register(SDSLOp.OpExtInst, OperandKind.IdRef, OperandQuantifier.One, \"set\", \"GLSL\");");
-            code.AppendLine("Instance.Register(SDSLOp.OpExtInst, OperandKind.LiteralInteger, OperandQuantifier.One, \"instruction\", \"GLSL\");");
-            code.AppendLine("Instance.Register(SDSLOp.OpExtInst, OperandKind.IdRef, OperandQuantifier.ZeroOrMore, \"values\", \"GLSL\");");
+            code.AppendLine("Instance.Register(Op.OpExtInst, OperandKind.IdResultType, OperandQuantifier.One, \"resultType\", \"GLSL\");");
+            code.AppendLine("Instance.Register(Op.OpExtInst, OperandKind.IdResult, OperandQuantifier.One, \"resultId\", \"GLSL\");");
+            code.AppendLine("Instance.Register(Op.OpExtInst, OperandKind.IdRef, OperandQuantifier.One, \"set\", \"GLSL\");");
+            code.AppendLine("Instance.Register(Op.OpExtInst, OperandKind.LiteralInteger, OperandQuantifier.One, \"instruction\", \"GLSL\");");
+            code.AppendLine("Instance.Register(Op.OpExtInst, OperandKind.IdRef, OperandQuantifier.ZeroOrMore, \"values\", \"GLSL\");");
         }
         else if (op.Operands is EquatableList<OperandData> operands)
         {
@@ -138,7 +138,7 @@ public partial class SPVGenerator
                     if (operand.Quantifier is string quant)
                     {
                         code
-                            .Append("Instance.Register(SDSLOp.")
+                            .Append("Instance.Register(Op.")
                             .Append(opname)
                             .Append(", OperandKind.")
                             .Append(kind)
@@ -152,7 +152,7 @@ public partial class SPVGenerator
                     else
                     {
                         code
-                            .Append("Instance.Register(SDSLOp.")
+                            .Append("Instance.Register(Op.")
                             .Append(opname)
                             .Append(", OperandKind.")
                             .Append(kind)
@@ -167,7 +167,7 @@ public partial class SPVGenerator
         }
         else
         {
-            code.Append("Instance.Register(SDSLOp.").Append(opname).AppendLine(", OperandKind.None, null, \"Debug\");");
+            code.Append("Instance.Register(Op.").Append(opname).AppendLine(", OperandKind.None, null, \"Debug\");");
         }
     }
 }

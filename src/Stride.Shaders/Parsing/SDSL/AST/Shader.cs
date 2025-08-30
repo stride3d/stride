@@ -6,6 +6,7 @@ using Stride.Shaders.Spirv.Building;
 using Stride.Shaders.Spirv.Core;
 using Stride.Shaders.Spirv.Core.Buffers;
 using System.Runtime.InteropServices;
+using static Stride.Shaders.Spirv.Specification;
 
 namespace Stride.Shaders.Parsing.SDSL.AST;
 
@@ -22,76 +23,77 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
     public static Dictionary<int, SymbolType> ProcessNameAndTypes(SpirvBuffer buffer, out Dictionary<int, string> names, out Dictionary<int, SymbolType> types)
     {
         var memberNames = new Dictionary<(int, int), string>();
-        names = new Dictionary<int, string>();
-        types = new Dictionary<int, SymbolType>();
-        foreach (var instruction in buffer.Instructions)
-        {
-            if (instruction.OpCode == SDSLOp.OpName)
-            {
-                var nameInstruction = instruction.UnsafeAs<InstOpName>();
-                names.Add(nameInstruction.Target, nameInstruction.Name.Value);
-            }
-            else if (instruction.OpCode == SDSLOp.OpMemberName)
-            {
-                var nameInstruction = instruction.UnsafeAs<InstOpMemberName>();
-                memberNames.Add((nameInstruction.Type, (int)nameInstruction.Member.Words), nameInstruction.Name.Value);
-            }
-            else if (instruction.OpCode == SDSLOp.OpTypeFloat)
-            {
-                var floatInstruction = instruction.UnsafeAs<InstOpTypeFloat>();
-                //if (floatInstruction.FloatingPointEncoding != 0)
-                //    throw new InvalidOperationException();
+        names = [];
+        types = [];
+        #warning uncomment
+        // foreach (var instruction in buffer.Instructions)
+        // {
+        //     if (instruction.OpCode == Op.OpName)
+        //     {
+        //         var nameInstruction = instruction.UnsafeAs<InstOpName>();
+        //         names.Add(nameInstruction.Target, nameInstruction.Name.Value);
+        //     }
+        //     else if (instruction.OpCode == Op.OpMemberName)
+        //     {
+        //         var nameInstruction = instruction.UnsafeAs<InstOpMemberName>();
+        //         memberNames.Add((nameInstruction.Type, (int)nameInstruction.Member.Words), nameInstruction.Name.Value);
+        //     }
+        //     else if (instruction.OpCode == Op.OpTypeFloat)
+        //     {
+        //         var floatInstruction = instruction.UnsafeAs<InstOpTypeFloat>();
+        //         //if (floatInstruction.FloatingPointEncoding != 0)
+        //         //    throw new InvalidOperationException();
 
-                types.Add(floatInstruction.ResultId, floatInstruction.Width.Words switch
-                {
-                    16 => ScalarType.From("half"),
-                    32 => ScalarType.From("float"),
-                    64 => ScalarType.From("double"),
-                });
-            }
-            else if (instruction.OpCode == SDSLOp.OpTypePointer)
-            {
-                var pointerInstruction = instruction.UnsafeAs<InstOpTypePointer>();
-                var innerType = types[pointerInstruction.Type];
-                types.Add(instruction.ResultId!.Value, new PointerType(innerType, pointerInstruction.Storageclass));
-            }
-            else if (instruction.OpCode == SDSLOp.OpTypeVoid)
-            {
-                types.Add(instruction.ResultId!.Value, ScalarType.From("void"));
-            }
-            else if (instruction.OpCode == SDSLOp.OpTypeVector)
-            {
-                var vectorInstruction = instruction.UnsafeAs<InstOpTypeVector>();
-                var innerType = (ScalarType)types[vectorInstruction.ComponentType];
-                types.Add(instruction.ResultId!.Value, new VectorType(innerType, (int)vectorInstruction.ComponentCount.Words));
-            }
-            else if (instruction.OpCode == SDSLOp.OpTypeStruct)
-            {
-                var typeStructInstruction = instruction.UnsafeAs<InstOpTypeStruct>();
-                var structName = names[instruction.ResultId!.Value];
-                var fieldsData = instruction.Memory.Span[2..];
-                var fields = new List<(string Name, SymbolType Type)>();
-                for (var index = 0; index < fieldsData.Length; index++)
-                {
-                    var fieldData = fieldsData[index];
-                    var type = types[fieldData];
-                    var name = memberNames[(typeStructInstruction.ResultId.Value, index)];
-                    fields.Add((name, type));
-                }
-                types.Add(instruction.ResultId!.Value, new StructType(structName, fields));
-            }
-            else if (instruction.OpCode == SDSLOp.OpTypeFunction)
-            {
-                var typeFunctionInstruction = instruction.UnsafeAs<InstOpTypeFunction>();
-                var returnType = types[typeFunctionInstruction.ReturnType];
-                var parameterTypes = new List<SymbolType>();
-                foreach (var operand in instruction.Operands[2..])
-                {
-                    parameterTypes.Add(types[operand]);
-                }
-                types.Add(instruction.ResultId!.Value, new FunctionType(returnType, parameterTypes));
-            }
-        }
+        //         types.Add(floatInstruction.ResultId, floatInstruction.Width.Words switch
+        //         {
+        //             16 => ScalarType.From("half"),
+        //             32 => ScalarType.From("float"),
+        //             64 => ScalarType.From("double"),
+        //         });
+        //     }
+        //     else if (instruction.OpCode == Op.OpTypePointer)
+        //     {
+        //         var pointerInstruction = instruction.UnsafeAs<InstOpTypePointer>();
+        //         var innerType = types[pointerInstruction.Type];
+        //         types.Add(instruction.ResultId!.Value, new PointerType(innerType, pointerInstruction.Storageclass));
+        //     }
+        //     else if (instruction.OpCode == Op.OpTypeVoid)
+        //     {
+        //         types.Add(instruction.ResultId!.Value, ScalarType.From("void"));
+        //     }
+        //     else if (instruction.OpCode == Op.OpTypeVector)
+        //     {
+        //         var vectorInstruction = instruction.UnsafeAs<InstOpTypeVector>();
+        //         var innerType = (ScalarType)types[vectorInstruction.ComponentType];
+        //         types.Add(instruction.ResultId!.Value, new VectorType(innerType, (int)vectorInstruction.ComponentCount.Words));
+        //     }
+        //     else if (instruction.OpCode == Op.OpTypeStruct)
+        //     {
+        //         var typeStructInstruction = instruction.UnsafeAs<InstOpTypeStruct>();
+        //         var structName = names[instruction.ResultId!.Value];
+        //         var fieldsData = instruction.Memory.Span[2..];
+        //         var fields = new List<(string Name, SymbolType Type)>();
+        //         for (var index = 0; index < fieldsData.Length; index++)
+        //         {
+        //             var fieldData = fieldsData[index];
+        //             var type = types[fieldData];
+        //             var name = memberNames[(typeStructInstruction.ResultId.Value, index)];
+        //             fields.Add((name, type));
+        //         }
+        //         types.Add(instruction.ResultId!.Value, new StructType(structName, fields));
+        //     }
+        //     else if (instruction.OpCode == Op.OpTypeFunction)
+        //     {
+        //         var typeFunctionInstruction = instruction.UnsafeAs<InstOpTypeFunction>();
+        //         var returnType = types[typeFunctionInstruction.ReturnType];
+        //         var parameterTypes = new List<SymbolType>();
+        //         foreach (var operand in instruction.Operands[2..])
+        //         {
+        //             parameterTypes.Add(types[operand]);
+        //         }
+        //         types.Add(instruction.ResultId!.Value, new FunctionType(returnType, parameterTypes));
+        //     }
+        // }
 
         return types;
     }
@@ -106,25 +108,26 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
         var symbols = new List<Symbol>();
         foreach (var instruction in buffer.Instructions)
         {
-            if (instruction.OpCode == SDSLOp.OpVariable)
-            {
-                var variableInstruction = instruction.UnsafeAs<InstOpVariable>();
-                var variableName = names[variableInstruction.ResultId.Value];
-                var variableType = types[variableInstruction.ResultType];
+            #warning uncomment
+            // if (instruction.OpCode == Op.OpVariable)
+            // {
+            //     var variableInstruction = instruction.UnsafeAs<InstOpVariable>();
+            //     var variableName = names[variableInstruction.ResultId.Value];
+            //     var variableType = types[variableInstruction.ResultType];
 
-                var sid = new SymbolID(variableName, SymbolKind.Variable, Storage.Stream);
-                symbols.Add(new(sid, variableType, variableInstruction.ResultId));
-            }
+            //     var sid = new SymbolID(variableName, SymbolKind.Variable, Storage.Stream);
+            //     symbols.Add(new(sid, variableType, variableInstruction.ResultId));
+            // }
 
-            if (instruction.OpCode == SDSLOp.OpFunction)
-            {
-                var functionInstruction = instruction.UnsafeAs<InstOpFunction>();
-                var functionName = names[functionInstruction.ResultId.Value];
-                var functionType = types[functionInstruction.FunctionType];
+            // if (instruction.OpCode == Op.OpFunction)
+            // {
+            //     var functionInstruction = instruction.UnsafeAs<InstOpFunction>();
+            //     var functionName = names[functionInstruction.ResultId.Value];
+            //     var functionType = types[functionInstruction.FunctionType];
 
-                var sid = new SymbolID(functionName, SymbolKind.Method);
-                symbols.Add(new(sid, functionType, functionInstruction.ResultId));
-            }
+            //     var sid = new SymbolID(functionName, SymbolKind.Method);
+            //     symbols.Add(new(sid, functionType, functionInstruction.ResultId));
+            // }
         }
 
         var shaderType = new ShaderSymbol(mixin.Name, symbols);

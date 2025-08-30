@@ -11,7 +11,7 @@
 //     {
 //         foreach (var i in buffer.Declarations.UnorderedInstructions)
 //         {
-//             if (i.OpCode == SDSLOp.OpSDSLIOVariable)
+//             if (i.OpCode == Op.OpSDSLIOVariable)
 //             {
 
 //                 var sclassv = i.GetOperand<LiteralInteger>("storageclass");
@@ -23,7 +23,7 @@
 //                 buffer.AddOpName(variable, i.GetOperand<LiteralString>("name") ?? $"var{Guid.NewGuid()}");
 //                 SetOpNop(i.Words.Span);
 //             }
-//             else if (i.OpCode == SDSLOp.OpSDSLVariable)
+//             else if (i.OpCode == Op.OpSDSLVariable)
 //             {
 //                 var sclassv = i.GetOperand<LiteralInteger>("storageclass");
 //                 var sclass = StorageClass.Private;
@@ -39,7 +39,7 @@
 //         {
 //             foreach (var i in f.UnorderedInstructions)
 //             {
-//                 if(i.OpCode == SDSLOp.OpSDSLFunctionParameter)
+//                 if(i.OpCode == Op.OpSDSLFunctionParameter)
 //                 {
 //                     var name = i.GetOperand<LiteralString>("name");
 //                     var resultType = i.ResultType ?? -1;
@@ -48,7 +48,7 @@
 //                     buffer.AddOpName(variable, name ?? $"var{Guid.NewGuid()}");
 //                     SetOpNop(i.Words.Span);
 //                 }
-//                 else if (i.OpCode == SDSLOp.OpSDSLVariable)
+//                 else if (i.OpCode == Op.OpSDSLVariable)
 //                 {
 
 //                     var sclassv = i.GetOperand<LiteralInteger>("storageclass");

@@ -81,6 +81,6 @@ public ref struct OrderedEnumerator(ISpirvBuffer buffer)
 
     readonly int GetGroupOrder(Instruction instruction)
     {
-        return InstructionInfo.GetGroupOrder(instruction.OpCode, instruction.OpCode == SDSLOp.OpVariable ? (StorageClass)instruction.Words[3] : null);
+        return InstructionInfo.GetGroupOrder(instruction.OpCode, instruction.OpCode == Op.OpVariable ? (StorageClass)instruction.Words[3] : null);
     }
 }

@@ -13,7 +13,7 @@
 // /// <summary>
 // /// Removes SDSL specific instructions
 // /// </summary>
-// public struct SDSLOpRemover : INanoPass
+// public struct OpRemover : INanoPass
 // {
 
 //     public void Apply(SpirvBuffer buffer)
@@ -22,7 +22,7 @@
 //         while(decl.MoveNext())
 //         {
 //             var i = decl.Current;
-//             if (InstructionInfo.SDSLOperators.Contains(i.OpCode)) 
+//             if (InstructionInfo.Operators.Contains(i.OpCode)) 
 //                 SetOpNop(i.AsRef());
 //         }
 //         foreach (var (_, f) in buffer.Functions)
@@ -31,7 +31,7 @@
 //             while(func.MoveNext())
 //             {
 //                 var i = func.Current;
-//                 if (InstructionInfo.SDSLOperators.Contains(i.OpCode))
+//                 if (InstructionInfo.Operators.Contains(i.OpCode))
 //                     SetOpNop(i.AsRef());
 //             }
 //         }

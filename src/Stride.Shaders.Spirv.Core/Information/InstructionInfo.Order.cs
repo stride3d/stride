@@ -15,78 +15,78 @@ namespace Stride.Shaders.Spirv.Core;
 /// </summary>
 public partial class InstructionInfo
 {
-    Dictionary<(SDSLOp, StorageClass?), int> OrderGroup = new();
+    Dictionary<(Op, StorageClass?), int> OrderGroup = new();
 
-    public static ImmutableArray<SDSLOp> SDSLOperators { get; } = ImmutableArray.Create(Enum.GetValues<SDSLOp>().Where(x => x.ToString().Contains("SDSL")).ToArray());
-    public static ImmutableArray<SDSLOp> OpTypes { get; } = ImmutableArray.Create(Enum.GetValues<SDSLOp>().Where(x => x.ToString().StartsWith("OpType")).ToArray());
+    public static ImmutableArray<Op> SDSLOperators { get; } = ImmutableArray.Create(Enum.GetValues<Op>().Where(x => x.ToString().Contains("SDSL")).ToArray());
+    public static ImmutableArray<Op> OpTypes { get; } = ImmutableArray.Create(Enum.GetValues<Op>().Where(x => x.ToString().StartsWith("OpType")).ToArray());
 
     void InitOrder()
     {
         int group = 0;
-        Span<SDSLOp> initSDSL = [
-            SDSLOp.OpNop,
-            SDSLOp.OpSDSLShader,
-            SDSLOp.OpCapability,
-            SDSLOp.OpSDSLMixinInherit,
-            SDSLOp.OpSDSLCompose
+        Span<Op> initSDSL = [
+            Op.OpNop,
+            Op.OpSDSLShader,
+            Op.OpCapability,
+            Op.OpSDSLMixinInherit,
+            Op.OpSDSLCompose
         ];
-        foreach(var e in initSDSL)
-            OrderGroup[(e, null)] = group;
-        
-        group++;
-        foreach (var e in Enum.GetValues<SDSLOp>().Where(x => x.ToString().StartsWith("OpSDSLImport")))
-            OrderGroup[(e, null)] = group;
-        OrderGroup[(SDSLOp.OpExtension, null)] = group;
-
-        group++;
-        OrderGroup[(SDSLOp.OpExtInstImport, null)] = group;
-        group++;
-        OrderGroup[(SDSLOp.OpMemoryModel, null)] = group;
-        group++;
-        OrderGroup[(SDSLOp.OpEntryPoint, null)] = group;
-
-        group++;
-        foreach (var e in Enum.GetValues<SDSLOp>().Where(x => x.ToString().StartsWith("OpExecutionMode")))
+        foreach (var e in initSDSL)
             OrderGroup[(e, null)] = group;
 
         group++;
-        Span<SDSLOp> opDebugSource = [SDSLOp.OpString, SDSLOp.OpSource, SDSLOp.OpSourceExtension, SDSLOp.OpSourceContinued];
+        foreach (var e in Enum.GetValues<Op>().Where(x => x.ToString().StartsWith("OpSDSLImport")))
+            OrderGroup[(e, null)] = group;
+        OrderGroup[(Op.OpExtension, null)] = group;
+
+        group++;
+        OrderGroup[(Op.OpExtInstImport, null)] = group;
+        group++;
+        OrderGroup[(Op.OpMemoryModel, null)] = group;
+        group++;
+        OrderGroup[(Op.OpEntryPoint, null)] = group;
+
+        group++;
+        foreach (var e in Enum.GetValues<Op>().Where(x => x.ToString().StartsWith("OpExecutionMode")))
+            OrderGroup[(e, null)] = group;
+
+        group++;
+        Span<Op> opDebugSource = [Op.OpString, Op.OpSource, Op.OpSourceExtension, Op.OpSourceContinued];
         foreach (var e in opDebugSource)
             OrderGroup[(e, null)] = group;
 
         group++;
-        OrderGroup[(SDSLOp.OpName, null)] = group;
-        OrderGroup[(SDSLOp.OpMemberName, null)] = group;
+        OrderGroup[(Op.OpName, null)] = group;
+        OrderGroup[(Op.OpMemberName, null)] = group;
 
         group++;
-        OrderGroup[(SDSLOp.OpModuleProcessed, null)] = group;
+        OrderGroup[(Op.OpModuleProcessed, null)] = group;
 
         group++;
-        foreach (var e in Enum.GetValues<SDSLOp>().Where(x => x.ToString().StartsWith("OpDecorate")))
+        foreach (var e in Enum.GetValues<Op>().Where(x => x.ToString().StartsWith("OpDecorate")))
             OrderGroup[(e, null)] = group;
-        foreach (var e in Enum.GetValues<SDSLOp>().Where(x => x.ToString().StartsWith("OpMemberDecorate")))
+        foreach (var e in Enum.GetValues<Op>().Where(x => x.ToString().StartsWith("OpMemberDecorate")))
             OrderGroup[(e, null)] = group;
 
         group++;
-        foreach (var e in Enum.GetValues<SDSLOp>().Where(x => x.ToString().StartsWith("OpType") || x.ToString().StartsWith("OpConstant") || x.ToString().StartsWith("OpSpec")))
+        foreach (var e in Enum.GetValues<Op>().Where(x => x.ToString().StartsWith("OpType") || x.ToString().StartsWith("OpConstant") || x.ToString().StartsWith("OpSpec")))
             OrderGroup[(e, null)] = group;
 
         foreach (var e in Enum.GetValues<StorageClass>().Where(x => x != StorageClass.Function))
-            OrderGroup[(SDSLOp.OpVariable, e)] = group;
+            OrderGroup[(Op.OpVariable, e)] = group;
 
-        OrderGroup[(SDSLOp.OpUndef, null)] = group;
-
-        group++;
-        OrderGroup[(SDSLOp.OpLine, null)] = group;
-        OrderGroup[(SDSLOp.OpNoLine, null)] = group;
+        OrderGroup[(Op.OpUndef, null)] = group;
 
         group++;
+        OrderGroup[(Op.OpLine, null)] = group;
+        OrderGroup[(Op.OpNoLine, null)] = group;
+
         group++;
-        foreach (var e in Enum.GetValues<SDSLOp>().Except(OrderGroup.Keys.Select(x => x.Item1)))
+        group++;
+        foreach (var e in Enum.GetValues<Op>().Except(OrderGroup.Keys.Select(x => x.Item1)))
             OrderGroup[(e, null)] = group;
-        OrderGroup[(SDSLOp.OpVariable, StorageClass.Function)] = group;
+        OrderGroup[(Op.OpVariable, StorageClass.Function)] = group;
         group++;
-        OrderGroup[(SDSLOp.OpSDSLShaderEnd, null)] = group;
+        OrderGroup[(Op.OpSDSLShaderEnd, null)] = group;
     }
     /// <summary>
     /// Gets the order group for a given instruction, useful for sorting instructions according to the specification.
@@ -95,16 +95,20 @@ public partial class InstructionInfo
     /// <returns></returns>
     public static int GetGroupOrder(Instruction instruction)
     {
-        return GetGroupOrder(instruction.OpCode, instruction.OpCode == SDSLOp.OpVariable ? (StorageClass)instruction.Words[3] : null);
+        return GetGroupOrder(instruction.OpCode, instruction.OpCode == Op.OpVariable ? (StorageClass)instruction.Words[3] : null);
     }
-    
+    public static int GetGroupOrder(Buffers.OpData instruction)
+    {
+        return GetGroupOrder(instruction.Op, instruction.Op == Op.OpVariable ? (StorageClass)instruction.Memory.Span[3] : null);
+    }
+
     /// <summary>
     /// Gets the order group for a given instruction and Storage class, useful for sorting instructions according to the specification.
     /// </summary>
     /// <param name="op"></param>
     /// <param name="sc"></param>
     /// <returns></returns>
-    public static int GetGroupOrder(SDSLOp op, StorageClass? sc = null)
+    public static int GetGroupOrder(Op op, StorageClass? sc = null)
     {
         return Instance.OrderGroup[(op, sc)];
     }

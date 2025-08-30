@@ -3,6 +3,7 @@ using Stride.Shaders.Spirv.Core;
 using Stride.Shaders.Spirv.Core.Buffers;
 using Stride.Shaders.Spirv.Tools;
 using System;
+using static Stride.Shaders.Spirv.Specification;
 
 namespace Stride.Shaders.Spirv.Building;
 
@@ -23,14 +24,14 @@ public partial class SpirvBuilder()
             SetPositionTo(bb.Parent);
         bool blockFound = false;
         Span<int> blockTermination = [
-            (int)SDSLOp.OpBranch,
-            (int)SDSLOp.OpBranchConditional,
-            (int)SDSLOp.OpSwitch,
-            (int)SDSLOp.OpReturn,
-            (int)SDSLOp.OpReturnValue,
-            (int)SDSLOp.OpKill,
-            (int)SDSLOp.OpUnreachable,
-            (int)SDSLOp.OpTerminateInvocation
+            (int)Op.OpBranch,
+            (int)Op.OpBranchConditional,
+            (int)Op.OpSwitch,
+            (int)Op.OpReturn,
+            (int)Op.OpReturnValue,
+            (int)Op.OpKill,
+            (int)Op.OpUnreachable,
+            (int)Op.OpTerminateInvocation
         ];
         var wid = 0;
         foreach (var e in Buffer.Instructions)
@@ -50,7 +51,7 @@ public partial class SpirvBuilder()
                 Position = wid;
                 return;
             }
-            else if (block is SpirvFunction && blockFound && e.OpCode == SDSLOp.OpFunctionEnd)
+            else if (block is SpirvFunction && blockFound && e.OpCode == Op.OpFunctionEnd)
             {
                 Position = wid;
                 return;

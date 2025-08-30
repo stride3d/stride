@@ -51,7 +51,7 @@ public readonly struct SpirvHeader
 
     public SpirvHeader(string version, int generator, int bound, int schema = 0)
     {
-        MagicNumber = Spv.Specification.MagicNumber;
+        MagicNumber = Specification.MagicNumber;
         VersionNumber = version;
         GeneratorMagicNumber = generator;
         Bound = bound;
@@ -59,7 +59,7 @@ public readonly struct SpirvHeader
     }
     public SpirvHeader(SpirvVersion version, int generator, int bound, int schema = 0)
     {
-        MagicNumber = Spv.Specification.MagicNumber;
+        MagicNumber = Specification.MagicNumber;
         VersionNumber = version;
         GeneratorMagicNumber = generator;
         Bound = bound;
@@ -87,6 +87,6 @@ public readonly struct SpirvHeader
         };
     }
 
-    public bool IsValidMagic => MagicNumber == Spv.Specification.MagicNumber;
+    public bool IsValidMagic => MagicNumber == Specification.MagicNumber;
 
 }

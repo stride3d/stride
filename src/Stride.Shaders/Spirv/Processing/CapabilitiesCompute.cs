@@ -14,7 +14,7 @@
 
 //     public static void AddCapabilities(Instruction instruction)
 //     {
-//         if(instruction.OpCode == SDSLOp.OpEntryPoint)
+//         if(instruction.OpCode == Op.OpEntryPoint)
 //         {
 //             if(instruction.GetOperand<LiteralInteger>("executionModel")?.Words == (int)ExecutionModel.Geometry)
 //             {
@@ -30,29 +30,29 @@
 //                 //Add capability tess
 //             }
 //         }
-//         else if(instruction.OpCode == SDSLOp.OpTypeFloat && instruction.Words.Span[2] == 16)
+//         else if(instruction.OpCode == Op.OpTypeFloat && instruction.Words.Span[2] == 16)
 //         {
 //             // Add capability Float16
 //         }
-//         else if (instruction.OpCode == SDSLOp.OpTypeFloat && instruction.Words.Span[2] == 64)
+//         else if (instruction.OpCode == Op.OpTypeFloat && instruction.Words.Span[2] == 64)
 //         {
 //             // Add capability Float64
 //         }
-//         else if (instruction.OpCode == SDSLOp.OpTypeInt && instruction.Words.Span[2] == 64)
+//         else if (instruction.OpCode == Op.OpTypeInt && instruction.Words.Span[2] == 64)
 //         {
 //             // Add capability Float64
 //         }
-//         else if (instruction.OpCode == SDSLOp.OpTypeInt && instruction.Words.Span[2] == 16)
+//         else if (instruction.OpCode == Op.OpTypeInt && instruction.Words.Span[2] == 16)
 //         {
 //             // Add capability Float64
 //         }
-//         else if (instruction.OpCode == SDSLOp.OpTypeInt && instruction.Words.Span[2] == 8)
+//         else if (instruction.OpCode == Op.OpTypeInt && instruction.Words.Span[2] == 8)
 //         {
 //             // Add capability Float64
 //         }
         
 //         // TODO : Check if any atomic instructions operates on integers
-//         // else if (instruction.OpCode == SDSLOp.OpAtomic && instruction.Words.Span[2] == 64)
+//         // else if (instruction.OpCode == Op.OpAtomic && instruction.Words.Span[2] == 64)
 //         // {
 //         //     // Add capability Float64
 //         // }

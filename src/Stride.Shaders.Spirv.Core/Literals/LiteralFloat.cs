@@ -53,6 +53,8 @@ public struct LiteralFloat : ILiteralNumber, IFromSpirv<LiteralFloat>
     public static implicit operator LiteralFloat(float value) => new(value);
     public static implicit operator LiteralFloat(double value) => new(value);
     public static implicit operator LiteralInteger(LiteralFloat value) => new(value.Words);
+    public static implicit operator float(LiteralFloat value) => BitConverter.Int32BitsToSingle((int)value.Words);
+    public static implicit operator double(LiteralFloat value) => BitConverter.Int64BitsToDouble(value.Words);
 
 
 

@@ -9,7 +9,7 @@ namespace Stride.Shaders.Core;
 public abstract record SymbolType()
 {
     /// <summary>
-    /// Converts to an identifier compatible with <see cref="Spirv.Core.SDSLOp.OpName"/>.
+    /// Converts to an identifier compatible with <see cref="Spirv.Core.Op.OpName"/>.
     /// </summary>
     /// <returns></returns>
     public virtual string ToId() => ToString();

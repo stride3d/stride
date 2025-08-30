@@ -336,30 +336,30 @@ public static partial class Examples
         var idRemapping = new Dictionary<int, int>();
         foreach (var i in temp.Instructions)
         {
-            if (i.OpCode == SDSLOp.OpName)
+            if (i.OpCode == Op.OpName)
             {
                 var nameInstruction = i.UnsafeAs<InstOpName>();
                 names.Add(nameInstruction.Target, nameInstruction.Name.Value);
             }
-            else if (i.OpCode == SDSLOp.OpSDSLShader)
+            else if (i.OpCode == Op.OpSDSLShader)
             {
                 currentShader = new ShaderInfo();
                 var shaderName = i.UnsafeAs<InstOpSDSLShader>().ShaderName.Value;
                 shaders.Add(shaderName, currentShader);
                 SetOpNop(i.Words);
             }
-            else if (i.OpCode == SDSLOp.OpSDSLShaderEnd)
+            else if (i.OpCode == Op.OpSDSLShaderEnd)
             {
                 currentShader = null;
                 importedShaders.Clear();
                 SetOpNop(i.Words);
             }
-            else if (i.OpCode == SDSLOp.OpSDSLMixinInherit)
+            else if (i.OpCode == Op.OpSDSLMixinInherit)
             {
                 SetOpNop(i.Words);
             }
 
-            if (i.OpCode == SDSLOp.OpFunction)
+            if (i.OpCode == Op.OpFunction)
             {
                 var function = i.UnsafeAs<InstOpFunction>();
                 var functionName = names[function.ResultId.Value];
@@ -369,14 +369,14 @@ public static partial class Examples
                 //temp.InsertOpFunction(i.Position, i.ResultId.Value, i.ResultType!.Value, function.Functioncontrol, function.FunctionType);
             }
 
-            if (i.OpCode == SDSLOp.OpVariable)
+            if (i.OpCode == Op.OpVariable)
             {
                 var variable = i.UnsafeAs<InstOpVariable>();
                 var variableName = names[variable.ResultId.Value];
                 currentShader!.Variables.Add(variableName, i.ResultId!.Value);
             }
 
-            if (i.OpCode == SDSLOp.OpSDSLImportShader)
+            if (i.OpCode == Op.OpSDSLImportShader)
             {
                 var importShader = i.UnsafeAs<InstOpSDSLImportShader>();
 
@@ -384,7 +384,7 @@ public static partial class Examples
 
                 SetOpNop(i.Words);
             }
-            else if (i.OpCode == SDSLOp.OpSDSLImportVariable)
+            else if (i.OpCode == Op.OpSDSLImportVariable)
             {
                 var importVariable = i.UnsafeAs<InstOpSDSLImportVariable>();
                 var importedShader = importedShaders[importVariable.Shader];
@@ -395,7 +395,7 @@ public static partial class Examples
 
                 SetOpNop(i.Words);
             }
-            else if (i.OpCode == SDSLOp.OpSDSLImportFunction)
+            else if (i.OpCode == Op.OpSDSLImportFunction)
             {
                 var importFunction = i.UnsafeAs<InstOpSDSLImportFunction>();
 
@@ -432,7 +432,7 @@ public static partial class Examples
         ShaderClass.ProcessNameAndTypes(temp, out var names2, out var types);
         foreach (var i in temp.Instructions)
         {
-            if (i.OpCode == SDSLOp.OpFunction)
+            if (i.OpCode == Op.OpFunction)
             {
                 var function = i.UnsafeAs<InstOpFunction>();
                 var functionName = names2[i.ResultId.Value];
@@ -454,7 +454,7 @@ public static partial class Examples
         temp.Instructions.AddRange(context.Buffer.Instructions);
 
         new TypeDuplicateRemover().Apply(temp);
-        temp.Instructions.RemoveAll(x => x.OpCode == SDSLOp.OpNop);
+        temp.Instructions.RemoveAll(x => x.OpCode == Op.OpNop);
 
         var dis = new SpirvDis<SpirvBuffer>(temp, true);
         var source = dis.Disassemble(true);
@@ -498,7 +498,7 @@ public static partial class Examples
         var shaderMapping = new Dictionary<int, string>();
         foreach (var i in buffer.Instructions)
         {
-            if (i.OpCode == SDSLOp.OpSDSLImportShader)
+            if (i.OpCode == Op.OpSDSLImportShader)
             {
                 shaderMapping[i.ResultId!.Value] = i.GetOperand<LiteralString>("shaderName")!.Value.Value;
             }
@@ -507,7 +507,7 @@ public static partial class Examples
         // Check inheritance
         foreach (var i in buffer.Instructions)
         {
-            if (i.OpCode == SDSLOp.OpSDSLMixinInherit)
+            if (i.OpCode == Op.OpSDSLMixinInherit)
             {
                 var shaderName = shaderMapping[i.Words[1]];
                 var shader = GetOrLoadShader(shaderName);

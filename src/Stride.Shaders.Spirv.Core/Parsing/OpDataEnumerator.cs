@@ -10,7 +10,7 @@ public ref struct OpDataEnumerator
     static readonly OperandKind[] pairs = [.. Enum.GetValues<OperandKind>().Where(x => x.ToString().StartsWith("Pair"))];
     readonly Span<int> instruction;
     readonly Span<int> Operands => instruction[1..];
-    readonly SDSLOp OpCode => (SDSLOp)(instruction[0] & 0xFFFF);
+    readonly Op OpCode => (Op)(instruction[0] & 0xFFFF);
     readonly LogicalOperandArray logicalOperands;
     int wid;
     int oid;
@@ -39,7 +39,7 @@ public ref struct OpDataEnumerator
 
             var logOp = logicalOperands[oid];
 
-            if (OpCode == SDSLOp.OpDecorate)
+            if (OpCode == Op.OpDecorate)
             {
                 if (oid == 0)
                 {
@@ -162,7 +162,7 @@ public ref struct OpDataEnumerator
     public SpvOperand ParseCurrent()
     {
         var logOp = logicalOperands[oid];
-        if (OpCode == SDSLOp.OpDecorate)
+        if (OpCode == Op.OpDecorate)
         {
             SpvOperand result = new();
             if (oid == 0)

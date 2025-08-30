@@ -10,7 +10,7 @@
 //     {
 //         using var tmp = new WordBuffer();
 //         foreach (var e in buffer.Declarations.UnorderedInstructions)
-//             if (e.OpCode != SDSLOp.OpNop)
+//             if (e.OpCode != Op.OpNop)
 //                 tmp.Insert(e);
 //         buffer.Declarations.InstructionSpan.Clear();
 //         tmp.InstructionSpan.CopyTo(buffer.Declarations.InstructionSpan);
@@ -20,7 +20,7 @@
 //             tmp.InstructionSpan.Clear();
 //             tmp.RecomputeLength();
 //             foreach (var e in f.UnorderedInstructions)
-//                 if (e.OpCode != SDSLOp.OpNop)
+//                 if (e.OpCode != Op.OpNop)
 //                     tmp.Insert(e);
 //             f.InstructionSpan.Clear();
 //             tmp.InstructionSpan.CopyTo(f.InstructionSpan);

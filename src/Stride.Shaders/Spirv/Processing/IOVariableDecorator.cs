@@ -13,7 +13,7 @@
 //         int outputLocation = -1;
 //         foreach (var i in buffer.Declarations)
 //         {
-//             if(i.OpCode == SDSLOp.OpSDSLIOVariable)
+//             if(i.OpCode == Op.OpSDSLIOVariable)
 //             {
 //                 var execution = (ExecutionModel)(i.GetOperand<LiteralInteger>("executionModel")?.Words ?? -1);
 //                 var storage = (StorageClass)(i.GetOperand<LiteralInteger>("storageclass")?.Words ?? -1);
