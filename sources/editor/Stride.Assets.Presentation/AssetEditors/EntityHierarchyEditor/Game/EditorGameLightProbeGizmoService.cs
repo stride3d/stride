@@ -79,7 +79,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
         }
 
         /// <inheritdoc/>
-        public Task<Dictionary<Guid, FastList<Color3>>> RequestLightProbesStep()
+        public Task<Dictionary<Guid, List<Color3>>> RequestLightProbesStep()
         {
             return editor.Controller.InvokeAsync(() =>
             {
@@ -89,7 +89,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
                 // Note: we only process first LightProbeProcessor
                 var runtimeData = game.SceneSystem.SceneInstance.GetProcessor<LightProbeProcessor>()?.VisibilityGroup.Tags.Get(LightProbeRenderer.CurrentLightProbes);
                 if (runtimeData == null)
-                    return new Dictionary<Guid, FastList<Color3>>();
+                    return new Dictionary<Guid, List<Color3>>();
 
                 var editorCompositor = game.EditorSceneSystem.GraphicsCompositor.Game;
                 try

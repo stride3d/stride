@@ -482,7 +482,7 @@ namespace Stride.Rendering.Images
             public LightGroupRendererDynamic GroupRenderer;
             public LightShaderGroupDynamic ShaderGroup;
             public IDirectLight Light;
-            public FastList<RenderView> RenderViews = new FastList<RenderView>(new RenderView[1]);
+            public List<RenderView> RenderViews = [..new RenderView[1]];
             public LightShadowType ShadowType;
             public ILightShadowMapRenderer ShadowMapRenderer;
             public int UsageCounter = 0;

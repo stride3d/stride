@@ -1,6 +1,8 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System;
+using System.ComponentModel;
 using System.Diagnostics;
 
 using Stride.Core;
@@ -66,6 +68,108 @@ namespace Stride.UI.Panels
         [DataMemberRange(1, 0)]
         [Display(category: LayoutCategory)]
         public static readonly PropertyKey<int> LayerSpanPropertyKey = DependencyPropertyFactory.RegisterAttached(nameof(LayerSpanPropertyKey), typeof(GridBase), 1, CoerceSpanValue, InvalidateParentGridMeasure);
+
+        private float columnGap = 0f;
+        private float rowGap = 0f;
+        private float layerGap = 0f;
+
+        /// <summary>
+        /// Gets or sets the gap between columns in virtual pixels.
+        /// </summary>
+        /// <userdoc>The gap between columns in virtual pixels.</userdoc>
+        [DataMember]
+        [Display(category: LayoutCategory)]
+        [DefaultValue(0f)]
+        public float ColumnGap
+        {
+            get { return columnGap; }
+            set
+            {
+                if (columnGap != value)
+                {
+                    columnGap = Math.Max(0, value);
+                    InvalidateMeasure();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the gap between rows in virtual pixels.
+        /// </summary>
+        /// <userdoc>The gap between rows in virtual pixels.</userdoc>
+        [DataMember]
+        [Display(category: LayoutCategory)]
+        [DefaultValue(0f)]
+        public float RowGap
+        {
+            get { return rowGap; }
+            set
+            {
+                if (rowGap != value)
+                {
+                    rowGap = Math.Max(0, value);
+                    InvalidateMeasure();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the gap between layers in virtual pixels.
+        /// </summary>
+        /// <userdoc>The gap between layers in virtual pixels.</userdoc>
+        [DataMember]
+        [Display(category: LayoutCategory)]
+        [DefaultValue(0f)]
+        public float LayerGap
+        {
+            get { return layerGap; }
+            set
+            {
+                if (layerGap != value)
+                {
+                    layerGap = Math.Max(0, value);
+                    InvalidateMeasure();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Calculates the total gap size for a dimension based on the number of cells.
+        /// </summary>
+        /// <param name="dimension">The dimension (0=Column, 1=Row, 2=Layer)</param>
+        /// <param name="cellCount">The number of cells in this dimension</param>
+        /// <returns>The total gap size</returns>
+        public float CalculateTotalGapSize(int dimension, int cellCount)
+        {
+            if (cellCount <= 1) return 0f;
+            return GetGapForDimension(dimension) * (cellCount - 1);
+        }
+
+        /// <summary>
+        /// Gets the gap value for the specified dimension.
+        /// </summary>
+        /// <param name="dimension">The dimension (0=Column, 1=Row, 2=Layer)</param>
+        /// <returns>The gap value</returns>
+        protected float GetGapForDimension(int dimension)
+        {
+            return dimension switch
+            {
+                0 => columnGap,
+                1 => rowGap,
+                2 => layerGap,
+                _ => 0f
+            };
+        }
+
+        /// <summary>
+        /// Calculates and returns the spacing gaps between columns, rows, and layers.
+        /// </summary>
+        /// <returns>A <see cref="Vector3"/> where the X, Y, and Z components represent the column gap, row gap, and layer gap,
+        /// respectively.</returns>
+        protected Vector3 GetGaps()
+        {
+            return new Vector3(columnGap, rowGap, layerGap);
+        }
 
         private static void InvalidateParentGridMeasure(object propertyowner, PropertyKey<int> propertykey, int propertyoldvalue)
         {

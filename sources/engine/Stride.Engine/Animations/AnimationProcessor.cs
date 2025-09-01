@@ -13,7 +13,7 @@ namespace Stride.Animations
 {
     public class AnimationProcessor : EntityProcessor<AnimationComponent, AnimationProcessor.AssociatedData>
     {
-        private readonly ConcurrentPool<FastList<AnimationOperation>> animationOperationPool = new ConcurrentPool<FastList<AnimationOperation>>(() => new FastList<AnimationOperation>());
+        private readonly ConcurrentPool<List<AnimationOperation>> animationOperationPool = new ConcurrentPool<List<AnimationOperation>>(() => []);
 
         public AnimationProcessor()
         {

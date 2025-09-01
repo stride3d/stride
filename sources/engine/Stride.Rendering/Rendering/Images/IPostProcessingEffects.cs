@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using Stride.Graphics;
 using Stride.Rendering.Compositing;
 
@@ -11,7 +12,7 @@ namespace Stride.Rendering.Images
     {
         void Collect(RenderContext context);
 
-        void Draw(RenderDrawContext drawContext, RenderOutputValidator outputValidator, Texture[] inputs, Texture inputDepthStencil, Texture outputTarget);
+        void Draw(RenderDrawContext drawContext, RenderOutputValidator outputValidator, Span<Texture> inputs, Texture inputDepthStencil, Texture outputTarget);
 
         bool RequiresVelocityBuffer { get; }
 

@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using Stride.Core.Mathematics;
 
@@ -299,7 +300,7 @@ namespace Stride.Graphics
         /// <param name="renderTargetViewCount">The number of render target in <paramref name="renderTargetViews"/>.</param>
         /// <param name="renderTargetViews">A set of render target views to bind.</param>
         /// <exception cref="System.ArgumentNullException">renderTargetViews</exception>
-        public void SetRenderTargets(Texture depthStencilView, int renderTargetViewCount, Texture[] renderTargetViews)
+        public void SetRenderTargets(Texture depthStencilView, int renderTargetViewCount, Span<Texture> renderTargetViews)
         {
             depthStencilBuffer = depthStencilView;
 

@@ -13,10 +13,13 @@ namespace Stride.Engine
     /// </summary>
     public sealed class InputSystem : GameSystemBase
     {
+        public const int DefaultUpdateOrder = -50;
+        
         public InputSystem(IServiceRegistry registry) : base(registry)
         {
             Enabled = true;
             Manager = new InputManager().DisposeBy(this);
+            UpdateOrder = DefaultUpdateOrder;
         }
 
         public InputManager Manager { get; }
