@@ -450,6 +450,9 @@ namespace Stride.Rendering.Images
 
                 // Set this parameter that will be used by the tone mapping
                 colorTransformsGroup.Parameters.Set(LuminanceEffect.LuminanceResult, new LuminanceResult(luminanceEffect.AverageLuminance, luminanceTexture));
+
+                if (luminanceTexture != null)
+                    context.CommandList.ResourceBarrierTransition(luminanceTexture, GraphicsResourceState.PixelShaderResource);
             }
 
             if (BrightFilter.Enabled && (Bloom.Enabled || LightStreak.Enabled || LensFlare.Enabled))
