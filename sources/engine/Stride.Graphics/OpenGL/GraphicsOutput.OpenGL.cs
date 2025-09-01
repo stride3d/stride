@@ -16,7 +16,7 @@ namespace Stride.Graphics
         /// <param name="adapter">The adapter.</param>
         /// <param name="displayIndex">Index of the output.</param>
         /// <exception cref="System.ArgumentNullException">output</exception>
-        public GraphicsOutput(GraphicsAdapter adapter, int displayIndex)
+        internal GraphicsOutput(GraphicsAdapter adapter, int displayIndex)
         {
             if (adapter == null) throw new ArgumentNullException("adapter");
             
