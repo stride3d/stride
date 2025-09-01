@@ -21,8 +21,6 @@ namespace Stride.Graphics
 
         internal GraphicsAdapter()
         {
-            outputs = new [] { new GraphicsOutput() };
-
             // set default values
             int detectedVersion = 100;
 
@@ -30,6 +28,12 @@ namespace Stride.Graphics
             int versionMajor, versionMinor;
 
             var SDL = Stride.Graphics.SDL.Window.SDL;
+
+            //Initialize outputs
+            outputs = new GraphicsOutput[SDL.GetNumVideoDisplays()];
+            for (int i = 0; i < outputs.Length; i++)
+                outputs[i] = new GraphicsOutput(this, i);
+
             // Some platforms (i.e. Android) can only have a single window
             var sdlWindow = DefaultWindow;
             if (sdlWindow == null)

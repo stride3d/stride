@@ -36,7 +36,7 @@ namespace Stride.Input
             uiControl.FingerPressActions += OnFingerPressEvent;
             uiControl.FingerReleaseActions += OnFingerReleaseEvent;
 
-            uiControl.ResizeEndActions += OnSizeChanged;
+            uiControl.SizeChangedActions += OnSizeChanged;
             OnSizeChanged(new WindowEvent());
 
             Id = InputDeviceUtils.DeviceNameToGuid(uiControl.SdlHandle.ToString() + Name);
@@ -54,7 +54,7 @@ namespace Stride.Input
             uiControl.FingerPressActions -= OnFingerPressEvent;
             uiControl.FingerReleaseActions -= OnFingerReleaseEvent;
 
-            uiControl.ResizeEndActions -= OnSizeChanged;
+            uiControl.SizeChangedActions -= OnSizeChanged;
         }
 
         private void OnSizeChanged(WindowEvent eventArgs)
