@@ -356,6 +356,39 @@ public static class CollisionHelper
     }
 
     /// <summary>
+    /// Determines whether there is an intersection between a Line and a <see cref="Plane"/>.
+    /// </summary>
+    /// <param name="plane">The plane to test.</param>
+    /// <param name="pt1">The first point of the line to test.</param>
+    /// <param name="pt2">The second point of the line to test.</param> 
+    /// <param name="point">When the method completes, contains the point of intersection,
+    /// or <see cref="Vector3.Zero"/> if there was no intersection.</param>
+    /// <returns>Whether the two objects intersected.</returns>
+    public static bool LinePlaneIntersection(Plane plane, Vector3 pt1, Vector3 pt2, out Vector3 point)
+    {
+        //Source: Mathematics for 3D Game Programming and Computer Graphics (3rd ed) by Eric Lengyel
+        //Reference: Page 93, 99
+        
+        Vector3 N = plane.Normal;
+        Vector3 V = pt2 - pt1;
+        float D = -plane.D;
+        Vector3 S = pt1;
+
+        float denominator = Vector3.Dot(N, V);
+        
+        if (denominator == 0)
+        {
+            point = Vector3.Zero;
+            return false;
+        }
+        
+        float t = -(Vector3.Dot(N, S) + D) /denominator;
+
+        point = S + (t * (V));
+        return true;
+    }
+
+    /// <summary>
     /// Determines whether there is an intersection between a <see cref="Ray"/> and a point.
     /// </summary>
     /// <param name="ray">The ray to test.</param>
