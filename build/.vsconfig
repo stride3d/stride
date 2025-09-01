@@ -17,7 +17,7 @@
     "Microsoft.VisualStudio.Component.SQL.CLR",
     "Microsoft.Component.ClickOnce",
     "Microsoft.VisualStudio.Component.ManagedDesktop.Core",
-    "Microsoft.NetCore.Component.Runtime.6.0",
+    "Microsoft.NetCore.Component.Runtime.8.0",
     "Microsoft.NetCore.Component.SDK",
     "Microsoft.VisualStudio.Component.FSharp",
     "Microsoft.ComponentGroup.ClickOnce.Publish",
