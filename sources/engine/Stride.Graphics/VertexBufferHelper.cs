@@ -87,7 +87,8 @@ public readonly struct VertexBufferHelper
         IConversion<Half4, TValue>,
         IConversion<UShort4, TValue>,
         IConversion<Byte4, TValue>,
-        ISemantic<TValue> where TValue : unmanaged
+        ISemantic
+        where TValue : unmanaged
     {
         return Read<TSemantic, TValue, CopyToDest<TValue>>(buffer, new CopyToDest<TValue>(), semanticIndex);
     }
@@ -155,7 +156,7 @@ public readonly struct VertexBufferHelper
             IConversion<Half4, TOutput>,
             IConversion<UShort4, TOutput>,
             IConversion<Byte4, TOutput>,
-            ISemantic<TOutput>
+            ISemantic
             where TOutput : unmanaged
         {
             switch (format)
@@ -232,7 +233,8 @@ public readonly struct VertexBufferHelper
         IConversion<Half4, TDest>,
         IConversion<UShort4, TDest>,
         IConversion<Byte4, TDest>,
-        ISemantic<TDest> where TDest : unmanaged
+        ISemantic 
+        where TDest : unmanaged
         where TReader : IReader<TDest>
     {
         if (Binding.Declaration.TryGetElement(TSemantic.Name, semanticIndex, out var elementData))
@@ -318,7 +320,8 @@ public readonly struct VertexBufferHelper
         IConversion<Half4, TDest>,
         IConversion<UShort4, TDest>,
         IConversion<Byte4, TDest>, 
-        ISemantic<TDest> where TDest : unmanaged
+        ISemantic
+        where TDest : unmanaged
         where TWriter : IWriter<TDest>
     {
         if (Binding.Declaration.TryGetElement(TSemantic.Name, semanticIndex, out var elementData))
