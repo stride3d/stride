@@ -48,7 +48,7 @@ Example of use:
     <ItemGroup>
       <VSIXPackagesToSign Include="$(MSBuildThisFileDirectory)..\bin\vsix\*.nupkg" />
     </ItemGroup>
-    <Exec Condition="'$(StrideSign)' == 'true'" Command="$(MSBuildThisFileDirectory)sign\sign code azure-key-vault %(VSIXPackagesToSign.Identity) --description &quot;Stride&quot; --description-url &quot;https://stride3d.net&quot; --publisher-name &quot;Stride&quot; --azure-key-vault-tenant-id &quot;$(StrideSignTenantId)&quot; --azure-key-vault-client-id &quot;$(StrideSignClientId)&quot; --azure-key-vault-client-secret &quot;$(StrideSignClientSecret)&quot; --azure-key-vault-certificate &quot;$(StrideSignKeyVaultCertificate)&quot; --azure-key-vault-url &quot;https://$(StrideSignKeyVaultName).vault.azure.net/&quot; --file-list &quot;sign\nupkgfilter.txt&quot; -v Information" EchoOff="true" />
+    <Exec Condition="'$(StrideSign)' == 'true'" Command="$(MSBuildThisFileDirectory)sign\sign code azure-key-vault %(VSIXPackagesToSign.Identity) --description &quot;Stride&quot; --description-url &quot;https://stride3d.net&quot; --publisher-name &quot;Stride&quot; --azure-key-vault-tenant-id &quot;$(StrideSignTenantId)&quot; --azure-key-vault-client-id &quot;$(StrideSignClientId)&quot; --azure-key-vault-certificate &quot;$(StrideSignKeyVaultCertificate)&quot; --azure-key-vault-url &quot;https://$(StrideSignKeyVaultName).vault.azure.net/&quot; --file-list &quot;sign\nupkgfilter.txt&quot; -v Information" />
   </Target>
   
   <!--
@@ -56,8 +56,7 @@ Example of use:
   -->
   <Target Name="PrerequisitesInstaller" DependsOnTargets="SignCredentialsCheck">
     <Delete Files="$(StrideRoot)Bin\Prerequisites\install-prerequisites.exe"/>
-    <Exec Condition="'$(StrideSign)' == 'true'" Command='"$(AdvancedInstallerPath)" /edit "$(StrideRoot)sources\prerequisites\prerequisites.aip" /SetAzureKeyVaultParameters -tenant_id $(StrideSignTenantId) -app_id $(StrideSignClientId) -vault_name $(StrideSignKeyVaultName) -certificate_name $(StrideSignKeyVaultCertificate) -enable_signing '/>
-    <Exec Command='"$(AdvancedInstallerPath)" /execute "$(StrideRoot)sources\prerequisites\prerequisites.aip" "$(AdvancedInstallerBuildScript)"' EnvironmentVariables="StrideSignClientSecret=&quot;$(StrideSignClientSecret)&quot;"/>
+    <Exec Command='"$(AdvancedInstallerPath)" /execute "$(StrideRoot)sources\prerequisites\prerequisites.aip" "$(AdvancedInstallerBuildScript)"' EnvironmentVariables="StrideSignKeyVaultCertificate=&quot;StrideSignKeyVaultCertificate&quot;;StrideSignKeyVaultUrl=&quot;https://$(StrideSignKeyVaultName).vault.azure.net/&quot;;StrideSignTenantId=&quot;$(StrideSignTenantId)&quot;;StrideSignClientId=&quot;$(StrideSignClientId)&quot;"/>
     <!-- Note: this exe will be signed as part of GameStudio.nupkg -->
   </Target>
 
@@ -321,7 +320,7 @@ Example of use:
     <ItemGroup>
       <LauncherPackagesToSign Include="$(MSBuildThisFileDirectory)..\bin\launcher\*.nupkg" />
     </ItemGroup>
-    <Exec Condition="'$(StrideSign)' == 'true'" Command="$(MSBuildThisFileDirectory)sign\sign code azure-key-vault %(LauncherPackagesToSign.Identity) --description &quot;Stride&quot; --description-url &quot;https://stride3d.net&quot; --publisher-name &quot;Stride&quot; --azure-key-vault-tenant-id &quot;$(StrideSignTenantId)&quot; --azure-key-vault-client-id &quot;$(StrideSignClientId)&quot; --azure-key-vault-client-secret &quot;$(StrideSignClientSecret)&quot; --azure-key-vault-certificate &quot;$(StrideSignKeyVaultCertificate)&quot; --azure-key-vault-url &quot;https://$(StrideSignKeyVaultName).vault.azure.net/&quot; --file-list &quot;sign\nupkgfilter.txt&quot; -v Information" EchoOff="true" />
+    <Exec Condition="'$(StrideSign)' == 'true'" Command="$(MSBuildThisFileDirectory)sign\sign code azure-key-vault %(LauncherPackagesToSign.Identity) --description &quot;Stride&quot; --description-url &quot;https://stride3d.net&quot; --publisher-name &quot;Stride&quot; --azure-key-vault-tenant-id &quot;$(StrideSignTenantId)&quot; --azure-key-vault-client-id &quot;$(StrideSignClientId)&quot; --azure-key-vault-certificate &quot;$(StrideSignKeyVaultCertificate)&quot; --azure-key-vault-url &quot;https://$(StrideSignKeyVaultName).vault.azure.net/&quot; --file-list &quot;sign\nupkgfilter.txt&quot; -v Information" />
   </Target>
   
   <!--
@@ -329,9 +328,7 @@ Example of use:
   -->
   <Target Name="PackageInstaller" DependsOnTargets="PackageLauncher;SignCredentialsCheck">
     <!-- Run advanced installer -->
-    <!-- Workaround until env variables are supported in the config -->
-    <Exec Condition="'$(StrideSign)' == 'true'" Command='"$(AdvancedInstallerPath)" /edit "$(StrideRoot)sources\launcher\Setup\setup.aip" /SetAzureKeyVaultParameters -tenant_id $(StrideSignTenantId) -app_id $(StrideSignClientId) -vault_name $(StrideSignKeyVaultName) -certificate_name $(StrideSignKeyVaultCertificate) -enable_signing '/>
-    <Exec Command='"$(AdvancedInstallerPath)" /execute "$(StrideRoot)sources\launcher\Setup\setup.aip" "$(AdvancedInstallerBuildScript)"' EnvironmentVariables="StrideSignClientSecret=&quot;$(StrideSignClientSecret)&quot;"/>
+    <Exec Command='"$(AdvancedInstallerPath)" /execute "$(StrideRoot)sources\launcher\Setup\setup.aip" "$(AdvancedInstallerBuildScript)"' EnvironmentVariables="StrideSignKeyVaultCertificate=&quot;StrideSignKeyVaultCertificate&quot;;StrideSignKeyVaultUrl=&quot;https://$(StrideSignKeyVaultName).vault.azure.net/&quot;;StrideSignTenantId=&quot;$(StrideSignTenantId)&quot;;StrideSignClientId=&quot;$(StrideSignClientId)&quot;"/>
 
     <Copy SourceFiles="$(StrideRoot)sources\launcher\Setup\setup-SetupFiles\StrideSetup.exe" DestinationFolder="$(StrideRoot)bin\launcher"/>
   </Target>
@@ -340,8 +337,7 @@ Example of use:
   Package Installer: launcher-prerequisites.exe
   -->
   <Target Name="LauncherPrerequisitesInstaller" DependsOnTargets="SignCredentialsCheck">
-    <Exec Condition="'$(StrideSign)' == 'true'" Command='"$(AdvancedInstallerPath)" /edit "$(StrideRoot)sources\launcher\Prerequisites\launcher-prerequisites.aip" /SetAzureKeyVaultParameters -tenant_id $(StrideSignTenantId) -app_id $(StrideSignClientId) -vault_name $(StrideSignKeyVaultName) -certificate_name $(StrideSignKeyVaultCertificate) -enable_signing '/>
-    <Exec Command='"$(AdvancedInstallerPath)" /execute "$(StrideRoot)sources\launcher\Prerequisites\launcher-prerequisites.aip" "$(AdvancedInstallerBuildScript)"' EnvironmentVariables="StrideSignClientSecret=&quot;$(StrideSignClientSecret)&quot;"/>
+    <Exec Command='"$(AdvancedInstallerPath)" /execute "$(StrideRoot)sources\launcher\Prerequisites\launcher-prerequisites.aip" "$(AdvancedInstallerBuildScript)"' EnvironmentVariables="StrideSignKeyVaultCertificate=&quot;StrideSignKeyVaultCertificate&quot;;StrideSignKeyVaultUrl=&quot;https://$(StrideSignKeyVaultName).vault.azure.net/&quot;;StrideSignTenantId=&quot;$(StrideSignTenantId)&quot;;StrideSignClientId=&quot;$(StrideSignClientId)&quot;"/>
   </Target>
 
   <!--
@@ -371,7 +367,6 @@ Example of use:
   <Target Name="SignCredentialsCheck" Condition="'$(StrideSign)' == 'true'">
     <Error Condition="'$(StrideSignTenantId)' == ''" Text="StrideSignTenantId is not set. Please set StrideSign to false if you don't want to sign using code certificates." />
     <Error Condition="'$(StrideSignClientId)' == ''" Text="StrideSignClientId is not set. Please set StrideSign to false if you don't want to sign using code certificates." />
-    <Error Condition="'$(StrideSignClientSecret)' == ''" Text="StrideSignClientSecret is not set. Please set StrideSign to false if you don't want to sign using code certificates." />
     <Error Condition="'$(StrideSignKeyVaultCertificate)' == ''" Text="StrideSignKeyVaultCertificate is not set. Please set StrideSign to false if you don't want to sign using code certificates." />
     <Error Condition="'$(StrideSignKeyVaultName)' == ''" Text="StrideSignKeyVaultName is not set. Please set StrideSign to false if you don't want to sign using code certificates." />
   </Target>
@@ -382,7 +377,7 @@ Example of use:
     <ItemGroup>
       <MainPackagesToSign Include="$(MSBuildThisFileDirectory)..\bin\packages\*.nupkg" />
     </ItemGroup>
-    <Exec Command="$(MSBuildThisFileDirectory)sign\sign code azure-key-vault %(MainPackagesToSign.Identity) --description &quot;Stride&quot; --description-url &quot;https://stride3d.net&quot; --publisher-name &quot;Stride&quot; --azure-key-vault-tenant-id &quot;$(StrideSignTenantId)&quot; --azure-key-vault-client-id &quot;$(StrideSignClientId)&quot; --azure-key-vault-client-secret &quot;$(StrideSignClientSecret)&quot; --azure-key-vault-certificate &quot;$(StrideSignKeyVaultCertificate)&quot; --azure-key-vault-url &quot;https://$(StrideSignKeyVaultName).vault.azure.net/&quot; --file-list &quot;sign\nupkgfilter.txt&quot; -v Information" EchoOff="true" />
+    <Exec Command="$(MSBuildThisFileDirectory)sign\sign code azure-key-vault %(MainPackagesToSign.Identity) --description &quot;Stride&quot; --description-url &quot;https://stride3d.net&quot; --publisher-name &quot;Stride&quot; --azure-key-vault-tenant-id &quot;$(StrideSignTenantId)&quot; --azure-key-vault-client-id &quot;$(StrideSignClientId)&quot; --azure-key-vault-certificate &quot;$(StrideSignKeyVaultCertificate)&quot; --azure-key-vault-url &quot;https://$(StrideSignKeyVaultName).vault.azure.net/&quot; --file-list &quot;sign\nupkgfilter.txt&quot; -v Information" />
   </Target>
 
 </Project>
