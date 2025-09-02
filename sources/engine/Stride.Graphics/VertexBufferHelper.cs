@@ -79,7 +79,15 @@ public readonly struct VertexBufferHelper
     /// When the data format for this semantic is too arcane - no conversion logic is implemented for that type
     /// </exception>
     /// <inheritdoc cref="VertexBufferHelper"/>
-    public bool Copy<TSemantic, TValue>(Span<TValue> buffer, int semanticIndex = 0) where TSemantic : ISemantic<TValue> where TValue : unmanaged
+    public bool Copy<TSemantic, TValue>(Span<TValue> buffer, int semanticIndex = 0) where TSemantic : 
+        IConversion<Vector2, TValue>,
+        IConversion<Vector3, TValue>,
+        IConversion<Vector4, TValue>,
+        IConversion<Half2, TValue>,
+        IConversion<Half4, TValue>,
+        IConversion<UShort4, TValue>,
+        IConversion<Byte4, TValue>,
+        ISemantic<TValue> where TValue : unmanaged
     {
         return Read<TSemantic, TValue, CopyToDest<TValue>>(buffer, new CopyToDest<TValue>(), semanticIndex);
     }
@@ -139,7 +147,15 @@ public readonly struct VertexBufferHelper
         return missing;
 
         static void SelectSrcType<TSemantic, TOutput>(InterleavedParameters param, int srcElemOffset, int destElemOffset, PixelFormat format) 
-            where TSemantic : ISemantic<TOutput>
+            where TSemantic : 
+            IConversion<Vector2, TOutput>,
+            IConversion<Vector3, TOutput>,
+            IConversion<Vector4, TOutput>,
+            IConversion<Half2, TOutput>,
+            IConversion<Half4, TOutput>,
+            IConversion<UShort4, TOutput>,
+            IConversion<Byte4, TOutput>,
+            ISemantic<TOutput>
             where TOutput : unmanaged
         {
             switch (format)
@@ -208,7 +224,15 @@ public readonly struct VertexBufferHelper
     /// </exception>
     /// <inheritdoc cref="IReader{TDest}"/>
     public bool Read<TSemantic, TDest, TReader>(Span<TDest> destination, TReader reader, int semanticIndex = 0)
-        where TSemantic : ISemantic<TDest> where TDest : unmanaged
+        where TSemantic :
+        IConversion<Vector2, TDest>,
+        IConversion<Vector3, TDest>,
+        IConversion<Vector4, TDest>,
+        IConversion<Half2, TDest>,
+        IConversion<Half4, TDest>,
+        IConversion<UShort4, TDest>,
+        IConversion<Byte4, TDest>,
+        ISemantic<TDest> where TDest : unmanaged
         where TReader : IReader<TDest>
     {
         if (Binding.Declaration.TryGetElement(TSemantic.Name, semanticIndex, out var elementData))
@@ -279,7 +303,22 @@ public readonly struct VertexBufferHelper
     /// </exception>
     /// <inheritdoc cref="IWriter{TDest}"/>
     public bool Write<TSemantic, TDest, TWriter>(TWriter writer, int semanticIndex = 0)
-        where TSemantic : ISemantic<TDest> where TDest : unmanaged
+        where TSemantic :
+        IConversion<TDest, Vector2>,
+        IConversion<TDest, Vector3>,
+        IConversion<TDest, Vector4>,
+        IConversion<TDest, Half2>,
+        IConversion<TDest, Half4>,
+        IConversion<TDest, UShort4>,
+        IConversion<TDest, Byte4>, 
+        IConversion<Vector2, TDest>,
+        IConversion<Vector3, TDest>,
+        IConversion<Vector4, TDest>,
+        IConversion<Half2, TDest>,
+        IConversion<Half4, TDest>,
+        IConversion<UShort4, TDest>,
+        IConversion<Byte4, TDest>, 
+        ISemantic<TDest> where TDest : unmanaged
         where TWriter : IWriter<TDest>
     {
         if (Binding.Declaration.TryGetElement(TSemantic.Name, semanticIndex, out var elementData))

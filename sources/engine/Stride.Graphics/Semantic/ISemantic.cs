@@ -11,23 +11,7 @@ public interface ISemantic
     public static abstract string Name { get; }
 }
 
-public interface ISemantic<T> : 
-    ISemantic,
-    // Default source types we support for conversion
-    IConversion<Vector2, T>,
-    IConversion<Vector3, T>,
-    IConversion<Vector4, T>,
-    IConversion<Half2, T>,
-    IConversion<Half4, T>,
-    IConversion<UShort4, T>,
-    IConversion<Byte4, T>,
-    IConversion<T, Vector2>,
-    IConversion<T, Vector3>,
-    IConversion<T, Vector4>,
-    IConversion<T, Half2>,
-    IConversion<T, Half4>,
-    IConversion<T, UShort4>,
-    IConversion<T, Byte4>;
+public interface ISemantic<T> : ISemantic;
 
 public interface V2V2 : IConversion<Vector2, Vector2> { static void IConversion<Vector2, Vector2>.Convert(in Vector2 source, out Vector2 dest) => dest = source; }
 public interface V3V2 : IConversion<Vector3, Vector2> { static void IConversion<Vector3, Vector2>.Convert(in Vector3 source, out Vector2 dest) => dest = (Vector2)source; }
