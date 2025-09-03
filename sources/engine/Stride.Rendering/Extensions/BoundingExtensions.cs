@@ -34,12 +34,12 @@ namespace Stride.Extensions
             public required BoundingSphere Sphere;
             public required Matrix Matrix;
 
-            public unsafe void Read<TConversion, TSource>(byte* startPointer, int elementCount, int stride, Span<Vector3> destination) where TConversion : IConversion<TSource, Vector3> where TSource : unmanaged
+            public unsafe void Read<TConverter, TSource>(byte* startPointer, int elementCount, int stride, Span<Vector3> destination) where TConverter : IConverter<TSource, Vector3> where TSource : unmanaged
             {
                 // Calculates bounding box and bounding sphere center
                 for (byte* sourcePtr = startPointer, end = startPointer + elementCount * stride; sourcePtr < end; sourcePtr += stride)
                 {
-                    TConversion.Convert(*(TSource*)sourcePtr, out var position);
+                    TConverter.Convert(*(TSource*)sourcePtr, out var position);
                     Vector3 transformedPosition;
 
                     Vector3.TransformCoordinate(ref position, ref Matrix, out transformedPosition);
@@ -56,7 +56,7 @@ namespace Stride.Extensions
                 // Calculates bounding sphere center
                 for (byte* sourcePtr = startPointer, end = startPointer + elementCount * stride; sourcePtr < end; sourcePtr += stride)
                 {
-                    TConversion.Convert(*(TSource*)sourcePtr, out var position);
+                    TConverter.Convert(*(TSource*)sourcePtr, out var position);
                     Vector3 transformedPosition;
 
                     Vector3.TransformCoordinate(ref position, ref Matrix, out transformedPosition);

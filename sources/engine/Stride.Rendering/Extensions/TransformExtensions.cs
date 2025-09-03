@@ -44,8 +44,8 @@ namespace Stride.Extensions
         {
             public required Matrix Matrix;
             
-            public unsafe void Write<TConversion, TSource>(byte* sourcePointer, int elementCount, int stride)
-                where TConversion : IConversion<TSource, Vector3>, IConversion<Vector3, TSource> where TSource : unmanaged
+            public unsafe void Write<TConverter, TSource>(byte* sourcePointer, int elementCount, int stride)
+                where TConverter : IConverter<TSource, Vector3>, IConverter<Vector3, TSource> where TSource : unmanaged
             {
                 for (byte* end = sourcePointer + elementCount * stride; sourcePointer < end; sourcePointer += stride)
                 {
@@ -55,9 +55,9 @@ namespace Stride.Extensions
                     }
                     else
                     {
-                        TConversion.Convert(*(TSource*)sourcePointer, out var val);
+                        TConverter.Convert(*(TSource*)sourcePointer, out var val);
                         Vector3.TransformCoordinate(ref val, ref Matrix, out val);
-                        TConversion.Convert(val, out *(TSource*)sourcePointer);
+                        TConverter.Convert(val, out *(TSource*)sourcePointer);
                     }
                 }
             }
@@ -67,32 +67,32 @@ namespace Stride.Extensions
         {
             public required Matrix InverseTransposeMatrix;
             
-            public unsafe void Write<TConversion, TSource>(byte* sourcePointer, int elementCount, int stride)
-                where TConversion : IConversion<TSource, Vector4>, IConversion<Vector4, TSource> where TSource : unmanaged
+            public unsafe void Write<TConverter, TSource>(byte* sourcePointer, int elementCount, int stride)
+                where TConverter : IConverter<TSource, Vector4>, IConverter<Vector4, TSource> where TSource : unmanaged
             {
                 for (byte* end = sourcePointer + elementCount * stride; sourcePointer < end; sourcePointer += stride)
                 {
-                    TConversion.Convert(*(TSource*)sourcePointer, out var val);
+                    TConverter.Convert(*(TSource*)sourcePointer, out var val);
 
                     var v3Pointer = (Vector3*)&val;
                     Vector3.TransformNormal(ref *v3Pointer, ref InverseTransposeMatrix, out *v3Pointer);
                     v3Pointer->Normalize();
                     
-                    TConversion.Convert(val, out *(TSource*)sourcePointer);
+                    TConverter.Convert(val, out *(TSource*)sourcePointer);
                 }
             }
         }
 
         private struct FlipHandedness : VertexBufferHelper.IWriter<Vector4>
         {
-            public unsafe void Write<TConversion, TSource>(byte* sourcePointer, int elementCount, int stride)
-                where TConversion : IConversion<TSource, Vector4>, IConversion<Vector4, TSource> where TSource : unmanaged
+            public unsafe void Write<TConverter, TSource>(byte* sourcePointer, int elementCount, int stride)
+                where TConverter : IConverter<TSource, Vector4>, IConverter<Vector4, TSource> where TSource : unmanaged
             {
                 for (byte* end = sourcePointer + elementCount * stride; sourcePointer < end; sourcePointer += stride)
                 {
-                    TConversion.Convert(*(TSource*)sourcePointer, out var val);
+                    TConverter.Convert(*(TSource*)sourcePointer, out var val);
                     val.W = -val.W;
-                    TConversion.Convert(val, out *(TSource*)sourcePointer);
+                    TConverter.Convert(val, out *(TSource*)sourcePointer);
                 }
             }
         }

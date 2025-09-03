@@ -80,13 +80,13 @@ public readonly struct VertexBufferHelper
     /// </exception>
     /// <inheritdoc cref="VertexBufferHelper"/>
     public bool Copy<TSemantic, TValue>(Span<TValue> buffer, int semanticIndex = 0) where TSemantic : 
-        IConversion<Vector2, TValue>,
-        IConversion<Vector3, TValue>,
-        IConversion<Vector4, TValue>,
-        IConversion<Half2, TValue>,
-        IConversion<Half4, TValue>,
-        IConversion<UShort4, TValue>,
-        IConversion<Byte4, TValue>,
+        IConverter<Vector2, TValue>,
+        IConverter<Vector3, TValue>,
+        IConverter<Vector4, TValue>,
+        IConverter<Half2, TValue>,
+        IConverter<Half4, TValue>,
+        IConverter<UShort4, TValue>,
+        IConverter<Byte4, TValue>,
         ISemantic
         where TValue : unmanaged
     {
@@ -149,13 +149,13 @@ public readonly struct VertexBufferHelper
 
         static void SelectSrcType<TSemantic, TOutput>(InterleavedParameters param, int srcElemOffset, int destElemOffset, PixelFormat format) 
             where TSemantic : 
-            IConversion<Vector2, TOutput>,
-            IConversion<Vector3, TOutput>,
-            IConversion<Vector4, TOutput>,
-            IConversion<Half2, TOutput>,
-            IConversion<Half4, TOutput>,
-            IConversion<UShort4, TOutput>,
-            IConversion<Byte4, TOutput>,
+            IConverter<Vector2, TOutput>,
+            IConverter<Vector3, TOutput>,
+            IConverter<Vector4, TOutput>,
+            IConverter<Half2, TOutput>,
+            IConverter<Half4, TOutput>,
+            IConverter<UShort4, TOutput>,
+            IConverter<Byte4, TOutput>,
             ISemantic
             where TOutput : unmanaged
         {
@@ -172,8 +172,8 @@ public readonly struct VertexBufferHelper
             }
         }
         
-        static void InterleavedCopy<TConversion, TSourceSemVal, TDestSemVal>(InterleavedParameters param, int srcElemOffset, int destElemOffset) 
-            where TConversion : IConversion<TSourceSemVal, TDestSemVal> 
+        static void InterleavedCopy<TConverter, TSourceSemVal, TDestSemVal>(InterleavedParameters param, int srcElemOffset, int destElemOffset) 
+            where TConverter : IConverter<TSourceSemVal, TDestSemVal> 
             where TSourceSemVal : unmanaged
             where TDestSemVal : unmanaged
         {
@@ -189,7 +189,7 @@ public readonly struct VertexBufferHelper
                      
                      src += param.SourceStride, dest += param.DestStride)
                 {
-                    TConversion.Convert(*(TSourceSemVal*)src, out *(TDestSemVal*)dest);
+                    TConverter.Convert(*(TSourceSemVal*)src, out *(TDestSemVal*)dest);
                 }
             }
         }
@@ -199,7 +199,7 @@ public readonly struct VertexBufferHelper
     /// Lower level access to read into the vertex buffer
     /// </summary>
     /// <param name="destination">
-    /// The destination span your <typeparamref name="TReader"/> <see cref="IReader{TDest}.Read{TConversion, TValue}"/> method receives,
+    /// The destination span your <typeparamref name="TReader"/> <see cref="IReader{TDest}.Read{TConverter, TValue}"/> method receives,
     /// you may pass <see cref="Span{T}.Empty"/> if you do not need one.
     /// </param>
     /// <param name="reader">
@@ -226,13 +226,13 @@ public readonly struct VertexBufferHelper
     /// <inheritdoc cref="IReader{TDest}"/>
     public bool Read<TSemantic, TDest, TReader>(Span<TDest> destination, TReader reader, int semanticIndex = 0)
         where TSemantic :
-        IConversion<Vector2, TDest>,
-        IConversion<Vector3, TDest>,
-        IConversion<Vector4, TDest>,
-        IConversion<Half2, TDest>,
-        IConversion<Half4, TDest>,
-        IConversion<UShort4, TDest>,
-        IConversion<Byte4, TDest>,
+        IConverter<Vector2, TDest>,
+        IConverter<Vector3, TDest>,
+        IConverter<Vector4, TDest>,
+        IConverter<Half2, TDest>,
+        IConverter<Half4, TDest>,
+        IConverter<UShort4, TDest>,
+        IConverter<Byte4, TDest>,
         ISemantic 
         where TDest : unmanaged
         where TReader : IReader<TDest>
@@ -257,8 +257,8 @@ public readonly struct VertexBufferHelper
         return false;
     }
 
-    private unsafe void InnerRead<TConversion, TReader, TSource, TDest>(Span<TDest> destination, TReader reader, VertexElementWithOffset element) 
-        where TConversion : IConversion<TSource, TDest> 
+    private unsafe void InnerRead<TConverter, TReader, TSource, TDest>(Span<TDest> destination, TReader reader, VertexElementWithOffset element) 
+        where TConverter : IConverter<TSource, TDest> 
         where TSource : unmanaged
         where TReader : IReader<TDest>
     {
@@ -272,7 +272,7 @@ public readonly struct VertexBufferHelper
         fixed (byte* ptrSr = DataInner)
         {
             byte* firstElement = ptrSr + offset;
-            reader.Read<TConversion, TSource>(firstElement, count, stride, destination);
+            reader.Read<TConverter, TSource>(firstElement, count, stride, destination);
         }
     }
 
@@ -306,20 +306,20 @@ public readonly struct VertexBufferHelper
     /// <inheritdoc cref="IWriter{TDest}"/>
     public bool Write<TSemantic, TDest, TWriter>(TWriter writer, int semanticIndex = 0)
         where TSemantic :
-        IConversion<TDest, Vector2>,
-        IConversion<TDest, Vector3>,
-        IConversion<TDest, Vector4>,
-        IConversion<TDest, Half2>,
-        IConversion<TDest, Half4>,
-        IConversion<TDest, UShort4>,
-        IConversion<TDest, Byte4>, 
-        IConversion<Vector2, TDest>,
-        IConversion<Vector3, TDest>,
-        IConversion<Vector4, TDest>,
-        IConversion<Half2, TDest>,
-        IConversion<Half4, TDest>,
-        IConversion<UShort4, TDest>,
-        IConversion<Byte4, TDest>, 
+        IConverter<TDest, Vector2>,
+        IConverter<TDest, Vector3>,
+        IConverter<TDest, Vector4>,
+        IConverter<TDest, Half2>,
+        IConverter<TDest, Half4>,
+        IConverter<TDest, UShort4>,
+        IConverter<TDest, Byte4>, 
+        IConverter<Vector2, TDest>,
+        IConverter<Vector3, TDest>,
+        IConverter<Vector4, TDest>,
+        IConverter<Half2, TDest>,
+        IConverter<Half4, TDest>,
+        IConverter<UShort4, TDest>,
+        IConverter<Byte4, TDest>, 
         ISemantic
         where TDest : unmanaged
         where TWriter : IWriter<TDest>
@@ -344,8 +344,8 @@ public readonly struct VertexBufferHelper
         return false;
     }
 
-    private unsafe void InnerWrite<TConversion, TWriter, TSource, TDest>(TWriter reader, VertexElementWithOffset element) 
-        where TConversion : IConversion<TSource, TDest>, IConversion<TDest, TSource>
+    private unsafe void InnerWrite<TConverter, TWriter, TSource, TDest>(TWriter reader, VertexElementWithOffset element) 
+        where TConverter : IConverter<TSource, TDest>, IConverter<TDest, TSource>
         where TSource : unmanaged
         where TWriter : IWriter<TDest>
     {
@@ -359,7 +359,7 @@ public readonly struct VertexBufferHelper
         fixed (byte* ptrSr = DataInner)
         {
             byte* firstElement = ptrSr + offset;
-            reader.Write<TConversion, TSource>(firstElement, count, stride);
+            reader.Write<TConverter, TSource>(firstElement, count, stride);
         }
     }
 
@@ -367,8 +367,8 @@ public readonly struct VertexBufferHelper
     {
         public required IndexBufferHelper IndexBufferHelper;
         
-        public unsafe void Read<TConversion, TSource>(byte* sourcePointer, int elementCount, int stride, Span<Vector3> destination)
-            where TConversion : IConversion<TSource, Vector3> where TSource : unmanaged
+        public unsafe void Read<TConverter, TSource>(byte* sourcePointer, int elementCount, int stride, Span<Vector3> destination)
+            where TConverter : IConverter<TSource, Vector3> where TSource : unmanaged
         {
             if (destination.Length != IndexBufferHelper.Binding.Count)
                 throw new ArgumentException($"{nameof(destination)} length does not match the amount of indices contained within the index buffer buffer ({destination.Length} / {IndexBufferHelper.Binding.Count})");
@@ -380,7 +380,7 @@ public readonly struct VertexBufferHelper
                 {
                     foreach (var index in indices32)
                     {
-                        TConversion.Convert(*(TSource*)(sourcePointer + index * stride), out *dest);
+                        TConverter.Convert(*(TSource*)(sourcePointer + index * stride), out *dest);
                         dest++;
                     }
                 }
@@ -388,7 +388,7 @@ public readonly struct VertexBufferHelper
                 {
                     foreach (var index in indices16)
                     {
-                        TConversion.Convert(*(TSource*)(sourcePointer + index * stride), out *dest);
+                        TConverter.Convert(*(TSource*)(sourcePointer + index * stride), out *dest);
                         dest++;
                     }
                 }
@@ -398,8 +398,8 @@ public readonly struct VertexBufferHelper
 
     private struct CopyToDest<T> : IReader<T> where T : unmanaged
     {
-        public unsafe void Read<TConversion, TSource>(byte* sourcePointer, int elementCount, int stride, Span<T> destination) 
-            where TConversion : IConversion<TSource, T> 
+        public unsafe void Read<TConverter, TSource>(byte* sourcePointer, int elementCount, int stride, Span<T> destination) 
+            where TConverter : IConverter<TSource, T> 
             where TSource : unmanaged
         {
             if (destination.Length != elementCount)
@@ -410,7 +410,7 @@ public readonly struct VertexBufferHelper
                 byte* end = sourcePointer + elementCount * stride;
                 T* dest = ptrDest;
                 for (; sourcePointer < end; sourcePointer += stride, dest++)
-                    TConversion.Convert(*(TSource*)sourcePointer, out *dest);
+                    TConverter.Convert(*(TSource*)sourcePointer, out *dest);
             }
         }
     }
@@ -447,8 +447,8 @@ public readonly struct VertexBufferHelper
     /// 
     /// struct CopyTo : IReader<Vector3>
     /// {
-    ///    public unsafe void Read<TConversion, TSource>(byte* sourcePointer, int elementCount, int stride, Span<T> destination) 
-    ///     where TConversion : IConversion<TSource, T> where TSource : unmanaged
+    ///    public unsafe void Read<TConverter, TSource>(byte* sourcePointer, int elementCount, int stride, Span<T> destination) 
+    ///     where TConverter : IConverter<TSource, T> where TSource : unmanaged
     ///    {
     ///        if (destination.Length != elementCount)
     ///            throw new ArgumentException($"{nameof(destination)} length does not match the amount of vertices contained within this vertex buffer ({destination.Length} / {elementCount})");
@@ -458,7 +458,7 @@ public readonly struct VertexBufferHelper
     ///            byte* end = sourcePointer + elementCount * stride;
     ///            T* dest = ptrDest;
     ///            for (; sourcePointer < end; sourcePointer += stride, dest++)
-    ///                TConversion.Convert(*(TSource*)sourcePointer, out *dest);
+    ///                TConverter.Convert(*(TSource*)sourcePointer, out *dest);
     ///        }
     ///    }
     /// }
@@ -470,15 +470,15 @@ public readonly struct VertexBufferHelper
         /// <param name="sourcePointer">Points to the first element in the vertex buffer, read it as a TSource* to retrieve its value</param>
         /// <param name="elementCount">The amount of vertices. This is not equivalent to the size of the vertex buffer, or the size in bytes taken by individual vertices</param>
         /// <param name="stride">The size in bytes taken by individual vertices, add it to <paramref name="sourcePointer"/> to point to the next element</param>
-        /// <param name="destination">The span passed into the <see cref="Read{TConversion,TSource}"/> method call</param>
-        /// <typeparam name="TConversion">A helper to convert between <typeparamref name="TSource"/> and <typeparamref name="TDest"/> properly</typeparam>
+        /// <param name="destination">The span passed into the <see cref="Read{TConverter,TSource}"/> method call</param>
+        /// <typeparam name="TConverter">A helper to convert between <typeparamref name="TSource"/> and <typeparamref name="TDest"/> properly</typeparam>
         /// <typeparam name="TSource">
         /// The source type this vertex buffer was built with, for example <see cref="Vector2"/> or <see cref="Byte4"/>,
-        /// use <typeparamref name="TConversion"/> to convert it into a <typeparamref name="TDest"/>.
+        /// use <typeparamref name="TConverter"/> to convert it into a <typeparamref name="TDest"/>.
         /// </typeparam>
         /// <inheritdoc cref="IReader{TDest}"/>
-        unsafe void Read<TConversion, TSource>(byte* sourcePointer, int elementCount, int stride, Span<TDest> destination)
-            where TConversion : IConversion<TSource, TDest> where TSource : unmanaged;
+        unsafe void Read<TConverter, TSource>(byte* sourcePointer, int elementCount, int stride, Span<TDest> destination)
+            where TConverter : IConverter<TSource, TDest> where TSource : unmanaged;
     }
 
     /// <example>
@@ -495,15 +495,15 @@ public readonly struct VertexBufferHelper
     /// {
     ///    public Color Color;
     ///
-    ///    public unsafe void Write<TConversion, TSource>(byte* sourcePointer, int elementCount, int stride)
-    ///        where TConversion : IConversion<TSource, Vector4>, IConversion<Vector4, TSource>
+    ///    public unsafe void Write<TConverter, TSource>(byte* sourcePointer, int elementCount, int stride)
+    ///        where TConverter : IConverter<TSource, Vector4>, IConverter<Vector4, TSource>
     ///        where TSource : unmanaged
     ///    {
     ///        for (byte* end = sourcePointer + elementCount * stride; sourcePointer < end; sourcePointer += stride)
     ///        {
-    ///            TConversion.Convert(*(TSource*)sourcePointer, out var val);
+    ///            TConverter.Convert(*(TSource*)sourcePointer, out var val);
     ///            val *= (Vector4)Color;
-    ///            TConversion.Convert(val, out *(TSource*)sourcePointer);
+    ///            TConverter.Convert(val, out *(TSource*)sourcePointer);
     ///        }
     ///    }
     /// }
@@ -515,13 +515,13 @@ public readonly struct VertexBufferHelper
         /// <param name="sourcePointer">Points to the first element in the vertex buffer, read it as a TSource* to retrieve its value</param>
         /// <param name="elementCount">The amount of vertices. This is not equivalent to the size of the vertex buffer, or the size in bytes taken by individual vertices</param>
         /// <param name="stride">The size in bytes taken by individual vertices, add it to <paramref name="sourcePointer"/> to point to the next element</param>
-        /// <typeparam name="TConversion">A helper to convert between <typeparamref name="TSource"/> and <typeparamref name="TDest"/> properly</typeparam>
+        /// <typeparam name="TConverter">A helper to convert between <typeparamref name="TSource"/> and <typeparamref name="TDest"/> properly</typeparam>
         /// <typeparam name="TSource">
         /// The source type this vertex buffer was built with, for example <see cref="Vector2"/> or <see cref="Byte4"/>,
-        /// use <typeparamref name="TConversion"/> to convert it into a <typeparamref name="TDest"/>.
+        /// use <typeparamref name="TConverter"/> to convert it into a <typeparamref name="TDest"/>.
         /// </typeparam>
         /// <inheritdoc cref="IWriter{TDest}"/>
-        unsafe void Write<TConversion, TSource>(byte* sourcePointer, int elementCount, int stride)
-            where TConversion : IConversion<TSource, TDest>, IConversion<TDest, TSource> where TSource : unmanaged;
+        unsafe void Write<TConverter, TSource>(byte* sourcePointer, int elementCount, int stride)
+            where TConverter : IConverter<TSource, TDest>, IConverter<TDest, TSource> where TSource : unmanaged;
     }
 }

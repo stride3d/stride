@@ -3,7 +3,7 @@
 
 namespace Stride.Graphics.Semantics;
 
-public interface IConversion<TSource, TDest>
+public interface IConverter<TSource, TDest>
 {
     static abstract void Convert(in TSource source, out TDest dest);
 }
