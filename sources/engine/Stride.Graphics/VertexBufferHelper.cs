@@ -183,7 +183,7 @@ public readonly struct VertexBufferHelper
                 for (byte* 
                      src = srcStart + srcElemOffset,
                      dest = destStart + destElemOffset,
-                     endSrc = src + param.VertexCount * param.DestStride;
+                     endSrc = src + param.VertexCount * param.SourceStride;
                      
                      src < endSrc;
                      
@@ -423,9 +423,9 @@ public readonly struct VertexBufferHelper
 
         public InterleavedParameters(Span<byte> source, Span<byte> destination, int sourceStride, int destStride, int vertexCount)
         {
-            if (destination.Length / DestStride != vertexCount)
+            if (destination.Length / destStride != vertexCount)
                 throw new ArgumentException($"The length and stride of {nameof(destination)} does not match the vertices required ({destination.Length / DestStride} / {vertexCount})");
-            if (source.Length / SourceStride != vertexCount)
+            if (source.Length / sourceStride != vertexCount)
                 throw new ArgumentException($"The length and stride of {nameof(source)} does not match the vertices required ({source.Length / SourceStride} / {vertexCount})");
             
             Source = source;
