@@ -486,7 +486,10 @@ public readonly struct VertexBufferHelper
     /// <code>
     /// <![CDATA[
     /// Model.Meshes[0].Draw.VertexBuffers[0].AsReadable(Services, out VertexBufferHelper helper, out int count);
+    /// // Write to colors if that semantic already exist in the buffer, otherwise returns false
     /// helper.Write<ColorSemantic, Vector4, MultColor>(new MultColor(){ Color = Color.Gray });
+    /// // Upload changes to the GPU
+    /// Model.Meshes[0].Draw.VertexBuffers[0].Buffer.Recreate(helper.DataOuter);
     /// 
     /// private struct MultColor : VertexBufferHelper.IWriter<Vector4>
     /// {
