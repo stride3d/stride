@@ -12,6 +12,7 @@ using Stride.Core.Serialization.Contents;
 using Stride.Extensions;
 using Stride.Graphics;
 using Stride.Graphics.GeometricPrimitives;
+using Stride.Graphics.Semantics;
 using Stride.Rendering;
 
 namespace Stride.Physics

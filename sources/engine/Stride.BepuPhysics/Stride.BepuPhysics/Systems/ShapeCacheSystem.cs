@@ -9,6 +9,7 @@ using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Graphics;
 using Stride.Graphics.GeometricPrimitives;
+using Stride.Graphics.Semantics;
 using Stride.Rendering;
 using BufferPool = BepuUtilities.Memory.BufferPool;
 using Mesh = BepuPhysics.Collidables.Mesh;

@@ -6,7 +6,7 @@ using System;
 using System.Runtime.InteropServices;
 using Stride.Core;
 using Stride.Core.Mathematics;
-using Stride.Graphics.Semantic;
+using Stride.Graphics.Semantics;
 
 namespace Stride.Graphics;
 

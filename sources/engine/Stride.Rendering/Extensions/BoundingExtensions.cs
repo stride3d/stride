@@ -6,7 +6,7 @@ using System.Linq;
 using Stride.Core.Mathematics;
 using Stride.Graphics;
 using Stride.Graphics.Data;
-using Stride.Graphics.Semantic;
+using Stride.Graphics.Semantics;
 
 namespace Stride.Extensions
 {

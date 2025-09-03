@@ -2,7 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 #nullable enable
-namespace Stride.Graphics.Semantic;
+namespace Stride.Graphics.Semantics;
 using System;
 using Core.Mathematics;
 
