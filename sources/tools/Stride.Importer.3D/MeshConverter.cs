@@ -1172,12 +1172,8 @@ namespace Stride.Importer.ThreeD
                 var lMaterial = scene->MMaterials[i];
                 var materialName = materialNames[(IntPtr)lMaterial];
 
-                // If the name starts with a slash we replace it with an underscore to indicate it is not absolute to Strides asset system.
-                if (materialName.StartsWith('/'))
-                {
-                    materialName = materialName.Remove(0, 1);
-                    materialName = "_" + materialName;
-                }
+                // Replace slashes with an underscore to indicate it is not absolute to Strides asset system.
+                materialName.Replace('/', '_');
 
                 materials.Add(materialName, ProcessMeshMaterial(scene, lMaterial));
             }
