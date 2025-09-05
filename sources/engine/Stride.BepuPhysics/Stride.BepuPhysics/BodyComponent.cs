@@ -271,7 +271,7 @@ public class BodyComponent : CollidableComponent
     /// Automatically computed size of the margin around the surface of the shape in which contacts can be generated. These contacts will have negative depth and only contribute if the frame's velocities
     /// would push the shapes of a pair into overlap.
     /// <para>This is automatically set by bounding box prediction each frame, and is bound by the collidable's <see cref="Collidable.MinimumSpeculativeMargin"/> and <see cref="Collidable.MaximumSpeculativeMargin"/> values.
-    /// The effective speculative margin for a collision pair can also be modified from <see cref="INarrowPhaseCallbacks"/> callbacks.</para>
+    /// The effective speculative margin for a collision pair can also be modified from <see cref="global::BepuPhysics.CollisionDetection.INarrowPhaseCallbacks"/> callbacks.</para>
     /// <para>This should be positive to avoid jittering.</para>
     /// <para>It can also be used as a form of continuous collision detection, but excessively high values combined with fast motion may result in visible 'ghost collision' artifacts.
     /// For continuous collision detection with less chance of ghost collisions, use <see cref="ContinuousDetectionMode.Continuous"/>.</para>
