@@ -24,7 +24,7 @@ This README is intended for users who want to build the Stride engine from sourc
 
 ## 🤝 Contributing
 
-Want to get involved? See our [.github/CONTRIBUTING.md](.github/CONTRIBUTING.md) for how to ask questions, report bugs, submit pull requests (including good first issues), and how you can earn money by contributing via funded tasks/bug bounties.
+Want to get involved? See our [Contributing section](.github/CONTRIBUTING.md) for how to ask questions, report bugs, submit pull requests (including good first issues), and how you can earn money by contributing via funded tasks/bug bounties.
 
 ## 🗺️ Roadmap
 
