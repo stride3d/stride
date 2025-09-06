@@ -698,6 +698,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "hoelzl",
+      "name": "Matthias Hölzl",
+      "avatar_url": "https://avatars.githubusercontent.com/u/35998?v=4",
+      "profile": "https://github.com/hoelzl",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
