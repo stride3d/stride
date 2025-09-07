@@ -53,17 +53,17 @@ namespace Stride.Games
         public event EventHandler<EventArgs> AppDeactivated;
 
         /// <summary>
-        /// Occurs when [pause rendering].
+        /// Occurs when the application should stop rendering.
         /// </summary>
         public event EventHandler<EventArgs> PauseRendering;
 
         /// <summary>
-        /// Occurs when [resume rendering].
+        /// Occurs when the application should resume rendering, if it is paused.
         /// </summary>
         public event EventHandler<EventArgs> ResumeRendering;
 
         /// <summary>
-        /// Occurs when [user resized].
+        /// Occurs when the size of the window changed.
         /// </summary>
         public event EventHandler<EventArgs> SizeChanged;
 
