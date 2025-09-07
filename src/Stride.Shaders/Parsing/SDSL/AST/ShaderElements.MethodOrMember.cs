@@ -83,30 +83,31 @@ public sealed class ShaderMember(
 
     public void Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
-        var (builder, context, _) = compiler;
-        var registeredType = context.GetOrRegister(Type);
-        var variable = context.Bound++;
-        // TODO: Add a StreamSDSL storage class?
-        context.Buffer.AddOpVariable(variable, registeredType, Specification.StorageClass.Private, null);
-        context.Variables.Add(Name, new(variable, registeredType, Name));
-        if (Semantic != null)
-            context.Buffer.AddOpDecorateString(variable, Specification.Decoration.UserSemantic, null, null, Semantic.Name);
-        context.AddName(variable, Name);
+        #warning replace
+        // var (builder, context, _) = compiler;
+        // var registeredType = context.GetOrRegister(Type);
+        // var variable = context.Bound++;
+        // // TODO: Add a StreamSDSL storage class?
+        // context.Buffer.AddOpVariable(variable, registeredType, Specification.StorageClass.Private, null);
+        // context.Variables.Add(Name, new(variable, registeredType, Name));
+        // if (Semantic != null)
+        //     context.Buffer.AddOpDecorateString(variable, Specification.Decoration.UserSemantic, null, null, Semantic.Name);
+        // context.AddName(variable, Name);
 
-        var sid =
-            new SymbolID
-            (
-                Name,
-                TypeModifier == TypeModifier.Const ? SymbolKind.Constant : SymbolKind.Variable,
-                StreamKind switch
-                {
-                    StreamKind.Stream or StreamKind.PatchStream => Storage.Stream,
-                    _ => Storage.None
-                }
-            );
-        var symbol = new Symbol(sid, Type, variable);
-        table.CurrentShader.Components.Add(symbol);
-        table.CurrentFrame.Add(Name, symbol);
+        // var sid =
+        //     new SymbolID
+        //     (
+        //         Name,
+        //         TypeModifier == TypeModifier.Const ? SymbolKind.Constant : SymbolKind.Variable,
+        //         StreamKind switch
+        //         {
+        //             StreamKind.Stream or StreamKind.PatchStream => Storage.Stream,
+        //             _ => Storage.None
+        //         }
+        //     );
+        // var symbol = new Symbol(sid, Type, variable);
+        // table.CurrentShader.Components.Add(symbol);
+        // table.CurrentFrame.Add(Name, symbol);
     }
 
     public override string ToString()

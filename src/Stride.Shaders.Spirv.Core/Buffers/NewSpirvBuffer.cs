@@ -1,5 +1,6 @@
 #pragma warning disable CS9264 // Non-nullable property must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.
 
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using CommunityToolkit.HighPerformance;
 using CommunityToolkit.HighPerformance.Buffers;
@@ -33,8 +34,22 @@ public struct OpData : IDisposable, IComparable<OpData>
 
     public readonly void Dispose() => Memory.Dispose();
 
+
+    public readonly bool TryGetOperand<T>(string name, out T operand)
+    {
+        foreach (var o in this)
+        {
+            if (name == o.Name)
+            {
+                operand = o.To<T>();
+                return true;
+            }
+        }
+        operand = default!;
+        return false;
+    }
+
     public readonly T Get<T>(string name)
-        where T : struct, IFromSpirv<T>
     {
         foreach (var o in this)
         {
@@ -67,20 +82,26 @@ public struct OpData : IDisposable, IComparable<OpData>
 
 public record struct OpDataIndex(int Index, NewSpirvBuffer Buffer)
 {
+    public readonly Op Op => Buffer[Index].Op;
     public readonly ref OpData Data => ref Buffer[Index];
 }
 
 public class NewSpirvBuffer
 {
+    public SpirvHeader Header { get; set; }
     List<OpData> Memory { get; set; } = [];
 
     internal ref OpData this[int index] => ref CollectionsMarshal.AsSpan(Memory)[index];
     // internal OpDataIndex this[int index] => new(index, this);
 
     public void Add(OpData data)
-        => Memory.Add(data);
+    {
+        if (InstructionInfo.GetInfo(data).GetResultIndex(out int index) && index >= Header.Bound)
+            Header = Header with { Bound = data.Memory.Span[index] + 1 };
+        Memory.Add(data);
+    }
 
-    public void AddRef<T>(ref T instruction) where T : IMemoryInstruction
+    public void AddRef<T>(ref T instruction) where T : struct, IMemoryInstruction
     {
         if (instruction.DataIndex is OpDataIndex odi)
         {
@@ -92,17 +113,39 @@ public class NewSpirvBuffer
         else Memory.Add(new(instruction.InstructionMemory));
         instruction.DataIndex = new(Memory.Count - 1, this);
 
+        if (instruction.GetInfo().GetResultIndex(out int index) && index >= Header.Bound)
+            Header = Header with { Bound = instruction.InstructionMemory.Span[index] + 1 };
     }
-    public void Add<T>(in T instruction) where T : IMemoryInstruction
+    public NewSpirvBuffer Add<T>(in T instruction) where T : struct, IMemoryInstruction
     {
         if (instruction.DataIndex is OpDataIndex odi)
         {
             if (odi.Buffer == this)
-                return;
+                return this;
             else
                 Memory.Add(new(instruction.InstructionMemory));
         }
         else Memory.Add(new(instruction.InstructionMemory));
+        var tmp = instruction;
+        if (tmp.GetInfo().GetResultIndex(out int index) && index >= Header.Bound)
+            Header = Header with { Bound = tmp.InstructionMemory.Span[index] + 1 };
+        return this;
+    }
+    public NewSpirvBuffer Add<T>(in T instruction, out T result) where T : struct, IMemoryInstruction
+    {
+        result = instruction;
+        if (instruction.DataIndex is OpDataIndex odi)
+        {
+            if (odi.Buffer == this)
+                return this;
+            else
+                Memory.Add(new(instruction.InstructionMemory));
+        }
+        else Memory.Add(new(instruction.InstructionMemory));
+        var tmp = instruction;
+        if (tmp.GetInfo().GetResultIndex(out int index) && index >= Header.Bound)
+            Header = Header with { Bound = instruction.InstructionMemory.Span[index] + 1 };
+        return this;
     }
 
     public void Insert(int index, OpData data)
@@ -147,5 +190,41 @@ public class NewSpirvBuffer
     public void Sort()
     {
         Memory.Sort(static (a, b) => a.CompareTo(b));
+    }
+
+    public SpanOwner<int> ToBuffer()
+    {
+        var result = SpanOwner<int>.Allocate(5 + Memory.Sum(i => i.Memory.Length));
+        var span = result.Span;
+        Header.WriteTo(span);
+        var offset = 5;
+        foreach (var instruction in Memory)
+        {
+            instruction.Memory.Span.CopyTo(span[offset..]);
+            offset += instruction.Memory.Length;
+        }
+        return result;
+    }
+}
+
+
+public static class IMemoryInstructionExtensions
+{
+    /// <summary>
+    /// Gets information for the instruction operation.
+    /// </summary>
+    /// <param name="op"></param>
+    /// <returns></returns>
+    public static LogicalOperandArray GetInfo<T>(this ref T op)
+        where T : struct, IMemoryInstruction
+    {
+        Decoration? decoration = op switch
+        {
+            OpDecorate opd => opd.Decoration,
+            OpMemberDecorate opd => opd.Decoration,
+            _ => null
+        };
+
+        return InstructionInfo.GetInfo((Op)(op.InstructionMemory.Span[0] & 0xFFFF), decoration);
     }
 }

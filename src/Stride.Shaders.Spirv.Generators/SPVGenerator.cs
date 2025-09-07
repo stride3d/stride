@@ -38,10 +38,10 @@ public partial class SPVGenerator : IIncrementalGenerator
         GenerateStructs(context, grammarData);
         CreateSpecification(context, grammarData);
 
-        context.RegisterImplementationSourceOutput(
-            grammarData,
-            BufferGeneration
-        );
+        // context.RegisterImplementationSourceOutput(
+        //     grammarData,
+        //     BufferGeneration
+        // );
 
 
     }

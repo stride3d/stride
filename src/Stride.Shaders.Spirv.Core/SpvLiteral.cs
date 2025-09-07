@@ -1,3 +1,4 @@
+using System.Data.SqlTypes;
 using System.Runtime.CompilerServices;
 
 namespace Stride.Shaders.Spirv.Core;
@@ -39,15 +40,98 @@ public ref struct SpvOperand
     {
         return Unsafe.As<int, T>(ref Words[0]);
     }
-    public T To<T>() where T : struct, IFromSpirv<T>
+
+    public readonly T To<T>()
     {
-        if (Kind == OperandKind.IdRef && typeof(T) == typeof(IdRef))
+        T tmp = default!;
+        if (tmp is bool or byte or sbyte or short or ushort or int or uint or float)
+            tmp = Unsafe.As<int, T>(ref Words[0]);
+        else if (tmp is long or double or ValueTuple<int, int>)
         {
-            var id = new IdRef(Words[0] + Offset);
-            var result = Unsafe.As<IdRef, T>(ref id);
-            return result;
+            var value = Words[0] << 16 | Words[1];
+            tmp = Unsafe.As<int, T>(ref value);
         }
-        return T.From(Words);
+        else if (tmp is null && typeof(T) == typeof(string))
+        {
+            using var lit = new LiteralValue<string>(Words);
+            var result = lit.Value;
+            Unsafe.As<T, string>(ref tmp) = result;
+        }
+        else if (tmp is Enum)
+        {
+            tmp = Unsafe.As<int, T>(ref Words[0]);
+        }
+        else if (typeof(T).Name.Contains("LiteralArray"))
+        {
+            if (tmp is LiteralArray<sbyte>)
+            {
+                var result = LiteralArray<sbyte>.From(Words);
+                return Unsafe.As<LiteralArray<sbyte>, T>(ref result);
+            }
+            else if (tmp is LiteralArray<byte>)
+            {
+                var result = LiteralArray<byte>.From(Words);
+                return Unsafe.As<LiteralArray<byte>, T>(ref result);
+            }
+            else if (tmp is LiteralArray<short>)
+            {
+                var result = LiteralArray<short>.From(Words);
+                return Unsafe.As<LiteralArray<short>, T>(ref result);
+            }
+            else if (tmp is LiteralArray<int>)
+            {
+                var result = LiteralArray<int>.From(Words);
+                return Unsafe.As<LiteralArray<int>, T>(ref result);
+            }
+            else if (tmp is LiteralArray<long>)
+            {
+                var result = LiteralArray<long>.From(Words);
+                return Unsafe.As<LiteralArray<long>, T>(ref result);
+            }
+            else if (tmp is LiteralArray<byte>)
+            {
+                var result = LiteralArray<byte>.From(Words);
+                return Unsafe.As<LiteralArray<byte>, T>(ref result);
+            }
+            else if (tmp is LiteralArray<ushort>)
+            {
+                var result = LiteralArray<ushort>.From(Words);
+                return Unsafe.As<LiteralArray<ushort>, T>(ref result);
+            }
+            else if (tmp is LiteralArray<uint>)
+            {
+                var result = LiteralArray<uint>.From(Words);
+                return Unsafe.As<LiteralArray<uint>, T>(ref result);
+            }
+            else if (tmp is LiteralArray<ulong>)
+            {
+                var result = LiteralArray<ulong>.From(Words);
+                return Unsafe.As<LiteralArray<ulong>, T>(ref result);
+            }
+            else if (tmp is LiteralArray<float>)
+            {
+                var result = LiteralArray<float>.From(Words);
+                return Unsafe.As<LiteralArray<float>, T>(ref result);
+            }
+            else if (tmp is LiteralArray<double>)
+            {
+                var result = LiteralArray<double>.From(Words);
+                return Unsafe.As<LiteralArray<double>, T>(ref result);
+            }
+            else if (tmp is LiteralArray<bool>)
+            {
+                var result = LiteralArray<bool>.From(Words);
+                return Unsafe.As<LiteralArray<bool>, T>(ref result);
+            }
+            else if (tmp is LiteralArray<(int, int)>)
+            {
+                var result = LiteralArray<(int, int)>.From(Words);
+                return Unsafe.As<LiteralArray<(int, int)>, T>(ref result);
+            }
+            else throw new NotImplementedException("Can't convert operand to type " + typeof(T));
+        }
+        else throw new NotImplementedException($"Can't convert operand to type {typeof(T)}");
+        return tmp;
     }
 
     public override string ToString()

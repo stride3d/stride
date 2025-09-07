@@ -117,82 +117,83 @@ namespace Stride.Shaders.Spirv.Processing
 
         private void GenerateStreamWrapper(SpirvBuffer buffer, SpirvContext context, Specification.ExecutionModel executionModel, int entryPointId, string entryPointName, SortedList<int, (StreamInfo Stream, bool IsDirect)> streams)
         {
-            ProcessMethod(buffer, entryPointId, streams);
+            #warning replace
+            // ProcessMethod(buffer, entryPointId, streams);
 
-            var stage = executionModel switch
-            {
-                Specification.ExecutionModel.Fragment => "PS",
-                Specification.ExecutionModel.Vertex => "VS",
-            };
-            List<(StreamInfo Info, int Id)> inputStreams = [];
-            List<(StreamInfo Info, int Id)> outputStreams = [];
-            foreach (var stream in streams)
-            {
-                // Only direct access to global variables (not temporary variables created within function)
-                if (!stream.Value.IsDirect)
-                    continue;
+            // var stage = executionModel switch
+            // {
+            //     Specification.ExecutionModel.Fragment => "PS",
+            //     Specification.ExecutionModel.Vertex => "VS",
+            // };
+            // List<(StreamInfo Info, int Id)> inputStreams = [];
+            // List<(StreamInfo Info, int Id)> outputStreams = [];
+            // foreach (var stream in streams)
+            // {
+            //     // Only direct access to global variables (not temporary variables created within function)
+            //     if (!stream.Value.IsDirect)
+            //         continue;
 
-                if (stream.Value.Stream.Input)
-                {
-                    var pointerType = (IdRef)context.Buffer.AddOpTypePointer(context.Bound++, Specification.StorageClass.Input, context.Types[stream.Value.Stream.Type]);
-                    var variable = context.Buffer.AddOpVariable(context.Bound++, pointerType, Specification.StorageClass.Input, null);
-                    context.AddName(variable, $"in_{stream.Value.Stream.Name}");
+            //     if (stream.Value.Stream.Input)
+            //     {
+            //         var pointerType = (IdRef)context.Buffer.AddOpTypePointer(context.Bound++, Specification.StorageClass.Input, context.Types[stream.Value.Stream.Type]);
+            //         var variable = context.Buffer.AddOpVariable(context.Bound++, pointerType, Specification.StorageClass.Input, null);
+            //         context.AddName(variable, $"in_{stream.Value.Stream.Name}");
 
-                    if (stream.Value.Stream.Semantic != null)
-                        context.Buffer.AddOpDecorateString(variable, Specification.Decoration.UserSemantic, null, null, stream.Value.Stream.Semantic);
+            //         if (stream.Value.Stream.Semantic != null)
+            //             context.Buffer.AddOpDecorateString(variable, Specification.Decoration.UserSemantic, null, null, stream.Value.Stream.Semantic);
 
-                    inputStreams.Add((stream.Value.Stream, variable.ResultId.Value));
-                }
+            //         inputStreams.Add((stream.Value.Stream, variable.ResultId.Value));
+            //     }
 
-                if (stream.Value.Stream.Output)
-                {
-                    var pointerType = (IdRef)context.Buffer.AddOpTypePointer(context.Bound++, Specification.StorageClass.Output, context.Types[stream.Value.Stream.Type]);
-                    var variable = context.Buffer.AddOpVariable(context.Bound++, pointerType, Specification.StorageClass.Output, null);
-                    context.AddName(variable, $"out_{stream.Value.Stream.Name}");
+            //     if (stream.Value.Stream.Output)
+            //     {
+            //         var pointerType = (IdRef)context.Buffer.AddOpTypePointer(context.Bound++, Specification.StorageClass.Output, context.Types[stream.Value.Stream.Type]);
+            //         var variable = context.Buffer.AddOpVariable(context.Bound++, pointerType, Specification.StorageClass.Output, null);
+            //         context.AddName(variable, $"out_{stream.Value.Stream.Name}");
 
-                    if (stream.Value.Stream.Semantic != null)
-                        context.Buffer.AddOpDecorateString(variable, Specification.Decoration.UserSemantic, null, null, stream.Value.Stream.Semantic);
+            //         if (stream.Value.Stream.Semantic != null)
+            //             context.Buffer.AddOpDecorateString(variable, Specification.Decoration.UserSemantic, null, null, stream.Value.Stream.Semantic);
 
-                    outputStreams.Add((stream.Value.Stream, variable.ResultId.Value));
-                }
-            }
+            //         outputStreams.Add((stream.Value.Stream, variable.ResultId.Value));
+            //     }
+            // }
 
-            var voidTypeId = context.Buffer.AddOpTypeVoid(context.Bound++);
+            // var voidTypeId = context.Buffer.AddOpTypeVoid(context.Bound++);
 
-            // Add new entry point wrapper
-            var newEntryPointFunctionType = context.Buffer.AddOpTypeFunction(context.Bound++, voidTypeId, []);
-            var newEntryPointFunction = buffer.AddOpFunction(context.Bound++, voidTypeId, Specification.FunctionControlMask.None, newEntryPointFunctionType);
-            buffer.AddOpLabel(context.Bound++);
-            context.AddName(newEntryPointFunction, $"{entryPointName}_Wrapper");
+            // // Add new entry point wrapper
+            // var newEntryPointFunctionType = context.Buffer.AddOpTypeFunction(context.Bound++, voidTypeId, []);
+            // var newEntryPointFunction = buffer.AddOpFunction(context.Bound++, voidTypeId, Specification.FunctionControlMask.None, newEntryPointFunctionType);
+            // buffer.AddOpLabel(context.Bound++);
+            // context.AddName(newEntryPointFunction, $"{entryPointName}_Wrapper");
 
-            {
-                // Copy read variables from streams
-                foreach (var stream in inputStreams)
-                {
-                    var baseType = ((PointerType)stream.Info.Type).BaseType;
-                    var loadedValue = buffer.AddOpLoad(context.Bound++, context.Types[baseType], stream.Id, null);
-                    buffer.AddOpStore(stream.Info.Id, loadedValue.ResultId!.Value, null);
-                }
+            // {
+            //     // Copy read variables from streams
+            //     foreach (var stream in inputStreams)
+            //     {
+            //         var baseType = ((PointerType)stream.Info.Type).BaseType;
+            //         var loadedValue = buffer.AddOpLoad(context.Bound++, context.Types[baseType], stream.Id, null);
+            //         buffer.AddOpStore(stream.Info.Id, loadedValue.ResultId!.Value, null);
+            //     }
 
-                buffer.AddOpFunctionCall(context.Bound++, voidTypeId, entryPointId, Span<IdRef>.Empty);
+            //     buffer.AddOpFunctionCall(context.Bound++, voidTypeId, entryPointId, Span<IdRef>.Empty);
 
-                foreach (var stream in outputStreams)
-                {
-                    var baseType = ((PointerType)stream.Info.Type).BaseType;
-                    var loadedValue = buffer.AddOpLoad(context.Bound++, context.Types[baseType], stream.Info.Id, null);
-                    buffer.AddOpStore(stream.Id, loadedValue.ResultId!.Value, null);
-                }
+            //     foreach (var stream in outputStreams)
+            //     {
+            //         var baseType = ((PointerType)stream.Info.Type).BaseType;
+            //         var loadedValue = buffer.AddOpLoad(context.Bound++, context.Types[baseType], stream.Info.Id, null);
+            //         buffer.AddOpStore(stream.Id, loadedValue.ResultId!.Value, null);
+            //     }
 
-                buffer.AddOpReturn();
-                buffer.AddOpFunctionEnd();
+            //     buffer.AddOpReturn();
+            //     buffer.AddOpFunctionEnd();
 
-                Span<IdRef> pvariables = stackalloc IdRef[inputStreams.Count + outputStreams.Count];
-                for (int i = 0; i < inputStreams.Count; i++)
-                    pvariables[i] = inputStreams[i].Id;
-                for (int i = 0; i < outputStreams.Count; i++)
-                    pvariables[inputStreams.Count + i] = outputStreams[i].Id;
-                context.Buffer.AddOpEntryPoint(executionModel, newEntryPointFunction, $"{entryPointName}_Wrapper", pvariables);
-            }
+            //     Span<IdRef> pvariables = stackalloc IdRef[inputStreams.Count + outputStreams.Count];
+            //     for (int i = 0; i < inputStreams.Count; i++)
+            //         pvariables[i] = inputStreams[i].Id;
+            //     for (int i = 0; i < outputStreams.Count; i++)
+            //         pvariables[inputStreams.Count + i] = outputStreams[i].Id;
+            //     context.Buffer.AddOpEntryPoint(executionModel, newEntryPointFunction, $"{entryPointName}_Wrapper", pvariables);
+            // }
         }
 
         /// <summary>

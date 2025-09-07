@@ -83,15 +83,15 @@ public partial struct SpirvDis<TBuffer>
     }
     public readonly void AppendLiteral(LiteralInteger v)
     {
-        writer.Append(' ').Append(v.Words, ConsoleColor.Red);
+        writer.Append(' ').Append(v.Data, ConsoleColor.Red);
     }
 
     public readonly void AppendLiteral(LiteralFloat v)
     {
         if (v.WordCount == 1)
-            writer.Append(' ').Append(Convert.ToSingle(v.Words & 0xFFFF), ConsoleColor.Red);
+            writer.Append(' ').Append(Convert.ToSingle(v.Data.Span[0] & 0xFFFF), ConsoleColor.Red);
         else if (v.WordCount == 2)
-            writer.Append(' ').Append(Convert.ToDouble(v.Words), ConsoleColor.Red);
+            writer.Append(' ').Append(Convert.ToDouble(v.Data), ConsoleColor.Red);
     }
     public readonly void AppendLiteral(LiteralString v, bool quoted = false)
     {

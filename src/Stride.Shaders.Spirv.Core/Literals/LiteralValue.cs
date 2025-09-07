@@ -1,9 +1,17 @@
 using System.Numerics;
-using System.Runtime.InteropServices;
+using System.Runtime.CompilerServices;
+using System.Text;
 using CommunityToolkit.HighPerformance.Buffers;
 
 namespace Stride.Shaders.Spirv.Core;
 
+public struct Id(int id)
+{
+    public int Value { get; set; } = id;
+
+    public static implicit operator Id(int v) => new(v);
+    public static implicit operator int(Id id) => id.Value;
+}
 
 public struct LiteralValue<T> : ISpirvElement, IFromSpirv<LiteralValue<T>>
 {
@@ -24,19 +32,58 @@ public struct LiteralValue<T> : ISpirvElement, IFromSpirv<LiteralValue<T>>
             or LiteralValue<float>
             or LiteralValue<double>
             or LiteralValue<string>
-            or LiteralValue<bool> => true,
-
+            or LiteralValue<bool>
+            or LiteralValue<(int, int)> => true,
             _ => throw new Exception("Type not supported in SPIR-V")
         };
     }
-    public MemoryOwner<int> Words { get; private set; }
+    public bool dispose;
+    public MemoryOwner<int> MemoryOwner { get; private set; }
+    public readonly ReadOnlySpan<int> Words => MemoryOwner.Span;
     public T Value { get; set { field = value; UpdateMemory(); } }
     public readonly int WordCount => Words.Length;
 
-    public LiteralValue(T value)
+    public LiteralValue(Span<int> words, bool dispose = false)
     {
+        this.dispose = dispose;
+        T value = default!;
+        if (value is bool)
+            Unsafe.As<T, bool>(ref value) = words[0] != 0;
+        else if (value is byte)
+            Unsafe.As<T, byte>(ref value) = (byte)words[0];
+        else if (value is sbyte)
+            Unsafe.As<T, sbyte>(ref value) = (sbyte)words[0];
+        else if (value is short)
+            Unsafe.As<T, short>(ref value) = (short)words[0];
+        else if (value is ushort)
+            Unsafe.As<T, ushort>(ref value) = (ushort)words[0];
+        else if (value is uint)
+            Unsafe.As<T, uint>(ref value) = (uint)words[0];
+        else if (value is int)
+            Unsafe.As<T, int>(ref value) = words[0];
+        else if (value is float)
+            Unsafe.As<T, float>(ref value) = BitConverter.Int32BitsToSingle(words[0]);
+        else if (value is long)
+            Unsafe.As<T, long>(ref value) = ((long)words[0] << 32) | (uint)words[1];
+        else if (value is ulong)
+            Unsafe.As<T, ulong>(ref value) = ((ulong)words[0] << 32) | (uint)words[1];
+        else if (value is double)
+            Unsafe.As<T, double>(ref value) = BitConverter.Int64BitsToDouble(((long)words[0] << 32) | (uint)words[1]);
+        else if (value is ValueTuple<int, int>)
+            Unsafe.As<T, (int, int)>(ref value) = (words[0], words[1]);
+
         Value = value;
-        Words = MemoryOwner<int>.Empty;
+
+        MemoryOwner = MemoryOwner<int>.Allocate(words.Length, AllocationMode.Clear);
+        words.CopyTo(MemoryOwner.Span);
+        UpdateMemory();
+    }
+    public LiteralValue(T value, bool dispose = false)
+    {
+        this.dispose = dispose;
+        Value = value;
+        MemoryOwner = MemoryOwner<int>.Empty;
+        UpdateMemory();
     }
 
     void UpdateMemory()
@@ -44,15 +91,19 @@ public struct LiteralValue<T> : ISpirvElement, IFromSpirv<LiteralValue<T>>
         int wordCount = Value switch
         {
             bool or byte or sbyte or short or ushort or Half or int or uint or float => 1,
-            long or ulong or double => 2,
-            string => throw new NotImplementedException("Can't compute string literal value yet"),
-            _ => throw new NotImplementedException()
+            long or ulong or double or ValueTuple<int, int> => 2,
+            Enum => 1,
+            string s => (s.Length / 4) + (s.Length % 4 > 0 ? 1 : 0),
+            null => 0,
+            _ => throw new NotImplementedException("Can't compute literal value for type " + typeof(T))
         };
-        Words.Dispose();
-        Words = MemoryOwner<int>.Allocate(wordCount, AllocationMode.Clear);
+        if(MemoryOwner == null)
+            MemoryOwner = MemoryOwner<int>.Empty;
+        else MemoryOwner.Dispose();
+        MemoryOwner = MemoryOwner<int>.Allocate(wordCount, AllocationMode.Clear);
         if (Value is bool or byte or sbyte or short or ushort or Half or int or uint or float)
         {
-            Words.Span[0] = Value switch
+            MemoryOwner.Span[0] = Value switch
             {
                 bool b => b ? 1 : 0,
                 byte b => b,
@@ -66,30 +117,45 @@ public struct LiteralValue<T> : ISpirvElement, IFromSpirv<LiteralValue<T>>
                 _ => throw new NotImplementedException()
             };
         }
-        else if (Value is long or double)
+        else if (Value is long or double or ValueTuple<int, int>)
         {
-            Words.Span[0] = Value switch
+            MemoryOwner.Span[0] = Value switch
             {
                 long l => (int)(l >> 16),
                 double d => (int)BitConverter.DoubleToInt64Bits(d) >> 16,
+                ValueTuple<int, int> vt => vt.Item1,
                 _ => throw new NotImplementedException()
             };
-            Words.Span[1] = Value switch
+            MemoryOwner.Span[1] = Value switch
             {
                 long l => (int)(l & 0xFFFFFFFF),
                 double d => (int)(BitConverter.DoubleToInt64Bits(d) & 0xFFFFFFFF),
+                ValueTuple<int, int> vt => vt.Item2,
                 _ => throw new NotImplementedException()
             };
         }
-        else if (Value is string)
+        else if (Value is string s)
         {
-            throw new NotImplementedException("Can't process strings yet");
+            for (int i = 0; i < s.Length; i++)
+            {
+                var pos = i / 4;
+                var shift = 8 * (i % 4);
+                var value = i < s.Length ? s[i] : '\0';
+                MemoryOwner.Span[pos] |= value << shift;
+            }
         }
     }
 
     public static LiteralValue<T> From(Span<int> words)
     {
-        throw new NotImplementedException();
+        T value = default!;
+        return (value, words.Length) switch
+        {
+            (bool or byte or sbyte or short or ushort or Half or int or uint or float, 1) => new LiteralValue<T>(words),
+            (long or ulong or double or ValueTuple<int, int>, 2) => new LiteralValue<T>(words),
+            (string, > 0) => new LiteralValue<T>(words),
+            _ => throw new NotImplementedException("Cannot create LiteralValue from the provided words")
+        };
     }
 
     public static LiteralValue<T> From(string value)
@@ -97,8 +163,108 @@ public struct LiteralValue<T> : ISpirvElement, IFromSpirv<LiteralValue<T>>
         throw new NotImplementedException();
     }
 
-    public readonly void Dispose() => Words.Dispose();
+    public readonly void Dispose() => MemoryOwner.Dispose();
 
     public static implicit operator LiteralValue<T>(T s) => new(s);
     public static implicit operator T(LiteralValue<T> lv) => lv.Value;
+
+
+    public readonly Enumerator GetEnumerator() => new(MemoryOwner, dispose);
+
+    public ref struct Enumerator(MemoryOwner<int> memory, bool dispose)
+    {
+        Span<int>.Enumerator enumerator = memory.Span.GetEnumerator();
+
+        public int Current => enumerator.Current;
+        public bool MoveNext()
+        {
+            if (!enumerator.MoveNext())
+            {
+                if (dispose)
+                    memory.Dispose();
+                return false;
+            }
+            else return true;
+        }
+    }
+}
+
+
+
+public static class LiteralValueExtensions
+{
+    public static LiteralValue<T> AsLiteralValue<T>(this T value) where T : struct, INumber<T> => new(value);
+    public static LiteralValue<T> AsLiteralValue<T>(this T? value) where T : struct, INumber<T> => new(value ?? default);
+    public static LiteralValue<bool> AsLiteralValue(this bool value) => new(value);
+    public static LiteralValue<(int, int)> AsLiteralValue(this (int, int) value) => new(value);
+    public static LiteralValue<string> AsLiteralValue(this string value) => new(value);
+
+    public static LiteralValue<T> AsDisposableLiteralValue<T>(this T value) where T : struct, INumber<T> => new(value, true);
+    public static LiteralValue<T> AsDisposableLiteralValue<T>(this T? value) where T : struct, INumber<T> => new(value ?? default, true);
+    public static LiteralValue<bool> AsDisposableLiteralValue(this bool value) => new(value, true);
+    public static LiteralValue<(int, int)> AsDisposableLiteralValue(this (int, int) value) => new(value, true);
+    public static LiteralValue<string> AsDisposableLiteralValue(this string value) => new(value, true);
+}
+
+
+static class TemporaryArrayBuilder
+{
+    public static TemporaryArray Create(ReadOnlySpan<int> values) => new(values);
+
+
+    static void Something()
+    {
+        var x = "hello".AsLiteralValue();
+        TemporaryArray tmp = [.. x];
+    }
+}
+
+
+[CollectionBuilder(typeof(TemporaryArrayBuilder), "Create")]
+struct TemporaryArray : IDisposable
+{
+    MemoryOwner<int> Memory { get; set; }
+
+    int Length { get; set; }
+
+    public TemporaryArray(ReadOnlySpan<int> initialValues)
+    {
+        Memory = MemoryOwner<int>.Allocate((int)BitOperations.RoundUpToPowerOf2((uint)initialValues.Length), AllocationMode.Clear);
+        initialValues.CopyTo(Memory.Span);
+        Length = initialValues.Length;
+    }
+
+
+    void Expand(int size)
+    {
+        if (Length + size > Memory.Length)
+        {
+            MemoryOwner<int> newMemory = MemoryOwner<int>.Allocate(Memory.Length * 2, AllocationMode.Clear);
+            Memory.Span.CopyTo(newMemory.Span);
+            Memory.Dispose();
+            Memory = newMemory;
+        }
+    }
+
+    public void Add<T>(LiteralValue<T> item)
+    {
+        Expand(item.WordCount);
+        item.Words.CopyTo(Memory.Span[Length..]);
+        Length += item.WordCount;
+    }
+    public void Add<T>(LiteralArray<T> item)
+    {
+        Expand(item.WordCount);
+        item.Words.CopyTo(Memory.Span[Length..]);
+        Length += item.WordCount;
+    }
+    public void Add(int value)
+    {
+        Expand(1);
+        Memory.Span[Length] = value;
+        Length += 1;
+    }
+
+    public readonly Span<int>.Enumerator GetEnumerator() => Memory.Span[..Length].GetEnumerator();
+    public readonly void Dispose() => Memory.Dispose();
 }

@@ -12,5 +12,5 @@ namespace Stride.Shaders.Spirv.Core;
 /// </summary>
 public interface ILiteralNumber : ISpirvElement
 {
-    public long Words { get; init; }
+    public MemoryOwner<int> Data { get; init; }
 }

@@ -3,14 +3,28 @@ using CommunityToolkit.HighPerformance.Buffers;
 namespace Stride.Shaders.Spirv.Core;
 
 
-public record struct IdResultType(int Value) : ISpirvElement, IFromSpirv<IdResultType>
+
+
+public record struct IdResultType : ISpirvElement, IFromSpirv<IdResultType>
 {
     public readonly int WordCount => 1;
+
+    public readonly int Value => Word.Span[0];
+    public MemoryOwner<int> Word { get; set; }
+    public readonly ReadOnlySpan<int> Words => Word.Span;
+    
+    public IdResultType(int value)
+    {
+        Word = MemoryOwner<int>.Allocate(1);
+        Word.Span[0] = value;
+    }
 
     public static implicit operator int(IdResultType r) => r.Value;
     public static implicit operator IdResultType(int v) => new(v);
     public static implicit operator LiteralInteger(IdResultType v) => new(v);
-    public static IdResultType From(Span<int> words) => new() { Value = words[0] };
+    public static implicit operator IdResult(IdResultType v) => new(v);
+    public static implicit operator IdRef(IdResultType v) => new(v);
+    public static IdResultType From(Span<int> words) => new(words[0]);
 
     public static IdResultType From(string value)
     {
@@ -23,15 +37,9 @@ public record struct IdResultType(int Value) : ISpirvElement, IFromSpirv<IdResul
         owner.Span[0] = Value;
         return owner;
     }
-}
 
-public static class IdResultTypeExtensions
-{
-    public static SpanOwner<int> AsSpanOwner(this IdResultType? value)
+    public void Dispose()
     {
-        if(value is null)
-            return SpanOwner<int>.Empty;
-        else 
-            return value.Value.AsSpanOwner();
+        Word.Dispose();
     }
 }

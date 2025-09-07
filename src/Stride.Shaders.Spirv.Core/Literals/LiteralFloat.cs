@@ -11,39 +11,49 @@ namespace Stride.Shaders.Spirv.Core;
 
 public struct LiteralFloat : ILiteralNumber, IFromSpirv<LiteralFloat>
 {
-    public long Words { get; init; }
+    public MemoryOwner<int> Data { get; init; }
     int size;
 
     public readonly int WordCount => size / 32;
 
+    public readonly ReadOnlySpan<int> Words => Data.Span;
+
     public LiteralFloat(Half value)
     {
-        Words = BitConverter.HalfToInt16Bits(value);
+        Data = MemoryOwner<int>.Allocate(1);
+        Data.Span[0] = BitConverter.HalfToInt16Bits(value);
         size = 16;
 
     }
     public LiteralFloat(float value)
     {
-        Words = BitConverter.SingleToInt32Bits(value); ;
+        Data = MemoryOwner<int>.Allocate(1);
+        Data.Span[0] = BitConverter.SingleToInt32Bits(value);
         size = sizeof(float) * 8;
     }
     public LiteralFloat(double value)
     {
-        Words = BitConverter.DoubleToInt64Bits(value);
+        Data = MemoryOwner<int>.Allocate(2);
+        Data.Span[0] = (int)(BitConverter.DoubleToInt64Bits(value) >> 32);
+        Data.Span[1] = (int)(BitConverter.DoubleToInt64Bits(value) & 0xFFFFFFFF);
+        size = sizeof(double) * 8;
         size = sizeof(double) * 8;
 
     }
     public LiteralFloat(Span<int> words)
     {
+        Data = MemoryOwner<int>.Allocate(words.Length);
         if (words.Length == 2)
         {
             size = sizeof(long) * 8;
-            Words = words[0] << 32 | words[1];
+            Data = MemoryOwner<int>.Allocate(2);
+            Data.Span[0] = words[0] << 32 | words[1];
         }
         else if (words.Length == 1)
         {
             size = sizeof(int) * 8;
-            Words = words[0];
+            Data = MemoryOwner<int>.Allocate(1);
+            Data.Span[0] = words[0];
         }
 
     }
@@ -52,72 +62,61 @@ public struct LiteralFloat : ILiteralNumber, IFromSpirv<LiteralFloat>
     public static implicit operator LiteralFloat(Half value) => new(value);
     public static implicit operator LiteralFloat(float value) => new(value);
     public static implicit operator LiteralFloat(double value) => new(value);
-    public static implicit operator LiteralInteger(LiteralFloat value) => new(value.Words);
-    public static implicit operator float(LiteralFloat value) => BitConverter.Int32BitsToSingle((int)value.Words);
-    public static implicit operator double(LiteralFloat value) => BitConverter.Int64BitsToDouble(value.Words);
+    // public static implicit operator LiteralInteger(LiteralFloat value) => new(value.Data);
+    public static implicit operator float(LiteralFloat value) => BitConverter.Int32BitsToSingle((int)value.Data.Span[0]);
+    public static implicit operator double(LiteralFloat value) => BitConverter.Int64BitsToDouble(value.Data.Span[0]);
 
 
 
-    public readonly bool TryCast(out Half value)
-    {
-        short bits = (short)(Words & 0X000000FF);
-        if (size == 32)
-        {
-            value = BitConverter.Int16BitsToHalf(bits);
-            return true;
-        }
-        else
-        {
-            value = Half.Zero;
-            return false;
-        }
-    }
-    public readonly bool TryCast(out float value)
-    {
-        Span<int> span =
-        [
-            (int)(Words >> 32),
-            (int)(Words & 0X0000FFFF)
-        ];
-        if (size == 32)
-        {
-            value = BitConverter.Int32BitsToSingle(span[1]);
-            return true;
-        }
-        else
-        {
-            value = 0;
-            return false;
-        }
-    }
-    public readonly bool TryCast(out double value)
-    {
-        if (size == 64)
-        {
-            value = BitConverter.Int64BitsToDouble(Words);
-            return true;
-        }
-        else
-        {
-            value = 0;
-            return false;
-        }
-    }
+    // public readonly bool TryCast(out Half value)
+    // {
+    //     short bits = (short)(Data & 0X000000FF);
+    //     if (size == 32)
+    //     {
+    //         value = BitConverter.Int16BitsToHalf(bits);
+    //         return true;
+    //     }
+    //     else
+    //     {
+    //         value = Half.Zero;
+    //         return false;
+    //     }
+    // }
+    // public readonly bool TryCast(out float value)
+    // {
+    //     Span<int> span =
+    //     [
+    //         (int)(Data >> 32),
+    //         (int)(Data & 0X0000FFFF)
+    //     ];
+    //     if (size == 32)
+    //     {
+    //         value = BitConverter.Int32BitsToSingle(span[1]);
+    //         return true;
+    //     }
+    //     else
+    //     {
+    //         value = 0;
+    //         return false;
+    //     }
+    // }
+    // public readonly bool TryCast(out double value)
+    // {
+    //     if (size == 64)
+    //     {
+    //         value = BitConverter.Int64BitsToDouble(Data);
+    //         return true;
+    //     }
+    //     else
+    //     {
+    //         value = 0;
+    //         return false;
+    //     }
+    // }
 
 
 
-    public readonly void Write(ref SpirvWriter writer)
-    {
-        Span<int> span =
-        [
-            (int)(Words >> 32),
-            (int)(Words & 0xFFFFFFFF)
-        ];
-        if (size < 64)
-            writer.Write(span[1]);
-        else
-            writer.Write(span);
-    }
+
 
     public static LiteralFloat From(Span<int> words) => new(words);
 
@@ -125,22 +124,20 @@ public struct LiteralFloat : ILiteralNumber, IFromSpirv<LiteralFloat>
     {
         throw new NotImplementedException();
     }
-    public readonly SpanOwner<int> AsSpanOwner()
-    {
-        Span<int> span = WordCount == 1 ? [(int)Words] : [(int)(Words >> 32), (int)(Words & 0xFFFFFFFF)];
-        var owner = SpanOwner<int>.Allocate(span.Length, AllocationMode.Clear);
-        span.CopyTo(owner.Span);
-        return owner;
-    }
 
-    public override string ToString()
+    public readonly override string ToString()
     {
         return size switch
         {
-            16 => $"{BitConverter.UInt16BitsToHalf((ushort)(Words & 0xFFFF))}",
-            32 => $"{BitConverter.Int32BitsToSingle((int)(Words & 0xFFFFFFFF))}",
-            64 => $"{BitConverter.Int64BitsToDouble(Words)}",
+            16 => $"{BitConverter.UInt16BitsToHalf((ushort)(Data.Span[0] & 0xFFFF))}",
+            32 => $"{BitConverter.Int32BitsToSingle(Data.Span[0])}",
+            64 => $"{BitConverter.Int64BitsToDouble(Data.Span[0] << 32 | Data.Span[1])}",
             _ => throw new NotImplementedException()
         };
+    }
+
+    public void Dispose()
+    {
+        throw new NotImplementedException();
     }
 }

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Stride.Shaders.Spirv.Core.Buffers;
 using static Stride.Shaders.Spirv.Specification;
 
 namespace Stride.Shaders.Spirv.Core;
@@ -89,6 +90,12 @@ public partial class InstructionInfo
         else
             Info.Add(op, new(spvClass, [new(kind, quantifier, name)]));
     }
+
+
+
+    public static LogicalOperandArray GetInfo(Op op, Decoration? decoration = null)
+        => GetInfo(new OperandKey(op, decoration));
+
     /// <summary>
     /// Gets information for the instruction operation.
     /// </summary>
@@ -96,10 +103,11 @@ public partial class InstructionInfo
     /// <returns></returns>
     public static LogicalOperandArray GetInfo(OperandKey op)
     {
-        if(op.Decoration is not null && !Instance.Info.ContainsKey(op))
+        if (op.Decoration is not null && !Instance.Info.ContainsKey(op))
             return Instance.Info[op with { Decoration = null }];
         return Instance.Info[op];
     }
+
     public static LogicalOperandArray GetInfo(Instruction instruction)
     {
         Decoration? decoration = instruction.OpCode switch
@@ -112,5 +120,18 @@ public partial class InstructionInfo
             _ => null
         };
         return GetInfo(new OperandKey(instruction.OpCode, decoration));
+    }
+    public static LogicalOperandArray GetInfo(OpData instruction)
+    {
+        Decoration? decoration = instruction.Op switch
+        {
+            Op.OpDecorateString
+                or Op.OpDecorate
+                or Op.OpDecorateId => (Decoration)instruction.Memory.Span[1],
+            Op.OpMemberDecorate
+                or Op.OpMemberDecorateString => (Decoration)instruction.Memory.Span[2],
+            _ => null
+        };
+        return GetInfo(new OperandKey(instruction.Op, decoration));
     }
 }

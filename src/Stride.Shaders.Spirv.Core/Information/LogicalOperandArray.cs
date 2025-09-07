@@ -12,8 +12,6 @@ public readonly struct LogicalOperandArray(string? className, List<LogicalOperan
     public string ClassName { get; init; } = className ?? "Debug";
 
     List<LogicalOperand> LogicalOperands { get; } = operands ?? [];
-    public bool HasResult => GetHasResult();
-    public bool HasResultType => GetHasResultType();
 
     public int Count => LogicalOperands.Count;
 
@@ -25,22 +23,32 @@ public readonly struct LogicalOperandArray(string? className, List<LogicalOperan
         set => LogicalOperands[index] = value;
     }
 
-    bool GetHasResult()
+    public bool GetResultIndex(out int index)
     {
-        foreach (var o in LogicalOperands)
+        for(int i = 0; i < LogicalOperands.Count; i++)
         {
+            var o = LogicalOperands[i];
             if (o.Kind == OperandKind.IdResult)
+            {
+                index = i;
                 return true;
+            }
         }
+        index = -1;
         return false;
     }
-    bool GetHasResultType()
+    public bool GetResultTypeIndex(out int index)
     {
-        foreach (var o in LogicalOperands)
+        for (int i = 0; i < LogicalOperands.Count; i++)
         {
+            var o = LogicalOperands[i];
             if (o.Kind == OperandKind.IdResultType)
+            {
+                index = i;
                 return true;
+            }
         }
+        index = -1;
         return false;
     }
 

@@ -295,171 +295,173 @@ public static partial class Examples
 
     public static void MergeSDSL()
     {
-        CompileSDSL();
+        // CompileSDSL();
 
-        var shaderMixin = new ShaderMixinSource { Mixins = { new ShaderClassCode("TestBasic") } };
+        // var shaderMixin = new ShaderMixinSource { Mixins = { new ShaderClassCode("TestBasic") } };
 
-        var buffer = GetOrLoadShader("TestBasic");
+        // var buffer = GetOrLoadShader("TestBasic");
 
-        // Step: expand "for"
-        // TODO
+        // // Step: expand "for"
+        // // TODO
 
-        // Step: build mixins: top level and (TODO) compose
-        var inheritanceList = new List<string>();
-        BuildInheritanceList(buffer, inheritanceList);
-        inheritanceList.Add("TestBasic");
+        // // Step: build mixins: top level and (TODO) compose
+        // var inheritanceList = new List<string>();
+        // BuildInheritanceList(buffer, inheritanceList);
+        // inheritanceList.Add("TestBasic");
 
-        var temp = new SpirvBuffer();
-        var offset = 0;
-        var nextOffset = 0;
+        // var temp = new SpirvBuffer();
+        // var offset = 0;
+        // var nextOffset = 0;
 
-        foreach (var shaderName in inheritanceList)
-        {
-            var shader = GetOrLoadShader(shaderName);
-            offset += nextOffset;
-            nextOffset = 0;
-            foreach (var i in shader.Instructions)
-            {
-                var i2 = temp.Add(i.Words);
+        // foreach (var shaderName in inheritanceList)
+        // {
+        //     var shader = GetOrLoadShader(shaderName);
+        //     offset += nextOffset;
+        //     nextOffset = 0;
+        //     foreach (var i in shader.Instructions)
+        //     {
+        //         var i2 = temp.Add(i.Words);
 
-                if (i.ResultId != null && i.ResultId.Value > nextOffset)
-                    nextOffset = i.ResultId.Value;
-                i2.OffsetIds(offset);
-            }
-        }
+        //         if (i.ResultId != null && i.ResultId.Value > nextOffset)
+        //             nextOffset = i.ResultId.Value;
+        //         i2.OffsetIds(offset);
+        //     }
+        // }
 
-        var shaders = new Dictionary<string, ShaderInfo>();
-        ShaderInfo? currentShader = null;
+        // var shaders = new Dictionary<string, ShaderInfo>();
+        // ShaderInfo? currentShader = null;
 
-        var names = new Dictionary<int, string>();
-        var importedShaders = new Dictionary<int, ShaderInfo>();
-        var idRemapping = new Dictionary<int, int>();
-        foreach (var i in temp.Instructions)
-        {
-            if (i.OpCode == Op.OpName)
-            {
-                var nameInstruction = i.UnsafeAs<InstOpName>();
-                names.Add(nameInstruction.Target, nameInstruction.Name.Value);
-            }
-            else if (i.OpCode == Op.OpSDSLShader)
-            {
-                currentShader = new ShaderInfo();
-                var shaderName = i.UnsafeAs<InstOpSDSLShader>().ShaderName.Value;
-                shaders.Add(shaderName, currentShader);
-                SetOpNop(i.Words);
-            }
-            else if (i.OpCode == Op.OpSDSLShaderEnd)
-            {
-                currentShader = null;
-                importedShaders.Clear();
-                SetOpNop(i.Words);
-            }
-            else if (i.OpCode == Op.OpSDSLMixinInherit)
-            {
-                SetOpNop(i.Words);
-            }
+        // var names = new Dictionary<int, string>();
+        // var importedShaders = new Dictionary<int, ShaderInfo>();
+        // var idRemapping = new Dictionary<int, int>();
+        // foreach (var i in temp.Instructions)
+        // {
+        //     if (i.OpCode == Op.OpName)
+        //     {
+        //         var nameInstruction = i.UnsafeAs<InstOpName>();
+        //         names.Add(nameInstruction.Target, nameInstruction.Name.Value);
+        //     }
+        //     else if (i.OpCode == Op.OpSDSLShader)
+        //     {
+        //         currentShader = new ShaderInfo();
+        //         var shaderName = i.UnsafeAs<InstOpSDSLShader>().ShaderName.Value;
+        //         shaders.Add(shaderName, currentShader);
+        //         SetOpNop(i.Words);
+        //     }
+        //     else if (i.OpCode == Op.OpSDSLShaderEnd)
+        //     {
+        //         currentShader = null;
+        //         importedShaders.Clear();
+        //         SetOpNop(i.Words);
+        //     }
+        //     else if (i.OpCode == Op.OpSDSLMixinInherit)
+        //     {
+        //         SetOpNop(i.Words);
+        //     }
 
-            if (i.OpCode == Op.OpFunction)
-            {
-                var function = i.UnsafeAs<InstOpFunction>();
-                var functionName = names[function.ResultId.Value];
-                currentShader!.Functions.Add(functionName, i.ResultId!.Value);
+        //     if (i.OpCode == Op.OpFunction)
+        //     {
+        //         var function = i.UnsafeAs<InstOpFunction>();
+        //         var functionName = names[function.ResultId.Value];
+        //         currentShader!.Functions.Add(functionName, i.ResultId!.Value);
 
-                //temp.Remove(i.Position);
-                //temp.InsertOpFunction(i.Position, i.ResultId.Value, i.ResultType!.Value, function.Functioncontrol, function.FunctionType);
-            }
+        //         //temp.Remove(i.Position);
+        //         //temp.InsertOpFunction(i.Position, i.ResultId.Value, i.ResultType!.Value, function.Functioncontrol, function.FunctionType);
+        //     }
 
-            if (i.OpCode == Op.OpVariable)
-            {
-                var variable = i.UnsafeAs<InstOpVariable>();
-                var variableName = names[variable.ResultId.Value];
-                currentShader!.Variables.Add(variableName, i.ResultId!.Value);
-            }
+        //     if (i.OpCode == Op.OpVariable)
+        //     {
+        //         var variable = i.UnsafeAs<InstOpVariable>();
+        //         var variableName = names[variable.ResultId.Value];
+        //         currentShader!.Variables.Add(variableName, i.ResultId!.Value);
+        //     }
 
-            if (i.OpCode == Op.OpSDSLImportShader)
-            {
-                var importShader = i.UnsafeAs<InstOpSDSLImportShader>();
+        //     if (i.OpCode == Op.OpSDSLImportShader)
+        //     {
+        //         var importShader = i.UnsafeAs<InstOpSDSLImportShader>();
 
-                importedShaders.Add(importShader.ResultId.Value, shaders[importShader.ShaderName.Value]);
+        //         importedShaders.Add(importShader.ResultId.Value, shaders[importShader.ShaderName.Value]);
 
-                SetOpNop(i.Words);
-            }
-            else if (i.OpCode == Op.OpSDSLImportVariable)
-            {
-                var importVariable = i.UnsafeAs<InstOpSDSLImportVariable>();
-                var importedShader = importedShaders[importVariable.Shader];
+        //         SetOpNop(i.Words);
+        //     }
+        //     else if (i.OpCode == Specification.Op.OpSDSLImportVariable)
+        //     {
+        //         var importVariable = i.UnsafeAs<InstOpSDSLImportVariable>();
+        //         var importedShader = importedShaders[importVariable.Shader];
 
-                var importedVariable = importedShader.Variables[importVariable.VariableName.Value];
+        //         var importedVariable = importedShader.Variables[importVariable.VariableName.Value];
 
-                idRemapping.Add(importVariable.ResultId.Value, importedVariable);
+        //         idRemapping.Add(importVariable.ResultId.Value, importedVariable);
 
-                SetOpNop(i.Words);
-            }
-            else if (i.OpCode == Op.OpSDSLImportFunction)
-            {
-                var importFunction = i.UnsafeAs<InstOpSDSLImportFunction>();
+        //         SetOpNop(i.Words);
+        //     }
+        //     else if (i.OpCode == Op.OpSDSLImportFunction)
+        //     {
+        //         var importFunction = i.UnsafeAs<InstOpSDSLImportFunction>();
 
-                var importedShader = importedShaders[importFunction.Shader];
-                var importedFunction = importedShader.Functions[importFunction.FunctionName.Value];
-                idRemapping.Add(importFunction.ResultId.Value, importedFunction);
+        //         var importedShader = importedShaders[importFunction.Shader];
+        //         var importedFunction = importedShader.Functions[importFunction.FunctionName.Value];
+        //         idRemapping.Add(importFunction.ResultId.Value, importedFunction);
 
-                SetOpNop(i.Words);
-            }
+        //         SetOpNop(i.Words);
+        //     }
 
-            foreach (var op in i)
-            {
-                if ((op.Kind == OperandKind.IdRef
-                        || op.Kind == OperandKind.IdResultType
-                        || op.Kind == OperandKind.PairIdRefLiteralInteger
-                        || op.Kind == OperandKind.PairIdRefIdRef)
-                    && idRemapping.TryGetValue(op.Words[0], out var to1))
-                    op.Words[0] = to1;
-                if ((op.Kind == OperandKind.PairLiteralIntegerIdRef
-                     || op.Kind == OperandKind.PairIdRefIdRef)
-                    && idRemapping.TryGetValue(op.Words[1], out var to2))
-                    op.Words[1] = to2;
-            }
-        }
+        //     foreach (var op in i)
+        //     {
+        //         if ((op.Kind == OperandKind.IdRef
+        //                 || op.Kind == OperandKind.IdResultType
+        //                 || op.Kind == OperandKind.PairIdRefLiteralInteger
+        //                 || op.Kind == OperandKind.PairIdRefIdRef)
+        //             && idRemapping.TryGetValue(op.Words[0], out var to1))
+        //             op.Words[0] = to1;
+        //         if ((op.Kind == OperandKind.PairLiteralIntegerIdRef
+        //              || op.Kind == OperandKind.PairIdRefIdRef)
+        //             && idRemapping.TryGetValue(op.Words[1], out var to2))
+        //             op.Words[1] = to2;
+        //     }
+        // }
 
         // Step: merge mixins
         //       start from most-derived class and import on demand
         // Step: analyze streams and generate in/out variables
 
-        new TypeDuplicateRemover().Apply(temp);
+        // new TypeDuplicateRemover().Apply(temp);
 
-        var context = new SpirvContext(new());
-        context.Bound = offset + nextOffset + 1;
-        ShaderClass.ProcessNameAndTypes(temp, out var names2, out var types);
-        foreach (var i in temp.Instructions)
-        {
-            if (i.OpCode == Op.OpFunction)
-            {
-                var function = i.UnsafeAs<InstOpFunction>();
-                var functionName = names2[i.ResultId.Value];
-                context.Module.Functions.Add(functionName, new SpirvFunction(i.ResultId.Value, functionName, (FunctionType)types[function.FunctionType]));
-            }
-        }
+        // var context = new SpirvContext(new());
+        // context.Bound = offset + nextOffset + 1;
+        // ShaderClass.ProcessNameAndTypes(temp, out var names2, out var types);
+        // foreach (var i in temp.Instructions)
+        // {
+        //     if (i.OpCode == Op.OpFunction)
+        //     {
+        //         var function = i.UnsafeAs<InstOpFunction>();
+        //         var functionName = names2[i.ResultId.Value];
+        //         context.Module.Functions.Add(functionName, new SpirvFunction(i.ResultId.Value, functionName, (FunctionType)types[function.FunctionType]));
+        //     }
+        // }
 
-        foreach (var type in types)
-        {
-            context.Types.Add(type.Value, type.Key);
-            context.ReverseTypes.Add(type.Key, type.Value);
-        }
+        // foreach (var type in types)
+        // {
+        //     context.Types.Add(type.Value, type.Key);
+        //     context.ReverseTypes.Add(type.Key, type.Value);
+        // }
 
-        context.Buffer.InsertOpCapability(0, Specification.Capability.Shader);
-        context.Buffer.InsertOpMemoryModel(1, Specification.AddressingModel.Logical, Specification.MemoryModel.GLSL450);
-        context.Buffer.InsertOpExtension(2, "SPV_GOOGLE_hlsl_functionality1");
-        new StreamAnalyzer().Process(temp, context);
+        // context.Buffer.InsertOpCapability(0, Specification.Capability.Shader);
+        // context.Buffer.InsertOpMemoryModel(1, Specification.AddressingModel.Logical, Specification.MemoryModel.GLSL450);
+        // context.Buffer.InsertOpExtension(2, "SPV_GOOGLE_hlsl_functionality1");
+        // new StreamAnalyzer().Process(temp, context);
 
-        temp.Instructions.AddRange(context.Buffer.Instructions);
+        // temp.Instructions.AddRange(context.Buffer.Instructions);
 
-        new TypeDuplicateRemover().Apply(temp);
-        temp.Instructions.RemoveAll(x => x.OpCode == Op.OpNop);
+        // new TypeDuplicateRemover().Apply(temp);
+        // temp.Instructions.RemoveAll(x => x.OpCode == Op.OpNop);
 
-        var dis = new SpirvDis<SpirvBuffer>(temp, true);
-        var source = dis.Disassemble(true);
+        // var dis = new SpirvDis<SpirvBuffer>(temp, true);
+        // var source = dis.Disassemble(true);
 
-        File.WriteAllText("test.spvdis", source);
+        // File.WriteAllText("test.spvdis", source);
+        #warning replace
+        throw new NotImplementedException();
     }
 
     static void ReplaceRefs(int from, int to, Instruction i)
@@ -498,7 +500,7 @@ public static partial class Examples
         var shaderMapping = new Dictionary<int, string>();
         foreach (var i in buffer.Instructions)
         {
-            if (i.OpCode == Op.OpSDSLImportShader)
+            if (i.OpCode == Specification.Op.OpSDSLImportShader)
             {
                 shaderMapping[i.ResultId!.Value] = i.GetOperand<LiteralString>("shaderName")!.Value.Value;
             }
@@ -507,7 +509,7 @@ public static partial class Examples
         // Check inheritance
         foreach (var i in buffer.Instructions)
         {
-            if (i.OpCode == Op.OpSDSLMixinInherit)
+            if (i.OpCode == Specification.Op.OpSDSLMixinInherit)
             {
                 var shaderName = shaderMapping[i.Words[1]];
                 var shader = GetOrLoadShader(shaderName);

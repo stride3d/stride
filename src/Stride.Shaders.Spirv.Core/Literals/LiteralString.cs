@@ -11,6 +11,7 @@ public readonly struct LiteralString : ISpirvElement, IFromSpirv<LiteralString>
 {
     readonly static StringPool pool = new();
 
+    public MemoryOwner<int> Memory { get; init; }
     public string Value { get; init; }
     public readonly int Length => Value.Length + 1;
 
@@ -18,12 +19,18 @@ public readonly struct LiteralString : ISpirvElement, IFromSpirv<LiteralString>
     internal bool HasRest => Length % 4 > 0;
     internal int RestSize => Length % 4;
 
+    public ReadOnlySpan<int> Words => Memory.Span;
+
     public LiteralString(string value)
     {
         Value = pool.GetOrAdd(value);
+        Memory = MemoryOwner<int>.Allocate(WordCount);
+        
     }
     public LiteralString(Span<int> words)
     {
+        Memory = MemoryOwner<int>.Allocate(WordCount);
+        words.CopyTo(Memory.Span);
         Span<char> chars = stackalloc char[words.Length * 4];
         for (int i = 0; i < words.Length; i++)
         {
@@ -112,14 +119,8 @@ public readonly struct LiteralString : ISpirvElement, IFromSpirv<LiteralString>
 
     public static LiteralString From(string value) => value;
 
-    public SpanOwner<int> AsSpanOwner()
+    public void Dispose()
     {
-        return Value.AsSpanOwner();
+        Memory.Dispose();
     }
-}
-
-public static class SpirvStringExtensions
-{
-    public static LiteralString ToLiteralString(this string value) => value;
-    
 }

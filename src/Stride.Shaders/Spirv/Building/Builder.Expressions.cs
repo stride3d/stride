@@ -12,107 +12,113 @@ public partial class SpirvBuilder
     public SpirvValue BinaryOperation(SpirvContext context, int resultType, in SpirvValue left, Operator op, in SpirvValue right, string? name = null)
     {
 
-        var instruction = (op, context.ReverseTypes[left.TypeId], context.ReverseTypes[right.TypeId]) switch
-        {
-            (Operator.Plus, SymbolType l, SymbolType r)
-                when l.IsIntegerVector() && r.IsIntegerVector() && SymbolExtensions.SameComponentCountAndWidth(l, r)
-                => Buffer.InsertOpIAdd(Position++, context.Bound++, resultType, left.Id, right.Id),
+        // var instruction = (op, context.ReverseTypes[left.TypeId], context.ReverseTypes[right.TypeId]) switch
+        // {
+        //     (Operator.Plus, SymbolType l, SymbolType r)
+        //         when l.IsIntegerVector() && r.IsIntegerVector() && SymbolExtensions.SameComponentCountAndWidth(l, r)
+        //         => Buffer.InsertOpIAdd(Position++, context.Bound++, resultType, left.Id, right.Id),
 
-            (Operator.Plus, ScalarType l, ScalarType r)
-                when l.IsFloatingVector() && r.IsFloatingVector() && SymbolExtensions.SameComponentCountAndWidth(l, r)
-                => Buffer.InsertOpFAdd(Position++, context.Bound++, resultType, left.Id, right.Id),
+        //     (Operator.Plus, ScalarType l, ScalarType r)
+        //         when l.IsFloatingVector() && r.IsFloatingVector() && SymbolExtensions.SameComponentCountAndWidth(l, r)
+        //         => Buffer.InsertOpFAdd(Position++, context.Bound++, resultType, left.Id, right.Id),
 
-            (Operator.Minus, SymbolType l, SymbolType r)
-                when l.IsIntegerVector() && r.IsIntegerVector() && SymbolExtensions.SameComponentCountAndWidth(l, r)
-                => Buffer.InsertOpISub(Position++, context.Bound++, resultType, left.Id, right.Id),
+        //     (Operator.Minus, SymbolType l, SymbolType r)
+        //         when l.IsIntegerVector() && r.IsIntegerVector() && SymbolExtensions.SameComponentCountAndWidth(l, r)
+        //         => Buffer.InsertOpISub(Position++, context.Bound++, resultType, left.Id, right.Id),
 
-            (Operator.Minus, SymbolType l, SymbolType r)
-                when l.IsFloatingVector() && r.IsFloatingVector() && SymbolExtensions.SameComponentCountAndWidth(l, r)
-                => Buffer.InsertOpFSub(Position++, context.Bound++, resultType, left.Id, right.Id),
+        //     (Operator.Minus, SymbolType l, SymbolType r)
+        //         when l.IsFloatingVector() && r.IsFloatingVector() && SymbolExtensions.SameComponentCountAndWidth(l, r)
+        //         => Buffer.InsertOpFSub(Position++, context.Bound++, resultType, left.Id, right.Id),
 
-            (Operator.Mul, SymbolType l, SymbolType r)
-                when l.IsIntegerVector() && r.IsIntegerVector() && SymbolExtensions.SameComponentCountAndWidth(l, r)
-                => Buffer.InsertOpIMul(Position++, context.Bound++, resultType, left.Id, right.Id),
+        //     (Operator.Mul, SymbolType l, SymbolType r)
+        //         when l.IsIntegerVector() && r.IsIntegerVector() && SymbolExtensions.SameComponentCountAndWidth(l, r)
+        //         => Buffer.InsertOpIMul(Position++, context.Bound++, resultType, left.Id, right.Id),
 
-            (Operator.Mul, SymbolType l, SymbolType r)
-                when l.IsFloatingVector() && r.IsFloatingVector() && SymbolExtensions.SameComponentCountAndWidth(l, r)
-                => Buffer.InsertOpFMul(Position++, context.Bound++, resultType, left.Id, right.Id),
+        //     (Operator.Mul, SymbolType l, SymbolType r)
+        //         when l.IsFloatingVector() && r.IsFloatingVector() && SymbolExtensions.SameComponentCountAndWidth(l, r)
+        //         => Buffer.InsertOpFMul(Position++, context.Bound++, resultType, left.Id, right.Id),
 
-            (Operator.Div, SymbolType l, SymbolType r)
-                when l.IsUnsignedIntegerVector() && r.IsUnsignedIntegerVector() && SymbolExtensions.SameComponentCount(l, r)
-                => Buffer.InsertOpUDiv(Position++, context.Bound++, resultType, left.Id, right.Id),
+        //     (Operator.Div, SymbolType l, SymbolType r)
+        //         when l.IsUnsignedIntegerVector() && r.IsUnsignedIntegerVector() && SymbolExtensions.SameComponentCount(l, r)
+        //         => Buffer.InsertOpUDiv(Position++, context.Bound++, resultType, left.Id, right.Id),
 
-            (Operator.Div, SymbolType l, SymbolType r)
-                when l.IsIntegerVector() && r.IsIntegerVector() && SymbolExtensions.SameComponentCountAndWidth(l, r)
-                => Buffer.InsertOpSDiv(Position++, context.Bound++, resultType, left.Id, right.Id),
+        //     (Operator.Div, SymbolType l, SymbolType r)
+        //         when l.IsIntegerVector() && r.IsIntegerVector() && SymbolExtensions.SameComponentCountAndWidth(l, r)
+        //         => Buffer.InsertOpSDiv(Position++, context.Bound++, resultType, left.Id, right.Id),
 
-            (Operator.Div, SymbolType l, SymbolType r)
-                when l.IsFloatingVector() && r.IsFloatingVector()
-                => Buffer.InsertOpFDiv(Position++, context.Bound++, resultType, left.Id, right.Id),
+        //     (Operator.Div, SymbolType l, SymbolType r)
+        //         when l.IsFloatingVector() && r.IsFloatingVector()
+        //         => Buffer.InsertOpFDiv(Position++, context.Bound++, resultType, left.Id, right.Id),
 
-            (Operator.Mod, SymbolType l, SymbolType r)
-                when l.IsUnsignedIntegerVector() && r.IsUnsignedIntegerVector()
-                => Buffer.InsertOpUMod(Position++, context.Bound++, resultType, left.Id, right.Id),
+        //     (Operator.Mod, SymbolType l, SymbolType r)
+        //         when l.IsUnsignedIntegerVector() && r.IsUnsignedIntegerVector()
+        //         => Buffer.InsertOpUMod(Position++, context.Bound++, resultType, left.Id, right.Id),
 
-            (Operator.Mod, SymbolType l, SymbolType r)
-                when l.IsInteger() && r.IsInteger() && SymbolExtensions.SameComponentCountAndWidth(l, r)
-                => Buffer.InsertOpSMod(Position++, context.Bound++, resultType, left.Id, right.Id),
+        //     (Operator.Mod, SymbolType l, SymbolType r)
+        //         when l.IsInteger() && r.IsInteger() && SymbolExtensions.SameComponentCountAndWidth(l, r)
+        //         => Buffer.InsertOpSMod(Position++, context.Bound++, resultType, left.Id, right.Id),
 
-            (Operator.Mod, SymbolType l, SymbolType r)
-                when l.IsFloating() && r.IsNumber()
-                => Buffer.InsertOpFMod(Position++, context.Bound++, resultType, left.Id, right.Id),
+        //     (Operator.Mod, SymbolType l, SymbolType r)
+        //         when l.IsFloating() && r.IsNumber()
+        //         => Buffer.InsertOpFMod(Position++, context.Bound++, resultType, left.Id, right.Id),
 
-            (Operator.RightShift, SymbolType l, SymbolType r)
-                when l.IsInteger() && r.IsInteger()
-                => Buffer.InsertOpShiftRightLogical(Position++, context.Bound++, resultType, left.Id, right.Id),
+        //     (Operator.RightShift, SymbolType l, SymbolType r)
+        //         when l.IsInteger() && r.IsInteger()
+        //         => Buffer.InsertOpShiftRightLogical(Position++, context.Bound++, resultType, left.Id, right.Id),
 
-            (Operator.LeftShift, SymbolType l, SymbolType r)
-                when l.IsInteger() && r.IsInteger()
-                => Buffer.InsertOpShiftRightLogical(Position++, context.Bound++, resultType, left.Id, right.Id),
+        //     (Operator.LeftShift, SymbolType l, SymbolType r)
+        //         when l.IsInteger() && r.IsInteger()
+        //         => Buffer.InsertOpShiftRightLogical(Position++, context.Bound++, resultType, left.Id, right.Id),
 
-            (Operator.AND, SymbolType l, SymbolType r)
-                when l.IsInteger() && r.IsInteger()
-                => Buffer.InsertOpBitwiseAnd(Position++, context.Bound++, resultType, left.Id, right.Id),
+        //     (Operator.AND, SymbolType l, SymbolType r)
+        //         when l.IsInteger() && r.IsInteger()
+        //         => Buffer.InsertOpBitwiseAnd(Position++, context.Bound++, resultType, left.Id, right.Id),
 
-            (Operator.OR, SymbolType l, SymbolType r)
-                when l.IsInteger() && r.IsInteger()
-                => Buffer.InsertOpBitwiseOr(Position++, context.Bound++, resultType, left.Id, right.Id),
+        //     (Operator.OR, SymbolType l, SymbolType r)
+        //         when l.IsInteger() && r.IsInteger()
+        //         => Buffer.InsertOpBitwiseOr(Position++, context.Bound++, resultType, left.Id, right.Id),
 
-            (Operator.XOR, SymbolType l, SymbolType r)
-                when l.IsInteger() && r.IsInteger()
-                => Buffer.InsertOpBitwiseXor(Position++, context.Bound++, resultType, left.Id, right.Id),
+        //     (Operator.XOR, SymbolType l, SymbolType r)
+        //         when l.IsInteger() && r.IsInteger()
+        //         => Buffer.InsertOpBitwiseXor(Position++, context.Bound++, resultType, left.Id, right.Id),
 
-            (Operator.LogicalAND, ScalarType { TypeName: "bool" }, ScalarType { TypeName: "bool" })
-                => Buffer.InsertOpLogicalAnd(Position++, context.Bound++, resultType, left.Id, right.Id),
+        //     (Operator.LogicalAND, ScalarType { TypeName: "bool" }, ScalarType { TypeName: "bool" })
+        //         => Buffer.InsertOpLogicalAnd(Position++, context.Bound++, resultType, left.Id, right.Id),
 
-            (Operator.LogicalOR, ScalarType { TypeName: "bool" }, ScalarType { TypeName: "bool" })
-                => Buffer.InsertOpLogicalOr(Position++, context.Bound++, resultType, left.Id, right.Id),
+        //     (Operator.LogicalOR, ScalarType { TypeName: "bool" }, ScalarType { TypeName: "bool" })
+        //         => Buffer.InsertOpLogicalOr(Position++, context.Bound++, resultType, left.Id, right.Id),
 
-            _ => throw new NotImplementedException()
-        };
-        if (instruction.ResultId is int resultId)
-        {
-            if (name is not null)
-                context.AddName(instruction, name);
-            return new(instruction, name);
-        }
-        else throw new NotImplementedException("Instruction should have result id");
+        //     _ => throw new NotImplementedException()
+        // };
+        // if (instruction.ResultId is int resultId)
+        // {
+        //     if (name is not null)
+        //         context.AddName(instruction, name);
+        //     return new(instruction, name);
+        // }
+        // else throw new NotImplementedException("Instruction should have result id");
+#warning replace
+        throw new NotImplementedException();
     }
 
     public SpirvValue CallFunction(SpirvContext context, string name, ReadOnlySpan<SpirvValue> parameters)
     {
-        Span<IdRef> paramsIds = stackalloc IdRef[parameters.Length];
-        var tmp = 0;
-        foreach (var p in parameters)
-            paramsIds[tmp++] = p.Id;
-        return CallFunction(context, name, paramsIds);
+        // Span<IdRef> paramsIds = stackalloc IdRef[parameters.Length];
+        // var tmp = 0;
+        // foreach (var p in parameters)
+        //     paramsIds[tmp++] = p.Id;
+        // return CallFunction(context, name, paramsIds);
+        #warning replace
+        throw new NotImplementedException();
     }
     public SpirvValue CallFunction(SpirvContext context, string name, Span<IdRef> parameters)
     {
-        var func = FindFunction(context, name);
+        // var func = FindFunction(context, name);
 
-        var fcall = Buffer.InsertOpFunctionCall(Position++, context.Bound++, context.GetOrRegister(func.FunctionType.ReturnType), func.Id, parameters);
-        return new(fcall, func.Name);
+        // var fcall = Buffer.InsertOpFunctionCall(Position++, context.Bound++, context.GetOrRegister(func.FunctionType.ReturnType), func.Id, parameters);
+        // return new(fcall, func.Name);
+        #warning replace
+        throw new NotImplementedException();
     }
 
     private static SpirvFunction FindFunction(SpirvContext context, string name)
@@ -124,8 +130,11 @@ public partial class SpirvBuilder
 
     public SpirvValue CompositeConstruct(SpirvContext context, CompositeLiteral literal, Span<IdRef> values)
     {
-        var instruction = Buffer.InsertOpCompositeConstruct(Position++, context.Bound++, context.GetOrRegister(literal.Type), values);
-        return new(instruction);
+        // var instruction = Buffer.InsertOpCompositeConstruct(Position++, context.Bound++, context.GetOrRegister(literal.Type), values);
+        // return new(instruction);
+
+        #warning replace
+        throw new NotImplementedException();
     }
 }
 

@@ -1,3 +1,4 @@
+using CommunityToolkit.HighPerformance.Buffers;
 using Stride.Shaders.Core;
 using Stride.Shaders.Core.Analysis;
 using Stride.Shaders.Parsing.Analysis;
@@ -101,7 +102,11 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
     private static ShaderSymbol LoadShader(IExternalShaderLoader externalShaderLoader, Mixin mixin)
     {
         externalShaderLoader.LoadExternalReference(mixin.Name, out var bytecode);
-        var buffer = new SpirvBuffer(MemoryMarshal.Cast<byte, int>(bytecode));
+        if(bytecode is null)
+            throw new InvalidOperationException($"Could not load shader '{mixin.Name}'");
+        using var mem = MemoryOwner<int>.Allocate(bytecode.Length / 4);
+        MemoryMarshal.Cast<byte, int>(bytecode).CopyTo(mem.Span);
+        var buffer = new SpirvBuffer(mem.Span);
 
         ProcessNameAndTypes(buffer, out var names, out var types);
 
@@ -142,100 +147,101 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
 
     public void Compile(CompilerUnit compiler, SymbolTable table)
     {
-        table.Push();
-        foreach (var mixin in Mixins)
-        {
-            var shaderType = LoadShader(table.ShaderLoader, mixin);
+        #warning replace
+        // table.Push();
+        // foreach (var mixin in Mixins)
+        // {
+        //     var shaderType = LoadShader(table.ShaderLoader, mixin);
 
-            RegisterShaderType(table, shaderType);
-        }
+        //     RegisterShaderType(table, shaderType);
+        // }
 
-        var symbols = new List<Symbol>();
-        foreach (var member in Elements)
-        {
-            if (member is ShaderMethod func)
-            {
-                var ftype = new FunctionType(func.ReturnTypeName.ResolveType(table), []);
-                foreach (var arg in func.Parameters)
-                {
-                    var argSym = arg.TypeName.ResolveType(table);
-                    table.DeclaredTypes.TryAdd(argSym.ToString(), argSym);
-                    arg.Type = argSym;
-                    ftype.ParameterTypes.Add(arg.Type);
-                }
-                func.Type = ftype;
+        // var symbols = new List<Symbol>();
+        // foreach (var member in Elements)
+        // {
+        //     if (member is ShaderMethod func)
+        //     {
+        //         var ftype = new FunctionType(func.ReturnTypeName.ResolveType(table), []);
+        //         foreach (var arg in func.Parameters)
+        //         {
+        //             var argSym = arg.TypeName.ResolveType(table);
+        //             table.DeclaredTypes.TryAdd(argSym.ToString(), argSym);
+        //             arg.Type = argSym;
+        //             ftype.ParameterTypes.Add(arg.Type);
+        //         }
+        //         func.Type = ftype;
 
-                table.DeclaredTypes.TryAdd(func.Type.ToString(), func.Type);
-            }
-            else if (member is ShaderMember svar)
-            {
-                svar.Type = new PointerType(svar.TypeName.ResolveType(table), Specification.StorageClass.Private);
-                table.DeclaredTypes.TryAdd(svar.Type.ToString(), svar.Type);
-            }
-            else if (member is CBuffer cb)
-            {
-                foreach (var cbMember in cb.Members)
-                {
-                    cbMember.Type = cbMember.TypeName.ResolveType(table);
-                    //var symbol = new Symbol(new(cbMember.Name, SymbolKind.CBuffer), cbMember.Type);
-                    //symbols.Add(symbol);
-                }
-            }
-        }
+        //         table.DeclaredTypes.TryAdd(func.Type.ToString(), func.Type);
+        //     }
+        //     else if (member is ShaderMember svar)
+        //     {
+        //         svar.Type = new PointerType(svar.TypeName.ResolveType(table), Specification.StorageClass.Private);
+        //         table.DeclaredTypes.TryAdd(svar.Type.ToString(), svar.Type);
+        //     }
+        //     else if (member is CBuffer cb)
+        //     {
+        //         foreach (var cbMember in cb.Members)
+        //         {
+        //             cbMember.Type = cbMember.TypeName.ResolveType(table);
+        //             //var symbol = new Symbol(new(cbMember.Name, SymbolKind.CBuffer), cbMember.Type);
+        //             //symbols.Add(symbol);
+        //         }
+        //     }
+        // }
 
-        var currentShader = new ShaderSymbol(Name, symbols);
-        RegisterShaderType(table, currentShader);
+        // var currentShader = new ShaderSymbol(Name, symbols);
+        // RegisterShaderType(table, currentShader);
 
-        table.CurrentShader = currentShader;
-        foreach (var member in Elements)
-        {
-            member.ProcessSymbol(table);
-        }
+        // table.CurrentShader = currentShader;
+        // foreach (var member in Elements)
+        // {
+        //     member.ProcessSymbol(table);
+        // }
 
-        var (builder, context, _) = compiler;
-        context.PutShaderName(Name);
+        // var (builder, context, _) = compiler;
+        // context.PutShaderName(Name);
 
-        foreach (var mixin in Mixins)
-        {
-            // Import types and variables/functions
-            var shader = context.Buffer.AddOpSDSLImportShader(context.Bound++, new(mixin.Name));
+        // foreach (var mixin in Mixins)
+        // {
+        //     // Import types and variables/functions
+        //     var shader = context.Buffer.AddOpSDSLImportShader(context.Bound++, new(mixin.Name));
 
-            var shaderType = (ShaderSymbol)table.DeclaredTypes[mixin.Name];
+        //     var shaderType = (ShaderSymbol)table.DeclaredTypes[mixin.Name];
 
-            foreach (var c in shaderType.Components)
-            {
-                if (c.Id.Kind == SymbolKind.Variable)
-                {
-                    var variableTypeId = context.GetOrRegister(c.Type);
-                    var variable = context.Buffer.AddOpSDSLImportVariable(context.Bound++, variableTypeId, c.Id.Name, shader);
-                    context.Module.InheritedVariables.Add(c.Id.Name, new(variable, c.Id.Name));
-                    table.CurrentFrame.Add(c.Id.Name, c with { IdRef = variable.ResultId.Value });
-                }
-                else if (c.Id.Kind == SymbolKind.Method)
-                {
-                    var functionType = (FunctionType)c.Type;
+        //     foreach (var c in shaderType.Components)
+        //     {
+        //         if (c.Id.Kind == SymbolKind.Variable)
+        //         {
+        //             var variableTypeId = context.GetOrRegister(c.Type);
+        //             var variable = context.Buffer.AddOpSDSLImportVariable(context.Bound++, variableTypeId, c.Id.Name, shader);
+        //             context.Module.InheritedVariables.Add(c.Id.Name, new(variable, c.Id.Name));
+        //             table.CurrentFrame.Add(c.Id.Name, c with { IdRef = variable.ResultId.Value });
+        //         }
+        //         else if (c.Id.Kind == SymbolKind.Method)
+        //         {
+        //             var functionType = (FunctionType)c.Type;
 
-                    var functionReturnTypeId = context.GetOrRegister(functionType.ReturnType);
-                    var function = context.Buffer.AddOpSDSLImportFunction(context.Bound++, functionReturnTypeId, c.Id.Name, shader);
-                    context.Module.InheritedFunctions.Add(c.Id.Name, new(function.ResultId.Value, c.Id.Name, functionType));
-                    table.CurrentFrame.Add(c.Id.Name, c with { IdRef = function.ResultId.Value });
-                }
-            }
+        //             var functionReturnTypeId = context.GetOrRegister(functionType.ReturnType);
+        //             var function = context.Buffer.AddOpSDSLImportFunction(context.Bound++, functionReturnTypeId, c.Id.Name, shader);
+        //             context.Module.InheritedFunctions.Add(c.Id.Name, new(function.ResultId.Value, c.Id.Name, functionType));
+        //             table.CurrentFrame.Add(c.Id.Name, c with { IdRef = function.ResultId.Value });
+        //         }
+        //     }
 
-            // Mark inherit
-            context.Buffer.AddOpSDSLMixinInherit(shader);
-            context.Module.InheritedMixins.Add(shaderType);
-        }
+        //     // Mark inherit
+        //     context.Buffer.AddOpSDSLMixinInherit(shader);
+        //     context.Module.InheritedMixins.Add(shaderType);
+        // }
 
-        foreach (var member in Elements.OfType<CBuffer>())
-            member.Compile(table, this, compiler);
-        foreach (var member in Elements.OfType<ShaderMember>())
-            member.Compile(table, this, compiler);
-        foreach(var method in Elements.OfType<ShaderMethod>())
-            method.Compile(table, this, compiler);
+        // foreach (var member in Elements.OfType<CBuffer>())
+        //     member.Compile(table, this, compiler);
+        // foreach (var member in Elements.OfType<ShaderMember>())
+        //     member.Compile(table, this, compiler);
+        // foreach(var method in Elements.OfType<ShaderMethod>())
+        //     method.Compile(table, this, compiler);
 
-        table.CurrentShader = null;
-        table.Pop();
+        // table.CurrentShader = null;
+        // table.Pop();
     }
 
 

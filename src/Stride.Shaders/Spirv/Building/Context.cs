@@ -31,36 +31,43 @@ public class SpirvContext(SpirvModule module)
     {
         if (Name is null)
         {
-            Name = name;
-            Buffer.InsertOpSDSLShader(0, name);
+#warning replace
+            // Name = name;
+            // Buffer.InsertOpSDSLShader(0, name);
         }
         else throw new NotImplementedException();
     }
 
     public void AddName(IdRef target, string name)
-        => Buffer.AddOpName(target, name.Replace('.', '_'));
+#warning replace
+        => throw new NotImplementedException();
+    // => Buffer.AddOpName(target, name.Replace('.', '_'));
 
     public void AddMemberName(IdRef target, int accessor, string name)
-        => Buffer.AddOpMemberName(target, accessor, name);
+#warning replace
+        => throw new NotImplementedException();
+    // => Buffer.AddOpMemberName(target, accessor, name);
 
     public IdRef AddConstant<TScalar>(TScalar value)
         where TScalar : INumber<TScalar>
     {
-        return value switch
-        {
-            byte v => Buffer.AddOpConstant<LiteralInteger>(Bound++, GetOrRegister(ScalarType.From("byte")), v),
-            sbyte v => Buffer.AddOpConstant<LiteralInteger>(Bound++, GetOrRegister(ScalarType.From("sbyte")), v),
-            ushort v => Buffer.AddOpConstant<LiteralInteger>(Bound++, GetOrRegister(ScalarType.From("ushort")), v),
-            short v => Buffer.AddOpConstant<LiteralInteger>(Bound++, GetOrRegister(ScalarType.From("short")), v),
-            uint v => Buffer.AddOpConstant<LiteralInteger>(Bound++, GetOrRegister(ScalarType.From("uint")), v),
-            int v => Buffer.AddOpConstant<LiteralInteger>(Bound++, GetOrRegister(ScalarType.From("int")), v),
-            ulong v => Buffer.AddOpConstant<LiteralInteger>(Bound++, GetOrRegister(ScalarType.From("ulong")), v),
-            long v => Buffer.AddOpConstant<LiteralInteger>(Bound++, GetOrRegister(ScalarType.From("long")), v),
-            Half v => Buffer.AddOpConstant<LiteralFloat>(Bound++, GetOrRegister(ScalarType.From("half")), v),
-            float v => Buffer.AddOpConstant<LiteralFloat>(Bound++, GetOrRegister(ScalarType.From("float")), v),
-            double v => Buffer.AddOpConstant<LiteralFloat>(Bound++, GetOrRegister(ScalarType.From("bdouble")), v),
-            _ => throw new NotImplementedException()
-        };
+        // return value switch
+        // {
+        //     byte v => Buffer.AddOpConstant<LiteralInteger>(Bound++, GetOrRegister(ScalarType.From("byte")), v),
+        //     sbyte v => Buffer.AddOpConstant<LiteralInteger>(Bound++, GetOrRegister(ScalarType.From("sbyte")), v),
+        //     ushort v => Buffer.AddOpConstant<LiteralInteger>(Bound++, GetOrRegister(ScalarType.From("ushort")), v),
+        //     short v => Buffer.AddOpConstant<LiteralInteger>(Bound++, GetOrRegister(ScalarType.From("short")), v),
+        //     uint v => Buffer.AddOpConstant<LiteralInteger>(Bound++, GetOrRegister(ScalarType.From("uint")), v),
+        //     int v => Buffer.AddOpConstant<LiteralInteger>(Bound++, GetOrRegister(ScalarType.From("int")), v),
+        //     ulong v => Buffer.AddOpConstant<LiteralInteger>(Bound++, GetOrRegister(ScalarType.From("ulong")), v),
+        //     long v => Buffer.AddOpConstant<LiteralInteger>(Bound++, GetOrRegister(ScalarType.From("long")), v),
+        //     Half v => Buffer.AddOpConstant<LiteralFloat>(Bound++, GetOrRegister(ScalarType.From("half")), v),
+        //     float v => Buffer.AddOpConstant<LiteralFloat>(Bound++, GetOrRegister(ScalarType.From("float")), v),
+        //     double v => Buffer.AddOpConstant<LiteralFloat>(Bound++, GetOrRegister(ScalarType.From("bdouble")), v),
+        //     _ => throw new NotImplementedException()
+        // };
+#warning replace
+        throw new NotImplementedException();
     }
 
     public void AddGlobalVariable(Symbol variable)
@@ -105,11 +112,13 @@ public class SpirvContext(SpirvModule module)
 
     public void SetEntryPoint(ExecutionModel model, IdRef function, string name, ReadOnlySpan<Symbol> variables)
     {
-        Span<IdRef> pvariables = stackalloc IdRef[variables.Length];
-        int pos = 0;
-        foreach (var v in variables)
-            pvariables[pos++] = Variables[v.Id.Name].Id;
-        Buffer.AddOpEntryPoint(model, function, name, pvariables);
+        // Span<IdRef> pvariables = stackalloc IdRef[variables.Length];
+        // int pos = 0;
+        // foreach (var v in variables)
+        //     pvariables[pos++] = Variables[v.Id.Name].Id;
+        // Buffer.AddOpEntryPoint(model, function, name, pvariables);
+#warning replace
+        throw new NotImplementedException();
     }
 
     public IdRef GetOrRegister(SymbolType? type)
@@ -120,144 +129,156 @@ public class SpirvContext(SpirvModule module)
             return res;
         else
         {
-            var instruction = type switch
-            {
-                ScalarType s =>
-                    s.TypeName switch
-                    {
-                        "void" => Buffer.AddOpTypeVoid(Bound++),
-                        "bool" => Buffer.AddOpTypeBool(Bound++),
-                        "sbyte" => Buffer.AddOpTypeInt(Bound++, 8, 1),
-                        "byte" => Buffer.AddOpTypeInt(Bound++, 8, 0),
-                        "ushort" => Buffer.AddOpTypeInt(Bound++, 16, 1),
-                        "short" => Buffer.AddOpTypeInt(Bound++, 16, 0),
-                        "int" => Buffer.AddOpTypeInt(Bound++, 32, 1),
-                        "uint" => Buffer.AddOpTypeInt(Bound++, 32, 0),
-                        "long" => Buffer.AddOpTypeInt(Bound++, 64, 1),
-                        "ulong" => Buffer.AddOpTypeInt(Bound++, 64, 0),
-                        "half" => Buffer.AddOpTypeFloat(Bound++, 16, null),
-                        "float" => Buffer.AddOpTypeFloat(Bound++, 32, null),
-                        "double" => Buffer.AddOpTypeFloat(Bound++, 64, null),
-                        _ => throw new NotImplementedException($"Can't add type {type}")
+            // var instruction = type switch
+            // {
+            //     ScalarType s =>
+            //         s.TypeName switch
+            //         {
+            //             "void" => Buffer.AddOpTypeVoid(Bound++),
+            //             "bool" => Buffer.AddOpTypeBool(Bound++),
+            //             "sbyte" => Buffer.AddOpTypeInt(Bound++, 8, 1),
+            //             "byte" => Buffer.AddOpTypeInt(Bound++, 8, 0),
+            //             "ushort" => Buffer.AddOpTypeInt(Bound++, 16, 1),
+            //             "short" => Buffer.AddOpTypeInt(Bound++, 16, 0),
+            //             "int" => Buffer.AddOpTypeInt(Bound++, 32, 1),
+            //             "uint" => Buffer.AddOpTypeInt(Bound++, 32, 0),
+            //             "long" => Buffer.AddOpTypeInt(Bound++, 64, 1),
+            //             "ulong" => Buffer.AddOpTypeInt(Bound++, 64, 0),
+            //             "half" => Buffer.AddOpTypeFloat(Bound++, 16, null),
+            //             "float" => Buffer.AddOpTypeFloat(Bound++, 32, null),
+            //             "double" => Buffer.AddOpTypeFloat(Bound++, 64, null),
+            //             _ => throw new NotImplementedException($"Can't add type {type}")
 
-                    },
-                VectorType v => Buffer.AddOpTypeVector(Bound++, GetOrRegister(v.BaseType), v.Size),
-                MatrixType m => Buffer.AddOpTypeVector(Bound++, GetOrRegister(new VectorType(m.BaseType, m.Rows)), m.Columns),
-                ArrayType a => Buffer.AddOpTypeArray(Bound++, GetOrRegister(a.BaseType), a.Size),
-                StructType st => RegisterStructuredType(st.ToId(), st),
-                ConstantBufferSymbol cb => RegisterCBuffer(cb),
-                FunctionType f => RegisterFunctionType(f),
-                PointerType p => RegisterPointerType(p),
-                // TextureSymbol t => Buffer.AddOpTypeImage(Bound++, Register(t.BaseType), t.),
-                // StructSymbol st => RegisterStruct(st),
-                _ => throw new NotImplementedException($"Can't add type {type}")
-            };
-            Types[type] = instruction;
-            ReverseTypes[instruction] = type;
-            return instruction;
+            //         },
+            //     VectorType v => Buffer.AddOpTypeVector(Bound++, GetOrRegister(v.BaseType), v.Size),
+            //     MatrixType m => Buffer.AddOpTypeVector(Bound++, GetOrRegister(new VectorType(m.BaseType, m.Rows)), m.Columns),
+            //     ArrayType a => Buffer.AddOpTypeArray(Bound++, GetOrRegister(a.BaseType), a.Size),
+            //     StructType st => RegisterStructuredType(st.ToId(), st),
+            //     ConstantBufferSymbol cb => RegisterCBuffer(cb),
+            //     FunctionType f => RegisterFunctionType(f),
+            //     PointerType p => RegisterPointerType(p),
+            //     // TextureSymbol t => Buffer.AddOpTypeImage(Bound++, Register(t.BaseType), t.),
+            //     // StructSymbol st => RegisterStruct(st),
+            //     _ => throw new NotImplementedException($"Can't add type {type}")
+            // };
+            // Types[type] = instruction;
+            // ReverseTypes[instruction] = type;
+            // return instruction;
+#warning replace
+            throw new NotImplementedException();
         }
     }
 
     private IdRef RegisterCBuffer(ConstantBufferSymbol cb)
     {
-        var result = RegisterStructuredType($"type.{cb.ToId()}", cb);
+        // var result = RegisterStructuredType($"type.{cb.ToId()}", cb);
 
-        Buffer.AddOpDecorate(result, Decoration.Block);
-        for (var index = 0; index < cb.Members.Count; index++)
-        {
-            var member = cb.Members[index];
-            if (index > 0)
-                throw new NotImplementedException("Offset");
-            Buffer.AddOpMemberDecorate(result, index, Decoration.Offset, 0);
-        }
+        // Buffer.AddOpDecorate(result, Decoration.Block);
+        // for (var index = 0; index < cb.Members.Count; index++)
+        // {
+        //     var member = cb.Members[index];
+        //     if (index > 0)
+        //         throw new NotImplementedException("Offset");
+        //     Buffer.AddOpMemberDecorate(result, index, Decoration.Offset, 0);
+        // }
 
-        return result;
+        // return result;
+        #warning replace
+        throw new NotImplementedException();
     }
 
     IdRef RegisterStructuredType(string name, StructuredType structSymbol)
     {
-        Span<IdRef> types = stackalloc IdRef[structSymbol.Members.Count];
-        for (var index = 0; index < structSymbol.Members.Count; index++)
-            types[index] = GetOrRegister(structSymbol.Members[index].Type);
+        // Span<IdRef> types = stackalloc IdRef[structSymbol.Members.Count];
+        // for (var index = 0; index < structSymbol.Members.Count; index++)
+        //     types[index] = GetOrRegister(structSymbol.Members[index].Type);
 
-        var result = Buffer.AddOpTypeStruct(Bound++, types);
-        AddName(result, name);
-        for (var index = 0; index < structSymbol.Members.Count; index++)
-            AddMemberName(result, index, structSymbol.Members[index].Name);
+        // var result = Buffer.AddOpTypeStruct(Bound++, types);
+        // AddName(result, name);
+        // for (var index = 0; index < structSymbol.Members.Count; index++)
+        //     AddMemberName(result, index, structSymbol.Members[index].Name);
 
-        return result;
+        // return result;
+#warning replace
+        throw new NotImplementedException();
     }
 
 
     IdRef RegisterFunctionType(FunctionType functionType)
     {
-        Span<IdRef> types = stackalloc IdRef[functionType.ParameterTypes.Count];
-        int tmp = 0;
-        foreach (var f in functionType.ParameterTypes)
-            types[tmp] = GetOrRegister(f);
-        var result = Buffer.AddOpTypeFunction(Bound++, GetOrRegister(functionType.ReturnType), types);
+        // Span<IdRef> types = stackalloc IdRef[functionType.ParameterTypes.Count];
+        // int tmp = 0;
+        // foreach (var f in functionType.ParameterTypes)
+        //     types[tmp] = GetOrRegister(f);
+        // var result = Buffer.AddOpTypeFunction(Bound++, GetOrRegister(functionType.ReturnType), types);
         // disabled for now: currently it generates name with {}, not working with most SPIRV tools
-        AddName(result, functionType.ToId());
-        return result;
+        // AddName(result, functionType.ToId());
+        // return result;
+        #warning replace
+        throw new NotImplementedException();
     }
 
     IdRef RegisterPointerType(PointerType pointerType)
     {
-        var baseType = GetOrRegister(pointerType.BaseType);
-        var result = Buffer.AddOpTypePointer(Bound++, pointerType.StorageClass, baseType);
-        AddName(result, pointerType.ToId());
-        return result;
+        // var baseType = GetOrRegister(pointerType.BaseType);
+        // var result = Buffer.AddOpTypePointer(Bound++, pointerType.StorageClass, baseType);
+        // AddName(result, pointerType.ToId());
+        // return result;
+#warning replace
+        throw new NotImplementedException();
     }
 
     public SpirvValue CreateConstant(Literal literal)
     {
-        object literalValue = literal switch
-        {
-            BoolLiteral lit => lit.Value,
-            IntegerLiteral lit => lit.Suffix.Size switch
-            {
-                > 32 => lit.LongValue,
-                _ => lit.IntValue,
-            },
-            FloatLiteral lit => lit.Suffix.Size switch
-            {
-                > 32 => lit.DoubleValue,
-                _ => (float)lit.DoubleValue,
-            },
-        };
+        // object literalValue = literal switch
+        // {
+        //     BoolLiteral lit => lit.Value,
+        //     IntegerLiteral lit => lit.Suffix.Size switch
+        //     {
+        //         > 32 => lit.LongValue,
+        //         _ => lit.IntValue,
+        //     },
+        //     FloatLiteral lit => lit.Suffix.Size switch
+        //     {
+        //         > 32 => lit.DoubleValue,
+        //         _ => (float)lit.DoubleValue,
+        //     },
+        // };
 
-        if (LiteralConstants.TryGetValue((literal.Type, literalValue), out var result))
-            return result;
+        // if (LiteralConstants.TryGetValue((literal.Type, literalValue), out var result))
+        //     return result;
 
-        var instruction = literal switch
-        {
-            BoolLiteral lit => lit.Value switch
-            {
-                true => Buffer.AddOpConstantTrue(Bound++, GetOrRegister(lit.Type)),
-                false => Buffer.AddOpConstantFalse(Bound++, GetOrRegister(lit.Type))
-            },
-            IntegerLiteral lit => lit.Suffix.Size switch
-            {
-                > 32 => Buffer.AddOpConstant<LiteralInteger>(Bound++, GetOrRegister(lit.Type), lit.LongValue),
-                _ => Buffer.AddOpConstant<LiteralInteger>(Bound++, GetOrRegister(lit.Type), lit.IntValue),
-            },
-            FloatLiteral lit => lit.Suffix.Size switch
-            {
-                > 32 => Buffer.AddOpConstant<LiteralFloat>(Bound++, GetOrRegister(lit.Type), lit.DoubleValue),
-                _ => Buffer.AddOpConstant<LiteralFloat>(Bound++, GetOrRegister(lit.Type), (float)lit.DoubleValue),
-            },
-            _ => throw new NotImplementedException()
-        };
+        // var instruction = literal switch
+        // {
+        //     BoolLiteral lit => lit.Value switch
+        //     {
+        //         true => Buffer.AddOpConstantTrue(Bound++, GetOrRegister(lit.Type)),
+        //         false => Buffer.AddOpConstantFalse(Bound++, GetOrRegister(lit.Type))
+        //     },
+        //     IntegerLiteral lit => lit.Suffix.Size switch
+        //     {
+        //         > 32 => Buffer.AddOpConstant<LiteralInteger>(Bound++, GetOrRegister(lit.Type), lit.LongValue),
+        //         _ => Buffer.AddOpConstant<LiteralInteger>(Bound++, GetOrRegister(lit.Type), lit.IntValue),
+        //     },
+        //     FloatLiteral lit => lit.Suffix.Size switch
+        //     {
+        //         > 32 => Buffer.AddOpConstant<LiteralFloat>(Bound++, GetOrRegister(lit.Type), lit.DoubleValue),
+        //         _ => Buffer.AddOpConstant<LiteralFloat>(Bound++, GetOrRegister(lit.Type), (float)lit.DoubleValue),
+        //     },
+        //     _ => throw new NotImplementedException()
+        // };
 
-        result = new(instruction);
-        LiteralConstants.Add((literal.Type, literalValue), result);
-        AddName(result.Id, literal switch
-            {
-                BoolLiteral lit => $"{lit.Type}_{lit.Value}",
-                IntegerLiteral lit => $"{lit.Type}_{lit.Value}",
-                FloatLiteral lit => $"{lit.Type}_{lit.Value}",
-            });
-        return result;
+        // result = new(instruction);
+        // LiteralConstants.Add((literal.Type, literalValue), result);
+        // AddName(result.Id, literal switch
+        //     {
+        //         BoolLiteral lit => $"{lit.Type}_{lit.Value}",
+        //         IntegerLiteral lit => $"{lit.Type}_{lit.Value}",
+        //         FloatLiteral lit => $"{lit.Type}_{lit.Value}",
+        //     });
+        // return result;
+#warning replace
+        throw new NotImplementedException();
     }
 
     public override string ToString()

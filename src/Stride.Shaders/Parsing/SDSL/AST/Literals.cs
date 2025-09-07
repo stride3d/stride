@@ -70,13 +70,17 @@ public class IntegerLiteral(Suffix suffix, long value, TextLocation info) : Numb
             _ => throw new NotImplementedException("Unsupported integer suffix")
         };
 
-        var i = (Type, Suffix) switch
-        {
-            (ScalarType, { Size: > 32 }) => compiler.Context.Buffer.AddOpConstant<LiteralInteger>(compiler.Context.Bound++, compiler.Context.GetOrRegister(Type), LongValue),
-            (ScalarType, { Size: <= 32 }) => compiler.Context.Buffer.AddOpConstant<LiteralInteger>(compiler.Context.Bound++, compiler.Context.GetOrRegister(Type), IntValue),
-            _ => throw new NotImplementedException("")
-        };
-        return new SpirvValue(i, i.ResultType!.Value, null);
+#warning replace
+
+        throw new NotImplementedException();
+
+        // var i = (Type, Suffix) switch
+        // {
+        //     (ScalarType, { Size: > 32 }) => compiler.Context.Buffer.AddOpConstant<LiteralInteger>(compiler.Context.Bound++, compiler.Context.GetOrRegister(Type), LongValue),
+        //     (ScalarType, { Size: <= 32 }) => compiler.Context.Buffer.AddOpConstant<LiteralInteger>(compiler.Context.Bound++, compiler.Context.GetOrRegister(Type), IntValue),
+        //     _ => throw new NotImplementedException("")
+        // };
+        // return new SpirvValue(i, i.ResultType!.Value, null);
     }
 }
 
@@ -94,13 +98,15 @@ public sealed class FloatLiteral(Suffix suffix, double value, int? exponent, Tex
             64 => ScalarType.From("double"),
             _ => throw new NotImplementedException("Unsupported float")
         };
-        var i = (Type, Suffix) switch
-        {
-            (ScalarType, { Size: > 32 }) => compiler.Context.Buffer.AddOpConstant<LiteralFloat>(compiler.Context.Bound++, compiler.Context.GetOrRegister(Type), DoubleValue),
-            (ScalarType, { Size: <= 32 }) => compiler.Context.Buffer.AddOpConstant<LiteralFloat>(compiler.Context.Bound++, compiler.Context.GetOrRegister(Type), (float)DoubleValue),
-            _ => throw new NotImplementedException("")
-        };
-        return new SpirvValue(i, i.ResultType!.Value, null);
+#warning replace
+        throw new NotImplementedException();
+        // var i = (Type, Suffix) switch
+        // {
+        //     (ScalarType, { Size: > 32 }) => compiler.Context.Buffer.AddOpConstant<LiteralFloat>(compiler.Context.Bound++, compiler.Context.GetOrRegister(Type), DoubleValue),
+        //     (ScalarType, { Size: <= 32 }) => compiler.Context.Buffer.AddOpConstant<LiteralFloat>(compiler.Context.Bound++, compiler.Context.GetOrRegister(Type), (float)DoubleValue),
+        //     _ => throw new NotImplementedException("")
+        // };
+        // return new SpirvValue(i, i.ResultType!.Value, null);
     }
 }
 
@@ -117,12 +123,14 @@ public class BoolLiteral(bool value, TextLocation info) : ScalarLiteral(info)
 
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
-        var i = Value switch
-        {
-            true => compiler.Context.Buffer.AddOpConstantTrue(compiler.Context.Bound++, compiler.Context.GetOrRegister(Type)),
-            false => compiler.Context.Buffer.AddOpConstantFalse(compiler.Context.Bound++, compiler.Context.GetOrRegister(Type))
-        };
-        return new SpirvValue(i, i.ResultType!.Value, null);
+#warning replace
+        // var i = Value switch
+        // {
+        //     true => compiler.Context.Buffer.AddOpConstantTrue(compiler.Context.Bound++, compiler.Context.GetOrRegister(Type)),
+        //     false => compiler.Context.Buffer.AddOpConstantFalse(compiler.Context.Bound++, compiler.Context.GetOrRegister(Type))
+        // };
+        // return new SpirvValue(i, i.ResultType!.Value, null);
+        throw new NotImplementedException();
     }
 }
 
@@ -142,15 +150,17 @@ public abstract class CompositeLiteral(TextLocation info) : ValueLiteral(info)
 
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
-        var (builder, context, module) = compiler;
-        Span<IdRef> values = stackalloc IdRef[Values.Count];
-        int tmp = 0;
-        foreach (var v in Values)
-            values[tmp++] = v.Compile(table, shader, compiler).Id;
+        #warning replace
+        throw new NotImplementedException();
+        // var (builder, context, module) = compiler;
+        // Span<IdRef> values = stackalloc IdRef[Values.Count];
+        // int tmp = 0;
+        // foreach (var v in Values)
+        //     values[tmp++] = v.Compile(table, shader, compiler).Id;
 
-        Type = GenerateType(table);
+        // Type = GenerateType(table);
 
-        return builder.CompositeConstruct(context, this, values);
+        // return builder.CompositeConstruct(context, this, values);
     }
 }
 public class VectorLiteral(TypeName typeName, TextLocation info) : CompositeLiteral(info)
@@ -250,23 +260,25 @@ public class Identifier(string name, TextLocation info) : Literal(info)
 
     public override SpirvValue Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
-        var symbol = ResolveSymbol(table);
-        Type = symbol.Type;
+#warning replace
+        // var symbol = ResolveSymbol(table);
+        // Type = symbol.Type;
 
-        var (builder, context, _) = compiler;
-        var resultType = context.GetOrRegister(Type);
-        var result = new SpirvValue(symbol.IdRef, resultType, Name);
+        // var (builder, context, _) = compiler;
+        // var resultType = context.GetOrRegister(Type);
+        // var result = new SpirvValue(symbol.IdRef, resultType, Name);
 
-        if (symbol.AccessChain is int accessChainIndex)
-        {
-            Span<IdRef> indexes = stackalloc IdRef[1];
-            var indexLiteral = new IntegerLiteral(new(32, false, true), accessChainIndex, new());
-            indexLiteral.Compile(table, shader, compiler);
-            indexes[0] = context.CreateConstant(indexLiteral).Id;
-            result.Id = compiler.Builder.Buffer.InsertOpAccessChain(compiler.Builder.Position++, compiler.Context.Bound++, resultType, symbol.IdRef, indexes).ResultId.Value;
-        }
+        // if (symbol.AccessChain is int accessChainIndex)
+        // {
+        //     Span<IdRef> indexes = stackalloc IdRef[1];
+        //     var indexLiteral = new IntegerLiteral(new(32, false, true), accessChainIndex, new());
+        //     indexLiteral.Compile(table, shader, compiler);
+        //     indexes[0] = context.CreateConstant(indexLiteral).Id;
+        //     result.Id = compiler.Builder.Buffer.InsertOpAccessChain(compiler.Builder.Position++, compiler.Context.Bound++, resultType, symbol.IdRef, indexes).ResultId.Value;
+        // }
 
-        return result;
+        // return result;
+        throw new NotImplementedException();
     }
 
     public override string ToString()
