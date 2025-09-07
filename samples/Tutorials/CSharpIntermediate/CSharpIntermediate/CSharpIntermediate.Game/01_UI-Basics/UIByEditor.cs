@@ -6,42 +6,41 @@ using Stride.UI;
 using Stride.UI.Controls;
 using Stride.UI.Events;
 
-namespace CSharpIntermediate.Code
+namespace CSharpIntermediate.Code;
+
+public class UIByEditor : StartupScript
 {
-    public class UIByEditor : StartupScript
+    public SpriteFont Font;
+
+    private TextBlock textBlock;
+    private EditText editText;
+
+    public override void Start()
     {
-        public SpriteFont Font;
+        // Retrieve the page property from the UI component
+        var page = Entity.Get<UIComponent>().Page;
 
-        private TextBlock textBlock;
-        private EditText editText;
+        // Retrieve UI elements by Type and name
+        textBlock = page.RootElement.FindVisualChildOfType<TextBlock>("MyTextBlock");
+        editText = page.RootElement.FindVisualChildOfType<EditText>("MyEditText");
 
-        public override void Start()
+        // When the text changes, update the textblock
+        editText.TextChanged += (s, e) =>
         {
-            // Retrieve the page property from the UI component
-            var page = Entity.Get<UIComponent>().Page;
+            textBlock.Text = "My name is: " + editText.Text;
+        };
 
-            // Retrieve UI elements by Type and name
-            textBlock = page.RootElement.FindVisualChildOfType<TextBlock>("MyTextBlock");
-            editText = page.RootElement.FindVisualChildOfType<EditText>("MyEditText");
+        // When the button is clicked, we execute a method that clears the textbox
+        var button = page.RootElement.FindVisualChildOfType<Button>("MyButton");
+        button.Click += ButtonClicked;
+    }
 
-            // When the text changes, update the textblock
-            editText.TextChanged += (s, e) =>
-            {
-                textBlock.Text = "My name is: " + editText.Text;
-            };
+    private void ButtonClicked(object sender, RoutedEventArgs e)
+    {
+        // Changing the text triggers the TextChanged event again
+        editText.Text = "";
 
-            // When the button is clicked, we execute a method that clears the textbox
-            var button = page.RootElement.FindVisualChildOfType<Button>("MyButton");
-            button.Click += ButtonClicked;
-        }
-
-        private void ButtonClicked(object sender, RoutedEventArgs e)
-        {
-            // Changing the text triggers the TextChanged event again
-            editText.Text = "";
-
-            // We also want to reset the text in the textblock
-            textBlock.Text = "...";
-        }
+        // We also want to reset the text in the textblock
+        textBlock.Text = "...";
     }
 }

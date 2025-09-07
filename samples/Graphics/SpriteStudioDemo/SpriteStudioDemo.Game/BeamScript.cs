@@ -1,34 +1,32 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using System.Threading.Tasks;
+
 using Stride.Engine;
-using Stride.Physics;
 
-namespace SpriteStudioDemo
+namespace SpriteStudioDemo;
+
+public class BeamScript : AsyncScript
 {
-    public class BeamScript : AsyncScript
+    private const float maxWidthX = 8f + 2f;
+    private const float minWidthX = -8f - 2f;
+
+    private bool dead;
+
+    public void Die()
     {
-        private const float maxWidthX = 8f + 2f;
-        private const float minWidthX = -8f - 2f;
+        dead = true;
+    }
 
-        private bool dead;
-
-        public void Die()
+    public override async Task Execute()
+    {
+        while(Game.IsRunning)
         {
-            dead = true;
-        }
+            await Script.NextFrame();
 
-        public override async Task Execute()
-        {
-            while(Game.IsRunning)
+            if ((Entity.Transform.Position.X <= minWidthX) || (Entity.Transform.Position.X >= maxWidthX) || dead)
             {
-                await Script.NextFrame();
-
-                if ((Entity.Transform.Position.X <= minWidthX) || (Entity.Transform.Position.X >= maxWidthX) || dead)
-                {
-                    SceneSystem.SceneInstance.RootScene.Entities.Remove(Entity);
-                    return;
-                }
+                SceneSystem.SceneInstance.RootScene.Entities.Remove(Entity);
+                return;
             }
         }
     }

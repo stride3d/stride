@@ -1,32 +1,30 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using System;
-using System.Collections.Generic;
+
 using Stride.Core;
 
-namespace FirstPersonShooter.Trigger
+namespace FirstPersonShooter.Trigger;
+
+[DataContract("TriggerGroup")]
+public class TriggerGroup
 {
-    [DataContract("TriggerGroup")]
-    public class TriggerGroup
+    [DataMember(10)]
+    [Display("Name")]
+    public string Name { get; set; } = "NewTriggerGroup";
+
+    [DataMember(20)]
+    [Display("Events")]
+    public List<TriggerEvent> TriggerEvents { get; } = [];
+
+    public TriggerEvent Find(string name) => Find(x => x.Name.Equals(name));
+
+    public List<TriggerEvent> FindAll(Predicate<TriggerEvent> match)
     {
-        [DataMember(10)]
-        [Display("Name")]
-        public string Name { get; set; } = "NewTriggerGroup";
+        return TriggerEvents.FindAll(match);
+    }
 
-        [DataMember(20)]
-        [Display("Events")]
-        public List<TriggerEvent> TriggerEvents { get; } = new List<TriggerEvent>();
-
-        public TriggerEvent Find(string name) => Find(x => x.Name.Equals(name));
-
-        public List<TriggerEvent> FindAll(Predicate<TriggerEvent> match)
-        {
-            return TriggerEvents.FindAll(match);
-        }
-
-        public TriggerEvent Find(Predicate<TriggerEvent> match)
-        {
-            return TriggerEvents.Find(match);
-        }
+    public TriggerEvent Find(Predicate<TriggerEvent> match)
+    {
+        return TriggerEvents.Find(match);
     }
 }

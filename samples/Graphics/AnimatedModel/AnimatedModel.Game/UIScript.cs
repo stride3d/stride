@@ -1,35 +1,33 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using System;
+
 using Stride.Engine;
 using Stride.Graphics;
 using Stride.UI;
 using Stride.UI.Controls;
-using Stride.UI.Panels;
 
-namespace AnimatedModel
+namespace AnimatedModel;
+
+public class UIScript : StartupScript
 {
-    public class UIScript : StartupScript
+    public Entity Knight;
+
+    public SpriteFont Font;
+
+    public override void Start()
     {
-        public Entity Knight;
+        base.Start();
 
-        public SpriteFont Font;
+        // Bind the buttons
+        var page = Entity.Get<UIComponent>().Page;
 
-        public override void Start()
-        {
-            base.Start();
+        var btnIdle = page.RootElement.FindVisualChildOfType<Button>("ButtonIdle");
+        btnIdle.Click += (s, e) => Knight.Get<AnimationComponent>().Crossfade("Idle", TimeSpan.FromSeconds(0.25));
 
-            // Bind the buttons
-            var page = Entity.Get<UIComponent>().Page;
+        var btnRun = page.RootElement.FindVisualChildOfType<Button>("ButtonRun");
+        btnRun.Click += (s, e) => Knight.Get<AnimationComponent>().Crossfade("Run", TimeSpan.FromSeconds(0.25));
 
-            var btnIdle = page.RootElement.FindVisualChildOfType<Button>("ButtonIdle");
-            btnIdle.Click += (s, e) => Knight.Get<AnimationComponent>().Crossfade("Idle", TimeSpan.FromSeconds(0.25));
-
-            var btnRun = page.RootElement.FindVisualChildOfType<Button>("ButtonRun");
-            btnRun.Click += (s, e) => Knight.Get<AnimationComponent>().Crossfade("Run", TimeSpan.FromSeconds(0.25));
-
-            // Set the default animation
-            Knight.Get<AnimationComponent>().Play("Run");
-        }        
-    }
+        // Set the default animation
+        Knight.Get<AnimationComponent>().Play("Run");
+    }        
 }

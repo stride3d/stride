@@ -1,131 +1,126 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using System;
 
-using Stride.Core.Mathematics;
-using Stride.Engine;
-using Stride.Rendering;
 using SpaceEscape.Background;
+using Stride.Engine;
 
-namespace SpaceEscape
+namespace SpaceEscape;
+
+/// <summary>
+/// GameScript manages all entities in the game: Camera, CharacterScript, BackgroundScript and Obstacles.
+/// </summary>
+public class GameScript : SyncScript
 {
     /// <summary>
-    /// GameScript manages all entities in the game: Camera, CharacterScript, BackgroundScript and Obstacles.
+    /// The reference to the character script
     /// </summary>
-    public class GameScript : SyncScript
+    public CharacterScript CharacterScript;
+
+    /// <summary>
+    /// The reference to the background script
+    /// </summary>
+    public BackgroundScript BackgroundScript;
+
+    /// <summary>
+    /// The reference to the UI script
+    /// </summary>
+    public UIScript UIScript;
+
+    public override void Start()
     {
-        /// <summary>
-        /// The reference to the character script
-        /// </summary>
-        public CharacterScript CharacterScript;
+        // Enable visual of mouse in the game
+        Game.Window.IsMouseVisible = true;
 
-        /// <summary>
-        /// The reference to the background script
-        /// </summary>
-        public BackgroundScript BackgroundScript;
+        // Update the distance displayed in the UI
+        BackgroundScript.DistanceUpdated += SetDistanceInUI;
 
-        /// <summary>
-        /// The reference to the UI script
-        /// </summary>
-        public UIScript UIScript;
+        // set behavior of UI button
+        UIScript.StartButton.Click += StartGame;
+        UIScript.RetryButton.Click += RestartGame;
+        UIScript.MenuButton.Click += GoToMenu;
+        
+        GoToMenu(this, EventArgs.Empty);
+    }
 
-        public override void Start()
-        {
-            // Enable visual of mouse in the game
-            Game.Window.IsMouseVisible = true;
+    /// <summary>
+    /// Script update loop that detect collision between CharacterScript an obstacles, 
+    /// and detect if the CharacterScript falls to any hole.
+    /// </summary>
+    /// <returns></returns>
+    public override void Update()
+    {
+        if (CharacterScript.IsDead)
+            return;
 
-            // Update the distance displayed in the UI
-            BackgroundScript.DistanceUpdated += SetDistanceInUI;
+        var agentBoundingBox = CharacterScript.CalculateCurrentBoundingBox();
 
-            // set behavior of UI button
-            UIScript.StartButton.Click += StartGame;
-            UIScript.RetryButton.Click += RestartGame;
-            UIScript.MenuButton.Click += GoToMenu;
-            
-            GoToMenu(this, EventArgs.Empty);
-        }
+        // Detect collision between agents and real-world obstacles.
+        if (BackgroundScript.DetectCollisions(ref agentBoundingBox))
+            KillAgent(0);
 
-        /// <summary>
-        /// Script update loop that detect collision between CharacterScript an obstacles, 
-        /// and detect if the CharacterScript falls to any hole.
-        /// </summary>
-        /// <returns></returns>
-        public override void Update()
-        {
-            if (CharacterScript.IsDead)
-                return;
+        // Detect if the CharacterScript falls into a hole
+        if (BackgroundScript.DetectHoles(ref CharacterScript.Entity.Transform.Position, out var floorHeight))
+            KillAgent(floorHeight);
+    }
 
-            float floorHeight;
-            var agentBoundingBox = CharacterScript.CalculateCurrentBoundingBox();
+    public override void Cancel()
+    {
+        BackgroundScript.DistanceUpdated -= SetDistanceInUI;
 
-            // Detect collision between agents and real-world obstacles.
-            if (BackgroundScript.DetectCollisions(ref agentBoundingBox))
-                KillAgent(0);
+        UIScript.StartButton.Click -= StartGame;
+        UIScript.RetryButton.Click -= RestartGame;
+        UIScript.MenuButton.Click -= GoToMenu;
+    }
 
-            // Detect if the CharacterScript falls into a hole
-            if (BackgroundScript.DetectHoles(ref CharacterScript.Entity.Transform.Position, out floorHeight))
-                KillAgent(floorHeight);
-        }
+    private void SetDistanceInUI(float curDist)
+    {
+        UIScript.SetDistance((int)curDist);
+    }
 
-        public override void Cancel()
-        {
-            BackgroundScript.DistanceUpdated -= SetDistanceInUI;
+    /// <summary>
+    /// Kills the player.
+    /// </summary>
+    private void KillAgent(float height)
+    {
+        CharacterScript.OnDied(height);
+        UIScript.StartGameOverMode();
+        BackgroundScript.StopScrolling();
+    }
 
-            UIScript.StartButton.Click -= StartGame;
-            UIScript.RetryButton.Click -= RestartGame;
-            UIScript.MenuButton.Click -= GoToMenu;
-        }
+    /// <summary>
+    /// Reset game's entities: CharacterScript and LevelBlocks.
+    /// </summary>
+    private void ResetGame()
+    {
+        CharacterScript.Reset();
+        BackgroundScript.Reset();
+    }
 
-        private void SetDistanceInUI(float curDist)
-        {
-            UIScript.SetDistance((int)curDist);
-        }
+    /// <summary>
+    /// Restart playing
+    /// </summary>
+    private void RestartGame(object sender, EventArgs args)
+    {
+        ResetGame();
+        StartGame(sender, args);
+    }
 
-        /// <summary>
-        /// Kills the player.
-        /// </summary>
-        private void KillAgent(float height)
-        {
-            CharacterScript.OnDied(height);
-            UIScript.StartGameOverMode();
-            BackgroundScript.StopScrolling();
-        }
+    /// <summary>
+    /// Start playing
+    /// </summary>
+    private void StartGame(object sender, EventArgs args)
+    {
+        UIScript.StartPlayMode();
+        BackgroundScript.StartScrolling();
+        CharacterScript.Activate();
+    }
 
-        /// <summary>
-        /// Reset game's entities: CharacterScript and LevelBlocks.
-        /// </summary>
-        private void ResetGame()
-        {
-            CharacterScript.Reset();
-            BackgroundScript.Reset();
-        }
-
-        /// <summary>
-        /// Restart playing
-        /// </summary>
-        private void RestartGame(object sender, EventArgs args)
-        {
-            ResetGame();
-            StartGame(sender, args);
-        }
-
-        /// <summary>
-        /// Start playing
-        /// </summary>
-        private void StartGame(object sender, EventArgs args)
-        {
-            UIScript.StartPlayMode();
-            BackgroundScript.StartScrolling();
-            CharacterScript.Activate();
-        }
-
-        /// <summary>
-        /// Go to the menu screen
-        /// </summary>
-        private void GoToMenu(object sender, EventArgs args)
-        {
-            UIScript.StartMainMenuMode();
-            ResetGame();
-        }
+    /// <summary>
+    /// Go to the menu screen
+    /// </summary>
+    private void GoToMenu(object sender, EventArgs args)
+    {
+        UIScript.StartMainMenuMode();
+        ResetGame();
     }
 }

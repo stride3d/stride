@@ -14,15 +14,14 @@ using Stride.Shaders;
 using Stride.Core.Mathematics;
 using Buffer = Stride.Graphics.Buffer;
 
-namespace Stride.Rendering
+namespace Stride.Rendering;
+
+public static partial class EffectKeys
 {
-    public static partial class EffectKeys
-    {
-        public static readonly ValueParameterKey<Vector2> Center = ParameterKeys.NewValue<Vector2>();
-        public static readonly ValueParameterKey<float> Frequency = ParameterKeys.NewValue<float>();
-        public static readonly ValueParameterKey<float> Phase = ParameterKeys.NewValue<float>();
-        public static readonly ValueParameterKey<float> Spread = ParameterKeys.NewValue<float>();
-        public static readonly ValueParameterKey<float> Amplitude = ParameterKeys.NewValue<float>();
-        public static readonly ValueParameterKey<float> InvAspectRatio = ParameterKeys.NewValue<float>();
-    }
+    public static readonly ValueParameterKey<Vector2> Center = ParameterKeys.NewValue<Vector2>();
+    public static readonly ValueParameterKey<float> Frequency = ParameterKeys.NewValue<float>();
+    public static readonly ValueParameterKey<float> Phase = ParameterKeys.NewValue<float>();
+    public static readonly ValueParameterKey<float> Spread = ParameterKeys.NewValue<float>();
+    public static readonly ValueParameterKey<float> Amplitude = ParameterKeys.NewValue<float>();
+    public static readonly ValueParameterKey<float> InvAspectRatio = ParameterKeys.NewValue<float>();
 }
