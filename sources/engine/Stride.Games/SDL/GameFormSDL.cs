@@ -63,7 +63,7 @@ namespace Stride.Games
         public event EventHandler<EventArgs> ResumeRendering;
 
         /// <summary>
-        /// Occurs when the size of the window changed.
+        /// Occurs when the size of the window has changed.
         /// </summary>
         public event EventHandler<EventArgs> SizeChanged;
 
