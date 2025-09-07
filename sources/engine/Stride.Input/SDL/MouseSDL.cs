@@ -26,7 +26,7 @@ namespace Stride.Input
             uiControl.PointerButtonPressActions += OnMouseInputEvent;
             uiControl.PointerButtonReleaseActions += OnMouseInputEvent;
             uiControl.MouseWheelActions += OnMouseWheelEvent;
-            uiControl.ResizeEndActions += OnSizeChanged;
+            uiControl.SizeChangedActions += OnSizeChanged;
             OnSizeChanged(new WindowEvent());
 
             Id = InputDeviceUtils.DeviceNameToGuid(uiControl.SdlHandle.ToString() + Name);
@@ -46,7 +46,7 @@ namespace Stride.Input
             uiControl.PointerButtonPressActions -= OnMouseInputEvent;
             uiControl.PointerButtonReleaseActions -= OnMouseInputEvent;
             uiControl.MouseWheelActions -= OnMouseWheelEvent;
-            uiControl.ResizeEndActions -= OnSizeChanged;
+            uiControl.SizeChangedActions -= OnSizeChanged;
         }
 
         public override void LockPosition(bool forceCenter = false)
@@ -92,7 +92,7 @@ namespace Stride.Input
 
         private void OnMouseWheelEvent(Silk.NET.SDL.MouseWheelEvent sdlMouseWheelEvent)
         {
-            var flip = sdlMouseWheelEvent.Direction == (uint)MouseWheelDirection.MousewheelFlipped ? -1 : 1;
+            var flip = sdlMouseWheelEvent.Direction == (uint)MouseWheelDirection.Flipped ? -1 : 1;
             MouseState.HandleMouseWheel(sdlMouseWheelEvent.Y * flip);
         }
 
