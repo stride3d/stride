@@ -36,9 +36,43 @@ public ref struct SpvOperand
         if (Kind == OperandKind.IdResult && replacement > 0)
             Words[0] = replacement;
     }
-    public T ToEnum<T>() where T : Enum
+    public readonly T ToEnum<T>() where T : Enum
+        => Unsafe.As<int, T>(ref Words[0]);
+
+    internal readonly T ToLiteral<T>()
     {
-        return Unsafe.As<int, T>(ref Words[0]);
+        using var lit = new LiteralValue<T>(Words);
+        return lit.Value;
+    }
+    internal readonly LiteralArray<T> ToLiteralArray<T>()
+        => LiteralArray<T>.From(Words);
+
+    public readonly bool TryToLiteral<T>(out LiteralValue<T> literal)
+    {
+        literal = default;
+        (bool r, literal) = (literal, Kind) switch
+        {
+            (LiteralValue<(int, int)>, OperandKind kind) when kind.ToString().StartsWith("Pair") => (true, LiteralValue<T>.From(Words)),
+            (LiteralValue<int>, OperandKind kind) when kind.ToString().StartsWith("Id") => (true, LiteralValue<T>.From(Words)),
+            (LiteralValue<int>, OperandKind.LiteralInteger or OperandKind.LiteralExtInstInteger or OperandKind.LiteralSpecConstantOpInteger)
+                => (true, LiteralValue<T>.From(Words)),
+            (LiteralValue<Half> or LiteralValue<float> or LiteralValue<double>, OperandKind.LiteralFloat) => (true, LiteralValue<T>.From(Words)),
+            (LiteralValue<string>, OperandKind.LiteralString) => (true, LiteralValue<T>.From(Words)),
+            _ => (false, default)
+        };
+        return true;
+    }
+    public readonly bool TryToArray<T>(out LiteralArray<T> literal)
+    {
+        literal = default;
+        (bool r, literal) = (literal, Kind) switch
+        {
+            (LiteralArray<(int, int)>, OperandKind kind) when kind.ToString().StartsWith("Pair") => (true, LiteralArray<T>.From(Words)),
+            (LiteralArray<int>, OperandKind.IdRef or OperandKind.LiteralInteger)
+                => (true, LiteralArray<T>.From(Words)),
+            _ => (false, default) // No other types supported yet
+        };
+        return r;
     }
 
     public readonly T To<T>()
@@ -142,30 +176,30 @@ public ref struct SpvOperand
             OperandKind.IdRef => $"%{Words[0] + Offset}",
             OperandKind.IdResultType => $"%{Words[0] + Offset}",
             OperandKind.PairLiteralIntegerIdRef => $"{Words[0]} %{Words[0] + Offset}",
-            OperandKind.MemoryAccess => $"{ToEnum<Stride.Shaders.Spirv.Specification.MemoryAccessMask>()}",
-            OperandKind.MemoryModel => $"{ToEnum<Stride.Shaders.Spirv.Specification.MemoryModel>()}",
-            OperandKind.MemorySemantics => $"{ToEnum<Stride.Shaders.Spirv.Specification.MemorySemanticsMask>()}",
-            OperandKind.AccessQualifier => $"{ToEnum<Stride.Shaders.Spirv.Specification.AccessQualifier>()}",
-            OperandKind.AddressingModel => $"{ToEnum<Stride.Shaders.Spirv.Specification.AddressingModel>()}",
-            OperandKind.BuiltIn => $"{ToEnum<Stride.Shaders.Spirv.Specification.BuiltIn>()}",
-            OperandKind.Capability => $"{ToEnum<Stride.Shaders.Spirv.Specification.Capability>()}",
-            OperandKind.Decoration => $"{ToEnum<Stride.Shaders.Spirv.Specification.Decoration>()}",
-            OperandKind.Dim => $"{ToEnum<Stride.Shaders.Spirv.Specification.Dim>()}",
-            OperandKind.ExecutionMode => $"{ToEnum<Stride.Shaders.Spirv.Specification.ExecutionMode>()}",
-            OperandKind.ExecutionModel => $"{ToEnum<Stride.Shaders.Spirv.Specification.ExecutionModel>()}",
-            OperandKind.FPFastMathMode => $"{ToEnum<Stride.Shaders.Spirv.Specification.FPFastMathModeMask>()}",
-            OperandKind.FPRoundingMode => $"{ToEnum<Stride.Shaders.Spirv.Specification.FPRoundingMode>()}",
-            OperandKind.FragmentShadingRate => $"{ToEnum<Stride.Shaders.Spirv.Specification.FragmentShadingRateMask>()}",
-            OperandKind.FunctionControl => $"{ToEnum<Stride.Shaders.Spirv.Specification.FunctionControlMask>()}",
-            OperandKind.FunctionParameterAttribute => $"{ToEnum<Stride.Shaders.Spirv.Specification.FunctionParameterAttribute>()}",
-            OperandKind.GroupOperation => $"{ToEnum<Stride.Shaders.Spirv.Specification.GroupOperation>()}",
-            OperandKind.ImageChannelDataType => $"{ToEnum<Stride.Shaders.Spirv.Specification.ImageChannelDataType>()}",
-            OperandKind.ImageChannelOrder => $"{ToEnum<Stride.Shaders.Spirv.Specification.ImageChannelOrder>()}",
-            OperandKind.ImageFormat => $"{ToEnum<Stride.Shaders.Spirv.Specification.ImageFormat>()}",
-            OperandKind.ImageOperands => $"{ToEnum<Stride.Shaders.Spirv.Specification.ImageOperandsMask>()}",
-            OperandKind.KernelEnqueueFlags => $"{ToEnum<Stride.Shaders.Spirv.Specification.KernelEnqueueFlags>()}",
-            OperandKind.KernelProfilingInfo => $"{ToEnum<Stride.Shaders.Spirv.Specification.KernelProfilingInfoMask>()}",
-            OperandKind.LinkageType => $"{ToEnum<Stride.Shaders.Spirv.Specification.LinkageType>()}",
+            OperandKind.MemoryAccess => $"{ToEnum<Specification.MemoryAccessMask>()}",
+            OperandKind.MemoryModel => $"{ToEnum<Specification.MemoryModel>()}",
+            OperandKind.MemorySemantics => $"{ToEnum<Specification.MemorySemanticsMask>()}",
+            OperandKind.AccessQualifier => $"{ToEnum<Specification.AccessQualifier>()}",
+            OperandKind.AddressingModel => $"{ToEnum<Specification.AddressingModel>()}",
+            OperandKind.BuiltIn => $"{ToEnum<Specification.BuiltIn>()}",
+            OperandKind.Capability => $"{ToEnum<Specification.Capability>()}",
+            OperandKind.Decoration => $"{ToEnum<Specification.Decoration>()}",
+            OperandKind.Dim => $"{ToEnum<Specification.Dim>()}",
+            OperandKind.ExecutionMode => $"{ToEnum<Specification.ExecutionMode>()}",
+            OperandKind.ExecutionModel => $"{ToEnum<Specification.ExecutionModel>()}",
+            OperandKind.FPFastMathMode => $"{ToEnum<Specification.FPFastMathModeMask>()}",
+            OperandKind.FPRoundingMode => $"{ToEnum<Specification.FPRoundingMode>()}",
+            OperandKind.FragmentShadingRate => $"{ToEnum<Specification.FragmentShadingRateMask>()}",
+            OperandKind.FunctionControl => $"{ToEnum<Specification.FunctionControlMask>()}",
+            OperandKind.FunctionParameterAttribute => $"{ToEnum<Specification.FunctionParameterAttribute>()}",
+            OperandKind.GroupOperation => $"{ToEnum<Specification.GroupOperation>()}",
+            OperandKind.ImageChannelDataType => $"{ToEnum<Specification.ImageChannelDataType>()}",
+            OperandKind.ImageChannelOrder => $"{ToEnum<Specification.ImageChannelOrder>()}",
+            OperandKind.ImageFormat => $"{ToEnum<Specification.ImageFormat>()}",
+            OperandKind.ImageOperands => $"{ToEnum<Specification.ImageOperandsMask>()}",
+            OperandKind.KernelEnqueueFlags => $"{ToEnum<Specification.KernelEnqueueFlags>()}",
+            OperandKind.KernelProfilingInfo => $"{ToEnum<Specification.KernelProfilingInfoMask>()}",
+            OperandKind.LinkageType => $"{ToEnum<Specification.LinkageType>()}",
             OperandKind.None => "",
             _ => Words[0].ToString()
         };

@@ -179,10 +179,10 @@ public partial class SPVGenerator : IIncrementalGenerator
                 // Body 2
                 body2.AppendLine($"if(o.Name == \"{operandName}\")");
                 if (typename.StartsWith("LiteralArray"))
-                    body2.AppendLine($"{fieldName} = o.To<{typename}>();");
+                    body2.AppendLine($"{fieldName} = o.To{typename}();");
                 else if (operand.Class is string s && s.Contains("Enum"))
                     body2.AppendLine($"{fieldName} = o.ToEnum<{operand.Kind}{(operand.Class is "BitEnum" ? "Mask" : "")}>();");
-                else body2.AppendLine($"{fieldName} = o.To<{typename}>();");
+                else body2.AppendLine($"{fieldName} = o.ToLiteral<{typename}>();");
                 // Body 3
                 if (typename.StartsWith("LiteralArray"))
                     body3.AppendLine($"{fieldName}.Assign({operandName});");
@@ -262,9 +262,9 @@ public partial class SPVGenerator : IIncrementalGenerator
 
         if (instruction.Operands?.AsList() is List<OperandData> operands)
         {
-            operands.Add(new(){Name = "additional1", Kind = "LiteralInteger", Quantifier = "?"});
-            operands.Add(new(){Name = "additional2", Kind = "LiteralInteger", Quantifier = "?"});
-            operands.Add(new(){Name = "additionalString", Kind = "LiteralString", Quantifier = "?"});
+            operands.Add(new() { Name = "additional1", Kind = "LiteralInteger", Quantifier = "?" });
+            operands.Add(new() { Name = "additional2", Kind = "LiteralInteger", Quantifier = "?" });
+            operands.Add(new() { Name = "additionalString", Kind = "LiteralString", Quantifier = "?" });
             body2.AppendLine("foreach (var o in index.Buffer[index.Index])")
             .AppendLine("{");
 
@@ -296,10 +296,10 @@ public partial class SPVGenerator : IIncrementalGenerator
                 // Body 2
                 body2.AppendLine($"if(o.Name == \"{operandName}\")");
                 if (typename.StartsWith("LiteralArray"))
-                    body2.AppendLine($"{fieldName} = o.To<{typename}>();");
+                    body2.AppendLine($"{fieldName} = o.To{typename}();");
                 else if (operand.Class is string s && s.Contains("Enum"))
                     body2.AppendLine($"{fieldName} = o.ToEnum<{operand.Kind}{(operand.Class is "BitEnum" ? "Mask" : "")}>();");
-                else body2.AppendLine($"{fieldName} = o.To<LiteralValue<{typename}>>();");
+                else body2.AppendLine($"{fieldName} = o.ToLiteral<{typename}>();");
                 // Body 3
                 if (typename.StartsWith("LiteralArray"))
                     body3.AppendLine($"{fieldName}.Assign({operandName});");
@@ -414,11 +414,11 @@ public partial class SPVGenerator : IIncrementalGenerator
                 body2.AppendLine($"if(o.Name == \"{operandName}\")");
                 if (typename.StartsWith("LiteralArray"))
                 {
-                    body2.AppendLine($"{fieldName} = o.To<{typename}>();");
+                    body2.AppendLine($"{fieldName} = o.To{typename}();");
                 }
                 else if (operand.Class is string s && s.Contains("Enum"))
                     body2.AppendLine($"{fieldName} = o.ToEnum<{operand.Kind}{(operand.Class is "BitEnum" ? "Mask" : "")}>();");
-                else body2.AppendLine($"{fieldName} = o.To<LiteralValue<{typename}>>();");
+                else body2.AppendLine($"{fieldName} = o.ToLiteral<{typename}>();");
                 // Body 3
                 if (typename.StartsWith("LiteralArray"))
                     body3.AppendLine($"{fieldName}.Assign({operandName});");
@@ -511,7 +511,7 @@ public partial class SPVGenerator : IIncrementalGenerator
 
             // Body 1
 
-            
+
             foreach (var operand in operands)
             {
 
@@ -519,18 +519,20 @@ public partial class SPVGenerator : IIncrementalGenerator
 
                 if (typename.StartsWith("LiteralArray"))
                     body1.Append($"public {typename} {fieldName} {{ get; set {{ field.Assign(value); UpdateInstructionMemory(); }} }}");
-                else if(typename.StartsWith("LiteralValue"))
+                else if (typename.StartsWith("LiteralValue"))
                     body1.Append($"public T {fieldName} {{ get; set {{ field = value; UpdateInstructionMemory(); }} }}");
                 else
                     body1.Append($"public {typename} {fieldName} {{ get; set {{ field = value; UpdateInstructionMemory(); }} }}");
 
                 // Body 2
                 body2.AppendLine($"if(o.Name == \"{operandName}\")");
-                if (typename.StartsWith("LiteralArray") || typename.StartsWith("LiteralValue"))
-                    body2.AppendLine($"{fieldName} = o.To<{typename}>();");
+                if (typename.StartsWith("LiteralArray"))
+                    body2.AppendLine($"{fieldName} = o.To{typename}();");
                 else if (operand.Class is string s && s.Contains("Enum"))
                     body2.AppendLine($"{fieldName} = o.ToEnum<{operand.Kind}{(operand.Class is "BitEnum" ? "Mask" : "")}>();");
-                else body2.AppendLine($"{fieldName} = o.To<LiteralValue<{typename}>>();");
+                else if (typename.StartsWith("LiteralValue"))
+                    body2.AppendLine($"{fieldName} = o.ToLiteral<T>();");
+                else body2.AppendLine($"{fieldName} = o.ToLiteral<{typename}>();");
                 // Body 3
                 if (typename.StartsWith("LiteralArray"))
                     body3.AppendLine($"{fieldName}.Assign({operandName});");

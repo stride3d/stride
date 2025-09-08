@@ -72,7 +72,7 @@ public partial struct SpirvDis<TBuffer>
             writer
                 .AppendLine("; SPIR-V")
                 .AppendLine($"; Version: {header.Version}")
-                .AppendLine($"; Generator: {header.GeneratorMagicNumber}")
+                .AppendLine($"; Generator: {header.Generator}")
                 .AppendLine($"; Bound: {header.Bound}")
                 .AppendLine($"; Schema: {header.Schema}");
         }

@@ -43,7 +43,7 @@ public readonly struct SpirvHeader
 {
     public uint MagicNumber { get; init; }
     public SpirvVersion VersionNumber { get; init; }
-    public int GeneratorMagicNumber { get; init; }
+    public int Generator { get; init; }
     public int Bound { get; init; }
     public int Schema { get; init; }
 
@@ -53,7 +53,7 @@ public readonly struct SpirvHeader
     {
         MagicNumber = Specification.MagicNumber;
         VersionNumber = version;
-        GeneratorMagicNumber = generator;
+        Generator = generator;
         Bound = bound;
         Schema = schema;
     }
@@ -61,7 +61,7 @@ public readonly struct SpirvHeader
     {
         MagicNumber = Specification.MagicNumber;
         VersionNumber = version;
-        GeneratorMagicNumber = generator;
+        Generator = generator;
         Bound = bound;
         Schema = schema;
     }
@@ -70,7 +70,7 @@ public readonly struct SpirvHeader
     {
         words[0] = unchecked((int)MagicNumber);
         words[1] = VersionNumber.Version;
-        words[2] = GeneratorMagicNumber;
+        words[2] = Generator;
         words[3] = Bound;
         words[4] = Schema;
     }
@@ -81,7 +81,7 @@ public readonly struct SpirvHeader
         {
             MagicNumber = (uint)words[0],
             VersionNumber = words[1],
-            GeneratorMagicNumber = words[2],
+            Generator = words[2],
             Bound = words[3],
             Schema = words[4]
         };
