@@ -1170,7 +1170,9 @@ namespace Stride.Importer.ThreeD
             for (uint i = 0; i < scene->MNumMaterials; i++)
             {
                 var lMaterial = scene->MMaterials[i];
-                var materialName = materialNames[(IntPtr)lMaterial];
+                // Replace slashes with an underscore to indicate it is not absolute to Strides asset system.
+                var materialName = materialNames[(IntPtr)lMaterial].Replace('/', '_');
+
                 materials.Add(materialName, ProcessMeshMaterial(scene, lMaterial));
             }
             return materials;
