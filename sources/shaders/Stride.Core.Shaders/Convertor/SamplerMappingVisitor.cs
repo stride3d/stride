@@ -64,6 +64,36 @@ namespace Stride.Core.Shaders.Convertor
             }
         }
 
+        private Variable FindParameterOrGlobalVariable(Expression expression)
+        {
+            var variableRef = expression as VariableReferenceExpression;
+            if (variableRef != null)
+            {
+                // Check if present in parameter list first.
+                MethodDeclaration currentFunction = null;
+                for (var i = NodeStack.Count - 1; i >= 0; i--)
+                {
+                    if (NodeStack[i] is MethodDeclaration function)
+                    {
+                        currentFunction = function;
+                        break;
+                    }
+                }
+                if (currentFunction != null)
+                {
+                    var parameter = currentFunction.Parameters.FirstOrDefault(x => x is Stride.Core.Shaders.Ast.Parameter param && param.Name == variableRef.Name);
+                    if (parameter != null)
+                    {
+                        return parameter;
+                    }
+                }
+
+                return FindGlobalVariable(expression);
+            }
+
+            return null;
+        }
+
         private Variable FindGlobalVariable(Expression expression)
         {
             var variableRef = expression as VariableReferenceExpression;
@@ -108,7 +138,7 @@ namespace Stride.Core.Shaders.Convertor
             if (memberRef != null)
             {
                 // TODO handle Texture2D<float> 
-                var textureVariable = this.FindGlobalVariable(memberRef.Target);
+                var textureVariable = FindParameterOrGlobalVariable(memberRef.Target);
 
                 if (textureVariable != null)
                 {
