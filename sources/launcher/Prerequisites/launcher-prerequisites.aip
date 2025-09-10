@@ -56,7 +56,7 @@
     <ROW Path="&lt;AI_DICTS&gt;ui_en.ail"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.DigCertStoreComponent">
-    <ROW TimeStampUrl="http://timestamp.digicert.com" SignerDescription="[|ProductName]" DescriptionUrl="https://stride3d.net/" SignOptions="0" SignTool="5" UseSha256="1"/>
+    <ROW SignOptions="0" SignTool="5" UseSha256="1" CustomToolPath="..\..\..\build\sign\sign.exe" CustomToolCmdLine=" code azure-key-vault --description &quot;[|ProductName]&quot; --description-url=&quot;https://stride3d.net&quot; --azure-key-vault-certificate &quot;%StrideSignKeyVaultCertificate%&quot; --azure-key-vault-url &quot;%StrideSignKeyVaultUrl%&quot; --azure-key-vault-tenant-id &quot;%StrideSignTenantId%&quot; --azure-key-vault-client-id &quot;%StrideSignClientId%&quot;"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.FragmentComponent">
     <ROW Fragment="CommonUI.aip" Path="&lt;AI_FRAGS&gt;CommonUI.aip"/>
