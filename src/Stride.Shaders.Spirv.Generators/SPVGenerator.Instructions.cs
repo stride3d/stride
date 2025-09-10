@@ -166,18 +166,19 @@ public partial class SPVGenerator : IIncrementalGenerator
             if (operands.Any(x => x is { Kind: "IdResult" }))
                 body1.AppendLine($"public static implicit operator Id({instruction.OpName} inst) => new Id(inst.ResultId);")
                 .AppendLine($"public static implicit operator int({instruction.OpName} inst) => inst.ResultId;");
+            var tmp = -1;
             foreach (var operand in operands)
             {
-
+                tmp += 1;
                 (string typename, string fieldName, string operandName) = ToTypeFieldAndOperandName(operand);
 
                 if (typename.StartsWith("LiteralArray"))
-                    body1.Append($"public {typename} {fieldName} {{ get; set {{ field.Assign(value); UpdateInstructionMemory(); }} }}");
+                    body1.Append($"public {typename} {fieldName} {{ get; set {{ field.Assign(value); if(InstructionMemory is not null) UpdateInstructionMemory(); }} }}");
                 else
-                    body1.Append($"public {typename} {fieldName} {{ get; set {{ field = value; UpdateInstructionMemory(); }} }}");
+                    body1.Append($"public {typename} {fieldName} {{ get; set {{ field = value; if(InstructionMemory is not null) UpdateInstructionMemory(); }} }}");
 
                 // Body 2
-                body2.AppendLine($"if(o.Name == \"{operandName}\")");
+                body2.AppendLine($"{(tmp == 0 ? "" : "else ")}if(o.Name == \"{operandName}\")");
                 if (typename.StartsWith("LiteralArray"))
                     body2.AppendLine($"{fieldName} = o.To{typename}();");
                 else if (operand.Class is string s && s.Contains("Enum"))
@@ -245,6 +246,12 @@ public partial class SPVGenerator : IIncrementalGenerator
                     }}
                 }}
 
+                public {instruction.OpName}()
+                {{
+                    InstructionMemory = MemoryOwner<int>.Allocate(1);
+                    InstructionMemory.Span[0] = (int)Op.{instruction.OpName} | (1 << 16);
+                }}
+
                 {body1}
                 {body2}
                 {body3}
@@ -283,18 +290,19 @@ public partial class SPVGenerator : IIncrementalGenerator
             if (operands.Any(x => x is { Kind: "IdResult" }))
                 body1.AppendLine($"public static implicit operator Id({instruction.OpName} inst) => new Id(inst.ResultId);")
                 .AppendLine($"public static implicit operator int({instruction.OpName} inst) => inst.ResultId;");
+            var tmp = -1;
             foreach (var operand in operands)
             {
-
+                tmp += 1;
                 (string typename, string fieldName, string operandName) = ToTypeFieldAndOperandName(operand);
 
                 if (typename.StartsWith("LiteralArray"))
-                    body1.Append($"public {typename} {fieldName} {{ get; set {{ field.Assign(value); UpdateInstructionMemory(); }} }}");
+                    body1.Append($"public {typename} {fieldName} {{ get; set {{ field.Assign(value); if(InstructionMemory is not null) UpdateInstructionMemory(); }} }}");
                 else
-                    body1.Append($"public {typename} {fieldName} {{ get; set {{ field = value; UpdateInstructionMemory(); }} }}");
+                    body1.Append($"public {typename} {fieldName} {{ get; set {{ field = value; if(InstructionMemory is not null) UpdateInstructionMemory(); }} }}");
 
                 // Body 2
-                body2.AppendLine($"if(o.Name == \"{operandName}\")");
+                body2.AppendLine($"{(tmp == 0 ? "" : "else ")}if(o.Name == \"{operandName}\")");
                 if (typename.StartsWith("LiteralArray"))
                     body2.AppendLine($"{fieldName} = o.To{typename}();");
                 else if (operand.Class is string s && s.Contains("Enum"))
@@ -406,9 +414,9 @@ public partial class SPVGenerator : IIncrementalGenerator
                 (string typename, string fieldName, string operandName) = ToTypeFieldAndOperandName(operand);
 
                 if (typename.StartsWith("LiteralArray"))
-                    body1.Append($"public {typename} {fieldName} {{ get; set {{ field.Assign(value); UpdateInstructionMemory(); }} }}");
+                    body1.Append($"public {typename} {fieldName} {{ get; set {{ field.Assign(value); if(InstructionMemory is not null) UpdateInstructionMemory(); }} }}");
                 else
-                    body1.Append($"public {typename} {fieldName} {{ get; set {{ field = value; UpdateInstructionMemory(); }} }}");
+                    body1.Append($"public {typename} {fieldName} {{ get; set {{ field = value; if(InstructionMemory is not null) UpdateInstructionMemory(); }} }}");
 
                 // Body 2
                 body2.AppendLine($"if(o.Name == \"{operandName}\")");
@@ -518,11 +526,11 @@ public partial class SPVGenerator : IIncrementalGenerator
                 (string typename, string fieldName, string operandName) = ToTypeFieldAndOperandName(operand);
 
                 if (typename.StartsWith("LiteralArray"))
-                    body1.Append($"public {typename} {fieldName} {{ get; set {{ field.Assign(value); UpdateInstructionMemory(); }} }}");
+                    body1.Append($"public {typename} {fieldName} {{ get; set {{ field.Assign(value); if(InstructionMemory is not null) UpdateInstructionMemory(); }} }}");
                 else if (typename.StartsWith("LiteralValue"))
-                    body1.Append($"public T {fieldName} {{ get; set {{ field = value; UpdateInstructionMemory(); }} }}");
+                    body1.Append($"public T {fieldName} {{ get; set {{ field = value; if(InstructionMemory is not null) UpdateInstructionMemory(); }} }}");
                 else
-                    body1.Append($"public {typename} {fieldName} {{ get; set {{ field = value; UpdateInstructionMemory(); }} }}");
+                    body1.Append($"public {typename} {fieldName} {{ get; set {{ field = value; if(InstructionMemory is not null) UpdateInstructionMemory(); }} }}");
 
                 // Body 2
                 body2.AppendLine($"if(o.Name == \"{operandName}\")");

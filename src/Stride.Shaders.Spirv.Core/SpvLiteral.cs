@@ -39,12 +39,12 @@ public ref struct SpvOperand
     public readonly T ToEnum<T>() where T : Enum
         => Unsafe.As<int, T>(ref Words[0]);
 
-    internal readonly T ToLiteral<T>()
+    public readonly T ToLiteral<T>()
     {
         using var lit = new LiteralValue<T>(Words);
         return lit.Value;
     }
-    internal readonly LiteralArray<T> ToLiteralArray<T>()
+    public readonly LiteralArray<T> ToLiteralArray<T>()
         => LiteralArray<T>.From(Words);
 
     public readonly bool TryToLiteral<T>(out LiteralValue<T> literal)

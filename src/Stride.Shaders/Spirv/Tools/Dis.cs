@@ -19,10 +19,6 @@ public static partial class Spv
         // Assembly code generation logic goes here
         var writer = new DisWriter(buffer, useNames, writeToConsole);
         writer.Disassemble();
-        foreach (var instruction in data)
-        {
-            // Disassemble each instruction
-        }
         return "";
     }
 
@@ -33,7 +29,7 @@ public static partial class Spv
         DisData data = new(buffer, useNames, writeToConsole);
         readonly StringBuilder builder = new();
 
-        DisWriter AppendLine(string text, ConsoleColor? color = null)
+        readonly DisWriter AppendLine(string text, ConsoleColor? color = null)
         {
             if (color is not null)
             {
@@ -47,7 +43,7 @@ public static partial class Spv
             builder.AppendLine(text);
             return this;
         }
-        DisWriter Append<T>(T text, ConsoleColor? color = null)
+        readonly DisWriter Append<T>(T text, ConsoleColor? color = null)
         {
             if (color is not null)
             {
@@ -61,22 +57,22 @@ public static partial class Spv
             builder.Append(text);
             return this;
         }
-        DisWriter AppendRepeatChar(char c, int count)
+        readonly DisWriter AppendRepeatChar(char c, int count)
         {
             if (data.WriteToConsole)
-                while (count-- > 0)
+                for(int i = 0; i < count; i++)
                     Console.Write(c);
             builder.Append(c, count);
             return this;
         }
-        DisWriter AppendLiteralNumber<T>(T value)
+        readonly DisWriter AppendLiteralNumber<T>(T value)
             where T : struct, INumber<T>
         {
             Append(value, ConsoleColor.Red).Append(' ');
             return this;
         }
 
-        DisWriter AppendLiteralNumber<T>(LiteralValue<T> value, bool dispose = true)
+        readonly DisWriter AppendLiteralNumber<T>(LiteralValue<T> value, bool dispose = true)
             where T : struct, INumber<T>
         {
             Append(value.Value, ConsoleColor.Red).Append(' ');
@@ -85,20 +81,20 @@ public static partial class Spv
             return this;
         }
 
-        DisWriter AppendLiteralString(LiteralValue<string> value, bool dispose = true)
+        readonly DisWriter AppendLiteralString(LiteralValue<string> value, bool dispose = true)
         {
             Append('"', ConsoleColor.Green).Append(value.Value, ConsoleColor.Green).Append('"', ConsoleColor.Green).Append(' ');
             if (dispose)
                 value.Dispose();
             return this;
         }
-        DisWriter AppendLiteralString(string value)
+        readonly DisWriter AppendLiteralString(string value)
         {
             Append('"', ConsoleColor.Green).Append(value, ConsoleColor.Green).Append('"', ConsoleColor.Green).Append(' ');
             return this;
         }
 
-        DisWriter AppendLiteralNumbers<T>(LiteralArray<T> value, bool dispose = true)
+        readonly DisWriter AppendLiteralNumbers<T>(LiteralArray<T> value, bool dispose = true)
             where T : struct, INumber<T>
         {
             T tmp = default;
@@ -125,7 +121,7 @@ public static partial class Spv
                 value.Dispose();
             return this;
         }
-        DisWriter AppendResultId(int? id = null)
+        readonly DisWriter AppendResultId(int? id = null)
         {
             if (id is int i)
             {
@@ -150,7 +146,7 @@ public static partial class Spv
                 Append(" = ");
             }
             else
-                AppendRepeatChar(' ', data.IdOffset - 1);
+                AppendRepeatChar(' ', data.IdOffset);
             return this;
 
         }
@@ -168,7 +164,7 @@ public static partial class Spv
         {
             var header = data.Buffer.Header;
             AppendLine($"; SPIR-V");
-            AppendLine($"; Version: {header.Version}");
+            AppendLine($"; Version: {header.VersionNumber >> 16}.{header.VersionNumber & 0xFF}");
             AppendLine($"; Generator: {header.Generator}");
             AppendLine($"; Bound: {header.Bound}");
             AppendLine($"; Schema: {header.Schema}");
@@ -196,20 +192,81 @@ public static partial class Spv
                 ref var data = ref instruction.Data;
                 var info = InstructionInfo.GetInfo(data);
                 if (info.GetResultIndex(out int resultIndex))
-                    AppendResultId(data.Memory.Span[resultIndex]);
+                    AppendResultId(data.Memory.Span[1 + resultIndex]);
                 else
                     AppendResultId();
                 Append(instruction.Op.ToString()).Append(' ');
-                JsonElement e;
-                e.TryGetProperty()
                 foreach (var operand in data)
                 {
-                    _ = operand.Kind switch
+                    _ = (operand.Kind, operand.Quantifier) switch
                     {
-                        OperandKind.LiteralString => AppendLiteralString(operand.To<LiteralValue<string>>().Value),
-                        _ => this
+                        (OperandKind.IdResult, _) => Append(""),
+                        (
+                            OperandKind.LiteralInteger
+                            or OperandKind.LiteralExtInstInteger
+                            or OperandKind.LiteralSpecConstantOpInteger,
+                            OperandQuantifier.One
+                        ) => AppendLiteralNumber(operand.ToLiteral<int>()),
+                        (OperandKind.IdRef or OperandKind.IdResultType, OperandQuantifier.One) => Append('%', ConsoleColor.Green).Append(operand.ToLiteral<int>(), ConsoleColor.Green).Append(' '),
+                        (OperandKind.LiteralFloat, OperandQuantifier.One) => AppendLiteralNumber(operand.ToLiteral<float>()),
+                        (OperandKind.LiteralString, OperandQuantifier.One) => AppendLiteralString(operand.ToLiteral<string>()),
+                        (OperandKind.ImageOperands, OperandQuantifier.One) => Append(operand.ToEnum<ImageOperandsMask>().ToString(), ConsoleColor.Yellow).Append(' '),
+                        (OperandKind.FPFastMathMode, OperandQuantifier.One) => Append(operand.ToEnum<FPFastMathModeMask>().ToString(), ConsoleColor.Yellow).Append(' '),
+                        (OperandKind.SelectionControl, OperandQuantifier.One) => Append(operand.ToEnum<SelectionControlMask>().ToString(), ConsoleColor.Yellow).Append(' '),
+                        (OperandKind.LoopControl, OperandQuantifier.One) => Append(operand.ToEnum<LoopControlMask>().ToString(), ConsoleColor.Yellow).Append(' '),
+                        (OperandKind.FunctionControl, OperandQuantifier.One) => Append(operand.ToEnum<FunctionControlMask>().ToString(), ConsoleColor.Yellow).Append(' '),
+                        (OperandKind.MemorySemantics, OperandQuantifier.One) => Append(operand.ToEnum<MemorySemanticsMask>().ToString(), ConsoleColor.Yellow).Append(' '),
+                        (OperandKind.MemoryAccess, OperandQuantifier.One) => Append(operand.ToEnum<MemoryAccessMask>().ToString(), ConsoleColor.Yellow).Append(' '),
+                        (OperandKind.KernelProfilingInfo, OperandQuantifier.One) => Append(operand.ToEnum<KernelProfilingInfoMask>().ToString(), ConsoleColor.Yellow).Append(' '),
+                        (OperandKind.RayFlags, OperandQuantifier.One) => Append(operand.ToEnum<RayFlagsMask>().ToString(), ConsoleColor.Yellow).Append(' '),
+                        (OperandKind.FragmentShadingRate, OperandQuantifier.One) => Append(operand.ToEnum<FragmentShadingRateMask>().ToString(), ConsoleColor.Yellow).Append(' '),
+                        (OperandKind.RawAccessChainOperands, OperandQuantifier.One) => Append(operand.ToEnum<RawAccessChainOperandsMask>().ToString(), ConsoleColor.Yellow).Append(' '),
+                        (OperandKind.SourceLanguage, OperandQuantifier.One) => Append(operand.ToEnum<SourceLanguage>().ToString(), ConsoleColor.Yellow).Append(' '),
+                        (OperandKind.ExecutionModel, OperandQuantifier.One) => Append(operand.ToEnum<ExecutionModel>().ToString(), ConsoleColor.Yellow).Append(' '),
+                        (OperandKind.AddressingModel, OperandQuantifier.One) => Append(operand.ToEnum<AddressingModel>().ToString(), ConsoleColor.Yellow).Append(' '),
+                        (OperandKind.MemoryModel, OperandQuantifier.One) => Append(operand.ToEnum<MemoryModel>().ToString(), ConsoleColor.Yellow).Append(' '),
+                        (OperandKind.ExecutionMode, OperandQuantifier.One) => Append(operand.ToEnum<ExecutionMode>().ToString(), ConsoleColor.Yellow).Append(' '),
+                        (OperandKind.StorageClass, OperandQuantifier.One) => Append(operand.ToEnum<Specification.StorageClass>().ToString(), ConsoleColor.Yellow).Append(' '),
+                        (OperandKind.Dim, OperandQuantifier.One) => Append(operand.ToEnum<Dim>().ToString(), ConsoleColor.Yellow).Append(' '),
+                        (OperandKind.SamplerAddressingMode, OperandQuantifier.One) => Append(operand.ToEnum<SamplerAddressingMode>().ToString(), ConsoleColor.Yellow).Append(' '),
+                        (OperandKind.SamplerFilterMode, OperandQuantifier.One) => Append(operand.ToEnum<SamplerFilterMode>().ToString(), ConsoleColor.Yellow).Append(' '),
+                        (OperandKind.ImageFormat, OperandQuantifier.One) => Append(operand.ToEnum<ImageFormat>().ToString(), ConsoleColor.Yellow).Append(' '),
+                        (OperandKind.ImageChannelOrder, OperandQuantifier.One) => Append(operand.ToEnum<ImageChannelOrder>().ToString(), ConsoleColor.Yellow).Append(' '),
+                        (OperandKind.ImageChannelDataType, OperandQuantifier.One) => Append(operand.ToEnum<ImageChannelDataType>().ToString(), ConsoleColor.Yellow).Append(' '),
+                        (OperandKind.FPRoundingMode, OperandQuantifier.One) => Append(operand.ToEnum<FPRoundingMode>().ToString(), ConsoleColor.Yellow).Append(' '),
+                        (OperandKind.FPDenormMode, OperandQuantifier.One) => Append(operand.ToEnum<FPDenormMode>().ToString(), ConsoleColor.Yellow).Append(' '),
+                        (OperandKind.QuantizationModes, OperandQuantifier.One) => Append(operand.ToEnum<QuantizationModes>().ToString(), ConsoleColor.Yellow).Append(' '),
+                        (OperandKind.FPOperationMode, OperandQuantifier.One) => Append(operand.ToEnum<FPOperationMode>().ToString(), ConsoleColor.Yellow).Append(' '),
+                        (OperandKind.OverflowModes, OperandQuantifier.One) => Append(operand.ToEnum<OverflowModes>().ToString(), ConsoleColor.Yellow).Append(' '),
+                        (OperandKind.LinkageType, OperandQuantifier.One) => Append(operand.ToEnum<LinkageType>().ToString(), ConsoleColor.Yellow).Append(' '),
+                        (OperandKind.AccessQualifier, OperandQuantifier.One) => Append(operand.ToEnum<AccessQualifier>().ToString(), ConsoleColor.Yellow).Append(' '),
+                        (OperandKind.HostAccessQualifier, OperandQuantifier.One) => Append(operand.ToEnum<HostAccessQualifier>().ToString(), ConsoleColor.Yellow).Append(' '),
+                        (OperandKind.FunctionParameterAttribute, OperandQuantifier.One) => Append(operand.ToEnum<FunctionParameterAttribute>().ToString(), ConsoleColor.Yellow).Append(' '),
+                        (OperandKind.Decoration, OperandQuantifier.One) => Append(operand.ToEnum<Decoration>().ToString(), ConsoleColor.Yellow).Append(' '),
+                        (OperandKind.BuiltIn, OperandQuantifier.One) => Append(operand.ToEnum<BuiltIn>().ToString(), ConsoleColor.Yellow).Append(' '),
+                        (OperandKind.Scope, OperandQuantifier.One) => Append(operand.ToEnum<Scope>().ToString(), ConsoleColor.Yellow).Append(' '),
+                        (OperandKind.GroupOperation, OperandQuantifier.One) => Append(operand.ToEnum<GroupOperation>().ToString(), ConsoleColor.Yellow).Append(' '),
+                        (OperandKind.KernelEnqueueFlags, OperandQuantifier.One) => Append(operand.ToEnum<KernelEnqueueFlags>().ToString(), ConsoleColor.Yellow).Append(' '),
+                        (OperandKind.Capability, OperandQuantifier.One) => Append(operand.ToEnum<Capability>().ToString(), ConsoleColor.Yellow).Append(' '),
+                        (OperandKind.RayQueryIntersection, OperandQuantifier.One) => Append(operand.ToEnum<RayQueryIntersection>().ToString(), ConsoleColor.Yellow).Append(' '),
+                        (OperandKind.RayQueryCommittedIntersectionType, OperandQuantifier.One) => Append(operand.ToEnum<RayQueryCommittedIntersectionType>().ToString(), ConsoleColor.Yellow).Append(' '),
+                        (OperandKind.RayQueryCandidateIntersectionType, OperandQuantifier.One) => Append(operand.ToEnum<RayQueryCandidateIntersectionType>().ToString(), ConsoleColor.Yellow).Append(' '),
+                        (OperandKind.PackedVectorFormat, OperandQuantifier.One) => Append(operand.ToEnum<PackedVectorFormat>().ToString(), ConsoleColor.Yellow).Append(' '),
+                        (OperandKind.CooperativeMatrixOperands, OperandQuantifier.One) => Append(operand.ToEnum<CooperativeMatrixOperandsMask>().ToString(), ConsoleColor.Yellow).Append(' '),
+                        (OperandKind.CooperativeMatrixLayout, OperandQuantifier.One) => Append(operand.ToEnum<CooperativeMatrixLayout>().ToString(), ConsoleColor.Yellow).Append(' '),
+                        (OperandKind.CooperativeMatrixUse, OperandQuantifier.One) => Append(operand.ToEnum<CooperativeMatrixUse>().ToString(), ConsoleColor.Yellow).Append(' '),
+                        (OperandKind.CooperativeMatrixReduce, OperandQuantifier.One) => Append(operand.ToEnum<CooperativeMatrixReduceMask>().ToString(), ConsoleColor.Yellow).Append(' '),
+                        (OperandKind.TensorClampMode, OperandQuantifier.One) => Append(operand.ToEnum<TensorClampMode>().ToString(), ConsoleColor.Yellow).Append(' '),
+                        (OperandKind.TensorAddressingOperands, OperandQuantifier.One) => Append(operand.ToEnum<TensorAddressingOperandsMask>().ToString(), ConsoleColor.Yellow).Append(' '),
+                        (OperandKind.InitializationModeQualifier, OperandQuantifier.One) => Append(operand.ToEnum<InitializationModeQualifier>().ToString(), ConsoleColor.Yellow).Append(' '),
+                        (OperandKind.LoadCacheControl, OperandQuantifier.One) => Append(operand.ToEnum<LoadCacheControl>().ToString(), ConsoleColor.Yellow).Append(' '),
+                        (OperandKind.StoreCacheControl, OperandQuantifier.One) => Append(operand.ToEnum<StoreCacheControl>().ToString(), ConsoleColor.Yellow).Append(' '),
+                        (OperandKind.NamedMaximumNumberOfRegisters, OperandQuantifier.One) => Append(operand.ToEnum<NamedMaximumNumberOfRegisters>().ToString(), ConsoleColor.Yellow).Append(' '),
+                        (OperandKind.FPEncoding, OperandQuantifier.One) => Append(operand.ToEnum<FPEncoding>().ToString(), ConsoleColor.Yellow).Append(' '),
+                        _ => throw new Exception($"Unhandled operand kind {operand.Kind} with quantifier {operand.Quantifier}"),
                     };
                 }
+                AppendLine("");
             }
         }
 
@@ -282,12 +339,22 @@ public static partial class Spv
                 var maxName = 0;
                 foreach (var i in Buffer)
                 {
-                    maxName = i.Op switch
+                    if (i.Op == Op.OpName)
                     {
-                        Op.OpName => maxName > ((OpName)i).Name.Length ? maxName : ((OpName)i).Name.Length,
-                        Op.OpMemberName => maxName > ((OpMemberName)i).Name.Length ? maxName : ((OpMemberName)i).Name.Length,
-                        _ => maxName
-                    };
+                        var nameInst = (OpName)i;
+                        maxName = maxName > nameInst.Name.Length ? maxName : nameInst.Name.Length;
+                    }
+                    else if (i.Op == Op.OpMemberName)
+                    {
+                        var memberInst = (OpMemberName)i;
+                        maxName = maxName > memberInst.Name.Length ? maxName : memberInst.Name.Length;
+                    }
+                    // maxName = i.Op switch
+                    // {
+                    //     Op.OpName => maxName > ((OpName)i).Name.Length ? maxName : ((OpName)i).Name.Length,
+                    //     Op.OpMemberName => maxName > ((OpMemberName)i).Name.Length ? maxName : ((OpMemberName)i).Name.Length,
+                    //     _ => maxName
+                    // };
                 }
                 IdOffset += maxName;
             }

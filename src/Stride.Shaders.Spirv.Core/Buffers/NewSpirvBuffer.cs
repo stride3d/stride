@@ -86,9 +86,9 @@ public record struct OpDataIndex(int Index, NewSpirvBuffer Buffer)
     public readonly ref OpData Data => ref Buffer[Index];
 }
 
-public class NewSpirvBuffer
+public class NewSpirvBuffer()
 {
-    public SpirvHeader Header { get; set; }
+    public SpirvHeader Header { get; set; } = new("1.4", 0, 1);
     List<OpData> Memory { get; set; } = [];
 
     internal ref OpData this[int index] => ref CollectionsMarshal.AsSpan(Memory)[index];

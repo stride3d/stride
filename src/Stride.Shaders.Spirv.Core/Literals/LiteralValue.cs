@@ -12,6 +12,11 @@ public struct Id(int id)
     public static implicit operator Id(int v) => new(v);
     public static implicit operator int(Id id) => id.Value;
 }
+internal static class SPool
+{
+    internal static StringPool Instance { get; } = new();
+    public static string GetOrAdd(ReadOnlySpan<char> value) => Instance.GetOrAdd(value);
+}
 
 public struct LiteralValue<T> : ISpirvElement, IFromSpirv<LiteralValue<T>>
 {
@@ -40,7 +45,7 @@ public struct LiteralValue<T> : ISpirvElement, IFromSpirv<LiteralValue<T>>
     public bool dispose;
     public MemoryOwner<int> MemoryOwner { get; private set; }
     public readonly ReadOnlySpan<int> Words => MemoryOwner.Span;
-    public T Value { get; set { field = value; UpdateMemory(); } }
+    public T Value { get; set { field = value; if(MemoryOwner is not null) UpdateMemory(); } }
     public readonly int WordCount => Words.Length;
 
     public LiteralValue(Span<int> words, bool dispose = false)
@@ -71,6 +76,27 @@ public struct LiteralValue<T> : ISpirvElement, IFromSpirv<LiteralValue<T>>
             Unsafe.As<T, double>(ref value) = BitConverter.Int64BitsToDouble(((long)words[0] << 32) | (uint)words[1]);
         else if (value is ValueTuple<int, int>)
             Unsafe.As<T, (int, int)>(ref value) = (words[0], words[1]);
+        else if(value is null && typeof(T) == typeof(string))
+        {
+            Span<char> sb = stackalloc char[words.Length * 4];
+            for (int i = 0; i < words.Length; i++)
+            {
+                for (int j = 0; j < 4; j++)
+                {
+                    var c = (char)((words[i] >> (8 * j)) & 0xFF);
+                    if (c == 0)
+                        break;
+                    sb[i * 4 + j] = c;
+                }
+            }
+            Unsafe.As<T, string>(ref value) = SPool.GetOrAdd(sb.Contains('\0') ? sb[0..sb.IndexOf('\0')] : sb);
+        }
+        else if (value is Enum)
+            Unsafe.As<T, int>(ref value) = words[0];
+        else if (typeof(T).Name.Contains("LiteralArray"))
+            throw new NotImplementedException("Use LiteralArray<T>.From instead");
+        else
+            throw new NotImplementedException("Cannot create LiteralValue from the provided words");
 
         Value = value;
 
@@ -93,7 +119,7 @@ public struct LiteralValue<T> : ISpirvElement, IFromSpirv<LiteralValue<T>>
             bool or byte or sbyte or short or ushort or Half or int or uint or float => 1,
             long or ulong or double or ValueTuple<int, int> => 2,
             Enum => 1,
-            string s => (s.Length / 4) + (s.Length % 4 > 0 ? 1 : 0),
+            string s => s.GetWordCount(),
             null => 0,
             _ => throw new NotImplementedException("Can't compute literal value for type " + typeof(T))
         };
