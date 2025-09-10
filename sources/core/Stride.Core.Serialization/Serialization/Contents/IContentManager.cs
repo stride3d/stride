@@ -26,6 +26,19 @@ public interface IContentManager
     Stream OpenAsStream(string url, StreamFlags streamFlags = StreamFlags.None);
 
     /// <summary>
+    /// Saves an asset at a specific URL.
+    /// </summary>
+    /// <param name="url">The URL.</param>
+    /// <param name="asset">The asset.</param>
+    /// <param name="storageType">The custom storage type to use. Use null as default.</param>
+    /// <exception cref="System.ArgumentNullException">
+    /// url
+    /// or
+    /// asset
+    /// </exception>
+    void Save(string url, object asset, Type? storageType);
+
+    /// <summary>
     /// Loads content from the specified URL.
     /// </summary>
     /// <typeparam name="T">The content type.</typeparam>
