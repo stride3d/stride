@@ -1198,7 +1198,7 @@ namespace Stride.Graphics
             var uploadMemory = GraphicsDevice.AllocateUploadBuffer(lengthInBytes + alignmentMask, out var uploadResource, out var uploadOffset);
             var alignment = ((uploadOffset + alignmentMask) & ~alignmentMask) - uploadOffset;
 
-            Unsafe.CopyBlockUnaligned((void*) (uploadMemory + alignment), (void*) databox.DataPointer, (uint) lengthInBytes);
+            Utilities.CopyWithAlignmentFallback((void*) (uploadMemory + alignment), (void*) databox.DataPointer, (uint) lengthInBytes);
 
             var uploadBufferMemoryBarrier = new VkBufferMemoryBarrier(uploadResource, VkAccessFlags.HostWrite, VkAccessFlags.TransferRead, (ulong) (uploadOffset + alignment), (ulong) lengthInBytes);
 

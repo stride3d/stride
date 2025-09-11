@@ -34,7 +34,7 @@ namespace Stride.Graphics
             if (makeACopy)
             {
                 var buffer = Utilities.AllocateMemory(size);
-                Unsafe.CopyBlockUnaligned((void*)buffer, source: (void*)pSource, (uint)size);
+                Utilities.CopyWithAlignmentFallback((void*)buffer, source: (void*)pSource, (uint)size);
                 pSource = buffer;
                 makeACopy = false;
             }

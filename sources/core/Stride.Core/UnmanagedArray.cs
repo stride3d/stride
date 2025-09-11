@@ -8,15 +8,13 @@ namespace Stride.Core;
 [Obsolete("Obtain Memory<T> using GC.Allocate*Array or a Stride-specific allocator mechanism.")]
 public class UnmanagedArray<T> : IDisposable where T : struct
 {
-    private readonly int sizeOfT;
     private readonly bool isShared;
 
     [Obsolete("Obtain Memory<T> using GC.Allocate*Array or a Stride-specific allocator mechanism.")]
     public UnmanagedArray(int length)
     {
         Length = length;
-        sizeOfT = Unsafe.SizeOf<T>();
-        var finalSize = length * sizeOfT;
+        var finalSize = length * Unsafe.SizeOf<T>();
         Pointer = Utilities.AllocateMemory(finalSize);
         isShared = false;
     }
@@ -43,8 +41,10 @@ public class UnmanagedArray<T> : IDisposable where T : struct
             unsafe
             {
                 var bptr = (byte*)Pointer;
-                bptr += index * sizeOfT;
-                res = Unsafe.ReadUnaligned<T>(bptr);
+                bptr += index * Unsafe.SizeOf<T>();
+                // Pointer is aligned, we expect the struct to be aligned as well;
+                // If the user decides to Pack=1, this scope is the least of their worries
+                res = Unsafe.Read<T>(bptr);
             }
 
             return res;
@@ -60,8 +60,10 @@ public class UnmanagedArray<T> : IDisposable where T : struct
             unsafe
             {
                 var bptr = (byte*)Pointer;
-                bptr += index * sizeOfT;
-                Unsafe.WriteUnaligned(bptr, value);
+                bptr += index * Unsafe.SizeOf<T>();
+                // Pointer is aligned, we expect the struct to be aligned as well;
+                // If the user decides to Pack=1, this scope is the least of their worries
+                Unsafe.Write(bptr, value);
             }
         }
     }
@@ -72,7 +74,6 @@ public class UnmanagedArray<T> : IDisposable where T : struct
         {
             throw new ArgumentOutOfRangeException(nameof(offset));
         }
-        // Interop.Read((void*)Pointer, destination, offset, destination.Length);
         new Span<T>((void*)Pointer, destination.Length - offset).CopyTo(destination.AsSpan(offset));
     }
 
@@ -87,8 +88,7 @@ public class UnmanagedArray<T> : IDisposable where T : struct
         {
             var ptr = (byte*)Pointer;
             ptr += pointerByteOffset;
-            // Interop.Read(ptr, destination, arrayOffset, arrayLen);
-            new Span<T>(ptr, sizeOfT * arrayLen)
+            new Span<T>(ptr, Unsafe.SizeOf<T>() * arrayLen)
                 .CopyTo(destination.AsSpan(arrayOffset, arrayLen));
         }
     }
@@ -99,7 +99,6 @@ public class UnmanagedArray<T> : IDisposable where T : struct
         {
             throw new ArgumentOutOfRangeException();
         }
-        // Interop.Write((void*)Pointer, source, offset, source.Length);
         source.AsSpan(offset).CopyTo(new Span<T>((void*)Pointer, source.Length - offset));
     }
 
@@ -112,7 +111,6 @@ public class UnmanagedArray<T> : IDisposable where T : struct
 
         var ptr = (byte*)Pointer;
         ptr += pointerByteOffset;
-        // Interop.Write(ptr, source, arrayOffset, arrayLen);
         source.AsSpan(arrayOffset, arrayLen).CopyTo(new Span<T>(ptr, arrayLen));
     }
 
