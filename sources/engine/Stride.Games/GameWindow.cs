@@ -206,6 +206,7 @@ namespace Stride.Games
             }
         }
 
+#if STRIDE_GRAPHICS_API_DIRECT3D
         /// <summary>
         /// Allow the GraphicsDeviceManager to set the actual window state after applying the device changes.
         /// </summary>
@@ -214,6 +215,7 @@ namespace Stride.Games
         {
             isFullscreen = isReallyFullscreen;
         }
+#endif
 
         #endregion
 
