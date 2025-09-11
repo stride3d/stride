@@ -241,10 +241,10 @@ namespace Stride.Particles
             foreach (var field in fields.Values)
             {
                 var accessor = new ParticleFieldAccessor(field);
-                Unsafe.CopyBlockUnaligned((void*) dstParticle[accessor], (void*) srcParticle[accessor], (uint) field.Size);
+                Utilities.CopyWithAlignmentFallback((void*) dstParticle[accessor], (void*) srcParticle[accessor], (uint) field.Size);
             }
 #else
-            Unsafe.CopyBlockUnaligned((void*)dstParticle.Pointer, (void*)srcParticle.Pointer, (uint)ParticleSize);
+            Utilities.CopyWithAlignmentFallback((void*)dstParticle.Pointer, (void*)srcParticle.Pointer, (uint)ParticleSize);
 #endif
         }
 
@@ -393,16 +393,16 @@ namespace Stride.Particles
 
 #if PARTICLES_SOA
             // Easy case - the new field is added to the end. Copy the existing memory block into the new one
-            Unsafe.CopyBlockUnaligned((void*) newPool, (void*) oldPool, (uint) (oldSize * oldCapacity));
-            Unsafe.InitBlockUnaligned((void*) (newPool + oldSize * oldCapacity), 0, (uint) ((newSize - oldSize) * oldCapacity));
+            Utilities.CopyWithAlignmentFallback((void*) newPool, (void*) oldPool, (uint) (oldSize * oldCapacity));
+            Utilities.Clear((void*) (newPool + oldSize * oldCapacity), (uint) ((newSize - oldSize) * oldCapacity));
 #else
             // Clear the memory first instead of once per particle
-            Unsafe.InitBlockUnaligned((void*)newPool, 0, (uint)(newSize * newCapacity));
+            Utilities.Clear((void*)newPool, (uint)(newSize * newCapacity));
 
             // Complex case - needs to copy the head of each particle
             for (var i = 0; i < oldCapacity; i++)
             {
-                Unsafe.CopyBlockUnaligned((byte*)newPool + i * newSize, (byte*)oldPool + i * oldSize, (uint)oldSize);
+                Utilities.CopyWithAlignmentFallback((byte*)newPool + i * newSize, (byte*)oldPool + i * oldSize, (uint)oldSize);
             }
 #endif
         }
@@ -431,7 +431,7 @@ namespace Stride.Particles
 
 #if PARTICLES_SOA
             // Clear the memory first instead of once per particle
-            Unsafe.InitBlockUnaligned((void*) newPool, 0, (uint) (newSize * newCapacity));
+            Utilities.Clear((void*) newPool, (uint) (newSize * newCapacity));
 
             var oldOffset = 0;
             var newOffset = 0;
@@ -440,7 +440,7 @@ namespace Stride.Particles
             foreach (var field in fields.Values)
             {
                 var copySize = Math.Min(oldCapacity, newCapacity) * field.Size;
-                Unsafe.CopyBlockUnaligned((void*) (newPool + newOffset), (void*) (oldPool + oldOffset), (uint) copySize);
+                Utilities.CopyWithAlignmentFallback((void*) (newPool + newOffset), (void*) (oldPool + oldOffset), (uint) copySize);
 
                 oldOffset += (field.Size * oldCapacity);
                 newOffset += (field.Size * newCapacity);
@@ -449,12 +449,12 @@ namespace Stride.Particles
             if (newCapacity > oldCapacity)
             {
                 var size = (uint)(newSize * oldCapacity);
-                Unsafe.CopyBlockUnaligned((byte*)newPool, (byte*)oldPool, size);
-                Unsafe.InitBlockUnaligned((byte*)newPool + size, 0, (uint)(newSize * (newCapacity - oldCapacity)));
+                Utilities.CopyWithAlignmentFallback((byte*)newPool, (byte*)oldPool, size);
+                Utilities.Clear((byte*)newPool + size, (uint)(newSize * (newCapacity - oldCapacity)));
             }
             else
             {
-                Unsafe.CopyBlockUnaligned((void*)newPool, (void*)oldPool, (uint)(newSize * newCapacity));
+                Utilities.CopyWithAlignmentFallback((void*)newPool, (void*)oldPool, (uint)(newSize * newCapacity));
             }
 #endif
         }
@@ -526,13 +526,13 @@ namespace Stride.Particles
                     continue;
 
                 #error This is broken. This will AV.
-                Unsafe.CopyBlockUnaligned((byte*)newPool + fieldOffset, (void*)field.Offset, (uint)(field.Size * ParticleCapacity));
+                Utilities.CopyWithAlignmentFallback((byte*)newPool + fieldOffset, (void*)field.Offset, (uint)(field.Size * ParticleCapacity));
 
                 fieldOffset += field.Size * ParticleCapacity;
             }
 #else
             // Clear the memory first instead of once per particle
-            Unsafe.InitBlockUnaligned((void*)newPool, 0, (uint)(newSize * newCapacity));
+            Utilities.Clear((void*)newPool, (uint)(newSize * newCapacity));
 
             // Complex case - needs to copy up to two parts of each particle
             var firstHalfSize = 0;
@@ -560,7 +560,7 @@ namespace Stride.Particles
             {
                 for (var i = 0; i < oldCapacity; i++)
                 {
-                    Unsafe.CopyBlockUnaligned((byte*)newPool + i * newSize, (byte*)oldPool + i * oldSize, (uint)firstHalfSize);
+                    Utilities.CopyWithAlignmentFallback((byte*)newPool + i * newSize, (byte*)oldPool + i * oldSize, (uint)firstHalfSize);
                 }
             }
 
@@ -570,7 +570,7 @@ namespace Stride.Particles
 
                 for (var i = 0; i < oldCapacity; i++)
                 {
-                    Unsafe.CopyBlockUnaligned((byte*)newPool + i * newSize + firstHalfSize, (byte*)oldPool + i * oldSize + secondHalfOffset, (uint)secondHalfSize);
+                    Utilities.CopyWithAlignmentFallback((byte*)newPool + i * newSize + firstHalfSize, (byte*)oldPool + i * oldSize + secondHalfOffset, (uint)secondHalfSize);
                 }
             }
 #endif

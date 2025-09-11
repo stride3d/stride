@@ -195,7 +195,7 @@ namespace Stride.Graphics
         /// </summary>
         public unsafe void Clear()
         {
-            Unsafe.InitBlockUnaligned((void*)buffer, 0, (uint)totalSizeInBytes);
+            Utilities.Clear((void*)buffer, (uint)totalSizeInBytes);
         }
 
         /// <summary>

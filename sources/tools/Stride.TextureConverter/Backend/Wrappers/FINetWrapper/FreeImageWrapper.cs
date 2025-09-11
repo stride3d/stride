@@ -44,7 +44,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using FreeImageAPI.IO;
 using FreeImageAPI.Metadata;
-
+using Stride.Core;
 using StridePixelFormat = Stride.Graphics.PixelFormat;
 
 namespace FreeImageAPI
@@ -630,7 +630,7 @@ namespace FreeImageAPI
 						ref byte dst = ref Unsafe.AsRef<byte>((byte*) GetScanLine(dib, i));
 						ref byte src = ref Unsafe.AsRef<byte>(addr);
 
-						Unsafe.CopyBlockUnaligned(ref dst, ref src, GetLine(dib));
+						Utilities.CopyWithAlignmentFallback(ref dst, ref src, GetLine(dib));
 
 						addr += pitch;
 					}
@@ -642,7 +642,7 @@ namespace FreeImageAPI
 						ref byte dst = ref Unsafe.AsRef<byte>((byte*) GetScanLine(dib, i));
 						ref byte src = ref Unsafe.AsRef<byte>(addr);
 
-						Unsafe.CopyBlockUnaligned(ref dst, ref src, GetLine(dib));
+						Utilities.CopyWithAlignmentFallback(ref dst, ref src, GetLine(dib));
 
 						addr += pitch;
 					}
@@ -1963,7 +1963,7 @@ namespace FreeImageAPI
 					// Copy the data into the dc
 					ref byte dst = ref Unsafe.AsRef<byte>((void*) ppvBits);
 					ref byte src = ref Unsafe.AsRef<byte>((void*) GetBits(dib));
-					Unsafe.CopyBlockUnaligned(ref dst, ref src, GetHeight(dib) * GetPitch(dib));
+					Utilities.CopyWithAlignmentFallback(ref dst, ref src, GetHeight(dib) * GetPitch(dib));
 
 					// Success: we unload the bitmap
 					if (unload)
@@ -2941,7 +2941,7 @@ namespace FreeImageAPI
 
 			ref byte dst = ref result[0];
 			ref byte src = ref Unsafe.AsRef<byte>((byte*) GetTransparencyTable(dib));
-			Unsafe.CopyBlockUnaligned(ref dst, ref src, count);
+			Utilities.CopyWithAlignmentFallback(ref dst, ref src, count);
 
 			return result;
 		}
@@ -3747,7 +3747,7 @@ namespace FreeImageAPI
 				ref byte dstMemory = ref Unsafe.AsRef<byte>((void*) dest);
 				ref byte srcMemory = ref Unsafe.AsRef<byte>((void*) src);
 
-				Unsafe.CopyBlockUnaligned(ref dstMemory, ref srcMemory, (uint) (paletteColors * sizeof(RGBQUAD)));
+				Utilities.CopyWithAlignmentFallback(ref dstMemory, ref srcMemory, (uint) (paletteColors * sizeof(RGBQUAD)));
 			}
 		}
 
@@ -4466,7 +4466,7 @@ namespace FreeImageAPI
 
 			ref byte dstPalleteBytes = ref Unsafe.AsRef<byte>((RGBQUAD*) GetPalette(dst));
 			ref byte srcPalleteBytes = ref Unsafe.AsRef<byte>((RGBQUAD*) GetPalette(src));
-			Unsafe.CopyBlockUnaligned(ref dstPalleteBytes, ref srcPalleteBytes, size);
+			Utilities.CopyWithAlignmentFallback(ref dstPalleteBytes, ref srcPalleteBytes, size);
 		}
 
 		private static unsafe Scanline<FI4BIT>[] Get04BitScanlines(FIBITMAP dib)

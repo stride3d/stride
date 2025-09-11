@@ -6,6 +6,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using Stride.Core;
 using Stride.Core.Collections;
 
 namespace Stride.Rendering.Lights
@@ -119,14 +120,13 @@ namespace Stride.Rendering.Lights
         /// </summary>
         public Type LightType { get; }
 
-        internal unsafe void Clear()
+        internal void Clear()
         {
             allLights.Clear();
             allLightsWithShadows.Clear();
             allMasks.Clear();
 
-            fixed (void* ptr = groupMasks)
-                Unsafe.InitBlockUnaligned(ptr, 0, (uint)groupMasks.Length * sizeof(uint));
+            groupMasks.AsSpan().Clear();
 
             // Only clear collections that were previously allocated (no need to iterate on all collections from the pool)
             foreach (var collection in lightCollectionPool)

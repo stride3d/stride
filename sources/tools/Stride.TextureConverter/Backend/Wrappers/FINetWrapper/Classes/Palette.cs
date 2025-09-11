@@ -7,6 +7,7 @@ using System.Runtime.InteropServices;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using FreeImageAPI.Metadata;
+using Stride.Core;
 
 namespace FreeImageAPI
 {
@@ -397,7 +398,7 @@ namespace FreeImageAPI
 
 				ref byte dst = ref Unsafe.AsRef<byte>(baseAddress);
 				ref byte src = ref data[0];
-				Unsafe.CopyBlockUnaligned(ref dst, ref src, (uint) data.Length);
+				Utilities.CopyWithAlignmentFallback(ref dst, ref src, (uint) data.Length);
 			}
 		}
 

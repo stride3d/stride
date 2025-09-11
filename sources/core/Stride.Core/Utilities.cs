@@ -34,6 +34,50 @@ namespace Stride.Core;
 /// </summary>
 public static class Utilities
 {
+    // MUST BE A METHOD AND AGGRESSIVELY INLINED, OTHERWISE THE JIT WILL NOT ELIMINATE THE BRANCH
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] 
+    private static bool IsUnalignedSafe() =>
+        RuntimeInformation.ProcessArchitecture is Architecture.X64 or Architecture.X86 or Architecture.Arm64;
+
+    /// <inheritdoc cref="AlignmentFallbackDoc"/>
+    /// <inheritdoc cref="Unsafe.CopyBlock(ref byte, ref readonly byte, uint)"/>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static unsafe void CopyWithAlignmentFallback(ref byte destination, ref readonly byte source, uint byteCount)
+    {
+        if (IsUnalignedSafe())
+            fixed (void* src = &source, dst = &destination)
+                Buffer.MemoryCopy(src, dst, byteCount, byteCount);
+        else
+            Unsafe.CopyBlockUnaligned(ref destination, in source, byteCount);
+    }
+
+    /// <inheritdoc cref="AlignmentFallbackDoc"/>
+    /// <inheritdoc cref="Unsafe.CopyBlock(ref byte, ref readonly byte, uint)"/>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static unsafe void CopyWithAlignmentFallback(void* destination, void* source, uint byteCount)
+    {
+        if (IsUnalignedSafe())
+            Buffer.MemoryCopy(source, destination, byteCount, byteCount);
+        else
+            Unsafe.CopyBlockUnaligned(destination, source, byteCount);
+    }
+
+    /// <summary>
+    /// Zero out memory at the address provided
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static unsafe void Clear(void* startAddress, uint byteCount)
+    {
+        // Span swaps between InitBlockUnaligned and _ZeroMemory depending on the size
+        new Span<byte>(startAddress, (int)byteCount).Clear();
+    }
+
+    /// <remarks>
+    /// Some of the architecture dotnet runs on do not support arbitrary unaligned reads or writes,
+    /// use this instead of other memcopy if you aren't sure whether the pointers you passed in are aligned.
+    /// </remarks>
+    static void AlignmentFallbackDoc() { }
+
     /// <summary>
     /// Allocate an aligned memory buffer.
     /// </summary>

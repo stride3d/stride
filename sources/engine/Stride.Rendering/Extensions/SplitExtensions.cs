@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using Stride.Core;
 using Stride.Graphics;
 using Stride.Graphics.Data;
 using Stride.Rendering;
@@ -124,7 +125,7 @@ namespace Stride.Extensions
                         {
                             //copy vertex buffer
                             foreach (var index in splitInfo.UsedIndices)
-                                Unsafe.CopyBlockUnaligned(
+                                Utilities.CopyWithAlignmentFallback(
                                     destination: newVertexBufferPtr + stride * splitInfo.IndexRemapping[index],
                                     source: vertexBufferPtr + stride * index,
                                     byteCount: (uint)stride);

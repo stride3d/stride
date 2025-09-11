@@ -137,7 +137,7 @@ namespace Stride.Rendering
 
                     fixed (Matrix* blendMatricesPtr = renderModelObjectInfo)
                     {
-                        Unsafe.CopyBlockUnaligned(mappedCB, blendMatricesPtr, (uint)renderModelObjectInfo.Length * (uint)sizeof(Matrix));
+                        Utilities.CopyWithAlignmentFallback(mappedCB, blendMatricesPtr, (uint)renderModelObjectInfo.Length * (uint)sizeof(Matrix));
                     }
                 }
             });

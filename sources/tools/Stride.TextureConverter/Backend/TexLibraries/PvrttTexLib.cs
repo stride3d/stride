@@ -134,7 +134,7 @@ namespace Stride.TextureConverter.TexLibraries
                     {
                         for (uint k = 0; k < image.MipmapCount; ++k)
                         {
-                            Unsafe.CopyBlockUnaligned(
+                            Core.Utilities.CopyWithAlignmentFallback(
                                 (void*)libraryData.Texture.GetDataPtr(k, j, i),
                                 (void*)image.SubImageArray[imageCount].Data,
                                 (uint)(image.SubImageArray[imageCount].DataSize * depth));
@@ -405,7 +405,7 @@ namespace Stride.TextureConverter.TexLibraries
                         {
                             for (uint k = 0; k < newMipMapCount; ++k)
                             {
-                                Unsafe.CopyBlockUnaligned(
+                                Core.Utilities.CopyWithAlignmentFallback(
                                     destination: (void*)texture.GetDataPtr(k, j, i),
                                     source: (void*)libraryData.Texture.GetDataPtr(k, j, i),
                                     byteCount: libraryData.Header.GetDataSize((int)k, false, false));
@@ -556,14 +556,14 @@ namespace Stride.TextureConverter.TexLibraries
                     var source = (byte*)image.Data + sourceOffset;
                     var dest = temporaryBuffer + destOffset;
 
-                    Unsafe.CopyBlockUnaligned(dest, source, slice);
+                    Core.Utilities.CopyWithAlignmentFallback(dest, source, slice);
                 }
 
                 sourceRowOffset += checked((int)(slice * (uint)image.FaceCount));
             }
 
             // Copy data back to the library
-            Unsafe.CopyBlockUnaligned(
+            Core.Utilities.CopyWithAlignmentFallback(
                 destination: (void*)libraryData.Texture.GetDataPtr(),
                 source: temporaryBuffer,
                 byteCount: (uint)image.DataSize);

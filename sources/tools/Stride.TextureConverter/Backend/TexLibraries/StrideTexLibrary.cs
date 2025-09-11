@@ -210,7 +210,7 @@ namespace Stride.TextureConverter.TexLibraries
                         {
                             for (int j = 0; j < ct; ++j)
                             {
-                                Unsafe.CopyBlockUnaligned(
+                                Utilities.CopyWithAlignmentFallback(
                                     (void*)sdImage.PixelBuffer[ct2].DataPointer,
                                     (void*)sdImage.PixelBuffer[j + i * SubImagePerArrayElement].DataPointer,
                                     (uint)sdImage.PixelBuffer[j + i * SubImagePerArrayElement].BufferStride);
@@ -268,7 +268,7 @@ namespace Stride.TextureConverter.TexLibraries
                         for (int i = 0; i < image.ArraySize * newMipMapCount; ++i)
                         {
                             if (i == newMipMapCount || (i > newMipMapCount && (i % newMipMapCount == 0))) j += gap;
-                            Unsafe.CopyBlockUnaligned((void*)sdImage.PixelBuffer[i].DataPointer, (void*)image.SubImageArray[j].Data, (uint)image.SubImageArray[j].DataSize);
+                            Utilities.CopyWithAlignmentFallback((void*)sdImage.PixelBuffer[i].DataPointer, (void*)image.SubImageArray[j].Data, (uint)image.SubImageArray[j].DataSize);
                             ++j;
                         }
                     }
@@ -305,7 +305,7 @@ namespace Stride.TextureConverter.TexLibraries
                     throw new InvalidOperationException("Image size different than expected.");
                 }
 
-                Unsafe.CopyBlockUnaligned((void*)sdImage.DataPointer, (void*)image.Data, (uint)image.DataSize);
+                Utilities.CopyWithAlignmentFallback((void*)sdImage.DataPointer, (void*)image.Data, (uint)image.DataSize);
             }
 
             using (var fileStream = new FileStream(request.FilePath, FileMode.Create, FileAccess.Write))
@@ -367,7 +367,7 @@ namespace Stride.TextureConverter.TexLibraries
                 throw new InvalidOperationException("Image size different than expected.");
             }
 
-            Unsafe.CopyBlockUnaligned((void*)sdImage.DataPointer, (void*)image.Data, (uint)image.DataSize);
+            Utilities.CopyWithAlignmentFallback((void*)sdImage.DataPointer, (void*)image.Data, (uint)image.DataSize);
 
             request.XkImage = sdImage;
         }

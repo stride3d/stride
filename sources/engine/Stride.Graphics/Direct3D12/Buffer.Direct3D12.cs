@@ -122,7 +122,7 @@ namespace Stride.Graphics
                 if (heapType == HeapType.Upload)
                 {
                     var uploadMemory = NativeResource.Map(0);
-                    Unsafe.CopyBlockUnaligned((void*) uploadMemory, (void*) dataPointer, (uint) SizeInBytes);
+                    Core.Utilities.CopyWithAlignmentFallback((void*) uploadMemory, (void*) dataPointer, (uint) SizeInBytes);
                     NativeResource.Unmap(0);
                 }
                 else
@@ -132,7 +132,7 @@ namespace Stride.Graphics
                     SharpDX.Direct3D12.Resource uploadResource;
                     int uploadOffset;
                     var uploadMemory = GraphicsDevice.AllocateUploadBuffer(SizeInBytes, out uploadResource, out uploadOffset);
-                    Unsafe.CopyBlockUnaligned((void*) uploadMemory, (void*) dataPointer, (uint) SizeInBytes);
+                    Core.Utilities.CopyWithAlignmentFallback((void*) uploadMemory, (void*) dataPointer, (uint) SizeInBytes);
 
                     // TODO D3D12 lock NativeCopyCommandList usages
                     var commandList = GraphicsDevice.NativeCopyCommandList;

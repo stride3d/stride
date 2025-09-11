@@ -326,7 +326,7 @@ namespace Stride.Graphics
             // Map the staging resource to a CPU accessible memory
             var mappedResource = commandList.MapSubresource(stagingTexture, 0, MapMode.Read);
             fixed (void* pointer = toData)
-                Unsafe.CopyBlockUnaligned(pointer, (void*)mappedResource.DataBox.DataPointer, (uint)toDataInBytes);
+                Utilities.CopyWithAlignmentFallback(pointer, (void*)mappedResource.DataBox.DataPointer, (uint)toDataInBytes);
             // Make sure that we unmap the resource in case of an exception
             commandList.UnmapSubresource(mappedResource);
         }
@@ -386,7 +386,7 @@ namespace Stride.Graphics
                         throw new ArgumentException("offset is only supported for textured declared with ResourceUsage.Default", "offsetInBytes");
 
                     var mappedResource = commandList.MapSubresource(this, 0, Usage == GraphicsResourceUsage.Staging ? MapMode.Write : MapMode.WriteDiscard);
-                    Unsafe.CopyBlockUnaligned((void*)mappedResource.DataBox.DataPointer, pointer, (uint)sizeInBytes);
+                    Utilities.CopyWithAlignmentFallback((void*)mappedResource.DataBox.DataPointer, pointer, (uint)sizeInBytes);
                     commandList.UnmapSubresource(mappedResource);
                 }
             }

@@ -36,6 +36,7 @@
 using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using Stride.Core;
 
 namespace FreeImageAPI
 {
@@ -106,7 +107,7 @@ namespace FreeImageAPI
 				ref byte dst = ref result[0];
 				ref byte src = ref Unsafe.AsRef<byte>((void*) DataPointer);
 
-				Unsafe.CopyBlockUnaligned(ref dst, ref src, Size);
+				Utilities.CopyWithAlignmentFallback(ref dst, ref src, Size);
 
 				return result;
 			}

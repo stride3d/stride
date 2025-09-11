@@ -398,7 +398,7 @@ namespace Stride.Rendering.Materials
             {
                 var mappedCB = (byte*)materialInfo.Resources.ConstantBuffer.Data;
                 fixed (byte* dataValues = materialInfo.ParameterCollection.DataValues)
-                    Unsafe.CopyBlockUnaligned(mappedCB, dataValues, (uint)materialInfo.Resources.ConstantBuffer.Size);
+                    Utilities.CopyWithAlignmentFallback(mappedCB, dataValues, (uint)materialInfo.Resources.ConstantBuffer.Size);
             }
 
             return true;
