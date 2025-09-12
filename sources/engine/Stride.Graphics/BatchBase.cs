@@ -416,7 +416,7 @@ namespace Stride.Graphics
             DrawBatchPerTextureAndPass(sprites, offset, count);
         }
 
-        private void DrawBatchPerTextureAndPass(ElementInfo[] sprites, int offset, int count)
+        private unsafe void DrawBatchPerTextureAndPass(ElementInfo[] sprites, int offset, int count)
         {
             while (count > 0)
             {
@@ -462,7 +462,7 @@ namespace Stride.Graphics
                 {
                     if (ResourceContext.VertexBuffer != null)
                         GraphicsContext.Allocator.ReleaseReference(ResourceContext.VertexBuffer);
-                    ResourceContext.VertexBuffer = GraphicsContext.Allocator.GetTemporaryBuffer(new BufferDescription(ResourceContext.VertexCount * vertexStructSize, BufferFlags.VertexBuffer, GraphicsResourceUsage.Dynamic));
+                    ResourceContext.VertexBuffer = GraphicsContext.Allocator.GetTemporaryBuffer(new BufferDescription(ResourceContext.VertexCount * vertexStructSize, BufferFlags.VertexBuffer, GraphicsResourceUsage.Default));
                     GraphicsContext.CommandList.SetVertexBuffer(0, ResourceContext.VertexBuffer, 0, vertexStructSize);
                 }
 
@@ -470,59 +470,40 @@ namespace Stride.Graphics
                 {
                     if (ResourceContext.IndexBuffer != null)
                         GraphicsContext.Allocator.ReleaseReference(ResourceContext.IndexBuffer);
-                    ResourceContext.IndexBuffer = GraphicsContext.Allocator.GetTemporaryBuffer(new BufferDescription(ResourceContext.IndexCount * indexStructSize, BufferFlags.IndexBuffer, GraphicsResourceUsage.Dynamic));
+                    ResourceContext.IndexBuffer = GraphicsContext.Allocator.GetTemporaryBuffer(new BufferDescription(ResourceContext.IndexCount * indexStructSize, BufferFlags.IndexBuffer, GraphicsResourceUsage.Default));
                     GraphicsContext.CommandList.SetIndexBuffer(ResourceContext.IndexBuffer, 0, indexStructSize == sizeof(int));
                 }
 
-                // ------------------------------------------------------------------------------------------------------------
-                // CAUTION: Performance problem under x64 resolved by this special codepath:
-                // For some unknown reasons, It seems that writing directly to the pointer returned by the MapSubresource is 
-                // extremely inefficient using x64 but using a temporary buffer and performing a mempcy to the locked region
-                // seems to be running at the same speed than x86
-                // ------------------------------------------------------------------------------------------------------------
-                // TODO Check again why we need this code
-                //if (IntPtr.Size == 8)
-                //{
-                //    if (x64TempBuffer == null)
-                //    {
-                //        x64TempBuffer = ToDispose(new DataBuffer(Utilities.SizeOf<VertexPositionColorTexture>() * MaxBatchSize * VerticesPerSprite));
-                //    }
-
-                //    // Perform the update of all vertices on a temporary buffer
-                //    var texturePtr = (VertexPositionColorTexture*)x64TempBuffer.DataPointer;
-                //    for (int i = 0; i < batchSize; i++)
-                //    {
-                //        UpdateBufferValuesFromElementInfo(ref sprites[offset + i], ref texturePtr, deltaX, deltaY);
-                //    }
-
-                //    // Then copy this buffer in one shot
-                //    resourceContext.VertexBuffer.SetData(GraphicsDevice, new DataPointer(x64TempBuffer.DataPointer, batchSize * VerticesPerSprite * Utilities.SizeOf<VertexPositionColorTexture>()), offsetInBytes, noOverwrite);
-                //}
-                //else
                 {
-                    var mappedIndices = new MappedResource();
-                    var mappedVertices = GraphicsContext.CommandList.MapSubresource(ResourceContext.VertexBuffer, 0, MapMode.WriteNoOverwrite, false, offsetVertexInBytes, vertexCount * vertexStructSize);
-                    if (ResourceContext.IsIndexBufferDynamic)
-                        mappedIndices = GraphicsContext.CommandList.MapSubresource(ResourceContext.IndexBuffer, 0, MapMode.WriteNoOverwrite, false, offsetIndexInBytes, indexCount * indexStructSize);
+                    byte[] vArr = System.Buffers.ArrayPool<byte>.Shared.Rent(vertexCount * vertexStructSize);
+                    byte[] iArr = ResourceContext.IsIndexBufferDynamic == false ? null : System.Buffers.ArrayPool<byte>.Shared.Rent(indexCount * indexStructSize);
+                    var vSpan = vArr.AsSpan(0, vertexCount * vertexStructSize);
+                    var iSpan = ResourceContext.IsIndexBufferDynamic == false ? default : iArr.AsSpan(0, indexCount * indexStructSize);
 
-                    var vertexPointer = mappedVertices.DataBox.DataPointer;
-                    var indexPointer = mappedIndices.DataBox.DataPointer;
-
-                    for (var i = 0; i < batchSize; i++)
+                    fixed (void* vertexPointer2 = vSpan, indexPointer2 = iSpan)
                     {
-                        var spriteIndex = offset + i;
-                        ref var spriteElementInfo = ref sprites[spriteIndex];
+                        nint vertexPointer = (nint)vertexPointer2;
+                        nint indexPointer = (nint)indexPointer2;
+                        for (var i = 0; i < batchSize; i++)
+                        {
+                            var spriteIndex = offset + i;
+                            ref var spriteElementInfo = ref sprites[spriteIndex];
 
-                        UpdateBufferValuesFromElementInfo(ref spriteElementInfo, vertexPointer, indexPointer, ResourceContext.VertexBufferPosition);
+                            UpdateBufferValuesFromElementInfo(ref spriteElementInfo, vertexPointer, indexPointer, ResourceContext.VertexBufferPosition);
 
-                        ResourceContext.VertexBufferPosition += spriteElementInfo.VertexCount;
-                        vertexPointer += vertexStructSize * spriteElementInfo.VertexCount;
-                        indexPointer += indexStructSize * spriteElementInfo.IndexCount;
+                            ResourceContext.VertexBufferPosition += spriteElementInfo.VertexCount;
+                            vertexPointer += vertexStructSize * spriteElementInfo.VertexCount;
+                            indexPointer += indexStructSize * spriteElementInfo.IndexCount;
+                        }
                     }
 
-                    GraphicsContext.CommandList.UnmapSubresource(mappedVertices);
+                    // TODO: Should be faster to Map, write and Unmap instead of UpdateSubresource - tried memcopy instead of random writes as well as double-buffer but doesn't seem to matter
+                    ResourceContext.VertexBuffer.SetData<byte>(GraphicsContext.CommandList, vSpan, offsetVertexInBytes);
                     if (ResourceContext.IsIndexBufferDynamic)
-                        GraphicsContext.CommandList.UnmapSubresource(mappedIndices);
+                        ResourceContext.IndexBuffer.SetData<byte>(GraphicsContext.CommandList, iSpan, offsetIndexInBytes);
+                    System.Buffers.ArrayPool<byte>.Shared.Return(vArr);
+                    if (iArr is not null)
+                        System.Buffers.ArrayPool<byte>.Shared.Return(iArr);
                 }
 
                 // Draw from the specified index
