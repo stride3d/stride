@@ -57,10 +57,23 @@ public static partial class Spv
             builder.Append(text);
             return this;
         }
+
+        readonly DisWriter AppendIdRef(int id)
+        {
+            if (data.UseNames && data.NameTable.TryGetValue(id, out var name))
+                return Append($"%{name} ", ConsoleColor.Green);
+            else return Append($"%{id} ", ConsoleColor.Green);
+        }
+        readonly DisWriter AppendIdRefs(Span<int> ids)
+        {
+            foreach (var id in ids)
+                AppendIdRef(id);
+            return this;
+        }
         readonly DisWriter AppendRepeatChar(char c, int count)
         {
             if (data.WriteToConsole)
-                for(int i = 0; i < count; i++)
+                for (int i = 0; i < count; i++)
                     Console.Write(c);
             builder.Append(c, count);
             return this;
@@ -104,7 +117,7 @@ public static partial class Spv
                 long or ulong or double => 2,
                 _ => throw new NotImplementedException("Cannot create LiteralValue from the provided words")
             };
-            for(int i = 0; i < value.WordCount; i += size)
+            for (int i = 0; i < value.WordCount; i += size)
             {
                 if (size == 1)
                 {
@@ -121,13 +134,55 @@ public static partial class Spv
                 value.Dispose();
             return this;
         }
+
+        DisWriter AppendContextDependentNumber(SpvOperand operand, OpData data, NewSpirvBuffer buffer)
+        {
+            int typeId = data.Op switch
+            {
+                Op.OpConstant or Op.OpSpecConstant => data.Memory.Span[1],
+                _ => throw new Exception("Unsupported context dependent number in instruction " + data.Op)
+            };
+            if (buffer.TryGetInstructionById(typeId, out var typeInst))
+            {
+                if (typeInst.Op == Op.OpTypeInt)
+                {
+                    var type = (OpTypeInt)typeInst;
+                    _ = type switch
+                    {
+                        { Width: <= 32, Signedness: 0 } => AppendLiteralNumber(operand.ToLiteral<uint>()),
+                        { Width: <= 32, Signedness: 1 } => AppendLiteralNumber(operand.ToLiteral<int>()),
+                        { Width: 64, Signedness: 0 } => AppendLiteralNumber(operand.ToLiteral<ulong>()),
+                        { Width: 64, Signedness: 1 } => AppendLiteralNumber(operand.ToLiteral<long>()),
+                        _ => throw new NotImplementedException("Unsupported int width " + type.Width),
+                    };
+                }
+                else if (typeInst.Op == Op.OpTypeFloat)
+                {
+                    var type = new OpTypeFloat(typeInst);
+                    _ = type switch
+                    {
+                        { Width: 16 } => AppendLiteralNumber(operand.ToLiteral<Half>()),
+                        { Width: 32 } => AppendLiteralNumber(operand.ToLiteral<float>()),
+                        { Width: 64 } => AppendLiteralNumber(operand.ToLiteral<double>()),
+                        _ => throw new NotImplementedException("Unsupported float width " + type.Width),
+                    };
+                }
+                else
+                    throw new NotImplementedException("Unsupported context dependent number with type " + typeInst.Op);
+                return this;
+            }
+            else
+                throw new Exception("Cannot find type instruction for id " + typeId);
+
+        }
+
         readonly DisWriter AppendResultId(int? id = null)
         {
             if (id is int i)
             {
                 if (data.UseNames && data.NameTable.TryGetValue(i, out var name))
                 {
-                    AppendRepeatChar(' ', data.IdOffset - name.Length - 1);
+                    AppendRepeatChar(' ', data.IdOffset - name.Length - 1 - 3);
                     Append('%', ConsoleColor.Cyan);
                     Append(name, ConsoleColor.Cyan);
                 }
@@ -178,14 +233,14 @@ public static partial class Spv
                 var nameInst = (OpName)instruction;
                 data.NameTable[nameInst.Target] = nameInst.Name;
                 AppendResultId();
-                Append("OpName ").AppendLiteralNumber(nameInst.Target).AppendLiteralString(nameInst.Name);
+                Append("OpName ", ConsoleColor.Blue).AppendLiteralNumber(nameInst.Target).AppendLiteralString(nameInst.Name).AppendLine("");
             }
             else if (instruction.Op == Op.OpMemberName)
             {
                 var memberInst = (OpMemberName)instruction;
                 data.NameTable[memberInst.Type + memberInst.Member] = memberInst.Name;
                 AppendResultId();
-                Append("OpMemberName ").AppendLiteralNumber(memberInst.Type).AppendLiteralNumber(memberInst.Member).AppendLiteralString(memberInst.Name);
+                Append("OpMemberName ", ConsoleColor.Blue).AppendLiteralNumber(memberInst.Type).AppendLiteralNumber(memberInst.Member).AppendLiteralString(memberInst.Name).AppendLine("");
             }
             else
             {
@@ -195,7 +250,7 @@ public static partial class Spv
                     AppendResultId(data.Memory.Span[1 + resultIndex]);
                 else
                     AppendResultId();
-                Append(instruction.Op.ToString()).Append(' ');
+                Append(instruction.Op.ToString(), ConsoleColor.Blue).Append(' ');
                 foreach (var operand in data)
                 {
                     _ = (operand.Kind, operand.Quantifier) switch
@@ -207,7 +262,9 @@ public static partial class Spv
                             or OperandKind.LiteralSpecConstantOpInteger,
                             OperandQuantifier.One
                         ) => AppendLiteralNumber(operand.ToLiteral<int>()),
-                        (OperandKind.IdRef or OperandKind.IdResultType, OperandQuantifier.One) => Append('%', ConsoleColor.Green).Append(operand.ToLiteral<int>(), ConsoleColor.Green).Append(' '),
+                        (OperandKind.LiteralContextDependentNumber, OperandQuantifier.One) => AppendContextDependentNumber(operand, data, buffer),
+                        (OperandKind.IdRef or OperandKind.IdResultType, OperandQuantifier.One) => AppendIdRef(operand.ToLiteral<int>()),
+                        (OperandKind.IdRef or OperandKind.IdResultType, OperandQuantifier.ZeroOrMore) => AppendIdRefs(operand.Words),
                         (OperandKind.LiteralFloat, OperandQuantifier.One) => AppendLiteralNumber(operand.ToLiteral<float>()),
                         (OperandKind.LiteralString, OperandQuantifier.One) => AppendLiteralString(operand.ToLiteral<string>()),
                         (OperandKind.ImageOperands, OperandQuantifier.One) => Append(operand.ToEnum<ImageOperandsMask>().ToString(), ConsoleColor.Yellow).Append(' '),
@@ -269,6 +326,8 @@ public static partial class Spv
                 AppendLine("");
             }
         }
+
+
 
         public override string ToString() => builder.ToString();
     }

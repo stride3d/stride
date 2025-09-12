@@ -7,6 +7,7 @@ using Stride.Shaders.Spirv.Core.Parsing;
 using Stride.Shaders.Spirv.Tools;
 using Stride.Shaders.Spirv.Building;
 using static Stride.Shaders.Spirv.Specification;
+using System.Reflection.Metadata.Ecma335;
 
 namespace Stride.Shaders.Experiments;
 
@@ -67,54 +68,52 @@ public static partial class Examples
         var buffer = new NewSpirvBuffer();
         // Capabilities
 
-        var litS = new LiteralValue<string>("main");
 
         buffer.Add(new OpCapability(Capability.Shader));
         var extInstImport = new OpExtInstImport(id++, "GLSL.std.450");
         buffer.AddRef(ref extInstImport);
         buffer.Add(new OpMemoryModel(AddressingModel.Logical, MemoryModel.GLSL450));
-        
+
 
         // declarations
 
-        var t_void = new OpTypeVoid(id++);
-        buffer.AddRef(ref t_void);
+        buffer.Add(new OpTypeVoid(id++), out var t_void);
 
         buffer.Add(new OpTypeBool(id++), out var t_bool);
-        buffer.Add(new OpTypeFunction(id++, t_void, []), out var t_func);
+        buffer.Add(new OpTypeFunction(t_void, id++, []), out var t_func);
         buffer.Add(new OpTypeFloat(id++, 32, null), out var t_float);
         buffer.Add(new OpTypeInt(id++, 32, 0), out var t_uint);
         buffer.Add(new OpTypeInt(id++, 32, 1), out var t_int);
-        buffer.Add(new OpTypeFunction(id++, t_int, [t_int, t_int]), out var t_func_add);
-        buffer.Add(new OpTypeVector(id++, t_float, 4), out var t_float4);
+        buffer.Add(new OpTypeFunction(id++, returnType: t_int, [t_int, t_int]), out var t_func_add);
+        buffer.Add(new OpTypeVector(id++, componentType: t_float, 4), out var t_float4);
         buffer.Add(new OpTypePointer(id++, StorageClass.Function, t_float4), out var t_p_float4_func);
-        buffer.Add(new OpConstant<float>(id++, t_float, 5f), out var constant1);
-        buffer.Add(new OpConstant<float>(id++, t_float, 2.23f), out var constant2);
-        buffer.Add(new OpConstant<int>(id++, t_uint, 5), out var constant3);
+        buffer.Add(new OpConstant<float>(t_float, id++, 5f), out var constant1);
+        buffer.Add(new OpConstant<float>(t_float, id++, 2.23f), out var constant2);
+        buffer.Add(new OpConstant<int>(t_uint, id++, 5), out var constant3);
         buffer.Add(new OpConstantComposite(
-            id++,
             t_float4,
+            id++,
             [constant1, constant1, constant2, constant1]
         ), out var compositeType);
-        buffer.Add(new OpTypeArray(id++, t_float4, constant3), out var t_array);
+        buffer.Add(new OpTypeArray(t_float4, id++, constant3), out var t_array);
         buffer.Add(new OpTypeStruct(id++, [t_uint, t_array, t_int]), out var t_struct);
         buffer.Add(new OpTypeStruct(id++, [t_struct, t_uint]), out var t_struct2);
         buffer.Add(new OpTypePointer(id++, StorageClass.Uniform, t_struct2), out var t_p_struct2);
-        buffer.Add(new OpVariable(id++, t_p_struct2, StorageClass.Uniform, null), out var v_struct2);
-        buffer.Add(new OpConstant<int>(id++, t_int, 1), out var constant4);
+        buffer.Add(new OpVariable(t_p_struct2, id++, StorageClass.Uniform, null), out var v_struct2);
+        buffer.Add(new OpConstant<int>(t_int, id++, 1), out var constant4);
         buffer.Add(new OpTypePointer(id++, StorageClass.Uniform, t_uint), out var t_p_uint);
-        buffer.Add(new OpConstant<int>(id++, t_uint, 0), out var constant5);
+        buffer.Add(new OpConstant<int>(t_uint, id++, 0), out var constant5);
         buffer.Add(new OpTypePointer(id++, StorageClass.Output, t_float4), out var t_p_output);
-        buffer.Add(new OpVariable(id++, t_p_output, StorageClass.Output, null), out var v_output);
+        buffer.Add(new OpVariable(t_p_output, id++, StorageClass.Output, null), out var v_output);
         buffer.Add(new OpTypePointer(id++, StorageClass.Input, t_float4), out var t_p_input);
-        buffer.Add(new OpVariable(id++, t_p_input, StorageClass.Input, null), out var v_input);
-        buffer.Add(new OpConstant<int>(id++, t_int, 0), out var constant6);
-        buffer.Add(new OpConstant<int>(id++, t_int, 2), out var constant7);
+        buffer.Add(new OpVariable(t_p_input, id++, StorageClass.Input, null), out var v_input);
+        buffer.Add(new OpConstant<int>(t_int, id++, 0), out var constant6);
+        buffer.Add(new OpConstant<int>(t_int, id++, 2), out var constant7);
         buffer.Add(new OpTypePointer(id++, StorageClass.Uniform, t_float4), out var t_p_float4_unif);
-        buffer.Add(new OpVariable(id++, t_p_input, StorageClass.Input, null), out var v_input_2);
+        buffer.Add(new OpVariable(t_p_input, id++, StorageClass.Input, null), out var v_input_2);
         buffer.Add(new OpTypePointer(id++, StorageClass.Function, t_int), out var t_p_func);
-        buffer.Add(new OpConstant<int>(id++, t_int, 4), out var constant8);
-        buffer.Add(new OpVariable(id++, t_p_input, StorageClass.Input, null), out var v_input_3);
+        buffer.Add(new OpConstant<int>(t_int, id++, 4), out var constant8);
+        buffer.Add(new OpVariable(t_p_input, id++, StorageClass.Input, null), out var v_input_3);
         buffer.Add(new OpDecorate(t_array, Decoration.ArrayStride, 16));
         buffer.Add(new OpMemberDecorate(t_struct, 0, Decoration.Offset, 0));
         buffer.Add(new OpMemberDecorate(t_struct, 1, Decoration.Offset, 16));
@@ -129,22 +128,22 @@ public static partial class Examples
         buffer.Add(new OpMemberName(t_struct, 0, "b"));
         buffer.Add(new OpMemberName(t_struct, 1, "v"));
         buffer.Add(new OpMemberName(t_struct, 2, "i"));
-        buffer.Add(new OpFunction(id++, t_int, FunctionControlMask.None, t_func_add), out var add);
+        buffer.Add(new OpFunction(t_int, id++, FunctionControlMask.None, t_func_add), out var add);
 
 
-        buffer.Add(new OpFunctionParameter(id++, t_int), out var a);
-        buffer.Add(new OpFunctionParameter(id++, t_int), out var b);
+        buffer.Add(new OpFunctionParameter(t_int, id++), out var a);
+        buffer.Add(new OpFunctionParameter(t_int, id++), out var b);
         buffer.Add(new OpLabel(id++), out var label);
-        buffer.Add(new OpIAdd(id++, t_int, a, b), out var res);
+        buffer.Add(new OpIAdd(t_int, id++, a, b), out var res);
         buffer.Add(new OpReturnValue(res));
         buffer.Add(new OpFunctionEnd());
-        buffer.Add(new OpFunction(id++, t_void, FunctionControlMask.None, t_func), out var main);
+        buffer.Add(new OpFunction(t_void, id++, FunctionControlMask.None, t_func), out var main);
         buffer.Add(new OpEntryPoint(ExecutionModel.Fragment, main, "PSMain", [v_output, v_input, v_input_2, v_input_3]));
         buffer.Add(new OpExecutionMode(main, ExecutionMode.OriginLowerLeft));
         buffer.Add(new OpLabel(id++), out var label2);
-        buffer.Add(new OpFunctionCall(id++, t_int, add, [constant7, constant7]), out var resAdd);
+        buffer.Add(new OpFunctionCall(t_int, id++, add, [constant7, constant7]), out var resAdd);
         buffer.Add(new OpReturn());
-        buffer.Add(new OpFunctionEnd());;
+        buffer.Add(new OpFunctionEnd());
 
         buffer.Sort();
         var span = buffer.ToBuffer();
@@ -277,7 +276,7 @@ public static partial class Examples
         //     "test.spv",
         //     MemoryMarshal.Cast<int, byte>(buffer.ToBuffer().AsSpan())
         // );
-        #warning replace
+#warning replace
         throw new NotImplementedException();
     }
 

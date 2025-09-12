@@ -40,21 +40,19 @@ public partial class SPVGenerator
     {
         var code = new StringBuilder();
         code
-            .AppendLine("using static Stride.Shaders.Spirv.Specification;")
-            .AppendLine("")
-            .AppendLine("namespace Stride.Shaders.Spirv.Core;")
-            .AppendLine("")
-            .AppendLine("public partial class InstructionInfo")
-            .AppendLine("{")
-            .AppendLine("static InstructionInfo()")
-            .AppendLine("{");
+            .AppendLine(@"
+            using static Stride.Shaders.Spirv.Specification;
+            namespace Stride.Shaders.Spirv.Core;
+            
+            public partial class InstructionInfo
+            {
+            static InstructionInfo()
+            {"
+        );
         foreach (var instruction in instructions)
             GenerateInfo(instruction, code);
 
-        code
-            .AppendLine("Instance.InitOrder();")
-            .AppendLine("}")
-            .AppendLine("}");
+        code.AppendLine("Instance.InitOrder();}}");
         spc.AddSource(
             "InstructionInfo.gen.cs",
             SourceText.From(

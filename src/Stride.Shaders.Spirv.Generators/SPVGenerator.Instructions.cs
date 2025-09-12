@@ -143,8 +143,7 @@ public partial class SPVGenerator : IIncrementalGenerator
     static void WriteOtherInstructions(SpirvGrammar grammar, in InstructionData instruction, StringBuilder builder, StringBuilder body1, StringBuilder body2, StringBuilder body3, StringBuilder body4)
     {
         body2.AppendLine($"public {instruction.OpName}(OpDataIndex index)")
-                                .AppendLine("{")
-                                .AppendLine("DataIndex = index;");
+                                .AppendLine("{");
 
         if (instruction.Operands?.AsList() is List<OperandData> operands)
         {
@@ -220,7 +219,7 @@ public partial class SPVGenerator : IIncrementalGenerator
         }
         else
             body4.AppendLine("public void UpdateInstructionMemory(){}");
-        body2.AppendLine("}");
+        body2.AppendLine("DataIndex = index;").AppendLine("}");
 
         builder.AppendLine($@"
             public struct {instruction.OpName} : IMemoryInstruction
@@ -264,8 +263,7 @@ public partial class SPVGenerator : IIncrementalGenerator
     static void WriteDecorateInstructions(SpirvGrammar grammar, in InstructionData instruction, StringBuilder builder, StringBuilder body1, StringBuilder body2, StringBuilder body3, StringBuilder body4)
     {
         body2.AppendLine($"public {instruction.OpName}(OpDataIndex index)")
-                                .AppendLine("{")
-                                .AppendLine("DataIndex = index;");
+                                .AppendLine("{");
 
         if (instruction.Operands?.AsList() is List<OperandData> operands)
         {
@@ -344,7 +342,7 @@ public partial class SPVGenerator : IIncrementalGenerator
         }
         else
             body4.AppendLine("public void UpdateInstructionMemory(){}");
-        body2.AppendLine("}");
+        body2.AppendLine("DataIndex = index;").AppendLine("}");
 
         builder.AppendLine($@"
             public struct {instruction.OpName} : IMemoryInstruction
@@ -385,8 +383,7 @@ public partial class SPVGenerator : IIncrementalGenerator
         var extinst = grammar.Instructions?.AsList().First(x => x.OpName == "OpExtInst") ?? throw new Exception("Could not find OpExtInst instruction");
 
         body2.AppendLine($"public {instruction.OpName}(OpDataIndex index)")
-            .AppendLine("{")
-            .AppendLine("DataIndex = index;");
+            .AppendLine("{");
         if (instruction.Operands?.AsList() is List<OperandData> operands && extinst.Operands?.AsList() is List<OperandData> extOperands)
         {
             var allOperands = extOperands.Concat(operands).Where(x => x is not { Kind: "IdRef", Quantifier: "*" } and not { Kind: "LiteralExtInstInteger" });
@@ -460,7 +457,7 @@ public partial class SPVGenerator : IIncrementalGenerator
             .AppendLine("}");
 
         }
-        body2.AppendLine("}");
+        body2.AppendLine("DataIndex = index;").AppendLine("}");
         builder.AppendLine($@"
             public struct {instruction.OpName} : IMemoryInstruction
             {{
@@ -580,7 +577,8 @@ public partial class SPVGenerator : IIncrementalGenerator
         }
         else
             body4.AppendLine("public void UpdateInstructionMemory(){}");
-        body2.AppendLine("}");
+        body2.AppendLine("DataIndex = index;").AppendLine("}");
+
         builder.AppendLine($@"
         // {string.Join(", ", instruction.Operands?.AsList().Select(x => $"{x.Name}:{x.Kind}"))}
             public struct {instruction.OpName}<T> : IMemoryInstruction

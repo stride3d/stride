@@ -27,7 +27,7 @@ public readonly struct SpirvVersion
     {
         if(version.Length == 3 && char.IsDigit(version[0]) && version[1] == '.' && char.IsDigit(version[2]))
         {
-            Version = version[0] - '0' << 16 | version[1] - '0' << 8;
+            Version = version[0] - '0' << 16 | version[2] - '0' << 8;
         }
     }
 

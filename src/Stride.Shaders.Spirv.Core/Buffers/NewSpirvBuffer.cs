@@ -187,10 +187,7 @@ public class NewSpirvBuffer()
         }
     }
 
-    public void Sort()
-    {
-        Memory.Sort(static (a, b) => a.CompareTo(b));
-    }
+    public void Sort() => Memory.Sort(static (a, b) => a.CompareTo(b));
 
     public SpanOwner<int> ToBuffer()
     {
@@ -204,6 +201,22 @@ public class NewSpirvBuffer()
             offset += instruction.Memory.Length;
         }
         return result;
+    }
+
+    public bool TryGetInstructionById(int typeId, out OpDataIndex instruction)
+    {
+        foreach (var op in this)
+        {
+            var info = InstructionInfo.GetInfo(op.Op);
+            var mem = op.Data.Memory;
+            if (info.GetResultIndex(out int index) && index < op.Data.Memory.Length && op.Data.Memory.Span[index + 1] == typeId)
+            {
+                instruction = op;
+                return true;
+            }
+        }
+        instruction = default;
+        return false;
     }
 }
 

@@ -91,7 +91,7 @@ public ref struct OpDataEnumerator
             };
             wid = newWid;
             oid = newOid;
-            return result && wid <= Operands.Length && oid < logicalOperands.Count;
+            return result && wid < Operands.Length && oid < logicalOperands.Count;
         }
     }
 
@@ -153,10 +153,12 @@ public ref struct OpDataEnumerator
                     => new(logOp.Name, OperandKind.LiteralString, logOp.Quantifier ?? OperandQuantifier.One, Operands.Slice(wid, Operands[wid..].LengthOfString())),
                 { Quantifier: OperandQuantifier.ZeroOrOne, Kind: _ }
                     => new(logOp.Name, logOp.Kind ?? OperandKind.None, logOp.Quantifier ?? OperandQuantifier.One, Operands.Slice(wid, 1)),
-                { Quantifier: OperandQuantifier.ZeroOrMore }
-                    => pairs.Contains(logOp.Kind ?? OperandKind.None)
-                        ? new(logOp.Name, logOp.Kind ?? OperandKind.None, logOp.Quantifier ?? OperandQuantifier.One, Operands.Slice(wid, 2))
-                        : new(logOp.Name, logOp.Kind ?? OperandKind.None, logOp.Quantifier ?? OperandQuantifier.One, Operands.Slice(wid, 1)),
+                { Quantifier: OperandQuantifier.ZeroOrMore, Kind: OperandKind.PairIdRefIdRef or OperandKind.PairIdRefLiteralInteger or OperandKind.PairLiteralIntegerIdRef }
+                   => new(logOp.Name, logOp.Kind ?? OperandKind.None, logOp.Quantifier ?? OperandQuantifier.One, wid < Operands.Length - 1 ? Operands[wid..] : []),
+                { Quantifier: OperandQuantifier.ZeroOrMore, Kind: OperandKind.LiteralString }
+                    => throw new Exception("params of strings is not yet implemented"),
+                { Quantifier: OperandQuantifier.ZeroOrMore, Kind: _ }
+                    => new(logOp.Name, logOp.Kind ?? OperandKind.None, logOp.Quantifier ?? OperandQuantifier.One, wid < Operands.Length - 1 ? Operands[wid..] : []),
                 _ => throw new NotImplementedException()
             }
         };
