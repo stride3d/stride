@@ -11,4 +11,4 @@ namespace Stride.Core.Yaml;
 /// <typeparam name="TKey">The type of key contained in the dictionary.</typeparam>
 /// <typeparam name="TValue">The type of value contained in the dictionary.</typeparam>
 [DataContract]
-public class DictionaryWithItemIds<TKey, TValue> : OrderedDictionary<KeyWithId<TKey>, TValue>;
+public class DictionaryWithItemIds<TKey, TValue> : Serialization.OrderedDictionary<KeyWithId<TKey>, TValue>;

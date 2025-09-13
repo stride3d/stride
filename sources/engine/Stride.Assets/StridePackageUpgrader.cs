@@ -282,6 +282,29 @@ namespace Stride.Assets
                         }
                     }
 
+                    if (dependency.Version.MinVersion < new PackageVersion("4.3.0.0") && solutionProject != null)
+                    {
+                        var tfm = project.GetProperty("TargetFramework")
+                                  ?? project.GetProperty("TargetFrameworks");
+                        if (tfm != null)
+                        {
+                            // Library
+                            if (tfm.EvaluatedValue.StartsWith("net8", StringComparison.Ordinal) && solutionProject.Type == ProjectType.Library)
+                            {
+                                // In case it's a single TargetFramework, add the "s" at the end
+                                tfm.Xml.Name = "TargetFrameworks";
+                                tfm.Xml.Value = "net10.0";
+                                isProjectDirty = true;
+                            }
+                            // Executable
+                            else if ((tfm.EvaluatedValue.StartsWith("net8", StringComparison.Ordinal)) && solutionProject.Type == ProjectType.Executable)
+                            {
+                                tfm.Xml.Value = solutionProject.Platform == PlatformType.Windows ? "net10.0-windows" : "net10.0";
+                                isProjectDirty = true;
+                            }
+                        }
+                    }
+
                     if (isProjectDirty)
                         project.Save();
 
