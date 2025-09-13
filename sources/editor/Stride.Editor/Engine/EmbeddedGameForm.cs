@@ -3,6 +3,7 @@
 using Stride.Core.Presentation.Controls;
 using Stride.Core.Presentation.Interop;
 using Stride.Games;
+using System.ComponentModel;
 
 namespace Stride.Editor.Engine
 {
@@ -20,6 +21,7 @@ namespace Stride.Editor.Engine
         /// <summary>
         /// Gets or sets the <see cref="GameEngineHost"/> associated to this form.
         /// </summary>
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public GameEngineHost Host { get; set; }
 
         /// <inheritdoc/>

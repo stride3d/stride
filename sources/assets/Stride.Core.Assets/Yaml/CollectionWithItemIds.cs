@@ -11,6 +11,6 @@ namespace Stride.Core.Yaml;
 /// </summary>
 /// <typeparam name="TItem">The type of item contained in the collection.</typeparam>
 [DataContract]
-public class CollectionWithItemIds<TItem> : OrderedDictionary<ItemId, TItem>
+public class CollectionWithItemIds<TItem> : Serialization.OrderedDictionary<ItemId, TItem>
 {
 }

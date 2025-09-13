@@ -165,8 +165,10 @@ namespace Stride.Games
         /// Gets or sets a value indicating whether this instance is processing keys. By default is <c>false</c>
         /// </summary>
         /// <value><c>true</c> if this instance is processing keys; otherwise, <c>false</c>.</value>
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public bool IsProcessingKeys { get; set; }
 
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         internal bool IsFullScreen { get; set; }
 
         /// <summary>
