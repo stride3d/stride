@@ -7,7 +7,6 @@ using Stride.Shaders.Spirv.Core.Parsing;
 using Stride.Shaders.Spirv.Tools;
 using Stride.Shaders.Spirv.Building;
 using static Stride.Shaders.Spirv.Specification;
-using System.Reflection.Metadata.Ecma335;
 
 namespace Stride.Shaders.Experiments;
 
@@ -55,9 +54,6 @@ public static partial class Examples
         InstructionInfo.GetInfo(Op.OpCapability);
 
         var shader = File.ReadAllBytes("../../shader.spv");
-
-
-        SpirvReader.ParseToList(shader, new(8));
     }
 
     public static void CreateNewShader()
@@ -69,81 +65,81 @@ public static partial class Examples
         // Capabilities
 
 
-        buffer.Add(new OpCapability(Capability.Shader));
+        buffer.FluentAdd(new OpCapability(Capability.Shader));
         var extInstImport = new OpExtInstImport(id++, "GLSL.std.450");
         buffer.AddRef(ref extInstImport);
-        buffer.Add(new OpMemoryModel(AddressingModel.Logical, MemoryModel.GLSL450));
+        buffer.FluentAdd(new OpMemoryModel(AddressingModel.Logical, MemoryModel.GLSL450));
 
 
         // declarations
 
-        buffer.Add(new OpTypeVoid(id++), out var t_void);
+        buffer.FluentAdd(new OpTypeVoid(id++), out var t_void);
 
-        buffer.Add(new OpTypeBool(id++), out var t_bool);
-        buffer.Add(new OpTypeFunction(t_void, id++, []), out var t_func);
-        buffer.Add(new OpTypeFloat(id++, 32, null), out var t_float);
-        buffer.Add(new OpTypeInt(id++, 32, 0), out var t_uint);
-        buffer.Add(new OpTypeInt(id++, 32, 1), out var t_int);
-        buffer.Add(new OpTypeFunction(id++, returnType: t_int, [t_int, t_int]), out var t_func_add);
-        buffer.Add(new OpTypeVector(id++, componentType: t_float, 4), out var t_float4);
-        buffer.Add(new OpTypePointer(id++, StorageClass.Function, t_float4), out var t_p_float4_func);
-        buffer.Add(new OpConstant<float>(t_float, id++, 5f), out var constant1);
-        buffer.Add(new OpConstant<float>(t_float, id++, 2.23f), out var constant2);
-        buffer.Add(new OpConstant<int>(t_uint, id++, 5), out var constant3);
-        buffer.Add(new OpConstantComposite(
+        buffer.FluentAdd(new OpTypeBool(id++), out var t_bool);
+        buffer.FluentAdd(new OpTypeFunction(t_void, id++, []), out var t_func);
+        buffer.FluentAdd(new OpTypeFloat(id++, 32, null), out var t_float);
+        buffer.FluentAdd(new OpTypeInt(id++, 32, 0), out var t_uint);
+        buffer.FluentAdd(new OpTypeInt(id++, 32, 1), out var t_int);
+        buffer.FluentAdd(new OpTypeFunction(id++, returnType: t_int, [t_int, t_int]), out var t_func_add);
+        buffer.FluentAdd(new OpTypeVector(id++, componentType: t_float, 4), out var t_float4);
+        buffer.FluentAdd(new OpTypePointer(id++, StorageClass.Function, t_float4), out var t_p_float4_func);
+        buffer.FluentAdd(new OpConstant<float>(t_float, id++, 5f), out var constant1);
+        buffer.FluentAdd(new OpConstant<float>(t_float, id++, 2.23f), out var constant2);
+        buffer.FluentAdd(new OpConstant<int>(t_uint, id++, 5), out var constant3);
+        buffer.FluentAdd(new OpConstantComposite(
             t_float4,
             id++,
             [constant1, constant1, constant2, constant1]
         ), out var compositeType);
-        buffer.Add(new OpTypeArray(t_float4, id++, constant3), out var t_array);
-        buffer.Add(new OpTypeStruct(id++, [t_uint, t_array, t_int]), out var t_struct);
-        buffer.Add(new OpTypeStruct(id++, [t_struct, t_uint]), out var t_struct2);
-        buffer.Add(new OpTypePointer(id++, StorageClass.Uniform, t_struct2), out var t_p_struct2);
-        buffer.Add(new OpVariable(t_p_struct2, id++, StorageClass.Uniform, null), out var v_struct2);
-        buffer.Add(new OpConstant<int>(t_int, id++, 1), out var constant4);
-        buffer.Add(new OpTypePointer(id++, StorageClass.Uniform, t_uint), out var t_p_uint);
-        buffer.Add(new OpConstant<int>(t_uint, id++, 0), out var constant5);
-        buffer.Add(new OpTypePointer(id++, StorageClass.Output, t_float4), out var t_p_output);
-        buffer.Add(new OpVariable(t_p_output, id++, StorageClass.Output, null), out var v_output);
-        buffer.Add(new OpTypePointer(id++, StorageClass.Input, t_float4), out var t_p_input);
-        buffer.Add(new OpVariable(t_p_input, id++, StorageClass.Input, null), out var v_input);
-        buffer.Add(new OpConstant<int>(t_int, id++, 0), out var constant6);
-        buffer.Add(new OpConstant<int>(t_int, id++, 2), out var constant7);
-        buffer.Add(new OpTypePointer(id++, StorageClass.Uniform, t_float4), out var t_p_float4_unif);
-        buffer.Add(new OpVariable(t_p_input, id++, StorageClass.Input, null), out var v_input_2);
-        buffer.Add(new OpTypePointer(id++, StorageClass.Function, t_int), out var t_p_func);
-        buffer.Add(new OpConstant<int>(t_int, id++, 4), out var constant8);
-        buffer.Add(new OpVariable(t_p_input, id++, StorageClass.Input, null), out var v_input_3);
-        buffer.Add(new OpDecorate(t_array, Decoration.ArrayStride, 16));
-        buffer.Add(new OpMemberDecorate(t_struct, 0, Decoration.Offset, 0));
-        buffer.Add(new OpMemberDecorate(t_struct, 1, Decoration.Offset, 16));
-        buffer.Add(new OpMemberDecorate(t_struct, 2, Decoration.Offset, 96));
-        buffer.Add(new OpMemberDecorate(t_struct2, 0, Decoration.Offset, 0));
-        buffer.Add(new OpMemberDecorate(t_struct2, 1, Decoration.Offset, 112));
-        buffer.Add(new OpDecorate(t_struct2, Decoration.Block));
-        buffer.Add(new OpDecorate(v_struct2, Decoration.DescriptorSet, 0));
-        buffer.Add(new OpDecorate(v_input_2, Decoration.NoPerspective));
-        buffer.Add(new OpName(t_p_func, "main"));
-        buffer.Add(new OpName(t_struct, "S"));
-        buffer.Add(new OpMemberName(t_struct, 0, "b"));
-        buffer.Add(new OpMemberName(t_struct, 1, "v"));
-        buffer.Add(new OpMemberName(t_struct, 2, "i"));
-        buffer.Add(new OpFunction(t_int, id++, FunctionControlMask.None, t_func_add), out var add);
+        buffer.FluentAdd(new OpTypeArray(t_float4, id++, constant3), out var t_array);
+        buffer.FluentAdd(new OpTypeStruct(id++, [t_uint, t_array, t_int]), out var t_struct);
+        buffer.FluentAdd(new OpTypeStruct(id++, [t_struct, t_uint]), out var t_struct2);
+        buffer.FluentAdd(new OpTypePointer(id++, StorageClass.Uniform, t_struct2), out var t_p_struct2);
+        buffer.FluentAdd(new OpVariable(t_p_struct2, id++, StorageClass.Uniform, null), out var v_struct2);
+        buffer.FluentAdd(new OpConstant<int>(t_int, id++, 1), out var constant4);
+        buffer.FluentAdd(new OpTypePointer(id++, StorageClass.Uniform, t_uint), out var t_p_uint);
+        buffer.FluentAdd(new OpConstant<int>(t_uint, id++, 0), out var constant5);
+        buffer.FluentAdd(new OpTypePointer(id++, StorageClass.Output, t_float4), out var t_p_output);
+        buffer.FluentAdd(new OpVariable(t_p_output, id++, StorageClass.Output, null), out var v_output);
+        buffer.FluentAdd(new OpTypePointer(id++, StorageClass.Input, t_float4), out var t_p_input);
+        buffer.FluentAdd(new OpVariable(t_p_input, id++, StorageClass.Input, null), out var v_input);
+        buffer.FluentAdd(new OpConstant<int>(t_int, id++, 0), out var constant6);
+        buffer.FluentAdd(new OpConstant<int>(t_int, id++, 2), out var constant7);
+        buffer.FluentAdd(new OpTypePointer(id++, StorageClass.Uniform, t_float4), out var t_p_float4_unif);
+        buffer.FluentAdd(new OpVariable(t_p_input, id++, StorageClass.Input, null), out var v_input_2);
+        buffer.FluentAdd(new OpTypePointer(id++, StorageClass.Function, t_int), out var t_p_func);
+        buffer.FluentAdd(new OpConstant<int>(t_int, id++, 4), out var constant8);
+        buffer.FluentAdd(new OpVariable(t_p_input, id++, StorageClass.Input, null), out var v_input_3);
+        buffer.FluentAdd(new OpDecorate(t_array, Decoration.ArrayStride, 16));
+        buffer.FluentAdd(new OpMemberDecorate(t_struct, 0, Decoration.Offset, 0));
+        buffer.FluentAdd(new OpMemberDecorate(t_struct, 1, Decoration.Offset, 16));
+        buffer.FluentAdd(new OpMemberDecorate(t_struct, 2, Decoration.Offset, 96));
+        buffer.FluentAdd(new OpMemberDecorate(t_struct2, 0, Decoration.Offset, 0));
+        buffer.FluentAdd(new OpMemberDecorate(t_struct2, 1, Decoration.Offset, 112));
+        buffer.FluentAdd(new OpDecorate(t_struct2, Decoration.Block));
+        buffer.FluentAdd(new OpDecorate(v_struct2, Decoration.DescriptorSet, 0));
+        buffer.FluentAdd(new OpDecorate(v_input_2, Decoration.NoPerspective));
+        buffer.FluentAdd(new OpName(t_p_func, "main"));
+        buffer.FluentAdd(new OpName(t_struct, "S"));
+        buffer.FluentAdd(new OpMemberName(t_struct, 0, "b"));
+        buffer.FluentAdd(new OpMemberName(t_struct, 1, "v"));
+        buffer.FluentAdd(new OpMemberName(t_struct, 2, "i"));
+        buffer.FluentAdd(new OpFunction(t_int, id++, FunctionControlMask.None, t_func_add), out var add);
 
 
-        buffer.Add(new OpFunctionParameter(t_int, id++), out var a);
-        buffer.Add(new OpFunctionParameter(t_int, id++), out var b);
-        buffer.Add(new OpLabel(id++), out var label);
-        buffer.Add(new OpIAdd(t_int, id++, a, b), out var res);
-        buffer.Add(new OpReturnValue(res));
-        buffer.Add(new OpFunctionEnd());
-        buffer.Add(new OpFunction(t_void, id++, FunctionControlMask.None, t_func), out var main);
-        buffer.Add(new OpEntryPoint(ExecutionModel.Fragment, main, "PSMain", [v_output, v_input, v_input_2, v_input_3]));
-        buffer.Add(new OpExecutionMode(main, ExecutionMode.OriginLowerLeft));
-        buffer.Add(new OpLabel(id++), out var label2);
-        buffer.Add(new OpFunctionCall(t_int, id++, add, [constant7, constant7]), out var resAdd);
-        buffer.Add(new OpReturn());
-        buffer.Add(new OpFunctionEnd());
+        buffer.FluentAdd(new OpFunctionParameter(t_int, id++), out var a);
+        buffer.FluentAdd(new OpFunctionParameter(t_int, id++), out var b);
+        buffer.FluentAdd(new OpLabel(id++), out var label);
+        buffer.FluentAdd(new OpIAdd(t_int, id++, a, b), out var res);
+        buffer.FluentAdd(new OpReturnValue(res));
+        buffer.FluentAdd(new OpFunctionEnd());
+        buffer.FluentAdd(new OpFunction(t_void, id++, FunctionControlMask.None, t_func), out var main);
+        buffer.FluentAdd(new OpEntryPoint(ExecutionModel.Fragment, main, "PSMain", [v_output, v_input, v_input_2, v_input_3]));
+        buffer.FluentAdd(new OpExecutionMode(main, ExecutionMode.OriginLowerLeft));
+        buffer.FluentAdd(new OpLabel(id++), out var label2);
+        buffer.FluentAdd(new OpFunctionCall(t_int, id++, add, [constant7, constant7]), out var resAdd);
+        buffer.FluentAdd(new OpReturn());
+        buffer.FluentAdd(new OpFunctionEnd());
 
         buffer.Sort();
         var span = buffer.ToBuffer();

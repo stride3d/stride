@@ -6,6 +6,7 @@ using CommunityToolkit.HighPerformance.Buffers;
 using Stride.Shaders.Parsing.SDSL.AST;
 using Stride.Shaders.Spirv.Core;
 using Stride.Shaders.Spirv.Core.Buffers;
+using Stride.Shaders.Spirv.Core.Parsing;
 using static Stride.Shaders.Spirv.Specification;
 
 namespace Stride.Shaders.Spirv.Tools;
@@ -14,15 +15,19 @@ public static partial class Spv
 {
     public static string Dis(NewSpirvBuffer buffer, bool useNames = true, bool writeToConsole = true)
     {
-        // this.buffer = buffer;
-        // ComputeIdOffset();
-        // Assembly code generation logic goes here
         var writer = new DisWriter(buffer, useNames, writeToConsole);
         writer.Disassemble();
-        return "";
+        writer.ToString();
+        return writer.ToString();
     }
 
-
+    public static string Dis(SpirvReader reader, bool useNames = true, bool writeToConsole = true)
+    {
+        using var buffer = new NewSpirvBuffer(reader.Words);
+        var writer = new DisWriter(buffer, useNames, writeToConsole);
+        writer.Disassemble();
+        return writer.ToString();
+    }
 
     struct DisWriter(NewSpirvBuffer buffer, bool useNames = true, bool writeToConsole = true)
     {
@@ -85,15 +90,6 @@ public static partial class Spv
             return this;
         }
 
-        readonly DisWriter AppendLiteralNumber<T>(LiteralValue<T> value, bool dispose = true)
-            where T : struct, INumber<T>
-        {
-            Append(value.Value, ConsoleColor.Red).Append(' ');
-            if (dispose)
-                value.Dispose();
-            return this;
-        }
-
         readonly DisWriter AppendLiteralString(LiteralValue<string> value, bool dispose = true)
         {
             Append('"', ConsoleColor.Green).Append(value.Value, ConsoleColor.Green).Append('"', ConsoleColor.Green).Append(' ');
@@ -107,35 +103,8 @@ public static partial class Spv
             return this;
         }
 
-        readonly DisWriter AppendLiteralNumbers<T>(LiteralArray<T> value, bool dispose = true)
-            where T : struct, INumber<T>
-        {
-            T tmp = default;
-            var size = tmp switch
-            {
-                byte or sbyte or short or ushort or int or uint or float => 1,
-                long or ulong or double => 2,
-                _ => throw new NotImplementedException("Cannot create LiteralValue from the provided words")
-            };
-            for (int i = 0; i < value.WordCount; i += size)
-            {
-                if (size == 1)
-                {
-                    using var lit = LiteralValue<T>.From([value.Words[i]]);
-                    Append(lit.Value, ConsoleColor.Red);
-                }
-                else
-                {
-                    using var v = LiteralValue<T>.From([(value.Words[i] << 32 | value.Words[i + 1])]);
-                    Append(v.Value, ConsoleColor.Red);
-                }
-            }
-            if (dispose)
-                value.Dispose();
-            return this;
-        }
 
-        DisWriter AppendContextDependentNumber(SpvOperand operand, OpData data, NewSpirvBuffer buffer)
+        readonly DisWriter AppendContextDependentNumber(SpvOperand operand, OpData data, NewSpirvBuffer buffer)
         {
             int typeId = data.Op switch
             {
@@ -215,7 +184,7 @@ public static partial class Spv
             }
         }
 
-        public void DisHeader()
+        public readonly void DisHeader()
         {
             var header = data.Buffer.Header;
             AppendLine($"; SPIR-V");
@@ -226,7 +195,7 @@ public static partial class Spv
             AppendLine("");
         }
 
-        public void DisInstruction(in OpDataIndex instruction, in DisWriter writer)
+        public readonly void DisInstruction(in OpDataIndex instruction, in DisWriter writer)
         {
             if (instruction.Op == Op.OpName)
             {
@@ -329,7 +298,7 @@ public static partial class Spv
 
 
 
-        public override string ToString() => builder.ToString();
+        public readonly override string ToString() => builder.ToString();
     }
 
 
@@ -375,8 +344,8 @@ public static partial class Spv
         {
             Buffer = buffer;
             NameTable = [];
-            this.UseNames = useNames;
-            this.WriteToConsole = writeToConsole;
+            UseNames = useNames;
+            WriteToConsole = writeToConsole;
             ComputeIdOffset();
         }
 
@@ -408,12 +377,6 @@ public static partial class Spv
                         var memberInst = (OpMemberName)i;
                         maxName = maxName > memberInst.Name.Length ? maxName : memberInst.Name.Length;
                     }
-                    // maxName = i.Op switch
-                    // {
-                    //     Op.OpName => maxName > ((OpName)i).Name.Length ? maxName : ((OpName)i).Name.Length,
-                    //     Op.OpMemberName => maxName > ((OpMemberName)i).Name.Length ? maxName : ((OpMemberName)i).Name.Length,
-                    //     _ => maxName
-                    // };
                 }
                 IdOffset += maxName;
             }

@@ -1,11 +1,4 @@
-﻿using CommunityToolkit.HighPerformance.Buffers;
-using Stride.Shaders.Spirv.Core.Buffers;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Stride.Shaders.Spirv.Core.Buffers;
 using static Stride.Shaders.Spirv.Specification;
 
 namespace Stride.Shaders.Spirv.Core.Parsing;

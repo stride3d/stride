@@ -5,22 +5,14 @@ namespace Stride.Shaders.Spirv.Core.Parsing;
 /// <summary>
 /// An instruction operands enumerator, useful for parsing instructions
 /// </summary>
-public ref struct OperandEnumerator
+public ref struct OperandEnumerator(Instruction instruction)
 {
-    static OperandKind[] pairs { get; } = Enum.GetValues<OperandKind>().Where(x => x.ToString().StartsWith("Pair")).ToArray();
-    Instruction instruction;
-    Span<int> operands => instruction.Operands;
-    readonly LogicalOperandArray logicalOperands;
-    int wid;
-    int oid;
-
-    public OperandEnumerator(Instruction instruction)
-    {
-        this.instruction = instruction;
-        logicalOperands = InstructionInfo.GetInfo(instruction);
-        oid = -1;
-        wid = 0;
-    }
+    static OperandKind[] Pairs { get; } = Enum.GetValues<OperandKind>().Where(x => x.ToString().StartsWith("Pair")).ToArray();
+    Instruction instruction = instruction;
+    readonly Span<int> Operands => instruction.Operands;
+    readonly LogicalOperandArray logicalOperands = InstructionInfo.GetInfo(instruction);
+    int wid = 0;
+    int oid = -1;
 
     public SpvOperand Current => ParseCurrent();
 
@@ -43,11 +35,11 @@ public ref struct OperandEnumerator
             {
                 if (logOp.Kind == OperandKind.LiteralString)
                 {
-                    while (!operands[wid].HasEndString())
+                    while (!Operands[wid].HasEndString())
                         wid += 1;
                     wid += 1;
                 }
-                else if (pairs.Contains(logOp.Kind ?? throw new Exception("kind is inexistent")))
+                else if (Pairs.Contains(logOp.Kind ?? throw new Exception("kind is inexistent")))
                     wid += 2;
                 else
                     wid += 1;
@@ -57,22 +49,22 @@ public ref struct OperandEnumerator
             else if (logOp.Quantifier == OperandQuantifier.ZeroOrOne)
             {
                 if (
-                    pairs.Contains(logOp.Kind ?? throw new Exception("kind is inexistent"))
-                    && wid < operands.Length - 1
+                    Pairs.Contains(logOp.Kind ?? throw new Exception("kind is inexistent"))
+                    && wid < Operands.Length - 1
                 )
                 {
                     wid += 2;
                 }
                 else if (
                     logOp.Kind == OperandKind.LiteralString
-                    && wid < operands.Length
+                    && wid < Operands.Length
                 )
                 {
-                    while (!operands[wid].HasEndString())
+                    while (!Operands[wid].HasEndString())
                         wid += 1;
                     wid += 1;
                 }
-                else if (wid < operands.Length)
+                else if (wid < Operands.Length)
                     wid += 1;
                 oid += 1;
 
@@ -82,17 +74,17 @@ public ref struct OperandEnumerator
                 if (logOp.Kind == OperandKind.LiteralString)
                     throw new NotImplementedException("params of strings is not yet implemented");
                 else if (
-                    pairs.Contains(logOp.Kind ?? throw new Exception())
-                    && wid < operands.Length - 2
+                    Pairs.Contains(logOp.Kind ?? throw new Exception())
+                    && wid < Operands.Length - 2
                 )
                     wid += 2;
-                else if (wid < operands.Length - 1)
+                else if (wid < Operands.Length - 1)
                     wid += 1;
                 else
                     oid += 1;
 
             }
-            return wid < operands.Length;
+            return wid < Operands.Length;
         }
 
     }
@@ -151,27 +143,27 @@ public ref struct OperandEnumerator
             if (logOp.Kind == OperandKind.LiteralString)
             {
                 var length = 0;
-                while (!operands[wid + length].HasEndString())
+                while (!Operands[wid + length].HasEndString())
                     length += 1;
                 length += 1;
-                var result = new SpvOperand(OperandKind.LiteralString, logOp.Quantifier ?? OperandQuantifier.One, operands.Slice(wid, length));
+                var result = new SpvOperand(OperandKind.LiteralString, logOp.Quantifier ?? OperandQuantifier.One, Operands.Slice(wid, length));
 
                 return result;
             }
-            else if (pairs.Contains(logOp.Kind ?? throw new NotImplementedException("")))
+            else if (Pairs.Contains(logOp.Kind ?? throw new NotImplementedException("")))
             {
-                var result = new SpvOperand(logOp.Kind ?? OperandKind.None, logOp.Quantifier ?? OperandQuantifier.One, operands.Slice(wid, 2));
+                var result = new SpvOperand(logOp.Kind ?? OperandKind.None, logOp.Quantifier ?? OperandQuantifier.One, Operands.Slice(wid, 2));
                 return result;
             }
             else
-                return new(logOp.Kind ?? OperandKind.None, logOp.Quantifier ?? OperandQuantifier.One, operands.Slice(wid, 1));
+                return new(logOp.Kind ?? OperandKind.None, logOp.Quantifier ?? OperandQuantifier.One, Operands.Slice(wid, 1));
         }
         else
         {
-            if (pairs.Contains(logOp.Kind ?? OperandKind.None))
-                return new(logOp.Kind ?? OperandKind.None, logOp.Quantifier ?? OperandQuantifier.One, operands.Slice(wid, 2));
+            if (Pairs.Contains(logOp.Kind ?? OperandKind.None))
+                return new(logOp.Kind ?? OperandKind.None, logOp.Quantifier ?? OperandQuantifier.One, Operands.Slice(wid, 2));
             else
-                return new(logOp.Kind ?? OperandKind.None, logOp.Quantifier ?? OperandQuantifier.One, operands[wid..]);
+                return new(logOp.Kind ?? OperandKind.None, logOp.Quantifier ?? OperandQuantifier.One, Operands[wid..]);
         }
     }
 

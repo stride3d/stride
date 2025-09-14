@@ -22,6 +22,9 @@ public struct OpData : IDisposable, IComparable<OpData>
     public MemoryOwner<int> Memory { get; internal set { field?.Dispose(); field = value; } }
     public readonly Op Op => (Op)(Memory.Span[0] & 0xFFFF);
 
+    public readonly int IdResult => InstructionInfo.GetInfo(this).GetResultIndex(out var index) ? Memory.Span[index + 1] : throw new Exception("No IdResult for this instruction");
+    public readonly int IdResultType => InstructionInfo.GetInfo(this).GetResultTypeIndex(out var index) ? Memory.Span[index + 1] : throw new Exception("No IdResult for this instruction");
+
     public OpData()
     {
         Memory = MemoryOwner<int>.Empty;
@@ -30,6 +33,11 @@ public struct OpData : IDisposable, IComparable<OpData>
     public OpData(MemoryOwner<int> memory)
     {
         Memory = memory;
+    }
+    public OpData(Span<int> memory)
+    {
+        Memory = MemoryOwner<int>.Allocate(memory.Length);
+        memory.CopyTo(Memory.Span);
     }
 
     public readonly void Dispose() => Memory.Dispose();
@@ -86,19 +94,48 @@ public record struct OpDataIndex(int Index, NewSpirvBuffer Buffer)
     public readonly ref OpData Data => ref Buffer[Index];
 }
 
-public class NewSpirvBuffer()
+public sealed class NewSpirvBuffer() : IDisposable
 {
     public SpirvHeader Header { get; set; } = new("1.4", 0, 1);
-    List<OpData> Memory { get; set; } = [];
+    List<OpData> Instructions { get; set; } = [];
+    public int Count => Instructions.Count;
 
-    internal ref OpData this[int index] => ref CollectionsMarshal.AsSpan(Memory)[index];
-    // internal OpDataIndex this[int index] => new(index, this);
+    internal ref OpData this[int index] => ref CollectionsMarshal.AsSpan(Instructions)[index];
+
+
+    public NewSpirvBuffer(Span<int> span) : this()
+    {
+        if(span[0] == MagicNumber)
+            Header = SpirvHeader.Read(span);
+        var instructions = span[5..];
+
+        int wid = 0;
+        while (wid < instructions.Length)
+        {
+            Add(new(instructions.Slice(wid, instructions[wid] >> 16)));
+            wid += instructions[wid] >> 16;
+        }
+    }
+
 
     public void Add(OpData data)
     {
         if (InstructionInfo.GetInfo(data).GetResultIndex(out int index) && index >= Header.Bound)
             Header = Header with { Bound = data.Memory.Span[index] + 1 };
-        Memory.Add(data);
+        Instructions.Add(data);
+    }
+
+    public OpData Add<T>(in T instruction) where T : struct, IMemoryInstruction
+    {
+        if (instruction.DataIndex is OpDataIndex odi)
+        {
+            if (odi.Buffer == this)
+                return odi.Data;
+            else
+                Instructions.Add(new(instruction.InstructionMemory));
+        }
+        else Instructions.Add(new(instruction.InstructionMemory));
+        return Instructions[^1];
     }
 
     public void AddRef<T>(ref T instruction) where T : struct, IMemoryInstruction
@@ -108,30 +145,30 @@ public class NewSpirvBuffer()
             if (odi.Buffer == this)
                 return;
             else
-                Memory.Add(new(instruction.InstructionMemory));
+                Instructions.Add(new(instruction.InstructionMemory));
         }
-        else Memory.Add(new(instruction.InstructionMemory));
-        instruction.DataIndex = new(Memory.Count - 1, this);
+        else Instructions.Add(new(instruction.InstructionMemory));
+        instruction.DataIndex = new(Instructions.Count - 1, this);
 
         if (instruction.GetInfo().GetResultIndex(out int index) && index >= Header.Bound)
             Header = Header with { Bound = instruction.InstructionMemory.Span[index] + 1 };
     }
-    public NewSpirvBuffer Add<T>(in T instruction) where T : struct, IMemoryInstruction
+    public NewSpirvBuffer FluentAdd<T>(in T instruction) where T : struct, IMemoryInstruction
     {
         if (instruction.DataIndex is OpDataIndex odi)
         {
             if (odi.Buffer == this)
                 return this;
             else
-                Memory.Add(new(instruction.InstructionMemory));
+                Instructions.Add(new(instruction.InstructionMemory));
         }
-        else Memory.Add(new(instruction.InstructionMemory));
+        else Instructions.Add(new(instruction.InstructionMemory));
         var tmp = instruction;
         if (tmp.GetInfo().GetResultIndex(out int index) && index >= Header.Bound)
             Header = Header with { Bound = tmp.InstructionMemory.Span[index] + 1 };
         return this;
     }
-    public NewSpirvBuffer Add<T>(in T instruction, out T result) where T : struct, IMemoryInstruction
+    public NewSpirvBuffer FluentAdd<T>(in T instruction, out T result) where T : struct, IMemoryInstruction
     {
         result = instruction;
         if (instruction.DataIndex is OpDataIndex odi)
@@ -139,9 +176,9 @@ public class NewSpirvBuffer()
             if (odi.Buffer == this)
                 return this;
             else
-                Memory.Add(new(instruction.InstructionMemory));
+                Instructions.Add(new(instruction.InstructionMemory));
         }
-        else Memory.Add(new(instruction.InstructionMemory));
+        else Instructions.Add(new(instruction.InstructionMemory));
         var tmp = instruction;
         if (tmp.GetInfo().GetResultIndex(out int index) && index >= Header.Bound)
             Header = Header with { Bound = instruction.InstructionMemory.Span[index] + 1 };
@@ -149,7 +186,16 @@ public class NewSpirvBuffer()
     }
 
     public void Insert(int index, OpData data)
-        => Memory.Insert(index, data);
+        => Instructions.Insert(index, data);
+    public T Insert<T>(int index, in T data)
+        where T : struct, IMemoryInstruction
+    {
+        Instructions.Insert(index, new(data.InstructionMemory));
+        var tmp = data;
+        if (tmp.GetInfo().GetResultIndex(out int rid) && rid >= Header.Bound)
+            Header = Header with { Bound = tmp.InstructionMemory.Span[rid] + 1 };
+        return data;
+    }
 
     /// <summary>
     /// Removes an instruction at a certain index. 
@@ -159,10 +205,10 @@ public class NewSpirvBuffer()
     /// <returns>true if the instruction was successfully removed</returns>
     public bool RemoveAt(int index)
     {
-        if (index < 0 || index >= Memory.Count)
+        if (index < 0 || index >= Instructions.Count)
             return false;
-        Memory[index].Dispose();
-        Memory.RemoveAt(index);
+        Instructions[index].Dispose();
+        Instructions.RemoveAt(index);
         return true;
     }
 
@@ -171,7 +217,7 @@ public class NewSpirvBuffer()
     public ref struct Enumerator(NewSpirvBuffer buffer)
     {
         readonly NewSpirvBuffer buffer = buffer;
-        private readonly List<OpData> list = buffer.Memory;
+        private readonly List<OpData> list = buffer.Instructions;
         private int index = -1;
 
         public readonly OpDataIndex Current => new(index, buffer);
@@ -187,15 +233,15 @@ public class NewSpirvBuffer()
         }
     }
 
-    public void Sort() => Memory.Sort(static (a, b) => a.CompareTo(b));
+    public void Sort() => Instructions.Sort(static (a, b) => a.CompareTo(b));
 
     public SpanOwner<int> ToBuffer()
     {
-        var result = SpanOwner<int>.Allocate(5 + Memory.Sum(i => i.Memory.Length));
+        var result = SpanOwner<int>.Allocate(5 + Instructions.Sum(i => i.Memory.Length));
         var span = result.Span;
         Header.WriteTo(span);
         var offset = 5;
-        foreach (var instruction in Memory)
+        foreach (var instruction in Instructions)
         {
             instruction.Memory.Span.CopyTo(span[offset..]);
             offset += instruction.Memory.Length;
@@ -208,7 +254,6 @@ public class NewSpirvBuffer()
         foreach (var op in this)
         {
             var info = InstructionInfo.GetInfo(op.Op);
-            var mem = op.Data.Memory;
             if (info.GetResultIndex(out int index) && index < op.Data.Memory.Length && op.Data.Memory.Span[index + 1] == typeId)
             {
                 instruction = op;
@@ -217,6 +262,13 @@ public class NewSpirvBuffer()
         }
         instruction = default;
         return false;
+    }
+
+    public void Dispose()
+    {
+        foreach (var instruction in Instructions)
+            instruction.Dispose();
+        Instructions.Clear();
     }
 }
 

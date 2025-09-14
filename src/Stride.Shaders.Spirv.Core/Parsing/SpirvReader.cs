@@ -7,49 +7,36 @@ namespace Stride.Shaders.Spirv.Core.Parsing;
 /// <summary>
 /// Simple Spirv parser for external buffers
 /// </summary>
-public ref struct SpirvReader
+public readonly ref struct SpirvReader(Span<int> words)
 {
-    public static void ParseToList(byte[] byteCode, List<Instruction> instructions)
+    public Span<int> Words { get; init; } = words;
+    public SpirvReader(Span<byte> bytes) : this(MemoryMarshal.Cast<byte, int>(bytes)) { }
+
+    public readonly Enumerator GetEnumerator() => new(Words);
+
+    public ref struct Enumerator(Span<int> words)
     {
-        
-        var span = MemoryMarshal.Cast<byte, int>(byteCode.AsSpan());
-        var data = new SpirvBuffer(span);
-        foreach (var instruction in data.Instructions)
-            instructions.Add(instruction);
+        int wid = 0;
+        readonly Span<int> words = words;
+
+        public readonly Span<int> Current => words[wid..(wid + (words[wid] >> 16))];
+
+        public bool MoveNext()
+        {
+            if(wid == 0 && words[0] == Specification.MagicNumber)
+            {
+                wid = 5;
+                return true;
+            }
+            else if (wid >= words.Length)
+                return false;
+            else
+            {
+                wid += words[wid] >> 16;
+                if (wid >= words.Length)
+                    return false;
+                return true;
+            }
+        }
     }
-
-
-
-
-    SpirvBuffer buffer;
-    public int Count => GetInstructionCount();
-    public bool HasHeader { get; init; }
-
-    public SpirvReader(byte[] byteCode, bool hasHeader = false)
-    {
-        buffer = new(MemoryMarshal.Cast<byte, int>(byteCode.AsSpan()));
-        HasHeader = hasHeader;
-    }
-    public SpirvReader(MemoryOwner<int> slice, bool hasHeader = false)
-    {
-        buffer = new(slice.Span);
-        HasHeader = hasHeader;
-    }
-    public SpirvReader(Memory<int> slice, bool hasHeader = false)
-    {
-        buffer = new(slice.Span[(hasHeader ? 5 : 0)..]);
-    }
-    public SpirvReader(Memory<int> slice)
-    {
-        buffer = new(slice.Span);
-        //data = slice;
-    }
-    public SpirvReader(SpirvBuffer span)
-    {
-        buffer = span;
-        //data = slice;
-    }
-
-
-    public readonly int GetInstructionCount() => buffer.Instructions.Count;
 }

@@ -21,6 +21,6 @@ public readonly ref struct RefHeader
         Words = words;
     }
 
-    public bool IsValidMagic => MagicNumber == Stride.Shaders.Spirv.Specification.MagicNumber;
+    public bool IsValidMagic => MagicNumber == Specification.MagicNumber;
 
 }
