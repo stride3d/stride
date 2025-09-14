@@ -36,9 +36,9 @@ public class CompilerUnit
         var builder = new StringBuilder();
         builder
             .AppendLine("Context : ")
-            .AppendLine(new SpirvDis<SpirvBuffer>(Context.Buffer).Disassemble())
+            .AppendLine(Spv.Dis(Context.Buffer))
             .AppendLine("Functions : ")
-            .AppendLine(new SpirvDis<SpirvBuffer>(Builder.Buffer).Disassemble());
+            .AppendLine(Spv.Dis(Builder.Buffer));
         return builder.ToString();
     }
 }

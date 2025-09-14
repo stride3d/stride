@@ -12,7 +12,7 @@ namespace Stride.Shaders.Spirv.Building;
 // Should have utility functions to add instruction to the buffer
 public partial class SpirvBuilder()
 {
-    public SpirvBuffer Buffer { get; init; } = new();
+    public NewSpirvBuffer Buffer { get; init; } = new();
     public SpirvFunction? CurrentFunction { get; private set; }
     public SpirvBlock? CurrentBlock { get; private set; }
     public int Position { get; internal set; } = 0;
