@@ -30,7 +30,7 @@ public interface IServo
     /// The maximum force that the constraint can apply to move towards the target.
     /// </summary>
     /// <remarks>
-    /// This value is specified in terms of force: a change in momentum over time. It is approximated as a maximum impulse (an instantaneous change in momentum) on a per-substep basis. In other words, for a given velocity iteration, the constraint's impulse can be no larger than <see cref="MaximumForce"/> * dt where dt is the substep duration.
+    /// This value is specified in terms of force: a change in momentum over time. It is approximated as a maximum impulse (an instantaneous change in momentum) on a per-substep basis. In other words, for a given velocity iteration, the constraint's impulse can be no larger than <see cref="ServoMaximumForce"/> * dt where dt is the substep duration.
     /// </remarks>
     /// <userdoc>
     /// The maximum force that the constraint can apply to move towards the target.

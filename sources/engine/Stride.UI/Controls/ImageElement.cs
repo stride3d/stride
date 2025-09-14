@@ -44,7 +44,7 @@ namespace Stride.UI.Controls
         }
 
         /// <summary>
-        /// Gets or set the color used to tint the image. Default value is White/>.
+        /// Gets or set the color used to tint the image. Default value is White.
         /// </summary>
         /// <remarks>The initial image color is multiplied by this color.</remarks>
         /// <userdoc>The color used to tint the image. The default value is white.</userdoc>
