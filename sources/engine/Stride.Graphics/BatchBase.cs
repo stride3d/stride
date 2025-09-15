@@ -91,6 +91,7 @@ namespace Stride.Graphics
         private ElementInfo[] drawsQueue;
         private int drawsQueueCount;
         private Texture[] drawTextures;
+        private List<Buffer> lastFrameBuffers;
 
         private readonly int vertexStructSize;
         private readonly int indexStructSize;
@@ -141,6 +142,8 @@ namespace Stride.Graphics
             // Creates the vertex buffer (shared by within a device context).
             // TODO: find a better way to do that, and check resource disposal
             ResourceContextPool = graphicsDevice.GetOrCreateSharedData(resourceBufferInfo.ResourceKey, d => new ThreadLocal<DeviceResourceContext>(() => new DeviceResourceContext(graphicsDevice, vertexDeclaration, resourceBufferInfo), true));
+
+            lastFrameBuffers = new();
         }
 
         protected override void Destroy()
@@ -171,6 +174,10 @@ namespace Stride.Graphics
         protected void Begin(GraphicsContext graphicsContext, EffectInstance effect, SpriteSortMode sessionSortMode, BlendStateDescription? sessionBlendState, SamplerState sessionSamplerState, DepthStencilStateDescription? sessionDepthStencilState, RasterizerStateDescription? sessionRasterizerState, int stencilValue)
         {
             CheckEndHasBeenCalled("begin");
+
+            foreach (var buffer in lastFrameBuffers)
+                GraphicsContext.Allocator.ReleaseReference(buffer);
+            lastFrameBuffers.Clear();
 
             ResourceContext = ResourceContextPool.Value;
 
@@ -416,103 +423,72 @@ namespace Stride.Graphics
             DrawBatchPerTextureAndPass(sprites, offset, count);
         }
 
-        private unsafe void DrawBatchPerTextureAndPass(ElementInfo[] sprites, int offset, int count)
+        private void DrawBatchPerTextureAndPass(ElementInfo[] sprites, int offset, int count)
         {
-            while (count > 0)
+            ResourceContext.VertexBufferPosition = ResourceContext.VertexCount;
+            ResourceContext.IndexBufferPosition = ResourceContext.IndexCount;
+            for (int end = offset + count; offset < end;)
             {
-                // How many index/vertex do we want to draw?
-                var indexCount = 0;
-                var vertexCount = 0;
-                var batchSize = 0;
-
-                while (batchSize < count)
+                if (ResourceContext.VertexBufferPosition == ResourceContext.VertexCount || ResourceContext.IndexBufferPosition == ResourceContext.IndexCount) // Buffer is full, fetch the next ones
                 {
-                    var spriteIndex = offset + batchSize;
-                    ref var spriteElementInfo = ref sprites[spriteIndex];
+                    ResourceContext.VertexBufferPosition = 0;
+                    ResourceContext.IndexBufferPosition = 0;
 
-                    // How many sprites does the D3D vertex buffer have room for?
-                    var remainingVertexSpace = ResourceContext.VertexCount - ResourceContext.VertexBufferPosition - vertexCount;
-                    var remainingIndexSpace = ResourceContext.IndexCount - ResourceContext.IndexBufferPosition - indexCount;
+                    ResourceContext.VertexBuffer = GraphicsContext.Allocator.GetTemporaryBuffer(new BufferDescription(ResourceContext.VertexCount * vertexStructSize, BufferFlags.VertexBuffer, GraphicsResourceUsage.Dynamic));
+                    GraphicsContext.CommandList.SetVertexBuffer(0, ResourceContext.VertexBuffer, 0, vertexStructSize);
+                    lastFrameBuffers.Add(ResourceContext.VertexBuffer);
 
-                    // if there is not enough place left for either the indices or vertices of the current element...,
-                    if (spriteElementInfo.IndexCount > remainingIndexSpace || spriteElementInfo.VertexCount > remainingVertexSpace)
+                    if (ResourceContext.IsIndexBufferDynamic)
                     {
-                        // if we haven't started the current batch yet, we restart at the beginning of the buffers.
-                        if (batchSize == 0)
-                        {
-                            ResourceContext.VertexBufferPosition = 0;
-                            ResourceContext.IndexBufferPosition = 0;
-                            continue;
-                        }
-
-                        // else we perform the draw call and batch remaining elements in next draw call.
-                        break;
+                        ResourceContext.IndexBuffer = GraphicsContext.Allocator.GetTemporaryBuffer(new BufferDescription(ResourceContext.IndexCount * indexStructSize, BufferFlags.IndexBuffer, GraphicsResourceUsage.Dynamic));
+                        GraphicsContext.CommandList.SetIndexBuffer(ResourceContext.IndexBuffer, 0, indexStructSize == sizeof(int));
+                        lastFrameBuffers.Add(ResourceContext.IndexBuffer);
                     }
-
-                    ++batchSize;
+                }
+                
+                int indexCount = 0, vertexCount = 0;
+                int batchStart = offset;
+                for (int vertexLeft = ResourceContext.VertexCount - ResourceContext.VertexBufferPosition, indexLeft = ResourceContext.IndexCount - ResourceContext.IndexBufferPosition; 
+                     offset < end && vertexCount < vertexLeft && indexCount < indexLeft; 
+                     offset++)
+                {
+                    ref var spriteElementInfo = ref sprites[offset];
+                    
                     vertexCount += spriteElementInfo.VertexCount;
                     indexCount += spriteElementInfo.IndexCount;
                 }
 
-                // Sets the data directly to the buffer in memory
                 var offsetVertexInBytes = ResourceContext.VertexBufferPosition * vertexStructSize;
                 var offsetIndexInBytes = ResourceContext.IndexBufferPosition * indexStructSize;
 
-                if (ResourceContext.VertexBufferPosition == 0)
+                var mappedIndices = new MappedResource();
+                var mappedVertices = GraphicsContext.CommandList.MapSubresource(ResourceContext.VertexBuffer, 0, MapMode.WriteNoOverwrite, false, offsetVertexInBytes, vertexCount * vertexStructSize);
+                if (ResourceContext.IsIndexBufferDynamic)
+                    mappedIndices = GraphicsContext.CommandList.MapSubresource(ResourceContext.IndexBuffer, 0, MapMode.WriteNoOverwrite, false, offsetIndexInBytes, indexCount * indexStructSize);
+
+                var vertexPointer = mappedVertices.DataBox.DataPointer;
+                var indexPointer = mappedIndices.DataBox.DataPointer;
+
+                for (var i = batchStart; i < offset; i++)
                 {
-                    if (ResourceContext.VertexBuffer != null)
-                        GraphicsContext.Allocator.ReleaseReference(ResourceContext.VertexBuffer);
-                    ResourceContext.VertexBuffer = GraphicsContext.Allocator.GetTemporaryBuffer(new BufferDescription(ResourceContext.VertexCount * vertexStructSize, BufferFlags.VertexBuffer, GraphicsResourceUsage.Default));
-                    GraphicsContext.CommandList.SetVertexBuffer(0, ResourceContext.VertexBuffer, 0, vertexStructSize);
+                    ref var spriteElementInfo = ref sprites[i];
+
+                    UpdateBufferValuesFromElementInfo(ref spriteElementInfo, vertexPointer, indexPointer, ResourceContext.VertexBufferPosition);
+
+                    ResourceContext.VertexBufferPosition += spriteElementInfo.VertexCount;
+                    vertexPointer += vertexStructSize * spriteElementInfo.VertexCount;
+                    indexPointer += indexStructSize * spriteElementInfo.IndexCount;
                 }
 
-                if (ResourceContext.IsIndexBufferDynamic && ResourceContext.IndexBufferPosition == 0)
-                {
-                    if (ResourceContext.IndexBuffer != null)
-                        GraphicsContext.Allocator.ReleaseReference(ResourceContext.IndexBuffer);
-                    ResourceContext.IndexBuffer = GraphicsContext.Allocator.GetTemporaryBuffer(new BufferDescription(ResourceContext.IndexCount * indexStructSize, BufferFlags.IndexBuffer, GraphicsResourceUsage.Default));
-                    GraphicsContext.CommandList.SetIndexBuffer(ResourceContext.IndexBuffer, 0, indexStructSize == sizeof(int));
-                }
-
-                {
-                    byte[] vArr = System.Buffers.ArrayPool<byte>.Shared.Rent(vertexCount * vertexStructSize);
-                    byte[] iArr = ResourceContext.IsIndexBufferDynamic == false ? null : System.Buffers.ArrayPool<byte>.Shared.Rent(indexCount * indexStructSize);
-                    var vSpan = vArr.AsSpan(0, vertexCount * vertexStructSize);
-                    var iSpan = ResourceContext.IsIndexBufferDynamic == false ? default : iArr.AsSpan(0, indexCount * indexStructSize);
-
-                    fixed (void* vertexPointer2 = vSpan, indexPointer2 = iSpan)
-                    {
-                        nint vertexPointer = (nint)vertexPointer2;
-                        nint indexPointer = (nint)indexPointer2;
-                        for (var i = 0; i < batchSize; i++)
-                        {
-                            var spriteIndex = offset + i;
-                            ref var spriteElementInfo = ref sprites[spriteIndex];
-
-                            UpdateBufferValuesFromElementInfo(ref spriteElementInfo, vertexPointer, indexPointer, ResourceContext.VertexBufferPosition);
-
-                            ResourceContext.VertexBufferPosition += spriteElementInfo.VertexCount;
-                            vertexPointer += vertexStructSize * spriteElementInfo.VertexCount;
-                            indexPointer += indexStructSize * spriteElementInfo.IndexCount;
-                        }
-                    }
-
-                    // TODO: Should be faster to Map, write and Unmap instead of UpdateSubresource - tried memcopy instead of random writes as well as double-buffer but doesn't seem to matter
-                    ResourceContext.VertexBuffer.SetData<byte>(GraphicsContext.CommandList, vSpan, offsetVertexInBytes);
-                    if (ResourceContext.IsIndexBufferDynamic)
-                        ResourceContext.IndexBuffer.SetData<byte>(GraphicsContext.CommandList, iSpan, offsetIndexInBytes);
-                    System.Buffers.ArrayPool<byte>.Shared.Return(vArr);
-                    if (iArr is not null)
-                        System.Buffers.ArrayPool<byte>.Shared.Return(iArr);
-                }
+                GraphicsContext.CommandList.UnmapSubresource(mappedVertices);
+                if (ResourceContext.IsIndexBufferDynamic)
+                    GraphicsContext.CommandList.UnmapSubresource(mappedIndices);
 
                 // Draw from the specified index
                 GraphicsContext.CommandList.DrawIndexed(indexCount, ResourceContext.IndexBufferPosition);
 
                 // Update position, offset and remaining count
                 ResourceContext.IndexBufferPosition += indexCount;
-                offset += batchSize;
-                count -= batchSize;
             }
         }
 
