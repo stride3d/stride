@@ -28,6 +28,7 @@
         <TextBlock Text="{sd:Localize Warning\: Deduplicate materials is currently not supported for FBX files}" Margin="5" Visibility="{Binding ShowFbxDedupeNotSupportedWarning, Converter={sd:VisibleOrCollapsed}}"/>
         <CheckBox Content="{sd:Localize Import textures, Context=Button}" IsChecked="{Binding ImportTextures}" Margin="5"/>
         <CheckBox Content="{sd:Localize Import Animations, Context=Button}" IsChecked="{Binding ImportAnimations}" Margin="5"/>
+        <CheckBox Content="{sd:Localize Split hierarchy, Context=Button}" IsChecked="{Binding SplitHierarchy}" Margin="5"/>
       </StackPanel>
     </Border>
     <Border Background="{StaticResource EmphasisColorBrush}" Margin="20,0">

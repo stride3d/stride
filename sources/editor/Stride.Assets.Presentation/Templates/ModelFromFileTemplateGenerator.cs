@@ -29,6 +29,7 @@ namespace Stride.Assets.Presentation.Templates
         public static SettingsKey<bool> ImportAnimations = new SettingsKey<bool>("Templates/ModelFromFile/ImportAnimations", PackageUserSettings.SettingsContainer, true);
         public static SettingsKey<bool> ImportSkeleton = new SettingsKey<bool>("Templates/ModelFromFile/ImportSkeleton", PackageUserSettings.SettingsContainer, true);
         public static SettingsKey<AssetId> DefaultSkeleton = new SettingsKey<AssetId>("Templates/ModelFromFile/DefaultSkeleton", PackageUserSettings.SettingsContainer, AssetId.Empty);
+        public static SettingsKey<bool> SplitHierarchy = new SettingsKey<bool>("Templates/ModelFromFile/SplitHierarchy", PackageUserSettings.SettingsContainer, false);
     }
 
     public class ModelFromFileTemplateGenerator : AssetFromFileTemplateGenerator
@@ -43,6 +44,8 @@ namespace Stride.Assets.Presentation.Templates
         protected static readonly PropertyKey<bool> ImportAnimationsKey = new PropertyKey<bool>("ImportAnimations", typeof(ModelFromFileTemplateGenerator));
         protected static readonly PropertyKey<bool> ImportSkeletonKey = new PropertyKey<bool>("ImportSkeleton", typeof(ModelFromFileTemplateGenerator));
         protected static readonly PropertyKey<Skeleton> SkeletonToUseKey = new PropertyKey<Skeleton>("SkeletonToUse", typeof(ModelFromFileTemplateGenerator));
+        protected static readonly PropertyKey<bool> SplitHierarchyKey = new PropertyKey<bool>("SplitHierarchy", typeof(ModelFromFileTemplateGenerator));
+
 
         public override bool IsSupportingTemplate(TemplateDescription templateDescription)
         {
@@ -72,7 +75,8 @@ namespace Stride.Assets.Presentation.Templates
                     DeduplicateMaterials = ModelFromFileTemplateSettings.DeduplicateMaterials.GetValue(profile, true),
                     ImportTextures = ModelFromFileTemplateSettings.ImportTextures.GetValue(profile, true),
                     ImportAnimations = ModelFromFileTemplateSettings.ImportAnimations.GetValue(profile, true),
-                    ImportSkeleton = ModelFromFileTemplateSettings.ImportSkeleton.GetValue(profile, true)
+                    ImportSkeleton = ModelFromFileTemplateSettings.ImportSkeleton.GetValue(profile, true),
+                    SplitHierarchy = ModelFromFileTemplateSettings.SplitHierarchy.GetValue(profile, false)
                 }
             };
 
@@ -97,6 +101,7 @@ namespace Stride.Assets.Presentation.Templates
             parameters.Tags.Set(ImportAnimationsKey, window.Parameters.ImportAnimations);
             parameters.Tags.Set(ImportSkeletonKey, window.Parameters.ImportSkeleton);
             parameters.Tags.Set(SkeletonToUseKey, skeletonToReuse);
+            parameters.Tags.Set(SplitHierarchyKey, window.Parameters.SplitHierarchy);
 
             // Save settings
             ModelFromFileTemplateSettings.ImportMaterials.SetValue(window.Parameters.ImportMaterials, profile);
@@ -104,6 +109,7 @@ namespace Stride.Assets.Presentation.Templates
             ModelFromFileTemplateSettings.ImportTextures.SetValue(window.Parameters.ImportTextures, profile);
             ModelFromFileTemplateSettings.ImportAnimations.SetValue(window.Parameters.ImportAnimations, profile);
             ModelFromFileTemplateSettings.ImportSkeleton.SetValue(window.Parameters.ImportSkeleton, profile);
+            ModelFromFileTemplateSettings.SplitHierarchy.SetValue(window.Parameters.SplitHierarchy, profile);
             skeletonId = AttachedReferenceManager.GetAttachedReference(skeletonToReuse)?.Id ?? AssetId.Empty;
             ModelFromFileTemplateSettings.DefaultSkeleton.SetValue(skeletonId, profile);
             parameters.Package.UserSettings.Save();
@@ -123,9 +129,11 @@ namespace Stride.Assets.Presentation.Templates
             var importAnimations = parameters.Tags.Get(ImportAnimationsKey);
             var importSkeleton = parameters.Tags.Get(ImportSkeletonKey);
             var skeletonToReuse = parameters.Tags.Get(SkeletonToUseKey);
+            var splitHierarchy = parameters.Tags.Get(SplitHierarchyKey);   // <-- you read it here
 
             var importParameters = new AssetImporterParameters { Logger = parameters.Logger };
             importParameters.InputParameters.Set(ModelAssetImporter.DeduplicateMaterialsKey, deduplicateMaterials);
+            importParameters.InputParameters.Set(ModelAssetImporter.SplitHierarchyKey, splitHierarchy); 
             importParameters.SelectedOutputTypes.Add(typeof(ModelAsset), true);
             importParameters.SelectedOutputTypes.Add(typeof(MaterialAsset), importMaterials);
             importParameters.SelectedOutputTypes.Add(typeof(TextureAsset), importTextures);
@@ -144,7 +152,9 @@ namespace Stride.Assets.Presentation.Templates
                     continue;
                 }
 
-                var assets = importer.Import(file, importParameters).Select(x => new AssetItem(UPath.Combine(parameters.TargetLocation, x.Location), x.Asset)).ToList();
+                var assets = importer.Import(file, importParameters)
+                    .Select(x => new AssetItem(UPath.Combine(parameters.TargetLocation, x.Location), x.Asset))
+                    .ToList();
 
                 foreach (var model in assets.Select(x => x.Asset).OfType<ModelAsset>())
                 {

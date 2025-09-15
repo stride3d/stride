@@ -23,6 +23,8 @@ namespace Stride.Assets.Models
 {
     public abstract class ModelAssetImporter : AssetImporterBase
     {
+        public static readonly PropertyKey<bool> SplitHierarchyKey = new PropertyKey<bool>("SplitHierarchy", typeof(ModelAssetImporter));
+
         public static readonly PropertyKey<bool> DeduplicateMaterialsKey = new PropertyKey<bool>("DeduplicateMaterials", typeof(ModelAssetImporter));
 
         public override IEnumerable<Type> RootAssetTypes
@@ -108,31 +110,43 @@ namespace Stride.Assets.Models
             // 4. Model
             if (isImportingModel)
             {
-                modelAsset = ImportModel(rawAssetReferences, localPath, localPath, entityInfo, false, skeletonAsset);
-            }
+                // Read the checkbox from the import parameters (defaults to false if not provided)
+                bool splitHierarchy = false;
+                importParameters.InputParameters.TryGet(SplitHierarchyKey, out splitHierarchy);
 
-            if (isImportingModel && modelAsset != null)
-            {
-                // How many meshes does the source have? (metadata lists ALL meshes now)
+                // Ask the converter for how many meshes exist (we made ExtractModels return ALL meshes)
                 var meshCount = entityInfo.Models?.Count ?? 0;
 
-                // Create one extra Model asset per additional mesh (Mesh 2..Mesh N)
-                // Note: base name (no suffix) = Mesh 1 (= index 0)
-                for (int meshIdx = 1; meshIdx < meshCount; meshIdx++)
+                if (splitHierarchy)
                 {
-                    var copy = CloneModelAsset(modelAsset);
-                    var url = new UFile($"{localPath.GetFileNameWithoutExtension()} (Mesh {meshIdx + 1})");
-                    rawAssetReferences.Add(new AssetItem(url, copy));
-                }
+                    // Base = Mesh 1
+                    modelAsset = ImportModel(rawAssetReferences, localPath, localPath, entityInfo, false, skeletonAsset);
 
-                // Create the combined "All" model (only useful if >1 mesh)
-                if (meshCount > 1)
-                {
-                    var all = CloneModelAsset(modelAsset);
-                    var urlAll = new UFile(localPath.GetFileNameWithoutExtension() + " (All)");
-                    rawAssetReferences.Add(new AssetItem(urlAll, all));
+                    // Mesh 2..N
+                    for (int meshIdx = 1; meshIdx < meshCount; meshIdx++)
+                    {
+                        var perMeshCopy = AssetCloner.Clone(modelAsset);
+                        perMeshCopy.Id = AssetId.New();
+                        var perMeshUrl = new UFile($"{localPath.GetFileNameWithoutExtension()} (Mesh {meshIdx + 1})");
+                        rawAssetReferences.Add(new AssetItem(perMeshUrl, perMeshCopy));
+                    }
+
+                    // All meshes (only useful if more than one child mesh)
+                    if (meshCount > 1)
+                    {
+                        var allCopy = AssetCloner.Clone(modelAsset);
+                        allCopy.Id = AssetId.New();
+                        var allUrl = new UFile(localPath.GetFileNameWithoutExtension() + " (All)");
+                        rawAssetReferences.Add(new AssetItem(allUrl, allCopy));
+                    }
                 }
-            }
+                else
+                {
+                    // Only the combined "All" model (no per-mesh assets)
+                    var allUrl = new UFile(localPath.GetFileNameWithoutExtension() + " (All)");
+                    modelAsset = ImportModel(rawAssetReferences, localPath, allUrl, entityInfo, false, skeletonAsset);
+                }
+            }        
 
             // 5. Animation
             if (importParameters.IsTypeSelectedForOutput<AnimationAsset>())
