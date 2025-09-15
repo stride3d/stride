@@ -111,6 +111,29 @@ namespace Stride.Assets.Models
                 modelAsset = ImportModel(rawAssetReferences, localPath, localPath, entityInfo, false, skeletonAsset);
             }
 
+            if (isImportingModel && modelAsset != null)
+            {
+                // How many meshes does the source have? (metadata lists ALL meshes now)
+                var meshCount = entityInfo.Models?.Count ?? 0;
+
+                // Create one extra Model asset per additional mesh (Mesh 2..Mesh N)
+                // Note: base name (no suffix) = Mesh 1 (= index 0)
+                for (int meshIdx = 1; meshIdx < meshCount; meshIdx++)
+                {
+                    var copy = CloneModelAsset(modelAsset);
+                    var url = new UFile($"{localPath.GetFileNameWithoutExtension()} (Mesh {meshIdx + 1})");
+                    rawAssetReferences.Add(new AssetItem(url, copy));
+                }
+
+                // Create the combined "All" model (only useful if >1 mesh)
+                if (meshCount > 1)
+                {
+                    var all = CloneModelAsset(modelAsset);
+                    var urlAll = new UFile(localPath.GetFileNameWithoutExtension() + " (All)");
+                    rawAssetReferences.Add(new AssetItem(urlAll, all));
+                }
+            }
+
             // 5. Animation
             if (importParameters.IsTypeSelectedForOutput<AnimationAsset>())
             {
@@ -325,6 +348,13 @@ namespace Stride.Assets.Models
                 // Create asset reference
                 assetReferences.Add(new AssetItem(texturePath.GetFileNameWithoutExtension(), texture));
             }
+        }
+
+        private static ModelAsset CloneModelAsset(ModelAsset original)
+        {
+            var clone = AssetCloner.Clone(original);
+            clone.Id = AssetId.New(); // correct factory
+            return clone;
         }
     }
 }
