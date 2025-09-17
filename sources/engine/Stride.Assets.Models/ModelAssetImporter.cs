@@ -163,6 +163,10 @@ namespace Stride.Assets.Models
             return rawAssetReferences;
         }
 
+
+
+
+
         private static AssetItem ImportSkeleton(List<AssetItem> assetReferences, UFile assetSource, UFile localPath, EntityInfo entityInfo)
         {
             var asset = new SkeletonAsset { Source = assetSource };

@@ -4,20 +4,26 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Stride.Assets.Entities;
+using Stride.Assets.Materials;
+using Stride.Assets.Models;
+using Stride.Assets.Textures;
+using Stride.Core;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Templates;
-using Stride.Core;
 using Stride.Core.IO;
-using Stride.Core.Serialization;
-using Stride.Core.Settings;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.Windows;
-using Stride.Assets.Materials;
-using Stride.Assets.Models;
-using Stride.Assets.Textures;
+using Stride.Core.Serialization;
+using Stride.Core.Settings;
+using Stride.Engine;
 using Stride.Rendering;
+using Stride.Importer.Common;
+
+
+
 
 namespace Stride.Assets.Presentation.Templates
 {
@@ -156,6 +162,56 @@ namespace Stride.Assets.Presentation.Templates
                     .Select(x => new AssetItem(UPath.Combine(parameters.TargetLocation, x.Location), x.Asset))
                     .ToList();
 
+                if (splitHierarchy)
+                {
+                    var entityInfo = importer.GetEntityInfo(file, parameters.Logger, importParameters);
+                    if (entityInfo != null)
+                    {
+                        // Build a mapping: (Mesh i) asset by index, plus the optional "(All)".
+                        // We rely on your current naming convention created by the importer:
+                        //   Base model (Mesh 1, at base name),
+                        //   "(Mesh k)" for k >= 2,
+                        //   and "(All)" if there were multiple meshes.
+                        var baseName = file.GetFileNameWithoutExtension();
+
+                        // Collect model assets we just imported
+                        var modelAssetsByName = assets
+        .Where(a => a.Asset is ModelAsset)
+        .ToDictionary(a => a.Location.GetFileNameWithoutExtension(), a => a);
+
+
+                        // Build an array aligned with entityInfo.Models order:
+                        // entityInfo.Models[0] -> base model (Mesh 1),
+                        // entityInfo.Models[k] -> "(Mesh k+1)"
+                        var perMeshModels = new List<AssetItem>();
+                        for (int i = 0; i < (entityInfo.Models?.Count ?? 0); i++)
+                        {
+                            string name = i == 0 ? baseName : $"{baseName} (Mesh {i + 1})";
+                            if (modelAssetsByName.TryGetValue(name, out var item))
+                                perMeshModels.Add(item);
+                            else
+                                perMeshModels.Add(null); // defensive
+                        }
+
+                        // Optional combined "(All)" model if it exists
+                        modelAssetsByName.TryGetValue($"{baseName} (All)", out var allModelAsset);
+
+                        // Actually build the prefab
+                        var prefabAssetItem = BuildPrefabForSplitHierarchy(
+      baseName,
+      entityInfo,
+      perMeshModels,
+      allModelAsset,
+      parameters.TargetLocation);
+
+                        if (prefabAssetItem != null)
+                        {
+                            assets.Add(prefabAssetItem);
+                        }
+
+                    }
+                }
+
                 foreach (var model in assets.Select(x => x.Asset).OfType<ModelAsset>())
                 {
                     if (skeletonToReuse != null)
@@ -170,5 +226,101 @@ namespace Stride.Assets.Presentation.Templates
 
             return importedAssets;
         }
+
+        private static AssetItem BuildPrefabForSplitHierarchy(
+       string baseName,
+       EntityInfo entityInfo,
+       IList<AssetItem> perMeshModels,   // index-aligned with entityInfo.Models
+       AssetItem allModelAsset,          // currently unused (kept for future)
+       UDirectory targetLocation)
+        {
+            if (entityInfo?.Nodes == null || entityInfo.Nodes.Count == 0)
+                return null;
+
+            // 1) Create entities in pre-order and rebuild parent/child relations using Depth
+            var entities = new List<Entity>(entityInfo.Nodes.Count);
+            var stack = new Stack<Entity>();
+            Entity root = null;
+
+            for (int i = 0; i < entityInfo.Nodes.Count; i++)
+            {
+                var node = entityInfo.Nodes[i];
+                var e = new Entity(string.IsNullOrEmpty(node.Name) ? $"Node_{i}" : node.Name);
+
+                // Keep the stack at (node.Depth) entries so parent is at depth-1
+                while (stack.Count > 0 && (stack.Count - 1) > node.Depth)
+                    stack.Pop();
+
+                if (stack.Count == 0)
+                {
+                    // Depth 0 → root
+                    root = e;
+                }
+                else
+                {
+                    stack.Peek().AddChild(e);
+                }
+
+                stack.Push(e);
+                entities.Add(e);
+            }
+
+            // 2) Attach ModelComponent to nodes that host meshes (match by NodeName)
+            if (entityInfo.Models != null && entityInfo.Models.Count > 0)
+            {
+                var nodeNameToIndex = new Dictionary<string, int>(StringComparer.Ordinal);
+                for (int i = 0; i < entityInfo.Nodes.Count; i++)
+                {
+                    var n = entityInfo.Nodes[i].Name;
+                    if (!string.IsNullOrEmpty(n) && !nodeNameToIndex.ContainsKey(n))
+                        nodeNameToIndex.Add(n, i);
+                }
+
+                for (int m = 0; m < entityInfo.Models.Count; m++)
+                {
+                    var meshInfo = entityInfo.Models[m];
+                    if (string.IsNullOrEmpty(meshInfo.NodeName))
+                        continue;
+
+                    if (!nodeNameToIndex.TryGetValue(meshInfo.NodeName, out var nodeIndex))
+                        continue;
+
+                    var modelItem = (m >= 0 && m < perMeshModels.Count) ? perMeshModels[m] : null;
+                    if (modelItem?.Asset is ModelAsset)
+                    {
+                        var mc = new ModelComponent
+                        {
+                            // Reference the imported Model asset (no duplication)
+                            Model = AttachedReferenceManager.CreateProxyObject<Model>(modelItem.Id, modelItem.Location)
+                        };
+                        entities[nodeIndex].Components.Add(mc);
+                    }
+                }
+            }
+
+            root ??= entities[0];
+
+            // 3) Build Prefab: register ALL entities in Parts, add ROOT entity to RootParts
+            var prefab = new PrefabAsset();
+
+            // Parts: Guid -> EntityDesign (use the entity's Id as the key)
+            foreach (var e in entities)
+            {
+                var design = new EntityDesign(e);
+                prefab.Hierarchy.Parts.Add(e.Id, design);
+            }
+
+            // RootParts: list of Entity (your API expects Entity here)
+            prefab.Hierarchy.RootParts.Add(root);
+
+            // Done
+            var prefabUrl = new UFile($"{baseName} Prefab");
+            return new AssetItem(UPath.Combine(targetLocation, prefabUrl), prefab);
+        }
+
+
+
+
+
     }
 }
