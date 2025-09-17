@@ -21,9 +21,7 @@ using Stride.Core.Settings;
 using Stride.Engine;
 using Stride.Rendering;
 using Stride.Importer.Common;
-
-
-
+using System.IO; 
 
 namespace Stride.Assets.Presentation.Templates
 {
@@ -162,53 +160,101 @@ namespace Stride.Assets.Presentation.Templates
                     .Select(x => new AssetItem(UPath.Combine(parameters.TargetLocation, x.Location), x.Asset))
                     .ToList();
 
+                var baseName = file.GetFileNameWithoutExtension();
+
                 if (splitHierarchy)
                 {
                     var entityInfo = importer.GetEntityInfo(file, parameters.Logger, importParameters);
-                    if (entityInfo != null)
+                    if (entityInfo != null && (entityInfo.Models?.Count ?? 0) > 0)
                     {
-                        // Build a mapping: (Mesh i) asset by index, plus the optional "(All)".
-                        // We rely on your current naming convention created by the importer:
-                        //   Base model (Mesh 1, at base name),
-                        //   "(Mesh k)" for k >= 2,
-                        //   and "(All)" if there were multiple meshes.
-                        var baseName = file.GetFileNameWithoutExtension();
-
-                        // Collect model assets we just imported
-                        var modelAssetsByName = assets
-        .Where(a => a.Asset is ModelAsset)
-        .ToDictionary(a => a.Location.GetFileNameWithoutExtension(), a => a);
-
-
-                        // Build an array aligned with entityInfo.Models order:
-                        // entityInfo.Models[0] -> base model (Mesh 1),
-                        // entityInfo.Models[k] -> "(Mesh k+1)"
-                        var perMeshModels = new List<AssetItem>();
-                        for (int i = 0; i < (entityInfo.Models?.Count ?? 0); i++)
+                        // Collect the first imported model (we'll clone/rename it per-mesh)
+                        var firstModelItem = assets.FirstOrDefault(a => a.Asset is ModelAsset);
+                        if (firstModelItem != null)
                         {
-                            string name = i == 0 ? baseName : $"{baseName} (Mesh {i + 1})";
-                            if (modelAssetsByName.TryGetValue(name, out var item))
+                            // Remove any model assets we just imported; we'll re-add per-mesh ones with proper names
+                            assets.RemoveAll(a => a.Asset is ModelAsset);
+
+                            var perMeshAssets = new List<AssetItem>();
+                            for (int i = 0; i < entityInfo.Models.Count; i++)
+                            {
+                                var rawMeshName = entityInfo.Models[i].MeshName;
+                                var meshPart = SanitizePart(rawMeshName) ?? $"Mesh-{i + 1}";
+                                var desiredNoExt = $"{baseName}-{meshPart}";
+
+                                // Ensure uniqueness *within this import batch*
+                                var uniqueFile = MakeUniqueFileName(desiredNoExt, assets);
+
+                                AssetItem itemForThisMesh;
+
+                                if (i == 0)
+                                {
+                                    // Reuse the first imported model's ASSET, but give it a fresh Id before re-wrapping it
+                                    var baseModel = (ModelAsset)firstModelItem.Asset;
+                                    baseModel.Id = AssetId.New(); // <<—— ensure unique Id
+                                    itemForThisMesh = new AssetItem(UPath.Combine(parameters.TargetLocation, uniqueFile), baseModel);
+                                }
+                                else
+                                {
+                                    // Clone the first model's asset and give it a fresh Id
+                                    var clonedAsset = AssetCloner.Clone(firstModelItem.Asset);
+                                    ((ModelAsset)clonedAsset).Id = AssetId.New(); // <<—— ensure unique Id
+                                    itemForThisMesh = new AssetItem(UPath.Combine(parameters.TargetLocation, uniqueFile), clonedAsset);
+                                }
+
+                                // (Optional but recommended) Trim materials to only those used by this mesh
+                                var wantedMaterialName = entityInfo.Models[i].MaterialName;
+                                KeepOnlyMaterialByName((ModelAsset)itemForThisMesh.Asset, wantedMaterialName);
+
+                                perMeshAssets.Add(itemForThisMesh);
+                                assets.Add(itemForThisMesh); // keep list current so MakeUniqueFileName sees it
+                            }
+
+
+                            // Build prefab using these per-mesh models
+                            var perMeshByName = assets
+                                .Where(a => a.Asset is ModelAsset)
+                                .ToDictionary(a => a.Location.GetFileNameWithoutExtension(), a => a, StringComparer.OrdinalIgnoreCase);
+
+                            var perMeshModels = new List<AssetItem>(entityInfo.Models.Count);
+                            for (int i = 0; i < entityInfo.Models.Count; i++)
+                            {
+                                var rawMeshName = entityInfo.Models[i].MeshName;
+                                var meshPart = SanitizePart(rawMeshName) ?? $"Mesh-{i + 1}";
+                                var expectedName = $"{baseName}-{meshPart}";
+                                perMeshByName.TryGetValue(expectedName, out var item);
                                 perMeshModels.Add(item);
-                            else
-                                perMeshModels.Add(null); // defensive
+                            }
+
+                            // No combined "(All)" model when splitting; Prefab is the combined representation
+                            AssetItem allModelAsset = null;
+
+                            var prefabAssetItem = BuildPrefabForSplitHierarchy(
+                                baseName,
+                                entityInfo,
+                                perMeshModels,
+                                allModelAsset,
+                                parameters.TargetLocation);
+
+                            if (prefabAssetItem != null)
+                                assets.Add(prefabAssetItem);
                         }
+                    }
+                }
+                else
+                {
+                    // Split OFF: keep a single Model named exactly after the source file (no "(All)")
+                    var idx = assets.FindIndex(a => a.Asset is ModelAsset);
+                    if (idx >= 0)
+                    {
+                        var old = assets[idx];
+                        assets.RemoveAt(idx);
 
-                        // Optional combined "(All)" model if it exists
-                        modelAssetsByName.TryGetValue($"{baseName} (All)", out var allModelAsset);
+                        // Assign a fresh Id to the single model to avoid any Id collisions
+                        ((ModelAsset)old.Asset).Id = AssetId.New(); // <<—— ensure unique Id
 
-                        // Actually build the prefab
-                        var prefabAssetItem = BuildPrefabForSplitHierarchy(
-      baseName,
-      entityInfo,
-      perMeshModels,
-      allModelAsset,
-      parameters.TargetLocation);
-
-                        if (prefabAssetItem != null)
-                        {
-                            assets.Add(prefabAssetItem);
-                        }
-
+                        var uniqueFile = MakeUniqueFileName(baseName, assets);
+                        var renamed = new AssetItem(UPath.Combine(parameters.TargetLocation, uniqueFile), old.Asset);
+                        assets.Insert(idx, renamed);
                     }
                 }
 
@@ -227,12 +273,67 @@ namespace Stride.Assets.Presentation.Templates
             return importedAssets;
         }
 
-        private static AssetItem BuildPrefabForSplitHierarchy(
-       string baseName,
-       EntityInfo entityInfo,
-       IList<AssetItem> perMeshModels,   // index-aligned with entityInfo.Models
-       AssetItem allModelAsset,          // currently unused (kept for future)
-       UDirectory targetLocation)
+        // Filters the asset-level materials list so this ModelAsset only keeps the material that matches `wantedMaterialName`
+        // Keep only the material whose *asset name* (without extension) matches wantedMaterialName.
+        // Works across Stride branches where ModelMaterial may expose either "Material" or "MaterialInstance".
+        private static void KeepOnlyMaterialByName(ModelAsset modelAsset, string wantedMaterialName)
+        {
+            if (modelAsset?.Materials == null || modelAsset.Materials.Count == 0 || string.IsNullOrWhiteSpace(wantedMaterialName))
+                return;
+
+            var kept = new List<Stride.Assets.Models.ModelMaterial>();
+
+            foreach (var mm in modelAsset.Materials)
+            {
+                // Try to get a reference object we can resolve via AttachedReferenceManager:
+                // 1) ModelMaterial.Material (asset reference)
+                // 2) ModelMaterial.MaterialInstance (runtime instance that still carries a reference)
+                object materialRefObj = null;
+                var mmType = mm.GetType();
+
+                var propMaterial = mmType.GetProperty("Material");
+                if (propMaterial != null)
+                    materialRefObj = propMaterial.GetValue(mm);
+
+                if (materialRefObj == null)
+                {
+                    var propMaterialInstance = mmType.GetProperty("MaterialInstance");
+                    if (propMaterialInstance != null)
+                        materialRefObj = propMaterialInstance.GetValue(mm);
+                }
+
+                // Resolve the attached reference (if any) to get the asset URL
+                string assetUrl = null;
+                if (materialRefObj != null)
+                {
+                    var aref = AttachedReferenceManager.GetAttachedReference(materialRefObj);
+                    assetUrl = aref?.Url; // this is a string in your branch
+                }
+
+                // Compare by asset name (no extension)
+                if (!string.IsNullOrEmpty(assetUrl))
+                {
+                    var nameNoExt = Path.GetFileNameWithoutExtension(assetUrl);
+                    if (string.Equals(nameNoExt, wantedMaterialName, StringComparison.OrdinalIgnoreCase))
+                    {
+                        kept.Add(mm);
+                    }
+                }
+            }
+
+            if (kept.Count > 0)
+            {
+                modelAsset.Materials.Clear();
+                modelAsset.Materials.AddRange(kept);
+            }
+            else if (modelAsset.Materials.Count > 1)
+            {
+                // Fallback so the asset stays valid if we couldn't match by name
+                modelAsset.Materials.RemoveRange(1, modelAsset.Materials.Count - 1);
+            }
+        }
+
+        private static AssetItem BuildPrefabForSplitHierarchy(string baseName, EntityInfo entityInfo, IList<AssetItem> perMeshModels, AssetItem allModelAsset, UDirectory targetLocation)
         {
             if (entityInfo?.Nodes == null || entityInfo.Nodes.Count == 0)
                 return null;
@@ -309,18 +410,38 @@ namespace Stride.Assets.Presentation.Templates
                 var design = new EntityDesign(e);
                 prefab.Hierarchy.Parts.Add(e.Id, design);
             }
-
             // RootParts: list of Entity (your API expects Entity here)
             prefab.Hierarchy.RootParts.Add(root);
 
-            // Done
+            prefab.Id = AssetId.New(); // <<—— ensure unique Id
             var prefabUrl = new UFile($"{baseName} Prefab");
             return new AssetItem(UPath.Combine(targetLocation, prefabUrl), prefab);
         }
 
+        private static string SanitizePart(string s)
+        {
+            if (string.IsNullOrWhiteSpace(s))
+                return null;
+            var invalid = System.IO.Path.GetInvalidFileNameChars();
+            var clean = new string(s.Where(ch => !invalid.Contains(ch)).ToArray()).Trim();
+            return string.IsNullOrEmpty(clean) ? null : clean;
+        }
 
+        // Ensure a *file-name without extension* is unique within the current 'assets' list.
+        // It yields: name, name-1, name-2, ...
+        private static UFile MakeUniqueFileName(string desiredNameNoExt, List<AssetItem> assets)
+        {
+            var existing = new HashSet<string>(
+                assets.Select(a => a.Location.GetFileNameWithoutExtension()),
+                StringComparer.OrdinalIgnoreCase);
 
+            var name = desiredNameNoExt;
+            var i = 0;
+            while (existing.Contains(name))
+                name = $"{desiredNameNoExt}-{++i}";
 
+            return new UFile(name); // filename only; caller will UPath.Combine with target dir
+        }
 
     }
 }

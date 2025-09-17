@@ -31,7 +31,11 @@ namespace Stride.Importer.ThreeD
 {
     public class MeshConverter
     {
-        private int keptMeshIndex = 0;
+        // keptMeshIndex < 0 => keep ALL meshes
+        // keptMeshIndex >= 0 => keep only that mesh index
+        private int keptMeshIndex = -1; // default to ALL unless name says otherwise
+        private string keptMeshNameHint = null;
+
         private bool IsKeptMeshIndex(int meshIndex) => keptMeshIndex < 0 || meshIndex == keptMeshIndex;
 
         static MeshConverter()
@@ -73,7 +77,8 @@ namespace Stride.Importer.ThreeD
 
         private void DecideKeptMeshIndexFromOutput()
         {
-            keptMeshIndex = 0; // default
+            keptMeshIndex = -1;
+            keptMeshNameHint = null;
 
             try
             {
@@ -81,42 +86,35 @@ namespace Stride.Importer.ThreeD
                 if (string.IsNullOrEmpty(name))
                     return;
 
-                // "(All)" → keep every mesh
+                // "(All)" => all meshes
                 if (name.EndsWith(" (All)", StringComparison.OrdinalIgnoreCase))
-                {
-                    keptMeshIndex = -1;
                     return;
-                }
 
-                // "(Mesh X)" → keep mesh index X-1
+                // "(Mesh X)" => keep mesh X-1 (legacy)
                 const string tag = " (Mesh ";
-                var close = name.EndsWith(")", StringComparison.Ordinal);
-                var start = name.LastIndexOf(tag, StringComparison.OrdinalIgnoreCase);
-                if (close && start >= 0)
+                if (name.EndsWith(")", StringComparison.Ordinal))
                 {
-                    var numStr = name.Substring(start + tag.Length, name.Length - (start + tag.Length) - 1);
-                    if (int.TryParse(numStr, out var oneBased) && oneBased >= 1)
+                    var start = name.LastIndexOf(tag, StringComparison.OrdinalIgnoreCase);
+                    if (start >= 0)
                     {
-                        keptMeshIndex = oneBased - 1;
-                        return;
+                        var numStr = name.Substring(start + tag.Length, name.Length - (start + tag.Length) - 1);
+                        if (int.TryParse(numStr, out var oneBased) && oneBased >= 1)
+                        {
+                            keptMeshIndex = oneBased - 1;
+                            return;
+                        }
                     }
                 }
 
-                // Back-compat: "(Copy)" == mesh 1
-                if (name.EndsWith(" (Copy)", StringComparison.OrdinalIgnoreCase))
-                {
-                    keptMeshIndex = 1;
-                    return;
-                }
-
-                keptMeshIndex = 0; // base name = first mesh
+                // Otherwise: remember the full output name; we will try to match a mesh by name later
+                keptMeshNameHint = name;
             }
             catch
             {
-                keptMeshIndex = 0;
+                keptMeshIndex = -1;
+                keptMeshNameHint = null;
             }
         }
-
 
         public unsafe EntityInfo ExtractEntity(string inputFilename, string outputFilename, bool extractTextureDependencies, bool deduplicateMaterials)
         {
@@ -237,6 +235,24 @@ namespace Stride.Importer.ThreeD
 
             var meshNames = new Dictionary<IntPtr, string>();
             GenerateMeshNames(scene, meshNames);
+
+            // If output asset name equals a mesh name, or ends with "-<MeshName>", select that mesh.
+            if (!string.IsNullOrEmpty(keptMeshNameHint))
+            {
+                for (uint i = 0; i < scene->MNumMeshes; ++i)
+                {
+                    var lMesh = scene->MMeshes[i];
+                    var meshName = meshNames[(IntPtr)lMesh];
+
+                    if (string.Equals(keptMeshNameHint, meshName, StringComparison.OrdinalIgnoreCase) ||
+                        keptMeshNameHint.EndsWith("-" + meshName, StringComparison.OrdinalIgnoreCase))
+                    {
+                        keptMeshIndex = (int)i;
+                        break;
+                    }
+                }
+                // If no match found, keptMeshIndex stays -1 → keep ALL meshes (Split OFF case)
+            }
 
             var nodeNames = new Dictionary<IntPtr, string>();
             var duplicateNodeNameToNodePointers = new Dictionary<string, List<IntPtr>>();
