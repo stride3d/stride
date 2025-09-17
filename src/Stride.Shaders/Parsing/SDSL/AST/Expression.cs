@@ -26,7 +26,7 @@ public abstract class Expression(TextLocation info) : ValueNode(info)
         if (type is PointerType pointerType)
         {
             type = pointerType.BaseType;
-            var inst = compiler.Builder.Buffer.Insert(compiler.Builder.Position++, new OpLoad(compiler.Context.Types[type], compiler.Context.Bound++, result.Id, null));
+            var inst = compiler.Builder.Insert(new OpLoad(compiler.Context.Types[type], compiler.Context.Bound++, result.Id, null));
             result = new(inst.ResultId, inst.ResultType);
         }
         return result;
@@ -172,7 +172,7 @@ public class AccessorChainExpression(Expression source, TextLocation info) : Exp
             return source;
 
         var resultType = context.GetOrRegister(Type);
-        var result = builder.Buffer.Insert(builder.Position++, new OpAccessChain(variable, resultType, source.Id, [.. indexes]));
+        var result = builder.Insert(new OpAccessChain(variable, resultType, source.Id, [.. indexes]));
         return new(result.ResultId, resultType);
     }
 

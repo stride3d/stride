@@ -34,11 +34,9 @@ public record struct SDSLC(IExternalShaderLoader ShaderLoader) : ICompiler
             //context.Buffer.AddOpMemoryModel(Spv.Specification.AddressingModel.Logical, Spv.Specification.MemoryModel.GLSL450);
             //new StreamAnalyzer().Process(table, compiler);
 
-            compiler.Context.Buffer.Sort();
-            var merged = SpirvBuffer.Merge(compiler.Context.Buffer, compiler.Builder.Buffer);
-            var dis = new SpirvDis<SpirvBuffer>(merged, true);
-            dis.Disassemble(true);
-            compiled = MemoryMarshal.AsBytes(merged.ToBuffer().AsSpan()).ToArray();
+            var merged = compiler.ToBuffer();
+            var dis = Spv.Dis(merged, true);
+            compiled = MemoryMarshal.AsBytes(merged.ToBuffer().Span).ToArray();
             return true;
         }
         else

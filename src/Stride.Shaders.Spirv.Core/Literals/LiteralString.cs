@@ -56,56 +56,6 @@ public readonly struct LiteralString : ISpirvElement, IFromSpirv<LiteralString>
         }
     }
 
-    public void Write(ref SpirvWriter writer)
-    {
-        var wordLength = Value.Length / 4;
-        var rest = RestSize;
-        var span = Value.AsSpan();
-        for (int i = 0; i < wordLength; i++)
-        {
-            if (rest == 0)
-            {
-                int word =
-                    Convert.ToByte(span[4 * i]) << 24
-                    | Convert.ToByte(span[4 * i + 1]) << 16
-                    | Convert.ToByte(span[4 * i + 2]) << 8
-                    | Convert.ToByte(span[4 * i + 3]);
-                writer.Write(word);
-            }
-            else
-            {
-                if (i < wordLength - 1)
-                {
-                    int word =
-                        Convert.ToByte(span[4 * i]) << 24
-                        | Convert.ToByte(span[4 * i + 1]) << 16
-                        | Convert.ToByte(span[4 * i + 2]) << 8
-                        | Convert.ToByte(span[4 * i + 3]);
-                    writer.Write(word);
-
-                }
-                else
-                {
-                    if (rest == 1)
-                        writer.Write(
-                            Convert.ToByte(span[4 * i]) << 24
-                        );
-                    else if (rest == 2)
-                        writer.Write(
-                            Convert.ToByte(span[4 * i]) << 24
-                            | Convert.ToByte(span[4 * i + 1]) << 16
-                        );
-                    else if (rest == 3)
-                        writer.Write(
-                            Convert.ToByte(span[4 * i]) << 24
-                            | Convert.ToByte(span[4 * i + 1]) << 16
-                            | Convert.ToByte(span[4 * i + 2]) << 8
-                        );
-                }
-            }
-        }
-    }
-
     public static string Parse(Span<int> input)
     {
         var lit = new LiteralString(input);

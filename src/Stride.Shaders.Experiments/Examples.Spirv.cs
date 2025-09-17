@@ -15,9 +15,8 @@ public static partial class Examples
 {
     public static void GenerateSpirv()
     {
-        var module = new SpirvModule();
-        var context = new SpirvContext(new());
-        var builder = new SpirvBuilder();
+        var compiler = new CompilerUnit();
+        var (builder, context, module) = compiler;
 
         context.GetOrRegister(new MatrixType(ScalarType.From("float"), 4, 3));
         context.GetOrRegister(ScalarType.From("int"));
@@ -41,10 +40,9 @@ public static partial class Examples
             function.Parameters["a"], Operator.Plus, function.Parameters["b"]
         );
         builder.Return(v);
-        builder.EndFunction(context);
-        context.Buffer.Sort();
-        var dis = new SpirvDis<SpirvBuffer>(SpirvBuffer.Merge(context.Buffer, builder.Buffer), useNames: true);
-        dis.Disassemble(true);
+        builder.EndFunction();
+        context.Sort();
+        Spv.Dis(compiler.ToBuffer());
     }
 
     public static void ParseShader()
@@ -284,14 +282,8 @@ public static partial class Examples
 
         var bytes = File.ReadAllBytes(path);
 
-        var buffer = new SpirvBuffer(MemoryMarshal.Cast<byte, int>(bytes));
-        var extInst = buffer[1];
-        foreach (var o in extInst)
-        {
-            if (o.Kind == OperandKind.LiteralString)
-            {
-                Console.WriteLine(o.To<LiteralString>().Value);
-            }
-        }
+        var buffer = new NewSpirvBuffer(MemoryMarshal.Cast<byte, int>(bytes));
+        var extInst = (OpExtInstImport)buffer[1] ;
+        Console.WriteLine(extInst.Name);
     }
 }

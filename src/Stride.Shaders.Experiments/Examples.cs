@@ -237,14 +237,16 @@ public static partial class Examples
     {
         var text = MonoGamePreProcessor.OpenAndRun("./assets/SDSL/TestBasic.sdsl");
 
-        var sdslc = new SDSLC();
-        sdslc.ShaderLoader = new ShaderLoader();
+        var sdslc = new SDSLC
+        {
+            ShaderLoader = new ShaderLoader()
+        };
         sdslc.Compile(text, out var bytecode);
 
-        File.WriteAllBytes("shader.bin", bytecode);
+        File.WriteAllBytes("TestBasic.sdspv", bytecode);
         var test = bytecode.AsMemory().Cast<byte, uint>().ToArray();
         var code = new SpirvTranslator(bytecode.AsMemory().Cast<byte, uint>());
-        //Console.WriteLine(code.Translate(Backend.Hlsl));
+        // Console.WriteLine(code.Translate(Backend.Hlsl));
 
     }
 
@@ -272,15 +274,15 @@ public static partial class Examples
         public string ClassName { get; } = className;
     }
 
-    static Dictionary<string, SpirvBuffer> loadedShaders = new();
+    static Dictionary<string, NewSpirvBuffer> loadedShaders = new();
 
-    static SpirvBuffer GetOrLoadShader(string name)
+    static NewSpirvBuffer GetOrLoadShader(string name)
     {
         if (loadedShaders.TryGetValue(name, out var buffer))
             return buffer;
 
         new ShaderLoader().LoadExternalReference(name, out var bytecode);
-        buffer = new SpirvBuffer(MemoryMarshal.Cast<byte, int>(bytecode));
+        buffer = new NewSpirvBuffer(MemoryMarshal.Cast<byte, int>(bytecode));
 
         loadedShaders.Add(name, buffer);
 
@@ -494,24 +496,20 @@ public static partial class Examples
         words[1..].Clear();
     }
 
-    private static void BuildInheritanceList(SpirvBuffer buffer, List<string> inheritanceList)
+    private static void BuildInheritanceList(NewSpirvBuffer buffer, List<string> inheritanceList)
     {
         // Build shader name mapping
         var shaderMapping = new Dictionary<int, string>();
-        foreach (var i in buffer.Instructions)
-        {
-            if (i.OpCode == Specification.Op.OpSDSLImportShader)
-            {
-                shaderMapping[i.ResultId!.Value] = i.GetOperand<LiteralString>("shaderName")!.Value.Value;
-            }
-        }
+        foreach (var i in buffer)
+            if (i.Op == Specification.Op.OpSDSLImportShader && (OpSDSLImportShader) i is {} importShader)
+                shaderMapping[importShader.ResultId] = importShader.ShaderName;
 
         // Check inheritance
-        foreach (var i in buffer.Instructions)
+        foreach (var i in buffer)
         {
-            if (i.OpCode == Specification.Op.OpSDSLMixinInherit)
+            if (i.Op == Specification.Op.OpSDSLMixinInherit && (OpSDSLMixinInherit)i is {} inherit)
             {
-                var shaderName = shaderMapping[i.Words[1]];
+                var shaderName = shaderMapping[inherit.Shader];
                 var shader = GetOrLoadShader(shaderName);
                 BuildInheritanceList(shader, inheritanceList);
                 inheritanceList.Add(shaderName);

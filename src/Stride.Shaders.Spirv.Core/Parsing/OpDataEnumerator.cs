@@ -90,7 +90,13 @@ public ref struct OpDataEnumerator
             };
             wid = newWid;
             oid = newOid;
-            return result && wid < Operands.Length && oid < logicalOperands.Count;
+            if (oid < logicalOperands.Count)
+                return logicalOperands[oid].Quantifier switch
+                {
+                    OperandQuantifier.One => result && wid < Operands.Length && oid < logicalOperands.Count,
+                    _ => result && oid < logicalOperands.Count
+                };
+            else return false;
         }
     }
 
@@ -151,7 +157,7 @@ public ref struct OpDataEnumerator
                 { Quantifier: OperandQuantifier.ZeroOrOne, Kind: OperandKind.LiteralString }
                     => new(logOp.Name, OperandKind.LiteralString, logOp.Quantifier ?? OperandQuantifier.One, Operands.Slice(wid, Operands[wid..].LengthOfString())),
                 { Quantifier: OperandQuantifier.ZeroOrOne, Kind: _ }
-                    => new(logOp.Name, logOp.Kind ?? OperandKind.None, logOp.Quantifier ?? OperandQuantifier.One, Operands.Slice(wid, 1)),
+                    => new(logOp.Name, logOp.Kind ?? OperandKind.None, logOp.Quantifier ?? OperandQuantifier.One, wid < Operands.Length -1 ? Operands.Slice(wid, 1) : []),
                 { Quantifier: OperandQuantifier.ZeroOrMore, Kind: OperandKind.PairIdRefIdRef or OperandKind.PairIdRefLiteralInteger or OperandKind.PairLiteralIntegerIdRef }
                    => new(logOp.Name, logOp.Kind ?? OperandKind.None, logOp.Quantifier ?? OperandQuantifier.One, wid < Operands.Length - 1 ? Operands[wid..] : []),
                 { Quantifier: OperandQuantifier.ZeroOrMore, Kind: OperandKind.LiteralString }

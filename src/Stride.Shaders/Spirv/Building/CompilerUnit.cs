@@ -31,14 +31,21 @@ public class CompilerUnit
         module = Module;
     }
 
+#pragma warning disable CS0618 // Type or member is obsolete
+    public NewSpirvBuffer ToBuffer()
+    {
+        Context.Sort();
+        return NewSpirvBuffer.Merge(Context.GetBuffer(), Builder.GetBuffer());
+    }
     public override string ToString()
     {
         var builder = new StringBuilder();
         builder
             .AppendLine("Context : ")
-            .AppendLine(Spv.Dis(Context.Buffer))
+            .AppendLine(Spv.Dis(Context.GetBuffer()))
             .AppendLine("Functions : ")
-            .AppendLine(Spv.Dis(Builder.Buffer));
+            .AppendLine(Spv.Dis(Builder.GetBuffer()));
         return builder.ToString();
     }
+#pragma warning restore CS0618 // Type or member is obsolete
 }

@@ -10,5 +10,5 @@ namespace Stride.Shaders.Spirv.Processing;
 
 public interface IPostProcessorSubPass
 {
-    void Apply(SpirvBuffer buffer, Instruction instruction);
+    void Apply(NewSpirvBuffer buffer, Instruction instruction);
 }

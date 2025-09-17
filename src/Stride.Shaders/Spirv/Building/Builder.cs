@@ -12,7 +12,7 @@ namespace Stride.Shaders.Spirv.Building;
 // Should have utility functions to add instruction to the buffer
 public partial class SpirvBuilder()
 {
-    public NewSpirvBuffer Buffer { get; init; } = new();
+    NewSpirvBuffer Buffer { get; init; } = new();
     public SpirvFunction? CurrentFunction { get; private set; }
     public SpirvBlock? CurrentBlock { get; private set; }
     public int Position { get; internal set; } = 0;
@@ -33,43 +33,44 @@ public partial class SpirvBuilder()
             (int)Op.OpUnreachable,
             (int)Op.OpTerminateInvocation
         ];
-        var wid = 0;
-        foreach (var e in Buffer.Instructions)
+        var pos = -1;
+        foreach (var e in Buffer)
         {
-            if (e.ResultId is int id && id == block.Id)
+            pos += 1;
+            if (e.Data.IdResult is int id && id == block.Id)
             {
                 blockFound = true;
                 // In case we want to top at the beginning of the block
-                if(beggining)
+                if (beggining)
                 {
-                    Position = wid + e.WordCount;
+                    Position = pos;
                     return;
                 }
             }
-            if (block is SpirvBlock && blockFound && blockTermination.Contains((int)e.OpCode))
+            if (block is SpirvBlock && blockFound && blockTermination.Contains((int)e.Op))
             {
-                Position = wid;
+                Position = pos;
                 return;
             }
-            else if (block is SpirvFunction && blockFound && e.OpCode == Op.OpFunctionEnd)
+            else if (block is SpirvFunction && blockFound && e.Op == Op.OpFunctionEnd)
             {
-                Position = wid;
+                Position = pos;
                 return;
             }
-
-            wid += e.WordCount;
         }
-        Position = Buffer.Instructions.Count;
+        Position = Buffer.Count;
     }
 
-    public SpirvBuffer Build(SpirvContext context)
-    {
-        context.Buffer.Sort();
-        return SpirvBuffer.Merge(context.Buffer, Buffer);
-    }
+
+    public T Insert<T>(in T value)
+        where T : struct, IMemoryInstruction
+        => Buffer.Insert(Position++, value);
+
+    [Obsolete("Use the insert method instead")]
+    public NewSpirvBuffer GetBuffer() => Buffer;
 
     public override string ToString()
     {
-        return new SpirvDis<SpirvBuffer>(Buffer).Disassemble();
+        return Spv.Dis(Buffer);
     }
 }

@@ -76,14 +76,14 @@ public struct LiteralArray<T> : ISpirvElement, IFromSpirv<LiteralArray<T>>, IDis
     public void Assign(Memory<T> span)
     {
         Elements.Dispose();
-        Elements = MemoryOwner<T>.Allocate(span.Length);
+        Elements = span.Length == 0 ? MemoryOwner<T>.Empty : MemoryOwner<T>.Allocate(span.Length);
         span.CopyTo(Elements.Memory);
     }
 
     public void Assign(Span<T> span)
     {
         Elements.Dispose();
-        Elements = MemoryOwner<T>.Allocate(span.Length);
+        Elements = span.Length == 0 ? MemoryOwner<T>.Empty : MemoryOwner<T>.Allocate(span.Length);
         span.CopyTo(Elements.Span);
     }
 

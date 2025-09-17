@@ -52,25 +52,22 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
                     _ => throw new InvalidOperationException(),
                 });
             }
-            else if (instruction.Op == Op.OpTypePointer)
+            else if (instruction.Op == Op.OpTypePointer && (OpTypePointer)instruction is {} pointerInstruction)
             {
-                OpTypePointer pointerInstruction = instruction;
                 var innerType = types[pointerInstruction.Type];
                 types.Add(pointerInstruction.ResultId, new PointerType(innerType, pointerInstruction.Storageclass));
             }
-            else if (instruction.Op == Op.OpTypeVoid)
+            else if (instruction.Op == Op.OpTypeVoid && (OpTypeVoid)instruction is {} voidInstruction)
             {
-                types.Add(((OpTypeVoid)instruction).ResultId, ScalarType.From("void"));
+                types.Add(voidInstruction.ResultId, ScalarType.From("void"));
             }
-            else if (instruction.Op == Op.OpTypeVector)
+            else if (instruction.Op == Op.OpTypeVector && (OpTypeVector)instruction is {} vectorInstruction)
             {
-                OpTypeVector vectorInstruction = instruction;
                 var innerType = (ScalarType)types[vectorInstruction.ComponentType];
                 types.Add(vectorInstruction.ResultId, new VectorType(innerType, vectorInstruction.ComponentCount));
             }
-            else if (instruction.Op == Op.OpTypeStruct)
+            else if (instruction.Op == Op.OpTypeStruct && (OpTypeStruct)instruction is {} typeStructInstruction)
             {
-                OpTypeStruct typeStructInstruction = instruction;
                 var structName = names[typeStructInstruction.ResultId];
                 var fieldsData = typeStructInstruction.Values;
                 var fields = new List<(string Name, SymbolType Type)>();
@@ -83,9 +80,8 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
                 }
                 types.Add(typeStructInstruction.ResultId, new StructType(structName, fields));
             }
-            else if (instruction.Op == Op.OpTypeFunction)
+            else if (instruction.Op == Op.OpTypeFunction && (OpTypeFunction)instruction is {} typeFunctionInstruction)
             {
-                OpTypeFunction typeFunctionInstruction = instruction;
                 var returnType = types[typeFunctionInstruction.ReturnType];
                 var parameterTypes = new List<SymbolType>();
                 foreach (var operand in typeFunctionInstruction.Values)
@@ -113,9 +109,8 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
         var symbols = new List<Symbol>();
         foreach (var instruction in buffer)
         {
-            if (instruction.Op == Op.OpVariable)
+            if (instruction.Op == Op.OpVariable && (OpVariable)instruction is {} variableInstruction)
             {
-                OpVariable variableInstruction = instruction;
                 var variableName = names[variableInstruction.ResultId];
                 var variableType = types[variableInstruction.ResultType];
 
@@ -202,7 +197,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
         foreach (var mixin in Mixins)
         {
             // Import types and variables/functions
-            context.Buffer.FluentAdd(new OpSDSLImportShader(context.Bound++, new(mixin.Name)), out var shader);
+            context.FluentAdd(new OpSDSLImportShader(context.Bound++, new(mixin.Name)), out var shader);
 
             var shaderType = (ShaderSymbol)table.DeclaredTypes[mixin.Name];
 
@@ -211,23 +206,23 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
                 if (c.Id.Kind == SymbolKind.Variable)
                 {
                     var variableTypeId = context.GetOrRegister(c.Type);
-                    var variable = context.Buffer.Add(new OpSDSLImportVariable(context.Bound++, variableTypeId, c.Id.Name, shader.ResultId));
-                    context.Module.InheritedVariables.Add(c.Id.Name, new(variable, c.Id.Name));
-                    table.CurrentFrame.Add(c.Id.Name, c with { IdRef = variable.IdResult });
+                    context.FluentAdd(new OpSDSLImportVariable(context.Bound++, variableTypeId, c.Id.Name, shader.ResultId), out var variable);
+                    context.Module.InheritedVariables.Add(c.Id.Name, new(variable.ResultId, variable.ResultType, variable.VariableName));
+                    table.CurrentFrame.Add(c.Id.Name, c with { IdRef = variable.ResultId });
                 }
                 else if (c.Id.Kind == SymbolKind.Method)
                 {
                     var functionType = (FunctionType)c.Type;
 
                     var functionReturnTypeId = context.GetOrRegister(functionType.ReturnType);
-                    context.Buffer.FluentAdd(new OpSDSLImportFunction(context.Bound++, functionReturnTypeId, c.Id.Name, shader.ResultId), out var function);
+                    context.FluentAdd(new OpSDSLImportFunction(context.Bound++, functionReturnTypeId, c.Id.Name, shader.ResultId), out var function);
                     context.Module.InheritedFunctions.Add(c.Id.Name, new(function.ResultId, c.Id.Name, functionType));
                     table.CurrentFrame.Add(c.Id.Name, c with { IdRef = function.ResultId });
                 }
             }
 
             // Mark inherit
-            context.Buffer.Add(new OpSDSLMixinInherit(shader.ResultId));
+            context.Add(new OpSDSLMixinInherit(shader.ResultId));
             context.Module.InheritedMixins.Add(shaderType);
         }
 

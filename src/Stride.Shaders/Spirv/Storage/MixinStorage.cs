@@ -7,7 +7,7 @@ namespace Stride.Shaders.Spirv;
 
 
 
-public record struct Mixin(string Name, SpirvBuffer Buffer);
+public record struct Mixin(string Name, NewSpirvBuffer Buffer);
 
 
 public class MixinStorage
@@ -17,12 +17,12 @@ public class MixinStorage
 
     private MixinStorage(){}
 
-    public static void RegisterOrUpdate(string name, SpirvBuffer buffer)
+    public static void RegisterOrUpdate(string name, NewSpirvBuffer buffer)
     {
         Instance.Storage[name] = new(name, buffer);
     }
 
-    public static bool TryRegister(string name, SpirvBuffer buffer)
+    public static bool TryRegister(string name, NewSpirvBuffer buffer)
     {
         return Instance.Storage.TryAdd(name, new(name, buffer));
     }

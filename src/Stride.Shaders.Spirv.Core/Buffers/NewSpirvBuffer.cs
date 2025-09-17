@@ -22,8 +22,8 @@ public struct OpData : IDisposable, IComparable<OpData>
     public MemoryOwner<int> Memory { get; internal set { field?.Dispose(); field = value; } }
     public readonly Op Op => (Op)(Memory.Span[0] & 0xFFFF);
 
-    public readonly int IdResult => InstructionInfo.GetInfo(this).GetResultIndex(out var index) ? Memory.Span[index + 1] : throw new Exception("No IdResult for this instruction");
-    public readonly int IdResultType => InstructionInfo.GetInfo(this).GetResultTypeIndex(out var index) ? Memory.Span[index + 1] : throw new Exception("No IdResult for this instruction");
+    public readonly int? IdResult => InstructionInfo.GetInfo(this).GetResultIndex(out var index) ? Memory.Span[index + 1] : null;
+    public readonly int? IdResultType => InstructionInfo.GetInfo(this).GetResultTypeIndex(out var index) ? Memory.Span[index + 1] : null;
 
     public OpData()
     {
@@ -90,8 +90,8 @@ public struct OpData : IDisposable, IComparable<OpData>
 
 public record struct OpDataIndex(int Index, NewSpirvBuffer Buffer)
 {
-    public readonly Op Op => Buffer[Index].Op;
-    public readonly ref OpData Data => ref Buffer[Index];
+    public readonly Op Op => Data.Op;
+    public readonly ref OpData Data => ref Buffer.GetRef(Index);
 }
 
 public sealed class NewSpirvBuffer() : IDisposable
@@ -100,12 +100,15 @@ public sealed class NewSpirvBuffer() : IDisposable
     List<OpData> Instructions { get; set; } = [];
     public int Count => Instructions.Count;
 
-    internal ref OpData this[int index] => ref CollectionsMarshal.AsSpan(Instructions)[index];
+    // internal ref OpData this[int index] => ref CollectionsMarshal.AsSpan(Instructions)[index];
+    public OpDataIndex this[int index] => new(index, this);
 
+
+    public ref OpData GetRef(int index) => ref CollectionsMarshal.AsSpan(Instructions)[index];
 
     public NewSpirvBuffer(Span<int> span) : this()
     {
-        if(span[0] == MagicNumber)
+        if (span[0] == MagicNumber)
             Header = SpirvHeader.Read(span);
         var instructions = span[5..];
 
@@ -196,6 +199,13 @@ public sealed class NewSpirvBuffer() : IDisposable
             Header = Header with { Bound = tmp.InstructionMemory.Span[rid] + 1 };
         return data;
     }
+    public OpData InsertData<T>(int index, in T data)
+        where T : struct, IMemoryInstruction
+    {
+        var result = new OpData(data.InstructionMemory);
+        Instructions.Insert(index, result);
+        return result;
+    }
 
     /// <summary>
     /// Removes an instruction at a certain index. 
@@ -269,6 +279,17 @@ public sealed class NewSpirvBuffer() : IDisposable
         foreach (var instruction in Instructions)
             instruction.Dispose();
         Instructions.Clear();
+    }
+
+    public static NewSpirvBuffer Merge(NewSpirvBuffer buffer1, NewSpirvBuffer buffer2)
+    {
+        var result = new NewSpirvBuffer
+        {
+            Header = new SpirvHeader("1.4", Math.Max(buffer1.Header.Generator, buffer2.Header.Generator), Math.Max(buffer1.Header.Bound, buffer2.Header.Bound))
+        };
+        result.Instructions.AddRange(buffer1.Instructions);
+        result.Instructions.AddRange(buffer2.Instructions);
+        return result;
     }
 }
 

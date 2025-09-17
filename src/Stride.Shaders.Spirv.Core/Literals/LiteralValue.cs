@@ -28,6 +28,7 @@ public struct LiteralValue<T> : ISpirvElement, IFromSpirv<LiteralValue<T>>
             LiteralValue<sbyte>
             or LiteralValue<short>
             or LiteralValue<int>
+            or LiteralValue<int?>
             or LiteralValue<long>
             or LiteralValue<byte>
             or LiteralValue<ushort>
@@ -45,7 +46,7 @@ public struct LiteralValue<T> : ISpirvElement, IFromSpirv<LiteralValue<T>>
     public bool dispose;
     public MemoryOwner<int> MemoryOwner { get; private set; }
     public readonly ReadOnlySpan<int> Words => MemoryOwner.Span;
-    public T Value { get; set { field = value; if(MemoryOwner is not null) UpdateMemory(); } }
+    public T Value { get; set { field = value; if (MemoryOwner is not null) UpdateMemory(); } }
     public readonly int WordCount => Words.Length;
 
     public LiteralValue(Span<int> words, bool dispose = false)
@@ -76,7 +77,9 @@ public struct LiteralValue<T> : ISpirvElement, IFromSpirv<LiteralValue<T>>
             Unsafe.As<T, double>(ref value) = BitConverter.Int64BitsToDouble(((long)words[0] << 32) | (uint)words[1]);
         else if (value is ValueTuple<int, int>)
             Unsafe.As<T, (int, int)>(ref value) = (words[0], words[1]);
-        else if(value is null && typeof(T) == typeof(string))
+        else if (value is null && typeof(T) != typeof(string))
+            value = default!;
+        else if (value is null && typeof(T) == typeof(string))
         {
             Span<char> sb = stackalloc char[words.Length * 4];
             for (int i = 0; i < words.Length; i++)
@@ -123,8 +126,11 @@ public struct LiteralValue<T> : ISpirvElement, IFromSpirv<LiteralValue<T>>
             null => 0,
             _ => throw new NotImplementedException("Can't compute literal value for type " + typeof(T))
         };
-        if(MemoryOwner == null)
+        if (MemoryOwner == null)
+        {
             MemoryOwner = MemoryOwner<int>.Empty;
+            return;
+        }
         else MemoryOwner.Dispose();
         MemoryOwner = MemoryOwner<int>.Allocate(wordCount, AllocationMode.Clear);
         if (Value is bool or byte or sbyte or short or ushort or Half or int or uint or float)

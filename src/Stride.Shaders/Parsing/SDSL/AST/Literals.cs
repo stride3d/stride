@@ -71,13 +71,20 @@ public class IntegerLiteral(Suffix suffix, long value, TextLocation info) : Numb
         };
 
 
+        // _ = (Type, Suffix) switch
+        // {
+        //     (ScalarType, { Size: > 32 }) => compiler.Context.Add(new OpConstant<long>(compiler.Context.GetOrRegister(Type), compiler.Context.Bound++, LongValue)),
+        //     (ScalarType, { Size: <= 32 }) => compiler.Context.Add(new OpConstant<int>(compiler.Context.GetOrRegister(Type), compiler.Context.Bound++, IntValue)),
+        //     _ => throw new NotImplementedException("")
+        // };
+
         var i = (Type, Suffix) switch
         {
-            (ScalarType, { Size: > 32 }) => compiler.Context.Buffer.Add(new OpConstant<long>(compiler.Context.GetOrRegister(Type), compiler.Context.Bound++, LongValue)),
-            (ScalarType, { Size: <= 32 }) => compiler.Context.Buffer.Add(new OpConstant<int>(compiler.Context.GetOrRegister(Type), compiler.Context.Bound++, IntValue)),
+            (ScalarType, { Size: > 32 }) => compiler.Context.Add(new OpConstant<long>(compiler.Context.GetOrRegister(Type), compiler.Context.Bound++, LongValue)),
+            (ScalarType, { Size: <= 32 }) => compiler.Context.Add(new OpConstant<int>(compiler.Context.GetOrRegister(Type), compiler.Context.Bound++, IntValue)),
             _ => throw new NotImplementedException("")
         };
-        return new SpirvValue(i.IdResult, i.IdResultType, null);
+        return new SpirvValue(i.IdResult ?? -1, i.IdResultType ?? -1, null);
     }
 }
 
@@ -97,11 +104,11 @@ public sealed class FloatLiteral(Suffix suffix, double value, int? exponent, Tex
         };
         var i = (Type, Suffix) switch
         {
-            (ScalarType, { Size: > 32 }) => compiler.Context.Buffer.Add(new OpConstant<double>(compiler.Context.GetOrRegister(Type), compiler.Context.Bound++, DoubleValue)),
-            (ScalarType, { Size: <= 32 }) => compiler.Context.Buffer.Add(new OpConstant<float>(compiler.Context.GetOrRegister(Type), compiler.Context.Bound++, (float)DoubleValue)),
+            (ScalarType, { Size: > 32 }) => compiler.Context.Add(new OpConstant<double>(compiler.Context.GetOrRegister(Type), compiler.Context.Bound++, DoubleValue)),
+            (ScalarType, { Size: <= 32 }) => compiler.Context.Add(new OpConstant<float>(compiler.Context.GetOrRegister(Type), compiler.Context.Bound++, (float)DoubleValue)),
             _ => throw new NotImplementedException("")
         };
-        return new SpirvValue(i.IdResult, i.IdResultType, null);
+        return new SpirvValue(i.IdResult ?? -1, i.IdResultType ?? -1, null);
     }
 }
 
@@ -120,10 +127,10 @@ public class BoolLiteral(bool value, TextLocation info) : ScalarLiteral(info)
     {
         var i = Value switch
         {
-            true => compiler.Context.Buffer.Add(new OpConstantTrue(compiler.Context.GetOrRegister(Type), compiler.Context.Bound++)),
-            false => compiler.Context.Buffer.Add(new OpConstantFalse(compiler.Context.GetOrRegister(Type), compiler.Context.Bound++))
+            true => compiler.Context.Add(new OpConstantTrue(compiler.Context.GetOrRegister(Type), compiler.Context.Bound++)),
+            false => compiler.Context.Add(new OpConstantFalse(compiler.Context.GetOrRegister(Type), compiler.Context.Bound++))
         };
-        return new SpirvValue(i.IdResult, i.IdResultType, null);
+        return new SpirvValue(i.IdResult ?? -1, i.IdResultType ?? -1, null);
     }
 }
 
@@ -263,7 +270,7 @@ public class Identifier(string name, TextLocation info) : Literal(info)
             var indexLiteral = new IntegerLiteral(new(32, false, true), accessChainIndex, new());
             indexLiteral.Compile(table, shader, compiler);
             var index = context.CreateConstant(indexLiteral).Id;
-            result.Id = compiler.Builder.Buffer.Insert(compiler.Builder.Position++, new OpAccessChain(resultType, compiler.Context.Bound++, symbol.IdRef, [index]));
+            result.Id = compiler.Builder.Insert(new OpAccessChain(resultType, compiler.Context.Bound++, symbol.IdRef, [index]));
         }
 
         return result;

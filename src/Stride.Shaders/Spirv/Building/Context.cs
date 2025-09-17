@@ -25,7 +25,7 @@ public class SpirvContext(SpirvModule module)
     public Dictionary<SymbolType, int> Types { get; } = [];
     public Dictionary<int, SymbolType> ReverseTypes { get; } = [];
     public Dictionary<(SymbolType Type, object Value), SpirvValue> LiteralConstants { get; } = [];
-    public NewSpirvBuffer Buffer { get; set; } = new();
+    NewSpirvBuffer Buffer { get; set; } = new();
 
     public void PutShaderName(string name)
     {
@@ -48,17 +48,17 @@ public class SpirvContext(SpirvModule module)
     {
         var data = value switch
         {
-            byte v => Buffer.Add(new OpConstant<byte>(Bound++, GetOrRegister(ScalarType.From("byte")), v)),
-            sbyte v => Buffer.Add(new OpConstant<sbyte>(Bound++, GetOrRegister(ScalarType.From("sbyte")), v)),
-            ushort v => Buffer.Add(new OpConstant<ushort>(Bound++, GetOrRegister(ScalarType.From("ushort")), v)),
-            short v => Buffer.Add(new OpConstant<short>(Bound++, GetOrRegister(ScalarType.From("short")), v)),
-            uint v => Buffer.Add(new OpConstant<uint>(Bound++, GetOrRegister(ScalarType.From("uint")), v)),
-            int v => Buffer.Add(new OpConstant<int>(Bound++, GetOrRegister(ScalarType.From("int")), v)),
-            ulong v => Buffer.Add(new OpConstant<ulong>(Bound++, GetOrRegister(ScalarType.From("ulong")), v)),
-            long v => Buffer.Add(new OpConstant<long>(Bound++, GetOrRegister(ScalarType.From("long")), v)),
-            Half v => Buffer.Add(new OpConstant<Half>(Bound++, GetOrRegister(ScalarType.From("half")), v)),
-            float v => Buffer.Add(new OpConstant<float>(Bound++, GetOrRegister(ScalarType.From("float")), v)),
-            double v => Buffer.Add(new OpConstant<double>(Bound++, GetOrRegister(ScalarType.From("bdouble")), v)),
+            byte v => Buffer.Add(new OpConstant<byte>(GetOrRegister(ScalarType.From("byte")), Bound++, v)),
+            sbyte v => Buffer.Add(new OpConstant<sbyte>(GetOrRegister(ScalarType.From("sbyte")), Bound++, v)),
+            ushort v => Buffer.Add(new OpConstant<ushort>(GetOrRegister(ScalarType.From("ushort")), Bound++, v)),
+            short v => Buffer.Add(new OpConstant<short>(GetOrRegister(ScalarType.From("short")), Bound++, v)),
+            uint v => Buffer.Add(new OpConstant<uint>(GetOrRegister(ScalarType.From("uint")), Bound++, v)),
+            int v => Buffer.Add(new OpConstant<int>(GetOrRegister(ScalarType.From("int")), Bound++, v)),
+            ulong v => Buffer.Add(new OpConstant<ulong>(GetOrRegister(ScalarType.From("ulong")), Bound++, v)),
+            long v => Buffer.Add(new OpConstant<long>(GetOrRegister(ScalarType.From("long")), Bound++, v)),
+            Half v => Buffer.Add(new OpConstant<Half>(GetOrRegister(ScalarType.From("half")), Bound++, v)),
+            float v => Buffer.Add(new OpConstant<float>(GetOrRegister(ScalarType.From("float")), Bound++, v)),
+            double v => Buffer.Add(new OpConstant<double>(GetOrRegister(ScalarType.From("bdouble")), Bound++, v)),
             _ => throw new NotImplementedException()
         };
         if (InstructionInfo.GetInfo(data).GetResultIndex(out var index))
@@ -155,9 +155,9 @@ public class SpirvContext(SpirvModule module)
                 // StructSymbol st => RegisterStruct(st),
                 _ => throw new NotImplementedException($"Can't add type {type}")
             };
-            Types[type] = instruction;
-            ReverseTypes[instruction] = type;
-            return instruction;
+            Types[type] = instruction ?? -1;
+            ReverseTypes[instruction ?? -1] = type;
+            return instruction ?? -1;
         }
     }
 
@@ -184,10 +184,10 @@ public class SpirvContext(SpirvModule module)
 
         var result = Buffer.Add(new OpTypeStruct(Bound++, [.. types]));
         var id = result.IdResult;
-        AddName(id, name);
+        AddName(id ?? -1, name);
         for (var index = 0; index < structSymbol.Members.Count; index++)
-            AddMemberName(id, index, structSymbol.Members[index].Name);
-        return id;
+            AddMemberName(id ?? -1, index, structSymbol.Members[index].Name);
+        return id ?? -1;
     }
 
 
@@ -200,16 +200,16 @@ public class SpirvContext(SpirvModule module)
         var result = Buffer.Add(new OpTypeFunction(Bound++, GetOrRegister(functionType.ReturnType), [.. types]));
         // disabled for now: currently it generates name with {}, not working with most SPIRV tools
         // AddName(result, functionType.ToId());
-        return result.IdResult;
+        return result.IdResult ?? -1;
     }
 
     int RegisterPointerType(PointerType pointerType)
     {
         var baseType = GetOrRegister(pointerType.BaseType);
-        var result = Buffer.Add(new OpTypePointer(Bound++, pointerType.StorageClass, baseType));
+        var result = Add(new OpTypePointer(Bound++, pointerType.StorageClass, baseType));
         var id = result.IdResult;
-        AddName(id, pointerType.ToId());
-        return id;
+        AddName(id ?? -1, pointerType.ToId());
+        return id ?? -1;
     }
 
     public SpirvValue CreateConstant(Literal literal)
@@ -233,22 +233,22 @@ public class SpirvContext(SpirvModule module)
         //     return result;
         var instruction = literal switch
         {
-            BoolLiteral { Value: true } lit => Buffer.Add(new OpConstantTrue(Bound++, GetOrRegister(lit.Type))),
-            BoolLiteral { Value: false } lit => Buffer.Add(new OpConstantFalse(Bound++, GetOrRegister(lit.Type))),
+            BoolLiteral { Value: true } lit => Buffer.Add(new OpConstantTrue(GetOrRegister(lit.Type), Bound++)),
+            BoolLiteral { Value: false } lit => Buffer.Add(new OpConstantFalse(GetOrRegister(lit.Type), Bound++)),
             IntegerLiteral lit => lit.Suffix switch
             {
-                { Size: <= 8, Signed: false } => Buffer.Add(new OpConstant<byte>(Bound++, GetOrRegister(lit.Type), (byte)lit.IntValue)),
-                { Size: <= 8, Signed: true } => Buffer.Add(new OpConstant<sbyte>(Bound++, GetOrRegister(lit.Type), (sbyte)lit.IntValue)),
-                { Size: <= 16, Signed: false } => Buffer.Add(new OpConstant<ushort>(Bound++, GetOrRegister(lit.Type), (ushort)lit.IntValue)),
-                { Size: <= 16, Signed: true } => Buffer.Add(new OpConstant<short>(Bound++, GetOrRegister(lit.Type), (short)lit.IntValue)),
-                { Size: <= 32, Signed: false } => Buffer.Add(new OpConstant<uint>(Bound++, GetOrRegister(lit.Type), unchecked((uint)lit.IntValue))),
-                { Size: <= 32, Signed: true } => Buffer.Add(new OpConstant<int>(Bound++, GetOrRegister(lit.Type), lit.IntValue)),
+                { Size: <= 8, Signed: false } => Buffer.Add(new OpConstant<byte>(GetOrRegister(lit.Type), Bound++, (byte)lit.IntValue)),
+                { Size: <= 8, Signed: true } => Buffer.Add(new OpConstant<sbyte>(GetOrRegister(lit.Type), Bound++, (sbyte)lit.IntValue)),
+                { Size: <= 16, Signed: false } => Buffer.Add(new OpConstant<ushort>(GetOrRegister(lit.Type), Bound++, (ushort)lit.IntValue)),
+                { Size: <= 16, Signed: true } => Buffer.Add(new OpConstant<short>(GetOrRegister(lit.Type), Bound++, (short)lit.IntValue)),
+                { Size: <= 32, Signed: false } => Buffer.Add(new OpConstant<uint>(GetOrRegister(lit.Type), Bound++, unchecked((uint)lit.IntValue))),
+                { Size: <= 32, Signed: true } => Buffer.Add(new OpConstant<int>(GetOrRegister(lit.Type), Bound++, lit.IntValue)),
                 _ => throw new NotImplementedException()
             },
             FloatLiteral lit => lit.Suffix.Size switch
             {
-                > 32 => Buffer.Add(new OpConstant<double>(Bound++, GetOrRegister(lit.Type), lit.DoubleValue)),
-                _ => Buffer.Add(new OpConstant<float>(Bound++, GetOrRegister(lit.Type), (float)lit.DoubleValue)),
+                > 32 => Buffer.Add(new OpConstant<double>(GetOrRegister(lit.Type), Bound++, lit.DoubleValue)),
+                _ => Buffer.Add(new OpConstant<float>(GetOrRegister(lit.Type), Bound++, (float)lit.DoubleValue)),
             },
             _ => throw new NotImplementedException()
         };
@@ -264,6 +264,23 @@ public class SpirvContext(SpirvModule module)
         });
         return result;
     }
+
+    public OpData Add<T>(in T value)
+        where T : struct, IMemoryInstruction
+        => Buffer.Add(value);
+
+
+    public SpirvContext FluentAdd<T>(in T value, out T result)
+        where T : struct, IMemoryInstruction
+    {
+        Buffer.FluentAdd(value, out result);
+        return this;
+    }
+
+    public void Sort() => Buffer.Sort();
+
+    [Obsolete("Use the insert method instead")]
+    public NewSpirvBuffer GetBuffer() => Buffer;
 
     public override string ToString()
     {

@@ -147,7 +147,7 @@ public partial class SPVGenerator : IIncrementalGenerator
 
         if (instruction.Operands?.AsList() is List<OperandData> operands)
         {
-            body2.AppendLine("foreach (var o in index.Buffer[index.Index])")
+            body2.AppendLine("foreach (var o in index.Data)")
             .AppendLine("{");
 
             body3.Append($"public {instruction.OpName}(")
@@ -230,7 +230,7 @@ public partial class SPVGenerator : IIncrementalGenerator
                     readonly get
                     {{
                         if (DataIndex is OpDataIndex odi)
-                            return odi.Buffer[odi.Index].Memory;
+                            return odi.Data.Memory;
                         else return field;
                     }}
 
@@ -238,8 +238,8 @@ public partial class SPVGenerator : IIncrementalGenerator
                     {{
                         if (DataIndex is OpDataIndex odi)
                         {{
-                            odi.Buffer[odi.Index].Memory.Dispose();
-                            odi.Buffer[odi.Index].Memory = value;
+                            odi.Data.Memory.Dispose();
+                            odi.Data.Memory = value;
                         }}
                         else field = value;
                     }}
@@ -270,7 +270,7 @@ public partial class SPVGenerator : IIncrementalGenerator
             operands.Add(new() { Name = "additional1", Kind = "LiteralInteger", Quantifier = "?" });
             operands.Add(new() { Name = "additional2", Kind = "LiteralInteger", Quantifier = "?" });
             operands.Add(new() { Name = "additionalString", Kind = "LiteralString", Quantifier = "?" });
-            body2.AppendLine("foreach (var o in index.Buffer[index.Index])")
+            body2.AppendLine("foreach (var o in index.Data)")
             .AppendLine("{");
 
             body3.Append($"public {instruction.OpName}(")
@@ -353,7 +353,7 @@ public partial class SPVGenerator : IIncrementalGenerator
                     readonly get
                     {{
                         if (DataIndex is OpDataIndex odi)
-                            return odi.Buffer[odi.Index].Memory;
+                            return odi.Data.Memory;
                         else return field;
                     }}
 
@@ -361,8 +361,8 @@ public partial class SPVGenerator : IIncrementalGenerator
                     {{
                         if (DataIndex is OpDataIndex odi)
                         {{
-                            odi.Buffer[odi.Index].Memory.Dispose();
-                            odi.Buffer[odi.Index].Memory = value;
+                            odi.Data.Memory.Dispose();
+                            odi.Data.Memory = value;
                         }}
                         else field = value;
                     }}
@@ -387,7 +387,7 @@ public partial class SPVGenerator : IIncrementalGenerator
         if (instruction.Operands?.AsList() is List<OperandData> operands && extinst.Operands?.AsList() is List<OperandData> extOperands)
         {
             var allOperands = extOperands.Concat(operands).Where(x => x is not { Kind: "IdRef", Quantifier: "*" } and not { Kind: "LiteralExtInstInteger" });
-            body2.AppendLine("foreach (var o in index.Buffer[index.Index])")
+            body2.AppendLine("foreach (var o in index.Data)")
             .AppendLine("{");
 
             body3.Append($"public {instruction.OpName}(")
@@ -467,7 +467,7 @@ public partial class SPVGenerator : IIncrementalGenerator
                     readonly get
                     {{
                         if (DataIndex is OpDataIndex odi)
-                            return odi.Buffer[odi.Index].Memory;
+                            return odi.Data.Memory;
                         else return field;
                     }}
 
@@ -475,8 +475,8 @@ public partial class SPVGenerator : IIncrementalGenerator
                     {{
                         if (DataIndex is OpDataIndex odi)
                         {{
-                            odi.Buffer[odi.Index].Memory.Dispose();
-                            odi.Buffer[odi.Index].Memory = value;
+                            odi.Data.Memory.Dispose();
+                            odi.Data.Memory = value;
                         }}
                         else field = value;
                     }}
@@ -501,7 +501,7 @@ public partial class SPVGenerator : IIncrementalGenerator
 
         if (instruction.Operands?.AsList() is List<OperandData> operands)
         {
-            body2.AppendLine("foreach (var o in index.Buffer[index.Index])")
+            body2.AppendLine("foreach (var o in index.Data)")
             .AppendLine("{");
 
             body3.Append($"public {instruction.OpName}(")
@@ -590,7 +590,7 @@ public partial class SPVGenerator : IIncrementalGenerator
                     readonly get
                     {{
                         if (DataIndex is OpDataIndex odi)
-                            return odi.Buffer[odi.Index].Memory;
+                            return odi.Data.Memory;
                         else return field;
                     }}
 
@@ -598,8 +598,8 @@ public partial class SPVGenerator : IIncrementalGenerator
                     {{
                         if (DataIndex is OpDataIndex odi)
                         {{
-                            odi.Buffer[odi.Index].Memory.Dispose();
-                            odi.Buffer[odi.Index].Memory = value;
+                            odi.Data.Memory.Dispose();
+                            odi.Data.Memory = value;
                         }}
                         else field = value;
                     }}

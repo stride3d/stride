@@ -146,16 +146,14 @@ public class Declare(TypeName typename, TextLocation info) : Declaration(typenam
         var registeredType = context.GetOrRegister(new PointerType(Type!, Specification.StorageClass.Function));
         foreach (var d in Variables)
         {
-            // var variable = context.Bound++;
-            // var instruction = builder.Buffer.InsertOpVariable(builder.Position++, variable, registeredType, Specification.StorageClass.Function, null);
-            // context.AddName(variable, d.Variable);
+            var variable = context.Bound++;
+            builder.Insert(new OpVariable(registeredType, variable, Specification.StorageClass.Function, null));
+            context.AddName(variable, d.Variable);
 
-            // table.CurrentFrame.Add(d.Variable, new(new(d.Variable, SymbolKind.Variable), Type, variable));
+            table.CurrentFrame.Add(d.Variable, new(new(d.Variable, SymbolKind.Variable), Type, variable));
 
-            // if (builder.CurrentFunction is SpirvFunction f)
-            //     f.Variables.Add(d.Variable, new(variable, registeredType, d.Variable));
-#warning replace
-            throw new NotImplementedException();
+            if (builder.CurrentFunction is SpirvFunction f)
+                f.Variables.Add(d.Variable, new(variable, registeredType, d.Variable));
         }
     }
     public override string ToString()
@@ -170,25 +168,23 @@ public class Assign(TextLocation info) : Statement(info)
 
     public override void Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
     {
-        // var (builder, context, _) = compiler;
-        // foreach (var variable in Variables)
-        // {
-        //     var target = variable.Variable.Compile(table, shader, compiler);
-        //     var source = variable.Value!.Compile(table, shader, compiler);
-        //     if (variable.Variable.Type is not PointerType)
-        //         throw new InvalidOperationException("can only assign to pointer type");
-        //     if (variable.Value!.Type is PointerType p)
-        //     {
-        //         var sourceLoad = context.Bound++;
-        //         var underlyingType = context.GetOrRegister(p.BaseType);
-        //         builder.Buffer.InsertOpLoad(builder.Position++, sourceLoad, underlyingType, source.Id, Specification.MemoryAccessMask.None);
-        //         source = new(sourceLoad, underlyingType);
-        //     }
+        var (builder, context, _) = compiler;
+        foreach (var variable in Variables)
+        {
+            var target = variable.Variable.Compile(table, shader, compiler);
+            var source = variable.Value!.Compile(table, shader, compiler);
+            if (variable.Variable.Type is not PointerType)
+                throw new InvalidOperationException("can only assign to pointer type");
+            if (variable.Value!.Type is PointerType p)
+            {
+                var sourceLoad = context.Bound++;
+                var underlyingType = context.GetOrRegister(p.BaseType);
+                builder.Insert(new OpLoad(underlyingType, sourceLoad, source.Id, Specification.MemoryAccessMask.None));
+                source = new(sourceLoad, underlyingType);
+            }
 
-        //     var instruction = builder.Buffer.InsertOpStore(builder.Position++, target.Id, source.Id, null);
-        // }
-#warning replace
-        throw new NotImplementedException();
+            builder.Insert(new OpStore(target.Id, source.Id, null));
+        }
     }
     public override string ToString()
     {
