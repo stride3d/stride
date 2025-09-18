@@ -499,8 +499,8 @@ namespace Stride.Graphics.SDL
         public event TouchFingerDelegate FingerMoveActions;
         public event TouchFingerDelegate FingerPressActions;
         public event TouchFingerDelegate FingerReleaseActions;
-        public event WindowEventDelegate ResizeBeginActions;
-        public event WindowEventDelegate ResizeEndActions;
+        public event WindowEventDelegate SizeChangedActions;
+        public event WindowEventDelegate UserResizedActions;
         public event WindowEventDelegate ActivateActions;
         public event WindowEventDelegate DeActivateActions;
         public event WindowEventDelegate MinimizedActions;
@@ -585,11 +585,11 @@ namespace Stride.Graphics.SDL
                     switch ((WindowEventID)e.Window.Event)
                     {
                         case WindowEventID.SizeChanged:
-                            ResizeBeginActions?.Invoke(e.Window);
+                            SizeChangedActions?.Invoke(e.Window);
                             break;
 
                         case WindowEventID.Resized:
-                            ResizeEndActions?.Invoke(e.Window);
+                            UserResizedActions?.Invoke(e.Window);
                             break;
 
                         case WindowEventID.Close:
