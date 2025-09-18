@@ -130,9 +130,9 @@ namespace Stride.Graphics
 
             if (activePipeline != null)
             {
-                vkCmdBindPipeline(currentCommandList.NativeCommandBuffer, VkPipelineBindPoint.Graphics, activePipeline.NativePipeline);
+                vkCmdBindPipeline(currentCommandList.NativeCommandBuffer, activePipeline.IsCompute ? VkPipelineBindPoint.Compute : VkPipelineBindPoint.Graphics, activePipeline.NativePipeline);
                 var descriptorSetCopy = descriptorSet;
-                vkCmdBindDescriptorSets(currentCommandList.NativeCommandBuffer, VkPipelineBindPoint.Graphics, activePipeline.NativeLayout, firstSet: 0, descriptorSetCount: 1, &descriptorSetCopy, dynamicOffsetCount: 0, dynamicOffsets: null);
+                vkCmdBindDescriptorSets(currentCommandList.NativeCommandBuffer, activePipeline.IsCompute ? VkPipelineBindPoint.Compute : VkPipelineBindPoint.Graphics, activePipeline.NativeLayout, firstSet: 0, descriptorSetCount: 1, &descriptorSetCopy, dynamicOffsetCount: 0, dynamicOffsets: null);
             }
             SetRenderTargetsImpl(depthStencilBuffer, renderTargetCount, renderTargets);
         }
@@ -249,7 +249,11 @@ namespace Stride.Graphics
 
             // Lazily set the render pass and frame buffer
             EnsureRenderPass();
+            BindDescriptorSets();
+        }
 
+        private unsafe void BindDescriptorSets()
+        {
             // Keep track of descriptor pool usage
             bool isPoolExhausted = ++allocatedSetCount > GraphicsDevice.MaxDescriptorSetCount;
             for (int i = 0; i < DescriptorSetLayout.DescriptorTypeCount; i++)
@@ -328,7 +332,7 @@ namespace Stride.Graphics
                     sType = VkStructureType.WriteDescriptorSet,
                     descriptorType = mapping.DescriptorType,
                     dstSet = localDescriptorSet,
-                    dstBinding = (uint) mapping.DestinationBinding,
+                    dstBinding = (uint)mapping.DestinationBinding,
                     dstArrayElement = 0,
                     descriptorCount = 1
                 };
@@ -336,10 +340,20 @@ namespace Stride.Graphics
                 switch (mapping.DescriptorType)
                 {
                     case VkDescriptorType.SampledImage:
-                        var texture = heapObject.Value as Texture;
-                        descriptorData->ImageInfo = new VkDescriptorImageInfo { imageView = texture?.NativeImageView ?? GraphicsDevice.EmptyTexture.NativeImageView, imageLayout = VkImageLayout.ShaderReadOnlyOptimal };
-                        write->pImageInfo = &descriptorData->ImageInfo;
-                        break;
+                        {
+                            var texture = heapObject.Value as Texture;
+                            descriptorData->ImageInfo = new VkDescriptorImageInfo { imageView = texture?.NativeImageView ?? GraphicsDevice.EmptyTexture.NativeImageView, imageLayout = VkImageLayout.ShaderReadOnlyOptimal };
+                            write->pImageInfo = &descriptorData->ImageInfo;
+                            break;
+                        }
+
+                    case VkDescriptorType.StorageImage:
+                        {
+                            var texture = heapObject.Value as Texture;
+                            descriptorData->ImageInfo = new VkDescriptorImageInfo { imageView = texture?.NativeImageView ?? GraphicsDevice.EmptyTexture.NativeImageView, imageLayout = VkImageLayout.General };
+                            write->pImageInfo = &descriptorData->ImageInfo;
+                            break;
+                        }
 
                     case VkDescriptorType.Sampler:
                         var samplerState = heapObject.Value as SamplerState;
@@ -349,7 +363,7 @@ namespace Stride.Graphics
 
                     case VkDescriptorType.UniformBuffer:
                         var buffer = heapObject.Value as Buffer;
-                        descriptorData->BufferInfo = new VkDescriptorBufferInfo { buffer = buffer?.NativeBuffer ?? VkBuffer.Null, offset = (ulong) heapObject.Offset, range = (ulong) heapObject.Size };
+                        descriptorData->BufferInfo = new VkDescriptorBufferInfo { buffer = buffer?.NativeBuffer ?? VkBuffer.Null, offset = (ulong)heapObject.Offset, range = (ulong)heapObject.Size };
                         write->pBufferInfo = &descriptorData->BufferInfo;
                         break;
 
@@ -359,14 +373,20 @@ namespace Stride.Graphics
                         write->pTexelBufferView = &descriptorData->BufferView;
                         break;
 
+                    case VkDescriptorType.StorageBuffer:
+                        buffer = heapObject.Value as Buffer;
+                        descriptorData->BufferInfo = new VkDescriptorBufferInfo { buffer = buffer?.NativeBuffer ?? VkBuffer.Null, offset = (ulong)heapObject.Offset, range = (ulong)(buffer?.SizeInBytes ?? 0)};
+                        write->pBufferInfo = &descriptorData->BufferInfo;
+                        break;
+
                     default:
                         throw new InvalidOperationException();
                 }
             }
 
-            vkUpdateDescriptorSets(GraphicsDevice.NativeDevice, (uint) bindingCount, writes, descriptorCopyCount: 0, descriptorCopies: null);
+            vkUpdateDescriptorSets(GraphicsDevice.NativeDevice, (uint)bindingCount, writes, descriptorCopyCount: 0, descriptorCopies: null);
 #endif
-            vkCmdBindDescriptorSets(currentCommandList.NativeCommandBuffer, VkPipelineBindPoint.Graphics, activePipeline.NativeLayout, firstSet: 0, descriptorSetCount: 1, &localDescriptorSet, dynamicOffsetCount: 0, dynamicOffsets: null);
+            vkCmdBindDescriptorSets(currentCommandList.NativeCommandBuffer, activePipeline.IsCompute ? VkPipelineBindPoint.Compute : VkPipelineBindPoint.Graphics, activePipeline.NativeLayout, firstSet: 0, descriptorSetCount: 1, &localDescriptorSet, dynamicOffsetCount: 0, dynamicOffsets: null);
         }
 
         private readonly FastList<VkCopyDescriptorSet> copies = new();
@@ -390,7 +410,7 @@ namespace Stride.Graphics
 
             activePipeline = pipelineState;
 
-            vkCmdBindPipeline(currentCommandList.NativeCommandBuffer, VkPipelineBindPoint.Graphics, pipelineState.NativePipeline);
+            vkCmdBindPipeline(currentCommandList.NativeCommandBuffer, activePipeline.IsCompute ? VkPipelineBindPoint.Compute : VkPipelineBindPoint.Graphics, pipelineState.NativePipeline);
         }
 
         public unsafe void SetVertexBuffer(int index, Buffer buffer, int offset, int stride)
@@ -446,7 +466,7 @@ namespace Stride.Graphics
                     case GraphicsResourceState.PixelShaderResource:
                         texture.NativeLayout = VkImageLayout.ShaderReadOnlyOptimal;
                         texture.NativeAccessMask = VkAccessFlags.ShaderRead;
-                        texture.NativePipelineStageMask = VkPipelineStageFlags.FragmentShader;
+                        texture.NativePipelineStageMask = VkPipelineStageFlags.FragmentShader | VkPipelineStageFlags.ComputeShader;
                         break;
                     case GraphicsResourceState.GenericRead:
                         texture.NativeLayout = VkImageLayout.General;
@@ -503,6 +523,9 @@ namespace Stride.Graphics
         /// <inheritdoc />
         public void Dispatch(int threadCountX, int threadCountY, int threadCountZ)
         {
+            CleanupRenderPass();
+            BindDescriptorSets();
+            vkCmdDispatch(currentCommandList.NativeCommandBuffer, (uint)threadCountX, (uint)threadCountY, (uint)threadCountZ);
         }
 
         /// <summary>
@@ -512,6 +535,9 @@ namespace Stride.Graphics
         /// <param name="offsetInBytes">The offset information bytes.</param>
         public void Dispatch(Buffer indirectBuffer, int offsetInBytes)
         {
+            CleanupRenderPass();
+            BindDescriptorSets();
+            vkCmdDispatchIndirect(currentCommandList.NativeCommandBuffer, indirectBuffer.NativeBuffer, (ulong)offsetInBytes);
         }
 
         /// <summary>
@@ -1299,11 +1325,6 @@ namespace Stride.Graphics
                 // Is non-staging ever possible for Read/Write?
                 if (usage != GraphicsResourceUsage.Staging)
                     throw new InvalidOperationException();
-            }
-
-            if (mapMode == MapMode.WriteDiscard)
-            {
-                throw new InvalidOperationException("Can't use WriteDiscard on Graphics API that doesn't support renaming");
             }
 
             if (mapMode != MapMode.WriteNoOverwrite && mapMode != MapMode.Write)
