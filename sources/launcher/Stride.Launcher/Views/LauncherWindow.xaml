@@ -508,6 +508,7 @@
                 <StackPanel >
                   <ContentControl Grid.Column="0" Margin="2" Content="{Binding VsixPackage2019}"/>
                   <ContentControl Grid.Column="1" Margin="2" Content="{Binding VsixPackage2022}"/>
+                  <ContentControl Grid.Column="1" Margin="2" Content="{Binding VsixPackage2026}"/>
                 </StackPanel>
               </Border>
               <Border BorderBrush="{StaticResource TileBorderBrush}" DockPanel.Dock="Bottom">
