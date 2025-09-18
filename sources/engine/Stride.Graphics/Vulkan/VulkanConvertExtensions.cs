@@ -276,6 +276,15 @@ namespace Stride.Graphics
                     pixelSize = 4;
                     break;
 
+                case PixelFormat.R10G10B10A2_UInt:
+                    format = VkFormat.A2R10G10B10UintPack32;
+                    pixelSize = 4;
+                    break;
+                case PixelFormat.R10G10B10A2_UNorm:
+                    format = VkFormat.A2R10G10B10UnormPack32;
+                    pixelSize = 4;
+                    break;
+
                 case PixelFormat.R16_Float:
                     format = VkFormat.R16Sfloat;
                     pixelSize = 2;
@@ -395,6 +404,10 @@ namespace Stride.Graphics
                 case PixelFormat.D32_Float:
                     format = VkFormat.D32Sfloat;
                     pixelSize = 4;
+                    break;
+                case PixelFormat.D32_Float_S8X24_UInt:
+                    format = VkFormat.D32SfloatS8Uint;
+                    pixelSize = 8;
                     break;
 
                 case PixelFormat.ETC1:
@@ -545,10 +558,17 @@ namespace Stride.Graphics
                         case EffectParameterType.Texture1DArray:
                         case EffectParameterType.Texture2DArray:
                         case EffectParameterType.TextureCubeArray:
+                        case EffectParameterType.RWTexture1D:
+                        case EffectParameterType.RWTexture1DArray:
+                        case EffectParameterType.RWTexture2D:
+                        case EffectParameterType.RWTexture2DArray:
+                        case EffectParameterType.RWTexture3D:
                             return VkDescriptorType.SampledImage;
 
                         case EffectParameterType.Buffer:
                             return VkDescriptorType.UniformTexelBuffer;
+                        case EffectParameterType.StructuredBuffer:
+                            return VkDescriptorType.StorageBuffer;
 
                         default:
                             throw new NotImplementedException();
@@ -564,9 +584,16 @@ namespace Stride.Graphics
                         case EffectParameterType.Texture1DArray:
                         case EffectParameterType.Texture2DArray:
                         case EffectParameterType.TextureCubeArray:
+                        case EffectParameterType.RWTexture1D:
+                        case EffectParameterType.RWTexture1DArray:
+                        case EffectParameterType.RWTexture2D:
+                        case EffectParameterType.RWTexture2DArray:
+                        case EffectParameterType.RWTexture3D:
+                        case EffectParameterType.RWBuffer:
                             return VkDescriptorType.StorageImage;
 
                         case EffectParameterType.Buffer:
+                        case EffectParameterType.StructuredBuffer:
                             return VkDescriptorType.StorageBuffer;
 
                         default:

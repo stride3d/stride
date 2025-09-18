@@ -126,6 +126,18 @@ namespace Stride.Graphics
                     NativePipelineStageMask |= VkPipelineStageFlags.VertexShader | VkPipelineStageFlags.FragmentShader;
                 }
 
+                if ((ViewFlags & BufferFlags.StructuredBuffer) != 0)
+                {
+                    createInfo.usage |= VkBufferUsageFlags.StorageBuffer;
+                    NativeAccessMask |= VkAccessFlags.UniformRead;
+                    NativePipelineStageMask |= VkPipelineStageFlags.VertexShader | VkPipelineStageFlags.FragmentShader;
+
+                    if ((ViewFlags & BufferFlags.UnorderedAccess) != 0)
+                    {
+                        NativeAccessMask |= VkAccessFlags.ShaderWrite;
+                    }
+                }
+
                 if ((ViewFlags & BufferFlags.ShaderResource) != 0)
                 {
                     createInfo.usage |= VkBufferUsageFlags.UniformTexelBuffer;
