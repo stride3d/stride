@@ -10,6 +10,15 @@ namespace Stride.Graphics
 {
     public partial class GraphicsOutput
     {
+        private readonly int displayIndex;
+
+        public string DisplayName { get; init; }
+
+        public IntPtr MonitorHandle
+        {
+            get { return IntPtr.Zero; }
+        }
+
         /// <summary>
         /// Initializes a new instance of <see cref="GraphicsOutput" />.
         /// </summary>
@@ -38,10 +47,6 @@ namespace Stride.Graphics
             DisplayName = SDL.GetDisplayNameS(displayIndex);
         }
 
-        private readonly int displayIndex;
-
-        public string DisplayName { get; init; }
-
         /// <summary>
         /// Find the display mode that most closely matches the requested display mode.
         /// </summary>
@@ -65,16 +70,11 @@ namespace Stride.Graphics
             return closest;
         }
 
-        public IntPtr MonitorHandle
-        {
-            get { return IntPtr.Zero; }
-        }
-
         private void InitializeSupportedDisplayModes()
         {
             var SDL = Stride.Graphics.SDL.Window.SDL;
 
-            var modesMap = new Dictionary<string, DisplayMode>();
+            var modesMap = new Dictionary<(int w, int h, int refreshRate), DisplayMode>();
             var modeCount = SDL.GetNumDisplayModes(displayIndex);
 
             unsafe
@@ -84,7 +84,7 @@ namespace Stride.Graphics
                     var sdlMode = new Silk.NET.SDL.DisplayMode();
                     SDL.GetDisplayMode(displayIndex, i, &sdlMode);
 
-                    var key = $"{sdlMode.W};{sdlMode.H};{sdlMode.RefreshRate}";
+                    var key = (sdlMode.W, sdlMode.H, sdlMode.RefreshRate);
 
                     if (!modesMap.ContainsKey(key))
                     {
@@ -95,9 +95,7 @@ namespace Stride.Graphics
                 }
             }
 
-            supportedDisplayModes = modesMap
-                .Select(x => x.Value)
-                .ToArray();
+            supportedDisplayModes = modesMap.Values.ToArray();
         }
 
         private void InitializeCurrentDisplayMode()
