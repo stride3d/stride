@@ -42,7 +42,7 @@ static class Program
                 case "/uninstall":
                 {
                     // Note: we allow uninstall to fail (i.e. VSIX was not installed for that specific Visual Studio version)
-                    RunVsixInstaller(ideInfo.VsixInstallerPath, "/uninstall:Stride.VisualStudio.Package.2022 /quiet");
+                    RunVsixInstaller(ideInfo.VsixInstallerPath, "/uninstall:Stride.VisualStudio.Package.2026 /quiet");
                     break;
                 }
             }

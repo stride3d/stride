@@ -51,7 +51,7 @@ public sealed class ConvexHullCollider : ColliderBase
                 // Multiple convex hulls may be set up to create a concave shape, do not merge them
                 foreach (var hull in mesh.Hulls)
                 {
-                    var points = MemoryMarshal.Cast<Vector3, System.Numerics.Vector3>(hull.InternalPoints);
+                    var points = MemoryMarshal.Cast<Vector3, System.Numerics.Vector3>(hull.InternalPoints.AsSpan());
                     var convex = new ConvexHull(points, _sharedPool, out var center);
                     hulls.Add((convex, center));
                 }
