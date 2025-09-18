@@ -1,9 +1,11 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+using System;
 using System.Linq;
 using Stride.Core.Mathematics;
 using Stride.Graphics;
 using Stride.Graphics.Data;
+using Stride.Graphics.Semantics;
 
 namespace Stride.Extensions
 {
@@ -16,89 +18,81 @@ namespace Stride.Extensions
         /// <param name="vertexBufferBinding">The vertex container to transform</param>
         /// <param name="bufferData">The source/destination data array to transform</param>
         /// <param name="matrix">The matrix to use for the transform</param>
-        public static unsafe void TransformBuffer(this VertexBufferBinding vertexBufferBinding, byte[] bufferData, ref Matrix matrix)
+        public static void TransformBuffer(this VertexBufferBinding vertexBufferBinding, byte[] bufferData, ref Matrix matrix)
         {
+            var helper = new VertexBufferHelper(vertexBufferBinding, bufferData, out _);
+            
             // List of items that need to be transformed by the matrix
-            var vertexElementsToTransform1 = vertexBufferBinding.Declaration.EnumerateWithOffsets()
-                .Where(x => x.VertexElement.SemanticName == VertexElementUsage.Position &&
-                           (x.VertexElement.Format == PixelFormat.R32G32B32A32_Float ||
-                            x.VertexElement.Format == PixelFormat.R32G32B32_Float)).ToArray();
+            helper.Write<PositionSemantic, Vector3, Transform>(new Transform { Matrix = matrix });
+
+            // compute matrix inverse transpose
+            Matrix inverseTransposeMatrix;
+            Matrix.Invert(ref matrix, out inverseTransposeMatrix);
+            Matrix.Transpose(ref inverseTransposeMatrix, out inverseTransposeMatrix);
 
             // List of items that need to be transformed by the inverse transpose matrix
-            var vertexElementsToTransform2 = vertexBufferBinding.Declaration.EnumerateWithOffsets()
-                .Where(x => ((x.VertexElement.SemanticName == VertexElementUsage.Normal ||
-                              x.VertexElement.SemanticName == VertexElementUsage.Tangent ||
-                              x.VertexElement.SemanticName == VertexElementUsage.BiTangent)) &&
-                             (x.VertexElement.Format == PixelFormat.R32G32B32_Float ||
-                              x.VertexElement.Format == PixelFormat.R32G32B32A32_Float)).ToArray();
+            var inverseTransposeTransform = new InverseTranspose { InverseTransposeMatrix = inverseTransposeMatrix };
+            helper.Write<Relaxed<NormalSemantic>, Vector4, InverseTranspose>(inverseTransposeTransform);
+            helper.Write<TangentSemantic, Vector4, InverseTranspose>(inverseTransposeTransform);
+            helper.Write<BiTangentSemantic, Vector4, InverseTranspose>(inverseTransposeTransform);
 
-            // List the items that have handedness encoded in the W component
-            var vertexElementsWithHandedness = vertexElementsToTransform2
-                .Where(x => x.VertexElement.SemanticName == VertexElementUsage.Tangent &&
-                            x.VertexElement.Format == PixelFormat.R32G32B32A32_Float).ToArray();
-
-            // If needed, compute matrix inverse transpose
-            Matrix inverseTransposeMatrix;
-            if (vertexElementsToTransform2.Length > 0)
+            if (Vector3.Dot(Vector3.Cross(matrix.Right, matrix.Forward), matrix.Up) < 0.0f)
+                helper.Write<TangentSemantic, Vector4, FlipHandedness>(new FlipHandedness());
+        }
+        
+        private struct Transform : VertexBufferHelper.IWriter<Vector3>
+        {
+            public required Matrix Matrix;
+            
+            public unsafe void Write<TConverter, TSource>(byte* sourcePointer, int elementCount, int stride)
+                where TConverter : IConverter<TSource, Vector3>, IConverter<Vector3, TSource> where TSource : unmanaged
             {
-                Matrix.Invert(ref matrix, out inverseTransposeMatrix);
-                Matrix.Transpose(ref inverseTransposeMatrix, out inverseTransposeMatrix);
-            }
-            else
-            {
-                inverseTransposeMatrix = Matrix.Identity;
-            }
-
-            // Check if handedness is inverted
-            bool flipHandedness = false;
-            if (vertexElementsWithHandedness.Length > 0)
-            {
-                flipHandedness = Vector3.Dot(Vector3.Cross(matrix.Right, matrix.Forward), matrix.Up) < 0.0f;
-            }
-
-            // Transform buffer data
-            var vertexStride = vertexBufferBinding.Declaration.VertexStride;
-            var vertexCount = vertexBufferBinding.Count;
-            fixed (byte* bufferPointerStart = &bufferData[vertexBufferBinding.Offset])
-            {
-                var bufferPointer = bufferPointerStart;
-
-                for (int i = 0; i < vertexCount; ++i)
+                for (byte* end = sourcePointer + elementCount * stride; sourcePointer < end; sourcePointer += stride)
                 {
-                    // Transform positions
-                    foreach (var vertexElement in vertexElementsToTransform1)
+                    if (typeof(TSource) == typeof(Vector4))
                     {
-                        var elementPointer = bufferPointer + vertexElement.Offset;
-                        if (vertexElement.VertexElement.Format == PixelFormat.R32G32B32A32_Float)
-                        {
-                            Vector4.Transform(ref *(Vector4*)elementPointer, ref matrix, out *(Vector4*)elementPointer);
-                        }
-                        else
-                        {
-                            Vector3.TransformCoordinate(ref *(Vector3*)elementPointer, ref matrix, out *(Vector3*)elementPointer);
-                        }
+                        Vector4.Transform(ref *(Vector4*)sourcePointer, ref Matrix, out *(Vector4*)sourcePointer);
                     }
-
-                    // Transform normals
-                    foreach (var vertexElement in vertexElementsToTransform2)
+                    else
                     {
-                        var elementPointer = (Vector3*)(bufferPointer + vertexElement.Offset);
-                        Vector3.TransformNormal(ref *elementPointer, ref inverseTransposeMatrix, out *elementPointer);
-                        elementPointer->Normalize();
+                        TConverter.Convert(*(TSource*)sourcePointer, out var val);
+                        Vector3.TransformCoordinate(ref val, ref Matrix, out val);
+                        TConverter.Convert(val, out *(TSource*)sourcePointer);
                     }
+                }
+            }
+        }
 
-                    // Correct handedness
-                    if (flipHandedness)
-                    {
-                        foreach (var vertexElement in vertexElementsWithHandedness)
-                        {
-                            var elementPointer = bufferPointer + vertexElement.Offset;
-                            var handednessPointer = (float*)elementPointer + 3;
-                            *handednessPointer = -*handednessPointer;
-                        }
-                    }
+        private struct InverseTranspose : VertexBufferHelper.IWriter<Vector4>
+        {
+            public required Matrix InverseTransposeMatrix;
+            
+            public unsafe void Write<TConverter, TSource>(byte* sourcePointer, int elementCount, int stride)
+                where TConverter : IConverter<TSource, Vector4>, IConverter<Vector4, TSource> where TSource : unmanaged
+            {
+                for (byte* end = sourcePointer + elementCount * stride; sourcePointer < end; sourcePointer += stride)
+                {
+                    TConverter.Convert(*(TSource*)sourcePointer, out var val);
 
-                    bufferPointer += vertexStride;
+                    var v3Pointer = (Vector3*)&val;
+                    Vector3.TransformNormal(ref *v3Pointer, ref InverseTransposeMatrix, out *v3Pointer);
+                    v3Pointer->Normalize();
+                    
+                    TConverter.Convert(val, out *(TSource*)sourcePointer);
+                }
+            }
+        }
+
+        private struct FlipHandedness : VertexBufferHelper.IWriter<Vector4>
+        {
+            public unsafe void Write<TConverter, TSource>(byte* sourcePointer, int elementCount, int stride)
+                where TConverter : IConverter<TSource, Vector4>, IConverter<Vector4, TSource> where TSource : unmanaged
+            {
+                for (byte* end = sourcePointer + elementCount * stride; sourcePointer < end; sourcePointer += stride)
+                {
+                    TConverter.Convert(*(TSource*)sourcePointer, out var val);
+                    val.W = -val.W;
+                    TConverter.Convert(val, out *(TSource*)sourcePointer);
                 }
             }
         }
