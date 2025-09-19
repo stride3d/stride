@@ -150,13 +150,17 @@ namespace Stride.Importer.ThreeD
 
                 GenerateNodeNames(scene, nodeNames);
 
+                var materials = ExtractMaterials(scene, materialNames, out var materialOrder);
+
                 var entityInfo = new EntityInfo
                 {
-                    Materials = ExtractMaterials(scene, materialNames),
+                    Materials = materials,
+                    MaterialOrder = materialOrder, // NEW: preserve Assimp array order
                     Models = ExtractModels(scene, meshNames, materialNames, nodeNames),
                     Nodes = ExtractNodeHierarchy(scene, nodeNames),
                     AnimationNodes = ExtractAnimations(scene, animationNames)
                 };
+
 
                 if (extractTextureDependencies)
                     entityInfo.TextureDependencies = ExtractTextureDependencies(scene);
@@ -1243,19 +1247,38 @@ namespace Stride.Importer.ThreeD
             System.IO.File.WriteAllBytes(path, buffer);
         }
 
-        private unsafe Dictionary<string, MaterialAsset> ExtractMaterials(Scene* scene, Dictionary<IntPtr, string> materialNames)
+        // MeshConverter.cs — inside class MeshConverter
+        private unsafe Dictionary<string, MaterialAsset> ExtractMaterials(
+            Scene* scene,
+            Dictionary<IntPtr, string> materialNames,
+            out List<string> materialOrderOut)
         {
+            // Build the unique names first (already in Assimp array order)
             GenerateMaterialNames(scene, materialNames);
 
             var materials = new Dictionary<string, MaterialAsset>();
+            var materialOrder = new List<string>(capacity: (int)scene->MNumMaterials);
+
             for (uint i = 0; i < scene->MNumMaterials; i++)
             {
                 var lMaterial = scene->MMaterials[i];
+
+                // Name in the same position as the Assimp index
                 var materialName = materialNames[(IntPtr)lMaterial];
-                materials.Add(materialName, ProcessMeshMaterial(scene, lMaterial));
+
+                // Build the MaterialAsset with your existing routine
+                var matAsset = ProcessMeshMaterial(scene, lMaterial);
+
+                materials[materialName] = matAsset;   // lookup by name
+                materialOrder.Add(materialName);      // preserve exact Assimp order
             }
+
+            materialOrderOut = materialOrder;
             return materials;
         }
+
+
+
 
         private unsafe void GenerateMaterialNames(Scene* scene, Dictionary<IntPtr, string> materialNames)
         {

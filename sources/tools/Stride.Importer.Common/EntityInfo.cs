@@ -13,5 +13,6 @@ namespace Stride.Importer.Common
         public List<string> AnimationNodes;
         public List<MeshParameters> Models;
         public List<NodeInfo> Nodes;
+        public List<string> MaterialOrder { get; set; }
     }
 }

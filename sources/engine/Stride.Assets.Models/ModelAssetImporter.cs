@@ -224,23 +224,59 @@ namespace Stride.Assets.Models
             if (entityInfo.Models != null)
             {
                 var loadedMaterials = assetReferences.Where(x => x.Asset is MaterialAsset).ToList();
-                foreach (var material in entityInfo.Materials)
+                asset.Materials.Clear();
+
+                // Prefer the exact Assimp material order if present
+                if (entityInfo.MaterialOrder != null && entityInfo.MaterialOrder.Count > 0)
                 {
-                    var modelMaterial = new ModelMaterial
+                    foreach (var matName in entityInfo.MaterialOrder)
                     {
-                        Name = material.Key,
-                        MaterialInstance = new MaterialInstance()
-                    };
-                    var foundMaterial = loadedMaterials.FirstOrDefault(x => x.Location == new UFile(material.Key));
-                    if (foundMaterial != null)
-                    {
-                        var reference = AttachedReferenceManager.CreateProxyObject<Material>(foundMaterial.Id, foundMaterial.Location);
-                        modelMaterial.MaterialInstance.Material = reference;
+                        if (!entityInfo.Materials.TryGetValue(matName, out var _))
+                            continue;
+
+                        var modelMaterial = new ModelMaterial
+                        {
+                            Name = matName,
+                            MaterialInstance = new MaterialInstance()
+                        };
+
+                        // Find the imported material asset by its location (same name convention)
+                        var foundMaterial = loadedMaterials.FirstOrDefault(x => x.Location == new UFile(matName));
+                        if (foundMaterial != null)
+                        {
+                            var reference = AttachedReferenceManager.CreateProxyObject<Material>(foundMaterial.Id, foundMaterial.Location);
+                            modelMaterial.MaterialInstance.Material = reference;
+                        }
+
+                        asset.Materials.Add(modelMaterial);
                     }
-                    asset.Materials.Add(modelMaterial);
                 }
-                //handle the case where during import we imported no materials at all
-                if (entityInfo.Materials.Count == 0)
+                else
+                {
+                    // Fallback: deterministic by-name order if MaterialOrder wasn’t supplied
+                    foreach (var kv in entityInfo.Materials.OrderBy(kv => kv.Key, StringComparer.Ordinal))
+                    {
+                        var matName = kv.Key;
+
+                        var modelMaterial = new ModelMaterial
+                        {
+                            Name = matName,
+                            MaterialInstance = new MaterialInstance()
+                        };
+
+                        var foundMaterial = loadedMaterials.FirstOrDefault(x => x.Location == new UFile(matName));
+                        if (foundMaterial != null)
+                        {
+                            var reference = AttachedReferenceManager.CreateProxyObject<Material>(foundMaterial.Id, foundMaterial.Location);
+                            modelMaterial.MaterialInstance.Material = reference;
+                        }
+
+                        asset.Materials.Add(modelMaterial);
+                    }
+                }
+
+                // If still none, keep a default slot
+                if (asset.Materials.Count == 0)
                 {
                     var modelMaterial = new ModelMaterial { Name = "Material", MaterialInstance = new MaterialInstance() };
                     asset.Materials.Add(modelMaterial);
@@ -274,7 +310,6 @@ namespace Stride.Assets.Models
                         var materialAssetReference = materialAssetReferenceLink.Reference as IReference;
                         if (materialAssetReference == null)
                             continue;
-
                         // texture location is #nameOfTheModel_#nameOfTheTexture at this point in the material
                         var foundTexture = loadedTextures.FirstOrDefault(x => x.Location == materialAssetReference.Location);
                         if (foundTexture != null)

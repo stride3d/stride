@@ -200,11 +200,7 @@ namespace Stride.Assets.Presentation.Templates
                                     ((ModelAsset)clonedAsset).Id = AssetId.New(); // <<—— ensure unique Id
                                     itemForThisMesh = new AssetItem(UPath.Combine(parameters.TargetLocation, uniqueFile), clonedAsset);
                                 }
-
-                                // (Optional but recommended) Trim materials to only those used by this mesh
-                                var wantedMaterialName = entityInfo.Models[i].MaterialName;
-                                KeepOnlyMaterialByName((ModelAsset)itemForThisMesh.Asset, wantedMaterialName);
-
+                              
                                 perMeshAssets.Add(itemForThisMesh);
                                 assets.Add(itemForThisMesh); // keep list current so MakeUniqueFileName sees it
                             }
