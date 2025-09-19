@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Collections.Generic;
 using BepuPhysics.CollisionDetection;
 
 namespace Stride.BepuPhysics.Definitions.Contacts;
@@ -8,12 +9,14 @@ namespace Stride.BepuPhysics.Definitions.Contacts;
 /// <summary>
 /// Implements handlers for various collision events.
 /// </summary>
-public interface IContactEventHandler
+[Obsolete($"{nameof(IContactEventHandler)} as been superseded by {nameof(IContactHandler)}, update your contact methods when migrating to this new class", true)]
+public interface IContactEventHandler : IContactHandler
 {
     /// <summary>
     /// Whether the object this is attached to should let colliders pass through it
     /// </summary>
-    public bool NoContactResponse { get; }
+    [Obsolete($"{nameof(IContactEventHandler)} as been superseded by {nameof(IContactHandler)}, this property will never be called")]
+    public new bool NoContactResponse { get; }
 
     /// <summary>
     /// Fires when a contact is added.
@@ -30,6 +33,7 @@ public interface IContactEventHandler
     /// <param name="contactIndex">Index of the new contact in the contact manifold.</param>
     /// <param name="workerIndex">Index of the worker thread that fired this event.</param>
     /// <param name="bepuSimulation">The simulation where the contact occured.</param>
+    [Obsolete($"{nameof(IContactEventHandler)} as been superseded by {nameof(IContactHandler)}, this method will never be called")]
     void OnContactAdded<TManifold>(CollidableComponent eventSource, CollidableComponent other, ref TManifold contactManifold, bool flippedManifold, int contactIndex, int workerIndex, BepuSimulation bepuSimulation) where TManifold : unmanaged, IContactManifold<TManifold>
     {
     }
@@ -50,6 +54,7 @@ public interface IContactEventHandler
     /// <param name="removedFeatureId">Feature id of the contact that was removed and is no longer present in the contact manifold.</param>
     /// <param name="workerIndex">Index of the worker thread that fired this event.</param>
     /// <param name="bepuSimulation">The simulation where the contact occured.</param>
+    [Obsolete($"{nameof(IContactEventHandler)} as been superseded by {nameof(IContactHandler)}, this method will never be called")]
     void OnContactRemoved<TManifold>(CollidableComponent eventSource, CollidableComponent other, ref TManifold contactManifold, bool flippedManifold, int removedFeatureId, int workerIndex, BepuSimulation bepuSimulation) where TManifold : unmanaged, IContactManifold<TManifold>
     {
     }
@@ -64,6 +69,7 @@ public interface IContactEventHandler
     /// <param name="flippedManifold">Whether the manifold's normals and offset is flipped from the source's point of view.</param>
     /// <param name="workerIndex">Index of the worker thread that fired this event.</param>
     /// <param name="bepuSimulation">The simulation where the contact occured.</param>
+    [Obsolete($"{nameof(IContactEventHandler)} as been superseded by {nameof(IContactHandler)}, this method will never be called")]
     void OnStartedTouching<TManifold>(CollidableComponent eventSource, CollidableComponent other, ref TManifold contactManifold, bool flippedManifold, int workerIndex, BepuSimulation bepuSimulation) where TManifold : unmanaged, IContactManifold<TManifold>
     {
     }
@@ -78,6 +84,7 @@ public interface IContactEventHandler
     /// <param name="flippedManifold">Whether the manifold's normals and offset is flipped from the source's point of view.</param>
     /// <param name="workerIndex">Index of the worker thread that fired this event.</param>
     /// <param name="bepuSimulation">The simulation where the contact occured.</param>
+    [Obsolete($"{nameof(IContactEventHandler)} as been superseded by {nameof(IContactHandler)}, this method will never be called")]
     void OnTouching<TManifold>(CollidableComponent eventSource, CollidableComponent other, ref TManifold contactManifold, bool flippedManifold, int workerIndex, BepuSimulation bepuSimulation) where TManifold : unmanaged, IContactManifold<TManifold>
     {
     }
@@ -93,6 +100,7 @@ public interface IContactEventHandler
     /// <param name="flippedManifold">Whether the manifold's normals and offset is flipped from the source's point of view.</param>
     /// <param name="workerIndex">Index of the worker thread that fired this event.</param>
     /// <param name="bepuSimulation">The simulation where the contact occured.</param>
+    [Obsolete($"{nameof(IContactEventHandler)} as been superseded by {nameof(IContactHandler)}, this method will never be called")]
     void OnStoppedTouching<TManifold>(CollidableComponent eventSource, CollidableComponent other, ref TManifold contactManifold, bool flippedManifold, int workerIndex, BepuSimulation bepuSimulation) where TManifold : unmanaged, IContactManifold<TManifold>
     {
     }
@@ -108,6 +116,7 @@ public interface IContactEventHandler
     /// <param name="flippedManifold">Whether the manifold's normals and offset is flipped from the source's point of view.</param>
     /// <param name="workerIndex">Index of the worker thread that fired this event.</param>
     /// <param name="bepuSimulation">The simulation where the contact occured.</param>
+    [Obsolete($"{nameof(IContactEventHandler)} as been superseded by {nameof(IContactHandler)}, this method will never be called")]
     void OnPairCreated<TManifold>(CollidableComponent eventSource, CollidableComponent other, ref TManifold contactManifold, bool flippedManifold, int workerIndex, BepuSimulation bepuSimulation) where TManifold : unmanaged, IContactManifold<TManifold>
     {
     }
@@ -122,6 +131,7 @@ public interface IContactEventHandler
     /// <param name="flippedManifold">Whether the manifold's normals and offset is flipped from the source's point of view.</param>
     /// <param name="workerIndex">Index of the worker thread that fired this event.</param>
     /// <param name="bepuSimulation">The simulation where the contact occured.</param>
+    [Obsolete($"{nameof(IContactEventHandler)} as been superseded by {nameof(IContactHandler)}, this method will never be called")]
     void OnPairUpdated<TManifold>(CollidableComponent eventSource, CollidableComponent other, ref TManifold contactManifold, bool flippedManifold, int workerIndex, BepuSimulation bepuSimulation) where TManifold : unmanaged, IContactManifold<TManifold>
     {
     }
@@ -132,7 +142,8 @@ public interface IContactEventHandler
     /// <param name="eventSource">Collidable that the event was attached to.</param>
     /// <param name="other">Other collider <paramref name="eventSource"/> collided with.</param>
     /// <param name="bepuSimulation">The simulation where the contact occured.</param>
-    void OnPairEnded(CollidableComponent eventSource, CollidableComponent other, BepuSimulation bepuSimulation)
+    [Obsolete($"{nameof(IContactEventHandler)} as been superseded by {nameof(IContactHandler)}, this method will never be called")]
+    new void OnPairEnded(CollidableComponent eventSource, CollidableComponent other, BepuSimulation bepuSimulation)
     {
     }
 }

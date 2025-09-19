@@ -51,7 +51,7 @@ internal struct StrideNarrowPhaseCallbacks(BepuSimulation Simulation, ContactEve
 
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public unsafe bool ConfigureContactManifold<TManifold>(int workerIndex, CollidablePair pair, ref TManifold manifold, out PairMaterialProperties pairMaterial) where TManifold : unmanaged, IContactManifold<TManifold>
+    public bool ConfigureContactManifold<TManifold>(int workerIndex, CollidablePair pair, ref TManifold manifold, out PairMaterialProperties pairMaterial) where TManifold : unmanaged, IContactManifold<TManifold>
     {
         //For the purposes of this demo, we'll use multiplicative blending for the friction and choose spring properties according to which collidable has a higher maximum recovery velocity.
         var a = collidableMaterials[pair.A];
@@ -59,7 +59,7 @@ internal struct StrideNarrowPhaseCallbacks(BepuSimulation Simulation, ContactEve
         pairMaterial.FrictionCoefficient = a.FrictionCoefficient * b.FrictionCoefficient;
         pairMaterial.MaximumRecoveryVelocity = MathF.Max(a.MaximumRecoveryVelocity, b.MaximumRecoveryVelocity);
         pairMaterial.SpringSettings = pairMaterial.MaximumRecoveryVelocity == a.MaximumRecoveryVelocity ? a.SpringSettings : b.SpringSettings;
-        contactEvents.HandleManifold(workerIndex, pair, ref manifold);
+        contactEvents.HandleManifold(workerIndex, pair, 0, 0, ref manifold);
 
         if (a.IsTrigger || b.IsTrigger)
         {
@@ -72,6 +72,7 @@ internal struct StrideNarrowPhaseCallbacks(BepuSimulation Simulation, ContactEve
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool ConfigureContactManifold(int workerIndex, CollidablePair pair, int childIndexA, int childIndexB, ref ConvexContactManifold manifold)
     {
+        contactEvents.HandleManifold(workerIndex, pair, childIndexA, childIndexB, ref manifold);
         return true;
     }
 
