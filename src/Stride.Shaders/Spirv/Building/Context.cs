@@ -265,6 +265,10 @@ public class SpirvContext(SpirvModule module)
         return result;
     }
 
+    public OpData Insert<T>(int index, in T value)
+        where T : struct, IMemoryInstruction
+        => Buffer.InsertData(index, value);
+
     public OpData Add<T>(in T value)
         where T : struct, IMemoryInstruction
         => Buffer.Add(value);

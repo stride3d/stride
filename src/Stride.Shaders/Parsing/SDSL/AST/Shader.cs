@@ -206,7 +206,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
                 if (c.Id.Kind == SymbolKind.Variable)
                 {
                     var variableTypeId = context.GetOrRegister(c.Type);
-                    context.FluentAdd(new OpSDSLImportVariable(context.Bound++, variableTypeId, c.Id.Name, shader.ResultId), out var variable);
+                    context.FluentAdd(new OpSDSLImportVariable(variableTypeId, context.Bound++, c.Id.Name, shader.ResultId), out var variable);
                     context.Module.InheritedVariables.Add(c.Id.Name, new(variable.ResultId, variable.ResultType, variable.VariableName));
                     table.CurrentFrame.Add(c.Id.Name, c with { IdRef = variable.ResultId });
                 }
@@ -215,7 +215,7 @@ public class ShaderClass(Identifier name, TextLocation info) : ShaderDeclaration
                     var functionType = (FunctionType)c.Type;
 
                     var functionReturnTypeId = context.GetOrRegister(functionType.ReturnType);
-                    context.FluentAdd(new OpSDSLImportFunction(context.Bound++, functionReturnTypeId, c.Id.Name, shader.ResultId), out var function);
+                    context.FluentAdd(new OpSDSLImportFunction(functionReturnTypeId, context.Bound++, c.Id.Name, shader.ResultId), out var function);
                     context.Module.InheritedFunctions.Add(c.Id.Name, new(function.ResultId, c.Id.Name, functionType));
                     table.CurrentFrame.Add(c.Id.Name, c with { IdRef = function.ResultId });
                 }

@@ -1,7 +1,7 @@
 ﻿using Stride.Shaders.Experiments;
 
-Examples.CompileSDSL();
-// Examples.MergeSDSL();
+//Examples.CompileSDSL();
+Examples.MergeSDSL();
 // Examples.TryAllFiles();
 // Examples.CreateShader();
 

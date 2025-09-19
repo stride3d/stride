@@ -93,11 +93,7 @@ namespace Stride.Shaders.Spirv.Processing
                         }
                        )
                     {
-                        throw new NotImplementedException("Member names not supported yet");
-                        // if (nameTable.TryGetValue(t2, out var nameId))
-                        //     nameId.MemberNames[m] = n2;
-                        // else
-                        //     nameTable[t2] = new($"unnamed_{t2}") { MemberNames = { [m] = n2 } };
+                        nameTable[t2] = new(n2);
                     }
                 }
 
