@@ -349,7 +349,7 @@ namespace Stride.Assets.Presentation.Templates
                 var e = new Entity(string.IsNullOrEmpty(node.Name) ? $"Node_{i}" : node.Name);
 
                 // Keep the stack at (node.Depth) entries so parent is at depth-1
-                while (stack.Count > 0 && (stack.Count - 1) > node.Depth)
+                while (stack.Count > node.Depth)
                     stack.Pop();
 
                 if (stack.Count == 0)
@@ -400,6 +400,22 @@ namespace Stride.Assets.Presentation.Templates
             }
 
             root ??= entities[0];
+
+            var firstNode = entityInfo.Nodes[0];
+            var firstName = firstNode.Name ?? string.Empty;
+            bool looksLikeWrapper =
+                string.IsNullOrWhiteSpace(firstName)
+                || firstName.Equals(baseName, StringComparison.OrdinalIgnoreCase)
+                || firstName.Equals("RootNode", StringComparison.OrdinalIgnoreCase);
+
+            // Use the constructed runtime tree to check children count
+            if (looksLikeWrapper && root.Transform.Children.Count == 1)
+            {
+                var onlyChild = root.Transform.Children[0].Entity;
+                // Detach so it becomes the actual root
+                onlyChild.Transform.Parent = null;
+                root = onlyChild;
+            }
 
             // 3) Build Prefab: register ALL entities in Parts, add ROOT entity to RootParts
             var prefab = new PrefabAsset();
