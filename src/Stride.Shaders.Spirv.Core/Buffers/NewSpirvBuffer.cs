@@ -2,6 +2,7 @@
 
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
+using System.Text;
 using CommunityToolkit.HighPerformance;
 using CommunityToolkit.HighPerformance.Buffers;
 using Stride.Shaders.Spirv.Core.Parsing;
@@ -84,6 +85,46 @@ public struct OpData : IDisposable, IComparable<OpData>
         var group = InstructionInfo.GetGroupOrder(this);
         var otherGroup = InstructionInfo.GetGroupOrder(other);
         return group.CompareTo(otherGroup);
+    }
+
+    public override string ToString()
+    {
+        var sb = new StringBuilder();
+        sb.Append(Op);
+        foreach (var op in this)
+        {
+            sb.Append(" ");
+            switch (op.Kind)
+            {
+                case OperandKind.IdResult:
+                case OperandKind.IdRef:
+                    for (var index = 0; index < op.Words.Length; index++)
+                    {
+                        if (index > 0)
+                            sb.Append(" ");
+                        var x = op.Words[index];
+                        sb.Append("%");
+                        sb.Append(op.Words[0]);
+                    }
+
+                    break;
+                case OperandKind.LiteralInteger when op.Words.Length == 1:
+                    foreach (var e in op.Words)
+                        sb.Append(e);
+                    break;
+                case OperandKind.LiteralString:
+                    sb.Append('"');
+                    sb.Append(op.ToLiteral<string>());
+                    sb.Append('"');
+                    break;
+                default:
+                    sb.Append($"unknown_{op.Kind}");
+                    if (op.Words.Length != 1)
+                        sb.Append($"_{op.Words.Length}");
+                    break;
+            }
+        }
+        return sb.ToString();
     }
 }
 
@@ -243,7 +284,14 @@ public sealed class NewSpirvBuffer() : IDisposable
         }
     }
 
-    public void Sort() => Instructions.Sort(static (a, b) => a.CompareTo(b));
+    public void Sort()
+    {
+        // Note: We don't use List.Sort because it's not stable.
+        //       This is especially important for type depending on another type.
+        var sortedInstructions = Instructions.OrderBy(InstructionInfo.GetGroupOrder).ToList();
+        Instructions.Clear();
+        Instructions.AddRange(sortedInstructions);
+    }
 
     public SpanOwner<int> ToBuffer()
     {
