@@ -10,6 +10,7 @@ using Silk.NET.Assimp;
 using Stride.Animations;
 using Stride.Assets.Materials;
 using Stride.Core;
+using Stride.Core.Assets;
 using Stride.Core.Diagnostics;
 using Stride.Core.Extensions;
 using Stride.Core.IO;
@@ -30,6 +31,13 @@ namespace Stride.Importer.ThreeD
 {
     public class MeshConverter
     {
+        // keptMeshIndex < 0 => keep ALL meshes
+        // keptMeshIndex >= 0 => keep only that mesh index
+        private int keptMeshIndex = -1; // default to ALL unless name says otherwise
+        private string keptMeshNameHint = null;
+
+        private bool IsKeptMeshIndex(int meshIndex) => keptMeshIndex < 0 || meshIndex == keptMeshIndex;
+
         static MeshConverter()
         {
             if (Platform.Type == PlatformType.Windows)
@@ -65,6 +73,47 @@ namespace Stride.Importer.ThreeD
         private void ResetConversionData()
         {
             textureNameCount.Clear();
+        }
+
+        private void DecideKeptMeshIndexFromOutput()
+        {
+            keptMeshIndex = -1;
+            keptMeshNameHint = null;
+
+            try
+            {
+                var name = System.IO.Path.GetFileNameWithoutExtension(vfsOutputFilename);
+                if (string.IsNullOrEmpty(name))
+                    return;
+
+                // "(All)" => all meshes
+                if (name.EndsWith(" (All)", StringComparison.OrdinalIgnoreCase))
+                    return;
+
+                // "(Mesh X)" => keep mesh X-1 (legacy)
+                const string tag = " (Mesh ";
+                if (name.EndsWith(")", StringComparison.Ordinal))
+                {
+                    var start = name.LastIndexOf(tag, StringComparison.OrdinalIgnoreCase);
+                    if (start >= 0)
+                    {
+                        var numStr = name.Substring(start + tag.Length, name.Length - (start + tag.Length) - 1);
+                        if (int.TryParse(numStr, out var oneBased) && oneBased >= 1)
+                        {
+                            keptMeshIndex = oneBased - 1;
+                            return;
+                        }
+                    }
+                }
+
+                // Otherwise: remember the full output name; we will try to match a mesh by name later
+                keptMeshNameHint = name;
+            }
+            catch
+            {
+                keptMeshIndex = -1;
+                keptMeshNameHint = null;
+            }
         }
 
         public unsafe EntityInfo ExtractEntity(string inputFilename, string outputFilename, bool extractTextureDependencies, bool deduplicateMaterials)
@@ -160,6 +209,7 @@ namespace Stride.Importer.ThreeD
             vfsInputFilename = inputFilename;
             vfsOutputFilename = outputFilename;
             vfsInputPath = VirtualFileSystem.GetParentFolder(inputFilename);
+            DecideKeptMeshIndexFromOutput();
 
             var propStore = assimp.CreatePropertyStore();
             assimp.SetImportPropertyInteger(propStore, "IMPORT_FBX_PRESERVE_PIVOTS", 0); // Trade some issues for others, see: https://github.com/assimp/assimp/issues/894, https://github.com/assimp/assimp/issues/1974
@@ -186,6 +236,24 @@ namespace Stride.Importer.ThreeD
             var meshNames = new Dictionary<IntPtr, string>();
             GenerateMeshNames(scene, meshNames);
 
+            // If output asset name equals a mesh name, or ends with "-<MeshName>", select that mesh.
+            if (!string.IsNullOrEmpty(keptMeshNameHint))
+            {
+                for (uint i = 0; i < scene->MNumMeshes; ++i)
+                {
+                    var lMesh = scene->MMeshes[i];
+                    var meshName = meshNames[(IntPtr)lMesh];
+
+                    if (string.Equals(keptMeshNameHint, meshName, StringComparison.OrdinalIgnoreCase) ||
+                        keptMeshNameHint.EndsWith("-" + meshName, StringComparison.OrdinalIgnoreCase))
+                    {
+                        keptMeshIndex = (int)i;
+                        break;
+                    }
+                }
+                // If no match found, keptMeshIndex stays -1 → keep ALL meshes (Split OFF case)
+            }
+
             var nodeNames = new Dictionary<IntPtr, string>();
             var duplicateNodeNameToNodePointers = new Dictionary<string, List<IntPtr>>();
             GenerateNodeNames(scene, nodeNames, duplicateNodeNameToNodePointers);
@@ -201,6 +269,8 @@ namespace Stride.Importer.ThreeD
             // meshes
             for (var i = 0; i < scene->MNumMeshes; ++i)
             {
+                if (!IsKeptMeshIndex(i))
+                    continue;
                 if (!meshIndexToNodeIndex.TryGetValue(i, out var value))
                 {
                     continue;
@@ -251,8 +321,10 @@ namespace Stride.Importer.ThreeD
             // Get the all bones in the scene
             var allBones = new List<(IntPtr NodePointer, string BoneName)>();
             var uniqueBoneNames = new HashSet<string>();
-            for (int meshIdx = 0; meshIdx < scene->MNumMeshes; meshIdx++)
+            for (int meshIdx = 0; meshIdx < (int)scene->MNumMeshes; meshIdx++)
             {
+                if (keptMeshIndex >= 0 && meshIdx != keptMeshIndex)
+                    continue;
                 var mesh = scene->MMeshes[meshIdx];
                 if (mesh->MNumBones == 0)
                 {
@@ -700,13 +772,19 @@ namespace Stride.Importer.ThreeD
         private unsafe void GenerateMeshNames(Scene* scene, Dictionary<IntPtr, string> meshNames)
         {
             var baseNames = new List<string>();
-            for (uint i = 0; i < scene->MNumMeshes; i++)
+            var orderedMeshPtrs = new List<IntPtr>();
+            for (uint i = 0; i < scene->MNumMeshes; ++i)
             {
                 var lMesh = scene->MMeshes[i];
                 baseNames.Add(lMesh->MName.AsString.CleanNodeName());
+                orderedMeshPtrs.Add((IntPtr)lMesh);
             }
-            GenerateUniqueNames(meshNames, baseNames, i => (IntPtr)scene->MMeshes[i]);
+
+            GenerateUniqueNames(meshNames, baseNames, idx => orderedMeshPtrs[idx]);
         }
+
+
+
 
         private unsafe void GenerateAnimationNames(Scene* scene, Dictionary<IntPtr, string> animationNames)
         {
@@ -748,18 +826,20 @@ namespace Stride.Importer.ThreeD
         {
             var nodeIndex = nodes.Count;
 
-            // assign the index of the node to the index of the mesh
+            // assign the index of the node to the index of the mesh (keep only mesh 0)
             for (uint m = 0; m < fromNode->MNumMeshes; ++m)
             {
-                var meshIndex = fromNode->MMeshes[m];
+                var meshIndex = (int)fromNode->MMeshes[m];
+                if (!IsKeptMeshIndex(meshIndex))
+                    continue;
 
-                if (!meshIndexToNodeIndex.TryGetValue((int)meshIndex, out var nodeIndices))
+                if (!meshIndexToNodeIndex.TryGetValue(meshIndex, out var nodeIndices))
                 {
                     nodeIndices = new List<int>();
-                    meshIndexToNodeIndex.Add((int)meshIndex, nodeIndices);
+                    meshIndexToNodeIndex.Add(meshIndex, nodeIndices);
                 }
 
-                nodeIndices.Add(nodeIndex);
+                nodeIndices.Add(nodeIndex); // or nodeIndex, depending on your existing code
             }
 
             // Create node
@@ -772,7 +852,6 @@ namespace Stride.Importer.ThreeD
 
             // Extract scene scaling and rotation from the root node.
             // Bake scaling into all node's positions and rotation into the 1st-level nodes.
-
             if (parentIndex == -1)
             {
                 rootTransform = fromNode->MTransformation.ToStrideMatrix();
@@ -793,10 +872,12 @@ namespace Stride.Importer.ThreeD
 
             nodes.Add(modelNodeDefinition);
 
+            // Map this node pointer to its index exactly once, after we've added it
             if (nodePointerToNodeIndex is not null)
             {
                 nodePointerToNodeIndex.Add((IntPtr)fromNode, nodeIndex);
             }
+
             if (duplicateNodeNameToNodeIndices is not null)
             {
                 string originalNodeName = fromNode->MName.AsString.CleanNodeName();
@@ -1517,7 +1598,6 @@ namespace Stride.Importer.ThreeD
 
                 meshList.Add(meshParams);
             }
-
             return meshList;
         }
 

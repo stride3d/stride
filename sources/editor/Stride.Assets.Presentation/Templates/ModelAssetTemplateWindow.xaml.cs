@@ -43,6 +43,7 @@ namespace Stride.Assets.Presentation.Templates
         private bool showDeduplicateMaterialsCheckBox = true;
         private bool showFbxDedupeNotSupportedWarning = false;
         private bool deduplicateMaterials = true;
+        private bool splitHierarchy = true;
         private bool importTextures = true;
         private bool importAnimations = true;
         private bool importSkeleton = true;
@@ -64,6 +65,8 @@ namespace Stride.Assets.Presentation.Templates
         public bool ImportTextures { get { return importTextures; } set { SetValue(ref importTextures, value); } }
 
         public bool ImportAnimations { get { return importAnimations; } set { SetValue(ref importAnimations, value); } }
+
+        public bool SplitHierarchy { get { return splitHierarchy; } set { SetValue(ref splitHierarchy, value); } }
 
         public bool ImportSkeleton { get { return importSkeleton; } set { SetValue(ref importSkeleton, value); } }
 
