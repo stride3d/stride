@@ -123,5 +123,8 @@ public readonly ref struct ContactData<TManifold> where TManifold : unmanaged, I
                 return Data.EventSource.Pose!.Value.Position + Data.Manifold.GetOffset(Index);
             }
         }
+
+        /// <summary> Gets the feature id associated with this contact </summary>
+        public int FeatureId => Data.Manifold.GetFeatureId(Index);
     }
 }

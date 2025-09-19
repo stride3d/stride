@@ -1,7 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using BepuPhysics.Collidables;
+using BepuPhysics.CollisionDetection;
 using Stride.BepuPhysics.Definitions.Contacts;
 using Stride.Core;
 
@@ -13,23 +13,23 @@ public delegate void TriggerDelegate(CollidableComponent @this, CollidableCompon
 /// A contact event handler without collision response, which runs delegates on enter and exit
 /// </summary>
 [DataContract]
-public class Trigger : IContactEventHandler
+public class Trigger : IContactHandler
 {
     public bool NoContactResponse => true;
     public event TriggerDelegate? OnEnter, OnLeave;
 
-    void IContactEventHandler.OnStartedTouching<TManifold>(CollidableComponent eventSource, CollidableComponent other, ref TManifold contactManifold, bool flippedManifold, int contactIndex, BepuSimulation bepuSimulation) => OnStartedTouching(eventSource, other, ref contactManifold, flippedManifold, contactIndex, bepuSimulation);
-    void IContactEventHandler.OnStoppedTouching<TManifold>(CollidableComponent eventSource, CollidableComponent other, ref TManifold contactManifold, bool flippedManifold, int contactIndex, BepuSimulation bepuSimulation) => OnStoppedTouching(eventSource, other, ref contactManifold, flippedManifold, contactIndex, bepuSimulation);
+    void IContactHandler.OnStartedTouching<TManifold>(ContactData<TManifold> contactData) => OnStartedTouching(contactData);
+    void IContactHandler.OnStoppedTouching<TManifold>(ContactData<TManifold> contactData) => OnStoppedTouching(contactData);
 
-    /// <inheritdoc cref="IContactEventHandler.OnStartedTouching{TManifold}"/>
-    protected void OnStartedTouching<TManifold>(CollidableComponent eventSource, CollidableComponent other, ref TManifold contactManifold, bool flippedManifold, int contactIndex, BepuSimulation bepuSimulation)
+    /// <inheritdoc cref="IContactHandler.OnStartedTouching{TManifold}"/>
+    protected void OnStartedTouching<TManifold>(ContactData<TManifold> contactData) where TManifold : unmanaged, IContactManifold<TManifold>
     {
-        OnEnter?.Invoke(eventSource, other);
+        OnEnter?.Invoke(contactData.EventSource, contactData.Other);
     }
 
-    /// <inheritdoc cref="IContactEventHandler.OnStoppedTouching{TManifold}"/>
-    protected void OnStoppedTouching<TManifold>(CollidableComponent eventSource, CollidableComponent other, ref TManifold contactManifold, bool flippedManifold, int contactIndex, BepuSimulation bepuSimulation)
+    /// <inheritdoc cref="IContactHandler.OnStoppedTouching{TManifold}"/>
+    protected void OnStoppedTouching<TManifold>(ContactData<TManifold> contactData) where TManifold : unmanaged, IContactManifold<TManifold>
     {
-        OnLeave?.Invoke(eventSource, other);
+        OnLeave?.Invoke(contactData.EventSource, contactData.Other);
     }
 }
